@@ -38,6 +38,8 @@ const std::string gKeySecret("");        // your here.access.key.secret
 const std::string gCatalogHRN("");       // your catalog HRN where to write to
 const std::string gLayer("");            // layer name inside catalog to use
 const std::string gData("hello world");  // data to write
+
+constexpr auto LOG_TAG = "write-example";
 }  // namespace
 
 int runExample() {
@@ -68,14 +70,13 @@ int runExample() {
 
   // Check the response
   if (!response.IsSuccessful()) {
-    LOG_INFO_F("write-example",
-               "Error writing data - HTTP Status: %d Message: %s",
-               response.GetError().GetHttpStatusCode(),
-               response.GetError().GetMessage().c_str());
+    LOG_ERROR_F(LOG_TAG, "Error writing data - HTTP Status: %d Message: %s",
+                response.GetError().GetHttpStatusCode(),
+                response.GetError().GetMessage().c_str());
     return -1;
   } else {
-    LOG_ERROR_F("write-example", "Publish Successful - TraceID: %s",
-                response.GetResult().GetTraceID().c_str());
+    LOG_INFO_F(LOG_TAG, "Publish Successful - TraceID: %s",
+               response.GetResult().GetTraceID().c_str());
   }
 
   return 0;
