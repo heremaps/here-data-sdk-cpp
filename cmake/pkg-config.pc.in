@@ -1,0 +1,10 @@
+includedir=@CMAKE_INSTALL_PREFIX@/@INCLUDE_DIRECTORY@
+libdir=@CMAKE_INSTALL_PREFIX@/@LIBRARY_DIRECTORY@
+
+Name: @PROJECT_NAME@
+Description: @DESCRIPTION@
+Version: @PROJECT_VERSION@
+Cflags: -I${includedir} -std=gnu++@CMAKE_CXX_STANDARD@
+Libs: -L${libdir} -l@PROJECT_NAME@
+Libs.private: @SDK_CONFIG_LIBS@
+Requires: @PROJECT_LIBS@

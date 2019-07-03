@@ -1,0 +1,63 @@
+#!/bin/bash
+
+usage()
+{
+    echo "usage: sh android_test.sh [-f gtest_filter ] [-o gtest_output_filename] [-h]"
+}
+
+while [ "$1" != "" ]; do
+    case $1 in
+        -f | --filter )     shift
+                            filter="-e filter $1"
+                            ;;
+        -o | --output )     shift
+                            output=$1
+                            ;;
+        -k | --kpiTestRunCount )
+                            shift
+                            count="-e kpiTestRunCount $1"
+                            ;;
+        -s | --stressTestDuration )
+                            shift
+                            duration="-e stressTestDuration $1"
+                            ;;
+        -rp | --runProdTests )
+                            shift
+                            runProd="-e runProdTests 1"
+                            ;;
+        -h | --help )       usage
+                            exit
+                            ;;
+        * )                 usage
+                            exit 1
+    esac
+    shift
+done
+
+# determine gtest filters to be passed in
+if [ -z "$output" ]
+then
+    output="out.xml"
+fi
+GTESTFILTERS="-e output /sdcard/$output $filter $count $duration $runProd"
+
+OUTPUTDIR=./android_test_output
+DEBUGAPKDIR=./@SERVICE_TEST_LIB_NAME@-tester/app/build/outputs/apk
+
+mkdir -p $OUTPUTDIR
+
+adb install -r $DEBUGAPKDIR/app-debug.apk
+adb install -r $DEBUGAPKDIR/app-debug-androidTest.apk
+adb shell pm grant com.here.android.olp.@PACKAGE_NAME@ android.permission.READ_EXTERNAL_STORAGE
+adb shell pm grant com.here.android.olp.@PACKAGE_NAME@ android.permission.WRITE_EXTERNAL_STORAGE
+adb logcat -c P
+adb shell am instrument -w $GTESTFILTERS com.here.android.olp.@PACKAGE_NAME@.test/android.support.test.runner.AndroidJUnitRunner
+adb logcat -v time -d > $OUTPUTDIR/testapp-logcat.txt
+adb pull /sdcard/$output $OUTPUTDIR/$output
+adb pull /sdcard/tmp/TestResults.txt $OUTPUTDIR/
+adb pull /sdcard/tmp/kpi $OUTPUTDIR/
+adb shell pm uninstall com.here.android.olp.@PACKAGE_NAME@
+adb shell pm uninstall com.here.android.olp.@PACKAGE_NAME@.test
+adb shell rm /sdcard/$output
+adb shell rm /sdcard/output.log
+adb shell rm /sdcard/tmp/TestResults.txt

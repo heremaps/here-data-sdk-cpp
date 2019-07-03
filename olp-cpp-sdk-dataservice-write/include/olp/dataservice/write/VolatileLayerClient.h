@@ -1,0 +1,251 @@
+/*
+ * Copyright (C) 2019 HERE Europe B.V.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
+ */
+
+#pragma once
+
+#include <olp/core/client/ApiError.h>
+#include <olp/core/client/ApiNoResult.h>
+#include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/OlpClientSettings.h>
+
+#include <olp/dataservice/write/DataServiceWriteApi.h>
+#include <olp/dataservice/write/generated/model/Publication.h>
+#include <olp/dataservice/write/generated/model/ResponseOkSingle.h>
+#include <olp/dataservice/write/model/PublishPartitionDataRequest.h>
+#include <olp/dataservice/write/model/StartBatchRequest.h>
+#include <olp/dataservice/write/model/VersionResponse.h>
+
+namespace olp {
+namespace client {
+struct Error;
+class HRN;
+}  // namespace client
+
+namespace dataservice {
+namespace write {
+class VolatileLayerClientImpl;
+
+using PublishPartitionDataResult =
+    olp::dataservice::write::model::ResponseOkSingle;
+using PublishPartitionDataResponse =
+    client::ApiResponse<PublishPartitionDataResult, client::ApiError>;
+using PublishPartitionDataCallback =
+    std::function<void(PublishPartitionDataResponse response)>;
+
+using GetBaseVersionResult = model::VersionResponse;
+using GetBaseVersionResponse =
+    client::ApiResponse<GetBaseVersionResult, client::ApiError>;
+using GetBaseVersionCallback = std::function<void(GetBaseVersionResponse)>;
+
+using StartBatchResult = model::Publication;
+using StartBatchResponse =
+    client::ApiResponse<StartBatchResult, client::ApiError>;
+using StartBatchCallback = std::function<void(StartBatchResponse)>;
+
+using GetBatchResult = model::Publication;
+using GetBatchResponse = client::ApiResponse<GetBatchResult, client::ApiError>;
+using GetBatchCallback = std::function<void(GetBatchResponse)>;
+
+using PublishToBatchResult = client::ApiNoResult;
+using PublishToBatchResponse =
+    client::ApiResponse<PublishToBatchResult, client::ApiError>;
+using PublishToBatchCallback =
+    std::function<void(PublishToBatchResponse response)>;
+
+using CompleteBatchResult = client::ApiNoResult;
+using CompleteBatchResponse =
+    client::ApiResponse<CompleteBatchResult, client::ApiError>;
+using CompleteBatchCallback =
+    std::function<void(CompleteBatchResponse response)>;
+
+/**
+ * @brief Client responsible for writing data into an OLP Volatile Layer.
+ */
+class DATASERVICE_WRITE_API VolatileLayerClient {
+ public:
+  /**
+   * @brief VolatileLayerClient Constructor.
+   * @param catalog OLP HRN specifying the catalog this client will write to.
+   * @param settings Client settings used to control behaviour of the client
+   * instance. Volatile.
+   */
+  VolatileLayerClient(const client::HRN& catalog,
+                      const client::OlpClientSettings& settings);
+
+  /**
+   * @brief Cancel all pending requests.
+   */
+  void cancellAll();
+
+  /**
+   * @brief Call to publish data into an OLP Volatile Layer.
+   * @note Content-type for this request will be set implicitly based on the
+   * Layer metadata for the target Layer on OLP.
+   * @param request PublishPartitionDataRequest object representing the
+   * parameters for this publishData call.
+   *
+   * @return A CancellableFuture containing the PublishPartitionDataResponse.
+   */
+  olp::client::CancellableFuture<PublishPartitionDataResponse>
+  PublishPartitionData(const model::PublishPartitionDataRequest& request);
+
+  /**
+   * @brief Call to publish data into an OLP Volatile Layer.
+   * @note Content-type for this request will be set implicitly based on the
+   * Layer metadata for the target Layer on OLP.
+   * @param request PublishPartitionDataRequest object representing the
+   * parameters for this publishData call.
+   * @param callback PublishPartitionDataCallback which will be called with the
+   * PublishPartitionDataResponse when the operation completes.
+   *
+   * @return A CancellationToken which can be used to cancel the ongoing
+   * request.
+   */
+  olp::client::CancellationToken PublishPartitionData(
+      const model::PublishPartitionDataRequest& request,
+      const PublishPartitionDataCallback& callback);
+
+  /**
+   * @brief Get the latest version number of the catalog
+   * @return future holding the response object
+   */
+  olp::client::CancellableFuture<GetBaseVersionResponse> GetBaseVersion();
+
+  /**
+   * @brief Get the latest version number of the catalog
+   * @param callback called when operation completes
+   * @return cancellationToken
+   */
+  olp::client::CancellationToken GetBaseVersion(
+      const GetBaseVersionCallback& callback);
+
+  /**
+   * @brief Start a batch operation.
+   * @param request details of the batch operation to start
+   * @return olp::client::CancellableFuture<StartBatchResponse>
+   */
+  olp::client::CancellableFuture<StartBatchResponse> StartBatch(
+      const model::StartBatchRequest& request);
+
+  /**
+   * @brief Start a batch operation.
+   * @param request details of the batch operation to start
+   * @param callback of type std::function<void(StartBatchResponse response)>
+   * @return olp::client::CancellationToken
+   */
+  olp::client::CancellationToken StartBatch(
+      const model::StartBatchRequest& request,
+      const StartBatchCallback& callback);
+
+  /**
+   * @brief Get the details of the given batch publication
+   * @param pub the publication to get the current details of
+   * @return future returning a batch response.
+   */
+  olp::client::CancellableFuture<GetBatchResponse> GetBatch(
+      const model::Publication& pub);
+
+  /**
+   * @brief Get the details of the given batch publication
+   * @param pub the publication to get the current details of
+   * @param callback called when the operation completes
+   * @return cancellation token
+   */
+  olp::client::CancellationToken GetBatch(const model::Publication& pub,
+                                          const GetBatchCallback& callback);
+
+  /**
+   * Publish meta data to OLP.
+   *
+   * A volatile layer publishing task consists 2 steps:
+   * <list type = "number">
+   * <item>Publish meta data</item>
+   * <item>Publish data blob</item>
+   * </list>
+   *
+   * This API handles the 1st step, it has to be done <b>before</b> publishing
+   * data blob, otherwise clients will receive an empty vector from publishing
+   * data blob result. Note that changing the meta data of a partition will
+   * result in updating the catalog version.
+   * @param partitions a group of PublishPartitionDataRequest that has following
+   * fields defined: <list type = "bullet"> <item>Layer ID (required)</item>
+   * <item>Partition (required)</item>
+   * <item>HERE checksum (optional)</item>
+   * <item>Data - must NOT be defiend as this call is for updating metadata
+   * (e.g. Partition IDs) only.</item>
+   * </list>
+   * @param callback called when the operation completes.
+   * @return cancellation token that can be used to cancel the request.
+   */
+  olp::client::CancellableFuture<PublishToBatchResponse> PublishToBatch(
+      const model::Publication& pub,
+      const std::vector<model::PublishPartitionDataRequest>& partitions);
+
+  /**
+   * Publish meta data to OLP.
+   *
+   * A volatile layer publishing task consists 2 steps:
+   * <list type = "number">
+   * <item>Publish meta data</item>
+   * <item>Publish data blob</item>
+   * </list>
+   *
+   * This API handles the 1st step, it has to be done <b>before</b> publishing
+   * data blob, otherwise clients will receive an empty vector from publishing
+   * data blob result. Note that changing the meta data of a partition will
+   * result in updating the catalog version.
+   * @param partitions a group of PublishPartitionDataRequest that has following
+   * fields defined: <list type = "bullet"> <item>Layer ID (required)</item>
+   * <item>Partition (required)</item>
+   * <item>HERE checksum (optional)</item>
+   * <item>Data - must NOT be defiend as this call is for updating metadata
+   * (e.g. Partition IDs) only.</item>
+   * </list>
+   * @param callback called when the operation completes.
+   * @return cancellation token that can be used to cancel the request.
+   */
+  olp::client::CancellationToken PublishToBatch(
+      const model::Publication& pub,
+      const std::vector<model::PublishPartitionDataRequest>& partitions,
+      const PublishToBatchCallback& callback);
+
+  /**
+   * @brief Complete the given batch operation and commit to OLP.
+   * @param pub the publication to complete
+   * @return future containing the batch response
+   */
+  olp::client::CancellableFuture<CompleteBatchResponse> CompleteBatch(
+      const model::Publication& pub);
+
+  /**
+   * @brief Complete the given batch operation and commit to OLP.
+   * @param pub the publication to complete
+   * @param callback called when the operation completes.
+   * @return cancellation token
+   */
+  olp::client::CancellationToken CompleteBatch(
+      const model::Publication& pub, const CompleteBatchCallback& callback);
+
+ private:
+  std::shared_ptr<VolatileLayerClientImpl> impl_;
+};
+
+}  // namespace write
+}  // namespace dataservice
+}  // namespace olp

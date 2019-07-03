@@ -1,0 +1,6 @@
+---
+excludes:
+  projects:
+  - path: ".*build\\.gradle"
+    reason: "TEST_TOOL_OF"
+    comment: "This project contains tests which are not distributed"

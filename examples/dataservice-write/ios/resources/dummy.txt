@@ -1,0 +1,1 @@
+This is the example text file, which will be written to the provided OLP catalog.

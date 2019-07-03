@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">OLP CPP SDK Tester</string>
+    <string name="string_start_test">Run tests...</string>
+</resources>

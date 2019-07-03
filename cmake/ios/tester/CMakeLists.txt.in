@@ -1,0 +1,95 @@
+# Copyright (C) 2019 HERE Europe B.V.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# SPDX-License-Identifier: Apache-2.0
+# License-Filename: LICENSE
+project(olp-ios-@SERVICE_TEST_LIB@-tester)
+
+set(SVC_TEST_LIB @SERVICE_TEST_LIB@)
+
+find_library(UIKIT UIKit)
+find_library(FOUNDATION Foundation)
+find_library(MOBILECORESERVICES MobileCoreServices)
+find_library(CFNETWORK CFNetwork)
+find_library(SYSTEMCONFIGURATION SystemConfiguration)
+find_library(SECURITY Security)
+
+file(GLOB_RECURSE APP_HEADER_FILES ./*.h)
+file(GLOB_RECURSE APP_M_FILES ./*.m)
+file(GLOB_RECURSE APP_MM_FILES ./*.mm)
+
+set(RESOURCES
+  ./Base.lproj/Main.storyboard
+)
+
+add_executable(${PROJECT_NAME}
+    ${APP_HEADER_FILES}
+    ${APP_M_FILES}
+    ${APP_MM_FILES}
+    ${RESOURCES}
+)
+
+add_dependencies(${PROJECT_NAME} @SERVICE_TEST_LIB@)
+
+target_link_libraries(${PROJECT_NAME}
+    ${UIKIT}
+    ${FOUNDATION}
+    ${MOBILECORESERVICES}
+    ${CFNETWORK}
+    ${SYSTEMCONFIGURATION}
+    ${SECURITY}
+    "-Wl,-force_load"
+    ${SVC_TEST_LIB}
+    "-Wl,-noall_load"
+)
+
+target_include_directories(${PROJECT_NAME}
+    PRIVATE ${GTEST_INCLUDE_DIRS}
+)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fobjc-arc")
+
+set(DEPLOYMENT_TARGET ${CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET})
+set(DEVICE_FAMILY "1")
+set(APP_BUNDLE_IDENTIFIER "com.here.olp.${PROJECT_NAME}")
+
+## IOS_DEVELOPMENT_TEAM_ID should be defined in product_config
+set(DEVELOPMENT_TEAM_ID " ")
+if (IOS_DEVELOPMENT_TEAM_ID)
+    set(DEVELOPMENT_TEAM_ID ${IOS_DEVELOPMENT_TEAM_ID})
+endif()
+
+set(MACOSX_BUNDLE_INFO_STRING ${APP_BUNDLE_IDENTIFIER})
+set(MACOSX_BUNDLE_GUI_IDENTIFIER ${APP_BUNDLE_IDENTIFIER})
+set(MACOSX_BUNDLE_BUNDLE_NAME ${APP_BUNDLE_IDENTIFIER})
+set(MACOSX_BUNDLE_LONG_VERSION_STRING "1.0")
+set(MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0")
+set(MACOSX_BUNDLE_BUNDLE_VERSION "1.0")
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym"
+    RESOURCE "${RESOURCES}"
+    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
+    XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET ${DEPLOYMENT_TARGET}
+    XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
+    XCODE_ATTRIBUTE_DEVELOPMENT_TEAM ${DEVELOPMENT_TEAM_ID}
+    XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY ${DEVICE_FAMILY}
+    XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC YES
+    XCODE_ATTRIBUTE_COMBINE_HIDPI_IMAGES NO
+    XCODE_ATTRIBUTE_INSTALL_PATH "$(LOCAL_APPS_DIR)"
+    XCODE_ATTRIBUTE_ENABLE_TESTABILITY YES
+    XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN YES
+)
+
+include(${CMAKE_SOURCE_DIR}/cmake/ios/gen_ios_test.cmake)
+gen_ios_test()

@@ -1,0 +1,341 @@
+#!/bin/bash
+## This script executes the automation script which runs the iOS unit tests.
+## Required external variables are:
+##      -a              - input arguments to test runner e.g. "--gtest_filter=Test.*:-*Benchmark*
+##                                                             --automatic_recording
+##                                                             --kpiTestRunCount=100
+##                                                             --stressTestDuration=120"
+##                                                             --runProdTests
+##      -b              - the build flag, YES to build APP, NO do not
+##      -c <config>     - the build configuration, either debug or release (default)
+##      -p <platform>   - the build platform, either iphoneos (default) or iphonesimulator
+##
+## The iOS test runner app is expected to be located at @CMAKE_CURRENT_BINARY_DIR@/build/app.
+## The unit test results, syslog and build log is downloaded from device to @CMAKE_CURRENT_BINARY_DIR@/ios_test_output.
+
+echo "*** Build and run @PROJECT_NAME@ unit tests..."
+
+usage()
+{
+    echo "usage: ./ios_test.sh [-a input arguments to test runner] [-b build app flag][-c config] [-p platform] [-h]"
+    echo "       ./ios_test.sh -a '--gtest_filter=Test.*:-*Benchmark* --automatic_recording --kpiTestRunCount=100 --stressTestDuration=120' --runProdTests -b YES -c release -p iphoneos"
+}
+
+DownloadFile() {
+    sleep 5
+    if  [ "${BUILD_SDK}" = "iphoneos" ]; then
+        echo "Downloading $1 from device..."
+        ios-deploy --download="$1" --bundle_id ${BUNDLE_ID} --to "$2" > temp.txt 2>&1
+        if grep -q "Unable to find bundle with id\:" temp.txt; then
+            echo "FATAL: Failed to download $1 from device - ios-deploy is in a bad state:"
+            cat temp.txt
+            ExitWithReason "ios-deploy failed"
+        fi
+    else
+        SIM_APP_DATA="$(xcrun simctl get_app_container $SIM_UDID $BUNDLE_ID data)"
+        cp -R "$SIM_APP_DATA$1" $2
+    fi
+
+    echo "Downloaded OK"
+}
+
+StartSysLogCapture () {
+    if  [ "${BUILD_SDK}" = "iphoneos" ]; then
+        echo "StartSysLogCapture for iphoneos"
+        ## Capture the device system log
+        rm -rf syslog.txt
+        if cfgutil > /dev/null ; then
+            echo "Capturing device system log via cfgutil to syslog.txt"
+            ## If logs turn out to be too huge then we can filter on the UTA by adding "| grep -i universal"
+            cfgutil syslog > syslog.txt &
+            SYSLOG_CAPTURE_PID=$!
+            echo "SYSLOG_CAPTURE_PID: ${SYSLOG_CAPTURE_PID}"
+        else
+          echo "Capturing device system log via idevicesyslog to syslog.txt"
+          idevicesyslog > syslog.txt &
+          SYSLOG_CAPTURE_PID=$!
+        fi
+    else
+        echo "StartSimLogCapture for iphonesimulator"
+        xcrun simctl spawn booted log stream --level=debug > simLog.txt &
+        SIMLOG_CAPTURE_PID=$!
+        echo "SIMLOG_CAPTURE_PID: ${SIMLOG_CAPTURE_PID}"
+    fi
+}
+
+StopSysLogCapture () {
+    if  [ "${BUILD_SDK}" = "iphoneos" ]; then
+        if [ -n "$SYSLOG_CAPTURE_PID" ]; then
+            kill -STOP $SYSLOG_CAPTURE_PID
+            SYSLOG_FILE=$(date "+%Y%m%d_%H%M%S_")
+            if [ -n "$LAUNCH_REASON" ]; then
+                SYSLOG_FILE+="$LAUNCH_REASON"
+                SYSLOG_FILE+="_syslog.txt"
+            else
+                SYSLOG_FILE+="syslog.txt"
+            fi
+            echo "Copying device system log from syslog.txt to \"${OUTPUT_DIR}/$SYSLOG_FILE\""
+            ## Do not remove this kill command, otherwise, it fails to copy the
+            ## output.xml from device
+            kill -STOP $SYSLOG_CAPTURE_PID
+            cp syslog.txt "${OUTPUT_DIR}/$SYSLOG_FILE"
+            echo ""
+        fi
+    else
+        kill -STOP $SIMLOG_CAPTURE_PID
+        SIMLOG_FILE=$(date "+%Y%m%d_%H%M%S_simlog.txt")
+        echo "Copying simulator console log from simlog.txt to \"${OUTPUT_DIR}/$SIMLOG_FILE\""
+        cp simlog.txt "${OUTPUT_DIR}/$SIMLOG_FILE"
+    fi
+}
+
+HasTimedOut () {
+    SECONDS_ELAPSED=$((SECONDS - SCRIPT_START_TIME_SECONDS))
+    if [ "$SECONDS_ELAPSED" -ge "$SCRIPT_TIMEOUT_SECONDS" ];then
+        return 0 # Timed out
+    else
+        return 1 # Still OK
+    fi
+}
+
+ExitWithReason () {
+    SCRIPT_EXIT_REASON=$1
+    SCRIPT_DURATION_SECONDS=$((SECONDS - SCRIPT_START_TIME_SECONDS))
+    SCRIPT_DURATION_MINUTES=$((SCRIPT_DURATION_SECONDS/60))
+    SCRIPT_DURATION_SECONDS=$((SCRIPT_DURATION_SECONDS%60))
+    echo "\n=================================================================================================================================="
+    echo "| ${0##*/} (${LAUNCH_REASON}) completed in $SCRIPT_DURATION_MINUTES minutes $SCRIPT_DURATION_SECONDS seconds on $(date)"
+    echo "| Exit code is $SCRIPT_EXIT_REASON"
+    echo "==================================================================================================================================\n"
+
+    exit $SCRIPT_EXIT_REASON
+}
+
+## Record script start time
+SCRIPT_START_TIME_SECONDS=$SECONDS
+SCRIPT_TIMEOUT_SECONDS=1200
+
+## Process options
+while getopts "a:b:c:p:h" opt; do
+    case $opt in
+    a)
+        ARGUMENTS=$OPTARG
+        ;;
+    b)
+        BUILD_FLAG=$OPTARG
+        ;;
+    c)
+        BUILD_CONFIG=$OPTARG
+        ;;
+    p)
+        BUILD_SDK=$OPTARG
+        ;;
+    h)
+        usage
+        exit
+        ;;
+    \?)
+        echo "Error: invalid option: -$OPTARG"
+        exit 1
+        ;;
+    :)
+        echo "Error: option -$OPTARG requires an argument"
+        exit 1
+        ;;
+    esac
+done
+
+## Set default build options as necessary
+if [ ! -n "$BUILD_CONFIG" ]; then
+    echo "Setting BUILD_CONFIG to default: Release"
+    BUILD_CONFIG="Release"
+fi
+
+if [ ! -n "$BUILD_SDK" ]; then
+    echo "Setting BUILD_SDK to default: iphoneos"
+    BUILD_SDK="iphoneos"
+fi
+
+if [ ! -n "$BUILD_FLAG" ]; then
+    echo "Setting BUILD_FLAG to default: NO"
+    BUILD_FLAG="NO"
+fi
+
+export BUILD_DIR=@CMAKE_CURRENT_BINARY_DIR@
+export OUTPUT_DIR=$BUILD_DIR/ios_test_output
+export APP_DIR=$BUILD_DIR/build/app
+export APP_NAME=@PROJECT_NAME@
+
+echo "================================ Build configuration ========================================================="
+echo "WORKSPACE: $BUILD_DIR"
+echo "Build config: $BUILD_CONFIG"
+echo "Platform: $BUILD_SDK"
+echo "ARGUMENTS: $ARGUMENTS"
+echo "APP_DIR: $APP_DIR"
+echo "OUTPUT_DIR: $OUTPUT_DIR"
+echo "APP_NAME: $APP_NAME"
+echo "ios-deploy version:"
+ios-deploy --version
+echo "=============================================================================================================="
+
+## Create the output folder for the run
+if [ -d "${OUTPUT_DIR}" ]; then
+    rm -rf "${OUTPUT_DIR}"
+fi
+mkdir -p "${OUTPUT_DIR}"
+
+## Build test app
+if  [ "${BUILD_FLAG}" = "YES" ]; then
+    "$BUILD_DIR/build_testapp.sh" -c $BUILD_CONFIG -p $BUILD_SDK
+fi
+
+BUNDLE_ID="com.here.olp.${APP_NAME}"
+TEST_APP="${APP_DIR}/${APP_NAME}.app"
+
+## Check if test runner app exists
+if [[ ! -e "$TEST_APP" ]]; then
+    echo "$TEST_APP does not exist."
+    exit 1
+fi
+
+##****************************************************************************
+if  [ "${BUILD_SDK}" = "iphoneos" ]; then
+
+    StartSysLogCapture
+
+    ## get the device UUID
+    for line in $(system_profiler SPUSBDataType | sed -n -e '/iPad/,/Serial/p' -e '/iPhone/,/Serial/p' | grep "Serial Number:" | awk -F ": " '{print $2}'); do
+        if [[ -z "$DEVICE_UDID" ]]; then
+            DEVICE_UDID="$line"
+        fi
+        break
+    done
+
+    ## instll test app on device
+    echo "*** Installing $APP_NAME app on device..."
+    ios-deploy ${DEVICE_UDID} --uninstall --bundle ${TEST_APP}
+
+    echo "ARGUMENTS: $ARGUMENTS"
+
+    ## start test app on device
+    echo "*** Starting test app on the device at "$(date)
+    if [[ -z "$ARGUMENTS" ]]; then
+        ios-deploy ${DEVICE_UDID} --noinstall --justlaunch --bundle ${TEST_APP} --bundle_id ${BUNDLE_ID} --verbose
+    else
+        ios-deploy ${DEVICE_UDID} --noinstall --justlaunch --bundle ${TEST_APP} --bundle_id ${BUNDLE_ID} --verbose --args "${ARGUMENTS}"
+    fi
+
+    ## Wait for test runner to install and start running
+    WAIT_FOR_TEST_TO_START=1
+    TEST_LAUNCH_TIME_SECONDS=$SECONDS;
+    while [ "$WAIT_FOR_TEST_TO_START" -eq 1 ]
+    do
+        echo "Installing test runner ..."
+        SECONDS_ELAPSED_SINCE_LAUNCH=$((SECONDS - TEST_LAUNCH_TIME_SECONDS))
+        if grep -q "${BUNDLE_ID} with pid .* is now Foreground Running" syslog.txt; then
+            echo "Test is running."
+            WAIT_FOR_TEST_TO_START=0
+        elif grep -q "Client ${BUNDLE_ID}* ForegroundRunning" syslog.txt; then
+            echo "Test is ForegroundRunning."
+            WAIT_FOR_TEST_TO_START=0
+        elif [ "$SECONDS_ELAPSED_SINCE_LAUNCH" -ge "50" ]; then
+            echo "ERROR: Test timeout during ios-deploy install/launch on $(date)"
+            StopSysLogCapture
+            ExitWithReason 5
+        else
+            sleep 5
+        fi
+    done
+
+    ## Wait for test to finish
+    WAIT_FOR_TEST_TO_FINISH=1
+    while [ "$WAIT_FOR_TEST_TO_FINISH" -eq 1 ]
+    do
+        echo "Running test ..."
+        if grep -q "${BUNDLE_ID} with pid .* is now Terminated" syslog.txt; then
+            echo "Test now terminated."
+            WAIT_FOR_TEST_TO_FINISH=0
+        elif grep -q "${BUNDLE_ID}* Terminated" syslog.txt; then
+            echo "Test terminated."
+            WAIT_FOR_TEST_TO_FINISH=0
+        elif HasTimedOut; then
+            echo "ERROR: Test timeout during ios-deploy run on $(date)"
+            # Note: There is no way to stop the app running at this point so we rely on the calling
+            # script to reboot the device
+            ExitWithReason 99
+        else
+            sleep 5
+        fi
+    done
+
+    ## test run completed
+    StopSysLogCapture
+
+    ## Get test _results
+    DownloadFile /Documents ${OUTPUT_DIR}
+    DownloadFile /tmp ${OUTPUT_DIR}
+
+    ## Clean up tmp/kpi directory
+    FILENAMES=$(ls "${OUTPUT_DIR}/tmp/kpi")
+    for name in ${FILENAMES}; do
+        ios-deploy --bundle_id ${BUNDLE_ID} --rm /tmp/kpi/${name}
+    done
+
+elif [ "${BUILD_SDK}" = "iphonesimulator" ]; then
+
+    ## get the device UUID
+    for line in $(xcrun instruments -s | grep -v "Watch" | grep "iPhone 8 Plus" | tr -d '],' | awk -F "[" '{print $2}'); do
+        if [[ -z "$SIM_UDID" ]]; then
+            SIM_UDID="$line"
+            echo "SIM_UDID: $SIM_UDID"
+        fi
+        break
+    done
+
+    ## launch iOS simulator
+    echo "Launching iOS simulator ..."
+    xcrun simctl shutdown $SIM_UDID
+    xcrun simctl boot $SIM_UDID
+
+    ## start logging
+    StartSysLogCapture
+
+    ## instll test app on simulator
+    echo "Installing test runner $TEST_APP ..."
+    xcrun simctl install booted $TEST_APP
+
+    ## start test app on device
+    echo "Starting test runner $BUNDLE_ID ..."
+    xcrun simctl launch booted $BUNDLE_ID
+
+    ## Wait for test to finish
+    WAIT_FOR_TEST_TO_FINISH=1
+    while [ "$WAIT_FOR_TEST_TO_FINISH" -eq 1 ]
+    do
+        echo "Running test ..."
+        if grep -q "${BUNDLE_ID} * exited" simlog.txt; then
+            echo "Test terminated."
+            WAIT_FOR_TEST_TO_FINISH=0
+        elif grep -q "Exit app" simlog.txt; then
+            echo "Test app exited."
+            WAIT_FOR_TEST_TO_FINISH=0
+        elif HasTimedOut; then
+            echo "ERROR: Test timeout during ios-deploy run on $(date)"
+            # Note: There is no way to stop the app running at this point so we rely on the calling
+            # script to reboot the device
+            ExitWithReason 99
+        else
+            sleep 5
+        fi
+    done
+
+    ## test run completed
+    StopSysLogCapture
+
+    ## Get test _results
+    DownloadFile /Documents ${OUTPUT_DIR}
+    DownloadFile /tmp ${OUTPUT_DIR}
+
+    ## shutdown simulator
+    xcrun simctl shutdown $SIM_UDID
+fi

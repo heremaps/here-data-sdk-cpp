@@ -1,0 +1,112 @@
+# Copyright (C) 2019 HERE Europe B.V.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# SPDX-License-Identifier: Apache-2.0
+# License-Filename: LICENSE
+project(@SERVICE_TEST_LIB_NAME@-tester)
+
+# Service library names (ie. from UNIX build)
+if(@SERVICE_TARGET_NAME@)
+    string(REPLACE "." "::" SVC_LIB @SERVICE_TARGET_NAME@)
+endif()
+set(SVC_TEST_LIB @SERVICE_TEST_LIB_NAME@)
+
+set(BUILD_TARGET ${PROJECT_NAME}-project)
+set(SETUP_TARGET ${BUILD_TARGET}-setup)
+
+set(TESTER_LIB ${PROJECT_NAME}-lib)
+
+get_property(CUSTOM_PARAMS_DIR TARGET custom-params PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+
+# duplicated in gen_android_test.cmake
+string(REGEX REPLACE "[\.-]" "" PACKAGE_NAME @SERVICE_TEST_LIB_NAME@)
+
+file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/app/src/main/java/com/here/android/olp/TesterActivity.java.in")
+
+configure_file(
+    ${CMAKE_SOURCE_DIR}/cmake/android/tester/app/src/main/java/com/here/android/olp/TesterActivity.java.in
+    ${CMAKE_CURRENT_BINARY_DIR}/app/src/main/java/com/here/android/olp/TesterActivity.java
+    @ONLY
+)
+
+file(GLOB_RECURSE APP_INC "app/jni/*.h*")
+file(GLOB_RECURSE APP_SRC "app/jni/*.c*")
+
+add_library(${TESTER_LIB} SHARED ${APP_SRC} ${APP_INC})
+
+target_include_directories(${TESTER_LIB}
+    PRIVATE ${@SERVICE_TARGET_NAME@_INCLUDE_DIRS}
+    PRIVATE GTest
+    PRIVATE ${CUSTOM_PARAMS_DIR}
+)
+
+set (UNWIND "")
+
+if(ANDROID_ABI STREQUAL armeabi-v7a)
+    set (UNWIND ${UNWIND} "-lunwind")
+endif()
+
+target_link_libraries(${TESTER_LIB}
+    "-llog"
+    ${UNWIND}
+    "-Wl,--whole-archive"
+    olp-cpp-sdk-core
+    ${SVC_LIB}
+    ${SVC_TEST_LIB}
+    custom-params
+    "-Wl,--no-whole-archive"
+)
+
+# setup android gradle project
+add_custom_target(
+    ${SETUP_TARGET}
+    DEPENDS ${TESTER_LIB}
+)
+
+add_custom_command(
+    TARGET ${SETUP_TARGET} PRE_BUILD
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+            app/src/main/jniLibs/${ANDROID_ABI}
+
+    # test library
+    COMMAND ${CMAKE_COMMAND} -E create_symlink
+            ${CMAKE_CURRENT_BINARY_DIR}/lib${TESTER_LIB}.so
+            app/src/main/jniLibs/${ANDROID_ABI}/lib${TESTER_LIB}.so
+)
+
+# Network jar
+add_custom_command(
+    TARGET ${SETUP_TARGET} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_BINARY_DIR}/olp-cpp-sdk-core/EdgeNetworkProtocol.jar
+        app/libs/EdgeNetworkProtocol.jar
+)
+
+add_custom_target(
+    ${BUILD_TARGET}
+    DEPENDS ${SETUP_TARGET}
+)
+
+# The actual build
+add_custom_command(
+    TARGET ${BUILD_TARGET} PRE_BUILD
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+
+    #gradle
+    COMMAND ./gradlew clean
+    COMMAND ./gradlew assembleDebug
+    COMMAND ./gradlew assembleAndroidTest
+)
