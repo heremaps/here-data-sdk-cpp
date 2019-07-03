@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">@EDGE_SDK_EXAMPLE_PACKAGE_NAME@</string>
+    <string name="waiting_for_response_str">Example is running - waiting for response...</string>
+
+</resources>

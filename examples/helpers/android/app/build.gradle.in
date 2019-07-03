@@ -1,0 +1,57 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 28
+
+    defaultConfig {
+        applicationId "com.here.android.olp.@EDGE_SDK_EXAMPLE_PACKAGE_NAME@"
+        minSdkVersion 15
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        // Specify the ABIs for which gradle will generate the APKs.
+        // Keep in mind that the installed OLP EDGE SDK / external libs should match the ABI defined here
+        ndk {
+            @EDGE_SDK_EXAMPLE_ANDROID_ABI@
+        }
+        externalNativeBuild {
+            cmake {
+                // In order to properly run the CMake step, you have to specify the next arguments:
+                //  1. CMAKE_TOOLCHAIN_FILE and other ANDROID_ arguments, which were used during building of OLP libraries
+                //  2. EDGE_SDK_NETWORK_PROTOCOL_JAR - path to the EdgeNetworkProtocol.jar file; usually it stored in the <olp-build-folder>/olp-cpp-sdk-core/
+                //  3. (If not installed to the sysroot) path to the levelDB library:
+                //      - leveldb_DIR;
+                //  4. (If not installed to the sysroot) - path to the OLP EDGE SDK cmake config files:
+                //      - olp-cpp-sdk-core_DIR;
+                //      - olp-cpp-sdk-dataservice-write_DIR;
+                //      - olp-cpp-sdk-authentication_DIR
+                arguments "@EDGE_SDK_EXAMPLE_ANDROID_TOOLCHAIN_FILE@",
+                        "@EDGE_SDK_EXAMPLE_NETWORK_PROTOCOL_JAR@",
+                        "@EDGE_SDK_EXAMPLE_LEVELDB_DIR@",
+                        // required for finding installed packages in sysroot
+                        "-DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH"
+
+                cppFlags "-std=c++11"
+                targets "@EDGE_SDK_EXAMPLE_TARGET_NAME@"
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+}
