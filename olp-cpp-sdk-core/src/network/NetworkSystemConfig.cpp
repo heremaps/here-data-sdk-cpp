@@ -57,7 +57,7 @@ bool NetworkSystemConfig::DontVerifyCertificate() const {
 #if defined(NETWORK_SSL_VERIFY_OVERRIDE)
   // Allow overriding of Certificate verification for
   //  troubleshooting/development purposes
-  if (Settings::getEnvInt("NETWORK_SSL_VERIFY", -1) == 0) {
+  if (Settings::GetEnvInt("NETWORK_SSL_VERIFY", -1) == 0) {
     LOG_INFO(LOGTAG,
              "Network SSL verification disabled by NETWORK_SSL_VERIFY=0");
     return true;
