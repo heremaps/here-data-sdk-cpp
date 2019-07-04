@@ -41,10 +41,28 @@
 
 namespace olp {
 namespace utils {
+namespace {
+#ifdef _WIN32
+#ifdef _UNICODE
+std::wstring ConvertStringToWideString(const std::string& str) {
+  int size_needed =
+      MultiByteToWideChar(CP_ACP, 0, &str[0], str.size(), NULL, 0);
+  std::wstring wstrPath(size_needed, 0);
+  MultiByteToWideChar(CP_ACP, 0, &str[0], str.size(), &wstrPath[0],
+                      size_needed);
+  return wstrPath;
+}
+#endif  // _UNICODE
+#endif  // _WIN32
+}  // namespace
 bool Dir::exists(const std::string& path) {
 #ifdef _WIN32
-  //TODO: FIXME: misbehaves using UNICODE
-  const TCHAR* syspath = reinterpret_cast<const TCHAR*>(path.c_str());
+#ifdef _UNICODE
+  std::wstring wstrPath = ConvertStringToWideString(path);
+  const TCHAR* syspath = wstrPath.c_str();
+#else
+  const TCHAR* syspath = path.c_str();
+#endif  // _UNICODE
 
   // Returns RET_OK, only if it finds directory
   DWORD attributes = GetFileAttributes(syspath);
@@ -139,7 +157,7 @@ void static tokenize(const std::string& path, const std::string& delimiters,
   while (1) {
     size_t position = sub_path.find(delimiters);
     if (position != std::string::npos) {
-      result.push_back(sub_path.substr(0,position));
+      result.push_back(sub_path.substr(0, position));
       sub_path =
           sub_path.substr(position + delimiters.length(), std::string::npos);
     } else {
@@ -225,8 +243,13 @@ bool DeleteDirectory(const TCHAR* utfdirPath) {
 bool Dir::remove(const std::string& path) {
   bool ret = true;
 #ifdef _WIN32
-  //TODO: FIXME: misbehaves using UNICODE
-  const TCHAR* n_path = reinterpret_cast<const TCHAR*>(path.c_str());
+#ifdef _UNICODE
+  std::wstring wstrPath = ConvertStringToWideString(path);
+  const TCHAR* n_path = wstrPath.c_str();
+#else
+  const TCHAR* n_path = path.c_str();
+#endif  // _UNICODE
+
   if (!DeleteDirectory(n_path)) ret = false;
 #else
   if (nftw(path.c_str(), remove_dir_callback, 10, FTW_DEPTH | FTW_PHYS) != 0) {
@@ -272,8 +295,12 @@ bool Dir::create(const std::string& path) {
     }
     dir_path += token[t];
     if (!exists(dir_path)) {
-      //TODO: FIXME: misbehaves using UNICODE
-      const TCHAR* n_path = reinterpret_cast<const TCHAR*>(dir_path.c_str());
+#ifdef _UNICODE
+      std::wstring wstrPath = ConvertStringToWideString(dir_path);
+      const TCHAR* n_path = wstrPath.c_str();
+#else
+      const TCHAR* n_path = dir_path.c_str();
+#endif  // _UNICODE
 
       if (!::CreateDirectory(n_path, NULL)) {
         if (GetLastError() != ERROR_ALREADY_EXISTS) {
@@ -290,7 +317,7 @@ std::string Dir::TempDirectory() {
 #if defined(_WIN32)
   wchar_t path[MAX_PATH];
   ::GetTempPathW(MAX_PATH, path);
-  path[wcslen(path) - 1] = NULL; // remove trailing /
+  path[wcslen(path) - 1] = NULL;  // remove trailing /
 
   char buffer[MAX_PATH * 4];  // leave space for utf-8 characters
   ::WideCharToMultiByte(CP_UTF8, 0, path, -1, buffer, sizeof(buffer), NULL,
