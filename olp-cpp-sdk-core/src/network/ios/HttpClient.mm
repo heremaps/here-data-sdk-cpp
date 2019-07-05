@@ -181,7 +181,7 @@ static NSString* const kMosCACertificateMd5 = @"497904b0eb8719ac47b0bc11519b74d0
 
 - (void)customInit {
   _delegateQueue = [NSOperationQueue new];
-  _delegateQueue.name = @"com.here.networks.HttpClientSessionQueue";
+  _delegateQueue.name = @"com.here.olp.networks.HttpClientSessionQueue";
   // TODO: Any expert to write lambda here?
   const olp::network::NetworkSystemConfig& sysConfig =
       olp::network::Network::SystemConfig().lockedCopy();

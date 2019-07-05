@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package com.here.network;
+package com.here.olp.network;
 
 import android.annotation.SuppressLint;
 import android.net.SSLCertificateSocketFactory;
