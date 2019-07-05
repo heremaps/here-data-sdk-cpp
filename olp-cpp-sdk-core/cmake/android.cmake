@@ -37,7 +37,7 @@ endif()
 
 set(NETWORK_VERSION 0.0.1)
 set(CMAKE_JAVA_COMPILE_FLAGS -source 1.7 -target 1.7)
-set(CMAKE_JAR_CLASSES_PREFIX com/here/network)
+set(CMAKE_JAR_CLASSES_PREFIX com/here/olp/network)
 set(EDGE_NETWORK_PROTOCOL_JAR EdgeNetworkProtocol)
 
 include(${CMAKE_CURRENT_LIST_DIR}/GetAndroidVariables.cmake)
