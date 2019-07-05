@@ -25,4 +25,4 @@ echo ">>> Data Service Read Test ... >>>"
 $CPP_TEST_SOURCE_DATASERVICE_READ/unit/olp-dataservice-read-test --gtest_output="xml:report4.xml" --gtest_filter=-*Online* --endpoint=https://account.api.here.com/oauth2/token --catalog=hrn:here:data:::hereos-internal-test-v2 --appid="$SERVICE_ID" --secret="$SERVICE_SECRET"
 echo ">>> Data Service Write Test ... >>>"
 $CPP_TEST_SOURCE_DATASERVICE_WRITE/olp-dataservice-write-test --gtest_output="xml:report5.xml" --gtest_filter=-*Online* --endpoint=https://account.api.here.com/oauth2/token --catalog=hrn:here:data:::olp-cpp-sdk-ingestion-test-catalog --layer=olp-cpp-sdk-ingestion-test-stream-layer --layer2=olp-cpp-sdk-ingestion-test-stream-layer-2 --layer-sdii=olp-cpp-sdk-ingestion-test-stream-layer-sdii --versioned-layer=olp-cpp-sdk-ingestion-test-versioned-layer --volatile-layer=olp-cpp-sdk-ingestion-test-volatile-layer --index-layer=olp-cpp-sdk-ingestion-test-index-layer --appid="$SERVICE_ID" --secret="$SERVICE_SECRET"
-set -e
+set -e #Disable unfail
