@@ -17,6 +17,7 @@ matrix:
       - cmake --build . --config $BUILD_TYPE
       - mkdir $TRAVIS_BUILD_DIR/test_results
     #Authentication Test
+      - echo ">>> Authentication Test ... >>>"
       - cd $TRAVIS_BUILD_DIR/build/olp-cpp-sdk-authentication/test/unit/$BUILD_TYPE
       - "./olp-authentication-test.exe --gtest_output=xml 
                                       --service_id=$SERVICE_ID
@@ -35,24 +36,29 @@ matrix:
       || echo 'Authentication Test failed'"
       - "[ -f 'test_detail.xml' ] && cp test_detail.xml $TRAVIS_BUILD_DIR/test_results/olp-authentication-test.xml"
     #Core - Cache Test
+      - echo ">>> Core - Cache Test ... >>>"
       - cd $TRAVIS_BUILD_DIR/build/olp-cpp-sdk-core/tests/cache/$BUILD_TYPE
       - "./cache-test.exe --gtest_output=xml || echo 'Core - Cache Test failed'"
       - "[ -f 'test_detail.xml' ] && cp test_detail.xml $TRAVIS_BUILD_DIR/test_results/cache-test.xml"
     #Core - Geo Test
+      - echo ">>> Core - Geo Test ... >>>"
       - cd $TRAVIS_BUILD_DIR/build/olp-cpp-sdk-core/tests/geo/$BUILD_TYPE
       - "./geo-test.exe --gtest_output=xml || echo 'Core - Geo Test failed'"
       - "[ -f 'test_detail.xml' ] && cp test_detail.xml $TRAVIS_BUILD_DIR/test_results/geo-test.xml"
     #Core - Network Test
+      - echo ">>> Core - Network Test ... >>>"
       - cd $TRAVIS_BUILD_DIR/build/olp-cpp-sdk-core/tests/network/$BUILD_TYPE
       - "./olp-core-network-test.exe --gtest_output=xml || echo 'Core - Network Test failed'"
       - "[ -f 'test_detail.xml' ] && cp test_detail.xml $TRAVIS_BUILD_DIR/test_results/olp-core-network-test.xml"
     #Core - Client Test
+      - echo ">>> Core - Client Test ... >>>"
       - cd $TRAVIS_BUILD_DIR/build/olp-cpp-sdk-core/tests/olpclient/$BUILD_TYPE
       - "./olpclient-test.exe --gtest_output=xml --endpoint='https://account.api.here.com/oauth2/token'
                              --catalog='hrn:here:data:::hereos-internal-test-v2'
       || echo 'Core - Client Test failed'"
       - "[ -f 'test_detail.xml' ] && cp test_detail.xml $TRAVIS_BUILD_DIR/test_results/olpclient-test.xml"
     #Data Service Read Test
+      - echo ">>> Data Service Read Test ... >>>"
       - cd $TRAVIS_BUILD_DIR/build/olp-cpp-sdk-dataservice-read/test/unit/$BUILD_TYPE
       - "./olp-dataservice-read-test.exe --gtest_output=xml --endpoint='https://account.api.here.com/oauth2/token' 
                                         --catalog='hrn:here:data:::hereos-internal-test-v2' 
@@ -61,6 +67,7 @@ matrix:
       || echo 'Data Service Read Test failed'"
       - "[ -f 'test_detail.xml' ] && cp test_detail.xml $TRAVIS_BUILD_DIR/test_results/olp-dataservice-read-test.xml"
     #Data Service Write Test
+      - echo ">>> Data Service Write Test ... >>>"
       - cd $TRAVIS_BUILD_DIR/build/olp-cpp-sdk-dataservice-write/test/$BUILD_TYPE
       - "./olp-dataservice-write-test.exe --gtest_output=xml
                                          --endpoint=https://account.api.here.com/oauth2/token
