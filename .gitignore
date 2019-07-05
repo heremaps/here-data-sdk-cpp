@@ -6,7 +6,6 @@ install_manifest.txt
 CMakeLists.txt.user
 build*
 *.doap
-scripts
 .repo
 
 # Compiled Object files

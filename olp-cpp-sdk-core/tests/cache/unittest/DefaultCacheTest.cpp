@@ -193,7 +193,7 @@ TEST(DefaultCache, expired_mem_test) {
   ASSERT_TRUE(cache.Clear());
 }
 
-TEST(DefaultCache, bad_path) {
+TEST(DefaultCache, DISABLED_bad_path) {
   olp::cache::CacheSettings settings;
   settings.disk_path = std::string("/////this/is/a/bad/path");
   olp::cache::DefaultCache cache(settings);

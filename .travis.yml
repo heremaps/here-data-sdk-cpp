@@ -1,0 +1,15 @@
+language: cpp
+matrix:
+  include:
+  - os: linux
+    services: docker
+    script:
+    - echo SERVICE_ID=${SERVICE_ID} >>env_file && echo SERVICE_SECRET=${SERVICE_SECRET} >>env_file
+    - docker run --rm --privileged -v ${TRAVIS_BUILD_DIR}:/mnt/test --env-file=env_file grebec/olp-test /bin/bash -x /mnt/test/scripts/linux_build.sh
+  - os: windows
+    env: 
+    - BUILD_TYPE=RelWithDebInfo WORKSPACE=$TRAVIS_BUILD_DIR
+    install: 
+    - choco install openssl.light
+    script:
+    - $WORKSPACE/scripts/windows_build.sh
