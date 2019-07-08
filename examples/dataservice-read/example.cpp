@@ -34,10 +34,9 @@
 namespace {
 const std::string gKeyId("");      // your here.access.key.id
 const std::string gKeySecret("");  // your here.access.key.secret
-const std::string gCatalogHRN(
-    "hrn:here:data:::here-optimized-map-for-visualization-2");
-const std::string gLayerId("omv-base-v2");
-const std::string gPartitionId("100000093");  // Helsinki, Finland
+const std::string gCatalogHRN("hrn:here:data:::edge-example-catalog");
+const size_t gMaxLayers(5);
+const size_t gMaxPartitions(5);
 }  // namespace
 
 int main() {
@@ -55,6 +54,7 @@ int main() {
   auto serviceClient = std::make_unique<olp::dataservice::read::CatalogClient>(
       olp::client::HRN(gCatalogHRN), settings);
 
+  std::string firstPartitionId;
   {  // Retrieve the catalog metadata
     // Create CatalogRequest
     auto request =
@@ -73,15 +73,27 @@ int main() {
           catalogResponse.GetResult();
       LOG_INFO_F("read-example", "Catalog description: %s",
                  responseResult.GetDescription().c_str());
+      auto layers = catalogResponse.GetResult().GetLayers();
+      if (!layers.empty()) {
+        firstPartitionId = layers.front().GetId();
+      }
+      auto end = layers.size() <= gMaxLayers ? layers.end()
+                                             : layers.begin() + gMaxLayers;
+      for (auto it = layers.cbegin(); it != end; ++it) {
+        LOG_INFO_F("read-example", "Layer '%s' (%s): %s", it->GetId().c_str(),
+                   it->GetLayerType().c_str(), it->GetDescription().c_str());
+      }
     } else {
       LOG_ERROR("read-example", "Request catalog metadata - Failure");
     }
   }
 
-  {  // Retrieve the partitions metadata
+  std::string firstLayerId;
+  if (!firstPartitionId.empty()) {
+    // Retrieve the partitions metadata
     // Create a PartitionsRequest with appropriate LayerId
     auto request = olp::dataservice::read::PartitionsRequest()
-                       .WithLayerId(gLayerId)
+                       .WithLayerId(firstPartitionId)
                        .WithBillingTag(boost::none);
 
     // Run the PartitionsRequest
@@ -95,20 +107,29 @@ int main() {
     if (partitionsResponse.IsSuccessful()) {
       const olp::dataservice::read::PartitionsResult& responseResult =
           partitionsResponse.GetResult();
-      const std::vector<olp::dataservice::read::model::Partition>& partitions =
-          responseResult.GetPartitions();
-      LOG_INFO_F("read-example", "Layer contains %d partitions.",
+      auto partitions = responseResult.GetPartitions();
+      LOG_INFO_F("read-example", "Layer contains %ld partitions.",
                  partitions.size());
+      if (!partitions.empty()) {
+        firstLayerId = partitions.front().GetPartition();
+      }
+      auto end = partitions.size() <= gMaxPartitions
+                     ? partitions.end()
+                     : partitions.begin() + gMaxPartitions;
+      for (auto it = partitions.cbegin(); it != end; ++it) {
+        LOG_INFO_F("read-example", "Partition: %s", it->GetPartition().c_str());
+      }
     } else {
       LOG_ERROR("read-example", "Request partition metadata - Failure");
     }
   }
 
-  {  // Retrieve the partition data
+  if (!firstLayerId.empty()) {
+    // Retrieve the partition data
     // Create a DataRequest with appropriate LayerId and PartitionId
     auto request = olp::dataservice::read::DataRequest()
-                       .WithLayerId(gLayerId)
-                       .WithPartitionId(gPartitionId)
+                       .WithLayerId(firstPartitionId)
+                       .WithPartitionId(firstLayerId)
                        .WithBillingTag(boost::none);
 
     // Run the DataRequest
@@ -123,7 +144,7 @@ int main() {
       const olp::dataservice::read::DataResult& responseResult =
           dataResponse.GetResult();
       LOG_INFO_F("read-example",
-                 "Request partition data - Success, data size - %d",
+                 "Request partition data - Success, data size - %ld",
                  responseResult->size());
     } else {
       LOG_ERROR("read-example", "Request partition data - Failure");
