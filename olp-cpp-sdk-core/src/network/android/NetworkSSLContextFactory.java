@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package com.here.network;
+package com.here.olp.network;
 
 import android.net.SSLCertificateSocketFactory;
 import android.util.Log;

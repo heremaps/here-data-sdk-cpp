@@ -239,7 +239,7 @@ bool NetworkProtocolAndroid::Initialize() {
   }
 
   /* Get the Network protocol class */
-  jstring className = env->NewStringUTF("com/here/network/NetworkProtocol");
+  jstring className = env->NewStringUTF("com/here/olp/network/NetworkProtocol");
   if (env->ExceptionOccurred()) {
     LOG_ERROR(LOGTAG, "initialize failed to create class name string");
     env->ExceptionDescribe();
@@ -273,7 +273,7 @@ bool NetworkProtocolAndroid::Initialize() {
   m_jmidSend = env->GetMethodID(
       m_class, "send",
       "(Ljava/lang/String;IIIII[Ljava/lang/String;[BZLjava/lang/"
-      "String;IILjava/lang/String;I)Lcom/here/network/"
+      "String;IILjava/lang/String;I)Lcom/here/olp/network/"
       "NetworkProtocol$GetTask;");
   if (env->ExceptionOccurred()) {
     LOG_ERROR(LOGTAG, "initialize failed to get NetworkProtocol::send");
@@ -1035,16 +1035,16 @@ NetworkProtocolAndroid::ResultData::ResultData(
 }  // namespace olp
 
 #ifndef __clang__
-#define OS_NETWORK_EXPORT __attribute__((externally_visible)) JNIEXPORT
+#define EDGE_SDK_NETWORK_EXPORT __attribute__((externally_visible)) JNIEXPORT
 #else
-#define OS_NETWORK_EXPORT JNIEXPORT
+#define EDGE_SDK_NETWORK_EXPORT JNIEXPORT
 #endif
 
 /*
  * Callback to be called when response headers have been received
  */
-extern "C" OS_NETWORK_EXPORT void JNICALL
-Java_com_here_network_NetworkProtocol_headersCallback(JNIEnv* env, jobject obj,
+extern "C" EDGE_SDK_NETWORK_EXPORT void JNICALL
+Java_com_here_olp_network_NetworkProtocol_headersCallback(JNIEnv* env, jobject obj,
                                                       jint clientId,
                                                       jint requestId,
                                                       jobjectArray headers) {
@@ -1059,8 +1059,8 @@ Java_com_here_network_NetworkProtocol_headersCallback(JNIEnv* env, jobject obj,
 /*
  * Callback to be called when a date header is received
  */
-extern "C" OS_NETWORK_EXPORT void JNICALL
-Java_com_here_network_NetworkProtocol_dateAndOffsetCallback(
+extern "C" EDGE_SDK_NETWORK_EXPORT void JNICALL
+Java_com_here_olp_network_NetworkProtocol_dateAndOffsetCallback(
     JNIEnv* env, jobject obj, jint clientId, jint requestId, jlong date,
     jlong offset) {
   auto protocol = olp::network::getProtocolForClient(clientId);
@@ -1075,8 +1075,8 @@ Java_com_here_network_NetworkProtocol_dateAndOffsetCallback(
 /*
  * Callback to be called when a chunk of data is received
  */
-extern "C" OS_NETWORK_EXPORT void JNICALL
-Java_com_here_network_NetworkProtocol_dataCallback(JNIEnv* env, jobject obj,
+extern "C" EDGE_SDK_NETWORK_EXPORT void JNICALL
+Java_com_here_olp_network_NetworkProtocol_dataCallback(JNIEnv* env, jobject obj,
                                                    jint clientId,
                                                    jint requestId,
                                                    jbyteArray data, jint len) {
@@ -1091,8 +1091,8 @@ Java_com_here_network_NetworkProtocol_dataCallback(JNIEnv* env, jobject obj,
 /*
  * Callback to be called when a request is completed
  */
-extern "C" OS_NETWORK_EXPORT void JNICALL
-Java_com_here_network_NetworkProtocol_completeRequest(
+extern "C" EDGE_SDK_NETWORK_EXPORT void JNICALL
+Java_com_here_olp_network_NetworkProtocol_completeRequest(
     JNIEnv* env, jobject obj, jint clientId, jint requestId, jint status,
     jstring error, jint maxAge, jint expires, jstring etag,
     jstring contentType) {
@@ -1108,8 +1108,8 @@ Java_com_here_network_NetworkProtocol_completeRequest(
 /*
  * Reset request upon retry
  */
-extern "C" OS_NETWORK_EXPORT void JNICALL
-Java_com_here_network_NetworkProtocol_resetRequest(JNIEnv* env, jobject obj,
+extern "C" EDGE_SDK_NETWORK_EXPORT void JNICALL
+Java_com_here_olp_network_NetworkProtocol_resetRequest(JNIEnv* env, jobject obj,
                                                    jint clientId,
                                                    jint requestId) {
   auto protocol = olp::network::getProtocolForClient(clientId);
