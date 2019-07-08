@@ -32,12 +32,78 @@
 #include <olp/dataservice/read/PartitionsRequest.h>
 
 namespace {
-const std::string gKeyId("");      // your here.access.key.id
-const std::string gKeySecret("");  // your here.access.key.secret
-const std::string gCatalogHRN(
-    "hrn:here:data:::here-optimized-map-for-visualization-2");
-const std::string gLayerId("omv-base-v2");
-const std::string gPartitionId("100000093");  // Helsinki, Finland
+const std::string kKeyId("");      // your here.access.key.id
+const std::string kKeySecret("");  // your here.access.key.secret
+const std::string kCatalogHRN("hrn:here:data:::edge-example-catalog");
+constexpr size_t kMaxLayers(5);
+constexpr size_t kMaxPartitions(5);
+constexpr auto kLogTag = "read-example";
+
+std::string handleCatalogResponse(
+    const olp::dataservice::read::CatalogResponse& catalogResponse) {
+  std::string firstPartitionId;
+  if (catalogResponse.IsSuccessful()) {
+    const auto& responseResult = catalogResponse.GetResult();
+    LOG_INFO_F(kLogTag, "Catalog description: %s",
+               responseResult.GetDescription().c_str());
+
+    auto layers = responseResult.GetLayers();
+    if (!layers.empty()) {
+      firstPartitionId = layers.front().GetId();
+    }
+
+    auto end = layers.size() <= kMaxLayers ? layers.end()
+                                           : layers.begin() + kMaxLayers;
+    for (auto it = layers.cbegin(); it != end; ++it) {
+      LOG_INFO_F(kLogTag, "Layer '%s' (%s): %s", it->GetId().c_str(),
+                 it->GetLayerType().c_str(), it->GetDescription().c_str());
+    }
+  } else {
+    LOG_ERROR_F(kLogTag, "Request catalog metadata - Failure(%d): %s",
+                static_cast<int>(catalogResponse.GetError().GetErrorCode()),
+                catalogResponse.GetError().GetMessage().c_str());
+  }
+  return firstPartitionId;
+}
+
+std::string handlePartitionsResponse(
+    const olp::dataservice::read::PartitionsResponse& partitionsResponse) {
+  std::string firstLayerId;
+  if (partitionsResponse.IsSuccessful()) {
+    const auto& responseResult = partitionsResponse.GetResult();
+    auto partitions = responseResult.GetPartitions();
+    LOG_INFO_F(kLogTag, "Layer contains %ld partitions.", partitions.size());
+
+    if (!partitions.empty()) {
+      firstLayerId = partitions.front().GetPartition();
+    }
+
+    auto end = partitions.size() <= kMaxPartitions
+                   ? partitions.end()
+                   : partitions.begin() + kMaxPartitions;
+    for (auto it = partitions.cbegin(); it != end; ++it) {
+      LOG_INFO_F(kLogTag, "Partition: %s", it->GetPartition().c_str());
+    }
+  } else {
+    LOG_ERROR_F(kLogTag, "Request partition metadata - Failure(%d): %s",
+                static_cast<int>(partitionsResponse.GetError().GetErrorCode()),
+                partitionsResponse.GetError().GetMessage().c_str());
+  }
+  return firstLayerId;
+}
+
+void handleDataResponse(
+    const olp::dataservice::read::DataResponse& dataResponse) {
+  if (dataResponse.IsSuccessful()) {
+    const auto& responseResult = dataResponse.GetResult();
+    LOG_INFO_F(kLogTag, "Request partition data - Success, data size - %ld",
+               responseResult->size());
+  } else {
+    LOG_ERROR_F(kLogTag, "Request partition data - Failure(%d): %s",
+                static_cast<int>(dataResponse.GetError().GetErrorCode()),
+                dataResponse.GetError().GetMessage().c_str());
+  }
+}
 }  // namespace
 
 int main() {
@@ -45,7 +111,7 @@ int main() {
   // retrieve an OAuth 2.0 token from OLP.
   olp::client::AuthenticationSettings authSettings;
   authSettings.provider =
-      olp::authentication::TokenProviderDefault(gKeyId, gKeySecret);
+      olp::authentication::TokenProviderDefault(kKeyId, kKeySecret);
 
   // Setup OlpClientSettings and provide it to the CatalogClient.
   auto settings = std::make_shared<olp::client::OlpClientSettings>();
@@ -53,8 +119,9 @@ int main() {
 
   // Create a CatalogClient with appropriate HRN and settings.
   auto serviceClient = std::make_unique<olp::dataservice::read::CatalogClient>(
-      olp::client::HRN(gCatalogHRN), settings);
+      olp::client::HRN(kCatalogHRN), settings);
 
+  std::string firstPartitionId;
   {  // Retrieve the catalog metadata
     // Create CatalogRequest
     auto request =
@@ -67,21 +134,16 @@ int main() {
     olp::dataservice::read::CatalogResponse catalogResponse =
         future.GetFuture().get();
 
-    // Check the response
-    if (catalogResponse.IsSuccessful()) {
-      const olp::dataservice::read::CatalogResult& responseResult =
-          catalogResponse.GetResult();
-      LOG_INFO_F("read-example", "Catalog description: %s",
-                 responseResult.GetDescription().c_str());
-    } else {
-      LOG_ERROR("read-example", "Request catalog metadata - Failure");
-    }
+    // Retrieve data from the response
+    firstPartitionId = handleCatalogResponse(catalogResponse);
   }
 
-  {  // Retrieve the partitions metadata
+  std::string firstLayerId;
+  if (!firstPartitionId.empty()) {
+    // Retrieve the partitions metadata
     // Create a PartitionsRequest with appropriate LayerId
     auto request = olp::dataservice::read::PartitionsRequest()
-                       .WithLayerId(gLayerId)
+                       .WithLayerId(firstPartitionId)
                        .WithBillingTag(boost::none);
 
     // Run the PartitionsRequest
@@ -91,24 +153,18 @@ int main() {
     olp::dataservice::read::PartitionsResponse partitionsResponse =
         future.GetFuture().get();
 
-    // Check the response
-    if (partitionsResponse.IsSuccessful()) {
-      const olp::dataservice::read::PartitionsResult& responseResult =
-          partitionsResponse.GetResult();
-      const std::vector<olp::dataservice::read::model::Partition>& partitions =
-          responseResult.GetPartitions();
-      LOG_INFO_F("read-example", "Layer contains %d partitions.",
-                 partitions.size());
-    } else {
-      LOG_ERROR("read-example", "Request partition metadata - Failure");
-    }
+    // Retrieve data from the response
+    firstLayerId = handlePartitionsResponse(partitionsResponse);
+  } else {
+    LOG_WARNING(kLogTag, "Request partition metadata is not present!");
   }
 
-  {  // Retrieve the partition data
+  if (!firstLayerId.empty()) {
+    // Retrieve the partition data
     // Create a DataRequest with appropriate LayerId and PartitionId
     auto request = olp::dataservice::read::DataRequest()
-                       .WithLayerId(gLayerId)
-                       .WithPartitionId(gPartitionId)
+                       .WithLayerId(firstPartitionId)
+                       .WithPartitionId(firstLayerId)
                        .WithBillingTag(boost::none);
 
     // Run the DataRequest
@@ -118,16 +174,10 @@ int main() {
     olp::dataservice::read::DataResponse dataResponse =
         future.GetFuture().get();
 
-    // Check the response
-    if (dataResponse.IsSuccessful()) {
-      const olp::dataservice::read::DataResult& responseResult =
-          dataResponse.GetResult();
-      LOG_INFO_F("read-example",
-                 "Request partition data - Success, data size - %d",
-                 responseResult->size());
-    } else {
-      LOG_ERROR("read-example", "Request partition data - Failure");
-    }
+    // Retrieve data from the response
+    handleDataResponse(dataResponse);
+  } else {
+    LOG_WARNING(kLogTag, "Request partition data is not present!");
   }
 
   return 0;
