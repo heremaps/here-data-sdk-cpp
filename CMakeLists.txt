@@ -17,12 +17,16 @@
 
 cmake_minimum_required(VERSION 3.5)
 
+# build the sdk targets
+project(olp-cpp-sdk VERSION 0.6.0)
+
 # Options
 option(EDGE_SDK_ENABLE_TESTING "Flag to enable/disable building unit and integration tests" ON)
 option(EDGE_SDK_BUILD_DOC "Build SDK documentation" OFF)
 option(EDGE_SDK_NO_EXCEPTION "Turn off EXCEPTION" OFF)
 option(EDGE_SDK_BUILD_EXTERNAL_DEPS "Download and build external dependencies" ON)
 option(EDGE_SDK_BUILD_EXAMPLES "Enable examples targets" OFF)
+option(EDGE_SDK_MSVC_PARALLEL_BUILD_ENABLE "Enable parallel build on MSVC" ON)
 
 # C++ standard version. Minimum supported version is 11.
 set(CMAKE_CXX_STANDARD 11)
@@ -33,11 +37,13 @@ if (EDGE_SDK_NO_EXCEPTION)
     set(CMAKE_C_FLAGS "-fno-exceptions ${CMAKE_C_FLAGS}")
 endif()
 
+if (MSVC AND EDGE_SDK_MSVC_PARALLEL_BUILD_ENABLE)
+    add_compile_options(/MP)
+    message(STATUS "MSVC - Using parallel compilation (/MP)")
+endif (MSVC AND EDGE_SDK_MSVC_PARALLEL_BUILD_ENABLE)
+
 # Add cmake dir to search list
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
-
-# build the sdk targets
-project(olp-cpp-sdk VERSION 0.6.0)
 
 # Save root sdk folder path
 get_filename_component(OLP_CPP_SDK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
