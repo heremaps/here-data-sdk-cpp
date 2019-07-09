@@ -74,14 +74,13 @@ class VolatileLayerClientTestBase : public ::testing::TestWithParam<bool> {
 
   std::string GetTestCatalog() {
     return IsOnlineTest()
-               ? CustomParameters::getInstance().getArgument(kCatalog)
+               ? CustomParameters::getArgument(kCatalog)
                : "hrn:here:data:::olp-cpp-sdk-ingestion-test-catalog";
   }
 
   std::string GetTestLayer() {
-    return IsOnlineTest()
-               ? CustomParameters::getInstance().getArgument(kVolatileLayer)
-               : "olp-cpp-sdk-ingestion-test-volatile-layer";
+    return IsOnlineTest() ? CustomParameters::getArgument(kVolatileLayer)
+                          : "olp-cpp-sdk-ingestion-test-volatile-layer";
   }
 
   virtual std::shared_ptr<VolatileLayerClient> CreateVolatileLayerClient() = 0;
@@ -108,16 +107,14 @@ class VolatileLayerClientOnlineTest : public VolatileLayerClientTestBase {
   virtual std::shared_ptr<VolatileLayerClient> CreateVolatileLayerClient()
       override {
     olp::authentication::Settings settings;
-    settings.token_endpoint_url =
-        CustomParameters::getInstance().getArgument(kEndpoint);
+    settings.token_endpoint_url = CustomParameters::getArgument(kEndpoint);
 
     olp::client::OlpClientSettings client_settings;
     client_settings.authentication_settings =
         (olp::client::AuthenticationSettings{
             olp::authentication::TokenProviderDefault{
-                CustomParameters::getInstance().getArgument(kAppid),
-                CustomParameters::getInstance().getArgument(kSecret),
-                settings}});
+                CustomParameters::getArgument(kAppid),
+                CustomParameters::getArgument(kSecret), settings}});
 
     return std::make_shared<VolatileLayerClient>(
         olp::client::HRN{GetTestCatalog()}, client_settings);
@@ -452,15 +449,16 @@ olp::client::NetworkAsyncHandler volatileSetsPromiseWaitsAndReturns(
              -> olp::client::CancellationToken {
     auto completed = std::make_shared<std::atomic_bool>(false);
 
-    std::thread([request, preSignal, waitForSignal, completed, callback,
-                 response]() {
-      preSignal->set_value();
-      waitForSignal->get_future().get();
+    std::thread(
+        [request, preSignal, waitForSignal, completed, callback, response]() {
+          preSignal->set_value();
+          waitForSignal->get_future().get();
 
-      if (!completed->exchange(true)) {
-        callback(response);
-      }
-    }).detach();
+          if (!completed->exchange(true)) {
+            callback(response);
+          }
+        })
+        .detach();
 
     return olp::client::CancellationToken([request, completed, callback]() {
       if (!completed->exchange(true)) {

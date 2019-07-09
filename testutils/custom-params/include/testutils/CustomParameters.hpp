@@ -17,31 +17,12 @@
  * License-Filename: LICENSE
  */
 
-#include <map>
 #include <string>
-#include <vector>
 
-/**
- * Currently supported parameters and syntax
- *
- * --credentials=<s>
- * where <s> is the test application credentials in JSON format
- *
- * --runProdTests
- * when specified tests are run on production server
- * when not specified tests are run on staging server
- *
- */
+/// Class that provides access to global variables that are used during tests.
 class CustomParameters {
  public:
-  static CustomParameters& getInstance();
-  void init(int argc, char** argv);
-
-  std::string getArgument(const std::string& name) const;
-  bool isUsingProductionServerForTest() const;
-
- private:
-  CustomParameters();
-  std::map<std::string, std::string> arguments_;
-  bool runTestsOnProductionServer_;
+  // Used to get a variable by key.
+  // Returns variable for a key if it is set, the empty string otherwise.
+  static std::string getArgument(const std::string& name);
 };

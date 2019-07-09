@@ -15,11 +15,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-if(WIN32)
-    add_definitions(-DBOOST_ALL_NO_LIB)
-endif()
-find_package(Boost REQUIRED COMPONENTS program_options)
-
 set(OLP-DS-READ-LIB olp-dataservice-read)
 set(OLP-DS-READ-TEST ${OLP-DS-READ-LIB}-test)
 
@@ -44,14 +39,12 @@ else()
 endif()
 
 target_include_directories(${OLP-DS-READ-TEST}
-   PRIVATE ${Boost_INCLUDE_DIRS}
    # For internal testing
    PRIVATE ${${PROJECT_NAME}_SOURCE_DIR}/src
 )
 
 target_link_libraries(${OLP-DS-READ-TEST}
    olp-cpp-sdk-dataservice-read
-   ${Boost_LIBRARIES}
    olp-cpp-sdk-authentication
    custom-params
 )
