@@ -60,8 +60,8 @@ class AuthenticationOnlineProductionTest : public ::testing::Test {
 
 TEST_F(AuthenticationOnlineProductionTest, SignInClient) {
   AuthenticationCredentials credentials(
-      CustomParameters::getInstance().getArgument("production_service_id"),
-      CustomParameters::getInstance().getArgument("production_service_secret"));
+      CustomParameters::getArgument("production_service_id"),
+      CustomParameters::getArgument("production_service_secret"));
   std::promise<AuthenticationClient::SignInClientResponse> request;
   auto request_future = request.get_future();
   client->SignInClient(
@@ -131,8 +131,8 @@ TEST_F(AuthenticationOnlineProductionTest, SignInClient) {
 TEST_F(AuthenticationOnlineProductionTest, SignInClientMaxExpiration) {
   // Test maximum token expiration 24 h
   AuthenticationCredentials credentials(
-      CustomParameters::getInstance().getArgument("production_service_id"),
-      CustomParameters::getInstance().getArgument("production_service_secret"));
+      CustomParameters::getArgument("production_service_id"),
+      CustomParameters::getArgument("production_service_secret"));
   std::promise<AuthenticationClient::SignInClientResponse> request;
   auto request_future = request.get_future();
   time_t now = std::time(nullptr);
@@ -174,8 +174,8 @@ TEST_F(AuthenticationOnlineProductionTest, SignInClientMaxExpiration) {
 
 TEST_F(AuthenticationOnlineProductionTest, InvalidCredentials) {
   AuthenticationCredentials credentials(
-      CustomParameters::getInstance().getArgument("production_service_id"),
-      CustomParameters::getInstance().getArgument("production_service_id"));
+      CustomParameters::getArgument("production_service_id"),
+      CustomParameters::getArgument("production_service_id"));
   std::promise<AuthenticationClient::SignInClientResponse> request;
   auto request_future = request.get_future();
   client->SignInClient(

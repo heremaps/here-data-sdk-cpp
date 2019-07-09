@@ -95,15 +95,13 @@ bool GoogleTestUtils::Impl::getAccessToken(GoogleTestUtils::GoogleUser& user) {
   string url = GOOGLE_API_URL + GOOGLE_OAUTH2_ENDPOINT;
   url.append(QUESTION_PARAM);
   url.append(GOOGLE_CLIENT_ID_PARAM + EQUALS_PARAM +
-             CustomParameters::getInstance().getArgument("google_client_id"));
+             CustomParameters::getArgument("google_client_id"));
   url.append(AND_PARAM);
-  url.append(
-      GOOGLE_CLIENT_SECRET_PARAM + EQUALS_PARAM +
-      CustomParameters::getInstance().getArgument("google_client_secret"));
+  url.append(GOOGLE_CLIENT_SECRET_PARAM + EQUALS_PARAM +
+             CustomParameters::getArgument("google_client_secret"));
   url.append(AND_PARAM);
-  url.append(
-      GOOGLE_REFRESH_TOKEN_PARAM + EQUALS_PARAM +
-      CustomParameters::getInstance().getArgument("google_client_token"));
+  url.append(GOOGLE_REFRESH_TOKEN_PARAM + EQUALS_PARAM +
+             CustomParameters::getArgument("google_client_token"));
   url.append(AND_PARAM);
   url.append(GOOGLE_REFRESH_TOKEN_GRANT_TYPE);
 

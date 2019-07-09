@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/heremaps/here-olp-edge-sdk-cpp.svg?branch=master)](https://travis-ci.com/heremaps/here-olp-edge-sdk-cpp)
+
 # HERE OLP Edge SDK C++
 
 The HERE OLP Edge SDK is a _work in progress_ c++ client for [HERE Open Location Platform](https://platform.here.com).
@@ -37,7 +39,7 @@ Library dependencies:
 | --------- | --------------- |
 | OpenSSL   | 1.0.2 |
 | Curl      | 7.47.0 |
-| Boost     | 1.69.0 |
+| Boost (headers only) | 1.69.0 |
 | leveldb   | 1.21 |
 | snappy    | 1.1.7 |
 | rapidjson | latest |

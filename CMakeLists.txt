@@ -37,13 +37,7 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 # build the sdk targets
-project("olp-cpp-sdk" VERSION 0.6.0)
-
-if (WIN32)
-    # For Wins we disable auto linking name manging as it causes linker errors
-    add_definitions(-DBOOST_AUTO_LINK_NOMANGLE)
-    set(Boost_USE_STATIC_LIBS ON)
-endif()
+project(olp-cpp-sdk VERSION 0.6.0)
 
 # Save root sdk folder path
 get_filename_component(OLP_CPP_SDK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)

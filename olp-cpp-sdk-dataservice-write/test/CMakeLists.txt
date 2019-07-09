@@ -14,7 +14,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
-find_package(Boost REQUIRED COMPONENTS program_options)
 
 set(OLP_DATASERVICE_WRITE_LIB olp-dataservice-write)
 set(OLP_DATASERVICE_WRITE_TEST ${OLP_DATASERVICE_WRITE_LIB}-test)
@@ -41,7 +40,6 @@ else()
 endif()
 
 target_include_directories(${OLP_DATASERVICE_WRITE_TEST}
-   PRIVATE ${Boost_INCLUDE_DIRS}
    # For internal testing
    PRIVATE ${${PROJECT_NAME}_SOURCE_DIR}/src)
 
@@ -63,7 +61,6 @@ if (ANDROID OR IOS)
     target_link_libraries(${OLP_DATASERVICE_WRITE_TEST}
         PRIVATE olp-cpp-sdk-authentication
         PRIVATE olp-cpp-sdk-dataservice-write
-        PRIVATE ${Boost_LIBRARIES}
         PUBLIC gmock
         PUBLIC custom-params)
 
@@ -85,6 +82,5 @@ else()
         PRIVATE olp-cpp-sdk-authentication
         PRIVATE olp-cpp-sdk-dataservice-write
         PRIVATE gmock_main
-        PRIVATE ${Boost_LIBRARIES}
         PRIVATE custom-params)
 endif()

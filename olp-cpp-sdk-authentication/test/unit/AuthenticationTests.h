@@ -66,8 +66,8 @@ class AuthenticationBaseTest : public ::testing::Test {
     client = std::make_unique<AuthenticationClient>(HERE_ACCOUNT_STAGING_URL);
     utils = std::make_unique<AuthenticationUtils>();
 
-    id = CustomParameters::getInstance().getArgument("service_id");
-    secret = CustomParameters::getInstance().getArgument("service_secret");
+    id = CustomParameters::getArgument("service_id");
+    secret = CustomParameters::getArgument("service_secret");
   }
 
   void TearDown() override {

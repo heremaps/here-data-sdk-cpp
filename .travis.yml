@@ -13,3 +13,7 @@ matrix:
     - choco install openssl.light
     script:
     - $WORKSPACE/scripts/windows_build.sh
+branches:
+  only:
+  - master
+

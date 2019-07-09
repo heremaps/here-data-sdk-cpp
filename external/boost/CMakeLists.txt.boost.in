@@ -21,14 +21,11 @@ project(boost-download NONE)
 
 include(ExternalProject)
 ExternalProject_Add(Boost
-  DOWNLOAD_DIR      "${CMAKE_CURRENT_BINARY_DIR}/download"
-  SOURCE_DIR        "${CMAKE_CURRENT_BINARY_DIR}/src"
-  BINARY_DIR        "${CMAKE_CURRENT_BINARY_DIR}/build"
-  INSTALL_DIR       "${CMAKE_CURRENT_BINARY_DIR}"
   URL               https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.gz/download
-  PATCH_COMMAND     "${CMAKE_COMMAND}" -E copy_directory "${CMAKE_CURRENT_BINARY_DIR}/config/src" "${CMAKE_CURRENT_BINARY_DIR}/src"
-  CMAKE_ARGS        ${BOOST_CMAKE_ARGS}
-  BUILD_COMMAND     "${CMAKE_COMMAND}" --build . --config ${CMAKE_BUILD_TYPE} ${EXTERNAL_BUILD_FLAGS}
+  DOWNLOAD_DIR      "${CMAKE_CURRENT_BINARY_DIR}/download"
+  SOURCE_DIR        "${CMAKE_CURRENT_BINARY_DIR}/external_boost"
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND     ""
   INSTALL_COMMAND   ""
   TEST_COMMAND      ""
 )
