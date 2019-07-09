@@ -68,7 +68,8 @@ TokenEndpoint::TokenResponse getTokenFromAsyncRequest(
 }
 
 TokenEndpoint::TokenResponse getTokenFromAsyncRequest(
-    olp::client::CancellationToken& cancellationToken, const AutoRefreshingToken& autoToken,
+    olp::client::CancellationToken& cancellationToken,
+    const AutoRefreshingToken& autoToken,
     const std::chrono::seconds minimumValidity =
         kDefaultMinimumValiditySeconds) {
   std::promise<TokenEndpoint::TokenResponse> promise;
@@ -148,10 +149,10 @@ TEST_F(TestHereAccountOauth2IntegrationOffline, AutoRefreshingTokenCancelSync) {
       .buildExpectation();
 
   TokenEndpoint tokenEndpoint(
-      AuthenticationCredentials(CustomParameters::getInstance().getArgument(
-                                    "integration_production_service_id"),
-                                CustomParameters::getInstance().getArgument(
-                                    "integration_production_service_secret")),
+      AuthenticationCredentials(
+          CustomParameters::getArgument("integration_production_service_id"),
+          CustomParameters::getArgument(
+              "integration_production_service_secret")),
       Settings());
 
   testAutoRefreshingTokenCancel(
@@ -176,10 +177,10 @@ TEST_F(TestHereAccountOauth2IntegrationOffline,
       .buildExpectation();
 
   TokenEndpoint tokenEndpoint(
-      AuthenticationCredentials(CustomParameters::getInstance().getArgument(
-                                    "integration_production_service_id"),
-                                CustomParameters::getInstance().getArgument(
-                                    "integration_production_service_secret")),
+      AuthenticationCredentials(
+          CustomParameters::getArgument("integration_production_service_id"),
+          CustomParameters::getArgument(
+              "integration_production_service_secret")),
       Settings());
 
   testAutoRefreshingTokenCancel(
@@ -197,9 +198,9 @@ class TestHereAccountOauth2IntegrationOnline : public ::testing::Test {
   TestHereAccountOauth2IntegrationOnline()
       : m_tokenEndpoint(
             TokenEndpoint(AuthenticationCredentials(
-                              CustomParameters::getInstance().getArgument(
+                              CustomParameters::getArgument(
                                   "integration_production_service_id"),
-                              CustomParameters::getInstance().getArgument(
+                              CustomParameters::getArgument(
                                   "integration_production_service_secret")),
                           Settings())) {}
 
@@ -208,10 +209,9 @@ class TestHereAccountOauth2IntegrationOnline : public ::testing::Test {
 
 TEST_F(TestHereAccountOauth2IntegrationOnline,
        TokenProviderValidCredentialsValid) {
-  TokenProviderDefault prov{CustomParameters::getInstance().getArgument(
-                                "integration_production_service_id"),
-                            CustomParameters::getInstance().getArgument(
-                                "integration_production_service_secret")};
+  TokenProviderDefault prov{
+      CustomParameters::getArgument("integration_production_service_id"),
+      CustomParameters::getArgument("integration_production_service_secret")};
   ASSERT_TRUE(prov);
   ASSERT_NE("", prov());
   ASSERT_EQ(200, prov.GetHttpStatusCode());
@@ -231,11 +231,11 @@ TEST_F(TestHereAccountOauth2IntegrationOnline,
     ASSERT_EQ(401, prov.GetHttpStatusCode());
   };
 
-  tokenProviderTest("BAD", CustomParameters::getInstance().getArgument(
+  tokenProviderTest("BAD", CustomParameters::getArgument(
                                "integration_production_service_secret"));
-  tokenProviderTest(CustomParameters::getInstance().getArgument(
-                        "integration_production_service_id"),
-                    "BAD");
+  tokenProviderTest(
+      CustomParameters::getArgument("integration_production_service_id"),
+      "BAD");
   tokenProviderTest("BAD", "BAD");
 }
 
@@ -285,7 +285,7 @@ TEST_F(TestHereAccountOauth2IntegrationOnline,
 TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenBadAccessKey) {
   auto badTokenEndpoint =
       TokenEndpoint(AuthenticationCredentials(
-                        "BAD", CustomParameters::getInstance().getArgument(
+                        "BAD", CustomParameters::getArgument(
                                    "integration_production_service_secret")),
                     Settings());
 
@@ -303,9 +303,9 @@ TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenBadAccessKey) {
 
 TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenBadAccessSecret) {
   auto badTokenEndpoint = TokenEndpoint(
-      AuthenticationCredentials(CustomParameters::getInstance().getArgument(
-                                    "integration_production_service_id"),
-                                "BAD"),
+      AuthenticationCredentials(
+          CustomParameters::getArgument("integration_production_service_id"),
+          "BAD"),
       Settings());
 
   auto barrier = std::make_shared<std::promise<void> >();
@@ -324,10 +324,10 @@ TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenBadTokenUrl) {
   Settings badSettings;
   badSettings.token_endpoint_url = "BAD";
   auto badTokenEndpoint = TokenEndpoint(
-      AuthenticationCredentials(CustomParameters::getInstance().getArgument(
-                                    "integration_production_service_id"),
-                                CustomParameters::getInstance().getArgument(
-                                    "integration_production_service_secret")),
+      AuthenticationCredentials(
+          CustomParameters::getArgument("integration_production_service_id"),
+          CustomParameters::getArgument(
+              "integration_production_service_secret")),
       badSettings);
 
   auto barrier = std::make_shared<std::promise<void> >();
@@ -441,10 +441,10 @@ TEST_F(TestHereAccountOauth2IntegrationOnline, NetworkProxySettings) {
   proxySettings.network_proxy_settings = NetworkProxySettings{"foo.bar", 42};
 
   auto badTokenEndpoint = TokenEndpoint(
-      AuthenticationCredentials(CustomParameters::getInstance().getArgument(
-                                    "integration_production_service_id"),
-                                CustomParameters::getInstance().getArgument(
-                                    "integration_production_service_secret")),
+      AuthenticationCredentials(
+          CustomParameters::getArgument("integration_production_service_id"),
+          CustomParameters::getArgument(
+              "integration_production_service_secret")),
       proxySettings);
 
   auto barrier = std::make_shared<std::promise<void> >();

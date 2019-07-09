@@ -22,10 +22,7 @@
 #include "testutils/CustomParameters.hpp"
 
 int main(int argc, char** argv) {
-  CustomParameters::getInstance().init(argc, argv);
   testing::InitGoogleTest(&argc, argv);
-
   int result = RUN_ALL_TESTS();
-
   return result;
 }

@@ -85,18 +85,16 @@ class VersionedLayerClientOnlineTest : public VersionedLayerClientTest {
 
   std::shared_ptr<VersionedLayerClient> createVersionedLayerClient() {
     olp::authentication::Settings settings;
-    settings.token_endpoint_url =
-        CustomParameters::getInstance().getArgument(kEndpoint);
+    settings.token_endpoint_url = CustomParameters::getArgument(kEndpoint);
 
     olp::client::OlpClientSettings clientSettings;
     clientSettings.authentication_settings =
         olp::client::AuthenticationSettings{
             olp::authentication::TokenProviderDefault{
-                CustomParameters::getInstance().getArgument(kAppid),
-                CustomParameters::getInstance().getArgument(kSecret),
-                settings}};
+                CustomParameters::getArgument(kAppid),
+                CustomParameters::getArgument(kSecret), settings}};
     return std::make_shared<VersionedLayerClient>(
-        olp::client::HRN{CustomParameters::getInstance().getArgument(kCatalog)},
+        olp::client::HRN{CustomParameters::getArgument(kCatalog)},
         clientSettings);
   }
 
@@ -136,12 +134,11 @@ TEST_P(VersionedLayerClientOnlineTest, StartBatchInvalidTest) {
 
 TEST_P(VersionedLayerClientOnlineTest, StartBatchTest) {
   auto versionedClient = createVersionedLayerClient();
-  auto response =
-      versionedClient
-          ->StartBatch(StartBatchRequest().WithLayers(
-              {CustomParameters::getInstance().getArgument(kVersionedLayer)}))
-          .GetFuture()
-          .get();
+  auto response = versionedClient
+                      ->StartBatch(StartBatchRequest().WithLayers(
+                          {CustomParameters::getArgument(kVersionedLayer)}))
+                      .GetFuture()
+                      .get();
 
   ASSERT_TRUE(response.IsSuccessful());
   ASSERT_TRUE(response.GetResult().GetId());
@@ -189,11 +186,10 @@ TEST_P(VersionedLayerClientOnlineTest, StartBatchTest) {
 
 TEST_P(VersionedLayerClientOnlineTest, DeleteClientTest) {
   auto versionedClient = createVersionedLayerClient();
-  auto fut =
-      versionedClient
-          ->StartBatch(StartBatchRequest().WithLayers(
-              {CustomParameters::getInstance().getArgument(kVersionedLayer)}))
-          .GetFuture();
+  auto fut = versionedClient
+                 ->StartBatch(StartBatchRequest().WithLayers(
+                     {CustomParameters::getArgument(kVersionedLayer)}))
+                 .GetFuture();
   versionedClient = nullptr;
 
   auto response = fut.get();
@@ -226,12 +222,11 @@ TEST_P(VersionedLayerClientOnlineTest, GetBaseVersionTest) {
 
 TEST_P(VersionedLayerClientOnlineTest, CancelBatchTest) {
   auto versionedClient = createVersionedLayerClient();
-  auto response =
-      versionedClient
-          ->StartBatch(StartBatchRequest().WithLayers(
-              {CustomParameters::getInstance().getArgument(kVersionedLayer)}))
-          .GetFuture()
-          .get();
+  auto response = versionedClient
+                      ->StartBatch(StartBatchRequest().WithLayers(
+                          {CustomParameters::getArgument(kVersionedLayer)}))
+                      .GetFuture()
+                      .get();
 
   ASSERT_TRUE(response.IsSuccessful());
   ASSERT_TRUE(response.GetResult().GetId());
@@ -266,7 +261,7 @@ TEST_P(VersionedLayerClientOnlineTest, CancelAllBatchTest) {
   auto responseFuture =
       versionedClient
           ->StartBatch(StartBatchRequest().WithLayers(
-              {CustomParameters::getInstance().getArgument(kVersionedLayer)}))
+              {CustomParameters::getArgument(kVersionedLayer)}))
           .GetFuture();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -278,12 +273,11 @@ TEST_P(VersionedLayerClientOnlineTest, CancelAllBatchTest) {
 
 TEST_P(VersionedLayerClientOnlineTest, PublishToBatchTest) {
   auto versionedClient = createVersionedLayerClient();
-  auto response =
-      versionedClient
-          ->StartBatch(StartBatchRequest().WithLayers(
-              {CustomParameters::getInstance().getArgument(kVersionedLayer)}))
-          .GetFuture()
-          .get();
+  auto response = versionedClient
+                      ->StartBatch(StartBatchRequest().WithLayers(
+                          {CustomParameters::getArgument(kVersionedLayer)}))
+                      .GetFuture()
+                      .get();
 
   ASSERT_TRUE(response.IsSuccessful());
   ASSERT_TRUE(response.GetResult().GetId());
@@ -305,8 +299,7 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchTest) {
               PublishPartitionDataRequest()
                   .WithData(
                       std::make_shared<std::vector<unsigned char>>(20, 0x30))
-                  .WithLayerId(CustomParameters::getInstance().getArgument(
-                      kVersionedLayer))
+                  .WithLayerId(CustomParameters::getArgument(kVersionedLayer))
                   .WithPartitionId("1111"))
           .GetFuture()
           .get();
@@ -340,12 +333,11 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchTest) {
 
 TEST_P(VersionedLayerClientOnlineTest, PublishToBatchDeleteClientTest) {
   auto versionedClient = createVersionedLayerClient();
-  auto response =
-      versionedClient
-          ->StartBatch(StartBatchRequest().WithLayers(
-              {CustomParameters::getInstance().getArgument(kVersionedLayer)}))
-          .GetFuture()
-          .get();
+  auto response = versionedClient
+                      ->StartBatch(StartBatchRequest().WithLayers(
+                          {CustomParameters::getArgument(kVersionedLayer)}))
+                      .GetFuture()
+                      .get();
 
   ASSERT_TRUE(response.IsSuccessful());
   ASSERT_TRUE(response.GetResult().GetId());
@@ -367,8 +359,7 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchDeleteClientTest) {
               PublishPartitionDataRequest()
                   .WithData(
                       std::make_shared<std::vector<unsigned char>>(20, 0x30))
-                  .WithLayerId(CustomParameters::getInstance().getArgument(
-                      kVersionedLayer))
+                  .WithLayerId(CustomParameters::getArgument(kVersionedLayer))
                   .WithPartitionId("1111"))
           .GetFuture();
 
@@ -379,8 +370,7 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchDeleteClientTest) {
               PublishPartitionDataRequest()
                   .WithData(
                       std::make_shared<std::vector<unsigned char>>(20, 0x31))
-                  .WithLayerId(CustomParameters::getInstance().getArgument(
-                      kVersionedLayer))
+                  .WithLayerId(CustomParameters::getArgument(kVersionedLayer))
                   .WithPartitionId("1112"))
           .GetFuture();
 
@@ -422,12 +412,11 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchDeleteClientTest) {
 
 TEST_P(VersionedLayerClientOnlineTest, PublishToBatchMultiTest) {
   auto versionedClient = createVersionedLayerClient();
-  auto response =
-      versionedClient
-          ->StartBatch(StartBatchRequest().WithLayers(
-              {CustomParameters::getInstance().getArgument(kVersionedLayer)}))
-          .GetFuture()
-          .get();
+  auto response = versionedClient
+                      ->StartBatch(StartBatchRequest().WithLayers(
+                          {CustomParameters::getArgument(kVersionedLayer)}))
+                      .GetFuture()
+                      .get();
 
   ASSERT_TRUE(response.IsSuccessful());
   ASSERT_TRUE(response.GetResult().GetId());
@@ -449,8 +438,7 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchMultiTest) {
               PublishPartitionDataRequest()
                   .WithData(
                       std::make_shared<std::vector<unsigned char>>(20, 0x30))
-                  .WithLayerId(CustomParameters::getInstance().getArgument(
-                      kVersionedLayer))
+                  .WithLayerId(CustomParameters::getArgument(kVersionedLayer))
                   .WithPartitionId("1111"))
           .GetFuture();
 
@@ -461,8 +449,7 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchMultiTest) {
               PublishPartitionDataRequest()
                   .WithData(
                       std::make_shared<std::vector<unsigned char>>(20, 0x31))
-                  .WithLayerId(CustomParameters::getInstance().getArgument(
-                      kVersionedLayer))
+                  .WithLayerId(CustomParameters::getArgument(kVersionedLayer))
                   .WithPartitionId("1112"))
           .GetFuture();
 
@@ -500,12 +487,11 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchMultiTest) {
 
 TEST_P(VersionedLayerClientOnlineTest, PublishToBatchCancelTest) {
   auto versionedClient = createVersionedLayerClient();
-  auto response =
-      versionedClient
-          ->StartBatch(StartBatchRequest().WithLayers(
-              {CustomParameters::getInstance().getArgument(kVersionedLayer)}))
-          .GetFuture()
-          .get();
+  auto response = versionedClient
+                      ->StartBatch(StartBatchRequest().WithLayers(
+                          {CustomParameters::getArgument(kVersionedLayer)}))
+                      .GetFuture()
+                      .get();
 
   ASSERT_TRUE(response.IsSuccessful());
   ASSERT_TRUE(response.GetResult().GetId());
@@ -527,8 +513,7 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchCancelTest) {
               PublishPartitionDataRequest()
                   .WithData(
                       std::make_shared<std::vector<unsigned char>>(20, 0x30))
-                  .WithLayerId(CustomParameters::getInstance().getArgument(
-                      kVersionedLayer))
+                  .WithLayerId(CustomParameters::getArgument(kVersionedLayer))
                   .WithPartitionId("1111"))
           .GetFuture();
 
@@ -560,8 +545,7 @@ TEST_P(VersionedLayerClientOnlineTest, CheckDataExistsTest) {
       versionedClient
           ->CheckDataExists(
               CheckDataExistsRequest()
-                  .WithLayerId(CustomParameters::getInstance().getArgument(
-                      kVersionedLayer))
+                  .WithLayerId(CustomParameters::getArgument(kVersionedLayer))
                   .WithDataHandle("5d2082c3-9738-4de7-bde0-4a52527dab37"))
           .GetFuture();
   versionedClient = nullptr;
@@ -578,8 +562,7 @@ TEST_P(VersionedLayerClientOnlineTest, CheckDataNotExistsTest) {
       versionedClient
           ->CheckDataExists(
               CheckDataExistsRequest()
-                  .WithLayerId(CustomParameters::getInstance().getArgument(
-                      kVersionedLayer))
+                  .WithLayerId(CustomParameters::getArgument(kVersionedLayer))
                   .WithDataHandle("5d2082c3-9738-4de7-bde0-4a52527dab34"))
           .GetFuture();
   versionedClient = nullptr;

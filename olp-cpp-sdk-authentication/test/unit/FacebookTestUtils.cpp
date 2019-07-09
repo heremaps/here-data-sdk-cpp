@@ -100,13 +100,12 @@ FacebookTestUtils::Impl::getScopedNetwork() {
 bool FacebookTestUtils::Impl::createFacebookTestUser(FacebookUser& user,
                                                      string permissions) {
   string url = FACEBOOK_URL + "/" +
-               CustomParameters::getInstance().getArgument("facebook_app_id") +
+               CustomParameters::getArgument("facebook_app_id") +
                TEST_USER_PATH;
   ;
   url.append(QUESTION_PARAM);
-  url.append(
-      ACCESS_TOKEN + EQUALS_PARAM +
-      CustomParameters::getInstance().getArgument("facebook_access_token"));
+  url.append(ACCESS_TOKEN + EQUALS_PARAM +
+             CustomParameters::getArgument("facebook_access_token"));
   url.append(AND_PARAM);
   url.append(INSTALLED + EQUALS_PARAM + INSTALLED_STATUS);
   url.append(AND_PARAM);
@@ -161,9 +160,8 @@ bool FacebookTestUtils::Impl::createFacebookTestUser(FacebookUser& user,
 bool FacebookTestUtils::Impl::deleteFacebookTestUser(string user_id) {
   string url = FACEBOOK_URL + "/" + user_id;
   url.append(QUESTION_PARAM);
-  url.append(
-      ACCESS_TOKEN + EQUALS_PARAM +
-      CustomParameters::getInstance().getArgument("facebook_access_token"));
+  url.append(ACCESS_TOKEN + EQUALS_PARAM +
+             CustomParameters::getArgument("facebook_access_token"));
   NetworkRequest request(url, 0, NetworkRequest::PriorityDefault,
                          NetworkRequest::HttpVerb::DEL);
 

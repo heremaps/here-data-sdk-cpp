@@ -136,24 +136,23 @@ class StreamLayerClientTestBase : public ::testing::TestWithParam<bool> {
 
   std::string GetTestCatalog() {
     return IsOnlineTest()
-               ? CustomParameters::getInstance().getArgument(kCatalog)
+               ? CustomParameters::getArgument(kCatalog)
                : "hrn:here:data:::olp-cpp-sdk-ingestion-test-catalog";
   }
 
   std::string GetTestLayer() {
-    return IsOnlineTest() ? CustomParameters::getInstance().getArgument(kLayer)
+    return IsOnlineTest() ? CustomParameters::getArgument(kLayer)
                           : "olp-cpp-sdk-ingestion-test-stream-layer";
   }
 
   std::string GetTestLayer2() {
-    return IsOnlineTest() ? CustomParameters::getInstance().getArgument(kLayer2)
+    return IsOnlineTest() ? CustomParameters::getArgument(kLayer2)
                           : "olp-cpp-sdk-ingestion-test-stream-layer-2";
   }
 
   std::string GetTestLayerSdii() {
-    return IsOnlineTest()
-               ? CustomParameters::getInstance().getArgument(kLayerSdii)
-               : "olp-cpp-sdk-ingestion-test-stream-layer-sdii";
+    return IsOnlineTest() ? CustomParameters::getArgument(kLayerSdii)
+                          : "olp-cpp-sdk-ingestion-test-stream-layer-sdii";
   }
 
   void QueueMultipleEvents(int num_events) {
@@ -191,16 +190,14 @@ class StreamLayerClientOnlineTest : public StreamLayerClientTestBase {
   virtual std::shared_ptr<StreamLayerClient> CreateStreamLayerClient()
       override {
     olp::authentication::Settings settings;
-    settings.token_endpoint_url =
-        CustomParameters::getInstance().getArgument(kEndpoint);
+    settings.token_endpoint_url = CustomParameters::getArgument(kEndpoint);
 
     olp::client::OlpClientSettings client_settings;
     client_settings.authentication_settings =
         (olp::client::AuthenticationSettings{
             olp::authentication::TokenProviderDefault{
-                CustomParameters::getInstance().getArgument(kAppid),
-                CustomParameters::getInstance().getArgument(kSecret),
-                settings}});
+                CustomParameters::getArgument(kAppid),
+                CustomParameters::getArgument(kSecret), settings}});
 
     return std::make_shared<StreamLayerClient>(
         olp::client::HRN{GetTestCatalog()}, client_settings);
@@ -264,7 +261,8 @@ TEST_P(StreamLayerClientOnlineTest, PublishDataCancel) {
   std::thread([cancel_future]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     cancel_future.GetCancellationToken().cancel();
-  }).detach();
+  })
+      .detach();
 
   auto response = cancel_future.GetFuture().get();
 
@@ -289,7 +287,8 @@ TEST_P(StreamLayerClientOnlineTest, PublishDataCancelLongDelay) {
   std::thread([cancel_future]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(1200));
     cancel_future.GetCancellationToken().cancel();
-  }).detach();
+  })
+      .detach();
 
   auto response = cancel_future.GetFuture().get();
 
@@ -315,7 +314,8 @@ TEST_P(StreamLayerClientOnlineTest,
   std::thread([cancel_future]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     cancel_future.GetCancellationToken().cancel();
-  }).detach();
+  })
+      .detach();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(400));
   auto response = cancel_future.GetFuture().get();
@@ -344,7 +344,8 @@ TEST_P(StreamLayerClientOnlineTest, PublishDataGreaterThanTwentyMibCancel) {
   std::thread([cancel_future]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     cancel_future.GetCancellationToken().cancel();
-  }).detach();
+  })
+      .detach();
 
   auto response = cancel_future.GetFuture().get();
 
@@ -570,7 +571,8 @@ TEST_P(StreamLayerClientOnlineTest, PublishSdiiCancel) {
   std::thread([cancel_future]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     cancel_future.GetCancellationToken().cancel();
-  }).detach();
+  })
+      .detach();
 
   auto response = cancel_future.GetFuture().get();
 
@@ -597,7 +599,8 @@ TEST_P(StreamLayerClientOnlineTest, PublishSdiiCancelLongDelay) {
   std::thread([cancel_future]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(1200));
     cancel_future.GetCancellationToken().cancel();
-  }).detach();
+  })
+      .detach();
 
   auto response = cancel_future.GetFuture().get();
 
@@ -1242,16 +1245,14 @@ class StreamLayerClientCacheOnlineTest : public StreamLayerClientOnlineTest {
   virtual std::shared_ptr<StreamLayerClient> CreateStreamLayerClient()
       override {
     olp::authentication::Settings settings;
-    settings.token_endpoint_url =
-        CustomParameters::getInstance().getArgument(kEndpoint);
+    settings.token_endpoint_url = CustomParameters::getArgument(kEndpoint);
 
     olp::client::OlpClientSettings client_settings;
     client_settings.authentication_settings =
         (olp::client::AuthenticationSettings{
             olp::authentication::TokenProviderDefault{
-                CustomParameters::getInstance().getArgument(kAppid),
-                CustomParameters::getInstance().getArgument(kSecret),
-                settings}});
+                CustomParameters::getArgument(kAppid),
+                CustomParameters::getArgument(kSecret), settings}});
 
     disk_cache_ = std::make_shared<olp::cache::DefaultCache>();
     EXPECT_EQ(disk_cache_->Open(),
@@ -1401,7 +1402,8 @@ TEST_P(StreamLayerClientCacheOnlineTest, FlushDataCancel) {
   std::thread([cancel_future]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     cancel_future.GetCancellationToken().cancel();
-  }).detach();
+  })
+      .detach();
 
   auto response = cancel_future.GetFuture().get();
 
@@ -1803,17 +1805,16 @@ class StreamLayerClientCacheMockTest : public StreamLayerClientMockTest {
                                         int num_requests = 0) {
     std::string expected_error = "Maximum number of requests has reached";
     if (num_requests) {
-        if (num_requests > maximum_requests) {
-          EXPECT_NO_FATAL_FAILURE(QueueMultipleEvents(maximum_requests));
-          while (num_requests > maximum_requests) {
-            auto error =
-                client_->Queue(PublishDataRequest().WithData(data_).WithLayerId(
-                    GetTestLayer()));
-            EXPECT_TRUE(error);
-            ASSERT_EQ(expected_error.compare(*error), 0);
-            num_requests--;
-          }
+      if (num_requests > maximum_requests) {
+        EXPECT_NO_FATAL_FAILURE(QueueMultipleEvents(maximum_requests));
+        while (num_requests > maximum_requests) {
+          auto error = client_->Queue(
+              PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
+          EXPECT_TRUE(error);
+          ASSERT_EQ(expected_error.compare(*error), 0);
+          num_requests--;
         }
+      }
     } else if (maximum_requests) {
       EXPECT_NO_FATAL_FAILURE(QueueMultipleEvents(maximum_requests));
       auto error = client_->Queue(

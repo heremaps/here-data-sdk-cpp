@@ -84,14 +84,13 @@ class IndexLayerClientTestBase : public ::testing::TestWithParam<bool> {
 
   std::string GetTestCatalog() {
     return IsOnlineTest()
-               ? CustomParameters::getInstance().getArgument(kCatalog)
+               ? CustomParameters::getArgument(kCatalog)
                : "hrn:here:data:::olp-cpp-sdk-ingestion-test-catalog";
   }
 
   std::string GetTestLayer() {
-    return IsOnlineTest()
-               ? CustomParameters::getInstance().getArgument(kIndexLayer)
-               : "olp-cpp-sdk-ingestion-test-index-layer";
+    return IsOnlineTest() ? CustomParameters::getArgument(kIndexLayer)
+                          : "olp-cpp-sdk-ingestion-test-index-layer";
   }
 
   const Index GetTestIndex() {
@@ -135,16 +134,14 @@ class IndexLayerClientOnlineTest : public IndexLayerClientTestBase {
  protected:
   virtual std::shared_ptr<IndexLayerClient> CreateIndexLayerClient() override {
     olp::authentication::Settings settings;
-    settings.token_endpoint_url =
-        CustomParameters::getInstance().getArgument(kEndpoint);
+    settings.token_endpoint_url = CustomParameters::getArgument(kEndpoint);
 
     olp::client::OlpClientSettings client_settings;
     client_settings.authentication_settings =
         (olp::client::AuthenticationSettings{
             olp::authentication::TokenProviderDefault{
-                CustomParameters::getInstance().getArgument(kAppid),
-                CustomParameters::getInstance().getArgument(kSecret),
-                settings}});
+                CustomParameters::getArgument(kAppid),
+                CustomParameters::getArgument(kSecret), settings}});
 
     return std::make_shared<IndexLayerClient>(
         olp::client::HRN{GetTestCatalog()}, client_settings);
@@ -228,8 +225,8 @@ TEST_P(IndexLayerClientOnlineTest, UpdateIndex) {
           .GetFuture()
           .get();
 
-    EXPECT_TRUE(response.IsSuccessful());
-    EXPECT_EQ("", response.GetError().GetMessage());
+  EXPECT_TRUE(response.IsSuccessful());
+  EXPECT_EQ("", response.GetError().GetMessage());
 }
 
 TEST_P(IndexLayerClientOnlineTest, PublishNoData) {
