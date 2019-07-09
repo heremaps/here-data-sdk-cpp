@@ -121,6 +121,10 @@ This will ensure the maximum length for each individual path is not greater than
 
 (Defaults to `OFF`) If enabled, this will cause all libraries to be built without exceptions.
 
+#### EDGE_SDK_MSVC_PARALLEL_BUILD_ENABLE (Windows only)
+
+(Defaults to `ON`) If enabled, this will add /MP compilation flag to build SDK using multiple cores.
+
 ## SDK Usage
 
 To learn how to use the HERE OLP Edge SDK, check the [Getting Started Guide](docs/GettingStartedGuide.md).
