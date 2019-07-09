@@ -41,10 +41,10 @@ using namespace rapidjson;
 using namespace olp::network;
 
 namespace {
-constexpr char ARCGIS_URL[] = "https://www.arcgis.com/sharing/rest/oauth2/token";
-constexpr char GRANT_TYPE[] = "grant_type";
-constexpr char CLIENT_ID[] = "client_id";
-constexpr char REFRESH_TOKEN[] = "refresh_token";
+constexpr auto ARCGIS_URL = "https://www.arcgis.com/sharing/rest/oauth2/token";
+constexpr auto GRANT_TYPE = "grant_type";
+constexpr auto CLIENT_ID = "client_id";
+constexpr auto REFRESH_TOKEN = "refresh_token";
 }  // namespace
 
 namespace olp {
@@ -141,7 +141,7 @@ ArcGisTestUtils::Impl::generateClientBody() {
   std::string data;
   data.append(CLIENT_ID)
       .append(EQUALS_PARAM)
-      .append(CustomParameters::getInstance().getArgument("arcgis_app_id"))
+      .append(CustomParameters::getArgument("arcgis_app_id"))
       .append(AND_PARAM);
   data.append(GRANT_TYPE)
       .append(EQUALS_PARAM)
@@ -149,8 +149,7 @@ ArcGisTestUtils::Impl::generateClientBody() {
       .append(AND_PARAM);
   data.append(REFRESH_TOKEN)
       .append(EQUALS_PARAM)
-      .append(
-          CustomParameters::getInstance().getArgument("arcgis_access_token"));
+      .append(CustomParameters::getArgument("arcgis_access_token"));
   return std::make_shared<std::vector<unsigned char> >(data.begin(),
                                                        data.end());
 }

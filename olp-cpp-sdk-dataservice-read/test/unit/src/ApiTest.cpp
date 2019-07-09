@@ -46,8 +46,8 @@ class ApiTest : public ::testing::TestWithParam<bool> {
  protected:
   ApiTest() {
     olp::authentication::TokenProviderDefault provider(
-        CustomParameters::getInstance().getArgument("appid"),
-        CustomParameters::getInstance().getArgument("secret"));
+        CustomParameters::getArgument("appid"),
+        CustomParameters::getArgument("secret"));
     olp::client::AuthenticationSettings authSettings;
     authSettings.provider = provider;
 
@@ -58,7 +58,7 @@ class ApiTest : public ::testing::TestWithParam<bool> {
   }
 
   std::string GetTestCatalog() {
-    return CustomParameters::getInstance().getArgument("catalog");
+    return CustomParameters::getArgument("catalog");
   }
 
   std::string PrintError(const olp::client::ApiError& error) {

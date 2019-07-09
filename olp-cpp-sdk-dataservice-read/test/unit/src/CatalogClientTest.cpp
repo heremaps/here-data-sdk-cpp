@@ -85,9 +85,8 @@ class CatalogClientTestBase
 
   std::string GetTestCatalog() {
     static std::string mockCatalog{"hrn:here:data:::hereos-internal-test-v2"};
-    return isOnlineTest()
-               ? CustomParameters::getInstance().getArgument("catalog")
-               : mockCatalog;
+    return isOnlineTest() ? CustomParameters::getArgument("catalog")
+                          : mockCatalog;
   }
 
   std::string PrintError(const olp::client::ApiError& error) {
@@ -121,8 +120,8 @@ class CatalogClientOnlineTest : public CatalogClientTestBase {
     handler_ = std::make_shared<MockHandler>();
 
     olp::authentication::TokenProviderDefault provider(
-        CustomParameters::getInstance().getArgument("appid"),
-        CustomParameters::getInstance().getArgument("secret"));
+        CustomParameters::getArgument("appid"),
+        CustomParameters::getArgument("secret"));
     olp::client::AuthenticationSettings authSettings;
     authSettings.provider = provider;
     settings_ = std::make_shared<olp::client::OlpClientSettings>();
@@ -605,7 +604,8 @@ olp::client::NetworkAsyncHandler setsPromiseWaitsAndReturns(
     std::shared_ptr<std::promise<void>> preSignal,
     std::shared_ptr<std::promise<void>> waitForSignal,
     olp::network::HttpResponse response,
-    std::shared_ptr<std::promise<void>> postSignal = std::make_shared<std::promise<void>>()) {
+    std::shared_ptr<std::promise<void>> postSignal =
+        std::make_shared<std::promise<void>>()) {
   return [preSignal, waitForSignal, response, postSignal](
              const olp::network::NetworkRequest& request,
              const olp::network::NetworkConfig& /*config*/,
@@ -613,23 +613,24 @@ olp::client::NetworkAsyncHandler setsPromiseWaitsAndReturns(
              -> olp::client::CancellationToken {
     auto completed = std::make_shared<std::atomic_bool>(false);
 
-    std::thread(
-        [request, preSignal, waitForSignal, completed, callback, response, postSignal]() {
-          // emulate a small response delay
-          std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    std::thread([request, preSignal, waitForSignal, completed, callback,
+                 response, postSignal]() {
+      // emulate a small response delay
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-          preSignal->set_value();
-          waitForSignal->get_future().get();
+      preSignal->set_value();
+      waitForSignal->get_future().get();
 
-          if (!completed->exchange(true)) {
-            callback(response);
-          }
+      if (!completed->exchange(true)) {
+        callback(response);
+      }
 
-          postSignal->set_value();
-        })
+      postSignal->set_value();
+    })
         .detach();
 
-    return olp::client::CancellationToken([request, completed, callback, postSignal]() {
+    return olp::client::CancellationToken([request, completed, callback,
+                                           postSignal]() {
       if (!completed->exchange(true)) {
         callback({olp::network::Network::ErrorCode::Cancelled, "Cancelled"});
       }
@@ -2195,8 +2196,9 @@ TEST_P(CatalogClientMockTest, GetCatalogCacheWithUpdate) {
 
   EXPECT_CALL(*handler_, op(IsGetRequest(URL_CONFIG), testing::_, testing::_))
       .Times(1)
-      .WillOnce(testing::Invoke(setsPromiseWaitsAndReturns(
-          waitToStartSignal, preCallbackWait, {200, HTTP_RESPONSE_CONFIG}, waitForEnd)));
+      .WillOnce(testing::Invoke(
+          setsPromiseWaitsAndReturns(waitToStartSignal, preCallbackWait,
+                                     {200, HTTP_RESPONSE_CONFIG}, waitForEnd)));
 
   auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = CatalogRequest();
@@ -2298,7 +2300,8 @@ TEST_P(CatalogClientMockTest, GetDataCacheWithUpdate) {
               op(IsGetRequest(URL_BLOB_DATA_269), testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Invoke(setsPromiseWaitsAndReturns(
-          waitToStartSignal, preCallbackWait, {200, HTTP_RESPONSE_BLOB_DATA_269}, waitForEndSignal)));
+          waitToStartSignal, preCallbackWait,
+          {200, HTTP_RESPONSE_BLOB_DATA_269}, waitForEndSignal)));
 
   auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = DataRequest();
@@ -2387,7 +2390,8 @@ TEST_P(CatalogClientMockTest, GetPartitionsCacheWithUpdate) {
               op(IsGetRequest(URL_PARTITIONS), testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Invoke(setsPromiseWaitsAndReturns(
-          waitToStartSignal, preCallbackWait, {200, HTTP_RESPONSE_PARTITIONS}, waitForEndSignal)));
+          waitToStartSignal, preCallbackWait, {200, HTTP_RESPONSE_PARTITIONS},
+          waitForEndSignal)));
 
   auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = PartitionsRequest();
@@ -2532,8 +2536,9 @@ TEST_P(CatalogClientMockTest, CancelPendingRequestsCatalog) {
   EXPECT_CALL(*handler_,
               op(IsGetRequest(URL_LOOKUP_CONFIG), testing::_, testing::_))
       .Times(1)
-      .WillOnce(testing::Invoke(setsPromiseWaitsAndReturns(
-          waitForCancel1, pauseForCancel1, {200, HTTP_RESPONSE_LOOKUP_CONFIG})));
+      .WillOnce(testing::Invoke(
+          setsPromiseWaitsAndReturns(waitForCancel1, pauseForCancel1,
+                                     {200, HTTP_RESPONSE_LOOKUP_CONFIG})));
 
   EXPECT_CALL(*handler_,
               op(IsGetRequest(URL_LOOKUP_METADATA), testing::_, testing::_))

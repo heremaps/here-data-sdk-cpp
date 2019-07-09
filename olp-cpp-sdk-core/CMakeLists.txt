@@ -22,9 +22,6 @@ set(DESCRIPTION "Core network and utility library for OLP C++ SDK")
 
 find_package(RapidJSON REQUIRED)
 
-if(WIN32)
-    add_definitions(-DBOOST_ALL_NO_LIB)
-endif()
 find_package(Boost REQUIRED)
 
 find_package(leveldb REQUIRED)
@@ -229,7 +226,6 @@ target_link_libraries(${PROJECT_NAME}
         ${NETWORK_CURL_LIBRARIES}
         ${NETWORK_WINHTTP_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
-        ${Boost_LIBRARIES}
     PRIVATE
         leveldb::leveldb
 )

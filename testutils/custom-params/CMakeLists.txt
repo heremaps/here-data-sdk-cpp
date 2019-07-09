@@ -21,11 +21,6 @@ endif()
 
 project(custom-params)
 
-if(WIN32)
-    add_definitions(-DBOOST_ALL_NO_LIB)
-endif()
-find_package(Boost REQUIRED COMPONENTS program_options)
-
 set(TARGET_NAME ${PROJECT_NAME})
 
 set(${TARGET_NAME}_SRC
@@ -43,20 +38,7 @@ target_sources(${TARGET_NAME} PRIVATE
 
 target_include_directories(${TARGET_NAME}
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    PRIVATE $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
 )
-
-target_link_libraries(${TARGET_NAME}
-    ${Boost_LIBRARIES}
-)
-
-if (WIN32)
-    # For Wins we disable auto linking name manging in the root cmake file.
-    # Therefore we need to explicitly link to correct library name in some instances.
-    target_link_libraries(${TARGET_NAME}
-        boost_program_options
-    )
-endif()
 
 if (ANDROID OR IOS)
     target_link_libraries(${TARGET_NAME} gtest gmock)

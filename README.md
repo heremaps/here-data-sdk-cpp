@@ -39,7 +39,7 @@ Library dependencies:
 | --------- | --------------- |
 | OpenSSL   | 1.0.2 |
 | Curl      | 7.47.0 |
-| Boost     | 1.69.0 |
+| Boost (headers only) | 1.69.0 |
 | leveldb   | 1.21 |
 | snappy    | 1.1.7 |
 | rapidjson | latest |

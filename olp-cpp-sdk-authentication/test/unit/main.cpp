@@ -97,8 +97,6 @@ int main(int argc, char** argv) {
   int tester_argc = tester_args.size() - 1;
   char** tester_argv = tester_args.data();
 
-  CustomParameters::getInstance().init(argc, argv);
-
   testing::InitGoogleTest(&tester_argc, tester_argv);
 
   int result = RUN_ALL_TESTS();
