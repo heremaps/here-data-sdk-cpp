@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/heremaps/here-olp-edge-sdk-cpp.svg?branch=master)](https://travis-ci.com/heremaps/here-olp-edge-sdk-cpp)
+
 # HERE OLP Edge SDK C++
 
 The HERE OLP Edge SDK is a _work in progress_ c++ client for [HERE Open Location Platform](https://platform.here.com).
