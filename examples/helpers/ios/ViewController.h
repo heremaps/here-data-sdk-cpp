@@ -19,10 +19,8 @@
 
 #import <UIKit/UIKit.h>
 
-@interface AppDelegate : UIResponder <UIApplicationDelegate>
+@interface ViewController : UIViewController
 
-@property (strong, nonatomic) UIWindow *window;
-
+- (void)runExampleProgram;
 
 @end
-

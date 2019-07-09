@@ -36,14 +36,14 @@ If everything is fine, you would see `Publish Successful - TraceID: <TraceId gen
 
 ## Building and running on Android
 
-This example shows how to integrate and use the OLP C++ EDGE SDK in an Android project.
+This example shows how to integrate and use the HERE OLP Edge SDK C++ in an Android project.
 
 ### Prerequisites
 
 * Setup the Android environment.
 * Provide correct keyId, secret key, and other information stated at the beginning of this README file.
 
-### Build OLP C++ EDGE SDK
+### Build HERE OLP Edge SDK C++
 
 First, before building, you need to configure the SDK with `EDGE_SDK_BUILD_EXAMPLES` set to `ON`, the path to Android NDK's toolchain file set via the `CMAKE_TOOLCHAIN_FILE` variable, and, optionally, the [NDK-specific CMake variables](https://developer.android.com/ndk/guides/cmake#variables).
 
@@ -52,7 +52,7 @@ mkdir build && cd build
 cmake .. -DEDGE_SDK_BUILD_EXAMPLES=ON -DCMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a
 ```
 
-The `CMake` command will generate a `Gradle` project in the `build/examples/dataservice-write/android` folder. Before it can be used, you have to install the OLP C++ EDGE SDK libraries into the sysroot directory:
+The `CMake` command will generate a `Gradle` project in the `build/examples/dataservice-write/android` folder. Before it can be used, you have to install the HERE OLP Edge SDK C++ libraries into the sysroot directory:
 
 ```bash
 # Execute as sudo if necessary
@@ -75,7 +75,39 @@ After installing and running the `dataservice_write_example` apk, you should see
 
 ### Additional notes
 
-Note, that you can run `CMake` command directly from `<olp-edge-sdk-root>/examples/dataservice-write/` folder if you have already built and installed OLP C++ EDGE SDK libraries for Android. Make sure that you pass the correct path to `LevelDB` library and provided the correct `EDGE_SDK_NETWORK_PROTOCOL_JAR` parameter in the `CMake` command invoked by the `build/examples/dataservice-write/android/app/build.gradle` script.
+Note, that you can run `CMake` command directly from `<olp-edge-sdk-root>/examples/dataservice-write/` folder if you have already built and installed HERE OLP Edge SDK C++ libraries for Android. Make sure that you pass the correct path to `LevelDB` library and provided the correct `EDGE_SDK_NETWORK_PROTOCOL_JAR` parameter in the `CMake` command invoked by the `build/examples/dataservice-write/android/app/build.gradle` script.
+
+## Building and running on iOS
+
+This example shows how to integrate and use the HERE OLP Edge SDK C++ in a basic iOS application written in Objective-C language.
+
+### Prerequisites
+
+* Setup the iOS development environment - install the `XCode` and command line tools.
+* Install external dependencies - refer to the `README.md` file located under `<olp-edge-sdk-root>/README.md`.
+* Provide correct keyId, secret key, and other information stated at the beginning of this README file.
+
+### Build HERE OLP Edge SDK C++
+
+First, before building, you need to configure the HERE OLP Edge SDK C++ with `EDGE_SDK_BUILD_EXAMPLES` set to `ON`, (optionally) disable tests with `EDGE_SDK_ENABLE_TESTING` set to `OFF`, and specify the path to the iOS toolchain file shipped together with the SDK and located under `<olp-edge-sdk-root>/cmake/toolchains/iOS.cmake`:
+
+```bash
+mkdir build && cd build
+cmake .. -GXcode  -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/iOS.cmake -DPLATFORM=iphoneos -DEDGE_SDK_BUILD_EXAMPLES=ON -DEDGE_SDK_ENABLE_TESTING=OFF
+```
+
+Note that in order to configure the HERE OLP Edge SDK C++ for a simulator, you need to set the `SIMULATOR` variable to `ON`.
+
+### Build and run the application on the device
+
+Now open the generated `XCode` project:
+```bash
+open olp-cpp-sdk.xcodeproj
+```
+
+Select the `dataservice-write-example` scheme from the schemes list in `XCode` and specify your signing credentials for the `dataservice-write-example` target.
+
+Once everything is correctly set up, build and run the example application on your device and you should see the `Publish Successful` message in the main UI screen. If you encountered an error message, e.g. `Publish Failed`, please check the device's logs for the detailed description of the error.
 
 ## How it works
 
