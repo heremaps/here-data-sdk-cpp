@@ -17,13 +17,18 @@
  * License-Filename: LICENSE
  */
 
-#import <UIKit/UIKit.h>
-
 #import "AppDelegate.h"
 
-int main(int argc, char * argv[]) {
-    @autoreleasepool {
-        NSLog(@"Running example...");
-        return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
-    }
+@interface AppDelegate ()
+
+@end
+
+@implementation AppDelegate
+
+- (BOOL)application:(UIApplication *)application
+    didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+  // Override point for customization after application launch.
+  return YES;
 }
+
+@end

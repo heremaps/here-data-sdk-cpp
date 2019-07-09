@@ -19,9 +19,13 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ViewController : UIViewController
+#import "AppDelegate.h"
 
-- (void)runExampleProgram;
-
-@end
-
+int main(int argc, char* argv[]) {
+  @autoreleasepool {
+    NSString* exampleName = NSBundle.mainBundle.infoDictionary[@"CFBundleName"];
+    NSLog(@"Running example: %@... ", exampleName);
+    return UIApplicationMain(argc, argv, nil,
+                             NSStringFromClass([AppDelegate class]));
+  }
+}

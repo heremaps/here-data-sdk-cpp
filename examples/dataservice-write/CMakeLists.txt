@@ -19,49 +19,30 @@ cmake_minimum_required(VERSION 3.5)
 
 
 set(EDGE_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET dataservice-write-example)
-project(${EDGE_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET} VERSION 0.6.0)
 
 if (IOS)
-    add_executable(${EDGE_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/example.h ${CMAKE_CURRENT_SOURCE_DIR}/example.cpp)
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/ios/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ios)
+    file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/ios/CMakeLists.txt.in)
 
-    find_library(CORE_FOUNDATION Foundation)
-    find_library(CF_NETWORK_FRAMEWORK CFNetwork)
-    find_library(SECURITY_FRAMEWORK Security)
-    find_library(UIKIT_FRAMEWORK UIKit)
-
-    set(RESOURCE_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/ios/resources/Main.storyboard
-                        ${CMAKE_CURRENT_SOURCE_DIR}/ios/resources/dummy.txt)
-    target_sources(dataservice-write-example PUBLIC
-                        ${CMAKE_CURRENT_SOURCE_DIR}/ios/AppDelegate.h
-                        ${CMAKE_CURRENT_SOURCE_DIR}/ios/AppDelegate.mm
-                        ${CMAKE_CURRENT_SOURCE_DIR}/ios/ViewController.h
-                        ${CMAKE_CURRENT_SOURCE_DIR}/ios/ViewController.mm
-                        ${CMAKE_CURRENT_SOURCE_DIR}/ios/main.mm
-                        ${RESOURCE_FILES})
-    set_property (TARGET ${EDGE_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET} APPEND_STRING PROPERTY COMPILE_FLAGS "-fobjc-arc")
-
-    set(APP_BUNDLE_IDENTIFIER "com.here.olp.examples.dataservice-write")
-
-    set(MACOSX_BUNDLE_INFO_STRING ${APP_BUNDLE_IDENTIFIER})
-    set(MACOSX_BUNDLE_GUI_IDENTIFIER ${APP_BUNDLE_IDENTIFIER})
-    set(MACOSX_BUNDLE_BUNDLE_NAME ${APP_BUNDLE_IDENTIFIER})
-    set(MACOSX_BUNDLE_LONG_VERSION_STRING "1.0")
-    set(MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0")
-    set(MACOSX_BUNDLE_BUNDLE_VERSION "1.0")
-    set_target_properties(dataservice-write-example PROPERTIES
-        XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym"
-        RESOURCE "${RESOURCE_FILES}"
-        MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/ios/Info.plist
-        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
-        XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC YES
+    # Configure CMakeLists.txt.in with specified variables
+    set(EDGE_SDK_EXAMPLE_TARGET_NAME ${EDGE_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET})
+    set(EDGE_SDK_SUCCESSFUL_EXAMPLE_EXECUTION_STRING "Publish Successfull")
+    set(EDGE_SDK_FAILING_EXAMPLE_EXECUTION_STRING "Publish Failed!")
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/ios/CMakeLists.txt.in
+        ${CMAKE_CURRENT_BINARY_DIR}/ios/CMakeLists.txt
+        @ONLY
     )
 
-    target_link_libraries(${EDGE_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET}
-        ${CORE_FOUNDATION}
-        ${SECURITY_FRAMEWORK}
-        ${CF_NETWORK_FRAMEWORK}
-        ${UIKIT_FRAMEWORK}
-    )
+    # Copy the example.h / example.cpp files to iOS build folder (apparently, the XCode doesn't like symlinked files)
+    set(EDGE_SDK_EXAMPLE_H_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/example.h)
+    set(EDGE_SDK_EXAMPLE_H_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/ios/example.h)
+    set(EDGE_SDK_EXAMPLE_CPP_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/example.cpp)
+    set(EDGE_SDK_EXAMPLE_CPP_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/ios/example.cpp)
+    execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${EDGE_SDK_EXAMPLE_H_FILE_SRC} ${EDGE_SDK_EXAMPLE_H_FILE_DST})
+    execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${EDGE_SDK_EXAMPLE_CPP_FILE_SRC} ${EDGE_SDK_EXAMPLE_CPP_FILE_DST})
+
+    add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/ios ${CMAKE_CURRENT_BINARY_DIR}/ios)
 elseif(ANDROID)
     # Copy all the files from helpers directory except the *.in files
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/android/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/android)
@@ -144,6 +125,7 @@ elseif(ANDROID)
     endif(CMAKE_HOST_WIN32 AND NOT CYGWIN AND NOT MSYS)
 
 else()
+    project(${EDGE_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET} VERSION 0.6.0)
     add_executable(${EDGE_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/example.h ${CMAKE_CURRENT_SOURCE_DIR}/example.cpp)
 
     target_sources(${EDGE_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
