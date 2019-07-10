@@ -70,7 +70,7 @@ static void android_append_in_chunks(Level level, const char* tag,
 }
 #endif
 
-void ConsoleAppender::append(const LogMessage& message) {
+IAppender& ConsoleAppender::append(const LogMessage& message) {
   std::string formattedMessage = m_formatter.format(message);
 
 #ifdef PORTING_PLATFORM_ANDROID
@@ -78,6 +78,7 @@ void ConsoleAppender::append(const LogMessage& message) {
 #else
   std::cout << formattedMessage << std::endl;
 #endif
+  return *this;
 }
 
 }  // namespace logging

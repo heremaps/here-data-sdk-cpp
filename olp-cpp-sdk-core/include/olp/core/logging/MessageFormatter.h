@@ -210,7 +210,7 @@ class CORE_API MessageFormatter {
    * @brief Sets the elements for the format.
    * @param elements The elements.
    */
-  inline void setElements(std::vector<Element> elements);
+  inline MessageFormatter& setElements(std::vector<Element> elements);
 
   /**
    * @brief Gets the level name map.
@@ -222,7 +222,7 @@ class CORE_API MessageFormatter {
    * @brief Sets the level name map.
    * @param map The level name map.
    */
-  inline void setLevelNameMap(LevelNameMap map);
+  inline MessageFormatter& setLevelNameMap(LevelNameMap map);
 
   /**
    * @brief Gets the timezone for timestamps.
@@ -234,7 +234,7 @@ class CORE_API MessageFormatter {
    * @brief Sets the timezone for timestamps.
    * @param timezone The timezone.
    */
-  inline void setTimezone(Timezone timezone);
+  inline MessageFormatter& setTimezone(Timezone timezone);
 
   /**
    * @brief Formats a log message.
@@ -300,8 +300,10 @@ MessageFormatter::getElements() const {
   return m_elements;
 }
 
-inline void MessageFormatter::setElements(std::vector<Element> elements) {
+inline MessageFormatter& MessageFormatter::setElements(
+    std::vector<Element> elements) {
   m_elements = std::move(elements);
+  return *this;
 }
 
 inline const MessageFormatter::LevelNameMap& MessageFormatter::getLevelNameMap()
@@ -309,16 +311,18 @@ inline const MessageFormatter::LevelNameMap& MessageFormatter::getLevelNameMap()
   return m_levelNameMap;
 }
 
-inline void MessageFormatter::setLevelNameMap(LevelNameMap map) {
+inline MessageFormatter& MessageFormatter::setLevelNameMap(LevelNameMap map) {
   m_levelNameMap = std::move(map);
+  return *this;
 }
 
 inline MessageFormatter::Timezone MessageFormatter::getTimezone() const {
   return m_timezone;
 }
 
-inline void MessageFormatter::setTimezone(Timezone timezone) {
+inline MessageFormatter& MessageFormatter::setTimezone(Timezone timezone) {
   m_timezone = timezone;
+  return *this;
 }
 
 }  // namespace logging

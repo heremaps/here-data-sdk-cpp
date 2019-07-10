@@ -36,7 +36,7 @@ class CORE_API DebugAppender : public IAppender {
    */
   static bool isImplemented();
 
-  void append(const LogMessage& message) override;
+  IAppender& append(const LogMessage& message) override;
 };
 
 }  // namespace logging

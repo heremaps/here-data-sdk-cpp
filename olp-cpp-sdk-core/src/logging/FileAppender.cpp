@@ -41,10 +41,11 @@ FileAppender::~FileAppender() {}
 
 bool FileAppender::isValid() const { return m_stream.good(); }
 
-void FileAppender::append(const LogMessage& message) {
-  if (!isValid()) return;
+IAppender& FileAppender::append(const LogMessage& message) {
+  if (!isValid()) return *this;
 
   m_stream << m_formatter.format(message) << std::endl;
+  return *this;
 }
 
 }  // namespace logging

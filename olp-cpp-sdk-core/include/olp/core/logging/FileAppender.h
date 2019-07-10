@@ -71,9 +71,9 @@ class CORE_API FileAppender : public IAppender {
    * @brief Sets the message formatter.
    * @param formatter The message formatter.
    */
-  inline void setMessageFormatter(MessageFormatter formatter);
+  inline FileAppender& setMessageFormatter(MessageFormatter formatter);
 
-  void append(const LogMessage& message) override;
+  IAppender& append(const LogMessage& message) override;
 
  private:
   std::string m_fileName;
@@ -95,8 +95,9 @@ inline const MessageFormatter& FileAppender::getMessageFormatter() const {
   return m_formatter;
 }
 
-inline void FileAppender::setMessageFormatter(MessageFormatter formatter) {
+inline FileAppender& FileAppender::setMessageFormatter(MessageFormatter formatter) {
   m_formatter = std::move(formatter);
+  return *this;
 }
 
 }  // namespace logging
