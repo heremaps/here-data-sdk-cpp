@@ -47,9 +47,9 @@ class CORE_API ConsoleAppender : public IAppender {
    * @brief Sets the message formatter.
    * @param formatter The message formatter.
    */
-  inline void setMessageFormatter(MessageFormatter formatter);
+  inline ConsoleAppender& setMessageFormatter(MessageFormatter formatter);
 
-  void append(const LogMessage& message) override;
+  IAppender& append(const LogMessage& message) override;
 
  private:
   MessageFormatter m_formatter;
@@ -62,8 +62,9 @@ inline const MessageFormatter& ConsoleAppender::getMessageFormatter() const {
   return m_formatter;
 }
 
-inline void ConsoleAppender::setMessageFormatter(MessageFormatter formatter) {
+inline ConsoleAppender& ConsoleAppender::setMessageFormatter(MessageFormatter formatter) {
   m_formatter = std::move(formatter);
+  return *this;
 }
 
 }  // namespace logging

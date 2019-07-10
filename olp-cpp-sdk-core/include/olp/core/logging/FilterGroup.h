@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include <olp/core/logging/Level.h>
 #include <olp/core/CoreApi.h>
+#include <olp/core/logging/Level.h>
 
 #include <boost/none.hpp>
 #include <boost/optional.hpp>
@@ -53,7 +53,7 @@ class CORE_API FilterGroup {
    * @brief Sets the default log level.
    * @param level The default log level.
    */
-  inline void setLevel(Level level);
+  inline FilterGroup& setLevel(Level level);
 
   /**
    * @brief Clears the default log level to be unset.
@@ -61,7 +61,7 @@ class CORE_API FilterGroup {
    * Leaving the default log level unset prevents the default level in Log from
    * changing when the filter group is applied.
    */
-  inline void clearLevel();
+  inline FilterGroup& clearLevel();
 
   /**
    * @brief Gets the log level for a tag
@@ -75,7 +75,7 @@ class CORE_API FilterGroup {
    * @param level The log level for a tag.
    * @param tag The tag to set the level for.
    */
-  inline void setLevel(Level level, const std::string& tag);
+  inline FilterGroup& setLevel(Level level, const std::string& tag);
 
   /**
    * @brief Clears the log level to be unset for a tag.
@@ -83,12 +83,12 @@ class CORE_API FilterGroup {
    * Leaving the log level for a tag unset causes it to use the default log
    * level instead.
    */
-  inline void clearLevel(const std::string& tag);
+  inline FilterGroup& clearLevel(const std::string& tag);
 
   /**
    * @brief Clears the filter group to be unset.
    */
-  inline void clear();
+  inline FilterGroup& clear();
 
   /**
    * @brief Loads the filter group from a file.
@@ -150,9 +150,15 @@ inline boost::optional<Level> FilterGroup::getLevel() const {
   return m_defaultLevel;
 }
 
-inline void FilterGroup::setLevel(Level level) { m_defaultLevel = level; }
+inline FilterGroup& FilterGroup::setLevel(Level level) {
+  m_defaultLevel = level;
+  return *this;
+}
 
-inline void FilterGroup::clearLevel() { m_defaultLevel = boost::none; }
+inline FilterGroup& FilterGroup::clearLevel() {
+  m_defaultLevel = boost::none;
+  return *this;
+}
 
 inline boost::optional<Level> FilterGroup::getLevel(
     const std::string& tag) const {
@@ -161,17 +167,20 @@ inline boost::optional<Level> FilterGroup::getLevel(
   return foundIter->second;
 }
 
-inline void FilterGroup::setLevel(Level level, const std::string& tag) {
+inline FilterGroup& FilterGroup::setLevel(Level level, const std::string& tag) {
   m_tagLevels[tag] = level;
+  return *this;
 }
 
-inline void FilterGroup::clearLevel(const std::string& tag) {
+inline FilterGroup& FilterGroup::clearLevel(const std::string& tag) {
   m_tagLevels.erase(tag);
+  return *this;
 }
 
-inline void FilterGroup::clear() {
+inline FilterGroup& FilterGroup::clear() {
   m_defaultLevel = boost::none;
   m_tagLevels.clear();
+  return *this;
 }
 
 }  // namespace logging

@@ -87,27 +87,28 @@ class CORE_API Configuration {
    * added appender is set to logging::Level::Trace.
    * @param formatter The message formatter.
    */
-  void addConsoleAppender(
+  Configuration& addConsoleAppender(
       MessageFormatter formatter = MessageFormatter::createDefault());
 
   /**
    * @brief Adds the debug appender (if applicable) to the configuration. Log
    * level of the added appender is set to logging::Level::Trace.
    */
-  void addDebugAppender();
+  Configuration& addDebugAppender();
 
   /**
    * @brief Adds an appender along with its logging level to the configuration.
    * @param appender The appender to add.
    * @param level The log level belonging to appender.
    */
-  inline void addAppender(std::shared_ptr<IAppender> appender,
-                          logging::Level level = logging::Level::Trace);
+  inline Configuration& addAppender(
+      std::shared_ptr<IAppender> appender,
+      logging::Level level = logging::Level::Trace);
 
   /**
    * @brief Clears the list of appenders.
    */
-  inline void clear();
+  inline Configuration& clear();
 
   /**
    * @brief Gets the appenders from the configuration.
@@ -131,13 +132,17 @@ inline Configuration& Configuration::operator=(Configuration&& other) noexcept {
 
 inline bool Configuration::isValid() const { return !m_appenders.empty(); }
 
-inline void Configuration::addAppender(std::shared_ptr<IAppender> appender,
-                                       logging::Level level) {
+inline Configuration& Configuration::addAppender(
+    std::shared_ptr<IAppender> appender, logging::Level level) {
   AppenderWithLogLevel appenderWithLogLevel = {level, std::move(appender)};
   m_appenders.emplace_back(std::move(appenderWithLogLevel));
+  return *this;
 }
 
-inline void Configuration::clear() { m_appenders.clear(); }
+inline Configuration& Configuration::clear() {
+  m_appenders.clear();
+  return *this;
+}
 
 inline auto Configuration::getAppenders() const -> const AppenderList& {
   return m_appenders;

@@ -34,13 +34,15 @@ Configuration Configuration::createDefault() {
   return configuration;
 }
 
-void Configuration::addConsoleAppender(MessageFormatter formatter) {
+Configuration& Configuration::addConsoleAppender(MessageFormatter formatter) {
   addAppender(std::make_shared<ConsoleAppender>(std::move(formatter)));
+  return *this;
 }
 
-void Configuration::addDebugAppender() {
+Configuration& Configuration::addDebugAppender() {
   if (DebugAppender::isImplemented())
     addAppender(std::make_shared<DebugAppender>());
+  return *this;
 }
 
 }  // namespace logging

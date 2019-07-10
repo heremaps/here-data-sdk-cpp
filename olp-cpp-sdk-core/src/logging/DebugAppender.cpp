@@ -32,7 +32,7 @@ namespace logging {
 
 bool DebugAppender::isImplemented() { return true; }
 
-void DebugAppender::append(const LogMessage& message) {
+IAppender& DebugAppender::append(const LogMessage& message) {
   const char* prefix = nullptr;
   bool showLocation = false;
   switch (message.level) {
@@ -58,7 +58,7 @@ void DebugAppender::append(const LogMessage& message) {
       showLocation = true;
       break;
     default:
-      return;
+      return *this;
   }
 
   if (showLocation) {
@@ -75,13 +75,15 @@ void DebugAppender::append(const LogMessage& message) {
   OutputDebugStringA(prefix);
   OutputDebugStringA(message.message);
   OutputDebugStringA("\n");
+
+  return *this;
 }
 
 #else
 
 bool DebugAppender::isImplemented() { return false; }
 
-void DebugAppender::append(const LogMessage&) {}
+IAppender& DebugAppender::append(const LogMessage&) {return *this;}
 
 #endif  // LOG_PLATFORM_WINDOWS
 

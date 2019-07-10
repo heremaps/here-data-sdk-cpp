@@ -38,7 +38,7 @@ class IAppender {
    * @brief Appends a message using char strings.
    * @param message The message to append.
    */
-  virtual void append(const LogMessage& message) = 0;
+  virtual IAppender& append(const LogMessage& message) = 0;
 };
 
 }  // namespace logging
