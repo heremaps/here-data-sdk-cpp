@@ -20,12 +20,6 @@ function(gen_ios_test)
     endif()
 
     configure_file(
-        ${CMAKE_SOURCE_DIR}/cmake/ios/build_testapp.sh.in
-        ./build_testapp.sh
-        @ONLY
-    )
-
-    configure_file(
         ${CMAKE_SOURCE_DIR}/cmake/ios/ios_test.sh.in
         ./ios_test.sh
         @ONLY
