@@ -2,10 +2,18 @@ language: cpp
 matrix:
   include:
   - os: linux
-    services: docker
+    env:
+    - WORKSPACE=$TRAVIS_BUILD_DIR
+    dist: xenial
+    addons:
+      apt:
+        packages:
+        - cmake 
+        - libssl-dev 
+        - libcurl4-openssl-dev 
+        - libboost-all-dev 
     script:
-    - echo SERVICE_ID=${SERVICE_ID} >>env_file && echo SERVICE_SECRET=${SERVICE_SECRET} >>env_file
-    - docker run --rm --privileged -v ${TRAVIS_BUILD_DIR}:/mnt/test --env-file=env_file grebec/olp-test /bin/bash -x /mnt/test/scripts/linux_build.sh
+    - $WORKSPACE/scripts/linux_build.sh
   - os: windows
     env: 
     - BUILD_TYPE=RelWithDebInfo WORKSPACE=$TRAVIS_BUILD_DIR
@@ -15,5 +23,4 @@ matrix:
     - $WORKSPACE/scripts/windows_build.sh
 branches:
   only:
-  - master
-
+  - master	
