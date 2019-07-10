@@ -6,7 +6,7 @@
 ##                                                             --kpiTestRunCount=100
 ##                                                             --stressTestDuration=120"
 ##                                                             --runProdTests
-##      -b              - the build flag, YES to build APP, NO do not
+##      -b              - the build flag, YES to build APP, NO do not. Currently not supported.
 ##      -c <config>     - the build configuration, either debug or release (default)
 ##      -p <platform>   - the build platform, either iphoneos (default) or iphonesimulator
 ##
@@ -121,8 +121,10 @@ while getopts "a:b:c:p:h" opt; do
     a)
         ARGUMENTS=$OPTARG
         ;;
+
     b)
-        BUILD_FLAG=$OPTARG
+        ## Temporarily disabled until iOS build jobs will be configured
+        # BUILD_FLAG=$OPTARG
         ;;
     c)
         BUILD_CONFIG=$OPTARG
