@@ -24,8 +24,9 @@ find_package(RapidJSON REQUIRED)
 
 find_package(Boost REQUIRED)
 
-find_package(leveldb REQUIRED)
-find_package(Snappy REQUIRED)
+if (NOT EDGE_SDK_BUILD_EXTERNAL_DEPS)
+    find_package(leveldb REQUIRED)
+endif (NOT EDGE_SDK_BUILD_EXTERNAL_DEPS)
 
 include(configs/ConfigNetwork.cmake)
 
@@ -210,9 +211,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
     $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${RapidJSON_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${leveldb_INCLUDE_DIR}>
-    $<INSTALL_INTERFACE:include>)
+    $<BUILD_INTERFACE:${RapidJSON_INCLUDE_DIRS}>    $<INSTALL_INTERFACE:include>)
 
 if (ANDROID)
     set(ADDITIONAL_LIBRARIES log)

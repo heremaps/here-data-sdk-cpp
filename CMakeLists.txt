@@ -15,7 +15,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.11)
 
 # build the sdk targets
 project(olp-cpp-sdk VERSION 0.6.0)
@@ -55,9 +55,22 @@ include(common)
 include(coverage)
 
 if(EDGE_SDK_BUILD_EXTERNAL_DEPS)
-    # Add third-party dependencies
-    add_subdirectory(external)
-endif()
+
+    if (EDGE_SDK_ENABLE_TESTING)
+        # Add gtest
+        include(ExternalGTest)
+    endif (EDGE_SDK_ENABLE_TESTING)
+
+    # Add rapidjson
+    include(ExternalRapidjson)
+
+    # Add leveldb
+    include(ExternalLevelDB)
+
+    # Add boost
+    include(ExternalBoost)
+
+endif (EDGE_SDK_BUILD_EXTERNAL_DEPS)
 
 # Include testutils
 add_subdirectory(testutils/custom-params)
