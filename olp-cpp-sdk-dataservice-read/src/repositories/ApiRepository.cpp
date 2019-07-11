@@ -28,7 +28,9 @@ namespace dataservice {
 namespace read {
 namespace repository {
 
-#define LOGTAG "ApiRepository"
+namespace {
+constexpr char kARLogtag[] = "ApiRepository";
+}
 
 using namespace olp::client;
 
@@ -49,13 +51,13 @@ ApiRepository::ApiRepository(
 olp::client::CancellationToken ApiRepository::getApiClient(
     const std::string& service, const std::string& serviceVersion,
     const ApiClientCallback& callback) {
-  LOG_TRACE_F(LOGTAG, "getApiClient(%s, %s)", service.c_str(),
+  LOG_TRACE_F(kARLogtag, "getApiClient(%s, %s)", service.c_str(),
               serviceVersion.c_str());
 
   auto url = cache_->Get(service, serviceVersion);
   if (url) {
-    LOG_TRACE_F(LOGTAG, "getApiClient(%s, %s) -> from cache", service.c_str(),
-                serviceVersion.c_str());
+    LOG_TRACE_F(kARLogtag, "getApiClient(%s, %s) -> from cache",
+                service.c_str(), serviceVersion.c_str());
 
     auto client = olp::client::OlpClientFactory::Create(*settings_);
     client->SetBaseUrl(*url);
@@ -69,14 +71,14 @@ olp::client::CancellationToken ApiRepository::getApiClient(
   MultiRequestContext<ApiClientResponse, ApiClientCallback>::ExecuteFn
       executeFn = [cache, hrn, settings, service,
                    serviceVersion](ApiClientCallback contextCallback) {
-        LOG_TRACE_F(LOGTAG, "getApiClient(%s, %s) -> execute", service.c_str(),
-                    serviceVersion.c_str());
+        LOG_TRACE_F(kARLogtag, "getApiClient(%s, %s) -> execute",
+                    service.c_str(), serviceVersion.c_str());
 
         auto cacheApiResponseCallback =
             [cache, hrn, settings, service, serviceVersion,
              contextCallback](ApiClientResponse response) {
               if (response.IsSuccessful()) {
-                LOG_TRACE_F(LOGTAG, "getApiClient(%s, %s) -> into cache",
+                LOG_TRACE_F(kARLogtag, "getApiClient(%s, %s) -> into cache",
                             service.c_str(), serviceVersion.c_str());
                 cache->Put(service, serviceVersion,
                            response.GetResult().GetBaseUrl());

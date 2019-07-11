@@ -40,91 +40,10 @@ namespace repository {
 using namespace olp::client;
 
 namespace {
+constexpr char kDataInlinePrefix[] = "data:";
+constexpr char kDRLogtag[] = "DataRepository";
 
-const char* DATA_INLINE_PREFIX = "data:";
-
-void GetDataInternal(std::shared_ptr<CancellationContext> cancellationContext,
-                     std::shared_ptr<ApiRepository> apiRepo,
-                     const std::string& layerType,
-                     const read::DataRequest& request,
-                     const read::DataResponseCallback& callback,
-                     DataCacheRepository& cache) {
-  std::string service;
-  std::function<CancellationToken(const OlpClient&)> dataFunc;
-  auto cancel_callback = [callback]() {
-    callback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
-  };
-
-  /* Cache put intercept */
-  auto cacheDataResponseCallback = [=, &cache](DataResponse response) {
-    if (response.IsSuccessful()) {
-      cache.Put(response.GetResult(), request.GetLayerId(),
-                 request.GetDataHandle().value_or(std::string()));
-    } else {
-      if (403 == response.GetError().GetHttpStatusCode()) {
-        cache.Clear(request.GetLayerId(), request.GetDataHandle().value_or(std::string()));
-      }
-    }
-    callback(response);
-  };
-
-  if (layerType == "versioned") {
-    service = "blob";
-    dataFunc = [=](const OlpClient& client) {
-      return BlobApi::GetBlob(client, request.GetLayerId(),
-                              *request.GetDataHandle(), request.GetBillingTag(),
-                              boost::none, cacheDataResponseCallback);
-    };
-  } else if (layerType == "volatile") {
-    service = "volatile-blob";
-    dataFunc = [=](const OlpClient& client) {
-      return VolatileBlobApi::GetVolatileBlob(
-          client, request.GetLayerId(), *request.GetDataHandle(),
-          request.GetBillingTag(), cacheDataResponseCallback);
-    };
-  } else {
-    // TODO handle stream api
-    callback(ApiError(client::ErrorCode::ServiceUnavailable,
-                      "Stream layers are not supported yet."));
-    return;
-  }
-
-  cancellationContext->ExecuteOrCancelled(
-      [=, &cache]() {
-        /* Check the cache */
-        if (OnlineOnly != request.GetFetchOption()) {
-          auto cachedData =
-              cache.Get(request.GetLayerId(), request.GetDataHandle().value_or(std::string()));
-          if (cachedData) {
-            std::thread([=] { callback(*cachedData); }).detach();
-            return CancellationToken();
-          } else if (CacheOnly == request.GetFetchOption()) {
-            std::thread([=] {
-              callback(
-                  ApiError(ErrorCode::NotFound,
-                           "Cache only resource not found in cache (data)."));
-            })
-                .detach();
-            return CancellationToken();
-          }
-        }
-
-        return apiRepo->getApiClient(
-            service, "v1", [=](ApiClientResponse response) {
-              if (!response.IsSuccessful()) {
-                callback(response.GetError());
-                return;
-              }
-
-              cancellationContext->ExecuteOrCancelled(
-                  [=]() { return dataFunc(response.GetResult()); },
-                  cancel_callback);
-            });
-      },
-      cancel_callback);
-}
-
-std::string requestKeyFromRequest(const DataRequest& request) {
+std::string CreateKey(const DataRequest& request) {
   std::stringstream ss;
   ss << request.GetLayerId();
 
@@ -150,6 +69,108 @@ std::string requestKeyFromRequest(const DataRequest& request) {
   return ss.str();
 }
 
+void GetDataInternal(std::shared_ptr<CancellationContext> cancellationContext,
+                     std::shared_ptr<ApiRepository> apiRepo,
+                     const std::string& layerType,
+                     const read::DataRequest& request,
+                     const read::DataResponseCallback& callback,
+                     DataCacheRepository& cache) {
+  std::string service;
+  std::function<CancellationToken(const OlpClient&)> dataFunc;
+  auto key = CreateKey(request);
+  auto cancel_callback = [callback, key]() {
+    LOG_TRACE_F(kDRLogtag, "cancelled '%s'", key.c_str());
+    callback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
+  };
+
+  /* Cache put intercept */
+  auto cacheDataResponseCallback = [=, &cache](DataResponse response) {
+    if (response.IsSuccessful()) {
+      LOG_TRACE_F(kDRLogtag, "put '%s' to cache", key.c_str());
+      cache.Put(response.GetResult(), request.GetLayerId(),
+                request.GetDataHandle().value_or(std::string()));
+    } else {
+      if (403 == response.GetError().GetHttpStatusCode()) {
+        LOG_TRACE_F(kDRLogtag, "clear '%s' cache", key.c_str());
+        cache.Clear(request.GetLayerId(),
+                    request.GetDataHandle().value_or(std::string()));
+      }
+    }
+    callback(response);
+  };
+
+  if (layerType == "versioned") {
+    service = "blob";
+    dataFunc = [=](const OlpClient& client) {
+      LOG_TRACE_F(kDRLogtag, "getBlob '%s", key.c_str());
+      return BlobApi::GetBlob(client, request.GetLayerId(),
+                              *request.GetDataHandle(), request.GetBillingTag(),
+                              boost::none, cacheDataResponseCallback);
+    };
+  } else if (layerType == "volatile") {
+    service = "volatile-blob";
+    dataFunc = [=](const OlpClient& client) {
+      LOG_TRACE_F(kDRLogtag, "getVolatileBlob '%s", key.c_str());
+      return VolatileBlobApi::GetVolatileBlob(
+          client, request.GetLayerId(), *request.GetDataHandle(),
+          request.GetBillingTag(), cacheDataResponseCallback);
+    };
+  } else {
+    // TODO handle stream api
+    LOG_WARNING_F(kDRLogtag, "service unavailable '%s'", key.c_str());
+    callback(ApiError(client::ErrorCode::ServiceUnavailable,
+                      "Stream layers are not supported yet."));
+    return;
+  }
+
+  cancellationContext->ExecuteOrCancelled(
+      [=, &cache]() {
+        /* Check the cache */
+        if (OnlineOnly != request.GetFetchOption()) {
+          auto cachedData =
+              cache.Get(request.GetLayerId(),
+                        request.GetDataHandle().value_or(std::string()));
+          if (cachedData) {
+            std::thread([=] {
+              LOG_TRACE_F(kDRLogtag, "cache data '%s' found!", key.c_str());
+              callback(*cachedData);
+            })
+                .detach();
+            return CancellationToken();
+          } else if (CacheOnly == request.GetFetchOption()) {
+            std::thread([=] {
+              LOG_TRACE_F(kDRLogtag, "cache catalog '%s' not found!",
+                          key.c_str());
+              callback(
+                  ApiError(ErrorCode::NotFound,
+                           "Cache only resource not found in cache (data)."));
+            })
+                .detach();
+            return CancellationToken();
+          }
+        }
+
+        return apiRepo->getApiClient(
+            service, "v1", [=](ApiClientResponse response) {
+              if (!response.IsSuccessful()) {
+                LOG_TRACE_F(kDRLogtag, "getApiClient '%s' unsuccessful",
+                            key.c_str());
+                callback(response.GetError());
+                return;
+              }
+
+              cancellationContext->ExecuteOrCancelled(
+                  [=]() {
+                    LOG_TRACE_F(kDRLogtag, "getApiClient '%s' getting catalog",
+                                key.c_str());
+                    return dataFunc(response.GetResult());
+                  },
+                  cancel_callback);
+            });
+      },
+      cancel_callback);
+}
+
 }  // namespace
 
 DataRepository::DataRepository(
@@ -172,13 +193,14 @@ DataRepository::DataRepository(
 }
 
 bool DataRepository::IsInlineData(const std::string& dataHandle) {
-  return (dataHandle.find(DATA_INLINE_PREFIX) == 0);
+  return (dataHandle.find(kDataInlinePrefix) == 0);
 }
 
 CancellationToken DataRepository::GetData(
     const read::DataRequest& request,
     const read::DataResponseCallback& callback) {
   if (!request.GetDataHandle() && !request.GetPartitionId()) {
+    LOG_WARNING(kDRLogtag, "getData failed");
     callback(ApiError(client::ErrorCode::InvalidArgument,
                       "A data handle or a partition id must be defined."));
     return CancellationToken();
@@ -193,21 +215,24 @@ CancellationToken DataRepository::GetData(
   auto partitionsRepo = partitionsRepo_;
   auto& cache = *cache_;
 
+  auto key = CreateKey(request);
   auto cancel_context = std::make_shared<CancellationContext>();
-  auto cancel_callback = [callback]() {
+  auto cancel_callback = [callback, key]() {
+    LOG_TRACE_F(kDRLogtag, "cancelled '%s'", key.c_str());
     callback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
   };
 
-  auto requestKey = requestKeyFromRequest(request);
+  auto requestKey = CreateKey(request);
   MultiRequestContext<read::DataResponse, read::DataResponseCallback>::ExecuteFn
       executeFn = [=, &cache](read::DataResponseCallback callback) {
-
         cancel_context->ExecuteOrCancelled(
             [=, &cache]() {
               return catalogRepo_->getCatalog(
                   catalogRequest,
                   [=, &cache](read::CatalogResponse catalogResponse) {
                     if (!catalogResponse.IsSuccessful()) {
+                      LOG_TRACE_F(kDRLogtag, "getCatalog '%s' unsuccessful",
+                                  key.c_str());
                       callback(catalogResponse.GetError());
                       return;
                     }
@@ -221,6 +246,8 @@ CancellationToken DataRepository::GetData(
                         });
 
                     if (itr == catalogLayers.end()) {
+                      LOG_TRACE_F(kDRLogtag, "Layer for '%s' doesn't exiist",
+                                  key.c_str());
                       callback(ApiError(client::ErrorCode::InvalidArgument,
                                         "Layer specified doesn't exist."));
                       return;
@@ -257,8 +284,7 @@ CancellationToken DataRepository::GetData(
                                     .GetPartitions()
                                     .at(0)
                                     .GetDataHandle());
-                            auto verifyResponseCallback = [=](
-                                                              DataResponse
+                            auto verifyResponseCallback = [=](DataResponse
                                                                   response) {
                               if (!response.IsSuccessful()) {
                                 if (403 ==
@@ -287,6 +313,8 @@ CancellationToken DataRepository::GetData(
                           // Backend returns an empty partition list if the
                           // partition doesn't exist in the layer. So return no
                           // data.
+                          LOG_TRACE_F(kDRLogtag, "Empty partition for '%s'!",
+                                      key.c_str());
                           callback(model::Data());
                         }
                       };

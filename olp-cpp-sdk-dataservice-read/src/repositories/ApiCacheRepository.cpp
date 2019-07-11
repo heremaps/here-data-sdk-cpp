@@ -20,8 +20,11 @@
 #include "ApiCacheRepository.h"
 
 #include <olp/core/cache/KeyValueCache.h>
+#include <olp/core/logging/Log.h>
 
 namespace {
+constexpr char kACRLogtag[] = "ApiCacheRepository";
+
 std::string CreateKey(const std::string& hrn, const std::string& service,
                       const std::string& serviceVersion) {
   return hrn + "::" + service + "::" + serviceVersion + "::api";
@@ -41,6 +44,8 @@ void ApiCacheRepository::Put(const std::string& service,
                              const std::string& serviceVersion,
                              const std::string& serviceUrl) {
   std::string hrn(hrn_.ToCatalogHRNString());
+  auto key = CreateKey(hrn, service, serviceVersion);
+  LOG_TRACE_F(kACRLogtag, "Put '%s'", key.c_str());
   cache_->Put(CreateKey(hrn, service, serviceVersion), serviceUrl,
               [serviceUrl]() { return serviceUrl; }, 3600);
 }
@@ -48,8 +53,9 @@ void ApiCacheRepository::Put(const std::string& service,
 boost::optional<std::string> ApiCacheRepository::Get(
     const std::string& service, const std::string& serviceVersion) {
   std::string hrn(hrn_.ToCatalogHRNString());
-  auto url = cache_->Get(CreateKey(hrn, service, serviceVersion),
-                         [](const std::string& value) { return value; });
+  auto key = CreateKey(hrn, service, serviceVersion);
+  LOG_TRACE_F(kACRLogtag, "Get '%s'", key.c_str());
+  auto url = cache_->Get(key, [](const std::string& value) { return value; });
   if (url.empty()) {
     return boost::none;
   }

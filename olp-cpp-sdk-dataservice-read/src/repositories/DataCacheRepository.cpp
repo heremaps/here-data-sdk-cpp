@@ -20,8 +20,11 @@
 #include "DataCacheRepository.h"
 
 #include <olp/core/cache/KeyValueCache.h>
+#include <olp/core/logging/Log.h>
 
 namespace {
+constexpr char kDCRLogtag[] = "DataCacheRepository";
+
 std::string CreateKey(const std::string& hrn, const std::string& layer_id,
                       const std::string& datahandle) {
   return hrn + "::" + layer_id + "::" + datahandle + "::Data";
@@ -41,24 +44,30 @@ void DataCacheRepository::Put(const model::Data& data,
                               const std::string& layer_id,
                               const std::string& data_handle) {
   std::string hrn(hrn_.ToCatalogHRNString());
-  cache_->Put(CreateKey(hrn, layer_id, data_handle), data);
+  auto key = CreateKey(hrn, layer_id, data_handle);
+  LOG_TRACE_F(kDCRLogtag, "Put '%s'", key.c_str());
+  cache_->Put(key, data);
 }
 
 boost::optional<model::Data> DataCacheRepository::Get(
     const std::string& layer_id, const std::string& data_handle) {
   std::string hrn(hrn_.ToCatalogHRNString());
-  auto cachedData = cache_->Get(CreateKey(hrn, layer_id, data_handle));
+  auto key = CreateKey(hrn, layer_id, data_handle);
+  LOG_TRACE_F(kDCRLogtag, "Get '%s'", key.c_str());
+  auto cachedData = cache_->Get(key);
   if (!cachedData) {
     return boost::none;
   }
 
-  return cachedData;
+  return std::move(cachedData);
 }
 
-void DataCacheRepository::Clear(const std::string& layer_id, const std::string& data_handle) {
+void DataCacheRepository::Clear(const std::string& layer_id,
+                                const std::string& data_handle) {
   std::string hrn(hrn_.ToCatalogHRNString());
-
-  cache_->RemoveKeysWithPrefix(CreateKey(hrn, layer_id, data_handle));
+  auto key = CreateKey(hrn, layer_id, data_handle);
+  LOG_TRACE_F(kDCRLogtag, "Clear '%s'", key.c_str());
+  cache_->RemoveKeysWithPrefix(key);
 }
 
 }  // namespace repository

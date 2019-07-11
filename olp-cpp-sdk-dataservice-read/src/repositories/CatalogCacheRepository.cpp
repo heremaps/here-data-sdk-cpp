@@ -22,6 +22,8 @@
 #include <string>
 
 #include <olp/core/cache/KeyValueCache.h>
+#include <olp/core/logging/Log.h>
+
 // clang-format off
 #include "generated/parser/CatalogParser.h"
 #include "generated/parser/VersionResponseParser.h"
@@ -32,6 +34,8 @@
 // clang-format on
 
 namespace {
+constexpr char kCCRLogtag[] = "CatalogCacheRepository";
+
 std::string CreateKey(const std::string& hrn) { return hrn + "::catalog"; }
 std::string VersionKey(const std::string& hrn) {
   return hrn + "::latestVersion";
@@ -49,14 +53,18 @@ CatalogCacheRepository::CatalogCacheRepository(
 
 void CatalogCacheRepository::Put(const model::Catalog& catalog) {
   std::string hrn(hrn_.ToCatalogHRNString());
-  cache_->Put(CreateKey(hrn), catalog,
+  auto key = CreateKey(hrn);
+  LOG_TRACE_F(kCCRLogtag, "Put '%s'", key.c_str());
+  cache_->Put(key, catalog,
               [catalog]() { return olp::serializer::serialize(catalog); });
 }
 
 boost::optional<model::Catalog> CatalogCacheRepository::Get() {
   std::string hrn(hrn_.ToCatalogHRNString());
+  auto key = CreateKey(hrn);
+  LOG_TRACE_F(kCCRLogtag, "Get '%s'", key.c_str());
   auto cachedCatalog =
-      cache_->Get(CreateKey(hrn), [](const std::string& serializedObject) {
+      cache_->Get(key, [](const std::string& serializedObject) {
         return parser::parse<model::Catalog>(serializedObject);
       });
   if (cachedCatalog.empty()) {
@@ -74,8 +82,10 @@ void CatalogCacheRepository::PutVersion(const model::VersionResponse& version) {
 
 boost::optional<model::VersionResponse> CatalogCacheRepository::GetVersion() {
   std::string hrn(hrn_.ToCatalogHRNString());
+  auto key = VersionKey(hrn);
+  LOG_TRACE_F(kCCRLogtag, "GetVersion '%s'", key.c_str());
   auto cachedVersion =
-      cache_->Get(VersionKey(hrn), [](const std::string& serializedObject) {
+      cache_->Get(key, [](const std::string& serializedObject) {
         return parser::parse<model::VersionResponse>(serializedObject);
       });
   if (cachedVersion.empty()) {
@@ -86,6 +96,8 @@ boost::optional<model::VersionResponse> CatalogCacheRepository::GetVersion() {
 
 void CatalogCacheRepository::Clear() {
   std::string hrn(hrn_.ToCatalogHRNString());
+
+  LOG_TRACE_F(kCCRLogtag, "GetVersion '%s'", CreateKey(hrn).c_str());
 
   cache_->RemoveKeysWithPrefix(hrn);
 }

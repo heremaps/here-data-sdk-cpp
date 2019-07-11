@@ -32,7 +32,10 @@ namespace dataservice {
 namespace read {
 namespace repository {
 
-#define LOGTAG "PREFETCH_TILES_REPOSITORY"
+namespace {
+constexpr char kPTRLogtag[] = "PrefetchTilesRepository";
+constexpr std::uint32_t kMaxQuadTreeIndexDepth = 4u;
+}  // namespace
 
 using namespace olp::client;
 
@@ -40,8 +43,6 @@ PrefetchTilesRepository::PrefetchTilesRepository(
     const HRN& hrn, std::shared_ptr<ApiRepository> apiRepo,
     std::shared_ptr<PartitionsCacheRepository> partitionsCache)
     : hrn_(hrn), apiRepo_(apiRepo), partitionsCache_(partitionsCache) {}
-
-#define MAX_QUAD_TREE_INDEX_DEPTH 4u
 
 SubQuadsRequest PrefetchTilesRepository::EffectiveTileKeys(
     const std::vector<geo::TileKey>& tilekeys, unsigned int minLevel,
@@ -104,14 +105,14 @@ SubQuadsRequest PrefetchTilesRepository::EffectiveTileKeys(
     if (addAncestors) AddParents();
 
     auto tilekeyStr = tilekey.ToHereTile();
-    if (maxLevel - currentLevel <= MAX_QUAD_TREE_INDEX_DEPTH)
+    if (maxLevel - currentLevel <= kMaxQuadTreeIndexDepth)
       ret[tilekeyStr] = std::make_pair(tilekey, maxLevel - currentLevel);
     else {
       // Backend only takes MAX_QUAD_TREE_INDEX_DEPTH at a time, so we have to
       // manually calcuate all the tiles that should included
-      ret[tilekeyStr] = std::make_pair(tilekey, MAX_QUAD_TREE_INDEX_DEPTH);
-      auto children = GetChildAtLevel(
-          tilekey, currentLevel + MAX_QUAD_TREE_INDEX_DEPTH + 1);
+      ret[tilekeyStr] = std::make_pair(tilekey, kMaxQuadTreeIndexDepth);
+      auto children =
+          GetChildAtLevel(tilekey, currentLevel + kMaxQuadTreeIndexDepth + 1);
       for (auto child : children) AddChildren(child);
     }
   }
@@ -179,10 +180,11 @@ void PrefetchTilesRepository::GetSubQuads(
     const PrefetchTilesRequest& prefetchRequest, geo::TileKey tile,
     int64_t version, boost::optional<time_t> expiry, int32_t depth,
     const SubQuadsResponseCallback& callback) {
-  LOG_TRACE_F(LOGTAG, "GetSubQuads(%s, %" PRId64 ", %" PRId32 ")",
+  LOG_TRACE_F(kPTRLogtag, "GetSubQuads(%s, %" PRId64 ", %" PRId32 ")",
               tile.ToHereTile().c_str(), version, depth);
 
   auto cancel_callback = [callback]() {
+    LOG_TRACE(kPTRLogtag, "GetSubQuads cancelled");
     callback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
   };
 
@@ -197,25 +199,24 @@ void PrefetchTilesRepository::GetSubQuads(
                 return;
               }
 
-              LOG_TRACE(LOGTAG, "QuadTreeIndex");
+              LOG_TRACE(kPTRLogtag, "QuadTreeIndex");
 
               cancel_context->ExecuteOrCancelled(
                   [=, &partitionsCache]() {
-                    LOG_TRACE(LOGTAG, "QuadTreeIndex execute");
+                    LOG_TRACE(kPTRLogtag, "QuadTreeIndex execute");
                     return QueryApi::QuadTreeIndex(
                         response.GetResult(), prefetchRequest.GetLayerId(),
                         version, tile_key, depth, boost::none,
                         prefetchRequest.GetBillingTag(),
                         [=, &partitionsCache](
                             QueryApi::QuadTreeIndexResponse indexResponse) {
-
                           if (!indexResponse.IsSuccessful()) {
-                            LOG_WARNING(LOGTAG, "QuadTreeIndex Error");
+                            LOG_WARNING(kPTRLogtag, "QuadTreeIndex Error");
                             callback(indexResponse.GetError());
                             return;
                           }
 
-                          LOG_TRACE(LOGTAG, "QuadTreeIndex Success");
+                          LOG_TRACE(kPTRLogtag, "QuadTreeIndex Success");
                           SubQuadsResult result;
                           model::Partitions partitions;
                           for (auto subquad :
@@ -239,17 +240,14 @@ void PrefetchTilesRepository::GetSubQuads(
                           mockPartitionsRequest
                               .WithLayerId(prefetchRequest.GetLayerId())
                               .WithVersion(version);
-                          partitionsCache.Put(mockPartitionsRequest,
-                                               partitions, expiry,
-                                               false);  // get layer expiry
+                          partitionsCache.Put(mockPartitionsRequest, partitions,
+                                              expiry,
+                                              false);  // get layer expiry
 
                           callback(result);
                         });
                   },
-                  [=]() {
-                    callback(
-                        {{ErrorCode::Cancelled, "Operation cancelled.", true}});
-                  });
+                  cancel_callback);
             });
       },
       cancel_callback);
