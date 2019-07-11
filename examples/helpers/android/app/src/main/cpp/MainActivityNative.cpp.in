@@ -34,9 +34,10 @@ JavaVM* gJavaVM = nullptr;
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_here_android_olp_@EDGE_SDK_EXAMPLE_PACKAGE_JNI_NAME@_MainActivity_runExampleNative(
     JNIEnv* env, jobject /* this */) {
-  const auto result = runExample();
+  const auto result = RunExample();
 
-  return env->NewStringUTF(result == 0 ? "Publish Successful" : "Publish Failed");
+  return env->NewStringUTF(result == 0 ? "@EDGE_SDK_SUCCESSFUL_EXAMPLE_EXECUTION_STRING@"
+                                       : "@EDGE_SDK_FAILING_EXAMPLE_EXECUTION_STRING@");
 }
 
 extern "C" JNIEXPORT void JNICALL

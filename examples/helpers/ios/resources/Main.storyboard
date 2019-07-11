@@ -18,14 +18,14 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="SRp-UV-sWp">
-                                <rect key="frame" x="166.5" y="333.5" width="42" height="20"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="SRp-UV-sWp">
+                                <rect key="frame" x="0.0" y="333.5" width="375" height="20.5"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Execution status" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kpQ-Iy-Qx9">
-                                <rect key="frame" x="124" y="353.5" width="127" height="21"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Execution status" textAlignment="center" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kpQ-Iy-Qx9">
+                                <rect key="frame" x="0.0" y="354" width="375" height="20.5"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
@@ -33,9 +33,11 @@
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
+                            <constraint firstItem="kpQ-Iy-Qx9" firstAttribute="width" secondItem="8bC-Xf-vdC" secondAttribute="width" id="H7C-UG-Qic"/>
                             <constraint firstItem="kpQ-Iy-Qx9" firstAttribute="top" secondItem="SRp-UV-sWp" secondAttribute="bottom" id="JWJ-Ao-2Lz"/>
                             <constraint firstItem="kpQ-Iy-Qx9" firstAttribute="centerX" secondItem="SRp-UV-sWp" secondAttribute="centerX" id="SX0-Qw-UwU"/>
                             <constraint firstItem="SRp-UV-sWp" firstAttribute="centerY" secondItem="6Tk-OE-BBY" secondAttribute="centerY" id="aGY-1s-qqB"/>
+                            <constraint firstItem="SRp-UV-sWp" firstAttribute="width" secondItem="8bC-Xf-vdC" secondAttribute="width" id="dry-RI-Ad9"/>
                             <constraint firstItem="SRp-UV-sWp" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="pnt-cf-U5J"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
