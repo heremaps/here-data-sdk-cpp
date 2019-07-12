@@ -1,26 +1,26 @@
 language: cpp
+os: linux
+dist: xenial
+env: WORKSPACE=$TRAVIS_BUILD_DIR
+addons:
+  apt:
+    packages:
+    - cmake
+    - libssl-dev
+    - libcurl4-openssl-dev 
+    - libboost-all-dev
+    - clang
+script: $WORKSPACE/scripts/linux_build.sh
 matrix:
   include:
-  - os: linux
-    env:
-    - WORKSPACE=$TRAVIS_BUILD_DIR
-    dist: xenial
-    addons:
-      apt:
-        packages:
-        - cmake 
-        - libssl-dev 
-        - libcurl4-openssl-dev 
-        - libboost-all-dev 
-    script:
-    - $WORKSPACE/scripts/linux_build.sh
+  - compiler: clang
+  - compiler: gcc
   - os: windows
-    env: 
-    - BUILD_TYPE=RelWithDebInfo WORKSPACE=$TRAVIS_BUILD_DIR
+    env: BUILD_TYPE=RelWithDebInfo WORKSPACE=$TRAVIS_BUILD_DIR
     install: 
     - choco install openssl.light
     script:
     - $WORKSPACE/scripts/windows_build.sh
 branches:
   only:
-  - master	
+  - master
