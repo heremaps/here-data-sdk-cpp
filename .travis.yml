@@ -10,17 +10,16 @@ addons:
     - libcurl4-openssl-dev 
     - libboost-all-dev
     - clang
-script: $WORKSPACE/scripts/linux_build.sh
+script: $WORKSPACE/scripts/linux/build.sh && $WORKSPACE/scripts/linux/test.sh
 matrix:
   include:
   - compiler: clang
   - compiler: gcc
+  - os: osx
+    script: $WORKSPACE/scripts/linux/build.sh
   - os: windows
     env: BUILD_TYPE=RelWithDebInfo WORKSPACE=$TRAVIS_BUILD_DIR
-    install: 
-    - choco install openssl.light
-    script:
-    - $WORKSPACE/scripts/windows_build.sh
+    script: $WORKSPACE/scripts/windows/build.sh
 branches:
   only:
   - master
