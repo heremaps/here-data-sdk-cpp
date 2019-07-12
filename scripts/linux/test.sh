@@ -1,8 +1,4 @@
 #!/bin/bash -xe
-mkdir -p build && cd build
-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -EDGE_SDK_BUILD_EXAMPLES=ON ..
-make -j8
-cd ..
 CPP_TEST_SOURCE_AUTHENTICATION=build/olp-cpp-sdk-authentication/test
 CPP_TEST_SOURCE_CORE=build/olp-cpp-sdk-core/tests
 echo ">>> Authentication Test ... >>>"
