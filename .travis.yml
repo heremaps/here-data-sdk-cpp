@@ -19,7 +19,6 @@ matrix:
     script: $WORKSPACE/scripts/linux/build.sh
   - os: windows
     env: BUILD_TYPE=RelWithDebInfo WORKSPACE=$TRAVIS_BUILD_DIR
-    install: choco install openssl.light
     script: $WORKSPACE/scripts/windows/build.sh
 branches:
   only:
