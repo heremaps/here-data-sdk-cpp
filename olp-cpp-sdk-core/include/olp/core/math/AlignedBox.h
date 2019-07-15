@@ -20,6 +20,7 @@
 #pragma once
 
 #include <array>
+#include <limits>
 
 #include <olp/core/math/Vector.h>
 

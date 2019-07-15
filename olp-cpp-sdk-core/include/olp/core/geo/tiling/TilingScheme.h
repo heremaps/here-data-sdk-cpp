@@ -20,22 +20,18 @@
 #pragma once
 
 #include <olp/core/geo/tiling/ITilingScheme.h>
-#include <olp/core/utils/TypeId.h>
 
 namespace olp {
 namespace geo {
 template <class TSubdivisionScheme, class TProjection>
 class TilingScheme : public ITilingScheme {
  public:
-  CORE_DEFINE_RTTI
-
   using SubdivisionScheme = TSubdivisionScheme;
   using Projection = TProjection;
 
   TilingScheme() {}
 
   // ITilingScheme
-  bool IsEqualTo(const ITilingScheme& other) const override;
   const ISubdivisionScheme& GetSubdivisionScheme() const override;
   const IProjection& GetProjection() const override;
 
@@ -43,11 +39,6 @@ class TilingScheme : public ITilingScheme {
   SubdivisionScheme sub_division_scheme_{};
   Projection projection_{};
 };
-
-template <class S, class P>
-inline bool TilingScheme<S, P>::IsEqualTo(const ITilingScheme& other) const {
-  return core::typeId(*this) == core::typeId(other);
-}
 
 template <class S, class P>
 inline const ISubdivisionScheme& TilingScheme<S, P>::GetSubdivisionScheme()

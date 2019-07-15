@@ -21,7 +21,6 @@
 
 #include <olp/core/CoreApi.h>
 #include <olp/core/geo/projection/IProjection.h>
-#include <olp/core/utils/TypeId.h>
 
 namespace olp {
 namespace geo {
@@ -40,11 +39,7 @@ namespace geo {
  */
 class CORE_API SphereProjection final : public IProjection {
  public:
-  CORE_DEFINE_RTTI_CASTABLE(SphereProjection, IProjection)
-
   SphereProjection() = default;
-
-  bool IsEqualTo(const IProjection& other) const override;
 
   GeoRectangle GetGeoBounds() const override;
 

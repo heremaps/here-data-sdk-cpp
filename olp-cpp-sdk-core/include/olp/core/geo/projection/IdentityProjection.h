@@ -30,11 +30,7 @@ namespace geo {
  */
 class CORE_API IdentityProjection final : public IProjection {
  public:
-  CORE_DEFINE_RTTI
-
   IdentityProjection() = default;
-
-  bool IsEqualTo(const IProjection& other) const override;
 
   GeoRectangle GetGeoBounds() const override;
 

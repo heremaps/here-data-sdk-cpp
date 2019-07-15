@@ -26,8 +26,6 @@
 #include <olp/core/math/AlignedBox.h>
 #include <olp/core/math/Math.h>
 
-using namespace core;
-
 namespace olp {
 
 using namespace math;
@@ -70,10 +68,6 @@ GeoCoordinates3d toGeodetic(const Vector3d& point) {
           (2 * (point.x / c) - 1) * pi, point.z};
 }
 }  // namespace
-
-bool WebMercatorProjection::IsEqualTo(const IProjection& other) const {
-  return typeId(*this) == typeId(other);
-}
 
 GeoRectangle WebMercatorProjection::GetGeoBounds() const {
   return {{MIN_LATITUDE, MIN_LONGITUDE}, {MAX_LATITUDE, MAX_LONGITUDE}};

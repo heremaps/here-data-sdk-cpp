@@ -20,17 +20,12 @@
 #pragma once
 
 #include <olp/core/geo/Types.h>
-#include <olp/core/utils/TypeId.h>
 
 namespace olp {
 namespace geo {
 class CORE_API ITilingScheme {
  public:
-  CORE_DEFINE_RTTI
-
   virtual ~ITilingScheme() {}
-
-  virtual bool IsEqualTo(const ITilingScheme& other) const = 0;
 
   virtual const ISubdivisionScheme& GetSubdivisionScheme() const = 0;
   virtual const IProjection& GetProjection() const = 0;
