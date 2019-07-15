@@ -25,8 +25,6 @@
 #include <olp/core/math/AlignedBox.h>
 #include <olp/core/math/Math.h>
 
-using namespace core;
-
 namespace olp {
 
 using namespace math;
@@ -47,10 +45,6 @@ GeoCoordinates3d toGeodetic(const Vector3d& point) {
           point.x * WORLD_TO_GEO_SCALE - pi, point.z};
 }
 }  // namespace
-
-bool EquirectangularProjection::IsEqualTo(const IProjection& other) const {
-  return typeId(*this) == typeId(other);
-}
 
 GeoRectangle EquirectangularProjection::GetGeoBounds() const {
   return {{-half_pi, -pi}, {+half_pi, +pi}};

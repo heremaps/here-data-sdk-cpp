@@ -37,11 +37,7 @@ namespace geo {
  */
 class CORE_API EquirectangularProjection final : public IProjection {
  public:
-  CORE_DEFINE_RTTI
-
   EquirectangularProjection() = default;
-
-  bool IsEqualTo(const IProjection& other) const override;
 
   GeoRectangle GetGeoBounds() const override;
 

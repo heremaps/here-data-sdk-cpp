@@ -20,17 +20,12 @@
 #pragma once
 
 #include <olp/core/geo/Types.h>
-#include <olp/core/utils/TypeId.h>
 
 namespace olp {
 namespace geo {
 class CORE_API IProjection {
  public:
-  CORE_DEFINE_RTTI_CASTABLE_BASE(IProjection)
-
   virtual ~IProjection() = default;
-
-  virtual bool IsEqualTo(const IProjection& other) const = 0;
 
   /**
    * Get geodetic bounds representable by projection

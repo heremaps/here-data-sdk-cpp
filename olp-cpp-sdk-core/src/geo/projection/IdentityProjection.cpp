@@ -25,8 +25,6 @@
 #include <olp/core/math/AlignedBox.h>
 #include <olp/core/math/Math.h>
 
-using namespace core;
-
 namespace olp {
 
 using namespace math;
@@ -42,10 +40,6 @@ GeoCoordinates3d toGeodetic(const Vector3d& point) {
   return {point.y, point.x, point.z};
 }
 }  // namespace
-
-bool IdentityProjection::IsEqualTo(const IProjection& other) const {
-  return typeId(*this) == typeId(other);
-}
 
 GeoRectangle IdentityProjection::GetGeoBounds() const {
   return {{-half_pi, -pi}, {+half_pi, +pi}};
