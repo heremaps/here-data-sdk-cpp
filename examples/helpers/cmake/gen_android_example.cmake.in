@@ -45,8 +45,14 @@ function(gen_android_example_application
     endif()
 
     set(EDGE_SDK_EXAMPLE_NETWORK_PROTOCOL_JAR "-DEDGE_SDK_NETWORK_PROTOCOL_JAR='full path to the EdgeNetworkProtocol.jar in the <olp-edge-sdk-build-folder>/olp-cpp-sdk-core/ folder'")
+    # Try to find the path to the built EdgeNetworkProtocol.jar archive
     if (DEFINED olp-cpp-sdk-core_BINARY_DIR)
-        set(EDGE_SDK_EXAMPLE_NETWORK_PROTOCOL_JAR "-DEDGE_SDK_NETWORK_PROTOCOL_JAR=${olp-cpp-sdk-core_BINARY_DIR}/EdgeNetworkProtocol.jar")
+        set(EDGE_SDK_NETWORK_PROTOCOL_PATH ${olp-cpp-sdk-core_BINARY_DIR})
+        # User can change the install path of the EdgeNetworkProtocol.jar via CMAKE_JAVA_TARGET_OUTPUT_DIR variable
+        if (DEFINED CMAKE_JAVA_TARGET_OUTPUT_DIR)
+            set(EDGE_SDK_NETWORK_PROTOCOL_PATH ${CMAKE_JAVA_TARGET_OUTPUT_DIR})
+        endif()
+        set(EDGE_SDK_EXAMPLE_NETWORK_PROTOCOL_JAR "-DEDGE_SDK_NETWORK_PROTOCOL_JAR=${EDGE_SDK_NETWORK_PROTOCOL_PATH}/EdgeNetworkProtocol.jar")
     endif()
 
     set(EDGE_SDK_EXAMPLE_LEVELDB_DIR "-Dleveldb_DIR='path to the directory which contains LevelDB cmake config files'")
