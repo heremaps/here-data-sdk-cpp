@@ -20,6 +20,7 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 #include <mutex>
 #include "CancellationToken.h"
 
@@ -29,58 +30,62 @@ namespace olp {
 namespace client {
 
 /**
- * @brief Wrapper which manages cancellation state for multiple network
+ * @brief Wrapper which manages cancellation state for any asynchronous
  * operations in a thread safe way.
+ * All public APIs are thread safe.
+ * This class is both movable and copyable.
  */
 class CORE_API CancellationContext {
  public:
-  /**
-  * @brief Execute a given cancellable code block if the operation has not yet
-  been cancelled. Otherwise, execute a custom cancellation function.
-  * @param execute_fn A function to execute if this operation is not yet
-  cancelled. This function should return a CancellationToken which
-  CancellationContext will propogate a cancel request to.
-  * @param cancel_fn A function which will be called if this operation is
-  already cancelled.
-  */
-  inline void ExecuteOrCancelled(
-      const std::function<olp::client::CancellationToken()>& execute_fn,
-      const std::function<void()>& cancel_fn) {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
+  using ExecuteFuncType = std::function<CancellationToken()>;
+  using CancelFuncType = std::function<void()>;
 
-    if (is_cancelled_) {
-      cancel_fn();
-      return;
-    }
-
-    sub_operation_cancel_token_ = execute_fn();
-  }
+  CancellationContext();
 
   /**
-   * @brief Allows the user to cancel an ongoing operation which may consist of
-   * multiple network calls in a threadsafe way.
+   * @brief Execute a given cancellable code block if the operation has not yet
+   * been cancelled. Otherwise, execute a custom cancellation function.
+   * @param execute_fn A function to execute if this operation is not yet
+   * cancelled. This function should return a CancellationToken which
+   * CancellationContext will propogate a cancel request to.
+   * @param cancel_fn A function which will be called if this operation is
+   * already cancelled.
+   * @deprecated Will be removed once TaskScheduler will be used.
    */
-  inline void CancelOperation() {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
-    if (is_cancelled_) {
-      return;
-    }
+  void ExecuteOrCancelled(const ExecuteFuncType& execute_fn,
+                          const CancelFuncType& cancel_fn);
 
-    sub_operation_cancel_token_.cancel();
-    sub_operation_cancel_token_ = CancellationToken();
-    is_cancelled_ = true;
-  }
+  /**
+   * @brief Allows the user to cancel an ongoing operation in a threadsafe way.
+   */
+  void CancelOperation();
 
-  inline bool IsCancelled() {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
-    return is_cancelled_;
-  }
+  /**
+   * @brief Check if this context was cancelled.
+   * @return `true` on context cancelled, `false` otherwise.
+   */
+  bool IsCancelled() const;
 
  private:
-  std::recursive_mutex mutex_;
-  olp::client::CancellationToken sub_operation_cancel_token_{};
-  bool is_cancelled_{false};
+  /**
+   * @brief Implementation to be able to shared a instance of
+   * CancellationContext.
+   */
+  struct CancellationContextImpl {
+    /// Mutex lock to protect from concurrent read/write.
+    mutable std::recursive_mutex mutex_;
+    /// Sub operation context return from ExecuteOrCancelled() execute_fn.
+    /// @deprecated This will be removed once TaskScheduler is used.
+    CancellationToken sub_operation_cancel_token_{};
+    /// Flag that will be set to `true` on CancelOperation().
+    bool is_cancelled_{false};
+  };
+
+  /// Shared implementation.
+  std::shared_ptr<CancellationContextImpl> impl_;
 };
 
 }  // namespace client
 }  // namespace olp
+
+#include "CancellationContext.inl"

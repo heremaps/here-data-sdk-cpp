@@ -60,6 +60,7 @@ file(GLOB CACHE_HEADERS
 
 file(GLOB CLIENT_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/client/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/client/*.inl"
 )
 
 file(GLOB GENERATED_MODEL_HEADERS
@@ -296,6 +297,7 @@ export_config()
 
 if(EDGE_SDK_ENABLE_TESTING)
     add_subdirectory(tests/cache)
+    add_subdirectory(tests/client)
     add_subdirectory(tests/olpclient)
     add_subdirectory(tests/geo)
     add_subdirectory(tests/network)
