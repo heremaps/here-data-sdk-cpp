@@ -1,0 +1,12 @@
+trigger:
+- master
+pr:
+- master
+
+pool:
+  vmImage: 'vs2017-win2016'
+variables:
+  BUILD_TYPE: RelWithDebInfo
+steps:
+- script: bash -x scripts/windows/build.sh
+  displayName: 'Build Stage'
