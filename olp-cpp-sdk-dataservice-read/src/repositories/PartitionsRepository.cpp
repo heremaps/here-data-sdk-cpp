@@ -22,6 +22,8 @@
 #include <algorithm>
 #include <sstream>
 
+#include <olp/core/logging/Log.h>
+
 #include "ApiRepository.h"
 #include "CatalogRepository.h"
 #include "PartitionsCacheRepository.h"
@@ -38,13 +40,63 @@ namespace repository {
 using namespace olp::client;
 
 namespace {
+constexpr auto kLogTag = "PartitionsRepository";
 
 using LayerVersionReponse = ApiResponse<int64_t, client::ApiError>;
 using LayerVersionCallback = std::function<void(LayerVersionReponse)>;
+
+std::string CreateKey(const PartitionsRequest& request) {
+  std::stringstream ss;
+  ss << request.GetLayerId();
+
+  if (request.GetVersion()) {
+    ss << "@" << request.GetVersion().get();
+  }
+
+  if (request.GetBillingTag()) {
+    ss << "$" << request.GetBillingTag().get();
+  }
+
+  ss << "^" << request.GetFetchOption();
+
+  return ss.str();
+}
+
+std::string GetKey(const PartitionsRequest& request,
+                   const std::vector<std::string>& partitions) {
+  std::stringstream ss;
+  ss << request.GetLayerId();
+
+  ss << "[";
+  bool first = true;
+  for (auto& id : partitions) {
+    if (!first) {
+      ss << ",";
+    } else {
+      first = false;
+    }
+    ss << id;
+  }
+  ss << "]";
+
+  if (request.GetVersion()) {
+    ss << "@" << request.GetVersion().get();
+  }
+
+  if (request.GetBillingTag()) {
+    ss << "$" << request.GetBillingTag().get();
+  }
+
+  ss << "^" << request.GetFetchOption();
+
+  return ss.str();
+}
+
 void GetLayerVersion(std::shared_ptr<CancellationContext> cancel_context,
                      const OlpClient& client, const PartitionsRequest& request,
                      const LayerVersionCallback& callback,
                      PartitionsCacheRepository& cache) {
+  auto key = CreateKey(request);
   auto layerVersionsCallback = [=](model::LayerVersions layerVersions) {
     auto& versionLayers = layerVersions.GetLayerVersions();
     auto itr = std::find_if(versionLayers.begin(), versionLayers.end(),
@@ -53,14 +105,18 @@ void GetLayerVersion(std::shared_ptr<CancellationContext> cancel_context,
                             });
 
     if (itr != versionLayers.end()) {
+      LOG_INFO_F(kLogTag, "version for '%s' is '%ld'", key.c_str(),
+                 itr->GetVersion());
       callback(itr->GetVersion());
     } else {
+      LOG_INFO_F(kLogTag, "version for '%s' not found", key.c_str());
       callback(ApiError(client::ErrorCode::InvalidArgument,
                         "Layer specified doesn't exist."));
     }
   };
 
-  auto cancel_callback = [callback]() {
+  auto cancel_callback = [callback, key]() {
+    LOG_INFO_F(kLogTag, "Put '%s'", key.c_str());
     callback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
   };
 
@@ -68,7 +124,10 @@ void GetLayerVersion(std::shared_ptr<CancellationContext> cancel_context,
       [=, &cache]() {
         auto cachedLayerVersions = cache.Get(*request.GetVersion());
         if (cachedLayerVersions) {
-          std::thread([=]() { layerVersionsCallback(*cachedLayerVersions); })
+          std::thread([=]() {
+            LOG_INFO_F(kLogTag, "cache parititions '%s' found!", key.c_str());
+            layerVersionsCallback(*cachedLayerVersions);
+          })
               .detach();
           return CancellationToken();
         }
@@ -76,10 +135,13 @@ void GetLayerVersion(std::shared_ptr<CancellationContext> cancel_context,
             client, *request.GetVersion(), request.GetBillingTag(),
             [=, &cache](MetadataApi::LayerVersionsResponse response) {
               if (!response.IsSuccessful()) {
+                LOG_INFO_F(kLogTag, "GetLayerVersions '%s' not found!",
+                           key.c_str());
                 callback(response.GetError());
                 return;
               }
               // Cache the results
+              LOG_INFO_F(kLogTag, "GetLayerVersions '%s' found!", key.c_str());
               cache.Put(*request.GetVersion(), response.GetResult());
               layerVersionsCallback(response.GetResult());
             });
@@ -163,54 +225,6 @@ void appendPartitionsRequest(
       cancel_callback);
 }
 
-std::string requestKeyFromRequest(const PartitionsRequest& request) {
-  std::stringstream ss;
-  ss << request.GetLayerId();
-
-  if (request.GetVersion()) {
-    ss << "@" << request.GetVersion().get();
-  }
-
-  if (request.GetBillingTag()) {
-    ss << "$" << request.GetBillingTag().get();
-  }
-
-  ss << "^" << request.GetFetchOption();
-
-  return ss.str();
-}
-
-std::string requestKeyFromRequestAndPartitions(
-    const PartitionsRequest& request,
-    const std::vector<std::string>& partitions) {
-  std::stringstream ss;
-  ss << request.GetLayerId();
-
-  ss << "[";
-  bool first = true;
-  for (auto& id : partitions) {
-    if (!first) {
-      ss << ",";
-    } else {
-      first = false;
-    }
-    ss << id;
-  }
-  ss << "]";
-
-  if (request.GetVersion()) {
-    ss << "@" << request.GetVersion().get();
-  }
-
-  if (request.GetBillingTag()) {
-    ss << "$" << request.GetBillingTag().get();
-  }
-
-  ss << "^" << request.GetFetchOption();
-
-  return ss.str();
-}
-
 }  // namespace
 
 PartitionsRepository::PartitionsRepository(
@@ -236,11 +250,14 @@ CancellationToken PartitionsRepository::GetPartitions(
   auto apiRepo = apiRepo_;
   auto& cache = *cache_;
   auto cancel_context = std::make_shared<CancellationContext>();
-  auto cancel_callback = [callback]() {
+
+  auto requestKey = CreateKey(request);
+  auto cancel_callback = [callback, requestKey]() {
+    LOG_INFO_F(kLogTag, "cancelled '%s'", requestKey.c_str());
     callback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
   };
 
-  auto requestKey = requestKeyFromRequest(request);
+  LOG_TRACE_F(kLogTag, "GetPartitions '%s'", requestKey.c_str());
   MultiRequestContext<read::PartitionsResponse,
                       read::PartitionsResponseCallback>::ExecuteFn executeFn =
       [=, &cache](read::PartitionsResponseCallback callback) {
@@ -253,10 +270,17 @@ CancellationToken PartitionsRepository::GetPartitions(
                 if (OnlineOnly != request.GetFetchOption()) {
                   auto cachedPartitions = cache.Get(appendedRequest);
                   if (cachedPartitions) {
-                    std::thread([=] { callback(*cachedPartitions); }).detach();
+                    std::thread([=] {
+                      LOG_INFO_F(kLogTag, "cache partitions '%s' found!",
+                                 requestKey.c_str());
+                      callback(*cachedPartitions);
+                    })
+                        .detach();
                     return CancellationToken();
                   } else if (CacheOnly == request.GetFetchOption()) {
                     std::thread([=] {
+                      LOG_INFO_F(kLogTag, "cache partitions '%s' not found!",
+                                 requestKey.c_str());
                       callback(ApiError(ErrorCode::NotFound,
                                         "Cache only resource not found in "
                                         "cache (partitions)."));
@@ -269,10 +293,12 @@ CancellationToken PartitionsRepository::GetPartitions(
                 auto cachePartitionsResponseCallback =
                     [=, &cache](PartitionsResponse response) {
                       if (response.IsSuccessful()) {
-                        cache.Put(appendedRequest, response.GetResult(),
-                                   expiry, true);
+                        LOG_INFO_F(kLogTag, "put '%s' to cache", requestKey.c_str());
+                        cache.Put(appendedRequest, response.GetResult(), expiry,
+                                  true);
                       } else {
                         if (403 == response.GetError().GetHttpStatusCode()) {
+                          LOG_INFO_F(kLogTag, "clear '%s' cache", requestKey.c_str());
                           cache.Clear(appendedRequest.GetLayerId());
                         }
                       }
@@ -282,6 +308,8 @@ CancellationToken PartitionsRepository::GetPartitions(
                 return apiRepo->getApiClient(
                     "metadata", "v1", [=, &cache](ApiClientResponse response) {
                       if (!response.IsSuccessful()) {
+                        LOG_INFO_F(kLogTag, "getApiClient '%s' unsuccessful",
+                                   requestKey.c_str());
                         callback(response.GetError());
                         return;
                       }
@@ -290,6 +318,10 @@ CancellationToken PartitionsRepository::GetPartitions(
                           [=](const boost::optional<int64_t>& version) {
                             cancel_context->ExecuteOrCancelled(
                                 [=]() {
+                                  LOG_INFO_F(
+                                      kLogTag,
+                                      "getApiClient '%s' getting partitions",
+                                      requestKey.c_str());
                                   return MetadataApi::GetPartitions(
                                       response.GetResult(),
                                       appendedRequest.GetLayerId(), version,
@@ -313,6 +345,8 @@ CancellationToken PartitionsRepository::GetPartitions(
                                                .GetHttpStatusCode()) {
                                   cache.Clear(appendedRequest.GetLayerId());
                                 }
+                                LOG_INFO_F(kLogTag, "GetLayerVersion '%s'",
+                                           requestKey.c_str());
                                 callback(layerVersionResponse.GetError());
                                 return;
                               }
@@ -322,6 +356,9 @@ CancellationToken PartitionsRepository::GetPartitions(
                             },
                             cache);
                       } else {
+                        LOG_INFO_F(kLogTag,
+                                   "GetLayerVersion '%s' has no version",
+                                   requestKey.c_str());
                         getPartitionsInternal(boost::none);
                       }
                     });
@@ -348,11 +385,14 @@ CancellationToken PartitionsRepository::GetPartitionsById(
   auto& cache = *cache_;
   auto cancel_context = std::make_shared<CancellationContext>();
 
-  auto cancel_callback = [callback]() {
+  auto requestKey = GetKey(request, partitions);
+  LOG_TRACE_F(kLogTag, "GetPartitionsById '%s'", requestKey.c_str());
+
+  auto cancel_callback = [callback, requestKey]() {
+    LOG_INFO_F(kLogTag, "cancelled '%s'", requestKey.c_str());
     callback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
   };
 
-  auto requestKey = requestKeyFromRequestAndPartitions(request, partitions);
   MultiRequestContext<read::PartitionsResponse,
                       read::PartitionsResponseCallback>::ExecuteFn executeFn =
       [=, &cache](read::PartitionsResponseCallback callback) {
@@ -368,10 +408,17 @@ CancellationToken PartitionsRepository::GetPartitionsById(
                   // Only used cache if we have all requested ids.
                   if (cachedPartitions.GetPartitions().size() ==
                       partitions.size()) {
-                    std::thread([=] { callback(cachedPartitions); }).detach();
+                    std::thread([=] {
+                      LOG_INFO_F(kLogTag, "cache data '%s' found!",
+                                 requestKey.c_str());
+                      callback(cachedPartitions);
+                    })
+                        .detach();
                     return CancellationToken();
                   } else if (CacheOnly == request.GetFetchOption()) {
                     std::thread([=] {
+                      LOG_INFO_F(kLogTag, "cache catalog '%s' not found!",
+                                 requestKey.c_str());
                       callback(ApiError(ErrorCode::NotFound,
                                         "Cache only resource not found in "
                                         "cache (partition)."));
@@ -384,10 +431,14 @@ CancellationToken PartitionsRepository::GetPartitionsById(
                 auto cachePartitionsResponseCallback =
                     [=, &cache](PartitionsResponse response) {
                       if (response.IsSuccessful()) {
+                        LOG_INFO_F(kLogTag, "put '%s' to cache",
+                                   requestKey.c_str());
                         cache.Put(appendedRequest, response.GetResult(),
-                                   expiry);
+                                  expiry);
                       } else {
                         if (403 == response.GetError().GetHttpStatusCode()) {
+                          LOG_INFO_F(kLogTag, "clear '%s' cache",
+                                     requestKey.c_str());
                           // Delete partitions only but not the layer
                           cache.ClearPartitions(appendedRequest, partitions);
                         }
@@ -398,12 +449,17 @@ CancellationToken PartitionsRepository::GetPartitionsById(
                 return apiRepo->getApiClient(
                     "query", "v1", [=](ApiClientResponse response) {
                       if (!response.IsSuccessful()) {
+                        LOG_INFO_F(kLogTag, "getApiClient '%s' unsuccessful",
+                                   requestKey.c_str());
                         callback(response.GetError());
                         return;
                       }
 
                       cancel_context->ExecuteOrCancelled(
                           [=]() {
+                            LOG_INFO_F(kLogTag,
+                                       "getApiClient '%s' getting catalog",
+                                       requestKey.c_str());
                             return QueryApi::GetPartitionsbyId(
                                 response.GetResult(),
                                 appendedRequest.GetLayerId(), partitions,
