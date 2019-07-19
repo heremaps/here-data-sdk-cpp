@@ -38,7 +38,7 @@ namespace repository {
 using namespace olp::client;
 
 namespace {
-constexpr auto kLogtag = "CatalogRepository";
+constexpr auto kLogTag = "CatalogRepository";
 
 std::string CreateKey(const CatalogRequest& request) {
   std::stringstream ss;
@@ -86,21 +86,21 @@ CancellationToken CatalogRepository::getCatalog(
   auto& cache = *cache_;
 
   auto requestKey = CreateKey(request);
-  LOG_TRACE_F(kLogtag, "getCatalog '%s'", requestKey.c_str());
+  LOG_TRACE_F(kLogTag, "getCatalog '%s'", requestKey.c_str());
 
   MultiRequestContext<read::CatalogResponse,
                       read::CatalogResponseCallback>::ExecuteFn executeFn =
       [=, &cache](read::CatalogResponseCallback callback) {
         cancel_context->ExecuteOrCancelled(
             [=, &cache]() {
-              LOG_INFO_F(kLogtag, "checking catalog '%s' cache",
+              LOG_INFO_F(kLogTag, "checking catalog '%s' cache",
                          requestKey.c_str());
               // Check the cache
               if (OnlineOnly != request.GetFetchOption()) {
                 auto cachedCatalog = cache.Get();
                 if (cachedCatalog) {
                   std::thread([=] {
-                    LOG_INFO_F(kLogtag, "cache catalog '%s' found!",
+                    LOG_INFO_F(kLogTag, "cache catalog '%s' found!",
                                requestKey.c_str());
                     callback(*cachedCatalog);
                   })
@@ -108,7 +108,7 @@ CancellationToken CatalogRepository::getCatalog(
                   return CancellationToken();
                 } else if (CacheOnly == request.GetFetchOption()) {
                   std::thread([=] {
-                    LOG_INFO_F(kLogtag, "cache catalog '%s' not found!",
+                    LOG_INFO_F(kLogTag, "cache catalog '%s' not found!",
                                requestKey.c_str());
                     callback(ApiError(
                         ErrorCode::NotFound,
@@ -121,15 +121,15 @@ CancellationToken CatalogRepository::getCatalog(
               // Query Network
               auto cacheCatalogResponseCallback =
                   [=, &cache](CatalogResponse response) {
-                    LOG_INFO_F(kLogtag, "network response '%s'",
+                    LOG_INFO_F(kLogTag, "network response '%s'",
                                requestKey.c_str());
                     if (response.IsSuccessful()) {
-                      LOG_INFO_F(kLogtag, "put '%s' to cache",
+                      LOG_INFO_F(kLogTag, "put '%s' to cache",
                                  requestKey.c_str());
                       cache.Put(response.GetResult());
                     } else {
                       if (403 == response.GetError().GetHttpStatusCode()) {
-                        LOG_INFO_F(kLogtag, "clear '%s' cache",
+                        LOG_INFO_F(kLogTag, "clear '%s' cache",
                                    requestKey.c_str());
                         cache.Clear();
                       }
@@ -140,7 +140,7 @@ CancellationToken CatalogRepository::getCatalog(
               return apiRepo_->getApiClient(
                   "config", "v1", [=](ApiClientResponse response) {
                     if (!response.IsSuccessful()) {
-                      LOG_INFO_F(kLogtag, "getApiClient '%s' unsuccessful",
+                      LOG_INFO_F(kLogTag, "getApiClient '%s' unsuccessful",
                                  requestKey.c_str());
                       callback(response.GetError());
                       return;
@@ -148,7 +148,7 @@ CancellationToken CatalogRepository::getCatalog(
 
                     cancel_context->ExecuteOrCancelled(
                         [=]() {
-                          LOG_INFO_F(kLogtag,
+                          LOG_INFO_F(kLogTag,
                                      "getApiClient '%s' getting catalog",
                                      requestKey.c_str());
                           return ConfigApi::GetCatalog(
@@ -157,7 +157,7 @@ CancellationToken CatalogRepository::getCatalog(
                               cacheCatalogResponseCallback);
                         },
                         [=]() {
-                          LOG_INFO_F(kLogtag, "getApiClient '%s' cancelled",
+                          LOG_INFO_F(kLogTag, "getApiClient '%s' cancelled",
                                      requestKey.c_str());
                           callback({{ErrorCode::Cancelled,
                                      "Operation cancelled.", true}});
@@ -166,14 +166,14 @@ CancellationToken CatalogRepository::getCatalog(
             },
 
             [=]() {
-              LOG_INFO_F(kLogtag, "Cancelled '%s'", requestKey.c_str());
+              LOG_INFO_F(kLogTag, "Cancelled '%s'", requestKey.c_str());
               callback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
             });
 
         return CancellationToken(
             [cancel_context]() { cancel_context->CancelOperation(); });
       };
-  LOG_INFO_F(kLogtag, "ExecuteOrAssociate '%s'", requestKey.c_str());
+  LOG_INFO_F(kLogTag, "ExecuteOrAssociate '%s'", requestKey.c_str());
   return multiRequestContext_->ExecuteOrAssociate(requestKey, executeFn,
                                                   callback);
 }
@@ -185,24 +185,24 @@ CancellationToken CatalogRepository::getLatestCatalogVersion(
   auto& cache = *cache_;
 
   auto requestKey = CreateKey(request);
-  LOG_TRACE_F(kLogtag, "getCatalogVersion '%s'", requestKey.c_str());
+  LOG_TRACE_F(kLogTag, "getCatalogVersion '%s'", requestKey.c_str());
 
   cancel_context->ExecuteOrCancelled(
       [=, &cache]() {
-        LOG_INFO_F(kLogtag, "checking catalog '%s' cache", requestKey.c_str());
+        LOG_INFO_F(kLogTag, "checking catalog '%s' cache", requestKey.c_str());
         // Check the cache if cache-only request.
         if (CacheOnly == request.GetFetchOption()) {
           auto cachedVersion = cache.GetVersion();
           if (cachedVersion) {
             std::thread([=] {
-              LOG_INFO_F(kLogtag, "cache catalog '%s' found!",
+              LOG_INFO_F(kLogTag, "cache catalog '%s' found!",
                          requestKey.c_str());
               callback(*cachedVersion);
             })
                 .detach();
           } else {
             std::thread([=] {
-              LOG_INFO_F(kLogtag, "cache catalog '%s' not found!",
+              LOG_INFO_F(kLogTag, "cache catalog '%s' not found!",
                          requestKey.c_str());
               callback(ApiError(
                   ErrorCode::NotFound,
@@ -215,13 +215,13 @@ CancellationToken CatalogRepository::getLatestCatalogVersion(
         // Network Query
         auto cacheVersionResponseCallback =
             [=, &cache](CatalogVersionResponse response) {
-              LOG_INFO_F(kLogtag, "network response '%s'", requestKey.c_str());
+              LOG_INFO_F(kLogTag, "network response '%s'", requestKey.c_str());
               if (response.IsSuccessful()) {
-                LOG_INFO_F(kLogtag, "put '%s' to cache", requestKey.c_str());
+                LOG_INFO_F(kLogTag, "put '%s' to cache", requestKey.c_str());
                 cache.PutVersion(response.GetResult());
               } else {
                 if (403 == response.GetError().GetHttpStatusCode()) {
-                  LOG_INFO_F(kLogtag, "clear '%s' cache", requestKey.c_str());
+                  LOG_INFO_F(kLogTag, "clear '%s' cache", requestKey.c_str());
                   cache.Clear();
                 }
               }
@@ -230,7 +230,7 @@ CancellationToken CatalogRepository::getLatestCatalogVersion(
         return apiRepo_->getApiClient(
             "metadata", "v1", [=](ApiClientResponse response) {
               if (!response.IsSuccessful()) {
-                LOG_INFO_F(kLogtag, "getApiClient '%s' unsuccessful",
+                LOG_INFO_F(kLogTag, "getApiClient '%s' unsuccessful",
                            requestKey.c_str());
                 callback(response.GetError());
                 return;
@@ -239,7 +239,7 @@ CancellationToken CatalogRepository::getLatestCatalogVersion(
               cancel_context->ExecuteOrCancelled(
                   [=]() {
                     LOG_INFO_F(
-                        kLogtag,
+                        kLogTag,
                         "getApiClient '%s' getting latest catalog version",
                         requestKey.c_str());
                     return MetadataApi::GetLatestCatalogVersion(
@@ -247,7 +247,7 @@ CancellationToken CatalogRepository::getLatestCatalogVersion(
                         request.GetBillingTag(), cacheVersionResponseCallback);
                   },
                   [=]() {
-                    LOG_INFO_F(kLogtag, "getApiClient '%s' cancelled",
+                    LOG_INFO_F(kLogTag, "getApiClient '%s' cancelled",
                                requestKey.c_str());
                     callback(
                         {{ErrorCode::Cancelled, "Operation cancelled.", true}});
@@ -256,11 +256,11 @@ CancellationToken CatalogRepository::getLatestCatalogVersion(
       },
 
       [=]() {
-        LOG_INFO_F(kLogtag, "Cancelled '%s'", requestKey.c_str());
+        LOG_INFO_F(kLogTag, "Cancelled '%s'", requestKey.c_str());
         callback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
       });
 
-  LOG_INFO_F(kLogtag, "ExecuteOrAssociate '%s'", requestKey.c_str());
+  LOG_INFO_F(kLogTag, "ExecuteOrAssociate '%s'", requestKey.c_str());
   return CancellationToken(
       [cancel_context]() { cancel_context->CancelOperation(); });
 }
