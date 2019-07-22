@@ -240,6 +240,9 @@ if(IOS)
     else()
         target_compile_options(${PROJECT_NAME} PRIVATE "-fobjc-arc")
     endif()
+elseif(ANDROID)
+    # Make sure that EdgeNetworkProtocol.jar is built before olp-cpp-sdk-core
+    add_dependencies(${PROJECT_NAME} ${EDGE_NETWORK_PROTOCOL_JAR})
 endif()
 
 if(CURL_FOUND)
