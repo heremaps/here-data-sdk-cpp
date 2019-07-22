@@ -37,7 +37,9 @@ namespace olp {
 namespace dataservice {
 namespace read {
 
-#define MRC_LOGTAG "MultiRequestContext"
+namespace {
+constexpr auto kLogTag = "MultiRequestContext";
+}
 
 template <typename Response, typename Callback>
 class MultiRequestContext final {
@@ -56,10 +58,8 @@ class MultiRequestContext final {
 
     while (!active_reqs_->empty()) {
       auto itr = active_reqs_->begin();
-      LOG_WARNING_F(
-          MRC_LOGTAG,
-          "~MultiRequestContext() -> cancelling active request, id %s",
-          itr->first.c_str());
+      LOG_INFO_F(kLogTag, "~MultiRequestContext() -> cancelling id %s",
+                 itr->first.c_str());
       itr->second->cancellation_token_.cancel();
     }
   }
@@ -70,7 +70,7 @@ class MultiRequestContext final {
       Callback callback_fn) {
     boost::uuids::uuid request_id = uuid_gen_();
 
-    LOG_TRACE_F(MRC_LOGTAG, "ExecuteOrAssociate(%s) -> request uuid = %s",
+    LOG_TRACE_F(kLogTag, "ExecuteOrAssociate(%s) -> request uuid = %s",
                 key.c_str(), boost::uuids::to_string(request_id).c_str());
 
     std::shared_ptr<RequestContext> newContext;
@@ -80,14 +80,13 @@ class MultiRequestContext final {
 
       auto itr = active_reqs_->find(key);
       if (itr != active_reqs_->end()) {
-        LOG_TRACE_F(MRC_LOGTAG,
-                    "ExecuteOrAssociate(%s) -> existing request key",
-                    key.c_str());
+        LOG_INFO_F(kLogTag, "ExecuteOrAssociate(%s) -> existing request key",
+                   key.c_str());
 
         itr->second->callbacks_[request_id] = callback_fn;
       } else {
-        LOG_TRACE_F(MRC_LOGTAG, "ExecuteOrAssociate(%s) -> new request key",
-                    key.c_str());
+        LOG_INFO_F(kLogTag, "ExecuteOrAssociate(%s) -> new request key",
+                   key.c_str());
 
         newContext = std::make_shared<RequestContext>();
         newContext->callbacks_[request_id] = callback_fn;
@@ -103,8 +102,8 @@ class MultiRequestContext final {
         onRequestCompleted(mutex, reqs, response, key);
       };
 
-      LOG_TRACE_F(MRC_LOGTAG, "ExecuteOrAssociate(%s) -> execute request()",
-                  key.c_str());
+      LOG_INFO_F(kLogTag, "ExecuteOrAssociate(%s) -> execute request()",
+                 key.c_str());
 
       newContext->cancellation_token_ = execute_fn(callback);
     }
@@ -133,6 +132,7 @@ class MultiRequestContext final {
   static void onRequestCompleted(std::shared_ptr<std::recursive_mutex> mutex,
                                  ReqsPtr reqs, Response response,
                                  std::string key) {
+    LOG_TRACE_F(kLogTag, "onRequestCompleted(%s)", key.c_str());
     RequestContextPtr context;
 
     {
@@ -146,8 +146,8 @@ class MultiRequestContext final {
     }  // release the lock, then invoke the callbacks.
 
     if (context) {
-      LOG_TRACE_F(MRC_LOGTAG, "onRequestCompleted(%s) -> callback count = %lu",
-                  key.c_str(), (unsigned long)context->callbacks_.size());
+      LOG_INFO_F(kLogTag, "onRequestCompleted(%s) -> callback count = %lu",
+                 key.c_str(), (unsigned long)context->callbacks_.size());
 
       for (auto& callback : context->callbacks_) {
         callback.second(response);
@@ -159,6 +159,7 @@ class MultiRequestContext final {
                                  std::shared_ptr<std::recursive_mutex> mutex,
                                  ReqsPtr reqs, const std::string& key,
                                  const boost::uuids::uuid& request_id) {
+    LOG_TRACE_F(kLogTag, "onRequestCancelled(%s)", key.c_str());
     RequestContextPtr context;
 
     {
@@ -172,8 +173,8 @@ class MultiRequestContext final {
     }  // release the lock, then invoke the callbacks.
 
     if (context) {
-      LOG_TRACE_F(MRC_LOGTAG, "onRequestCancelled(key=%s, id=%s)", key.c_str(),
-                  boost::uuids::to_string(request_id).c_str());
+      LOG_INFO_F(kLogTag, "onRequestCancelled(key=%s, id=%s)", key.c_str(),
+                 boost::uuids::to_string(request_id).c_str());
 
       // find the callback by request_id
       auto requestItr = context->callbacks_.find(request_id);
