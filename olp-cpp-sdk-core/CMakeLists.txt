@@ -76,6 +76,13 @@ file(GLOB GENERATED_HEADERS
 file(GLOB NETWORK_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/network/*.h"
 )
+set(NETWORK2_HEADERS
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/network2/Network.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/network2/NetworkProxySettings.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/network2/NetworkRequest.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/network2/NetworkResponse.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/network2/NetworkSettings.h"
+)
 file(GLOB PLATFORM_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/context/*.h"
 )
@@ -133,6 +140,12 @@ file(GLOB NETWORK_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/network/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/network/*.h"
 )
+set(NETWORK2_SOURCE
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/network2/NetworkProxySettings.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/network2/NetworkRequest.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/network2/NetworkResponse.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/network2/NetworkSettings.cpp"
+)
 
 if (ANDROID)
 file(GLOB NETWORK_ANDROID_SOURCE
@@ -172,6 +185,7 @@ file(GLOB CORE_HEADERS
     ${CLIENT_HEADERS}
     ${GENERATED_HEADERS}
     ${NETWORK_HEADERS}
+    ${NETWORK2_HEADERS}
     ${PLATFORM_HEADERS}
     ${PORTING_HEADERS}
     ${UTILS_HEADERS}
@@ -190,6 +204,7 @@ file(GLOB CORE_SOURCE
     ${CLIENT_SOURCE}
     ${GENERATED_SOURCE}
     ${NETWORK_SOURCE}
+    ${NETWORK2_SOURCE}
     ${PLATFORM_SOURCE}
     ${PORTING_SOURCE}
     ${UTILS_SOURCE}
