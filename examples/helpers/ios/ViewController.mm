@@ -44,7 +44,7 @@
   __weak ViewController* weakSelf = self;
   dispatch_async(
       dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
-        __block int result = runExample();
+        __block int result = RunExample();
 
         // Display the results in the main thread
         dispatch_async(dispatch_get_main_queue(), ^{

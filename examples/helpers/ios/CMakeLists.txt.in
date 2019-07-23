@@ -66,5 +66,6 @@ target_link_libraries(@EDGE_SDK_EXAMPLE_TARGET_NAME@
     ${UIKIT_FRAMEWORK}
 
     olp-cpp-sdk-authentication
+    olp-cpp-sdk-dataservice-read
     olp-cpp-sdk-dataservice-write
 )

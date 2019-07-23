@@ -105,7 +105,7 @@ Now open the generated `XCode` project:
 open olp-cpp-sdk.xcodeproj
 ```
 
-Select the `dataservice-write-example` scheme from the schemes list in `XCode` and specify your signing credentials for the `dataservice-write-example` target.
+Select the `dataservice-write-example` scheme from the schemes list in the `XCode` project and specify your signing credentials for the `dataservice-write-example` target.
 
 Once everything is correctly set up, build and run the example application on your device and you should see the `Publish Successful` message in the main UI screen. If you encountered an error message, e.g. `Publish Failed`, please check the device's logs for the detailed description of the error.
 

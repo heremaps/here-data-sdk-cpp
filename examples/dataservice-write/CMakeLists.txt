@@ -17,112 +17,27 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-
 set(EDGE_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET dataservice-write-example)
+set(EDGE_SDK_EXAMPLE_SUCCESS_STRING "Publish Successfull")
+set(EDGE_SDK_EXAMPLE_FAILURE_STRING "Publish Failed!")
 
 if (IOS)
-    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/ios/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ios)
-    file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/ios/CMakeLists.txt.in)
+    include(${CMAKE_CURRENT_SOURCE_DIR}/../helpers/cmake/gen_ios_example.cmake.in)
 
-    # Configure CMakeLists.txt.in with specified variables
-    set(EDGE_SDK_EXAMPLE_TARGET_NAME ${EDGE_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET})
-    set(EDGE_SDK_SUCCESSFUL_EXAMPLE_EXECUTION_STRING "Publish Successfull")
-    set(EDGE_SDK_FAILING_EXAMPLE_EXECUTION_STRING "Publish Failed!")
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/ios/CMakeLists.txt.in
-        ${CMAKE_CURRENT_BINARY_DIR}/ios/CMakeLists.txt
-        @ONLY
-    )
 
-    # Copy the example.h / example.cpp files to iOS build folder (apparently, the XCode doesn't like symlinked files)
-    set(EDGE_SDK_EXAMPLE_H_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/example.h)
-    set(EDGE_SDK_EXAMPLE_H_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/ios/example.h)
-    set(EDGE_SDK_EXAMPLE_CPP_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/example.cpp)
-    set(EDGE_SDK_EXAMPLE_CPP_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/ios/example.cpp)
-    execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${EDGE_SDK_EXAMPLE_H_FILE_SRC} ${EDGE_SDK_EXAMPLE_H_FILE_DST})
-    execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${EDGE_SDK_EXAMPLE_CPP_FILE_SRC} ${EDGE_SDK_EXAMPLE_CPP_FILE_DST})
-
-    add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/ios ${CMAKE_CURRENT_BINARY_DIR}/ios)
+    gen_ios_example_application(${EDGE_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET}
+                                ${EDGE_SDK_EXAMPLE_SUCCESS_STRING}
+                                ${EDGE_SDK_EXAMPLE_FAILURE_STRING})
 elseif(ANDROID)
-    # Copy all the files from helpers directory except the *.in files
-    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/android/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/android)
-    file(GLOB_RECURSE EXCLUDED_IN_FILES ${CMAKE_CURRENT_BINARY_DIR}/android/*.in)
-    file(REMOVE ${EXCLUDED_IN_FILES})
+    include(${CMAKE_CURRENT_SOURCE_DIR}/../helpers/cmake/gen_android_example.cmake.in)
 
-    # Configure all the variables required to generated gralde project
     set(EDGE_SDK_EXAMPLE_PACKAGE_NAME "dataservice_write_example")
     set(EDGE_SDK_EXAMPLE_PACKAGE_JNI_NAME "dataservice_1write_1example")
-    set(EDGE_SDK_EXAMPLE_TARGET_NAME "dataservice-write-example-lib")
-
-    set(EDGE_SDK_EXAMPLE_ANDROID_ABI "// abiFilters 'arm64-v8a'")
-    if (DEFINED ANDROID_ABI)
-        set(EDGE_SDK_EXAMPLE_ANDROID_ABI "abiFilters '${ANDROID_ABI}'")
-    endif()
-
-    set(EDGE_SDK_EXAMPLE_ANDROID_TOOLCHAIN_FILE "-DCMAKE_TOOLCHAIN_FILE='path to your toolchain file'")
-    if (DEFINED CMAKE_TOOLCHAIN_FILE)
-        set(EDGE_SDK_EXAMPLE_ANDROID_TOOLCHAIN_FILE "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
-    endif()
-
-    set(EDGE_SDK_EXAMPLE_NETWORK_PROTOCOL_JAR "-DEDGE_SDK_NETWORK_PROTOCOL_JAR='full path to the EdgeNetworkProtocol.jar in the <olp-edge-sdk-build-folder>/olp-cpp-sdk-core/ folder'")
-    if (DEFINED olp-cpp-sdk-core_BINARY_DIR)
-        set(EDGE_SDK_EXAMPLE_NETWORK_PROTOCOL_JAR "-DEDGE_SDK_NETWORK_PROTOCOL_JAR=${olp-cpp-sdk-core_BINARY_DIR}/EdgeNetworkProtocol.jar")
-    endif()
-
-    set(EDGE_SDK_EXAMPLE_LEVELDB_DIR "-Dleveldb_DIR='path to the directory which contains LevelDB cmake config files'")
-    if (DEFINED leveldb_DIR)
-        set(EDGE_SDK_EXAMPLE_LEVELDB_DIR "-Dleveldb_DIR=${leveldb_DIR}")
-    endif()
-
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/android/app/build.gradle.in
-        ${CMAKE_CURRENT_BINARY_DIR}/android/app/build.gradle
-        @ONLY
-    )
-
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/android/app/CMakeLists.txt.in
-        ${CMAKE_CURRENT_BINARY_DIR}/android/app/CMakeLists.txt
-        @ONLY
-    )
-
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/android/app/src/main/AndroidManifest.xml.in
-        ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/AndroidManifest.xml
-        @ONLY
-    )
-
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/android/app/src/main/cpp/MainActivityNative.cpp.in
-        ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/cpp/MainActivityNative.cpp
-        @ONLY
-    )
-
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/android/app/src/main/java/MainActivity.java.in
-        ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/java/com/here/android/olp/${EDGE_SDK_EXAMPLE_PACKAGE_NAME}/MainActivity.java
-        @ONLY
-    )
-
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/android/app/src/main/res/values/strings.xml.in
-        ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/res/values/strings.xml
-        @ONLY
-    )
-
-    # Symlink (or copy - depending on the platform) the example.h / example.cpp files to the gradle fodler
-    set(EDGE_SDK_EXAMPLE_H_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/example.h)
-    set(EDGE_SDK_EXAMPLE_H_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/cpp/example.h)
-    set(EDGE_SDK_EXAMPLE_CPP_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/example.cpp)
-    set(EDGE_SDK_EXAMPLE_CPP_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/cpp/example.cpp)
-
-    if(CMAKE_HOST_WIN32 AND NOT CYGWIN AND NOT MSYS)
-        execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${EDGE_SDK_EXAMPLE_H_FILE_SRC} ${EDGE_SDK_EXAMPLE_H_FILE_DST})
-        execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${EDGE_SDK_EXAMPLE_CPP_FILE_SRC} ${EDGE_SDK_EXAMPLE_CPP_FILE_DST})
-    else(CMAKE_HOST_WIN32 AND NOT CYGWIN AND NOT MSYS)
-        execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${EDGE_SDK_EXAMPLE_H_FILE_SRC} ${EDGE_SDK_EXAMPLE_H_FILE_DST})
-        execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${EDGE_SDK_EXAMPLE_CPP_FILE_SRC} ${EDGE_SDK_EXAMPLE_CPP_FILE_DST})
-    endif(CMAKE_HOST_WIN32 AND NOT CYGWIN AND NOT MSYS)
+    gen_android_example_application(${EDGE_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET}
+                                    ${EDGE_SDK_EXAMPLE_PACKAGE_NAME}
+                                    ${EDGE_SDK_EXAMPLE_PACKAGE_JNI_NAME}
+                                    ${EDGE_SDK_EXAMPLE_SUCCESS_STRING}
+                                    ${EDGE_SDK_EXAMPLE_FAILURE_STRING})
 
 else()
     project(${EDGE_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET} VERSION 0.6.0)

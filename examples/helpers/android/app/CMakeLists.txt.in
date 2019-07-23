@@ -17,7 +17,7 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-project(@EDGE_SDK_EXAMPLE_PACKAGE_NAME@ VERSION 0.6.0)
+project(@EDGE_SDK_EXAMPLE_TARGET_NAME@ VERSION 0.6.0)
 
 if (NOT EXISTS "${EDGE_SDK_NETWORK_PROTOCOL_JAR}")
     message(FATAL_ERROR "The EdgeetworkProtocol.jar not found."
@@ -27,6 +27,7 @@ endif()
 find_library(log-lib log)
 
 find_package(olp-cpp-sdk-authentication REQUIRED)
+find_package(olp-cpp-sdk-dataservice-read REQUIRED)
 find_package(olp-cpp-sdk-dataservice-write REQUIRED)
 
 find_package(leveldb REQUIRED)
@@ -49,6 +50,7 @@ add_custom_command(
 
 target_link_libraries(@EDGE_SDK_EXAMPLE_TARGET_NAME@
     olp-cpp-sdk-authentication
+    olp-cpp-sdk-dataservice-read
     olp-cpp-sdk-dataservice-write
     ${log-lib}
     )

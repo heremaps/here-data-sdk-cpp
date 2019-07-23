@@ -33,49 +33,49 @@ using namespace olp::dataservice::write;
 using namespace olp::dataservice::write::model;
 
 namespace {
-const std::string gKeyId("");            // your here.access.key.id
-const std::string gKeySecret("");        // your here.access.key.secret
-const std::string gCatalogHRN("");       // your catalog HRN where to write to
-const std::string gLayer("");            // layer name inside catalog to use
-const std::string gData("hello world");  // data to write
+const std::string kKeyId("");            // your here.access.key.id
+const std::string kKeySecret("");        // your here.access.key.secret
+const std::string kCatalogHRN("");       // your catalog HRN where to write to
+const std::string kLayer("");            // layer name inside catalog to use
+const std::string kData("hello world");  // data to write
 
-constexpr auto LOG_TAG = "write-example";
+constexpr auto kLogTag = "write-example";
 }  // namespace
 
-int runExample() {
-  auto buffer = std::make_shared<std::vector<unsigned char>>(std::begin(gData),
-                                                             std::end(gData));
+int RunExample() {
+  auto buffer = std::make_shared<std::vector<unsigned char>>(std::begin(kData),
+                                                             std::end(kData));
 
   // Setup AuthenticationSettings with a default token provider that will
   // retrieve an OAuth 2.0 token from OLP.
-  olp::client::AuthenticationSettings authSettings;
-  authSettings.provider =
-      olp::authentication::TokenProviderDefault(gKeyId, gKeySecret);
+  olp::client::AuthenticationSettings auth_settings;
+  auth_settings.provider =
+      olp::authentication::TokenProviderDefault(kKeyId, kKeySecret);
 
   // Setup OlpClientSettings and provide it to the StreamLayerClient.
-  olp::client::OlpClientSettings clientSettings;
-  clientSettings.authentication_settings = authSettings;
+  olp::client::OlpClientSettings client_settings;
+  client_settings.authentication_settings = auth_settings;
 
   auto client = std::make_shared<StreamLayerClient>(
-      olp::client::HRN{gCatalogHRN}, clientSettings);
+      olp::client::HRN{kCatalogHRN}, client_settings);
 
   // Create a publish data request
-  auto request = PublishDataRequest().WithData(buffer).WithLayerId(gLayer);
+  auto request = PublishDataRequest().WithData(buffer).WithLayerId(kLayer);
 
   // Write data to OLP Stream Layer using StreamLayerClient
-  auto futureResponse = client->PublishData(request);
+  auto future_response = client->PublishData(request);
 
   // Wait for response
-  auto response = futureResponse.GetFuture().get();
+  auto response = future_response.GetFuture().get();
 
   // Check the response
   if (!response.IsSuccessful()) {
-    LOG_ERROR_F(LOG_TAG, "Error writing data - HTTP Status: %d Message: %s",
+    LOG_ERROR_F(kLogTag, "Error writing data - HTTP Status: %d Message: %s",
                 response.GetError().GetHttpStatusCode(),
                 response.GetError().GetMessage().c_str());
     return -1;
   } else {
-    LOG_INFO_F(LOG_TAG, "Publish Successful - TraceID: %s",
+    LOG_INFO_F(kLogTag, "Publish Successful - TraceID: %s",
                response.GetResult().GetTraceID().c_str());
   }
 

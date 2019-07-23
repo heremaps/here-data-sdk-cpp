@@ -32,9 +32,9 @@ public class MainActivity extends AppCompatActivity {
     // Load the built C++ example library, which was assembled during CMakeLists execution step
     static {
         try {
-            System.loadLibrary("dataservice-write-example-lib");
+            System.loadLibrary("@EDGE_SDK_EXAMPLE_TARGET_NAME@");
         } catch (Error e) {
-            Log.w(LOG_TAG, "The dataservice-write-example-lib library failed to load; please " +
+            Log.w(LOG_TAG, "The @EDGE_SDK_EXAMPLE_TARGET_NAME@ library failed to load; please " +
                     "ignore the message if it is static library" + e.getMessage());
         }
     }

@@ -9,7 +9,7 @@ const std::string gKeyId(""); // your here.access.key.id
 const std::string gKeySecret(""); // your here.access.key.secret
 ```
 
-## Building and running
+## Building and running on Linux
 
 Configure the project with `EDGE_SDK_BUILD_EXAMPLES` set to `ON` to enabled examples `CMake` targets:
 
@@ -31,6 +31,81 @@ To execute the example, run:
 ```
 
 If everything is fine, you would see `hrn:here:data:::here-optimized-map-for-visualization-2` catalog description, number of partitions and the size of `100000093` partition.
+
+## Building and running on Android
+
+This example shows how to integrate the HERE OLP Edge SDK C++ libraries into the Android project and shows how to read data from a catalog layer and partition.
+
+### Prerequisites
+
+* Setup the Android environment.
+* Provide correct keyId and secret key in the `example.cpp` (refer to the beginning of this README file).
+
+### Build HERE OLP Edge SDK C++
+
+First, before building, you need to configure the SDK with `EDGE_SDK_BUILD_EXAMPLES` set to `ON`, the path to Android NDK's toolchain file set via the `CMAKE_TOOLCHAIN_FILE` variable, and, optionally, the [NDK-specific CMake variables](https://developer.android.com/ndk/guides/cmake#variables).
+
+```bash
+mkdir build && cd build
+cmake .. -DEDGE_SDK_BUILD_EXAMPLES=ON -DCMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a
+```
+
+The `CMake` command will generate a `Gradle` project in the `build/examples/dataservice-read/android` folder. Before it can be used, you have to install the HERE OLP Edge SDK C++ libraries into the sysroot directory:
+
+```bash
+# Execute as sudo if necessary
+(sudo) make install
+```
+
+### Assemble APK and run it on Android device
+
+Now, the `Gradle` project is configured, and you can use the `gradlew` executable to build and install the apk on your Android device:
+
+```bash
+cd examples/dataservice-read/android
+./gradlew assembleDebug
+./gradlew installDebug
+```
+
+Alternatively, you can use the Android Studio IDE by opening the `build/examples/dataservice-read/android/build.gradle` script.
+
+After installing and running the `dataservice_read_example` apk, you should see the `Reading the partition data from the specified catalog completed successfully` message in the main UI screen if you provided correct keyId and secretKey. If you encountered an error, please check the device's logcat for the error message.
+
+### Additional notes
+
+Note, that you can run `CMake` command directly from `<olp-edge-sdk-root>/examples/dataservice-read/` folder if you have already built and installed HERE OLP Edge SDK C++ libraries for Android. Make sure that you pass the correct path to `LevelDB` library and provided the correct `EDGE_SDK_NETWORK_PROTOCOL_JAR` parameter in the `CMake` command invoked by the `build/examples/dataservice-read/android/app/build.gradle` script.
+
+## Building and running on iOS
+
+This example shows how to integrate the HERE OLP Edge SDK C++ libraries into a basic iOS application written in Objective-C language and shows how to read data from a catalog layer and partition.
+
+### Prerequisites
+
+* Setup the iOS development environment - install the `XCode` and command line tools.
+* Install external dependencies - refer to the `README.md` file located under `<olp-edge-sdk-root>/README.md`.
+* Provide correct keyId and secret key in the `example.cpp` (refer to the beginning of this README file).
+
+### Build HERE OLP Edge SDK C++
+
+First, before building, you need to configure the HERE OLP Edge SDK C++ with `EDGE_SDK_BUILD_EXAMPLES` set to `ON`, (optionally) disable tests with `EDGE_SDK_ENABLE_TESTING` set to `OFF`, and specify the path to the iOS toolchain file shipped together with the SDK and located under `<olp-edge-sdk-root>/cmake/toolchains/iOS.cmake`:
+
+```bash
+mkdir build && cd build
+cmake .. -GXcode  -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/iOS.cmake -DPLATFORM=iphoneos -DEDGE_SDK_BUILD_EXAMPLES=ON -DEDGE_SDK_ENABLE_TESTING=OFF
+```
+
+Note that in order to configure the HERE OLP Edge SDK C++ for a simulator, you need to set the `SIMULATOR` variable to `ON`.
+
+### Build and run the application on the device
+
+Now open the generated `XCode` project:
+```bash
+open olp-cpp-sdk.xcodeproj
+```
+
+Select the `dataservice-read-example` scheme from the schemes list in `XCode` project and specify your signing credentials for the `dataservice-read-example` target.
+
+Once everything is correctly set up, build and run the example application on your device and you should see the `Reading the partition data from the specified catalog completed successfully` message in the main UI screen (for more details, check device's logs). If you encountered an error message, e.g. `Failed to read data from the specified catalog!`, please check the device's logs for the detailed description of the error.
 
 ## How it works
 
