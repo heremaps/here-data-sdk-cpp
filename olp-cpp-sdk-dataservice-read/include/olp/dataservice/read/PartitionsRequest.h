@@ -22,6 +22,7 @@
 #include "FetchOptions.h"
 
 #include <string>
+#include <sstream>
 
 #include <boost/optional.hpp>
 
@@ -137,7 +138,29 @@ class DATASERVICE_READ_API PartitionsRequest final {
     return *this;
   }
 
- private:
+  /**
+   * @brief Creates readable format for the request.
+   * @param none
+   * @return string representation of the request
+   */
+  std::string CreateKey() const {
+    std::stringstream out;
+    out << GetLayerId();
+
+    if (GetVersion()) {
+      out << "@" << GetVersion().get();
+    }
+
+    if (GetBillingTag()) {
+      out << "$" << GetBillingTag().get();
+    }
+
+    out << "^" << GetFetchOption();
+
+    return out.str();
+  }
+
+private:
   std::string layer_id_;
   boost::optional<int64_t> catalog_metadata_version_;
   boost::optional<std::string> billing_tag_;

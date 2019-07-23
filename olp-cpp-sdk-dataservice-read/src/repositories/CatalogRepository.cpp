@@ -39,32 +39,6 @@ using namespace olp::client;
 
 namespace {
 constexpr auto kLogTag = "CatalogRepository";
-
-std::string CreateKey(const CatalogRequest& request) {
-  std::stringstream ss;
-
-  if (request.GetBillingTag()) {
-    ss << "$" << request.GetBillingTag().get();
-  }
-
-  ss << "^" << request.GetFetchOption();
-
-  return ss.str();
-}
-
-std::string CreateKey(const CatalogVersionRequest& request) {
-  std::stringstream ss;
-
-  ss << "@" << request.GetStartVersion();
-
-  if (request.GetBillingTag()) {
-    ss << "$" << request.GetBillingTag().get();
-  }
-
-  ss << "^" << request.GetFetchOption();
-
-  return ss.str();
-}
 }  // namespace
 
 CatalogRepository::CatalogRepository(
@@ -85,7 +59,7 @@ CancellationToken CatalogRepository::getCatalog(
   auto cancel_context = std::make_shared<CancellationContext>();
   auto& cache = *cache_;
 
-  auto requestKey = CreateKey(request);
+  auto requestKey = request.CreateKey();
   LOG_TRACE_F(kLogTag, "getCatalog '%s'", requestKey.c_str());
 
   MultiRequestContext<read::CatalogResponse,
@@ -184,7 +158,7 @@ CancellationToken CatalogRepository::getLatestCatalogVersion(
   auto cancel_context = std::make_shared<CancellationContext>();
   auto& cache = *cache_;
 
-  auto requestKey = CreateKey(request);
+  auto requestKey = request.CreateKey();
   LOG_TRACE_F(kLogTag, "getCatalogVersion '%s'", requestKey.c_str());
 
   cancel_context->ExecuteOrCancelled(

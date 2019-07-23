@@ -45,23 +45,6 @@ constexpr auto kLogTag = "PartitionsRepository";
 using LayerVersionReponse = ApiResponse<int64_t, client::ApiError>;
 using LayerVersionCallback = std::function<void(LayerVersionReponse)>;
 
-std::string CreateKey(const PartitionsRequest& request) {
-  std::stringstream ss;
-  ss << request.GetLayerId();
-
-  if (request.GetVersion()) {
-    ss << "@" << request.GetVersion().get();
-  }
-
-  if (request.GetBillingTag()) {
-    ss << "$" << request.GetBillingTag().get();
-  }
-
-  ss << "^" << request.GetFetchOption();
-
-  return ss.str();
-}
-
 std::string GetKey(const PartitionsRequest& request,
                    const std::vector<std::string>& partitions) {
   std::stringstream ss;
@@ -96,7 +79,7 @@ void GetLayerVersion(std::shared_ptr<CancellationContext> cancel_context,
                      const OlpClient& client, const PartitionsRequest& request,
                      const LayerVersionCallback& callback,
                      PartitionsCacheRepository& cache) {
-  auto key = CreateKey(request);
+  auto key = request.CreateKey();
   auto layerVersionsCallback = [=](model::LayerVersions layerVersions) {
     auto& versionLayers = layerVersions.GetLayerVersions();
     auto itr = std::find_if(versionLayers.begin(), versionLayers.end(),
@@ -251,7 +234,7 @@ CancellationToken PartitionsRepository::GetPartitions(
   auto& cache = *cache_;
   auto cancel_context = std::make_shared<CancellationContext>();
 
-  auto requestKey = CreateKey(request);
+  auto requestKey = request.CreateKey();
   auto cancel_callback = [callback, requestKey]() {
     LOG_INFO_F(kLogTag, "cancelled '%s'", requestKey.c_str());
     callback({{ErrorCode::Cancelled, "Operation cancelled.", true}});

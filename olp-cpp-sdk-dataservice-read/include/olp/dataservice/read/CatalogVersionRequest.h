@@ -21,6 +21,7 @@
 
 #include "FetchOptions.h"
 
+#include <sstream>
 #include <string>
 
 #include <boost/optional.hpp>
@@ -32,12 +33,11 @@ namespace dataservice {
 namespace read {
 
 /**
- * @brief The CatalogVersionRequest class encapsulates the fields required to request
- * the Catalog configuration.
+ * @brief The CatalogVersionRequest class encapsulates the fields required to
+ * request the Catalog configuration.
  */
 class DATASERVICE_READ_API CatalogVersionRequest final {
  public:
-
   /**
    * @brief Mandatory for versioned layers; the beginning of the range of
    * versions you want to get (exclusive). By convention -1 indicates the
@@ -45,9 +45,7 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
    * the catalog version is 0.
    * @return the start version.
    */
-  inline int64_t GetStartVersion() const {
-    return start_version_;
-  }
+  inline int64_t GetStartVersion() const { return start_version_; }
 
   /**
    * @brief WithStartVersion sets the start version. See ::GetStartVersion() for
@@ -99,9 +97,7 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
    * resource is not in the cache.
    * @return the fetchOption
    */
-  inline FetchOptions GetFetchOption() const {
-    return fetch_option_;
-  }
+  inline FetchOptions GetFetchOption() const { return fetch_option_; }
 
   /**
    * @brief WithFetchOption sets the fetch option. See ::GetFetchOption() for
@@ -113,6 +109,26 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
     fetch_option_ = fetchoption;
     return *this;
   }
+
+  /**
+   * @brief Creates readable format for the request.
+   * @param none
+   * @return string representation of the request
+   */
+  inline std::string CreateKey() const {
+    std::stringstream out;
+
+    out << "@" << GetStartVersion();
+
+    if (GetBillingTag()) {
+      out << "$" << GetBillingTag().get();
+    }
+
+    out << "^" << GetFetchOption();
+
+    return out.str();
+  }
+
  private:
   int64_t start_version_{0};
   boost::optional<std::string> billing_tag_;

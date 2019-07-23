@@ -22,8 +22,11 @@
 #include "FetchOptions.h"
 
 #include <string>
+#include <sstream>
 
 #include <boost/optional.hpp>
+
+#include "DataServiceReadApi.h"
 
 namespace olp {
 namespace dataservice {
@@ -33,7 +36,7 @@ namespace read {
  * @brief The CatalogRequest class encapsulates the fields required to request
  * the Catalog configuration.
  */
-class CatalogRequest final {
+class DATASERVICE_READ_API CatalogRequest final {
  public:
   /**
    * @brief BillingTag is an optional free-form tag which is used for
@@ -88,7 +91,25 @@ class CatalogRequest final {
     fetch_option_ = fetchoption;
     return *this;
   }
- private:
+
+  /**
+   * @brief Creates readable format for the request.
+   * @param none
+   * @return string representation of the request
+   */
+  inline std::string CreateKey() const {
+    std::stringstream out;
+
+    if (GetBillingTag()) {
+      out << "$" << GetBillingTag().get();
+    }
+
+    out << "^" << GetFetchOption();
+
+    return out.str();
+  }
+
+private:
   boost::optional<std::string> billing_tag_;
   FetchOptions fetch_option_ = OnlineIfNotFound;
 };
