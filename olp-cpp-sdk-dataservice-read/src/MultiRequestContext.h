@@ -58,7 +58,8 @@ class MultiRequestContext final {
 
     while (!active_reqs_->empty()) {
       auto itr = active_reqs_->begin();
-      LOG_INFO_F(kMultiRequestContextLogTag, "~MultiRequestContext() -> cancelling id %s",
+      LOG_INFO_F(kMultiRequestContextLogTag,
+                 "~MultiRequestContext() -> cancelling id %s",
                  itr->first.c_str());
       itr->second->cancellation_token_.cancel();
     }
@@ -70,8 +71,9 @@ class MultiRequestContext final {
       Callback callback_fn) {
     boost::uuids::uuid request_id = uuid_gen_();
 
-    LOG_TRACE_F(kMultiRequestContextLogTag, "ExecuteOrAssociate(%s) -> request uuid = %s",
-                key.c_str(), boost::uuids::to_string(request_id).c_str());
+    LOG_TRACE_F(kMultiRequestContextLogTag,
+                "ExecuteOrAssociate(%s) -> request uuid = %s", key.c_str(),
+                boost::uuids::to_string(request_id).c_str());
 
     std::shared_ptr<RequestContext> newContext;
 
@@ -80,13 +82,14 @@ class MultiRequestContext final {
 
       auto itr = active_reqs_->find(key);
       if (itr != active_reqs_->end()) {
-        LOG_INFO_F(kMultiRequestContextLogTag, "ExecuteOrAssociate(%s) -> existing request key",
+        LOG_INFO_F(kMultiRequestContextLogTag,
+                   "ExecuteOrAssociate(%s) -> existing request key",
                    key.c_str());
 
         itr->second->callbacks_[request_id] = callback_fn;
       } else {
-        LOG_INFO_F(kMultiRequestContextLogTag, "ExecuteOrAssociate(%s) -> new request key",
-                   key.c_str());
+        LOG_INFO_F(kMultiRequestContextLogTag,
+                   "ExecuteOrAssociate(%s) -> new request key", key.c_str());
 
         newContext = std::make_shared<RequestContext>();
         newContext->callbacks_[request_id] = callback_fn;
@@ -102,8 +105,8 @@ class MultiRequestContext final {
         onRequestCompleted(mutex, reqs, response, key);
       };
 
-      LOG_INFO_F(kMultiRequestContextLogTag, "ExecuteOrAssociate(%s) -> execute request()",
-                 key.c_str());
+      LOG_INFO_F(kMultiRequestContextLogTag,
+                 "ExecuteOrAssociate(%s) -> execute request()", key.c_str());
 
       newContext->cancellation_token_ = execute_fn(callback);
     }
@@ -132,7 +135,8 @@ class MultiRequestContext final {
   static void onRequestCompleted(std::shared_ptr<std::recursive_mutex> mutex,
                                  ReqsPtr reqs, Response response,
                                  std::string key) {
-    LOG_TRACE_F(kMultiRequestContextLogTag, "onRequestCompleted(%s)", key.c_str());
+    LOG_TRACE_F(kMultiRequestContextLogTag, "onRequestCompleted(%s)",
+                key.c_str());
     RequestContextPtr context;
 
     {
@@ -146,8 +150,9 @@ class MultiRequestContext final {
     }  // release the lock, then invoke the callbacks.
 
     if (context) {
-      LOG_INFO_F(kMultiRequestContextLogTag, "onRequestCompleted(%s) -> callback count = %lu",
-                 key.c_str(), (unsigned long)context->callbacks_.size());
+      LOG_INFO_F(kMultiRequestContextLogTag,
+                 "onRequestCompleted(%s) -> callback count = %lu", key.c_str(),
+                 context->callbacks_.size());
 
       for (auto& callback : context->callbacks_) {
         callback.second(response);
@@ -159,7 +164,8 @@ class MultiRequestContext final {
                                  std::shared_ptr<std::recursive_mutex> mutex,
                                  ReqsPtr reqs, const std::string& key,
                                  const boost::uuids::uuid& request_id) {
-    LOG_TRACE_F(kMultiRequestContextLogTag, "onRequestCancelled(%s)", key.c_str());
+    LOG_TRACE_F(kMultiRequestContextLogTag, "onRequestCancelled(%s)",
+                key.c_str());
     RequestContextPtr context;
 
     {
@@ -173,7 +179,8 @@ class MultiRequestContext final {
     }  // release the lock, then invoke the callbacks.
 
     if (context) {
-      LOG_INFO_F(kMultiRequestContextLogTag, "onRequestCancelled(key=%s, id=%s)", key.c_str(),
+      LOG_INFO_F(kMultiRequestContextLogTag,
+                 "onRequestCancelled(key=%s, id=%s)", key.c_str(),
                  boost::uuids::to_string(request_id).c_str());
 
       // find the callback by request_id
