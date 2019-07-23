@@ -98,6 +98,7 @@ file(GLOB LOGGING_HEADERS
 )
 file(GLOB THREAD_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/thread/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/thread/*.inl"
 )
 
 file(GLOB GEOCOORDINATES_HEADERS
@@ -316,4 +317,5 @@ if(EDGE_SDK_ENABLE_TESTING)
     add_subdirectory(tests/olpclient)
     add_subdirectory(tests/geo)
     add_subdirectory(tests/network)
+    add_subdirectory(tests/thread)
 endif()
