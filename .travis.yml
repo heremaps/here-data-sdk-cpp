@@ -1,3 +1,4 @@
+    
 language: cpp
 os: linux
 dist: xenial
@@ -10,14 +11,35 @@ addons:
     - libcurl4-openssl-dev 
     - libboost-all-dev
     - clang
-script: $WORKSPACE/scripts/linux/build.sh && $WORKSPACE/scripts/linux/test.sh
 matrix:
   include:
   - compiler: clang
-  - compiler: gcc
-  - os: osx
+    name: Linux Build using clang & tests
     script: $WORKSPACE/scripts/linux/build.sh
+  - compiler: gcc
+    name: Linux Build using gcc & tests
+    script: $WORKSPACE/scripts/linux/build.sh && $WORKSPACE/scripts/linux/test.sh
+  - language: android
+    name: Android Build
+    os : linux
+    dist: xenial
+    language: cpp
+    before_script:
+    - wget https://dl.google.com/android/repository/android-ndk-r19c-linux-x86_64.zip
+    - wget https://dl.google.com/android/repository/android-21_r01.zip
+    - unzip -qq android-ndk-r19c-linux-x86_64.zip
+    - unzip -qq android-21_r01.zip
+    - export ANDROID_SDK_ROOT="$TRAVIS_BUILD_DIR/android-5.0"
+    - export ANDROID_NDK_HOME="$TRAVIS_BUILD_DIR/android-ndk-r19c"
+    script: $WORKSPACE/scripts/android/build.sh
+  - os: osx
+    name: OSX Build
+    script: $WORKSPACE/scripts/linux/build.sh
+  - os: osx
+    name: IOS Build
+    script: $WORKSPACE/scripts/ios/build.sh  
   - os: windows
+    name: Windows Build
     env: BUILD_TYPE=RelWithDebInfo WORKSPACE=$TRAVIS_BUILD_DIR
     script: $WORKSPACE/scripts/windows/build.sh
 branches:
