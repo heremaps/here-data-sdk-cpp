@@ -19,13 +19,14 @@
 
 #pragma once
 
+#include <sstream>
 #include <string>
 #include <vector>
 
 #include <boost/optional.hpp>
 
-#include "DataServiceReadApi.h"
 #include <olp/core/geo/tiling/TileKey.h>
+#include "DataServiceReadApi.h"
 
 namespace olp {
 namespace dataservice {
@@ -145,6 +146,26 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   inline PrefetchTilesRequest& WithBillingTag(std::string&& billingTag) {
     billing_tag_ = std::move(billingTag);
     return *this;
+  }
+
+  /**
+   * @brief Creates readable format for the request.
+   * @param none
+   * @return string representation of the request
+   */
+  inline std::string CreateKey() const {
+    std::stringstream out;
+    out << GetLayerId();
+
+    out << "[" << GetMinLevel() << "/" << GetMaxLevel() << "]";
+
+    out << "(" << GetTileKeys().size() << ")";
+
+    if (GetBillingTag()) {
+      out << "$" << GetBillingTag().get();
+    }
+
+    return out.str();
   }
 
  private:
