@@ -22,6 +22,7 @@
 #include "FetchOptions.h"
 
 #include <string>
+#include <sstream>
 
 #include <boost/optional.hpp>
 
@@ -204,6 +205,37 @@ class DATASERVICE_READ_API DataRequest final {
   inline DataRequest& WithFetchOption(FetchOptions fetchoption) {
     fetch_option_ = fetchoption;
     return *this;
+  }
+
+  /**
+   * @brief Creates readable format for the request.
+   * @param none
+   * @return string representation of the request
+   */
+  inline std::string CreateKey() const {
+    std::stringstream out;
+    out << GetLayerId();
+
+    out << "[";
+
+    if (GetPartitionId()) {
+      out << GetPartitionId().get();
+    } else if (GetDataHandle()) {
+      out << GetDataHandle().get();
+    }
+    out << "]";
+
+    if (GetVersion()) {
+      out << "@" << GetVersion().get();
+    }
+
+    if (GetBillingTag()) {
+      out << "$" << GetBillingTag().get();
+    }
+
+    out << "^" << GetFetchOption();
+
+    return out.str();
   }
 
  private:
