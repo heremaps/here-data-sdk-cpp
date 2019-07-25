@@ -43,32 +43,6 @@ namespace {
 constexpr auto kDataInlinePrefix = "data:";
 constexpr auto kLogTag = "DataRepository";
 
-std::string CreateKey(const DataRequest& request) {
-  std::stringstream ss;
-  ss << request.GetLayerId();
-
-  ss << "[";
-
-  if (request.GetPartitionId()) {
-    ss << request.GetPartitionId().get();
-  } else if (request.GetDataHandle()) {
-    ss << request.GetDataHandle().get();
-  }
-  ss << "]";
-
-  if (request.GetVersion()) {
-    ss << "@" << request.GetVersion().get();
-  }
-
-  if (request.GetBillingTag()) {
-    ss << "$" << request.GetBillingTag().get();
-  }
-
-  ss << "^" << request.GetFetchOption();
-
-  return ss.str();
-}
-
 void GetDataInternal(std::shared_ptr<CancellationContext> cancellationContext,
                      std::shared_ptr<ApiRepository> apiRepo,
                      const std::string& layerType,
@@ -77,7 +51,7 @@ void GetDataInternal(std::shared_ptr<CancellationContext> cancellationContext,
                      DataCacheRepository& cache) {
   std::string service;
   std::function<CancellationToken(const OlpClient&)> dataFunc;
-  auto key = CreateKey(request);
+  auto key = request.CreateKey();
   LOG_TRACE_F(kLogTag, "GetDataInternal '%s'", key.c_str());
   auto cancel_callback = [callback, key]() {
     LOG_INFO_F(kLogTag, "cancelled '%s'", key.c_str());
@@ -199,7 +173,7 @@ bool DataRepository::IsInlineData(const std::string& dataHandle) {
 CancellationToken DataRepository::GetData(
     const read::DataRequest& request,
     const read::DataResponseCallback& callback) {
-  auto key = CreateKey(request);
+  auto key = request.CreateKey();
   LOG_TRACE_F(kLogTag, "GetData '%s'", key.c_str());
   if (!request.GetDataHandle() && !request.GetPartitionId()) {
     LOG_INFO_F(kLogTag, "getData for '%s' failed", key.c_str());
@@ -223,7 +197,6 @@ CancellationToken DataRepository::GetData(
     callback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
   };
 
-  auto requestKey = CreateKey(request);
   MultiRequestContext<read::DataResponse, read::DataResponseCallback>::ExecuteFn
       executeFn = [=, &cache](read::DataResponseCallback callback) {
         cancel_context->ExecuteOrCancelled(
@@ -345,7 +318,7 @@ CancellationToken DataRepository::GetData(
         return CancellationToken(
             [cancel_context]() { cancel_context->CancelOperation(); });
       };
-  return multiRequestContext_->ExecuteOrAssociate(requestKey, executeFn,
+  return multiRequestContext_->ExecuteOrAssociate(key, executeFn,
                                                   callback);
 }
 
