@@ -17,32 +17,27 @@
  * License-Filename: LICENSE
  */
 
-#include <olp/core/logging/Configuration.h>
-#include <olp/core/logging/ConsoleAppender.h>
-#include <olp/core/logging/DebugAppender.h>
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
+#include "olp/core/logging/Configuration.h"
+
 #include <memory>
+
+#include "olp/core/logging/ConsoleAppender.h"
+#include "olp/core/logging/DebugAppender.h"
 
 namespace olp {
 namespace logging {
+
 Configuration Configuration::createDefault() {
   Configuration configuration;
-  configuration.addConsoleAppender();
-  configuration.addDebugAppender();
+
+  configuration.addAppender(
+      std::make_shared<ConsoleAppender>(MessageFormatter::createDefault()));
+
+  if (DebugAppender::isImplemented()) {
+    configuration.addAppender(std::make_shared<DebugAppender>());
+  }
+
   return configuration;
-}
-
-Configuration& Configuration::addConsoleAppender(MessageFormatter formatter) {
-  addAppender(std::make_shared<ConsoleAppender>(std::move(formatter)));
-  return *this;
-}
-
-Configuration& Configuration::addDebugAppender() {
-  if (DebugAppender::isImplemented())
-    addAppender(std::make_shared<DebugAppender>());
-  return *this;
 }
 
 }  // namespace logging

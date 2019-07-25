@@ -65,36 +65,17 @@ class CORE_API Configuration {
   using AppenderList = std::vector<AppenderWithLogLevel>;
 
   /**
-   * @brief Creates a default configuration.
+   * @brief Creates a default configuration by adding the DebugAppender and the
+   * ConsoleAppender as appenders.
    * @return The default configuration.
    */
   static Configuration createDefault();
-
-  inline Configuration();
-  Configuration(const Configuration&) = default;
-  Configuration& operator=(const Configuration&) = default;
-  inline Configuration(Configuration&& other) noexcept;
-  inline Configuration& operator=(Configuration&& other) noexcept;
 
   /**
    * @brief Returns whether or not the configuration is valid.
    * @return Whether or not the configuration is valid.
    */
   inline bool isValid() const;
-
-  /**
-   * @brief Adds the console appender to the configuration. Log level of the
-   * added appender is set to logging::Level::Trace.
-   * @param formatter The message formatter.
-   */
-  Configuration& addConsoleAppender(
-      MessageFormatter formatter = MessageFormatter::createDefault());
-
-  /**
-   * @brief Adds the debug appender (if applicable) to the configuration. Log
-   * level of the added appender is set to logging::Level::Trace.
-   */
-  Configuration& addDebugAppender();
 
   /**
    * @brief Adds an appender along with its logging level to the configuration.
@@ -120,22 +101,14 @@ class CORE_API Configuration {
   AppenderList m_appenders;
 };
 
-inline Configuration::Configuration() {}
-
-inline Configuration::Configuration(Configuration&& other) noexcept
-    : m_appenders(std::move(other.m_appenders)) {}
-
-inline Configuration& Configuration::operator=(Configuration&& other) noexcept {
-  m_appenders = std::move(other.m_appenders);
-  return *this;
-}
-
 inline bool Configuration::isValid() const { return !m_appenders.empty(); }
 
 inline Configuration& Configuration::addAppender(
     std::shared_ptr<IAppender> appender, logging::Level level) {
-  AppenderWithLogLevel appenderWithLogLevel = {level, std::move(appender)};
-  m_appenders.emplace_back(std::move(appenderWithLogLevel));
+  if (appender) {
+    AppenderWithLogLevel appenderWithLogLevel = {level, std::move(appender)};
+    m_appenders.emplace_back(std::move(appenderWithLogLevel));
+  }
   return *this;
 }
 
