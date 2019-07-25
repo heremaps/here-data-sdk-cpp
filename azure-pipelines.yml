@@ -2,6 +2,12 @@ trigger:
 - master
 pr:
 - master
+schedules:
+- cron: "0 0 * * *"
+  displayName: Nightly build
+  branches:
+    include:
+    - master
 
 pool:
   vmImage: 'vs2017-win2016'
