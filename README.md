@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.com/heremaps/here-olp-edge-sdk-cpp.svg?branch=master)](https://travis-ci.com/heremaps/here-olp-edge-sdk-cpp)
+[![Build Status](https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-edge-sdk-cpp?branchName=master)](https://dev.azure.com/heremaps/github/_build/latest?definitionId=1&branchName=master)
 
 # HERE OLP Edge SDK C++
 
