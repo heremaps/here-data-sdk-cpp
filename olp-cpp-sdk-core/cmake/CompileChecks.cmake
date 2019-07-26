@@ -22,12 +22,13 @@ function(porting_do_checks)
   endif()
 
   include(CheckCXXSourceCompiles)
-
   include(TestBigEndian)
+
   test_big_endian(PORTING_SYSTEM_BIG_ENDIAN)
 
-  # run the cxx compile test with c++xx flags
+  # run the cxx compile test with c++xx flags and pthreads library
   set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} ${CMAKE_CXX${CMAKE_CXX_STANDARD}_EXTENSION_COMPILE_OPTION}")
+  set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
   set(HAVE_STD_OPTIONAL OFF PARENT_SCOPE)
   check_cxx_source_compiles(
@@ -46,6 +47,13 @@ function(porting_do_checks)
     "#include <filesystem>
     int main() { return static_cast<int>(std::filesystem::file_type::directory); }"
     HAVE_STD_FILESYSTEM)
+
+  set(HAVE_PTHREAD_SETNAME_NP OFF PARENT_SCOPE)
+  check_cxx_source_compiles(
+    "#define _GNU_SOURCE 1
+    #include <pthread.h>
+    int main() { pthread_t thread; pthread_setname_np(thread, NULL); }"
+    HAVE_PTHREAD_SETNAME_NP)
 
   configure_file(${PATH_TO_INPUT_FILE}porting_config.h.in
     include/olp/core/porting/porting_config.h
