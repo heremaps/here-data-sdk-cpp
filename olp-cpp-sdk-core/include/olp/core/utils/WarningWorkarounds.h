@@ -27,14 +27,14 @@
 /**
  * Marks arbitrary many variables as unused to avoid compiler warnings.
  */
-#define CORE_UNUSED(...) hf::core::unused(__VA_ARGS__)
+#define CORE_UNUSED(...) olp::core::Unused(__VA_ARGS__)
 
-namespace hf {
+namespace olp {
 namespace core {
 template <typename... Args>
-void unused(Args&&...) {}
+void Unused(Args&&...) {}
 }  // namespace core
-}  // namespace hf
+}  // namespace olp
 
 /**
  * While statement for "do {} while (0)" used for macros that bypasses compiler
