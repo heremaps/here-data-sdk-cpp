@@ -43,7 +43,7 @@ NetworkResponse& NetworkResponse::WithError(std::string error) {
   return *this;
 }
 
-const RequestId NetworkResponse::GetRequestId() const { return request_id_; }
+RequestId NetworkResponse::GetRequestId() const { return request_id_; }
 
 NetworkResponse& NetworkResponse::WithRequestId(RequestId id) {
   request_id_ = id;
