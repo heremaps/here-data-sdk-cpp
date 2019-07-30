@@ -78,7 +78,7 @@ class CORE_API NetworkResponse final {
    * @brief Get id of associated network request.
    * @return id of associated network request.
    */
-  const RequestId GetRequestId() const;
+   RequestId GetRequestId() const;
 
   /**
    * @brief Set id of associated network request.
