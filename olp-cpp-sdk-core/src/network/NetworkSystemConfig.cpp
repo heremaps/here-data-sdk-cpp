@@ -27,8 +27,7 @@ namespace olp {
 namespace network {
 NetworkSystemConfig::NetworkSystemConfig(const NetworkProxy& system_proxy,
                                          const std::string& certificate_path)
-    : certificate_path_(certificate_path),
-      proxy_(system_proxy) {}
+    : certificate_path_(certificate_path), proxy_(system_proxy) {}
 
 void NetworkSystemConfig::SetProxy(const NetworkProxy& proxy) {
   proxy_ = proxy;
@@ -58,8 +57,8 @@ bool NetworkSystemConfig::DontVerifyCertificate() const {
   // Allow overriding of Certificate verification for
   //  troubleshooting/development purposes
   if (Settings::GetEnvInt("NETWORK_SSL_VERIFY", -1) == 0) {
-    LOG_INFO(LOGTAG,
-             "Network SSL verification disabled by NETWORK_SSL_VERIFY=0");
+    EDGE_SDK_LOG_INFO(
+        LOGTAG, "Network SSL verification disabled by NETWORK_SSL_VERIFY=0");
     return true;
   }
 #endif  // NETWORK_SSL_VERIFY_OVERRIDE

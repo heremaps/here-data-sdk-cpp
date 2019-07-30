@@ -50,15 +50,16 @@ struct RequestContext {
 
   /// Destructor
   ~RequestContext() {
-#if defined(LOGGING_DISABLED)
+#if defined(EDGE_SDK_LOGGING_DISABLED)
     using namespace std::chrono;
     const auto life_time =
         duration_cast<seconds>(steady_clock::now() - creation_time_).count();
 
-    LOG_TRACE("RequestContext",
-              ("Destroying context for request " + porting::to_string(id_) +
-               " after " + porting::to_string(life_time) + " sec.")
-                  .c_str());
+    EDGE_SDK_LOG_TRACE(
+        "RequestContext",
+        ("Destroying context for request " + porting::to_string(id_) +
+         " after " + porting::to_string(life_time) + " sec.")
+            .c_str());
 #endif
   }
 

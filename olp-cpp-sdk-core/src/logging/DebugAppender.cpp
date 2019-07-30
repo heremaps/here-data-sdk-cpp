@@ -83,9 +83,9 @@ IAppender& DebugAppender::append(const LogMessage& message) {
 
 bool DebugAppender::isImplemented() { return false; }
 
-IAppender& DebugAppender::append(const LogMessage&) {return *this;}
+IAppender& DebugAppender::append(const LogMessage&) { return *this; }
 
-#endif  // LOG_PLATFORM_WINDOWS
+#endif  // PORTING_PLATFORM_WINDOWS
 
 }  // namespace logging
 }  // namespace olp

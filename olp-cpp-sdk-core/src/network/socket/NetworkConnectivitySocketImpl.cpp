@@ -41,17 +41,17 @@ bool canConnectToAddress(const sockaddr_in& dsockaddr) {
 #ifndef _WIN32
   int socket_desc = socket(dsockaddr.sin_family, SOCK_STREAM, 0);
   if (socket_desc == -1) {
-    LOG_WARNING(LOG_TAG, "socket() failed for ip address "
-                             << inet_ntoa(dsockaddr.sin_addr) << ": "
-                             << strerror(errno));
+    EDGE_SDK_LOG_WARNING(LOG_TAG, "socket() failed for ip address "
+                                      << inet_ntoa(dsockaddr.sin_addr) << ": "
+                                      << strerror(errno));
     return false;
   }
 
   if (connect(socket_desc, (struct sockaddr*)&dsockaddr, sizeof(dsockaddr)) ==
       -1) {
-    LOG_WARNING(LOG_TAG, "connect() failed for ip address "
-                             << inet_ntoa(dsockaddr.sin_addr) << ": "
-                             << strerror(errno));
+    EDGE_SDK_LOG_WARNING(LOG_TAG, "connect() failed for ip address "
+                                      << inet_ntoa(dsockaddr.sin_addr) << ": "
+                                      << strerror(errno));
     close(socket_desc);
     return false;
   }
@@ -61,17 +61,17 @@ bool canConnectToAddress(const sockaddr_in& dsockaddr) {
   SOCKET socket_desc = INVALID_SOCKET;
   socket_desc = socket(dsockaddr.sin_family, SOCK_STREAM, IPPROTO_TCP);
   if (socket_desc == INVALID_SOCKET) {
-    LOG_WARNING(LOG_TAG, "socket() failed for ip address "
-                             << inet_ntoa(dsockaddr.sin_addr) << ": "
-                             << strerror(errno));
+    EDGE_SDK_LOG_WARNING(LOG_TAG, "socket() failed for ip address "
+                                      << inet_ntoa(dsockaddr.sin_addr) << ": "
+                                      << strerror(errno));
     return false;
   }
 
   if (connect(socket_desc, (struct sockaddr*)&dsockaddr, sizeof(dsockaddr)) ==
       SOCKET_ERROR) {
-    LOG_WARNING(LOG_TAG, "connect() failed for ip address "
-                             << inet_ntoa(dsockaddr.sin_addr) << ": "
-                             << strerror(errno));
+    EDGE_SDK_LOG_WARNING(LOG_TAG, "connect() failed for ip address "
+                                      << inet_ntoa(dsockaddr.sin_addr) << ": "
+                                      << strerror(errno));
     closesocket(socket_desc);
     return false;
   }

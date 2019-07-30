@@ -45,13 +45,13 @@ struct TokenEndpoint::Impl {
       auto success = auth_client_.SetNetworkProxySettings(
           settings.network_proxy_settings.get());
       if (!success) {
-        LOG_WARNING(LOG_TAG, "Invalid NetworkProxySettings provided.");
+        EDGE_SDK_LOG_WARNING(LOG_TAG, "Invalid NetworkProxySettings provided.");
       }
     }
   }
 
   client::CancellationToken RequestToken(const TokenRequest& token_request,
-                                 const RequestTokenCallback& callback) {
+                                         const RequestTokenCallback& callback) {
     return auth_client_.SignInClient(
         auth_credentials_,
         [callback](
@@ -69,15 +69,17 @@ struct TokenEndpoint::Impl {
         token_request.GetExpiresIn());
   }
 
-  std::future<TokenResponse> RequestToken(client::CancellationToken& cancellation_token,
-                                          const TokenRequest& token_request);
+  std::future<TokenResponse> RequestToken(
+      client::CancellationToken& cancellation_token,
+      const TokenRequest& token_request);
 
   olp::authentication::AuthenticationClient auth_client_;
   olp::authentication::AuthenticationCredentials auth_credentials_;
 };  // namespace authentication
 
 std::future<TokenEndpoint::TokenResponse> TokenEndpoint::Impl::RequestToken(
-    client::CancellationToken& cancellation_token, const TokenRequest& token_request) {
+    client::CancellationToken& cancellation_token,
+    const TokenRequest& token_request) {
   auto p = std::make_shared<std::promise<TokenResponse> >();
   cancellation_token = RequestToken(
       token_request,
@@ -96,10 +98,11 @@ TokenEndpoint::TokenEndpoint(const AuthenticationCredentials& credentials,
   if (pos != std::string::npos) {
     strippedEndpointUrl.erase(pos, kOauth2TokenEndpoint.size());
   } else {
-    LOG_ERROR(LOG_TAG,
-              "Expected '/oauth2/token' endpoint in the tokenEndpointUrl. Only "
-              "standard "
-              "OAuth2 token endpoint URLs are supported.");
+    EDGE_SDK_LOG_ERROR(
+        LOG_TAG,
+        "Expected '/oauth2/token' endpoint in the tokenEndpointUrl. Only "
+        "standard "
+        "OAuth2 token endpoint URLs are supported.");
   }
 
   Settings strippedSettings = settings;

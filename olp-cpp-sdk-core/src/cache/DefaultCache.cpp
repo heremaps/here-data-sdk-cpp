@@ -102,7 +102,7 @@ bool DefaultCache::Clear() {
     }
   }
   if (SetupStorage() != DefaultCache::StorageOpenResult::Success) {
-    LOG_DEBUG_F(LOGTAG, "Failed to reopen the diskcache %s",
+    EDGE_SDK_LOG_DEBUG_F(LOGTAG, "Failed to reopen the diskcache %s",
                 settings_.disk_path.get().c_str());
     return false;
   }

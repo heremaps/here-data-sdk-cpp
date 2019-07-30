@@ -68,19 +68,19 @@ CatalogClientImpl::CatalogClientImpl(
 CatalogClientImpl::~CatalogClientImpl() { CancelPendingRequests(); }
 
 bool CatalogClientImpl::CancelPendingRequests() {
-  LOG_TRACE(kLogTag, "CancelPendingRequests");
+  EDGE_SDK_LOG_TRACE(kLogTag, "CancelPendingRequests");
   return pending_requests_->CancelPendingRequests();
 }
 
 CancellationToken CatalogClientImpl::GetCatalog(
     const CatalogRequest& request, const CatalogResponseCallback& callback) {
-  LOG_TRACE_F(kLogTag, "GetCatalog '%s'", request.CreateKey().c_str());
+  EDGE_SDK_LOG_TRACE_F(kLogTag, "GetCatalog '%s'", request.CreateKey().c_str());
   CancellationToken token;
   int64_t request_key = pending_requests_->GenerateKey();
   auto pending_requests = pending_requests_;
   auto request_callback = [pending_requests, request_key,
                            callback](CatalogResponse response) {
-    LOG_INFO_F(kLogTag, "GetCatalog remove key: %ld", request_key);
+    EDGE_SDK_LOG_INFO_F(kLogTag, "GetCatalog remove key: %ld", request_key);
     pending_requests->Remove(request_key);
     callback(response);
   };
@@ -89,7 +89,7 @@ CancellationToken CatalogClientImpl::GetCatalog(
     token = catalog_repo_->getCatalog(req.WithFetchOption(CacheOnly),
                                       request_callback);
     auto onlineKey = pending_requests_->GenerateKey();
-    LOG_INFO_F(kLogTag, "GetCatalog add key: %ld", onlineKey);
+    EDGE_SDK_LOG_INFO_F(kLogTag, "GetCatalog add key: %ld", onlineKey);
     pending_requests_->Add(catalog_repo_->getCatalog(
                                req.WithFetchOption(OnlineIfNotFound),
                                [pending_requests, onlineKey](CatalogResponse) {
@@ -97,7 +97,7 @@ CancellationToken CatalogClientImpl::GetCatalog(
                                }),
                            onlineKey);
   } else {
-    LOG_INFO_F(kLogTag, "GetCatalog existing: %ld", request_key);
+    EDGE_SDK_LOG_INFO_F(kLogTag, "GetCatalog existing: %ld", request_key);
     token = catalog_repo_->getCatalog(request, request_callback);
   }
   pending_requests_->Add(token, request_key);
@@ -115,13 +115,13 @@ CancellableFuture<CatalogResponse> CatalogClientImpl::GetCatalog(
 CancellationToken CatalogClientImpl::GetCatalogMetadataVersion(
     const CatalogVersionRequest& request,
     const CatalogVersionCallback& callback) {
-  LOG_TRACE_F(kLogTag, "GetCatalog '%s'", request.CreateKey().c_str());
+  EDGE_SDK_LOG_TRACE_F(kLogTag, "GetCatalog '%s'", request.CreateKey().c_str());
   CancellationToken token;
   int64_t request_key = pending_requests_->GenerateKey();
   auto pending_requests = pending_requests_;
   auto request_callback = [pending_requests, request_key,
                            callback](CatalogVersionResponse response) {
-    LOG_INFO_F(kLogTag, "GetCatalog remove key: %ld", request_key);
+    EDGE_SDK_LOG_INFO_F(kLogTag, "GetCatalog remove key: %ld", request_key);
     pending_requests->Remove(request_key);
     callback(response);
   };
@@ -130,7 +130,7 @@ CancellationToken CatalogClientImpl::GetCatalogMetadataVersion(
     token = catalog_repo_->getLatestCatalogVersion(
         req.WithFetchOption(CacheOnly), request_callback);
     auto onlineKey = pending_requests_->GenerateKey();
-    LOG_INFO_F(kLogTag, "GetCatalog add key: %ld", onlineKey);
+    EDGE_SDK_LOG_INFO_F(kLogTag, "GetCatalog add key: %ld", onlineKey);
     pending_requests_->Add(
         catalog_repo_->getLatestCatalogVersion(
             req.WithFetchOption(OnlineIfNotFound),
@@ -139,7 +139,7 @@ CancellationToken CatalogClientImpl::GetCatalogMetadataVersion(
             }),
         onlineKey);
   } else {
-    LOG_INFO_F(kLogTag, "GetCatalog existing: %ld", request_key);
+    EDGE_SDK_LOG_INFO_F(kLogTag, "GetCatalog existing: %ld", request_key);
     token = catalog_repo_->getLatestCatalogVersion(request, request_callback);
   }
   pending_requests_->Add(token, request_key);

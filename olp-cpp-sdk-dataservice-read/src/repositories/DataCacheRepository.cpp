@@ -45,7 +45,7 @@ void DataCacheRepository::Put(const model::Data& data,
                               const std::string& data_handle) {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn, layer_id, data_handle);
-  LOG_TRACE_F(kLogTag, "Put '%s'", key.c_str());
+  EDGE_SDK_LOG_TRACE_F(kLogTag, "Put '%s'", key.c_str());
   cache_->Put(key, data);
 }
 
@@ -53,7 +53,7 @@ boost::optional<model::Data> DataCacheRepository::Get(
     const std::string& layer_id, const std::string& data_handle) {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn, layer_id, data_handle);
-  LOG_TRACE_F(kLogTag, "Get '%s'", key.c_str());
+  EDGE_SDK_LOG_TRACE_F(kLogTag, "Get '%s'", key.c_str());
   auto cachedData = cache_->Get(key);
   if (!cachedData) {
     return boost::none;
@@ -66,7 +66,7 @@ void DataCacheRepository::Clear(const std::string& layer_id,
                                 const std::string& data_handle) {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn, layer_id, data_handle);
-  LOG_TRACE_F(kLogTag, "Clear '%s'", key.c_str());
+  EDGE_SDK_LOG_TRACE_F(kLogTag, "Clear '%s'", key.c_str());
   cache_->RemoveKeysWithPrefix(key);
 }
 
