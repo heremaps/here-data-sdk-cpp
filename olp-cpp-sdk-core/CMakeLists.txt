@@ -78,6 +78,7 @@ file(GLOB NETWORK_HEADERS
 )
 set(NETWORK2_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/network2/Network.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/network2/NetworkCurl.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/network2/NetworkProxySettings.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/network2/NetworkRequest.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/network2/NetworkResponse.h"
@@ -141,6 +142,7 @@ file(GLOB NETWORK_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/network/*.h"
 )
 set(NETWORK2_SOURCE
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/network2/NetworkCurl.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/network2/NetworkProxySettings.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/network2/NetworkRequest.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/network2/NetworkResponse.cpp"

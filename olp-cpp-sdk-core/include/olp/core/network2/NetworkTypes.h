@@ -21,28 +21,29 @@
 
 #include <cstdint>
 #include <limits>
+#include <type_traits>
 
 namespace olp {
 namespace network2 {
+
+/**
+ * @brief List of special values for NetworkRequestId.
+ */
+enum RequestIdConstants : std::uint64_t {
+  /// Value that indicates invalid request id.
+  RequestIdInvalid = std::numeric_limits<RequestIdConstants>::min(),
+  /// Minimal value of valid request id.
+  RequestIdMin = std::numeric_limits<RequestIdConstants>::min() + 1,
+  /// Maximal value of valid request id.
+  RequestIdMax = std::numeric_limits<RequestIdConstants>::max(),
+};
 
 /**
  * @brief Represents request id.
  * Values of this type are returned by Network::Send and used by
  * Network::Cancel.
  */
-using RequestId = std::uint64_t;
-
-/**
- * @brief List of special values for NetworkRequestId.
- */
-enum class RequestIdConstants : std::uint64_t {
-  /// Value that indicates invalid request id.
-  RequestIdInvalid = std::numeric_limits<RequestId>::min(),
-  /// Minimal value of valid request id.
-  RequestIdMin = std::numeric_limits<RequestId>::min() + 1,
-  /// Maximal value of valid request id.
-  RequestIdMax = std::numeric_limits<RequestId>::max(),
-};
+using RequestId = std::underlying_type<RequestIdConstants>::type;
 
 }  // namespace network2
 }  // namespace olp

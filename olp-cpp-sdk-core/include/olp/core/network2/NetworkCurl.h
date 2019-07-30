@@ -19,34 +19,20 @@
 
 #pragma once
 
-#include <cstdint>
-#include <functional>
+#include "Network.h"
 
-#include <olp/core/CoreApi.h>
-#include <olp/core/network2/NetworkRequest.h>
-#include <olp/core/network2/NetworkResponse.h>
-#include <olp/core/network2/NetworkTypes.h>
+#include <memory>
 
 namespace olp {
 namespace network2 {
-/**
- * @brief The Network class represents HTTP client abstraction.
- */
-class CORE_API Network {
+
+namespace {
+class NetworkCurlImpl;
+}
+
+class NetworkCurl : public Network {
  public:
-  /// Represents callback to be called when the request has been processed or
-  /// cancelled.
-  using Callback = std::function<void(NetworkResponse response)>;
-
-  /// Represents callback to be called when a header has been received.
-  using HeaderCallback =
-      std::function<void(std::string key, std::string value)>;
-
-  /// Represents callback to be called when a chunk of data has been received.
-  using DataCallback = std::function<void(const uint8_t* data,
-                                          std::uint64_t offset, size_t len)>;
-
-  virtual ~Network();
+  NetworkCurl();
 
   /**
    * @brief Send network request.
@@ -61,17 +47,18 @@ class CORE_API Network {
    * @return requests id assigned to the request or
    * RequestIdConstants::RequestIdInvalid in case of failure.
    */
-  virtual RequestId Send(NetworkRequest request,
-                         std::shared_ptr<std::ostream> payload,
-                         Callback callback,
-                         HeaderCallback header_callback = nullptr,
-                         DataCallback data_callback = nullptr) noexcept = 0;
+  RequestId Send(NetworkRequest request, std::shared_ptr<std::ostream> payload,
+                 Callback callback, HeaderCallback header_callback = nullptr,
+                 DataCallback data_callback = nullptr) noexcept override;
 
   /**
    * @brief Cancel request by id.
    * @param[in] id Request id.
    */
-  virtual void Cancel(RequestId id) noexcept = 0;
+  void Cancel(RequestId id) noexcept override;
+
+ private:
+  std::shared_ptr<NetworkCurlImpl> impl_;
 };
 
 }  // namespace network2

@@ -89,7 +89,7 @@ class CORE_API NetworkResponse final {
 
  private:
   /// Associated request id.
-  RequestId request_id_{0};
+  RequestId request_id_{RequestIdConstants::RequestIdInvalid};
   /// HTTP response code.
   int status_{0};
   /// Human-readable error message in case of failed associated request.
