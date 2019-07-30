@@ -7,7 +7,7 @@ The HERE OLP Edge SDK is a _work in progress_ c++ client for [HERE Open Location
 | Linux                          | Windows                         |
 | :----------------------------- | :------------------------------ |
 | [![Linux build status][1]][2]  | [![Windows build status][3]][4] |
-| [![Linux code coverage][4]][5] |                                 |
+| [![Linux code coverage][5]][6] |                                 |
 
 
 [1]: https://travis-ci.com/heremaps/here-olp-edge-sdk-cpp.svg?branch=master
