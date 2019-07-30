@@ -13,3 +13,4 @@ echo ">>> Core - Network Test ... >>>"
 $CPP_TEST_SOURCE_CORE/network/olp-core-network-test --gtest_output="xml:report4.xml" --gtest_filter="*Offline*:*offline*"
 echo ">>> Core - Thread Test ... >>>"
 $CPP_TEST_SOURCE_CORE/thread/thread-test --gtest_output="xml:report5.xml"
+bash <(curl -s https://codecov.io/bash)
