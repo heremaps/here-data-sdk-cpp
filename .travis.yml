@@ -1,4 +1,3 @@
-    
 language: cpp
 os: linux
 dist: xenial
@@ -14,10 +13,12 @@ addons:
 matrix:
   include:
   - compiler: clang
-    name: Linux Build using clang & tests
+    env: BUILD_TYPE=RelWithDebInfo WORKSPACE=$TRAVIS_BUILD_DIR
+    name: Linux Build using clang 
     script: $WORKSPACE/scripts/linux/build.sh
   - compiler: gcc
-    name: Linux Build using gcc & tests
+    env: BUILD_TYPE=COVERAGE WORKSPACE=$TRAVIS_BUILD_DIR
+    name: Linux Build using gcc & tests & code coverage
     script: $WORKSPACE/scripts/linux/build.sh && $WORKSPACE/scripts/linux/test.sh
   - language: android
     name: Android Build
@@ -33,15 +34,12 @@ matrix:
     - export ANDROID_NDK_HOME="$TRAVIS_BUILD_DIR/android-ndk-r19c"
     script: $WORKSPACE/scripts/android/build.sh
   - os: osx
+    env: BUILD_TYPE=RelWithDebInfo WORKSPACE=$TRAVIS_BUILD_DIR
     name: OSX Build
     script: $WORKSPACE/scripts/linux/build.sh
   - os: osx
     name: IOS Build
     script: $WORKSPACE/scripts/ios/build.sh  
-  - os: windows
-    name: Windows Build
-    env: BUILD_TYPE=RelWithDebInfo WORKSPACE=$TRAVIS_BUILD_DIR
-    script: $WORKSPACE/scripts/windows/build.sh
 branches:
   only:
   - master

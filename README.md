@@ -1,9 +1,21 @@
-[![Build Status](https://travis-ci.com/heremaps/here-olp-edge-sdk-cpp.svg?branch=master)](https://travis-ci.com/heremaps/here-olp-edge-sdk-cpp)
-[![Build Status](https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-edge-sdk-cpp?branchName=master)](https://dev.azure.com/heremaps/github/_build/latest?definitionId=1&branchName=master)
-
 # HERE OLP Edge SDK C++
 
 The HERE OLP Edge SDK is a _work in progress_ c++ client for [HERE Open Location Platform](https://platform.here.com).
+
+&nbsp;
+
+| Linux                          | Windows                         |
+| :----------------------------- | :------------------------------ |
+| [![Linux build status][1]][2]  | [![Windows build status][3]][4] |
+| [![Linux code coverage][4]][5] |                                 |
+
+
+[1]: https://travis-ci.com/heremaps/here-olp-edge-sdk-cpp.svg?branch=master
+[2]: https://travis-ci.com/heremaps/here-olp-edge-sdk-cpp
+[3]: https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-edge-sdk-cpp?branchName=master
+[4]: https://dev.azure.com/heremaps/github/_build/latest?definitionId=1&branchName=master
+[5]: https://codecov.io/gh/heremaps/here-olp-edge-sdk-cpp/branch/master/graph/badge.svg
+[6]: https://codecov.io/gh/heremaps/here-olp-edge-sdk-cpp/
 
 ## Why Use the SDK
 
