@@ -54,11 +54,11 @@
  * compiler warnings.
  */
 #ifdef _MSC_VER
-#define CORE_LOOP_ONCE()                                                  \
+#define EDGE_SDK_CORE_LOOP_ONCE()                                         \
   __pragma(warning(push)) __pragma(warning(disable : 4127)) while (false) \
       __pragma(warning(pop))
 #else
-#define CORE_LOOP_ONCE() while (false)
+#define EDGE_SDK_CORE_LOOP_ONCE() while (false)
 #endif
 
 /**
@@ -71,7 +71,7 @@
  * @param tag Log component name.
  * @param message The message to log.
  */
-#define DO_LOG(level, tag, message)                                     \
+#define EDGE_SDK_DO_LOG(level, tag, message)                            \
   do {                                                                  \
     std::stringstream __strm;                                           \
     __strm << message;                                                  \
@@ -79,7 +79,7 @@
                                     __LINE__, __FUNCTION__,             \
                                     LOG_FUNCTION_SIGNATURE);            \
   }                                                                     \
-  CORE_LOOP_ONCE()
+  EDGE_SDK_CORE_LOOP_ONCE()
 
 /**
  * @brief Log a critical message using C++ style streams.
@@ -91,7 +91,8 @@
  * @param tag Log component name.
  * @param message The message to log.
  */
-#define LOG_CRITICAL(level, tag, message) DO_LOG(level, tag, message)
+#define EDGE_SDK_LOG_CRITICAL(level, tag, message) \
+  EDGE_SDK_DO_LOG(level, tag, message)
 
 /**
  * @brief Log a critical info message using C++ style streams.
@@ -102,8 +103,8 @@
  * @param tag Log component name.
  * @param message The message to log.
  */
-#define LOG_CRITICAL_INFO(tag, message) \
-  LOG_CRITICAL(::olp::logging::Level::Info, tag, message)
+#define EDGE_SDK_LOG_CRITICAL_INFO(tag, message) \
+  EDGE_SDK_LOG_CRITICAL(::olp::logging::Level::Info, tag, message)
 
 /**
  * @brief Log a critical warning message using C++ style streams.
@@ -114,8 +115,8 @@
  * @param tag Log component name.
  * @param message The message to log.
  */
-#define LOG_CRITICAL_WARNING(tag, message) \
-  LOG_CRITICAL(::olp::logging::Level::Warning, tag, message)
+#define EDGE_SDK_LOG_CRITICAL_WARNING(tag, message) \
+  EDGE_SDK_LOG_CRITICAL(::olp::logging::Level::Warning, tag, message)
 
 /**
  * @brief Log a critical error message using C++ style streams.
@@ -126,8 +127,8 @@
  * @param tag Log component name.
  * @param message The message to log.
  */
-#define LOG_CRITICAL_ERROR(tag, message) \
-  LOG_CRITICAL(::olp::logging::Level::Error, tag, message)
+#define EDGE_SDK_LOG_CRITICAL_ERROR(tag, message) \
+  EDGE_SDK_LOG_CRITICAL(::olp::logging::Level::Error, tag, message)
 
 /**
  * @brief Log a fatal error message using C++ style streams.
@@ -139,7 +140,7 @@
  * @param message The message to log.
  */
 #define LOG_FATAL(tag, message) \
-  LOG_CRITICAL(::olp::logging::Level::Fatal, tag, message)
+  EDGE_SDK_LOG_CRITICAL(::olp::logging::Level::Fatal, tag, message)
 
 /**
  * @brief Log a critical fatal error message using C++ style streams, then abort
@@ -147,12 +148,12 @@
  * @param tag Log component name.
  * @param message The message to log.
  */
-#define LOG_ABORT(tag, message) \
-  do {                          \
-    LOG_FATAL(tag, message);    \
-    std::abort();               \
-  }                             \
-  CORE_LOOP_ONCE()
+#define EDGE_SDK_LOG_ABORT(tag, message) \
+  do {                                   \
+    LOG_FATAL(tag, message);             \
+    std::abort();                        \
+  }                                      \
+  EDGE_SDK_CORE_LOOP_ONCE()
 
 /**
  * @brief Log a message using printf style formatting.
@@ -163,13 +164,13 @@
  * @param level Logging level.
  * @param tag Log component name.
  */
-#define DO_LOG_F(level, tag, ...)                                              \
+#define EDGE_SDK_DO_LOG_F(level, tag, ...)                                     \
   do {                                                                         \
     std::string __message = ::olp::logging::format(__VA_ARGS__);               \
     ::olp::logging::Log::logMessage(level, tag, __message, __FILE__, __LINE__, \
                                     __FUNCTION__, LOG_FUNCTION_SIGNATURE);     \
   }                                                                            \
-  CORE_LOOP_ONCE()
+  EDGE_SDK_CORE_LOOP_ONCE()
 
 /**
  * @brief Log a critical message using printf style formatting.
@@ -180,7 +181,8 @@
  * @param level Logging level.
  * @param tag Log component name.
  */
-#define LOG_CRITICAL_F(level, tag, ...) DO_LOG_F(level, tag, __VA_ARGS__)
+#define EDGE_SDK_LOG_CRITICAL_F(level, tag, ...) \
+  EDGE_SDK_DO_LOG_F(level, tag, __VA_ARGS__)
 
 /**
  * @brief Log a critical info message using printf style formatting.
@@ -190,8 +192,8 @@
  *
  * @param tag Log component name.
  */
-#define LOG_CRITICAL_INFO_F(tag, ...) \
-  LOG_CRITICAL_F(::olp::logging::Level::Info, tag, __VA_ARGS__)
+#define EDGE_SDK_LOG_CRITICAL_INFO_F(tag, ...) \
+  EDGE_SDK_LOG_CRITICAL_F(::olp::logging::Level::Info, tag, __VA_ARGS__)
 
 /**
  * @brief Log a critical warning message using printf style formatting.
@@ -201,8 +203,8 @@
  *
  * @param tag Log component name.
  */
-#define LOG_CRITICAL_WARNING_F(tag, ...) \
-  LOG_CRITICAL_F(::olp::logging::Level::Warning, tag, __VA_ARGS__)
+#define EDGE_SDK_LOG_CRITICAL_WARNING_F(tag, ...) \
+  EDGE_SDK_LOG_CRITICAL_F(::olp::logging::Level::Warning, tag, __VA_ARGS__)
 
 /**
  * @brief Log a critical error message using printf style formatting.
@@ -212,8 +214,8 @@
  *
  * @param tag Log component name.
  */
-#define LOG_CRITICAL_ERROR_F(tag, ...) \
-  LOG_CRITICAL_F(::olp::logging::Level::Error, tag, __VA_ARGS__)
+#define EDGE_SDK_LOG_CRITICAL_ERROR_F(tag, ...) \
+  EDGE_SDK_LOG_CRITICAL_F(::olp::logging::Level::Error, tag, __VA_ARGS__)
 
 /**
  * @brief Log a critical fatal error message using printf style formatting.
@@ -223,26 +225,26 @@
  *
  * @param tag Log component name.
  */
-#define LOG_FATAL_F(tag, ...) \
-  LOG_CRITICAL_F(::olp::logging::Level::Fatal, tag, __VA_ARGS__)
+#define EDGE_SDK_LOG_FATAL_F(tag, ...) \
+  EDGE_SDK_LOG_CRITICAL_F(::olp::logging::Level::Fatal, tag, __VA_ARGS__)
 
 /**
  * @brief Log a critical fatal error message using printf style formatting, then
  * abort the program.
  * @param tag Log component name.
  */
-#define LOG_ABORT_F(tag, ...)      \
-  do {                             \
-    LOG_FATAL_F(tag, __VA_ARGS__); \
-    std::abort();                  \
-  }                                \
-  CORE_LOOP_ONCE()
+#define EDGE_SDK_LOG_ABORT_F(tag, ...)      \
+  do {                                      \
+    EDGE_SDK_LOG_FATAL_F(tag, __VA_ARGS__); \
+    std::abort();                           \
+  }                                         \
+  EDGE_SDK_CORE_LOOP_ONCE()
 
 #ifdef LOGGING_DISABLED
-#define LOG(level, tag, message) \
-  do {                           \
-  }                              \
-  CORE_LOOP_ONCE()
+#define EDGE_SDK_LOG(level, tag, message) \
+  do {                                    \
+  }                                       \
+  EDGE_SDK_CORE_LOOP_ONCE()
 #else
 
 /**
@@ -251,13 +253,13 @@
  * @param tag Log component name.
  * @param message The message to log.
  */
-#define LOG(level, tag, message)                      \
+#define EDGE_SDK_LOG(level, tag, message)             \
   do {                                                \
     if (::olp::logging::Log::isEnabled(level, tag)) { \
-      DO_LOG(level, tag, message);                    \
+      EDGE_SDK_DO_LOG(level, tag, message);           \
     }                                                 \
   }                                                   \
-  CORE_LOOP_ONCE()
+  EDGE_SDK_CORE_LOOP_ONCE()
 
 #endif  // LOGGING_DISABLED
 
@@ -268,7 +270,7 @@
     __strm << message;                    \
     CORE_UNUSED(tag, __strm);             \
   }                                       \
-  CORE_LOOP_ONCE()
+  EDGE_SDK_CORE_LOOP_ONCE()
 
 #define LOG_DEBUG(tag, message)           \
   do {                                    \
@@ -276,7 +278,7 @@
     __strm << message;                    \
     CORE_UNUSED(tag, __strm);             \
   }                                       \
-  CORE_LOOP_ONCE()
+  EDGE_SDK_CORE_LOOP_ONCE()
 
 #else
 /**
@@ -284,14 +286,16 @@
  * @param tag Log component name.
  * @param message The message to log.
  */
-#define LOG_TRACE(tag, message) LOG(::olp::logging::Level::Trace, tag, message)
+#define LOG_TRACE(tag, message) \
+  EDGE_SDK_LOG(::olp::logging::Level::Trace, tag, message)
 
 /**
  * @brief Log a debug message using C++ style streams.
  * @param tag Log component name.
  * @param message The message to log.
  */
-#define LOG_DEBUG(tag, message) LOG(::olp::logging::Level::Debug, tag, message)
+#define LOG_DEBUG(tag, message) \
+  EDGE_SDK_LOG(::olp::logging::Level::Debug, tag, message)
 
 #endif  // LOGGING_DISABLE_DEBUG_LEVEL
 
@@ -300,7 +304,8 @@
  * @param tag Log component name.
  * @param message The message to log.
  */
-#define LOG_INFO(tag, message) LOG(::olp::logging::Level::Info, tag, message)
+#define LOG_INFO(tag, message) \
+  EDGE_SDK_LOG(::olp::logging::Level::Info, tag, message)
 
 /**
  * @brief Log a warning message using C++ style streams.
@@ -308,33 +313,34 @@
  * @param message The message to log.
  */
 #define LOG_WARNING(tag, message) \
-  LOG(::olp::logging::Level::Warning, tag, message)
+  EDGE_SDK_LOG(::olp::logging::Level::Warning, tag, message)
 
 /**
  * @brief Log an error message using C++ style streams.
  * @param tag Log component name.
  * @param message The message to log.
  */
-#define LOG_ERROR(tag, message) LOG(::olp::logging::Level::Error, tag, message)
+#define LOG_ERROR(tag, message) \
+  EDGE_SDK_LOG(::olp::logging::Level::Error, tag, message)
 
 #ifdef LOGGING_DISABLED
-#define LOG_F(level, tag, ...) \
-  do {                         \
-  }                            \
-  CORE_LOOP_ONCE()
+#define EDGE_SDK_LOG_F(level, tag, ...) \
+  do {                                  \
+  }                                     \
+  EDGE_SDK_CORE_LOOP_ONCE()
 #else
 /**
  * @brief Log a message using printf style formatting.
  * @param level Logging level.
  * @param tag Log component name.
  */
-#define LOG_F(level, tag, ...)                        \
+#define EDGE_SDK_LOG_F(level, tag, ...)               \
   do {                                                \
     if (::olp::logging::Log::isEnabled(level, tag)) { \
-      DO_LOG_F(level, tag, __VA_ARGS__);              \
+      EDGE_SDK_DO_LOG_F(level, tag, __VA_ARGS__);     \
     }                                                 \
   }                                                   \
-  CORE_LOOP_ONCE()
+  EDGE_SDK_CORE_LOOP_ONCE()
 
 #endif  // LOGGING_DISABLED
 
@@ -347,14 +353,14 @@
  * @param tag Log component name.
  */
 #define LOG_TRACE_F(tag, ...) \
-  LOG_F(::olp::logging::Level::Trace, tag, __VA_ARGS__)
+  EDGE_SDK_LOG_F(::olp::logging::Level::Trace, tag, __VA_ARGS__)
 
 /**
  * @brief Log a debug message using printf style formatting.
  * @param tag Log component name.
  */
 #define LOG_DEBUG_F(tag, ...) \
-  LOG_F(::olp::logging::Level::Debug, tag, __VA_ARGS__)
+  EDGE_SDK_LOG_F(::olp::logging::Level::Debug, tag, __VA_ARGS__)
 
 #endif  // LOGGING_DISABLE_DEBUG_LEVEL
 
@@ -363,21 +369,21 @@
  * @param tag Log component name.
  */
 #define LOG_INFO_F(tag, ...) \
-  LOG_F(::olp::logging::Level::Info, tag, __VA_ARGS__)
+  EDGE_SDK_LOG_F(::olp::logging::Level::Info, tag, __VA_ARGS__)
 
 /**
  * @brief Log a warning message using printf style formatting.
  * @param tag Log component name.
  */
 #define LOG_WARNING_F(tag, ...) \
-  LOG_F(::olp::logging::Level::Warning, tag, __VA_ARGS__)
+  EDGE_SDK_LOG_F(::olp::logging::Level::Warning, tag, __VA_ARGS__)
 
 /**
  * @brief Log an error message using printf style formatting.
  * @param tag Log component name.
  */
 #define LOG_ERROR_F(tag, ...) \
-  LOG_F(::olp::logging::Level::Error, tag, __VA_ARGS__)
+  EDGE_SDK_LOG_F(::olp::logging::Level::Error, tag, __VA_ARGS__)
 
 /**
  * @brief Namespace for the logging library.
