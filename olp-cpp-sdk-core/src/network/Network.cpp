@@ -375,7 +375,7 @@ Network::RequestId Network::Send(NetworkRequest request,
 
   LOG_TRACE(LOGTAG,
             "send " << olp::utils::CensorCredentialsInUrl(request.Url()));
-#if !defined(LOGGING_DISABLED)
+#if !defined(EDGE_SDK_LOGGING_DISABLED)
   for (const auto& header : request.ExtraHeaders()) {
     LOG_TRACE(LOGTAG,
               "extra header: " << header.first << ": " << header.second);
