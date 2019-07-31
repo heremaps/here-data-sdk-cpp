@@ -21,18 +21,15 @@ project(olp-cpp-sdk-core VERSION 0.6.0)
 set(DESCRIPTION "Core network and utility library for OLP C++ SDK")
 
 find_package(RapidJSON REQUIRED)
-
 find_package(Boost REQUIRED)
-
 find_package(leveldb REQUIRED)
 find_package(Snappy REQUIRED)
+find_package(Threads REQUIRED)
 
 include(configs/ConfigNetwork.cmake)
-
 include(cmake/CompileChecks.cmake)
-porting_do_checks()
 
-find_package(Threads REQUIRED)
+porting_do_checks()
 
 if(ANDROID OR IOS OR WIN32)
     set(NETWORK_NO_CURL ON)
@@ -235,6 +232,10 @@ if (ANDROID)
     set(ADDITIONAL_LIBRARIES log)
 else()
     set(ADDITIONAL_LIBRARIES)
+endif()
+
+if (HAVE_PTHREAD_SETNAME_NP)
+    add_definitions(-DEDGE_SDK_HAVE_PTHREAD_SETNAME_NP)
 endif()
 
 target_link_libraries(${PROJECT_NAME}
