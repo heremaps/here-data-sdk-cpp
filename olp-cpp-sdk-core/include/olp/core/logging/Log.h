@@ -64,8 +64,8 @@
 /**
  * @brief Log a message using C++ style streams.
  *
- * LOGGING_DISABLED does not disable this functionality. Additionally, this will
- * not check to see if the tag is disabled.
+ * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * this will not check to see if the tag is disabled.
  *
  * @param level Logging level.
  * @param tag Log component name.
@@ -84,8 +84,8 @@
 /**
  * @brief Log a critical message using C++ style streams.
  *
- * LOGGING_DISABLED does not disable this functionality. Additionally, this will
- * not check to see if the tag is disabled.
+ * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * this will not check to see if the tag is disabled.
  *
  * @param level Logging level.
  * @param tag Log component name.
@@ -97,8 +97,8 @@
 /**
  * @brief Log a critical info message using C++ style streams.
  *
- * LOGGING_DISABLED does not disable this functionality. Additionally, this will
- * not check to see if the tag is disabled.
+ * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * this will not check to see if the tag is disabled.
  *
  * @param tag Log component name.
  * @param message The message to log.
@@ -109,8 +109,8 @@
 /**
  * @brief Log a critical warning message using C++ style streams.
  *
- * LOGGING_DISABLED does not disable this functionality. Additionally, this will
- * not check to see if the tag is disabled.
+ * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * this will not check to see if the tag is disabled.
  *
  * @param tag Log component name.
  * @param message The message to log.
@@ -121,8 +121,8 @@
 /**
  * @brief Log a critical error message using C++ style streams.
  *
- * LOGGING_DISABLED does not disable this functionality. Additionally, this will
- * not check to see if the tag is disabled.
+ * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * this will not check to see if the tag is disabled.
  *
  * @param tag Log component name.
  * @param message The message to log.
@@ -133,8 +133,8 @@
 /**
  * @brief Log a fatal error message using C++ style streams.
  *
- * LOGGING_DISABLED does not disable this functionality. Additionally, this will
- * not check to see if the tag is disabled.
+ * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * this will not check to see if the tag is disabled.
  *
  * @param tag Log component name.
  * @param message The message to log.
@@ -158,8 +158,8 @@
 /**
  * @brief Log a message using printf style formatting.
  *
- * LOGGING_DISABLED does not disable this functionality. Additionally, this will
- * not check to see if the tag is disabled.
+ * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * this will not check to see if the tag is disabled.
  *
  * @param level Logging level.
  * @param tag Log component name.
@@ -175,8 +175,8 @@
 /**
  * @brief Log a critical message using printf style formatting.
  *
- * LOGGING_DISABLED does not disable this functionality. Additionally, this will
- * not check to see if the tag is disabled.
+ * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * this will not check to see if the tag is disabled.
  *
  * @param level Logging level.
  * @param tag Log component name.
@@ -187,8 +187,8 @@
 /**
  * @brief Log a critical info message using printf style formatting.
  *
- * LOGGING_DISABLED does not disable this functionality. Additionally, this will
- * not check to see if the tag is disabled.
+ * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * this will not check to see if the tag is disabled.
  *
  * @param tag Log component name.
  */
@@ -198,8 +198,8 @@
 /**
  * @brief Log a critical warning message using printf style formatting.
  *
- * LOGGING_DISABLED does not disable this functionality. Additionally, this will
- * not check to see if the tag is disabled.
+ * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * this will not check to see if the tag is disabled.
  *
  * @param tag Log component name.
  */
@@ -209,8 +209,8 @@
 /**
  * @brief Log a critical error message using printf style formatting.
  *
- * LOGGING_DISABLED does not disable this functionality. Additionally, this will
- * not check to see if the tag is disabled.
+ * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * this will not check to see if the tag is disabled.
  *
  * @param tag Log component name.
  */
@@ -220,8 +220,8 @@
 /**
  * @brief Log a critical fatal error message using printf style formatting.
  *
- * LOGGING_DISABLED does not disable this functionality. Additionally, this will
- * not check to see if the tag is disabled.
+ * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * this will not check to see if the tag is disabled.
  *
  * @param tag Log component name.
  */
@@ -240,7 +240,7 @@
   }                                         \
   EDGE_SDK_CORE_LOOP_ONCE()
 
-#ifdef LOGGING_DISABLED
+#ifdef EDGE_SDK_LOGGING_DISABLED
 #define EDGE_SDK_LOG(level, tag, message) \
   do {                                    \
   }                                       \
@@ -261,7 +261,7 @@
   }                                                   \
   EDGE_SDK_CORE_LOOP_ONCE()
 
-#endif  // LOGGING_DISABLED
+#endif  // EDGE_SDK_LOGGING_DISABLED
 
 #ifdef LOGGING_DISABLE_DEBUG_LEVEL
 #define LOG_TRACE(tag, message)           \
@@ -323,7 +323,7 @@
 #define LOG_ERROR(tag, message) \
   EDGE_SDK_LOG(::olp::logging::Level::Error, tag, message)
 
-#ifdef LOGGING_DISABLED
+#ifdef EDGE_SDK_LOGGING_DISABLED
 #define EDGE_SDK_LOG_F(level, tag, ...) \
   do {                                  \
   }                                     \
@@ -342,7 +342,7 @@
   }                                                   \
   EDGE_SDK_CORE_LOOP_ONCE()
 
-#endif  // LOGGING_DISABLED
+#endif  // EDGE_SDK_LOGGING_DISABLED
 
 #ifdef LOGGING_DISABLE_DEBUG_LEVEL
 #define LOG_TRACE_F(tag, ...) CORE_UNUSED(tag, __VA_ARGS__)

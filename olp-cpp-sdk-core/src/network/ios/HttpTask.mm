@@ -91,14 +91,14 @@ NSString* const kHTTPTaskErrorDomain = @"HttpTask";
     request.HTTPBody = self.body;
   }
 
-#ifndef LOGGING_DISABLED
+#ifndef EDGE_SDK_LOGGING_DISABLED
   NSMutableString* debugHeaders = [NSMutableString new];
 #endif
 
   for (NSString* key in self.headers.allKeys) {
     NSString* value = self.headers[key];
     [request setValue:value forHTTPHeaderField:key];
-#ifndef LOGGING_DISABLED
+#ifndef EDGE_SDK_LOGGING_DISABLED
     [debugHeaders appendFormat:@"%@\"%@:%@\"", @" --header ", key, value];
 #endif
   }
@@ -111,7 +111,7 @@ NSString* const kHTTPTaskErrorDomain = @"HttpTask";
   // Cache the task id for fast retrieve later on
   _httpClient.idTaskMap[@(self.dataTask.taskIdentifier)] = self;
 
-#ifndef LOGGING_DISABLED
+#ifndef EDGE_SDK_LOGGING_DISABLED
   NSMutableString* debugCurlString = [NSMutableString stringWithString:@"curl -vvv "];
   [debugCurlString appendFormat:@"\"%@\"%@", _requestUrl, debugHeaders];
   LOG_TRACE(LOGTAG, "HttpTask::run [ " << (__bridge void*)self << " ] "
@@ -162,7 +162,7 @@ NSString* const kHTTPTaskErrorDomain = @"HttpTask";
 }
 
 - (void)didReceiveResponse:(NSURLResponse*)response {
-#ifndef LOGGING_DISABLED
+#ifndef EDGE_SDK_LOGGING_DISABLED
   NSInteger httpResponseStatusCode = [(NSHTTPURLResponse*)response statusCode];
   LOG_TRACE(LOGTAG, "HttpTask::didReceiveResponse [ " << (__bridge void*)self << " ] "
                                                       << self.dataTask.taskIdentifier << "\t"
