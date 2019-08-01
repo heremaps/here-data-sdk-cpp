@@ -2204,24 +2204,26 @@ TEST_P(CatalogClientMockTest, GetCatalogCacheWithUpdate) {
   auto request = CatalogRequest();
   request.WithFetchOption(CacheWithUpdate);
   // Request 1
-  LOG_TRACE_F("CatalogClientMockTest", "Request Catalog, CacheWithUpdate");
+  EDGE_SDK_LOG_TRACE_F("CatalogClientMockTest",
+                       "Request Catalog, CacheWithUpdate");
   auto future = catalogClient->GetCatalog(request);
 
-  LOG_TRACE_F("CatalogClientMockTest", "get CatalogResponse1");
+  EDGE_SDK_LOG_TRACE_F("CatalogClientMockTest", "get CatalogResponse1");
   CatalogResponse catalogResponse = future.GetFuture().get();
 
   // Request 1 return. Cached value (nothing)
   ASSERT_FALSE(catalogResponse.IsSuccessful())
       << PrintError(catalogResponse.GetError());
   // Wait for background cache update to finish
-  LOG_TRACE_F("CatalogClientMockTest", "wait some time for update to conclude");
+  EDGE_SDK_LOG_TRACE_F("CatalogClientMockTest",
+                       "wait some time for update to conclude");
   waitForEnd->get_future().get();
 
   // Request 2 to check there is a cached value.
-  LOG_TRACE_F("CatalogClientMockTest", "Request Catalog, CacheOnly");
+  EDGE_SDK_LOG_TRACE_F("CatalogClientMockTest", "Request Catalog, CacheOnly");
   request.WithFetchOption(CacheOnly);
   future = catalogClient->GetCatalog(request);
-  LOG_TRACE_F("CatalogClientMockTest", "get CatalogResponse2");
+  EDGE_SDK_LOG_TRACE_F("CatalogClientMockTest", "get CatalogResponse2");
   catalogResponse = future.GetFuture().get();
   // Cache should be available here.
   ASSERT_TRUE(catalogResponse.IsSuccessful())

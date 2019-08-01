@@ -180,12 +180,13 @@ void PrefetchTilesRepository::GetSubQuads(
     const PrefetchTilesRequest& prefetchRequest, geo::TileKey tile,
     int64_t version, boost::optional<time_t> expiry, int32_t depth,
     const SubQuadsResponseCallback& callback) {
-  LOG_TRACE_F(kLogTag, "GetSubQuads(%s, %" PRId64 ", %" PRId32 ")",
-              tile.ToHereTile().c_str(), version, depth);
+  EDGE_SDK_LOG_TRACE_F(kLogTag, "GetSubQuads(%s, %" PRId64 ", %" PRId32 ")",
+                       tile.ToHereTile().c_str(), version, depth);
 
   auto cancel_callback = [callback, tile, version, depth]() {
-    LOG_INFO_F(kLogTag, "GetSubQuads cancelled(%s, %" PRId64 ", %" PRId32 ")",
-               tile.ToHereTile().c_str(), version, depth);
+    EDGE_SDK_LOG_INFO_F(kLogTag,
+                        "GetSubQuads cancelled(%s, %" PRId64 ", %" PRId32 ")",
+                        tile.ToHereTile().c_str(), version, depth);
     callback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
   };
 
@@ -202,8 +203,10 @@ void PrefetchTilesRepository::GetSubQuads(
 
               cancel_context->ExecuteOrCancelled(
                   [=, &partitionsCache]() {
-                    LOG_INFO_F(kLogTag, "QuadTreeIndex execute(%s, %" PRId64 ", %" PRId32 ")",
-                                tile.ToHereTile().c_str(), version, depth);
+                    EDGE_SDK_LOG_INFO_F(
+                        kLogTag,
+                        "QuadTreeIndex execute(%s, %" PRId64 ", %" PRId32 ")",
+                        tile.ToHereTile().c_str(), version, depth);
                     return QueryApi::QuadTreeIndex(
                         response.GetResult(), prefetchRequest.GetLayerId(),
                         version, tile_key, depth, boost::none,
@@ -211,13 +214,16 @@ void PrefetchTilesRepository::GetSubQuads(
                         [=, &partitionsCache](
                             QueryApi::QuadTreeIndexResponse indexResponse) {
                           if (!indexResponse.IsSuccessful()) {
-                            LOG_INFO_F(kLogTag, "QuadTreeIndex Error(%s, %" PRId64 ", %" PRId32 ")",
-                                       tile.ToHereTile().c_str(), version, depth);
+                            EDGE_SDK_LOG_INFO_F(
+                                kLogTag,
+                                "QuadTreeIndex Error(%s, %" PRId64 ", %" PRId32
+                                ")",
+                                tile.ToHereTile().c_str(), version, depth);
                             callback(indexResponse.GetError());
                             return;
                           }
 
-                          LOG_INFO(kLogTag, "QuadTreeIndex Success");
+                          EDGE_SDK_LOG_INFO(kLogTag, "QuadTreeIndex Success");
                           SubQuadsResult result;
                           model::Partitions partitions;
                           for (auto subquad :
