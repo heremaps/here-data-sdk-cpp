@@ -2,12 +2,21 @@
 
 The HERE OLP Edge SDK is a _work in progress_ c++ client for [HERE Open Location Platform](https://platform.here.com).
 
-&nbsp;
 
-| Linux                          | Windows                         |
+## Health check
+
+**Build & Test**
+
+| Platform                       | Status                          |
 | :----------------------------- | :------------------------------ |
-| [![Linux build status][1]][2]  | [![Windows build status][3]][4] |
-| [![Linux code coverage][5]][6] |                                 |
+| Linux/macOS/iOS/Android        | [![Linux build status][1]][2]   |
+| Windows                        | [![Windows build status][3]][4] |
+
+**Test Coverage**
+
+| Platform                       | Status                          |
+| :----------------------------- | :------------------------------ |
+| Linux                          | [![Linux code coverage][5]][6]  |
 
 
 [1]: https://travis-ci.com/heremaps/here-olp-edge-sdk-cpp.svg?branch=master
@@ -19,7 +28,7 @@ The HERE OLP Edge SDK is a _work in progress_ c++ client for [HERE Open Location
 
 ## Why Use the SDK
 
-The HERE OLP Edge SDK provides support for core **HERE Open Location Platform (OLP)** use cases through a set of native C++ interfaces. The SDK should save its users time and effort using OLP REST APIs and provide a set of stable APIs simplifying complex OLP operations and removing the burden of keeping up to date with the latest OLP REST API changes.
+The HERE OLP Edge SDK C++ provides support for core **HERE Open Location Platform (OLP)** use cases through a set of native C++ interfaces. The SDK should save its users time and effort using OLP REST APIs and provides a set of stable APIs simplifying complex OLP operations and removing the burden of keeping up to date with the latest OLP REST API changes.
 It is a modern (C++11 or later), lightweight, and modular SDK with minimal dependencies targeted towards a wide range of hardware platforms from embedded devices to desktops.
 
 This SDK will allow you to:
@@ -31,39 +40,48 @@ This SDK will allow you to:
 
 Additionally, there are convenient classes for working with the geospatial tiling schemes that are used by most OLP catalog layers.
 
-## Building the SDK
+## Supported platforms
+The SDK has been tested on the following platforms with the following requirements:
 
-The HERE OLP Edge SDK has been tested on Linux, Windows, iOS, and Android. CMake is the main build system.
 
-### Building on Linux
+| Platform | Minimum requirement |
+| ------- | -------- |
+| Ubuntu | GCC 5.4 and Clang 7.0 |
+| Windows | MSVC++ 2017  |
+| MacOS | Apple Clang 9.1 |
+| iOS |  XCode 10.2, Swift 5.0 |
+| Android |  API level 21 |
 
-#### Dependencies
 
-The HERE OLP Edge SDK has been tested with the following compilers:
+## Dependencies
 
-| Compiler | Minimum version |
-| -------- | --------------- |
-| GCC | 4.9 |
-| Clang | 3.3 |
-
-Library dependencies:
+The dependencies of HERE OLP Edge SDK C++ are the following:
 
 | Library   | Minimum version |
 | --------- | --------------- |
 | OpenSSL   | 1.0.2 |
-| Curl      | 7.47.0 |
 | Boost (headers only) | 1.69.0 |
 | leveldb   | 1.21 |
 | snappy    | 1.1.7 |
 | rapidjson | latest |
 
-To install above dependencies, run:
+## Building the SDK
+
+CMake is the main build system. The minimal required version of CMake is 3.5.
+
+### Building on Linux [![Linux build status][1]][2] [![Linux code coverage][5]][6]
+
+#### Dependencies
+
+Additionally to the dependencies listed above building the SDK on Linux requires libcurl 7.47.0 or later.
+
+To install the dependencies, run:
 
 ```bash
 sudo apt-get update && sudo apt-get --yes install git g++ make cmake libssl-dev libcurl4-openssl-dev libboost-all-dev
 ```
 
-Additionally CMake downloads [leveldb](https://github.com/google/leveldb), [snappy](https://github.com/google/snappy), [rapidjson](https://github.com/Tencent/rapidjson) and [Boost](https://www.boost.org/) (Windows only).
+Additionally, CMake downloads [leveldb](https://github.com/google/leveldb), [snappy](https://github.com/google/snappy), [rapidjson](https://github.com/Tencent/rapidjson).
 This can be disabled by setting `EDGE_SDK_BUILD_EXTERNAL_DEPS` to `OFF`.
 
 Optionally, if you want to build the documentation, you will need to install [Doxygen](http://www.doxygen.nl/).
@@ -101,7 +119,12 @@ cmake --build . --target install
 
 Alternatively, if you want to use the SDK directly in your CMake project, you can add it via `add_subdirectory()`.
 
-### Building on Windows
+### Building on Windows [![Windows build status][3]][4]
+
+We will assume that you have installed CMake, and "Microsoft Visual Studio 2013". Additionally, CMake downloads [leveldb](https://github.com/google/leveldb), [snappy](https://github.com/google/snappy), [rapidjson](https://github.com/Tencent/rapidjson) and [Boost](https://www.boost.org/).
+This can be disabled by setting `EDGE_SDK_BUILD_EXTERNAL_DEPS` to `OFF`.
+
+Optionally, if you want to build the documentation, you will need to install [Doxygen](http://www.doxygen.nl/).
 
 Launch Visual Studio as Administrator and open the folder containing the SDK or a CMake based project using the SDK.
 Make sure the target in Visual Studio does not contain "* (Default)". For example, select "x64-Debug" instead of "x64-Debug (Default)".
@@ -120,7 +143,7 @@ This will ensure the maximum length for each individual path is not greater than
 
 #### EDGE_SDK_BUILD_DOC
 
-(Defaults to `OFF`) If enabled, the API reference is generated in your build directory. Note requires [Doxygen](http://www.doxygen.nl/) to be installed.
+(Defaults to `OFF`) If enabled, the API reference is generated in your build directory. Note: requires [Doxygen](http://www.doxygen.nl/) to be installed.
 
 #### EDGE_SDK_ENABLE_TESTING
 
