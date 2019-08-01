@@ -51,13 +51,13 @@ ApiRepository::ApiRepository(
 olp::client::CancellationToken ApiRepository::getApiClient(
     const std::string& service, const std::string& serviceVersion,
     const ApiClientCallback& callback) {
-  LOG_TRACE_F(kLogTag, "getApiClient(%s, %s)", service.c_str(),
-              serviceVersion.c_str());
+  EDGE_SDK_LOG_TRACE_F(kLogTag, "getApiClient(%s, %s)", service.c_str(),
+                       serviceVersion.c_str());
 
   auto url = cache_->Get(service, serviceVersion);
   if (url) {
-    LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> from cache", service.c_str(),
-               serviceVersion.c_str());
+    EDGE_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> from cache",
+                        service.c_str(), serviceVersion.c_str());
 
     auto client = olp::client::OlpClientFactory::Create(*settings_);
     client->SetBaseUrl(*url);
@@ -71,20 +71,20 @@ olp::client::CancellationToken ApiRepository::getApiClient(
   MultiRequestContext<ApiClientResponse, ApiClientCallback>::ExecuteFn
       executeFn = [cache, hrn, settings, service,
                    serviceVersion](ApiClientCallback contextCallback) {
-        LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> execute", service.c_str(),
-                   serviceVersion.c_str());
+        EDGE_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> execute",
+                            service.c_str(), serviceVersion.c_str());
 
-        auto cacheApiResponseCallback =
-            [cache, hrn, settings, service, serviceVersion,
-             contextCallback](ApiClientResponse response) {
-              if (response.IsSuccessful()) {
-                LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> into cache",
-                           service.c_str(), serviceVersion.c_str());
-                cache->Put(service, serviceVersion,
-                           response.GetResult().GetBaseUrl());
-              }
-              contextCallback(response);
-            };
+        auto cacheApiResponseCallback = [cache, hrn, settings, service,
+                                         serviceVersion, contextCallback](
+                                            ApiClientResponse response) {
+          if (response.IsSuccessful()) {
+            EDGE_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> into cache",
+                                service.c_str(), serviceVersion.c_str());
+            cache->Put(service, serviceVersion,
+                       response.GetResult().GetBaseUrl());
+          }
+          contextCallback(response);
+        };
 
         return olp::dataservice::read::ApiClientLookup::LookupApiClient(
             olp::client::OlpClientFactory::Create(*settings), service,

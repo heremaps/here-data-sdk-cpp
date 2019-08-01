@@ -123,17 +123,18 @@ client::CancellationToken QueryApi::QuadTreeIndex(
                             std::to_string(version) + "/quadkeys/" + quadKey +
                             "/depths/" + std::to_string(depth);
 
-  NetworkAsyncCallback callback = [indexCallback](
-                                      network::HttpResponse response) {
-    LOG_TRACE_F(LOGTAG, "QuadTreeIndex callback, status=%d", response.status);
-    if (response.status != 200) {
-      indexCallback(ApiError(response.status, response.response));
-    } else {
-      indexCallback(olp::parser::parse<model::Index>(response.response));
-    }
-  };
+  NetworkAsyncCallback callback =
+      [indexCallback](network::HttpResponse response) {
+        EDGE_SDK_LOG_TRACE_F(LOGTAG, "QuadTreeIndex callback, status=%d",
+                             response.status);
+        if (response.status != 200) {
+          indexCallback(ApiError(response.status, response.response));
+        } else {
+          indexCallback(olp::parser::parse<model::Index>(response.response));
+        }
+      };
 
-  LOG_TRACE(LOGTAG, "QuadTreeIndex");
+  EDGE_SDK_LOG_TRACE(LOGTAG, "QuadTreeIndex");
 
   return client.CallApi(metadataUri, "GET", queryParams, headerParams,
                         formParams, nullptr, "", callback);
