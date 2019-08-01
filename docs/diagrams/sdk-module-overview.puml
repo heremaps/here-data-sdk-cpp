@@ -1,0 +1,17 @@
+@startuml
+skinparam componentStyle uml2
+
+[authentication] --> [core] :  uses
+[dataservice-read] --> [core] : uses
+[dataservice-write] --> [core] : uses
+
+cloud "HERE Cloud" {
+  [AAA]
+  note bottom of AAA : offers HERE Authentication and\n Authorization API
+  [OLP]
+  note bottom of OLP : offers HERE OLP Data API
+}
+[core] --> [AAA]
+[core] --> [OLP]
+
+@enduml
