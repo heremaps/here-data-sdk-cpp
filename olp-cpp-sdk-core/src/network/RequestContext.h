@@ -55,10 +55,10 @@ struct RequestContext {
     const auto life_time =
         duration_cast<seconds>(steady_clock::now() - creation_time_).count();
 
-    LOG_TRACE("RequestContext",
-              ("Destroying context for request " + std::to_string(id_) +
-               " after " + std::to_string(life_time) + " sec.")
-                  .c_str());
+    EDGE_SDK_LOG_TRACE("RequestContext", ("Destroying context for request " +
+                                          std::to_string(id_) + " after " +
+                                          std::to_string(life_time) + " sec.")
+                                             .c_str());
 #endif
   }
 

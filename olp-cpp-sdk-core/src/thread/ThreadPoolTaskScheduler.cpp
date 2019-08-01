@@ -73,7 +73,7 @@ ThreadPoolTaskScheduler::ThreadPoolTaskScheduler(size_t thread_count) {
       // Set thread name for easy profiling and debugging
       std::string thread_name = "OLPSDKPOOL_" + std::to_string(idx);
       SetCurrentThreadName(thread_name);
-      LOG_INFO_F(kLogTag, "Starting thread '%s'", thread_name.c_str());
+      EDGE_SDK_LOG_INFO_F(kLogTag, "Starting thread '%s'", thread_name.c_str());
 
       for (;;) {
         TaskScheduler::CallFuncType task;

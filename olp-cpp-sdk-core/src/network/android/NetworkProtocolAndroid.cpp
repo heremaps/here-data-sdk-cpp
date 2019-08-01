@@ -19,11 +19,11 @@
 
 #include "NetworkProtocolAndroid.h"
 
-#include <olp/core/porting/make_unique.h>
+#include <olp/core/context/Context.h>
 #include <olp/core/logging/Log.h>
 #include <olp/core/network/NetworkRequest.h>
 #include <olp/core/network/NetworkResponse.h>
-#include <olp/core/context/Context.h>
+#include <olp/core/porting/make_unique.h>
 
 #include <cassert>
 #include <ctime>
@@ -129,7 +129,8 @@ std::shared_ptr<NetworkProtocolAndroid> getProtocolForClient(int clientId) {
 
 void NetworkProtocolAndroid::setJavaVm(JavaVM* vm, jobject application) {
   if (gVm != nullptr) {
-    LOG_DEBUG(LOGTAG, "setJavaVM previously called, no need to set it now");
+    EDGE_SDK_LOG_DEBUG(LOGTAG,
+                       "setJavaVM previously called, no need to set it now");
     return;
   }
 
@@ -137,14 +138,15 @@ void NetworkProtocolAndroid::setJavaVm(JavaVM* vm, jobject application) {
 
   JNIEnv* env;
   if (gVm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
-    LOG_ERROR(LOGTAG, "setJavaVm failed to get Java Env");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "setJavaVm failed to get Java Env");
     return;
   }
 
   /* First get the class loader */
   jclass acl = env->GetObjectClass(application);
   if (!acl || env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "setJavaVm failed to get class for application object");
+    EDGE_SDK_LOG_ERROR(LOGTAG,
+                       "setJavaVm failed to get class for application object");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return;
@@ -153,7 +155,7 @@ void NetworkProtocolAndroid::setJavaVm(JavaVM* vm, jobject application) {
   jmethodID getClassLoader =
       env->GetMethodID(acl, "getClassLoader", "()Ljava/lang/ClassLoader;");
   if (!getClassLoader || env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "setJavaVm failed to get getClassLoader method");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "setJavaVm failed to get getClassLoader method");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return;
@@ -161,7 +163,7 @@ void NetworkProtocolAndroid::setJavaVm(JavaVM* vm, jobject application) {
 
   jobject obj = env->CallObjectMethod(application, getClassLoader);
   if (env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "setJavaVm failed to get getClassLoader");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "setJavaVm failed to get getClassLoader");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return;
@@ -170,7 +172,7 @@ void NetworkProtocolAndroid::setJavaVm(JavaVM* vm, jobject application) {
 
   jclass classLoader = env->FindClass("java/lang/ClassLoader");
   if (env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "setJavaVm failed to find getClassLoader");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "setJavaVm failed to find getClassLoader");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return;
@@ -179,7 +181,7 @@ void NetworkProtocolAndroid::setJavaVm(JavaVM* vm, jobject application) {
   gFindClassMethod = env->GetMethodID(classLoader, "loadClass",
                                       "(Ljava/lang/String;)Ljava/lang/Class;");
   if (env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "setJavaVm failed to get loadClass method");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "setJavaVm failed to get loadClass method");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return;
@@ -188,7 +190,7 @@ void NetworkProtocolAndroid::setJavaVm(JavaVM* vm, jobject application) {
   /* Now get the String class */
   jstring className = env->NewStringUTF("java/lang/String");
   if (env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "setJavaVm failed to create class name string");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "setJavaVm failed to create class name string");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return;
@@ -196,7 +198,7 @@ void NetworkProtocolAndroid::setJavaVm(JavaVM* vm, jobject application) {
 
   jclass clazz = env->GetObjectClass((jobject)className);
   if (env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "setJavaVm failed to get String class");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "setJavaVm failed to get String class");
     env->ExceptionDescribe();
     env->ExceptionClear();
     env->DeleteLocalRef(className);
@@ -222,26 +224,26 @@ NetworkProtocolAndroid::~NetworkProtocolAndroid() { Deinitialize(); }
 bool NetworkProtocolAndroid::Initialize() {
   std::unique_lock<std::mutex> lock(m_resultMutex);
   if (!gVm) {
-    LOG_ERROR(LOGTAG, "initialize no Java VM");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "initialize no Java VM");
     return false;
   }
 
   if (!gClassLoader || !gFindClassMethod || !gStringClass) {
-    LOG_ERROR(LOGTAG, "initialize: setup not completed");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "initialize: setup not completed");
     return false;
   }
 
   JNIThreadBinder binder(gVm);
   JNIEnv* env = binder.m_env;
   if (env == nullptr) {
-    LOG_ERROR(LOGTAG, "initialize failed to get Java Env");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "initialize failed to get Java Env");
     return false;
   }
 
   /* Get the Network protocol class */
   jstring className = env->NewStringUTF("com/here/olp/network/NetworkProtocol");
   if (env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "initialize failed to create class name string");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "initialize failed to create class name string");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -250,7 +252,7 @@ bool NetworkProtocolAndroid::Initialize() {
   jclass clazz = (jclass)(
       env->CallObjectMethod(gClassLoader, gFindClassMethod, className));
   if (env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "initialize failed to get NetworkProtocol");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "initialize failed to get NetworkProtocol");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -262,8 +264,8 @@ bool NetworkProtocolAndroid::Initialize() {
   // Get registerClient method
   jmethodID jmidRegister = env->GetMethodID(m_class, "registerClient", "()I");
   if (env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG,
-              "initialize failed to get NetworkProtocol::registerClient");
+    EDGE_SDK_LOG_ERROR(
+        LOGTAG, "initialize failed to get NetworkProtocol::registerClient");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -276,7 +278,8 @@ bool NetworkProtocolAndroid::Initialize() {
       "String;IILjava/lang/String;I)Lcom/here/olp/network/"
       "NetworkProtocol$GetTask;");
   if (env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "initialize failed to get NetworkProtocol::send");
+    EDGE_SDK_LOG_ERROR(LOGTAG,
+                       "initialize failed to get NetworkProtocol::send");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -285,7 +288,8 @@ bool NetworkProtocolAndroid::Initialize() {
   // Get shutdown method
   m_jmidShutdown = env->GetMethodID(m_class, "shutdown", "()V");
   if (env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "initialize failed to get NetworkProtocol::shutdown");
+    EDGE_SDK_LOG_ERROR(LOGTAG,
+                       "initialize failed to get NetworkProtocol::shutdown");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -293,7 +297,8 @@ bool NetworkProtocolAndroid::Initialize() {
 
   jmethodID jmidInit = env->GetMethodID(m_class, "<init>", "()V");
   if (env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "Failed to get NetworkProtocol::NetworkProtocol");
+    EDGE_SDK_LOG_ERROR(LOGTAG,
+                       "Failed to get NetworkProtocol::NetworkProtocol");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -301,7 +306,7 @@ bool NetworkProtocolAndroid::Initialize() {
 
   jobject obj = env->NewObject(m_class, jmidInit);
   if (env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "Failed to create NetworkProtocol");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "Failed to create NetworkProtocol");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -312,7 +317,7 @@ bool NetworkProtocolAndroid::Initialize() {
   // Register the client
   m_id = env->CallIntMethod(m_obj, jmidRegister);
   if (env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "Failed to call registerClient");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "Failed to call registerClient");
     env->ExceptionDescribe();
     env->ExceptionClear();
     env->DeleteGlobalRef(m_obj);
@@ -360,7 +365,7 @@ void NetworkProtocolAndroid::Deinitialize() {
   // Cancel all pending requests
   JNIThreadBinder env(gVm);
   if (env.m_env == nullptr) {
-    LOG_ERROR(LOGTAG, "deinitialize failed to get Java Env");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "deinitialize failed to get Java Env");
     return;
   }
 
@@ -387,7 +392,7 @@ void NetworkProtocolAndroid::Deinitialize() {
 
     env.m_env->CallVoidMethod(m_obj, m_jmidShutdown);
     if (env.m_env->ExceptionOccurred()) {
-      LOG_ERROR(LOGTAG, "Failed to call shutdown");
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Failed to call shutdown");
       env.m_env->ExceptionDescribe();
       env.m_env->ExceptionClear();
     }
@@ -412,7 +417,7 @@ void NetworkProtocolAndroid::Deinitialize() {
   if (completion) {
     if (completion->m_ready.get_future().wait_for(std::chrono::seconds(2)) !=
         std::future_status::ready) {
-      LOG_ERROR(LOGTAG, "Pending requests not ready in 2 seconds");
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Pending requests not ready in 2 seconds");
     }
   }
 
@@ -445,7 +450,7 @@ olp::network::NetworkProtocol::ErrorCode NetworkProtocolAndroid::Send(
 
   JNIThreadBinder env(gVm);
   if (env.m_env == nullptr) {
-    LOG_ERROR(LOGTAG, "Send failed to get Java Env");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "Send failed to get Java Env");
     return olp::network::NetworkProtocol::ErrorIO;
   }
 
@@ -478,7 +483,7 @@ olp::network::NetworkProtocol::ErrorCode NetworkProtocolAndroid::Send(
   // Convert the URL to jstring
   jstring url = env.m_env->NewStringUTF(request.Url().c_str());
   if (!url || env.m_env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "Send to create URI string");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "Send to create URI string");
     env.m_env->ExceptionDescribe();
     env.m_env->ExceptionClear();
     return olp::network::NetworkProtocol::ErrorIO;
@@ -510,7 +515,7 @@ olp::network::NetworkProtocol::ErrorCode NetworkProtocolAndroid::Send(
     }
     postStr = env.m_env->NewByteArray(size);
     if (!postStr || env.m_env->ExceptionOccurred()) {
-      LOG_ERROR(LOGTAG, "Send to create POST string");
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Send to create POST string");
       env.m_env->ExceptionDescribe();
       env.m_env->ExceptionClear();
       return olp::network::NetworkProtocol::ErrorIO;
@@ -527,7 +532,7 @@ olp::network::NetworkProtocol::ErrorCode NetworkProtocolAndroid::Send(
   if (proxy->IsValid()) {
     proxyStr = env.m_env->NewStringUTF(proxy->Name().c_str());
     if (!url || env.m_env->ExceptionOccurred()) {
-      LOG_ERROR(LOGTAG, "Send to create proxy string");
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Send to create proxy string");
       env.m_env->ExceptionDescribe();
       env.m_env->ExceptionClear();
       return olp::network::NetworkProtocol::ErrorIO;
@@ -541,7 +546,7 @@ olp::network::NetworkProtocol::ErrorCode NetworkProtocolAndroid::Send(
   jstring certificatePath =
       env.m_env->NewStringUTF(sysConfigCertificatePath.c_str());
   if (!certificatePath || env.m_env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "Send to create certificate path string");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "Send to create certificate path string");
     env.m_env->ExceptionDescribe();
     env.m_env->ExceptionClear();
     return olp::network::NetworkProtocol::ErrorIO;
@@ -561,7 +566,7 @@ olp::network::NetworkProtocol::ErrorCode NetworkProtocolAndroid::Send(
       sysDontVerifyCertificate, proxyStr, proxyPort, proxyType, certificatePath,
       config->GetRetries());
   if (env.m_env->ExceptionOccurred() || !jobj) {
-    LOG_ERROR(LOGTAG, "Failed to call Send");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "Failed to call Send");
     env.m_env->ExceptionDescribe();
     env.m_env->ExceptionClear();
     {
@@ -580,7 +585,7 @@ olp::network::NetworkProtocol::ErrorCode NetworkProtocolAndroid::Send(
 bool NetworkProtocolAndroid::Cancel(int id) {
   JNIThreadBinder env(gVm);
   if (env.m_env == nullptr) {
-    LOG_ERROR(LOGTAG, "Cancel failed to get Java Env");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "Cancel failed to get Java Env");
     return false;
   }
 
@@ -588,7 +593,7 @@ bool NetworkProtocolAndroid::Cancel(int id) {
     std::unique_lock<std::mutex> lock(m_requestMutex);
     auto result = m_requests.find(id);
     if (result == m_requests.end()) {
-      LOG_ERROR(LOGTAG, "Cancel to unknown request " << id);
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Cancel to unknown request " << id);
       return false;
     }
 
@@ -605,13 +610,13 @@ bool NetworkProtocolAndroid::Cancel(int id) {
 
 void NetworkProtocolAndroid::doCancel(JNIEnv* env, jobject object) {
   if (object == nullptr) {
-    LOG_ERROR(LOGTAG, "AsyncTask object null");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "AsyncTask object null");
     return;
   }
 
   jclass cls = env->GetObjectClass(object);
   if (env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "Failed to get AsyncTask");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "Failed to get AsyncTask");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return;
@@ -619,7 +624,7 @@ void NetworkProtocolAndroid::doCancel(JNIEnv* env, jobject object) {
 
   jmethodID mid = env->GetMethodID(cls, "cancelTask", "()V");
   if (env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "Failed to get AsyncTask::cancel");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "Failed to get AsyncTask::cancel");
     env->ExceptionDescribe();
     env->ExceptionClear();
     env->DeleteLocalRef(cls);
@@ -629,7 +634,7 @@ void NetworkProtocolAndroid::doCancel(JNIEnv* env, jobject object) {
 
   env->CallVoidMethod(object, mid);
   if (env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "NetworkProtocol::Request::cancel failed");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "NetworkProtocol::Request::cancel failed");
     env->ExceptionDescribe();
     env->ExceptionClear();
   }
@@ -646,7 +651,7 @@ void NetworkProtocolAndroid::headersCallback(JNIEnv* env, int id,
 
     auto req = m_requests.find(id);
     if (req == m_requests.end()) {
-      LOG_ERROR(LOGTAG, "Headers to unknown request " << id);
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Headers to unknown request " << id);
       return;
     }
     headerCallback = req->second->m_headerCallback;
@@ -658,7 +663,8 @@ void NetworkProtocolAndroid::headersCallback(JNIEnv* env, int id,
     for (int i = 0; (i + 1) < headersCount; i += 2) {
       jstring hdrKey = (jstring)env->GetObjectArrayElement(headers, i);
       if (env->ExceptionOccurred()) {
-        LOG_ERROR(LOGTAG, "headersCallback failed to get key for header");
+        EDGE_SDK_LOG_ERROR(LOGTAG,
+                           "headersCallback failed to get key for header");
         env->ExceptionDescribe();
         env->ExceptionClear();
         return;
@@ -666,7 +672,8 @@ void NetworkProtocolAndroid::headersCallback(JNIEnv* env, int id,
 
       jstring hdrValue = (jstring)env->GetObjectArrayElement(headers, i + 1);
       if (env->ExceptionOccurred()) {
-        LOG_ERROR(LOGTAG, "headersCallback failed to get value for header");
+        EDGE_SDK_LOG_ERROR(LOGTAG,
+                           "headersCallback failed to get value for header");
         env->ExceptionDescribe();
         env->ExceptionClear();
         return;
@@ -696,7 +703,7 @@ void NetworkProtocolAndroid::dateAndOffsetCallback(JNIEnv* env, int id,
 
   auto request = m_requests.find(id);
   if (request == m_requests.end()) {
-    LOG_ERROR(LOGTAG, "Date and offset to unknown request " << id);
+    EDGE_SDK_LOG_ERROR(LOGTAG, "Date and offset to unknown request " << id);
     return;
   }
   request->second->m_date = date;
@@ -716,7 +723,7 @@ void NetworkProtocolAndroid::dataReceived(JNIEnv* env, int id, jbyteArray data,
 
     auto req = m_requests.find(id);
     if (req == m_requests.end()) {
-      LOG_ERROR(LOGTAG, "Data to unknown request " << id);
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Data to unknown request " << id);
       return;
     }
     request = req->second;
@@ -731,8 +738,8 @@ void NetworkProtocolAndroid::dataReceived(JNIEnv* env, int id, jbyteArray data,
       if (request->m_payload->tellp() != std::streampos(request->m_count)) {
         request->m_payload->seekp(request->m_count);
         if (request->m_payload->fail()) {
-          LOG_WARNING(LOGTAG,
-                      "Reception stream doesn't support setting write point");
+          EDGE_SDK_LOG_WARNING(
+              LOGTAG, "Reception stream doesn't support setting write point");
           request->m_payload->clear();
         }
       }
@@ -757,7 +764,7 @@ void NetworkProtocolAndroid::completeRequest(JNIEnv* env, int id, int status,
   std::unique_lock<std::mutex> lock(m_requestMutex);
   auto request = m_requests.find(id);
   if (request == m_requests.end()) {
-    LOG_ERROR(LOGTAG, "Complete to unknown request " << id);
+    EDGE_SDK_LOG_ERROR(LOGTAG, "Complete to unknown request " << id);
     return;
   }
 
@@ -813,7 +820,7 @@ void NetworkProtocolAndroid::resetRequest(JNIEnv* env, int id) {
 
   auto req = m_requests.find(id);
   if (req == m_requests.end()) {
-    LOG_ERROR(LOGTAG, "Reset of unknown request " << id);
+    EDGE_SDK_LOG_ERROR(LOGTAG, "Reset of unknown request " << id);
     return;
   }
   req->second->reinitialize();
@@ -830,7 +837,7 @@ jobjectArray NetworkProtocolAndroid::createExtraHeaders(
 
   jstring jemptyString = env->NewStringUTF("");
   if (!jemptyString || env->ExceptionOccurred()) {
-    LOG_ERROR(LOGTAG, "Failed to create an empty string");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "Failed to create an empty string");
     return 0;
   }
 
@@ -840,7 +847,7 @@ jobjectArray NetworkProtocolAndroid::createExtraHeaders(
       headerCount * 2, gStringClass, jemptyString);
   if (!headers || env->ExceptionOccurred()) {
     env->DeleteLocalRef(jemptyString);
-    LOG_ERROR(LOGTAG, "Failed to create string array for headers");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "Failed to create string array for headers");
     return 0;
   }
   env->DeleteLocalRef(jemptyString);
@@ -848,26 +855,26 @@ jobjectArray NetworkProtocolAndroid::createExtraHeaders(
   for (size_t i = 0; i < extraHeaders.size(); i++) {
     jstring name = env->NewStringUTF(extraHeaders[i].first.c_str());
     if (!name || env->ExceptionOccurred()) {
-      LOG_ERROR(LOGTAG, "Send to create extra header name string");
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Send to create extra header name string");
       return 0;
     }
     ScopedLocalRef nameRef(env, name);
 
     jstring value = env->NewStringUTF(extraHeaders[i].second.c_str());
     if (!value || env->ExceptionOccurred()) {
-      LOG_ERROR(LOGTAG, "Send to create extra header value string");
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Send to create extra header value string");
       return 0;
     }
     ScopedLocalRef valueRef(env, value);
 
     env->SetObjectArrayElement(headers, i * 2, name);
     if (env->ExceptionOccurred()) {
-      LOG_ERROR(LOGTAG, "Send to set extra header value string");
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Send to set extra header value string");
       return 0;
     }
     env->SetObjectArrayElement(headers, i * 2 + 1, value);
     if (env->ExceptionOccurred()) {
-      LOG_ERROR(LOGTAG, "Send to set extra header value string");
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Send to set extra header value string");
       return 0;
     }
   }
@@ -876,7 +883,7 @@ jobjectArray NetworkProtocolAndroid::createExtraHeaders(
   for (size_t i = 0; i < rangeHeaders.size(); i++) {
     jstring name = env->NewStringUTF(rangeHeaders[i].first.c_str());
     if (!name || env->ExceptionOccurred()) {
-      LOG_ERROR(LOGTAG, "Send to create range header name string");
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Send to create range header name string");
       return 0;
     }
     ScopedLocalRef nameRef(env, name);
@@ -884,19 +891,19 @@ jobjectArray NetworkProtocolAndroid::createExtraHeaders(
     jstring value = env->NewStringUTF(rangeHeaders[i].second.c_str());
     if (!value || env->ExceptionOccurred()) {
       env->DeleteLocalRef(name);
-      LOG_ERROR(LOGTAG, "Send to create range header value string");
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Send to create range header value string");
       return 0;
     }
     ScopedLocalRef valueRef(env, value);
 
     env->SetObjectArrayElement(headers, index + (i * 2), name);
     if (env->ExceptionOccurred()) {
-      LOG_ERROR(LOGTAG, "Send to set range header value string");
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Send to set range header value string");
       return 0;
     }
     env->SetObjectArrayElement(headers, index + (i * 2) + 1, value);
     if (env->ExceptionOccurred()) {
-      LOG_ERROR(LOGTAG, "Send to set range header value string");
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Send to set range header value string");
       return 0;
     }
   }
@@ -905,7 +912,7 @@ jobjectArray NetworkProtocolAndroid::createExtraHeaders(
   if (modifiedSince != 0) {
     jstring name = env->NewStringUTF("If-Modified-Since");
     if (!name || env->ExceptionOccurred()) {
-      LOG_ERROR(LOGTAG, "Send to create extra header name string");
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Send to create extra header name string");
       return 0;
     }
     ScopedLocalRef nameRef(env, name);
@@ -915,19 +922,19 @@ jobjectArray NetworkProtocolAndroid::createExtraHeaders(
     jstring value = env->NewStringUTF(dateStr.c_str());
     if (!value || env->ExceptionOccurred()) {
       env->DeleteLocalRef(name);
-      LOG_ERROR(LOGTAG, "Send to create extra header value string");
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Send to create extra header value string");
       return 0;
     }
     ScopedLocalRef valueRef(env, value);
 
     env->SetObjectArrayElement(headers, index, name);
     if (env->ExceptionOccurred()) {
-      LOG_ERROR(LOGTAG, "Send to set extra header value string");
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Send to set extra header value string");
       return 0;
     }
     env->SetObjectArrayElement(headers, index + 1, value);
     if (env->ExceptionOccurred()) {
-      LOG_ERROR(LOGTAG, "Send to set extra header value string");
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Send to set extra header value string");
       return 0;
     }
   }
@@ -1044,13 +1051,13 @@ NetworkProtocolAndroid::ResultData::ResultData(
  * Callback to be called when response headers have been received
  */
 extern "C" EDGE_SDK_NETWORK_EXPORT void JNICALL
-Java_com_here_olp_network_NetworkProtocol_headersCallback(JNIEnv* env, jobject obj,
-                                                      jint clientId,
-                                                      jint requestId,
-                                                      jobjectArray headers) {
+Java_com_here_olp_network_NetworkProtocol_headersCallback(
+    JNIEnv* env, jobject obj, jint clientId, jint requestId,
+    jobjectArray headers) {
   auto protocol = olp::network::getProtocolForClient(clientId);
   if (!protocol) {
-    LOG_ERROR(LOGTAG, "headersCallback to non-existing client: " << clientId);
+    EDGE_SDK_LOG_ERROR(LOGTAG,
+                       "headersCallback to non-existing client: " << clientId);
     return;
   }
   protocol->headersCallback(env, requestId, headers);
@@ -1065,8 +1072,8 @@ Java_com_here_olp_network_NetworkProtocol_dateAndOffsetCallback(
     jlong offset) {
   auto protocol = olp::network::getProtocolForClient(clientId);
   if (!protocol) {
-    LOG_ERROR(LOGTAG,
-              "dateAndOffsetCallback to non-existing client: " << clientId);
+    EDGE_SDK_LOG_ERROR(
+        LOGTAG, "dateAndOffsetCallback to non-existing client: " << clientId);
     return;
   }
   protocol->dateAndOffsetCallback(env, requestId, date, offset);
@@ -1077,12 +1084,14 @@ Java_com_here_olp_network_NetworkProtocol_dateAndOffsetCallback(
  */
 extern "C" EDGE_SDK_NETWORK_EXPORT void JNICALL
 Java_com_here_olp_network_NetworkProtocol_dataCallback(JNIEnv* env, jobject obj,
-                                                   jint clientId,
-                                                   jint requestId,
-                                                   jbyteArray data, jint len) {
+                                                       jint clientId,
+                                                       jint requestId,
+                                                       jbyteArray data,
+                                                       jint len) {
   auto protocol = olp::network::getProtocolForClient(clientId);
   if (!protocol) {
-    LOG_ERROR(LOGTAG, "dataCallback to non-existing client: " << clientId);
+    EDGE_SDK_LOG_ERROR(LOGTAG,
+                       "dataCallback to non-existing client: " << clientId);
     return;
   }
   protocol->dataReceived(env, requestId, data, len);
@@ -1098,7 +1107,8 @@ Java_com_here_olp_network_NetworkProtocol_completeRequest(
     jstring contentType) {
   auto protocol = olp::network::getProtocolForClient(clientId);
   if (!protocol) {
-    LOG_ERROR(LOGTAG, "completeRequest to non-existing client: " << clientId);
+    EDGE_SDK_LOG_ERROR(LOGTAG,
+                       "completeRequest to non-existing client: " << clientId);
     return;
   }
   protocol->completeRequest(env, requestId, status, error, maxAge, expires,
@@ -1110,11 +1120,12 @@ Java_com_here_olp_network_NetworkProtocol_completeRequest(
  */
 extern "C" EDGE_SDK_NETWORK_EXPORT void JNICALL
 Java_com_here_olp_network_NetworkProtocol_resetRequest(JNIEnv* env, jobject obj,
-                                                   jint clientId,
-                                                   jint requestId) {
+                                                       jint clientId,
+                                                       jint requestId) {
   auto protocol = olp::network::getProtocolForClient(clientId);
   if (!protocol) {
-    LOG_ERROR(LOGTAG, "resetRequest to non-existing client: " << clientId);
+    EDGE_SDK_LOG_ERROR(LOGTAG,
+                       "resetRequest to non-existing client: " << clientId);
     return;
   }
   protocol->resetRequest(env, requestId);
