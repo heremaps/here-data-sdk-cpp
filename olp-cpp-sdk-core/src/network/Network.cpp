@@ -251,9 +251,9 @@ void NetworkSingleton::Send(const NetworkRequest& request,
         if (response.Status() == Network::AuthenticationError && singleton &&
             !singleton->certificate_update_was_triggered_.exchange(true)) {
           singleton->blocked_ = true;
-          LOG_WARNING(LOGTAG,
-                      "Certificate outdated. Blocking network traffic "
-                      "until new certificate is  downloaded.");
+          EDGE_SDK_LOG_WARNING(LOGTAG,
+                               "Certificate outdated. Blocking network traffic "
+                               "until new certificate is  downloaded.");
           std::function<void()> updateCertificate;
           {
             std::lock_guard<std::mutex> lock(*g_singleton_mutex);
@@ -263,7 +263,7 @@ void NetworkSingleton::Send(const NetworkRequest& request,
         }
 
         if (!singleton) {
-          LOG_ERROR(LOGTAG, "singleton is destroyed");
+          EDGE_SDK_LOG_ERROR(LOGTAG, "singleton is destroyed");
         }
 
         callback(response);
@@ -290,7 +290,7 @@ bool NetworkSingleton::CancelIfPending(Network::RequestId request_id) {
 
 void NetworkSingleton::Unblock() {
   blocked_ = false;
-  LOG_INFO(LOGTAG, "Unblocking network traffic.");
+  EDGE_SDK_LOG_INFO(LOGTAG, "Unblocking network traffic.");
 }
 
 std::shared_ptr<NetworkProtocol> NetworkSingleton::GetProtocol() const {
@@ -314,7 +314,7 @@ bool Network::Start(const NetworkConfig& config) {
   std::lock_guard<std::mutex> nwLock(mutex_);
   if (Started()) return false;
 
-  LOG_TRACE(LOGTAG, "start");
+  EDGE_SDK_LOG_TRACE(LOGTAG, "start");
   singleton_ = SingletonInstance();
   if (!singleton_->InitializeClient()) {
     singleton_.reset();
@@ -333,7 +333,7 @@ bool Network::Stop() {
     std::lock_guard<std::mutex> nwLock(mutex_);
     if (!Started()) return false;
 
-    //        LOG_TRACE( LOGTAG, "Stop" );
+    //        EDGE_SDK_LOG_TRACE( LOGTAG, "Stop" );
     id_ = ClientId::Invalid;
 
     requestIds = request_ids_->Clear();
@@ -373,12 +373,12 @@ Network::RequestId Network::Send(NetworkRequest request,
     config = config_;
   }
 
-  LOG_TRACE(LOGTAG,
-            "send " << olp::utils::CensorCredentialsInUrl(request.Url()));
+  EDGE_SDK_LOG_TRACE(
+      LOGTAG, "send " << olp::utils::CensorCredentialsInUrl(request.Url()));
 #if !defined(EDGE_SDK_LOGGING_DISABLED)
   for (const auto& header : request.ExtraHeaders()) {
-    LOG_TRACE(LOGTAG,
-              "extra header: " << header.first << ": " << header.second);
+    EDGE_SDK_LOG_TRACE(
+        LOGTAG, "extra header: " << header.first << ": " << header.second);
   }
 #endif
 
@@ -390,26 +390,6 @@ Network::RequestId Network::Send(NetworkRequest request,
   singleton->Send(request, requestId, payload,
                   [requestIds, url, callback](const NetworkResponse& response) {
                     const auto status = response.Status();
-                    if ((status != 200) && (status != 201) && (status != 204) &&
-                        (status != 304) && (status != 206)) {
-                      const auto request_time_point = std::time(nullptr);
-                      const auto request_time =
-                          std::gmtime(&request_time_point);
-
-                      char time_buffer[50];
-                      std::strftime(time_buffer, sizeof(time_buffer), "%c %Z",
-                                    request_time);
-                      //                LOG_ERROR( LOGTAG, "Request: " << url <<
-                      //                " Error: "
-                      //                << status << " "
-                      //                                               <<
-                      //                                               response.error(
-                      //                                               )
-                      //                                               << " ("
-                      //                                               <<
-                      //                                               time_buffer
-                      //                                               << ")" );
-                    }
                     requestIds->Remove(response.Id());
 
                     if (callback) {

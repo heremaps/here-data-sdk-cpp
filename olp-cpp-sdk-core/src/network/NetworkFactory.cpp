@@ -47,7 +47,8 @@ std::shared_ptr<NetworkProtocol> NetworkFactory::CreateNetworkProtocol() {
       g_default_network_protocol_factory =
           std::make_shared<DefaultNetworkProtocolFactory>();
     }
-    LOG_INFO(LOGTAG, "createNetworkProtocol: using default protocol factory");
+    EDGE_SDK_LOG_INFO(LOGTAG,
+                      "createNetworkProtocol: using default protocol factory");
     factory = g_default_network_protocol_factory;
   }
 

@@ -46,7 +46,8 @@ NSString* const kHTTPTaskErrorDomain = @"HttpTask";
 - (instancetype)initWithId:(int)identifier httpClient:(HttpClient*)client {
   self = [super init];
   if (self) {
-    LOG_TRACE(LOGTAG, "HttpTask::initWithId [ " << (__bridge void*)self << " ] " << identifier);
+    EDGE_SDK_LOG_TRACE(LOGTAG,
+                       "HttpTask::initWithId [ " << (__bridge void*)self << " ] " << identifier);
     _httpClient = client;
     _uniqueId = identifier;
     _requestUrl = [NSMutableString new];
@@ -56,7 +57,8 @@ NSString* const kHTTPTaskErrorDomain = @"HttpTask";
 }
 
 - (void)dealloc {
-  LOG_TRACE(LOGTAG, "HttpTask::dealloc [ " << (__bridge void*)self << " ] " << self.uniqueId);
+  EDGE_SDK_LOG_TRACE(LOGTAG,
+                     "HttpTask::dealloc [ " << (__bridge void*)self << " ] " << self.uniqueId);
 }
 
 - (NSString*)url {
@@ -114,9 +116,10 @@ NSString* const kHTTPTaskErrorDomain = @"HttpTask";
 #ifndef EDGE_SDK_LOGGING_DISABLED
   NSMutableString* debugCurlString = [NSMutableString stringWithString:@"curl -vvv "];
   [debugCurlString appendFormat:@"\"%@\"%@", _requestUrl, debugHeaders];
-  LOG_TRACE(LOGTAG, "HttpTask::run [ " << (__bridge void*)self << " ] "
-                                       << self.dataTask.taskIdentifier << "\t" << request.HTTPMethod
-                                       << "\t" << [debugCurlString UTF8String]);
+  EDGE_SDK_LOG_TRACE(LOGTAG, "HttpTask::run [ " << (__bridge void*)self << " ] "
+                                                << self.dataTask.taskIdentifier << "\t"
+                                                << request.HTTPMethod << "\t"
+                                                << [debugCurlString UTF8String]);
 #endif
 
   [_dataTask resume];
@@ -124,7 +127,8 @@ NSString* const kHTTPTaskErrorDomain = @"HttpTask";
 }
 
 - (BOOL)cancel {
-  LOG_TRACE(LOGTAG, "HttpTask::cancel [ " << (__bridge void*)self << " ] " << self.uniqueId);
+  EDGE_SDK_LOG_TRACE(LOGTAG,
+                     "HttpTask::cancel [ " << (__bridge void*)self << " ] " << self.uniqueId);
 
   BOOL ret = NO;
   @synchronized(self) {
@@ -140,9 +144,9 @@ NSString* const kHTTPTaskErrorDomain = @"HttpTask";
 }
 
 - (void)didCompleteWithError:(NSError*)error {
-  LOG_TRACE(LOGTAG, "HttpTask::didComplete [ " << (__bridge void*)self << " ] "
-                                               << self.dataTask.taskIdentifier << "\t"
-                                               << error.code);
+  EDGE_SDK_LOG_TRACE(LOGTAG, "HttpTask::didComplete [ " << (__bridge void*)self << " ] "
+                                                        << self.dataTask.taskIdentifier << "\t"
+                                                        << error.code);
   HttpTaskCompletionHandler completionHandler = nil;
   @synchronized(self) {
     if (self.completionHandler) {
@@ -164,9 +168,9 @@ NSString* const kHTTPTaskErrorDomain = @"HttpTask";
 - (void)didReceiveResponse:(NSURLResponse*)response {
 #ifndef EDGE_SDK_LOGGING_DISABLED
   NSInteger httpResponseStatusCode = [(NSHTTPURLResponse*)response statusCode];
-  LOG_TRACE(LOGTAG, "HttpTask::didReceiveResponse [ " << (__bridge void*)self << " ] "
-                                                      << self.dataTask.taskIdentifier << "\t"
-                                                      << httpResponseStatusCode);
+  EDGE_SDK_LOG_TRACE(LOGTAG, "HttpTask::didReceiveResponse [ " << (__bridge void*)self << " ] "
+                                                               << self.dataTask.taskIdentifier
+                                                               << "\t" << httpResponseStatusCode);
 #endif
 
   HttpTaskReponseHandler responseHandler = nil;
@@ -183,9 +187,9 @@ NSString* const kHTTPTaskErrorDomain = @"HttpTask";
 }
 
 - (void)didReceiveData:(NSData*)data {
-  LOG_TRACE(LOGTAG, "HttpTask::didReceiveData [ " << (__bridge void*)self << " ] "
-                                                  << self.dataTask.taskIdentifier << "\t"
-                                                  << (unsigned long)data.length);
+  EDGE_SDK_LOG_TRACE(LOGTAG, "HttpTask::didReceiveData [ " << (__bridge void*)self << " ] "
+                                                           << self.dataTask.taskIdentifier << "\t"
+                                                           << (unsigned long)data.length);
 
   // Only print out the strData if debugging needed. It stucks the simulator when running code
   // coverage. NSString *strData = [[NSString alloc] initWithData:data

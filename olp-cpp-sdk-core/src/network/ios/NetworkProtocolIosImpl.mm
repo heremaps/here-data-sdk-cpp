@@ -197,7 +197,7 @@ NetworkProtocol::ErrorCode NetworkProtocolIosImpl::Send(
     // Create task context
     HttpTaskContext* taskContext = [HttpTaskContext new];
     if (!taskContext) {
-      LOG_ERROR(LOGTAG, "Network Out of memory");
+      EDGE_SDK_LOG_ERROR(LOGTAG, "Network Out of memory");
       return NetworkProtocol::ErrorNotReady;
     }
 
@@ -291,18 +291,18 @@ NetworkProtocol::ErrorCode NetworkProtocolIosImpl::Send(
     __weak HttpTask* weakTask = task;
     task.dataHandler = ^(NSData* data) {
       if (!weakTask) {
-        LOG_WARNING(LOGTAG, "Data received after task deleted");
+        EDGE_SDK_LOG_WARNING(LOGTAG, "Data received after task deleted");
         return;
       }
 
       HttpTask* strongTask = weakTask;
       HttpTaskContext* taskContext = strongTask.context;
       if (taskContext.rangeOut) {
-        LOG_TRACE(LOGTAG, "Datacallback out of range");
+        EDGE_SDK_LOG_TRACE(LOGTAG, "Datacallback out of range");
         return;
       }
       size_t len = data.length;
-      LOG_TRACE(LOGTAG, "Received " << len << " bytes");
+      EDGE_SDK_LOG_TRACE(LOGTAG, "Received " << len << " bytes");
 
       if (dataCallback) {
         dataCallback(taskContext.offset + taskContext.count,
@@ -314,7 +314,7 @@ NetworkProtocol::ErrorCode NetworkProtocolIosImpl::Send(
           if (payload->tellp() != std::streampos(taskContext.count)) {
             payload->seekp(taskContext.count);
             if (payload->fail()) {
-              LOG_WARNING(LOGTAG, "Reception stream doesn't support setting write point");
+              EDGE_SDK_LOG_WARNING(LOGTAG, "Reception stream doesn't support setting write point");
               payload->clear();
             }
           }
@@ -328,7 +328,7 @@ NetworkProtocol::ErrorCode NetworkProtocolIosImpl::Send(
 
     task.completionHandler = ^(NSError* error) {
       if (!weakTask) {
-        LOG_WARNING(LOGTAG, "Data received after task deleted");
+        EDGE_SDK_LOG_WARNING(LOGTAG, "Data received after task deleted");
         return;
       }
 
@@ -394,7 +394,7 @@ void NetworkProtocolIosImpl::processResponseHeaders(int identifier, NSHTTPURLRes
 
   HttpTaskContext* taskContext = task.context;
   if (!task || !taskContext) {
-    LOG_ERROR(LOGTAG, "Unexpected response headers");
+    EDGE_SDK_LOG_ERROR(LOGTAG, "Unexpected response headers");
     return;
   }
 
@@ -512,10 +512,10 @@ void NetworkProtocolIosImpl::processResponseHeaders(int identifier, NSHTTPURLRes
         taskContext.offset = std::stoll(countStr.substr(6));
       }
     } else {
-      LOG_WARNING(LOGTAG, "Invalid Content-Range header: " << countStr);
+      EDGE_SDK_LOG_WARNING(LOGTAG, "Invalid Content-Range header: " << countStr);
     }
   } else {
-    LOG_WARNING(LOGTAG, "Invalid Content-Range header: " << countString);
+    EDGE_SDK_LOG_WARNING(LOGTAG, "Invalid Content-Range header: " << countString);
   }
 }
 

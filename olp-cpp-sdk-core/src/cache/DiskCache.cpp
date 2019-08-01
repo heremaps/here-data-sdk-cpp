@@ -80,22 +80,23 @@ static bool repairCache(const std::string& versionedDataPath) {
   leveldb::Status status =
       leveldb::RepairDB(versionedDataPath, leveldb::Options());
   if (status.ok()) {
-    LOG_WARNING(LOG_TAG, "Database corrupted, repaired " << versionedDataPath);
+    EDGE_SDK_LOG_WARNING(LOG_TAG,
+                         "Database corrupted, repaired " << versionedDataPath);
     leveldb::Env::Default()->DeleteDir(versionedDataPath + "/lost");
     return true;
   }
-  LOG_ERROR(LOG_TAG,
-            "Database corrupted, repair failed: " << status.ToString());
+  EDGE_SDK_LOG_ERROR(
+      LOG_TAG, "Database corrupted, repair failed: " << status.ToString());
 
   // repair failed, delete the entire cache;
   status = leveldb::DestroyDB(versionedDataPath, leveldb::Options());
   if (!status.ok()) {
-    LOG_ERROR(LOG_TAG, "Destroying database after corruption failed: "
-                           << status.ToString());
+    EDGE_SDK_LOG_ERROR(LOG_TAG, "Destroying database after corruption failed: "
+                                    << status.ToString());
     return false;
   }
-  LOG_WARNING(LOG_TAG,
-              "Destroyed database after corruption: " << versionedDataPath);
+  EDGE_SDK_LOG_WARNING(
+      LOG_TAG, "Destroyed database after corruption: " << versionedDataPath);
   return true;
 }
 
@@ -105,9 +106,9 @@ void removeOtherDB(const std::string& dataPath,
   leveldb::Status status =
       leveldb::Env::Default()->GetChildren(dataPath, &pathContents);
   if (!status.ok()) {
-    LOG_WARNING(LOG_TAG,
-                "Clearing other DBs in folder: failed to list folder \""
-                    << dataPath << "\" contents - " << status.ToString());
+    EDGE_SDK_LOG_WARNING(
+        LOG_TAG, "Clearing other DBs in folder: failed to list folder \""
+                     << dataPath << "\" contents - " << status.ToString());
     return;
   }
 
@@ -120,7 +121,7 @@ void removeOtherDB(const std::string& dataPath,
     if (fullPath != versionedDataPathToKeep) {
       status = leveldb::DestroyDB(fullPath, leveldb::Options());
       if (!status.ok())
-        LOG_WARNING(
+        EDGE_SDK_LOG_WARNING(
             LOG_TAG,
             "Clearing other DBs in folder: failed to destroy database \""
                 << fullPath << "\" - " << status.ToString());
@@ -146,7 +147,7 @@ void DiskCache::LevelDBLogger::Logv(const char* format, va_list ap) {
   const std::string& message = logging::formatv(format, ap);
   logging::Log::logMessage(logging::Level::Trace, "Storage.LevelDB.leveldb",
                            message, __FILE__, __LINE__, __FUNCTION__,
-                           LOG_FUNCTION_SIGNATURE);
+                           EDGE_SDK_LOG_FUNCTION_SIGNATURE);
 }
 
 void DiskCache::Close() { database_.reset(); }
@@ -207,8 +208,9 @@ OpenResult DiskCache::Open(const std::string& dataPath,
   leveldb::Status status = leveldb::DB::Open(options, versionedDataPath, &db);
 
   if (!status.ok() && !isReadOnly)
-    LOG_WARNING(LOG_TAG, "Cannot open database (" << status.ToString()
-                                                  << ") attempting repair");
+    EDGE_SDK_LOG_WARNING(LOG_TAG, "Cannot open database ("
+                                      << status.ToString()
+                                      << ") attempting repair");
 
   // if the database is r/w and corrupted, attempt to repair & reopen
   if ((status.IsCorruption() || status.IsIOError()) && !isReadOnly &&
@@ -237,7 +239,7 @@ void DiskCache::setOpenError(const leveldb::Status& status) {
     code = ErrorCode::InternalFailure;
   if (status.IsNotSupportedError()) code = ErrorCode::BadRequest;
   std::string errorMessage = status.ToString();
-  LOG_FATAL(LOG_TAG, "Cannot open database " << errorMessage);
+  EDGE_SDK_LOG_FATAL(LOG_TAG, "Cannot open database " << errorMessage);
   error_ = ApiError(code, std::move(errorMessage));
 }
 
@@ -251,7 +253,8 @@ bool DiskCache::Put(const std::string& key, const std::string& value) {
   const leveldb::Status& status = database_->Put(
       leveldb::WriteOptions(), toLeveldbSlice(key), toLeveldbSlice(value));
   if (!status.ok()) {
-    LOG_FATAL(LOG_TAG, "Failed to write the database " << status.ToString());
+    EDGE_SDK_LOG_FATAL(LOG_TAG,
+                       "Failed to write the database " << status.ToString());
     return false;
   }
   return true;
@@ -296,8 +299,9 @@ bool DiskCache::RemoveKeysWithPrefix(const std::string& keyPrefix) {
   const leveldb::Status& status =
       database_->Write(leveldb::WriteOptions(), batch.get());
   if (!status.ok()) {
-    LOG_FATAL(LOG_TAG, "Failed to write the database " << status.ToString();
-              return false;);
+    EDGE_SDK_LOG_FATAL(LOG_TAG,
+                       "Failed to write the database " << status.ToString();
+                       return false;);
   }
   return true;
 }

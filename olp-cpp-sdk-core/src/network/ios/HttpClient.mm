@@ -88,9 +88,8 @@ static NSString* const kMosCACertificateMd5 = @"497904b0eb8719ac47b0bc11519b74d0
     for (NSString* certFile in directoryContents) {
       err = nil;
       NSString* certFilePath = [NSString stringWithFormat:@"%@/%@", certificateDirectory, certFile];
-      NSData* certData = [NSData dataWithContentsOfFile:certFilePath
-                                                options:NSDataReadingMappedIfSafe
-                                                  error:&err];
+      NSData* certData =
+          [NSData dataWithContentsOfFile:certFilePath options:NSDataReadingMappedIfSafe error:&err];
 
       if (!certData || err) {
         continue;
@@ -132,7 +131,7 @@ static NSString* const kMosCACertificateMd5 = @"497904b0eb8719ac47b0bc11519b74d0
 
 @end
 
-@interface HttpClient () <NSURLSessionDataDelegate>
+@interface HttpClient ()<NSURLSessionDataDelegate>
 
 @property(nonatomic, readonly) NSURLSession* sharedUrlSession;  // shared URL session
 @property(nonatomic) NSMutableDictionary* urlSessions;          // request id : NSURLSession object
@@ -153,14 +152,14 @@ static NSString* const kMosCACertificateMd5 = @"497904b0eb8719ac47b0bc11519b74d0
 }
 
 - (void)dealloc {
-  LOG_TRACE(LOGTAG, "HttpClient::dealloc [ " << (__bridge void*)self << " ] ");
+  EDGE_SDK_LOG_TRACE(LOGTAG, "HttpClient::dealloc [ " << (__bridge void*)self << " ] ");
   if (self.sharedUrlSession) {
     [self cleanup];
   }
 }
 
 - (void)cleanup {
-  LOG_TRACE(LOGTAG, "HttpClient::cleanup [ " << (__bridge void*)self << " ] ");
+  EDGE_SDK_LOG_TRACE(LOGTAG, "HttpClient::cleanup [ " << (__bridge void*)self << " ] ");
   [self.sharedUrlSession finishTasksAndInvalidate];
   [self.urlSessions enumerateKeysAndObjectsUsingBlock:^(id key, id object, BOOL* stop) {
     NSURLSession* session = object;
@@ -229,7 +228,7 @@ static NSString* const kMosCACertificateMd5 = @"497904b0eb8719ac47b0bc11519b74d0
     task = _tasks[@(identifier)];
 
     if (!task) {
-      LOG_ERROR(LOGTAG, "cancel unknown request " << identifier);
+      EDGE_SDK_LOG_ERROR(LOGTAG, "cancel unknown request " << identifier);
       return;
     }
   }
@@ -367,7 +366,8 @@ static NSString* const kMosCACertificateMd5 = @"497904b0eb8719ac47b0bc11519b74d0
           return;
         }
         // TODO: Any expert to write lambda here?
-        const olp::network::NetworkSystemConfig& sysConfig = olp::network::Network::SystemConfig().lockedCopy();
+        const olp::network::NetworkSystemConfig& sysConfig =
+            olp::network::Network::SystemConfig().lockedCopy();
         if (!sysConfig.DontVerifyCertificate()) {
           if (![self shouldTrustProtectionSpace:challenge.protectionSpace]) {
             completionHandler(NSURLSessionAuthChallengeCancelAuthenticationChallenge, nil);
@@ -397,10 +397,10 @@ static NSString* const kMosCACertificateMd5 = @"497904b0eb8719ac47b0bc11519b74d0
 
   NSURLRequest* originalRequest = task.originalRequest;
   NSString* authorizationHeaderValue = originalRequest.allHTTPHeaderFields[@"Authorization"];
-  LOG_TRACE(LOGTAG, "HttpClient::willPerformHTTPRedirection [ "
-                        << (__bridge void*)self << " ] status " << (int)response.statusCode
-                        << "\nOrigURL " << originalRequest.URL.absoluteString.UTF8String
-                        << "\nNewURL " << request.URL.absoluteString.UTF8String);
+  EDGE_SDK_LOG_TRACE(LOGTAG, "HttpClient::willPerformHTTPRedirection [ "
+                                 << (__bridge void*)self << " ] status " << (int)response.statusCode
+                                 << "\nOrigURL " << originalRequest.URL.absoluteString.UTF8String
+                                 << "\nNewURL " << request.URL.absoluteString.UTF8String);
   NSMutableURLRequest* newRequest = [NSMutableURLRequest new];
   newRequest.URL = request.URL;
   newRequest.timeoutInterval = request.timeoutInterval;
