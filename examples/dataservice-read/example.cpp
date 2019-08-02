@@ -46,8 +46,8 @@ std::string HandleCatalogResponse(
   std::string first_layer_id;
   if (catalog_response.IsSuccessful()) {
     const auto& response_result = catalog_response.GetResult();
-    LOG_INFO_F(kLogTag, "Catalog description: %s",
-               response_result.GetDescription().c_str());
+    EDGE_SDK_LOG_INFO_F(kLogTag, "Catalog description: %s",
+                        response_result.GetDescription().c_str());
 
     auto layers = response_result.GetLayers();
     if (!layers.empty()) {
@@ -57,13 +57,15 @@ std::string HandleCatalogResponse(
     auto end = layers.size() <= kMaxLayers ? layers.end()
                                            : layers.begin() + kMaxLayers;
     for (auto it = layers.cbegin(); it != end; ++it) {
-      LOG_INFO_F(kLogTag, "Layer '%s' (%s): %s", it->GetId().c_str(),
-                 it->GetLayerType().c_str(), it->GetDescription().c_str());
+      EDGE_SDK_LOG_INFO_F(kLogTag, "Layer '%s' (%s): %s", it->GetId().c_str(),
+                          it->GetLayerType().c_str(),
+                          it->GetDescription().c_str());
     }
   } else {
-    LOG_ERROR_F(kLogTag, "Request catalog metadata - Failure(%d): %s",
-                static_cast<int>(catalog_response.GetError().GetErrorCode()),
-                catalog_response.GetError().GetMessage().c_str());
+    EDGE_SDK_LOG_ERROR_F(
+        kLogTag, "Request catalog metadata - Failure(%d): %s",
+        static_cast<int>(catalog_response.GetError().GetErrorCode()),
+        catalog_response.GetError().GetMessage().c_str());
   }
   return first_layer_id;
 }
@@ -76,7 +78,8 @@ std::string HandlePartitionsResponse(
   if (partitions_response.IsSuccessful()) {
     const auto& response_result = partitions_response.GetResult();
     auto partitions = response_result.GetPartitions();
-    LOG_INFO_F(kLogTag, "Layer contains %ld partitions.", partitions.size());
+    EDGE_SDK_LOG_INFO_F(kLogTag, "Layer contains %ld partitions.",
+                        partitions.size());
 
     if (!partitions.empty()) {
       first_partition_id = partitions.front().GetPartition();
@@ -86,12 +89,13 @@ std::string HandlePartitionsResponse(
                    ? partitions.end()
                    : partitions.begin() + kMaxPartitions;
     for (auto it = partitions.cbegin(); it != end; ++it) {
-      LOG_INFO_F(kLogTag, "Partition: %s", it->GetPartition().c_str());
+      EDGE_SDK_LOG_INFO_F(kLogTag, "Partition: %s", it->GetPartition().c_str());
     }
   } else {
-    LOG_ERROR_F(kLogTag, "Request partition metadata - Failure(%d): %s",
-                static_cast<int>(partitions_response.GetError().GetErrorCode()),
-                partitions_response.GetError().GetMessage().c_str());
+    EDGE_SDK_LOG_ERROR_F(
+        kLogTag, "Request partition metadata - Failure(%d): %s",
+        static_cast<int>(partitions_response.GetError().GetErrorCode()),
+        partitions_response.GetError().GetMessage().c_str());
   }
   return first_partition_id;
 }
@@ -101,13 +105,15 @@ bool HandleDataResponse(
     const olp::dataservice::read::DataResponse& data_response) {
   if (data_response.IsSuccessful()) {
     const auto& response_result = data_response.GetResult();
-    LOG_INFO_F(kLogTag, "Request partition data - Success, data size - %ld",
-               response_result->size());
+    EDGE_SDK_LOG_INFO_F(kLogTag,
+                        "Request partition data - Success, data size - %ld",
+                        response_result->size());
     return true;
   } else {
-    LOG_ERROR_F(kLogTag, "Request partition data - Failure(%d): %s",
-                static_cast<int>(data_response.GetError().GetErrorCode()),
-                data_response.GetError().GetMessage().c_str());
+    EDGE_SDK_LOG_ERROR_F(
+        kLogTag, "Request partition data - Failure(%d): %s",
+        static_cast<int>(data_response.GetError().GetErrorCode()),
+        data_response.GetError().GetMessage().c_str());
     return false;
   }
 }
@@ -163,7 +169,7 @@ int RunExample() {
     // Retrieve data from the response
     first_partition_id = HandlePartitionsResponse(partitions_response);
   } else {
-    LOG_WARNING(kLogTag, "Request partition metadata is not present!");
+    EDGE_SDK_LOG_WARNING(kLogTag, "Request partition metadata is not present!");
   }
 
   int return_code = -1;
@@ -185,7 +191,7 @@ int RunExample() {
     // Retrieve data from the response
     return_code = HandleDataResponse(data_response) ? 0 : -1;
   } else {
-    LOG_WARNING(kLogTag, "Request partition data is not present!");
+    EDGE_SDK_LOG_WARNING(kLogTag, "Request partition data is not present!");
   }
 
   return return_code;
