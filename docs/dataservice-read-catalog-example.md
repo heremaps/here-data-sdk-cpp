@@ -178,10 +178,11 @@ olp::dataservice::read::CatalogResponse catalogResponse =
 if (catalogResponse.IsSuccessful()) {
     const olp::dataservice::read::CatalogResult& responseResult =
         catalogResponse.GetResult();
-    LOG_INFO_F("read-example", "Catalog description: %s",
-                responseResult.GetDescription().c_str());
+    EDGE_SDK_LOG_INFO_F("read-example", "Catalog description: %s",
+                        responseResult.GetDescription().c_str());
 } else {
-    LOG_ERROR("read-example", "Request catalog metadata - Failure");
+    EDGE_SDK_LOG_ERROR("read-example",
+                       "Request catalog metadata - Failure");
 }
 ```
 
@@ -246,10 +247,11 @@ if (partitionsResponse.IsSuccessful()) {
         partitionsResponse.GetResult();
     const std::vector<olp::dataservice::read::model::Partition>& partitions =
         responseResult.GetPartitions();
-    LOG_INFO_F("read-example", "Layer contains %d partitions.",
-                partitions.size());
+    EDGE_SDK_LOG_INFO_F("read-example", "Layer contains %d partitions.",
+                        partitions.size());
 } else {
-    LOG_ERROR("read-example", "Request partition metadata - Failure");
+    EDGE_SDK_LOG_ERROR("read-example",
+                       "Request partition metadata - Failure");
 }
 ```
 
@@ -301,11 +303,12 @@ olp::dataservice::read::DataResponse dataResponse =
 if (dataResponse.IsSuccessful()) {
     const olp::dataservice::read::DataResult& responseResult =
         dataResponse.GetResult();
-    LOG_INFO_F("read-example",
-                "Request partition data - Success, data size - %d",
-                responseResult->size());
+    EDGE_SDK_LOG_INFO_F("read-example",
+                        "Request partition data - Success, data size - %d",
+                        responseResult->size());
 } else {
-    LOG_ERROR("read-example", "Request partition data - Failure");
+    EDGE_SDK_LOG_ERROR("read-example",
+                       "Request partition data - Failure");
 }
 ```
 
