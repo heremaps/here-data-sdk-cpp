@@ -105,11 +105,6 @@ class TokenProvider {
   TokenEndpoint::TokenResponse GetResponse() const {
     TokenEndpoint::TokenResponse resp =
         token_.GetToken(std::chrono::seconds{MinimumValidity});
-    if (!IsTokenResponseOK(resp)) {
-      // LOG_ERROR( "TokenProvider",
-      //           "User authentication failed with error: " << resp.error(
-      //           ).message );
-    }
     return resp;
   }
 

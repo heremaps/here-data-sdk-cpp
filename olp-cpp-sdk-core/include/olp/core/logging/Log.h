@@ -33,18 +33,6 @@
 #include <sstream>
 #include <string>
 
-#define LOG_FUNCTION_SIGNATURE EDGE_SDK_LOG_FUNCTION_SIGNATURE  /// @deprecated
-#define LOG_FATAL EDGE_SDK_LOG_FATAL                            /// @deprecated
-#define LOG_TRACE EDGE_SDK_LOG_TRACE                            /// @deprecated
-#define LOG_TRACE_F EDGE_SDK_LOG_TRACE_F                        /// @deprecated
-#define LOG_DEBUG EDGE_SDK_LOG_DEBUG                            /// @deprecated
-#define LOG_DEBUG_F EDGE_SDK_LOG_DEBUG_F                        /// @deprecated
-#define LOG_INFO EDGE_SDK_LOG_INFO                              /// @deprecated
-#define LOG_INFO_F EDGE_SDK_LOG_INFO_F                          /// @deprecated
-#define LOG_WARNING EDGE_SDK_LOG_WARNING                        /// @deprecated
-#define LOG_ERROR EDGE_SDK_LOG_ERROR                            /// @deprecated
-#define LOG_ERROR_F EDGE_SDK_LOG_ERROR_F                        /// @deprecated
-
 /**
  * @file
  * @brief The file that provides the main interface to the logging library.
