@@ -151,7 +151,7 @@ This will ensure the maximum length for each individual path is not greater than
 
 #### EDGE_SDK_BUILD_EXTERNAL_DEPS
 
-(Defaults to `OFF`) If enabled, the CMake will download and compile dependencies.
+(Defaults to `ON`) If enabled, the CMake will download and compile dependencies.
 
 #### EDGE_SDK_NO_EXCEPTION
 
