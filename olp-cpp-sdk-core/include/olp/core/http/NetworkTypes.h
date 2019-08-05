@@ -57,8 +57,11 @@ enum class ErrorCode {
   OFFLINE_ERROR = -4,
   CANCELLED_ERROR = -5,
   AUTHENTICATION_ERROR = -6,
-  TIMEOUT_ERROR = -7,
-  UNKNOWN_ERROR = -8,
+  TIMEOUT_ERROR = -7,          /*!< The timeout interval of the request expired
+                                before request was completed. */
+  NETWORK_OVERLOAD_ERROR = -8, /*!< Reached maximum limit of active requests
+                                that network can process. */
+  UNKNOWN_ERROR = -9,          ///< Internal error, that can't be interpreted
 };
 
 /**

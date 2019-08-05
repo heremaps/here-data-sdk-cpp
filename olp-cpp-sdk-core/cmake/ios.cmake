@@ -22,6 +22,20 @@ if(IOS)
         ${NETWORK_IOS_SOURCES}
         ${NETWORK_IOS_INTERNAL_INCLUDES}
     )
+
+    set(EDGE_SDK_HTTP_IOS_SOURCES
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPNetworkIOS.mm"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPNetworkIOS.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPNetworkConstants.mm"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPNetworkConstants.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPHttpTask.mm"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPHttpTask+Internal.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPHttpTask.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPHttpClient.mm"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPHttpClient+Internal.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPHttpClient.h"
+    )
+
     add_definitions(-DNETWORK_HAS_IOS)
 else()
     set(NETWORK_IOS_SOURCES)
