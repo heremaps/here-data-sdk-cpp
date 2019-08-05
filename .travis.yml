@@ -26,12 +26,12 @@ matrix:
     dist: xenial
     language: cpp
     before_script:
-    - wget https://dl.google.com/android/repository/android-ndk-r19c-linux-x86_64.zip
-    - wget https://dl.google.com/android/repository/android-21_r01.zip
-    - unzip -qq android-ndk-r19c-linux-x86_64.zip
-    - unzip -qq android-21_r01.zip
-    - export ANDROID_SDK_ROOT="$TRAVIS_BUILD_DIR/android-5.0"
-    - export ANDROID_NDK_HOME="$TRAVIS_BUILD_DIR/android-ndk-r19c"
+    - wget https://dl.google.com/android/repository/android-ndk-r20-linux-x86_64.zip
+    - wget https://dl.google.com/android/repository/android-28_r06.zip
+    - unzip -qq android-ndk-r20-linux-x86_64.zip
+    - unzip -qq android-28_r06.zip
+    - export ANDROID_SDK_ROOT="$TRAVIS_BUILD_DIR/android-9.0"
+    - export ANDROID_NDK_HOME="$TRAVIS_BUILD_DIR/android-ndk-r20"
     script: $WORKSPACE/scripts/android/build.sh
   - os: osx
     env: BUILD_TYPE=RelWithDebInfo WORKSPACE=$TRAVIS_BUILD_DIR
