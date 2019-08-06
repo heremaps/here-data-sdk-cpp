@@ -44,5 +44,58 @@ enum class RequestIdConstants : std::uint64_t {
   RequestIdMax = std::numeric_limits<RequestId>::max(),
 };
 
+/**
+ * @brief Common Network error codes.
+ */
+enum class ErrorCode {
+  NO_ERROR = 0,
+  IO_ERROR = -1,
+  AUTHORIZATION_ERROR = -2,
+  INVALID_URL_ERROR = -3,
+  OFFLINE_ERROR = -4,
+  CANCELLED_ERROR = -5,
+  AUTHENTICATION_ERROR = -6,
+  TIMEOUT_ERROR = -7,
+  UNKNOWN_ERROR = -8,
+};
+
+/**
+ * @brief Helper class representing the outcome of making a network request.
+ * It will contain either a valid RequestId or the error code in case request
+ * trigger failed.  The caller must check whether the outcome of the request was
+ * a success before attempting to access the result or the error.
+ */
+class NetworkStatus {
+ public:
+  NetworkStatus(RequestId id) : request_id_(id) {}
+  NetworkStatus(ErrorCode code) : error_code_(code) {}
+
+  /**
+   * @brief Check if network request push was successfull.
+   */
+  bool IsSuccessfull() const {
+    return error_code_ == ErrorCode::NO_ERROR &&
+           request_id_ !=
+               static_cast<RequestId>(RequestIdConstants::RequestIdInvalid);
+  }
+
+  /**
+   * @brief Get request id.
+   */
+  RequestId GetRequestId() const { return request_id_; }
+
+  /**
+   * @brief Get error code.
+   */
+  ErrorCode GetErrorCode() const { return error_code_; }
+
+ private:
+  /// Request ID.
+  RequestId request_id_{
+      static_cast<RequestId>(RequestIdConstants::RequestIdInvalid)};
+  /// Error code.
+  ErrorCode error_code_{ErrorCode::NO_ERROR};
+};
+
 }  // namespace network2
 }  // namespace olp

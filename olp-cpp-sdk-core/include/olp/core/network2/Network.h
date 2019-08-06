@@ -61,11 +61,11 @@ class CORE_API Network {
    * @return requests id assigned to the request or
    * RequestIdConstants::RequestIdInvalid in case of failure.
    */
-  virtual RequestId Send(NetworkRequest request,
-                         std::shared_ptr<std::ostream> payload,
-                         Callback callback,
-                         HeaderCallback header_callback = nullptr,
-                         DataCallback data_callback = nullptr) = 0;
+  virtual NetworkStatus Send(NetworkRequest request,
+                             std::shared_ptr<std::ostream> payload,
+                             Callback callback,
+                             HeaderCallback header_callback = nullptr,
+                             DataCallback data_callback = nullptr) = 0;
 
   /**
    * @brief Cancel request by id.
