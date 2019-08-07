@@ -5,10 +5,9 @@ env: WORKSPACE=$TRAVIS_BUILD_DIR
 addons:
   apt:
     packages:
-    - cmake
+    - libboost-all-dev
     - libssl-dev
     - libcurl4-openssl-dev 
-    - libboost-all-dev
     - clang
 matrix:
   include:
@@ -21,23 +20,36 @@ matrix:
     name: Linux Build using gcc & tests & code coverage
     script: $WORKSPACE/scripts/linux/build.sh && $WORKSPACE/scripts/linux/test.sh
   - language: android
-    name: Android Build
-    os : linux
     dist: xenial
-    language: cpp
+    jdk: oraclejdk8
+    name: Android Build
+    android:
+      components:
+      - tools
+      - platform-tools
+      - build-tools-28.0.3
+      - android-28      
+      - extra-google-m2repository
+      - extra-android-m2repository # for design library
+      licenses:
+      - android-sdk-preview-license-.+
+      - android-sdk-license-.+
+      - google-gdk-license-.+    
+      - patcher
+      - ndk-bundle
+    before_install:
+    - echo y | sdkmanager "ndk-bundle"    
     before_script:
-    - wget https://dl.google.com/android/repository/android-ndk-r19c-linux-x86_64.zip
-    - wget https://dl.google.com/android/repository/android-21_r01.zip
-    - unzip -qq android-ndk-r19c-linux-x86_64.zip
-    - unzip -qq android-21_r01.zip
-    - export ANDROID_SDK_ROOT="$TRAVIS_BUILD_DIR/android-5.0"
-    - export ANDROID_NDK_HOME="$TRAVIS_BUILD_DIR/android-ndk-r19c"
+    - wget https://dl.google.com/android/repository/android-ndk-r20-linux-x86_64.zip
+    - unzip -qq android-ndk-r20-linux-x86_64.zip
     script: $WORKSPACE/scripts/android/build.sh
   - os: osx
+    osx_image: xcode10.2
     env: BUILD_TYPE=RelWithDebInfo WORKSPACE=$TRAVIS_BUILD_DIR
     name: OSX Build
     script: $WORKSPACE/scripts/linux/build.sh
   - os: osx
+    osx_image: xcode10.2
     name: IOS Build
     script: $WORKSPACE/scripts/ios/build.sh  
 branches:

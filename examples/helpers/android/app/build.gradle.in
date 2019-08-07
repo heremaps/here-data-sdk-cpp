@@ -5,7 +5,7 @@ android {
 
     defaultConfig {
         applicationId "com.here.android.olp.@EDGE_SDK_EXAMPLE_PACKAGE_NAME@"
-        minSdkVersion 15
+        minSdkVersion 21
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
@@ -29,7 +29,11 @@ android {
                         "@EDGE_SDK_EXAMPLE_NETWORK_PROTOCOL_JAR@",
                         "@EDGE_SDK_EXAMPLE_LEVELDB_DIR@",
                         // required for finding installed packages in sysroot
-                        "-DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH"
+                        "-DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH",
+                        "-DBOOST_ROOT=@BOOST_ROOT@",
+                        "-DBoost_INCLUDE_DIR=@BOOST_ROOT@",
+                        "-DBoost_LIBRARY_DIR=@BOOST_ROOT@",
+                        "-DANDROID_PLATFORM=@ANDROID_PLATFORM@"
 
                 cppFlags "-std=c++11"
                 targets "@EDGE_SDK_EXAMPLE_TARGET_NAME@"

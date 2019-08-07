@@ -47,7 +47,7 @@ The SDK has been tested on the following platforms and with the following requir
 | ------- | -------- |
 | Ubuntu | GCC 5.4 and Clang 7.0 |
 | Windows | MSVC++ 2017  |
-| MacOS | Apple Clang 9.1 |
+| MacOS | Apple Clang 10.0.1 |
 | iOS |  XCode 10.2, Swift 5.0 |
 | Android |  API level 21 |
 

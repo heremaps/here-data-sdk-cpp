@@ -31,6 +31,7 @@ endif()
 
 find_library(log-lib log)
 
+find_package(Boost REQUIRED)
 find_package(olp-cpp-sdk-authentication REQUIRED)
 find_package(olp-cpp-sdk-dataservice-read REQUIRED)
 find_package(olp-cpp-sdk-dataservice-write REQUIRED)
@@ -51,6 +52,11 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${EDGE_SDK_NETWORK_PROTOCOL_JAR_FULL_PATH}
         ${CMAKE_CURRENT_SOURCE_DIR}/libs/${EDGE_SDK_NETWORK_PROTOCOL_JAR_NAME}
+)
+
+target_include_directories(@EDGE_SDK_EXAMPLE_TARGET_NAME@
+    PUBLIC
+        ${Boost_INCLUDE_DIRS}
 )
 
 target_link_libraries(@EDGE_SDK_EXAMPLE_TARGET_NAME@
