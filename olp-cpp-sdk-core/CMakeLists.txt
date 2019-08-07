@@ -144,6 +144,7 @@ set(EDGE_SDK_HTTP_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/http/NetworkRequest.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/http/NetworkResponse.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/http/NetworkSettings.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/http/NetworkUtils.cpp"
 )
 
 if (ANDROID)
@@ -169,7 +170,7 @@ if (WIN32)
 endif()
 
 file(GLOB PLATFORM_SOURCE
-i    "${CMAKE_CURRENT_SOURCE_DIR}/src/context/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/context/*.cpp"
 )
 file(GLOB PORTING_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/porting/*.cpp"

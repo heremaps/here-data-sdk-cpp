@@ -17,6 +17,12 @@
 if(WIN32)
     file(GLOB NETWORK_WINHTTP_SOURCES "${CMAKE_CURRENT_LIST_DIR}/../src/network/winhttp/*.cpp")
     set(NETWORK_WINHTTP_SOURCES ${NETWORK_WINHTTP_SOURCES} ${CMAKE_CURRENT_LIST_DIR}/../src/network/socket/NetworkConnectivitySocketImpl.cpp)
+
+    set(EDGE_SDK_HTTP_WIN_SOURCES
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/winhttp/NetworkWinHttp.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/winhttp/NetworkWinHttp.h"
+    )
+
     add_definitions(-DNETWORK_HAS_WINHTTP)
     set(NETWORK_WINHTTP_LIBRARIES winhttp)
 
