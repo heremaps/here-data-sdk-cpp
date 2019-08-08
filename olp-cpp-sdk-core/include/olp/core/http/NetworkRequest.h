@@ -24,11 +24,11 @@
 #include <string>
 #include <vector>
 
-#include "olp/core/CoreApi.h"
-#include "NetworkSettings.h"
+#include <olp/core/CoreApi.h>
+#include <olp/core/http/NetworkSettings.h>
 
 namespace olp {
-namespace network2 {
+namespace http {
 
 /**
  * @brief This class represents network request abstraction for an HTTP request.
@@ -135,5 +135,5 @@ class CORE_API NetworkRequest final {
   NetworkSettings settings_;
 };
 
-}  // namespace network2
+}  // namespace http
 }  // namespace olp

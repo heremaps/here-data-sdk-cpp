@@ -23,7 +23,7 @@
 #include <limits>
 
 namespace olp {
-namespace network2 {
+namespace http {
 
 /**
  * @brief Represents a unique request id.
@@ -69,7 +69,21 @@ enum class ErrorCode {
  */
 class SendOutcome final {
  public:
+  /// Invalid RequestId alias.
+  static constexpr RequestId kInvalidRequestId =
+      static_cast<RequestId>(RequestIdConstants::RequestIdInvalid);
+
+  /**
+   * @brief Specialized constructor for setting and successfull request ourcome.
+   * @param request_id The valid unique RequestId.
+   */
   explicit SendOutcome(RequestId request_id) : request_id_(request_id) {}
+
+  /**
+   * @brief Specialized constructor for setting an unsuccessfull request
+   * outcome.
+   * @param error_code The error code specifying why the request failed.
+   */
   explicit SendOutcome(ErrorCode error_code) : error_code_(error_code) {}
 
   /**
@@ -79,8 +93,7 @@ class SendOutcome final {
    */
   bool IsSuccessfull() const {
     return error_code_ == ErrorCode::NO_ERROR &&
-           request_id_ !=
-               static_cast<RequestId>(RequestIdConstants::RequestIdInvalid);
+           request_id_ != kInvalidRequestId;
   }
 
   /**
@@ -99,11 +112,10 @@ class SendOutcome final {
 
  private:
   /// Request ID.
-  RequestId request_id_{
-      static_cast<RequestId>(RequestIdConstants::RequestIdInvalid)};
+  RequestId request_id_{kInvalidRequestId};
   /// Error code.
   ErrorCode error_code_{ErrorCode::NO_ERROR};
 };
 
-}  // namespace network2
+}  // namespace http
 }  // namespace olp

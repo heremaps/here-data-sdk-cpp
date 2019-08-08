@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
-#include "olp/core/network2/NetworkProxySettings.h"
+#include "olp/core/http/NetworkProxySettings.h"
 
 namespace olp {
-namespace network2 {
+namespace http {
 
 const std::string& NetworkProxySettings::GetHostname() const {
   return hostname_;
@@ -65,5 +65,5 @@ NetworkProxySettings& NetworkProxySettings::WithPassword(std::string password) {
   return *this;
 }
 
-}  // end of namespace network2
-}  // end of namespace olp
+}  // namespace http
+}  // namespace olp

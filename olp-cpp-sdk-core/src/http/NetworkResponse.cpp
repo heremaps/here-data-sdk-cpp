@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
-#include "olp/core/network2/NetworkResponse.h"
+#include "olp/core/http/NetworkResponse.h"
 
 namespace olp {
-namespace network2 {
+namespace http {
 
 bool NetworkResponse::IsCancelled() const { return cancelled_; }
 
@@ -50,5 +50,5 @@ NetworkResponse& NetworkResponse::WithRequestId(RequestId id) {
   return *this;
 }
 
-}  // end of namespace network2
-}  // end of namespace olp
+}  // namespace http
+}  // namespace olp

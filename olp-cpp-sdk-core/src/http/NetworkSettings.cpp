@@ -17,12 +17,12 @@
  * License-Filename: LICENSE
  */
 
-#include "olp/core/network2/NetworkSettings.h"
+#include "olp/core/http/NetworkSettings.h"
 
 namespace olp {
-namespace network2 {
+namespace http {
 
-size_t NetworkSettings::GetRetries() const { return retries_; }
+std::size_t NetworkSettings::GetRetries() const { return retries_; }
 
 int NetworkSettings::GetConnectionTimeout() const {
   return connection_timeout_;
@@ -34,7 +34,7 @@ const NetworkProxySettings& NetworkSettings::GetProxySettings() const {
   return proxy_settings_;
 }
 
-NetworkSettings& NetworkSettings::WithRetries(size_t retries) {
+NetworkSettings& NetworkSettings::WithRetries(std::size_t retries) {
   retries_ = retries;
   return *this;
 }
@@ -55,5 +55,5 @@ NetworkSettings& NetworkSettings::WithProxySettings(
   return *this;
 }
 
-}  // end of namespace network2
-}  // end of namespace olp
+}  // namespace http
+}  // namespace olp

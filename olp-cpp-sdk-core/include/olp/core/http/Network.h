@@ -21,14 +21,16 @@
 
 #include <cstdint>
 #include <functional>
+#include <memory>
 
 #include <olp/core/CoreApi.h>
-#include <olp/core/network2/NetworkRequest.h>
-#include <olp/core/network2/NetworkResponse.h>
-#include <olp/core/network2/NetworkTypes.h>
+#include <olp/core/http/NetworkRequest.h>
+#include <olp/core/http/NetworkResponse.h>
+#include <olp/core/http/NetworkTypes.h>
 
 namespace olp {
-namespace network2 {
+namespace http {
+
 /**
  * @brief The Network class represents HTTP client abstraction.
  */
@@ -43,10 +45,13 @@ class CORE_API Network {
       std::function<void(std::string key, std::string value)>;
 
   /// Represents callback to be called when a chunk of data has been received.
-  using DataCallback = std::function<void(const uint8_t* data,
-                                          std::uint64_t offset, size_t length)>;
+  using DataCallback = std::function<void(
+      const std::uint8_t* data, std::uint64_t offset, std::size_t length)>;
 
-  virtual ~Network();
+  /// Represents the request and response payload type
+  using Payload = std::shared_ptr<std::ostream>;
+
+  virtual ~Network() = default;
 
   /**
    * @brief Send network request.
@@ -64,8 +69,7 @@ class CORE_API Network {
    * unique request identifier or a \c ErrorCode in case of failure. In case of
    * failure no callbacks will be triggered.
    */
-  virtual SendOutcome Send(NetworkRequest request,
-                           std::shared_ptr<std::ostream> payload,
+  virtual SendOutcome Send(NetworkRequest request, Payload payload,
                            Callback callback,
                            HeaderCallback header_callback = nullptr,
                            DataCallback data_callback = nullptr) = 0;
@@ -79,5 +83,5 @@ class CORE_API Network {
   virtual void Cancel(RequestId id) = 0;
 };
 
-}  // namespace network2
+}  // namespace http
 }  // namespace olp
