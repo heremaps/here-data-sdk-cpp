@@ -44,7 +44,7 @@ class CORE_API Network {
 
   /// Represents callback to be called when a chunk of data has been received.
   using DataCallback = std::function<void(const uint8_t* data,
-                                          std::uint64_t offset, size_t len)>;
+                                          std::uint64_t offset, size_t length)>;
 
   virtual ~Network();
 
@@ -52,24 +52,29 @@ class CORE_API Network {
    * @brief Send network request.
    * @param[in] request Request to be sent.
    * @param[in] payload Stream to store response payload data.
-   * @param[in] callback Callback to be called when request is processed or
-   * cancelled.
-   * @param[in] header_callback Callback to be called when a header is
-   * received.
+   * @param[in] callback Callback to be called when request is fully processed
+   * or cancelled. After this call there will be no more callbacks triggered and
+   * users can consider the request as done.
+   * @param[in] header_callback Callback to be called when a HTTP header has
+   * been received. Each HTTP header entry will result in a callback.
    * @param[in] data_callback Callback to be called when a chunk of data is
-   * received.
-   * @return requests id assigned to the request or
-   * RequestIdConstants::RequestIdInvalid in case of failure.
+   * received. This callback can be triggered multiple times all prior to the
+   * final Callback call.
+   * @return SendOutcome which represent either a valid \c RequestId as the
+   * unique request identifier or a \c ErrorCode in case of failure. In case of
+   * failure no callbacks will be triggered.
    */
-  virtual NetworkStatus Send(NetworkRequest request,
-                             std::shared_ptr<std::ostream> payload,
-                             Callback callback,
-                             HeaderCallback header_callback = nullptr,
-                             DataCallback data_callback = nullptr) = 0;
+  virtual SendOutcome Send(NetworkRequest request,
+                           std::shared_ptr<std::ostream> payload,
+                           Callback callback,
+                           HeaderCallback header_callback = nullptr,
+                           DataCallback data_callback = nullptr) = 0;
 
   /**
-   * @brief Cancel request by id.
-   * @param[in] id Request id.
+   * @brief Cancel request by RequestId.
+   * Once the request was cancelled the user will receive a final Callback with
+   * an appropriate NetworkResponse marked as cancelled.
+   * @param[in] id The unique RequestId of the request to be cancelled.
    */
   virtual void Cancel(RequestId id) = 0;
 };

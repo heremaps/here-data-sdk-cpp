@@ -26,16 +26,18 @@ namespace olp {
 namespace network2 {
 
 /**
- * @brief Represents request id.
- * Values of this type are returned by Network::Send and used by
- * Network::Cancel.
+ * @brief Represents a unique request id.
+ * Values of this type mark a unique request all the way until completion.
+ * This value is returned by Network::Send, used by
+ * Network::Cancel and NetworkResponse so that the user can track a request all
+ * the way.
  */
 using RequestId = std::uint64_t;
 
 /**
  * @brief List of special values for NetworkRequestId.
  */
-enum class RequestIdConstants : std::uint64_t {
+enum class RequestIdConstants : RequestId {
   /// Value that indicates invalid request id.
   RequestIdInvalid = std::numeric_limits<RequestId>::min(),
   /// Minimal value of valid request id.
@@ -65,13 +67,15 @@ enum class ErrorCode {
  * trigger failed.  The caller must check whether the outcome of the request was
  * a success before attempting to access the result or the error.
  */
-class NetworkStatus {
+class SendOutcome final {
  public:
-  NetworkStatus(RequestId id) : request_id_(id) {}
-  NetworkStatus(ErrorCode code) : error_code_(code) {}
+  explicit SendOutcome(RequestId request_id) : request_id_(request_id) {}
+  explicit SendOutcome(ErrorCode error_code) : error_code_(error_code) {}
 
   /**
    * @brief Check if network request push was successfull.
+   * @return \c true in case there is no error and a valid RequestId, \c false
+   * otherwise.
    */
   bool IsSuccessfull() const {
     return error_code_ == ErrorCode::NO_ERROR &&
@@ -81,11 +85,15 @@ class NetworkStatus {
 
   /**
    * @brief Get request id.
+   * @return A valid RequestId in case request was successfull, \c
+   * RequestIdConstants::RequestIdInvalid otherwise.
    */
   RequestId GetRequestId() const { return request_id_; }
 
   /**
    * @brief Get error code.
+   * @return \c ErrorCode::NO_ERROR in case request was successfull, any other
+   * ErrorCode otherwise.
    */
   ErrorCode GetErrorCode() const { return error_code_; }
 
