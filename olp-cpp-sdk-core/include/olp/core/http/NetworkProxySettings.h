@@ -25,16 +25,15 @@
 #include <olp/core/CoreApi.h>
 
 namespace olp {
-namespace network2 {
+namespace http {
+
 /**
  * @brief This class contains proxy configuration for the network interface to
  * be applied per request.
  */
 class CORE_API NetworkProxySettings final {
  public:
-  /**
-   * @brief The proxy type.
-   */
+  /// The proxy type.
   enum class Type {
     NONE,     ///< Don't use proxy.
     HTTP,     ///< HTTP proxy as in https://www.ietf.org/rfc/rfc2068.txt.
@@ -44,7 +43,6 @@ class CORE_API NetworkProxySettings final {
     SOCKS5_HOSTNAME,  ///< SOCKS5 Proxy. Proxy resolves URL hostname.
   };
 
- public:
   /**
    * @brief Get proxy type.
    * @return proxy type.
@@ -117,11 +115,11 @@ class CORE_API NetworkProxySettings final {
   std::uint16_t port_{0};
   /// The hostname of the proxy.
   std::string hostname_;
-  /// Username.
+  /// The username for the proxy.
   std::string username_;
-  /// Password.
+  /// The password for the proxy.
   std::string password_;
 };
 
-}  // namespace network2
+}  // namespace http
 }  // namespace olp

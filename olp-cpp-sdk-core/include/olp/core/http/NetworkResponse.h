@@ -22,10 +22,10 @@
 #include <string>
 
 #include <olp/core/CoreApi.h>
-#include <olp/core/network2/NetworkTypes.h>
+#include <olp/core/http/NetworkTypes.h>
 
 namespace olp {
-namespace network2 {
+namespace http {
 /**
  * @brief This class represents network response abstraction for an HTTP
  * request.
@@ -78,7 +78,7 @@ class CORE_API NetworkResponse final {
    * @brief Get id of associated network request.
    * @return id of associated network request.
    */
-   RequestId GetRequestId() const;
+  RequestId GetRequestId() const;
 
   /**
    * @brief Set id of associated network request.
@@ -98,5 +98,5 @@ class CORE_API NetworkResponse final {
   bool cancelled_{false};
 };
 
-}  // namespace network2
+}  // namespace http
 }  // namespace olp

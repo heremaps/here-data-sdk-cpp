@@ -23,11 +23,11 @@
 #include <string>
 
 #include <olp/core/CoreApi.h>
-#include <olp/core/network2/NetworkProxySettings.h>
-#include <olp/core/network2/NetworkTypes.h>
+#include <olp/core/http/NetworkProxySettings.h>
+#include <olp/core/http/NetworkTypes.h>
 
 namespace olp {
-namespace network2 {
+namespace http {
 
 /**
  * @brief This class contains configuration for the network.
@@ -38,14 +38,14 @@ class CORE_API NetworkSettings final {
    * @brief Get maximum number of retries for HTTP request.
    * @return maximum number of retries for HTTP request.
    */
-  size_t GetRetries() const;
+  std::size_t GetRetries() const;
 
   /**
    * @brief Set maximum number of retries for HTTP request.
    * @param[in] retries Maximum number of retries for HTTP request.
    * @return reference to *this.
    */
-  NetworkSettings& WithRetries(size_t retries);
+  NetworkSettings& WithRetries(std::size_t retries);
 
   /**
    * @brief Get connection timeout in seconds.
@@ -88,7 +88,7 @@ class CORE_API NetworkSettings final {
 
  private:
   /// Maximum number of retries for HTTP request.
-  size_t retries_{3};
+  std::size_t retries_{3};
   /// Connection timeout in seconds.
   int connection_timeout_{60};
   /// Transfer timeout in seconds.
@@ -97,5 +97,5 @@ class CORE_API NetworkSettings final {
   NetworkProxySettings proxy_settings_;
 };
 
-}  // namespace network2
+}  // namespace http
 }  // namespace olp

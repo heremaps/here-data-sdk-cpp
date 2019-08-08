@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
-#include "olp/core/network2/NetworkRequest.h"
+#include "olp/core/http/NetworkRequest.h"
 
 namespace olp {
-namespace network2 {
+namespace http {
 
 NetworkRequest::NetworkRequest(std::string url) : url_{std::move(url)} {}
 
@@ -55,14 +55,14 @@ NetworkRequest& NetworkRequest::WithVerb(HttpVerb verb) {
 }
 
 NetworkRequest& NetworkRequest::WithBody(RequestBodyType body) {
-  body_ = body;
+  body_ = std::move(body);
   return *this;
 }
 
 NetworkRequest& NetworkRequest::WithSettings(NetworkSettings settings) {
-  settings_ = settings;
+  settings_ = std::move(settings);
   return *this;
 }
 
-}  // end of namespace network2
-}  // end of namespace olp
+}  // namespace http
+}  // namespace olp
