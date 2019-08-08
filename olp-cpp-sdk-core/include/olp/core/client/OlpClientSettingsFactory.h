@@ -26,7 +26,11 @@
 namespace olp {
 namespace thread {
 class TaskScheduler;
-}
+}  // namespace thread
+
+namespace http {
+class Network;
+}  // namespace http
 
 namespace client {
 /**
@@ -43,6 +47,13 @@ class CORE_API OlpClientSettingsFactory final {
    */
   static std::unique_ptr<thread::TaskScheduler> CreateDefaultTaskScheduler(
       size_t thread_count = 1u);
+
+  /**
+   * @brief Creates a Network instance used for all non-local requests,
+   * which is defaulted to platform-specific implementation.
+   * @return An instance of Network.
+   */
+  static std::unique_ptr<http::Network> CreateDefaultNetworkRequestHandler();
 };
 
 }  // namespace client

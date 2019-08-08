@@ -38,7 +38,11 @@ class HttpResponse;
 
 namespace thread {
 class TaskScheduler;
-}
+}  // namespace thread
+
+namespace http {
+class Network;
+}  // namespace http
 
 namespace client {
 
@@ -177,6 +181,12 @@ struct OlpClientSettings {
    * calls will be performed synchronous.
    */
   std::shared_ptr<thread::TaskScheduler> task_scheduler = nullptr;
+
+  /**
+   * @brief The network instance to be used to internally operate with OLP
+   * services.
+   */
+  std::shared_ptr<http::Network> network_request_handler = nullptr;
 };
 
 }  // namespace client
