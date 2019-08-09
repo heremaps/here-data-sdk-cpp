@@ -18,6 +18,8 @@
 if(CURL_FOUND AND NOT NETWORK_NO_CURL)
     aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/../src/network/curl NETWORK_CURL_SOURCES)
     set(NETWORK_CURL_SOURCES ${NETWORK_CURL_SOURCES} ${CMAKE_CURRENT_LIST_DIR}/../src/network/socket/NetworkConnectivitySocketImpl.cpp)
+    set(EDGE_SDK_HTTP_CURL_SOURCES ${EDGE_SDK_HTTP_CURL_SOURCES} ${CMAKE_CURRENT_LIST_DIR}/../src/http/curl/NetworkCurl.cpp)
+
     add_definitions(-DNETWORK_HAS_CURL)
     set(NETWORK_CURL_LIBRARIES ${CURL_LIBRARIES})
     if(WIN32)
