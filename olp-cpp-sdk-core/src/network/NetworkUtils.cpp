@@ -29,7 +29,7 @@ char NetworkUtils::SimpleToUpper(char c) {
 
 bool NetworkUtils::CaseInsensitiveCompare(const std::string& str1,
                                           const std::string& str2,
-                                          size_t offset /* = 0*/) {
+                                          size_t offset) {
   if ((str1.length() - offset) != str2.length()) return false;
   for (std::size_t i = 0; i < str2.length(); i++) {
     if (SimpleToUpper(str1[i + offset]) != SimpleToUpper(str2[i])) return false;
@@ -39,7 +39,7 @@ bool NetworkUtils::CaseInsensitiveCompare(const std::string& str1,
 
 bool NetworkUtils::CaseInsensitiveStartsWith(const std::string& str1,
                                              const std::string& str2,
-                                             size_t offset /* = 0*/) {
+                                             size_t offset) {
   if ((str1.length() - offset) < str2.length()) return false;
   for (std::size_t i = 0; i < str2.length(); i++) {
     if (SimpleToUpper(str1[i + offset]) != SimpleToUpper(str2[i])) return false;
@@ -49,7 +49,7 @@ bool NetworkUtils::CaseInsensitiveStartsWith(const std::string& str1,
 
 size_t NetworkUtils::CaseInsensitiveFind(const std::string& str1,
                                          const std::string& str2,
-                                         size_t offset /* = 0*/) {
+                                         size_t offset) {
   while (offset < str1.length() - str2.length()) {
     if (SimpleToUpper(str1[offset]) == SimpleToUpper(str2[0])) {
       if (CaseInsensitiveStartsWith(str1, str2, offset)) return offset;

@@ -55,6 +55,13 @@ class CORE_API Dir {
    * @return temporary directory path
    */
   static std::string TempDirectory();
+
+  /**
+   * @brief Check whether file exists.
+   * @param[in] file_path Path to the file.
+   * @return \c true if any file with the given path exists, \c false otherwise.
+   */
+  static bool FileExists(const std::string& file_path);
 };
 
 }  // namespace utils

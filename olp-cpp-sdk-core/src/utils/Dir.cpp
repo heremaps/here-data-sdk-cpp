@@ -351,6 +351,38 @@ std::string Dir::TempDirectory() {
 #endif
 }
 
+bool Dir::FileExists(const std::string& file_path) {
+#ifdef _WIN32
+#ifdef _UNICODE
+  std::wstring wstrPath = ConvertStringToWideString(file_path);
+  const TCHAR* syspath = wstrPath.c_str();
+#else
+  const TCHAR* syspath = file_path.c_str();
+#endif  // _UNICODE
+
+  // Returns RET_OK, only if it finds directory
+  DWORD attributes = GetFileAttributes(syspath);
+
+  if (attributes == INVALID_FILE_ATTRIBUTES) {
+    return false;
+  }
+
+  return (attributes & FILE_ATTRIBUTE_NORMAL) != 0;
+
+#else  // _WIN32
+
+  if (file_path.empty()) {
+    return false;
+  }
+
+  struct stat stat_info;
+
+  return (0 == stat(file_path.c_str(), &stat_info)) &&
+         S_ISREG(stat_info.st_mode);
+
+#endif
+}
+
 // -------------------------------------------------------------------------------------------------
 
 }  // namespace utils
