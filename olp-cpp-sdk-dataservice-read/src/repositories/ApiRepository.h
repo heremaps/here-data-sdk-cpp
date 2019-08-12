@@ -54,9 +54,11 @@ class ApiRepository final {
       const std::string& service, const std::string& serviceVersion,
       const ApiClientCallback& callback);
 
+  const client::OlpClientSettings* GetOlpClientSettings() const;
+
  private:
   olp::client::HRN hrn_;
-  std::shared_ptr<olp::client::OlpClientSettings> settings_;
+  std::shared_ptr<client::OlpClientSettings> settings_;
   std::shared_ptr<ApiCacheRepository> cache_;
   std::shared_ptr<MultiRequestContext<ApiClientResponse, ApiClientCallback>>
       multiRequestContext_;

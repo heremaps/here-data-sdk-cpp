@@ -36,10 +36,16 @@ namespace thread {
  */
 class CORE_API TaskScheduler {
  public:
-  /// Alias for abstract interface input
+  /// Alias for abstract interface input.
   using CallFuncType = std::function<void()>;
 
   virtual ~TaskScheduler() = default;
+
+  /**
+   * @brief Use this method to schedule a asynchronous task.
+   * @param[in] func The callable target to be added to the scheduling pipeline.
+   */
+  void ScheduleTask(CallFuncType&& func) { EnqueueTask(std::move(func)); }
 
   /**
    * @brief Use this methods to schedule a asynchronous cancellable task.
@@ -55,7 +61,9 @@ class CORE_API TaskScheduler {
    * this. Tasks are also able to cancel the operation themselves as they get a
    * non-const reference to the \c CancellationContext.
    */
-  template <class Function>
+  template <class Function, typename std::enable_if<!std::is_convertible<
+                                decltype(std::declval<Function>()),
+                                CallFuncType>::value>::type* = nullptr>
   client::CancellationContext ScheduleTask(Function&& func) {
     client::CancellationContext context;
     auto task = [func, context]() {
@@ -69,14 +77,16 @@ class CORE_API TaskScheduler {
 
  protected:
   /**
-   * @brief Abstract enqueue task interface to be implemented by subclass.
+   * @brief Abstract enqueue task interface to be implemented by
+   * subclass.
    *
-   * Implement this method in your subclass taking TaskScheduler as base and
-   * provide a custom algorithm for scheduling tasks enqueued by the SDK.
+   * Implement this method in your subclass taking TaskScheduler
+   * as base and provide a custom algorithm for scheduling tasks
+   * enqueued by the SDK.
    *
-   * @param[in] func Rvalue reference of the task to be enqueued. Move this task
-   * into your queue. No internal reference is kept, once called you own the
-   * task.
+   * @param[in] func Rvalue reference of the task to be enqueued.
+   * Move this task into your queue. No internal reference is
+   * kept, once called you own the task.
    */
   virtual void EnqueueTask(CallFuncType&&) = 0;
 };

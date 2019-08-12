@@ -98,6 +98,10 @@ olp::client::CancellationToken ApiRepository::getApiClient(
                                                   callback);
 }
 
+const client::OlpClientSettings* ApiRepository::GetOlpClientSettings() const {
+  return settings_ ? settings_.get() : nullptr;
+}
+
 }  // namespace repository
 }  // namespace read
 }  // namespace dataservice
