@@ -50,7 +50,7 @@ enum class RequestIdConstants : RequestId {
  * @brief Common Network error codes.
  */
 enum class ErrorCode {
-  NO_ERROR = 0,
+  SUCCESS = 0,
   IO_ERROR = -1,
   AUTHORIZATION_ERROR = -2,
   INVALID_URL_ERROR = -3,
@@ -95,7 +95,7 @@ class SendOutcome final {
    * otherwise.
    */
   bool IsSuccessfull() const {
-    return error_code_ == ErrorCode::NO_ERROR &&
+    return error_code_ == ErrorCode::SUCCESS &&
            request_id_ != kInvalidRequestId;
   }
 
@@ -108,7 +108,7 @@ class SendOutcome final {
 
   /**
    * @brief Get error code.
-   * @return \c ErrorCode::NO_ERROR in case request was successfull, any other
+   * @return \c ErrorCode::SUCCESS in case request was successfull, any other
    * ErrorCode otherwise.
    */
   ErrorCode GetErrorCode() const { return error_code_; }
@@ -117,7 +117,7 @@ class SendOutcome final {
   /// Request ID.
   RequestId request_id_{kInvalidRequestId};
   /// Error code.
-  ErrorCode error_code_{ErrorCode::NO_ERROR};
+  ErrorCode error_code_{ErrorCode::SUCCESS};
 };
 
 }  // namespace http
