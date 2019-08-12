@@ -408,7 +408,7 @@ SendOutcome NetworkCurl::Send(NetworkRequest request,
       request, request_id, payload, std::move(header_callback),
       std::move(data_callback), std::move(callback));
 
-  if (error_status == ErrorCode::NO_ERROR) {
+  if (error_status == ErrorCode::SUCCESS) {
     return SendOutcome(request_id);
   }
 
@@ -585,7 +585,7 @@ ErrorCode NetworkCurl::SendImplementation(
     std::lock_guard<std::mutex> lock(event_mutex_);
     AddEvent(EventInfo::Type::SEND_EVENT, handle);
   }
-  return ErrorCode::NO_ERROR;  // NetworkProtocol::ErrorNone;
+  return ErrorCode::SUCCESS;  // NetworkProtocol::ErrorNone;
 }
 
 void NetworkCurl::Cancel(RequestId id) {
