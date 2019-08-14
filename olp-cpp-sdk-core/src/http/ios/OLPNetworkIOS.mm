@@ -24,6 +24,7 @@
 #include "olp/core/logging/Log.h"
 #include "olp/core/http/Network.h"
 #include "olp/core/http/NetworkTypes.h"
+#include "../NetworkUtils.h"
 
 #import "OLPHttpClient+Internal.h"
 #import "OLPHttpTask.h"
@@ -286,6 +287,7 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
         } else {
           status = cancelled ? static_cast<int>(ErrorCode::CANCELLED_ERROR)
                              : response_data.status;
+          error_str = HttpErrorToString(status);
         }
         callback(olp::http::NetworkResponse()
                      .WithRequestId(strong_task.requestId)
@@ -340,8 +342,8 @@ void OLPNetworkIOS::Cleanup() {
   for (auto& pair : completed_messages) {
     pair.second(NetworkResponse()
                     .WithRequestId(pair.first)
-                    .WithStatus(static_cast<int>(ErrorCode::CANCELLED_ERROR))
-                    .WithError("Network client is destroyed"));
+                    .WithStatus(static_cast<int>(ErrorCode::OFFLINE_ERROR))
+                    .WithError("Offline: network is deinitialized"));
   }
 }
 
