@@ -38,7 +38,7 @@ const std::string kEndpoint = "endpoint";
 const std::string kAppid = "appid";
 const std::string kSecret = "secret";
 const std::string kCatalog = "catalog";
-const std::string kIndexLayer = "index-layer";
+const std::string kIndexLayer = "index_layer";
 
 // TODO: Move duplicate test code to common header
 namespace {

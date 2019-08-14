@@ -38,8 +38,8 @@ const std::string kSecret = "secret";
 const std::string kCatalog = "catalog";
 const std::string kLayer = "layer";
 const std::string kLayer2 = "layer2";
-const std::string kLayerSdii = "layer-sdii";
-const std::string kVersionedLayer = "versioned-layer";
+const std::string kLayerSdii = "layer_sdii";
+const std::string kVersionedLayer = "versioned_layer";
 
 class VersionedLayerClientTest : public ::testing::TestWithParam<bool> {};
 
