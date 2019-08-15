@@ -148,13 +148,21 @@ set(EDGE_SDK_HTTP_SOURCES
 )
 
 if (ANDROID)
-file(GLOB NETWORK_ANDROID_SOURCE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/network/android/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/network/android/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/network/socket/*.cpp"
-)
+    file(GLOB NETWORK_ANDROID_SOURCE
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/network/android/*.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/network/android/*.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/network/socket/*.cpp"
+    )
     set(NETWORK_SOURCE ${NETWORK_SOURCE} ${NETWORK_ANDROID_SOURCE})
-    set(EDGE_SDK_HTTP_SOURCES ${EDGE_SDK_HTTP_SOURCES} ${EDGE_SDK_HTTP_ANDROID_SOURCE})
+
+    # http network Android implementation:
+    set(EDGE_SDK_HTTP_ANDROID_SOURCES
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/android/NetworkAndroid.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/android/NetworkAndroid.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/android/utils/JNIThreadBinder.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/android/utils/JNIScopedLocalReference.h"
+    )
+    set(EDGE_SDK_HTTP_SOURCES ${EDGE_SDK_HTTP_SOURCES} ${EDGE_SDK_HTTP_ANDROID_SOURCES})
 endif()
 if (UNIX AND NOT ANDROID)
     set(NETWORK_SOURCE ${NETWORK_SOURCE} ${NETWORK_CURL_SOURCES})
