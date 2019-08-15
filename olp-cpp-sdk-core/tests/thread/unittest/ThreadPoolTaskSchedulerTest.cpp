@@ -52,12 +52,15 @@ TEST(ThreadPoolTaskSchedulerTest, single_user_push) {
   // Add tasks to the queue, threads should start executing them
   for (uint32_t idx = 0u; idx < kNumTasks; ++idx) {
     scheduler.ScheduleTask([&](const CancellationContext&) { ++counter; });
+    scheduler.ScheduleTask([&]() { ++counter; });
   }
 
   // Wait for threads to finish but do not exceed 1min
   const auto start = system_clock::now();
+  constexpr size_t expected_tasks = 2 * kNumTasks;
+
   auto check_condition = [&]() {
-    return counter.load() < kNumTasks &&
+    return counter.load() < expected_tasks &&
            duration_cast<milliseconds>(system_clock::now() - start).count() <
                kMaxWaitMs;
   };
@@ -66,7 +69,7 @@ TEST(ThreadPoolTaskSchedulerTest, single_user_push) {
     std::this_thread::sleep_for(kSleep);
   }
 
-  EXPECT_EQ(kNumTasks, counter.load());
+  EXPECT_EQ(expected_tasks, counter.load());
 
   // Close queue and join threads.
   // SyncQueue and threads join should be done in destructor.
@@ -77,7 +80,7 @@ TEST(ThreadPoolTaskSchedulerTest, multi_user_push) {
   SCOPED_TRACE("Multiple users push tasks");
 
   constexpr uint32_t kPushThreads = 3;
-  constexpr uint32_t kTotalTasks = kPushThreads * kNumTasks;
+  constexpr uint32_t kTotalTasks = kPushThreads * (2 * kNumTasks);
 
   // Start thread pool
   auto thread_pool = std::make_shared<ThreadPool>(kThreads);
@@ -94,6 +97,7 @@ TEST(ThreadPoolTaskSchedulerTest, multi_user_push) {
       TaskScheduler& scheduler = *thread_pool;
       for (uint32_t idx = 0u; idx < kNumTasks; ++idx) {
         scheduler.ScheduleTask([&](const CancellationContext&) { ++counter; });
+        scheduler.ScheduleTask([&]() { ++counter; });
         std::this_thread::sleep_for(kSleep / 100);
       }
     });

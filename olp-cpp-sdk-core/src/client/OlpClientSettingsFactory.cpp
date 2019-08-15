@@ -20,7 +20,6 @@
 #include "olp/core/client/OlpClientSettingsFactory.h"
 
 #include "olp/core/porting/make_unique.h"
-#include "olp/core/thread/TaskScheduler.h"
 #include "olp/core/thread/ThreadPoolTaskScheduler.h"
 
 #include "olp/core/http/Network.h"

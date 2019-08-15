@@ -23,6 +23,7 @@
 
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
+#include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
 
@@ -129,6 +130,8 @@ int RunExample() {
   // Setup OlpClientSettings and provide it to the CatalogClient.
   auto settings = std::make_shared<olp::client::OlpClientSettings>();
   settings->authentication_settings = auth_settings;
+  settings->task_scheduler = std::move(
+      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u));
 
   // Create a CatalogClient with appropriate HRN and settings.
   auto service_client = std::make_unique<olp::dataservice::read::CatalogClient>(

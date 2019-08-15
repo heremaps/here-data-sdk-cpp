@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+#include "ExecuteOrSchedule.inl"
 #include "PrefetchTilesRepository.h"
 
 #include <olp/core/logging/Log.h>
@@ -169,8 +170,7 @@ void PrefetchTilesRepository::GetSubTiles(
     }
 
     callback({*results});
-  })
-      .detach();
+  }).detach();
 }
 
 void PrefetchTilesRepository::GetSubQuads(

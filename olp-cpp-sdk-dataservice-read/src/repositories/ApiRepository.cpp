@@ -30,7 +30,7 @@ namespace repository {
 
 namespace {
 constexpr auto kLogTag = "ApiRepository";
-}
+} // namespace
 
 using namespace olp::client;
 
@@ -96,6 +96,10 @@ olp::client::CancellationToken ApiRepository::getApiClient(
   std::string requestKey = service + "@" + serviceVersion;
   return multiRequestContext_->ExecuteOrAssociate(requestKey, executeFn,
                                                   callback);
+}
+
+const client::OlpClientSettings* ApiRepository::GetOlpClientSettings() const {
+  return settings_ ? settings_.get() : nullptr;
 }
 
 }  // namespace repository
