@@ -20,14 +20,11 @@
 #pragma once
 
 #include <olp/core/CoreApi.h>
+#include <olp/core/thread/TaskScheduler.h>
 
 #include <memory>
 
 namespace olp {
-namespace thread {
-class TaskScheduler;
-}  // namespace thread
-
 namespace http {
 class Network;
 }  // namespace http

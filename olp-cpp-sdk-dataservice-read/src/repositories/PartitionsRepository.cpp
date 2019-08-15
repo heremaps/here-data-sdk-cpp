@@ -26,12 +26,14 @@
 
 #include "ApiRepository.h"
 #include "CatalogRepository.h"
+#include "ExecuteOrSchedule.inl"
 #include "PartitionsCacheRepository.h"
 #include "generated/api/MetadataApi.h"
 #include "generated/api/QueryApi.h"
 #include "olp/dataservice/read/CatalogRequest.h"
 #include "olp/dataservice/read/CatalogVersionRequest.h"
 #include "olp/dataservice/read/PartitionsRequest.h"
+
 
 namespace olp {
 namespace dataservice {
@@ -78,7 +80,8 @@ std::string GetKey(const PartitionsRequest& request,
 void GetLayerVersion(std::shared_ptr<CancellationContext> cancel_context,
                      const OlpClient& client, const PartitionsRequest& request,
                      const LayerVersionCallback& callback,
-                     PartitionsCacheRepository& cache) {
+                     PartitionsCacheRepository& cache,
+                     std::shared_ptr<ApiRepository> apiRepo) {
   auto key = request.CreateKey();
   auto layerVersionsCallback = [=](model::LayerVersions layerVersions) {
     auto& versionLayers = layerVersions.GetLayerVersions();
@@ -107,12 +110,13 @@ void GetLayerVersion(std::shared_ptr<CancellationContext> cancel_context,
       [=, &cache]() {
         auto cachedLayerVersions = cache.Get(*request.GetVersion());
         if (cachedLayerVersions) {
-          std::thread([=]() {
-            EDGE_SDK_LOG_INFO_F(kLogTag, "cache parititions '%s' found!",
-                                key.c_str());
-            layerVersionsCallback(*cachedLayerVersions);
-          })
-              .detach();
+          ExecuteOrSchedule(apiRepo->GetOlpClientSettings(),
+              [=]() {
+                EDGE_SDK_LOG_INFO_F(kLogTag, "cache parititions '%s' found!",
+                                    key.c_str());
+                layerVersionsCallback(*cachedLayerVersions);
+              }
+            );
           return CancellationToken();
         }
         return MetadataApi::GetLayerVersions(
@@ -255,24 +259,22 @@ CancellationToken PartitionsRepository::GetPartitions(
                 if (OnlineOnly != request.GetFetchOption()) {
                   auto cachedPartitions = cache.Get(appendedRequest);
                   if (cachedPartitions) {
-                    std::thread([=] {
+                    ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
                       EDGE_SDK_LOG_INFO_F(kLogTag,
                                           "cache partitions '%s' found!",
                                           requestKey.c_str());
                       callback(*cachedPartitions);
-                    })
-                        .detach();
+                    });
                     return CancellationToken();
                   } else if (CacheOnly == request.GetFetchOption()) {
-                    std::thread([=] {
+                    ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
                       EDGE_SDK_LOG_INFO_F(kLogTag,
                                           "cache partitions '%s' not found!",
                                           requestKey.c_str());
                       callback(ApiError(ErrorCode::NotFound,
                                         "Cache only resource not found in "
                                         "cache (partitions)."));
-                    })
-                        .detach();
+                    });
                     return CancellationToken();
                   }
                 }
@@ -345,7 +347,7 @@ CancellationToken PartitionsRepository::GetPartitions(
                               getPartitionsInternal(
                                   layerVersionResponse.GetResult());
                             },
-                            cache);
+                            cache, apiRepo);
                       } else {
                         EDGE_SDK_LOG_INFO_F(
                             kLogTag, "GetLayerVersion '%s' has no version",
@@ -399,23 +401,21 @@ CancellationToken PartitionsRepository::GetPartitionsById(
                   // Only used cache if we have all requested ids.
                   if (cachedPartitions.GetPartitions().size() ==
                       partitions.size()) {
-                    std::thread([=] {
+                    ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
                       EDGE_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
                                           requestKey.c_str());
                       callback(cachedPartitions);
-                    })
-                        .detach();
+                    });
                     return CancellationToken();
                   } else if (CacheOnly == request.GetFetchOption()) {
-                    std::thread([=] {
+                    ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
                       EDGE_SDK_LOG_INFO_F(kLogTag,
                                           "cache catalog '%s' not found!",
                                           requestKey.c_str());
                       callback(ApiError(ErrorCode::NotFound,
                                         "Cache only resource not found in "
                                         "cache (partition)."));
-                    })
-                        .detach();
+                    });
                     return CancellationToken();
                   }
                 }

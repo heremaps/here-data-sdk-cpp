@@ -47,20 +47,20 @@ CatalogClientImpl::CatalogClientImpl(
       settings_(settings),
       api_client_(OlpClientFactory::Create(*settings)) {
   // create repositories, satisfying dependencies.
-  auto apiRepo = std::make_shared<ApiRepository>(hrn_, settings_, cache);
+  auto api_repo = std::make_shared<ApiRepository>(hrn_, settings_, cache);
 
-  catalog_repo_ = std::make_shared<CatalogRepository>(hrn_, apiRepo, cache);
+  catalog_repo_ = std::make_shared<CatalogRepository>(hrn_, api_repo, cache);
 
   partition_repo_ = std::make_shared<PartitionsRepository>(
-      hrn_, apiRepo, catalog_repo_, cache);
+      hrn_, api_repo, catalog_repo_, cache);
 
-  data_repo_ = std::make_shared<DataRepository>(hrn_, apiRepo, catalog_repo_,
+  data_repo_ = std::make_shared<DataRepository>(hrn_, api_repo, catalog_repo_,
                                                 partition_repo_, cache);
 
   prefetch_provider_ = std::make_shared<PrefetchTilesProvider>(
-      hrn_, apiRepo, catalog_repo_, data_repo_,
+      hrn_, api_repo, catalog_repo_, data_repo_,
       std::make_shared<PrefetchTilesRepository>(
-          hrn, apiRepo, partition_repo_->GetPartitionsCacheRepository()));
+          hrn, api_repo, partition_repo_->GetPartitionsCacheRepository()));
 
   pending_requests_ = std::make_shared<PendingRequests>();
 }
