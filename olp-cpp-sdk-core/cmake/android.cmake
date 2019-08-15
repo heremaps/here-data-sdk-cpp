@@ -35,18 +35,48 @@ if(CMAKE_HOST_WIN32 AND NOT WIN32)
     set(WIN32 TRUE)
 endif()
 
-set(NETWORK_VERSION 0.0.1)
+# Generation of both version of EdgeNetworkProtocol.jar:
+#   - EdgeNetworkProtocol.jar, which uses old network implementation
+#   - EdgeHttpNetworkProtocol.jar, which uses new http network implementation
+# Currently across the SDK will be used the old version od EdgeNetworkProtocol.jar
+# In order to use the new http version of EdgeNetworkProtocol.jar, please pass
+# the EDGE_SDK_USE_HTTP_NETWORK_PROTOCOL=YES to your cmake configure command.
 set(CMAKE_JAVA_COMPILE_FLAGS -source 1.7 -target 1.7)
 set(CMAKE_JAR_CLASSES_PREFIX com/here/olp/network)
-set(EDGE_NETWORK_PROTOCOL_JAR EdgeNetworkProtocol)
 
 include(${CMAKE_CURRENT_LIST_DIR}/GetAndroidVariables.cmake)
 get_android_jar_path(CMAKE_JAVA_INCLUDE_PATH SDK_ROOT ANDROID_PLATFORM)
 
-add_jar(${EDGE_NETWORK_PROTOCOL_JAR}
-    SOURCES ${CMAKE_CURRENT_LIST_DIR}/../src/network/android/NetworkProtocol.java ${CMAKE_CURRENT_LIST_DIR}/../src/network/android/NetworkSSLContextFactory.java
-    VERSION ${NETWORK_VERSION}
-)
+if (NOT EDGE_SDK_USE_HTTP_NETWORK_PROTOCOL)
+    # Generating of both old (EdgeNetworkProtocol.jar, based on the previous version of network)
+    # and the new (EdgeHttpNetworkProtocol, based on http network implementation) network protocol jar archives.
+    # By defaut the old implementation will be used across the SDK.
+    set(EDGE_SDK_NETWORK_VERSION 0.0.1)
+    set(EDGE_SDK_HTTP_NETWORK_VERSION 0.0.2)
+
+    set(EDGE_NETWORK_PROTOCOL_JAR EdgeNetworkProtocol)
+    set(EDGE_HTTP_NETWORK_PROTOCOL_JAR EdgeHttpNetworkProtocol)
+
+    add_jar(${EDGE_NETWORK_PROTOCOL_JAR}
+        SOURCES ${CMAKE_CURRENT_LIST_DIR}/../src/network/android/NetworkProtocol.java ${CMAKE_CURRENT_LIST_DIR}/../src/network/android/NetworkSSLContextFactory.java
+        VERSION ${EDGE_SDK_NETWORK_VERSION}
+    )
+    add_jar(${EDGE_HTTP_NETWORK_PROTOCOL_JAR}
+        SOURCES ${CMAKE_CURRENT_LIST_DIR}/../src/http/android/NetworkProtocol.java
+        VERSION ${EDGE_SDK_HTTP_NETWORK_VERSION}
+    )
+else()
+    # Generating of the new EdgeNetworkProtocol.jar which uses the http network implementation
+    # It will be used as the default one across the SDK.
+    set(EDGE_SDK_NETWORK_VERSION 0.0.2)
+
+    set(EDGE_NETWORK_PROTOCOL_JAR EdgeNetworkProtocol)
+
+    add_jar(${EDGE_NETWORK_PROTOCOL_JAR}
+        SOURCES ${CMAKE_CURRENT_LIST_DIR}/../src/http/android/NetworkProtocol.java
+        VERSION ${EDGE_SDK_NETWORK_VERSION}
+    )
+endif()
 
 # add_jar() doesn't add the symlink to the version automatically under Windows
 if (WIN32)
