@@ -24,6 +24,7 @@ set(TEST_SRC
     src/HttpResponses.h
     src/MultiRequestContextTest.cpp
     src/ParserTest.cpp
+    src/PendingRequestsTest.cpp
     src/SerializerTest.cpp
 )
 
