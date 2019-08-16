@@ -14,11 +14,11 @@ matrix:
   - compiler: clang
     env: BUILD_TYPE=RelWithDebInfo WORKSPACE=$TRAVIS_BUILD_DIR
     name: Linux Build using clang 
-    script: $WORKSPACE/scripts/linux/build.sh
+    script: $WORKSPACE/scripts/linux/psv/travis_build_psv.sh
   - compiler: gcc
     env: BUILD_TYPE=COVERAGE WORKSPACE=$TRAVIS_BUILD_DIR
     name: Linux Build using gcc & tests & code coverage
-    script: $WORKSPACE/scripts/linux/build.sh && $WORKSPACE/scripts/linux/test.sh
+    script: $WORKSPACE/scripts/linux/psv/travis_build_psv.sh && $WORKSPACE/scripts/linux/psv/travis_test_psv.sh
   - language: android
     dist: xenial
     jdk: oraclejdk8
@@ -47,7 +47,7 @@ matrix:
     osx_image: xcode10.2
     env: BUILD_TYPE=RelWithDebInfo WORKSPACE=$TRAVIS_BUILD_DIR
     name: OSX Build
-    script: $WORKSPACE/scripts/linux/build.sh
+    script: $WORKSPACE/scripts/linux/psv/travis_build_psv.sh
   - os: osx
     osx_image: xcode10.2
     name: IOS Build
