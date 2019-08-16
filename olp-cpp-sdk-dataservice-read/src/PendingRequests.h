@@ -41,21 +41,23 @@ class PendingRequests final {
   bool CancelPendingRequests();
 
   /**
-   * @brief Returns a key for storing a pending request.
-   * @return key
+   * @brief Generates a placehoder for request cancellation token and returns a
+   * key associated with it.
+   * @return Returns a key associated with a placeholder.
    */
-  int64_t GenerateKey();
+  int64_t GenerateRequestPlaceholder();
 
   /**
-   * @brief Adds a cancellation token as a cancellable request.
-   * @param token Request to be cancelled
-   * @return True on success, false on collision.
+   * @brief Inserts request cancellation token into the placeholder associated
+   * with a key.
+   * @param token Cancellation token.
+   * @param key Key associated with a placeholder.
+   * @return True on success, false when the placeholder is missing.
    */
-  bool Add(const client::CancellationToken& token, int64_t key);
+  bool Insert(const client::CancellationToken& token, int64_t key);
 
   /**
-   * @brief Removes a pending request.
-   * Useful when the request is completed.
+   * @brief Removes a pending request and placholder.
    * @param key Internal request key to remove
    * @return True on success
    */

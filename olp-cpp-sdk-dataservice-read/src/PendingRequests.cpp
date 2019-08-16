@@ -23,9 +23,9 @@ namespace olp {
 namespace dataservice {
 namespace read {
 
-PendingRequests::PendingRequests() {};
+PendingRequests::PendingRequests(){};
 
-PendingRequests::~PendingRequests() {};
+PendingRequests::~PendingRequests(){};
 
 bool PendingRequests::CancelPendingRequests() {
   requests_lock_.lock();
@@ -38,20 +38,21 @@ bool PendingRequests::CancelPendingRequests() {
   return true;
 }
 
-int64_t PendingRequests::GenerateKey() {
+int64_t PendingRequests::GenerateRequestPlaceholder() {
   std::lock_guard<std::mutex> lk(requests_lock_);
   key_++;
+  requests_map_[key_] = client::CancellationToken();
   return key_;
 }
 
-bool PendingRequests::Add(const client::CancellationToken& request,
-                          int64_t key) {
+bool PendingRequests::Insert(const client::CancellationToken& request,
+                             int64_t key) {
   std::lock_guard<std::mutex> lk(requests_lock_);
   if (requests_map_.find(key) == requests_map_.end()) {
-    requests_map_[key] = request;
-    return true;
+    return false;
   }
-  return false;
+  requests_map_[key] = request;
+  return true;
 }
 
 bool PendingRequests::Remove(int64_t key) {
