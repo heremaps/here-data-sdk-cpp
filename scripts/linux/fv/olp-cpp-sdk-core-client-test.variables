@@ -1,0 +1,3 @@
+export secret="${sdk_client_test_secret}" #defined previously as protected value on Gitlab
+export appid="${sdk_client_test_appid}" #defined previously as protected value on Gitlab
+export catalog="hrn:here:data:::hereos-internal-test-v2"
