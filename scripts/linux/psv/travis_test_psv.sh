@@ -1,4 +1,4 @@
-#!/bin/bash -xe
+#!/bin/bash -e
 CPP_TEST_SOURCE_AUTHENTICATION=build/olp-cpp-sdk-authentication/test
 CPP_TEST_SOURCE_CORE=build/olp-cpp-sdk-core/tests
 CPP_TEST_SOURCE_DARASERVICE_READ=build/olp-cpp-sdk-dataservice-read/test
@@ -20,3 +20,4 @@ $CPP_TEST_SOURCE_DARASERVICE_READ/unit/olp-dataservice-read-test --gtest_output=
 echo ">>> Dataservice write Test ... >>>"
 $CPP_TEST_SOURCE_DARASERVICE_WRITE/olp-dataservice-write-test --gtest_output="xml:report7.xml" --gtest_filter=-"*Online*":"TestCacheMock*"
 bash <(curl -s https://codecov.io/bash)
+
