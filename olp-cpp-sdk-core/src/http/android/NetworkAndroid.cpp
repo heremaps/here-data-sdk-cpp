@@ -934,6 +934,7 @@ NetworkAndroid::ResponseData::ResponseData(
       status(status),
       count(count),
       offset(offset) {}
+      
 
 }  // namespace http
 }  // namespace olp

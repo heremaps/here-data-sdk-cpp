@@ -79,6 +79,7 @@ set(EDGE_SDK_HTTP_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/NetworkRequest.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/NetworkResponse.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/NetworkSettings.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/NetworkTypes.h"
 )
 file(GLOB PLATFORM_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/context/*.h"
@@ -140,6 +141,7 @@ file(GLOB NETWORK_SOURCE
 )
 
 set(EDGE_SDK_HTTP_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/http/Network.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/http/NetworkProxySettings.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/http/NetworkRequest.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/http/NetworkResponse.cpp"
@@ -163,18 +165,26 @@ if (ANDROID)
         "${CMAKE_CURRENT_SOURCE_DIR}/src/http/android/utils/JNIScopedLocalReference.h"
     )
     set(EDGE_SDK_HTTP_SOURCES ${EDGE_SDK_HTTP_SOURCES} ${EDGE_SDK_HTTP_ANDROID_SOURCES})
+
+    set(EDGE_SDK_DEFAULT_NETWORK_DEFINITION NETWORK_HAS_ANDROID)
 endif()
 if (UNIX AND NOT ANDROID)
     set(NETWORK_SOURCE ${NETWORK_SOURCE} ${NETWORK_CURL_SOURCES})
     set(EDGE_SDK_HTTP_SOURCES ${EDGE_SDK_HTTP_SOURCES} ${EDGE_SDK_HTTP_CURL_SOURCES})
+
+    set(EDGE_SDK_DEFAULT_NETWORK_DEFINITION NETWORK_HAS_CURL)
 endif()
 if (IOS)
     set(NETWORK_SOURCE ${NETWORK_SOURCE} ${NETWORK_IOS_SOURCES})
     set(EDGE_SDK_HTTP_SOURCES ${EDGE_SDK_HTTP_SOURCES} ${EDGE_SDK_HTTP_IOS_SOURCES})
+
+    set(EDGE_SDK_DEFAULT_NETWORK_DEFINITION NETWORK_HAS_IOS)
 endif()
 if (WIN32)
     set(NETWORK_SOURCE ${NETWORK_SOURCE} ${NETWORK_WINHTTP_SOURCES})
     set(EDGE_SDK_HTTP_SOURCES ${EDGE_SDK_HTTP_SOURCES} ${EDGE_SDK_HTTP_WIN_SOURCES})
+
+    set(EDGE_SDK_DEFAULT_NETWORK_DEFINITION NETWORK_HAS_WINHTTP)
 endif()
 
 file(GLOB PLATFORM_SOURCE
@@ -234,6 +244,9 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 add_library(${PROJECT_NAME}
     ${CORE_SOURCE}
     ${CORE_HEADERS})
+
+target_compile_definitions(${PROJECT_NAME} 
+    PRIVATE ${EDGE_SDK_DEFAULT_NETWORK_DEFINITION})
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

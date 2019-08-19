@@ -26,6 +26,7 @@
 #include <boost/optional.hpp>
 
 #include "olp/core/client/CancellationToken.h"
+#include "olp/core/http/Network.h"
 #include "olp/core/network/NetworkProxy.h"
 
 namespace olp {
@@ -39,10 +40,6 @@ class HttpResponse;
 namespace thread {
 class TaskScheduler;
 }  // namespace thread
-
-namespace http {
-class Network;
-}  // namespace http
 
 namespace client {
 
