@@ -1,0 +1,23 @@
+export endpoint="https://account.api.here.com/oauth2/token"
+export layer="olp-cpp-sdk-ingestion-test-stream-layer"
+export layer2="olp-cpp-sdk-ingestion-test-stream-layer-2"
+export layer_sdii="olp-cpp-sdk-ingestion-test-stream-layer-sdii"
+export versioned_layer="olp-cpp-sdk-ingestion-test-versioned-layer"
+export volatile_layer="olp-cpp-sdk-ingestion-test-volatile-layer"
+export index_layer="olp-cpp-sdk-ingestion-test-index-layer"
+###
+#variables below are defined previously as protected value on Gitlab
+###
+export service_id="${appid}"
+export service_secret="${secret}"
+export production_service_id="${production_service_id}"
+export production_service_secret="${production_service_secret}"
+export facebook_access_token="${facebook_access_token}"
+export facebook_app_id="${facebook_app_id}"
+export google_client_id="${google_client_id}"
+export google_client_secret="${google_client_secret}"
+export google_client_token="${google_client_token}"
+export arcgis_app_id="${arcgis_app_id}"
+export arcgis_access_token="${arcgis_access_token}"
+export integration_production_service_id="${integration_production_service_id}"
+export integration_production_service_secret="${integration_production_service_secret}"
