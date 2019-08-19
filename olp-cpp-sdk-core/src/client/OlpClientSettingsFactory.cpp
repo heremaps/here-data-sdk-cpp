@@ -33,8 +33,8 @@ OlpClientSettingsFactory::CreateDefaultTaskScheduler(size_t thread_count) {
 }
 
 std::unique_ptr<http::Network>
-OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler() {
-  return nullptr;
+OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler(size_t max_requests_count) {
+  return http::CreateDefaultNetwork(max_requests_count);
 }
 
 }  // namespace client

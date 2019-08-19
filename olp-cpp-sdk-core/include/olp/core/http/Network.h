@@ -83,5 +83,10 @@ class CORE_API Network {
   virtual void Cancel(RequestId id) = 0;
 };
 
+/**
+ * @brief Create default Network implementation.
+ */
+CORE_API std::unique_ptr<Network> CreateDefaultNetwork(size_t max_requests_count);
+
 }  // namespace http
 }  // namespace olp

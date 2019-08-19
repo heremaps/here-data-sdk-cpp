@@ -50,7 +50,8 @@ class CORE_API OlpClientSettingsFactory final {
    * which is defaulted to platform-specific implementation.
    * @return An instance of Network.
    */
-  static std::unique_ptr<http::Network> CreateDefaultNetworkRequestHandler();
+  static std::unique_ptr<http::Network> CreateDefaultNetworkRequestHandler(
+      size_t max_requests_count = 30u);
 };
 
 }  // namespace client
