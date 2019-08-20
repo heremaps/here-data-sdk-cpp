@@ -41,6 +41,9 @@ elseif (ANDROID)
 else()
     project(${EDGE_SDK_DATASERVICE_READ_EXAMPLE_TARGET})
 
+    find_package(olp-cpp-sdk-authentication REQUIRED)
+    find_package(olp-cpp-sdk-dataservice-read REQUIRED)
+
     add_executable(${EDGE_SDK_DATASERVICE_READ_EXAMPLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/example.h ${CMAKE_CURRENT_SOURCE_DIR}/example.cpp)
 
     target_sources(${EDGE_SDK_DATASERVICE_READ_EXAMPLE_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
