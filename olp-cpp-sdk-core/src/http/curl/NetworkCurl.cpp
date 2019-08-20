@@ -139,13 +139,7 @@ int ConvertErrorCode(CURLcode curl_code) {
     return static_cast<int>(ErrorCode::AUTHORIZATION_ERROR);
 #endif
   } else if (curl_code == CURLE_COULDNT_RESOLVE_HOST) {
-    // if we appear to still have network connectivity then this is
-    // likely due to an invalid URL.
-    // if (olp::network::NetworkConnectivity::IsNetworkConnected()) {
-    //   return static_cast<int>(ErrorCode::INVALID_URL_ERROR);
-    // } else {
-    return static_cast<int>(ErrorCode::OFFLINE_ERROR);
-    // }
+    return static_cast<int>(ErrorCode::INVALID_URL_ERROR);
   } else if (curl_code == CURLE_OPERATION_TIMEDOUT) {
     return static_cast<int>(ErrorCode::TIMEOUT_ERROR);
   } else {

@@ -60,7 +60,8 @@ using namespace olp::client;
 
 CancellationToken QueryApi::GetPartitionsbyId(
     const OlpClient& client, const std::string& layerId,
-    const std::vector<std::string>& partition, boost::optional<int64_t> version,
+    const std::vector<std::string>& partitions,
+    boost::optional<int64_t> version,
     boost::optional<std::vector<std::string>> additionalFields,
     boost::optional<std::string> billingTag,
     const PartitionsCallback& partitionsCallback) {
@@ -68,8 +69,9 @@ CancellationToken QueryApi::GetPartitionsbyId(
   headerParams.insert(std::make_pair("Accept", "application/json"));
 
   std::multimap<std::string, std::string> queryParams;
-  queryParams.insert(
-      std::make_pair("partition", concatStringArray(partition, "&partition=")));
+  for (const auto& partition : partitions) {
+    queryParams.emplace("partition", partition);
+  }
   if (additionalFields) {
     queryParams.insert(std::make_pair(
         "additionalFields", concatStringArray(*additionalFields, ",")));

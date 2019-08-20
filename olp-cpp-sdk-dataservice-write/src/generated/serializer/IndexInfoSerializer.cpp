@@ -32,10 +32,12 @@ void to_json(const dataservice::write::model::Index &x, rapidjson::Value &value,
     auto value = field.second;
     const auto key = rapidjson::StringRef(field.first.c_str());
     if (value->getIndexType() == dataservice::write::model::IndexType::String) {
-      auto s = std::static_pointer_cast<
-          dataservice::write::model::StringIndexValue>(value);
+      auto s =
+          std::static_pointer_cast<dataservice::write::model::StringIndexValue>(
+              value);
       rapidjson::Value str_val;
-      str_val.SetString(s->GetValue().c_str(), (int)s->GetValue().size(), allocator);
+      str_val.SetString(s->GetValue().c_str(), (int)s->GetValue().size(),
+                        allocator);
       indexFields.AddMember(key, str_val, allocator);
 
     } else if (value->getIndexType() ==
@@ -62,8 +64,8 @@ void to_json(const dataservice::write::model::Index &x, rapidjson::Value &value,
     }
   }
   jsonValue.AddMember("fields", indexFields, allocator);
-  // TODO: Separate Metadata Model serialization into its own file when needed by
-  // another model.
+  // TODO: Separate Metadata Model serialization into its own file when needed
+  // by another model.
   if (x.GetMetadata()) {
     rapidjson::Value metadatas(rapidjson::kObjectType);
     for (auto metadata : x.GetMetadata().get()) {

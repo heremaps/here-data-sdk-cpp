@@ -50,6 +50,17 @@ class CORE_API Url {
    */
   static std::string Encode(const std::string& in);
 
+  /**
+   * @brief Produces full URL from url base, path and query parameters.
+   * @param base Base of the URL.
+   * @param path Path part of the URL.
+   * @param query_params Multipam of query parameters.
+   * @return URL encoded result string.
+   */
+  static std::string Construct(
+      const std::string& base, const std::string& path,
+      const std::multimap<std::string, std::string>& query_params);
+
   /** Parses input string and fills appropriate parts of url. Output strings are
    * decoded */
   static bool Parse(std::string url, std::string& scheme, std::string& userinfo,

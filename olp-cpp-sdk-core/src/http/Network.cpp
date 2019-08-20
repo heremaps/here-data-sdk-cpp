@@ -50,5 +50,5 @@ CORE_API std::shared_ptr<Network> CreateDefaultNetwork(
 #endif
 }
 
-} // namespace http
-} // namespace olp
+}  // namespace http
+}  // namespace olp

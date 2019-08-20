@@ -24,6 +24,7 @@
 #include <olp/authentication/TokenProvider.h>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/HRN.h>
+#include <olp/core/client/OlpClientSettingsFactory.h>
 
 #include <olp/dataservice/write/model/StartBatchRequest.h>
 
@@ -93,6 +94,8 @@ class VersionedLayerClientOnlineTest : public VersionedLayerClientTest {
             olp::authentication::TokenProviderDefault{
                 CustomParameters::getArgument(kAppid),
                 CustomParameters::getArgument(kSecret), settings}};
+    clientSettings.network_request_handler = olp::client::
+        OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
     return std::make_shared<VersionedLayerClient>(
         olp::client::HRN{CustomParameters::getArgument(kCatalog)},
         clientSettings);

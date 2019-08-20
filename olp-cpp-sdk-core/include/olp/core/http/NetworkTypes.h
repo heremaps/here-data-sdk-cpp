@@ -120,5 +120,6 @@ class SendOutcome final {
   ErrorCode error_code_{ErrorCode::SUCCESS};
 };
 
+
 }  // namespace http
 }  // namespace olp
