@@ -40,8 +40,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class NetworkProtocol {
-  private static final String LOGTAG = "NetworkProtocol";
+public class HttpClient {
+  private static final String LOGTAG = "HttpClient";
 
   // The replica of http/NetworkType.h error codes
   // TODO: retrieve them via native method
@@ -120,14 +120,14 @@ public class NetworkProtocol {
           this.proxyType = Proxy.Type.SOCKS;
           Log.e(
               LOGTAG,
-              "NetworkProtocol::Request(): Unsupported proxy version ("
+              "HttpClient::Request(): Unsupported proxy version ("
                   + proxyType
                   + "). Falling back to SOCKS4(4)");
           break;
         default:
           Log.e(
               LOGTAG,
-              "NetworkProtocol::Request(): Unsupported proxy version ("
+              "HttpClient::Request(): Unsupported proxy version ("
                   + proxyType
                   + "). Falling back to HTTP(0)");
           this.proxyType = Proxy.Type.HTTP;
@@ -450,7 +450,7 @@ public class NetworkProtocol {
         } catch (SocketTimeoutException e) {
           completeRequest(request.clientId(), request.requestId(), TIMEOUT_ERROR, "Timed out", "");
         } catch (Exception e) {
-          Log.e(LOGTAG, "NetworkProtocol::HttpTask::run exception: " + e);
+          Log.e(LOGTAG, "HttpClient::HttpTask::run exception: " + e);
           e.printStackTrace();
           if (e instanceof UnknownHostException) {
             completeRequest(
@@ -536,7 +536,7 @@ public class NetworkProtocol {
 
   private ExecutorService executor;
 
-  public NetworkProtocol() {
+  public HttpClient() {
     this.executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
   }
 
@@ -567,7 +567,7 @@ public class NetworkProtocol {
     Request request =
         new Request(
             url,
-            NetworkProtocol.toHttpVerb(httpMethod),
+            HttpClient.toHttpVerb(httpMethod),
             clientId,
             requestId,
             connTimeout,
