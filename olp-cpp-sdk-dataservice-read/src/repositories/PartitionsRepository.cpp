@@ -34,7 +34,6 @@
 #include "olp/dataservice/read/CatalogVersionRequest.h"
 #include "olp/dataservice/read/PartitionsRequest.h"
 
-
 namespace olp {
 namespace dataservice {
 namespace read {
@@ -80,7 +79,7 @@ std::string GetKey(const PartitionsRequest& request,
 void GetLayerVersion(std::shared_ptr<CancellationContext> cancel_context,
                      const OlpClient& client, const PartitionsRequest& request,
                      const LayerVersionCallback& callback,
-                     PartitionsCacheRepository& cache,
+                     std::shared_ptr<PartitionsCacheRepository> cache,
                      std::shared_ptr<ApiRepository> apiRepo) {
   auto key = request.CreateKey();
   auto layerVersionsCallback = [=](model::LayerVersions layerVersions) {
@@ -107,21 +106,19 @@ void GetLayerVersion(std::shared_ptr<CancellationContext> cancel_context,
   };
 
   cancel_context->ExecuteOrCancelled(
-      [=, &cache]() {
-        auto cachedLayerVersions = cache.Get(*request.GetVersion());
+      [=]() {
+        auto cachedLayerVersions = cache->Get(*request.GetVersion());
         if (cachedLayerVersions) {
-          ExecuteOrSchedule(apiRepo->GetOlpClientSettings(),
-              [=]() {
-                EDGE_SDK_LOG_INFO_F(kLogTag, "cache parititions '%s' found!",
-                                    key.c_str());
-                layerVersionsCallback(*cachedLayerVersions);
-              }
-            );
+          ExecuteOrSchedule(apiRepo->GetOlpClientSettings(), [=]() {
+            EDGE_SDK_LOG_INFO_F(kLogTag, "cache parititions '%s' found!",
+                                key.c_str());
+            layerVersionsCallback(*cachedLayerVersions);
+          });
           return CancellationToken();
         }
         return MetadataApi::GetLayerVersions(
             client, *request.GetVersion(), request.GetBillingTag(),
-            [=, &cache](MetadataApi::LayerVersionsResponse response) {
+            [=](MetadataApi::LayerVersionsResponse response) {
               if (!response.IsSuccessful()) {
                 EDGE_SDK_LOG_INFO_F(kLogTag, "GetLayerVersions '%s' not found!",
                                     key.c_str());
@@ -131,7 +128,7 @@ void GetLayerVersion(std::shared_ptr<CancellationContext> cancel_context,
               // Cache the results
               EDGE_SDK_LOG_INFO_F(kLogTag, "GetLayerVersions '%s' found!",
                                   key.c_str());
-              cache.Put(*request.GetVersion(), response.GetResult());
+              cache->Put(*request.GetVersion(), response.GetResult());
               layerVersionsCallback(response.GetResult());
             });
       },
@@ -237,7 +234,7 @@ CancellationToken PartitionsRepository::GetPartitions(
     const PartitionsResponseCallback& callback) {
   // local copy of cache to ensure it will live the duration of the request
   auto apiRepo = apiRepo_;
-  auto& cache = *cache_;
+  auto cache = cache_;
   auto cancel_context = std::make_shared<CancellationContext>();
 
   auto requestKey = request.CreateKey();
@@ -249,15 +246,14 @@ CancellationToken PartitionsRepository::GetPartitions(
   EDGE_SDK_LOG_TRACE_F(kLogTag, "GetPartitions '%s'", requestKey.c_str());
   MultiRequestContext<read::PartitionsResponse,
                       read::PartitionsResponseCallback>::ExecuteFn executeFn =
-      [=, &cache](read::PartitionsResponseCallback callback) {
-        auto fetchPartitions = [=, &cache](
-                                   const PartitionsRequest& appendedRequest,
+      [=](read::PartitionsResponseCallback callback) {
+        auto fetchPartitions = [=](const PartitionsRequest& appendedRequest,
                                    const boost::optional<time_t>& expiry) {
           cancel_context->ExecuteOrCancelled(
-              [=, &cache]() {
+              [=]() {
                 // Check the cache first
                 if (OnlineOnly != request.GetFetchOption()) {
-                  auto cachedPartitions = cache.Get(appendedRequest);
+                  auto cachedPartitions = cache->Get(appendedRequest);
                   if (cachedPartitions) {
                     ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
                       EDGE_SDK_LOG_INFO_F(kLogTag,
@@ -280,24 +276,24 @@ CancellationToken PartitionsRepository::GetPartitions(
                 }
 
                 auto cachePartitionsResponseCallback =
-                    [=, &cache](PartitionsResponse response) {
+                    [=](PartitionsResponse response) {
                       if (response.IsSuccessful()) {
                         EDGE_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",
                                             requestKey.c_str());
-                        cache.Put(appendedRequest, response.GetResult(), expiry,
-                                  true);
+                        cache->Put(appendedRequest, response.GetResult(),
+                                   expiry, true);
                       } else {
                         if (403 == response.GetError().GetHttpStatusCode()) {
                           EDGE_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
                                               requestKey.c_str());
-                          cache.Clear(appendedRequest.GetLayerId());
+                          cache->Clear(appendedRequest.GetLayerId());
                         }
                       }
                       callback(response);
                     };
                 // Network Query
                 return apiRepo->getApiClient(
-                    "metadata", "v1", [=, &cache](ApiClientResponse response) {
+                    "metadata", "v1", [=](ApiClientResponse response) {
                       if (!response.IsSuccessful()) {
                         EDGE_SDK_LOG_INFO_F(kLogTag,
                                             "getApiClient '%s' unsuccessful",
@@ -330,12 +326,11 @@ CancellationToken PartitionsRepository::GetPartitions(
                         GetLayerVersion(
                             cancel_context, response.GetResult(),
                             appendedRequest,
-                            [=,
-                             &cache](LayerVersionReponse layerVersionResponse) {
+                            [=](LayerVersionReponse layerVersionResponse) {
                               if (!layerVersionResponse.IsSuccessful()) {
                                 if (403 == layerVersionResponse.GetError()
                                                .GetHttpStatusCode()) {
-                                  cache.Clear(appendedRequest.GetLayerId());
+                                  cache->Clear(appendedRequest.GetLayerId());
                                 }
                                 EDGE_SDK_LOG_INFO_F(kLogTag,
                                                     "GetLayerVersion '%s'",
@@ -375,7 +370,7 @@ CancellationToken PartitionsRepository::GetPartitionsById(
     const PartitionsResponseCallback& callback) {
   // local copy of repo to ensure it will live the duration of the request
   auto apiRepo = apiRepo_;
-  auto& cache = *cache_;
+  auto cache = cache_;
   auto cancel_context = std::make_shared<CancellationContext>();
 
   auto requestKey = GetKey(request, partitions);
@@ -388,16 +383,15 @@ CancellationToken PartitionsRepository::GetPartitionsById(
 
   MultiRequestContext<read::PartitionsResponse,
                       read::PartitionsResponseCallback>::ExecuteFn executeFn =
-      [=, &cache](read::PartitionsResponseCallback callback) {
-        auto fetchPartitions = [=, &cache](
-                                   const PartitionsRequest& appendedRequest,
+      [=](read::PartitionsResponseCallback callback) {
+        auto fetchPartitions = [=](const PartitionsRequest& appendedRequest,
                                    const boost::optional<time_t>& expiry) {
           cancel_context->ExecuteOrCancelled(
-              [=, &cache]() {
+              [=]() {
                 /* Check the cache first */
                 if (OnlineOnly != request.GetFetchOption()) {
                   auto cachedPartitions =
-                      cache.Get(appendedRequest, partitions);
+                      cache->Get(appendedRequest, partitions);
                   // Only used cache if we have all requested ids.
                   if (cachedPartitions.GetPartitions().size() ==
                       partitions.size()) {
@@ -421,18 +415,18 @@ CancellationToken PartitionsRepository::GetPartitionsById(
                 }
 
                 auto cachePartitionsResponseCallback =
-                    [=, &cache](PartitionsResponse response) {
+                    [=](PartitionsResponse response) {
                       if (response.IsSuccessful()) {
                         EDGE_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",
                                             requestKey.c_str());
-                        cache.Put(appendedRequest, response.GetResult(),
-                                  expiry);
+                        cache->Put(appendedRequest, response.GetResult(),
+                                   expiry);
                       } else {
                         if (403 == response.GetError().GetHttpStatusCode()) {
                           EDGE_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
                                               requestKey.c_str());
                           // Delete partitions only but not the layer
-                          cache.ClearPartitions(appendedRequest, partitions);
+                          cache->ClearPartitions(appendedRequest, partitions);
                         }
                       }
                       callback(response);

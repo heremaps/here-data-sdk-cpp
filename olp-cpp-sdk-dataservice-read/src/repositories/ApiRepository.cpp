@@ -20,6 +20,7 @@
 #include "ApiRepository.h"
 #include <olp/core/client/OlpClientFactory.h>
 #include "ApiCacheRepository.h"
+#include "ExecuteOrSchedule.inl"
 
 #include <olp/core/logging/Log.h>
 
@@ -30,7 +31,7 @@ namespace repository {
 
 namespace {
 constexpr auto kLogTag = "ApiRepository";
-} // namespace
+}  // namespace
 
 using namespace olp::client;
 
@@ -61,7 +62,7 @@ olp::client::CancellationToken ApiRepository::getApiClient(
 
     auto client = olp::client::OlpClientFactory::Create(*settings_);
     client->SetBaseUrl(*url);
-    std::thread([=] { callback(*client); }).detach();
+    ExecuteOrSchedule(settings_.get(), [=] { callback(*client); });
     return CancellationToken();
   }
 
