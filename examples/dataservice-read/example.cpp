@@ -132,6 +132,8 @@ int RunExample() {
   settings->authentication_settings = auth_settings;
   settings->task_scheduler = std::move(
       olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u));
+  settings->network_request_handler = olp::client::OlpClientSettingsFactory::
+      CreateDefaultNetworkRequestHandler();
 
   // Create a CatalogClient with appropriate HRN and settings.
   auto service_client = std::make_unique<olp::dataservice::read::CatalogClient>(

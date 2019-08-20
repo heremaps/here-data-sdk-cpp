@@ -25,8 +25,7 @@
 
 namespace olp {
 namespace serializer {
-void to_json(const dataservice::read::model::Api& x,
-             rapidjson::Value& value,
+void to_json(const dataservice::read::model::Api& x, rapidjson::Value& value,
              rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   serialize("api", x.GetApi(), value, allocator);

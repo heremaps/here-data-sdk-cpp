@@ -21,11 +21,11 @@
 
 #include <stdint.h>
 #include <algorithm>
+#include <cctype>
 #include <cstdio>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <cctype>
 
 namespace olp {
 namespace utils {
@@ -112,6 +112,28 @@ std::string Url::Encode(const std::string& in) {
   return out;
 }
 // -------------------------------------------------------------------------------------------------
+
+std::string Url::Construct(
+    const std::string& base, const std::string& path,
+    const std::multimap<std::string, std::string>& query_params) {
+  std::ostringstream url_ss;
+  url_ss << base << path;
+  bool first_param = true;
+  for (const auto& query_param : query_params) {
+    if (first_param) {
+      url_ss << "?";
+      first_param = false;
+    } else {
+      url_ss << "&";
+    }
+    const auto& key = query_param.first;
+    const auto& value = query_param.second;
+    url_ss << olp::utils::Url::Encode(key) << "="
+           << olp::utils::Url::Encode(value);
+  }
+
+  return url_ss.str();
+}
 
 }  // namespace utils
 }  // namespace olp

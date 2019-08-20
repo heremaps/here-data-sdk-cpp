@@ -30,6 +30,7 @@
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientFactory.h>
+#include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/porting/make_unique.h>
 #include "ApiClientLookup.h"
 #include "generated/api/BlobApi.h"
@@ -53,6 +54,8 @@ class ApiTest : public ::testing::TestWithParam<bool> {
 
     settings_ = std::make_shared<olp::client::OlpClientSettings>();
     settings_->authentication_settings = authSettings;
+    settings_->network_request_handler = olp::client::OlpClientSettingsFactory::
+        CreateDefaultNetworkRequestHandler();
 
     client_ = olp::client::OlpClientFactory::Create(*settings_);
   }

@@ -159,7 +159,7 @@ client::CancellationToken CatalogRepository::getLatestCatalogVersion(
     const CatalogVersionRequest& request,
     const CatalogVersionCallback& callback) {
   auto cancel_context = std::make_shared<client::CancellationContext>();
-  auto &cache = cache_;
+  auto& cache = cache_;
 
   auto requestKey = request.CreateKey();
   EDGE_SDK_LOG_TRACE_F(kLogTag, "getCatalogVersion '%s'", requestKey.c_str());

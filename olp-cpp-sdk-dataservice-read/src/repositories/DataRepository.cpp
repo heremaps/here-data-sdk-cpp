@@ -107,24 +107,20 @@ void GetDataInternal(std::shared_ptr<CancellationContext> cancellationContext,
               cache.Get(request.GetLayerId(),
                         request.GetDataHandle().value_or(std::string()));
           if (cachedData) {
-            ExecuteOrSchedule(apiRepo->GetOlpClientSettings(),
-              [=] {
-                EDGE_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
-                                    key.c_str());
-                callback(*cachedData);
-              }
-            );
+            ExecuteOrSchedule(apiRepo->GetOlpClientSettings(), [=] {
+              EDGE_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
+                                  key.c_str());
+              callback(*cachedData);
+            });
             return CancellationToken();
           } else if (CacheOnly == request.GetFetchOption()) {
-            ExecuteOrSchedule(apiRepo->GetOlpClientSettings(),
-              [=] {
-                EDGE_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' not found!",
-                                    key.c_str());
-                callback(
-                    ApiError(ErrorCode::NotFound,
-                            "Cache only resource not found in cache (data)."));
-             }
-            );
+            ExecuteOrSchedule(apiRepo->GetOlpClientSettings(), [=] {
+              EDGE_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' not found!",
+                                  key.c_str());
+              callback(
+                  ApiError(ErrorCode::NotFound,
+                           "Cache only resource not found in cache (data)."));
+            });
             return CancellationToken();
           }
         }

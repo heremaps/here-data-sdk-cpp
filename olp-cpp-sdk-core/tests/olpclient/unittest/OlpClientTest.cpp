@@ -17,278 +17,326 @@
  * License-Filename: LICENSE
  */
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <chrono>
-#include <string>
 #include <future>
+#include <string>
 
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientFactory.h>
+#include <olp/core/client/OlpClientSettingsFactory.h>
 
-#include <olp/core/network/HttpResponse.h>
-#include <olp/core/network/Network.h>
-#include <olp/core/network/NetworkConfig.h>
-#include <olp/core/network/NetworkRequest.h>
+#include <olp/core/http/Network.h>
 
 #include "NetworkAsyncHandlerImpl.h"
 
-// Mark tests with no need for connectivity as TestOffline, this is just for
-// convenience of filtering
+using ::testing::_;
+
+class NetworkMock : public olp::http::Network {
+ public:
+  MOCK_METHOD(olp::http::SendOutcome, Send,
+              (olp::http::NetworkRequest request,
+               olp::http::Network::Payload payload,
+               olp::http::Network::Callback callback,
+               olp::http::Network::HeaderCallback header_callback,
+               olp::http::Network::DataCallback data_callback),
+              (override));
+
+  MOCK_METHOD(void, Cancel, (olp::http::RequestId id), (override));
+};
+
 class Client : public ::testing::TestWithParam<bool> {
  protected:
-  olp::client::OlpClientSettings m_clientSettings;
-  olp::client::OlpClient m_client;
+  olp::client::OlpClientSettings client_settings_;
+  olp::client::OlpClient client_;
 };
+
 INSTANTIATE_TEST_SUITE_P(TestOffline, Client, ::testing::Values(false));
 
-class ClientDefaultNetwork : public Client {};
-INSTANTIATE_TEST_SUITE_P(TestOnline, ClientDefaultNetwork,
+class ClientDefaultAsyncHttp : public Client {};
+INSTANTIATE_TEST_SUITE_P(TestOnline, ClientDefaultAsyncHttp,
                          ::testing::Values(true));
 
-class ClientDefaultAsyncNetwork : public Client {};
-INSTANTIATE_TEST_SUITE_P(TestOnline, ClientDefaultAsyncNetwork,
-                         ::testing::Values(true));
+TEST_P(ClientDefaultAsyncHttp, GetGoogleWebsite) {
+  client_.SetBaseUrl("https://www.google.com");
 
-TEST_P(ClientDefaultAsyncNetwork, getGoogleWebsite) {
-  m_client.SetBaseUrl("https://www.google.com");
+  client_settings_.network_request_handler = olp::client::
+      OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
+  client_.SetSettings(client_settings_);
 
-  std::promise<olp::network::HttpResponse> p;
+  std::promise<olp::client::HttpResponse> p;
   olp::client::NetworkAsyncCallback callback =
-      [&p](olp::network::HttpResponse response) { p.set_value(response); };
+      [&p](olp::client::HttpResponse response) { p.set_value(response); };
 
-  auto cancelFn = m_client.CallApi(
-      std::string(), std::string(), std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  auto cancel_token = client_.CallApi(std::string(), std::string(),
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      nullptr, std::string(), callback);
 
   auto response = p.get_future().get();
   ASSERT_EQ(200, response.status);
   ASSERT_LT(0u, response.response.size());
 }
 
-TEST_P(ClientDefaultAsyncNetwork, getNonExistentWebsite) {
-  m_client.SetBaseUrl("https://intranet.here212351.com");
-  std::promise<olp::network::HttpResponse> p;
+TEST_P(ClientDefaultAsyncHttp, GetNonExistentWebsite) {
+  client_.SetBaseUrl("https://intranet.here212351.cococom");
+  std::promise<olp::client::HttpResponse> p;
   olp::client::NetworkAsyncCallback callback =
-      [&p](olp::network::HttpResponse response) { p.set_value(response); };
+      [&p](olp::client::HttpResponse response) { p.set_value(response); };
 
-  auto cancelFn = m_client.CallApi(
-      std::string(), std::string(), std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  client_settings_.network_request_handler = olp::client::
+      OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
+  client_.SetSettings(client_settings_);
+
+  auto cancel_token = client_.CallApi(std::string(), std::string(),
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      nullptr, std::string(), callback);
   auto response = p.get_future().get();
-  ASSERT_EQ(olp::network::Network::InvalidURLError, response.status);
+  ASSERT_EQ(olp::http::ErrorCode::INVALID_URL_ERROR,
+            static_cast<olp::http::ErrorCode>(response.status));
 }
 
 TEST_P(Client, numberOfAttempts) {
-  m_clientSettings.retry_settings.max_attempts = 6;
-  m_clientSettings.retry_settings.retry_condition =
-      ([](const olp::network::HttpResponse&) { return true; });
-  int numberOfTries = 0;
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest&,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
-        ++numberOfTries;
-        olp::network::HttpResponse response;
-        response.status = 429;
-        callback(response);
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+  client_settings_.retry_settings.max_attempts = 6;
+  client_settings_.retry_settings.retry_condition =
+      ([](const olp::client::HttpResponse&) { return true; });
 
-  std::promise<olp::network::HttpResponse> promise;
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .Times(6)
+      .WillRepeatedly([&](olp::http::NetworkRequest request,
+                          olp::http::Network::Payload payload,
+                          olp::http::Network::Callback callback,
+                          olp::http::Network::HeaderCallback header_callback,
+                          olp::http::Network::DataCallback data_callback) {
+        callback(olp::http::NetworkResponse().WithStatus(429));
+
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  client_.SetSettings(client_settings_);
+
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  auto cancelFn = m_client.CallApi(
-      std::string(), std::string(), std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  auto cancel_token = client_.CallApi(std::string(), "GET",
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      nullptr, std::string(), callback);
 
   auto response = promise.get_future().get();
-  ASSERT_EQ(m_clientSettings.retry_settings.max_attempts, numberOfTries);
   ASSERT_EQ(429, response.status);
 }
 
-TEST_P(Client, zeroAttempts) {
-  m_clientSettings.retry_settings.max_attempts = 0;
-  m_clientSettings.retry_settings.retry_condition =
-      ([](const olp::network::HttpResponse&) { return true; });
-  int numberOfTries = 0;
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest&,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
-        ++numberOfTries;
-        olp::network::HttpResponse response;
-        response.status = 429;
-        callback(response);
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+TEST_P(Client, ZeroAttempts) {
+  client_settings_.retry_settings.max_attempts = 0;
+  client_settings_.retry_settings.retry_condition =
+      ([](const olp::client::HttpResponse&) { return true; });
 
-  std::promise<olp::network::HttpResponse> promise;
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        callback(olp::http::NetworkResponse().WithStatus(429));
+
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  client_.SetSettings(client_settings_);
+
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  auto cancelFn = m_client.CallApi(
-      std::string(), std::string(), std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  auto cancel_token = client_.CallApi(std::string(), "GET",
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      nullptr, std::string(), callback);
 
   auto response = promise.get_future().get();
-  ASSERT_EQ(1, numberOfTries);
   ASSERT_EQ(429, response.status);
 }
 
-TEST_P(Client, defaultRetryCondition) {
-  m_clientSettings.retry_settings.max_attempts = 6;
-  int numberOfTries = 0;
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest&,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
-        ++numberOfTries;
-        olp::network::HttpResponse response;
-        response.status = 429;
-        callback(response);
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+TEST_P(Client, DefaultRetryCondition) {
+  client_settings_.retry_settings.max_attempts = 6;
 
-  std::promise<olp::network::HttpResponse> promise;
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        callback(olp::http::NetworkResponse().WithStatus(429));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  client_.SetSettings(client_settings_);
+
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  auto cancelFn = m_client.CallApi(
-      std::string(), std::string(), std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  auto cancel_token = client_.CallApi(std::string(), "GET",
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      nullptr, std::string(), callback);
+
   auto response = promise.get_future().get();
-  ASSERT_EQ(1, numberOfTries);
   ASSERT_EQ(429, response.status);
 }
 
-TEST_P(Client, retryCondition) {
-  m_clientSettings.retry_settings.max_attempts = 6;
-  m_clientSettings.retry_settings.retry_condition =
-      ([](const olp::network::HttpResponse& response) {
+TEST_P(Client, RetryCondition) {
+  client_settings_.retry_settings.max_attempts = 6;
+  client_settings_.retry_settings.retry_condition =
+      ([](const olp::client::HttpResponse& response) {
         return response.status == 429;
       });
 
-  int numberOfTries = 0;
-  int goodAttempt = 4;
+  int current_attempt = 0;
+  const int goodAttempt = 4;
 
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest&,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
-        ++numberOfTries;
-        olp::network::HttpResponse response;
-        if (numberOfTries == goodAttempt) {
-          response.status = 200;
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .Times(goodAttempt)
+      .WillRepeatedly([&current_attempt, goodAttempt](
+                          olp::http::NetworkRequest request,
+                          olp::http::Network::Payload payload,
+                          olp::http::Network::Callback callback,
+                          olp::http::Network::HeaderCallback header_callback,
+                          olp::http::Network::DataCallback data_callback) {
+        current_attempt++;
+        if (current_attempt == goodAttempt) {
+          callback(olp::http::NetworkResponse().WithStatus(200));
         } else {
-          response.status = 429;
+          callback(olp::http::NetworkResponse().WithStatus(429));
         }
-        callback(response);
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
 
-  std::promise<olp::network::HttpResponse> promise;
+  client_.SetSettings(client_settings_);
+
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  auto cancelFn = m_client.CallApi(
-      std::string(), std::string(), std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  auto cancel_token = client_.CallApi(std::string(), "GET",
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      nullptr, std::string(), callback);
 
   auto response = promise.get_future().get();
-  ASSERT_EQ(goodAttempt, numberOfTries);
   ASSERT_EQ(200, response.status);
 }
 
-TEST_P(Client, retryTimeLinear) {
-  m_clientSettings.retry_settings.retry_condition =
-      ([](const olp::network::HttpResponse&) { return true; });
+TEST_P(Client, RetryTimeLinear) {
+  client_settings_.retry_settings.retry_condition =
+      ([](const olp::client::HttpResponse&) { return true; });
   std::vector<std::chrono::time_point<std::chrono::system_clock>> timestamps;
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest&,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
+
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
+
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .Times(3)
+      .WillRepeatedly([&](olp::http::NetworkRequest request,
+                          olp::http::Network::Payload payload,
+                          olp::http::Network::Callback callback,
+                          olp::http::Network::HeaderCallback header_callback,
+                          olp::http::Network::DataCallback data_callback) {
         timestamps.push_back(std::chrono::system_clock::now());
-        olp::network::HttpResponse response;
-        response.status = 429;
-        callback(response);
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+        callback(olp::http::NetworkResponse().WithStatus(429));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
 
-  std::promise<olp::network::HttpResponse> promise;
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  auto cancelFn = m_client.CallApi(
-      std::string(), std::string(), std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  auto cancel_token = client_.CallApi(std::string(), "GET",
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      nullptr, std::string(), callback);
 
   auto response = promise.get_future().get();
-  ASSERT_EQ(m_clientSettings.retry_settings.max_attempts, timestamps.size());
+  ASSERT_EQ(client_settings_.retry_settings.max_attempts, timestamps.size());
   ASSERT_EQ(429, response.status);
   for (size_t i = 1; i < timestamps.size(); ++i) {
     ASSERT_GE(timestamps.at(i) - timestamps.at(i - 1),
               std::chrono::milliseconds(
-                  m_clientSettings.retry_settings.initial_backdown_period));
+                  client_settings_.retry_settings.initial_backdown_period));
   }
 }
 
-TEST_P(Client, retryTimeExponential) {
-  m_clientSettings.retry_settings.retry_condition =
-      ([](const olp::network::HttpResponse&) { return true; });
-  m_clientSettings.retry_settings.backdown_policy =
+TEST_P(Client, RetryTimeExponential) {
+  client_settings_.retry_settings.retry_condition =
+      ([](const olp::client::HttpResponse&) { return true; });
+  client_settings_.retry_settings.backdown_policy =
       ([](unsigned int milliseconds) { return 2 * milliseconds; });
   std::vector<std::chrono::time_point<std::chrono::system_clock>> timestamps;
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest&,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
+
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+
+  client_.SetSettings(client_settings_);
+
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .Times(3)
+      .WillRepeatedly([&](olp::http::NetworkRequest request,
+                          olp::http::Network::Payload payload,
+                          olp::http::Network::Callback callback,
+                          olp::http::Network::HeaderCallback header_callback,
+                          olp::http::Network::DataCallback data_callback) {
         timestamps.push_back(std::chrono::system_clock::now());
-        olp::network::HttpResponse response;
-        response.status = 429;
-        callback(response);
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+        callback(olp::http::NetworkResponse().WithStatus(429));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
 
-  std::promise<olp::network::HttpResponse> promise;
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  auto cancelFn = m_client.CallApi(
-      std::string(), std::string(), std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  auto cancel_token = client_.CallApi(std::string(), "GET",
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      nullptr, std::string(), callback);
 
   auto response = promise.get_future().get();
-  ASSERT_EQ(m_clientSettings.retry_settings.max_attempts, timestamps.size());
+  ASSERT_EQ(client_settings_.retry_settings.max_attempts, timestamps.size());
   ASSERT_EQ(429, response.status);
-  auto backdownPeriod = m_clientSettings.retry_settings.initial_backdown_period;
+  auto backdownPeriod = client_settings_.retry_settings.initial_backdown_period;
   for (size_t i = 1; i < timestamps.size(); ++i) {
     ASSERT_GE(timestamps.at(i) - timestamps.at(i - 1),
               std::chrono::milliseconds(backdownPeriod));
@@ -296,177 +344,225 @@ TEST_P(Client, retryTimeExponential) {
   }
 }
 
-TEST_P(Client, setInitialBackdownPeriod) {
-  m_clientSettings.retry_settings.retry_condition =
-      ([](const olp::network::HttpResponse&) { return true; });
-  m_clientSettings.retry_settings.initial_backdown_period = 1000;
-  ASSERT_EQ(1000, m_clientSettings.retry_settings.initial_backdown_period);
+TEST_P(Client, SetInitialBackdownPeriod) {
+  client_settings_.retry_settings.retry_condition =
+      ([](const olp::client::HttpResponse&) { return true; });
+  client_settings_.retry_settings.initial_backdown_period = 1000;
+  ASSERT_EQ(1000, client_settings_.retry_settings.initial_backdown_period);
   std::vector<std::chrono::time_point<std::chrono::system_clock>> timestamps;
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest&,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
+
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
+
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .Times(3)
+      .WillRepeatedly([&](olp::http::NetworkRequest request,
+                          olp::http::Network::Payload payload,
+                          olp::http::Network::Callback callback,
+                          olp::http::Network::HeaderCallback header_callback,
+                          olp::http::Network::DataCallback data_callback) {
         timestamps.push_back(std::chrono::system_clock::now());
-        olp::network::HttpResponse response;
-        response.status = 429;
-        callback(response);
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+        callback(olp::http::NetworkResponse().WithStatus(429));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
 
-  std::promise<olp::network::HttpResponse> promise;
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  auto cancelFn = m_client.CallApi(
-      std::string(), std::string(), std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  auto cancel_token = client_.CallApi(std::string(), "GET",
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      nullptr, std::string(), callback);
 
   auto response = promise.get_future().get();
-  ASSERT_EQ(m_clientSettings.retry_settings.max_attempts, timestamps.size());
+  ASSERT_EQ(client_settings_.retry_settings.max_attempts, timestamps.size());
   ASSERT_EQ(429, response.status);
   for (size_t i = 1; i < timestamps.size(); ++i) {
     ASSERT_GE(timestamps.at(i) - timestamps.at(i - 1),
               std::chrono::milliseconds(
-                  m_clientSettings.retry_settings.initial_backdown_period));
+                  client_settings_.retry_settings.initial_backdown_period));
   }
 }
 
-TEST_P(Client, timeout) {
-  m_clientSettings.retry_settings.timeout = 100;
+TEST_P(Client, Timeout) {
+  client_settings_.retry_settings.timeout = 100;
   int timeout = 0;
-  m_clientSettings.network_async_handler =
+  client_settings_.network_async_handler =
       [&](const olp::network::NetworkRequest&,
           const olp::network::NetworkConfig& config,
           const olp::client::NetworkAsyncCallback& callback) {
         timeout = config.ConnectTimeout();
-        olp::network::HttpResponse response;
+        olp::client::HttpResponse response;
         response.status = 429;
         callback(response);
         return olp::client::CancellationToken();
       };
-  m_client.SetSettings(m_clientSettings);
 
-  std::promise<olp::network::HttpResponse> promise;
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
+
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        timeout = request.GetSettings().GetConnectionTimeout();
+        callback(olp::http::NetworkResponse().WithStatus(429));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  auto cancelFn = m_client.CallApi(
-      std::string(), std::string(), std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  auto cancel_token = client_.CallApi(std::string(), "GET",
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      nullptr, std::string(), callback);
 
   auto response = promise.get_future().get();
 
-  ASSERT_EQ(m_clientSettings.retry_settings.timeout, timeout);
+  ASSERT_EQ(client_settings_.retry_settings.timeout, timeout);
   ASSERT_EQ(429, response.status);
 }
 
-TEST_P(Client, proxy) {
-  m_clientSettings.retry_settings.timeout = 100;
+TEST_P(Client, Proxy) {
+  client_settings_.retry_settings.timeout = 100;
   olp::network::NetworkProxy settings("somewhere", 1080,
                                       olp::network::NetworkProxy::Type::Http,
                                       "username1", "1");
-  m_clientSettings.proxy_settings = settings;
-  olp::network::NetworkProxy resultSettings;
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest&,
-          const olp::network::NetworkConfig& config,
-          const olp::client::NetworkAsyncCallback& callback) {
-        resultSettings = config.Proxy();
-        olp::network::HttpResponse response;
-        callback(response);
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+  client_settings_.proxy_settings = settings;
+  auto expected_proxy_settings =
+      olp::http::NetworkProxySettings()
+          .WithHostname("somewhere")
+          .WithPort(1080)
+          .WithType(olp::http::NetworkProxySettings::Type::HTTP)
+          .WithUsername("username1")
+          .WithPassword("1");
 
-  std::promise<olp::network::HttpResponse> promise;
+  olp::http::NetworkProxySettings resultSettings;
+
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
+
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        resultSettings = request.GetSettings().GetProxySettings();
+        callback(olp::http::NetworkResponse().WithStatus(200));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  m_client.CallApi(
-      std::string(), std::string(), std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  client_.CallApi(std::string(), "GET",
+                  std::multimap<std::string, std::string>(),
+                  std::multimap<std::string, std::string>(),
+                  std::multimap<std::string, std::string>(), nullptr,
+                  std::string(), callback);
 
   auto response = promise.get_future().get();
 
-  ASSERT_TRUE(resultSettings.IsValid());
-  ASSERT_EQ(settings.Port(), resultSettings.Port());
-  ASSERT_EQ(settings.UserName(), resultSettings.UserName());
-  ASSERT_EQ(settings.UserPassword(), resultSettings.UserPassword());
-  ASSERT_EQ(settings.Name(), resultSettings.Name());
+  ASSERT_EQ(expected_proxy_settings.GetHostname(),
+            resultSettings.GetHostname());
+  ASSERT_EQ(expected_proxy_settings.GetPassword(),
+            resultSettings.GetPassword());
+  ASSERT_EQ(expected_proxy_settings.GetPort(), resultSettings.GetPort());
+  ASSERT_EQ(expected_proxy_settings.GetUsername(),
+            resultSettings.GetUsername());
+  ASSERT_EQ(expected_proxy_settings.GetPassword(),
+            resultSettings.GetPassword());
 }
 
-TEST_P(Client, emptyProxy) {
-  m_clientSettings.retry_settings.timeout = 100;
+TEST_P(Client, EmptyProxy) {
+  client_settings_.retry_settings.timeout = 100;
 
   olp::network::NetworkProxy settings("somewhere", 1080,
                                       olp::network::NetworkProxy::Type::Http,
                                       "username1", "1");
-  m_clientSettings.proxy_settings = settings;
-  ASSERT_TRUE(m_clientSettings.proxy_settings);
-  m_clientSettings.proxy_settings = boost::none;
-  ASSERT_FALSE(m_clientSettings.proxy_settings);
+  client_settings_.proxy_settings = settings;
+  ASSERT_TRUE(client_settings_.proxy_settings);
+  client_settings_.proxy_settings = boost::none;
+  ASSERT_FALSE(client_settings_.proxy_settings);
 
-  olp::network::NetworkProxy resultSettings;
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest&,
-          const olp::network::NetworkConfig& config,
-          const olp::client::NetworkAsyncCallback& callback) {
-        resultSettings = config.Proxy();
-        olp::network::HttpResponse response;
-        callback(response);
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+  olp::http::NetworkProxySettings resultSettings;
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
 
-  std::promise<olp::network::HttpResponse> promise;
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        resultSettings = request.GetSettings().GetProxySettings();
+        callback(olp::http::NetworkResponse().WithStatus(200));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  m_client.CallApi(
-      std::string(), std::string(), std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
-
+  client_.CallApi(std::string(), "GET",
+                  std::multimap<std::string, std::string>(),
+                  std::multimap<std::string, std::string>(),
+                  std::multimap<std::string, std::string>(), nullptr,
+                  std::string(), callback);
   auto response = promise.get_future().get();
 
-  ASSERT_FALSE(resultSettings.IsValid());
+  ASSERT_FALSE(resultSettings.GetType() !=
+               olp::http::NetworkProxySettings::Type::NONE);
 }
 
-TEST_P(Client, httpresponse) {
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest&,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
-        olp::network::HttpResponse response;
-        response.status = 200;
-        response.response = "content";
-        callback(response);
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+TEST_P(Client, HttpResponse) {
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
 
-  std::promise<olp::network::HttpResponse> promise;
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        *payload << "content";
+        callback(olp::http::NetworkResponse().WithStatus(200));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  auto cancelFn = m_client.CallApi(
-      std::string(), std::string(), std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  auto cancel_token = client_.CallApi(std::string(), "GET",
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      nullptr, std::string(), callback);
 
   auto response = promise.get_future().get();
 
@@ -474,192 +570,233 @@ TEST_P(Client, httpresponse) {
   ASSERT_EQ(200, response.status);
 }
 
-TEST_P(Client, paths) {
+TEST_P(Client, Paths) {
   std::string url;
-  m_client.SetBaseUrl("here.com");
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest& request,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
-        url = request.Url();
-        callback(olp::network::HttpResponse());
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+  client_.SetBaseUrl("here.com");
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
 
-  std::promise<olp::network::HttpResponse> promise;
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        url = request.GetUrl();
+        callback(olp::http::NetworkResponse().WithStatus(200));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  m_client.CallApi(
-      "/index", std::string(), std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  client_.CallApi("/index", "GET", std::multimap<std::string, std::string>(),
+                  std::multimap<std::string, std::string>(),
+                  std::multimap<std::string, std::string>(), nullptr,
+                  std::string(), callback);
 
   auto response = promise.get_future().get();
 
   ASSERT_EQ("here.com/index", url);
 }
 
-TEST_P(Client, methodGET) {
-  olp::network::NetworkRequest::HttpVerb verb;
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest& request,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
-        verb = request.Verb();
-        callback(olp::network::HttpResponse());
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+TEST_P(Client, MethodGET) {
+  olp::http::NetworkRequest::HttpVerb verb;
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
 
-  std::promise<olp::network::HttpResponse> promise;
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        verb = request.GetVerb();
+        callback(olp::http::NetworkResponse().WithStatus(200));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  m_client.CallApi(std::string(), "GET", std::multimap<std::string, std::string>(),
-                   std::multimap<std::string, std::string>(),
-                   std::multimap<std::string, std::string>(), nullptr, std::string(),
-                   callback);
+  client_.CallApi(std::string(), "GET",
+                  std::multimap<std::string, std::string>(),
+                  std::multimap<std::string, std::string>(),
+                  std::multimap<std::string, std::string>(), nullptr,
+                  std::string(), callback);
   auto response = promise.get_future().get();
-  ASSERT_EQ(olp::network::NetworkRequest::GET, verb);
+  ASSERT_EQ(olp::http::NetworkRequest::HttpVerb::GET, verb);
 }
 
-TEST_P(Client, methodPUT) {
-  olp::network::NetworkRequest::HttpVerb verb;
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest& request,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
-        verb = request.Verb();
-        callback(olp::network::HttpResponse());
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+TEST_P(Client, MethodPOST) {
+  olp::http::NetworkRequest::HttpVerb verb;
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
 
-  std::promise<olp::network::HttpResponse> promise;
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        verb = request.GetVerb();
+        callback(olp::http::NetworkResponse().WithStatus(200));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  m_client.CallApi(std::string(), "PUT", std::multimap<std::string, std::string>(),
-                   std::multimap<std::string, std::string>(),
-                   std::multimap<std::string, std::string>(), nullptr, std::string(),
-                   callback);
+  client_.CallApi(std::string(), "POST",
+                  std::multimap<std::string, std::string>(),
+                  std::multimap<std::string, std::string>(),
+                  std::multimap<std::string, std::string>(), nullptr,
+                  std::string(), callback);
   auto response = promise.get_future().get();
-  ASSERT_EQ(olp::network::NetworkRequest::PUT, verb);
+  ASSERT_EQ(olp::http::NetworkRequest::HttpVerb::POST, verb);
 }
 
-TEST_P(Client, methodDELETE) {
-  olp::network::NetworkRequest::HttpVerb verb;
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest& request,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
-        verb = request.Verb();
-        callback(olp::network::HttpResponse());
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+TEST_P(Client, MethodPUT) {
+  olp::http::NetworkRequest::HttpVerb verb;
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
 
-  std::promise<olp::network::HttpResponse> promise;
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        verb = request.GetVerb();
+        callback(olp::http::NetworkResponse().WithStatus(200));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  m_client.CallApi(
-      std::string(), "DELETE", std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  client_.CallApi(std::string(), "PUT",
+                  std::multimap<std::string, std::string>(),
+                  std::multimap<std::string, std::string>(),
+                  std::multimap<std::string, std::string>(), nullptr,
+                  std::string(), callback);
   auto response = promise.get_future().get();
-  ASSERT_EQ(olp::network::NetworkRequest::DEL, verb);
+  ASSERT_EQ(olp::http::NetworkRequest::HttpVerb::PUT, verb);
 }
 
-TEST_P(Client, methodPOST) {
-  olp::network::NetworkRequest::HttpVerb verb;
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest& request,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
-        verb = request.Verb();
-        callback(olp::network::HttpResponse());
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+TEST_P(Client, MethodDELETE) {
+  olp::http::NetworkRequest::HttpVerb verb;
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
 
-  std::promise<olp::network::HttpResponse> promise;
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        verb = request.GetVerb();
+        callback(olp::http::NetworkResponse().WithStatus(200));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  m_client.CallApi(std::string(), "POST", std::multimap<std::string, std::string>(),
-                   std::multimap<std::string, std::string>(),
-                   std::multimap<std::string, std::string>(), nullptr, std::string(),
-                   callback);
+  client_.CallApi(std::string(), "DELETE",
+                  std::multimap<std::string, std::string>(),
+                  std::multimap<std::string, std::string>(),
+                  std::multimap<std::string, std::string>(), nullptr,
+                  std::string(), callback);
   auto response = promise.get_future().get();
-  ASSERT_EQ(olp::network::NetworkRequest::POST, verb);
+  ASSERT_EQ(olp::http::NetworkRequest::HttpVerb::DEL, verb);
 }
 
-TEST_P(Client, queryParam) {
+TEST_P(Client, QueryParam) {
   std::string url;
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest& request,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
-        url = request.Url();
-        callback(olp::network::HttpResponse());
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
+
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        url = request.GetUrl();
+        callback(olp::http::NetworkResponse().WithStatus(200));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
   std::multimap<std::string, std::string> queryParams;
   queryParams.insert(std::make_pair("var1", ""));
   queryParams.insert(std::make_pair("var2", "2"));
 
-  std::promise<olp::network::HttpResponse> promise;
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  m_client.CallApi(
-      "index", std::string(), queryParams, std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  client_.CallApi("index", "GET", queryParams,
+                  std::multimap<std::string, std::string>(),
+                  std::multimap<std::string, std::string>(), nullptr,
+                  std::string(), callback);
   auto response = promise.get_future().get();
   ASSERT_EQ("index?var1=&var2=2", url);
 }
 
-TEST_P(Client, headerParams) {
-  std::multimap<std::string, std::string> headerParams;
+TEST_P(Client, HeaderParams) {
+  std::multimap<std::string, std::string> header_params;
   std::vector<std::pair<std::string, std::string>> resultHeaders;
-  headerParams.insert(std::make_pair("head1", "value1"));
-  headerParams.insert(std::make_pair("head2", "value2"));
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest& request,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
-        resultHeaders = request.ExtraHeaders();
-        callback(olp::network::HttpResponse());
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+  header_params.insert(std::make_pair("head1", "value1"));
+  header_params.insert(std::make_pair("head2", "value2"));
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
 
-  std::promise<olp::network::HttpResponse> promise;
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        resultHeaders = request.GetHeaders();
+        callback(olp::http::NetworkResponse().WithStatus(200));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  m_client.CallApi(std::string(), std::string(),
-                   std::multimap<std::string, std::string>(), headerParams,
-                   std::multimap<std::string, std::string>(), nullptr, std::string(),
-                   callback);
+  client_.CallApi(std::string(), "GET",
+                  std::multimap<std::string, std::string>(), header_params,
+                  std::multimap<std::string, std::string>(), nullptr,
+                  std::string(), callback);
   auto response = promise.get_future().get();
 
   ASSERT_EQ(2u, resultHeaders.size());
@@ -672,30 +809,36 @@ TEST_P(Client, headerParams) {
   }
 }
 
-TEST_P(Client, defaultHeaderParams) {
+TEST_P(Client, DefaultHeaderParams) {
   std::vector<std::pair<std::string, std::string>> resultHeaders;
-  m_client.GetMutableDefaultHeaders().insert(std::make_pair("head1", "value1"));
-  m_client.GetMutableDefaultHeaders().insert(std::make_pair("head2", "value2"));
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest& request,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
-        resultHeaders = request.ExtraHeaders();
-        callback(olp::network::HttpResponse());
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+  client_.GetMutableDefaultHeaders().insert(std::make_pair("head1", "value1"));
+  client_.GetMutableDefaultHeaders().insert(std::make_pair("head2", "value2"));
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
 
-  std::promise<olp::network::HttpResponse> promise;
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        resultHeaders = request.GetHeaders();
+        callback(olp::http::NetworkResponse().WithStatus(200));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  m_client.CallApi(
-      std::string(), std::string(), std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  client_.CallApi(std::string(), "GET",
+                  std::multimap<std::string, std::string>(),
+                  std::multimap<std::string, std::string>(),
+                  std::multimap<std::string, std::string>(), nullptr,
+                  std::string(), callback);
   auto response = promise.get_future().get();
 
   ASSERT_EQ(2u, resultHeaders.size());
@@ -708,32 +851,37 @@ TEST_P(Client, defaultHeaderParams) {
   }
 }
 
-TEST_P(Client, combineHeaderParams) {
+TEST_P(Client, CombineHeaderParams) {
   std::vector<std::pair<std::string, std::string>> resultHeaders;
-  m_client.GetMutableDefaultHeaders().insert(std::make_pair("head1", "value1"));
-  m_client.GetMutableDefaultHeaders().insert(std::make_pair("head2", "value2"));
-  std::multimap<std::string, std::string> headerParams;
-  headerParams.insert(std::make_pair("head3", "value3"));
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest& request,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
-        resultHeaders = request.ExtraHeaders();
-        callback(olp::network::HttpResponse());
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+  client_.GetMutableDefaultHeaders().insert(std::make_pair("head1", "value1"));
+  client_.GetMutableDefaultHeaders().insert(std::make_pair("head2", "value2"));
+  std::multimap<std::string, std::string> header_params;
+  header_params.insert(std::make_pair("head3", "value3"));
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
 
-  std::promise<olp::network::HttpResponse> promise;
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        resultHeaders = request.GetHeaders();
+        callback(olp::http::NetworkResponse().WithStatus(200));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  m_client.CallApi(std::string(), std::string(),
-                   std::multimap<std::string, std::string>(), headerParams,
-                   std::multimap<std::string, std::string>(), nullptr, std::string(),
-                   callback);
+  client_.CallApi(std::string(), "GET",
+                  std::multimap<std::string, std::string>(), header_params,
+                  std::multimap<std::string, std::string>(), nullptr,
+                  std::string(), callback);
   auto response = promise.get_future().get();
 
   ASSERT_EQ(3u, resultHeaders.size());
@@ -748,37 +896,41 @@ TEST_P(Client, combineHeaderParams) {
   }
 }
 
-TEST_P(Client, content) {
+TEST_P(Client, Content) {
   std::vector<std::pair<std::string, std::string>> resultHeaders;
-  m_client.GetMutableDefaultHeaders().insert(std::make_pair("head1", "value1"));
-  std::multimap<std::string, std::string> headerParams;
-  headerParams.insert(std::make_pair("head3", "value3"));
+  client_.GetMutableDefaultHeaders().insert(std::make_pair("head1", "value1"));
+  std::multimap<std::string, std::string> header_params;
+  header_params.insert(std::make_pair("head3", "value3"));
   const std::string content_string = "something";
   const auto content = std::make_shared<std::vector<unsigned char>>(
       content_string.begin(), content_string.end());
-  std::shared_ptr<std::vector<unsigned char>> resultContent;
+  std::shared_ptr<const std::vector<unsigned char>> resultContent;
 
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest& request,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
-        resultHeaders = request.ExtraHeaders();
-        resultContent = request.Content();
-        callback(olp::network::HttpResponse());
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
 
-  std::promise<olp::network::HttpResponse> promise;
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        resultHeaders = request.GetHeaders();
+        resultContent = request.GetBody();
+        callback(olp::http::NetworkResponse().WithStatus(200));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  m_client.CallApi(std::string(), std::string(),
-                   std::multimap<std::string, std::string>(), headerParams,
-                   std::multimap<std::string, std::string>(), content, "plain-text",
-                   callback);
+  client_.CallApi(std::string(), "GET",
+                  std::multimap<std::string, std::string>(), header_params,
+                  std::multimap<std::string, std::string>(), content,
+                  "plain-text", callback);
   auto response = promise.get_future().get();
   ASSERT_EQ(3u, resultHeaders.size());
   for (auto& entry : resultHeaders) {
@@ -796,237 +948,266 @@ TEST_P(Client, content) {
   ASSERT_EQ(*content, *resultContent);
 }
 
-TEST_P(Client, cancelBeforeResponse) {
-  auto waitForCancel = std::make_shared<std::promise<bool>>();
-  auto wasCancelled = std::make_shared<std::atomic_bool>(false);
+TEST_P(Client, CancelBeforeResponse) {
+  auto wait_for_cancel = std::make_shared<std::promise<bool>>();
+  auto was_cancelled = std::make_shared<std::atomic_bool>(false);
 
-  m_client.SetBaseUrl("https://www.google.com");
-  m_clientSettings.network_async_handler =
-      [waitForCancel, wasCancelled](
-          const olp::network::NetworkRequest& /*request*/,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
-        // TODO maybe handler calls should be automatically off-threaded.
-        std::thread handlerThread([waitForCancel, callback]() {
-          waitForCancel->get_future().get();
-          callback(olp::network::HttpResponse());
+  client_.SetBaseUrl("https://www.google.com");
+
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
+
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        std::thread handler_thread([wait_for_cancel, callback]() {
+          wait_for_cancel->get_future().get();
+          callback(olp::http::NetworkResponse().WithStatus(200));
         });
-        handlerThread.detach();
-        return olp::client::CancellationToken(
-            [wasCancelled]() { wasCancelled->store(true); });
-      };
-  m_client.SetSettings(m_clientSettings);
+        handler_thread.detach();
 
-  auto responsePromise =
-      std::make_shared<std::promise<olp::network::HttpResponse>>();
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  EXPECT_CALL(*network, Cancel(5))
+      .WillOnce(
+          [=](olp::http::RequestId request_id) { was_cancelled->store(true); });
+
+  auto response_promise =
+      std::make_shared<std::promise<olp::client::HttpResponse>>();
   olp::client::NetworkAsyncCallback callback =
-      [responsePromise](olp::network::HttpResponse httpResponse) {
-        responsePromise->set_value(httpResponse);
+      [response_promise](olp::client::HttpResponse http_response) {
+        response_promise->set_value(http_response);
       };
 
-  auto cancelFn = m_client.CallApi(
-      std::string(), std::string(), std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  auto cancel_token = client_.CallApi(std::string(), "GET",
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      nullptr, std::string(), callback);
 
-  cancelFn.cancel();
-  waitForCancel->set_value(true);
-  ASSERT_TRUE(wasCancelled->load());
+  cancel_token.cancel();
+  wait_for_cancel->set_value(true);
+  ASSERT_TRUE(was_cancelled->load());
   ASSERT_EQ(std::future_status::ready,
-            responsePromise->get_future().wait_for(std::chrono::seconds(2)));
+            response_promise->get_future().wait_for(std::chrono::seconds(2)));
 }
 
-TEST_P(Client, cancelAfterCompletion) {
-  auto wasCancelled = std::make_shared<std::atomic_bool>(false);
+TEST_P(Client, CancelAfterCompletion) {
+  auto was_cancelled = std::make_shared<std::atomic_bool>(false);
 
-  m_client.SetBaseUrl("https://www.google.com");
-  m_clientSettings.network_async_handler =
-      [&](const olp::network::NetworkRequest& /*request*/,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
-        callback(olp::network::HttpResponse());
-        return olp::client::CancellationToken(
-            [wasCancelled]() { wasCancelled->store(true); });
-      };
-  m_client.SetSettings(m_clientSettings);
+  client_.SetBaseUrl("https://www.google.com");
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
 
-  std::promise<olp::network::HttpResponse> promise;
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        callback(olp::http::NetworkResponse().WithStatus(200));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  EXPECT_CALL(*network, Cancel(5))
+      .WillOnce(
+          [=](olp::http::RequestId request_id) { was_cancelled->store(true); });
+
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  auto cancelFn = m_client.CallApi(
-      std::string(), std::string(), std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  auto cancel_token = client_.CallApi(std::string(), "GET",
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      nullptr, std::string(), callback);
 
   auto response = promise.get_future().get();
-  cancelFn.cancel();
+  cancel_token.cancel();
 
-  ASSERT_TRUE(wasCancelled->load());
+  ASSERT_TRUE(was_cancelled->load());
 }
 
-TEST_P(Client, cancelDuplicate) {
-  auto waitForCancel = std::make_shared<std::promise<bool>>();
-  auto wasCancelled = std::make_shared<std::atomic_bool>(false);
+TEST_P(Client, CancelDuplicate) {
+  auto wait_for_cancel = std::make_shared<std::promise<bool>>();
+  auto was_cancelled = std::make_shared<std::atomic_bool>(false);
 
-  m_client.SetBaseUrl("https://www.google.com");
-  m_clientSettings.network_async_handler =
-      [waitForCancel, wasCancelled](
-          const olp::network::NetworkRequest& /*request*/,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
-        // TODO maybe handler calls should be automatically off-threaded.
-        std::thread handlerThread([waitForCancel, callback]() {
-          waitForCancel->get_future().get();
-          callback(olp::network::HttpResponse());
+  client_.SetBaseUrl("https://www.google.com");
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
+
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        std::thread handler_thread([wait_for_cancel, callback]() {
+          wait_for_cancel->get_future().get();
+          callback(olp::http::NetworkResponse().WithStatus(200));
         });
-        handlerThread.detach();
-        return olp::client::CancellationToken(
-            [wasCancelled]() { wasCancelled->store(true); });
-      };
-  m_client.SetSettings(m_clientSettings);
+        handler_thread.detach();
 
-  auto responsePromise =
-      std::make_shared<std::promise<olp::network::HttpResponse>>();
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  EXPECT_CALL(*network, Cancel(5))
+      .WillOnce(
+          [=](olp::http::RequestId request_id) { was_cancelled->store(true); });
+
+  auto response_promise =
+      std::make_shared<std::promise<olp::client::HttpResponse>>();
   olp::client::NetworkAsyncCallback callback =
-      [responsePromise](olp::network::HttpResponse httpResponse) {
-        responsePromise->set_value(httpResponse);
+      [response_promise](olp::client::HttpResponse http_response) {
+        response_promise->set_value(http_response);
       };
 
-  auto cancelFn = m_client.CallApi(
-      std::string(), std::string(), std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  auto cancel_token = client_.CallApi(std::string(), "GET",
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      nullptr, std::string(), callback);
 
-  cancelFn.cancel();
-  cancelFn.cancel();
-  cancelFn.cancel();
-  waitForCancel->set_value(true);
-  cancelFn.cancel();
-  ASSERT_TRUE(wasCancelled->load());
+  cancel_token.cancel();
+  cancel_token.cancel();
+  cancel_token.cancel();
+  wait_for_cancel->set_value(true);
+  cancel_token.cancel();
+
+  ASSERT_TRUE(was_cancelled->load());
   ASSERT_EQ(std::future_status::ready,
-            responsePromise->get_future().wait_for(std::chrono::seconds(2)));
+            response_promise->get_future().wait_for(std::chrono::seconds(2)));
 }
 
-TEST_P(Client, cancelRetry) {
-  m_clientSettings.retry_settings.max_attempts = 6;
-  m_clientSettings.retry_settings.initial_backdown_period = 500;
-  m_clientSettings.retry_settings.retry_condition =
-      ([](const olp::network::HttpResponse& response) {
+TEST_P(Client, CancelRetry) {
+  client_settings_.retry_settings.max_attempts = 6;
+  client_settings_.retry_settings.initial_backdown_period = 500;
+  client_settings_.retry_settings.retry_condition =
+      ([](const olp::client::HttpResponse& response) {
         return response.status == 429;
       });
 
-  auto waitForCancel = std::make_shared<std::promise<bool>>();
+  auto wait_for_cancel = std::make_shared<std::promise<bool>>();
   auto cancelled = std::make_shared<std::atomic_bool>(false);
-  auto numberOfTries = std::make_shared<int>(0);
-  m_clientSettings.network_async_handler =
-      [waitForCancel, numberOfTries, cancelled](
-          const olp::network::NetworkRequest&,
-          const olp::network::NetworkConfig&,
-          const olp::client::NetworkAsyncCallback& callback) {
-        auto tries = ++(*numberOfTries);
-        std::thread handlerThread(
-            [waitForCancel, callback, tries, cancelled]() {
-              olp::network::HttpResponse response;
-              response.status = 429;
-              callback(response);
+  auto number_of_tries = std::make_shared<int>(0);
 
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
+
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillRepeatedly([&](olp::http::NetworkRequest request,
+                          olp::http::Network::Payload payload,
+                          olp::http::Network::Callback callback,
+                          olp::http::Network::HeaderCallback header_callback,
+                          olp::http::Network::DataCallback data_callback) {
+        auto tries = ++(*number_of_tries);
+        std::thread handler_thread(
+            [wait_for_cancel, callback, tries, cancelled]() {
+              callback(olp::http::NetworkResponse().WithStatus(429));
               if (tries == 1) {
-                waitForCancel->set_value(true);
+                wait_for_cancel->set_value(true);
               }
             });
-        handlerThread.detach();
+        handler_thread.detach();
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
 
-        return olp::client::CancellationToken(
-            [cancelled]() { cancelled->store(true); });
-      };
-  m_client.SetSettings(m_clientSettings);
+  EXPECT_CALL(*network, Cancel(5)).WillOnce([cancelled](olp::http::RequestId) {
+    cancelled->store(true);
+  });
 
-  auto callbackPromise =
-      std::make_shared<std::promise<olp::network::HttpResponse>>();
+  auto callback_promise =
+      std::make_shared<std::promise<olp::client::HttpResponse>>();
   olp::client::NetworkAsyncCallback callback =
-      [callbackPromise](olp::network::HttpResponse httpResponse) {
-        callbackPromise->set_value(httpResponse);
+      [callback_promise](olp::client::HttpResponse http_response) {
+        callback_promise->set_value(http_response);
       };
 
-  auto cancelFn = m_client.CallApi(
-      std::string(), std::string(), std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string(), callback);
+  auto cancel_token = client_.CallApi(std::string(), std::string(),
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      std::multimap<std::string, std::string>(),
+                                      nullptr, std::string(), callback);
 
-  waitForCancel->get_future().get();
-  cancelFn.cancel();
+  wait_for_cancel->get_future().get();
+  cancel_token.cancel();
 
-  ASSERT_EQ(std::future_status::ready,
-            callbackPromise->get_future().wait_for(std::chrono::seconds(2)));
-  ASSERT_LT(*numberOfTries, m_clientSettings.retry_settings.max_attempts);
+  EXPECT_EQ(std::future_status::ready,
+            callback_promise->get_future().wait_for(std::chrono::seconds(2)));
+  ASSERT_LT(*number_of_tries, client_settings_.retry_settings.max_attempts);
 }
 
-TEST_P(Client, queryMultiParams) {
+TEST_P(Client, QueryMultiParams) {
   std::string uri;
-  std::vector<std::pair<std::string,std::string>> headers;
-  m_clientSettings.network_async_handler =
-      [&uri, &headers](const olp::network::NetworkRequest& request,
-          const olp::network::NetworkConfig& /*config*/,
-          const olp::client::NetworkAsyncCallback& callback) {
-        uri = request.Url();
-        headers = request.ExtraHeaders();
-        olp::network::HttpResponse response;
-        callback(response);
-        return olp::client::CancellationToken();
-      };
-  m_client.SetSettings(m_clientSettings);
+  std::vector<std::pair<std::string, std::string>> headers;
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
 
-  std::promise<olp::network::HttpResponse> promise;
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        uri = request.GetUrl();
+        headers = request.GetHeaders();
+        callback(olp::http::NetworkResponse().WithStatus(200));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [&](olp::network::HttpResponse httpResponse) {
-        promise.set_value(httpResponse);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(http_response);
       };
 
-  std::multimap<std::string, std::string> queryParams = {{"a", "a1"},
-                                                         {"b", "b1"},
-                                                         {"b", "b2"},
-                                                         {"c", "c1"},
-                                                         {"c", "c2"},
-                                                         {"c", "c3"}};
+  std::multimap<std::string, std::string> queryParams = {
+      {"a", "a1"}, {"b", "b1"}, {"b", "b2"},
+      {"c", "c1"}, {"c", "c2"}, {"c", "c3"}};
 
-  std::multimap<std::string, std::string> headerParams = {{"z", "z1"},
-                                                          {"y", "y1"},
-                                                          {"y", "y2"},
-                                                          {"x", "x1"},
-                                                          {"x", "x2"},
-                                                          {"x", "x3"}};
+  std::multimap<std::string, std::string> header_params = {
+      {"z", "z1"}, {"y", "y1"}, {"y", "y2"},
+      {"x", "x1"}, {"x", "x2"}, {"x", "x3"}};
 
-  std::multimap<std::string, std::string> formParams;
+  std::multimap<std::string, std::string> form_params;
 
-  auto cancelFn = m_client.CallApi(std::string(), std::string(),
-      queryParams, headerParams, formParams,
-      nullptr, std::string(), callback);
+  auto cancel_token =
+      client_.CallApi(std::string(), std::string(), queryParams, header_params,
+                      form_params, nullptr, std::string(), callback);
 
   auto response = promise.get_future().get();
 
   // query test
-  for(auto q : queryParams) {
-      std::string paramEqualValue = q.first + "=" + q.second;
-      ASSERT_NE(uri.find(paramEqualValue), std::string::npos);
+  for (auto q : queryParams) {
+    std::string param_equal_value = q.first + "=" + q.second;
+    ASSERT_NE(uri.find(param_equal_value), std::string::npos);
   }
   ASSERT_EQ(uri.find("not=present"), std::string::npos);
 
   // headers test
   ASSERT_EQ(headers.size(), 6);
-  for(auto p : headerParams) {
-      ASSERT_TRUE(std::find_if(headers.begin(), headers.end(),
-                               [p](decltype(p) el) {
-                      return el == p;
-                  }) != headers.end());
+  for (auto p : header_params) {
+    ASSERT_TRUE(std::find_if(headers.begin(), headers.end(),
+                             [p](decltype(p) el) { return el == p; }) !=
+                headers.end());
   }
 
-  decltype(headerParams)::value_type newVal{"added", "new"};
-  headerParams.insert(newVal);
+  decltype(header_params)::value_type new_value{"added", "new"};
+  header_params.insert(new_value);
   ASSERT_FALSE(std::find_if(headers.begin(), headers.end(),
-                           [newVal](decltype(newVal) el) {
-                  return el == newVal;
-              }) != headers.end());
+                            [new_value](decltype(new_value) el) {
+                              return el == new_value;
+                            }) != headers.end());
 }

@@ -27,6 +27,7 @@
 
 #include "olp/core/client/CancellationToken.h"
 #include "olp/core/http/Network.h"
+#include "olp/core/network/HttpResponse.h"
 #include "olp/core/network/NetworkProxy.h"
 
 namespace olp {
@@ -34,16 +35,21 @@ namespace olp {
 namespace network {
 class NetworkRequest;
 class NetworkConfig;
-class HttpResponse;
 }  // namespace network
 
 namespace thread {
 class TaskScheduler;
 }  // namespace thread
 
+namespace http {
+class Network;
+struct HttpResponse;
+}  // namespace http
+
 namespace client {
 
-using NetworkAsyncCallback = std::function<void(network::HttpResponse)>;
+using HttpResponse = olp::network::HttpResponse;
+using NetworkAsyncCallback = std::function<void(HttpResponse)>;
 using NetworkAsyncCancel = std::function<void()>;
 
 /**
@@ -61,7 +67,7 @@ CORE_API unsigned int DefaultBackdownPolicy(unsigned int milliseconds);
 /**
  * @brief Default RetryCondition which is to disable retries.
  */
-CORE_API bool DefaultRetryCondition(const network::HttpResponse& response);
+CORE_API bool DefaultRetryCondition(const HttpResponse& response);
 
 struct AuthenticationSettings {
   /**
@@ -115,7 +121,7 @@ struct RetrySettings {
    * @brief A function which in a HttpResponse, and a bool result. True if retry
    * is desired, false otherwise.
    */
-  using RetryCondition = std::function<bool(const network::HttpResponse&)>;
+  using RetryCondition = std::function<bool(const HttpResponse&)>;
 
   /**
    * @brief number of attempts. Default is 3.
@@ -170,6 +176,7 @@ struct OlpClientSettings {
 
   /**
    * @brief The network handler.
+   * @deprecated since 0.7
    */
   boost::optional<NetworkAsyncHandler> network_async_handler = boost::none;
 
