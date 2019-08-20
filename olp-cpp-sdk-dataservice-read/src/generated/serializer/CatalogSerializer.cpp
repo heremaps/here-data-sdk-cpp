@@ -33,8 +33,8 @@ void to_json(const dataservice::read::model::Coverage& x,
 }
 
 void to_json(const dataservice::read::model::IndexDefinition& x,
-               rapidjson::Value& value,
-               rapidjson::Document::AllocatorType& allocator) {
+             rapidjson::Value& value,
+             rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   serialize("name", x.GetName(), value, allocator);
   serialize("type", x.GetType(), value, allocator);
@@ -43,63 +43,60 @@ void to_json(const dataservice::read::model::IndexDefinition& x,
 }
 
 void to_json(const dataservice::read::model::IndexProperties& x,
-               rapidjson::Value& value,
-               rapidjson::Document::AllocatorType& allocator) {
+             rapidjson::Value& value,
+             rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   serialize("ttl", x.GetTtl(), value, allocator);
   serialize("indexDefinitions", x.GetIndexDefinitions(), value, allocator);
 }
 
 void to_json(const dataservice::read::model::Creator& x,
-               rapidjson::Value& value,
-               rapidjson::Document::AllocatorType& allocator) {
+             rapidjson::Value& value,
+             rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   serialize("id", x.GetId(), value, allocator);
 }
 
-void to_json(const dataservice::read::model::Owner& x,
-               rapidjson::Value& value,
-               rapidjson::Document::AllocatorType& allocator) {
+void to_json(const dataservice::read::model::Owner& x, rapidjson::Value& value,
+             rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   serialize("creator", x.GetCreator(), value, allocator);
   serialize("organisation", x.GetOrganisation(), value, allocator);
 }
 
 void to_json(const dataservice::read::model::Partitioning& x,
-               rapidjson::Value& value,
-               rapidjson::Document::AllocatorType& allocator) {
+             rapidjson::Value& value,
+             rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   serialize("scheme", x.GetScheme(), value, allocator);
   serialize("tileLevels", x.GetTileLevels(), value, allocator);
 }
 
-void to_json(const dataservice::read::model::Schema& x,
-               rapidjson::Value& value,
-               rapidjson::Document::AllocatorType& allocator) {
+void to_json(const dataservice::read::model::Schema& x, rapidjson::Value& value,
+             rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   serialize("hrn", x.GetHrn(), value, allocator);
 }
 
 void to_json(const dataservice::read::model::StreamProperties& x,
-               rapidjson::Value& value,
-               rapidjson::Document::AllocatorType& allocator) {
+             rapidjson::Value& value,
+             rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
-  serialize("dataInThroughputMbps", x.GetDataInThroughputMbps(),
-            value, allocator);
-  serialize("dataOutThroughputMbps", x.GetDataOutThroughputMbps(),
-            value, allocator);
+  serialize("dataInThroughputMbps", x.GetDataInThroughputMbps(), value,
+            allocator);
+  serialize("dataOutThroughputMbps", x.GetDataOutThroughputMbps(), value,
+            allocator);
 }
 
 void to_json(const dataservice::read::model::Encryption& x,
-               rapidjson::Value& value,
-               rapidjson::Document::AllocatorType& allocator) {
+             rapidjson::Value& value,
+             rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   serialize("algorithm", x.GetAlgorithm(), value, allocator);
 }
 
-void to_json(const dataservice::read::model::Volume& x,
-               rapidjson::Value& value,
-               rapidjson::Document::AllocatorType& allocator) {
+void to_json(const dataservice::read::model::Volume& x, rapidjson::Value& value,
+             rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   serialize("volumeType", x.GetVolumeType(), value, allocator);
   serialize("maxMemoryPolicy", x.GetMaxMemoryPolicy(), value, allocator);
@@ -107,9 +104,8 @@ void to_json(const dataservice::read::model::Volume& x,
   serialize("encryption", x.GetEncryption(), value, allocator);
 }
 
-void to_json(const dataservice::read::model::Layer& x,
-               rapidjson::Value& value,
-               rapidjson::Document::AllocatorType& allocator) {
+void to_json(const dataservice::read::model::Layer& x, rapidjson::Value& value,
+             rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   serialize("id", x.GetId(), value, allocator);
   serialize("name", x.GetName(), value, allocator);
@@ -132,15 +128,15 @@ void to_json(const dataservice::read::model::Layer& x,
 }
 
 void to_json(const dataservice::read::model::Notifications& x,
-               rapidjson::Value& value,
-               rapidjson::Document::AllocatorType& allocator) {
+             rapidjson::Value& value,
+             rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   serialize("enabled", x.GetEnabled(), value, allocator);
 }
 
 void to_json(const dataservice::read::model::Catalog& x,
-               rapidjson::Value& value,
-               rapidjson::Document::AllocatorType& allocator) {
+             rapidjson::Value& value,
+             rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   serialize("id", x.GetId(), value, allocator);
   serialize("hrn", x.GetHrn(), value, allocator);

@@ -615,7 +615,7 @@ TEST(DataserviceWriteParserTest, Publication) {
 
 TEST(DataserviceWriteParserTest, Partitions) {
   std::string jsonInput =
-    "{\
+      "{\
       \"partitions\": [\
         { \
           \"checksum\": \"291f66029c232400e3403cd6e9cfd36e\",\
@@ -653,7 +653,7 @@ TEST(DataserviceWriteParserTest, Partitions) {
 
 TEST(DataserviceWriteParserTest, LayerVersions) {
   std::string jsonInput =
-    "{\
+      "{\
       \"layerVersions\": [\
         {\
           \"layer\": \"my-layer\",\

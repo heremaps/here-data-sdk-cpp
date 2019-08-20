@@ -136,6 +136,8 @@ authSettings.provider =
 // Setup OlpClientSettings and provide it to the StreamLayerClient.
 olp::client::OlpClientSettings clientSettings;
 clientSettings.authentication_settings = authSettings;
+client_settings.network_request_handler =
+    OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
 
 auto client = std::make_shared<StreamLayerClient>(
     olp::client::HRN{gCatalogHRN}, clientSettings);
@@ -143,10 +145,8 @@ auto client = std::make_shared<StreamLayerClient>(
 
 The `StreamLayerClient` class pulls together all the different settings for customization of the client library behavior.
 
-* `retry_settings`: Sets the `olp::client::RetrySettings` to use.
-* `proxy_settings`: Sets the `olp::authentication::NetworkProxySettings` to use.
 * `authentication_settings`: Sets the `olp::client::AuthenticationSettings` to use.
-* `network_async_handler`: Sets the handler for asynchronous execution of network requests.
+* `network_request_handler`: Sets the handler for asynchronous execution of network requests.
 
 Configuration of the `authentication_settings` is sufficient to start using the `CatalogClient`.
 

@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
+#include <chrono>
 #include <regex>
 #include <string>
-#include <chrono>
 
 #include "gtest/gtest.h"
 
@@ -203,7 +203,8 @@ TEST(DataserviceReadSerializerTest, Catalog) {
   billing_tags.push_back("Cost Center 2");
 
   Schema schema;
-  schema.SetHrn("hrn:here:schema:::com.here.schema.rib:topology-geometry_v2:2.2.0");
+  schema.SetHrn(
+      "hrn:here:schema:::com.here.schema.rib:topology-geometry_v2:2.2.0");
 
   Partitioning partitioning;
   std::vector<int64_t> tile_levels;
@@ -240,12 +241,13 @@ TEST(DataserviceReadSerializerTest, Catalog) {
   Layer layer;
   layer.SetId("traffic-incidents");
   layer.SetName("Traffic Incidents");
-  layer.SetSummary("This layer provides aggregated information about traffic incidents.");
+  layer.SetSummary(
+      "This layer provides aggregated information about traffic incidents.");
   layer.SetDescription(
-    "This layer provides aggregated information about traffic incidents, "
-    "including the type and location of each traffic incident, status, "
-    "start and end time, and other relevant data. This data is useful to "
-    "dynamically optimize route calculations.");
+      "This layer provides aggregated information about traffic incidents, "
+      "including the type and location of each traffic incident, status, "
+      "start and end time, and other relevant data. This data is useful to "
+      "dynamically optimize route calculations.");
   layer.SetOwner(owner);
   layer.SetCoverage(coverage);
   layer.SetSchema(schema);
@@ -271,12 +273,13 @@ TEST(DataserviceReadSerializerTest, Catalog) {
   catalog.SetId("roadweather-catalog-v1");
   catalog.SetHrn("hrn:here:data:::my-catalog-v1");
   catalog.SetName("string");
-  catalog.SetSummary("Contains estimates for road conditions based on weather data.");
+  catalog.SetSummary(
+      "Contains estimates for road conditions based on weather data.");
   catalog.SetDescription(
-    "Road conditions are typically based on the temperature, comfort level, "
-    "wind speed and "
-    "direction. However, other weather-based data points can be taken into "
-    "account.");
+      "Road conditions are typically based on the temperature, comfort level, "
+      "wind speed and "
+      "direction. However, other weather-based data points can be taken into "
+      "account.");
   catalog.SetCoverage(coverage);
   catalog.SetOwner(owner);
   catalog.SetTags(tags);
@@ -298,7 +301,7 @@ TEST(DataserviceReadSerializerTest, Catalog) {
 
 TEST(DataserviceReadSerializerTest, LayerVersion) {
   std::string expectedOutput =
-        "{\
+      "{\
         \"layerVersions\": [\
           {\
             \"layer\": \"my-layer\",\
@@ -348,7 +351,7 @@ TEST(DataserviceReadSerializerTest, Partitions) {
 
   Partition partition;
   partition.SetChecksum(
-    boost::optional<std::string>("291f66029c232400e3403cd6e9cfd36e"));
+      boost::optional<std::string>("291f66029c232400e3403cd6e9cfd36e"));
   partition.SetCompressedDataSize(1024);
   partition.SetDataHandle("1b2ca68f-d4a0-4379-8120-cd025640510c");
   partition.SetDataSize(1024);
@@ -371,7 +374,8 @@ TEST(DataserviceReadSerializerTest, Partitions) {
   ASSERT_EQ(expectedOutput, json);
 }
 
-TEST(DataserviceReadSerializerTest, PartitionsNoCompressedDataSizeChecksumOrVersion) {
+TEST(DataserviceReadSerializerTest,
+     PartitionsNoCompressedDataSizeChecksumOrVersion) {
   std::string expectedOutput =
       "{\
     \"partitions\": [\
