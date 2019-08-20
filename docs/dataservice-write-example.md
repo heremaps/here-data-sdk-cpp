@@ -109,6 +109,29 @@ Select the `dataservice-write-example` scheme from the schemes list in the `XCod
 
 Once everything is correctly set up, build and run the example application on your device and you should see the `Publish Successful` message in the main UI screen. If you encountered an error message, e.g. `Publish Failed`, please check the device's logs for the detailed description of the error.
 
+## Building and running on Embedded Device using Yocto project
+
+This example shows how to integrate and use the HERE OLP Edge SDK C++ in an Embedded device firmware built using Yocto project.
+
+### Prerequisites
+
+* Yocto project environment is setup.
+* Bitbake build environment is setup.
+
+### Bitbake meta-olp-edge-sdk layer
+
+* Checkout `meta-olp-edge-sdk` layer from `examples/yocto-integration/meta-olp-edge-sdk` 
+* Add `meta-olp-edge-sdk` layer to `path/to/build/conf/bblayers.conf`
+```bash
+BBLAYERS += "path/to/meta-olp-edge-sdk"
+```
+* Add `olp-edge-sdk-client` to `path/to/build/conf/local.conf`
+```bash
+IMAGE_INSTALL_append = " olp-edge-sdk-client "
+```
+* `bitbake olp-edge-client` 
+* To run the example, execute `dataservice-write-example` from terminal
+
 ## How it works
 
 ### StreamLayerClient

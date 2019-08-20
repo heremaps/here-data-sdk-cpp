@@ -41,10 +41,12 @@ elseif(ANDROID)
 
 else()
     project(${EDGE_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET} VERSION 0.6.0)
-	
+
     find_package(olp-cpp-sdk-authentication REQUIRED)
     find_package(olp-cpp-sdk-dataservice-write REQUIRED)
-	
+    find_package(leveldb REQUIRED)
+    find_package(Threads REQUIRED)
+
     add_executable(${EDGE_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/example.h ${CMAKE_CURRENT_SOURCE_DIR}/example.cpp)
 
     target_sources(${EDGE_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
