@@ -19,7 +19,6 @@
 
 #include "olp/core/http/Network.h"
 
-#include "olp/core/porting/make_unique.h"
 #include "olp/core/utils/WarningWorkarounds.h"
 
 #ifdef NETWORK_HAS_CURL
@@ -35,23 +34,24 @@
 namespace olp {
 namespace http {
 
-CORE_API std::unique_ptr<Network> CreateDefaultNetwork(size_t max_requests_count) {
+CORE_API std::shared_ptr<Network> CreateDefaultNetwork(
+    size_t max_requests_count) {
 #ifdef NETWORK_HAS_CURL
   CORE_UNUSED(max_requests_count);
-  return std::make_unique<NetworkCurl>();
+  return std::make_shared<NetworkCurl>();
 #elif NETWORK_HAS_ANDROID
   CORE_UNUSED(max_requests_count);
-  return std::make_unique<NetworkAndroid>();
+  return std::make_shared<NetworkAndroid>();
 #elif NETWORK_HAS_IOS
-  return std::make_unique<OLPNetworkIOS>(max_requests_count);
+  return std::make_shared<OLPNetworkIOS>(max_requests_count);
 #elif NETWORK_HAS_WINHTTP
   CORE_UNUSED(max_requests_count);
-  return std::make_unique<NetworkWinHttp>();
-#else 
+  return std::make_shared<NetworkWinHttp>();
+#else
   CORE_UNUSED(max_requests_count);
   static_assert(false, "No default network implementation provided");
 #endif
 }
 
-} // namespace http
-} // namespace olp
+}  // namespace http
+}  // namespace olp

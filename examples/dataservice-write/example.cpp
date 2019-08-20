@@ -24,6 +24,7 @@
 
 #include <olp/authentication/TokenProvider.h>
 #include <olp/core/client/HRN.h>
+#include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/logging/Log.h>
 
 #include <olp/dataservice/write/StreamLayerClient.h>
@@ -55,6 +56,8 @@ int RunExample() {
   // Setup OlpClientSettings and provide it to the StreamLayerClient.
   olp::client::OlpClientSettings client_settings;
   client_settings.authentication_settings = auth_settings;
+  client_settings.network_request_handler = olp::client::
+      OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
 
   auto client = std::make_shared<StreamLayerClient>(
       olp::client::HRN{kCatalogHRN}, client_settings);

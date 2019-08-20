@@ -19,6 +19,8 @@
 
 #include "NetworkUtils.h"
 
+#include "olp/core/http/NetworkTypes.h"
+
 #include <string>
 
 namespace olp {
@@ -143,6 +145,31 @@ std::string HttpErrorToString(int error) {
       return "HTTP Version Not Supported";
   }
   return "Unknown Error";
+}
+
+std::string ErrorCodeToString(ErrorCode code) {
+  switch (code) {
+    case olp::http::ErrorCode::SUCCESS:
+      return "Success";
+    case olp::http::ErrorCode::IO_ERROR:
+      return "Input/Output error";
+    case olp::http::ErrorCode::AUTHORIZATION_ERROR:
+      return "Authorization error";
+    case olp::http::ErrorCode::INVALID_URL_ERROR:
+      return "Invalid URL";
+    case olp::http::ErrorCode::OFFLINE_ERROR:
+      return "Offline";
+    case olp::http::ErrorCode::CANCELLED_ERROR:
+      return "Cancelled";
+    case olp::http::ErrorCode::AUTHENTICATION_ERROR:
+      return "Authentication error";
+    case olp::http::ErrorCode::TIMEOUT_ERROR:
+      return "Timeout";
+    case olp::http::ErrorCode::NETWORK_OVERLOAD_ERROR:
+      return "Network overload";
+    default:
+      return "Unknown error";
+  }
 }
 
 }  // namespace http

@@ -21,6 +21,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <string>
 
 namespace olp {
 namespace http {
@@ -119,6 +120,8 @@ class SendOutcome final {
   /// Error code.
   ErrorCode error_code_{ErrorCode::SUCCESS};
 };
+
+std::string ErrorCodeToString(ErrorCode code);
 
 }  // namespace http
 }  // namespace olp
