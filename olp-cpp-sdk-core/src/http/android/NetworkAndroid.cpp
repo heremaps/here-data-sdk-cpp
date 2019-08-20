@@ -198,9 +198,9 @@ bool NetworkAndroid::Initialize() {
     return false;
   }
 
-  // Get corresponding NetworkProtocol class
+  // Get corresponding HttpClient class
   jstring network_class_name =
-      env->NewStringUTF("com/here/olp/network/NetworkProtocol");
+      env->NewStringUTF("com/here/olp/network/HttpClient");
   if (env->ExceptionOccurred()) {
     EDGE_SDK_LOG_ERROR(kLogTag, "Failed to create class name string");
     env->ExceptionDescribe();
@@ -211,7 +211,7 @@ bool NetworkAndroid::Initialize() {
   jclass network_class = (jclass)(env->CallObjectMethod(
       gClassLoader, gFindClassMethod, network_class_name));
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get NetworkProtocol");
+    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get HttpClient");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -224,7 +224,7 @@ bool NetworkAndroid::Initialize() {
   jmethodID java_register_method =
       env->GetMethodID(java_self_class_, "registerClient", "()I");
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get NetworkProtocol.registerClient");
+    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get HttpClient.registerClient");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -233,7 +233,7 @@ bool NetworkAndroid::Initialize() {
   // Get shutdown method
   java_shutdown_method_ = env->GetMethodID(java_self_class_, "shutdown", "()V");
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get NetworkProtocol::shutdown");
+    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get HttpClient.shutdown");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -242,8 +242,7 @@ bool NetworkAndroid::Initialize() {
   jmethodID java_init_method =
       env->GetMethodID(java_self_class_, "<init>", "()V");
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag,
-                       "Failed to get NetworkProtocol::NetworkProtocol");
+    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get HttpClient.HttpClient");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -251,7 +250,7 @@ bool NetworkAndroid::Initialize() {
 
   jobject obj = env->NewObject(java_self_class_, java_init_method);
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to create NetworkProtocol");
+    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to create HttpClient");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -276,11 +275,10 @@ bool NetworkAndroid::Initialize() {
   jni_send_method_ = env->GetMethodID(
       java_self_class_, "send",
       "(Ljava/lang/String;IIJII[Ljava/lang/String;[BLjava/lang/String;III)Lcom/"
-      "here/olp/network/NetworkProtocol$HttpTask;");
+      "here/olp/network/HttpClient$HttpTask;");
 
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag,
-                       "initialize failed to get NetworkProtocol::send");
+    EDGE_SDK_LOG_ERROR(kLogTag, "initialize failed to get HttpClient::send");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -401,7 +399,7 @@ void NetworkAndroid::DoCancel(JNIEnv* env, jobject object) {
 
   jclass cls = env->GetObjectClass(object);
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get AsHttpTaskyncTask");
+    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get HttpTask");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return;
@@ -409,7 +407,7 @@ void NetworkAndroid::DoCancel(JNIEnv* env, jobject object) {
 
   jmethodID mid = env->GetMethodID(cls, "cancelTask", "()V");
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get HttpTask::cancel");
+    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get HttpTask.cancel");
     env->ExceptionDescribe();
     env->ExceptionClear();
     env->DeleteLocalRef(cls);
@@ -419,7 +417,7 @@ void NetworkAndroid::DoCancel(JNIEnv* env, jobject object) {
 
   env->CallVoidMethod(object, mid);
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "NetworkProtocol::Request::cancel failed");
+    EDGE_SDK_LOG_ERROR(kLogTag, "HttpClient.Request.cancel failed");
     env->ExceptionDescribe();
     env->ExceptionClear();
   }
@@ -951,9 +949,10 @@ NetworkAndroid::ResponseData::ResponseData(
  * Callback to be called when response headers have been received
  */
 extern "C" EDGE_SDK_NETWORK_ANDROID_EXPORT void JNICALL
-Java_com_here_olp_network_NetworkProtocol_headersCallback(
-    JNIEnv* env, jobject obj, jint client_id, jlong request_id,
-    jobjectArray headers) {
+Java_com_here_olp_network_HttpClient_headersCallback(JNIEnv* env, jobject obj,
+                                                     jint client_id,
+                                                     jlong request_id,
+                                                     jobjectArray headers) {
   auto network = olp::http::GetNetworkById(client_id);
   if (!network) {
     EDGE_SDK_LOG_WARNING(
@@ -968,7 +967,7 @@ Java_com_here_olp_network_NetworkProtocol_headersCallback(
  * Callback to be called when a date header is received
  */
 extern "C" EDGE_SDK_NETWORK_ANDROID_EXPORT void JNICALL
-Java_com_here_olp_network_NetworkProtocol_dateAndOffsetCallback(
+Java_com_here_olp_network_HttpClient_dateAndOffsetCallback(
     JNIEnv* env, jobject obj, jint client_id, jlong request_id, jlong date,
     jlong offset) {
   auto network = olp::http::GetNetworkById(client_id);
@@ -985,11 +984,10 @@ Java_com_here_olp_network_NetworkProtocol_dateAndOffsetCallback(
  * Callback to be called when a chunk of data is received
  */
 extern "C" EDGE_SDK_NETWORK_ANDROID_EXPORT void JNICALL
-Java_com_here_olp_network_NetworkProtocol_dataCallback(JNIEnv* env, jobject obj,
-                                                       jint client_id,
-                                                       jlong request_id,
-                                                       jbyteArray data,
-                                                       jint len) {
+Java_com_here_olp_network_HttpClient_dataCallback(JNIEnv* env, jobject obj,
+                                                  jint client_id,
+                                                  jlong request_id,
+                                                  jbyteArray data, jint len) {
   auto network = olp::http::GetNetworkById(client_id);
   if (!network) {
     EDGE_SDK_LOG_WARNING(
@@ -1003,9 +1001,11 @@ Java_com_here_olp_network_NetworkProtocol_dataCallback(JNIEnv* env, jobject obj,
  * Callback to be called when a request is completed
  */
 extern "C" EDGE_SDK_NETWORK_ANDROID_EXPORT void JNICALL
-Java_com_here_olp_network_NetworkProtocol_completeRequest(
-    JNIEnv* env, jobject obj, jint client_id, jlong request_id, jint status,
-    jstring error, jstring content_type) {
+Java_com_here_olp_network_HttpClient_completeRequest(JNIEnv* env, jobject obj,
+                                                     jint client_id,
+                                                     jlong request_id,
+                                                     jint status, jstring error,
+                                                     jstring content_type) {
   auto network = olp::http::GetNetworkById(client_id);
   if (!network) {
     EDGE_SDK_LOG_WARNING(
@@ -1020,9 +1020,9 @@ Java_com_here_olp_network_NetworkProtocol_completeRequest(
  * Reset request upon retry
  */
 extern "C" EDGE_SDK_NETWORK_ANDROID_EXPORT void JNICALL
-Java_com_here_olp_network_NetworkProtocol_resetRequest(JNIEnv* env, jobject obj,
-                                                       jint client_id,
-                                                       jlong request_id) {
+Java_com_here_olp_network_HttpClient_resetRequest(JNIEnv* env, jobject obj,
+                                                  jint client_id,
+                                                  jlong request_id) {
   auto network = olp::http::GetNetworkById(client_id);
   if (!network) {
     EDGE_SDK_LOG_WARNING(
