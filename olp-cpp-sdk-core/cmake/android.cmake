@@ -47,36 +47,22 @@ set(CMAKE_JAR_CLASSES_PREFIX com/here/olp/network)
 include(${CMAKE_CURRENT_LIST_DIR}/GetAndroidVariables.cmake)
 get_android_jar_path(CMAKE_JAVA_INCLUDE_PATH SDK_ROOT ANDROID_PLATFORM)
 
-if (NOT EDGE_SDK_USE_HTTP_NETWORK_PROTOCOL)
-    # Generating of both old (EdgeNetworkProtocol.jar, based on the previous version of network)
-    # and the new (EdgeHttpNetworkProtocol, based on http network implementation) network protocol jar archives.
-    # By defaut the old implementation will be used across the SDK.
-    set(EDGE_SDK_NETWORK_VERSION 0.0.1)
-    set(EDGE_SDK_HTTP_NETWORK_VERSION 0.0.2)
+# Generating of both old network (EdgeNetworkProtocol.jar, based on the previous version of network)
+# and the new network (EdgeHttpClient, based on the http network implementation) jar archives.
+# By defaut the old implementation will be used across the SDK.
+set(EDGE_SDK_NETWORK_VERSION 0.0.1)
 
-    set(EDGE_NETWORK_PROTOCOL_JAR EdgeNetworkProtocol)
-    set(EDGE_HTTP_NETWORK_PROTOCOL_JAR EdgeHttpNetworkProtocol)
+set(EDGE_NETWORK_PROTOCOL_JAR EdgeNetworkProtocol)
+set(EDGE_SDK_ANDROID_HTTP_CLIENT_JAR EdgeHttpClient)
 
-    add_jar(${EDGE_NETWORK_PROTOCOL_JAR}
-        SOURCES ${CMAKE_CURRENT_LIST_DIR}/../src/network/android/NetworkProtocol.java ${CMAKE_CURRENT_LIST_DIR}/../src/network/android/NetworkSSLContextFactory.java
-        VERSION ${EDGE_SDK_NETWORK_VERSION}
-    )
-    add_jar(${EDGE_HTTP_NETWORK_PROTOCOL_JAR}
-        SOURCES ${CMAKE_CURRENT_LIST_DIR}/../src/http/android/NetworkProtocol.java
-        VERSION ${EDGE_SDK_HTTP_NETWORK_VERSION}
-    )
-else()
-    # Generating of the new EdgeNetworkProtocol.jar which uses the http network implementation
-    # It will be used as the default one across the SDK.
-    set(EDGE_SDK_NETWORK_VERSION 0.0.2)
-
-    set(EDGE_NETWORK_PROTOCOL_JAR EdgeNetworkProtocol)
-
-    add_jar(${EDGE_NETWORK_PROTOCOL_JAR}
-        SOURCES ${CMAKE_CURRENT_LIST_DIR}/../src/http/android/NetworkProtocol.java
-        VERSION ${EDGE_SDK_NETWORK_VERSION}
-    )
-endif()
+add_jar(${EDGE_NETWORK_PROTOCOL_JAR}
+    SOURCES ${CMAKE_CURRENT_LIST_DIR}/../src/network/android/NetworkProtocol.java ${CMAKE_CURRENT_LIST_DIR}/../src/network/android/NetworkSSLContextFactory.java
+    VERSION ${EDGE_SDK_NETWORK_VERSION}
+)
+add_jar(${EDGE_SDK_ANDROID_HTTP_CLIENT_JAR}
+    SOURCES ${CMAKE_CURRENT_LIST_DIR}/../src/http/android/HttpClient.java
+    VERSION ${EDGE_SDK_NETWORK_VERSION}
+)
 
 # add_jar() doesn't add the symlink to the version automatically under Windows
 if (WIN32)
