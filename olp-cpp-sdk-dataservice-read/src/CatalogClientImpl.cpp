@@ -81,8 +81,9 @@ CancellationToken CatalogClientImpl::GetCatalog(
   auto request_callback = [pending_requests, request_key,
                            callback](CatalogResponse response) {
     EDGE_SDK_LOG_INFO_F(kLogTag, "GetCatalog remove key: %ld", request_key);
-    pending_requests->Remove(request_key);
-    callback(response);
+    if (pending_requests->Remove(request_key)) {
+      callback(response);
+    }
   };
   if (CacheWithUpdate == request.GetFetchOption()) {
     auto req = request;
@@ -123,8 +124,9 @@ CancellationToken CatalogClientImpl::GetCatalogMetadataVersion(
   auto request_callback = [pending_requests, request_key,
                            callback](CatalogVersionResponse response) {
     EDGE_SDK_LOG_INFO_F(kLogTag, "GetCatalog remove key: %ld", request_key);
-    pending_requests->Remove(request_key);
-    callback(response);
+    if (pending_requests->Remove(request_key)) {
+      callback(response);
+    }
   };
   if (CacheWithUpdate == request.GetFetchOption()) {
     auto req = request;
@@ -165,8 +167,9 @@ olp::client::CancellationToken CatalogClientImpl::GetPartitions(
   auto pending_requests = pending_requests_;
   auto request_callback = [pending_requests, request_key,
                            callback](PartitionsResponse response) {
-    pending_requests->Remove(request_key);
-    callback(response);
+    if (pending_requests->Remove(request_key)) {
+      callback(response);
+    }
   };
   if (CacheWithUpdate == request.GetFetchOption()) {
     auto req = request;
@@ -203,8 +206,9 @@ client::CancellationToken CatalogClientImpl::GetData(
   auto pending_requests = pending_requests_;
   auto request_callback = [pending_requests, request_key,
                            callback](DataResponse response) {
-    pending_requests->Remove(request_key);
-    callback(response);
+    if (pending_requests->Remove(request_key)) {
+      callback(response);
+    }
   };
   if (CacheWithUpdate == request.GetFetchOption()) {
     auto req = request;
