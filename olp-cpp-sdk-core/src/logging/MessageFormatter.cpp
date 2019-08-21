@@ -89,7 +89,7 @@ MessageFormatter::Element::Element(ElementType type_) : type(type_), limit(0) {
 
 const MessageFormatter::LevelNameMap& MessageFormatter::defaultLevelNameMap() {
   static MessageFormatter::LevelNameMap defaultLevelNameMap = {
-      {"[TRACE]", "[DEBUG]", "[INFO ]", "[WARN ]", "[ERROR]", "[FATAL]"}};
+      {"[TRACE]", "[DEBUG]", "[INFO]", "[WARN]", "[ERROR]", "[FATAL]"}};
 
   return defaultLevelNameMap;
 }
