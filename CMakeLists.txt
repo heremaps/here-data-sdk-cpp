@@ -42,6 +42,9 @@ if (MSVC AND EDGE_SDK_MSVC_PARALLEL_BUILD_ENABLE)
     message(STATUS "MSVC - Using parallel compilation (/MP)")
 endif (MSVC AND EDGE_SDK_MSVC_PARALLEL_BUILD_ENABLE)
 
+# Add preprocessor definitions
+add_compile_definitions(EDGE_SDK_VERSION_STRING="${olp-cpp-sdk_VERSION}")
+
 # Add cmake dir to search list
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 

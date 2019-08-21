@@ -167,9 +167,12 @@ class NetworkAndroid : public Network,
  private:
   static void Run(NetworkAndroid* self);
 
-  static jobjectArray CreateExtraHeaders(
+  static jobjectArray CreateHeaders(
       JNIEnv* env,
-      const std::vector<std::pair<std::string, std::string>>& extra_headers);
+      const std::vector<std::pair<std::string, std::string>>& headers);
+
+  static bool SetStringArrayElement(JNIEnv* env, jobjectArray array,
+                                    size_t index, const std::string& str);
 
   void SelfRun();
 

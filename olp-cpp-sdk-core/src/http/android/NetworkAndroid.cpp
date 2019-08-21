@@ -35,7 +35,10 @@
 
 namespace {
 constexpr auto kLogTag = "NetworkAndroid";
-}
+constexpr auto kUserAgentHeader = "User-Agent";
+constexpr auto kUserAgentAndroid =
+    "OLP-CPP-SDK/" EDGE_SDK_VERSION_STRING " (Android)";
+}  // namespace
 namespace olp {
 namespace http {
 
@@ -603,10 +606,30 @@ void NetworkAndroid::ResetRequest(JNIEnv* env, RequestId request_id) {
   req->second->Reinitialize();
 }
 
-jobjectArray NetworkAndroid::CreateExtraHeaders(
+bool NetworkAndroid::SetStringArrayElement(JNIEnv* env, jobjectArray array,
+                                           size_t index,
+                                           const std::string& str) {
+  jstring jstr = env->NewStringUTF(str.c_str());
+  if (!jstr || env->ExceptionOccurred()) {
+    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to create string at index="
+                                    << index << "; with string=" << str);
+    return false;
+  }
+  utils::JNIScopedLocalReference str_ref(env, jstr);
+
+  env->SetObjectArrayElement(array, index, jstr);
+  if (env->ExceptionOccurred()) {
+    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to set string at index="
+                                    << index << "; with string=" << str);
+    return true;
+  }
+  return true;
+}
+
+jobjectArray NetworkAndroid::CreateHeaders(
     JNIEnv* env,
-    const std::vector<std::pair<std::string, std::string> >& extra_headers) {
-  if ((extra_headers.empty())) {
+    const std::vector<std::pair<std::string, std::string> >& headers) {
+  if ((headers.empty())) {
     return 0;
   }
 
@@ -617,52 +640,48 @@ jobjectArray NetworkAndroid::CreateExtraHeaders(
   }
 
   // Merge vector of pair strings into one JNI array
-  const size_t header_count = extra_headers.size() * 2;
-  jobjectArray headers = (jobjectArray)env->NewObjectArray(
+  const size_t extra_headers_count = 1;
+  const size_t header_count = (headers.size() + extra_headers_count) * 2;
+  jobjectArray jheaders = (jobjectArray)env->NewObjectArray(
       header_count, gStringClass, jempty_string);
-  if (!headers || env->ExceptionOccurred()) {
+  if (!jheaders || env->ExceptionOccurred()) {
     env->DeleteLocalRef(jempty_string);
     EDGE_SDK_LOG_ERROR(kLogTag, "Failed to create string array for headers");
     return 0;
   }
   env->DeleteLocalRef(jempty_string);
 
-  for (size_t i = 0; i < extra_headers.size(); ++i) {
-    jstring name = env->NewStringUTF(extra_headers[i].first.c_str());
-    if (!name || env->ExceptionOccurred()) {
-      EDGE_SDK_LOG_ERROR(kLogTag,
-                         "Failed to create extra header name string: index="
-                             << i << "; name=" << extra_headers[i].first);
+  for (size_t i = 0; i < headers.size(); ++i) {
+    if (!SetStringArrayElement(env, jheaders, i * 2, headers[i].first)) {
+      EDGE_SDK_LOG_ERROR(kLogTag, "Failed to create header string: index="
+                                      << i << "; name=" << headers[i].first);
       return 0;
     }
-    utils::JNIScopedLocalReference name_ref(env, name);
 
-    jstring value = env->NewStringUTF(extra_headers[i].second.c_str());
-    if (!value || env->ExceptionOccurred()) {
-      EDGE_SDK_LOG_ERROR(kLogTag,
-                         "Failed to create extra header value string: index="
-                             << i << "; value=" << extra_headers[i].second);
-      return 0;
-    }
-    utils::JNIScopedLocalReference value_ref(env, value);
-
-    env->SetObjectArrayElement(headers, i * 2, name);
-    if (env->ExceptionOccurred()) {
-      EDGE_SDK_LOG_ERROR(kLogTag,
-                         "Failed to set extra header value string: index="
-                             << i << "; name=" << extra_headers[i].first);
-      return 0;
-    }
-    env->SetObjectArrayElement(headers, i * 2 + 1, value);
-    if (env->ExceptionOccurred()) {
-      EDGE_SDK_LOG_ERROR(
-          kLogTag, "Failed to set extra header value string: index="
-                       << i << "; value=" << extra_headers[i].second.c_str());
+    if (!SetStringArrayElement(env, jheaders, i * 2 + 1, headers[i].second)) {
+      EDGE_SDK_LOG_ERROR(kLogTag, "Failed to create header string: index="
+                                      << i << "; value=" << headers[i].second);
       return 0;
     }
   }
 
-  return headers;
+  // Setup extra headers:
+  if (!SetStringArrayElement(env, jheaders, headers.size() * 2,
+                             kUserAgentHeader)) {
+    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to create extra header string: index="
+                                    << headers.size() * 2
+                                    << "; name=" << kUserAgentHeader);
+    return 0;
+  }
+  if (!SetStringArrayElement(env, jheaders, headers.size() * 2 + 1,
+                             kUserAgentAndroid)) {
+    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to create extra header string: index="
+                                    << (headers.size() * 2 + 1)
+                                    << "; name=" << kUserAgentAndroid);
+    return 0;
+  }
+
+  return jheaders;
 }
 
 void NetworkAndroid::Run(NetworkAndroid* self) {
@@ -768,8 +787,7 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
   utils::JNIScopedLocalReference url_ref(env.GetEnv(), jurl);
 
   // Convert extra headers
-  jobjectArray jheaders =
-      CreateExtraHeaders(env.GetEnv(), request.GetHeaders());
+  jobjectArray jheaders = CreateHeaders(env.GetEnv(), request.GetHeaders());
   if (env.GetEnv()->ExceptionOccurred()) {
     EDGE_SDK_LOG_WARNING_F(
         kLogTag, "Can't create a JNI Headers for request with URL=[%s]",

@@ -39,6 +39,8 @@ constexpr auto kInvalidRequestId =
     static_cast<RequestId>(RequestIdConstants::RequestIdInvalid);
 
 constexpr auto kLogTag = "OLPNetworkIOS";
+constexpr auto kUserAgentHeader = "User-Agent";
+constexpr auto kUserAgentiOS = "OLP-CPP-SDK/" EDGE_SDK_VERSION_STRING " (iOS)";
 
 NSMutableDictionary* ParseHeadersDictionaryFromRequest(
     const olp::http::NetworkRequest& request) {
@@ -50,6 +52,17 @@ NSMutableDictionary* ParseHeadersDictionaryFromRequest(
     NSString* value = [NSString stringWithUTF8String:header.second.c_str()];
     headers[key] = value;
   }
+
+  // Add OLP user-agent header
+  NSString* custom_user_agent = headers[@(kUserAgentHeader)];
+  NSMutableString* user_agent = [[NSMutableString alloc] init];
+  if (custom_user_agent.length > 0) {
+    [user_agent appendString:custom_user_agent];
+    [user_agent appendString:@"; "];
+  }
+  [user_agent appendString:@(kUserAgentiOS)];
+  headers[@(kUserAgentHeader)] = user_agent;
+
   return headers;
 }
 
