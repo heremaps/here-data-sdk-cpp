@@ -22,69 +22,106 @@
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClient.h>
+#include <olp/core/logging/Log.h>
 #include "generated/PlatformApi.h"
 #include "generated/ResourcesApi.h"
 
 namespace olp {
 namespace dataservice {
 namespace write {
-using namespace olp::client;
-const std::map<std::string, std::string>& getDatastoreServerUrl() {
-  static std::map<std::string, std::string> sDatastoreServerUrl = {
-      {"here-dev", "data.api.platform.in.here.com"},
-      {"here", "data.api.platform.here.com"}};
 
-  return sDatastoreServerUrl;
+namespace {
+constexpr auto kLogTag = "ApiClientLookupWrite";
+
+std::string GetDatastoreServerUrl(const std::string& partition) {
+  static const std::map<std::string, std::string> kDatastoreServerUrl = {
+      {"here", "data.api.platform.here.com"},
+      {"here-dev", "data.api.platform.in.here.com"},
+      {"here-cn", "data.api.platform.hereolp.cn"},
+      {"here-cn-dev", "data.api.platform.in.hereolp.cn"}};
+
+  const auto& server_url = kDatastoreServerUrl.find(partition);
+  return (server_url != kDatastoreServerUrl.end())
+             ? "https://api-lookup." + server_url->second + "/lookup/v1"
+             : "";
 }
+}  // namespace
 
 client::CancellationToken ApiClientLookup::LookupApi(
     std::shared_ptr<client::OlpClient> client, const std::string& service,
     const std::string& service_version, const client::HRN& hrn,
     const ApisCallback& callback) {
-  // compare the hrn
-  const auto& datastoreServerUrl = getDatastoreServerUrl();
-  auto findResult = datastoreServerUrl.find(hrn.partition);
-  if (findResult == datastoreServerUrl.cend()) {
-    callback(ApiError(ErrorCode::NotFound, std::string()));
-    return CancellationToken();
-  } else {
-    client->SetBaseUrl("https://api-lookup." + findResult->second +
-                       "/lookup/v1");
+  EDGE_SDK_LOG_TRACE_F(kLogTag, "LookupApi(%s/%s): %s", service.c_str(),
+                       service_version.c_str(), hrn.partition.c_str());
 
-    if (service == "config") {
-      // scan apis at platform apis
-      return PlatformApi::GetApis(
-          client, service, service_version,
-          [callback](PlatformApi::ApisResponse response) {
-            callback(response);
-          });
-    } else {
-      // scan apis at resource endpoint
-      return ResourcesApi::GetApis(
-          client, hrn.ToCatalogHRNString(), service, service_version,
-          [callback](PlatformApi::ApisResponse response) {
-            callback(response);
-          });
-    }
+  // compare the hrn
+  auto base_url = GetDatastoreServerUrl(hrn.partition);
+  if (base_url.empty()) {
+    EDGE_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s Lookup URL not found",
+                        service.c_str(), service_version.c_str(),
+                        hrn.partition.c_str());
+    callback(
+        client::ApiError(client::ErrorCode::NotFound, "Invalid or broken HRN"));
+    return client::CancellationToken();
   }
+
+  client->SetBaseUrl(base_url);
+
+  if (service == "config") {
+    EDGE_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s - config service",
+                        service.c_str(), service_version.c_str(),
+                        hrn.partition.c_str());
+
+    // scan apis at platform apis
+    return PlatformApi::GetApis(
+        client, service, service_version,
+        [callback](PlatformApi::ApisResponse response) { callback(response); });
+  }
+
+  EDGE_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s - resource service",
+                      service.c_str(), service_version.c_str(),
+                      hrn.partition.c_str());
+
+  // scan apis at resource endpoint
+  return ResourcesApi::GetApis(
+      client, hrn.ToCatalogHRNString(), service, service_version,
+      [callback](PlatformApi::ApisResponse response) { callback(response); });
 }
 
 client::CancellationToken ApiClientLookup::LookupApiClient(
     std::shared_ptr<client::OlpClient> client, const std::string& service,
     const std::string& service_version, const client::HRN& hrn,
     const ApiClientCallback& callback) {
-  return ApiClientLookup::LookupApi(
-      client, service, service_version, hrn,
+  EDGE_SDK_LOG_TRACE_F(kLogTag, "LookupApiClient(%s/%s): %s", service.c_str(),
+                       service_version.c_str(), hrn.partition.c_str());
 
-      [client, callback](ApisResponse response) {
+  return ApiClientLookup::LookupApi(
+      client, service, service_version, hrn, [=](ApisResponse response) {
         if (!response.IsSuccessful()) {
+          EDGE_SDK_LOG_INFO_F(
+              kLogTag, "LookupApiClient(%s/%s): %s - unsuccessful: %s",
+              service.c_str(), service_version.c_str(), hrn.partition.c_str(),
+              response.GetError().GetMessage().c_str());
+
           callback(response.GetError());
         } else if (response.GetResult().size() < 1) {
-          callback(ApiError(ErrorCode::ServiceUnavailable,
-                            "Service/Version not available for given HRN"));
+          EDGE_SDK_LOG_INFO_F(
+              kLogTag, "LookupApiClient(%s/%s): %s - service not available",
+              service.c_str(), service_version.c_str(), hrn.partition.c_str());
+
+          // TODO use defined ErrorCode
+          callback(
+              client::ApiError(client::ErrorCode::ServiceUnavailable,
+                               "Service/Version not available for given HRN"));
         } else {
-          client->SetBaseUrl(response.GetResult().at(0).GetBaseUrl());
-          callback(*(client.get()));
+          const auto& base_url = response.GetResult().at(0).GetBaseUrl();
+          EDGE_SDK_LOG_INFO_F(kLogTag,
+                              "LookupApiClient(%s/%s): %s - OK, base_url=%s",
+                              service.c_str(), service_version.c_str(),
+                              hrn.partition.c_str(), base_url.c_str());
+
+          client->SetBaseUrl(base_url);
+          callback(*client);
         }
       });
 }
