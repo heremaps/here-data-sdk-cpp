@@ -30,6 +30,7 @@
 #include "repositories/ApiRepository.h"
 #include "repositories/CatalogRepository.h"
 #include "repositories/DataRepository.h"
+#include "repositories/ExecuteOrSchedule.inl"
 #include "repositories/PrefetchTilesRepository.h"
 
 namespace olp {
@@ -46,34 +47,35 @@ PrefetchTilesProvider::PrefetchTilesProvider(
     const HRN& /*hrn*/, std::shared_ptr<repository::ApiRepository> apiRepo,
     std::shared_ptr<repository::CatalogRepository> catalogRepo,
     std::shared_ptr<repository::DataRepository> dataRepo,
-    std::shared_ptr<repository::PrefetchTilesRepository> prefetchTilesRepo)
-    : apiRepo_(apiRepo),
-      catalogRepo_(catalogRepo),
-      dataRepo_(dataRepo),
-      prefetchTilesRepo_(prefetchTilesRepo) {
+    std::shared_ptr<repository::PrefetchTilesRepository> prefetchTilesRepo,
+    std::shared_ptr<olp::client::OlpClientSettings> settings)
+    : apiRepo_(std::move(apiRepo)),
+      catalogRepo_(std::move(catalogRepo)),
+      dataRepo_(std::move(dataRepo)),
+      prefetchTilesRepo_(std::move(prefetchTilesRepo)),
+      settings_(std::move(settings)) {
   prefetchProviderBusy_ = std::make_shared<std::atomic_bool>(false);
 }
 
 client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
     const PrefetchTilesRequest& request,
-    const PrefetchTilesResponseCallback& callbackDontCallDirect) {
+    const PrefetchTilesResponseCallback& callback) {
   auto key = request.CreateKey();
   EDGE_SDK_LOG_TRACE_F(kLogTag, "getCatalog(%s)", key.c_str());
   auto isBusy = prefetchProviderBusy_->exchange(true);
   if (isBusy) {
-    std::thread([=]() {
+    repository::ExecuteOrSchedule(settings_.get(), [=]() {
       EDGE_SDK_LOG_INFO_F(kLogTag, "getCatalog(%s) busy", key.c_str());
-      callbackDontCallDirect(
+      callback(
           {{ErrorCode::SlowDown, "Busy prefetching at the moment.", true}});
-    })
-        .detach();
+    });
     return client::CancellationToken();
   }
 
   auto busy = prefetchProviderBusy_;
   auto completionCallback = [=](const PrefetchTilesResponse& response) {
     busy->store(false);
-    callbackDontCallDirect(response);
+    callback(response);
   };
 
   auto cancel_context = std::make_shared<CancellationContext>();

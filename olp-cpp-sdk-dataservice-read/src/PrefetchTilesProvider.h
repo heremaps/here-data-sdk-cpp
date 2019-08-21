@@ -45,7 +45,8 @@ class PrefetchTilesProvider final {
       std::shared_ptr<repository::ApiRepository> apiRepo,
       std::shared_ptr<repository::CatalogRepository> catalogRepo,
       std::shared_ptr<repository::DataRepository> dataRepo,
-      std::shared_ptr<repository::PrefetchTilesRepository> prefetchTilesRepo);
+      std::shared_ptr<repository::PrefetchTilesRepository> prefetchTilesRepo,
+      std::shared_ptr<olp::client::OlpClientSettings> settings);
   /**
    * @brief pre-fetches a set of tiles asynchronously
    *
@@ -79,6 +80,7 @@ class PrefetchTilesProvider final {
   std::shared_ptr<repository::CatalogRepository> catalogRepo_;
   std::shared_ptr<repository::DataRepository> dataRepo_;
   std::shared_ptr<repository::PrefetchTilesRepository> prefetchTilesRepo_;
+  std::shared_ptr<olp::client::OlpClientSettings> settings_;
 };
 
 }  // namespace read

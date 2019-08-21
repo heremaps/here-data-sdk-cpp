@@ -57,10 +57,12 @@ CatalogClientImpl::CatalogClientImpl(
   data_repo_ = std::make_shared<DataRepository>(hrn_, api_repo, catalog_repo_,
                                                 partition_repo_, cache);
 
+  auto prefetch_repo = std::make_shared<PrefetchTilesRepository>(
+      hrn, api_repo, partition_repo_->GetPartitionsCacheRepository());
+
   prefetch_provider_ = std::make_shared<PrefetchTilesProvider>(
-      hrn_, api_repo, catalog_repo_, data_repo_,
-      std::make_shared<PrefetchTilesRepository>(
-          hrn, api_repo, partition_repo_->GetPartitionsCacheRepository()));
+      hrn_, api_repo, catalog_repo_, data_repo_, std::move(prefetch_repo),
+      settings_);
 
   pending_requests_ = std::make_shared<PendingRequests>();
 }
