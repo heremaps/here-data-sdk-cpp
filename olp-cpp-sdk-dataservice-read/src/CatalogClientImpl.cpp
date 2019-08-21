@@ -58,7 +58,8 @@ CatalogClientImpl::CatalogClientImpl(
                                                 partition_repo_, cache);
 
   auto prefetch_repo = std::make_shared<PrefetchTilesRepository>(
-      hrn, api_repo, partition_repo_->GetPartitionsCacheRepository());
+      hrn, api_repo, partition_repo_->GetPartitionsCacheRepository(),
+      settings_);
 
   prefetch_provider_ = std::make_shared<PrefetchTilesProvider>(
       hrn_, api_repo, catalog_repo_, data_repo_, std::move(prefetch_repo),

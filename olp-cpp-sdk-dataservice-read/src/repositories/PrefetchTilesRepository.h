@@ -52,7 +52,8 @@ class PrefetchTilesRepository final {
  public:
   PrefetchTilesRepository(
       const client::HRN& hrn, std::shared_ptr<ApiRepository> apiRepo,
-      std::shared_ptr<PartitionsCacheRepository> partitionsCache);
+      std::shared_ptr<PartitionsCacheRepository> partitionsCache,
+      std::shared_ptr<olp::client::OlpClientSettings> settings);
 
   ~PrefetchTilesRepository() = default;
 
@@ -100,6 +101,7 @@ class PrefetchTilesRepository final {
   client::HRN hrn_;
   std::shared_ptr<ApiRepository> apiRepo_;
   std::shared_ptr<PartitionsCacheRepository> partitionsCache_;
+  std::shared_ptr<olp::client::OlpClientSettings> settings_;
 };
 
 }  // namespace repository

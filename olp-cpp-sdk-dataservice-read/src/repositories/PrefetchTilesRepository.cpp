@@ -17,12 +17,12 @@
  * License-Filename: LICENSE
  */
 
-#include "ExecuteOrSchedule.inl"
 #include "PrefetchTilesRepository.h"
 
-#include <olp/core/logging/Log.h>
-
+#include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/geo/tiling/TileKey.h>
+#include <olp/core/logging/Log.h>
+#include <olp/core/thread/TaskScheduler.h>
 #include "generated/api/QueryApi.h"
 
 #include <inttypes.h>
@@ -42,8 +42,12 @@ using namespace olp::client;
 
 PrefetchTilesRepository::PrefetchTilesRepository(
     const HRN& hrn, std::shared_ptr<ApiRepository> apiRepo,
-    std::shared_ptr<PartitionsCacheRepository> partitionsCache)
-    : hrn_(hrn), apiRepo_(apiRepo), partitionsCache_(partitionsCache) {}
+    std::shared_ptr<PartitionsCacheRepository> partitionsCache,
+    std::shared_ptr<olp::client::OlpClientSettings> settings)
+    : hrn_(hrn),
+      apiRepo_(std::move(apiRepo)),
+      partitionsCache_(std::move(partitionsCache)),
+      settings_(std::move(settings)) {}
 
 SubQuadsRequest PrefetchTilesRepository::EffectiveTileKeys(
     const std::vector<geo::TileKey>& tilekeys, unsigned int minLevel,
@@ -142,7 +146,7 @@ void PrefetchTilesRepository::GetSubTiles(
   auto api_repo = apiRepo_;
   auto& partitions_cache = *partitionsCache_;
 
-  std::thread([=, &partitions_cache]() {
+  auto executeFn = [=, &partitions_cache]() {
     std::vector<std::future<SubQuadsResponse>> futures;
 
     for (auto subtile : request) {
@@ -170,7 +174,14 @@ void PrefetchTilesRepository::GetSubTiles(
     }
 
     callback({*results});
-  }).detach();
+  };
+
+  if (settings_ && settings_->task_scheduler) {
+    settings_->task_scheduler->ScheduleTask(std::move(executeFn));
+  } else {
+    // Direct call will end up in a deadlock in network thread.
+    std::thread(std::move(executeFn)).detach();
+  }
 }
 
 void PrefetchTilesRepository::GetSubQuads(
