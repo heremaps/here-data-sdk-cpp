@@ -1,20 +1,58 @@
 image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION}
 
-.build:
+stages:
+  - build
+  - translate_report
+  - deploy
+
+build_fv:
   stage: build
   tags:
   - docker-prod
   script:
   - $CI_PROJECT_DIR/scripts/linux/fv/gitlab_build_fv.sh
   - $CI_PROJECT_DIR/scripts/linux/fv/gitlab_test_fv.sh
-#  artifacts:
-#    paths:
-#      - $CI_PROJECT_DIR/reports
-#    expire_in: 1 year
-#    reports:
-#      junit: "*.xml"
+  artifacts:
+    when: always
+    paths:
+      - reports
+    expire_in: 1 year
+    # reports:
+    # https://gitlab.com/gitlab-org/gitlab-ce/issues/17081
+    # Check this issue status in Gitlab 12.4 (Oct 2019)
+    #   junit: "reports/*.xml"
+  only:
+    - master
 
-build_sv:
-  extends: .build
-  #only:
-    #- /^OLPEDGE-.*$/
+translate_report:
+  stage: translate_report
+  tags: 
+  - docker-prod
+  image: python:3.6
+  when: always
+  before_script:
+    - pip install junit2html
+  script:
+    # - python -m junit2htmlreport --merge olp-merged-report.xml reports/*.xml
+    # - python -m junit2htmlreport olp-merged-report.xml
+    - python -m junit2htmlreport --report-matrix reports/index.html reports/*.xml
+    - mkdir -p .public
+    - cp reports/*.html .public/
+  artifacts:
+    paths:
+      - .public
+  only:
+    - master
+
+pages:
+  stage: deploy
+  tags:
+    - docker-prod
+  when: always
+  script: mv .public public
+  artifacts:
+    paths:
+      - public
+    expire_in: 1 year
+  only:
+    - master
