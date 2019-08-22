@@ -440,12 +440,20 @@ ErrorCode NetworkCurl::SendImplementation(
   handle->get_statistics = false;  // request.GetStatistics();
   handle->skip_content = false;    // config->SkipContentWhenError();
 
+  std::string user_agent_header_value;
   for (const auto& header : request.GetHeaders()) {
     std::ostringstream sstrm;
     sstrm << header.first;
     sstrm << ": ";
     sstrm << header.second;
     handle->chunk = curl_slist_append(handle->chunk, sstrm.str().c_str());
+
+    if (header.first == "User-Agent") {
+      if (!user_agent_header_value.empty()) {
+        user_agent_header_value += "; ";
+      }
+      user_agent_header_value += header.second;
+    }
   }
 
   if (verbose_) {
@@ -520,6 +528,10 @@ ErrorCode NetworkCurl::SendImplementation(
   if (handle->chunk) {
     curl_easy_setopt(handle->handle, CURLOPT_HTTPHEADER, handle->chunk);
   }
+  // TODO: the curl didn't include the User-Agent header in the request
+  // so, it is needed to explicitly specify it
+  curl_easy_setopt(handle->handle, CURLOPT_USERAGENT,
+                   user_agent_header_value.c_str());
 
 #ifdef NETWORK_HAS_OPENSSL
   std::string curl_ca_bundle = "";
@@ -831,13 +843,9 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
       return;
     }
 
-    int max_age = handles_[index].max_age;
-    time_t expires = handles_[index].expires;
     auto callback = handles_[index].callback;
     std::string etag = handles_[index].etag;
     std::string contentType = handles_[index].content_type;
-    size_t count = handles_[index].count;
-    size_t offset = handles_[index].offset;
     if (!callback) {
       EDGE_SDK_LOG_WARNING(kLogTag, "Complete to request without callback");
       ReleaseHandleUnlocked(&handles_[index]);

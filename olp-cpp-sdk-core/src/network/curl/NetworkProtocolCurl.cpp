@@ -470,6 +470,7 @@ NetworkProtocol::ErrorCode NetworkProtocolCurl::Send(
     }
   }
 
+  std::string user_agent_header_value;
   if (request.ExtraHeaders().size() > 0) {
     for (size_t i = 0; i < request.ExtraHeaders().size(); i++) {
       std::ostringstream sstrm;
@@ -477,6 +478,13 @@ NetworkProtocol::ErrorCode NetworkProtocolCurl::Send(
       sstrm << ": ";
       sstrm << request.ExtraHeaders()[i].second;
       handle->chunk = curl_slist_append(handle->chunk, sstrm.str().c_str());
+
+      if (request.ExtraHeaders()[i].first == "User-Agent") {
+        if (!user_agent_header_value.empty()) {
+          user_agent_header_value += "; ";
+        }
+        user_agent_header_value += request.ExtraHeaders()[i].second;
+      }
     }
   }
 
@@ -565,6 +573,10 @@ NetworkProtocol::ErrorCode NetworkProtocolCurl::Send(
   if (handle->chunk) {
     curl_easy_setopt(handle->handle, CURLOPT_HTTPHEADER, handle->chunk);
   }
+  // TODO: the curl didn't include the User-Agent header in the request
+  // so, it is needed to explicitly specify it
+  curl_easy_setopt(handle->handle, CURLOPT_USERAGENT,
+                   user_agent_header_value.c_str());
 
 #ifdef NETWORK_HAS_OPENSSL
   std::string curlCaBundle = config->GetCaCert();
