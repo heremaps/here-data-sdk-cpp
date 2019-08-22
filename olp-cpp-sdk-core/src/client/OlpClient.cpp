@@ -19,6 +19,7 @@
 
 #include "olp/core/client/OlpClient.h"
 
+#include <cctype>
 #include <chrono>
 #include <future>
 #include <sstream>
@@ -26,11 +27,23 @@
 
 #include <olp/core/network/HttpResponse.h>
 #include "NetworkAsyncHandlerImpl.h"
+#include "olp/core/http/NetworkConstants.h"
 #include "olp/core/network/Network.h"
 #include "olp/core/network/NetworkResponse.h"
 
 namespace olp {
 namespace client {
+
+namespace {
+bool CaseInsensitiveCompare(const std::string& str1, const std::string& str2) {
+  return (str1.size() == str2.size()) &&
+         std::equal(str1.begin(), str1.end(), str2.begin(),
+                    [](const char& c1, const char& c2) {
+                      return (c1 == c2) ||
+                             (std::tolower(c1) == std::tolower(c2));
+                    });
+}
+}  // namespace
 
 CancellationToken DefaultNetworkAsyncHandler(
     const network::NetworkRequest& request,
@@ -96,24 +109,37 @@ std::shared_ptr<network::NetworkRequest> OlpClient::CreateRequest(
       uri, 0, network::NetworkRequest::PriorityDefault, httpVerb);
 
   if (settings_.authentication_settings) {
-    networkRequest->AddHeader(
-        "Authorization",
-        "Bearer " + settings_.authentication_settings.get().provider());
+    std::string bearer = http::kBearer + std::string(" ") +
+                         settings_.authentication_settings.get().provider();
+    networkRequest->AddHeader(http::kAuthorizationHeader, bearer);
   }
 
-  for (auto header : default_headers_) {
+  for (const auto& header : default_headers_) {
     networkRequest->AddHeader(header.first, header.second);
   }
-  for (auto header : headerParams) {
-    networkRequest->AddHeader(header.first, header.second);
+
+  std::string custom_user_agent;
+  for (const auto& header : headerParams) {
+    // Merge all User-Agent headers into one header.
+    // This is required for (at least) iOS network implementation,
+    // which uses headers dictionary without any duplicates.
+    // User agents entries are usually separated by a whitespace, e.g.
+    // Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Firefox/47.0
+    if (CaseInsensitiveCompare(header.first, http::kUserAgentHeader)) {
+      custom_user_agent += header.second + std::string(" ");
+    } else {
+      networkRequest->AddHeader(header.first, header.second);
+    }
   }
+
+  custom_user_agent += http::kOlpSdkUserAgent;
+  networkRequest->AddHeader(http::kUserAgentHeader, custom_user_agent);
 
   if (!contentType.empty()) {
-    networkRequest->AddHeader("Content-Type", contentType);
+    networkRequest->AddHeader(http::kContentTypeHeader, contentType);
   }
 
   networkRequest->SetContent(postBody);
-
   return networkRequest;
 }
 
@@ -152,8 +178,8 @@ NetworkAsyncCallback GetRetryCallback(
                                         "Operation Cancelled."));
             });
       } else {
-        callback(network::HttpResponse(network::Network::ErrorCode::UnknownError,
-                                       "Unknown error."));
+        callback(network::HttpResponse(
+            network::Network::ErrorCode::UnknownError, "Unknown error."));
       }
     }
   };

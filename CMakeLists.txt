@@ -17,8 +17,21 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-# build the sdk targets
+# Build the sdk targets
 project(olp-cpp-sdk VERSION 0.6.0)
+
+# Add preprocessor definitions for the SDK version and platform name
+add_definitions(-DEDGE_SDK_VERSION_STRING=\"${olp-cpp-sdk_VERSION}\")
+add_definitions(-DEDGE_SDK_VERSION_MAJOR=${olp-cpp-sdk_VERSION_MAJOR})
+add_definitions(-DEDGE_SDK_VERSION_MINOR=${olp-cpp-sdk_VERSION_MINOR})
+add_definitions(-DEDGE_SDK_VERSION_PATCH=${olp-cpp-sdk_VERSION_PATCH})
+
+if (APPLE AND IOS)
+    # To distinguish iOS platform from other Darwin platforms
+    add_definitions(-DEDGE_SDK_PLATFORM_NAME=\"iOS\")
+else()
+    add_definitions(-DEDGE_SDK_PLATFORM_NAME=\"${CMAKE_SYSTEM_NAME}\")
+endif()
 
 # Options
 option(EDGE_SDK_ENABLE_TESTING "Flag to enable/disable building unit and integration tests" ON)

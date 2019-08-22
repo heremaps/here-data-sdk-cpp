@@ -29,6 +29,7 @@
 #include <olp/core/http/NetworkTypes.h>
 
 namespace olp {
+/// The HTTP namespace provides a platform specific network abstraction layer.
 namespace http {
 
 /**
@@ -36,15 +37,14 @@ namespace http {
  */
 class CORE_API Network {
  public:
-  /// Represents callback to be called when the request has been processed or
-  /// cancelled.
+  /// Callback to be called when the request has been processed or cancelled.
   using Callback = std::function<void(NetworkResponse response)>;
 
-  /// Represents callback to be called when a header has been received.
+  /// Callback to be called when a header has been received.
   using HeaderCallback =
       std::function<void(std::string key, std::string value)>;
 
-  /// Represents callback to be called when a chunk of data has been received.
+  /// Callback to be called when a chunk of data has been received.
   using DataCallback = std::function<void(
       const std::uint8_t* data, std::uint64_t offset, std::size_t length)>;
 
