@@ -2,16 +2,16 @@
 
 This example shows how to retrieve catalog metadata, partition metadata, and partition data using the HERE OLP Edge SDK C++.
 
-Before you run the example, you have to replace the placeholders in `examples/dataservice-read/example.cpp` with your app key and app secret:
+Before you run the example, authorize by replacing the placeholders in `examples/dataservice-read/example.cpp` with your app access key id and secret access key, which you can find on the platform `Apps & keys` page:
 
 ```cpp
-const std::string gKeyId(""); // your here.access.key.id
-const std::string gKeySecret(""); // your here.access.key.secret
+const std::string kKeyId(""); // your here.access.key.id
+const std::string kKeySecret(""); // your here.access.key.secret
 ```
 
 ## Building and running on Linux
 
-Configure the project with `EDGE_SDK_BUILD_EXAMPLES` set to `ON` to enabled examples `CMake` targets:
+Configure the project with `EDGE_SDK_BUILD_EXAMPLES` set to `ON` to enable examples `CMake` targets:
 
 ```bash
 mkdir build && cd build
@@ -30,27 +30,44 @@ To execute the example, run:
 ./examples/dataservice-read/dataservice-read-example
 ```
 
-If everything is fine, you would see `hrn:here:data:::here-optimized-map-for-visualization-2` catalog description, number of partitions and the size of `100000093` partition.
+After building and running the example, you see the following:
+
+* `edge-example-catalog` as a catalog description
+* `versioned-world-layer` as a layer description
+* `Request partition data - Success, data size - 3375`
+
+```bash
+[INFO] read-example - Catalog description: edge-example-catalog
+[INFO] read-example - Layer 'versioned-world-layer' (versioned): versioned-world-layer
+[INFO] read-example - Layer contains 1 partitions
+[INFO] read-example - Partition: 1
+[INFO] read-example - Request partition data - Success, data size - 3375
+```
 
 ## Building and running on Android
 
-This example shows how to integrate the HERE OLP Edge SDK C++ libraries into the Android project and shows how to read data from a catalog layer and partition.
+This example shows how to integrate the HERE OLP Edge SDK C++ libraries into the Android project and read data from a catalog layer and partition.
 
 ### Prerequisites
 
-* Setup the Android environment.
-* Provide correct keyId and secret key in the `example.cpp` (refer to the beginning of this README file).
+* Set up the Android environment.
+* Replace the placeholders in `examples/dataservice-read/example.cpp` with your app access key id and secret access key.
 
 ### Build HERE OLP Edge SDK C++
 
-First, before building, you need to configure the SDK with `EDGE_SDK_BUILD_EXAMPLES` set to `ON`, the path to Android NDK's toolchain file set via the `CMAKE_TOOLCHAIN_FILE` variable, and, optionally, the [NDK-specific CMake variables](https://developer.android.com/ndk/guides/cmake#variables).
+Before you build the example, complete the following:
+
+* Configure the SDK with `EDGE_SDK_BUILD_EXAMPLES` set to `ON`.
+* Optionally, disable tests with `EDGE_SDK_ENABLE_TESTING` set to `OFF`.
+* Specify the path to Android NDK's toolchain file set via the `CMAKE_TOOLCHAIN_FILE` variable.
+* In case you want to build Edge SDK for a specific Android platform, use `-DANDROID_PLATFORM CMake` flag, and `-DANDROID_ABI`, if you want to build for specific Android architecture. For more details, see [NDK-specific CMake variables](https://developer.android.com/ndk/guides/cmake#variables).
 
 ```bash
 mkdir build && cd build
-cmake .. -DEDGE_SDK_BUILD_EXAMPLES=ON -DCMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a
+cmake .. -DCMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DEDGE_SDK_BUILD_EXAMPLES=ON -DEDGE_SDK_ENABLE_TESTING=OFF
 ```
 
-The `CMake` command will generate a `Gradle` project in the `build/examples/dataservice-read/android` folder. Before it can be used, you have to install the HERE OLP Edge SDK C++ libraries into the sysroot directory:
+The `CMake` command generates a `Gradle` project in the `build/examples/dataservice-read/android` folder. Before using the project, install the HERE OLP Edge SDK C++ libraries into the sysroot directory:
 
 ```bash
 # Execute as sudo if necessary
@@ -59,7 +76,7 @@ The `CMake` command will generate a `Gradle` project in the `build/examples/data
 
 ### Assemble APK and run it on Android device
 
-Now, the `Gradle` project is configured, and you can use the `gradlew` executable to build and install the apk on your Android device:
+After you complete the `Gradle` project configuration, you can use `gradlew` executable to build and install the APK on your Android device:
 
 ```bash
 cd examples/dataservice-read/android
@@ -67,34 +84,36 @@ cd examples/dataservice-read/android
 ./gradlew installDebug
 ```
 
-Alternatively, you can use the Android Studio IDE by opening the `build/examples/dataservice-read/android/build.gradle` script.
+Alternatively, you can use Android Studio IDE by opening the `build/examples/dataservice-read/android/build.gradle` script.
 
-After installing and running the `dataservice_read_example` apk, you should see the `Reading the partition data from the specified catalog completed successfully` message in the main UI screen if you provided correct keyId and secretKey. If you encountered an error, please check the device's logcat for the error message.
+After you provide your app access key id and secret access key, install and run `dataservice_read_example` APK, the main UI screen displays a message `Reading the partition data from the specified catalog completed successfully`. If you encounter an error, please check the device's logcat for the error message.
 
-### Additional notes
-
-Note, that you can run `CMake` command directly from `<olp-edge-sdk-root>/examples/dataservice-read/` folder if you have already built and installed HERE OLP Edge SDK C++ libraries for Android. Make sure that you pass the correct path to `LevelDB` library and provided the correct `EDGE_SDK_NETWORK_PROTOCOL_JAR` parameter in the `CMake` command invoked by the `build/examples/dataservice-read/android/app/build.gradle` script.
+> **Note:** you can run `CMake` command directly from the `<olp-edge-sdk-root>/examples/dataservice-read/` folder if you have already built and installed HERE OLP Edge SDK C++ libraries for Android. Make sure you provide the correct path to the `LevelDB` library and `EDGE_SDK_NETWORK_PROTOCOL_JAR` parameter in the `CMake` command, invoked by the `build/examples/dataservice-read/android/app/build.gradle` script.
 
 ## Building and running on iOS
 
-This example shows how to integrate the HERE OLP Edge SDK C++ libraries into a basic iOS application written in Objective-C language and shows how to read data from a catalog layer and partition.
+This example shows how to integrate the HERE OLP Edge SDK C++ libraries into a basic iOS application written in Objective-C language and read data from a catalog layer and partition.
 
 ### Prerequisites
 
-* Setup the iOS development environment - install the `XCode` and command line tools.
-* Install external dependencies - refer to the `README.md` file located under `<olp-edge-sdk-root>/README.md`.
-* Provide correct keyId and secret key in the `example.cpp` (refer to the beginning of this README file).
+* Set up the iOS development environment by installing the `XCode` and command-line tools.
+* Install external dependencies by referring to the `README.md` file located under the `<olp-edge-sdk-root>/README.md`.
+* Replace the placeholders in `examples/dataservice-read/example.cpp` with your app access key id and secret access key.
 
 ### Build HERE OLP Edge SDK C++
 
-First, before building, you need to configure the HERE OLP Edge SDK C++ with `EDGE_SDK_BUILD_EXAMPLES` set to `ON`, (optionally) disable tests with `EDGE_SDK_ENABLE_TESTING` set to `OFF`, and specify the path to the iOS toolchain file shipped together with the SDK and located under `<olp-edge-sdk-root>/cmake/toolchains/iOS.cmake`:
+Before you build the example, complete the following:
+
+* Configure the HERE OLP Edge SDK C++ with `EDGE_SDK_BUILD_EXAMPLES` set to `ON`.
+* Optionally, disable tests with `EDGE_SDK_ENABLE_TESTING` set to `OFF`.
+* Specify the path to the iOS toolchain file shipped together with the SDK, located under the `<olp-edge-sdk-root>/cmake/toolchains/iOS.cmake`:
 
 ```bash
 mkdir build && cd build
 cmake .. -GXcode  -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/iOS.cmake -DPLATFORM=iphoneos -DEDGE_SDK_BUILD_EXAMPLES=ON -DEDGE_SDK_ENABLE_TESTING=OFF
 ```
 
-Note that in order to configure the HERE OLP Edge SDK C++ for a simulator, you need to set the `SIMULATOR` variable to `ON`.
+> **Note:** to configure the HERE OLP Edge SDK C++ for a simulator, set the `SIMULATOR` variable to `ON`.
 
 ### Build and run the application on the device
 
@@ -105,26 +124,26 @@ open olp-cpp-sdk.xcodeproj
 
 Select the `dataservice-read-example` scheme from the schemes list in `XCode` project and specify your signing credentials for the `dataservice-read-example` target.
 
-Once everything is correctly set up, build and run the example application on your device and you should see the `Reading the partition data from the specified catalog completed successfully` message in the main UI screen (for more details, check device's logs). If you encountered an error message, e.g. `Failed to read data from the specified catalog!`, please check the device's logs for the detailed description of the error.
+Once everything is set up correctly, build and run the example application on your device. The main UI screen displays a message `Reading the partition data from the specified catalog completed successfully`. Check device's logs for more details. If you encounter an error message, e.g. `Failed to read data from the specified catalog!`, please check the device's logs for the detailed description of the error.
 
 ## How it works
 
 ### CatalogClient
 
-The main entry point to the OLP is `CatalogClient`. This class provides a high-level interface for the retrieval of `OLP` catalog data and configuration, and defines the following operations:
+The main entry point for the OLP is `CatalogClient`. This class provides a high-level interface for the retrieval of `OLP` catalog data and configuration, and defines the following operations:
 
 * `GetCatalog`: Fetches the catalog configuration asynchronously.
 * `GetPartitions`: Fetches the full list of partitions for the given generic layer asynchronously.
 * `GetData`: Fetches data of a partition or data handle asynchronously.
 
-To create a `CatalogClient` provide the corresponding `HRN` and a preconfigured `OlpClientSettings`:
+To create a `CatalogClient`, provide the corresponding `HRN` (Here Resource Name) and preconfigured `OlpClientSettings`:
 
 ```cpp
 // Setup AuthenticationSettings with a default token provider that will
 // retrieve an OAuth 2.0 token from OLP.
 olp::client::AuthenticationSettings authSettings;
 authSettings.provider =
-    olp::authentication::TokenProviderDefault(gKeyId, gKeySecret);
+    olp::authentication::TokenProviderDefault(kKeyId, kKeySecret);
 
 // Setup OlpClientSettings and provide it to the CatalogClient.
 auto settings = std::make_shared<olp::client::OlpClientSettings>();
@@ -135,18 +154,18 @@ auto serviceClient = std::make_unique<olp::dataservice::read::CatalogClient>(
     olp::client::HRN(gCatalogHRN), settings);
 ```
 
-The `OlpClientSettings` class pulls together all the different settings which can be used to customize the behavior of the client library.
+The `OlpClientSettings` class pulls together all the different settings for customization of the client library behavior.
 
-* `retry_settings`: Sets the `olp::client::RetrySettings` to be used.
-* `proxy_settings`: Sets the `olp::authentication::NetworkProxySettings` to be used.
-* `authentication_settings`: Sets the `olp::client::AuthenticationSettings` to be used.
+* `retry_settings`: Sets the `olp::client::RetrySettings` to use.
+* `proxy_settings`: Sets the `olp::authentication::NetworkProxySettings` to use.
+* `authentication_settings`: Sets the `olp::client::AuthenticationSettings` to use.
 * `network_async_handler`: Sets the handler for asynchronous execution of network requests.
 
-For basic usage, we need to specify only `authentication_settings`.
+Configuration of the `authentication_settings` is sufficient to start using the `CatalogClient`.
 
 ### Retrieve catalog metadata
 
-To retrieve catalog metadata you need to create a `CatalogRequest`. The `CatalogRequest` class allows properties of the catalog request to be set, including:
+To retrieve catalog metadata, create a `CatalogRequest`. The `CatalogRequest` class allows to set properties of the catalog request, including:
 
 * `WithBillingTag`: Sets the billing tag used for this request.
 
@@ -163,11 +182,11 @@ Then pass it to the `CatalogClient` via `GetCatalog` method:
 auto future = serviceClient->GetCatalog(request);
 ```
 
-The execution result is a `CancellableFuture` that contains `CatalogResponse` object. The `CatalogResponse` class holds details of the completed operation and should be used to determine operation success and access resultant data.
+The execution result is a `CancellableFuture` that contains `CatalogResponse` object. The `CatalogResponse` class holds details of the completed operation and is used to determine operation success and access resultant data.
 
-* `IsSuccessful`: Returns true if this response is considered successful, false otherwise.
-* `GetResult`: Returns the resultant data (`olp::dataservice::read::CatalogResult`) in the case that the operation is successful.
-* `GetError`: Contains information about the error that occurred in the case of error in a `olp::client::ApiError` object.
+* `IsSuccessful`: Returns true in case of a successful response, false otherwise.
+* `GetResult`: Returns the resultant data (`olp::dataservice::read::CatalogResult`) in case of a successful operation.
+* `GetError`: Contains the error information as a result of an error in the  `olp::client::ApiError` object.
 
 ```cpp
 // Wait for the CatalogResponse response
@@ -189,7 +208,7 @@ if (catalogResponse.IsSuccessful()) {
 The `CatalogResult` class contains details of the relevant catalog, including:
 
 * `GetId`: Returns the catalog id.
-* `GetHrn`: Returns the catalog `HRN` (Here Resource Name).
+* `GetHrn`: Returns the catalog `HRN`.
 * `GetName`: Returns the catalog name.
 * `GetSummary`: Returns the summary description of the catalog.
 * `GetDescription`: Returns the full description of the catalog.
@@ -202,19 +221,19 @@ The `CatalogResult` class contains details of the relevant catalog, including:
 * `GetVersion`: Returns the current catalog version number.
 * `GetNotifications`: Returns the notification status of the catalog.
 
-The `ApiError` class contains details with regards to the error incurred, including:
+The `ApiError` class contains details regarding to the incurred error, including:
 
-* `GetErrorCode`: Returns the ErrorCode value, defined by the olp::client::ErrorCode enum, see ErrorCode.h for more details.
+* `GetErrorCode`: Returns the `ErrorCode` value, defined by the `olp::client::ErrorCode enum`, see `ErrorCode.h` for more details.
 * `GetHttpStatusCode`: Returns the HTTP response code.
-* `GetMessage`:  Returns a text description of the error encountered.
-* `ShouldRetry`: Returns true if this operation can be retried.
+* `GetMessage`:  Returns a text description of the encountered error.
+* `ShouldRetry`: Returns `true` if this operation can be retried.
 
 ### Retrieve partitions metadata
 
-To retrieve partition metadata you need to create a `PartitionsRequest`. The `PartitionsRequest` class allows properties of the catalog request to be set, including:
+To retrieve partition metadata, create a `PartitionsRequest`. The `PartitionsRequest` class allows to set the properties of the catalog request, including:
 
 * `WithBillingTag`: Sets the billing tag used for this request.
-* `WithLayerId`: Sets the layer id that partition metadata should be retrieved from.
+* `WithLayerId`: Sets the layer id that partition metadata is retrieved from.
 
 ```cpp
 // Create a PartitionsRequest with appropriate LayerId
@@ -230,11 +249,11 @@ Then pass it to the `CatalogClient` via `GetPartitions` method:
 auto future = serviceClient->GetPartitions(request);
 ```
 
-The execution result is a `CancellableFuture` that contains `PartitionsResponse` object. The `PartitionsResponse` class holds details of the completed operation and should be used to determine operation success and access resultant data.
+The execution result is a `CancellableFuture` that contains `PartitionsResponse` object. The `PartitionsResponse` class holds the details of the completed operation and is used to determine operation success and access resultant data.
 
-* `IsSuccessful`: Returns true if this response is considered successful, false otherwise.
-* `GetResult`: Returns the resultant data (`olp::dataservice::read::PartitionsResult`) in the case that the operation is successful.
-* `GetError`: Contains information about the error that occurred in the case of an error in a `olp::client::ApiError` object.
+* `IsSuccessful`: Returns true in case of a successful response, false otherwise.
+* `GetResult`: Returns the resultant data (`olp::dataservice::read::PartitionsResult`) in case of a successful operation.
+* `GetError`: Contains the error information as a result of an error in the `olp::client::ApiError` object.
 
 ```cpp
 // Wait for PartitionsResponse
@@ -257,24 +276,24 @@ if (partitionsResponse.IsSuccessful()) {
 
 The `PartitionsResult` class contains details of the relevant layer's partition metadata, including:
 
-* `GetPartitions`: Returns a collection of partition metadata objects, of type `olp::dataservice::read::model::Partition`.
+* `GetPartitions`: Returns a collection of partition metadata objects of the `olp::dataservice::read::model::Partition` type.
 
-The `Partition` class contains partition metadata, and exposes the following members:
+The `Partition` class contains partition metadata and exposes the following members:
 
 * `GetChecksum`: Partition checksum.
 * `GetCompressedDataSize`: Returns the size of the compressed partition data.
-* `GetDataHandle`: Returns a handle that can be used by the `CatalogClient::GetData` function to retrieve the partition data.
+* `GetDataHandle`: Returns the handle that can be used by the `CatalogClient::GetData` function to retrieve the partition data.
 * `GetDataSize`: Returns the size of the partition data.
 * `GetPartition`: Returns the partition Id.
 * `GetVersion`: Returns the latest catalog version for the partition.
 
 ### Retrieve partition data
 
-To retrieve partition data you need to create a `DataRequest`. The `DataRequest` class allows parameters of the GetData function to be specified, including:
+To retrieve partition data, create the `DataRequest`. The `DataRequest` class allows to specify the parameters of the `GetData` function, including:
 
-* `WithLayerId`: Sets the layer id to be used for the request.
-* `WithPartitionId`: Sets the partition whose data is being requested.
-* `WithDataHandle`: Sets the requested data handle, which can be found via the GetPartition call, in the `olp::dataservice::read::model::Partition::GetDataHandle` member.
+* `WithLayerId`: Sets the layer id to use it for the request.
+* `WithPartitionId`: Sets the partition for the data request.
+* `WithDataHandle`: Sets the requested data handle, which can be found via the GetPartition call in the `olp::dataservice::read::model::Partition::GetDataHandle` member.
 * `WithBillingTag`: Sets the billing tag for the request.
 
 ```cpp
@@ -312,10 +331,10 @@ if (dataResponse.IsSuccessful()) {
 }
 ```
 
-The `DataResponse` class holds details of the completed operation and should be used to determine operation success and access resultant data.
+The `DataResponse` class holds the details of the completed operation that are used to determine operation success and access resultant data.
 
-* `IsSuccessful`: Returns true if this response is considered successful, false otherwise.
-* `GetResult`: Returns the resultant data (`olp::dataservice::read::DataResult`) in the case that the operation is successful.
-* `GetError`: Contains information about the error that occurred in the case of error in a `olp::client::ApiError` object.
+* `IsSuccessful`: Returns true in case of a successful response, false otherwise.
+* `GetResult`: Returns the resultant data (`olp::dataservice::read::DataResult`) in case of a successful operation.
+* `GetError`: Contains the error information as a result of an error in the `olp::client::ApiError` object.
 
 The `DataResult` class contains the raw partition data, which is an alias for a std::shared_ptr<std::vector<unsigned char>>.
