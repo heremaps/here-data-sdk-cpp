@@ -448,5 +448,6 @@ class AUTHENTICATION_API AuthenticationClient {
   class Impl;
   std::unique_ptr<Impl> impl_;
 };
+
 }  // namespace authentication
 }  // namespace olp

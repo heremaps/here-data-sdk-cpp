@@ -63,16 +63,16 @@ constexpr unsigned int MIN_LIMIT_EXPIRY = LIMIT_EXPIRY - 10;
 class AuthenticationBaseTest : public ::testing::Test {
  public:
   void SetUp() override {
-    client = std::make_unique<AuthenticationClient>(HERE_ACCOUNT_STAGING_URL);
-    utils = std::make_unique<AuthenticationUtils>();
+    client_ = std::make_unique<AuthenticationClient>(HERE_ACCOUNT_STAGING_URL);
+    utils_ = std::make_unique<AuthenticationUtils>();
 
-    id = CustomParameters::getArgument("service_id");
-    secret = CustomParameters::getArgument("service_secret");
+    id_ = CustomParameters::getArgument("service_id");
+    secret_ = CustomParameters::getArgument("service_secret");
   }
 
   void TearDown() override {
-    client.reset();
-    utils.reset();
+    client_.reset();
+    utils_.reset();
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
   }
@@ -80,7 +80,7 @@ class AuthenticationBaseTest : public ::testing::Test {
   AuthenticationClient::SignUpResponse SignUpUser(
       const std::string& email, const std::string& password = "password123",
       bool do_cancel = false) {
-    AuthenticationCredentials credentials(id, secret);
+    AuthenticationCredentials credentials(id_, secret_);
     std::promise<AuthenticationClient::SignUpResponse> request;
     auto request_future = request.get_future();
     AuthenticationClient::SignUpProperties properties;
@@ -92,7 +92,7 @@ class AuthenticationBaseTest : public ::testing::Test {
     properties.country_code = "USA";
     properties.language = "en";
     properties.phone_number = "+1234567890";
-    auto cancel_token = client->SignUpHereUser(
+    auto cancel_token = client_->SignUpHereUser(
         credentials, properties,
         [&](const AuthenticationClient::SignUpResponse& response) {
           request.set_value(response);
@@ -108,10 +108,10 @@ class AuthenticationBaseTest : public ::testing::Test {
 
   AuthenticationClient::SignOutUserResponse SignOutUser(
       const std::string& access_token, bool do_cancel = false) {
-    AuthenticationCredentials credentials(id, secret);
+    AuthenticationCredentials credentials(id_, secret_);
     std::promise<AuthenticationClient::SignOutUserResponse> request;
     auto request_future = request.get_future();
-    auto cancel_token = client->SignOut(
+    auto cancel_token = client_->SignOut(
         credentials, access_token,
         [&](const AuthenticationClient::SignOutUserResponse& response) {
           request.set_value(response);
@@ -126,10 +126,10 @@ class AuthenticationBaseTest : public ::testing::Test {
   }
 
  protected:
-  std::unique_ptr<AuthenticationClient> client;
-  std::unique_ptr<AuthenticationUtils> utils;
-  std::string id;
-  std::string secret;
+  std::unique_ptr<AuthenticationClient> client_;
+  std::unique_ptr<AuthenticationUtils> utils_;
+  std::string id_;
+  std::string secret_;
 };
 
 class AuthenticationOfflineTest : public AuthenticationBaseTest {
@@ -152,7 +152,7 @@ class AuthenticationOfflineTest : public AuthenticationBaseTest {
   void ExecuteSigninRequest(int http, int http_result,
                             const std::string& error_message,
                             const std::string& data = "", int error_code = 0) {
-    AuthenticationCredentials credentials(id, secret);
+    AuthenticationCredentials credentials(id_, secret_);
     std::promise<AuthenticationClient::SignInClientResponse> request;
     auto request_future = request.get_future();
 
@@ -164,7 +164,7 @@ class AuthenticationOfflineTest : public AuthenticationBaseTest {
         .completeSynchronously()
         .buildExpectation();
 
-    client->SignInClient(
+    client_->SignInClient(
         credentials,
         [&](const AuthenticationClient::SignInClientResponse& response) {
           request.set_value(response);
@@ -203,7 +203,7 @@ class AuthenticationOnlineTest : public AuthenticationBaseTest {
       auto request_future = request.get_future();
 
       now = std::time(nullptr);
-      auto cancel_token = client->SignInClient(
+      auto cancel_token = client_->SignInClient(
           credentials,
           [&](const AuthenticationClient::SignInClientResponse& resp) {
             request.set_value(resp);
@@ -224,7 +224,7 @@ class AuthenticationOnlineTest : public AuthenticationBaseTest {
 
   AuthenticationClient::SignInUserResponse SignInUser(const std::string& email,
                                                       bool do_cancel = false) {
-    AuthenticationCredentials credentials(id, secret);
+    AuthenticationCredentials credentials(id_, secret_);
     AuthenticationClient::UserProperties properties;
     properties.email = email;
     properties.password = "password123";
@@ -241,7 +241,7 @@ class AuthenticationOnlineTest : public AuthenticationBaseTest {
 
       std::promise<AuthenticationClient::SignInUserResponse> request;
       auto request_future = request.get_future();
-      auto cancel_token = client->SignInHereUser(
+      auto cancel_token = client_->SignInHereUser(
           credentials, properties,
           [&request](const AuthenticationClient::SignInUserResponse& resp) {
             request.set_value(resp);
@@ -263,7 +263,7 @@ class AuthenticationOnlineTest : public AuthenticationBaseTest {
   AuthenticationClient::SignInUserResponse SignInRefesh(
       const std::string& access_token, const std::string& refresh_token,
       bool do_cancel = false) {
-    AuthenticationCredentials credentials(id, secret);
+    AuthenticationCredentials credentials(id_, secret_);
     AuthenticationClient::RefreshProperties properties;
     properties.access_token = access_token;
     properties.refresh_token = refresh_token;
@@ -280,7 +280,7 @@ class AuthenticationOnlineTest : public AuthenticationBaseTest {
 
       std::promise<AuthenticationClient::SignInUserResponse> request;
       auto request_future = request.get_future();
-      auto cancel_token = client->SignInRefresh(
+      auto cancel_token = client_->SignInRefresh(
           credentials, properties,
           [&request](const AuthenticationClient::SignInUserResponse& resp) {
             request.set_value(resp);
@@ -302,7 +302,7 @@ class AuthenticationOnlineTest : public AuthenticationBaseTest {
   AuthenticationClient::SignInUserResponse AcceptTerms(
       const AuthenticationClient::SignInUserResponse& precond_failed_response,
       bool do_cancel = false) {
-    AuthenticationCredentials credentials(id, secret);
+    AuthenticationCredentials credentials(id_, secret_);
 
     std::shared_ptr<AuthenticationClient::SignInUserResponse> response;
     unsigned int retry = 0u;
@@ -316,7 +316,7 @@ class AuthenticationOnlineTest : public AuthenticationBaseTest {
 
       std::promise<AuthenticationClient::SignInUserResponse> request;
       auto request_future = request.get_future();
-      auto cancel_token = client->AcceptTerms(
+      auto cancel_token = client_->AcceptTerms(
           credentials,
           precond_failed_response.GetResult().GetTermAcceptanceToken(),
           [&request](const AuthenticationClient::SignInUserResponse& resp) {
@@ -350,7 +350,7 @@ class AuthenticationOnlineTest : public AuthenticationBaseTest {
 
       std::promise<AuthenticationUtils::DeleteUserResponse> request;
       auto request_future = request.get_future();
-      utils->deleteHereUser(
+      utils_->deleteHereUser(
           user_bearer_token,
           [&request](const AuthenticationUtils::DeleteUserResponse& resp) {
             request.set_value(resp);
@@ -379,13 +379,13 @@ class FacebookAuthenticationOnlineTest : public AuthenticationOnlineTest {
     AuthenticationOnlineTest::SetUp();
     Facebook = std::make_unique<FacebookTestUtils>();
     ASSERT_TRUE(Facebook->createFacebookTestUser(testUser, "email"));
-    id = TEST_APP_KEY_ID;
-    secret = TEST_APP_KEY_SECRET;
+    id_ = TEST_APP_KEY_ID;
+    secret_ = TEST_APP_KEY_SECRET;
   }
 
   AuthenticationClient::SignInUserResponse SignInFacebook(
       std::string token = "") {
-    AuthenticationCredentials credentials(id, secret);
+    AuthenticationCredentials credentials(id_, secret_);
     std::promise<AuthenticationClient::SignInUserResponse> request;
     auto request_future = request.get_future();
     AuthenticationClient::FederatedProperties properties;
@@ -393,7 +393,7 @@ class FacebookAuthenticationOnlineTest : public AuthenticationOnlineTest {
     properties.country_code = "usa";
     properties.language = "en";
     properties.email = TEST_USER_NAME + "@example.com";
-    client->SignInFacebook(
+    client_->SignInFacebook(
         credentials, properties,
         [&](const AuthenticationClient::SignInUserResponse& response) {
           request.set_value(response);
@@ -429,13 +429,13 @@ class GoogleAuthenticationOnlineTest : public AuthenticationOnlineTest {
     AuthenticationOnlineTest::SetUp();
     google = std::make_unique<GoogleTestUtils>();
     ASSERT_TRUE(google->getAccessToken(testUser));
-    id = TEST_APP_KEY_ID;
-    secret = TEST_APP_KEY_SECRET;
+    id_ = TEST_APP_KEY_ID;
+    secret_ = TEST_APP_KEY_SECRET;
   }
 
   AuthenticationClient::SignInUserResponse SignInGoogleUser(
       const std::string& email, const std::string& access_token) {
-    AuthenticationCredentials credentials(id, secret);
+    AuthenticationCredentials credentials(id_, secret_);
     std::promise<AuthenticationClient::SignInUserResponse> request;
     auto request_future = request.get_future();
     AuthenticationClient::FederatedProperties properties;
@@ -443,7 +443,7 @@ class GoogleAuthenticationOnlineTest : public AuthenticationOnlineTest {
     properties.country_code = "USA";
     properties.language = "en";
     properties.email = email;
-    client->SignInGoogle(
+    client_->SignInGoogle(
         credentials, properties,
         [&](const AuthenticationClient::SignInUserResponse& response) {
           request.set_value(response);
@@ -470,13 +470,13 @@ class ArcGisAuthenticationOnlineTest : public AuthenticationOnlineTest {
     AuthenticationOnlineTest::SetUp();
     arcGis = std::make_unique<ArcGisTestUtils>();
     ASSERT_TRUE(arcGis->getAccessToken(testUser));
-    id = TEST_APP_KEY_ID;
-    secret = TEST_APP_KEY_SECRET;
+    id_ = TEST_APP_KEY_ID;
+    secret_ = TEST_APP_KEY_SECRET;
   }
 
   AuthenticationClient::SignInUserResponse SignInArcGis(
       const std::string& email, const std::string& token = "") {
-    AuthenticationCredentials credentials(id, secret);
+    AuthenticationCredentials credentials(id_, secret_);
     std::promise<AuthenticationClient::SignInUserResponse> request;
     auto request_future = request.get_future();
     AuthenticationClient::FederatedProperties properties;
@@ -484,7 +484,7 @@ class ArcGisAuthenticationOnlineTest : public AuthenticationOnlineTest {
     properties.country_code = "usa";
     properties.language = "en";
     properties.email = email;
-    client->SignInArcGis(
+    client_->SignInArcGis(
         credentials, properties,
         [&](const AuthenticationClient::SignInUserResponse& response) {
           request.set_value(response);

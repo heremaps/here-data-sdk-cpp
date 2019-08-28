@@ -22,7 +22,7 @@
 #include "olp/core/network/HttpStatusCode.h"
 
 TEST_F(AuthenticationOfflineTest, SignInClientData) {
-  AuthenticationCredentials credentials(id, secret);
+  AuthenticationCredentials credentials(id_, secret_);
   std::promise<AuthenticationClient::SignInClientResponse> request;
   auto request_future = request.get_future();
 
@@ -35,7 +35,7 @@ TEST_F(AuthenticationOfflineTest, SignInClientData) {
       .buildExpectation();
 
   std::time_t now = std::time(nullptr);
-  client->SignInClient(
+  client_->SignInClient(
       credentials,
       [&](const AuthenticationClient::SignInClientResponse& response) {
         request.set_value(response);
@@ -88,7 +88,7 @@ TEST_F(AuthenticationOfflineTest, SignInClientData) {
 
   std::promise<AuthenticationClient::SignInClientResponse> request_2;
   auto request_future_2 = request_2.get_future();
-  client->SignInClient(
+  client_->SignInClient(
       credentials,
       [&](const AuthenticationClient::SignInClientResponse& response) {
         request_2.set_value(response);
@@ -153,7 +153,7 @@ TEST_F(AuthenticationOfflineTest, SignUpHereUserData) {
 }
 
 TEST_F(AuthenticationOfflineTest, SignInUserDataFirstTime) {
-  AuthenticationCredentials credentials(id, secret);
+  AuthenticationCredentials credentials(id_, secret_);
   std::promise<AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
 
@@ -168,7 +168,7 @@ TEST_F(AuthenticationOfflineTest, SignInUserDataFirstTime) {
       .buildExpectation();
 
   AuthenticationClient::UserProperties properties;
-  client->SignInHereUser(
+  client_->SignInHereUser(
       credentials, properties,
       [&](const AuthenticationClient::SignInUserResponse& response) {
         request.set_value(response);
@@ -193,7 +193,7 @@ TEST_F(AuthenticationOfflineTest, SignInUserDataFirstTime) {
 }
 
 TEST_F(AuthenticationOfflineTest, AcceptTermsData) {
-  AuthenticationCredentials credentials(id, secret);
+  AuthenticationCredentials credentials(id_, secret_);
   std::promise<AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
 
@@ -206,7 +206,7 @@ TEST_F(AuthenticationOfflineTest, AcceptTermsData) {
       .completeSynchronously()
       .buildExpectation();
 
-  client->AcceptTerms(
+  client_->AcceptTerms(
       credentials, "reacceptance_token",
       [&](const AuthenticationClient::SignInUserResponse& response) {
         request.set_value(response);
@@ -230,7 +230,7 @@ TEST_F(AuthenticationOfflineTest, AcceptTermsData) {
 }
 
 TEST_F(AuthenticationOfflineTest, SignInHereUser) {
-  AuthenticationCredentials credentials(id, secret);
+  AuthenticationCredentials credentials(id_, secret_);
   std::promise<AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
 
@@ -245,7 +245,7 @@ TEST_F(AuthenticationOfflineTest, SignInHereUser) {
 
   AuthenticationClient::UserProperties properties;
   std::time_t now = std::time(nullptr);
-  client->SignInHereUser(
+  client_->SignInHereUser(
       credentials, properties,
       [&](const AuthenticationClient::SignInUserResponse& response) {
         request.set_value(response);
@@ -266,7 +266,7 @@ TEST_F(AuthenticationOfflineTest, SignInHereUser) {
 }
 
 TEST_F(AuthenticationOfflineTest, SignOutUser) {
-  AuthenticationCredentials credentials(id, secret);
+  AuthenticationCredentials credentials(id_, secret_);
   std::promise<AuthenticationClient::SignOutUserResponse> request;
   auto request_future = request.get_future();
 
@@ -279,7 +279,7 @@ TEST_F(AuthenticationOfflineTest, SignOutUser) {
       .completeSynchronously()
       .buildExpectation();
 
-  client->SignOut(
+  client_->SignOut(
       credentials,
       "h1.C33vsPr8atTZcXOC7AWbgQ.hCGWE5CNLuQv4vSLJUOAqGuRNjhO34qCH8mZIQ-"
       "93gBqlf34y37DNl92FUnPrgECxojv7rn4bXYRZDohlx1o91bMgQH20G2N94bdrl2pOB9XT_"
@@ -311,7 +311,7 @@ TEST_F(AuthenticationOfflineTest, SignOutUser) {
 }
 
 TEST_F(AuthenticationOfflineTest, SignInFacebookData) {
-  AuthenticationCredentials credentials(id, secret);
+  AuthenticationCredentials credentials(id_, secret_);
   std::promise<AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
 
@@ -326,7 +326,7 @@ TEST_F(AuthenticationOfflineTest, SignInFacebookData) {
 
   AuthenticationClient::FederatedProperties properties;
   std::time_t now = std::time(nullptr);
-  client->SignInFacebook(
+  client_->SignInFacebook(
       credentials, properties,
       [&](const AuthenticationClient::SignInUserResponse& response) {
         request.set_value(response);
@@ -354,7 +354,7 @@ TEST_F(AuthenticationOfflineTest, SignInFacebookData) {
 }
 
 TEST_F(AuthenticationOfflineTest, SignInGoogleData) {
-  AuthenticationCredentials credentials(id, secret);
+  AuthenticationCredentials credentials(id_, secret_);
   std::promise<AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
 
@@ -369,7 +369,7 @@ TEST_F(AuthenticationOfflineTest, SignInGoogleData) {
 
   AuthenticationClient::FederatedProperties properties;
   std::time_t now = std::time(nullptr);
-  client->SignInGoogle(
+  client_->SignInGoogle(
       credentials, properties,
       [&](const AuthenticationClient::SignInUserResponse& response) {
         request.set_value(response);
@@ -389,7 +389,7 @@ TEST_F(AuthenticationOfflineTest, SignInGoogleData) {
 }
 
 TEST_F(AuthenticationOfflineTest, SignInArcGisData) {
-  AuthenticationCredentials credentials(id, secret);
+  AuthenticationCredentials credentials(id_, secret_);
   std::promise<AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
 
@@ -404,7 +404,7 @@ TEST_F(AuthenticationOfflineTest, SignInArcGisData) {
 
   std::time_t now = std::time(nullptr);
   AuthenticationClient::FederatedProperties properties;
-  client->SignInArcGis(
+  client_->SignInArcGis(
       credentials, properties,
       [&](const AuthenticationClient::SignInUserResponse& response) {
         request.set_value(response);
@@ -432,7 +432,7 @@ TEST_F(AuthenticationOfflineTest, SignInArcGisData) {
 }
 
 TEST_F(AuthenticationOfflineTest, SignInRefreshData) {
-  AuthenticationCredentials credentials(id, secret);
+  AuthenticationCredentials credentials(id_, secret_);
   std::promise<AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
 
@@ -447,7 +447,7 @@ TEST_F(AuthenticationOfflineTest, SignInRefreshData) {
 
   AuthenticationClient::UserProperties properties;
   std::time_t now = std::time(nullptr);
-  client->SignInHereUser(
+  client_->SignInHereUser(
       credentials, properties,
       [&](const AuthenticationClient::SignInUserResponse& response) {
         request.set_value(response);
@@ -468,7 +468,7 @@ TEST_F(AuthenticationOfflineTest, SignInRefreshData) {
 }
 
 void checkErrorFields(const ErrorFields& errorFields) {
-  EXPECT_EQ((size_t)2, errorFields.size());
+  EXPECT_EQ(2, errorFields.size());
   int count = 0;
   for (ErrorFields::const_iterator it = errorFields.begin();
        it != errorFields.end(); it++) {
@@ -485,7 +485,7 @@ void checkErrorFields(const ErrorFields& errorFields) {
 }
 
 TEST_F(AuthenticationOfflineTest, ErrorFieldsData) {
-  AuthenticationCredentials credentials(id, secret);
+  AuthenticationCredentials credentials(id_, secret_);
   std::promise<AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
 
@@ -499,7 +499,7 @@ TEST_F(AuthenticationOfflineTest, ErrorFieldsData) {
       .buildExpectation();
 
   AuthenticationClient::UserProperties properties;
-  client->SignInHereUser(
+  client_->SignInHereUser(
       credentials, properties,
       [&](const AuthenticationClient::SignInUserResponse& response) {
         request.set_value(response);
@@ -684,7 +684,7 @@ TEST_F(AuthenticationOfflineTest, TestHttpRequestErrorCodes) {
 }
 
 TEST_F(AuthenticationOnlineTest, SignInClient) {
-  AuthenticationCredentials credentials(id, secret);
+  AuthenticationCredentials credentials(id_, secret_);
   std::time_t now;
   AuthenticationClient::SignInClientResponse response =
       SignInClient(credentials, now, EXPIRY_TIME);
@@ -725,7 +725,7 @@ TEST_F(AuthenticationOnlineTest, SignInClient) {
 
 TEST_F(AuthenticationOnlineTest, SignInClientMaxExpiration) {
   // Test maximum token expiration 24 h
-  AuthenticationCredentials credentials(id, secret);
+  AuthenticationCredentials credentials(id_, secret_);
 
   std::time_t now;
   AuthenticationClient::SignInClientResponse response =
@@ -751,7 +751,7 @@ TEST_F(AuthenticationOnlineTest, SignInClientMaxExpiration) {
 }
 
 TEST_F(AuthenticationOnlineTest, InvalidCredentials) {
-  AuthenticationCredentials credentials(id, id);
+  AuthenticationCredentials credentials(id_, id_);
 
   std::time_t now;
   AuthenticationClient::SignInClientResponse response =
@@ -769,7 +769,7 @@ TEST_F(AuthenticationOnlineTest, InvalidCredentials) {
 }
 
 TEST_F(AuthenticationOnlineTest, SignInClientCancel) {
-  AuthenticationCredentials credentials(id, secret);
+  AuthenticationCredentials credentials(id_, secret_);
 
   std::time_t now;
   AuthenticationClient::SignInClientResponse response =
@@ -1076,14 +1076,14 @@ TEST_F(AuthenticationOnlineTest, SignOutUser) {
 }
 
 TEST_F(AuthenticationOnlineTest, NetworkProxySettings) {
-  AuthenticationCredentials credentials(id, secret);
+  AuthenticationCredentials credentials(id_, secret_);
 
   auto proxySettings = NetworkProxySettings();
-  EXPECT_FALSE(client->SetNetworkProxySettings(proxySettings));
+  EXPECT_FALSE(client_->SetNetworkProxySettings(proxySettings));
 
   proxySettings.host = "foo.bar";
   proxySettings.port = 42;
-  EXPECT_TRUE(client->SetNetworkProxySettings(proxySettings));
+  EXPECT_TRUE(client_->SetNetworkProxySettings(proxySettings));
   std::time_t now;
   auto response = SignInClient(credentials, now, EXPIRY_TIME);
   // Bad proxy error code and message varies by platform
@@ -1341,7 +1341,7 @@ TEST_F(AuthenticationOnlineTest, ErrorFields) {
             signUpResponse.GetResult().GetErrorResponse().code);
   EXPECT_EQ(ERROR_FIELDS_MESSAGE,
             signUpResponse.GetResult().GetErrorResponse().message);
-  EXPECT_EQ((size_t)2, signUpResponse.GetResult().GetErrorFields().size());
+  EXPECT_EQ(2, signUpResponse.GetResult().GetErrorFields().size());
   int count = 0;
   for (ErrorFields::const_iterator it =
            signUpResponse.GetResult().GetErrorFields().begin();
