@@ -107,9 +107,9 @@ namespace authentication {
 
 enum class FederatedSignInType { FacebookSignIn, GoogleSignIn, ArcgisSignIn };
 
-class AuthenticationClient::Impl {
+class AuthenticationClient::Impl final {
  public:
-  class ScopedNetwork {
+  class ScopedNetwork final {
    public:
     ScopedNetwork(const NetworkConfig& config) : network() {
       network.Start(config);
@@ -127,8 +127,6 @@ class AuthenticationClient::Impl {
    * @param token_cache_limit Maximum number of tokens that will be cached.
    */
   Impl(const std::string& authentication_server_url, size_t token_cache_limit);
-
-  virtual ~Impl() = default;
 
   /**
    * @brief Sign in with client credentials
