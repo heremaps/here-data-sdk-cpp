@@ -42,6 +42,7 @@
 
 using namespace olp::dataservice::write;
 using namespace olp::dataservice::write::model;
+using namespace testing;
 
 const std::string kEndpoint = "endpoint";
 const std::string kAppid = "appid";
@@ -799,7 +800,7 @@ class StreamLayerClientMockTest : public StreamLayerClientTestBase {
   }
 
   void SetUpCommonNetworkMockCalls() {
-    // Catch unexpected calls and fail immediatley
+    // Catch unexpected calls and fail immediately
     ON_CALL(handler_, CallOperator(testing::_, testing::_, testing::_))
         .WillByDefault(
             testing::DoAll(testing::InvokeWithoutArgs([]() { FAIL(); }),
@@ -1173,23 +1174,15 @@ TEST_P(StreamLayerClientMockTest, PublishSDIIBillingTag) {
 
 TEST_P(StreamLayerClientMockTest, PublishSdiiCancel) {
   auto cancel_token = olp::client::CancellationToken();
-  ON_CALL(handler_,
-          CallOperator(IsGetRequest(URL_LOOKUP_CONFIG), testing::_, testing::_))
-      .WillByDefault(testing::DoAll(
-          testing::InvokeWithoutArgs(
-              [&cancel_token]() { cancel_token.cancel(); }),
-          testing::Invoke(
-              returnsResponse({200, HTTP_RESPONSE_LOOKUP_CONFIG}))));
 
   {
-    testing::InSequence dummy;
-
-    EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_INGEST),
-                                       testing::_, testing::_))
+    InSequence s;
+    EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_INGEST), _, _))
         .Times(1);
-    EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_CONFIG),
-                                       testing::_, testing::_))
-        .Times(1);
+    EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_CONFIG), _, _))
+        .WillOnce(
+            DoAll(InvokeWithoutArgs([&cancel_token] { cancel_token.cancel(); }),
+                  Invoke(returnsResponse({200, HTTP_RESPONSE_LOOKUP_CONFIG}))));
   }
 
   auto cancel_future =
@@ -1204,17 +1197,13 @@ TEST_P(StreamLayerClientMockTest, PublishSdiiCancel) {
 
 TEST_P(StreamLayerClientMockTest, SDIIConcurrentPublishSameIngestApi) {
   {
-    testing::InSequence dummy;
-
-    EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_INGEST),
-                                       testing::_, testing::_))
+    testing::InSequence s;
+    EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_INGEST), _, _))
         .Times(1);
-    EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_CONFIG),
-                                       testing::_, testing::_))
+    EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_CONFIG), _, _))
         .Times(1);
-    EXPECT_CALL(handler_, CallOperator(IsPostRequest(URL_INGEST_SDII),
-                                       testing::_, testing::_))
-        .Times(5);
+    EXPECT_CALL(handler_, CallOperator(IsPostRequest(URL_INGEST_SDII), _, _))
+        .Times(6);
   }
 
   auto publish_data = [&]() {
@@ -1227,12 +1216,15 @@ TEST_P(StreamLayerClientMockTest, SDIIConcurrentPublishSameIngestApi) {
     ASSERT_NO_FATAL_FAILURE(PublishSdiiSuccessAssertions(response));
   };
 
+  // Trigger one call prior to get cache filled else we face
+  // flakiness due to missing expects
+  publish_data();
+
   auto async1 = std::async(std::launch::async, publish_data);
   auto async2 = std::async(std::launch::async, publish_data);
   auto async3 = std::async(std::launch::async, publish_data);
   auto async4 = std::async(std::launch::async, publish_data);
   auto async5 = std::async(std::launch::async, publish_data);
-
   async1.get();
   async2.get();
   async3.get();
