@@ -16,7 +16,7 @@ $CPP_TEST_SOURCE_CORE/network/olp-core-network-test --gtest_output="xml:report4.
 echo ">>> Core - Thread Test ... >>>"
 $CPP_TEST_SOURCE_CORE/thread/thread-test --gtest_output="xml:report5.xml"
 echo ">>> Dataservice read Test ... >>>"
-$CPP_TEST_SOURCE_DARASERVICE_READ/unit/olp-dataservice-read-test --gtest_output="xml:report6.xml" --gtest_filter=-"TestOnline/*":"*GetPartitions403CacheClear*"
+$CPP_TEST_SOURCE_DARASERVICE_READ/unit/olp-dataservice-read-test --gtest_output="xml:report6.xml" --gtest_filter=-"TestOnline/*"
 echo ">>> Dataservice write Test ... >>>"
 $CPP_TEST_SOURCE_DARASERVICE_WRITE/olp-dataservice-write-test --gtest_output="xml:report7.xml" --gtest_filter=-"*Online*":"TestCacheMock*"
 bash <(curl -s https://codecov.io/bash)
