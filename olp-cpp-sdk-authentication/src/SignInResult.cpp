@@ -25,6 +25,9 @@ using namespace rapidjson;
 
 namespace olp {
 namespace authentication {
+SignInResult::SignInResult() noexcept
+    : impl_(std::make_shared<SignInResultImpl>()) {}
+
 SignInResult::~SignInResult() = default;
 
 int SignInResult::GetStatus() const { return impl_->GetStatus(); }

@@ -43,7 +43,7 @@ class AUTHENTICATION_API SignOutResult {
   /**
    * @brief Constructor
    */
-  SignOutResult() = default;
+  SignOutResult() noexcept;
 
   /**
    * @brief HTTP status code getter method.

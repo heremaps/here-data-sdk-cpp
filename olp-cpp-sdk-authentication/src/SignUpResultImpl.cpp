@@ -19,18 +19,27 @@
 
 #include "SignUpResultImpl.h"
 
-using namespace rapidjson;
+#include "Constants.h"
+#include "olp/core/network/HttpStatusCode.h"
+
+namespace {
+constexpr auto kUserId = "userId";
+}
 
 namespace olp {
 namespace authentication {
-static const char* USER_ID = "userId";
 
-SignUpResultImpl::SignUpResultImpl(int status, std::string error,
-                                   std::shared_ptr<Document> json_document)
+SignUpResultImpl::SignUpResultImpl() noexcept
+    : SignUpResultImpl(network::HttpStatusCode::ServiceUnavailable,
+                       Constants::ERROR_HTTP_SERVICE_UNAVAILABLE) {}
+
+SignUpResultImpl::SignUpResultImpl(
+    int status, std::string error,
+    std::shared_ptr<rapidjson::Document> json_document) noexcept
     : BaseResult(status, error, json_document) {
   if (BaseResult::IsValid()) {
-    if (json_document->HasMember(USER_ID))
-      user_identifier_ = (*json_document)[USER_ID].GetString();
+    if (json_document->HasMember(kUserId))
+      user_identifier_ = (*json_document)[kUserId].GetString();
   }
 }
 

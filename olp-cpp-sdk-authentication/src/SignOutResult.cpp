@@ -23,6 +23,9 @@
 
 namespace olp {
 namespace authentication {
+SignOutResult::SignOutResult() noexcept
+    : impl_(std::make_shared<SignOutResultImpl>()) {}
+
 SignOutResult::~SignOutResult() = default;
 
 int SignOutResult::GetStatus() const { return impl_->GetStatus(); }

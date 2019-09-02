@@ -25,6 +25,9 @@
 
 namespace olp {
 namespace authentication {
+SignInUserResult::SignInUserResult() noexcept
+    : impl_(std::make_shared<SignInUserResultImpl>()) {}
+
 SignInUserResult::~SignInUserResult() = default;
 
 const std::string& SignInUserResult::GetTermAcceptanceToken() const {

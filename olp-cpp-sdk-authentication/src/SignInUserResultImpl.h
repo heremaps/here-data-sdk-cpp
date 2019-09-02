@@ -37,10 +37,13 @@ namespace authentication {
  */
 class SignInUserResultImpl : public SignInResultImpl {
  public:
+  SignInUserResultImpl() noexcept;
+
   SignInUserResultImpl(
       int status, std::string GetErrorResponse,
-      std::shared_ptr<rapidjson::Document> json_document = nullptr);
-  virtual ~SignInUserResultImpl();
+      std::shared_ptr<rapidjson::Document> json_document = nullptr) noexcept;
+
+  ~SignInUserResultImpl() override;
 
   /**
    * @brief Token required for the terms acceptance API

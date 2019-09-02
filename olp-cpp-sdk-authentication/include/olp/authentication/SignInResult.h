@@ -44,7 +44,7 @@ class AUTHENTICATION_API SignInResult {
   /**
    * @brief Constructor
    */
-  SignInResult() = default;
+  SignInResult() noexcept;
 
   /**
    * @brief HTTP status code getter method.

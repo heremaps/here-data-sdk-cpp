@@ -29,6 +29,7 @@
 #include <olp/authentication/TokenRequest.h>
 #include <olp/authentication/TokenResult.h>
 #include <olp/core/client/CancellationToken.h>
+#include <olp/core/http/NetworkProxySettings.h>
 #include <olp/core/network/HttpStatusCode.h>
 #include "AuthenticationTests.h"
 
@@ -139,21 +140,37 @@ class TestHereAccountOauth2IntegrationOffline
     : public AuthenticationOfflineTest {};
 
 TEST_F(TestHereAccountOauth2IntegrationOffline, AutoRefreshingTokenCancelSync) {
-  auto expectation = ExpectationBuilder();
-  expectation->forUrl("https://account.api.here.com/oauth2/token")
-      .withResponseData(std::vector<char>(response_1.begin(), response_1.end()))
-      .withReturnCode(olp::network::HttpStatusCode::Ok)
-      .withErrorString(ERROR_OK)
-      .completeSynchronously()
-      .checkRepeatedly(true, 2)
-      .buildExpectation();
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .Times(2)
+      .WillRepeatedly([&](olp::http::NetworkRequest request,
+                          olp::http::Network::Payload payload,
+                          olp::http::Network::Callback callback,
+                          olp::http::Network::HeaderCallback header_callback,
+                          olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << response_1;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::network::HttpStatusCode::Ok)
+                     .WithError(ERROR_OK));
+        if (data_callback) {
+          auto raw = const_cast<char*>(response_1.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0, response_1.size());
+        }
 
+        return olp::http::SendOutcome(request_id);
+      });
+
+  Settings settings;
+  settings.network_request_handler = network_mock_;
   TokenEndpoint tokenEndpoint(
       AuthenticationCredentials(
           CustomParameters::getArgument("integration_production_service_id"),
           CustomParameters::getArgument(
               "integration_production_service_secret")),
-      Settings());
+      settings);
 
   testAutoRefreshingTokenCancel(
       tokenEndpoint, [](olp::client::CancellationToken& cancellationToken,
@@ -167,21 +184,37 @@ TEST_F(TestHereAccountOauth2IntegrationOffline, AutoRefreshingTokenCancelSync) {
 
 TEST_F(TestHereAccountOauth2IntegrationOffline,
        AutoRefreshingTokenCancelAsync) {
-  auto expectation = ExpectationBuilder();
-  expectation->forUrl("https://account.api.here.com/oauth2/token")
-      .withResponseData(std::vector<char>(response_1.begin(), response_1.end()))
-      .withReturnCode(olp::network::HttpStatusCode::Ok)
-      .withErrorString(ERROR_OK)
-      .completeSynchronously()
-      .checkRepeatedly(true, 2)
-      .buildExpectation();
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .Times(2)
+      .WillRepeatedly([&](olp::http::NetworkRequest request,
+                          olp::http::Network::Payload payload,
+                          olp::http::Network::Callback callback,
+                          olp::http::Network::HeaderCallback header_callback,
+                          olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << response_1;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::network::HttpStatusCode::Ok)
+                     .WithError(ERROR_OK));
+        if (data_callback) {
+          auto raw = const_cast<char*>(response_1.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0, response_1.size());
+        }
 
+        return olp::http::SendOutcome(request_id);
+      });
+
+  Settings settings;
+  settings.network_request_handler = network_mock_;
   TokenEndpoint tokenEndpoint(
       AuthenticationCredentials(
           CustomParameters::getArgument("integration_production_service_id"),
           CustomParameters::getArgument(
               "integration_production_service_secret")),
-      Settings());
+      settings);
 
   testAutoRefreshingTokenCancel(
       tokenEndpoint, [](olp::client::CancellationToken& cancellationToken,
@@ -196,13 +229,21 @@ TEST_F(TestHereAccountOauth2IntegrationOffline,
 class TestHereAccountOauth2IntegrationOnline : public ::testing::Test {
  protected:
   TestHereAccountOauth2IntegrationOnline()
-      : m_tokenEndpoint(
-            TokenEndpoint(AuthenticationCredentials(
-                              CustomParameters::getArgument(
-                                  "integration_production_service_id"),
-                              CustomParameters::getArgument(
-                                  "integration_production_service_secret")),
-                          Settings())) {}
+      : m_tokenEndpoint(TokenEndpoint(
+            AuthenticationCredentials(
+                CustomParameters::getArgument(
+                    "integration_production_service_id"),
+                CustomParameters::getArgument(
+                    "integration_production_service_secret")),
+            []() -> Settings {
+              Settings settings;
+              settings.task_scheduler = olp::client::OlpClientSettingsFactory::
+                  CreateDefaultTaskScheduler();
+              settings.network_request_handler =
+                  olp::client::OlpClientSettingsFactory::
+                      CreateDefaultNetworkRequestHandler();
+              return settings;
+            }())) {}
 
   TokenEndpoint m_tokenEndpoint;
 };
@@ -211,7 +252,15 @@ TEST_F(TestHereAccountOauth2IntegrationOnline,
        TokenProviderValidCredentialsValid) {
   TokenProviderDefault prov{
       CustomParameters::getArgument("integration_production_service_id"),
-      CustomParameters::getArgument("integration_production_service_secret")};
+      CustomParameters::getArgument("integration_production_service_secret"),
+      []() -> Settings {
+        Settings settings;
+        settings.task_scheduler =
+            olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
+        settings.network_request_handler = olp::client::
+            OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
+        return settings;
+      }()};
   ASSERT_TRUE(prov);
   ASSERT_NE("", prov());
   ASSERT_EQ(200, prov.GetHttpStatusCode());
@@ -224,7 +273,16 @@ TEST_F(TestHereAccountOauth2IntegrationOnline,
 TEST_F(TestHereAccountOauth2IntegrationOnline,
        TokenProviderValidCredentialsInvalid) {
   auto tokenProviderTest = [](std::string key, std::string secret) {
-    TokenProviderDefault prov{key, secret};
+    TokenProviderDefault prov{key, secret, []() -> Settings {
+                                Settings settings;
+                                settings.task_scheduler =
+                                    olp::client::OlpClientSettingsFactory::
+                                        CreateDefaultTaskScheduler();
+                                settings.network_request_handler =
+                                    olp::client::OlpClientSettingsFactory::
+                                        CreateDefaultNetworkRequestHandler();
+                                return settings;
+                              }()};
     ASSERT_FALSE(prov);
     ASSERT_EQ("", prov());
     ASSERT_EQ(401300, (int)prov.GetErrorResponse().code);
@@ -283,11 +341,18 @@ TEST_F(TestHereAccountOauth2IntegrationOnline,
 }
 
 TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenBadAccessKey) {
-  auto badTokenEndpoint =
-      TokenEndpoint(AuthenticationCredentials(
-                        "BAD", CustomParameters::getArgument(
-                                   "integration_production_service_secret")),
-                    Settings());
+  auto badTokenEndpoint = TokenEndpoint(
+      AuthenticationCredentials("BAD",
+                                CustomParameters::getArgument(
+                                    "integration_production_service_secret")),
+      []() -> Settings {
+        Settings settings;
+        settings.task_scheduler =
+            olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
+        settings.network_request_handler = olp::client::
+            OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
+        return settings;
+      }());
 
   auto barrier = std::make_shared<std::promise<void> >();
   badTokenEndpoint.RequestToken(
@@ -306,7 +371,14 @@ TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenBadAccessSecret) {
       AuthenticationCredentials(
           CustomParameters::getArgument("integration_production_service_id"),
           "BAD"),
-      Settings());
+      []() -> Settings {
+        Settings settings;
+        settings.task_scheduler =
+            olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
+        settings.network_request_handler = olp::client::
+            OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
+        return settings;
+      }());
 
   auto barrier = std::make_shared<std::promise<void> >();
   badTokenEndpoint.RequestToken(
@@ -354,7 +426,8 @@ TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenValidExpiry) {
             barrier->get_future().wait_for(kTestMaxExecutionTime));
 }
 
-TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenConcurrent) {
+TEST_F(TestHereAccountOauth2IntegrationOnline,
+       DISABLED_RequestTokenConcurrent) {
   std::thread threads[5];
   auto accessTokens = std::vector<std::string>();
   auto deltaSum = std::chrono::high_resolution_clock::duration::zero();
@@ -399,7 +472,8 @@ TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenConcurrent) {
       << "Expected all access tokens to be unique.";
 }
 
-TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenConcurrentFuture) {
+TEST_F(TestHereAccountOauth2IntegrationOnline,
+       DISABLED_RequestTokenConcurrentFuture) {
   std::thread threads[5];
   auto accessTokens = std::vector<std::string>();
   auto deltaSum = std::chrono::high_resolution_clock::duration::zero();
@@ -437,15 +511,18 @@ TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenConcurrentFuture) {
 }
 
 TEST_F(TestHereAccountOauth2IntegrationOnline, NetworkProxySettings) {
-  Settings proxySettings;
-  proxySettings.network_proxy_settings = NetworkProxySettings{"foo.bar", 42};
+  Settings settings;
+  olp::http::NetworkProxySettings proxySettings;
+  proxySettings.WithHostname("foo.bar");
+  proxySettings.WithPort(42);
+  settings.network_proxy_settings = proxySettings;
 
   auto badTokenEndpoint = TokenEndpoint(
       AuthenticationCredentials(
           CustomParameters::getArgument("integration_production_service_id"),
           CustomParameters::getArgument(
               "integration_production_service_secret")),
-      proxySettings);
+      settings);
 
   auto barrier = std::make_shared<std::promise<void> >();
   badTokenEndpoint.RequestToken(
@@ -480,7 +557,14 @@ void testAutoRefreshingTokenInvalidRequest(
         TokenEndpoint::TokenResponse(const AutoRefreshingToken& autoToken)>
         func) {
   auto badTokenEndpoint =
-      TokenEndpoint(AuthenticationCredentials("BAD", "BAD"), Settings());
+      TokenEndpoint(AuthenticationCredentials("BAD", "BAD"), []() -> Settings {
+        Settings settings;
+        settings.task_scheduler =
+            olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
+        settings.network_request_handler = olp::client::
+            OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
+        return settings;
+      }());
   auto tokenResponse = func(badTokenEndpoint.RequestAutoRefreshingToken());
   EXPECT_TRUE(tokenResponse.IsSuccessful());
   EXPECT_EQ(tokenResponse.GetResult().GetHttpStatus(), 401);
