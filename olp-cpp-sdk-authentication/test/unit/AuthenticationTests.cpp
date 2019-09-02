@@ -26,13 +26,40 @@ TEST_F(AuthenticationOfflineTest, SignInClientData) {
   std::promise<AuthenticationClient::SignInClientResponse> request;
   auto request_future = request.get_future();
 
-  auto expectation = ExpectationBuilder();
-  expectation->forUrl(signin_request)
-      .withResponseData(std::vector<char>(response_1.begin(), response_1.end()))
-      .withReturnCode(olp::network::HttpStatusCode::Ok)
-      .withErrorString(ERROR_OK)
-      .completeSynchronously()
-      .buildExpectation();
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .Times(2)
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << response_1;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::network::HttpStatusCode::Ok));
+        if (data_callback) {
+          auto raw = const_cast<char*>(response_1.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0, response_1.size());
+        }
+
+        return olp::http::SendOutcome(request_id);
+      })
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(6);
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(-1)
+                     .WithError(""));
+
+        return olp::http::SendOutcome(request_id);
+      });
 
   std::time_t now = std::time(nullptr);
   client_->SignInClient(
@@ -77,17 +104,9 @@ TEST_F(AuthenticationOfflineTest, SignInClientData) {
   EXPECT_TRUE(response.GetResult().GetRefreshToken().empty());
   EXPECT_TRUE(response.GetResult().GetUserIdentifier().empty());
 
-  // Check if we can get token when offline
-  auto expectation2 = ExpectationBuilder();
-  expectation2->forUrl(signin_request)
-      .withResponseData(std::vector<char>())
-      .withReturnCode(-1)
-      .withErrorString("")
-      .completeSynchronously()
-      .buildExpectation();
-
   std::promise<AuthenticationClient::SignInClientResponse> request_2;
   auto request_future_2 = request_2.get_future();
+  std::time_t now_2 = std::time(nullptr);
   client_->SignInClient(
       credentials,
       [&](const AuthenticationClient::SignInClientResponse& response) {
@@ -123,24 +142,38 @@ TEST_F(AuthenticationOfflineTest, SignInClientData) {
       "a_dIqvqFUU5aRi_"
       "dcYqkJcZh195ojzeAcvDGI6HqS2zUMTdpYUhlwwfpkxGwrFmlAxgx58xKSeVt0sPvtabZBAW"
       "8uh2NGg",
-      response.GetResult().GetAccessToken());
+      response_2.GetResult().GetAccessToken());
   ;
-  EXPECT_GE(now + MAX_EXPIRY, response_2.GetResult().GetExpiryTime());
-  EXPECT_LT(now + MIN_EXPIRY, response_2.GetResult().GetExpiryTime());
+  EXPECT_GE(now_2 + MAX_EXPIRY, response_2.GetResult().GetExpiryTime());
+  EXPECT_LT(now_2 + MIN_EXPIRY, response_2.GetResult().GetExpiryTime());
   EXPECT_EQ("bearer", response_2.GetResult().GetTokenType());
   EXPECT_TRUE(response_2.GetResult().GetRefreshToken().empty());
   EXPECT_TRUE(response_2.GetResult().GetUserIdentifier().empty());
 }
 
 TEST_F(AuthenticationOfflineTest, SignUpHereUserData) {
-  auto expectation = ExpectationBuilder();
-  expectation->forUrl(signup_request)
-      .withResponseData(std::vector<char>(signup_here_user_response.begin(),
-                                          signup_here_user_response.end()))
-      .withReturnCode(olp::network::HttpStatusCode::Created)
-      .withErrorString(ERROR_SIGNUP_CREATED)
-      .completeSynchronously()
-      .buildExpectation();
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .Times(1)
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << signup_here_user_response;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::network::HttpStatusCode::Created)
+                     .WithError(ERROR_SIGNUP_CREATED));
+        if (data_callback) {
+          auto raw = const_cast<char*>(signup_here_user_response.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0, signup_here_user_response.size());
+        }
+
+        return olp::http::SendOutcome(request_id);
+      });
 
   AuthenticationClient::SignUpResponse signUpResponse =
       SignUpUser("email@example.com");
@@ -157,15 +190,28 @@ TEST_F(AuthenticationOfflineTest, SignInUserDataFirstTime) {
   std::promise<AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
 
-  auto expectation = ExpectationBuilder();
-  expectation->forUrl(signin_request)
-      .withResponseData(
-          std::vector<char>(user_signinuser_first_time_response.begin(),
-                            user_signinuser_first_time_response.end()))
-      .withReturnCode(olp::network::HttpStatusCode::PreconditionFailed)
-      .withErrorString(ERROR_PRECONDITION_FAILED_MESSAGE)
-      .completeSynchronously()
-      .buildExpectation();
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .Times(1)
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << user_signinuser_first_time_response;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::network::HttpStatusCode::PreconditionFailed)
+                 .WithError(ERROR_PRECONDITION_FAILED_MESSAGE));
+        if (data_callback) {
+          auto raw = const_cast<char*>(user_signinuser_first_time_response.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0, user_signinuser_first_time_response.size());
+        }
+
+        return olp::http::SendOutcome(request_id);
+      });
 
   AuthenticationClient::UserProperties properties;
   client_->SignInHereUser(
@@ -197,14 +243,28 @@ TEST_F(AuthenticationOfflineTest, AcceptTermsData) {
   std::promise<AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
 
-  auto expectation = ExpectationBuilder();
-  expectation->forUrl(accept_request)
-      .withResponseData(std::vector<char>(response_no_content.begin(),
-                                          response_no_content.end()))
-      .withReturnCode(olp::network::HttpStatusCode::NoContent)
-      .withErrorString(ERROR_NO_CONTENT)
-      .completeSynchronously()
-      .buildExpectation();
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .Times(1)
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << response_no_content;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::network::HttpStatusCode::NoContent)
+                 .WithError(ERROR_NO_CONTENT));
+        if (data_callback) {
+          auto raw = const_cast<char*>(response_no_content.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0, response_no_content.size());
+        }
+
+        return olp::http::SendOutcome(request_id);
+      });
 
   client_->AcceptTerms(
       credentials, "reacceptance_token",
@@ -234,14 +294,28 @@ TEST_F(AuthenticationOfflineTest, SignInHereUser) {
   std::promise<AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
 
-  auto expectation = ExpectationBuilder();
-  expectation->forUrl(signin_request)
-      .withResponseData(std::vector<char>(user_signin_response.begin(),
-                                          user_signin_response.end()))
-      .withReturnCode(olp::network::HttpStatusCode::Ok)
-      .withErrorString(ERROR_OK)
-      .completeSynchronously()
-      .buildExpectation();
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .Times(1)
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << user_signin_response;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::network::HttpStatusCode::Ok)
+                 .WithError(ERROR_OK));
+        if (data_callback) {
+          auto raw = const_cast<char*>(user_signin_response.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0, user_signin_response.size());
+        }
+
+        return olp::http::SendOutcome(request_id);
+      });
 
   AuthenticationClient::UserProperties properties;
   std::time_t now = std::time(nullptr);
@@ -270,14 +344,28 @@ TEST_F(AuthenticationOfflineTest, SignOutUser) {
   std::promise<AuthenticationClient::SignOutUserResponse> request;
   auto request_future = request.get_future();
 
-  auto expectation = ExpectationBuilder();
-  expectation->forUrl(signout_request)
-      .withResponseData(std::vector<char>(response_no_content.begin(),
-                                          response_no_content.end()))
-      .withReturnCode(olp::network::HttpStatusCode::NoContent)
-      .withErrorString(ERROR_NO_CONTENT)
-      .completeSynchronously()
-      .buildExpectation();
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .Times(1)
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << response_no_content;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::network::HttpStatusCode::NoContent)
+                 .WithError(ERROR_NO_CONTENT));
+        if (data_callback) {
+          auto raw = const_cast<char*>(response_no_content.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0, response_no_content.size());
+        }
+
+        return olp::http::SendOutcome(request_id);
+      });
 
   client_->SignOut(
       credentials,
@@ -315,14 +403,28 @@ TEST_F(AuthenticationOfflineTest, SignInFacebookData) {
   std::promise<AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
 
-  auto expectation = ExpectationBuilder();
-  expectation->forUrl(signin_request)
-      .withResponseData(std::vector<char>(facebook_signin_response.begin(),
-                                          facebook_signin_response.end()))
-      .withReturnCode(olp::network::HttpStatusCode::Ok)
-      .withErrorString(ERROR_OK)
-      .completeSynchronously()
-      .buildExpectation();
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .Times(1)
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << facebook_signin_response;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::network::HttpStatusCode::Ok)
+                 .WithError(ERROR_OK));
+        if (data_callback) {
+          auto raw = const_cast<char*>(facebook_signin_response.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0, facebook_signin_response.size());
+        }
+
+        return olp::http::SendOutcome(request_id);
+      });
 
   AuthenticationClient::FederatedProperties properties;
   std::time_t now = std::time(nullptr);
@@ -358,14 +460,28 @@ TEST_F(AuthenticationOfflineTest, SignInGoogleData) {
   std::promise<AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
 
-  auto expectation = ExpectationBuilder();
-  expectation->forUrl(signin_request)
-      .withResponseData(std::vector<char>(google_signin_response.begin(),
-                                          google_signin_response.end()))
-      .withReturnCode(olp::network::HttpStatusCode::Ok)
-      .withErrorString(ERROR_OK)
-      .completeSynchronously()
-      .buildExpectation();
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .Times(1)
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << google_signin_response;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::network::HttpStatusCode::Ok)
+                 .WithError(ERROR_OK));
+        if (data_callback) {
+          auto raw = const_cast<char*>(google_signin_response.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0, google_signin_response.size());
+        }
+
+        return olp::http::SendOutcome(request_id);
+      });
 
   AuthenticationClient::FederatedProperties properties;
   std::time_t now = std::time(nullptr);
@@ -393,14 +509,28 @@ TEST_F(AuthenticationOfflineTest, SignInArcGisData) {
   std::promise<AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
 
-  auto expectation = ExpectationBuilder();
-  expectation->forUrl(signin_request)
-      .withResponseData(std::vector<char>(arcgis_signin_response.begin(),
-                                          arcgis_signin_response.end()))
-      .withReturnCode(olp::network::HttpStatusCode::Ok)
-      .withErrorString(ERROR_OK)
-      .completeSynchronously()
-      .buildExpectation();
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .Times(1)
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << arcgis_signin_response;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::network::HttpStatusCode::Ok)
+                 .WithError(ERROR_OK));
+        if (data_callback) {
+          auto raw = const_cast<char*>(arcgis_signin_response.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0, arcgis_signin_response.size());
+        }
+
+        return olp::http::SendOutcome(request_id);
+      });
 
   std::time_t now = std::time(nullptr);
   AuthenticationClient::FederatedProperties properties;
@@ -436,14 +566,28 @@ TEST_F(AuthenticationOfflineTest, SignInRefreshData) {
   std::promise<AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
 
-  auto expectation = ExpectationBuilder();
-  expectation->forUrl(signin_request)
-      .withResponseData(std::vector<char>(refresh_signin_response.begin(),
-                                          refresh_signin_response.end()))
-      .withReturnCode(olp::network::HttpStatusCode::Ok)
-      .withErrorString(ERROR_OK)
-      .completeSynchronously()
-      .buildExpectation();
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .Times(1)
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << refresh_signin_response;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::network::HttpStatusCode::Ok)
+                 .WithError(ERROR_OK));
+        if (data_callback) {
+          auto raw = const_cast<char*>(refresh_signin_response.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0, refresh_signin_response.size());
+        }
+
+        return olp::http::SendOutcome(request_id);
+      });
 
   AuthenticationClient::UserProperties properties;
   std::time_t now = std::time(nullptr);
@@ -489,14 +633,28 @@ TEST_F(AuthenticationOfflineTest, ErrorFieldsData) {
   std::promise<AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
 
-  auto expectation = ExpectationBuilder();
-  expectation->forUrl(signin_request)
-      .withResponseData(std::vector<char>(response_error_fields.begin(),
-                                          response_error_fields.end()))
-      .withReturnCode(olp::network::HttpStatusCode::BadRequest)
-      .withErrorString(ERROR_FIELDS_MESSAGE)
-      .completeSynchronously()
-      .buildExpectation();
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .Times(3)
+      .WillRepeatedly([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << response_error_fields;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::network::HttpStatusCode::BadRequest)
+                 .WithError(ERROR_FIELDS_MESSAGE));
+        if (data_callback) {
+          auto raw = const_cast<char*>(response_error_fields.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0, response_error_fields.size());
+        }
+
+        return olp::http::SendOutcome(request_id);
+      });
 
   AuthenticationClient::UserProperties properties;
   client_->SignInHereUser(
@@ -515,14 +673,6 @@ TEST_F(AuthenticationOfflineTest, ErrorFieldsData) {
             response.GetResult().GetErrorResponse().message);
   checkErrorFields(response.GetResult().GetErrorFields());
 
-  expectation->forUrl(signout_request)
-      .withResponseData(std::vector<char>(response_error_fields.begin(),
-                                          response_error_fields.end()))
-      .withReturnCode(olp::network::HttpStatusCode::BadRequest)
-      .withErrorString(ERROR_FIELDS_MESSAGE)
-      .completeSynchronously()
-      .buildExpectation();
-
   AuthenticationClient::SignOutUserResponse signOutResponse =
       SignOutUser("token");
   EXPECT_TRUE(signOutResponse.IsSuccessful());
@@ -534,13 +684,6 @@ TEST_F(AuthenticationOfflineTest, ErrorFieldsData) {
             signOutResponse.GetResult().GetErrorResponse().message);
   checkErrorFields(response.GetResult().GetErrorFields());
 
-  expectation->forUrl(signup_request)
-      .withResponseData(std::vector<char>(response_error_fields.begin(),
-                                          response_error_fields.end()))
-      .withReturnCode(olp::network::HttpStatusCode::BadRequest)
-      .withErrorString(ERROR_FIELDS_MESSAGE)
-      .completeSynchronously()
-      .buildExpectation();
   AuthenticationClient::SignUpResponse signup_response = SignUpUser("email");
   EXPECT_TRUE(signup_response.IsSuccessful());
   EXPECT_EQ(olp::network::HttpStatusCode::BadRequest,
@@ -1078,20 +1221,19 @@ TEST_F(AuthenticationOnlineTest, SignOutUser) {
 TEST_F(AuthenticationOnlineTest, NetworkProxySettings) {
   AuthenticationCredentials credentials(id_, secret_);
 
-  auto proxySettings = NetworkProxySettings();
-  EXPECT_FALSE(client_->SetNetworkProxySettings(proxySettings));
+  auto proxySettings = olp::http::NetworkProxySettings();
+  client_->SetNetworkProxySettings(proxySettings);
+  proxySettings.WithHostname("$.?");
+  proxySettings.WithPort(42);
+  proxySettings.WithType(olp::http::NetworkProxySettings::Type::SOCKS4);
 
-  proxySettings.host = "foo.bar";
-  proxySettings.port = 42;
-  EXPECT_TRUE(client_->SetNetworkProxySettings(proxySettings));
+  client_->SetNetworkProxySettings(proxySettings);
   std::time_t now;
   auto response = SignInClient(credentials, now, EXPIRY_TIME);
   // Bad proxy error code and message varies by platform
   EXPECT_FALSE(response.IsSuccessful());
   EXPECT_TRUE(response.GetError().GetErrorCode() ==
-                  olp::client::ErrorCode::NetworkConnection ||
-              response.GetError().GetErrorCode() ==
-                  olp::client::ErrorCode::NotFound);
+              olp::client::ErrorCode::ServiceUnavailable);
   EXPECT_STRNE(response.GetError().GetMessage().c_str(), ERROR_OK.c_str());
 }
 

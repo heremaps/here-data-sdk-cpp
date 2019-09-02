@@ -19,12 +19,19 @@
 
 #include "SignOutResultImpl.h"
 
-using namespace rapidjson;
+#include "Constants.h"
+#include "olp/core/network/HttpStatusCode.h"
 
 namespace olp {
 namespace authentication {
-SignOutResultImpl::SignOutResultImpl(int status, std::string error,
-                                     std::shared_ptr<Document> json_document)
+
+  SignOutResultImpl::SignOutResultImpl() noexcept
+    : SignOutResultImpl(network::HttpStatusCode::ServiceUnavailable,
+                        Constants::ERROR_HTTP_SERVICE_UNAVAILABLE) {}
+
+SignOutResultImpl::SignOutResultImpl(
+    int status, std::string error,
+    std::shared_ptr<rapidjson::Document> json_document) noexcept
     : BaseResult(status, error, json_document) {}
 
 SignOutResultImpl::~SignOutResultImpl() = default;

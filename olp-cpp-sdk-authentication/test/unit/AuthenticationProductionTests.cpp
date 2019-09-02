@@ -19,6 +19,7 @@
 
 #include <gtest/gtest.h>
 #include <olp/authentication/AuthenticationClient.h>
+#include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/network/HttpStatusCode.h>
 #include <olp/core/network/Network.h>
 #include <olp/core/porting/make_unique.h>
@@ -50,6 +51,10 @@ class AuthenticationOnlineProductionTest : public ::testing::Test {
   void SetUp() override {
     // Use production HERE Account server
     client = std::make_unique<AuthenticationClient>();
+    client->SetTaskScheduler(
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler());
+    client->SetNetwork(
+        olp::client::OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler());
   }
 
   void TearDown() override { client.reset(); }

@@ -31,10 +31,13 @@ namespace olp {
 namespace authentication {
 class SignUpResultImpl : public BaseResult {
  public:
+  SignUpResultImpl() noexcept;
+
   SignUpResultImpl(
       int status, std::string GetErrorResponse,
-      std::shared_ptr<rapidjson::Document> json_document = nullptr);
-  virtual ~SignUpResultImpl();
+      std::shared_ptr<rapidjson::Document> json_document = nullptr) noexcept;
+
+  ~SignUpResultImpl() override;
 
   /**
    * @brief error Here account user identifier
