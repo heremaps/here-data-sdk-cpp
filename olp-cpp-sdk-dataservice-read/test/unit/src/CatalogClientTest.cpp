@@ -52,6 +52,7 @@
 #include "testutils/CustomParameters.hpp"
 
 using namespace olp::dataservice::read;
+using namespace testing;
 
 #ifdef _WIN32
 const std::string k_client_test_dir("\\catalog_client_test");
@@ -2488,35 +2489,33 @@ TEST_P(CatalogClientMockTest, GetData403CacheClear) {
 
 TEST_P(CatalogClientMockTest, GetPartitions403CacheClear) {
   olp::client::HRN hrn(GetTestCatalog());
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
+
   {
-    testing::InSequence s;
-    EXPECT_CALL(*handler_,
-                op(IsGetRequest(URL_PARTITIONS), testing::_, testing::_))
-        .Times(1);
-    EXPECT_CALL(*handler_,
-                op(IsGetRequest(URL_PARTITIONS), testing::_, testing::_))
-        .Times(1)
-        .WillOnce(testing::Invoke(returnsResponse({403, HTTP_RESPONSE_403})));
+    InSequence s;
+    EXPECT_CALL(*handler_, op(IsGetRequest(URL_PARTITIONS), _, _)).Times(1);
+    EXPECT_CALL(*handler_, op(IsGetRequest(URL_PARTITIONS), _, _))
+        .WillOnce(Invoke(returnsResponse({403, HTTP_RESPONSE_403})));
   }
 
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
-  auto request = PartitionsRequest();
-  request.WithLayerId("testlayer");
   // Populate cache
-  auto future = catalogClient->GetPartitions(request);
-  PartitionsResponse partitionsResponse = future.GetFuture().get();
-  ASSERT_TRUE(partitionsResponse.IsSuccessful());
+  auto request = PartitionsRequest().WithLayerId("testlayer");
+  auto future = catalog_client->GetPartitions(request);
+  auto partitions_response = future.GetFuture().get();
+  ASSERT_TRUE(partitions_response.IsSuccessful());
+
   // Receive 403
   request.WithFetchOption(OnlineOnly);
-  future = catalogClient->GetPartitions(request);
-  partitionsResponse = future.GetFuture().get();
-  ASSERT_FALSE(partitionsResponse.IsSuccessful());
-  ASSERT_EQ(403, partitionsResponse.GetError().GetHttpStatusCode());
+  future = catalog_client->GetPartitions(request);
+  partitions_response = future.GetFuture().get();
+  ASSERT_FALSE(partitions_response.IsSuccessful());
+  ASSERT_EQ(403, partitions_response.GetError().GetHttpStatusCode());
+
   // Check for cached response
   request.WithFetchOption(CacheOnly);
-  future = catalogClient->GetPartitions(request);
-  partitionsResponse = future.GetFuture().get();
-  ASSERT_FALSE(partitionsResponse.IsSuccessful());
+  future = catalog_client->GetPartitions(request);
+  partitions_response = future.GetFuture().get();
+  ASSERT_FALSE(partitions_response.IsSuccessful());
 }
 
 TEST_P(CatalogClientMockTest, CancelPendingRequestsCatalog) {

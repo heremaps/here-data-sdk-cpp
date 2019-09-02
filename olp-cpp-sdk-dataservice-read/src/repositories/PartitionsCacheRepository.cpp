@@ -40,12 +40,12 @@ std::string CreateKey(const std::string& hrn, const std::string& layerId,
                       const std::string& partitionId,
                       const boost::optional<int64_t>& version) {
   return hrn + "::" + layerId + "::" + partitionId +
-         "::" + (version ? std::to_string(*version) : "") + "::partition";
+         "::" + (version ? std::to_string(*version) + "::partition" : "");
 }
 std::string CreateKey(const std::string& hrn, const std::string& layerId,
                       const boost::optional<int64_t>& version) {
   return hrn + "::" + layerId +
-         "::" + (version ? std::to_string(*version) : "") + "::partitions";
+         "::" + (version ? std::to_string(*version) + "::partitions" : "");
 }
 std::string CreateKey(const std::string& hrn, const int64_t catalogVersion) {
   return hrn + "::" + std::to_string(catalogVersion) + "::layerVersions";
@@ -132,7 +132,7 @@ boost::optional<model::Partitions> PartitionsCacheRepository::Get(
 void PartitionsCacheRepository::Put(int64_t catalogVersion,
                                     const model::LayerVersions& layerVersions) {
   std::string hrn(hrn_.ToCatalogHRNString());
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "Put '%s'", hrn.c_str());
+  EDGE_SDK_LOG_INFO_F(kLogTag, "Put '%s'", hrn.c_str());
   cache_->Put(CreateKey(hrn, catalogVersion), layerVersions,
               [=]() { return olp::serializer::serialize(layerVersions); });
 }
@@ -141,7 +141,7 @@ boost::optional<model::LayerVersions> PartitionsCacheRepository::Get(
     int64_t catalogVersion) {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn, catalogVersion);
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "Get '%s'", key.c_str());
+  EDGE_SDK_LOG_INFO_F(kLogTag, "Get '%s'", key.c_str());
   auto cachedLayerVersions =
       cache_->Get(key, [](const std::string& serializedObject) {
         return parser::parse<model::LayerVersions>(serializedObject);
@@ -155,7 +155,7 @@ boost::optional<model::LayerVersions> PartitionsCacheRepository::Get(
 void PartitionsCacheRepository::Clear(const std::string& layer_id) {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn, layer_id, boost::none);
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "Clear '%s'", key.c_str());
+  EDGE_SDK_LOG_INFO_F(kLogTag, "Clear '%s'", key.c_str());
   cache_->RemoveKeysWithPrefix(key);
 }
 
@@ -163,7 +163,7 @@ void PartitionsCacheRepository::ClearPartitions(
     const PartitionsRequest& request,
     const std::vector<std::string>& partitionIds) {
   std::string hrn(hrn_.ToCatalogHRNString());
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "ClearPartitions '%s'", hrn.c_str());
+  EDGE_SDK_LOG_INFO_F(kLogTag, "ClearPartitions '%s'", hrn.c_str());
   auto cachedPartitions = Get(request, partitionIds);
   // Partitions not processed here are not cached to begin with.
   for (auto partition : cachedPartitions.GetPartitions()) {
