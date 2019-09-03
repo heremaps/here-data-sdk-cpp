@@ -33,6 +33,7 @@
 namespace olp {
 namespace dataservice {
 namespace read {
+class VersionedLayerClientImpl;
 
 /**
  * @brief The VersionedLayerClient aimed to acquire data from OLP services.
@@ -41,12 +42,10 @@ class DATASERVICE_READ_API VersionedLayerClient final {
  public:
   /// DataResult alias
   using DataResult = model::Data;
-  /// ApiResponse template alias
-  template <typename Result>
-  using CallbackResponse = client::ApiResponse<Result, client::ApiError>;
-  /// Callback template alias
-  template <typename Response>
-  using Callback = std::function<void(CallbackResponse<Response> response)>;
+  /// CallbackResponse alias
+  using CallbackResponse = client::ApiResponse<DataResult, client::ApiError>;
+  /// Callback alias
+  using Callback = std::function<void(CallbackResponse response)>;
 
   /**
    * @brief VersionedLayerClient constructor
@@ -67,16 +66,17 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * error). If neither Partition Id or Data Handle were set in the request, the
    * callback will be invoked with an error with ErrorCode::InvalidRequest.
    * @param data_request contains the complete set of request parameters.
+   * \note \c DataRequest's GetLayerId value will be ignored and the parameter
+   * from the constructor will be used instead.
    * @param callback will be invoked once the DataResult is available, or an
    * error is encountered.
    * @return A token that can be used to cancel this request.
    */
   olp::client::CancellationToken GetData(DataRequest data_request,
-                                         Callback<DataResult> callback);
+                                         Callback callback);
 
  private:
-  class Impl;
-  std::unique_ptr<Impl> impl_;
+  std::unique_ptr<VersionedLayerClientImpl> impl_;
 };
 
 }  // namespace read
