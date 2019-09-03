@@ -86,7 +86,7 @@ class CORE_API Network {
 /**
  * @brief Create default Network implementation.
  */
-CORE_API std::unique_ptr<Network> CreateDefaultNetwork(size_t max_requests_count);
+CORE_API std::shared_ptr<Network> CreateDefaultNetwork(size_t max_requests_count);
 
 }  // namespace http
 }  // namespace olp
