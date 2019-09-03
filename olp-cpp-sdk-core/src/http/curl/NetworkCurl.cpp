@@ -428,8 +428,8 @@ ErrorCode NetworkCurl::SendImplementation(
 
   const auto& config = request.GetSettings();
 
-  RequestHandle* handle =
-      GetHandle(id, callback, header_callback, data_callback, payload);
+  RequestHandle* handle = GetHandle(id, callback, header_callback,
+                                    data_callback, payload, request.GetBody());
   if (!handle) {
     return ErrorCode::UNKNOWN_ERROR;  // NetworkProtocol::ErrorNotReady;
   }
@@ -485,10 +485,11 @@ ErrorCode NetworkCurl::SendImplementation(
       verb != NetworkRequest::HttpVerb::HEAD) {
     // These can also be used to add body data to a CURLOPT_CUSTOMREQUEST
     // such as delete.
-    auto content = request.GetBody();
-    if (content && !content->empty()) {
-      curl_easy_setopt(handle->handle, CURLOPT_POSTFIELDSIZE, content->size());
-      curl_easy_setopt(handle->handle, CURLOPT_POSTFIELDS, &content->front());
+    if (handle->body && !handle->body->empty()) {
+      curl_easy_setopt(handle->handle, CURLOPT_POSTFIELDSIZE,
+                       handle->body->size());
+      curl_easy_setopt(handle->handle, CURLOPT_POSTFIELDS,
+                       &handle->body->front());
     } else {
       // Some services (eg. Google) require the field size even if zero
       curl_easy_setopt(handle->handle, CURLOPT_POSTFIELDSIZE, 0);
@@ -532,7 +533,7 @@ ErrorCode NetworkCurl::SendImplementation(
     if (CURLE_OK != error) {
       return ErrorCode::UNKNOWN_ERROR;
     }
-    EDGE_SDK_LOG_TRACE(kLogTag, "curl bundle path: " << curl_ca_bundle);
+    EDGE_SDK_LOG_DEBUG(kLogTag, "curl bundle path: " << curl_ca_bundle);
   }
 #endif
 
@@ -578,9 +579,6 @@ ErrorCode NetworkCurl::SendImplementation(
   curl_easy_setopt(handle->handle, CURLOPT_TCP_KEEPINTVL, 60L);
 #endif
 
-  if (!IsStarted()) {
-    return ErrorCode::OFFLINE_ERROR;  // NetworkProtocol::ErrorNotReady;
-  }
   {
     std::lock_guard<std::mutex> lock(event_mutex_);
     AddEvent(EventInfo::Type::SEND_EVENT, handle);
@@ -621,8 +619,8 @@ void NetworkCurl::AddEvent(EventInfo::Type type, RequestHandle* handle) {
 
 NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
     int id, Network::Callback callback, Network::HeaderCallback header_callback,
-    Network::DataCallback data_callback,
-    const std::shared_ptr<std::ostream>& payload) {
+    Network::DataCallback data_callback, Network::Payload payload,
+    NetworkRequest::RequestBodyType body) {
   if (!IsStarted()) {
     return nullptr;
   }
@@ -652,7 +650,8 @@ NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
       handles_[i].etag.clear();
       handles_[i].content_type.clear();
       handles_[i].date.clear();
-      handles_[i].payload = payload;
+      handles_[i].payload = std::move(payload);
+      handles_[i].body = std::move(body);
       handles_[i].send_time = std::chrono::steady_clock::now();
       handles_[i].error_text[0] = 0;
       handles_[i].get_statistics = false;
@@ -680,6 +679,7 @@ void NetworkCurl::ReleaseHandleUnlocked(RequestHandle* handle) {
   handle->header_callback = nullptr;
   handle->data_callback = nullptr;
   handle->payload.reset();
+  handle->body.reset();
 }
 
 size_t NetworkCurl::RxFunction(void* ptr, size_t size, size_t nmemb,
@@ -894,7 +894,7 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
       }
     }
 
-    EDGE_SDK_LOG_TRACE(
+    EDGE_SDK_LOG_DEBUG(
         kLogTag, "Completed message " << handles_[index].id << " " << error);
 
     auto response = NetworkResponse()
@@ -1197,7 +1197,7 @@ void NetworkCurl::Run() {
     state_ = WorkerState::STOPPED;
     event_condition_.notify_one();
   }
-  EDGE_SDK_LOG_TRACE(kLogTag, "Thread exit");
+  EDGE_SDK_LOG_DEBUG(kLogTag, "Thread exit");
 }
 
 }  // namespace http
