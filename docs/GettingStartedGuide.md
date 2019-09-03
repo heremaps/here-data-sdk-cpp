@@ -48,6 +48,11 @@ target_link_libraries(example_app
 )
 ```
 
+## Reference Documentation
+
+The API reference documentation for the HERE OLP Edge SDK C++ is available at https://heremaps.github.io/here-olp-edge-sdk-cpp/.
+
+
 ## Examples
 
 * [Read example](dataservice-read-catalog-example.md) shows how to read metadata from an OLP catalog and download a specific partition data from a catalog layer.
