@@ -20,6 +20,7 @@
 #pragma once
 
 #include <olp/core/http/Network.h>
+#include <olp/core/http/NetworkRequest.h>
 
 #include <atomic>
 #include <chrono>
@@ -80,7 +81,7 @@ class NetworkCurl : public olp::http::Network,
    * @brief Implementation of Send method from Network abstract class.
    */
   SendOutcome Send(NetworkRequest request,
-                   std::shared_ptr<std::ostream> payload, Callback callback,
+                   Payload payload, Callback callback,
                    HeaderCallback header_callback = nullptr,
                    DataCallback data_callback = nullptr) override;
 
@@ -98,7 +99,8 @@ class NetworkCurl : public olp::http::Network,
     std::string content_type{};
     std::string date{};
     std::chrono::steady_clock::time_point send_time{};
-    std::shared_ptr<std::ostream> payload{};
+    NetworkRequest::RequestBodyType body{};
+    Network::Payload payload{};
     std::weak_ptr<NetworkCurl> self{};
     Callback callback{};
     HeaderCallback header_callback{};
@@ -225,7 +227,8 @@ class NetworkCurl : public olp::http::Network,
   RequestHandle* GetHandle(int id, Network::Callback callback,
                            Network::HeaderCallback headerCallback,
                            Network::DataCallback dataCallback,
-                           const std::shared_ptr<std::ostream>& payload);
+                           Network::Payload payload,
+                           NetworkRequest::RequestBodyType body);
 
   /**
    * @brief Release handle after network request is done.
