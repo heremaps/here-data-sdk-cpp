@@ -65,12 +65,12 @@ std::mutex& GetNetworksMutex() {
   return sNetworkClientsMutex;
 }
 
-std::map<int, std::shared_ptr<olp::http::NetworkAndroid> >& GetAllNetworks() {
-  static std::map<int, std::shared_ptr<olp::http::NetworkAndroid> > sNetworks;
+std::map<int, std::weak_ptr<olp::http::NetworkAndroid> >& GetAllNetworks() {
+  static std::map<int, std::weak_ptr<olp::http::NetworkAndroid> > sNetworks;
   return sNetworks;
 }
 
-std::shared_ptr<olp::http::NetworkAndroid> GetNetworkById(int network_id) {
+std::weak_ptr<olp::http::NetworkAndroid> GetNetworkById(int network_id) {
   std::lock_guard<std::mutex> lock(GetNetworksMutex());
   auto& networks = GetAllNetworks();
   auto it = networks.find(network_id);
@@ -78,7 +78,7 @@ std::shared_ptr<olp::http::NetworkAndroid> GetNetworkById(int network_id) {
     return it->second;
   }
 
-  return nullptr;
+  return std::weak_ptr<olp::http::NetworkAndroid>();
 }
 
 }  // namespace
@@ -312,13 +312,8 @@ void NetworkAndroid::Deinitialize() {
 
   // Finish run thread:
   if (run_thread_) {
-    if (run_thread_->get_id() != std::this_thread::get_id()) {
-      run_thread_->join();
-      run_thread_.reset();
-    } else {
-      run_thread_->detach();
-      run_thread_.reset();
-    }
+    run_thread_->join();
+    run_thread_.reset();
   }
 
   // Cancel all pending requests
@@ -683,9 +678,6 @@ void NetworkAndroid::Run(NetworkAndroid* self) {
 }
 
 void NetworkAndroid::SelfRun() {
-  // Hold a shared pointer so that object is not destroyed while thread is
-  // running
-  std::shared_ptr<NetworkAndroid> that = shared_from_this();
   {
     std::lock_guard<std::mutex> lock(responses_mutex_);
     started_ = true;
@@ -716,11 +708,11 @@ void NetworkAndroid::SelfRun() {
 
     if (response_data.IsValid()) {
       bool cancelled = false;
-      auto iter = that->cancelled_requests_.begin();
-      while (iter != that->cancelled_requests_.end()) {
+      auto iter = cancelled_requests_.begin();
+      while (iter != cancelled_requests_.end()) {
         if (*iter == response_data.id) {
           cancelled = true;
-          that->cancelled_requests_.erase(iter);
+          cancelled_requests_.erase(iter);
           break;
         }
         ++iter;
@@ -934,7 +926,6 @@ NetworkAndroid::ResponseData::ResponseData(
       status(status),
       count(count),
       offset(offset) {}
-      
 
 }  // namespace http
 }  // namespace olp
@@ -954,7 +945,7 @@ Java_com_here_olp_network_HttpClient_headersCallback(JNIEnv* env, jobject obj,
                                                      jint client_id,
                                                      jlong request_id,
                                                      jobjectArray headers) {
-  auto network = olp::http::GetNetworkById(client_id);
+  auto network = olp::http::GetNetworkById(client_id).lock();
   if (!network) {
     EDGE_SDK_LOG_WARNING(
         kLogTag,
@@ -971,7 +962,7 @@ extern "C" EDGE_SDK_NETWORK_ANDROID_EXPORT void JNICALL
 Java_com_here_olp_network_HttpClient_dateAndOffsetCallback(
     JNIEnv* env, jobject obj, jint client_id, jlong request_id, jlong date,
     jlong offset) {
-  auto network = olp::http::GetNetworkById(client_id);
+  auto network = olp::http::GetNetworkById(client_id).lock();
   if (!network) {
     EDGE_SDK_LOG_WARNING(
         kLogTag,
@@ -989,7 +980,7 @@ Java_com_here_olp_network_HttpClient_dataCallback(JNIEnv* env, jobject obj,
                                                   jint client_id,
                                                   jlong request_id,
                                                   jbyteArray data, jint len) {
-  auto network = olp::http::GetNetworkById(client_id);
+  auto network = olp::http::GetNetworkById(client_id).lock();
   if (!network) {
     EDGE_SDK_LOG_WARNING(
         kLogTag, "dataCallback to non-existing client with id=" << client_id);
@@ -1007,7 +998,7 @@ Java_com_here_olp_network_HttpClient_completeRequest(JNIEnv* env, jobject obj,
                                                      jlong request_id,
                                                      jint status, jstring error,
                                                      jstring content_type) {
-  auto network = olp::http::GetNetworkById(client_id);
+  auto network = olp::http::GetNetworkById(client_id).lock();
   if (!network) {
     EDGE_SDK_LOG_WARNING(
         kLogTag,
@@ -1024,7 +1015,7 @@ extern "C" EDGE_SDK_NETWORK_ANDROID_EXPORT void JNICALL
 Java_com_here_olp_network_HttpClient_resetRequest(JNIEnv* env, jobject obj,
                                                   jint client_id,
                                                   jlong request_id) {
-  auto network = olp::http::GetNetworkById(client_id);
+  auto network = olp::http::GetNetworkById(client_id).lock();
   if (!network) {
     EDGE_SDK_LOG_WARNING(
         kLogTag, "resetRequest to non-existing client with id=" << client_id);
