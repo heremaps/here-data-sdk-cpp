@@ -22,6 +22,7 @@ set(OLP_SDK_FUNCTIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-core/OlpClientDefaultAsyncHttpTest.cpp
     ./olp-cpp-sdk-dataservice-read/ApiTest.cpp
     ./olp-cpp-sdk-dataservice-read/CatalogClientTest.cpp
+    ./olp-cpp-sdk-dataservice-read/DataserviceReadVersionedLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-write/DataserviceWriteIndexLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-write/DataserviceWriteStreamLayerClientCacheTest.cpp
     ./olp-cpp-sdk-dataservice-write/DataserviceWriteStreamLayerClientTest.cpp

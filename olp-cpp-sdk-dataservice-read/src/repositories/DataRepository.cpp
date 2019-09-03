@@ -328,6 +328,43 @@ void DataRepository::GetData(
                   *cache_);
 }
 
+DataRepository::DataResponse DataRepository::GetVersionedData(
+    HRN catalog, std::string layer_id, OlpClientSettings client_settings,
+    DataRequest data_request, CancellationContext context) {
+  if (!data_request.GetDataHandle()) {
+    if (!data_request.GetVersion()) {
+      // get latest version of the layer if it wasn't set by the user
+      auto latest_version_response =
+          repository::CatalogRepository::GetLatestVersion(
+              catalog, context, data_request, client_settings);
+      if (!latest_version_response.IsSuccessful()) {
+        return latest_version_response.GetError();
+      }
+      data_request.WithVersion(
+          latest_version_response.GetResult().GetVersion());
+    }
+
+    // get data handle for a partition to be queried
+    auto partitions_response =
+        repository::PartitionsRepository::GetPartitionById(
+            catalog, layer_id, context, data_request, client_settings);
+    if (!partitions_response.IsSuccessful()) {
+      return partitions_response.GetError();
+    }
+    auto partitions = partitions_response.GetResult().GetPartitions();
+    if (partitions.empty()) {
+      return client::ApiError(client::ErrorCode::NotFound,
+                              "Partition not found");
+    }
+    data_request.WithDataHandle(partitions.front().GetDataHandle());
+  }
+
+  // finally get the data using a data handle
+  auto data_response = repository::DataRepository::GetBlobData(
+      catalog, layer_id, "blob", data_request, context, client_settings);
+  return data_response;
+}
+
 DataRepository::DataResponse DataRepository::GetBlobData(
     const client::HRN& catalog, const std::string& layer,
     const std::string& service, const DataRequest& data_request,
