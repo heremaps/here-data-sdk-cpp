@@ -32,7 +32,7 @@ OlpClientSettingsFactory::CreateDefaultTaskScheduler(size_t thread_count) {
   return std::make_unique<thread::ThreadPoolTaskScheduler>(thread_count);
 }
 
-std::unique_ptr<http::Network>
+std::shared_ptr<http::Network>
 OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler(size_t max_requests_count) {
   return http::CreateDefaultNetwork(max_requests_count);
 }
