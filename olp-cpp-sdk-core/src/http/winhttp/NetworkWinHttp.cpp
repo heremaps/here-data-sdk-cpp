@@ -344,30 +344,34 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
     http_requests_[id] = handle;
   }
 
+  const auto request_verb = request.GetVerb();
+
   DWORD flags = (url_components.nScheme == INTERNET_SCHEME_HTTPS)
                     ? WINHTTP_FLAG_SECURE
                     : 0;
   LPWSTR http_verb = L"GET";
-  if (request.GetVerb() == NetworkRequest::HttpVerb::POST) {
+  if (request_verb == NetworkRequest::HttpVerb::POST) {
     http_verb = L"POST";
-  } else if (request.GetVerb() == NetworkRequest::HttpVerb::PUT) {
+  } else if (request_verb == NetworkRequest::HttpVerb::PUT) {
     http_verb = L"PUT";
-  } else if (request.GetVerb() == NetworkRequest::HttpVerb::HEAD) {
+  } else if (request_verb == NetworkRequest::HttpVerb::HEAD) {
     http_verb = L"HEAD";
-  } else if (request.GetVerb() == NetworkRequest::HttpVerb::DEL) {
+  } else if (request_verb == NetworkRequest::HttpVerb::DEL) {
     http_verb = L"DELETE";
-  } else if (request.GetVerb() == NetworkRequest::HttpVerb::PATCH) {
+  } else if (request_verb == NetworkRequest::HttpVerb::PATCH) {
     http_verb = L"PATCH";
   }
 
   LPCSTR content = WINHTTP_NO_REQUEST_DATA;
   DWORD content_length = 0;
 
-  if (request.GetVerb() != NetworkRequest::HttpVerb::HEAD &&
-      request.GetVerb() != NetworkRequest::HttpVerb::GET &&
-      request.GetBody() != nullptr && !request.GetBody()->empty()) {
-    content = (LPCSTR) & (request.GetBody()->front());
-    content_length = (DWORD)request.GetBody()->size();
+  const NetworkRequest::RequestBodyType& request_body = handle->body;
+
+  if (request_verb != NetworkRequest::HttpVerb::HEAD &&
+      request_verb != NetworkRequest::HttpVerb::GET &&
+      request_body != nullptr && !request_body->empty()) {
+    content = (LPCSTR) & (request_body->front());
+    content_length = (DWORD)request_body->size();
   }
 
   /* Create a request */
@@ -960,6 +964,7 @@ NetworkWinHttp::RequestData::RequestData(
     : connection_data(std::move(connection)),
       result_data(new ResultData(id, callback, payload)),
       payload(payload),
+      body(request.GetBody()),
       header_callback(std::move(header_callback)),
       data_callback(std::move(data_callback)),
       http_request(NULL),
