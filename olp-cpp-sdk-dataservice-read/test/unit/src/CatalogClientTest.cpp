@@ -21,6 +21,7 @@
 #include <iostream>
 #include <regex>
 #include <string>
+#include <tuple>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -617,42 +618,88 @@ MATCHER_P(IsGetRequest, url, "") {
          url == arg.GetUrl() && (!arg.GetBody() || arg.GetBody()->empty());
 }
 
-olp::client::NetworkAsyncHandler setsPromiseWaitsAndReturns(
-    std::shared_ptr<std::promise<void>> preSignal,
-    std::shared_ptr<std::promise<void>> waitForSignal,
-    olp::network::HttpResponse response,
-    std::shared_ptr<std::promise<void>> postSignal =
-        std::make_shared<std::promise<void>>()) {
-  return [preSignal, waitForSignal, response, postSignal](
-             const olp::network::NetworkRequest& request,
-             const olp::network::NetworkConfig& /*config*/,
-             const olp::client::NetworkAsyncCallback& callback)
-             -> olp::client::CancellationToken {
-    auto completed = std::make_shared<std::atomic_bool>(false);
+using NetworkCallback = std::function<olp::http::SendOutcome(
+    olp::http::NetworkRequest, olp::http::Network::Payload,
+    olp::http::Network::Callback, olp::http::Network::HeaderCallback,
+    olp::http::Network::DataCallback)>;
 
-    std::thread([request, preSignal, waitForSignal, completed, callback,
-                 response, postSignal]() {
+using CancelCallback = std::function<void(olp::http::RequestId)>;
+
+struct MockedResponseInformation {
+  int status;
+  const char* data;
+};
+
+std::tuple<olp::http::RequestId, NetworkCallback, CancelCallback>
+generateNetworkMocks(std::shared_ptr<std::promise<void>> pre_signal,
+                     std::shared_ptr<std::promise<void>> wait_for_signal,
+                     MockedResponseInformation response_information,
+                     std::shared_ptr<std::promise<void>> post_signal =
+                         std::make_shared<std::promise<void>>()) {
+  using namespace olp::http;
+
+  static std::atomic<RequestId> s_request_id{
+      static_cast<RequestId>(RequestIdConstants::RequestIdMin)};
+
+  olp::http::RequestId request_id = s_request_id.fetch_add(1);
+
+  auto completed = std::make_shared<std::atomic_bool>(false);
+
+  // callback is generated when the send method is executed, in order to receive
+  // the cancel callback, we need to pass it to store it somewhere and share
+  // with cancel mock.
+  auto callback_placeholder = std::make_shared<olp::http::Network::Callback>();
+
+  auto mocked_send =
+      [request_id, completed, pre_signal, wait_for_signal, response_information,
+       post_signal, callback_placeholder](
+          NetworkRequest request, Network::Payload payload,
+          Network::Callback callback, Network::HeaderCallback,
+          Network::DataCallback data_callback) -> olp::http::SendOutcome {
+    *callback_placeholder = callback;
+
+    auto mocked_network_block = [request, pre_signal, wait_for_signal,
+                                 completed, callback, response_information,
+                                 post_signal, payload]() {
       // emulate a small response delay
       std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-      preSignal->set_value();
-      waitForSignal->get_future().get();
+      // notify waiting thread that we reached the network code
+      pre_signal->set_value();
 
+      // wait until test cancel request during execution
+      wait_for_signal->get_future().get();
+
+      // in the case request was not canceled return the expected payload
       if (!completed->exchange(true)) {
-        callback(response);
+        const auto data_len = strlen(response_information.data);
+        payload->write(response_information.data, data_len);
+        callback(NetworkResponse().WithStatus(response_information.status));
       }
 
-      postSignal->set_value();
-    })
-        .detach();
+      // notify that request finished
+      post_signal->set_value();
+    };
 
-    return olp::client::CancellationToken([request, completed, callback,
-                                           postSignal]() {
-      if (!completed->exchange(true)) {
-        callback({olp::network::Network::ErrorCode::Cancelled, "Cancelled"});
-      }
-    });
+    // simulate that network code is actually running in the background.
+    std::thread(std::move(mocked_network_block)).detach();
+
+    return SendOutcome(request_id);
   };
+
+  auto mocked_cancel = [completed,
+                        callback_placeholder](olp::http::RequestId id) {
+    if (!completed->exchange(true)) {
+      auto cancel_code = static_cast<int>(ErrorCode::CANCELLED_ERROR);
+      std::invoke(*callback_placeholder, NetworkResponse()
+                                             .WithError("Cancelled")
+                                             .WithCancelled(true)
+                                             .WithStatus(cancel_code));
+    }
+  };
+
+  return std::make_tuple(request_id, std::move(mocked_send),
+                         std::move(mocked_cancel));
 }
 
 std::function<olp::http::SendOutcome(
@@ -1329,7 +1376,6 @@ TEST_P(CatalogClientMockTest, GetPartitionsGarbageResponse) {
   ASSERT_EQ(olp::client::ErrorCode::ServiceUnavailable,
             partitionsResponse.GetError().GetErrorCode());
 }
-#if 0
 
 TEST_P(CatalogClientMockTest, GetCatalogCancelApiLookup) {
   olp::client::HRN hrn(GetTestCatalog());
@@ -1337,14 +1383,23 @@ TEST_P(CatalogClientMockTest, GetCatalogCancelApiLookup) {
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
-  // Setup the expected calls :
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _,
-  _, _))
-    .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-    HTTP_RESPONSE_LOOKUP_CONFIG));
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
+
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+      .Times(1)
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-    .Times(0);
+      .Times(0);
+
   // Run it!
   auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
 
@@ -1365,11 +1420,13 @@ TEST_P(CatalogClientMockTest, GetCatalogCancelApiLookup) {
   ASSERT_FALSE(catalogResponse.IsSuccessful())
       << PrintError(catalogResponse.GetError());
 
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(catalogResponse.GetError().GetHttpStatusCode()));
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            catalogResponse.GetError().GetHttpStatusCode());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             catalogResponse.GetError().GetErrorCode());
 }
+
+#if 0
 
 TEST_P(CatalogClientMockTest, GetCatalogCancelConfig) {
   olp::client::HRN hrn(GetTestCatalog());
