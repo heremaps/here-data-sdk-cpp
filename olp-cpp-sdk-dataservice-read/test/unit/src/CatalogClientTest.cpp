@@ -697,8 +697,7 @@ class CatalogClientMockTest : public CatalogClientTestBase {
   }
 
   void SetUpCommonNetworkMockCalls() {
-    ON_CALL(*network_mock_,
-            Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+    ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
         .WillByDefault(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                HTTP_RESPONSE_LOOKUP_CONFIG));
@@ -708,8 +707,7 @@ class CatalogClientMockTest : public CatalogClientTestBase {
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                HTTP_RESPONSE_CONFIG));
 
-    ON_CALL(*network_mock_,
-            Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+    ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
         .WillByDefault(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                HTTP_RESPONSE_LOOKUP_METADATA));
@@ -720,8 +718,7 @@ class CatalogClientMockTest : public CatalogClientTestBase {
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                HTTP_RESPONSE_LATEST_CATALOG_VERSION));
 
-    ON_CALL(*network_mock_,
-            Send(IsGetRequest(URL_LAYER_VERSIONS), _, _, _, _))
+    ON_CALL(*network_mock_, Send(IsGetRequest(URL_LAYER_VERSIONS), _, _, _, _))
         .WillByDefault(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                HTTP_RESPONSE_LAYER_VERSIONS));
@@ -731,8 +728,7 @@ class CatalogClientMockTest : public CatalogClientTestBase {
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                HTTP_RESPONSE_PARTITIONS));
 
-    ON_CALL(*network_mock_,
-            Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+    ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
         .WillByDefault(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                HTTP_RESPONSE_LOOKUP_QUERY));
@@ -748,8 +744,7 @@ class CatalogClientMockTest : public CatalogClientTestBase {
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                HTTP_RESPONSE_LOOKUP_BLOB));
 
-    ON_CALL(*network_mock_,
-            Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
+    ON_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
         .WillByDefault(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                HTTP_RESPONSE_BLOB_DATA_269));
@@ -771,8 +766,7 @@ class CatalogClientMockTest : public CatalogClientTestBase {
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                HTTP_RESPONSE_LAYER_VERSIONS_V2));
 
-    ON_CALL(*network_mock_,
-            Send(IsGetRequest(URL_PARTITIONS_V2), _, _, _, _))
+    ON_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS_V2), _, _, _, _))
         .WillByDefault(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                HTTP_RESPONSE_PARTITIONS_V2));
@@ -792,25 +786,25 @@ class CatalogClientMockTest : public CatalogClientTestBase {
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_QUERY_PARTITION_269_V10), _, _, _, _))
         .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(400),
                                HTTP_RESPONSE_INVALID_VERSION_V10));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_QUERY_PARTITION_269_VN1), _, _, _, _))
         .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(400),
                                HTTP_RESPONSE_INVALID_VERSION_VN1));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_LAYER_VERSIONS_V10), _, _, _, _))
         .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(400),
                                HTTP_RESPONSE_INVALID_VERSION_V10));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_LAYER_VERSIONS_VN1), _, _, _, _))
         .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(400),
                                HTTP_RESPONSE_INVALID_VERSION_VN1));
 
     ON_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG_V2), _, _, _, _))
@@ -836,8 +830,7 @@ class CatalogClientMockTest : public CatalogClientTestBase {
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                HTTP_RESPONSE_QUADKEYS_5904591));
 
-    ON_CALL(*network_mock_,
-            Send(IsGetRequest(URL_QUADKEYS_369036), _, _, _, _))
+    ON_CALL(*network_mock_, Send(IsGetRequest(URL_QUADKEYS_369036), _, _, _, _))
         .WillByDefault(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                HTTP_RESPONSE_QUADKEYS_369036));
@@ -965,8 +958,7 @@ TEST_P(CatalogClientMockTest, GetPartitions) {
 TEST_P(CatalogClientMockTest, GetDataWithPartitionId) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(1);
 
   auto catalogClient =
@@ -989,8 +981,7 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionId) {
 TEST_P(CatalogClientMockTest, GetDataWithInlineField) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_PARTITION_3), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITION_3), _, _, _, _))
       .Times(1);
 
   auto catalogClient =
@@ -1013,8 +1004,7 @@ TEST_P(CatalogClientMockTest, GetDataWithInlineField) {
 TEST_P(CatalogClientMockTest, GetEmptyPartitions) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                    HTTP_RESPONSE_EMPTY_PARTITIONS));
 
@@ -1069,12 +1059,11 @@ TEST_P(CatalogClientMockTest, GetVolatilePartitions) {
               Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(0);
 
-  EXPECT_CALL(
-      *network_mock_,
-      Send(IsGetRequest("https://metadata.data.api.platform.here.com/"
-                            "metadata/v1/catalogs/hereos-internal-test-v2/"
-                            "layers/testlayer_volatile/partitions"),
-           _, _, _, _))
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest("https://metadata.data.api.platform.here.com/"
+                                "metadata/v1/catalogs/hereos-internal-test-v2/"
+                                "layers/testlayer_volatile/partitions"),
+                   _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                    HTTP_RESPONSE_PARTITIONS_V2));
 
@@ -1111,8 +1100,8 @@ TEST_P(CatalogClientMockTest, GetVolatileDataByPartitionId) {
   EXPECT_CALL(
       *network_mock_,
       Send(IsGetRequest("https://query.data.api.platform.here.com/query/v1/"
-                            "catalogs/hereos-internal-test-v2/layers/"
-                            "testlayer_volatile/partitions?partition=269"),
+                        "catalogs/hereos-internal-test-v2/layers/"
+                        "testlayer_volatile/partitions?partition=269"),
            _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                    HTTP_RESPONSE_PARTITIONS_V2));
@@ -1212,15 +1201,13 @@ TEST_P(CatalogClientMockTest, GetPartitions429Error) {
   {
     testing::InSequence s;
 
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
         .Times(2)
         .WillRepeatedly(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
                                "Server busy at the moment."));
 
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
         .Times(1);
   }
 
@@ -1303,8 +1290,8 @@ TEST_P(CatalogClientMockTest, GetData404Error) {
   EXPECT_CALL(
       *network_mock_,
       Send(IsGetRequest("https://blob-ireland.data.api.platform.here.com/"
-                            "blobstore/v1/catalogs/hereos-internal-test-v2/"
-                            "layers/testlayer/data/invalidDataHandle"),
+                        "blobstore/v1/catalogs/hereos-internal-test-v2/"
+                        "layers/testlayer/data/invalidDataHandle"),
            _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(404),
                                    "Resource not found."));
@@ -2099,7 +2086,7 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdVersion2) {
   ASSERT_EQ("DT_2_0031_V2", dataStr);
 }
 
-TEST_P(CatalogClientMockTest, DISABLED_GetDataWithPartitionIdInvalidVersion) {
+TEST_P(CatalogClientMockTest, GetDataWithPartitionIdInvalidVersion) {
   olp::client::HRN hrn(GetTestCatalog());
 
   auto catalogClient =
@@ -2156,7 +2143,7 @@ TEST_P(CatalogClientMockTest, GetPartitionsVersion2) {
   ASSERT_EQ(1u, partitionsResponse.GetResult().GetPartitions().size());
 }
 
-TEST_P(CatalogClientMockTest, DISABLED_GetPartitionsInvalidVersion) {
+TEST_P(CatalogClientMockTest, GetPartitionsInvalidVersion) {
   olp::client::HRN hrn(GetTestCatalog());
 
   auto catalogClient =
@@ -2331,8 +2318,7 @@ TEST_P(CatalogClientMockTest, GetCatalogCacheWithUpdate) {
 TEST_P(CatalogClientMockTest, GetDataCacheOnly) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(0);
   auto catalogClient =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -2347,16 +2333,18 @@ TEST_P(CatalogClientMockTest, GetDataCacheOnly) {
       << PrintError(dataResponse.GetError());
 }
 
-TEST_P(CatalogClientMockTest, DISABLED_GetDataOnlineOnly) {
+TEST_P(CatalogClientMockTest, GetDataOnlineOnly) {
   olp::client::HRN hrn(GetTestCatalog());
 
   {
     testing::InSequence s;
 
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
         .Times(1);
 
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
         .WillOnce(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
                                "Server busy at the moment."));
@@ -2426,12 +2414,10 @@ TEST_P(CatalogClientMockTest, GetDataCacheWithUpdate) {
 }
 #endif
 
-
 TEST_P(CatalogClientMockTest, GetPartitionsCacheOnly) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
       .Times(0);
 
   auto catalogClient =
@@ -2595,11 +2581,9 @@ TEST_P(CatalogClientMockTest, GetPartitions403CacheClear) {
 
   {
     testing::InSequence s;
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
         .Times(1);
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
         .WillOnce(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
   }
@@ -3046,8 +3030,7 @@ TEST_P(CatalogClientCacheTest, GetApi) {
 TEST_P(CatalogClientCacheTest, GetCatalog) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
       .Times(1);
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1);
@@ -3080,27 +3063,23 @@ TEST_P(CatalogClientCacheTest, GetDataWithPartitionId) {
               Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(2);
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
       .Times(1);
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1);
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
       .Times(1);
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
       .Times(1);
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_QUERY_PARTITION_269), _, _, _, _))
       .Times(1);
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(1);
 
   auto catalogClient = std::make_unique<olp::dataservice::read::CatalogClient>(
@@ -3146,8 +3125,7 @@ TEST_P(CatalogClientCacheTest, GetPartitionsLayerVersions) {
               Send(IsGetRequest(URL_LAYER_VERSIONS), _, _, _, _))
       .Times(1);
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
       .Times(1);
 
   std::string url_testlayer_res = std::regex_replace(
@@ -3155,8 +3133,7 @@ TEST_P(CatalogClientCacheTest, GetPartitionsLayerVersions) {
   std::string http_response_testlayer_res = std::regex_replace(
       HTTP_RESPONSE_PARTITIONS, std::regex("testlayer"), "testlayer_res");
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(url_testlayer_res), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(url_testlayer_res), _, _, _, _))
       .Times(1)
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                    http_response_testlayer_res));
@@ -3198,8 +3175,7 @@ TEST_P(CatalogClientCacheTest, GetPartitions) {
               Send(IsGetRequest(URL_LAYER_VERSIONS), _, _, _, _))
       .Times(1);
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
       .Times(1);
 
   auto catalogClient = std::make_unique<olp::dataservice::read::CatalogClient>(
@@ -3233,27 +3209,23 @@ TEST_P(CatalogClientCacheTest, GetDataWithPartitionIdDifferentVersions) {
               Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(2);
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
       .Times(1);
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1);
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
       .Times(1);
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
       .Times(1);
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_QUERY_PARTITION_269), _, _, _, _))
       .Times(1);
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(1);
 
   EXPECT_CALL(*network_mock_,
@@ -3333,7 +3305,7 @@ TEST_P(CatalogClientCacheTest, GetDataWithPartitionIdDifferentVersions) {
   }
 }
 
-TEST_P(CatalogClientCacheTest, DISABLED_GetVolatilePartitionsExpiry) {
+TEST_P(CatalogClientCacheTest, GetVolatilePartitionsExpiry) {
   olp::client::HRN hrn(GetTestCatalog());
 
   {
@@ -3342,8 +3314,8 @@ TEST_P(CatalogClientCacheTest, DISABLED_GetVolatilePartitionsExpiry) {
     EXPECT_CALL(
         *network_mock_,
         Send(IsGetRequest("https://metadata.data.api.platform.here.com/"
-                              "metadata/v1/catalogs/hereos-internal-test-v2/"
-                              "layers/testlayer_volatile/partitions"),
+                          "metadata/v1/catalogs/hereos-internal-test-v2/"
+                          "layers/testlayer_volatile/partitions"),
              _, _, _, _))
         .Times(1)
         .WillRepeatedly(
@@ -3353,8 +3325,8 @@ TEST_P(CatalogClientCacheTest, DISABLED_GetVolatilePartitionsExpiry) {
     EXPECT_CALL(
         *network_mock_,
         Send(IsGetRequest("https://metadata.data.api.platform.here.com/"
-                              "metadata/v1/catalogs/hereos-internal-test-v2/"
-                              "layers/testlayer_volatile/partitions"),
+                          "metadata/v1/catalogs/hereos-internal-test-v2/"
+                          "layers/testlayer_volatile/partitions"),
              _, _, _, _))
         .Times(1)
         .WillRepeatedly(
