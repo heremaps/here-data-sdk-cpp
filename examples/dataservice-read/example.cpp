@@ -33,8 +33,10 @@
 #include <olp/dataservice/read/PartitionsRequest.h>
 
 namespace {
-const std::string kKeyId("");      // your here.access.key.id
-const std::string kKeySecret("");  // your here.access.key.secret
+/// Your here.access.key.id
+const std::string kKeyId("");
+/// Your here.access.key.secret
+const std::string kKeySecret("");
 const std::string kCatalogHRN("hrn:here:data:::edge-example-catalog");
 constexpr size_t kMaxLayers(5);
 constexpr size_t kMaxPartitions(5);
@@ -122,8 +124,11 @@ bool HandleDataResponse(
 
 int RunExample() {
   // Create a task scheduler instance
+  // NOTE: Only works with 2 threads as both CatalogRepository and
+  // DataRepository use TaskScheduler and to not deadlock we need two threads.
+  // Should be fixed in the refactoring.
   std::shared_ptr<olp::thread::TaskScheduler> task_scheduler =
-      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
+      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(2u);
 
   // Create a network client
   std::shared_ptr<olp::http::Network> http_client = olp::client::

@@ -53,7 +53,7 @@ class CORE_API CancellationContext {
    * @deprecated Will be removed once TaskScheduler will be used.
    */
   void ExecuteOrCancelled(const ExecuteFuncType& execute_fn,
-                          const CancelFuncType& cancel_fn);
+                          const CancelFuncType& cancel_fn = nullptr);
 
   /**
    * @brief Allows the user to cancel an ongoing operation in a threadsafe way.

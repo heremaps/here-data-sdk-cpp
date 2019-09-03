@@ -17,8 +17,8 @@
  * License-Filename: LICENSE
  */
 
-#include <olp/core/thread/TaskScheduler.h>
 #include <olp/core/client/OlpClientSettings.h>
+#include <olp/core/thread/TaskScheduler.h>
 
 namespace olp {
 namespace dataservice {
@@ -39,7 +39,7 @@ void ExecuteOrSchedule(const OlpClientSettings* settings, CallFuncType&& func) {
   }
 }
 
-} // namespace
+}  // namespace
 
 }  // namespace repository
 }  // namespace read

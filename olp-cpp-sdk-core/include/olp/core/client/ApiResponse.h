@@ -51,11 +51,11 @@ class ApiResponse {
    */
   ApiResponse(const Error& error) : error_(error), success_(false) {}
 
-  /**
-   * @brief ApiResponse Copy constructor.
-   */
-  ApiResponse(const ApiResponse& r)
-      : result_(r.result_), error_(r.error_), success_(r.success_) {}
+  // Rule of five, needed to move efficiently memory intensive responses.
+  ApiResponse(const ApiResponse&) = default;
+  ApiResponse& operator=(const ApiResponse&) = default;
+  ApiResponse(ApiResponse&&) = default;
+  ApiResponse& operator=(ApiResponse&&) = default;
 
   /**
    * @brief IsSuccessful Gets the status of the request attempt.
@@ -78,9 +78,9 @@ class ApiResponse {
   inline const Error& GetError() const { return error_; }
 
  private:
-  Result result_ {};
-  Error error_ {};
-  bool success_ {false};
+  Result result_{};
+  Error error_{};
+  bool success_{false};
 };
 
 template <typename T>

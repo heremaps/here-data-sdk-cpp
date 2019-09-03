@@ -27,6 +27,7 @@
 #include "repositories/ApiRepository.h"
 #include "repositories/CatalogRepository.h"
 #include "repositories/DataRepository.h"
+#include "repositories/ExecuteOrSchedule.inl"
 #include "repositories/PartitionsRepository.h"
 #include "repositories/PrefetchTilesRepository.h"
 
@@ -204,30 +205,52 @@ CatalogClientImpl::GetPartitions(const PartitionsRequest& request) {
 
 client::CancellationToken CatalogClientImpl::GetData(
     const DataRequest& request, const DataResponseCallback& callback) {
-  CancellationToken token;
-  int64_t request_key = pending_requests_->GenerateRequestPlaceholder();
+  // Pass CancellationContext to all suboperations.
+  client::CancellationContext context;
+  CancellationToken token([=]() mutable { context.CancelOperation(); });
   auto pending_requests = pending_requests_;
-  auto request_callback = [pending_requests, request_key,
-                           callback](DataResponse response) {
-    if (pending_requests->Remove(request_key)) {
-      callback(response);
-    }
-  };
-  if (CacheWithUpdate == request.GetFetchOption()) {
-    auto req = request;
-    token =
-        data_repo_->GetData(req.WithFetchOption(CacheOnly), request_callback);
-    auto onlineKey = pending_requests_->GenerateRequestPlaceholder();
-    pending_requests_->Insert(
-        data_repo_->GetData(req.WithFetchOption(OnlineIfNotFound),
-                            [pending_requests, onlineKey](DataResponse) {
-                              pending_requests->Remove(onlineKey);
-                            }),
-        onlineKey);
-  } else {
-    token = data_repo_->GetData(request, request_callback);
-  }
+  int64_t request_key = pending_requests_->GenerateRequestPlaceholder();
+
+  // In case of sync behaviour this will be called after request_callback
+  // will be triggered. This might be a memory leak.
   pending_requests_->Insert(token, request_key);
+
+  ExecuteOrSchedule(settings_.get(), [=]() mutable {
+    auto request_callback = [=](DataResponse response) {
+      EDGE_SDK_LOG_DEBUG_F(kLogTag, "request_callback() called");
+      if (pending_requests->Remove(request_key)) {
+        callback(std::move(response));
+      }
+    };
+
+    auto cancel_callback = [=] {
+      callback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
+    };
+
+    if (CacheWithUpdate == request.GetFetchOption()) {
+      // ExecuteOrCancelled should only check if not cancelled
+      // and execute. Should not receive and store any subtoken.
+      context.ExecuteOrCancelled(
+          [=] {
+            auto req = request;
+            data_repo_->GetData(req.WithFetchOption(CacheOnly),
+                                request_callback);
+            data_repo_->GetData(req.WithFetchOption(OnlineOnly),
+                                [=](DataResponse) {});
+            return CancellationToken();
+          },
+          cancel_callback);
+
+    } else {
+      context.ExecuteOrCancelled(
+          [=] {
+            data_repo_->GetData(request, request_callback);
+            return CancellationToken();
+          },
+          cancel_callback);
+    }
+  });
+
   return token;
 }
 
