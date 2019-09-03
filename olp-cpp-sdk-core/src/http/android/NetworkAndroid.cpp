@@ -89,7 +89,8 @@ NetworkAndroid::NetworkAndroid()
       java_shutdown_method_(nullptr),
       obj_(nullptr),
       unique_id_(-1),
-      started_(false) {}
+      started_(false),
+      initialized_(false) {}
 
 NetworkAndroid::~NetworkAndroid() { Deinitialize(); }
 
@@ -181,6 +182,10 @@ void NetworkAndroid::SetJavaVM(JavaVM* vm, jobject application) {
 
 bool NetworkAndroid::Initialize() {
   std::unique_lock<std::mutex> lock(responses_mutex_);
+  if (initialized_) {
+    return true;
+  }
+
   if (!gJavaVM) {
     EDGE_SDK_LOG_ERROR(kLogTag, "Can't initialize NetworkAndroid - no Java VM");
     return false;
@@ -296,17 +301,19 @@ bool NetworkAndroid::Initialize() {
     }
   }
 
+  initialized_ = true;
   return true;
 }
 
 void NetworkAndroid::Deinitialize() {
   {
     std::lock_guard<std::mutex> lock(responses_mutex_);
-    if (!started_) {
+    if (!initialized_ || !started_) {
       return;
     }
 
     started_ = false;
+    initialized_ = false;
   }
   run_thread_ready_cv_.notify_all();
 
@@ -743,6 +750,14 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
                                  Network::Callback callback,
                                  Network::HeaderCallback header_callback,
                                  Network::DataCallback data_callback) {
+  if (!Initialize()) {
+    EDGE_SDK_LOG_WARNING_F(
+        kLogTag,
+        "Can't send request with URL=[%s] - can't initialize NetworkAndroid",
+        request.GetUrl().c_str());
+    return SendOutcome(ErrorCode::OFFLINE_ERROR);
+  }
+
   if (requests_.size() >= 32) {
     EDGE_SDK_LOG_WARNING_F(kLogTag,
                            "Can't send request with URL=[%s] - nework overload",
