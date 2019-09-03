@@ -4,9 +4,6 @@ cd build
 cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
     -EDGE_SDK_BUILD_EXAMPLES=ON \
     -DBUILD_SHARED_LIBS=ON \
-    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
     ..
-
-make -j8
+make -j
 cd ..
-ccache -s
