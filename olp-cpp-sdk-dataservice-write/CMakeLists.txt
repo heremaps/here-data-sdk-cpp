@@ -16,7 +16,7 @@
 # License-Filename: LICENSE
 
 cmake_minimum_required(VERSION 3.5)
-project(olp-cpp-sdk-dataservice-write VERSION 0.6.0)
+project(olp-cpp-sdk-dataservice-write VERSION 0.7.0)
 set(DESCRIPTION "C++ API library for writing data to OLP")
 
 file(GLOB_RECURSE DATASERVICE_WRITE_INC "include/*.h*")

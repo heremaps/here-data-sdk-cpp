@@ -40,7 +40,7 @@ elseif(ANDROID)
                                     ${EDGE_SDK_EXAMPLE_FAILURE_STRING})
 
 else()
-    project(${EDGE_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET} VERSION 0.6.0)
+    project(${EDGE_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET} VERSION 0.7.0)
 	
     find_package(olp-cpp-sdk-authentication REQUIRED)
     find_package(olp-cpp-sdk-dataservice-write REQUIRED)
