@@ -132,19 +132,33 @@ class CatalogClientTestBase
 };
 
 class CatalogClientOnlineTest : public CatalogClientTestBase {
-  void SetUp() {
+  void SetUp() override {
     //    olp::logging::Log::setLevel(olp::logging::Level::Trace);
+
+    auto network = olp::client::OlpClientSettingsFactory::
+        CreateDefaultNetworkRequestHandler();
+
+    olp::authentication::Settings auth_settings;
+    auth_settings.network_request_handler = network;
 
     olp::authentication::TokenProviderDefault provider(
         CustomParameters::getArgument("appid"),
-        CustomParameters::getArgument("secret"));
-    olp::client::AuthenticationSettings authSettings;
-    authSettings.provider = provider;
+        CustomParameters::getArgument("secret"), auth_settings);
+    olp::client::AuthenticationSettings auth_client_settings;
+    auth_client_settings.provider = provider;
     settings_ = std::make_shared<olp::client::OlpClientSettings>();
-    settings_->network_request_handler = olp::client::OlpClientSettingsFactory::
-        CreateDefaultNetworkRequestHandler();
-    settings_->authentication_settings = authSettings;
+    settings_->network_request_handler = network;
+    settings_->authentication_settings = auth_client_settings;
     client_ = olp::client::OlpClientFactory::Create(*settings_);
+  }
+
+  void TearDown() override {
+    client_.reset();
+    auto network = std::move(settings_->network_request_handler);
+    settings_.reset();
+    // when test ends we must be sure that network pointer is not captured
+    // anywhere
+    assert(network.use_count() == 1);
   }
 };
 

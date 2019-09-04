@@ -67,10 +67,12 @@ std::string ErrorCodeToString(olp::http::ErrorCode code) {
   }
 }
 
-CancellationToken ExecuteSingleRequest(std::shared_ptr<http::Network> network,
-                                       const http::NetworkRequest& request,
-                                       const NetworkAsyncCallback& callback) {
+CancellationToken ExecuteSingleRequest(
+    std::weak_ptr<http::Network> weak_network,
+    const http::NetworkRequest& request, const NetworkAsyncCallback& callback) {
   auto response_body = std::make_shared<std::stringstream>();
+
+  auto network = weak_network.lock();
 
   if (!network) {
     network::HttpResponse result{olp::network::Network::ErrorCode::Offline};
@@ -79,7 +81,8 @@ CancellationToken ExecuteSingleRequest(std::shared_ptr<http::Network> network,
   }
 
   auto send_outcome = network->Send(
-      request, response_body, [=](const http::NetworkResponse& response) {
+      request, response_body,
+      [callback, response_body](const http::NetworkResponse& response) {
         network::HttpResponse result(response.GetStatus());
         result.status = response.GetStatus();
         result.response = response_body->str();
@@ -102,9 +105,8 @@ CancellationToken ExecuteSingleRequest(std::shared_ptr<http::Network> network,
   }
 
   auto request_id = send_outcome.GetRequestId();
-  std::weak_ptr<http::Network> weak_network(network);
 
-  return CancellationToken([=]() {
+  return CancellationToken([weak_network, request_id]() {
     auto network = weak_network.lock();
 
     if (network) {
@@ -158,7 +160,7 @@ CancellationToken DefaultNetworkAsyncHandler(
   return handler(request, config, callback);
 }
 
-OlpClient::OlpClient() : network_async_handler_(DefaultNetworkAsyncHandler) {}
+OlpClient::OlpClient() {}
 
 void OlpClient::SetBaseUrl(const std::string& base_url) {
   base_url_ = base_url;
@@ -172,10 +174,6 @@ std::multimap<std::string, std::string>& OlpClient::GetMutableDefaultHeaders() {
 
 void OlpClient::SetSettings(const OlpClientSettings& settings) {
   settings_ = settings;
-
-  if (settings.network_async_handler) {
-    network_async_handler_ = settings.network_async_handler.get();
-  }
 }
 
 std::shared_ptr<http::NetworkRequest> OlpClient::CreateRequest(
@@ -229,7 +227,7 @@ NetworkAsyncCallback GetRetryCallback(
     int current_try, int current_backdown_period, const RetrySettings& settings,
     const NetworkAsyncCallback& callback,
     const std::shared_ptr<http::NetworkRequest>& network_request,
-    std::shared_ptr<http::Network> network,
+    std::weak_ptr<http::Network> network,
     const std::weak_ptr<CancellationContext>& weak_cancel_context) {
   ++current_try;
   return [=](HttpResponse response) {
@@ -297,7 +295,8 @@ CancellationToken OlpClient::CallApi(
   network_request->WithSettings(std::move(network_settings));
 
   auto cancel_context = std::make_shared<CancellationContext>();
-  auto network = this->settings_.network_request_handler;
+  std::weak_ptr<olp::http::Network> network =
+      this->settings_.network_request_handler;
 
   RetrySettings retry_settings;
   retry_settings.max_attempts = settings_.retry_settings.max_attempts;

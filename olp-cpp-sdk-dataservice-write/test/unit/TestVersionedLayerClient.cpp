@@ -85,20 +85,27 @@ class VersionedLayerClientOnlineTest : public VersionedLayerClientTest {
   virtual void TearDown() override { client_ = nullptr; }
 
   std::shared_ptr<VersionedLayerClient> createVersionedLayerClient() {
-    olp::authentication::Settings settings;
-    settings.token_endpoint_url = CustomParameters::getArgument(kEndpoint);
+    auto network = olp::client::OlpClientSettingsFactory::
+        CreateDefaultNetworkRequestHandler();
 
-    olp::client::OlpClientSettings clientSettings;
-    clientSettings.authentication_settings =
-        olp::client::AuthenticationSettings{
-            olp::authentication::TokenProviderDefault{
-                CustomParameters::getArgument(kAppid),
-                CustomParameters::getArgument(kSecret), settings}};
-    clientSettings.network_request_handler = olp::client::
-        OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
+    olp::authentication::Settings authentication_settings;
+    authentication_settings.token_endpoint_url =
+        CustomParameters::getArgument(kEndpoint);
+    authentication_settings.network_request_handler = network;
+
+    olp::authentication::TokenProviderDefault provider(
+        CustomParameters::getArgument(kAppid),
+        CustomParameters::getArgument(kSecret), authentication_settings);
+
+    olp::client::AuthenticationSettings auth_client_settings;
+    auth_client_settings.provider = provider;
+
+    olp::client::OlpClientSettings settings;
+    settings.authentication_settings = auth_client_settings;
+    settings.network_request_handler = network;
+
     return std::make_shared<VersionedLayerClient>(
-        olp::client::HRN{CustomParameters::getArgument(kCatalog)},
-        clientSettings);
+        olp::client::HRN{CustomParameters::getArgument(kCatalog)}, settings);
   }
 
   std::shared_ptr<VersionedLayerClient> client_;

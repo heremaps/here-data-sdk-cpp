@@ -908,8 +908,6 @@ int NetworkCurl::GetHandleIndex(CURL* handle) {
 }
 
 void NetworkCurl::Run() {
-  std::shared_ptr<NetworkCurl> keep_this_alive = shared_from_this();
-
   {
     std::lock_guard<std::mutex> lock(event_mutex_);
     state_ = WorkerState::STARTED;
