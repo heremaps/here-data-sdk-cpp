@@ -17,7 +17,7 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-project(olp-cpp-sdk-dataservice-read VERSION 0.6.0)
+project(olp-cpp-sdk-dataservice-read VERSION 0.7.0)
 set(DESCRIPTION "C++ API library for reading OLP data")
 
 file(GLOB_RECURSE INC "include/*.h*")
