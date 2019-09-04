@@ -386,7 +386,10 @@ constexpr auto kLogTag = "OLPHttpClient";
 
 - (void)registerDataTask:(NSURLSessionDataTask*)dataTask
              forHttpTask:(OLPHttpTask*)httpTask {
-  self.idTaskMap[@(dataTask.taskIdentifier)] = httpTask;
+  NSNumber* identifier = @(dataTask.taskIdentifier);
+  @synchronized(_tasks) {
+    self.idTaskMap[identifier] = httpTask;
+  }
 }
 
 @end
