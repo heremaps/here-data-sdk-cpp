@@ -196,6 +196,7 @@ class NetworkAndroid : public Network,
   jint unique_id_;
 
   bool started_;
+  bool initialized_;
   std::condition_variable run_thread_ready_cv_;
 
   RequestId request_id_counter_{

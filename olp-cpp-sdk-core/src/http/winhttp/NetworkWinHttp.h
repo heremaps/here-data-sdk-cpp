@@ -102,6 +102,7 @@ class NetworkWinHttp : public Network,
     std::shared_ptr<ConnectionData> connection_data;
     std::shared_ptr<ResultData> result_data;
     std::shared_ptr<std::ostream> payload;
+    NetworkRequest::RequestBodyType body;
     Network::HeaderCallback header_callback;
     Network::DataCallback data_callback;
     HINTERNET http_request;
