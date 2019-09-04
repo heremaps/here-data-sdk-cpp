@@ -24,22 +24,31 @@
 #include <memory>
 #include <string>
 
+#include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/CancellationToken.h>
+#include <olp/core/http/NetworkProxySettings.h>
+
 #include "AuthenticationApi.h"
 #include "AuthenticationCredentials.h"
 #include "AuthenticationError.h"
-#include "NetworkProxySettings.h"
 #include "SignInResult.h"
 #include "SignInUserResult.h"
 #include "SignOutResult.h"
 #include "SignUpResult.h"
 
-#include "olp/core/client/ApiResponse.h"
-#include "olp/core/client/CancellationToken.h"
-
 /**
  * @brief olp namespace
  */
 namespace olp {
+
+namespace http {
+class Network;
+}
+
+namespace thread {
+class TaskScheduler;
+}
+
 /**
  * @brief authentication namespace
  */
@@ -438,11 +447,24 @@ class AUTHENTICATION_API AuthenticationClient {
    * making any requests with a given AuthenticationClient instance.
    * @param proxy_settings proxy settings to be used by the network layer when
    * making requests.
-   * @return false if the NetworkProxySettings provided are invalid (e.g.
-   * missing host address) or a network connection is currently active. True if
-   * the proxy settings are applied succesfully.
    */
-  bool SetNetworkProxySettings(const NetworkProxySettings& proxy_settings);
+  void SetNetworkProxySettings(
+      const http::NetworkProxySettings& proxy_settings);
+
+  /**
+   * @brief Sets Network class handler to be used for making requests.
+   * @param network Shared Network instance to be used for triggering requests.
+   * Should not be nullptr, otherwise any access to class' method calls would
+   * render http::ErrorCode::IO_ERROR
+   */
+  void SetNetwork(std::shared_ptr<http::Network> network);
+
+  /**
+   * @brief Sets TaskScheduler class to be used for managing callbacks enqueue.
+   * @param task_scheduler Shared TaskScheduler instance to be used for requests
+   * outcomes. If set to nullptr, callbacks will be sent synchronously.
+   */
+  void SetTaskScheduler(std::shared_ptr<thread::TaskScheduler> task_scheduler);
 
  private:
   class Impl;

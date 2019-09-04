@@ -20,35 +20,43 @@
 #include "SignInUserResultImpl.h"
 
 #include "Constants.h"
+#include "olp/core/network/HttpStatusCode.h"
 
-using namespace rapidjson;
+namespace {
+constexpr auto kTermsReacceptanceToken = "termsReacceptanceToken";
+constexpr auto kTermsUrls = "url";
+constexpr auto kTermsOfServiceUrl = "tos";
+constexpr auto kTermsOfServiceUrlJson = "tosJSON";
+constexpr auto kPrivatePolicyUrl = "pp";
+constexpr auto kPrivatePolicyUrlJson = "ppJSON";
+}  // namespace
 
 namespace olp {
 namespace authentication {
-static const char* TERMS_REACCEPTANCE_TOKEN = "termsReacceptanceToken";
-static const char* TERMS_URLS = "url";
-static const char* TERMS_OF_SERVICE_URL = "tos";
-static const char* TERMS_OF_SERVICE_URL_JSON = "tosJSON";
-static const char* PRIVATE_POLICY_URL = "pp";
-static const char* PRIVATE_POLICY_URL_JSON = "ppJSON";
+
+SignInUserResultImpl::SignInUserResultImpl() noexcept
+    : SignInUserResultImpl(network::HttpStatusCode::ServiceUnavailable,
+                           Constants::ERROR_HTTP_SERVICE_UNAVAILABLE) {}
 
 SignInUserResultImpl::SignInUserResultImpl(
-    int status, std::string error, std::shared_ptr<Document> json_document)
+    int status, std::string error,
+    std::shared_ptr<rapidjson::Document> json_document) noexcept
     : SignInResultImpl(status, error, json_document) {
   if (BaseResult::IsValid()) {
-    if (json_document->HasMember(TERMS_REACCEPTANCE_TOKEN))
+    if (json_document->HasMember(kTermsReacceptanceToken))
       term_acceptance_token_ =
-          (*json_document)[TERMS_REACCEPTANCE_TOKEN].GetString();
-    if (json_document->HasMember(TERMS_URLS)) {
-      Document::Object obj = (*json_document)[TERMS_URLS].GetObject();
-      if (obj.HasMember(TERMS_OF_SERVICE_URL))
-        terms_of_service_url_ = obj[TERMS_OF_SERVICE_URL].GetString();
-      if (obj.HasMember(TERMS_OF_SERVICE_URL_JSON))
-        terms_of_service_url_json_ = obj[TERMS_OF_SERVICE_URL_JSON].GetString();
-      if (obj.HasMember(PRIVATE_POLICY_URL))
-        private_policy_url_ = obj[PRIVATE_POLICY_URL].GetString();
-      if (obj.HasMember(PRIVATE_POLICY_URL_JSON))
-        private_policy_url_json_ = obj[PRIVATE_POLICY_URL_JSON].GetString();
+          (*json_document)[kTermsReacceptanceToken].GetString();
+    if (json_document->HasMember(kTermsUrls)) {
+      rapidjson::Document::Object obj =
+          (*json_document)[kTermsUrls].GetObject();
+      if (obj.HasMember(kTermsOfServiceUrl))
+        terms_of_service_url_ = obj[kTermsOfServiceUrl].GetString();
+      if (obj.HasMember(kTermsOfServiceUrlJson))
+        terms_of_service_url_json_ = obj[kTermsOfServiceUrlJson].GetString();
+      if (obj.HasMember(kPrivatePolicyUrl))
+        private_policy_url_ = obj[kPrivatePolicyUrl].GetString();
+      if (obj.HasMember(kPrivatePolicyUrlJson))
+        private_policy_url_json_ = obj[kPrivatePolicyUrlJson].GetString();
     }
   }
 }

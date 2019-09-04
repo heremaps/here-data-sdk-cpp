@@ -17,7 +17,9 @@
  * License-Filename: LICENSE
  */
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -29,14 +31,15 @@
 #include "CommonTestUtils.h"
 #include "FacebookTestUtils.h"
 #include "GoogleTestUtils.h"
-#include "MockTestConfig.h"
 #include "OfflineResponses.h"
 #include "SignInUserResultImpl.h"
 #include "olp/authentication/AuthenticationClient.h"
 #include "olp/core/client/ErrorCode.h"
+#include "olp/core/client/OlpClientSettingsFactory.h"
+#include "olp/core/http/Network.h"
 #include "olp/core/logging/Log.h"
-#include "olp/core/network/Network.h"
 #include "olp/core/porting/make_unique.h"
+#include "olp/core/thread/TaskScheduler.h"
 #include "testutils/CustomParameters.hpp"
 
 using namespace olp::authentication;
@@ -128,25 +131,42 @@ class AuthenticationBaseTest : public ::testing::Test {
  protected:
   std::unique_ptr<AuthenticationClient> client_;
   std::unique_ptr<AuthenticationUtils> utils_;
+  std::shared_ptr<olp::http::Network> network_;
+  std::shared_ptr<olp::thread::TaskScheduler> task_scheduler_;
   std::string id_;
   std::string secret_;
+};
+
+using ::testing::_;
+
+class NetworkMock : public olp::http::Network {
+ public:
+  MOCK_METHOD(olp::http::SendOutcome, Send,
+              (olp::http::NetworkRequest request,
+               olp::http::Network::Payload payload,
+               olp::http::Network::Callback callback,
+               olp::http::Network::HeaderCallback header_callback,
+               olp::http::Network::DataCallback data_callback),
+              (override));
+
+  MOCK_METHOD(void, Cancel, (olp::http::RequestId id), (override));
 };
 
 class AuthenticationOfflineTest : public AuthenticationBaseTest {
  public:
   void SetUp() override {
     AuthenticationBaseTest::SetUp();
-    mockNetworkTestApp.setUp();
+
+    network_mock_ = std::make_shared<NetworkMock>();
+    network_ = network_mock_;
+    task_scheduler_ =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
+    client_->SetNetwork(network_);
+    client_->SetTaskScheduler(task_scheduler_);
   }
 
   void TearDown() override {
-    mockNetworkTestApp.tearDown();
     AuthenticationBaseTest::TearDown();
-  }
-
-  std::shared_ptr<test::MockNetworkRequestBuilder> ExpectationBuilder() {
-    return std::make_shared<test::MockNetworkRequestBuilder>(
-        *mockNetworkTestApp.m_protocolMock);
   }
 
   void ExecuteSigninRequest(int http, int http_result,
@@ -156,13 +176,27 @@ class AuthenticationOfflineTest : public AuthenticationBaseTest {
     std::promise<AuthenticationClient::SignInClientResponse> request;
     auto request_future = request.get_future();
 
-    auto expectation = ExpectationBuilder();
-    expectation->forUrl(signin_request)
-        .withResponseData(std::vector<char>(data.begin(), data.end()))
-        .withReturnCode(http)
-        .withErrorString("")
-        .completeSynchronously()
-        .buildExpectation();
+    EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+        .Times(1)
+        .WillOnce([&](olp::http::NetworkRequest request,
+                      olp::http::Network::Payload payload,
+                      olp::http::Network::Callback callback,
+                      olp::http::Network::HeaderCallback header_callback,
+                      olp::http::Network::DataCallback data_callback) {
+          olp::http::RequestId request_id(5);
+          if (payload) {
+            *payload << data;
+          }
+          callback(olp::http::NetworkResponse()
+                       .WithRequestId(request_id)
+                       .WithStatus(http));
+          if (data_callback) {
+            auto raw = const_cast<char*>(data.c_str());
+            data_callback(reinterpret_cast<uint8_t*>(raw), 0, data.size());
+          }
+
+          return olp::http::SendOutcome(request_id);
+        });
 
     client_->SignInClient(
         credentials,
@@ -181,11 +215,21 @@ class AuthenticationOfflineTest : public AuthenticationBaseTest {
   }
 
  protected:
-  test::MockNetworkTestApp mockNetworkTestApp;
+  std::shared_ptr<NetworkMock> network_mock_;
 };
 
 class AuthenticationOnlineTest : public AuthenticationBaseTest {
  public:
+  void SetUp() override {
+    AuthenticationBaseTest::SetUp();
+    network_ = olp::client::OlpClientSettingsFactory::
+        CreateDefaultNetworkRequestHandler(1);
+    task_scheduler_ =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
+    client_->SetNetwork(network_);
+    client_->SetTaskScheduler(task_scheduler_);
+  }
+
   AuthenticationClient::SignInClientResponse SignInClient(
       const AuthenticationCredentials& credentials, std::time_t& now,
       unsigned int expires_in = LIMIT_EXPIRY, bool do_cancel = false) {

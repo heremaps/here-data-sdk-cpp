@@ -38,13 +38,15 @@
 #include "SignUpResultImpl.h"
 #include "olp/authentication/AuthenticationError.h"
 #include "olp/core/client/CancellationToken.h"
+#include "olp/core/client/ErrorCode.h"
+#include "olp/core/http/Network.h"
 #include "olp/core/http/NetworkConstants.h"
+#include "olp/core/http/NetworkRequest.h"
+#include "olp/core/http/NetworkResponse.h"
 #include "olp/core/network/HttpStatusCode.h"
-#include "olp/core/network/Network.h"
-#include "olp/core/network/NetworkRequest.h"
-#include "olp/core/network/NetworkResponse.h"
 #include "olp/core/porting/make_unique.h"
 #include "olp/core/thread/Atomic.h"
+#include "olp/core/thread/TaskScheduler.h"
 #include "olp/core/utils/Base64.h"
 #include "olp/core/utils/LruCache.h"
 #include "olp/core/utils/Url.h"
@@ -55,52 +57,94 @@ using namespace olp::network;
 using namespace olp::thread;
 using namespace olp::utils;
 
+namespace {
 // Helper characters
-static const std::string PARAM_ADD = "&";
-static const std::string PARAM_COMMA = ",";
-static const std::string PARAM_EQUALS = "=";
-static const std::string PARAM_QUOTE = "\"";
-static const char LINE_FEED = '\n';
+constexpr auto kParamAdd = "&";
+constexpr auto kParamComma = ",";
+constexpr auto kParamEquals = "=";
+constexpr auto kParamQuote = "\"";
+constexpr auto kLineFeed = '\n';
 
 // Tags
-static const std::string APPLICATION_JSON = "application/json";
-static const std::string OAUTH_POST = "POST";
-static const std::string OAUTH_CONSUMER_KEY = "oauth_consumer_key";
-static const std::string OAUTH_NONCE = "oauth_nonce";
-static const std::string OAUTH_SIGNATURE = "oauth_signature";
-static const std::string OAUTH_TIMESTAMP = "oauth_timestamp";
-static const std::string OAUTH_VERSION = "oauth_version";
-static const std::string OAUTH_SIGNATURE_METHOD = "oauth_signature_method";
-static const std::string OAUTH_ENDPOINT = "/oauth2/token";
-static const std::string SIGNOUT_ENDPOINT = "/logout";
-static const std::string TERMS_ENDPOINT = "/terms";
-static const std::string USER_ENDPOINT = "/user";
+const std::string kApplicationJson = "application/json";
+const std::string kOauthPost = "POST";
+const std::string kOauthConsumerKey = "oauth_consumer_key";
+const std::string kOauthNonce = "oauth_nonce";
+const std::string kOauthSignature = "oauth_signature";
+const std::string kOauthTimestamp = "oauth_timestamp";
+const std::string kOauthVersion = "oauth_version";
+const std::string kOauthSignatureMethod = "oauth_signature_method";
+const std::string kOauthEndpoint = "/oauth2/token";
+const std::string kSignoutEndpoint = "/logout";
+const std::string kTermsEndpoint = "/terms";
+const std::string kUserEndpoint = "/user";
 
 // JSON fields
-static const char* COUNTRY_CODE = "countryCode";
-static const char* DATE_OF_BIRTH = "dob";
-static const char* EMAIL = "email";
-static const char* FIRST_NAME = "firstname";
-static const char* GRANT_TYPE = "grantType";
-static const char* INVITE_TOKEN = "inviteToken";
-static const char* LANGUAGE = "language";
-static const char* LAST_NAME = "lastname";
-static const char* MARKETING_ENABLED = "marketingEnabled";
-static const char* PASSWORD = "password";
-static const char* PHONE_NUMBER = "phoneNumber";
-static const char* REALM = "realm";
-static const char* TERMS_REACCEPTANCE_TOKEN = "termsReacceptanceToken";
+constexpr auto kCountryCode = "countryCode";
+constexpr auto kDateOfBirth = "dob";
+constexpr auto kEmail = "email";
+constexpr auto kFirstName = "firstname";
+constexpr auto kGrantType = "grantType";
+constexpr auto kInviteToken = "inviteToken";
+constexpr auto kLanguage = "language";
+constexpr auto kLastName = "lastname";
+constexpr auto kMarketingEnabled = "marketingEnabled";
+constexpr auto kPassword = "password";
+constexpr auto kPhoneNumber = "phoneNumber";
+constexpr auto kRealm = "realm";
+constexpr auto kTermsReacceptanceToken = "termsReacceptanceToken";
 
-static const char* CLIENT_GRANT_TYPE = "client_credentials";
-static const char* USER_GRANT_TYPE = "password";
-static const char* FACEBOOK_GRANT_TYPE = "facebook";
-static const char* GOOGLE_GRANT_TYPE = "google";
-static const char* ARCGIS_GRANT_TYPE = "arcgis";
-static const char* REFRESH_GRANT_TYPE = "refresh_token";
+constexpr auto kClientGrantType = "client_credentials";
+constexpr auto kUserGrantType = "password";
+constexpr auto kFacebookGrantType = "facebook";
+constexpr auto kGoogleGrantType = "google";
+constexpr auto kArcgisGrantType = "arcgis";
+constexpr auto kRefreshGrantType = "refresh_token";
 
 // Values
-static const std::string VERSION = "1.0";
-static const std::string HMAC = "HMAC-SHA256";
+constexpr auto kVersion = "1.0";
+constexpr auto kHmac = "HMAC-SHA256";
+
+// TODO: consolidate and move to http/network as one project-wide refactoring.
+std::string ErrorCodeToString(olp::http::ErrorCode code) {
+  switch (code) {
+    case olp::http::ErrorCode::SUCCESS:
+      return "Success";
+    case olp::http::ErrorCode::IO_ERROR:
+      return "Input/Output error";
+    case olp::http::ErrorCode::AUTHORIZATION_ERROR:
+      return "Authorization error";
+    case olp::http::ErrorCode::INVALID_URL_ERROR:
+      return "Invalid URL";
+    case olp::http::ErrorCode::OFFLINE_ERROR:
+      return "Offline";
+    case olp::http::ErrorCode::CANCELLED_ERROR:
+      return "Cancelled";
+    case olp::http::ErrorCode::AUTHENTICATION_ERROR:
+      return "Authentication error";
+    case olp::http::ErrorCode::TIMEOUT_ERROR:
+      return "Timeout";
+    case olp::http::ErrorCode::NETWORK_OVERLOAD_ERROR:
+      return "Network overload";
+    default:
+      return "Unknown error";
+  }
+}
+
+void ExecuteOrSchedule(
+    std::shared_ptr<olp::thread::TaskScheduler>& task_scheduler,
+    olp::thread::TaskScheduler::CallFuncType&& func) {
+  if (!task_scheduler) {
+    // User didn't specify a TaskScheduler, execute sync
+    func();
+    return;
+  }
+
+  // Schedule for async execution
+  task_scheduler->ScheduleTask(std::move(func));
+}
+
+}  // namespace
 
 namespace olp {
 namespace authentication {
@@ -109,19 +153,6 @@ enum class FederatedSignInType { FacebookSignIn, GoogleSignIn, ArcgisSignIn };
 
 class AuthenticationClient::Impl final {
  public:
-  class ScopedNetwork final {
-   public:
-    ScopedNetwork(const NetworkConfig& config) : network() {
-      network.Start(config);
-    }
-
-    Network& getNetwork() { return network; }
-
-   private:
-    Network network;
-  };
-
-  using Scopednetwork_ptr = std::shared_ptr<ScopedNetwork>;
   /**
    * @brief Constructor
    * @param token_cache_limit Maximum number of tokens that will be cached.
@@ -169,7 +200,12 @@ class AuthenticationClient::Impl final {
       const AuthenticationCredentials& credentials,
       const std::string& userAccessToken, const SignOutUserCallback& callback);
 
-  bool SetNetworkProxySettings(const NetworkProxySettings& proxy_settings);
+  void SetNetworkProxySettings(
+      const http::NetworkProxySettings& proxy_settings);
+
+  void SetNetwork(std::shared_ptr<http::Network> network);
+
+  void SetTaskScheduler(std::shared_ptr<TaskScheduler> task_scheduler);
 
  private:
   std::string base64Encode(const std::vector<uint8_t>& vector);
@@ -178,74 +214,59 @@ class AuthenticationClient::Impl final {
                              const std::string& url);
   std::string generateBearerHeader(const std::string& bearer_token);
 
-  std::shared_ptr<std::vector<unsigned char> > generateClientBody(
+  http::NetworkRequest::RequestBodyType generateClientBody(
       unsigned int expires_in);
-  std::shared_ptr<std::vector<unsigned char> > generateUserBody(
+  http::NetworkRequest::RequestBodyType generateUserBody(
       const AuthenticationClient::UserProperties& properties);
-  std::shared_ptr<std::vector<unsigned char> > generateFederatedBody(
+  http::NetworkRequest::RequestBodyType generateFederatedBody(
       const FederatedSignInType,
       const AuthenticationClient::FederatedProperties& properties);
-  std::shared_ptr<std::vector<unsigned char> > generateRefreshBody(
+  http::NetworkRequest::RequestBodyType generateRefreshBody(
       const AuthenticationClient::RefreshProperties& properties);
-  std::shared_ptr<std::vector<unsigned char> > generateSignUpBody(
+  http::NetworkRequest::RequestBodyType generateSignUpBody(
       const SignUpProperties& properties);
-  std::shared_ptr<std::vector<unsigned char> > generateAcceptTermBody(
+  http::NetworkRequest::RequestBodyType generateAcceptTermBody(
       const std::string& reacceptance_token);
 
   std::string generateUid();
 
-  Scopednetwork_ptr GetScopedNetwork();
-
   client::CancellationToken HandleUserRequest(
       const AuthenticationCredentials& credentials, const std::string& endpoint,
-      const std::shared_ptr<std::vector<unsigned char> >& request_body,
+      const http::NetworkRequest::RequestBodyType& request_body,
       const AuthenticationClient::SignInUserCallback& callback);
 
  private:
   std::string server_url_;
-  std::weak_ptr<ScopedNetwork> network_ptr_;
-  std::mutex network_ptr_lock_;
   std::shared_ptr<
       olp::thread::Atomic<utils::LruCache<std::string, SignInResult> > >
       client_token_cache_;
   std::shared_ptr<
       olp::thread::Atomic<utils::LruCache<std::string, SignInUserResult> > >
       user_token_cache_;
-  olp::network::NetworkConfig network_config_;
+  http::NetworkSettings network_settings_;
+  std::shared_ptr<http::Network> network_;
+  std::shared_ptr<thread::TaskScheduler> task_scheduler_;
 
   mutable std::mutex token_mutex_;
 };
 
-AuthenticationClient::Impl::Scopednetwork_ptr
-AuthenticationClient::Impl::GetScopedNetwork() {
-  std::lock_guard<std::mutex> lock(network_ptr_lock_);
-  auto net_ptr = network_ptr_.lock();
-  if (net_ptr) {
-    return net_ptr;
-  }
-  auto result = std::make_shared<ScopedNetwork>(network_config_);
-  network_ptr_ = result;
-  return result;
+void AuthenticationClient::Impl::SetNetworkProxySettings(
+    const http::NetworkProxySettings& proxy_settings) {
+  network_settings_.WithProxySettings(proxy_settings);
 }
 
-bool AuthenticationClient::Impl::SetNetworkProxySettings(
-    const NetworkProxySettings& proxy_settings) {
-  auto network_proxy = NetworkProxy(
-      proxy_settings.host, proxy_settings.port, NetworkProxy::Type::Http,
-      proxy_settings.username, proxy_settings.password);
-
-  if (!network_proxy.IsValid()) {
-    return false;
+void AuthenticationClient::Impl::SetNetwork(
+    std::shared_ptr<http::Network> network) {
+  if (network_ != network) {
+    network_ = std::move(network);
   }
+}
 
-  std::lock_guard<std::mutex> lock(network_ptr_lock_);
-  auto net_ptr = network_ptr_.lock();
-  if (net_ptr) {
-    return false;
+void AuthenticationClient::Impl::SetTaskScheduler(
+    std::shared_ptr<TaskScheduler> task_scheduler) {
+  if (task_scheduler_ != task_scheduler) {
+    task_scheduler_ = std::move(task_scheduler);
   }
-
-  network_config_.SetProxy(network_proxy);
-  return true;
 }
 
 AuthenticationClient::Impl::Impl(const std::string& authentication_server_url,
@@ -258,34 +279,42 @@ AuthenticationClient::Impl::Impl(const std::string& authentication_server_url,
           std::make_shared<
               Atomic<utils::LruCache<std::string, SignInUserResult> > >(
               token_cache_limit)),
-      network_config_() {}
+      network_settings_() {}
 
 client::CancellationToken AuthenticationClient::Impl::SignInClient(
     const AuthenticationCredentials& credentials,
     const chrono::seconds& expires_in,
     const AuthenticationClient::SignInClientCallback& callback) {
+  if (!network_) {
+    ExecuteOrSchedule(task_scheduler_, [callback] {
+      AuthenticationError result({static_cast<int>(http::ErrorCode::IO_ERROR),
+                                  "Cannot sign in while offline"});
+      callback(result);
+    });
+    return client::CancellationToken();
+  }
+  std::weak_ptr<http::Network> weak_network(network_);
   std::string url = server_url_;
-  url.append(OAUTH_ENDPOINT);
-  NetworkRequest request(url, 0, NetworkRequest::PriorityDefault,
-                         NetworkRequest::HttpVerb::POST);
-  request.AddHeader(http::kAuthorizationHeader,
-                    generateHeader(credentials, url));
-  request.AddHeader(http::kContentTypeHeader, APPLICATION_JSON);
-  request.AddHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
+  url.append(kOauthEndpoint);
+  http::NetworkRequest request(url);
+  request.WithVerb(http::NetworkRequest::HttpVerb::POST);
+  request.WithHeader(http::kAuthorizationHeader,
+                     generateHeader(credentials, url));
+  request.WithHeader(http::kContentTypeHeader, kApplicationJson);
+  request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
+  request.WithSettings(network_settings_);
 
   std::shared_ptr<std::stringstream> payload =
       std::make_shared<std::stringstream>();
-  request.SetContent(
+  request.WithBody(
       generateClientBody(static_cast<unsigned int>(expires_in.count())));
-  auto network_ptr = GetScopedNetwork();
-  Network& network = network_ptr->getNetwork();
   auto cache = client_token_cache_;
-  auto request_id = network_ptr->getNetwork().Send(
+  auto send_outcome = network_->Send(
       request, payload,
-      [network_ptr, callback, payload, credentials,
-       cache](const NetworkResponse& network_response) {
-        auto response_status = network_response.Status();
-        auto error_msg = network_response.Error();
+      [callback, payload, credentials,
+       cache](const http::NetworkResponse& network_response) {
+        auto response_status = network_response.GetStatus();
+        auto error_msg = network_response.GetError();
 
         // Network not available, use cached token if available
         // See olp::network::ErrorCode for negative values
@@ -334,7 +363,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
         }
 
         switch (response_status) {
-          case HttpStatusCode::Ok: {
+          case network::HttpStatusCode::Ok: {
             // Cache the response
             cache->locked([credentials, &response](
                               utils::LruCache<std::string, SignInResult>& c) {
@@ -347,22 +376,40 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
             break;
         }
       });
-  return client::CancellationToken(
-      [&network, request_id]() { network.Cancel(request_id); });
+
+  if (!send_outcome.IsSuccessfull()) {
+    ExecuteOrSchedule(task_scheduler_, [send_outcome, callback] {
+      std::string error_message =
+          ErrorCodeToString(send_outcome.GetErrorCode());
+      AuthenticationError result({static_cast<int>(send_outcome.GetErrorCode()),
+                                  std::move(error_message)});
+      callback(result);
+    });
+    return client::CancellationToken();
+  }
+
+  auto request_id = send_outcome.GetRequestId();
+  return client::CancellationToken([weak_network, request_id]() {
+    auto network = weak_network.lock();
+
+    if (network) {
+      network->Cancel(request_id);
+    }
+  });
 }
 
 client::CancellationToken AuthenticationClient::Impl::SignInHereUser(
     const AuthenticationCredentials& credentials,
     const UserProperties& properties,
     const AuthenticationClient::SignInUserCallback& callback) {
-  return HandleUserRequest(credentials, OAUTH_ENDPOINT,
+  return HandleUserRequest(credentials, kOauthEndpoint,
                            generateUserBody(properties), callback);
 }
 
 client::CancellationToken AuthenticationClient::Impl::SignInRefresh(
     const AuthenticationCredentials& credentials,
     const RefreshProperties& properties, const SignInUserCallback& callback) {
-  return HandleUserRequest(credentials, OAUTH_ENDPOINT,
+  return HandleUserRequest(credentials, kOauthEndpoint,
                            generateRefreshBody(properties), callback);
 }
 
@@ -370,49 +417,59 @@ client::CancellationToken AuthenticationClient::Impl::SignInFederated(
     const AuthenticationCredentials& credentials,
     const FederatedSignInType& type, const FederatedProperties& properties,
     const AuthenticationClient::SignInUserCallback& callback) {
-  return HandleUserRequest(credentials, OAUTH_ENDPOINT,
+  return HandleUserRequest(credentials, kOauthEndpoint,
                            generateFederatedBody(type, properties), callback);
 }
 
 client::CancellationToken AuthenticationClient::Impl::AcceptTerms(
     const AuthenticationCredentials& credentials,
     const std::string& reacceptanceToken, const SignInUserCallback& callback) {
-  return HandleUserRequest(credentials, TERMS_ENDPOINT,
+  return HandleUserRequest(credentials, kTermsEndpoint,
                            generateAcceptTermBody(reacceptanceToken), callback);
 }
 
 client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
     const AuthenticationCredentials& credentials, const std::string& endpoint,
-    const std::shared_ptr<std::vector<unsigned char> >& request_body,
+    const http::NetworkRequest::RequestBodyType& request_body,
     const SignInUserCallback& callback) {
+  if (!network_) {
+    ExecuteOrSchedule(task_scheduler_, [callback] {
+      AuthenticationError result({static_cast<int>(http::ErrorCode::IO_ERROR),
+                                  "Cannot handle user request while offline"});
+      callback(result);
+    });
+    return client::CancellationToken();
+  }
+  std::weak_ptr<http::Network> weak_network(network_);
   std::string url = server_url_;
   url.append(endpoint);
-  NetworkRequest request(url, 0, NetworkRequest::PriorityDefault,
-                         NetworkRequest::HttpVerb::POST);
-  request.AddHeader(http::kAuthorizationHeader,
-                    generateHeader(credentials, url));
-  request.AddHeader(http::kContentTypeHeader, APPLICATION_JSON);
-  request.AddHeader(olp::http::kUserAgentHeader, olp::http::kOlpSdkUserAgent);
+  http::NetworkRequest request(url);
+  request.WithVerb(http::NetworkRequest::HttpVerb::POST);
+  request.WithHeader(http::kAuthorizationHeader,
+                     generateHeader(credentials, url));
+  request.WithHeader(http::kContentTypeHeader, kApplicationJson);
+  request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
+  request.WithSettings(network_settings_);
 
   std::shared_ptr<std::stringstream> payload =
       std::make_shared<std::stringstream>();
-  request.SetContent(request_body);
-  auto network_ptr = GetScopedNetwork();
-  Network& network = network_ptr->getNetwork();
+  request.WithBody(request_body);
   auto cache = user_token_cache_;
-  auto request_id = network_ptr->getNetwork().Send(
+  auto send_outcome = network_->Send(
       request, payload,
-      [network_ptr, callback, payload, credentials,
-       cache](const NetworkResponse& network_response) {
-        auto response_status = network_response.Status();
-        auto error_msg = network_response.Error();
+      [callback, payload, credentials,
+       cache](const http::NetworkResponse& network_response) {
+        auto response_status = network_response.GetStatus();
+        auto error_msg = network_response.GetError();
 
         // Network not available, use cached token if available
         if (response_status < 0) {
           // Request cancelled, return
           if (response_status == Network::ErrorCode::Cancelled) {
-            AuthenticationError error(Network::ErrorCode::Cancelled, error_msg);
-            callback(error);
+            AuthenticationError result(
+                {static_cast<int>(http::ErrorCode::CANCELLED_ERROR),
+                 error_msg});
+            callback(result);
             return;
           }
 
@@ -452,7 +509,7 @@ client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
         }
 
         switch (response_status) {
-          case HttpStatusCode::Ok: {
+          case network::HttpStatusCode::Ok: {
             // Cache the response
             cache->locked(
                 [credentials,
@@ -466,33 +523,58 @@ client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
         }
       });
 
-  return client::CancellationToken(
-      [&network, request_id]() { network.Cancel(request_id); });
+  if (!send_outcome.IsSuccessfull()) {
+    ExecuteOrSchedule(task_scheduler_, [send_outcome, callback] {
+      std::string error_message =
+          ErrorCodeToString(send_outcome.GetErrorCode());
+      AuthenticationError result({static_cast<int>(send_outcome.GetErrorCode()),
+                                  std::move(error_message)});
+      callback(result);
+    });
+    return client::CancellationToken();
+  }
+
+  auto request_id = send_outcome.GetRequestId();
+  return client::CancellationToken([weak_network, request_id]() {
+    auto network = weak_network.lock();
+
+    if (network) {
+      network->Cancel(request_id);
+    }
+  });
 }
 
 client::CancellationToken AuthenticationClient::Impl::SignUpHereUser(
     const AuthenticationCredentials& credentials,
     const SignUpProperties& properties, const SignUpCallback& callback) {
+  if (!network_) {
+    ExecuteOrSchedule(task_scheduler_, [callback] {
+      AuthenticationError result({static_cast<int>(http::ErrorCode::IO_ERROR),
+                                  "Cannot sign up while offline"});
+      callback(result);
+    });
+    return client::CancellationToken();
+  }
+  std::weak_ptr<http::Network> weak_network(network_);
   std::string url = server_url_;
-  url.append(USER_ENDPOINT);
-  NetworkRequest request(url, 0, NetworkRequest::PriorityDefault,
-                         NetworkRequest::HttpVerb::POST);
-  request.AddHeader(http::kAuthorizationHeader,
-                    generateHeader(credentials, url));
-  request.AddHeader(http::kContentTypeHeader, APPLICATION_JSON);
-  request.AddHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
+  url.append(kUserEndpoint);
+  http::NetworkRequest request(url);
+  request.WithVerb(http::NetworkRequest::HttpVerb::POST);
+  request.WithHeader(http::kAuthorizationHeader,
+                     generateHeader(credentials, url));
+  request.WithHeader(http::kContentTypeHeader, kApplicationJson);
+  request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
+  request.WithSettings(network_settings_);
 
   std::shared_ptr<std::stringstream> payload =
       std::make_shared<std::stringstream>();
-  request.SetContent(generateSignUpBody(properties));
-  auto network_ptr = GetScopedNetwork();
-  Network& network = network_ptr->getNetwork();
-  auto request_id = network_ptr->getNetwork().Send(
+  request.WithBody(generateSignUpBody(properties));
+  auto send_outcome = network_->Send(
       request, payload,
-      [network_ptr, callback, payload,
-       credentials](const NetworkResponse& network_response) {
-        auto response_status = network_response.Status();
-        auto error_msg = network_response.Error();
+      [callback, payload,
+       credentials](const http::NetworkResponse& network_response) {
+        auto response_status = network_response.GetStatus();
+        auto error_msg = network_response.GetError();
 
         if (response_status < 0) {
           // Network error response
@@ -511,31 +593,57 @@ client::CancellationToken AuthenticationClient::Impl::SignUpHereUser(
         SignUpResult response(resp_impl);
         callback(response);
       });
-  return client::CancellationToken(
-      [&network, request_id]() { network.Cancel(request_id); });
+
+  if (!send_outcome.IsSuccessfull()) {
+    ExecuteOrSchedule(task_scheduler_, [send_outcome, callback] {
+      std::string error_message =
+          ErrorCodeToString(send_outcome.GetErrorCode());
+      AuthenticationError result({static_cast<int>(send_outcome.GetErrorCode()),
+                                  std::move(error_message)});
+      callback(result);
+    });
+    return client::CancellationToken();
+  }
+
+  auto request_id = send_outcome.GetRequestId();
+  return client::CancellationToken([weak_network, request_id]() {
+    auto network = weak_network.lock();
+
+    if (network) {
+      network->Cancel(request_id);
+    }
+  });
 }
 
 client::CancellationToken AuthenticationClient::Impl::SignOut(
     const AuthenticationCredentials& credentials,
     const std::string& userAccessToken, const SignOutUserCallback& callback) {
+  if (!network_) {
+    ExecuteOrSchedule(task_scheduler_, [callback] {
+      AuthenticationError result({static_cast<int>(http::ErrorCode::IO_ERROR),
+                                  "Cannot sign out while offline"});
+      callback(result);
+    });
+    return client::CancellationToken();
+  }
+  std::weak_ptr<http::Network> weak_network(network_);
   std::string url = server_url_;
-  url.append(SIGNOUT_ENDPOINT);
-  NetworkRequest request(url, 0, NetworkRequest::PriorityDefault,
-                         NetworkRequest::HttpVerb::POST);
-  request.AddHeader(http::kAuthorizationHeader,
-                    generateBearerHeader(userAccessToken));
-  request.AddHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
+  url.append(kSignoutEndpoint);
+  http::NetworkRequest request(url);
+  request.WithVerb(http::NetworkRequest::HttpVerb::POST);
+  request.WithHeader(http::kAuthorizationHeader,
+                     generateBearerHeader(userAccessToken));
+  request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
+  request.WithSettings(network_settings_);
 
   std::shared_ptr<std::stringstream> payload =
       std::make_shared<std::stringstream>();
-  auto network_ptr = GetScopedNetwork();
-  Network& network = network_ptr->getNetwork();
-  auto request_id = network_ptr->getNetwork().Send(
+  auto send_outcome = network_->Send(
       request, payload,
-      [network_ptr, callback, payload,
-       credentials](const NetworkResponse& network_response) {
-        auto response_status = network_response.Status();
-        auto error_msg = network_response.Error();
+      [callback, payload,
+       credentials](const http::NetworkResponse& network_response) {
+        auto response_status = network_response.GetStatus();
+        auto error_msg = network_response.GetError();
 
         if (response_status < 0) {
           // Network error response not available
@@ -554,8 +662,26 @@ client::CancellationToken AuthenticationClient::Impl::SignOut(
         SignOutResult response(resp_impl);
         callback(response);
       });
-  return client::CancellationToken(
-      [&network, request_id]() { network.Cancel(request_id); });
+
+  if (!send_outcome.IsSuccessfull()) {
+    ExecuteOrSchedule(task_scheduler_, [send_outcome, callback] {
+      std::string error_message =
+          ErrorCodeToString(send_outcome.GetErrorCode());
+      AuthenticationError result({static_cast<int>(send_outcome.GetErrorCode()),
+                                  std::move(error_message)});
+      callback(result);
+    });
+    return client::CancellationToken();
+  }
+
+  auto request_id = send_outcome.GetRequestId();
+  return client::CancellationToken([weak_network, request_id]() {
+    auto network = weak_network.lock();
+
+    if (network) {
+      network->Cancel(request_id);
+    }
+  });
 }
 
 std::string AuthenticationClient::Impl::base64Encode(
@@ -563,7 +689,7 @@ std::string AuthenticationClient::Impl::base64Encode(
   std::string ret = olp::utils::Base64Encode(vector);
   // Base64 encode sometimes return multiline with garbage at the end
   if (!ret.empty()) {
-    auto loc = ret.find(LINE_FEED);
+    auto loc = ret.find(kLineFeed);
     if (loc != std::string::npos) ret = ret.substr(0, loc);
   }
   return ret;
@@ -575,25 +701,25 @@ std::string AuthenticationClient::Impl::generateHeader(
   const std::string currentTime = std::to_string(std::time(nullptr));
   const std::string encodedUri = Url::Encode(url);
   const std::string encodedQuery = Url::Encode(
-      OAUTH_CONSUMER_KEY + PARAM_EQUALS + credentials.GetKey() + PARAM_ADD +
-      OAUTH_NONCE + PARAM_EQUALS + uid + PARAM_ADD + OAUTH_SIGNATURE_METHOD +
-      PARAM_EQUALS + HMAC + PARAM_ADD + OAUTH_TIMESTAMP + PARAM_EQUALS +
-      currentTime + PARAM_ADD + OAUTH_VERSION + PARAM_EQUALS + VERSION);
+      kOauthConsumerKey + kParamEquals + credentials.GetKey() + kParamAdd +
+      kOauthNonce + kParamEquals + uid + kParamAdd + kOauthSignatureMethod +
+      kParamEquals + kHmac + kParamAdd + kOauthTimestamp + kParamEquals +
+      currentTime + kParamAdd + kOauthVersion + kParamEquals + kVersion);
   const std::string signatureBase =
-      OAUTH_POST + PARAM_ADD + encodedUri + PARAM_ADD + encodedQuery;
-  const std::string encodeKey = credentials.GetSecret() + PARAM_ADD;
+      kOauthPost + kParamAdd + encodedUri + kParamAdd + encodedQuery;
+  const std::string encodeKey = credentials.GetSecret() + kParamAdd;
   auto hmacResult = Crypto::hmac_sha256(encodeKey, signatureBase);
   auto signature = base64Encode(hmacResult);
   std::string authorization =
-      "OAuth " + OAUTH_CONSUMER_KEY + PARAM_EQUALS + PARAM_QUOTE +
-      Url::Encode(credentials.GetKey()) + PARAM_QUOTE + PARAM_COMMA +
-      OAUTH_NONCE + PARAM_EQUALS + PARAM_QUOTE + Url::Encode(uid) +
-      PARAM_QUOTE + PARAM_COMMA + OAUTH_SIGNATURE_METHOD + PARAM_EQUALS +
-      PARAM_QUOTE + HMAC + PARAM_QUOTE + PARAM_COMMA + OAUTH_TIMESTAMP +
-      PARAM_EQUALS + PARAM_QUOTE + Url::Encode(currentTime) + PARAM_QUOTE +
-      PARAM_COMMA + OAUTH_VERSION + PARAM_EQUALS + PARAM_QUOTE + VERSION +
-      PARAM_QUOTE + PARAM_COMMA + OAUTH_SIGNATURE + PARAM_EQUALS + PARAM_QUOTE +
-      Url::Encode(signature) + PARAM_QUOTE;
+      "OAuth " + kOauthConsumerKey + kParamEquals + kParamQuote +
+      Url::Encode(credentials.GetKey()) + kParamQuote + kParamComma +
+      kOauthNonce + kParamEquals + kParamQuote + Url::Encode(uid) +
+      kParamQuote + kParamComma + kOauthSignatureMethod + kParamEquals +
+      kParamQuote + kHmac + kParamQuote + kParamComma + kOauthTimestamp +
+      kParamEquals + kParamQuote + Url::Encode(currentTime) + kParamQuote +
+      kParamComma + kOauthVersion + kParamEquals + kParamQuote + kVersion +
+      kParamQuote + kParamComma + kOauthSignature + kParamEquals + kParamQuote +
+      Url::Encode(signature) + kParamQuote;
 
   return authorization;
 }
@@ -605,14 +731,14 @@ std::string AuthenticationClient::Impl::generateBearerHeader(
   return authorization;
 }
 
-std::shared_ptr<std::vector<unsigned char> >
+http::NetworkRequest::RequestBodyType
 AuthenticationClient::Impl::generateClientBody(unsigned int expires_in) {
   StringBuffer data;
   Writer<StringBuffer> writer(data);
   writer.StartObject();
 
-  writer.Key(GRANT_TYPE);
-  writer.String(CLIENT_GRANT_TYPE);
+  writer.Key(kGrantType);
+  writer.String(kClientGrantType);
 
   if (expires_in > 0) {
     writer.Key(Constants::EXPIRES_IN);
@@ -625,21 +751,21 @@ AuthenticationClient::Impl::generateClientBody(unsigned int expires_in) {
       content, content + data.GetSize());
 }
 
-std::shared_ptr<std::vector<unsigned char> >
+http::NetworkRequest::RequestBodyType
 AuthenticationClient::Impl::generateUserBody(const UserProperties& properties) {
   StringBuffer data;
   Writer<StringBuffer> writer(data);
   writer.StartObject();
 
-  writer.Key(GRANT_TYPE);
-  writer.String(USER_GRANT_TYPE);
+  writer.Key(kGrantType);
+  writer.String(kUserGrantType);
 
   if (!properties.email.empty()) {
-    writer.Key(EMAIL);
+    writer.Key(kEmail);
     writer.String(properties.email.c_str());
   }
   if (!properties.password.empty()) {
-    writer.Key(PASSWORD);
+    writer.Key(kPassword);
     writer.String(properties.password.c_str());
   }
   if (properties.expires_in > 0) {
@@ -653,23 +779,23 @@ AuthenticationClient::Impl::generateUserBody(const UserProperties& properties) {
       content, content + data.GetSize());
 }
 
-std::shared_ptr<std::vector<unsigned char> >
+http::NetworkRequest::RequestBodyType
 AuthenticationClient::Impl::generateFederatedBody(
     const FederatedSignInType type, const FederatedProperties& properties) {
   StringBuffer data;
   Writer<StringBuffer> writer(data);
   writer.StartObject();
 
-  writer.Key(GRANT_TYPE);
+  writer.Key(kGrantType);
   switch (type) {
     case FederatedSignInType::FacebookSignIn:
-      writer.String(FACEBOOK_GRANT_TYPE);
+      writer.String(kFacebookGrantType);
       break;
     case FederatedSignInType::GoogleSignIn:
-      writer.String(GOOGLE_GRANT_TYPE);
+      writer.String(kGoogleGrantType);
       break;
     case FederatedSignInType::ArcgisSignIn:
-      writer.String(ARCGIS_GRANT_TYPE);
+      writer.String(kArcgisGrantType);
       break;
     default:
       return nullptr;
@@ -680,15 +806,15 @@ AuthenticationClient::Impl::generateFederatedBody(
     writer.String(properties.access_token.c_str());
   }
   if (!properties.country_code.empty()) {
-    writer.Key(COUNTRY_CODE);
+    writer.Key(kCountryCode);
     writer.String(properties.country_code.c_str());
   }
   if (!properties.language.empty()) {
-    writer.Key(LANGUAGE);
+    writer.Key(kLanguage);
     writer.String(properties.language.c_str());
   }
   if (!properties.email.empty()) {
-    writer.Key(EMAIL);
+    writer.Key(kEmail);
     writer.String(properties.email.c_str());
   }
   if (properties.expires_in > 0) {
@@ -702,15 +828,15 @@ AuthenticationClient::Impl::generateFederatedBody(
       content, content + data.GetSize());
 }
 
-std::shared_ptr<std::vector<unsigned char> >
+http::NetworkRequest::RequestBodyType
 AuthenticationClient::Impl::generateRefreshBody(
     const RefreshProperties& properties) {
   StringBuffer data;
   Writer<StringBuffer> writer(data);
   writer.StartObject();
 
-  writer.Key(GRANT_TYPE);
-  writer.String(REFRESH_GRANT_TYPE);
+  writer.Key(kGrantType);
+  writer.String(kRefreshGrantType);
 
   if (!properties.access_token.empty()) {
     writer.Key(Constants::ACCESS_TOKEN);
@@ -731,7 +857,7 @@ AuthenticationClient::Impl::generateRefreshBody(
       content, content + data.GetSize());
 }
 
-std::shared_ptr<std::vector<unsigned char> >
+http::NetworkRequest::RequestBodyType
 AuthenticationClient::Impl::generateSignUpBody(
     const SignUpProperties& properties) {
   StringBuffer data;
@@ -739,47 +865,47 @@ AuthenticationClient::Impl::generateSignUpBody(
   writer.StartObject();
 
   if (!properties.email.empty()) {
-    writer.Key(EMAIL);
+    writer.Key(kEmail);
     writer.String(properties.email.c_str());
   }
   if (!properties.password.empty()) {
-    writer.Key(PASSWORD);
+    writer.Key(kPassword);
     writer.String(properties.password.c_str());
   }
   if (!properties.date_of_birth.empty()) {
-    writer.Key(DATE_OF_BIRTH);
+    writer.Key(kDateOfBirth);
     writer.String(properties.date_of_birth.c_str());
   }
   if (!properties.first_name.empty()) {
-    writer.Key(FIRST_NAME);
+    writer.Key(kFirstName);
     writer.String(properties.first_name.c_str());
   }
   if (!properties.last_name.empty()) {
-    writer.Key(LAST_NAME);
+    writer.Key(kLastName);
     writer.String(properties.last_name.c_str());
   }
   if (!properties.country_code.empty()) {
-    writer.Key(COUNTRY_CODE);
+    writer.Key(kCountryCode);
     writer.String(properties.country_code.c_str());
   }
   if (!properties.language.empty()) {
-    writer.Key(LANGUAGE);
+    writer.Key(kLanguage);
     writer.String(properties.language.c_str());
   }
   if (properties.marketing_enabled) {
-    writer.Key(MARKETING_ENABLED);
+    writer.Key(kMarketingEnabled);
     writer.Bool(true);
   }
   if (!properties.phone_number.empty()) {
-    writer.Key(PHONE_NUMBER);
+    writer.Key(kPhoneNumber);
     writer.String(properties.phone_number.c_str());
   }
   if (!properties.realm.empty()) {
-    writer.Key(REALM);
+    writer.Key(kRealm);
     writer.String(properties.realm.c_str());
   }
   if (!properties.invite_token.empty()) {
-    writer.Key(INVITE_TOKEN);
+    writer.Key(kInviteToken);
     writer.String(properties.invite_token.c_str());
   }
 
@@ -789,14 +915,14 @@ AuthenticationClient::Impl::generateSignUpBody(
       content, content + data.GetSize());
 }
 
-std::shared_ptr<std::vector<unsigned char> >
+http::NetworkRequest::RequestBodyType
 AuthenticationClient::Impl::generateAcceptTermBody(
     const std::string& reacceptance_token) {
   StringBuffer data;
   Writer<StringBuffer> writer(data);
   writer.StartObject();
 
-  writer.Key(TERMS_REACCEPTANCE_TOKEN);
+  writer.Key(kTermsReacceptanceToken);
   writer.String(reacceptance_token.c_str());
 
   writer.EndObject();
@@ -877,9 +1003,18 @@ client::CancellationToken AuthenticationClient::SignOut(
   return impl_->SignOut(credentials, user_access_token, callback);
 }
 
-bool AuthenticationClient::SetNetworkProxySettings(
-    const NetworkProxySettings& proxy_settings) {
-  return impl_->SetNetworkProxySettings(proxy_settings);
+void AuthenticationClient::SetNetworkProxySettings(
+    const http::NetworkProxySettings& proxy_settings) {
+  impl_->SetNetworkProxySettings(proxy_settings);
+}
+
+void AuthenticationClient::SetNetwork(std::shared_ptr<http::Network> network) {
+  impl_->SetNetwork(network);
+}
+
+void AuthenticationClient::SetTaskScheduler(
+    std::shared_ptr<TaskScheduler> task_scheduler) {
+  impl_->SetTaskScheduler(task_scheduler);
 }
 
 }  // namespace authentication

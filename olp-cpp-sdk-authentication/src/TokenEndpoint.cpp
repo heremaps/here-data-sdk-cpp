@@ -42,12 +42,11 @@ struct TokenEndpoint::Impl {
       : auth_client_(settings.token_endpoint_url),
         auth_credentials_(credentials.GetKey(), credentials.GetSecret()) {
     if (settings.network_proxy_settings) {
-      auto success = auth_client_.SetNetworkProxySettings(
+      auth_client_.SetNetworkProxySettings(
           settings.network_proxy_settings.get());
-      if (!success) {
-        EDGE_SDK_LOG_WARNING(LOG_TAG, "Invalid NetworkProxySettings provided.");
-      }
     }
+    auth_client_.SetNetwork(settings.network_request_handler);
+    auth_client_.SetTaskScheduler(settings.task_scheduler);
   }
 
   client::CancellationToken RequestToken(const TokenRequest& token_request,

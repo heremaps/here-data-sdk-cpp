@@ -20,12 +20,22 @@
 #pragma once
 
 #include <boost/optional.hpp>
+#include <memory>
 #include <string>
 
+#include <olp/core/http/NetworkProxySettings.h>
+
 #include "AuthenticationApi.h"
-#include "NetworkProxySettings.h"
 
 namespace olp {
+namespace http {
+class Network;
+}
+
+namespace thread {
+class TaskScheduler;
+}
+
 namespace authentication {
 static const std::string kHereAccountProductionTokenUrl =
     "https://account.api.here.com/oauth2/token";
@@ -36,11 +46,17 @@ static const std::string kHereAccountProductionTokenUrl =
 struct AUTHENTICATION_API Settings {
   /// Optional. network_proxy_settings containing proxy configuration settings
   /// for the network layer.
-  boost::optional<NetworkProxySettings> network_proxy_settings;
+  boost::optional<http::NetworkProxySettings> network_proxy_settings;
+
+  /// The network instance to be used to internally operate with OLP services.
+  std::shared_ptr<http::Network> network_request_handler;
+
+  /// The TaskScheduler class to be used for managing callbacks enqueue
+  std::shared_ptr<thread::TaskScheduler> task_scheduler;
 
   /// The token endpoint server URL. Note that only standard OAuth2 Token URLs
   /// (those ending in 'oauth2/token') are supported.
-  std::string token_endpoint_url = kHereAccountProductionTokenUrl;
+  std::string token_endpoint_url{kHereAccountProductionTokenUrl};
 };
 
 }  // namespace authentication

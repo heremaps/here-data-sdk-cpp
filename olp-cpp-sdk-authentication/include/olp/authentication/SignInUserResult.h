@@ -45,12 +45,12 @@ class AUTHENTICATION_API SignInUserResult : public SignInResult {
   /**
    * @brief Destructor
    */
-  virtual ~SignInUserResult();
+  ~SignInUserResult() override;
 
   /**
    * @brief Constructor
    */
-  SignInUserResult() = default;
+  SignInUserResult() noexcept;
 
   /**
    * @brief Terms acceptance token getter method.

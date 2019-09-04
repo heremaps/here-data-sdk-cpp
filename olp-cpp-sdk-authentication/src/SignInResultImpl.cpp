@@ -22,19 +22,25 @@
 #include "Constants.h"
 #include "olp/core/network/HttpStatusCode.h"
 
-using namespace rapidjson;
+namespace {
+constexpr auto kTokenType = "tokenType";
+constexpr auto kUserId = "userId";
+}  // namespace
 
 namespace olp {
 namespace authentication {
-static const char* TOKEN_TYPE = "tokenType";
-static const char* USER_ID = "userId";
 
-SignInResultImpl::SignInResultImpl(int status, std::string error,
-                                   std::shared_ptr<Document> json_document)
+SignInResultImpl::SignInResultImpl() noexcept
+    : SignInResultImpl(network::HttpStatusCode::ServiceUnavailable,
+                       Constants::ERROR_HTTP_SERVICE_UNAVAILABLE) {}
+
+SignInResultImpl::SignInResultImpl(
+    int status, std::string error,
+    std::shared_ptr<rapidjson::Document> json_document) noexcept
     : BaseResult(status, error, json_document), expiry_time_() {
   is_valid_ = this->BaseResult::IsValid() &&
               json_document->HasMember(Constants::ACCESS_TOKEN) &&
-              json_document->HasMember(TOKEN_TYPE) &&
+              json_document->HasMember(kTokenType) &&
               json_document->HasMember(Constants::EXPIRES_IN);
 
   // Extra response data if no errors reported
@@ -45,15 +51,15 @@ SignInResultImpl::SignInResultImpl(int status, std::string error,
     } else {
       if (json_document->HasMember(Constants::ACCESS_TOKEN))
         access_token_ = (*json_document)[Constants::ACCESS_TOKEN].GetString();
-      if (json_document->HasMember(TOKEN_TYPE))
-        token_type_ = (*json_document)[TOKEN_TYPE].GetString();
+      if (json_document->HasMember(kTokenType))
+        token_type_ = (*json_document)[kTokenType].GetString();
       if (json_document->HasMember(Constants::REFRESH_TOKEN))
         refresh_token_ = (*json_document)[Constants::REFRESH_TOKEN].GetString();
       if (json_document->HasMember(Constants::EXPIRES_IN))
         expiry_time_ = std::time(nullptr) +
                        (*json_document)[Constants::EXPIRES_IN].GetUint();
-      if (json_document->HasMember(USER_ID))
-        user_identifier_ = (*json_document)[USER_ID].GetString();
+      if (json_document->HasMember(kUserId))
+        user_identifier_ = (*json_document)[kUserId].GetString();
     }
   }
 }

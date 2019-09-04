@@ -29,10 +29,13 @@ namespace olp {
 namespace authentication {
 class SignOutResultImpl : public BaseResult {
  public:
+  SignOutResultImpl() noexcept;
+
   SignOutResultImpl(
       int status, std::string error,
-      std::shared_ptr<rapidjson::Document> json_document = nullptr);
-  virtual ~SignOutResultImpl();
+      std::shared_ptr<rapidjson::Document> json_document = nullptr) noexcept;
+
+  ~SignOutResultImpl() override;
 };
 }  // namespace authentication
 }  // namespace olp

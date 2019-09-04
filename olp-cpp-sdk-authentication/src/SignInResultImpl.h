@@ -29,10 +29,13 @@ namespace olp {
 namespace authentication {
 class SignInResultImpl : public BaseResult {
  public:
+  SignInResultImpl() noexcept;
+
   SignInResultImpl(
       int status, std::string GetErrorResponse,
-      std::shared_ptr<rapidjson::Document> json_document = nullptr);
-  virtual ~SignInResultImpl();
+      std::shared_ptr<rapidjson::Document> json_document = nullptr) noexcept;
+
+  ~SignInResultImpl() override;
 
   /**
    * @brief Access token getter method
