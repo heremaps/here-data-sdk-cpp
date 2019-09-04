@@ -175,12 +175,6 @@ struct OlpClientSettings {
   boost::optional<AuthenticationSettings> authentication_settings = boost::none;
 
   /**
-   * @brief The network handler.
-   * @deprecated since 0.7
-   */
-  boost::optional<NetworkAsyncHandler> network_async_handler = boost::none;
-
-  /**
    * @brief The task scheduler instance. In case of nullptr set, all request
    * calls will be performed synchronous.
    */

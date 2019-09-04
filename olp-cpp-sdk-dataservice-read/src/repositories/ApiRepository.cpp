@@ -37,7 +37,7 @@ using namespace olp::client;
 
 ApiRepository::ApiRepository(
     const olp::client::HRN& hrn,
-    std::shared_ptr<olp::client::OlpClientSettings> settings,
+    std::weak_ptr<olp::client::OlpClientSettings> settings,
     std::shared_ptr<cache::KeyValueCache> cache)
     : hrn_(hrn),
       settings_(settings),
@@ -60,23 +60,36 @@ olp::client::CancellationToken ApiRepository::getApiClient(
     EDGE_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> from cache",
                         service.c_str(), serviceVersion.c_str());
 
-    auto client = olp::client::OlpClientFactory::Create(*settings_);
+    auto settings = settings_.lock();
+    if (!settings) {
+      callback(ApiError(ErrorCode::InternalFailure, "Something went wrong"));
+      return CancellationToken();
+    }
+
+    auto client = olp::client::OlpClientFactory::Create(*settings);
     client->SetBaseUrl(*url);
-    ExecuteOrSchedule(settings_.get(), [=] { callback(*client); });
+    ExecuteOrSchedule(GetOlpClientSettings(), [=] { callback(*client); });
     return CancellationToken();
   }
 
   auto cache = cache_;
   auto hrn = hrn_;
-  auto settings = settings_;
+  auto settings_weak = settings_;
   MultiRequestContext<ApiClientResponse, ApiClientCallback>::ExecuteFn
-      executeFn = [cache, hrn, settings, service,
+      executeFn = [cache, hrn, settings_weak, service,
                    serviceVersion](ApiClientCallback contextCallback) {
         EDGE_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> execute",
                             service.c_str(), serviceVersion.c_str());
 
-        auto cacheApiResponseCallback = [cache, hrn, settings, service,
-                                         serviceVersion, contextCallback](
+        auto settings = settings_weak.lock();
+        if (!settings) {
+          contextCallback(
+              ApiError(ErrorCode::InternalFailure, "Something went wrong"));
+          return CancellationToken();
+        }
+
+        auto cacheApiResponseCallback = [cache, hrn, service, serviceVersion,
+                                         contextCallback](
                                             ApiClientResponse response) {
           if (response.IsSuccessful()) {
             EDGE_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> into cache",
@@ -100,7 +113,8 @@ olp::client::CancellationToken ApiRepository::getApiClient(
 }
 
 const client::OlpClientSettings* ApiRepository::GetOlpClientSettings() const {
-  return settings_ ? settings_.get() : nullptr;
+  auto settings = settings_.lock();
+  return settings ? settings.get() : nullptr;
 }
 
 }  // namespace repository

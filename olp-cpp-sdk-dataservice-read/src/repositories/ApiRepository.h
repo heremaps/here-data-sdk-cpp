@@ -45,7 +45,7 @@ using ApiClientCallback = ApiClientLookup::ApiClientCallback;
 class ApiRepository final {
  public:
   ApiRepository(const olp::client::HRN& hrn,
-                std::shared_ptr<olp::client::OlpClientSettings> settings,
+                std::weak_ptr<olp::client::OlpClientSettings> settings,
                 std::shared_ptr<cache::KeyValueCache> cache);
 
   ~ApiRepository() = default;
@@ -58,7 +58,7 @@ class ApiRepository final {
 
  private:
   olp::client::HRN hrn_;
-  std::shared_ptr<client::OlpClientSettings> settings_;
+  std::weak_ptr<client::OlpClientSettings> settings_;
   std::shared_ptr<ApiCacheRepository> cache_;
   std::shared_ptr<MultiRequestContext<ApiClientResponse, ApiClientCallback>>
       multiRequestContext_;

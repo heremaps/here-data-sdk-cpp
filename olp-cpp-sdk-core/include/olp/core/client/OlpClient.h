@@ -110,7 +110,6 @@ class CORE_API OlpClient {
  private:
   std::string base_url_;
   std::multimap<std::string, std::string> default_headers_;
-  NetworkAsyncHandler network_async_handler_;
   OlpClientSettings settings_;
 };
 
