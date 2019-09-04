@@ -46,16 +46,21 @@
 class ApiTest : public ::testing::TestWithParam<bool> {
  protected:
   ApiTest() {
+    auto network = olp::client::OlpClientSettingsFactory::
+        CreateDefaultNetworkRequestHandler();
+
+    olp::authentication::Settings authentication_settings;
+    authentication_settings.network_request_handler = network;
+
     olp::authentication::TokenProviderDefault provider(
         CustomParameters::getArgument("appid"),
-        CustomParameters::getArgument("secret"));
-    olp::client::AuthenticationSettings authSettings;
-    authSettings.provider = provider;
+        CustomParameters::getArgument("secret"), authentication_settings);
+    olp::client::AuthenticationSettings auth_client_settings;
+    auth_client_settings.provider = provider;
 
     settings_ = std::make_shared<olp::client::OlpClientSettings>();
-    settings_->authentication_settings = authSettings;
-    settings_->network_request_handler = olp::client::OlpClientSettingsFactory::
-        CreateDefaultNetworkRequestHandler();
+    settings_->authentication_settings = auth_client_settings;
+    settings_->network_request_handler = network;
 
     client_ = olp::client::OlpClientFactory::Create(*settings_);
   }

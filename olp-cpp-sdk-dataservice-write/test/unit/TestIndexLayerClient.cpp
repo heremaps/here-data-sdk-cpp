@@ -137,19 +137,27 @@ class IndexLayerClientTestBase : public ::testing::TestWithParam<bool> {
 class IndexLayerClientOnlineTest : public IndexLayerClientTestBase {
  protected:
   virtual std::shared_ptr<IndexLayerClient> CreateIndexLayerClient() override {
-    olp::authentication::Settings settings;
-    settings.token_endpoint_url = CustomParameters::getArgument(kEndpoint);
+    auto network = olp::client::OlpClientSettingsFactory::
+        CreateDefaultNetworkRequestHandler();
 
-    olp::client::OlpClientSettings client_settings;
-    client_settings.authentication_settings =
-        (olp::client::AuthenticationSettings{
-            olp::authentication::TokenProviderDefault{
-                CustomParameters::getArgument(kAppid),
-                CustomParameters::getArgument(kSecret), settings}});
-    client_settings.network_request_handler = olp::client::
-        OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
+    olp::authentication::Settings authentication_settings;
+    authentication_settings.token_endpoint_url =
+        CustomParameters::getArgument(kEndpoint);
+    authentication_settings.network_request_handler = network;
+
+    olp::authentication::TokenProviderDefault provider(
+        CustomParameters::getArgument(kAppid),
+        CustomParameters::getArgument(kSecret), authentication_settings);
+
+    olp::client::AuthenticationSettings auth_client_settings;
+    auth_client_settings.provider = provider;
+
+    olp::client::OlpClientSettings settings;
+    settings.authentication_settings = auth_client_settings;
+    settings.network_request_handler = network;
+
     return std::make_shared<IndexLayerClient>(
-        olp::client::HRN{GetTestCatalog()}, client_settings);
+        olp::client::HRN{GetTestCatalog()}, settings);
   }
 };
 
