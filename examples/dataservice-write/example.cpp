@@ -47,17 +47,29 @@ int RunExample() {
   auto buffer = std::make_shared<std::vector<unsigned char>>(std::begin(kData),
                                                              std::end(kData));
 
+  // Create a task scheduler instance
+  std::shared_ptr<olp::thread::TaskScheduler> task_scheduler =
+      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
+
+  // Create a network client
+  std::shared_ptr<olp::http::Network> http_client = olp::client::
+      OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
+
+  // Initialize authentication settings
+  olp::authentication::Settings settings;
+  settings.task_scheduler = std::move(task_scheduler);
+  settings.network_request_handler = http_client;
+
   // Setup AuthenticationSettings with a default token provider that will
   // retrieve an OAuth 2.0 token from OLP.
   olp::client::AuthenticationSettings auth_settings;
-  auth_settings.provider =
-      olp::authentication::TokenProviderDefault(kKeyId, kKeySecret);
+  auth_settings.provider = olp::authentication::TokenProviderDefault(
+      kKeyId, kKeySecret, std::move(settings));
 
   // Setup OlpClientSettings and provide it to the StreamLayerClient.
   olp::client::OlpClientSettings client_settings;
   client_settings.authentication_settings = auth_settings;
-  client_settings.network_request_handler = olp::client::
-      OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
+  client_settings.network_request_handler = std::move(http_client);
 
   auto client = std::make_shared<StreamLayerClient>(
       olp::client::HRN{kCatalogHRN}, client_settings);
