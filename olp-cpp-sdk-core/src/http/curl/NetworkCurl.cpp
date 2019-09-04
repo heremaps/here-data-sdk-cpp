@@ -831,13 +831,9 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
       return;
     }
 
-    int max_age = handles_[index].max_age;
-    time_t expires = handles_[index].expires;
     auto callback = handles_[index].callback;
     std::string etag = handles_[index].etag;
     std::string contentType = handles_[index].content_type;
-    size_t count = handles_[index].count;
-    size_t offset = handles_[index].offset;
     if (!callback) {
       EDGE_SDK_LOG_WARNING(kLogTag, "Complete to request without callback");
       ReleaseHandleUnlocked(&handles_[index]);
