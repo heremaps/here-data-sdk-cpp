@@ -37,6 +37,7 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -51,7 +52,10 @@ public class HttpClient {
   public static final int TIMEOUT_ERROR = -7;
   public static final int THREAD_POOL_SIZE = 8;
 
-  private int uniqueId = (int) (System.currentTimeMillis() % 10000);
+  public static final int INVALID_ID = 0;
+
+  private static AtomicInteger uniqueIdCounter = new AtomicInteger(1);
+  private int uniqueId = INVALID_ID;
 
   public enum HttpVerb {
     GET,
@@ -548,7 +552,8 @@ public class HttpClient {
   }
 
   public int registerClient() {
-    return this.uniqueId++;
+    uniqueId = this.uniqueIdCounter.getAndIncrement();
+    return uniqueId;
   }
 
   public HttpTask send(

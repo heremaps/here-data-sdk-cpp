@@ -88,7 +88,7 @@ NetworkAndroid::NetworkAndroid()
       jni_send_method_(nullptr),
       java_shutdown_method_(nullptr),
       obj_(nullptr),
-      unique_id_(-1),
+      unique_id_(0),
       started_(false),
       initialized_(false) {}
 
@@ -949,7 +949,7 @@ NetworkAndroid::ResponseData::ResponseData(
       status(status),
       count(count),
       offset(offset) {}
-      
+
 
 }  // namespace http
 }  // namespace olp
