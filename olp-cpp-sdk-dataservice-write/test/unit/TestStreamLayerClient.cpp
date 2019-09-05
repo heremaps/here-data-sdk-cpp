@@ -192,10 +192,16 @@ class StreamLayerClientTestBase : public ::testing::TestWithParam<bool> {
 
 class StreamLayerClientOnlineTest : public StreamLayerClientTestBase {
  protected:
+  static std::shared_ptr<olp::http::Network> s_network;
+
+  static void SetUpTestSuite() {
+    s_network = olp::client::OlpClientSettingsFactory::
+        CreateDefaultNetworkRequestHandler();
+  }
+
   virtual std::shared_ptr<StreamLayerClient> CreateStreamLayerClient()
       override {
-    auto network = olp::client::OlpClientSettingsFactory::
-        CreateDefaultNetworkRequestHandler();
+    auto network = s_network;
 
     olp::authentication::Settings authentication_settings;
     authentication_settings.token_endpoint_url =
@@ -216,6 +222,11 @@ class StreamLayerClientOnlineTest : public StreamLayerClientTestBase {
         olp::client::HRN{GetTestCatalog()}, settings);
   }
 };
+
+// Static network instance is necessary as it needs to outlive any created
+// clients. This is a known limitation as triggered send requests capture the
+// network instance inside the callbacks.
+std::shared_ptr<olp::http::Network> StreamLayerClientOnlineTest::s_network;
 
 INSTANTIATE_TEST_SUITE_P(TestOnline, StreamLayerClientOnlineTest,
                          ::testing::Values(true));
@@ -1250,10 +1261,16 @@ TEST_P(StreamLayerClientMockTest, DISABLED_SDIIConcurrentPublishSameIngestApi) {
 
 class StreamLayerClientCacheOnlineTest : public StreamLayerClientOnlineTest {
  protected:
+  static std::shared_ptr<olp::http::Network> s_network;
+
+  static void SetUpTestSuite() {
+    s_network = olp::client::OlpClientSettingsFactory::
+        CreateDefaultNetworkRequestHandler();
+  }
+
   virtual std::shared_ptr<StreamLayerClient> CreateStreamLayerClient()
       override {
-    auto network = olp::client::OlpClientSettingsFactory::
-        CreateDefaultNetworkRequestHandler();
+    auto network = s_network;
 
     olp::authentication::Settings authentication_settings;
     authentication_settings.token_endpoint_url =
@@ -1290,6 +1307,11 @@ class StreamLayerClientCacheOnlineTest : public StreamLayerClientOnlineTest {
   std::shared_ptr<olp::cache::DefaultCache> disk_cache_;
   FlushSettings flush_settings_;
 };
+
+// Static network instance is necessary as it needs to outlive any created
+// clients. This is a known limitation as triggered send requests capture the
+// network instance inside the callbacks.
+std::shared_ptr<olp::http::Network> StreamLayerClientCacheOnlineTest::s_network;
 
 INSTANTIATE_TEST_SUITE_P(TestCacheOnline, StreamLayerClientCacheOnlineTest,
                          ::testing::Values(true));

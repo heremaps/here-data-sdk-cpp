@@ -199,11 +199,11 @@ NetworkCurl::~NetworkCurl() {
 }
 
 bool NetworkCurl::Initialize() {
+  std::lock_guard<std::mutex> init_lock(init_mutex_);
   if (state_ != WorkerState::STOPPED) {
     EDGE_SDK_LOG_DEBUG(kLogTag, "Already initialized");
     return true;
   }
-  std::lock_guard<std::mutex> init_lock(init_mutex_);
 
 #ifdef NETWORK_HAS_PIPE2
   if (pipe2(pipe_, O_NONBLOCK)) {
@@ -284,15 +284,10 @@ void NetworkCurl::Deinitialize() {
   }
 
   std::lock_guard<std::mutex> init_lock(init_mutex_);
+  // We should not destroy this thread from itself
   if (thread_.get_id() != std::this_thread::get_id()) {
     event_condition_.notify_all();
     thread_.join();
-  } else {
-    // We are trying to stop the very thread we are in. This is not recommended,
-    // but we try to handle it gracefully. This could happen by calling from one
-    // of the static functions (rxFunction or headerFunction) that was passed to
-    // the cURL as callbacks.
-    thread_.detach();
   }
 }
 
