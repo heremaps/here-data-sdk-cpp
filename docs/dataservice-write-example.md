@@ -77,7 +77,7 @@ Alternatively, you can use Android Studio IDE by opening the `build/examples/dat
 
 After you provide your app access key id, secret access key, catalog, and layer information, install and run `dataservice_write_example` APK, the main UI screen displays a message `Publish Successful`. If you encounter an error, please check the device's logcat for the error message.
 
-> **Note:** you can run `CMake` command directly from the `<olp-edge-sdk-root>/examples/dataservice-write/` folder if you have already built and installed HERE OLP Edge SDK C++ libraries for Android. Make sure you provide correct path to the `LevelDB` library, and correct `EDGE_SDK_NETWORK_PROTOCOL_JAR` parameter in the `CMake` command, invoked by the `build/examples/dataservice-write/android/app/build.gradle` script.
+> **Note:** you can run `CMake` command directly from the `<olp-edge-sdk-root>/examples/dataservice-write/` folder if you have already built and installed HERE OLP Edge SDK C++ libraries for Android. Make sure you provide correct path to the `LevelDB` library, and correct `EDGE_SDK_HTTP_CLIENT_JAR` parameter in the `CMake` command, invoked by the `build/examples/dataservice-write/android/app/build.gradle` script.
 
 ## Building and running on iOS
 

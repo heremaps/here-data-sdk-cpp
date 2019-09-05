@@ -35,30 +35,15 @@ if(CMAKE_HOST_WIN32 AND NOT WIN32)
     set(WIN32 TRUE)
 endif()
 
-# Generation of both version of EdgeNetworkProtocol.jar:
-#   - EdgeNetworkProtocol.jar, which uses old network implementation
-#   - EdgeHttpNetworkProtocol.jar, which uses new http network implementation
-# Currently across the SDK will be used the old version od EdgeNetworkProtocol.jar
-# In order to use the new http version of EdgeNetworkProtocol.jar, please pass
-# the EDGE_SDK_USE_HTTP_NETWORK_PROTOCOL=YES to your cmake configure command.
 set(CMAKE_JAVA_COMPILE_FLAGS -source 1.7 -target 1.7)
 set(CMAKE_JAR_CLASSES_PREFIX com/here/olp/network)
 
 include(${CMAKE_CURRENT_LIST_DIR}/GetAndroidVariables.cmake)
 get_android_jar_path(CMAKE_JAVA_INCLUDE_PATH SDK_ROOT ANDROID_PLATFORM)
 
-# Generating of both old network (EdgeNetworkProtocol.jar, based on the previous version of network)
-# and the new network (EdgeHttpClient, based on the http network implementation) jar archives.
-# By defaut the old implementation will be used across the SDK.
 set(EDGE_SDK_NETWORK_VERSION 0.0.1)
-
-set(EDGE_NETWORK_PROTOCOL_JAR EdgeNetworkProtocol)
 set(EDGE_SDK_ANDROID_HTTP_CLIENT_JAR EdgeHttpClient)
 
-add_jar(${EDGE_NETWORK_PROTOCOL_JAR}
-    SOURCES ${CMAKE_CURRENT_LIST_DIR}/../src/network/android/NetworkProtocol.java ${CMAKE_CURRENT_LIST_DIR}/../src/network/android/NetworkSSLContextFactory.java
-    VERSION ${EDGE_SDK_NETWORK_VERSION}
-)
 add_jar(${EDGE_SDK_ANDROID_HTTP_CLIENT_JAR}
     SOURCES ${CMAKE_CURRENT_LIST_DIR}/../src/http/android/HttpClient.java
     VERSION ${EDGE_SDK_NETWORK_VERSION}
@@ -67,9 +52,9 @@ add_jar(${EDGE_SDK_ANDROID_HTTP_CLIENT_JAR}
 # add_jar() doesn't add the symlink to the version automatically under Windows
 if (WIN32)
     include(SymlinkHelpers)
-    create_symlink_file_custom_command(${EDGE_NETWORK_PROTOCOL_JAR} POST_BUILD
-        ${CMAKE_CURRENT_BINARY_DIR}/${EDGE_NETWORK_PROTOCOL_JAR}-${NETWORK_VERSION}.jar
-        ${CMAKE_CURRENT_BINARY_DIR}/${EDGE_NETWORK_PROTOCOL_JAR}.jar)
+    create_symlink_file_custom_command(${EDGE_SDK_ANDROID_HTTP_CLIENT_JAR} POST_BUILD
+        ${CMAKE_CURRENT_BINARY_DIR}/${EDGE_SDK_ANDROID_HTTP_CLIENT_JAR}-${NETWORK_VERSION}.jar
+        ${CMAKE_CURRENT_BINARY_DIR}/${EDGE_SDK_ANDROID_HTTP_CLIENT_JAR}.jar)
 endif()
 
 if(FORCED_WIN32)

@@ -146,7 +146,7 @@ class NetworkAndroid : public Network,
     std::shared_ptr<RequestCompletion> completion;
   };
 
-  /// Response data, which is received from Java NetworkProtocol
+  /// Response data, which is received from HttpClient.java
   struct ResponseData {
     ResponseData() = default;
     ResponseData(RequestId id, Network::Callback callback, int status,
