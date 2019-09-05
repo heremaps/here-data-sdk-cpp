@@ -20,7 +20,7 @@
 #include "IndexApi.h"
 #include <iostream>
 
-#include <olp/core/network/HttpResponse.h>
+#include <olp/core/client/HttpResponse.h>
 // clang-format off
 // Ordering Required - Parser template specializations before JsonParser.h
 #include <generated/serializer/UpdateIndexRequestSerializer.h>
@@ -72,18 +72,17 @@ CancellationToken IndexApi::insertIndexes(
   auto data = std::make_shared<std::vector<unsigned char>>(
       serialized_indexes.begin(), serialized_indexes.end());
 
-  auto cancel_token =
-      client.CallApi(insert_indexes_uri, "POST", query_params, header_params,
-                     form_params, data, "application/json",
-                     [callback](network::HttpResponse http_response) {
-                       if (http_response.status > 201) {
-                         callback(InsertIndexesResponse(ApiError(
-                             http_response.status, http_response.response)));
-                         return;
-                       }
+  auto cancel_token = client.CallApi(
+      insert_indexes_uri, "POST", query_params, header_params, form_params,
+      data, "application/json", [callback](client::HttpResponse http_response) {
+        if (http_response.status > 201) {
+          callback(InsertIndexesResponse(
+              ApiError(http_response.status, http_response.response)));
+          return;
+        }
 
-                       callback(InsertIndexesResponse(ApiNoResult()));
-                     });
+        callback(InsertIndexesResponse(ApiNoResult()));
+      });
   return cancel_token;
 }
 
@@ -121,7 +120,7 @@ CancellationToken IndexApi::performUpdate(
 
   auto cancel_token = client.CallApi(
       update_indexes_uri, "PUT", query_params, header_params, form_params, data,
-      "application/json", [callback](network::HttpResponse http_response) {
+      "application/json", [callback](client::HttpResponse http_response) {
         if (http_response.status > 201) {
           callback(InsertIndexesResponse(
               ApiError(http_response.status, http_response.response)));

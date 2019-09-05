@@ -74,6 +74,7 @@ file(GLOB NETWORK_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/network/*.h"
 )
 set(EDGE_SDK_HTTP_HEADERS
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/HttpStatusCode.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/Network.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/NetworkConstants.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/NetworkProxySettings.h"

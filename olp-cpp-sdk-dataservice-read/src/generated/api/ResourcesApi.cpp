@@ -19,8 +19,8 @@
 
 #include "ResourcesApi.h"
 
+#include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
-#include <olp/core/network/HttpResponse.h>
 // clang-format off
 #include "generated/parser/ApiParser.h"
 #include <olp/core/generated/parser/JsonParser.h>
@@ -44,7 +44,7 @@ client::CancellationToken ResourcesApi::GetApis(
       "/resources/" + hrn + "/apis/" + service + "/" + service_version;
 
   client::NetworkAsyncCallback callback = [apisCallback](
-                                              network::HttpResponse response) {
+                                              client::HttpResponse response) {
     if (response.status != 200) {
       apisCallback(
           ApisResponse(client::ApiError(response.status, response.response)));

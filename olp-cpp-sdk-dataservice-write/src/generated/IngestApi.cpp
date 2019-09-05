@@ -21,8 +21,8 @@
 
 #include <map>
 
+#include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
-#include <olp/core/network/HttpResponse.h>
 
 #include <olp/dataservice/write/generated/model/ResponseOk.h>
 #include <olp/dataservice/write/generated/model/ResponseOkSingle.h>
@@ -89,7 +89,7 @@ client::CancellationToken IngestApi::IngestData(
 
   auto cancel_token = client.CallApi(
       ingest_uri, "POST", query_params, header_params, form_params, data,
-      content_type, [callback](network::HttpResponse http_response) {
+      content_type, [callback](client::HttpResponse http_response) {
         if (http_response.status != 200) {
           callback(IngestDataResponse{
               client::ApiError(http_response.status, http_response.response)});
@@ -146,7 +146,7 @@ client::CancellationToken IngestApi::IngestSDII(
   auto cancel_token = client.CallApi(
       ingest_uri, "POST", query_params, header_params, form_params,
       sdii_message_list, "application/x-protobuf",
-      [callback](network::HttpResponse http_response) {
+      [callback](client::HttpResponse http_response) {
         if (http_response.status != 200) {
           callback(IngestSdiiResponse(
               ApiError(http_response.status, http_response.response)));

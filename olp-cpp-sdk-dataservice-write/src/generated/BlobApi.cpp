@@ -18,7 +18,8 @@
  */
 
 #include "BlobApi.h"
-#include <olp/core/network/HttpResponse.h>
+
+#include <olp/core/client/HttpResponse.h>
 
 using namespace olp::client;
 
@@ -63,7 +64,7 @@ CancellationToken BlobApi::PutBlob(
 
   auto cancel_token = client.CallApi(
       put_blob_uri, "PUT", query_params, header_params, form_params, data,
-      content_type, [callback](network::HttpResponse http_response) {
+      content_type, [callback](client::HttpResponse http_response) {
         if (http_response.status != 200) {
           callback(PutBlobResponse(
               ApiError(http_response.status, http_response.response)));
@@ -95,7 +96,7 @@ CancellationToken BlobApi::deleteBlob(
   std::string delete_blob_uri = "/layers/" + layer_id + "/data/" + data_handle;
   auto cancel_token = client.CallApi(
       delete_blob_uri, "DELETE", query_params, header_params, form_params,
-      nullptr, "", [callback](network::HttpResponse http_response) {
+      nullptr, "", [callback](client::HttpResponse http_response) {
         if (http_response.status != 200 && http_response.status != 202) {
           callback(PutBlobResponse(
               ApiError(http_response.status, http_response.response)));
@@ -125,7 +126,7 @@ CancellationToken BlobApi::checkBlobExists(
   std::string check_blob_uri = "/layers/" + layer_id + "/data/" + data_handle;
   auto cancel_token = client.CallApi(
       check_blob_uri, "HEAD", query_params, header_params, form_params, nullptr,
-      "", [callback](network::HttpResponse http_response) {
+      "", [callback](client::HttpResponse http_response) {
         if (http_response.status == 200 || http_response.status == 404) {
           callback(CheckBlobRespone(http_response.status));
           return;

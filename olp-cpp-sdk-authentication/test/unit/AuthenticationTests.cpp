@@ -19,7 +19,7 @@
 
 #include "AuthenticationTests.h"
 
-#include "olp/core/network/HttpStatusCode.h"
+#include "olp/core/http/HttpStatusCode.h"
 
 TEST_F(AuthenticationOfflineTest, SignInClientData) {
   AuthenticationCredentials credentials(id_, secret_);
@@ -39,7 +39,7 @@ TEST_F(AuthenticationOfflineTest, SignInClientData) {
         }
         callback(olp::http::NetworkResponse()
                      .WithRequestId(request_id)
-                     .WithStatus(olp::network::HttpStatusCode::Ok));
+                     .WithStatus(olp::http::HttpStatusCode::OK));
         if (data_callback) {
           auto raw = const_cast<char*>(response_1.c_str());
           data_callback(reinterpret_cast<uint8_t*>(raw), 0, response_1.size());
@@ -165,11 +165,12 @@ TEST_F(AuthenticationOfflineTest, SignUpHereUserData) {
         }
         callback(olp::http::NetworkResponse()
                      .WithRequestId(request_id)
-                     .WithStatus(olp::network::HttpStatusCode::Created)
+                     .WithStatus(olp::http::HttpStatusCode::CREATED)
                      .WithError(ERROR_SIGNUP_CREATED));
         if (data_callback) {
           auto raw = const_cast<char*>(signup_here_user_response.c_str());
-          data_callback(reinterpret_cast<uint8_t*>(raw), 0, signup_here_user_response.size());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0,
+                        signup_here_user_response.size());
         }
 
         return olp::http::SendOutcome(request_id);
@@ -178,7 +179,7 @@ TEST_F(AuthenticationOfflineTest, SignUpHereUserData) {
   AuthenticationClient::SignUpResponse signUpResponse =
       SignUpUser("email@example.com");
   EXPECT_TRUE(signUpResponse.IsSuccessful());
-  EXPECT_EQ(olp::network::HttpStatusCode::Created,
+  EXPECT_EQ(olp::http::HttpStatusCode::CREATED,
             signUpResponse.GetResult().GetStatus());
   EXPECT_EQ(ERROR_SIGNUP_CREATED,
             signUpResponse.GetResult().GetErrorResponse().message);
@@ -203,11 +204,13 @@ TEST_F(AuthenticationOfflineTest, SignInUserDataFirstTime) {
         }
         callback(olp::http::NetworkResponse()
                      .WithRequestId(request_id)
-                     .WithStatus(olp::network::HttpStatusCode::PreconditionFailed)
-                 .WithError(ERROR_PRECONDITION_FAILED_MESSAGE));
+                     .WithStatus(olp::http::HttpStatusCode::PRECONDITION_FAILED)
+                     .WithError(ERROR_PRECONDITION_FAILED_MESSAGE));
         if (data_callback) {
-          auto raw = const_cast<char*>(user_signinuser_first_time_response.c_str());
-          data_callback(reinterpret_cast<uint8_t*>(raw), 0, user_signinuser_first_time_response.size());
+          auto raw =
+              const_cast<char*>(user_signinuser_first_time_response.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0,
+                        user_signinuser_first_time_response.size());
         }
 
         return olp::http::SendOutcome(request_id);
@@ -223,7 +226,7 @@ TEST_F(AuthenticationOfflineTest, SignInUserDataFirstTime) {
 
   AuthenticationClient::SignInUserResponse response = request_future.get();
   EXPECT_TRUE(response.IsSuccessful());
-  EXPECT_EQ(olp::network::HttpStatusCode::PreconditionFailed,
+  EXPECT_EQ(olp::http::HttpStatusCode::PRECONDITION_FAILED,
             response.GetResult().GetStatus());
   EXPECT_EQ(ERROR_PRECONDITION_FAILED_MESSAGE,
             response.GetResult().GetErrorResponse().message);
@@ -256,11 +259,12 @@ TEST_F(AuthenticationOfflineTest, AcceptTermsData) {
         }
         callback(olp::http::NetworkResponse()
                      .WithRequestId(request_id)
-                     .WithStatus(olp::network::HttpStatusCode::NoContent)
-                 .WithError(ERROR_NO_CONTENT));
+                     .WithStatus(olp::http::HttpStatusCode::NO_CONTENT)
+                     .WithError(ERROR_NO_CONTENT));
         if (data_callback) {
           auto raw = const_cast<char*>(response_no_content.c_str());
-          data_callback(reinterpret_cast<uint8_t*>(raw), 0, response_no_content.size());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0,
+                        response_no_content.size());
         }
 
         return olp::http::SendOutcome(request_id);
@@ -275,7 +279,7 @@ TEST_F(AuthenticationOfflineTest, AcceptTermsData) {
 
   AuthenticationClient::SignInUserResponse response = request_future.get();
   EXPECT_TRUE(response.IsSuccessful());
-  EXPECT_EQ(olp::network::HttpStatusCode::NoContent,
+  EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT,
             response.GetResult().GetStatus());
   EXPECT_EQ(ERROR_NO_CONTENT, response.GetResult().GetErrorResponse().message);
   EXPECT_TRUE(response.GetResult().GetAccessToken().empty());
@@ -307,11 +311,12 @@ TEST_F(AuthenticationOfflineTest, SignInHereUser) {
         }
         callback(olp::http::NetworkResponse()
                      .WithRequestId(request_id)
-                     .WithStatus(olp::network::HttpStatusCode::Ok)
-                 .WithError(ERROR_OK));
+                     .WithStatus(olp::http::HttpStatusCode::OK)
+                     .WithError(ERROR_OK));
         if (data_callback) {
           auto raw = const_cast<char*>(user_signin_response.c_str());
-          data_callback(reinterpret_cast<uint8_t*>(raw), 0, user_signin_response.size());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0,
+                        user_signin_response.size());
         }
 
         return olp::http::SendOutcome(request_id);
@@ -328,7 +333,7 @@ TEST_F(AuthenticationOfflineTest, SignInHereUser) {
 
   AuthenticationClient::SignInUserResponse response = request_future.get();
   EXPECT_TRUE(response.IsSuccessful());
-  EXPECT_EQ(olp::network::HttpStatusCode::Ok, response.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response.GetResult().GetStatus());
   EXPECT_EQ(ERROR_OK, response.GetResult().GetErrorResponse().message);
   EXPECT_FALSE(response.GetResult().GetAccessToken().empty());
   EXPECT_EQ("password_grant_token", response.GetResult().GetAccessToken());
@@ -357,11 +362,12 @@ TEST_F(AuthenticationOfflineTest, SignOutUser) {
         }
         callback(olp::http::NetworkResponse()
                      .WithRequestId(request_id)
-                     .WithStatus(olp::network::HttpStatusCode::NoContent)
-                 .WithError(ERROR_NO_CONTENT));
+                     .WithStatus(olp::http::HttpStatusCode::NO_CONTENT)
+                     .WithError(ERROR_NO_CONTENT));
         if (data_callback) {
           auto raw = const_cast<char*>(response_no_content.c_str());
-          data_callback(reinterpret_cast<uint8_t*>(raw), 0, response_no_content.size());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0,
+                        response_no_content.size());
         }
 
         return olp::http::SendOutcome(request_id);
@@ -394,7 +400,7 @@ TEST_F(AuthenticationOfflineTest, SignOutUser) {
   AuthenticationClient::SignOutUserResponse response = request_future.get();
   EXPECT_TRUE(response.IsSuccessful());
   SignOutResult s = response.GetResult();
-  EXPECT_EQ(olp::network::HttpStatusCode::NoContent, s.GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT, s.GetStatus());
   EXPECT_EQ(ERROR_NO_CONTENT, response.GetResult().GetErrorResponse().message);
 }
 
@@ -416,11 +422,12 @@ TEST_F(AuthenticationOfflineTest, SignInFacebookData) {
         }
         callback(olp::http::NetworkResponse()
                      .WithRequestId(request_id)
-                     .WithStatus(olp::network::HttpStatusCode::Ok)
-                 .WithError(ERROR_OK));
+                     .WithStatus(olp::http::HttpStatusCode::OK)
+                     .WithError(ERROR_OK));
         if (data_callback) {
           auto raw = const_cast<char*>(facebook_signin_response.c_str());
-          data_callback(reinterpret_cast<uint8_t*>(raw), 0, facebook_signin_response.size());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0,
+                        facebook_signin_response.size());
         }
 
         return olp::http::SendOutcome(request_id);
@@ -437,7 +444,7 @@ TEST_F(AuthenticationOfflineTest, SignInFacebookData) {
 
   AuthenticationClient::SignInUserResponse response = request_future.get();
   EXPECT_TRUE(response.IsSuccessful());
-  EXPECT_EQ(olp::network::HttpStatusCode::Ok, response.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response.GetResult().GetStatus());
   EXPECT_EQ(ERROR_OK, response.GetResult().GetErrorResponse().message);
   EXPECT_EQ("facebook_grant_token", response.GetResult().GetAccessToken());
   EXPECT_GE(now + MAX_EXPIRY, response.GetResult().GetExpiryTime());
@@ -473,11 +480,12 @@ TEST_F(AuthenticationOfflineTest, SignInGoogleData) {
         }
         callback(olp::http::NetworkResponse()
                      .WithRequestId(request_id)
-                     .WithStatus(olp::network::HttpStatusCode::Ok)
-                 .WithError(ERROR_OK));
+                     .WithStatus(olp::http::HttpStatusCode::OK)
+                     .WithError(ERROR_OK));
         if (data_callback) {
           auto raw = const_cast<char*>(google_signin_response.c_str());
-          data_callback(reinterpret_cast<uint8_t*>(raw), 0, google_signin_response.size());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0,
+                        google_signin_response.size());
         }
 
         return olp::http::SendOutcome(request_id);
@@ -494,7 +502,7 @@ TEST_F(AuthenticationOfflineTest, SignInGoogleData) {
 
   AuthenticationClient::SignInUserResponse response = request_future.get();
   EXPECT_TRUE(response.IsSuccessful());
-  EXPECT_EQ(olp::network::HttpStatusCode::Ok, response.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response.GetResult().GetStatus());
   EXPECT_EQ(ERROR_OK, response.GetResult().GetErrorResponse().message);
   EXPECT_EQ("google_grant_token", response.GetResult().GetAccessToken());
   EXPECT_GE(now + MAX_EXPIRY, response.GetResult().GetExpiryTime());
@@ -522,11 +530,12 @@ TEST_F(AuthenticationOfflineTest, SignInArcGisData) {
         }
         callback(olp::http::NetworkResponse()
                      .WithRequestId(request_id)
-                     .WithStatus(olp::network::HttpStatusCode::Ok)
-                 .WithError(ERROR_OK));
+                     .WithStatus(olp::http::HttpStatusCode::OK)
+                     .WithError(ERROR_OK));
         if (data_callback) {
           auto raw = const_cast<char*>(arcgis_signin_response.c_str());
-          data_callback(reinterpret_cast<uint8_t*>(raw), 0, arcgis_signin_response.size());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0,
+                        arcgis_signin_response.size());
         }
 
         return olp::http::SendOutcome(request_id);
@@ -543,7 +552,7 @@ TEST_F(AuthenticationOfflineTest, SignInArcGisData) {
 
   AuthenticationClient::SignInUserResponse response = request_future.get();
   EXPECT_TRUE(response.IsSuccessful());
-  EXPECT_EQ(olp::network::HttpStatusCode::Ok, response.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response.GetResult().GetStatus());
   EXPECT_EQ(ERROR_OK, response.GetResult().GetErrorResponse().message);
   EXPECT_EQ("arcgis_grant_token", response.GetResult().GetAccessToken());
   EXPECT_GE(now + MAX_EXPIRY, response.GetResult().GetExpiryTime());
@@ -579,11 +588,12 @@ TEST_F(AuthenticationOfflineTest, SignInRefreshData) {
         }
         callback(olp::http::NetworkResponse()
                      .WithRequestId(request_id)
-                     .WithStatus(olp::network::HttpStatusCode::Ok)
-                 .WithError(ERROR_OK));
+                     .WithStatus(olp::http::HttpStatusCode::OK)
+                     .WithError(ERROR_OK));
         if (data_callback) {
           auto raw = const_cast<char*>(refresh_signin_response.c_str());
-          data_callback(reinterpret_cast<uint8_t*>(raw), 0, refresh_signin_response.size());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0,
+                        refresh_signin_response.size());
         }
 
         return olp::http::SendOutcome(request_id);
@@ -600,7 +610,7 @@ TEST_F(AuthenticationOfflineTest, SignInRefreshData) {
 
   AuthenticationClient::SignInUserResponse response = request_future.get();
   EXPECT_TRUE(response.IsSuccessful());
-  EXPECT_EQ(olp::network::HttpStatusCode::Ok, response.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response.GetResult().GetStatus());
   EXPECT_EQ(ERROR_OK, response.GetResult().GetErrorResponse().message);
   EXPECT_FALSE(response.GetResult().GetAccessToken().empty());
   EXPECT_EQ("refresh_grant_token", response.GetResult().GetAccessToken());
@@ -636,21 +646,22 @@ TEST_F(AuthenticationOfflineTest, ErrorFieldsData) {
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .Times(3)
       .WillRepeatedly([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
-                    olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                          olp::http::Network::Payload payload,
+                          olp::http::Network::Callback callback,
+                          olp::http::Network::HeaderCallback header_callback,
+                          olp::http::Network::DataCallback data_callback) {
         olp::http::RequestId request_id(5);
         if (payload) {
           *payload << response_error_fields;
         }
         callback(olp::http::NetworkResponse()
                      .WithRequestId(request_id)
-                     .WithStatus(olp::network::HttpStatusCode::BadRequest)
-                 .WithError(ERROR_FIELDS_MESSAGE));
+                     .WithStatus(olp::http::HttpStatusCode::BAD_REQUEST)
+                     .WithError(ERROR_FIELDS_MESSAGE));
         if (data_callback) {
           auto raw = const_cast<char*>(response_error_fields.c_str());
-          data_callback(reinterpret_cast<uint8_t*>(raw), 0, response_error_fields.size());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0,
+                        response_error_fields.size());
         }
 
         return olp::http::SendOutcome(request_id);
@@ -666,7 +677,7 @@ TEST_F(AuthenticationOfflineTest, ErrorFieldsData) {
 
   AuthenticationClient::SignInUserResponse response = request_future.get();
   EXPECT_TRUE(response.IsSuccessful());
-  EXPECT_EQ(olp::network::HttpStatusCode::BadRequest,
+  EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
             response.GetResult().GetStatus());
   EXPECT_EQ(ERROR_FIEDS_CODE, response.GetResult().GetErrorResponse().code);
   EXPECT_EQ(ERROR_FIELDS_MESSAGE,
@@ -676,7 +687,7 @@ TEST_F(AuthenticationOfflineTest, ErrorFieldsData) {
   AuthenticationClient::SignOutUserResponse signOutResponse =
       SignOutUser("token");
   EXPECT_TRUE(signOutResponse.IsSuccessful());
-  EXPECT_EQ(olp::network::HttpStatusCode::BadRequest,
+  EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
             signOutResponse.GetResult().GetStatus());
   EXPECT_EQ(ERROR_FIEDS_CODE,
             signOutResponse.GetResult().GetErrorResponse().code);
@@ -686,7 +697,7 @@ TEST_F(AuthenticationOfflineTest, ErrorFieldsData) {
 
   AuthenticationClient::SignUpResponse signup_response = SignUpUser("email");
   EXPECT_TRUE(signup_response.IsSuccessful());
-  EXPECT_EQ(olp::network::HttpStatusCode::BadRequest,
+  EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
             signup_response.GetResult().GetStatus());
   EXPECT_EQ(ERROR_FIEDS_CODE,
             signup_response.GetResult().GetErrorResponse().code);
@@ -696,131 +707,126 @@ TEST_F(AuthenticationOfflineTest, ErrorFieldsData) {
 }
 
 TEST_F(AuthenticationOfflineTest, TestInvalidResponses) {
-  ExecuteSigninRequest(olp::network::HttpStatusCode::Ok,
-                       olp::network::HttpStatusCode::ServiceUnavailable,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::OK,
+                       olp::http::HttpStatusCode::SERVICE_UNAVAILABLE,
                        ERROR_SERVICE_UNAVAILABLE, response_invalid_json);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::Ok,
-                       olp::network::HttpStatusCode::ServiceUnavailable,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::OK,
+                       olp::http::HttpStatusCode::SERVICE_UNAVAILABLE,
                        ERROR_SERVICE_UNAVAILABLE, response_no_token);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::Ok,
-                       olp::network::HttpStatusCode::ServiceUnavailable,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::OK,
+                       olp::http::HttpStatusCode::SERVICE_UNAVAILABLE,
                        ERROR_SERVICE_UNAVAILABLE, response_no_token_type);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::Ok,
-                       olp::network::HttpStatusCode::ServiceUnavailable,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::OK,
+                       olp::http::HttpStatusCode::SERVICE_UNAVAILABLE,
                        ERROR_SERVICE_UNAVAILABLE, response_no_expiry);
 }
 
 TEST_F(AuthenticationOfflineTest, TestHttpRequestErrorCodes) {
-  ExecuteSigninRequest(olp::network::HttpStatusCode::Accepted,
-                       olp::network::HttpStatusCode::Accepted, ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::Created,
-                       olp::network::HttpStatusCode::Created, ERROR_UNDEFINED,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::ACCEPTED,
+                       olp::http::HttpStatusCode::ACCEPTED, ERROR_UNDEFINED);
+  ExecuteSigninRequest(olp::http::HttpStatusCode::CREATED,
+                       olp::http::HttpStatusCode::CREATED, ERROR_UNDEFINED,
                        response_created);
-  ExecuteSigninRequest(
-      olp::network::HttpStatusCode::NonAuthoritativeInformation,
-      olp::network::HttpStatusCode::NonAuthoritativeInformation,
-      ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::NoContent,
-                       olp::network::HttpStatusCode::NoContent, ERROR_UNDEFINED,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::NON_AUTHORITATIVE_INFORMATION,
+                       olp::http::HttpStatusCode::NON_AUTHORITATIVE_INFORMATION,
+                       ERROR_UNDEFINED);
+  ExecuteSigninRequest(olp::http::HttpStatusCode::NO_CONTENT,
+                       olp::http::HttpStatusCode::NO_CONTENT, ERROR_UNDEFINED,
                        response_no_content);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::ResetContent,
-                       olp::network::HttpStatusCode::ResetContent,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::RESET_CONTENT,
+                       olp::http::HttpStatusCode::RESET_CONTENT,
                        ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::PartialContent,
-                       olp::network::HttpStatusCode::PartialContent,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::PARTIAL_CONTENT,
+                       olp::http::HttpStatusCode::PARTIAL_CONTENT,
                        ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::MultipleChoices,
-                       olp::network::HttpStatusCode::MultipleChoices,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::MULTIPLE_CHOICES,
+                       olp::http::HttpStatusCode::MULTIPLE_CHOICES,
                        ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::MovedPermanently,
-                       olp::network::HttpStatusCode::MovedPermanently,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::MOVED_PERMANENTLY,
+                       olp::http::HttpStatusCode::MOVED_PERMANENTLY,
                        ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::Found,
-                       olp::network::HttpStatusCode::Found, ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::SeeOther,
-                       olp::network::HttpStatusCode::SeeOther, ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::NotModified,
-                       olp::network::HttpStatusCode::NotModified,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::FOUND,
+                       olp::http::HttpStatusCode::FOUND, ERROR_UNDEFINED);
+  ExecuteSigninRequest(olp::http::HttpStatusCode::SEE_OTHER,
+                       olp::http::HttpStatusCode::SEE_OTHER, ERROR_UNDEFINED);
+  ExecuteSigninRequest(olp::http::HttpStatusCode::NOT_MODIFIED,
+                       olp::http::HttpStatusCode::NOT_MODIFIED,
                        ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::UseProxy,
-                       olp::network::HttpStatusCode::UseProxy, ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::BadRequest,
-                       olp::network::HttpStatusCode::BadRequest,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::USE_PROXY,
+                       olp::http::HttpStatusCode::USE_PROXY, ERROR_UNDEFINED);
+  ExecuteSigninRequest(olp::http::HttpStatusCode::BAD_REQUEST,
+                       olp::http::HttpStatusCode::BAD_REQUEST,
                        ERROR_BAD_REQUEST_MESSAGE, response_bad_request,
                        ERROR_BAD_REQUEST_CODE);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::Unauthorized,
-                       olp::network::HttpStatusCode::Unauthorized,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::UNAUTHORIZED,
+                       olp::http::HttpStatusCode::UNAUTHORIZED,
                        ERROR_UNAUTHORIZED_MESSAGE, response_unauthorized,
                        ERROR_UNAUTHORIZED_CODE);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::PaymentRequired,
-                       olp::network::HttpStatusCode::PaymentRequired,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::PAYMENT_REQUIRED,
+                       olp::http::HttpStatusCode::PAYMENT_REQUIRED,
                        ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::NotFound,
-                       olp::network::HttpStatusCode::NotFound,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::NOT_FOUND,
+                       olp::http::HttpStatusCode::NOT_FOUND,
                        ERROR_USER_NOT_FOUND, response_not_found,
                        ERROR_NOT_FOUND_CODE);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::MethodNotAllowed,
-                       olp::network::HttpStatusCode::MethodNotAllowed,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::METHOD_NOT_ALLOWED,
+                       olp::http::HttpStatusCode::METHOD_NOT_ALLOWED,
                        ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::Forbidden,
-                       olp::network::HttpStatusCode::Forbidden,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::FORBIDDEN,
+                       olp::http::HttpStatusCode::FORBIDDEN, ERROR_UNDEFINED);
+  ExecuteSigninRequest(olp::http::HttpStatusCode::NOT_ACCEPTABLE,
+                       olp::http::HttpStatusCode::NOT_ACCEPTABLE,
                        ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::NotAcceptable,
-                       olp::network::HttpStatusCode::NotAcceptable,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::PROXY_AUTHENTICATION_REQUIRED,
+                       olp::http::HttpStatusCode::PROXY_AUTHENTICATION_REQUIRED,
+                       ERROR_UNDEFINED);
+  ExecuteSigninRequest(olp::http::HttpStatusCode::REQUEST_TIMEOUT,
+                       olp::http::HttpStatusCode::REQUEST_TIMEOUT,
                        ERROR_UNDEFINED);
   ExecuteSigninRequest(
-      olp::network::HttpStatusCode::ProxyAuthenticationRequired,
-      olp::network::HttpStatusCode::ProxyAuthenticationRequired,
-      ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::RequestTimeout,
-                       olp::network::HttpStatusCode::RequestTimeout,
+      olp::http::HttpStatusCode::CONFLICT, olp::http::HttpStatusCode::CONFLICT,
+      ERROR_CONFLICT_MESSAGE, response_conflict, ERROR_CONFLICT_CODE);
+  ExecuteSigninRequest(olp::http::HttpStatusCode::GONE,
+                       olp::http::HttpStatusCode::GONE, ERROR_UNDEFINED);
+  ExecuteSigninRequest(olp::http::HttpStatusCode::LENGTH_REQUIRED,
+                       olp::http::HttpStatusCode::LENGTH_REQUIRED,
                        ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::Conflict,
-                       olp::network::HttpStatusCode::Conflict,
-                       ERROR_CONFLICT_MESSAGE, response_conflict,
-                       ERROR_CONFLICT_CODE);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::Gone,
-                       olp::network::HttpStatusCode::Gone, ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::LengthRequired,
-                       olp::network::HttpStatusCode::LengthRequired,
-                       ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::PreconditionFailed,
-                       olp::network::HttpStatusCode::PreconditionFailed,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::PRECONDITION_FAILED,
+                       olp::http::HttpStatusCode::PRECONDITION_FAILED,
                        ERROR_PRECONDITION_FAILED_MESSAGE,
                        response_precodition_failed);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::RequestEntityTooLarge,
-                       olp::network::HttpStatusCode::RequestEntityTooLarge,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::REQUEST_ENTITY_TOO_LARGE,
+                       olp::http::HttpStatusCode::REQUEST_ENTITY_TOO_LARGE,
                        ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::RequestUriTooLong,
-                       olp::network::HttpStatusCode::RequestUriTooLong,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::REQUEST_URI_TOO_LONG,
+                       olp::http::HttpStatusCode::REQUEST_URI_TOO_LONG,
                        ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::UnsupportedMediaType,
-                       olp::network::HttpStatusCode::UnsupportedMediaType,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::UNSUPPORTED_MEDIA_TYPE,
+                       olp::http::HttpStatusCode::UNSUPPORTED_MEDIA_TYPE,
                        ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::TooManyRequests,
-                       olp::network::HttpStatusCode::TooManyRequests,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::TOO_MANY_REQUESTS,
+                       olp::http::HttpStatusCode::TOO_MANY_REQUESTS,
                        ERROR_TOO_MANY_REQUESTS_MESSAGE,
                        response_too_many_requests,
                        ERROR_TOO_MANY_REQUESTS_CODE);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::InternalServerError,
-                       olp::network::HttpStatusCode::InternalServerError,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::INTERNAL_SERVER_ERROR,
+                       olp::http::HttpStatusCode::INTERNAL_SERVER_ERROR,
                        ERROR_INTERNAL_SERVER_MESSAGE,
                        response_internal_server_error,
                        ERROR_INTERNAL_SERVER_CODE);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::NotImplemented,
-                       olp::network::HttpStatusCode::NotImplemented,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::NOT_IMPLEMENTED,
+                       olp::http::HttpStatusCode::NOT_IMPLEMENTED,
                        ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::BadGateway,
-                       olp::network::HttpStatusCode::BadGateway,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::BAD_GATEWAY,
+                       olp::http::HttpStatusCode::BAD_GATEWAY, ERROR_UNDEFINED);
+  ExecuteSigninRequest(olp::http::HttpStatusCode::SERVICE_UNAVAILABLE,
+                       olp::http::HttpStatusCode::SERVICE_UNAVAILABLE,
                        ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::ServiceUnavailable,
-                       olp::network::HttpStatusCode::ServiceUnavailable,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::GATEWAY_TIMEOUT,
+                       olp::http::HttpStatusCode::GATEWAY_TIMEOUT,
                        ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::GatewayTimeout,
-                       olp::network::HttpStatusCode::GatewayTimeout,
-                       ERROR_UNDEFINED);
-  ExecuteSigninRequest(olp::network::HttpStatusCode::VersionNotSupported,
-                       olp::network::HttpStatusCode::VersionNotSupported,
+  ExecuteSigninRequest(olp::http::HttpStatusCode::VERSION_NOT_SUPPORTED,
+                       olp::http::HttpStatusCode::VERSION_NOT_SUPPORTED,
                        ERROR_UNDEFINED);
   ExecuteSigninRequest(100000, 100000, ERROR_UNDEFINED);
   ExecuteSigninRequest(-100000, -100000, ERROR_UNDEFINED);
@@ -831,7 +837,7 @@ TEST_F(AuthenticationOnlineTest, SignInClient) {
   std::time_t now;
   AuthenticationClient::SignInClientResponse response =
       SignInClient(credentials, now, EXPIRY_TIME);
-  EXPECT_EQ(olp::network::HttpStatusCode::Ok, response.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response.GetResult().GetStatus());
   EXPECT_STREQ(ERROR_OK.c_str(),
                response.GetResult().GetErrorResponse().message.c_str());
   EXPECT_FALSE(response.GetResult().GetAccessToken().empty());
@@ -844,8 +850,7 @@ TEST_F(AuthenticationOnlineTest, SignInClient) {
   now = std::time(nullptr);
   AuthenticationClient::SignInClientResponse response_2 =
       SignInClient(credentials, now, EXTENDED_EXPIRY_TIME);
-  EXPECT_EQ(olp::network::HttpStatusCode::Ok,
-            response_2.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response_2.GetResult().GetStatus());
   EXPECT_FALSE(response_2.GetResult().GetAccessToken().empty());
   EXPECT_GE(now + MAX_EXTENDED_EXPIRY, response_2.GetResult().GetExpiryTime());
   EXPECT_LT(now + MIN_EXTENDED_EXPIRY, response_2.GetResult().GetExpiryTime());
@@ -856,8 +861,7 @@ TEST_F(AuthenticationOnlineTest, SignInClient) {
   now = std::time(nullptr);
   AuthenticationClient::SignInClientResponse response_3 =
       SignInClient(credentials, now, CUSTOM_EXPIRY_TIME);
-  EXPECT_EQ(olp::network::HttpStatusCode::Ok,
-            response_3.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response_3.GetResult().GetStatus());
   EXPECT_FALSE(response_3.GetResult().GetAccessToken().empty());
   EXPECT_GE(now + MAX_CUSTOM_EXPIRY, response_3.GetResult().GetExpiryTime());
   EXPECT_LT(now + MIN_CUSTOM_EXPIRY, response_3.GetResult().GetExpiryTime());
@@ -873,7 +877,7 @@ TEST_F(AuthenticationOnlineTest, SignInClientMaxExpiration) {
   std::time_t now;
   AuthenticationClient::SignInClientResponse response =
       SignInClient(credentials, now);
-  EXPECT_EQ(olp::network::HttpStatusCode::Ok, response.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response.GetResult().GetStatus());
   EXPECT_FALSE(response.GetResult().GetAccessToken().empty());
   EXPECT_STREQ(ERROR_OK.c_str(),
                response.GetResult().GetErrorResponse().message.c_str());
@@ -883,8 +887,7 @@ TEST_F(AuthenticationOnlineTest, SignInClientMaxExpiration) {
   // Test token expiration greater than 24h
   AuthenticationClient::SignInClientResponse response_2 =
       SignInClient(credentials, now, 90000);
-  EXPECT_EQ(olp::network::HttpStatusCode::Ok,
-            response_2.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response_2.GetResult().GetStatus());
   EXPECT_FALSE(response_2.GetResult().GetAccessToken().empty());
   EXPECT_GE(now + MAX_LIMIT_EXPIRY, response_2.GetResult().GetExpiryTime());
   EXPECT_LT(now + MIN_LIMIT_EXPIRY, response_2.GetResult().GetExpiryTime());
@@ -899,7 +902,7 @@ TEST_F(AuthenticationOnlineTest, InvalidCredentials) {
   std::time_t now;
   AuthenticationClient::SignInClientResponse response =
       SignInClient(credentials, now);
-  EXPECT_EQ(olp::network::HttpStatusCode::Unauthorized,
+  EXPECT_EQ(olp::http::HttpStatusCode::UNAUTHORIZED,
             response.GetResult().GetStatus());
   EXPECT_EQ(ERROR_UNAUTHORIZED_CODE,
             response.GetResult().GetErrorResponse().code);
@@ -928,14 +931,14 @@ TEST_F(AuthenticationOnlineTest, SignUpInUser) {
   std::cout << "Creating account for: " << email << std::endl;
 
   AuthenticationClient::SignUpResponse signUpResponse = SignUpUser(email);
-  EXPECT_EQ(olp::network::HttpStatusCode::Created,
+  EXPECT_EQ(olp::http::HttpStatusCode::CREATED,
             signUpResponse.GetResult().GetStatus());
   EXPECT_EQ(ERROR_SIGNUP_CREATED,
             signUpResponse.GetResult().GetErrorResponse().message);
   EXPECT_FALSE(signUpResponse.GetResult().GetUserIdentifier().empty());
 
   AuthenticationClient::SignInUserResponse response = SignInUser(email);
-  EXPECT_EQ(olp::network::HttpStatusCode::PreconditionFailed,
+  EXPECT_EQ(olp::http::HttpStatusCode::PRECONDITION_FAILED,
             response.GetResult().GetStatus());
   EXPECT_EQ(ERROR_PRECONDITION_FAILED_CODE,
             response.GetResult().GetErrorResponse().code);
@@ -952,7 +955,7 @@ TEST_F(AuthenticationOnlineTest, SignUpInUser) {
   EXPECT_FALSE(response.GetResult().GetPrivatePolicyUrlJson().empty());
 
   AuthenticationClient::SignInUserResponse response2 = AcceptTerms(response);
-  EXPECT_EQ(olp::network::HttpStatusCode::NoContent,
+  EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT,
             response2.GetResult().GetStatus());
   EXPECT_EQ(ERROR_NO_CONTENT, response2.GetResult().GetErrorResponse().message);
   EXPECT_TRUE(response2.GetResult().GetAccessToken().empty());
@@ -966,8 +969,7 @@ TEST_F(AuthenticationOnlineTest, SignUpInUser) {
   EXPECT_TRUE(response2.GetResult().GetPrivatePolicyUrlJson().empty());
 
   AuthenticationClient::SignInUserResponse response3 = SignInUser(email);
-  EXPECT_EQ(olp::network::HttpStatusCode::Ok,
-            response3.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response3.GetResult().GetStatus());
   EXPECT_STREQ(ERROR_OK.c_str(),
                response3.GetResult().GetErrorResponse().message.c_str());
   EXPECT_FALSE(response3.GetResult().GetAccessToken().empty());
@@ -982,11 +984,11 @@ TEST_F(AuthenticationOnlineTest, SignUpInUser) {
 
   AuthenticationUtils::DeleteUserResponse response4 =
       DeleteUser(response3.GetResult().GetAccessToken());
-  EXPECT_EQ(olp::network::HttpStatusCode::NoContent, response4.status);
+  EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT, response4.status);
   EXPECT_STREQ(ERROR_NO_CONTENT.c_str(), response4.error.c_str());
 
   AuthenticationClient::SignInUserResponse response5 = SignInUser(email);
-  EXPECT_EQ(olp::network::HttpStatusCode::Unauthorized,
+  EXPECT_EQ(olp::http::HttpStatusCode::UNAUTHORIZED,
             response5.GetResult().GetStatus());
   EXPECT_EQ(ERROR_ACCOUNT_NOT_FOUND_CODE,
             response5.GetResult().GetErrorResponse().code);
@@ -1052,14 +1054,14 @@ TEST_F(AuthenticationOnlineTest, SignInRefresh) {
   std::cout << "Creating account for: " << email << std::endl;
 
   AuthenticationClient::SignUpResponse signUpResponse = SignUpUser(email);
-  EXPECT_EQ(olp::network::HttpStatusCode::Created,
+  EXPECT_EQ(olp::http::HttpStatusCode::CREATED,
             signUpResponse.GetResult().GetStatus());
   EXPECT_EQ(ERROR_SIGNUP_CREATED,
             signUpResponse.GetResult().GetErrorResponse().message);
   EXPECT_FALSE(signUpResponse.GetResult().GetUserIdentifier().empty());
 
   AuthenticationClient::SignInUserResponse response = SignInUser(email);
-  EXPECT_EQ(olp::network::HttpStatusCode::PreconditionFailed,
+  EXPECT_EQ(olp::http::HttpStatusCode::PRECONDITION_FAILED,
             response.GetResult().GetStatus());
   EXPECT_EQ(ERROR_PRECONDITION_FAILED_CODE,
             response.GetResult().GetErrorResponse().code);
@@ -1076,7 +1078,7 @@ TEST_F(AuthenticationOnlineTest, SignInRefresh) {
   EXPECT_FALSE(response.GetResult().GetPrivatePolicyUrlJson().empty());
 
   AuthenticationClient::SignInUserResponse response2 = AcceptTerms(response);
-  EXPECT_EQ(olp::network::HttpStatusCode::NoContent,
+  EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT,
             response2.GetResult().GetStatus());
   EXPECT_EQ(ERROR_NO_CONTENT, response2.GetResult().GetErrorResponse().message);
   EXPECT_TRUE(response2.GetResult().GetAccessToken().empty());
@@ -1090,8 +1092,7 @@ TEST_F(AuthenticationOnlineTest, SignInRefresh) {
   EXPECT_TRUE(response2.GetResult().GetPrivatePolicyUrlJson().empty());
 
   AuthenticationClient::SignInUserResponse response3 = SignInUser(email);
-  EXPECT_EQ(olp::network::HttpStatusCode::Ok,
-            response3.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response3.GetResult().GetStatus());
   EXPECT_EQ(ERROR_OK, response3.GetResult().GetErrorResponse().message);
   EXPECT_FALSE(response3.GetResult().GetAccessToken().empty());
   EXPECT_FALSE(response3.GetResult().GetTokenType().empty());
@@ -1106,8 +1107,7 @@ TEST_F(AuthenticationOnlineTest, SignInRefresh) {
   AuthenticationClient::SignInUserResponse response4 =
       SignInRefesh(response3.GetResult().GetAccessToken(),
                    response3.GetResult().GetRefreshToken());
-  EXPECT_EQ(olp::network::HttpStatusCode::Ok,
-            response4.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response4.GetResult().GetStatus());
   EXPECT_EQ(ERROR_OK, response4.GetResult().GetErrorResponse().message);
   EXPECT_FALSE(response4.GetResult().GetAccessToken().empty());
   EXPECT_FALSE(response4.GetResult().GetTokenType().empty());
@@ -1121,7 +1121,7 @@ TEST_F(AuthenticationOnlineTest, SignInRefresh) {
 
   AuthenticationClient::SignInUserResponse response5 =
       SignInRefesh("12345", response3.GetResult().GetRefreshToken());
-  EXPECT_EQ(olp::network::HttpStatusCode::Unauthorized,
+  EXPECT_EQ(olp::http::HttpStatusCode::UNAUTHORIZED,
             response5.GetResult().GetStatus());
   EXPECT_EQ(ERROR_REFRESH_FAILED_CODE,
             response5.GetResult().GetErrorResponse().code);
@@ -1130,11 +1130,11 @@ TEST_F(AuthenticationOnlineTest, SignInRefresh) {
 
   AuthenticationUtils::DeleteUserResponse response6 =
       DeleteUser(response4.GetResult().GetAccessToken());
-  EXPECT_EQ(olp::network::HttpStatusCode::NoContent, response6.status);
+  EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT, response6.status);
   EXPECT_STREQ(ERROR_NO_CONTENT.c_str(), response6.error.c_str());
 
   AuthenticationClient::SignInUserResponse response7 = SignInUser(email);
-  EXPECT_EQ(olp::network::HttpStatusCode::Unauthorized,
+  EXPECT_EQ(olp::http::HttpStatusCode::UNAUTHORIZED,
             response7.GetResult().GetStatus());
   EXPECT_EQ(ERROR_ACCOUNT_NOT_FOUND_CODE,
             response7.GetResult().GetErrorResponse().code);
@@ -1151,12 +1151,12 @@ TEST_F(AuthenticationOnlineTest, SignInRefreshCancel) {
 
   AuthenticationClient::SignInUserResponse response = SignInUser(email);
   EXPECT_TRUE(response.IsSuccessful());
-  EXPECT_EQ(olp::network::HttpStatusCode::PreconditionFailed,
+  EXPECT_EQ(olp::http::HttpStatusCode::PRECONDITION_FAILED,
             response.GetResult().GetStatus());
 
   AuthenticationClient::SignInUserResponse response2 = AcceptTerms(response);
   EXPECT_TRUE(response2.IsSuccessful());
-  EXPECT_EQ(olp::network::HttpStatusCode::NoContent,
+  EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT,
             response2.GetResult().GetStatus());
 
   AuthenticationClient::SignInUserResponse response3 = SignInUser(email);
@@ -1178,14 +1178,14 @@ TEST_F(AuthenticationOnlineTest, SignOutUser) {
   std::cout << "Creating account for: " << email << std::endl;
 
   AuthenticationClient::SignUpResponse signUpResponse = SignUpUser(email);
-  EXPECT_EQ(olp::network::HttpStatusCode::Created,
+  EXPECT_EQ(olp::http::HttpStatusCode::CREATED,
             signUpResponse.GetResult().GetStatus());
   EXPECT_EQ(ERROR_SIGNUP_CREATED,
             signUpResponse.GetResult().GetErrorResponse().message);
   EXPECT_FALSE(signUpResponse.GetResult().GetUserIdentifier().empty());
 
   AuthenticationClient::SignInUserResponse response = SignInUser(email);
-  EXPECT_EQ(olp::network::HttpStatusCode::PreconditionFailed,
+  EXPECT_EQ(olp::http::HttpStatusCode::PRECONDITION_FAILED,
             response.GetResult().GetStatus());
   EXPECT_EQ(ERROR_PRECONDITION_FAILED_CODE,
             response.GetResult().GetErrorResponse().code);
@@ -1193,28 +1193,27 @@ TEST_F(AuthenticationOnlineTest, SignOutUser) {
             response.GetResult().GetErrorResponse().message);
 
   AuthenticationClient::SignInUserResponse response2 = AcceptTerms(response);
-  EXPECT_EQ(olp::network::HttpStatusCode::NoContent,
+  EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT,
             response2.GetResult().GetStatus());
   EXPECT_STREQ(ERROR_NO_CONTENT.c_str(),
                response2.GetResult().GetErrorResponse().message.c_str());
 
   AuthenticationClient::SignInUserResponse response3 = SignInUser(email);
-  EXPECT_EQ(olp::network::HttpStatusCode::Ok,
-            response3.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response3.GetResult().GetStatus());
   EXPECT_STREQ(ERROR_OK.c_str(),
                response3.GetResult().GetErrorResponse().message.c_str());
 
   AuthenticationClient::SignOutUserResponse signOutResponse =
       SignOutUser(response3.GetResult().GetAccessToken());
   EXPECT_TRUE(signOutResponse.IsSuccessful());
-  EXPECT_EQ(olp::network::HttpStatusCode::NoContent,
+  EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT,
             signOutResponse.GetResult().GetStatus());
   EXPECT_EQ(ERROR_NO_CONTENT,
             signOutResponse.GetResult().GetErrorResponse().message);
 
   AuthenticationUtils::DeleteUserResponse response4 =
       DeleteUser(response3.GetResult().GetAccessToken());
-  EXPECT_EQ(olp::network::HttpStatusCode::NoContent, response4.status);
+  EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT, response4.status);
   EXPECT_STREQ(ERROR_NO_CONTENT.c_str(), response4.error.c_str());
 }
 
@@ -1239,7 +1238,7 @@ TEST_F(AuthenticationOnlineTest, NetworkProxySettings) {
 
 TEST_F(FacebookAuthenticationOnlineTest, SignInFacebook) {
   AuthenticationClient::SignInUserResponse response = SignInFacebook();
-  EXPECT_EQ(olp::network::HttpStatusCode::Created,
+  EXPECT_EQ(olp::http::HttpStatusCode::CREATED,
             response.GetResult().GetStatus());
   EXPECT_EQ(ERROR_PRECONDITION_CREATED_CODE,
             response.GetResult().GetErrorResponse().code);
@@ -1256,7 +1255,7 @@ TEST_F(FacebookAuthenticationOnlineTest, SignInFacebook) {
   EXPECT_FALSE(response.GetResult().GetPrivatePolicyUrlJson().empty());
 
   AuthenticationClient::SignInUserResponse response2 = AcceptTerms(response);
-  EXPECT_EQ(olp::network::HttpStatusCode::NoContent,
+  EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT,
             response2.GetResult().GetStatus());
   EXPECT_EQ(ERROR_NO_CONTENT, response2.GetResult().GetErrorResponse().message);
   EXPECT_TRUE(response2.GetResult().GetAccessToken().empty());
@@ -1270,8 +1269,7 @@ TEST_F(FacebookAuthenticationOnlineTest, SignInFacebook) {
   EXPECT_TRUE(response2.GetResult().GetPrivatePolicyUrlJson().empty());
 
   AuthenticationClient::SignInUserResponse response3 = SignInFacebook();
-  EXPECT_EQ(olp::network::HttpStatusCode::Ok,
-            response3.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response3.GetResult().GetStatus());
   EXPECT_EQ(ERROR_OK, response3.GetResult().GetErrorResponse().message);
   EXPECT_FALSE(response3.GetResult().GetAccessToken().empty());
   EXPECT_FALSE(response3.GetResult().GetTokenType().empty());
@@ -1285,12 +1283,12 @@ TEST_F(FacebookAuthenticationOnlineTest, SignInFacebook) {
 
   AuthenticationUtils::DeleteUserResponse response4 =
       DeleteUser(response3.GetResult().GetAccessToken());
-  EXPECT_EQ(olp::network::HttpStatusCode::NoContent, response4.status);
+  EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT, response4.status);
   EXPECT_STREQ(ERROR_NO_CONTENT.c_str(), response4.error.c_str());
 
   // SignIn with invalid token
   AuthenticationClient::SignInUserResponse response5 = SignInFacebook("12345");
-  EXPECT_EQ(olp::network::HttpStatusCode::Unauthorized,
+  EXPECT_EQ(olp::http::HttpStatusCode::UNAUTHORIZED,
             response5.GetResult().GetStatus());
   EXPECT_EQ(ERROR_FB_FAILED_CODE,
             response5.GetResult().GetErrorResponse().code);
@@ -1317,7 +1315,7 @@ TEST_F(GoogleAuthenticationOnlineTest, SignInGoogle) {
 
   AuthenticationClient::SignInUserResponse response =
       SignInGoogleUser(email, testUser.access_token);
-  EXPECT_EQ(olp::network::HttpStatusCode::Created,
+  EXPECT_EQ(olp::http::HttpStatusCode::CREATED,
             response.GetResult().GetStatus());
   EXPECT_EQ(ERROR_PRECONDITION_CREATED_CODE,
             response.GetResult().GetErrorResponse().code);
@@ -1337,7 +1335,7 @@ TEST_F(GoogleAuthenticationOnlineTest, SignInGoogle) {
             << response.GetResult().GetTermAcceptanceToken() << std::endl;
 
   AuthenticationClient::SignInUserResponse response2 = AcceptTerms(response);
-  EXPECT_EQ(olp::network::HttpStatusCode::NoContent,
+  EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT,
             response2.GetResult().GetStatus());
   EXPECT_STREQ(ERROR_NO_CONTENT.c_str(),
                response2.GetResult().GetErrorResponse().message.c_str());
@@ -1353,8 +1351,7 @@ TEST_F(GoogleAuthenticationOnlineTest, SignInGoogle) {
 
   AuthenticationClient::SignInUserResponse response3 =
       SignInGoogleUser(email, testUser.access_token);
-  EXPECT_EQ(olp::network::HttpStatusCode::Ok,
-            response3.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response3.GetResult().GetStatus());
   EXPECT_STREQ(ERROR_OK.c_str(),
                response3.GetResult().GetErrorResponse().message.c_str());
   EXPECT_FALSE(response3.GetResult().GetAccessToken().empty());
@@ -1370,20 +1367,20 @@ TEST_F(GoogleAuthenticationOnlineTest, SignInGoogle) {
   AuthenticationClient::SignOutUserResponse signOutResponse =
       SignOutUser(response3.GetResult().GetAccessToken());
   EXPECT_TRUE(signOutResponse.IsSuccessful());
-  // EXPECT_EQ(olp::network::HttpStatusCode::NoContent,
+  // EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT,
   // signOutResponse.GetResult().GetStatus());
   // EXPECT_EQ(ERROR_NO_CONTENT.c_str(),
   //          signOutResponse.GetResult().GetErrorResponse().message);
 
   AuthenticationUtils::DeleteUserResponse response4 =
       DeleteUser(response3.GetResult().GetAccessToken());
-  EXPECT_EQ(olp::network::HttpStatusCode::NoContent, response4.status);
+  EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT, response4.status);
   EXPECT_STREQ(ERROR_NO_CONTENT.c_str(), response4.error.c_str());
 
   // SignIn with invalid token
   AuthenticationClient::SignInUserResponse response5 =
       SignInGoogleUser(email, "12345");
-  EXPECT_EQ(olp::network::HttpStatusCode::Unauthorized,
+  EXPECT_EQ(olp::http::HttpStatusCode::UNAUTHORIZED,
             response5.GetResult().GetStatus());
   EXPECT_TRUE(response5.GetResult().GetAccessToken().empty());
   EXPECT_TRUE(response5.GetResult().GetTokenType().empty());
@@ -1403,7 +1400,7 @@ TEST_F(ArcGisAuthenticationOnlineTest, SignInArcGis) {
   std::cout << "Creating account for: " << email << std::endl;
 
   AuthenticationClient::SignInUserResponse response = SignInArcGis(email);
-  EXPECT_EQ(olp::network::HttpStatusCode::Created,
+  EXPECT_EQ(olp::http::HttpStatusCode::CREATED,
             response.GetResult().GetStatus());
   EXPECT_EQ(ERROR_PRECONDITION_CREATED_CODE,
             response.GetResult().GetErrorResponse().code);
@@ -1420,7 +1417,7 @@ TEST_F(ArcGisAuthenticationOnlineTest, SignInArcGis) {
   EXPECT_FALSE(response.GetResult().GetPrivatePolicyUrlJson().empty());
 
   AuthenticationClient::SignInUserResponse response2 = AcceptTerms(response);
-  EXPECT_EQ(olp::network::HttpStatusCode::NoContent,
+  EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT,
             response2.GetResult().GetStatus());
   EXPECT_EQ(ERROR_NO_CONTENT, response2.GetResult().GetErrorResponse().message);
   EXPECT_TRUE(response2.GetResult().GetAccessToken().empty());
@@ -1435,8 +1432,7 @@ TEST_F(ArcGisAuthenticationOnlineTest, SignInArcGis) {
 
   AuthenticationClient::AuthenticationClient::SignInUserResponse response3 =
       SignInArcGis(email);
-  EXPECT_EQ(olp::network::HttpStatusCode::Ok,
-            response3.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response3.GetResult().GetStatus());
   EXPECT_EQ(ERROR_OK, response3.GetResult().GetErrorResponse().message);
   EXPECT_FALSE(response3.GetResult().GetAccessToken().empty());
   EXPECT_FALSE(response3.GetResult().GetTokenType().empty());
@@ -1450,13 +1446,13 @@ TEST_F(ArcGisAuthenticationOnlineTest, SignInArcGis) {
 
   AuthenticationUtils::DeleteUserResponse response4 =
       DeleteUser(response3.GetResult().GetAccessToken());
-  EXPECT_EQ(olp::network::HttpStatusCode::NoContent, response4.status);
+  EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT, response4.status);
   EXPECT_STREQ(ERROR_NO_CONTENT.c_str(), response4.error.c_str());
 
   // SignIn with invalid token
   AuthenticationClient::SignInUserResponse response5 =
       SignInArcGis(email, "12345");
-  EXPECT_EQ(olp::network::HttpStatusCode::Unauthorized,
+  EXPECT_EQ(olp::http::HttpStatusCode::UNAUTHORIZED,
             response5.GetResult().GetStatus());
   EXPECT_EQ(ERROR_ARCGIS_FAILED_CODE,
             response5.GetResult().GetErrorResponse().code);
@@ -1477,7 +1473,7 @@ TEST_F(AuthenticationOnlineTest, ErrorFields) {
   AuthenticationClient::SignUpResponse signUpResponse =
       SignUpUser("a/*<@test.com", "password");
   EXPECT_TRUE(signUpResponse.IsSuccessful());
-  EXPECT_EQ(olp::network::HttpStatusCode::BadRequest,
+  EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
             signUpResponse.GetResult().GetStatus());
   EXPECT_EQ(ERROR_FIEDS_CODE,
             signUpResponse.GetResult().GetErrorResponse().code);

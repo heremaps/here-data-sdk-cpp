@@ -20,8 +20,8 @@
 #include "PlatformApi.h"
 
 #include <olp/core/client/ApiError.h>
+#include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
-#include <olp/core/network/HttpResponse.h>
 
 // clang-format off
 #include "generated/parser/ApiParser.h"
@@ -42,7 +42,7 @@ client::CancellationToken PlatformApi::GetApis(
   std::string platformUrl = "/platform/apis/" + service + "/" + serviceVersion;
 
   client::NetworkAsyncCallback callback = [apisCallback](
-                                              network::HttpResponse response) {
+                                              client::HttpResponse response) {
     if (response.status != 200) {
       apisCallback(
           ApisResponse(client::ApiError(response.status, response.response)));

@@ -27,7 +27,7 @@
 
 #include "olp/core/client/CancellationToken.h"
 #include "olp/core/http/Network.h"
-#include "olp/core/network/HttpResponse.h"
+#include "olp/core/client/HttpResponse.h"
 #include "olp/core/network/NetworkProxy.h"
 
 namespace olp {
@@ -48,7 +48,6 @@ struct HttpResponse;
 
 namespace client {
 
-using HttpResponse = olp::network::HttpResponse;
 using NetworkAsyncCallback = std::function<void(HttpResponse)>;
 using NetworkAsyncCancel = std::function<void()>;
 

@@ -43,7 +43,8 @@ ApiRepository::ApiRepository(
       settings_(settings),
       cache_(std::make_shared<ApiCacheRepository>(hrn, cache)) {
   ApiClientResponse cancelledResponse{
-      {olp::network::Network::ErrorCode::Cancelled, "Operation cancelled."}};
+      {static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+       "Operation cancelled."}};
   multiRequestContext_ = std::make_shared<
       MultiRequestContext<ApiClientResponse, ApiClientCallback>>(
       cancelledResponse);
