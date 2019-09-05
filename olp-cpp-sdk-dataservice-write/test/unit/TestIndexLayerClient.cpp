@@ -136,9 +136,15 @@ class IndexLayerClientTestBase : public ::testing::TestWithParam<bool> {
 
 class IndexLayerClientOnlineTest : public IndexLayerClientTestBase {
  protected:
-  virtual std::shared_ptr<IndexLayerClient> CreateIndexLayerClient() override {
-    auto network = olp::client::OlpClientSettingsFactory::
+  static std::shared_ptr<olp::http::Network> s_network;
+
+  static void SetUpTestSuite() {
+    s_network = olp::client::OlpClientSettingsFactory::
         CreateDefaultNetworkRequestHandler();
+  }
+
+  virtual std::shared_ptr<IndexLayerClient> CreateIndexLayerClient() override {
+    auto network = s_network;
 
     olp::authentication::Settings authentication_settings;
     authentication_settings.token_endpoint_url =
@@ -160,6 +166,11 @@ class IndexLayerClientOnlineTest : public IndexLayerClientTestBase {
         olp::client::HRN{GetTestCatalog()}, settings);
   }
 };
+
+// Static network instance is necessary as it needs to outlive any created
+// clients. This is a known limitation as triggered send requests capture the
+// network instance inside the callbacks.
+std::shared_ptr<olp::http::Network> IndexLayerClientOnlineTest::s_network;
 
 INSTANTIATE_TEST_SUITE_P(TestOnline, IndexLayerClientOnlineTest,
                          ::testing::Values(true));
