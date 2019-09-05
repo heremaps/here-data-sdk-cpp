@@ -1,7 +1,10 @@
 language: cpp
 os: linux
 dist: xenial
-env: WORKSPACE=$TRAVIS_BUILD_DIR
+env:
+  global:
+  - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
+  - WORKSPACE=$TRAVIS_BUILD_DIR
 addons:
   apt:
     packages:
