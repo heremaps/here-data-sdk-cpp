@@ -320,7 +320,7 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
                                            url_components.lpszScheme));
     auto& connection = http_connections_[server];
     if (!connection) {
-      connection = std::make_shared<ConnectionData>(shared_from_this());
+      connection = std::make_shared<ConnectionData>(this);
       INTERNET_PORT port = url_components.nPort;
       if (port == 0) {
         port = (url_components.nScheme == INTERNET_SCHEME_HTTPS)
@@ -862,9 +862,7 @@ NetworkWinHttp::Run(LPVOID arg) {
 }
 
 void NetworkWinHttp::CompletionThread() {
-  std::shared_ptr<NetworkWinHttp> that = shared_from_this();
-
-  while (that->http_session_) {
+  while (http_session_) {
     std::shared_ptr<ResultData> result;
     {
       if (http_session_ && results_.empty()) {
@@ -912,7 +910,15 @@ void NetworkWinHttp::CompletionThread() {
                      .WithRequestId(result->request_id)
                      .WithStatus(status));
       }
+
+      if (result->completed) {
+        auto it = http_requests_.find(result->request_id);
+        if (it != http_requests_.end()) {
+          http_requests_.erase(it);
+        }
+      }
     }
+
     if (http_session_ && !http_connections_.empty()) {
       // Check for timeouted connections
       std::unique_lock<std::recursive_mutex> lock(mutex_);
@@ -945,9 +951,8 @@ NetworkWinHttp::ResultData::ResultData(RequestId id, Network::Callback callback,
       completed(false),
       cancelled(false) {}
 
-NetworkWinHttp::ConnectionData::ConnectionData(
-    std::shared_ptr<NetworkWinHttp> owner)
-    : self(std::move(owner)), http_connection(NULL) {}
+NetworkWinHttp::ConnectionData::ConnectionData(NetworkWinHttp* owner)
+    : self(owner), http_connection(NULL) {}
 
 NetworkWinHttp::ConnectionData::~ConnectionData() {
   if (http_connection) {
@@ -982,7 +987,7 @@ NetworkWinHttp::RequestData::~RequestData() {
 }
 
 void NetworkWinHttp::RequestData::Complete() {
-  std::shared_ptr<NetworkWinHttp> that = connection_data->self;
+  auto that = connection_data->self;
   {
     std::unique_lock<std::recursive_mutex> lock(that->mutex_);
     that->results_.push(result_data);
@@ -991,7 +996,7 @@ void NetworkWinHttp::RequestData::Complete() {
 }
 
 void NetworkWinHttp::RequestData::FreeHandle() {
-  std::shared_ptr<NetworkWinHttp> that = connection_data->self;
+  auto that = connection_data->self;
   {
     std::unique_lock<std::recursive_mutex> lock(that->mutex_);
     that->http_requests_.erase(request_id);
