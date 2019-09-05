@@ -1790,9 +1790,6 @@ class StreamLayerClientCacheMockTest : public StreamLayerClientMockTest {
 
   void FlushDataOnSettingSuccessAssertions(
       const boost::optional<int>& max_events_per_flush = boost::none) {
-    disk_cache_->Close();
-    flush_settings_.events_per_single_flush = max_events_per_flush;
-    client_ = CreateStreamLayerClient();
     for (int i = 0; i < 5; i++) {
       data_->push_back(' ');
       data_->push_back(i);
@@ -2156,6 +2153,10 @@ TEST_P(StreamLayerClientCacheMockTest, FlushDataMaxEventsDefaultSetting) {
 }
 
 TEST_P(StreamLayerClientCacheMockTest, FlushDataMaxEventsValidCustomSetting) {
+  const int max_events_per_flush = 3;
+  disk_cache_->Close();
+  flush_settings_.events_per_single_flush = max_events_per_flush;
+  client_ = CreateStreamLayerClient();
   {
     testing::InSequence dummy;
 
@@ -2169,10 +2170,15 @@ TEST_P(StreamLayerClientCacheMockTest, FlushDataMaxEventsValidCustomSetting) {
         .Times(3);
   }
 
-  ASSERT_NO_FATAL_FAILURE(FlushDataOnSettingSuccessAssertions(3));
+  ASSERT_NO_FATAL_FAILURE(
+      FlushDataOnSettingSuccessAssertions(max_events_per_flush));
 }
 
 TEST_P(StreamLayerClientCacheMockTest, FlushDataMaxEventsInvalidCustomSetting) {
+  const int max_events_per_flush = -3;
+  disk_cache_->Close();
+  flush_settings_.events_per_single_flush = max_events_per_flush;
+  client_ = CreateStreamLayerClient();
   {
     testing::InSequence dummy;
 
@@ -2186,7 +2192,8 @@ TEST_P(StreamLayerClientCacheMockTest, FlushDataMaxEventsInvalidCustomSetting) {
         .Times(0);
   }
 
-  ASSERT_NO_FATAL_FAILURE(FlushDataOnSettingSuccessAssertions(-3));
+  ASSERT_NO_FATAL_FAILURE(
+      FlushDataOnSettingSuccessAssertions(max_events_per_flush));
 }
 
 TEST_P(StreamLayerClientCacheMockTest, FlushSettingsTimeSinceOldRequest) {
