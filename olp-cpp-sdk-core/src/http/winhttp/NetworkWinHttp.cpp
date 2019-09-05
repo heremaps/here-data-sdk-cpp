@@ -912,6 +912,7 @@ void NetworkWinHttp::CompletionThread() {
       }
 
       if (result->completed) {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
         auto it = http_requests_.find(result->request_id);
         if (it != http_requests_.end()) {
           http_requests_.erase(it);
