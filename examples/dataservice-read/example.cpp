@@ -121,23 +121,34 @@ bool HandleDataResponse(
 }  // namespace
 
 int RunExample() {
+  // Create a task scheduler instance
+  std::shared_ptr<olp::thread::TaskScheduler> task_scheduler =
+      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
+
+  // Create a network client
+  std::shared_ptr<olp::http::Network> http_client = olp::client::
+      OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
+
+  // Initialize authentication settings
+  olp::authentication::Settings settings;
+  settings.task_scheduler = task_scheduler;
+  settings.network_request_handler = http_client;
+
   // Setup AuthenticationSettings with a default token provider that will
   // retrieve an OAuth 2.0 token from OLP.
   olp::client::AuthenticationSettings auth_settings;
-  auth_settings.provider =
-      olp::authentication::TokenProviderDefault(kKeyId, kKeySecret);
+  auth_settings.provider = olp::authentication::TokenProviderDefault(
+      kKeyId, kKeySecret, std::move(settings));
 
   // Setup OlpClientSettings and provide it to the CatalogClient.
-  auto settings = std::make_shared<olp::client::OlpClientSettings>();
-  settings->authentication_settings = auth_settings;
-  settings->task_scheduler = std::move(
-      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u));
-  settings->network_request_handler = olp::client::OlpClientSettingsFactory::
-      CreateDefaultNetworkRequestHandler();
+  auto client_settings = std::make_shared<olp::client::OlpClientSettings>();
+  client_settings->authentication_settings = auth_settings;
+  client_settings->task_scheduler = std::move(task_scheduler);
+  client_settings->network_request_handler = std::move(http_client);
 
   // Create a CatalogClient with appropriate HRN and settings.
   auto service_client = std::make_unique<olp::dataservice::read::CatalogClient>(
-      olp::client::HRN(kCatalogHRN), settings);
+      olp::client::HRN(kCatalogHRN), std::move(client_settings));
 
   std::string first_layer_id;
   {  // Retrieve the catalog metadata
