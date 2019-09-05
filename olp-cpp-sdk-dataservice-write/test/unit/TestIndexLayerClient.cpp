@@ -24,6 +24,7 @@
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+#include <olp/core/network/Network.h>
 
 #include <olp/dataservice/write/IndexLayerClient.h>
 #include <olp/dataservice/write/model/PublishIndexRequest.h>
@@ -64,8 +65,8 @@ template <typename T>
 void PublishCancelledAssertions(
     const olp::client::ApiResponse<T, olp::client::ApiError>& result) {
   EXPECT_FALSE(result.IsSuccessful());
-  EXPECT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(result.GetError().GetHttpStatusCode()));
+  EXPECT_EQ(olp::http::ErrorCode::CANCELLED_ERROR,
+            result.GetError().GetHttpStatusCode());
   EXPECT_EQ(olp::client::ErrorCode::Cancelled,
             result.GetError().GetErrorCode());
   EXPECT_EQ("Cancelled", result.GetError().GetMessage());

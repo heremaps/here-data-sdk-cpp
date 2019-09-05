@@ -17,10 +17,11 @@
  * License-Filename: LICENSE
  */
 #include "FacebookTestUtils.h"
+#include <olp/core/http/HttpStatusCode.h>
+#include <olp/core/http/Network.h>
+#include <olp/core/http/NetworkRequest.h>
+#include <olp/core/http/NetworkResponse.h>
 #include <olp/core/logging/Log.h>
-#include <olp/core/network/Network.h>
-#include <olp/core/network/NetworkRequest.h>
-#include <olp/core/network/NetworkResponse.h>
 #include <olp/core/porting/make_unique.h>
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
@@ -36,37 +37,28 @@
 
 #include <iostream>
 
-using namespace std;
-using namespace rapidjson;
-using namespace olp::network;
+namespace {
+// constexpr auto USER_PERMISIONS = "email";
+constexpr auto kInstalledStatus = "true";
 
-const static string USER_PERMISIONS = "email";
-const static string INSTALLED_STATUS = "true";
+constexpr auto kTestUserPath = "/accounts/test-users";
+constexpr auto kFacebookUrl = "https://graph.facebook.com/v2.12";
 
-const static string TEST_USER_PATH = "/accounts/test-users";
-const static string FACEBOOK_URL = "https://graph.facebook.com/v2.12";
-
-const static string INSTALLED = "installed";
-const static string NAME = "name";
-const static string PERMISSIONS = "permissions";
-const static string ID = "id";
+constexpr auto kInstalled = "installed";
+constexpr auto kName = "name";
+constexpr auto kPermissions = "permissions";
+constexpr auto kId = "id";
+}  // namespace
 
 namespace olp {
+namespace http {
+class Network;
+class NetworkSettings;
+}  // namespace http
+
 namespace authentication {
 class FacebookTestUtils::Impl {
  public:
-  class ScopedNetwork {
-   public:
-    ScopedNetwork() : network() { network.Start(); }
-
-    Network& getNetwork() { return network; }
-
-   private:
-    Network network;
-  };
-
-  using ScopedNetworkPtr = std::shared_ptr<ScopedNetwork>;
-
   /**
    * @brief Constructor
    * @param token_cache_limit Maximum number of tokens that will be cached.
@@ -75,49 +67,38 @@ class FacebookTestUtils::Impl {
 
   virtual ~Impl() = default;
 
-  bool createFacebookTestUser(FacebookUser& user, std::string permissions);
-  bool deleteFacebookTestUser(std::string user_id);
-
- private:
-  ScopedNetworkPtr getScopedNetwork();
-
- private:
-  std::weak_ptr<ScopedNetwork> networkPtr;
-  std::mutex networkPtrLock;
+  bool createFacebookTestUser(
+      http::Network& network,
+      const olp::http::NetworkSettings& network_settings, FacebookUser& user,
+      std::string permissions);
+  bool deleteFacebookTestUser(
+      olp::http::Network& network,
+      const olp::http::NetworkSettings& network_settings,
+      const std::string& user_id);
 };
 
-FacebookTestUtils::Impl::ScopedNetworkPtr
-FacebookTestUtils::Impl::getScopedNetwork() {
-  lock_guard<mutex> lock(networkPtrLock);
-  auto netPtr = networkPtr.lock();
-  if (netPtr) return netPtr;
-
-  auto result = make_shared<ScopedNetwork>();
-  networkPtr = result;
-  return result;
-}
-
-bool FacebookTestUtils::Impl::createFacebookTestUser(FacebookUser& user,
-                                                     string permissions) {
-  string url = FACEBOOK_URL + "/" +
-               CustomParameters::getArgument("facebook_app_id") +
-               TEST_USER_PATH;
+bool FacebookTestUtils::Impl::createFacebookTestUser(
+    olp::http::Network& network,
+    const olp::http::NetworkSettings& network_settings, FacebookUser& user,
+    std::string permissions) {
+  std::string url = std::string() + kFacebookUrl + "/" +
+                    CustomParameters::getArgument("facebook_app_id") +
+                    kTestUserPath;
   ;
   url.append(QUESTION_PARAM);
   url.append(ACCESS_TOKEN + EQUALS_PARAM +
              CustomParameters::getArgument("facebook_access_token"));
   url.append(AND_PARAM);
-  url.append(INSTALLED + EQUALS_PARAM + INSTALLED_STATUS);
+  url.append(kInstalled + EQUALS_PARAM + kInstalledStatus);
   url.append(AND_PARAM);
-  url.append(NAME + EQUALS_PARAM + TEST_USER_NAME);
+  url.append(kName + EQUALS_PARAM + TEST_USER_NAME);
   if (!permissions.empty()) {
     url.append(AND_PARAM);
-    url.append(PERMISSIONS + EQUALS_PARAM + permissions);
+    url.append(kPermissions + EQUALS_PARAM + permissions);
   }
-  NetworkRequest request(url, 0, NetworkRequest::PriorityDefault,
-                         NetworkRequest::HttpVerb::POST);
-
-  auto networkPtr = getScopedNetwork();
+  olp::http::NetworkRequest request(url);
+  request.WithVerb(http::NetworkRequest::HttpVerb::POST);
+  request.WithSettings(network_settings);
 
   unsigned int retry = 0u;
   do {
@@ -128,26 +109,26 @@ bool FacebookTestUtils::Impl::createFacebookTestUser(FacebookUser& user,
           std::chrono::seconds(retry * RETRY_DELAY_SECS));
     }
 
-    shared_ptr<stringstream> payload = make_shared<stringstream>();
+    auto payload = std::make_shared<std::stringstream>();
 
     std::promise<void> promise;
     auto future = promise.get_future();
-    networkPtr->getNetwork().Send(
+    network.Send(
         request, payload,
-        [networkPtr, payload, &promise,
-         &user](const NetworkResponse& network_response) {
-          user.status = network_response.Status();
-          if (user.status == 200) {
-            shared_ptr<Document> document = make_shared<Document>();
-            IStreamWrapper stream(*payload.get());
+        [payload, &promise,
+         &user](const olp::http::NetworkResponse& network_response) {
+          user.status = network_response.GetStatus();
+          if (user.status == olp::http::HttpStatusCode::OK) {
+            auto document = std::make_shared<rapidjson::Document>();
+            rapidjson::IStreamWrapper stream(*payload.get());
             document->ParseStream(stream);
             bool is_valid = !document->HasParseError() &&
                             document->HasMember(ACCESS_TOKEN.c_str()) &&
-                            document->HasMember(ID.c_str());
+                            document->HasMember(kId);
 
             if (is_valid) {
               user.access_token = (*document)[ACCESS_TOKEN.c_str()].GetString();
-              user.id = (*document)[ID.c_str()].GetString();
+              user.id = (*document)[kId].GetString();
             }
           }
           promise.set_value();
@@ -158,15 +139,16 @@ bool FacebookTestUtils::Impl::createFacebookTestUser(FacebookUser& user,
   return !user.id.empty() && !user.access_token.empty();
 }
 
-bool FacebookTestUtils::Impl::deleteFacebookTestUser(string user_id) {
-  string url = FACEBOOK_URL + "/" + user_id;
+bool FacebookTestUtils::Impl::deleteFacebookTestUser(
+    http::Network& network, const olp::http::NetworkSettings& network_settings,
+    const std::string& user_id) {
+  std::string url = std::string() + kFacebookUrl + "/" + user_id;
   url.append(QUESTION_PARAM);
   url.append(ACCESS_TOKEN + EQUALS_PARAM +
              CustomParameters::getArgument("facebook_access_token"));
-  NetworkRequest request(url, 0, NetworkRequest::PriorityDefault,
-                         NetworkRequest::HttpVerb::DEL);
-
-  auto networkPtr = getScopedNetwork();
+  olp::http::NetworkRequest request(url);
+  request.WithVerb(http::NetworkRequest::HttpVerb::DEL);
+  request.WithSettings(network_settings);
 
   int status = 0;
   unsigned int retry = 0u;
@@ -178,20 +160,20 @@ bool FacebookTestUtils::Impl::deleteFacebookTestUser(string user_id) {
           std::chrono::seconds(retry * RETRY_DELAY_SECS));
     }
 
-    shared_ptr<stringstream> payload = make_shared<stringstream>();
+    auto payload = std::make_shared<std::stringstream>();
 
     std::promise<void> promise;
     auto future = promise.get_future();
-    networkPtr->getNetwork().Send(request, payload,
-                                  [networkPtr, payload, &promise, &status](
-                                      const NetworkResponse& network_response) {
-                                    status = network_response.Status();
-                                    promise.set_value();
-                                  });
+    network.Send(request, payload,
+                 [payload, &promise,
+                  &status](const olp::http::NetworkResponse& network_response) {
+                   status = network_response.GetStatus();
+                   promise.set_value();
+                 });
     future.wait();
   } while ((status < 0) && (++retry < MAX_RETRY_COUNT));
 
-  return (status == 200);
+  return (status == olp::http::HttpStatusCode::OK);
 }
 
 FacebookTestUtils::FacebookTestUtils()
@@ -199,13 +181,17 @@ FacebookTestUtils::FacebookTestUtils()
 
 FacebookTestUtils::~FacebookTestUtils() = default;
 
-bool FacebookTestUtils::createFacebookTestUser(FacebookUser& user,
-                                               string permissions) {
-  return impl_->createFacebookTestUser(user, permissions);
+bool FacebookTestUtils::createFacebookTestUser(
+    http::Network& network, const olp::http::NetworkSettings& network_settings,
+    FacebookUser& user, const std::string& permissions) {
+  return impl_->createFacebookTestUser(network, network_settings, user,
+                                       permissions);
 }
 
-bool FacebookTestUtils::deleteFacebookTestUser(string user_id) {
-  return impl_->deleteFacebookTestUser(user_id);
+bool FacebookTestUtils::deleteFacebookTestUser(
+    olp::http::Network& network,
+    const olp::http::NetworkSettings& network_settings, std::string user_id) {
+  return impl_->deleteFacebookTestUser(network, network_settings, user_id);
 }
 
 }  // namespace authentication

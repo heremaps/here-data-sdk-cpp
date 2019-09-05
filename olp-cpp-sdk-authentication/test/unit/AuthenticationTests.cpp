@@ -21,6 +21,8 @@
 
 #include "olp/core/http/HttpStatusCode.h"
 
+std::shared_ptr<olp::http::Network> AuthenticationOnlineTest::s_network_;
+
 TEST_F(AuthenticationOfflineTest, SignInClientData) {
   AuthenticationCredentials credentials(id_, secret_);
   std::promise<AuthenticationClient::SignInClientResponse> request;

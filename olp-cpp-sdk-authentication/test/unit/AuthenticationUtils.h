@@ -24,6 +24,12 @@
 #include <string>
 
 namespace olp {
+
+namespace http {
+class Network;
+class NetworkSettings;
+}  // namespace http
+
 namespace authentication {
 /**
  * @brief Authetication Utils
@@ -40,7 +46,9 @@ class AuthenticationUtils {
 
   typedef std::function<void(const DeleteUserResponse& response)> UserCallback;
 
-  void deleteHereUser(const std::string& user_bearer_token,
+  void deleteHereUser(olp::http::Network& network,
+                      const olp::http::NetworkSettings& network_settings,
+                      const std::string& user_bearer_token,
                       const UserCallback& callback);
 
  private:

@@ -22,6 +22,12 @@
 #include <string>
 
 namespace olp {
+
+namespace http {
+class Network;
+class NetworkSettings;
+}  // namespace http
+
 namespace authentication {
 class FacebookTestUtils {
  public:
@@ -33,8 +39,13 @@ class FacebookTestUtils {
 
   FacebookTestUtils();
   virtual ~FacebookTestUtils();
-  bool createFacebookTestUser(FacebookUser& user, std::string permissions);
-  bool deleteFacebookTestUser(std::string user_id);
+  bool createFacebookTestUser(
+      olp::http::Network& network,
+      const olp::http::NetworkSettings& network_settings, FacebookUser& user,
+      const std::string& permissions);
+  bool deleteFacebookTestUser(
+      http::Network& network,
+      const olp::http::NetworkSettings& network_settings, std::string user_id);
 
  private:
   class Impl;
