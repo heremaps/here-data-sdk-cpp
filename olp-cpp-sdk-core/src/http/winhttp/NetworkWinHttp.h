@@ -41,8 +41,7 @@ namespace http {
 /**
  * @brief The NetworkWinHttp class is implementation of Network.
  */
-class NetworkWinHttp : public Network,
-                       public std::enable_shared_from_this<NetworkWinHttp> {
+class NetworkWinHttp : public Network {
  public:
   NetworkWinHttp();
   ~NetworkWinHttp() override;
@@ -81,9 +80,9 @@ class NetworkWinHttp : public Network,
   };
 
   struct ConnectionData {
-    explicit ConnectionData(std::shared_ptr<NetworkWinHttp> owner);
+    explicit ConnectionData(NetworkWinHttp* owner);
     ~ConnectionData();
-    std::shared_ptr<NetworkWinHttp> self;
+    NetworkWinHttp* self;
     HINTERNET http_connection;
     ULONGLONG last_used;
   };
