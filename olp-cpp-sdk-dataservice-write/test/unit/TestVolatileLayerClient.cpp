@@ -24,6 +24,7 @@
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+#include <olp/core/network/Network.h>
 
 #include <olp/dataservice/write/VolatileLayerClient.h>
 #include <olp/dataservice/write/model/PublishPartitionDataRequest.h>

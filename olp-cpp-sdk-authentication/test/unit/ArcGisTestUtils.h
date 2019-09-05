@@ -22,6 +22,12 @@
 #include <string>
 
 namespace olp {
+
+namespace http {
+class Network;
+class NetworkSettings;
+}  // namespace http
+
 namespace authentication {
 class ArcGisTestUtils {
  public:
@@ -32,7 +38,9 @@ class ArcGisTestUtils {
 
   ArcGisTestUtils();
   virtual ~ArcGisTestUtils();
-  bool getAccessToken(ArcGisUser& user);
+  bool getAccessToken(http::Network& network,
+                      const olp::http::NetworkSettings& network_settings,
+                      ArcGisUser& user);
 
  private:
   class Impl;

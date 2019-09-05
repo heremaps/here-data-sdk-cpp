@@ -22,8 +22,7 @@
 #include <string>
 
 #include "AuthenticationApi.h"
-#include "olp/core/client/ErrorCode.h"
-#include "olp/core/network/Network.h"
+#include "olp/core/http/HttpStatusCode.h"
 
 namespace olp {
 namespace authentication {
@@ -35,7 +34,7 @@ class AUTHENTICATION_API AuthenticationError {
   AuthenticationError() = default;
 
   AuthenticationError(int network_code, const std::string& message)
-      : error_code_(GetErrorForNetworkErrorCode(network_code))
+      : error_code_(http::HttpStatusCode::GetErrorCode(network_code))
       , message_(message)
       , is_retryable_(IsRetryableNetworkCode(network_code)) {}
 
@@ -55,38 +54,11 @@ class AUTHENTICATION_API AuthenticationError {
   inline bool ShouldRetry() const { return is_retryable_; }
 
  private:
-  static client::ErrorCode GetErrorForNetworkErrorCode(int network_code) {
-    switch (network_code) {
-      case network::Network::ErrorCode::IOError:
-        return client::ErrorCode::NetworkConnection;
-
-      case network::Network::ErrorCode::InvalidURLError:
-        return client::ErrorCode::NotFound;
-
-      case network::Network::ErrorCode::Offline:
-        return client::ErrorCode::ServiceUnavailable;
-
-      case network::Network::ErrorCode::Cancelled:
-        return client::ErrorCode::Cancelled;
-
-      case network::Network::ErrorCode::AuthorizationError:
-      case network::Network::ErrorCode::AuthenticationError:
-        return client::ErrorCode::AccessDenied;
-
-      case network::Network::ErrorCode::TimedOut:
-        return client::ErrorCode::RequestTimeout;
-
-      case network::Network::ErrorCode::UnknownError:
-      default:
-        return client::ErrorCode::Unknown;
-    }
-  }
-
   static bool IsRetryableNetworkCode(int network_code) {
-    switch (network_code) {
-      case network::Network::ErrorCode::Offline:
-      case network::Network::ErrorCode::Cancelled:
-      case network::Network::ErrorCode::TimedOut:
+    switch (static_cast<olp::http::ErrorCode>(network_code)) {
+      case olp::http::ErrorCode::OFFLINE_ERROR:
+      case olp::http::ErrorCode::CANCELLED_ERROR:
+      case olp::http::ErrorCode::TIMEOUT_ERROR:
         return true;
       default:
         return false;

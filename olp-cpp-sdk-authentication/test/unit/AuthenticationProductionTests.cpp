@@ -48,20 +48,30 @@ using namespace olp::authentication;
 
 class AuthenticationOnlineProductionTest : public ::testing::Test {
  public:
+  static void SetUpTestSuite() {
+    s_network_ = olp::client::OlpClientSettingsFactory::
+        CreateDefaultNetworkRequestHandler(1);
+  }
+
+  static void TearDownTestSuite() { s_network_.reset(); }
+
   void SetUp() override {
     // Use production HERE Account server
     client = std::make_unique<AuthenticationClient>();
     client->SetTaskScheduler(
         olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler());
-    client->SetNetwork(
-        olp::client::OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler());
+    client->SetNetwork(s_network_);
   }
 
   void TearDown() override { client.reset(); }
 
  public:
   std::unique_ptr<AuthenticationClient> client;
+
+  static std::shared_ptr<olp::http::Network> s_network_;
 };
+
+std::shared_ptr<olp::http::Network> AuthenticationOnlineProductionTest::s_network_;
 
 TEST_F(AuthenticationOnlineProductionTest, SignInClient) {
   AuthenticationCredentials credentials(

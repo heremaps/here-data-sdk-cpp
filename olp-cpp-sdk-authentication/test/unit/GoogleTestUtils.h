@@ -22,6 +22,12 @@
 #include <string>
 
 namespace olp {
+
+namespace http {
+class Network;
+class NetworkSettings;
+}  // namespace http
+
 namespace authentication {
 class GoogleTestUtils {
  public:
@@ -33,7 +39,9 @@ class GoogleTestUtils {
   GoogleTestUtils();
   virtual ~GoogleTestUtils();
 
-  bool getAccessToken(GoogleUser& user);
+  bool getAccessToken(http::Network& network,
+                      const olp::http::NetworkSettings& network_settings,
+                      GoogleUser& user);
 
  private:
   class Impl;
