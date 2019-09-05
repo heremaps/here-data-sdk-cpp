@@ -18,7 +18,7 @@ android {
             cmake {
                 // In order to properly run the CMake step, you have to specify the next arguments:
                 //  1. CMAKE_TOOLCHAIN_FILE and other ANDROID_ arguments, which were used during building of OLP libraries
-                //  2. EDGE_SDK_NETWORK_PROTOCOL_JAR - path to the EdgeNetworkProtocol.jar file; usually it stored in the <olp-build-folder>/olp-cpp-sdk-core/
+                //  2. EDGE_SDK_HTTP_CLIENT_JAR - path to the EdgeHttpClient.jar file; usually it stored in the <olp-build-folder>/olp-cpp-sdk-core/
                 //  3. (If not installed to the sysroot) path to the levelDB library:
                 //      - leveldb_DIR;
                 //  4. (If not installed to the sysroot) - path to the OLP EDGE SDK cmake config files:
@@ -26,7 +26,7 @@ android {
                 //      - olp-cpp-sdk-dataservice-write_DIR;
                 //      - olp-cpp-sdk-authentication_DIR
                 arguments "@EDGE_SDK_EXAMPLE_ANDROID_TOOLCHAIN_FILE@",
-                        "@EDGE_SDK_EXAMPLE_NETWORK_PROTOCOL_JAR@",
+                        "@EDGE_SDK_EXAMPLE_HTTP_CLIENT_JAR@",
                         "@EDGE_SDK_EXAMPLE_LEVELDB_DIR@",
                         // required for finding installed packages in sysroot
                         "-DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH",

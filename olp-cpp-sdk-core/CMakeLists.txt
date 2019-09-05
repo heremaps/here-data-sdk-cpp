@@ -247,7 +247,7 @@ add_library(${PROJECT_NAME}
     ${CORE_SOURCE}
     ${CORE_HEADERS})
 
-target_compile_definitions(${PROJECT_NAME} 
+target_compile_definitions(${PROJECT_NAME}
     PRIVATE ${EDGE_SDK_DEFAULT_NETWORK_DEFINITION})
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -290,8 +290,8 @@ if(IOS)
         target_compile_options(${PROJECT_NAME} PRIVATE "-fobjc-arc")
     endif()
 elseif(ANDROID)
-    # Make sure that EdgeNetworkProtocol.jar is built before olp-cpp-sdk-core
-    add_dependencies(${PROJECT_NAME} ${EDGE_NETWORK_PROTOCOL_JAR})
+    # Make sure that EdgeHttpClient.jar is built before olp-cpp-sdk-core
+    add_dependencies(${PROJECT_NAME} ${EDGE_SDK_ANDROID_HTTP_CLIENT_JAR})
 endif()
 
 if(CURL_FOUND)
