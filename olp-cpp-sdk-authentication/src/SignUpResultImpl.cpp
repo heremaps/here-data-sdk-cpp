@@ -20,7 +20,7 @@
 #include "SignUpResultImpl.h"
 
 #include "Constants.h"
-#include "olp/core/network/HttpStatusCode.h"
+#include "olp/core/http/HttpStatusCode.h"
 
 namespace {
 constexpr auto kUserId = "userId";
@@ -30,7 +30,7 @@ namespace olp {
 namespace authentication {
 
 SignUpResultImpl::SignUpResultImpl() noexcept
-    : SignUpResultImpl(network::HttpStatusCode::ServiceUnavailable,
+    : SignUpResultImpl(http::HttpStatusCode::SERVICE_UNAVAILABLE,
                        Constants::ERROR_HTTP_SERVICE_UNAVAILABLE) {}
 
 SignUpResultImpl::SignUpResultImpl(

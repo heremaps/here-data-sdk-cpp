@@ -20,7 +20,7 @@
 #include <gtest/gtest.h>
 #include <olp/authentication/AuthenticationClient.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
-#include <olp/core/network/HttpStatusCode.h>
+#include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/network/Network.h>
 #include <olp/core/porting/make_unique.h>
 #include <future>
@@ -80,7 +80,7 @@ TEST_F(AuthenticationOnlineProductionTest, SignInClient) {
   AuthenticationClient::SignInClientResponse response = request_future.get();
   std::time_t now = std::time(nullptr);
   EXPECT_TRUE(response.IsSuccessful());
-  EXPECT_EQ(olp::network::HttpStatusCode::Ok, response.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response.GetResult().GetStatus());
   EXPECT_STREQ(ERROR_OK.c_str(),
                response.GetResult().GetErrorResponse().message.c_str());
   EXPECT_FALSE(response.GetResult().GetAccessToken().empty());

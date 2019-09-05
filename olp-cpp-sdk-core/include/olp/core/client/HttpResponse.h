@@ -22,10 +22,10 @@
 #include <string>
 
 #include <olp/core/CoreApi.h>
-#include <olp/core/network/Network.h>
+#include <olp/core/http/NetworkTypes.h>
 
 namespace olp {
-namespace network {
+namespace client {
 
 /**
  * @brief Response from a REST request.
@@ -41,9 +41,9 @@ class CORE_API HttpResponse {
    * @see olp::network::Network::ErrorCode for negative status numbers
    * @see olp::network::HttpStatusCode for positive status numbers
    */
-  int status{olp::network::Network::ErrorCode::UnknownError};
+  int status{static_cast<int>(olp::http::ErrorCode::UNKNOWN_ERROR)};
   std::string response;
 };
 
-}  // namespace network
+}  // namespace client
 }  // namespace olp

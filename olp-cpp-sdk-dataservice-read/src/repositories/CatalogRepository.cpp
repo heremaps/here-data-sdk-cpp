@@ -48,7 +48,8 @@ CatalogRepository::CatalogRepository(
       apiRepo_(apiRepo),
       cache_(std::make_shared<CatalogCacheRepository>(hrn, cache)) {
   CatalogResponse cancelledResponse{
-      {olp::network::Network::ErrorCode::Cancelled, "Operation cancelled."}};
+      {static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+       "Operation cancelled."}};
   multiRequestContext_ = std::make_shared<
       MultiRequestContext<CatalogResponse, CatalogResponseCallback>>(
       cancelledResponse);

@@ -75,7 +75,7 @@ CancellationToken ExecuteSingleRequest(
   auto network = weak_network.lock();
 
   if (!network) {
-    network::HttpResponse result{olp::network::Network::ErrorCode::Offline};
+    HttpResponse result{olp::network::Network::ErrorCode::Offline};
     callback(result);
     return CancellationToken();
   }
@@ -83,7 +83,7 @@ CancellationToken ExecuteSingleRequest(
   auto send_outcome = network->Send(
       request, response_body,
       [callback, response_body](const http::NetworkResponse& response) {
-        network::HttpResponse result(response.GetStatus());
+        HttpResponse result(response.GetStatus());
         result.status = response.GetStatus();
         result.response = response_body->str();
         if (result.status >= 400 || result.status < 0) {
@@ -98,8 +98,8 @@ CancellationToken ExecuteSingleRequest(
 
   if (!send_outcome.IsSuccessfull()) {
     std::string error_message = ErrorCodeToString(send_outcome.GetErrorCode());
-    network::HttpResponse result{static_cast<int>(send_outcome.GetErrorCode()),
-                                 std::move(error_message)};
+    HttpResponse result{static_cast<int>(send_outcome.GetErrorCode()),
+                        std::move(error_message)};
     callback(result);
     return CancellationToken();
   }

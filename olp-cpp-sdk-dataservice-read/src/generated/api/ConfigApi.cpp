@@ -19,8 +19,8 @@
 
 #include "ConfigApi.h"
 
+#include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
-#include <olp/core/network/HttpResponse.h>
 // clang-format off
 #include "generated/parser/CatalogParser.h"
 #include <olp/core/generated/parser/JsonParser.h>
@@ -48,7 +48,7 @@ CancellationToken ConfigApi::GetCatalog(
   std::string catalogUri = "/catalogs/" + catalogHrn;
 
   NetworkAsyncCallback callback = [catalogCallback](
-                                      network::HttpResponse response) {
+                                      client::HttpResponse response) {
     if (response.status != 200) {
       catalogCallback(client::ApiError(response.status, response.response));
     } else {

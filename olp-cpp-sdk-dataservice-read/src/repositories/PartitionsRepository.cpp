@@ -222,7 +222,8 @@ PartitionsRepository::PartitionsRepository(
       catalogRepo_(catalogRepo),
       cache_(std::make_shared<PartitionsCacheRepository>(hrn, cache)) {
   read::PartitionsResponse cancelledResponse{
-      {olp::network::Network::ErrorCode::Cancelled, "Operation cancelled."}};
+      {static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+       "Operation cancelled."}};
   multiRequestContext_ =
       std::make_shared<MultiRequestContext<read::PartitionsResponse,
                                            read::PartitionsResponseCallback>>(

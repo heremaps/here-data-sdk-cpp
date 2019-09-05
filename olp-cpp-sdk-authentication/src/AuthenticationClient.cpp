@@ -39,11 +39,11 @@
 #include "olp/authentication/AuthenticationError.h"
 #include "olp/core/client/CancellationToken.h"
 #include "olp/core/client/ErrorCode.h"
+#include "olp/core/http/HttpStatusCode.h"
 #include "olp/core/http/Network.h"
 #include "olp/core/http/NetworkConstants.h"
 #include "olp/core/http/NetworkRequest.h"
 #include "olp/core/http/NetworkResponse.h"
-#include "olp/core/network/HttpStatusCode.h"
 #include "olp/core/porting/make_unique.h"
 #include "olp/core/thread/Atomic.h"
 #include "olp/core/thread/TaskScheduler.h"
@@ -363,7 +363,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
         }
 
         switch (response_status) {
-          case network::HttpStatusCode::Ok: {
+          case http::HttpStatusCode::OK: {
             // Cache the response
             cache->locked([credentials, &response](
                               utils::LruCache<std::string, SignInResult>& c) {
@@ -509,7 +509,7 @@ client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
         }
 
         switch (response_status) {
-          case network::HttpStatusCode::Ok: {
+          case http::HttpStatusCode::OK: {
             // Cache the response
             cache->locked(
                 [credentials,

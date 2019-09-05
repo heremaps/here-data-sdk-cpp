@@ -20,7 +20,7 @@
 #include "SignInResultImpl.h"
 
 #include "Constants.h"
-#include "olp/core/network/HttpStatusCode.h"
+#include "olp/core/http/HttpStatusCode.h"
 
 namespace {
 constexpr auto kTokenType = "tokenType";
@@ -31,7 +31,7 @@ namespace olp {
 namespace authentication {
 
 SignInResultImpl::SignInResultImpl() noexcept
-    : SignInResultImpl(network::HttpStatusCode::ServiceUnavailable,
+    : SignInResultImpl(http::HttpStatusCode::SERVICE_UNAVAILABLE,
                        Constants::ERROR_HTTP_SERVICE_UNAVAILABLE) {}
 
 SignInResultImpl::SignInResultImpl(
@@ -46,7 +46,7 @@ SignInResultImpl::SignInResultImpl(
   // Extra response data if no errors reported
   if (!HasError()) {
     if (!IsValid()) {
-      status_ = network::HttpStatusCode::ServiceUnavailable;
+      status_ = http::HttpStatusCode::SERVICE_UNAVAILABLE;
       error_.message = Constants::ERROR_HTTP_SERVICE_UNAVAILABLE;
     } else {
       if (json_document->HasMember(Constants::ACCESS_TOKEN))

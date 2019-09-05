@@ -29,8 +29,8 @@
 #include <olp/authentication/TokenRequest.h>
 #include <olp/authentication/TokenResult.h>
 #include <olp/core/client/CancellationToken.h>
+#include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/http/NetworkProxySettings.h>
-#include <olp/core/network/HttpStatusCode.h>
 #include "AuthenticationTests.h"
 
 namespace {
@@ -153,7 +153,7 @@ TEST_F(TestHereAccountOauth2IntegrationOffline, AutoRefreshingTokenCancelSync) {
         }
         callback(olp::http::NetworkResponse()
                      .WithRequestId(request_id)
-                     .WithStatus(olp::network::HttpStatusCode::Ok)
+                     .WithStatus(olp::http::HttpStatusCode::OK)
                      .WithError(ERROR_OK));
         if (data_callback) {
           auto raw = const_cast<char*>(response_1.c_str());
@@ -197,7 +197,7 @@ TEST_F(TestHereAccountOauth2IntegrationOffline,
         }
         callback(olp::http::NetworkResponse()
                      .WithRequestId(request_id)
-                     .WithStatus(olp::network::HttpStatusCode::Ok)
+                     .WithStatus(olp::http::HttpStatusCode::OK)
                      .WithError(ERROR_OK));
         if (data_callback) {
           auto raw = const_cast<char*>(response_1.c_str());

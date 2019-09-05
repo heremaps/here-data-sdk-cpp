@@ -30,9 +30,9 @@
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/HRN.h>
+#include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
-#include <olp/core/network/HttpResponse.h>
 
 #include <olp/dataservice/write/StreamLayerClient.h>
 #include <olp/dataservice/write/model/PublishDataRequest.h>

@@ -18,7 +18,7 @@
  */
 
 #include "olp/core/client/OlpClientSettings.h"
-#include <olp/core/network/HttpResponse.h>
+#include "olp/core/client/HttpResponse.h"
 
 namespace olp {
 namespace client {
@@ -26,7 +26,7 @@ unsigned int DefaultBackdownPolicy(unsigned int milliseconds) {
   return milliseconds;
 }
 
-bool DefaultRetryCondition(const network::HttpResponse&) { return false; }
+bool DefaultRetryCondition(const HttpResponse&) { return false; }
 
 }  // namespace client
 }  // namespace olp

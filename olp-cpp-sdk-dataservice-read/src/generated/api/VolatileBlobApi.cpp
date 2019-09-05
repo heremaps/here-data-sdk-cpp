@@ -21,8 +21,8 @@
 
 #include <map>
 
+#include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
-#include <olp/core/network/HttpResponse.h>
 
 namespace olp {
 namespace dataservice {
@@ -46,7 +46,7 @@ CancellationToken VolatileBlobApi::GetVolatileBlob(
   std::string metadataUri = "/layers/" + layerId + "/data/" + dataHandle;
 
   NetworkAsyncCallback callback =
-      [dataResponseCallback](network::HttpResponse response) {
+      [dataResponseCallback](client::HttpResponse response) {
         if (response.status != 200) {
           dataResponseCallback(ApiError(response.status, response.response));
         } else {

@@ -20,7 +20,7 @@
 #include "SignInUserResultImpl.h"
 
 #include "Constants.h"
-#include "olp/core/network/HttpStatusCode.h"
+#include "olp/core/http/HttpStatusCode.h"
 
 namespace {
 constexpr auto kTermsReacceptanceToken = "termsReacceptanceToken";
@@ -35,7 +35,7 @@ namespace olp {
 namespace authentication {
 
 SignInUserResultImpl::SignInUserResultImpl() noexcept
-    : SignInUserResultImpl(network::HttpStatusCode::ServiceUnavailable,
+    : SignInUserResultImpl(http::HttpStatusCode::SERVICE_UNAVAILABLE,
                            Constants::ERROR_HTTP_SERVICE_UNAVAILABLE) {}
 
 SignInUserResultImpl::SignInUserResultImpl(
