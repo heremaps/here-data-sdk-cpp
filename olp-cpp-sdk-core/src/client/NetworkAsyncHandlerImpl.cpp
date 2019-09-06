@@ -21,7 +21,7 @@
 
 #include <sstream>
 
-#include <olp/core/network/HttpResponse.h>
+#include "olp/core/client/HttpResponse.h"
 #include "olp/core/network/NetworkConfig.h"
 #include "olp/core/network/NetworkRequest.h"
 #include "olp/core/network/NetworkResponse.h"
@@ -54,7 +54,7 @@ CancellationToken NetworkAsyncHandlerImpl::ExecuteSingleRequest(
       request, std::make_shared<std::stringstream>(),
       [network, callback](const network::NetworkResponse& response) {
         // status is -1 if it's timed-out
-        network::HttpResponse result(response.Status());
+        HttpResponse result(response.Status());
 
         if (result.status >= 400 || result.status < 0) {
           result.response = "Error occured. Please check HTTP status code.";

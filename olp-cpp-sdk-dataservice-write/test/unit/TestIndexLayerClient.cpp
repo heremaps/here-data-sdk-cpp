@@ -21,9 +21,10 @@
 #include <olp/authentication/TokenProvider.h>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/HRN.h>
+#include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
-#include <olp/core/network/HttpResponse.h>
+#include <olp/core/network/Network.h>
 
 #include <olp/dataservice/write/IndexLayerClient.h>
 #include <olp/dataservice/write/model/PublishIndexRequest.h>
@@ -64,8 +65,8 @@ template <typename T>
 void PublishCancelledAssertions(
     const olp::client::ApiResponse<T, olp::client::ApiError>& result) {
   EXPECT_FALSE(result.IsSuccessful());
-  EXPECT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(result.GetError().GetHttpStatusCode()));
+  EXPECT_EQ(olp::http::ErrorCode::CANCELLED_ERROR,
+            result.GetError().GetHttpStatusCode());
   EXPECT_EQ(olp::client::ErrorCode::Cancelled,
             result.GetError().GetErrorCode());
   EXPECT_EQ("Cancelled", result.GetError().GetMessage());
@@ -299,17 +300,6 @@ MATCHER_P(IsDeleteRequestPrefix, url, "") {
       std::mismatch(url_string.begin(), url_string.end(), arg.Url().begin());
 
   return (res.first == url_string.end());
-}
-
-olp::client::NetworkAsyncHandler indexReturnsResponse(
-    olp::network::HttpResponse response) {
-  return [=](const olp::network::NetworkRequest& request,
-             const olp::network::NetworkConfig& config,
-             const olp::client::NetworkAsyncCallback& callback)
-             -> olp::client::CancellationToken {
-    std::thread([=]() { callback(response); }).detach();
-    return olp::client::CancellationToken();
-  };
 }
 
 using ::testing::_;

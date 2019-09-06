@@ -22,7 +22,8 @@
 #include <rapidjson/document.h>
 
 #include "Constants.h"
-#include "olp/core/network/HttpStatusCode.h"
+
+#include "olp/core/http/HttpStatusCode.h"
 
 using namespace rapidjson;
 
@@ -85,7 +86,7 @@ const ErrorResponse& BaseResult::GetErrorResponse() const { return error_; }
 const ErrorFields& BaseResult::GetErrorFields() const { return error_fields_; }
 
 bool BaseResult::HasError() const {
-  return status_ != network::HttpStatusCode::Ok;
+  return status_ != http::HttpStatusCode::OK;
 }
 
 bool BaseResult::IsValid() const { return is_valid_; }

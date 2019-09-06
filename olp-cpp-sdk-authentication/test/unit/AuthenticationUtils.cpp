@@ -18,44 +18,35 @@
  */
 
 #include "AuthenticationUtils.h"
-#include <olp/core/network/Network.h>
-#include <olp/core/network/NetworkRequest.h>
-#include <olp/core/network/NetworkResponse.h>
+#include <olp/core/http/Network.h>
+#include <olp/core/http/NetworkRequest.h>
+#include <olp/core/http/NetworkResponse.h>
 #include <olp/core/porting/make_unique.h>
 #include <olp/core/utils/Url.h>
+
+#include <chrono>
 #include <sstream>
 
-#define HYPE_DEV_ENV_PARTITION_HRN "here-dev"
-#define HYPE_PROD_ENV_PARTITION_HRN "here"
+namespace {
+constexpr auto HYPE_DEV_ENV_PARTITION_HRN = "here-dev";
+constexpr auto HYPE_PROD_ENV_PARTITION_HRN = "here";
 
 const std::map<std::string, std::string> authentication_server_url = {
     {HYPE_DEV_ENV_PARTITION_HRN, "https://stg.account.api.here.com"},
     {HYPE_PROD_ENV_PARTITION_HRN, "https://account.api.here.com"}};
 
-using namespace std;
-using namespace olp::network;
-
 // Tags
-static const std::string AUTHORIZATION = "Authorization";
-static const std::string CONTENT_TYPE = "Content-Type";
-static const std::string APPLICATION_JSON = "application/json";
-static const std::string DELETE_USER_ENDPOINT = "/user/me";
+constexpr auto kAuthorization = "Authorization";
+constexpr auto kContentType = "Content-Type";
+constexpr auto kApplicationJson = "application/json";
+constexpr auto kDeleteUserEndpoint = "/user/me";
+
+}  // namespace
 
 namespace olp {
 namespace authentication {
 class AuthenticationUtils::Impl {
  public:
-  class ScopedNetwork {
-   public:
-    ScopedNetwork() : network() { network.Start(); }
-
-    Network& getNetwork() { return network; }
-
-   private:
-    Network network;
-  };
-
-  using ScopedNetworkPtr = std::shared_ptr<ScopedNetwork>;
   /**
    * @brief Constructor
    * @param token_cache_limit Maximum number of tokens that will be cached.
@@ -64,7 +55,9 @@ class AuthenticationUtils::Impl {
 
   virtual ~Impl() = default;
 
-  void deleteHereUser(const std::string& user_bearer_token,
+  void deleteHereUser(http::Network& network,
+                      const http::NetworkSettings& network_settings,
+                      const std::string& user_bearer_token,
                       const UserCallback& callback);
 
  private:
@@ -73,49 +66,33 @@ class AuthenticationUtils::Impl {
   std::string generateBearerHeader(const std::string& user_bearer_token);
 
   std::string generateUid(size_t length = 32u, size_t groupLength = 8u);
-
-  ScopedNetworkPtr getScopedNetwork();
-
- private:
-  std::weak_ptr<ScopedNetwork> networkPtr;
-  std::mutex networkPtrLock;
 };
 
-AuthenticationUtils::Impl::ScopedNetworkPtr
-AuthenticationUtils::Impl::getScopedNetwork() {
-  std::lock_guard<std::mutex> lock(networkPtrLock);
-  auto netPtr = networkPtr.lock();
-  if (netPtr) return netPtr;
-
-  auto result = std::make_shared<ScopedNetwork>();
-  networkPtr = result;
-  return result;
-}
-
 AuthenticationUtils::Impl::Impl() {
-  srand((unsigned int)std::chrono::system_clock::now()
-            .time_since_epoch()
-            .count());
+  srand(static_cast<unsigned int>(
+      std::chrono::system_clock::now().time_since_epoch().count()));
 }
 
 void AuthenticationUtils::Impl::deleteHereUser(
+    olp::http::Network& network, const http::NetworkSettings& network_settings,
     const std::string& user_bearer_token, const UserCallback& callback) {
   std::string url = authentication_server_url.at(HYPE_DEV_ENV_PARTITION_HRN);
-  url.append(DELETE_USER_ENDPOINT);
-  NetworkRequest request(url, 0, NetworkRequest::PriorityDefault,
-                         NetworkRequest::HttpVerb::DEL);
-  request.AddHeader(AUTHORIZATION, generateBearerHeader(user_bearer_token));
-  request.AddHeader(CONTENT_TYPE, APPLICATION_JSON);
+  url.append(kDeleteUserEndpoint);
+
+  olp::http::NetworkRequest request(url);
+  request.WithVerb(http::NetworkRequest::HttpVerb::DEL);
+  request.WithHeader(kAuthorization, generateBearerHeader(user_bearer_token));
+  request.WithHeader(kContentType, kApplicationJson);
+  request.WithSettings(network_settings);
 
   std::shared_ptr<std::stringstream> payload =
       std::make_shared<std::stringstream>();
-  auto networkPtr = getScopedNetwork();
-  networkPtr->getNetwork().Send(
+  network.Send(
       request, payload,
-      [networkPtr, callback, payload](const NetworkResponse& network_response) {
+      [callback, payload](const olp::http::NetworkResponse& network_response) {
         DeleteUserResponse response;
-        response.status = network_response.Status();
-        response.error = network_response.Error();
+        response.status = network_response.GetStatus();
+        response.error = network_response.GetError();
         callback(response);
       });
 }
@@ -131,9 +108,10 @@ AuthenticationUtils::AuthenticationUtils() : d(std::make_unique<Impl>()) {}
 
 AuthenticationUtils::~AuthenticationUtils() = default;
 
-void AuthenticationUtils::deleteHereUser(const std::string& user_bearer_token,
-                                         const UserCallback& callback) {
-  d->deleteHereUser(user_bearer_token, callback);
+void AuthenticationUtils::deleteHereUser(
+    http::Network& network, const http::NetworkSettings& network_settings,
+    const std::string& user_bearer_token, const UserCallback& callback) {
+  d->deleteHereUser(network, network_settings, user_bearer_token, callback);
 }
 
 }  // namespace authentication

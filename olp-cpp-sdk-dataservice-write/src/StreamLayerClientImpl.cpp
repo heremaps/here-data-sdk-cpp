@@ -26,7 +26,7 @@
 
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/logging/Log.h>
-
+#include <olp/core/thread/TaskScheduler.h>
 #include <olp/dataservice/write/model/PublishDataRequest.h>
 #include <olp/dataservice/write/model/PublishSdiiRequest.h>
 #include "ApiClientLookup.h"
@@ -48,20 +48,32 @@
 using namespace olp::client;
 using namespace olp::dataservice::write::model;
 
-#define LOG_TAG "olp::dataservice::write::StreamLayerClient"
+namespace olp {
+namespace dataservice {
+namespace write {
 
 namespace {
+constexpr auto kLogTag = "StreamLayerClientImpl";
 constexpr int64_t kTwentyMib = 20971520;  // 20 MiB
 
 std::string GenerateUuid() {
   static boost::uuids::random_generator gen;
   return boost::uuids::to_string(gen());
 }
+
+void ExecuteOrSchedule(const OlpClientSettings& settings,
+                       thread::TaskScheduler::CallFuncType&& func) {
+  if (!settings.task_scheduler) {
+    // User didn't specify a TaskScheduler, execute sync
+    func();
+    return;
+  }
+
+  // Schedule for async execution
+  settings.task_scheduler->ScheduleTask(std::move(func));
+}
 }  // namespace
 
-namespace olp {
-namespace dataservice {
-namespace write {
 StreamLayerClientImpl::StreamLayerClientImpl(
     const HRN& catalog, const OlpClientSettings& settings,
     const std::shared_ptr<cache::KeyValueCache>& cache,
@@ -315,7 +327,7 @@ StreamLayerClientImpl::PopFromQueue() {
       cache_->Get(GetUuidListKey(), [](const std::string& s) { return s; });
 
   if (uuid_list_any.empty()) {
-    EDGE_SDK_LOG_ERROR(LOG_TAG, "Unable to Restore UUID list from Cache");
+    EDGE_SDK_LOG_ERROR(kLogTag, "Unable to Restore UUID list from Cache");
     return boost::none;
   }
 
@@ -338,7 +350,7 @@ StreamLayerClientImpl::PopFromQueue() {
               [&uuid_list]() { return uuid_list; });
 
   if (publish_data_any.empty()) {
-    EDGE_SDK_LOG_ERROR(LOG_TAG,
+    EDGE_SDK_LOG_ERROR(kLogTag,
                        "Unable to Restore PublishData Request from Cache");
     return boost::none;
   }
@@ -360,12 +372,11 @@ StreamLayerClientImpl::Flush() {
 
 olp::client::CancellationToken StreamLayerClientImpl::Flush(
     const StreamLayerClient::FlushCallback& callback) {
-  auto cancel_context = std::make_shared<CancellationContext>();
+  CancellationContext cancel_context;
 
-  // TODO: We should introduce an Executor abstraction to handle thread
-  // spwaning/pooling in a centralized/ configurable way
   auto self = shared_from_this();
-  auto flush_thread = std::thread([self, callback, cancel_context]() {
+
+  auto func = [=]() mutable {
     StreamLayerClient::FlushResponse response;
 
     auto maximum_events_number = self->flush_settings_.events_per_single_flush;
@@ -375,45 +386,48 @@ olp::client::CancellationToken StreamLayerClientImpl::Flush(
     }
 
     int counter = 0;
-    while ((maximum_events_number ? counter < *maximum_events_number : true) &&
-           self->QueueSize() > 0) {
-      auto publish_data_request = self->PopFromQueue();
-      if (publish_data_request == boost::none) {
+    while ((!maximum_events_number || counter < *maximum_events_number) &&
+           (self->QueueSize() > 0) && !cancel_context.IsCancelled()) {
+      auto publish_request = self->PopFromQueue();
+      if (publish_request == boost::none) {
         continue;
       }
 
       self->auto_flush_controller_->NotifyFlushEvent();
-      // TODO: These publish data requests are independant operations,
-      // could be executed in parallel based on Executor settings.
-      std::promise<bool> barrier;
-      cancel_context->ExecuteOrCancelled(
-          [=, &self, &barrier, &response]() -> CancellationToken {
+
+      // TODO: This needs a redesign as pushing multiple publishes also on the
+      // TaskScheduler would mean a dead-lock in case we have a single-thread
+      // pool and this is waiting on each publish to finish. So while this loop
+      // here is active we will not be able to redesign PublishData() internally
+      // to use the TaskScheduler.
+      std::promise<void> barrier;
+      cancel_context.ExecuteOrCancelled(
+          [&]() -> CancellationToken {
             return self->PublishData(
-                *publish_data_request,
-                [=, &barrier,
-                 &response](PublishDataResponse publish_data_response) {
-                  response.emplace_back(std::move(publish_data_response));
-                  barrier.set_value(true);
+                *publish_request, [&](PublishDataResponse publish_response) {
+                  response.emplace_back(std::move(publish_response));
+                  barrier.set_value();
                 });
           },
-          [&barrier]() { barrier.set_value(true); });
+          [&barrier]() { barrier.set_value(); });
+
       barrier.get_future().get();
 
-      if (cancel_context->IsCancelled()) {
-        self->Queue(*publish_data_request);
+      // If cancelled queue back task
+      if (cancel_context.IsCancelled()) {
+        self->Queue(*publish_request);
         break;
       }
 
       counter++;
     }
 
+    EDGE_SDK_LOG_INFO_F(kLogTag, "Flushed %d publish requests", counter);
     callback(std::move(response));
-  });
+  };
 
-  flush_thread.detach();
-
-  return CancellationToken(
-      [cancel_context]() { cancel_context->CancelOperation(); });
+  ExecuteOrSchedule(settings_, func);
+  return CancellationToken([=]() mutable { cancel_context.CancelOperation(); });
 }
 
 void StreamLayerClientImpl::Enable(

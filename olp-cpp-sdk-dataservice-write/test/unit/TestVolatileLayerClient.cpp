@@ -21,9 +21,10 @@
 #include <olp/authentication/TokenProvider.h>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/HRN.h>
+#include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
-#include <olp/core/network/HttpResponse.h>
+#include <olp/core/network/Network.h>
 
 #include <olp/dataservice/write/VolatileLayerClient.h>
 #include <olp/dataservice/write/model/PublishPartitionDataRequest.h>
@@ -409,7 +410,7 @@ TEST_P(VolatileLayerClientOnlineTest, PublishDataAsync) {
 }
 
 olp::client::NetworkAsyncHandler volatileReturnsResponse(
-    olp::network::HttpResponse response) {
+    olp::client::HttpResponse response) {
   return [=](const olp::network::NetworkRequest& request,
              const olp::network::NetworkConfig& config,
              const olp::client::NetworkAsyncCallback& callback)
@@ -422,7 +423,7 @@ olp::client::NetworkAsyncHandler volatileReturnsResponse(
 olp::client::NetworkAsyncHandler volatileSetsPromiseWaitsAndReturns(
     std::shared_ptr<std::promise<void>> preSignal,
     std::shared_ptr<std::promise<void>> waitForSignal,
-    olp::network::HttpResponse response) {
+    olp::client::HttpResponse response) {
   return [preSignal, waitForSignal, response](
              const olp::network::NetworkRequest& request,
              const olp::network::NetworkConfig& /*config*/,

@@ -20,13 +20,13 @@
 #include "SignOutResultImpl.h"
 
 #include "Constants.h"
-#include "olp/core/network/HttpStatusCode.h"
+#include "olp/core/http/HttpStatusCode.h"
 
 namespace olp {
 namespace authentication {
 
-  SignOutResultImpl::SignOutResultImpl() noexcept
-    : SignOutResultImpl(network::HttpStatusCode::ServiceUnavailable,
+SignOutResultImpl::SignOutResultImpl() noexcept
+    : SignOutResultImpl(http::HttpStatusCode::SERVICE_UNAVAILABLE,
                         Constants::ERROR_HTTP_SERVICE_UNAVAILABLE) {}
 
 SignOutResultImpl::SignOutResultImpl(

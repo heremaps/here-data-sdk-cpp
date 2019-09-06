@@ -39,11 +39,11 @@
 #include "olp/authentication/AuthenticationError.h"
 #include "olp/core/client/CancellationToken.h"
 #include "olp/core/client/ErrorCode.h"
+#include "olp/core/http/HttpStatusCode.h"
 #include "olp/core/http/Network.h"
 #include "olp/core/http/NetworkConstants.h"
 #include "olp/core/http/NetworkRequest.h"
 #include "olp/core/http/NetworkResponse.h"
-#include "olp/core/network/HttpStatusCode.h"
 #include "olp/core/porting/make_unique.h"
 #include "olp/core/thread/Atomic.h"
 #include "olp/core/thread/TaskScheduler.h"
@@ -51,9 +51,6 @@
 #include "olp/core/utils/LruCache.h"
 #include "olp/core/utils/Url.h"
 
-using namespace rapidjson;
-using namespace std;
-using namespace olp::network;
 using namespace olp::thread;
 using namespace olp::utils;
 
@@ -283,7 +280,7 @@ AuthenticationClient::Impl::Impl(const std::string& authentication_server_url,
 
 client::CancellationToken AuthenticationClient::Impl::SignInClient(
     const AuthenticationCredentials& credentials,
-    const chrono::seconds& expires_in,
+    const std::chrono::seconds& expires_in,
     const AuthenticationClient::SignInClientCallback& callback) {
   if (!network_) {
     ExecuteOrSchedule(task_scheduler_, [callback] {
@@ -317,12 +314,10 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
         auto error_msg = network_response.GetError();
 
         // Network not available, use cached token if available
-        // See olp::network::ErrorCode for negative values
         if (response_status < 0) {
           // Request cancelled, return
-          if (response_status == Network::ErrorCode::Cancelled) {
-            AuthenticationError error(Network::ErrorCode::Cancelled, error_msg);
-            callback(error);
+          if (response_status == static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR)) {
+            callback({{response_status, error_msg}});
             return;
           }
 
@@ -348,8 +343,8 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
           return;
         }
 
-        std::shared_ptr<Document> document = std::make_shared<Document>();
-        IStreamWrapper stream(*payload.get());
+        auto document = std::make_shared<rapidjson::Document>();
+        rapidjson::IStreamWrapper stream(*payload.get());
         document->ParseStream(stream);
 
         std::shared_ptr<SignInResultImpl> resp_impl =
@@ -363,7 +358,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
         }
 
         switch (response_status) {
-          case network::HttpStatusCode::Ok: {
+          case http::HttpStatusCode::OK: {
             // Cache the response
             cache->locked([credentials, &response](
                               utils::LruCache<std::string, SignInResult>& c) {
@@ -465,11 +460,8 @@ client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
         // Network not available, use cached token if available
         if (response_status < 0) {
           // Request cancelled, return
-          if (response_status == Network::ErrorCode::Cancelled) {
-            AuthenticationError result(
-                {static_cast<int>(http::ErrorCode::CANCELLED_ERROR),
-                 error_msg});
-            callback(result);
+          if (response_status == static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR)) {
+            callback({{response_status, error_msg}});
             return;
           }
 
@@ -494,8 +486,8 @@ client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
           return;
         }
 
-        std::shared_ptr<Document> document = std::make_shared<Document>();
-        IStreamWrapper stream(*payload.get());
+        auto document = std::make_shared<rapidjson::Document>();
+        rapidjson::IStreamWrapper stream(*payload.get());
         document->ParseStream(stream);
 
         std::shared_ptr<SignInUserResultImpl> resp_impl =
@@ -509,7 +501,7 @@ client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
         }
 
         switch (response_status) {
-          case network::HttpStatusCode::Ok: {
+          case http::HttpStatusCode::OK: {
             // Cache the response
             cache->locked(
                 [credentials,
@@ -569,30 +561,30 @@ client::CancellationToken AuthenticationClient::Impl::SignUpHereUser(
   std::shared_ptr<std::stringstream> payload =
       std::make_shared<std::stringstream>();
   request.WithBody(generateSignUpBody(properties));
-  auto send_outcome = network_->Send(
-      request, payload,
-      [callback, payload,
-       credentials](const http::NetworkResponse& network_response) {
-        auto response_status = network_response.GetStatus();
-        auto error_msg = network_response.GetError();
+  auto send_outcome =
+      network_->Send(request, payload,
+                     [callback, payload, credentials](
+                         const http::NetworkResponse& network_response) {
+                       auto response_status = network_response.GetStatus();
+                       auto error_msg = network_response.GetError();
 
-        if (response_status < 0) {
-          // Network error response
-          AuthenticationError error(response_status, error_msg);
-          callback(error);
-          return;
-        }
+                       if (response_status < 0) {
+                         // Network error response
+                         AuthenticationError error(response_status, error_msg);
+                         callback(error);
+                         return;
+                       }
 
-        std::shared_ptr<Document> document = std::make_shared<Document>();
-        IStreamWrapper stream(*payload.get());
-        document->ParseStream(stream);
+                       auto document = std::make_shared<rapidjson::Document>();
+                       rapidjson::IStreamWrapper stream(*payload.get());
+                       document->ParseStream(stream);
 
-        std::shared_ptr<SignUpResultImpl> resp_impl =
-            std::make_shared<SignUpResultImpl>(response_status, error_msg,
-                                               document);
-        SignUpResult response(resp_impl);
-        callback(response);
-      });
+                       std::shared_ptr<SignUpResultImpl> resp_impl =
+                           std::make_shared<SignUpResultImpl>(
+                               response_status, error_msg, document);
+                       SignUpResult response(resp_impl);
+                       callback(response);
+                     });
 
   if (!send_outcome.IsSuccessfull()) {
     ExecuteOrSchedule(task_scheduler_, [send_outcome, callback] {
@@ -638,30 +630,30 @@ client::CancellationToken AuthenticationClient::Impl::SignOut(
 
   std::shared_ptr<std::stringstream> payload =
       std::make_shared<std::stringstream>();
-  auto send_outcome = network_->Send(
-      request, payload,
-      [callback, payload,
-       credentials](const http::NetworkResponse& network_response) {
-        auto response_status = network_response.GetStatus();
-        auto error_msg = network_response.GetError();
+  auto send_outcome =
+      network_->Send(request, payload,
+                     [callback, payload, credentials](
+                         const http::NetworkResponse& network_response) {
+                       auto response_status = network_response.GetStatus();
+                       auto error_msg = network_response.GetError();
 
-        if (response_status < 0) {
-          // Network error response not available
-          AuthenticationError error(response_status, error_msg);
-          callback(error);
-          return;
-        }
+                       if (response_status < 0) {
+                         // Network error response not available
+                         AuthenticationError error(response_status, error_msg);
+                         callback(error);
+                         return;
+                       }
 
-        std::shared_ptr<Document> document = std::make_shared<Document>();
-        IStreamWrapper stream(*payload.get());
-        document->ParseStream(stream);
+                       auto document = std::make_shared<rapidjson::Document>();
+                       rapidjson::IStreamWrapper stream(*payload.get());
+                       document->ParseStream(stream);
 
-        std::shared_ptr<SignOutResultImpl> resp_impl =
-            std::make_shared<SignOutResultImpl>(response_status, error_msg,
-                                                document);
-        SignOutResult response(resp_impl);
-        callback(response);
-      });
+                       std::shared_ptr<SignOutResultImpl> resp_impl =
+                           std::make_shared<SignOutResultImpl>(
+                               response_status, error_msg, document);
+                       SignOutResult response(resp_impl);
+                       callback(response);
+                     });
 
   if (!send_outcome.IsSuccessfull()) {
     ExecuteOrSchedule(task_scheduler_, [send_outcome, callback] {
@@ -733,8 +725,8 @@ std::string AuthenticationClient::Impl::generateBearerHeader(
 
 http::NetworkRequest::RequestBodyType
 AuthenticationClient::Impl::generateClientBody(unsigned int expires_in) {
-  StringBuffer data;
-  Writer<StringBuffer> writer(data);
+  rapidjson::StringBuffer data;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(data);
   writer.StartObject();
 
   writer.Key(kGrantType);
@@ -753,8 +745,8 @@ AuthenticationClient::Impl::generateClientBody(unsigned int expires_in) {
 
 http::NetworkRequest::RequestBodyType
 AuthenticationClient::Impl::generateUserBody(const UserProperties& properties) {
-  StringBuffer data;
-  Writer<StringBuffer> writer(data);
+  rapidjson::StringBuffer data;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(data);
   writer.StartObject();
 
   writer.Key(kGrantType);
@@ -782,8 +774,8 @@ AuthenticationClient::Impl::generateUserBody(const UserProperties& properties) {
 http::NetworkRequest::RequestBodyType
 AuthenticationClient::Impl::generateFederatedBody(
     const FederatedSignInType type, const FederatedProperties& properties) {
-  StringBuffer data;
-  Writer<StringBuffer> writer(data);
+  rapidjson::StringBuffer data;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(data);
   writer.StartObject();
 
   writer.Key(kGrantType);
@@ -831,8 +823,8 @@ AuthenticationClient::Impl::generateFederatedBody(
 http::NetworkRequest::RequestBodyType
 AuthenticationClient::Impl::generateRefreshBody(
     const RefreshProperties& properties) {
-  StringBuffer data;
-  Writer<StringBuffer> writer(data);
+  rapidjson::StringBuffer data;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(data);
   writer.StartObject();
 
   writer.Key(kGrantType);
@@ -860,8 +852,8 @@ AuthenticationClient::Impl::generateRefreshBody(
 http::NetworkRequest::RequestBodyType
 AuthenticationClient::Impl::generateSignUpBody(
     const SignUpProperties& properties) {
-  StringBuffer data;
-  Writer<StringBuffer> writer(data);
+  rapidjson::StringBuffer data;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(data);
   writer.StartObject();
 
   if (!properties.email.empty()) {
@@ -918,8 +910,8 @@ AuthenticationClient::Impl::generateSignUpBody(
 http::NetworkRequest::RequestBodyType
 AuthenticationClient::Impl::generateAcceptTermBody(
     const std::string& reacceptance_token) {
-  StringBuffer data;
-  Writer<StringBuffer> writer(data);
+  rapidjson::StringBuffer data;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(data);
   writer.StartObject();
 
   writer.Key(kTermsReacceptanceToken);
@@ -948,7 +940,8 @@ AuthenticationClient::~AuthenticationClient() = default;
 
 client::CancellationToken AuthenticationClient::SignInClient(
     const AuthenticationCredentials& credentials,
-    const SignInClientCallback& callback, const chrono::seconds& expires_in) {
+    const SignInClientCallback& callback,
+    const std::chrono::seconds& expires_in) {
   return impl_->SignInClient(credentials, expires_in, callback);
 }
 

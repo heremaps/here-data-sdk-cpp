@@ -24,7 +24,8 @@
 #include "ErrorCode.h"
 
 #include <olp/core/CoreApi.h>
-#include "olp/core/network/HttpStatusCode.h"
+#include "olp/core/client/HttpResponse.h"
+#include "olp/core/http/HttpStatusCode.h"
 
 namespace olp {
 namespace client {
@@ -41,17 +42,16 @@ class CORE_API ApiError {
         message_(message),
         is_retryable_(is_retryable) {
     if (error_code == ErrorCode::Cancelled) {
-      http_status_code_ = olp::network::Network::Cancelled;
+      http_status_code_ =
+          static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR);
     }
   }
 
   ApiError(int http_status_code, const std::string& message = "")
-      : error_code_(network::HttpStatusCode::GetErrorForHttpStatusCode(
-            http_status_code)),
+      : error_code_(http::HttpStatusCode::GetErrorCode(http_status_code)),
         http_status_code_(http_status_code),
         message_(message),
-        is_retryable_(network::HttpStatusCode::IsRetryableHttpStatusCode(
-            http_status_code)) {}
+        is_retryable_(http::HttpStatusCode::IsRetryable(http_status_code)) {}
 
   /**
    * Gets the error code
@@ -77,7 +77,7 @@ class CORE_API ApiError {
   // TODO: merge error_code_ and http_status_code_ by shifting ErrorCode values
   // to negatives
   ErrorCode error_code_{ErrorCode::Unknown};
-  int http_status_code_{olp::network::Network::UnknownError};
+  int http_status_code_{static_cast<int>(olp::http::ErrorCode::UNKNOWN_ERROR)};
   std::string message_;
   bool is_retryable_{false};
 };

@@ -25,8 +25,8 @@
 
 #include <olp/core/logging/Log.h>
 
+#include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
-#include <olp/core/network/HttpResponse.h>
 // clang-format off
 #include "generated/parser/IndexParser.h"
 #include "generated/parser/PartitionsParser.h"
@@ -56,10 +56,8 @@ namespace read {
 
 #define LOGTAG "QUERY_API"
 
-using namespace olp::client;
-
-CancellationToken QueryApi::GetPartitionsbyId(
-    const OlpClient& client, const std::string& layerId,
+client::CancellationToken QueryApi::GetPartitionsbyId(
+    const client::OlpClient& client, const std::string& layerId,
     const std::vector<std::string>& partitions,
     boost::optional<int64_t> version,
     boost::optional<std::vector<std::string>> additionalFields,
@@ -87,15 +85,15 @@ CancellationToken QueryApi::GetPartitionsbyId(
 
   std::string metadataUri = "/layers/" + layerId + "/partitions";
 
-  NetworkAsyncCallback callback =
-      [partitionsCallback](network::HttpResponse response) {
-        if (response.status != 200) {
-          partitionsCallback(ApiError(response.status, response.response));
-        } else {
-          partitionsCallback(
-              olp::parser::parse<model::Partitions>(response.response));
-        }
-      };
+  client::NetworkAsyncCallback callback = [partitionsCallback](
+                                              client::HttpResponse response) {
+    if (response.status != 200) {
+      partitionsCallback(client::ApiError(response.status, response.response));
+    } else {
+      partitionsCallback(
+          olp::parser::parse<model::Partitions>(response.response));
+    }
+  };
 
   return client.CallApi(metadataUri, "GET", queryParams, headerParams,
                         formParams, nullptr, "", callback);
@@ -125,12 +123,12 @@ client::CancellationToken QueryApi::QuadTreeIndex(
                             std::to_string(version) + "/quadkeys/" + quadKey +
                             "/depths/" + std::to_string(depth);
 
-  NetworkAsyncCallback callback =
-      [indexCallback](network::HttpResponse response) {
+  client::NetworkAsyncCallback callback =
+      [indexCallback](client::HttpResponse response) {
         EDGE_SDK_LOG_TRACE_F(LOGTAG, "QuadTreeIndex callback, status=%d",
                              response.status);
         if (response.status != 200) {
-          indexCallback(ApiError(response.status, response.response));
+          indexCallback(client::ApiError(response.status, response.response));
         } else {
           indexCallback(olp::parser::parse<model::Index>(response.response));
         }

@@ -43,7 +43,6 @@
 #include "testutils/CustomParameters.hpp"
 
 using namespace olp::authentication;
-using namespace olp::network;
 
 namespace {
 constexpr unsigned int EXPIRY_TIME = 3600;
@@ -165,9 +164,7 @@ class AuthenticationOfflineTest : public AuthenticationBaseTest {
     client_->SetTaskScheduler(task_scheduler_);
   }
 
-  void TearDown() override {
-    AuthenticationBaseTest::TearDown();
-  }
+  void TearDown() override { AuthenticationBaseTest::TearDown(); }
 
   void ExecuteSigninRequest(int http, int http_result,
                             const std::string& error_message,
@@ -220,10 +217,16 @@ class AuthenticationOfflineTest : public AuthenticationBaseTest {
 
 class AuthenticationOnlineTest : public AuthenticationBaseTest {
  public:
+  static void SetUpTestSuite() {
+    s_network_ = olp::client::OlpClientSettingsFactory::
+        CreateDefaultNetworkRequestHandler(1);
+  }
+
+  static void TearDownTestSuite() { s_network_.reset(); }
+
   void SetUp() override {
     AuthenticationBaseTest::SetUp();
-    network_ = olp::client::OlpClientSettingsFactory::
-        CreateDefaultNetworkRequestHandler(1);
+    network_ = s_network_;
     task_scheduler_ =
         olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
     client_->SetNetwork(network_);
@@ -395,7 +398,7 @@ class AuthenticationOnlineTest : public AuthenticationBaseTest {
       std::promise<AuthenticationUtils::DeleteUserResponse> request;
       auto request_future = request.get_future();
       utils_->deleteHereUser(
-          user_bearer_token,
+          *network_, olp::http::NetworkSettings(), user_bearer_token,
           [&request](const AuthenticationUtils::DeleteUserResponse& resp) {
             request.set_value(resp);
           });
@@ -415,6 +418,9 @@ class AuthenticationOnlineTest : public AuthenticationBaseTest {
   std::string GetEmail() {
     return TEST_USER_NAME + "-" + GenerateRandomSequence() + "@example.com";
   }
+
+ protected:
+  static std::shared_ptr<olp::http::Network> s_network_;
 };
 
 class FacebookAuthenticationOnlineTest : public AuthenticationOnlineTest {
@@ -422,7 +428,8 @@ class FacebookAuthenticationOnlineTest : public AuthenticationOnlineTest {
   void SetUp() override {
     AuthenticationOnlineTest::SetUp();
     Facebook = std::make_unique<FacebookTestUtils>();
-    ASSERT_TRUE(Facebook->createFacebookTestUser(testUser, "email"));
+    ASSERT_TRUE(Facebook->createFacebookTestUser(
+        *network_, olp::http::NetworkSettings(), testUser, "email"));
     id_ = TEST_APP_KEY_ID;
     secret_ = TEST_APP_KEY_SECRET;
   }
@@ -446,9 +453,12 @@ class FacebookAuthenticationOnlineTest : public AuthenticationOnlineTest {
     return request_future.get();
   }
 
-  void deleteFacebookTestUser(const std::string& id) {
+  void deleteFacebookTestUser(
+      olp::http::Network& network,
+      const olp::http::NetworkSettings& network_settings,
+      const std::string& id) {
     for (int retry = 0; retry < 3; ++retry) {
-      if (Facebook->deleteFacebookTestUser(id)) {
+      if (Facebook->deleteFacebookTestUser(network, network_settings, id)) {
         return;
       }
 
@@ -457,7 +467,8 @@ class FacebookAuthenticationOnlineTest : public AuthenticationOnlineTest {
   }
 
   void TearDown() override {
-    deleteFacebookTestUser(testUser.id);
+    deleteFacebookTestUser(*network_, olp::http::NetworkSettings(),
+                           testUser.id);
     AuthenticationOnlineTest::TearDown();
     Facebook.reset();
   }
@@ -472,7 +483,8 @@ class GoogleAuthenticationOnlineTest : public AuthenticationOnlineTest {
   void SetUp() override {
     AuthenticationOnlineTest::SetUp();
     google = std::make_unique<GoogleTestUtils>();
-    ASSERT_TRUE(google->getAccessToken(testUser));
+    ASSERT_TRUE(google->getAccessToken(*network_, olp::http::NetworkSettings(),
+                                       testUser));
     id_ = TEST_APP_KEY_ID;
     secret_ = TEST_APP_KEY_SECRET;
   }
@@ -513,7 +525,8 @@ class ArcGisAuthenticationOnlineTest : public AuthenticationOnlineTest {
   void SetUp() override {
     AuthenticationOnlineTest::SetUp();
     arcGis = std::make_unique<ArcGisTestUtils>();
-    ASSERT_TRUE(arcGis->getAccessToken(testUser));
+    ASSERT_TRUE(arcGis->getAccessToken(*network_, olp::http::NetworkSettings(),
+                                       testUser));
     id_ = TEST_APP_KEY_ID;
     secret_ = TEST_APP_KEY_SECRET;
   }

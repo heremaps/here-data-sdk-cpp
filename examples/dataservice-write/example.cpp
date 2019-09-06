@@ -24,6 +24,7 @@
 
 #include <olp/authentication/TokenProvider.h>
 #include <olp/core/client/HRN.h>
+#include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/logging/Log.h>
 
@@ -41,6 +42,7 @@ const std::string kLayer("");            // layer name inside catalog to use
 const std::string kData("hello world");  // data to write
 
 constexpr auto kLogTag = "write-example";
+constexpr size_t kPublishRequestsSize = 5u;
 }  // namespace
 
 int RunExample() {
@@ -77,22 +79,59 @@ int RunExample() {
   // Create a publish data request
   auto request = PublishDataRequest().WithData(buffer).WithLayerId(kLayer);
 
-  // Write data to OLP Stream Layer using StreamLayerClient
-  auto future_response = client->PublishData(request);
+  // Single publish to stream layer
+  {
+    // Write data to OLP Stream Layer using StreamLayerClient
+    auto future_response = client->PublishData(request);
 
-  // Wait for response
-  auto response = future_response.GetFuture().get();
+    // Wait for response
+    auto response = future_response.GetFuture().get();
 
-  // Check the response
-  if (!response.IsSuccessful()) {
-    EDGE_SDK_LOG_ERROR_F(kLogTag,
-                         "Error writing data - HTTP Status: %d Message: %s",
-                         response.GetError().GetHttpStatusCode(),
-                         response.GetError().GetMessage().c_str());
-    return -1;
-  } else {
+    // Check the response
+    if (!response.IsSuccessful()) {
+      EDGE_SDK_LOG_ERROR_F(kLogTag,
+                           "Error writing data - HTTP Status: %d Message: %s",
+                           response.GetError().GetHttpStatusCode(),
+                           response.GetError().GetMessage().c_str());
+      return -1;
+    }
+
     EDGE_SDK_LOG_INFO_F(kLogTag, "Publish Successful - TraceID: %s",
                         response.GetResult().GetTraceID().c_str());
+  }
+
+  // Multi-publish to stream layer
+  {
+    // Queue publish requests to be uploaded on Flush
+    for (size_t idx = 0; idx < kPublishRequestsSize; ++idx) {
+      auto status = client->Queue(request);
+      if (status) {
+        EDGE_SDK_LOG_ERROR_F(kLogTag, "Queue failed - %s", status->c_str());
+        return -1;
+      }
+    }
+
+    // Flush and wait for uploading
+    auto future_response = client->Flush();
+    auto responses = future_response.GetFuture().get();
+    if (responses.empty()) {
+      EDGE_SDK_LOG_ERROR_F(kLogTag, "Error on Flush()");
+      return -1;
+    }
+
+    // Check all publishes succeeded
+    for (auto response : responses) {
+      if (!response.IsSuccessful()) {
+        EDGE_SDK_LOG_ERROR_F(
+            kLogTag, "Error flushing data - HTTP Status: %d Message: %s",
+            response.GetError().GetHttpStatusCode(),
+            response.GetError().GetMessage().c_str());
+        return -1;
+      }
+
+      EDGE_SDK_LOG_INFO_F(kLogTag, "Flush Successful - TraceID: %s",
+                          response.GetResult().GetTraceID().c_str());
+    }
   }
 
   return 0;

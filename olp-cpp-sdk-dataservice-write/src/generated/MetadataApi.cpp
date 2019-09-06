@@ -23,8 +23,8 @@
 #include <map>
 #include <sstream>
 
+#include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
-#include <olp/core/network/HttpResponse.h>
 
 // clang-format off
 #include "generated/parser/LayerVersionsParser.h"
@@ -73,7 +73,7 @@ CancellationToken MetadataApi::GetLayerVersions(
   std::string metadataUri = "/layerVersions";
 
   NetworkAsyncCallback callback =
-      [layerVersionsCallback](network::HttpResponse response) {
+      [layerVersionsCallback](client::HttpResponse response) {
         if (response.status != 200) {
           layerVersionsCallback(ApiError(response.status, response.response));
         } else {
@@ -115,7 +115,7 @@ CancellationToken MetadataApi::GetPartitions(
   std::string metadataUri = "/layers/" + layerId + "/partitions";
 
   NetworkAsyncCallback callback =
-      [partitionsCallback](network::HttpResponse response) {
+      [partitionsCallback](client::HttpResponse response) {
         if (response.status != 200) {
           partitionsCallback(ApiError(response.status, response.response));
         } else {
@@ -147,7 +147,7 @@ CancellationToken MetadataApi::GetLatestCatalogVersion(
   std::string metadataUri = "/versions/latest";
 
   NetworkAsyncCallback callback =
-      [catalogVersionCallback](network::HttpResponse response) {
+      [catalogVersionCallback](client::HttpResponse response) {
         if (response.status != 200) {
           catalogVersionCallback(ApiError(response.status, response.response));
         } else {

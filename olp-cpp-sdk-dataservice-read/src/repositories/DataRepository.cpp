@@ -162,7 +162,8 @@ DataRepository::DataRepository(
       partitionsCache_(
           std::make_shared<PartitionsCacheRepository>(hrn, cache)) {
   read::DataResponse cancelledResponse{
-      {olp::network::Network::ErrorCode::Cancelled, "Operation cancelled."}};
+      {static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+       "Operation cancelled."}};
   multiRequestContext_ = std::make_shared<
       MultiRequestContext<read::DataResponse, read::DataResponseCallback>>(
       cancelledResponse);

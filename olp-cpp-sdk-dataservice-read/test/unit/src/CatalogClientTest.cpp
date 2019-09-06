@@ -33,11 +33,11 @@
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
+#include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientFactory.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/logging/Log.h>
-#include <olp/core/network/HttpResponse.h>
 #include <olp/core/network/Network.h>
 #include <olp/core/network/NetworkConfig.h>
 #include <olp/core/network/NetworkRequest.h>
@@ -1233,7 +1233,7 @@ TEST_P(CatalogClientMockTest, GetData429Error) {
 
   olp::client::RetrySettings retrySettings;
   retrySettings.retry_condition =
-      [](const olp::network::HttpResponse& response) {
+      [](const olp::client::HttpResponse& response) {
         return 429 == response.status;
       };
   settings_->retry_settings = retrySettings;
@@ -1274,7 +1274,7 @@ TEST_P(CatalogClientMockTest, GetPartitions429Error) {
 
   olp::client::RetrySettings retrySettings;
   retrySettings.retry_condition =
-      [](const olp::network::HttpResponse& response) {
+      [](const olp::client::HttpResponse& response) {
         return 429 == response.status;
       };
   settings_->retry_settings = retrySettings;
@@ -1311,7 +1311,7 @@ TEST_P(CatalogClientMockTest, ApiLookup429) {
 
   olp::client::RetrySettings retrySettings;
   retrySettings.retry_condition =
-      [](const olp::network::HttpResponse& response) {
+      [](const olp::client::HttpResponse& response) {
         return 429 == response.status;
       };
   settings_->retry_settings = retrySettings;

@@ -22,8 +22,8 @@
 #include <map>
 #include <sstream>
 
+#include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
-#include <olp/core/network/HttpResponse.h>
 
 // clang-format off
 #include "generated/parser/PartitionsParser.h"
@@ -80,7 +80,7 @@ CancellationToken QueryApi::GetPartitionsById(
   std::string queryUri = "/layers/" + layerId + "/partitions";
 
   NetworkAsyncCallback callback =
-      [partitionsCallback](network::HttpResponse response) {
+      [partitionsCallback](client::HttpResponse response) {
         if (response.status != 200) {
           partitionsCallback(ApiError(response.status, response.response));
         } else {

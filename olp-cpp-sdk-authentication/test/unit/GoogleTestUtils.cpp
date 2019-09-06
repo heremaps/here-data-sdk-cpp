@@ -17,10 +17,11 @@
  * License-Filename: LICENSE
  */
 #include "GoogleTestUtils.h"
+#include <olp/core/http/HttpStatusCode.h>
+#include <olp/core/http/Network.h>
+#include <olp/core/http/NetworkRequest.h>
+#include <olp/core/http/NetworkResponse.h>
 #include <olp/core/logging/Log.h>
-#include <olp/core/network/Network.h>
-#include <olp/core/network/NetworkRequest.h>
-#include <olp/core/network/NetworkResponse.h>
 #include <olp/core/porting/make_unique.h>
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
@@ -35,80 +36,49 @@
 #include "CommonTestUtils.h"
 #include "testutils/CustomParameters.hpp"
 
-using namespace std;
-using namespace rapidjson;
-using namespace olp::network;
-
 namespace olp {
 namespace authentication {
-const static string GOOGLE_API_URL = "https://www.googleapis.com/";
-const static string GOOGLE_OAUTH2_ENDPOINT = "oauth2/v3/token";
-const static string GOOGLE_CLIENT_ID_PARAM = "client_id";
-const static string GOOGLE_CLIENT_SECRET_PARAM = "client_secret";
-const static string GOOGLE_REFRESH_TOKEN_PARAM = "refresh_token";
-const static string GOOGLE_REFRESH_TOKEN_GRANT_TYPE =
-    "grant_type=refresh_token";
+constexpr auto kGoogleApiUrl = "https://www.googleapis.com/";
+constexpr auto kGoogleOauth2Endpoint = "oauth2/v3/token";
+constexpr auto kGoogleClientIdParam = "client_id";
+constexpr auto kGoogleClientSecretParam = "client_secret";
+constexpr auto kGoogleRefreshTokenParam = "refresh_token";
+constexpr auto kGoogleRefreshTokenGrantType = "grant_type=refresh_token";
 
 class GoogleTestUtils::Impl {
  public:
-  class ScopedNetwork {
-   public:
-    ScopedNetwork() : network() { network.Start(); }
-
-    Network& getNetwork() { return network; }
-
-   private:
-    Network network;
-  };
-
-  using ScopedNetworkPtr = std::shared_ptr<ScopedNetwork>;
   Impl();
 
   virtual ~Impl();
 
-  bool getAccessToken(GoogleTestUtils::GoogleUser& user);
-
- private:
-  ScopedNetworkPtr getScopedNetwork();
-
- private:
-  std::weak_ptr<ScopedNetwork> networkPtr;
-  std::mutex networkPtrLock;
+  bool getAccessToken(olp::http::Network& network,
+                      const olp::http::NetworkSettings& network_settings,
+                      GoogleTestUtils::GoogleUser& user);
 };
 
 GoogleTestUtils::Impl::Impl() = default;
 
 GoogleTestUtils::Impl::~Impl() = default;
 
-GoogleTestUtils::Impl::ScopedNetworkPtr
-GoogleTestUtils::Impl::getScopedNetwork() {
-  lock_guard<mutex> lock(networkPtrLock);
-  auto netPtr = networkPtr.lock();
-  if (netPtr) return netPtr;
-
-  auto result = make_shared<ScopedNetwork>();
-  networkPtr = result;
-  return result;
-}
-
-bool GoogleTestUtils::Impl::getAccessToken(GoogleTestUtils::GoogleUser& user) {
-  string url = GOOGLE_API_URL + GOOGLE_OAUTH2_ENDPOINT;
+bool GoogleTestUtils::Impl::getAccessToken(
+    http::Network& network, const olp::http::NetworkSettings& network_settings,
+    GoogleTestUtils::GoogleUser& user) {
+  std::string url = std::string() + kGoogleApiUrl + kGoogleOauth2Endpoint;
   url.append(QUESTION_PARAM);
-  url.append(GOOGLE_CLIENT_ID_PARAM + EQUALS_PARAM +
+  url.append(kGoogleClientIdParam + EQUALS_PARAM +
              CustomParameters::getArgument("google_client_id"));
   url.append(AND_PARAM);
-  url.append(GOOGLE_CLIENT_SECRET_PARAM + EQUALS_PARAM +
+  url.append(kGoogleClientSecretParam + EQUALS_PARAM +
              CustomParameters::getArgument("google_client_secret"));
   url.append(AND_PARAM);
-  url.append(GOOGLE_REFRESH_TOKEN_PARAM + EQUALS_PARAM +
+  url.append(kGoogleRefreshTokenParam + EQUALS_PARAM +
              CustomParameters::getArgument("google_client_token"));
   url.append(AND_PARAM);
-  url.append(GOOGLE_REFRESH_TOKEN_GRANT_TYPE);
+  url.append(kGoogleRefreshTokenGrantType);
 
-  NetworkRequest request(url, 0, NetworkRequest::PriorityDefault,
-                         NetworkRequest::HttpVerb::POST);
-
-  auto networkPtr = getScopedNetwork();
+  olp::http::NetworkRequest request(url);
+  request.WithVerb(http::NetworkRequest::HttpVerb::POST);
+  request.WithSettings(network_settings);
 
   unsigned int retry = 0u;
   do {
@@ -119,18 +89,18 @@ bool GoogleTestUtils::Impl::getAccessToken(GoogleTestUtils::GoogleUser& user) {
           std::chrono::seconds(retry * RETRY_DELAY_SECS));
     }
 
-    shared_ptr<stringstream> payload = make_shared<stringstream>();
+    auto payload = std::make_shared<std::stringstream>();
 
     std::promise<void> promise;
     auto future = promise.get_future();
-    networkPtr->getNetwork().Send(
+    network.Send(
         request, payload,
-        [networkPtr, payload, &promise,
-         &user](const NetworkResponse& network_response) {
-          user.status = network_response.Status();
-          if (user.status == 200) {
-            shared_ptr<Document> document = make_shared<Document>();
-            IStreamWrapper stream(*payload.get());
+        [payload, &promise,
+         &user](const olp::http::NetworkResponse& network_response) {
+          user.status = network_response.GetStatus();
+          if (user.status == olp::http::HttpStatusCode::OK) {
+            auto document = std::make_shared<rapidjson::Document>();
+            rapidjson::IStreamWrapper stream(*payload.get());
             document->ParseStream(stream);
             bool is_valid = !document->HasParseError() &&
                             document->HasMember(ACCESS_TOKEN.c_str());
@@ -140,7 +110,7 @@ bool GoogleTestUtils::Impl::getAccessToken(GoogleTestUtils::GoogleUser& user) {
             }
           } else {
             std::cout << "getAccessToken: status=" << user.status
-                      << ", error=" << network_response.Error() << std::endl;
+                      << ", error=" << network_response.GetError() << std::endl;
           }
           promise.set_value();
         });
@@ -155,8 +125,11 @@ GoogleTestUtils::GoogleTestUtils()
 
 GoogleTestUtils::~GoogleTestUtils() = default;
 
-bool GoogleTestUtils::getAccessToken(GoogleTestUtils::GoogleUser& user) {
-  return d->getAccessToken(user);
+bool GoogleTestUtils::getAccessToken(
+    olp::http::Network& network,
+    const olp::http::NetworkSettings& network_settings,
+    GoogleTestUtils::GoogleUser& user) {
+  return d->getAccessToken(network, network_settings, user);
 }
 
 }  // namespace authentication

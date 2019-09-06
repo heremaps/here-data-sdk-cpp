@@ -20,7 +20,7 @@
 #include <gtest/gtest.h>
 #include <olp/authentication/AuthenticationClient.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
-#include <olp/core/network/HttpStatusCode.h>
+#include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/network/Network.h>
 #include <olp/core/porting/make_unique.h>
 #include <future>
@@ -48,20 +48,30 @@ using namespace olp::authentication;
 
 class AuthenticationOnlineProductionTest : public ::testing::Test {
  public:
+  static void SetUpTestSuite() {
+    s_network_ = olp::client::OlpClientSettingsFactory::
+        CreateDefaultNetworkRequestHandler(1);
+  }
+
+  static void TearDownTestSuite() { s_network_.reset(); }
+
   void SetUp() override {
     // Use production HERE Account server
     client = std::make_unique<AuthenticationClient>();
     client->SetTaskScheduler(
         olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler());
-    client->SetNetwork(
-        olp::client::OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler());
+    client->SetNetwork(s_network_);
   }
 
   void TearDown() override { client.reset(); }
 
  public:
   std::unique_ptr<AuthenticationClient> client;
+
+  static std::shared_ptr<olp::http::Network> s_network_;
 };
+
+std::shared_ptr<olp::http::Network> AuthenticationOnlineProductionTest::s_network_;
 
 TEST_F(AuthenticationOnlineProductionTest, SignInClient) {
   AuthenticationCredentials credentials(
@@ -80,7 +90,7 @@ TEST_F(AuthenticationOnlineProductionTest, SignInClient) {
   AuthenticationClient::SignInClientResponse response = request_future.get();
   std::time_t now = std::time(nullptr);
   EXPECT_TRUE(response.IsSuccessful());
-  EXPECT_EQ(olp::network::HttpStatusCode::Ok, response.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response.GetResult().GetStatus());
   EXPECT_STREQ(ERROR_OK.c_str(),
                response.GetResult().GetErrorResponse().message.c_str());
   EXPECT_FALSE(response.GetResult().GetAccessToken().empty());

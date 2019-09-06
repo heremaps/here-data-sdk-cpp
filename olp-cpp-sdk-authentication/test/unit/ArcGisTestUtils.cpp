@@ -17,10 +17,11 @@
  * License-Filename: LICENSE
  */
 #include "ArcGisTestUtils.h"
+#include <olp/core/http/HttpStatusCode.h>
+#include <olp/core/http/Network.h>
+#include <olp/core/http/NetworkRequest.h>
+#include <olp/core/http/NetworkResponse.h>
 #include <olp/core/logging/Log.h>
-#include <olp/core/network/Network.h>
-#include <olp/core/network/NetworkRequest.h>
-#include <olp/core/network/NetworkResponse.h>
 #include <olp/core/porting/make_unique.h>
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
@@ -36,32 +37,17 @@
 
 #include <iostream>
 
-using namespace std;
-using namespace rapidjson;
-using namespace olp::network;
-
 namespace {
-constexpr auto ARCGIS_URL = "https://www.arcgis.com/sharing/rest/oauth2/token";
-constexpr auto GRANT_TYPE = "grant_type";
-constexpr auto CLIENT_ID = "client_id";
-constexpr auto REFRESH_TOKEN = "refresh_token";
+constexpr auto kArcgisUrl = "https://www.arcgis.com/sharing/rest/oauth2/token";
+constexpr auto kGrantType = "grant_type";
+constexpr auto kClientId = "client_id";
+constexpr auto kRefreshToken = "refresh_token";
 }  // namespace
 
 namespace olp {
 namespace authentication {
 class ArcGisTestUtils::Impl {
  public:
-  class ScopedNetwork {
-   public:
-    ScopedNetwork() : network() { network.Start(); }
-
-    Network& getNetwork() { return network; }
-
-   private:
-    Network network;
-  };
-
-  using ScopedNetworkPtr = std::shared_ptr<ScopedNetwork>;
   /**
    * @brief Constructor
    * @param token_cache_limit Maximum number of tokens that will be cached.
@@ -70,36 +56,24 @@ class ArcGisTestUtils::Impl {
 
   virtual ~Impl() = default;
 
-  bool getAccessToken(ArcGisUser& user);
+  bool getAccessToken(http::Network& network,
+                      const olp::http::NetworkSettings& network_settings,
+                      ArcGisUser& user);
 
  private:
-  ScopedNetworkPtr getScopedNetwork();
   std::shared_ptr<std::vector<unsigned char> > generateClientBody();
-
- private:
-  std::weak_ptr<ScopedNetwork> networkPtr;
-  std::mutex networkPtrLock;
 };
 
-ArcGisTestUtils::Impl::ScopedNetworkPtr
-ArcGisTestUtils::Impl::getScopedNetwork() {
-  lock_guard<mutex> lock(networkPtrLock);
-  auto netPtr = networkPtr.lock();
-  if (netPtr) return netPtr;
+bool ArcGisTestUtils::Impl::getAccessToken(
+    olp::http::Network& network,
+    const olp::http::NetworkSettings& network_settings, ArcGisUser& user) {
+  olp::http::NetworkRequest request(kArcgisUrl);
+  request.WithVerb(http::NetworkRequest::HttpVerb::POST);
+  request.WithSettings(network_settings);
 
-  auto result = make_shared<ScopedNetwork>();
-  networkPtr = result;
-  return result;
-}
-
-bool ArcGisTestUtils::Impl::getAccessToken(ArcGisUser& user) {
-  NetworkRequest request(ARCGIS_URL, 0, ::NetworkRequest::PriorityDefault,
-                         ::NetworkRequest::HttpVerb::POST);
-
-  request.SetContent(generateClientBody());
-  request.AddHeader("content-type", "application/x-www-form-urlencoded");
-
-  auto networkPtr = getScopedNetwork();
+  request.WithBody(generateClientBody());
+  request.WithHeader("content-type", "application/x-www-form-urlencoded");
+  request.WithSettings(network_settings);
 
   unsigned int retry = 0u;
   do {
@@ -110,27 +84,27 @@ bool ArcGisTestUtils::Impl::getAccessToken(ArcGisUser& user) {
           std::chrono::seconds(retry * RETRY_DELAY_SECS));
     }
 
-    shared_ptr<stringstream> payload = make_shared<stringstream>();
+    auto payload = std::make_shared<std::stringstream>();
 
     std::promise<void> promise;
     auto future = promise.get_future();
-    networkPtr->getNetwork().Send(
-        request, payload,
-        [networkPtr, payload, &promise,
-         &user](const ::NetworkResponse& network_response) {
-          user.status = network_response.Status();
-          if (user.status == 200) {
-            shared_ptr<Document> document = make_shared<Document>();
-            IStreamWrapper stream(*payload.get());
-            document->ParseStream(stream);
-            bool is_valid = !document->HasParseError() &&
-                            document->HasMember(ACCESS_TOKEN.c_str());
-            if (is_valid) {
-              user.access_token = (*document)[ACCESS_TOKEN.c_str()].GetString();
-            }
-          }
-          promise.set_value();
-        });
+    network.Send(request, payload,
+                 [payload, &promise,
+                  &user](const olp::http::NetworkResponse& network_response) {
+                   user.status = network_response.GetStatus();
+                   if (user.status == olp::http::HttpStatusCode::OK) {
+                     auto document = std::make_shared<rapidjson::Document>();
+                     rapidjson::IStreamWrapper stream(*payload.get());
+                     document->ParseStream(stream);
+                     bool is_valid = !document->HasParseError() &&
+                                     document->HasMember(ACCESS_TOKEN.c_str());
+                     if (is_valid) {
+                       user.access_token =
+                           (*document)[ACCESS_TOKEN.c_str()].GetString();
+                     }
+                   }
+                   promise.set_value();
+                 });
     future.wait();
   } while ((user.status < 0) && (++retry < MAX_RETRY_COUNT));
 
@@ -140,15 +114,15 @@ bool ArcGisTestUtils::Impl::getAccessToken(ArcGisUser& user) {
 std::shared_ptr<std::vector<unsigned char> >
 ArcGisTestUtils::Impl::generateClientBody() {
   std::string data;
-  data.append(CLIENT_ID)
+  data.append(kClientId)
       .append(EQUALS_PARAM)
       .append(CustomParameters::getArgument("arcgis_app_id"))
       .append(AND_PARAM);
-  data.append(GRANT_TYPE)
+  data.append(kGrantType)
       .append(EQUALS_PARAM)
-      .append(REFRESH_TOKEN)
+      .append(kRefreshToken)
       .append(AND_PARAM);
-  data.append(REFRESH_TOKEN)
+  data.append(kRefreshToken)
       .append(EQUALS_PARAM)
       .append(CustomParameters::getArgument("arcgis_access_token"));
   return std::make_shared<std::vector<unsigned char> >(data.begin(),
@@ -160,8 +134,10 @@ ArcGisTestUtils::ArcGisTestUtils()
 
 ArcGisTestUtils::~ArcGisTestUtils() = default;
 
-bool ArcGisTestUtils::getAccessToken(ArcGisUser& user) {
-  return d->getAccessToken(user);
+bool ArcGisTestUtils::getAccessToken(
+    olp::http::Network& network,
+    const olp::http::NetworkSettings& network_settings, ArcGisUser& user) {
+  return d->getAccessToken(network, network_settings, user);
 }
 
 }  // namespace authentication

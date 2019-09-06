@@ -29,8 +29,8 @@
 #include <olp/authentication/TokenRequest.h>
 #include <olp/authentication/TokenResult.h>
 #include <olp/core/client/CancellationToken.h>
+#include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/http/NetworkProxySettings.h>
-#include <olp/core/network/HttpStatusCode.h>
 #include "AuthenticationTests.h"
 
 namespace {
@@ -153,7 +153,7 @@ TEST_F(TestHereAccountOauth2IntegrationOffline, AutoRefreshingTokenCancelSync) {
         }
         callback(olp::http::NetworkResponse()
                      .WithRequestId(request_id)
-                     .WithStatus(olp::network::HttpStatusCode::Ok)
+                     .WithStatus(olp::http::HttpStatusCode::OK)
                      .WithError(ERROR_OK));
         if (data_callback) {
           auto raw = const_cast<char*>(response_1.c_str());
@@ -197,7 +197,7 @@ TEST_F(TestHereAccountOauth2IntegrationOffline,
         }
         callback(olp::http::NetworkResponse()
                      .WithRequestId(request_id)
-                     .WithStatus(olp::network::HttpStatusCode::Ok)
+                     .WithStatus(olp::http::HttpStatusCode::OK)
                      .WithError(ERROR_OK));
         if (data_callback) {
           auto raw = const_cast<char*>(response_1.c_str());
@@ -228,61 +228,57 @@ TEST_F(TestHereAccountOauth2IntegrationOffline,
 
 class TestHereAccountOauth2IntegrationOnline : public ::testing::Test {
  protected:
-  TestHereAccountOauth2IntegrationOnline()
-      : m_tokenEndpoint(TokenEndpoint(
-            AuthenticationCredentials(
-                CustomParameters::getArgument(
-                    "integration_production_service_id"),
-                CustomParameters::getArgument(
-                    "integration_production_service_secret")),
-            []() -> Settings {
-              Settings settings;
-              settings.task_scheduler = olp::client::OlpClientSettingsFactory::
-                  CreateDefaultTaskScheduler();
-              settings.network_request_handler =
-                  olp::client::OlpClientSettingsFactory::
-                      CreateDefaultNetworkRequestHandler();
-              return settings;
-            }())) {}
+  static void SetUpTestSuite() {
+    s_network_ = olp::client::OlpClientSettingsFactory::
+        CreateDefaultNetworkRequestHandler(1);
+  }
 
-  TokenEndpoint m_tokenEndpoint;
+  static void TearDownTestSuite() { s_network_.reset(); }
+
+  TestHereAccountOauth2IntegrationOnline()
+      : settings_([]() -> Settings {
+          Settings settings;
+          settings.task_scheduler = olp::client::OlpClientSettingsFactory::
+              CreateDefaultTaskScheduler();
+          settings.network_request_handler = s_network_;
+          return settings;
+        }()),
+        tokenEndpoint_(
+            TokenEndpoint(AuthenticationCredentials(
+                              CustomParameters::getArgument(
+                                  "integration_production_service_id"),
+                              CustomParameters::getArgument(
+                                  "integration_production_service_secret")),
+                          settings_)) {}
+
+  Settings settings_;
+  TokenEndpoint tokenEndpoint_;
+
+ protected:
+  static std::shared_ptr<olp::http::Network> s_network_;
 };
+
+std::shared_ptr<olp::http::Network> TestHereAccountOauth2IntegrationOnline::s_network_;
 
 TEST_F(TestHereAccountOauth2IntegrationOnline,
        TokenProviderValidCredentialsValid) {
   TokenProviderDefault prov{
       CustomParameters::getArgument("integration_production_service_id"),
       CustomParameters::getArgument("integration_production_service_secret"),
-      []() -> Settings {
-        Settings settings;
-        settings.task_scheduler =
-            olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
-        settings.network_request_handler = olp::client::
-            OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
-        return settings;
-      }()};
+      settings_};
   ASSERT_TRUE(prov);
   ASSERT_NE("", prov());
-  ASSERT_EQ(200, prov.GetHttpStatusCode());
+  ASSERT_EQ(olp::http::HttpStatusCode::OK, prov.GetHttpStatusCode());
 
   ASSERT_TRUE(prov);
   ASSERT_NE("", prov());
-  ASSERT_EQ(200, prov.GetHttpStatusCode());
+  ASSERT_EQ(olp::http::HttpStatusCode::OK, prov.GetHttpStatusCode());
 }
 
 TEST_F(TestHereAccountOauth2IntegrationOnline,
        TokenProviderValidCredentialsInvalid) {
-  auto tokenProviderTest = [](std::string key, std::string secret) {
-    TokenProviderDefault prov{key, secret, []() -> Settings {
-                                Settings settings;
-                                settings.task_scheduler =
-                                    olp::client::OlpClientSettingsFactory::
-                                        CreateDefaultTaskScheduler();
-                                settings.network_request_handler =
-                                    olp::client::OlpClientSettingsFactory::
-                                        CreateDefaultNetworkRequestHandler();
-                                return settings;
-                              }()};
+  auto tokenProviderTest = [this](std::string key, std::string secret) {
+    TokenProviderDefault prov{key, secret, settings_};
     ASSERT_FALSE(prov);
     ASSERT_EQ("", prov());
     ASSERT_EQ(401300, (int)prov.GetErrorResponse().code);
@@ -299,7 +295,7 @@ TEST_F(TestHereAccountOauth2IntegrationOnline,
 
 TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenValidCredentials) {
   auto barrier = std::make_shared<std::promise<void> >();
-  m_tokenEndpoint.RequestToken(
+  tokenEndpoint_.RequestToken(
       TokenRequest{}, [barrier](TokenEndpoint::TokenResponse tokenResponse) {
 #if OAUTH2_TEST_DEBUG_OUTPUT
         std::cout << "Is successful : " << tokenResponse.IsSuccessful()
@@ -332,8 +328,8 @@ TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenValidCredentials) {
 TEST_F(TestHereAccountOauth2IntegrationOnline,
        RequestTokenValidCredentialsFuture) {
   EXPECT_EQ(std::future_status::ready,
-            m_tokenEndpoint.RequestToken().wait_for(kTestMaxExecutionTime));
-  auto tokenResponse = m_tokenEndpoint.RequestToken().get();
+            tokenEndpoint_.RequestToken().wait_for(kTestMaxExecutionTime));
+  auto tokenResponse = tokenEndpoint_.RequestToken().get();
 
   EXPECT_TRUE(tokenResponse.IsSuccessful());
   EXPECT_GT(tokenResponse.GetResult().GetAccessToken().length(), 42u);
@@ -341,18 +337,11 @@ TEST_F(TestHereAccountOauth2IntegrationOnline,
 }
 
 TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenBadAccessKey) {
-  auto badTokenEndpoint = TokenEndpoint(
-      AuthenticationCredentials("BAD",
-                                CustomParameters::getArgument(
-                                    "integration_production_service_secret")),
-      []() -> Settings {
-        Settings settings;
-        settings.task_scheduler =
-            olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
-        settings.network_request_handler = olp::client::
-            OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
-        return settings;
-      }());
+  auto badTokenEndpoint =
+      TokenEndpoint(AuthenticationCredentials(
+                        "BAD", CustomParameters::getArgument(
+                                   "integration_production_service_secret")),
+                    settings_);
 
   auto barrier = std::make_shared<std::promise<void> >();
   badTokenEndpoint.RequestToken(
@@ -371,14 +360,7 @@ TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenBadAccessSecret) {
       AuthenticationCredentials(
           CustomParameters::getArgument("integration_production_service_id"),
           "BAD"),
-      []() -> Settings {
-        Settings settings;
-        settings.task_scheduler =
-            olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
-        settings.network_request_handler = olp::client::
-            OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
-        return settings;
-      }());
+      settings_);
 
   auto barrier = std::make_shared<std::promise<void> >();
   badTokenEndpoint.RequestToken(
@@ -395,6 +377,7 @@ TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenBadAccessSecret) {
 TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenBadTokenUrl) {
   Settings badSettings;
   badSettings.token_endpoint_url = "BAD";
+  badSettings.network_request_handler = settings_.network_request_handler;
   auto badTokenEndpoint = TokenEndpoint(
       AuthenticationCredentials(
           CustomParameters::getArgument("integration_production_service_id"),
@@ -414,7 +397,7 @@ TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenBadTokenUrl) {
 
 TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenValidExpiry) {
   auto barrier = std::make_shared<std::promise<void> >();
-  m_tokenEndpoint.RequestToken(
+  tokenEndpoint_.RequestToken(
       TokenRequest{std::chrono::minutes(1)},
       [barrier](TokenEndpoint::TokenResponse tokenResponse) {
         EXPECT_TRUE(tokenResponse.IsSuccessful());
@@ -426,8 +409,7 @@ TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenValidExpiry) {
             barrier->get_future().wait_for(kTestMaxExecutionTime));
 }
 
-TEST_F(TestHereAccountOauth2IntegrationOnline,
-       DISABLED_RequestTokenConcurrent) {
+TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenConcurrent) {
   std::thread threads[5];
   auto accessTokens = std::vector<std::string>();
   auto deltaSum = std::chrono::high_resolution_clock::duration::zero();
@@ -438,7 +420,7 @@ TEST_F(TestHereAccountOauth2IntegrationOnline,
     threads[i] = std::thread([&]() {
       auto barrier = std::make_shared<std::promise<void> >();
       auto start = std::chrono::high_resolution_clock::now();
-      m_tokenEndpoint.RequestToken(
+      tokenEndpoint_.RequestToken(
           TokenRequest{},
           [&, barrier, start](TokenEndpoint::TokenResponse tokenResponse) {
             auto delta = std::chrono::high_resolution_clock::now() - start;
@@ -472,8 +454,7 @@ TEST_F(TestHereAccountOauth2IntegrationOnline,
       << "Expected all access tokens to be unique.";
 }
 
-TEST_F(TestHereAccountOauth2IntegrationOnline,
-       DISABLED_RequestTokenConcurrentFuture) {
+TEST_F(TestHereAccountOauth2IntegrationOnline, RequestTokenConcurrentFuture) {
   std::thread threads[5];
   auto accessTokens = std::vector<std::string>();
   auto deltaSum = std::chrono::high_resolution_clock::duration::zero();
@@ -483,7 +464,7 @@ TEST_F(TestHereAccountOauth2IntegrationOnline,
   for (int i = 0; i < 5; i++) {
     threads[i] = std::thread([&]() {
       auto start = std::chrono::high_resolution_clock::now();
-      auto tokenResponse = m_tokenEndpoint.RequestToken().get();
+      auto tokenResponse = tokenEndpoint_.RequestToken().get();
       auto delta = std::chrono::high_resolution_clock::now() - start;
       EXPECT_TRUE(tokenResponse.IsSuccessful());
       EXPECT_FALSE(tokenResponse.GetResult().GetAccessToken().empty());
@@ -513,9 +494,11 @@ TEST_F(TestHereAccountOauth2IntegrationOnline,
 TEST_F(TestHereAccountOauth2IntegrationOnline, NetworkProxySettings) {
   Settings settings;
   olp::http::NetworkProxySettings proxySettings;
-  proxySettings.WithHostname("foo.bar");
+  proxySettings.WithHostname("$.?");
   proxySettings.WithPort(42);
+  proxySettings.WithType(olp::http::NetworkProxySettings::Type::SOCKS4);
   settings.network_proxy_settings = proxySettings;
+  settings.network_request_handler = settings_.network_request_handler;
 
   auto badTokenEndpoint = TokenEndpoint(
       AuthenticationCredentials(
@@ -542,27 +525,27 @@ TEST_F(TestHereAccountOauth2IntegrationOnline, NetworkProxySettings) {
 TEST_F(TestHereAccountOauth2IntegrationOnline,
        AutoRefreshingTokenValidRequest) {
   testAutoRefreshingTokenValidRequest(
-      m_tokenEndpoint, [](const AutoRefreshingToken& autoToken) {
+      tokenEndpoint_, [](const AutoRefreshingToken& autoToken) {
         return getTokenFromSyncRequest(autoToken);
       });
 
   testAutoRefreshingTokenValidRequest(
-      m_tokenEndpoint, [](const AutoRefreshingToken& autoToken) {
+      tokenEndpoint_, [](const AutoRefreshingToken& autoToken) {
         return getTokenFromAsyncRequest(autoToken);
       });
 }
 
 void testAutoRefreshingTokenInvalidRequest(
+    const std::shared_ptr<olp::http::Network>& network,
     std::function<
         TokenEndpoint::TokenResponse(const AutoRefreshingToken& autoToken)>
         func) {
-  auto badTokenEndpoint =
-      TokenEndpoint(AuthenticationCredentials("BAD", "BAD"), []() -> Settings {
+  auto badTokenEndpoint = TokenEndpoint(
+      AuthenticationCredentials("BAD", "BAD"), [network]() -> Settings {
         Settings settings;
         settings.task_scheduler =
             olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
-        settings.network_request_handler = olp::client::
-            OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
+        settings.network_request_handler = network;
         return settings;
       }());
   auto tokenResponse = func(badTokenEndpoint.RequestAutoRefreshingToken());
@@ -574,12 +557,12 @@ void testAutoRefreshingTokenInvalidRequest(
 TEST_F(TestHereAccountOauth2IntegrationOnline,
        AutoRefreshingTokenInvalidRequest) {
   testAutoRefreshingTokenInvalidRequest(
-      [](const AutoRefreshingToken& autoToken) {
+      s_network_, [](const AutoRefreshingToken& autoToken) {
         return getTokenFromSyncRequest(autoToken);
       });
 
   testAutoRefreshingTokenInvalidRequest(
-      [](const AutoRefreshingToken& autoToken) {
+      s_network_, [](const AutoRefreshingToken& autoToken) {
         return getTokenFromAsyncRequest(autoToken);
       });
 }
@@ -598,13 +581,13 @@ void testAutoRefreshingTokenReuseToken(
 }
 
 TEST_F(TestHereAccountOauth2IntegrationOnline, AutoRefreshingTokenReuseToken) {
-  testAutoRefreshingTokenReuseToken(m_tokenEndpoint,
+  testAutoRefreshingTokenReuseToken(tokenEndpoint_,
                                     [](const AutoRefreshingToken& autoToken) {
                                       return getTokenFromSyncRequest(autoToken);
                                     });
 
   testAutoRefreshingTokenReuseToken(
-      m_tokenEndpoint, [](const AutoRefreshingToken& autoToken) {
+      tokenEndpoint_, [](const AutoRefreshingToken& autoToken) {
         return getTokenFromAsyncRequest(autoToken);
       });
 }
@@ -626,14 +609,14 @@ void testAutoRefreshingTokenForceRefresh(
 TEST_F(TestHereAccountOauth2IntegrationOnline,
        AutoRefreshingTokenForceRefresh) {
   testAutoRefreshingTokenForceRefresh(
-      m_tokenEndpoint, [](const AutoRefreshingToken& autoToken,
-                          const std::chrono::seconds minimumValidity) {
+      tokenEndpoint_, [](const AutoRefreshingToken& autoToken,
+                         const std::chrono::seconds minimumValidity) {
         return getTokenFromSyncRequest(autoToken, minimumValidity);
       });
 
   testAutoRefreshingTokenForceRefresh(
-      m_tokenEndpoint, [](const AutoRefreshingToken& autoToken,
-                          const std::chrono::seconds minimumValidity) {
+      tokenEndpoint_, [](const AutoRefreshingToken& autoToken,
+                         const std::chrono::seconds minimumValidity) {
         return getTokenFromAsyncRequest(autoToken, minimumValidity);
       });
 }
@@ -657,7 +640,7 @@ void testAutoRefreshingTokenExpiresInRefresh(
 TEST_F(TestHereAccountOauth2IntegrationOnline,
        AutoRefreshingTokenExpiresInRefreshSync) {
   testAutoRefreshingTokenExpiresInRefresh(
-      m_tokenEndpoint, [](const AutoRefreshingToken& autoToken) {
+      tokenEndpoint_, [](const AutoRefreshingToken& autoToken) {
         return getTokenFromSyncRequest(autoToken);
       });
 }
@@ -665,7 +648,7 @@ TEST_F(TestHereAccountOauth2IntegrationOnline,
 TEST_F(TestHereAccountOauth2IntegrationOnline,
        AutoRefreshingTokenExpiresInRefreshAsync) {
   testAutoRefreshingTokenExpiresInRefresh(
-      m_tokenEndpoint, [](const AutoRefreshingToken& autoToken) {
+      tokenEndpoint_, [](const AutoRefreshingToken& autoToken) {
         return getTokenFromAsyncRequest(autoToken);
       });
 }
@@ -689,12 +672,12 @@ void testAutoRefreshingTokenExpiresDoNotRefresh(
 TEST_F(TestHereAccountOauth2IntegrationOnline,
        AutoRefreshingTokenExpiresDoNotRefresh) {
   testAutoRefreshingTokenExpiresDoNotRefresh(
-      m_tokenEndpoint, [](const AutoRefreshingToken& autoToken) {
+      tokenEndpoint_, [](const AutoRefreshingToken& autoToken) {
         return getTokenFromSyncRequest(autoToken);
       });
 
   testAutoRefreshingTokenExpiresDoNotRefresh(
-      m_tokenEndpoint, [](const AutoRefreshingToken& autoToken) {
+      tokenEndpoint_, [](const AutoRefreshingToken& autoToken) {
         return getTokenFromAsyncRequest(autoToken);
       });
 }
@@ -726,14 +709,14 @@ void testAutoRefreshingTokenExpiresDoRefresh(
 TEST_F(TestHereAccountOauth2IntegrationOnline,
        AutoRefreshingTokenExpiresDoRefresh) {
   testAutoRefreshingTokenExpiresDoRefresh(
-      m_tokenEndpoint, [](const AutoRefreshingToken& autoToken,
-                          const std::chrono::seconds minimumValidity) {
+      tokenEndpoint_, [](const AutoRefreshingToken& autoToken,
+                         const std::chrono::seconds minimumValidity) {
         return getTokenFromSyncRequest(autoToken, minimumValidity);
       });
 
   testAutoRefreshingTokenExpiresDoRefresh(
-      m_tokenEndpoint, [](const AutoRefreshingToken& autoToken,
-                          const std::chrono::seconds minimumValidity) {
+      tokenEndpoint_, [](const AutoRefreshingToken& autoToken,
+                         const std::chrono::seconds minimumValidity) {
         return getTokenFromAsyncRequest(autoToken, minimumValidity);
       });
 }
@@ -759,14 +742,14 @@ void testAutoRefreshingTokenExpiresInAnHour(
 TEST_F(TestHereAccountOauth2IntegrationOnline,
        AutoRefreshingTokenExpiresInAnHour) {
   testAutoRefreshingTokenExpiresInAnHour(
-      m_tokenEndpoint, [](const AutoRefreshingToken& autoToken,
-                          const std::chrono::seconds minimumValidity) {
+      tokenEndpoint_, [](const AutoRefreshingToken& autoToken,
+                         const std::chrono::seconds minimumValidity) {
         return getTokenFromSyncRequest(autoToken, minimumValidity);
       });
 
   testAutoRefreshingTokenExpiresInAnHour(
-      m_tokenEndpoint, [](const AutoRefreshingToken& autoToken,
-                          const std::chrono::seconds minimumValidity) {
+      tokenEndpoint_, [](const AutoRefreshingToken& autoToken,
+                         const std::chrono::seconds minimumValidity) {
         return getTokenFromAsyncRequest(autoToken, minimumValidity);
       });
 }
@@ -792,14 +775,14 @@ void testAutoRefreshingTokenExpiresInASecond(
 TEST_F(TestHereAccountOauth2IntegrationOnline,
        AutoRefreshingTokenExpiresInASecond) {
   testAutoRefreshingTokenExpiresInASecond(
-      m_tokenEndpoint, [](const AutoRefreshingToken& autoToken,
-                          const std::chrono::seconds minimumValidity) {
+      tokenEndpoint_, [](const AutoRefreshingToken& autoToken,
+                         const std::chrono::seconds minimumValidity) {
         return getTokenFromSyncRequest(autoToken, minimumValidity);
       });
 
   testAutoRefreshingTokenExpiresInASecond(
-      m_tokenEndpoint, [](const AutoRefreshingToken& autoToken,
-                          const std::chrono::seconds minimumValidity) {
+      tokenEndpoint_, [](const AutoRefreshingToken& autoToken,
+                         const std::chrono::seconds minimumValidity) {
         return getTokenFromAsyncRequest(autoToken, minimumValidity);
       });
 }
@@ -836,12 +819,12 @@ void testAutoRefreshingTokenMultiThread(
 
 TEST_F(TestHereAccountOauth2IntegrationOnline, AutoRefreshingTokenMultiThread) {
   testAutoRefreshingTokenMultiThread(
-      m_tokenEndpoint, [](const AutoRefreshingToken& autoToken) {
+      tokenEndpoint_, [](const AutoRefreshingToken& autoToken) {
         return getTokenFromSyncRequest(autoToken);
       });
 
   testAutoRefreshingTokenMultiThread(
-      m_tokenEndpoint, [](const AutoRefreshingToken& autoToken) {
+      tokenEndpoint_, [](const AutoRefreshingToken& autoToken) {
         return getTokenFromAsyncRequest(autoToken);
       });
 }
