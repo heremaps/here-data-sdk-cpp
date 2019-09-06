@@ -151,6 +151,8 @@ olp::client::CancellationToken VersionedLayerClientImpl::InitApiClients(
     cancel_context->ExecuteOrCancelled(configApi_function, cancel_function);
   };
 
+  ul.unlock();
+
   return ApiClientLookup::LookupApi(apiclient_metadata_, "metadata", "v1",
                                     catalog_, metadataApi_callback);
 }
