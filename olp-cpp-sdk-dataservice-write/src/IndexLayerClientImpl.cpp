@@ -133,10 +133,7 @@ olp::client::CancellationToken IndexLayerClientImpl::InitApiClients(
     cancel_context->ExecuteOrCancelled(blobApi_function, cancel_function);
   };
 
-  auto configApi_function = [=]() -> olp::client::CancellationToken {
-    return ApiClientLookup::LookupApi(self->apiclient_config_, "config", "v1",
-                                      self->catalog_, configApi_callback);
-  };
+  ul.unlock();
 
   return ApiClientLookup::LookupApi(apiclient_config_, "config", "v1", catalog_,
                                     configApi_callback);
