@@ -38,9 +38,6 @@
 #include <olp/core/client/OlpClientFactory.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/logging/Log.h>
-#include <olp/core/network/Network.h>
-#include <olp/core/network/NetworkConfig.h>
-#include <olp/core/network/NetworkRequest.h>
 #include <olp/core/porting/make_unique.h>
 #include <olp/core/utils/Dir.h>
 #include <olp/dataservice/read/PrefetchTilesRequest.h>

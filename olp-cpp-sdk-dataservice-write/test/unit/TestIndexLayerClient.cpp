@@ -24,7 +24,6 @@
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
-#include <olp/core/network/Network.h>
 
 #include <olp/dataservice/write/IndexLayerClient.h>
 #include <olp/dataservice/write/model/PublishIndexRequest.h>
@@ -288,18 +287,6 @@ TEST_P(IndexLayerClientOnlineTest, PublishNoLayer) {
       "this "
       "IndexLayerClient instance.",
       response.GetError().GetMessage());
-}
-
-MATCHER_P(IsDeleteRequestPrefix, url, "") {
-  if (olp::network::NetworkRequest::HttpVerb::DEL != arg.Verb()) {
-    return false;
-  }
-
-  std::string url_string(url);
-  auto res =
-      std::mismatch(url_string.begin(), url_string.end(), arg.Url().begin());
-
-  return (res.first == url_string.end());
 }
 
 using ::testing::_;

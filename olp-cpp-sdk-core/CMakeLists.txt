@@ -70,12 +70,10 @@ file(GLOB GENERATED_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/generated/serializer/*.h"
 )
 
-file(GLOB NETWORK_HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/network/*.h"
-)
 set(EDGE_SDK_HTTP_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/HttpStatusCode.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/Network.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/HttpStatusCode.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/NetworkConstants.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/NetworkProxySettings.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/NetworkRequest.h"
@@ -137,11 +135,6 @@ file(GLOB GENERATED_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/generated/serializer/*.cpp"
 )
 
-file(GLOB NETWORK_SOURCE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/network/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/network/*.h"
-)
-
 set(EDGE_SDK_HTTP_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/http/Network.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/http/NetworkProxySettings.cpp"
@@ -152,12 +145,6 @@ set(EDGE_SDK_HTTP_SOURCES
 )
 
 if (ANDROID)
-    file(GLOB NETWORK_ANDROID_SOURCE
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/network/android/*.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/network/android/*.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/network/socket/*.cpp"
-    )
-    set(NETWORK_SOURCE ${NETWORK_SOURCE} ${NETWORK_ANDROID_SOURCE})
 
     # http network Android implementation:
     set(EDGE_SDK_HTTP_ANDROID_SOURCES
@@ -171,19 +158,16 @@ if (ANDROID)
     set(EDGE_SDK_DEFAULT_NETWORK_DEFINITION NETWORK_HAS_ANDROID)
 endif()
 if (UNIX AND NOT ANDROID)
-    set(NETWORK_SOURCE ${NETWORK_SOURCE} ${NETWORK_CURL_SOURCES})
     set(EDGE_SDK_HTTP_SOURCES ${EDGE_SDK_HTTP_SOURCES} ${EDGE_SDK_HTTP_CURL_SOURCES})
 
     set(EDGE_SDK_DEFAULT_NETWORK_DEFINITION NETWORK_HAS_CURL)
 endif()
 if (IOS)
-    set(NETWORK_SOURCE ${NETWORK_SOURCE} ${NETWORK_IOS_SOURCES})
     set(EDGE_SDK_HTTP_SOURCES ${EDGE_SDK_HTTP_SOURCES} ${EDGE_SDK_HTTP_IOS_SOURCES})
 
     set(EDGE_SDK_DEFAULT_NETWORK_DEFINITION NETWORK_HAS_IOS)
 endif()
 if (WIN32)
-    set(NETWORK_SOURCE ${NETWORK_SOURCE} ${NETWORK_WINHTTP_SOURCES})
     set(EDGE_SDK_HTTP_SOURCES ${EDGE_SDK_HTTP_SOURCES} ${EDGE_SDK_HTTP_WIN_SOURCES})
 
     set(EDGE_SDK_DEFAULT_NETWORK_DEFINITION NETWORK_HAS_WINHTTP)
@@ -211,7 +195,6 @@ file(GLOB CORE_HEADERS
     ${CACHE_HEADERS}
     ${CLIENT_HEADERS}
     ${GENERATED_HEADERS}
-    ${NETWORK_HEADERS}
     ${EDGE_SDK_HTTP_HEADERS}
     ${PLATFORM_HEADERS}
     ${PORTING_HEADERS}
@@ -230,7 +213,6 @@ file(GLOB CORE_SOURCE
     ${CACHE_SOURCE}
     ${CLIENT_SOURCE}
     ${GENERATED_SOURCE}
-    ${NETWORK_SOURCE}
     ${EDGE_SDK_HTTP_SOURCES}
     ${PLATFORM_SOURCE}
     ${PORTING_SOURCE}
@@ -325,7 +307,6 @@ if(BUILD_SHARED_LIBS)
 endif()
 
 # install component
-install (FILES ${NETWORK_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/network)
 install (FILES ${EDGE_SDK_HTTP_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/http)
 install (FILES ${PLATFORM_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/platform)
 install (FILES ${PORTING_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/porting)
@@ -349,6 +330,5 @@ if(EDGE_SDK_ENABLE_TESTING)
     add_subdirectory(tests/client)
     add_subdirectory(tests/olpclient)
     add_subdirectory(tests/geo)
-    add_subdirectory(tests/network)
     add_subdirectory(tests/thread)
 endif()

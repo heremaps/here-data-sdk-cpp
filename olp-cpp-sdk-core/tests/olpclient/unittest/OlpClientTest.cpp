@@ -30,8 +30,6 @@
 
 #include <olp/core/http/Network.h>
 
-#include "NetworkAsyncHandlerImpl.h"
-
 using ::testing::_;
 
 class NetworkMock : public olp::http::Network {
@@ -392,17 +390,6 @@ TEST_P(Client, SetInitialBackdownPeriod) {
 TEST_P(Client, Timeout) {
   client_settings_.retry_settings.timeout = 100;
   int timeout = 0;
-  client_settings_.network_async_handler =
-      [&](const olp::network::NetworkRequest&,
-          const olp::network::NetworkConfig& config,
-          const olp::client::NetworkAsyncCallback& callback) {
-        timeout = config.ConnectTimeout();
-        olp::client::HttpResponse response;
-        response.status = 429;
-        callback(response);
-        return olp::client::CancellationToken();
-      };
-
   auto network = std::make_shared<NetworkMock>();
   client_settings_.network_request_handler = network;
   client_.SetSettings(client_settings_);
@@ -438,9 +425,13 @@ TEST_P(Client, Timeout) {
 
 TEST_P(Client, Proxy) {
   client_settings_.retry_settings.timeout = 100;
-  olp::network::NetworkProxy settings("somewhere", 1080,
-                                      olp::network::NetworkProxy::Type::Http,
-                                      "username1", "1");
+  auto settings = olp::http::NetworkProxySettings()
+                      .WithHostname("somewhere")
+                      .WithPort(1080)
+                      .WithType(olp::http::NetworkProxySettings::Type::HTTP)
+                      .WithUsername("username1")
+                      .WithPassword("1");
+
   client_settings_.proxy_settings = settings;
   auto expected_proxy_settings =
       olp::http::NetworkProxySettings()
@@ -495,9 +486,12 @@ TEST_P(Client, Proxy) {
 TEST_P(Client, EmptyProxy) {
   client_settings_.retry_settings.timeout = 100;
 
-  olp::network::NetworkProxy settings("somewhere", 1080,
-                                      olp::network::NetworkProxy::Type::Http,
-                                      "username1", "1");
+  auto settings = olp::http::NetworkProxySettings()
+                      .WithHostname("somewhere")
+                      .WithPort(1080)
+                      .WithType(olp::http::NetworkProxySettings::Type::HTTP)
+                      .WithUsername("username1")
+                      .WithPassword("1");
   client_settings_.proxy_settings = settings;
   ASSERT_TRUE(client_settings_.proxy_settings);
   client_settings_.proxy_settings = boost::none;

@@ -38,13 +38,6 @@ class NetworkConfig;
 
 namespace client {
 /**
- * @brief Async network handler that delegates to the core network component.
- */
-CancellationToken DefaultNetworkAsyncHandler(
-    const network::NetworkRequest& request,
-    const network::NetworkConfig& config, const NetworkAsyncCallback& callback);
-
-/**
  * @brief This class is responsible for executing the REST requests.
  */
 class CORE_API OlpClient {

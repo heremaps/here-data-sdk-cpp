@@ -26,9 +26,9 @@
 #include <boost/optional.hpp>
 
 #include "olp/core/client/CancellationToken.h"
+#include "olp/core/client/HttpResponse.h"
 #include "olp/core/http/Network.h"
 #include "olp/core/client/HttpResponse.h"
-#include "olp/core/network/NetworkProxy.h"
 
 namespace olp {
 
@@ -43,20 +43,12 @@ class TaskScheduler;
 
 namespace http {
 class Network;
-struct HttpResponse;
 }  // namespace http
 
 namespace client {
 
 using NetworkAsyncCallback = std::function<void(HttpResponse)>;
 using NetworkAsyncCancel = std::function<void()>;
-
-/**
- * @brief Handler for asynchronous execution of network requests.
- */
-using NetworkAsyncHandler = std::function<CancellationToken(
-    const network::NetworkRequest&, const network::NetworkConfig&,
-    const NetworkAsyncCallback&)>;
 
 /**
  * @brief Default BackdownPolicy which simply returns the original wait time.
@@ -66,7 +58,7 @@ CORE_API unsigned int DefaultBackdownPolicy(unsigned int milliseconds);
 /**
  * @brief Default RetryCondition which is to disable retries.
  */
-CORE_API bool DefaultRetryCondition(const HttpResponse& response);
+CORE_API bool DefaultRetryCondition(const olp::client::HttpResponse& response);
 
 struct AuthenticationSettings {
   /**
@@ -165,19 +157,13 @@ struct OlpClientSettings {
    * @brief The network proxy settings to use. Set boost::none to remove any
    * exisitng proxy settings.
    */
-  boost::optional<network::NetworkProxy> proxy_settings = boost::none;
+  boost::optional<http::NetworkProxySettings> proxy_settings = boost::none;
 
   /**
    * @brief The authentication settings to use. Set boost::none to remove
    * any existing settings.
    */
   boost::optional<AuthenticationSettings> authentication_settings = boost::none;
-
-  /**
-   * @brief The network handler.
-   * @deprecated since 0.7
-   */
-  boost::optional<NetworkAsyncHandler> network_async_handler = boost::none;
 
   /**
    * @brief The task scheduler instance. In case of nullptr set, all request

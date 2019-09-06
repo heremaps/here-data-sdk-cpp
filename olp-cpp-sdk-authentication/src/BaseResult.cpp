@@ -22,7 +22,6 @@
 #include <rapidjson/document.h>
 
 #include "Constants.h"
-
 #include "olp/core/http/HttpStatusCode.h"
 
 using namespace rapidjson;

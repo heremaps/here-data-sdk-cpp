@@ -21,7 +21,6 @@
 #include <olp/authentication/AuthenticationClient.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/http/HttpStatusCode.h>
-#include <olp/core/network/Network.h>
 #include <olp/core/porting/make_unique.h>
 #include <future>
 #include <memory>
@@ -71,6 +70,9 @@ class AuthenticationOnlineProductionTest : public ::testing::Test {
   static std::shared_ptr<olp::http::Network> s_network_;
 };
 
+// Static network instance is necessary as it needs to outlive any created
+// clients. This is a known limitation as triggered send requests capture the
+// network instance inside the callbacks.
 std::shared_ptr<olp::http::Network> AuthenticationOnlineProductionTest::s_network_;
 
 TEST_F(AuthenticationOnlineProductionTest, SignInClient) {
