@@ -25,7 +25,6 @@
 #include <sstream>
 #include <thread>
 
-#include "NetworkAsyncHandlerImpl.h"
 #include "olp/core/http/NetworkConstants.h"
 #include "olp/core/utils/Url.h"
 
@@ -75,14 +74,13 @@ CancellationToken ExecuteSingleRequest(
   auto network = weak_network.lock();
 
   if (!network) {
-    HttpResponse result{olp::network::Network::ErrorCode::Offline};
+    HttpResponse result(static_cast<int>(olp::http::ErrorCode::OFFLINE_ERROR));
     callback(result);
     return CancellationToken();
   }
 
   auto send_outcome = network->Send(
-      request, response_body,
-      [callback, response_body](const http::NetworkResponse& response) {
+      request, response_body, [=](const http::NetworkResponse& response) {
         HttpResponse result(response.GetStatus());
         result.status = response.GetStatus();
         result.response = response_body->str();
@@ -115,24 +113,6 @@ CancellationToken ExecuteSingleRequest(
   });
 }
 
-olp::http::NetworkProxySettings::Type ConvertProxyType(
-    olp::network::NetworkProxy::Type proxy_type) {
-  switch (proxy_type) {
-    case olp::network::NetworkProxy::Type::Http:
-      return olp::http::NetworkProxySettings::Type::HTTP;
-    case olp::network::NetworkProxy::Type::Socks4:
-      return olp::http::NetworkProxySettings::Type::SOCKS4;
-    case olp::network::NetworkProxy::Type::Socks4A:
-      return olp::http::NetworkProxySettings::Type::SOCKS4A;
-    case olp::network::NetworkProxy::Type::Socks5:
-      return olp::http::NetworkProxySettings::Type::SOCKS5;
-    case olp::network::NetworkProxy::Type::Socks5Hostname:
-      return olp::http::NetworkProxySettings::Type::SOCKS5_HOSTNAME;
-    default:
-      return olp::http::NetworkProxySettings::Type::NONE;
-  }
-}
-
 http::NetworkRequest::HttpVerb GetHttpVerb(const std::string& verb) {
   http::NetworkRequest::HttpVerb http_verb =
       http::NetworkRequest::HttpVerb::GET;
@@ -151,14 +131,6 @@ http::NetworkRequest::HttpVerb GetHttpVerb(const std::string& verb) {
 
 }  // anonymous namespace
 
-CancellationToken DefaultNetworkAsyncHandler(
-    const network::NetworkRequest& request,
-    const network::NetworkConfig& config,
-    const NetworkAsyncCallback& callback) {
-  static NetworkAsyncHandlerImpl handler;
-
-  return handler(request, config, callback);
-}
 
 OlpClient::OlpClient() {}
 
@@ -252,11 +224,11 @@ NetworkAsyncCallback GetRetryCallback(
                                    weak_cancel_context));
             },
             [callback]() {
-              callback(HttpResponse(network::Network::ErrorCode::Cancelled,
+              callback(HttpResponse(static_cast<int>(http::ErrorCode::CANCELLED_ERROR),
                                     "Operation Cancelled."));
             });
       } else {
-        callback(HttpResponse(network::Network::ErrorCode::UnknownError,
+        callback(HttpResponse(static_cast<int>(http::ErrorCode::UNKNOWN_ERROR),
                               "Unknown error."));
       }
     }
@@ -277,13 +249,7 @@ CancellationToken OlpClient::CallApi(
   auto proxy_settings = olp::http::NetworkProxySettings();
 
   if (this->settings_.proxy_settings) {
-    auto proxy_type =
-        ConvertProxyType(this->settings_.proxy_settings->ProxyType());
-    proxy_settings.WithHostname(this->settings_.proxy_settings->Name())
-        .WithPort(this->settings_.proxy_settings->Port())
-        .WithUsername(this->settings_.proxy_settings->UserName())
-        .WithPassword(this->settings_.proxy_settings->UserPassword())
-        .WithType(proxy_type);
+    proxy_settings = *this->settings_.proxy_settings;
   }
   olp::http::NetworkSettings network_settings;
   network_settings.WithConnectionTimeout(
