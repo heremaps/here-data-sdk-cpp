@@ -751,6 +751,7 @@ class CatalogClientMockTest : public CatalogClientTestBase {
   void TearDown() {
     client_.reset();
     settings_.reset();
+    Mock::VerifyAndClearExpectations(network_mock_.get());
     network_mock_.reset();
   }
 
@@ -1388,7 +1389,7 @@ TEST_P(CatalogClientMockTest, GetPartitionsGarbageResponse) {
             partitionsResponse.GetError().GetErrorCode());
 }
 
-TEST_P(CatalogClientMockTest, DISABLED_GetCatalogCancelApiLookup) {
+TEST_P(CatalogClientMockTest, GetCatalogCancelApiLookup) {
   olp::client::HRN hrn(GetTestCatalog());
 
   auto waitForCancel = std::make_shared<std::promise<void>>();
@@ -1437,24 +1438,26 @@ TEST_P(CatalogClientMockTest, DISABLED_GetCatalogCancelApiLookup) {
             catalogResponse.GetError().GetErrorCode());
 }
 
-#if 0
-
 TEST_P(CatalogClientMockTest, GetCatalogCancelConfig) {
   olp::client::HRN hrn(GetTestCatalog());
 
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
+
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_CONFIG});
+
   // Setup the expected calls :
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-    .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-    HTTP_RESPONSE_LOOKUP_CONFIG));
-
-  EXPECT_CALL(*handler_, op(IsGetRequest(URL_CONFIG), testing::_,
-  testing::_))
       .Times(1)
-      .WillOnce(testing::Invoke(setsPromiseWaitsAndReturns(
-          waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_CONFIG})));
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   // Run it!
   auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
@@ -1479,13 +1482,12 @@ TEST_P(CatalogClientMockTest, GetCatalogCancelConfig) {
   ASSERT_FALSE(catalogResponse.IsSuccessful())
       << PrintError(catalogResponse.GetError());
 
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(catalogResponse.GetError().GetHttpStatusCode()));
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            catalogResponse.GetError().GetHttpStatusCode());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             catalogResponse.GetError().GetErrorCode());
   std::cout << "Post Test" << std::endl;
 }
-#endif
 
 TEST_P(CatalogClientMockTest, GetCatalogCancelAfterCompletion) {
   olp::client::HRN hrn(GetTestCatalog());
@@ -1510,8 +1512,6 @@ TEST_P(CatalogClientMockTest, GetCatalogCancelAfterCompletion) {
   cancelToken.cancel();
 }
 
-#if 0
-
 TEST_P(CatalogClientMockTest, GetPartitionsCancelLookupMetadata) {
   olp::client::HRN hrn(GetTestCatalog());
 
@@ -1519,28 +1519,34 @@ TEST_P(CatalogClientMockTest, GetPartitionsCancelLookupMetadata) {
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_LOOKUP_METADATA), testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(
-          setsPromiseWaitsAndReturns(waitForCancel, pauseForCancel,
-                                     {200, HTTP_RESPONSE_LOOKUP_METADATA})));
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  EXPECT_CALL(*handler_, op(IsGetRequest(URL_LATEST_CATALOG_VERSION),
-                            testing::_, testing::_))
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_METADATA});
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+      .Times(1)
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(0);
 
   auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn,
-      settings_);
+      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request =
       olp::dataservice::read::PartitionsRequest().WithLayerId("testlayer");
 
   std::promise<PartitionsResponse> promise;
   PartitionsResponseCallback callback =
-      [&promise](PartitionsResponse response) { promise.set_value(response);
-      };
+      [&promise](PartitionsResponse response) { promise.set_value(response); };
 
   olp::client::CancellationToken cancelToken =
       catalogClient->GetPartitions(request, callback);
@@ -1552,9 +1558,8 @@ TEST_P(CatalogClientMockTest, GetPartitionsCancelLookupMetadata) {
 
   ASSERT_FALSE(partitionsResponse.IsSuccessful())
       << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(
-      olp::network::Network::ErrorCode::Cancelled,
-      static_cast<int>(partitionsResponse.GetError().GetHttpStatusCode()));
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            partitionsResponse.GetError().GetHttpStatusCode());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             partitionsResponse.GetError().GetErrorCode());
 }
@@ -1566,28 +1571,35 @@ TEST_P(CatalogClientMockTest, GetPartitionsCancelLatestCatalogVersion) {
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(*handler_, op(IsGetRequest(URL_LATEST_CATALOG_VERSION),
-                            testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(setsPromiseWaitsAndReturns(
-          waitForCancel, pauseForCancel,
-          {200, HTTP_RESPONSE_LATEST_CATALOG_VERSION})));
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_LAYER_VERSIONS), testing::_, testing::_))
+  std::tie(request_id, send_mock, cancel_mock) =
+      generateNetworkMocks(waitForCancel, pauseForCancel,
+                           {200, HTTP_RESPONSE_LATEST_CATALOG_VERSION});
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
+      .Times(1)
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_LAYER_VERSIONS), _, _, _, _))
       .Times(0);
 
   auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn,
-      settings_);
+      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request =
       olp::dataservice::read::PartitionsRequest().WithLayerId("testlayer");
 
   std::promise<PartitionsResponse> promise;
   PartitionsResponseCallback callback =
-      [&promise](PartitionsResponse response) { promise.set_value(response);
-      };
+      [&promise](PartitionsResponse response) { promise.set_value(response); };
 
   olp::client::CancellationToken cancelToken =
       catalogClient->GetPartitions(request, callback);
@@ -1599,43 +1611,48 @@ TEST_P(CatalogClientMockTest, GetPartitionsCancelLatestCatalogVersion) {
 
   ASSERT_FALSE(partitionsResponse.IsSuccessful())
       << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(partitionsResponse.GetError().GetHttpStatusCode()))
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            partitionsResponse.GetError().GetHttpStatusCode())
       << PrintError(partitionsResponse.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             partitionsResponse.GetError().GetErrorCode())
       << PrintError(partitionsResponse.GetError());
 }
 
-TEST_P(CatalogClientMockTest, GetPartitionsCancelLayerVersions) {
+TEST_P(CatalogClientMockTest, DISABLED_GetPartitionsCancelLayerVersions) {
   olp::client::HRN hrn(GetTestCatalog());
 
   // Setup the expected calls :
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_LAYER_VERSIONS), testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(setsPromiseWaitsAndReturns(
-          waitForCancel, pauseForCancel, {200,
-          HTTP_RESPONSE_LAYER_VERSIONS})));
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_PARTITIONS), testing::_, testing::_))
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LAYER_VERSIONS});
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_LAYER_VERSIONS), _, _, _, _))
+      .Times(1)
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
       .Times(0);
 
   auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn,
-      settings_);
+      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request =
       olp::dataservice::read::PartitionsRequest().WithLayerId("testlayer");
 
   std::promise<PartitionsResponse> promise;
   PartitionsResponseCallback callback =
-      [&promise](PartitionsResponse response) { promise.set_value(response);
-      };
+      [&promise](PartitionsResponse response) { promise.set_value(response); };
 
   olp::client::CancellationToken cancelToken =
       catalogClient->GetPartitions(request, callback);
@@ -1647,8 +1664,8 @@ TEST_P(CatalogClientMockTest, GetPartitionsCancelLayerVersions) {
 
   ASSERT_FALSE(partitionsResponse.IsSuccessful())
       << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(partitionsResponse.GetError().GetHttpStatusCode()))
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            partitionsResponse.GetError().GetHttpStatusCode())
       << PrintError(partitionsResponse.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             partitionsResponse.GetError().GetErrorCode())
@@ -1662,20 +1679,25 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelLookupConfig) {
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_LOOKUP_CONFIG), testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(setsPromiseWaitsAndReturns(
-          waitForCancel, pauseForCancel, {200,
-          HTTP_RESPONSE_LOOKUP_CONFIG})));
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  EXPECT_CALL(*handler_, op(IsGetRequest(URL_CONFIG), testing::_,
-  testing::_))
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+      .Times(1)
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(0);
 
   auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn,
-      settings_);
+      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer").WithPartitionId("269");
@@ -1696,8 +1718,8 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelLookupConfig) {
 
   ASSERT_FALSE(dataResponse.IsSuccessful())
       << PrintError(dataResponse.GetError());
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(dataResponse.GetError().GetHttpStatusCode()))
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            dataResponse.GetError().GetHttpStatusCode())
       << PrintError(dataResponse.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             dataResponse.GetError().GetErrorCode())
@@ -1711,19 +1733,26 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelConfig) {
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(*handler_, op(IsGetRequest(URL_CONFIG), testing::_,
-  testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(setsPromiseWaitsAndReturns(
-          waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_CONFIG})));
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_LOOKUP_METADATA), testing::_, testing::_))
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_CONFIG});
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
+      .Times(1)
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
       .Times(0);
 
   auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn,
-      settings_);
+      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer").WithPartitionId("269");
@@ -1744,57 +1773,8 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelConfig) {
 
   ASSERT_FALSE(dataResponse.IsSuccessful())
       << PrintError(dataResponse.GetError());
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(dataResponse.GetError().GetHttpStatusCode()))
-      << PrintError(dataResponse.GetError());
-  ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            dataResponse.GetError().GetErrorCode())
-      << PrintError(dataResponse.GetError());
-}
-
-TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelLookupMetadata) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  // Setup the expected calls :
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
-
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_LOOKUP_METADATA), testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(
-          setsPromiseWaitsAndReturns(waitForCancel, pauseForCancel,
-                                     {200, HTTP_RESPONSE_LOOKUP_METADATA})));
-
-  EXPECT_CALL(*handler_, op(IsGetRequest(URL_LATEST_CATALOG_VERSION),
-                            testing::_, testing::_))
-      .Times(0);
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn,
-      settings_);
-
-  auto request = olp::dataservice::read::DataRequest();
-  request.WithLayerId("testlayer").WithPartitionId("269");
-
-  std::promise<DataResponse> promise;
-  DataResponseCallback callback = [&promise](DataResponse response) {
-    promise.set_value(response);
-  };
-
-  olp::client::CancellationToken cancelToken =
-      catalogClient->GetData(request, callback);
-
-  waitForCancel->get_future().get();  // wait for handler to get the request
-  cancelToken.cancel();
-  pauseForCancel->set_value();  // unblock the handler
-
-  DataResponse dataResponse = promise.get_future().get();
-
-  ASSERT_FALSE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(dataResponse.GetError().GetHttpStatusCode()))
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            dataResponse.GetError().GetHttpStatusCode())
       << PrintError(dataResponse.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             dataResponse.GetError().GetErrorCode())
@@ -1802,27 +1782,34 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelLookupMetadata) {
 }
 
 TEST_P(CatalogClientMockTest,
-       GetDataWithPartitionIdCancelLatestCatalogVersion) {
+       DISABLED_GetDataWithPartitionIdCancelLookupMetadata) {
   olp::client::HRN hrn(GetTestCatalog());
 
   // Setup the expected calls :
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(*handler_, op(IsGetRequest(URL_LATEST_CATALOG_VERSION),
-                            testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(setsPromiseWaitsAndReturns(
-          waitForCancel, pauseForCancel,
-          {200, HTTP_RESPONSE_LATEST_CATALOG_VERSION})));
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_LOOKUP_QUERY), testing::_, testing::_))
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_METADATA});
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+      .Times(1)
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(0);
 
   auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn,
-      settings_);
+      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer").WithPartitionId("269");
@@ -1843,8 +1830,65 @@ TEST_P(CatalogClientMockTest,
 
   ASSERT_FALSE(dataResponse.IsSuccessful())
       << PrintError(dataResponse.GetError());
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(dataResponse.GetError().GetHttpStatusCode()))
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            dataResponse.GetError().GetHttpStatusCode())
+      << PrintError(dataResponse.GetError());
+  ASSERT_EQ(olp::client::ErrorCode::Cancelled,
+            dataResponse.GetError().GetErrorCode())
+      << PrintError(dataResponse.GetError());
+}
+
+TEST_P(CatalogClientMockTest,
+       DISABLED_GetDataWithPartitionIdCancelLatestCatalogVersion) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  // Setup the expected calls :
+  auto waitForCancel = std::make_shared<std::promise<void>>();
+  auto pauseForCancel = std::make_shared<std::promise<void>>();
+
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
+
+  std::tie(request_id, send_mock, cancel_mock) =
+      generateNetworkMocks(waitForCancel, pauseForCancel,
+                           {200, HTTP_RESPONSE_LATEST_CATALOG_VERSION});
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
+      .Times(1)
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+      .Times(0);
+
+  auto catalogClient =
+      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
+
+  auto request = olp::dataservice::read::DataRequest();
+  request.WithLayerId("testlayer").WithPartitionId("269");
+
+  std::promise<DataResponse> promise;
+  DataResponseCallback callback = [&promise](DataResponse response) {
+    promise.set_value(response);
+  };
+
+  olp::client::CancellationToken cancelToken =
+      catalogClient->GetData(request, callback);
+
+  waitForCancel->get_future().get();  // wait for handler to get the request
+  cancelToken.cancel();
+  pauseForCancel->set_value();  // unblock the handler
+
+  DataResponse dataResponse = promise.get_future().get();
+
+  ASSERT_FALSE(dataResponse.IsSuccessful())
+      << PrintError(dataResponse.GetError());
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            dataResponse.GetError().GetHttpStatusCode())
       << PrintError(dataResponse.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             dataResponse.GetError().GetErrorCode())
@@ -1860,24 +1904,31 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelInnerConfig) {
 
   {
     testing::InSequence s;
-    EXPECT_CALL(*handler_, op(IsGetRequest(URL_CONFIG), testing::_,
-    testing::_))
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
         .Times(1);
-    EXPECT_CALL(*handler_, op(IsGetRequest(URL_CONFIG), testing::_,
-    testing::_))
+
+    olp::http::RequestId request_id;
+    NetworkCallback send_mock;
+    CancelCallback cancel_mock;
+
+    std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+        waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_CONFIG});
+
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
         .Times(1)
-        .WillOnce(testing::Invoke(setsPromiseWaitsAndReturns(
-            waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_CONFIG})));
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+
+    EXPECT_CALL(*network_mock_, Cancel(request_id))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
   }
 
-  EXPECT_CALL(*handler_, op(IsGetRequest(URL_LATEST_CATALOG_VERSION),
-                            testing::_, testing::_))
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(0);
 
   olp::cache::CacheSettings cacheSettings;
   cacheSettings.max_memory_cache_size = 0;
-  auto catalogClient =
-  std::make_unique<olp::dataservice::read::CatalogClient>(
+  auto catalogClient = std::make_unique<olp::dataservice::read::CatalogClient>(
       hrn, settings_,
       olp::dataservice::read::CreateDefaultCache(cacheSettings));
 
@@ -1900,8 +1951,8 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelInnerConfig) {
 
   ASSERT_FALSE(dataResponse.IsSuccessful())
       << PrintError(dataResponse.GetError());
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(dataResponse.GetError().GetHttpStatusCode()))
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            dataResponse.GetError().GetHttpStatusCode())
       << PrintError(dataResponse.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             dataResponse.GetError().GetErrorCode())
@@ -1915,21 +1966,26 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelLookupQuery) {
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_LOOKUP_QUERY), testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(setsPromiseWaitsAndReturns(
-          waitForCancel, pauseForCancel, {200,
-          HTTP_RESPONSE_LOOKUP_QUERY})));
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_QUERY_PARTITION_269), testing::_,
-              testing::_))
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_QUERY});
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+      .Times(1)
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_QUERY_PARTITION_269), _, _, _, _))
       .Times(0);
 
   auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn,
-      settings_);
+      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer").WithPartitionId("269");
@@ -1950,8 +2006,8 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelLookupQuery) {
 
   ASSERT_FALSE(dataResponse.IsSuccessful())
       << PrintError(dataResponse.GetError());
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(dataResponse.GetError().GetHttpStatusCode()))
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            dataResponse.GetError().GetHttpStatusCode())
       << PrintError(dataResponse.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             dataResponse.GetError().GetErrorCode())
@@ -1965,21 +2021,26 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelQuery) {
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_QUERY_PARTITION_269), testing::_,
-              testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(setsPromiseWaitsAndReturns(
-          waitForCancel, pauseForCancel, {200,
-          HTTP_RESPONSE_PARTITION_269})));
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_LOOKUP_BLOB), testing::_, testing::_))
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_PARTITION_269});
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_QUERY_PARTITION_269), _, _, _, _))
+      .Times(1)
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
       .Times(0);
 
   auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn,
-      settings_);
+      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer").WithPartitionId("269");
@@ -2000,8 +2061,8 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelQuery) {
 
   ASSERT_FALSE(dataResponse.IsSuccessful())
       << PrintError(dataResponse.GetError());
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(dataResponse.GetError().GetHttpStatusCode()))
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            dataResponse.GetError().GetHttpStatusCode())
       << PrintError(dataResponse.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             dataResponse.GetError().GetErrorCode())
@@ -2015,19 +2076,25 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelLookupBlob) {
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_LOOKUP_BLOB), testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(setsPromiseWaitsAndReturns(
-          waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_BLOB})));
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_BLOB_DATA_269), testing::_, testing::_))
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_BLOB});
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+      .Times(1)
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(0);
 
   auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn,
-      settings_);
+      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer").WithPartitionId("269");
@@ -2048,8 +2115,8 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelLookupBlob) {
 
   ASSERT_FALSE(dataResponse.IsSuccessful())
       << PrintError(dataResponse.GetError());
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(dataResponse.GetError().GetHttpStatusCode()))
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            dataResponse.GetError().GetHttpStatusCode())
       << PrintError(dataResponse.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             dataResponse.GetError().GetErrorCode())
@@ -2063,16 +2130,22 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelBlob) {
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_BLOB_DATA_269), testing::_, testing::_))
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
+
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_BLOB_DATA_269});
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(1)
-      .WillOnce(testing::Invoke(setsPromiseWaitsAndReturns(
-          waitForCancel, pauseForCancel, {200,
-          HTTP_RESPONSE_BLOB_DATA_269})));
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn,
-      settings_);
+      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer").WithPartitionId("269");
@@ -2093,14 +2166,13 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelBlob) {
 
   ASSERT_FALSE(dataResponse.IsSuccessful())
       << PrintError(dataResponse.GetError());
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(dataResponse.GetError().GetHttpStatusCode()))
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            dataResponse.GetError().GetHttpStatusCode())
       << PrintError(dataResponse.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             dataResponse.GetError().GetErrorCode())
       << PrintError(dataResponse.GetError());
 }
-#endif
 
 TEST_P(CatalogClientMockTest, GetCatalogVersion) {
   olp::client::HRN hrn(GetTestCatalog());
@@ -2243,7 +2315,6 @@ TEST_P(CatalogClientMockTest, GetPartitionsInvalidVersion) {
   ASSERT_EQ(400, partitionsResponse.GetError().GetHttpStatusCode());
 }
 
-#if 0
 TEST_P(CatalogClientMockTest, GetCatalogVersionCancel) {
   olp::client::HRN hrn(GetTestCatalog());
 
@@ -2251,15 +2322,23 @@ TEST_P(CatalogClientMockTest, GetCatalogVersionCancel) {
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
   // Setup the expected calls :
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_LOOKUP_METADATA), testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(
-          setsPromiseWaitsAndReturns(waitForCancel, pauseForCancel,
-                                     {200, HTTP_RESPONSE_LOOKUP_METADATA})));
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  EXPECT_CALL(*handler_, op(IsGetRequest(URL_LATEST_CATALOG_VERSION),
-                            testing::_, testing::_))
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_METADATA});
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+      .Times(1)
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(0);
 
   // Run it!
@@ -2283,12 +2362,11 @@ TEST_P(CatalogClientMockTest, GetCatalogVersionCancel) {
   ASSERT_FALSE(versionResponse.IsSuccessful())
       << PrintError(versionResponse.GetError());
 
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(versionResponse.GetError().GetHttpStatusCode()));
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            versionResponse.GetError().GetHttpStatusCode());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             versionResponse.GetError().GetErrorCode());
 }
-#endif
 
 TEST_P(CatalogClientMockTest, GetCatalogCacheOnly) {
   olp::client::HRN hrn(GetTestCatalog());
@@ -2334,8 +2412,7 @@ TEST_P(CatalogClientMockTest, GetCatalogOnlineOnly) {
       << PrintError(catalogResponse.GetError());
 }
 
-#if 0
-TEST_P(CatalogClientMockTest, GetCatalogCacheWithUpdate) {
+TEST_P(CatalogClientMockTest, DISABLED_GetCatalogCacheWithUpdate) {
   olp::logging::Log::setLevel(olp::logging::Level::Trace);
 
   olp::client::HRN hrn(GetTestCatalog());
@@ -2344,44 +2421,48 @@ TEST_P(CatalogClientMockTest, GetCatalogCacheWithUpdate) {
   preCallbackWait->set_value();
   auto waitForEnd = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(*handler_, op(IsGetRequest(URL_CONFIG), testing::_,
-  testing::_))
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
+
+  std::tie(request_id, send_mock, cancel_mock) =
+      generateNetworkMocks(waitToStartSignal, preCallbackWait,
+                           {200, HTTP_RESPONSE_CONFIG}, waitForEnd);
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1)
-      .WillOnce(testing::Invoke(
-          setsPromiseWaitsAndReturns(waitToStartSignal, preCallbackWait,
-                                     {200, HTTP_RESPONSE_CONFIG},
-                                     waitForEnd)));
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = CatalogRequest();
   request.WithFetchOption(CacheWithUpdate);
   // Request 1
-  EDGE_SDK_LOG_TRACE_F("CatalogClientMockTest",
-                       "Request Catalog, CacheWithUpdate");
+  SCOPED_TRACE("Request Catalog, CacheWithUpdate");
   auto future = catalogClient->GetCatalog(request);
 
-  EDGE_SDK_LOG_TRACE_F("CatalogClientMockTest", "get CatalogResponse1");
+  SCOPED_TRACE("get CatalogResponse1");
   CatalogResponse catalogResponse = future.GetFuture().get();
 
   // Request 1 return. Cached value (nothing)
   ASSERT_FALSE(catalogResponse.IsSuccessful())
       << PrintError(catalogResponse.GetError());
   // Wait for background cache update to finish
-  EDGE_SDK_LOG_TRACE_F("CatalogClientMockTest",
-                       "wait some time for update to conclude");
+  SCOPED_TRACE("wait some time for update to conclude");
   waitForEnd->get_future().get();
 
   // Request 2 to check there is a cached value.
-  EDGE_SDK_LOG_TRACE_F("CatalogClientMockTest", "Request Catalog, CacheOnly"); 
-  request.WithFetchOption(CacheOnly); future =
-    catalogClient->GetCatalog(request);
-  EDGE_SDK_LOG_TRACE_F("CatalogClientMockTest", "get CatalogResponse2");
+  SCOPED_TRACE("Request Catalog, CacheOnly");
+  request.WithFetchOption(CacheOnly);
+  future = catalogClient->GetCatalog(request);
+  SCOPED_TRACE("get CatalogResponse2");
   catalogResponse = future.GetFuture().get();
   // Cache should be available here.
   ASSERT_TRUE(catalogResponse.IsSuccessful())
       << PrintError(catalogResponse.GetError());
 }
-#endif
 
 TEST_P(CatalogClientMockTest, GetDataCacheOnly) {
   olp::client::HRN hrn(GetTestCatalog());
@@ -2441,8 +2522,7 @@ TEST_P(CatalogClientMockTest, GetDataOnlineOnly) {
   ASSERT_FALSE(dataResponse.IsSuccessful());
 }
 
-#if 0
-TEST_P(CatalogClientMockTest, GetDataCacheWithUpdate) {
+TEST_P(CatalogClientMockTest, DISABLED_GetDataCacheWithUpdate) {
   olp::logging::Log::setLevel(olp::logging::Level::Trace);
 
   olp::client::HRN hrn(GetTestCatalog());
@@ -2452,12 +2532,20 @@ TEST_P(CatalogClientMockTest, GetDataCacheWithUpdate) {
   preCallbackWait->set_value();
   auto waitForEndSignal = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_BLOB_DATA_269), testing::_, testing::_))
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
+
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      waitToStartSignal, preCallbackWait, {200, HTTP_RESPONSE_BLOB_DATA_269},
+      waitForEndSignal);
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(1)
-      .WillOnce(testing::Invoke(setsPromiseWaitsAndReturns(
-          waitToStartSignal, preCallbackWait,
-          {200, HTTP_RESPONSE_BLOB_DATA_269}, waitForEndSignal)));
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = DataRequest();
@@ -2480,7 +2568,6 @@ TEST_P(CatalogClientMockTest, GetDataCacheWithUpdate) {
   ASSERT_TRUE(dataResponse.IsSuccessful())
       << PrintError(dataResponse.GetError());
 }
-#endif
 
 TEST_P(CatalogClientMockTest, GetPartitionsCacheOnly) {
   olp::client::HRN hrn(GetTestCatalog());
@@ -2532,8 +2619,7 @@ TEST_P(CatalogClientMockTest, GetPartitionsOnlineOnly) {
       << PrintError(partitionsResponse.GetError());
 }
 
-#if 0
-TEST_P(CatalogClientMockTest, GetPartitionsCacheWithUpdate) {
+TEST_P(CatalogClientMockTest, DISABLED_GetPartitionsCacheWithUpdate) {
   olp::logging::Log::setLevel(olp::logging::Level::Trace);
 
   olp::client::HRN hrn(GetTestCatalog());
@@ -2543,12 +2629,20 @@ TEST_P(CatalogClientMockTest, GetPartitionsCacheWithUpdate) {
   preCallbackWait->set_value();
   auto waitForEndSignal = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_PARTITIONS), testing::_, testing::_))
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
+
+  std::tie(request_id, send_mock, cancel_mock) =
+      generateNetworkMocks(waitToStartSignal, preCallbackWait,
+                           {200, HTTP_RESPONSE_PARTITIONS}, waitForEndSignal);
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
       .Times(1)
-      .WillOnce(testing::Invoke(setsPromiseWaitsAndReturns(
-          waitToStartSignal, preCallbackWait, {200,
-          HTTP_RESPONSE_PARTITIONS}, waitForEndSignal)));
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = PartitionsRequest();
@@ -2568,7 +2662,6 @@ TEST_P(CatalogClientMockTest, GetPartitionsCacheWithUpdate) {
   ASSERT_TRUE(partitionsResponse.IsSuccessful())
       << PrintError(partitionsResponse.GetError());
 }
-#endif
 
 TEST_P(CatalogClientMockTest, GetCatalog403CacheClear) {
   olp::client::HRN hrn(GetTestCatalog());
@@ -2676,8 +2769,7 @@ TEST_P(CatalogClientMockTest, GetPartitions403CacheClear) {
   ASSERT_FALSE(partitions_response.IsSuccessful());
 }
 
-#if 0
-TEST_P(CatalogClientMockTest, CancelPendingRequestsCatalog) {
+TEST_P(CatalogClientMockTest, DISABLED_CancelPendingRequestsCatalog) {
   olp::client::HRN hrn(GetTestCatalog());
   testing::InSequence s;
   std::vector<std::shared_ptr<std::promise<void>>> waits;
@@ -2693,19 +2785,39 @@ TEST_P(CatalogClientMockTest, CancelPendingRequestsCatalog) {
   auto waitForCancel2 = std::make_shared<std::promise<void>>();
   auto pauseForCancel2 = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_LOOKUP_CONFIG), testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(
-          setsPromiseWaitsAndReturns(waitForCancel1, pauseForCancel1,
-                                     {200, HTTP_RESPONSE_LOOKUP_CONFIG})));
+  {
+    olp::http::RequestId request_id;
+    NetworkCallback send_mock;
+    CancelCallback cancel_mock;
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_LOOKUP_METADATA), testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(
-          setsPromiseWaitsAndReturns(waitForCancel2, pauseForCancel2,
-                                     {200, HTTP_RESPONSE_LOOKUP_METADATA})));
+    std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+        waitForCancel1, pauseForCancel1, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+
+    EXPECT_CALL(*network_mock_, Cancel(request_id))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+  }
+
+  {
+    olp::http::RequestId request_id;
+    NetworkCallback send_mock;
+    CancelCallback cancel_mock;
+
+    std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+        waitForCancel2, pauseForCancel2, {200, HTTP_RESPONSE_LOOKUP_METADATA});
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+
+    EXPECT_CALL(*network_mock_, Cancel(request_id))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+  }
 
   waits.push_back(waitForCancel1);
   pauses.push_back(pauseForCancel1);
@@ -2713,8 +2825,7 @@ TEST_P(CatalogClientMockTest, CancelPendingRequestsCatalog) {
 
   waits.push_back(waitForCancel2);
   pauses.push_back(pauseForCancel2);
-  auto versionFuture =
-  catalogClient->GetCatalogMetadataVersion(versionRequest);
+  auto versionFuture = catalogClient->GetCatalogMetadataVersion(versionRequest);
 
   for (auto wait : waits) {
     wait->get_future().get();
@@ -2731,8 +2842,8 @@ TEST_P(CatalogClientMockTest, CancelPendingRequestsCatalog) {
   ASSERT_FALSE(catalogResponse.IsSuccessful())
       << PrintError(catalogResponse.GetError());
 
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(catalogResponse.GetError().GetHttpStatusCode()));
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            catalogResponse.GetError().GetHttpStatusCode());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             catalogResponse.GetError().GetErrorCode());
 
@@ -2741,13 +2852,13 @@ TEST_P(CatalogClientMockTest, CancelPendingRequestsCatalog) {
   ASSERT_FALSE(versionResponse.IsSuccessful())
       << PrintError(versionResponse.GetError());
 
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(versionResponse.GetError().GetHttpStatusCode()));
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            versionResponse.GetError().GetHttpStatusCode());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             versionResponse.GetError().GetErrorCode());
 }
 
-TEST_P(CatalogClientMockTest, CancelPendingRequestsPartitions) {
+TEST_P(CatalogClientMockTest, DISABLED_CancelPendingRequestsPartitions) {
   olp::client::HRN hrn(GetTestCatalog());
   testing::InSequence s;
   std::vector<std::shared_ptr<std::promise<void>>> waits;
@@ -2767,19 +2878,38 @@ TEST_P(CatalogClientMockTest, CancelPendingRequestsPartitions) {
   auto waitForCancel2 = std::make_shared<std::promise<void>>();
   auto pauseForCancel2 = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_LAYER_VERSIONS), testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(
-          setsPromiseWaitsAndReturns(waitForCancel1, pauseForCancel1,
-                                     {200, HTTP_RESPONSE_LAYER_VERSIONS})));
+  {
+    olp::http::RequestId request_id;
+    NetworkCallback send_mock;
+    CancelCallback cancel_mock;
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_BLOB_DATA_269), testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(
-          setsPromiseWaitsAndReturns(waitForCancel2, pauseForCancel2,
-                                     {200, HTTP_RESPONSE_BLOB_DATA_269})));
+    std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+        waitForCancel1, pauseForCancel1, {200, HTTP_RESPONSE_LAYER_VERSIONS});
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_LAYER_VERSIONS), _, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+
+    EXPECT_CALL(*network_mock_, Cancel(request_id))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+  }
+  {
+    olp::http::RequestId request_id;
+    NetworkCallback send_mock;
+    CancelCallback cancel_mock;
+
+    std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+        waitForCancel2, pauseForCancel2, {200, HTTP_RESPONSE_BLOB_DATA_269});
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+
+    EXPECT_CALL(*network_mock_, Cancel(request_id))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+  }
 
   waits.push_back(waitForCancel1);
   pauses.push_back(pauseForCancel1);
@@ -2806,9 +2936,8 @@ TEST_P(CatalogClientMockTest, CancelPendingRequestsPartitions) {
   ASSERT_FALSE(partitionsResponse.IsSuccessful())
       << PrintError(partitionsResponse.GetError());
 
-  ASSERT_EQ(
-      olp::network::Network::ErrorCode::Cancelled,
-      static_cast<int>(partitionsResponse.GetError().GetHttpStatusCode()));
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            partitionsResponse.GetError().GetHttpStatusCode());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             partitionsResponse.GetError().GetErrorCode());
 
@@ -2817,12 +2946,11 @@ TEST_P(CatalogClientMockTest, CancelPendingRequestsPartitions) {
   ASSERT_FALSE(dataResponse.IsSuccessful())
       << PrintError(dataResponse.GetError());
 
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(dataResponse.GetError().GetHttpStatusCode()));
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            dataResponse.GetError().GetHttpStatusCode());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             dataResponse.GetError().GetErrorCode());
 }
-#endif
 
 TEST_P(CatalogClientMockTest, Prefetch) {
   olp::client::HRN hrn(GetTestCatalog());
@@ -2935,13 +3063,11 @@ TEST_P(CatalogClientMockTest, PrefetchEmbedded) {
   }
 }
 
-#if 0
-TEST_P(CatalogClientMockTest, PrefetchBusy) {
+TEST_P(CatalogClientMockTest, DISABLED_PrefetchBusy) {
   olp::client::HRN hrn(GetTestCatalog());
 
   auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn,
-      settings_);
+      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   // Prepare the first request
   std::vector<olp::geo::TileKey> tileKeys1;
@@ -2958,12 +3084,21 @@ TEST_P(CatalogClientMockTest, PrefetchBusy) {
   auto waitForQuadKeyRequest = std::make_shared<std::promise<void>>();
   auto pauseForSecondRequest = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(*handler_,
-              op(IsGetRequest(URL_QUADKEYS_5904591), testing::_, testing::_))
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
+
+  std::tie(request_id, send_mock, cancel_mock) =
+      generateNetworkMocks(waitForQuadKeyRequest, pauseForSecondRequest,
+                           {200, HTTP_RESPONSE_QUADKEYS_5904591});
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_QUADKEYS_5904591), _, _, _, _))
       .Times(1)
-      .WillOnce(testing::Invoke(setsPromiseWaitsAndReturns(
-          waitForQuadKeyRequest, pauseForSecondRequest,
-          {200, HTTP_RESPONSE_QUADKEYS_5904591})));
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   // Issue the first request
   auto future1 = catalogClient->PrefetchTiles(request1);
@@ -3008,7 +3143,6 @@ TEST_P(CatalogClientMockTest, PrefetchBusy) {
   }
   ASSERT_EQ(6u, result1.size());
 }
-#endif
 
 class CatalogClientCacheTest : public CatalogClientMockTest {
   void SetUp() {
@@ -3373,7 +3507,7 @@ TEST_P(CatalogClientCacheTest, GetDataWithPartitionIdDifferentVersions) {
   }
 }
 
-TEST_P(CatalogClientCacheTest, DISABLED_GetVolatilePartitionsExpiry) {
+TEST_P(CatalogClientCacheTest, GetVolatilePartitionsExpiry) {
   olp::client::HRN hrn(GetTestCatalog());
 
   {
