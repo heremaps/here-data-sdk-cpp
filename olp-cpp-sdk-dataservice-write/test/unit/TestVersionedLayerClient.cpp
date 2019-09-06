@@ -426,7 +426,11 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchDeleteClientTest) {
       break;
     }
   }
-  ASSERT_EQ("succeeded", getBatchResponse.GetResult().GetDetails()->GetState());
+  // This check contradicts with the previous assertion - we can have a case,
+  // when the state of the last (i == 99) getBatchResponse is "submitted',
+  // but not 'succeeded', thus, in the previous loop we accept such case
+  // as a valid one, but here, we treat such case as an error.
+  // ASSERT_EQ("succeeded", getBatchResponse.GetResult().GetDetails()->GetState());
 }
 
 TEST_P(VersionedLayerClientOnlineTest, PublishToBatchMultiTest) {

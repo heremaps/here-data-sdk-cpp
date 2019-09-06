@@ -65,7 +65,7 @@ CancellationToken BlobApi::PutBlob(
   auto cancel_token = client.CallApi(
       put_blob_uri, "PUT", query_params, header_params, form_params, data,
       content_type, [callback](client::HttpResponse http_response) {
-        if (http_response.status != 200) {
+        if (http_response.status != 200 && http_response.status != 204) {
           callback(PutBlobResponse(
               ApiError(http_response.status, http_response.response)));
           return;
