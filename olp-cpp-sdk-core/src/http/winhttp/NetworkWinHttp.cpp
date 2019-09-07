@@ -905,7 +905,6 @@ void NetworkWinHttp::CompletionThread() {
         }
         // must call outside lock to prevent deadlock
         callback(NetworkResponse()
-                     .WithCancelled(result->cancelled)
                      .WithError(str)
                      .WithRequestId(result->request_id)
                      .WithStatus(status));

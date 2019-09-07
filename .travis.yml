@@ -12,6 +12,7 @@ addons:
     - libssl-dev
     - libcurl4-openssl-dev 
     - clang
+    - nodejs
 matrix:
   include:
   - compiler: clang
@@ -21,7 +22,11 @@ matrix:
   - compiler: gcc
     env: BUILD_TYPE=COVERAGE WORKSPACE=$TRAVIS_BUILD_DIR
     name: Linux Build using gcc & tests & code coverage
+    before_script:
+    - node ./testutils/mock_server/network_test.js & SERVER_PID=$!
     script: $WORKSPACE/scripts/linux/psv/travis_build_psv.sh && $WORKSPACE/scripts/linux/psv/travis_test_psv.sh
+    after_script:
+    - kill -15 $SERVER_PID
   - language: android
     dist: xenial
     jdk: oraclejdk8

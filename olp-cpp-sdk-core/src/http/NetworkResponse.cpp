@@ -22,16 +22,9 @@
 namespace olp {
 namespace http {
 
-bool NetworkResponse::IsCancelled() const { return cancelled_; }
-
 int NetworkResponse::GetStatus() const { return status_; }
 
 const std::string& NetworkResponse::GetError() const { return error_; }
-
-NetworkResponse& NetworkResponse::WithCancelled(bool cancelled) {
-  cancelled_ = cancelled;
-  return *this;
-}
 
 NetworkResponse& NetworkResponse::WithStatus(int status) {
   status_ = status;

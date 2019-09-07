@@ -33,19 +33,6 @@ namespace http {
 class CORE_API NetworkResponse final {
  public:
   /**
-   * @brief Check if associated request was cancelled.
-   * @return true if associated request was cancelled.
-   */
-  bool IsCancelled() const;
-
-  /**
-   * @brief Set cancelled field.
-   * @param[in] cancelled True if associated request was cancelled.
-   * @return reference to *this.
-   */
-  NetworkResponse& WithCancelled(bool cancelled);
-
-  /**
    * @brief Get HTTP response code.
    * @return HTTP response code.
    */
@@ -94,8 +81,6 @@ class CORE_API NetworkResponse final {
   int status_{0};
   /// Human-readable error message in case of failed associated request.
   std::string error_;
-  /// True if associated request was cancelled.
-  bool cancelled_{false};
 };
 
 }  // namespace http
