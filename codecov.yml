@@ -1,0 +1,28 @@
+coverage:
+  range: 60..100
+  round: down
+  precision: 1
+  status:
+    project:
+      core:
+        paths:
+          - olp-cpp-sdk-core
+        threshold: 1
+      authentication:
+        paths:
+          - olp-cpp-sdk-authentication
+        threshold: 1
+      dataservice-read:
+        paths:
+          - olp-cpp-sdk-dataservice-read
+        threshold: 1
+      dataservice-write:
+        paths:
+          - olp-cpp-sdk-dataservice-write
+        threshold: 1
+ignore:
+  - olp-cpp-sdk-authentication/tests
+  - olp-cpp-sdk-core/tests
+  - olp-cpp-sdk-dataservice-read/tests
+  - olp-cpp-sdk-dataservice-write/tests
+  - testutils
