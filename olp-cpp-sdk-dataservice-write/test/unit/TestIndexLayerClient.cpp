@@ -32,6 +32,8 @@
 
 #include "HttpResponses.h"
 
+#include "TestCommons.h"
+
 using namespace olp::dataservice::write;
 using namespace olp::dataservice::write::model;
 
@@ -64,7 +66,7 @@ template <typename T>
 void PublishCancelledAssertions(
     const olp::client::ApiResponse<T, olp::client::ApiError>& result) {
   EXPECT_FALSE(result.IsSuccessful());
-  EXPECT_EQ(olp::http::ErrorCode::CANCELLED_ERROR,
+  EXPECT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
             result.GetError().GetHttpStatusCode());
   EXPECT_EQ(olp::client::ErrorCode::Cancelled,
             result.GetError().GetErrorCode());
@@ -113,6 +115,14 @@ class IndexLayerClientTestBase : public ::testing::TestWithParam<bool> {
 
     index.SetIndexFields(indexFields);
     return index;
+  }
+
+  std::string PrintError(const olp::client::ApiError& error) {
+    std::ostringstream resultStream;
+    resultStream << "ERROR: code: " << static_cast<int>(error.GetErrorCode())
+                 << ", status: " << error.GetHttpStatusCode()
+                 << ", message: " << error.GetMessage();
+    return resultStream.str();
   }
 
   virtual std::shared_ptr<IndexLayerClient> CreateIndexLayerClient() = 0;
@@ -304,6 +314,18 @@ MATCHER_P(IsPutRequest, url, "") {
          url == arg.GetUrl();
 }
 
+MATCHER_P(IsPutRequestPrefix, url, "") {
+  if (olp::http::NetworkRequest::HttpVerb::PUT != arg.GetVerb()) {
+    return false;
+  }
+
+  std::string url_string(url);
+  auto res =
+      std::mismatch(url_string.begin(), url_string.end(), arg.GetUrl().begin());
+
+  return (res.first == url_string.end());
+}
+
 MATCHER_P(IsPostRequest, url, "") {
   return olp::http::NetworkRequest::HttpVerb::POST == arg.GetVerb() &&
          url == arg.GetUrl();
@@ -312,6 +334,18 @@ MATCHER_P(IsPostRequest, url, "") {
 MATCHER_P(IsDeleteRequest, url, "") {
   return olp::http::NetworkRequest::HttpVerb::DEL == arg.GetVerb() &&
          url == arg.GetUrl();
+}
+
+MATCHER_P(IsDeleteRequestPrefix, url, "") {
+  if (olp::http::NetworkRequest::HttpVerb::DEL != arg.GetVerb()) {
+    return false;
+  }
+
+  std::string url_string(url);
+  auto res =
+      std::mismatch(url_string.begin(), url_string.end(), arg.GetUrl().begin());
+
+  return (res.first == url_string.end());
 }
 
 class NetworkMock : public olp::http::Network {
@@ -400,7 +434,8 @@ class IndexLayerClientMockTest : public IndexLayerClientTestBase {
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                HTTP_RESPONSE_GET_CATALOG));
 
-    ON_CALL(network, Send(IsPutRequest(URL_PUT_BLOB_INDEX_PREFIX), _, _, _, _))
+    ON_CALL(network,
+            Send(IsPutRequestPrefix(URL_PUT_BLOB_INDEX_PREFIX), _, _, _, _))
         .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(200), ""));
 
@@ -408,8 +443,8 @@ class IndexLayerClientMockTest : public IndexLayerClientTestBase {
         .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(201), ""));
 
-    ON_CALL(network,
-            Send(IsDeleteRequest(URL_DELETE_BLOB_INDEX_PREFIX), _, _, _, _))
+    ON_CALL(network, Send(IsDeleteRequestPrefix(URL_DELETE_BLOB_INDEX_PREFIX),
+                          _, _, _, _))
         .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(200), ""));
 
@@ -422,7 +457,7 @@ class IndexLayerClientMockTest : public IndexLayerClientTestBase {
 INSTANTIATE_TEST_SUITE_P(TestMock, IndexLayerClientMockTest,
                          ::testing::Values(false));
 
-TEST_P(IndexLayerClientMockTest, DISABLED_PublishData) {
+TEST_P(IndexLayerClientMockTest, PublishData) {
   {
     testing::InSequence dummy;
 
@@ -435,7 +470,7 @@ TEST_P(IndexLayerClientMockTest, DISABLED_PublishData) {
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_,
-                Send(IsPutRequest(URL_PUT_BLOB_INDEX_PREFIX), _, _, _, _))
+                Send(IsPutRequestPrefix(URL_PUT_BLOB_INDEX_PREFIX), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsPostRequest(URL_INSERT_INDEX), _, _, _, _))
         .Times(1);
@@ -449,10 +484,11 @@ TEST_P(IndexLayerClientMockTest, DISABLED_PublishData) {
                       .GetFuture()
                       .get();
 
+  testing::Mock::VerifyAndClearExpectations(network_.get());
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
 }
 
-TEST_P(IndexLayerClientMockTest, DISABLED_DeleteData) {
+TEST_P(IndexLayerClientMockTest, DeleteData) {
   {
     testing::InSequence dummy;
 
@@ -465,12 +501,13 @@ TEST_P(IndexLayerClientMockTest, DISABLED_DeleteData) {
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_,
-                Send(IsPutRequest(URL_PUT_BLOB_INDEX_PREFIX), _, _, _, _))
+                Send(IsPutRequestPrefix(URL_PUT_BLOB_INDEX_PREFIX), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsPostRequest(URL_INSERT_INDEX), _, _, _, _))
         .Times(1);
-    EXPECT_CALL(*network_,
-                Send(IsDeleteRequest(URL_DELETE_BLOB_INDEX_PREFIX), _, _, _, _))
+    EXPECT_CALL(
+        *network_,
+        Send(IsDeleteRequestPrefix(URL_DELETE_BLOB_INDEX_PREFIX), _, _, _, _))
         .Times(1);
   }
 
@@ -494,10 +531,11 @@ TEST_P(IndexLayerClientMockTest, DISABLED_DeleteData) {
           .GetFuture()
           .get();
 
+  testing::Mock::VerifyAndClearExpectations(network_.get());
   ASSERT_TRUE(deleteIndexRes.IsSuccessful());
 }
 
-TEST_P(IndexLayerClientMockTest, DISABLED_UpdateIndex) {
+TEST_P(IndexLayerClientMockTest, UpdateIndex) {
   {
     testing::InSequence dummy;
 
@@ -524,53 +562,51 @@ TEST_P(IndexLayerClientMockTest, DISABLED_UpdateIndex) {
           .GetFuture()
           .get();
 
+  testing::Mock::VerifyAndClearExpectations(network_.get());
   ASSERT_TRUE(response.IsSuccessful());
 }
 
-#if 0
 TEST_P(IndexLayerClientMockTest, PublishDataCancelConfig) {
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_CONFIG),
-                                     testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(indexSetsPromiseWaitsAndReturns(
-          waitForCancel, pauseForCancel, {200,
-          HTTP_RESPONSE_LOOKUP_CONFIG})));
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_BLOB),
-  testing::_,
-                                     testing::_))
-      .Times(0);
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_INDEX),
-  testing::_,
-                                     testing::_))
-      .Times(0);
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_GET_CATALOG),
-  testing::_,
-                                     testing::_))
-      .Times(0);
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  EXPECT_CALL(handler_,
-              CallOperator(IsPutRequestPrefix(URL_PUT_BLOB_INDEX_PREFIX),
-                           testing::_, testing::_))
-      .Times(0);
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
+  {
+    testing::InSequence dummy;
 
-  EXPECT_CALL(handler_, CallOperator(IsPostRequest(URL_INSERT_INDEX),
-                                     testing::_, testing::_))
-      .Times(0);
-
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+    EXPECT_CALL(*network_, Cancel(request_id))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+        .Times(0);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INDEX), _, _, _, _))
+        .Times(0);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+        .Times(0);
+    EXPECT_CALL(*network_,
+                Send(IsPutRequestPrefix(URL_PUT_BLOB_INDEX_PREFIX), _, _, _, _))
+        .Times(0);
+    EXPECT_CALL(*network_, Send(IsPostRequest(URL_INSERT_INDEX), _, _, _, _))
+        .Times(0);
+  }
   auto promise = client_->PublishIndex(PublishIndexRequest()
                                            .WithIndex(GetTestIndex())
                                            .WithData(data_)
                                            .WithLayerId(GetTestLayer()));
-
   waitForCancel->get_future().get();
   promise.GetCancellationToken().cancel();
   pauseForCancel->set_value();
 
   auto response = promise.GetFuture().get();
 
+  testing::Mock::VerifyAndClearExpectations(network_.get());
   ASSERT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
 }
 
@@ -578,33 +614,32 @@ TEST_P(IndexLayerClientMockTest, PublishDataCancelBlob) {
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_CONFIG),
-                                     testing::_, testing::_))
-      .Times(1);
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_BLOB),
-  testing::_,
-                                     testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(indexSetsPromiseWaitsAndReturns(
-          waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_BLOB})));
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_INDEX),
-  testing::_,
-                                     testing::_))
-      .Times(0);
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_GET_CATALOG),
-  testing::_,
-                                     testing::_))
-      .Times(0);
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  EXPECT_CALL(handler_,
-              CallOperator(IsPutRequestPrefix(URL_PUT_BLOB_INDEX_PREFIX),
-                           testing::_, testing::_))
-      .Times(0);
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_BLOB});
+  {
+    testing::InSequence dummy;
 
-  EXPECT_CALL(handler_, CallOperator(IsPostRequest(URL_INSERT_INDEX),
-                                     testing::_, testing::_))
-      .Times(0);
-
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+    EXPECT_CALL(*network_, Cancel(request_id))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INDEX), _, _, _, _))
+        .Times(0);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+        .Times(0);
+    EXPECT_CALL(*network_,
+                Send(IsPutRequestPrefix(URL_PUT_BLOB_INDEX_PREFIX), _, _, _, _))
+        .Times(0);
+    EXPECT_CALL(*network_, Send(IsPostRequest(URL_INSERT_INDEX), _, _, _, _))
+        .Times(0);
+  }
   auto promise = client_->PublishIndex(PublishIndexRequest()
                                            .WithIndex(GetTestIndex())
                                            .WithData(data_)
@@ -616,6 +651,7 @@ TEST_P(IndexLayerClientMockTest, PublishDataCancelBlob) {
 
   auto response = promise.GetFuture().get();
 
+  testing::Mock::VerifyAndClearExpectations(network_.get());
   ASSERT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
 }
 
@@ -623,34 +659,32 @@ TEST_P(IndexLayerClientMockTest, PublishDataCancelIndex) {
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_CONFIG),
-                                     testing::_, testing::_))
-      .Times(1);
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_BLOB),
-  testing::_,
-                                     testing::_))
-      .Times(1);
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_INDEX),
-  testing::_,
-                                     testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(indexSetsPromiseWaitsAndReturns(
-          waitForCancel, pauseForCancel, {200,
-          HTTP_RESPONSE_LOOKUP_INDEX})));
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_GET_CATALOG),
-  testing::_,
-                                     testing::_))
-      .Times(0);
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  EXPECT_CALL(handler_,
-              CallOperator(IsPutRequestPrefix(URL_PUT_BLOB_INDEX_PREFIX),
-                           testing::_, testing::_))
-      .Times(0);
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_INDEX});
+  {
+    testing::InSequence dummy;
 
-  EXPECT_CALL(handler_, CallOperator(IsPostRequest(URL_INSERT_INDEX),
-                                     testing::_, testing::_))
-      .Times(0);
-
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INDEX), _, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+    EXPECT_CALL(*network_, Cancel(request_id))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+        .Times(0);
+    EXPECT_CALL(*network_,
+                Send(IsPutRequestPrefix(URL_PUT_BLOB_INDEX_PREFIX), _, _, _, _))
+        .Times(0);
+    EXPECT_CALL(*network_, Send(IsPostRequest(URL_INSERT_INDEX), _, _, _, _))
+        .Times(0);
+  }
   auto promise = client_->PublishIndex(PublishIndexRequest()
                                            .WithIndex(GetTestIndex())
                                            .WithData(data_)
@@ -662,6 +696,7 @@ TEST_P(IndexLayerClientMockTest, PublishDataCancelIndex) {
 
   auto response = promise.GetFuture().get();
 
+  testing::Mock::VerifyAndClearExpectations(network_.get());
   ASSERT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
 }
 
@@ -669,33 +704,32 @@ TEST_P(IndexLayerClientMockTest, PublishDataCancelGetCatalog) {
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_CONFIG),
-                                     testing::_, testing::_))
-      .Times(1);
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_BLOB),
-  testing::_,
-                                     testing::_))
-      .Times(1);
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_INDEX),
-  testing::_,
-                                     testing::_))
-      .Times(1);
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_GET_CATALOG),
-  testing::_,
-                                     testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(indexSetsPromiseWaitsAndReturns(
-          waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_GET_CATALOG})));
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  EXPECT_CALL(handler_,
-              CallOperator(IsPutRequestPrefix(URL_PUT_BLOB_INDEX_PREFIX),
-                           testing::_, testing::_))
-      .Times(0);
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_GET_CATALOG});
+  {
+    testing::InSequence dummy;
 
-  EXPECT_CALL(handler_, CallOperator(IsPostRequest(URL_INSERT_INDEX),
-                                     testing::_, testing::_))
-      .Times(0);
-
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INDEX), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+    EXPECT_CALL(*network_, Cancel(request_id))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+    EXPECT_CALL(*network_,
+                Send(IsPutRequestPrefix(URL_PUT_BLOB_INDEX_PREFIX), _, _, _, _))
+        .Times(0);
+    EXPECT_CALL(*network_, Send(IsPostRequest(URL_INSERT_INDEX), _, _, _, _))
+        .Times(0);
+  }
   auto promise = client_->PublishIndex(PublishIndexRequest()
                                            .WithIndex(GetTestIndex())
                                            .WithData(data_)
@@ -707,6 +741,7 @@ TEST_P(IndexLayerClientMockTest, PublishDataCancelGetCatalog) {
 
   auto response = promise.GetFuture().get();
 
+  testing::Mock::VerifyAndClearExpectations(network_.get());
   ASSERT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
 }
 
@@ -714,33 +749,32 @@ TEST_P(IndexLayerClientMockTest, PublishDataCancelPutBlob) {
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_CONFIG),
-                                     testing::_, testing::_))
-      .Times(1);
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_BLOB),
-  testing::_,
-                                     testing::_))
-      .Times(1);
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_INDEX),
-  testing::_,
-                                     testing::_))
-      .Times(1);
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_GET_CATALOG),
-  testing::_,
-                                     testing::_))
-      .Times(1);
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  EXPECT_CALL(handler_,
-              CallOperator(IsPutRequestPrefix(URL_PUT_BLOB_INDEX_PREFIX),
-                           testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(indexSetsPromiseWaitsAndReturns(
-          waitForCancel, pauseForCancel, {200, "OK"})));
+  std::tie(request_id, send_mock, cancel_mock) =
+      generateNetworkMocks(waitForCancel, pauseForCancel, {200, "OK"});
+  {
+    testing::InSequence dummy;
 
-  EXPECT_CALL(handler_, CallOperator(IsPostRequest(URL_INSERT_INDEX),
-                                     testing::_, testing::_))
-      .Times(0);
-
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INDEX), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_,
+                Send(IsPutRequestPrefix(URL_PUT_BLOB_INDEX_PREFIX), _, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+    EXPECT_CALL(*network_, Cancel(request_id))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+    EXPECT_CALL(*network_, Send(IsPostRequest(URL_INSERT_INDEX), _, _, _, _))
+        .Times(0);
+  }
   auto promise = client_->PublishIndex(PublishIndexRequest()
                                            .WithIndex(GetTestIndex())
                                            .WithData(data_)
@@ -752,6 +786,6 @@ TEST_P(IndexLayerClientMockTest, PublishDataCancelPutBlob) {
 
   auto response = promise.GetFuture().get();
 
+  testing::Mock::VerifyAndClearExpectations(network_.get());
   ASSERT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
 }
-#endif
