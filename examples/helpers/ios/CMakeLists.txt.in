@@ -21,7 +21,7 @@ if (NOT IOS)
     message(FATAL_ERROR "Unsupported platform!")
 endif()
 
-project(@EDGE_SDK_EXAMPLE_TARGET_NAME@ VERSION 0.6.0)
+project(@EDGE_SDK_EXAMPLE_TARGET_NAME@ VERSION 0.7.0)
 
 add_executable(@EDGE_SDK_EXAMPLE_TARGET_NAME@
                 ${CMAKE_CURRENT_SOURCE_DIR}/example.h
