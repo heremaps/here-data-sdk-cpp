@@ -27,7 +27,10 @@ set(OLP_DATASERVICE_WRITE_TEST_SRC
     unit/TestVersionedLayerClient.cpp
     unit/TestVolatileLayerClient.cpp
     unit/TestCancellationTokenList.cpp
-    unit/TestIndexLayerClient.cpp)
+    unit/TestIndexLayerClient.cpp
+    unit/TestCommons.h
+    unit/TestCommons.cpp
+    )
 
 if (ANDROID OR IOS)
     add_library(${OLP_DATASERVICE_WRITE_TEST}
