@@ -322,7 +322,11 @@ TEST_P(VolatileLayerClientOnlineTest, PublishToBatchInvalidTest) {
   ASSERT_FALSE(publishToBatchResponse.IsSuccessful());
 }
 
-TEST_P(VolatileLayerClientOnlineTest, StartBatchDeleteClientTest) {
+// Sometimes we receive the 500 internal server error,
+// thus looks loke the problem is on the server side.
+// Please, re-enable this test when switched to mocked server or
+// when the server will be more steady for testing
+TEST_P(VolatileLayerClientOnlineTest, DISABLED_StartBatchDeleteClientTest) {
   auto volatileClient = CreateVolatileLayerClient();
   auto response =
       volatileClient
