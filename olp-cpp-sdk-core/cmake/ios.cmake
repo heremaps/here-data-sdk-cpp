@@ -15,14 +15,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 if(IOS)
-    aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/../src/network/ios NETWORK_IOS_SOURCES)
-    ### To show header files in IDEs
-    file(GLOB_RECURSE NETWORK_IOS_INTERNAL_INCLUDES "*.h" "*.inl")
-    set(NETWORK_IOS_SOURCES
-        ${NETWORK_IOS_SOURCES}
-        ${NETWORK_IOS_INTERNAL_INCLUDES}
-    )
-
     set(EDGE_SDK_HTTP_IOS_SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPNetworkIOS.mm"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPNetworkIOS.h"
@@ -38,5 +30,5 @@ if(IOS)
 
     add_definitions(-DNETWORK_HAS_IOS)
 else()
-    set(NETWORK_IOS_SOURCES)
+    set(EDGE_SDK_HTTP_IOS_SOURCES)
 endif()
