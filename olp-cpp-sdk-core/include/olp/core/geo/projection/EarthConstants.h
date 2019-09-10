@@ -23,11 +23,28 @@
 
 namespace olp {
 namespace geo {
+/**
+ * @brief Various WGS84 Earth's constants.
+ */
 class CORE_API EarthConstants {
  public:
-  // WGS84 Earth constants, http://home.online.no/~sigurdhu/WGS84_Eng.html
+  /**
+   * @brief The Earth's equatorial radius is the distance from its center to the equator.
+   * @see https://en.wikipedia.org/wiki/Earth_radius
+   * @return Earth's equatorial radius.
+   */
   static double EquatorialRadius();
+  /**
+   * @brief The Earth's polar radius is the distance from its center to the North and South Poles.
+   * @see https://en.wikipedia.org/wiki/Earth_radius
+   * @return Earth's polar radius.
+   */
   static double PolarRadius();
+  /**
+   * @brief The Earth's circumference is the distance around the Earth equator.
+   * @see https://en.wikipedia.org/wiki/Earth%27s_circumference
+   * @return Earth's circumference.
+   */
   static double EquatorialCircumference();
 
   /**
