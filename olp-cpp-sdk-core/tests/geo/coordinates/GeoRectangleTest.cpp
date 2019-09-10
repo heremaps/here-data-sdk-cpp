@@ -19,8 +19,8 @@
 
 #include <gtest/gtest.h>
 
-#include <geo/unittest/testutil/CompareGeoCoordinates.h>
-#include <geo/unittest/testutil/CompareGeoRectangle.h>
+#include "../testutil/CompareGeoCoordinates.h"
+#include "../testutil/CompareGeoRectangle.h"
 #include <olp/core/geo/coordinates/GeoRectangle.h>
 #include <olp/core/math/Math.h>
 
