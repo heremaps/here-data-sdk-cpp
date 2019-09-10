@@ -80,7 +80,8 @@ TEST_P(ClientDefaultAsyncHttp, GetGoogleWebsite) {
 }
 
 TEST_P(ClientDefaultAsyncHttp, GetNonExistentWebsite) {
-  client_.SetBaseUrl("https://intranet.here212351.cococom");
+  // RFC 2606. Use reserved domain name that nobody could register.
+  client_.SetBaseUrl("https://example.test");
   std::promise<olp::client::HttpResponse> p;
   olp::client::NetworkAsyncCallback callback =
       [&p](olp::client::HttpResponse response) { p.set_value(response); };
@@ -763,7 +764,7 @@ TEST_P(Client, QueryParam) {
 
 TEST_P(Client, HeaderParams) {
   std::multimap<std::string, std::string> header_params;
-  std::vector<std::pair<std::string, std::string>> resultHeaders;
+  std::vector<std::pair<std::string, std::string>> result_headers;
   header_params.insert(std::make_pair("head1", "value1"));
   header_params.insert(std::make_pair("head2", "value2"));
   auto network = std::make_shared<NetworkMock>();
@@ -776,7 +777,7 @@ TEST_P(Client, HeaderParams) {
                     olp::http::Network::Callback callback,
                     olp::http::Network::HeaderCallback header_callback,
                     olp::http::Network::DataCallback data_callback) {
-        resultHeaders = request.GetHeaders();
+        result_headers = request.GetHeaders();
         callback(olp::http::NetworkResponse().WithStatus(200));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
@@ -793,18 +794,18 @@ TEST_P(Client, HeaderParams) {
                   std::string(), callback);
   auto response = promise.get_future().get();
 
-  ASSERT_EQ(2u, resultHeaders.size());
-  for (auto& entry : resultHeaders) {
+  ASSERT_LE(2u, result_headers.size());
+  for (auto& entry : result_headers) {
     if (entry.first == "head1") {
       ASSERT_EQ("value1", entry.second);
-    } else {
+    } else if (entry.first == "head2") {
       ASSERT_EQ("value2", entry.second);
     }
   }
 }
 
 TEST_P(Client, DefaultHeaderParams) {
-  std::vector<std::pair<std::string, std::string>> resultHeaders;
+  std::vector<std::pair<std::string, std::string>> result_headers;
   client_.GetMutableDefaultHeaders().insert(std::make_pair("head1", "value1"));
   client_.GetMutableDefaultHeaders().insert(std::make_pair("head2", "value2"));
   auto network = std::make_shared<NetworkMock>();
@@ -817,7 +818,7 @@ TEST_P(Client, DefaultHeaderParams) {
                     olp::http::Network::Callback callback,
                     olp::http::Network::HeaderCallback header_callback,
                     olp::http::Network::DataCallback data_callback) {
-        resultHeaders = request.GetHeaders();
+        result_headers = request.GetHeaders();
         callback(olp::http::NetworkResponse().WithStatus(200));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
@@ -835,18 +836,18 @@ TEST_P(Client, DefaultHeaderParams) {
                   std::string(), callback);
   auto response = promise.get_future().get();
 
-  ASSERT_EQ(2u, resultHeaders.size());
-  for (auto& entry : resultHeaders) {
+  ASSERT_LE(2u, result_headers.size());
+  for (auto& entry : result_headers) {
     if (entry.first == "head1") {
       ASSERT_EQ("value1", entry.second);
-    } else {
+    } else if (entry.first == "head2") {
       ASSERT_EQ("value2", entry.second);
     }
   }
 }
 
 TEST_P(Client, CombineHeaderParams) {
-  std::vector<std::pair<std::string, std::string>> resultHeaders;
+  std::vector<std::pair<std::string, std::string>> result_headers;
   client_.GetMutableDefaultHeaders().insert(std::make_pair("head1", "value1"));
   client_.GetMutableDefaultHeaders().insert(std::make_pair("head2", "value2"));
   std::multimap<std::string, std::string> header_params;
@@ -861,7 +862,7 @@ TEST_P(Client, CombineHeaderParams) {
                     olp::http::Network::Callback callback,
                     olp::http::Network::HeaderCallback header_callback,
                     olp::http::Network::DataCallback data_callback) {
-        resultHeaders = request.GetHeaders();
+        result_headers = request.GetHeaders();
         callback(olp::http::NetworkResponse().WithStatus(200));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
@@ -878,20 +879,20 @@ TEST_P(Client, CombineHeaderParams) {
                   std::string(), callback);
   auto response = promise.get_future().get();
 
-  ASSERT_EQ(3u, resultHeaders.size());
-  for (auto& entry : resultHeaders) {
+  ASSERT_LE(3u, result_headers.size());
+  for (auto& entry : result_headers) {
     if (entry.first == "head1") {
       ASSERT_EQ("value1", entry.second);
     } else if (entry.first == "head2") {
       ASSERT_EQ("value2", entry.second);
-    } else {
+    } else if (entry.first == "head3") {
       ASSERT_EQ("value3", entry.second);
     }
   }
 }
 
 TEST_P(Client, Content) {
-  std::vector<std::pair<std::string, std::string>> resultHeaders;
+  std::vector<std::pair<std::string, std::string>> result_headers;
   client_.GetMutableDefaultHeaders().insert(std::make_pair("head1", "value1"));
   std::multimap<std::string, std::string> header_params;
   header_params.insert(std::make_pair("head3", "value3"));
@@ -910,7 +911,7 @@ TEST_P(Client, Content) {
                     olp::http::Network::Callback callback,
                     olp::http::Network::HeaderCallback header_callback,
                     olp::http::Network::DataCallback data_callback) {
-        resultHeaders = request.GetHeaders();
+        result_headers = request.GetHeaders();
         resultContent = request.GetBody();
         callback(olp::http::NetworkResponse().WithStatus(200));
         return olp::http::SendOutcome(olp::http::RequestId(5));
@@ -926,16 +927,14 @@ TEST_P(Client, Content) {
                   std::multimap<std::string, std::string>(), content,
                   "plain-text", callback);
   auto response = promise.get_future().get();
-  ASSERT_EQ(3u, resultHeaders.size());
-  for (auto& entry : resultHeaders) {
+  ASSERT_LE(3u, result_headers.size());
+  for (auto& entry : result_headers) {
     if (entry.first == "head1") {
       ASSERT_EQ("value1", entry.second);
     } else if (entry.first == "head3") {
       ASSERT_EQ("value3", entry.second);
     } else if (entry.first == "Content-Type") {
       ASSERT_EQ("plain-text", entry.second);
-    } else {
-      ASSERT_TRUE(false);
     }
   }
   ASSERT_TRUE(resultContent);
@@ -1191,7 +1190,7 @@ TEST_P(Client, QueryMultiParams) {
   ASSERT_EQ(uri.find("not=present"), std::string::npos);
 
   // headers test
-  ASSERT_EQ(headers.size(), 6);
+  ASSERT_LE(6, headers.size());
   for (auto p : header_params) {
     ASSERT_TRUE(std::find_if(headers.begin(), headers.end(),
                              [p](decltype(p) el) { return el == p; }) !=

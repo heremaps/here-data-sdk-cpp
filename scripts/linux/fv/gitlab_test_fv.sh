@@ -13,9 +13,7 @@ fi
 TEST_FAILURE=0
 
 $FV_HOME/gitlab-olp-cpp-sdk-authentication-test.sh || TEST_FAILURE=1
-$FV_HOME/gitlab-olp-cpp-sdk-core-cache-test.sh || TEST_FAILURE=1
-$FV_HOME/gitlab-olp-cpp-sdk-core-client-test.sh || TEST_FAILURE=1
-$FV_HOME/gitlab-olp-cpp-sdk-core-geo-test.sh || TEST_FAILURE=1
+$FV_HOME/gitlab-olp-cpp-sdk-core-test.sh || TEST_FAILURE=1
 $FV_HOME/gitlab-olp-dataservice-read-test.sh || TEST_FAILURE=1
 $FV_HOME/gitlab-olp-dataservice-write-test.sh || TEST_FAILURE=1
 
@@ -24,4 +22,3 @@ if [[ $TEST_FAILURE==1 ]]; then
 fi
 
 exit $TEST_FAILURE
-
