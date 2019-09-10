@@ -32,6 +32,8 @@
 
 #include "HttpResponses.h"
 
+#include "TestCommons.h"
+
 using namespace olp::dataservice::write;
 using namespace olp::dataservice::write::model;
 
@@ -541,6 +543,10 @@ class VolatileLayerClientMockTest : public VolatileLayerClientTestBase {
  protected:
   std::shared_ptr<NetworkMock> network_;
 
+  void TearDown() override {
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
+
   virtual std::shared_ptr<VolatileLayerClient> CreateVolatileLayerClient()
       override {
     olp::client::OlpClientSettings client_settings;
@@ -612,7 +618,7 @@ class VolatileLayerClientMockTest : public VolatileLayerClientTestBase {
 INSTANTIATE_TEST_SUITE_P(TestMock, VolatileLayerClientMockTest,
                          ::testing::Values(false));
 
-TEST_P(VolatileLayerClientMockTest, DISABLED_PublishData) {
+TEST_P(VolatileLayerClientMockTest, PublishData) {
   auto new_client = CreateVolatileLayerClient();
   {
     testing::InSequence dummy;
@@ -650,125 +656,139 @@ TEST_P(VolatileLayerClientMockTest, DISABLED_PublishData) {
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
 }
 
-#if 0
 TEST_P(VolatileLayerClientMockTest, PublishDataCancelConfig) {
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
-  // Setup the expected calls :
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_CONFIG),
-                                     testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(volatileSetsPromiseWaitsAndReturns(
-          waitForCancel, pauseForCancel, {200,
-          HTTP_RESPONSE_LOOKUP_CONFIG})));
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB),
-                                     testing::_, testing::_))
-      .Times(0);
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_GET_CATALOG),
-  testing::_,
-                                     testing::_))
-      .Times(0);
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
+
+  {
+    testing::InSequence s;
+
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+    EXPECT_CALL(*network_, Cancel(request_id))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+    EXPECT_CALL(*network_,
+                Send(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
+        .Times(0);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+        .Times(0);
+  }
   auto promise = client_->PublishPartitionData(PublishPartitionDataRequest()
                                                    .WithData(data_)
                                                    .WithLayerId(GetTestLayer())
                                                    .WithPartitionId("1111"));
-  waitForCancel->get_future().get();
+  wait_for_cancel->get_future().get();
   promise.GetCancellationToken().cancel();
-  pauseForCancel->set_value();
+  pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();
 
   ASSERT_FALSE(response.IsSuccessful());
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(response.GetError().GetHttpStatusCode()));
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            response.GetError().GetHttpStatusCode());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             response.GetError().GetErrorCode());
 }
 
 TEST_P(VolatileLayerClientMockTest, PublishDataCancelBlob) {
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
-  // Setup the expected calls :
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_CONFIG),
-                                     testing::_, testing::_))
-      .Times(1);
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_METADATA),
-                                     testing::_, testing::_))
-      .Times(1);
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB),
-                                     testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(volatileSetsPromiseWaitsAndReturns(
-          waitForCancel, pauseForCancel,
-          {200, HTTP_RESPONSE_LOOKUP_VOLATILE_BLOB})));
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_GET_CATALOG),
-  testing::_,
-                                     testing::_))
-      .Times(0);
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_VOLATILE_BLOB});
+
+  {
+    testing::InSequence s;
+
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_,
+                Send(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+    EXPECT_CALL(*network_, Cancel(request_id))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+        .Times(0);
+  }
 
   auto promise = client_->PublishPartitionData(PublishPartitionDataRequest()
                                                    .WithData(data_)
                                                    .WithLayerId(GetTestLayer())
                                                    .WithPartitionId("1111"));
-  waitForCancel->get_future().get();
+  wait_for_cancel->get_future().get();
   promise.GetCancellationToken().cancel();
-  pauseForCancel->set_value();
+  pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();
 
   ASSERT_FALSE(response.IsSuccessful());
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(response.GetError().GetHttpStatusCode()));
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            response.GetError().GetHttpStatusCode());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             response.GetError().GetErrorCode());
 }
 
 TEST_P(VolatileLayerClientMockTest, PublishDataCancelCatalog) {
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
-  // Setup the expected calls :
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_CONFIG),
-                                     testing::_, testing::_))
-      .Times(1);
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_METADATA),
-                                     testing::_, testing::_))
-      .Times(1);
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB),
-                                     testing::_, testing::_))
-      .Times(1);
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_QUERY),
-  testing::_,
-                                     testing::_))
-      .Times(1);
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_LOOKUP_PUBLISH_V2),
-                                     testing::_, testing::_))
-      .Times(1);
-  EXPECT_CALL(handler_, CallOperator(IsGetRequest(URL_GET_CATALOG),
-  testing::_,
-                                     testing::_))
-      .Times(1)
-      .WillOnce(testing::Invoke(volatileSetsPromiseWaitsAndReturns(
-          waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_GET_CATALOG})));
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
+
+  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_GET_CATALOG});
+
+  {
+    testing::InSequence s;
+
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_,
+                Send(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_,
+                Send(IsGetRequest(URL_LOOKUP_PUBLISH_V2), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+    EXPECT_CALL(*network_, Cancel(request_id))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+  }
 
   auto promise = client_->PublishPartitionData(PublishPartitionDataRequest()
                                                    .WithData(data_)
                                                    .WithLayerId(GetTestLayer())
                                                    .WithPartitionId("1111"));
-  waitForCancel->get_future().get();
+  wait_for_cancel->get_future().get();
   promise.GetCancellationToken().cancel();
-  pauseForCancel->set_value();
+  pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();
 
   ASSERT_FALSE(response.IsSuccessful());
-  ASSERT_EQ(olp::network::Network::ErrorCode::Cancelled,
-            static_cast<int>(response.GetError().GetHttpStatusCode()));
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            response.GetError().GetHttpStatusCode());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             response.GetError().GetErrorCode());
 }
-#endif
