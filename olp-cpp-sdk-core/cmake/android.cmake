@@ -15,13 +15,10 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 if(NOT ANDROID)
-    set(NETWORK_ANDROID_SOURCES)
     set(NETWORK_ANDROID_LIBRARIES)
     return()
 endif()
 
-aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/../src/network/android NETWORK_ANDROID_SOURCES)
-set(NETWORK_ANDROID_SOURCES ${NETWORK_ANDROID_SOURCES} ${CMAKE_CURRENT_LIST_DIR}/../src/network/socket/NetworkConnectivitySocketImpl.cpp)
 add_definitions(-DNETWORK_HAS_ANDROID)
 set(NETWORK_ANDROID_LIBRARIES ${ANDROID_LIBRARY})
 include_directories(${ANDROID_INCLUDE_DIR})
