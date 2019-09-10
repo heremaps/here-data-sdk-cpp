@@ -57,7 +57,9 @@ class CORE_API ThreadPoolTaskScheduler final : public TaskScheduler {
   /// Thread pool created in constructor.
   std::vector<std::thread> thread_pool_;
   /// SyncQueue used to manage tasks.
-  SyncQueueFifo<TaskScheduler::CallFuncType> sync_queue_;
+  using SyncQueueFifoPtr =
+      std::shared_ptr<SyncQueueFifo<TaskScheduler::CallFuncType>>;
+  SyncQueueFifoPtr sync_queue_;
 };
 
 }  // namespace thread

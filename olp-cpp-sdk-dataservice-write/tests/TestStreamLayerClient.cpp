@@ -1853,6 +1853,8 @@ class StreamLayerClientCacheMockTest : public StreamLayerClientMockTest {
     network_ = std::make_shared<NetworkMock>();
     client_settings.network_request_handler = network_;
     SetUpCommonNetworkMockCalls(*network_);
+    client_settings.task_scheduler =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
 
     return std::make_shared<StreamLayerClient>(
         olp::client::HRN{GetTestCatalog()}, client_settings, disk_cache_,
@@ -1916,7 +1918,7 @@ class StreamLayerClientCacheMockTest : public StreamLayerClientMockTest {
 };
 
 INSTANTIATE_TEST_SUITE_P(TestCacheMock, StreamLayerClientCacheMockTest,
-                         ::testing::Values(true));
+                         ::testing::Values(false));
 
 TEST_P(StreamLayerClientCacheMockTest, FlushDataSingle) {
   {
@@ -1967,7 +1969,7 @@ TEST_P(StreamLayerClientCacheMockTest, FlushDataMultiple) {
   }
 }
 
-TEST_P(StreamLayerClientCacheMockTest, DISABLED_FlushDataCancel) {
+TEST_P(StreamLayerClientCacheMockTest, FlushDataCancel) {
   auto wait_for_cancel = std::make_shared<std::promise<void>>();
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
@@ -2123,8 +2125,12 @@ TEST_P(StreamLayerClientCacheMockTest,
   EXPECT_EQ(0, default_listener->GetNumFlushedRequestsFailed());
 }
 
+// This test is temporarily disabled, because current auto flush logic
+// is not stable and should be refactored. The reason is that the
+// AutoFlushController triggers flush events too often, thus,
+// it might result into unexpected outcome.
 TEST_P(StreamLayerClientCacheMockTest,
-       FlushListenerMetricsMultipleFlushEventsInParallel) {
+       DISABLED_FlushListenerMetricsMultipleFlushEventsInParallel) {
   disk_cache_->Close();
   flush_settings_.auto_flush_num_events = 2;
   client_ = CreateStreamLayerClient();

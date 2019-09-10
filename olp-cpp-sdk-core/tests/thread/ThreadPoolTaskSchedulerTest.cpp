@@ -38,7 +38,7 @@ constexpr milliseconds kSleep{100};
 constexpr int64_t kMaxWaitMs{1000};
 }  // namespace
 
-TEST(ThreadPoolTaskSchedulerTest, single_user_push) {
+TEST(ThreadPoolTaskSchedulerTest, SingleUserPush) {
   SCOPED_TRACE("Single user pushes tasks");
 
   // Start thread pool
@@ -76,7 +76,7 @@ TEST(ThreadPoolTaskSchedulerTest, single_user_push) {
   thread_pool.reset();
 }
 
-TEST(ThreadPoolTaskSchedulerTest, multi_user_push) {
+TEST(ThreadPoolTaskSchedulerTest, MultiUserPush) {
   SCOPED_TRACE("Multiple users push tasks");
 
   constexpr uint32_t kPushThreads = 3;
@@ -125,4 +125,29 @@ TEST(ThreadPoolTaskSchedulerTest, multi_user_push) {
     thread.join();
   }
   push_threads.clear();
+}
+
+TEST(ThreadPoolTaskSchedulerTest, TransferThreadPoolOwnershipToWorkerThread) {
+  SCOPED_TRACE(
+      "User pushes single task and transfers ThreadPool ownership to the "
+      "worker thread.");
+  // weak_ptr to track whether ThreadPool was destroyed
+  std::weak_ptr<ThreadPool> weak_thread_pool;
+  {
+    auto thread_pool = std::make_shared<ThreadPool>(1);
+    weak_thread_pool = thread_pool;
+    thread_pool->ScheduleTask([thread_pool] {
+      // make sure that worker's lamba steals ownership of thread_pool
+      (void)thread_pool;
+    });
+  }
+
+  // Wait till thread pool finishes its execution within given timeout
+  const auto start = system_clock::now();
+  while (weak_thread_pool.lock() &&
+         duration_cast<milliseconds>(system_clock::now() - start).count() <
+             kMaxWaitMs) {
+  }
+
+  ASSERT_TRUE(weak_thread_pool.lock() == nullptr);
 }

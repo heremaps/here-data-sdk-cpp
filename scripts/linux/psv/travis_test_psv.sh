@@ -17,6 +17,6 @@ $CPP_TEST_SOURCE_DARASERVICE_READ/olp-cpp-sdk-dataservice-read-tests \
 echo ">>> Dataservice write Test ... >>>"
 $CPP_TEST_SOURCE_DARASERVICE_WRITE/olp-cpp-sdk-dataservice-write-tests \
     --gtest_output="xml:olp-cpp-sdk-dataservice-write-tests-report.xml" \
-    --gtest_filter=-"*Online*":"TestCacheMock*"
+    --gtest_filter=-"*Online*"
 
 bash <(curl -s https://codecov.io/bash)

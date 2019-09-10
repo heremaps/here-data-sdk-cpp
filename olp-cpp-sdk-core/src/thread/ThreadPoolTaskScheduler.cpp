@@ -65,11 +65,14 @@ void SetCurrentThreadName(const std::string& thread_name) {
 
 }  // namespace
 
-ThreadPoolTaskScheduler::ThreadPoolTaskScheduler(size_t thread_count) {
+ThreadPoolTaskScheduler::ThreadPoolTaskScheduler(size_t thread_count)
+    : sync_queue_(
+          std::make_shared<SyncQueueFifo<TaskScheduler::CallFuncType>>()) {
   thread_pool_.reserve(thread_count);
 
+  auto sync_queue = sync_queue_;
   for (size_t idx = 0; idx < thread_count; ++idx) {
-    std::thread executor([this, idx]() {
+    std::thread executor([sync_queue, idx]() {
       // Set thread name for easy profiling and debugging
       std::string thread_name = "OLPSDKPOOL_" + std::to_string(idx);
       SetCurrentThreadName(thread_name);
@@ -77,7 +80,12 @@ ThreadPoolTaskScheduler::ThreadPoolTaskScheduler(size_t thread_count) {
 
       for (;;) {
         TaskScheduler::CallFuncType task;
-        if (!sync_queue_.Pull(task)) return;
+        if (!sync_queue->Pull(task)) {
+          EDGE_SDK_LOG_INFO_F(kLogTag, "Finishing thread '%s'",
+                              thread_name.c_str());
+          return;
+        }
+
         task();
       }
     });
@@ -87,15 +95,19 @@ ThreadPoolTaskScheduler::ThreadPoolTaskScheduler(size_t thread_count) {
 }
 
 ThreadPoolTaskScheduler::~ThreadPoolTaskScheduler() {
-  sync_queue_.Close();
+  sync_queue_->Close();
   for (auto& thread : thread_pool_) {
-    thread.join();
+    if (thread.get_id() != std::this_thread::get_id()) {
+      thread.join();
+    } else {
+      thread.detach();
+    }
   }
   thread_pool_.clear();
 }
 
 void ThreadPoolTaskScheduler::EnqueueTask(TaskScheduler::CallFuncType&& func) {
-  sync_queue_.Push(std::move(func));
+  sync_queue_->Push(std::move(func));
 }
 
 }  // namespace thread
