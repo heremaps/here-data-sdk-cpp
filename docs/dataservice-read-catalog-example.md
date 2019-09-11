@@ -1,6 +1,6 @@
 # Read example
 
-This example shows how to retrieve catalog metadata, partition metadata, and partition data using the HERE OLP Edge SDK C++.
+This example shows how to retrieve catalog metadata, partition metadata, and partition data using the HERE OLP SDK for C++.
 
 Before you run the example, authorize by replacing the placeholders in `examples/dataservice-read/example.cpp` with your app access key id and secret access key, which you can find on the platform `Apps & keys` page:
 
@@ -46,28 +46,28 @@ After building and running the example, you see the following:
 
 ## Building and running on Android
 
-This example shows how to integrate the HERE OLP Edge SDK C++ libraries into the Android project and read data from a catalog layer and partition.
+This example shows how to integrate the HERE OLP SDK for C++ libraries into the Android project and read data from a catalog layer and partition.
 
 ### Prerequisites
 
 * Set up the Android environment.
 * Replace the placeholders in `examples/dataservice-read/example.cpp` with your app access key id and secret access key.
 
-### Build HERE OLP Edge SDK C++
+### Build HERE OLP SDK for C++
 
 Before you build the example, complete the following:
 
 * Configure the SDK with `EDGE_SDK_BUILD_EXAMPLES` set to `ON`.
 * Optionally, disable tests with `EDGE_SDK_ENABLE_TESTING` set to `OFF`.
 * Specify the path to Android NDK's toolchain file set via the `CMAKE_TOOLCHAIN_FILE` variable.
-* In case you want to build Edge SDK for a specific Android platform, use `-DANDROID_PLATFORM CMake` flag, and `-DANDROID_ABI`, if you want to build for specific Android architecture. For more details, see [NDK-specific CMake variables](https://developer.android.com/ndk/guides/cmake#variables).
+* In case you want to build SDK for a specific Android platform, use `-DANDROID_PLATFORM CMake` flag, and `-DANDROID_ABI`, if you want to build for specific Android architecture. For more details, see [NDK-specific CMake variables](https://developer.android.com/ndk/guides/cmake#variables).
 
 ```bash
 mkdir build && cd build
 cmake .. -DCMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DEDGE_SDK_BUILD_EXAMPLES=ON -DEDGE_SDK_ENABLE_TESTING=OFF
 ```
 
-The `CMake` command generates a `Gradle` project in the `build/examples/dataservice-read/android` folder. Before using the project, install the HERE OLP Edge SDK C++ libraries into the sysroot directory:
+The `CMake` command generates a `Gradle` project in the `build/examples/dataservice-read/android` folder. Before using the project, install the HERE OLP SDK for C++ libraries into the sysroot directory:
 
 ```bash
 # Execute as sudo if necessary
@@ -88,11 +88,11 @@ Alternatively, you can use Android Studio IDE by opening the `build/examples/dat
 
 After you provide your app access key id and secret access key, install and run `dataservice_read_example` APK, the main UI screen displays a message `Reading the partition data from the specified catalog completed successfully`. If you encounter an error, please check the device's logcat for the error message.
 
-> **Note:** you can run `CMake` command directly from the `<olp-edge-sdk-root>/examples/dataservice-read/` folder if you have already built and installed HERE OLP Edge SDK C++ libraries for Android. Make sure you provide the correct path to the `LevelDB` library and `EDGE_SDK_NETWORK_PROTOCOL_JAR` parameter in the `CMake` command, invoked by the `build/examples/dataservice-read/android/app/build.gradle` script.
+> **Note:** you can run `CMake` command directly from the `<olp-edge-sdk-root>/examples/dataservice-read/` folder if you have already built and installed HERE OLP SDK for C++ libraries for Android. Make sure you provide the correct path to the `LevelDB` library and `EDGE_SDK_NETWORK_PROTOCOL_JAR` parameter in the `CMake` command, invoked by the `build/examples/dataservice-read/android/app/build.gradle` script.
 
 ## Building and running on iOS
 
-This example shows how to integrate the HERE OLP Edge SDK C++ libraries into a basic iOS application written in Objective-C language and read data from a catalog layer and partition.
+This example shows how to integrate the HERE OLP SDK for C++ libraries into a basic iOS application written in Objective-C language and read data from a catalog layer and partition.
 
 ### Prerequisites
 
@@ -100,11 +100,11 @@ This example shows how to integrate the HERE OLP Edge SDK C++ libraries into a b
 * Install external dependencies by referring to the `README.md` file located under the `<olp-edge-sdk-root>/README.md`.
 * Replace the placeholders in `examples/dataservice-read/example.cpp` with your app access key id and secret access key.
 
-### Build HERE OLP Edge SDK C++
+### Build HERE OLP SDK for C++
 
 Before you build the example, complete the following:
 
-* Configure the HERE OLP Edge SDK C++ with `EDGE_SDK_BUILD_EXAMPLES` set to `ON`.
+* Configure the HERE OLP SDK for C++ with `EDGE_SDK_BUILD_EXAMPLES` set to `ON`.
 * Optionally, disable tests with `EDGE_SDK_ENABLE_TESTING` set to `OFF`.
 * Specify the path to the iOS toolchain file shipped together with the SDK, located under the `<olp-edge-sdk-root>/cmake/toolchains/iOS.cmake`:
 
@@ -113,7 +113,7 @@ mkdir build && cd build
 cmake .. -GXcode  -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/iOS.cmake -DPLATFORM=iphoneos -DEDGE_SDK_BUILD_EXAMPLES=ON -DEDGE_SDK_ENABLE_TESTING=OFF
 ```
 
-> **Note:** to configure the HERE OLP Edge SDK C++ for a simulator, set the `SIMULATOR` variable to `ON`.
+> **Note:** to configure the HERE OLP SDK for C++ for a simulator, set the `SIMULATOR` variable to `ON`.
 
 ### Build and run the application on the device
 

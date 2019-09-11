@@ -1,6 +1,6 @@
-# HERE OLP Edge SDK C++
+# HERE OLP SDK for C++
 
-The HERE OLP Edge SDK C++ is a _work-in-progress_ C++ client for [HERE Open Location Platform](https://platform.here.com).
+The HERE OLP SDK for C++ is a _work-in-progress_ C++ client for [HERE Open Location Platform](https://platform.here.com).
 
 ## Health Сheck
 
@@ -26,7 +26,7 @@ The HERE OLP Edge SDK C++ is a _work-in-progress_ C++ client for [HERE Open Loca
 
 ## Why Use
 
-The HERE OLP Edge SDK C++ provides support for core HERE Open Location Platform (OLP) use cases through a set of native C++ interfaces. The SDK is intended to save your time and effort on using OLP REST APIs and provides a set of stable APIs that simplify complex OLP operations and remove the burden of keeping up to date with the latest OLP REST API changes.
+The HERE OLP SDK for C++ provides support for core HERE Open Location Platform (OLP) use cases through a set of native C++ interfaces. The SDK is intended to save your time and effort on using OLP REST APIs and provides a set of stable APIs that simplify complex OLP operations and remove the burden of keeping up to date with the latest OLP REST API changes.
 
 It's a modern (C++11 or later), lightweight, and modular SDK with minimal dependencies that is targeted towards a wide range of hardware platforms, from embedded devices to desktops.
 
@@ -53,7 +53,7 @@ The SDK has been tested on the following platforms and with the following requir
 
 ## Dependencies
 
-The dependencies of the HERE OLP Edge SDK C++ are the following:
+The dependencies of the HERE OLP SDK for C++ are the following:
 
 | Library   | Minimum version |
 | --------- | --------------- |
@@ -85,7 +85,7 @@ sudo apt-get update && sudo apt-get --yes install git g++ make cmake libssl-dev 
 
 #### Build
 
-To build the HERE OLP Edge SDK C++, run the following commands in the root of the repository folder after cloning:
+To build the HERE OLP SDK for C++, run the following commands in the root of the repository folder after cloning:
 
 ```bash
 mkdir build && cd build
@@ -105,11 +105,11 @@ make docs
 
 By default this SDK downloads and compiles its dependencies. The versions of downloaded dependencies may conflict with versions already installed on your system, so they are not added to the install targets.
 
-Therefore, to install the HERE OLP Edge SDK C++, you must first install all its dependencies. Then you need to configure the SDK with `EDGE_SDK_BUILD_EXTERNAL_DEPS` set to `OFF` so that it finds required dependencies in the system.
+Therefore, to install the HERE OLP SDK for C++, you must first install all its dependencies. Then you need to configure the SDK with `EDGE_SDK_BUILD_EXTERNAL_DEPS` set to `OFF` so that it finds required dependencies in the system.
 
 Another option is to build the SDK as a shared library, setting the `BUILD_SHARED_LIBS` flag to `ON`.
 
-The following command builds and installs the HERE OLP Edge SDK C++:
+The following command builds and installs the HERE OLP SDK for C++:
 
 ```bash
 cmake --build . --target install
@@ -158,7 +158,7 @@ Defaults to `ON`. If enabled, this adds `/MP` compilation flag to build SDK usin
 
 ## SDK Usage
 
-To learn how to use the HERE OLP Edge SDK C++, see the [Getting Started Guide](docs/GettingStartedGuide.md).
+To learn how to use the HERE OLP SDK for C++, see the [Getting Started Guide](docs/GettingStartedGuide.md).
 
 ## Contribution
 

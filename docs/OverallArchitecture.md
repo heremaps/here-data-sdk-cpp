@@ -1,12 +1,12 @@
-# Overall Architecture of HERE OLP Edge SDK C++
+# Overall Architecture of HERE OLP SDK for C++
 
 ## Outline
 
-This document describes the overall architecture of the HERE OLP Edge SDK C++ (here also referred to as SDK). For an overview of the scope and the features of the SDK, see [README.md](../README.md#why-use).
+This document describes the overall architecture of the HERE OLP SDK for C++ (here also referred to as SDK). For an overview of the scope and the features of the SDK, see [README.md](../README.md#why-use).
 
 ## Component Overview
 
-The HERE OLP Edge SDK C++ consists of three main independent modules:
+The HERE OLP SDK for C++ consists of three main independent modules:
 
 * **olp-cpp-sdk-authentication**
 * **olp-cpp-sdk-dataservice-read**
@@ -20,7 +20,7 @@ In the following sections, you find description of each of these modules.
 
 The following diagram shows an overview of the SDK components and their relationship with the HERE Cloud.
 
-![component_overview](diagrams/sdk-module-overview.png "HERE OLP Edge SDK C++ Component Overview")
+![component_overview](diagrams/sdk-module-overview.png "HERE OLP SDK for C++ Component Overview")
 
 #### olp-cpp-sdk-core
 
@@ -145,4 +145,4 @@ The nonfunctional requirements are being finalized. After that this section is t
 
 ## Security Model
 
-The user of the HERE OLP Edge SDK C++ is responsible to take care of any security and privacy requirements of the target system.
+The user of the HERE OLP SDK for C++ is responsible to take care of any security and privacy requirements of the target system.
