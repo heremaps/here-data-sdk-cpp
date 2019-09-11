@@ -92,19 +92,19 @@ class CORE_API GeoCoordinates3d {
                                       double altitude = 0.0);
 
   /**
-   * Get latitude and longitude as 2D geodetic coordinates.
+   * @brief Get latitude and longitude as 2D geodetic coordinates.
    * @return 2D geodetic coordinates.
    */
   const GeoCoordinates& GetGeoCoordinates() const;
 
   /**
-   * Set latitude and longitude from 2D geodetic coordinates.
+   * @brief Set latitude and longitude from 2D geodetic coordinates.
    * @param[in] geo_coordinates 2D geodetic coordinates.
    */
   void SetGeoCoordinates(const GeoCoordinates& geo_coordinates);
 
   /**
-   * Get latitude.
+   * @brief Get latitude.
    * @return Latitude in radians.
    */
   double GetLatitude() const;
@@ -178,8 +178,11 @@ class CORE_API GeoCoordinates3d {
   bool IsValid() const;
 
  protected:
+  /// 2D geodetic coordinates.
   GeoCoordinates geo_coordinates_;
+  /// Altitude in meters.
   double altitude_;
+  /// Const being used to signalize an invalid altitude.
   static const double kNaN_;
 };
 
