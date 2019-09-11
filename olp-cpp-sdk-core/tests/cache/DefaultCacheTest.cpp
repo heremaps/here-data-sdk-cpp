@@ -27,7 +27,7 @@
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/utils/Dir.h>
 
-TEST(DefaultCacheTest, basic_test) {
+TEST(DefaultCacheTest, BasicTest) {
   olp::cache::CacheSettings settings;
   settings.disk_path = olp::utils::Dir::TempDirectory() + "/unittest";
   olp::cache::DefaultCache cache(settings);
@@ -43,7 +43,7 @@ TEST(DefaultCacheTest, basic_test) {
   ASSERT_TRUE(cache.Clear());
 }
 
-TEST(DefaultCacheTest, basic_in_mem_test) {
+TEST(DefaultCacheTest, BasicInMemTest) {
   olp::cache::DefaultCache cache;
   ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
   ASSERT_TRUE(cache.Clear());
@@ -57,7 +57,7 @@ TEST(DefaultCacheTest, basic_in_mem_test) {
   ASSERT_TRUE(cache.Clear());
 }
 
-TEST(DefaultCache, mem_size_test) {
+TEST(DefaultCacheTest, MemSizeTest) {
   olp::cache::CacheSettings settings;
   settings.max_memory_cache_size = 30;
   olp::cache::DefaultCache cache(settings);
@@ -90,42 +90,43 @@ TEST(DefaultCache, mem_size_test) {
   }
 }
 
-TEST(DefaultCache, remove_with_prefix) {
+TEST(DefaultCacheTest, RemoveWithPrefix) {
   olp::cache::DefaultCache cache;
   ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
   std::string dataString{"this is the data"};
   for (int i = 0; i < 11; i++) {
     cache.Put("key" + std::to_string(i), dataString,
-      [=]() {return dataString;}, (std::numeric_limits<time_t>::max)());
+              [=]() { return dataString; },
+              (std::numeric_limits<time_t>::max)());
   }
   auto key10DataRead =
-    cache.Get("key10", [](const std::string& data) {return data; });
+      cache.Get("key10", [](const std::string& data) { return data; });
   ASSERT_FALSE(key10DataRead.empty());
   cache.RemoveKeysWithPrefix("key1");  // removes "key1", "key10"
   key10DataRead =
-    cache.Get("key10", [](const std::string& data) {return data; });
+      cache.Get("key10", [](const std::string& data) { return data; });
   ASSERT_TRUE(key10DataRead.empty());
   auto key4DataRead =
-    cache.Get("key4", [](const std::string& data) {return data; });
+      cache.Get("key4", [](const std::string& data) { return data; });
   ASSERT_FALSE(key4DataRead.empty());
   cache.RemoveKeysWithPrefix("key4");  // removes "key4"
   key4DataRead =
-    cache.Get("key4", [](const std::string& data) {return data; });
+      cache.Get("key4", [](const std::string& data) { return data; });
   ASSERT_TRUE(key4DataRead.empty());
   auto key2DataRead =
-    cache.Get("key2", [](const std::string& data) {return data; });
+      cache.Get("key2", [](const std::string& data) { return data; });
   ASSERT_FALSE(key2DataRead.empty());
   cache.RemoveKeysWithPrefix("doesnotexist");  // removes nothing
   key2DataRead =
-    cache.Get("key2", [](const std::string& data) {return data; });
+      cache.Get("key2", [](const std::string& data) { return data; });
   ASSERT_FALSE(key2DataRead.empty());
   cache.RemoveKeysWithPrefix("key");  // removes all
   key2DataRead =
-    cache.Get("key2", [](const std::string& data) {return data; });
+      cache.Get("key2", [](const std::string& data) { return data; });
   ASSERT_TRUE(key2DataRead.empty());
 }
 
-TEST(DefaultCache, basic_disk_test) {
+TEST(DefaultCacheTest, BasicDiskTest) {
   olp::cache::CacheSettings settings;
   settings.max_memory_cache_size = 0;
   settings.disk_path = olp::utils::Dir::TempDirectory() + "/unittest";
@@ -142,7 +143,7 @@ TEST(DefaultCache, basic_disk_test) {
   ASSERT_TRUE(cache.Clear());
 }
 
-TEST(DefaultCache, expired_disk_test) {
+TEST(DefaultCacheTest, ExpiredDiskTest) {
   olp::cache::CacheSettings settings;
   settings.max_memory_cache_size = 0;
   settings.disk_path = olp::utils::Dir::TempDirectory() + "/unittest";
@@ -169,7 +170,7 @@ TEST(DefaultCache, expired_disk_test) {
   ASSERT_TRUE(cache.Clear());
 }
 
-TEST(DefaultCache, expired_mem_test) {
+TEST(DefaultCacheTest, ExpiredMemTest) {
   olp::cache::DefaultCache cache;
   ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
   ASSERT_TRUE(cache.Clear());
@@ -193,7 +194,7 @@ TEST(DefaultCache, expired_mem_test) {
   ASSERT_TRUE(cache.Clear());
 }
 
-TEST(DefaultCache, DISABLED_bad_path) {
+TEST(DefaultCacheTest, BadPath) {
   olp::cache::CacheSettings settings;
   settings.disk_path = std::string("/////this/is/a/bad/path");
   olp::cache::DefaultCache cache(settings);
@@ -209,7 +210,7 @@ TEST(DefaultCache, DISABLED_bad_path) {
   ASSERT_EQ(key1DataString, boost::any_cast<std::string>(key1DataRead));
 }
 
-TEST(DefaultCache, already_in_use_path) {
+TEST(DefaultCacheTest, AlreadyInUsePath) {
   olp::cache::CacheSettings settings;
   settings.disk_path = olp::utils::Dir::TempDirectory() + "/unittest";
   olp::cache::DefaultCache cache(settings);
