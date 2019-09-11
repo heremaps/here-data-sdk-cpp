@@ -41,17 +41,26 @@ class CORE_API GeoPoint {
   GeoPoint(std::uint32_t xx, std::uint32_t yy);
 
   /**
-   * 2D absolute world coordinate.
+   * Absolute world X-coordinate.
    * Value range for each component is 32 bit unsigned integer
    */
   std::uint32_t x;
+  /**
+   * Absolute world Y-coordinate.
+   * Value range for each component is 32 bit unsigned integer
+   */
   std::uint32_t y;
 
+  /// Overload operator ==
   bool operator==(const GeoPoint& other) const;
+
+  /// Overload operator !=
   inline bool operator!=(const GeoPoint& other) const {
     return !operator==(other);
   }
 
+   /// Overload operator +=. Add x and y from the passed paramter to the x
+   /// and y of this object, respectively.
   GeoPoint& operator+=(const GeoPoint& other);
 };
 
