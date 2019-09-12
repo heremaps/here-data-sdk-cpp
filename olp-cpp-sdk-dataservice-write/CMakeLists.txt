@@ -51,5 +51,5 @@ install (FILES ${DATASERVICE_WRITE_MODEL_HEADERS} DESTINATION ${INCLUDE_DIRECTOR
 export_config()
 
 if(EDGE_SDK_ENABLE_TESTING)
-    add_subdirectory(test)
+    add_subdirectory(tests)
 endif()
