@@ -39,11 +39,11 @@ class FacebookTestUtils {
 
   FacebookTestUtils();
   virtual ~FacebookTestUtils();
-  bool createFacebookTestUser(
+  bool CreateFacebookTestUser(
       olp::http::Network& network,
       const olp::http::NetworkSettings& network_settings, FacebookUser& user,
       const std::string& permissions);
-  bool deleteFacebookTestUser(
+  bool DeleteFacebookTestUser(
       http::Network& network,
       const olp::http::NetworkSettings& network_settings, std::string user_id);
 
