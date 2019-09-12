@@ -17,8 +17,6 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-project(olp-cpp-sdk-core-tests VERSION 0.7.0)
-
 set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./cache/DefaultCacheTest.cpp
     ./cache/InMemoryCacheTest.cpp
