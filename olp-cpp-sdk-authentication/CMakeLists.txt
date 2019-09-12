@@ -51,5 +51,5 @@ install (FILES ${AUTHENTICATION_INC} DESTINATION ${INCLUDE_DIRECTORY}/olp/authen
 export_config()
 
 if(EDGE_SDK_ENABLE_TESTING)
-    add_subdirectory(test/unit)
+    add_subdirectory(tests)
 endif()
