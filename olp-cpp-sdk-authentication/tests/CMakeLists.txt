@@ -20,9 +20,9 @@ cmake_minimum_required(VERSION 3.5)
 set(OLP_AUTHENTICATION_TEST_SOURCES
     ArcGisTestUtils.cpp
     ArcGisTestUtils.h
-    AuthenticationProductionTests.cpp
-    AuthenticationTests.cpp
-    AuthenticationTests.h
+    AuthenticationProductionTest.cpp
+    AuthenticationTest.cpp
+    AuthenticationTest.h
     AuthenticationUtils.cpp
     AuthenticationUtils.h
     CommonTestUtils.h
@@ -31,7 +31,7 @@ set(OLP_AUTHENTICATION_TEST_SOURCES
     GoogleTestUtils.cpp
     GoogleTestUtils.h
     OfflineResponses.h
-    TestHereAccountOauth2IntegrationOnline.cpp
+    HereAccountOauth2IntegrationOnlineTest.cpp
 )
 
 if (ANDROID OR IOS)
