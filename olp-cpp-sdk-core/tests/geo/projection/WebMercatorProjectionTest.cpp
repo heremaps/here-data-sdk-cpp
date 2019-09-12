@@ -17,15 +17,15 @@
  * License-Filename: LICENSE
  */
 
-#include <geo/unittest/testutil/CompareGeoCoordinates.h>
-#include <geo/unittest/testutil/CompareGeoCoordinates3d.h>
+#include "../testutil/CompareGeoCoordinates.h"
+#include "../testutil/CompareGeoCoordinates3d.h"
 #include <gtest/gtest.h>
+
+#include <olp/core/geo/coordinates/GeoRectangle.h>
 #include <olp/core/geo/projection/EarthConstants.h>
-#include <olp/core/geo/projection/IdentityProjection.h>
-#include <olp/core/math/Math.h>
+#include <olp/core/geo/projection/WebMercatorProjection.h>
 
 namespace olp {
-
 using namespace math;
 
 namespace geo {
@@ -33,35 +33,43 @@ static void TestProjectUnproject(const GeoCoordinates3d& geo,
                                  const WorldCoordinates& world) {
   {
     WorldCoordinates actualWorld;
-    EXPECT_TRUE(IdentityProjection().Project(geo, actualWorld));
+    EXPECT_TRUE(WebMercatorProjection().Project(geo, actualWorld));
     EXPECT_VECTOR_EQ(world, actualWorld);
   }
 
   {
     GeoCoordinates3d actualGeo(0, 0, 0);
-    EXPECT_TRUE(IdentityProjection().Unproject(world, actualGeo));
-    EXPECT_GEOCOORDINATES3D_EQ(geo, actualGeo);
+    EXPECT_TRUE(WebMercatorProjection().Unproject(world, actualGeo));
+    const GeoCoordinates3d normalizedGeo(geo.GetGeoCoordinates().Normalized(),
+                                         geo.GetAltitude());
+    EXPECT_GEOCOORDINATES3D_EQ(normalizedGeo, actualGeo);
   }
 }
 
-TEST(IdentityProjectionTest, ProjectUnprojectPoint) {
-  TestProjectUnproject(GeoCoordinates3d(0, 0, 0), WorldCoordinates(0, 0, 0));
+TEST(WebMercatorProjectionTest, ProjectUnprojectPoint) {
+  const double r = EarthConstants::EquatorialCircumference();
+  const auto georect = WebMercatorProjection().GetGeoBounds();
 
-  TestProjectUnproject(GeoCoordinates3d(GeoCoordinates::FromDegrees(90, 0), 0),
-                       WorldCoordinates(0, math::half_pi, 0));
+  TestProjectUnproject(GeoCoordinates3d(0, 0, 0),
+                       WorldCoordinates(0.5 * r, 0.5 * r, 0));
 
-  TestProjectUnproject(GeoCoordinates3d(GeoCoordinates::FromDegrees(-90, 0), 0),
-                       WorldCoordinates(0, -math::half_pi, 0));
+  TestProjectUnproject(
+      GeoCoordinates3d(georect.SouthWest().GetLatitude(), 0, 0),
+      WorldCoordinates(0.5 * r, 0, 0));
+
+  TestProjectUnproject(
+      GeoCoordinates3d(georect.NorthEast().GetLatitude(), 0, 0),
+      WorldCoordinates(0.5 * r, 1 * r, 0));
 
   TestProjectUnproject(GeoCoordinates3d(GeoCoordinates::FromDegrees(0, 180), 0),
-                       WorldCoordinates(math::pi, 0, 0));
+                       WorldCoordinates(0, 0.5 * r, 0));
 
   TestProjectUnproject(
       GeoCoordinates3d(GeoCoordinates::FromDegrees(0, -180), 0),
-      WorldCoordinates(-math::pi, 0, 0));
+      WorldCoordinates(0, 0.5 * r, 0));
 
   TestProjectUnproject(GeoCoordinates3d(0, 0, -10),
-                       WorldCoordinates(0, 0, -10));
+                       WorldCoordinates(0.5 * r, 0.5 * r, -10));
 }
 
 }  // namespace geo

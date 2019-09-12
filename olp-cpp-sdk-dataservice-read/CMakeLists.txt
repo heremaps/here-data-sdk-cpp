@@ -56,6 +56,6 @@ install (FILES ${MODEL_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/dataservice
 export_config()
 
 if(EDGE_SDK_ENABLE_TESTING)
-    add_subdirectory(test)
+    add_subdirectory(tests)
 endif()
 

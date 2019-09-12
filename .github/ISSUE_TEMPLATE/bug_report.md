@@ -9,7 +9,7 @@ assignees: andescu
 
 ### Describe the bug
 
-### Which version/tag/hash of the HERE OLP Edge SDK are you using?
+### Which version/tag/hash of the HERE OLP SDK are you using?
 
 ### What compiler are you using? What version of the compiler?
 

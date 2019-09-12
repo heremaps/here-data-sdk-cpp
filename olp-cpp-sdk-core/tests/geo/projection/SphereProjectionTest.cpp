@@ -17,8 +17,8 @@
  * License-Filename: LICENSE
  */
 
-#include <geo/unittest/testutil/CompareGeoCoordinates.h>
-#include <geo/unittest/testutil/CompareGeoCoordinates3d.h>
+#include "../testutil/CompareGeoCoordinates.h"
+#include "../testutil/CompareGeoCoordinates3d.h"
 #include <gtest/gtest.h>
 
 #include <olp/core/geo/projection/EarthConstants.h>
