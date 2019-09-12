@@ -31,7 +31,7 @@
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/http/NetworkProxySettings.h>
-#include "AuthenticationTests.h"
+#include "AuthenticationTest.h"
 
 namespace {
 constexpr auto kTestMaxExecutionTime = std::chrono::seconds(30);

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-#include "AuthenticationTests.h"
+#include "AuthenticationTest.h"
 
 #include "olp/core/http/HttpStatusCode.h"
 
