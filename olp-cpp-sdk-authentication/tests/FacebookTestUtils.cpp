@@ -67,17 +67,17 @@ class FacebookTestUtils::Impl {
 
   virtual ~Impl() = default;
 
-  bool createFacebookTestUser(
+  bool CreateFacebookTestUser(
       http::Network& network,
       const olp::http::NetworkSettings& network_settings, FacebookUser& user,
       std::string permissions);
-  bool deleteFacebookTestUser(
+  bool DeleteFacebookTestUser(
       olp::http::Network& network,
       const olp::http::NetworkSettings& network_settings,
       const std::string& user_id);
 };
 
-bool FacebookTestUtils::Impl::createFacebookTestUser(
+bool FacebookTestUtils::Impl::CreateFacebookTestUser(
     olp::http::Network& network,
     const olp::http::NetworkSettings& network_settings, FacebookUser& user,
     std::string permissions) {
@@ -139,7 +139,7 @@ bool FacebookTestUtils::Impl::createFacebookTestUser(
   return !user.id.empty() && !user.access_token.empty();
 }
 
-bool FacebookTestUtils::Impl::deleteFacebookTestUser(
+bool FacebookTestUtils::Impl::DeleteFacebookTestUser(
     http::Network& network, const olp::http::NetworkSettings& network_settings,
     const std::string& user_id) {
   std::string url = std::string() + kFacebookUrl + "/" + user_id;
@@ -181,17 +181,17 @@ FacebookTestUtils::FacebookTestUtils()
 
 FacebookTestUtils::~FacebookTestUtils() = default;
 
-bool FacebookTestUtils::createFacebookTestUser(
+bool FacebookTestUtils::CreateFacebookTestUser(
     http::Network& network, const olp::http::NetworkSettings& network_settings,
     FacebookUser& user, const std::string& permissions) {
-  return impl_->createFacebookTestUser(network, network_settings, user,
+  return impl_->CreateFacebookTestUser(network, network_settings, user,
                                        permissions);
 }
 
-bool FacebookTestUtils::deleteFacebookTestUser(
+bool FacebookTestUtils::DeleteFacebookTestUser(
     olp::http::Network& network,
     const olp::http::NetworkSettings& network_settings, std::string user_id) {
-  return impl_->deleteFacebookTestUser(network, network_settings, user_id);
+  return impl_->DeleteFacebookTestUser(network, network_settings, user_id);
 }
 
 }  // namespace authentication
