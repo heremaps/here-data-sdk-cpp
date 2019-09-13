@@ -29,13 +29,15 @@ namespace geo {
 class CORE_API EarthConstants {
  public:
   /**
-   * @brief The Earth's equatorial radius is the distance from its center to the equator.
+   * @brief The Earth's equatorial radius is the distance from its center
+   * to the equator.
    * @see https://en.wikipedia.org/wiki/Earth_radius
    * @return Earth's equatorial radius.
    */
   static double EquatorialRadius();
   /**
-   * @brief The Earth's polar radius is the distance from its center to the North and South Poles.
+   * @brief The Earth's polar radius is the distance from its center to the
+   * North and South Poles.
    * @see https://en.wikipedia.org/wiki/Earth_radius
    * @return Earth's polar radius.
    */

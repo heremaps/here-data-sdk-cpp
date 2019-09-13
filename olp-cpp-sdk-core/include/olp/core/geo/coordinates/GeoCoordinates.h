@@ -56,8 +56,9 @@ class CORE_API GeoCoordinates {
    * [-90, 90] range.
    * @param longitude_degrees WGS84 longitude in degrees. Valid values are in
    * [-180, 180) range. Use normalized() to put geo coordinate in a valid range.
+   * @param degrees Dispatch tag for degree coordinates.
    */
-  GeoCoordinates(double latitude_degrees, double longitude_radians,
+  GeoCoordinates(double latitude_degrees, double longitude_degrees,
                  DegreeType degrees);
 
   /**
@@ -80,25 +81,56 @@ class CORE_API GeoCoordinates {
   static GeoCoordinates FromGeoPoint(const GeoPoint& geo_point);
 
   /**
-   * @brief Return geo coordinate as GeoPoint
+   * @brief Return geo coordinate as GeoPoint.
    * @return current coordinate as a GeoPoint.
    */
   GeoPoint ToGeoPoint() const;
 
+  /**
+   * @brief Return WGS84 latitude in radians.
+   * @return WGS84 latitude in radians.
+   */
   double GetLatitude() const;
-
+  /**
+   * @brief Set latitude in radians.
+   * @param latitude_radians WGS84 latitude in radians. Valid values are in
+   * [-Pi/2, Pi/2] range.
+   */
   void SetLatitude(double latitude_radians);
-
+  /**
+   * @brief Return WGS84 longitude in radians.
+   * @return WGS84 longitude in radians.
+   */
   double GetLongitude() const;
+  /**
+   * @brief Set longitude in radians.
+   * @param longitude_radians WGS84 longitude in radians. Valid values are in
+   * [-Pi, Pi) range.
+   */
+  void SetLongitude(double longitude_radians);
 
-  void SetLongitude(double latitude_radians);
-
+  /**
+   * @brief Return WGS84 latitude in degrees.
+   * @return WGS84 latitude in degrees.
+   */
   double GetLatitudeDegrees() const;
 
+  /**
+   * @brief Set latitude in degrees.
+   * @param latitude_degrees WGS84 latitude in degrees. Valid values are in
+   * [-90, 90] range.
+   */
   void SetLatitudeDegrees(double latitude_degrees);
-
+  /**
+   * @brief Return WGS84 longitude in degrees.
+   * @return WGS84 longitude in degrees.
+   */
   double GetLongitudeDegrees() const;
-
+  /**
+   * @brief Set longitude in degrees.
+   * @param longitude_degrees WGS84 longitude in degrees. Valid values are in
+   * [-180, 180) range.
+   */
   void SetLongitudeDegrees(double longitude_degrees);
 
   /**
@@ -107,9 +139,17 @@ class CORE_API GeoCoordinates {
    * clamped at +/- Pi/2
    */
   GeoCoordinates Normalized() const;
-
+  /**
+   * @brief Overload the bool operator. Return true if the coordinates are valid.
+   * @see IsValid
+   */
   explicit operator bool() const;
-
+  /**
+   * @brief Check if the radian values of latitude and longitude are valid
+   * double numbers. The check happens with the help of math::isnan.
+   * @return true if the result of the check is positive,
+   * false if it is negative.
+   */
   bool IsValid() const;
 
  private:
