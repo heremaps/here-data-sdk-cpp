@@ -88,7 +88,7 @@ Alternatively, you can use Android Studio IDE by opening the `build/examples/dat
 
 After you provide your app access key id and secret access key, install and run `dataservice_read_example` APK, the main UI screen displays a message `Reading the partition data from the specified catalog completed successfully`. If you encounter an error, please check the device's logcat for the error message.
 
-> **Note:** you can run `CMake` command directly from the `<olp-edge-sdk-root>/examples/dataservice-read/` folder if you have already built and installed HERE OLP SDK for C++ libraries for Android. Make sure you provide the correct path to the `LevelDB` library and `EDGE_SDK_NETWORK_PROTOCOL_JAR` parameter in the `CMake` command, invoked by the `build/examples/dataservice-read/android/app/build.gradle` script.
+> **Note:** you can run `CMake` command directly from the `<olp-sdk-root>/examples/dataservice-read/` folder if you have already built and installed HERE OLP SDK for C++ libraries for Android. Make sure you provide the correct path to the `LevelDB` library and `EDGE_SDK_NETWORK_PROTOCOL_JAR` parameter in the `CMake` command, invoked by the `build/examples/dataservice-read/android/app/build.gradle` script.
 
 ## Building and running on iOS
 
@@ -97,7 +97,7 @@ This example shows how to integrate the HERE OLP SDK for C++ libraries into a ba
 ### Prerequisites
 
 * Set up the iOS development environment by installing the `XCode` and command-line tools.
-* Install external dependencies by referring to the `README.md` file located under the `<olp-edge-sdk-root>/README.md`.
+* Install external dependencies by referring to the `README.md` file located under the `<olp-sdk-root>/README.md`.
 * Replace the placeholders in `examples/dataservice-read/example.cpp` with your app access key id and secret access key.
 
 ### Build HERE OLP SDK for C++
@@ -106,7 +106,7 @@ Before you build the example, complete the following:
 
 * Configure the HERE OLP SDK for C++ with `EDGE_SDK_BUILD_EXAMPLES` set to `ON`.
 * Optionally, disable tests with `EDGE_SDK_ENABLE_TESTING` set to `OFF`.
-* Specify the path to the iOS toolchain file shipped together with the SDK, located under the `<olp-edge-sdk-root>/cmake/toolchains/iOS.cmake`:
+* Specify the path to the iOS toolchain file shipped together with the SDK, located under the `<olp-sdk-root>/cmake/toolchains/iOS.cmake`:
 
 ```bash
 mkdir build && cd build

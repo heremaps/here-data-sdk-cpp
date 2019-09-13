@@ -50,7 +50,7 @@ target_link_libraries(example_app
 
 ## Reference Documentation
 
-The API reference documentation for the HERE OLP SDK for C++ is available at https://heremaps.github.io/here-olp-edge-sdk-cpp/.
+The API reference documentation for the HERE OLP SDK for C++ is available [here](https://heremaps.github.io/here-olp-sdk-cpp/).
 
 
 ## Examples
