@@ -702,9 +702,8 @@ generateNetworkMocks(std::shared_ptr<std::promise<void>> pre_signal,
                         callback_placeholder](olp::http::RequestId id) {
     if (!completed->exchange(true)) {
       auto cancel_code = static_cast<int>(ErrorCode::CANCELLED_ERROR);
-      (*callback_placeholder)(NetworkResponse()
-                                  .WithError("Cancelled")
-                                  .WithStatus(cancel_code));
+      (*callback_placeholder)(
+          NetworkResponse().WithError("Cancelled").WithStatus(cancel_code));
     }
   };
 
@@ -2411,7 +2410,7 @@ TEST_P(CatalogClientMockTest, GetCatalogOnlineOnly) {
       << PrintError(catalogResponse.GetError());
 }
 
-TEST_P(CatalogClientMockTest, DISABLED_GetCatalogCacheWithUpdate) {
+TEST_P(CatalogClientMockTest, GetCatalogCacheWithUpdate) {
   olp::logging::Log::setLevel(olp::logging::Level::Trace);
 
   olp::client::HRN hrn(GetTestCatalog());
@@ -2431,9 +2430,6 @@ TEST_P(CatalogClientMockTest, DISABLED_GetCatalogCacheWithUpdate) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
-
-  EXPECT_CALL(*network_mock_, Cancel(request_id))
-      .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = CatalogRequest();
@@ -2521,7 +2517,7 @@ TEST_P(CatalogClientMockTest, GetDataOnlineOnly) {
   ASSERT_FALSE(dataResponse.IsSuccessful());
 }
 
-TEST_P(CatalogClientMockTest, DISABLED_GetDataCacheWithUpdate) {
+TEST_P(CatalogClientMockTest, GetDataCacheWithUpdate) {
   olp::logging::Log::setLevel(olp::logging::Level::Trace);
 
   olp::client::HRN hrn(GetTestCatalog());
@@ -2542,9 +2538,6 @@ TEST_P(CatalogClientMockTest, DISABLED_GetDataCacheWithUpdate) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
-
-  EXPECT_CALL(*network_mock_, Cancel(request_id))
-      .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = DataRequest();
