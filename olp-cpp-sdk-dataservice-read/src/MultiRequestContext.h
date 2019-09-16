@@ -41,9 +41,12 @@ namespace {
 constexpr auto kMultiRequestContextLogTag = "MultiRequestContext";
 }
 
-template <typename Response, typename Callback>
+template <typename Response>
 class MultiRequestContext final {
  public:
+  using Callback = std::function<void(Response)>;
+  using ExecuteFn = std::function<client::CancellationToken(Callback)>;
+
   MultiRequestContext(const Response& cancelled)
       : cancelled_(cancelled),
         mutex_(std::make_shared<std::recursive_mutex>()),
@@ -65,7 +68,6 @@ class MultiRequestContext final {
     }
   }
 
-  using ExecuteFn = std::function<client::CancellationToken(Callback)>;
   inline olp::client::CancellationToken ExecuteOrAssociate(
       const std::string& key, const ExecuteFn& execute_fn,
       Callback callback_fn) {

@@ -62,8 +62,7 @@ class PartitionsRepository final {
   std::shared_ptr<ApiRepository> apiRepo_;
   std::shared_ptr<CatalogRepository> catalogRepo_;
   std::shared_ptr<PartitionsCacheRepository> cache_;
-  std::shared_ptr<MultiRequestContext<read::PartitionsResponse,
-                                      read::PartitionsResponseCallback>>
+  std::shared_ptr<MultiRequestContext<read::PartitionsResponse>>
       multiRequestContext_;
 };
 }  // namespace repository

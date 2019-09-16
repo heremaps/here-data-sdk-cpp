@@ -164,9 +164,9 @@ DataRepository::DataRepository(
   read::DataResponse cancelledResponse{
       {static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
        "Operation cancelled."}};
-  multiRequestContext_ = std::make_shared<
-      MultiRequestContext<read::DataResponse, read::DataResponseCallback>>(
-      cancelledResponse);
+  multiRequestContext_ =
+      std::make_shared<MultiRequestContext<read::DataResponse>>(
+          cancelledResponse);
 }
 
 bool DataRepository::IsInlineData(const std::string& dataHandle) {
@@ -200,70 +200,65 @@ CancellationToken DataRepository::GetData(
     callback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
   };
 
-  MultiRequestContext<read::DataResponse, read::DataResponseCallback>::ExecuteFn
-      executeFn = [=, &cache](read::DataResponseCallback callback) {
-        cancel_context->ExecuteOrCancelled(
-            [=, &cache]() {
-              return catalogRepo_->getCatalog(
-                  catalogRequest,
-                  [=, &cache](read::CatalogResponse catalogResponse) {
-                    if (!catalogResponse.IsSuccessful()) {
-                      EDGE_SDK_LOG_INFO_F(
-                          kLogTag, "getCatalog '%s' unsuccessful", key.c_str());
-                      callback(catalogResponse.GetError());
+  auto executeFn = [=, &cache](read::DataResponseCallback callback) {
+    cancel_context->ExecuteOrCancelled(
+        [=, &cache]() {
+          return catalogRepo_->getCatalog(
+              catalogRequest,
+              [=, &cache](read::CatalogResponse catalogResponse) {
+                if (!catalogResponse.IsSuccessful()) {
+                  EDGE_SDK_LOG_INFO_F(kLogTag, "getCatalog '%s' unsuccessful",
+                                      key.c_str());
+                  callback(catalogResponse.GetError());
+                  return;
+                }
+
+                auto& catalogLayers = catalogResponse.GetResult().GetLayers();
+                auto itr =
+                    std::find_if(catalogLayers.begin(), catalogLayers.end(),
+                                 [&](const model::Layer& layer) {
+                                   return layer.GetId() == request.GetLayerId();
+                                 });
+
+                if (itr == catalogLayers.end()) {
+                  EDGE_SDK_LOG_INFO_F(kLogTag, "Layer for '%s' doesn't exiist",
+                                      key.c_str());
+                  callback(ApiError(client::ErrorCode::InvalidArgument,
+                                    "Layer specified doesn't exist."));
+                  return;
+                }
+
+                auto layerType = itr->GetLayerType();
+                if (request.GetDataHandle()) {
+                  GetDataInternal(cancel_context, apiRepo, layerType, request,
+                                  callback, cache);
+                } else {
+                  auto getPartitionsCallback = [=, &cache](
+                                                   PartitionsResponse
+                                                       partitionsResponse) {
+                    if (!partitionsResponse.IsSuccessful()) {
+                      callback(partitionsResponse.GetError());
                       return;
                     }
 
-                    auto& catalogLayers =
-                        catalogResponse.GetResult().GetLayers();
-                    auto itr = std::find_if(
-                        catalogLayers.begin(), catalogLayers.end(),
-                        [&](const model::Layer& layer) {
-                          return layer.GetId() == request.GetLayerId();
-                        });
-
-                    if (itr == catalogLayers.end()) {
-                      EDGE_SDK_LOG_INFO_F(kLogTag,
-                                          "Layer for '%s' doesn't exiist",
-                                          key.c_str());
-                      callback(ApiError(client::ErrorCode::InvalidArgument,
-                                        "Layer specified doesn't exist."));
-                      return;
-                    }
-
-                    auto layerType = itr->GetLayerType();
-                    if (request.GetDataHandle()) {
-                      GetDataInternal(cancel_context, apiRepo, layerType,
-                                      request, callback, cache);
-                    } else {
-                      auto getPartitionsCallback = [=, &cache](
-                                                       PartitionsResponse
-                                                           partitionsResponse) {
-                        if (!partitionsResponse.IsSuccessful()) {
-                          callback(partitionsResponse.GetError());
-                          return;
-                        }
-
-                        if (partitionsResponse.GetResult()
+                    if (partitionsResponse.GetResult().GetPartitions().size() ==
+                        1) {
+                      auto& dataHandle = partitionsResponse.GetResult()
+                                             .GetPartitions()
+                                             .at(0)
+                                             .GetDataHandle();
+                      if (IsInlineData(dataHandle)) {
+                        callback(std::make_shared<std::vector<unsigned char>>(
+                            dataHandle.begin(), dataHandle.end()));
+                      } else {
+                        DataRequest appendedRequest(request);
+                        appendedRequest.WithDataHandle(
+                            partitionsResponse.GetResult()
                                 .GetPartitions()
-                                .size() == 1) {
-                          auto& dataHandle = partitionsResponse.GetResult()
-                                                 .GetPartitions()
-                                                 .at(0)
-                                                 .GetDataHandle();
-                          if (IsInlineData(dataHandle)) {
-                            callback(
-                                std::make_shared<std::vector<unsigned char>>(
-                                    dataHandle.begin(), dataHandle.end()));
-                          } else {
-                            DataRequest appendedRequest(request);
-                            appendedRequest.WithDataHandle(
-                                partitionsResponse.GetResult()
-                                    .GetPartitions()
-                                    .at(0)
-                                    .GetDataHandle());
-                            auto verifyResponseCallback = [=](DataResponse
-                                                                  response) {
+                                .at(0)
+                                .GetDataHandle());
+                        auto verifyResponseCallback =
+                            [=](DataResponse response) {
                               if (!response.IsSuccessful()) {
                                 if (403 ==
                                     response.GetError().GetHttpStatusCode()) {
@@ -283,46 +278,45 @@ CancellationToken DataRepository::GetData(
                               }
                               callback(response);
                             };
-                            GetDataInternal(cancel_context, apiRepo, layerType,
-                                            appendedRequest,
-                                            verifyResponseCallback, cache);
-                          }
-                        } else {
-                          // Backend returns an empty partition list if the
-                          // partition doesn't exist in the layer. So return no
-                          // data.
-                          EDGE_SDK_LOG_INFO_F(kLogTag,
-                                              "Empty partition for '%s'!",
-                                              key.c_str());
-                          callback(model::Data());
-                        }
-                      };
-
-                      cancel_context->ExecuteOrCancelled(
-                          [=]() {
-                            PartitionsRequest partitionsRequest;
-                            partitionsRequest
-                                .WithBillingTag(request.GetBillingTag())
-                                .WithFetchOption(request.GetFetchOption())
-                                .WithLayerId(request.GetLayerId())
-                                .WithVersion(request.GetVersion());
-                            std::vector<std::string> partitions;
-                            partitions.push_back(*request.GetPartitionId());
-                            return partitionsRepo->GetPartitionsById(
-                                partitionsRequest, partitions,
-                                getPartitionsCallback);
-                          },
-
-                          cancel_callback);
+                        GetDataInternal(cancel_context, apiRepo, layerType,
+                                        appendedRequest, verifyResponseCallback,
+                                        cache);
+                      }
+                    } else {
+                      // Backend returns an empty partition list if the
+                      // partition doesn't exist in the layer. So return no
+                      // data.
+                      EDGE_SDK_LOG_INFO_F(kLogTag, "Empty partition for '%s'!",
+                                          key.c_str());
+                      callback(model::Data());
                     }
-                  });
-            },
+                  };
 
-            cancel_callback);
+                  cancel_context->ExecuteOrCancelled(
+                      [=]() {
+                        PartitionsRequest partitionsRequest;
+                        partitionsRequest
+                            .WithBillingTag(request.GetBillingTag())
+                            .WithFetchOption(request.GetFetchOption())
+                            .WithLayerId(request.GetLayerId())
+                            .WithVersion(request.GetVersion());
+                        std::vector<std::string> partitions;
+                        partitions.push_back(*request.GetPartitionId());
+                        return partitionsRepo->GetPartitionsById(
+                            partitionsRequest, partitions,
+                            getPartitionsCallback);
+                      },
 
-        return CancellationToken(
-            [cancel_context]() { cancel_context->CancelOperation(); });
-      };
+                      cancel_callback);
+                }
+              });
+        },
+
+        cancel_callback);
+
+    return CancellationToken(
+        [cancel_context]() { cancel_context->CancelOperation(); });
+  };
   return multiRequestContext_->ExecuteOrAssociate(key, executeFn, callback);
 }
 

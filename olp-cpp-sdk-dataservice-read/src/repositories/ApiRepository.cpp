@@ -45,9 +45,9 @@ ApiRepository::ApiRepository(
   ApiClientResponse cancelledResponse{
       {static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
        "Operation cancelled."}};
-  multiRequestContext_ = std::make_shared<
-      MultiRequestContext<ApiClientResponse, ApiClientCallback>>(
-      cancelledResponse);
+  multiRequestContext_ =
+      std::make_shared<MultiRequestContext<ApiClientResponse>>(
+          cancelledResponse);
 }
 
 olp::client::CancellationToken ApiRepository::getApiClient(
@@ -76,38 +76,36 @@ olp::client::CancellationToken ApiRepository::getApiClient(
   auto cache = cache_;
   auto hrn = hrn_;
   auto settings_weak = settings_;
-  MultiRequestContext<ApiClientResponse, ApiClientCallback>::ExecuteFn
-      executeFn = [cache, hrn, settings_weak, service,
-                   serviceVersion](ApiClientCallback contextCallback) {
-        EDGE_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> execute",
+  auto executeFn = [cache, hrn, settings_weak, service,
+                    serviceVersion](ApiClientCallback contextCallback) {
+    EDGE_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> execute",
+                        service.c_str(), serviceVersion.c_str());
+
+    auto settings = settings_weak.lock();
+    if (!settings) {
+      contextCallback(
+          ApiError(ErrorCode::InternalFailure, "Something went wrong"));
+      return CancellationToken();
+    }
+
+    auto cacheApiResponseCallback = [cache, hrn, service, serviceVersion,
+                                     contextCallback](
+                                        ApiClientResponse response) {
+      if (response.IsSuccessful()) {
+        EDGE_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> into cache",
                             service.c_str(), serviceVersion.c_str());
+        cache->Put(service, serviceVersion, response.GetResult().GetBaseUrl());
+      }
+      contextCallback(response);
+    };
 
-        auto settings = settings_weak.lock();
-        if (!settings) {
-          contextCallback(
-              ApiError(ErrorCode::InternalFailure, "Something went wrong"));
-          return CancellationToken();
-        }
-
-        auto cacheApiResponseCallback = [cache, hrn, service, serviceVersion,
-                                         contextCallback](
-                                            ApiClientResponse response) {
-          if (response.IsSuccessful()) {
-            EDGE_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> into cache",
-                                service.c_str(), serviceVersion.c_str());
-            cache->Put(service, serviceVersion,
-                       response.GetResult().GetBaseUrl());
-          }
-          contextCallback(response);
-        };
-
-        return olp::dataservice::read::ApiClientLookup::LookupApiClient(
-            olp::client::OlpClientFactory::Create(*settings), service,
-            serviceVersion, hrn,
-            [cacheApiResponseCallback](
-                olp::dataservice::read::ApiClientLookup::ApiClientResponse
-                    response) { cacheApiResponseCallback(response); });
-      };
+    return olp::dataservice::read::ApiClientLookup::LookupApiClient(
+        olp::client::OlpClientFactory::Create(*settings), service,
+        serviceVersion, hrn,
+        [cacheApiResponseCallback](
+            olp::dataservice::read::ApiClientLookup::ApiClientResponse
+                response) { cacheApiResponseCallback(response); });
+  };
   std::string requestKey = service + "@" + serviceVersion;
   return multiRequestContext_->ExecuteOrAssociate(requestKey, executeFn,
                                                   callback);

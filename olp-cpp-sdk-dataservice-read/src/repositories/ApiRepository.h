@@ -60,7 +60,7 @@ class ApiRepository final {
   olp::client::HRN hrn_;
   std::weak_ptr<client::OlpClientSettings> settings_;
   std::shared_ptr<ApiCacheRepository> cache_;
-  std::shared_ptr<MultiRequestContext<ApiClientResponse, ApiClientCallback>>
+  std::shared_ptr<MultiRequestContext<ApiClientResponse>>
       multiRequestContext_;
 };
 }  // namespace repository
