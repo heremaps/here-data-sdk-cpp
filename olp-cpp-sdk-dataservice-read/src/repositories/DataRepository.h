@@ -60,7 +60,7 @@ class DataRepository final {
   std::shared_ptr<DataCacheRepository> cache_;
   std::shared_ptr<PartitionsCacheRepository> partitionsCache_;
   std::shared_ptr<
-      MultiRequestContext<read::DataResponse, read::DataResponseCallback>>
+      MultiRequestContext<read::DataResponse>>
       multiRequestContext_;
 };
 }  // namespace repository

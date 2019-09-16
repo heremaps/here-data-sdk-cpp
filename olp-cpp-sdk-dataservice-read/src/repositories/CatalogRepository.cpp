@@ -50,9 +50,8 @@ CatalogRepository::CatalogRepository(
   CatalogResponse cancelledResponse{
       {static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
        "Operation cancelled."}};
-  multiRequestContext_ = std::make_shared<
-      MultiRequestContext<CatalogResponse, CatalogResponseCallback>>(
-      cancelledResponse);
+  multiRequestContext_ =
+      std::make_shared<MultiRequestContext<CatalogResponse>>(cancelledResponse);
 }
 
 client::CancellationToken CatalogRepository::getCatalog(
@@ -64,93 +63,87 @@ client::CancellationToken CatalogRepository::getCatalog(
   auto requestKey = request.CreateKey();
   EDGE_SDK_LOG_TRACE_F(kLogTag, "getCatalog '%s'", requestKey.c_str());
 
-  MultiRequestContext<CatalogResponse, CatalogResponseCallback>::ExecuteFn
-      executeFn = [=](CatalogResponseCallback callback) {
-        cancel_context->ExecuteOrCancelled(
-            [=]() {
-              EDGE_SDK_LOG_INFO_F(kLogTag, "checking catalog '%s' cache",
-                                  requestKey.c_str());
-              // Check the cache
-              if (OnlineOnly != request.GetFetchOption()) {
-                auto cachedCatalog = cache->Get();
-                if (cachedCatalog) {
-                  ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
-                    EDGE_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' found!",
-                                        requestKey.c_str());
-                    callback(*cachedCatalog);
-                  });
-                  return client::CancellationToken();
-                } else if (CacheOnly == request.GetFetchOption()) {
-                  ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
-                    EDGE_SDK_LOG_INFO_F(kLogTag,
-                                        "cache catalog '%s' not found!",
-                                        requestKey.c_str());
-                    callback(client::ApiError(
-                        client::ErrorCode::NotFound,
-                        "Cache only resource not found in cache (catalog)."));
-                  });
-                  return client::CancellationToken();
-                }
-              }
-              // Query Network
-              auto cacheCatalogResponseCallback =
-                  [=](CatalogResponse response) {
-                    EDGE_SDK_LOG_INFO_F(kLogTag, "network response '%s'",
-                                        requestKey.c_str());
-                    if (response.IsSuccessful()) {
-                      EDGE_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",
-                                          requestKey.c_str());
-                      cache->Put(response.GetResult());
-                    } else {
-                      if (403 == response.GetError().GetHttpStatusCode()) {
-                        EDGE_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
-                                            requestKey.c_str());
-                        cache->Clear();
-                      }
-                    }
-                    callback(response);
-                  };
-
-              return apiRepo_->getApiClient(
-                  "config", "v1", [=](ApiClientResponse response) {
-                    if (!response.IsSuccessful()) {
-                      EDGE_SDK_LOG_INFO_F(kLogTag,
-                                          "getApiClient '%s' unsuccessful",
-                                          requestKey.c_str());
-                      callback(response.GetError());
-                      return;
-                    }
-
-                    cancel_context->ExecuteOrCancelled(
-                        [=]() {
-                          EDGE_SDK_LOG_INFO_F(
-                              kLogTag, "getApiClient '%s' getting catalog",
+  auto executeFn = [=](CatalogResponseCallback callback) {
+    cancel_context->ExecuteOrCancelled(
+        [=]() {
+          EDGE_SDK_LOG_INFO_F(kLogTag, "checking catalog '%s' cache",
                               requestKey.c_str());
-                          return ConfigApi::GetCatalog(
-                              response.GetResult(), hrn,
-                              request.GetBillingTag(),
-                              cacheCatalogResponseCallback);
-                        },
-                        [=]() {
-                          EDGE_SDK_LOG_INFO_F(kLogTag,
-                                              "getApiClient '%s' cancelled",
-                                              requestKey.c_str());
-                          callback({{client::ErrorCode::Cancelled,
-                                     "Operation cancelled.", true}});
-                        });
-                  });
-            },
-
-            [=]() {
-              EDGE_SDK_LOG_INFO_F(kLogTag, "Cancelled '%s'",
+          // Check the cache
+          if (OnlineOnly != request.GetFetchOption()) {
+            auto cachedCatalog = cache->Get();
+            if (cachedCatalog) {
+              ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
+                EDGE_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' found!",
+                                    requestKey.c_str());
+                callback(*cachedCatalog);
+              });
+              return client::CancellationToken();
+            } else if (CacheOnly == request.GetFetchOption()) {
+              ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
+                EDGE_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' not found!",
+                                    requestKey.c_str());
+                callback(client::ApiError(
+                    client::ErrorCode::NotFound,
+                    "Cache only resource not found in cache (catalog)."));
+              });
+              return client::CancellationToken();
+            }
+          }
+          // Query Network
+          auto cacheCatalogResponseCallback = [=](CatalogResponse response) {
+            EDGE_SDK_LOG_INFO_F(kLogTag, "network response '%s'",
+                                requestKey.c_str());
+            if (response.IsSuccessful()) {
+              EDGE_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",
                                   requestKey.c_str());
-              callback({{client::ErrorCode::Cancelled, "Operation cancelled.",
-                         true}});
-            });
+              cache->Put(response.GetResult());
+            } else {
+              if (403 == response.GetError().GetHttpStatusCode()) {
+                EDGE_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
+                                    requestKey.c_str());
+                cache->Clear();
+              }
+            }
+            callback(response);
+          };
 
-        return client::CancellationToken(
-            [cancel_context]() { cancel_context->CancelOperation(); });
-      };
+          return apiRepo_->getApiClient(
+              "config", "v1", [=](ApiClientResponse response) {
+                if (!response.IsSuccessful()) {
+                  EDGE_SDK_LOG_INFO_F(kLogTag, "getApiClient '%s' unsuccessful",
+                                      requestKey.c_str());
+                  callback(response.GetError());
+                  return;
+                }
+
+                cancel_context->ExecuteOrCancelled(
+                    [=]() {
+                      EDGE_SDK_LOG_INFO_F(kLogTag,
+                                          "getApiClient '%s' getting catalog",
+                                          requestKey.c_str());
+                      return ConfigApi::GetCatalog(
+                          response.GetResult(), hrn, request.GetBillingTag(),
+                          cacheCatalogResponseCallback);
+                    },
+                    [=]() {
+                      EDGE_SDK_LOG_INFO_F(kLogTag,
+                                          "getApiClient '%s' cancelled",
+                                          requestKey.c_str());
+                      callback({{client::ErrorCode::Cancelled,
+                                 "Operation cancelled.", true}});
+                    });
+              });
+        },
+
+        [=]() {
+          EDGE_SDK_LOG_INFO_F(kLogTag, "Cancelled '%s'", requestKey.c_str());
+          callback(
+              {{client::ErrorCode::Cancelled, "Operation cancelled.", true}});
+        });
+
+    return client::CancellationToken(
+        [cancel_context]() { cancel_context->CancelOperation(); });
+  };
   EDGE_SDK_LOG_INFO_F(kLogTag, "ExecuteOrAssociate '%s'", requestKey.c_str());
   return multiRequestContext_->ExecuteOrAssociate(requestKey, executeFn,
                                                   callback);

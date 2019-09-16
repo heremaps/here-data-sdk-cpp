@@ -225,8 +225,7 @@ PartitionsRepository::PartitionsRepository(
       {static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
        "Operation cancelled."}};
   multiRequestContext_ =
-      std::make_shared<MultiRequestContext<read::PartitionsResponse,
-                                           read::PartitionsResponseCallback>>(
+      std::make_shared<MultiRequestContext<read::PartitionsResponse>>(
           cancelledResponse);
 }
 
@@ -245,122 +244,117 @@ CancellationToken PartitionsRepository::GetPartitions(
   };
 
   EDGE_SDK_LOG_TRACE_F(kLogTag, "GetPartitions '%s'", requestKey.c_str());
-  MultiRequestContext<read::PartitionsResponse,
-                      read::PartitionsResponseCallback>::ExecuteFn executeFn =
-      [=](read::PartitionsResponseCallback callback) {
-        auto fetchPartitions = [=](const PartitionsRequest& appendedRequest,
-                                   const boost::optional<time_t>& expiry) {
-          cancel_context->ExecuteOrCancelled(
-              [=]() {
-                // Check the cache first
-                if (OnlineOnly != request.GetFetchOption()) {
-                  auto cachedPartitions = cache->Get(appendedRequest);
-                  if (cachedPartitions) {
-                    ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
-                      EDGE_SDK_LOG_INFO_F(kLogTag,
-                                          "cache partitions '%s' found!",
-                                          requestKey.c_str());
-                      callback(*cachedPartitions);
-                    });
-                    return CancellationToken();
-                  } else if (CacheOnly == request.GetFetchOption()) {
-                    ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
-                      EDGE_SDK_LOG_INFO_F(kLogTag,
-                                          "cache partitions '%s' not found!",
-                                          requestKey.c_str());
-                      callback(ApiError(ErrorCode::NotFound,
-                                        "Cache only resource not found in "
-                                        "cache (partitions)."));
-                    });
-                    return CancellationToken();
-                  }
-                }
-
-                auto cachePartitionsResponseCallback =
-                    [=](PartitionsResponse response) {
-                      if (response.IsSuccessful()) {
-                        EDGE_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",
-                                            requestKey.c_str());
-                        cache->Put(appendedRequest, response.GetResult(),
-                                   expiry, true);
-                      } else {
-                        if (403 == response.GetError().GetHttpStatusCode()) {
-                          EDGE_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
-                                              requestKey.c_str());
-                          cache->Clear(appendedRequest.GetLayerId());
-                        }
-                      }
-                      callback(response);
-                    };
-                // Network Query
-                return apiRepo->getApiClient(
-                    "metadata", "v1", [=](ApiClientResponse response) {
-                      if (!response.IsSuccessful()) {
-                        EDGE_SDK_LOG_INFO_F(kLogTag,
-                                            "getApiClient '%s' unsuccessful",
-                                            requestKey.c_str());
-                        callback(response.GetError());
-                        return;
-                      }
-
-                      auto getPartitionsInternal =
-                          [=](const boost::optional<int64_t>& version) {
-                            cancel_context->ExecuteOrCancelled(
-                                [=]() {
-                                  EDGE_SDK_LOG_INFO_F(
-                                      kLogTag,
-                                      "getApiClient '%s' getting partitions",
+  auto executeFn = [=](read::PartitionsResponseCallback callback) {
+    auto fetchPartitions = [=](const PartitionsRequest& appendedRequest,
+                               const boost::optional<time_t>& expiry) {
+      cancel_context->ExecuteOrCancelled(
+          [=]() {
+            // Check the cache first
+            if (OnlineOnly != request.GetFetchOption()) {
+              auto cachedPartitions = cache->Get(appendedRequest);
+              if (cachedPartitions) {
+                ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
+                  EDGE_SDK_LOG_INFO_F(kLogTag, "cache partitions '%s' found!",
                                       requestKey.c_str());
-                                  return MetadataApi::GetPartitions(
-                                      response.GetResult(),
-                                      appendedRequest.GetLayerId(), version,
-                                      boost::none, boost::none,
-                                      appendedRequest.GetBillingTag(),
-                                      cachePartitionsResponseCallback);
-                                },
+                  callback(*cachedPartitions);
+                });
+                return CancellationToken();
+              } else if (CacheOnly == request.GetFetchOption()) {
+                ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
+                  EDGE_SDK_LOG_INFO_F(kLogTag,
+                                      "cache partitions '%s' not found!",
+                                      requestKey.c_str());
+                  callback(ApiError(ErrorCode::NotFound,
+                                    "Cache only resource not found in "
+                                    "cache (partitions)."));
+                });
+                return CancellationToken();
+              }
+            }
 
-                                cancel_callback);
-                          };
+            auto cachePartitionsResponseCallback =
+                [=](PartitionsResponse response) {
+                  if (response.IsSuccessful()) {
+                    EDGE_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",
+                                        requestKey.c_str());
+                    cache->Put(appendedRequest, response.GetResult(), expiry,
+                               true);
+                  } else {
+                    if (403 == response.GetError().GetHttpStatusCode()) {
+                      EDGE_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
+                                          requestKey.c_str());
+                      cache->Clear(appendedRequest.GetLayerId());
+                    }
+                  }
+                  callback(response);
+                };
+            // Network Query
+            return apiRepo->getApiClient(
+                "metadata", "v1", [=](ApiClientResponse response) {
+                  if (!response.IsSuccessful()) {
+                    EDGE_SDK_LOG_INFO_F(kLogTag,
+                                        "getApiClient '%s' unsuccessful",
+                                        requestKey.c_str());
+                    callback(response.GetError());
+                    return;
+                  }
 
-                      // the catalog version must be set for versioned layers
-                      if (appendedRequest.GetVersion()) {
-                        GetLayerVersion(
-                            cancel_context, response.GetResult(),
-                            appendedRequest,
-                            [=](LayerVersionReponse layerVersionResponse) {
-                              if (!layerVersionResponse.IsSuccessful()) {
-                                if (403 == layerVersionResponse.GetError()
-                                               .GetHttpStatusCode()) {
-                                  cache->Clear(appendedRequest.GetLayerId());
-                                }
-                                EDGE_SDK_LOG_INFO_F(kLogTag,
-                                                    "GetLayerVersion '%s'",
-                                                    requestKey.c_str());
-                                callback(layerVersionResponse.GetError());
-                                return;
-                              }
-
-                              getPartitionsInternal(
-                                  layerVersionResponse.GetResult());
+                  auto getPartitionsInternal =
+                      [=](const boost::optional<int64_t>& version) {
+                        cancel_context->ExecuteOrCancelled(
+                            [=]() {
+                              EDGE_SDK_LOG_INFO_F(
+                                  kLogTag,
+                                  "getApiClient '%s' getting partitions",
+                                  requestKey.c_str());
+                              return MetadataApi::GetPartitions(
+                                  response.GetResult(),
+                                  appendedRequest.GetLayerId(), version,
+                                  boost::none, boost::none,
+                                  appendedRequest.GetBillingTag(),
+                                  cachePartitionsResponseCallback);
                             },
-                            cache, apiRepo);
-                      } else {
-                        EDGE_SDK_LOG_INFO_F(
-                            kLogTag, "GetLayerVersion '%s' has no version",
-                            requestKey.c_str());
-                        getPartitionsInternal(boost::none);
-                      }
-                    });
-              },
 
-              cancel_callback);
-        };
-        appendPartitionsRequest(request, catalogRepo_, cancel_context,
-                                cancel_callback, callback, fetchPartitions);
+                            cancel_callback);
+                      };
 
-        return CancellationToken(
-            [cancel_context]() { cancel_context->CancelOperation(); });
-      };
+                  // the catalog version must be set for versioned layers
+                  if (appendedRequest.GetVersion()) {
+                    GetLayerVersion(
+                        cancel_context, response.GetResult(), appendedRequest,
+                        [=](LayerVersionReponse layerVersionResponse) {
+                          if (!layerVersionResponse.IsSuccessful()) {
+                            if (403 == layerVersionResponse.GetError()
+                                           .GetHttpStatusCode()) {
+                              cache->Clear(appendedRequest.GetLayerId());
+                            }
+                            EDGE_SDK_LOG_INFO_F(kLogTag, "GetLayerVersion '%s'",
+                                                requestKey.c_str());
+                            callback(layerVersionResponse.GetError());
+                            return;
+                          }
+
+                          getPartitionsInternal(
+                              layerVersionResponse.GetResult());
+                        },
+                        cache, apiRepo);
+                  } else {
+                    EDGE_SDK_LOG_INFO_F(kLogTag,
+                                        "GetLayerVersion '%s' has no version",
+                                        requestKey.c_str());
+                    getPartitionsInternal(boost::none);
+                  }
+                });
+          },
+
+          cancel_callback);
+    };
+    appendPartitionsRequest(request, catalogRepo_, cancel_context,
+                            cancel_callback, callback, fetchPartitions);
+
+    return CancellationToken(
+        [cancel_context]() { cancel_context->CancelOperation(); });
+  };
   return multiRequestContext_->ExecuteOrAssociate(requestKey, executeFn,
                                                   callback);
 }
@@ -382,91 +376,85 @@ CancellationToken PartitionsRepository::GetPartitionsById(
     callback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
   };
 
-  MultiRequestContext<read::PartitionsResponse,
-                      read::PartitionsResponseCallback>::ExecuteFn executeFn =
-      [=](read::PartitionsResponseCallback callback) {
-        auto fetchPartitions = [=](const PartitionsRequest& appendedRequest,
-                                   const boost::optional<time_t>& expiry) {
-          cancel_context->ExecuteOrCancelled(
-              [=]() {
-                /* Check the cache first */
-                if (OnlineOnly != request.GetFetchOption()) {
-                  auto cachedPartitions =
-                      cache->Get(appendedRequest, partitions);
-                  // Only used cache if we have all requested ids.
-                  if (cachedPartitions.GetPartitions().size() ==
-                      partitions.size()) {
-                    ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
-                      EDGE_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
+  auto executeFn = [=](read::PartitionsResponseCallback callback) {
+    auto fetchPartitions = [=](const PartitionsRequest& appendedRequest,
+                               const boost::optional<time_t>& expiry) {
+      cancel_context->ExecuteOrCancelled(
+          [=]() {
+            /* Check the cache first */
+            if (OnlineOnly != request.GetFetchOption()) {
+              auto cachedPartitions = cache->Get(appendedRequest, partitions);
+              // Only used cache if we have all requested ids.
+              if (cachedPartitions.GetPartitions().size() ==
+                  partitions.size()) {
+                ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
+                  EDGE_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
+                                      requestKey.c_str());
+                  callback(cachedPartitions);
+                });
+                return CancellationToken();
+              } else if (CacheOnly == request.GetFetchOption()) {
+                ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
+                  EDGE_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' not found!",
+                                      requestKey.c_str());
+                  callback(ApiError(ErrorCode::NotFound,
+                                    "Cache only resource not found in "
+                                    "cache (partition)."));
+                });
+                return CancellationToken();
+              }
+            }
+
+            auto cachePartitionsResponseCallback =
+                [=](PartitionsResponse response) {
+                  if (response.IsSuccessful()) {
+                    EDGE_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",
+                                        requestKey.c_str());
+                    cache->Put(appendedRequest, response.GetResult(), expiry);
+                  } else {
+                    if (403 == response.GetError().GetHttpStatusCode()) {
+                      EDGE_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
                                           requestKey.c_str());
-                      callback(cachedPartitions);
-                    });
-                    return CancellationToken();
-                  } else if (CacheOnly == request.GetFetchOption()) {
-                    ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
-                      EDGE_SDK_LOG_INFO_F(kLogTag,
-                                          "cache catalog '%s' not found!",
-                                          requestKey.c_str());
-                      callback(ApiError(ErrorCode::NotFound,
-                                        "Cache only resource not found in "
-                                        "cache (partition)."));
-                    });
-                    return CancellationToken();
+                      // Delete partitions only but not the layer
+                      cache->ClearPartitions(appendedRequest, partitions);
+                    }
                   }
-                }
+                  callback(response);
+                };
 
-                auto cachePartitionsResponseCallback =
-                    [=](PartitionsResponse response) {
-                      if (response.IsSuccessful()) {
-                        EDGE_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",
-                                            requestKey.c_str());
-                        cache->Put(appendedRequest, response.GetResult(),
-                                   expiry);
-                      } else {
-                        if (403 == response.GetError().GetHttpStatusCode()) {
-                          EDGE_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
-                                              requestKey.c_str());
-                          // Delete partitions only but not the layer
-                          cache->ClearPartitions(appendedRequest, partitions);
-                        }
-                      }
-                      callback(response);
-                    };
+            return apiRepo->getApiClient(
+                "query", "v1", [=](ApiClientResponse response) {
+                  if (!response.IsSuccessful()) {
+                    EDGE_SDK_LOG_INFO_F(kLogTag,
+                                        "getApiClient '%s' unsuccessful",
+                                        requestKey.c_str());
+                    callback(response.GetError());
+                    return;
+                  }
 
-                return apiRepo->getApiClient(
-                    "query", "v1", [=](ApiClientResponse response) {
-                      if (!response.IsSuccessful()) {
+                  cancel_context->ExecuteOrCancelled(
+                      [=]() {
                         EDGE_SDK_LOG_INFO_F(kLogTag,
-                                            "getApiClient '%s' unsuccessful",
+                                            "getApiClient '%s' getting catalog",
                                             requestKey.c_str());
-                        callback(response.GetError());
-                        return;
-                      }
+                        return QueryApi::GetPartitionsbyId(
+                            response.GetResult(), appendedRequest.GetLayerId(),
+                            partitions, appendedRequest.GetVersion(),
+                            boost::none, appendedRequest.GetBillingTag(),
+                            cachePartitionsResponseCallback);
+                      },
+                      cancel_callback);
+                });
+          },
+          cancel_callback);
+    };
 
-                      cancel_context->ExecuteOrCancelled(
-                          [=]() {
-                            EDGE_SDK_LOG_INFO_F(
-                                kLogTag, "getApiClient '%s' getting catalog",
-                                requestKey.c_str());
-                            return QueryApi::GetPartitionsbyId(
-                                response.GetResult(),
-                                appendedRequest.GetLayerId(), partitions,
-                                appendedRequest.GetVersion(), boost::none,
-                                appendedRequest.GetBillingTag(),
-                                cachePartitionsResponseCallback);
-                          },
-                          cancel_callback);
-                    });
-              },
-              cancel_callback);
-        };
+    appendPartitionsRequest(request, catalogRepo_, cancel_context,
+                            cancel_callback, callback, fetchPartitions);
 
-        appendPartitionsRequest(request, catalogRepo_, cancel_context,
-                                cancel_callback, callback, fetchPartitions);
-
-        return CancellationToken(
-            [cancel_context]() { cancel_context->CancelOperation(); });
-      };
+    return CancellationToken(
+        [cancel_context]() { cancel_context->CancelOperation(); });
+  };
   return multiRequestContext_->ExecuteOrAssociate(requestKey, executeFn,
                                                   callback);
 }

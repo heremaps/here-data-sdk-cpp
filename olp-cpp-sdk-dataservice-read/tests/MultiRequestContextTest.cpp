@@ -35,8 +35,7 @@ using namespace olp::dataservice::read;
 
 using TestResponse = std::string;
 using TestResponseCallback = std::function<void(TestResponse)>;
-using TestMultiRequestContext =
-    MultiRequestContext<TestResponse, TestResponseCallback>;
+using TestMultiRequestContext = MultiRequestContext<TestResponse>;
 
 TEST(MultiRequestContextTest, construct) {
   TestMultiRequestContext context("cancelled");
@@ -47,12 +46,11 @@ TEST(MultiRequestContextTest, executeCalled) {
 
   std::promise<TestResponseCallback> executeCalled;
 
-  TestMultiRequestContext::ExecuteFn execute_fn =
-      [&executeCalled](TestResponseCallback callback) {
-        executeCalled.set_value(callback);
-        return CancellationToken(
-            [callback]() { callback("cancelled by provider"); });
-      };
+  auto execute_fn = [&executeCalled](TestResponseCallback callback) {
+    executeCalled.set_value(callback);
+    return CancellationToken(
+        [callback]() { callback("cancelled by provider"); });
+  };
 
   std::promise<TestResponse> responsePromise;
   TestResponseCallback callback_fn = [&responsePromise](TestResponse response) {
@@ -80,11 +78,10 @@ TEST(MultiRequestContextTest, callbackCalled) {
   std::string key("key");
   TestResponse expectedResponse("response value");
 
-  TestMultiRequestContext::ExecuteFn execute_fn =
-      [&expectedResponse](TestResponseCallback callback) {
-        callback(expectedResponse);
-        return CancellationToken();
-      };
+  auto execute_fn = [&expectedResponse](TestResponseCallback callback) {
+    callback(expectedResponse);
+    return CancellationToken();
+  };
 
   std::promise<TestResponse> responsePromise;
   TestResponseCallback callback_fn = [&responsePromise](TestResponse response) {
@@ -105,11 +102,10 @@ TEST(MultiRequestContextTest, multiCallbacks) {
 
   std::promise<TestResponseCallback> executeCalled;
 
-  TestMultiRequestContext::ExecuteFn execute_fn =
-      [&executeCalled](TestResponseCallback callback) {
-        executeCalled.set_value(callback);
-        return CancellationToken();
-      };
+  auto execute_fn = [&executeCalled](TestResponseCallback callback) {
+    executeCalled.set_value(callback);
+    return CancellationToken();
+  };
 
   std::promise<TestResponse> responsePromise;
   TestResponseCallback callback_fn = [&responsePromise](TestResponse response) {
@@ -149,18 +145,16 @@ TEST(MultiRequestContextTest, multiRequests) {
 
   std::promise<TestResponseCallback> executeCalled1;
 
-  TestMultiRequestContext::ExecuteFn execute_fn1 =
-      [&executeCalled1](TestResponseCallback callback) {
-        executeCalled1.set_value(callback);
-        return CancellationToken();
-      };
+  auto execute_fn1 = [&executeCalled1](TestResponseCallback callback) {
+    executeCalled1.set_value(callback);
+    return CancellationToken();
+  };
 
   std::promise<TestResponseCallback> executeCalled2;
-  TestMultiRequestContext::ExecuteFn execute_fn2 =
-      [&executeCalled2](TestResponseCallback callback) {
-        executeCalled2.set_value(callback);
-        return CancellationToken();
-      };
+  auto execute_fn2 = [&executeCalled2](TestResponseCallback callback) {
+    executeCalled2.set_value(callback);
+    return CancellationToken();
+  };
 
   std::promise<TestResponse> responsePromise1;
   TestResponseCallback callback_fn1 =
@@ -207,11 +201,11 @@ TEST(MultiRequestContextTest, cancelSingle) {
         contextCallback("cancelled by provider");
       });
 
-  TestMultiRequestContext::ExecuteFn execute_fn =
-      [&providerCancelToken, &callbackPromise](TestResponseCallback callback) {
-        callbackPromise.set_value(callback);
-        return providerCancelToken;
-      };
+  auto execute_fn = [&providerCancelToken,
+                     &callbackPromise](TestResponseCallback callback) {
+    callbackPromise.set_value(callback);
+    return providerCancelToken;
+  };
 
   std::promise<TestResponse> responsePromise;
   TestResponseCallback callback_fn = [&responsePromise](TestResponse response) {
@@ -258,11 +252,11 @@ TEST(MultiRequestContextTest, autoCancel) {
   {
     TestMultiRequestContext context("cancelled");
 
-    TestMultiRequestContext::ExecuteFn execute_fn =
-        [&executeCalled, &providerCancelToken](TestResponseCallback callback) {
-          executeCalled.set_value(callback);
-          return providerCancelToken;
-        };
+    auto execute_fn = [&executeCalled,
+                       &providerCancelToken](TestResponseCallback callback) {
+      executeCalled.set_value(callback);
+      return providerCancelToken;
+    };
 
     TestResponseCallback callback_fn =
         [&responsePromise](TestResponse response) {
@@ -289,11 +283,11 @@ TEST(MultiRequestContextTest, cancelAfterCompletion) {
   CancellationToken providerCancelToken(
       [&cancelPromise]() { cancelPromise.set_value(true); });
 
-  TestMultiRequestContext::ExecuteFn execute_fn =
-      [&providerCancelToken, &expectedResponse](TestResponseCallback callback) {
-        callback(expectedResponse);
-        return providerCancelToken;
-      };
+  auto execute_fn = [&providerCancelToken,
+                     &expectedResponse](TestResponseCallback callback) {
+    callback(expectedResponse);
+    return providerCancelToken;
+  };
 
   std::promise<TestResponse> responsePromise;
   TestResponseCallback callback_fn = [&responsePromise](TestResponse response) {
@@ -327,11 +321,11 @@ TEST(MultiRequestContextTest, multiCancel) {
 
   std::promise<TestResponseCallback> executeCalled;
 
-  TestMultiRequestContext::ExecuteFn execute_fn =
-      [&executeCalled, &providerCancelToken](TestResponseCallback callback) {
-        executeCalled.set_value(callback);
-        return providerCancelToken;
-      };
+  auto execute_fn = [&executeCalled,
+                     &providerCancelToken](TestResponseCallback callback) {
+    executeCalled.set_value(callback);
+    return providerCancelToken;
+  };
 
   // Setup first request
   std::promise<TestResponse> responsePromise;

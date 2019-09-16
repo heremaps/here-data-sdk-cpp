@@ -52,7 +52,7 @@ class CatalogRepository final {
   std::shared_ptr<ApiRepository> apiRepo_;
   std::shared_ptr<CatalogCacheRepository> cache_;
   std::shared_ptr<
-      MultiRequestContext<read::CatalogResponse, read::CatalogResponseCallback>>
+      MultiRequestContext<read::CatalogResponse>>
       multiRequestContext_;
 };
 }  // namespace repository
