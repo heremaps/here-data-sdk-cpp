@@ -18,20 +18,18 @@
  */
 
 #include "olp/core/http/NetworkResponse.h"
+#include "olp/core/http/NetworkTypes.h"
 
 namespace olp {
 namespace http {
 
-bool NetworkResponse::IsCancelled() const { return cancelled_; }
+bool NetworkResponse::IsCancelled() const {
+  return status_ == static_cast<int>(ErrorCode::CANCELLED_ERROR);
+}
 
 int NetworkResponse::GetStatus() const { return status_; }
 
 const std::string& NetworkResponse::GetError() const { return error_; }
-
-NetworkResponse& NetworkResponse::WithCancelled(bool cancelled) {
-  cancelled_ = cancelled;
-  return *this;
-}
 
 NetworkResponse& NetworkResponse::WithStatus(int status) {
   status_ = status;
