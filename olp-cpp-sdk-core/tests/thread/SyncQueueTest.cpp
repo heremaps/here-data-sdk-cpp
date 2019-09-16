@@ -37,7 +37,7 @@ using SyncQueueShared = olp::thread::SyncQueueFifo<SharedQueueType>;
 using namespace ::testing;
 using namespace std::chrono;
 
-TEST(SyncQueueTest, initialize) {
+TEST(SyncQueueTest, Initialize) {
   SCOPED_TRACE("Default initialized not closed");
   SyncQueueFifo sync_queue;
   bool check = false;
@@ -53,7 +53,7 @@ TEST(SyncQueueTest, initialize) {
   EXPECT_TRUE(check);
 }
 
-TEST(SyncQueueTest, push) {
+TEST(SyncQueueTest, Push) {
   {
     SCOPED_TRACE("Push supports rvalues");
     SyncQueueShared sync_queue;
@@ -90,7 +90,7 @@ TEST(SyncQueueTest, push) {
   }
 }
 
-TEST(SyncQueueTest, pull) {
+TEST(SyncQueueTest, Pull) {
   {
     SCOPED_TRACE("Pull on open queue");
     SyncQueueFifo sync_queue;
@@ -126,7 +126,7 @@ TEST(SyncQueueTest, pull) {
   }
 }
 
-TEST(SyncQueueTest, close) {
+TEST(SyncQueueTest, Close) {
   SCOPED_TRACE("Close should delete all elements");
   SyncQueueShared sync_queue;
 
@@ -149,7 +149,7 @@ TEST(SyncQueueTest, close) {
   ASSERT_FALSE(weak2.lock());
 }
 
-TEST(SyncQueueTest, concurrent_usage) {
+TEST(SyncQueueTest, ConcurrentUsage) {
   SCOPED_TRACE("Concurrent Push/Pull until queue is closed");
 
   // One thread pushes tasks, the others handle the tasks

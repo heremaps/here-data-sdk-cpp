@@ -34,9 +34,9 @@ void printBits(std::uint64_t v) {
   std::cout << " = " << v << std::endl;
 }
 
-TEST(TileKeyTest, init) {}
+TEST(TileKeyTest, Init) {}
 
-TEST(TileKeyTest, valid) {
+TEST(TileKeyTest, Valid) {
   TileKey quad1;
   ASSERT_FALSE(quad1.IsValid());
 
@@ -44,14 +44,14 @@ TEST(TileKeyTest, valid) {
   ASSERT_TRUE(quad2.IsValid());
 }
 
-TEST(TileKeyTest, rowColumnLevel) {
+TEST(TileKeyTest, RowColumnLevel) {
   TileKey quad = TileKey::FromRowColumnLevel(1, 2, 3);
   ASSERT_EQ(1u, quad.Row());
   ASSERT_EQ(2u, quad.Column());
   ASSERT_EQ(3u, quad.Level());
 }
 
-TEST(TileKeyTest, operators) {
+TEST(TileKeyTest, Operators) {
   TileKey quad = TileKey::FromRowColumnLevel(1, 2, 3);
   TileKey quad2 = TileKey::FromRowColumnLevel(1, 2, 4);
   ASSERT_TRUE(quad != quad2);
@@ -83,7 +83,7 @@ TEST(TileKeyTest, operators) {
             quadHasher(TileKey::FromRowColumnLevel(1, 1, 2)));
 }
 
-TEST(TileKeyTest, quadKeys) {
+TEST(TileKeyTest, QuadKeys) {
   TileKey quad;
   quad = TileKey::FromRowColumnLevel(0, 0, 0);
   ASSERT_EQ("-", quad.ToQuadKey());
@@ -106,7 +106,7 @@ TEST(TileKeyTest, quadKeys) {
   ASSERT_FALSE(invalid.IsValid());
 }
 
-TEST(TileKeyTest, hereTiles) {
+TEST(TileKeyTest, HereTiles) {
   TileKey quad;
   quad = TileKey::FromRowColumnLevel(0, 0, 0);
   ASSERT_EQ("1", quad.ToHereTile());
@@ -135,13 +135,13 @@ TEST(TileKeyTest, hereTiles) {
   ASSERT_FALSE(invalid.IsValid());
 }
 
-TEST(TileKeyTest, moveToLevel) {
+TEST(TileKeyTest, MoveToLevel) {
   TileKey quad = TileKey::FromRowColumnLevel(0, 0, 5);
   ASSERT_EQ(quad.ChangedLevelBy(-2), quad.ChangedLevelTo(3));
   ASSERT_EQ(quad.ChangedLevelBy(2), quad.ChangedLevelTo(7));
 }
 
-TEST(TileKeyTest, changeLevel) {
+TEST(TileKeyTest, ChangeLevel) {
   TileKey quad = TileKey::FromRowColumnLevel(2, 3, 2);
   TileKey quad2 = quad;
   quad = quad.ChangedLevelBy(0);
@@ -152,14 +152,14 @@ TEST(TileKeyTest, changeLevel) {
   ASSERT_EQ(quad2.ToQuadKey(), quad.ToQuadKey());
 }
 
-TEST(TileKeyTest, parent) {
+TEST(TileKeyTest, Parent) {
   TileKey quad = TileKey::FromRowColumnLevel(3, 3, 2);
   ASSERT_EQ(quad.Parent(), TileKey::FromRowColumnLevel(1, 1, 1));
   ASSERT_EQ(quad.Parent().Parent(), TileKey::FromRowColumnLevel(0, 0, 0));
   ASSERT_FALSE(quad.Parent().Parent().Parent().IsValid());
 }
 
-TEST(TileKeyTest, quadKeyGetSubkey) {
+TEST(TileKeyTest, QuadKeyGetSubkey) {
   ASSERT_EQ(4u, TileKey::FromRowColumnLevel(2, 2, 2).GetSubkey64(1));
   ASSERT_EQ(5u, TileKey::FromRowColumnLevel(2, 3, 2).GetSubkey64(1));
   ASSERT_EQ(6u, TileKey::FromRowColumnLevel(3, 2, 2).GetSubkey64(1));
@@ -186,7 +186,7 @@ TEST(TileKeyTest, quadKeyGetSubkey) {
   ASSERT_EQ(1u, TileKey::FromRowColumnLevel(0, 0, 0).GetSubkey64(0));
 }
 
-TEST(TileKeyTest, quadKeyAddSubkey) {
+TEST(TileKeyTest, QuadKeyAddSubkey) {
   ASSERT_EQ(TileKey::FromRowColumnLevel(2, 2, 2),
             TileKey::FromRowColumnLevel(1, 1, 1).AddedSubkey64(4));
   ASSERT_EQ(TileKey::FromRowColumnLevel(2, 3, 2),
@@ -240,7 +240,7 @@ TEST(TileKeyTest, quadKeyAddSubkey) {
             TileKey::FromRowColumnLevel(0, 0, 0).AddedSubkey64(1));
 }
 
-TEST(TileKeyTest, quadKey64Helper) {
+TEST(TileKeyTest, QuadKey64Helper) {
   TileKey quad = TileKey::FromRowColumnLevel(2, 2, 2);
   QuadKey64Helper helper{quad.ToQuadKey64()};
   ASSERT_EQ(quad.Parent().ToQuadKey64(), helper.Parent().key);
@@ -283,13 +283,13 @@ TEST(TileKeyTest, RelationshipToParent) {
   ASSERT_EQ(root.RelationshipToParent(), TileKey::TileKeyQuadrant::Invalid);
 }
 
-TEST(TileKeyTest, parentChildRelationIsIrreflexive) {
+TEST(TileKeyTest, ParentChildRelationIsIrreflexive) {
   const auto parent = TileKey::FromRowColumnLevel(0, 0, 0);
   EXPECT_FALSE(parent.IsChildOf(parent));
   EXPECT_FALSE(parent.IsParentOf(parent));
 }
 
-TEST(TileKeyTest, parentChildRelation) {
+TEST(TileKeyTest, ParentChildRelation) {
   const auto parent = TileKey::FromRowColumnLevel(0, 0, 0);
 
   for (std::uint8_t childIndex = 0; childIndex < 4; childIndex++) {
@@ -299,7 +299,7 @@ TEST(TileKeyTest, parentChildRelation) {
   }
 }
 
-TEST(TileKeyTest, parentChildRelationIsTransitive) {
+TEST(TileKeyTest, ParentChildRelationIsTransitive) {
   const auto parent = TileKey::FromRowColumnLevel(0, 0, 0);
   const auto child = parent.GetChild(0);
 
@@ -311,82 +311,79 @@ TEST(TileKeyTest, parentChildRelationIsTransitive) {
   }
 }
 
-// tests for GetNearestAvailableTileKeyLevel(...)
-TEST(TileKeyTest,
-     getNearestAvailableTileKeyLevel_emptyLevelSet_returnedOptionalIsEmpty) {
-  TileKeyLevels levels;
+TEST(TileKeyTest, GetNearestAvailableTileKeyLevel) {
+  {
+    SCOPED_TRACE("Empty level set - return empty");
+    TileKeyLevels levels;
 
-  auto level = GetNearestAvailableTileKeyLevel(levels, 0);
+    auto level = GetNearestAvailableTileKeyLevel(levels, 0);
 
-  EXPECT_FALSE(level);
-}
+    EXPECT_FALSE(level);
+  }
 
-TEST(TileKeyTest,
-     getNearestAvailableTileKeyLevel_referenceBelowMin_minSetLevelIsReturned) {
-  TileKeyLevels levels{0xF0};
-  const uint32_t referenceLevel = 0u;
+  {
+    SCOPED_TRACE("Reference below minimum - minimum set level is returned");
+    TileKeyLevels levels{0xF0};
+    const uint32_t referenceLevel = 0u;
 
-  auto level = GetNearestAvailableTileKeyLevel(levels, referenceLevel);
+    auto level = GetNearestAvailableTileKeyLevel(levels, referenceLevel);
 
-  ASSERT_TRUE(level);
-  EXPECT_EQ(4u, *level);
-}
+    ASSERT_TRUE(level);
+    EXPECT_EQ(4u, *level);
+  }
 
-TEST(TileKeyTest,
-     getNearestAvailableTileKeyLevel_referenceAboveMax_maxSetLevelIsReturned) {
-  TileKeyLevels levels{0xF0};
-  const uint32_t referenceLevel = 20u;
+  {
+    SCOPED_TRACE("Reference above maximum - maximum set level is returned");
+    TileKeyLevels levels{0xF0};
+    const uint32_t referenceLevel = 20u;
 
-  auto level = GetNearestAvailableTileKeyLevel(levels, referenceLevel);
+    auto level = GetNearestAvailableTileKeyLevel(levels, referenceLevel);
 
-  ASSERT_TRUE(level);
-  EXPECT_EQ(7u, *level);
-}
+    ASSERT_TRUE(level);
+    EXPECT_EQ(7u, *level);
+  }
 
-TEST(
-    TileKeyTest,
-    getNearestAvailableTileKeyLevel_referenceBetweenMinMaxAllLevelSet_referenceIsReturned) {
-  TileKeyLevels levels{0x0FF0};
-  const uint32_t referenceLevel = 8u;
+  {
+    SCOPED_TRACE("Reference between min and max - set level is returned");
+    TileKeyLevels levels{0x0FF0};
+    const uint32_t referenceLevel = 8u;
 
-  auto level = GetNearestAvailableTileKeyLevel(levels, referenceLevel);
+    auto level = GetNearestAvailableTileKeyLevel(levels, referenceLevel);
 
-  ASSERT_TRUE(level);
-  EXPECT_EQ(referenceLevel, *level);
-}
+    ASSERT_TRUE(level);
+    EXPECT_EQ(referenceLevel, *level);
+  }
 
-TEST(
-    TileKeyTest,
-    getNearestAvailableTileKeyLevel_nextLevel3aboveAnd4below_3aboveIsReturned) {
-  TileKeyLevels levels{std::string("100000010000")};  // 0x810
-  const uint32_t referenceLevel = 8u;
+  {
+    SCOPED_TRACE("Next level 3 above and 4 below - 3 above is returned");
+    TileKeyLevels levels{std::string("100000010000")};  // 0x810
+    const uint32_t referenceLevel = 8u;
 
-  auto level = GetNearestAvailableTileKeyLevel(levels, referenceLevel);
+    auto level = GetNearestAvailableTileKeyLevel(levels, referenceLevel);
 
-  ASSERT_TRUE(level);
-  EXPECT_EQ(11u, *level);
-}
+    ASSERT_TRUE(level);
+    EXPECT_EQ(11u, *level);
+  }
 
-TEST(
-    TileKeyTest,
-    getNearestAvailableTileKeyLevel_nextLevel4aboveAnd3below_3belowIsReturned) {
-  TileKeyLevels levels{std::string("100000010000")};  // 0x810
-  const uint32_t referenceLevel = 7u;
+  {
+    SCOPED_TRACE("Next level 4 above and 3 below - 3 below is returned");
+    TileKeyLevels levels{std::string("100000010000")};  // 0x810
+    const uint32_t referenceLevel = 7u;
 
-  auto level = GetNearestAvailableTileKeyLevel(levels, referenceLevel);
+    auto level = GetNearestAvailableTileKeyLevel(levels, referenceLevel);
 
-  ASSERT_TRUE(level);
-  EXPECT_EQ(4u, *level);
-}
+    ASSERT_TRUE(level);
+    EXPECT_EQ(4u, *level);
+  }
 
-TEST(
-    TileKeyTest,
-    getNearestAvailableTileKeyLevel_aboveAndBelowDistanceAreEqueal_aboveIsReturned) {
-  TileKeyLevels levels{std::string("10000010000")};  // 0x410
-  const uint32_t referenceLevel = 7u;
+  {
+    SCOPED_TRACE("Next level above and below are equal - above is returned");
+    TileKeyLevels levels{std::string("10000010000")};  // 0x410
+    const uint32_t referenceLevel = 7u;
 
-  auto level = GetNearestAvailableTileKeyLevel(levels, referenceLevel);
+    auto level = GetNearestAvailableTileKeyLevel(levels, referenceLevel);
 
-  ASSERT_TRUE(level);
-  EXPECT_EQ(10u, *level);
+    ASSERT_TRUE(level);
+    EXPECT_EQ(10u, *level);
+  }
 }

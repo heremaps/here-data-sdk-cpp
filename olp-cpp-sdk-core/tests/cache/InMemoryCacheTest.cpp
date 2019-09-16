@@ -44,14 +44,14 @@ namespace {
   }
 };
 
-TEST(InMemoryCacheTest, empty) {
+TEST(InMemoryCacheTest, Empty) {
   olp::cache::InMemoryCache inMemCache;
 
   ASSERT_TRUE(inMemCache.Get("keyNotExist").empty());
   ASSERT_EQ(0u, inMemCache.Size());
 }
 
-TEST(InMemoryCacheTest, no_limit) {
+TEST(InMemoryCacheTest, NoLimit) {
   olp::cache::InMemoryCache inMemCache;
 
   populate(inMemCache, 10);
@@ -68,7 +68,7 @@ TEST(InMemoryCacheTest, no_limit) {
   ASSERT_TRUE(inMemCache.Get("key10").empty());
 }
 
-TEST(InMemoryCacheTest, put_too_large) {
+TEST(InMemoryCacheTest, PutTooLarge) {
   olp::cache::InMemoryCache inMemCache(0);
   std::string oversized("oversized");
 
@@ -77,7 +77,7 @@ TEST(InMemoryCacheTest, put_too_large) {
   ASSERT_EQ(0u, inMemCache.Size());
 }
 
-TEST(InMemoryCacheTest, clear) {
+TEST(InMemoryCacheTest, Clear) {
   olp::cache::InMemoryCache inMemCache;
   populate(inMemCache, 10);
   ASSERT_EQ(10u, inMemCache.Size());
@@ -86,7 +86,7 @@ TEST(InMemoryCacheTest, clear) {
   ASSERT_EQ(0u, inMemCache.Size());
 }
 
-TEST(InMemoryCacheTest, remove) {
+TEST(InMemoryCacheTest, Remove) {
   olp::cache::InMemoryCache inMemCache;
   populate(inMemCache, 10);
   ASSERT_EQ(10u, inMemCache.Size());
@@ -95,7 +95,7 @@ TEST(InMemoryCacheTest, remove) {
   ASSERT_EQ(9u, inMemCache.Size());
 }
 
-TEST(InMemoryCacheTest, removeWithPrefix) {
+TEST(InMemoryCacheTest, RemoveWithPrefix) {
   olp::cache::InMemoryCache inMemCache;
   populate(inMemCache, 11);
   ASSERT_EQ(11u, inMemCache.Size());
@@ -113,7 +113,7 @@ TEST(InMemoryCacheTest, removeWithPrefix) {
   ASSERT_EQ(0u, inMemCache.Size());
 }
 
-TEST(InMemoryCacheTest, put_overwrites_previous) {
+TEST(InMemoryCacheTest, PutOverwritesPrevious) {
   olp::cache::InMemoryCache inMemCache;
 
   std::string key("duplicateKey");
@@ -134,7 +134,7 @@ TEST(InMemoryCacheTest, put_overwrites_previous) {
   ASSERT_EQ(updatedValue, boost::any_cast<std::string>(value));
 }
 
-TEST(InMemoryCacheTest, insert_over_limit) {
+TEST(InMemoryCacheTest, InsertOverLimit) {
   olp::cache::InMemoryCache inMemCache(1);
   populate(inMemCache, 2);
   ASSERT_EQ(1u, inMemCache.Size());
@@ -144,7 +144,7 @@ TEST(InMemoryCacheTest, insert_over_limit) {
   ASSERT_EQ("value1", boost::any_cast<std::string>(i1));
 }
 
-TEST(InMemoryCacheTest, get_reorders) {
+TEST(InMemoryCacheTest, GetReorders) {
   olp::cache::InMemoryCache inMemCache(2);
   populate(inMemCache, 2);
   ASSERT_EQ(2u, inMemCache.Size());
@@ -161,7 +161,7 @@ TEST(InMemoryCacheTest, get_reorders) {
   ASSERT_EQ("value2", boost::any_cast<std::string>(i2));
 }
 
-TEST(InMemoryCacheTest, get_single_expired) {
+TEST(InMemoryCacheTest, GetSingleExpired) {
   time_t now = std::time(nullptr);
 
   olp::cache::InMemoryCache inMemCache(
@@ -196,7 +196,7 @@ TEST(InMemoryCacheTest, get_single_expired) {
   ASSERT_EQ(2u, inMemCache.Size());
 }
 
-TEST(InMemoryCacheTest, get_multiple_expired) {
+TEST(InMemoryCacheTest, GetMultipleExpired) {
   time_t now = std::time(nullptr);
 
   olp::cache::InMemoryCache inMemCache(
@@ -230,7 +230,7 @@ TEST(InMemoryCacheTest, get_multiple_expired) {
   ASSERT_EQ(2u, inMemCache.Size());
 }
 
-TEST(InMemoryCacheTest, put_multiple_expired) {
+TEST(InMemoryCacheTest, PutMultipleExpired) {
   time_t now = std::time(nullptr);
 
   olp::cache::InMemoryCache inMemCache(
@@ -269,7 +269,7 @@ TEST(InMemoryCacheTest, put_multiple_expired) {
   ASSERT_FALSE(inMemCache.Get(trigger).empty());
 }
 
-TEST(InMemoryCacheTest, item_with_expiry_evicted) {
+TEST(InMemoryCacheTest, ItemWithExpiryEvicted) {
   time_t now = std::time(nullptr);
 
   // max 2
@@ -299,7 +299,7 @@ TEST(InMemoryCacheTest, item_with_expiry_evicted) {
   ASSERT_FALSE(inMemCache.Get(another).empty());
 }
 
-TEST(InMemoryCacheTest, items_with_expiry_evicted) {
+TEST(InMemoryCacheTest, ItemsWithExpiryEvicted) {
   time_t now = std::time(nullptr);
 
   // max 2
@@ -346,7 +346,7 @@ TEST(InMemoryCacheTest, items_with_expiry_evicted) {
   ASSERT_FALSE(inMemCache.Get(noExpiry).empty());
 }
 
-TEST(InMemoryCacheTest, custom_cost) {
+TEST(InMemoryCacheTest, CustomCost) {
   std::string oversized("oversized");
   auto oversizedModel = "value: " + oversized;
 
@@ -375,7 +375,7 @@ TEST(InMemoryCacheTest, custom_cost) {
   ASSERT_EQ(0u, inMemCache2.Size());
 }
 
-TEST(InMemoryCacheTest, static_no_limit) {
+TEST(InMemoryCacheTest, StaticNoLimit) {
   olp::cache::InMemoryCache inMemCache;
 
   populate(inMemCache, 10);
@@ -397,7 +397,7 @@ Data createDataContainer(int length) {
   return std::make_shared<std::vector<unsigned char>>(data);
 }
 
-TEST(InMemoryCacheTest, class_based_custom_cost) {
+TEST(InMemoryCacheTest, ClassBasedCustomCost) {
   olp::cache::InMemoryCache::ModelCacheCostFunc classModelCacheCost =
     [](const olp::cache::InMemoryCache::ItemTuple& tuple) {
       auto modelItem = std::get<2>(tuple);

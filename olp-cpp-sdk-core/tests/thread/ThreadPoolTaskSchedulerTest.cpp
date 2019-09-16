@@ -38,7 +38,7 @@ constexpr milliseconds kSleep{100};
 constexpr int64_t kMaxWaitMs{1000};
 }  // namespace
 
-TEST(ThreadPoolTaskSchedulerTest, single_user_push) {
+TEST(ThreadPoolTaskSchedulerTest, SingleUserPush) {
   SCOPED_TRACE("Single user pushes tasks");
 
   // Start thread pool
@@ -76,7 +76,7 @@ TEST(ThreadPoolTaskSchedulerTest, single_user_push) {
   thread_pool.reset();
 }
 
-TEST(ThreadPoolTaskSchedulerTest, multi_user_push) {
+TEST(ThreadPoolTaskSchedulerTest, MultiUserPush) {
   SCOPED_TRACE("Multiple users push tasks");
 
   constexpr uint32_t kPushThreads = 3;
