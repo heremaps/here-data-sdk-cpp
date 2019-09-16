@@ -30,7 +30,7 @@
 
 namespace olp {
 namespace geo {
-TEST(TileKeyUtils, GeoCoordinatesToTileKey) {
+TEST(TileKeyUtilsTest, GeoCoordinatesToTileKey) {
   const HalfQuadTreeEquirectangularTilingScheme tilingScheme;
   const GeoCoordinates berlin(GeoCoordinates::FromDegrees(52.5167, 13.3833));
 
@@ -71,7 +71,7 @@ TEST(TileKeyUtils, GeoCoordinatesToTileKey) {
   }
 }
 
-TEST(TileKeyUtils, GeoRectangleToTileKeys) {
+TEST(TileKeyUtilsTest, GeoRectangleToTileKeys) {
   const HalfQuadTreeEquirectangularTilingScheme tilingScheme;
   const GeoCoordinates berlinCenter(
       GeoCoordinates::FromDegrees(52.5167, 13.3833));
@@ -107,7 +107,7 @@ TEST(TileKeyUtils, GeoRectangleToTileKeys) {
   }
 }
 
-TEST(TileKeyUtils, GeoRectangleToTileKeysBoundaries) {
+TEST(TileKeyUtilsTest, GeoRectangleToTileKeysBoundaries) {
   const HalfQuadTreeEquirectangularTilingScheme tilingScheme;
   const GeoCoordinates southWest(GeoCoordinates::FromDegrees(-90.0, -180.0));
   const GeoCoordinates northWest(GeoCoordinates::FromDegrees(90.0, -180.0));
@@ -207,14 +207,14 @@ static const std::vector<TileKeyUtilsSubTileTest> tileKeys{
 
 INSTANTIATE_TEST_SUITE_P(, TileKeyUtilTest, testing::ValuesIn(tileKeys));
 
-TEST_P(TileKeyUtilTest, getAbsoluteSubTileKey) {
+TEST_P(TileKeyUtilTest, GetAbsoluteSubTileKey) {
   TileKeyUtilsSubTileTest param = GetParam();
   ASSERT_EQ(param.absoluteSubtileKey,
             TileKeyUtils::GetAbsoluteSubTileKey(param.parentTileKey,
                                                 param.relativeSubtileKey));
 }
 
-TEST_P(TileKeyUtilTest, getRelativeSubTileKey) {
+TEST_P(TileKeyUtilTest, GetRelativeSubTileKey) {
   TileKeyUtilsSubTileTest param = GetParam();
   ASSERT_EQ(param.relativeSubtileKey,
             TileKeyUtils::GetRelativeSubTileKey(param.absoluteSubtileKey,

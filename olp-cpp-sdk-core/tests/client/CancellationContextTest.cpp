@@ -23,7 +23,7 @@
 
 using olp::client::CancellationContext;
 
-TEST(CancellationContextTest, cancel_operation) {
+TEST(CancellationContextTest, CancelOperation) {
   CancellationContext context;
 
   EXPECT_FALSE(context.IsCancelled());
@@ -31,7 +31,7 @@ TEST(CancellationContextTest, cancel_operation) {
   EXPECT_TRUE(context.IsCancelled());
 }
 
-TEST(CancellationContextTest, copy_and_cancel_operation) {
+TEST(CancellationContextTest, CopyAndCancelOperation) {
   CancellationContext context;
   CancellationContext context_copy = context;
 
@@ -42,7 +42,7 @@ TEST(CancellationContextTest, copy_and_cancel_operation) {
   EXPECT_TRUE(context_copy.IsCancelled());
 }
 
-TEST(CancellationContextTest, move_and_cancel_operation) {
+TEST(CancellationContextTest, MoveAndCancelOperation) {
   CancellationContext context;
   CancellationContext context_move = std::move(context);
 
