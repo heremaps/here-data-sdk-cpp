@@ -292,8 +292,7 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
         callback(olp::http::NetworkResponse()
                      .WithRequestId(strong_task.requestId)
                      .WithStatus(status)
-                     .WithError(error_str)
-                     .WithCancelled(cancelled));
+                     .WithError(error_str));
       }
 
     };

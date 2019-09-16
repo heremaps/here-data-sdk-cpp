@@ -738,8 +738,7 @@ void NetworkAndroid::SelfRun() {
         callback(NetworkResponse()
                      .WithRequestId(response_data.id)
                      .WithStatus(response_data.status)
-                     .WithError(response_data.error)
-                     .WithCancelled(cancelled));
+                     .WithError(response_data.error));
       }
     }
   }

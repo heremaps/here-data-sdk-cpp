@@ -704,7 +704,6 @@ generateNetworkMocks(std::shared_ptr<std::promise<void>> pre_signal,
       auto cancel_code = static_cast<int>(ErrorCode::CANCELLED_ERROR);
       (*callback_placeholder)(NetworkResponse()
                                   .WithError("Cancelled")
-                                  .WithCancelled(true)
                                   .WithStatus(cancel_code));
     }
   };
