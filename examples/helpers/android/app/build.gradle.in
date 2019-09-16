@@ -10,7 +10,7 @@ android {
         versionCode 1
         versionName "1.0"
         // Specify the ABIs for which gradle will generate the APKs.
-        // Keep in mind that the installed OLP EDGE SDK / external libs should match the ABI defined here
+        // Keep in mind that the installed OLP SDK / external libs should match the ABI defined here
         ndk {
             @EDGE_SDK_EXAMPLE_ANDROID_ABI@
         }
@@ -21,7 +21,7 @@ android {
                 //  2. EDGE_SDK_HTTP_CLIENT_JAR - path to the EdgeHttpClient.jar file; usually it stored in the <olp-build-folder>/olp-cpp-sdk-core/
                 //  3. (If not installed to the sysroot) path to the levelDB library:
                 //      - leveldb_DIR;
-                //  4. (If not installed to the sysroot) - path to the OLP EDGE SDK cmake config files:
+                //  4. (If not installed to the sysroot) - path to the OLP SDK cmake config files:
                 //      - olp-cpp-sdk-core_DIR;
                 //      - olp-cpp-sdk-dataservice-write_DIR;
                 //      - olp-cpp-sdk-authentication_DIR
