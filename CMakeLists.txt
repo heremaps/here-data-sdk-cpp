@@ -81,6 +81,10 @@ add_sdks()
 # Add docs
 add_subdirectory(docs)
 
+if(EDGE_SDK_ENABLE_TESTING)
+    add_subdirectory(tests/functional)
+endif()
+
 # Add example
 if(EDGE_SDK_BUILD_EXAMPLES)
     add_subdirectory(examples/dataservice-read)
