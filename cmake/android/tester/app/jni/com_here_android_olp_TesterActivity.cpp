@@ -34,7 +34,6 @@
 #include <string>
 #include <olp/core/context/Context.h>
 #include <olp/core/porting/make_unique.h>
-#include <testutils/CustomParameters.hpp>
 
 #define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, "native-activity", __VA_ARGS__))
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-activity", __VA_ARGS__))
@@ -150,8 +149,6 @@ Java_com_here_android_olp_TesterActivity_runTests(JNIEnv* env, jobject obj, jstr
     int argc = args.size() - 1;
 
     testing::InitGoogleTest(&argc, argv);
-
-    CustomParameters::getInstance( ).init( argc, argv );
 
     logcatSetup();
     int result = RUN_ALL_TESTS();

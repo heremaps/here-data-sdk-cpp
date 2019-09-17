@@ -34,7 +34,7 @@ if (ANDROID OR IOS)
         ${OLP_SDK_DATASERVICE_READ_TEST_SOURCES}
     )
 
-    target_link_libraries(olp-cpp-sdk-dataservice-read-tests
+    target_link_libraries(olp-cpp-sdk-dataservice-read-tests-lib
     PRIVATE
         custom-params
         gmock

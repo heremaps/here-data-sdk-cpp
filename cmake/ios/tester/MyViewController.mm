@@ -19,7 +19,6 @@
 
 #import "MyViewController.h"
 #include "gtest/gtest.h"
-#include "testutils/CustomParameters.hpp"
 #import <vector>
 #import <mach/mach.h>
 
@@ -168,7 +167,6 @@
 
 
         testing::InitGoogleTest(&new_argc, new_argv.data());
-        CustomParameters::getInstance( ).init(new_argc, new_argv.data());
 
         int result = RUN_ALL_TESTS();
         if (!_run_with_global_queue)

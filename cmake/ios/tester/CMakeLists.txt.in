@@ -52,6 +52,7 @@ target_link_libraries(${PROJECT_NAME}
     "-Wl,-force_load"
     ${SVC_TEST_LIB}
     "-Wl,-noall_load"
+    gtest
 )
 
 target_include_directories(${PROJECT_NAME}

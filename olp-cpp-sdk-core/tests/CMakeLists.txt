@@ -54,7 +54,7 @@ if (ANDROID OR IOS)
 
     # Some tests include private headers of core. This should be fixed in tests,
     # only then here.
-    target_include_directories(olp-cpp-sdk-core-tests
+    target_include_directories(olp-cpp-sdk-core-tests-lib
         PRIVATE
             ../src/cache
     )
