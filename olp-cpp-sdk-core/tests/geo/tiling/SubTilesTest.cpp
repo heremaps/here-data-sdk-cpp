@@ -27,7 +27,7 @@
 
 namespace olp {
 namespace geo {
-TEST(SubTiles, Constructor) {
+TEST(SubTilesTest, Constructor) {
   const TileKey tileKey = TileKey::FromRowColumnLevel(738, 456, 10);
 
   const SubTiles childrenTiles(tileKey);
@@ -72,7 +72,7 @@ std::uint32_t EnumerateSubTree(const TileKey& tileKey, std::uint32_t maxLevel) {
   return count;
 }
 
-TEST(SubTiles, QuadTreeSize) {
+TEST(SubTilesTest, QuadTreeSize) {
   const TileKey root = TileKey::FromRowColumnLevel(0, 0, 0);
 
   const std::uint32_t minLevel = root.Level();
@@ -89,7 +89,7 @@ TEST(SubTiles, QuadTreeSize) {
   EXPECT_EQ(quadTreeExpectedTileCount, quadTreeTileCount);
 }
 
-TEST(SubTiles, Size) {
+TEST(SubTilesTest, Size) {
   const TileKey root = TileKey::FromRowColumnLevel(0, 0, 0);
 
   EXPECT_EQ(4U, SubTiles(root, 1).Size());
@@ -98,7 +98,7 @@ TEST(SubTiles, Size) {
   EXPECT_EQ(256U, SubTiles(root, 4).Size());
 }
 
-TEST(SubTiles, Masking) {
+TEST(SubTilesTest, Masking) {
   const TileKey root = TileKey::FromRowColumnLevel(0, 0, 0);
 
   {

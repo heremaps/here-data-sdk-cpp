@@ -45,62 +45,13 @@ class NetworkMock : public olp::http::Network {
   MOCK_METHOD(void, Cancel, (olp::http::RequestId id), (override));
 };
 
-class Client : public ::testing::TestWithParam<bool> {
+class OlpClientTest : public ::testing::Test {
  protected:
   olp::client::OlpClientSettings client_settings_;
   olp::client::OlpClient client_;
 };
 
-INSTANTIATE_TEST_SUITE_P(TestOffline, Client, ::testing::Values(false));
-
-class ClientDefaultAsyncHttp : public Client {};
-INSTANTIATE_TEST_SUITE_P(TestOnline, ClientDefaultAsyncHttp,
-                         ::testing::Values(true));
-
-TEST_P(ClientDefaultAsyncHttp, GetGoogleWebsite) {
-  client_.SetBaseUrl("https://www.google.com");
-
-  client_settings_.network_request_handler = olp::client::
-      OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
-  client_.SetSettings(client_settings_);
-
-  std::promise<olp::client::HttpResponse> p;
-  olp::client::NetworkAsyncCallback callback =
-      [&p](olp::client::HttpResponse response) { p.set_value(response); };
-
-  auto cancel_token = client_.CallApi(std::string(), std::string(),
-                                      std::multimap<std::string, std::string>(),
-                                      std::multimap<std::string, std::string>(),
-                                      std::multimap<std::string, std::string>(),
-                                      nullptr, std::string(), callback);
-
-  auto response = p.get_future().get();
-  ASSERT_EQ(200, response.status);
-  ASSERT_LT(0u, response.response.size());
-}
-
-TEST_P(ClientDefaultAsyncHttp, GetNonExistentWebsite) {
-  // RFC 2606. Use reserved domain name that nobody could register.
-  client_.SetBaseUrl("https://example.test");
-  std::promise<olp::client::HttpResponse> p;
-  olp::client::NetworkAsyncCallback callback =
-      [&p](olp::client::HttpResponse response) { p.set_value(response); };
-
-  client_settings_.network_request_handler = olp::client::
-      OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
-  client_.SetSettings(client_settings_);
-
-  auto cancel_token = client_.CallApi(std::string(), std::string(),
-                                      std::multimap<std::string, std::string>(),
-                                      std::multimap<std::string, std::string>(),
-                                      std::multimap<std::string, std::string>(),
-                                      nullptr, std::string(), callback);
-  auto response = p.get_future().get();
-  ASSERT_EQ(olp::http::ErrorCode::INVALID_URL_ERROR,
-            static_cast<olp::http::ErrorCode>(response.status));
-}
-
-TEST_P(Client, numberOfAttempts) {
+TEST_F(OlpClientTest, NumberOfAttempts) {
   client_settings_.retry_settings.max_attempts = 6;
   client_settings_.retry_settings.retry_condition =
       ([](const olp::client::HttpResponse&) { return true; });
@@ -137,7 +88,7 @@ TEST_P(Client, numberOfAttempts) {
   ASSERT_EQ(429, response.status);
 }
 
-TEST_P(Client, ZeroAttempts) {
+TEST_F(OlpClientTest, ZeroAttempts) {
   client_settings_.retry_settings.max_attempts = 0;
   client_settings_.retry_settings.retry_condition =
       ([](const olp::client::HttpResponse&) { return true; });
@@ -173,7 +124,7 @@ TEST_P(Client, ZeroAttempts) {
   ASSERT_EQ(429, response.status);
 }
 
-TEST_P(Client, DefaultRetryCondition) {
+TEST_F(OlpClientTest, DefaultRetryCondition) {
   client_settings_.retry_settings.max_attempts = 6;
 
   auto network = std::make_shared<NetworkMock>();
@@ -206,7 +157,7 @@ TEST_P(Client, DefaultRetryCondition) {
   ASSERT_EQ(429, response.status);
 }
 
-TEST_P(Client, RetryCondition) {
+TEST_F(OlpClientTest, RetryCondition) {
   client_settings_.retry_settings.max_attempts = 6;
   client_settings_.retry_settings.retry_condition =
       ([](const olp::client::HttpResponse& response) {
@@ -253,7 +204,7 @@ TEST_P(Client, RetryCondition) {
   ASSERT_EQ(200, response.status);
 }
 
-TEST_P(Client, RetryTimeLinear) {
+TEST_F(OlpClientTest, RetryTimeLinear) {
   client_settings_.retry_settings.retry_condition =
       ([](const olp::client::HttpResponse&) { return true; });
   std::vector<std::chrono::time_point<std::chrono::system_clock>> timestamps;
@@ -296,7 +247,7 @@ TEST_P(Client, RetryTimeLinear) {
   }
 }
 
-TEST_P(Client, RetryTimeExponential) {
+TEST_F(OlpClientTest, RetryTimeExponential) {
   client_settings_.retry_settings.retry_condition =
       ([](const olp::client::HttpResponse&) { return true; });
   client_settings_.retry_settings.backdown_policy =
@@ -343,7 +294,7 @@ TEST_P(Client, RetryTimeExponential) {
   }
 }
 
-TEST_P(Client, SetInitialBackdownPeriod) {
+TEST_F(OlpClientTest, SetInitialBackdownPeriod) {
   client_settings_.retry_settings.retry_condition =
       ([](const olp::client::HttpResponse&) { return true; });
   client_settings_.retry_settings.initial_backdown_period = 1000;
@@ -388,7 +339,7 @@ TEST_P(Client, SetInitialBackdownPeriod) {
   }
 }
 
-TEST_P(Client, Timeout) {
+TEST_F(OlpClientTest, Timeout) {
   client_settings_.retry_settings.timeout = 100;
   int timeout = 0;
   auto network = std::make_shared<NetworkMock>();
@@ -424,7 +375,7 @@ TEST_P(Client, Timeout) {
   ASSERT_EQ(429, response.status);
 }
 
-TEST_P(Client, Proxy) {
+TEST_F(OlpClientTest, Proxy) {
   client_settings_.retry_settings.timeout = 100;
   auto settings = olp::http::NetworkProxySettings()
                       .WithHostname("somewhere")
@@ -484,7 +435,7 @@ TEST_P(Client, Proxy) {
             resultSettings.GetPassword());
 }
 
-TEST_P(Client, EmptyProxy) {
+TEST_F(OlpClientTest, EmptyProxy) {
   client_settings_.retry_settings.timeout = 100;
 
   auto settings = olp::http::NetworkProxySettings()
@@ -531,7 +482,7 @@ TEST_P(Client, EmptyProxy) {
                olp::http::NetworkProxySettings::Type::NONE);
 }
 
-TEST_P(Client, HttpResponse) {
+TEST_F(OlpClientTest, HttpResponse) {
   auto network = std::make_shared<NetworkMock>();
   client_settings_.network_request_handler = network;
   client_.SetSettings(client_settings_);
@@ -565,7 +516,7 @@ TEST_P(Client, HttpResponse) {
   ASSERT_EQ(200, response.status);
 }
 
-TEST_P(Client, Paths) {
+TEST_F(OlpClientTest, Paths) {
   std::string url;
   client_.SetBaseUrl("here.com");
   auto network = std::make_shared<NetworkMock>();
@@ -599,7 +550,7 @@ TEST_P(Client, Paths) {
   ASSERT_EQ("here.com/index", url);
 }
 
-TEST_P(Client, MethodGET) {
+TEST_F(OlpClientTest, MethodGET) {
   olp::http::NetworkRequest::HttpVerb verb;
   auto network = std::make_shared<NetworkMock>();
   client_settings_.network_request_handler = network;
@@ -631,7 +582,7 @@ TEST_P(Client, MethodGET) {
   ASSERT_EQ(olp::http::NetworkRequest::HttpVerb::GET, verb);
 }
 
-TEST_P(Client, MethodPOST) {
+TEST_F(OlpClientTest, MethodPOST) {
   olp::http::NetworkRequest::HttpVerb verb;
   auto network = std::make_shared<NetworkMock>();
   client_settings_.network_request_handler = network;
@@ -663,7 +614,7 @@ TEST_P(Client, MethodPOST) {
   ASSERT_EQ(olp::http::NetworkRequest::HttpVerb::POST, verb);
 }
 
-TEST_P(Client, MethodPUT) {
+TEST_F(OlpClientTest, MethodPUT) {
   olp::http::NetworkRequest::HttpVerb verb;
   auto network = std::make_shared<NetworkMock>();
   client_settings_.network_request_handler = network;
@@ -695,7 +646,7 @@ TEST_P(Client, MethodPUT) {
   ASSERT_EQ(olp::http::NetworkRequest::HttpVerb::PUT, verb);
 }
 
-TEST_P(Client, MethodDELETE) {
+TEST_F(OlpClientTest, MethodDELETE) {
   olp::http::NetworkRequest::HttpVerb verb;
   auto network = std::make_shared<NetworkMock>();
   client_settings_.network_request_handler = network;
@@ -727,7 +678,7 @@ TEST_P(Client, MethodDELETE) {
   ASSERT_EQ(olp::http::NetworkRequest::HttpVerb::DEL, verb);
 }
 
-TEST_P(Client, QueryParam) {
+TEST_F(OlpClientTest, QueryParam) {
   std::string url;
   auto network = std::make_shared<NetworkMock>();
   client_settings_.network_request_handler = network;
@@ -762,7 +713,7 @@ TEST_P(Client, QueryParam) {
   ASSERT_EQ("index?var1=&var2=2", url);
 }
 
-TEST_P(Client, HeaderParams) {
+TEST_F(OlpClientTest, HeaderParams) {
   std::multimap<std::string, std::string> header_params;
   std::vector<std::pair<std::string, std::string>> result_headers;
   header_params.insert(std::make_pair("head1", "value1"));
@@ -804,7 +755,7 @@ TEST_P(Client, HeaderParams) {
   }
 }
 
-TEST_P(Client, DefaultHeaderParams) {
+TEST_F(OlpClientTest, DefaultHeaderParams) {
   std::vector<std::pair<std::string, std::string>> result_headers;
   client_.GetMutableDefaultHeaders().insert(std::make_pair("head1", "value1"));
   client_.GetMutableDefaultHeaders().insert(std::make_pair("head2", "value2"));
@@ -846,7 +797,7 @@ TEST_P(Client, DefaultHeaderParams) {
   }
 }
 
-TEST_P(Client, CombineHeaderParams) {
+TEST_F(OlpClientTest, CombineHeaderParams) {
   std::vector<std::pair<std::string, std::string>> result_headers;
   client_.GetMutableDefaultHeaders().insert(std::make_pair("head1", "value1"));
   client_.GetMutableDefaultHeaders().insert(std::make_pair("head2", "value2"));
@@ -891,7 +842,7 @@ TEST_P(Client, CombineHeaderParams) {
   }
 }
 
-TEST_P(Client, Content) {
+TEST_F(OlpClientTest, Content) {
   std::vector<std::pair<std::string, std::string>> result_headers;
   client_.GetMutableDefaultHeaders().insert(std::make_pair("head1", "value1"));
   std::multimap<std::string, std::string> header_params;
@@ -941,7 +892,7 @@ TEST_P(Client, Content) {
   ASSERT_EQ(*content, *resultContent);
 }
 
-TEST_P(Client, CancelBeforeResponse) {
+TEST_F(OlpClientTest, CancelBeforeResponse) {
   auto wait_for_cancel = std::make_shared<std::promise<bool>>();
   auto was_cancelled = std::make_shared<std::atomic_bool>(false);
 
@@ -990,7 +941,7 @@ TEST_P(Client, CancelBeforeResponse) {
             response_promise->get_future().wait_for(std::chrono::seconds(2)));
 }
 
-TEST_P(Client, CancelAfterCompletion) {
+TEST_F(OlpClientTest, CancelAfterCompletion) {
   auto was_cancelled = std::make_shared<std::atomic_bool>(false);
 
   client_.SetBaseUrl("https://www.google.com");
@@ -1030,7 +981,7 @@ TEST_P(Client, CancelAfterCompletion) {
   ASSERT_TRUE(was_cancelled->load());
 }
 
-TEST_P(Client, CancelDuplicate) {
+TEST_F(OlpClientTest, CancelDuplicate) {
   auto wait_for_cancel = std::make_shared<std::promise<bool>>();
   auto was_cancelled = std::make_shared<std::atomic_bool>(false);
 
@@ -1082,7 +1033,7 @@ TEST_P(Client, CancelDuplicate) {
             response_promise->get_future().wait_for(std::chrono::seconds(2)));
 }
 
-TEST_P(Client, CancelRetry) {
+TEST_F(OlpClientTest, CancelRetry) {
   client_settings_.retry_settings.max_attempts = 6;
   client_settings_.retry_settings.initial_backdown_period = 500;
   client_settings_.retry_settings.retry_condition =
@@ -1141,7 +1092,7 @@ TEST_P(Client, CancelRetry) {
   ASSERT_LT(*number_of_tries, client_settings_.retry_settings.max_attempts);
 }
 
-TEST_P(Client, QueryMultiParams) {
+TEST_F(OlpClientTest, QueryMultiParams) {
   std::string uri;
   std::vector<std::pair<std::string, std::string>> headers;
   auto network = std::make_shared<NetworkMock>();
