@@ -49,7 +49,7 @@ if (ANDROID OR IOS)
         ${OLP_AUTHENTICATION_TEST_SOURCES}
     )
 
-    target_link_libraries(olp-cpp-sdk-authentication-tests
+    target_link_libraries(olp-cpp-sdk-authentication-tests-lib
     PRIVATE
         custom-params
         gmock
