@@ -15,6 +15,12 @@ build_fv:
   script:
   - $CI_PROJECT_DIR/scripts/linux/fv/gitlab_build_fv.sh
   - $CI_PROJECT_DIR/scripts/linux/fv/gitlab_test_fv.sh
+  only:
+    refs:
+      - master
+      - schedules
+    variables:
+      - $FULLY
   artifacts:
     when: always
     paths:
@@ -24,12 +30,33 @@ build_fv:
     # https://gitlab.com/gitlab-org/gitlab-ce/issues/17081
     # Check this issue status in Gitlab 12.4 (Oct 2019)
     #   junit: "reports/*.xml"
+
+build_nv:
+  stage: build
+  tags:
+  - docker-prod
+  script:
+  - echo "NIGHTLY BUILD OK !"
   only:
-    - master
+    refs:
+      - master
+      - schedules
+    variables:
+      - $NIGHTLY
+  artifacts:
+    when: always
+    paths:
+      - reports
+    expire_in: 1 year
+    # reports:
+    # https://gitlab.com/gitlab-org/gitlab-ce/issues/17081
+    # Check this issue status in Gitlab 12.4 (Oct 2019)
+    #   junit: "reports/*.xml"
+
 
 translate_report:
   stage: translate_report
-  tags: 
+  tags:
   - docker-prod
   image: python:3.6
   when: always
