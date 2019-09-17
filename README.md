@@ -19,8 +19,8 @@ The HERE OLP SDK for C++ is a _work-in-progress_ C++ client for [HERE Open Locat
 
 [1]: https://travis-ci.com/heremaps/here-olp-sdk-cpp.svg?branch=master
 [2]: https://travis-ci.com/heremaps/here-olp-sdk-cpp
-[3]: https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-edge-sdk-cpp?branchName=master
-[4]: https://dev.azure.com/heremaps/github/_build/latest?definitionId=1&branchName=master
+[3]: https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master
+[4]: https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master
 [5]: https://codecov.io/gh/heremaps/here-olp-sdk-cpp/branch/master/graph/badge.svg
 [6]: https://codecov.io/gh/heremaps/here-olp-sdk-cpp/
 
