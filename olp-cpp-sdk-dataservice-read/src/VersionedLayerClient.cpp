@@ -13,6 +13,8 @@
 #include "generated/api/BlobApi.h"
 #include "generated/api/MetadataApi.h"
 
+#include <algorithm>
+
 namespace {
 
 class Condition {
@@ -136,8 +138,15 @@ olp::client::CancellationToken VersionedLayerClient::GetDataByPartitionId(
   // Step 4.
   // TODO: check partitions is not empty
 
-  auto data_handle = partitions.GetPartitions().at(0).GetDataHandle();
-
+  auto partition_it = std::find_if(partitions.GetPartitions().begin(),
+                                   partitions.GetPartitions().end(),
+                                   [&](const model::Partition& p) {
+                                     return p.GetPartition() == partition_id;
+                                   });
+  if (partition_it == partitions.GetPartitions().end()) {
+    return token;
+  }
+  auto data_handle = partition_it->GetDataHandle();
   BlobApi::DataResponse data_response;
   context.ExecuteOrCancelled([&]() {
     return olp::dataservice::read::BlobApi::GetBlob(
