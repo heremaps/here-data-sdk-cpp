@@ -1,3 +1,6 @@
+export dataservice_read_test_secret="${dataservice_read_test_secret}" #defined previously as protected value on Gitlab
+export dataservice_read_test_appid="${dataservice_read_test_appid}" #defined previously as protected value on Gitlab
+export dataservice_read_test_catalog="hrn:here:data:::hereos-internal-test-v2"
 export dataservice_write_test_secret="${dataservice_write_test_secret}" #defined previously as protected value on Gitlab
 export dataservice_write_test_appid="${dataservice_write_test_appid}" #defined previously as protected value on Gitlab
 export dataservice_write_test_catalog="hrn:here:data:::olp-cpp-sdk-ingestion-test-catalog"

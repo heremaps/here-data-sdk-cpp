@@ -12,10 +12,14 @@ fi
 
 TEST_FAILURE=0
 
+# Run unit tests
 $FV_HOME/gitlab-olp-cpp-sdk-authentication-test.sh || TEST_FAILURE=1
 $FV_HOME/gitlab-olp-cpp-sdk-core-test.sh || TEST_FAILURE=1
 $FV_HOME/gitlab-olp-dataservice-read-test.sh || TEST_FAILURE=1
 $FV_HOME/gitlab-olp-dataservice-write-test.sh || TEST_FAILURE=1
+
+# Run integration tests
+$FV_HOME/gitlab-olp-cpp-sdk-integration-test.sh || TEST_FAILURE=1
 
 if [[ $TEST_FAILURE==1 ]]; then
     echo "Some tests failed."
