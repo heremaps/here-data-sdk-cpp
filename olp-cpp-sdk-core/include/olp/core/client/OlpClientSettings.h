@@ -28,14 +28,12 @@
 #include "olp/core/client/CancellationToken.h"
 #include "olp/core/client/HttpResponse.h"
 #include "olp/core/http/Network.h"
-#include "olp/core/client/HttpResponse.h"
 
 namespace olp {
 
-namespace network {
-class NetworkRequest;
-class NetworkConfig;
-}  // namespace network
+namespace cache {
+class KeyValueCache;
+}  // namespace cache
 
 namespace thread {
 class TaskScheduler;
@@ -176,6 +174,13 @@ struct OlpClientSettings {
    * services.
    */
   std::shared_ptr<http::Network> network_request_handler = nullptr;
+
+  /**
+   * @brief The key/value cache will be used for storing different request
+   * results, like metadata, partition data, URLs from Look-up API and others.
+   * Set to nullptr to only use in-memory LRU cache with limited size.
+   */
+  std::shared_ptr<cache::KeyValueCache> cache = nullptr;
 };
 
 }  // namespace client

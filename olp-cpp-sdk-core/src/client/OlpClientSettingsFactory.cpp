@@ -19,10 +19,11 @@
 
 #include "olp/core/client/OlpClientSettingsFactory.h"
 
+#include "olp/core/cache/CacheSettings.h"
+#include "olp/core/cache/DefaultCache.h"
+#include "olp/core/http/Network.h"
 #include "olp/core/porting/make_unique.h"
 #include "olp/core/thread/ThreadPoolTaskScheduler.h"
-
-#include "olp/core/http/Network.h"
 
 namespace olp {
 namespace client {
@@ -33,8 +34,17 @@ OlpClientSettingsFactory::CreateDefaultTaskScheduler(size_t thread_count) {
 }
 
 std::shared_ptr<http::Network>
-OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler(size_t max_requests_count) {
+OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler(
+    size_t max_requests_count) {
   return http::CreateDefaultNetwork(max_requests_count);
+}
+
+std::unique_ptr<cache::KeyValueCache>
+OlpClientSettingsFactory::CreateDefaultCache(
+    const cache::CacheSettings& settings) {
+  auto cache = std::make_unique<cache::DefaultCache>(settings);
+  cache->Open();
+  return std::move(cache);
 }
 
 }  // namespace client

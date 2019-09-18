@@ -25,6 +25,11 @@
 #include <memory>
 
 namespace olp {
+namespace cache {
+class KeyValueCache;
+struct CacheSettings;
+}  // namespace cache
+
 namespace http {
 class Network;
 }  // namespace http
@@ -52,6 +57,18 @@ class CORE_API OlpClientSettingsFactory final {
    */
   static std::shared_ptr<http::Network> CreateDefaultNetworkRequestHandler(
       size_t max_requests_count = 30u);
+
+  /**
+   * @brief Creates a KeyValueCache instance that includes both a small
+   * in-memory LRU cache and a larger persistent database cache.
+   * The returned cache instance is initialized, opened and ready to be used.
+   * @note The database cache is only created if the provided CacheSettings
+   * include a valid disk path with according write permissions set.
+   * @param[in] settings The cache settings.
+   * @return An instance of KeyValueCache.
+   */
+  static std::unique_ptr<cache::KeyValueCache> CreateDefaultCache(
+      const cache::CacheSettings& settings);
 };
 
 }  // namespace client
