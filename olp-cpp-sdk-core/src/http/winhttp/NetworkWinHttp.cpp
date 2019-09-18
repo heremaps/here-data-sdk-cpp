@@ -213,7 +213,7 @@ NetworkWinHttp::NetworkWinHttp()
                               WINHTTP_FLAG_ASYNC);
 
   if (!http_session_) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "WinHttpOpen failed " << GetLastError());
+    OLP_SDK_LOG_ERROR(kLogTag, "WinHttpOpen failed " << GetLastError());
     return;
   }
 
@@ -300,16 +300,16 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
 
   std::wstring url(request.GetUrl().begin(), request.GetUrl().end());
   if (!WinHttpCrackUrl(url.c_str(), (DWORD)url.length(), 0, &url_components)) {
-    EDGE_SDK_LOG_WARNING(kLogTag, "WinHttpCrackUrl failed " << request.GetUrl()
-                                                            << " "
-                                                            << GetLastError());
+    OLP_SDK_LOG_WARNING(kLogTag, "WinHttpCrackUrl failed " << request.GetUrl()
+                                                           << " "
+                                                           << GetLastError());
     return SendOutcome(ErrorCode::INVALID_URL_ERROR);
   }
 
   if ((url_components.nScheme != INTERNET_SCHEME_HTTP) &&
       (url_components.nScheme != INTERNET_SCHEME_HTTPS)) {
-    EDGE_SDK_LOG_WARNING(kLogTag,
-                         "Invalid scheme on request " << request.GetUrl());
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "Invalid scheme on request " << request.GetUrl());
     return SendOutcome(ErrorCode::IO_ERROR);
   }
 
@@ -380,7 +380,7 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
                          url_components.lpszUrlPath, NULL, WINHTTP_NO_REFERER,
                          WINHTTP_DEFAULT_ACCEPT_TYPES, flags);
   if (!http_request) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "WinHttpOpenRequest failed " << GetLastError());
+    OLP_SDK_LOG_ERROR(kLogTag, "WinHttpOpenRequest failed " << GetLastError());
 
     std::unique_lock<std::recursive_mutex> lock(mutex_);
 
@@ -408,9 +408,9 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
 
     if (!WinHttpSetOption(http_request, WINHTTP_OPTION_PROXY, &proxy_info,
                           sizeof(proxy_info))) {
-      EDGE_SDK_LOG_WARNING(kLogTag, "WinHttpSetOption(Proxy) failed "
-                                        << GetLastError() << " "
-                                        << request.GetUrl());
+      OLP_SDK_LOG_WARNING(kLogTag, "WinHttpSetOption(Proxy) failed "
+                                       << GetLastError() << " "
+                                       << request.GetUrl());
     }
     if (!proxy.GetUsername().empty() && !proxy.GetUsername().empty()) {
       std::wstring proxy_username;
@@ -426,29 +426,29 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
         if (!WinHttpSetOption(http_request, WINHTTP_OPTION_PROXY_USERNAME,
                               const_cast<LPWSTR>(proxy_lpcwstr_username),
                               wcslen(proxy_lpcwstr_username))) {
-          EDGE_SDK_LOG_WARNING(
-              kLogTag, "WinHttpSetOption(proxy username) failed "
-                           << GetLastError() << " " << request.GetUrl());
+          OLP_SDK_LOG_WARNING(kLogTag,
+                              "WinHttpSetOption(proxy username) failed "
+                                  << GetLastError() << " " << request.GetUrl());
         }
 
         LPCWSTR proxy_lpcwstr_password = proxy_password.c_str();
         if (!WinHttpSetOption(http_request, WINHTTP_OPTION_PROXY_PASSWORD,
                               const_cast<LPWSTR>(proxy_lpcwstr_password),
                               wcslen(proxy_lpcwstr_password))) {
-          EDGE_SDK_LOG_WARNING(
-              kLogTag, "WinHttpSetOption(proxy password) failed "
-                           << GetLastError() << " " << request.GetUrl());
+          OLP_SDK_LOG_WARNING(kLogTag,
+                              "WinHttpSetOption(proxy password) failed "
+                                  << GetLastError() << " " << request.GetUrl());
         }
       } else {
         if (!username_res) {
-          EDGE_SDK_LOG_WARNING(kLogTag, "Proxy username conversion failure "
-                                            << GetLastError() << " "
-                                            << request.GetUrl());
+          OLP_SDK_LOG_WARNING(kLogTag, "Proxy username conversion failure "
+                                           << GetLastError() << " "
+                                           << request.GetUrl());
         }
         if (!password_res) {
-          EDGE_SDK_LOG_WARNING(kLogTag, "Proxy password conversion failure "
-                                            << GetLastError() << " "
-                                            << request.GetUrl());
+          OLP_SDK_LOG_WARNING(kLogTag, "Proxy password conversion failure "
+                                           << GetLastError() << " "
+                                           << request.GetUrl());
         }
       }
     }
@@ -489,15 +489,15 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
 
   if (!WinHttpAddRequestHeaders(http_request, header_stream.str().c_str(),
                                 DWORD(-1), WINHTTP_ADDREQ_FLAG_ADD)) {
-    EDGE_SDK_LOG_ERROR(kLogTag,
-                       "WinHttpAddRequestHeaders() failed " << GetLastError());
+    OLP_SDK_LOG_ERROR(kLogTag,
+                      "WinHttpAddRequestHeaders() failed " << GetLastError());
   }
 
   /* Send the request */
   if (!WinHttpSendRequest(http_request, WINHTTP_NO_ADDITIONAL_HEADERS, 0,
                           (LPVOID)content, content_length, content_length,
                           (DWORD_PTR)handle.get())) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "WinHttpSendRequest failed " << GetLastError());
+    OLP_SDK_LOG_ERROR(kLogTag, "WinHttpSendRequest failed " << GetLastError());
 
     std::unique_lock<std::recursive_mutex> lock(mutex_);
 
@@ -532,7 +532,7 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
 
   RequestData* handle = reinterpret_cast<RequestData*>(context);
   if (!handle->connection_data || !handle->result_data) {
-    EDGE_SDK_LOG_WARNING(kLogTag, "RequestCallback to inactive handle");
+    OLP_SDK_LOG_WARNING(kLogTag, "RequestCallback to inactive handle");
     return;
   }
 
@@ -719,7 +719,7 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
               handle->strm.next_in = Z_NULL;
               inflateInit2(&handle->strm, 16 + MAX_WBITS);
 #else
-              EDGE_SDK_LOG_ERROR(
+              OLP_SDK_LOG_ERROR(
                   kLogTag,
                   "Gzip encoding but compression no supported and no "
                   "ZLIB found");
@@ -743,8 +743,8 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
       // Data is available read it
       LPVOID buffer = (LPVOID)LocalAlloc(LPTR, size);
       if (!buffer) {
-        EDGE_SDK_LOG_ERROR(kLogTag,
-                           "Out of memory reeceiving " << size << " bytes");
+        OLP_SDK_LOG_ERROR(kLogTag,
+                          "Out of memory reeceiving " << size << " bytes");
         handle->result_data->status = ERROR_NOT_ENOUGH_MEMORY;
         handle->Complete();
         return;
@@ -787,7 +787,7 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
           int r = inflate(&handle->strm, Z_NO_FLUSH);
 
           if ((r != Z_OK) && (r != Z_STREAM_END)) {
-            EDGE_SDK_LOG_ERROR(kLogTag, "Uncompression failed");
+            OLP_SDK_LOG_ERROR(kLogTag, "Uncompression failed");
             LocalFree((HLOCAL)compressed);
             LocalFree((HLOCAL)data_buffer);
             handle->result_data->status = ERROR_INVALID_BLOCK;
@@ -827,7 +827,7 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
                 std::streampos(handle->result_data->count)) {
               handle->payload->seekp(handle->result_data->count);
               if (handle->payload->fail()) {
-                EDGE_SDK_LOG_WARNING(
+                OLP_SDK_LOG_WARNING(
                     kLogTag,
                     "Reception stream doesn't support setting write point");
                 handle->payload->clear();
@@ -850,8 +850,8 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
     handle->FreeHandle();
     return;
   } else {
-    EDGE_SDK_LOG_ERROR(kLogTag,
-                       "Unknown callback " << std::hex << status << std::dec);
+    OLP_SDK_LOG_ERROR(kLogTag,
+                      "Unknown callback " << std::hex << status << std::dec);
   }
 }
 

@@ -51,7 +51,7 @@ constexpr auto kLogTag = "OLPHttpClient";
 - (instancetype)init {
   self = [super init];
   if (self) {
-    EDGE_SDK_LOG_TRACE_F(kLogTag, "Created client=[%p] ", (__bridge void*)self);
+    OLP_SDK_LOG_TRACE_F(kLogTag, "Created client=[%p] ", (__bridge void*)self);
     _delegateQueue = [[NSOperationQueue alloc] init];
     _delegateQueue.name = @"com.here.olp.network.HttpClientSessionQueue";
 
@@ -67,14 +67,14 @@ constexpr auto kLogTag = "OLPHttpClient";
 }
 
 - (void)dealloc {
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "destroyed client=[%p] ", (__bridge void*)self);
+  OLP_SDK_LOG_TRACE_F(kLogTag, "destroyed client=[%p] ", (__bridge void*)self);
   if (self.sharedUrlSession) {
     [self cleanup];
   }
 }
 
 - (void)cleanup {
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "cleanup tasks for client=[%p]",
+  OLP_SDK_LOG_TRACE_F(kLogTag, "cleanup tasks for client=[%p]",
                        (__bridge void*)self);
 
   [self.sharedUrlSession finishTasksAndInvalidate];
@@ -100,9 +100,9 @@ constexpr auto kLogTag = "OLPHttpClient";
                     (const olp::http::NetworkProxySettings&)proxySettings
                               andId:(olp::http::RequestId)identifier {
   NSURLSession* session = _sharedUrlSession;
-  BOOL isProxyValid = proxySettings.GetType() !=
-                          olp::http::NetworkProxySettings::Type::NONE &&
-                      !proxySettings.GetHostname().empty();
+  BOOL isProxyValid =
+      proxySettings.GetType() != olp::http::NetworkProxySettings::Type::NONE &&
+      !proxySettings.GetHostname().empty();
   if (isProxyValid) {
     session = [self urlSessionWithProxy:proxySettings andHeaders:nil];
   }
@@ -141,8 +141,8 @@ constexpr auto kLogTag = "OLPHttpClient";
     task = _tasks[@(identifier)];
   }
   if (!task) {
-    EDGE_SDK_LOG_WARNING_F(
-        kLogTag, "Cancelling unknown request with id=[%llu] ", identifier);
+    OLP_SDK_LOG_WARNING_F(kLogTag, "Cancelling unknown request with id=[%llu] ",
+                          identifier);
     return;
   }
 
@@ -264,7 +264,7 @@ constexpr auto kLogTag = "OLPHttpClient";
   NSURLRequest* originalRequest = task.originalRequest;
   NSString* authorizationHeaderValue =
       originalRequest.allHTTPHeaderFields[@"Authorization"];
-  EDGE_SDK_LOG_TRACE_F(
+  OLP_SDK_LOG_TRACE_F(
       kLogTag,
       "HTTPRedirection: self=[%p]; status=[%i]; originURL=[%s]; newURL=[%s]",
       (__bridge void*)self, (int)response.statusCode,
@@ -325,9 +325,9 @@ constexpr auto kLogTag = "OLPHttpClient";
                      (const olp::http::NetworkProxySettings&)proxySettings
                           andHeaders:(NSDictionary*)headers {
   NSMutableDictionary* proxyDict = nil;
-  BOOL isProxyValid = proxySettings.GetType() !=
-                          olp::http::NetworkProxySettings::Type::NONE &&
-                      !proxySettings.GetHostname().empty();
+  BOOL isProxyValid =
+      proxySettings.GetType() != olp::http::NetworkProxySettings::Type::NONE &&
+      !proxySettings.GetHostname().empty();
 
   if (isProxyValid) {
     NSString* proxyName =
