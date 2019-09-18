@@ -101,7 +101,7 @@ constexpr auto kLogTag = "OLPHttpTask";
   // Cache the task id for fast retrieve later on
   [_httpClient registerDataTask:_dataTask forHttpTask:self];
 
-  EDGE_SDK_LOG_TRACE_F(
+  OLP_SDK_LOG_TRACE_F(
       kLogTag, "Run task: id=[%llu]; task_id=[%lu];\t httpMethod=[%s];\t [%s])",
       self.requestId, (unsigned long)self.dataTask.taskIdentifier,
       [request.HTTPMethod UTF8String], [[self getDebugCurlString] UTF8String]);
@@ -114,7 +114,7 @@ constexpr auto kLogTag = "OLPHttpTask";
   if (self.isCancelled) {
     return NO;
   }
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "Cancelled task: id=[%llu]", self.requestId);
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Cancelled task: id=[%llu]", self.requestId);
 
   self.cancelled = YES;
   @synchronized(self) {
@@ -133,7 +133,7 @@ constexpr auto kLogTag = "OLPHttpTask";
 #pragma mark - Response handlers
 
 - (void)didCompleteWithError:(NSError*)error {
-  EDGE_SDK_LOG_TRACE_F(
+  OLP_SDK_LOG_TRACE_F(
       kLogTag, "task is completed: id=[%llu]; taskIdentifier=[%u]; error=[%i]",
       self.requestId, (unsigned int)self.dataTask.taskIdentifier,
       (int)error.code);
@@ -155,12 +155,12 @@ constexpr auto kLogTag = "OLPHttpTask";
 }
 
 - (void)didReceiveResponse:(NSURLResponse*)response {
-  EDGE_SDK_LOG_TRACE_F(kLogTag,
-                       "task receives response: id=[%llu]; taskIdentifier=[%u] "
-                       "responseCode=[%i]",
-                       self.requestId,
-                       (unsigned int)self.dataTask.taskIdentifier,
-                       (int)[(NSHTTPURLResponse*)response statusCode]);
+  OLP_SDK_LOG_TRACE_F(kLogTag,
+                      "task receives response: id=[%llu]; taskIdentifier=[%u] "
+                      "responseCode=[%i]",
+                      self.requestId,
+                      (unsigned int)self.dataTask.taskIdentifier,
+                      (int)[(NSHTTPURLResponse*)response statusCode]);
 
   OLPHttpTaskReponseHandler responseHandler = nil;
 
@@ -176,7 +176,7 @@ constexpr auto kLogTag = "OLPHttpTask";
 }
 
 - (void)didReceiveData:(NSData*)data {
-  EDGE_SDK_LOG_TRACE_F(
+  OLP_SDK_LOG_TRACE_F(
       kLogTag,
       "task receives data: id=[%llu]; taskIdentifier=[%u] dataLength=[%lu]",
       self.requestId, (unsigned int)self.dataTask.taskIdentifier,

@@ -23,9 +23,10 @@
 #include "olp/core/logging/Log.h"
 #include "olp/core/porting/make_unique.h"
 
-#define LOGTAG "DefaultCache"
-
 namespace {
+
+constexpr auto kLogTag = "DefaultCache";
+
 std::string CreateExpiryKey(const std::string& key) { return key + "::expiry"; }
 
 time_t GetRemainingExpiryTime(const std::string& key,
@@ -102,8 +103,8 @@ bool DefaultCache::Clear() {
     }
   }
   if (SetupStorage() != DefaultCache::StorageOpenResult::Success) {
-    EDGE_SDK_LOG_DEBUG_F(LOGTAG, "Failed to reopen the diskcache %s",
-                         settings_.disk_path.get().c_str());
+    OLP_SDK_LOG_DEBUG_F(kLogTag, "Failed to reopen the diskcache %s",
+                        settings_.disk_path.get().c_str());
     return false;
   }
   return true;

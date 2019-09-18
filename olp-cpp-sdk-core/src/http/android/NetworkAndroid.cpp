@@ -96,8 +96,8 @@ NetworkAndroid::~NetworkAndroid() { Deinitialize(); }
 
 void NetworkAndroid::SetJavaVM(JavaVM* vm, jobject application) {
   if (gJavaVM != nullptr) {
-    EDGE_SDK_LOG_DEBUG(kLogTag,
-                       "setJavaVM previously called, no need to set it now");
+    OLP_SDK_LOG_DEBUG(kLogTag,
+                      "setJavaVM previously called, no need to set it now");
     return;
   }
 
@@ -106,14 +106,14 @@ void NetworkAndroid::SetJavaVM(JavaVM* vm, jobject application) {
   JNIEnv* env;
   if (gJavaVM->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) !=
       JNI_OK) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "setJavaVm failed to get Java Env");
+    OLP_SDK_LOG_ERROR(kLogTag, "setJavaVm failed to get Java Env");
     return;
   }
 
   // Find the ClassLoader java class
   jclass application_class = env->GetObjectClass(application);
   if (!application_class || env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(
+    OLP_SDK_LOG_ERROR(
         kLogTag, "Failed to get the java class for the application object");
     env->ExceptionDescribe();
     env->ExceptionClear();
@@ -123,7 +123,7 @@ void NetworkAndroid::SetJavaVM(JavaVM* vm, jobject application) {
   jmethodID java_get_class_loader_method = env->GetMethodID(
       application_class, "getClassLoader", "()Ljava/lang/ClassLoader;");
   if (!java_get_class_loader_method || env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get getClassLoader method");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get getClassLoader method");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return;
@@ -132,7 +132,7 @@ void NetworkAndroid::SetJavaVM(JavaVM* vm, jobject application) {
   jobject class_loader =
       env->CallObjectMethod(application, java_get_class_loader_method);
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get getClassLoader");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get getClassLoader");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return;
@@ -141,7 +141,7 @@ void NetworkAndroid::SetJavaVM(JavaVM* vm, jobject application) {
 
   jclass class_loader_class = env->FindClass("java/lang/ClassLoader");
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to find getClassLoader");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to find getClassLoader");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return;
@@ -151,7 +151,7 @@ void NetworkAndroid::SetJavaVM(JavaVM* vm, jobject application) {
   gFindClassMethod = env->GetMethodID(class_loader_class, "loadClass",
                                       "(Ljava/lang/String;)Ljava/lang/Class;");
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get loadClass method");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get loadClass method");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return;
@@ -160,7 +160,7 @@ void NetworkAndroid::SetJavaVM(JavaVM* vm, jobject application) {
   // Find the java.lang.String class
   jstring string_class_name = env->NewStringUTF("java/lang/String");
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to create class name string");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to create class name string");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return;
@@ -168,7 +168,7 @@ void NetworkAndroid::SetJavaVM(JavaVM* vm, jobject application) {
 
   jclass string_class = env->GetObjectClass((jobject)string_class_name);
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get String class");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get String class");
     env->ExceptionDescribe();
     env->ExceptionClear();
     env->DeleteLocalRef(string_class_name);
@@ -187,19 +187,19 @@ bool NetworkAndroid::Initialize() {
   }
 
   if (!gJavaVM) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Can't initialize NetworkAndroid - no Java VM");
+    OLP_SDK_LOG_ERROR(kLogTag, "Can't initialize NetworkAndroid - no Java VM");
     return false;
   }
 
   if (!gClassLoader || !gFindClassMethod || !gStringClass) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "JNI methods are not initiliazed");
+    OLP_SDK_LOG_ERROR(kLogTag, "JNI methods are not initiliazed");
     return false;
   }
 
   utils::JNIThreadBinder binder(gJavaVM);
   JNIEnv* env = binder.GetEnv();
   if (env == nullptr) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get JNIEnv ojbect");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get JNIEnv ojbect");
     return false;
   }
 
@@ -207,7 +207,7 @@ bool NetworkAndroid::Initialize() {
   jstring network_class_name =
       env->NewStringUTF("com/here/olp/network/HttpClient");
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to create class name string");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to create class name string");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -216,7 +216,7 @@ bool NetworkAndroid::Initialize() {
   jclass network_class = (jclass)(env->CallObjectMethod(
       gClassLoader, gFindClassMethod, network_class_name));
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get HttpClient");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get HttpClient");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -229,7 +229,7 @@ bool NetworkAndroid::Initialize() {
   jmethodID java_register_method =
       env->GetMethodID(java_self_class_, "registerClient", "()I");
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get HttpClient.registerClient");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get HttpClient.registerClient");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -238,7 +238,7 @@ bool NetworkAndroid::Initialize() {
   // Get shutdown method
   java_shutdown_method_ = env->GetMethodID(java_self_class_, "shutdown", "()V");
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get HttpClient.shutdown");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get HttpClient.shutdown");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -247,7 +247,7 @@ bool NetworkAndroid::Initialize() {
   jmethodID java_init_method =
       env->GetMethodID(java_self_class_, "<init>", "()V");
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get HttpClient.HttpClient");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get HttpClient.HttpClient");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -255,7 +255,7 @@ bool NetworkAndroid::Initialize() {
 
   jobject obj = env->NewObject(java_self_class_, java_init_method);
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to create HttpClient");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to create HttpClient");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -266,7 +266,7 @@ bool NetworkAndroid::Initialize() {
   // Register the client
   unique_id_ = env->CallIntMethod(obj_, java_register_method);
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to call registerClient");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to call registerClient");
     env->ExceptionDescribe();
     env->ExceptionClear();
     env->DeleteGlobalRef(obj_);
@@ -283,7 +283,7 @@ bool NetworkAndroid::Initialize() {
       "here/olp/network/HttpClient$HttpTask;");
 
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "initialize failed to get HttpClient::send");
+    OLP_SDK_LOG_ERROR(kLogTag, "initialize failed to get HttpClient::send");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -331,7 +331,7 @@ void NetworkAndroid::Deinitialize() {
   // Cancel all pending requests
   utils::JNIThreadBinder env(gJavaVM);
   if (env.GetEnv() == nullptr) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "deinitialize failed to get Java Env");
+    OLP_SDK_LOG_ERROR(kLogTag, "deinitialize failed to get Java Env");
     return;
   }
 
@@ -357,7 +357,7 @@ void NetworkAndroid::Deinitialize() {
 
     env.GetEnv()->CallVoidMethod(obj_, java_shutdown_method_);
     if (env.GetEnv()->ExceptionOccurred()) {
-      EDGE_SDK_LOG_ERROR(kLogTag, "Failed to call shutdown");
+      OLP_SDK_LOG_ERROR(kLogTag, "Failed to call shutdown");
       env.GetEnv()->ExceptionDescribe();
       env.GetEnv()->ExceptionClear();
     }
@@ -384,7 +384,7 @@ void NetworkAndroid::Deinitialize() {
   if (completion) {
     if (completion->ready.get_future().wait_for(std::chrono::seconds(2)) !=
         std::future_status::ready) {
-      EDGE_SDK_LOG_ERROR(kLogTag, "Pending requests not ready in 2 seconds");
+      OLP_SDK_LOG_ERROR(kLogTag, "Pending requests not ready in 2 seconds");
     }
   }
 
@@ -400,13 +400,13 @@ void NetworkAndroid::Deinitialize() {
 
 void NetworkAndroid::DoCancel(JNIEnv* env, jobject object) {
   if (object == nullptr) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "HttpTask object is null");
+    OLP_SDK_LOG_ERROR(kLogTag, "HttpTask object is null");
     return;
   }
 
   jclass cls = env->GetObjectClass(object);
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get HttpTask");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get HttpTask");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return;
@@ -414,7 +414,7 @@ void NetworkAndroid::DoCancel(JNIEnv* env, jobject object) {
 
   jmethodID mid = env->GetMethodID(cls, "cancelTask", "()V");
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to get HttpTask.cancel");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get HttpTask.cancel");
     env->ExceptionDescribe();
     env->ExceptionClear();
     env->DeleteLocalRef(cls);
@@ -424,7 +424,7 @@ void NetworkAndroid::DoCancel(JNIEnv* env, jobject object) {
 
   env->CallVoidMethod(object, mid);
   if (env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "HttpClient.Request.cancel failed");
+    OLP_SDK_LOG_ERROR(kLogTag, "HttpClient.Request.cancel failed");
     env->ExceptionDescribe();
     env->ExceptionClear();
   }
@@ -439,8 +439,8 @@ void NetworkAndroid::HeadersCallback(JNIEnv* env, RequestId request_id,
 
     auto req = requests_.find(request_id);
     if (req == requests_.end()) {
-      EDGE_SDK_LOG_ERROR(kLogTag,
-                         "Headers to unknown request with id=" << request_id);
+      OLP_SDK_LOG_ERROR(kLogTag,
+                        "Headers to unknown request with id=" << request_id);
       return;
     }
     header_callback = req->second->header_callback;
@@ -452,7 +452,7 @@ void NetworkAndroid::HeadersCallback(JNIEnv* env, RequestId request_id,
     for (int i = 0; (i + 1) < header_count; i += 2) {
       jstring header_key = (jstring)env->GetObjectArrayElement(headers, i);
       if (env->ExceptionOccurred()) {
-        EDGE_SDK_LOG_ERROR(
+        OLP_SDK_LOG_ERROR(
             kLogTag,
             "Failed to get key of the header for request=" << request_id);
         env->ExceptionDescribe();
@@ -463,7 +463,7 @@ void NetworkAndroid::HeadersCallback(JNIEnv* env, RequestId request_id,
       jstring header_value =
           (jstring)env->GetObjectArrayElement(headers, i + 1);
       if (env->ExceptionOccurred()) {
-        EDGE_SDK_LOG_ERROR(
+        OLP_SDK_LOG_ERROR(
             kLogTag,
             "Failed to get value of the header for request=" << request_id);
         env->ExceptionDescribe();
@@ -493,7 +493,7 @@ void NetworkAndroid::DateAndOffsetCallback(JNIEnv* env, RequestId request_id,
 
   auto request = requests_.find(request_id);
   if (request == requests_.end()) {
-    EDGE_SDK_LOG_ERROR(
+    OLP_SDK_LOG_ERROR(
         kLogTag, "Date and offset to unknown request with id=" << request_id);
     return;
   }
@@ -510,7 +510,7 @@ void NetworkAndroid::DataReceived(JNIEnv* env, RequestId request_id,
 
     auto req = requests_.find(request_id);
     if (req == requests_.end()) {
-      EDGE_SDK_LOG_ERROR(
+      OLP_SDK_LOG_ERROR(
           kLogTag, "Data received to unknown request with id=" << request_id);
       return;
     }
@@ -522,7 +522,7 @@ void NetworkAndroid::DataReceived(JNIEnv* env, RequestId request_id,
     if (payload->tellp() != std::streampos(request->count)) {
       payload->seekp(request->count);
       if (payload->fail()) {
-        EDGE_SDK_LOG_WARNING(
+        OLP_SDK_LOG_WARNING(
             kLogTag, "Reception stream doesn't support setting write point");
         payload->clear();
       }
@@ -546,7 +546,7 @@ void NetworkAndroid::CompleteRequest(JNIEnv* env, RequestId request_id,
   std::unique_lock<std::mutex> lock(requests_mutex_);
   auto iter_request = requests_.find(request_id);
   if (iter_request == requests_.end()) {
-    EDGE_SDK_LOG_ERROR(
+    OLP_SDK_LOG_ERROR(
         kLogTag,
         "Complete call is received to unknown request with id=" << request_id);
     return;
@@ -603,8 +603,8 @@ void NetworkAndroid::ResetRequest(JNIEnv* env, RequestId request_id) {
 
   auto req = requests_.find(request_id);
   if (req == requests_.end()) {
-    EDGE_SDK_LOG_ERROR(kLogTag,
-                       "Reset of unknown request with id=" << request_id);
+    OLP_SDK_LOG_ERROR(kLogTag,
+                      "Reset of unknown request with id=" << request_id);
     return;
   }
   req->second->Reinitialize();
@@ -619,7 +619,7 @@ jobjectArray NetworkAndroid::CreateExtraHeaders(
 
   jstring jempty_string = env->NewStringUTF("");
   if (!jempty_string || env->ExceptionOccurred()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to create an empty string");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to create an empty string");
     return 0;
   }
 
@@ -629,7 +629,7 @@ jobjectArray NetworkAndroid::CreateExtraHeaders(
       header_count, gStringClass, jempty_string);
   if (!headers || env->ExceptionOccurred()) {
     env->DeleteLocalRef(jempty_string);
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to create string array for headers");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to create string array for headers");
     return 0;
   }
   env->DeleteLocalRef(jempty_string);
@@ -637,32 +637,32 @@ jobjectArray NetworkAndroid::CreateExtraHeaders(
   for (size_t i = 0; i < extra_headers.size(); ++i) {
     jstring name = env->NewStringUTF(extra_headers[i].first.c_str());
     if (!name || env->ExceptionOccurred()) {
-      EDGE_SDK_LOG_ERROR(kLogTag,
-                         "Failed to create extra header name string: index="
-                             << i << "; name=" << extra_headers[i].first);
+      OLP_SDK_LOG_ERROR(kLogTag,
+                        "Failed to create extra header name string: index="
+                            << i << "; name=" << extra_headers[i].first);
       return 0;
     }
     utils::JNIScopedLocalReference name_ref(env, name);
 
     jstring value = env->NewStringUTF(extra_headers[i].second.c_str());
     if (!value || env->ExceptionOccurred()) {
-      EDGE_SDK_LOG_ERROR(kLogTag,
-                         "Failed to create extra header value string: index="
-                             << i << "; value=" << extra_headers[i].second);
+      OLP_SDK_LOG_ERROR(kLogTag,
+                        "Failed to create extra header value string: index="
+                            << i << "; value=" << extra_headers[i].second);
       return 0;
     }
     utils::JNIScopedLocalReference value_ref(env, value);
 
     env->SetObjectArrayElement(headers, i * 2, name);
     if (env->ExceptionOccurred()) {
-      EDGE_SDK_LOG_ERROR(kLogTag,
-                         "Failed to set extra header value string: index="
-                             << i << "; name=" << extra_headers[i].first);
+      OLP_SDK_LOG_ERROR(kLogTag,
+                        "Failed to set extra header value string: index="
+                            << i << "; name=" << extra_headers[i].first);
       return 0;
     }
     env->SetObjectArrayElement(headers, i * 2 + 1, value);
     if (env->ExceptionOccurred()) {
-      EDGE_SDK_LOG_ERROR(
+      OLP_SDK_LOG_ERROR(
           kLogTag, "Failed to set extra header value string: index="
                        << i << "; value=" << extra_headers[i].second.c_str());
       return 0;
@@ -750,7 +750,7 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
                                  Network::HeaderCallback header_callback,
                                  Network::DataCallback data_callback) {
   if (!Initialize()) {
-    EDGE_SDK_LOG_WARNING_F(
+    OLP_SDK_LOG_WARNING_F(
         kLogTag,
         "Can't send request with URL=[%s] - can't initialize NetworkAndroid",
         request.GetUrl().c_str());
@@ -758,23 +758,23 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
   }
 
   if (requests_.size() >= 32) {
-    EDGE_SDK_LOG_WARNING_F(kLogTag,
-                           "Can't send request with URL=[%s] - nework overload",
-                           request.GetUrl().c_str());
+    OLP_SDK_LOG_WARNING_F(kLogTag,
+                          "Can't send request with URL=[%s] - nework overload",
+                          request.GetUrl().c_str());
     return SendOutcome(ErrorCode::NETWORK_OVERLOAD_ERROR);
   }
 
   utils::JNIThreadBinder env(gJavaVM);
   if (env.GetEnv() == nullptr) {
-    EDGE_SDK_LOG_WARNING(kLogTag, "Failed to get Java Env");
+    OLP_SDK_LOG_WARNING(kLogTag, "Failed to get Java Env");
     return SendOutcome(ErrorCode::IO_ERROR);
   }
 
   // Convert the URL to jstring
   jstring jurl = env.GetEnv()->NewStringUTF(request.GetUrl().c_str());
   if (!jurl || env.GetEnv()->ExceptionOccurred()) {
-    EDGE_SDK_LOG_WARNING_F(kLogTag, "Can't create a JNI String for URL=[%s]",
-                           request.GetUrl().c_str());
+    OLP_SDK_LOG_WARNING_F(kLogTag, "Can't create a JNI String for URL=[%s]",
+                          request.GetUrl().c_str());
     env.GetEnv()->ExceptionDescribe();
     env.GetEnv()->ExceptionClear();
     return SendOutcome(ErrorCode::IO_ERROR);
@@ -785,7 +785,7 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
   jobjectArray jheaders =
       CreateExtraHeaders(env.GetEnv(), request.GetHeaders());
   if (env.GetEnv()->ExceptionOccurred()) {
-    EDGE_SDK_LOG_WARNING_F(
+    OLP_SDK_LOG_WARNING_F(
         kLogTag, "Can't create a JNI Headers for request with URL=[%s]",
         request.GetUrl().c_str());
     env.GetEnv()->ExceptionDescribe();
@@ -808,9 +808,9 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
 
     jbody = env.GetEnv()->NewByteArray(size);
     if (!jbody || env.GetEnv()->ExceptionOccurred()) {
-      EDGE_SDK_LOG_WARNING_F(
-          kLogTag, "Can't allocate array for request's body: URL=[%s]",
-          request.GetUrl().c_str());
+      OLP_SDK_LOG_WARNING_F(kLogTag,
+                            "Can't allocate array for request's body: URL=[%s]",
+                            request.GetUrl().c_str());
       env.GetEnv()->ExceptionDescribe();
       env.GetEnv()->ExceptionClear();
       return SendOutcome(ErrorCode::IO_ERROR);
@@ -829,7 +829,7 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
   if (is_proxy_valid) {
     jproxy = env.GetEnv()->NewStringUTF(proxy_settings.GetHostname().c_str());
     if (!jproxy || env.GetEnv()->ExceptionOccurred()) {
-      EDGE_SDK_LOG_WARNING_F(
+      OLP_SDK_LOG_WARNING_F(
           kLogTag, "Failed to create proxy string for request with URL=[%s]",
           request.GetUrl().c_str());
       env.GetEnv()->ExceptionDescribe();
@@ -870,8 +870,8 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
       jconnection_timeout, jtransfer_timeout, jheaders, jbody, jproxy,
       jproxy_port, jproxy_type, jmax_retries);
   if (env.GetEnv()->ExceptionOccurred() || !task_obj) {
-    EDGE_SDK_LOG_WARNING_F(kLogTag, "Failed to send the request with URL=[%s]",
-                           request.GetUrl().c_str());
+    OLP_SDK_LOG_WARNING_F(kLogTag, "Failed to send the request with URL=[%s]",
+                          request.GetUrl().c_str());
     env.GetEnv()->ExceptionDescribe();
     env.GetEnv()->ExceptionClear();
     {
@@ -891,8 +891,8 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
 void NetworkAndroid::Cancel(RequestId request_id) {
   utils::JNIThreadBinder env(gJavaVM);
   if (env.GetEnv() == nullptr) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Failed to cancel request with id="
-                                    << request_id << " - invalid Java Env");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to cancel request with id="
+                                   << request_id << " - invalid Java Env");
     return;
   }
 
@@ -900,7 +900,7 @@ void NetworkAndroid::Cancel(RequestId request_id) {
     std::unique_lock<std::mutex> lock(requests_mutex_);
     auto request_iter = requests_.find(request_id);
     if (request_iter == requests_.end()) {
-      EDGE_SDK_LOG_WARNING(
+      OLP_SDK_LOG_WARNING(
           kLogTag, "Can't cancel unknown request with id=" << request_id);
       return;
     }
@@ -949,7 +949,6 @@ NetworkAndroid::ResponseData::ResponseData(
       count(count),
       offset(offset) {}
 
-
 }  // namespace http
 }  // namespace olp
 
@@ -970,7 +969,7 @@ Java_com_here_olp_network_HttpClient_headersCallback(JNIEnv* env, jobject obj,
                                                      jobjectArray headers) {
   auto network = olp::http::GetNetworkById(client_id);
   if (!network) {
-    EDGE_SDK_LOG_WARNING(
+    OLP_SDK_LOG_WARNING(
         kLogTag,
         "headersCallback to non-existing client with id=" << client_id);
     return;
@@ -987,7 +986,7 @@ Java_com_here_olp_network_HttpClient_dateAndOffsetCallback(
     jlong offset) {
   auto network = olp::http::GetNetworkById(client_id);
   if (!network) {
-    EDGE_SDK_LOG_WARNING(
+    OLP_SDK_LOG_WARNING(
         kLogTag,
         "dateAndOffsetCallback to non-existing client with id=" << client_id);
     return;
@@ -1005,7 +1004,7 @@ Java_com_here_olp_network_HttpClient_dataCallback(JNIEnv* env, jobject obj,
                                                   jbyteArray data, jint len) {
   auto network = olp::http::GetNetworkById(client_id);
   if (!network) {
-    EDGE_SDK_LOG_WARNING(
+    OLP_SDK_LOG_WARNING(
         kLogTag, "dataCallback to non-existing client with id=" << client_id);
     return;
   }
@@ -1023,7 +1022,7 @@ Java_com_here_olp_network_HttpClient_completeRequest(JNIEnv* env, jobject obj,
                                                      jstring content_type) {
   auto network = olp::http::GetNetworkById(client_id);
   if (!network) {
-    EDGE_SDK_LOG_WARNING(
+    OLP_SDK_LOG_WARNING(
         kLogTag,
         "completeRequest to non-existing client with id=" << client_id);
     return;
@@ -1040,7 +1039,7 @@ Java_com_here_olp_network_HttpClient_resetRequest(JNIEnv* env, jobject obj,
                                                   jlong request_id) {
   auto network = olp::http::GetNetworkById(client_id);
   if (!network) {
-    EDGE_SDK_LOG_WARNING(
+    OLP_SDK_LOG_WARNING(
         kLogTag, "resetRequest to non-existing client with id=" << client_id);
     return;
   }

@@ -36,12 +36,13 @@
 #include "olp/core/porting/make_unique.h"
 #include "olp/core/utils/Dir.h"
 
-#define LOG_TAG "Storage.LevelDB"
-
 namespace olp {
 namespace cache {
 
 namespace {
+
+constexpr auto kLogTag = "Storage.LevelDB";
+
 static inline leveldb::Slice toLeveldbSlice(const std::string& slice) {
   return leveldb::Slice(slice);
 }
@@ -80,23 +81,23 @@ static bool repairCache(const std::string& versionedDataPath) {
   leveldb::Status status =
       leveldb::RepairDB(versionedDataPath, leveldb::Options());
   if (status.ok()) {
-    EDGE_SDK_LOG_WARNING(LOG_TAG,
-                         "Database corrupted, repaired " << versionedDataPath);
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "Database corrupted, repaired " << versionedDataPath);
     leveldb::Env::Default()->DeleteDir(versionedDataPath + "/lost");
     return true;
   }
-  EDGE_SDK_LOG_ERROR(
-      LOG_TAG, "Database corrupted, repair failed: " << status.ToString());
+  OLP_SDK_LOG_ERROR(kLogTag,
+                    "Database corrupted, repair failed: " << status.ToString());
 
   // repair failed, delete the entire cache;
   status = leveldb::DestroyDB(versionedDataPath, leveldb::Options());
   if (!status.ok()) {
-    EDGE_SDK_LOG_ERROR(LOG_TAG, "Destroying database after corruption failed: "
-                                    << status.ToString());
+    OLP_SDK_LOG_ERROR(kLogTag, "Destroying database after corruption failed: "
+                                   << status.ToString());
     return false;
   }
-  EDGE_SDK_LOG_WARNING(
-      LOG_TAG, "Destroyed database after corruption: " << versionedDataPath);
+  OLP_SDK_LOG_WARNING(
+      kLogTag, "Destroyed database after corruption: " << versionedDataPath);
   return true;
 }
 
@@ -106,8 +107,8 @@ void removeOtherDB(const std::string& dataPath,
   leveldb::Status status =
       leveldb::Env::Default()->GetChildren(dataPath, &pathContents);
   if (!status.ok()) {
-    EDGE_SDK_LOG_WARNING(
-        LOG_TAG, "Clearing other DBs in folder: failed to list folder \""
+    OLP_SDK_LOG_WARNING(
+        kLogTag, "Clearing other DBs in folder: failed to list folder \""
                      << dataPath << "\" contents - " << status.ToString());
     return;
   }
@@ -121,8 +122,8 @@ void removeOtherDB(const std::string& dataPath,
     if (fullPath != versionedDataPathToKeep) {
       status = leveldb::DestroyDB(fullPath, leveldb::Options());
       if (!status.ok())
-        EDGE_SDK_LOG_WARNING(
-            LOG_TAG,
+        OLP_SDK_LOG_WARNING(
+            kLogTag,
             "Clearing other DBs in folder: failed to destroy database \""
                 << fullPath << "\" - " << status.ToString());
     }
@@ -140,14 +141,7 @@ DiskCache::~DiskCache() {
 }
 
 void DiskCache::LevelDBLogger::Logv(const char* format, va_list ap) {
-  if (!logging::Log::isEnabled(logging::Level::Trace,
-                               "Storage.LevelDB.leveldb"))
-    return;
-
-  const std::string& message = logging::formatv(format, ap);
-  logging::Log::logMessage(logging::Level::Trace, "Storage.LevelDB.leveldb",
-                           message, __FILE__, __LINE__, __FUNCTION__,
-                           EDGE_SDK_LOG_FUNCTION_SIGNATURE);
+  OLP_SDK_LOG_TRACE_F("Storage.LevelDB.leveldb", format, ap);
 }
 
 void DiskCache::Close() { database_.reset(); }
@@ -208,9 +202,9 @@ OpenResult DiskCache::Open(const std::string& dataPath,
   leveldb::Status status = leveldb::DB::Open(options, versionedDataPath, &db);
 
   if (!status.ok() && !isReadOnly)
-    EDGE_SDK_LOG_WARNING(LOG_TAG, "Cannot open database ("
-                                      << status.ToString()
-                                      << ") attempting repair");
+    OLP_SDK_LOG_WARNING(kLogTag, "Cannot open database ("
+                                     << status.ToString()
+                                     << ") attempting repair");
 
   // if the database is r/w and corrupted, attempt to repair & reopen
   if ((status.IsCorruption() || status.IsIOError()) && !isReadOnly &&
@@ -239,7 +233,7 @@ void DiskCache::setOpenError(const leveldb::Status& status) {
     code = ErrorCode::InternalFailure;
   if (status.IsNotSupportedError()) code = ErrorCode::BadRequest;
   std::string errorMessage = status.ToString();
-  EDGE_SDK_LOG_FATAL(LOG_TAG, "Cannot open database " << errorMessage);
+  OLP_SDK_LOG_FATAL(kLogTag, "Cannot open database " << errorMessage);
   error_ = ApiError(code, std::move(errorMessage));
 }
 
@@ -253,8 +247,8 @@ bool DiskCache::Put(const std::string& key, const std::string& value) {
   const leveldb::Status& status = database_->Put(
       leveldb::WriteOptions(), toLeveldbSlice(key), toLeveldbSlice(value));
   if (!status.ok()) {
-    EDGE_SDK_LOG_FATAL(LOG_TAG,
-                       "Failed to write the database " << status.ToString());
+    OLP_SDK_LOG_FATAL(kLogTag,
+                      "Failed to write the database " << status.ToString());
     return false;
   }
   return true;
@@ -299,9 +293,9 @@ bool DiskCache::RemoveKeysWithPrefix(const std::string& keyPrefix) {
   const leveldb::Status& status =
       database_->Write(leveldb::WriteOptions(), batch.get());
   if (!status.ok()) {
-    EDGE_SDK_LOG_FATAL(LOG_TAG,
-                       "Failed to write the database " << status.ToString();
-                       return false;);
+    OLP_SDK_LOG_FATAL(kLogTag,
+                      "Failed to write the database " << status.ToString();
+                      return false;);
   }
   return true;
 }

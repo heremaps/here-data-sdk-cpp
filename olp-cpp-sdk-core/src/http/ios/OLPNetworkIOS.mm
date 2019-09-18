@@ -68,8 +68,7 @@ NSData* ParseBodyDataFromRequest(const olp::http::NetworkRequest& request) {
                         length:body->size()];
 }
 
-NSString* ParseHttpMethodFromRequest(
-    const olp::http::NetworkRequest& request) {
+NSString* ParseHttpMethodFromRequest(const olp::http::NetworkRequest& request) {
   switch (request.GetVerb()) {
     case NetworkRequest::HttpVerb::GET:
       return OLPHttpMethodGet;
@@ -88,8 +87,7 @@ NSString* ParseHttpMethodFromRequest(
   }
 }
 
-olp::http::ErrorCode ConvertNSURLErrorToNetworkErrorCode(
-    NSInteger error_code) {
+olp::http::ErrorCode ConvertNSURLErrorToNetworkErrorCode(NSInteger error_code) {
   switch (error_code) {
     case NSURLErrorUnsupportedURL:
     case NSURLErrorCannotFindHost:
@@ -122,8 +120,7 @@ OLPNetworkIOS::OLPNetworkIOS(size_t max_requests_count)
 OLPNetworkIOS::~OLPNetworkIOS() { Cleanup(); }
 
 olp::http::SendOutcome OLPNetworkIOS::Send(
-    olp::http::NetworkRequest request,
-    std::shared_ptr<std::ostream> payload,
+    olp::http::NetworkRequest request, std::shared_ptr<std::ostream> payload,
     olp::http::Network::Callback callback,
     olp::http::Network::HeaderCallback header_callback,
     olp::http::Network::DataCallback data_callback) {
@@ -131,7 +128,7 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
     OLPHttpTask* task = nil;
     NSString* url = [NSString stringWithUTF8String:request.GetUrl().c_str()];
     if (url.length == 0) {
-      EDGE_SDK_LOG_WARNING(kLogTag, "Invalid request URL");
+      OLP_SDK_LOG_WARNING(kLogTag, "Invalid request URL");
       return SendOutcome(ErrorCode::INVALID_URL_ERROR);
     }
 
@@ -139,11 +136,11 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
     {
       std::lock_guard<std::mutex> lock(mutex_);
       if (http_client_.activeTasks.count >= max_requests_count_) {
-        EDGE_SDK_LOG_WARNING_F(kLogTag,
-                               "Can't send request - reached max requests "
-                               "count:[%lu / %lu], URL:[%s]",
-                               http_client_.activeTasks.count,
-                               max_requests_count_, request.GetUrl().c_str());
+        OLP_SDK_LOG_WARNING_F(kLogTag,
+                              "Can't send request - reached max requests "
+                              "count:[%lu / %lu], URL:[%s]",
+                              http_client_.activeTasks.count,
+                              max_requests_count_, request.GetUrl().c_str());
         return SendOutcome(ErrorCode::NETWORK_OVERLOAD_ERROR);
       }
 
@@ -153,8 +150,8 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
       task = [http_client_ createTaskWithProxy:proxy_settings andId:request_id];
     }
     if (!task) {
-      EDGE_SDK_LOG_WARNING_F(kLogTag, "Can't create task for request URL=[%s]",
-                             request.GetUrl().c_str());
+      OLP_SDK_LOG_WARNING_F(kLogTag, "Can't create task for request URL=[%s]",
+                            request.GetUrl().c_str());
       return SendOutcome(ErrorCode::UNKNOWN_ERROR);
     }
 
@@ -178,9 +175,9 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
     // setup handler for NSURLSessionDataTask::didReceiveResponse
     task.responseHandler = ^(NSHTTPURLResponse* response) {
       if (!weak_task) {
-        EDGE_SDK_LOG_WARNING_F(
-            kLogTag, "Response received after task=[%llu] was deleted",
-            requestId);
+        OLP_SDK_LOG_WARNING_F(kLogTag,
+                              "Response received after task=[%llu] was deleted",
+                              requestId);
         return;
       }
       __strong OLPHttpTask* strong_task = weak_task;
@@ -217,14 +214,14 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
     // setup handler for NSURLSessionDataTask::didReceiveData callback
     task.dataHandler = ^(NSData* data) {
       if (!weak_task) {
-        EDGE_SDK_LOG_WARNING_F(
+        OLP_SDK_LOG_WARNING_F(
             kLogTag, "Data received after task=[%llu] was deleted", requestId);
         return;
       }
       __strong OLPHttpTask* strong_task = weak_task;
       OLPHttpTaskResponseData* response_data = strong_task.responseData;
       if (response_data.rangeOut) {
-        EDGE_SDK_LOG_TRACE(kLogTag, "Datacallback out of range");
+        OLP_SDK_LOG_TRACE(kLogTag, "Datacallback out of range");
         return;
       }
 
@@ -238,7 +235,7 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
         if (payload->tellp() != std::streampos(response_data.count)) {
           payload->seekp(response_data.count);
           if (payload->fail()) {
-            EDGE_SDK_LOG_WARNING(
+            OLP_SDK_LOG_WARNING(
                 kLogTag,
                 "Reception stream doesn't support setting write point");
             payload->clear();
@@ -254,7 +251,7 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
     // setup handler for NSURLSessionDataTask::didCompleteWithError callback
     task.completionHandler = ^(NSError* error) {
       if (!weak_task) {
-        EDGE_SDK_LOG_WARNING_F(
+        OLP_SDK_LOG_WARNING_F(
             kLogTag, "Completion received after task=[%llu] was deleted",
             requestId);
         return;
@@ -300,8 +297,8 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
     // Perform send request asycnrhonously in a NSURLSession's thread
     OLPHttpTaskStatus ret = [task run];
     if (OLPHttpTaskStatusOk != ret) {
-      EDGE_SDK_LOG_WARNING_F(kLogTag, "Can't run task with id=[%llu]; url=[%s]",
-                             task.requestId, request.GetUrl().c_str());
+      OLP_SDK_LOG_WARNING_F(kLogTag, "Can't run task with id=[%llu]; url=[%s]",
+                            task.requestId, request.GetUrl().c_str());
       return SendOutcome(kInvalidRequestId);
     }
     return SendOutcome(task.requestId);
