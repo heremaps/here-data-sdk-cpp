@@ -99,7 +99,7 @@ class CatalogClientTestBase
 
   std::string GetTestCatalog() {
     static std::string mockCatalog{"hrn:here:data:::hereos-internal-test-v2"};
-    return isOnlineTest() ? CustomParameters::getArgument("catalog")
+    return isOnlineTest() ? CustomParameters::getArgument("dataservice_read_test_catalog")
                           : mockCatalog;
   }
 
@@ -139,8 +139,8 @@ class CatalogClientOnlineTest : public CatalogClientTestBase {
     auth_settings.network_request_handler = network;
 
     olp::authentication::TokenProviderDefault provider(
-        CustomParameters::getArgument("appid"),
-        CustomParameters::getArgument("secret"), auth_settings);
+        CustomParameters::getArgument("dataservice_read_test_appid"),
+        CustomParameters::getArgument("dataservice_read_test_secret"), auth_settings);
     olp::client::AuthenticationSettings auth_client_settings;
     auth_client_settings.provider = provider;
     settings_ = std::make_shared<olp::client::OlpClientSettings>();

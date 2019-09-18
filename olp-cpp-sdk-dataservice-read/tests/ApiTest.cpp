@@ -53,8 +53,8 @@ class ApiTest : public ::testing::TestWithParam<bool> {
     authentication_settings.network_request_handler = network;
 
     olp::authentication::TokenProviderDefault provider(
-        CustomParameters::getArgument("appid"),
-        CustomParameters::getArgument("secret"), authentication_settings);
+        CustomParameters::getArgument("dataservice_read_test_appid"),
+        CustomParameters::getArgument("dataservice_read_test_secret"), authentication_settings);
     olp::client::AuthenticationSettings auth_client_settings;
     auth_client_settings.provider = provider;
 
@@ -66,7 +66,7 @@ class ApiTest : public ::testing::TestWithParam<bool> {
   }
 
   std::string GetTestCatalog() {
-    return CustomParameters::getArgument("catalog");
+    return CustomParameters::getArgument("dataservice_read_test_catalog");
   }
 
   std::string PrintError(const olp::client::ApiError& error) {

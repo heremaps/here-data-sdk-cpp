@@ -17,14 +17,13 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-set(OLP_SDK_FUNCTIONAL_TESTS_SOURCES
-    ./olp-cpp-sdk-core/NetworkTest.cpp
-    ./olp-cpp-sdk-core/OlpClientDefaultAsyncHttp.cpp
+set(OLP_SDK_INTEGRATIONAL_TESTS_SOURCES
+    ./placeholder.cpp
 )
 
 if (ANDROID OR IOS)
-    add_library(olp-cpp-sdk-functional-tests-lib ${OLP_SDK_FUNCTIONAL_TESTS_SOURCES})
-    target_link_libraries(olp-cpp-sdk-functional-tests-lib
+    add_library(olp-cpp-sdk-integration-tests-lib ${OLP_SDK_INTEGRATIONAL_TESTS_SOURCES})
+    target_link_libraries(olp-cpp-sdk-integration-tests-lib
         PRIVATE
             gtest
             olp-cpp-sdk-core
@@ -34,24 +33,24 @@ if (ANDROID OR IOS)
     )
     if (ANDROID)
         include(${CMAKE_SOURCE_DIR}/cmake/android/gen_android_test.cmake)
-        gen_android_test_runner(olp-cpp-sdk-functional-tests
-            olp-cpp-sdk-functional-tests-lib)
+        gen_android_test_runner(olp-cpp-sdk-integration-tests
+            olp-cpp-sdk-integration-tests-lib)
         add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/android
             ${CMAKE_CURRENT_BINARY_DIR}/android)
 
     else()
         include(${CMAKE_SOURCE_DIR}/cmake/ios/gen_ios_test.cmake)
-        gen_ios_test_runner(olp-cpp-sdk-functional-tests olp-cpp-sdk-functional-tests-lib)
+        gen_ios_test_runner(olp-cpp-sdk-integration-tests olp-cpp-sdk-integration-tests-lib)
         add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/ios
             ${CMAKE_CURRENT_BINARY_DIR}/ios)
 
     endif()
 
 else()
-    add_executable(olp-cpp-sdk-functional-tests ${OLP_SDK_FUNCTIONAL_TESTS_SOURCES})
-    target_link_libraries(olp-cpp-sdk-functional-tests
+    add_executable(olp-cpp-sdk-integration-tests ${OLP_SDK_INTEGRATIONAL_TESTS_SOURCES})
+    target_link_libraries(olp-cpp-sdk-integration-tests
         PRIVATE
-            gtest_main
+            gmock_main
             olp-cpp-sdk-core
             olp-cpp-sdk-authentication
             olp-cpp-sdk-dataservice-read
