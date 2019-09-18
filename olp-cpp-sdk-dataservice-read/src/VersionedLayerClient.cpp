@@ -155,6 +155,8 @@ olp::client::CancellationToken VersionedLayerClient::GetDataByPartitionId(
   auto data = data_response.GetResult();
 
   callback(data);
+
+  return token;
 }
 
 }  // namespace read
