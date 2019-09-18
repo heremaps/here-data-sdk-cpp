@@ -27,6 +27,7 @@ set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     ParserTest.cpp
     PendingRequestsTest.cpp
     SerializerTest.cpp
+    TestVersionedLayerClient.cpp
 )
 
 if (ANDROID OR IOS)
