@@ -72,7 +72,12 @@ translate_report:
     paths:
       - .public
   only:
-    - master
+    refs:
+      - master
+      - schedules
+    variables:
+      - $NIGHTLY
+      - $FULLY
 
 pages:
   stage: deploy
@@ -85,4 +90,9 @@ pages:
       - public
     expire_in: 1 year
   only:
-    - master
+    refs:
+      - master
+      - schedules
+    variables:
+      - $NIGHTLY
+      - $FULLY
