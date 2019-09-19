@@ -45,7 +45,7 @@ void ApiCacheRepository::Put(const std::string& service,
                              const std::string& serviceUrl) {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn, service, serviceVersion);
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "Put '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Put '%s'", key.c_str());
   cache_->Put(CreateKey(hrn, service, serviceVersion), serviceUrl,
               [serviceUrl]() { return serviceUrl; }, 3600);
 }
@@ -54,7 +54,7 @@ boost::optional<std::string> ApiCacheRepository::Get(
     const std::string& service, const std::string& serviceVersion) {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn, service, serviceVersion);
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "Get '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Get '%s'", key.c_str());
   auto url = cache_->Get(key, [](const std::string& value) { return value; });
   if (url.empty()) {
     return boost::none;

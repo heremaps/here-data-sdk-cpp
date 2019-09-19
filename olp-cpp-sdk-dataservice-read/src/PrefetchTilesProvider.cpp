@@ -61,11 +61,11 @@ client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
     const PrefetchTilesRequest& request,
     const PrefetchTilesResponseCallback& callback) {
   auto key = request.CreateKey();
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "getCatalog(%s)", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "getCatalog(%s)", key.c_str());
   auto isBusy = prefetchProviderBusy_->exchange(true);
   if (isBusy) {
     repository::ExecuteOrSchedule(settings_.get(), [=]() {
-      EDGE_SDK_LOG_INFO_F(kLogTag, "getCatalog(%s) busy", key.c_str());
+      OLP_SDK_LOG_INFO_F(kLogTag, "getCatalog(%s) busy", key.c_str());
       callback(
           {{ErrorCode::SlowDown, "Busy prefetching at the moment.", true}});
     });
@@ -81,7 +81,7 @@ client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
   auto cancel_context = std::make_shared<CancellationContext>();
 
   auto cancel_callback = [completionCallback, key]() {
-    EDGE_SDK_LOG_INFO_F(kLogTag, "getCatalog(%s) cancelled", key.c_str());
+    OLP_SDK_LOG_INFO_F(kLogTag, "getCatalog(%s) cancelled", key.c_str());
     completionCallback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
   };
 
@@ -95,13 +95,13 @@ client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
   catalogRequest.WithBillingTag(request.GetBillingTag());
   cancel_context->ExecuteOrCancelled(
       [=]() {
-        EDGE_SDK_LOG_INFO_F(kLogTag, "getCatalog(%s) execute", key.c_str());
+        OLP_SDK_LOG_INFO_F(kLogTag, "getCatalog(%s) execute", key.c_str());
 
         return catalogRepo->getCatalog(
             catalogRequest, [=](read::CatalogResponse catalogResponse) {
               if (!catalogResponse.IsSuccessful()) {
-                EDGE_SDK_LOG_INFO_F(kLogTag, "getCatalog(%s) unsuccessful",
-                                    key.c_str());
+                OLP_SDK_LOG_INFO_F(kLogTag, "getCatalog(%s) unsuccessful",
+                                   key.c_str());
                 completionCallback(catalogResponse.GetError());
                 return;
               }
@@ -113,7 +113,7 @@ client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
                   });
               if (layerResult == layers.end()) {
                 // Layer not found
-                EDGE_SDK_LOG_INFO_F(
+                OLP_SDK_LOG_INFO_F(
                     kLogTag, "getLatestCatalogVersion(%s) layer not found",
                     key.c_str());
                 completionCallback(ApiError(client::ErrorCode::InvalidArgument,
@@ -129,9 +129,9 @@ client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
               // Get the catalog version
               cancel_context->ExecuteOrCancelled(
                   [=]() {
-                    EDGE_SDK_LOG_INFO_F(kLogTag,
-                                        "getLatestCatalogVersion(%s) execute",
-                                        key.c_str());
+                    OLP_SDK_LOG_INFO_F(kLogTag,
+                                       "getLatestCatalogVersion(%s) execute",
+                                       key.c_str());
                     CatalogVersionRequest catalogVersionRequest;
                     catalogVersionRequest
                         .WithBillingTag(request.GetBillingTag())
@@ -140,7 +140,7 @@ client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
                         catalogVersionRequest,
                         [=](CatalogVersionResponse response) {
                           if (!response.IsSuccessful()) {
-                            EDGE_SDK_LOG_INFO_F(
+                            OLP_SDK_LOG_INFO_F(
                                 kLogTag,
                                 "getLatestCatalogVersion(%s) unseccessful",
                                 key.c_str());
@@ -158,7 +158,7 @@ client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
                                   request.GetMaxLevel());
 
                           if (calculatedTileKeys.size() == 0) {
-                            EDGE_SDK_LOG_INFO_F(
+                            OLP_SDK_LOG_INFO_F(
                                 kLogTag,
                                 "getLatestCatalogVersion(%s) tile/level "
                                 "mismatch",
@@ -169,16 +169,16 @@ client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
                             return;
                           }
 
-                          EDGE_SDK_LOG_INFO_F(kLogTag,
-                                              "EffectiveTileKeys, count = %lu",
-                                              calculatedTileKeys.size());
+                          OLP_SDK_LOG_INFO_F(kLogTag,
+                                             "EffectiveTileKeys, count = %lu",
+                                             calculatedTileKeys.size());
                           prefetchTilesRepo->GetSubTiles(
                               cancel_context, request, version, expiry,
                               calculatedTileKeys,
                               [=](const repository::SubTilesResponse&
                                       response) {
                                 if (!response.IsSuccessful()) {
-                                  EDGE_SDK_LOG_INFO_F(
+                                  OLP_SDK_LOG_INFO_F(
                                       kLogTag,
                                       "SubTilesResponse(%s) unseccessful",
                                       key.c_str());
@@ -210,8 +210,8 @@ void PrefetchTilesProvider::QueryDataForEachSubTile(
     const PrefetchTilesRequest& request, const std::string& layerType,
     const repository::SubTilesResult& subtiles,
     const PrefetchTilesResponseCallback& callback) {
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "QueryDataForEachSubTile, count = %lu",
-                       subtiles.size());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "QueryDataForEachSubTile, count = %lu",
+                      subtiles.size());
 
   std::vector<std::future<std::shared_ptr<PrefetchTileResult>>> futures;
 

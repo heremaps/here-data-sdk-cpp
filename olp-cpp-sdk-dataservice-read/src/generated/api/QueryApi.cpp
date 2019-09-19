@@ -125,8 +125,8 @@ client::CancellationToken QueryApi::QuadTreeIndex(
 
   client::NetworkAsyncCallback callback =
       [indexCallback](client::HttpResponse response) {
-        EDGE_SDK_LOG_TRACE_F(LOGTAG, "QuadTreeIndex callback, status=%d",
-                             response.status);
+        OLP_SDK_LOG_TRACE_F(LOGTAG, "QuadTreeIndex callback, status=%d",
+                            response.status);
         if (response.status != 200) {
           indexCallback(client::ApiError(response.status, response.response));
         } else {
@@ -134,7 +134,7 @@ client::CancellationToken QueryApi::QuadTreeIndex(
         }
       };
 
-  EDGE_SDK_LOG_TRACE(LOGTAG, "QuadTreeIndex");
+  OLP_SDK_LOG_TRACE(LOGTAG, "QuadTreeIndex");
 
   return client.CallApi(metadataUri, "GET", queryParams, headerParams,
                         formParams, nullptr, "", callback);
