@@ -188,13 +188,13 @@ auto response = futureResponse.GetFuture().get();
 
 // Check the response
 if (!response.IsSuccessful()) {
-    EDGE_SDK_LOG_INFO_F("write-example",
-                        "Error writing data - HTTP Status: %d Message: %s",
-                        response.GetError().GetHttpStatusCode(),
-                        response.GetError().GetMessage().c_str());
+    OLP_SDK_LOG_INFO_F("write-example",
+                       "Error writing data - HTTP Status: %d Message: %s",
+                       response.GetError().GetHttpStatusCode(),
+                       response.GetError().GetMessage().c_str());
     return -1;
 } else {
-    EDGE_SDK_LOG_ERROR_F("write-example", "Publish Successful - TraceID: %s",
-                         response.GetResult().GetTraceID().c_str());
+    OLP_SDK_LOG_ERROR_F("write-example", "Publish Successful - TraceID: %s",
+                        response.GetResult().GetTraceID().c_str());
 }
 ```

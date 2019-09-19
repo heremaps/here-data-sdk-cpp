@@ -199,11 +199,11 @@ olp::dataservice::read::CatalogResponse catalogResponse =
 if (catalogResponse.IsSuccessful()) {
     const olp::dataservice::read::CatalogResult& responseResult =
         catalogResponse.GetResult();
-    EDGE_SDK_LOG_INFO_F("read-example", "Catalog description: %s",
-                        responseResult.GetDescription().c_str());
+    OLP_SDK_LOG_INFO_F("read-example", "Catalog description: %s",
+                       responseResult.GetDescription().c_str());
 } else {
-    EDGE_SDK_LOG_ERROR("read-example",
-                       "Request catalog metadata - Failure");
+    OLP_SDK_LOG_ERROR("read-example",
+                      "Request catalog metadata - Failure");
 }
 ```
 
@@ -268,11 +268,11 @@ if (partitionsResponse.IsSuccessful()) {
         partitionsResponse.GetResult();
     const std::vector<olp::dataservice::read::model::Partition>& partitions =
         responseResult.GetPartitions();
-    EDGE_SDK_LOG_INFO_F("read-example", "Layer contains %d partitions.",
-                        partitions.size());
+    OLP_SDK_LOG_INFO_F("read-example", "Layer contains %d partitions.",
+                       partitions.size());
 } else {
-    EDGE_SDK_LOG_ERROR("read-example",
-                       "Request partition metadata - Failure");
+    OLP_SDK_LOG_ERROR("read-example",
+                      "Request partition metadata - Failure");
 }
 ```
 
@@ -324,12 +324,12 @@ olp::dataservice::read::DataResponse dataResponse =
 if (dataResponse.IsSuccessful()) {
     const olp::dataservice::read::DataResult& responseResult =
         dataResponse.GetResult();
-    EDGE_SDK_LOG_INFO_F("read-example",
-                        "Request partition data - Success, data size - %d",
-                        responseResult->size());
+    OLP_SDK_LOG_INFO_F("read-example",
+                       "Request partition data - Success, data size - %d",
+                       responseResult->size());
 } else {
-    EDGE_SDK_LOG_ERROR("read-example",
-                       "Request partition data - Failure");
+    OLP_SDK_LOG_ERROR("read-example",
+                      "Request partition data - Failure");
 }
 ```
 
