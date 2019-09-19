@@ -29,10 +29,9 @@
 #include "olp/authentication/TokenRequest.h"
 #include "olp/core/logging/Log.h"
 
-#define LOG_TAG "here::account::oauth2::TokenEndpoint"
-
 namespace {
 const std::string kOauth2TokenEndpoint = "/oauth2/token";
+constexpr auto kLogTag = "here::account::oauth2::TokenEndpoint";
 }  // namespace
 
 namespace olp {
@@ -97,8 +96,8 @@ TokenEndpoint::TokenEndpoint(const AuthenticationCredentials& credentials,
   if (pos != std::string::npos) {
     strippedEndpointUrl.erase(pos, kOauth2TokenEndpoint.size());
   } else {
-    EDGE_SDK_LOG_ERROR(
-        LOG_TAG,
+    OLP_SDK_LOG_ERROR(
+        kLogTag,
         "Expected '/oauth2/token' endpoint in the tokenEndpointUrl. Only "
         "standard "
         "OAuth2 token endpoint URLs are supported.");
