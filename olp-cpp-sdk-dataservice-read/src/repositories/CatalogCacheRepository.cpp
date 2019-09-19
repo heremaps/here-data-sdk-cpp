@@ -54,7 +54,7 @@ CatalogCacheRepository::CatalogCacheRepository(
 void CatalogCacheRepository::Put(const model::Catalog& catalog) {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn);
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "Put '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Put '%s'", key.c_str());
   cache_->Put(key, catalog,
               [catalog]() { return olp::serializer::serialize(catalog); });
 }
@@ -62,7 +62,7 @@ void CatalogCacheRepository::Put(const model::Catalog& catalog) {
 boost::optional<model::Catalog> CatalogCacheRepository::Get() {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn);
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "Get '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Get '%s'", key.c_str());
   auto cachedCatalog =
       cache_->Get(key, [](const std::string& serializedObject) {
         return parser::parse<model::Catalog>(serializedObject);
@@ -76,7 +76,7 @@ boost::optional<model::Catalog> CatalogCacheRepository::Get() {
 
 void CatalogCacheRepository::PutVersion(const model::VersionResponse& version) {
   std::string hrn(hrn_.ToCatalogHRNString());
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "PutVersion '%s'", hrn.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "PutVersion '%s'", hrn.c_str());
   cache_->Put(VersionKey(hrn), version,
               [version]() { return olp::serializer::serialize(version); });
 }
@@ -84,7 +84,7 @@ void CatalogCacheRepository::PutVersion(const model::VersionResponse& version) {
 boost::optional<model::VersionResponse> CatalogCacheRepository::GetVersion() {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = VersionKey(hrn);
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "GetVersion '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "GetVersion '%s'", key.c_str());
   auto cachedVersion =
       cache_->Get(key, [](const std::string& serializedObject) {
         return parser::parse<model::VersionResponse>(serializedObject);
@@ -97,7 +97,7 @@ boost::optional<model::VersionResponse> CatalogCacheRepository::GetVersion() {
 
 void CatalogCacheRepository::Clear() {
   std::string hrn(hrn_.ToCatalogHRNString());
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "Clear '%s'", CreateKey(hrn).c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Clear '%s'", CreateKey(hrn).c_str());
   cache_->RemoveKeysWithPrefix(hrn);
 }
 
