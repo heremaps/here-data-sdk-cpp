@@ -51,15 +51,15 @@ client::CancellationToken ApiClientLookup::LookupApi(
     std::shared_ptr<client::OlpClient> client, const std::string& service,
     const std::string& service_version, const client::HRN& hrn,
     const ApisCallback& callback) {
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "LookupApi(%s/%s): %s", service.c_str(),
-                       service_version.c_str(), hrn.partition.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "LookupApi(%s/%s): %s", service.c_str(),
+                      service_version.c_str(), hrn.partition.c_str());
 
   // compare the hrn
   auto base_url = GetDatastoreServerUrl(hrn.partition);
   if (base_url.empty()) {
-    EDGE_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s Lookup URL not found",
-                        service.c_str(), service_version.c_str(),
-                        hrn.partition.c_str());
+    OLP_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s Lookup URL not found",
+                       service.c_str(), service_version.c_str(),
+                       hrn.partition.c_str());
     callback(
         client::ApiError(client::ErrorCode::NotFound, "Invalid or broken HRN"));
     return client::CancellationToken();
@@ -68,9 +68,9 @@ client::CancellationToken ApiClientLookup::LookupApi(
   client->SetBaseUrl(base_url);
 
   if (service == "config") {
-    EDGE_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s - config service",
-                        service.c_str(), service_version.c_str(),
-                        hrn.partition.c_str());
+    OLP_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s - config service",
+                       service.c_str(), service_version.c_str(),
+                       hrn.partition.c_str());
 
     // scan apis at platform apis
     return PlatformApi::GetApis(
@@ -78,9 +78,9 @@ client::CancellationToken ApiClientLookup::LookupApi(
         [callback](PlatformApi::ApisResponse response) { callback(response); });
   }
 
-  EDGE_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s - resource service",
-                      service.c_str(), service_version.c_str(),
-                      hrn.partition.c_str());
+  OLP_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s - resource service",
+                     service.c_str(), service_version.c_str(),
+                     hrn.partition.c_str());
 
   // scan apis at resource endpoint
   return ResourcesApi::GetApis(
@@ -92,20 +92,20 @@ client::CancellationToken ApiClientLookup::LookupApiClient(
     std::shared_ptr<client::OlpClient> client, const std::string& service,
     const std::string& service_version, const client::HRN& hrn,
     const ApiClientCallback& callback) {
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "LookupApiClient(%s/%s): %s", service.c_str(),
-                       service_version.c_str(), hrn.partition.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "LookupApiClient(%s/%s): %s", service.c_str(),
+                      service_version.c_str(), hrn.partition.c_str());
 
   return ApiClientLookup::LookupApi(
       client, service, service_version, hrn, [=](ApisResponse response) {
         if (!response.IsSuccessful()) {
-          EDGE_SDK_LOG_INFO_F(
+          OLP_SDK_LOG_INFO_F(
               kLogTag, "LookupApiClient(%s/%s): %s - unsuccessful: %s",
               service.c_str(), service_version.c_str(), hrn.partition.c_str(),
               response.GetError().GetMessage().c_str());
 
           callback(response.GetError());
         } else if (response.GetResult().size() < 1) {
-          EDGE_SDK_LOG_INFO_F(
+          OLP_SDK_LOG_INFO_F(
               kLogTag, "LookupApiClient(%s/%s): %s - service not available",
               service.c_str(), service_version.c_str(), hrn.partition.c_str());
 
@@ -115,10 +115,10 @@ client::CancellationToken ApiClientLookup::LookupApiClient(
                                "Service/Version not available for given HRN"));
         } else {
           const auto& base_url = response.GetResult().at(0).GetBaseUrl();
-          EDGE_SDK_LOG_INFO_F(kLogTag,
-                              "LookupApiClient(%s/%s): %s - OK, base_url=%s",
-                              service.c_str(), service_version.c_str(),
-                              hrn.partition.c_str(), base_url.c_str());
+          OLP_SDK_LOG_INFO_F(kLogTag,
+                             "LookupApiClient(%s/%s): %s - OK, base_url=%s",
+                             service.c_str(), service_version.c_str(),
+                             hrn.partition.c_str(), base_url.c_str());
 
           client->SetBaseUrl(base_url);
           callback(*client);

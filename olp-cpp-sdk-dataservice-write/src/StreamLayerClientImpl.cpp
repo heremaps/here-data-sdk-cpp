@@ -327,7 +327,7 @@ StreamLayerClientImpl::PopFromQueue() {
       cache_->Get(GetUuidListKey(), [](const std::string& s) { return s; });
 
   if (uuid_list_any.empty()) {
-    EDGE_SDK_LOG_ERROR(kLogTag, "Unable to Restore UUID list from Cache");
+    OLP_SDK_LOG_ERROR(kLogTag, "Unable to Restore UUID list from Cache");
     return boost::none;
   }
 
@@ -350,8 +350,8 @@ StreamLayerClientImpl::PopFromQueue() {
               [&uuid_list]() { return uuid_list; });
 
   if (publish_data_any.empty()) {
-    EDGE_SDK_LOG_ERROR(kLogTag,
-                       "Unable to Restore PublishData Request from Cache");
+    OLP_SDK_LOG_ERROR(kLogTag,
+                      "Unable to Restore PublishData Request from Cache");
     return boost::none;
   }
 
@@ -422,7 +422,7 @@ olp::client::CancellationToken StreamLayerClientImpl::Flush(
       counter++;
     }
 
-    EDGE_SDK_LOG_INFO_F(kLogTag, "Flushed %d publish requests", counter);
+    OLP_SDK_LOG_INFO_F(kLogTag, "Flushed %d publish requests", counter);
     callback(std::move(response));
   };
 
