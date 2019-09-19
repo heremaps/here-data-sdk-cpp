@@ -103,8 +103,8 @@ bool FacebookTestUtils::Impl::CreateFacebookTestUser(
   unsigned int retry = 0u;
   do {
     if (retry > 0u) {
-      EDGE_SDK_LOG_WARNING(__func__,
-                           "Request retry attempted (" << retry << ")");
+      OLP_SDK_LOG_WARNING(__func__,
+                          "Request retry attempted (" << retry << ")");
       std::this_thread::sleep_for(
           std::chrono::seconds(retry * RETRY_DELAY_SECS));
     }
@@ -154,8 +154,8 @@ bool FacebookTestUtils::Impl::DeleteFacebookTestUser(
   unsigned int retry = 0u;
   do {
     if (retry > 0u) {
-      EDGE_SDK_LOG_WARNING(__func__,
-                           "Request retry attempted (" << retry << ")");
+      OLP_SDK_LOG_WARNING(__func__,
+                          "Request retry attempted (" << retry << ")");
       std::this_thread::sleep_for(
           std::chrono::seconds(retry * RETRY_DELAY_SECS));
     }
