@@ -89,15 +89,15 @@ int RunExample() {
 
     // Check the response
     if (!response.IsSuccessful()) {
-      EDGE_SDK_LOG_ERROR_F(kLogTag,
-                           "Error writing data - HTTP Status: %d Message: %s",
-                           response.GetError().GetHttpStatusCode(),
-                           response.GetError().GetMessage().c_str());
+      OLP_SDK_LOG_ERROR_F(kLogTag,
+                          "Error writing data - HTTP Status: %d Message: %s",
+                          response.GetError().GetHttpStatusCode(),
+                          response.GetError().GetMessage().c_str());
       return -1;
     }
 
-    EDGE_SDK_LOG_INFO_F(kLogTag, "Publish Successful - TraceID: %s",
-                        response.GetResult().GetTraceID().c_str());
+    OLP_SDK_LOG_INFO_F(kLogTag, "Publish Successful - TraceID: %s",
+                       response.GetResult().GetTraceID().c_str());
   }
 
   // Multi-publish to stream layer
@@ -106,7 +106,7 @@ int RunExample() {
     for (size_t idx = 0; idx < kPublishRequestsSize; ++idx) {
       auto status = client->Queue(request);
       if (status) {
-        EDGE_SDK_LOG_ERROR_F(kLogTag, "Queue failed - %s", status->c_str());
+        OLP_SDK_LOG_ERROR_F(kLogTag, "Queue failed - %s", status->c_str());
         return -1;
       }
     }
@@ -115,22 +115,22 @@ int RunExample() {
     auto future_response = client->Flush();
     auto responses = future_response.GetFuture().get();
     if (responses.empty()) {
-      EDGE_SDK_LOG_ERROR_F(kLogTag, "Error on Flush()");
+      OLP_SDK_LOG_ERROR_F(kLogTag, "Error on Flush()");
       return -1;
     }
 
     // Check all publishes succeeded
     for (auto response : responses) {
       if (!response.IsSuccessful()) {
-        EDGE_SDK_LOG_ERROR_F(
-            kLogTag, "Error flushing data - HTTP Status: %d Message: %s",
-            response.GetError().GetHttpStatusCode(),
-            response.GetError().GetMessage().c_str());
+        OLP_SDK_LOG_ERROR_F(kLogTag,
+                            "Error flushing data - HTTP Status: %d Message: %s",
+                            response.GetError().GetHttpStatusCode(),
+                            response.GetError().GetMessage().c_str());
         return -1;
       }
 
-      EDGE_SDK_LOG_INFO_F(kLogTag, "Flush Successful - TraceID: %s",
-                          response.GetResult().GetTraceID().c_str());
+      OLP_SDK_LOG_INFO_F(kLogTag, "Flush Successful - TraceID: %s",
+                         response.GetResult().GetTraceID().c_str());
     }
   }
 
