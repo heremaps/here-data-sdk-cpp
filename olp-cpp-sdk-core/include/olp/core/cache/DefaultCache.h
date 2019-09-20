@@ -32,8 +32,24 @@ class InMemoryCache;
 class DiskCache;
 
 /**
- * @brief Default cache that provides an in-memory LRU cache and persistance of
- * cached key,value pairs.
+ * @brief A default cache that provides an in-memory LRU cache and persistence
+ * of the cached key-value pairs.
+ *
+ * @note By default, the downloaded data is cached only in memory.
+ * To enable the persistent cache, define
+ * `olp::cache::CacheSettings::disk_path`. On iOS, the path is relative to the
+ * application data folder.
+ *
+ * The default maximum size of the persistent cache is 32 MB. If the entire
+ * available disk space should be used, set
+ * `olp::cache::CacheSettings::max_disk_storage` to -1.
+ * The implementation of the default persistent cache is based on
+ * [LevelDB](https://github.com/google/leveldb). Due to the known LevelDB
+ * limitation, the default cache can be accessed only by one process
+ * exclusively.
+ *
+ * By default, the maximum size of the in-memory cache is 1MB. To change it,
+ * set `olp::cache::CacheSettings::max_memory_cache_size` to the desired value.
  */
 class CORE_API DefaultCache : public KeyValueCache {
  public:
@@ -52,7 +68,7 @@ class CORE_API DefaultCache : public KeyValueCache {
   virtual ~DefaultCache();
 
   /**
-   * @brief Open the cache to start read/write operations.
+   * @brief Opens the cache to start read/write operations.
    *
    * @return StorageOpenResult if there were problems opening any of the
    * provided pathes on the disk.
@@ -65,13 +81,13 @@ class CORE_API DefaultCache : public KeyValueCache {
   void Close();
 
   /**
-   * @brief Clear the contents of the cache.
+   * @brief Clears the contents of the cache.
    * @return Returns true if the operation is successfull, false otherwise.
    */
   bool Clear();
 
   /**
-   * @brief Store key,value pair into the cache
+   * @brief Stores the key-value pair into the cache.
    * @param key Key for this value
    * @param value The value of any type
    * @param encoder A method provided to encode the specified value into a
@@ -83,7 +99,7 @@ class CORE_API DefaultCache : public KeyValueCache {
                    const Encoder& encoder, time_t expiry);
 
   /**
-   * @brief Store raw binary data as value into the cache
+   * @brief Stores the raw binary data as value into the cache.
    * @param key Key for this value
    * @param value binary data to be stored
    * @param expiry Time in seconds to when pair will expire
@@ -94,22 +110,22 @@ class CORE_API DefaultCache : public KeyValueCache {
                    time_t expiry);
 
   /**
-   * @brief Get key,value pair from the cache
+   * @brief Gets the key-value pair from the cache.
    * @param key Key to look for
    * @param decoder A method is provided to decode a value from a string if
    * needed
    */
-  virtual boost::any Get(const std::string& key, const Decoder& encoder);
+  virtual boost::any Get(const std::string& key, const Decoder& decoder);
 
   /**
-   * @brief Get key and binary data from the cache
+   * @brief Gets the key and binary data from the cache.
    * @param key Key to look for
    */
   virtual std::shared_ptr<std::vector<unsigned char>> Get(
       const std::string& key);
 
   /**
-   * @brief Remove a key,value pair from the cache
+   * @brief Removes the key-value pair from the cache.
    * @param key Key for the value to remove from cache
    *
    * @return Returns true if the operation is successfull, false otherwise.
@@ -117,7 +133,8 @@ class CORE_API DefaultCache : public KeyValueCache {
   virtual bool Remove(const std::string& key);
 
   /**
-   * @brief Remove values with keys matching the given prefix from the cache
+   * @brief Removes the values with the keys matching the given
+   * prefix from the cache.
    * @param prefix Prefix to look for
    *
    * @return Returns true on removal, false otherwise.
