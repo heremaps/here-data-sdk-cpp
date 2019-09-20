@@ -30,24 +30,34 @@ namespace olp {
 namespace cache {
 
 /**
- * @brief Options for opening the disk cache
+ * @brief Options for opening the disk cache.
  */
 enum OpenOptions : unsigned char {
-  Default = 0x00,
-  ReadOnly = 0x01,
-  CheckCrc = 0x02
+  Default = 0x00,  /*!< Opens the disk cache in the read-write mode. */
+  ReadOnly = 0x01, /*!< Opens the disk cache in the read-only mode. */
+  CheckCrc = 0x02  /*!< Verifies the checksum of all data that is read. */
 };
 
+/**
+ * @brief Settings for in-memory and on-disk caching.
+ */
 struct CacheSettings {
   /**
-   * @brief Path to save contents on disk
+   * @brief The path to the on-disk cache.
+   *
+   * If this parameter is not set, the downloaded data is stored
+   * only in the in-memory cache that is limited by `#max_memory_cache_size`.
+   * @deprecated Use #disk_path_mutable instead.
    */
   OLP_SDK_DEPRECATED("Use disk_path_mutable instead. Will be removed 03.2020")
   boost::optional<std::string> disk_path = boost::none;
 
   /**
-   * @brief Path to the mutable (read-write) cache, where SDK will cache and
-   * lookup the content. User should have write permissions.
+   * @brief The path to the mutable (read-write) on-disk cache where the
+   * SDK will cache and lookup the content. You should have write permissions.
+   *
+   * If this parameter is not set, the downloaded data is stored
+   * only in the in-memory cache that is limited by `#max_memory_cache_size`.
    */
   boost::optional<std::string> disk_path_mutable = boost::none;
 
