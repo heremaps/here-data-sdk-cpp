@@ -325,6 +325,6 @@ install (FILES ${GEOTYPE_HEADER} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo)
 
 export_config()
 
-if(EDGE_SDK_ENABLE_TESTING)
+if(OLP_SDK_ENABLE_TESTING)
     add_subdirectory(tests)
 endif()

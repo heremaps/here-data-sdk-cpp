@@ -15,7 +15,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-if(NOT EDGE_SDK_ENABLE_TESTING)
+if(NOT OLP_SDK_ENABLE_TESTING)
     return()
 endif()
 

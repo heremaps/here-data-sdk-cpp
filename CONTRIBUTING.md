@@ -308,7 +308,7 @@ A sample component CMake files would look like this:
 <br />// install component
 <br />**install** (FILES ${COMPONENT_INC} DESTINATION ${INCLUDE_DIRECTORY}/olp/component)
 <br />**export_config()**
-<br />  if(**EDGE_SDK_ENABLE_TESTING**)
+<br />  if(**OLP_SDK_ENABLE_TESTING**)
 <br />add_subdirectory(**test/unit**)
 <br />endif()
 

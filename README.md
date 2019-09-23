@@ -67,7 +67,7 @@ The dependencies of the HERE OLP SDK for C++ are the following:
 
 [CMake](https://cmake.org/download/) is the main build system. The minimal required version of CMake is 3.5.
 
-CMake downloads [leveldb](https://github.com/google/leveldb), [snappy](https://github.com/google/snappy), [rapidjson](https://github.com/Tencent/rapidjson), and [Boost](https://www.boost.org/). This can be disabled by setting `EDGE_SDK_BUILD_EXTERNAL_DEPS` to `OFF`. For details on CMake flags, see [below](#cmake-flags).
+CMake downloads [leveldb](https://github.com/google/leveldb), [snappy](https://github.com/google/snappy), [rapidjson](https://github.com/Tencent/rapidjson), and [Boost](https://www.boost.org/). This can be disabled by setting `OLP_SDK_BUILD_EXTERNAL_DEPS` to `OFF`. For details on CMake flags, see [below](#cmake-flags).
 
 Optionally, if you want to build documentation from annotated source code, you need to install [Doxygen](http://www.doxygen.nl/).
 
@@ -93,11 +93,11 @@ cmake ..
 make
 ```
 
-To build the [Doxygen](http://www.doxygen.nl/) documentation, you need to have CMake version 3.9 or later, and set `EDGE_SDK_BUILD_DOC=ON` when running CMake configuration:
+To build the [Doxygen](http://www.doxygen.nl/) documentation, you need to have CMake version 3.9 or later, and set `OLP_SDK_BUILD_DOC=ON` when running CMake configuration:
 
 ```bash
 mkdir build && cd build
-cmake -DEDGE_SDK_BUILD_DOC=ON ..
+cmake -DOLP_SDK_BUILD_DOC=ON ..
 make docs
 ```
 
@@ -105,7 +105,7 @@ make docs
 
 By default this SDK downloads and compiles its dependencies. The versions of downloaded dependencies may conflict with versions already installed on your system, so they are not added to the install targets.
 
-Therefore, to install the HERE OLP SDK for C++, you must first install all its dependencies. Then you need to configure the SDK with `EDGE_SDK_BUILD_EXTERNAL_DEPS` set to `OFF` so that it finds required dependencies in the system.
+Therefore, to install the HERE OLP SDK for C++, you must first install all its dependencies. Then you need to configure the SDK with `OLP_SDK_BUILD_EXTERNAL_DEPS` set to `OFF` so that it finds required dependencies in the system.
 
 Another option is to build the SDK as a shared library, setting the `BUILD_SHARED_LIBS` flag to `ON`.
 
@@ -133,26 +133,26 @@ Using the provided CMake menu by the Visual C++ tools for CMake, generate the `.
 
 Defaults to `OFF`. If enabled, this causes all libraries to be built as shared.
 
-#### `EDGE_SDK_BUILD_DOC`
+#### `OLP_SDK_BUILD_DOC`
 
 Defaults to `OFF`. If enabled, the API reference is to be generated in your build directory.
 
 > **Note:**
 > This requires [Doxygen](http://www.doxygen.nl/) to be installed.
 
-#### `EDGE_SDK_ENABLE_TESTING`
+#### `OLP_SDK_ENABLE_TESTING`
 
 Defaults to `ON`. If enabled, unit tests are to be built for each library.
 
-#### `EDGE_SDK_BUILD_EXTERNAL_DEPS`
+#### `OLP_SDK_BUILD_EXTERNAL_DEPS`
 
 Defaults to `ON`. If enabled, CMake downloads and compiles dependencies.
 
-#### `EDGE_SDK_NO_EXCEPTION`
+#### `OLP_SDK_NO_EXCEPTION`
 
 Defaults to `OFF`. If enabled, this causes all libraries to be built without exceptions.
 
-#### `EDGE_SDK_MSVC_PARALLEL_BUILD_ENABLE` (Windows Only)
+#### `OLP_SDK_MSVC_PARALLEL_BUILD_ENABLE` (Windows Only)
 
 Defaults to `ON`. If enabled, this adds `/MP` compilation flag to build SDK using multiple cores.
 
