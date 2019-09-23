@@ -34,26 +34,26 @@ else()
 endif()
 
 # Options
-option(EDGE_SDK_ENABLE_TESTING "Flag to enable/disable building unit and integration tests" ON)
-option(EDGE_SDK_BUILD_DOC "Build SDK documentation" OFF)
-option(EDGE_SDK_NO_EXCEPTION "Turn off EXCEPTION" OFF)
-option(EDGE_SDK_BUILD_EXTERNAL_DEPS "Download and build external dependencies" ON)
-option(EDGE_SDK_BUILD_EXAMPLES "Enable examples targets" OFF)
-option(EDGE_SDK_MSVC_PARALLEL_BUILD_ENABLE "Enable parallel build on MSVC" ON)
+option(OLP_SDK_ENABLE_TESTING "Flag to enable/disable building unit and integration tests" ON)
+option(OLP_SDK_BUILD_DOC "Build SDK documentation" OFF)
+option(OLP_SDK_NO_EXCEPTION "Turn off EXCEPTION" OFF)
+option(OLP_SDK_BUILD_EXTERNAL_DEPS "Download and build external dependencies" ON)
+option(OLP_SDK_BUILD_EXAMPLES "Enable examples targets" OFF)
+option(OLP_SDK_MSVC_PARALLEL_BUILD_ENABLE "Enable parallel build on MSVC" ON)
 
 # C++ standard version. Minimum supported version is 11.
 set(CMAKE_CXX_STANDARD 11)
 
 # Set no exception
-if (EDGE_SDK_NO_EXCEPTION)
+if (OLP_SDK_NO_EXCEPTION)
     set(CMAKE_CXX_FLAGS "-fno-exceptions ${CMAKE_CXX_FLAGS}")
     set(CMAKE_C_FLAGS "-fno-exceptions ${CMAKE_C_FLAGS}")
 endif()
 
-if (MSVC AND EDGE_SDK_MSVC_PARALLEL_BUILD_ENABLE)
+if (MSVC AND OLP_SDK_MSVC_PARALLEL_BUILD_ENABLE)
     add_compile_options(/MP)
     message(STATUS "MSVC - Using parallel compilation (/MP)")
-endif (MSVC AND EDGE_SDK_MSVC_PARALLEL_BUILD_ENABLE)
+endif (MSVC AND OLP_SDK_MSVC_PARALLEL_BUILD_ENABLE)
 
 # Add cmake dir to search list
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
@@ -67,7 +67,7 @@ include(common)
 # Include code coverage variables
 include(coverage)
 
-if(EDGE_SDK_BUILD_EXTERNAL_DEPS)
+if(OLP_SDK_BUILD_EXTERNAL_DEPS)
     # Add third-party dependencies
     add_subdirectory(external)
 endif()
@@ -81,14 +81,14 @@ add_sdks()
 # Add docs
 add_subdirectory(docs)
 
-if(EDGE_SDK_ENABLE_TESTING)
+if(OLP_SDK_ENABLE_TESTING)
     # Add tests
     add_subdirectory(tests/functional)
     add_subdirectory(tests/integration)
 endif()
 
 # Add example
-if(EDGE_SDK_BUILD_EXAMPLES)
+if(OLP_SDK_BUILD_EXAMPLES)
     add_subdirectory(examples/dataservice-read)
     add_subdirectory(examples/dataservice-write)
 endif()

@@ -15,7 +15,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-if(NOT EDGE_SDK_BUILD_DOC)
+if(NOT OLP_SDK_BUILD_DOC)
     message(STATUS "Build SDK documentation disabled")
     return()
 endif()

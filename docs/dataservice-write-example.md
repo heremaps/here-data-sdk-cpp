@@ -13,11 +13,11 @@ const std::string gLayer("");            // layer name inside catalog to use
 
 ## Building and running on Linux
 
-Configure the project with `EDGE_SDK_BUILD_EXAMPLES` set to `ON` to enable examples `CMake` targets:
+Configure the project with `OLP_SDK_BUILD_EXAMPLES` set to `ON` to enable examples `CMake` targets:
 
 ```bash
 mkdir build && cd build
-cmake -DEDGE_SDK_BUILD_EXAMPLES=ON ..
+cmake -DOLP_SDK_BUILD_EXAMPLES=ON ..
 ```
 
 To build the example, run the following command in the `build` folder:
@@ -47,13 +47,13 @@ This example shows how to integrate and use the HERE OLP SDK for C++ for an Andr
 
 Before you build the example, complete the following:
 
-* Configure the SDK with `EDGE_SDK_BUILD_EXAMPLES` set to `ON`.
+* Configure the SDK with `OLP_SDK_BUILD_EXAMPLES` set to `ON`.
 * Specify the path to Android NDK's toolchain file set via the `CMAKE_TOOLCHAIN_FILE` variable.
 * In case you want to build SDK for a specific Android platform, use `-DANDROID_PLATFORM CMake` flag, and `-DANDROID_ABI`, if you want to build for specific Android architecture. For more details, see [NDK-specific CMake variables](https://developer.android.com/ndk/guides/cmake#variables).
 
 ```bash
 mkdir build && cd build
-cmake .. -DEDGE_SDK_BUILD_EXAMPLES=ON -DCMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a
+cmake .. -DOLP_SDK_BUILD_EXAMPLES=ON -DCMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a
 ```
 
 The `CMake` command generates a `Gradle` project in the `build/examples/dataservice-write/android` folder. Before using the project, install HERE OLP SDK for C++ libraries into the sysroot directory:
@@ -77,7 +77,7 @@ Alternatively, you can use Android Studio IDE by opening the `build/examples/dat
 
 After you provide your app access key id, secret access key, catalog, and layer information, install and run `dataservice_write_example` APK, the main UI screen displays a message `Publish Successful`. If you encounter an error, please check the device's logcat for the error message.
 
-> **Note:** you can run `CMake` command directly from the `<olp-sdk-root>/examples/dataservice-write/` folder if you have already built and installed HERE OLP SDK for C++ libraries for Android. Make sure you provide correct path to the `LevelDB` library, and correct `EDGE_SDK_HTTP_CLIENT_JAR` parameter in the `CMake` command, invoked by the `build/examples/dataservice-write/android/app/build.gradle` script.
+> **Note:** you can run `CMake` command directly from the `<olp-sdk-root>/examples/dataservice-write/` folder if you have already built and installed HERE OLP SDK for C++ libraries for Android. Make sure you provide correct path to the `LevelDB` library, and correct `OLP_SDK_HTTP_CLIENT_JAR` parameter in the `CMake` command, invoked by the `build/examples/dataservice-write/android/app/build.gradle` script.
 
 ## Building and running on iOS
 
@@ -93,13 +93,13 @@ This example shows how to integrate and use the HERE OLP SDK for C++ for a basic
 
 Before building the example, complete the following:
 
-* Configure the HERE OLP SDK for C++ with `EDGE_SDK_BUILD_EXAMPLES` set to `ON`.
-* Optionally, disable tests with `EDGE_SDK_ENABLE_TESTING` set to `OFF`.
+* Configure the HERE OLP SDK for C++ with `OLP_SDK_BUILD_EXAMPLES` set to `ON`.
+* Optionally, disable tests with `OLP_SDK_ENABLE_TESTING` set to `OFF`.
 * Specify the path to the iOS toolchain file shipped together with the SDK, which is located under the `<olp-sdk-root>/cmake/toolchains/iOS.cmake`:
 
 ```bash
 mkdir build && cd build
-cmake .. -GXcode  -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/iOS.cmake -DPLATFORM=iphoneos -DEDGE_SDK_BUILD_EXAMPLES=ON -DEDGE_SDK_ENABLE_TESTING=OFF
+cmake .. -GXcode  -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/iOS.cmake -DPLATFORM=iphoneos -DOLP_SDK_BUILD_EXAMPLES=ON -DOLP_SDK_ENABLE_TESTING=OFF
 ```
 
 > **Note:** to configure the HERE OLP SDK for C++ for a simulator, set the `SIMULATOR` variable to `ON`.
