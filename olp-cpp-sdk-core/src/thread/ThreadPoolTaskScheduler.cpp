@@ -52,14 +52,14 @@ void SetCurrentThreadName(const std::string& thread_name) {
   // Unused
   CORE_UNUSED(thread_name);
 #else  // Linux, Android, QNX
-#if defined(EDGE_SDK_HAVE_PTHREAD_SETNAME_NP)
+#if defined(OLP_SDK_HAVE_PTHREAD_SETNAME_NP)
   // QNX allows 100 but Linux only 16 so select min value and apply for both.
   // If maximum length is exceeded on some systems, e.g. Linux, the name is not
   // set at all. So better truncate it to have at least the minimum set.
   constexpr size_t kMaxThreadNameLength = 16u;
   std::string truncated_name = thread_name.substr(0, kMaxThreadNameLength - 1);
   pthread_setname_np(pthread_self(), truncated_name.c_str());
-#endif  // EDGE_SDK_HAVE_PTHREAD_SETNAME_NP
+#endif  // OLP_SDK_HAVE_PTHREAD_SETNAME_NP
 #endif  // PORTING_PLATFORM_MAC
 }
 
