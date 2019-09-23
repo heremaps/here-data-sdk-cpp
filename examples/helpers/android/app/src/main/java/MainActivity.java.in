@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package com.here.android.olp.@EDGE_SDK_EXAMPLE_PACKAGE_NAME@;
+package com.here.android.olp.@OLP_SDK_EXAMPLE_PACKAGE_NAME@;
 
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
@@ -32,9 +32,9 @@ public class MainActivity extends AppCompatActivity {
     // Load the built C++ example library, which was assembled during CMakeLists execution step
     static {
         try {
-            System.loadLibrary("@EDGE_SDK_EXAMPLE_TARGET_NAME@");
+            System.loadLibrary("@OLP_SDK_EXAMPLE_TARGET_NAME@");
         } catch (Error e) {
-            Log.w(LOG_TAG, "The @EDGE_SDK_EXAMPLE_TARGET_NAME@ library failed to load; please " +
+            Log.w(LOG_TAG, "The @OLP_SDK_EXAMPLE_TARGET_NAME@ library failed to load; please " +
                     "ignore the message if it is static library" + e.getMessage());
         }
     }

@@ -15,7 +15,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 if(IOS)
-    set(EDGE_SDK_HTTP_IOS_SOURCES
+    set(OLP_SDK_HTTP_IOS_SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPNetworkIOS.mm"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPNetworkIOS.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPNetworkConstants.mm"
@@ -30,5 +30,5 @@ if(IOS)
 
     add_definitions(-DNETWORK_HAS_IOS)
 else()
-    set(EDGE_SDK_HTTP_IOS_SOURCES)
+    set(OLP_SDK_HTTP_IOS_SOURCES)
 endif()

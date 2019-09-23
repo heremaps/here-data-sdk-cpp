@@ -17,15 +17,15 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-project(@EDGE_SDK_EXAMPLE_TARGET_NAME@ VERSION 0.7.0)
+project(@OLP_SDK_EXAMPLE_TARGET_NAME@ VERSION 0.7.0)
 
-if (DEFINED EDGE_SDK_HTTP_CLIENT_JAR)
-    get_filename_component(EDGE_SDK_HTTP_CLIENT_JAR_FULL_PATH "${EDGE_SDK_HTTP_CLIENT_JAR}" ABSOLUTE)
-    if (NOT EXISTS "${EDGE_SDK_HTTP_CLIENT_JAR_FULL_PATH}")
-        message(FATAL_ERROR "Can't find EdgeHttpClient.jar - the path ${EDGE_SDK_HTTP_CLIENT_JAR_FULL_PATH} is invalid!")
+if (DEFINED OLP_SDK_HTTP_CLIENT_JAR)
+    get_filename_component(OLP_SDK_HTTP_CLIENT_JAR_FULL_PATH "${OLP_SDK_HTTP_CLIENT_JAR}" ABSOLUTE)
+    if (NOT EXISTS "${OLP_SDK_HTTP_CLIENT_JAR_FULL_PATH}")
+        message(FATAL_ERROR "Can't find EdgeHttpClient.jar - the path ${OLP_SDK_HTTP_CLIENT_JAR_FULL_PATH} is invalid!")
     endif()
 else()
-    message(FATAL_ERROR "The EDGE_SDK_HTTP_CLIENT_JAR variable is not defined."
+    message(FATAL_ERROR "The OLP_SDK_HTTP_CLIENT_JAR variable is not defined."
                         "Please, specify this variable with the path to the built EdgeHttpClient.jar.")
 endif()
 
@@ -39,27 +39,27 @@ find_package(olp-cpp-sdk-dataservice-write REQUIRED)
 find_package(leveldb REQUIRED)
 find_package(Threads REQUIRED)
 
-add_library(@EDGE_SDK_EXAMPLE_TARGET_NAME@ SHARED
+add_library(@OLP_SDK_EXAMPLE_TARGET_NAME@ SHARED
         ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/example.h
         ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/example.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/MainActivityNative.cpp)
 
 # Find and copy the EdgeHttpClient.jar into the corresponding libs directory
-get_filename_component(EDGE_SDK_HTTP_CLIENT_JAR_NAME ${EDGE_SDK_HTTP_CLIENT_JAR_FULL_PATH} NAME)
+get_filename_component(OLP_SDK_HTTP_CLIENT_JAR_NAME ${OLP_SDK_HTTP_CLIENT_JAR_FULL_PATH} NAME)
 
 add_custom_command(
-    TARGET @EDGE_SDK_EXAMPLE_TARGET_NAME@ POST_BUILD
+    TARGET @OLP_SDK_EXAMPLE_TARGET_NAME@ POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${EDGE_SDK_HTTP_CLIENT_JAR_FULL_PATH}
-        ${CMAKE_CURRENT_SOURCE_DIR}/libs/${EDGE_SDK_HTTP_CLIENT_JAR_NAME}
+        ${OLP_SDK_HTTP_CLIENT_JAR_FULL_PATH}
+        ${CMAKE_CURRENT_SOURCE_DIR}/libs/${OLP_SDK_HTTP_CLIENT_JAR_NAME}
 )
 
-target_include_directories(@EDGE_SDK_EXAMPLE_TARGET_NAME@
+target_include_directories(@OLP_SDK_EXAMPLE_TARGET_NAME@
     PUBLIC
         ${Boost_INCLUDE_DIRS}
 )
 
-target_link_libraries(@EDGE_SDK_EXAMPLE_TARGET_NAME@
+target_link_libraries(@OLP_SDK_EXAMPLE_TARGET_NAME@
     olp-cpp-sdk-authentication
     olp-cpp-sdk-dataservice-read
     olp-cpp-sdk-dataservice-write

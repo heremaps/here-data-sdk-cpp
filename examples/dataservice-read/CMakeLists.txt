@@ -16,39 +16,39 @@
 # License-Filename: LICENSE
 cmake_minimum_required(VERSION 3.5)
 
-set(EDGE_SDK_DATASERVICE_READ_EXAMPLE_TARGET dataservice-read-example)
+set(OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET dataservice-read-example)
 
-set(EDGE_SDK_EXAMPLE_SUCCESS_STRING "Reading the partition data from the specified catalog completed successfully")
-set(EDGE_SDK_EXAMPLE_FAILURE_STRING "Failed to read data from the specified catalog!")
+set(OLP_SDK_EXAMPLE_SUCCESS_STRING "Reading the partition data from the specified catalog completed successfully")
+set(OLP_SDK_EXAMPLE_FAILURE_STRING "Failed to read data from the specified catalog!")
 
 if (IOS)
     include(${CMAKE_CURRENT_SOURCE_DIR}/../helpers/cmake/gen_ios_example.cmake.in)
 
-    gen_ios_example_application(${EDGE_SDK_DATASERVICE_READ_EXAMPLE_TARGET}
-                                ${EDGE_SDK_EXAMPLE_SUCCESS_STRING}
-                                ${EDGE_SDK_EXAMPLE_FAILURE_STRING})
+    gen_ios_example_application(${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET}
+                                ${OLP_SDK_EXAMPLE_SUCCESS_STRING}
+                                ${OLP_SDK_EXAMPLE_FAILURE_STRING})
 
 elseif (ANDROID)
     include(${CMAKE_CURRENT_SOURCE_DIR}/../helpers/cmake/gen_android_example.cmake.in)
 
-    set(EDGE_SDK_EXAMPLE_PACKAGE_NAME "dataservice_read_example")
-    set(EDGE_SDK_EXAMPLE_PACKAGE_JNI_NAME "dataservice_1read_1example")
-    gen_android_example_application(${EDGE_SDK_DATASERVICE_READ_EXAMPLE_TARGET}
-                                    ${EDGE_SDK_EXAMPLE_PACKAGE_NAME}
-                                    ${EDGE_SDK_EXAMPLE_PACKAGE_JNI_NAME}
-                                    ${EDGE_SDK_EXAMPLE_SUCCESS_STRING}
-                                    ${EDGE_SDK_EXAMPLE_FAILURE_STRING})
+    set(OLP_SDK_EXAMPLE_PACKAGE_NAME "dataservice_read_example")
+    set(OLP_SDK_EXAMPLE_PACKAGE_JNI_NAME "dataservice_1read_1example")
+    gen_android_example_application(${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET}
+                                    ${OLP_SDK_EXAMPLE_PACKAGE_NAME}
+                                    ${OLP_SDK_EXAMPLE_PACKAGE_JNI_NAME}
+                                    ${OLP_SDK_EXAMPLE_SUCCESS_STRING}
+                                    ${OLP_SDK_EXAMPLE_FAILURE_STRING})
 else()
-    project(${EDGE_SDK_DATASERVICE_READ_EXAMPLE_TARGET})
+    project(${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET})
 
     find_package(olp-cpp-sdk-authentication REQUIRED)
     find_package(olp-cpp-sdk-dataservice-read REQUIRED)
 
-    add_executable(${EDGE_SDK_DATASERVICE_READ_EXAMPLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/example.h ${CMAKE_CURRENT_SOURCE_DIR}/example.cpp)
+    add_executable(${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/example.h ${CMAKE_CURRENT_SOURCE_DIR}/example.cpp)
 
-    target_sources(${EDGE_SDK_DATASERVICE_READ_EXAMPLE_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+    target_sources(${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 
-    target_link_libraries(${EDGE_SDK_DATASERVICE_READ_EXAMPLE_TARGET}
+    target_link_libraries(${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET}
         olp-cpp-sdk-authentication
         olp-cpp-sdk-dataservice-read
     )

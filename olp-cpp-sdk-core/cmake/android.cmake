@@ -38,20 +38,20 @@ set(CMAKE_JAR_CLASSES_PREFIX com/here/olp/network)
 include(${CMAKE_CURRENT_LIST_DIR}/GetAndroidVariables.cmake)
 get_android_jar_path(CMAKE_JAVA_INCLUDE_PATH SDK_ROOT ANDROID_PLATFORM)
 
-set(EDGE_SDK_NETWORK_VERSION 0.0.1)
-set(EDGE_SDK_ANDROID_HTTP_CLIENT_JAR EdgeHttpClient)
+set(OLP_SDK_NETWORK_VERSION 0.0.1)
+set(OLP_SDK_ANDROID_HTTP_CLIENT_JAR EdgeHttpClient)
 
-add_jar(${EDGE_SDK_ANDROID_HTTP_CLIENT_JAR}
+add_jar(${OLP_SDK_ANDROID_HTTP_CLIENT_JAR}
     SOURCES ${CMAKE_CURRENT_LIST_DIR}/../src/http/android/HttpClient.java
-    VERSION ${EDGE_SDK_NETWORK_VERSION}
+    VERSION ${OLP_SDK_NETWORK_VERSION}
 )
 
 # add_jar() doesn't add the symlink to the version automatically under Windows
 if (WIN32)
     include(SymlinkHelpers)
-    create_symlink_file_custom_command(${EDGE_SDK_ANDROID_HTTP_CLIENT_JAR} POST_BUILD
-        ${CMAKE_CURRENT_BINARY_DIR}/${EDGE_SDK_ANDROID_HTTP_CLIENT_JAR}-${NETWORK_VERSION}.jar
-        ${CMAKE_CURRENT_BINARY_DIR}/${EDGE_SDK_ANDROID_HTTP_CLIENT_JAR}.jar)
+    create_symlink_file_custom_command(${OLP_SDK_ANDROID_HTTP_CLIENT_JAR} POST_BUILD
+        ${CMAKE_CURRENT_BINARY_DIR}/${OLP_SDK_ANDROID_HTTP_CLIENT_JAR}-${NETWORK_VERSION}.jar
+        ${CMAKE_CURRENT_BINARY_DIR}/${OLP_SDK_ANDROID_HTTP_CLIENT_JAR}.jar)
 endif()
 
 if(FORCED_WIN32)

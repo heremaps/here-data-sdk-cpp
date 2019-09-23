@@ -16,9 +16,9 @@
 # License-Filename: LICENSE
 
 function(gen_ios_example_application
-        EDGE_SDK_EXAMPLE_TARGET_NAME
-        EDGE_SDK_EXAMPLE_SUCCESS_STRING
-        EDGE_SDK_EXAMPLE_FAILURE_STRING)
+        OLP_SDK_EXAMPLE_TARGET_NAME
+        OLP_SDK_EXAMPLE_SUCCESS_STRING
+        OLP_SDK_EXAMPLE_FAILURE_STRING)
     if(NOT IOS)
         message(FATAL_ERROR "Unsupported platform!")
     endif()
@@ -27,8 +27,8 @@ function(gen_ios_example_application
     file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/ios/CMakeLists.txt.in)
 
     # Configure CMakeLists.txt.in with specified variables
-    set(EDGE_SDK_SUCCESSFUL_EXAMPLE_EXECUTION_STRING ${EDGE_SDK_EXAMPLE_SUCCESS_STRING})
-    set(EDGE_SDK_FAILING_EXAMPLE_EXECUTION_STRING ${EDGE_SDK_EXAMPLE_FAILURE_STRING})
+    set(OLP_SDK_SUCCESSFUL_EXAMPLE_EXECUTION_STRING ${OLP_SDK_EXAMPLE_SUCCESS_STRING})
+    set(OLP_SDK_FAILING_EXAMPLE_EXECUTION_STRING ${OLP_SDK_EXAMPLE_FAILURE_STRING})
     configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/ios/CMakeLists.txt.in
         ${CMAKE_CURRENT_BINARY_DIR}/ios/CMakeLists.txt
@@ -36,12 +36,12 @@ function(gen_ios_example_application
     )
 
     # Copy the example.h / example.cpp files to iOS build folder (apparently, the XCode doesn't like symlinked files)
-    set(EDGE_SDK_EXAMPLE_H_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/example.h)
-    set(EDGE_SDK_EXAMPLE_H_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/ios/example.h)
-    set(EDGE_SDK_EXAMPLE_CPP_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/example.cpp)
-    set(EDGE_SDK_EXAMPLE_CPP_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/ios/example.cpp)
-    execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${EDGE_SDK_EXAMPLE_H_FILE_SRC} ${EDGE_SDK_EXAMPLE_H_FILE_DST})
-    execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${EDGE_SDK_EXAMPLE_CPP_FILE_SRC} ${EDGE_SDK_EXAMPLE_CPP_FILE_DST})
+    set(OLP_SDK_EXAMPLE_H_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/example.h)
+    set(OLP_SDK_EXAMPLE_H_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/ios/example.h)
+    set(OLP_SDK_EXAMPLE_CPP_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/example.cpp)
+    set(OLP_SDK_EXAMPLE_CPP_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/ios/example.cpp)
+    execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${OLP_SDK_EXAMPLE_H_FILE_SRC} ${OLP_SDK_EXAMPLE_H_FILE_DST})
+    execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${OLP_SDK_EXAMPLE_CPP_FILE_SRC} ${OLP_SDK_EXAMPLE_CPP_FILE_DST})
 
     add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/ios ${CMAKE_CURRENT_BINARY_DIR}/ios)
 

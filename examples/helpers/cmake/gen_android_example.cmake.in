@@ -16,11 +16,11 @@
 # License-Filename: LICENSE
 
 function(gen_android_example_application
-        EDGE_SDK_EXAMPLE_TARGET_NAME
-        EDGE_SDK_EXAMPLE_PACKAGE_NAME
-        EDGE_SDK_EXAMPLE_PACKAGE_JNI_NAME
-        EDGE_SDK_EXAMPLE_SUCCESS_STRING
-        EDGE_SDK_EXAMPLE_FAILURE_STRING)
+        OLP_SDK_EXAMPLE_TARGET_NAME
+        OLP_SDK_EXAMPLE_PACKAGE_NAME
+        OLP_SDK_EXAMPLE_PACKAGE_JNI_NAME
+        OLP_SDK_EXAMPLE_SUCCESS_STRING
+        OLP_SDK_EXAMPLE_FAILURE_STRING)
     if(NOT ANDROID)
         message(FATAL_ERROR "Unsupported platform!")
     endif()
@@ -31,34 +31,34 @@ function(gen_android_example_application
     file(REMOVE ${EXCLUDED_IN_FILES})
 
     # Configure all the variables required to generated gralde project
-    set(EDGE_SDK_SUCCESSFUL_EXAMPLE_EXECUTION_STRING ${EDGE_SDK_EXAMPLE_SUCCESS_STRING})
-    set(EDGE_SDK_FAILING_EXAMPLE_EXECUTION_STRING ${EDGE_SDK_EXAMPLE_FAILURE_STRING})
+    set(OLP_SDK_SUCCESSFUL_EXAMPLE_EXECUTION_STRING ${OLP_SDK_EXAMPLE_SUCCESS_STRING})
+    set(OLP_SDK_FAILING_EXAMPLE_EXECUTION_STRING ${OLP_SDK_EXAMPLE_FAILURE_STRING})
 
-    set(EDGE_SDK_EXAMPLE_ANDROID_ABI "// abiFilters 'arm64-v8a'")
+    set(OLP_SDK_EXAMPLE_ANDROID_ABI "// abiFilters 'arm64-v8a'")
     if (DEFINED ANDROID_ABI)
-        set(EDGE_SDK_EXAMPLE_ANDROID_ABI "abiFilters '${ANDROID_ABI}'")
+        set(OLP_SDK_EXAMPLE_ANDROID_ABI "abiFilters '${ANDROID_ABI}'")
     endif()
 
-    set(EDGE_SDK_EXAMPLE_ANDROID_TOOLCHAIN_FILE "-DCMAKE_TOOLCHAIN_FILE='path to your toolchain file'")
+    set(OLP_SDK_EXAMPLE_ANDROID_TOOLCHAIN_FILE "-DCMAKE_TOOLCHAIN_FILE='path to your toolchain file'")
     if (DEFINED CMAKE_TOOLCHAIN_FILE)
-        set(EDGE_SDK_EXAMPLE_ANDROID_TOOLCHAIN_FILE "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
+        set(OLP_SDK_EXAMPLE_ANDROID_TOOLCHAIN_FILE "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
     endif()
 
-    set(EDGE_SDK_EXAMPLE_HTTP_CLIENT_JAR "-DEDGE_SDK_HTTP_CLIENT_JAR='full path to the EdgeHttpClient.jar in the <olp-edge-sdk-build-folder>/olp-cpp-sdk-core/ folder'")
+    set(OLP_SDK_EXAMPLE_HTTP_CLIENT_JAR "-DOLP_SDK_HTTP_CLIENT_JAR='full path to the EdgeHttpClient.jar in the <olp-edge-sdk-build-folder>/olp-cpp-sdk-core/ folder'")
     # Try to find the path to the built EdgeHttpClient.jar archive
     if (DEFINED olp-cpp-sdk-core_BINARY_DIR)
-        set(EDGE_SDK_HTTP_CLIENT_PATH ${olp-cpp-sdk-core_BINARY_DIR})
+        set(OLP_SDK_HTTP_CLIENT_PATH ${olp-cpp-sdk-core_BINARY_DIR})
         # User can change the install path of the EdgeHttpClient.jar via CMAKE_JAVA_TARGET_OUTPUT_DIR variable
         if (DEFINED CMAKE_JAVA_TARGET_OUTPUT_DIR)
-            set(EDGE_SDK_HTTP_CLIENT_PATH ${CMAKE_JAVA_TARGET_OUTPUT_DIR})
+            set(OLP_SDK_HTTP_CLIENT_PATH ${CMAKE_JAVA_TARGET_OUTPUT_DIR})
         endif()
-        set(EDGE_SDK_EXAMPLE_HTTP_CLIENT_JAR "-DEDGE_SDK_HTTP_CLIENT_JAR=${EDGE_SDK_HTTP_CLIENT_PATH}/EdgeHttpClient.jar")
+        set(OLP_SDK_EXAMPLE_HTTP_CLIENT_JAR "-DOLP_SDK_HTTP_CLIENT_JAR=${OLP_SDK_HTTP_CLIENT_PATH}/EdgeHttpClient.jar")
     endif()
 
 
-    set(EDGE_SDK_EXAMPLE_LEVELDB_DIR "-Dleveldb_DIR='path to the directory which contains LevelDB cmake config files'")
+    set(OLP_SDK_EXAMPLE_LEVELDB_DIR "-Dleveldb_DIR='path to the directory which contains LevelDB cmake config files'")
     if (DEFINED leveldb_DIR)
-        set(EDGE_SDK_EXAMPLE_LEVELDB_DIR "-Dleveldb_DIR=${leveldb_DIR}")
+        set(OLP_SDK_EXAMPLE_LEVELDB_DIR "-Dleveldb_DIR=${leveldb_DIR}")
     endif()
 
     configure_file(
@@ -87,7 +87,7 @@ function(gen_android_example_application
 
     configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/android/app/src/main/java/MainActivity.java.in
-        ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/java/com/here/android/olp/${EDGE_SDK_EXAMPLE_PACKAGE_NAME}/MainActivity.java
+        ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/java/com/here/android/olp/${OLP_SDK_EXAMPLE_PACKAGE_NAME}/MainActivity.java
         @ONLY
     )
 
@@ -98,17 +98,17 @@ function(gen_android_example_application
     )
 
     # Symlink (or copy - depending on the platform) the example.h / example.cpp files to the gradle fodler
-    set(EDGE_SDK_EXAMPLE_H_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/example.h)
-    set(EDGE_SDK_EXAMPLE_H_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/cpp/example.h)
-    set(EDGE_SDK_EXAMPLE_CPP_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/example.cpp)
-    set(EDGE_SDK_EXAMPLE_CPP_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/cpp/example.cpp)
+    set(OLP_SDK_EXAMPLE_H_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/example.h)
+    set(OLP_SDK_EXAMPLE_H_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/cpp/example.h)
+    set(OLP_SDK_EXAMPLE_CPP_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/example.cpp)
+    set(OLP_SDK_EXAMPLE_CPP_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/cpp/example.cpp)
 
     if(CMAKE_HOST_WIN32 AND NOT CYGWIN AND NOT MSYS)
-        execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${EDGE_SDK_EXAMPLE_H_FILE_SRC} ${EDGE_SDK_EXAMPLE_H_FILE_DST})
-        execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${EDGE_SDK_EXAMPLE_CPP_FILE_SRC} ${EDGE_SDK_EXAMPLE_CPP_FILE_DST})
+        execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${OLP_SDK_EXAMPLE_H_FILE_SRC} ${OLP_SDK_EXAMPLE_H_FILE_DST})
+        execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${OLP_SDK_EXAMPLE_CPP_FILE_SRC} ${OLP_SDK_EXAMPLE_CPP_FILE_DST})
     else(CMAKE_HOST_WIN32 AND NOT CYGWIN AND NOT MSYS)
-        execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${EDGE_SDK_EXAMPLE_H_FILE_SRC} ${EDGE_SDK_EXAMPLE_H_FILE_DST})
-        execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${EDGE_SDK_EXAMPLE_CPP_FILE_SRC} ${EDGE_SDK_EXAMPLE_CPP_FILE_DST})
+        execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${OLP_SDK_EXAMPLE_H_FILE_SRC} ${OLP_SDK_EXAMPLE_H_FILE_DST})
+        execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${OLP_SDK_EXAMPLE_CPP_FILE_SRC} ${OLP_SDK_EXAMPLE_CPP_FILE_DST})
     endif(CMAKE_HOST_WIN32 AND NOT CYGWIN AND NOT MSYS)
 
 endfunction()
