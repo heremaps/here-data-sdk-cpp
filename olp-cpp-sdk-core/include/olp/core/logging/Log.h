@@ -33,28 +33,6 @@
 #include <sstream>
 #include <string>
 
-#define EDGE_SDK_LOG_FUNCTION_SIGNATURE OLP_SDK_LOG_FUNCTION_SIGNATURE  /// @deprecated
-#define EDGE_SDK_LOG_CRITICAL OLP_SDK_LOG_CRITICAL                      /// @deprecated
-#define EDGE_SDK_LOG_CRITICAL_F OLP_SDK_LOG_CRITICAL_F                  /// @deprecated
-#define EDGE_SDK_LOG_CRITICAL_INFO OLP_SDK_LOG_CRITICAL_INFO            /// @deprecated
-#define EDGE_SDK_LOG_CRITICAL_INFO_F OLP_SDK_LOG_CRITICAL_INFO_F        /// @deprecated
-#define EDGE_SDK_LOG_CRITICAL_WARNING OLP_SDK_LOG_CRITICAL_WARNING      /// @deprecated
-#define EDGE_SDK_LOG_CRITICAL_WARNING_F OLP_SDK_LOG_CRITICAL_WARNING_F  /// @deprecated
-#define EDGE_SDK_LOG_CRITICAL_ERROR OLP_SDK_LOG_CRITICAL_ERROR          /// @deprecated
-#define EDGE_SDK_LOG_CRITICAL_ERROR_F OLP_SDK_LOG_CRITICAL_ERROR_F      /// @deprecated
-#define EDGE_SDK_LOG_FATAL OLP_SDK_LOG_FATAL                            /// @deprecated
-#define EDGE_SDK_LOG_FATAL_F OLP_SDK_LOG_FATAL_F                        /// @deprecated
-#define EDGE_SDK_LOG_TRACE OLP_SDK_LOG_TRACE                            /// @deprecated
-#define EDGE_SDK_LOG_TRACE_F OLP_SDK_LOG_TRACE_F                        /// @deprecated
-#define EDGE_SDK_LOG_DEBUG OLP_SDK_LOG_DEBUG                            /// @deprecated
-#define EDGE_SDK_LOG_DEBUG_F OLP_SDK_LOG_DEBUG_F                        /// @deprecated
-#define EDGE_SDK_LOG_INFO OLP_SDK_LOG_INFO                              /// @deprecated
-#define EDGE_SDK_LOG_INFO_F OLP_SDK_LOG_INFO_F                          /// @deprecated
-#define EDGE_SDK_LOG_WARNING OLP_SDK_LOG_WARNING                        /// @deprecated
-#define EDGE_SDK_LOG_WARNING_F OLP_SDK_LOG_WARNING_F                    /// @deprecated
-#define EDGE_SDK_LOG_ERROR OLP_SDK_LOG_ERROR                            /// @deprecated
-#define EDGE_SDK_LOG_ERROR_F OLP_SDK_LOG_ERROR_F                        /// @deprecated
-
 /**
  * @file
  * @brief The file that provides the main interface to the logging library.
