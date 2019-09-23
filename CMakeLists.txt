@@ -72,9 +72,6 @@ if(OLP_SDK_BUILD_EXTERNAL_DEPS)
     add_subdirectory(external)
 endif()
 
-# Include testutils
-add_subdirectory(testutils/custom-params)
-
 # Add the sdks
 add_sdks()
 
@@ -82,6 +79,7 @@ add_sdks()
 add_subdirectory(docs)
 
 if(OLP_SDK_ENABLE_TESTING)
+    add_subdirectory(tests/custom-params)
     # Add tests
     add_subdirectory(tests/functional)
     add_subdirectory(tests/integration)
