@@ -53,8 +53,8 @@
             // Change the UI Label apperance based on the execution result
             NSString* resultStr =
                 NSBundle.mainBundle.infoDictionary
-                    [result == 0 ? @"EdgeSdkSuccessfulExampleExecutionString"
-                                 : @"EdgeSdkFailingExampleExecutionString"];
+                    [result == 0 ? @"OlpSdkSuccessfulExampleExecutionString"
+                                 : @"OlpSdkFailingExampleExecutionString"];
             NSLog(@"Example run result: %@", resultStr);
 
             UIColor* textColor =

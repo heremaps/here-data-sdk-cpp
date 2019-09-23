@@ -21,9 +21,9 @@ if (NOT IOS)
     message(FATAL_ERROR "Unsupported platform!")
 endif()
 
-project(@EDGE_SDK_EXAMPLE_TARGET_NAME@ VERSION 0.7.0)
+project(@OLP_SDK_EXAMPLE_TARGET_NAME@ VERSION 0.7.0)
 
-add_executable(@EDGE_SDK_EXAMPLE_TARGET_NAME@
+add_executable(@OLP_SDK_EXAMPLE_TARGET_NAME@
                 ${CMAKE_CURRENT_SOURCE_DIR}/example.h
                 ${CMAKE_CURRENT_SOURCE_DIR}/example.cpp)
 
@@ -32,17 +32,17 @@ find_library(CF_NETWORK_FRAMEWORK CFNetwork)
 find_library(SECURITY_FRAMEWORK Security)
 find_library(UIKIT_FRAMEWORK UIKit)
 
-set(RESOURCE_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/resources/Main.storyboard)
-target_sources(@EDGE_SDK_EXAMPLE_TARGET_NAME@ PUBLIC
-                    ${CMAKE_CURRENT_SOURCE_DIR}/AppDelegate.h
-                    ${CMAKE_CURRENT_SOURCE_DIR}/AppDelegate.mm
-                    ${CMAKE_CURRENT_SOURCE_DIR}/ViewController.h
-                    ${CMAKE_CURRENT_SOURCE_DIR}/ViewController.mm
-                    ${CMAKE_CURRENT_SOURCE_DIR}/main.mm
-                    ${RESOURCE_FILES})
-set_property (TARGET @EDGE_SDK_EXAMPLE_TARGET_NAME@ APPEND_STRING PROPERTY COMPILE_FLAGS "-fobjc-arc")
+set(RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/resources/Main.storyboard)
+target_sources(@OLP_SDK_EXAMPLE_TARGET_NAME@ PUBLIC
+                ${CMAKE_CURRENT_SOURCE_DIR}/AppDelegate.h
+                ${CMAKE_CURRENT_SOURCE_DIR}/AppDelegate.mm
+                ${CMAKE_CURRENT_SOURCE_DIR}/ViewController.h
+                ${CMAKE_CURRENT_SOURCE_DIR}/ViewController.mm
+                ${CMAKE_CURRENT_SOURCE_DIR}/main.mm
+                ${RESOURCE_FILES})
+set_property (TARGET @OLP_SDK_EXAMPLE_TARGET_NAME@ APPEND_STRING PROPERTY COMPILE_FLAGS "-fobjc-arc")
 
-set(APP_BUNDLE_IDENTIFIER "com.here.olp.@EDGE_SDK_EXAMPLE_TARGET_NAME@")
+set(APP_BUNDLE_IDENTIFIER "com.here.olp.@OLP_SDK_EXAMPLE_TARGET_NAME@")
 
 set(MACOSX_BUNDLE_INFO_STRING ${APP_BUNDLE_IDENTIFIER})
 set(MACOSX_BUNDLE_GUI_IDENTIFIER ${APP_BUNDLE_IDENTIFIER})
@@ -51,7 +51,7 @@ set(MACOSX_BUNDLE_LONG_VERSION_STRING "1.0")
 set(MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0")
 set(MACOSX_BUNDLE_BUNDLE_VERSION "1.0")
 
-set_target_properties(@EDGE_SDK_EXAMPLE_TARGET_NAME@ PROPERTIES
+set_target_properties(@OLP_SDK_EXAMPLE_TARGET_NAME@ PROPERTIES
     XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym"
     RESOURCE "${RESOURCE_FILES}"
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
@@ -59,7 +59,7 @@ set_target_properties(@EDGE_SDK_EXAMPLE_TARGET_NAME@ PROPERTIES
     XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC YES
 )
 
-target_link_libraries(@EDGE_SDK_EXAMPLE_TARGET_NAME@
+target_link_libraries(@OLP_SDK_EXAMPLE_TARGET_NAME@
     ${CORE_FOUNDATION}
     ${SECURITY_FRAMEWORK}
     ${CF_NETWORK_FRAMEWORK}

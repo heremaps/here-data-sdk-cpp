@@ -6,10 +6,10 @@
 	<string>English</string>
 	<key>CFBundleExecutable</key>
 	<string>${MACOSX_BUNDLE_EXECUTABLE_NAME}</string>
-    <key>EdgeSdkSuccessfulExampleExecutionString</key>
-	<string>${EDGE_SDK_SUCCESSFUL_EXAMPLE_EXECUTION_STRING}</string>
-    <key>EdgeSdkFailingExampleExecutionString</key>
-	<string>${EDGE_SDK_FAILING_EXAMPLE_EXECUTION_STRING}</string>
+    <key>OlpSdkSuccessfulExampleExecutionString</key>
+	<string>${OLP_SDK_SUCCESSFUL_EXAMPLE_EXECUTION_STRING}</string>
+    <key>OlpSdkFailingExampleExecutionString</key>
+	<string>${OLP_SDK_FAILING_EXAMPLE_EXECUTION_STRING}</string>
 	<key>CFBundleGetInfoString</key>
 	<string>${MACOSX_BUNDLE_INFO_STRING}</string>
 	<key>CFBundleIconFile</key>

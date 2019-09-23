@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.here.android.olp.@EDGE_SDK_EXAMPLE_PACKAGE_NAME@">
+    package="com.here.android.olp.@OLP_SDK_EXAMPLE_PACKAGE_NAME@">
 
     <!--The INTERNET permission is required in order to run this example-->
     <uses-permission android:name="android.permission.INTERNET"/>

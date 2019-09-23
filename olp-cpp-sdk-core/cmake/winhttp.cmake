@@ -15,7 +15,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 if(WIN32)
-    set(EDGE_SDK_HTTP_WIN_SOURCES
+    set(OLP_SDK_HTTP_WIN_SOURCES
         "${CMAKE_CURRENT_LIST_DIR}/../src/http/winhttp/NetworkWinHttp.cpp"
         "${CMAKE_CURRENT_LIST_DIR}/../src/http/winhttp/NetworkWinHttp.h"
     )
@@ -31,6 +31,6 @@ if(WIN32)
     endif()
     set(NETWORK_WINHTTP_LIBRARIES ${NETWORK_WINHTTP_LIBRARIES} Ws2_32)
 else()
-    set(EDGE_SDK_HTTP_WIN_SOURCES)
+    set(OLP_SDK_HTTP_WIN_SOURCES)
     set(NETWORK_WINHTTP_LIBRARIES)
 endif()

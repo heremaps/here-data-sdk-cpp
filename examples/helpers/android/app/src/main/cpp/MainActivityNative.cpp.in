@@ -32,23 +32,23 @@ JavaVM* gJavaVM = nullptr;
 }  // namespace
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_here_android_olp_@EDGE_SDK_EXAMPLE_PACKAGE_JNI_NAME@_MainActivity_runExampleNative(
+Java_com_here_android_olp_@OLP_SDK_EXAMPLE_PACKAGE_JNI_NAME@_MainActivity_runExampleNative(
     JNIEnv* env, jobject /* this */) {
   const auto result = RunExample();
 
-  return env->NewStringUTF(result == 0 ? "@EDGE_SDK_SUCCESSFUL_EXAMPLE_EXECUTION_STRING@"
-                                       : "@EDGE_SDK_FAILING_EXAMPLE_EXECUTION_STRING@");
+  return env->NewStringUTF(result == 0 ? "@OLP_SDK_SUCCESSFUL_EXAMPLE_EXECUTION_STRING@"
+                                       : "@OLP_SDK_FAILING_EXAMPLE_EXECUTION_STRING@");
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_here_android_olp_@EDGE_SDK_EXAMPLE_PACKAGE_JNI_NAME@_MainActivity_setupContextNative(
+Java_com_here_android_olp_@OLP_SDK_EXAMPLE_PACKAGE_JNI_NAME@_MainActivity_setupContextNative(
     JNIEnv* jEnv, jobject jobj, jobject jappContext) {
   auto scope = new olp::context::Context::Scope(gJavaVM, jappContext);
   gNetworkScope = std::unique_ptr<olp::context::Context::Scope>(scope);
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_here_android_olp_@EDGE_SDK_EXAMPLE_PACKAGE_JNI_NAME@_MainActivity_tearDownContextNative(
+Java_com_here_android_olp_@OLP_SDK_EXAMPLE_PACKAGE_JNI_NAME@_MainActivity_tearDownContextNative(
     JNIEnv* /*env*/, jobject /*obj*/) {
   gNetworkScope.reset();
 }
