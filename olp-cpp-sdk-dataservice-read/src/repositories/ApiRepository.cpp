@@ -53,13 +53,13 @@ ApiRepository::ApiRepository(
 olp::client::CancellationToken ApiRepository::getApiClient(
     const std::string& service, const std::string& serviceVersion,
     const ApiClientCallback& callback) {
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "getApiClient(%s, %s)", service.c_str(),
-                       serviceVersion.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "getApiClient(%s, %s)", service.c_str(),
+                      serviceVersion.c_str());
 
   auto url = cache_->Get(service, serviceVersion);
   if (url) {
-    EDGE_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> from cache",
-                        service.c_str(), serviceVersion.c_str());
+    OLP_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> from cache",
+                       service.c_str(), serviceVersion.c_str());
 
     auto settings = settings_.lock();
     if (!settings) {
@@ -78,8 +78,8 @@ olp::client::CancellationToken ApiRepository::getApiClient(
   auto settings_weak = settings_;
   auto executeFn = [cache, hrn, settings_weak, service,
                     serviceVersion](ApiClientCallback contextCallback) {
-    EDGE_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> execute",
-                        service.c_str(), serviceVersion.c_str());
+    OLP_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> execute",
+                       service.c_str(), serviceVersion.c_str());
 
     auto settings = settings_weak.lock();
     if (!settings) {
@@ -90,10 +90,10 @@ olp::client::CancellationToken ApiRepository::getApiClient(
 
     auto cacheApiResponseCallback = [cache, hrn, service, serviceVersion,
                                      contextCallback](
-                                        ApiClientResponse response) {
+        ApiClientResponse response) {
       if (response.IsSuccessful()) {
-        EDGE_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> into cache",
-                            service.c_str(), serviceVersion.c_str());
+        OLP_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> into cache",
+                           service.c_str(), serviceVersion.c_str());
         cache->Put(service, serviceVersion, response.GetResult().GetBaseUrl());
       }
       contextCallback(response);

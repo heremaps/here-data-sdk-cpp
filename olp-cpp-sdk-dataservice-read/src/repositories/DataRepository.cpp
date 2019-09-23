@@ -53,21 +53,21 @@ void GetDataInternal(std::shared_ptr<CancellationContext> cancellationContext,
   std::string service;
   std::function<CancellationToken(const OlpClient&)> dataFunc;
   auto key = request.CreateKey();
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "GetDataInternal '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "GetDataInternal '%s'", key.c_str());
   auto cancel_callback = [callback, key]() {
-    EDGE_SDK_LOG_INFO_F(kLogTag, "cancelled '%s'", key.c_str());
+    OLP_SDK_LOG_INFO_F(kLogTag, "cancelled '%s'", key.c_str());
     callback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
   };
 
   /* Cache put intercept */
   auto cacheDataResponseCallback = [=, &cache](DataResponse response) {
     if (response.IsSuccessful()) {
-      EDGE_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache", key.c_str());
+      OLP_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache", key.c_str());
       cache.Put(response.GetResult(), request.GetLayerId(),
                 request.GetDataHandle().value_or(std::string()));
     } else {
       if (403 == response.GetError().GetHttpStatusCode()) {
-        EDGE_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache", key.c_str());
+        OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache", key.c_str());
         cache.Clear(request.GetLayerId(),
                     request.GetDataHandle().value_or(std::string()));
       }
@@ -78,7 +78,7 @@ void GetDataInternal(std::shared_ptr<CancellationContext> cancellationContext,
   if (layerType == "versioned") {
     service = "blob";
     dataFunc = [=](const OlpClient& client) {
-      EDGE_SDK_LOG_INFO_F(kLogTag, "getBlob '%s", key.c_str());
+      OLP_SDK_LOG_INFO_F(kLogTag, "getBlob '%s", key.c_str());
       return BlobApi::GetBlob(client, request.GetLayerId(),
                               *request.GetDataHandle(), request.GetBillingTag(),
                               boost::none, cacheDataResponseCallback);
@@ -86,14 +86,14 @@ void GetDataInternal(std::shared_ptr<CancellationContext> cancellationContext,
   } else if (layerType == "volatile") {
     service = "volatile-blob";
     dataFunc = [=](const OlpClient& client) {
-      EDGE_SDK_LOG_INFO_F(kLogTag, "getVolatileBlob '%s", key.c_str());
+      OLP_SDK_LOG_INFO_F(kLogTag, "getVolatileBlob '%s", key.c_str());
       return VolatileBlobApi::GetVolatileBlob(
           client, request.GetLayerId(), *request.GetDataHandle(),
           request.GetBillingTag(), cacheDataResponseCallback);
     };
   } else {
     // TODO handle stream api
-    EDGE_SDK_LOG_INFO_F(kLogTag, "service unavailable '%s'", key.c_str());
+    OLP_SDK_LOG_INFO_F(kLogTag, "service unavailable '%s'", key.c_str());
     callback(ApiError(client::ErrorCode::ServiceUnavailable,
                       "Stream layers are not supported yet."));
     return;
@@ -108,15 +108,15 @@ void GetDataInternal(std::shared_ptr<CancellationContext> cancellationContext,
                         request.GetDataHandle().value_or(std::string()));
           if (cachedData) {
             ExecuteOrSchedule(apiRepo->GetOlpClientSettings(), [=] {
-              EDGE_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
-                                  key.c_str());
+              OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
+                                 key.c_str());
               callback(*cachedData);
             });
             return CancellationToken();
           } else if (CacheOnly == request.GetFetchOption()) {
             ExecuteOrSchedule(apiRepo->GetOlpClientSettings(), [=] {
-              EDGE_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' not found!",
-                                  key.c_str());
+              OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' not found!",
+                                 key.c_str());
               callback(
                   ApiError(ErrorCode::NotFound,
                            "Cache only resource not found in cache (data)."));
@@ -128,17 +128,17 @@ void GetDataInternal(std::shared_ptr<CancellationContext> cancellationContext,
         return apiRepo->getApiClient(
             service, "v1", [=](ApiClientResponse response) {
               if (!response.IsSuccessful()) {
-                EDGE_SDK_LOG_INFO_F(kLogTag, "getApiClient '%s' unsuccessful",
-                                    key.c_str());
+                OLP_SDK_LOG_INFO_F(kLogTag, "getApiClient '%s' unsuccessful",
+                                   key.c_str());
                 callback(response.GetError());
                 return;
               }
 
               cancellationContext->ExecuteOrCancelled(
                   [=]() {
-                    EDGE_SDK_LOG_INFO_F(kLogTag,
-                                        "getApiClient '%s' getting catalog",
-                                        key.c_str());
+                    OLP_SDK_LOG_INFO_F(kLogTag,
+                                       "getApiClient '%s' getting catalog",
+                                       key.c_str());
                     return dataFunc(response.GetResult());
                   },
                   cancel_callback);
@@ -177,9 +177,9 @@ CancellationToken DataRepository::GetData(
     const read::DataRequest& request,
     const read::DataResponseCallback& callback) {
   auto key = request.CreateKey();
-  EDGE_SDK_LOG_TRACE_F(kLogTag, "GetData '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "GetData '%s'", key.c_str());
   if (!request.GetDataHandle() && !request.GetPartitionId()) {
-    EDGE_SDK_LOG_INFO_F(kLogTag, "getData for '%s' failed", key.c_str());
+    OLP_SDK_LOG_INFO_F(kLogTag, "getData for '%s' failed", key.c_str());
     callback(ApiError(client::ErrorCode::InvalidArgument,
                       "A data handle or a partition id must be defined."));
     return CancellationToken();
@@ -196,7 +196,7 @@ CancellationToken DataRepository::GetData(
 
   auto cancel_context = std::make_shared<CancellationContext>();
   auto cancel_callback = [callback, key]() {
-    EDGE_SDK_LOG_INFO_F(kLogTag, "cancelled '%s'", key.c_str());
+    OLP_SDK_LOG_INFO_F(kLogTag, "cancelled '%s'", key.c_str());
     callback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
   };
 
@@ -207,8 +207,8 @@ CancellationToken DataRepository::GetData(
               catalogRequest,
               [=, &cache](read::CatalogResponse catalogResponse) {
                 if (!catalogResponse.IsSuccessful()) {
-                  EDGE_SDK_LOG_INFO_F(kLogTag, "getCatalog '%s' unsuccessful",
-                                      key.c_str());
+                  OLP_SDK_LOG_INFO_F(kLogTag, "getCatalog '%s' unsuccessful",
+                                     key.c_str());
                   callback(catalogResponse.GetError());
                   return;
                 }
@@ -221,8 +221,8 @@ CancellationToken DataRepository::GetData(
                                  });
 
                 if (itr == catalogLayers.end()) {
-                  EDGE_SDK_LOG_INFO_F(kLogTag, "Layer for '%s' doesn't exiist",
-                                      key.c_str());
+                  OLP_SDK_LOG_INFO_F(kLogTag, "Layer for '%s' doesn't exiist",
+                                     key.c_str());
                   callback(ApiError(client::ErrorCode::InvalidArgument,
                                     "Layer specified doesn't exist."));
                   return;
@@ -234,8 +234,7 @@ CancellationToken DataRepository::GetData(
                                   callback, cache);
                 } else {
                   auto getPartitionsCallback = [=, &cache](
-                                                   PartitionsResponse
-                                                       partitionsResponse) {
+                      PartitionsResponse partitionsResponse) {
                     if (!partitionsResponse.IsSuccessful()) {
                       callback(partitionsResponse.GetError());
                       return;
@@ -257,27 +256,26 @@ CancellationToken DataRepository::GetData(
                                 .GetPartitions()
                                 .at(0)
                                 .GetDataHandle());
-                        auto verifyResponseCallback =
-                            [=](DataResponse response) {
-                              if (!response.IsSuccessful()) {
-                                if (403 ==
-                                    response.GetError().GetHttpStatusCode()) {
-                                  PartitionsRequest partitionsRequest;
-                                  partitionsRequest
-                                      .WithBillingTag(
-                                          appendedRequest.GetBillingTag())
-                                      .WithLayerId(appendedRequest.GetLayerId())
-                                      .WithVersion(
-                                          appendedRequest.GetVersion());
-                                  std::vector<std::string> partitions;
-                                  partitions.push_back(
-                                      *appendedRequest.GetPartitionId());
-                                  partitionsCache_->ClearPartitions(
-                                      partitionsRequest, partitions);
-                                }
-                              }
-                              callback(response);
-                            };
+                        auto verifyResponseCallback = [=](
+                            DataResponse response) {
+                          if (!response.IsSuccessful()) {
+                            if (403 ==
+                                response.GetError().GetHttpStatusCode()) {
+                              PartitionsRequest partitionsRequest;
+                              partitionsRequest
+                                  .WithBillingTag(
+                                      appendedRequest.GetBillingTag())
+                                  .WithLayerId(appendedRequest.GetLayerId())
+                                  .WithVersion(appendedRequest.GetVersion());
+                              std::vector<std::string> partitions;
+                              partitions.push_back(
+                                  *appendedRequest.GetPartitionId());
+                              partitionsCache_->ClearPartitions(
+                                  partitionsRequest, partitions);
+                            }
+                          }
+                          callback(response);
+                        };
                         GetDataInternal(cancel_context, apiRepo, layerType,
                                         appendedRequest, verifyResponseCallback,
                                         cache);
@@ -286,8 +284,8 @@ CancellationToken DataRepository::GetData(
                       // Backend returns an empty partition list if the
                       // partition doesn't exist in the layer. So return no
                       // data.
-                      EDGE_SDK_LOG_INFO_F(kLogTag, "Empty partition for '%s'!",
-                                          key.c_str());
+                      OLP_SDK_LOG_INFO_F(kLogTag, "Empty partition for '%s'!",
+                                         key.c_str());
                       callback(model::Data());
                     }
                   };
