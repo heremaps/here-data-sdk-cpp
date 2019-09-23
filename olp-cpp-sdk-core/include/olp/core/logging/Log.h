@@ -64,7 +64,7 @@
 /**
  * @brief Log a message using C++ style streams.
  *
- * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
  * this will not check to see if the tag is disabled.
  *
  * @param level Logging level.
@@ -84,7 +84,7 @@
 /**
  * @brief Log a critical message using C++ style streams.
  *
- * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
  * this will not check to see if the tag is disabled.
  *
  * @param level Logging level.
@@ -97,7 +97,7 @@
 /**
  * @brief Log a critical info message using C++ style streams.
  *
- * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
  * this will not check to see if the tag is disabled.
  *
  * @param tag Log component name.
@@ -109,7 +109,7 @@
 /**
  * @brief Log a critical warning message using C++ style streams.
  *
- * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
  * this will not check to see if the tag is disabled.
  *
  * @param tag Log component name.
@@ -121,7 +121,7 @@
 /**
  * @brief Log a critical error message using C++ style streams.
  *
- * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
  * this will not check to see if the tag is disabled.
  *
  * @param tag Log component name.
@@ -133,7 +133,7 @@
 /**
  * @brief Log a fatal error message using C++ style streams.
  *
- * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
  * this will not check to see if the tag is disabled.
  *
  * @param tag Log component name.
@@ -158,7 +158,7 @@
 /**
  * @brief Log a message using printf style formatting.
  *
- * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
  * this will not check to see if the tag is disabled.
  *
  * @param level Logging level.
@@ -176,7 +176,7 @@
 /**
  * @brief Log a critical message using printf style formatting.
  *
- * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
  * this will not check to see if the tag is disabled.
  *
  * @param level Logging level.
@@ -188,7 +188,7 @@
 /**
  * @brief Log a critical info message using printf style formatting.
  *
- * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
  * this will not check to see if the tag is disabled.
  *
  * @param tag Log component name.
@@ -199,7 +199,7 @@
 /**
  * @brief Log a critical warning message using printf style formatting.
  *
- * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
  * this will not check to see if the tag is disabled.
  *
  * @param tag Log component name.
@@ -210,7 +210,7 @@
 /**
  * @brief Log a critical error message using printf style formatting.
  *
- * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
  * this will not check to see if the tag is disabled.
  *
  * @param tag Log component name.
@@ -221,7 +221,7 @@
 /**
  * @brief Log a critical fatal error message using printf style formatting.
  *
- * EDGE_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
+ * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
  * this will not check to see if the tag is disabled.
  *
  * @param tag Log component name.
@@ -241,7 +241,7 @@
   }                                        \
   OLP_SDK_CORE_LOOP_ONCE()
 
-#ifdef EDGE_SDK_LOGGING_DISABLED
+#ifdef OLP_SDK_LOGGING_DISABLED
 #define OLP_SDK_LOG(level, tag, message) \
   do {                                   \
   }                                      \
@@ -262,7 +262,7 @@
   }                                                   \
   OLP_SDK_CORE_LOOP_ONCE()
 
-#endif  // EDGE_SDK_LOGGING_DISABLED
+#endif  // OLP_SDK_LOGGING_DISABLED
 
 #ifdef LOGGING_DISABLE_DEBUG_LEVEL
 #define OLP_SDK_LOG_TRACE(tag, message)   \
@@ -324,7 +324,7 @@
 #define OLP_SDK_LOG_ERROR(tag, message) \
   OLP_SDK_LOG(::olp::logging::Level::Error, tag, message)
 
-#ifdef EDGE_SDK_LOGGING_DISABLED
+#ifdef OLP_SDK_LOGGING_DISABLED
 #define OLP_SDK_LOG_F(level, tag, ...) \
   do {                                 \
   }                                    \
@@ -343,7 +343,7 @@
   }                                                   \
   OLP_SDK_CORE_LOOP_ONCE()
 
-#endif  // EDGE_SDK_LOGGING_DISABLED
+#endif  // OLP_SDK_LOGGING_DISABLED
 
 #ifdef LOGGING_DISABLE_DEBUG_LEVEL
 #define OLP_SDK_LOG_TRACE_F(tag, ...) CORE_UNUSED(tag, __VA_ARGS__)

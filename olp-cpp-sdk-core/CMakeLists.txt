@@ -248,7 +248,7 @@ else()
 endif()
 
 if (HAVE_PTHREAD_SETNAME_NP)
-    add_definitions(-DEDGE_SDK_HAVE_PTHREAD_SETNAME_NP)
+    add_definitions(-DOLP_SDK_HAVE_PTHREAD_SETNAME_NP)
 endif()
 
 target_link_libraries(${PROJECT_NAME}

@@ -37,7 +37,7 @@ static constexpr auto kUserAgentHeader = "User-Agent";
  */
 static constexpr auto kBearer = "Bearer";
 static constexpr auto kOlpSdkUserAgent =
-    "OLP-CPP-SDK/" EDGE_SDK_VERSION_STRING " (" EDGE_SDK_PLATFORM_NAME ")";
+    "OLP-CPP-SDK/" OLP_SDK_VERSION_STRING " (" OLP_SDK_PLATFORM_NAME ")";
 
 }  // namespace http
 }  // namespace olp

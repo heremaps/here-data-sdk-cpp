@@ -953,16 +953,16 @@ NetworkAndroid::ResponseData::ResponseData(
 }  // namespace olp
 
 #ifndef __clang__
-#define EDGE_SDK_NETWORK_ANDROID_EXPORT \
+#define OLP_SDK_NETWORK_ANDROID_EXPORT \
   __attribute__((externally_visible)) JNIEXPORT
 #else
-#define EDGE_SDK_NETWORK_ANDROID_EXPORT JNIEXPORT
+#define OLP_SDK_NETWORK_ANDROID_EXPORT JNIEXPORT
 #endif
 
 /*
  * Callback to be called when response headers have been received
  */
-extern "C" EDGE_SDK_NETWORK_ANDROID_EXPORT void JNICALL
+extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
 Java_com_here_olp_network_HttpClient_headersCallback(JNIEnv* env, jobject obj,
                                                      jint client_id,
                                                      jlong request_id,
@@ -980,7 +980,7 @@ Java_com_here_olp_network_HttpClient_headersCallback(JNIEnv* env, jobject obj,
 /*
  * Callback to be called when a date header is received
  */
-extern "C" EDGE_SDK_NETWORK_ANDROID_EXPORT void JNICALL
+extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
 Java_com_here_olp_network_HttpClient_dateAndOffsetCallback(
     JNIEnv* env, jobject obj, jint client_id, jlong request_id, jlong date,
     jlong offset) {
@@ -997,7 +997,7 @@ Java_com_here_olp_network_HttpClient_dateAndOffsetCallback(
 /*
  * Callback to be called when a chunk of data is received
  */
-extern "C" EDGE_SDK_NETWORK_ANDROID_EXPORT void JNICALL
+extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
 Java_com_here_olp_network_HttpClient_dataCallback(JNIEnv* env, jobject obj,
                                                   jint client_id,
                                                   jlong request_id,
@@ -1014,7 +1014,7 @@ Java_com_here_olp_network_HttpClient_dataCallback(JNIEnv* env, jobject obj,
 /*
  * Callback to be called when a request is completed
  */
-extern "C" EDGE_SDK_NETWORK_ANDROID_EXPORT void JNICALL
+extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
 Java_com_here_olp_network_HttpClient_completeRequest(JNIEnv* env, jobject obj,
                                                      jint client_id,
                                                      jlong request_id,
@@ -1033,7 +1033,7 @@ Java_com_here_olp_network_HttpClient_completeRequest(JNIEnv* env, jobject obj,
 /*
  * Reset request upon retry
  */
-extern "C" EDGE_SDK_NETWORK_ANDROID_EXPORT void JNICALL
+extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
 Java_com_here_olp_network_HttpClient_resetRequest(JNIEnv* env, jobject obj,
                                                   jint client_id,
                                                   jlong request_id) {
