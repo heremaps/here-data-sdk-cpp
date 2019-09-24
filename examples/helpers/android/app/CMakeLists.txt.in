@@ -22,11 +22,11 @@ project(@OLP_SDK_EXAMPLE_TARGET_NAME@ VERSION 0.7.0)
 if (DEFINED OLP_SDK_HTTP_CLIENT_JAR)
     get_filename_component(OLP_SDK_HTTP_CLIENT_JAR_FULL_PATH "${OLP_SDK_HTTP_CLIENT_JAR}" ABSOLUTE)
     if (NOT EXISTS "${OLP_SDK_HTTP_CLIENT_JAR_FULL_PATH}")
-        message(FATAL_ERROR "Can't find EdgeHttpClient.jar - the path ${OLP_SDK_HTTP_CLIENT_JAR_FULL_PATH} is invalid!")
+        message(FATAL_ERROR "Can't find OlpHttpClient.jar - the path ${OLP_SDK_HTTP_CLIENT_JAR_FULL_PATH} is invalid!")
     endif()
 else()
     message(FATAL_ERROR "The OLP_SDK_HTTP_CLIENT_JAR variable is not defined."
-                        "Please, specify this variable with the path to the built EdgeHttpClient.jar.")
+                        "Please, specify this variable with the path to the built OlpHttpClient.jar.")
 endif()
 
 find_library(log-lib log)
@@ -44,7 +44,7 @@ add_library(@OLP_SDK_EXAMPLE_TARGET_NAME@ SHARED
         ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/example.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/MainActivityNative.cpp)
 
-# Find and copy the EdgeHttpClient.jar into the corresponding libs directory
+# Find and copy the OlpHttpClient.jar into the corresponding libs directory
 get_filename_component(OLP_SDK_HTTP_CLIENT_JAR_NAME ${OLP_SDK_HTTP_CLIENT_JAR_FULL_PATH} NAME)
 
 add_custom_command(

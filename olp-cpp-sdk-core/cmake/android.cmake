@@ -39,7 +39,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/GetAndroidVariables.cmake)
 get_android_jar_path(CMAKE_JAVA_INCLUDE_PATH SDK_ROOT ANDROID_PLATFORM)
 
 set(OLP_SDK_NETWORK_VERSION 0.0.1)
-set(OLP_SDK_ANDROID_HTTP_CLIENT_JAR EdgeHttpClient)
+set(OLP_SDK_ANDROID_HTTP_CLIENT_JAR OlpHttpClient)
 
 add_jar(${OLP_SDK_ANDROID_HTTP_CLIENT_JAR}
     SOURCES ${CMAKE_CURRENT_LIST_DIR}/../src/http/android/HttpClient.java
