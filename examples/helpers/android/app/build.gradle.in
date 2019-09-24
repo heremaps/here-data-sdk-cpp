@@ -18,7 +18,7 @@ android {
             cmake {
                 // In order to properly run the CMake step, you have to specify the next arguments:
                 //  1. CMAKE_TOOLCHAIN_FILE and other ANDROID_ arguments, which were used during building of OLP libraries
-                //  2. OLP_SDK_HTTP_CLIENT_JAR - path to the EdgeHttpClient.jar file; usually it stored in the <olp-build-folder>/olp-cpp-sdk-core/
+                //  2. OLP_SDK_HTTP_CLIENT_JAR - path to the OlpHttpClient.jar file; usually it stored in the <olp-build-folder>/olp-cpp-sdk-core/
                 //  3. (If not installed to the sysroot) path to the levelDB library:
                 //      - leveldb_DIR;
                 //  4. (If not installed to the sysroot) - path to the OLP SDK cmake config files:

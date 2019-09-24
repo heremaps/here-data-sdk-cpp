@@ -44,15 +44,15 @@ function(gen_android_example_application
         set(OLP_SDK_EXAMPLE_ANDROID_TOOLCHAIN_FILE "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
     endif()
 
-    set(OLP_SDK_EXAMPLE_HTTP_CLIENT_JAR "-DOLP_SDK_HTTP_CLIENT_JAR='full path to the EdgeHttpClient.jar in the <olp-edge-sdk-build-folder>/olp-cpp-sdk-core/ folder'")
-    # Try to find the path to the built EdgeHttpClient.jar archive
+    set(OLP_SDK_EXAMPLE_HTTP_CLIENT_JAR "-DOLP_SDK_HTTP_CLIENT_JAR='full path to the OlpHttpClient.jar in the <olp-sdk-build-folder>/olp-cpp-sdk-core/ folder'")
+    # Try to find the path to the built OlpHttpClient.jar archive
     if (DEFINED olp-cpp-sdk-core_BINARY_DIR)
         set(OLP_SDK_HTTP_CLIENT_PATH ${olp-cpp-sdk-core_BINARY_DIR})
-        # User can change the install path of the EdgeHttpClient.jar via CMAKE_JAVA_TARGET_OUTPUT_DIR variable
+        # User can change the install path of the OlpHttpClient.jar via CMAKE_JAVA_TARGET_OUTPUT_DIR variable
         if (DEFINED CMAKE_JAVA_TARGET_OUTPUT_DIR)
             set(OLP_SDK_HTTP_CLIENT_PATH ${CMAKE_JAVA_TARGET_OUTPUT_DIR})
         endif()
-        set(OLP_SDK_EXAMPLE_HTTP_CLIENT_JAR "-DOLP_SDK_HTTP_CLIENT_JAR=${OLP_SDK_HTTP_CLIENT_PATH}/EdgeHttpClient.jar")
+        set(OLP_SDK_EXAMPLE_HTTP_CLIENT_JAR "-DOLP_SDK_HTTP_CLIENT_JAR=${OLP_SDK_HTTP_CLIENT_PATH}/OlpHttpClient.jar")
     endif()
 
 

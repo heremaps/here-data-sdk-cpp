@@ -272,7 +272,7 @@ if(IOS)
         target_compile_options(${PROJECT_NAME} PRIVATE "-fobjc-arc")
     endif()
 elseif(ANDROID)
-    # Make sure that EdgeHttpClient.jar is built before olp-cpp-sdk-core
+    # Make sure that OlpHttpClient.jar is built before olp-cpp-sdk-core
     add_dependencies(${PROJECT_NAME} ${OLP_SDK_ANDROID_HTTP_CLIENT_JAR})
 endif()
 

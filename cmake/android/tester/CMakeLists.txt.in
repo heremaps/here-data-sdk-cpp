@@ -91,8 +91,8 @@ add_custom_command(
 add_custom_command(
     TARGET ${SETUP_TARGET} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_BINARY_DIR}/olp-cpp-sdk-core/EdgeHttpClient.jar
-        app/libs/EdgeHttpClient.jar
+        ${CMAKE_BINARY_DIR}/olp-cpp-sdk-core/OlpHttpClient.jar
+        app/libs/OlpHttpClient.jar
 )
 
 add_custom_target(
