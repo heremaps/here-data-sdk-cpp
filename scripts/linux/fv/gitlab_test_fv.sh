@@ -21,7 +21,10 @@ $FV_HOME/gitlab-olp-dataservice-write-test.sh || TEST_FAILURE=1
 # Run integration tests
 $FV_HOME/gitlab-olp-cpp-sdk-integration-test.sh || TEST_FAILURE=1
 
-if [[ $TEST_FAILURE==1 ]]; then
+#Run functional tests
+$FV_HOME/gitlab-olp-cpp-sdk-functional-test.sh || TEST_FAILURE=1
+
+if [ $TEST_FAILURE == 1 ]; then
     echo "Some tests failed."
 fi
 
