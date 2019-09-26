@@ -420,7 +420,8 @@ ErrorCode NetworkCurl::SendImplementation(
   RequestHandle* handle = GetHandle(id, callback, header_callback,
                                     data_callback, payload, request.GetBody());
   if (!handle) {
-    return ErrorCode::UNKNOWN_ERROR;  // NetworkProtocol::ErrorNotReady;
+    OLP_SDK_LOG_WARNING(kLogTag, "curl handle is nullptr");
+    return ErrorCode::NETWORK_OVERLOAD_ERROR;
   }
 
   handle->transfer_timeout = config.GetTransferTimeout();
@@ -611,6 +612,7 @@ NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
     Network::DataCallback data_callback, Network::Payload payload,
     NetworkRequest::RequestBodyType body) {
   if (!IsStarted()) {
+    OLP_SDK_LOG_ERROR(kLogTag, "Network is not started");
     return nullptr;
   }
   std::lock_guard<std::mutex> lock(event_mutex_);
@@ -619,6 +621,7 @@ NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
       if (!handles_[i].handle) {
         handles_[i].handle = curl_easy_init();
         if (!handles_[i].handle) {
+          OLP_SDK_LOG_ERROR(kLogTag, "curl_easy_init returns nullptr");
           return nullptr;
         }
       }
@@ -649,6 +652,8 @@ NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
       return &handles_[i];
     }
   }
+
+  OLP_SDK_LOG_WARNING(kLogTag, "all curl handles are in use");
   return nullptr;
 }
 
