@@ -16,3 +16,25 @@
  * SPDX-License-Identifier: Apache-2.0
  * License-Filename: LICENSE
  */
+
+#pragma once
+
+#include <gmock/gmock.h>
+
+#include <olp/core/http/Network.h>
+
+class NetworkMock : public olp::http::Network {
+ public:
+  NetworkMock();
+  virtual ~NetworkMock();
+
+  MOCK_METHOD(olp::http::SendOutcome, Send,
+              (olp::http::NetworkRequest request,
+               olp::http::Network::Payload payload,
+               olp::http::Network::Callback callback,
+               olp::http::Network::HeaderCallback header_callback,
+               olp::http::Network::DataCallback data_callback),
+              (override));
+
+  MOCK_METHOD(void, Cancel, (olp::http::RequestId id), (override));
+};
