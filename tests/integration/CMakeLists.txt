@@ -18,7 +18,8 @@
 cmake_minimum_required(VERSION 3.5)
 
 set(OLP_SDK_INTEGRATIONAL_TESTS_SOURCES
-    ./placeholder.cpp
+    ./olp-cpp-sdk-authentication/AuthenticationClientTest.cpp
+    ./olp-cpp-sdk-authentication/HereAccountOauth2Test.cpp
 )
 
 if (ANDROID OR IOS)
@@ -30,6 +31,7 @@ if (ANDROID OR IOS)
             olp-cpp-sdk-authentication
             olp-cpp-sdk-dataservice-read
             olp-cpp-sdk-dataservice-write
+            olp-cpp-sdk-tests-common
     )
     if (ANDROID)
         include(${CMAKE_SOURCE_DIR}/cmake/android/gen_android_test.cmake)
@@ -55,5 +57,6 @@ else()
             olp-cpp-sdk-authentication
             olp-cpp-sdk-dataservice-read
             olp-cpp-sdk-dataservice-write
+            olp-cpp-sdk-tests-common
     )
 endif()

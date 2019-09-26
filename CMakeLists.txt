@@ -83,6 +83,7 @@ add_subdirectory(docs)
 
 if(OLP_SDK_ENABLE_TESTING)
     # Add tests
+    add_subdirectory(tests/common)
     add_subdirectory(tests/functional)
     add_subdirectory(tests/integration)
 endif()
