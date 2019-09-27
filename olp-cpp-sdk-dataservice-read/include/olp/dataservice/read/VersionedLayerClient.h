@@ -34,36 +34,45 @@ namespace olp {
 namespace dataservice {
 namespace read {
 
-using DataResult = model::Data;
-using DataResponse = client::ApiResponse<DataResult, client::ApiError>;
-using DataResponseCallback = std::function<void(DataResponse response)>;
-
 /**
  * @brief The VersionedLayerClient aimed to acquire data from OLP services.
  */
 class DATASERVICE_READ_API VersionedLayerClient final {
  public:
+  /// DataResult alias
+  using DataResult = model::Data;
+  /// ApiResponse template alias
+  template <typename Result>
+  using CallbackResponse = client::ApiResponse<Result, client::ApiError>;
+  /// Callback template alias
+  template <typename Response>
+  using Callback = std::function<void(CallbackResponse<Response> response)>;
+
   /**
-   * @brief Sets up \c OlpClientSettings and \c HRN to be used during requests.
+   * @brief VersionedLayerClient constructor
+   * @param catalog this versioned layer client uses during requests.
+   * @param layer_id this versioned layer client uses during requests.
+   * @param settings the settings used to control behaviour of the client
+   * instance.
    */
-  VersionedLayerClient(olp::client::OlpClientSettings client_settings,
-                       olp::client::HRN hrn);
+  VersionedLayerClient(olp::client::HRN catalog, std::string layer_id,
+                       olp::client::OlpClientSettings client_settings);
 
   ~VersionedLayerClient();
 
   /**
-   * @brief Sends data from OLP server described in DataRequest to a callback.
-   * @param data_request \c DataRequest class that defines which catalog,
-   * version, layer and partition or data handle to be queried. Will contact
-   * Blob service directly if data handle is set. Will query meta data service
-   * otherwise.
-   * @param callback to be called once data is ready or the request is
-   * cancelled.
-   * @return A CancellationToken which can be used to cancel the ongoing
-   * request.
+   * @brief Fetches data for a partition or data handle asynchronously. If the
+   * specified partition or data handle cannot be found in the layer, the
+   * callback will be invoked with an empty DataResponse (nullptr for result and
+   * error). If neither Partition Id or Data Handle were set in the request, the
+   * callback will be invoked with an error with ErrorCode::InvalidRequest.
+   * @param data_request contains the complete set of request parameters.
+   * @param callback will be invoked once the DataResult is available, or an
+   * error is encountered.
+   * @return A token that can be used to cancel this request.
    */
   olp::client::CancellationToken GetData(DataRequest data_request,
-                                         DataResponseCallback callback);
+                                         Callback<DataResult> callback);
 
  private:
   class Impl;
