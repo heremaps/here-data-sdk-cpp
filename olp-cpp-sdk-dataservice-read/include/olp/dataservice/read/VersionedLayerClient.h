@@ -34,6 +34,8 @@ namespace olp {
 namespace dataservice {
 namespace read {
 
+class VersionedLayerClientImpl;
+
 /**
  * @brief The VersionedLayerClient aimed to acquire data from OLP services.
  */
@@ -58,7 +60,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
   VersionedLayerClient(olp::client::HRN catalog, std::string layer_id,
                        olp::client::OlpClientSettings client_settings);
 
-  ~VersionedLayerClient();
+  ~VersionedLayerClient() = default;
 
   /**
    * @brief Fetches data for a partition or data handle asynchronously. If the
@@ -75,8 +77,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
                                          Callback<DataResult> callback);
 
  private:
-  class Impl;
-  std::unique_ptr<Impl> impl_;
+  std::shared_ptr<VersionedLayerClientImpl> impl_;
 };
 
 }  // namespace read

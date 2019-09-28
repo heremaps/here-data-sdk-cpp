@@ -34,6 +34,8 @@
 #include "olp/dataservice/read/DataRequest.h"
 #include "olp/dataservice/read/PartitionsRequest.h"
 
+#include "Condition.h"
+
 namespace olp {
 namespace dataservice {
 namespace read {
@@ -324,6 +326,94 @@ void DataRepository::GetData(
     const read::DataResponseCallback& callback) {
   GetDataInternal(cancellationContext, apiRepo_, layerType, request, callback,
                   *cache_);
+}
+
+BlobApi::DataResponse DataRepository::GetBlobDataSync(
+    const client::HRN& catalog, const std::string& layer,
+    const DataRequest& data_request,
+    client::CancellationContext cancellation_context,
+    client::OlpClientSettings settings) {
+  using namespace client;
+
+  auto fetch_option = data_request.GetFetchOption();
+  const auto& data_handle = data_request.GetDataHandle();
+
+  if (!data_handle) {
+    auto key = data_request.CreateKey();
+    OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache", key.c_str());
+    return ApiError(ErrorCode::PreconditionFailed, "Data handle is missing");
+  }
+
+  repository::DataCacheRepository repository(catalog, settings.cache);
+
+  if (fetch_option != OnlineOnly) {
+    auto cached_data = repository.Get(layer, data_handle.value());
+    if (cached_data) {
+      auto key = data_request.CreateKey();
+      OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!", key.c_str());
+      return cached_data.value();
+    } else if (fetch_option == CacheOnly) {
+      auto key = data_request.CreateKey();
+      OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' not found!", key.c_str());
+      return ApiError(ErrorCode::NotFound,
+                      "Cache only resource not found in cache (data).");
+    }
+  }
+
+  auto blob_api = ApiClientLookup::LookupApiSync(
+      catalog, cancellation_context, "blob", "v1", fetch_option, settings);
+
+  if (!blob_api.IsSuccessful()) {
+    return blob_api.GetError();
+  }
+
+  const client::OlpClient& client = blob_api.GetResult();
+
+  Condition condition(cancellation_context);
+
+  // when the network operation took too much time we cancel it and exit
+  // execution, to make sure that network callback will not access dangling
+  // references we protect them with atomic bool flag.
+  auto interest_flag = std::make_shared<std::atomic_bool>(true);
+
+  BlobApi::DataResponse blob_response;
+  cancellation_context.ExecuteOrCancelled2([&]() {
+    return BlobApi::GetBlob(client, layer, data_handle.value(),
+                            data_request.GetBillingTag(), boost::none,
+                            [&, interest_flag](BlobApi::DataResponse response) {
+                              if (interest_flag->exchange(false)) {
+                                blob_response = std::move(response);
+                                condition.Notify();
+                              }
+                            });
+  });
+
+  if (!condition.Wait()) {
+    // We are just about exit the execution.
+    interest_flag->store(false);
+
+    if (cancellation_context.IsCancelled()) {
+      // We can't use blob response here because it could potentially be
+      // uninitialized.
+      return ApiError(ErrorCode::Cancelled, "Operation cancelled.");
+    } else {
+      cancellation_context.CancelOperation();
+      return ApiError(ErrorCode::RequestTimeout, "Network request timed out.");
+    }
+  }
+
+  if (blob_response.IsSuccessful()) {
+    repository.Put(blob_response.GetResult(), layer, data_handle.value());
+  } else {
+    const auto& error = blob_response.GetError();
+    if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
+      auto key = data_request.CreateKey();
+      OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache", key.c_str());
+      repository.Clear(layer, data_handle.value());
+    }
+  }
+
+  return blob_response;
 }
 
 }  // namespace repository

@@ -34,6 +34,8 @@
 #include "olp/dataservice/read/CatalogVersionRequest.h"
 #include "olp/dataservice/read/PartitionsRequest.h"
 
+#include "Condition.h"
+
 namespace olp {
 namespace dataservice {
 namespace read {
@@ -456,6 +458,106 @@ CancellationToken PartitionsRepository::GetPartitionsById(
   };
   return multiRequestContext_->ExecuteOrAssociate(requestKey, executeFn,
                                                   callback);
+}
+
+QueryApi::PartitionsResponse PartitionsRepository::GetPartitionByIdSync(
+    const client::HRN& catalog, const std::string& layer,
+    client::CancellationContext cancellation_context,
+    const DataRequest& data_request, client::OlpClientSettings settings) {
+  using namespace client;
+  const auto& partitionId = data_request.GetPartitionId();
+  if (!partitionId) {
+    return ApiError(ErrorCode::PreconditionFailed, "Partition Id is missing");
+  }
+
+  const auto& version = data_request.GetVersion();
+  if (!version) {
+    return ApiError(ErrorCode::PreconditionFailed, "Version is not identified");
+  }
+
+  repository::PartitionsCacheRepository repository(catalog, settings.cache);
+
+  const std::vector<std::string> partitions{partitionId.value()};
+  PartitionsRequest partition_request;
+  partition_request.WithLayerId(layer)
+      .WithBillingTag(data_request.GetBillingTag())
+      .WithVersion(version);
+
+  auto fetch_option = data_request.GetFetchOption();
+
+  if (fetch_option != OnlineOnly) {
+    auto cached_partitions = repository.Get(partition_request, partitions);
+    if (cached_partitions.GetPartitions().size() == partitions.size()) {
+      auto key = data_request.CreateKey();
+      OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!", key.c_str());
+      return cached_partitions;
+    } else if (fetch_option == CacheOnly) {
+      auto key = data_request.CreateKey();
+      OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' not found!", key.c_str());
+      return ApiError(ErrorCode::NotFound,
+                      "Cache only resource not found in cache (partition).");
+    }
+  }
+
+  auto query_api = ApiClientLookup::LookupApiSync(
+      catalog, cancellation_context, "query", "v1", fetch_option, settings);
+
+  if (!query_api.IsSuccessful()) {
+    return query_api.GetError();
+  }
+
+  const client::OlpClient& client = query_api.GetResult();
+
+  Condition condition(cancellation_context);
+
+  // when the network operation took too much time we cancel it and exit
+  // execution, to make sure that network callback will not access dangling
+  // references we protect them with atomic bool flag.
+  auto interest_flag = std::make_shared<std::atomic_bool>(true);
+
+  QueryApi::PartitionsResponse query_response;
+  cancellation_context.ExecuteOrCancelled2([&]() {
+    return QueryApi::GetPartitionsbyId(
+        client, layer, partitions, version, boost::none,
+        data_request.GetBillingTag(),
+        [&, interest_flag](QueryApi::PartitionsResponse response) {
+          if (interest_flag->exchange(false)) {
+            query_response = std::move(response);
+            condition.Notify();
+          }
+        });
+  });
+
+  if (!condition.Wait()) {
+    // We are just about exit the execution.
+    interest_flag->store(false);
+
+    if (cancellation_context.IsCancelled()) {
+      // We can't use query response here because it could potentially be
+      // uninitialized.
+      return ApiError(ErrorCode::Cancelled, "Operation cancelled.");
+    } else {
+      cancellation_context.CancelOperation();
+      return ApiError(ErrorCode::RequestTimeout, "Network request timed out.");
+    }
+  }
+
+  if (query_response.IsSuccessful()) {
+    auto key = data_request.CreateKey();
+    OLP_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache", key.c_str());
+    repository.Put(partition_request, query_response.GetResult(),
+                   0 /* TODO: expiration */);
+  } else {
+    const auto& error = query_response.GetError();
+    if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
+      auto key = data_request.CreateKey();
+      OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache", key.c_str());
+      // Delete partitions only but not the layer
+      repository.ClearPartitions(partition_request, partitions);
+    }
+  }
+
+  return query_response;
 }
 
 }  // namespace repository

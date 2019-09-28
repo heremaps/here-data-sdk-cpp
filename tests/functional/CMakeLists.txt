@@ -20,12 +20,14 @@ cmake_minimum_required(VERSION 3.5)
 set(OLP_SDK_FUNCTIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-core/NetworkTest.cpp
     ./olp-cpp-sdk-core/OlpClientDefaultAsyncHttp.cpp
+    ./olp-cpp-sdk-dataservice-read/VersionedLayerClientTest.cpp
 )
 
 if (ANDROID OR IOS)
     add_library(olp-cpp-sdk-functional-tests-lib ${OLP_SDK_FUNCTIONAL_TESTS_SOURCES})
     target_link_libraries(olp-cpp-sdk-functional-tests-lib
         PRIVATE
+            custom-params
             gtest
             olp-cpp-sdk-core
             olp-cpp-sdk-authentication
@@ -51,6 +53,7 @@ else()
     add_executable(olp-cpp-sdk-functional-tests ${OLP_SDK_FUNCTIONAL_TESTS_SOURCES})
     target_link_libraries(olp-cpp-sdk-functional-tests
         PRIVATE
+            custom-params
             gtest_main
             olp-cpp-sdk-core
             olp-cpp-sdk-authentication

@@ -31,6 +31,8 @@
 #include "olp/dataservice/read/CatalogRequest.h"
 #include "olp/dataservice/read/CatalogVersionRequest.h"
 
+#include "Condition.h"
+
 namespace olp {
 namespace dataservice {
 namespace read {
@@ -236,6 +238,83 @@ client::CancellationToken CatalogRepository::getLatestCatalogVersion(
   OLP_SDK_LOG_INFO_F(kLogTag, "ExecuteOrAssociate '%s'", requestKey.c_str());
   return client::CancellationToken(
       [cancel_context]() { cancel_context->CancelOperation(); });
+}
+
+MetadataApi::CatalogVersionResponse CatalogRepository::GetLatestVersionSync(
+    const client::HRN& catalog,
+    client::CancellationContext cancellation_context,
+    const DataRequest& data_request, client::OlpClientSettings settings) {
+  using namespace client;
+
+  repository::CatalogCacheRepository repository(catalog, settings.cache);
+
+  auto fetch_option = data_request.GetFetchOption();
+  if (fetch_option != OnlineOnly) {
+    auto cached_version = repository.GetVersion();
+    if (cached_version) {
+      auto key = data_request.CreateKey();
+      OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' found!", key.c_str());
+      return cached_version.value();
+    } else if (fetch_option == CacheOnly) {
+      auto key = data_request.CreateKey();
+      OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' not found!", key.c_str());
+      return ApiError(
+          ErrorCode::NotFound,
+          "Cache only resource not found in cache (catalog version).");
+    }
+  }
+
+  auto metadata_api = ApiClientLookup::LookupApiSync(
+      catalog, cancellation_context, "metadata", "v1", fetch_option, settings);
+  if (!metadata_api.IsSuccessful()) {
+    return metadata_api.GetError();
+  }
+
+  const client::OlpClient& client = metadata_api.GetResult();
+
+  Condition condition(cancellation_context);
+
+  // when the network operation took too much time we cancel it and exit
+  // execution, to make sure that network callback will not access dangling
+  // references we protect them with atomic bool flag.
+  auto interest_flag = std::make_shared<std::atomic_bool>(true);
+
+  MetadataApi::CatalogVersionResponse version_response;
+  cancellation_context.ExecuteOrCancelled2([&]() {
+    return MetadataApi::GetLatestCatalogVersion(
+        client, -1, data_request.GetBillingTag(),
+        [&, interest_flag](MetadataApi::CatalogVersionResponse response) {
+          if (interest_flag->exchange(false)) {
+            version_response = std::move(response);
+            condition.Notify();
+          }
+        });
+  });
+
+  if (!condition.Wait()) {
+    // We are just about exit the execution.
+    interest_flag->store(false);
+
+    if (cancellation_context.IsCancelled()) {
+      // We can't use version response here because it could potentially be
+      // uninitialized.
+      return ApiError(ErrorCode::Cancelled, "Operation cancelled.");
+    } else {
+      cancellation_context.CancelOperation();
+      return ApiError(ErrorCode::RequestTimeout, "Network request timed out.");
+    }
+  }
+
+  if (version_response.IsSuccessful()) {
+    repository.PutVersion(version_response.GetResult());
+  } else {
+    const auto& error = version_response.GetError();
+    if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
+      repository.Clear();
+    }
+  }
+
+  return version_response;
 }
 
 }  // namespace repository

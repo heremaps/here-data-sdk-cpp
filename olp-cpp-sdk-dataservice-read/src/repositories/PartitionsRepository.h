@@ -22,10 +22,13 @@
 #include <string>
 #include <vector>
 
+#include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
 #include "MultiRequestContext.h"
 #include "olp/dataservice/read/CatalogClient.h"
+
+#include "generated/api/QueryApi.h"
 
 namespace olp {
 namespace dataservice {
@@ -56,6 +59,11 @@ class PartitionsRepository final {
   std::shared_ptr<PartitionsCacheRepository> GetPartitionsCacheRepository() {
     return cache_;
   }
+
+  static QueryApi::PartitionsResponse GetPartitionByIdSync(
+      const client::HRN& catalog, const std::string& layer,
+      client::CancellationContext cancellation_context,
+      const DataRequest& data_request, client::OlpClientSettings settings);
 
  private:
   client::HRN hrn_;

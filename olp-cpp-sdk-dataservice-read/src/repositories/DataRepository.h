@@ -24,6 +24,7 @@
 #include <olp/core/client/HRN.h>
 #include "MultiRequestContext.h"
 #include "olp/dataservice/read/CatalogClient.h"
+#include "generated/api/BlobApi.h"
 
 namespace olp {
 namespace dataservice {
@@ -51,6 +52,12 @@ class DataRepository final {
                const std::string& layerType, const read::DataRequest& request,
                const read::DataResponseCallback& callback);
   static bool IsInlineData(const std::string& dataHandle);
+
+  static BlobApi::DataResponse GetBlobDataSync(
+      const client::HRN& catalog, const std::string& layer,
+      const DataRequest& data_request,
+      client::CancellationContext cancellation_context,
+      client::OlpClientSettings settings);
 
  private:
   client::HRN hrn_;

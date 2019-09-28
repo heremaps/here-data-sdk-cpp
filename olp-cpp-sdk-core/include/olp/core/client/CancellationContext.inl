@@ -44,6 +44,23 @@ inline void CancellationContext::ExecuteOrCancelled(
   }
 }
 
+inline void CancellationContext::ExecuteOrCancelled2(
+    const std::function<CancellationToken()>& execute_fn) {
+  if (!impl_) {
+    return;
+  }
+
+  std::lock_guard<std::recursive_mutex> lock(impl_->mutex_);
+
+  if (impl_->is_cancelled_) {
+    return;
+  }
+
+  if (execute_fn) {
+    impl_->sub_operation_cancel_token_ = execute_fn();
+  }
+}
+
 inline void CancellationContext::CancelOperation() {
   if (!impl_) {
     return;

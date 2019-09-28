@@ -56,6 +56,15 @@ class CORE_API CancellationContext {
                           const CancelFuncType& cancel_fn);
 
   /**
+   * @brief Execute a given cancellable code block if the operation has not yet
+   * been cancelled. Otherwise, execute a custom cancellation function.
+   * @param execute_fn A function to execute if this operation is not yet
+   * cancelled. This function should return a CancellationToken which
+   * CancellationContext will propogate a cancel request to.
+   */
+  void ExecuteOrCancelled2(const ExecuteFuncType& execute_fn);
+
+  /**
    * @brief Allows the user to cancel an ongoing operation in a threadsafe way.
    */
   void CancelOperation();
