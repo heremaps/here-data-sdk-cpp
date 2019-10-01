@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 #Start local server
-node $REPO_HOME/tests/utils/server.js & export SERVER_PID=$!
+node $REPO_HOME/tests/utils/mock_server/server.js & export SERVER_PID=$!
 
 # Node can start server in 1 second, but not faster.
 # Add waiter for server to be started. No other way to solve that.
