@@ -34,8 +34,10 @@ inline void CancellationContext::ExecuteOrCancelled(
 
   std::lock_guard<std::recursive_mutex> lock(impl_->mutex_);
 
-  if (impl_->is_cancelled_ && cancel_fn) {
-    cancel_fn();
+  if (impl_->is_cancelled_) {
+    if (cancel_fn) {
+      cancel_fn();
+    }
     return;
   }
 
