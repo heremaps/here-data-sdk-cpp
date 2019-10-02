@@ -18,10 +18,13 @@
 cmake_minimum_required(VERSION 3.5)
 
 set(OLP_SDK_TESTS_COMMON_HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/matchers/NetworkUrlMatchers.h
     ${CMAKE_CURRENT_SOURCE_DIR}/mocks/NetworkMock.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/mocks/CacheMock.h
 )
 
 set(OLP_SDK_TESTS_COMMON_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/mocks/CacheMock.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mocks/NetworkMock.cpp
 )
 
