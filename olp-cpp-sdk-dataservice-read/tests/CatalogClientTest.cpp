@@ -69,6 +69,21 @@ using ::testing::_;
 
 namespace {
 
+enum class CacheType { IN_MEMORY, DISK, BOTH };
+
+std::ostream& operator<<(std::ostream& os, const CacheType cache_type) {
+  switch (cache_type) {
+    case CacheType::IN_MEMORY:
+      return os << "In-memory cache";
+    case CacheType::DISK:
+      return os << "Disk cache";
+    case CacheType::BOTH:
+      return os << "In-memory & disk cache";
+    default:
+      return os << "Unknown cache type";
+  }
+}
+
 class NetworkMock : public olp::http::Network {
  public:
   MOCK_METHOD(olp::http::SendOutcome, Send,
@@ -81,547 +96,12 @@ class NetworkMock : public olp::http::Network {
 
   MOCK_METHOD(void, Cancel, (olp::http::RequestId id), (override));
 };
-}  // namespace
-
-class ClientHttp : public ::testing::TestWithParam<bool> {
- protected:
-  olp::client::OlpClientSettings client_settings_;
-  olp::client::OlpClient client_;
-};
-
-enum CacheType { InMemory = 0, Disk, Both };
-using ClientTestParameter = std::pair<bool, CacheType>;
-
-class CatalogClientTestBase
-    : public ::testing::TestWithParam<ClientTestParameter> {
- protected:
-  virtual bool isOnlineTest() { return std::get<0>(GetParam()); }
-
-  std::string GetTestCatalog() {
-    static std::string mockCatalog{"hrn:here:data:::hereos-internal-test-v2"};
-    return isOnlineTest() ? CustomParameters::getArgument("dataservice_read_test_catalog")
-                          : mockCatalog;
-  }
-
-  std::string PrintError(const olp::client::ApiError& error) {
-    std::ostringstream resultStream;
-    resultStream << "ERROR: code: " << static_cast<int>(error.GetErrorCode())
-                 << ", status: " << error.GetHttpStatusCode()
-                 << ", message: " << error.GetMessage();
-    return resultStream.str();
-  }
-
-  template <typename T>
-  T GetExecutionTime(std::function<T()> func) {
-    auto startTime = std::chrono::high_resolution_clock::now();
-    auto result = func();
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> time = end - startTime;
-    std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
-
-    return result;
-  }
-
- protected:
-  std::shared_ptr<olp::client::OlpClientSettings> settings_;
-  std::shared_ptr<olp::client::OlpClient> client_;
-  std::shared_ptr<NetworkMock> network_mock_;
-};
-
-class CatalogClientOnlineTest : public CatalogClientTestBase {
-  void SetUp() override {
-    //    olp::logging::Log::setLevel(olp::logging::Level::Trace);
-
-    auto network = olp::client::OlpClientSettingsFactory::
-        CreateDefaultNetworkRequestHandler();
-
-    olp::authentication::Settings auth_settings;
-    auth_settings.network_request_handler = network;
-
-    olp::authentication::TokenProviderDefault provider(
-        CustomParameters::getArgument("dataservice_read_test_appid"),
-        CustomParameters::getArgument("dataservice_read_test_secret"), auth_settings);
-    olp::client::AuthenticationSettings auth_client_settings;
-    auth_client_settings.provider = provider;
-    settings_ = std::make_shared<olp::client::OlpClientSettings>();
-    settings_->network_request_handler = network;
-    settings_->authentication_settings = auth_client_settings;
-    client_ = olp::client::OlpClientFactory::Create(*settings_);
-  }
-
-  void TearDown() override {
-    client_.reset();
-    auto network = std::move(settings_->network_request_handler);
-    settings_.reset();
-    // when test ends we must be sure that network pointer is not captured
-    // anywhere
-    assert(network.use_count() == 1);
-  }
-};
-
-INSTANTIATE_TEST_SUITE_P(TestOnline, CatalogClientOnlineTest,
-                         ::testing::Values(std::make_pair(true, Both)));
-
-TEST_P(CatalogClientOnlineTest, GetCatalog) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  auto request = olp::dataservice::read::CatalogRequest();
-
-  auto catalogResponse =
-      GetExecutionTime<olp::dataservice::read::CatalogResponse>([&] {
-        auto future = catalogClient->GetCatalog(request);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_TRUE(catalogResponse.IsSuccessful())
-      << PrintError(catalogResponse.GetError());
-}
-
-TEST_P(CatalogClientOnlineTest, GetPartitionsWithInvalidHrn) {
-  olp::client::HRN hrn("hrn:here:data:::nope-test-v2");
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  auto request = olp::dataservice::read::PartitionsRequest();
-  request.WithLayerId("testlayer");
-  auto partitionsResponse =
-      GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
-        auto future = catalogClient->GetPartitions(request);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_FALSE(partitionsResponse.IsSuccessful());
-  ASSERT_EQ(403, partitionsResponse.GetError().GetHttpStatusCode());
-}
-
-TEST_P(CatalogClientOnlineTest, GetPartitions) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  auto request = olp::dataservice::read::PartitionsRequest();
-  request.WithLayerId("testlayer");
-  auto partitionsResponse =
-      GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
-        auto future = catalogClient->GetPartitions(request);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_TRUE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(4u, partitionsResponse.GetResult().GetPartitions().size());
-}
-
-TEST_P(CatalogClientOnlineTest, GetPartitionsForInvalidLayer) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  auto request = olp::dataservice::read::PartitionsRequest();
-  request.WithLayerId("invalidLayer");
-  auto partitionsResponse =
-      GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
-        auto future = catalogClient->GetPartitions(request);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_FALSE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
-            partitionsResponse.GetError().GetErrorCode());
-}
-
-TEST_P(CatalogClientOnlineTest, GetDataWithInvalidHrn) {
-  olp::client::HRN hrn("hrn:here:data:::nope-test-v2");
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  auto request = olp::dataservice::read::DataRequest();
-  request.WithLayerId("testlayer")
-      .WithDataHandle("d5d73b64-7365-41c3-8faf-aa6ad5bab135");
-  auto dataResponse =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalogClient->GetData(request);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_FALSE(dataResponse.IsSuccessful());
-  ASSERT_EQ(403, dataResponse.GetError().GetHttpStatusCode());
-}
-
-TEST_P(CatalogClientOnlineTest, GetDataWithHandle) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  auto request = olp::dataservice::read::DataRequest();
-  request.WithLayerId("testlayer")
-      .WithDataHandle("d5d73b64-7365-41c3-8faf-aa6ad5bab135");
-  auto dataResponse =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalogClient->GetData(request);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_TRUE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
-  ASSERT_LT(0, dataResponse.GetResult()->size());
-  std::string dataStr(dataResponse.GetResult()->begin(),
-                      dataResponse.GetResult()->end());
-  ASSERT_EQ("DT_2_0031", dataStr);
-}
-
-TEST_P(CatalogClientOnlineTest, GetDataWithInvalidDataHandle) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  auto request = olp::dataservice::read::DataRequest();
-  request.WithLayerId("testlayer").WithDataHandle("invalidDataHandle");
-  auto dataResponse =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalogClient->GetData(request);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_FALSE(dataResponse.IsSuccessful());
-  ASSERT_EQ(404, dataResponse.GetError().GetHttpStatusCode());
-}
-
-TEST_P(CatalogClientOnlineTest, GetDataHandleWithInvalidLayer) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  auto request = olp::dataservice::read::DataRequest();
-  request.WithLayerId("invalidLayer").WithDataHandle("invalidDataHandle");
-  auto dataResponse =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalogClient->GetData(request);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_FALSE(dataResponse.IsSuccessful());
-  ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
-            dataResponse.GetError().GetErrorCode());
-}
-
-TEST_P(CatalogClientOnlineTest, GetDataWithPartitionId) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  auto request = olp::dataservice::read::DataRequest();
-  request.WithLayerId("testlayer").WithPartitionId("269");
-  auto dataResponse =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalogClient->GetData(request);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_TRUE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
-  ASSERT_LT(0, dataResponse.GetResult()->size());
-  std::string dataStr(dataResponse.GetResult()->begin(),
-                      dataResponse.GetResult()->end());
-  ASSERT_EQ("DT_2_0031", dataStr);
-}
-
-TEST_P(CatalogClientOnlineTest, GetDataWithPartitionIdVersion2) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  auto request = olp::dataservice::read::DataRequest();
-  request.WithLayerId("testlayer").WithPartitionId("269").WithVersion(2);
-  auto dataResponse =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalogClient->GetData(request);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_TRUE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
-  ASSERT_LT(0, dataResponse.GetResult()->size());
-  std::string dataStr(dataResponse.GetResult()->begin(),
-                      dataResponse.GetResult()->end());
-  ASSERT_EQ("DT_2_0031", dataStr);
-}
-
-TEST_P(CatalogClientOnlineTest, GetDataWithPartitionIdInvalidVersion) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  auto request = olp::dataservice::read::DataRequest();
-  request.WithLayerId("testlayer").WithPartitionId("269").WithVersion(10);
-  auto dataResponse =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalogClient->GetData(request);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_FALSE(dataResponse.IsSuccessful());
-  ASSERT_EQ(olp::client::ErrorCode::BadRequest,
-            dataResponse.GetError().GetErrorCode());
-  ASSERT_EQ(400, dataResponse.GetError().GetHttpStatusCode());
-
-  request.WithVersion(-1);
-  dataResponse = GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-    auto future = catalogClient->GetData(request);
-    return future.GetFuture().get();
-  });
-
-  ASSERT_FALSE(dataResponse.IsSuccessful());
-  ASSERT_EQ(olp::client::ErrorCode::BadRequest,
-            dataResponse.GetError().GetErrorCode());
-  ASSERT_EQ(400, dataResponse.GetError().GetHttpStatusCode());
-}
-
-TEST_P(CatalogClientOnlineTest, GetPartitionsVersion2) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  auto request = olp::dataservice::read::PartitionsRequest();
-  request.WithLayerId("testlayer").WithVersion(2);
-  auto partitionsResponse =
-      GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
-        auto future = catalogClient->GetPartitions(request);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_TRUE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-  ASSERT_LT(0, partitionsResponse.GetResult().GetPartitions().size());
-}
-
-TEST_P(CatalogClientOnlineTest, GetPartitionsInvalidVersion) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  auto request = olp::dataservice::read::PartitionsRequest();
-  request.WithLayerId("testlayer").WithVersion(10);
-  auto partitionsResponse =
-      GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
-        auto future = catalogClient->GetPartitions(request);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_FALSE(partitionsResponse.IsSuccessful());
-  ASSERT_EQ(olp::client::ErrorCode::BadRequest,
-            partitionsResponse.GetError().GetErrorCode());
-  ASSERT_EQ(400, partitionsResponse.GetError().GetHttpStatusCode());
-
-  request.WithVersion(-1);
-  partitionsResponse =
-      GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
-        auto future = catalogClient->GetPartitions(request);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_FALSE(partitionsResponse.IsSuccessful());
-  ASSERT_EQ(olp::client::ErrorCode::BadRequest,
-            partitionsResponse.GetError().GetErrorCode());
-  ASSERT_EQ(400, partitionsResponse.GetError().GetHttpStatusCode());
-}
-
-TEST_P(CatalogClientOnlineTest, GetDataWithNonExistentPartitionId) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  auto request = olp::dataservice::read::DataRequest();
-  request.WithLayerId("testlayer").WithPartitionId("noPartition");
-  auto dataResponse =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalogClient->GetData(request);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_TRUE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
-  ASSERT_FALSE(dataResponse.GetResult());
-}
-
-TEST_P(CatalogClientOnlineTest, GetDataWithInvalidLayerId) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  auto request = olp::dataservice::read::DataRequest();
-  request.WithLayerId("invalidLayer").WithPartitionId("269");
-  auto dataResponse =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalogClient->GetData(request);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_FALSE(dataResponse.IsSuccessful());
-  ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
-            dataResponse.GetError().GetErrorCode());
-}
-
-TEST_P(CatalogClientOnlineTest, GetDataWithInlineField) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  auto request = olp::dataservice::read::DataRequest();
-  request.WithLayerId("testlayer").WithPartitionId("3");
-  auto dataResponse =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalogClient->GetData(request);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_TRUE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
-  ASSERT_LT(0, dataResponse.GetResult()->size());
-  std::string dataStr(dataResponse.GetResult()->begin(),
-                      dataResponse.GetResult()->end());
-  ASSERT_EQ(0u, dataStr.find("data:"));
-}
-
-TEST_P(CatalogClientOnlineTest, GetDataWithEmptyField) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  auto request = olp::dataservice::read::DataRequest();
-  request.WithLayerId("testlayer").WithPartitionId("1");
-  auto dataResponse =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalogClient->GetData(request);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_TRUE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
-  ASSERT_FALSE(dataResponse.GetResult());
-}
-
-TEST_P(CatalogClientOnlineTest, GetDataCompressed) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  auto request = olp::dataservice::read::DataRequest();
-  request.WithLayerId("testlayer").WithPartitionId("here_van_wc2018_pool");
-  auto dataResponse =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalogClient->GetData(request);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_TRUE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
-  ASSERT_LT(0u, dataResponse.GetResult()->size());
-
-  auto requestCompressed = olp::dataservice::read::DataRequest();
-  requestCompressed.WithLayerId("testlayer_gzip")
-      .WithPartitionId("here_van_wc2018_pool");
-  auto dataResponseCompressed =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalogClient->GetData(requestCompressed);
-        return future.GetFuture().get();
-      });
-
-  ASSERT_TRUE(dataResponseCompressed.IsSuccessful())
-      << PrintError(dataResponseCompressed.GetError());
-  ASSERT_LT(0u, dataResponseCompressed.GetResult()->size());
-  ASSERT_EQ(dataResponse.GetResult()->size(),
-            dataResponseCompressed.GetResult()->size());
-}
 
 void dumpTileKey(const olp::geo::TileKey& tileKey) {
   std::cout << "Tile: " << tileKey.ToHereTile()
             << ", level: " << tileKey.Level()
             << ", parent: " << tileKey.Parent().ToHereTile() << std::endl;
 }
-
-TEST_P(CatalogClientOnlineTest, Prefetch) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  auto catalogClient =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  std::vector<olp::geo::TileKey> tileKeys;
-  tileKeys.emplace_back(olp::geo::TileKey::FromHereTile("5904591"));
-
-  auto request = olp::dataservice::read::PrefetchTilesRequest()
-                     .WithLayerId("hype-test-prefetch")
-                     .WithTileKeys(tileKeys)
-                     .WithMinLevel(10)
-                     .WithMaxLevel(12);
-
-  auto future = catalogClient->PrefetchTiles(request);
-
-  auto response = future.GetFuture().get();
-  ASSERT_TRUE(response.IsSuccessful());
-
-  auto& result = response.GetResult();
-
-  for (auto tileResult : result) {
-    ASSERT_TRUE(tileResult->IsSuccessful());
-    ASSERT_TRUE(tileResult->tile_key_.IsValid());
-
-    dumpTileKey(tileResult->tile_key_);
-  }
-  ASSERT_EQ(6u, result.size());
-
-  // Second part, use the cache, fetch a partition that's the child of 5904591
-  {
-    auto request = olp::dataservice::read::DataRequest();
-    request.WithLayerId("hype-test-prefetch")
-        .WithPartitionId("23618365")
-        .WithFetchOption(FetchOptions::CacheOnly);
-    auto future = catalogClient->GetData(request);
-
-    auto dataResponse = future.GetFuture().get();
-
-    ASSERT_TRUE(dataResponse.IsSuccessful())
-        << PrintError(dataResponse.GetError());
-    ASSERT_LT(0, dataResponse.GetResult()->size());
-  }
-  // The parent of 5904591 should be fetched too
-  {
-    auto request = olp::dataservice::read::DataRequest();
-    request.WithLayerId("hype-test-prefetch")
-        .WithPartitionId("1476147")
-        .WithFetchOption(FetchOptions::CacheOnly);
-    auto future = catalogClient->GetData(request);
-
-    auto dataResponse = future.GetFuture().get();
-
-    ASSERT_TRUE(dataResponse.IsSuccessful())
-        << PrintError(dataResponse.GetError());
-    ASSERT_LT(0, dataResponse.GetResult()->size());
-  }
-}
-
-//** ** ** ** MOCK TESTS ** ** ** ** **//
 
 MATCHER_P(IsGetRequest, url, "") {
   // uri, verb, null body
@@ -727,15 +207,38 @@ ReturnHttpResponse(olp::http::NetworkResponse response,
     std::thread([=]() {
       *payload << response_body;
       callback(response);
-    })
-        .detach();
+    }).detach();
 
     constexpr auto unused_request_id = 5;
     return olp::http::SendOutcome(unused_request_id);
   };
 }
 
-class CatalogClientMockTest : public CatalogClientTestBase {
+class CatalogClientMockTest : public ::testing::TestWithParam<CacheType> {
+ public:
+  std::string GetTestCatalog() {
+    return "hrn:here:data:::hereos-internal-test-v2";
+  }
+
+  std::string PrintError(const olp::client::ApiError& error) {
+    std::ostringstream resultStream;
+    resultStream << "ERROR: code: " << static_cast<int>(error.GetErrorCode())
+                 << ", status: " << error.GetHttpStatusCode()
+                 << ", message: " << error.GetMessage();
+    return resultStream.str();
+  }
+
+  template <typename T>
+  T GetExecutionTime(std::function<T()> func) {
+    auto startTime = std::chrono::high_resolution_clock::now();
+    auto result = func();
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> time = end - startTime;
+    std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
+
+    return result;
+  }
+
  protected:
   void SetUp() {
     network_mock_ = std::make_shared<NetworkMock>();
@@ -937,10 +440,12 @@ class CatalogClientMockTest : public CatalogClientTestBase {
     // Catch any non-interesting network calls that don't need to be verified
     EXPECT_CALL(*network_mock_, Send(_, _, _, _, _)).Times(testing::AtLeast(0));
   }
-};
 
-INSTANTIATE_TEST_SUITE_P(TestMock, CatalogClientMockTest,
-                         ::testing::Values(std::make_pair(false, Both)));
+ protected:
+  std::shared_ptr<olp::client::OlpClientSettings> settings_;
+  std::shared_ptr<olp::client::OlpClient> client_;
+  std::shared_ptr<NetworkMock> network_mock_;
+};
 
 TEST_P(CatalogClientMockTest, GetCatalog) {
   olp::client::HRN hrn(GetTestCatalog());
@@ -3140,19 +2645,19 @@ class CatalogClientCacheTest : public CatalogClientMockTest {
   void SetUp() {
     CatalogClientMockTest::SetUp();
     olp::cache::CacheSettings settings;
-    switch (std::get<1>(GetParam())) {
-      case InMemory: {
+    switch (GetParam()) {
+      case CacheType::IN_MEMORY: {
         // use the default value
         break;
       }
-      case Disk: {
+      case CacheType::DISK: {
         settings.max_memory_cache_size = 0;
         settings.disk_path =
             olp::utils::Dir::TempDirectory() + k_client_test_cache_dir;
         ClearCache(settings.disk_path.get());
         break;
       }
-      case Both: {
+      case CacheType::BOTH: {
         settings.disk_path =
             olp::utils::Dir::TempDirectory() + k_client_test_cache_dir;
         ClearCache(settings.disk_path.get());
@@ -3181,15 +2686,6 @@ class CatalogClientCacheTest : public CatalogClientMockTest {
  protected:
   std::shared_ptr<olp::cache::DefaultCache> cache_;
 };
-
-INSTANTIATE_TEST_SUITE_P(TestInMemoryCache, CatalogClientCacheTest,
-                         ::testing::Values(std::make_pair(false, InMemory)));
-
-INSTANTIATE_TEST_SUITE_P(TestDiskCache, CatalogClientCacheTest,
-                         ::testing::Values(std::make_pair(false, Disk)));
-
-INSTANTIATE_TEST_SUITE_P(TestBothCache, CatalogClientCacheTest,
-                         ::testing::Values(std::make_pair(false, Both)));
 
 TEST_P(CatalogClientCacheTest, GetApi) {
   olp::client::HRN hrn(GetTestCatalog());
@@ -3560,3 +3056,17 @@ TEST_P(CatalogClientCacheTest, GetVolatilePartitionsExpiry) {
       << PrintError(partitionsResponse.GetError());
   ASSERT_EQ(0u, partitionsResponse.GetResult().GetPartitions().size());
 }
+
+INSTANTIATE_TEST_SUITE_P(, CatalogClientMockTest,
+                         ::testing::Values(CacheType::BOTH));
+
+INSTANTIATE_TEST_SUITE_P(InMemoryCache, CatalogClientCacheTest,
+                         ::testing::Values(CacheType::IN_MEMORY));
+
+INSTANTIATE_TEST_SUITE_P(DiskCache, CatalogClientCacheTest,
+                         ::testing::Values(CacheType::DISK));
+
+INSTANTIATE_TEST_SUITE_P(BothCache, CatalogClientCacheTest,
+                         ::testing::Values(CacheType::BOTH));
+
+}  // namespace
