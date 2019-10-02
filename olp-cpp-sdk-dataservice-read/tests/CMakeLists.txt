@@ -19,8 +19,6 @@
 cmake_minimum_required(VERSION 3.5)
 
 set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
-    ApiTest.cpp
-    CMakeLists.txt
     CatalogClientTest.cpp
     HttpResponses.h
     MultiRequestContextTest.cpp
