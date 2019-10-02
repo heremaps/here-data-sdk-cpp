@@ -27,13 +27,13 @@
 
 #include <olp/core/http/Network.h>
 
-class OlpClientDefaultAsyncHttp : public ::testing::Test {
+class OlpClientDefaultAsyncHttpTest : public ::testing::Test {
  protected:
   olp::client::OlpClientSettings client_settings_;
   olp::client::OlpClient client_;
 };
 
-TEST_F(OlpClientDefaultAsyncHttp, GetGoogleWebsite) {
+TEST_F(OlpClientDefaultAsyncHttpTest, GetGoogleWebsite) {
   client_.SetBaseUrl("https://www.google.com");
 
   client_settings_.network_request_handler = olp::client::
@@ -55,7 +55,7 @@ TEST_F(OlpClientDefaultAsyncHttp, GetGoogleWebsite) {
   ASSERT_LT(0u, response.response.size());
 }
 
-TEST_F(OlpClientDefaultAsyncHttp, GetNonExistentWebsite) {
+TEST_F(OlpClientDefaultAsyncHttpTest, GetNonExistentWebsite) {
   // RFC 2606. Use reserved domain name that nobody could register.
   client_.SetBaseUrl("https://example.test");
   std::promise<olp::client::HttpResponse> p;
