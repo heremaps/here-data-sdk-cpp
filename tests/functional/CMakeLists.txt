@@ -19,13 +19,20 @@ cmake_minimum_required(VERSION 3.5)
 
 set(OLP_SDK_FUNCTIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-core/NetworkTest.cpp
-    ./olp-cpp-sdk-core/OlpClientDefaultAsyncHttp.cpp
+    ./olp-cpp-sdk-core/OlpClientDefaultAsyncHttpTest.cpp
+    ./olp-cpp-sdk-dataservice-read/ApiTest.cpp
+    ./olp-cpp-sdk-dataservice-read/CatalogClientTest.cpp
 )
 
 if (ANDROID OR IOS)
     add_library(olp-cpp-sdk-functional-tests-lib ${OLP_SDK_FUNCTIONAL_TESTS_SOURCES})
+    target_include_directories(olp-cpp-sdk-functional-lib
+        PRIVATE
+            ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-dataservice-read/src
+    )
     target_link_libraries(olp-cpp-sdk-functional-tests-lib
         PRIVATE
+            custom-params
             gtest
             olp-cpp-sdk-core
             olp-cpp-sdk-authentication
@@ -49,8 +56,13 @@ if (ANDROID OR IOS)
 
 else()
     add_executable(olp-cpp-sdk-functional-tests ${OLP_SDK_FUNCTIONAL_TESTS_SOURCES})
+    target_include_directories(olp-cpp-sdk-functional-tests
+    PRIVATE
+        ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-dataservice-read/src
+)
     target_link_libraries(olp-cpp-sdk-functional-tests
         PRIVATE
+            custom-params
             gtest_main
             olp-cpp-sdk-core
             olp-cpp-sdk-authentication
