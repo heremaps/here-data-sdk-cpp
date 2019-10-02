@@ -23,9 +23,11 @@
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClient.h>
 #include "generated/model/Api.h"
+#include "olp/dataservice/read/FetchOptions.h"
 
 namespace olp {
 namespace dataservice {
@@ -51,6 +53,12 @@ class ApiClientLookup {
       std::shared_ptr<client::OlpClient> client, const std::string& service,
       const std::string& service_version, const client::HRN& hrn,
       const ApiClientCallback& callback);
+
+  static ApiClientResponse LookupApi(
+      const client::HRN& catalog,
+      client::CancellationContext cancellation_context, std::string service,
+      std::string service_version, FetchOptions options,
+      client::OlpClientSettings settings);
 };
 
 }  // namespace read

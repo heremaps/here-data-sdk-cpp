@@ -20,11 +20,14 @@
 #include "ApiClientLookup.h"
 
 #include <olp/core/client/ApiError.h>
+#include <olp/core/client/CancellationContext.h>
+#include <olp/core/client/Condition.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/logging/Log.h>
 #include "generated/api/PlatformApi.h"
 #include "generated/api/ResourcesApi.h"
+#include "repositories/ApiCacheRepository.h"
 
 namespace olp {
 namespace dataservice {
@@ -124,6 +127,78 @@ client::CancellationToken ApiClientLookup::LookupApiClient(
           callback(*client);
         }
       });
+}
+
+ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
+    const client::HRN& catalog,
+    client::CancellationContext cancellation_context, std::string service,
+    std::string service_version, FetchOptions options,
+    client::OlpClientSettings settings) {
+  repository::ApiCacheRepository repository(catalog, settings.cache);
+
+  if (options != OnlineOnly) {
+    auto url = repository.Get(service, service_version);
+    if (url) {
+      OLP_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> from cache",
+                         service.c_str(), service_version.c_str());
+      client::OlpClient client;
+      client.SetSettings(std::move(settings));
+      client.SetBaseUrl(*url);
+      return std::move(client);
+    } else if (options == CacheOnly) {
+      return client::ApiError(
+          client::ErrorCode::NotFound,
+          "Cache only resource not found in cache (loopup api).");
+    }
+  }
+
+  auto client = std::make_shared<client::OlpClient>();
+  client->SetSettings(std::move(settings));
+
+  client::Condition condition(cancellation_context);
+
+  // when the network operation took too much time we cancel it and exit
+  // execution, to make sure that network callback will not access dangling
+  // references we protect them with atomic bool flag.
+  auto interest_flag = std::make_shared<std::atomic_bool>(true);
+
+  ApiClientLookup::ApiClientResponse api_response;
+  cancellation_context.ExecuteOrCancelled([&]() {
+    return ApiClientLookup::LookupApiClient(
+        client, service, service_version, catalog,
+        [&,
+         interest_flag](ApiClientLookup::ApiClientResponse response) mutable {
+          if (interest_flag->exchange(false)) {
+            api_response = std::move(response);
+            condition.Notify();
+          }
+        });
+  });
+
+  if (!condition.Wait()) {
+    // We are just about exit the execution.
+    interest_flag->store(false);
+
+    if (cancellation_context.IsCancelled()) {
+      // We can't use api response here because it could potentially be
+      // uninitialized.
+      return client::ApiError(client::ErrorCode::Cancelled,
+                              "Operation cancelled.");
+    } else {
+      cancellation_context.CancelOperation();
+      return client::ApiError(client::ErrorCode::RequestTimeout,
+                              "Network request timed out.");
+    }
+  }
+
+  if (api_response.IsSuccessful()) {
+    OLP_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> into cache",
+                       service.c_str(), service_version.c_str());
+    repository.Put(service, service_version,
+                   api_response.GetResult().GetBaseUrl());
+  }
+
+  return api_response;
 }
 
 }  // namespace read

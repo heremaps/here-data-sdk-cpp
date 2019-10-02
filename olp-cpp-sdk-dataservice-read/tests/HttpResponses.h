@@ -78,8 +78,11 @@
 #define URL_LOOKUP_VOLATILE_BLOB \
   R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data:::hereos-internal-test-v2/apis/volatile-blob/v1)"
 
-#define HTTP_RESPONSE_LOOKUP_CONFIG \
-  R"jsonString([{"api":"config","version":"v1","baseURL":"https://config.data.api.platform.in.here.com/config/v1","parameters":{}},{"api":"pipelines","version":"v1","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}},{"api":"pipelines","version":"v2","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}}])jsonString"
+#define CONFIG_BASE_URL "https://config.data.api.platform.in.here.com/config/v1"
+
+#define HTTP_RESPONSE_LOOKUP_CONFIG                                                    \
+  R"jsonString([{"api":"config","version":"v1","baseURL":")jsonString" CONFIG_BASE_URL \
+  R"jsonString(","parameters":{}},{"api":"pipelines","version":"v1","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}},{"api":"pipelines","version":"v2","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}}])jsonString"
 
 #define HTTP_RESPONSE_LOOKUP_METADATA \
   R"jsonString([{"api":"metadata","version":"v1","baseURL":"https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString"
