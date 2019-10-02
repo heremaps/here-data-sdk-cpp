@@ -25,6 +25,8 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <matchers/NetworkUrlMatchers.h>
+#include <mocks/NetworkMock.h>
 #include <olp/authentication/AuthenticationCredentials.h>
 #include <olp/authentication/Settings.h>
 #include <olp/authentication/TokenEndpoint.h>
@@ -67,22 +69,6 @@ const std::string k_client_test_cache_dir("/catalog_client_test/cache");
 
 using ::testing::_;
 
-namespace {
-
-class NetworkMock : public olp::http::Network {
- public:
-  MOCK_METHOD(olp::http::SendOutcome, Send,
-              (olp::http::NetworkRequest request,
-               olp::http::Network::Payload payload,
-               olp::http::Network::Callback callback,
-               olp::http::Network::HeaderCallback header_callback,
-               olp::http::Network::DataCallback data_callback),
-              (override));
-
-  MOCK_METHOD(void, Cancel, (olp::http::RequestId id), (override));
-};
-}  // namespace
-
 class ClientHttp : public ::testing::TestWithParam<bool> {
  protected:
   olp::client::OlpClientSettings client_settings_;
@@ -99,8 +85,9 @@ class CatalogClientTestBase
 
   std::string GetTestCatalog() {
     static std::string mockCatalog{"hrn:here:data:::hereos-internal-test-v2"};
-    return isOnlineTest() ? CustomParameters::getArgument("dataservice_read_test_catalog")
-                          : mockCatalog;
+    return isOnlineTest()
+               ? CustomParameters::getArgument("dataservice_read_test_catalog")
+               : mockCatalog;
   }
 
   std::string PrintError(const olp::client::ApiError& error) {
@@ -140,7 +127,8 @@ class CatalogClientOnlineTest : public CatalogClientTestBase {
 
     olp::authentication::TokenProviderDefault provider(
         CustomParameters::getArgument("dataservice_read_test_appid"),
-        CustomParameters::getArgument("dataservice_read_test_secret"), auth_settings);
+        CustomParameters::getArgument("dataservice_read_test_secret"),
+        auth_settings);
     olp::client::AuthenticationSettings auth_client_settings;
     auth_client_settings.provider = provider;
     settings_ = std::make_shared<olp::client::OlpClientSettings>();
@@ -623,12 +611,6 @@ TEST_P(CatalogClientOnlineTest, Prefetch) {
 
 //** ** ** ** MOCK TESTS ** ** ** ** **//
 
-MATCHER_P(IsGetRequest, url, "") {
-  // uri, verb, null body
-  return olp::http::NetworkRequest::HttpVerb::GET == arg.GetVerb() &&
-         url == arg.GetUrl() && (!arg.GetBody() || arg.GetBody()->empty());
-}
-
 using NetworkCallback = std::function<olp::http::SendOutcome(
     olp::http::NetworkRequest, olp::http::Network::Payload,
     olp::http::Network::Callback, olp::http::Network::HeaderCallback,
@@ -711,30 +693,6 @@ generateNetworkMocks(std::shared_ptr<std::promise<void>> pre_signal,
                          std::move(mocked_cancel));
 }
 
-std::function<olp::http::SendOutcome(
-    olp::http::NetworkRequest request, olp::http::Network::Payload payload,
-    olp::http::Network::Callback callback,
-    olp::http::Network::HeaderCallback header_callback,
-    olp::http::Network::DataCallback data_callback)>
-ReturnHttpResponse(olp::http::NetworkResponse response,
-                   const std::string& response_body) {
-  return [=](olp::http::NetworkRequest request,
-             olp::http::Network::Payload payload,
-             olp::http::Network::Callback callback,
-             olp::http::Network::HeaderCallback header_callback,
-             olp::http::Network::DataCallback data_callback)
-             -> olp::http::SendOutcome {
-    std::thread([=]() {
-      *payload << response_body;
-      callback(response);
-    })
-        .detach();
-
-    constexpr auto unused_request_id = 5;
-    return olp::http::SendOutcome(unused_request_id);
-  };
-}
-
 class CatalogClientMockTest : public CatalogClientTestBase {
  protected:
   void SetUp() {
@@ -755,184 +713,184 @@ class CatalogClientMockTest : public CatalogClientTestBase {
 
   void SetUpCommonNetworkMockCalls() {
     ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_LOOKUP_CONFIG));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_LOOKUP_CONFIG));
 
     ON_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_CONFIG));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_CONFIG));
 
     ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_LOOKUP_METADATA));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_LOOKUP_METADATA));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_LATEST_CATALOG_VERSION));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_LATEST_CATALOG_VERSION));
 
     ON_CALL(*network_mock_, Send(IsGetRequest(URL_LAYER_VERSIONS), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_LAYER_VERSIONS));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_LAYER_VERSIONS));
 
     ON_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_PARTITIONS));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_PARTITIONS));
 
     ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_LOOKUP_QUERY));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_LOOKUP_QUERY));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_QUERY_PARTITION_269), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_PARTITION_269));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_PARTITION_269));
 
     ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_LOOKUP_BLOB));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_LOOKUP_BLOB));
 
     ON_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_BLOB_DATA_269));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_BLOB_DATA_269));
 
     ON_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITION_3), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_PARTITION_3));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_PARTITION_3));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_LOOKUP_VOLATILE_BLOB));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_LOOKUP_VOLATILE_BLOB));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_LAYER_VERSIONS_V2), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_LAYER_VERSIONS_V2));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_LAYER_VERSIONS_V2));
 
     ON_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS_V2), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_PARTITIONS_V2));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_PARTITIONS_V2));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_QUERY_PARTITION_269_V2), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_PARTITION_269_V2));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_PARTITION_269_V2));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_BLOB_DATA_269_V2), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_BLOB_DATA_269_V2));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_BLOB_DATA_269_V2));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_QUERY_PARTITION_269_V10), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(400),
-                               HTTP_RESPONSE_INVALID_VERSION_V10));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(400),
+            HTTP_RESPONSE_INVALID_VERSION_V10));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_QUERY_PARTITION_269_VN1), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(400),
-                               HTTP_RESPONSE_INVALID_VERSION_VN1));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(400),
+            HTTP_RESPONSE_INVALID_VERSION_VN1));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_LAYER_VERSIONS_V10), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(400),
-                               HTTP_RESPONSE_INVALID_VERSION_V10));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(400),
+            HTTP_RESPONSE_INVALID_VERSION_V10));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_LAYER_VERSIONS_VN1), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(400),
-                               HTTP_RESPONSE_INVALID_VERSION_VN1));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(400),
+            HTTP_RESPONSE_INVALID_VERSION_VN1));
 
     ON_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG_V2), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_CONFIG_V2));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_CONFIG_V2));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_QUADKEYS_23618364), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_QUADKEYS_23618364));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_QUADKEYS_23618364));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_QUADKEYS_1476147), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_QUADKEYS_1476147));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_QUADKEYS_1476147));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_QUADKEYS_5904591), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_QUADKEYS_5904591));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_QUADKEYS_5904591));
 
     ON_CALL(*network_mock_, Send(IsGetRequest(URL_QUADKEYS_369036), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_QUADKEYS_369036));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_QUADKEYS_369036));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_1), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_BLOB_DATA_PREFETCH_1));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_BLOB_DATA_PREFETCH_1));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_2), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_BLOB_DATA_PREFETCH_2));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_BLOB_DATA_PREFETCH_2));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_3), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_BLOB_DATA_PREFETCH_3));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_BLOB_DATA_PREFETCH_3));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_4), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_BLOB_DATA_PREFETCH_4));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_BLOB_DATA_PREFETCH_4));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_5), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_BLOB_DATA_PREFETCH_5));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_BLOB_DATA_PREFETCH_5));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_6), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_BLOB_DATA_PREFETCH_6));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_BLOB_DATA_PREFETCH_6));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_7), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_BLOB_DATA_PREFETCH_7));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_BLOB_DATA_PREFETCH_7));
 
     // Catch any non-interesting network calls that don't need to be verified
     EXPECT_CALL(*network_mock_, Send(_, _, _, _, _)).Times(testing::AtLeast(0));
@@ -980,8 +938,8 @@ TEST_P(CatalogClientMockTest, GetCatalog403) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(403),
-                                   HTTP_RESPONSE_403));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
 
   auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = CatalogRequest();
@@ -1062,8 +1020,9 @@ TEST_P(CatalogClientMockTest, GetEmptyPartitions) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                                   HTTP_RESPONSE_EMPTY_PARTITIONS));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(200),
+          HTTP_RESPONSE_EMPTY_PARTITIONS));
 
   auto catalogClient =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -1088,8 +1047,8 @@ TEST_P(CatalogClientMockTest, GetVolatileDataHandle) {
                "blobstore/v1/catalogs/hereos-internal-test-v2/layers/"
                "testlayer_volatile/data/volatileHandle"),
            _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                                   "someData"));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(200), "someData"));
 
   auto catalogClient =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -1121,8 +1080,9 @@ TEST_P(CatalogClientMockTest, GetVolatilePartitions) {
                                 "metadata/v1/catalogs/hereos-internal-test-v2/"
                                 "layers/testlayer_volatile/partitions"),
                    _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                                   HTTP_RESPONSE_PARTITIONS_V2));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(200),
+          HTTP_RESPONSE_PARTITIONS_V2));
 
   auto catalogClient =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -1160,8 +1120,9 @@ TEST_P(CatalogClientMockTest, GetVolatileDataByPartitionId) {
                         "catalogs/hereos-internal-test-v2/layers/"
                         "testlayer_volatile/partitions?partition=269"),
            _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                                   HTTP_RESPONSE_PARTITIONS_V2));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(200),
+          HTTP_RESPONSE_PARTITIONS_V2));
 
   EXPECT_CALL(
       *network_mock_,
@@ -1170,8 +1131,8 @@ TEST_P(CatalogClientMockTest, GetVolatileDataByPartitionId) {
                "blobstore/v1/catalogs/hereos-internal-test-v2/layers/"
                "testlayer_volatile/data/4eed6ed1-0d32-43b9-ae79-043cb4256410"),
            _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                                   "someData"));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(200), "someData"));
 
   auto catalogClient =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -1218,9 +1179,9 @@ TEST_P(CatalogClientMockTest, GetData429Error) {
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
         .Times(2)
-        .WillRepeatedly(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
-                               "Server busy at the moment."));
+        .WillRepeatedly(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(429),
+            "Server busy at the moment."));
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
@@ -1260,9 +1221,9 @@ TEST_P(CatalogClientMockTest, GetPartitions429Error) {
 
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
         .Times(2)
-        .WillRepeatedly(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
-                               "Server busy at the moment."));
+        .WillRepeatedly(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(429),
+            "Server busy at the moment."));
 
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
         .Times(1);
@@ -1296,9 +1257,9 @@ TEST_P(CatalogClientMockTest, ApiLookup429) {
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
         .Times(2)
-        .WillRepeatedly(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
-                               "Server busy at the moment."));
+        .WillRepeatedly(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(429),
+            "Server busy at the moment."));
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
@@ -1350,8 +1311,8 @@ TEST_P(CatalogClientMockTest, GetData404Error) {
                         "blobstore/v1/catalogs/hereos-internal-test-v2/"
                         "layers/testlayer/data/invalidDataHandle"),
            _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(404),
-                                   "Resource not found."));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(404), "Resource not found."));
 
   auto catalogClient =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -1371,8 +1332,9 @@ TEST_P(CatalogClientMockTest, GetPartitionsGarbageResponse) {
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                                   R"jsonString(kd3sdf\)jsonString"));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(200),
+          R"jsonString(kd3sdf\)jsonString"));
 
   auto catalogClient =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -2391,9 +2353,9 @@ TEST_P(CatalogClientMockTest, GetCatalogOnlineOnly) {
         .Times(1);
 
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-        .WillOnce(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
-                               "Server busy at the moment."));
+        .WillOnce(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(429),
+            "Server busy at the moment."));
   }
 
   auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
@@ -2489,9 +2451,9 @@ TEST_P(CatalogClientMockTest, GetDataOnlineOnly) {
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-        .WillOnce(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
-                               "Server busy at the moment."));
+        .WillOnce(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(429),
+            "Server busy at the moment."));
   }
 
   auto catalogClient =
@@ -2587,9 +2549,9 @@ TEST_P(CatalogClientMockTest, GetPartitionsOnlineOnly) {
         .Times(1);
 
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-        .WillOnce(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
-                               "Server busy at the moment."));
+        .WillOnce(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(429),
+            "Server busy at the moment."));
   }
 
   auto catalogClient =
@@ -2663,7 +2625,7 @@ TEST_P(CatalogClientMockTest, GetCatalog403CacheClear) {
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(
+        .WillOnce(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
   }
 
@@ -2704,7 +2666,7 @@ TEST_P(CatalogClientMockTest, GetData403CacheClear) {
         .Times(1);
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(
+        .WillOnce(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
   }
 
@@ -2737,7 +2699,7 @@ TEST_P(CatalogClientMockTest, GetPartitions403CacheClear) {
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(
+        .WillOnce(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
   }
 
@@ -3329,8 +3291,9 @@ TEST_P(CatalogClientCacheTest, GetPartitionsLayerVersions) {
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(url_testlayer_res), _, _, _, _))
       .Times(1)
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                                   http_response_testlayer_res));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(200),
+          http_response_testlayer_res));
 
   auto catalogClient = std::make_unique<olp::dataservice::read::CatalogClient>(
       hrn, settings_, cache_);
@@ -3512,9 +3475,9 @@ TEST_P(CatalogClientCacheTest, GetVolatilePartitionsExpiry) {
                           "layers/testlayer_volatile/partitions"),
              _, _, _, _))
         .Times(1)
-        .WillRepeatedly(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_PARTITIONS_V2));
+        .WillRepeatedly(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_PARTITIONS_V2));
 
     EXPECT_CALL(
         *network_mock_,
@@ -3523,9 +3486,9 @@ TEST_P(CatalogClientCacheTest, GetVolatilePartitionsExpiry) {
                           "layers/testlayer_volatile/partitions"),
              _, _, _, _))
         .Times(1)
-        .WillRepeatedly(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_EMPTY_PARTITIONS));
+        .WillRepeatedly(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_EMPTY_PARTITIONS));
   }
 
   auto catalogClient = std::make_unique<olp::dataservice::read::CatalogClient>(

@@ -37,6 +37,7 @@ if (ANDROID OR IOS)
     target_link_libraries(olp-cpp-sdk-dataservice-read-tests-lib
     PRIVATE
         custom-params
+        olp-cpp-sdk-tests-common
         gmock
         gtest
         olp-cpp-sdk-authentication
@@ -73,6 +74,7 @@ else()
     target_link_libraries(olp-cpp-sdk-dataservice-read-tests
         PRIVATE
             custom-params
+            olp-cpp-sdk-tests-common
             gmock
             gtest
             gtest_main

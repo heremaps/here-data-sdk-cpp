@@ -18,19 +18,7 @@
  */
 
 #include "AuthenticationBaseTest.h"
-
-class NetworkMock : public olp::http::Network {
- public:
-  MOCK_METHOD(olp::http::SendOutcome, Send,
-              (olp::http::NetworkRequest request,
-               olp::http::Network::Payload payload,
-               olp::http::Network::Callback callback,
-               olp::http::Network::HeaderCallback header_callback,
-               olp::http::Network::DataCallback data_callback),
-              (override));
-
-  MOCK_METHOD(void, Cancel, (olp::http::RequestId id), (override));
-};
+#include <mocks/NetworkMock.h>
 
 class AuthenticationOfflineTest : public AuthenticationBaseTest {
  public:

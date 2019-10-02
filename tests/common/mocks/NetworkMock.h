@@ -20,13 +20,14 @@
 #pragma once
 
 #include <gmock/gmock.h>
+#include <thread>
 
 #include <olp/core/http/Network.h>
 
 class NetworkMock : public olp::http::Network {
  public:
   NetworkMock();
-  virtual ~NetworkMock();
+  ~NetworkMock() override;
 
   MOCK_METHOD(olp::http::SendOutcome, Send,
               (olp::http::NetworkRequest request,
@@ -37,4 +38,12 @@ class NetworkMock : public olp::http::Network {
               (override));
 
   MOCK_METHOD(void, Cancel, (olp::http::RequestId id), (override));
+
+  static std::function<olp::http::SendOutcome(
+      olp::http::NetworkRequest request, olp::http::Network::Payload payload,
+      olp::http::Network::Callback callback,
+      olp::http::Network::HeaderCallback header_callback,
+      olp::http::Network::DataCallback data_callback)>
+  ReturnHttpResponse(olp::http::NetworkResponse response,
+                     const std::string& response_body);
 };

@@ -47,6 +47,7 @@ if (ANDROID OR IOS)
     target_link_libraries(olp-cpp-sdk-core-tests-lib
         PRIVATE
             custom-params
+            olp-cpp-sdk-tests-common
             gmock
             gtest
             olp-cpp-sdk-core
@@ -78,6 +79,7 @@ else()
     target_link_libraries(olp-cpp-sdk-core-tests
         PRIVATE
             custom-params
+            olp-cpp-sdk-tests-common
             gmock
             gtest
             gtest_main

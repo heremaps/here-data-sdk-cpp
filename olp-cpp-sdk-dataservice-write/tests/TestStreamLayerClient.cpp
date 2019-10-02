@@ -26,6 +26,8 @@
 #include <openssl/sha.h>
 #endif
 
+#include <matchers/NetworkUrlMatchers.h>
+#include <mocks/NetworkMock.h>
 #include <olp/authentication/TokenProvider.h>
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/client/ApiError.h>
@@ -764,91 +766,6 @@ TEST_P(StreamLayerClientOnlineTest, SDIIConcurrentPublishSameIngestApi) {
   async5.get();
 }
 
-namespace {
-
-class NetworkMock : public olp::http::Network {
- public:
-  MOCK_METHOD(olp::http::SendOutcome, Send,
-              (olp::http::NetworkRequest request,
-               olp::http::Network::Payload payload,
-               olp::http::Network::Callback callback,
-               olp::http::Network::HeaderCallback header_callback,
-               olp::http::Network::DataCallback data_callback),
-              (override));
-
-  MOCK_METHOD(void, Cancel, (olp::http::RequestId id), (override));
-};
-
-std::function<olp::http::SendOutcome(
-    olp::http::NetworkRequest request, olp::http::Network::Payload payload,
-    olp::http::Network::Callback callback,
-    olp::http::Network::HeaderCallback header_callback,
-    olp::http::Network::DataCallback data_callback)>
-ReturnHttpResponse(olp::http::NetworkResponse response,
-                   const std::string& response_body) {
-  return [=](olp::http::NetworkRequest request,
-             olp::http::Network::Payload payload,
-             olp::http::Network::Callback callback,
-             olp::http::Network::HeaderCallback header_callback,
-             olp::http::Network::DataCallback data_callback)
-             -> olp::http::SendOutcome {
-    std::thread([=]() {
-      *payload << response_body;
-      callback(response);
-    })
-        .detach();
-
-    return olp::http::SendOutcome(5);
-  };
-}
-
-MATCHER_P(IsGetRequest, url, "") {
-  // uri, verb, null body
-  return olp::http::NetworkRequest::HttpVerb::GET == arg.GetVerb() &&
-         url == arg.GetUrl() && (!arg.GetBody() || arg.GetBody()->empty());
-}
-
-MATCHER_P(IsPutRequest, url, "") {
-  return olp::http::NetworkRequest::HttpVerb::PUT == arg.GetVerb() &&
-         url == arg.GetUrl();
-}
-
-MATCHER_P(IsPutRequestPrefix, url, "") {
-  if (olp::http::NetworkRequest::HttpVerb::PUT != arg.GetVerb()) {
-    return false;
-  }
-
-  std::string url_string(url);
-  auto res =
-      std::mismatch(url_string.begin(), url_string.end(), arg.GetUrl().begin());
-
-  return (res.first == url_string.end());
-}
-
-MATCHER_P(IsPostRequest, url, "") {
-  return olp::http::NetworkRequest::HttpVerb::POST == arg.GetVerb() &&
-         url == arg.GetUrl();
-}
-
-MATCHER_P(IsDeleteRequest, url, "") {
-  return olp::http::NetworkRequest::HttpVerb::DEL == arg.GetVerb() &&
-         url == arg.GetUrl();
-}
-
-MATCHER_P(IsDeleteRequestPrefix, url, "") {
-  if (olp::http::NetworkRequest::HttpVerb::DEL != arg.GetVerb()) {
-    return false;
-  }
-
-  std::string url_string(url);
-  auto res =
-      std::mismatch(url_string.begin(), url_string.end(), arg.GetUrl().begin());
-
-  return (res.first == url_string.end());
-}
-
-}  // namespace
-
 using testing::_;
 
 class StreamLayerClientMockTest : public StreamLayerClientTestBase {
@@ -875,7 +792,8 @@ class StreamLayerClientMockTest : public StreamLayerClientTestBase {
     // Catch unexpected calls and fail immediatley
     ON_CALL(network, Send(_, _, _, _, _))
         .WillByDefault(testing::DoAll(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(-1), ""),
+            NetworkMock::NetworkMock::ReturnHttpResponse(
+                olp::http::NetworkResponse().WithStatus(-1), ""),
             [](olp::http::NetworkRequest request,
                olp::http::Network::Payload payload,
                olp::http::Network::Callback callback,
@@ -887,68 +805,68 @@ class StreamLayerClientMockTest : public StreamLayerClientTestBase {
             }));
 
     ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_LOOKUP_INGEST));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_LOOKUP_INGEST));
 
     ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_LOOKUP_CONFIG));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_LOOKUP_CONFIG));
 
     ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_PUBLISH_V2), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_LOOKUP_PUBLISH_V2));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_LOOKUP_PUBLISH_V2));
 
     ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_LOOKUP_BLOB));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_LOOKUP_BLOB));
 
     ON_CALL(network,
             Send(testing::AnyOf(IsGetRequest(URL_GET_CATALOG),
                                 IsGetRequest(URL_GET_CATALOG_BILLING_TAG)),
                  _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_GET_CATALOG));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_GET_CATALOG));
 
     ON_CALL(network,
             Send(testing::AnyOf(IsPostRequest(URL_INGEST_DATA),
                                 IsPostRequest(URL_INGEST_DATA_BILLING_TAG)),
                  _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_INGEST_DATA));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_INGEST_DATA));
 
     ON_CALL(network, Send(IsPostRequest(URL_INGEST_DATA_LAYER_2), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_INGEST_DATA_LAYER_2));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_INGEST_DATA_LAYER_2));
 
     ON_CALL(network, Send(IsPostRequest(URL_INIT_PUBLICATION), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_INIT_PUBLICATION));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_INIT_PUBLICATION));
 
     ON_CALL(network, Send(IsPutRequestPrefix(URL_PUT_BLOB_PREFIX), _, _, _, _))
-        .WillByDefault(ReturnHttpResponse(
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(200), ""));
 
     ON_CALL(network, Send(testing::AnyOf(IsPostRequest(URL_UPLOAD_PARTITIONS),
                                          IsPutRequest(URL_SUBMIT_PUBLICATION)),
                           _, _, _, _))
-        .WillByDefault(ReturnHttpResponse(
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(204), ""));
 
     ON_CALL(network,
             Send(testing::AnyOf(IsPostRequest(URL_INGEST_SDII),
                                 IsPostRequest(URL_INGEST_SDII_BILLING_TAG)),
                  _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_INGEST_SDII));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_INGEST_SDII));
   }
 };
 

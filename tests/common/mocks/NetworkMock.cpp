@@ -22,3 +22,27 @@
 NetworkMock::NetworkMock() {}
 
 NetworkMock::~NetworkMock() {}
+
+std::function<olp::http::SendOutcome(
+    olp::http::NetworkRequest request, olp::http::Network::Payload payload,
+    olp::http::Network::Callback callback,
+    olp::http::Network::HeaderCallback header_callback,
+    olp::http::Network::DataCallback data_callback)>
+NetworkMock::ReturnHttpResponse(olp::http::NetworkResponse response,
+                                const std::string& response_body) {
+  return [=](olp::http::NetworkRequest request,
+             olp::http::Network::Payload payload,
+             olp::http::Network::Callback callback,
+             olp::http::Network::HeaderCallback header_callback,
+             olp::http::Network::DataCallback data_callback)
+             -> olp::http::SendOutcome {
+    std::thread([=]() {
+      *payload << response_body;
+      callback(response);
+    })
+        .detach();
+
+    constexpr auto unused_request_id = 5;
+    return olp::http::SendOutcome(unused_request_id);
+  };
+}

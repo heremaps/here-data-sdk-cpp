@@ -19,31 +19,18 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-
+#include <matchers/NetworkUrlMatchers.h>
+#include <mocks/NetworkMock.h>
+#include <olp/core/client/OlpClient.h>
+#include <olp/core/client/OlpClientFactory.h>
+#include <olp/core/client/OlpClientSettingsFactory.h>
 #include <chrono>
 #include <future>
 #include <string>
 
-#include <olp/core/client/OlpClient.h>
-#include <olp/core/client/OlpClientFactory.h>
-#include <olp/core/client/OlpClientSettingsFactory.h>
-
 #include <olp/core/http/Network.h>
 
 using ::testing::_;
-
-class NetworkMock : public olp::http::Network {
- public:
-  MOCK_METHOD(olp::http::SendOutcome, Send,
-              (olp::http::NetworkRequest request,
-               olp::http::Network::Payload payload,
-               olp::http::Network::Callback callback,
-               olp::http::Network::HeaderCallback header_callback,
-               olp::http::Network::DataCallback data_callback),
-              (override));
-
-  MOCK_METHOD(void, Cancel, (olp::http::RequestId id), (override));
-};
 
 class OlpClientTest : public ::testing::Test {
  protected:
