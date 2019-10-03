@@ -37,6 +37,9 @@
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientFactory.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+#include <olp/core/http/Network.h>
+#include <olp/core/http/NetworkRequest.h>
+#include <olp/core/http/NetworkResponse.h>
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
 #include <olp/core/utils/Dir.h>
@@ -50,19 +53,15 @@
 #include "olp/dataservice/read/model/Catalog.h"
 #include "testutils/CustomParameters.hpp"
 
-#include <olp/core/http/Network.h>
-#include <olp/core/http/NetworkRequest.h>
-#include <olp/core/http/NetworkResponse.h>
-
 using namespace olp::dataservice::read;
 using namespace testing;
 
 #ifdef _WIN32
-const std::string k_client_test_dir("\\catalog_client_test");
-const std::string k_client_test_cache_dir("\\catalog_client_test\\cache");
+const std::string kClientTestDir("\\catalog_client_test");
+const std::string kClientTestCacheDir("\\catalog_client_test\\cache");
 #else
-const std::string k_client_test_dir("/catalog_client_test");
-const std::string k_client_test_cache_dir("/catalog_client_test/cache");
+const std::string kClientTestDir("/catalog_client_test");
+const std::string kClientTestCacheDir("/catalog_client_test/cache");
 #endif
 
 using ::testing::_;
@@ -97,10 +96,10 @@ class NetworkMock : public olp::http::Network {
   MOCK_METHOD(void, Cancel, (olp::http::RequestId id), (override));
 };
 
-void dumpTileKey(const olp::geo::TileKey& tileKey) {
-  std::cout << "Tile: " << tileKey.ToHereTile()
-            << ", level: " << tileKey.Level()
-            << ", parent: " << tileKey.Parent().ToHereTile() << std::endl;
+void DumpTileKey(const olp::geo::TileKey& tile_key) {
+  std::cout << "Tile: " << tile_key.ToHereTile()
+            << ", level: " << tile_key.Level()
+            << ", parent: " << tile_key.Parent().ToHereTile() << std::endl;
 }
 
 MATCHER_P(IsGetRequest, url, "") {
@@ -122,7 +121,7 @@ struct MockedResponseInformation {
 };
 
 std::tuple<olp::http::RequestId, NetworkCallback, CancelCallback>
-generateNetworkMocks(std::shared_ptr<std::promise<void>> pre_signal,
+GenerateNetworkMocks(std::shared_ptr<std::promise<void>> pre_signal,
                      std::shared_ptr<std::promise<void>> wait_for_signal,
                      MockedResponseInformation response_information,
                      std::shared_ptr<std::promise<void>> post_signal =
@@ -214,26 +213,26 @@ ReturnHttpResponse(olp::http::NetworkResponse response,
   };
 }
 
-class CatalogClientMockTest : public ::testing::TestWithParam<CacheType> {
+class CatalogClientTest : public ::testing::TestWithParam<CacheType> {
  public:
   std::string GetTestCatalog() {
     return "hrn:here:data:::hereos-internal-test-v2";
   }
 
-  std::string PrintError(const olp::client::ApiError& error) {
-    std::ostringstream resultStream;
-    resultStream << "ERROR: code: " << static_cast<int>(error.GetErrorCode())
-                 << ", status: " << error.GetHttpStatusCode()
-                 << ", message: " << error.GetMessage();
-    return resultStream.str();
+  static std::string ApiErrorToString(const olp::client::ApiError& error) {
+    std::ostringstream result_stream;
+    result_stream << "ERROR: code: " << static_cast<int>(error.GetErrorCode())
+                  << ", status: " << error.GetHttpStatusCode()
+                  << ", message: " << error.GetMessage();
+    return result_stream.str();
   }
 
   template <typename T>
   T GetExecutionTime(std::function<T()> func) {
-    auto startTime = std::chrono::high_resolution_clock::now();
+    auto start_time = std::chrono::high_resolution_clock::now();
     auto result = func();
     auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> time = end - startTime;
+    std::chrono::duration<double> time = end - start_time;
     std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
 
     return result;
@@ -447,27 +446,27 @@ class CatalogClientMockTest : public ::testing::TestWithParam<CacheType> {
   std::shared_ptr<NetworkMock> network_mock_;
 };
 
-TEST_P(CatalogClientMockTest, GetCatalog) {
+TEST_P(CatalogClientTest, GetCatalog) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1);
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = CatalogRequest();
-  auto future = catalogClient->GetCatalog(request);
-  CatalogResponse catalogResponse = future.GetFuture().get();
+  auto future = catalog_client->GetCatalog(request);
+  CatalogResponse catalog_response = future.GetFuture().get();
 
-  ASSERT_TRUE(catalogResponse.IsSuccessful())
-      << PrintError(catalogResponse.GetError());
+  ASSERT_TRUE(catalog_response.IsSuccessful())
+      << ApiErrorToString(catalog_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, GetCatalogCallback) {
+TEST_P(CatalogClientTest, GetCatalogCallback) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1);
 
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
 
   auto request = CatalogRequest();
 
@@ -475,115 +474,115 @@ TEST_P(CatalogClientMockTest, GetCatalogCallback) {
   CatalogResponseCallback callback = [&promise](CatalogResponse response) {
     promise.set_value(response);
   };
-  catalogClient->GetCatalog(request, callback);
-  CatalogResponse catalogResponse = promise.get_future().get();
-  ASSERT_TRUE(catalogResponse.IsSuccessful())
-      << PrintError(catalogResponse.GetError());
+  catalog_client->GetCatalog(request, callback);
+  CatalogResponse catalog_response = promise.get_future().get();
+  ASSERT_TRUE(catalog_response.IsSuccessful())
+      << ApiErrorToString(catalog_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, GetCatalog403) {
+TEST_P(CatalogClientTest, GetCatalog403) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(403),
                                    HTTP_RESPONSE_403));
 
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = CatalogRequest();
-  auto future = catalogClient->GetCatalog(request);
-  CatalogResponse catalogResponse = future.GetFuture().get();
+  auto future = catalog_client->GetCatalog(request);
+  CatalogResponse catalog_response = future.GetFuture().get();
 
-  ASSERT_FALSE(catalogResponse.IsSuccessful())
-      << PrintError(catalogResponse.GetError());
-  ASSERT_EQ(403, catalogResponse.GetError().GetHttpStatusCode());
+  ASSERT_FALSE(catalog_response.IsSuccessful())
+      << ApiErrorToString(catalog_response.GetError());
+  ASSERT_EQ(403, catalog_response.GetError().GetHttpStatusCode());
 }
 
-TEST_P(CatalogClientMockTest, GetPartitions) {
+TEST_P(CatalogClientTest, GetPartitions) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1);
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithLayerId("testlayer");
-  auto future = catalogClient->GetPartitions(request);
-  auto partitionsResponse = future.GetFuture().get();
+  auto future = catalog_client->GetPartitions(request);
+  auto partitions_response = future.GetFuture().get();
 
-  ASSERT_TRUE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(4u, partitionsResponse.GetResult().GetPartitions().size());
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+  ASSERT_EQ(4u, partitions_response.GetResult().GetPartitions().size());
 }
 
-TEST_P(CatalogClientMockTest, GetDataWithPartitionId) {
+TEST_P(CatalogClientTest, GetDataWithPartitionId) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(1);
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer").WithPartitionId("269");
-  auto future = catalogClient->GetData(request);
+  auto future = catalog_client->GetData(request);
 
-  auto dataResponse = future.GetFuture().get();
+  auto data_response = future.GetFuture().get();
 
-  ASSERT_TRUE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
-  ASSERT_LT(0, dataResponse.GetResult()->size());
-  std::string dataStr(dataResponse.GetResult()->begin(),
-                      dataResponse.GetResult()->end());
-  ASSERT_EQ("DT_2_0031", dataStr);
+  ASSERT_TRUE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+  ASSERT_LT(0, data_response.GetResult()->size());
+  std::string data_string(data_response.GetResult()->begin(),
+                          data_response.GetResult()->end());
+  ASSERT_EQ("DT_2_0031", data_string);
 }
 
-TEST_P(CatalogClientMockTest, GetDataWithInlineField) {
+TEST_P(CatalogClientTest, GetDataWithInlineField) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITION_3), _, _, _, _))
       .Times(1);
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer").WithPartitionId("3");
-  auto future = catalogClient->GetData(request);
+  auto future = catalog_client->GetData(request);
 
-  auto dataResponse = future.GetFuture().get();
+  auto data_response = future.GetFuture().get();
 
-  ASSERT_TRUE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
-  ASSERT_LT(0, dataResponse.GetResult()->size());
-  std::string dataStr(dataResponse.GetResult()->begin(),
-                      dataResponse.GetResult()->end());
-  ASSERT_EQ(0u, dataStr.find("data:"));
+  ASSERT_TRUE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+  ASSERT_LT(0, data_response.GetResult()->size());
+  std::string data_string(data_response.GetResult()->begin(),
+                          data_response.GetResult()->end());
+  ASSERT_EQ(0u, data_string.find("data:"));
 }
 
-TEST_P(CatalogClientMockTest, GetEmptyPartitions) {
+TEST_P(CatalogClientTest, GetEmptyPartitions) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                    HTTP_RESPONSE_EMPTY_PARTITIONS));
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithLayerId("testlayer");
-  auto future = catalogClient->GetPartitions(request);
-  auto partitionsResponse = future.GetFuture().get();
+  auto future = catalog_client->GetPartitions(request);
+  auto partitions_response = future.GetFuture().get();
 
-  ASSERT_TRUE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(0u, partitionsResponse.GetResult().GetPartitions().size());
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+  ASSERT_EQ(0u, partitions_response.GetResult().GetPartitions().size());
 }
 
-TEST_P(CatalogClientMockTest, GetVolatileDataHandle) {
+TEST_P(CatalogClientTest, GetVolatileDataHandle) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(
@@ -596,25 +595,25 @@ TEST_P(CatalogClientMockTest, GetVolatileDataHandle) {
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                    "someData"));
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer_volatile").WithDataHandle("volatileHandle");
 
-  auto future = catalogClient->GetData(request);
+  auto future = catalog_client->GetData(request);
 
-  auto dataResponse = future.GetFuture().get();
+  auto data_response = future.GetFuture().get();
 
-  ASSERT_TRUE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
-  ASSERT_LT(0, dataResponse.GetResult()->size());
-  std::string dataStr(dataResponse.GetResult()->begin(),
-                      dataResponse.GetResult()->end());
-  ASSERT_EQ("someData", dataStr);
+  ASSERT_TRUE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+  ASSERT_LT(0, data_response.GetResult()->size());
+  std::string data_string(data_response.GetResult()->begin(),
+                          data_response.GetResult()->end());
+  ASSERT_EQ("someData", data_string);
 }
 
-TEST_P(CatalogClientMockTest, GetVolatilePartitions) {
+TEST_P(CatalogClientTest, GetVolatilePartitions) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_,
@@ -629,30 +628,30 @@ TEST_P(CatalogClientMockTest, GetVolatilePartitions) {
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                    HTTP_RESPONSE_PARTITIONS_V2));
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithLayerId("testlayer_volatile");
 
-  auto future = catalogClient->GetPartitions(request);
+  auto future = catalog_client->GetPartitions(request);
 
-  auto partitionsResponse = future.GetFuture().get();
+  auto partitions_response = future.GetFuture().get();
 
-  ASSERT_TRUE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(1u, partitionsResponse.GetResult().GetPartitions().size());
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+  ASSERT_EQ(1u, partitions_response.GetResult().GetPartitions().size());
 
   request.WithVersion(18);
-  future = catalogClient->GetPartitions(request);
-  partitionsResponse = future.GetFuture().get();
+  future = catalog_client->GetPartitions(request);
+  partitions_response = future.GetFuture().get();
 
-  ASSERT_TRUE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(1u, partitionsResponse.GetResult().GetPartitions().size());
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+  ASSERT_EQ(1u, partitions_response.GetResult().GetPartitions().size());
 }
 
-TEST_P(CatalogClientMockTest, GetVolatileDataByPartitionId) {
+TEST_P(CatalogClientTest, GetVolatileDataByPartitionId) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_,
@@ -678,43 +677,43 @@ TEST_P(CatalogClientMockTest, GetVolatileDataByPartitionId) {
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                    "someData"));
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer_volatile").WithPartitionId("269");
 
-  auto future = catalogClient->GetData(request);
+  auto future = catalog_client->GetData(request);
 
-  auto dataResponse = future.GetFuture().get();
+  auto data_response = future.GetFuture().get();
 
-  ASSERT_TRUE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
-  ASSERT_LT(0, dataResponse.GetResult()->size());
-  std::string dataStr(dataResponse.GetResult()->begin(),
-                      dataResponse.GetResult()->end());
-  ASSERT_EQ("someData", dataStr);
+  ASSERT_TRUE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+  ASSERT_LT(0, data_response.GetResult()->size());
+  std::string data_string(data_response.GetResult()->begin(),
+                          data_response.GetResult()->end());
+  ASSERT_EQ("someData", data_string);
 }
 
-TEST_P(CatalogClientMockTest, GetStreamDataHandle) {
+TEST_P(CatalogClientTest, GetStreamDataHandle) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer_stream").WithDataHandle("streamHandle");
 
-  auto future = catalogClient->GetData(request);
+  auto future = catalog_client->GetData(request);
 
-  auto dataResponse = future.GetFuture().get();
+  auto data_response = future.GetFuture().get();
 
-  ASSERT_FALSE(dataResponse.IsSuccessful());
+  ASSERT_FALSE(data_response.IsSuccessful());
   ASSERT_EQ(olp::client::ErrorCode::ServiceUnavailable,
-            dataResponse.GetError().GetErrorCode());
+            data_response.GetError().GetErrorCode());
 }
 
-TEST_P(CatalogClientMockTest, GetData429Error) {
+TEST_P(CatalogClientTest, GetData429Error) {
   olp::client::HRN hrn(GetTestCatalog());
 
   {
@@ -732,32 +731,32 @@ TEST_P(CatalogClientMockTest, GetData429Error) {
         .Times(1);
   }
 
-  olp::client::RetrySettings retrySettings;
-  retrySettings.retry_condition =
+  olp::client::RetrySettings retry_settings;
+  retry_settings.retry_condition =
       [](const olp::client::HttpResponse& response) {
         return 429 == response.status;
       };
-  settings_->retry_settings = retrySettings;
-  auto catalogClient =
+  settings_->retry_settings = retry_settings;
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer")
       .WithDataHandle("4eed6ed1-0d32-43b9-ae79-043cb4256432");
 
-  auto future = catalogClient->GetData(request);
+  auto future = catalog_client->GetData(request);
 
-  auto dataResponse = future.GetFuture().get();
+  auto data_response = future.GetFuture().get();
 
-  ASSERT_TRUE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
-  ASSERT_LT(0, dataResponse.GetResult()->size());
-  std::string dataStr(dataResponse.GetResult()->begin(),
-                      dataResponse.GetResult()->end());
-  ASSERT_EQ("DT_2_0031", dataStr);
+  ASSERT_TRUE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+  ASSERT_LT(0, data_response.GetResult()->size());
+  std::string data_string(data_response.GetResult()->begin(),
+                          data_response.GetResult()->end());
+  ASSERT_EQ("DT_2_0031", data_string);
 }
 
-TEST_P(CatalogClientMockTest, GetPartitions429Error) {
+TEST_P(CatalogClientTest, GetPartitions429Error) {
   olp::client::HRN hrn(GetTestCatalog());
 
   {
@@ -773,26 +772,26 @@ TEST_P(CatalogClientMockTest, GetPartitions429Error) {
         .Times(1);
   }
 
-  olp::client::RetrySettings retrySettings;
-  retrySettings.retry_condition =
+  olp::client::RetrySettings retry_settings;
+  retry_settings.retry_condition =
       [](const olp::client::HttpResponse& response) {
         return 429 == response.status;
       };
-  settings_->retry_settings = retrySettings;
-  auto catalogClient =
+  settings_->retry_settings = retry_settings;
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithLayerId("testlayer");
-  auto future = catalogClient->GetPartitions(request);
-  auto partitionsResponse = future.GetFuture().get();
+  auto future = catalog_client->GetPartitions(request);
+  auto partitions_response = future.GetFuture().get();
 
-  ASSERT_TRUE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(4u, partitionsResponse.GetResult().GetPartitions().size());
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+  ASSERT_EQ(4u, partitions_response.GetResult().GetPartitions().size());
 }
 
-TEST_P(CatalogClientMockTest, ApiLookup429) {
+TEST_P(CatalogClientTest, ApiLookup429) {
   olp::client::HRN hrn(GetTestCatalog());
 
   {
@@ -810,43 +809,43 @@ TEST_P(CatalogClientMockTest, ApiLookup429) {
         .Times(1);
   }
 
-  olp::client::RetrySettings retrySettings;
-  retrySettings.retry_condition =
+  olp::client::RetrySettings retry_settings;
+  retry_settings.retry_condition =
       [](const olp::client::HttpResponse& response) {
         return 429 == response.status;
       };
-  settings_->retry_settings = retrySettings;
-  auto catalogClient =
+  settings_->retry_settings = retry_settings;
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithLayerId("testlayer");
-  auto future = catalogClient->GetPartitions(request);
-  auto partitionsResponse = future.GetFuture().get();
+  auto future = catalog_client->GetPartitions(request);
+  auto partitions_response = future.GetFuture().get();
 
-  ASSERT_TRUE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(4u, partitionsResponse.GetResult().GetPartitions().size());
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+  ASSERT_EQ(4u, partitions_response.GetResult().GetPartitions().size());
 }
 
-TEST_P(CatalogClientMockTest, GetPartitionsForInvalidLayer) {
+TEST_P(CatalogClientTest, GetPartitionsForInvalidLayer) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithLayerId("invalidLayer");
-  auto future = catalogClient->GetPartitions(request);
-  auto partitionsResponse = future.GetFuture().get();
+  auto future = catalog_client->GetPartitions(request);
+  auto partitions_response = future.GetFuture().get();
 
-  ASSERT_FALSE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
+  ASSERT_FALSE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
   ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
-            partitionsResponse.GetError().GetErrorCode());
+            partitions_response.GetError().GetErrorCode());
 }
 
-TEST_P(CatalogClientMockTest, GetData404Error) {
+TEST_P(CatalogClientTest, GetData404Error) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(
@@ -858,20 +857,20 @@ TEST_P(CatalogClientMockTest, GetData404Error) {
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(404),
                                    "Resource not found."));
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer").WithDataHandle("invalidDataHandle");
-  auto future = catalogClient->GetData(request);
+  auto future = catalog_client->GetData(request);
 
-  auto dataResponse = future.GetFuture().get();
+  auto data_response = future.GetFuture().get();
 
-  ASSERT_FALSE(dataResponse.IsSuccessful());
-  ASSERT_EQ(404, dataResponse.GetError().GetHttpStatusCode());
+  ASSERT_FALSE(data_response.IsSuccessful());
+  ASSERT_EQ(404, data_response.GetError().GetHttpStatusCode());
 }
 
-TEST_P(CatalogClientMockTest, GetPartitionsGarbageResponse) {
+TEST_P(CatalogClientTest, GetPartitionsGarbageResponse) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_,
@@ -879,31 +878,31 @@ TEST_P(CatalogClientMockTest, GetPartitionsGarbageResponse) {
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                    R"jsonString(kd3sdf\)jsonString"));
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithLayerId("testlayer");
-  auto future = catalogClient->GetPartitions(request);
-  auto partitionsResponse = future.GetFuture().get();
+  auto future = catalog_client->GetPartitions(request);
+  auto partitions_response = future.GetFuture().get();
 
-  ASSERT_FALSE(partitionsResponse.IsSuccessful());
+  ASSERT_FALSE(partitions_response.IsSuccessful());
   ASSERT_EQ(olp::client::ErrorCode::ServiceUnavailable,
-            partitionsResponse.GetError().GetErrorCode());
+            partitions_response.GetError().GetErrorCode());
 }
 
-TEST_P(CatalogClientMockTest, GetCatalogCancelApiLookup) {
+TEST_P(CatalogClientTest, GetCatalogCancelApiLookup) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
-      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
       .Times(1)
@@ -916,7 +915,7 @@ TEST_P(CatalogClientMockTest, GetCatalogCancelApiLookup) {
       .Times(0);
 
   // Run it!
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
 
   auto request = CatalogRequest();
 
@@ -924,35 +923,35 @@ TEST_P(CatalogClientMockTest, GetCatalogCancelApiLookup) {
   CatalogResponseCallback callback = [&promise](CatalogResponse response) {
     promise.set_value(response);
   };
-  olp::client::CancellationToken cancelToken =
-      catalogClient->GetCatalog(request, callback);
+  olp::client::CancellationToken cancel_token =
+      catalog_client->GetCatalog(request, callback);
 
-  waitForCancel->get_future().get();
-  cancelToken.cancel();
-  pauseForCancel->set_value();
-  CatalogResponse catalogResponse = promise.get_future().get();
+  wait_for_cancel->get_future().get();
+  cancel_token.cancel();
+  pause_for_cancel->set_value();
+  CatalogResponse catalog_response = promise.get_future().get();
 
-  ASSERT_FALSE(catalogResponse.IsSuccessful())
-      << PrintError(catalogResponse.GetError());
+  ASSERT_FALSE(catalog_response.IsSuccessful())
+      << ApiErrorToString(catalog_response.GetError());
 
   ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            catalogResponse.GetError().GetHttpStatusCode());
+            catalog_response.GetError().GetHttpStatusCode());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            catalogResponse.GetError().GetErrorCode());
+            catalog_response.GetError().GetErrorCode());
 }
 
-TEST_P(CatalogClientMockTest, GetCatalogCancelConfig) {
+TEST_P(CatalogClientTest, GetCatalogCancelConfig) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
-      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_CONFIG});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_CONFIG});
 
   // Setup the expected calls :
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
@@ -963,7 +962,7 @@ TEST_P(CatalogClientMockTest, GetCatalogCancelConfig) {
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   // Run it!
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
 
   auto request = CatalogRequest();
 
@@ -971,32 +970,32 @@ TEST_P(CatalogClientMockTest, GetCatalogCancelConfig) {
   CatalogResponseCallback callback = [&promise](CatalogResponse response) {
     promise.set_value(response);
   };
-  olp::client::CancellationToken cancelToken =
-      catalogClient->GetCatalog(request, callback);
+  olp::client::CancellationToken cancel_token =
+      catalog_client->GetCatalog(request, callback);
 
-  waitForCancel->get_future().get();
+  wait_for_cancel->get_future().get();
   std::cout << "Cancelling" << std::endl;
-  cancelToken.cancel();  // crashing?
+  cancel_token.cancel();  // crashing?
   std::cout << "Cancelled, unblocking response" << std::endl;
-  pauseForCancel->set_value();
+  pause_for_cancel->set_value();
   std::cout << "Post Cancel, get response" << std::endl;
-  CatalogResponse catalogResponse = promise.get_future().get();
+  CatalogResponse catalog_response = promise.get_future().get();
 
-  ASSERT_FALSE(catalogResponse.IsSuccessful())
-      << PrintError(catalogResponse.GetError());
+  ASSERT_FALSE(catalog_response.IsSuccessful())
+      << ApiErrorToString(catalog_response.GetError());
 
   ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            catalogResponse.GetError().GetHttpStatusCode());
+            catalog_response.GetError().GetHttpStatusCode());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            catalogResponse.GetError().GetErrorCode());
+            catalog_response.GetError().GetErrorCode());
   std::cout << "Post Test" << std::endl;
 }
 
-TEST_P(CatalogClientMockTest, GetCatalogCancelAfterCompletion) {
+TEST_P(CatalogClientTest, GetCatalogCancelAfterCompletion) {
   olp::client::HRN hrn(GetTestCatalog());
 
   // Run it!
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
 
   auto request = CatalogRequest();
 
@@ -1004,30 +1003,30 @@ TEST_P(CatalogClientMockTest, GetCatalogCancelAfterCompletion) {
   CatalogResponseCallback callback = [&promise](CatalogResponse response) {
     promise.set_value(response);
   };
-  olp::client::CancellationToken cancelToken =
-      catalogClient->GetCatalog(request, callback);
+  olp::client::CancellationToken cancel_token =
+      catalog_client->GetCatalog(request, callback);
 
-  CatalogResponse catalogResponse = promise.get_future().get();
+  CatalogResponse catalog_response = promise.get_future().get();
 
-  ASSERT_TRUE(catalogResponse.IsSuccessful())
-      << PrintError(catalogResponse.GetError());
+  ASSERT_TRUE(catalog_response.IsSuccessful())
+      << ApiErrorToString(catalog_response.GetError());
 
-  cancelToken.cancel();
+  cancel_token.cancel();
 }
 
-TEST_P(CatalogClientMockTest, GetPartitionsCancelLookupMetadata) {
+TEST_P(CatalogClientTest, GetPartitionsCancelLookupMetadata) {
   olp::client::HRN hrn(GetTestCatalog());
 
   // Setup the expected calls :
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
-      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_METADATA});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_METADATA});
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
@@ -1041,7 +1040,7 @@ TEST_P(CatalogClientMockTest, GetPartitionsCancelLookupMetadata) {
               Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(0);
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request =
@@ -1051,35 +1050,35 @@ TEST_P(CatalogClientMockTest, GetPartitionsCancelLookupMetadata) {
   PartitionsResponseCallback callback =
       [&promise](PartitionsResponse response) { promise.set_value(response); };
 
-  olp::client::CancellationToken cancelToken =
-      catalogClient->GetPartitions(request, callback);
+  olp::client::CancellationToken cancel_token =
+      catalog_client->GetPartitions(request, callback);
 
-  waitForCancel->get_future().get();  // wait for handler to get the request
-  cancelToken.cancel();
-  pauseForCancel->set_value();  // unblock the handler
-  PartitionsResponse partitionsResponse = promise.get_future().get();
+  wait_for_cancel->get_future().get();  // wait for handler to get the request
+  cancel_token.cancel();
+  pause_for_cancel->set_value();  // unblock the handler
+  PartitionsResponse partitions_response = promise.get_future().get();
 
-  ASSERT_FALSE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
+  ASSERT_FALSE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
   ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            partitionsResponse.GetError().GetHttpStatusCode());
+            partitions_response.GetError().GetHttpStatusCode());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            partitionsResponse.GetError().GetErrorCode());
+            partitions_response.GetError().GetErrorCode());
 }
 
-TEST_P(CatalogClientMockTest, GetPartitionsCancelLatestCatalogVersion) {
+TEST_P(CatalogClientTest, GetPartitionsCancelLatestCatalogVersion) {
   olp::client::HRN hrn(GetTestCatalog());
 
   // Setup the expected calls :
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) =
-      generateNetworkMocks(waitForCancel, pauseForCancel,
+      GenerateNetworkMocks(wait_for_cancel, pause_for_cancel,
                            {200, HTTP_RESPONSE_LATEST_CATALOG_VERSION});
 
   EXPECT_CALL(*network_mock_,
@@ -1094,7 +1093,7 @@ TEST_P(CatalogClientMockTest, GetPartitionsCancelLatestCatalogVersion) {
               Send(IsGetRequest(URL_LAYER_VERSIONS), _, _, _, _))
       .Times(0);
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request =
@@ -1104,37 +1103,37 @@ TEST_P(CatalogClientMockTest, GetPartitionsCancelLatestCatalogVersion) {
   PartitionsResponseCallback callback =
       [&promise](PartitionsResponse response) { promise.set_value(response); };
 
-  olp::client::CancellationToken cancelToken =
-      catalogClient->GetPartitions(request, callback);
+  olp::client::CancellationToken cancel_token =
+      catalog_client->GetPartitions(request, callback);
 
-  waitForCancel->get_future().get();  // wait for handler to get the request
-  cancelToken.cancel();
-  pauseForCancel->set_value();  // unblock the handler
-  PartitionsResponse partitionsResponse = promise.get_future().get();
+  wait_for_cancel->get_future().get();  // wait for handler to get the request
+  cancel_token.cancel();
+  pause_for_cancel->set_value();  // unblock the handler
+  PartitionsResponse partitions_response = promise.get_future().get();
 
-  ASSERT_FALSE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
+  ASSERT_FALSE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
   ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            partitionsResponse.GetError().GetHttpStatusCode())
-      << PrintError(partitionsResponse.GetError());
+            partitions_response.GetError().GetHttpStatusCode())
+      << ApiErrorToString(partitions_response.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            partitionsResponse.GetError().GetErrorCode())
-      << PrintError(partitionsResponse.GetError());
+            partitions_response.GetError().GetErrorCode())
+      << ApiErrorToString(partitions_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, DISABLED_GetPartitionsCancelLayerVersions) {
+TEST_P(CatalogClientTest, DISABLED_GetPartitionsCancelLayerVersions) {
   olp::client::HRN hrn(GetTestCatalog());
 
   // Setup the expected calls :
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
-      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LAYER_VERSIONS});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LAYER_VERSIONS});
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_LAYER_VERSIONS), _, _, _, _))
@@ -1147,7 +1146,7 @@ TEST_P(CatalogClientMockTest, DISABLED_GetPartitionsCancelLayerVersions) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
       .Times(0);
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request =
@@ -1157,37 +1156,37 @@ TEST_P(CatalogClientMockTest, DISABLED_GetPartitionsCancelLayerVersions) {
   PartitionsResponseCallback callback =
       [&promise](PartitionsResponse response) { promise.set_value(response); };
 
-  olp::client::CancellationToken cancelToken =
-      catalogClient->GetPartitions(request, callback);
-  waitForCancel->get_future().get();  // wait for handler to get the request
-  cancelToken.cancel();
-  pauseForCancel->set_value();  // unblock the handler
+  olp::client::CancellationToken cancel_token =
+      catalog_client->GetPartitions(request, callback);
+  wait_for_cancel->get_future().get();  // wait for handler to get the request
+  cancel_token.cancel();
+  pause_for_cancel->set_value();  // unblock the handler
 
-  PartitionsResponse partitionsResponse = promise.get_future().get();
+  PartitionsResponse partitions_response = promise.get_future().get();
 
-  ASSERT_FALSE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
+  ASSERT_FALSE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
   ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            partitionsResponse.GetError().GetHttpStatusCode())
-      << PrintError(partitionsResponse.GetError());
+            partitions_response.GetError().GetHttpStatusCode())
+      << ApiErrorToString(partitions_response.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            partitionsResponse.GetError().GetErrorCode())
-      << PrintError(partitionsResponse.GetError());
+            partitions_response.GetError().GetErrorCode())
+      << ApiErrorToString(partitions_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelLookupConfig) {
+TEST_P(CatalogClientTest, GetDataWithPartitionIdCancelLookupConfig) {
   olp::client::HRN hrn(GetTestCatalog());
 
   // Setup the expected calls :
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
-      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
       .Times(1)
@@ -1199,7 +1198,7 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelLookupConfig) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(0);
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
@@ -1210,38 +1209,38 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelLookupConfig) {
     promise.set_value(response);
   };
 
-  olp::client::CancellationToken cancelToken =
-      catalogClient->GetData(request, callback);
+  olp::client::CancellationToken cancel_token =
+      catalog_client->GetData(request, callback);
 
-  waitForCancel->get_future().get();  // wait for handler to get the request
-  cancelToken.cancel();
-  pauseForCancel->set_value();  // unblock the handler
+  wait_for_cancel->get_future().get();  // wait for handler to get the request
+  cancel_token.cancel();
+  pause_for_cancel->set_value();  // unblock the handler
 
-  DataResponse dataResponse = promise.get_future().get();
+  DataResponse data_response = promise.get_future().get();
 
-  ASSERT_FALSE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
+  ASSERT_FALSE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
   ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            dataResponse.GetError().GetHttpStatusCode())
-      << PrintError(dataResponse.GetError());
+            data_response.GetError().GetHttpStatusCode())
+      << ApiErrorToString(data_response.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            dataResponse.GetError().GetErrorCode())
-      << PrintError(dataResponse.GetError());
+            data_response.GetError().GetErrorCode())
+      << ApiErrorToString(data_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelConfig) {
+TEST_P(CatalogClientTest, GetDataWithPartitionIdCancelConfig) {
   olp::client::HRN hrn(GetTestCatalog());
 
   // Setup the expected calls :
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
-      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_CONFIG});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_CONFIG});
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1)
@@ -1254,7 +1253,7 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelConfig) {
               Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
       .Times(0);
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
@@ -1265,39 +1264,38 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelConfig) {
     promise.set_value(response);
   };
 
-  olp::client::CancellationToken cancelToken =
-      catalogClient->GetData(request, callback);
+  olp::client::CancellationToken cancel_token =
+      catalog_client->GetData(request, callback);
 
-  waitForCancel->get_future().get();  // wait for handler to get the request
-  cancelToken.cancel();
-  pauseForCancel->set_value();  // unblock the handler
+  wait_for_cancel->get_future().get();  // wait for handler to get the request
+  cancel_token.cancel();
+  pause_for_cancel->set_value();  // unblock the handler
 
-  DataResponse dataResponse = promise.get_future().get();
+  DataResponse data_response = promise.get_future().get();
 
-  ASSERT_FALSE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
+  ASSERT_FALSE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
   ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            dataResponse.GetError().GetHttpStatusCode())
-      << PrintError(dataResponse.GetError());
+            data_response.GetError().GetHttpStatusCode())
+      << ApiErrorToString(data_response.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            dataResponse.GetError().GetErrorCode())
-      << PrintError(dataResponse.GetError());
+            data_response.GetError().GetErrorCode())
+      << ApiErrorToString(data_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest,
-       DISABLED_GetDataWithPartitionIdCancelLookupMetadata) {
+TEST_P(CatalogClientTest, DISABLED_GetDataWithPartitionIdCancelLookupMetadata) {
   olp::client::HRN hrn(GetTestCatalog());
 
   // Setup the expected calls :
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
-      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_METADATA});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_METADATA});
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
@@ -1311,7 +1309,7 @@ TEST_P(CatalogClientMockTest,
               Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(0);
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
@@ -1322,39 +1320,39 @@ TEST_P(CatalogClientMockTest,
     promise.set_value(response);
   };
 
-  olp::client::CancellationToken cancelToken =
-      catalogClient->GetData(request, callback);
+  olp::client::CancellationToken cancel_token =
+      catalog_client->GetData(request, callback);
 
-  waitForCancel->get_future().get();  // wait for handler to get the request
-  cancelToken.cancel();
-  pauseForCancel->set_value();  // unblock the handler
+  wait_for_cancel->get_future().get();  // wait for handler to get the request
+  cancel_token.cancel();
+  pause_for_cancel->set_value();  // unblock the handler
 
-  DataResponse dataResponse = promise.get_future().get();
+  DataResponse data_response = promise.get_future().get();
 
-  ASSERT_FALSE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
+  ASSERT_FALSE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
   ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            dataResponse.GetError().GetHttpStatusCode())
-      << PrintError(dataResponse.GetError());
+            data_response.GetError().GetHttpStatusCode())
+      << ApiErrorToString(data_response.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            dataResponse.GetError().GetErrorCode())
-      << PrintError(dataResponse.GetError());
+            data_response.GetError().GetErrorCode())
+      << ApiErrorToString(data_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest,
+TEST_P(CatalogClientTest,
        DISABLED_GetDataWithPartitionIdCancelLatestCatalogVersion) {
   olp::client::HRN hrn(GetTestCatalog());
 
   // Setup the expected calls :
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) =
-      generateNetworkMocks(waitForCancel, pauseForCancel,
+      GenerateNetworkMocks(wait_for_cancel, pause_for_cancel,
                            {200, HTTP_RESPONSE_LATEST_CATALOG_VERSION});
 
   EXPECT_CALL(*network_mock_,
@@ -1368,7 +1366,7 @@ TEST_P(CatalogClientMockTest,
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
       .Times(0);
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
@@ -1379,31 +1377,31 @@ TEST_P(CatalogClientMockTest,
     promise.set_value(response);
   };
 
-  olp::client::CancellationToken cancelToken =
-      catalogClient->GetData(request, callback);
+  olp::client::CancellationToken cancel_token =
+      catalog_client->GetData(request, callback);
 
-  waitForCancel->get_future().get();  // wait for handler to get the request
-  cancelToken.cancel();
-  pauseForCancel->set_value();  // unblock the handler
+  wait_for_cancel->get_future().get();  // wait for handler to get the request
+  cancel_token.cancel();
+  pause_for_cancel->set_value();  // unblock the handler
 
-  DataResponse dataResponse = promise.get_future().get();
+  DataResponse data_response = promise.get_future().get();
 
-  ASSERT_FALSE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
+  ASSERT_FALSE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
   ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            dataResponse.GetError().GetHttpStatusCode())
-      << PrintError(dataResponse.GetError());
+            data_response.GetError().GetHttpStatusCode())
+      << ApiErrorToString(data_response.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            dataResponse.GetError().GetErrorCode())
-      << PrintError(dataResponse.GetError());
+            data_response.GetError().GetErrorCode())
+      << ApiErrorToString(data_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelInnerConfig) {
+TEST_P(CatalogClientTest, GetDataWithPartitionIdCancelInnerConfig) {
   olp::client::HRN hrn(GetTestCatalog());
 
   // Setup the expected calls :
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   {
     testing::InSequence s;
@@ -1414,8 +1412,8 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelInnerConfig) {
     NetworkCallback send_mock;
     CancelCallback cancel_mock;
 
-    std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
-        waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_CONFIG});
+    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+        wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_CONFIG});
 
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
         .Times(1)
@@ -1429,11 +1427,11 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelInnerConfig) {
               Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(0);
 
-  olp::cache::CacheSettings cacheSettings;
-  cacheSettings.max_memory_cache_size = 0;
-  auto catalogClient = std::make_unique<olp::dataservice::read::CatalogClient>(
+  olp::cache::CacheSettings cache_settings;
+  cache_settings.max_memory_cache_size = 0;
+  auto catalog_client = std::make_unique<olp::dataservice::read::CatalogClient>(
       hrn, settings_,
-      olp::dataservice::read::CreateDefaultCache(cacheSettings));
+      olp::dataservice::read::CreateDefaultCache(cache_settings));
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer").WithPartitionId("269");
@@ -1443,38 +1441,38 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelInnerConfig) {
     promise.set_value(response);
   };
 
-  olp::client::CancellationToken cancelToken =
-      catalogClient->GetData(request, callback);
+  olp::client::CancellationToken cancel_token =
+      catalog_client->GetData(request, callback);
 
-  waitForCancel->get_future().get();  // wait for handler to get the request
-  cancelToken.cancel();
-  pauseForCancel->set_value();  // unblock the handler
+  wait_for_cancel->get_future().get();  // wait for handler to get the request
+  cancel_token.cancel();
+  pause_for_cancel->set_value();  // unblock the handler
 
-  DataResponse dataResponse = promise.get_future().get();
+  DataResponse data_response = promise.get_future().get();
 
-  ASSERT_FALSE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
+  ASSERT_FALSE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
   ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            dataResponse.GetError().GetHttpStatusCode())
-      << PrintError(dataResponse.GetError());
+            data_response.GetError().GetHttpStatusCode())
+      << ApiErrorToString(data_response.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            dataResponse.GetError().GetErrorCode())
-      << PrintError(dataResponse.GetError());
+            data_response.GetError().GetErrorCode())
+      << ApiErrorToString(data_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelLookupQuery) {
+TEST_P(CatalogClientTest, GetDataWithPartitionIdCancelLookupQuery) {
   olp::client::HRN hrn(GetTestCatalog());
 
   // Setup the expected calls :
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
-      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_QUERY});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_QUERY});
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
       .Times(1)
@@ -1487,7 +1485,7 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelLookupQuery) {
               Send(IsGetRequest(URL_QUERY_PARTITION_269), _, _, _, _))
       .Times(0);
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
@@ -1498,38 +1496,38 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelLookupQuery) {
     promise.set_value(response);
   };
 
-  olp::client::CancellationToken cancelToken =
-      catalogClient->GetData(request, callback);
+  olp::client::CancellationToken cancel_token =
+      catalog_client->GetData(request, callback);
 
-  waitForCancel->get_future().get();  // wait for handler to get the request
-  cancelToken.cancel();
-  pauseForCancel->set_value();  // unblock the handler
+  wait_for_cancel->get_future().get();  // wait for handler to get the request
+  cancel_token.cancel();
+  pause_for_cancel->set_value();  // unblock the handler
 
-  DataResponse dataResponse = promise.get_future().get();
+  DataResponse data_response = promise.get_future().get();
 
-  ASSERT_FALSE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
+  ASSERT_FALSE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
   ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            dataResponse.GetError().GetHttpStatusCode())
-      << PrintError(dataResponse.GetError());
+            data_response.GetError().GetHttpStatusCode())
+      << ApiErrorToString(data_response.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            dataResponse.GetError().GetErrorCode())
-      << PrintError(dataResponse.GetError());
+            data_response.GetError().GetErrorCode())
+      << ApiErrorToString(data_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelQuery) {
+TEST_P(CatalogClientTest, GetDataWithPartitionIdCancelQuery) {
   olp::client::HRN hrn(GetTestCatalog());
 
   // Setup the expected calls :
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
-      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_PARTITION_269});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_PARTITION_269});
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_QUERY_PARTITION_269), _, _, _, _))
@@ -1542,7 +1540,7 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelQuery) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
       .Times(0);
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
@@ -1553,38 +1551,38 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelQuery) {
     promise.set_value(response);
   };
 
-  olp::client::CancellationToken cancelToken =
-      catalogClient->GetData(request, callback);
+  olp::client::CancellationToken cancel_token =
+      catalog_client->GetData(request, callback);
 
-  waitForCancel->get_future().get();  // wait for handler to get the request
-  cancelToken.cancel();
-  pauseForCancel->set_value();  // unblock the handler
+  wait_for_cancel->get_future().get();  // wait for handler to get the request
+  cancel_token.cancel();
+  pause_for_cancel->set_value();  // unblock the handler
 
-  DataResponse dataResponse = promise.get_future().get();
+  DataResponse data_response = promise.get_future().get();
 
-  ASSERT_FALSE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
+  ASSERT_FALSE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
   ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            dataResponse.GetError().GetHttpStatusCode())
-      << PrintError(dataResponse.GetError());
+            data_response.GetError().GetHttpStatusCode())
+      << ApiErrorToString(data_response.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            dataResponse.GetError().GetErrorCode())
-      << PrintError(dataResponse.GetError());
+            data_response.GetError().GetErrorCode())
+      << ApiErrorToString(data_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelLookupBlob) {
+TEST_P(CatalogClientTest, GetDataWithPartitionIdCancelLookupBlob) {
   olp::client::HRN hrn(GetTestCatalog());
 
   // Setup the expected calls :
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
-      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_BLOB});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_BLOB});
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
       .Times(1)
@@ -1596,7 +1594,7 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelLookupBlob) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(0);
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
@@ -1607,38 +1605,38 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelLookupBlob) {
     promise.set_value(response);
   };
 
-  olp::client::CancellationToken cancelToken =
-      catalogClient->GetData(request, callback);
+  olp::client::CancellationToken cancel_token =
+      catalog_client->GetData(request, callback);
 
-  waitForCancel->get_future().get();  // wait for handler to get the request
-  cancelToken.cancel();
-  pauseForCancel->set_value();  // unblock the handler
+  wait_for_cancel->get_future().get();  // wait for handler to get the request
+  cancel_token.cancel();
+  pause_for_cancel->set_value();  // unblock the handler
 
-  DataResponse dataResponse = promise.get_future().get();
+  DataResponse data_response = promise.get_future().get();
 
-  ASSERT_FALSE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
+  ASSERT_FALSE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
   ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            dataResponse.GetError().GetHttpStatusCode())
-      << PrintError(dataResponse.GetError());
+            data_response.GetError().GetHttpStatusCode())
+      << ApiErrorToString(data_response.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            dataResponse.GetError().GetErrorCode())
-      << PrintError(dataResponse.GetError());
+            data_response.GetError().GetErrorCode())
+      << ApiErrorToString(data_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelBlob) {
+TEST_P(CatalogClientTest, GetDataWithPartitionIdCancelBlob) {
   olp::client::HRN hrn(GetTestCatalog());
 
   // Setup the expected calls :
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
-      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_BLOB_DATA_269});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_BLOB_DATA_269});
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(1)
@@ -1647,7 +1645,7 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelBlob) {
   EXPECT_CALL(*network_mock_, Cancel(request_id))
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
@@ -1658,26 +1656,26 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdCancelBlob) {
     promise.set_value(response);
   };
 
-  olp::client::CancellationToken cancelToken =
-      catalogClient->GetData(request, callback);
+  olp::client::CancellationToken cancel_token =
+      catalog_client->GetData(request, callback);
 
-  waitForCancel->get_future().get();  // wait for handler to get the request
-  cancelToken.cancel();
-  pauseForCancel->set_value();  // unblock the handler
+  wait_for_cancel->get_future().get();  // wait for handler to get the request
+  cancel_token.cancel();
+  pause_for_cancel->set_value();  // unblock the handler
 
-  DataResponse dataResponse = promise.get_future().get();
+  DataResponse data_response = promise.get_future().get();
 
-  ASSERT_FALSE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
+  ASSERT_FALSE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
   ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            dataResponse.GetError().GetHttpStatusCode())
-      << PrintError(dataResponse.GetError());
+            data_response.GetError().GetHttpStatusCode())
+      << ApiErrorToString(data_response.GetError());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            dataResponse.GetError().GetErrorCode())
-      << PrintError(dataResponse.GetError());
+            data_response.GetError().GetErrorCode())
+      << ApiErrorToString(data_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, GetCatalogVersion) {
+TEST_P(CatalogClientTest, GetCatalogVersion) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_,
@@ -1688,21 +1686,21 @@ TEST_P(CatalogClientMockTest, GetCatalogVersion) {
               Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(1);
 
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
 
   auto request = CatalogVersionRequest().WithStartVersion(-1);
 
-  auto future = catalogClient->GetCatalogMetadataVersion(request);
-  auto catalogVersionResponse = future.GetFuture().get();
+  auto future = catalog_client->GetCatalogMetadataVersion(request);
+  auto catalog_version_response = future.GetFuture().get();
 
-  ASSERT_TRUE(catalogVersionResponse.IsSuccessful())
-      << PrintError(catalogVersionResponse.GetError());
+  ASSERT_TRUE(catalog_version_response.IsSuccessful())
+      << ApiErrorToString(catalog_version_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, GetDataWithPartitionIdVersion2) {
+TEST_P(CatalogClientTest, GetDataWithPartitionIdVersion2) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   EXPECT_CALL(*network_mock_,
@@ -1715,52 +1713,52 @@ TEST_P(CatalogClientMockTest, GetDataWithPartitionIdVersion2) {
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer").WithPartitionId("269").WithVersion(2);
-  auto dataResponse =
+  auto data_response =
       GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalogClient->GetData(request);
+        auto future = catalog_client->GetData(request);
         return future.GetFuture().get();
       });
 
-  ASSERT_TRUE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
-  ASSERT_LT(0, dataResponse.GetResult()->size());
-  std::string dataStr(dataResponse.GetResult()->begin(),
-                      dataResponse.GetResult()->end());
-  ASSERT_EQ("DT_2_0031_V2", dataStr);
+  ASSERT_TRUE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+  ASSERT_LT(0, data_response.GetResult()->size());
+  std::string data_string(data_response.GetResult()->begin(),
+                          data_response.GetResult()->end());
+  ASSERT_EQ("DT_2_0031_V2", data_string);
 }
 
-TEST_P(CatalogClientMockTest, GetDataWithPartitionIdInvalidVersion) {
+TEST_P(CatalogClientTest, GetDataWithPartitionIdInvalidVersion) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer").WithPartitionId("269").WithVersion(10);
-  auto dataResponse =
+  auto data_response =
       GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalogClient->GetData(request);
+        auto future = catalog_client->GetData(request);
         return future.GetFuture().get();
       });
 
-  ASSERT_FALSE(dataResponse.IsSuccessful());
+  ASSERT_FALSE(data_response.IsSuccessful());
   ASSERT_EQ(olp::client::ErrorCode::BadRequest,
-            dataResponse.GetError().GetErrorCode());
-  ASSERT_EQ(400, dataResponse.GetError().GetHttpStatusCode());
+            data_response.GetError().GetErrorCode());
+  ASSERT_EQ(400, data_response.GetError().GetHttpStatusCode());
 
   request.WithVersion(-1);
-  dataResponse = GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-    auto future = catalogClient->GetData(request);
+  data_response = GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+    auto future = catalog_client->GetData(request);
     return future.GetFuture().get();
   });
 
-  ASSERT_FALSE(dataResponse.IsSuccessful());
+  ASSERT_FALSE(data_response.IsSuccessful());
   ASSERT_EQ(olp::client::ErrorCode::BadRequest,
-            dataResponse.GetError().GetErrorCode());
-  ASSERT_EQ(400, dataResponse.GetError().GetHttpStatusCode());
+            data_response.GetError().GetErrorCode());
+  ASSERT_EQ(400, data_response.GetError().GetHttpStatusCode());
 }
 
-TEST_P(CatalogClientMockTest, GetPartitionsVersion2) {
+TEST_P(CatalogClientTest, GetPartitionsVersion2) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_,
@@ -1770,67 +1768,67 @@ TEST_P(CatalogClientMockTest, GetPartitionsVersion2) {
               Send(IsGetRequest(URL_LAYER_VERSIONS_V2), _, _, _, _))
       .Times(1);
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithLayerId("testlayer").WithVersion(2);
-  auto partitionsResponse =
+  auto partitions_response =
       GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
-        auto future = catalogClient->GetPartitions(request);
+        auto future = catalog_client->GetPartitions(request);
         return future.GetFuture().get();
       });
 
-  ASSERT_TRUE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(1u, partitionsResponse.GetResult().GetPartitions().size());
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+  ASSERT_EQ(1u, partitions_response.GetResult().GetPartitions().size());
 }
 
-TEST_P(CatalogClientMockTest, GetPartitionsInvalidVersion) {
+TEST_P(CatalogClientTest, GetPartitionsInvalidVersion) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithLayerId("testlayer").WithVersion(10);
-  auto partitionsResponse =
+  auto partitions_response =
       GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
-        auto future = catalogClient->GetPartitions(request);
+        auto future = catalog_client->GetPartitions(request);
         return future.GetFuture().get();
       });
 
-  ASSERT_FALSE(partitionsResponse.IsSuccessful());
+  ASSERT_FALSE(partitions_response.IsSuccessful());
   ASSERT_EQ(olp::client::ErrorCode::BadRequest,
-            partitionsResponse.GetError().GetErrorCode());
-  ASSERT_EQ(400, partitionsResponse.GetError().GetHttpStatusCode());
+            partitions_response.GetError().GetErrorCode());
+  ASSERT_EQ(400, partitions_response.GetError().GetHttpStatusCode());
 
   request.WithVersion(-1);
-  partitionsResponse =
+  partitions_response =
       GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
-        auto future = catalogClient->GetPartitions(request);
+        auto future = catalog_client->GetPartitions(request);
         return future.GetFuture().get();
       });
 
-  ASSERT_FALSE(partitionsResponse.IsSuccessful());
+  ASSERT_FALSE(partitions_response.IsSuccessful());
   ASSERT_EQ(olp::client::ErrorCode::BadRequest,
-            partitionsResponse.GetError().GetErrorCode());
-  ASSERT_EQ(400, partitionsResponse.GetError().GetHttpStatusCode());
+            partitions_response.GetError().GetErrorCode());
+  ASSERT_EQ(400, partitions_response.GetError().GetHttpStatusCode());
 }
 
-TEST_P(CatalogClientMockTest, GetCatalogVersionCancel) {
+TEST_P(CatalogClientTest, GetCatalogVersionCancel) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   // Setup the expected calls :
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
-      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_METADATA});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_METADATA});
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
@@ -1845,7 +1843,7 @@ TEST_P(CatalogClientMockTest, GetCatalogVersionCancel) {
       .Times(0);
 
   // Run it!
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
 
   auto request = CatalogVersionRequest().WithStartVersion(-1);
 
@@ -1854,39 +1852,39 @@ TEST_P(CatalogClientMockTest, GetCatalogVersionCancel) {
       [&promise](CatalogVersionResponse response) {
         promise.set_value(response);
       };
-  olp::client::CancellationToken cancelToken =
-      catalogClient->GetCatalogMetadataVersion(request, callback);
+  olp::client::CancellationToken cancel_token =
+      catalog_client->GetCatalogMetadataVersion(request, callback);
 
-  waitForCancel->get_future().get();
-  cancelToken.cancel();
-  pauseForCancel->set_value();
-  CatalogVersionResponse versionResponse = promise.get_future().get();
+  wait_for_cancel->get_future().get();
+  cancel_token.cancel();
+  pause_for_cancel->set_value();
+  CatalogVersionResponse version_response = promise.get_future().get();
 
-  ASSERT_FALSE(versionResponse.IsSuccessful())
-      << PrintError(versionResponse.GetError());
+  ASSERT_FALSE(version_response.IsSuccessful())
+      << ApiErrorToString(version_response.GetError());
 
   ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            versionResponse.GetError().GetHttpStatusCode());
+            version_response.GetError().GetHttpStatusCode());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            versionResponse.GetError().GetErrorCode());
+            version_response.GetError().GetErrorCode());
 }
 
-TEST_P(CatalogClientMockTest, GetCatalogCacheOnly) {
+TEST_P(CatalogClientTest, GetCatalogCacheOnly) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(0);
 
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = CatalogRequest();
   request.WithFetchOption(CacheOnly);
-  auto future = catalogClient->GetCatalog(request);
-  CatalogResponse catalogResponse = future.GetFuture().get();
-  ASSERT_FALSE(catalogResponse.IsSuccessful())
-      << PrintError(catalogResponse.GetError());
+  auto future = catalog_client->GetCatalog(request);
+  CatalogResponse catalog_response = future.GetFuture().get();
+  ASSERT_FALSE(catalog_response.IsSuccessful())
+      << ApiErrorToString(catalog_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, GetCatalogOnlineOnly) {
+TEST_P(CatalogClientTest, GetCatalogOnlineOnly) {
   olp::client::HRN hrn(GetTestCatalog());
 
   {
@@ -1901,88 +1899,88 @@ TEST_P(CatalogClientMockTest, GetCatalogOnlineOnly) {
                                "Server busy at the moment."));
   }
 
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = CatalogRequest();
   request.WithFetchOption(OnlineOnly);
-  auto future = catalogClient->GetCatalog(request);
-  CatalogResponse catalogResponse = future.GetFuture().get();
-  ASSERT_TRUE(catalogResponse.IsSuccessful())
-      << PrintError(catalogResponse.GetError());
-  future = catalogClient->GetCatalog(request);
+  auto future = catalog_client->GetCatalog(request);
+  CatalogResponse catalog_response = future.GetFuture().get();
+  ASSERT_TRUE(catalog_response.IsSuccessful())
+      << ApiErrorToString(catalog_response.GetError());
+  future = catalog_client->GetCatalog(request);
   // Should fail despite valid cache entry.
-  catalogResponse = future.GetFuture().get();
-  ASSERT_FALSE(catalogResponse.IsSuccessful())
-      << PrintError(catalogResponse.GetError());
+  catalog_response = future.GetFuture().get();
+  ASSERT_FALSE(catalog_response.IsSuccessful())
+      << ApiErrorToString(catalog_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, GetCatalogCacheWithUpdate) {
+TEST_P(CatalogClientTest, GetCatalogCacheWithUpdate) {
   olp::logging::Log::setLevel(olp::logging::Level::Trace);
 
   olp::client::HRN hrn(GetTestCatalog());
-  auto waitToStartSignal = std::make_shared<std::promise<void>>();
-  auto preCallbackWait = std::make_shared<std::promise<void>>();
-  preCallbackWait->set_value();
-  auto waitForEnd = std::make_shared<std::promise<void>>();
+  auto wait_to_start_signal = std::make_shared<std::promise<void>>();
+  auto pre_callback_wait = std::make_shared<std::promise<void>>();
+  pre_callback_wait->set_value();
+  auto wait_for_end = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) =
-      generateNetworkMocks(waitToStartSignal, preCallbackWait,
-                           {200, HTTP_RESPONSE_CONFIG}, waitForEnd);
+      GenerateNetworkMocks(wait_to_start_signal, pre_callback_wait,
+                           {200, HTTP_RESPONSE_CONFIG}, wait_for_end);
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = CatalogRequest();
   request.WithFetchOption(CacheWithUpdate);
   // Request 1
   SCOPED_TRACE("Request Catalog, CacheWithUpdate");
-  auto future = catalogClient->GetCatalog(request);
+  auto future = catalog_client->GetCatalog(request);
 
   SCOPED_TRACE("get CatalogResponse1");
-  CatalogResponse catalogResponse = future.GetFuture().get();
+  CatalogResponse catalog_response = future.GetFuture().get();
 
   // Request 1 return. Cached value (nothing)
-  ASSERT_FALSE(catalogResponse.IsSuccessful())
-      << PrintError(catalogResponse.GetError());
+  ASSERT_FALSE(catalog_response.IsSuccessful())
+      << ApiErrorToString(catalog_response.GetError());
   // Wait for background cache update to finish
   SCOPED_TRACE("wait some time for update to conclude");
-  waitForEnd->get_future().get();
+  wait_for_end->get_future().get();
 
   // Request 2 to check there is a cached value.
   SCOPED_TRACE("Request Catalog, CacheOnly");
   request.WithFetchOption(CacheOnly);
-  future = catalogClient->GetCatalog(request);
+  future = catalog_client->GetCatalog(request);
   SCOPED_TRACE("get CatalogResponse2");
-  catalogResponse = future.GetFuture().get();
+  catalog_response = future.GetFuture().get();
   // Cache should be available here.
-  ASSERT_TRUE(catalogResponse.IsSuccessful())
-      << PrintError(catalogResponse.GetError());
+  ASSERT_TRUE(catalog_response.IsSuccessful())
+      << ApiErrorToString(catalog_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, GetDataCacheOnly) {
+TEST_P(CatalogClientTest, GetDataCacheOnly) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(0);
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer")
       .WithPartitionId("269")
       .WithFetchOption(CacheOnly);
-  auto future = catalogClient->GetData(request);
-  auto dataResponse = future.GetFuture().get();
-  ASSERT_FALSE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
+  auto future = catalog_client->GetData(request);
+  auto data_response = future.GetFuture().get();
+  ASSERT_FALSE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, GetDataOnlineOnly) {
+TEST_P(CatalogClientTest, GetDataOnlineOnly) {
   olp::client::HRN hrn(GetTestCatalog());
 
   {
@@ -1999,90 +1997,90 @@ TEST_P(CatalogClientMockTest, GetDataOnlineOnly) {
                                "Server busy at the moment."));
   }
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer")
       .WithPartitionId("269")
       .WithFetchOption(OnlineOnly);
-  auto future = catalogClient->GetData(request);
+  auto future = catalog_client->GetData(request);
 
-  auto dataResponse = future.GetFuture().get();
+  auto data_response = future.GetFuture().get();
 
-  ASSERT_TRUE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
-  ASSERT_LT(0, dataResponse.GetResult()->size());
-  std::string dataStr(dataResponse.GetResult()->begin(),
-                      dataResponse.GetResult()->end());
-  ASSERT_EQ("DT_2_0031", dataStr);
+  ASSERT_TRUE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+  ASSERT_LT(0, data_response.GetResult()->size());
+  std::string data_string(data_response.GetResult()->begin(),
+                          data_response.GetResult()->end());
+  ASSERT_EQ("DT_2_0031", data_string);
   // Should fail despite cached response
-  future = catalogClient->GetData(request);
-  dataResponse = future.GetFuture().get();
-  ASSERT_FALSE(dataResponse.IsSuccessful());
+  future = catalog_client->GetData(request);
+  data_response = future.GetFuture().get();
+  ASSERT_FALSE(data_response.IsSuccessful());
 }
 
-TEST_P(CatalogClientMockTest, GetDataCacheWithUpdate) {
+TEST_P(CatalogClientTest, GetDataCacheWithUpdate) {
   olp::logging::Log::setLevel(olp::logging::Level::Trace);
 
   olp::client::HRN hrn(GetTestCatalog());
   // Setup the expected calls :
-  auto waitToStartSignal = std::make_shared<std::promise<void>>();
-  auto preCallbackWait = std::make_shared<std::promise<void>>();
-  preCallbackWait->set_value();
-  auto waitForEndSignal = std::make_shared<std::promise<void>>();
+  auto wait_to_start_signal = std::make_shared<std::promise<void>>();
+  auto pre_callback_wait = std::make_shared<std::promise<void>>();
+  pre_callback_wait->set_value();
+  auto wait_for_end_signal = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
-      waitToStartSignal, preCallbackWait, {200, HTTP_RESPONSE_BLOB_DATA_269},
-      waitForEndSignal);
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+      wait_to_start_signal, pre_callback_wait,
+      {200, HTTP_RESPONSE_BLOB_DATA_269}, wait_for_end_signal);
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = DataRequest();
   request.WithLayerId("testlayer")
       .WithPartitionId("269")
       .WithFetchOption(CacheWithUpdate);
   // Request 1
-  auto future = catalogClient->GetData(request);
-  DataResponse dataResponse = future.GetFuture().get();
+  auto future = catalog_client->GetData(request);
+  DataResponse data_response = future.GetFuture().get();
   // Request 1 return. Cached value (nothing)
-  ASSERT_FALSE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
+  ASSERT_FALSE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
   // Request 2 to check there is a cached value.
   // waiting for cache to fill-in
-  waitForEndSignal->get_future().get();
+  wait_for_end_signal->get_future().get();
   request.WithFetchOption(CacheOnly);
-  future = catalogClient->GetData(request);
-  dataResponse = future.GetFuture().get();
+  future = catalog_client->GetData(request);
+  data_response = future.GetFuture().get();
   // Cache should be available here.
-  ASSERT_TRUE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
+  ASSERT_TRUE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, GetPartitionsCacheOnly) {
+TEST_P(CatalogClientTest, GetPartitionsCacheOnly) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
       .Times(0);
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithLayerId("testlayer").WithFetchOption(CacheOnly);
-  auto future = catalogClient->GetPartitions(request);
-  auto partitionsResponse = future.GetFuture().get();
-  ASSERT_FALSE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
+  auto future = catalog_client->GetPartitions(request);
+  auto partitions_response = future.GetFuture().get();
+  ASSERT_FALSE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, GetPartitionsOnlineOnly) {
+TEST_P(CatalogClientTest, GetPartitionsOnlineOnly) {
   olp::client::HRN hrn(GetTestCatalog());
 
   {
@@ -2097,42 +2095,42 @@ TEST_P(CatalogClientMockTest, GetPartitionsOnlineOnly) {
                                "Server busy at the moment."));
   }
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithLayerId("testlayer").WithFetchOption(OnlineOnly);
-  auto future = catalogClient->GetPartitions(request);
-  auto partitionsResponse = future.GetFuture().get();
+  auto future = catalog_client->GetPartitions(request);
+  auto partitions_response = future.GetFuture().get();
 
-  ASSERT_TRUE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(4u, partitionsResponse.GetResult().GetPartitions().size());
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+  ASSERT_EQ(4u, partitions_response.GetResult().GetPartitions().size());
 
-  future = catalogClient->GetPartitions(request);
-  partitionsResponse = future.GetFuture().get();
+  future = catalog_client->GetPartitions(request);
+  partitions_response = future.GetFuture().get();
   // Should fail despite valid cache entry
-  ASSERT_FALSE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
+  ASSERT_FALSE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, DISABLED_GetPartitionsCacheWithUpdate) {
+TEST_P(CatalogClientTest, DISABLED_GetPartitionsCacheWithUpdate) {
   olp::logging::Log::setLevel(olp::logging::Level::Trace);
 
   olp::client::HRN hrn(GetTestCatalog());
 
-  auto waitToStartSignal = std::make_shared<std::promise<void>>();
-  auto preCallbackWait = std::make_shared<std::promise<void>>();
-  preCallbackWait->set_value();
-  auto waitForEndSignal = std::make_shared<std::promise<void>>();
+  auto wait_to_start_signal = std::make_shared<std::promise<void>>();
+  auto pre_callback_wait = std::make_shared<std::promise<void>>();
+  pre_callback_wait->set_value();
+  auto wait_for_end_signal = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) =
-      generateNetworkMocks(waitToStartSignal, preCallbackWait,
-                           {200, HTTP_RESPONSE_PARTITIONS}, waitForEndSignal);
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+      wait_to_start_signal, pre_callback_wait, {200, HTTP_RESPONSE_PARTITIONS},
+      wait_for_end_signal);
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
       .Times(1)
@@ -2141,26 +2139,26 @@ TEST_P(CatalogClientMockTest, DISABLED_GetPartitionsCacheWithUpdate) {
   EXPECT_CALL(*network_mock_, Cancel(request_id))
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = PartitionsRequest();
   request.WithLayerId("testlayer").WithFetchOption(CacheWithUpdate);
   // Request 1
-  auto future = catalogClient->GetPartitions(request);
-  PartitionsResponse partitionsResponse = future.GetFuture().get();
+  auto future = catalog_client->GetPartitions(request);
+  PartitionsResponse partitions_response = future.GetFuture().get();
   // Request 1 return. Cached value (nothing)
-  ASSERT_FALSE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
+  ASSERT_FALSE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
   // Request 2 to check there is a cached value.
-  waitForEndSignal->get_future().get();
+  wait_for_end_signal->get_future().get();
   request.WithFetchOption(CacheOnly);
-  future = catalogClient->GetPartitions(request);
-  partitionsResponse = future.GetFuture().get();
+  future = catalog_client->GetPartitions(request);
+  partitions_response = future.GetFuture().get();
   // Cache should be available here.
-  ASSERT_TRUE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
 }
 
-TEST_P(CatalogClientMockTest, GetCatalog403CacheClear) {
+TEST_P(CatalogClientTest, GetCatalog403CacheClear) {
   olp::client::HRN hrn(GetTestCatalog());
   {
     testing::InSequence s;
@@ -2172,35 +2170,35 @@ TEST_P(CatalogClientMockTest, GetCatalog403CacheClear) {
             olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
   }
 
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = CatalogRequest();
   // Populate cache
-  auto future = catalogClient->GetCatalog(request);
-  CatalogResponse catalogResponse = future.GetFuture().get();
-  ASSERT_TRUE(catalogResponse.IsSuccessful());
-  auto datarequest = DataRequest();
-  datarequest.WithLayerId("testlayer").WithPartitionId("269");
-  auto datafuture = catalogClient->GetData(datarequest);
-  auto dataresponse = datafuture.GetFuture().get();
+  auto future = catalog_client->GetCatalog(request);
+  CatalogResponse catalog_response = future.GetFuture().get();
+  ASSERT_TRUE(catalog_response.IsSuccessful());
+  auto data_request = DataRequest();
+  data_request.WithLayerId("testlayer").WithPartitionId("269");
+  auto data_future = catalog_client->GetData(data_request);
+  auto data_response = data_future.GetFuture().get();
   // Receive 403
   request.WithFetchOption(OnlineOnly);
-  future = catalogClient->GetCatalog(request);
-  catalogResponse = future.GetFuture().get();
-  ASSERT_FALSE(catalogResponse.IsSuccessful());
-  ASSERT_EQ(403, catalogResponse.GetError().GetHttpStatusCode());
+  future = catalog_client->GetCatalog(request);
+  catalog_response = future.GetFuture().get();
+  ASSERT_FALSE(catalog_response.IsSuccessful());
+  ASSERT_EQ(403, catalog_response.GetError().GetHttpStatusCode());
   // Check for cached response
   request.WithFetchOption(CacheOnly);
-  future = catalogClient->GetCatalog(request);
-  catalogResponse = future.GetFuture().get();
-  ASSERT_FALSE(catalogResponse.IsSuccessful());
+  future = catalog_client->GetCatalog(request);
+  catalog_response = future.GetFuture().get();
+  ASSERT_FALSE(catalog_response.IsSuccessful());
   // Check the associated data has also been cleared
-  datarequest.WithFetchOption(CacheOnly);
-  datafuture = catalogClient->GetData(datarequest);
-  dataresponse = datafuture.GetFuture().get();
-  ASSERT_FALSE(dataresponse.IsSuccessful());
+  data_request.WithFetchOption(CacheOnly);
+  data_future = catalog_client->GetData(data_request);
+  data_response = data_future.GetFuture().get();
+  ASSERT_FALSE(data_response.IsSuccessful());
 }
 
-TEST_P(CatalogClientMockTest, GetData403CacheClear) {
+TEST_P(CatalogClientTest, GetData403CacheClear) {
   olp::client::HRN hrn(GetTestCatalog());
   {
     testing::InSequence s;
@@ -2213,27 +2211,27 @@ TEST_P(CatalogClientMockTest, GetData403CacheClear) {
             olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
   }
 
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = DataRequest();
   request.WithLayerId("testlayer").WithPartitionId("269");
   // Populate cache
-  auto future = catalogClient->GetData(request);
-  DataResponse dataResponse = future.GetFuture().get();
-  ASSERT_TRUE(dataResponse.IsSuccessful());
+  auto future = catalog_client->GetData(request);
+  DataResponse data_response = future.GetFuture().get();
+  ASSERT_TRUE(data_response.IsSuccessful());
   // Receive 403
   request.WithFetchOption(OnlineOnly);
-  future = catalogClient->GetData(request);
-  dataResponse = future.GetFuture().get();
-  ASSERT_FALSE(dataResponse.IsSuccessful());
-  ASSERT_EQ(403, dataResponse.GetError().GetHttpStatusCode());
+  future = catalog_client->GetData(request);
+  data_response = future.GetFuture().get();
+  ASSERT_FALSE(data_response.IsSuccessful());
+  ASSERT_EQ(403, data_response.GetError().GetHttpStatusCode());
   // Check for cached response
   request.WithFetchOption(CacheOnly);
-  future = catalogClient->GetData(request);
-  dataResponse = future.GetFuture().get();
-  ASSERT_FALSE(dataResponse.IsSuccessful());
+  future = catalog_client->GetData(request);
+  data_response = future.GetFuture().get();
+  ASSERT_FALSE(data_response.IsSuccessful());
 }
 
-TEST_P(CatalogClientMockTest, GetPartitions403CacheClear) {
+TEST_P(CatalogClientTest, GetPartitions403CacheClear) {
   olp::client::HRN hrn(GetTestCatalog());
   auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
 
@@ -2266,29 +2264,30 @@ TEST_P(CatalogClientMockTest, GetPartitions403CacheClear) {
   ASSERT_FALSE(partitions_response.IsSuccessful());
 }
 
-TEST_P(CatalogClientMockTest, DISABLED_CancelPendingRequestsCatalog) {
+TEST_P(CatalogClientTest, DISABLED_CancelPendingRequestsCatalog) {
   olp::client::HRN hrn(GetTestCatalog());
   testing::InSequence s;
   std::vector<std::shared_ptr<std::promise<void>>> waits;
   std::vector<std::shared_ptr<std::promise<void>>> pauses;
 
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
-  auto catalogRequest = CatalogRequest().WithFetchOption(OnlineOnly);
-  auto versionRequest = CatalogVersionRequest().WithFetchOption(OnlineOnly);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_request = CatalogRequest().WithFetchOption(OnlineOnly);
+  auto version_request = CatalogVersionRequest().WithFetchOption(OnlineOnly);
 
   // Make a few requests
-  auto waitForCancel1 = std::make_shared<std::promise<void>>();
-  auto pauseForCancel1 = std::make_shared<std::promise<void>>();
-  auto waitForCancel2 = std::make_shared<std::promise<void>>();
-  auto pauseForCancel2 = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel1 = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel1 = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel2 = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel2 = std::make_shared<std::promise<void>>();
 
   {
     olp::http::RequestId request_id;
     NetworkCallback send_mock;
     CancelCallback cancel_mock;
 
-    std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
-        waitForCancel1, pauseForCancel1, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
+    std::tie(request_id, send_mock, cancel_mock) =
+        GenerateNetworkMocks(wait_for_cancel1, pause_for_cancel1,
+                             {200, HTTP_RESPONSE_LOOKUP_CONFIG});
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
@@ -2304,8 +2303,9 @@ TEST_P(CatalogClientMockTest, DISABLED_CancelPendingRequestsCatalog) {
     NetworkCallback send_mock;
     CancelCallback cancel_mock;
 
-    std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
-        waitForCancel2, pauseForCancel2, {200, HTTP_RESPONSE_LOOKUP_METADATA});
+    std::tie(request_id, send_mock, cancel_mock) =
+        GenerateNetworkMocks(wait_for_cancel2, pause_for_cancel2,
+                             {200, HTTP_RESPONSE_LOOKUP_METADATA});
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
@@ -2316,72 +2316,74 @@ TEST_P(CatalogClientMockTest, DISABLED_CancelPendingRequestsCatalog) {
         .WillOnce(testing::Invoke(std::move(cancel_mock)));
   }
 
-  waits.push_back(waitForCancel1);
-  pauses.push_back(pauseForCancel1);
-  auto catalogFuture = catalogClient->GetCatalog(catalogRequest);
+  waits.push_back(wait_for_cancel1);
+  pauses.push_back(pause_for_cancel1);
+  auto catalog_future = catalog_client->GetCatalog(catalog_request);
 
-  waits.push_back(waitForCancel2);
-  pauses.push_back(pauseForCancel2);
-  auto versionFuture = catalogClient->GetCatalogMetadataVersion(versionRequest);
+  waits.push_back(wait_for_cancel2);
+  pauses.push_back(pause_for_cancel2);
+  auto version_future =
+      catalog_client->GetCatalogMetadataVersion(version_request);
 
   for (auto wait : waits) {
     wait->get_future().get();
   }
   // Cancel them all
-  catalogClient->cancelPendingRequests();
+  catalog_client->cancelPendingRequests();
   for (auto pause : pauses) {
     pause->set_value();
   }
 
   // Verify they are all cancelled
-  CatalogResponse catalogResponse = catalogFuture.GetFuture().get();
+  CatalogResponse catalog_response = catalog_future.GetFuture().get();
 
-  ASSERT_FALSE(catalogResponse.IsSuccessful())
-      << PrintError(catalogResponse.GetError());
-
-  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            catalogResponse.GetError().GetHttpStatusCode());
-  ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            catalogResponse.GetError().GetErrorCode());
-
-  CatalogVersionResponse versionResponse = versionFuture.GetFuture().get();
-
-  ASSERT_FALSE(versionResponse.IsSuccessful())
-      << PrintError(versionResponse.GetError());
+  ASSERT_FALSE(catalog_response.IsSuccessful())
+      << ApiErrorToString(catalog_response.GetError());
 
   ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            versionResponse.GetError().GetHttpStatusCode());
+            catalog_response.GetError().GetHttpStatusCode());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            versionResponse.GetError().GetErrorCode());
+            catalog_response.GetError().GetErrorCode());
+
+  CatalogVersionResponse version_response = version_future.GetFuture().get();
+
+  ASSERT_FALSE(version_response.IsSuccessful())
+      << ApiErrorToString(version_response.GetError());
+
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            version_response.GetError().GetHttpStatusCode());
+  ASSERT_EQ(olp::client::ErrorCode::Cancelled,
+            version_response.GetError().GetErrorCode());
 }
 
-TEST_P(CatalogClientMockTest, DISABLED_CancelPendingRequestsPartitions) {
+TEST_P(CatalogClientTest, DISABLED_CancelPendingRequestsPartitions) {
   olp::client::HRN hrn(GetTestCatalog());
   testing::InSequence s;
   std::vector<std::shared_ptr<std::promise<void>>> waits;
   std::vector<std::shared_ptr<std::promise<void>>> pauses;
 
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_);
-  auto partitionsRequest =
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
+  auto partitions_request =
       PartitionsRequest().WithLayerId("testlayer").WithFetchOption(OnlineOnly);
-  auto dataRequest = DataRequest()
-                         .WithLayerId("testlayer")
-                         .WithPartitionId("269")
-                         .WithFetchOption(OnlineOnly);
+  auto data_request = DataRequest()
+                          .WithLayerId("testlayer")
+                          .WithPartitionId("269")
+                          .WithFetchOption(OnlineOnly);
 
   // Make a few requests
-  auto waitForCancel1 = std::make_shared<std::promise<void>>();
-  auto pauseForCancel1 = std::make_shared<std::promise<void>>();
-  auto waitForCancel2 = std::make_shared<std::promise<void>>();
-  auto pauseForCancel2 = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel1 = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel1 = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel2 = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel2 = std::make_shared<std::promise<void>>();
 
   {
     olp::http::RequestId request_id;
     NetworkCallback send_mock;
     CancelCallback cancel_mock;
 
-    std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
-        waitForCancel1, pauseForCancel1, {200, HTTP_RESPONSE_LAYER_VERSIONS});
+    std::tie(request_id, send_mock, cancel_mock) =
+        GenerateNetworkMocks(wait_for_cancel1, pause_for_cancel1,
+                             {200, HTTP_RESPONSE_LAYER_VERSIONS});
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_LAYER_VERSIONS), _, _, _, _))
@@ -2396,8 +2398,9 @@ TEST_P(CatalogClientMockTest, DISABLED_CancelPendingRequestsPartitions) {
     NetworkCallback send_mock;
     CancelCallback cancel_mock;
 
-    std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
-        waitForCancel2, pauseForCancel2, {200, HTTP_RESPONSE_BLOB_DATA_269});
+    std::tie(request_id, send_mock, cancel_mock) =
+        GenerateNetworkMocks(wait_for_cancel2, pause_for_cancel2,
+                             {200, HTTP_RESPONSE_BLOB_DATA_269});
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
@@ -2408,74 +2411,74 @@ TEST_P(CatalogClientMockTest, DISABLED_CancelPendingRequestsPartitions) {
         .WillOnce(testing::Invoke(std::move(cancel_mock)));
   }
 
-  waits.push_back(waitForCancel1);
-  pauses.push_back(pauseForCancel1);
-  auto partitionsFuture = catalogClient->GetPartitions(partitionsRequest);
+  waits.push_back(wait_for_cancel1);
+  pauses.push_back(pause_for_cancel1);
+  auto partitions_future = catalog_client->GetPartitions(partitions_request);
 
-  waits.push_back(waitForCancel2);
-  pauses.push_back(pauseForCancel2);
-  auto dataFuture = catalogClient->GetData(dataRequest);
+  waits.push_back(wait_for_cancel2);
+  pauses.push_back(pause_for_cancel2);
+  auto data_future = catalog_client->GetData(data_request);
   std::cout << "waiting" << std::endl;
   for (auto wait : waits) {
     wait->get_future().get();
   }
   std::cout << "done waitingg" << std::endl;
   // Cancel them all
-  catalogClient->cancelPendingRequests();
+  catalog_client->cancelPendingRequests();
   std::cout << "done cancelling" << std::endl;
   for (auto pause : pauses) {
     pause->set_value();
   }
 
   // Verify they are all cancelled
-  PartitionsResponse partitionsResponse = partitionsFuture.GetFuture().get();
+  PartitionsResponse partitions_response = partitions_future.GetFuture().get();
 
-  ASSERT_FALSE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-
-  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            partitionsResponse.GetError().GetHttpStatusCode());
-  ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            partitionsResponse.GetError().GetErrorCode());
-
-  DataResponse dataResponse = dataFuture.GetFuture().get();
-
-  ASSERT_FALSE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
+  ASSERT_FALSE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
 
   ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            dataResponse.GetError().GetHttpStatusCode());
+            partitions_response.GetError().GetHttpStatusCode());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            dataResponse.GetError().GetErrorCode());
+            partitions_response.GetError().GetErrorCode());
+
+  DataResponse data_response = data_future.GetFuture().get();
+
+  ASSERT_FALSE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            data_response.GetError().GetHttpStatusCode());
+  ASSERT_EQ(olp::client::ErrorCode::Cancelled,
+            data_response.GetError().GetErrorCode());
 }
 
-TEST_P(CatalogClientMockTest, Prefetch) {
+TEST_P(CatalogClientTest, Prefetch) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
-  std::vector<olp::geo::TileKey> tileKeys;
-  tileKeys.emplace_back(olp::geo::TileKey::FromHereTile("5904591"));
+  std::vector<olp::geo::TileKey> tile_keys;
+  tile_keys.emplace_back(olp::geo::TileKey::FromHereTile("5904591"));
 
   auto request = olp::dataservice::read::PrefetchTilesRequest()
                      .WithLayerId("hype-test-prefetch")
-                     .WithTileKeys(tileKeys)
+                     .WithTileKeys(tile_keys)
                      .WithMinLevel(10)
                      .WithMaxLevel(12);
 
-  auto future = catalogClient->PrefetchTiles(request);
+  auto future = catalog_client->PrefetchTiles(request);
 
   auto response = future.GetFuture().get();
   ASSERT_TRUE(response.IsSuccessful());
 
   auto& result = response.GetResult();
 
-  for (auto tileResult : result) {
-    ASSERT_TRUE(tileResult->IsSuccessful());
-    ASSERT_TRUE(tileResult->tile_key_.IsValid());
+  for (auto tile_result : result) {
+    ASSERT_TRUE(tile_result->IsSuccessful());
+    ASSERT_TRUE(tile_result->tile_key_.IsValid());
 
-    dumpTileKey(tileResult->tile_key_);
+    DumpTileKey(tile_result->tile_key_);
   }
   ASSERT_EQ(6u, result.size());
 
@@ -2485,13 +2488,13 @@ TEST_P(CatalogClientMockTest, Prefetch) {
     request.WithLayerId("hype-test-prefetch")
         .WithPartitionId("23618365")
         .WithFetchOption(FetchOptions::CacheOnly);
-    auto future = catalogClient->GetData(request);
+    auto future = catalog_client->GetData(request);
 
-    auto dataResponse = future.GetFuture().get();
+    auto data_response = future.GetFuture().get();
 
-    ASSERT_TRUE(dataResponse.IsSuccessful())
-        << PrintError(dataResponse.GetError());
-    ASSERT_LT(0, dataResponse.GetResult()->size());
+    ASSERT_TRUE(data_response.IsSuccessful())
+        << ApiErrorToString(data_response.GetError());
+    ASSERT_LT(0, data_response.GetResult()->size());
   }
   // The parent of 5904591 should be fetched too
   {
@@ -2499,43 +2502,43 @@ TEST_P(CatalogClientMockTest, Prefetch) {
     request.WithLayerId("hype-test-prefetch")
         .WithPartitionId("1476147")
         .WithFetchOption(FetchOptions::CacheOnly);
-    auto future = catalogClient->GetData(request);
+    auto future = catalog_client->GetData(request);
 
-    auto dataResponse = future.GetFuture().get();
+    auto data_response = future.GetFuture().get();
 
-    ASSERT_TRUE(dataResponse.IsSuccessful())
-        << PrintError(dataResponse.GetError());
-    ASSERT_LT(0, dataResponse.GetResult()->size());
+    ASSERT_TRUE(data_response.IsSuccessful())
+        << ApiErrorToString(data_response.GetError());
+    ASSERT_LT(0, data_response.GetResult()->size());
   }
 }
 
-TEST_P(CatalogClientMockTest, PrefetchEmbedded) {
+TEST_P(CatalogClientTest, PrefetchEmbedded) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
-  std::vector<olp::geo::TileKey> tileKeys;
-  tileKeys.emplace_back(olp::geo::TileKey::FromHereTile("369036"));
+  std::vector<olp::geo::TileKey> tile_keys;
+  tile_keys.emplace_back(olp::geo::TileKey::FromHereTile("369036"));
 
   auto request = olp::dataservice::read::PrefetchTilesRequest()
                      .WithLayerId("hype-test-prefetch")
-                     .WithTileKeys(tileKeys)
+                     .WithTileKeys(tile_keys)
                      .WithMinLevel(9)
                      .WithMaxLevel(9);
 
-  auto future = catalogClient->PrefetchTiles(request);
+  auto future = catalog_client->PrefetchTiles(request);
 
   auto response = future.GetFuture().get();
   ASSERT_TRUE(response.IsSuccessful());
 
   auto& result = response.GetResult();
 
-  for (auto tileResult : result) {
-    ASSERT_TRUE(tileResult->IsSuccessful());
-    ASSERT_TRUE(tileResult->tile_key_.IsValid());
+  for (auto tile_result : result) {
+    ASSERT_TRUE(tile_result->IsSuccessful());
+    ASSERT_TRUE(tile_result->tile_key_.IsValid());
 
-    dumpTileKey(tileResult->tile_key_);
+    DumpTileKey(tile_result->tile_key_);
   }
   ASSERT_EQ(1u, result.size());
 
@@ -2545,48 +2548,48 @@ TEST_P(CatalogClientMockTest, PrefetchEmbedded) {
     request.WithLayerId("hype-test-prefetch")
         .WithPartitionId("369036")
         .WithFetchOption(FetchOptions::CacheOnly);
-    auto future = catalogClient->GetData(request);
+    auto future = catalog_client->GetData(request);
 
-    auto dataResponse = future.GetFuture().get();
+    auto data_response = future.GetFuture().get();
 
-    ASSERT_TRUE(dataResponse.IsSuccessful())
-        << PrintError(dataResponse.GetError());
-    ASSERT_LT(0, dataResponse.GetResult()->size());
+    ASSERT_TRUE(data_response.IsSuccessful())
+        << ApiErrorToString(data_response.GetError());
+    ASSERT_LT(0, data_response.GetResult()->size());
 
     // expected data = "data:Embedded Data for 369036"
-    std::string dataStrDup(dataResponse.GetResult()->begin(),
-                           dataResponse.GetResult()->end());
-    ASSERT_EQ("data:Embedded Data for 369036", dataStrDup);
+    std::string data_string_duplicate(data_response.GetResult()->begin(),
+                                      data_response.GetResult()->end());
+    ASSERT_EQ("data:Embedded Data for 369036", data_string_duplicate);
   }
 }
 
-TEST_P(CatalogClientMockTest, DISABLED_PrefetchBusy) {
+TEST_P(CatalogClientTest, DISABLED_PrefetchBusy) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   // Prepare the first request
-  std::vector<olp::geo::TileKey> tileKeys1;
-  tileKeys1.emplace_back(olp::geo::TileKey::FromHereTile("5904591"));
+  std::vector<olp::geo::TileKey> tile_keys1;
+  tile_keys1.emplace_back(olp::geo::TileKey::FromHereTile("5904591"));
 
   auto request1 = olp::dataservice::read::PrefetchTilesRequest()
                       .WithLayerId("hype-test-prefetch")
-                      .WithTileKeys(tileKeys1)
+                      .WithTileKeys(tile_keys1)
                       .WithMinLevel(10)
                       .WithMaxLevel(12);
 
   // Prepare to delay the response of URL_QUADKEYS_5904591 until we've issued
   // the second request
-  auto waitForQuadKeyRequest = std::make_shared<std::promise<void>>();
-  auto pauseForSecondRequest = std::make_shared<std::promise<void>>();
+  auto wait_for_quad_key_request = std::make_shared<std::promise<void>>();
+  auto pause_for_second_request = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) =
-      generateNetworkMocks(waitForQuadKeyRequest, pauseForSecondRequest,
+      GenerateNetworkMocks(wait_for_quad_key_request, pause_for_second_request,
                            {200, HTTP_RESPONSE_QUADKEYS_5904591});
 
   EXPECT_CALL(*network_mock_,
@@ -2598,26 +2601,26 @@ TEST_P(CatalogClientMockTest, DISABLED_PrefetchBusy) {
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   // Issue the first request
-  auto future1 = catalogClient->PrefetchTiles(request1);
+  auto future1 = catalog_client->PrefetchTiles(request1);
 
   // Wait for QuadKey request
-  waitForQuadKeyRequest->get_future().get();
+  wait_for_quad_key_request->get_future().get();
 
   // Prepare the second request
-  std::vector<olp::geo::TileKey> tileKeys2;
-  tileKeys2.emplace_back(olp::geo::TileKey::FromHereTile("369036"));
+  std::vector<olp::geo::TileKey> tile_keys2;
+  tile_keys2.emplace_back(olp::geo::TileKey::FromHereTile("369036"));
 
   auto request2 = olp::dataservice::read::PrefetchTilesRequest()
                       .WithLayerId("hype-test-prefetch")
-                      .WithTileKeys(tileKeys2)
+                      .WithTileKeys(tile_keys2)
                       .WithMinLevel(9)
                       .WithMaxLevel(9);
 
   // Issue the second request
-  auto future2 = catalogClient->PrefetchTiles(request2);
+  auto future2 = catalog_client->PrefetchTiles(request2);
 
   // Unblock the QuadKey request
-  pauseForSecondRequest->set_value();
+  pause_for_second_request->set_value();
 
   // Validate that the second request failed
   auto response2 = future2.GetFuture().get();
@@ -2632,18 +2635,18 @@ TEST_P(CatalogClientMockTest, DISABLED_PrefetchBusy) {
 
   auto& result1 = response1.GetResult();
 
-  for (auto tileResult : result1) {
-    ASSERT_TRUE(tileResult->IsSuccessful());
-    ASSERT_TRUE(tileResult->tile_key_.IsValid());
+  for (auto tile_result : result1) {
+    ASSERT_TRUE(tile_result->IsSuccessful());
+    ASSERT_TRUE(tile_result->tile_key_.IsValid());
 
-    dumpTileKey(tileResult->tile_key_);
+    DumpTileKey(tile_result->tile_key_);
   }
   ASSERT_EQ(6u, result1.size());
 }
 
-class CatalogClientCacheTest : public CatalogClientMockTest {
+class CatalogClientCacheTest : public CatalogClientTest {
   void SetUp() {
-    CatalogClientMockTest::SetUp();
+    CatalogClientTest::SetUp();
     olp::cache::CacheSettings settings;
     switch (GetParam()) {
       case CacheType::IN_MEMORY: {
@@ -2653,13 +2656,13 @@ class CatalogClientCacheTest : public CatalogClientMockTest {
       case CacheType::DISK: {
         settings.max_memory_cache_size = 0;
         settings.disk_path =
-            olp::utils::Dir::TempDirectory() + k_client_test_cache_dir;
+            olp::utils::Dir::TempDirectory() + kClientTestCacheDir;
         ClearCache(settings.disk_path.get());
         break;
       }
       case CacheType::BOTH: {
         settings.disk_path =
-            olp::utils::Dir::TempDirectory() + k_client_test_cache_dir;
+            olp::utils::Dir::TempDirectory() + kClientTestCacheDir;
         ClearCache(settings.disk_path.get());
         break;
       }
@@ -2679,7 +2682,7 @@ class CatalogClientCacheTest : public CatalogClientMockTest {
     if (cache_) {
       cache_->Close();
     }
-    ClearCache(olp::utils::Dir::TempDirectory() + k_client_test_dir);
+    ClearCache(olp::utils::Dir::TempDirectory() + kClientTestDir);
     network_mock_.reset();
   }
 
@@ -2697,24 +2700,24 @@ TEST_P(CatalogClientCacheTest, GetApi) {
               Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(2);
 
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_, cache_);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_, cache_);
 
   auto request = CatalogVersionRequest().WithStartVersion(-1);
 
-  auto future = catalogClient->GetCatalogMetadataVersion(request);
-  auto catalogVersionResponse = future.GetFuture().get();
+  auto future = catalog_client->GetCatalogMetadataVersion(request);
+  auto catalog_version_response = future.GetFuture().get();
 
-  ASSERT_TRUE(catalogVersionResponse.IsSuccessful())
-      << PrintError(catalogVersionResponse.GetError());
+  ASSERT_TRUE(catalog_version_response.IsSuccessful())
+      << ApiErrorToString(catalog_version_response.GetError());
 
-  auto partitionsRequest = olp::dataservice::read::PartitionsRequest();
-  partitionsRequest.WithLayerId("testlayer");
-  auto partitionsFuture = catalogClient->GetPartitions(partitionsRequest);
-  auto partitionsResponse = partitionsFuture.GetFuture().get();
+  auto partitions_request = olp::dataservice::read::PartitionsRequest();
+  partitions_request.WithLayerId("testlayer");
+  auto partitions_future = catalog_client->GetPartitions(partitions_request);
+  auto partitions_response = partitions_future.GetFuture().get();
 
-  ASSERT_TRUE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(4u, partitionsResponse.GetResult().GetPartitions().size());
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+  ASSERT_EQ(4u, partitions_response.GetResult().GetPartitions().size());
 }
 
 TEST_P(CatalogClientCacheTest, GetCatalog) {
@@ -2725,21 +2728,21 @@ TEST_P(CatalogClientCacheTest, GetCatalog) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1);
 
-  auto catalogClient = std::make_unique<CatalogClient>(hrn, settings_, cache_);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_, cache_);
   auto request = CatalogRequest();
-  auto future = catalogClient->GetCatalog(request);
-  CatalogResponse catalogResponse = future.GetFuture().get();
+  auto future = catalog_client->GetCatalog(request);
+  CatalogResponse catalog_response = future.GetFuture().get();
 
-  ASSERT_TRUE(catalogResponse.IsSuccessful())
-      << PrintError(catalogResponse.GetError());
+  ASSERT_TRUE(catalog_response.IsSuccessful())
+      << ApiErrorToString(catalog_response.GetError());
 
-  future = catalogClient->GetCatalog(request);
-  CatalogResponse catalogResponse2 = future.GetFuture().get();
+  future = catalog_client->GetCatalog(request);
+  CatalogResponse catalog_response2 = future.GetFuture().get();
 
-  ASSERT_TRUE(catalogResponse2.IsSuccessful())
-      << PrintError(catalogResponse2.GetError());
-  ASSERT_EQ(catalogResponse2.GetResult().GetName(),
-            catalogResponse.GetResult().GetName());
+  ASSERT_TRUE(catalog_response2.IsSuccessful())
+      << ApiErrorToString(catalog_response2.GetError());
+  ASSERT_EQ(catalog_response2.GetResult().GetName(),
+            catalog_response.GetResult().GetName());
 }
 
 TEST_P(CatalogClientCacheTest, GetDataWithPartitionId) {
@@ -2772,32 +2775,32 @@ TEST_P(CatalogClientCacheTest, GetDataWithPartitionId) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(1);
 
-  auto catalogClient = std::make_unique<olp::dataservice::read::CatalogClient>(
+  auto catalog_client = std::make_unique<olp::dataservice::read::CatalogClient>(
       hrn, settings_, cache_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer").WithPartitionId("269");
-  auto future = catalogClient->GetData(request);
+  auto future = catalog_client->GetData(request);
 
-  auto dataResponse = future.GetFuture().get();
+  auto data_response = future.GetFuture().get();
 
-  ASSERT_TRUE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
-  ASSERT_LT(0, dataResponse.GetResult()->size());
-  std::string dataStr(dataResponse.GetResult()->begin(),
-                      dataResponse.GetResult()->end());
-  ASSERT_EQ("DT_2_0031", dataStr);
+  ASSERT_TRUE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+  ASSERT_LT(0, data_response.GetResult()->size());
+  std::string data_string(data_response.GetResult()->begin(),
+                          data_response.GetResult()->end());
+  ASSERT_EQ("DT_2_0031", data_string);
 
-  future = catalogClient->GetData(request);
+  future = catalog_client->GetData(request);
 
-  dataResponse = future.GetFuture().get();
+  data_response = future.GetFuture().get();
 
-  ASSERT_TRUE(dataResponse.IsSuccessful())
-      << PrintError(dataResponse.GetError());
-  ASSERT_LT(0, dataResponse.GetResult()->size());
-  std::string dataStrDup(dataResponse.GetResult()->begin(),
-                         dataResponse.GetResult()->end());
-  ASSERT_EQ("DT_2_0031", dataStrDup);
+  ASSERT_TRUE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+  ASSERT_LT(0, data_response.GetResult()->size());
+  std::string data_string_duplicate(data_response.GetResult()->begin(),
+                                    data_response.GetResult()->end());
+  ASSERT_EQ("DT_2_0031", data_string_duplicate);
 }
 
 TEST_P(CatalogClientCacheTest, GetPartitionsLayerVersions) {
@@ -2828,26 +2831,26 @@ TEST_P(CatalogClientCacheTest, GetPartitionsLayerVersions) {
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                    http_response_testlayer_res));
 
-  auto catalogClient = std::make_unique<olp::dataservice::read::CatalogClient>(
+  auto catalog_client = std::make_unique<olp::dataservice::read::CatalogClient>(
       hrn, settings_, cache_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithLayerId("testlayer");
-  auto future = catalogClient->GetPartitions(request);
-  auto partitionsResponse = future.GetFuture().get();
+  auto future = catalog_client->GetPartitions(request);
+  auto partitions_response = future.GetFuture().get();
 
-  ASSERT_TRUE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(4u, partitionsResponse.GetResult().GetPartitions().size());
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+  ASSERT_EQ(4u, partitions_response.GetResult().GetPartitions().size());
   request.WithLayerId("testlayer_res");
 
-  future = catalogClient->GetPartitions(request);
+  future = catalog_client->GetPartitions(request);
 
-  partitionsResponse = future.GetFuture().get();
+  partitions_response = future.GetFuture().get();
 
-  ASSERT_TRUE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(4u, partitionsResponse.GetResult().GetPartitions().size());
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+  ASSERT_EQ(4u, partitions_response.GetResult().GetPartitions().size());
 }
 
 TEST_P(CatalogClientCacheTest, GetPartitions) {
@@ -2868,24 +2871,24 @@ TEST_P(CatalogClientCacheTest, GetPartitions) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
       .Times(1);
 
-  auto catalogClient = std::make_unique<olp::dataservice::read::CatalogClient>(
+  auto catalog_client = std::make_unique<olp::dataservice::read::CatalogClient>(
       hrn, settings_, cache_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithLayerId("testlayer");
-  auto future = catalogClient->GetPartitions(request);
-  auto partitionsResponse = future.GetFuture().get();
+  auto future = catalog_client->GetPartitions(request);
+  auto partitions_response = future.GetFuture().get();
 
-  ASSERT_TRUE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(4u, partitionsResponse.GetResult().GetPartitions().size());
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+  ASSERT_EQ(4u, partitions_response.GetResult().GetPartitions().size());
 
-  future = catalogClient->GetPartitions(request);
-  partitionsResponse = future.GetFuture().get();
+  future = catalog_client->GetPartitions(request);
+  partitions_response = future.GetFuture().get();
 
-  ASSERT_TRUE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(4u, partitionsResponse.GetResult().GetPartitions().size());
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+  ASSERT_EQ(4u, partitions_response.GetResult().GetPartitions().size());
 }
 
 TEST_P(CatalogClientCacheTest, GetDataWithPartitionIdDifferentVersions) {
@@ -2926,72 +2929,72 @@ TEST_P(CatalogClientCacheTest, GetDataWithPartitionIdDifferentVersions) {
               Send(IsGetRequest(URL_BLOB_DATA_269_V2), _, _, _, _))
       .Times(1);
 
-  auto catalogClient =
+  auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   {
     request.WithLayerId("testlayer").WithPartitionId("269");
-    auto dataResponse =
+    auto data_response =
         GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-          auto future = catalogClient->GetData(request);
+          auto future = catalog_client->GetData(request);
           return future.GetFuture().get();
         });
 
-    ASSERT_TRUE(dataResponse.IsSuccessful())
-        << PrintError(dataResponse.GetError());
-    ASSERT_LT(0, dataResponse.GetResult()->size());
-    std::string dataStr(dataResponse.GetResult()->begin(),
-                        dataResponse.GetResult()->end());
-    ASSERT_EQ("DT_2_0031", dataStr);
+    ASSERT_TRUE(data_response.IsSuccessful())
+        << ApiErrorToString(data_response.GetError());
+    ASSERT_LT(0, data_response.GetResult()->size());
+    std::string data_string(data_response.GetResult()->begin(),
+                            data_response.GetResult()->end());
+    ASSERT_EQ("DT_2_0031", data_string);
   }
 
   {
     request.WithVersion(2);
-    auto dataResponse =
+    auto data_response =
         GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-          auto future = catalogClient->GetData(request);
+          auto future = catalog_client->GetData(request);
           return future.GetFuture().get();
         });
 
-    ASSERT_TRUE(dataResponse.IsSuccessful())
-        << PrintError(dataResponse.GetError());
-    ASSERT_LT(0, dataResponse.GetResult()->size());
-    std::string dataStr(dataResponse.GetResult()->begin(),
-                        dataResponse.GetResult()->end());
-    ASSERT_EQ("DT_2_0031_V2", dataStr);
+    ASSERT_TRUE(data_response.IsSuccessful())
+        << ApiErrorToString(data_response.GetError());
+    ASSERT_LT(0, data_response.GetResult()->size());
+    std::string data_string(data_response.GetResult()->begin(),
+                            data_response.GetResult()->end());
+    ASSERT_EQ("DT_2_0031_V2", data_string);
   }
 
   {
     request.WithVersion(boost::none);
-    auto dataResponse =
+    auto data_response =
         GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-          auto future = catalogClient->GetData(request);
+          auto future = catalog_client->GetData(request);
           return future.GetFuture().get();
         });
 
-    ASSERT_TRUE(dataResponse.IsSuccessful())
-        << PrintError(dataResponse.GetError());
-    ASSERT_LT(0, dataResponse.GetResult()->size());
-    std::string dataStr(dataResponse.GetResult()->begin(),
-                        dataResponse.GetResult()->end());
-    ASSERT_EQ("DT_2_0031", dataStr);
+    ASSERT_TRUE(data_response.IsSuccessful())
+        << ApiErrorToString(data_response.GetError());
+    ASSERT_LT(0, data_response.GetResult()->size());
+    std::string data_string(data_response.GetResult()->begin(),
+                            data_response.GetResult()->end());
+    ASSERT_EQ("DT_2_0031", data_string);
   }
 
   {
     request.WithVersion(2);
-    auto dataResponse =
+    auto data_response =
         GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-          auto future = catalogClient->GetData(request);
+          auto future = catalog_client->GetData(request);
           return future.GetFuture().get();
         });
 
-    ASSERT_TRUE(dataResponse.IsSuccessful())
-        << PrintError(dataResponse.GetError());
-    ASSERT_LT(0, dataResponse.GetResult()->size());
-    std::string dataStr(dataResponse.GetResult()->begin(),
-                        dataResponse.GetResult()->end());
-    ASSERT_EQ("DT_2_0031_V2", dataStr);
+    ASSERT_TRUE(data_response.IsSuccessful())
+        << ApiErrorToString(data_response.GetError());
+    ASSERT_LT(0, data_response.GetResult()->size());
+    std::string data_string(data_response.GetResult()->begin(),
+                            data_response.GetResult()->end());
+    ASSERT_EQ("DT_2_0031_V2", data_string);
   }
 }
 
@@ -3024,40 +3027,40 @@ TEST_P(CatalogClientCacheTest, GetVolatilePartitionsExpiry) {
                                HTTP_RESPONSE_EMPTY_PARTITIONS));
   }
 
-  auto catalogClient = std::make_unique<olp::dataservice::read::CatalogClient>(
+  auto catalog_client = std::make_unique<olp::dataservice::read::CatalogClient>(
       hrn, settings_, cache_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithLayerId("testlayer_volatile");
 
-  auto future = catalogClient->GetPartitions(request);
+  auto future = catalog_client->GetPartitions(request);
 
-  auto partitionsResponse = future.GetFuture().get();
+  auto partitions_response = future.GetFuture().get();
 
-  ASSERT_TRUE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(1u, partitionsResponse.GetResult().GetPartitions().size());
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+  ASSERT_EQ(1u, partitions_response.GetResult().GetPartitions().size());
 
   // hit the cache only, should be still be there
   request.WithFetchOption(olp::dataservice::read::CacheOnly);
-  future = catalogClient->GetPartitions(request);
-  partitionsResponse = future.GetFuture().get();
-  ASSERT_TRUE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(1u, partitionsResponse.GetResult().GetPartitions().size());
+  future = catalog_client->GetPartitions(request);
+  partitions_response = future.GetFuture().get();
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+  ASSERT_EQ(1u, partitions_response.GetResult().GetPartitions().size());
 
   // wait for the layer to expire in cache
   std::this_thread::sleep_for(std::chrono::seconds(2));
   request.WithFetchOption(olp::dataservice::read::OnlineIfNotFound);
-  future = catalogClient->GetPartitions(request);
-  partitionsResponse = future.GetFuture().get();
+  future = catalog_client->GetPartitions(request);
+  partitions_response = future.GetFuture().get();
 
-  ASSERT_TRUE(partitionsResponse.IsSuccessful())
-      << PrintError(partitionsResponse.GetError());
-  ASSERT_EQ(0u, partitionsResponse.GetResult().GetPartitions().size());
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+  ASSERT_EQ(0u, partitions_response.GetResult().GetPartitions().size());
 }
 
-INSTANTIATE_TEST_SUITE_P(, CatalogClientMockTest,
+INSTANTIATE_TEST_SUITE_P(, CatalogClientTest,
                          ::testing::Values(CacheType::BOTH));
 
 INSTANTIATE_TEST_SUITE_P(InMemoryCache, CatalogClientCacheTest,
