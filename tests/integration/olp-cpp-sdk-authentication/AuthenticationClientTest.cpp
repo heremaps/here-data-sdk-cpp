@@ -18,7 +18,6 @@
  */
 
 #include <gmock/gmock.h>
-#include <gtest/gtest.h>
 
 #include <future>
 #include <memory>
@@ -26,9 +25,7 @@
 #include <olp/core/porting/make_unique.h>
 #include <olp/core/http/HttpStatusCode.h>
 #include "olp/core/client/OlpClientSettingsFactory.h"
-
 #include <olp/authentication/AuthenticationClient.h>
-
 #include <mocks/NetworkMock.h>
 
 #include "AuthenticationMockedResponses.h"
