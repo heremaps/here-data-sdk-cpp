@@ -152,43 +152,50 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
     }
   }
 
+  client::Condition condition(
+      std::chrono::seconds(settings.retry_settings.timeout));
+
   auto client = std::make_shared<client::OlpClient>();
   client->SetSettings(std::move(settings));
-
-  client::Condition condition(cancellation_context);
 
   // when the network operation took too much time we cancel it and exit
   // execution, to make sure that network callback will not access dangling
   // references we protect them with atomic bool flag.
-  auto interest_flag = std::make_shared<std::atomic_bool>(true);
+  auto flag = std::make_shared<std::atomic_bool>(true);
 
   ApiClientLookup::ApiClientResponse api_response;
-  cancellation_context.ExecuteOrCancelled([&]() {
-    return ApiClientLookup::LookupApiClient(
-        client, service, service_version, catalog,
-        [&,
-         interest_flag](ApiClientLookup::ApiClientResponse response) mutable {
-          if (interest_flag->exchange(false)) {
-            api_response = std::move(response);
-            condition.Notify();
-          }
-        });
+  auto apiClientCallback =
+      [&, flag](ApiClientLookup::ApiClientResponse response) {
+        if (flag->exchange(false)) {
+          api_response = std::move(response);
+          condition.Notify();
+        }
+      };
+
+  cancellation_context.ExecuteOrCancelled([&, flag]() {
+    auto token = ApiClientLookup::LookupApiClient(
+        client, service, service_version, catalog, std::move(apiClientCallback));
+    return client::CancellationToken([&, token, flag]() {
+      if (flag->exchange(false)) {
+        token.cancel();
+        condition.Notify();
+      }
+    });
   });
 
   if (!condition.Wait()) {
-    // We are just about exit the execution.
-    interest_flag->store(false);
+    cancellation_context.CancelOperation();
+    return client::ApiError(client::ErrorCode::RequestTimeout,
+                            "Network request timed out.");
+  }
 
-    if (cancellation_context.IsCancelled()) {
-      // We can't use api response here because it could potentially be
-      // uninitialized.
-      return client::ApiError(client::ErrorCode::Cancelled,
-                              "Operation cancelled.");
-    } else {
-      cancellation_context.CancelOperation();
-      return client::ApiError(client::ErrorCode::RequestTimeout,
-                              "Network request timed out.");
-    }
+  flag->store(false);
+
+  if (cancellation_context.IsCancelled()) {
+    // We can't use api response here because it could potentially be
+    // uninitialized.
+    return client::ApiError(client::ErrorCode::Cancelled,
+                            "Operation cancelled.");
   }
 
   if (api_response.IsSuccessful()) {
