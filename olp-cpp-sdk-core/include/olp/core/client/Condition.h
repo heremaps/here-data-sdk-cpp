@@ -33,9 +33,8 @@ namespace client {
  */
 class Condition final {
  public:
-  Condition(olp::client::CancellationContext context,
-            std::chrono::milliseconds timeout = std::chrono::seconds(60))
-      : context_{context}, timeout_{timeout} {}
+  Condition(std::chrono::milliseconds timeout = std::chrono::seconds(60))
+      : timeout_{timeout} {}
 
   /**
    * @brief Should be called by task's callback to notify \c Wait to unblock the
@@ -56,14 +55,13 @@ class Condition final {
   bool Wait() {
     std::unique_lock<std::mutex> lock(mutex_);
     bool triggered = condition_.wait_for(
-        lock, timeout_, [&] { return signaled_ || context_.IsCancelled(); });
+        lock, timeout_, [&] { return signaled_; });
 
     signaled_ = false;
     return triggered;
   }
 
  private:
-  olp::client::CancellationContext context_;
   const std::chrono::milliseconds timeout_;
   std::condition_variable condition_;
   std::mutex mutex_;

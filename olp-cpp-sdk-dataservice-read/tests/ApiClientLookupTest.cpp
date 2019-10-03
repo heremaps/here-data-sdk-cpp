@@ -28,7 +28,7 @@ using namespace olp;
 using namespace client;
 using namespace dataservice::read;
 
-TEST(ApiClientLookup, LookupApiSync) {
+TEST(ApiClientLookupTest, LookupApi) {
   using namespace testing;
   using testing::Return;
 
@@ -38,6 +38,7 @@ TEST(ApiClientLookup, LookupApiSync) {
   OlpClientSettings settings;
   settings.cache = cache;
   settings.network_request_handler = network;
+  settings.retry_settings.timeout = 1;
 
   const std::string catalog = "hrn:here:data:::hereos-internal-test-v2";
   const auto catalog_hrn = HRN::FromString(catalog);
@@ -87,7 +88,8 @@ TEST(ApiClientLookup, LookupApiSync) {
     EXPECT_CALL(*network, Send(IsGetRequest(lookup_url), _, _, _, _))
         .Times(1)
         .WillOnce(NetworkMock::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(200),
+            olp::http::NetworkResponse().WithStatus(
+                olp::http::HttpStatusCode::OK),
             HTTP_RESPONSE_LOOKUP_CONFIG));
     EXPECT_CALL(*cache, Put(cache_key, _, _, _))
         .Times(1)
@@ -103,10 +105,103 @@ TEST(ApiClientLookup, LookupApiSync) {
     Mock::VerifyAndClearExpectations(network.get());
   }
   {
-      // SCOPED_TRACE("Network error propagated to the user");
-  } {
-      // SCOPED_TRACE("Network request cancelled by the user");
-  } {
-    // SCOPED_TRACE("Network error propagated to the user");
+    SCOPED_TRACE("Network error propagated to the user");
+    EXPECT_CALL(*network, Send(IsGetRequest(lookup_url), _, _, _, _))
+        .Times(1)
+        .WillOnce(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(
+                olp::http::HttpStatusCode::UNAUTHORIZED),
+            "Inappropriate"));
+
+    client::CancellationContext context;
+    auto response = ApiClientLookup::LookupApi(
+        catalog_hrn, context, service_name, service_version,
+        FetchOptions::OnlineOnly, settings);
+
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::AccessDenied);
+    Mock::VerifyAndClearExpectations(network.get());
+  }
+  {
+    SCOPED_TRACE("Network request cancelled by network internally");
+    client::CancellationContext context;
+    EXPECT_CALL(*network, Send(IsGetRequest(lookup_url), _, _, _, _))
+        .Times(1)
+        .WillOnce([=](olp::http::NetworkRequest request,
+                      olp::http::Network::Payload payload,
+                      olp::http::Network::Callback callback,
+                      olp::http::Network::HeaderCallback header_callback,
+                      olp::http::Network::DataCallback data_callback)
+                      -> olp::http::SendOutcome {
+          return olp::http::SendOutcome(olp::http::ErrorCode::CANCELLED_ERROR);
+        });
+    EXPECT_CALL(*network, Cancel(_)).Times(1).WillOnce(Return());
+
+    auto response = ApiClientLookup::LookupApi(
+        catalog_hrn, context, service_name, service_version,
+        FetchOptions::OnlineOnly, settings);
+
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::Cancelled);
+    Mock::VerifyAndClearExpectations(network.get());
+  }
+  {
+    SCOPED_TRACE("Network request timed out");
+    client::CancellationContext context;
+    EXPECT_CALL(*network, Send(IsGetRequest(lookup_url), _, _, _, _))
+        .Times(1)
+        .WillOnce([=](olp::http::NetworkRequest request,
+                      olp::http::Network::Payload payload,
+                      olp::http::Network::Callback callback,
+                      olp::http::Network::HeaderCallback header_callback,
+                      olp::http::Network::DataCallback data_callback)
+                      -> olp::http::SendOutcome {
+          // note no network response thread spawns
+          constexpr auto unused_request_id = 12;
+          return olp::http::SendOutcome(unused_request_id);
+        });
+    EXPECT_CALL(*network, Cancel(_)).Times(1).WillOnce(Return());
+
+    auto response = ApiClientLookup::LookupApi(
+        catalog_hrn, context, service_name, service_version,
+        FetchOptions::OnlineOnly, settings);
+
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::RequestTimeout);
+    Mock::VerifyAndClearExpectations(network.get());
+  }
+  {
+    SCOPED_TRACE("Network request cancelled by user");
+    client::CancellationContext context;
+    EXPECT_CALL(*network, Send(IsGetRequest(lookup_url), _, _, _, _))
+        .Times(1)
+        .WillOnce(
+            [=, &context](olp::http::NetworkRequest request,
+                          olp::http::Network::Payload payload,
+                          olp::http::Network::Callback callback,
+                          olp::http::Network::HeaderCallback header_callback,
+                          olp::http::Network::DataCallback data_callback)
+                -> olp::http::SendOutcome {
+              // spawn a 'user' response of cancelling
+              std::thread([&context]() { context.CancelOperation(); }).detach();
+
+              // note no network response thread spawns
+
+              constexpr auto unused_request_id = 12;
+              return olp::http::SendOutcome(unused_request_id);
+            });
+    EXPECT_CALL(*network, Cancel(_)).Times(1).WillOnce(Return());
+
+    auto response = ApiClientLookup::LookupApi(
+        catalog_hrn, context, service_name, service_version,
+        FetchOptions::OnlineOnly, settings);
+
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::Cancelled);
+    Mock::VerifyAndClearExpectations(network.get());
   }
 }
