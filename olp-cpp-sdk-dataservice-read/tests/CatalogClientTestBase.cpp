@@ -20,7 +20,6 @@
 #include "CatalogClientTestBase.h"
 
 #include <matchers/NetworkUrlMatchers.h>
-
 #include "HttpResponses.h"
 
 using ::testing::_;

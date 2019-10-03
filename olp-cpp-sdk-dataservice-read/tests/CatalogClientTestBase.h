@@ -17,24 +17,23 @@
  * License-Filename: LICENSE
  */
 
-#include <gmock/gmock.h>
+#pragma once
 
+#include <gmock/gmock.h>
+#include <mocks/NetworkMock.h>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientFactory.h>
 
-#include <mocks/NetworkMock.h>
-
 enum class CacheType { IN_MEMORY, DISK, BOTH };
 
 class CatalogClientTestBase : public ::testing::TestWithParam<CacheType> {
- public:
+ protected:
   CatalogClientTestBase();
   ~CatalogClientTestBase();
   std::string GetTestCatalog();
   static std::string ApiErrorToString(const olp::client::ApiError& error);
 
- protected:
   void SetUp() override;
   void TearDown() override;
 
