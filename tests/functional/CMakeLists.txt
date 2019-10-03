@@ -22,10 +22,21 @@ set(OLP_SDK_FUNCTIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-core/OlpClientDefaultAsyncHttpTest.cpp
     ./olp-cpp-sdk-dataservice-read/ApiTest.cpp
     ./olp-cpp-sdk-dataservice-read/CatalogClientTest.cpp
+    ./olp-cpp-sdk-authentication/AuthenticationCommonTestFixture.cpp
+    ./olp-cpp-sdk-authentication/AuthenticationFunctionalTest.cpp
+    ./olp-cpp-sdk-authentication/AuthenticationUtils.cpp
+)
+
+set(OLP_SDK_FUNCTIONAL_TESTS_HEADERS
+    ./olp-cpp-sdk-authentication/AuthenticationCommonTestFixture.h
+    ./olp-cpp-sdk-authentication/AuthenticationUtils.h
+    ./olp-cpp-sdk-authentication/TestConstants.h
 )
 
 if (ANDROID OR IOS)
-    add_library(olp-cpp-sdk-functional-tests-lib ${OLP_SDK_FUNCTIONAL_TESTS_SOURCES})
+    add_library(olp-cpp-sdk-functional-tests-lib
+        ${OLP_SDK_FUNCTIONAL_TESTS_SOURCES}
+        ${OLP_SDK_FUNCTIONAL_TESTS_HEADERS})
     target_include_directories(olp-cpp-sdk-functional-lib
         PRIVATE
             ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-dataservice-read/src
@@ -55,7 +66,9 @@ if (ANDROID OR IOS)
     endif()
 
 else()
-    add_executable(olp-cpp-sdk-functional-tests ${OLP_SDK_FUNCTIONAL_TESTS_SOURCES})
+    add_executable(olp-cpp-sdk-functional-tests
+        ${OLP_SDK_FUNCTIONAL_TESTS_SOURCES}
+        ${OLP_SDK_FUNCTIONAL_TESTS_HEADERS})
     target_include_directories(olp-cpp-sdk-functional-tests
     PRIVATE
         ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-dataservice-read/src
