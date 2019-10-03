@@ -27,6 +27,8 @@ set(OLP_SDK_FUNCTIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-authentication/AuthenticationUtils.cpp
     ./olp-cpp-sdk-authentication/FacebookAuthenticationTest.cpp
     ./olp-cpp-sdk-authentication/FacebookTestUtils.cpp
+    ./olp-cpp-sdk-authentication/ArcGisAuthenticationTest.cpp
+    ./olp-cpp-sdk-authentication/ArcGisTestUtils.cpp
 )
 
 set(OLP_SDK_FUNCTIONAL_TESTS_HEADERS
@@ -34,6 +36,7 @@ set(OLP_SDK_FUNCTIONAL_TESTS_HEADERS
     ./olp-cpp-sdk-authentication/AuthenticationUtils.h
     ./olp-cpp-sdk-authentication/TestConstants.h
     ./olp-cpp-sdk-authentication/FacebookTestUtils.h
+    ./olp-cpp-sdk-authentication/ArcGisTestUtils.h
 )
 
 if (ANDROID OR IOS)
