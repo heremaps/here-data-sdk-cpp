@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+namespace {
+
 TEST(PendingRequests, InsertNeedsGeneratedPlaceholderInAdvancePositive) {
   olp::dataservice::read::PendingRequests pending_request;
   auto key = pending_request.GenerateRequestPlaceholder();
@@ -41,3 +43,5 @@ TEST(PendingRequests, CancellAllPendingRequest) {
   EXPECT_TRUE(pending_request.CancelPendingRequests());
   EXPECT_TRUE(cancelled);
 }
+
+}  // namespace

@@ -41,7 +41,6 @@ void RemoveWhitespaceAndNewlines(std::string& s) {
   std::regex r("\\s+");
   s = std::regex_replace(s, r, "");
 }
-}  // namespace
 
 TEST(DataServiceReadSerializerTest, Api) {
   std::string expectedOutput =
@@ -426,3 +425,5 @@ TEST(DataserviceReadSerializerTest, VersionResponse) {
   RemoveWhitespaceAndNewlines(json);
   ASSERT_EQ(expectedOutput, json);
 }
+
+}  // namespace
