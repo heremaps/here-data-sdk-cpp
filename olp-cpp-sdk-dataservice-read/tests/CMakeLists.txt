@@ -23,6 +23,7 @@ set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     CatalogClientCacheTest.cpp
     CatalogClientTest.cpp
     CatalogClientTestBase.cpp
+    CatalogRepositoryTest.cpp
     HttpResponses.h
     MultiRequestContextTest.cpp
     ParserTest.cpp
