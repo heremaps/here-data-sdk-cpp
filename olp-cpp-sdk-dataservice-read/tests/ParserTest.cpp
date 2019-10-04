@@ -32,8 +32,10 @@
 #include <olp/core/generated/parser/JsonParser.h>
 // clang-format on
 
-TEST(Parser, api) {
-  std::string jsonInput =
+namespace {
+
+TEST(ParserTest, Api) {
+  std::string json_input =
       "[\
     {\
     \"api\": \"config\",\
@@ -47,11 +49,11 @@ TEST(Parser, api) {
     }\
     ]";
 
-  auto startTime = std::chrono::high_resolution_clock::now();
+  auto start_time = std::chrono::high_resolution_clock::now();
   auto apis =
-      olp::parser::parse<olp::dataservice::read::model::Apis>(jsonInput);
+      olp::parser::parse<olp::dataservice::read::model::Apis>(json_input);
   auto end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> time = end - startTime;
+  std::chrono::duration<double> time = end - start_time;
   std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
   ASSERT_EQ(1u, apis.size());
   ASSERT_EQ("config", apis.at(0).GetApi());
@@ -64,8 +66,8 @@ TEST(Parser, api) {
   ASSERT_EQ("string", apis.at(0).GetParameters().at("additionalProp3"));
 }
 
-TEST(Parser, catalog) {
-  std::string jsonInput =
+TEST(ParserTest, Catalog) {
+  std::string json_input =
       "{\
     \"id\": \"roadweather-catalog-v1\",\
     \"hrn\": \"hrn:here:data:::my-catalog-v1\",\
@@ -166,11 +168,11 @@ TEST(Parser, catalog) {
     }\
     }";
 
-  auto startTime = std::chrono::high_resolution_clock::now();
+  auto start_time = std::chrono::high_resolution_clock::now();
   auto catalog =
-      olp::parser::parse<olp::dataservice::read::model::Catalog>(jsonInput);
+      olp::parser::parse<olp::dataservice::read::model::Catalog>(json_input);
   auto end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> time = end - startTime;
+  std::chrono::duration<double> time = end - start_time;
   std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
 
   ASSERT_EQ("roadweather-catalog-v1", catalog.GetId());
@@ -283,8 +285,8 @@ TEST(Parser, catalog) {
       catalog.GetLayers().at(0).GetVolume().GetEncryption().GetAlgorithm());
 }
 
-TEST(Parser, partitions) {
-  std::string jsonInput =
+TEST(ParserTest, Partitions) {
+  std::string json_input =
       "{\
     \"partitions\": [\
       { \
@@ -299,11 +301,11 @@ TEST(Parser, partitions) {
     \"next\": \"url\"\
   }";
 
-  auto startTime = std::chrono::high_resolution_clock::now();
+  auto start_time = std::chrono::high_resolution_clock::now();
   auto partitions =
-      olp::parser::parse<olp::dataservice::read::model::Partitions>(jsonInput);
+      olp::parser::parse<olp::dataservice::read::model::Partitions>(json_input);
   auto end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> time = end - startTime;
+  std::chrono::duration<double> time = end - start_time;
   std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
 
   ASSERT_EQ(1u, partitions.GetPartitions().size());
@@ -321,25 +323,25 @@ TEST(Parser, partitions) {
   ASSERT_EQ(2, *partitions.GetPartitions().at(0).GetVersion());
 }
 
-TEST(Parser, versionresponse) {
-  std::string jsonInput =
+TEST(ParserTest, VersionResponse) {
+  std::string json_input =
       "{\
     \"version\": 0\
     }";
 
-  auto startTime = std::chrono::high_resolution_clock::now();
-  auto versionresponse =
+  auto start_time = std::chrono::high_resolution_clock::now();
+  auto version_response =
       olp::parser::parse<olp::dataservice::read::model::VersionResponse>(
-          jsonInput);
+          json_input);
   auto end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> time = end - startTime;
+  std::chrono::duration<double> time = end - start_time;
   std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
 
-  ASSERT_EQ(0, versionresponse.GetVersion());
+  ASSERT_EQ(0, version_response.GetVersion());
 }
 
-TEST(Parser, layerversions) {
-  std::string jsonInput =
+TEST(ParserTest, LayerVersions) {
+  std::string json_input =
       "{\
       \"layerVersions\": [\
         {\
@@ -351,31 +353,31 @@ TEST(Parser, layerversions) {
       \"version\": 1\
     }";
 
-  auto startTime = std::chrono::high_resolution_clock::now();
-  auto layerversions =
+  auto start_time = std::chrono::high_resolution_clock::now();
+  auto layer_versions =
       olp::parser::parse<olp::dataservice::read::model::LayerVersions>(
-          jsonInput);
+          json_input);
   auto end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> time = end - startTime;
+  std::chrono::duration<double> time = end - start_time;
   std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
 
-  ASSERT_EQ(1, layerversions.GetVersion());
-  ASSERT_EQ(1u, layerversions.GetLayerVersions().size());
-  ASSERT_EQ("my-layer", layerversions.GetLayerVersions().at(0).GetLayer());
-  ASSERT_EQ(0, layerversions.GetLayerVersions().at(0).GetVersion());
+  ASSERT_EQ(1, layer_versions.GetVersion());
+  ASSERT_EQ(1u, layer_versions.GetLayerVersions().size());
+  ASSERT_EQ("my-layer", layer_versions.GetLayerVersions().at(0).GetLayer());
+  ASSERT_EQ(0, layer_versions.GetLayerVersions().at(0).GetVersion());
   ASSERT_EQ(1516397474657,
-            layerversions.GetLayerVersions().at(0).GetTimestamp());
+            layer_versions.GetLayerVersions().at(0).GetTimestamp());
 }
 
 #define INDEX_JSON \
   R"jsonString({"subQuads": [{"version":1,"subQuadKey":"mandatory","dataHandle":"KRAt-LQ9c-w24d-O60T"},{"version":2,"subQuadKey":"optional","dataHandle":"pxFY-PlnK-DRBS-Is7F", "additionalMetadata": "add-meta", "checksum": "checksum", "compressedDataSize": 10101, "dataSize": 21212}],"parentQuads": [{"version":3,"partition":"mandatory-params","dataHandle":"KB6r-AEDB-owiq-BaWt"}, {"version":4,"partition":"optional-params","dataHandle":"KB6r-AEDB-owiq-BaWt", "additionalMetadata": "add-meta", "checksum": "checksum", "compressedDataSize": 10101, "dataSize": 21212}]})jsonString"
 
-TEST(Parser, index) {
-  auto startTime = std::chrono::high_resolution_clock::now();
+TEST(ParserTest, Index) {
+  auto start_time = std::chrono::high_resolution_clock::now();
   auto index =
       olp::parser::parse<olp::dataservice::read::model::Index>(INDEX_JSON);
   auto end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> time = end - startTime;
+  std::chrono::duration<double> time = end - start_time;
   std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
 
   ASSERT_EQ(2, index.GetParentQuads().size());
@@ -438,3 +440,5 @@ TEST(Parser, index) {
     ASSERT_EQ(21212, optional->GetDataSize().get());
   }
 }
+
+}  // namespace
