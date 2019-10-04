@@ -16,19 +16,6 @@
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include "HttpResponses.h"
 
-std::ostream& operator<<(std::ostream& os, const CacheType cache_type) {
-  switch (cache_type) {
-    case CacheType::IN_MEMORY:
-      return os << "In-memory cache";
-    case CacheType::DISK:
-      return os << "Disk cache";
-    case CacheType::BOTH:
-      return os << "In-memory & disk cache";
-    default:
-      return os << "Unknown cache type";
-  }
-}
-
 namespace {
 
 using namespace olp::dataservice::read;

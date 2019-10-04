@@ -24,6 +24,19 @@
 
 using ::testing::_;
 
+std::ostream& operator<<(std::ostream& os, const CacheType cache_type) {
+  switch (cache_type) {
+    case CacheType::IN_MEMORY:
+      return os << "In-memory cache";
+    case CacheType::DISK:
+      return os << "Disk cache";
+    case CacheType::BOTH:
+      return os << "In-memory & disk cache";
+    default:
+      return os << "Unknown cache type";
+  }
+}
+
 CatalogClientTestBase::CatalogClientTestBase() = default;
 
 CatalogClientTestBase::~CatalogClientTestBase() = default;
@@ -53,6 +66,7 @@ void CatalogClientTestBase::SetUp() {
 void CatalogClientTestBase::TearDown() {
   client_.reset();
   settings_.reset();
+  ::testing::Mock::VerifyAndClearExpectations(network_mock_.get());
   network_mock_.reset();
 }
 
