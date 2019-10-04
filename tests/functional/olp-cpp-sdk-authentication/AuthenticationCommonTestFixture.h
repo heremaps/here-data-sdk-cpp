@@ -51,28 +51,12 @@ class AuthenticationCommonTestFixture : public ::testing::Test {
 
   std::string GetEmail() const;
 
-  AuthenticationClient::SignInClientResponse SignInClient(
-      const AuthenticationCredentials& credentials, std::time_t& now,
-      unsigned int expires_in = kLimitExpiry, bool do_cancel = false);
-
-  AuthenticationClient::SignInUserResponse SignInUser(const std::string& email,
-                                                      bool do_cancel = false);
-
-  AuthenticationClient::SignInUserResponse SignInRefesh(
-      const std::string& access_token, const std::string& refresh_token,
-      bool do_cancel = false);
-
-  AuthenticationClient::SignUpResponse SignUpUser(
-      const std::string& email, const std::string& password = "password123",
-      bool do_cancel = false);
-
  protected:
   std::string id_;
   std::string secret_;
   std::shared_ptr<olp::authentication::AuthenticationClient> client_;
   std::shared_ptr<olp::http::Network> network_;
   std::shared_ptr<olp::thread::TaskScheduler> task_scheduler_;
-  std::unique_ptr<AuthenticationUtils> utils_;
 
   static std::shared_ptr<olp::http::Network> s_network_;
 
@@ -80,4 +64,7 @@ class AuthenticationCommonTestFixture : public ::testing::Test {
   std::string GenerateBearerHeader(const std::string& user_bearer_token);
 
   std::string GenerateRandomSequence() const;
+
+ private:
+  std::unique_ptr<AuthenticationUtils> utils_;
 };
