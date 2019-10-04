@@ -21,14 +21,14 @@
 #include <map>
 #include <mutex>
 
+#include <MultiRequestContext.h>
 #include <gtest/gtest.h>
-
+#include <olp/core/client/CancellationToken.h>
+#include <olp/dataservice/read/CatalogClient.h>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-#include <MultiRequestContext.h>
-#include <olp/core/client/CancellationToken.h>
-#include <olp/dataservice/read/CatalogClient.h>
+namespace {
 
 using namespace olp::client;
 using namespace olp::dataservice::read;
@@ -37,342 +37,350 @@ using TestResponse = std::string;
 using TestResponseCallback = std::function<void(TestResponse)>;
 using TestMultiRequestContext = MultiRequestContext<TestResponse>;
 
-TEST(MultiRequestContextTest, construct) {
+TEST(MultiRequestContextTest, Construct) {
   TestMultiRequestContext context("cancelled");
 }
 
-TEST(MultiRequestContextTest, executeCalled) {
+TEST(MultiRequestContextTest, ExecuteCalled) {
   std::string key("key");
 
-  std::promise<TestResponseCallback> executeCalled;
+  std::promise<TestResponseCallback> execute_called;
 
-  auto execute_fn = [&executeCalled](TestResponseCallback callback) {
-    executeCalled.set_value(callback);
+  auto execute_fn = [&execute_called](TestResponseCallback callback) {
+    execute_called.set_value(callback);
     return CancellationToken(
         [callback]() { callback("cancelled by provider"); });
   };
 
-  std::promise<TestResponse> responsePromise;
-  TestResponseCallback callback_fn = [&responsePromise](TestResponse response) {
-    responsePromise.set_value(response);
-  };
+  std::promise<TestResponse> response_promise;
+  TestResponseCallback callback_fn =
+      [&response_promise](TestResponse response) {
+        response_promise.set_value(response);
+      };
 
   {  // force the context out of scope before the callback is destroyed,
-     // otherwise crashy-crash. (or heap-allocate responsePromise)
+     // otherwise crashy-crash. (or heap-allocate response_promise)
     TestMultiRequestContext context("cancelled");
 
     context.ExecuteOrAssociate(key, execute_fn, callback_fn);
 
-    auto contextCallback = executeCalled.get_future().get();
-    ASSERT_TRUE(contextCallback);
+    auto context_callback = execute_called.get_future().get();
+    ASSERT_TRUE(context_callback);
 
-    auto responseFuture = responsePromise.get_future();
+    auto response_future = response_promise.get_future();
     ASSERT_EQ(std::future_status::timeout,
-              responseFuture.wait_for(std::chrono::milliseconds(100)));
+              response_future.wait_for(std::chrono::milliseconds(100)));
   }
 }
 
-TEST(MultiRequestContextTest, callbackCalled) {
+TEST(MultiRequestContextTest, CallbackCalled) {
   TestMultiRequestContext context("cancelled");
 
   std::string key("key");
-  TestResponse expectedResponse("response value");
+  TestResponse expected_response("response value");
 
-  auto execute_fn = [&expectedResponse](TestResponseCallback callback) {
-    callback(expectedResponse);
+  auto execute_fn = [&expected_response](TestResponseCallback callback) {
+    callback(expected_response);
     return CancellationToken();
   };
 
-  std::promise<TestResponse> responsePromise;
-  TestResponseCallback callback_fn = [&responsePromise](TestResponse response) {
-    responsePromise.set_value(response);
-  };
-
-  context.ExecuteOrAssociate(key, execute_fn, callback_fn);
-
-  auto actualResponse = responsePromise.get_future().get();
-  ASSERT_EQ(expectedResponse, actualResponse);
-}
-
-TEST(MultiRequestContextTest, multiCallbacks) {
-  TestMultiRequestContext context("cancelled");
-
-  std::string key("key");
-  TestResponse expectedResponse("response value");
-
-  std::promise<TestResponseCallback> executeCalled;
-
-  auto execute_fn = [&executeCalled](TestResponseCallback callback) {
-    executeCalled.set_value(callback);
-    return CancellationToken();
-  };
-
-  std::promise<TestResponse> responsePromise;
-  TestResponseCallback callback_fn = [&responsePromise](TestResponse response) {
-    responsePromise.set_value(response);
-  };
-
-  context.ExecuteOrAssociate(key, execute_fn, callback_fn);
-
-  std::promise<TestResponse> responseDupPromise;
-  TestResponseCallback callbackDup_fn =
-      [&responseDupPromise](TestResponse response) {
-        responseDupPromise.set_value(response);
+  std::promise<TestResponse> response_promise;
+  TestResponseCallback callback_fn =
+      [&response_promise](TestResponse response) {
+        response_promise.set_value(response);
       };
 
-  context.ExecuteOrAssociate(key, execute_fn, callbackDup_fn);
+  context.ExecuteOrAssociate(key, execute_fn, callback_fn);
 
-  auto contextCallback = executeCalled.get_future().get();
-  ASSERT_TRUE(contextCallback);
-
-  contextCallback(expectedResponse);
-
-  auto actualResponse = responsePromise.get_future().get();
-  ASSERT_EQ(expectedResponse, actualResponse);
-
-  auto actualResponseDup = responseDupPromise.get_future().get();
-  ASSERT_EQ(expectedResponse, actualResponseDup);
+  auto actual_response = response_promise.get_future().get();
+  ASSERT_EQ(expected_response, actual_response);
 }
 
-TEST(MultiRequestContextTest, multiRequests) {
+TEST(MultiRequestContextTest, MultiCallbacks) {
+  TestMultiRequestContext context("cancelled");
+
+  std::string key("key");
+  TestResponse expected_response("response value");
+
+  std::promise<TestResponseCallback> execute_called;
+
+  auto execute_fn = [&execute_called](TestResponseCallback callback) {
+    execute_called.set_value(callback);
+    return CancellationToken();
+  };
+
+  std::promise<TestResponse> response_promise;
+  TestResponseCallback callback_fn =
+      [&response_promise](TestResponse response) {
+        response_promise.set_value(response);
+      };
+
+  context.ExecuteOrAssociate(key, execute_fn, callback_fn);
+
+  std::promise<TestResponse> response_dup_promise;
+  TestResponseCallback callback_dup_fn =
+      [&response_dup_promise](TestResponse response) {
+        response_dup_promise.set_value(response);
+      };
+
+  context.ExecuteOrAssociate(key, execute_fn, callback_dup_fn);
+
+  auto context_callback = execute_called.get_future().get();
+  ASSERT_TRUE(context_callback);
+
+  context_callback(expected_response);
+
+  auto actual_response = response_promise.get_future().get();
+  ASSERT_EQ(expected_response, actual_response);
+
+  auto actual_response_dup = response_dup_promise.get_future().get();
+  ASSERT_EQ(expected_response, actual_response_dup);
+}
+
+TEST(MultiRequestContextTest, MultiRequests) {
   TestMultiRequestContext context("cancelled");
 
   std::string key1("key");
-  TestResponse expectedResponse1("1: response value");
+  TestResponse expected_response1("1: response value");
 
   std::string key2("other");
-  TestResponse expectedResponse2("2: response value");
+  TestResponse expected_response2("2: response value");
 
-  std::promise<TestResponseCallback> executeCalled1;
+  std::promise<TestResponseCallback> execute_called1;
 
-  auto execute_fn1 = [&executeCalled1](TestResponseCallback callback) {
-    executeCalled1.set_value(callback);
+  auto execute_fn1 = [&execute_called1](TestResponseCallback callback) {
+    execute_called1.set_value(callback);
     return CancellationToken();
   };
 
-  std::promise<TestResponseCallback> executeCalled2;
-  auto execute_fn2 = [&executeCalled2](TestResponseCallback callback) {
-    executeCalled2.set_value(callback);
+  std::promise<TestResponseCallback> execute_called2;
+  auto execute_fn2 = [&execute_called2](TestResponseCallback callback) {
+    execute_called2.set_value(callback);
     return CancellationToken();
   };
 
-  std::promise<TestResponse> responsePromise1;
+  std::promise<TestResponse> response_promise1;
   TestResponseCallback callback_fn1 =
-      [&responsePromise1](TestResponse response) {
-        responsePromise1.set_value(response);
+      [&response_promise1](TestResponse response) {
+        response_promise1.set_value(response);
       };
 
-  std::promise<TestResponse> responsePromise2;
+  std::promise<TestResponse> response_promise2;
   TestResponseCallback callback_fn2 =
-      [&responsePromise2](TestResponse response) {
-        responsePromise2.set_value(response);
+      [&response_promise2](TestResponse response) {
+        response_promise2.set_value(response);
       };
 
   context.ExecuteOrAssociate(key1, execute_fn1, callback_fn1);
   context.ExecuteOrAssociate(key2, execute_fn2, callback_fn2);
 
-  auto contextCallback2 = executeCalled2.get_future().get();
-  ASSERT_TRUE(contextCallback2);
-  contextCallback2(expectedResponse2);
+  auto context_callback2 = execute_called2.get_future().get();
+  ASSERT_TRUE(context_callback2);
+  context_callback2(expected_response2);
 
-  auto contextCallback1 = executeCalled1.get_future().get();
-  ASSERT_TRUE(contextCallback1);
-  contextCallback1(expectedResponse1);
+  auto context_callback1 = execute_called1.get_future().get();
+  ASSERT_TRUE(context_callback1);
+  context_callback1(expected_response1);
 
-  auto actualResponse1 = responsePromise1.get_future().get();
-  ASSERT_EQ(expectedResponse1, actualResponse1);
+  auto actual_response1 = response_promise1.get_future().get();
+  ASSERT_EQ(expected_response1, actual_response1);
 
-  auto actualResponse2 = responsePromise2.get_future().get();
-  ASSERT_EQ(expectedResponse2, actualResponse2);
+  auto actual_response2 = response_promise2.get_future().get();
+  ASSERT_EQ(expected_response2, actual_response2);
 }
 
-TEST(MultiRequestContextTest, cancelSingle) {
+TEST(MultiRequestContextTest, CancelSingle) {
   std::string key("key");
 
-  std::promise<bool> cancelCalledPromise;
-  std::promise<TestResponseCallback> callbackPromise;
-  auto callbackFuture = callbackPromise.get_future();
+  std::promise<bool> cancel_called_promise;
+  std::promise<TestResponseCallback> callback_promise;
+  auto callback_future = callback_promise.get_future();
 
-  CancellationToken providerCancelToken(
-      [&cancelCalledPromise, &callbackFuture]() {
-        cancelCalledPromise.set_value(true);
-        auto contextCallback = callbackFuture.get();
+  CancellationToken provider_cancel_token(
+      [&cancel_called_promise, &callback_future]() {
+        cancel_called_promise.set_value(true);
+        auto context_callback = callback_future.get();
 
-        contextCallback("cancelled by provider");
+        context_callback("cancelled by provider");
       });
 
-  auto execute_fn = [&providerCancelToken,
-                     &callbackPromise](TestResponseCallback callback) {
-    callbackPromise.set_value(callback);
-    return providerCancelToken;
+  auto execute_fn = [&provider_cancel_token,
+                     &callback_promise](TestResponseCallback callback) {
+    callback_promise.set_value(callback);
+    return provider_cancel_token;
   };
 
-  std::promise<TestResponse> responsePromise;
-  TestResponseCallback callback_fn = [&responsePromise](TestResponse response) {
-    responsePromise.set_value(response);
-  };
+  std::promise<TestResponse> response_promise;
+  TestResponseCallback callback_fn =
+      [&response_promise](TestResponse response) {
+        response_promise.set_value(response);
+      };
   {
     TestMultiRequestContext context("cancelled");
 
-    auto contextCancelToken =
+    auto context_cancel_token =
         context.ExecuteOrAssociate(key, execute_fn, callback_fn);
 
-    auto responseFuture = responsePromise.get_future();
+    auto response_future = response_promise.get_future();
     ASSERT_EQ(std::future_status::timeout,
-              responseFuture.wait_for(std::chrono::milliseconds(100)));
+              response_future.wait_for(std::chrono::milliseconds(100)));
     std::cout << "cancel()" << std::endl;
 
-    contextCancelToken.cancel();
+    context_cancel_token.cancel();
 
     // was cancel called?
-    auto f = cancelCalledPromise.get_future();
+    auto f = cancel_called_promise.get_future();
     ASSERT_EQ(std::future_status::ready,
               f.wait_for(std::chrono::milliseconds(100)));
     ASSERT_TRUE(f.get());
   }
 }
 
-TEST(MultiRequestContextTest, autoCancel) {
+TEST(MultiRequestContextTest, AutoCancel) {
   std::string key("key");
-  std::promise<TestResponse> responsePromise;
-  std::promise<TestResponseCallback> executeCalled;
+  std::promise<TestResponse> response_promise;
+  std::promise<TestResponseCallback> execute_called;
 
-  auto responseFuture = responsePromise.get_future();
-  auto executeFuture = executeCalled.get_future();
+  auto response_future = response_promise.get_future();
+  auto execute_future = execute_called.get_future();
 
-  std::promise<bool> cancelPromise;
+  std::promise<bool> cancel_promise;
 
-  CancellationToken providerCancelToken([&cancelPromise, &executeFuture]() {
-    cancelPromise.set_value(true);
-    auto contextCallback = executeFuture.get();
+  CancellationToken provider_cancel_token([&cancel_promise, &execute_future]() {
+    cancel_promise.set_value(true);
+    auto context_callback = execute_future.get();
 
-    contextCallback("cancelled by provider");
+    context_callback("cancelled by provider");
   });
 
   {
     TestMultiRequestContext context("cancelled");
 
-    auto execute_fn = [&executeCalled,
-                       &providerCancelToken](TestResponseCallback callback) {
-      executeCalled.set_value(callback);
-      return providerCancelToken;
+    auto execute_fn = [&execute_called,
+                       &provider_cancel_token](TestResponseCallback callback) {
+      execute_called.set_value(callback);
+      return provider_cancel_token;
     };
 
     TestResponseCallback callback_fn =
-        [&responsePromise](TestResponse response) {
-          responsePromise.set_value(response);
+        [&response_promise](TestResponse response) {
+          response_promise.set_value(response);
         };
 
     context.ExecuteOrAssociate(key, execute_fn, callback_fn);
 
     ASSERT_EQ(std::future_status::timeout,
-              responseFuture.wait_for(std::chrono::milliseconds(100)));
+              response_future.wait_for(std::chrono::milliseconds(100)));
   }
   ASSERT_EQ(std::future_status::ready,
-            responseFuture.wait_for(std::chrono::milliseconds(100)));
-  ASSERT_EQ("cancelled by provider", responseFuture.get());
+            response_future.wait_for(std::chrono::milliseconds(100)));
+  ASSERT_EQ("cancelled by provider", response_future.get());
 }
 
-TEST(MultiRequestContextTest, cancelAfterCompletion) {
+TEST(MultiRequestContextTest, CancelAfterCompletion) {
   TestMultiRequestContext context("cancelled");
 
   std::string key("key");
-  TestResponse expectedResponse("response value");
+  TestResponse expected_response("response value");
 
-  std::promise<bool> cancelPromise;
-  CancellationToken providerCancelToken(
-      [&cancelPromise]() { cancelPromise.set_value(true); });
+  std::promise<bool> cancel_promise;
+  CancellationToken provider_cancel_token(
+      [&cancel_promise]() { cancel_promise.set_value(true); });
 
-  auto execute_fn = [&providerCancelToken,
-                     &expectedResponse](TestResponseCallback callback) {
-    callback(expectedResponse);
-    return providerCancelToken;
+  auto execute_fn = [&provider_cancel_token,
+                     &expected_response](TestResponseCallback callback) {
+    callback(expected_response);
+    return provider_cancel_token;
   };
 
-  std::promise<TestResponse> responsePromise;
-  TestResponseCallback callback_fn = [&responsePromise](TestResponse response) {
-    responsePromise.set_value(response);
-  };
+  std::promise<TestResponse> response_promise;
+  TestResponseCallback callback_fn =
+      [&response_promise](TestResponse response) {
+        response_promise.set_value(response);
+      };
 
-  auto contextCancelToken =
+  auto context_cancel_token =
       context.ExecuteOrAssociate(key, execute_fn, callback_fn);
 
-  auto actualResponse = responsePromise.get_future().get();
+  auto actual_response = response_promise.get_future().get();
 
-  ASSERT_EQ(expectedResponse, actualResponse);
+  ASSERT_EQ(expected_response, actual_response);
 
-  contextCancelToken.cancel();
+  context_cancel_token.cancel();
 
   // Cancel should not be called.
-  ASSERT_EQ(std::future_status::timeout, cancelPromise.get_future().wait_for(
+  ASSERT_EQ(std::future_status::timeout, cancel_promise.get_future().wait_for(
                                              std::chrono::milliseconds(100)));
 }
 
-TEST(MultiRequestContextTest, multiCancel) {
+TEST(MultiRequestContextTest, MultiCancel) {
   TestMultiRequestContext context("cancelled");
 
   std::string key("key");
-  TestResponse expectedResponse("response value");
+  TestResponse expected_response("response value");
 
   // Setup Execute Call
-  std::promise<bool> cancelPromise;
-  CancellationToken providerCancelToken(
-      [&cancelPromise]() { cancelPromise.set_value(true); });
+  std::promise<bool> cancel_promise;
+  CancellationToken provider_cancel_token(
+      [&cancel_promise]() { cancel_promise.set_value(true); });
 
-  std::promise<TestResponseCallback> executeCalled;
+  std::promise<TestResponseCallback> execute_called;
 
-  auto execute_fn = [&executeCalled,
-                     &providerCancelToken](TestResponseCallback callback) {
-    executeCalled.set_value(callback);
-    return providerCancelToken;
+  auto execute_fn = [&execute_called,
+                     &provider_cancel_token](TestResponseCallback callback) {
+    execute_called.set_value(callback);
+    return provider_cancel_token;
   };
 
   // Setup first request
-  std::promise<TestResponse> responsePromise;
-  TestResponseCallback callback_fn = [&responsePromise](TestResponse response) {
-    responsePromise.set_value(response);
-  };
+  std::promise<TestResponse> response_promise;
+  TestResponseCallback callback_fn =
+      [&response_promise](TestResponse response) {
+        response_promise.set_value(response);
+      };
 
-  auto contextCancelToken =
+  auto context_cancel_token =
       context.ExecuteOrAssociate(key, execute_fn, callback_fn);
 
   // Setup second request
-  std::promise<TestResponse> responseDupPromise;
-  TestResponseCallback callbackDup_fn =
-      [&responseDupPromise](TestResponse response) {
-        responseDupPromise.set_value(response);
+  std::promise<TestResponse> response_dup_promise;
+  TestResponseCallback callback_dup_fn =
+      [&response_dup_promise](TestResponse response) {
+        response_dup_promise.set_value(response);
       };
 
-  auto contextCancelTokenDup =
-      context.ExecuteOrAssociate(key, execute_fn, callbackDup_fn);
+  auto context_cancel_tokenDup =
+      context.ExecuteOrAssociate(key, execute_fn, callback_dup_fn);
 
   // Get the context callback
-  auto contextCallback = executeCalled.get_future().get();
-  ASSERT_TRUE(contextCallback);
+  auto context_callback = execute_called.get_future().get();
+  ASSERT_TRUE(context_callback);
 
   // Cancel the first request
-  contextCancelToken.cancel();
+  context_cancel_token.cancel();
 
   // 1st callback should be invoked
   {
-    auto future = responsePromise.get_future();
+    auto future = response_promise.get_future();
     ASSERT_EQ(std::future_status::ready,
               future.wait_for(std::chrono::milliseconds(100)));
     ASSERT_EQ("cancelled", future.get());
   }
 
   // Send the response
-  contextCallback(expectedResponse);
+  context_callback(expected_response);
 
   // 2nd callback should be ignored since the request was cancelled entirely.
   {
-    auto f = responseDupPromise.get_future();
+    auto f = response_dup_promise.get_future();
     ASSERT_EQ(std::future_status::timeout,
               f.wait_for(std::chrono::milliseconds(100)));
   }
 
   // and the cancel should not be invoked
-  auto f = cancelPromise.get_future();
+  auto f = cancel_promise.get_future();
   ASSERT_EQ(std::future_status::timeout,
             f.wait_for(std::chrono::milliseconds(100)));
 }
+
+}  // namespace
