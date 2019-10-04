@@ -28,9 +28,10 @@ set(OLP_SDK_FUNCTIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-authentication/FacebookAuthenticationTest.cpp
     ./olp-cpp-sdk-authentication/FacebookTestUtils.cpp
     ./olp-cpp-sdk-authentication/ArcGisAuthenticationTest.cpp
-    ./olp-cpp-sdk-authentication/ArcGisTestUtils.cpp 
+    ./olp-cpp-sdk-authentication/ArcGisTestUtils.cpp
     ./olp-cpp-sdk-authentication/GoogleAuthenticationTest.cpp
     ./olp-cpp-sdk-authentication/GoogleTestUtils.cpp
+    ./olp-cpp-sdk-authentication/AuthenticationProductionTest.cpp
 )
 
 set(OLP_SDK_FUNCTIONAL_TESTS_HEADERS
