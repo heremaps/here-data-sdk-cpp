@@ -19,7 +19,163 @@
 
 #include "AuthenticationCommonTestFixture.h"
 
-class AuthenticationFunctionalTest : public AuthenticationCommonTestFixture {};
+#include <olp/core/logging/Log.h>
+#include <olp/core/porting/make_unique.h>
+#include <testutils/CustomParameters.hpp>
+
+namespace {
+
+class AuthenticationFunctionalTest : public AuthenticationCommonTestFixture {
+ protected:
+  void SetUp() override {
+    AuthenticationCommonTestFixture::SetUp();
+
+    id_ = CustomParameters::getArgument("service_id");
+    secret_ = CustomParameters::getArgument("service_secret");
+  }
+
+  AuthenticationClient::SignInClientResponse SignInClient(
+      const AuthenticationCredentials& credentials, std::time_t& now,
+      unsigned int expires_in = kLimitExpiry, bool do_cancel = false) {
+    std::shared_ptr<AuthenticationClient::SignInClientResponse> response;
+    unsigned int retry = 0u;
+    do {
+      if (retry > 0u) {
+        OLP_SDK_LOG_WARNING(__func__, "Request retry attempted (" << retry
+                                                                  << ")");
+        std::this_thread::sleep_for(
+            std::chrono::seconds(retry * kRetryDelayInSecs));
+      }
+
+      std::promise<AuthenticationClient::SignInClientResponse> request;
+      auto request_future = request.get_future();
+
+      now = std::time(nullptr);
+      auto cancel_token = client_->SignInClient(
+          credentials,
+          [&](const AuthenticationClient::SignInClientResponse& resp) {
+            request.set_value(resp);
+          },
+          std::chrono::seconds(expires_in));
+
+      if (do_cancel) {
+        cancel_token.cancel();
+      }
+      request_future.wait();
+      response = std::make_shared<AuthenticationClient::SignInClientResponse>(
+          request_future.get());
+    } while ((!response->IsSuccessful()) && (++retry < kMaxRetryCount) &&
+             !do_cancel);
+
+    return *response;
+  }
+
+  AuthenticationClient::SignInUserResponse SignInUser(const std::string& email,
+                                                      bool do_cancel = false) {
+    AuthenticationCredentials credentials(id_, secret_);
+    AuthenticationClient::UserProperties properties;
+    properties.email = email;
+    properties.password = "password123";
+
+    std::shared_ptr<AuthenticationClient::SignInUserResponse> response;
+    unsigned int retry = 0u;
+    do {
+      if (retry > 0u) {
+        OLP_SDK_LOG_WARNING(__func__, "Request retry attempted (" << retry
+                                                                  << ")");
+        std::this_thread::sleep_for(
+            std::chrono::seconds(retry * kRetryDelayInSecs));
+      }
+
+      std::promise<AuthenticationClient::SignInUserResponse> request;
+      auto request_future = request.get_future();
+      auto cancel_token = client_->SignInHereUser(
+          credentials, properties,
+          [&request](const AuthenticationClient::SignInUserResponse& resp) {
+            request.set_value(resp);
+          });
+
+      if (do_cancel) {
+        cancel_token.cancel();
+      }
+
+      request_future.wait();
+      response = std::make_shared<AuthenticationClient::SignInUserResponse>(
+          request_future.get());
+    } while ((!response->IsSuccessful()) && (++retry < kMaxRetryCount) &&
+             !do_cancel);
+
+    return *response;
+  }
+
+  AuthenticationClient::SignInUserResponse SignInRefesh(
+      const std::string& access_token, const std::string& refresh_token,
+      bool do_cancel = false) {
+    AuthenticationCredentials credentials(id_, secret_);
+    AuthenticationClient::RefreshProperties properties;
+    properties.access_token = access_token;
+    properties.refresh_token = refresh_token;
+
+    std::shared_ptr<AuthenticationClient::SignInUserResponse> response;
+    unsigned int retry = 0u;
+    do {
+      if (retry > 0u) {
+        OLP_SDK_LOG_WARNING(__func__, "Request retry attempted (" << retry
+                                                                  << ")");
+        std::this_thread::sleep_for(
+            std::chrono::seconds(retry * kRetryDelayInSecs));
+      }
+
+      std::promise<AuthenticationClient::SignInUserResponse> request;
+      auto request_future = request.get_future();
+      auto cancel_token = client_->SignInRefresh(
+          credentials, properties,
+          [&request](const AuthenticationClient::SignInUserResponse& resp) {
+            request.set_value(resp);
+          });
+
+      if (do_cancel) {
+        cancel_token.cancel();
+      }
+
+      request_future.wait();
+      response = std::make_shared<AuthenticationClient::SignInUserResponse>(
+          request_future.get());
+    } while ((!response->IsSuccessful()) && (++retry < kMaxRetryCount) &&
+             !do_cancel);
+
+    return *response;
+  }
+
+  AuthenticationClient::SignUpResponse SignUpUser(
+      const std::string& email, const std::string& password = "password123",
+      bool do_cancel = false) {
+    AuthenticationCredentials credentials(id_, secret_);
+    std::promise<AuthenticationClient::SignUpResponse> request;
+    auto request_future = request.get_future();
+    AuthenticationClient::SignUpProperties properties;
+    properties.email = email;
+    properties.password = password;
+    properties.date_of_birth = "31/01/1980";
+    properties.first_name = "AUTH_TESTER";
+    properties.last_name = "HEREOS";
+    properties.country_code = "USA";
+    properties.language = "en";
+    properties.phone_number = "+1234567890";
+    auto cancel_token = client_->SignUpHereUser(
+        credentials, properties,
+        [&](const AuthenticationClient::SignUpResponse& response) {
+          request.set_value(response);
+        });
+
+    if (do_cancel) {
+      cancel_token.cancel();
+    }
+
+    request_future.wait();
+    return request_future.get();
+  }
+};
 
 TEST_F(AuthenticationFunctionalTest, SignInClient) {
   AuthenticationCredentials credentials(id_, secret_);
@@ -454,3 +610,4 @@ TEST_F(AuthenticationFunctionalTest, ErrorFields) {
     EXPECT_EQ(code, it->code);
   }
 }
+}  // namespace
