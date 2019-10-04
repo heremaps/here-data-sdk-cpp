@@ -20,6 +20,10 @@ cmake_minimum_required(VERSION 3.5)
 set(OLP_SDK_INTEGRATIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-authentication/AuthenticationClientTest.cpp
     ./olp-cpp-sdk-authentication/HereAccountOauth2Test.cpp
+    ./olp-cpp-sdk-dataservice-read/CatalogClientCacheTest.cpp
+    ./olp-cpp-sdk-dataservice-read/CatalogClientTestBase.cpp
+    ./olp-cpp-sdk-dataservice-read/CatalogClientTest.cpp
+    ./olp-cpp-sdk-dataservice-read/HttpResponses.h
 )
 
 if (ANDROID OR IOS)
