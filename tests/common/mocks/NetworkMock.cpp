@@ -25,13 +25,8 @@ NetworkMock::NetworkMock() = default;
 
 NetworkMock::~NetworkMock() = default;
 
-std::function<olp::http::SendOutcome(
-    olp::http::NetworkRequest request, olp::http::Network::Payload payload,
-    olp::http::Network::Callback callback,
-    olp::http::Network::HeaderCallback header_callback,
-    olp::http::Network::DataCallback data_callback)>
-NetworkMock::ReturnHttpResponse(olp::http::NetworkResponse response,
-                                const std::string& response_body) {
+NetworkCallback NetworkMock::ReturnHttpResponse(
+    olp::http::NetworkResponse response, const std::string& response_body) {
   return [=](olp::http::NetworkRequest request,
              olp::http::Network::Payload payload,
              olp::http::Network::Callback callback,
@@ -41,10 +36,78 @@ NetworkMock::ReturnHttpResponse(olp::http::NetworkResponse response,
     std::thread([=]() {
       *payload << response_body;
       callback(response);
-    })
-        .detach();
+    }).detach();
 
     constexpr auto unused_request_id = 5;
     return olp::http::SendOutcome(unused_request_id);
   };
+}
+
+std::tuple<olp::http::RequestId, NetworkCallback, CancelCallback>
+GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
+                           std::shared_ptr<std::promise<void>> wait_for_signal,
+                           MockedResponseInformation response_information,
+                           std::shared_ptr<std::promise<void>> post_signal) {
+  using namespace olp::http;
+
+  static std::atomic<RequestId> s_request_id{
+      static_cast<RequestId>(RequestIdConstants::RequestIdMin)};
+
+  olp::http::RequestId request_id = s_request_id.fetch_add(1);
+
+  auto completed = std::make_shared<std::atomic_bool>(false);
+
+  // callback is generated when the send method is executed, in order to receive
+  // the cancel callback, we need to pass it to store it somewhere and share
+  // with cancel mock.
+  auto callback_placeholder = std::make_shared<olp::http::Network::Callback>();
+
+  auto mocked_send =
+      [request_id, completed, pre_signal, wait_for_signal, response_information,
+       post_signal, callback_placeholder](
+          NetworkRequest request, Network::Payload payload,
+          Network::Callback callback, Network::HeaderCallback,
+          Network::DataCallback data_callback) -> olp::http::SendOutcome {
+    *callback_placeholder = callback;
+
+    auto mocked_network_block = [request, pre_signal, wait_for_signal,
+                                 completed, callback, response_information,
+                                 post_signal, payload]() {
+      // emulate a small response delay
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+      // notify waiting thread that we reached the network code
+      pre_signal->set_value();
+
+      // wait until test cancel request during execution
+      wait_for_signal->get_future().get();
+
+      // in the case request was not canceled return the expected payload
+      if (!completed->exchange(true)) {
+        const auto data_len = strlen(response_information.data);
+        payload->write(response_information.data, data_len);
+        callback(NetworkResponse().WithStatus(response_information.status));
+      }
+
+      // notify that request finished
+      post_signal->set_value();
+    };
+
+    // simulate that network code is actually running in the background.
+    std::thread(std::move(mocked_network_block)).detach();
+
+    return SendOutcome(request_id);
+  };
+
+  auto mocked_cancel = [completed,
+                        callback_placeholder](olp::http::RequestId id) {
+    if (!completed->exchange(true)) {
+      auto cancel_code = static_cast<int>(ErrorCode::CANCELLED_ERROR);
+      (*callback_placeholder)(
+          NetworkResponse().WithError("Cancelled").WithStatus(cancel_code));
+    }
+  };
+
+  return std::make_tuple(request_id, std::move(mocked_send),
+                         std::move(mocked_cancel));
 }
