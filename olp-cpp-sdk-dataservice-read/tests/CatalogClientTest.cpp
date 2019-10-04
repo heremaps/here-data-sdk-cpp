@@ -18,6 +18,8 @@
  */
 
 #include <gmock/gmock.h>
+#include <matchers/NetworkUrlMatchers.h>
+#include <mocks/NetworkMock.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/http/Network.h>
 #include <olp/core/logging/Log.h>
@@ -33,139 +35,15 @@
 #include "CatalogClientTestBase.h"
 #include "HttpResponses.h"
 
-using namespace olp::dataservice::read;
-using namespace testing;
-
 namespace {
 
-class NetworkMock : public olp::http::Network {
- public:
-  MOCK_METHOD(olp::http::SendOutcome, Send,
-              (olp::http::NetworkRequest request,
-               olp::http::Network::Payload payload,
-               olp::http::Network::Callback callback,
-               olp::http::Network::HeaderCallback header_callback,
-               olp::http::Network::DataCallback data_callback),
-              (override));
-
-  MOCK_METHOD(void, Cancel, (olp::http::RequestId id), (override));
-};
+using namespace olp::dataservice::read;
+using namespace testing;
 
 void DumpTileKey(const olp::geo::TileKey& tile_key) {
   std::cout << "Tile: " << tile_key.ToHereTile()
             << ", level: " << tile_key.Level()
             << ", parent: " << tile_key.Parent().ToHereTile() << std::endl;
-}
-
-MATCHER_P(IsGetRequest, url, "") {
-  // uri, verb, null body
-  return olp::http::NetworkRequest::HttpVerb::GET == arg.GetVerb() &&
-         url == arg.GetUrl() && (!arg.GetBody() || arg.GetBody()->empty());
-}
-
-using NetworkCallback = std::function<olp::http::SendOutcome(
-    olp::http::NetworkRequest, olp::http::Network::Payload,
-    olp::http::Network::Callback, olp::http::Network::HeaderCallback,
-    olp::http::Network::DataCallback)>;
-
-using CancelCallback = std::function<void(olp::http::RequestId)>;
-
-struct MockedResponseInformation {
-  int status;
-  const char* data;
-};
-
-std::tuple<olp::http::RequestId, NetworkCallback, CancelCallback>
-GenerateNetworkMocks(std::shared_ptr<std::promise<void>> pre_signal,
-                     std::shared_ptr<std::promise<void>> wait_for_signal,
-                     MockedResponseInformation response_information,
-                     std::shared_ptr<std::promise<void>> post_signal =
-                         std::make_shared<std::promise<void>>()) {
-  using namespace olp::http;
-
-  static std::atomic<RequestId> s_request_id{
-      static_cast<RequestId>(RequestIdConstants::RequestIdMin)};
-
-  olp::http::RequestId request_id = s_request_id.fetch_add(1);
-
-  auto completed = std::make_shared<std::atomic_bool>(false);
-
-  // callback is generated when the send method is executed, in order to receive
-  // the cancel callback, we need to pass it to store it somewhere and share
-  // with cancel mock.
-  auto callback_placeholder = std::make_shared<olp::http::Network::Callback>();
-
-  auto mocked_send =
-      [request_id, completed, pre_signal, wait_for_signal, response_information,
-       post_signal, callback_placeholder](
-          NetworkRequest request, Network::Payload payload,
-          Network::Callback callback, Network::HeaderCallback,
-          Network::DataCallback data_callback) -> olp::http::SendOutcome {
-    *callback_placeholder = callback;
-
-    auto mocked_network_block = [request, pre_signal, wait_for_signal,
-                                 completed, callback, response_information,
-                                 post_signal, payload]() {
-      // emulate a small response delay
-      std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
-      // notify waiting thread that we reached the network code
-      pre_signal->set_value();
-
-      // wait until test cancel request during execution
-      wait_for_signal->get_future().get();
-
-      // in the case request was not canceled return the expected payload
-      if (!completed->exchange(true)) {
-        const auto data_len = strlen(response_information.data);
-        payload->write(response_information.data, data_len);
-        callback(NetworkResponse().WithStatus(response_information.status));
-      }
-
-      // notify that request finished
-      post_signal->set_value();
-    };
-
-    // simulate that network code is actually running in the background.
-    std::thread(std::move(mocked_network_block)).detach();
-
-    return SendOutcome(request_id);
-  };
-
-  auto mocked_cancel = [completed,
-                        callback_placeholder](olp::http::RequestId id) {
-    if (!completed->exchange(true)) {
-      auto cancel_code = static_cast<int>(ErrorCode::CANCELLED_ERROR);
-      (*callback_placeholder)(
-          NetworkResponse().WithError("Cancelled").WithStatus(cancel_code));
-    }
-  };
-
-  return std::make_tuple(request_id, std::move(mocked_send),
-                         std::move(mocked_cancel));
-}
-
-std::function<olp::http::SendOutcome(
-    olp::http::NetworkRequest request, olp::http::Network::Payload payload,
-    olp::http::Network::Callback callback,
-    olp::http::Network::HeaderCallback header_callback,
-    olp::http::Network::DataCallback data_callback)>
-ReturnHttpResponse(olp::http::NetworkResponse response,
-                   const std::string& response_body) {
-  return [=](olp::http::NetworkRequest request,
-             olp::http::Network::Payload payload,
-             olp::http::Network::Callback callback,
-             olp::http::Network::HeaderCallback header_callback,
-             olp::http::Network::DataCallback data_callback)
-             -> olp::http::SendOutcome {
-    std::thread([=]() {
-      *payload << response_body;
-      callback(response);
-    }).detach();
-
-    constexpr auto unused_request_id = 5;
-    return olp::http::SendOutcome(unused_request_id);
-  };
 }
 
 class CatalogClientTest : public CatalogClientTestBase {};
@@ -208,8 +86,8 @@ TEST_P(CatalogClientTest, GetCatalog403) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(403),
-                                   HTTP_RESPONSE_403));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
 
   auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = CatalogRequest();
@@ -290,8 +168,9 @@ TEST_P(CatalogClientTest, GetEmptyPartitions) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                                   HTTP_RESPONSE_EMPTY_PARTITIONS));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(200),
+          HTTP_RESPONSE_EMPTY_PARTITIONS));
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -316,8 +195,8 @@ TEST_P(CatalogClientTest, GetVolatileDataHandle) {
                "blobstore/v1/catalogs/hereos-internal-test-v2/layers/"
                "testlayer_volatile/data/volatileHandle"),
            _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                                   "someData"));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(200), "someData"));
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -349,8 +228,9 @@ TEST_P(CatalogClientTest, GetVolatilePartitions) {
                                 "metadata/v1/catalogs/hereos-internal-test-v2/"
                                 "layers/testlayer_volatile/partitions"),
                    _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                                   HTTP_RESPONSE_PARTITIONS_V2));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(200),
+          HTTP_RESPONSE_PARTITIONS_V2));
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -388,8 +268,9 @@ TEST_P(CatalogClientTest, GetVolatileDataByPartitionId) {
                         "catalogs/hereos-internal-test-v2/layers/"
                         "testlayer_volatile/partitions?partition=269"),
            _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                                   HTTP_RESPONSE_PARTITIONS_V2));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(200),
+          HTTP_RESPONSE_PARTITIONS_V2));
 
   EXPECT_CALL(
       *network_mock_,
@@ -398,8 +279,8 @@ TEST_P(CatalogClientTest, GetVolatileDataByPartitionId) {
                "blobstore/v1/catalogs/hereos-internal-test-v2/layers/"
                "testlayer_volatile/data/4eed6ed1-0d32-43b9-ae79-043cb4256410"),
            _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                                   "someData"));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(200), "someData"));
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -446,9 +327,9 @@ TEST_P(CatalogClientTest, GetData429Error) {
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
         .Times(2)
-        .WillRepeatedly(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
-                               "Server busy at the moment."));
+        .WillRepeatedly(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(429),
+            "Server busy at the moment."));
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
@@ -488,9 +369,9 @@ TEST_P(CatalogClientTest, GetPartitions429Error) {
 
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
         .Times(2)
-        .WillRepeatedly(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
-                               "Server busy at the moment."));
+        .WillRepeatedly(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(429),
+            "Server busy at the moment."));
 
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
         .Times(1);
@@ -524,9 +405,9 @@ TEST_P(CatalogClientTest, ApiLookup429) {
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
         .Times(2)
-        .WillRepeatedly(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
-                               "Server busy at the moment."));
+        .WillRepeatedly(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(429),
+            "Server busy at the moment."));
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
@@ -578,8 +459,8 @@ TEST_P(CatalogClientTest, GetData404Error) {
                         "blobstore/v1/catalogs/hereos-internal-test-v2/"
                         "layers/testlayer/data/invalidDataHandle"),
            _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(404),
-                                   "Resource not found."));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(404), "Resource not found."));
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -599,8 +480,9 @@ TEST_P(CatalogClientTest, GetPartitionsGarbageResponse) {
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                                   R"jsonString(kd3sdf\)jsonString"));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(200),
+          R"jsonString(kd3sdf\)jsonString"));
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -625,7 +507,7 @@ TEST_P(CatalogClientTest, GetCatalogCancelApiLookup) {
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
@@ -674,7 +556,7 @@ TEST_P(CatalogClientTest, GetCatalogCancelConfig) {
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_CONFIG});
 
   // Setup the expected calls :
@@ -749,7 +631,7 @@ TEST_P(CatalogClientTest, GetPartitionsCancelLookupMetadata) {
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_METADATA});
 
   EXPECT_CALL(*network_mock_,
@@ -802,8 +684,8 @@ TEST_P(CatalogClientTest, GetPartitionsCancelLatestCatalogVersion) {
   CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) =
-      GenerateNetworkMocks(wait_for_cancel, pause_for_cancel,
-                           {200, HTTP_RESPONSE_LATEST_CATALOG_VERSION});
+      GenerateNetworkMockActions(wait_for_cancel, pause_for_cancel,
+                                 {200, HTTP_RESPONSE_LATEST_CATALOG_VERSION});
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
@@ -856,7 +738,7 @@ TEST_P(CatalogClientTest, DISABLED_GetPartitionsCancelLayerVersions) {
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LAYER_VERSIONS});
 
   EXPECT_CALL(*network_mock_,
@@ -909,7 +791,7 @@ TEST_P(CatalogClientTest, GetDataWithPartitionIdCancelLookupConfig) {
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
@@ -963,7 +845,7 @@ TEST_P(CatalogClientTest, GetDataWithPartitionIdCancelConfig) {
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_CONFIG});
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
@@ -1018,7 +900,7 @@ TEST_P(CatalogClientTest, DISABLED_GetDataWithPartitionIdCancelLookupMetadata) {
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_METADATA});
 
   EXPECT_CALL(*network_mock_,
@@ -1076,8 +958,8 @@ TEST_P(CatalogClientTest,
   CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) =
-      GenerateNetworkMocks(wait_for_cancel, pause_for_cancel,
-                           {200, HTTP_RESPONSE_LATEST_CATALOG_VERSION});
+      GenerateNetworkMockActions(wait_for_cancel, pause_for_cancel,
+                                 {200, HTTP_RESPONSE_LATEST_CATALOG_VERSION});
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
@@ -1136,7 +1018,7 @@ TEST_P(CatalogClientTest, GetDataWithPartitionIdCancelInnerConfig) {
     NetworkCallback send_mock;
     CancelCallback cancel_mock;
 
-    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
         wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_CONFIG});
 
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
@@ -1195,7 +1077,7 @@ TEST_P(CatalogClientTest, GetDataWithPartitionIdCancelLookupQuery) {
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_QUERY});
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
@@ -1250,7 +1132,7 @@ TEST_P(CatalogClientTest, GetDataWithPartitionIdCancelQuery) {
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_PARTITION_269});
 
   EXPECT_CALL(*network_mock_,
@@ -1305,7 +1187,7 @@ TEST_P(CatalogClientTest, GetDataWithPartitionIdCancelLookupBlob) {
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_BLOB});
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
@@ -1359,7 +1241,7 @@ TEST_P(CatalogClientTest, GetDataWithPartitionIdCancelBlob) {
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_BLOB_DATA_269});
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
@@ -1531,7 +1413,7 @@ TEST_P(CatalogClientTest, GetCatalogVersionCancel) {
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_METADATA});
 
   EXPECT_CALL(*network_mock_,
@@ -1598,9 +1480,9 @@ TEST_P(CatalogClientTest, GetCatalogOnlineOnly) {
         .Times(1);
 
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-        .WillOnce(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
-                               "Server busy at the moment."));
+        .WillOnce(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(429),
+            "Server busy at the moment."));
   }
 
   auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
@@ -1631,8 +1513,8 @@ TEST_P(CatalogClientTest, GetCatalogCacheWithUpdate) {
   CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) =
-      GenerateNetworkMocks(wait_to_start_signal, pre_callback_wait,
-                           {200, HTTP_RESPONSE_CONFIG}, wait_for_end);
+      GenerateNetworkMockActions(wait_to_start_signal, pre_callback_wait,
+                                 {200, HTTP_RESPONSE_CONFIG}, wait_for_end);
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1)
@@ -1696,9 +1578,9 @@ TEST_P(CatalogClientTest, GetDataOnlineOnly) {
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-        .WillOnce(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
-                               "Server busy at the moment."));
+        .WillOnce(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(429),
+            "Server busy at the moment."));
   }
 
   auto catalog_client =
@@ -1738,7 +1620,7 @@ TEST_P(CatalogClientTest, GetDataCacheWithUpdate) {
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_to_start_signal, pre_callback_wait,
       {200, HTTP_RESPONSE_BLOB_DATA_269}, wait_for_end_signal);
 
@@ -1794,9 +1676,9 @@ TEST_P(CatalogClientTest, GetPartitionsOnlineOnly) {
         .Times(1);
 
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-        .WillOnce(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
-                               "Server busy at the moment."));
+        .WillOnce(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(429),
+            "Server busy at the moment."));
   }
 
   auto catalog_client =
@@ -1832,7 +1714,7 @@ TEST_P(CatalogClientTest, DISABLED_GetPartitionsCacheWithUpdate) {
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMocks(
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_to_start_signal, pre_callback_wait, {200, HTTP_RESPONSE_PARTITIONS},
       wait_for_end_signal);
 
@@ -1870,7 +1752,7 @@ TEST_P(CatalogClientTest, GetCatalog403CacheClear) {
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(
+        .WillOnce(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
   }
 
@@ -1911,7 +1793,7 @@ TEST_P(CatalogClientTest, GetData403CacheClear) {
         .Times(1);
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(
+        .WillOnce(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
   }
 
@@ -1944,7 +1826,7 @@ TEST_P(CatalogClientTest, GetPartitions403CacheClear) {
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(
+        .WillOnce(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
   }
 
@@ -1990,8 +1872,8 @@ TEST_P(CatalogClientTest, DISABLED_CancelPendingRequestsCatalog) {
     CancelCallback cancel_mock;
 
     std::tie(request_id, send_mock, cancel_mock) =
-        GenerateNetworkMocks(wait_for_cancel1, pause_for_cancel1,
-                             {200, HTTP_RESPONSE_LOOKUP_CONFIG});
+        GenerateNetworkMockActions(wait_for_cancel1, pause_for_cancel1,
+                                   {200, HTTP_RESPONSE_LOOKUP_CONFIG});
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
@@ -2008,8 +1890,8 @@ TEST_P(CatalogClientTest, DISABLED_CancelPendingRequestsCatalog) {
     CancelCallback cancel_mock;
 
     std::tie(request_id, send_mock, cancel_mock) =
-        GenerateNetworkMocks(wait_for_cancel2, pause_for_cancel2,
-                             {200, HTTP_RESPONSE_LOOKUP_METADATA});
+        GenerateNetworkMockActions(wait_for_cancel2, pause_for_cancel2,
+                                   {200, HTTP_RESPONSE_LOOKUP_METADATA});
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
@@ -2086,8 +1968,8 @@ TEST_P(CatalogClientTest, DISABLED_CancelPendingRequestsPartitions) {
     CancelCallback cancel_mock;
 
     std::tie(request_id, send_mock, cancel_mock) =
-        GenerateNetworkMocks(wait_for_cancel1, pause_for_cancel1,
-                             {200, HTTP_RESPONSE_LAYER_VERSIONS});
+        GenerateNetworkMockActions(wait_for_cancel1, pause_for_cancel1,
+                                   {200, HTTP_RESPONSE_LAYER_VERSIONS});
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_LAYER_VERSIONS), _, _, _, _))
@@ -2103,8 +1985,8 @@ TEST_P(CatalogClientTest, DISABLED_CancelPendingRequestsPartitions) {
     CancelCallback cancel_mock;
 
     std::tie(request_id, send_mock, cancel_mock) =
-        GenerateNetworkMocks(wait_for_cancel2, pause_for_cancel2,
-                             {200, HTTP_RESPONSE_BLOB_DATA_269});
+        GenerateNetworkMockActions(wait_for_cancel2, pause_for_cancel2,
+                                   {200, HTTP_RESPONSE_BLOB_DATA_269});
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
@@ -2292,9 +2174,9 @@ TEST_P(CatalogClientTest, DISABLED_PrefetchBusy) {
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) =
-      GenerateNetworkMocks(wait_for_quad_key_request, pause_for_second_request,
-                           {200, HTTP_RESPONSE_QUADKEYS_5904591});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+      wait_for_quad_key_request, pause_for_second_request,
+      {200, HTTP_RESPONSE_QUADKEYS_5904591});
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_QUADKEYS_5904591), _, _, _, _))
