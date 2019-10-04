@@ -19,10 +19,13 @@
 
 #pragma once
 
+#include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
+#include "generated/api/MetadataApi.h"
 #include "MultiRequestContext.h"
 #include "olp/dataservice/read/CatalogClient.h"
+#include "olp/dataservice/read/DataRequest.h"
 
 namespace olp {
 namespace dataservice {
@@ -47,12 +50,17 @@ class CatalogRepository final {
       const read::CatalogVersionRequest& request,
       const read::CatalogVersionCallback& callback);
 
+  static MetadataApi::CatalogVersionResponse GetLatestVersion(
+      const client::HRN& catalog,
+      client::CancellationContext cancellation_context,
+      const DataRequest& data_request,
+      client::OlpClientSettings settings);
+
  private:
   client::HRN hrn_;
   std::shared_ptr<ApiRepository> apiRepo_;
   std::shared_ptr<CatalogCacheRepository> cache_;
-  std::shared_ptr<
-      MultiRequestContext<read::CatalogResponse>>
+  std::shared_ptr<MultiRequestContext<read::CatalogResponse>>
       multiRequestContext_;
 };
 }  // namespace repository
