@@ -34,16 +34,16 @@
 
 // clang-format on
 
+namespace {
+
 using namespace olp::dataservice::read::model;
 
-namespace {
 void RemoveWhitespaceAndNewlines(std::string& s) {
   std::regex r("\\s+");
   s = std::regex_replace(s, r, "");
 }
-}  // namespace
 
-TEST(DataServiceReadSerializerTest, Api) {
+TEST(SerializerTest, Api) {
   std::string expectedOutput =
       "{\
       \"api\": \"config\",\
@@ -77,7 +77,7 @@ TEST(DataServiceReadSerializerTest, Api) {
   ASSERT_EQ(expectedOutput, json);
 }
 
-TEST(DataserviceReadSerializerTest, Catalog) {
+TEST(SerializerTest, Catalog) {
   std::string expectedOutput =
       "{\
     \"id\": \"roadweather-catalog-v1\",\
@@ -299,7 +299,7 @@ TEST(DataserviceReadSerializerTest, Catalog) {
   ASSERT_EQ(expectedOutput, json);
 }
 
-TEST(DataserviceReadSerializerTest, LayerVersion) {
+TEST(SerializerTest, LayerVersion) {
   std::string expectedOutput =
       "{\
         \"layerVersions\": [\
@@ -334,7 +334,7 @@ TEST(DataserviceReadSerializerTest, LayerVersion) {
   ASSERT_EQ(expectedOutput, json);
 }
 
-TEST(DataserviceReadSerializerTest, Partitions) {
+TEST(SerializerTest, Partitions) {
   std::string expectedOutput =
       "{\
     \"partitions\": [\
@@ -374,8 +374,7 @@ TEST(DataserviceReadSerializerTest, Partitions) {
   ASSERT_EQ(expectedOutput, json);
 }
 
-TEST(DataserviceReadSerializerTest,
-     PartitionsNoCompressedDataSizeChecksumOrVersion) {
+TEST(SerializerTest, PartitionsNoCompressedDataSizeChecksumOrVersion) {
   std::string expectedOutput =
       "{\
     \"partitions\": [\
@@ -408,7 +407,7 @@ TEST(DataserviceReadSerializerTest,
   ASSERT_EQ(expectedOutput, json);
 }
 
-TEST(DataserviceReadSerializerTest, VersionResponse) {
+TEST(SerializerTest, VersionResponse) {
   std::string expectedOutput =
       "{\
     \"version\": 0\
@@ -426,3 +425,5 @@ TEST(DataserviceReadSerializerTest, VersionResponse) {
   RemoveWhitespaceAndNewlines(json);
   ASSERT_EQ(expectedOutput, json);
 }
+
+}  // namespace

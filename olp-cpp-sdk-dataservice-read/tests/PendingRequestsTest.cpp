@@ -1,38 +1,39 @@
 #include "PendingRequests.h"
 
 #include <gtest/gtest.h>
+namespace {
 
-TEST(PendingRequests, InsertNeedsGeneratedPlaceholderInAdvancePositive) {
+TEST(PendingRequestsTest, InsertNeedsGeneratedPlaceholderInAdvancePositive) {
   olp::dataservice::read::PendingRequests pending_request;
   auto key = pending_request.GenerateRequestPlaceholder();
   EXPECT_TRUE(pending_request.Insert(olp::client::CancellationToken(), key));
 }
 
-TEST(PendingRequests, InsertNeedsGeneratedPlaceholderInAdvanceNegative) {
+TEST(PendingRequestsTest, InsertNeedsGeneratedPlaceholderInAdvanceNegative) {
   olp::dataservice::read::PendingRequests pending_request;
   EXPECT_FALSE(pending_request.Insert(olp::client::CancellationToken(), 0));
 }
 
-TEST(PendingRequests, InsertFailsAftherThePlaceholderIsRemoved) {
+TEST(PendingRequestsTest, InsertFailsAftherThePlaceholderIsRemoved) {
   olp::dataservice::read::PendingRequests pending_request;
   auto key = pending_request.GenerateRequestPlaceholder();
   EXPECT_TRUE(pending_request.Remove(key));
   EXPECT_FALSE(pending_request.Insert(olp::client::CancellationToken(), key));
 }
 
-TEST(PendingRequests, PlaceholderCanBeRemovedAfterInsert) {
+TEST(PendingRequestsTest, PlaceholderCanBeRemovedAfterInsert) {
   olp::dataservice::read::PendingRequests pending_request;
   auto key = pending_request.GenerateRequestPlaceholder();
   EXPECT_TRUE(pending_request.Insert(olp::client::CancellationToken(), key));
   EXPECT_TRUE(pending_request.Remove(key));
 }
 
-TEST(PendingRequests, RemoveMissingKeyWillFail) {
+TEST(PendingRequestsTest, RemoveMissingKeyWillFail) {
   olp::dataservice::read::PendingRequests pending_request;
   EXPECT_FALSE(pending_request.Remove(0));
 }
 
-TEST(PendingRequests, CancellAllPendingRequest) {
+TEST(PendingRequestsTest, CancellAllPendingRequest) {
   olp::dataservice::read::PendingRequests pending_request;
   auto key = pending_request.GenerateRequestPlaceholder();
   bool cancelled = false;
@@ -41,3 +42,5 @@ TEST(PendingRequests, CancellAllPendingRequest) {
   EXPECT_TRUE(pending_request.CancelPendingRequests());
   EXPECT_TRUE(cancelled);
 }
+
+}  // namespace
