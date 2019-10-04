@@ -27,6 +27,8 @@
 
 enum class CacheType { IN_MEMORY, DISK, BOTH };
 
+std::ostream& operator<<(std::ostream& os, const CacheType cache_type);
+
 class CatalogClientTestBase : public ::testing::TestWithParam<CacheType> {
  protected:
   CatalogClientTestBase();
