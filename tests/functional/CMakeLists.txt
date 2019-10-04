@@ -32,6 +32,7 @@ set(OLP_SDK_FUNCTIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-authentication/GoogleAuthenticationTest.cpp
     ./olp-cpp-sdk-authentication/GoogleTestUtils.cpp
     ./olp-cpp-sdk-authentication/AuthenticationProductionTest.cpp
+    ./olp-cpp-sdk-authentication/HereAccountOauth2ProductionTest.cpp
 )
 
 set(OLP_SDK_FUNCTIONAL_TESTS_HEADERS
