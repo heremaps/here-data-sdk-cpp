@@ -58,15 +58,15 @@ int RunExample() {
       OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
 
   // Initialize authentication settings
-  olp::authentication::Settings settings;
+  olp::authentication::Settings settings({kKeyId, kKeySecret});
   settings.task_scheduler = std::move(task_scheduler);
   settings.network_request_handler = http_client;
 
   // Setup AuthenticationSettings with a default token provider that will
   // retrieve an OAuth 2.0 token from OLP.
   olp::client::AuthenticationSettings auth_settings;
-  auth_settings.provider = olp::authentication::TokenProviderDefault(
-      kKeyId, kKeySecret, std::move(settings));
+  auth_settings.provider =
+      olp::authentication::TokenProviderDefault(std::move(settings));
 
   // Setup OlpClientSettings and provide it to the StreamLayerClient.
   olp::client::OlpClientSettings client_settings;

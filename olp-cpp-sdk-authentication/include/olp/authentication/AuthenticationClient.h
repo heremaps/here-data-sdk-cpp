@@ -24,6 +24,8 @@
 #include <memory>
 #include <string>
 
+#include <boost/optional.hpp>
+
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/http/NetworkProxySettings.h>
@@ -288,6 +290,27 @@ class AUTHENTICATION_API AuthenticationClient {
       const AuthenticationCredentials& credentials,
       const SignInClientCallback& callback,
       const std::chrono::seconds& expires_in = std::chrono::seconds(0));
+
+  /**
+   * @brief Sign in with HERE account client credentials, requests a client
+   * access token that identifies the application or service by providing client
+   * credentials. Client access tokens can not be refreshed, instead request a
+   * new one using client credentials.
+   * @param credentials Client access keys issued for the client by the HERE
+   * Account as part of the onboarding or support process.
+   * @param scope The scope to authorize to.
+   * @param callback The method to be called when request is completed. In case
+   * of successful client sign-in request, the returned HTTP status is 200.
+   * Otherwise, check the response error.
+   * @param expires_in Optional. The number of seconds until the new access
+   * token expires. Ignored if zero or if greater than default expiration of the
+   * application.
+   * @return CancellationToken that can be used to cancel the request.
+   */
+  client::CancellationToken SignInClient(
+      const AuthenticationCredentials& credentials,
+      boost::optional<std::string> scope, SignInClientCallback callback,
+      std::chrono::seconds expires_in = std::chrono::seconds(0));
 
   /**
    * @brief Sign in by providing the user email and password previously

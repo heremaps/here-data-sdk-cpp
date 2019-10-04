@@ -26,6 +26,7 @@
 #include <rapidjson/istreamwrapper.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+#include <boost/optional.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -82,6 +83,7 @@ constexpr auto kDateOfBirth = "dob";
 constexpr auto kEmail = "email";
 constexpr auto kFirstName = "firstname";
 constexpr auto kGrantType = "grantType";
+constexpr auto kScope = "scope";
 constexpr auto kInviteToken = "inviteToken";
 constexpr auto kLanguage = "language";
 constexpr auto kLastName = "lastname";
@@ -160,14 +162,15 @@ class AuthenticationClient::Impl final {
    * @brief Sign in with client credentials
    * @param credentials Client credentials obtained when registering application
    *                    on HERE developer portal.
+   * @param scope Scope to authorize to.
    * @param callback  The method to be called when request is completed.
    * @param expiresIn The number of seconds until the new access token expires.
    * @return CancellationToken that can be used to cancel the request.
    */
   client::CancellationToken SignInClient(
       const AuthenticationCredentials& credentials,
-      const std::chrono::seconds& expires_in,
-      const AuthenticationClient::SignInClientCallback& callback);
+      boost::optional<std::string> scope, std::chrono::seconds expires_in,
+      AuthenticationClient::SignInClientCallback callback);
 
   client::CancellationToken SignInHereUser(
       const AuthenticationCredentials& credentials,
@@ -212,7 +215,7 @@ class AuthenticationClient::Impl final {
   std::string generateBearerHeader(const std::string& bearer_token);
 
   http::NetworkRequest::RequestBodyType generateClientBody(
-      unsigned int expires_in);
+      unsigned int expires_in, const boost::optional<std::string>& scope);
   http::NetworkRequest::RequestBodyType generateUserBody(
       const AuthenticationClient::UserProperties& properties);
   http::NetworkRequest::RequestBodyType generateFederatedBody(
@@ -280,8 +283,8 @@ AuthenticationClient::Impl::Impl(const std::string& authentication_server_url,
 
 client::CancellationToken AuthenticationClient::Impl::SignInClient(
     const AuthenticationCredentials& credentials,
-    const std::chrono::seconds& expires_in,
-    const AuthenticationClient::SignInClientCallback& callback) {
+    boost::optional<std::string> scope, std::chrono::seconds expires_in,
+    AuthenticationClient::SignInClientCallback callback) {
   if (!network_) {
     ExecuteOrSchedule(task_scheduler_, [callback] {
       AuthenticationError result({static_cast<int>(http::ErrorCode::IO_ERROR),
@@ -301,14 +304,18 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
   request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
   request.WithSettings(network_settings_);
 
+  // used for caching
+  const auto requestKey = credentials.GetKey() + ":" + scope.value_or("");
+
   std::shared_ptr<std::stringstream> payload =
       std::make_shared<std::stringstream>();
-  request.WithBody(
-      generateClientBody(static_cast<unsigned int>(expires_in.count())));
+  unsigned int expiration = static_cast<unsigned int>(expires_in.count());
+  request.WithBody(generateClientBody(expiration, std::move(scope)));
+
   auto cache = client_token_cache_;
   auto send_outcome = network_->Send(
       request, payload,
-      [callback, payload, credentials,
+      [callback, payload, requestKey,
        cache](const http::NetworkResponse& network_response) {
         auto response_status = network_response.GetStatus();
         auto error_msg = network_response.GetError();
@@ -316,15 +323,16 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
         // Network not available, use cached token if available
         if (response_status < 0) {
           // Request cancelled, return
-          if (response_status == static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR)) {
+          if (response_status ==
+              static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR)) {
             callback({{response_status, error_msg}});
             return;
           }
 
           auto cached_response_found =
-              cache->locked([credentials, callback](
+              cache->locked([requestKey, callback](
                                 utils::LruCache<std::string, SignInResult>& c) {
-                auto it = c.Find(credentials.GetKey());
+                auto it = c.Find(requestKey);
                 if (it != c.end()) {
                   SignInClientResponse response(it->value());
                   callback(response);
@@ -360,9 +368,9 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
         switch (response_status) {
           case http::HttpStatusCode::OK: {
             // Cache the response
-            cache->locked([credentials, &response](
+            cache->locked([requestKey, &response](
                               utils::LruCache<std::string, SignInResult>& c) {
-              return c.InsertOrAssign(credentials.GetKey(), response);
+              return c.InsertOrAssign(requestKey, response);
             });
             // intentially do not break
           }
@@ -460,7 +468,8 @@ client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
         // Network not available, use cached token if available
         if (response_status < 0) {
           // Request cancelled, return
-          if (response_status == static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR)) {
+          if (response_status ==
+              static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR)) {
             callback({{response_status, error_msg}});
             return;
           }
@@ -724,7 +733,8 @@ std::string AuthenticationClient::Impl::generateBearerHeader(
 }
 
 http::NetworkRequest::RequestBodyType
-AuthenticationClient::Impl::generateClientBody(unsigned int expires_in) {
+AuthenticationClient::Impl::generateClientBody(
+    unsigned int expires_in, const boost::optional<std::string>& scope) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
   writer.StartObject();
@@ -735,6 +745,12 @@ AuthenticationClient::Impl::generateClientBody(unsigned int expires_in) {
   if (expires_in > 0) {
     writer.Key(Constants::EXPIRES_IN);
     writer.Uint(expires_in);
+  }
+
+  if (scope.has_value()) {
+    writer.Key(kScope);
+    const std::string& scope_value = scope.value();
+    writer.String(scope_value.c_str(), scope_value.length());
   }
 
   writer.EndObject();
@@ -942,7 +958,15 @@ client::CancellationToken AuthenticationClient::SignInClient(
     const AuthenticationCredentials& credentials,
     const SignInClientCallback& callback,
     const std::chrono::seconds& expires_in) {
-  return impl_->SignInClient(credentials, expires_in, callback);
+  return impl_->SignInClient(credentials, boost::none, expires_in, callback);
+}
+
+client::CancellationToken AuthenticationClient::SignInClient(
+    const AuthenticationCredentials& credentials,
+    boost::optional<std::string> scope, SignInClientCallback callback,
+    std::chrono::seconds expires_in) {
+  return impl_->SignInClient(credentials, std::move(scope), expires_in,
+                             std::move(callback));
 }
 
 client::CancellationToken AuthenticationClient::SignInHereUser(

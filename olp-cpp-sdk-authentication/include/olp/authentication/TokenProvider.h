@@ -43,26 +43,12 @@ class TokenProvider {
  public:
   /**
    * @brief Constructor
-   * @param key The client access key identifier.
-   * @param secret The client access key secret.
-   */
-  TokenProvider(const std::string& key, const std::string& secret)
-      : TokenProvider(key, secret, Settings{}) {}
-
-  /**
-   * @brief Constructor
-   * @param key The client access key identifier.
-   * @param secret The client access key secret.
    * @param settings Settings which can be used to configure a TokenEndpoint
    * instance.
    */
-  TokenProvider(const std::string& key, const std::string& secret,
-                Settings settings)
-      : key_(key),
-        secret_(secret),
-        settings_(settings),
-        token_(TokenEndpoint({key_, secret_}, settings_)
-                   .RequestAutoRefreshingToken()) {}
+  explicit TokenProvider(Settings settings)
+      : token_(
+            TokenEndpoint(std::move(settings)).RequestAutoRefreshingToken()) {}
 
   /**
    * @brief bool type conversion
@@ -113,9 +99,6 @@ class TokenProvider {
            resp.GetResult().GetErrorResponse().code == 0ul;
   }
 
-  std::string key_;
-  std::string secret_;
-  Settings settings_;
   AutoRefreshingToken token_;
 };
 
