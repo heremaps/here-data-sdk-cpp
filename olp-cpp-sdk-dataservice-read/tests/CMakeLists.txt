@@ -20,10 +20,6 @@ cmake_minimum_required(VERSION 3.5)
 
 set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     ApiClientLookupTest.cpp
-    CatalogClientCacheTest.cpp
-    CatalogClientTest.cpp
-    CatalogClientTestBase.cpp
-    HttpResponses.h
     MultiRequestContextTest.cpp
     ParserTest.cpp
     PendingRequestsTest.cpp
@@ -37,7 +33,6 @@ if (ANDROID OR IOS)
 
     target_link_libraries(olp-cpp-sdk-dataservice-read-tests-lib
     PRIVATE
-        custom-params
         gmock
         gtest
         olp-cpp-sdk-authentication
@@ -74,7 +69,6 @@ else()
 
     target_link_libraries(olp-cpp-sdk-dataservice-read-tests
         PRIVATE
-            custom-params
             gmock
             gtest
             gtest_main

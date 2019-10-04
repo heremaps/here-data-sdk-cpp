@@ -31,7 +31,6 @@
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/model/Catalog.h>
-#include <testutils/CustomParameters.hpp>
 #include "CatalogClientTestBase.h"
 #include "HttpResponses.h"
 

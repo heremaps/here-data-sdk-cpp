@@ -22,11 +22,17 @@
 #include <mocks/CacheMock.h>
 #include <mocks/NetworkMock.h>
 #include "../src/ApiClientLookup.h"
-#include "HttpResponses.h"
 
 using namespace olp;
 using namespace client;
 using namespace dataservice::read;
+
+#define OLP_SDK_CONFIG_BASE_URL \
+  "https://config.data.api.platform.in.here.com/config/v1"
+
+#define OLP_SDK_HTTP_RESPONSE_LOOKUP_CONFIG                                                    \
+  R"jsonString([{"api":"config","version":"v1","baseURL":")jsonString" OLP_SDK_CONFIG_BASE_URL \
+  R"jsonString(","parameters":{}},{"api":"pipelines","version":"v1","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}},{"api":"pipelines","version":"v2","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}}])jsonString"
 
 TEST(ApiClientLookup, LookupApiSync) {
   using namespace testing;
@@ -88,7 +94,7 @@ TEST(ApiClientLookup, LookupApiSync) {
         .Times(1)
         .WillOnce(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(200),
-            HTTP_RESPONSE_LOOKUP_CONFIG));
+            OLP_SDK_HTTP_RESPONSE_LOOKUP_CONFIG));
     EXPECT_CALL(*cache, Put(cache_key, _, _, _))
         .Times(1)
         .WillOnce(Return(true));
@@ -99,7 +105,7 @@ TEST(ApiClientLookup, LookupApiSync) {
         FetchOptions::OnlineOnly, settings);
 
     EXPECT_TRUE(response.IsSuccessful());
-    EXPECT_EQ(response.GetResult().GetBaseUrl(), CONFIG_BASE_URL);
+    EXPECT_EQ(response.GetResult().GetBaseUrl(), OLP_SDK_CONFIG_BASE_URL);
     Mock::VerifyAndClearExpectations(network.get());
   }
   {
