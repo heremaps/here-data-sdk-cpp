@@ -28,7 +28,7 @@ set(OLP_SDK_DATASERVICE_WRITE_TEST_SOURCES
     TestVersionedLayerClient.cpp
     TestVolatileLayerClient.cpp
     TestCancellationTokenList.cpp
-    TestIndexLayerClient.cpp
+    IndexLayerClientTest.cpp
     IndexLayerClientOnlineTest.cpp
     )
 
