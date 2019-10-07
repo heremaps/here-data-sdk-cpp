@@ -32,7 +32,8 @@
 
 #include "HttpResponses.h"
 
-#include "TestCommons.h"
+#include <matchers/NetworkUrlMatchers.h>
+#include <mocks/NetworkMock.h>
 
 using namespace olp::dataservice::write;
 using namespace olp::dataservice::write::model;
@@ -464,79 +465,6 @@ olp::client::NetworkAsyncHandler volatileSetsPromiseWaitsAndReturns(
 }
 #endif
 
-namespace {
-
-class NetworkMock : public olp::http::Network {
- public:
-  MOCK_METHOD(olp::http::SendOutcome, Send,
-              (olp::http::NetworkRequest request,
-               olp::http::Network::Payload payload,
-               olp::http::Network::Callback callback,
-               olp::http::Network::HeaderCallback header_callback,
-               olp::http::Network::DataCallback data_callback),
-              (override));
-
-  MOCK_METHOD(void, Cancel, (olp::http::RequestId id), (override));
-};
-
-std::function<olp::http::SendOutcome(
-    olp::http::NetworkRequest request, olp::http::Network::Payload payload,
-    olp::http::Network::Callback callback,
-    olp::http::Network::HeaderCallback header_callback,
-    olp::http::Network::DataCallback data_callback)>
-ReturnHttpResponse(olp::http::NetworkResponse response,
-                   const std::string& response_body) {
-  return [=](olp::http::NetworkRequest request,
-             olp::http::Network::Payload payload,
-             olp::http::Network::Callback callback,
-             olp::http::Network::HeaderCallback header_callback,
-             olp::http::Network::DataCallback data_callback)
-             -> olp::http::SendOutcome {
-    std::thread([=]() {
-      *payload << response_body;
-      callback(response);
-    })
-        .detach();
-
-    return olp::http::SendOutcome(5);
-  };
-}
-
-MATCHER_P(IsGetRequest, url, "") {
-  // uri, verb, null body
-  return olp::http::NetworkRequest::HttpVerb::GET == arg.GetVerb() &&
-         url == arg.GetUrl() && (!arg.GetBody() || arg.GetBody()->empty());
-}
-
-MATCHER_P(IsPutRequest, url, "") {
-  return olp::http::NetworkRequest::HttpVerb::PUT == arg.GetVerb() &&
-         url == arg.GetUrl();
-}
-
-MATCHER_P(IsPutRequestPrefix, url, "") {
-  if (olp::http::NetworkRequest::HttpVerb::PUT != arg.GetVerb()) {
-    return false;
-  }
-
-  std::string url_string(url);
-  auto res =
-      std::mismatch(url_string.begin(), url_string.end(), arg.GetUrl().begin());
-
-  return (res.first == url_string.end());
-}
-
-MATCHER_P(IsPostRequest, url, "") {
-  return olp::http::NetworkRequest::HttpVerb::POST == arg.GetVerb() &&
-         url == arg.GetUrl();
-}
-
-MATCHER_P(IsDeleteRequest, url, "") {
-  return olp::http::NetworkRequest::HttpVerb::DEL == arg.GetVerb() &&
-         url == arg.GetUrl();
-}
-
-}  // namespace
-
 using testing::_;
 
 class VolatileLayerClientMockTest : public VolatileLayerClientTestBase {
@@ -562,7 +490,8 @@ class VolatileLayerClientMockTest : public VolatileLayerClientTestBase {
     // Catch unexpected calls and fail immediatley
     ON_CALL(network, Send(_, _, _, _, _))
         .WillByDefault(testing::DoAll(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(-1), ""),
+            NetworkMock::ReturnHttpResponse(
+                olp::http::NetworkResponse().WithStatus(-1), ""),
             [](olp::http::NetworkRequest request,
                olp::http::Network::Payload payload,
                olp::http::Network::Callback callback,
@@ -574,43 +503,43 @@ class VolatileLayerClientMockTest : public VolatileLayerClientTestBase {
             }));
 
     ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_LOOKUP_CONFIG));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_LOOKUP_CONFIG));
 
     ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_LOOKUP_METADATA));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_LOOKUP_METADATA));
 
     ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_LOOKUP_VOLATILE_BLOB));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_LOOKUP_VOLATILE_BLOB));
 
     ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_LOOKUP_QUERY));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_LOOKUP_QUERY));
 
     ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_PUBLISH_V2), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_LOOKUP_PUBLISH_V2));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_LOOKUP_PUBLISH_V2));
 
     ON_CALL(network, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_GET_CATALOG));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_GET_CATALOG));
 
     ON_CALL(network, Send(IsGetRequest(URL_QUERY_PARTITION_1111), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_QUERY_DATA_HANDLE));
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(200),
+            HTTP_RESPONSE_QUERY_DATA_HANDLE));
 
     ON_CALL(network,
             Send(IsPutRequestPrefix(URL_PUT_VOLATILE_BLOB_PREFIX), _, _, _, _))
-        .WillByDefault(ReturnHttpResponse(
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(200), ""));
   }
 };
@@ -664,7 +593,7 @@ TEST_P(VolatileLayerClientMockTest, PublishDataCancelConfig) {
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
 
   {
@@ -706,8 +635,9 @@ TEST_P(VolatileLayerClientMockTest, PublishDataCancelBlob) {
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
-      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_VOLATILE_BLOB});
+  std::tie(request_id, send_mock, cancel_mock) =
+      GenerateNetworkMockActions(wait_for_cancel, pause_for_cancel,
+                                 {200, HTTP_RESPONSE_LOOKUP_VOLATILE_BLOB});
 
   {
     testing::InSequence s;
@@ -751,7 +681,7 @@ TEST_P(VolatileLayerClientMockTest, PublishDataCancelCatalog) {
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = generateNetworkMocks(
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_GET_CATALOG});
 
   {
