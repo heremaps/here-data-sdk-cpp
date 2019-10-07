@@ -209,4 +209,17 @@ TEST(ApiClientLookupTest, LookupApi) {
               olp::client::ErrorCode::Cancelled);
     Mock::VerifyAndClearExpectations(network.get());
   }
-}
+  {
+    SCOPED_TRACE("Network request cancelled before execution setup");
+    client::CancellationContext context;
+
+    context.CancelOperation();
+    auto response = ApiClientLookup::LookupApi(
+        catalog_hrn, context, service_name, service_version,
+        FetchOptions::OnlineOnly, settings);
+
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::Cancelled);
+    Mock::VerifyAndClearExpectations(network.get());
+  }}

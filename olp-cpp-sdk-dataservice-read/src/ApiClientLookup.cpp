@@ -164,7 +164,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
   auto flag = std::make_shared<std::atomic_bool>(true);
 
   ApiClientLookup::ApiClientResponse api_response;
-  auto apiClientCallback =
+  auto api_client_callback =
       [&, flag](ApiClientLookup::ApiClientResponse response) {
         if (flag->exchange(false)) {
           api_response = std::move(response);
@@ -172,16 +172,23 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
         }
       };
 
-  cancellation_context.ExecuteOrCancelled([&, flag]() {
-    auto token = ApiClientLookup::LookupApiClient(
-        client, service, service_version, catalog, std::move(apiClientCallback));
-    return client::CancellationToken([&, token, flag]() {
-      if (flag->exchange(false)) {
-        token.cancel();
+  cancellation_context.ExecuteOrCancelled(
+      [&, flag]() {
+        auto token = ApiClientLookup::LookupApiClient(
+            client, service, service_version, catalog,
+            std::move(api_client_callback));
+        return client::CancellationToken([&, token, flag]() {
+          if (flag->exchange(false)) {
+            token.cancel();
+            condition.Notify();
+          }
+        });
+      },
+      [&]() {
+        // if context was cancelled before the execution setup, unblock the
+        // upcoming wait routine.
         condition.Notify();
-      }
-    });
-  });
+      });
 
   if (!condition.Wait()) {
     cancellation_context.CancelOperation();
