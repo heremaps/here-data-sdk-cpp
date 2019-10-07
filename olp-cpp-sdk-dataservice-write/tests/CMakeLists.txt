@@ -31,6 +31,7 @@ set(OLP_SDK_DATASERVICE_WRITE_TEST_SOURCES
     TestIndexLayerClient.cpp
     IndexLayerClientOnlineTest.cpp
     StartBatchRequestTest.cpp
+    VolatileLayerClientOnlineTest.cpp
     )
 
 
