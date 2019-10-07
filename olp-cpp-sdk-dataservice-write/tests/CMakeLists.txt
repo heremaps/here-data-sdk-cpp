@@ -30,6 +30,7 @@ set(OLP_SDK_DATASERVICE_WRITE_TEST_SOURCES
     TestCancellationTokenList.cpp
     TestIndexLayerClient.cpp
     IndexLayerClientOnlineTest.cpp
+    StartBatchRequestTest.cpp
     )
 
 
