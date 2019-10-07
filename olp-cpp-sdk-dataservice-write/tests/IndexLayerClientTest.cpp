@@ -18,34 +18,24 @@
  */
 
 #include <gmock/gmock.h>
-#include <olp/authentication/TokenProvider.h>
+#include <matchers/NetworkUrlMatchers.h>
+#include <mocks/NetworkMock.h>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
-
 #include <olp/dataservice/write/IndexLayerClient.h>
 #include <olp/dataservice/write/model/PublishIndexRequest.h>
 
-#include "testutils/CustomParameters.hpp"
-
 #include "HttpResponses.h"
 
-#include <matchers/NetworkUrlMatchers.h>
-#include <mocks/NetworkMock.h>
+namespace {
 
+using ::testing::_;
 using namespace olp::dataservice::write;
 using namespace olp::dataservice::write::model;
 
-const std::string kEndpoint = "endpoint";
-const std::string kAppid = "dataservice_write_test_appid";
-const std::string kSecret = "dataservice_write_test_secret";
-const std::string kCatalog = "dataservice_write_test_catalog";
-const std::string kIndexLayer = "index_layer";
-
-// TODO: Move duplicate test code to common header
-namespace {
 void PublishDataSuccessAssertions(
     const olp::client::ApiResponse<
         olp::dataservice::write::model::ResponseOkSingle,
@@ -53,14 +43,6 @@ void PublishDataSuccessAssertions(
   EXPECT_TRUE(result.IsSuccessful());
   EXPECT_FALSE(result.GetResult().GetTraceID().empty());
   EXPECT_EQ("", result.GetError().GetMessage());
-}
-
-template <typename T>
-void PublishFailureAssertions(
-    const olp::client::ApiResponse<T, olp::client::ApiError>& result) {
-  EXPECT_FALSE(result.IsSuccessful());
-  EXPECT_NE(result.GetError().GetHttpStatusCode(), 200);
-  EXPECT_FALSE(result.GetError().GetMessage().empty());
 }
 
 template <typename T>
@@ -73,9 +55,8 @@ void PublishCancelledAssertions(
             result.GetError().GetErrorCode());
   EXPECT_EQ("Cancelled", result.GetError().GetMessage());
 }
-}  // namespace
 
-class IndexLayerClientTestBase : public ::testing::TestWithParam<bool> {
+class IndexLayerClientTest : public ::testing::Test {
  protected:
   virtual void SetUp() override {
     client_ = CreateIndexLayerClient();
@@ -87,17 +68,12 @@ class IndexLayerClientTestBase : public ::testing::TestWithParam<bool> {
     client_.reset();
   }
 
-  virtual bool IsOnlineTest() { return GetParam(); }
-
   std::string GetTestCatalog() {
-    return IsOnlineTest()
-               ? CustomParameters::getArgument(kCatalog)
-               : "hrn:here:data:::olp-cpp-sdk-ingestion-test-catalog";
+    return "hrn:here:data:::olp-cpp-sdk-ingestion-test-catalog";
   }
 
   std::string GetTestLayer() {
-    return IsOnlineTest() ? CustomParameters::getArgument(kIndexLayer)
-                          : "olp-cpp-sdk-ingestion-test-index-layer";
+    return "olp-cpp-sdk-ingestion-test-index-layer";
   }
 
   const Index GetTestIndex() {
@@ -118,40 +94,7 @@ class IndexLayerClientTestBase : public ::testing::TestWithParam<bool> {
     return index;
   }
 
-  std::string PrintError(const olp::client::ApiError& error) {
-    std::ostringstream resultStream;
-    resultStream << "ERROR: code: " << static_cast<int>(error.GetErrorCode())
-                 << ", status: " << error.GetHttpStatusCode()
-                 << ", message: " << error.GetMessage();
-    return resultStream.str();
-  }
-
-  virtual std::shared_ptr<IndexLayerClient> CreateIndexLayerClient() = 0;
-
- private:
-  std::shared_ptr<std::vector<unsigned char>> GenerateData() {
-    std::string test_suite_name(testing::UnitTest::GetInstance()
-                                    ->current_test_info()
-                                    ->test_suite_name());
-    std::string test_name(
-        testing::UnitTest::GetInstance()->current_test_info()->name());
-    std::string data_string(test_suite_name + " " + test_name + " Payload");
-    return std::make_shared<std::vector<unsigned char>>(data_string.begin(),
-                                                        data_string.end());
-  }
-
- protected:
-  std::shared_ptr<IndexLayerClient> client_;
-  std::shared_ptr<std::vector<unsigned char>> data_;
-};
-
-using ::testing::_;
-
-class IndexLayerClientMockTest : public IndexLayerClientTestBase {
- protected:
-  std::shared_ptr<NetworkMock> network_;
-
-  virtual std::shared_ptr<IndexLayerClient> CreateIndexLayerClient() override {
+  virtual std::shared_ptr<IndexLayerClient> CreateIndexLayerClient() {
     olp::client::OlpClientSettings client_settings;
     network_ = std::make_shared<NetworkMock>();
     client_settings.network_request_handler = network_;
@@ -214,12 +157,26 @@ class IndexLayerClientMockTest : public IndexLayerClientTestBase {
         .WillByDefault(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(200), ""));
   }
+
+ private:
+  std::shared_ptr<std::vector<unsigned char>> GenerateData() {
+    std::string test_suite_name(testing::UnitTest::GetInstance()
+                                    ->current_test_info()
+                                    ->test_suite_name());
+    std::string test_name(
+        testing::UnitTest::GetInstance()->current_test_info()->name());
+    std::string data_string(test_suite_name + " " + test_name + " Payload");
+    return std::make_shared<std::vector<unsigned char>>(data_string.begin(),
+                                                        data_string.end());
+  }
+
+ protected:
+  std::shared_ptr<NetworkMock> network_;
+  std::shared_ptr<IndexLayerClient> client_;
+  std::shared_ptr<std::vector<unsigned char>> data_;
 };
 
-INSTANTIATE_TEST_SUITE_P(TestMock, IndexLayerClientMockTest,
-                         ::testing::Values(false));
-
-TEST_P(IndexLayerClientMockTest, PublishData) {
+TEST_F(IndexLayerClientTest, PublishData) {
   {
     testing::InSequence dummy;
 
@@ -250,7 +207,7 @@ TEST_P(IndexLayerClientMockTest, PublishData) {
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
 }
 
-TEST_P(IndexLayerClientMockTest, DeleteData) {
+TEST_F(IndexLayerClientTest, DeleteData) {
   {
     testing::InSequence dummy;
 
@@ -297,7 +254,7 @@ TEST_P(IndexLayerClientMockTest, DeleteData) {
   ASSERT_TRUE(deleteIndexRes.IsSuccessful());
 }
 
-TEST_P(IndexLayerClientMockTest, UpdateIndex) {
+TEST_F(IndexLayerClientTest, UpdateIndex) {
   {
     testing::InSequence dummy;
 
@@ -328,7 +285,7 @@ TEST_P(IndexLayerClientMockTest, UpdateIndex) {
   ASSERT_TRUE(response.IsSuccessful());
 }
 
-TEST_P(IndexLayerClientMockTest, PublishDataCancelConfig) {
+TEST_F(IndexLayerClientTest, PublishDataCancelConfig) {
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
@@ -372,7 +329,7 @@ TEST_P(IndexLayerClientMockTest, PublishDataCancelConfig) {
   ASSERT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
 }
 
-TEST_P(IndexLayerClientMockTest, PublishDataCancelBlob) {
+TEST_F(IndexLayerClientTest, PublishDataCancelBlob) {
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
@@ -417,7 +374,7 @@ TEST_P(IndexLayerClientMockTest, PublishDataCancelBlob) {
   ASSERT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
 }
 
-TEST_P(IndexLayerClientMockTest, PublishDataCancelIndex) {
+TEST_F(IndexLayerClientTest, PublishDataCancelIndex) {
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
@@ -462,7 +419,7 @@ TEST_P(IndexLayerClientMockTest, PublishDataCancelIndex) {
   ASSERT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
 }
 
-TEST_P(IndexLayerClientMockTest, PublishDataCancelGetCatalog) {
+TEST_F(IndexLayerClientTest, PublishDataCancelGetCatalog) {
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
@@ -507,7 +464,7 @@ TEST_P(IndexLayerClientMockTest, PublishDataCancelGetCatalog) {
   ASSERT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
 }
 
-TEST_P(IndexLayerClientMockTest, PublishDataCancelPutBlob) {
+TEST_F(IndexLayerClientTest, PublishDataCancelPutBlob) {
   auto waitForCancel = std::make_shared<std::promise<void>>();
   auto pauseForCancel = std::make_shared<std::promise<void>>();
 
@@ -551,3 +508,5 @@ TEST_P(IndexLayerClientMockTest, PublishDataCancelPutBlob) {
   testing::Mock::VerifyAndClearExpectations(network_.get());
   ASSERT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
 }
+
+}  // namespace
