@@ -18,14 +18,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 set(OLP_AUTHENTICATION_TEST_SOURCES
-    AuthenticationBaseTest.h
-    AuthenticationOfflineTest.cpp
-    AuthenticationOfflineTest.h
-    AuthenticationUtils.cpp
-    AuthenticationUtils.h
-    CommonTestUtils.h
-    HereAccountOauth2IntegrationOfflineTest.cpp
-    OfflineResponses.h
+    placeholder.cpp
 )
 
 if (ANDROID OR IOS)
@@ -35,8 +28,6 @@ if (ANDROID OR IOS)
 
     target_link_libraries(olp-cpp-sdk-authentication-tests-lib
     PRIVATE
-        custom-params
-        gmock
         gtest
         olp-cpp-sdk-authentication
     )
@@ -70,9 +61,6 @@ else()
 
     target_link_libraries(olp-cpp-sdk-authentication-tests
         PRIVATE
-            custom-params
-            gmock
-            gtest
             gtest_main
             olp-cpp-sdk-authentication
     )

@@ -125,6 +125,13 @@ class AuthenticationClientTest : public ::testing::Test {
     auto request_future = request.get_future();
     olp::authentication::AuthenticationClient::SignUpProperties properties;
     properties.email = email;
+    properties.password = "password123";
+    properties.date_of_birth = "31/01/1980";
+    properties.first_name = "AUTH_TESTER";
+    properties.last_name = "HEREOS";
+    properties.country_code = "USA";
+    properties.language = "en";
+    properties.phone_number = "+1234567890";
 
     auto cancel_token = client_->SignUpHereUser(
         credentials, properties,
@@ -995,4 +1002,3 @@ TEST_F(AuthenticationClientTest, TestHttpRequestErrorCodes) {
   ExecuteSigninRequest(100000, 100000, kErrorUndefined);
   ExecuteSigninRequest(-100000, -100000, kErrorUndefined);
 }
-
