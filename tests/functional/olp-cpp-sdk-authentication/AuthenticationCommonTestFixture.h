@@ -24,7 +24,7 @@
 #include <gtest/gtest.h>
 #include <olp/core/http/Network.h>
 #include <olp/authentication/AuthenticationClient.h>
-#include "AuthenticationUtils.h"
+#include "AuthenticationTestUtils.h"
 #include "TestConstants.h"
 
 using namespace ::olp::authentication;
@@ -43,7 +43,7 @@ class AuthenticationCommonTestFixture : public ::testing::Test {
       const AuthenticationClient::SignInUserResponse& precond_failed_response,
       bool do_cancel = false);
 
-  AuthenticationUtils::DeleteUserResponse DeleteUser(
+  AuthenticationTestUtils::DeleteUserResponse DeleteUser(
       const std::string& user_bearer_token);
 
   AuthenticationClient::SignOutUserResponse SignOutUser(
@@ -61,10 +61,5 @@ class AuthenticationCommonTestFixture : public ::testing::Test {
   static std::shared_ptr<olp::http::Network> s_network_;
 
  private:
-  std::string GenerateBearerHeader(const std::string& user_bearer_token);
-
   std::string GenerateRandomSequence() const;
-
- private:
-  std::unique_ptr<AuthenticationUtils> utils_;
 };

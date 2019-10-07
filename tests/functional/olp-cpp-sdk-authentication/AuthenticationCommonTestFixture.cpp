@@ -25,6 +25,7 @@
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+#include "AuthenticationTestUtils.h"
 
 std::shared_ptr<olp::http::Network> AuthenticationCommonTestFixture::s_network_;
 
@@ -39,7 +40,6 @@ void AuthenticationCommonTestFixture::TearDownTestSuite() {
 }
 
 void AuthenticationCommonTestFixture::SetUp() {
-  utils_ = std::make_unique<AuthenticationUtils>();
   network_ = s_network_;
   task_scheduler_ =
       olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
@@ -52,7 +52,6 @@ void AuthenticationCommonTestFixture::SetUp() {
 void AuthenticationCommonTestFixture::TearDown() {
   client_.reset();
   network_.reset();
-  utils_.reset();
 
   // TODO - what is the reason behind this sleep?
   std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -96,10 +95,10 @@ AuthenticationCommonTestFixture::AcceptTerms(
   return *response;
 }
 
-AuthenticationUtils::DeleteUserResponse
+AuthenticationTestUtils::DeleteUserResponse
 AuthenticationCommonTestFixture::DeleteUser(
     const std::string& user_bearer_token) {
-  std::shared_ptr<AuthenticationUtils::DeleteUserResponse> response;
+  std::shared_ptr<AuthenticationTestUtils::DeleteUserResponse> response;
   unsigned int retry = 0u;
   do {
     if (retry > 0u) {
@@ -109,15 +108,15 @@ AuthenticationCommonTestFixture::DeleteUser(
           std::chrono::seconds(retry * kRetryDelayInSecs));
     }
 
-    std::promise<AuthenticationUtils::DeleteUserResponse> request;
+    std::promise<AuthenticationTestUtils::DeleteUserResponse> request;
     auto request_future = request.get_future();
-    utils_->DeleteHereUser(
+    AuthenticationTestUtils::DeleteHereUser(
         *network_, olp::http::NetworkSettings(), user_bearer_token,
-        [&request](const AuthenticationUtils::DeleteUserResponse& resp) {
+        [&request](const AuthenticationTestUtils::DeleteUserResponse& resp) {
           request.set_value(resp);
         });
     request_future.wait();
-    response = std::make_shared<AuthenticationUtils::DeleteUserResponse>(
+    response = std::make_shared<AuthenticationTestUtils::DeleteUserResponse>(
         request_future.get());
   } while ((response->status < 0) && (++retry < kMaxRetryCount));
 
@@ -146,13 +145,6 @@ AuthenticationCommonTestFixture::SignOutUser(const std::string& access_token,
 
 std::string AuthenticationCommonTestFixture::GetEmail() const {
   return kTestUserName + "-" + GenerateRandomSequence() + "@example.com";
-}
-
-std::string AuthenticationCommonTestFixture::GenerateBearerHeader(
-    const std::string& user_bearer_token) {
-  std::string authorization = "Bearer ";
-  authorization += user_bearer_token;
-  return authorization;
 }
 
 std::string AuthenticationCommonTestFixture::GenerateRandomSequence() const {

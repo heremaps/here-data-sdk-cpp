@@ -20,7 +20,7 @@
 #include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/porting/make_unique.h>
 #include "AuthenticationCommonTestFixture.h"
-#include "GoogleTestUtils.h"
+#include "AuthenticationTestUtils.h"
 #include "TestConstants.h"
 
 using namespace ::olp::authentication;
@@ -32,17 +32,15 @@ class GoogleAuthenticationTest : public AuthenticationCommonTestFixture {
   void SetUp() override {
     AuthenticationCommonTestFixture::SetUp();
 
-    google_utils_ = std::make_unique<GoogleTestUtils>();
-    ASSERT_TRUE(google_utils_->GetAccessToken(
-        *network_, olp::http::NetworkSettings(), test_user_));
+    ASSERT_TRUE(AuthenticationTestUtils::GetGoogleAccessToken(
+        *network_, olp::http::NetworkSettings(), token_));
 
     id_ = kTestAppKeyId;
     secret_ = kTestAppKeySecret;
   }
 
   void TearDown() override {
-    test_user_ = GoogleTestUtils::GoogleUser{};
-    google_utils_.reset();
+    token_ = AuthenticationTestUtils::AccessTokenResponse{};
 
     AuthenticationCommonTestFixture::TearDown();
   }
@@ -66,18 +64,17 @@ class GoogleAuthenticationTest : public AuthenticationCommonTestFixture {
   }
 
  protected:
-  GoogleTestUtils::GoogleUser test_user_;
-  std::unique_ptr<GoogleTestUtils> google_utils_;
+  AuthenticationTestUtils::AccessTokenResponse token_;
 };
 
 TEST_F(GoogleAuthenticationTest, SignInGoogle) {
-  ASSERT_FALSE(test_user_.access_token.empty());
+  ASSERT_FALSE(token_.access_token.empty());
 
   const std::string email = GetEmail();
   std::cout << "Creating account for: " << email << std::endl;
 
   AuthenticationClient::SignInUserResponse response =
-      SignInGoogleUser(email, test_user_.access_token);
+      SignInGoogleUser(email, token_.access_token);
   EXPECT_EQ(olp::http::HttpStatusCode::CREATED,
             response.GetResult().GetStatus());
   EXPECT_EQ(kErrorPreconditionCreatedCode,
@@ -113,7 +110,7 @@ TEST_F(GoogleAuthenticationTest, SignInGoogle) {
   EXPECT_TRUE(response2.GetResult().GetPrivatePolicyUrlJson().empty());
 
   AuthenticationClient::SignInUserResponse response3 =
-      SignInGoogleUser(email, test_user_.access_token);
+      SignInGoogleUser(email, token_.access_token);
   EXPECT_EQ(olp::http::HttpStatusCode::OK, response3.GetResult().GetStatus());
   EXPECT_STREQ(kErrorOk.c_str(),
                response3.GetResult().GetErrorResponse().message.c_str());
@@ -135,7 +132,7 @@ TEST_F(GoogleAuthenticationTest, SignInGoogle) {
   // EXPECT_EQ(kErrorNoContent.c_str(),
   //          signOutResponse.GetResult().GetErrorResponse().message);
 
-  AuthenticationUtils::DeleteUserResponse response4 =
+  AuthenticationTestUtils::DeleteUserResponse response4 =
       DeleteUser(response3.GetResult().GetAccessToken());
   EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT, response4.status);
   EXPECT_STREQ(kErrorNoContent.c_str(), response4.error.c_str());

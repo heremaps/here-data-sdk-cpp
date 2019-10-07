@@ -21,7 +21,7 @@
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
 #include "AuthenticationCommonTestFixture.h"
-#include "FacebookTestUtils.h"
+#include "AuthenticationTestUtils.h"
 #include "TestConstants.h"
 
 using namespace ::olp::authentication;
@@ -39,8 +39,7 @@ class FacebookAuthenticationTest : public AuthenticationCommonTestFixture {
   void SetUp() override {
     AuthenticationCommonTestFixture::SetUp();
 
-    facebook_utils_ = std::make_unique<FacebookTestUtils>();
-    ASSERT_TRUE(facebook_utils_->CreateFacebookTestUser(
+    ASSERT_TRUE(AuthenticationTestUtils::CreateFacebookTestUser(
         *network_, olp::http::NetworkSettings(), test_user_, "email"));
 
     id_ = kTestAppKeyId;
@@ -51,7 +50,7 @@ class FacebookAuthenticationTest : public AuthenticationCommonTestFixture {
     DeleteFacebookTestUser(*network_, olp::http::NetworkSettings(),
                            test_user_.id);
 
-    test_user_ = FacebookTestUtils::FacebookUser{};
+    test_user_ = AuthenticationTestUtils::FacebookUser{};
     AuthenticationCommonTestFixture::TearDown();
   }
 
@@ -61,7 +60,8 @@ class FacebookAuthenticationTest : public AuthenticationCommonTestFixture {
     std::promise<AuthenticationClient::SignInUserResponse> request;
     auto request_future = request.get_future();
     AuthenticationClient::FederatedProperties properties;
-    properties.access_token = token.empty() ? test_user_.access_token : token;
+    properties.access_token =
+        token.empty() ? test_user_.token.access_token : token;
     properties.country_code = "usa";
     properties.language = "en";
     properties.email = kTestUserName + "@example.com";
@@ -79,8 +79,8 @@ class FacebookAuthenticationTest : public AuthenticationCommonTestFixture {
       const olp::http::NetworkSettings& network_settings,
       const std::string& id) {
     for (int retry = 0; retry < 3; ++retry) {
-      if (facebook_utils_->DeleteFacebookTestUser(network, network_settings,
-                                                  id)) {
+      if (AuthenticationTestUtils::DeleteFacebookTestUser(
+              network, network_settings, id)) {
         return;
       }
 
@@ -89,8 +89,7 @@ class FacebookAuthenticationTest : public AuthenticationCommonTestFixture {
   }
 
  private:
-  FacebookTestUtils::FacebookUser test_user_;
-  std::unique_ptr<FacebookTestUtils> facebook_utils_;
+  AuthenticationTestUtils::FacebookUser test_user_;
 };
 
 TEST_F(FacebookAuthenticationTest, SignInFacebook) {
@@ -138,7 +137,7 @@ TEST_F(FacebookAuthenticationTest, SignInFacebook) {
   EXPECT_TRUE(response3.GetResult().GetPrivatePolicyUrl().empty());
   EXPECT_TRUE(response3.GetResult().GetPrivatePolicyUrlJson().empty());
 
-  AuthenticationUtils::DeleteUserResponse response4 =
+  AuthenticationTestUtils::DeleteUserResponse response4 =
       DeleteUser(response3.GetResult().GetAccessToken());
   EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT, response4.status);
   EXPECT_STREQ(kErrorNoContent.c_str(), response4.error.c_str());
