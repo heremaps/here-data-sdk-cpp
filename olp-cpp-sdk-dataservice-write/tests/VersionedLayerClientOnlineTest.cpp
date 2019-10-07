@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 #include <olp/authentication/TokenProvider.h>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/HRN.h>
