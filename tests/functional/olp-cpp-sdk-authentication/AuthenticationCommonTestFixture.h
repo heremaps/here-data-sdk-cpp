@@ -25,7 +25,6 @@
 #include <olp/core/http/Network.h>
 #include <olp/authentication/AuthenticationClient.h>
 #include "AuthenticationTestUtils.h"
-#include "TestConstants.h"
 
 using namespace ::olp::authentication;
 

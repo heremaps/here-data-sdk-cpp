@@ -75,7 +75,6 @@ TEST_F(AuthenticationProductionTest, SignInClient) {
         request.set_value(response);
       },
       std::chrono::seconds(kExpiryTime));
-  request_future.wait();
 
   AuthenticationClient::SignInClientResponse response = request_future.get();
   std::time_t now = std::time(nullptr);
@@ -99,7 +98,6 @@ TEST_F(AuthenticationProductionTest, SignInClient) {
         request_2.set_value(response);
       },
       std::chrono::seconds(kExtendedExpiryTime));
-  request_future_2.wait();
 
   AuthenticationClient::SignInClientResponse response_2 =
       request_future_2.get();
@@ -120,7 +118,6 @@ TEST_F(AuthenticationProductionTest, SignInClient) {
         request_3.set_value(response);
       },
       std::chrono::seconds(kCustomExpiryTime));
-  request_future_3.wait();
 
   AuthenticationClient::SignInClientResponse response_3 =
       request_future_3.get();
@@ -146,7 +143,6 @@ TEST_F(AuthenticationProductionTest, SignInClientMaxExpiration) {
       [&](const AuthenticationClient::SignInClientResponse& response) {
         request.set_value(response);
       });
-  request_future.wait();
 
   AuthenticationClient::SignInClientResponse response = request_future.get();
   EXPECT_TRUE(response.IsSuccessful());
@@ -164,7 +160,6 @@ TEST_F(AuthenticationProductionTest, SignInClientMaxExpiration) {
         request_2.set_value(response);
       },
       std::chrono::seconds(90000));
-  request_future_2.wait();
 
   AuthenticationClient::SignInClientResponse response_2 =
       request_future_2.get();
@@ -188,7 +183,6 @@ TEST_F(AuthenticationProductionTest, InvalidCredentials) {
       [&](const AuthenticationClient::SignInClientResponse& response) {
         request.set_value(response);
       });
-  request_future.wait();
 
   AuthenticationClient::SignInClientResponse response = request_future.get();
   EXPECT_TRUE(response.IsSuccessful());

@@ -23,6 +23,7 @@
 #include <olp/core/porting/make_unique.h>
 #include <testutils/CustomParameters.hpp>
 #include "AuthenticationTestUtils.h"
+#include "TestConstants.h"
 
 namespace {
 
@@ -62,7 +63,6 @@ class AuthenticationFunctionalTest : public AuthenticationCommonTestFixture {
       if (do_cancel) {
         cancel_token.cancel();
       }
-      request_future.wait();
       response = std::make_shared<AuthenticationClient::SignInClientResponse>(
           request_future.get());
     } while ((!response->IsSuccessful()) && (++retry < kMaxRetryCount) &&
@@ -100,7 +100,6 @@ class AuthenticationFunctionalTest : public AuthenticationCommonTestFixture {
         cancel_token.cancel();
       }
 
-      request_future.wait();
       response = std::make_shared<AuthenticationClient::SignInUserResponse>(
           request_future.get());
     } while ((!response->IsSuccessful()) && (++retry < kMaxRetryCount) &&
@@ -139,7 +138,6 @@ class AuthenticationFunctionalTest : public AuthenticationCommonTestFixture {
         cancel_token.cancel();
       }
 
-      request_future.wait();
       response = std::make_shared<AuthenticationClient::SignInUserResponse>(
           request_future.get());
     } while ((!response->IsSuccessful()) && (++retry < kMaxRetryCount) &&
@@ -173,7 +171,6 @@ class AuthenticationFunctionalTest : public AuthenticationCommonTestFixture {
       cancel_token.cancel();
     }
 
-    request_future.wait();
     return request_future.get();
   }
 };

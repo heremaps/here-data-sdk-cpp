@@ -17,17 +17,15 @@
  * License-Filename: LICENSE
  */
 
-#include <gmock/gmock.h>
-
 #include <future>
 #include <memory>
 
+#include <gmock/gmock.h>
 #include <olp/core/porting/make_unique.h>
 #include <olp/core/http/HttpStatusCode.h>
 #include "olp/core/client/OlpClientSettingsFactory.h"
 #include <olp/authentication/AuthenticationClient.h>
 #include <mocks/NetworkMock.h>
-
 #include "AuthenticationMockedResponses.h"
 
 using namespace olp::authentication;

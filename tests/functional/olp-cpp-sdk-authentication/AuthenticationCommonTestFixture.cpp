@@ -26,6 +26,7 @@
 #include <olp/core/porting/make_unique.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include "AuthenticationTestUtils.h"
+#include "TestConstants.h"
 
 std::shared_ptr<olp::http::Network> AuthenticationCommonTestFixture::s_network_;
 
@@ -86,7 +87,6 @@ AuthenticationCommonTestFixture::AcceptTerms(
       cancel_token.cancel();
     }
 
-    request_future.wait();
     response = std::make_shared<AuthenticationClient::SignInUserResponse>(
         request_future.get());
   } while ((!response->IsSuccessful()) && (++retry < kMaxRetryCount) &&
@@ -115,7 +115,6 @@ AuthenticationCommonTestFixture::DeleteUser(
         [&request](const AuthenticationTestUtils::DeleteUserResponse& resp) {
           request.set_value(resp);
         });
-    request_future.wait();
     response = std::make_shared<AuthenticationTestUtils::DeleteUserResponse>(
         request_future.get());
   } while ((response->status < 0) && (++retry < kMaxRetryCount));
@@ -139,7 +138,6 @@ AuthenticationCommonTestFixture::SignOutUser(const std::string& access_token,
     cancel_token.cancel();
   }
 
-  request_future.wait();
   return request_future.get();
 }
 

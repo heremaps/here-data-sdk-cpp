@@ -32,8 +32,6 @@ static const int kErrorFacebookErrorCode = 400300;
 
 const std::string kErrorFacebookFailedMessage = "Unexpected Facebook error.";
 
-}  // namespace
-
 class FacebookAuthenticationTest : public AuthenticationCommonTestFixture {
  protected:
   void SetUp() override {
@@ -160,3 +158,5 @@ TEST_F(FacebookAuthenticationTest, SignInFacebook) {
   EXPECT_TRUE(response5.GetResult().GetPrivatePolicyUrl().empty());
   EXPECT_TRUE(response5.GetResult().GetPrivatePolicyUrlJson().empty());
 }
+
+}  // namespace

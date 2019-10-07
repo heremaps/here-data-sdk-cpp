@@ -28,8 +28,6 @@ constexpr auto kErrorArcGisFailedCode = 400300;
 
 const std::string kErrorArcGisFailedMessage = "Invalid token.";
 
-}  // namespace
-
 using namespace ::olp::authentication;
 
 class ArcGisAuthenticationTest : public AuthenticationCommonTestFixture {
@@ -65,7 +63,6 @@ class ArcGisAuthenticationTest : public AuthenticationCommonTestFixture {
         [&](const AuthenticationClient::SignInUserResponse& response) {
           request.set_value(response);
         });
-    request_future.wait();
     return request_future.get();
   }
 
@@ -148,3 +145,5 @@ TEST_F(ArcGisAuthenticationTest, SignInArcGis) {
   EXPECT_TRUE(response5.GetResult().GetPrivatePolicyUrl().empty());
   EXPECT_TRUE(response5.GetResult().GetPrivatePolicyUrlJson().empty());
 }
+
+}  // namespace
