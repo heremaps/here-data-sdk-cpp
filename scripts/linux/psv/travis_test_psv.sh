@@ -20,7 +20,6 @@ $CPP_TEST_SOURCE_DARASERVICE_WRITE/olp-cpp-sdk-dataservice-write-tests \
     --gtest_filter=-"*Online*":"TestCacheMock*"
 echo ">>> Integration Test ... >>>"
 $CPP_TEST_SOURCE_INTEGRATION/olp-cpp-sdk-integration-tests \
-    --gtest_output="xml:olp-cpp-sdk-integration-tests-report.xml" \
-    --gtest_filter="CatalogClient*"
+    --gtest_output="xml:olp-cpp-sdk-integration-tests-report.xml"
 
 bash <(curl -s https://codecov.io/bash)
