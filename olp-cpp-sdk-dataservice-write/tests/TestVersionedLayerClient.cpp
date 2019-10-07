@@ -44,39 +44,6 @@ const std::string kVersionedLayer = "versioned_layer";
 
 class VersionedLayerClientTest : public ::testing::TestWithParam<bool> {};
 
-class VersionedLayerClientOfflineTest : public VersionedLayerClientTest {};
-
-INSTANTIATE_TEST_SUITE_P(TestOffline, VersionedLayerClientOfflineTest,
-                         ::testing::Values(false));
-
-TEST_P(VersionedLayerClientOfflineTest, StartBatchRequestTest) {
-  ASSERT_FALSE(StartBatchRequest().GetLayers());
-  ASSERT_FALSE(StartBatchRequest().GetVersionDependencies());
-  ASSERT_FALSE(StartBatchRequest().GetBillingTag());
-
-  auto sbr =
-      StartBatchRequest()
-          .WithLayers({"layer1", "layer2"})
-          .WithVersionDependencies({{false, "hrn1", 0}, {true, "hrn2", 1}})
-          .WithBillingTag("billingTag");
-  ASSERT_TRUE(sbr.GetLayers());
-  ASSERT_FALSE(sbr.GetLayers()->empty());
-  ASSERT_EQ(2ull, sbr.GetLayers()->size());
-  ASSERT_EQ("layer1", (*sbr.GetLayers())[0]);
-  ASSERT_EQ("layer2", (*sbr.GetLayers())[1]);
-  ASSERT_TRUE(sbr.GetVersionDependencies());
-  ASSERT_FALSE(sbr.GetVersionDependencies()->empty());
-  ASSERT_EQ(2ull, sbr.GetVersionDependencies()->size());
-  ASSERT_FALSE((*sbr.GetVersionDependencies())[0].GetDirect());
-  ASSERT_TRUE((*sbr.GetVersionDependencies())[1].GetDirect());
-  ASSERT_EQ("hrn1", (*sbr.GetVersionDependencies())[0].GetHrn());
-  ASSERT_EQ("hrn2", (*sbr.GetVersionDependencies())[1].GetHrn());
-  ASSERT_EQ(0, (*sbr.GetVersionDependencies())[0].GetVersion());
-  ASSERT_EQ(1, (*sbr.GetVersionDependencies())[1].GetVersion());
-  ASSERT_TRUE(sbr.GetBillingTag());
-  ASSERT_EQ("billingTag", (*sbr.GetBillingTag()));
-}
-
 class VersionedLayerClientOnlineTest : public VersionedLayerClientTest {
  protected:
   static std::shared_ptr<olp::http::Network> s_network;
