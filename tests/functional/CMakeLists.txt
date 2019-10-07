@@ -22,26 +22,20 @@ set(OLP_SDK_FUNCTIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-core/OlpClientDefaultAsyncHttpTest.cpp
     ./olp-cpp-sdk-dataservice-read/ApiTest.cpp
     ./olp-cpp-sdk-dataservice-read/CatalogClientTest.cpp
+    ./olp-cpp-sdk-authentication/ArcGisAuthenticationTest.cpp
     ./olp-cpp-sdk-authentication/AuthenticationCommonTestFixture.cpp
     ./olp-cpp-sdk-authentication/AuthenticationFunctionalTest.cpp
-    ./olp-cpp-sdk-authentication/AuthenticationUtils.cpp
-    ./olp-cpp-sdk-authentication/FacebookAuthenticationTest.cpp
-    ./olp-cpp-sdk-authentication/FacebookTestUtils.cpp
-    ./olp-cpp-sdk-authentication/ArcGisAuthenticationTest.cpp
-    ./olp-cpp-sdk-authentication/ArcGisTestUtils.cpp
-    ./olp-cpp-sdk-authentication/GoogleAuthenticationTest.cpp
-    ./olp-cpp-sdk-authentication/GoogleTestUtils.cpp
     ./olp-cpp-sdk-authentication/AuthenticationProductionTest.cpp
+    ./olp-cpp-sdk-authentication/AuthenticationTestUtils.cpp
+    ./olp-cpp-sdk-authentication/FacebookAuthenticationTest.cpp
+    ./olp-cpp-sdk-authentication/GoogleAuthenticationTest.cpp
     ./olp-cpp-sdk-authentication/HereAccountOauth2ProductionTest.cpp
 )
 
 set(OLP_SDK_FUNCTIONAL_TESTS_HEADERS
     ./olp-cpp-sdk-authentication/AuthenticationCommonTestFixture.h
-    ./olp-cpp-sdk-authentication/AuthenticationUtils.h
+    ./olp-cpp-sdk-authentication/AuthenticationTestUtils.h
     ./olp-cpp-sdk-authentication/TestConstants.h
-    ./olp-cpp-sdk-authentication/FacebookTestUtils.h
-    ./olp-cpp-sdk-authentication/ArcGisTestUtils.h
-    ./olp-cpp-sdk-authentication/GoogleTestUtils.h
 )
 
 if (ANDROID OR IOS)

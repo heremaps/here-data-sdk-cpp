@@ -20,7 +20,7 @@
 #include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/porting/make_unique.h>
 #include "AuthenticationCommonTestFixture.h"
-#include "ArcGisTestUtils.h"
+#include "AuthenticationTestUtils.h"
 #include "TestConstants.h"
 
 namespace {
@@ -37,17 +37,15 @@ class ArcGisAuthenticationTest : public AuthenticationCommonTestFixture {
   void SetUp() override {
     AuthenticationCommonTestFixture::SetUp();
 
-    arc_gis_utils_ = std::make_unique<ArcGisTestUtils>();
-    ASSERT_TRUE(arc_gis_utils_->GetAccessToken(
-        *network_, olp::http::NetworkSettings(), test_user_));
+    ASSERT_TRUE(AuthenticationTestUtils::GetArcGisAccessToken(
+        *network_, olp::http::NetworkSettings(), token_));
 
     id_ = kTestAppKeyId;
     secret_ = kTestAppKeySecret;
   }
 
   void TearDown() override {
-    test_user_ = ArcGisTestUtils::ArcGisUser{};
-    arc_gis_utils_.reset();
+    token_ = AuthenticationTestUtils::AccessTokenResponse{};
 
     AuthenticationCommonTestFixture::TearDown();
   }
@@ -58,7 +56,7 @@ class ArcGisAuthenticationTest : public AuthenticationCommonTestFixture {
     std::promise<AuthenticationClient::SignInUserResponse> request;
     auto request_future = request.get_future();
     AuthenticationClient::FederatedProperties properties;
-    properties.access_token = token.empty() ? test_user_.access_token : token;
+    properties.access_token = token.empty() ? token_.access_token : token;
     properties.country_code = "usa";
     properties.language = "en";
     properties.email = email;
@@ -72,8 +70,7 @@ class ArcGisAuthenticationTest : public AuthenticationCommonTestFixture {
   }
 
  protected:
-  ArcGisTestUtils::ArcGisUser test_user_;
-  std::unique_ptr<ArcGisTestUtils> arc_gis_utils_;
+  AuthenticationTestUtils::AccessTokenResponse token_;
 };
 
 // The ArcGIS refresh token will eventually expire. This requires a manual
@@ -127,7 +124,7 @@ TEST_F(ArcGisAuthenticationTest, SignInArcGis) {
   EXPECT_TRUE(response3.GetResult().GetPrivatePolicyUrl().empty());
   EXPECT_TRUE(response3.GetResult().GetPrivatePolicyUrlJson().empty());
 
-  AuthenticationUtils::DeleteUserResponse response4 =
+  AuthenticationTestUtils::DeleteUserResponse response4 =
       DeleteUser(response3.GetResult().GetAccessToken());
   EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT, response4.status);
   EXPECT_STREQ(kErrorNoContent.c_str(), response4.error.c_str());

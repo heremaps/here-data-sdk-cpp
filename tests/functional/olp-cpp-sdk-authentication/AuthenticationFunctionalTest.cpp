@@ -22,6 +22,7 @@
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
 #include <testutils/CustomParameters.hpp>
+#include "AuthenticationTestUtils.h"
 
 namespace {
 
@@ -327,7 +328,7 @@ TEST_F(AuthenticationFunctionalTest, SignUpInUser) {
   EXPECT_TRUE(response3.GetResult().GetPrivatePolicyUrl().empty());
   EXPECT_TRUE(response3.GetResult().GetPrivatePolicyUrlJson().empty());
 
-  AuthenticationUtils::DeleteUserResponse response4 =
+  AuthenticationTestUtils::DeleteUserResponse response4 =
       DeleteUser(response3.GetResult().GetAccessToken());
   EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT, response4.status);
   EXPECT_STREQ(kErrorNoContent.c_str(), response4.error.c_str());
@@ -390,7 +391,7 @@ TEST_F(AuthenticationFunctionalTest, AcceptTermCancel) {
   EXPECT_EQ(olp::client::ErrorCode::Cancelled,
             response2.GetError().GetErrorCode());
 
-  AuthenticationUtils::DeleteUserResponse response4 =
+  AuthenticationTestUtils::DeleteUserResponse response4 =
       DeleteUser(response3.GetResult().GetAccessToken());
 }
 
@@ -473,7 +474,7 @@ TEST_F(AuthenticationFunctionalTest, SignInRefresh) {
   EXPECT_EQ(kErrorRefreshFailedMessage,
             response5.GetResult().GetErrorResponse().message);
 
-  AuthenticationUtils::DeleteUserResponse response6 =
+  AuthenticationTestUtils::DeleteUserResponse response6 =
       DeleteUser(response4.GetResult().GetAccessToken());
   EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT, response6.status);
   EXPECT_STREQ(kErrorNoContent.c_str(), response6.error.c_str());
@@ -514,7 +515,7 @@ TEST_F(AuthenticationFunctionalTest, SignInRefreshCancel) {
   EXPECT_EQ(olp::client::ErrorCode::Cancelled,
             response4.GetError().GetErrorCode());
 
-  AuthenticationUtils::DeleteUserResponse response5 =
+  AuthenticationTestUtils::DeleteUserResponse response5 =
       DeleteUser(response3.GetResult().GetAccessToken());
 }
 
@@ -556,7 +557,7 @@ TEST_F(AuthenticationFunctionalTest, SignOutUser) {
   EXPECT_EQ(kErrorNoContent,
             signOutResponse.GetResult().GetErrorResponse().message);
 
-  AuthenticationUtils::DeleteUserResponse response4 =
+  AuthenticationTestUtils::DeleteUserResponse response4 =
       DeleteUser(response3.GetResult().GetAccessToken());
   EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT, response4.status);
   EXPECT_STREQ(kErrorNoContent.c_str(), response4.error.c_str());
