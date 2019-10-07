@@ -26,11 +26,8 @@
 #include <future>
 #include <memory>
 
-#include "ArcGisTestUtils.h"
 #include "AuthenticationUtils.h"
 #include "CommonTestUtils.h"
-#include "FacebookTestUtils.h"
-#include "GoogleTestUtils.h"
 #include "OfflineResponses.h"
 #include "SignInUserResultImpl.h"
 #include "olp/authentication/AuthenticationClient.h"
