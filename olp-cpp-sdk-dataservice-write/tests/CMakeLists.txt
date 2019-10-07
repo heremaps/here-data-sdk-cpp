@@ -29,8 +29,6 @@ set(OLP_SDK_DATASERVICE_WRITE_TEST_SOURCES
     TestVolatileLayerClient.cpp
     TestCancellationTokenList.cpp
     TestIndexLayerClient.cpp
-    TestCommons.h
-    TestCommons.cpp
     )
 
 
@@ -48,6 +46,7 @@ if (ANDROID OR IOS)
         gtest
         olp-cpp-sdk-authentication
         olp-cpp-sdk-dataservice-write
+        olp-cpp-sdk-tests-common
     )
 
     # For internal testing
@@ -103,6 +102,7 @@ else()
             gtest_main
             olp-cpp-sdk-authentication
             olp-cpp-sdk-dataservice-write
+            olp-cpp-sdk-tests-common
     )
 
     # For internal testing
