@@ -19,10 +19,7 @@
 
 #pragma once
 
-#include <olp/dataservice/write/FlushSettings.h>
-#include <time.h>
 #include <chrono>
-#include <ctime>
 
 namespace olp {
 namespace dataservice {
@@ -31,12 +28,6 @@ std::chrono::seconds getSecondsToNextHour(int tm_min, int tm_sec);
 std::chrono::seconds getSecondsToNextDay(int tm_hour, int tm_min, int tm_sec);
 std::chrono::seconds getSecondsToNextWeek(int tm_wday, int tm_hour, int tm_min,
                                           int tm_sec);
-
-template <class Clock, class Duration = typename Clock::duration>
-std::chrono::milliseconds getDelayTillPeriod(
-    FlushSettings::TimePeriod period,
-    std::chrono::time_point<Clock, Duration> atime_point =
-        std::chrono::system_clock::now());
 
 }  // namespace write
 }  // namespace dataservice

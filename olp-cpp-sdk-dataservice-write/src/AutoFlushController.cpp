@@ -152,16 +152,9 @@ class EnabledAutoFlushControllerImpl
     }
   }
 
-  void InitialiseAutoFlushPeriod() {
-    if (flush_settings_.auto_flush_time_period.is_initialized()) {
-      TriggerAutoFlushPeriod();
-    }
-  }
-
   void InitialiseAutoFlushPeriodic() {
     InitialiseAutoFlushInterval();
     InitialiseAutoFlushOldPartitionInterval();
-    InitialiseAutoFlushPeriod();
   }
 
   void HandleNotifyFlushEvent() {
@@ -214,22 +207,6 @@ class EnabledAutoFlushControllerImpl
     });
     flush_thread.detach();
     return true;
-  }
-
-  void TriggerAutoFlushPeriod() {
-    auto self = this->shared_from_this();
-    auto ms = getDelayTillPeriod(*flush_settings_.auto_flush_time_period,
-                                 std::chrono::system_clock::now());
-    auto auto_flush_period_thread = std::thread([self, ms]() {
-      std::this_thread::sleep_for(ms);
-      if (self->IsCancelled()) {
-        return;
-      }
-      if (self->AddBackgroundFlushTask()) {
-        self->TriggerAutoFlushPeriod();
-      }
-    });
-    auto_flush_period_thread.detach();
   }
 
   void TriggerAutoFlushInterval() {
@@ -302,8 +279,7 @@ class EnabledAutoFlushControllerImpl
     std::thread([self, ret]() {
       self->WaitForBackgroundTaskCompletion();
       ret->set_value();
-    })
-        .detach();
+    }).detach();
     return ret->get_future();
   }
 
