@@ -20,14 +20,14 @@ cmake_minimum_required(VERSION 3.5)
 
 set(OLP_SDK_DATASERVICE_WRITE_TEST_SOURCES
     HttpResponses.h
-    TestParser.cpp
-    TestSerializer.cpp
+    ParserTest.cpp
+    SerializerTest.cpp
     StreamLayerClientTest.cpp
-    TestThreadSafeQueue.cpp
-    TestTimeUtils.cpp
+    ThreadSafeQueueTest.cpp
+    TimeUtilsTest.cpp
     VersionedLayerClientOnlineTest.cpp
     TestVolatileLayerClient.cpp
-    TestCancellationTokenList.cpp
+    CancellationTokenListTest.cpp
     IndexLayerClientTest.cpp
     IndexLayerClientOnlineTest.cpp
     StartBatchRequestTest.cpp

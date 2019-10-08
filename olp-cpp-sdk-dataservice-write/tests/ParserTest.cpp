@@ -43,7 +43,7 @@ namespace {
 
 using namespace olp::dataservice::write::model;
 
-TEST(DataserviceWriteParserTest, ResponseOkSingle) {
+TEST(ParserTest, ResponseOkSingle) {
   auto json = R"(
         {
             "TraceID": "835eb107-7a35-478f-b41c-dd8e750affe0"
@@ -56,7 +56,7 @@ TEST(DataserviceWriteParserTest, ResponseOkSingle) {
                "835eb107-7a35-478f-b41c-dd8e750affe0");
 }
 
-TEST(DataserviceWriteParserTest, ResponseOkOneGeneratedId) {
+TEST(ParserTest, ResponseOkOneGeneratedId) {
   auto json = R"(
         {
             "TraceID": {
@@ -78,7 +78,7 @@ TEST(DataserviceWriteParserTest, ResponseOkOneGeneratedId) {
                "496546b2-04fd-4098-9419-c2fbe39a98a6");
 }
 
-TEST(DataserviceWriteParserTest, ResponseOkMultipleGeneratedIds) {
+TEST(ParserTest, ResponseOkMultipleGeneratedIds) {
   auto json = R"(
         {
             "TraceID": {
@@ -106,7 +106,7 @@ TEST(DataserviceWriteParserTest, ResponseOkMultipleGeneratedIds) {
                "f0fdf750-d67a-4804-81b9-3150e9d935db");
 }
 
-TEST(DataserviceWriteParserTest, Catalog) {
+TEST(ParserTest, Catalog) {
   std::string jsonInput =
       "{\
     \"id\": \"roadweather-catalog-v1\",\
@@ -329,7 +329,7 @@ TEST(DataserviceWriteParserTest, Catalog) {
 // Parse dataOutThroughputMbps, dataInThroughputMbps as double even though
 // OepnAPI sepcs says int64 because OLP Backend returns the value in decimal
 // format (e.g. 1.0) and this triggers an assert in RapidJSON when parsing.
-TEST(DataserviceWriteParserTest, CatalogCrash) {
+TEST(ParserTest, CatalogCrash) {
   std::string json_input =
       "{\"id\":\"olp-cpp-sdk-ingestion-test-catalog\",\"hrn\":\"hrn:here:data::"
       ":olp-cpp-sdk-"
@@ -429,7 +429,7 @@ TEST(DataserviceWriteParserTest, CatalogCrash) {
                    .GetDataOutThroughputMbps());
 }
 
-TEST(DataserviceWriteParserTest, Apis) {
+TEST(ParserTest, Apis) {
   std::string jsonInput =
       "[\
     {\
@@ -457,7 +457,7 @@ TEST(DataserviceWriteParserTest, Apis) {
   ASSERT_EQ("string", apis.at(0).GetParameters().at("additionalProp3"));
 }
 
-TEST(DataserviceWriteParserTest, PublishPartition) {
+TEST(ParserTest, PublishPartition) {
   auto json = R"(
       {
         "partition": "314010583",
@@ -489,7 +489,7 @@ TEST(DataserviceWriteParserTest, PublishPartition) {
   EXPECT_EQ(1519219235, response.GetTimestamp().get());
 }
 
-TEST(DataserviceWriteParserTest, PublishPartitions) {
+TEST(ParserTest, PublishPartitions) {
   auto json = R"(
       {
         "partitions": [
@@ -528,7 +528,7 @@ TEST(DataserviceWriteParserTest, PublishPartitions) {
   EXPECT_EQ(1519219235, partition.GetTimestamp().get());
 }
 
-TEST(DataserviceWriteParserTest, Details) {
+TEST(ParserTest, Details) {
   auto json = R"(
       {
         "state": "initialized",
@@ -548,7 +548,7 @@ TEST(DataserviceWriteParserTest, Details) {
   EXPECT_EQ(1523459129829, response.GetExpires());
 }
 
-TEST(DataserviceWriteParserTest, VersionDependency) {
+TEST(ParserTest, VersionDependency) {
   auto json = R"(
       {
           "direct": true,
@@ -564,7 +564,7 @@ TEST(DataserviceWriteParserTest, VersionDependency) {
   EXPECT_EQ(1, response.GetVersion());
 }
 
-TEST(DataserviceWriteParserTest, Publication) {
+TEST(ParserTest, Publication) {
   auto json = R"(
       {
         "id": "34bc2a16-0373-4157-8ccc-19ba08a6672b",
@@ -615,7 +615,7 @@ TEST(DataserviceWriteParserTest, Publication) {
   EXPECT_EQ(1, version_dependency.GetVersion());
 }
 
-TEST(DataserviceWriteParserTest, Partitions) {
+TEST(ParserTest, Partitions) {
   std::string jsonInput =
       "{\
       \"partitions\": [\
@@ -653,7 +653,7 @@ TEST(DataserviceWriteParserTest, Partitions) {
   ASSERT_EQ(2, *partitions.GetPartitions().at(0).GetVersion());
 }
 
-TEST(DataserviceWriteParserTest, LayerVersions) {
+TEST(ParserTest, LayerVersions) {
   std::string jsonInput =
       "{\
       \"layerVersions\": [\
@@ -682,7 +682,7 @@ TEST(DataserviceWriteParserTest, LayerVersions) {
             layerversions.GetLayerVersions().at(0).GetTimestamp());
 }
 
-TEST(DataserviceWriteParserTest, PublishDataRequest) {
+TEST(ParserTest, PublishDataRequest) {
   std::string jsonInput =
       R"(
       {

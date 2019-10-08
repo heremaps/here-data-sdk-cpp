@@ -24,7 +24,7 @@ namespace {
 
 using namespace olp::dataservice::write;
 
-TEST(TestCancellationTokenList, Basic) {
+TEST(CancellationTokenListTest, Basic) {
   CancellationTokenList list;
   list.CancelAll();
 
@@ -52,7 +52,7 @@ TEST(TestCancellationTokenList, Basic) {
   ASSERT_TRUE(b4);
 }
 
-TEST(TestCancellationTokenList, Basic2) {
+TEST(CancellationTokenListTest, Basic2) {
   CancellationTokenList list;
 
   bool b0 = false;
@@ -76,7 +76,7 @@ TEST(TestCancellationTokenList, Basic2) {
   ASSERT_TRUE(b4);
 }
 
-TEST(TestCancellationTokenList, Basic3) {
+TEST(CancellationTokenListTest, Basic3) {
   CancellationTokenList list;
 
   bool b0 = false;
