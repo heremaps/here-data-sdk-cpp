@@ -22,7 +22,7 @@ set(OLP_SDK_DATASERVICE_WRITE_TEST_SOURCES
     HttpResponses.h
     TestParser.cpp
     TestSerializer.cpp
-    TestStreamLayerClient.cpp
+    StreamLayerClientTest.cpp
     TestThreadSafeQueue.cpp
     TestTimeUtils.cpp
     VersionedLayerClientOnlineTest.cpp
