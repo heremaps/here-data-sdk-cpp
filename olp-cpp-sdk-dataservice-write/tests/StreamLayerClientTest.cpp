@@ -18,14 +18,8 @@
  */
 
 #include <gmock/gmock.h>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-
-#ifdef DATASERVICE_WRITE_HAS_OPENSSL
-#include <openssl/sha.h>
-#endif
-
+#include <matchers/NetworkUrlMatchers.h>
+#include <mocks/NetworkMock.h>
 #include <olp/authentication/TokenProvider.h>
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/client/ApiError.h>
@@ -34,31 +28,21 @@
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
-
 #include <olp/dataservice/write/StreamLayerClient.h>
 #include <olp/dataservice/write/model/PublishDataRequest.h>
 #include <olp/dataservice/write/model/PublishSdiiRequest.h>
-
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <testutils/CustomParameters.hpp>
 #include "HttpResponses.h"
-#include "testutils/CustomParameters.hpp"
 
-#include <matchers/NetworkUrlMatchers.h>
-#include <mocks/NetworkMock.h>
+namespace {
 
 using namespace olp::dataservice::write;
 using namespace olp::dataservice::write::model;
 using namespace testing;
 
-const std::string kEndpoint = "endpoint";
-const std::string kAppid = "dataservice_write_test_appid";
-const std::string kSecret = "dataservice_write_test_secret";
-const std::string kCatalog = "dataservice_write_test_catalog";
-const std::string kLayer = "layer";
-const std::string kLayer2 = "layer2";
-const std::string kLayerSdii = "layer_sdii";
-
-// TODO: Move duplicate test code to common header
-namespace {
 const std::string kBillingTag = "OlpCppSdkTest";
 constexpr int64_t kTwentyMib = 20971520;  // 20 MiB
 
@@ -77,28 +61,8 @@ constexpr unsigned char kSDIITestData[] = {
     0x42, 0x1b, 0x25, 0xec, 0x27, 0x40, 0x29, 0x68, 0xf2, 0x83, 0xa9, 0x1c,
     0x14, 0x48, 0x40, 0x31, 0x00, 0x00, 0x00, 0x00, 0xf0, 0x69, 0xf8, 0xc0,
     0x49, 0xe5, 0x35, 0x94, 0xd7, 0x50, 0x5e, 0x32, 0x40};
+
 constexpr unsigned int kSDIITestDataLength = 105;
-
-#ifdef DATASERVICE_WRITE_HAS_OPENSSL
-// https://stackoverflow.com/a/10632725/275524
-std::string sha256(const std::string str) {
-  unsigned char hash[SHA256_DIGEST_LENGTH];
-  SHA256_CTX sha256;
-  SHA256_Init(&sha256);
-  SHA256_Update(&sha256, str.c_str(), str.size());
-  SHA256_Final(hash, &sha256);
-  std::stringstream ss;
-  for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
-    ss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
-  }
-  return ss.str();
-}
-#endif
-
-std::string GenerateRandomUUID() {
-  static boost::uuids::random_generator gen;
-  return boost::uuids::to_string(gen());
-}
 
 void PublishDataSuccessAssertions(
     const olp::client::ApiResponse<ResponseOkSingle, olp::client::ApiError>&
@@ -133,14 +97,15 @@ void PublishFailureAssertions(
   EXPECT_NE(result.GetError().GetHttpStatusCode(), 200);
   // EXPECT_FALSE(result.GetError().GetMessage().empty());
 }
-}  // namespace
 
-class StreamLayerClientTestBase : public ::testing::TestWithParam<bool> {
+class StreamLayerClientTest : public ::testing::Test {
  protected:
-  StreamLayerClientTestBase() {
+  StreamLayerClientTest() {
     sdii_data_ = std::make_shared<std::vector<unsigned char>>(
         kSDIITestData, kSDIITestData + kSDIITestDataLength);
   }
+
+  ~StreamLayerClientTest() = default;
 
   virtual void SetUp() override {
     ASSERT_NO_FATAL_FAILURE(client_ = CreateStreamLayerClient());
@@ -148,31 +113,25 @@ class StreamLayerClientTestBase : public ::testing::TestWithParam<bool> {
   }
 
   virtual void TearDown() override {
+    testing::Mock::VerifyAndClearExpectations(network_.get());
     data_.reset();
     client_.reset();
   }
 
-  virtual bool IsOnlineTest() { return GetParam(); }
-
   std::string GetTestCatalog() {
-    return IsOnlineTest()
-               ? CustomParameters::getArgument(kCatalog)
-               : "hrn:here:data:::olp-cpp-sdk-ingestion-test-catalog";
+    return "hrn:here:data:::olp-cpp-sdk-ingestion-test-catalog";
   }
 
   std::string GetTestLayer() {
-    return IsOnlineTest() ? CustomParameters::getArgument(kLayer)
-                          : "olp-cpp-sdk-ingestion-test-stream-layer";
+    return "olp-cpp-sdk-ingestion-test-stream-layer";
   }
 
   std::string GetTestLayer2() {
-    return IsOnlineTest() ? CustomParameters::getArgument(kLayer2)
-                          : "olp-cpp-sdk-ingestion-test-stream-layer-2";
+    return "olp-cpp-sdk-ingestion-test-stream-layer-2";
   }
 
   std::string GetTestLayerSdii() {
-    return IsOnlineTest() ? CustomParameters::getArgument(kLayerSdii)
-                          : "olp-cpp-sdk-ingestion-test-stream-layer-sdii";
+    return "olp-cpp-sdk-ingestion-test-stream-layer-sdii";
   }
 
   void QueueMultipleEvents(int num_events) {
@@ -185,34 +144,7 @@ class StreamLayerClientTestBase : public ::testing::TestWithParam<bool> {
     }
   }
 
-  virtual std::shared_ptr<StreamLayerClient> CreateStreamLayerClient() = 0;
-
- private:
-  std::shared_ptr<std::vector<unsigned char>> GenerateData() {
-    std::string test_suite_name(testing::UnitTest::GetInstance()
-                                    ->current_test_info()
-                                    ->test_suite_name());
-    std::string test_name(
-        testing::UnitTest::GetInstance()->current_test_info()->name());
-    std::string data_string(test_suite_name + " " + test_name + " Payload");
-    return std::make_shared<std::vector<unsigned char>>(data_string.begin(),
-                                                        data_string.end());
-  }
-
- protected:
-  std::shared_ptr<StreamLayerClient> client_;
-  std::shared_ptr<std::vector<unsigned char>> data_;
-  std::shared_ptr<std::vector<unsigned char>> sdii_data_;
-};
-
-using testing::_;
-
-class StreamLayerClientMockTest : public StreamLayerClientTestBase {
- protected:
-  std::shared_ptr<NetworkMock> network_;
-
-  virtual std::shared_ptr<StreamLayerClient> CreateStreamLayerClient()
-      override {
+  virtual std::shared_ptr<StreamLayerClient> CreateStreamLayerClient() {
     olp::client::OlpClientSettings client_settings;
     network_ = std::make_shared<NetworkMock>();
     client_settings.network_request_handler = network_;
@@ -220,11 +152,6 @@ class StreamLayerClientMockTest : public StreamLayerClientTestBase {
 
     return std::make_shared<StreamLayerClient>(
         olp::client::HRN{GetTestCatalog()}, client_settings);
-  }
-
-  virtual void TearDown() override {
-    testing::Mock::VerifyAndClearExpectations(network_.get());
-    StreamLayerClientTestBase::TearDown();
   }
 
   void SetUpCommonNetworkMockCalls(NetworkMock& network) {
@@ -307,12 +234,29 @@ class StreamLayerClientMockTest : public StreamLayerClientTestBase {
             olp::http::NetworkResponse().WithStatus(200),
             HTTP_RESPONSE_INGEST_SDII));
   }
+
+ private:
+  std::shared_ptr<std::vector<unsigned char>> GenerateData() {
+    std::string test_suite_name(testing::UnitTest::GetInstance()
+                                    ->current_test_info()
+                                    ->test_suite_name());
+    std::string test_name(
+        testing::UnitTest::GetInstance()->current_test_info()->name());
+    std::string data_string(test_suite_name + " " + test_name + " Payload");
+    return std::make_shared<std::vector<unsigned char>>(data_string.begin(),
+                                                        data_string.end());
+  }
+
+ protected:
+  std::shared_ptr<NetworkMock> network_;
+  std::shared_ptr<StreamLayerClient> client_;
+  std::shared_ptr<std::vector<unsigned char>> data_;
+  std::shared_ptr<std::vector<unsigned char>> sdii_data_;
 };
 
-INSTANTIATE_TEST_SUITE_P(TestMock, StreamLayerClientMockTest,
-                         ::testing::Values(false));
+using testing::_;
 
-TEST_P(StreamLayerClientMockTest, PublishData) {
+TEST_F(StreamLayerClientTest, PublishData) {
   {
     testing::InSequence dummy;
 
@@ -336,7 +280,7 @@ TEST_P(StreamLayerClientMockTest, PublishData) {
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
 }
 
-TEST_P(StreamLayerClientMockTest, PublishDataGreaterThanTwentyMib) {
+TEST_F(StreamLayerClientTest, PublishDataGreaterThanTwentyMib) {
   {
     testing::InSequence dummy;
 
@@ -378,7 +322,7 @@ TEST_P(StreamLayerClientMockTest, PublishDataGreaterThanTwentyMib) {
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
 }
 
-TEST_P(StreamLayerClientMockTest, PublishDataCancel) {
+TEST_F(StreamLayerClientTest, PublishDataCancel) {
   auto wait_for_cancel = std::make_shared<std::promise<void>>();
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
@@ -412,7 +356,7 @@ TEST_P(StreamLayerClientMockTest, PublishDataCancel) {
   ASSERT_NO_FATAL_FAILURE(PublishFailureAssertions(response));
 }
 
-TEST_P(StreamLayerClientMockTest, PublishDataCancelLongDelay) {
+TEST_F(StreamLayerClientTest, PublishDataCancelLongDelay) {
   auto wait_for_cancel = std::make_shared<std::promise<void>>();
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
@@ -448,7 +392,7 @@ TEST_P(StreamLayerClientMockTest, PublishDataCancelLongDelay) {
   ASSERT_NO_FATAL_FAILURE(PublishFailureAssertions(response));
 }
 
-TEST_P(StreamLayerClientMockTest, BillingTag) {
+TEST_F(StreamLayerClientTest, BillingTag) {
   {
     testing::InSequence dummy;
 
@@ -475,7 +419,7 @@ TEST_P(StreamLayerClientMockTest, BillingTag) {
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
 }
 
-TEST_P(StreamLayerClientMockTest, ConcurrentPublishSameIngestApi) {
+TEST_F(StreamLayerClientTest, ConcurrentPublishSameIngestApi) {
   {
     testing::InSequence dummy;
 
@@ -512,7 +456,7 @@ TEST_P(StreamLayerClientMockTest, ConcurrentPublishSameIngestApi) {
   async5.get();
 }
 
-TEST_P(StreamLayerClientMockTest, SequentialPublishDifferentLayer) {
+TEST_F(StreamLayerClientTest, SequentialPublishDifferentLayer) {
   {
     testing::InSequence dummy;
 
@@ -547,7 +491,7 @@ TEST_P(StreamLayerClientMockTest, SequentialPublishDifferentLayer) {
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
 }
 
-TEST_P(StreamLayerClientMockTest, PublishSdii) {
+TEST_F(StreamLayerClientTest, PublishSdii) {
   {
     testing::InSequence dummy;
 
@@ -569,7 +513,7 @@ TEST_P(StreamLayerClientMockTest, PublishSdii) {
   ASSERT_NO_FATAL_FAILURE(PublishSdiiSuccessAssertions(response));
 }
 
-TEST_P(StreamLayerClientMockTest, PublishSDIIBillingTag) {
+TEST_F(StreamLayerClientTest, PublishSDIIBillingTag) {
   {
     testing::InSequence dummy;
 
@@ -593,7 +537,7 @@ TEST_P(StreamLayerClientMockTest, PublishSDIIBillingTag) {
   ASSERT_NO_FATAL_FAILURE(PublishSdiiSuccessAssertions(response));
 }
 
-TEST_P(StreamLayerClientMockTest, PublishSdiiCancel) {
+TEST_F(StreamLayerClientTest, PublishSdiiCancel) {
   auto wait_for_cancel = std::make_shared<std::promise<void>>();
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
@@ -624,7 +568,7 @@ TEST_P(StreamLayerClientMockTest, PublishSdiiCancel) {
   ASSERT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
 }
 
-TEST_P(StreamLayerClientMockTest, SDIIConcurrentPublishSameIngestApi) {
+TEST_F(StreamLayerClientTest, SDIIConcurrentPublishSameIngestApi) {
   {
     testing::InSequence s;
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
@@ -662,7 +606,7 @@ TEST_P(StreamLayerClientMockTest, SDIIConcurrentPublishSameIngestApi) {
   async5.get();
 }
 
-class StreamLayerClientCacheMockTest : public StreamLayerClientMockTest {
+class StreamLayerClientCacheMockTest : public StreamLayerClientTest {
  protected:
   virtual std::shared_ptr<StreamLayerClient> CreateStreamLayerClient()
       override {
@@ -685,7 +629,7 @@ class StreamLayerClientCacheMockTest : public StreamLayerClientMockTest {
     if (disk_cache_) {
       disk_cache_->Close();
     }
-    StreamLayerClientMockTest::TearDown();
+    StreamLayerClientTest::TearDown();
   }
 
   void FlushDataOnSettingSuccessAssertions(
@@ -710,7 +654,7 @@ class StreamLayerClientCacheMockTest : public StreamLayerClientMockTest {
       EXPECT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(single_response));
     }
   }
-  void maximumRequestsSuccessAssertions(const int maximum_requests,
+  void MaximumRequestsSuccessAssertions(const int maximum_requests,
                                         int num_requests = 0) {
     std::string expected_error = "Maximum number of requests has reached";
     if (num_requests) {
@@ -737,10 +681,7 @@ class StreamLayerClientCacheMockTest : public StreamLayerClientMockTest {
   FlushSettings flush_settings_;
 };
 
-INSTANTIATE_TEST_SUITE_P(TestCacheMock, StreamLayerClientCacheMockTest,
-                         ::testing::Values(true));
-
-TEST_P(StreamLayerClientCacheMockTest, FlushDataSingle) {
+TEST_F(StreamLayerClientCacheMockTest, FlushDataSingle) {
   {
     testing::InSequence dummy;
 
@@ -765,7 +706,7 @@ TEST_P(StreamLayerClientCacheMockTest, FlushDataSingle) {
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response[0]));
 }
 
-TEST_P(StreamLayerClientCacheMockTest, FlushDataMultiple) {
+TEST_F(StreamLayerClientCacheMockTest, FlushDataMultiple) {
   {
     testing::InSequence dummy;
 
@@ -789,7 +730,7 @@ TEST_P(StreamLayerClientCacheMockTest, FlushDataMultiple) {
   }
 }
 
-TEST_P(StreamLayerClientCacheMockTest, DISABLED_FlushDataCancel) {
+TEST_F(StreamLayerClientCacheMockTest, DISABLED_FlushDataCancel) {
   auto wait_for_cancel = std::make_shared<std::promise<void>>();
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
@@ -829,7 +770,7 @@ TEST_P(StreamLayerClientCacheMockTest, DISABLED_FlushDataCancel) {
   ASSERT_NO_FATAL_FAILURE(PublishFailureAssertions(response[0]));
 }
 
-TEST_P(StreamLayerClientCacheMockTest, FlushListenerMetrics) {
+TEST_F(StreamLayerClientCacheMockTest, FlushListenerMetrics) {
   disk_cache_->Close();
   flush_settings_.auto_flush_num_events = 3;
   client_ = CreateStreamLayerClient();
@@ -866,7 +807,7 @@ TEST_P(StreamLayerClientCacheMockTest, FlushListenerMetrics) {
   EXPECT_EQ(0, default_listener->GetNumFlushedRequestsFailed());
 }
 
-TEST_P(StreamLayerClientCacheMockTest,
+TEST_F(StreamLayerClientCacheMockTest,
        FlushListenerMetricsSetListenerBeforeQueuing) {
   disk_cache_->Close();
   flush_settings_.auto_flush_num_events = 3;
@@ -902,7 +843,7 @@ TEST_P(StreamLayerClientCacheMockTest,
   EXPECT_EQ(0, default_listener->GetNumFlushedRequestsFailed());
 }
 
-TEST_P(StreamLayerClientCacheMockTest,
+TEST_F(StreamLayerClientCacheMockTest,
        FlushListenerMetricsMultipleFlushEventsInSeries) {
   disk_cache_->Close();
   flush_settings_.auto_flush_num_events = 2;
@@ -945,7 +886,7 @@ TEST_P(StreamLayerClientCacheMockTest,
   EXPECT_EQ(0, default_listener->GetNumFlushedRequestsFailed());
 }
 
-TEST_P(StreamLayerClientCacheMockTest,
+TEST_F(StreamLayerClientCacheMockTest,
        FlushListenerMetricsMultipleFlushEventsInParallel) {
   disk_cache_->Close();
   flush_settings_.auto_flush_num_events = 2;
@@ -981,7 +922,7 @@ TEST_P(StreamLayerClientCacheMockTest,
   EXPECT_EQ(0, default_listener->GetNumFlushedRequestsFailed());
 }
 
-TEST_P(StreamLayerClientCacheMockTest, FlushListenerNotifications) {
+TEST_F(StreamLayerClientCacheMockTest, FlushListenerNotifications) {
   disk_cache_->Close();
   flush_settings_.auto_flush_num_events = 3;
   client_ = CreateStreamLayerClient();
@@ -1039,7 +980,7 @@ TEST_P(StreamLayerClientCacheMockTest, FlushListenerNotifications) {
   }
 }
 
-TEST_P(StreamLayerClientCacheMockTest, FlushDataMaxEventsDefaultSetting) {
+TEST_F(StreamLayerClientCacheMockTest, FlushDataMaxEventsDefaultSetting) {
   {
     testing::InSequence dummy;
 
@@ -1055,7 +996,7 @@ TEST_P(StreamLayerClientCacheMockTest, FlushDataMaxEventsDefaultSetting) {
   ASSERT_NO_FATAL_FAILURE(FlushDataOnSettingSuccessAssertions());
 }
 
-TEST_P(StreamLayerClientCacheMockTest, FlushDataMaxEventsValidCustomSetting) {
+TEST_F(StreamLayerClientCacheMockTest, FlushDataMaxEventsValidCustomSetting) {
   const int max_events_per_flush = 3;
   disk_cache_->Close();
   flush_settings_.events_per_single_flush = max_events_per_flush;
@@ -1077,7 +1018,7 @@ TEST_P(StreamLayerClientCacheMockTest, FlushDataMaxEventsValidCustomSetting) {
       FlushDataOnSettingSuccessAssertions(max_events_per_flush));
 }
 
-TEST_P(StreamLayerClientCacheMockTest, FlushDataMaxEventsInvalidCustomSetting) {
+TEST_F(StreamLayerClientCacheMockTest, FlushDataMaxEventsInvalidCustomSetting) {
   const int max_events_per_flush = -3;
   disk_cache_->Close();
   flush_settings_.events_per_single_flush = max_events_per_flush;
@@ -1099,7 +1040,7 @@ TEST_P(StreamLayerClientCacheMockTest, FlushDataMaxEventsInvalidCustomSetting) {
       FlushDataOnSettingSuccessAssertions(max_events_per_flush));
 }
 
-TEST_P(StreamLayerClientCacheMockTest, FlushSettingsTimeSinceOldRequest) {
+TEST_F(StreamLayerClientCacheMockTest, FlushSettingsTimeSinceOldRequest) {
   disk_cache_->Close();
   flush_settings_.auto_flush_old_events_force_flush_interval = 1;
   client_ = CreateStreamLayerClient();
@@ -1135,7 +1076,7 @@ TEST_P(StreamLayerClientCacheMockTest, FlushSettingsTimeSinceOldRequest) {
   EXPECT_EQ(0, default_listener->GetNumFlushedRequestsFailed());
 }
 
-TEST_P(StreamLayerClientCacheMockTest, FlushSettingsAutoFlushInterval) {
+TEST_F(StreamLayerClientCacheMockTest, FlushSettingsAutoFlushInterval) {
   disk_cache_->Close();
   flush_settings_.auto_flush_interval = 1;
   client_ = CreateStreamLayerClient();
@@ -1171,7 +1112,7 @@ TEST_P(StreamLayerClientCacheMockTest, FlushSettingsAutoFlushInterval) {
   EXPECT_EQ(0, default_listener->GetNumFlushedRequestsFailed());
 }
 
-TEST_P(StreamLayerClientCacheMockTest, FlushSettingsMaximumRequests) {
+TEST_F(StreamLayerClientCacheMockTest, FlushSettingsMaximumRequests) {
   disk_cache_->Close();
   ASSERT_EQ(flush_settings_.maximum_requests, boost::none);
   client_ = CreateStreamLayerClient();
@@ -1197,12 +1138,14 @@ TEST_P(StreamLayerClientCacheMockTest, FlushSettingsMaximumRequests) {
   }
   flush_settings_.maximum_requests = 10;
   client_ = CreateStreamLayerClient();
-  ASSERT_NO_FATAL_FAILURE(maximumRequestsSuccessAssertions(10));
+  ASSERT_NO_FATAL_FAILURE(MaximumRequestsSuccessAssertions(10));
   client_ = CreateStreamLayerClient();
-  ASSERT_NO_FATAL_FAILURE(maximumRequestsSuccessAssertions(10, 13));
+  ASSERT_NO_FATAL_FAILURE(MaximumRequestsSuccessAssertions(10, 13));
   client_ = CreateStreamLayerClient();
-  ASSERT_NO_FATAL_FAILURE(maximumRequestsSuccessAssertions(10, 9));
+  ASSERT_NO_FATAL_FAILURE(MaximumRequestsSuccessAssertions(10, 9));
   flush_settings_.maximum_requests = 0;
   client_ = CreateStreamLayerClient();
-  ASSERT_NO_FATAL_FAILURE(maximumRequestsSuccessAssertions(0, 10));
+  ASSERT_NO_FATAL_FAILURE(MaximumRequestsSuccessAssertions(0, 10));
 }
+
+}  // namespace
