@@ -29,7 +29,7 @@ set(OLP_SDK_FUNCTIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-dataservice-write/DataserviceWriteVolatileLayerClientTest.cpp
     ./olp-cpp-sdk-authentication/ArcGisAuthenticationTest.cpp
     ./olp-cpp-sdk-authentication/AuthenticationCommonTestFixture.cpp
-    ./olp-cpp-sdk-authentication/AuthenticationFunctionalTest.cpp
+    ./olp-cpp-sdk-authentication/AuthenticationClientTest.cpp
     ./olp-cpp-sdk-authentication/AuthenticationProductionTest.cpp
     ./olp-cpp-sdk-authentication/AuthenticationTestUtils.cpp
     ./olp-cpp-sdk-authentication/FacebookAuthenticationTest.cpp
