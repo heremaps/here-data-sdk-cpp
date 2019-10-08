@@ -27,7 +27,7 @@
 
 namespace {
 
-class AuthenticationFunctionalTest : public AuthenticationCommonTestFixture {
+class AuthenticationClientTest : public AuthenticationCommonTestFixture {
  protected:
   void SetUp() override {
     AuthenticationCommonTestFixture::SetUp();
@@ -175,7 +175,7 @@ class AuthenticationFunctionalTest : public AuthenticationCommonTestFixture {
   }
 };
 
-TEST_F(AuthenticationFunctionalTest, SignInClient) {
+TEST_F(AuthenticationClientTest, SignInClient) {
   AuthenticationCredentials credentials(id_, secret_);
   std::time_t now;
   AuthenticationClient::SignInClientResponse response =
@@ -213,7 +213,7 @@ TEST_F(AuthenticationFunctionalTest, SignInClient) {
   EXPECT_TRUE(response_3.GetResult().GetUserIdentifier().empty());
 }
 
-TEST_F(AuthenticationFunctionalTest, SignInClientMaxExpiration) {
+TEST_F(AuthenticationClientTest, SignInClientMaxExpiration) {
   // Test maximum token expiration 24 h
   AuthenticationCredentials credentials(id_, secret_);
 
@@ -239,7 +239,7 @@ TEST_F(AuthenticationFunctionalTest, SignInClientMaxExpiration) {
   EXPECT_TRUE(response_2.GetResult().GetUserIdentifier().empty());
 }
 
-TEST_F(AuthenticationFunctionalTest, InvalidCredentials) {
+TEST_F(AuthenticationClientTest, InvalidCredentials) {
   AuthenticationCredentials credentials(id_, id_);
 
   std::time_t now;
@@ -257,7 +257,7 @@ TEST_F(AuthenticationFunctionalTest, InvalidCredentials) {
   EXPECT_TRUE(response.GetResult().GetUserIdentifier().empty());
 }
 
-TEST_F(AuthenticationFunctionalTest, SignInClientCancel) {
+TEST_F(AuthenticationClientTest, SignInClientCancel) {
   AuthenticationCredentials credentials(id_, secret_);
 
   std::time_t now;
@@ -269,7 +269,7 @@ TEST_F(AuthenticationFunctionalTest, SignInClientCancel) {
             response.GetError().GetErrorCode());
 }
 
-TEST_F(AuthenticationFunctionalTest, SignUpInUser) {
+TEST_F(AuthenticationClientTest, SignUpInUser) {
   const std::string email = GetEmail();
   std::cout << "Creating account for: " << email << std::endl;
 
@@ -339,7 +339,7 @@ TEST_F(AuthenticationFunctionalTest, SignUpInUser) {
             response5.GetResult().GetErrorResponse().message);
 }
 
-TEST_F(AuthenticationFunctionalTest, SignUpUserCancel) {
+TEST_F(AuthenticationClientTest, SignUpUserCancel) {
   const std::string email = GetEmail();
   std::cout << "Creating account for: " << email << std::endl;
 
@@ -350,7 +350,7 @@ TEST_F(AuthenticationFunctionalTest, SignUpUserCancel) {
             response.GetError().GetErrorCode());
 }
 
-TEST_F(AuthenticationFunctionalTest, SignInUserCancel) {
+TEST_F(AuthenticationClientTest, SignInUserCancel) {
   const std::string email = GetEmail();
   std::cout << "Creating account for: " << email << std::endl;
 
@@ -363,7 +363,7 @@ TEST_F(AuthenticationFunctionalTest, SignInUserCancel) {
             response.GetError().GetErrorCode());
 }
 
-TEST_F(AuthenticationFunctionalTest, AcceptTermCancel) {
+TEST_F(AuthenticationClientTest, AcceptTermCancel) {
   const std::string email = GetEmail();
   std::cout << "Creating account for: " << email << std::endl;
 
@@ -392,7 +392,7 @@ TEST_F(AuthenticationFunctionalTest, AcceptTermCancel) {
       DeleteUser(response3.GetResult().GetAccessToken());
 }
 
-TEST_F(AuthenticationFunctionalTest, SignInRefresh) {
+TEST_F(AuthenticationClientTest, SignInRefresh) {
   const std::string email = GetEmail();
   std::cout << "Creating account for: " << email << std::endl;
 
@@ -485,7 +485,7 @@ TEST_F(AuthenticationFunctionalTest, SignInRefresh) {
             response7.GetResult().GetErrorResponse().message);
 }
 
-TEST_F(AuthenticationFunctionalTest, SignInRefreshCancel) {
+TEST_F(AuthenticationClientTest, SignInRefreshCancel) {
   const std::string email = GetEmail();
   std::cout << "Creating account for: " << email << std::endl;
 
@@ -516,7 +516,7 @@ TEST_F(AuthenticationFunctionalTest, SignInRefreshCancel) {
       DeleteUser(response3.GetResult().GetAccessToken());
 }
 
-TEST_F(AuthenticationFunctionalTest, SignOutUser) {
+TEST_F(AuthenticationClientTest, SignOutUser) {
   const std::string email = GetEmail();
   std::cout << "Creating account for: " << email << std::endl;
 
@@ -560,7 +560,7 @@ TEST_F(AuthenticationFunctionalTest, SignOutUser) {
   EXPECT_STREQ(kErrorNoContent.c_str(), response4.error.c_str());
 }
 
-TEST_F(AuthenticationFunctionalTest, NetworkProxySettings) {
+TEST_F(AuthenticationClientTest, NetworkProxySettings) {
   AuthenticationCredentials credentials(id_, secret_);
 
   auto proxy_settings = olp::http::NetworkProxySettings();
@@ -579,7 +579,7 @@ TEST_F(AuthenticationFunctionalTest, NetworkProxySettings) {
   EXPECT_STRNE(response.GetError().GetMessage().c_str(), kErrorOk.c_str());
 }
 
-TEST_F(AuthenticationFunctionalTest, ErrorFields) {
+TEST_F(AuthenticationClientTest, ErrorFields) {
   static const std::string PASSWORD = "password";
   static const std::string EMAIL = "email";
 
