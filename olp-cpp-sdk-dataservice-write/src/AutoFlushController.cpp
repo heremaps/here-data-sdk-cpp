@@ -20,25 +20,12 @@
 #include "AutoFlushController.h"
 
 #include "BackgroundTaskCollection.h"
-#include "PartitionTimestampQueue.h"
 #include "StreamLayerClientImpl.h"
 #include "TimeUtils.h"
 
 namespace olp {
 namespace dataservice {
 namespace write {
-
-namespace {
-/**
- Returns true if curr is within the specified percentage of req.
- */
-template <typename _Rep, typename _Period>
-constexpr bool IsCloseEnough(std::chrono::duration<_Rep, _Period> req,
-                             std::chrono::duration<_Rep, _Period> curr,
-                             int percentage) noexcept {
-  return curr > (req - (req * percentage / 100));
-}
-}  // namespace
 
 /**
  class DisabledAutoFlushControllerImpl
@@ -142,31 +129,14 @@ class EnabledAutoFlushControllerImpl
     }
   }
 
-  void InitialiseAutoFlushOldPartitionInterval() {
-    auto impl_pointer = client_impl_.lock();
-    if (impl_pointer &&
-        flush_settings_.auto_flush_old_events_force_flush_interval > 0) {
-      PushPartitionTimestamps(partition_timestamp_queue_,
-                              impl_pointer->QueueSize());
-      TriggerAutoFlushOldPartitionInterval();
-    }
-  }
-
-  void InitialiseAutoFlushPeriodic() {
-    InitialiseAutoFlushInterval();
-    InitialiseAutoFlushOldPartitionInterval();
-  }
+  void InitialiseAutoFlushPeriodic() { InitialiseAutoFlushInterval(); }
 
   void HandleNotifyFlushEvent() {
-    if (flush_settings_.auto_flush_old_events_force_flush_interval > 0) {
-      partition_timestamp_queue_.pop();
-    }
+    // No-op
   }
 
   void HandleNotifyQueueEventStart() {
-    if (flush_settings_.auto_flush_old_events_force_flush_interval > 0) {
-      PushPartitionTimestamps(partition_timestamp_queue_, 1);
-    }
+    // No-op
   }
 
   void HandleNotifyQueueEventComplete() { AutoFlushNumEvents(); }
@@ -225,45 +195,6 @@ class EnabledAutoFlushControllerImpl
     auto_flush_interval_thread.detach();
   }
 
-  void TriggerAutoFlushOldPartitionInterval() {
-    TriggerAutoFlushOldPartitionInterval(
-        std::chrono::seconds(
-            flush_settings_.auto_flush_old_events_force_flush_interval) -
-        CalculateTimeSinceOldestPartition(partition_timestamp_queue_));
-  }
-
-  void TriggerAutoFlushOldPartitionInterval(std::chrono::milliseconds ms) {
-    auto self = this->shared_from_this();
-
-    auto old_partition_thread = std::thread([self, ms]() {
-      std::this_thread::sleep_for(ms);
-      if (self->IsCancelled()) {
-        return;
-      }
-
-      std::chrono::milliseconds time_since_oldest_partition_queued =
-          CalculateTimeSinceOldestPartition(self->partition_timestamp_queue_);
-      std::chrono::milliseconds partition_queue_flush_interval =
-          std::chrono::seconds(
-              self->flush_settings_.auto_flush_old_events_force_flush_interval);
-
-      if (IsCloseEnough(partition_queue_flush_interval,
-                        time_since_oldest_partition_queued, 1)) {
-        if (!self->AddBackgroundFlushTask()) {
-          // No need to keep this thread alive once the client_impl_ is dead
-          return;
-        }
-      } else {
-        // adjust next task execution time based on current queue state.
-        partition_queue_flush_interval -= time_since_oldest_partition_queued;
-      }
-      self->TriggerAutoFlushOldPartitionInterval(
-          partition_queue_flush_interval);
-    });
-
-    old_partition_thread.detach();
-  }
-
   void WaitForBackgroundTaskCompletion() {
     background_task_col_.WaitForBackgroundTaskCompletion();
   }
@@ -287,7 +218,6 @@ class EnabledAutoFlushControllerImpl
   std::weak_ptr<ClientImpl> client_impl_;
   FlushSettings flush_settings_;
   std::shared_ptr<FlushEventListener<FlushResponse>> listener_;
-  PartitionTimestampQueue partition_timestamp_queue_;
   BackgroundTaskCollection<size_t> background_task_col_;
   std::mutex cancel_mutex_;
   std::map<size_t, olp::client::CancellationToken> cancel_token_map_;

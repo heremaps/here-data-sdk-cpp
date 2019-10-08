@@ -42,12 +42,6 @@ struct DATASERVICE_WRITE_API FlushSettings {
   int auto_flush_interval = 0;
 
   /**
-   * Queue time of oldest queued partition that will trigger an auto-flush event
-   * in seconds. Setting 0 indicates this feature is disabled.
-   */
-  int auto_flush_old_events_force_flush_interval = 0;
-
-  /**
     @brief The maximum number of partitions to be flushed each time.Set
     boost::none to flush all partitions. Non-positive number will flush nothing.
   */

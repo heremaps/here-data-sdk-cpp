@@ -26,7 +26,6 @@
 namespace olp {
 namespace dataservice {
 namespace write {
-class StreamLayerClientImpl;
 
 class AutoFlushController {
  public:
