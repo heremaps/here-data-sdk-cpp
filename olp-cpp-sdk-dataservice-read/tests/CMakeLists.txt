@@ -23,6 +23,7 @@ set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     CatalogRepositoryTest.cpp
     MultiRequestContextTest.cpp
     ParserTest.cpp
+    PartitionsRepositoryTest.cpp
     PendingRequestsTest.cpp
     SerializerTest.cpp
 )
