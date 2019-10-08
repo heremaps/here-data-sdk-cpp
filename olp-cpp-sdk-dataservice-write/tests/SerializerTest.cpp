@@ -40,7 +40,7 @@ void RemoveWhitespaceAndNewlines(std::string& s) {
   s = std::regex_replace(s, r, "");
 }
 
-TEST(DataserviceWriteSerializerTest, Publication) {
+TEST(SerializerTest, Publication) {
   Publication publication;
   publication.SetId("34bc2a16-0373-4157-8ccc-19ba08a6672b");
 
@@ -92,7 +92,7 @@ TEST(DataserviceWriteSerializerTest, Publication) {
   EXPECT_EQ(valid_json, json);
 }
 
-TEST(DataserviceWriteSerializerTest, PublicationOnlyLayerIds) {
+TEST(SerializerTest, PublicationOnlyLayerIds) {
   Publication publication;
 
   publication.SetLayerIds({"my-layer"});
@@ -113,7 +113,7 @@ TEST(DataserviceWriteSerializerTest, PublicationOnlyLayerIds) {
   EXPECT_EQ(valid_json, json);
 }
 
-TEST(DataserviceWriteSerializerTest, PublishPartition) {
+TEST(SerializerTest, PublishPartition) {
   PublishPartition publish_partition;
 
   publish_partition.SetPartition("314010583");
@@ -150,7 +150,7 @@ TEST(DataserviceWriteSerializerTest, PublishPartition) {
   EXPECT_EQ(valid_json, json);
 }
 
-TEST(DataserviceWriteSerializerTest, PublishPartitions) {
+TEST(SerializerTest, PublishPartitions) {
   PublishPartitions publish_partitions;
   PublishPartition publish_partition;
 
@@ -194,8 +194,7 @@ TEST(DataserviceWriteSerializerTest, PublishPartitions) {
   EXPECT_EQ(valid_json, json);
 }
 
-TEST(DataserviceWriteSerializerTest,
-     PublishPartitionsOnlyPartitionAndDatahandle) {
+TEST(SerializerTest, PublishPartitionsOnlyPartitionAndDatahandle) {
   PublishPartitions publish_partitions;
   PublishPartition publish_partition;
 
@@ -223,7 +222,7 @@ TEST(DataserviceWriteSerializerTest,
   EXPECT_EQ(valid_json, json);
 }
 
-TEST(DataserviceWriteSerializerTest, PublishDataRequest) {
+TEST(SerializerTest, PublishDataRequest) {
   PublishDataRequest publish_data_request;
 
   std::string data_string = "payload";
