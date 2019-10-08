@@ -18,17 +18,15 @@
  */
 
 #include <gmock/gmock.h>
-
-#include <olp/dataservice/write/VersionedLayerClient.h>
-
 #include <olp/authentication/TokenProvider.h>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
-
+#include <olp/dataservice/write/VersionedLayerClient.h>
 #include <olp/dataservice/write/model/StartBatchRequest.h>
+#include <testutils/CustomParameters.hpp>
 
-#include "testutils/CustomParameters.hpp"
+namespace {
 
 using namespace olp::dataservice::write;
 using namespace olp::dataservice::write::model;
@@ -42,9 +40,7 @@ const std::string kLayer2 = "layer2";
 const std::string kLayerSdii = "layer_sdii";
 const std::string kVersionedLayer = "versioned_layer";
 
-class VersionedLayerClientTest : public ::testing::TestWithParam<bool> {};
-
-class VersionedLayerClientOnlineTest : public VersionedLayerClientTest {
+class VersionedLayerClientOnlineTest : public ::testing::Test {
  protected:
   static std::shared_ptr<olp::http::Network> s_network;
 
@@ -53,11 +49,11 @@ class VersionedLayerClientOnlineTest : public VersionedLayerClientTest {
         CreateDefaultNetworkRequestHandler();
   }
 
-  virtual void SetUp() override { client_ = createVersionedLayerClient(); }
+  virtual void SetUp() override { client_ = CreateVersionedLayerClient(); }
 
   virtual void TearDown() override { client_ = nullptr; }
 
-  std::shared_ptr<VersionedLayerClient> createVersionedLayerClient() {
+  std::shared_ptr<VersionedLayerClient> CreateVersionedLayerClient() {
     auto network = s_network;
     olp::authentication::Settings authentication_settings;
     authentication_settings.token_endpoint_url =
@@ -87,40 +83,37 @@ class VersionedLayerClientOnlineTest : public VersionedLayerClientTest {
 // network instance inside the callbacks.
 std::shared_ptr<olp::http::Network> VersionedLayerClientOnlineTest::s_network;
 
-INSTANTIATE_TEST_SUITE_P(TestOnline, VersionedLayerClientOnlineTest,
-                         ::testing::Values(true));
-
-TEST_P(VersionedLayerClientOnlineTest, StartBatchInvalidTest) {
-  auto versionedClient = createVersionedLayerClient();
+TEST_F(VersionedLayerClientOnlineTest, StartBatchInvalid) {
+  auto versioned_client = CreateVersionedLayerClient();
   auto response =
-      versionedClient->StartBatch(StartBatchRequest()).GetFuture().get();
+      versioned_client->StartBatch(StartBatchRequest()).GetFuture().get();
 
   ASSERT_FALSE(response.IsSuccessful());
   ASSERT_FALSE(response.GetResult().GetId());
   ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
             response.GetError().GetErrorCode());
 
-  auto getBatchResponse =
-      versionedClient->GetBatch(response.GetResult()).GetFuture().get();
+  auto get_batch_response =
+      versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_FALSE(getBatchResponse.IsSuccessful());
+  ASSERT_FALSE(get_batch_response.IsSuccessful());
 
-  auto completeBatchResponse =
-      versionedClient->CompleteBatch(getBatchResponse.GetResult())
+  auto complete_batch_response =
+      versioned_client->CompleteBatch(get_batch_response.GetResult())
           .GetFuture()
           .get();
-  ASSERT_FALSE(completeBatchResponse.IsSuccessful());
+  ASSERT_FALSE(complete_batch_response.IsSuccessful());
 
-  auto cancelBatchResponse =
-      versionedClient->CancelBatch(getBatchResponse.GetResult())
+  auto cancel_batch_response =
+      versioned_client->CancelBatch(get_batch_response.GetResult())
           .GetFuture()
           .get();
-  ASSERT_FALSE(cancelBatchResponse.IsSuccessful());
+  ASSERT_FALSE(cancel_batch_response.IsSuccessful());
 }
 
-TEST_P(VersionedLayerClientOnlineTest, StartBatchTest) {
-  auto versionedClient = createVersionedLayerClient();
-  auto response = versionedClient
+TEST_F(VersionedLayerClientOnlineTest, StartBatch) {
+  auto versioned_client = CreateVersionedLayerClient();
+  auto response = versioned_client
                       ->StartBatch(StartBatchRequest().WithLayers(
                           {CustomParameters::getArgument(kVersionedLayer)}))
                       .GetFuture()
@@ -130,39 +123,41 @@ TEST_P(VersionedLayerClientOnlineTest, StartBatchTest) {
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
-  auto getBatchResponse =
-      versionedClient->GetBatch(response.GetResult()).GetFuture().get();
+  auto get_batch_response =
+      versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(getBatchResponse.IsSuccessful());
+  ASSERT_TRUE(get_batch_response.IsSuccessful());
   ASSERT_EQ(response.GetResult().GetId().value(),
-            getBatchResponse.GetResult().GetId().value());
+            get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("initialized",
-            getBatchResponse.GetResult().GetDetails()->GetState());
+            get_batch_response.GetResult().GetDetails()->GetState());
 
-  auto completeBatchResponse =
-      versionedClient->CompleteBatch(getBatchResponse.GetResult())
+  auto complete_batch_response =
+      versioned_client->CompleteBatch(get_batch_response.GetResult())
           .GetFuture()
           .get();
-  ASSERT_TRUE(completeBatchResponse.IsSuccessful());
+  ASSERT_TRUE(complete_batch_response.IsSuccessful());
 
-  getBatchResponse =
-      versionedClient->GetBatch(response.GetResult()).GetFuture().get();
+  get_batch_response =
+      versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(getBatchResponse.IsSuccessful());
+  ASSERT_TRUE(get_batch_response.IsSuccessful());
   ASSERT_EQ(response.GetResult().GetId().value(),
-            getBatchResponse.GetResult().GetId().value());
-  ASSERT_EQ("submitted", getBatchResponse.GetResult().GetDetails()->GetState());
+            get_batch_response.GetResult().GetId().value());
+  ASSERT_EQ("submitted",
+            get_batch_response.GetResult().GetDetails()->GetState());
 
   for (int i = 0; i < 100; ++i) {
-    getBatchResponse =
-        versionedClient->GetBatch(response.GetResult()).GetFuture().get();
+    get_batch_response =
+        versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-    ASSERT_TRUE(getBatchResponse.IsSuccessful());
+    ASSERT_TRUE(get_batch_response.IsSuccessful());
     ASSERT_EQ(response.GetResult().GetId().value(),
-              getBatchResponse.GetResult().GetId().value());
-    if (getBatchResponse.GetResult().GetDetails()->GetState() != "succeeded") {
+              get_batch_response.GetResult().GetId().value());
+    if (get_batch_response.GetResult().GetDetails()->GetState() !=
+        "succeeded") {
       ASSERT_EQ("submitted",
-                getBatchResponse.GetResult().GetDetails()->GetState());
+                get_batch_response.GetResult().GetDetails()->GetState());
     } else {
       break;
     }
@@ -173,16 +168,16 @@ TEST_P(VersionedLayerClientOnlineTest, StartBatchTest) {
   // (or just long delay). Thus, better to rewrite this test, or do not rely on
   // the real server, but use mocked server.
   // ASSERT_EQ("succeeded",
-  // getBatchResponse.GetResult().GetDetails()->GetState());
+  // get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_P(VersionedLayerClientOnlineTest, DeleteClientTest) {
-  auto versionedClient = createVersionedLayerClient();
-  auto fut = versionedClient
+TEST_F(VersionedLayerClientOnlineTest, DeleteClient) {
+  auto versioned_client = CreateVersionedLayerClient();
+  auto fut = versioned_client
                  ->StartBatch(StartBatchRequest().WithLayers(
                      {CustomParameters::getArgument(kVersionedLayer)}))
                  .GetFuture();
-  versionedClient = nullptr;
+  versioned_client = nullptr;
 
   auto response = fut.get();
 
@@ -190,31 +185,32 @@ TEST_P(VersionedLayerClientOnlineTest, DeleteClientTest) {
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
-  auto cancelBatchResponse =
+  auto cancel_batch_response =
       client_->CancelBatch(response.GetResult()).GetFuture().get();
-  ASSERT_TRUE(cancelBatchResponse.IsSuccessful());
+  ASSERT_TRUE(cancel_batch_response.IsSuccessful());
 
-  auto getBatchResponse =
+  auto get_batch_response =
       client_->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(getBatchResponse.IsSuccessful());
+  ASSERT_TRUE(get_batch_response.IsSuccessful());
   ASSERT_EQ(response.GetResult().GetId().value(),
-            getBatchResponse.GetResult().GetId().value());
-  ASSERT_EQ("cancelled", getBatchResponse.GetResult().GetDetails()->GetState());
+            get_batch_response.GetResult().GetId().value());
+  ASSERT_EQ("cancelled",
+            get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_P(VersionedLayerClientOnlineTest, GetBaseVersionTest) {
-  auto versionedClient = createVersionedLayerClient();
-  auto response = versionedClient->GetBaseVersion().GetFuture().get();
+TEST_F(VersionedLayerClientOnlineTest, GetBaseVersion) {
+  auto versioned_client = CreateVersionedLayerClient();
+  auto response = versioned_client->GetBaseVersion().GetFuture().get();
 
   ASSERT_TRUE(response.IsSuccessful());
-  auto versionResponse = response.GetResult();
-  ASSERT_GE(versionResponse.GetVersion(), 0);
+  auto version_response = response.GetResult();
+  ASSERT_GE(version_response.GetVersion(), 0);
 }
 
-TEST_P(VersionedLayerClientOnlineTest, CancelBatchTest) {
-  auto versionedClient = createVersionedLayerClient();
-  auto response = versionedClient
+TEST_F(VersionedLayerClientOnlineTest, CancelBatch) {
+  auto versioned_client = CreateVersionedLayerClient();
+  auto response = versioned_client
                       ->StartBatch(StartBatchRequest().WithLayers(
                           {CustomParameters::getArgument(kVersionedLayer)}))
                       .GetFuture()
@@ -224,48 +220,49 @@ TEST_P(VersionedLayerClientOnlineTest, CancelBatchTest) {
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
-  auto getBatchResponse =
-      versionedClient->GetBatch(response.GetResult()).GetFuture().get();
+  auto get_batch_response =
+      versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(getBatchResponse.IsSuccessful());
+  ASSERT_TRUE(get_batch_response.IsSuccessful());
   ASSERT_EQ(response.GetResult().GetId().value(),
-            getBatchResponse.GetResult().GetId().value());
+            get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("initialized",
-            getBatchResponse.GetResult().GetDetails()->GetState());
+            get_batch_response.GetResult().GetDetails()->GetState());
 
-  auto cancelBatchResponse =
-      versionedClient->CancelBatch(getBatchResponse.GetResult())
+  auto cancel_batch_response =
+      versioned_client->CancelBatch(get_batch_response.GetResult())
           .GetFuture()
           .get();
-  ASSERT_TRUE(cancelBatchResponse.IsSuccessful());
+  ASSERT_TRUE(cancel_batch_response.IsSuccessful());
 
-  getBatchResponse =
-      versionedClient->GetBatch(response.GetResult()).GetFuture().get();
+  get_batch_response =
+      versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(getBatchResponse.IsSuccessful());
+  ASSERT_TRUE(get_batch_response.IsSuccessful());
   ASSERT_EQ(response.GetResult().GetId().value(),
-            getBatchResponse.GetResult().GetId().value());
-  ASSERT_EQ("cancelled", getBatchResponse.GetResult().GetDetails()->GetState());
+            get_batch_response.GetResult().GetId().value());
+  ASSERT_EQ("cancelled",
+            get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_P(VersionedLayerClientOnlineTest, CancelAllBatchTest) {
-  auto versionedClient = createVersionedLayerClient();
-  auto responseFuture =
-      versionedClient
+TEST_F(VersionedLayerClientOnlineTest, CancelAllBatch) {
+  auto versioned_client = CreateVersionedLayerClient();
+  auto response_future =
+      versioned_client
           ->StartBatch(StartBatchRequest().WithLayers(
               {CustomParameters::getArgument(kVersionedLayer)}))
           .GetFuture();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  versionedClient->CancelAll();
+  versioned_client->CancelAll();
 
-  auto response = responseFuture.get();
+  auto response = response_future.get();
   ASSERT_FALSE(response.IsSuccessful());
 }
 
-TEST_P(VersionedLayerClientOnlineTest, PublishToBatchTest) {
-  auto versionedClient = createVersionedLayerClient();
-  auto response = versionedClient
+TEST_F(VersionedLayerClientOnlineTest, PublishToBatch) {
+  auto versioned_client = CreateVersionedLayerClient();
+  auto response = versioned_client
                       ->StartBatch(StartBatchRequest().WithLayers(
                           {CustomParameters::getArgument(kVersionedLayer)}))
                       .GetFuture()
@@ -275,17 +272,17 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchTest) {
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
-  auto getBatchResponse =
-      versionedClient->GetBatch(response.GetResult()).GetFuture().get();
+  auto get_batch_response =
+      versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(getBatchResponse.IsSuccessful());
+  ASSERT_TRUE(get_batch_response.IsSuccessful());
   ASSERT_EQ(response.GetResult().GetId().value(),
-            getBatchResponse.GetResult().GetId().value());
+            get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("initialized",
-            getBatchResponse.GetResult().GetDetails()->GetState());
+            get_batch_response.GetResult().GetDetails()->GetState());
 
-  auto publishToBatchResponse =
-      versionedClient
+  auto publish_to_batch_response =
+      versioned_client
           ->PublishToBatch(
               response.GetResult(),
               PublishPartitionDataRequest()
@@ -296,26 +293,27 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchTest) {
           .GetFuture()
           .get();
 
-  ASSERT_TRUE(publishToBatchResponse.IsSuccessful());
-  ASSERT_EQ("1111", publishToBatchResponse.GetResult().GetTraceID());
+  ASSERT_TRUE(publish_to_batch_response.IsSuccessful());
+  ASSERT_EQ("1111", publish_to_batch_response.GetResult().GetTraceID());
 
-  auto completeBatchResponse =
-      versionedClient->CompleteBatch(getBatchResponse.GetResult())
+  auto complete_batch_response =
+      versioned_client->CompleteBatch(get_batch_response.GetResult())
           .GetFuture()
           .get();
 
-  ASSERT_TRUE(completeBatchResponse.IsSuccessful());
+  ASSERT_TRUE(complete_batch_response.IsSuccessful());
 
   for (int i = 0; i < 100; ++i) {
-    getBatchResponse =
-        versionedClient->GetBatch(response.GetResult()).GetFuture().get();
+    get_batch_response =
+        versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-    ASSERT_TRUE(getBatchResponse.IsSuccessful());
+    ASSERT_TRUE(get_batch_response.IsSuccessful());
     ASSERT_EQ(response.GetResult().GetId().value(),
-              getBatchResponse.GetResult().GetId().value());
-    if (getBatchResponse.GetResult().GetDetails()->GetState() != "succeeded") {
+              get_batch_response.GetResult().GetId().value());
+    if (get_batch_response.GetResult().GetDetails()->GetState() !=
+        "succeeded") {
       ASSERT_EQ("submitted",
-                getBatchResponse.GetResult().GetDetails()->GetState());
+                get_batch_response.GetResult().GetDetails()->GetState());
     } else {
       break;
     }
@@ -326,12 +324,12 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchTest) {
   // (or just long delay). Thus, better to rewrite this test, or do not rely on
   // the real server, but use mocked server.
   // ASSERT_EQ("succeeded",
-  // getBatchResponse.GetResult().GetDetails()->GetState());
+  // get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_P(VersionedLayerClientOnlineTest, PublishToBatchDeleteClientTest) {
-  auto versionedClient = createVersionedLayerClient();
-  auto response = versionedClient
+TEST_F(VersionedLayerClientOnlineTest, PublishToBatchDeleteClient) {
+  auto versioned_client = CreateVersionedLayerClient();
+  auto response = versioned_client
                       ->StartBatch(StartBatchRequest().WithLayers(
                           {CustomParameters::getArgument(kVersionedLayer)}))
                       .GetFuture()
@@ -341,17 +339,17 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchDeleteClientTest) {
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
-  auto getBatchResponse =
-      versionedClient->GetBatch(response.GetResult()).GetFuture().get();
+  auto get_batch_response =
+      versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(getBatchResponse.IsSuccessful());
+  ASSERT_TRUE(get_batch_response.IsSuccessful());
   ASSERT_EQ(response.GetResult().GetId().value(),
-            getBatchResponse.GetResult().GetId().value());
+            get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("initialized",
-            getBatchResponse.GetResult().GetDetails()->GetState());
+            get_batch_response.GetResult().GetDetails()->GetState());
 
-  auto publishToBatchFuture =
-      versionedClient
+  auto publish_to_batch_future =
+      versioned_client
           ->PublishToBatch(
               response.GetResult(),
               PublishPartitionDataRequest()
@@ -361,8 +359,8 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchDeleteClientTest) {
                   .WithPartitionId("1111"))
           .GetFuture();
 
-  auto publishToBatchFuture2 =
-      versionedClient
+  auto publish_to_batch_future2 =
+      versioned_client
           ->PublishToBatch(
               response.GetResult(),
               PublishPartitionDataRequest()
@@ -372,50 +370,51 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchDeleteClientTest) {
                   .WithPartitionId("1112"))
           .GetFuture();
 
-  versionedClient = nullptr;
+  versioned_client = nullptr;
 
-  auto publishToBatchResponse = publishToBatchFuture.get();
-  auto publishToBatchResponse2 = publishToBatchFuture2.get();
+  auto publish_to_batch_response = publish_to_batch_future.get();
+  auto publish_to_batch_response2 = publish_to_batch_future2.get();
 
-  ASSERT_TRUE(publishToBatchResponse.IsSuccessful());
-  ASSERT_EQ("1111", publishToBatchResponse.GetResult().GetTraceID());
-  ASSERT_TRUE(publishToBatchResponse2.IsSuccessful());
-  ASSERT_EQ("1112", publishToBatchResponse2.GetResult().GetTraceID());
+  ASSERT_TRUE(publish_to_batch_response.IsSuccessful());
+  ASSERT_EQ("1111", publish_to_batch_response.GetResult().GetTraceID());
+  ASSERT_TRUE(publish_to_batch_response2.IsSuccessful());
+  ASSERT_EQ("1112", publish_to_batch_response2.GetResult().GetTraceID());
 
-  versionedClient = createVersionedLayerClient();
+  versioned_client = CreateVersionedLayerClient();
 
-  auto completeBatchResponse =
-      versionedClient->CompleteBatch(getBatchResponse.GetResult())
+  auto complete_batch_response =
+      versioned_client->CompleteBatch(get_batch_response.GetResult())
           .GetFuture()
           .get();
 
-  ASSERT_TRUE(completeBatchResponse.IsSuccessful());
+  ASSERT_TRUE(complete_batch_response.IsSuccessful());
 
   for (int i = 0; i < 100; ++i) {
-    getBatchResponse =
-        versionedClient->GetBatch(response.GetResult()).GetFuture().get();
+    get_batch_response =
+        versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-    ASSERT_TRUE(getBatchResponse.IsSuccessful());
+    ASSERT_TRUE(get_batch_response.IsSuccessful());
     ASSERT_EQ(response.GetResult().GetId().value(),
-              getBatchResponse.GetResult().GetId().value());
-    if (getBatchResponse.GetResult().GetDetails()->GetState() != "succeeded") {
+              get_batch_response.GetResult().GetId().value());
+    if (get_batch_response.GetResult().GetDetails()->GetState() !=
+        "succeeded") {
       ASSERT_EQ("submitted",
-                getBatchResponse.GetResult().GetDetails()->GetState());
+                get_batch_response.GetResult().GetDetails()->GetState());
     } else {
       break;
     }
   }
   // This check contradicts with the previous assertion - we can have a case,
-  // when the state of the last (i == 99) getBatchResponse is "submitted',
+  // when the state of the last (i == 99) get_batch_response is "submitted',
   // but not 'succeeded', thus, in the previous loop we accept such case
   // as a valid one, but here, we treat such case as an error.
   // ASSERT_EQ("succeeded",
-  // getBatchResponse.GetResult().GetDetails()->GetState());
+  // get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_P(VersionedLayerClientOnlineTest, PublishToBatchMultiTest) {
-  auto versionedClient = createVersionedLayerClient();
-  auto response = versionedClient
+TEST_F(VersionedLayerClientOnlineTest, PublishToBatchMulti) {
+  auto versioned_client = CreateVersionedLayerClient();
+  auto response = versioned_client
                       ->StartBatch(StartBatchRequest().WithLayers(
                           {CustomParameters::getArgument(kVersionedLayer)}))
                       .GetFuture()
@@ -425,17 +424,17 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchMultiTest) {
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
-  auto getBatchResponse =
-      versionedClient->GetBatch(response.GetResult()).GetFuture().get();
+  auto get_batch_response =
+      versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(getBatchResponse.IsSuccessful());
+  ASSERT_TRUE(get_batch_response.IsSuccessful());
   ASSERT_EQ(response.GetResult().GetId().value(),
-            getBatchResponse.GetResult().GetId().value());
+            get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("initialized",
-            getBatchResponse.GetResult().GetDetails()->GetState());
+            get_batch_response.GetResult().GetDetails()->GetState());
 
-  auto publishToBatchFuture =
-      versionedClient
+  auto publish_to_batch_future =
+      versioned_client
           ->PublishToBatch(
               response.GetResult(),
               PublishPartitionDataRequest()
@@ -445,8 +444,8 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchMultiTest) {
                   .WithPartitionId("1111"))
           .GetFuture();
 
-  auto publishToBatchFuture2 =
-      versionedClient
+  auto publish_to_batch_future2 =
+      versioned_client
           ->PublishToBatch(
               response.GetResult(),
               PublishPartitionDataRequest()
@@ -456,31 +455,32 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchMultiTest) {
                   .WithPartitionId("1112"))
           .GetFuture();
 
-  auto publishToBatchResponse = publishToBatchFuture.get();
-  auto publishToBatchResponse2 = publishToBatchFuture2.get();
+  auto publish_to_batch_response = publish_to_batch_future.get();
+  auto publish_to_batch_response2 = publish_to_batch_future2.get();
 
-  ASSERT_TRUE(publishToBatchResponse.IsSuccessful());
-  ASSERT_EQ("1111", publishToBatchResponse.GetResult().GetTraceID());
-  ASSERT_TRUE(publishToBatchResponse2.IsSuccessful());
-  ASSERT_EQ("1112", publishToBatchResponse2.GetResult().GetTraceID());
+  ASSERT_TRUE(publish_to_batch_response.IsSuccessful());
+  ASSERT_EQ("1111", publish_to_batch_response.GetResult().GetTraceID());
+  ASSERT_TRUE(publish_to_batch_response2.IsSuccessful());
+  ASSERT_EQ("1112", publish_to_batch_response2.GetResult().GetTraceID());
 
-  auto completeBatchResponse =
-      versionedClient->CompleteBatch(getBatchResponse.GetResult())
+  auto complete_batch_response =
+      versioned_client->CompleteBatch(get_batch_response.GetResult())
           .GetFuture()
           .get();
 
-  ASSERT_TRUE(completeBatchResponse.IsSuccessful());
+  ASSERT_TRUE(complete_batch_response.IsSuccessful());
 
   for (int i = 0; i < 100; ++i) {
-    getBatchResponse =
-        versionedClient->GetBatch(response.GetResult()).GetFuture().get();
+    get_batch_response =
+        versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-    ASSERT_TRUE(getBatchResponse.IsSuccessful());
+    ASSERT_TRUE(get_batch_response.IsSuccessful());
     ASSERT_EQ(response.GetResult().GetId().value(),
-              getBatchResponse.GetResult().GetId().value());
-    if (getBatchResponse.GetResult().GetDetails()->GetState() != "succeeded") {
+              get_batch_response.GetResult().GetId().value());
+    if (get_batch_response.GetResult().GetDetails()->GetState() !=
+        "succeeded") {
       ASSERT_EQ("submitted",
-                getBatchResponse.GetResult().GetDetails()->GetState());
+                get_batch_response.GetResult().GetDetails()->GetState());
     } else {
       break;
     }
@@ -491,12 +491,12 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchMultiTest) {
   // (or just long delay). Thus, better to rewrite this test, or do not rely on
   // the real server, but use mocked server.
   // ASSERT_EQ("succeeded",
-  // getBatchResponse.GetResult().GetDetails()->GetState());
+  // get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_P(VersionedLayerClientOnlineTest, PublishToBatchCancelTest) {
-  auto versionedClient = createVersionedLayerClient();
-  auto response = versionedClient
+TEST_F(VersionedLayerClientOnlineTest, PublishToBatchCancel) {
+  auto versioned_client = CreateVersionedLayerClient();
+  auto response = versioned_client
                       ->StartBatch(StartBatchRequest().WithLayers(
                           {CustomParameters::getArgument(kVersionedLayer)}))
                       .GetFuture()
@@ -506,17 +506,17 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchCancelTest) {
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
-  auto getBatchResponse =
-      versionedClient->GetBatch(response.GetResult()).GetFuture().get();
+  auto get_batch_response =
+      versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(getBatchResponse.IsSuccessful());
+  ASSERT_TRUE(get_batch_response.IsSuccessful());
   ASSERT_EQ(response.GetResult().GetId().value(),
-            getBatchResponse.GetResult().GetId().value());
+            get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("initialized",
-            getBatchResponse.GetResult().GetDetails()->GetState());
+            get_batch_response.GetResult().GetDetails()->GetState());
 
-  auto publishToBatchFuture =
-      versionedClient
+  auto publish_to_batch_future =
+      versioned_client
           ->PublishToBatch(
               response.GetResult(),
               PublishPartitionDataRequest()
@@ -526,38 +526,39 @@ TEST_P(VersionedLayerClientOnlineTest, PublishToBatchCancelTest) {
                   .WithPartitionId("1111"))
           .GetFuture();
 
-  versionedClient->CancelAll();
+  versioned_client->CancelAll();
 
-  auto publishToBatchResponse = publishToBatchFuture.get();
-  ASSERT_FALSE(publishToBatchResponse.IsSuccessful());
+  auto publish_to_batch_response = publish_to_batch_future.get();
+  ASSERT_FALSE(publish_to_batch_response.IsSuccessful());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            publishToBatchResponse.GetError().GetErrorCode());
+            publish_to_batch_response.GetError().GetErrorCode());
 
-  auto cancelBatchResponse =
-      versionedClient->CancelBatch(getBatchResponse.GetResult())
+  auto cancel_batch_response =
+      versioned_client->CancelBatch(get_batch_response.GetResult())
           .GetFuture()
           .get();
-  ASSERT_TRUE(cancelBatchResponse.IsSuccessful());
+  ASSERT_TRUE(cancel_batch_response.IsSuccessful());
 
-  getBatchResponse =
-      versionedClient->GetBatch(response.GetResult()).GetFuture().get();
+  get_batch_response =
+      versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(getBatchResponse.IsSuccessful());
+  ASSERT_TRUE(get_batch_response.IsSuccessful());
   ASSERT_EQ(response.GetResult().GetId().value(),
-            getBatchResponse.GetResult().GetId().value());
-  ASSERT_EQ("cancelled", getBatchResponse.GetResult().GetDetails()->GetState());
+            get_batch_response.GetResult().GetId().value());
+  ASSERT_EQ("cancelled",
+            get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_P(VersionedLayerClientOnlineTest, CheckDataExistsTest) {
-  auto versionedClient = createVersionedLayerClient();
+TEST_F(VersionedLayerClientOnlineTest, CheckDataExists) {
+  auto versioned_client = CreateVersionedLayerClient();
   auto fut =
-      versionedClient
+      versioned_client
           ->CheckDataExists(
               CheckDataExistsRequest()
                   .WithLayerId(CustomParameters::getArgument(kVersionedLayer))
                   .WithDataHandle("5d2082c3-9738-4de7-bde0-4a52527dab37"))
           .GetFuture();
-  versionedClient = nullptr;
+  versioned_client = nullptr;
 
   auto response = fut.get();
 
@@ -565,19 +566,21 @@ TEST_P(VersionedLayerClientOnlineTest, CheckDataExistsTest) {
   ASSERT_EQ(response.GetResult(), 200);
 }
 
-TEST_P(VersionedLayerClientOnlineTest, CheckDataNotExistsTest) {
-  auto versionedClient = createVersionedLayerClient();
+TEST_F(VersionedLayerClientOnlineTest, CheckDataNotExists) {
+  auto versioned_client = CreateVersionedLayerClient();
   auto fut =
-      versionedClient
+      versioned_client
           ->CheckDataExists(
               CheckDataExistsRequest()
                   .WithLayerId(CustomParameters::getArgument(kVersionedLayer))
                   .WithDataHandle("5d2082c3-9738-4de7-bde0-4a52527dab34"))
           .GetFuture();
-  versionedClient = nullptr;
+  versioned_client = nullptr;
 
   auto response = fut.get();
 
   ASSERT_TRUE(response.IsSuccessful());
   ASSERT_EQ(response.GetResult(), 404);
 }
+
+}  // namespace
