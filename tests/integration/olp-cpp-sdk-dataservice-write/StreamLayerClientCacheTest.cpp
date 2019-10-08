@@ -641,42 +641,6 @@ TEST_F(StreamLayerClientCacheTest, FlushDataMaxEventsInvalidCustomSetting) {
       FlushDataOnSettingSuccessAssertions(max_events_per_flush));
 }
 
-TEST_F(StreamLayerClientCacheTest, FlushSettingsTimeSinceOldRequest) {
-  disk_cache_->Close();
-  flush_settings_.auto_flush_old_events_force_flush_interval = 1;
-  client_ = CreateStreamLayerClient();
-  {
-    testing::InSequence dummy;
-
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
-        .Times(2);
-  }
-
-  ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(2));
-
-  auto default_listener = StreamLayerClient::DefaultListener();
-  client_->Enable(default_listener);
-
-  for (int i = 0; default_listener->GetNumFlushEvents() < 1; i++) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    if (i > 20) {
-      FAIL() << "Timeout waiting for Flush Event Listener Results";
-    }
-  }
-
-  EXPECT_EQ(1, default_listener->GetNumFlushEvents());
-  EXPECT_EQ(1, default_listener->GetNumFlushEventsAttempted());
-  EXPECT_EQ(0, default_listener->GetNumFlushEventsFailed());
-  EXPECT_EQ(2, default_listener->GetNumFlushedRequests());
-  EXPECT_EQ(0, default_listener->GetNumFlushedRequestsFailed());
-}
-
 TEST_F(StreamLayerClientCacheTest, FlushSettingsAutoFlushInterval) {
   disk_cache_->Close();
   flush_settings_.auto_flush_interval = 1;
