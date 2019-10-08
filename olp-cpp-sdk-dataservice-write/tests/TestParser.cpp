@@ -20,7 +20,7 @@
 #include <chrono>
 #include <string>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 // clang-format off
 // Ordering Required - Parser template specializations before JsonParser.h
@@ -38,6 +38,8 @@
 #include <generated/parser/PublishDataRequestParser.h>
 #include <olp/core/generated/parser/JsonParser.h>
 // clang-format on
+
+namespace {
 
 using namespace olp::dataservice::write::model;
 
@@ -708,3 +710,5 @@ TEST(DataserviceWriteParserTest, PublishDataRequest) {
   ASSERT_EQ("04946af8-7f0e-4d41-b85a-e883c74ebba3",
             *publishDataRequest.GetTraceId());
 }
+
+}  // namespace

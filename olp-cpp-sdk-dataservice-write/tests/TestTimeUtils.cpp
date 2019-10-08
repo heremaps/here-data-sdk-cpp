@@ -17,28 +17,30 @@
  * License-Filename: LICENSE
  */
 
-#include <gtest/gtest.h>
 #include <chrono>
 #include <ctime>
 
+#include <gtest/gtest.h>
 #include "TimeUtils.h"
+
+namespace {
 
 using namespace olp::dataservice::write;
 
 template <typename Clock = std::chrono::system_clock>
-auto to_time_point(std::tm a_tm) -> typename Clock::time_point {
+auto ToTimePoint(std::tm a_tm) -> typename Clock::time_point {
   auto time_c = mktime(&a_tm);
   return Clock::from_time_t(time_c);
 }
 
-bool is_dst(std::tm timePoint) {
+bool IsDst(std::tm timePoint) {
   auto time_c = mktime(&timePoint);
   std::tm a_tm;
   a_tm = *localtime(&time_c);
   return a_tm.tm_isdst != 0;
 }
 
-TEST(TimeUtilsTest, subroutine_test) {
+TEST(TimeUtilsTest, Subroutine) {
   ASSERT_EQ(std::chrono::seconds(3600), getSecondsToNextHour(0, 0));
   ASSERT_EQ(std::chrono::seconds(3599), getSecondsToNextHour(0, 1));
   ASSERT_EQ(std::chrono::seconds(1), getSecondsToNextHour(59, 59));
@@ -60,7 +62,7 @@ TEST(TimeUtilsTest, subroutine_test) {
   ASSERT_EQ(std::chrono::seconds(0), getSecondsToNextWeek(6, 23, 59, 60));
 }
 
-TEST(TimeUtilsTest, period_test) {
+TEST(TimeUtilsTest, Period) {
   std::tm testTimePoint = {0};
   testTimePoint.tm_year = 2018 - 1900;  // [0, 60] since 1900
   testTimePoint.tm_mon = 6 - 1;         // [0, 11] since Jan
@@ -74,21 +76,21 @@ TEST(TimeUtilsTest, period_test) {
 
   ASSERT_EQ(std::chrono::milliseconds(1770000ull),
             getDelayTillPeriod(FlushSettings::TimePeriod::Hourly,
-                               to_time_point(testTimePoint)));
-  if (is_dst(testTimePoint)) {
+                               ToTimePoint(testTimePoint)));
+  if (IsDst(testTimePoint)) {
     ASSERT_EQ(std::chrono::milliseconds(59370000ull),
               getDelayTillPeriod(FlushSettings::TimePeriod::Daily,
-                                 to_time_point(testTimePoint)));
+                                 ToTimePoint(testTimePoint)));
     ASSERT_EQ(std::chrono::milliseconds(577770000ull),
               getDelayTillPeriod(FlushSettings::TimePeriod::Weekly,
-                                 to_time_point(testTimePoint)));
+                                 ToTimePoint(testTimePoint)));
   } else {
     ASSERT_EQ(std::chrono::milliseconds(62970000ull),
               getDelayTillPeriod(FlushSettings::TimePeriod::Daily,
-                                 to_time_point(testTimePoint)));
+                                 ToTimePoint(testTimePoint)));
     ASSERT_EQ(std::chrono::milliseconds(581370000ull),
               getDelayTillPeriod(FlushSettings::TimePeriod::Weekly,
-                                 to_time_point(testTimePoint)));
+                                 ToTimePoint(testTimePoint)));
   }
 
   testTimePoint = std::tm{};
@@ -102,21 +104,21 @@ TEST(TimeUtilsTest, period_test) {
 
   ASSERT_EQ(std::chrono::milliseconds(90000ull),
             getDelayTillPeriod(FlushSettings::TimePeriod::Hourly,
-                               to_time_point(testTimePoint)));
-  if (is_dst(testTimePoint)) {
+                               ToTimePoint(testTimePoint)));
+  if (IsDst(testTimePoint)) {
     ASSERT_EQ(std::chrono::milliseconds(82890000ull),
               getDelayTillPeriod(FlushSettings::TimePeriod::Daily,
-                                 to_time_point(testTimePoint)));
+                                 ToTimePoint(testTimePoint)));
     ASSERT_EQ(std::chrono::milliseconds(82890000ull),
               getDelayTillPeriod(FlushSettings::TimePeriod::Weekly,
-                                 to_time_point(testTimePoint)));
+                                 ToTimePoint(testTimePoint)));
   } else {
     ASSERT_EQ(std::chrono::milliseconds(90000ull),
               getDelayTillPeriod(FlushSettings::TimePeriod::Daily,
-                                 to_time_point(testTimePoint)));
+                                 ToTimePoint(testTimePoint)));
     ASSERT_EQ(std::chrono::milliseconds(86490000ull),
               getDelayTillPeriod(FlushSettings::TimePeriod::Weekly,
-                                 to_time_point(testTimePoint)));
+                                 ToTimePoint(testTimePoint)));
   }
 
   testTimePoint = std::tm{};
@@ -130,20 +132,22 @@ TEST(TimeUtilsTest, period_test) {
 
   ASSERT_EQ(std::chrono::milliseconds(90000ull),
             getDelayTillPeriod(FlushSettings::TimePeriod::Hourly,
-                               to_time_point(testTimePoint)));
-  if (is_dst(testTimePoint)) {
+                               ToTimePoint(testTimePoint)));
+  if (IsDst(testTimePoint)) {
     ASSERT_EQ(std::chrono::milliseconds(90000ull),
               getDelayTillPeriod(FlushSettings::TimePeriod::Daily,
-                                 to_time_point(testTimePoint)));
+                                 ToTimePoint(testTimePoint)));
     ASSERT_EQ(std::chrono::milliseconds(86490000ull),
               getDelayTillPeriod(FlushSettings::TimePeriod::Weekly,
-                                 to_time_point(testTimePoint)));
+                                 ToTimePoint(testTimePoint)));
   } else {
     ASSERT_EQ(std::chrono::milliseconds(3690000ull),
               getDelayTillPeriod(FlushSettings::TimePeriod::Daily,
-                                 to_time_point(testTimePoint)));
+                                 ToTimePoint(testTimePoint)));
     ASSERT_EQ(std::chrono::milliseconds(90090000ull),
               getDelayTillPeriod(FlushSettings::TimePeriod::Weekly,
-                                 to_time_point(testTimePoint)));
+                                 ToTimePoint(testTimePoint)));
   }
 }
+
+}  // namespace

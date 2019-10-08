@@ -17,12 +17,14 @@
  * License-Filename: LICENSE
  */
 
+#include <gtest/gtest.h>
 #include "CancellationTokenList.h"
-#include "gtest/gtest.h"
+
+namespace {
 
 using namespace olp::dataservice::write;
 
-TEST(TestCancellationTokenList, BasicTest) {
+TEST(TestCancellationTokenList, Basic) {
   CancellationTokenList list;
   list.CancelAll();
 
@@ -50,7 +52,7 @@ TEST(TestCancellationTokenList, BasicTest) {
   ASSERT_TRUE(b4);
 }
 
-TEST(TestCancellationTokenList, BasicTest2) {
+TEST(TestCancellationTokenList, Basic2) {
   CancellationTokenList list;
 
   bool b0 = false;
@@ -74,7 +76,7 @@ TEST(TestCancellationTokenList, BasicTest2) {
   ASSERT_TRUE(b4);
 }
 
-TEST(TestCancellationTokenList, BasicTest3) {
+TEST(TestCancellationTokenList, Basic3) {
   CancellationTokenList list;
 
   bool b0 = false;
@@ -102,3 +104,5 @@ TEST(TestCancellationTokenList, BasicTest3) {
   ASSERT_TRUE(b3);
   ASSERT_FALSE(b4);
 }
+
+}  // namespace

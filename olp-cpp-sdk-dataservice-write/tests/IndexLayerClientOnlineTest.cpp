@@ -105,19 +105,19 @@ class IndexLayerClientOnlineTest : public ::testing::Test {
 
   const Index GetTestIndex() {
     Index index;
-    std::map<IndexName, std::shared_ptr<IndexValue>> indexFields;
-    indexFields.insert(std::pair<IndexName, std::shared_ptr<IndexValue>>(
+    std::map<IndexName, std::shared_ptr<IndexValue>> index_fields;
+    index_fields.insert(std::pair<IndexName, std::shared_ptr<IndexValue>>(
         "Place",
         std::make_shared<StringIndexValue>("New York", IndexType::String)));
-    indexFields.insert(std::pair<IndexName, std::shared_ptr<IndexValue>>(
+    index_fields.insert(std::pair<IndexName, std::shared_ptr<IndexValue>>(
         "Temperature", std::make_shared<IntIndexValue>(10, IndexType::Int)));
-    indexFields.insert(std::pair<IndexName, std::shared_ptr<IndexValue>>(
+    index_fields.insert(std::pair<IndexName, std::shared_ptr<IndexValue>>(
         "Rain", std::make_shared<BooleanIndexValue>(false, IndexType::Bool)));
-    indexFields.insert(std::pair<IndexName, std::shared_ptr<IndexValue>>(
+    index_fields.insert(std::pair<IndexName, std::shared_ptr<IndexValue>>(
         "testIndexLayer",
         std::make_shared<TimeWindowIndexValue>(123123, IndexType::TimeWindow)));
 
-    index.SetIndexFields(indexFields);
+    index.SetIndexFields(index_fields);
     return index;
   }
 
@@ -169,7 +169,7 @@ TEST_F(IndexLayerClientOnlineTest, DeleteData) {
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
   auto index_id = response.GetResult().GetTraceID();
 
-  auto deleteIndexRes =
+  auto delete_index_response =
       client_
           ->DeleteIndexData(
               DeleteIndexDataRequest().WithIndexId(index_id).WithLayerId(
@@ -177,7 +177,7 @@ TEST_F(IndexLayerClientOnlineTest, DeleteData) {
           .GetFuture()
           .get();
 
-  ASSERT_TRUE(deleteIndexRes.IsSuccessful());
+  ASSERT_TRUE(delete_index_response.IsSuccessful());
 }
 
 TEST_F(IndexLayerClientOnlineTest, PublishDataAsync) {

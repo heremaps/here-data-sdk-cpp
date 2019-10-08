@@ -18,14 +18,13 @@
  */
 
 #include <gmock/gmock.h>
-
 #include <olp/dataservice/write/VersionedLayerClient.h>
 
 namespace {
 
 using namespace olp::dataservice::write::model;
 
-TEST(StartBatchRequestTest, StartBatchRequestTest) {
+TEST(StartBatchRequestTest, StartBatchRequest) {
   ASSERT_FALSE(StartBatchRequest().GetLayers());
   ASSERT_FALSE(StartBatchRequest().GetVersionDependencies());
   ASSERT_FALSE(StartBatchRequest().GetBillingTag());
