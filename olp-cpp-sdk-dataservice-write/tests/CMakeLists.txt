@@ -23,6 +23,7 @@ set(OLP_SDK_DATASERVICE_WRITE_TEST_SOURCES
     ParserTest.cpp
     SerializerTest.cpp
     StreamLayerClientTest.cpp
+    StreamLayerClientCacheTest.cpp
     ThreadSafeQueueTest.cpp
     TimeUtilsTest.cpp
     TestVolatileLayerClient.cpp
