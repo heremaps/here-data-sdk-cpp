@@ -20,7 +20,7 @@
 #include <regex>
 #include <string>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 // clang-format off
 // Ordering Required - Parser template specializations before JsonParser.h
@@ -31,14 +31,14 @@
 #include <generated/serializer/JsonSerializer.h>
 // clang-format on
 
+namespace {
+
 using namespace olp::dataservice::write::model;
 
-namespace {
 void RemoveWhitespaceAndNewlines(std::string& s) {
   std::regex r("\\s+");
   s = std::regex_replace(s, r, "");
 }
-}  // namespace
 
 TEST(DataserviceWriteSerializerTest, Publication) {
   Publication publication;
@@ -254,3 +254,5 @@ TEST(DataserviceWriteSerializerTest, PublishDataRequest) {
 
   EXPECT_EQ(valid_json, json);
 }
+
+}  // namespace

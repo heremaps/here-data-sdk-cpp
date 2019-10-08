@@ -119,41 +119,41 @@ class VolatileLayerClientOnlineTest : public ::testing::Test {
 // network instance inside the callbacks.
 std::shared_ptr<olp::http::Network> VolatileLayerClientOnlineTest::s_network;
 
-TEST_F(VolatileLayerClientOnlineTest, GetBaseVersionTest) {
-  auto volatileClient = CreateVolatileLayerClient();
-  auto response = volatileClient->GetBaseVersion().GetFuture().get();
+TEST_F(VolatileLayerClientOnlineTest, GetBaseVersion) {
+  auto volatile_client = CreateVolatileLayerClient();
+  auto response = volatile_client->GetBaseVersion().GetFuture().get();
 
   ASSERT_TRUE(response.IsSuccessful());
-  auto versionResponse = response.GetResult();
-  ASSERT_GE(versionResponse.GetVersion(), 0);
+  auto version_response = response.GetResult();
+  ASSERT_GE(version_response.GetVersion(), 0);
 }
 
-TEST_F(VolatileLayerClientOnlineTest, StartBatchInvalidTest) {
-  auto volatileClient = CreateVolatileLayerClient();
+TEST_F(VolatileLayerClientOnlineTest, StartBatchInvalid) {
+  auto volatile_client = CreateVolatileLayerClient();
   auto response =
-      volatileClient->StartBatch(StartBatchRequest()).GetFuture().get();
+      volatile_client->StartBatch(StartBatchRequest()).GetFuture().get();
 
   ASSERT_FALSE(response.IsSuccessful());
   ASSERT_FALSE(response.GetResult().GetId());
   ASSERT_EQ(olp::client::ErrorCode::BadRequest,
             response.GetError().GetErrorCode());
 
-  auto getBatchResponse =
-      volatileClient->GetBatch(response.GetResult()).GetFuture().get();
+  auto get_batch_response =
+      volatile_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_FALSE(getBatchResponse.IsSuccessful());
+  ASSERT_FALSE(get_batch_response.IsSuccessful());
 
-  auto completeBatchResponse =
-      volatileClient->CompleteBatch(getBatchResponse.GetResult())
+  auto complete_batch_response =
+      volatile_client->CompleteBatch(get_batch_response.GetResult())
           .GetFuture()
           .get();
-  ASSERT_FALSE(completeBatchResponse.IsSuccessful());
+  ASSERT_FALSE(complete_batch_response.IsSuccessful());
 }
 
-TEST_F(VolatileLayerClientOnlineTest, StartBatchTest) {
-  auto volatileClient = CreateVolatileLayerClient();
+TEST_F(VolatileLayerClientOnlineTest, StartBatch) {
+  auto volatile_client = CreateVolatileLayerClient();
   auto response =
-      volatileClient
+      volatile_client
           ->StartBatch(StartBatchRequest().WithLayers({GetTestLayer()}))
           .GetFuture()
           .get();
@@ -162,31 +162,32 @@ TEST_F(VolatileLayerClientOnlineTest, StartBatchTest) {
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
-  auto getBatchResponse =
-      volatileClient->GetBatch(response.GetResult()).GetFuture().get();
+  auto get_batch_response =
+      volatile_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(getBatchResponse.IsSuccessful());
+  ASSERT_TRUE(get_batch_response.IsSuccessful());
   ASSERT_EQ(response.GetResult().GetId().value(),
-            getBatchResponse.GetResult().GetId().value());
+            get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("initialized",
-            getBatchResponse.GetResult().GetDetails()->GetState());
+            get_batch_response.GetResult().GetDetails()->GetState());
 
-  auto completeBatchResponse =
-      volatileClient->CompleteBatch(getBatchResponse.GetResult())
+  auto complete_batch_response =
+      volatile_client->CompleteBatch(get_batch_response.GetResult())
           .GetFuture()
           .get();
-  ASSERT_TRUE(completeBatchResponse.IsSuccessful());
+  ASSERT_TRUE(complete_batch_response.IsSuccessful());
 
   for (int i = 0; i < 100; ++i) {
-    getBatchResponse =
-        volatileClient->GetBatch(response.GetResult()).GetFuture().get();
+    get_batch_response =
+        volatile_client->GetBatch(response.GetResult()).GetFuture().get();
 
-    ASSERT_TRUE(getBatchResponse.IsSuccessful());
+    ASSERT_TRUE(get_batch_response.IsSuccessful());
     ASSERT_EQ(response.GetResult().GetId().value(),
-              getBatchResponse.GetResult().GetId().value());
-    if (getBatchResponse.GetResult().GetDetails()->GetState() != "succeeded") {
+              get_batch_response.GetResult().GetId().value());
+    if (get_batch_response.GetResult().GetDetails()->GetState() !=
+        "succeeded") {
       ASSERT_EQ("submitted",
-                getBatchResponse.GetResult().GetDetails()->GetState());
+                get_batch_response.GetResult().GetDetails()->GetState());
     } else {
       break;
     }
@@ -197,13 +198,13 @@ TEST_F(VolatileLayerClientOnlineTest, StartBatchTest) {
   // (or just long delay). Thus, better to rewrite this test, or do not rely on
   // the real server, but use mocked server.
   // ASSERT_EQ("succeeded",
-  // getBatchResponse.GetResult().GetDetails()->GetState());
+  // get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_F(VolatileLayerClientOnlineTest, PublishToBatchTest) {
-  auto volatileClient = CreateVolatileLayerClient();
+TEST_F(VolatileLayerClientOnlineTest, PublishToBatch) {
+  auto volatile_client = CreateVolatileLayerClient();
   auto response =
-      volatileClient
+      volatile_client
           ->StartBatch(StartBatchRequest().WithLayers({GetTestLayer()}))
           .GetFuture()
           .get();
@@ -218,27 +219,28 @@ TEST_F(VolatileLayerClientOnlineTest, PublishToBatchTest) {
       partition_request.WithLayerId(GetTestLayer()).WithPartitionId("123"));
   partition_requests.push_back(partition_request.WithPartitionId("456"));
 
-  auto publishToBatchResponse =
-      volatileClient->PublishToBatch(response.GetResult(), partition_requests)
+  auto publish_to_batch_response =
+      volatile_client->PublishToBatch(response.GetResult(), partition_requests)
           .GetFuture()
           .get();
-  ASSERT_TRUE(publishToBatchResponse.IsSuccessful());
+  ASSERT_TRUE(publish_to_batch_response.IsSuccessful());
 
-  auto completeBatchResponse =
-      volatileClient->CompleteBatch(response.GetResult()).GetFuture().get();
-  ASSERT_TRUE(completeBatchResponse.IsSuccessful());
+  auto complete_batch_response =
+      volatile_client->CompleteBatch(response.GetResult()).GetFuture().get();
+  ASSERT_TRUE(complete_batch_response.IsSuccessful());
 
-  GetBatchResponse getBatchResponse;
+  GetBatchResponse get_batch_response;
   for (int i = 0; i < 100; ++i) {
-    getBatchResponse =
-        volatileClient->GetBatch(response.GetResult()).GetFuture().get();
+    get_batch_response =
+        volatile_client->GetBatch(response.GetResult()).GetFuture().get();
 
-    ASSERT_TRUE(getBatchResponse.IsSuccessful());
+    ASSERT_TRUE(get_batch_response.IsSuccessful());
     ASSERT_EQ(response.GetResult().GetId().value(),
-              getBatchResponse.GetResult().GetId().value());
-    if (getBatchResponse.GetResult().GetDetails()->GetState() != "succeeded") {
+              get_batch_response.GetResult().GetId().value());
+    if (get_batch_response.GetResult().GetDetails()->GetState() !=
+        "succeeded") {
       ASSERT_EQ("submitted",
-                getBatchResponse.GetResult().GetDetails()->GetState());
+                get_batch_response.GetResult().GetDetails()->GetState());
     } else {
       break;
     }
@@ -249,13 +251,13 @@ TEST_F(VolatileLayerClientOnlineTest, PublishToBatchTest) {
   // (or just long delay). Thus, better to rewrite this test, or do not rely on
   // the real server, but use mocked server.
   // ASSERT_EQ("succeeded",
-  // getBatchResponse.GetResult().GetDetails()->GetState());
+  // get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_F(VolatileLayerClientOnlineTest, PublishToBatchInvalidTest) {
-  auto volatileClient = CreateVolatileLayerClient();
+TEST_F(VolatileLayerClientOnlineTest, PublishToBatchInvalid) {
+  auto volatile_client = CreateVolatileLayerClient();
   auto response =
-      volatileClient
+      volatile_client
           ->StartBatch(StartBatchRequest().WithLayers({GetTestLayer()}))
           .GetFuture()
           .get();
@@ -264,20 +266,20 @@ TEST_F(VolatileLayerClientOnlineTest, PublishToBatchInvalidTest) {
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
-  auto publishToBatchResponse =
-      volatileClient->PublishToBatch(response.GetResult(), {})
+  auto publish_to_batch_response =
+      volatile_client->PublishToBatch(response.GetResult(), {})
           .GetFuture()
           .get();
-  ASSERT_FALSE(publishToBatchResponse.IsSuccessful());
+  ASSERT_FALSE(publish_to_batch_response.IsSuccessful());
 
   std::vector<PublishPartitionDataRequest> partition_requests{
       PublishPartitionDataRequest{}, PublishPartitionDataRequest{}};
 
-  publishToBatchResponse =
-      volatileClient->PublishToBatch(response.GetResult(), partition_requests)
+  publish_to_batch_response =
+      volatile_client->PublishToBatch(response.GetResult(), partition_requests)
           .GetFuture()
           .get();
-  ASSERT_FALSE(publishToBatchResponse.IsSuccessful());
+  ASSERT_FALSE(publish_to_batch_response.IsSuccessful());
 
   partition_requests.clear();
   PublishPartitionDataRequest partition_request;
@@ -286,21 +288,21 @@ TEST_F(VolatileLayerClientOnlineTest, PublishToBatchInvalidTest) {
   partition_requests.push_back(
       partition_request.WithLayerId("bar").WithPartitionId("456"));
 
-  publishToBatchResponse =
-      volatileClient->PublishToBatch(response.GetResult(), partition_requests)
+  publish_to_batch_response =
+      volatile_client->PublishToBatch(response.GetResult(), partition_requests)
           .GetFuture()
           .get();
-  ASSERT_FALSE(publishToBatchResponse.IsSuccessful());
+  ASSERT_FALSE(publish_to_batch_response.IsSuccessful());
 }
 
 // Sometimes we receive the 500 internal server error,
 // thus looks loke the problem is on the server side.
 // Please, re-enable this test when switched to mocked server or
 // when the server will be more steady for testing
-TEST_F(VolatileLayerClientOnlineTest, DISABLED_StartBatchDeleteClientTest) {
-  auto volatileClient = CreateVolatileLayerClient();
+TEST_F(VolatileLayerClientOnlineTest, DISABLED_StartBatchDeleteClient) {
+  auto volatile_client = CreateVolatileLayerClient();
   auto response =
-      volatileClient
+      volatile_client
           ->StartBatch(StartBatchRequest().WithLayers({GetTestLayer()}))
           .GetFuture()
           .get();
@@ -309,36 +311,37 @@ TEST_F(VolatileLayerClientOnlineTest, DISABLED_StartBatchDeleteClientTest) {
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
-  auto getBatchFuture =
-      volatileClient->GetBatch(response.GetResult()).GetFuture();
+  auto get_batch_future =
+      volatile_client->GetBatch(response.GetResult()).GetFuture();
 
-  volatileClient = nullptr;
+  volatile_client = nullptr;
 
-  auto getBatchResponse = getBatchFuture.get();
-  ASSERT_TRUE(getBatchResponse.IsSuccessful());
+  auto get_batch_response = get_batch_future.get();
+  ASSERT_TRUE(get_batch_response.IsSuccessful());
   ASSERT_EQ(response.GetResult().GetId().value(),
-            getBatchResponse.GetResult().GetId().value());
+            get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("initialized",
-            getBatchResponse.GetResult().GetDetails()->GetState());
+            get_batch_response.GetResult().GetDetails()->GetState());
 
-  volatileClient = CreateVolatileLayerClient();
+  volatile_client = CreateVolatileLayerClient();
 
-  auto completeBatchResponse =
-      volatileClient->CompleteBatch(getBatchResponse.GetResult())
+  auto complete_batch_response =
+      volatile_client->CompleteBatch(get_batch_response.GetResult())
           .GetFuture()
           .get();
-  ASSERT_TRUE(completeBatchResponse.IsSuccessful());
+  ASSERT_TRUE(complete_batch_response.IsSuccessful());
 
   for (int i = 0; i < 100; ++i) {
-    getBatchResponse =
-        volatileClient->GetBatch(response.GetResult()).GetFuture().get();
+    get_batch_response =
+        volatile_client->GetBatch(response.GetResult()).GetFuture().get();
 
-    ASSERT_TRUE(getBatchResponse.IsSuccessful());
+    ASSERT_TRUE(get_batch_response.IsSuccessful());
     ASSERT_EQ(response.GetResult().GetId().value(),
-              getBatchResponse.GetResult().GetId().value());
-    if (getBatchResponse.GetResult().GetDetails()->GetState() != "succeeded") {
+              get_batch_response.GetResult().GetId().value());
+    if (get_batch_response.GetResult().GetDetails()->GetState() !=
+        "succeeded") {
       ASSERT_EQ("submitted",
-                getBatchResponse.GetResult().GetDetails()->GetState());
+                get_batch_response.GetResult().GetDetails()->GetState());
     } else {
       break;
     }
@@ -349,15 +352,15 @@ TEST_F(VolatileLayerClientOnlineTest, DISABLED_StartBatchDeleteClientTest) {
   // (or just long delay). Thus, better to rewrite this test, or do not rely on
   // the real server, but use mocked server.
   // ASSERT_EQ("succeeded",
-  // getBatchResponse.GetResult().GetDetails()->GetState());
+  // get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_F(VolatileLayerClientOnlineTest, cancellAllRequestsTest) {
-  auto volatileClient = CreateVolatileLayerClient();
-  auto future = volatileClient->GetBaseVersion().GetFuture();
+TEST_F(VolatileLayerClientOnlineTest, cancellAllRequests) {
+  auto volatile_client = CreateVolatileLayerClient();
+  auto future = volatile_client->GetBaseVersion().GetFuture();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  volatileClient->cancellAll();
+  volatile_client->cancellAll();
 
   auto response = future.get();
   ASSERT_FALSE(response.IsSuccessful());

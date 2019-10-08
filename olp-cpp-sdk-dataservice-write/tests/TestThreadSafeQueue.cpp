@@ -17,14 +17,17 @@
  * License-Filename: LICENSE
  */
 
-#include <gtest/gtest.h>
 #include <chrono>
 #include <string>
+
+#include <gtest/gtest.h>
 #include "ThreadSafeQueue.h"
+
+namespace {
 
 using namespace olp::dataservice::write;
 
-TEST(ThreadSafeQueueTest, EmptyQueueTest) {
+TEST(ThreadSafeQueueTest, EmptyQueue) {
   ThreadSafeQueue<int> queue;
   ASSERT_TRUE(queue.empty());
   ASSERT_EQ(0ull, queue.size());
@@ -42,7 +45,7 @@ TEST(ThreadSafeQueueTest, EmptyQueueTest) {
   ASSERT_FALSE(queue.try_pop(i));
 }
 
-TEST(ThreadSafeQueueTest, FrontBackQueueTest) {
+TEST(ThreadSafeQueueTest, FrontBackQueue) {
   ThreadSafeQueue<int> queue;
   ASSERT_EQ(0, queue.top());
 
@@ -84,7 +87,7 @@ TEST(ThreadSafeQueueTest, FrontBackQueueTest) {
   ASSERT_FALSE(queue.try_pop(i));
 }
 
-TEST(ThreadSafeQueueTest, EmplaceQueueTest) {
+TEST(ThreadSafeQueueTest, EmplaceQueue) {
   ThreadSafeQueue<int> queue;
   queue.emplace(1);
   queue.emplace(2);
@@ -103,7 +106,7 @@ TEST(ThreadSafeQueueTest, EmplaceQueueTest) {
   ASSERT_EQ(5ull, queue2.size());
 }
 
-TEST(ThreadSafeQueueTest, PushQueueTest) {
+TEST(ThreadSafeQueueTest, PushQueue) {
   ThreadSafeQueue<int> queue;
   queue.emplace(1);
   queue.emplace(2);
@@ -168,7 +171,7 @@ TEST(ThreadSafeQueueTest, PushQueueTest) {
   ASSERT_EQ(0, queue.top());
 }
 
-TEST(ThreadSafeQueueTest, MultiEmplacePopQueueTest) {
+TEST(ThreadSafeQueueTest, MultiEmplacePopQueue) {
   ThreadSafeQueue<int> queue;
   queue.emplace(1);
   queue.emplace(2);
@@ -198,7 +201,7 @@ TEST(ThreadSafeQueueTest, MultiEmplacePopQueueTest) {
   ASSERT_FALSE(queue.pop(6ull));
 }
 
-TEST(ThreadSafeQueueTest, QueueStringTest) {
+TEST(ThreadSafeQueueTest, QueueString) {
   ThreadSafeQueue<std::string> queue;
 
   queue.push("test1");
@@ -245,3 +248,5 @@ TEST(ThreadSafeQueueTest, QueueStringTest) {
   ASSERT_EQ("test2", queue.top());
   EXPECT_EQ("", test6);
 }
+
+}  // namespace

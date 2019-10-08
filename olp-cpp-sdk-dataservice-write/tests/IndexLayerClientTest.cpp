@@ -27,7 +27,6 @@
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/dataservice/write/IndexLayerClient.h>
 #include <olp/dataservice/write/model/PublishIndexRequest.h>
-
 #include "HttpResponses.h"
 
 namespace {
@@ -242,7 +241,7 @@ TEST_F(IndexLayerClientTest, DeleteData) {
 
   auto index_id = response.GetResult().GetTraceID();
 
-  auto deleteIndexRes =
+  auto delete_index_response =
       client_
           ->DeleteIndexData(
               DeleteIndexDataRequest().WithIndexId(index_id).WithLayerId(
@@ -251,7 +250,7 @@ TEST_F(IndexLayerClientTest, DeleteData) {
           .get();
 
   testing::Mock::VerifyAndClearExpectations(network_.get());
-  ASSERT_TRUE(deleteIndexRes.IsSuccessful());
+  ASSERT_TRUE(delete_index_response.IsSuccessful());
 }
 
 TEST_F(IndexLayerClientTest, UpdateIndex) {
@@ -286,15 +285,15 @@ TEST_F(IndexLayerClientTest, UpdateIndex) {
 }
 
 TEST_F(IndexLayerClientTest, PublishDataCancelConfig) {
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
   {
     testing::InSequence dummy;
 
@@ -319,9 +318,9 @@ TEST_F(IndexLayerClientTest, PublishDataCancelConfig) {
                                            .WithIndex(GetTestIndex())
                                            .WithData(data_)
                                            .WithLayerId(GetTestLayer()));
-  waitForCancel->get_future().get();
+  wait_for_cancel->get_future().get();
   promise.GetCancellationToken().cancel();
-  pauseForCancel->set_value();
+  pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();
 
@@ -330,15 +329,15 @@ TEST_F(IndexLayerClientTest, PublishDataCancelConfig) {
 }
 
 TEST_F(IndexLayerClientTest, PublishDataCancelBlob) {
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_BLOB});
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_BLOB});
   {
     testing::InSequence dummy;
 
@@ -364,9 +363,9 @@ TEST_F(IndexLayerClientTest, PublishDataCancelBlob) {
                                            .WithData(data_)
                                            .WithLayerId(GetTestLayer()));
 
-  waitForCancel->get_future().get();
+  wait_for_cancel->get_future().get();
   promise.GetCancellationToken().cancel();
-  pauseForCancel->set_value();
+  pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();
 
@@ -375,15 +374,15 @@ TEST_F(IndexLayerClientTest, PublishDataCancelBlob) {
 }
 
 TEST_F(IndexLayerClientTest, PublishDataCancelIndex) {
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_LOOKUP_INDEX});
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_INDEX});
   {
     testing::InSequence dummy;
 
@@ -409,9 +408,9 @@ TEST_F(IndexLayerClientTest, PublishDataCancelIndex) {
                                            .WithData(data_)
                                            .WithLayerId(GetTestLayer()));
 
-  waitForCancel->get_future().get();
+  wait_for_cancel->get_future().get();
   promise.GetCancellationToken().cancel();
-  pauseForCancel->set_value();
+  pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();
 
@@ -420,15 +419,15 @@ TEST_F(IndexLayerClientTest, PublishDataCancelIndex) {
 }
 
 TEST_F(IndexLayerClientTest, PublishDataCancelGetCatalog) {
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      waitForCancel, pauseForCancel, {200, HTTP_RESPONSE_GET_CATALOG});
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_GET_CATALOG});
   {
     testing::InSequence dummy;
 
@@ -454,9 +453,9 @@ TEST_F(IndexLayerClientTest, PublishDataCancelGetCatalog) {
                                            .WithData(data_)
                                            .WithLayerId(GetTestLayer()));
 
-  waitForCancel->get_future().get();
+  wait_for_cancel->get_future().get();
   promise.GetCancellationToken().cancel();
-  pauseForCancel->set_value();
+  pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();
 
@@ -465,15 +464,15 @@ TEST_F(IndexLayerClientTest, PublishDataCancelGetCatalog) {
 }
 
 TEST_F(IndexLayerClientTest, PublishDataCancelPutBlob) {
-  auto waitForCancel = std::make_shared<std::promise<void>>();
-  auto pauseForCancel = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) =
-      GenerateNetworkMockActions(waitForCancel, pauseForCancel, {200, "OK"});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+      wait_for_cancel, pause_for_cancel, {200, "OK"});
   {
     testing::InSequence dummy;
 
@@ -499,9 +498,9 @@ TEST_F(IndexLayerClientTest, PublishDataCancelPutBlob) {
                                            .WithData(data_)
                                            .WithLayerId(GetTestLayer()));
 
-  waitForCancel->get_future().get();
+  wait_for_cancel->get_future().get();
   promise.GetCancellationToken().cancel();
-  pauseForCancel->set_value();
+  pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();
 
