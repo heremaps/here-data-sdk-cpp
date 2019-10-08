@@ -22,13 +22,13 @@
 #include <algorithm>
 #include <sstream>
 
+#include <olp/core/client/Condition.h>
 #include "ApiRepository.h"
 #include "CatalogRepository.h"
 #include "DataCacheRepository.h"
 #include "ExecuteOrSchedule.inl"
 #include "PartitionsCacheRepository.h"
 #include "PartitionsRepository.h"
-#include "generated/api/BlobApi.h"
 #include "generated/api/VolatileBlobApi.h"
 #include "olp/dataservice/read/CatalogRequest.h"
 #include "olp/dataservice/read/DataRequest.h"
@@ -234,7 +234,8 @@ CancellationToken DataRepository::GetData(
                                   callback, cache);
                 } else {
                   auto getPartitionsCallback = [=, &cache](
-                      PartitionsResponse partitionsResponse) {
+                                                   PartitionsResponse
+                                                       partitionsResponse) {
                     if (!partitionsResponse.IsSuccessful()) {
                       callback(partitionsResponse.GetError());
                       return;
@@ -256,26 +257,27 @@ CancellationToken DataRepository::GetData(
                                 .GetPartitions()
                                 .at(0)
                                 .GetDataHandle());
-                        auto verifyResponseCallback = [=](
-                            DataResponse response) {
-                          if (!response.IsSuccessful()) {
-                            if (403 ==
-                                response.GetError().GetHttpStatusCode()) {
-                              PartitionsRequest partitionsRequest;
-                              partitionsRequest
-                                  .WithBillingTag(
-                                      appendedRequest.GetBillingTag())
-                                  .WithLayerId(appendedRequest.GetLayerId())
-                                  .WithVersion(appendedRequest.GetVersion());
-                              std::vector<std::string> partitions;
-                              partitions.push_back(
-                                  *appendedRequest.GetPartitionId());
-                              partitionsCache_->ClearPartitions(
-                                  partitionsRequest, partitions);
-                            }
-                          }
-                          callback(response);
-                        };
+                        auto verifyResponseCallback =
+                            [=](DataResponse response) {
+                              if (!response.IsSuccessful()) {
+                                if (403 ==
+                                    response.GetError().GetHttpStatusCode()) {
+                                  PartitionsRequest partitionsRequest;
+                                  partitionsRequest
+                                      .WithBillingTag(
+                                          appendedRequest.GetBillingTag())
+                                      .WithLayerId(appendedRequest.GetLayerId())
+                                      .WithVersion(
+                                          appendedRequest.GetVersion());
+                                  std::vector<std::string> partitions;
+                                  partitions.push_back(
+                                      *appendedRequest.GetPartitionId());
+                                  partitionsCache_->ClearPartitions(
+                                      partitionsRequest, partitions);
+                                }
+                              }
+                              callback(response);
+                            };
                         GetDataInternal(cancel_context, apiRepo, layerType,
                                         appendedRequest, verifyResponseCallback,
                                         cache);
@@ -324,6 +326,104 @@ void DataRepository::GetData(
     const read::DataResponseCallback& callback) {
   GetDataInternal(cancellationContext, apiRepo_, layerType, request, callback,
                   *cache_);
+}
+
+BlobApi::DataResponse DataRepository::GetBlobData(
+    const client::HRN& catalog, const std::string& layer,
+    const DataRequest& data_request,
+    client::CancellationContext cancellation_context,
+    client::OlpClientSettings settings) {
+  using namespace client;
+
+  auto fetch_option = data_request.GetFetchOption();
+  const auto& data_handle = data_request.GetDataHandle();
+
+  if (!data_handle) {
+    return ApiError(ErrorCode::PreconditionFailed, "Data handle is missing");
+  }
+
+  repository::DataCacheRepository repository(catalog, settings.cache);
+
+  if (fetch_option != OnlineOnly) {
+    auto cached_data = repository.Get(layer, data_handle.value());
+    if (cached_data) {
+      OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!", data_request.CreateKey().c_str());
+      return cached_data.value();
+    } else if (fetch_option == CacheOnly) {
+      OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' not found!", data_request.CreateKey().c_str());
+      return ApiError(ErrorCode::NotFound,
+                      "Cache only resource not found in cache (data).");
+    }
+  }
+
+  auto blob_api = ApiClientLookup::LookupApi(
+      catalog, cancellation_context, "blob", "v1", fetch_option, settings);
+
+  if (!blob_api.IsSuccessful()) {
+    return blob_api.GetError();
+  }
+
+  const client::OlpClient& client = blob_api.GetResult();
+
+  Condition condition;
+
+  // when the network operation took too much time we cancel it and exit
+  // execution, to make sure that network callback will not access dangling
+  // references we protect them with atomic bool flag.
+  auto flag = std::make_shared<std::atomic_bool>(true);
+
+  BlobApi::DataResponse blob_response;
+  auto blob_callback = [&, flag](BlobApi::DataResponse response) {
+    if (flag->exchange(false)) {
+      blob_response = std::move(response);
+      condition.Notify();
+    }
+  };
+
+  cancellation_context.ExecuteOrCancelled(
+      [&]() {
+        auto token = BlobApi::GetBlob(client, layer, data_handle.value(),
+                                      data_request.GetBillingTag(), boost::none,
+                                      std::move(blob_callback));
+        return client::CancellationToken([&, token, flag]() {
+          if (flag->exchange(false)) {
+            token.cancel();
+            condition.Notify();
+          }
+        });
+      },
+      [&]() {
+        // if context was cancelled before the execution setup, unblock the
+        // upcoming wait routine.
+        condition.Notify();
+      });
+
+  if (!condition.Wait()) {
+    // We are just about exit the execution.
+
+    cancellation_context.CancelOperation();
+    return ApiError(ErrorCode::RequestTimeout, "Network request timed out.");
+  }
+
+  flag->store(false);
+
+  if (cancellation_context.IsCancelled()) {
+    // We can't use blob response here because it could potentially be
+    // uninitialized.
+    return ApiError(ErrorCode::Cancelled, "Operation cancelled.");
+  }
+
+  if (blob_response.IsSuccessful()) {
+    repository.Put(blob_response.GetResult(), layer, data_handle.value());
+  } else {
+    const auto& error = blob_response.GetError();
+    if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
+      OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache", data_request.CreateKey().c_str());
+      repository.Clear(layer, data_handle.value());
+    }
+  }
+
+  return blob_response;
 }
 
 }  // namespace repository
