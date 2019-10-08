@@ -18,34 +18,25 @@
  */
 
 #include <gmock/gmock.h>
+#include <matchers/NetworkUrlMatchers.h>
+#include <mocks/NetworkMock.h>
 #include <olp/authentication/TokenProvider.h>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
-
 #include <olp/dataservice/write/VolatileLayerClient.h>
 #include <olp/dataservice/write/model/PublishPartitionDataRequest.h>
-
-#include "testutils/CustomParameters.hpp"
-
+#include <testutils/CustomParameters.hpp>
 #include "HttpResponses.h"
 
-#include <matchers/NetworkUrlMatchers.h>
-#include <mocks/NetworkMock.h>
+namespace {
 
 using namespace olp::dataservice::write;
 using namespace olp::dataservice::write::model;
 
-const std::string kEndpoint = "endpoint";
-const std::string kAppid = "dataservice_write_test_appid";
-const std::string kSecret = "dataservice_write_test_secret";
-const std::string kCatalog = "dataservice_write_test_catalog";
-const std::string kVolatileLayer = "volatile_layer";
-
-// TODO: Move duplicate test code to common header
-namespace {
+using testing::_;
 
 void PublishDataSuccessAssertions(
     const olp::client::ApiResponse<
@@ -56,16 +47,7 @@ void PublishDataSuccessAssertions(
   EXPECT_EQ("", result.GetError().GetMessage());
 }
 
-template <typename T>
-void PublishFailureAssertions(
-    const olp::client::ApiResponse<T, olp::client::ApiError>& result) {
-  EXPECT_FALSE(result.IsSuccessful());
-  EXPECT_NE(result.GetError().GetHttpStatusCode(), 200);
-  EXPECT_FALSE(result.GetError().GetMessage().empty());
-}
-}  // namespace
-
-class VolatileLayerClientTestBase : public ::testing::TestWithParam<bool> {
+class VolatileLayerClientTest : public ::testing::TestWithParam<bool> {
  protected:
   virtual void SetUp() override {
     client_ = CreateVolatileLayerClient();
@@ -73,86 +55,20 @@ class VolatileLayerClientTestBase : public ::testing::TestWithParam<bool> {
   }
 
   virtual void TearDown() override {
+    testing::Mock::VerifyAndClearExpectations(network_.get());
     data_.reset();
     client_.reset();
   }
 
-  virtual bool IsOnlineTest() { return GetParam(); }
-
   std::string GetTestCatalog() {
-    return IsOnlineTest()
-               ? CustomParameters::getArgument(kCatalog)
-               : "hrn:here:data:::olp-cpp-sdk-ingestion-test-catalog";
+    return "hrn:here:data:::olp-cpp-sdk-ingestion-test-catalog";
   }
 
   std::string GetTestLayer() {
-    return IsOnlineTest() ? CustomParameters::getArgument(kVolatileLayer)
-                          : "olp-cpp-sdk-ingestion-test-volatile-layer";
+    return "olp-cpp-sdk-ingestion-test-volatile-layer";
   }
 
-  virtual std::shared_ptr<VolatileLayerClient> CreateVolatileLayerClient() = 0;
-
- private:
-  std::shared_ptr<std::vector<unsigned char>> GenerateData() {
-    std::string test_suite_name(testing::UnitTest::GetInstance()
-                                    ->current_test_info()
-                                    ->test_suite_name());
-    std::string test_name(
-        testing::UnitTest::GetInstance()->current_test_info()->name());
-    std::string data_string(test_suite_name + " " + test_name + " Payload");
-    return std::make_shared<std::vector<unsigned char>>(data_string.begin(),
-                                                        data_string.end());
-  }
-
- protected:
-  std::shared_ptr<VolatileLayerClient> client_;
-  std::shared_ptr<std::vector<unsigned char>> data_;
-};
-
-#if 0
-olp::client::NetworkAsyncHandler volatileSetsPromiseWaitsAndReturns(
-    std::shared_ptr<std::promise<void>> preSignal,
-    std::shared_ptr<std::promise<void>> waitForSignal,
-    olp::client::HttpResponse response) {
-  return [preSignal, waitForSignal, response](
-             const olp::network::NetworkRequest& request,
-             const olp::network::NetworkConfig& /*config*/,
-             const olp::client::NetworkAsyncCallback& callback)
-             -> olp::client::CancellationToken {
-    auto completed = std::make_shared<std::atomic_bool>(false);
-
-    std::thread(
-        [request, preSignal, waitForSignal, completed, callback, response]() {
-          preSignal->set_value();
-          waitForSignal->get_future().get();
-
-          if (!completed->exchange(true)) {
-            callback(response);
-          }
-        })
-        .detach();
-
-    return olp::client::CancellationToken([request, completed, callback]() {
-      if (!completed->exchange(true)) {
-        callback({olp::network::Network::ErrorCode::Cancelled, "Cancelled"});
-      }
-    });
-  };
-}
-#endif
-
-using testing::_;
-
-class VolatileLayerClientMockTest : public VolatileLayerClientTestBase {
- protected:
-  std::shared_ptr<NetworkMock> network_;
-
-  void TearDown() override {
-    testing::Mock::VerifyAndClearExpectations(network_.get());
-  }
-
-  virtual std::shared_ptr<VolatileLayerClient> CreateVolatileLayerClient()
-      override {
+  virtual std::shared_ptr<VolatileLayerClient> CreateVolatileLayerClient() {
     olp::client::OlpClientSettings client_settings;
     network_ = std::make_shared<NetworkMock>();
     client_settings.network_request_handler = network_;
@@ -218,12 +134,26 @@ class VolatileLayerClientMockTest : public VolatileLayerClientTestBase {
         .WillByDefault(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(200), ""));
   }
+
+ private:
+  std::shared_ptr<std::vector<unsigned char>> GenerateData() {
+    std::string test_suite_name(testing::UnitTest::GetInstance()
+                                    ->current_test_info()
+                                    ->test_suite_name());
+    std::string test_name(
+        testing::UnitTest::GetInstance()->current_test_info()->name());
+    std::string data_string(test_suite_name + " " + test_name + " Payload");
+    return std::make_shared<std::vector<unsigned char>>(data_string.begin(),
+                                                        data_string.end());
+  }
+
+ protected:
+  std::shared_ptr<NetworkMock> network_;
+  std::shared_ptr<VolatileLayerClient> client_;
+  std::shared_ptr<std::vector<unsigned char>> data_;
 };
 
-INSTANTIATE_TEST_SUITE_P(TestMock, VolatileLayerClientMockTest,
-                         ::testing::Values(false));
-
-TEST_P(VolatileLayerClientMockTest, PublishData) {
+TEST_P(VolatileLayerClientTest, PublishData) {
   auto new_client = CreateVolatileLayerClient();
   {
     testing::InSequence dummy;
@@ -261,7 +191,7 @@ TEST_P(VolatileLayerClientMockTest, PublishData) {
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
 }
 
-TEST_P(VolatileLayerClientMockTest, PublishDataCancelConfig) {
+TEST_P(VolatileLayerClientTest, PublishDataCancelConfig) {
   auto wait_for_cancel = std::make_shared<std::promise<void>>();
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
@@ -303,7 +233,7 @@ TEST_P(VolatileLayerClientMockTest, PublishDataCancelConfig) {
             response.GetError().GetErrorCode());
 }
 
-TEST_P(VolatileLayerClientMockTest, PublishDataCancelBlob) {
+TEST_P(VolatileLayerClientTest, PublishDataCancelBlob) {
   auto wait_for_cancel = std::make_shared<std::promise<void>>();
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
@@ -349,7 +279,7 @@ TEST_P(VolatileLayerClientMockTest, PublishDataCancelBlob) {
             response.GetError().GetErrorCode());
 }
 
-TEST_P(VolatileLayerClientMockTest, PublishDataCancelCatalog) {
+TEST_P(VolatileLayerClientTest, PublishDataCancelCatalog) {
   auto wait_for_cancel = std::make_shared<std::promise<void>>();
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
@@ -398,3 +328,5 @@ TEST_P(VolatileLayerClientMockTest, PublishDataCancelCatalog) {
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             response.GetError().GetErrorCode());
 }
+
+}  // namespace
