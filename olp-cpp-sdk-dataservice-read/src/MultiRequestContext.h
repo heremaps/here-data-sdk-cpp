@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <map>
+#include <memory>
 #include <mutex>
 
 #include <boost/uuid/random_generator.hpp>

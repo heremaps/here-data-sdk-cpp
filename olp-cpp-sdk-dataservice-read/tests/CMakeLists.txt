@@ -21,6 +21,7 @@ cmake_minimum_required(VERSION 3.5)
 set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     ApiClientLookupTest.cpp
     CatalogRepositoryTest.cpp
+    DataRepositoryTest.cpp
     MultiRequestContextTest.cpp
     ParserTest.cpp
     PendingRequestsTest.cpp

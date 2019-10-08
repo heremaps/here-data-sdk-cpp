@@ -24,6 +24,7 @@
 #include <olp/core/client/HRN.h>
 #include "MultiRequestContext.h"
 #include "olp/dataservice/read/CatalogClient.h"
+#include "generated/api/BlobApi.h"
 
 namespace olp {
 namespace dataservice {
@@ -50,6 +51,13 @@ class DataRepository final {
   void GetData(std::shared_ptr<client::CancellationContext> cancellationContext,
                const std::string& layerType, const read::DataRequest& request,
                const read::DataResponseCallback& callback);
+
+  static BlobApi::DataResponse GetBlobData(
+      const client::HRN& catalog, const std::string& layer,
+      const DataRequest& data_request,
+      client::CancellationContext cancellation_context,
+      client::OlpClientSettings settings);
+
   static bool IsInlineData(const std::string& dataHandle);
 
  private:
@@ -59,9 +67,7 @@ class DataRepository final {
   std::shared_ptr<PartitionsRepository> partitionsRepo_;
   std::shared_ptr<DataCacheRepository> cache_;
   std::shared_ptr<PartitionsCacheRepository> partitionsCache_;
-  std::shared_ptr<
-      MultiRequestContext<read::DataResponse>>
-      multiRequestContext_;
+  std::shared_ptr<MultiRequestContext<read::DataResponse>> multiRequestContext_;
 };
 }  // namespace repository
 }  // namespace read
