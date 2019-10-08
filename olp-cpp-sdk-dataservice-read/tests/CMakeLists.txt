@@ -27,6 +27,8 @@ set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     PartitionsRepositoryTest.cpp
     PendingRequestsTest.cpp
     SerializerTest.cpp
+    VolatileLayerClientImplTest.cpp
+    VolatileLayerClientTest.cpp
 )
 
 if (ANDROID OR IOS)
