@@ -55,7 +55,7 @@ void PublishFailureAssertions(
   EXPECT_FALSE(result.GetError().GetMessage().empty());
 }
 
-class IndexLayerClientOnlineTest : public ::testing::Test {
+class DataserviceWriteIndexLayerClientTest : public ::testing::Test {
  protected:
   static void SetUpTestSuite() {
     s_network = olp::client::OlpClientSettingsFactory::
@@ -143,9 +143,10 @@ class IndexLayerClientOnlineTest : public ::testing::Test {
 // Static network instance is necessary as it needs to outlive any created
 // clients. This is a known limitation as triggered send requests capture the
 // network instance inside the callbacks.
-std::shared_ptr<olp::http::Network> IndexLayerClientOnlineTest::s_network;
+std::shared_ptr<olp::http::Network>
+    DataserviceWriteIndexLayerClientTest::s_network;
 
-TEST_F(IndexLayerClientOnlineTest, PublishData) {
+TEST_F(DataserviceWriteIndexLayerClientTest, PublishData) {
   auto response = client_
                       ->PublishIndex(PublishIndexRequest()
                                          .WithIndex(GetTestIndex())
@@ -157,7 +158,7 @@ TEST_F(IndexLayerClientOnlineTest, PublishData) {
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
 }
 
-TEST_F(IndexLayerClientOnlineTest, DeleteData) {
+TEST_F(DataserviceWriteIndexLayerClientTest, DeleteData) {
   auto response = client_
                       ->PublishIndex(PublishIndexRequest()
                                          .WithIndex(GetTestIndex())
@@ -180,7 +181,7 @@ TEST_F(IndexLayerClientOnlineTest, DeleteData) {
   ASSERT_TRUE(delete_index_response.IsSuccessful());
 }
 
-TEST_F(IndexLayerClientOnlineTest, PublishDataAsync) {
+TEST_F(DataserviceWriteIndexLayerClientTest, PublishDataAsync) {
   std::promise<PublishIndexResponse> response_promise;
   bool call_is_async = true;
 
@@ -205,7 +206,7 @@ TEST_F(IndexLayerClientOnlineTest, PublishDataAsync) {
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
 }
 
-TEST_F(IndexLayerClientOnlineTest, UpdateIndex) {
+TEST_F(DataserviceWriteIndexLayerClientTest, UpdateIndex) {
   Index index = GetTestIndex();
   index.SetId("2f269191-5ef7-42a4-a445-fdfe53f95d92");
 
@@ -223,7 +224,7 @@ TEST_F(IndexLayerClientOnlineTest, UpdateIndex) {
   EXPECT_EQ("", response.GetError().GetMessage());
 }
 
-TEST_F(IndexLayerClientOnlineTest, PublishNoData) {
+TEST_F(DataserviceWriteIndexLayerClientTest, PublishNoData) {
   auto response = client_
                       ->PublishIndex(PublishIndexRequest()
                                          .WithIndex(GetTestIndex())
@@ -237,7 +238,7 @@ TEST_F(IndexLayerClientOnlineTest, PublishNoData) {
   ASSERT_EQ("Request data empty.", response.GetError().GetMessage());
 }
 
-TEST_F(IndexLayerClientOnlineTest, PublishNoLayer) {
+TEST_F(DataserviceWriteIndexLayerClientTest, PublishNoLayer) {
   auto response = client_
                       ->PublishIndex(PublishIndexRequest()
                                          .WithIndex(GetTestIndex())
