@@ -48,7 +48,7 @@ void PublishDataSuccessAssertions(
   EXPECT_EQ("", result.GetError().GetMessage());
 }
 
-class VolatileLayerClientOnlineTest : public ::testing::Test {
+class DataserviceWriteVolatileLayerClientTest : public ::testing::Test {
  protected:
   virtual void SetUp() override {
     client_ = CreateVolatileLayerClient();
@@ -117,9 +117,10 @@ class VolatileLayerClientOnlineTest : public ::testing::Test {
 // Static network instance is necessary as it needs to outlive any created
 // clients. This is a known limitation as triggered send requests capture the
 // network instance inside the callbacks.
-std::shared_ptr<olp::http::Network> VolatileLayerClientOnlineTest::s_network;
+std::shared_ptr<olp::http::Network>
+    DataserviceWriteVolatileLayerClientTest::s_network;
 
-TEST_F(VolatileLayerClientOnlineTest, GetBaseVersion) {
+TEST_F(DataserviceWriteVolatileLayerClientTest, GetBaseVersion) {
   auto volatile_client = CreateVolatileLayerClient();
   auto response = volatile_client->GetBaseVersion().GetFuture().get();
 
@@ -128,7 +129,7 @@ TEST_F(VolatileLayerClientOnlineTest, GetBaseVersion) {
   ASSERT_GE(version_response.GetVersion(), 0);
 }
 
-TEST_F(VolatileLayerClientOnlineTest, StartBatchInvalid) {
+TEST_F(DataserviceWriteVolatileLayerClientTest, StartBatchInvalid) {
   auto volatile_client = CreateVolatileLayerClient();
   auto response =
       volatile_client->StartBatch(StartBatchRequest()).GetFuture().get();
@@ -150,7 +151,7 @@ TEST_F(VolatileLayerClientOnlineTest, StartBatchInvalid) {
   ASSERT_FALSE(complete_batch_response.IsSuccessful());
 }
 
-TEST_F(VolatileLayerClientOnlineTest, StartBatch) {
+TEST_F(DataserviceWriteVolatileLayerClientTest, StartBatch) {
   auto volatile_client = CreateVolatileLayerClient();
   auto response =
       volatile_client
@@ -201,7 +202,7 @@ TEST_F(VolatileLayerClientOnlineTest, StartBatch) {
   // get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_F(VolatileLayerClientOnlineTest, PublishToBatch) {
+TEST_F(DataserviceWriteVolatileLayerClientTest, PublishToBatch) {
   auto volatile_client = CreateVolatileLayerClient();
   auto response =
       volatile_client
@@ -254,7 +255,7 @@ TEST_F(VolatileLayerClientOnlineTest, PublishToBatch) {
   // get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_F(VolatileLayerClientOnlineTest, PublishToBatchInvalid) {
+TEST_F(DataserviceWriteVolatileLayerClientTest, PublishToBatchInvalid) {
   auto volatile_client = CreateVolatileLayerClient();
   auto response =
       volatile_client
@@ -299,7 +300,8 @@ TEST_F(VolatileLayerClientOnlineTest, PublishToBatchInvalid) {
 // thus looks loke the problem is on the server side.
 // Please, re-enable this test when switched to mocked server or
 // when the server will be more steady for testing
-TEST_F(VolatileLayerClientOnlineTest, DISABLED_StartBatchDeleteClient) {
+TEST_F(DataserviceWriteVolatileLayerClientTest,
+       DISABLED_StartBatchDeleteClient) {
   auto volatile_client = CreateVolatileLayerClient();
   auto response =
       volatile_client
@@ -355,7 +357,7 @@ TEST_F(VolatileLayerClientOnlineTest, DISABLED_StartBatchDeleteClient) {
   // get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_F(VolatileLayerClientOnlineTest, cancellAllRequests) {
+TEST_F(DataserviceWriteVolatileLayerClientTest, cancellAllRequests) {
   auto volatile_client = CreateVolatileLayerClient();
   auto future = volatile_client->GetBaseVersion().GetFuture();
 
@@ -368,7 +370,7 @@ TEST_F(VolatileLayerClientOnlineTest, cancellAllRequests) {
             response.GetError().GetErrorCode());
 }
 
-TEST_F(VolatileLayerClientOnlineTest, PublishData) {
+TEST_F(DataserviceWriteVolatileLayerClientTest, PublishData) {
   auto response = client_
                       ->PublishPartitionData(PublishPartitionDataRequest()
                                                  .WithData(data_)
@@ -379,7 +381,7 @@ TEST_F(VolatileLayerClientOnlineTest, PublishData) {
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
 }
 
-TEST_F(VolatileLayerClientOnlineTest, PublishDataAsync) {
+TEST_F(DataserviceWriteVolatileLayerClientTest, PublishDataAsync) {
   std::promise<PublishPartitionDataResponse> response_promise;
   bool call_is_async = true;
 

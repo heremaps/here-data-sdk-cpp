@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 #include <olp/authentication/TokenProvider.h>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/HRN.h>
@@ -40,7 +40,7 @@ const std::string kLayer2 = "layer2";
 const std::string kLayerSdii = "layer_sdii";
 const std::string kVersionedLayer = "versioned_layer";
 
-class VersionedLayerClientOnlineTest : public ::testing::Test {
+class DataserviceWriteVersionedLayerClientTest : public ::testing::Test {
  protected:
   static std::shared_ptr<olp::http::Network> s_network;
 
@@ -81,9 +81,10 @@ class VersionedLayerClientOnlineTest : public ::testing::Test {
 // Static network instance is necessary as it needs to outlive any created
 // clients. This is a known limitation as triggered send requests capture the
 // network instance inside the callbacks.
-std::shared_ptr<olp::http::Network> VersionedLayerClientOnlineTest::s_network;
+std::shared_ptr<olp::http::Network>
+    DataserviceWriteVersionedLayerClientTest::s_network;
 
-TEST_F(VersionedLayerClientOnlineTest, StartBatchInvalid) {
+TEST_F(DataserviceWriteVersionedLayerClientTest, StartBatchInvalid) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response =
       versioned_client->StartBatch(StartBatchRequest()).GetFuture().get();
@@ -111,7 +112,7 @@ TEST_F(VersionedLayerClientOnlineTest, StartBatchInvalid) {
   ASSERT_FALSE(cancel_batch_response.IsSuccessful());
 }
 
-TEST_F(VersionedLayerClientOnlineTest, StartBatch) {
+TEST_F(DataserviceWriteVersionedLayerClientTest, StartBatch) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response = versioned_client
                       ->StartBatch(StartBatchRequest().WithLayers(
@@ -171,7 +172,7 @@ TEST_F(VersionedLayerClientOnlineTest, StartBatch) {
   // get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_F(VersionedLayerClientOnlineTest, DeleteClient) {
+TEST_F(DataserviceWriteVersionedLayerClientTest, DeleteClient) {
   auto versioned_client = CreateVersionedLayerClient();
   auto fut = versioned_client
                  ->StartBatch(StartBatchRequest().WithLayers(
@@ -199,7 +200,7 @@ TEST_F(VersionedLayerClientOnlineTest, DeleteClient) {
             get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_F(VersionedLayerClientOnlineTest, GetBaseVersion) {
+TEST_F(DataserviceWriteVersionedLayerClientTest, GetBaseVersion) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response = versioned_client->GetBaseVersion().GetFuture().get();
 
@@ -208,7 +209,7 @@ TEST_F(VersionedLayerClientOnlineTest, GetBaseVersion) {
   ASSERT_GE(version_response.GetVersion(), 0);
 }
 
-TEST_F(VersionedLayerClientOnlineTest, CancelBatch) {
+TEST_F(DataserviceWriteVersionedLayerClientTest, CancelBatch) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response = versioned_client
                       ->StartBatch(StartBatchRequest().WithLayers(
@@ -245,7 +246,7 @@ TEST_F(VersionedLayerClientOnlineTest, CancelBatch) {
             get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_F(VersionedLayerClientOnlineTest, CancelAllBatch) {
+TEST_F(DataserviceWriteVersionedLayerClientTest, CancelAllBatch) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response_future =
       versioned_client
@@ -260,7 +261,7 @@ TEST_F(VersionedLayerClientOnlineTest, CancelAllBatch) {
   ASSERT_FALSE(response.IsSuccessful());
 }
 
-TEST_F(VersionedLayerClientOnlineTest, PublishToBatch) {
+TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatch) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response = versioned_client
                       ->StartBatch(StartBatchRequest().WithLayers(
@@ -327,7 +328,7 @@ TEST_F(VersionedLayerClientOnlineTest, PublishToBatch) {
   // get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_F(VersionedLayerClientOnlineTest, PublishToBatchDeleteClient) {
+TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchDeleteClient) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response = versioned_client
                       ->StartBatch(StartBatchRequest().WithLayers(
@@ -412,7 +413,7 @@ TEST_F(VersionedLayerClientOnlineTest, PublishToBatchDeleteClient) {
   // get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_F(VersionedLayerClientOnlineTest, PublishToBatchMulti) {
+TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchMulti) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response = versioned_client
                       ->StartBatch(StartBatchRequest().WithLayers(
@@ -494,7 +495,7 @@ TEST_F(VersionedLayerClientOnlineTest, PublishToBatchMulti) {
   // get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_F(VersionedLayerClientOnlineTest, PublishToBatchCancel) {
+TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchCancel) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response = versioned_client
                       ->StartBatch(StartBatchRequest().WithLayers(
@@ -549,7 +550,7 @@ TEST_F(VersionedLayerClientOnlineTest, PublishToBatchCancel) {
             get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_F(VersionedLayerClientOnlineTest, CheckDataExists) {
+TEST_F(DataserviceWriteVersionedLayerClientTest, CheckDataExists) {
   auto versioned_client = CreateVersionedLayerClient();
   auto fut =
       versioned_client
@@ -566,7 +567,7 @@ TEST_F(VersionedLayerClientOnlineTest, CheckDataExists) {
   ASSERT_EQ(response.GetResult(), 200);
 }
 
-TEST_F(VersionedLayerClientOnlineTest, CheckDataNotExists) {
+TEST_F(DataserviceWriteVersionedLayerClientTest, CheckDataNotExists) {
   auto versioned_client = CreateVersionedLayerClient();
   auto fut =
       versioned_client

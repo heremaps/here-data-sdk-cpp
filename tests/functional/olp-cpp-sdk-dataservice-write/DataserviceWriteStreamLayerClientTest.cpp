@@ -117,9 +117,9 @@ void PublishFailureAssertions(
   // EXPECT_FALSE(result.GetError().GetMessage().empty());
 }
 
-class StreamLayerClientOnlineTest : public ::testing::Test {
+class DataserviceWriteStreamLayerClientTest : public ::testing::Test {
  protected:
-  StreamLayerClientOnlineTest() {
+  DataserviceWriteStreamLayerClientTest() {
     sdii_data_ = std::make_shared<std::vector<unsigned char>>(
         kSDIITestData, kSDIITestData + kSDIITestDataLength);
   }
@@ -209,9 +209,10 @@ class StreamLayerClientOnlineTest : public ::testing::Test {
 // Static network instance is necessary as it needs to outlive any created
 // clients. This is a known limitation as triggered send requests capture the
 // network instance inside the callbacks.
-std::shared_ptr<olp::http::Network> StreamLayerClientOnlineTest::s_network;
+std::shared_ptr<olp::http::Network>
+    DataserviceWriteStreamLayerClientTest::s_network;
 
-TEST_F(StreamLayerClientOnlineTest, PublishData) {
+TEST_F(DataserviceWriteStreamLayerClientTest, PublishData) {
   auto response =
       client_
           ->PublishData(
@@ -222,7 +223,7 @@ TEST_F(StreamLayerClientOnlineTest, PublishData) {
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
 }
 
-TEST_F(StreamLayerClientOnlineTest, PublishDataGreaterThanTwentyMib) {
+TEST_F(DataserviceWriteStreamLayerClientTest, PublishDataGreaterThanTwentyMib) {
   auto large_data =
       std::make_shared<std::vector<unsigned char>>(kTwentyMib + 1, 'z');
 
@@ -236,7 +237,7 @@ TEST_F(StreamLayerClientOnlineTest, PublishDataGreaterThanTwentyMib) {
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
 }
 
-TEST_F(StreamLayerClientOnlineTest, PublishDataAsync) {
+TEST_F(DataserviceWriteStreamLayerClientTest, PublishDataAsync) {
   std::promise<PublishDataResponse> response_promise;
   bool call_is_async = true;
 
@@ -258,7 +259,7 @@ TEST_F(StreamLayerClientOnlineTest, PublishDataAsync) {
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
 }
 
-TEST_F(StreamLayerClientOnlineTest, PublishDataCancel) {
+TEST_F(DataserviceWriteStreamLayerClientTest, PublishDataCancel) {
   auto cancel_future = client_->PublishData(
       PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
 
@@ -283,7 +284,7 @@ TEST_F(StreamLayerClientOnlineTest, PublishDataCancel) {
   //  response.GetError().GetErrorCode());
 }
 
-TEST_F(StreamLayerClientOnlineTest, PublishDataCancelLongDelay) {
+TEST_F(DataserviceWriteStreamLayerClientTest, PublishDataCancelLongDelay) {
   auto cancel_future = client_->PublishData(
       PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
 
@@ -308,7 +309,7 @@ TEST_F(StreamLayerClientOnlineTest, PublishDataCancelLongDelay) {
   //  response.GetError().GetErrorCode());
 }
 
-TEST_F(StreamLayerClientOnlineTest,
+TEST_F(DataserviceWriteStreamLayerClientTest,
        PublishDataCancelGetFutureAfterRequestCancelled) {
   auto cancel_future = client_->PublishData(
       PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
@@ -335,7 +336,8 @@ TEST_F(StreamLayerClientOnlineTest,
   //  response.GetError().GetErrorCode());
 }
 
-TEST_F(StreamLayerClientOnlineTest, PublishDataGreaterThanTwentyMibCancel) {
+TEST_F(DataserviceWriteStreamLayerClientTest,
+       PublishDataGreaterThanTwentyMibCancel) {
   auto large_data =
       std::make_shared<std::vector<unsigned char>>(kTwentyMib + 1, 'z');
 
@@ -360,7 +362,7 @@ TEST_F(StreamLayerClientOnlineTest, PublishDataGreaterThanTwentyMibCancel) {
   ASSERT_NO_FATAL_FAILURE(PublishFailureAssertions(response));
 }
 
-TEST_F(StreamLayerClientOnlineTest, IncorrectLayer) {
+TEST_F(DataserviceWriteStreamLayerClientTest, IncorrectLayer) {
   auto response =
       client_
           ->PublishData(
@@ -371,7 +373,7 @@ TEST_F(StreamLayerClientOnlineTest, IncorrectLayer) {
   ASSERT_NO_FATAL_FAILURE(PublishFailureAssertions(response));
 }
 
-TEST_F(StreamLayerClientOnlineTest, NullData) {
+TEST_F(DataserviceWriteStreamLayerClientTest, NullData) {
   auto response =
       client_
           ->PublishData(PublishDataRequest().WithData(nullptr).WithLayerId(
@@ -382,7 +384,7 @@ TEST_F(StreamLayerClientOnlineTest, NullData) {
   ASSERT_NO_FATAL_FAILURE(PublishFailureAssertions(response));
 }
 
-TEST_F(StreamLayerClientOnlineTest, CustomTraceId) {
+TEST_F(DataserviceWriteStreamLayerClientTest, CustomTraceId) {
   const auto uuid = GenerateRandomUUID();
 
   auto response = client_
@@ -398,7 +400,7 @@ TEST_F(StreamLayerClientOnlineTest, CustomTraceId) {
   EXPECT_STREQ(response.GetResult().GetTraceID().c_str(), uuid.c_str());
 }
 
-TEST_F(StreamLayerClientOnlineTest, BillingTag) {
+TEST_F(DataserviceWriteStreamLayerClientTest, BillingTag) {
   auto response = client_
                       ->PublishData(PublishDataRequest()
                                         .WithData(data_)
@@ -411,7 +413,7 @@ TEST_F(StreamLayerClientOnlineTest, BillingTag) {
 }
 
 #ifdef DATASERVICE_WRITE_HAS_OPENSSL
-TEST_F(StreamLayerClientOnlineTest, ChecksumValid) {
+TEST_F(DataserviceWriteStreamLayerClientTest, ChecksumValid) {
   const std::string data_string(data_->begin(), data_->end());
   auto checksum = sha256(data_string);
 
@@ -427,7 +429,7 @@ TEST_F(StreamLayerClientOnlineTest, ChecksumValid) {
 }
 #endif
 
-TEST_F(StreamLayerClientOnlineTest, ChecksumGarbageString) {
+TEST_F(DataserviceWriteStreamLayerClientTest, ChecksumGarbageString) {
   auto response = client_
                       ->PublishData(PublishDataRequest()
                                         .WithData(data_)
@@ -439,7 +441,7 @@ TEST_F(StreamLayerClientOnlineTest, ChecksumGarbageString) {
   ASSERT_NO_FATAL_FAILURE(PublishFailureAssertions(response));
 }
 
-TEST_F(StreamLayerClientOnlineTest, SequentialPublishSameLayer) {
+TEST_F(DataserviceWriteStreamLayerClientTest, SequentialPublishSameLayer) {
   auto response =
       client_
           ->PublishData(
@@ -458,7 +460,7 @@ TEST_F(StreamLayerClientOnlineTest, SequentialPublishSameLayer) {
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
 }
 
-TEST_F(StreamLayerClientOnlineTest, SequentialPublishDifferentLayer) {
+TEST_F(DataserviceWriteStreamLayerClientTest, SequentialPublishDifferentLayer) {
   auto response =
       client_
           ->PublishData(
@@ -477,7 +479,7 @@ TEST_F(StreamLayerClientOnlineTest, SequentialPublishDifferentLayer) {
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
 }
 
-TEST_F(StreamLayerClientOnlineTest, ConcurrentPublishSameIngestApi) {
+TEST_F(DataserviceWriteStreamLayerClientTest, ConcurrentPublishSameIngestApi) {
   auto publish_data = [&]() {
     auto response =
         client_
@@ -501,7 +503,8 @@ TEST_F(StreamLayerClientOnlineTest, ConcurrentPublishSameIngestApi) {
   async5.get();
 }
 
-TEST_F(StreamLayerClientOnlineTest, ConcurrentPublishDifferentIngestApi) {
+TEST_F(DataserviceWriteStreamLayerClientTest,
+       ConcurrentPublishDifferentIngestApi) {
   auto publishData = [&]() {
     auto client = CreateStreamLayerClient();
 
@@ -528,7 +531,7 @@ TEST_F(StreamLayerClientOnlineTest, ConcurrentPublishDifferentIngestApi) {
   async5.get();
 }
 
-TEST_F(StreamLayerClientOnlineTest, PublishSdii) {
+TEST_F(DataserviceWriteStreamLayerClientTest, PublishSdii) {
   auto response = client_
                       ->PublishSdii(PublishSdiiRequest()
                                         .WithSdiiMessageList(sdii_data_)
@@ -539,7 +542,7 @@ TEST_F(StreamLayerClientOnlineTest, PublishSdii) {
   ASSERT_NO_FATAL_FAILURE(PublishSdiiSuccessAssertions(response));
 }
 
-TEST_F(StreamLayerClientOnlineTest, PublishSdiiAsync) {
+TEST_F(DataserviceWriteStreamLayerClientTest, PublishSdiiAsync) {
   std::promise<PublishSdiiResponse> response_promise;
   bool call_is_async = true;
   auto cancel_token =
@@ -562,7 +565,7 @@ TEST_F(StreamLayerClientOnlineTest, PublishSdiiAsync) {
   ASSERT_NO_FATAL_FAILURE(PublishSdiiSuccessAssertions(response));
 }
 
-TEST_F(StreamLayerClientOnlineTest, PublishSdiiCancel) {
+TEST_F(DataserviceWriteStreamLayerClientTest, PublishSdiiCancel) {
   auto cancel_future =
       client_->PublishSdii(PublishSdiiRequest()
                                .WithSdiiMessageList(sdii_data_)
@@ -589,7 +592,7 @@ TEST_F(StreamLayerClientOnlineTest, PublishSdiiCancel) {
   //  response.GetError().GetErrorCode());
 }
 
-TEST_F(StreamLayerClientOnlineTest, PublishSdiiCancelLongDelay) {
+TEST_F(DataserviceWriteStreamLayerClientTest, PublishSdiiCancelLongDelay) {
   auto cancel_future =
       client_->PublishSdii(PublishSdiiRequest()
                                .WithSdiiMessageList(sdii_data_)
@@ -616,7 +619,7 @@ TEST_F(StreamLayerClientOnlineTest, PublishSdiiCancelLongDelay) {
   //  response.GetError().GetErrorCode());
 }
 
-TEST_F(StreamLayerClientOnlineTest, PublishSDIINonSDIIData) {
+TEST_F(DataserviceWriteStreamLayerClientTest, PublishSDIINonSDIIData) {
   auto response =
       client_
           ->PublishSdii(
@@ -628,7 +631,7 @@ TEST_F(StreamLayerClientOnlineTest, PublishSDIINonSDIIData) {
   ASSERT_NO_FATAL_FAILURE(PublishFailureAssertions(response));
 }
 
-TEST_F(StreamLayerClientOnlineTest, PublishSDIIIncorrectLayer) {
+TEST_F(DataserviceWriteStreamLayerClientTest, PublishSDIIIncorrectLayer) {
   auto response = client_
                       ->PublishSdii(PublishSdiiRequest()
                                         .WithSdiiMessageList(sdii_data_)
@@ -639,7 +642,7 @@ TEST_F(StreamLayerClientOnlineTest, PublishSDIIIncorrectLayer) {
   ASSERT_NO_FATAL_FAILURE(PublishFailureAssertions(response));
 }
 
-TEST_F(StreamLayerClientOnlineTest, PublishSDIICustomTraceId) {
+TEST_F(DataserviceWriteStreamLayerClientTest, PublishSDIICustomTraceId) {
   const auto uuid = GenerateRandomUUID();
 
   auto response = client_
@@ -656,7 +659,7 @@ TEST_F(StreamLayerClientOnlineTest, PublishSDIICustomTraceId) {
                uuid.c_str());
 }
 
-TEST_F(StreamLayerClientOnlineTest, PublishSDIIBillingTag) {
+TEST_F(DataserviceWriteStreamLayerClientTest, PublishSDIIBillingTag) {
   auto response = client_
                       ->PublishSdii(PublishSdiiRequest()
                                         .WithSdiiMessageList(sdii_data_)
@@ -669,7 +672,7 @@ TEST_F(StreamLayerClientOnlineTest, PublishSDIIBillingTag) {
 }
 
 #ifdef DATASERVICE_WRITE_HAS_OPENSSL
-TEST_F(StreamLayerClientOnlineTest, SDIIChecksumValid) {
+TEST_F(DataserviceWriteStreamLayerClientTest, SDIIChecksumValid) {
   const std::string data_string(sdii_data_->begin(), sdii_data_->end());
   auto checksum = sha256(data_string);
 
@@ -685,7 +688,7 @@ TEST_F(StreamLayerClientOnlineTest, SDIIChecksumValid) {
 }
 #endif
 
-TEST_F(StreamLayerClientOnlineTest, SDIIChecksumGarbageString) {
+TEST_F(DataserviceWriteStreamLayerClientTest, SDIIChecksumGarbageString) {
   auto response = client_
                       ->PublishSdii(PublishSdiiRequest()
                                         .WithSdiiMessageList(sdii_data_)
@@ -697,7 +700,8 @@ TEST_F(StreamLayerClientOnlineTest, SDIIChecksumGarbageString) {
   ASSERT_NO_FATAL_FAILURE(PublishFailureAssertions(response));
 }
 
-TEST_F(StreamLayerClientOnlineTest, SDIIConcurrentPublishSameIngestApi) {
+TEST_F(DataserviceWriteStreamLayerClientTest,
+       SDIIConcurrentPublishSameIngestApi) {
   auto publish_data = [&]() {
     auto response = client_
                         ->PublishSdii(PublishSdiiRequest()
@@ -721,7 +725,8 @@ TEST_F(StreamLayerClientOnlineTest, SDIIConcurrentPublishSameIngestApi) {
   async5.get();
 }
 
-class StreamLayerClientCacheOnlineTest : public StreamLayerClientOnlineTest {
+class StreamLayerClientCacheOnlineTest
+    : public DataserviceWriteStreamLayerClientTest {
  protected:
   static std::shared_ptr<olp::http::Network> s_network;
 
@@ -762,7 +767,7 @@ class StreamLayerClientCacheOnlineTest : public StreamLayerClientOnlineTest {
   }
 
   virtual void TearDown() override {
-    StreamLayerClientOnlineTest::TearDown();
+    DataserviceWriteStreamLayerClientTest::TearDown();
     if (disk_cache_) {
       disk_cache_->Close();
     }
