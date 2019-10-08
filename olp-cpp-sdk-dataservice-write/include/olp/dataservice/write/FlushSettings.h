@@ -31,13 +31,6 @@ namespace write {
 
 struct DATASERVICE_WRITE_API FlushSettings {
   /**
-    Time Period for AutoFlush mechanism, allows flush events to occur at
-    specified times. Hourly - each hour at 00:00 Daily - each day at 00:00:00
-    Weekly, each Monday at 00:00:00
-   */
-  enum class TimePeriod { Hourly, Daily, Weekly };
-
-  /**
    * How many requests can be cached before an auto flush event is triggered.
    */
   int auto_flush_num_events = 20;
@@ -47,11 +40,6 @@ struct DATASERVICE_WRITE_API FlushSettings {
    * interval based auto-flush. Setting 0 indicates this feature is disabled.
    */
   int auto_flush_interval = 0;
-
-  /**
-   * The TimePeriod between auto flush events.
-   */
-  boost::optional<TimePeriod> auto_flush_time_period = boost::none;
 
   /**
    * Queue time of oldest queued partition that will trigger an auto-flush event

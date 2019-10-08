@@ -62,33 +62,6 @@ std::chrono::seconds getSecondsToNextWeek(int tm_wday, int tm_hour, int tm_min,
       getSecondsToNextWeek_internal(tm_wday, tm_hour, tm_min, tm_sec)};
 }
 
-template <class Clock, class Duration>
-std::chrono::milliseconds getDelayTillPeriod(
-    FlushSettings::TimePeriod period,
-    std::chrono::time_point<Clock, Duration> atime_point) {
-  auto atime_t = Clock::to_time_t(atime_point);
-  std::tm currentTimePoint;
-  currentTimePoint = *localtime(&atime_t);
-
-  if (period == FlushSettings::TimePeriod::Weekly) {
-    return std::chrono::duration_cast<std::chrono::milliseconds>(
-        getSecondsToNextWeek(currentTimePoint.tm_wday, currentTimePoint.tm_hour,
-                             currentTimePoint.tm_min, currentTimePoint.tm_sec));
-  } else if (period == FlushSettings::TimePeriod::Daily) {
-    return std::chrono::duration_cast<std::chrono::milliseconds>(
-        getSecondsToNextDay(currentTimePoint.tm_hour, currentTimePoint.tm_min,
-                            currentTimePoint.tm_sec));
-  } else {
-    return std::chrono::duration_cast<std::chrono::milliseconds>(
-        getSecondsToNextHour(currentTimePoint.tm_min, currentTimePoint.tm_sec));
-  }
-}
-
-template std::chrono::milliseconds getDelayTillPeriod(
-    FlushSettings::TimePeriod period,
-    std::chrono::time_point<std::chrono::system_clock,
-                            std::chrono::system_clock::duration>
-        atime_point);
 }  // namespace write
 }  // namespace dataservice
 }  // namespace olp
