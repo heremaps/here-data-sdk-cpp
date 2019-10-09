@@ -85,8 +85,8 @@ TEST_P(CatalogClientTest, GetCatalog403) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-      .WillOnce(NetworkMock::ReturnHttpResponse(
-          olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(403),
+                                   HTTP_RESPONSE_403));
 
   auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = CatalogRequest();
@@ -167,9 +167,8 @@ TEST_P(CatalogClientTest, GetEmptyPartitions) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
-      .WillOnce(NetworkMock::ReturnHttpResponse(
-          olp::http::NetworkResponse().WithStatus(200),
-          HTTP_RESPONSE_EMPTY_PARTITIONS));
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+                                   HTTP_RESPONSE_EMPTY_PARTITIONS));
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -194,8 +193,8 @@ TEST_P(CatalogClientTest, GetVolatileDataHandle) {
                "blobstore/v1/catalogs/hereos-internal-test-v2/layers/"
                "testlayer_volatile/data/volatileHandle"),
            _, _, _, _))
-      .WillOnce(NetworkMock::ReturnHttpResponse(
-          olp::http::NetworkResponse().WithStatus(200), "someData"));
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+                                   "someData"));
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -227,9 +226,8 @@ TEST_P(CatalogClientTest, GetVolatilePartitions) {
                                 "metadata/v1/catalogs/hereos-internal-test-v2/"
                                 "layers/testlayer_volatile/partitions"),
                    _, _, _, _))
-      .WillOnce(NetworkMock::ReturnHttpResponse(
-          olp::http::NetworkResponse().WithStatus(200),
-          HTTP_RESPONSE_PARTITIONS_V2));
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+                                   HTTP_RESPONSE_PARTITIONS_V2));
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -267,9 +265,8 @@ TEST_P(CatalogClientTest, GetVolatileDataByPartitionId) {
                         "catalogs/hereos-internal-test-v2/layers/"
                         "testlayer_volatile/partitions?partition=269"),
            _, _, _, _))
-      .WillOnce(NetworkMock::ReturnHttpResponse(
-          olp::http::NetworkResponse().WithStatus(200),
-          HTTP_RESPONSE_PARTITIONS_V2));
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+                                   HTTP_RESPONSE_PARTITIONS_V2));
 
   EXPECT_CALL(
       *network_mock_,
@@ -278,8 +275,8 @@ TEST_P(CatalogClientTest, GetVolatileDataByPartitionId) {
                "blobstore/v1/catalogs/hereos-internal-test-v2/layers/"
                "testlayer_volatile/data/4eed6ed1-0d32-43b9-ae79-043cb4256410"),
            _, _, _, _))
-      .WillOnce(NetworkMock::ReturnHttpResponse(
-          olp::http::NetworkResponse().WithStatus(200), "someData"));
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+                                   "someData"));
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -326,7 +323,7 @@ TEST_P(CatalogClientTest, GetData429Error) {
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
         .Times(2)
-        .WillRepeatedly(NetworkMock::ReturnHttpResponse(
+        .WillRepeatedly(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(429),
             "Server busy at the moment."));
 
@@ -368,7 +365,7 @@ TEST_P(CatalogClientTest, GetPartitions429Error) {
 
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
         .Times(2)
-        .WillRepeatedly(NetworkMock::ReturnHttpResponse(
+        .WillRepeatedly(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(429),
             "Server busy at the moment."));
 
@@ -404,7 +401,7 @@ TEST_P(CatalogClientTest, ApiLookup429) {
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
         .Times(2)
-        .WillRepeatedly(NetworkMock::ReturnHttpResponse(
+        .WillRepeatedly(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(429),
             "Server busy at the moment."));
 
@@ -458,8 +455,8 @@ TEST_P(CatalogClientTest, GetData404Error) {
                         "blobstore/v1/catalogs/hereos-internal-test-v2/"
                         "layers/testlayer/data/invalidDataHandle"),
            _, _, _, _))
-      .WillOnce(NetworkMock::ReturnHttpResponse(
-          olp::http::NetworkResponse().WithStatus(404), "Resource not found."));
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(404),
+                                   "Resource not found."));
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -479,9 +476,8 @@ TEST_P(CatalogClientTest, GetPartitionsGarbageResponse) {
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
-      .WillOnce(NetworkMock::ReturnHttpResponse(
-          olp::http::NetworkResponse().WithStatus(200),
-          R"jsonString(kd3sdf\)jsonString"));
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+                                   R"jsonString(kd3sdf\)jsonString"));
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -1479,9 +1475,9 @@ TEST_P(CatalogClientTest, GetCatalogOnlineOnly) {
         .Times(1);
 
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-        .WillOnce(NetworkMock::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(429),
-            "Server busy at the moment."));
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
+                               "Server busy at the moment."));
   }
 
   auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
@@ -1577,9 +1573,9 @@ TEST_P(CatalogClientTest, GetDataOnlineOnly) {
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-        .WillOnce(NetworkMock::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(429),
-            "Server busy at the moment."));
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
+                               "Server busy at the moment."));
   }
 
   auto catalog_client =
@@ -1675,9 +1671,9 @@ TEST_P(CatalogClientTest, GetPartitionsOnlineOnly) {
         .Times(1);
 
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-        .WillOnce(NetworkMock::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(429),
-            "Server busy at the moment."));
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
+                               "Server busy at the moment."));
   }
 
   auto catalog_client =
@@ -1751,7 +1747,7 @@ TEST_P(CatalogClientTest, GetCatalog403CacheClear) {
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-        .WillOnce(NetworkMock::ReturnHttpResponse(
+        .WillOnce(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
   }
 
@@ -1792,7 +1788,7 @@ TEST_P(CatalogClientTest, GetData403CacheClear) {
         .Times(1);
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-        .WillOnce(NetworkMock::ReturnHttpResponse(
+        .WillOnce(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
   }
 
@@ -1825,7 +1821,7 @@ TEST_P(CatalogClientTest, GetPartitions403CacheClear) {
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
-        .WillOnce(NetworkMock::ReturnHttpResponse(
+        .WillOnce(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
   }
 

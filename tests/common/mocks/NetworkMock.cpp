@@ -25,8 +25,8 @@ NetworkMock::NetworkMock() = default;
 
 NetworkMock::~NetworkMock() = default;
 
-NetworkCallback NetworkMock::ReturnHttpResponse(
-    olp::http::NetworkResponse response, const std::string& response_body) {
+NetworkCallback ReturnHttpResponse(olp::http::NetworkResponse response,
+                                   const std::string& response_body) {
   return [=](olp::http::NetworkRequest request,
              olp::http::Network::Payload payload,
              olp::http::Network::Callback callback,

@@ -93,10 +93,9 @@ TEST(ApiClientLookupTest, LookupApi) {
     SCOPED_TRACE("Fetch from network");
     EXPECT_CALL(*network, Send(IsGetRequest(lookup_url), _, _, _, _))
         .Times(1)
-        .WillOnce(NetworkMock::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(
-                olp::http::HttpStatusCode::OK),
-            OLP_SDK_HTTP_RESPONSE_LOOKUP_CONFIG));
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     OLP_SDK_HTTP_RESPONSE_LOOKUP_CONFIG));
     EXPECT_CALL(*cache, Put(cache_key, _, _, _))
         .Times(1)
         .WillOnce(Return(true));
@@ -114,10 +113,10 @@ TEST(ApiClientLookupTest, LookupApi) {
     SCOPED_TRACE("Network error propagated to the user");
     EXPECT_CALL(*network, Send(IsGetRequest(lookup_url), _, _, _, _))
         .Times(1)
-        .WillOnce(NetworkMock::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(
-                olp::http::HttpStatusCode::UNAUTHORIZED),
-            "Inappropriate"));
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::UNAUTHORIZED),
+                               "Inappropriate"));
 
     client::CancellationContext context;
     auto response = ApiClientLookup::LookupApi(
@@ -222,4 +221,5 @@ TEST(ApiClientLookupTest, LookupApi) {
     EXPECT_EQ(response.GetError().GetErrorCode(),
               olp::client::ErrorCode::Cancelled);
     Mock::VerifyAndClearExpectations(network.get());
-  }}
+  }
+}
