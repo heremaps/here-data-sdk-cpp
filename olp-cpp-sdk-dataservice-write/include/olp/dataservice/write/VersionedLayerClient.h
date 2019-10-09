@@ -87,8 +87,7 @@ class DATASERVICE_WRITE_API VersionedLayerClient {
    * @param settings Client settings used to control behaviour of the client
    * instance
    */
-  VersionedLayerClient(const client::HRN& catalog,
-                       const client::OlpClientSettings& settings);
+  VersionedLayerClient(client::HRN catalog, client::OlpClientSettings settings);
   ~VersionedLayerClient();
 
   /**
@@ -106,8 +105,7 @@ class DATASERVICE_WRITE_API VersionedLayerClient {
    * @return olp::client::CancellationToken
    */
   olp::client::CancellationToken StartBatch(
-      const model::StartBatchRequest& request,
-      const StartBatchCallback& callback);
+      const model::StartBatchRequest& request, StartBatchCallback callback);
 
   /**
    * @brief Get the latest version number of the catalog
@@ -121,7 +119,7 @@ class DATASERVICE_WRITE_API VersionedLayerClient {
    * @return cancellationToken
    */
   olp::client::CancellationToken GetBaseVersion(
-      const GetBaseVersionCallback& callback);
+      GetBaseVersionCallback callback);
 
   /**
    * @brief Get the details of the given batch publication
@@ -138,7 +136,7 @@ class DATASERVICE_WRITE_API VersionedLayerClient {
    * @return cancellation token
    */
   olp::client::CancellationToken GetBatch(const model::Publication& pub,
-                                          const GetBatchCallback& callback);
+                                          GetBatchCallback callback);
 
   /**
    * @brief Complete the given batch operation and commit to OLP.
@@ -154,8 +152,8 @@ class DATASERVICE_WRITE_API VersionedLayerClient {
    * @param callback called when the operation completes.
    * @return cancellation token
    */
-  olp::client::CancellationToken CompleteBatch(
-      const model::Publication& pub, const CompleteBatchCallback& callback);
+  olp::client::CancellationToken CompleteBatch(const model::Publication& pub,
+                                               CompleteBatchCallback callback);
 
   /**
    * @brief Cancel the given batch operation
@@ -171,8 +169,8 @@ class DATASERVICE_WRITE_API VersionedLayerClient {
    * @param callback called when the operation cancel
    * @return cancellation token
    */
-  olp::client::CancellationToken CancelBatch(
-      const model::Publication& pub, const CancelBatchCallback& callback);
+  olp::client::CancellationToken CancelBatch(const model::Publication& pub,
+                                             CancelBatchCallback callback);
 
   /**
    * @brief Cancel all pending operations started by this client. This will only
@@ -210,7 +208,7 @@ class DATASERVICE_WRITE_API VersionedLayerClient {
   olp::client::CancellationToken PublishToBatch(
       const model::Publication& pub,
       const model::PublishPartitionDataRequest& request,
-      const PublishPartitionDataCallback& callback);
+      PublishPartitionDataCallback callback);
 
   /**
    * @brief Check if a datahandle exits.
@@ -228,7 +226,7 @@ class DATASERVICE_WRITE_API VersionedLayerClient {
    */
   olp::client::CancellationToken CheckDataExists(
       const model::CheckDataExistsRequest& request,
-      const CheckDataExistsCallback& callback);
+      CheckDataExistsCallback callback);
 
  private:
   std::shared_ptr<VersionedLayerClientImpl> impl_;

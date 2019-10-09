@@ -25,9 +25,10 @@ namespace olp {
 namespace dataservice {
 namespace write {
 
-VersionedLayerClient::VersionedLayerClient(
-    const client::HRN& catalog, const client::OlpClientSettings& settings)
-    : impl_(std::make_shared<VersionedLayerClientImpl>(catalog, settings)) {}
+VersionedLayerClient::VersionedLayerClient(client::HRN catalog,
+                                           client::OlpClientSettings settings)
+    : impl_(std::make_shared<VersionedLayerClientImpl>(std::move(catalog),
+                                                       std::move(settings))) {}
 
 VersionedLayerClient::~VersionedLayerClient() = default;
 
@@ -37,9 +38,8 @@ VersionedLayerClient::StartBatch(const model::StartBatchRequest& request) {
 }
 
 olp::client::CancellationToken VersionedLayerClient::StartBatch(
-    const model::StartBatchRequest& request,
-    const StartBatchCallback& callback) {
-  return impl_->StartBatch(request, callback);
+    const model::StartBatchRequest& request, StartBatchCallback callback) {
+  return impl_->StartBatch(request, std::move(callback));
 }
 
 olp::client::CancellableFuture<GetBaseVersionResponse>
@@ -48,8 +48,8 @@ VersionedLayerClient::GetBaseVersion() {
 }
 
 olp::client::CancellationToken VersionedLayerClient::GetBaseVersion(
-    const GetBaseVersionCallback& callback) {
-  return impl_->GetBaseVersion(callback);
+    GetBaseVersionCallback callback) {
+  return impl_->GetBaseVersion(std::move(callback));
 }
 
 olp::client::CancellableFuture<GetBatchResponse> VersionedLayerClient::GetBatch(
@@ -58,8 +58,8 @@ olp::client::CancellableFuture<GetBatchResponse> VersionedLayerClient::GetBatch(
 }
 
 olp::client::CancellationToken VersionedLayerClient::GetBatch(
-    const model::Publication& pub, const GetBatchCallback& callback) {
-  return impl_->GetBatch(pub, callback);
+    const model::Publication& pub, GetBatchCallback callback) {
+  return impl_->GetBatch(pub, std::move(callback));
 }
 
 olp::client::CancellableFuture<CompleteBatchResponse>
@@ -68,8 +68,8 @@ VersionedLayerClient::CompleteBatch(const model::Publication& pub) {
 }
 
 olp::client::CancellationToken VersionedLayerClient::CompleteBatch(
-    const model::Publication& pub, const CompleteBatchCallback& callback) {
-  return impl_->CompleteBatch(pub, callback);
+    const model::Publication& pub, CompleteBatchCallback callback) {
+  return impl_->CompleteBatch(pub, std::move(callback));
 }
 
 olp::client::CancellableFuture<CancelBatchResponse>
@@ -78,8 +78,8 @@ VersionedLayerClient::CancelBatch(const model::Publication& pub) {
 }
 
 olp::client::CancellationToken VersionedLayerClient::CancelBatch(
-    const model::Publication& pub, const CancelBatchCallback& callback) {
-  return impl_->CancelBatch(pub, callback);
+    const model::Publication& pub, CancelBatchCallback callback) {
+  return impl_->CancelBatch(pub, std::move(callback));
 }
 
 void VersionedLayerClient::CancelAll() { impl_->CancelAll(); }
@@ -94,8 +94,8 @@ VersionedLayerClient::PublishToBatch(
 olp::client::CancellationToken VersionedLayerClient::PublishToBatch(
     const model::Publication& pub,
     const model::PublishPartitionDataRequest& request,
-    const PublishPartitionDataCallback& callback) {
-  return impl_->PublishToBatch(pub, request, callback);
+    PublishPartitionDataCallback callback) {
+  return impl_->PublishToBatch(pub, request, std::move(callback));
 }
 
 olp::client::CancellableFuture<CheckDataExistsResponse>
@@ -106,8 +106,8 @@ VersionedLayerClient::CheckDataExists(
 
 olp::client::CancellationToken VersionedLayerClient::CheckDataExists(
     const model::CheckDataExistsRequest& request,
-    const CheckDataExistsCallback& callback) {
-  return impl_->CheckDataExists(request, callback);
+    CheckDataExistsCallback callback) {
+  return impl_->CheckDataExists(request, std::move(callback));
 }
 
 }  // namespace write
