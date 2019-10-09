@@ -25,7 +25,7 @@ set(OLP_SDK_DATASERVICE_WRITE_TEST_SOURCES
     StreamLayerClientTest.cpp
     ThreadSafeQueueTest.cpp
     TimeUtilsTest.cpp
-    TestVolatileLayerClient.cpp
+    VolatileLayerClientTest.cpp
     CancellationTokenListTest.cpp
     IndexLayerClientTest.cpp
     StartBatchRequestTest.cpp
