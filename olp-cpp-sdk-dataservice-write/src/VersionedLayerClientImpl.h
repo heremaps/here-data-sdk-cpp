@@ -55,37 +55,36 @@ using UploadBlobCallback = std::function<void(UploadBlobResponse response)>;
 class VersionedLayerClientImpl
     : public std::enable_shared_from_this<VersionedLayerClientImpl> {
  public:
-  VersionedLayerClientImpl(const client::HRN& catalog,
-                           const client::OlpClientSettings& settings);
+  VersionedLayerClientImpl(client::HRN catalog,
+                           client::OlpClientSettings settings);
 
   client::CancellableFuture<StartBatchResponse> StartBatch(
       const model::StartBatchRequest& request);
 
   client::CancellationToken StartBatch(const model::StartBatchRequest& request,
-                                       const StartBatchCallback& callback);
+                                       StartBatchCallback callback);
 
   client::CancellableFuture<GetBaseVersionResponse> GetBaseVersion();
 
-  client::CancellationToken GetBaseVersion(
-      const GetBaseVersionCallback& callback);
+  client::CancellationToken GetBaseVersion(GetBaseVersionCallback callback);
 
   client::CancellableFuture<GetBatchResponse> GetBatch(
       const model::Publication& pub);
 
   client::CancellationToken GetBatch(const model::Publication& pub,
-                                     const GetBatchCallback& callback);
+                                     GetBatchCallback callback);
 
   client::CancellableFuture<CompleteBatchResponse> CompleteBatch(
       const model::Publication& pub);
 
-  client::CancellationToken CompleteBatch(
-      const model::Publication& pub, const CompleteBatchCallback& callback);
+  client::CancellationToken CompleteBatch(const model::Publication& pub,
+                                          CompleteBatchCallback callback);
 
   client::CancellableFuture<CancelBatchResponse> CancelBatch(
       const model::Publication& pub);
 
   client::CancellationToken CancelBatch(const model::Publication& pub,
-                                        const CancelBatchCallback& callback);
+                                        CancelBatchCallback callback);
 
   void CancelAll();
 
@@ -96,14 +95,14 @@ class VersionedLayerClientImpl
   client::CancellationToken PublishToBatch(
       const model::Publication& pub,
       const model::PublishPartitionDataRequest& request,
-      const PublishPartitionDataCallback& callback);
+      PublishPartitionDataCallback callback);
 
   client::CancellableFuture<CheckDataExistsResponse> CheckDataExists(
       const model::CheckDataExistsRequest& request);
 
   client::CancellationToken CheckDataExists(
       const model::CheckDataExistsRequest& request,
-      const CheckDataExistsCallback& callback);
+      CheckDataExistsCallback callback);
 
  private:
   std::string FindContentTypeForLayerId(const std::string& layer_id);

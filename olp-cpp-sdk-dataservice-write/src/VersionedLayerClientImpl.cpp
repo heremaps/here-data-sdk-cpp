@@ -45,9 +45,9 @@ namespace dataservice {
 namespace write {
 
 VersionedLayerClientImpl::VersionedLayerClientImpl(
-    const client::HRN& catalog, const client::OlpClientSettings& settings)
-    : catalog_(catalog),
-      settings_(settings),
+    client::HRN catalog, client::OlpClientSettings settings)
+    : catalog_(std::move(catalog)),
+      settings_(std::move(settings)),
       apiclient_blob_(nullptr),
       apiclient_config_(nullptr),
       apiclient_metadata_(nullptr),
@@ -169,8 +169,7 @@ VersionedLayerClientImpl::StartBatch(const model::StartBatchRequest& request) {
 }
 
 client::CancellationToken VersionedLayerClientImpl::StartBatch(
-    const model::StartBatchRequest& request,
-    const StartBatchCallback& callback) {
+    const model::StartBatchRequest& request, StartBatchCallback callback) {
   if (!request.GetLayers() || request.GetLayers()->empty()) {
     callback(client::ApiError(client::ErrorCode::InvalidArgument,
                               "Invalid layer", true));
@@ -241,7 +240,7 @@ VersionedLayerClientImpl::GetBaseVersion() {
 }
 
 olp::client::CancellationToken VersionedLayerClientImpl::GetBaseVersion(
-    const GetBaseVersionCallback& callback) {
+    GetBaseVersionCallback callback) {
   auto self = shared_from_this();
   auto cancel_context = std::make_shared<client::CancellationContext>();
   auto id = tokenList_.GetNextId();
@@ -306,7 +305,7 @@ VersionedLayerClientImpl::GetBatch(const model::Publication& pub) {
 }
 
 olp::client::CancellationToken VersionedLayerClientImpl::GetBatch(
-    const model::Publication& pub, const GetBatchCallback& callback) {
+    const model::Publication& pub, GetBatchCallback callback) {
   std::string publicationId = pub.GetId().value_or("");
   if (publicationId.empty()) {
     callback(client::ApiError(client::ErrorCode::InvalidArgument,
@@ -372,7 +371,7 @@ VersionedLayerClientImpl::CompleteBatch(const model::Publication& pub) {
 }
 
 olp::client::CancellationToken VersionedLayerClientImpl::CompleteBatch(
-    const model::Publication& pub, const CompleteBatchCallback& callback) {
+    const model::Publication& pub, CompleteBatchCallback callback) {
   std::string publicationId = pub.GetId().value_or("");
   if (publicationId.empty()) {
     callback(client::ApiError(client::ErrorCode::InvalidArgument,
@@ -438,7 +437,7 @@ VersionedLayerClientImpl::CancelBatch(const model::Publication& pub) {
 }
 
 olp::client::CancellationToken VersionedLayerClientImpl::CancelBatch(
-    const model::Publication& pub, const CancelBatchCallback& callback) {
+    const model::Publication& pub, CancelBatchCallback callback) {
   std::string publicationId = pub.GetId().value_or("");
   if (publicationId.empty()) {
     callback(client::ApiError(client::ErrorCode::InvalidArgument,
@@ -510,7 +509,7 @@ VersionedLayerClientImpl::PublishToBatch(
 olp::client::CancellationToken VersionedLayerClientImpl::PublishToBatch(
     const model::Publication& pub,
     const model::PublishPartitionDataRequest& request,
-    const PublishPartitionDataCallback& callback) {
+    PublishPartitionDataCallback callback) {
   std::string publication_id = pub.GetId().value_or("");
   if (publication_id.empty()) {
     callback(client::ApiError(client::ErrorCode::InvalidArgument,
@@ -752,7 +751,7 @@ VersionedLayerClientImpl::CheckDataExists(
 
 client::CancellationToken VersionedLayerClientImpl::CheckDataExists(
     const model::CheckDataExistsRequest& request,
-    const CheckDataExistsCallback& callback) {
+    CheckDataExistsCallback callback) {
   if (request.GetLayerId().empty()) {
     callback(client::ApiError(client::ErrorCode::InvalidArgument,
                               "Invalid layer", true));
