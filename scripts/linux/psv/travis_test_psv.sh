@@ -16,10 +16,10 @@ $CPP_TEST_SOURCE_DARASERVICE_READ/olp-cpp-sdk-dataservice-read-tests \
     --gtest_output="xml:olp-cpp-sdk-dataservice-read-tests-report.xml"
 echo ">>> Dataservice write Test ... >>>"
 $CPP_TEST_SOURCE_DARASERVICE_WRITE/olp-cpp-sdk-dataservice-write-tests \
-    --gtest_output="xml:olp-cpp-sdk-dataservice-write-tests-report.xml" \
-    --gtest_filter=-"*Online*":"StreamLayerClientCacheTest*"
+    --gtest_output="xml:olp-cpp-sdk-dataservice-write-tests-report.xml"
 echo ">>> Integration Test ... >>>"
 $CPP_TEST_SOURCE_INTEGRATION/olp-cpp-sdk-integration-tests \
-    --gtest_output="xml:olp-cpp-sdk-integration-tests-report.xml"
+    --gtest_output="xml:olp-cpp-sdk-integration-tests-report.xml" \
+    --gtest_filter=-"StreamLayerClientCacheTest*"
 
 bash <(curl -s https://codecov.io/bash)

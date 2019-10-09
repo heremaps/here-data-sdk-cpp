@@ -24,6 +24,11 @@ set(OLP_SDK_INTEGRATIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-dataservice-read/CatalogClientTestBase.cpp
     ./olp-cpp-sdk-dataservice-read/CatalogClientTest.cpp
     ./olp-cpp-sdk-dataservice-read/HttpResponses.h
+    ./olp-cpp-sdk-dataservice-write/HttpResponses.h
+    ./olp-cpp-sdk-dataservice-write/IndexLayerClientTest.cpp
+    ./olp-cpp-sdk-dataservice-write/StreamLayerClientCacheTest.cpp
+    ./olp-cpp-sdk-dataservice-write/StreamLayerClientTest.cpp
+    ./olp-cpp-sdk-dataservice-write/VolatileLayerClientTest.cpp
 )
 
 if (ANDROID OR IOS)
