@@ -107,7 +107,7 @@ TEST(ParserTest, ResponseOkMultipleGeneratedIds) {
 }
 
 TEST(ParserTest, Catalog) {
-  std::string jsonInput =
+  std::string json_input =
       "{\
     \"id\": \"roadweather-catalog-v1\",\
     \"hrn\": \"hrn:here:data:::my-catalog-v1\",\
@@ -208,11 +208,11 @@ TEST(ParserTest, Catalog) {
     }\
     }";
 
-  auto startTime = std::chrono::high_resolution_clock::now();
+  auto start_time = std::chrono::high_resolution_clock::now();
   auto catalog =
-      olp::parser::parse<olp::dataservice::write::model::Catalog>(jsonInput);
+      olp::parser::parse<olp::dataservice::write::model::Catalog>(json_input);
   auto end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> time = end - startTime;
+  std::chrono::duration<double> time = end - start_time;
   std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
 
   ASSERT_EQ("roadweather-catalog-v1", catalog.GetId());
@@ -430,7 +430,7 @@ TEST(ParserTest, CatalogCrash) {
 }
 
 TEST(ParserTest, Apis) {
-  std::string jsonInput =
+  std::string json_input =
       "[\
     {\
     \"api\": \"config\",\
@@ -445,7 +445,7 @@ TEST(ParserTest, Apis) {
     ]";
 
   auto apis =
-      olp::parser::parse<olp::dataservice::write::model::Apis>(jsonInput);
+      olp::parser::parse<olp::dataservice::write::model::Apis>(json_input);
   ASSERT_EQ(1u, apis.size());
   ASSERT_EQ("config", apis.at(0).GetApi());
   ASSERT_EQ("v1", apis.at(0).GetVersion());
@@ -616,7 +616,7 @@ TEST(ParserTest, Publication) {
 }
 
 TEST(ParserTest, Partitions) {
-  std::string jsonInput =
+  std::string json_input =
       "{\
       \"partitions\": [\
         { \
@@ -631,11 +631,12 @@ TEST(ParserTest, Partitions) {
       \"next\": \"url\"\
     }";
 
-  auto startTime = std::chrono::high_resolution_clock::now();
+  auto start_time = std::chrono::high_resolution_clock::now();
   auto partitions =
-      olp::parser::parse<olp::dataservice::write::model::Partitions>(jsonInput);
+      olp::parser::parse<olp::dataservice::write::model::Partitions>(
+          json_input);
   auto end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> time = end - startTime;
+  std::chrono::duration<double> time = end - start_time;
   std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
 
   ASSERT_EQ(1u, partitions.GetPartitions().size());
@@ -654,7 +655,7 @@ TEST(ParserTest, Partitions) {
 }
 
 TEST(ParserTest, LayerVersions) {
-  std::string jsonInput =
+  std::string json_input =
       "{\
       \"layerVersions\": [\
         {\
@@ -666,24 +667,24 @@ TEST(ParserTest, LayerVersions) {
       \"version\": 1\
     }";
 
-  auto startTime = std::chrono::high_resolution_clock::now();
-  auto layerversions =
+  auto start_time = std::chrono::high_resolution_clock::now();
+  auto layer_versions =
       olp::parser::parse<olp::dataservice::write::model::LayerVersions>(
-          jsonInput);
+          json_input);
   auto end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> time = end - startTime;
+  std::chrono::duration<double> time = end - start_time;
   std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
 
-  ASSERT_EQ(1, layerversions.GetVersion());
-  ASSERT_EQ(1u, layerversions.GetLayerVersions().size());
-  ASSERT_EQ("my-layer", layerversions.GetLayerVersions().at(0).GetLayer());
-  ASSERT_EQ(0, layerversions.GetLayerVersions().at(0).GetVersion());
+  ASSERT_EQ(1, layer_versions.GetVersion());
+  ASSERT_EQ(1u, layer_versions.GetLayerVersions().size());
+  ASSERT_EQ("my-layer", layer_versions.GetLayerVersions().at(0).GetLayer());
+  ASSERT_EQ(0, layer_versions.GetLayerVersions().at(0).GetVersion());
   ASSERT_EQ(1516397474657,
-            layerversions.GetLayerVersions().at(0).GetTimestamp());
+            layer_versions.GetLayerVersions().at(0).GetTimestamp());
 }
 
 TEST(ParserTest, PublishDataRequest) {
-  std::string jsonInput =
+  std::string json_input =
       R"(
       {
         "data": "payload",
@@ -694,21 +695,21 @@ TEST(ParserTest, PublishDataRequest) {
       }
 )";
 
-  auto publishDataRequest =
+  auto publish_data_request =
       olp::parser::parse<olp::dataservice::write::model::PublishDataRequest>(
-          jsonInput);
+          json_input);
 
   std::string data_string = "payload";
   std::shared_ptr<std::vector<unsigned char>> data_ =
       std::make_shared<std::vector<unsigned char>>(data_string.begin(),
                                                    data_string.end());
 
-  ASSERT_EQ("OlpCppSdkTest", *publishDataRequest.GetBillingTag());
-  ASSERT_EQ("olp-cpp-sdk-checksum", *publishDataRequest.GetChecksum());
-  ASSERT_EQ(*data_, *publishDataRequest.GetData());
-  ASSERT_EQ("olp-cpp-sdk-layer", publishDataRequest.GetLayerId());
+  ASSERT_EQ("OlpCppSdkTest", *publish_data_request.GetBillingTag());
+  ASSERT_EQ("olp-cpp-sdk-checksum", *publish_data_request.GetChecksum());
+  ASSERT_EQ(*data_, *publish_data_request.GetData());
+  ASSERT_EQ("olp-cpp-sdk-layer", publish_data_request.GetLayerId());
   ASSERT_EQ("04946af8-7f0e-4d41-b85a-e883c74ebba3",
-            *publishDataRequest.GetTraceId());
+            *publish_data_request.GetTraceId());
 }
 
 }  // namespace
