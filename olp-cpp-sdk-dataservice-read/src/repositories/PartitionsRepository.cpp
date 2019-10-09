@@ -473,9 +473,6 @@ QueryApi::PartitionsResponse PartitionsRepository::GetPartitionById(
   }
 
   const auto& version = data_request.GetVersion();
-  if (!version) {
-    return ApiError(ErrorCode::PreconditionFailed, "Version is not identified");
-  }
 
   std::chrono::seconds timeout{settings.retry_settings.timeout};
   repository::PartitionsCacheRepository repository(catalog, settings.cache);
