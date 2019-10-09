@@ -46,9 +46,9 @@ std::string GenerateUuid() {
 namespace olp {
 namespace dataservice {
 namespace write {
-VolatileLayerClientImpl::VolatileLayerClientImpl(
-    const HRN& catalog, const OlpClientSettings& settings)
-    : catalog_(catalog), settings_(settings) {}
+VolatileLayerClientImpl::VolatileLayerClientImpl(HRN catalog,
+                                                 OlpClientSettings settings)
+    : catalog_(std::move(catalog)), settings_(std::move(settings)) {}
 
 olp::client::CancellationToken VolatileLayerClientImpl::InitApiClients(
     std::shared_ptr<client::CancellationContext> cancel_context,
@@ -222,7 +222,7 @@ VolatileLayerClientImpl::GetBaseVersion() {
 }
 
 olp::client::CancellationToken VolatileLayerClientImpl::GetBaseVersion(
-    const GetBaseVersionCallback& callback) {
+    GetBaseVersionCallback callback) {
   auto cancel_context = std::make_shared<client::CancellationContext>();
   auto self = shared_from_this();
   auto id = tokenList_.GetNextId();
@@ -287,8 +287,7 @@ VolatileLayerClientImpl::StartBatch(const model::StartBatchRequest& request) {
 }
 
 client::CancellationToken VolatileLayerClientImpl::StartBatch(
-    const model::StartBatchRequest& request,
-    const StartBatchCallback& callback) {
+    const model::StartBatchRequest& request, StartBatchCallback callback) {
   auto cancel_context = std::make_shared<client::CancellationContext>();
   auto self = shared_from_this();
   auto id = tokenList_.GetNextId();
@@ -355,7 +354,7 @@ VolatileLayerClientImpl::PublishPartitionData(
 
 CancellationToken VolatileLayerClientImpl::PublishPartitionData(
     const model::PublishPartitionDataRequest& request,
-    const PublishPartitionDataCallback& callback) {
+    PublishPartitionDataCallback callback) {
   if (!request.GetData() || !request.GetPartitionId()) {
     callback(PublishPartitionDataResponse(
         ApiError(ErrorCode::InvalidArgument,
@@ -491,7 +490,7 @@ VolatileLayerClientImpl::GetBatch(const model::Publication& pub) {
 }
 
 olp::client::CancellationToken VolatileLayerClientImpl::GetBatch(
-    const model::Publication& pub, const GetBatchCallback& callback) {
+    const model::Publication& pub, GetBatchCallback callback) {
   std::string publicationId = pub.GetId().value_or("");
   if (publicationId.empty()) {
     callback(client::ApiError(client::ErrorCode::InvalidArgument,
@@ -634,7 +633,7 @@ VolatileLayerClientImpl::PublishToBatch(
 olp::client::CancellationToken VolatileLayerClientImpl::PublishToBatch(
     const model::Publication& pub,
     const std::vector<model::PublishPartitionDataRequest>& partitions,
-    const PublishToBatchCallback& callback) {
+    PublishToBatchCallback callback) {
   std::string publication_id = pub.GetId().value_or("");
   if (publication_id.empty()) {
     callback(client::ApiError(client::ErrorCode::InvalidArgument,
@@ -758,7 +757,7 @@ VolatileLayerClientImpl::CompleteBatch(const model::Publication& pub) {
 }
 
 olp::client::CancellationToken VolatileLayerClientImpl::CompleteBatch(
-    const model::Publication& pub, const CompleteBatchCallback& callback) {
+    const model::Publication& pub, CompleteBatchCallback callback) {
   std::string publicationId = pub.GetId().value_or("");
   if (publicationId.empty()) {
     callback(client::ApiError(client::ErrorCode::InvalidArgument,

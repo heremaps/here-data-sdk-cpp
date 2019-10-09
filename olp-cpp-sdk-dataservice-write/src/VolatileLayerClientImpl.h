@@ -52,13 +52,13 @@ using DataHandleMapCallback = std::function<void(DataHandleMapResponse)>;
 class VolatileLayerClientImpl
     : public std::enable_shared_from_this<VolatileLayerClientImpl> {
  public:
-  VolatileLayerClientImpl(const client::HRN& catalog,
-                          const client::OlpClientSettings& settings);
+  VolatileLayerClientImpl(client::HRN catalog,
+                          client::OlpClientSettings settings);
 
   olp::client::CancellableFuture<GetBaseVersionResponse> GetBaseVersion();
 
   olp::client::CancellationToken GetBaseVersion(
-      const GetBaseVersionCallback& callback);
+      GetBaseVersionCallback callback);
 
   void cancellAll();
 
@@ -67,25 +67,24 @@ class VolatileLayerClientImpl
 
   olp::client::CancellationToken PublishPartitionData(
       const model::PublishPartitionDataRequest& request,
-      const PublishPartitionDataCallback& callback);
+      PublishPartitionDataCallback callback);
 
   client::CancellableFuture<StartBatchResponse> StartBatch(
       const model::StartBatchRequest& request);
 
   olp::client::CancellationToken StartBatch(
-      const model::StartBatchRequest& request,
-      const StartBatchCallback& callback);
+      const model::StartBatchRequest& request, StartBatchCallback callback);
 
   olp::client::CancellableFuture<GetBatchResponse> GetBatch(
       const model::Publication& pub);
 
   olp::client::CancellationToken GetBatch(const model::Publication& pub,
-                                          const GetBatchCallback& callback);
+                                          GetBatchCallback callback);
 
   olp::client::CancellationToken PublishToBatch(
       const model::Publication& pub,
       const std::vector<model::PublishPartitionDataRequest>& partitions,
-      const PublishToBatchCallback& callback);
+      PublishToBatchCallback callback);
 
   olp::client::CancellableFuture<PublishToBatchResponse> PublishToBatch(
       const model::Publication& pub,
@@ -94,8 +93,8 @@ class VolatileLayerClientImpl
   olp::client::CancellableFuture<CompleteBatchResponse> CompleteBatch(
       const model::Publication& pub);
 
-  olp::client::CancellationToken CompleteBatch(
-      const model::Publication& pub, const CompleteBatchCallback& callback);
+  olp::client::CancellationToken CompleteBatch(const model::Publication& pub,
+                                               CompleteBatchCallback callback);
 
  private:
   client::CancellationToken InitApiClients(

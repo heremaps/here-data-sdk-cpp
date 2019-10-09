@@ -24,9 +24,10 @@
 namespace olp {
 namespace dataservice {
 namespace write {
-VolatileLayerClient::VolatileLayerClient(
-    const client::HRN& catalog, const client::OlpClientSettings& settings)
-    : impl_(std::make_shared<VolatileLayerClientImpl>(catalog, settings)) {}
+VolatileLayerClient::VolatileLayerClient(client::HRN catalog,
+                                         client::OlpClientSettings settings)
+    : impl_(std::make_shared<VolatileLayerClientImpl>(std::move(catalog),
+                                                      std::move(settings))) {}
 
 void VolatileLayerClient::cancellAll() { impl_->cancellAll(); }
 
@@ -38,8 +39,8 @@ VolatileLayerClient::PublishPartitionData(
 
 olp::client::CancellationToken VolatileLayerClient::PublishPartitionData(
     const model::PublishPartitionDataRequest& request,
-    const PublishPartitionDataCallback& callback) {
-  return impl_->PublishPartitionData(request, callback);
+    PublishPartitionDataCallback callback) {
+  return impl_->PublishPartitionData(request, std::move(callback));
 }
 
 olp::client::CancellableFuture<GetBaseVersionResponse>
@@ -48,8 +49,8 @@ VolatileLayerClient::GetBaseVersion() {
 }
 
 olp::client::CancellationToken VolatileLayerClient::GetBaseVersion(
-    const GetBaseVersionCallback& callback) {
-  return impl_->GetBaseVersion(callback);
+    GetBaseVersionCallback callback) {
+  return impl_->GetBaseVersion(std::move(callback));
 }
 
 olp::client::CancellableFuture<StartBatchResponse>
@@ -58,9 +59,8 @@ VolatileLayerClient::StartBatch(const model::StartBatchRequest& request) {
 }
 
 olp::client::CancellationToken VolatileLayerClient::StartBatch(
-    const model::StartBatchRequest& request,
-    const StartBatchCallback& callback) {
-  return impl_->StartBatch(request, callback);
+    const model::StartBatchRequest& request, StartBatchCallback callback) {
+  return impl_->StartBatch(request, std::move(callback));
 }
 
 olp::client::CancellableFuture<GetBatchResponse> VolatileLayerClient::GetBatch(
@@ -69,8 +69,8 @@ olp::client::CancellableFuture<GetBatchResponse> VolatileLayerClient::GetBatch(
 }
 
 olp::client::CancellationToken VolatileLayerClient::GetBatch(
-    const model::Publication& pub, const GetBatchCallback& callback) {
-  return impl_->GetBatch(pub, callback);
+    const model::Publication& pub, GetBatchCallback callback) {
+  return impl_->GetBatch(pub, std::move(callback));
 }
 
 olp::client::CancellableFuture<PublishToBatchResponse>
@@ -83,8 +83,8 @@ VolatileLayerClient::PublishToBatch(
 olp::client::CancellationToken VolatileLayerClient::PublishToBatch(
     const model::Publication& pub,
     const std::vector<model::PublishPartitionDataRequest>& partitions,
-    const PublishToBatchCallback& callback) {
-  return impl_->PublishToBatch(pub, partitions, callback);
+    PublishToBatchCallback callback) {
+  return impl_->PublishToBatch(pub, partitions, std::move(callback));
 }
 
 olp::client::CancellableFuture<CompleteBatchResponse>
@@ -93,8 +93,8 @@ VolatileLayerClient::CompleteBatch(const model::Publication& pub) {
 }
 
 olp::client::CancellationToken VolatileLayerClient::CompleteBatch(
-    const model::Publication& pub, const CompleteBatchCallback& callback) {
-  return impl_->CompleteBatch(pub, callback);
+    const model::Publication& pub, CompleteBatchCallback callback) {
+  return impl_->CompleteBatch(pub, std::move(callback));
 }
 
 }  // namespace write
