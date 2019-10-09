@@ -85,8 +85,7 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
    * @param settings Client settings used to control behaviour of the client
    * instance. Volatile.
    */
-  VolatileLayerClient(const client::HRN& catalog,
-                      const client::OlpClientSettings& settings);
+  VolatileLayerClient(client::HRN catalog, client::OlpClientSettings settings);
 
   /**
    * @brief Cancel all pending requests.
@@ -119,7 +118,7 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
    */
   olp::client::CancellationToken PublishPartitionData(
       const model::PublishPartitionDataRequest& request,
-      const PublishPartitionDataCallback& callback);
+      PublishPartitionDataCallback callback);
 
   /**
    * @brief Get the latest version number of the catalog
@@ -133,7 +132,7 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
    * @return cancellationToken
    */
   olp::client::CancellationToken GetBaseVersion(
-      const GetBaseVersionCallback& callback);
+      GetBaseVersionCallback callback);
 
   /**
    * @brief Start a batch operation.
@@ -150,8 +149,7 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
    * @return olp::client::CancellationToken
    */
   olp::client::CancellationToken StartBatch(
-      const model::StartBatchRequest& request,
-      const StartBatchCallback& callback);
+      const model::StartBatchRequest& request, StartBatchCallback callback);
 
   /**
    * @brief Get the details of the given batch publication
@@ -168,7 +166,7 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
    * @return cancellation token
    */
   olp::client::CancellationToken GetBatch(const model::Publication& pub,
-                                          const GetBatchCallback& callback);
+                                          GetBatchCallback callback);
 
   /**
    * Publish meta data to OLP.
@@ -223,7 +221,7 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
   olp::client::CancellationToken PublishToBatch(
       const model::Publication& pub,
       const std::vector<model::PublishPartitionDataRequest>& partitions,
-      const PublishToBatchCallback& callback);
+      PublishToBatchCallback callback);
 
   /**
    * @brief Complete the given batch operation and commit to OLP.
@@ -239,8 +237,8 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
    * @param callback called when the operation completes.
    * @return cancellation token
    */
-  olp::client::CancellationToken CompleteBatch(
-      const model::Publication& pub, const CompleteBatchCallback& callback);
+  olp::client::CancellationToken CompleteBatch(const model::Publication& pub,
+                                               CompleteBatchCallback callback);
 
  private:
   std::shared_ptr<VolatileLayerClientImpl> impl_;
