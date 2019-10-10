@@ -92,7 +92,7 @@ TEST(PartitionsRepositoryTest, GetPartitionById) {
   auto setup_positive_metadata_mocks = [&]() {
     EXPECT_CALL(*network,
                 Send(IsGetRequest(kOlpSdkUrlLookupMetadata), _, _, _, _))
-        .WillOnce(NetworkMock::ReturnHttpResponse(
+        .WillOnce(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(
                 olp::http::HttpStatusCode::OK),
             kOlpSdkHttpResponseLookupMetadata));
@@ -168,7 +168,7 @@ TEST(PartitionsRepositoryTest, GetPartitionById) {
     client::CancellationContext context;
     EXPECT_CALL(*network,
                 Send(IsGetRequest(kOlpSdkUrlPartitionById), _, _, _, _))
-        .WillOnce(NetworkMock::ReturnHttpResponse(
+        .WillOnce(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(
                 olp::http::HttpStatusCode::OK),
             kOlpSdkHttpResponsePartitionById));
@@ -198,7 +198,7 @@ TEST(PartitionsRepositoryTest, GetPartitionById) {
     client::CancellationContext context;
     EXPECT_CALL(*network, Send(IsGetRequest(kOlpSdkUrlPartitionByIdNoVersion),
                                _, _, _, _))
-        .WillOnce(NetworkMock::ReturnHttpResponse(
+        .WillOnce(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(
                 olp::http::HttpStatusCode::OK),
             kOlpSdkHttpResponsePartitionById));
@@ -229,7 +229,7 @@ TEST(PartitionsRepositoryTest, GetPartitionById) {
 
     EXPECT_CALL(*network,
                 Send(IsGetRequest(kOlpSdkUrlLookupMetadata), _, _, _, _))
-        .WillOnce(NetworkMock::ReturnHttpResponse(
+        .WillOnce(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(
                 olp::http::HttpStatusCode::UNAUTHORIZED),
             "Inappropriate"));
@@ -251,7 +251,7 @@ TEST(PartitionsRepositoryTest, GetPartitionById) {
 
     EXPECT_CALL(*network,
                 Send(IsGetRequest(kOlpSdkUrlPartitionById), _, _, _, _))
-        .WillOnce(NetworkMock::ReturnHttpResponse(
+        .WillOnce(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(
                 olp::http::HttpStatusCode::UNAUTHORIZED),
             "{Inappropriate}"));
@@ -277,7 +277,7 @@ TEST(PartitionsRepositoryTest, GetPartitionById) {
 
     EXPECT_CALL(*network,
                 Send(IsGetRequest(kOlpSdkUrlPartitionById), _, _, _, _))
-        .WillOnce(NetworkMock::ReturnHttpResponse(
+        .WillOnce(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(
                 olp::http::HttpStatusCode::FORBIDDEN),
             "{Inappropriate}"));
