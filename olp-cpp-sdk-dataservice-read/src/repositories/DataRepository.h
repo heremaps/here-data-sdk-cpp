@@ -59,6 +59,12 @@ class DataRepository final {
       olp::client::OlpClientSettings client_settings, DataRequest data_request,
       olp::client::CancellationContext context);
 
+  static DataResponse GetVolatileData(const client::HRN& catalog,
+                                      const std::string& layer_id,
+                                      DataRequest request,
+                                      client::CancellationContext context,
+                                      client::OlpClientSettings settings);
+
   static DataResponse GetBlobData(
       const client::HRN& catalog, const std::string& layer,
       const std::string& service, const DataRequest& data_request,

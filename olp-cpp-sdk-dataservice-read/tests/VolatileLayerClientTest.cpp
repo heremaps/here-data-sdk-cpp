@@ -34,8 +34,7 @@ TEST(VolatileLayerClientTest, GetData) {
 
   DataRequest request;
 
-  VolatileLayerClient::Callback cb;
-  auto token = client.GetData(request, cb);
+  auto token = client.GetData(request, nullptr);
   token.cancel();
 }
 }  // namespace

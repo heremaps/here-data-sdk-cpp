@@ -28,16 +28,16 @@ namespace read {
 
 VolatileLayerClient::VolatileLayerClient(
     olp::client::HRN catalog, std::string layer_id,
-    olp::client::OlpClientSettings client_settings)
+    olp::client::OlpClientSettings settings)
     : impl_(std::make_unique<VolatileLayerClientImpl>(
           std::move(catalog), std::move(layer_id),
-          std::move(client_settings))) {}
+          std::move(settings))) {}
 
 VolatileLayerClient::~VolatileLayerClient() = default;
 
 olp::client::CancellationToken VolatileLayerClient::GetData(
-    DataRequest data_request, Callback callback) {
-  return impl_->GetData(std::move(data_request), std::move(callback));
+    DataRequest request, Callback<DataResponse> callback) {
+  return impl_->GetData(std::move(request), std::move(callback));
 }
 }  // namespace read
 }  // namespace dataservice

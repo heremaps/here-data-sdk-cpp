@@ -76,9 +76,10 @@ class DATASERVICE_READ_API VolatileLayerClient final {
   /// DataResult alias
   using DataResult = model::Data;
   /// CallbackResponse alias
-  using CallbackResponse = client::ApiResponse<DataResult, client::ApiError>;
+  using DataResponse = client::ApiResponse<DataResult, client::ApiError>;
   /// Callback alias
-  using Callback = std::function<void(CallbackResponse response)>;
+  template <class Response>
+  using Callback = std::function<void(Response response)>;
 
   /**
    * @brief VolatileLayerClient constructor.
@@ -89,8 +90,8 @@ class DATASERVICE_READ_API VolatileLayerClient final {
    * @param client_settings settings used to control the client instance
    * behavior.
    */
-  VolatileLayerClient(olp::client::HRN catalog, std::string layer_id,
-                      olp::client::OlpClientSettings client_settings);
+  VolatileLayerClient(client::HRN catalog, std::string layer_id,
+                      client::OlpClientSettings settings);
 
   ~VolatileLayerClient();
 
@@ -100,13 +101,13 @@ class DATASERVICE_READ_API VolatileLayerClient final {
    * callback is invoked with an empty DataResponse (a nullptr result and
    * error). If Partition Id or Data Handle are not set in the request, the
    * callback is invoked with the error ErrorCode::InvalidRequest.
-   * @param data_request contains a complete set of request parameters.
+   * @param request contains a complete set of request parameters.
    * @param callback is invoked once the DataResult is available, or an
    * error is encountered.
    * @return A token that can be used to cancel this request.
    */
-  olp::client::CancellationToken GetData(DataRequest data_request,
-                                         Callback callback);
+  olp::client::CancellationToken GetData(DataRequest request,
+                                         Callback<DataResponse> callback);
 
  private:
   std::unique_ptr<VolatileLayerClientImpl> impl_;
