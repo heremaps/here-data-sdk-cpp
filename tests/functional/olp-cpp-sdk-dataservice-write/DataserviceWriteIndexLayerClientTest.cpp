@@ -65,14 +65,15 @@ class DataserviceWriteIndexLayerClientTest : public ::testing::Test {
   std::shared_ptr<IndexLayerClient> CreateIndexLayerClient() {
     auto network = s_network;
 
-    olp::authentication::Settings authentication_settings;
+    const auto key_id = CustomParameters::getArgument(kAppid);
+    const auto secret = CustomParameters::getArgument(kSecret);
+
+    olp::authentication::Settings authentication_settings({key_id, secret});
     authentication_settings.token_endpoint_url =
         CustomParameters::getArgument(kEndpoint);
     authentication_settings.network_request_handler = network;
 
-    olp::authentication::TokenProviderDefault provider(
-        CustomParameters::getArgument(kAppid),
-        CustomParameters::getArgument(kSecret), authentication_settings);
+    olp::authentication::TokenProviderDefault provider(authentication_settings);
 
     olp::client::AuthenticationSettings auth_client_settings;
     auth_client_settings.provider = provider;

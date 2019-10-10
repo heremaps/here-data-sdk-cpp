@@ -44,18 +44,29 @@ static const std::string kHereAccountProductionTokenUrl =
  * @brief Settings which can be used to configure a TokenEndpoint instance.
  */
 struct AUTHENTICATION_API Settings {
-  /// Optional. network_proxy_settings containing proxy configuration settings
-  /// for the network layer.
-  boost::optional<http::NetworkProxySettings> network_proxy_settings;
+  /**
+   * @brief Constructor
+   * @param credentials The client credentials to access OLP.
+   */
+  Settings(AuthenticationCredentials credentials)
+      : credentials(std::move(credentials)) {}
+
+  /// Client credentials
+  AuthenticationCredentials credentials;
 
   /// The network instance to be used to internally operate with OLP services.
   std::shared_ptr<http::Network> network_request_handler;
 
-  /// The TaskScheduler class to be used for managing callbacks enqueue
+  /// Optional. The TaskScheduler class to be used for managing callbacks
+  /// enqueue
   std::shared_ptr<thread::TaskScheduler> task_scheduler;
 
-  /// The token endpoint server URL. Note that only standard OAuth2 Token URLs
-  /// (those ending in 'oauth2/token') are supported.
+  /// Optional. network_proxy_settings containing proxy configuration settings
+  /// for the network layer.
+  boost::optional<http::NetworkProxySettings> network_proxy_settings;
+
+  /// Optional. The token endpoint server URL. Note that only standard OAuth2
+  /// Token URLs (those ending in 'oauth2/token') are supported.
   std::string token_endpoint_url{kHereAccountProductionTokenUrl};
 };
 

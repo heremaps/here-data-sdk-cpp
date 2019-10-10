@@ -132,24 +132,23 @@ int RunExample() {
       OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
 
   // Initialize authentication settings
-  olp::authentication::Settings settings;
+  olp::authentication::Settings settings({kKeyId, kKeySecret});
   settings.task_scheduler = task_scheduler;
   settings.network_request_handler = http_client;
 
   // Setup AuthenticationSettings with a default token provider that will
   // retrieve an OAuth 2.0 token from OLP.
   olp::client::AuthenticationSettings auth_settings;
-  auth_settings.provider = olp::authentication::TokenProviderDefault(
-      kKeyId, kKeySecret, std::move(settings));
+  auth_settings.provider =
+      olp::authentication::TokenProviderDefault(std::move(settings));
 
   // Setup OlpClientSettings and provide it to the CatalogClient.
-  auto client_settings = olp::client::OlpClientSettings();
-  olp::cache::CacheSettings cache_settings;
+  olp::client::OlpClientSettings client_settings;
   client_settings.authentication_settings = auth_settings;
   client_settings.task_scheduler = std::move(task_scheduler);
   client_settings.network_request_handler = std::move(http_client);
   client_settings.cache =
-      olp::client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
+      olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
 
   // Create a CatalogClient with appropriate HRN and settings.
   auto service_client = std::make_unique<olp::dataservice::read::CatalogClient>(

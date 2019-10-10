@@ -71,14 +71,11 @@ void TestAutoRefreshingTokenInvalidRequest(
     std::function<
         TokenEndpoint::TokenResponse(const AutoRefreshingToken& auto_token)>
         func) {
-  auto bad_token_endpoint = TokenEndpoint(
-      AuthenticationCredentials("BAD", "BAD"), [network]() -> Settings {
-        Settings settings;
-        settings.task_scheduler =
-            olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
-        settings.network_request_handler = network;
-        return settings;
-      }());
+  Settings settings({"BAD", "BAD"});
+  settings.task_scheduler =
+      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
+  settings.network_request_handler = network;
+  auto bad_token_endpoint = TokenEndpoint(settings);
   auto token_response = func(bad_token_endpoint.RequestAutoRefreshingToken());
   EXPECT_TRUE(token_response.IsSuccessful());
   EXPECT_EQ(token_response.GetResult().GetHttpStatus(), 401);
@@ -245,19 +242,17 @@ class HereAccountOuauth2ProductionTest : public ::testing::Test {
 
   HereAccountOuauth2ProductionTest()
       : settings_([]() -> Settings {
-          Settings settings;
+          const auto app_id = CustomParameters::getArgument(
+              "integration_production_service_id");
+          const auto secret = CustomParameters::getArgument(
+              "integration_production_service_secret");
+          Settings settings({app_id, secret});
           settings.task_scheduler = olp::client::OlpClientSettingsFactory::
               CreateDefaultTaskScheduler();
           settings.network_request_handler = s_network_;
           return settings;
         }()),
-        token_endpoint_(
-            TokenEndpoint(AuthenticationCredentials(
-                              CustomParameters::getArgument(
-                                  "integration_production_service_id"),
-                              CustomParameters::getArgument(
-                                  "integration_production_service_secret")),
-                          settings_)) {}
+        token_endpoint_(TokenEndpoint(settings_)) {}
 
   Settings settings_;
   TokenEndpoint token_endpoint_;
@@ -270,10 +265,7 @@ std::shared_ptr<olp::http::Network>
     HereAccountOuauth2ProductionTest::s_network_;
 
 TEST_F(HereAccountOuauth2ProductionTest, TokenProviderValidCredentialsValid) {
-  TokenProviderDefault prov{
-      CustomParameters::getArgument("integration_production_service_id"),
-      CustomParameters::getArgument("integration_production_service_secret"),
-      settings_};
+  TokenProviderDefault prov{settings_};
   ASSERT_TRUE(prov);
   ASSERT_NE("", prov());
   ASSERT_EQ(olp::http::HttpStatusCode::OK, prov.GetHttpStatusCode());
@@ -285,7 +277,9 @@ TEST_F(HereAccountOuauth2ProductionTest, TokenProviderValidCredentialsValid) {
 
 TEST_F(HereAccountOuauth2ProductionTest, TokenProviderValidCredentialsInvalid) {
   auto token_provider_test = [this](std::string key, std::string secret) {
-    TokenProviderDefault prov{key, secret, settings_};
+    auto settings = settings_;
+    settings.credentials = {key, secret};
+    TokenProviderDefault prov{settings};
     ASSERT_FALSE(prov);
     ASSERT_EQ("", prov());
     ASSERT_EQ(401300, (int)prov.GetErrorResponse().code);
@@ -343,11 +337,10 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenValidCredentialsFuture) {
 }
 
 TEST_F(HereAccountOuauth2ProductionTest, RequestTokenBadAccessKey) {
-  auto bad_token_endpoint =
-      TokenEndpoint(AuthenticationCredentials(
-                        "BAD", CustomParameters::getArgument(
-                                   "integration_production_service_secret")),
-                    settings_);
+  auto settings = settings_;
+  settings.credentials = {"BAD", CustomParameters::getArgument(
+                                     "integration_production_service_secret")};
+  auto bad_token_endpoint = TokenEndpoint(settings);
 
   auto barrier = std::make_shared<std::promise<void> >();
   bad_token_endpoint.RequestToken(
@@ -362,11 +355,11 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenBadAccessKey) {
 }
 
 TEST_F(HereAccountOuauth2ProductionTest, RequestTokenBadAccessSecret) {
-  auto bad_token_endpoint = TokenEndpoint(
-      AuthenticationCredentials(
-          CustomParameters::getArgument("integration_production_service_id"),
-          "BAD"),
-      settings_);
+  auto settings = settings_;
+  settings.credentials = {
+      CustomParameters::getArgument("integration_production_service_id"),
+      "BAD"};
+  auto bad_token_endpoint = TokenEndpoint(settings);
 
   auto barrier = std::make_shared<std::promise<void> >();
   bad_token_endpoint.RequestToken(
@@ -381,15 +374,12 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenBadAccessSecret) {
 }
 
 TEST_F(HereAccountOuauth2ProductionTest, RequestTokenBadTokenUrl) {
-  Settings badSettings;
+  Settings badSettings(
+      {CustomParameters::getArgument("integration_production_service_id"),
+       CustomParameters::getArgument("integration_production_service_secret")});
   badSettings.token_endpoint_url = "BAD";
   badSettings.network_request_handler = settings_.network_request_handler;
-  auto bad_token_endpoint = TokenEndpoint(
-      AuthenticationCredentials(
-          CustomParameters::getArgument("integration_production_service_id"),
-          CustomParameters::getArgument(
-              "integration_production_service_secret")),
-      badSettings);
+  auto bad_token_endpoint = TokenEndpoint(badSettings);
 
   auto barrier = std::make_shared<std::promise<void> >();
   bad_token_endpoint.RequestToken(
@@ -498,7 +488,9 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenConcurrentFuture) {
 }
 
 TEST_F(HereAccountOuauth2ProductionTest, NetworkProxySettings) {
-  Settings settings;
+  Settings settings(
+      {CustomParameters::getArgument("integration_production_service_id"),
+       CustomParameters::getArgument("integration_production_service_secret")});
   olp::http::NetworkProxySettings proxy_settings;
   proxy_settings.WithHostname("$.?");
   proxy_settings.WithPort(42);
@@ -506,12 +498,7 @@ TEST_F(HereAccountOuauth2ProductionTest, NetworkProxySettings) {
   settings.network_proxy_settings = proxy_settings;
   settings.network_request_handler = settings_.network_request_handler;
 
-  auto bad_token_endpoint = TokenEndpoint(
-      AuthenticationCredentials(
-          CustomParameters::getArgument("integration_production_service_id"),
-          CustomParameters::getArgument(
-              "integration_production_service_secret")),
-      settings);
+  auto bad_token_endpoint = TokenEndpoint(settings);
 
   auto barrier = std::make_shared<std::promise<void> >();
   bad_token_endpoint.RequestToken(

@@ -155,10 +155,9 @@ TEST_F(HereAccountOauth2Test, AutoRefreshingTokenCancelSync) {
         return olp::http::SendOutcome(request_id);
       });
 
-  Settings settings;
+  Settings settings({key_, secret_});
   settings.network_request_handler = network_;
-  TokenEndpoint token_endpoint(AuthenticationCredentials(key_, secret_),
-                               settings);
+  TokenEndpoint token_endpoint(settings);
 
   TestAutoRefreshingTokenCancel(
       token_endpoint, [](olp::client::CancellationToken& cancellationToken,
@@ -195,10 +194,9 @@ TEST_F(HereAccountOauth2Test, AutoRefreshingTokenCancelAsync) {
         return olp::http::SendOutcome(request_id);
       });
 
-  Settings settings;
+  Settings settings({key_, secret_});
   settings.network_request_handler = network_;
-  TokenEndpoint token_endpoint(AuthenticationCredentials(key_, secret_),
-                               settings);
+  TokenEndpoint token_endpoint(settings);
 
   TestAutoRefreshingTokenCancel(
       token_endpoint, [](olp::client::CancellationToken& cancellationToken,
