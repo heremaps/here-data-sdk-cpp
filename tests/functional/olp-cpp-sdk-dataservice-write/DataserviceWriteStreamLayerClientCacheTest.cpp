@@ -38,9 +38,11 @@
 #include <olp/dataservice/write/model/PublishDataRequest.h>
 #include <olp/dataservice/write/model/PublishSdiiRequest.h>
 #include <testutils/CustomParameters.hpp>
+#include "testables/FlushEventListenerTestable.h"
 
 using namespace olp::dataservice::write;
 using namespace olp::dataservice::write::model;
+using namespace olp::tests::common;
 using namespace testing;
 
 const std::string kEndpoint = "endpoint";
@@ -328,7 +330,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushListenerMetrics) {
 
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(3));
 
-  auto default_listener = StreamLayerClient::DefaultListener();
+  auto default_listener = std::make_shared<FlushEventListenerTestable>();
 
   client_->Enable(default_listener);
 
@@ -352,7 +354,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest,
   flush_settings_.auto_flush_num_events = 3;
   client_ = CreateStreamLayerClient();
 
-  auto default_listener = StreamLayerClient::DefaultListener();
+  auto default_listener = std::make_shared<FlushEventListenerTestable>();
   client_->Enable(default_listener);
 
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(3));
@@ -376,7 +378,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushListenerDisable) {
   flush_settings_.auto_flush_num_events = 3;
   client_ = CreateStreamLayerClient();
 
-  auto default_listener = StreamLayerClient::DefaultListener();
+  auto default_listener = std::make_shared<FlushEventListenerTestable>();
   client_->Enable(default_listener);
 
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(3));
@@ -401,7 +403,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest,
   flush_settings_.auto_flush_num_events = 2;
   client_ = CreateStreamLayerClient();
 
-  auto default_listener = StreamLayerClient::DefaultListener();
+  auto default_listener = std::make_shared<FlushEventListenerTestable>();
   client_->Enable(default_listener);
 
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(2));
@@ -435,7 +437,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest,
       flush_settings_.auto_flush_num_events;
   client_ = CreateStreamLayerClient();
 
-  auto default_listener = StreamLayerClient::DefaultListener();
+  auto default_listener = std::make_shared<FlushEventListenerTestable>();
   client_->Enable(default_listener);
 
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(6));
@@ -464,7 +466,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest,
       flush_settings_.auto_flush_num_events;
   client_ = CreateStreamLayerClient();
 
-  auto default_listener = StreamLayerClient::DefaultListener();
+  auto default_listener = std::make_shared<FlushEventListenerTestable>();
   client_->Enable(default_listener);
 
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(4));
@@ -543,7 +545,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest,
 
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(2));
 
-  auto default_listener = StreamLayerClient::DefaultListener();
+  auto default_listener = std::make_shared<FlushEventListenerTestable>();
   client_->Enable(default_listener);
 
   for (int i = 0; default_listener->GetNumFlushEvents() < 1; i++) {
@@ -568,7 +570,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest,
 
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(2));
 
-  auto default_listener = StreamLayerClient::DefaultListener();
+  auto default_listener = std::make_shared<FlushEventListenerTestable>();
   client_->Enable(default_listener);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(2100));

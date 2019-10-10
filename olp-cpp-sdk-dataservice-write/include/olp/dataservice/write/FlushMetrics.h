@@ -17,28 +17,45 @@
  * License-Filename: LICENSE
  */
 
-#include <olp/dataservice/write/FlushEventListener.h>
+#pragma once
 
-#include <olp/dataservice/write/StreamLayerClient.h>
+#include <cstddef>
 
 namespace olp {
 namespace dataservice {
 namespace write {
 
-template <>
-void DefaultFlushEventListener<const StreamLayerClient::FlushResponse&>::
-    NotifyFlushEventResults(const StreamLayerClient::FlushResponse& results) {
-  FlushMetrics metrics;
-  {
-    std::lock_guard<std::mutex> locker(mutex_);
-    ++metrics_.num_total_flush_events;
-    if (results.empty() || CollateFlushEventResults(results)) {
-      ++metrics_.num_failed_flush_events;
-    }
-    metrics = metrics_;
-  }
-  NotifyFlushMetricsHasChanged(std::move(metrics));
-}
+/**
+ * @brief Struct which gather the metrics of Flush events and requests queued
+ * by \c StreamLayerClient.
+ */
+struct FlushMetrics {
+  /**
+  * @brief Number of attempted flush events.
+  */
+  size_t num_attempted_flush_events;
+
+  /**
+   * @brief Number of failed flush events
+   */
+  size_t num_failed_flush_events;
+
+  /**
+   * @brief Total number of flush events.
+   */
+  size_t num_total_flush_events;
+
+  /**
+   * @brief Total number of requests queued to \c StreamLayerClient.
+   */
+  size_t num_total_flushed_requests;
+
+  /**
+   * @brief Number of failed requests, which were queued to \c
+   * StreamLayerClient.
+   */
+  size_t num_failed_flushed_requests;
+};
 
 }  // namespace write
 }  // namespace dataservice
