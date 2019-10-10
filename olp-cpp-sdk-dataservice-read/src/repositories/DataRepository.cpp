@@ -43,6 +43,7 @@ using namespace olp::client;
 namespace {
 constexpr auto kDataInlinePrefix = "data:";
 constexpr auto kLogTag = "DataRepository";
+constexpr auto kVolatileBlobService = "volatile-blob";
 
 void GetDataInternal(std::shared_ptr<CancellationContext> cancellationContext,
                      std::shared_ptr<ApiRepository> apiRepo,
@@ -472,6 +473,38 @@ DataRepository::DataResponse DataRepository::GetBlobData(
   }
 
   return blob_response;
+}
+
+DataRepository::DataResponse DataRepository::GetVolatileData(
+    const client::HRN& catalog, const std::string& layer_id, DataRequest request,
+    client::CancellationContext context,
+    client::OlpClientSettings settings) {
+  if (!request.GetDataHandle()) {
+    auto response = repository::PartitionsRepository::GetPartitionById(
+        catalog, layer_id, context, request, settings);
+
+    if (!response.IsSuccessful()) {
+      return response.GetError();
+    }
+
+    const auto& partitions = response.GetResult().GetPartitions();
+    if (partitions.empty()) {
+      OLP_SDK_LOG_INFO_F(kLogTag, "Partition %s not found",
+                         request.GetPartitionId()
+                             ? request.GetPartitionId().get().c_str()
+                             : "<none>");
+
+      return client::ApiError(client::ErrorCode::NotFound,
+                              "Partition not found");
+    }
+
+    request.WithDataHandle(partitions.front().GetDataHandle());
+  }
+
+  auto blob_response = repository::DataRepository::GetBlobData(
+      catalog, layer_id, kVolatileBlobService, request, context, settings);
+
+  return std::move(blob_response);
 }
 
 }  // namespace repository

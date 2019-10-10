@@ -28,6 +28,7 @@
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/model/Data.h>
+#include "PendingRequests.h"
 
 namespace olp {
 namespace dataservice {
@@ -38,17 +39,25 @@ class VolatileLayerClientImpl {
   /// DataResult alias
   using DataResult = model::Data;
   /// CallbackResponse alias
-  using CallbackResponse = client::ApiResponse<DataResult, client::ApiError>;
+  using DataResponse = client::ApiResponse<DataResult, client::ApiError>;
   /// Callback alias
-  using Callback = std::function<void(CallbackResponse response)>;
+  template <class Response>
+  using Callback = std::function<void(Response response)>;
 
-  VolatileLayerClientImpl(olp::client::HRN catalog, std::string layer_id,
-                          olp::client::OlpClientSettings client_settings);
+  VolatileLayerClientImpl(client::HRN catalog, std::string layer_id,
+                          client::OlpClientSettings settings);
 
   ~VolatileLayerClientImpl();
 
-  olp::client::CancellationToken GetData(DataRequest data_request,
-                                         Callback callback);
+  client::CancellationToken GetData(DataRequest request,
+                                    Callback<DataResponse> callback);
+
+ private:
+  client::HRN catalog_;
+  std::string layer_id_;
+  client::OlpClientSettings settings_;
+  std::shared_ptr<thread::TaskScheduler> task_scheduler_;
+  std::shared_ptr<PendingRequests> pending_requests_;
 };
 
 }  // namespace read
