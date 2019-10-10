@@ -73,14 +73,16 @@ std::string DataRepositoryTest::GetTestCatalog() {
 
 TEST_F(DataRepositoryTest, GetBlobData) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   HTTP_RESPONSE_LOOKUP_BLOB));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(
+              olp::http::HttpStatusCode::OK),
+          HTTP_RESPONSE_LOOKUP_BLOB));
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   "someData"));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(
+              olp::http::HttpStatusCode::OK),
+          "someData"));
 
   olp::client::CancellationContext context;
 
@@ -98,9 +100,10 @@ TEST_F(DataRepositoryTest, GetBlobData) {
 
 TEST_F(DataRepositoryTest, GetBlobDataApiLookupFailed403) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::FORBIDDEN),
-                                   HTTP_RESPONSE_403));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(
+              olp::http::HttpStatusCode::FORBIDDEN),
+          HTTP_RESPONSE_403));
 
   olp::client::CancellationContext context;
 
@@ -128,14 +131,16 @@ TEST_F(DataRepositoryTest, GetBlobDataNoDataHandle) {
 
 TEST_F(DataRepositoryTest, GetBlobDataFailedDataFetch403) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   HTTP_RESPONSE_LOOKUP_BLOB));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(
+              olp::http::HttpStatusCode::OK),
+          HTTP_RESPONSE_LOOKUP_BLOB));
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::FORBIDDEN),
-                                   HTTP_RESPONSE_403));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(
+              olp::http::HttpStatusCode::FORBIDDEN),
+          HTTP_RESPONSE_403));
 
   olp::client::CancellationContext context;
 
@@ -153,14 +158,16 @@ TEST_F(DataRepositoryTest, GetBlobDataFailedDataFetch403) {
 
 TEST_F(DataRepositoryTest, GetBlobDataCache) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   HTTP_RESPONSE_LOOKUP_BLOB));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(
+              olp::http::HttpStatusCode::OK),
+          HTTP_RESPONSE_LOOKUP_BLOB));
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   "someData"));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(
+              olp::http::HttpStatusCode::OK),
+          "someData"));
 
   olp::client::CancellationContext context;
 
@@ -186,14 +193,16 @@ TEST_F(DataRepositoryTest, GetBlobDataCache) {
 
 TEST_F(DataRepositoryTest, GetBlobDataImmediateCancel) {
   ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                            olp::http::HttpStatusCode::OK),
-                                        HTTP_RESPONSE_LOOKUP_BLOB));
+      .WillByDefault(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(
+              olp::http::HttpStatusCode::OK),
+          HTTP_RESPONSE_LOOKUP_BLOB));
 
   ON_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                            olp::http::HttpStatusCode::OK),
-                                        "someData"));
+      .WillByDefault(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(
+              olp::http::HttpStatusCode::OK),
+          "someData"));
 
   olp::client::CancellationContext context;
 
@@ -214,9 +223,10 @@ TEST_F(DataRepositoryTest, GetBlobDataImmediateCancel) {
 
 TEST_F(DataRepositoryTest, GetBlobDataInProgressCancel) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   HTTP_RESPONSE_LOOKUP_BLOB));
+      .WillOnce(NetworkMock::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(
+              olp::http::HttpStatusCode::OK),
+          HTTP_RESPONSE_LOOKUP_BLOB));
 
   olp::client::CancellationContext context;
 

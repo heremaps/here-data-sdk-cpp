@@ -46,6 +46,9 @@ class NetworkMock : public olp::http::Network {
               (override));
 
   MOCK_METHOD(void, Cancel, (olp::http::RequestId id), (override));
+
+  static NetworkCallback ReturnHttpResponse(olp::http::NetworkResponse response,
+                                            const std::string& response_body);
 };
 
 /**
@@ -80,9 +83,3 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
                            MockedResponseInformation response_information,
                            std::shared_ptr<std::promise<void>> post_signal =
                                std::make_shared<std::promise<void>>());
-
-///
-/// Mock Actions
-///
-NetworkCallback ReturnHttpResponse(olp::http::NetworkResponse response,
-                                   const std::string& response_body);

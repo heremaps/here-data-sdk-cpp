@@ -79,7 +79,7 @@ class VolatileLayerClientTest : public ::testing::Test {
     // Catch unexpected calls and fail immediatley
     ON_CALL(network, Send(_, _, _, _, _))
         .WillByDefault(testing::DoAll(
-            ReturnHttpResponse(
+            NetworkMock::ReturnHttpResponse(
                 olp::http::NetworkResponse().WithStatus(-1), ""),
             [](olp::http::NetworkRequest request,
                olp::http::Network::Payload payload,
@@ -92,43 +92,43 @@ class VolatileLayerClientTest : public ::testing::Test {
             }));
 
     ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .WillByDefault(ReturnHttpResponse(
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(200),
             HTTP_RESPONSE_LOOKUP_CONFIG));
 
     ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
-        .WillByDefault(ReturnHttpResponse(
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(200),
             HTTP_RESPONSE_LOOKUP_METADATA));
 
     ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
-        .WillByDefault(ReturnHttpResponse(
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(200),
             HTTP_RESPONSE_LOOKUP_VOLATILE_BLOB));
 
     ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
-        .WillByDefault(ReturnHttpResponse(
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(200),
             HTTP_RESPONSE_LOOKUP_QUERY));
 
     ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_PUBLISH_V2), _, _, _, _))
-        .WillByDefault(ReturnHttpResponse(
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(200),
             HTTP_RESPONSE_LOOKUP_PUBLISH_V2));
 
     ON_CALL(network, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
-        .WillByDefault(ReturnHttpResponse(
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(200),
             HTTP_RESPONSE_GET_CATALOG));
 
     ON_CALL(network, Send(IsGetRequest(URL_QUERY_PARTITION_1111), _, _, _, _))
-        .WillByDefault(ReturnHttpResponse(
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(200),
             HTTP_RESPONSE_QUERY_DATA_HANDLE));
 
     ON_CALL(network,
             Send(IsPutRequestPrefix(URL_PUT_VOLATILE_BLOB_PREFIX), _, _, _, _))
-        .WillByDefault(ReturnHttpResponse(
+        .WillByDefault(NetworkMock::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(200), ""));
   }
 
