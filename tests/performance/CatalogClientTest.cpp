@@ -22,7 +22,6 @@
 
 #include <gtest/gtest.h>
 
-#include "olp/authentication/TokenProvider.h"
 #include "olp/core/cache/KeyValueCache.h"
 #include "olp/core/client/HRN.h"
 #include "olp/core/client/OlpClientSettings.h"
@@ -76,10 +75,6 @@ class CatalogClientTest
           olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(
               parameter.task_scheduler_capacity);
     }
-
-    olp::authentication::Settings settings;
-    settings.task_scheduler = task_scheduler;
-    settings.network_request_handler = s_network;
 
     olp::client::AuthenticationSettings auth_settings;
     auth_settings.provider = []() { return "invalid"; };

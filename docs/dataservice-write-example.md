@@ -127,20 +127,32 @@ The `StreamLayerClient` class provides an interface for ingestion of the OLP dat
 To create a `StreamLayerClient`, provide the corresponding HRN and preconfigured `OlpClientSettings`:
 
 ```cpp
-// Setup AuthenticationSettings with a default token provider that will
-// retrieve an OAuth 2.0 token from OLP.
-olp::client::AuthenticationSettings authSettings;
-authSettings.provider =
-    olp::authentication::TokenProviderDefault(kKeyId, kKeySecret);
+// Create a task scheduler instance
+std::shared_ptr<olp::thread::TaskScheduler> task_scheduler =
+    olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
 
-// Setup OlpClientSettings and provide it to the StreamLayerClient.
-olp::client::OlpClientSettings clientSettings;
-clientSettings.authentication_settings = authSettings;
-client_settings.network_request_handler =
+// Create a network client
+std::shared_ptr<olp::http::Network> http_client = olp::client::
     OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
 
+// Initialize authentication settings
+olp::authentication::Settings settings({kKeyId, kKeySecret});
+settings.task_scheduler = std::move(task_scheduler);
+settings.network_request_handler = http_client;
+
+// Setup AuthenticationSettings with a default token provider that will
+// retrieve an OAuth 2.0 token from OLP.
+olp::client::AuthenticationSettings auth_settings;
+auth_settings.provider =
+    olp::authentication::TokenProviderDefault(std::move(settings));
+
+// Setup OlpClientSettings and provide it to the StreamLayerClient.
+olp::client::OlpClientSettings client_settings;
+client_settings.authentication_settings = auth_settings;
+client_settings.network_request_handler = std::move(http_client);
+
 auto client = std::make_shared<StreamLayerClient>(
-    olp::client::HRN{gCatalogHRN}, clientSettings);
+    olp::client::HRN{kCatalogHRN}, std::move(client_settings));
 ```
 
 The `StreamLayerClient` class pulls together all the different settings for customization of the client library behavior.

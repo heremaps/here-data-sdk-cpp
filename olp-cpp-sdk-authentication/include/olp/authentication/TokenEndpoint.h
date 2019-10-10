@@ -99,11 +99,9 @@ class AUTHENTICATION_API TokenEndpoint {
 
   /**
    * @brief Constructor
-   * @param credentials the credentials to use for this endpoint
    * @param settings the settings object for this endpoint
    */
-  TokenEndpoint(const AuthenticationCredentials& credentials,
-                const Settings& settings);
+  explicit TokenEndpoint(Settings settings);
 
  private:
   struct Impl;

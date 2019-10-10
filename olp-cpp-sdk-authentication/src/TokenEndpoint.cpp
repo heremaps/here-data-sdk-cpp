@@ -37,15 +37,15 @@ constexpr auto kLogTag = "here::account::oauth2::TokenEndpoint";
 namespace olp {
 namespace authentication {
 struct TokenEndpoint::Impl {
-  Impl(const AuthenticationCredentials& credentials, const Settings& settings)
-      : auth_client_(settings.token_endpoint_url),
-        auth_credentials_(credentials.GetKey(), credentials.GetSecret()) {
+  explicit Impl(Settings settings)
+      : auth_client_(std::move(settings.token_endpoint_url)),
+        auth_credentials_(std::move(settings.credentials)) {
     if (settings.network_proxy_settings) {
       auth_client_.SetNetworkProxySettings(
           settings.network_proxy_settings.get());
     }
-    auth_client_.SetNetwork(settings.network_request_handler);
-    auth_client_.SetTaskScheduler(settings.task_scheduler);
+    auth_client_.SetNetwork(std::move(settings.network_request_handler));
+    auth_client_.SetTaskScheduler(std::move(settings.task_scheduler));
   }
 
   client::CancellationToken RequestToken(const TokenRequest& token_request,
@@ -85,16 +85,14 @@ std::future<TokenEndpoint::TokenResponse> TokenEndpoint::Impl::RequestToken(
   return p->get_future();
 }
 
-TokenEndpoint::TokenEndpoint(const AuthenticationCredentials& credentials,
-                             const Settings& settings) {
+TokenEndpoint::TokenEndpoint(Settings settings) {
   // The underlying auth library expects a base URL and appends /oauth2/token
   // endpoint to it. Therefore if /oauth2/token is found it is stripped from the
   // endpoint URL provided. The underlying auth library should be updated to
   // supoprt an arbitrary token endpoint URL.
-  auto strippedEndpointUrl = settings.token_endpoint_url;
-  auto pos = strippedEndpointUrl.find(kOauth2TokenEndpoint);
+  auto pos = settings.token_endpoint_url.find(kOauth2TokenEndpoint);
   if (pos != std::string::npos) {
-    strippedEndpointUrl.erase(pos, kOauth2TokenEndpoint.size());
+    settings.token_endpoint_url.erase(pos, kOauth2TokenEndpoint.size());
   } else {
     OLP_SDK_LOG_ERROR(
         kLogTag,
@@ -103,10 +101,7 @@ TokenEndpoint::TokenEndpoint(const AuthenticationCredentials& credentials,
         "OAuth2 token endpoint URLs are supported.");
   }
 
-  Settings strippedSettings = settings;
-  strippedSettings.token_endpoint_url = strippedEndpointUrl;
-
-  impl_ = std::make_shared<TokenEndpoint::Impl>(credentials, strippedSettings);
+  impl_ = std::make_shared<TokenEndpoint::Impl>(std::move(settings));
 }
 
 client::CancellationToken TokenEndpoint::RequestToken(

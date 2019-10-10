@@ -52,13 +52,15 @@ class ApiTest : public ::testing::Test {
     auto network = olp::client::OlpClientSettingsFactory::
         CreateDefaultNetworkRequestHandler();
 
-    olp::authentication::Settings authentication_settings;
+    const auto key_id =
+        CustomParameters::getArgument("dataservice_read_test_appid");
+    const auto secret =
+        CustomParameters::getArgument("dataservice_read_test_secret");
+
+    olp::authentication::Settings authentication_settings({key_id, secret});
     authentication_settings.network_request_handler = network;
 
-    olp::authentication::TokenProviderDefault provider(
-        CustomParameters::getArgument("dataservice_read_test_appid"),
-        CustomParameters::getArgument("dataservice_read_test_secret"),
-        authentication_settings);
+    olp::authentication::TokenProviderDefault provider(authentication_settings);
     olp::client::AuthenticationSettings auth_client_settings;
     auth_client_settings.provider = provider;
 
