@@ -43,7 +43,7 @@ class CatalogClientTestBase : public ::testing::TestWithParam<CacheType> {
   void SetUpCommonNetworkMockCalls();
 
  protected:
-  std::shared_ptr<olp::client::OlpClientSettings> settings_;
+  olp::client::OlpClientSettings settings_;
   std::shared_ptr<olp::client::OlpClient> client_;
   std::shared_ptr<NetworkMock> network_mock_;
 };

@@ -21,6 +21,8 @@
 
 #include <olp/authentication/TokenProvider.h>
 
+#include <olp/core/cache/CacheSettings.h>
+#include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
@@ -141,10 +143,13 @@ int RunExample() {
       kKeyId, kKeySecret, std::move(settings));
 
   // Setup OlpClientSettings and provide it to the CatalogClient.
-  auto client_settings = std::make_shared<olp::client::OlpClientSettings>();
-  client_settings->authentication_settings = auth_settings;
-  client_settings->task_scheduler = std::move(task_scheduler);
-  client_settings->network_request_handler = std::move(http_client);
+  auto client_settings = olp::client::OlpClientSettings();
+  olp::cache::CacheSettings cache_settings;
+  client_settings.authentication_settings = auth_settings;
+  client_settings.task_scheduler = std::move(task_scheduler);
+  client_settings.network_request_handler = std::move(http_client);
+  client_settings.cache =
+      olp::client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
 
   // Create a CatalogClient with appropriate HRN and settings.
   auto service_client = std::make_unique<olp::dataservice::read::CatalogClient>(

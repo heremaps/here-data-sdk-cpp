@@ -95,16 +95,18 @@ class CatalogClientTest : public ::testing::TestWithParam<CacheType> {
         auth_settings);
     olp::client::AuthenticationSettings auth_client_settings;
     auth_client_settings.provider = provider;
-    settings_ = std::make_shared<olp::client::OlpClientSettings>();
-    settings_->network_request_handler = network;
-    settings_->authentication_settings = auth_client_settings;
-    client_ = olp::client::OlpClientFactory::Create(*settings_);
+    settings_ = olp::client::OlpClientSettings();
+    settings_.network_request_handler = network;
+    settings_.authentication_settings = auth_client_settings;
+    olp::cache::CacheSettings cache_settings;
+    settings_.cache = olp::client::OlpClientSettingsFactory::CreateDefaultCache(
+        cache_settings);
+    client_ = olp::client::OlpClientFactory::Create(settings_);
   }
 
   void TearDown() override {
     client_.reset();
-    auto network = std::move(settings_->network_request_handler);
-    settings_.reset();
+    auto network = std::move(settings_.network_request_handler);
     // when test ends we must be sure that network pointer is not captured
     // anywhere
     assert(network.use_count() == 1);
@@ -135,7 +137,7 @@ class CatalogClientTest : public ::testing::TestWithParam<CacheType> {
   }
 
  protected:
-  std::shared_ptr<olp::client::OlpClientSettings> settings_;
+  olp::client::OlpClientSettings settings_;
   std::shared_ptr<olp::client::OlpClient> client_;
 };
 

@@ -340,7 +340,7 @@ TEST_P(CatalogClientTest, GetData429Error) {
       [](const olp::client::HttpResponse& response) {
         return 429 == response.status;
       };
-  settings_->retry_settings = retry_settings;
+  settings_.retry_settings = retry_settings;
   auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
@@ -381,7 +381,7 @@ TEST_P(CatalogClientTest, GetPartitions429Error) {
       [](const olp::client::HttpResponse& response) {
         return 429 == response.status;
       };
-  settings_->retry_settings = retry_settings;
+  settings_.retry_settings = retry_settings;
   auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
@@ -418,7 +418,7 @@ TEST_P(CatalogClientTest, ApiLookup429) {
       [](const olp::client::HttpResponse& response) {
         return 429 == response.status;
       };
-  settings_->retry_settings = retry_settings;
+  settings_.retry_settings = retry_settings;
   auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
@@ -1034,9 +1034,9 @@ TEST_P(CatalogClientTest, GetDataWithPartitionIdCancelInnerConfig) {
 
   olp::cache::CacheSettings cache_settings;
   cache_settings.max_memory_cache_size = 0;
-  auto catalog_client = std::make_unique<olp::dataservice::read::CatalogClient>(
-      hrn, settings_,
-      olp::dataservice::read::CreateDefaultCache(cache_settings));
+  settings_.cache = olp::dataservice::read::CreateDefaultCache(cache_settings);
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer").WithPartitionId("269");

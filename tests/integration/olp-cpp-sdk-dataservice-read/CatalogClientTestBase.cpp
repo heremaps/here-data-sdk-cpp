@@ -20,6 +20,9 @@
 #include "CatalogClientTestBase.h"
 
 #include <matchers/NetworkUrlMatchers.h>
+#include <olp/core/cache/CacheSettings.h>
+#include <olp/core/cache/KeyValueCache.h>
+#include <olp/core/client/OlpClientSettingsFactory.h>
 #include "HttpResponses.h"
 
 using ::testing::_;
@@ -56,16 +59,18 @@ std::string CatalogClientTestBase::ApiErrorToString(
 
 void CatalogClientTestBase::SetUp() {
   network_mock_ = std::make_shared<NetworkMock>();
-  settings_ = std::make_shared<olp::client::OlpClientSettings>();
-  settings_->network_request_handler = network_mock_;
-  client_ = olp::client::OlpClientFactory::Create(*settings_);
+  settings_ = olp::client::OlpClientSettings();
+  settings_.network_request_handler = network_mock_;
+  olp::cache::CacheSettings cache_settings;
+  settings_.cache =
+      olp::client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
+  client_ = olp::client::OlpClientFactory::Create(settings_);
 
   SetUpCommonNetworkMockCalls();
 }
 
 void CatalogClientTestBase::TearDown() {
   client_.reset();
-  settings_.reset();
   ::testing::Mock::VerifyAndClearExpectations(network_mock_.get());
   network_mock_.reset();
 }

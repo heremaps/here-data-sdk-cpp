@@ -32,10 +32,14 @@ std::shared_ptr<cache::KeyValueCache> CreateDefaultCache(
   return std::move(cache);
 }
 
-CatalogClient::CatalogClient(
-    const client::HRN& hrn, std::shared_ptr<client::OlpClientSettings> settings,
-    std::shared_ptr<cache::KeyValueCache> cache)
-    : impl_(std::make_shared<CatalogClientImpl>(hrn, settings, cache)) {}
+CatalogClient::CatalogClient(client::HRN catalog,
+                             client::OlpClientSettings settings) {
+  auto cache = settings.cache;
+  auto settings_ptr =
+      std::make_shared<client::OlpClientSettings>(std::move(settings));
+  impl_ = std::make_shared<CatalogClientImpl>(
+      std::move(catalog), std::move(settings_ptr), std::move(cache));
+}
 
 bool CatalogClient::cancelPendingRequests() {
   return impl_->CancelPendingRequests();

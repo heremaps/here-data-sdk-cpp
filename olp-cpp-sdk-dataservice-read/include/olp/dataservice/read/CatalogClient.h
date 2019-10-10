@@ -26,6 +26,7 @@
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/geo/tiling/TileKey.h>
 #include "olp/dataservice/read/model/Catalog.h"
 #include "olp/dataservice/read/model/Data.h"
@@ -34,12 +35,7 @@
 
 namespace olp {
 
-namespace cache {
-class KeyValueCache;
-}
-
 namespace client {
-struct OlpClientSettings;
 class HRN;
 }  // namespace client
 
@@ -150,10 +146,7 @@ class CatalogClientImpl;
  */
 class DATASERVICE_READ_API CatalogClient final {
  public:
-  CatalogClient(
-      const client::HRN& hrn,
-      std::shared_ptr<client::OlpClientSettings> settings,
-      std::shared_ptr<cache::KeyValueCache> cache = CreateDefaultCache());
+  CatalogClient(client::HRN catalog, client::OlpClientSettings settings);
 
   ~CatalogClient() = default;
 

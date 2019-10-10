@@ -23,6 +23,7 @@
 #include <gtest/gtest.h>
 
 #include "olp/authentication/TokenProvider.h"
+#include "olp/core/cache/KeyValueCache.h"
 #include "olp/core/client/HRN.h"
 #include "olp/core/client/OlpClientSettings.h"
 #include "olp/core/client/OlpClientSettingsFactory.h"
@@ -83,11 +84,15 @@ class CatalogClientTest
     olp::client::AuthenticationSettings auth_settings;
     auth_settings.provider = []() { return "invalid"; };
 
+    olp::cache::CacheSettings cache_settings{};
     olp::client::OlpClientSettings client_settings;
     client_settings.authentication_settings = auth_settings;
     client_settings.task_scheduler = task_scheduler;
     client_settings.network_request_handler = s_network;
     client_settings.proxy_settings = GetLocalhostProxySettings();
+    client_settings.cache =
+        olp::client::OlpClientSettingsFactory::CreateDefaultCache(
+            cache_settings);
 
     return client_settings;
   }
@@ -188,10 +193,8 @@ TEST_P(CatalogClientTest, ReadNPartitionsFromVersionedLayer) {
 
   for (std::uint8_t i = 0; i < parameter.calling_thread_count; ++i) {
     // Will be removed after API alignment
-    auto settings =
-        std::make_shared<client::OlpClientSettings>(client_settings);
     auto service_client = std::make_shared<dataservice::read::CatalogClient>(
-        hrn, std::move(settings));
+        hrn, client_settings);
     auto thread = std::thread(ClientThread, i, std::move(service_client),
                               kVersionedLayerId, sleep_interval,
                               parameter.runtime, std::ref(request_counter));

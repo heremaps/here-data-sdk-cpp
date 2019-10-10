@@ -41,28 +41,29 @@ constexpr auto kLogTag = "CatalogClientImpl";
 }
 
 CatalogClientImpl::CatalogClientImpl(
-    const HRN& hrn, std::shared_ptr<OlpClientSettings> settings,
+    HRN hrn, std::shared_ptr<OlpClientSettings> settings,
     std::shared_ptr<cache::KeyValueCache> cache)
-    : hrn_(hrn),
+    : catalog_(std::move(hrn)),
       settings_(settings),
       api_client_(OlpClientFactory::Create(*settings)) {
   // create repositories, satisfying dependencies.
-  auto api_repo = std::make_shared<ApiRepository>(hrn_, settings_, cache);
+  auto api_repo = std::make_shared<ApiRepository>(catalog_, settings_, cache);
 
-  catalog_repo_ = std::make_shared<CatalogRepository>(hrn_, api_repo, cache);
+  catalog_repo_ =
+      std::make_shared<CatalogRepository>(catalog_, api_repo, cache);
 
   partition_repo_ = std::make_shared<PartitionsRepository>(
-      hrn_, api_repo, catalog_repo_, cache);
+      catalog_, api_repo, catalog_repo_, cache);
 
-  data_repo_ = std::make_shared<DataRepository>(hrn_, api_repo, catalog_repo_,
-                                                partition_repo_, cache);
+  data_repo_ = std::make_shared<DataRepository>(
+      catalog_, api_repo, catalog_repo_, partition_repo_, cache);
 
   auto prefetch_repo = std::make_shared<PrefetchTilesRepository>(
       hrn, api_repo, partition_repo_->GetPartitionsCacheRepository(),
       settings_);
 
   prefetch_provider_ = std::make_shared<PrefetchTilesProvider>(
-      hrn_, api_repo, catalog_repo_, data_repo_, std::move(prefetch_repo),
+      catalog_, api_repo, catalog_repo_, data_repo_, std::move(prefetch_repo),
       settings_);
 
   pending_requests_ = std::make_shared<PendingRequests>();
