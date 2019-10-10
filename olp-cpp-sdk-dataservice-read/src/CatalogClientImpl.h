@@ -50,7 +50,7 @@ class PendingRequests;
 
 class CatalogClientImpl final {
  public:
-  CatalogClientImpl(const client::HRN& hrn,
+  CatalogClientImpl(client::HRN catalog,
                     std::shared_ptr<client::OlpClientSettings> settings,
                     std::shared_ptr<cache::KeyValueCache> cache);
 
@@ -91,7 +91,7 @@ class CatalogClientImpl final {
       const PrefetchTilesRequest& request);
 
  private:
-  client::HRN hrn_;
+  client::HRN catalog_;
   std::shared_ptr<client::OlpClientSettings> settings_;
   std::shared_ptr<client::OlpClient> api_client_;
   std::shared_ptr<repository::CatalogRepository> catalog_repo_;

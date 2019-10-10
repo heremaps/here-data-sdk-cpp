@@ -62,6 +62,7 @@ class CatalogClientCacheTest : public CatalogClientTestBase {
     cache_ = std::make_shared<olp::cache::DefaultCache>(settings);
     ASSERT_EQ(olp::cache::DefaultCache::StorageOpenResult::Success,
               cache_->Open());
+    settings_.cache = cache_;
   }
 
   void TearDown() override {
@@ -88,7 +89,7 @@ TEST_P(CatalogClientCacheTest, GetApi) {
               Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(2);
 
-  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_, cache_);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
 
   auto request = CatalogVersionRequest().WithStartVersion(-1);
 
@@ -116,7 +117,7 @@ TEST_P(CatalogClientCacheTest, GetCatalog) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1);
 
-  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_, cache_);
+  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
   auto request = CatalogRequest();
   auto future = catalog_client->GetCatalog(request);
   CatalogResponse catalog_response = future.GetFuture().get();
@@ -163,8 +164,8 @@ TEST_P(CatalogClientCacheTest, GetDataWithPartitionId) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(1);
 
-  auto catalog_client = std::make_unique<olp::dataservice::read::CatalogClient>(
-      hrn, settings_, cache_);
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithLayerId("testlayer").WithPartitionId("269");
@@ -220,8 +221,8 @@ TEST_P(CatalogClientCacheTest, GetPartitionsLayerVersions) {
           olp::http::NetworkResponse().WithStatus(200),
           http_response_testlayer_res));
 
-  auto catalog_client = std::make_unique<olp::dataservice::read::CatalogClient>(
-      hrn, settings_, cache_);
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithLayerId("testlayer");
@@ -260,8 +261,8 @@ TEST_P(CatalogClientCacheTest, GetPartitions) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
       .Times(1);
 
-  auto catalog_client = std::make_unique<olp::dataservice::read::CatalogClient>(
-      hrn, settings_, cache_);
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithLayerId("testlayer");
@@ -400,8 +401,8 @@ TEST_P(CatalogClientCacheTest, GetVolatilePartitionsExpiry) {
             HTTP_RESPONSE_EMPTY_PARTITIONS));
   }
 
-  auto catalog_client = std::make_unique<olp::dataservice::read::CatalogClient>(
-      hrn, settings_, cache_);
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithLayerId("testlayer_volatile");
