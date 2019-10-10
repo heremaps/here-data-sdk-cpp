@@ -20,7 +20,7 @@ echo ">>> Functional Test ... >>>"
 source $FV_HOME/olp-cpp-sdk-functional-test.variables
 $REPO_HOME/build/tests/functional/olp-cpp-sdk-functional-tests \
     --gtest_output="xml:$REPO_HOME/reports/olp-functional-test-report.xml" \
-    --gtest_filter="-ArcGisAuthenticationTest.SignInArcGis"
+    --gtest_filter="-ArcGisAuthenticationTest.SignInArcGis":"FacebookAuthenticationTest.SignInFacebook"
 
 #Kill local server
 kill -15 $SERVER_PID
