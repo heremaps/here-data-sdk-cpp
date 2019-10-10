@@ -43,9 +43,8 @@ namespace write {
 class StreamLayerClientImpl;
 
 /**
- * @brief Creates an instance of the default cache with provided settings.
+ * @brief Creates an instance of the default cache with the provided settings.
  * @param settings Cache settings.
- *
  * @return DefaultCache instance.
  */
 std::shared_ptr<cache::KeyValueCache> CreateDefaultCache(
@@ -61,9 +60,7 @@ using PublishSdiiResponse =
     client::ApiResponse<PublishSdiiResult, client::ApiError>;
 using PublishSdiiCallback = std::function<void(PublishSdiiResponse response)>;
 
-/**
- * @brief Client responsible for writing data into an OLP Stream Layer.
- */
+/// @brief Client responsible for writing data to an OLP stream layer.
 class DATASERVICE_WRITE_API StreamLayerClient {
  public:
   using FlushResponse = std::vector<PublishDataResponse>;
@@ -71,101 +68,96 @@ class DATASERVICE_WRITE_API StreamLayerClient {
 
   /**
    * @brief StreamLayerClient Constructor.
-   * @param catalog OLP HRN specifying the catalog this client will write to.
-   * @param client_settings The \c StreamLayerClient settings used to control
+   * @param catalog OLP HRN that specifies the catalog to which this client writes.
+   * @param client_settings \c StreamLayerClient settings used to control
    * the behaviour of flush mechanism and other StreamLayerClient specific
    * properties.
    * @param settings Client settings used to control behaviour of this
    * StreamLayerClient instance.
-   * partitions to be flushed. is provided a default in-memory cache is used.
    */
   StreamLayerClient(client::HRN catalog,
                     StreamLayerClientSettings client_settings,
                     client::OlpClientSettings settings);
 
   /**
-   * @brief Call to publish data into an OLP Stream Layer.
-   * @note Content-type for this request will be set implicitly based on the
-   * Layer metadata for the target Layer on OLP.
-   * @param request PublishDataRequest object representing the parameters for
-   * this publishData call.
-   *
-   * @return A CancellableFuture containing the PublishDataResponse.
+   * @brief Publishes data to an OLP stream layer.
+   * @note Content-Type for this request is implicitly based on the
+   * layer metadata for the target layer on OLP.
+   * @param request PublishDataRequest object that represents the parameters for
+   * this PublishData call.
+   * @return CancellableFuture that contains the PublishDataResponse.
    */
   olp::client::CancellableFuture<PublishDataResponse> PublishData(
       model::PublishDataRequest request);
 
   /**
-   * @brief Call to publish data into an OLP Stream Layer.
-   * @note Content-type for this request will be set implicitly based on the
-   * Layer metadata for the target Layer on OLP.
-   * @param request PublishDataRequest object representing the parameters for
-   * this publishData call.
-   * @param callback PublishDataCallback which will be called with the
+   * @brief Publishes data to an OLP stream layer.
+   * @note Content-Type for this request is set implicitly based on the
+   * layer metadata for the target layer on OLP.
+   * @param request PublishDataRequest object that represents the parameters for
+   * this PublishData call.
+   * @param callback PublishDataCallback that is called with the
    * PublishDataResponse when the operation completes.
-   *
-   * @return A CancellationToken which can be used to cancel the ongoing
+   * @return CancellationToken that can be used to cancel the ongoing
    * request.
    */
   olp::client::CancellationToken PublishData(model::PublishDataRequest request,
                                              PublishDataCallback callback);
 
   /**
-   * @brief Queue a PublishDataRequest to be sent over the wire at a later time.
-   * @param request PublishDataRequest object representing the parameters for
-   * the call to be made in the future.
-   * @return A boost optional which will be boost::none if the queue call was
-   * successful, otherwise it will contain a string with error details.
+   * @brief Enqueues a PublishDataRequest that is sent over the wire.
+   * @param request PublishDataRequest object that represents the parameters for
+   * the call.
+   * @return Optional boost that is boost::none if the queue call is
+   * successful. Otherwise, it contains a string with error details.
    */
   boost::optional<std::string> Queue(model::PublishDataRequest request);
 
   /**
-   * @brief Flush PublishDataRequests which have been queued via the Queue
+   * @brief Flush PublishDataRequests that were queued via the Queue
    * API.
-   * @param request \c FlushRequest object representing the parameters for
+   * @param request \c FlushRequest object thatr represents the parameters for
    * this \c Flush method call.
-   * @return A CancellableFuture containing the FlushResponse.
+   * @return CancellableFuture that contains the FlushResponse.
    */
   olp::client::CancellableFuture<FlushResponse> Flush(
       model::FlushRequest request);
 
   /**
-   * @brief Flush PublishDataRequests which have been queued via the Queue
+   * @brief Flush PublishDataRequests that were queued via the Queue
    * API.
-   * @param request \c FlushRequest object representing the parameters for
+   * @param request \c FlushRequest object that represents the parameters for
    * this \c Flush method call.
-   * @param callback The callback which will be called when all the flush
-   * results (see \c FlushResponse) will be available.
-   * @return A CancellationToken which can be used to cancel the ongoing
+   * @param callback The callback that is called when all the flush
+   * results (see \c FlushResponse) are available.
+   * @return CancellationToken that can be used to cancel the ongoing
    * request.
    */
   olp::client::CancellationToken Flush(model::FlushRequest request,
                                        FlushCallback callback);
 
   /**
-   * @brief Call to send a list of SDII messages to an OLP Stream Layer.
-   * SDII message data must be in SDII MessageList protobuf format. For more
-   * information please see the OLP Sensor Data Ingestion Interface
+   * @brief Sends a list of SDII messages to an OLP stream layer.
+   * The SDII message data must be in the SDII MessageList protobuf format. For more
+   * information, please see the OLP Sensor Data Ingestion Interface
    * documentation and schemas.
-   * @param request PublishSdiiRequest object representing the parameters for
-   * this publishSdii call.
-   *
-   * @return A CancellableFuture containing the PublishSdiiResponse.
+   * @param request PublishSdiiRequest object that represents the parameters for
+   * this PublishSdii call.
+   * @return CancellableFuture that contains the PublishSdiiResponse.
    */
   olp::client::CancellableFuture<PublishSdiiResponse> PublishSdii(
       model::PublishSdiiRequest request);
 
   /**
-   * @brief Call to send a list of SDII messages to an OLP Stream Layer.
-   * SDII message data must be in SDII MessageList protobuf format. For more
-   * information please see the OLP Sensor Data Ingestion Interface
+   * @brief Sends a list of SDII messages to an OLP stream layer.
+   * The SDII message data must be in the SDII MessageList protobuf format. For more
+   * information, please see the OLP Sensor Data Ingestion Interface
    * documentation and schemas.
-   * @param request PublishSdiiRequest object representing the parameters for
-   * this publishSdii call.
-   * @param callback PublishSdiiCallback which will be called with the
+   * @param request PublishSdiiRequest object that represents the parameters for
+   * this PublishSdii call.
+   * @param callback PublishSdiiCallback that is called with the
    * PublishSdiiResponse when the operation completes.
-   *
-   * @return A CancellationToken which can be used to cancel the ongoing
+   * @return CancellationToken that can be used to cancel the ongoing
    * request.
    */
   olp::client::CancellationToken PublishSdii(model::PublishSdiiRequest request,
