@@ -55,6 +55,7 @@ if (ANDROID OR IOS)
         PRIVATE
             custom-params
             gtest
+            olp-cpp-sdk-tests-common
             olp-cpp-sdk-core
             olp-cpp-sdk-authentication
             olp-cpp-sdk-dataservice-read
@@ -87,6 +88,7 @@ else()
         PRIVATE
             custom-params
             gtest_main
+            olp-cpp-sdk-tests-common
             olp-cpp-sdk-core
             olp-cpp-sdk-authentication
             olp-cpp-sdk-dataservice-read

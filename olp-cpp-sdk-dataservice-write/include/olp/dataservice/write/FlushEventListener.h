@@ -22,7 +22,10 @@
 #include <algorithm>
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <vector>
+
+#include <olp/dataservice/write/FlushMetrics.h>
 
 namespace olp {
 namespace dataservice {
@@ -39,47 +42,23 @@ class FlushEventListener {
   virtual ~FlushEventListener() {}
 
   /**
-   Get the number of flush events attempted.
-
-   @return number of attempts.
-   */
-  virtual size_t GetNumFlushEventsAttempted() const = 0;
-  /**
-   Get the number of flush events failed.
-
-   @return number of failues.
-   */
-  virtual size_t GetNumFlushEventsFailed() const = 0;
-  /**
-   Get the total number of flush events.
-
-   @return total number of flush events.
-   */
-  virtual size_t GetNumFlushEvents() const = 0;
-  /**
-   Get the number of requests flushed.
-
-   @return number of flushed requests.
-   */
-  virtual size_t GetNumFlushedRequests() const = 0;
-  /**
-   Get the number of requests which are failed to be flushed.
-
-   @return number of failed requests.
-   */
-  virtual size_t GetNumFlushedRequestsFailed() const = 0;
-
-  /**
-   Notify the start of the flush event
+   * Notify the start of the flush event
    */
   virtual void NotifyFlushEventStarted() = 0;
   /**
-   Notify the flush event results. The IngestPublishResponse are listed
-   in the same order as the requests being flushed.
-
-   @param results vector of flush event results.
+   * Notify the flush event results. The IngestPublishResponse are listed
+   * in the same order as the requests being flushed.
+   *
+   *  @param results vector of flush event results.
    */
   virtual void NotifyFlushEventResults(FlushResponse results) = 0;
+
+  /**
+   * Notifies the listener that flush metrics has changed.
+   *
+   * @param metrics Collected \c FlushMetrics.
+   */
+  virtual void NotifyFlushMetricsHasChanged(FlushMetrics metrics) = 0;
 };
 
 /**
@@ -89,49 +68,18 @@ template <typename FlushResponse>
 class DefaultFlushEventListener : public FlushEventListener<FlushResponse> {
  public:
   /**
-   Number of flush events attempted.
-
-   @return Number of the flush events attempted
-   */
-  size_t GetNumFlushEventsAttempted() const override {
-    return num_flush_events_attempted_;
-  }
-  /**
-   Get the number of flush events failed.
-
-   @return number of failues.
-   */
-  size_t GetNumFlushEventsFailed() const override {
-    return num_flush_events_failed_;
-  }
-  /**
-   Total number of flush events.
-
-   @return Total number of flush events.
-   */
-  size_t GetNumFlushEvents() const override { return num_flush_events_; }
-  /**
-   Number of flushed requests.
-
-   @return Number of flushed requests
-   */
-  size_t GetNumFlushedRequests() const override {
-    return total_flush_requests_;
-  }
-  /**
-   Number of requests that were failed to be flushed.
-
-   @return Number of failed requests
-   */
-  size_t GetNumFlushedRequestsFailed() const override {
-    return num_flush_requests_failed_;
-  }
-
-  /**
    Notify the start of the flush event.
 
    */
-  void NotifyFlushEventStarted() override { ++num_flush_events_attempted_; }
+  void NotifyFlushEventStarted() override {
+    FlushMetrics metrics;
+    {
+      std::lock_guard<std::mutex> locker(mutex_);
+      ++metrics_.num_attempted_flush_events;
+      metrics = metrics_;
+    }
+    NotifyFlushMetricsHasChanged(std::move(metrics));
+  }
 
   /**
    Notify the flush event results. The IngestPublishResponse are listed
@@ -141,28 +89,22 @@ class DefaultFlushEventListener : public FlushEventListener<FlushResponse> {
    */
   void NotifyFlushEventResults(FlushResponse results) override;
 
+  void NotifyFlushMetricsHasChanged(FlushMetrics metrics) override{};
+
  protected:
   template <typename T>
   bool CollateFlushEventResults(const std::vector<T>& results) {
-    total_flush_requests_ += results.size();
+    metrics_.num_total_flushed_requests += results.size();
 
-    thread_local size_t flushRequestsFailed;
-    flushRequestsFailed = 0ull;
-    auto self = this;
-    std::for_each(std::begin(results), std::end(results), [self](T t) {
-      if (!t.IsSuccessful()) {
-        ++flushRequestsFailed;
-        ++self->num_flush_requests_failed_;
-      }
-    });
-    return flushRequestsFailed > 0ull;
+    thread_local size_t flush_requests_failed =
+        std::count_if(std::begin(results), std::end(results),
+                      [](T result) -> bool { return !result.IsSuccessful(); });
+    metrics_.num_failed_flushed_requests += flush_requests_failed;
+    return flush_requests_failed > 0ull;
   }
 
-  std::atomic_size_t num_flush_events_attempted_{};
-  std::atomic_size_t num_flush_events_failed_{};
-  std::atomic_size_t num_flush_events_{};
-  std::atomic_size_t total_flush_requests_{};
-  std::atomic_size_t num_flush_requests_failed_{};
+  mutable std::mutex mutex_;
+  FlushMetrics metrics_;
 };
 
 }  // namespace write
