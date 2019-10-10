@@ -54,13 +54,12 @@ class StreamLayerClientImpl
   olp::client::CancellableFuture<PublishDataResponse> PublishData(
       const model::PublishDataRequest& request);
   olp::client::CancellationToken PublishData(
-      const model::PublishDataRequest& request,
-      const PublishDataCallback& callback);
+      const model::PublishDataRequest& request, PublishDataCallback callback);
 
   boost::optional<std::string> Queue(const model::PublishDataRequest& request);
   olp::client::CancellableFuture<StreamLayerClient::FlushResponse> Flush();
   olp::client::CancellationToken Flush(
-      const StreamLayerClient::FlushCallback& callback);
+      StreamLayerClient::FlushCallback callback);
   size_t QueueSize() const;
   boost::optional<model::PublishDataRequest> PopFromQueue();
 
@@ -70,8 +69,7 @@ class StreamLayerClientImpl
   olp::client::CancellableFuture<PublishSdiiResponse> PublishSdii(
       const model::PublishSdiiRequest& request);
   olp::client::CancellationToken PublishSdii(
-      const model::PublishSdiiRequest& request,
-      const PublishSdiiCallback& callback);
+      const model::PublishSdiiRequest& request, PublishSdiiCallback callback);
 
  private:
   client::CancellationToken InitApiClients(

@@ -130,11 +130,11 @@ class StreamLayerClientCacheTest : public ::testing::Test {
 
     network_ = std::make_shared<NetworkMock>();
     client_settings.network_request_handler = network_;
+    client_settings.cache = disk_cache_;
     SetUpCommonNetworkMockCalls(*network_);
 
     return std::make_shared<StreamLayerClient>(
-        olp::client::HRN{GetTestCatalog()}, client_settings, disk_cache_,
-        flush_settings_);
+        olp::client::HRN{GetTestCatalog()}, client_settings, flush_settings_);
   }
 
   void SetUpCommonNetworkMockCalls(NetworkMock& network) {

@@ -151,10 +151,10 @@ class DataserviceWriteStreamLayerClientCacheTest : public ::testing::Test {
     disk_cache_ = std::make_shared<olp::cache::DefaultCache>();
     EXPECT_EQ(disk_cache_->Open(),
               olp::cache::DefaultCache::StorageOpenResult::Success);
+    settings.cache = disk_cache_;
 
     return std::make_shared<StreamLayerClient>(
-        olp::client::HRN{GetTestCatalog()}, settings, disk_cache_,
-        flush_settings_);
+        olp::client::HRN{GetTestCatalog()}, settings, flush_settings_);
   }
 
  private:

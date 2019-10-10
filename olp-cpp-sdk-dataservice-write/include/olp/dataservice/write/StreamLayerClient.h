@@ -30,7 +30,8 @@
 #include <olp/dataservice/write/FlushSettings.h>
 #include <olp/dataservice/write/generated/model/ResponseOk.h>
 #include <olp/dataservice/write/generated/model/ResponseOkSingle.h>
-
+#include <olp/dataservice/write/model/PublishDataRequest.h>
+#include <olp/dataservice/write/model/PublishSdiiRequest.h>
 
 namespace olp {
 namespace client {
@@ -41,11 +42,6 @@ class HRN;
 namespace dataservice {
 namespace write {
 class StreamLayerClientImpl;
-
-namespace model {
-class PublishDataRequest;
-class PublishSdiiRequest;
-}  // namespace model
 
 /**
  * @brief Creates an instance of the default cache with provided settings.
@@ -80,14 +76,11 @@ class DATASERVICE_WRITE_API StreamLayerClient {
    * @param catalog OLP HRN specifying the catalog this client will write to.
    * @param settings Client settings used to control behaviour of this
    * StreamLayerClient instance.
-   * @param cache Optional KeyValueCache instance used for queuing. If no cache
    * @param flush_settings Optional defines settings that effect cached
    * partitions to be flushed. is provided a default in-memory cache is used.
    */
-  StreamLayerClient(
-      const client::HRN& catalog, const client::OlpClientSettings& settings,
-      const std::shared_ptr<cache::KeyValueCache>& cache = CreateDefaultCache(),
-      const FlushSettings& flush_settings = FlushSettings());
+  StreamLayerClient(client::HRN catalog, client::OlpClientSettings settings,
+                    FlushSettings flush_settings = FlushSettings());
 
   /**
    * @brief Call to publish data into an OLP Stream Layer.
@@ -99,7 +92,7 @@ class DATASERVICE_WRITE_API StreamLayerClient {
    * @return A CancellableFuture containing the PublishDataResponse.
    */
   olp::client::CancellableFuture<PublishDataResponse> PublishData(
-      const model::PublishDataRequest& request);
+      model::PublishDataRequest request);
 
   /**
    * @brief Call to publish data into an OLP Stream Layer.
@@ -113,9 +106,8 @@ class DATASERVICE_WRITE_API StreamLayerClient {
    * @return A CancellationToken which can be used to cancel the ongoing
    * request.
    */
-  olp::client::CancellationToken PublishData(
-      const model::PublishDataRequest& request,
-      const PublishDataCallback& callback);
+  olp::client::CancellationToken PublishData(model::PublishDataRequest request,
+                                             PublishDataCallback callback);
 
   /**
    * @brief Queue a PublishDataRequest to be sent over the wire at a later time.
@@ -124,7 +116,7 @@ class DATASERVICE_WRITE_API StreamLayerClient {
    * @return A boost optional which will be boost::none if the queue call was
    * successful, otherwise it will contain a string with error details.
    */
-  boost::optional<std::string> Queue(const model::PublishDataRequest& request);
+  boost::optional<std::string> Queue(model::PublishDataRequest request);
 
   /**
    * @brief Flush PublishDataRequests which have been queued via the Queue
@@ -139,7 +131,7 @@ class DATASERVICE_WRITE_API StreamLayerClient {
    * @return A CancellationToken which can be used to cancel the ongoing
    * request.
    */
-  olp::client::CancellationToken Flush(const FlushCallback& callback);
+  olp::client::CancellationToken Flush(FlushCallback callback);
 
   /**
    * @brief Enable the StreamLayerClient auto-flushing mechanism.
@@ -178,7 +170,7 @@ class DATASERVICE_WRITE_API StreamLayerClient {
    * @return A CancellableFuture containing the PublishSdiiResponse.
    */
   olp::client::CancellableFuture<PublishSdiiResponse> PublishSdii(
-      const model::PublishSdiiRequest& request);
+      model::PublishSdiiRequest request);
 
   /**
    * @brief Call to send a list of SDII messages to an OLP Stream Layer.
@@ -193,9 +185,8 @@ class DATASERVICE_WRITE_API StreamLayerClient {
    * @return A CancellationToken which can be used to cancel the ongoing
    * request.
    */
-  olp::client::CancellationToken PublishSdii(
-      const model::PublishSdiiRequest& request,
-      const PublishSdiiCallback& callback);
+  olp::client::CancellationToken PublishSdii(model::PublishSdiiRequest request,
+                                             PublishSdiiCallback callback);
 
  private:
   std::shared_ptr<StreamLayerClientImpl> impl_;
