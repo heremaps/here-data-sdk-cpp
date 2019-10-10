@@ -34,26 +34,27 @@ std::shared_ptr<cache::KeyValueCache> CreateDefaultCache(
   return std::move(cache);
 }
 
-StreamLayerClient::StreamLayerClient(
-    const client::HRN& catalog, const client::OlpClientSettings& settings,
-    const std::shared_ptr<cache::KeyValueCache>& cache,
-    const FlushSettings& flush_settings)
-    : impl_(std::make_shared<StreamLayerClientImpl>(catalog, settings, cache,
-                                                    flush_settings)) {}
+StreamLayerClient::StreamLayerClient(client::HRN catalog,
+                                     client::OlpClientSettings settings,
+                                     FlushSettings flush_settings) {
+  auto cache = settings.cache;
+  impl_ = std::make_shared<StreamLayerClientImpl>(
+      std::move(catalog), std::move(settings), std::move(cache),
+      std::move(flush_settings));
+}
 
 olp::client::CancellableFuture<PublishDataResponse>
-StreamLayerClient::PublishData(const model::PublishDataRequest& request) {
+StreamLayerClient::PublishData(model::PublishDataRequest request) {
   return impl_->PublishData(request);
 }
 
 olp::client::CancellationToken StreamLayerClient::PublishData(
-    const model::PublishDataRequest& request,
-    const PublishDataCallback& callback) {
-  return impl_->PublishData(request, callback);
+    model::PublishDataRequest request, PublishDataCallback callback) {
+  return impl_->PublishData(request, std::move(callback));
 }
 
 boost::optional<std::string> StreamLayerClient::Queue(
-    const model::PublishDataRequest& request) {
+    model::PublishDataRequest request) {
   return impl_->Queue(request);
 }
 
@@ -63,8 +64,8 @@ StreamLayerClient::Flush() {
 }
 
 olp::client::CancellationToken StreamLayerClient::Flush(
-    const FlushCallback& callback) {
-  return impl_->Flush(callback);
+    FlushCallback callback) {
+  return impl_->Flush(std::move(callback));
 }
 
 void StreamLayerClient::Enable(std::shared_ptr<FlushListener> listener) {
@@ -79,14 +80,13 @@ StreamLayerClient::DefaultListener() {
 }
 
 olp::client::CancellableFuture<PublishSdiiResponse>
-StreamLayerClient::PublishSdii(const model::PublishSdiiRequest& request) {
+StreamLayerClient::PublishSdii(model::PublishSdiiRequest request) {
   return impl_->PublishSdii(request);
 }
 
 olp::client::CancellationToken StreamLayerClient::PublishSdii(
-    const model::PublishSdiiRequest& request,
-    const PublishSdiiCallback& callback) {
-  return impl_->PublishSdii(request, callback);
+    model::PublishSdiiRequest request, PublishSdiiCallback callback) {
+  return impl_->PublishSdii(request, std::move(callback));
 }
 
 }  // namespace write

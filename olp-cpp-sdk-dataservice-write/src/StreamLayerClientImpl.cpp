@@ -371,7 +371,7 @@ StreamLayerClientImpl::Flush() {
 }
 
 olp::client::CancellationToken StreamLayerClientImpl::Flush(
-    const StreamLayerClient::FlushCallback& callback) {
+    StreamLayerClient::FlushCallback callback) {
   CancellationContext cancel_context;
 
   auto self = shared_from_this();
@@ -440,8 +440,7 @@ std::future<void> StreamLayerClientImpl::Disable() {
 }
 
 CancellationToken StreamLayerClientImpl::PublishData(
-    const model::PublishDataRequest& request,
-    const PublishDataCallback& callback) {
+    const model::PublishDataRequest& request, PublishDataCallback callback) {
   if (!request.GetData()) {
     callback(PublishDataResponse(
         ApiError(ErrorCode::InvalidArgument, "Request data null.")));
@@ -778,8 +777,7 @@ CancellableFuture<PublishSdiiResponse> StreamLayerClientImpl::PublishSdii(
 }
 
 CancellationToken StreamLayerClientImpl::PublishSdii(
-    const model::PublishSdiiRequest& request,
-    const PublishSdiiCallback& callback) {
+    const model::PublishSdiiRequest& request, PublishSdiiCallback callback) {
   if (!request.GetSdiiMessageList()) {
     callback(PublishSdiiResponse(ApiError(ErrorCode::InvalidArgument,
                                           "Request sdii message list null.")));
