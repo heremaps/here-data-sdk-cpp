@@ -23,8 +23,8 @@
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
 #include "MultiRequestContext.h"
-#include "olp/dataservice/read/CatalogClient.h"
 #include "generated/api/BlobApi.h"
+#include "olp/dataservice/read/CatalogClient.h"
 
 namespace olp {
 namespace dataservice {
@@ -54,7 +54,7 @@ class DataRepository final {
 
   static BlobApi::DataResponse GetBlobData(
       const client::HRN& catalog, const std::string& layer,
-      const DataRequest& data_request,
+      const std::string& service, const DataRequest& data_request,
       client::CancellationContext cancellation_context,
       client::OlpClientSettings settings);
 

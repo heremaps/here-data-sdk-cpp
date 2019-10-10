@@ -49,6 +49,11 @@ class VolatileLayerClientImpl {
 
   olp::client::CancellationToken GetData(DataRequest data_request,
                                          Callback callback);
+
+private:
+    olp::client::HRN catalog_;
+    std::string layer_id_;
+    olp::client::OlpClientSettings client_settings_;
 };
 
 }  // namespace read

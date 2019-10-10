@@ -330,7 +330,7 @@ void DataRepository::GetData(
 
 BlobApi::DataResponse DataRepository::GetBlobData(
     const client::HRN& catalog, const std::string& layer,
-    const DataRequest& data_request,
+    const std::string& service, const DataRequest& data_request,
     client::CancellationContext cancellation_context,
     client::OlpClientSettings settings) {
   using namespace client;
@@ -347,17 +347,19 @@ BlobApi::DataResponse DataRepository::GetBlobData(
   if (fetch_option != OnlineOnly) {
     auto cached_data = repository.Get(layer, data_handle.value());
     if (cached_data) {
-      OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!", data_request.CreateKey().c_str());
+      OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
+                         data_request.CreateKey().c_str());
       return cached_data.value();
     } else if (fetch_option == CacheOnly) {
-      OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' not found!", data_request.CreateKey().c_str());
+      OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' not found!",
+                         data_request.CreateKey().c_str());
       return ApiError(ErrorCode::NotFound,
                       "Cache only resource not found in cache (data).");
     }
   }
 
   auto blob_api = ApiClientLookup::LookupApi(
-      catalog, cancellation_context, "blob", "v1", fetch_option, settings);
+      catalog, cancellation_context, service, "v1", fetch_option, settings);
 
   if (!blob_api.IsSuccessful()) {
     return blob_api.GetError();
@@ -382,9 +384,17 @@ BlobApi::DataResponse DataRepository::GetBlobData(
 
   cancellation_context.ExecuteOrCancelled(
       [&]() {
-        auto token = BlobApi::GetBlob(client, layer, data_handle.value(),
-                                      data_request.GetBillingTag(), boost::none,
-                                      std::move(blob_callback));
+        client::CancellationToken token;
+        if (service == "blob") {
+          token = BlobApi::GetBlob(client, layer, data_handle.value(),
+                                   data_request.GetBillingTag(), boost::none,
+                                   std::move(blob_callback));
+        } else {
+          token = VolatileBlobApi::GetVolatileBlob(
+              client, layer, data_handle.value(), data_request.GetBillingTag(),
+              std::move(blob_callback));
+        }
+
         return client::CancellationToken([&, token, flag]() {
           if (flag->exchange(false)) {
             token.cancel();
@@ -418,7 +428,8 @@ BlobApi::DataResponse DataRepository::GetBlobData(
   } else {
     const auto& error = blob_response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
-      OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache", data_request.CreateKey().c_str());
+      OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
+                         data_request.CreateKey().c_str());
       repository.Clear(layer, data_handle.value());
     }
   }
