@@ -52,92 +52,86 @@ using DeleteIndexDataCallback =
 using UpdateIndexResponse =
     client::ApiResponse<client::ApiNoResult, client::ApiError>;
 using UpdateIndexCallback = std::function<void(UpdateIndexResponse response)>;
-/**
- * @brief Client responsible for writing data into an OLP Index Layer.
- */
+
+/// @brief Client that is responsible for writing data to an OLP index layer.
 class DATASERVICE_WRITE_API IndexLayerClient {
  public:
+
   /**
    * @brief IndexLayerClient Constructor.
-   * @param catalog OLP HRN specifying the catalog this client will write to.
-   * @param settings Client settings used to control behaviour of the client
-   * instance. Index.
+   * @param catalog OLP HRN that specifies the catalog to which this client writes.
+   * @param settings Client settings used to control the behavior of the client
+   * instance.
    */
   IndexLayerClient(client::HRN catalog, client::OlpClientSettings settings);
 
-  /**
-   * @brief Cancel all pending requests.
-   */
+  /// @brief Cancels all pending requests.
   void CancelAll();
 
   /**
-   * @brief Call to publish index into an OLP Index Layer.
-   * @note Content-type for this request will be set implicitly based on the
-   * Layer metadata for the target Layer on OLP.
-   * @param request PublishIndexRequest object representing the
-   * parameters for this publishIndex call.
-   *
-   * @return A CancellableFuture containing the PublishIndexResponse.
+   * @brief Publishes an index to an OLP index layer.
+   * @note Content-Type for this request is set implicitly based on the
+   * layer metadata for the target layer on OLP.
+   * @param request PublishIndexRequest object that represents the
+   * parameters for this PublishIndex call.
+   * @return CancellableFuture that contains the PublishIndexResponse.
    */
   olp::client::CancellableFuture<PublishIndexResponse> PublishIndex(
       model::PublishIndexRequest request);
 
   /**
-   * @brief Call to publish index into an OLP Index Layer.
-   * @note Content-type for this request will be set implicitly based on the
-   * Layer metadata for the target Layer on OLP.
-   * @param request PublishIndexRequest object representing the
-   * parameters for this publishIndex call.
-   * @param callback PublishIndexCallback which will be called with the
+   * @brief Publishes an index to an OLP index layer.
+   * @note Content-Type for this request is set implicitly based on the
+   * layer metadata for the target layer on OLP.
+   * @param request PublishIndexRequest object that represents the
+   * parameters for this PublishIndex call.
+   * @param callback PublishIndexCallback that is called with the
    * PublishIndexResponse when the operation completes.
-   *
-   * @return A CancellationToken which can be used to cancel the ongoing
+   * @return CancellationToken that can be used to cancel the ongoing
    * request.
    */
   olp::client::CancellationToken PublishIndex(
       model::PublishIndexRequest request, PublishIndexCallback callback);
 
   /**
-   * @brief Call to delete data blob that is stored under index
+   * @brief Deletes a data blob that is stored under an index
    * layer.
-   * @param request DeleteIndexDataRequest object representing the parameters
-   * for deleteIndexData call.
-   * @param callback DeleteIndexDataCallback which will be called with
-   * DeleteIndexDataResponse when operation completes.
-   * @return A CancellationToken which can be used to cancel the ongoing
+   * @param request DeleteIndexDataRequest object that represents the parameters
+   * for the DeleteIndexData call.
+   * @param callback DeleteIndexDataCallback that is called with
+   * DeleteIndexDataResponse when the operation completes.
+   * @return CancellationToken that can be used to cancel the ongoing
    * request.
    */
   olp::client::CancellationToken DeleteIndexData(
       model::DeleteIndexDataRequest request, DeleteIndexDataCallback callback);
 
   /**
-   * @brief Call to delete data blob that is stored under index
+   * @brief Deletes a data blob that is stored under an index
    * layer.
-   * @param request DeleteIndexDataRequest object representing the parameters
-   * for deleteIndexData call.
-   * @return A CancellableFuture containing the DeleteIndexDataResponse.
+   * @param request DeleteIndexDataRequest object that represents the parameters
+   * for DeleteIndexData call.
+   * @return CancellableFuture that contains the DeleteIndexDataResponse.
    */
   olp::client::CancellableFuture<DeleteIndexDataResponse> DeleteIndexData(
       model::DeleteIndexDataRequest request);
 
   /**
-   * @brief Call to update index information to an OLP Index Layer.
-   * @param request UpdateIndexRequest object representing the
-   * parameters for this updateIndex call.
-   *
-   * @return A CancellableFuture containing the PublishIndexResponse.
+   * @brief Updates index information to an OLP index layer.
+   * @param request UpdateIndexRequest object that represents the
+   * parameters for this UpdateIndex call.
+   * @return CancellableFuture that contains the PublishIndexResponse.
    */
   olp::client::CancellableFuture<UpdateIndexResponse> UpdateIndex(
       model::UpdateIndexRequest request);
 
   /**
-   * @brief Call to update index information to an OLP Index Layer
-   * @param request PublishIndexRequest object representing the
-   * parameters for this publishIndex call.
-   * @param callback PublishIndexCallback which will be called with the
+   * @brief Updates index information to an OLP index layer
+   * @param request PublishIndexRequest object that represents the
+   * parameters for this PublishIndex call.
+   * @param callback PublishIndexCallback that is called with the
    * PublishIndexResponse when the operation completes.
-   *
-   * @return A CancellationToken which can be used to cancel the ongoing
+   * @return CancellationToken that can be used to cancel the ongoing
    * request.
    */
   olp::client::CancellationToken UpdateIndex(model::UpdateIndexRequest request,
