@@ -34,6 +34,7 @@ namespace {
 using ::testing::_;
 using namespace olp::dataservice::write;
 using namespace olp::dataservice::write::model;
+using namespace olp::tests::common;
 
 void PublishDataSuccessAssertions(
     const olp::client::ApiResponse<

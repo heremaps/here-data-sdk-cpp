@@ -36,6 +36,7 @@ namespace {
 using namespace olp::dataservice::write;
 using namespace olp::dataservice::write::model;
 using namespace testing;
+using namespace olp::tests::common;
 
 // Binary SDII Message List protobuf data. See the OLP SDII data specification
 // and schema documents to learn about the format. This char array was created

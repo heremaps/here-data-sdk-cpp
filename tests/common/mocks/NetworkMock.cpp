@@ -21,6 +21,10 @@
 
 #include <thread>
 
+namespace olp {
+namespace tests {
+namespace common {
+
 NetworkMock::NetworkMock() = default;
 
 NetworkMock::~NetworkMock() = default;
@@ -111,3 +115,7 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
   return std::make_tuple(request_id, std::move(mocked_send),
                          std::move(mocked_cancel));
 }
+
+}  // namespace common
+}  // namespace tests
+}  // namespace olp

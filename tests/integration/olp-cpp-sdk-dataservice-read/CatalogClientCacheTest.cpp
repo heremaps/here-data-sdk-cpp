@@ -20,6 +20,8 @@ namespace {
 
 using namespace olp::dataservice::read;
 using namespace testing;
+using namespace olp::tests::common;
+using namespace olp::tests::integration;
 
 #ifdef _WIN32
 constexpr auto kClientTestDir = "\\catalog_client_test";

@@ -39,6 +39,7 @@ namespace {
 using namespace olp::dataservice::write;
 using namespace olp::dataservice::write::model;
 using namespace testing;
+using namespace olp::tests::common;
 
 const std::string kBillingTag = "OlpCppSdkTest";
 constexpr int64_t kTwentyMib = 20971520;  // 20 MiB

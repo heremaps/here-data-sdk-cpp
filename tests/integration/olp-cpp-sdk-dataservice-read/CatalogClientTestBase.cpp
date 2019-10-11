@@ -22,6 +22,12 @@
 #include <matchers/NetworkUrlMatchers.h>
 #include "HttpResponses.h"
 
+namespace olp {
+namespace tests {
+namespace integration {
+
+using namespace olp::tests::common;
+
 using ::testing::_;
 
 std::ostream& operator<<(std::ostream& os, const CacheType cache_type) {
@@ -248,3 +254,7 @@ void CatalogClientTestBase::SetUpCommonNetworkMockCalls() {
   // Catch any non-interesting network calls that don't need to be verified
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _)).Times(testing::AtLeast(0));
 }
+
+}  // namespace integration
+}  // namespace tests
+}  // namespace olp

@@ -20,9 +20,9 @@
 #include "repositories/CatalogRepository.h"
 
 #include <gtest/gtest.h>
+#include <matchers/NetworkUrlMatchers.h>
 #include <mocks/CacheMock.h>
 #include <mocks/NetworkMock.h>
-#include <matchers/NetworkUrlMatchers.h>
 #include <olp/core/client/OlpClientFactory.h>
 #include "ApiClientLookup.h"
 
@@ -41,6 +41,7 @@ namespace {
 
 using namespace olp::dataservice::read;
 using namespace ::testing;
+using namespace olp::tests::common;
 
 const std::string kCatalog = "hrn:here:data:::hereos-internal-test-v2";
 const std::string kCacheKey = kCatalog + "::latestVersion";
