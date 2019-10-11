@@ -30,7 +30,8 @@ VersionedLayerClient::VersionedLayerClient(client::HRN catalog,
     : impl_(std::make_shared<VersionedLayerClientImpl>(std::move(catalog),
                                                        std::move(settings))) {}
 
-VersionedLayerClient::~VersionedLayerClient() = default;
+
+void VersionedLayerClient::CancellAll() { impl_->CancelAll(); }
 
 olp::client::CancellableFuture<StartBatchResponse>
 VersionedLayerClient::StartBatch(model::StartBatchRequest request) {

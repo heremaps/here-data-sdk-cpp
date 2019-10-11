@@ -55,6 +55,8 @@ VersionedLayerClientImpl::VersionedLayerClientImpl(
       apiclient_query_(nullptr),
       init_in_progress_(false) {}
 
+VersionedLayerClientImpl::~VersionedLayerClientImpl() { CancelAll(); }
+
 olp::client::CancellationToken VersionedLayerClientImpl::InitApiClients(
     std::shared_ptr<client::CancellationContext> cancel_context,
     InitApiClientsCallback callback) {

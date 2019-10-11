@@ -90,7 +90,7 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
   /**
    * @brief Cancel all pending requests.
    */
-  void cancellAll();
+  void CancellAll();
 
   /**
    * @brief Call to publish data into an OLP Volatile Layer.
