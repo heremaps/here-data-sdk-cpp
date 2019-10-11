@@ -430,15 +430,6 @@ olp::client::CancellationToken StreamLayerClientImpl::Flush(
   return CancellationToken([=]() mutable { cancel_context.CancelOperation(); });
 }
 
-void StreamLayerClientImpl::Enable(
-    std::shared_ptr<StreamLayerClient::FlushListener> listener) {
-  auto_flush_controller_->Enable(shared_from_this(), listener);
-}
-
-std::future<void> StreamLayerClientImpl::Disable() {
-  return auto_flush_controller_->Disable();
-}
-
 CancellationToken StreamLayerClientImpl::PublishData(
     const model::PublishDataRequest& request, PublishDataCallback callback) {
   if (!request.GetData()) {

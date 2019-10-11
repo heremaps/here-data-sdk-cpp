@@ -63,9 +63,6 @@ class StreamLayerClientImpl
   size_t QueueSize() const;
   boost::optional<model::PublishDataRequest> PopFromQueue();
 
-  void Enable(std::shared_ptr<StreamLayerClient::FlushListener> listener);
-  std::future<void> Disable();
-
   olp::client::CancellableFuture<PublishSdiiResponse> PublishSdii(
       const model::PublishSdiiRequest& request);
   olp::client::CancellationToken PublishSdii(

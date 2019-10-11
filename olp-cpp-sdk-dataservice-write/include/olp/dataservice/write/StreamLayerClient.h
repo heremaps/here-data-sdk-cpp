@@ -26,7 +26,6 @@
 #include <olp/core/client/OlpClientSettings.h>
 
 #include <olp/dataservice/write/DataServiceWriteApi.h>
-#include <olp/dataservice/write/FlushEventListener.h>
 #include <olp/dataservice/write/FlushSettings.h>
 #include <olp/dataservice/write/generated/model/ResponseOk.h>
 #include <olp/dataservice/write/generated/model/ResponseOkSingle.h>
@@ -69,7 +68,6 @@ class DATASERVICE_WRITE_API StreamLayerClient {
  public:
   using FlushResponse = std::vector<PublishDataResponse>;
   using FlushCallback = std::function<void(FlushResponse response)>;
-  using FlushListener = FlushEventListener<const FlushResponse&>;
 
   /**
    * @brief StreamLayerClient Constructor.
@@ -132,32 +130,6 @@ class DATASERVICE_WRITE_API StreamLayerClient {
    * request.
    */
   olp::client::CancellationToken Flush(FlushCallback callback);
-
-  /**
-   * @brief Enable the StreamLayerClient auto-flushing mechanism.
-   * @param listener Optional FlushEventListener used for optaining metrics and
-   * getting events related to auto flushing.
-   */
-  void Enable(std::shared_ptr<FlushListener> listener = nullptr);
-
-  /**
-   * @brief Disable the StreamLayerClient auto-flushing mechanism. Will cancel
-   * any ongoing background flush tasks.
-   *
-   * @return std::future object, which will be set when all pending background
-   * flush events have completed or have been cancelled. Ensure that the
-   * StreamLayerClient is not destructed prior to this future being set.
-   */
-  std::future<void> Disable();
-
-  /**
-   * @brief Create a listener object of type DefaultFlushEventListener for this
-   * API.
-   *
-   * @return std::shared_ptr< FlushDataListener > object, of appropriate type
-   * for this API.
-   */
-  static std::shared_ptr<FlushListener> DefaultListener();
 
   /**
    * @brief Call to send a list of SDII messages to an OLP Stream Layer.
