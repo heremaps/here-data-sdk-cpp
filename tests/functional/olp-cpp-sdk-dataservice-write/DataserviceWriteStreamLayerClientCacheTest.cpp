@@ -497,8 +497,8 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest,
 
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(3));
 
-  class NotificationListener : public DefaultFlushEventListener<
-                                   const StreamLayerClient::FlushResponse&> {
+  class NotificationListener
+      : public FlushEventListener<const StreamLayerClient::FlushResponse&> {
    public:
     void NotifyFlushEventStarted() override { events_started_++; }
 
@@ -506,6 +506,10 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest,
         const StreamLayerClient::FlushResponse& results) override {
       std::lock_guard<std::mutex> lock(results_mutex_);
       results_ = std::move(results);
+    }
+
+    void NotifyFlushMetricsHasChanged(FlushMetrics metrics) override {
+      // no-op
     }
 
     const StreamLayerClient::FlushResponse& GetResults() {

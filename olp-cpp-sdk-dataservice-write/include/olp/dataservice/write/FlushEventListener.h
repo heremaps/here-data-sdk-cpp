@@ -19,12 +19,6 @@
 
 #pragma once
 
-#include <algorithm>
-#include <atomic>
-#include <memory>
-#include <mutex>
-#include <vector>
-
 #include <olp/dataservice/write/FlushMetrics.h>
 
 namespace olp {
@@ -59,52 +53,6 @@ class FlushEventListener {
    * @param metrics Collected \c FlushMetrics.
    */
   virtual void NotifyFlushMetricsHasChanged(FlushMetrics metrics) = 0;
-};
-
-/**
- @brief Default implementation of the FlushEventListener
- */
-template <typename FlushResponse>
-class DefaultFlushEventListener : public FlushEventListener<FlushResponse> {
- public:
-  /**
-   Notify the start of the flush event.
-
-   */
-  void NotifyFlushEventStarted() override {
-    FlushMetrics metrics;
-    {
-      std::lock_guard<std::mutex> locker(mutex_);
-      ++metrics_.num_attempted_flush_events;
-      metrics = metrics_;
-    }
-    NotifyFlushMetricsHasChanged(std::move(metrics));
-  }
-
-  /**
-   Notify the flush event results. The IngestPublishResponse are listed
-   in the same order as the requests being flushed.
-
-   @param results vector of flush event results.
-   */
-  void NotifyFlushEventResults(FlushResponse results) override;
-
-  void NotifyFlushMetricsHasChanged(FlushMetrics metrics) override{};
-
- protected:
-  template <typename T>
-  bool CollateFlushEventResults(const std::vector<T>& results) {
-    metrics_.num_total_flushed_requests += results.size();
-
-    thread_local size_t flush_requests_failed =
-        std::count_if(std::begin(results), std::end(results),
-                      [](T result) -> bool { return !result.IsSuccessful(); });
-    metrics_.num_failed_flushed_requests += flush_requests_failed;
-    return flush_requests_failed > 0ull;
-  }
-
-  mutable std::mutex mutex_;
-  FlushMetrics metrics_;
 };
 
 }  // namespace write
