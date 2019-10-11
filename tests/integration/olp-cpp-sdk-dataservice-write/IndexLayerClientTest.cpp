@@ -108,8 +108,7 @@ class IndexLayerClientTest : public ::testing::Test {
     // Catch unexpected calls and fail immediatley
     ON_CALL(network, Send(_, _, _, _, _))
         .WillByDefault(testing::DoAll(
-            NetworkMock::ReturnHttpResponse(
-                olp::http::NetworkResponse().WithStatus(-1), ""),
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(-1), ""),
             [](olp::http::NetworkRequest request,
                olp::http::Network::Payload payload,
                olp::http::Network::Callback callback,
@@ -120,41 +119,41 @@ class IndexLayerClientTest : public ::testing::Test {
               return olp::http::SendOutcome(5);
             }));
     ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .WillByDefault(NetworkMock::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(200),
-            HTTP_RESPONSE_LOOKUP_CONFIG));
+        .WillByDefault(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+                               HTTP_RESPONSE_LOOKUP_CONFIG));
 
     ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_INDEX), _, _, _, _))
-        .WillByDefault(NetworkMock::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(200),
-            HTTP_RESPONSE_LOOKUP_INDEX));
+        .WillByDefault(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+                               HTTP_RESPONSE_LOOKUP_INDEX));
 
     ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-        .WillByDefault(NetworkMock::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(200),
-            HTTP_RESPONSE_LOOKUP_BLOB));
+        .WillByDefault(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+                               HTTP_RESPONSE_LOOKUP_BLOB));
 
     ON_CALL(network, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
-        .WillByDefault(NetworkMock::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(200),
-            HTTP_RESPONSE_GET_CATALOG));
+        .WillByDefault(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+                               HTTP_RESPONSE_GET_CATALOG));
 
     ON_CALL(network,
             Send(IsPutRequestPrefix(URL_PUT_BLOB_INDEX_PREFIX), _, _, _, _))
-        .WillByDefault(NetworkMock::ReturnHttpResponse(
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(200), ""));
 
     ON_CALL(network, Send(IsPostRequest(URL_INSERT_INDEX), _, _, _, _))
-        .WillByDefault(NetworkMock::ReturnHttpResponse(
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(201), ""));
 
     ON_CALL(network, Send(IsDeleteRequestPrefix(URL_DELETE_BLOB_INDEX_PREFIX),
                           _, _, _, _))
-        .WillByDefault(NetworkMock::ReturnHttpResponse(
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(200), ""));
 
     ON_CALL(network, Send(IsPutRequest(URL_INSERT_INDEX), _, _, _, _))
-        .WillByDefault(NetworkMock::ReturnHttpResponse(
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(200), ""));
   }
 

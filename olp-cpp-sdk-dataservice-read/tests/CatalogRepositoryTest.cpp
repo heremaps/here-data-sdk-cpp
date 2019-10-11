@@ -139,10 +139,9 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyNotFound) {
   EXPECT_CALL(*network_,
               Send(IsGetRequest(OLP_SDK_URL_LOOKUP_METADATA), _, _, _, _))
       .Times(1)
-      .WillOnce(NetworkMock::ReturnHttpResponse(
-          olp::http::NetworkResponse().WithStatus(
-              olp::http::HttpStatusCode::NOT_FOUND),
-          ""));
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::NOT_FOUND),
+                                   ""));
 
   auto response =
       olp::dataservice::read::repository::CatalogRepository::GetLatestVersion(
@@ -170,17 +169,16 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyFoundAndCacheWritten) {
 
   EXPECT_CALL(*network_,
               Send(IsGetRequest(OLP_SDK_URL_LOOKUP_METADATA), _, _, _, _))
-      .WillOnce(NetworkMock::ReturnHttpResponse(
-          olp::http::NetworkResponse().WithStatus(
-              olp::http::HttpStatusCode::OK),
-          OLP_SDK_HTTP_RESPONSE_LOOKUP_METADATA));
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   OLP_SDK_HTTP_RESPONSE_LOOKUP_METADATA));
 
   EXPECT_CALL(*network_, Send(IsGetRequest(OLP_SDK_URL_LATEST_CATALOG_VERSION),
                               _, _, _, _))
-      .WillOnce(NetworkMock::ReturnHttpResponse(
-          olp::http::NetworkResponse().WithStatus(
-              olp::http::HttpStatusCode::OK),
-          OLP_SDK_HTTP_RESPONSE_LATEST_CATALOG_VERSION));
+      .WillOnce(
+          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                 olp::http::HttpStatusCode::OK),
+                             OLP_SDK_HTTP_RESPONSE_LATEST_CATALOG_VERSION));
 
   auto response =
       olp::dataservice::read::repository::CatalogRepository::GetLatestVersion(
@@ -238,10 +236,9 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyUserCancelled2) {
 
   ON_CALL(*network_,
           Send(IsGetRequest(OLP_SDK_URL_LOOKUP_METADATA), _, _, _, _))
-      .WillByDefault(NetworkMock::ReturnHttpResponse(
-          olp::http::NetworkResponse().WithStatus(
-              olp::http::HttpStatusCode::OK),
-          OLP_SDK_HTTP_RESPONSE_LOOKUP_METADATA));
+      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                            olp::http::HttpStatusCode::OK),
+                                        OLP_SDK_HTTP_RESPONSE_LOOKUP_METADATA));
 
   ON_CALL(*network_,
           Send(IsGetRequest(OLP_SDK_URL_LATEST_CATALOG_VERSION), _, _, _, _))
@@ -297,10 +294,9 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionTimeouted) {
 
   ON_CALL(*network_,
           Send(IsGetRequest(OLP_SDK_URL_LOOKUP_METADATA), _, _, _, _))
-      .WillByDefault(NetworkMock::ReturnHttpResponse(
-          olp::http::NetworkResponse().WithStatus(
-              olp::http::HttpStatusCode::OK),
-          OLP_SDK_HTTP_RESPONSE_LOOKUP_METADATA));
+      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                            olp::http::HttpStatusCode::OK),
+                                        OLP_SDK_HTTP_RESPONSE_LOOKUP_METADATA));
 
   ON_CALL(*network_,
           Send(IsGetRequest(OLP_SDK_URL_LATEST_CATALOG_VERSION), _, _, _, _))
