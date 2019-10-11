@@ -48,8 +48,7 @@ using InitCatalogModelCallback =
 class IndexLayerClientImpl
     : public std::enable_shared_from_this<IndexLayerClientImpl> {
  public:
-  IndexLayerClientImpl(const client::HRN& catalog,
-                       const client::OlpClientSettings& settings);
+  IndexLayerClientImpl(client::HRN catalog, client::OlpClientSettings settings);
 
   void CancelAll();
 
