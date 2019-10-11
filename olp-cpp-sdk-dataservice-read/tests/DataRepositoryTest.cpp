@@ -44,6 +44,9 @@ namespace {
 
 using testing::_;
 
+const std::string kLayerId = "testlayer";
+const std::string kService = "blob";
+
 class DataRepositoryTest : public ::testing::Test {
  protected:
   void SetUp() override;
@@ -93,7 +96,7 @@ TEST_F(DataRepositoryTest, GetBlobData) {
 
   auto response =
       olp::dataservice::read::repository::DataRepository::GetBlobData(
-          hrn, "testlayer", request, context, *settings_);
+          hrn, kLayerId, kService, request, context, *settings_);
 
   ASSERT_TRUE(response.IsSuccessful());
 }
@@ -114,7 +117,7 @@ TEST_F(DataRepositoryTest, GetBlobDataApiLookupFailed403) {
 
   auto response =
       olp::dataservice::read::repository::DataRepository::GetBlobData(
-          hrn, "testlayer", request, context, *settings_);
+          hrn, kLayerId, kService, request, context, *settings_);
 
   ASSERT_FALSE(response.IsSuccessful());
 }
@@ -125,7 +128,7 @@ TEST_F(DataRepositoryTest, GetBlobDataNoDataHandle) {
   olp::client::HRN hrn(GetTestCatalog());
   auto response =
       olp::dataservice::read::repository::DataRepository::GetBlobData(
-          hrn, "testlayer", request, context, *settings_);
+          hrn, kLayerId, kService, request, context, *settings_);
   ASSERT_FALSE(response.IsSuccessful());
 }
 
@@ -151,7 +154,7 @@ TEST_F(DataRepositoryTest, GetBlobDataFailedDataFetch403) {
 
   auto response =
       olp::dataservice::read::repository::DataRepository::GetBlobData(
-          hrn, "testlayer", request, context, *settings_);
+          hrn, kLayerId, kService, request, context, *settings_);
 
   ASSERT_FALSE(response.IsSuccessful());
 }
@@ -179,14 +182,14 @@ TEST_F(DataRepositoryTest, GetBlobDataCache) {
   // This should download data from network and cache it
   auto response =
       olp::dataservice::read::repository::DataRepository::GetBlobData(
-          hrn, "testlayer", request, context, *settings_);
+          hrn, kLayerId, kService, request, context, *settings_);
 
   ASSERT_TRUE(response.IsSuccessful());
 
   // This call should not do any network calls and use already cached values
   // instead
   response = olp::dataservice::read::repository::DataRepository::GetBlobData(
-      hrn, "testlayer", request, context, *settings_);
+      hrn, kLayerId, kService, request, context, *settings_);
 
   ASSERT_TRUE(response.IsSuccessful());
 }
@@ -216,7 +219,7 @@ TEST_F(DataRepositoryTest, GetBlobDataImmediateCancel) {
 
   auto response =
       olp::dataservice::read::repository::DataRepository::GetBlobData(
-          hrn, "testlayer", request, context, *settings_);
+          hrn, kLayerId, kService, request, context, *settings_);
   ASSERT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::Cancelled);
 }
@@ -248,7 +251,7 @@ TEST_F(DataRepositoryTest, GetBlobDataInProgressCancel) {
 
   auto response =
       olp::dataservice::read::repository::DataRepository::GetBlobData(
-          hrn, "testlayer", request, context, *settings_);
+          hrn, kLayerId, kService, request, context, *settings_);
   ASSERT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::Cancelled);
 }
