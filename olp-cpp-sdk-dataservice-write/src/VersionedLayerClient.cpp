@@ -33,12 +33,12 @@ VersionedLayerClient::VersionedLayerClient(client::HRN catalog,
 VersionedLayerClient::~VersionedLayerClient() = default;
 
 olp::client::CancellableFuture<StartBatchResponse>
-VersionedLayerClient::StartBatch(const model::StartBatchRequest& request) {
+VersionedLayerClient::StartBatch(model::StartBatchRequest request) {
   return impl_->StartBatch(request);
 }
 
 olp::client::CancellationToken VersionedLayerClient::StartBatch(
-    const model::StartBatchRequest& request, StartBatchCallback callback) {
+    model::StartBatchRequest request, StartBatchCallback callback) {
   return impl_->StartBatch(request, std::move(callback));
 }
 
@@ -86,27 +86,23 @@ void VersionedLayerClient::CancelAll() { impl_->CancelAll(); }
 
 olp::client::CancellableFuture<PublishPartitionDataResponse>
 VersionedLayerClient::PublishToBatch(
-    const model::Publication& pub,
-    const model::PublishPartitionDataRequest& request) {
+    const model::Publication& pub, model::PublishPartitionDataRequest request) {
   return impl_->PublishToBatch(pub, request);
 }
 
 olp::client::CancellationToken VersionedLayerClient::PublishToBatch(
-    const model::Publication& pub,
-    const model::PublishPartitionDataRequest& request,
+    const model::Publication& pub, model::PublishPartitionDataRequest request,
     PublishPartitionDataCallback callback) {
   return impl_->PublishToBatch(pub, request, std::move(callback));
 }
 
 olp::client::CancellableFuture<CheckDataExistsResponse>
-VersionedLayerClient::CheckDataExists(
-    const model::CheckDataExistsRequest& request) {
+VersionedLayerClient::CheckDataExists(model::CheckDataExistsRequest request) {
   return impl_->CheckDataExists(request);
 }
 
 olp::client::CancellationToken VersionedLayerClient::CheckDataExists(
-    const model::CheckDataExistsRequest& request,
-    CheckDataExistsCallback callback) {
+    model::CheckDataExistsRequest request, CheckDataExistsCallback callback) {
   return impl_->CheckDataExists(request, std::move(callback));
 }
 
