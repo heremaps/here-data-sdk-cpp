@@ -55,12 +55,14 @@ class VolatileLayerClientImpl
   VolatileLayerClientImpl(client::HRN catalog,
                           client::OlpClientSettings settings);
 
+  virtual ~VolatileLayerClientImpl();
+
   olp::client::CancellableFuture<GetBaseVersionResponse> GetBaseVersion();
 
   olp::client::CancellationToken GetBaseVersion(
       GetBaseVersionCallback callback);
 
-  void cancellAll();
+  void CancellAll();
 
   olp::client::CancellableFuture<PublishPartitionDataResponse>
   PublishPartitionData(const model::PublishPartitionDataRequest& request);

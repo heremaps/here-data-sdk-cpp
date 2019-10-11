@@ -29,7 +29,7 @@ VolatileLayerClient::VolatileLayerClient(client::HRN catalog,
     : impl_(std::make_shared<VolatileLayerClientImpl>(std::move(catalog),
                                                       std::move(settings))) {}
 
-void VolatileLayerClient::cancellAll() { impl_->cancellAll(); }
+void VolatileLayerClient::CancellAll() { impl_->CancellAll(); }
 
 olp::client::CancellableFuture<PublishPartitionDataResponse>
 VolatileLayerClient::PublishPartitionData(

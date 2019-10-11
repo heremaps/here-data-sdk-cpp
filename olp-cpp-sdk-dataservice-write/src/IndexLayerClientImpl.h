@@ -50,6 +50,8 @@ class IndexLayerClientImpl
  public:
   IndexLayerClientImpl(client::HRN catalog, client::OlpClientSettings settings);
 
+  virtual ~IndexLayerClientImpl();
+
   void CancelAll();
 
   olp::client::CancellableFuture<PublishIndexResponse> PublishIndex(

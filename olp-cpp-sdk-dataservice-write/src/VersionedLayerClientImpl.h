@@ -58,6 +58,8 @@ class VersionedLayerClientImpl
   VersionedLayerClientImpl(client::HRN catalog,
                            client::OlpClientSettings settings);
 
+  virtual ~VersionedLayerClientImpl();
+
   client::CancellableFuture<StartBatchResponse> StartBatch(
       const model::StartBatchRequest& request);
 

@@ -57,6 +57,8 @@ IndexLayerClientImpl::IndexLayerClientImpl(HRN catalog,
       apiclient_index_(nullptr),
       init_in_progress_(false) {}
 
+IndexLayerClientImpl::~IndexLayerClientImpl() { CancelAll(); }
+
 olp::client::CancellationToken IndexLayerClientImpl::InitApiClients(
     std::shared_ptr<client::CancellationContext> cancel_context,
     InitApiClientsCallback callback) {
