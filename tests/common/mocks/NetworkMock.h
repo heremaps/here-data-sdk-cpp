@@ -24,6 +24,10 @@
 #include <gmock/gmock.h>
 #include <olp/core/http/Network.h>
 
+namespace olp {
+namespace tests {
+namespace common {
+
 using NetworkCallback = std::function<olp::http::SendOutcome(
     olp::http::NetworkRequest, olp::http::Network::Payload,
     olp::http::Network::Callback, olp::http::Network::HeaderCallback,
@@ -83,3 +87,7 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
                            MockedResponseInformation response_information,
                            std::shared_ptr<std::promise<void>> post_signal =
                                std::make_shared<std::promise<void>>());
+
+}  // namespace common
+}  // namespace tests
+}  // namespace olp

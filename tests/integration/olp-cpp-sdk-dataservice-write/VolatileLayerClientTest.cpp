@@ -32,6 +32,7 @@ namespace {
 
 using namespace olp::dataservice::write;
 using namespace olp::dataservice::write::model;
+using namespace olp::tests::common;
 
 using testing::_;
 

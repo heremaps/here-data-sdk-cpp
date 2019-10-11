@@ -25,6 +25,10 @@
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientFactory.h>
 
+namespace olp {
+namespace tests {
+namespace integration {
+
 enum class CacheType { IN_MEMORY, DISK, BOTH };
 
 std::ostream& operator<<(std::ostream& os, const CacheType cache_type);
@@ -45,5 +49,9 @@ class CatalogClientTestBase : public ::testing::TestWithParam<CacheType> {
  protected:
   std::shared_ptr<olp::client::OlpClientSettings> settings_;
   std::shared_ptr<olp::client::OlpClient> client_;
-  std::shared_ptr<NetworkMock> network_mock_;
+  std::shared_ptr<olp::tests::common::NetworkMock> network_mock_;
 };
+
+}  // namespace integration
+}  // namespace tests
+}  // namespace olp

@@ -38,6 +38,8 @@ namespace {
 
 using namespace olp::dataservice::read;
 using namespace testing;
+using namespace olp::tests::common;
+using namespace olp::tests::integration;
 
 void DumpTileKey(const olp::geo::TileKey& tile_key) {
   std::cout << "Tile: " << tile_key.ToHereTile()

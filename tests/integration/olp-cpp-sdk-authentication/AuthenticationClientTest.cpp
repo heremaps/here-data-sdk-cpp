@@ -21,14 +21,15 @@
 #include <memory>
 
 #include <gmock/gmock.h>
-#include <olp/core/porting/make_unique.h>
-#include <olp/core/http/HttpStatusCode.h>
-#include "olp/core/client/OlpClientSettingsFactory.h"
-#include <olp/authentication/AuthenticationClient.h>
 #include <mocks/NetworkMock.h>
+#include <olp/authentication/AuthenticationClient.h>
+#include <olp/core/http/HttpStatusCode.h>
+#include <olp/core/porting/make_unique.h>
 #include "AuthenticationMockedResponses.h"
+#include "olp/core/client/OlpClientSettingsFactory.h"
 
 using namespace olp::authentication;
+using namespace olp::tests::common;
 using testing::_;
 
 namespace {

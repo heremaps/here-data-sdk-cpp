@@ -23,6 +23,10 @@
 
 #include <olp/core/http/NetworkRequest.h>
 
+namespace olp {
+namespace tests {
+namespace common {
+
 MATCHER_P(IsGetRequest, url, "") {
   // uri, verb, null body
   return olp::http::NetworkRequest::HttpVerb::GET == arg.GetVerb() &&
@@ -67,3 +71,7 @@ MATCHER_P(IsDeleteRequestPrefix, url, "") {
 
   return (res.first == url_string.end());
 }
+
+}  // namespace common
+}  // namespace tests
+}  // namespace olp

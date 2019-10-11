@@ -43,6 +43,7 @@
 namespace {
 
 using testing::_;
+using namespace olp::tests::common;
 
 class DataRepositoryTest : public ::testing::Test {
  protected:

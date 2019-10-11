@@ -26,6 +26,7 @@
 using namespace olp;
 using namespace client;
 using namespace dataservice::read;
+using namespace olp::tests::common;
 
 #define OLP_SDK_CONFIG_BASE_URL \
   "https://config.data.api.platform.in.here.com/config/v1"
@@ -222,4 +223,5 @@ TEST(ApiClientLookupTest, LookupApi) {
     EXPECT_EQ(response.GetError().GetErrorCode(),
               olp::client::ErrorCode::Cancelled);
     Mock::VerifyAndClearExpectations(network.get());
-  }}
+  }
+}
