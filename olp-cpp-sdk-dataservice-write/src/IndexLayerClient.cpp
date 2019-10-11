@@ -24,43 +24,39 @@
 namespace olp {
 namespace dataservice {
 namespace write {
-IndexLayerClient::IndexLayerClient(const client::HRN& catalog,
-                                   const client::OlpClientSettings& settings)
+IndexLayerClient::IndexLayerClient(client::HRN catalog,
+                                   client::OlpClientSettings settings)
     : impl_(std::make_shared<IndexLayerClientImpl>(catalog, settings)) {}
 
 void IndexLayerClient::CancelAll() { impl_->CancelAll(); }
 
 olp::client::CancellableFuture<PublishIndexResponse>
-IndexLayerClient::PublishIndex(const model::PublishIndexRequest& request) {
+IndexLayerClient::PublishIndex(model::PublishIndexRequest request) {
   return impl_->PublishIndex(request);
 }
 
 olp::client::CancellationToken IndexLayerClient::PublishIndex(
-    const model::PublishIndexRequest& request,
-    const PublishIndexCallback& callback) {
+    model::PublishIndexRequest request, PublishIndexCallback callback) {
   return impl_->PublishIndex(request, callback);
 }
 
 olp::client::CancellationToken IndexLayerClient::DeleteIndexData(
-    const model::DeleteIndexDataRequest& request,
-    const DeleteIndexDataCallback& callback) {
+    model::DeleteIndexDataRequest request, DeleteIndexDataCallback callback) {
   return impl_->DeleteIndexData(request, callback);
 }
 
 olp::client::CancellableFuture<DeleteIndexDataResponse>
-IndexLayerClient::DeleteIndexData(
-    const model::DeleteIndexDataRequest& request) {
+IndexLayerClient::DeleteIndexData(model::DeleteIndexDataRequest request) {
   return impl_->DeleteIndexData(request);
 }
 
 olp::client::CancellableFuture<UpdateIndexResponse>
-IndexLayerClient::UpdateIndex(const model::UpdateIndexRequest& request) {
+IndexLayerClient::UpdateIndex(model::UpdateIndexRequest request) {
   return impl_->UpdateIndex(request);
 }
 
 olp::client::CancellationToken IndexLayerClient::UpdateIndex(
-    const model::UpdateIndexRequest& request,
-    const UpdateIndexCallback& callback) {
+    model::UpdateIndexRequest request, UpdateIndexCallback callback) {
   return impl_->UpdateIndex(request, callback);
 }
 }  // namespace write

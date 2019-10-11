@@ -63,8 +63,7 @@ class DATASERVICE_WRITE_API IndexLayerClient {
    * @param settings Client settings used to control behaviour of the client
    * instance. Index.
    */
-  IndexLayerClient(const client::HRN& catalog,
-                   const client::OlpClientSettings& settings);
+  IndexLayerClient(client::HRN catalog, client::OlpClientSettings settings);
 
   /**
    * @brief Cancel all pending requests.
@@ -81,7 +80,7 @@ class DATASERVICE_WRITE_API IndexLayerClient {
    * @return A CancellableFuture containing the PublishIndexResponse.
    */
   olp::client::CancellableFuture<PublishIndexResponse> PublishIndex(
-      const model::PublishIndexRequest& request);
+      model::PublishIndexRequest request);
 
   /**
    * @brief Call to publish index into an OLP Index Layer.
@@ -96,8 +95,7 @@ class DATASERVICE_WRITE_API IndexLayerClient {
    * request.
    */
   olp::client::CancellationToken PublishIndex(
-      const model::PublishIndexRequest& request,
-      const PublishIndexCallback& callback);
+      model::PublishIndexRequest request, PublishIndexCallback callback);
 
   /**
    * @brief Call to delete data blob that is stored under index
@@ -110,8 +108,7 @@ class DATASERVICE_WRITE_API IndexLayerClient {
    * request.
    */
   olp::client::CancellationToken DeleteIndexData(
-      const model::DeleteIndexDataRequest& request,
-      const DeleteIndexDataCallback& callback);
+      model::DeleteIndexDataRequest request, DeleteIndexDataCallback callback);
 
   /**
    * @brief Call to delete data blob that is stored under index
@@ -121,7 +118,7 @@ class DATASERVICE_WRITE_API IndexLayerClient {
    * @return A CancellableFuture containing the DeleteIndexDataResponse.
    */
   olp::client::CancellableFuture<DeleteIndexDataResponse> DeleteIndexData(
-      const model::DeleteIndexDataRequest& request);
+      model::DeleteIndexDataRequest request);
 
   /**
    * @brief Call to update index information to an OLP Index Layer.
@@ -131,7 +128,7 @@ class DATASERVICE_WRITE_API IndexLayerClient {
    * @return A CancellableFuture containing the PublishIndexResponse.
    */
   olp::client::CancellableFuture<UpdateIndexResponse> UpdateIndex(
-      const model::UpdateIndexRequest& request);
+      model::UpdateIndexRequest request);
 
   /**
    * @brief Call to update index information to an OLP Index Layer
@@ -143,9 +140,8 @@ class DATASERVICE_WRITE_API IndexLayerClient {
    * @return A CancellationToken which can be used to cancel the ongoing
    * request.
    */
-  olp::client::CancellationToken UpdateIndex(
-      const model::UpdateIndexRequest& request,
-      const UpdateIndexCallback& callback);
+  olp::client::CancellationToken UpdateIndex(model::UpdateIndexRequest request,
+                                             UpdateIndexCallback callback);
 
  private:
   std::shared_ptr<IndexLayerClientImpl> impl_;

@@ -47,11 +47,11 @@ namespace olp {
 namespace dataservice {
 namespace write {
 
-IndexLayerClientImpl::IndexLayerClientImpl(const HRN& catalog,
-                                           const OlpClientSettings& settings)
-    : catalog_(catalog),
+IndexLayerClientImpl::IndexLayerClientImpl(HRN catalog,
+                                           OlpClientSettings settings)
+    : catalog_(std::move(catalog)),
       catalog_model_(),
-      settings_(settings),
+      settings_(std::move(settings)),
       apiclient_config_(nullptr),
       apiclient_blob_(nullptr),
       apiclient_index_(nullptr),
