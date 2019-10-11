@@ -102,7 +102,7 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
    * @return A CancellableFuture containing the PublishPartitionDataResponse.
    */
   olp::client::CancellableFuture<PublishPartitionDataResponse>
-  PublishPartitionData(const model::PublishPartitionDataRequest& request);
+  PublishPartitionData(model::PublishPartitionDataRequest request);
 
   /**
    * @brief Call to publish data into an OLP Volatile Layer.
@@ -117,7 +117,7 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
    * request.
    */
   olp::client::CancellationToken PublishPartitionData(
-      const model::PublishPartitionDataRequest& request,
+      model::PublishPartitionDataRequest request,
       PublishPartitionDataCallback callback);
 
   /**
@@ -140,7 +140,7 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
    * @return olp::client::CancellableFuture<StartBatchResponse>
    */
   olp::client::CancellableFuture<StartBatchResponse> StartBatch(
-      const model::StartBatchRequest& request);
+      model::StartBatchRequest request);
 
   /**
    * @brief Start a batch operation.
@@ -148,8 +148,8 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
    * @param callback of type std::function<void(StartBatchResponse response)>
    * @return olp::client::CancellationToken
    */
-  olp::client::CancellationToken StartBatch(
-      const model::StartBatchRequest& request, StartBatchCallback callback);
+  olp::client::CancellationToken StartBatch(model::StartBatchRequest request,
+                                            StartBatchCallback callback);
 
   /**
    * @brief Get the details of the given batch publication
