@@ -29,9 +29,12 @@ namespace tests {
 namespace common {
 
 class FlushEventListenerTestable
-    : public olp::dataservice::write::DefaultFlushEventListener<
+    : public olp::dataservice::write::FlushEventListener<
           const olp::dataservice::write::StreamLayerClient::FlushResponse&> {
  public:
+  using FlushResponse =
+      olp::dataservice::write::StreamLayerClient::FlushResponse;
+
   size_t GetNumFlushEventsAttempted() const {
     std::lock_guard<std::mutex> locker(mutex_);
     return metrics_.num_attempted_flush_events;
@@ -55,6 +58,14 @@ class FlushEventListenerTestable
   size_t GetNumFlushedRequestsFailed() const {
     std::lock_guard<std::mutex> locker(mutex_);
     return metrics_.num_failed_flushed_requests;
+  }
+
+  void NotifyFlushEventStarted() override {
+    // no-op
+  }
+
+  void NotifyFlushEventResults(const FlushResponse& response) override {
+    // no-op
   }
 
   void NotifyFlushMetricsHasChanged(

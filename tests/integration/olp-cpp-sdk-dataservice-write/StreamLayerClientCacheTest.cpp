@@ -538,8 +538,8 @@ TEST_F(StreamLayerClientCacheTest, DISABLED_FlushListenerNotifications) {
 
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(3));
 
-  class NotificationListener : public DefaultFlushEventListener<
-                                   const StreamLayerClient::FlushResponse&> {
+  class NotificationListener
+      : public FlushEventListener<const StreamLayerClient::FlushResponse&> {
    public:
     void NotifyFlushEventStarted() override { events_started_++; }
 
@@ -552,6 +552,10 @@ TEST_F(StreamLayerClientCacheTest, DISABLED_FlushListenerNotifications) {
     const StreamLayerClient::FlushResponse& GetResults() {
       std::lock_guard<std::mutex> lock(results_mutex_);
       return results_;
+    }
+
+    void NotifyFlushMetricsHasChanged(FlushMetrics metrics) override {
+      // no-op
     }
 
     int events_started_ = 0;

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-#include <olp/dataservice/write/FlushEventListener.h>
+#include "DefaultFlushEventListener.h"
 
 #include <olp/dataservice/write/StreamLayerClient.h>
 
