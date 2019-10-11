@@ -21,6 +21,7 @@
 
 #include <mutex>
 
+#include <olp/dataservice/write/FlushEventListener.h>
 #include <olp/dataservice/write/StreamLayerClient.h>
 
 namespace olp {

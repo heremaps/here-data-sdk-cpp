@@ -323,7 +323,8 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataCancel) {
   ASSERT_NO_FATAL_FAILURE(PublishFailureAssertions(response[0]));
 }
 
-TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushListenerMetrics) {
+TEST_F(DataserviceWriteStreamLayerClientCacheTest,
+       DISABLED_FlushListenerMetrics) {
   disk_cache_->Close();
   flush_settings_.auto_flush_num_events = 3;
   client_ = CreateStreamLayerClient();
@@ -331,8 +332,6 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushListenerMetrics) {
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(3));
 
   auto default_listener = std::make_shared<FlushEventListenerTestable>();
-
-  client_->Enable(default_listener);
 
   for (int i = 0; default_listener->GetNumFlushEvents() < 1; i++) {
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -349,13 +348,12 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushListenerMetrics) {
 }
 
 TEST_F(DataserviceWriteStreamLayerClientCacheTest,
-       FlushListenerMetricsSetListenerBeforeQueuing) {
+       DISABLED_FlushListenerMetricsSetListenerBeforeQueuing) {
   disk_cache_->Close();
   flush_settings_.auto_flush_num_events = 3;
   client_ = CreateStreamLayerClient();
 
   auto default_listener = std::make_shared<FlushEventListenerTestable>();
-  client_->Enable(default_listener);
 
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(3));
 
@@ -373,24 +371,25 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest,
   EXPECT_EQ(0, default_listener->GetNumFlushedRequestsFailed());
 }
 
-TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushListenerDisable) {
+TEST_F(DataserviceWriteStreamLayerClientCacheTest,
+       DISABLED_FlushListenerDisable) {
   disk_cache_->Close();
   flush_settings_.auto_flush_num_events = 3;
   client_ = CreateStreamLayerClient();
 
   auto default_listener = std::make_shared<FlushEventListenerTestable>();
-  client_->Enable(default_listener);
 
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(3));
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  auto disable_future = client_->Disable();
-  auto status = disable_future.wait_for(std::chrono::seconds(5));
-  if (status != std::future_status::ready) {
-    FAIL() << "Timeout waiting for auto flushing to be disabled";
-  }
-  disable_future.get();
+  // TODO: uncomment this code once the auto-flush mechanism will be turned.
+  //  auto disable_future = client_->Disable();
+  //  auto status = disable_future.wait_for(std::chrono::seconds(5));
+  //  if (status != std::future_status::ready) {
+  //    FAIL() << "Timeout waiting for auto flushing to be disabled";
+  //  }
+  //  disable_future.get();
 
   EXPECT_EQ(1, default_listener->GetNumFlushEvents());
   EXPECT_EQ(1, default_listener->GetNumFlushEventsAttempted());
@@ -398,13 +397,12 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushListenerDisable) {
 }
 
 TEST_F(DataserviceWriteStreamLayerClientCacheTest,
-       FlushListenerMetricsMultipleFlushEventsInSeries) {
+       DISABLED_FlushListenerMetricsMultipleFlushEventsInSeries) {
   disk_cache_->Close();
   flush_settings_.auto_flush_num_events = 2;
   client_ = CreateStreamLayerClient();
 
   auto default_listener = std::make_shared<FlushEventListenerTestable>();
-  client_->Enable(default_listener);
 
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(2));
 
@@ -430,7 +428,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest,
 }
 
 TEST_F(DataserviceWriteStreamLayerClientCacheTest,
-       FlushListenerMetricsMultipleFlushEventsInParallel) {
+       DISABLED_FlushListenerMetricsMultipleFlushEventsInParallel) {
   disk_cache_->Close();
   flush_settings_.auto_flush_num_events = 2;
   flush_settings_.events_per_single_flush =
@@ -438,7 +436,6 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest,
   client_ = CreateStreamLayerClient();
 
   auto default_listener = std::make_shared<FlushEventListenerTestable>();
-  client_->Enable(default_listener);
 
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(6));
 
@@ -458,8 +455,9 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest,
   EXPECT_EQ(0, default_listener->GetNumFlushedRequestsFailed());
 }
 
-TEST_F(DataserviceWriteStreamLayerClientCacheTest,
-       FlushListenerMetricsMultipleFlushEventsInParallelStaggeredQueue) {
+TEST_F(
+    DataserviceWriteStreamLayerClientCacheTest,
+    DISABLED_FlushListenerMetricsMultipleFlushEventsInParallelStaggeredQueue) {
   disk_cache_->Close();
   flush_settings_.auto_flush_num_events = 2;
   flush_settings_.events_per_single_flush =
@@ -467,7 +465,6 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest,
   client_ = CreateStreamLayerClient();
 
   auto default_listener = std::make_shared<FlushEventListenerTestable>();
-  client_->Enable(default_listener);
 
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(4));
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -491,7 +488,8 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest,
   EXPECT_EQ(0, default_listener->GetNumFlushedRequestsFailed());
 }
 
-TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushListenerNotifications) {
+TEST_F(DataserviceWriteStreamLayerClientCacheTest,
+       DISABLED_FlushListenerNotifications) {
   disk_cache_->Close();
   flush_settings_.auto_flush_num_events = 3;
   client_ = CreateStreamLayerClient();
@@ -522,7 +520,6 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushListenerNotifications) {
   };
 
   auto notification_listener = std::make_shared<NotificationListener>();
-  client_->Enable(notification_listener);
 
   for (int i = 0; notification_listener->GetResults().size() < 3; i++) {
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -538,7 +535,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushListenerNotifications) {
 }
 
 TEST_F(DataserviceWriteStreamLayerClientCacheTest,
-       FlushSettingsAutoFlushInterval) {
+       DISABLED_FlushSettingsAutoFlushInterval) {
   disk_cache_->Close();
   flush_settings_.auto_flush_interval = 10;
   client_ = CreateStreamLayerClient();
@@ -546,7 +543,6 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest,
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(2));
 
   auto default_listener = std::make_shared<FlushEventListenerTestable>();
-  client_->Enable(default_listener);
 
   for (int i = 0; default_listener->GetNumFlushEvents() < 1; i++) {
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -563,7 +559,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest,
 }
 
 TEST_F(DataserviceWriteStreamLayerClientCacheTest,
-       FlushSettingsAutoFlushIntervalDisable) {
+       DISABLED_FlushSettingsAutoFlushIntervalDisable) {
   disk_cache_->Close();
   flush_settings_.auto_flush_interval = 2;
   client_ = CreateStreamLayerClient();
@@ -571,16 +567,16 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest,
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(2));
 
   auto default_listener = std::make_shared<FlushEventListenerTestable>();
-  client_->Enable(default_listener);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(2100));
 
-  auto disable_future = client_->Disable();
-  auto status = disable_future.wait_for(std::chrono::seconds(5));
-  if (status != std::future_status::ready) {
-    FAIL() << "Timeout waiting for auto flushing to be disabled";
-  }
-  disable_future.get();
+  // TODO: uncomment this code once the auto-flush mechanism will be turned.
+  //  auto disable_future = client_->Disable();
+  //  auto status = disable_future.wait_for(std::chrono::seconds(5));
+  //  if (status != std::future_status::ready) {
+  //    FAIL() << "Timeout waiting for auto flushing to be disabled";
+  //  }
+  //  disable_future.get();
 
   EXPECT_EQ(1, default_listener->GetNumFlushEvents());
   EXPECT_EQ(1, default_listener->GetNumFlushEventsAttempted());

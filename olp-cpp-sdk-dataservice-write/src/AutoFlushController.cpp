@@ -249,7 +249,8 @@ void AutoFlushController::Enable(
 template void AutoFlushController::Enable<
     StreamLayerClientImpl, const StreamLayerClient::FlushResponse&>(
     std::shared_ptr<StreamLayerClientImpl> apiIngestPublish,
-    std::shared_ptr<StreamLayerClient::FlushListener> listener);
+    std::shared_ptr<FlushEventListener<const StreamLayerClient::FlushResponse&>>
+        listener);
 
 std::future<void> AutoFlushController::Disable() {
   auto sp = std::atomic_exchange(

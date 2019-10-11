@@ -68,17 +68,6 @@ olp::client::CancellationToken StreamLayerClient::Flush(
   return impl_->Flush(std::move(callback));
 }
 
-void StreamLayerClient::Enable(std::shared_ptr<FlushListener> listener) {
-  impl_->Enable(listener);
-}
-
-std::future<void> StreamLayerClient::Disable() { return impl_->Disable(); }
-
-std::shared_ptr<StreamLayerClient::FlushListener>
-StreamLayerClient::DefaultListener() {
-  return std::make_shared<DefaultFlushEventListener<const FlushResponse&> >();
-}
-
 olp::client::CancellableFuture<PublishSdiiResponse>
 StreamLayerClient::PublishSdii(model::PublishSdiiRequest request) {
   return impl_->PublishSdii(request);
