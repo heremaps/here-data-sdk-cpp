@@ -93,10 +93,9 @@ TEST(PartitionsRepositoryTest, GetPartitionById) {
   auto setup_positive_metadata_mocks = [&]() {
     EXPECT_CALL(*network,
                 Send(IsGetRequest(kOlpSdkUrlLookupMetadata), _, _, _, _))
-        .WillOnce(NetworkMock::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(
-                olp::http::HttpStatusCode::OK),
-            kOlpSdkHttpResponseLookupMetadata));
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kOlpSdkHttpResponseLookupMetadata));
 
     EXPECT_CALL(*cache, Put(Eq(kCacheKeyMetadata), _, _, _)).Times(1);
   };
@@ -169,10 +168,9 @@ TEST(PartitionsRepositoryTest, GetPartitionById) {
     client::CancellationContext context;
     EXPECT_CALL(*network,
                 Send(IsGetRequest(kOlpSdkUrlPartitionById), _, _, _, _))
-        .WillOnce(NetworkMock::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(
-                olp::http::HttpStatusCode::OK),
-            kOlpSdkHttpResponsePartitionById));
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kOlpSdkHttpResponsePartitionById));
 
     EXPECT_CALL(*cache, Put(Eq(cache_key), _, _, _)).Times(1);
 
@@ -199,10 +197,9 @@ TEST(PartitionsRepositoryTest, GetPartitionById) {
     client::CancellationContext context;
     EXPECT_CALL(*network, Send(IsGetRequest(kOlpSdkUrlPartitionByIdNoVersion),
                                _, _, _, _))
-        .WillOnce(NetworkMock::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(
-                olp::http::HttpStatusCode::OK),
-            kOlpSdkHttpResponsePartitionById));
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kOlpSdkHttpResponsePartitionById));
     EXPECT_CALL(*cache, Put(Eq(cache_key_no_version), _, _, _)).Times(1);
 
     auto response = repository::PartitionsRepository::GetPartitionById(
@@ -230,10 +227,10 @@ TEST(PartitionsRepositoryTest, GetPartitionById) {
 
     EXPECT_CALL(*network,
                 Send(IsGetRequest(kOlpSdkUrlLookupMetadata), _, _, _, _))
-        .WillOnce(NetworkMock::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(
-                olp::http::HttpStatusCode::UNAUTHORIZED),
-            "Inappropriate"));
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::UNAUTHORIZED),
+                               "Inappropriate"));
 
     client::CancellationContext context;
     auto response = repository::PartitionsRepository::GetPartitionById(
@@ -252,10 +249,10 @@ TEST(PartitionsRepositoryTest, GetPartitionById) {
 
     EXPECT_CALL(*network,
                 Send(IsGetRequest(kOlpSdkUrlPartitionById), _, _, _, _))
-        .WillOnce(NetworkMock::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(
-                olp::http::HttpStatusCode::UNAUTHORIZED),
-            "{Inappropriate}"));
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::UNAUTHORIZED),
+                               "{Inappropriate}"));
 
     client::CancellationContext context;
     auto response = repository::PartitionsRepository::GetPartitionById(
@@ -278,10 +275,9 @@ TEST(PartitionsRepositoryTest, GetPartitionById) {
 
     EXPECT_CALL(*network,
                 Send(IsGetRequest(kOlpSdkUrlPartitionById), _, _, _, _))
-        .WillOnce(NetworkMock::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(
-                olp::http::HttpStatusCode::FORBIDDEN),
-            "{Inappropriate}"));
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::FORBIDDEN),
+                                     "{Inappropriate}"));
 
     client::CancellationContext context;
     auto response = repository::PartitionsRepository::GetPartitionById(

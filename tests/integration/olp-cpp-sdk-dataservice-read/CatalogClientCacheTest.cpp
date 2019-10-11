@@ -216,9 +216,8 @@ TEST_P(CatalogClientCacheTest, GetPartitionsLayerVersions) {
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(url_testlayer_res), _, _, _, _))
       .Times(1)
-      .WillOnce(NetworkMock::ReturnHttpResponse(
-          olp::http::NetworkResponse().WithStatus(200),
-          http_response_testlayer_res));
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+                                   http_response_testlayer_res));
 
   auto catalog_client = std::make_unique<olp::dataservice::read::CatalogClient>(
       hrn, settings_, cache_);
@@ -384,9 +383,9 @@ TEST_P(CatalogClientCacheTest, GetVolatilePartitionsExpiry) {
                           "layers/testlayer_volatile/partitions"),
              _, _, _, _))
         .Times(1)
-        .WillRepeatedly(NetworkMock::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(200),
-            HTTP_RESPONSE_PARTITIONS_V2));
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+                               HTTP_RESPONSE_PARTITIONS_V2));
 
     EXPECT_CALL(
         *network_mock_,
@@ -395,9 +394,9 @@ TEST_P(CatalogClientCacheTest, GetVolatilePartitionsExpiry) {
                           "layers/testlayer_volatile/partitions"),
              _, _, _, _))
         .Times(1)
-        .WillRepeatedly(NetworkMock::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(200),
-            HTTP_RESPONSE_EMPTY_PARTITIONS));
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+                               HTTP_RESPONSE_EMPTY_PARTITIONS));
   }
 
   auto catalog_client = std::make_unique<olp::dataservice::read::CatalogClient>(

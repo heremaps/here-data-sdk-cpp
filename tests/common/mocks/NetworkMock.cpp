@@ -29,24 +29,6 @@ NetworkMock::NetworkMock() = default;
 
 NetworkMock::~NetworkMock() = default;
 
-NetworkCallback NetworkMock::ReturnHttpResponse(
-    olp::http::NetworkResponse response, const std::string& response_body) {
-  return [=](olp::http::NetworkRequest request,
-             olp::http::Network::Payload payload,
-             olp::http::Network::Callback callback,
-             olp::http::Network::HeaderCallback header_callback,
-             olp::http::Network::DataCallback data_callback)
-             -> olp::http::SendOutcome {
-    std::thread([=]() {
-      *payload << response_body;
-      callback(response);
-    }).detach();
-
-    constexpr auto unused_request_id = 5;
-    return olp::http::SendOutcome(unused_request_id);
-  };
-}
-
 std::tuple<olp::http::RequestId, NetworkCallback, CancelCallback>
 GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
                            std::shared_ptr<std::promise<void>> wait_for_signal,
@@ -114,6 +96,28 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
 
   return std::make_tuple(request_id, std::move(mocked_send),
                          std::move(mocked_cancel));
+}
+
+///
+/// NetworkMock Actions
+///
+
+NetworkCallback ReturnHttpResponse(olp::http::NetworkResponse response,
+                                   const std::string& response_body) {
+  return [=](olp::http::NetworkRequest request,
+             olp::http::Network::Payload payload,
+             olp::http::Network::Callback callback,
+             olp::http::Network::HeaderCallback header_callback,
+             olp::http::Network::DataCallback data_callback)
+             -> olp::http::SendOutcome {
+    std::thread([=]() {
+      *payload << response_body;
+      callback(response);
+    }).detach();
+
+    constexpr auto unused_request_id = 5;
+    return olp::http::SendOutcome(unused_request_id);
+  };
 }
 
 }  // namespace common
