@@ -41,9 +41,6 @@ elseif (ANDROID)
 else()
     project(${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET})
 
-    find_package(olp-cpp-sdk-authentication REQUIRED)
-    find_package(olp-cpp-sdk-dataservice-read REQUIRED)
-
     add_executable(${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/example.h ${CMAKE_CURRENT_SOURCE_DIR}/example.cpp)
 
     target_sources(${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
