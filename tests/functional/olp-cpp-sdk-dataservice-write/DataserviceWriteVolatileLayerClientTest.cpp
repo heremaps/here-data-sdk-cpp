@@ -358,12 +358,12 @@ TEST_F(DataserviceWriteVolatileLayerClientTest,
   // get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_F(DataserviceWriteVolatileLayerClientTest, CancellAllRequests) {
+TEST_F(DataserviceWriteVolatileLayerClientTest, CancelAllRequests) {
   auto volatile_client = CreateVolatileLayerClient();
   auto future = volatile_client->GetBaseVersion().GetFuture();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  volatile_client->CancellAll();
+  volatile_client->CancelAll();
 
   auto response = future.get();
   ASSERT_FALSE(response.IsSuccessful());

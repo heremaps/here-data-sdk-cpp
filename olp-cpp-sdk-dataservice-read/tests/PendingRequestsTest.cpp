@@ -33,7 +33,7 @@ TEST(PendingRequestsTest, RemoveMissingKeyWillFail) {
   EXPECT_FALSE(pending_request.Remove(0));
 }
 
-TEST(PendingRequestsTest, CancellAllPendingRequest) {
+TEST(PendingRequestsTest, CancelAllPendingRequest) {
   olp::dataservice::read::PendingRequests pending_request;
   auto key = pending_request.GenerateRequestPlaceholder();
   bool cancelled = false;

@@ -50,7 +50,7 @@ VolatileLayerClientImpl::VolatileLayerClientImpl(HRN catalog,
                                                  OlpClientSettings settings)
     : catalog_(std::move(catalog)), settings_(std::move(settings)) {}
 
-VolatileLayerClientImpl::~VolatileLayerClientImpl() { CancellAll(); }
+VolatileLayerClientImpl::~VolatileLayerClientImpl() { CancelAll(); }
 
 olp::client::CancellationToken VolatileLayerClientImpl::InitApiClients(
     std::shared_ptr<client::CancellationContext> cancel_context,
@@ -173,7 +173,7 @@ olp::client::CancellationToken VolatileLayerClientImpl::InitApiClients(
                                     configApi_callback);
 }
 
-void VolatileLayerClientImpl::CancellAll() { tokenList_.CancelAll(); }
+void VolatileLayerClientImpl::CancelAll() { tokenList_.CancelAll(); }
 
 CancellationToken VolatileLayerClientImpl::InitCatalogModel(
     const model::PublishPartitionDataRequest& /*request*/,

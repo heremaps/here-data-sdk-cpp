@@ -62,7 +62,7 @@ class VolatileLayerClientImpl
   olp::client::CancellationToken GetBaseVersion(
       GetBaseVersionCallback callback);
 
-  void CancellAll();
+  void CancelAll();
 
   olp::client::CancellableFuture<PublishPartitionDataResponse>
   PublishPartitionData(const model::PublishPartitionDataRequest& request);
