@@ -271,6 +271,14 @@ if(IOS)
     else()
         target_compile_options(${PROJECT_NAME} PRIVATE "-fobjc-arc")
     endif()
+
+    find_library(OLP_SDK_CORE_FOUNDATION_FRAMEWORK CoreFoundation)
+    find_library(OLP_SDK_SECURITY_FRAMEWORK Security)
+    find_library(OLP_SDK_CFNETWORK_FRAMEWORK CFNetwork)
+
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${OLP_SDK_CORE_FOUNDATION_FRAMEWORK}
+                                                  ${OLP_SDK_SECURITY_FRAMEWORK}
+                                                  ${OLP_SDK_CFNETWORK_FRAMEWORK})
 elseif(ANDROID)
     # Make sure that OlpHttpClient.jar is built before olp-cpp-sdk-core
     add_dependencies(${PROJECT_NAME} ${OLP_SDK_ANDROID_HTTP_CLIENT_JAR})
