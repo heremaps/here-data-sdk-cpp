@@ -26,7 +26,6 @@
 #include <olp/core/client/OlpClientSettings.h>
 
 #include <olp/dataservice/write/DataServiceWriteApi.h>
-#include <olp/dataservice/write/FlushSettings.h>
 #include <olp/dataservice/write/generated/model/ResponseOk.h>
 #include <olp/dataservice/write/generated/model/ResponseOkSingle.h>
 #include <olp/dataservice/write/model/PublishDataRequest.h>
@@ -74,11 +73,8 @@ class DATASERVICE_WRITE_API StreamLayerClient {
    * @param catalog OLP HRN specifying the catalog this client will write to.
    * @param settings Client settings used to control behaviour of this
    * StreamLayerClient instance.
-   * @param flush_settings Optional defines settings that effect cached
-   * partitions to be flushed. is provided a default in-memory cache is used.
    */
-  StreamLayerClient(client::HRN catalog, client::OlpClientSettings settings,
-                    FlushSettings flush_settings = FlushSettings());
+  StreamLayerClient(client::HRN catalog, client::OlpClientSettings settings);
 
   /**
    * @brief Call to publish data into an OLP Stream Layer.

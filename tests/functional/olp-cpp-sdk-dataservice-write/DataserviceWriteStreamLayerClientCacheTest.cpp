@@ -34,6 +34,7 @@
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+#include <olp/dataservice/write/FlushSettings.h>
 #include <olp/dataservice/write/StreamLayerClient.h>
 #include <olp/dataservice/write/model/PublishDataRequest.h>
 #include <olp/dataservice/write/model/PublishSdiiRequest.h>
@@ -155,7 +156,7 @@ class DataserviceWriteStreamLayerClientCacheTest : public ::testing::Test {
     settings.cache = disk_cache_;
 
     return std::make_shared<StreamLayerClient>(
-        olp::client::HRN{GetTestCatalog()}, settings, flush_settings_);
+        olp::client::HRN{GetTestCatalog()}, settings);
   }
 
  private:

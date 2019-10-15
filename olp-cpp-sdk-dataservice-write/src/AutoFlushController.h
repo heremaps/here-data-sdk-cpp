@@ -22,6 +22,7 @@
 #include <memory>
 
 #include <olp/dataservice/write/FlushEventListener.h>
+#include <olp/dataservice/write/FlushSettings.h>
 #include <olp/dataservice/write/StreamLayerClient.h>
 
 namespace olp {

@@ -24,7 +24,7 @@
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientFactory.h>
-
+#include <olp/dataservice/write/FlushSettings.h>
 #include <olp/dataservice/write/StreamLayerClient.h>
 #include "ApiClientLookup.h"
 #include "AutoFlushController.h"
@@ -48,8 +48,7 @@ class StreamLayerClientImpl
  public:
   StreamLayerClientImpl(const client::HRN& catalog,
                         const client::OlpClientSettings& settings,
-                        const std::shared_ptr<cache::KeyValueCache>& cache,
-                        const FlushSettings& flush_settings);
+                        const std::shared_ptr<cache::KeyValueCache>& cache);
 
   olp::client::CancellableFuture<PublishDataResponse> PublishData(
       const model::PublishDataRequest& request);
@@ -113,6 +112,8 @@ class StreamLayerClientImpl
 
   std::shared_ptr<cache::KeyValueCache> cache_;
   mutable std::mutex cache_mutex_;
+
+  /// These fields are currently not used - will be refactored after 1.0
   FlushSettings flush_settings_;
   std::unique_ptr<AutoFlushController> auto_flush_controller_;
 };
