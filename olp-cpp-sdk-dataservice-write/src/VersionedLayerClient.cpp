@@ -31,8 +31,6 @@ VersionedLayerClient::VersionedLayerClient(client::HRN catalog,
                                                        std::move(settings))) {}
 
 
-void VersionedLayerClient::CancellAll() { impl_->CancelAll(); }
-
 olp::client::CancellableFuture<StartBatchResponse>
 VersionedLayerClient::StartBatch(model::StartBatchRequest request) {
   return impl_->StartBatch(request);

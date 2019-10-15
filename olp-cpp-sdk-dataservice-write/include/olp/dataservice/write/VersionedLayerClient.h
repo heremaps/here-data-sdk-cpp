@@ -88,11 +88,6 @@ class DATASERVICE_WRITE_API VersionedLayerClient {
    * instance
    */
   VersionedLayerClient(client::HRN catalog, client::OlpClientSettings settings);
-  
-  /**
-   * @brief Cancel all pending requests.
-   */
-  void CancellAll();
 
   /**
    * @brief Start a batch operation.
