@@ -26,6 +26,7 @@
 #include <olp/core/http/NetworkProxySettings.h>
 
 #include "AuthenticationApi.h"
+#include "AuthenticationCredentials.h"
 
 namespace olp {
 namespace http {
