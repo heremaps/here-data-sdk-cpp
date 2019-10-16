@@ -1,14 +1,14 @@
 #!/bin/bash -e
-mv android-9 android-9_source && mkdir -p android-9/platforms/android-28 && cp -r android-9_source/* android-9/platforms/android-28/ && rm -rf android-9_source
+
 mkdir -p build && cd build
-cmake .. -DCMAKE_TOOLCHAIN_FILE="$WORKSPACE/android-ndk-r20/build/cmake/android.toolchain.cmake" \
+cmake .. -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake" \
 	-DANDROID_PLATFORM=android-28 \
 	-DANDROID_ABI=arm64-v8a \
 	-DOLP_SDK_ENABLE_TESTING=NO \
-	-DOLP_SDK_BUILD_EXAMPLES=ON 
+	-DOLP_SDK_BUILD_EXAMPLES=ON
 
-#cmake --build .
-sudo make install -j16
+#cmake --build . # this is alternative option for build
+sudo make install -j
 cd $WORKSPACE/build/examples/dataservice-read/android
 sudo ./gradlew assemble
 cd $WORKSPACE/build/examples/dataservice-write/android
