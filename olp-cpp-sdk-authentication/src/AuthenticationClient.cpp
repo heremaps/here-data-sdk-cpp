@@ -372,7 +372,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
         }
       });
 
-  if (!send_outcome.IsSuccessfull()) {
+  if (!send_outcome.IsSuccessful()) {
     ExecuteOrSchedule(task_scheduler_, [send_outcome, callback] {
       std::string error_message =
           ErrorCodeToString(send_outcome.GetErrorCode());
@@ -515,7 +515,7 @@ client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
         }
       });
 
-  if (!send_outcome.IsSuccessfull()) {
+  if (!send_outcome.IsSuccessful()) {
     ExecuteOrSchedule(task_scheduler_, [send_outcome, callback] {
       std::string error_message =
           ErrorCodeToString(send_outcome.GetErrorCode());
@@ -586,7 +586,7 @@ client::CancellationToken AuthenticationClient::Impl::SignUpHereUser(
                        callback(response);
                      });
 
-  if (!send_outcome.IsSuccessfull()) {
+  if (!send_outcome.IsSuccessful()) {
     ExecuteOrSchedule(task_scheduler_, [send_outcome, callback] {
       std::string error_message =
           ErrorCodeToString(send_outcome.GetErrorCode());
@@ -655,7 +655,7 @@ client::CancellationToken AuthenticationClient::Impl::SignOut(
                        callback(response);
                      });
 
-  if (!send_outcome.IsSuccessfull()) {
+  if (!send_outcome.IsSuccessful()) {
     ExecuteOrSchedule(task_scheduler_, [send_outcome, callback] {
       std::string error_message =
           ErrorCodeToString(send_outcome.GetErrorCode());

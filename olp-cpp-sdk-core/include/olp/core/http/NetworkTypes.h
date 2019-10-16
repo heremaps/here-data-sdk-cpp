@@ -90,11 +90,11 @@ class SendOutcome final {
   explicit SendOutcome(ErrorCode error_code) : error_code_(error_code) {}
 
   /**
-   * @brief Check if network request push was successfull.
+   * @brief Check if network request push was successful.
    * @return \c true in case there is no error and a valid RequestId, \c false
    * otherwise.
    */
-  bool IsSuccessfull() const {
+  bool IsSuccessful() const {
     return error_code_ == ErrorCode::SUCCESS &&
            request_id_ != kInvalidRequestId;
   }

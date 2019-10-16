@@ -94,7 +94,7 @@ CancellationToken ExecuteSingleRequest(
         callback(result);
       });
 
-  if (!send_outcome.IsSuccessfull()) {
+  if (!send_outcome.IsSuccessful()) {
     std::string error_message = ErrorCodeToString(send_outcome.GetErrorCode());
     HttpResponse result{static_cast<int>(send_outcome.GetErrorCode()),
                         std::move(error_message)};

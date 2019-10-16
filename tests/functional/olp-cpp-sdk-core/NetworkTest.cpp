@@ -49,7 +49,7 @@ TEST(NetworkTest, GetRequest) {
         cv.notify_one();
       });
 
-  ASSERT_TRUE(outcome.IsSuccessfull());
+  ASSERT_TRUE(outcome.IsSuccessful());
 
   std::unique_lock<std::mutex> lock(m);
   ASSERT_TRUE(cv.wait_for(lock, std::chrono::seconds(1)) ==
