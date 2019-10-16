@@ -23,9 +23,9 @@
 #include <string>
 #include <vector>
 
-#include <boost/optional.hpp>
-
 #include <olp/core/geo/tiling/TileKey.h>
+#include <olp/core/porting/deprecated.h>
+#include <boost/optional.hpp>
 #include "DataServiceReadApi.h"
 
 namespace olp {
@@ -46,14 +46,18 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   /**
    * @brief GetLayerId gets the request's layer id.
    * @return the layer id.
+   * @deprecated Will be removed in 1.0
    */
+  OLP_SDK_DEPRECATED("Will be removed in 1.0")
   inline const std::string& GetLayerId() const { return layer_id_; }
 
   /**
    * @brief WithLayerId sets the layer id of the request.
    * @param layerId the layer id the requested tiles belong to.
    * @return a reference to the updated PrefetchTilesRequest.
+   * @deprecated Will be removed in 1.0
    */
+  OLP_SDK_DEPRECATED("Will be removed in 1.0")
   inline PrefetchTilesRequest& WithLayerId(const std::string& layerId) {
     layer_id_ = layerId;
     return *this;
@@ -63,7 +67,9 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    * @brief WithLayerId sets the layer id of the request.
    * @param layerId the layer id the requested tiles belong to.
    * @return a reference to the updated PrefetchTilesRequest.
+   * @deprecated Will be removed in 1.0
    */
+  OLP_SDK_DEPRECATED("Will be removed in 1.0")
   inline PrefetchTilesRequest& WithLayerId(std::string&& layerId) {
     layer_id_ = std::move(layerId);
     return *this;

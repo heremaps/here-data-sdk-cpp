@@ -19,14 +19,13 @@
 
 #pragma once
 
-#include "FetchOptions.h"
-
-#include <string>
 #include <sstream>
+#include <string>
 
+#include <olp/core/porting/deprecated.h>
 #include <boost/optional.hpp>
-
 #include "DataServiceReadApi.h"
+#include "FetchOptions.h"
 
 namespace olp {
 namespace dataservice {
@@ -41,14 +40,18 @@ class DATASERVICE_READ_API PartitionsRequest final {
   /**
    * @brief GetLayerId gets the request's layer id.
    * @return the layer id.
+   * @deprecated Will be removed in 1.0
    */
+  OLP_SDK_DEPRECATED("Will be removed in 1.0")
   inline const std::string& GetLayerId() const { return layer_id_; }
 
   /**
    * @brief WithLayerId sets the layer id of the request.
    * @param layerId the layer the requested partitions belong to.
    * @return a reference to the updated PartitionsRequest.
+   * @deprecated Will be removed in 1.0
    */
+  OLP_SDK_DEPRECATED("Will be removed in 1.0")
   inline PartitionsRequest& WithLayerId(const std::string& layerId) {
     layer_id_ = layerId;
     return *this;
@@ -58,7 +61,9 @@ class DATASERVICE_READ_API PartitionsRequest final {
    * @brief WithLayerId sets the layer id of the request.
    * @param layerId the layer the requested partitions belong to.
    * @return a reference to the updated PartitionsRequest.
+   * @deprecated Will be removed in 1.0
    */
+  OLP_SDK_DEPRECATED("Will be removed in 1.0")
   inline PartitionsRequest& WithLayerId(std::string&& layerId) {
     layer_id_ = std::move(layerId);
     return *this;
@@ -123,9 +128,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
    * resource is not in the cache.
    * @return the fetchOption
    */
-  inline FetchOptions GetFetchOption() const {
-    return fetch_option_;
-  }
+  inline FetchOptions GetFetchOption() const { return fetch_option_; }
 
   /**
    * @brief WithFetchOption sets the fetch option. See ::GetFetchOption() for
@@ -160,7 +163,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
     return out.str();
   }
 
-private:
+ private:
   std::string layer_id_;
   boost::optional<int64_t> catalog_metadata_version_;
   boost::optional<std::string> billing_tag_;
