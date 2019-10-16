@@ -176,10 +176,6 @@ endif()
 file(GLOB PLATFORM_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/context/*.cpp"
 )
-file(GLOB PORTING_SOURCE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/porting/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/porting/*.h"
-)
 file(GLOB UTILS_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utils/*.cpp"
 )
@@ -215,7 +211,6 @@ file(GLOB CORE_SOURCE
     ${GENERATED_SOURCE}
     ${OLP_SDK_HTTP_SOURCES}
     ${PLATFORM_SOURCE}
-    ${PORTING_SOURCE}
     ${UTILS_SOURCE}
     ${LOGGING_SOURCE}
     ${THREAD_SOURCE}
