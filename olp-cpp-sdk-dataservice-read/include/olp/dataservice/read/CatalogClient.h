@@ -49,15 +49,6 @@ namespace model {
 class Partition;
 }  // namespace model
 
-/**
- * @brief Creates an instance of the default cache with provided settings.
- * @param settings Cache settings.
- *
- * @return DefaultCache instance.
- */
-DATASERVICE_READ_API std::shared_ptr<cache::KeyValueCache> CreateDefaultCache(
-    const cache::CacheSettings& settings = cache::CacheSettings());
-
 class CatalogRequest;
 using CatalogResult = model::Catalog;
 using CatalogResponse = client::ApiResponse<CatalogResult, client::ApiError>;

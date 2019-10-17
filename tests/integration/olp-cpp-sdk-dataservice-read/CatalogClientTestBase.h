@@ -29,7 +29,7 @@ namespace olp {
 namespace tests {
 namespace integration {
 
-enum class CacheType { IN_MEMORY, DISK, BOTH };
+enum class CacheType { IN_MEMORY, DISK, BOTH, NONE };
 
 std::ostream& operator<<(std::ostream& os, const CacheType cache_type);
 

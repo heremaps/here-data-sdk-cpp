@@ -20,7 +20,9 @@
 #include <gmock/gmock.h>
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/NetworkMock.h>
+#include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/HRN.h>
+#include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/http/Network.h>
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
@@ -1032,7 +1034,8 @@ TEST_P(CatalogClientTest, GetDataWithPartitionIdCancelInnerConfig) {
 
   olp::cache::CacheSettings cache_settings;
   cache_settings.max_memory_cache_size = 0;
-  settings_.cache = olp::dataservice::read::CreateDefaultCache(cache_settings);
+  settings_.cache =
+      olp::client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
   auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
 

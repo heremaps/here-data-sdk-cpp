@@ -54,6 +54,11 @@ class CatalogClientCacheTest : public CatalogClientTestBase {
         ClearCache(settings.disk_path.get());
         break;
       }
+      case CacheType::NONE: {
+        // We don't create a cache here
+        settings_.cache = nullptr;
+        return;
+      }
       default:
         // shouldn't get here
         break;
@@ -435,5 +440,6 @@ TEST_P(CatalogClientCacheTest, GetVolatilePartitionsExpiry) {
 
 INSTANTIATE_TEST_SUITE_P(, CatalogClientCacheTest,
                          ::testing::Values(CacheType::IN_MEMORY,
-                                           CacheType::DISK, CacheType::BOTH));
+                                           CacheType::DISK, CacheType::BOTH,
+                                           CacheType::NONE));
 }  // namespace

@@ -50,9 +50,7 @@ class PendingRequests;
 
 class CatalogClientImpl final {
  public:
-  CatalogClientImpl(client::HRN catalog,
-                    std::shared_ptr<client::OlpClientSettings> settings,
-                    std::shared_ptr<cache::KeyValueCache> cache);
+  CatalogClientImpl(client::HRN catalog, client::OlpClientSettings settings);
 
   ~CatalogClientImpl();
 
@@ -93,7 +91,6 @@ class CatalogClientImpl final {
  private:
   client::HRN catalog_;
   std::shared_ptr<client::OlpClientSettings> settings_;
-  std::shared_ptr<client::OlpClient> api_client_;
   std::shared_ptr<repository::CatalogRepository> catalog_repo_;
   std::shared_ptr<repository::PartitionsRepository> partition_repo_;
   std::shared_ptr<repository::DataRepository> data_repo_;
