@@ -74,13 +74,12 @@ void ExecuteOrSchedule(const OlpClientSettings& settings,
 }
 }  // namespace
 
-StreamLayerClientImpl::StreamLayerClientImpl(
-    const HRN& catalog, const OlpClientSettings& settings,
-    const std::shared_ptr<cache::KeyValueCache>& cache,
-    const FlushSettings& flush_settings)
-    : catalog_(catalog),
+StreamLayerClientImpl::StreamLayerClientImpl(HRN catalog,
+                                             OlpClientSettings settings,
+                                             FlushSettings flush_settings)
+    : catalog_(std::move(catalog)),
       catalog_model_(),
-      settings_(settings),
+      settings_(std::move(settings)),
       apiclient_config_(nullptr),
       apiclient_ingest_(nullptr),
       apiclient_blob_(nullptr),
@@ -88,9 +87,9 @@ StreamLayerClientImpl::StreamLayerClientImpl(
       init_mutex_(),
       init_cv_(),
       init_inprogress_(false),
-      cache_(cache),
+      cache_(settings_.cache),
       cache_mutex_(),
-      flush_settings_(flush_settings),
+      flush_settings_(std::move(flush_settings)),
       auto_flush_controller_(new AutoFlushController(flush_settings_)) {}
 
 CancellationToken StreamLayerClientImpl::InitApiClients(

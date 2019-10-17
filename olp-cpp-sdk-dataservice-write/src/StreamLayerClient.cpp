@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
-#include <olp/dataservice/write/StreamLayerClient.h>
+#include "olp/dataservice/write/StreamLayerClient.h"
 
 #include <olp/core/cache/DefaultCache.h>
-
+#include <olp/core/client/OlpClientSettingsFactory.h>
 #include "StreamLayerClientImpl.h"
 
 namespace olp {
@@ -37,10 +37,12 @@ std::shared_ptr<cache::KeyValueCache> CreateDefaultCache(
 StreamLayerClient::StreamLayerClient(client::HRN catalog,
                                      client::OlpClientSettings settings,
                                      FlushSettings flush_settings) {
-  auto cache = settings.cache;
+  if (!settings.cache) {
+    settings.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
+  }
+
   impl_ = std::make_shared<StreamLayerClientImpl>(
-      std::move(catalog), std::move(settings), std::move(cache),
-      std::move(flush_settings));
+      std::move(catalog), std::move(settings), std::move(flush_settings));
 }
 
 olp::client::CancellableFuture<PublishDataResponse>
