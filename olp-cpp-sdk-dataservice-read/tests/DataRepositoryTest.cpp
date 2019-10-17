@@ -21,8 +21,10 @@
 
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/NetworkMock.h>
+#include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/OlpClientFactory.h>
 #include <olp/core/client/OlpClientSettings.h>
+#include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <repositories/DataRepository.h>
 
@@ -62,7 +64,8 @@ class DataRepositoryTest : public ::testing::Test {
 void DataRepositoryTest::SetUp() {
   network_mock_ = std::make_shared<NetworkMock>();
   settings_ = std::make_shared<olp::client::OlpClientSettings>();
-  settings_->cache = olp::dataservice::read::CreateDefaultCache();
+  settings_->cache =
+      olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
   settings_->network_request_handler = network_mock_;
 }
 

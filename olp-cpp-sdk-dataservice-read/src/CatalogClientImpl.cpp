@@ -19,9 +19,7 @@
 
 #include "CatalogClientImpl.h"
 
-#include <olp/core/client/OlpClientFactory.h>
 #include <olp/core/logging/Log.h>
-
 #include "PendingRequests.h"
 #include "PrefetchTilesProvider.h"
 #include "repositories/ApiRepository.h"
@@ -40,12 +38,11 @@ namespace {
 constexpr auto kLogTag = "CatalogClientImpl";
 }
 
-CatalogClientImpl::CatalogClientImpl(
-    HRN hrn, std::shared_ptr<OlpClientSettings> settings,
-    std::shared_ptr<cache::KeyValueCache> cache)
-    : catalog_(std::move(hrn)),
-      settings_(settings),
-      api_client_(OlpClientFactory::Create(*settings)) {
+CatalogClientImpl::CatalogClientImpl(HRN catalog, OlpClientSettings settings)
+    : catalog_(std::move(catalog)),
+      settings_(std::make_shared<OlpClientSettings>(std::move(settings))) {
+  auto cache = settings_->cache;
+
   // create repositories, satisfying dependencies.
   auto api_repo = std::make_shared<ApiRepository>(catalog_, settings_, cache);
 
@@ -59,7 +56,7 @@ CatalogClientImpl::CatalogClientImpl(
       catalog_, api_repo, catalog_repo_, partition_repo_, cache);
 
   auto prefetch_repo = std::make_shared<PrefetchTilesRepository>(
-      hrn, api_repo, partition_repo_->GetPartitionsCacheRepository(),
+      catalog_, api_repo, partition_repo_->GetPartitionsCacheRepository(),
       settings_);
 
   prefetch_provider_ = std::make_shared<PrefetchTilesProvider>(
