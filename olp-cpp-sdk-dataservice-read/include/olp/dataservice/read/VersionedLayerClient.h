@@ -20,6 +20,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
@@ -29,6 +30,8 @@
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
+#include <olp/dataservice/read/PrefetchTileResult.h>
+#include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/model/Data.h>
 #include <olp/dataservice/read/model/Partitions.h>
 
@@ -53,6 +56,16 @@ class DATASERVICE_READ_API VersionedLayerClient final {
   using PartitionsResponse =
       client::ApiResponse<PartitionsResult, client::ApiError>;
   using PartitionsCallback = std::function<void(PartitionsResponse response)>;
+
+  /// PrefetchTileResult alias
+  using PrefetchTilesResult = std::vector<std::shared_ptr<PrefetchTileResult>>;
+  /// Alias for the response to the \c PrefetchTileRequest
+  using PrefetchTilesResponse =
+      client::ApiResponse<PrefetchTilesResult, client::ApiError>;
+  /// Alias for the callback  to the results of PrefetchTilesResponse
+  using PrefetchTilesResponseCallback =
+      std::function<void(const PrefetchTilesResponse& response)>;
+
   /**
    * @brief VersionedLayerClient constructor
    * @param catalog this versioned layer client uses during requests.
@@ -92,6 +105,26 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    */
   client::CancellationToken GetPartitions(PartitionsRequest partitions_request,
                                           PartitionsCallback callback) const;
+
+  /**
+   * @brief Pre-fetches a set of tiles asychronously.
+   *
+   * This method recursively downloads all tilekeys from minLevel to maxLevel
+   * specified in the \c PrefetchTilesRequest's properties. This will help to
+   * reduce the network load by using the pre-fetched tiles' data from cache.
+   *
+   * \note - this does not guarantee that all tiles are available offline, as
+   * the cache might overflow and data might be evicted at any point.
+   *
+   * @param request contains the complete set of request parameters.
+   * \note The \c PrefetchTilesRequest's GetLayerId value will be ignored and
+   * the parameter from constructore will be used instead.
+   * @param callback will be invoked once the \c PrefetchTilesResult is
+   * available, or an error is encountered.
+   * @return A token that can be used to cancel this request.
+   */
+  olp::client::CancellationToken PrefetchTiles(
+      PrefetchTilesRequest request, PrefetchTilesResponseCallback callback);
 
  private:
   std::unique_ptr<VersionedLayerClientImpl> impl_;

@@ -249,7 +249,7 @@ client::CancellationToken CatalogClientImpl::PrefetchTiles(
     callback(response);
   };
 
-  auto token = prefetch_provider_->PrefetchTiles(request, callback);
+  auto token = prefetch_provider_->PrefetchTiles(request, request_callback);
 
   pending_requests_->Insert(token, request_key);
   return token;

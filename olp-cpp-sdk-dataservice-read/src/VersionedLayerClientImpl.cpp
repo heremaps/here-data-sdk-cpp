@@ -23,12 +23,14 @@
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/context/Context.h>
 #include <olp/core/thread/TaskScheduler.h>
+#include "PrefetchTilesProvider.h"
 #include "TaskContext.h"
 #include "repositories/ApiRepository.h"
 #include "repositories/CatalogRepository.h"
 #include "repositories/DataRepository.h"
 #include "repositories/ExecuteOrSchedule.inl"
 #include "repositories/PartitionsRepository.h"
+#include "repositories/PrefetchTilesRepository.h"
 
 namespace olp {
 namespace dataservice {
@@ -58,6 +60,16 @@ VersionedLayerClientImpl::VersionedLayerClientImpl(
 
   partition_repo_ = std::make_shared<repository::PartitionsRepository>(
       catalog_, api_repo, catalog_repo, settings_->cache);
+
+  auto data_repo = std::make_shared<repository::DataRepository>(
+      catalog_, api_repo, catalog_repo, partition_repo_, settings_->cache);
+
+  auto prefetch_repo = std::make_shared<repository::PrefetchTilesRepository>(
+      catalog_, api_repo, partition_repo_->GetPartitionsCacheRepository(),
+      settings_);
+
+  prefetch_provider_ = std::make_shared<PrefetchTilesProvider>(
+      catalog_, api_repo, catalog_repo, data_repo, prefetch_repo, settings_);
 }
 
 VersionedLayerClientImpl::~VersionedLayerClientImpl() {
@@ -134,6 +146,23 @@ client::CancellationToken VersionedLayerClientImpl::AddGetDataTask(
   });
 
   return context.CancelToken();
+}
+
+olp::client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
+    PrefetchTilesRequest request, PrefetchTilesResponseCallback callback) {
+  const int64_t request_key = pending_requests_->GenerateRequestPlaceholder();
+  auto pending_requests = pending_requests_;
+  auto request_callback = [=](const PrefetchTilesResponse& response) {
+    pending_requests->Remove(request_key);
+    if (callback) {
+      callback(response);
+    }
+  };
+
+  request.WithLayerId(layer_id_);
+  auto token = prefetch_provider_->PrefetchTiles(request, request_callback);
+  pending_requests->Insert(token, request_key);
+  return token;
 }
 
 }  // namespace read

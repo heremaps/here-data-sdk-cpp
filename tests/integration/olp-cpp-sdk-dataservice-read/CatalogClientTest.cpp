@@ -2146,7 +2146,7 @@ TEST_P(CatalogClientTest, PrefetchEmbedded) {
   }
 }
 
-TEST_P(CatalogClientTest, DISABLED_PrefetchBusy) {
+TEST_P(CatalogClientTest, PrefetchBusy) {
   olp::client::HRN hrn(GetTestCatalog());
 
   auto catalog_client =
@@ -2179,9 +2179,6 @@ TEST_P(CatalogClientTest, DISABLED_PrefetchBusy) {
               Send(IsGetRequest(URL_QUADKEYS_5904591), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
-
-  EXPECT_CALL(*network_mock_, Cancel(request_id))
-      .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   // Issue the first request
   auto future1 = catalog_client->PrefetchTiles(request1);

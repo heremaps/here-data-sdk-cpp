@@ -170,4 +170,93 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionSync) {
   ASSERT_NE(response.GetResult()->size(), 0u);
 }
 
+TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
+  const auto catalog = olp::client::HRN::FromString(
+      CustomParameters::getArgument("dataservice_read_test_versioned_catalog"));
+  constexpr auto kLayerId = "hype-test-prefetch";
+  constexpr auto kTileId = "5904591";
+
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      catalog, kLayerId, *settings_);
+
+  {
+    SCOPED_TRACE("Prefetch tiles online and store them in memory cache");
+    std::vector<olp::geo::TileKey> tile_keys = {
+        olp::geo::TileKey::FromHereTile(kTileId)};
+
+    auto request = olp::dataservice::read::PrefetchTilesRequest()
+                       .WithTileKeys(tile_keys)
+                       .WithMinLevel(10)
+                       .WithMaxLevel(12);
+
+    std::promise<VersionedLayerClient::PrefetchTilesResponse> promise;
+    std::future<VersionedLayerClient::PrefetchTilesResponse> future =
+        promise.get_future();
+    auto token = client->PrefetchTiles(
+        request,
+        [&promise](VersionedLayerClient::PrefetchTilesResponse response) {
+          promise.set_value(response);
+        });
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    VersionedLayerClient::PrefetchTilesResponse response = future.get();
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_FALSE(response.GetResult().empty());
+
+    const auto& result = response.GetResult();
+
+    for (auto tile_result : result) {
+      ASSERT_TRUE(tile_result->IsSuccessful());
+      ASSERT_TRUE(tile_result->tile_key_.IsValid());
+    }
+
+    ASSERT_EQ(6u, result.size());
+  }
+
+  {
+    SCOPED_TRACE("Read cached data from the same partition");
+    VersionedLayerClient::CallbackResponse response;
+    auto token = client->GetData(
+        olp::dataservice::read::DataRequest()
+            .WithPartitionId(kTileId)
+            .WithFetchOption(CacheOnly),
+        [&response](VersionedLayerClient::CallbackResponse resp) {
+          response = std::move(resp);
+        });
+    ASSERT_TRUE(response.IsSuccessful());
+    ASSERT_TRUE(response.GetResult() != nullptr);
+    ASSERT_NE(response.GetResult()->size(), 0u);
+  }
+
+  {
+    SCOPED_TRACE("Read cached data from pre-fetched sub-partition #1");
+    VersionedLayerClient::CallbackResponse response;
+    auto token = client->GetData(
+        olp::dataservice::read::DataRequest()
+            .WithPartitionId("23618365")
+            .WithFetchOption(CacheOnly),
+        [&response](VersionedLayerClient::CallbackResponse resp) {
+          response = std::move(resp);
+        });
+    ASSERT_TRUE(response.IsSuccessful());
+    ASSERT_TRUE(response.GetResult() != nullptr);
+    ASSERT_NE(response.GetResult()->size(), 0u);
+  }
+
+  {
+    SCOPED_TRACE("Read cached data from pre-fetched sub-partition #2");
+    VersionedLayerClient::CallbackResponse response;
+    auto token = client->GetData(
+        olp::dataservice::read::DataRequest()
+            .WithPartitionId("1476147")
+            .WithFetchOption(CacheOnly),
+        [&response](VersionedLayerClient::CallbackResponse resp) {
+          response = std::move(resp);
+        });
+    ASSERT_TRUE(response.IsSuccessful());
+    ASSERT_TRUE(response.GetResult() != nullptr);
+    ASSERT_NE(response.GetResult()->size(), 0u);
+  }
+}
+
 }  // namespace
