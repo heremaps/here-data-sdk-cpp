@@ -46,6 +46,11 @@ client::CancellationToken VersionedLayerClient::GetPartitions(
                               std::move(callback));
 }
 
+olp::client::CancellationToken VersionedLayerClient::PrefetchTiles(
+    PrefetchTilesRequest request, PrefetchTilesResponseCallback callback) {
+  return impl_->PrefetchTiles(std::move(request), std::move(callback));
+}
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

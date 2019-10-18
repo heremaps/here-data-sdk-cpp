@@ -28,6 +28,7 @@
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/geo/tiling/TileKey.h>
+#include "olp/dataservice/read/PrefetchTileResult.h"
 #include "olp/dataservice/read/model/Catalog.h"
 #include "olp/dataservice/read/model/Data.h"
 #include "olp/dataservice/read/model/Partitions.h"
@@ -41,6 +42,8 @@ class HRN;
 
 namespace dataservice {
 namespace read {
+
+class PrefetchTilesRequest;
 
 namespace model {
 class Partition;
@@ -78,52 +81,6 @@ class DataRequest;
 using DataResult = model::Data;
 using DataResponse = client::ApiResponse<DataResult, client::ApiError>;
 using DataResponseCallback = std::function<void(DataResponse response)>;
-
-class PrefetchTilesRequest;
-class DATASERVICE_READ_API PrefetchTileNoError {
- public:
-  PrefetchTileNoError() = default;
-  PrefetchTileNoError(const PrefetchTileNoError& other) = default;
-  ~PrefetchTileNoError() = default;
-};
-
-class DATASERVICE_READ_API PrefetchTileResult
-    : public client::ApiResponse<PrefetchTileNoError, client::ApiError> {
- public:
-  PrefetchTileResult()
-      : client::ApiResponse<PrefetchTileNoError, client::ApiError>() {}
-
-  /**
-   * @brief PrefetchTileResult Constructor for a successfully executed request.
-   */
-  PrefetchTileResult(const geo::TileKey& tile,
-                     const PrefetchTileNoError& result)
-      : client::ApiResponse<PrefetchTileNoError, client::ApiError>(result),
-        tile_key_(tile) {}
-
-  /**
-   * @brief PrefetchTileResult Constructor if request unsuccessfully executed
-   */
-  PrefetchTileResult(const geo::TileKey& tile, const client::ApiError& error)
-      : client::ApiResponse<PrefetchTileNoError, client::ApiError>(error),
-        tile_key_(tile) {}
-
-  /**
-   * @brief PrefetchTileResult Copy constructor.
-   */
-  PrefetchTileResult(const PrefetchTileResult& r)
-      : client::ApiResponse<PrefetchTileNoError, client::ApiError>(r),
-        tile_key_(r.tile_key_) {}
-
-  /**
-   * @brief ApiResponse Constructor if request unsuccessfully executed
-   */
-  PrefetchTileResult(const client::ApiError& error)
-      : client::ApiResponse<PrefetchTileNoError, client::ApiError>(error) {}
-
- public:
-  geo::TileKey tile_key_;
-};
 
 /**
  * @brief The PrefetchTilesResponse class encapsulates the result of a prefetch

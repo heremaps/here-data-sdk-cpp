@@ -30,6 +30,8 @@
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
+#include <olp/dataservice/read/PrefetchTileResult.h>
+#include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/model/Data.h>
 #include <olp/dataservice/read/model/Partitions.h>
 
@@ -42,6 +44,8 @@ namespace read {
 namespace repository {
 class PartitionsRepository;
 }
+
+class PrefetchTilesProvider;
 
 class VersionedLayerClientImpl {
  public:
@@ -57,6 +61,15 @@ class VersionedLayerClientImpl {
       client::ApiResponse<PartitionsResult, client::ApiError>;
   using PartitionsCallback = std::function<void(PartitionsResponse response)>;
 
+  /// PrefetchTileResult alias
+  using PrefetchTilesResult = std::vector<std::shared_ptr<PrefetchTileResult>>;
+  /// Alias for the response to the \c PrefetchTileRequest
+  using PrefetchTilesResponse =
+      client::ApiResponse<PrefetchTilesResult, client::ApiError>;
+  /// Alias for the callback  to the results of PrefetchTilesResponse
+  using PrefetchTilesResponseCallback =
+      std::function<void(const PrefetchTilesResponse& response)>;
+
   VersionedLayerClientImpl(olp::client::HRN catalog, std::string layer_id,
                            olp::client::OlpClientSettings client_settings);
 
@@ -67,6 +80,9 @@ class VersionedLayerClientImpl {
 
   virtual client::CancellationToken GetPartitions(
       PartitionsRequest partitions_request, PartitionsCallback callback) const;
+
+  virtual olp::client::CancellationToken PrefetchTiles(
+      PrefetchTilesRequest request, PrefetchTilesResponseCallback callback);
 
  private:
   olp::client::CancellationToken AddGetDataTask(DataRequest data_request,
@@ -79,6 +95,7 @@ class VersionedLayerClientImpl {
   std::shared_ptr<thread::TaskScheduler> task_scheduler_;
   std::shared_ptr<PendingRequests> pending_requests_;
   std::shared_ptr<repository::PartitionsRepository> partition_repo_;
+  std::shared_ptr<PrefetchTilesProvider> prefetch_provider_;
 };
 
 }  // namespace read
