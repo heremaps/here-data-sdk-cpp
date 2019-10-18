@@ -27,6 +27,8 @@
 #include "repositories/ExecuteOrSchedule.inl"
 #include "repositories/PartitionsRepository.h"
 
+#include "TaskContext.h"
+
 namespace olp {
 namespace dataservice {
 namespace read {
@@ -56,28 +58,28 @@ VolatileLayerClientImpl::~VolatileLayerClientImpl() {
 
 client::CancellationToken VolatileLayerClientImpl::GetData(
     DataRequest request, Callback<DataResponse> callback) {
-  auto add_task = [&](DataRequest& request,
-                      Callback<DataResponse> callback) mutable {
-    client::CancellationContext context;
-    auto cancellation_token = client::CancellationToken(
-        [context]() mutable { context.CancelOperation(); });
-
-    int64_t request_key = pending_requests_->GenerateRequestPlaceholder();
-    pending_requests_->Insert(cancellation_token, request_key);
-
+  auto add_task = [&](DataRequest& request, Callback<DataResponse> callback) {
     auto catalog = catalog_;
     auto layer_id = layer_id_;
     auto settings = settings_;
+    auto pending_requests = pending_requests_;
 
-    repository::ExecuteOrSchedule(task_scheduler_, [=]() mutable {
-      auto response = repository::DataRepository::GetVolatileData(
+    auto data_task = [=](client::CancellationContext context) {
+      return repository::DataRepository::GetVolatileData(
           catalog, layer_id, request, context, settings);
-      pending_requests_->Remove(request_key);
-      if (callback) {
-        callback(std::move(response));
-      }
+    };
+
+    auto context =
+        TaskContext::Create(std::move(data_task), std::move(callback));
+
+    pending_requests->Insert(context);
+
+    repository::ExecuteOrSchedule(task_scheduler_, [=]() {
+      context.Execute();
+      pending_requests->Remove(context);
     });
-    return cancellation_token;
+
+    return context.CancelToken();
   };
 
   if (request.GetFetchOption() == FetchOptions::CacheWithUpdate) {

@@ -19,11 +19,14 @@
 
 #pragma once
 
-#include <unordered_map>
+#include <memory>
 #include <mutex>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include <olp/core/client/CancellationToken.h>
+#include "TaskContext.h"
 
 namespace olp {
 namespace dataservice {
@@ -57,15 +60,28 @@ class PendingRequests final {
   bool Insert(const client::CancellationToken& token, int64_t key);
 
   /**
+   * @brief Inserts task context into the requests container.
+   * @param task_context Task context.
+   */
+  void Insert(TaskContext task_context);
+
+  /**
    * @brief Removes a pending request and placholder.
    * @param key Internal request key to remove
    * @return True on success
    */
   bool Remove(int64_t key);
 
+  /**
+   * @brief Removes a task context.
+   * @param task_context Task context.
+   */
+  void Remove(TaskContext task_context);
+
  private:
   int64_t key_ = 0;
   std::unordered_map<int64_t, client::CancellationToken> requests_map_;
+  std::unordered_set<TaskContext, TaskContextHash> task_contexts_;
   std::mutex requests_lock_;
 };
 

@@ -22,6 +22,7 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./cache/InMemoryCacheTest.cpp
 
     ./client/CancellationContextTest.cpp
+    ./client/ConditionTest.cpp
 
     ./geo/coordinates/GeoCoordinates3dTest.cpp
     ./geo/coordinates/GeoCoordinatesTest.cpp

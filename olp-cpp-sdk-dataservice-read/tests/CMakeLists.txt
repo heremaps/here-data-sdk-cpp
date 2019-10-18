@@ -27,6 +27,7 @@ set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     PartitionsRepositoryTest.cpp
     PendingRequestsTest.cpp
     SerializerTest.cpp
+    TaskContextTest.cpp
     VolatileLayerClientImplTest.cpp
     VolatileLayerClientTest.cpp
     VersionedLayerClientTest.cpp

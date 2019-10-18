@@ -275,7 +275,7 @@ MetadataApi::CatalogVersionResponse CatalogRepository::GetLatestVersion(
 
   const client::OlpClient& client = metadata_api.GetResult();
 
-  Condition condition{std::chrono::seconds{timeout}};
+  Condition condition{};
 
   // when the network operation took too much time we cancel it and exit
   // execution, to make sure that network callback will not access dangling
@@ -303,7 +303,7 @@ MetadataApi::CatalogVersionResponse CatalogRepository::GetLatestVersion(
       },
       [&condition]() { condition.Notify(); });
 
-  if (!condition.Wait()) {
+  if (!condition.Wait(std::chrono::seconds{timeout})) {
     cancellation_context.CancelOperation();
     return ApiError(ErrorCode::RequestTimeout, "Network request timed out.");
   }

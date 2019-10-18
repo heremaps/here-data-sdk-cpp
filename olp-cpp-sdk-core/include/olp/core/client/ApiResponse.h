@@ -36,6 +36,9 @@ namespace client {
 template <typename Result, typename Error>
 class ApiResponse {
  public:
+  using ResultType = Result;
+  using ErrorType = Error;
+
   /**
    * @brief ApiResponse Default constructor.
    */
@@ -44,12 +47,12 @@ class ApiResponse {
   /**
    * @brief ApiResponse Constructor for a successfully executed request.
    */
-  ApiResponse(const Result& result) : result_(result), success_(true) {}
+  ApiResponse(const ResultType& result) : result_(result), success_(true) {}
 
   /**
    * @brief ApiResponse Constructor if request unsuccessfully executed
    */
-  ApiResponse(const Error& error) : error_(error), success_(false) {}
+  ApiResponse(const ErrorType& error) : error_(error), success_(false) {}
 
   /**
    * @brief ApiResponse Copy constructor.
@@ -68,18 +71,18 @@ class ApiResponse {
    * @return A valid Result if IsSuccessful() returns true. Undefined,
    * otherwise.
    */
-  inline const Result& GetResult() const { return result_; }
+  inline const ResultType& GetResult() const { return result_; }
 
   /**
    * @brief GetError Gets the error for an unsucccessful request attempt.
    * @return A valid Error if IsSuccessful() returns false. Undefined,
    * otherwise.
    */
-  inline const Error& GetError() const { return error_; }
+  inline const ErrorType& GetError() const { return error_; }
 
  private:
-  Result result_ {};
-  Error error_ {};
+  ResultType result_{};
+  ErrorType error_{};
   bool success_ {false};
 };
 

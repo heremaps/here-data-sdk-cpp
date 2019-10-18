@@ -22,8 +22,8 @@
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/CacheMock.h>
 #include <mocks/NetworkMock.h>
-#include <olp/dataservice/read/CatalogClient.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+#include <olp/dataservice/read/CatalogClient.h>
 #include "VolatileLayerClientImpl.h"
 
 namespace {
@@ -178,25 +178,25 @@ TEST(VolatileLayerClientImplTest, GetDataCancelOnClientDestroy) {
       olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
 
   {
-    // SImulate a loaded queue
+    // Simulate a loaded queue
     settings.task_scheduler->ScheduleTask(
         []() { std::this_thread::sleep_for(std::chrono::seconds(1)); });
 
-    std::promise<DataResponse> promise;
-    std::future<DataResponse> future(promise.get_future());
-
+    DataResponse data_response;
     {
-      VolatileLayerClientImpl client(kHRN, kLayerId, settings);
-      auto token = client.GetData(
-          DataRequest().WithPartitionId(kPartitionId),
-          [&](DataResponse response) { promise.set_value(response); });
+      // Client owns the task scheduler
+      auto caller_thread_id = std::this_thread::get_id();
+      VolatileLayerClientImpl client(kHRN, kLayerId, std::move(settings));
+      client.GetData(DataRequest().WithPartitionId(kPartitionId),
+                     [&](DataResponse response) {
+                       data_response = std::move(response);
+                       EXPECT_NE(caller_thread_id, std::this_thread::get_id());
+                     });
     }
 
-    EXPECT_EQ(future.wait_for(kTimeout), std::future_status::ready);
-
-    const auto& response = future.get();
-    EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
+    // Callback must be called during client destructor.
+    EXPECT_FALSE(data_response.IsSuccessful());
+    EXPECT_EQ(data_response.GetError().GetErrorCode(),
               olp::client::ErrorCode::Cancelled);
   }
 }

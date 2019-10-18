@@ -152,8 +152,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
     }
   }
 
-  client::Condition condition(
-      std::chrono::seconds(settings.retry_settings.timeout));
+  client::Condition condition{};
 
   auto client = std::make_shared<client::OlpClient>();
   client->SetSettings(std::move(settings));
@@ -190,7 +189,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
         condition.Notify();
       });
 
-  if (!condition.Wait()) {
+  if (!condition.Wait(std::chrono::seconds(settings.retry_settings.timeout))) {
     cancellation_context.CancelOperation();
     return client::ApiError(client::ErrorCode::RequestTimeout,
                             "Network request timed out.");

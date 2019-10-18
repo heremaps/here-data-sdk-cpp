@@ -18,6 +18,7 @@
  */
 
 #include "PendingRequests.h"
+#include "TaskContext.h"
 
 namespace olp {
 namespace dataservice {
@@ -30,11 +31,18 @@ PendingRequests::~PendingRequests(){};
 bool PendingRequests::CancelPendingRequests() {
   requests_lock_.lock();
   // Create local copy of the requests to cancel
+  auto contexts = std::move(task_contexts_);
   auto requests_map = requests_map_;
+
   requests_lock_.unlock();
   for (auto& pair : requests_map) {
     pair.second.cancel();
   }
+
+  for (auto context : contexts) {
+    context.BlockingCancel();
+  }
+
   return true;
 }
 
@@ -55,6 +63,11 @@ bool PendingRequests::Insert(const client::CancellationToken& request,
   return true;
 }
 
+void PendingRequests::Insert(TaskContext task_context) {
+  std::lock_guard<std::mutex> lk(requests_lock_);
+  task_contexts_.insert(task_context);
+}
+
 bool PendingRequests::Remove(int64_t key) {
   std::lock_guard<std::mutex> lk(requests_lock_);
   auto request = requests_map_.find(key);
@@ -63,6 +76,11 @@ bool PendingRequests::Remove(int64_t key) {
     return true;
   }
   return false;
+}
+
+void PendingRequests::Remove(TaskContext task_context) {
+  std::lock_guard<std::mutex> lk(requests_lock_);
+  task_contexts_.erase(task_context);
 }
 
 }  // namespace read
