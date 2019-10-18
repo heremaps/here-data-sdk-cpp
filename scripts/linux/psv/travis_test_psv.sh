@@ -1,4 +1,7 @@
 #!/bin/bash -e
+#for core dump backtrace
+ulimit -c unlimited
+
 CPP_TEST_SOURCE_AUTHENTICATION=build/olp-cpp-sdk-authentication/tests
 CPP_TEST_SOURCE_CORE=build/olp-cpp-sdk-core/tests
 CPP_TEST_SOURCE_DARASERVICE_READ=build/olp-cpp-sdk-dataservice-read/tests
