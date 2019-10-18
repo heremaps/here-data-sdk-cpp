@@ -4,6 +4,7 @@ dist: xenial
 env:
   global:
   - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
+  - SEGFAULT_SIGNALS=all
   - WORKSPACE=$TRAVIS_BUILD_DIR
 addons:
   apt:

@@ -1,6 +1,7 @@
 #!/bin/bash -e
 # Running every test one by one
 
+
 export REPO_HOME=$PWD
 export FV_HOME=${REPO_HOME}/scripts/linux/fv
 rm -rf reports && mkdir -p reports              # folder for reports storage
@@ -12,6 +13,9 @@ fi
 
 TEST_FAILURE=0
 EXPECTED_REPORT_COUNT=6                         # expected that we generate 6 reports
+
+#for core dump backtrace
+ulimit -c unlimited
 
 # Run unit tests
 ${FV_HOME}/gitlab-olp-cpp-sdk-authentication-test.sh 2>> errors.txt || TEST_FAILURE=1
@@ -29,6 +33,9 @@ ${FV_HOME}/gitlab-olp-cpp-sdk-functional-test.sh 2>> errors.txt || TEST_FAILURE=
 if [[ ${TEST_FAILURE} == 1 ]]; then
     export REPORT_COUNT=$(ls ${REPO_HOME}/reports | wc -l)
     if [[ ${REPORT_COUNT} -ne ${EXPECTED_REPORT_COUNT} || ${REPORT_COUNT} == 0 ]]; then
+        echo "Printing error.txt ###########################################"
+        cat errors.txt
+        echo "End of error.txt #############################################"
         echo "CRASH ERROR. One of test groups contains crash. Report was not generated for that group ! "
     fi
 else
@@ -36,13 +43,15 @@ else
 fi
 
 
-for failreport in `ls ${REPO_HOME}/reports/*-report.xml`
+for failreport in $(ls ${REPO_HOME}/reports/*.xml)
 do
-    if [[ $(grep -q "<failure" ${failreport}) ]]; then
+    echo "Parsing ${failreport} ..."
+    if $(grep -q "<failure" "${failreport}" ) ; then
         echo "${failreport} contains errors : "
         cat ${failreport}
-        echo "Full log contains errors : "
+        echo "Printing error.txt ###########################################"
         cat errors.txt
+        echo "End of error.txt #############################################"
     fi
 done
 
