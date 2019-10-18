@@ -509,7 +509,7 @@ QueryApi::PartitionsResponse PartitionsRepository::GetPartitionById(
 
   const client::OlpClient& client = query_api.GetResult();
 
-  Condition condition(timeout);
+  Condition condition{};
 
   // when the network operation took too much time we cancel it and exit
   // execution, to make sure that network callback will not access dangling
@@ -539,7 +539,7 @@ QueryApi::PartitionsResponse PartitionsRepository::GetPartitionById(
       },
       [&]() { condition.Notify(); });
 
-  if (!condition.Wait()) {
+  if (!condition.Wait(timeout)) {
     cancellation_context.CancelOperation();
     return client::ApiError(client::ErrorCode::RequestTimeout,
                             "Network request timed out.");

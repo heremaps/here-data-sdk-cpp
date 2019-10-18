@@ -23,6 +23,7 @@
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/context/Context.h>
 #include <olp/core/thread/TaskScheduler.h>
+#include "TaskContext.h"
 #include "repositories/CatalogRepository.h"
 #include "repositories/DataRepository.h"
 #include "repositories/ExecuteOrSchedule.inl"
@@ -70,31 +71,27 @@ olp::client::CancellationToken VersionedLayerClientImpl::GetData(
 }
 
 client::CancellationToken VersionedLayerClientImpl::AddGetDataTask(
-    DataRequest data_request, Callback callback) const {
+    DataRequest request, Callback callback) const {
   auto catalog = catalog_;
   auto layer_id = layer_id_;
   auto settings = settings_;
   auto pending_requests = pending_requests_;
-  auto request_key = pending_requests->GenerateRequestPlaceholder();
-  olp::client::CancellationContext context;
-  olp::client::CancellationToken token(
-      [context]() mutable { context.CancelOperation(); });
 
-  pending_requests->Insert(token, request_key);
+  auto data_task = [=](client::CancellationContext context) {
+    return repository::DataRepository::GetVersionedData(
+        catalog, layer_id, settings, request, context);
+  };
 
-  repository::ExecuteOrSchedule(
-      task_scheduler_, [catalog, layer_id, settings, context, data_request,
-                        pending_requests, request_key, callback]() {
-        auto response = repository::DataRepository::GetVersionedData(
-            std::move(catalog), std::move(layer_id), std::move(settings),
-            std::move(data_request), std::move(context));
-        pending_requests->Remove(request_key);
-        if (callback) {
-          callback(std::move(response));
-        }
-      });
+  auto context = TaskContext::Create(std::move(data_task), std::move(callback));
 
-  return token;
+  pending_requests->Insert(context);
+
+  repository::ExecuteOrSchedule(task_scheduler_, [=]() {
+    context.Execute();
+    pending_requests->Remove(context);
+  });
+
+  return context.CancelToken();
 }
 
 }  // namespace read

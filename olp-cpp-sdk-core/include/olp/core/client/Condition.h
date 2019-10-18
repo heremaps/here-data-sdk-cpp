@@ -33,8 +33,7 @@ namespace client {
  */
 class Condition final {
  public:
-  Condition(std::chrono::milliseconds timeout = std::chrono::seconds(60))
-      : timeout_{timeout} {}
+  Condition() = default;
 
   /**
    * @brief Should be called by task's callback to notify \c Wait to unblock the
@@ -51,18 +50,19 @@ class Condition final {
   /**
    * @brief Waits a task for a \c Notify or \c CancellationContext to be
    * cancelled by the user.
+   * @param timeout milliseconds to wait on condition
+   * @return True on notified wake, False on timeout
    */
-  bool Wait() {
+  bool Wait(std::chrono::milliseconds timeout = std::chrono::seconds(60)) {
     std::unique_lock<std::mutex> lock(mutex_);
-    bool triggered = condition_.wait_for(
-        lock, timeout_, [&] { return signaled_; });
+    bool triggered =
+        condition_.wait_for(lock, timeout, [&] { return signaled_; });
 
     signaled_ = false;
     return triggered;
   }
 
  private:
-  const std::chrono::milliseconds timeout_;
   std::condition_variable condition_;
   std::mutex mutex_;
   bool signaled_{false};
