@@ -19,20 +19,26 @@
 
 #pragma once
 
-#include <memory>
-
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/dataservice/read/DataRequest.h>
+#include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/model/Data.h>
+#include <olp/dataservice/read/model/Partitions.h>
+
 #include "PendingRequests.h"
 
 namespace olp {
 namespace dataservice {
 namespace read {
+
+namespace repository {
+class CatalogRepository;
+class PartitionsRepository;
+}  // namespace repository
 
 class VolatileLayerClientImpl {
  public:
@@ -40,6 +46,11 @@ class VolatileLayerClientImpl {
   using DataResult = model::Data;
   /// CallbackResponse alias
   using DataResponse = client::ApiResponse<DataResult, client::ApiError>;
+  /// PartitionResult alias
+  using PartitionsResult = model::Partitions;
+  /// CallbackResponse
+  using PartitionsResponse =
+      client::ApiResponse<PartitionsResult, client::ApiError>;
   /// Callback alias
   template <class Response>
   using Callback = std::function<void(Response response)>;
@@ -49,15 +60,19 @@ class VolatileLayerClientImpl {
 
   ~VolatileLayerClientImpl();
 
+  client::CancellationToken GetPartitions(
+      PartitionsRequest request, Callback<PartitionsResponse> callback);
+
   client::CancellationToken GetData(DataRequest request,
                                     Callback<DataResponse> callback);
 
  private:
   client::HRN catalog_;
   std::string layer_id_;
-  client::OlpClientSettings settings_;
+  std::shared_ptr<client::OlpClientSettings> settings_;
   std::shared_ptr<thread::TaskScheduler> task_scheduler_;
   std::shared_ptr<PendingRequests> pending_requests_;
+  std::shared_ptr<repository::PartitionsRepository> partition_repo_;
 };
 
 }  // namespace read

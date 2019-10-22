@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
+#include <olp/core/porting/make_unique.h>
 #include <olp/dataservice/read/VolatileLayerClient.h>
 
-#include <olp/core/porting/make_unique.h>
 #include "VolatileLayerClientImpl.h"
 
 namespace olp {
@@ -33,6 +33,11 @@ VolatileLayerClient::VolatileLayerClient(client::HRN catalog,
           std::move(catalog), std::move(layer_id), std::move(settings))) {}
 
 VolatileLayerClient::~VolatileLayerClient() = default;
+
+client::CancellationToken VolatileLayerClient::GetPartitions(
+    PartitionsRequest request, Callback<PartitionsResponse> callback) {
+  return impl_->GetPartitions(std::move(request), std::move(callback));
+}
 
 client::CancellationToken VolatileLayerClient::GetData(
     DataRequest request, Callback<DataResponse> callback) {
