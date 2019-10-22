@@ -25,4 +25,6 @@ export arcgis_app_id="${arcgis_app_id}"
 export arcgis_access_token="${arcgis_access_token}"
 export integration_production_service_id="${integration_production_service_id}"
 export integration_production_service_secret="${integration_production_service_secret}"
+export dataservice_read_test_appid="${dataservice_read_test_appid}"
+export dataservice_read_test_secret="${dataservice_read_test_secret}"
 
