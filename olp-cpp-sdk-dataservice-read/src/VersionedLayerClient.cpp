@@ -40,6 +40,12 @@ olp::client::CancellationToken VersionedLayerClient::GetData(
   return impl_->GetData(std::move(data_request), std::move(callback));
 }
 
+client::CancellationToken VersionedLayerClient::GetPartitions(
+    PartitionsRequest partitions_request, PartitionsCallback callback) const {
+  return impl_->GetPartitions(std::move(partitions_request),
+                              std::move(callback));
+}
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

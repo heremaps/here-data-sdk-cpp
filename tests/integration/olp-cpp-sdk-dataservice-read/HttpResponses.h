@@ -25,7 +25,7 @@
       GetTestCatalog()
 
 #define URL_LOOKUP_METADATA \
-  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data:::hereos-internal-test-v2/apis/metadata/v1)"
+  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/)"+GetTestCatalog()+R"(/apis/metadata/v1)"
 
 #define URL_LATEST_CATALOG_VERSION \
   R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/versions/latest?startVersion=-1)"
@@ -49,7 +49,7 @@
   R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?version=3)"
 
 #define URL_LOOKUP_QUERY \
-  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data:::hereos-internal-test-v2/apis/query/v1)"
+  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/)"+GetTestCatalog()+R"(/apis/query/v1)"
 
 #define URL_QUERY_PARTITION_269 \
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?partition=269&version=4)"
@@ -64,7 +64,7 @@
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?partition=269&version=-1)"
 
 #define URL_LOOKUP_BLOB \
-  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data:::hereos-internal-test-v2/apis/blob/v1)"
+  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/)"+GetTestCatalog()+R"(/apis/blob/v1)"
 
 #define URL_BLOB_DATA_269 \
   R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/4eed6ed1-0d32-43b9-ae79-043cb4256432)"
@@ -76,7 +76,7 @@
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?partition=3&version=4)"
 
 #define URL_LOOKUP_VOLATILE_BLOB \
-  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data:::hereos-internal-test-v2/apis/volatile-blob/v1)"
+  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/)"+GetTestCatalog()+R"(/apis/volatile-blob/v1)"
 
 #define CONFIG_BASE_URL "https://config.data.api.platform.in.here.com/config/v1"
 
@@ -141,7 +141,7 @@
 
 // <PREFETCH URLs and RESPONSEs>
 #define URL_CONFIG_V2 \
-  R"(https://config.data.api.platform.here.com/config/v1/catalogs/hrn:here:data:::hereos-internal-test-v2)"
+  R"(https://config.data.api.platform.here.com/config/v1/catalogs/)"+GetTestCatalog()
 
 #define URL_QUADKEYS_23618364 \
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/23618364/depths/0)"
@@ -156,10 +156,10 @@
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/369036/depths/0)"
 
 #define URL_QUERY_PARTITION_23618365 \
-  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data:::hereos-internal-test-v2/layers/hype-test-prefetch/partitions?partition=23618365&version=4)"
+  R"(https://query.data.api.platform.here.com/query/v1/catalogs/)"+GetTestCatalog()+R"(/layers/hype-test-prefetch/partitions?partition=23618365&version=4)"
 
 #define URL_QUERY_PARTITION_1476147 \
-  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data:::hereos-internal-test-v2/layers/hype-test-prefetch/partitions?partition=1476147&version=4)"
+  R"(https://query.data.api.platform.here.com/query/v1/catalogs/)"+GetTestCatalog()+R"(/layers/hype-test-prefetch/partitions?partition=1476147&version=4)"
 
 #define URL_BLOB_DATA_PREFETCH_1 \
   R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/data/a7a1afdf-db7e-4833-9627-d38bee6e2f81)"
