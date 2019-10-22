@@ -5,10 +5,6 @@ export layer_sdii="olp-cpp-sdk-ingestion-test-stream-layer-sdii"
 export versioned_layer="olp-cpp-sdk-ingestion-test-versioned-layer"
 export volatile_layer="olp-cpp-sdk-ingestion-test-volatile-layer"
 export index_layer="olp-cpp-sdk-ingestion-test-index-layer"
-export dataservice_read_test_catalog="hrn:here:data:::here-optimized-map-for-visualization-2"
-export dataservice_read_test_layer="omv-base-v2"
-export dataservice_read_test_partition="269"
-export dataservice_read_test_layer_version="108"
 ###
 #variables below are defined previously as protected value on Gitlab
 ###
