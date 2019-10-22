@@ -32,6 +32,7 @@ endif()
 find_library(log-lib log)
 
 find_package(Boost REQUIRED)
+find_package(olp-cpp-sdk-core REQUIRED)
 find_package(olp-cpp-sdk-authentication REQUIRED)
 find_package(olp-cpp-sdk-dataservice-read REQUIRED)
 find_package(olp-cpp-sdk-dataservice-write REQUIRED)
@@ -53,6 +54,27 @@ add_custom_command(
         ${OLP_SDK_HTTP_CLIENT_JAR_FULL_PATH}
         ${CMAKE_CURRENT_SOURCE_DIR}/libs/${OLP_SDK_HTTP_CLIENT_JAR_NAME}
 )
+
+# In case when the OLP libraries are built as shared libraries,
+# it is required to copy those libraries into the example's apk archive,
+# so they can be found and loaded during the start of an application.
+# In order to add a dependency on them, need to copy those dynamic libraries
+# into `src/main/jniLibs/<android_arch>` folder:
+if (@BUILD_SHARED_LIBS@)
+    set(OLP_SDK_REQUIRED_LIBS   "olp-cpp-sdk-core"
+                                "olp-cpp-sdk-authentication"
+                                "olp-cpp-sdk-dataservice-read"
+                                "olp-cpp-sdk-dataservice-write")
+    foreach(OLP_SDK_LIBRARY IN LISTS OLP_SDK_REQUIRED_LIBS)
+        set(OLP_SDK_LIBRARY_TO_LOAD @CMAKE_SHARED_LIBRARY_PREFIX@${OLP_SDK_LIBRARY}@CMAKE_SHARED_LIBRARY_SUFFIX@)
+        add_custom_command(
+            TARGET @OLP_SDK_EXAMPLE_TARGET_NAME@ POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${CMAKE_INSTALL_PREFIX}/lib/${OLP_SDK_LIBRARY_TO_LOAD}
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/main/jniLibs/@ANDROID_ABI@/${OLP_SDK_LIBRARY_TO_LOAD}
+        )
+    endforeach()
+endif()
 
 target_include_directories(@OLP_SDK_EXAMPLE_TARGET_NAME@
     PUBLIC
