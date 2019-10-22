@@ -17,3 +17,5 @@ export dataservice_read_test_versioned_prefetch_layer="hype-test-prefetch"
 export dataservice_read_test_versioned_prefetch_tile="5904591"
 export dataservice_read_test_versioned_prefetch_subpartition1="23618365"
 export dataservice_read_test_versioned_prefetch_subpartition2="1476147"
+
+export dataservice_read_volatile_layer="testlayer"

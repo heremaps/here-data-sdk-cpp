@@ -27,7 +27,9 @@
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/dataservice/read/DataRequest.h>
+#include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/model/Data.h>
+#include <olp/dataservice/read/model/Partitions.h>
 
 namespace olp {
 namespace dataservice {
@@ -77,6 +79,11 @@ class DATASERVICE_READ_API VolatileLayerClient final {
   using DataResult = model::Data;
   /// CallbackResponse alias
   using DataResponse = client::ApiResponse<DataResult, client::ApiError>;
+  /// PartitionResult alias
+  using PartitionsResult = model::Partitions;
+  /// CallbackResponse
+  using PartitionsResponse =
+      client::ApiResponse<PartitionsResult, client::ApiError>;
   /// Callback alias
   template <class Response>
   using Callback = std::function<void(Response response)>;
@@ -93,6 +100,16 @@ class DATASERVICE_READ_API VolatileLayerClient final {
                       client::OlpClientSettings settings);
 
   ~VolatileLayerClient();
+
+  /**
+   * @brief Fetches a list partitions for given volatile layer asynchronously.
+   * @param request contains the complete set of request parameters.
+   * @param callback will be invoked once the list of partitions is available,
+   * or an error is encountered.
+   * @return A token that can be used to cancel this request
+   */
+  client::CancellationToken GetPartitions(
+      PartitionsRequest request, Callback<PartitionsResponse> callback);
 
   /**
    * @brief GetData fetches data for a partition or data handle asynchronously.

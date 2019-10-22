@@ -23,11 +23,13 @@
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
+
+#include "TaskContext.h"
+#include "repositories/ApiRepository.h"
+#include "repositories/CatalogRepository.h"
 #include "repositories/DataRepository.h"
 #include "repositories/ExecuteOrSchedule.inl"
 #include "repositories/PartitionsRepository.h"
-
-#include "TaskContext.h"
 
 namespace olp {
 namespace dataservice {
@@ -42,18 +44,60 @@ VolatileLayerClientImpl::VolatileLayerClientImpl(
     client::OlpClientSettings settings)
     : catalog_(std::move(catalog)),
       layer_id_(std::move(layer_id)),
-      settings_(std::move(settings)),
+      settings_(
+          std::make_shared<client::OlpClientSettings>(std::move(settings))),
       pending_requests_(std::make_shared<PendingRequests>()) {
-  if (!settings_.cache) {
-    settings_.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
+  if (!settings_->cache) {
+    settings_->cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
   }
   // to avoid capturing task scheduler inside a task, we need a copy of settings
   // without the scheduler
-  task_scheduler_ = std::move(settings_.task_scheduler);
+  task_scheduler_ = std::move(settings_->task_scheduler);
+
+  auto cache = settings_->cache;
+
+  auto api_repo =
+      std::make_shared<repository::ApiRepository>(catalog_, settings_, cache);
+
+  auto catalog_repo = std::make_shared<repository::CatalogRepository>(
+      catalog_, api_repo, cache);
+
+  partition_repo_ = std::make_shared<repository::PartitionsRepository>(
+      catalog_, api_repo, catalog_repo, cache);
 }
 
 VolatileLayerClientImpl::~VolatileLayerClientImpl() {
   pending_requests_->CancelPendingRequests();
+}
+
+client::CancellationToken VolatileLayerClientImpl::GetPartitions(
+    PartitionsRequest request, Callback<PartitionsResponse> callback) {
+  request.WithLayerId(layer_id_);
+  client::CancellationToken token;
+  int64_t request_key = pending_requests_->GenerateRequestPlaceholder();
+  auto pending_requests = pending_requests_;
+  auto request_callback = [pending_requests, request_key,
+                           callback](PartitionsResponse response) {
+    if (pending_requests->Remove(request_key)) {
+      callback(response);
+    }
+  };
+  if (CacheWithUpdate == request.GetFetchOption()) {
+    token = partition_repo_->GetPartitions(request.WithFetchOption(CacheOnly),
+                                           request_callback);
+    auto onlineKey = pending_requests_->GenerateRequestPlaceholder();
+    pending_requests_->Insert(
+        partition_repo_->GetPartitions(
+            request.WithFetchOption(OnlineIfNotFound),
+            [pending_requests, onlineKey](PartitionsResponse) {
+              pending_requests->Remove(onlineKey);
+            }),
+        onlineKey);
+  } else {
+    token = partition_repo_->GetPartitions(request, request_callback);
+  }
+  pending_requests_->Insert(token, request_key);
+  return token;
 }
 
 client::CancellationToken VolatileLayerClientImpl::GetData(
@@ -61,7 +105,7 @@ client::CancellationToken VolatileLayerClientImpl::GetData(
   auto add_task = [&](DataRequest& request, Callback<DataResponse> callback) {
     auto catalog = catalog_;
     auto layer_id = layer_id_;
-    auto settings = settings_;
+    auto settings = *settings_;
     auto pending_requests = pending_requests_;
 
     auto data_task = [=](client::CancellationContext context) {
