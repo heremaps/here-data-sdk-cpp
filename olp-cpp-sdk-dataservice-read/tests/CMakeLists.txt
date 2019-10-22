@@ -30,7 +30,6 @@ set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     TaskContextTest.cpp
     VolatileLayerClientImplTest.cpp
     VolatileLayerClientTest.cpp
-    VersionedLayerClientTest.cpp
 )
 
 if (ANDROID OR IOS)

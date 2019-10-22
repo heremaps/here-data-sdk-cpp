@@ -28,7 +28,9 @@
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
+#include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/model/Data.h>
+#include <olp/dataservice/read/model/Partitions.h>
 
 namespace olp {
 namespace dataservice {
@@ -47,6 +49,10 @@ class DATASERVICE_READ_API VersionedLayerClient final {
   /// Callback alias
   using Callback = std::function<void(CallbackResponse response)>;
 
+  using PartitionsResult = model::Partitions;
+  using PartitionsResponse =
+      client::ApiResponse<PartitionsResult, client::ApiError>;
+  using PartitionsCallback = std::function<void(PartitionsResponse response)>;
   /**
    * @brief VersionedLayerClient constructor
    * @param catalog this versioned layer client uses during requests.
@@ -74,6 +80,18 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    */
   olp::client::CancellationToken GetData(DataRequest data_request,
                                          Callback callback);
+
+  /**
+   * @brief fetches a list partitions for given generic layer asynchronously.
+   * @param request contains the complete set of request parameters.
+   * \note \c PartitionsRequest's GetLayerId value will be ignored and the
+   * parameter from the constructor will be used instead.
+   * @param callback will be invoked once the list of partitions is available,
+   * or an error is encountered.
+   * @return A token that can be used to cancel this request
+   */
+  client::CancellationToken GetPartitions(PartitionsRequest partitions_request,
+                                          PartitionsCallback callback) const;
 
  private:
   std::unique_ptr<VersionedLayerClientImpl> impl_;
