@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 #include <chrono>
 #include <string>
 
@@ -49,7 +49,9 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
     olp::authentication::Settings auth_settings({appid, secret});
     auth_settings.network_request_handler = network;
 
+    olp::authentication::TokenProviderDefault provider(auth_settings);
     olp::client::AuthenticationSettings auth_client_settings;
+    auth_client_settings.provider = provider;
 
     settings_ = std::make_shared<olp::client::OlpClientSettings>();
     settings_->network_request_handler = network;
