@@ -167,8 +167,16 @@ class EnabledAutoFlushControllerImpl
     NotifyFlushEventStart();
     auto flush_thread = std::thread([self, impl_pointer]() {
       auto id = self->background_task_col_.AddTask();
-      auto cancel_token =
-          impl_pointer->Flush([self, id](FlushResponse results) {
+
+      const auto num_requests_to_flush =
+          self->flush_settings_.events_per_single_flush
+              ? *(self->flush_settings_.events_per_single_flush)
+              : 0;
+      model::FlushRequest request =
+          model::FlushRequest().WithNumberOfRequestsToFlush(
+              num_requests_to_flush);
+      auto cancel_token = impl_pointer->Flush(
+          std::move(request), [self, id](FlushResponse results) {
             self->background_task_col_.ReleaseTask(id);
             self->RemoveCancelToken(id);
             self->NotifyFlushEventResults(results);

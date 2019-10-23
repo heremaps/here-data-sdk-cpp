@@ -24,11 +24,11 @@
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/OlpClientSettings.h>
-
 #include <olp/dataservice/write/DataServiceWriteApi.h>
 #include <olp/dataservice/write/FlushSettings.h>
 #include <olp/dataservice/write/generated/model/ResponseOk.h>
 #include <olp/dataservice/write/generated/model/ResponseOkSingle.h>
+#include <olp/dataservice/write/model/FlushRequest.h>
 #include <olp/dataservice/write/model/PublishDataRequest.h>
 #include <olp/dataservice/write/model/PublishSdiiRequest.h>
 
@@ -119,17 +119,25 @@ class DATASERVICE_WRITE_API StreamLayerClient {
   /**
    * @brief Flush PublishDataRequests which have been queued via the Queue
    * API.
+   * @param request \c FlushRequest object representing the parameters for
+   * this \c Flush method call.
    * @return A CancellableFuture containing the FlushResponse.
    */
-  olp::client::CancellableFuture<FlushResponse> Flush();
+  olp::client::CancellableFuture<FlushResponse> Flush(
+      model::FlushRequest request);
 
   /**
    * @brief Flush PublishDataRequests which have been queued via the Queue
    * API.
+   * @param request \c FlushRequest object representing the parameters for
+   * this \c Flush method call.
+   * @param callback The callback which will be called when all the flush
+   * results (see \c FlushResponse) will be available.
    * @return A CancellationToken which can be used to cancel the ongoing
    * request.
    */
-  olp::client::CancellationToken Flush(FlushCallback callback);
+  olp::client::CancellationToken Flush(model::FlushRequest request,
+                                       FlushCallback callback);
 
   /**
    * @brief Call to send a list of SDII messages to an OLP Stream Layer.
