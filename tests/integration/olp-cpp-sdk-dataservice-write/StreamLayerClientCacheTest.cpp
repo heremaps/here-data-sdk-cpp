@@ -226,7 +226,13 @@ class StreamLayerClientCacheTest : public ::testing::Test {
           PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
       EXPECT_FALSE(error) << error.get();
     }
-    auto response = client_->Flush().GetFuture().get();
+
+    const auto num_requests_to_flush =
+        max_events_per_flush ? *max_events_per_flush : 0;
+    auto flush_request = model::FlushRequest().WithNumberOfRequestsToFlush(
+        num_requests_to_flush);
+
+    auto response = client_->Flush(std::move(flush_request)).GetFuture().get();
     if (!max_events_per_flush || *max_events_per_flush > 5) {
       EXPECT_EQ(5, response.size());
     } else if (*max_events_per_flush <= 0) {
@@ -302,7 +308,7 @@ TEST_F(StreamLayerClientCacheTest, FlushDataSingle) {
 
   ASSERT_FALSE(error) << error.get();
 
-  auto response = client_->Flush().GetFuture().get();
+  auto response = client_->Flush(model::FlushRequest()).GetFuture().get();
 
   ASSERT_FALSE(response.empty());
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response[0]));
@@ -324,7 +330,7 @@ TEST_F(StreamLayerClientCacheTest, FlushDataMultiple) {
 
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(5));
 
-  auto response = client_->Flush().GetFuture().get();
+  auto response = client_->Flush(model::FlushRequest()).GetFuture().get();
 
   ASSERT_EQ(5, response.size());
   for (auto& single_response : response) {
@@ -360,7 +366,7 @@ TEST_F(StreamLayerClientCacheTest, DISABLED_FlushDataCancel) {
 
   ASSERT_FALSE(error) << error.get();
 
-  auto promise = client_->Flush();
+  auto promise = client_->Flush(model::FlushRequest());
   wait_for_cancel->get_future().get();
   promise.GetCancellationToken().cancel();
   pause_for_cancel->set_value();
@@ -599,7 +605,6 @@ TEST_F(StreamLayerClientCacheTest, FlushDataMaxEventsDefaultSetting) {
 TEST_F(StreamLayerClientCacheTest, FlushDataMaxEventsValidCustomSetting) {
   const int max_events_per_flush = 3;
   disk_cache_->Close();
-  flush_settings_.events_per_single_flush = max_events_per_flush;
   client_ = CreateStreamLayerClient();
   {
     testing::InSequence dummy;
@@ -621,7 +626,6 @@ TEST_F(StreamLayerClientCacheTest, FlushDataMaxEventsValidCustomSetting) {
 TEST_F(StreamLayerClientCacheTest, FlushDataMaxEventsInvalidCustomSetting) {
   const int max_events_per_flush = -3;
   disk_cache_->Close();
-  flush_settings_.events_per_single_flush = max_events_per_flush;
   client_ = CreateStreamLayerClient();
   {
     testing::InSequence dummy;
@@ -693,7 +697,7 @@ TEST_F(StreamLayerClientCacheTest, FlushSettingsMaximumRequests) {
   }
 
   QueueMultipleEvents(15);
-  auto response = client_->Flush().GetFuture().get();
+  auto response = client_->Flush(model::FlushRequest()).GetFuture().get();
 
   ASSERT_EQ(15, response.size());
   for (auto& single_response : response) {

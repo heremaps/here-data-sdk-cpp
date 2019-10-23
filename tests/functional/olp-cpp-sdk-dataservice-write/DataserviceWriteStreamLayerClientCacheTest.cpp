@@ -232,7 +232,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataSingle) {
 
   ASSERT_FALSE(error) << error.get();
 
-  auto response = client_->Flush().GetFuture().get();
+  auto response = client_->Flush(model::FlushRequest()).GetFuture().get();
 
   ASSERT_FALSE(response.empty());
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response[0]));
@@ -241,7 +241,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataSingle) {
 TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataMultiple) {
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(5));
 
-  auto response = client_->Flush().GetFuture().get();
+  auto response = client_->Flush(model::FlushRequest()).GetFuture().get();
 
   ASSERT_EQ(5, response.size());
   for (auto& single_response : response) {
@@ -257,8 +257,8 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataSingleAsync) {
 
   std::promise<StreamLayerClient::FlushResponse> response_promise;
   bool call_is_async = true;
-  auto cancel_token =
-      client_->Flush([&](StreamLayerClient::FlushResponse response) {
+  auto cancel_token = client_->Flush(
+      model::FlushRequest(), [&](StreamLayerClient::FlushResponse response) {
         call_is_async = false;
         response_promise.set_value(response);
       });
@@ -280,8 +280,8 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataMultipleAsync) {
 
   std::promise<StreamLayerClient::FlushResponse> response_promise;
   bool call_is_async = true;
-  auto cancel_token =
-      client_->Flush([&](StreamLayerClient::FlushResponse response) {
+  auto cancel_token = client_->Flush(
+      model::FlushRequest(), [&](StreamLayerClient::FlushResponse response) {
         call_is_async = false;
         response_promise.set_value(response);
       });
@@ -306,7 +306,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataCancel) {
 
   ASSERT_FALSE(error) << error.get();
 
-  auto cancel_future = client_->Flush();
+  auto cancel_future = client_->Flush(model::FlushRequest());
 
   std::thread([cancel_future]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(200));

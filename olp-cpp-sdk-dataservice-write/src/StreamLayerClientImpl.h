@@ -57,9 +57,10 @@ class StreamLayerClientImpl
       const model::PublishDataRequest& request, PublishDataCallback callback);
 
   boost::optional<std::string> Queue(const model::PublishDataRequest& request);
-  olp::client::CancellableFuture<StreamLayerClient::FlushResponse> Flush();
+  olp::client::CancellableFuture<StreamLayerClient::FlushResponse> Flush(
+      model::FlushRequest request);
   olp::client::CancellationToken Flush(
-      StreamLayerClient::FlushCallback callback);
+      model::FlushRequest request, StreamLayerClient::FlushCallback callback);
   size_t QueueSize() const;
   boost::optional<model::PublishDataRequest> PopFromQueue();
 

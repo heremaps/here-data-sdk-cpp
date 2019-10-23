@@ -59,13 +59,13 @@ boost::optional<std::string> StreamLayerClient::Queue(
 }
 
 olp::client::CancellableFuture<StreamLayerClient::FlushResponse>
-StreamLayerClient::Flush() {
-  return impl_->Flush();
+StreamLayerClient::Flush(model::FlushRequest request) {
+  return impl_->Flush(std::move(request));
 }
 
 olp::client::CancellationToken StreamLayerClient::Flush(
-    FlushCallback callback) {
-  return impl_->Flush(std::move(callback));
+    model::FlushRequest request, FlushCallback callback) {
+  return impl_->Flush(std::move(request), std::move(callback));
 }
 
 olp::client::CancellableFuture<PublishSdiiResponse>

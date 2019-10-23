@@ -359,11 +359,11 @@ StreamLayerClientImpl::PopFromQueue() {
 }
 
 olp::client::CancellableFuture<StreamLayerClient::FlushResponse>
-StreamLayerClientImpl::Flush() {
+StreamLayerClientImpl::Flush(model::FlushRequest request) {
   auto promise =
       std::make_shared<std::promise<StreamLayerClient::FlushResponse> >();
-  auto cancel_token =
-      Flush([promise](StreamLayerClient::FlushResponse response) {
+  auto cancel_token = Flush(
+      std::move(request), [promise](StreamLayerClient::FlushResponse response) {
         promise->set_value(std::move(response));
       });
   return CancellableFuture<StreamLayerClient::FlushResponse>(cancel_token,
@@ -371,7 +371,7 @@ StreamLayerClientImpl::Flush() {
 }
 
 olp::client::CancellationToken StreamLayerClientImpl::Flush(
-    StreamLayerClient::FlushCallback callback) {
+    model::FlushRequest request, StreamLayerClient::FlushCallback callback) {
   CancellationContext cancel_context;
 
   auto self = shared_from_this();
@@ -379,14 +379,14 @@ olp::client::CancellationToken StreamLayerClientImpl::Flush(
   auto func = [=]() mutable {
     StreamLayerClient::FlushResponse response;
 
-    auto maximum_events_number = self->flush_settings_.events_per_single_flush;
-    if (maximum_events_number && *maximum_events_number <= 0) {
+    const auto maximum_events_number = request.GetNumberOfRequestsToFlush();
+    if (maximum_events_number < 0) {
       callback(std::move(response));
       return;
     }
 
     int counter = 0;
-    while ((!maximum_events_number || counter < *maximum_events_number) &&
+    while ((!maximum_events_number || counter < maximum_events_number) &&
            (self->QueueSize() > 0) && !cancel_context.IsCancelled()) {
       auto publish_request = self->PopFromQueue();
       if (publish_request == boost::none) {

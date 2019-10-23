@@ -112,7 +112,8 @@ int RunExample() {
     }
 
     // Flush and wait for uploading
-    auto future_response = client->Flush();
+    auto flush_request = FlushRequest();
+    auto future_response = client->Flush(std::move(flush_request));
     auto responses = future_response.GetFuture().get();
     if (responses.empty()) {
       OLP_SDK_LOG_ERROR_F(kLogTag, "Error on Flush()");
