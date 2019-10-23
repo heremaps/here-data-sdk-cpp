@@ -31,6 +31,13 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     $<INSTALL_INTERFACE:include>
     PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>)
 
+target_compile_definitions(${PROJECT_NAME}
+    PRIVATE DATASERVICE_WRITE_LIBRARY)
+if(BUILD_SHARED_LIBS)
+    target_compile_definitions(${PROJECT_NAME}
+        PUBLIC DATASERVICE_WRITE_SHARED_LIBRARY)
+endif()
+
 # Used also in the package config file
 set(PROJECT_LIBS olp-cpp-sdk-core)
 
