@@ -54,10 +54,11 @@ class DataRepository final {
                const std::string& layerType, const read::DataRequest& request,
                const read::DataResponseCallback& callback);
 
-  static DataResponse GetVersionedData(
-      olp::client::HRN catalog, std::string layer_id,
-      olp::client::OlpClientSettings client_settings, DataRequest data_request,
-      olp::client::CancellationContext context);
+  static DataResponse GetVersionedData(const client::HRN& catalog,
+                                       const std::string& layer_id,
+                                       DataRequest data_request,
+                                       client::CancellationContext context,
+                                       client::OlpClientSettings settings);
 
   static DataResponse GetVolatileData(const client::HRN& catalog,
                                       const std::string& layer_id,

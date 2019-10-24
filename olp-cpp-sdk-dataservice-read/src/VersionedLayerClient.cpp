@@ -26,16 +26,15 @@ namespace olp {
 namespace dataservice {
 namespace read {
 
-VersionedLayerClient::VersionedLayerClient(
-    olp::client::HRN catalog, std::string layer_id,
-    olp::client::OlpClientSettings client_settings)
+VersionedLayerClient::VersionedLayerClient(client::HRN catalog,
+                                           std::string layer_id,
+                                           client::OlpClientSettings settings)
     : impl_(std::make_unique<VersionedLayerClientImpl>(
-          std::move(catalog), std::move(layer_id),
-          std::move(client_settings))) {}
+          std::move(catalog), std::move(layer_id), std::move(settings))) {}
 
 VersionedLayerClient::~VersionedLayerClient() = default;
 
-olp::client::CancellationToken VersionedLayerClient::GetData(
+client::CancellationToken VersionedLayerClient::GetData(
     DataRequest data_request, Callback callback) {
   return impl_->GetData(std::move(data_request), std::move(callback));
 }
@@ -46,7 +45,7 @@ client::CancellationToken VersionedLayerClient::GetPartitions(
                               std::move(callback));
 }
 
-olp::client::CancellationToken VersionedLayerClient::PrefetchTiles(
+client::CancellationToken VersionedLayerClient::PrefetchTiles(
     PrefetchTilesRequest request, PrefetchTilesResponseCallback callback) {
   return impl_->PrefetchTiles(std::move(request), std::move(callback));
 }

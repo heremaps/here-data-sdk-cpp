@@ -92,9 +92,9 @@ client::CancellationToken VolatileLayerClientImpl::GetData(
       cache_token.cancel();
       online_token.cancel();
     });
+  } else {
+    return add_task(request, std::move(callback));
   }
-
-  return add_task(request, std::move(callback));
 }
 
 }  // namespace read

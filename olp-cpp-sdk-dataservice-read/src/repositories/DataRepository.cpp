@@ -43,6 +43,7 @@ using namespace olp::client;
 namespace {
 constexpr auto kDataInlinePrefix = "data:";
 constexpr auto kLogTag = "DataRepository";
+constexpr auto kBlobService = "blob";
 constexpr auto kVolatileBlobService = "volatile-blob";
 
 void GetDataInternal(std::shared_ptr<CancellationContext> cancellationContext,
@@ -330,40 +331,47 @@ void DataRepository::GetData(
 }
 
 DataRepository::DataResponse DataRepository::GetVersionedData(
-    HRN catalog, std::string layer_id, OlpClientSettings client_settings,
-    DataRequest data_request, CancellationContext context) {
-  if (!data_request.GetDataHandle()) {
-    if (!data_request.GetVersion()) {
+    const client::HRN& catalog, const std::string& layer_id,
+    DataRequest request, client::CancellationContext context,
+    client::OlpClientSettings settings) {
+  if (!request.GetDataHandle()) {
+    if (!request.GetVersion()) {
       // get latest version of the layer if it wasn't set by the user
       auto latest_version_response =
-          repository::CatalogRepository::GetLatestVersion(
-              catalog, context, data_request, client_settings);
+          repository::CatalogRepository::GetLatestVersion(catalog, context,
+                                                          request, settings);
       if (!latest_version_response.IsSuccessful()) {
         return latest_version_response.GetError();
       }
-      data_request.WithVersion(
-          latest_version_response.GetResult().GetVersion());
+      request.WithVersion(latest_version_response.GetResult().GetVersion());
     }
 
     // get data handle for a partition to be queried
     auto partitions_response =
         repository::PartitionsRepository::GetPartitionById(
-            catalog, layer_id, context, data_request, client_settings);
+            catalog, layer_id, context, request, settings);
+
     if (!partitions_response.IsSuccessful()) {
       return partitions_response.GetError();
     }
-    auto partitions = partitions_response.GetResult().GetPartitions();
+
+    const auto& partitions = partitions_response.GetResult().GetPartitions();
     if (partitions.empty()) {
+      OLP_SDK_LOG_INFO_F(kLogTag, "Partition %s not found",
+                         request.GetPartitionId()
+                             ? request.GetPartitionId().get().c_str()
+                             : "<none>");
+
       return client::ApiError(client::ErrorCode::NotFound,
                               "Partition not found");
     }
-    data_request.WithDataHandle(partitions.front().GetDataHandle());
+
+    request.WithDataHandle(partitions.front().GetDataHandle());
   }
 
   // finally get the data using a data handle
-  auto data_response = repository::DataRepository::GetBlobData(
-      catalog, layer_id, "blob", data_request, context, client_settings);
-  return data_response;
+  return repository::DataRepository::GetBlobData(
+      catalog, layer_id, kBlobService, request, context, settings);
 }
 
 DataRepository::DataResponse DataRepository::GetBlobData(
@@ -476,18 +484,19 @@ DataRepository::DataResponse DataRepository::GetBlobData(
 }
 
 DataRepository::DataResponse DataRepository::GetVolatileData(
-    const client::HRN& catalog, const std::string& layer_id, DataRequest request,
-    client::CancellationContext context,
+    const client::HRN& catalog, const std::string& layer_id,
+    DataRequest request, client::CancellationContext context,
     client::OlpClientSettings settings) {
   if (!request.GetDataHandle()) {
-    auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog, layer_id, context, request, settings);
+    auto partitions_response =
+        repository::PartitionsRepository::GetPartitionById(
+            catalog, layer_id, context, request, settings);
 
-    if (!response.IsSuccessful()) {
-      return response.GetError();
+    if (!partitions_response.IsSuccessful()) {
+      return partitions_response.GetError();
     }
 
-    const auto& partitions = response.GetResult().GetPartitions();
+    const auto& partitions = partitions_response.GetResult().GetPartitions();
     if (partitions.empty()) {
       OLP_SDK_LOG_INFO_F(kLogTag, "Partition %s not found",
                          request.GetPartitionId()
@@ -501,10 +510,8 @@ DataRepository::DataResponse DataRepository::GetVolatileData(
     request.WithDataHandle(partitions.front().GetDataHandle());
   }
 
-  auto blob_response = repository::DataRepository::GetBlobData(
+  return repository::DataRepository::GetBlobData(
       catalog, layer_id, kVolatileBlobService, request, context, settings);
-
-  return std::move(blob_response);
 }
 
 }  // namespace repository
