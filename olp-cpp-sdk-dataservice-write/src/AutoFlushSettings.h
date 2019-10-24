@@ -19,22 +19,27 @@
 
 #pragma once
 
-#include <string>
-
-#include <boost/optional.hpp>
-
-#include <olp/dataservice/write/DataServiceWriteApi.h>
-
 namespace olp {
 namespace dataservice {
 namespace write {
 
-struct DATASERVICE_WRITE_API FlushSettings {
+struct AutoFlushSettings {
   /**
-    @brief The maximum number of requests that can be stored
-    boost::none to store all requests. Must be positive.
+   * How many requests can be cached before an auto flush event is triggered.
+   */
+  int auto_flush_num_events = 20;
+
+  /**
+   * The period (in seconds) between sequential auto flush events when using
+   * interval based auto-flush. Setting 0 indicates this feature is disabled.
+   */
+  int auto_flush_interval = 0;
+
+  /**
+    @brief The maximum number of partitions to be flushed each time.Set
+    0 to flush all partitions. Non-positive number will flush nothing.
   */
-  boost::optional<size_t> maximum_requests = boost::none;
+  int events_per_single_flush = 0;
 };
 
 }  // namespace write

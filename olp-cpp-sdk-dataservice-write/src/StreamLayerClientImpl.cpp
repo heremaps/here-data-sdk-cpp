@@ -90,7 +90,7 @@ StreamLayerClientImpl::StreamLayerClientImpl(HRN catalog,
       cache_(settings_.cache),
       cache_mutex_(),
       flush_settings_(std::move(flush_settings)),
-      auto_flush_controller_(new AutoFlushController(flush_settings_)) {}
+      auto_flush_controller_(new AutoFlushController(AutoFlushSettings{})) {}
 
 CancellationToken StreamLayerClientImpl::InitApiClients(
     const std::shared_ptr<CancellationContext>& cancel_context,

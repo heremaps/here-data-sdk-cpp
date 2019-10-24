@@ -19,6 +19,7 @@
 
 #include "AutoFlushController.h"
 
+#include <olp/dataservice/write/StreamLayerClient.h>
 #include "BackgroundTaskCollection.h"
 #include "StreamLayerClientImpl.h"
 #include "TimeUtils.h"
@@ -59,10 +60,10 @@ class EnabledAutoFlushControllerImpl
           EnabledAutoFlushControllerImpl<ClientImpl, FlushResponse>> {
  public:
   EnabledAutoFlushControllerImpl(
-      std::shared_ptr<ClientImpl> client_impl, FlushSettings flush_settings,
+      std::shared_ptr<ClientImpl> client_impl, AutoFlushSettings flush_settings,
       std::shared_ptr<FlushEventListener<FlushResponse>> listener)
       : client_impl_(client_impl),
-        flush_settings_(flush_settings),
+        flush_settings_(std::move(flush_settings)),
         listener_(listener),
         background_task_col_(),
         cancel_mutex_(),
@@ -169,9 +170,7 @@ class EnabledAutoFlushControllerImpl
       auto id = self->background_task_col_.AddTask();
 
       const auto num_requests_to_flush =
-          self->flush_settings_.events_per_single_flush
-              ? *(self->flush_settings_.events_per_single_flush)
-              : 0;
+          self->flush_settings_.events_per_single_flush;
       model::FlushRequest request =
           model::FlushRequest().WithNumberOfRequestsToFlush(
               num_requests_to_flush);
@@ -224,7 +223,7 @@ class EnabledAutoFlushControllerImpl
 
  private:
   std::weak_ptr<ClientImpl> client_impl_;
-  FlushSettings flush_settings_;
+  AutoFlushSettings flush_settings_;
   std::shared_ptr<FlushEventListener<FlushResponse>> listener_;
   BackgroundTaskCollection<size_t> background_task_col_;
   std::mutex cancel_mutex_;
@@ -232,7 +231,8 @@ class EnabledAutoFlushControllerImpl
   bool is_cancelled_{false};
 };
 
-AutoFlushController::AutoFlushController(const FlushSettings& flush_settings)
+AutoFlushController::AutoFlushController(
+    const AutoFlushSettings& flush_settings)
     : flush_settings_(flush_settings),
       impl_(std::make_shared<DisabledAutoFlushControllerImpl>()) {}
 
