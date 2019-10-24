@@ -19,10 +19,11 @@
 
 #pragma once
 
+#include <future>
 #include <memory>
 
 #include <olp/dataservice/write/FlushEventListener.h>
-#include <olp/dataservice/write/StreamLayerClient.h>
+#include "AutoFlushSettings.h"
 
 namespace olp {
 namespace dataservice {
@@ -30,7 +31,7 @@ namespace write {
 
 class AutoFlushController {
  public:
-  AutoFlushController(const FlushSettings& flush_settings);
+  AutoFlushController(const AutoFlushSettings& flush_settings);
 
   template <typename ClientImpl, typename FlushResponse>
   void Enable(std::shared_ptr<ClientImpl> client_impl,
@@ -56,7 +57,7 @@ class AutoFlushController {
   };
 
  private:
-  FlushSettings flush_settings_;
+  AutoFlushSettings flush_settings_;
   std::shared_ptr<AutoFlushControllerImpl> impl_;
 };
 
