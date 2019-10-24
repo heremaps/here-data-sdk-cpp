@@ -68,13 +68,14 @@ class DATASERVICE_READ_API VersionedLayerClient final {
 
   /**
    * @brief VersionedLayerClient constructor
-   * @param catalog this versioned layer client uses during requests.
-   * @param layer_id this versioned layer client uses during requests.
-   * @param settings the settings used to control behaviour of the client
-   * instance.
+   * @param catalog a catalog that the versioned layer client uses during
+   * requests.
+   * @param layer_id a layer id that the versioned layer client uses during
+   * requests.
+   * @param settings settings used to control the client instance behavior.
    */
-  VersionedLayerClient(olp::client::HRN catalog, std::string layer_id,
-                       olp::client::OlpClientSettings client_settings);
+  VersionedLayerClient(client::HRN catalog, std::string layer_id,
+                       client::OlpClientSettings settings);
 
   ~VersionedLayerClient();
 
@@ -91,8 +92,8 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * error is encountered.
    * @return A token that can be used to cancel this request.
    */
-  olp::client::CancellationToken GetData(DataRequest data_request,
-                                         Callback callback);
+  client::CancellationToken GetData(DataRequest data_request,
+                                    Callback callback);
 
   /**
    * @brief fetches a list partitions for given generic layer asynchronously.
@@ -123,7 +124,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * available, or an error is encountered.
    * @return A token that can be used to cancel this request.
    */
-  olp::client::CancellationToken PrefetchTiles(
+  client::CancellationToken PrefetchTiles(
       PrefetchTilesRequest request, PrefetchTilesResponseCallback callback);
 
  private:

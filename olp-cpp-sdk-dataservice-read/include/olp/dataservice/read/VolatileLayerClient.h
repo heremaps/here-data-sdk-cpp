@@ -87,8 +87,7 @@ class DATASERVICE_READ_API VolatileLayerClient final {
    * requests.
    * @param layer_id a layer id that the volatile layer client uses during
    * requests.
-   * @param client_settings settings used to control the client instance
-   * behavior.
+   * @param settings settings used to control the client instance behavior.
    */
   VolatileLayerClient(client::HRN catalog, std::string layer_id,
                       client::OlpClientSettings settings);

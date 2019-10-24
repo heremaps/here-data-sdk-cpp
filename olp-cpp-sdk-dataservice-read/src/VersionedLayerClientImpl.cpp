@@ -37,16 +37,15 @@ namespace dataservice {
 namespace read {
 
 VersionedLayerClientImpl::VersionedLayerClientImpl(
-    olp::client::HRN catalog, std::string layer_id,
-    olp::client::OlpClientSettings client_settings)
+    client::HRN catalog, std::string layer_id,
+    client::OlpClientSettings settings)
     : catalog_(std::move(catalog)),
       layer_id_(std::move(layer_id)),
-      settings_(std::make_shared<olp::client::OlpClientSettings>(
-          std::move(client_settings))),
+      settings_(
+          std::make_shared<client::OlpClientSettings>(std::move(settings))),
       pending_requests_(std::make_shared<PendingRequests>()) {
   if (!settings_->cache) {
-    settings_->cache =
-        olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+    settings_->cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
   }
   // to avoid capturing task scheduler inside a task, we need a copy of settings
   // without the scheduler
@@ -79,7 +78,7 @@ VersionedLayerClientImpl::~VersionedLayerClientImpl() {
 client::CancellationToken VersionedLayerClientImpl::GetPartitions(
     PartitionsRequest partitions_request, PartitionsCallback callback) const {
   partitions_request.WithLayerId(layer_id_);
-  olp::client::CancellationToken token;
+  client::CancellationToken token;
   int64_t request_key = pending_requests_->GenerateRequestPlaceholder();
   auto pending_requests = pending_requests_;
   auto request_callback = [pending_requests, request_key,
@@ -107,48 +106,48 @@ client::CancellationToken VersionedLayerClientImpl::GetPartitions(
   return token;
 }
 
-olp::client::CancellationToken VersionedLayerClientImpl::GetData(
-    DataRequest data_request, Callback callback) const {
-  auto fetch_option = data_request.GetFetchOption();
-  if (fetch_option == CacheWithUpdate) {
-    auto cache_token = AddGetDataTask(data_request.WithFetchOption(CacheOnly),
-                                      std::move(callback));
+client::CancellationToken VersionedLayerClientImpl::GetData(
+    DataRequest request, Callback callback) const {
+  auto add_task = [&](DataRequest& request, Callback callback) {
+    auto catalog = catalog_;
+    auto layer_id = layer_id_;
+    auto settings = *settings_;
+    auto pending_requests = pending_requests_;
+
+    auto data_task = [=](client::CancellationContext context) {
+      return repository::DataRepository::GetVersionedData(
+          catalog, layer_id, request, context, settings);
+    };
+
+    auto context =
+        TaskContext::Create(std::move(data_task), std::move(callback));
+
+    pending_requests->Insert(context);
+
+    repository::ExecuteOrSchedule(task_scheduler_, [=]() {
+      context.Execute();
+      pending_requests->Remove(context);
+    });
+
+    return context.CancelToken();
+  };
+
+  if (request.GetFetchOption() == FetchOptions::CacheWithUpdate) {
+    auto cache_token = add_task(
+        request.WithFetchOption(FetchOptions::CacheOnly), std::move(callback));
     auto online_token =
-        AddGetDataTask(data_request.WithFetchOption(OnlineIfNotFound), nullptr);
-    return client::CancellationToken([cache_token, online_token]() {
+        add_task(request.WithFetchOption(FetchOptions::OnlineOnly), nullptr);
+
+    return client::CancellationToken([=]() {
       cache_token.cancel();
       online_token.cancel();
     });
   } else {
-    return AddGetDataTask(data_request, std::move(callback));
+    return add_task(request, std::move(callback));
   }
 }
 
-client::CancellationToken VersionedLayerClientImpl::AddGetDataTask(
-    DataRequest request, Callback callback) const {
-  auto catalog = catalog_;
-  auto layer_id = layer_id_;
-  auto settings = *settings_;
-  auto pending_requests = pending_requests_;
-
-  auto data_task = [=](client::CancellationContext context) {
-    return repository::DataRepository::GetVersionedData(
-        catalog, layer_id, settings, request, context);
-  };
-
-  auto context = TaskContext::Create(std::move(data_task), std::move(callback));
-
-  pending_requests->Insert(context);
-
-  repository::ExecuteOrSchedule(task_scheduler_, [=]() {
-    context.Execute();
-    pending_requests->Remove(context);
-  });
-
-  return context.CancelToken();
-}
-
-olp::client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
+client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
     PrefetchTilesRequest request, PrefetchTilesResponseCallback callback) {
   const int64_t request_key = pending_requests_->GenerateRequestPlaceholder();
   auto pending_requests = pending_requests_;

@@ -70,28 +70,24 @@ class VersionedLayerClientImpl {
   using PrefetchTilesResponseCallback =
       std::function<void(const PrefetchTilesResponse& response)>;
 
-  VersionedLayerClientImpl(olp::client::HRN catalog, std::string layer_id,
-                           olp::client::OlpClientSettings client_settings);
+  VersionedLayerClientImpl(client::HRN catalog, std::string layer_id,
+                           client::OlpClientSettings settings);
 
   virtual ~VersionedLayerClientImpl();
 
-  virtual olp::client::CancellationToken GetData(DataRequest data_request,
-                                                 Callback callback) const;
+  virtual client::CancellationToken GetData(DataRequest data_request,
+                                            Callback callback) const;
 
   virtual client::CancellationToken GetPartitions(
       PartitionsRequest partitions_request, PartitionsCallback callback) const;
 
-  virtual olp::client::CancellationToken PrefetchTiles(
+  virtual client::CancellationToken PrefetchTiles(
       PrefetchTilesRequest request, PrefetchTilesResponseCallback callback);
 
- private:
-  olp::client::CancellationToken AddGetDataTask(DataRequest data_request,
-                                                Callback callback) const;
-
  protected:
-  olp::client::HRN catalog_;
+  client::HRN catalog_;
   std::string layer_id_;
-  std::shared_ptr<olp::client::OlpClientSettings> settings_;
+  std::shared_ptr<client::OlpClientSettings> settings_;
   std::shared_ptr<thread::TaskScheduler> task_scheduler_;
   std::shared_ptr<PendingRequests> pending_requests_;
   std::shared_ptr<repository::PartitionsRepository> partition_repo_;
