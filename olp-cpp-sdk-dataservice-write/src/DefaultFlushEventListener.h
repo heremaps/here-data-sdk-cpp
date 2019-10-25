@@ -24,8 +24,7 @@
 #include <mutex>
 #include <vector>
 
-#include <olp/dataservice/write/FlushMetrics.h>
-#include <olp/dataservice/write/FlushEventListener.h>
+#include "FlushEventListener.h"
 
 namespace olp {
 namespace dataservice {

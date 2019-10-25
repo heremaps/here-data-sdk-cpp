@@ -30,7 +30,6 @@
 #include <olp/dataservice/write/StreamLayerClient.h>
 #include <olp/dataservice/write/model/PublishDataRequest.h>
 #include "HttpResponses.h"
-#include "testables/FlushEventListenerTestable.h"
 
 namespace {
 
