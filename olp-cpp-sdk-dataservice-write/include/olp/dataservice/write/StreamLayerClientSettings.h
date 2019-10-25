@@ -29,7 +29,11 @@ namespace olp {
 namespace dataservice {
 namespace write {
 
-struct DATASERVICE_WRITE_API FlushSettings {
+/**
+ * @brief StreamLayerClientSettings settings class for \c StreamLayerClient. Use
+ * this class to configure the behaviour of \c StreamLayerClient specific logic.
+ */
+struct DATASERVICE_WRITE_API StreamLayerClientSettings {
   /**
     @brief The maximum number of requests that can be stored
     boost::none to store all requests. Must be positive.

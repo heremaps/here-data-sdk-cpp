@@ -155,7 +155,7 @@ class DataserviceWriteStreamLayerClientCacheTest : public ::testing::Test {
     settings.cache = disk_cache_;
 
     return std::make_shared<StreamLayerClient>(
-        olp::client::HRN{GetTestCatalog()}, settings, flush_settings_);
+        olp::client::HRN{GetTestCatalog()}, stream_client_settings_, settings);
   }
 
  private:
@@ -177,7 +177,7 @@ class DataserviceWriteStreamLayerClientCacheTest : public ::testing::Test {
   std::shared_ptr<std::vector<unsigned char>> data_;
 
   std::shared_ptr<olp::cache::DefaultCache> disk_cache_;
-  FlushSettings flush_settings_;
+  StreamLayerClientSettings stream_client_settings_;
 };
 
 // Static network instance is necessary as it needs to outlive any created

@@ -35,14 +35,14 @@ std::shared_ptr<cache::KeyValueCache> CreateDefaultCache(
 }
 
 StreamLayerClient::StreamLayerClient(client::HRN catalog,
-                                     client::OlpClientSettings settings,
-                                     FlushSettings flush_settings) {
+                                     StreamLayerClientSettings client_settings,
+                                     client::OlpClientSettings settings) {
   if (!settings.cache) {
     settings.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
   }
 
   impl_ = std::make_shared<StreamLayerClientImpl>(
-      std::move(catalog), std::move(settings), std::move(flush_settings));
+      std::move(catalog), std::move(client_settings), std::move(settings));
 }
 
 olp::client::CancellableFuture<PublishDataResponse>

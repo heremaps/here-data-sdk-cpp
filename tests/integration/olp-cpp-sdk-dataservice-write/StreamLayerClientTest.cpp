@@ -149,7 +149,8 @@ class StreamLayerClientTest : public ::testing::Test {
     SetUpCommonNetworkMockCalls(*network_);
 
     return std::make_shared<StreamLayerClient>(
-        olp::client::HRN{GetTestCatalog()}, client_settings);
+        olp::client::HRN{GetTestCatalog()}, StreamLayerClientSettings{},
+        client_settings);
   }
 
   void SetUpCommonNetworkMockCalls(NetworkMock& network) {

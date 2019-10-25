@@ -74,9 +74,9 @@ void ExecuteOrSchedule(const OlpClientSettings& settings,
 }
 }  // namespace
 
-StreamLayerClientImpl::StreamLayerClientImpl(HRN catalog,
-                                             OlpClientSettings settings,
-                                             FlushSettings flush_settings)
+StreamLayerClientImpl::StreamLayerClientImpl(
+    HRN catalog, StreamLayerClientSettings client_settings,
+    OlpClientSettings settings)
     : catalog_(std::move(catalog)),
       catalog_model_(),
       settings_(std::move(settings)),
@@ -89,7 +89,7 @@ StreamLayerClientImpl::StreamLayerClientImpl(HRN catalog,
       init_inprogress_(false),
       cache_(settings_.cache),
       cache_mutex_(),
-      flush_settings_(std::move(flush_settings)),
+      stream_client_settings_(std::move(client_settings)),
       auto_flush_controller_(new AutoFlushController(AutoFlushSettings{})) {}
 
 CancellationToken StreamLayerClientImpl::InitApiClients(
@@ -286,9 +286,9 @@ boost::optional<std::string> StreamLayerClientImpl::Queue(
         "PublishDataRequest does not contain a Layer ID");
   }
 
-  if (flush_settings_.maximum_requests) {
+  if (stream_client_settings_.maximum_requests) {
     if (!(StreamLayerClientImpl::QueueSize() <
-          *flush_settings_.maximum_requests)) {
+          *stream_client_settings_.maximum_requests)) {
       return boost::make_optional<std::string>(
           "Maximum number of requests has reached");
     }

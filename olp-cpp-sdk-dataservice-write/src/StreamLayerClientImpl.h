@@ -46,8 +46,9 @@ using InitCatalogModelCallback =
 class StreamLayerClientImpl
     : public std::enable_shared_from_this<StreamLayerClientImpl> {
  public:
-  StreamLayerClientImpl(client::HRN catalog, client::OlpClientSettings settings,
-                        FlushSettings flush_settings);
+  StreamLayerClientImpl(client::HRN catalog,
+                        StreamLayerClientSettings client_settings,
+                        client::OlpClientSettings settings);
 
   olp::client::CancellableFuture<PublishDataResponse> PublishData(
       const model::PublishDataRequest& request);
@@ -112,7 +113,7 @@ class StreamLayerClientImpl
 
   std::shared_ptr<cache::KeyValueCache> cache_;
   mutable std::mutex cache_mutex_;
-  FlushSettings flush_settings_;
+  StreamLayerClientSettings stream_client_settings_;
   std::unique_ptr<AutoFlushController> auto_flush_controller_;
 };
 
