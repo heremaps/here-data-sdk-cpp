@@ -22,12 +22,13 @@
 #include <functional>
 #include <memory>
 
-#include "DataServiceReadApi.h"
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/geo/tiling/TileKey.h>
+#include <olp/core/porting/deprecated.h>
+#include "DataServiceReadApi.h"
 #include "olp/dataservice/read/PrefetchTileResult.h"
 #include "olp/dataservice/read/model/Catalog.h"
 #include "olp/dataservice/read/model/Data.h"
@@ -147,7 +148,9 @@ class DATASERVICE_READ_API CatalogClient final {
    * @param callback will be invoked once the list of partitions is available,
    * or an error is encountered.
    * @return A token that can be used to cancel this request
+   * @deprecated Will be removed in 1.0
    */
+  OLP_SDK_DEPRECATED("Will be removed in 1.0")
   client::CancellationToken GetPartitions(
       const PartitionsRequest& request,
       const PartitionsResponseCallback& callback);
@@ -158,7 +161,9 @@ class DATASERVICE_READ_API CatalogClient final {
    * @return CancellableFuture of type PartitionsResponse, which when complete
    * will contain the list of partitions or an error. Alternatively, the
    * CancellableFuture can be used to cancel this request.
+   * @deprecated Will be removed in 1.0
    */
+  OLP_SDK_DEPRECATED("Will be removed in 1.0")
   client::CancellableFuture<PartitionsResponse> GetPartitions(
       const PartitionsRequest& request);
 
@@ -172,7 +177,9 @@ class DATASERVICE_READ_API CatalogClient final {
    * @param callback will be invoked once the DataResult is available, or an
    * error is encountered.
    * @return A token that can be used to cancel this request
+   * @deprecated Will be removed in 1.0
    */
+  OLP_SDK_DEPRECATED("Will be removed in 1.0")
   client::CancellationToken GetData(const DataRequest& request,
                                     const DataResponseCallback& callback);
 
@@ -186,7 +193,9 @@ class DATASERVICE_READ_API CatalogClient final {
    * @return CancellableFuture of type DataResponse, which when complete will
    * contain the data or an error. Alternatively, the CancellableFuture can be
    * used to cancel this request.
+   * @deprecated Will be removed in 1.0
    */
+  OLP_SDK_DEPRECATED("Will be removed in 1.0")
   client::CancellableFuture<DataResponse> GetData(const DataRequest& request);
 
   /**
@@ -202,7 +211,9 @@ class DATASERVICE_READ_API CatalogClient final {
    * @param statusCallback the callback to involve to indicate status of the
    * operation
    * @return A token that can be used to cancel this prefetch request
+   * @deprecated Will be removed in 1.0
    */
+  OLP_SDK_DEPRECATED("Will be removed in 1.0")
   client::CancellationToken PrefetchTiles(
       const PrefetchTilesRequest& request,
       const PrefetchTilesResponseCallback& callback);
@@ -219,7 +230,9 @@ class DATASERVICE_READ_API CatalogClient final {
    * @return CancellableFuture of type PrefetchTilesResponse, which when
    * complete will contain the data or an error. Alternatively, the
    * CancellableFuture can be used to cancel this request.
+   * @deprecated Will be removed in 1.0
    */
+  OLP_SDK_DEPRECATED("Will be removed in 1.0")
   client::CancellableFuture<PrefetchTilesResponse> PrefetchTiles(
       const PrefetchTilesRequest& request);
 
