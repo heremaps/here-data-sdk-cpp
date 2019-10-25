@@ -42,6 +42,7 @@ set(OLP_SDK_FUNCTIONAL_TESTS_HEADERS
     ./olp-cpp-sdk-authentication/AuthenticationCommonTestFixture.h
     ./olp-cpp-sdk-authentication/AuthenticationTestUtils.h
     ./olp-cpp-sdk-authentication/TestConstants.h
+    ./utils/Utils.h
 )
 
 if (ANDROID OR IOS)
@@ -51,6 +52,7 @@ if (ANDROID OR IOS)
     target_include_directories(olp-cpp-sdk-functional-lib
         PRIVATE
             ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-dataservice-read/src
+            utils
     )
     target_link_libraries(olp-cpp-sdk-functional-tests-lib
         PRIVATE
@@ -84,7 +86,8 @@ else()
     target_include_directories(olp-cpp-sdk-functional-tests
     PRIVATE
         ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-dataservice-read/src
-)
+        utils
+    )
     target_link_libraries(olp-cpp-sdk-functional-tests
         PRIVATE
             custom-params

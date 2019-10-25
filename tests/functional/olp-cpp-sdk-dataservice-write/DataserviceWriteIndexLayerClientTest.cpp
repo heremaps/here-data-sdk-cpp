@@ -26,6 +26,7 @@
 #include <olp/dataservice/write/IndexLayerClient.h>
 #include <olp/dataservice/write/model/PublishIndexRequest.h>
 #include <testutils/CustomParameters.hpp>
+#include "Utils.h"
 
 namespace {
 
@@ -42,7 +43,7 @@ void PublishDataSuccessAssertions(
     const olp::client::ApiResponse<
         olp::dataservice::write::model::ResponseOkSingle,
         olp::client::ApiError>& result) {
-  EXPECT_TRUE(result.IsSuccessful());
+  EXPECT_SUCCESS(result);
   EXPECT_FALSE(result.GetResult().GetTraceID().empty());
   EXPECT_EQ("", result.GetError().GetMessage());
 }
@@ -179,7 +180,7 @@ TEST_F(DataserviceWriteIndexLayerClientTest, DeleteData) {
           .GetFuture()
           .get();
 
-  ASSERT_TRUE(delete_index_response.IsSuccessful());
+  EXPECT_SUCCESS(delete_index_response);
 }
 
 TEST_F(DataserviceWriteIndexLayerClientTest, PublishDataAsync) {
@@ -221,7 +222,7 @@ TEST_F(DataserviceWriteIndexLayerClientTest, UpdateIndex) {
           .GetFuture()
           .get();
 
-  EXPECT_TRUE(response.IsSuccessful());
+  EXPECT_SUCCESS(response);
   EXPECT_EQ("", response.GetError().GetMessage());
 }
 

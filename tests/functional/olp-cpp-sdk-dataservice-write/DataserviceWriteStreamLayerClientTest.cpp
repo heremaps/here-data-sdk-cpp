@@ -38,6 +38,7 @@
 #include <olp/dataservice/write/model/PublishDataRequest.h>
 #include <olp/dataservice/write/model/PublishSdiiRequest.h>
 #include <testutils/CustomParameters.hpp>
+#include "Utils.h"
 
 using namespace olp::dataservice::write;
 using namespace olp::dataservice::write::model;
@@ -97,13 +98,13 @@ std::string GenerateRandomUUID() {
 void PublishDataSuccessAssertions(
     const olp::client::ApiResponse<ResponseOkSingle, olp::client::ApiError>&
         result) {
-  EXPECT_TRUE(result.IsSuccessful());
+  EXPECT_SUCCESS(result);
   EXPECT_FALSE(result.GetResult().GetTraceID().empty());
 }
 
 void PublishSdiiSuccessAssertions(
     const olp::client::ApiResponse<ResponseOk, olp::client::ApiError>& result) {
-  EXPECT_TRUE(result.IsSuccessful());
+  EXPECT_SUCCESS(result);
   EXPECT_FALSE(result.GetResult().GetTraceID().GetParentID().empty());
   ASSERT_FALSE(result.GetResult().GetTraceID().GetGeneratedIDs().empty());
   EXPECT_FALSE(result.GetResult().GetTraceID().GetGeneratedIDs().at(0).empty());
