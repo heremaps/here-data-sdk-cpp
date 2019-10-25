@@ -184,7 +184,8 @@ class DataserviceWriteStreamLayerClientTest : public ::testing::Test {
         olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
 
     return std::make_shared<StreamLayerClient>(
-        olp::client::HRN{GetTestCatalog()}, settings);
+        olp::client::HRN{GetTestCatalog()}, StreamLayerClientSettings{},
+        settings);
   }
 
  private:

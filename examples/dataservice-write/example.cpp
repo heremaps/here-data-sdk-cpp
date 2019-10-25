@@ -73,8 +73,10 @@ int RunExample() {
   client_settings.authentication_settings = auth_settings;
   client_settings.network_request_handler = std::move(http_client);
 
+  auto stream_client_settings = StreamLayerClientSettings{};
   auto client = std::make_shared<StreamLayerClient>(
-      olp::client::HRN{kCatalogHRN}, std::move(client_settings));
+      olp::client::HRN{kCatalogHRN}, std::move(stream_client_settings),
+      std::move(client_settings));
 
   // Create a publish data request
   auto request = PublishDataRequest().WithData(buffer).WithLayerId(kLayer);

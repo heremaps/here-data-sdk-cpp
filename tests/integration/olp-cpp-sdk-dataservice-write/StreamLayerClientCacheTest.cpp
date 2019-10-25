@@ -134,7 +134,7 @@ class StreamLayerClientCacheTest : public ::testing::Test {
     SetUpCommonNetworkMockCalls(*network_);
 
     return std::make_shared<StreamLayerClient>(
-        olp::client::HRN{GetTestCatalog()}, client_settings, flush_settings_);
+        olp::client::HRN{GetTestCatalog()}, stream_client_settings_, client_settings);
   }
 
   void SetUpCommonNetworkMockCalls(NetworkMock& network) {
@@ -282,7 +282,7 @@ class StreamLayerClientCacheTest : public ::testing::Test {
 
  protected:
   std::shared_ptr<olp::cache::DefaultCache> disk_cache_;
-  FlushSettings flush_settings_;
+  StreamLayerClientSettings stream_client_settings_;
   std::shared_ptr<NetworkMock> network_;
   std::shared_ptr<StreamLayerClient> client_;
   std::shared_ptr<std::vector<unsigned char>> data_;
@@ -438,7 +438,7 @@ TEST_F(StreamLayerClientCacheTest, FlushDataMaxEventsInvalidCustomSetting) {
 
 TEST_F(StreamLayerClientCacheTest, FlushSettingsMaximumRequests) {
   disk_cache_->Close();
-  ASSERT_EQ(flush_settings_.maximum_requests, boost::none);
+  ASSERT_EQ(stream_client_settings_.maximum_requests, boost::none);
   client_ = CreateStreamLayerClient();
   {
     testing::InSequence dummy;
@@ -460,14 +460,14 @@ TEST_F(StreamLayerClientCacheTest, FlushSettingsMaximumRequests) {
   for (auto& single_response : response) {
     ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(single_response));
   }
-  flush_settings_.maximum_requests = 10;
+  stream_client_settings_.maximum_requests = 10;
   client_ = CreateStreamLayerClient();
   ASSERT_NO_FATAL_FAILURE(MaximumRequestsSuccessAssertions(10));
   client_ = CreateStreamLayerClient();
   ASSERT_NO_FATAL_FAILURE(MaximumRequestsSuccessAssertions(10, 13));
   client_ = CreateStreamLayerClient();
   ASSERT_NO_FATAL_FAILURE(MaximumRequestsSuccessAssertions(10, 9));
-  flush_settings_.maximum_requests = 0;
+  stream_client_settings_.maximum_requests = 0;
   client_ = CreateStreamLayerClient();
   ASSERT_NO_FATAL_FAILURE(MaximumRequestsSuccessAssertions(0, 10));
 }
