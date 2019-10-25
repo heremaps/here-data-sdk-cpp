@@ -43,9 +43,9 @@ class TaskContext {
 
   void Execute() const { impl_->Execute(); }
 
-  void BlockingCancel(
+  bool BlockingCancel(
       std::chrono::milliseconds timeout = std::chrono::seconds(60)) const {
-    impl_->BlockingCancel(timeout);
+    return impl_->BlockingCancel(timeout);
   }
 
   client::CancellationToken CancelToken() const { return impl_->CancelToken(); }
@@ -71,7 +71,7 @@ class TaskContext {
    public:
     virtual ~Impl() = default;
     virtual void Execute() = 0;
-    virtual void BlockingCancel(std::chrono::milliseconds timeout) = 0;
+    virtual bool BlockingCancel(std::chrono::milliseconds timeout) = 0;
     virtual client::CancellationToken CancelToken() = 0;
   };
 
@@ -128,9 +128,9 @@ class TaskContext {
       state_.store(State::COMPLETED);
     }
 
-    void BlockingCancel(std::chrono::milliseconds timeout) override {
+    bool BlockingCancel(std::chrono::milliseconds timeout) override {
       if (state_.load() == State::COMPLETED) {
-        return;
+        return true;
       }
 
       // Cancel operation and wait for notification
@@ -141,7 +141,7 @@ class TaskContext {
         execute_func_ = nullptr;
       }
 
-      condition_.Wait(timeout);
+      return condition_.Wait(timeout);
     }
 
     client::CancellationToken CancelToken() override {

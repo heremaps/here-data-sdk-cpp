@@ -20,6 +20,7 @@
 #include "TaskContext.h"
 
 #include <gtest/gtest.h>
+#include <olp/core/client/Condition.h>
 
 namespace {
 
@@ -30,6 +31,8 @@ using ResponseType = std::string;
 using Response = ApiResponse<ResponseType, ApiError>;
 using ExecuteFunc = std::function<Response(CancellationContext)>;
 using Callback = std::function<void(Response)>;
+
+const auto kWaitTime = std::chrono::seconds(2);
 
 class TaskContextTestable : public TaskContext {
  public:
@@ -115,23 +118,7 @@ TEST(TaskContextTest, ExecuteSimple) {
 }
 
 TEST(TaskContextTest, BlockingCancel) {
-  std::mutex execution_mutex, cancelation_mutex;
-  std::condition_variable execution_cv, cancelation_cv;
-
-  auto execution_wait = [&]() {
-    std::unique_lock<std::mutex> lock(execution_mutex);
-    EXPECT_EQ(execution_cv.wait_for(lock, std::chrono::seconds(2)),
-              std::cv_status::no_timeout);
-  };
-
-  auto cancelation_wait = [&]() {
-    std::unique_lock<std::mutex> lock(cancelation_mutex);
-    EXPECT_EQ(cancelation_cv.wait_for(lock, std::chrono::seconds(2)),
-              std::cv_status::no_timeout);
-  };
-
   ExecuteFunc func = [&](CancellationContext c) -> Response {
-    execution_wait();
     EXPECT_TRUE(c.IsCancelled());
     return std::string("Success");
   };
@@ -142,21 +129,11 @@ TEST(TaskContextTest, BlockingCancel) {
 
   TaskContext context = TaskContext::Create(func, callback);
 
+  EXPECT_FALSE(context.BlockingCancel(std::chrono::seconds(0)));
+
+  std::thread cancel_thread([&]() { EXPECT_TRUE(context.BlockingCancel()); });
+
   std::thread execute_thread([&]() { context.Execute(); });
-
-  std::thread cancel_thread([&]() {
-    cancelation_wait();
-    context.BlockingCancel();
-  });
-
-  // wait threads to start and reach the task execution
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  // reach cancel
-  cancelation_cv.notify_one();
-  // wait till execution starts
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  // check for conditions and continue execution
-  execution_cv.notify_one();
 
   execute_thread.join();
   cancel_thread.join();
@@ -202,13 +179,12 @@ TEST(TaskContextTest, BlockingCancelIsWaiting) {
 }
 
 TEST(TaskContextTest, CancelToken) {
-  std::mutex execution_mutex;
-  std::condition_variable execution_cv;
+  Condition continue_execution;
+  Condition execution_started;
 
   auto execution_wait = [&]() {
-    std::unique_lock<std::mutex> lock(execution_mutex);
-    EXPECT_EQ(execution_cv.wait_for(lock, std::chrono::seconds(2)),
-              std::cv_status::no_timeout);
+    execution_started.Notify();
+    EXPECT_TRUE(continue_execution.Wait(kWaitTime));
   };
 
   ExecuteFunc func = [&](CancellationContext c) -> Response {
@@ -225,14 +201,11 @@ TEST(TaskContextTest, CancelToken) {
 
   std::thread execute_thread([&]() { context.Execute(); });
 
-  auto token = context.CancelToken();
+  EXPECT_TRUE(execution_started.Wait());
 
-  // wait till execution starts
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  // cancel operation
-  token.cancel();
-  // check for conditions and continue execution
-  execution_cv.notify_one();
+  context.CancelToken().cancel();
+
+  continue_execution.Notify();
 
   execute_thread.join();
 
