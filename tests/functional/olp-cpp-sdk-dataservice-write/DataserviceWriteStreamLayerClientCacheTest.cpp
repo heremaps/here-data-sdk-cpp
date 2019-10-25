@@ -38,12 +38,10 @@
 #include <olp/dataservice/write/model/PublishDataRequest.h>
 #include <olp/dataservice/write/model/PublishSdiiRequest.h>
 #include <testutils/CustomParameters.hpp>
-#include "testables/FlushEventListenerTestable.h"
 #include "Utils.h"
 
 using namespace olp::dataservice::write;
 using namespace olp::dataservice::write::model;
-using namespace olp::tests::common;
 using namespace testing;
 
 const std::string kEndpoint = "endpoint";

@@ -89,8 +89,7 @@ StreamLayerClientImpl::StreamLayerClientImpl(
       init_inprogress_(false),
       cache_(settings_.cache),
       cache_mutex_(),
-      stream_client_settings_(std::move(client_settings)),
-      auto_flush_controller_(new AutoFlushController(AutoFlushSettings{})) {}
+      stream_client_settings_(std::move(client_settings)) {}
 
 CancellationToken StreamLayerClientImpl::InitApiClients(
     const std::shared_ptr<CancellationContext>& cancel_context,
@@ -294,7 +293,6 @@ boost::optional<std::string> StreamLayerClientImpl::Queue(
     }
   }
 
-  auto_flush_controller_->NotifyQueueEventStart();
   {
     std::lock_guard<std::mutex> lock(cache_mutex_);
     const auto publish_data_key = GenerateUuid();
@@ -313,7 +311,6 @@ boost::optional<std::string> StreamLayerClientImpl::Queue(
     cache_->Put(GetUuidListKey(), uuid_list,
                 [&uuid_list]() { return uuid_list; });
   }
-  auto_flush_controller_->NotifyQueueEventComplete();
 
   return boost::none;
 }
@@ -391,8 +388,6 @@ olp::client::CancellationToken StreamLayerClientImpl::Flush(
       if (publish_request == boost::none) {
         continue;
       }
-
-      self->auto_flush_controller_->NotifyFlushEvent();
 
       // TODO: This needs a redesign as pushing multiple publishes also on the
       // TaskScheduler would mean a dead-lock in case we have a single-thread

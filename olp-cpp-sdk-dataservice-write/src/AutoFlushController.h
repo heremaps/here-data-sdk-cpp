@@ -22,7 +22,7 @@
 #include <future>
 #include <memory>
 
-#include <olp/dataservice/write/FlushEventListener.h>
+#include "FlushEventListener.h"
 #include "AutoFlushSettings.h"
 
 namespace olp {

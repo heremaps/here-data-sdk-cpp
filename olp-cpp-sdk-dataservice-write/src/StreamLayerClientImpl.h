@@ -27,7 +27,6 @@
 
 #include <olp/dataservice/write/StreamLayerClient.h>
 #include "ApiClientLookup.h"
-#include "AutoFlushController.h"
 #include "generated/model/Catalog.h"
 
 namespace olp {
@@ -114,7 +113,6 @@ class StreamLayerClientImpl
   std::shared_ptr<cache::KeyValueCache> cache_;
   mutable std::mutex cache_mutex_;
   StreamLayerClientSettings stream_client_settings_;
-  std::unique_ptr<AutoFlushController> auto_flush_controller_;
 };
 
 }  // namespace write
