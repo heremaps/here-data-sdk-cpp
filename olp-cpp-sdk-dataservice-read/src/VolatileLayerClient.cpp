@@ -53,6 +53,11 @@ olp::client::CancellableFuture<DataResponse> VolatileLayerClient::GetData(
     DataRequest request) {
   return impl_->GetData(std::move(request));
 }
+
+olp::client::CancellationToken VolatileLayerClient::PrefetchTiles(
+    PrefetchTilesRequest request, PrefetchTilesResponseCallback callback) {
+  return impl_->PrefetchTiles(std::move(request), std::move(callback));
+}
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

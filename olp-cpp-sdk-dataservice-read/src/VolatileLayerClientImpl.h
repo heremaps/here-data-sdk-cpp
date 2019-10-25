@@ -24,6 +24,8 @@
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
+#include <olp/dataservice/read/PrefetchTileResult.h>
+#include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/Types.h>
 
 #include "PendingRequests.h"
@@ -36,6 +38,8 @@ namespace repository {
 class CatalogRepository;
 class PartitionsRepository;
 }  // namespace repository
+
+class PrefetchTilesProvider;
 
 class VolatileLayerClientImpl {
  public:
@@ -55,6 +59,9 @@ class VolatileLayerClientImpl {
 
   virtual client::CancellableFuture<DataResponse> GetData(DataRequest request);
 
+  client::CancellationToken PrefetchTiles(
+      PrefetchTilesRequest request, PrefetchTilesResponseCallback callback);
+
  private:
   client::HRN catalog_;
   std::string layer_id_;
@@ -62,6 +69,7 @@ class VolatileLayerClientImpl {
   std::shared_ptr<thread::TaskScheduler> task_scheduler_;
   std::shared_ptr<PendingRequests> pending_requests_;
   std::shared_ptr<repository::PartitionsRepository> partition_repo_;
+  std::shared_ptr<PrefetchTilesProvider> prefetch_provider_;
 };
 
 }  // namespace read
