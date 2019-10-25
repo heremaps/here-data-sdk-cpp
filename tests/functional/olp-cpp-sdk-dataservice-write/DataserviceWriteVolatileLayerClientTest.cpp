@@ -27,6 +27,7 @@
 #include <olp/dataservice/write/VolatileLayerClient.h>
 #include <olp/dataservice/write/model/PublishPartitionDataRequest.h>
 #include <testutils/CustomParameters.hpp>
+#include "Utils.h"
 
 namespace {
 
@@ -43,7 +44,7 @@ void PublishDataSuccessAssertions(
     const olp::client::ApiResponse<
         olp::dataservice::write::model::ResponseOkSingle,
         olp::client::ApiError>& result) {
-  EXPECT_TRUE(result.IsSuccessful());
+  EXPECT_SUCCESS(result);
   EXPECT_FALSE(result.GetResult().GetTraceID().empty());
   EXPECT_EQ("", result.GetError().GetMessage());
 }
@@ -125,7 +126,7 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, GetBaseVersion) {
   auto volatile_client = CreateVolatileLayerClient();
   auto response = volatile_client->GetBaseVersion().GetFuture().get();
 
-  ASSERT_TRUE(response.IsSuccessful());
+  EXPECT_SUCCESS(response);
   auto version_response = response.GetResult();
   ASSERT_GE(version_response.GetVersion(), 0);
 }
@@ -160,14 +161,14 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, StartBatch) {
           .GetFuture()
           .get();
 
-  ASSERT_TRUE(response.IsSuccessful());
+  EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
   auto get_batch_response =
       volatile_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(get_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(get_batch_response);
   ASSERT_EQ(response.GetResult().GetId().value(),
             get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("initialized",
@@ -177,13 +178,13 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, StartBatch) {
       volatile_client->CompleteBatch(get_batch_response.GetResult())
           .GetFuture()
           .get();
-  ASSERT_TRUE(complete_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(complete_batch_response);
 
   for (int i = 0; i < 100; ++i) {
     get_batch_response =
         volatile_client->GetBatch(response.GetResult()).GetFuture().get();
 
-    ASSERT_TRUE(get_batch_response.IsSuccessful());
+    EXPECT_SUCCESS(get_batch_response);
     ASSERT_EQ(response.GetResult().GetId().value(),
               get_batch_response.GetResult().GetId().value());
     if (get_batch_response.GetResult().GetDetails()->GetState() !=
@@ -211,7 +212,7 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, PublishToBatch) {
           .GetFuture()
           .get();
 
-  ASSERT_TRUE(response.IsSuccessful());
+  EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
@@ -225,18 +226,18 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, PublishToBatch) {
       volatile_client->PublishToBatch(response.GetResult(), partition_requests)
           .GetFuture()
           .get();
-  ASSERT_TRUE(publish_to_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(publish_to_batch_response);
 
   auto complete_batch_response =
       volatile_client->CompleteBatch(response.GetResult()).GetFuture().get();
-  ASSERT_TRUE(complete_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(complete_batch_response);
 
   GetBatchResponse get_batch_response;
   for (int i = 0; i < 100; ++i) {
     get_batch_response =
         volatile_client->GetBatch(response.GetResult()).GetFuture().get();
 
-    ASSERT_TRUE(get_batch_response.IsSuccessful());
+    EXPECT_SUCCESS(get_batch_response);
     ASSERT_EQ(response.GetResult().GetId().value(),
               get_batch_response.GetResult().GetId().value());
     if (get_batch_response.GetResult().GetDetails()->GetState() !=
@@ -264,7 +265,7 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, PublishToBatchInvalid) {
           .GetFuture()
           .get();
 
-  ASSERT_TRUE(response.IsSuccessful());
+  EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
@@ -272,7 +273,7 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, PublishToBatchInvalid) {
       volatile_client->PublishToBatch(response.GetResult(), {})
           .GetFuture()
           .get();
-  ASSERT_FALSE(publish_to_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(publish_to_batch_response);
 
   std::vector<PublishPartitionDataRequest> partition_requests{
       PublishPartitionDataRequest{}, PublishPartitionDataRequest{}};
@@ -310,7 +311,7 @@ TEST_F(DataserviceWriteVolatileLayerClientTest,
           .GetFuture()
           .get();
 
-  ASSERT_TRUE(response.IsSuccessful());
+  EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
@@ -320,7 +321,7 @@ TEST_F(DataserviceWriteVolatileLayerClientTest,
   volatile_client = nullptr;
 
   auto get_batch_response = get_batch_future.get();
-  ASSERT_TRUE(get_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(get_batch_response);
   ASSERT_EQ(response.GetResult().GetId().value(),
             get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("initialized",
@@ -332,13 +333,13 @@ TEST_F(DataserviceWriteVolatileLayerClientTest,
       volatile_client->CompleteBatch(get_batch_response.GetResult())
           .GetFuture()
           .get();
-  ASSERT_TRUE(complete_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(complete_batch_response);
 
   for (int i = 0; i < 100; ++i) {
     get_batch_response =
         volatile_client->GetBatch(response.GetResult()).GetFuture().get();
 
-    ASSERT_TRUE(get_batch_response.IsSuccessful());
+    EXPECT_SUCCESS(get_batch_response);
     ASSERT_EQ(response.GetResult().GetId().value(),
               get_batch_response.GetResult().GetId().value());
     if (get_batch_response.GetResult().GetDetails()->GetState() !=

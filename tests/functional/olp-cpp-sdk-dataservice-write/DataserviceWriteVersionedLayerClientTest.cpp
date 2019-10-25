@@ -25,6 +25,7 @@
 #include <olp/dataservice/write/VersionedLayerClient.h>
 #include <olp/dataservice/write/model/StartBatchRequest.h>
 #include <testutils/CustomParameters.hpp>
+#include "Utils.h"
 
 namespace {
 
@@ -122,14 +123,14 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, StartBatch) {
                       .GetFuture()
                       .get();
 
-  ASSERT_TRUE(response.IsSuccessful());
+  EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
   auto get_batch_response =
       versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(get_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(get_batch_response);
   ASSERT_EQ(response.GetResult().GetId().value(),
             get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("initialized",
@@ -139,12 +140,12 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, StartBatch) {
       versioned_client->CompleteBatch(get_batch_response.GetResult())
           .GetFuture()
           .get();
-  ASSERT_TRUE(complete_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(complete_batch_response);
 
   get_batch_response =
       versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(get_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(get_batch_response);
   ASSERT_EQ(response.GetResult().GetId().value(),
             get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("submitted",
@@ -154,7 +155,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, StartBatch) {
     get_batch_response =
         versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-    ASSERT_TRUE(get_batch_response.IsSuccessful());
+    EXPECT_SUCCESS(get_batch_response);
     ASSERT_EQ(response.GetResult().GetId().value(),
               get_batch_response.GetResult().GetId().value());
     if (get_batch_response.GetResult().GetDetails()->GetState() !=
@@ -184,18 +185,18 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, DeleteClient) {
 
   auto response = fut.get();
 
-  ASSERT_TRUE(response.IsSuccessful());
+  EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
   auto cancel_batch_response =
       client_->CancelBatch(response.GetResult()).GetFuture().get();
-  ASSERT_TRUE(cancel_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(cancel_batch_response);
 
   auto get_batch_response =
       client_->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(get_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(get_batch_response);
   ASSERT_EQ(response.GetResult().GetId().value(),
             get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("cancelled",
@@ -206,7 +207,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, GetBaseVersion) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response = versioned_client->GetBaseVersion().GetFuture().get();
 
-  ASSERT_TRUE(response.IsSuccessful());
+  EXPECT_SUCCESS(response);
   auto version_response = response.GetResult();
   ASSERT_GE(version_response.GetVersion(), 0);
 }
@@ -219,14 +220,14 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, CancelBatch) {
                       .GetFuture()
                       .get();
 
-  ASSERT_TRUE(response.IsSuccessful());
+  EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
   auto get_batch_response =
       versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(get_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(get_batch_response);
   ASSERT_EQ(response.GetResult().GetId().value(),
             get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("initialized",
@@ -236,12 +237,12 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, CancelBatch) {
       versioned_client->CancelBatch(get_batch_response.GetResult())
           .GetFuture()
           .get();
-  ASSERT_TRUE(cancel_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(cancel_batch_response);
 
   get_batch_response =
       versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(get_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(get_batch_response);
   ASSERT_EQ(response.GetResult().GetId().value(),
             get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("cancelled",
@@ -271,14 +272,14 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatch) {
                       .GetFuture()
                       .get();
 
-  ASSERT_TRUE(response.IsSuccessful());
+  EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
   auto get_batch_response =
       versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(get_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(get_batch_response);
   ASSERT_EQ(response.GetResult().GetId().value(),
             get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("initialized",
@@ -296,7 +297,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatch) {
           .GetFuture()
           .get();
 
-  ASSERT_TRUE(publish_to_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(publish_to_batch_response);
   ASSERT_EQ("1111", publish_to_batch_response.GetResult().GetTraceID());
 
   auto complete_batch_response =
@@ -304,13 +305,13 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatch) {
           .GetFuture()
           .get();
 
-  ASSERT_TRUE(complete_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(complete_batch_response);
 
   for (int i = 0; i < 100; ++i) {
     get_batch_response =
         versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-    ASSERT_TRUE(get_batch_response.IsSuccessful());
+    EXPECT_SUCCESS(get_batch_response);
     ASSERT_EQ(response.GetResult().GetId().value(),
               get_batch_response.GetResult().GetId().value());
     if (get_batch_response.GetResult().GetDetails()->GetState() !=
@@ -338,14 +339,14 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchDeleteClient) {
                       .GetFuture()
                       .get();
 
-  ASSERT_TRUE(response.IsSuccessful());
+  EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
   auto get_batch_response =
       versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(get_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(get_batch_response);
   ASSERT_EQ(response.GetResult().GetId().value(),
             get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("initialized",
@@ -378,9 +379,9 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchDeleteClient) {
   auto publish_to_batch_response = publish_to_batch_future.get();
   auto publish_to_batch_response2 = publish_to_batch_future2.get();
 
-  ASSERT_TRUE(publish_to_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(publish_to_batch_response);
   ASSERT_EQ("1111", publish_to_batch_response.GetResult().GetTraceID());
-  ASSERT_TRUE(publish_to_batch_response2.IsSuccessful());
+  EXPECT_SUCCESS(publish_to_batch_response2);
   ASSERT_EQ("1112", publish_to_batch_response2.GetResult().GetTraceID());
 
   versioned_client = CreateVersionedLayerClient();
@@ -390,13 +391,13 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchDeleteClient) {
           .GetFuture()
           .get();
 
-  ASSERT_TRUE(complete_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(complete_batch_response);
 
   for (int i = 0; i < 100; ++i) {
     get_batch_response =
         versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-    ASSERT_TRUE(get_batch_response.IsSuccessful());
+    EXPECT_SUCCESS(get_batch_response);
     ASSERT_EQ(response.GetResult().GetId().value(),
               get_batch_response.GetResult().GetId().value());
     if (get_batch_response.GetResult().GetDetails()->GetState() !=
@@ -423,14 +424,14 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchMulti) {
                       .GetFuture()
                       .get();
 
-  ASSERT_TRUE(response.IsSuccessful());
+  EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
   auto get_batch_response =
       versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(get_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(get_batch_response);
   ASSERT_EQ(response.GetResult().GetId().value(),
             get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("initialized",
@@ -461,9 +462,9 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchMulti) {
   auto publish_to_batch_response = publish_to_batch_future.get();
   auto publish_to_batch_response2 = publish_to_batch_future2.get();
 
-  ASSERT_TRUE(publish_to_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(publish_to_batch_response);
   ASSERT_EQ("1111", publish_to_batch_response.GetResult().GetTraceID());
-  ASSERT_TRUE(publish_to_batch_response2.IsSuccessful());
+  EXPECT_SUCCESS(publish_to_batch_response2);
   ASSERT_EQ("1112", publish_to_batch_response2.GetResult().GetTraceID());
 
   auto complete_batch_response =
@@ -471,13 +472,13 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchMulti) {
           .GetFuture()
           .get();
 
-  ASSERT_TRUE(complete_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(complete_batch_response);
 
   for (int i = 0; i < 100; ++i) {
     get_batch_response =
         versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-    ASSERT_TRUE(get_batch_response.IsSuccessful());
+    EXPECT_SUCCESS(get_batch_response);
     ASSERT_EQ(response.GetResult().GetId().value(),
               get_batch_response.GetResult().GetId().value());
     if (get_batch_response.GetResult().GetDetails()->GetState() !=
@@ -505,14 +506,14 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchCancel) {
                       .GetFuture()
                       .get();
 
-  ASSERT_TRUE(response.IsSuccessful());
+  EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
   auto get_batch_response =
       versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(get_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(get_batch_response);
   ASSERT_EQ(response.GetResult().GetId().value(),
             get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("initialized",
@@ -540,12 +541,12 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchCancel) {
       versioned_client->CancelBatch(get_batch_response.GetResult())
           .GetFuture()
           .get();
-  ASSERT_TRUE(cancel_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(cancel_batch_response);
 
   get_batch_response =
       versioned_client->GetBatch(response.GetResult()).GetFuture().get();
 
-  ASSERT_TRUE(get_batch_response.IsSuccessful());
+  EXPECT_SUCCESS(get_batch_response);
   ASSERT_EQ(response.GetResult().GetId().value(),
             get_batch_response.GetResult().GetId().value());
   ASSERT_EQ("cancelled",
@@ -565,7 +566,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, CheckDataExists) {
 
   auto response = fut.get();
 
-  ASSERT_TRUE(response.IsSuccessful());
+  EXPECT_SUCCESS(response);
   ASSERT_EQ(response.GetResult(), 200);
 }
 
@@ -582,7 +583,8 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, CheckDataNotExists) {
 
   auto response = fut.get();
 
-  ASSERT_TRUE(response.IsSuccessful());
+  EXPECT_SUCCESS(response);
+
   ASSERT_EQ(response.GetResult(), 404);
 }
 

@@ -39,6 +39,7 @@
 #include <olp/dataservice/write/model/PublishSdiiRequest.h>
 #include <testutils/CustomParameters.hpp>
 #include "testables/FlushEventListenerTestable.h"
+#include "Utils.h"
 
 using namespace olp::dataservice::write;
 using namespace olp::dataservice::write::model;
@@ -79,7 +80,7 @@ std::string GenerateRandomUUID() {
 void PublishDataSuccessAssertions(
     const olp::client::ApiResponse<ResponseOkSingle, olp::client::ApiError>&
         result) {
-  EXPECT_TRUE(result.IsSuccessful());
+  EXPECT_SUCCESS(result);
   EXPECT_FALSE(result.GetResult().GetTraceID().empty());
 }
 
