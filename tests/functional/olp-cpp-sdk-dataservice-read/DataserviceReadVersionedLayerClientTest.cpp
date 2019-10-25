@@ -171,10 +171,13 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionSync) {
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
-  const auto catalog = olp::client::HRN::FromString(
-      CustomParameters::getArgument("dataservice_read_test_versioned_catalog"));
-  constexpr auto kLayerId = "hype-test-prefetch";
-  constexpr auto kTileId = "5904591";
+  const auto catalog =
+      olp::client::HRN::FromString(CustomParameters::getArgument(
+          "dataservice_read_test_versioned_prefetch_catalog"));
+  const auto kLayerId = CustomParameters::getArgument(
+      "dataservice_read_test_versioned_prefetch_layer");
+  const auto kTileId = CustomParameters::getArgument(
+      "dataservice_read_test_versioned_prefetch_tile");
 
   auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
       catalog, kLayerId, *settings_);
@@ -230,10 +233,12 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
 
   {
     SCOPED_TRACE("Read cached data from pre-fetched sub-partition #1");
+    const auto kSubPartitionId1 = CustomParameters::getArgument(
+        "dataservice_read_test_versioned_prefetch_subpartition1");
     VersionedLayerClient::CallbackResponse response;
     auto token = client->GetData(
         olp::dataservice::read::DataRequest()
-            .WithPartitionId("23618365")
+            .WithPartitionId(kSubPartitionId1)
             .WithFetchOption(CacheOnly),
         [&response](VersionedLayerClient::CallbackResponse resp) {
           response = std::move(resp);
@@ -245,10 +250,12 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
 
   {
     SCOPED_TRACE("Read cached data from pre-fetched sub-partition #2");
+    const auto kSubPartitionId2 = CustomParameters::getArgument(
+        "dataservice_read_test_versioned_prefetch_subpartition2");
     VersionedLayerClient::CallbackResponse response;
     auto token = client->GetData(
         olp::dataservice::read::DataRequest()
-            .WithPartitionId("1476147")
+            .WithPartitionId(kSubPartitionId2)
             .WithFetchOption(CacheOnly),
         [&response](VersionedLayerClient::CallbackResponse resp) {
           response = std::move(resp);
