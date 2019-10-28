@@ -20,8 +20,7 @@
 #pragma once
 
 #include <string>
-
-#include <boost/optional.hpp>
+#include <limits>
 
 #include <olp/dataservice/write/DataServiceWriteApi.h>
 
@@ -35,10 +34,9 @@ namespace write {
  */
 struct DATASERVICE_WRITE_API StreamLayerClientSettings {
   /**
-    @brief The maximum number of requests that can be stored
-    boost::none to store all requests. Must be positive.
-  */
-  boost::optional<size_t> maximum_requests = boost::none;
+   * @brief The maximum number of requests that can be stored. Must be positive.
+   */
+  size_t maximum_requests = std::numeric_limits<size_t>::max();
 };
 
 }  // namespace write
