@@ -25,14 +25,17 @@
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
+#include <olp/core/client/OlpClientSettings.h>
 #include "MultiRequestContext.h"
 #include "generated/api/QueryApi.h"
-#include "olp/dataservice/read/CatalogClient.h"
+#include "olp/dataservice/read/Types.h"
 
 namespace olp {
 namespace dataservice {
 namespace read {
 class DataRequest;
+class PartitionsRequest;
+
 namespace repository {
 class ApiRepository;
 class CatalogRepository;

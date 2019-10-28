@@ -19,17 +19,23 @@
 
 #pragma once
 
+#include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
-#include "generated/api/MetadataApi.h"
+#include <olp/core/client/OlpClientSettings.h>
 #include "MultiRequestContext.h"
-#include "olp/dataservice/read/CatalogClient.h"
+#include "generated/api/MetadataApi.h"
 #include "olp/dataservice/read/DataRequest.h"
+#include "olp/dataservice/read/Types.h"
 
 namespace olp {
 namespace dataservice {
 namespace read {
+
+class CatalogRequest;
+class CatalogVersionRequest;
+
 namespace repository {
 class ApiRepository;
 class CatalogCacheRepository;
@@ -53,8 +59,7 @@ class CatalogRepository final {
   static MetadataApi::CatalogVersionResponse GetLatestVersion(
       const client::HRN& catalog,
       client::CancellationContext cancellation_context,
-      const DataRequest& data_request,
-      client::OlpClientSettings settings);
+      const DataRequest& data_request, client::OlpClientSettings settings);
 
  private:
   client::HRN hrn_;

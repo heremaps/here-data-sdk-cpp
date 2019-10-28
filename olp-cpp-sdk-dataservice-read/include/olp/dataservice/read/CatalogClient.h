@@ -23,17 +23,12 @@
 #include <memory>
 
 #include <olp/core/cache/CacheSettings.h>
-#include <olp/core/client/ApiError.h>
-#include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/geo/tiling/TileKey.h>
 #include <olp/core/porting/deprecated.h>
 #include "DataServiceReadApi.h"
 #include "olp/dataservice/read/PrefetchTileResult.h"
-#include "olp/dataservice/read/model/Catalog.h"
-#include "olp/dataservice/read/model/Data.h"
-#include "olp/dataservice/read/model/Partitions.h"
-#include "olp/dataservice/read/model/VersionResponse.h"
+#include "olp/dataservice/read/Types.h"
 
 namespace olp {
 
@@ -44,51 +39,13 @@ class HRN;
 namespace dataservice {
 namespace read {
 
-class PrefetchTilesRequest;
-
-namespace model {
-class Partition;
-}  // namespace model
+class CatalogClientImpl;
 
 class CatalogRequest;
-using CatalogResult = model::Catalog;
-using CatalogResponse = client::ApiResponse<CatalogResult, client::ApiError>;
-using CatalogResponseCallback = std::function<void(CatalogResponse response)>;
-
 class CatalogVersionRequest;
-using CatalogVersionResult = model::VersionResponse;
-using CatalogVersionResponse =
-    client::ApiResponse<CatalogVersionResult, client::ApiError>;
-using CatalogVersionCallback =
-    std::function<void(CatalogVersionResponse response)>;
-
-class PartitionsRequest;
-using PartitionsResult = model::Partitions;
-using PartitionsResponse =
-    client::ApiResponse<PartitionsResult, client::ApiError>;
-using PartitionsResponseCallback =
-    std::function<void(PartitionsResponse response)>;
-
 class DataRequest;
-using DataResult = model::Data;
-using DataResponse = client::ApiResponse<DataResult, client::ApiError>;
-using DataResponseCallback = std::function<void(DataResponse response)>;
-
-/**
- * @brief The PrefetchTilesResponse class encapsulates the result of a prefetch
- * operation
- */
-using PrefetchTilesResult = std::vector<std::shared_ptr<PrefetchTileResult>>;
-using PrefetchTilesResponse =
-    client::ApiResponse<PrefetchTilesResult, client::ApiError>;
-
-/**
- * @brief Prefetch completion callback
- */
-using PrefetchTilesResponseCallback =
-    std::function<void(const PrefetchTilesResponse& response)>;
-
-class CatalogClientImpl;
+class PartitionsRequest;
+class PrefetchTilesRequest;
 
 /**
  * @brief The CatalogClient class. Marshals Requests and their Results.
@@ -241,7 +198,5 @@ class DATASERVICE_READ_API CatalogClient final {
 };
 
 }  // namespace read
-
 }  // namespace dataservice
-
 }  // namespace olp

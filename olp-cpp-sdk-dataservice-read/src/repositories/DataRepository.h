@@ -22,13 +22,15 @@
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
+#include <olp/core/client/OlpClientSettings.h>
 #include "MultiRequestContext.h"
 #include "generated/api/BlobApi.h"
-#include "olp/dataservice/read/CatalogClient.h"
+#include "olp/dataservice/read/Types.h"
 
 namespace olp {
 namespace dataservice {
 namespace read {
+class DataRequest;
 namespace repository {
 class ApiRepository;
 class CatalogRepository;
@@ -38,8 +40,6 @@ class DataCacheRepository;
 
 class DataRepository final {
  public:
-  using DataResponse = client::ApiResponse<model::Data, client::ApiError>;
-
   DataRepository(const client::HRN& hrn, std::shared_ptr<ApiRepository> apiRepo,
                  std::shared_ptr<CatalogRepository> catalogRepo,
                  std::shared_ptr<PartitionsRepository> partitionsRepo,
