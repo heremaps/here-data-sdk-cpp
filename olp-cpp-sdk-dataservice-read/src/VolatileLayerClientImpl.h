@@ -63,8 +63,13 @@ class VolatileLayerClientImpl {
   client::CancellationToken GetPartitions(
       PartitionsRequest request, Callback<PartitionsResponse> callback);
 
+  client::CancellableFuture<PartitionsResponse> GetPartitions(
+      PartitionsRequest request);
+
   client::CancellationToken GetData(DataRequest request,
                                     Callback<DataResponse> callback);
+
+  client::CancellableFuture<DataResponse> GetData(DataRequest request);
 
  private:
   client::HRN catalog_;

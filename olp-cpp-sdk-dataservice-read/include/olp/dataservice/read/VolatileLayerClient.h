@@ -112,18 +112,41 @@ class DATASERVICE_READ_API VolatileLayerClient final {
       PartitionsRequest request, Callback<PartitionsResponse> callback);
 
   /**
+   * @brief Fetches a list partitions for given volatile layer asynchronously.
+   * @param request contains the complete set of request parameters.
+   * @return CancellableFuture, which when complete will contain the
+   * PartitionsResponse or an error. Alternatively, the CancellableFuture can be
+   * used to cancel this request.
+   */
+  olp::client::CancellableFuture<PartitionsResponse> GetPartitions(
+      PartitionsRequest request);
+
+  /**
    * @brief GetData fetches data for a partition or data handle asynchronously.
    * If the specified partition or data handle cannot be found in the layer, the
    * callback is invoked with an empty DataResponse (a nullptr result and
    * error). If Partition Id or Data Handle are not set in the request, the
    * callback is invoked with the error ErrorCode::InvalidRequest.
-   * @param request contains a complete set of request parameters.
+   * @param request Contains a complete set of request parameters.
    * @param callback is invoked once the DataResult is available, or an
    * error is encountered.
-   * @return A token that can be used to cancel this request.
+   * @return Token that can be used to cancel this request.
    */
   olp::client::CancellationToken GetData(DataRequest request,
                                          Callback<DataResponse> callback);
+
+  /**
+   * @brief Fetches data for a partition or data handle asynchronously.
+   * If the specified partition or data handle cannot be found in the layer, the
+   * callback is invoked with an empty DataResponse (a nullptr result and
+   * error). If Partition Id or Data Handle are not set in the request, the
+   * callback is invoked with the error ErrorCode::InvalidRequest.
+   * @param request contains a complete set of request parameters.
+   * @return CancellableFuture, which when complete will contain the
+   * PartitionsResponse or an error. Alternatively, the CancellableFuture can be
+   * used to cancel this request.
+   */
+  olp::client::CancellableFuture<DataResponse> GetData(DataRequest request);
 
  private:
   std::unique_ptr<VolatileLayerClientImpl> impl_;

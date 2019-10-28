@@ -22,7 +22,6 @@
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
-#include <olp/dataservice/read/PartitionsRequest.h>
 
 #include "TaskContext.h"
 #include "repositories/ApiRepository.h"
@@ -100,6 +99,16 @@ client::CancellationToken VolatileLayerClientImpl::GetPartitions(
   return token;
 }
 
+client::CancellableFuture<PartitionsResponse>
+VolatileLayerClientImpl::GetPartitions(PartitionsRequest request) {
+  auto promise = std::make_shared<std::promise<PartitionsResponse> >();
+  auto callback = [=](PartitionsResponse resp) {
+    promise->set_value(std::move(resp));
+  };
+  auto token = GetPartitions(std::move(request), std::move(callback));
+  return olp::client::CancellableFuture<PartitionsResponse>(token, promise);
+}
+
 client::CancellationToken VolatileLayerClientImpl::GetData(
     DataRequest request, Callback<DataResponse> callback) {
   auto add_task = [&](DataRequest& request, Callback<DataResponse> callback) {
@@ -139,6 +148,16 @@ client::CancellationToken VolatileLayerClientImpl::GetData(
   } else {
     return add_task(request, std::move(callback));
   }
+}
+
+client::CancellableFuture<DataResponse> VolatileLayerClientImpl::GetData(
+    DataRequest request) {
+  auto promise = std::make_shared<std::promise<DataResponse> >();
+  auto callback = [=](DataResponse resp) {
+    promise->set_value(std::move(resp));
+  };
+  auto token = GetData(std::move(request), std::move(callback));
+  return olp::client::CancellableFuture<DataResponse>(token, promise);
 }
 
 }  // namespace read

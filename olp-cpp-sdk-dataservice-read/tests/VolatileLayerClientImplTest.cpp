@@ -168,6 +168,90 @@ TEST(VolatileLayerClientImplTest, GetData) {
   }
 }
 
+TEST(VolatileLayerClientImplTest, GetDataCancellableFuture) {
+  std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
+  olp::client::OlpClientSettings settings;
+  settings.network_request_handler = network_mock;
+  settings.cache = cache_mock;
+
+  VolatileLayerClientImpl client(kHRN, kLayerId, settings);
+
+  {
+    SCOPED_TRACE("Get Data with DataHandle");
+
+    SetupNetworkExpectation(*network_mock, kUrlLookupVolatileBlob,
+                            kHttpResponseLookupVolatileBlob,
+                            olp::http::HttpStatusCode::OK);
+
+    SetupNetworkExpectation(*network_mock, kUrlVolatileBlobData, "someData",
+                            olp::http::HttpStatusCode::OK);
+
+    auto future = client.GetData(DataRequest().WithDataHandle(kBlobDataHandle))
+                      .GetFuture();
+
+    EXPECT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    ASSERT_TRUE(response.IsSuccessful());
+
+    Mock::VerifyAndClearExpectations(network_mock.get());
+  }
+
+  {
+    SCOPED_TRACE("Get Data with PartitionId");
+
+    SetupNetworkExpectation(*network_mock, kUrlLookupQuery,
+                            kHttpResponseLookupQuery,
+                            olp::http::HttpStatusCode::OK);
+
+    SetupNetworkExpectation(*network_mock, kUrlQueryPartition269,
+                            kHttpResponsePartition269,
+                            olp::http::HttpStatusCode::OK);
+
+    SetupNetworkExpectation(*network_mock, kUrlLookupVolatileBlob,
+                            kHttpResponseLookupVolatileBlob,
+                            olp::http::HttpStatusCode::OK);
+
+    SetupNetworkExpectation(*network_mock, kUrlVolatileBlobData, "someData",
+                            olp::http::HttpStatusCode::OK);
+
+    auto future =
+        client.GetData(DataRequest().WithPartitionId(kPartitionId)).GetFuture();
+
+    EXPECT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    ASSERT_TRUE(response.IsSuccessful());
+
+    Mock::VerifyAndClearExpectations(network_mock.get());
+  }
+
+  {
+    SCOPED_TRACE("Get Data from non existent partition");
+
+    SetupNetworkExpectation(*network_mock, kUrlLookupQuery,
+                            kHttpResponseLookupQuery,
+                            olp::http::HttpStatusCode::OK);
+
+    SetupNetworkExpectation(*network_mock, kUrlQueryPartition269,
+                            kHttpResponseNoPartition,
+                            olp::http::HttpStatusCode::OK);
+
+    auto future =
+        client.GetData(DataRequest().WithPartitionId(kPartitionId)).GetFuture();
+
+    EXPECT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::NotFound);
+
+    Mock::VerifyAndClearExpectations(network_mock.get());
+  }
+}
+
 TEST(VolatileLayerClientImplTest, GetDataCancelOnClientDestroy) {
   std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
   std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
@@ -201,4 +285,28 @@ TEST(VolatileLayerClientImplTest, GetDataCancelOnClientDestroy) {
   }
 }
 
+TEST(VolatileLayerClientImplTest, GetDataCancellableFutureCancel) {
+  std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
+  olp::client::OlpClientSettings settings;
+  settings.network_request_handler = network_mock;
+  settings.cache = cache_mock;
+  settings.task_scheduler =
+      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
+  VolatileLayerClientImpl client(kHRN, kLayerId, std::move(settings));
+
+  auto cancellable =
+      client.GetData(DataRequest().WithPartitionId(kPartitionId));
+
+  auto data_future = cancellable.GetFuture();
+  cancellable.GetCancellationToken().cancel();
+  ASSERT_EQ(data_future.wait_for(kTimeout), std::future_status::ready);
+
+  auto data_response = data_future.get();
+
+  // Callback must be called during client destructor.
+  EXPECT_FALSE(data_response.IsSuccessful());
+  EXPECT_EQ(data_response.GetError().GetErrorCode(),
+            olp::client::ErrorCode::Cancelled);
+}
 }  // namespace
