@@ -45,14 +45,14 @@
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
 #include <olp/core/utils/Dir.h>
+#include <olp/dataservice/read/CatalogClient.h>
+#include <olp/dataservice/read/CatalogRequest.h>
+#include <olp/dataservice/read/CatalogVersionRequest.h>
+#include <olp/dataservice/read/DataRequest.h>
+#include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
-
-#include "olp/dataservice/read/CatalogClient.h"
-#include "olp/dataservice/read/CatalogRequest.h"
-#include "olp/dataservice/read/CatalogVersionRequest.h"
-#include "olp/dataservice/read/DataRequest.h"
-#include "olp/dataservice/read/PartitionsRequest.h"
-#include "olp/dataservice/read/model/Catalog.h"
+#include <olp/dataservice/read/model/Catalog.h>
+#include "Utils.h"
 
 using namespace olp::dataservice::read;
 using namespace testing;
@@ -119,14 +119,6 @@ class CatalogClientTest : public ::testing::TestWithParam<CacheType> {
     return CustomParameters::getArgument("dataservice_read_test_catalog");
   }
 
-  std::string PrintError(const olp::client::ApiError& error) {
-    std::ostringstream result_stream;
-    result_stream << "ERROR: code: " << static_cast<int>(error.GetErrorCode())
-                  << ", status: " << error.GetHttpStatusCode()
-                  << ", message: " << error.GetMessage();
-    return result_stream.str();
-  }
-
   template <typename T>
   T GetExecutionTime(std::function<T()> func) {
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -157,8 +149,7 @@ TEST_P(CatalogClientTest, GetCatalog) {
         return future.GetFuture().get();
       });
 
-  ASSERT_TRUE(catalog_response.IsSuccessful())
-      << PrintError(catalog_response.GetError());
+  EXPECT_SUCCESS(catalog_response);
 }
 
 TEST_P(CatalogClientTest, GetPartitionsWithInvalidHrn) {
@@ -193,8 +184,7 @@ TEST_P(CatalogClientTest, GetPartitions) {
         return future.GetFuture().get();
       });
 
-  ASSERT_TRUE(partitions_response.IsSuccessful())
-      << PrintError(partitions_response.GetError());
+  EXPECT_SUCCESS(partitions_response);
   ASSERT_EQ(4u, partitions_response.GetResult().GetPartitions().size());
 }
 
@@ -213,7 +203,7 @@ TEST_P(CatalogClientTest, GetPartitionsForInvalidLayer) {
       });
 
   ASSERT_FALSE(partitions_response.IsSuccessful())
-      << PrintError(partitions_response.GetError());
+      << ErrorMessage(partitions_response.GetError());
   ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
             partitions_response.GetError().GetErrorCode());
 }
@@ -252,8 +242,7 @@ TEST_P(CatalogClientTest, GetDataWithHandle) {
         return future.GetFuture().get();
       });
 
-  ASSERT_TRUE(data_response.IsSuccessful())
-      << PrintError(data_response.GetError());
+  EXPECT_SUCCESS(data_response);
   ASSERT_LT(0, data_response.GetResult()->size());
   std::string data_string(data_response.GetResult()->begin(),
                           data_response.GetResult()->end());
@@ -311,8 +300,7 @@ TEST_P(CatalogClientTest, GetDataWithPartitionId) {
         return future.GetFuture().get();
       });
 
-  ASSERT_TRUE(data_response.IsSuccessful())
-      << PrintError(data_response.GetError());
+  EXPECT_SUCCESS(data_response);
   ASSERT_LT(0, data_response.GetResult()->size());
   std::string data_string(data_response.GetResult()->begin(),
                           data_response.GetResult()->end());
@@ -333,8 +321,7 @@ TEST_P(CatalogClientTest, GetDataWithPartitionIdVersion2) {
         return future.GetFuture().get();
       });
 
-  ASSERT_TRUE(data_response.IsSuccessful())
-      << PrintError(data_response.GetError());
+  EXPECT_SUCCESS(data_response);
   ASSERT_LT(0, data_response.GetResult()->size());
   std::string data_string(data_response.GetResult()->begin(),
                           data_response.GetResult()->end());
@@ -386,8 +373,7 @@ TEST_P(CatalogClientTest, GetPartitionsVersion2) {
         return future.GetFuture().get();
       });
 
-  ASSERT_TRUE(partitions_response.IsSuccessful())
-      << PrintError(partitions_response.GetError());
+  EXPECT_SUCCESS(partitions_response);
   ASSERT_LT(0, partitions_response.GetResult().GetPartitions().size());
 }
 
@@ -437,8 +423,7 @@ TEST_P(CatalogClientTest, GetDataWithNonExistentPartitionId) {
         return future.GetFuture().get();
       });
 
-  ASSERT_TRUE(data_response.IsSuccessful())
-      << PrintError(data_response.GetError());
+  EXPECT_SUCCESS(data_response);
   ASSERT_FALSE(data_response.GetResult());
 }
 
@@ -475,8 +460,7 @@ TEST_P(CatalogClientTest, GetDataWithInlineField) {
         return future.GetFuture().get();
       });
 
-  ASSERT_TRUE(data_response.IsSuccessful())
-      << PrintError(data_response.GetError());
+  EXPECT_SUCCESS(data_response);
   ASSERT_LT(0, data_response.GetResult()->size());
   std::string data_string(data_response.GetResult()->begin(),
                           data_response.GetResult()->end());
@@ -497,8 +481,7 @@ TEST_P(CatalogClientTest, GetDataWithEmptyField) {
         return future.GetFuture().get();
       });
 
-  ASSERT_TRUE(data_response.IsSuccessful())
-      << PrintError(data_response.GetError());
+  EXPECT_SUCCESS(data_response);
   ASSERT_FALSE(data_response.GetResult());
 }
 
@@ -516,8 +499,7 @@ TEST_P(CatalogClientTest, GetDataCompressed) {
         return future.GetFuture().get();
       });
 
-  ASSERT_TRUE(data_response.IsSuccessful())
-      << PrintError(data_response.GetError());
+  EXPECT_SUCCESS(data_response);
   ASSERT_LT(0u, data_response.GetResult()->size());
 
   auto request_compressed = olp::dataservice::read::DataRequest();
@@ -529,8 +511,7 @@ TEST_P(CatalogClientTest, GetDataCompressed) {
         return future.GetFuture().get();
       });
 
-  ASSERT_TRUE(data_response_compressed.IsSuccessful())
-      << PrintError(data_response_compressed.GetError());
+  EXPECT_SUCCESS(data_response_compressed);
   ASSERT_LT(0u, data_response_compressed.GetResult()->size());
   ASSERT_EQ(data_response.GetResult()->size(),
             data_response_compressed.GetResult()->size());
@@ -576,8 +557,7 @@ TEST_P(CatalogClientTest, Prefetch) {
 
     auto data_response = future.GetFuture().get();
 
-    ASSERT_TRUE(data_response.IsSuccessful())
-        << PrintError(data_response.GetError());
+    EXPECT_SUCCESS(data_response);
     ASSERT_LT(0, data_response.GetResult()->size());
   }
   // The parent of 5904591 should be fetched too
@@ -590,8 +570,7 @@ TEST_P(CatalogClientTest, Prefetch) {
 
     auto data_response = future.GetFuture().get();
 
-    ASSERT_TRUE(data_response.IsSuccessful())
-        << PrintError(data_response.GetError());
+    EXPECT_SUCCESS(data_response);
     ASSERT_LT(0, data_response.GetResult()->size());
   }
 }

@@ -30,6 +30,7 @@
 #include <olp/core/porting/make_unique.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include <testutils/CustomParameters.hpp>
+#include "Utils.h"
 
 using namespace olp::dataservice::read;
 using namespace testing;
@@ -104,7 +105,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionAsync) {
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
   VersionedLayerClient::CallbackResponse response = future.get();
 
-  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult() != nullptr);
   ASSERT_NE(response.GetResult()->size(), 0u);
 }
@@ -138,7 +139,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
   VersionedLayerClient::CallbackResponse response = future.get();
 
-  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult() != nullptr);
   ASSERT_NE(response.GetResult()->size(), 0u);
 }
@@ -165,7 +166,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionSync) {
       [&response](VersionedLayerClient::CallbackResponse resp) {
         response = std::move(resp);
       });
-  ASSERT_TRUE(response.IsSuccessful());
+  EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult() != nullptr);
   ASSERT_NE(response.GetResult()->size(), 0u);
 }
@@ -203,13 +204,13 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
 
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
     VersionedLayerClient::PrefetchTilesResponse response = future.get();
-    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    EXPECT_SUCCESS(response);
     ASSERT_FALSE(response.GetResult().empty());
 
     const auto& result = response.GetResult();
 
     for (auto tile_result : result) {
-      ASSERT_TRUE(tile_result->IsSuccessful());
+      EXPECT_SUCCESS(*tile_result);
       ASSERT_TRUE(tile_result->tile_key_.IsValid());
     }
 
@@ -226,7 +227,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
         [&response](VersionedLayerClient::CallbackResponse resp) {
           response = std::move(resp);
         });
-    ASSERT_TRUE(response.IsSuccessful());
+    EXPECT_SUCCESS(response);
     ASSERT_TRUE(response.GetResult() != nullptr);
     ASSERT_NE(response.GetResult()->size(), 0u);
   }
@@ -243,7 +244,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
         [&response](VersionedLayerClient::CallbackResponse resp) {
           response = std::move(resp);
         });
-    ASSERT_TRUE(response.IsSuccessful());
+    EXPECT_SUCCESS(response);
     ASSERT_TRUE(response.GetResult() != nullptr);
     ASSERT_NE(response.GetResult()->size(), 0u);
   }
@@ -260,7 +261,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
         [&response](VersionedLayerClient::CallbackResponse resp) {
           response = std::move(resp);
         });
-    ASSERT_TRUE(response.IsSuccessful());
+    EXPECT_SUCCESS(response);
     ASSERT_TRUE(response.GetResult() != nullptr);
     ASSERT_NE(response.GetResult()->size(), 0u);
   }

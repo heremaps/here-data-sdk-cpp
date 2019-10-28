@@ -34,6 +34,6 @@ std::string ErrorMessage(const olp::client::ApiError& error) {
 }
 
 #define EXPECT_SUCCESS(response) \
-  EXPECT_TRUE(response.IsSuccessful()) << ErrorMessage(response.GetError());
+  EXPECT_TRUE((response).IsSuccessful()) << ErrorMessage((response).GetError());
 
 }  // namespace
