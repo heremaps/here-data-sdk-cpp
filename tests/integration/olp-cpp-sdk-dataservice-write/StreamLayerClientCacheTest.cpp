@@ -437,7 +437,8 @@ TEST_F(StreamLayerClientCacheTest, FlushDataMaxEventsInvalidCustomSetting) {
 
 TEST_F(StreamLayerClientCacheTest, FlushSettingsMaximumRequests) {
   disk_cache_->Close();
-  ASSERT_EQ(stream_client_settings_.maximum_requests, boost::none);
+  const auto kMaxRequests = std::numeric_limits<size_t>::max();
+  ASSERT_EQ(stream_client_settings_.maximum_requests, kMaxRequests);
   client_ = CreateStreamLayerClient();
   {
     testing::InSequence dummy;

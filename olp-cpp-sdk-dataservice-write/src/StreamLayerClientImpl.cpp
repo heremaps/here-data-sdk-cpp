@@ -285,12 +285,10 @@ boost::optional<std::string> StreamLayerClientImpl::Queue(
         "PublishDataRequest does not contain a Layer ID");
   }
 
-  if (stream_client_settings_.maximum_requests) {
-    if (!(StreamLayerClientImpl::QueueSize() <
-          *stream_client_settings_.maximum_requests)) {
-      return boost::make_optional<std::string>(
-          "Maximum number of requests has reached");
-    }
+  if (!(StreamLayerClientImpl::QueueSize() <
+        stream_client_settings_.maximum_requests)) {
+    return boost::make_optional<std::string>(
+        "Maximum number of requests has reached");
   }
 
   {

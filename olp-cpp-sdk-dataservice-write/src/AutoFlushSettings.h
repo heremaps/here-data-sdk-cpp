@@ -36,9 +36,9 @@ struct AutoFlushSettings {
   int auto_flush_interval = 0;
 
   /**
-    @brief The maximum number of partitions to be flushed each time.Set
-    0 to flush all partitions. Non-positive number will flush nothing.
-  */
+   * @brief The maximum number of partitions to be flushed each time.Set
+   *  0 to flush all partitions. Non-positive number will flush nothing.
+   */
   int events_per_single_flush = 0;
 };
 
