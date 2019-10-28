@@ -28,8 +28,7 @@
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
-#include <olp/dataservice/read/model/Data.h>
-#include <olp/dataservice/read/model/Partitions.h>
+#include <olp/dataservice/read/Types.h>
 
 namespace olp {
 namespace dataservice {
@@ -75,19 +74,6 @@ class VolatileLayerClientImpl;
  */
 class DATASERVICE_READ_API VolatileLayerClient final {
  public:
-  /// DataResult alias
-  using DataResult = model::Data;
-  /// CallbackResponse alias
-  using DataResponse = client::ApiResponse<DataResult, client::ApiError>;
-  /// PartitionResult alias
-  using PartitionsResult = model::Partitions;
-  /// CallbackResponse
-  using PartitionsResponse =
-      client::ApiResponse<PartitionsResult, client::ApiError>;
-  /// Callback alias
-  template <class Response>
-  using Callback = std::function<void(Response response)>;
-
   /**
    * @brief VolatileLayerClient constructor.
    * @param catalog a catalog that the volatile layer client uses during
@@ -108,8 +94,8 @@ class DATASERVICE_READ_API VolatileLayerClient final {
    * or an error is encountered.
    * @return A token that can be used to cancel this request
    */
-  client::CancellationToken GetPartitions(
-      PartitionsRequest request, Callback<PartitionsResponse> callback);
+  client::CancellationToken GetPartitions(PartitionsRequest request,
+                                          PartitionsResponseCallback callback);
 
   /**
    * @brief Fetches a list partitions for given volatile layer asynchronously.
@@ -133,7 +119,7 @@ class DATASERVICE_READ_API VolatileLayerClient final {
    * @return Token that can be used to cancel this request.
    */
   olp::client::CancellationToken GetData(DataRequest request,
-                                         Callback<DataResponse> callback);
+                                         DataResponseCallback callback);
 
   /**
    * @brief Fetches data for a partition or data handle asynchronously.

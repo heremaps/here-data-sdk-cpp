@@ -70,7 +70,7 @@ VolatileLayerClientImpl::~VolatileLayerClientImpl() {
 }
 
 client::CancellationToken VolatileLayerClientImpl::GetPartitions(
-    PartitionsRequest request, Callback<PartitionsResponse> callback) {
+    PartitionsRequest request, PartitionsResponseCallback callback) {
   request.WithLayerId(layer_id_);
   client::CancellationToken token;
   int64_t request_key = pending_requests_->GenerateRequestPlaceholder();
@@ -110,8 +110,8 @@ VolatileLayerClientImpl::GetPartitions(PartitionsRequest request) {
 }
 
 client::CancellationToken VolatileLayerClientImpl::GetData(
-    DataRequest request, Callback<DataResponse> callback) {
-  auto add_task = [&](DataRequest& request, Callback<DataResponse> callback) {
+    DataRequest request, DataResponseCallback callback) {
+  auto add_task = [&](DataRequest& request, DataResponseCallback callback) {
     auto catalog = catalog_;
     auto layer_id = layer_id_;
     auto settings = *settings_;
