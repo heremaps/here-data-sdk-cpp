@@ -126,7 +126,28 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * @return A token that can be used to cancel this request.
    */
   client::CancellationToken PrefetchTiles(
-      PrefetchTilesRequest request, PrefetchTilesResponseCallback callback);
+      PrefetchTilesRequest request,
+      PrefetchTilesResponseCallback callback) const;
+
+  /**
+   * @brief Pre-fetches a set of tiles asychronously.
+   *
+   * This method recursively downloads all tilekeys from minLevel to maxLevel
+   * specified in the \c PrefetchTilesRequest's properties. This will help to
+   * reduce the network load by using the pre-fetched tiles' data from cache.
+   *
+   * \note - this does not guarantee that all tiles are available offline, as
+   * the cache might overflow and data might be evicted at any point.
+   *
+   * @param request contains the complete set of request parameters.
+   * \note The \c PrefetchTilesRequest's GetLayerId value will be ignored and
+   * the parameter from constructore will be used instead.
+   * @return CancellableFuture of type \c PrefetchTilesResponse, which when
+   * complete will contain the data or an error. Alternatively, the
+   * \c CancellableFuture can be used to cancel this request.
+   */
+  client::CancellableFuture<PrefetchTilesResponse> PrefetchTiles(
+      PrefetchTilesRequest request) const;
 
  private:
   std::unique_ptr<VersionedLayerClientImpl> impl_;

@@ -1478,7 +1478,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
     auto token = client->PrefetchTiles(
         request,
         [&promise](VersionedLayerClient::PrefetchTilesResponse response) {
-          promise.set_value(response);
+          promise.set_value(std::move(response));
         });
 
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
@@ -1580,7 +1580,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesBusy) {
   auto token1 = client->PrefetchTiles(
       request1,
       [&promise1](VersionedLayerClient::PrefetchTilesResponse response) {
-        promise1.set_value(response);
+        promise1.set_value(std::move(response));
       });
 
   // Wait for QuadKey request
@@ -1602,7 +1602,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesBusy) {
   auto token2 = client->PrefetchTiles(
       request2,
       [&promise2](VersionedLayerClient::PrefetchTilesResponse response) {
-        promise2.set_value(response);
+        promise2.set_value(std::move(response));
       });
 
   // Unblock the QuadKey request
@@ -1668,7 +1668,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   auto token = client->PrefetchTiles(
       request,
       [&promise](VersionedLayerClient::PrefetchTilesResponse response) {
-        promise.set_value(response);
+        promise.set_value(std::move(response));
       });
 
   wait_for_cancel->get_future().get();
@@ -1733,6 +1733,84 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesCancelOnLookup) {
   ASSERT_FALSE(response.IsSuccessful()) << response.GetError().GetMessage();
   ASSERT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::Cancelled);
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest,
+       PrefetchTilesWithCancellableFuture) {
+  olp::client::HRN catalog(GetTestCatalog());
+  constexpr auto kLayerId = "hype-test-prefetch";
+
+  std::vector<olp::geo::TileKey> tile_keys = {
+      olp::geo::TileKey::FromHereTile("5904591")};
+
+  auto request = olp::dataservice::read::PrefetchTilesRequest()
+                     .WithTileKeys(tile_keys)
+                     .WithMinLevel(10)
+                     .WithMaxLevel(12);
+
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      catalog, kLayerId, *settings_);
+  ASSERT_TRUE(client);
+
+  auto cancel_future = client->PrefetchTiles(request);
+  auto raw_future = cancel_future.GetFuture();
+
+  ASSERT_NE(raw_future.wait_for(kWaitTimeout), std::future_status::timeout);
+  VersionedLayerClient::PrefetchTilesResponse response = raw_future.get();
+  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_FALSE(response.GetResult().empty());
+
+  const auto& result = response.GetResult();
+  for (auto tile_result : result) {
+    ASSERT_TRUE(tile_result->IsSuccessful())
+        << tile_result->GetError().GetMessage();
+    ASSERT_TRUE(tile_result->tile_key_.IsValid());
+  }
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest,
+       CancelPrefetchTilesWithCancellableFuture) {
+  olp::client::HRN catalog(GetTestCatalog());
+  constexpr auto kLayerId = "hype-test-prefetch";
+
+  std::vector<olp::geo::TileKey> tile_keys = {
+      olp::geo::TileKey::FromHereTile("5904591")};
+
+  auto request = olp::dataservice::read::PrefetchTilesRequest()
+                     .WithTileKeys(tile_keys)
+                     .WithMinLevel(10)
+                     .WithMaxLevel(12);
+
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      catalog, kLayerId, *settings_);
+  ASSERT_TRUE(client);
+
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
+
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+      wait_for_cancel, pause_for_cancel,
+      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_QUERY});
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(_))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
+
+  auto cancel_future = client->PrefetchTiles(request);
+
+  wait_for_cancel->get_future().get();
+  cancel_future.GetCancellationToken().cancel();
+  pause_for_cancel->set_value();
+
+  auto raw_future = cancel_future.GetFuture();
+  ASSERT_NE(raw_future.wait_for(kWaitTimeout), std::future_status::timeout);
+  VersionedLayerClient::PrefetchTilesResponse response = raw_future.get();
+  ASSERT_FALSE(response.IsSuccessful());
+  ASSERT_TRUE(response.GetResult().empty());
 }
 
 }  // namespace

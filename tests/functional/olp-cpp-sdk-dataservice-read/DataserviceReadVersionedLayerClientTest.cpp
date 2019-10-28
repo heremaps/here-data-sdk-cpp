@@ -199,7 +199,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
     auto token = client->PrefetchTiles(
         request,
         [&promise](VersionedLayerClient::PrefetchTilesResponse response) {
-          promise.set_value(response);
+          promise.set_value(std::move(response));
         });
 
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
@@ -265,6 +265,43 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
     ASSERT_TRUE(response.GetResult() != nullptr);
     ASSERT_NE(response.GetResult()->size(), 0u);
   }
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWithCancellableFuture) {
+  const auto catalog =
+      olp::client::HRN::FromString(CustomParameters::getArgument(
+          "dataservice_read_test_versioned_prefetch_catalog"));
+  const auto kLayerId = CustomParameters::getArgument(
+      "dataservice_read_test_versioned_prefetch_layer");
+  const auto kTileId = CustomParameters::getArgument(
+      "dataservice_read_test_versioned_prefetch_tile");
+
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      catalog, kLayerId, *settings_);
+
+  std::vector<olp::geo::TileKey> tile_keys = {
+      olp::geo::TileKey::FromHereTile(kTileId)};
+
+  auto request = olp::dataservice::read::PrefetchTilesRequest()
+                     .WithTileKeys(tile_keys)
+                     .WithMinLevel(10)
+                     .WithMaxLevel(12);
+  auto cancel_future = client->PrefetchTiles(std::move(request));
+
+  auto raw_future = cancel_future.GetFuture();
+  ASSERT_NE(raw_future.wait_for(kWaitTimeout), std::future_status::timeout);
+  VersionedLayerClient::PrefetchTilesResponse response = raw_future.get();
+  EXPECT_SUCCESS(response);
+  ASSERT_FALSE(response.GetResult().empty());
+
+  const auto& result = response.GetResult();
+
+  for (auto tile_result : result) {
+    EXPECT_SUCCESS(*tile_result);
+    ASSERT_TRUE(tile_result->tile_key_.IsValid());
+  }
+
+  ASSERT_EQ(6u, result.size());
 }
 
 }  // namespace

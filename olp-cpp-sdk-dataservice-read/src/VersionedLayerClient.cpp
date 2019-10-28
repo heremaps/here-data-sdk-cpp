@@ -46,8 +46,14 @@ client::CancellationToken VersionedLayerClient::GetPartitions(
 }
 
 client::CancellationToken VersionedLayerClient::PrefetchTiles(
-    PrefetchTilesRequest request, PrefetchTilesResponseCallback callback) {
+    PrefetchTilesRequest request,
+    PrefetchTilesResponseCallback callback) const {
   return impl_->PrefetchTiles(std::move(request), std::move(callback));
+}
+
+client::CancellableFuture<VersionedLayerClient::PrefetchTilesResponse>
+VersionedLayerClient::PrefetchTiles(PrefetchTilesRequest request) const {
+  return impl_->PrefetchTiles(std::move(request));
 }
 
 }  // namespace read
