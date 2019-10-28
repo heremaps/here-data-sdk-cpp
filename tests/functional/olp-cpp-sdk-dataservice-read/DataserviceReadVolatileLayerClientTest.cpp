@@ -73,7 +73,9 @@ class VolatileLayerClientTest : public ::testing::Test {
   void TearDown() override {
     auto network = std::move(settings_.network_request_handler);
     // when test ends we must be sure that network pointer is not captured
-    // anywhere
+    // anywhere. Also network is still used in authentication settings and in
+    // TokenProvider internally so it needs to be cleared.
+    settings_ = olp::client::OlpClientSettings();
     EXPECT_EQ(network.use_count(), 1);
   }
 
@@ -97,17 +99,13 @@ TEST_F(VolatileLayerClientTest, GetPartitions) {
     VolatileLayerClient client(hrn, GetTestLayer(), settings_);
 
     olp::client::Condition condition;
-    VolatileLayerClient::PartitionsResponse
-        partitions_response;
+    VolatileLayerClient::PartitionsResponse partitions_response;
 
-    auto callback =
-        [&](VolatileLayerClient::PartitionsResponse
-                response) {
-          partitions_response = std::move(response);
-          condition.Notify();
-        };
-    client.GetPartitions(PartitionsRequest(),
-                         std::move(callback));
+    auto callback = [&](VolatileLayerClient::PartitionsResponse response) {
+      partitions_response = std::move(response);
+      condition.Notify();
+    };
+    client.GetPartitions(PartitionsRequest(), std::move(callback));
     ASSERT_TRUE(condition.Wait(kTimeout));
     EXPECT_TRUE(partitions_response.IsSuccessful());
   }
@@ -118,18 +116,14 @@ TEST_F(VolatileLayerClientTest, GetPartitions) {
     VolatileLayerClient client(hrn, GetTestLayer(), settings_);
 
     olp::client::Condition condition;
-    VolatileLayerClient::PartitionsResponse
-        partitions_response;
+    VolatileLayerClient::PartitionsResponse partitions_response;
 
-    auto callback =
-        [&](VolatileLayerClient::PartitionsResponse
-                response) {
-          partitions_response = std::move(response);
-          condition.Notify();
-        };
+    auto callback = [&](VolatileLayerClient::PartitionsResponse response) {
+      partitions_response = std::move(response);
+      condition.Notify();
+    };
     client.GetPartitions(
-        PartitionsRequest().WithFetchOption(
-            FetchOptions::CacheWithUpdate),
+        PartitionsRequest().WithFetchOption(FetchOptions::CacheWithUpdate),
         std::move(callback));
     ASSERT_TRUE(condition.Wait(kTimeout));
     EXPECT_TRUE(partitions_response.IsSuccessful());
@@ -141,17 +135,13 @@ TEST_F(VolatileLayerClientTest, GetPartitions) {
     VolatileLayerClient client(hrn, "InvalidLayer", settings_);
 
     olp::client::Condition condition;
-    VolatileLayerClient::PartitionsResponse
-        partitions_response;
+    VolatileLayerClient::PartitionsResponse partitions_response;
 
-    auto callback =
-        [&](VolatileLayerClient::PartitionsResponse
-                response) {
-          partitions_response = std::move(response);
-          condition.Notify();
-        };
-    client.GetPartitions(PartitionsRequest(),
-                         std::move(callback));
+    auto callback = [&](VolatileLayerClient::PartitionsResponse response) {
+      partitions_response = std::move(response);
+      condition.Notify();
+    };
+    client.GetPartitions(PartitionsRequest(), std::move(callback));
     ASSERT_TRUE(condition.Wait(kTimeout));
     EXPECT_FALSE(partitions_response.IsSuccessful());
   }
@@ -163,23 +153,19 @@ TEST_F(VolatileLayerClientTest, GetPartitions) {
                                settings_);
 
     olp::client::Condition condition;
-    VolatileLayerClient::PartitionsResponse
-        partitions_response;
+    VolatileLayerClient::PartitionsResponse partitions_response;
 
-    auto callback =
-        [&](VolatileLayerClient::PartitionsResponse
-                response) {
-          partitions_response = std::move(response);
-          condition.Notify();
-        };
-    client.GetPartitions(PartitionsRequest(),
-                         std::move(callback));
+    auto callback = [&](VolatileLayerClient::PartitionsResponse response) {
+      partitions_response = std::move(response);
+      condition.Notify();
+    };
+    client.GetPartitions(PartitionsRequest(), std::move(callback));
     ASSERT_TRUE(condition.Wait(kTimeout));
     EXPECT_FALSE(partitions_response.IsSuccessful());
   }
 }
 
-TEST_F(VolatileLayerClientTest, GetPartitionsDifferentFethOptions) {
+TEST_F(VolatileLayerClientTest, GetPartitionsDifferentFetchOptions) {
   olp::client::HRN hrn(GetTestCatalog());
   {
     SCOPED_TRACE("Get Partitions Online Only");
@@ -187,15 +173,12 @@ TEST_F(VolatileLayerClientTest, GetPartitionsDifferentFethOptions) {
     VolatileLayerClient client(hrn, GetTestLayer(), settings_);
 
     olp::client::Condition condition;
-    VolatileLayerClient::PartitionsResponse
-        partitions_response;
+    VolatileLayerClient::PartitionsResponse partitions_response;
 
-    auto callback =
-        [&](VolatileLayerClient::PartitionsResponse
-                response) {
-          partitions_response = std::move(response);
-          condition.Notify();
-        };
+    auto callback = [&](VolatileLayerClient::PartitionsResponse response) {
+      partitions_response = std::move(response);
+      condition.Notify();
+    };
     client.GetPartitions(
         PartitionsRequest().WithFetchOption(FetchOptions::OnlineOnly),
         std::move(callback));
@@ -208,15 +191,12 @@ TEST_F(VolatileLayerClientTest, GetPartitionsDifferentFethOptions) {
     VolatileLayerClient client(hrn, GetTestLayer(), settings_);
 
     olp::client::Condition condition;
-    VolatileLayerClient::PartitionsResponse
-        partitions_response;
+    VolatileLayerClient::PartitionsResponse partitions_response;
 
-    auto callback =
-        [&](VolatileLayerClient::PartitionsResponse
-                response) {
-          partitions_response = std::move(response);
-          condition.Notify();
-        };
+    auto callback = [&](VolatileLayerClient::PartitionsResponse response) {
+      partitions_response = std::move(response);
+      condition.Notify();
+    };
     client.GetPartitions(
         PartitionsRequest().WithFetchOption(FetchOptions::CacheOnly),
         std::move(callback));
