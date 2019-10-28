@@ -82,7 +82,11 @@ class VersionedLayerClientImpl {
       PartitionsRequest partitions_request, PartitionsCallback callback) const;
 
   virtual client::CancellationToken PrefetchTiles(
-      PrefetchTilesRequest request, PrefetchTilesResponseCallback callback);
+      PrefetchTilesRequest request,
+      PrefetchTilesResponseCallback callback) const;
+
+  virtual client::CancellableFuture<PrefetchTilesResponse> PrefetchTiles(
+      PrefetchTilesRequest request) const;
 
  protected:
   client::HRN catalog_;

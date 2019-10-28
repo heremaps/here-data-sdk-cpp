@@ -148,13 +148,14 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
 }
 
 client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
-    PrefetchTilesRequest request, PrefetchTilesResponseCallback callback) {
+    PrefetchTilesRequest request,
+    PrefetchTilesResponseCallback callback) const {
   const int64_t request_key = pending_requests_->GenerateRequestPlaceholder();
   auto pending_requests = pending_requests_;
-  auto request_callback = [=](const PrefetchTilesResponse& response) {
+  auto request_callback = [=](PrefetchTilesResponse response) {
     pending_requests->Remove(request_key);
     if (callback) {
-      callback(response);
+      callback(std::move(response));
     }
   };
 
@@ -162,6 +163,17 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
   auto token = prefetch_provider_->PrefetchTiles(request, request_callback);
   pending_requests->Insert(token, request_key);
   return token;
+}
+
+client::CancellableFuture<PrefetchTilesResponse>
+VersionedLayerClientImpl::PrefetchTiles(PrefetchTilesRequest request) const {
+  auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
+  auto cancel_token = PrefetchTiles(std::move(request),
+                                    [promise](PrefetchTilesResponse response) {
+                                      promise->set_value(std::move(response));
+                                    });
+  return client::CancellableFuture<PrefetchTilesResponse>(cancel_token,
+                                                          promise);
 }
 
 }  // namespace read
