@@ -18,11 +18,17 @@
  */
 
 #include "PendingRequests.h"
+
+#include <olp/core/logging/Log.h>
 #include "TaskContext.h"
 
 namespace olp {
 namespace dataservice {
 namespace read {
+
+namespace {
+constexpr auto kLogTag = "PendingRequests";
+}
 
 PendingRequests::PendingRequests(){};
 
@@ -40,7 +46,9 @@ bool PendingRequests::CancelPendingRequests() {
   }
 
   for (auto context : contexts) {
-    context.BlockingCancel();
+    if (!context.BlockingCancel()) {
+      OLP_SDK_LOG_WARNING(kLogTag, "Timeout, when waiting on BlockingCancel");
+    }
   }
 
   return true;
