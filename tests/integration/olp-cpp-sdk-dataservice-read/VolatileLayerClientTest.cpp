@@ -295,6 +295,52 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitions) {
   ASSERT_EQ(4u, partitions_response.GetResult().GetPartitions().size());
 }
 
+TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsCancellableFuture) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
+      .Times(1);
+
+  olp::dataservice::read::VolatileLayerClient client(hrn, "testlayer",
+                                                     settings_);
+
+  auto request = olp::dataservice::read::PartitionsRequest();
+  auto cancellable = client.GetPartitions(request);
+  auto future = cancellable.GetFuture();
+
+  ASSERT_EQ(std::future_status::ready, future.wait_for(kTimeout));
+
+  auto response = future.get();
+  ASSERT_TRUE(response.IsSuccessful()) << ApiErrorToString(response.GetError());
+  ASSERT_EQ(4u, response.GetResult().GetPartitions().size());
+}
+
+TEST_F(DataserviceReadVolatileLayerClientTest,
+       GetPartitionsCancellableFutureCancellation) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  settings_.task_scheduler =
+      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
+  // Simulate a loaded queue
+  settings_.task_scheduler->ScheduleTask(
+      []() { std::this_thread::sleep_for(std::chrono::seconds(1)); });
+
+  olp::dataservice::read::VolatileLayerClient client(hrn, "testlayer",
+                                                     settings_);
+
+  auto request = olp::dataservice::read::PartitionsRequest();
+  auto cancellable = client.GetPartitions(request);
+  auto future = cancellable.GetFuture();
+
+  cancellable.GetCancellationToken().cancel();
+  ASSERT_EQ(std::future_status::ready, future.wait_for(kTimeout));
+
+  auto response = future.get();
+  EXPECT_FALSE(response.IsSuccessful());
+  EXPECT_EQ(response.GetError().GetErrorCode(),
+            olp::client::ErrorCode::Cancelled);
+}
+
 TEST_F(DataserviceReadVolatileLayerClientTest, GetEmptyPartitions) {
   olp::client::HRN hrn(GetTestCatalog());
 

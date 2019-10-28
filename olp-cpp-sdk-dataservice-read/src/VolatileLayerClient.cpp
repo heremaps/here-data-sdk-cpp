@@ -39,9 +39,19 @@ client::CancellationToken VolatileLayerClient::GetPartitions(
   return impl_->GetPartitions(std::move(request), std::move(callback));
 }
 
+olp::client::CancellableFuture<VolatileLayerClient::PartitionsResponse>
+VolatileLayerClient::GetPartitions(PartitionsRequest request) {
+  return impl_->GetPartitions(std::move(request));
+}
+
 client::CancellationToken VolatileLayerClient::GetData(
     DataRequest request, Callback<DataResponse> callback) {
   return impl_->GetData(std::move(request), std::move(callback));
+}
+
+olp::client::CancellableFuture<VolatileLayerClient::DataResponse>
+VolatileLayerClient::GetData(DataRequest request) {
+  return impl_->GetData(std::move(request));
 }
 }  // namespace read
 }  // namespace dataservice
