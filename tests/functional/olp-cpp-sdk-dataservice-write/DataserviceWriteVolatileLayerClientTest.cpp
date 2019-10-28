@@ -273,7 +273,7 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, PublishToBatchInvalid) {
       volatile_client->PublishToBatch(response.GetResult(), {})
           .GetFuture()
           .get();
-  EXPECT_SUCCESS(publish_to_batch_response);
+  ASSERT_FALSE(publish_to_batch_response.IsSuccessful());
 
   std::vector<PublishPartitionDataRequest> partition_requests{
       PublishPartitionDataRequest{}, PublishPartitionDataRequest{}};
