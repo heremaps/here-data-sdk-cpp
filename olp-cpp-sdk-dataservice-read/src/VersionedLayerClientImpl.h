@@ -21,9 +21,6 @@
 
 #include <memory>
 
-#include <PendingRequests.h>
-#include <olp/core/client/ApiError.h>
-#include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
@@ -32,8 +29,9 @@
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/PrefetchTileResult.h>
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
-#include <olp/dataservice/read/model/Data.h>
-#include <olp/dataservice/read/model/Partitions.h>
+#include <olp/dataservice/read/Types.h>
+
+#include "PendingRequests.h"
 
 namespace olp {
 namespace thread {
@@ -49,44 +47,23 @@ class PrefetchTilesProvider;
 
 class VersionedLayerClientImpl {
  public:
-  /// DataResult alias
-  using DataResult = model::Data;
-  /// CallbackResponse alias
-  using CallbackResponse = client::ApiResponse<DataResult, client::ApiError>;
-  /// Callback alias
-  using Callback = std::function<void(CallbackResponse response)>;
-
-  using PartitionsResult = model::Partitions;
-  using PartitionsResponse =
-      client::ApiResponse<PartitionsResult, client::ApiError>;
-  using PartitionsCallback = std::function<void(PartitionsResponse response)>;
-
-  /// PrefetchTileResult alias
-  using PrefetchTilesResult = std::vector<std::shared_ptr<PrefetchTileResult>>;
-  /// Alias for the response to the \c PrefetchTileRequest
-  using PrefetchTilesResponse =
-      client::ApiResponse<PrefetchTilesResult, client::ApiError>;
-  /// Alias for the callback  to the results of PrefetchTilesResponse
-  using PrefetchTilesResponseCallback =
-      std::function<void(const PrefetchTilesResponse& response)>;
-
   VersionedLayerClientImpl(client::HRN catalog, std::string layer_id,
                            client::OlpClientSettings settings);
 
   virtual ~VersionedLayerClientImpl();
 
   virtual client::CancellationToken GetData(DataRequest data_request,
-                                            Callback callback) const;
+                                            DataResponseCallback callback);
 
   virtual client::CancellationToken GetPartitions(
-      PartitionsRequest partitions_request, PartitionsCallback callback) const;
+      PartitionsRequest partitions_request,
+      PartitionsResponseCallback callback);
 
   virtual client::CancellationToken PrefetchTiles(
-      PrefetchTilesRequest request,
-      PrefetchTilesResponseCallback callback) const;
+      PrefetchTilesRequest request, PrefetchTilesResponseCallback callback);
 
   virtual client::CancellableFuture<PrefetchTilesResponse> PrefetchTiles(
-      PrefetchTilesRequest request) const;
+      PrefetchTilesRequest request);
 
  protected:
   client::HRN catalog_;

@@ -33,8 +33,6 @@
 #include <olp/dataservice/read/PrefetchTileResult.h>
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/Types.h>
-#include <olp/dataservice/read/model/Data.h>
-#include <olp/dataservice/read/model/Partitions.h>
 
 namespace olp {
 namespace dataservice {
@@ -46,27 +44,6 @@ class VersionedLayerClientImpl;
  */
 class DATASERVICE_READ_API VersionedLayerClient final {
  public:
-  /// DataResult alias
-  using DataResult = model::Data;
-  /// CallbackResponse alias
-  using CallbackResponse = client::ApiResponse<DataResult, client::ApiError>;
-  /// Callback alias
-  using Callback = std::function<void(CallbackResponse response)>;
-
-  using PartitionsResult = model::Partitions;
-  using PartitionsResponse =
-      client::ApiResponse<PartitionsResult, client::ApiError>;
-  using PartitionsCallback = std::function<void(PartitionsResponse response)>;
-
-  /// PrefetchTileResult alias
-  using PrefetchTilesResult = std::vector<std::shared_ptr<PrefetchTileResult>>;
-  /// Alias for the response to the \c PrefetchTileRequest
-  using PrefetchTilesResponse =
-      client::ApiResponse<PrefetchTilesResult, client::ApiError>;
-  /// Alias for the callback  to the results of PrefetchTilesResponse
-  using PrefetchTilesResponseCallback =
-      std::function<void(const PrefetchTilesResponse& response)>;
-
   /**
    * @brief VersionedLayerClient constructor
    * @param catalog a catalog that the versioned layer client uses during
@@ -94,7 +71,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * @return A token that can be used to cancel this request.
    */
   client::CancellationToken GetData(DataRequest data_request,
-                                    Callback callback);
+                                    DataResponseCallback callback);
 
   /**
    * @brief fetches a list partitions for given generic layer asynchronously.
@@ -106,7 +83,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * @return A token that can be used to cancel this request
    */
   client::CancellationToken GetPartitions(PartitionsRequest partitions_request,
-                                          PartitionsCallback callback) const;
+                                          PartitionsResponseCallback callback);
 
   /**
    * @brief Pre-fetches a set of tiles asychronously.
@@ -126,8 +103,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * @return A token that can be used to cancel this request.
    */
   client::CancellationToken PrefetchTiles(
-      PrefetchTilesRequest request,
-      PrefetchTilesResponseCallback callback) const;
+      PrefetchTilesRequest request, PrefetchTilesResponseCallback callback);
 
   /**
    * @brief Pre-fetches a set of tiles asychronously.
@@ -147,7 +123,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * \c CancellableFuture can be used to cancel this request.
    */
   client::CancellableFuture<PrefetchTilesResponse> PrefetchTiles(
-      PrefetchTilesRequest request) const;
+      PrefetchTilesRequest request);
 
  private:
   std::unique_ptr<VersionedLayerClientImpl> impl_;

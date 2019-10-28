@@ -58,9 +58,11 @@ class DataserviceReadVolatileLayerClientTest : public ::testing::Test {
   std::shared_ptr<olp::tests::common::NetworkMock> network_mock_;
 };
 
-DataserviceReadVolatileLayerClientTest::DataserviceReadVolatileLayerClientTest() = default;
+DataserviceReadVolatileLayerClientTest::
+    DataserviceReadVolatileLayerClientTest() = default;
 
-DataserviceReadVolatileLayerClientTest::~DataserviceReadVolatileLayerClientTest() = default;
+DataserviceReadVolatileLayerClientTest::
+    ~DataserviceReadVolatileLayerClientTest() = default;
 
 std::string DataserviceReadVolatileLayerClientTest::GetTestCatalog() {
   return "hrn:here:data:::hereos-internal-test-v2";
@@ -280,13 +282,12 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitions) {
                                                      settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
-  VolatileLayerClient::PartitionsResponse partitions_response;
+  PartitionsResponse partitions_response;
   olp::client::Condition condition;
-  client.GetPartitions(request,
-                       [&](VolatileLayerClient::PartitionsResponse response) {
-                         partitions_response = std::move(response);
-                         condition.Notify();
-                       });
+  client.GetPartitions(request, [&](PartitionsResponse response) {
+    partitions_response = std::move(response);
+    condition.Notify();
+  });
 
   ASSERT_TRUE(condition.Wait(kTimeout));
 
@@ -352,13 +353,12 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetEmptyPartitions) {
                                                      settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
-  VolatileLayerClient::PartitionsResponse partitions_response;
+  PartitionsResponse partitions_response;
   olp::client::Condition condition;
-  client.GetPartitions(request,
-                       [&](VolatileLayerClient::PartitionsResponse response) {
-                         partitions_response = std::move(response);
-                         condition.Notify();
-                       });
+  client.GetPartitions(request, [&](PartitionsResponse response) {
+    partitions_response = std::move(response);
+    condition.Notify();
+  });
 
   ASSERT_TRUE(condition.Wait(kTimeout));
 
@@ -386,13 +386,12 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetVolatilePartitions) {
                                                      settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
-  VolatileLayerClient::PartitionsResponse partitions_response;
+  PartitionsResponse partitions_response;
   olp::client::Condition condition;
-  client.GetPartitions(request,
-                       [&](VolatileLayerClient::PartitionsResponse response) {
-                         partitions_response = std::move(response);
-                         condition.Notify();
-                       });
+  client.GetPartitions(request, [&](PartitionsResponse response) {
+    partitions_response = std::move(response);
+    condition.Notify();
+  });
 
   ASSERT_TRUE(condition.Wait(kTimeout));
 
@@ -427,13 +426,12 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitions429Error) {
                                                      settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
-  VolatileLayerClient::PartitionsResponse partitions_response;
+  PartitionsResponse partitions_response;
   olp::client::Condition condition;
-  client.GetPartitions(request,
-                       [&](VolatileLayerClient::PartitionsResponse response) {
-                         partitions_response = std::move(response);
-                         condition.Notify();
-                       });
+  client.GetPartitions(request, [&](PartitionsResponse response) {
+    partitions_response = std::move(response);
+    condition.Notify();
+  });
 
   ASSERT_TRUE(condition.Wait(kTimeout));
 
@@ -470,13 +468,12 @@ TEST_F(DataserviceReadVolatileLayerClientTest, ApiLookup429) {
                                                      settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
-  VolatileLayerClient::PartitionsResponse partitions_response;
+  PartitionsResponse partitions_response;
   olp::client::Condition condition;
-  client.GetPartitions(request,
-                       [&](VolatileLayerClient::PartitionsResponse response) {
-                         partitions_response = std::move(response);
-                         condition.Notify();
-                       });
+  client.GetPartitions(request, [&](PartitionsResponse response) {
+    partitions_response = std::move(response);
+    condition.Notify();
+  });
 
   ASSERT_TRUE(condition.Wait(kTimeout));
 
@@ -492,13 +489,12 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsForInvalidLayer) {
                                                      settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
-  VolatileLayerClient::PartitionsResponse partitions_response;
+  PartitionsResponse partitions_response;
   olp::client::Condition condition;
-  client.GetPartitions(request,
-                       [&](VolatileLayerClient::PartitionsResponse response) {
-                         partitions_response = std::move(response);
-                         condition.Notify();
-                       });
+  client.GetPartitions(request, [&](PartitionsResponse response) {
+    partitions_response = std::move(response);
+    condition.Notify();
+  });
 
   ASSERT_TRUE(condition.Wait(kTimeout));
 
@@ -520,13 +516,12 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsGarbageResponse) {
                                                      settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
-  VolatileLayerClient::PartitionsResponse partitions_response;
+  PartitionsResponse partitions_response;
   olp::client::Condition condition;
-  client.GetPartitions(request,
-                       [&](VolatileLayerClient::PartitionsResponse response) {
-                         partitions_response = std::move(response);
-                         condition.Notify();
-                       });
+  client.GetPartitions(request, [&](PartitionsResponse response) {
+    partitions_response = std::move(response);
+    condition.Notify();
+  });
 
   ASSERT_TRUE(condition.Wait(kTimeout));
 
@@ -535,7 +530,8 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsGarbageResponse) {
             partitions_response.GetError().GetErrorCode());
 }
 
-TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsCancelLookupMetadata) {
+TEST_F(DataserviceReadVolatileLayerClientTest,
+       GetPartitionsCancelLookupMetadata) {
   olp::client::HRN hrn(GetTestCatalog());
 
   // Setup the expected calls :
@@ -561,8 +557,8 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsCancelLookupMetadata
               Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(0);
 
-  std::promise<VolatileLayerClient::PartitionsResponse> promise;
-  auto callback = [&promise](VolatileLayerClient::PartitionsResponse response) {
+  std::promise<PartitionsResponse> promise;
+  auto callback = [&promise](PartitionsResponse response) {
     promise.set_value(response);
   };
 
@@ -574,8 +570,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsCancelLookupMetadata
   wait_for_cancel->get_future().get();  // wait for handler to get the request
   cancel_token.cancel();
   pause_for_cancel->set_value();  // unblock the handler
-  VolatileLayerClient::PartitionsResponse partitions_response =
-      promise.get_future().get();
+  PartitionsResponse partitions_response = promise.get_future().get();
 
   ASSERT_FALSE(partitions_response.IsSuccessful())
       << ApiErrorToString(partitions_response.GetError());
@@ -585,7 +580,8 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsCancelLookupMetadata
             partitions_response.GetError().GetErrorCode());
 }
 
-TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsCancelLatestCatalogVersion) {
+TEST_F(DataserviceReadVolatileLayerClientTest,
+       GetPartitionsCancelLatestCatalogVersion) {
   olp::client::HRN hrn(GetTestCatalog());
 
   // Setup the expected calls :
@@ -612,8 +608,8 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsCancelLatestCatalogV
               Send(IsGetRequest(URL_LAYER_VERSIONS), _, _, _, _))
       .Times(0);
 
-  std::promise<VolatileLayerClient::PartitionsResponse> promise;
-  auto callback = [&promise](VolatileLayerClient::PartitionsResponse response) {
+  std::promise<PartitionsResponse> promise;
+  auto callback = [&promise](PartitionsResponse response) {
     promise.set_value(response);
   };
 
@@ -625,8 +621,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsCancelLatestCatalogV
   wait_for_cancel->get_future().get();  // wait for handler to get the request
   cancel_token.cancel();
   pause_for_cancel->set_value();  // unblock the handler
-  VolatileLayerClient::PartitionsResponse partitions_response =
-      promise.get_future().get();
+  PartitionsResponse partitions_response = promise.get_future().get();
 
   ASSERT_FALSE(partitions_response.IsSuccessful())
       << ApiErrorToString(partitions_response.GetError());
@@ -638,7 +633,8 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsCancelLatestCatalogV
       << ApiErrorToString(partitions_response.GetError());
 }
 
-TEST_F(DataserviceReadVolatileLayerClientTest, DISABLED_GetPartitionsCancelLayerVersions) {
+TEST_F(DataserviceReadVolatileLayerClientTest,
+       DISABLED_GetPartitionsCancelLayerVersions) {
   olp::client::HRN hrn(GetTestCatalog());
 
   // Setup the expected calls :
@@ -663,8 +659,8 @@ TEST_F(DataserviceReadVolatileLayerClientTest, DISABLED_GetPartitionsCancelLayer
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
       .Times(0);
 
-  std::promise<VolatileLayerClient::PartitionsResponse> promise;
-  auto callback = [&promise](VolatileLayerClient::PartitionsResponse response) {
+  std::promise<PartitionsResponse> promise;
+  auto callback = [&promise](PartitionsResponse response) {
     promise.set_value(response);
   };
 
@@ -676,8 +672,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, DISABLED_GetPartitionsCancelLayer
   wait_for_cancel->get_future().get();  // wait for handler to get the request
   cancel_token.cancel();
   pause_for_cancel->set_value();  // unblock the handler
-  VolatileLayerClient::PartitionsResponse partitions_response =
-      promise.get_future().get();
+  PartitionsResponse partitions_response = promise.get_future().get();
 
   ASSERT_FALSE(partitions_response.IsSuccessful())
       << ApiErrorToString(partitions_response.GetError());
@@ -700,13 +695,12 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsCacheOnly) {
 
   auto request = olp::dataservice::read::PartitionsRequest().WithFetchOption(
       FetchOptions::CacheOnly);
-  VolatileLayerClient::PartitionsResponse partitions_response;
+  PartitionsResponse partitions_response;
   olp::client::Condition condition;
-  client.GetPartitions(request,
-                       [&](VolatileLayerClient::PartitionsResponse response) {
-                         partitions_response = std::move(response);
-                         condition.Notify();
-                       });
+  client.GetPartitions(request, [&](PartitionsResponse response) {
+    partitions_response = std::move(response);
+    condition.Notify();
+  });
 
   ASSERT_TRUE(condition.Wait(kTimeout));
 
@@ -735,13 +729,12 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsOnlineOnly) {
   auto request = olp::dataservice::read::PartitionsRequest().WithFetchOption(
       FetchOptions::OnlineOnly);
   {
-    VolatileLayerClient::PartitionsResponse partitions_response;
+    PartitionsResponse partitions_response;
     olp::client::Condition condition;
-    client.GetPartitions(request,
-                         [&](VolatileLayerClient::PartitionsResponse response) {
-                           partitions_response = std::move(response);
-                           condition.Notify();
-                         });
+    client.GetPartitions(request, [&](PartitionsResponse response) {
+      partitions_response = std::move(response);
+      condition.Notify();
+    });
 
     ASSERT_TRUE(condition.Wait(kTimeout));
 
@@ -751,13 +744,12 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsOnlineOnly) {
   }
 
   {
-    VolatileLayerClient::PartitionsResponse partitions_response;
+    PartitionsResponse partitions_response;
     olp::client::Condition condition;
-    client.GetPartitions(request,
-                         [&](VolatileLayerClient::PartitionsResponse response) {
-                           partitions_response = std::move(response);
-                           condition.Notify();
-                         });
+    client.GetPartitions(request, [&](PartitionsResponse response) {
+      partitions_response = std::move(response);
+      condition.Notify();
+    });
 
     ASSERT_TRUE(condition.Wait(kTimeout));
     // Should fail despite valid cache entry
@@ -766,7 +758,8 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsOnlineOnly) {
   }
 }
 
-TEST_F(DataserviceReadVolatileLayerClientTest, DISABLED_GetPartitionsCacheWithUpdate) {
+TEST_F(DataserviceReadVolatileLayerClientTest,
+       DISABLED_GetPartitionsCacheWithUpdate) {
   olp::logging::Log::setLevel(olp::logging::Level::Trace);
 
   olp::client::HRN hrn(GetTestCatalog());
@@ -796,13 +789,12 @@ TEST_F(DataserviceReadVolatileLayerClientTest, DISABLED_GetPartitionsCacheWithUp
   auto request = olp::dataservice::read::PartitionsRequest().WithFetchOption(
       FetchOptions::CacheWithUpdate);
   {
-    VolatileLayerClient::PartitionsResponse partitions_response;
+    PartitionsResponse partitions_response;
     olp::client::Condition condition;
-    client.GetPartitions(request,
-                         [&](VolatileLayerClient::PartitionsResponse response) {
-                           partitions_response = std::move(response);
-                           condition.Notify();
-                         });
+    client.GetPartitions(request, [&](PartitionsResponse response) {
+      partitions_response = std::move(response);
+      condition.Notify();
+    });
 
     ASSERT_TRUE(condition.Wait(kTimeout));
 
@@ -815,13 +807,12 @@ TEST_F(DataserviceReadVolatileLayerClientTest, DISABLED_GetPartitionsCacheWithUp
     // Request 2 to check there is a cached value.
     wait_for_end_signal->get_future().get();
     request.WithFetchOption(CacheOnly);
-    VolatileLayerClient::PartitionsResponse partitions_response;
+    PartitionsResponse partitions_response;
     olp::client::Condition condition;
-    client.GetPartitions(request,
-                         [&](VolatileLayerClient::PartitionsResponse response) {
-                           partitions_response = std::move(response);
-                           condition.Notify();
-                         });
+    client.GetPartitions(request, [&](PartitionsResponse response) {
+      partitions_response = std::move(response);
+      condition.Notify();
+    });
 
     ASSERT_TRUE(condition.Wait(kTimeout));
     // Cache should be available here.
@@ -845,35 +836,32 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitions403CacheClear) {
 
   // Populate cache
   auto request = olp::dataservice::read::PartitionsRequest();
-  VolatileLayerClient::PartitionsResponse partitions_response;
+  PartitionsResponse partitions_response;
   olp::client::Condition condition;
-  client.GetPartitions(request,
-                       [&](VolatileLayerClient::PartitionsResponse response) {
-                         partitions_response = std::move(response);
-                         condition.Notify();
-                       });
+  client.GetPartitions(request, [&](PartitionsResponse response) {
+    partitions_response = std::move(response);
+    condition.Notify();
+  });
 
   ASSERT_TRUE(condition.Wait(kTimeout));
   ASSERT_TRUE(partitions_response.IsSuccessful());
 
   // Receive 403
   request.WithFetchOption(OnlineOnly);
-  client.GetPartitions(request,
-                       [&](VolatileLayerClient::PartitionsResponse response) {
-                         partitions_response = std::move(response);
-                         condition.Notify();
-                       });
+  client.GetPartitions(request, [&](PartitionsResponse response) {
+    partitions_response = std::move(response);
+    condition.Notify();
+  });
   ASSERT_TRUE(condition.Wait(kTimeout));
   ASSERT_FALSE(partitions_response.IsSuccessful());
   ASSERT_EQ(403, partitions_response.GetError().GetHttpStatusCode());
 
   // Check for cached response
   request.WithFetchOption(CacheOnly);
-  client.GetPartitions(request,
-                       [&](VolatileLayerClient::PartitionsResponse response) {
-                         partitions_response = std::move(response);
-                         condition.Notify();
-                       });
+  client.GetPartitions(request, [&](PartitionsResponse response) {
+    partitions_response = std::move(response);
+    condition.Notify();
+  });
   ASSERT_TRUE(condition.Wait(kTimeout));
   ASSERT_FALSE(partitions_response.IsSuccessful());
 }

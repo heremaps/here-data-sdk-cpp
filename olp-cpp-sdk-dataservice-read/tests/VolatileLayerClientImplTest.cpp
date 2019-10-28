@@ -30,7 +30,6 @@ namespace {
 using namespace olp::dataservice::read;
 using namespace ::testing;
 using namespace olp::tests::common;
-using DataResponse = VolatileLayerClientImpl::DataResponse;
 
 constexpr auto kUrlLookupVolatileBlob =
     R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data:::hereos-internal-test-v2/apis/volatile-blob/v1)";

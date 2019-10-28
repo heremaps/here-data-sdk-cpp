@@ -35,22 +35,22 @@ VolatileLayerClient::VolatileLayerClient(client::HRN catalog,
 VolatileLayerClient::~VolatileLayerClient() = default;
 
 client::CancellationToken VolatileLayerClient::GetPartitions(
-    PartitionsRequest request, Callback<PartitionsResponse> callback) {
+    PartitionsRequest request, PartitionsResponseCallback callback) {
   return impl_->GetPartitions(std::move(request), std::move(callback));
 }
 
-olp::client::CancellableFuture<VolatileLayerClient::PartitionsResponse>
+olp::client::CancellableFuture<PartitionsResponse>
 VolatileLayerClient::GetPartitions(PartitionsRequest request) {
   return impl_->GetPartitions(std::move(request));
 }
 
 client::CancellationToken VolatileLayerClient::GetData(
-    DataRequest request, Callback<DataResponse> callback) {
+    DataRequest request, DataResponseCallback callback) {
   return impl_->GetData(std::move(request), std::move(callback));
 }
 
-olp::client::CancellableFuture<VolatileLayerClient::DataResponse>
-VolatileLayerClient::GetData(DataRequest request) {
+olp::client::CancellableFuture<DataResponse> VolatileLayerClient::GetData(
+    DataRequest request) {
   return impl_->GetData(std::move(request));
 }
 }  // namespace read

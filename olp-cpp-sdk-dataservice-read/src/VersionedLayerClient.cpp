@@ -35,24 +35,23 @@ VersionedLayerClient::VersionedLayerClient(client::HRN catalog,
 VersionedLayerClient::~VersionedLayerClient() = default;
 
 client::CancellationToken VersionedLayerClient::GetData(
-    DataRequest data_request, Callback callback) {
+    DataRequest data_request, DataResponseCallback callback) {
   return impl_->GetData(std::move(data_request), std::move(callback));
 }
 
 client::CancellationToken VersionedLayerClient::GetPartitions(
-    PartitionsRequest partitions_request, PartitionsCallback callback) const {
+    PartitionsRequest partitions_request, PartitionsResponseCallback callback) {
   return impl_->GetPartitions(std::move(partitions_request),
                               std::move(callback));
 }
 
 client::CancellationToken VersionedLayerClient::PrefetchTiles(
-    PrefetchTilesRequest request,
-    PrefetchTilesResponseCallback callback) const {
+    PrefetchTilesRequest request, PrefetchTilesResponseCallback callback) {
   return impl_->PrefetchTiles(std::move(request), std::move(callback));
 }
 
-client::CancellableFuture<VersionedLayerClient::PrefetchTilesResponse>
-VersionedLayerClient::PrefetchTiles(PrefetchTilesRequest request) const {
+client::CancellableFuture<PrefetchTilesResponse>
+VersionedLayerClient::PrefetchTiles(PrefetchTilesRequest request) {
   return impl_->PrefetchTiles(std::move(request));
 }
 

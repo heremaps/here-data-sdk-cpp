@@ -19,15 +19,12 @@
 
 #pragma once
 
-#include <olp/core/client/ApiError.h>
-#include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
-#include <olp/dataservice/read/model/Data.h>
-#include <olp/dataservice/read/model/Partitions.h>
+#include <olp/dataservice/read/Types.h>
 
 #include "PendingRequests.h"
 
@@ -42,34 +39,21 @@ class PartitionsRepository;
 
 class VolatileLayerClientImpl {
  public:
-  /// DataResult alias
-  using DataResult = model::Data;
-  /// CallbackResponse alias
-  using DataResponse = client::ApiResponse<DataResult, client::ApiError>;
-  /// PartitionResult alias
-  using PartitionsResult = model::Partitions;
-  /// CallbackResponse
-  using PartitionsResponse =
-      client::ApiResponse<PartitionsResult, client::ApiError>;
-  /// Callback alias
-  template <class Response>
-  using Callback = std::function<void(Response response)>;
-
   VolatileLayerClientImpl(client::HRN catalog, std::string layer_id,
                           client::OlpClientSettings settings);
 
-  ~VolatileLayerClientImpl();
+  virtual ~VolatileLayerClientImpl();
 
-  client::CancellationToken GetPartitions(
-      PartitionsRequest request, Callback<PartitionsResponse> callback);
+  virtual client::CancellationToken GetPartitions(
+      PartitionsRequest request, PartitionsResponseCallback callback);
 
-  client::CancellableFuture<PartitionsResponse> GetPartitions(
+  virtual client::CancellableFuture<PartitionsResponse> GetPartitions(
       PartitionsRequest request);
 
-  client::CancellationToken GetData(DataRequest request,
-                                    Callback<DataResponse> callback);
+  virtual client::CancellationToken GetData(DataRequest request,
+                                            DataResponseCallback callback);
 
-  client::CancellableFuture<DataResponse> GetData(DataRequest request);
+  virtual client::CancellableFuture<DataResponse> GetData(DataRequest request);
 
  private:
   client::HRN catalog_;

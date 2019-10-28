@@ -76,7 +76,7 @@ VersionedLayerClientImpl::~VersionedLayerClientImpl() {
 }
 
 client::CancellationToken VersionedLayerClientImpl::GetPartitions(
-    PartitionsRequest partitions_request, PartitionsCallback callback) const {
+    PartitionsRequest partitions_request, PartitionsResponseCallback callback) {
   partitions_request.WithLayerId(layer_id_);
   client::CancellationToken token;
   int64_t request_key = pending_requests_->GenerateRequestPlaceholder();
@@ -107,8 +107,8 @@ client::CancellationToken VersionedLayerClientImpl::GetPartitions(
 }
 
 client::CancellationToken VersionedLayerClientImpl::GetData(
-    DataRequest request, Callback callback) const {
-  auto add_task = [&](DataRequest& request, Callback callback) {
+    DataRequest request, DataResponseCallback callback) {
+  auto add_task = [&](DataRequest& request, DataResponseCallback callback) {
     auto catalog = catalog_;
     auto layer_id = layer_id_;
     auto settings = *settings_;
@@ -148,8 +148,7 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
 }
 
 client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
-    PrefetchTilesRequest request,
-    PrefetchTilesResponseCallback callback) const {
+    PrefetchTilesRequest request, PrefetchTilesResponseCallback callback) {
   const int64_t request_key = pending_requests_->GenerateRequestPlaceholder();
   auto pending_requests = pending_requests_;
   auto request_callback = [=](PrefetchTilesResponse response) {
@@ -166,7 +165,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
 }
 
 client::CancellableFuture<PrefetchTilesResponse>
-VersionedLayerClientImpl::PrefetchTiles(PrefetchTilesRequest request) const {
+VersionedLayerClientImpl::PrefetchTiles(PrefetchTilesRequest request) {
   auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
   auto cancel_token = PrefetchTiles(std::move(request),
                                     [promise](PrefetchTilesResponse response) {

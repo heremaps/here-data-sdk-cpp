@@ -99,9 +99,9 @@ TEST_F(VolatileLayerClientTest, GetPartitions) {
     VolatileLayerClient client(hrn, GetTestLayer(), settings_);
 
     olp::client::Condition condition;
-    VolatileLayerClient::PartitionsResponse partitions_response;
+    PartitionsResponse partitions_response;
 
-    auto callback = [&](VolatileLayerClient::PartitionsResponse response) {
+    auto callback = [&](PartitionsResponse response) {
       partitions_response = std::move(response);
       condition.Notify();
     };
@@ -116,9 +116,9 @@ TEST_F(VolatileLayerClientTest, GetPartitions) {
     VolatileLayerClient client(hrn, GetTestLayer(), settings_);
 
     olp::client::Condition condition;
-    VolatileLayerClient::PartitionsResponse partitions_response;
+    PartitionsResponse partitions_response;
 
-    auto callback = [&](VolatileLayerClient::PartitionsResponse response) {
+    auto callback = [&](PartitionsResponse response) {
       partitions_response = std::move(response);
       condition.Notify();
     };
@@ -135,9 +135,9 @@ TEST_F(VolatileLayerClientTest, GetPartitions) {
     VolatileLayerClient client(hrn, "InvalidLayer", settings_);
 
     olp::client::Condition condition;
-    VolatileLayerClient::PartitionsResponse partitions_response;
+    PartitionsResponse partitions_response;
 
-    auto callback = [&](VolatileLayerClient::PartitionsResponse response) {
+    auto callback = [&](PartitionsResponse response) {
       partitions_response = std::move(response);
       condition.Notify();
     };
@@ -153,9 +153,9 @@ TEST_F(VolatileLayerClientTest, GetPartitions) {
                                settings_);
 
     olp::client::Condition condition;
-    VolatileLayerClient::PartitionsResponse partitions_response;
+    PartitionsResponse partitions_response;
 
-    auto callback = [&](VolatileLayerClient::PartitionsResponse response) {
+    auto callback = [&](PartitionsResponse response) {
       partitions_response = std::move(response);
       condition.Notify();
     };
@@ -173,9 +173,9 @@ TEST_F(VolatileLayerClientTest, GetPartitionsDifferentFetchOptions) {
     VolatileLayerClient client(hrn, GetTestLayer(), settings_);
 
     olp::client::Condition condition;
-    VolatileLayerClient::PartitionsResponse partitions_response;
+    PartitionsResponse partitions_response;
 
-    auto callback = [&](VolatileLayerClient::PartitionsResponse response) {
+    auto callback = [&](PartitionsResponse response) {
       partitions_response = std::move(response);
       condition.Notify();
     };
@@ -191,9 +191,9 @@ TEST_F(VolatileLayerClientTest, GetPartitionsDifferentFetchOptions) {
     VolatileLayerClient client(hrn, GetTestLayer(), settings_);
 
     olp::client::Condition condition;
-    VolatileLayerClient::PartitionsResponse partitions_response;
+    PartitionsResponse partitions_response;
 
-    auto callback = [&](VolatileLayerClient::PartitionsResponse response) {
+    auto callback = [&](PartitionsResponse response) {
       partitions_response = std::move(response);
       condition.Notify();
     };
