@@ -32,6 +32,7 @@
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/PrefetchTileResult.h>
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
+#include <olp/dataservice/read/Types.h>
 #include <olp/dataservice/read/model/Data.h>
 #include <olp/dataservice/read/model/Partitions.h>
 

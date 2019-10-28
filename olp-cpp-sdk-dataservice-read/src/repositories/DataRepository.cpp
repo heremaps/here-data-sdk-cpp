@@ -330,7 +330,7 @@ void DataRepository::GetData(
                   *cache_);
 }
 
-DataRepository::DataResponse DataRepository::GetVersionedData(
+DataResponse DataRepository::GetVersionedData(
     const client::HRN& catalog, const std::string& layer_id,
     DataRequest request, client::CancellationContext context,
     client::OlpClientSettings settings) {
@@ -374,7 +374,7 @@ DataRepository::DataResponse DataRepository::GetVersionedData(
       catalog, layer_id, kBlobService, request, context, settings);
 }
 
-DataRepository::DataResponse DataRepository::GetBlobData(
+DataResponse DataRepository::GetBlobData(
     const client::HRN& catalog, const std::string& layer,
     const std::string& service, const DataRequest& data_request,
     client::CancellationContext cancellation_context,
@@ -483,7 +483,7 @@ DataRepository::DataResponse DataRepository::GetBlobData(
   return blob_response;
 }
 
-DataRepository::DataResponse DataRepository::GetVolatileData(
+DataResponse DataRepository::GetVolatileData(
     const client::HRN& catalog, const std::string& layer_id,
     DataRequest request, client::CancellationContext context,
     client::OlpClientSettings settings) {
