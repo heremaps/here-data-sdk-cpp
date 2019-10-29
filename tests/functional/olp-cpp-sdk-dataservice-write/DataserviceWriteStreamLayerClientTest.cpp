@@ -160,6 +160,8 @@ class DataserviceWriteStreamLayerClientTest : public ::testing::Test {
   static void SetUpTestSuite() {
     s_network = olp::client::OlpClientSettingsFactory::
         CreateDefaultNetworkRequestHandler();
+    s_task_scheduler =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
   }
 
   virtual std::shared_ptr<StreamLayerClient> CreateStreamLayerClient() {
@@ -181,8 +183,7 @@ class DataserviceWriteStreamLayerClientTest : public ::testing::Test {
     olp::client::OlpClientSettings settings;
     settings.authentication_settings = auth_client_settings;
     settings.network_request_handler = network;
-    settings.task_scheduler =
-        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
+    settings.task_scheduler = s_task_scheduler;
 
     return std::make_shared<StreamLayerClient>(
         olp::client::HRN{GetTestCatalog()}, StreamLayerClientSettings{},
@@ -203,6 +204,7 @@ class DataserviceWriteStreamLayerClientTest : public ::testing::Test {
 
  protected:
   static std::shared_ptr<olp::http::Network> s_network;
+  static std::shared_ptr<olp::thread::TaskScheduler> s_task_scheduler;
 
   std::shared_ptr<StreamLayerClient> client_;
   std::shared_ptr<std::vector<unsigned char>> data_;
@@ -214,6 +216,13 @@ class DataserviceWriteStreamLayerClientTest : public ::testing::Test {
 // network instance inside the callbacks.
 std::shared_ptr<olp::http::Network>
     DataserviceWriteStreamLayerClientTest::s_network;
+
+// Static network instance is necessary as it needs to outlive any created
+// clients. This is a known limitation as triggered send requests capture the
+// task_scheduler instance inside the callbacks, and it could happen that the
+// task is trying to destroy task scheduler, that will result in a crash.
+std::shared_ptr<olp::thread::TaskScheduler>
+    DataserviceWriteStreamLayerClientTest::s_task_scheduler;
 
 TEST_F(DataserviceWriteStreamLayerClientTest, PublishData) {
   auto response =
