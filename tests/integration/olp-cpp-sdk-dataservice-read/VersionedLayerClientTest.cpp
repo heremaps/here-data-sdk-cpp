@@ -146,37 +146,11 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
                                    olp::http::HttpStatusCode::OK),
                                HTTP_RESPONSE_LOOKUP_QUERY));
 
-    ON_CALL(*network_mock_,
-            Send(IsGetRequest(URL_QUERY_PARTITION_269), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               HTTP_RESPONSE_PARTITION_269));
-
     ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
         .WillByDefault(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                    olp::http::HttpStatusCode::OK),
                                HTTP_RESPONSE_LOOKUP_BLOB));
-
-    ON_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               HTTP_RESPONSE_BLOB_DATA_269));
-
-    ON_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITION_3), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               HTTP_RESPONSE_PARTITION_3));
-
-    ON_CALL(*network_mock_,
-            Send(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               HTTP_RESPONSE_LOOKUP_VOLATILE_BLOB));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_LAYER_VERSIONS_V2), _, _, _, _))
@@ -192,34 +166,6 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
                                HTTP_RESPONSE_PARTITIONS_V2));
 
     ON_CALL(*network_mock_,
-            Send(IsGetRequest(URL_QUERY_PARTITION_269_V2), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               HTTP_RESPONSE_PARTITION_269_V2));
-
-    ON_CALL(*network_mock_,
-            Send(IsGetRequest(URL_BLOB_DATA_269_V2), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               HTTP_RESPONSE_BLOB_DATA_269_V2));
-
-    ON_CALL(*network_mock_,
-            Send(IsGetRequest(URL_QUERY_PARTITION_269_V10), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::BAD_REQUEST),
-                               HTTP_RESPONSE_INVALID_VERSION_V10));
-
-    ON_CALL(*network_mock_,
-            Send(IsGetRequest(URL_QUERY_PARTITION_269_VN1), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::BAD_REQUEST),
-                               HTTP_RESPONSE_INVALID_VERSION_VN1));
-
-    ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_LAYER_VERSIONS_V10), _, _, _, _))
         .WillByDefault(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
@@ -232,19 +178,6 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                    olp::http::HttpStatusCode::BAD_REQUEST),
                                HTTP_RESPONSE_INVALID_VERSION_VN1));
-
-    ON_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG_V2), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               HTTP_RESPONSE_CONFIG_V2));
-
-    ON_CALL(*network_mock_,
-            Send(IsGetRequest(URL_QUADKEYS_23618364), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               HTTP_RESPONSE_QUADKEYS_23618364));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_QUADKEYS_1476147), _, _, _, _))
@@ -260,12 +193,6 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
                                    olp::http::HttpStatusCode::OK),
                                HTTP_RESPONSE_QUADKEYS_5904591));
 
-    ON_CALL(*network_mock_, Send(IsGetRequest(URL_QUADKEYS_369036), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               HTTP_RESPONSE_QUADKEYS_369036));
-
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_1), _, _, _, _))
         .WillByDefault(
@@ -279,13 +206,6 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                    olp::http::HttpStatusCode::OK),
                                HTTP_RESPONSE_BLOB_DATA_PREFETCH_2));
-
-    ON_CALL(*network_mock_,
-            Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_3), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               HTTP_RESPONSE_BLOB_DATA_PREFETCH_3));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_4), _, _, _, _))
@@ -307,13 +227,6 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                    olp::http::HttpStatusCode::OK),
                                HTTP_RESPONSE_BLOB_DATA_PREFETCH_6));
-
-    ON_CALL(*network_mock_,
-            Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_7), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               HTTP_RESPONSE_BLOB_DATA_PREFETCH_7));
 
     // Catch any non-interesting network calls that don't need to be verified
     EXPECT_CALL(*network_mock_, Send(_, _, _, _, _)).Times(testing::AtLeast(0));
