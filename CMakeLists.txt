@@ -18,7 +18,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 # Build the sdk targets
-project(olp-cpp-sdk VERSION 0.7.0)
+project(olp-cpp-sdk VERSION 0.8.0)
 
 # Add preprocessor definitions for the SDK version and platform name
 add_definitions(-DOLP_SDK_VERSION_STRING=\"${olp-cpp-sdk_VERSION}\")
