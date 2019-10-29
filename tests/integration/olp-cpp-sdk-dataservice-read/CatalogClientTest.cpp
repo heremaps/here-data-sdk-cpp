@@ -1915,7 +1915,7 @@ TEST_P(CatalogClientTest, DISABLED_CancelPendingRequestsCatalog) {
     wait->get_future().get();
   }
   // Cancel them all
-  catalog_client->cancelPendingRequests();
+  catalog_client->CancelPendingRequests();
   for (auto pause : pauses) {
     pause->set_value();
   }
@@ -2010,7 +2010,7 @@ TEST_P(CatalogClientTest, DISABLED_CancelPendingRequestsPartitions) {
   }
   std::cout << "done waitingg" << std::endl;
   // Cancel them all
-  catalog_client->cancelPendingRequests();
+  catalog_client->CancelPendingRequests();
   std::cout << "done cancelling" << std::endl;
   for (auto pause : pauses) {
     pause->set_value();

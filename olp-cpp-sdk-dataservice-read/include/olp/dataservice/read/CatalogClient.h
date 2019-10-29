@@ -56,7 +56,11 @@ class DATASERVICE_READ_API CatalogClient final {
 
   ~CatalogClient() = default;
 
-  bool cancelPendingRequests();
+  /**
+   * @brief Cancel currently active requests.
+   * @return True on success
+   */
+  bool CancelPendingRequests();
 
   /**
    * @brief fetches catalog configuration asynchronously.
