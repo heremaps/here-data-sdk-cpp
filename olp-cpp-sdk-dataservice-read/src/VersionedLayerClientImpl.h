@@ -62,6 +62,9 @@ class VersionedLayerClientImpl {
       PartitionsRequest partitions_request,
       PartitionsResponseCallback callback);
 
+  virtual client::CancellableFuture<PartitionsResponse> GetPartitions(
+      PartitionsRequest partitions_request);
+
   virtual client::CancellationToken PrefetchTiles(
       PrefetchTilesRequest request, PrefetchTilesResponseCallback callback);
 

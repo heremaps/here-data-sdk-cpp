@@ -150,6 +150,20 @@ class DATASERVICE_READ_API VersionedLayerClient final {
                                           PartitionsResponseCallback callback);
 
   /**
+   * @brief Fetches a list of partitions for the given generic layer
+   * asynchronously.
+   * @param partitions_request Contains the complete set of the request
+   * parameters.
+   * @note GetLayerId value of the \c PartitionsRequest is ignored, and the
+   * parameter from the constructor is used instead.
+   * @return \c CancellableFuture of type \c PartitionsResponse, which when
+   * complete will contain the data or an error. Alternatively, the
+   * \c CancellableFuture can be used to cancel this request.
+   */
+  client::CancellableFuture<PartitionsResponse> GetPartitions(
+      PartitionsRequest partitions_request);
+
+  /**
    * @brief Pre-fetches a set of tiles asychronously.
    *
    * This method recursively downloads all tilekeys from the minLevel to

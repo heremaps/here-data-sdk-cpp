@@ -931,6 +931,53 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsNoError) {
   ASSERT_EQ(4u, response.GetResult().GetPartitions().size());
 }
 
+TEST_F(DataserviceReadVersionedLayerClientTest,
+       GetPartitionsCancellableFutureNoError) {
+  auto catalog = olp::client::HRN::FromString(
+      GetArgument("dataservice_read_test_catalog"));
+  auto layer = GetArgument("dataservice_read_test_layer");
+
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          catalog, layer, *settings_);
+
+  auto request = olp::dataservice::read::PartitionsRequest();
+  auto cancellable_future = catalog_client->GetPartitions(request);
+  auto future = cancellable_future.GetFuture();
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  PartitionsResponse response = future.get();
+
+  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_EQ(4u, response.GetResult().GetPartitions().size());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest,
+       GetPartitionsCancellableFutureCancellation) {
+  auto catalog = olp::client::HRN::FromString(
+      GetArgument("dataservice_read_test_catalog"));
+  auto layer = GetArgument("dataservice_read_test_layer");
+
+  settings_->task_scheduler->ScheduleTask(
+      []() { std::this_thread::sleep_for(std::chrono::seconds(1)); });
+
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          catalog, layer, *settings_);
+
+  auto request = olp::dataservice::read::PartitionsRequest();
+  auto cancellable_future = catalog_client->GetPartitions(request);
+  auto future = cancellable_future.GetFuture();
+
+  cancellable_future.GetCancellationToken().cancel();
+
+  ASSERT_EQ(std::future_status::ready, future.wait_for(kWaitTimeout));
+
+  auto response = future.get();
+  EXPECT_FALSE(response.IsSuccessful());
+  EXPECT_EQ(response.GetError().GetErrorCode(),
+            olp::client::ErrorCode::Cancelled);
+}
+
 TEST_F(DataserviceReadVersionedLayerClientTest, GetEmptyPartitions) {
   auto catalog = olp::client::HRN::FromString(
       GetArgument("dataservice_read_test_catalog"));
