@@ -1,3 +1,39 @@
+## v0.8.0-beta (31/10/2019)
+
+**Common**
+
+* Project renamed to `here-olp-sdk-cpp`.
+* Project structure was changed, functional, integration, performance tests introduced.
+* Local OLP server that mimics OLP added.
+* `OLP_SDK_DEPRECATED` macro is added to deprecate API.
+* **Breaking Change** `SendOutcome::IsSuccessful` typo fixed.
+* Missing dependencies for the iOS build as a shared library added.
+* `KeyValueCache` instance was added to `OlpClientSetting`.
+* Boost download source was changed.
+* Added `Condition` class helping repositories sync wait on the OLP response.
+
+**olp-cpp-sdk-authentication**
+
+* **Breaking Change** `olp::authentication::Settings` requires `olp::authentication::AuthenticationCredentials`.
+
+**olp-cpp-sdk-dataservice-read**
+
+* Added new class `VersionedLayerClient` that is used to access versioned layers in OLP. Class implements `GetData`, `GetPartitions`, `PrefetchTiles` methods from `CatalogClient`.
+* Added new class `VolatileLayerClient` that is used to access volatile layers in OLP. Class implements `GetPartitions`, `GetData` methods from `CatalogClient`.
+* `GetData`, `GetPartitions`, `PrefetchTiles` methods in `CatalogClient` deprecated.
+* **Breaking Change** CatalogClient constructor changed. `OlpClientSettings` must be passed by value, `KeyValueCache` is now part of `OlpClientSettings`.
+* Moved all responses and callbacks aliases to  `Types.h`.
+
+**olp-cpp-sdk-dataservice-write**
+
+* `StreamLayerClientSettings` class introduced.
+* **Breaking Change** `StreamLayerClient` constructor changed.
+* **Breaking Change** `StreamLayerClient::Flush` changed. Now taking `FlushRequest` as input and a `FlushCallback` to be triggered after the flush.
+* **Breaking Change** `StreamLayerClient::Enable`, `StreamLayerClient::Disable` removed.
+* `VersionedLayerClient::CancelAll` added, used to cancel all current running requests.
+* [CMake] Definition to export symbols added when the component is built as a shared library.
+* `VolatileLayerClient`, `VersionedLayerClient`, `IndexLayerClient` now cancel pending requests when destroyed.
+
 ## v0.7.0-beta (09/09/2019)
 
 **Common**
