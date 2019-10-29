@@ -17,7 +17,7 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-project(olp-cpp-sdk-core VERSION 0.7.0)
+project(olp-cpp-sdk-core VERSION 0.8.0)
 set(DESCRIPTION "Core network and utility library for the HERE OLP SDK C++")
 
 find_package(RapidJSON REQUIRED)
