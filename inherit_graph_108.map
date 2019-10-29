@@ -1,0 +1,6 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classolp_1_1logging_1_1IAppender.html" title="Abstract base class for an appender, which appends a message to the log. " alt="" coords="5,56,160,83"/>
+<area shape="rect" id="node2" href="$classolp_1_1logging_1_1ConsoleAppender.html" title="Appender for printing to the console. " alt="" coords="208,5,407,32"/>
+<area shape="rect" id="node3" href="$classolp_1_1logging_1_1DebugAppender.html" title="Appender for printing to the debug output. " alt="" coords="213,56,402,83"/>
+<area shape="rect" id="node4" href="$classolp_1_1logging_1_1FileAppender.html" title="Appender for printing to a file. " alt="" coords="221,107,393,133"/>
+</map>

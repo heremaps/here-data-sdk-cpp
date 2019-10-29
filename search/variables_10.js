@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['schemaname',['schemaName',['../classolp_1_1client_1_1HRN.html#aa108759d00e446ee5a96b328948dd2cf',1,'olp::client::HRN']]],
-  ['service',['service',['../classolp_1_1client_1_1HRN.html#aefc3cec48db57a01058ee00d2b2515de',1,'olp::client::HRN']]],
-  ['status',['status',['../classolp_1_1network_1_1HttpResponse.html#a7662afc31c2f2ad8fbde509c83d47cb3',1,'olp::network::HttpResponse']]]
+  ['task_5fscheduler',['task_scheduler',['../structolp_1_1authentication_1_1Settings.html#a613b8ae683f2288b6b03b3692f1485a7',1,'olp::authentication::Settings::task_scheduler()'],['../structolp_1_1client_1_1OlpClientSettings.html#ae4092fe43dabe5f8a574c836dfe8cb8e',1,'olp::client::OlpClientSettings::task_scheduler()']]],
+  ['timeout',['timeout',['../structolp_1_1client_1_1RetrySettings.html#ab0d11ef9d64c97480dc8f7987dac1018',1,'olp::client::RetrySettings']]],
+  ['token_5fendpoint_5furl',['token_endpoint_url',['../structolp_1_1authentication_1_1Settings.html#ace5921a01f0918583220d141b59aa094',1,'olp::authentication::Settings']]],
+  ['type',['type',['../structolp_1_1logging_1_1MessageFormatter_1_1Element.html#ae971d2ab5263dfa50b3e868a85139de5',1,'olp::logging::MessageFormatter::Element']]]
 ];

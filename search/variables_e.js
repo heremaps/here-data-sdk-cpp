@@ -1,9 +1,8 @@
 var searchData=
 [
-  ['partition',['partition',['../classolp_1_1client_1_1HRN.html#a4275a738f97fe57955b2cca5ba1e7e3b',1,'olp::client::HRN']]],
-  ['password',['password',['../structolp_1_1authentication_1_1AuthenticationClient_1_1UserProperties.html#a1c447523630cc024dc04fa4e6340aaba',1,'olp::authentication::AuthenticationClient::UserProperties::password()'],['../structolp_1_1authentication_1_1AuthenticationClient_1_1SignUpProperties.html#a8a8fcb7249727f91cb6b0702364fd687',1,'olp::authentication::AuthenticationClient::SignUpProperties::password()'],['../structolp_1_1authentication_1_1NetworkProxySettings.html#aefbf51c581f2a8ff5893e49772a2376a',1,'olp::authentication::NetworkProxySettings::password()']]],
-  ['phone_5fnumber',['phone_number',['../structolp_1_1authentication_1_1AuthenticationClient_1_1SignUpProperties.html#ac403dd8fa6cdf633f961884930808c49',1,'olp::authentication::AuthenticationClient::SignUpProperties']]],
-  ['pipelineid',['pipelineId',['../classolp_1_1client_1_1HRN.html#a2fe01e66fcd684de5611dd0032ec5983',1,'olp::client::HRN']]],
-  ['port',['port',['../structolp_1_1authentication_1_1NetworkProxySettings.html#ada400d52fb0024ac543d9ea3de16bc07',1,'olp::authentication::NetworkProxySettings']]],
-  ['proxy_5fsettings',['proxy_settings',['../structolp_1_1client_1_1OlpClientSettings.html#a4cafc8addb2c2b659f5374c61a0239cc',1,'olp::client::OlpClientSettings']]]
+  ['realm',['realm',['../structolp_1_1authentication_1_1AuthenticationClient_1_1SignUpProperties.html#ad1aca1788a3d9ab246b113be4d240386',1,'olp::authentication::AuthenticationClient::SignUpProperties']]],
+  ['refresh_5ftoken',['refresh_token',['../structolp_1_1authentication_1_1AuthenticationClient_1_1RefreshProperties.html#a22883b3ba2571f63601aa553c30d7e74',1,'olp::authentication::AuthenticationClient::RefreshProperties']]],
+  ['region',['region',['../classolp_1_1client_1_1HRN.html#a8e8241f12c521d36a45221c9fc6dc05b',1,'olp::client::HRN']]],
+  ['retry_5fcondition',['retry_condition',['../structolp_1_1client_1_1RetrySettings.html#ab049f676af74edc2f52da7666b76c9c1',1,'olp::client::RetrySettings']]],
+  ['retry_5fsettings',['retry_settings',['../structolp_1_1client_1_1OlpClientSettings.html#a2cf8a3dfa887656f2caac601130b6079',1,'olp::client::OlpClientSettings']]]
 ];

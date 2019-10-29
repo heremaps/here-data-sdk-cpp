@@ -12,6 +12,5 @@ var searchData=
   ['tokenresult',['TokenResult',['../classolp_1_1authentication_1_1TokenResult.html#a922455af93d502936583264581850201',1,'olp::authentication::TokenResult::TokenResult(std::string access_token, time_t expiry_time, int http_status, ErrorResponse error)'],['../classolp_1_1authentication_1_1TokenResult.html#ab9d782b2173a488484965e8efd59bc0c',1,'olp::authentication::TokenResult::TokenResult()=default'],['../classolp_1_1authentication_1_1TokenResult.html#ab27b220ace32030a90fae3b1446f5275',1,'olp::authentication::TokenResult::TokenResult(const TokenResult &amp;other)']]],
   ['toquadkey',['ToQuadKey',['../classolp_1_1geo_1_1TileKey.html#a33cfb874bf53928a2e01d6abbd7ec76b',1,'olp::geo::TileKey']]],
   ['toquadkey64',['ToQuadKey64',['../classolp_1_1geo_1_1TileKey.html#adde8e23d4563d53d0c34ee958df4fb96',1,'olp::geo::TileKey']]],
-  ['tostring',['ToString',['../classolp_1_1client_1_1HRN.html#a2edc8085a8f85e8d7c63cd7b1135f199',1,'olp::client::HRN']]],
-  ['transfertimeout',['TransferTimeout',['../classolp_1_1network_1_1NetworkConfig.html#afc0d1300446efdb7f46f19aa28238bde',1,'olp::network::NetworkConfig']]]
+  ['tostring',['ToString',['../classolp_1_1client_1_1HRN.html#a2edc8085a8f85e8d7c63cd7b1135f199',1,'olp::client::HRN']]]
 ];

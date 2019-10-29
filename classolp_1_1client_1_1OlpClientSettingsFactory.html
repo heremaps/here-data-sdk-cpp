@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">0.6.0</span>
+   &#160;<span id="projectnumber">0.7.0</span>
    </div>
   </td>
  </tr>
@@ -81,15 +81,15 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a67f547a761b34910c5b60f8b6e1233c1"><td class="memItemLeft" align="right" valign="top">static std::unique_ptr&lt; thread::TaskScheduler &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1OlpClientSettingsFactory.html#a67f547a761b34910c5b60f8b6e1233c1">CreateDefaultTaskScheduler</a> (size_t thread_count=1u)</td></tr>
 <tr class="memdesc:a67f547a761b34910c5b60f8b6e1233c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a TaskScheduler instance used for all delayed operations, which is defaulted to <a class="el" href="classolp_1_1thread_1_1ThreadPoolTaskScheduler.html">olp::thread::ThreadPoolTaskScheduler</a> with one worker thread spawned by default.  <a href="#a67f547a761b34910c5b60f8b6e1233c1">More...</a><br /></td></tr>
 <tr class="separator:a67f547a761b34910c5b60f8b6e1233c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac093fd435f13979cecfa15aaf2b01dcd"><td class="memItemLeft" align="right" valign="top">static std::unique_ptr&lt; <a class="el" href="classolp_1_1http_1_1Network.html">http::Network</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1OlpClientSettingsFactory.html#ac093fd435f13979cecfa15aaf2b01dcd">CreateDefaultNetworkRequestHandler</a> ()</td></tr>
-<tr class="memdesc:ac093fd435f13979cecfa15aaf2b01dcd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a Network instance used for all non-local requests, which is defaulted to platform-specific implementation.  <a href="#ac093fd435f13979cecfa15aaf2b01dcd">More...</a><br /></td></tr>
-<tr class="separator:ac093fd435f13979cecfa15aaf2b01dcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d7121fa1c55ec4c339f3378f7078dd2"><td class="memItemLeft" align="right" valign="top">static std::shared_ptr&lt; <a class="el" href="classolp_1_1http_1_1Network.html">http::Network</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1OlpClientSettingsFactory.html#a2d7121fa1c55ec4c339f3378f7078dd2">CreateDefaultNetworkRequestHandler</a> (size_t max_requests_count=30u)</td></tr>
+<tr class="memdesc:a2d7121fa1c55ec4c339f3378f7078dd2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a Network instance used for all non-local requests, which is defaulted to platform-specific implementation.  <a href="#a2d7121fa1c55ec4c339f3378f7078dd2">More...</a><br /></td></tr>
+<tr class="separator:a2d7121fa1c55ec4c339f3378f7078dd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Factory that helps to fill-in <a class="el" href="structolp_1_1client_1_1OlpClientSettings.html" title="OlpClient settings class. Use this class to configure the behaviour of the OlpClient. ">OlpClientSettings</a> structure with various default handlers. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="ac093fd435f13979cecfa15aaf2b01dcd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac093fd435f13979cecfa15aaf2b01dcd">&#9670;&nbsp;</a></span>CreateDefaultNetworkRequestHandler()</h2>
+<a id="a2d7121fa1c55ec4c339f3378f7078dd2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2d7121fa1c55ec4c339f3378f7078dd2">&#9670;&nbsp;</a></span>CreateDefaultNetworkRequestHandler()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -98,9 +98,10 @@ Static Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static std::unique_ptr&lt;<a class="el" href="classolp_1_1http_1_1Network.html">http::Network</a>&gt; olp::client::OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler </td>
+          <td class="memname">static std::shared_ptr&lt;<a class="el" href="classolp_1_1http_1_1Network.html">http::Network</a>&gt; olp::client::OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>max_requests_count</em> = <code>30u</code></td><td>)</td>
           <td></td>
         </tr>
       </table>

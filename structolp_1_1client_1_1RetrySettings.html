@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">0.6.0</span>
+   &#160;<span id="projectnumber">0.7.0</span>
    </div>
   </td>
  </tr>
@@ -78,10 +78,10 @@ Public Types</h2></td></tr>
 using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1client_1_1RetrySettings.html#a10c747efdf7d953864f85f24ba805cb7">BackdownPolicy</a> = std::function&lt; int(int)&gt;</td></tr>
 <tr class="memdesc:a10c747efdf7d953864f85f24ba805cb7"><td class="mdescLeft">&#160;</td><td class="mdescRight">A function which takes the current timeout in milliseconds, and returns what should be used for the next timeout. Allows an incremental backdown or other strategy to be configured. <br /></td></tr>
 <tr class="separator:a10c747efdf7d953864f85f24ba805cb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a120b1079db4e14c44dea287f606d9b4e"><td class="memItemLeft" align="right" valign="top"><a id="a120b1079db4e14c44dea287f606d9b4e"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1client_1_1RetrySettings.html#a120b1079db4e14c44dea287f606d9b4e">RetryCondition</a> = std::function&lt; bool(const <a class="el" href="classolp_1_1network_1_1HttpResponse.html">network::HttpResponse</a> &amp;)&gt;</td></tr>
-<tr class="memdesc:a120b1079db4e14c44dea287f606d9b4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">A function which in a HttpResponse, and a bool result. True if retry is desired, false otherwise. <br /></td></tr>
-<tr class="separator:a120b1079db4e14c44dea287f606d9b4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8912b47049a4184e3dad2bccd7ed7570"><td class="memItemLeft" align="right" valign="top"><a id="a8912b47049a4184e3dad2bccd7ed7570"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1client_1_1RetrySettings.html#a8912b47049a4184e3dad2bccd7ed7570">RetryCondition</a> = std::function&lt; bool(const <a class="el" href="classolp_1_1client_1_1HttpResponse.html">HttpResponse</a> &amp;)&gt;</td></tr>
+<tr class="memdesc:a8912b47049a4184e3dad2bccd7ed7570"><td class="mdescLeft">&#160;</td><td class="mdescRight">A function which in a <a class="el" href="classolp_1_1client_1_1HttpResponse.html" title="Response from a REST request. ">HttpResponse</a>, and a bool result. True if retry is desired, false otherwise. <br /></td></tr>
+<tr class="separator:a8912b47049a4184e3dad2bccd7ed7570"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -101,7 +101,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struc
 <tr class="memdesc:a1c9b531d2747a6410beaeb3327422d92"><td class="mdescLeft">&#160;</td><td class="mdescRight">The BackdownPolicy to use for retry attempts.  <a href="#a1c9b531d2747a6410beaeb3327422d92">More...</a><br /></td></tr>
 <tr class="separator:a1c9b531d2747a6410beaeb3327422d92"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab049f676af74edc2f52da7666b76c9c1"><td class="memItemLeft" align="right" valign="top"><a id="ab049f676af74edc2f52da7666b76c9c1"></a>
-<a class="el" href="structolp_1_1client_1_1RetrySettings.html#a120b1079db4e14c44dea287f606d9b4e">RetryCondition</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1client_1_1RetrySettings.html#ab049f676af74edc2f52da7666b76c9c1">retry_condition</a> = <a class="el" href="namespaceolp_1_1client.html#ac22757725a4a2b0aeee81fd38e23d903">DefaultRetryCondition</a></td></tr>
+<a class="el" href="structolp_1_1client_1_1RetrySettings.html#a8912b47049a4184e3dad2bccd7ed7570">RetryCondition</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1client_1_1RetrySettings.html#ab049f676af74edc2f52da7666b76c9c1">retry_condition</a> = <a class="el" href="namespaceolp_1_1client.html#ab80697f6a09bd5a74834e744957fc840">DefaultRetryCondition</a></td></tr>
 <tr class="memdesc:ab049f676af74edc2f52da7666b76c9c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The RetryCondition used to evaluate responses to determine if retry should be attempted. <br /></td></tr>
 <tr class="separator:ab049f676af74edc2f52da7666b76c9c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>

@@ -1,0 +1,3 @@
+<map id="olp::dataservice::write::DefaultFlushEventListener&lt; FlushResponse &gt;" name="olp::dataservice::write::DefaultFlushEventListener&lt; FlushResponse &gt;">
+<area shape="rect" id="node2" href="$classolp_1_1dataservice_1_1write_1_1FlushEventListener.html" title="FlushEventListener is the listener that can be used to monitor the request flush events. Clients can provide concrete implementation by extending this class. " alt="" coords="22,5,173,61"/>
+</map>

@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">0.6.0</span>
+   &#160;<span id="projectnumber">0.7.0</span>
    </div>
   </td>
  </tr>
@@ -97,6 +97,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1HRN.html">HRN</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The Here Resource Name (<a class="el" href="classolp_1_1client_1_1HRN.html" title="The Here Resource Name (HRN) class, this allows HRN&#39;s to be passed to the operations that require it...">HRN</a>) class, this allows <a class="el" href="classolp_1_1client_1_1HRN.html" title="The Here Resource Name (HRN) class, this allows HRN&#39;s to be passed to the operations that require it...">HRN</a>'s to be passed to the operations that require it.  <a href="classolp_1_1client_1_1HRN.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1HttpResponse.html">HttpResponse</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Response from a REST request.  <a href="classolp_1_1client_1_1HttpResponse.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1OlpClient.html">OlpClient</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class is responsible for executing the REST requests.  <a href="classolp_1_1client_1_1OlpClient.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -114,16 +117,12 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:a6a41b941777f0212f4586cdc61a89d34"><td class="memItemLeft" align="right" valign="top"><a id="a6a41b941777f0212f4586cdc61a89d34"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>NetworkAsyncCallback</b> = std::function&lt; void(<a class="el" href="classolp_1_1network_1_1HttpResponse.html">network::HttpResponse</a>)&gt;</td></tr>
-<tr class="separator:a6a41b941777f0212f4586cdc61a89d34"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada2eeb2b0e0ac4d50d42d51df6bc9e2b"><td class="memItemLeft" align="right" valign="top"><a id="ada2eeb2b0e0ac4d50d42d51df6bc9e2b"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>NetworkAsyncCallback</b> = std::function&lt; void(<a class="el" href="classolp_1_1client_1_1HttpResponse.html">HttpResponse</a>)&gt;</td></tr>
+<tr class="separator:ada2eeb2b0e0ac4d50d42d51df6bc9e2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a25f478c630b61cf2e738d8c45dd25399"><td class="memItemLeft" align="right" valign="top"><a id="a25f478c630b61cf2e738d8c45dd25399"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>NetworkAsyncCancel</b> = std::function&lt; void()&gt;</td></tr>
 <tr class="separator:a25f478c630b61cf2e738d8c45dd25399"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a803b1529171471097cc101fc317af1e7"><td class="memItemLeft" align="right" valign="top"><a id="a803b1529171471097cc101fc317af1e7"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1client.html#a803b1529171471097cc101fc317af1e7">NetworkAsyncHandler</a> = std::function&lt; <a class="el" href="classolp_1_1client_1_1CancellationToken.html">CancellationToken</a>(const <a class="el" href="classolp_1_1network_1_1NetworkRequest.html">network::NetworkRequest</a> &amp;, const <a class="el" href="classolp_1_1network_1_1NetworkConfig.html">network::NetworkConfig</a> &amp;, const NetworkAsyncCallback &amp;)&gt;</td></tr>
-<tr class="memdesc:a803b1529171471097cc101fc317af1e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Handler for asynchronous execution of network requests. <br /></td></tr>
-<tr class="separator:a803b1529171471097cc101fc317af1e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -148,18 +147,14 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ae8872ad015b15d6a5d5bd0759565cc2a"><td class="memItemLeft" align="right" valign="top"><a id="ae8872ad015b15d6a5d5bd0759565cc2a"></a>
-<a class="el" href="classolp_1_1client_1_1CancellationToken.html">CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1client.html#ae8872ad015b15d6a5d5bd0759565cc2a">DefaultNetworkAsyncHandler</a> (const <a class="el" href="classolp_1_1network_1_1NetworkRequest.html">network::NetworkRequest</a> &amp;request, const <a class="el" href="classolp_1_1network_1_1NetworkConfig.html">network::NetworkConfig</a> &amp;config, const NetworkAsyncCallback &amp;callback)</td></tr>
-<tr class="memdesc:ae8872ad015b15d6a5d5bd0759565cc2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Async network handler that delegates to the core network component. <br /></td></tr>
-<tr class="separator:ae8872ad015b15d6a5d5bd0759565cc2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3ba192d0d5a5655f1ae280112379b7a0"><td class="memItemLeft" align="right" valign="top"><a id="a3ba192d0d5a5655f1ae280112379b7a0"></a>
 CORE_API unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1client.html#a3ba192d0d5a5655f1ae280112379b7a0">DefaultBackdownPolicy</a> (unsigned int milliseconds)</td></tr>
 <tr class="memdesc:a3ba192d0d5a5655f1ae280112379b7a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default BackdownPolicy which simply returns the original wait time. <br /></td></tr>
 <tr class="separator:a3ba192d0d5a5655f1ae280112379b7a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac22757725a4a2b0aeee81fd38e23d903"><td class="memItemLeft" align="right" valign="top"><a id="ac22757725a4a2b0aeee81fd38e23d903"></a>
-CORE_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1client.html#ac22757725a4a2b0aeee81fd38e23d903">DefaultRetryCondition</a> (const <a class="el" href="classolp_1_1network_1_1HttpResponse.html">network::HttpResponse</a> &amp;response)</td></tr>
-<tr class="memdesc:ac22757725a4a2b0aeee81fd38e23d903"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default RetryCondition which is to disable retries. <br /></td></tr>
-<tr class="separator:ac22757725a4a2b0aeee81fd38e23d903"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab80697f6a09bd5a74834e744957fc840"><td class="memItemLeft" align="right" valign="top"><a id="ab80697f6a09bd5a74834e744957fc840"></a>
+CORE_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1client.html#ab80697f6a09bd5a74834e744957fc840">DefaultRetryCondition</a> (const <a class="el" href="classolp_1_1client_1_1HttpResponse.html">olp::client::HttpResponse</a> &amp;response)</td></tr>
+<tr class="memdesc:ab80697f6a09bd5a74834e744957fc840"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default RetryCondition which is to disable retries. <br /></td></tr>
+<tr class="separator:ab80697f6a09bd5a74834e744957fc840"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>client namespace </p>

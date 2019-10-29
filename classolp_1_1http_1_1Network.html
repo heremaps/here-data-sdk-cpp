@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">0.6.0</span>
+   &#160;<span id="projectnumber">0.7.0</span>
    </div>
   </td>
  </tr>
@@ -59,7 +59,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="namespaceolp.html">olp</a></li><li class="navelem"><b>http</b></li><li class="navelem"><a class="el" href="classolp_1_1http_1_1Network.html">Network</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespaceolp.html">olp</a></li><li class="navelem"><a class="el" href="namespaceolp_1_1http.html">http</a></li><li class="navelem"><a class="el" href="classolp_1_1http_1_1Network.html">Network</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -75,19 +75,21 @@ $(function() {
 <p>The <a class="el" href="classolp_1_1http_1_1Network.html" title="The Network class represents HTTP client abstraction. ">Network</a> class represents HTTP client abstraction.  
  <a href="classolp_1_1http_1_1Network.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="http_2Network_8h_source.html">Network.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="Network_8h_source.html">Network.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:af0a5a2c85909ff38ad56d356c557b748"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1Network.html#af0a5a2c85909ff38ad56d356c557b748">Callback</a> = std::function&lt; void(<a class="el" href="classolp_1_1http_1_1NetworkResponse.html">NetworkResponse</a> response)&gt;</td></tr>
+<tr class="memitem:af0a5a2c85909ff38ad56d356c557b748"><td class="memItemLeft" align="right" valign="top"><a id="af0a5a2c85909ff38ad56d356c557b748"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1Network.html#af0a5a2c85909ff38ad56d356c557b748">Callback</a> = std::function&lt; void(<a class="el" href="classolp_1_1http_1_1NetworkResponse.html">NetworkResponse</a> response)&gt;</td></tr>
+<tr class="memdesc:af0a5a2c85909ff38ad56d356c557b748"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback to be called when the request has been processed or cancelled. <br /></td></tr>
 <tr class="separator:af0a5a2c85909ff38ad56d356c557b748"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaccedcd2fbd0930c108c853469b073a2"><td class="memItemLeft" align="right" valign="top"><a id="aaccedcd2fbd0930c108c853469b073a2"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1Network.html#aaccedcd2fbd0930c108c853469b073a2">HeaderCallback</a> = std::function&lt; void(std::string key, std::string value)&gt;</td></tr>
-<tr class="memdesc:aaccedcd2fbd0930c108c853469b073a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents callback to be called when a header has been received. <br /></td></tr>
+<tr class="memdesc:aaccedcd2fbd0930c108c853469b073a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback to be called when a header has been received. <br /></td></tr>
 <tr class="separator:aaccedcd2fbd0930c108c853469b073a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a14536b1fbbf2772bc43e3cce43005416"><td class="memItemLeft" align="right" valign="top"><a id="a14536b1fbbf2772bc43e3cce43005416"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1Network.html#a14536b1fbbf2772bc43e3cce43005416">DataCallback</a> = std::function&lt; void(const std::uint8_t *data, std::uint64_t offset, std::size_t length)&gt;</td></tr>
-<tr class="memdesc:a14536b1fbbf2772bc43e3cce43005416"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents callback to be called when a chunk of data has been received. <br /></td></tr>
+<tr class="memdesc:a14536b1fbbf2772bc43e3cce43005416"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback to be called when a chunk of data has been received. <br /></td></tr>
 <tr class="separator:a14536b1fbbf2772bc43e3cce43005416"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2d55d803454a41277d8200f25d4e2714"><td class="memItemLeft" align="right" valign="top"><a id="a2d55d803454a41277d8200f25d4e2714"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1Network.html#a2d55d803454a41277d8200f25d4e2714">Payload</a> = std::shared_ptr&lt; std::ostream &gt;</td></tr>
@@ -99,29 +101,13 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:afdd44ac31e169a43ecdc05783d6f14cf"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classolp_1_1http_1_1SendOutcome.html">SendOutcome</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1Network.html#afdd44ac31e169a43ecdc05783d6f14cf">Send</a> (<a class="el" href="classolp_1_1http_1_1NetworkRequest.html">NetworkRequest</a> request, <a class="el" href="classolp_1_1http_1_1Network.html#a2d55d803454a41277d8200f25d4e2714">Payload</a> payload, <a class="el" href="classolp_1_1http_1_1Network.html#af0a5a2c85909ff38ad56d356c557b748">Callback</a> callback, <a class="el" href="classolp_1_1http_1_1Network.html#aaccedcd2fbd0930c108c853469b073a2">HeaderCallback</a> header_callback=nullptr, <a class="el" href="classolp_1_1http_1_1Network.html#a14536b1fbbf2772bc43e3cce43005416">DataCallback</a> data_callback=nullptr)=0</td></tr>
 <tr class="memdesc:afdd44ac31e169a43ecdc05783d6f14cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send network request.  <a href="#afdd44ac31e169a43ecdc05783d6f14cf">More...</a><br /></td></tr>
 <tr class="separator:afdd44ac31e169a43ecdc05783d6f14cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a22cbb26cc175c8e28d5d4693e9cf147f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1Network.html#a22cbb26cc175c8e28d5d4693e9cf147f">Cancel</a> (RequestId id)=0</td></tr>
+<tr class="memitem:a22cbb26cc175c8e28d5d4693e9cf147f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1Network.html#a22cbb26cc175c8e28d5d4693e9cf147f">Cancel</a> (<a class="el" href="namespaceolp_1_1http.html#ab4ebd4de6206da6920482383a686e7b4">RequestId</a> id)=0</td></tr>
 <tr class="memdesc:a22cbb26cc175c8e28d5d4693e9cf147f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancel request by RequestId. Once the request was cancelled the user will receive a final Callback with an appropriate <a class="el" href="classolp_1_1http_1_1NetworkResponse.html" title="This class represents network response abstraction for an HTTP request. ">NetworkResponse</a> marked as cancelled.  <a href="#a22cbb26cc175c8e28d5d4693e9cf147f">More...</a><br /></td></tr>
 <tr class="separator:a22cbb26cc175c8e28d5d4693e9cf147f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The <a class="el" href="classolp_1_1http_1_1Network.html" title="The Network class represents HTTP client abstraction. ">Network</a> class represents HTTP client abstraction. </p>
-</div><h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="af0a5a2c85909ff38ad56d356c557b748"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af0a5a2c85909ff38ad56d356c557b748">&#9670;&nbsp;</a></span>Callback</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="classolp_1_1http_1_1Network.html#af0a5a2c85909ff38ad56d356c557b748">olp::http::Network::Callback</a> =  std::function&lt;void(<a class="el" href="classolp_1_1http_1_1NetworkResponse.html">NetworkResponse</a> response)&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Represents callback to be called when the request has been processed or cancelled. </p>
-
-</div>
-</div>
-<h2 class="groupheader">Member Function Documentation</h2>
+</div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a22cbb26cc175c8e28d5d4693e9cf147f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a22cbb26cc175c8e28d5d4693e9cf147f">&#9670;&nbsp;</a></span>Cancel()</h2>
 
@@ -134,7 +120,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">virtual void olp::http::Network::Cancel </td>
           <td>(</td>
-          <td class="paramtype">RequestId&#160;</td>
+          <td class="paramtype"><a class="el" href="namespaceolp_1_1http.html#ab4ebd4de6206da6920482383a686e7b4">RequestId</a>&#160;</td>
           <td class="paramname"><em>id</em></td><td>)</td>
           <td></td>
         </tr>
@@ -224,7 +210,7 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>olp-cpp-sdk-core/include/olp/core/http/<a class="el" href="http_2Network_8h_source.html">Network.h</a></li>
+<li>olp-cpp-sdk-core/include/olp/core/http/<a class="el" href="Network_8h_source.html">Network.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

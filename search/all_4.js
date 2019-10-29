@@ -35,7 +35,6 @@ var searchData=
   ['empty',['Empty',['../classolp_1_1math_1_1AlignedBox.html#a5888aa8e06b480f1971b9215cdba5655',1,'olp::math::AlignedBox::Empty()'],['../classolp_1_1thread_1_1SyncQueue.html#af69b7e9c9dcce81bac0e244bce52ee2f',1,'olp::thread::SyncQueue::Empty()'],['../classolp_1_1math_1_1Size2.html#a9d31393fd4d73eef8b61f6c0942a4b4a',1,'olp::math::Size2::empty()']]],
   ['emptyindexvalue',['EmptyIndexValue',['../classolp_1_1dataservice_1_1write_1_1model_1_1EmptyIndexValue.html',1,'olp::dataservice::write::model']]],
   ['enable',['Enable',['../classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html#a11051813f007b732533edcd0a25ea493',1,'olp::dataservice::write::StreamLayerClient']]],
-  ['enableautodecompression',['EnableAutoDecompression',['../classolp_1_1network_1_1NetworkConfig.html#a5b8eb68c56825af055f9c1870ed1ceef',1,'olp::network::NetworkConfig']]],
   ['encode',['Encode',['../classolp_1_1utils_1_1Url.html#a20bd3bda172c6d1403d2dda38e98ecfd',1,'olp::utils::Url']]],
   ['encryption',['Encryption',['../classolp_1_1dataservice_1_1read_1_1model_1_1Encryption.html',1,'olp::dataservice::read::model']]],
   ['end',['end',['../classolp_1_1utils_1_1LruCache.html#afd0e167b3f81dc020f2482ddf819e92a',1,'olp::utils::LruCache']]],
@@ -43,18 +42,13 @@ var searchData=
   ['enqueuetask',['EnqueueTask',['../classolp_1_1thread_1_1ThreadPoolTaskScheduler.html#a6b39865fcd7402003c4ae0e5846b8db5',1,'olp::thread::ThreadPoolTaskScheduler']]],
   ['equirectangularprojection',['EquirectangularProjection',['../classolp_1_1geo_1_1EquirectangularProjection.html',1,'olp::geo']]],
   ['erase',['Erase',['../classolp_1_1utils_1_1LruCache.html#a502520692b6773c890ed357d0bec2d18',1,'olp::utils::LruCache']]],
-  ['error',['Error',['../classolp_1_1network_1_1NetworkResponse.html#ae95114e7c616a7d6a9ed50c919fb4a4b',1,'olp::network::NetworkResponse']]],
-  ['errorcode',['ErrorCode',['../classolp_1_1network_1_1Network.html#abdb6c299411e8f9d4710c7b6c430af35',1,'olp::network::Network::ErrorCode()'],['../classolp_1_1network_1_1NetworkProtocol.html#a4b1b9a25f8b141640bfcf459007c9c7b',1,'olp::network::NetworkProtocol::ErrorCode()'],['../namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59',1,'olp::client::ErrorCode()']]],
+  ['errorcode',['ErrorCode',['../namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59',1,'olp::client::ErrorCode()'],['../namespaceolp_1_1http.html#a61c765861938a212070d01911a6b6a17',1,'olp::http::ErrorCode()']]],
   ['errorfield',['ErrorField',['../structolp_1_1authentication_1_1ErrorField.html',1,'olp::authentication']]],
   ['errorfields',['ErrorFields',['../namespaceolp_1_1authentication.html#aee1f6de5b659eb659c18eeb171dc4a02',1,'olp::authentication']]],
   ['errorresponse',['ErrorResponse',['../structolp_1_1authentication_1_1ErrorResponse.html',1,'olp::authentication']]],
-  ['errors_5f',['errors_',['../structolp_1_1network_1_1Network_1_1Statistics.html#afc047355abdfc066eb0df0607863d267',1,'olp::network::Network::Statistics']]],
-  ['etag',['Etag',['../classolp_1_1network_1_1NetworkResponse.html#ace221244c0f88900b100a2c605be1c6b',1,'olp::network::NetworkResponse']]],
   ['events_5fper_5fsingle_5fflush',['events_per_single_flush',['../structolp_1_1dataservice_1_1write_1_1FlushSettings.html#a35ec2a3583123c8bb6c3ba8a4e4c52f2',1,'olp::dataservice::write::FlushSettings']]],
   ['evictionfunction',['EvictionFunction',['../classolp_1_1utils_1_1LruCache.html#a614fd8f89ac1cf0aff67584065b67ea5',1,'olp::utils::LruCache']]],
   ['executeorcancelled',['ExecuteOrCancelled',['../classolp_1_1client_1_1CancellationContext.html#aa5671d12b69b463ce2eed2e0596d3ea9',1,'olp::client::CancellationContext']]],
   ['exists',['exists',['../classolp_1_1utils_1_1Dir.html#ad1cb55b4729a39aff844c37aa2f36089',1,'olp::utils::Dir']]],
-  ['expires',['Expires',['../classolp_1_1network_1_1NetworkResponse.html#ae70a211db9daa271a7a92cd4ef5175f8',1,'olp::network::NetworkResponse']]],
-  ['expires_5fin',['expires_in',['../structolp_1_1authentication_1_1AuthenticationClient_1_1UserProperties.html#ab4545e27f07d7716c9b62544bd389584',1,'olp::authentication::AuthenticationClient::UserProperties::expires_in()'],['../structolp_1_1authentication_1_1AuthenticationClient_1_1FederatedProperties.html#a1d4293fd55bd45906b2515f67da89b81',1,'olp::authentication::AuthenticationClient::FederatedProperties::expires_in()'],['../structolp_1_1authentication_1_1AuthenticationClient_1_1RefreshProperties.html#aea3c4951480f059f8fed97bb9f4a4467',1,'olp::authentication::AuthenticationClient::RefreshProperties::expires_in()']]],
-  ['extraheaders',['ExtraHeaders',['../classolp_1_1network_1_1NetworkRequest.html#a3ab959d68cbdce82088eaa6d3c237868',1,'olp::network::NetworkRequest']]]
+  ['expires_5fin',['expires_in',['../structolp_1_1authentication_1_1AuthenticationClient_1_1UserProperties.html#ab4545e27f07d7716c9b62544bd389584',1,'olp::authentication::AuthenticationClient::UserProperties::expires_in()'],['../structolp_1_1authentication_1_1AuthenticationClient_1_1FederatedProperties.html#a1d4293fd55bd45906b2515f67da89b81',1,'olp::authentication::AuthenticationClient::FederatedProperties::expires_in()'],['../structolp_1_1authentication_1_1AuthenticationClient_1_1RefreshProperties.html#aea3c4951480f059f8fed97bb9f4a4467',1,'olp::authentication::AuthenticationClient::RefreshProperties::expires_in()']]]
 ];

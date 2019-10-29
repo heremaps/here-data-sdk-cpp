@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['networkrequestidconstants',['NetworkRequestIdConstants',['../classolp_1_1network_1_1Network.html#a6b3079028d723ee6edc9b61cd707aea2',1,'olp::network::Network']]]
+  ['servicetype',['ServiceType',['../classolp_1_1client_1_1HRN.html#a47188d24604800fd02b73b52ce021c23',1,'olp::client::HRN']]],
+  ['storageopenresult',['StorageOpenResult',['../classolp_1_1cache_1_1DefaultCache.html#a4988be6ab65560dc9ceb8da6dbbb0341',1,'olp::cache::DefaultCache']]]
 ];

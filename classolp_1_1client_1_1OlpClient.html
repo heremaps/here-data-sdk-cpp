@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">0.6.0</span>
+   &#160;<span id="projectnumber">0.7.0</span>
    </div>
   </td>
  </tr>
@@ -92,15 +92,15 @@ std::multimap&lt; std::string, std::string &gt; &amp;&#160;</td><td class="memIt
 <tr class="memitem:a6957f92bcad5cfc30e5d857eb228b293"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1OlpClient.html#a6957f92bcad5cfc30e5d857eb228b293">SetSettings</a> (const <a class="el" href="structolp_1_1client_1_1OlpClientSettings.html">OlpClientSettings</a> &amp;settings)</td></tr>
 <tr class="memdesc:a6957f92bcad5cfc30e5d857eb228b293"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the client settings.  <a href="#a6957f92bcad5cfc30e5d857eb228b293">More...</a><br /></td></tr>
 <tr class="separator:a6957f92bcad5cfc30e5d857eb228b293"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a502383bee3e929e58958e691bfb854f7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1OlpClient.html#a502383bee3e929e58958e691bfb854f7">CallApi</a> (const std::string &amp;path, const std::string &amp;method, const std::multimap&lt; std::string, std::string &gt; &amp;queryParams, const std::multimap&lt; std::string, std::string &gt; &amp;headerParams, const std::multimap&lt; std::string, std::string &gt; &amp;formParams, const std::shared_ptr&lt; std::vector&lt; unsigned char &gt; &gt; &amp;postBody, const std::string &amp;contentType, const NetworkAsyncCallback &amp;callback) const</td></tr>
-<tr class="memdesc:a502383bee3e929e58958e691bfb854f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execute the REST request through the network stack.  <a href="#a502383bee3e929e58958e691bfb854f7">More...</a><br /></td></tr>
-<tr class="separator:a502383bee3e929e58958e691bfb854f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2bdfb6ec79cfad8583ea5af5ccf3ad85"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1OlpClient.html#a2bdfb6ec79cfad8583ea5af5ccf3ad85">CallApi</a> (const std::string &amp;path, const std::string &amp;method, const std::multimap&lt; std::string, std::string &gt; &amp;query_params, const std::multimap&lt; std::string, std::string &gt; &amp;header_params, const std::multimap&lt; std::string, std::string &gt; &amp;form_params, const std::shared_ptr&lt; std::vector&lt; unsigned char &gt;&gt; &amp;post_body, const std::string &amp;content_type, const NetworkAsyncCallback &amp;callback) const</td></tr>
+<tr class="memdesc:a2bdfb6ec79cfad8583ea5af5ccf3ad85"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execute the REST request through the network stack.  <a href="#a2bdfb6ec79cfad8583ea5af5ccf3ad85">More...</a><br /></td></tr>
+<tr class="separator:a2bdfb6ec79cfad8583ea5af5ccf3ad85"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This class is responsible for executing the REST requests. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="a502383bee3e929e58958e691bfb854f7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a502383bee3e929e58958e691bfb854f7">&#9670;&nbsp;</a></span>CallApi()</h2>
+<a id="a2bdfb6ec79cfad8583ea5af5ccf3ad85"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2bdfb6ec79cfad8583ea5af5ccf3ad85">&#9670;&nbsp;</a></span>CallApi()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -121,31 +121,31 @@ std::multimap&lt; std::string, std::string &gt; &amp;&#160;</td><td class="memIt
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const std::multimap&lt; std::string, std::string &gt; &amp;&#160;</td>
-          <td class="paramname"><em>queryParams</em>, </td>
+          <td class="paramname"><em>query_params</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const std::multimap&lt; std::string, std::string &gt; &amp;&#160;</td>
-          <td class="paramname"><em>headerParams</em>, </td>
+          <td class="paramname"><em>header_params</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const std::multimap&lt; std::string, std::string &gt; &amp;&#160;</td>
-          <td class="paramname"><em>formParams</em>, </td>
+          <td class="paramname"><em>form_params</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::shared_ptr&lt; std::vector&lt; unsigned char &gt; &gt; &amp;&#160;</td>
-          <td class="paramname"><em>postBody</em>, </td>
+          <td class="paramtype">const std::shared_ptr&lt; std::vector&lt; unsigned char &gt;&gt; &amp;&#160;</td>
+          <td class="paramname"><em>post_body</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const std::string &amp;&#160;</td>
-          <td class="paramname"><em>contentType</em>, </td>
+          <td class="paramname"><em>content_type</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -166,12 +166,12 @@ std::multimap&lt; std::string, std::string &gt; &amp;&#160;</td><td class="memIt
   <table class="params">
     <tr><td class="paramname">path</td><td>Path that is appended to the base url. </td></tr>
     <tr><td class="paramname">method</td><td>Choice of GET, POST, DELETE, PUT. </td></tr>
-    <tr><td class="paramname">queryParams</td><td>Params that is appended to the path url. </td></tr>
-    <tr><td class="paramname">headerParams</td><td>Headers to customize request. </td></tr>
-    <tr><td class="paramname">formParams</td><td>For a POST request, formParams or postBody should be populated, but not both. </td></tr>
-    <tr><td class="paramname">postBody</td><td>For a POST request, formParams or postBody should be populated, but not both. This data must not be modified until the request is completed. </td></tr>
-    <tr><td class="paramname">contentType</td><td>Content type for the postBody or formParams. </td></tr>
-    <tr><td class="paramname">callback</td><td>a function callback to receive the HttpResponse.</td></tr>
+    <tr><td class="paramname">query_params</td><td>Params that is appended to the path url. </td></tr>
+    <tr><td class="paramname">header_params</td><td>Headers to customize request. </td></tr>
+    <tr><td class="paramname">form_params</td><td>For a POST request, form_params or post_body should be populated, but not both. </td></tr>
+    <tr><td class="paramname">post_body</td><td>For a POST request, form_params or post_body should be populated, but not both. This data must not be modified until the request is completed. </td></tr>
+    <tr><td class="paramname">content_type</td><td>Content type for the post_body or form_params. </td></tr>
+    <tr><td class="paramname">callback</td><td>a function callback to receive the <a class="el" href="classolp_1_1client_1_1HttpResponse.html" title="Response from a REST request. ">HttpResponse</a>.</td></tr>
   </table>
   </dd>
 </dl>

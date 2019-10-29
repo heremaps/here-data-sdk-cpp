@@ -1,11 +1,7 @@
 var searchData=
 [
-  ['marketing_5fenabled',['marketing_enabled',['../structolp_1_1authentication_1_1AuthenticationClient_1_1SignUpProperties.html#ad2446f32cf36f976b08885296922fbe7',1,'olp::authentication::AuthenticationClient::SignUpProperties']]],
-  ['max_5fattempts',['max_attempts',['../structolp_1_1client_1_1RetrySettings.html#a59e74e332c409be4efe206c5fced33e1',1,'olp::client::RetrySettings']]],
-  ['max_5fchunk_5fsize',['max_chunk_size',['../structolp_1_1cache_1_1CacheSettings.html#a85919590bd7f461a9060593eef06c6aa',1,'olp::cache::CacheSettings']]],
-  ['max_5fdisk_5fstorage',['max_disk_storage',['../structolp_1_1cache_1_1CacheSettings.html#a51eaa0afe7a35dd968f1d765caa662e3',1,'olp::cache::CacheSettings']]],
-  ['max_5ffile_5fsize',['max_file_size',['../structolp_1_1cache_1_1CacheSettings.html#aabc8a3a78b4843cef4118a22e6e57511',1,'olp::cache::CacheSettings']]],
-  ['max_5fmemory_5fcache_5fsize',['max_memory_cache_size',['../structolp_1_1cache_1_1CacheSettings.html#a7df952f9f0e65b898065e884dd864e47',1,'olp::cache::CacheSettings']]],
-  ['maximum_5frequests',['maximum_requests',['../structolp_1_1dataservice_1_1write_1_1FlushSettings.html#af7ba41025e9ef356c4879884feb3afd4',1,'olp::dataservice::write::FlushSettings']]],
-  ['message',['message',['../structolp_1_1authentication_1_1ErrorResponse.html#ad72b3feae950f557985e9e7eae7f1d05',1,'olp::authentication::ErrorResponse']]]
+  ['name',['name',['../structolp_1_1authentication_1_1ErrorField.html#a524b6a16c8ddeacc61447ccfe0eea5cb',1,'olp::authentication::ErrorField']]],
+  ['network_5fproxy_5fsettings',['network_proxy_settings',['../structolp_1_1authentication_1_1Settings.html#af3811ffec5566da127174415320e75fb',1,'olp::authentication::Settings']]],
+  ['network_5frequest_5fhandler',['network_request_handler',['../structolp_1_1authentication_1_1Settings.html#a9d7c2483ed47f7e4da2cc78b636c54e1',1,'olp::authentication::Settings::network_request_handler()'],['../structolp_1_1client_1_1OlpClientSettings.html#a0169166a40bba1aa6ca355fd338282d5',1,'olp::client::OlpClientSettings::network_request_handler()']]],
+  ['numcorners',['numCorners',['../classolp_1_1math_1_1AlignedBox.html#aeb0c8620c28721c87e370bf5eda66f7e',1,'olp::math::AlignedBox']]]
 ];

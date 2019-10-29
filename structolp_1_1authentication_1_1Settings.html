@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">0.6.0</span>
+   &#160;<span id="projectnumber">0.7.0</span>
    </div>
   </td>
  </tr>
@@ -74,26 +74,34 @@ $(function() {
 <p><a class="el" href="structolp_1_1authentication_1_1Settings.html" title="Settings which can be used to configure a TokenEndpoint instance. ">Settings</a> which can be used to configure a <a class="el" href="classolp_1_1authentication_1_1TokenEndpoint.html" title="The TokenEndpoint class directly corresponds to the token endpoint as specified in the OAuth2...">TokenEndpoint</a> instance.  
  <a href="structolp_1_1authentication_1_1Settings.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="olp-cpp-sdk-authentication_2include_2olp_2authentication_2Settings_8h_source.html">Settings.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="Settings_8h_source.html">Settings.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a9248ccd2d59b6fb34300e31162228113"><td class="memItemLeft" align="right" valign="top">boost::optional&lt; <a class="el" href="structolp_1_1authentication_1_1NetworkProxySettings.html">NetworkProxySettings</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1Settings.html#a9248ccd2d59b6fb34300e31162228113">network_proxy_settings</a></td></tr>
-<tr class="separator:a9248ccd2d59b6fb34300e31162228113"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ace5921a01f0918583220d141b59aa094"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1Settings.html#ace5921a01f0918583220d141b59aa094">token_endpoint_url</a> = kHereAccountProductionTokenUrl</td></tr>
+<tr class="memitem:af3811ffec5566da127174415320e75fb"><td class="memItemLeft" align="right" valign="top">boost::optional&lt; <a class="el" href="classolp_1_1http_1_1NetworkProxySettings.html">http::NetworkProxySettings</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1Settings.html#af3811ffec5566da127174415320e75fb">network_proxy_settings</a></td></tr>
+<tr class="separator:af3811ffec5566da127174415320e75fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d7c2483ed47f7e4da2cc78b636c54e1"><td class="memItemLeft" align="right" valign="top"><a id="a9d7c2483ed47f7e4da2cc78b636c54e1"></a>
+std::shared_ptr&lt; <a class="el" href="classolp_1_1http_1_1Network.html">http::Network</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1Settings.html#a9d7c2483ed47f7e4da2cc78b636c54e1">network_request_handler</a></td></tr>
+<tr class="memdesc:a9d7c2483ed47f7e4da2cc78b636c54e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The network instance to be used to internally operate with OLP services. <br /></td></tr>
+<tr class="separator:a9d7c2483ed47f7e4da2cc78b636c54e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a613b8ae683f2288b6b03b3692f1485a7"><td class="memItemLeft" align="right" valign="top"><a id="a613b8ae683f2288b6b03b3692f1485a7"></a>
+std::shared_ptr&lt; thread::TaskScheduler &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1Settings.html#a613b8ae683f2288b6b03b3692f1485a7">task_scheduler</a></td></tr>
+<tr class="memdesc:a613b8ae683f2288b6b03b3692f1485a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The TaskScheduler class to be used for managing callbacks enqueue. <br /></td></tr>
+<tr class="separator:a613b8ae683f2288b6b03b3692f1485a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ace5921a01f0918583220d141b59aa094"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1Settings.html#ace5921a01f0918583220d141b59aa094">token_endpoint_url</a> {kHereAccountProductionTokenUrl}</td></tr>
 <tr class="separator:ace5921a01f0918583220d141b59aa094"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><a class="el" href="structolp_1_1authentication_1_1Settings.html" title="Settings which can be used to configure a TokenEndpoint instance. ">Settings</a> which can be used to configure a <a class="el" href="classolp_1_1authentication_1_1TokenEndpoint.html" title="The TokenEndpoint class directly corresponds to the token endpoint as specified in the OAuth2...">TokenEndpoint</a> instance. </p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
-<a id="a9248ccd2d59b6fb34300e31162228113"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9248ccd2d59b6fb34300e31162228113">&#9670;&nbsp;</a></span>network_proxy_settings</h2>
+<a id="af3811ffec5566da127174415320e75fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3811ffec5566da127174415320e75fb">&#9670;&nbsp;</a></span>network_proxy_settings</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">boost::optional&lt;<a class="el" href="structolp_1_1authentication_1_1NetworkProxySettings.html">NetworkProxySettings</a>&gt; olp::authentication::Settings::network_proxy_settings</td>
+          <td class="memname">boost::optional&lt;<a class="el" href="classolp_1_1http_1_1NetworkProxySettings.html">http::NetworkProxySettings</a>&gt; olp::authentication::Settings::network_proxy_settings</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -108,7 +116,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::string olp::authentication::Settings::token_endpoint_url = kHereAccountProductionTokenUrl</td>
+          <td class="memname">std::string olp::authentication::Settings::token_endpoint_url {kHereAccountProductionTokenUrl}</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -117,7 +125,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>olp-cpp-sdk-authentication/include/olp/authentication/<a class="el" href="olp-cpp-sdk-authentication_2include_2olp_2authentication_2Settings_8h_source.html">Settings.h</a></li>
+<li>olp-cpp-sdk-authentication/include/olp/authentication/<a class="el" href="Settings_8h_source.html">Settings.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

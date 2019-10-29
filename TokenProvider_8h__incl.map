@@ -1,0 +1,19 @@
+<map id="olp&#45;cpp&#45;sdk&#45;authentication/include/olp/authentication/TokenProvider.h" name="olp&#45;cpp&#45;sdk&#45;authentication/include/olp/authentication/TokenProvider.h">
+<area shape="rect" id="node4" href="$AuthenticationCredentials_8h_source.html" title="AuthenticationCredentials.h" alt="" coords="942,259,1125,285"/>
+<area shape="rect" id="node7" href="$AutoRefreshingToken_8h_source.html" title="AutoRefreshingToken.h" alt="" coords="321,109,479,136"/>
+<area shape="rect" id="node10" href="$TokenEndpoint_8h_source.html" title="TokenEndpoint.h" alt="" coords="659,184,779,211"/>
+<area shape="rect" id="node18" href="$Settings_8h_source.html" title="Settings.h" alt="" coords="1318,259,1399,285"/>
+<area shape="rect" id="node23" href="$TokenResult_8h_source.html" title="TokenResult.h" alt="" coords="811,259,917,285"/>
+<area shape="rect" id="node5" href="$AuthenticationApi_8h_source.html" title="AuthenticationApi.h" alt="" coords="566,423,701,449"/>
+<area shape="rect" id="node6" href="$export_8h_source.html" title="olp/core/porting/export.h" alt="" coords="631,497,793,524"/>
+<area shape="rect" id="node22" href="$TokenRequest_8h_source.html" title="TokenRequest.h" alt="" coords="243,259,362,285"/>
+<area shape="rect" id="node28" href="$CancellationToken_8h_source.html" title="CancellationToken.h" alt="" coords="344,341,485,367"/>
+<area shape="rect" id="node12" href="$AuthenticationError_8h_source.html" title="AuthenticationError.h" alt="" coords="1149,259,1293,285"/>
+<area shape="rect" id="node27" href="$ApiResponse_8h_source.html" title="olp/core/client/ApiResponse.h" alt="" coords="590,259,786,285"/>
+<area shape="rect" id="node13" href="$HttpStatusCode_8h_source.html" title="olp/core/http/HttpStatus\lCode.h" alt="" coords="1475,333,1637,375"/>
+<area shape="rect" id="node14" href="$ErrorCode_8h_source.html" title="olp/core/client/ErrorCode.h" alt="" coords="1337,423,1514,449"/>
+<area shape="rect" id="node15" href="$NetworkTypes_8h_source.html" title="olp/core/http/NetworkTypes.h" alt="" coords="1539,423,1733,449"/>
+<area shape="rect" id="node20" href="$NetworkProxySettings_8h_source.html" title="olp/core/http/NetworkProxy\lSettings.h" alt="" coords="1016,333,1197,375"/>
+<area shape="rect" id="node21" href="$CoreApi_8h_source.html" title="olp/core/CoreApi.h" alt="" coords="725,423,856,449"/>
+<area shape="rect" id="node25" href="$ErrorResponse_8h_source.html" title="ErrorResponse.h" alt="" coords="872,341,992,367"/>
+</map>

@@ -1,7 +1,7 @@
 var searchData=
 [
   ['tag',['Tag',['../classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4ac101058e7ea21bbbf2a5ac893088e90b',1,'olp::logging::MessageFormatter']]],
-  ['task_5fscheduler',['task_scheduler',['../structolp_1_1client_1_1OlpClientSettings.html#ae4092fe43dabe5f8a574c836dfe8cb8e',1,'olp::client::OlpClientSettings']]],
+  ['task_5fscheduler',['task_scheduler',['../structolp_1_1authentication_1_1Settings.html#a613b8ae683f2288b6b03b3692f1485a7',1,'olp::authentication::Settings::task_scheduler()'],['../structolp_1_1client_1_1OlpClientSettings.html#ae4092fe43dabe5f8a574c836dfe8cb8e',1,'olp::client::OlpClientSettings::task_scheduler()']]],
   ['tempdirectory',['TempDirectory',['../classolp_1_1utils_1_1Dir.html#ad7d7d070f4ff96fed05839e08ceff408',1,'olp::utils::Dir']]],
   ['threadid',['ThreadId',['../classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4a693e7589872f7acd3e69d831d022d6ea',1,'olp::logging::MessageFormatter']]],
   ['threadpooltaskscheduler',['ThreadPoolTaskScheduler',['../classolp_1_1thread_1_1ThreadPoolTaskScheduler.html',1,'olp::thread::ThreadPoolTaskScheduler'],['../classolp_1_1thread_1_1ThreadPoolTaskScheduler.html#a058fe8cd917e748888ad20735fb916a0',1,'olp::thread::ThreadPoolTaskScheduler::ThreadPoolTaskScheduler()']]],
@@ -13,8 +13,8 @@ var searchData=
   ['time',['Time',['../classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4aa76d4ef5f3f6a672bbfab2865563e530',1,'olp::logging::MessageFormatter']]],
   ['timems',['TimeMs',['../classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4afca1e9617ac05dac5dbcd50970bf79c6',1,'olp::logging::MessageFormatter']]],
   ['timeout',['timeout',['../structolp_1_1client_1_1RetrySettings.html#ab0d11ef9d64c97480dc8f7987dac1018',1,'olp::client::RetrySettings']]],
+  ['timeout_5ferror',['TIMEOUT_ERROR',['../namespaceolp_1_1http.html#a61c765861938a212070d01911a6b6a17ace94bad90093a6a2538689ddfbb5462f',1,'olp::http']]],
   ['timeperiod',['TimePeriod',['../structolp_1_1dataservice_1_1write_1_1FlushSettings.html#a938558986170b911a5ed582a91e04166',1,'olp::dataservice::write::FlushSettings']]],
-  ['timestamp',['Timestamp',['../classolp_1_1network_1_1NetworkRequest.html#a54a6f9af49ad22b237fb9e30985b7bba',1,'olp::network::NetworkRequest']]],
   ['timewindowindexvalue',['TimeWindowIndexValue',['../classolp_1_1dataservice_1_1write_1_1model_1_1TimeWindowIndexValue.html',1,'olp::dataservice::write::model']]],
   ['timezone',['Timezone',['../classolp_1_1logging_1_1MessageFormatter.html#afa78e7ed0c2c90f1e3683b92b54e6a2d',1,'olp::logging::MessageFormatter']]],
   ['tocataloghrnstring',['ToCatalogHRNString',['../classolp_1_1client_1_1HRN.html#a2643628b1415e8169893d4308a395e11',1,'olp::client::HRN']]],
@@ -34,7 +34,5 @@ var searchData=
   ['toquadkey64',['ToQuadKey64',['../classolp_1_1geo_1_1TileKey.html#adde8e23d4563d53d0c34ee958df4fb96',1,'olp::geo::TileKey']]],
   ['tostring',['ToString',['../classolp_1_1client_1_1HRN.html#a2edc8085a8f85e8d7c63cd7b1135f199',1,'olp::client::HRN']]],
   ['traceid',['TraceID',['../classolp_1_1dataservice_1_1write_1_1model_1_1TraceID.html',1,'olp::dataservice::write::model']]],
-  ['traits_5ftype',['traits_type',['../classolp_1_1network_1_1NetworkStreamBuf.html#ae4cfb5e06a99a9a4b50ce86c74b2f0c8',1,'olp::network::NetworkStreamBuf']]],
-  ['transfertimeout',['TransferTimeout',['../classolp_1_1network_1_1NetworkConfig.html#afc0d1300446efdb7f46f19aa28238bde',1,'olp::network::NetworkConfig']]],
-  ['type',['Type',['../classolp_1_1http_1_1NetworkProxySettings.html#a14fdb8e380337a0d349f092bf9fa0cb2',1,'olp::http::NetworkProxySettings::Type()'],['../classolp_1_1network_1_1NetworkProxy.html#acfc4fb0ebd32aecd45c25b8a0df2813b',1,'olp::network::NetworkProxy::Type()'],['../structolp_1_1logging_1_1MessageFormatter_1_1Element.html#ae971d2ab5263dfa50b3e868a85139de5',1,'olp::logging::MessageFormatter::Element::type()']]]
+  ['type',['type',['../structolp_1_1logging_1_1MessageFormatter_1_1Element.html#ae971d2ab5263dfa50b3e868a85139de5',1,'olp::logging::MessageFormatter::Element::type()'],['../classolp_1_1http_1_1NetworkProxySettings.html#a14fdb8e380337a0d349f092bf9fa0cb2',1,'olp::http::NetworkProxySettings::Type()']]]
 ];

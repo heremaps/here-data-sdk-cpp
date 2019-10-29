@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['payload',['Payload',['../classolp_1_1http_1_1Network.html#a2d55d803454a41277d8200f25d4e2714',1,'olp::http::Network']]],
-  ['pos_5ftype',['pos_type',['../classolp_1_1network_1_1NetworkStreamBuf.html#a8fa5ed7424bea63c7822174a194c9312',1,'olp::network::NetworkStreamBuf']]]
+  ['tokenprovidercallback',['TokenProviderCallback',['../structolp_1_1client_1_1AuthenticationSettings.html#ab6073dcc4d615301cbc5770add5e91c2',1,'olp::client::AuthenticationSettings']]],
+  ['tokenprovidercancelcallback',['TokenProviderCancelCallback',['../structolp_1_1client_1_1AuthenticationSettings.html#a2f09e92369bf14adf30b623810beba2c',1,'olp::client::AuthenticationSettings']]],
+  ['tokenproviderdefault',['TokenProviderDefault',['../namespaceolp_1_1authentication.html#add9e77c777aa9984099a62d7ca94ba5c',1,'olp::authentication']]],
+  ['tokenresponse',['TokenResponse',['../classolp_1_1authentication_1_1TokenEndpoint.html#aa80d76f0915be0216aace00983b91afd',1,'olp::authentication::TokenEndpoint']]]
 ];
