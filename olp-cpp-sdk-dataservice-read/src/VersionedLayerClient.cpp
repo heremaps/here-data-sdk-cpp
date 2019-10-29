@@ -39,6 +39,11 @@ client::CancellationToken VersionedLayerClient::GetData(
   return impl_->GetData(std::move(data_request), std::move(callback));
 }
 
+client::CancellableFuture<DataResponse> VersionedLayerClient::GetData(
+    DataRequest data_request) {
+  return impl_->GetData(std::move(data_request));
+}
+
 client::CancellationToken VersionedLayerClient::GetPartitions(
     PartitionsRequest partitions_request, PartitionsResponseCallback callback) {
   return impl_->GetPartitions(std::move(partitions_request),

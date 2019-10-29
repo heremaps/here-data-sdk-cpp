@@ -121,6 +121,21 @@ class DATASERVICE_READ_API VersionedLayerClient final {
                                     DataResponseCallback callback);
 
   /**
+   * @brief Fetches data for a partition or data handle asynchronously. If the
+   * specified partition or data handle cannot be found in the layer, the
+   * callback will be invoked with an empty DataResponse (nullptr for result and
+   * error). If neither Partition Id or Data Handle were set in the request, the
+   * callback will be invoked with an error with ErrorCode::InvalidRequest.
+   * @param data_request contains the complete set of request parameters.
+   * \note \c DataRequest's GetLayerId value will be ignored and the parameter
+   * from the constructor will be used instead.
+   * @return \c CancellableFuture of type \c DataResponse, which when
+   * complete will contain the data or an error. Alternatively, the
+   * \c CancellableFuture can be used to cancel this request.
+   */
+  client::CancellableFuture<DataResponse> GetData(DataRequest data_request);
+
+  /**
    * @brief Fetches a list of partitions for the given generic layer
    * asynchronously.
    * @param partitions_request Contains the complete set of the request

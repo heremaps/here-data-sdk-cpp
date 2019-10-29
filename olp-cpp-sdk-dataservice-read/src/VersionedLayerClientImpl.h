@@ -55,6 +55,9 @@ class VersionedLayerClientImpl {
   virtual client::CancellationToken GetData(DataRequest data_request,
                                             DataResponseCallback callback);
 
+  virtual client::CancellableFuture<DataResponse> GetData(
+      DataRequest data_request);
+
   virtual client::CancellationToken GetPartitions(
       PartitionsRequest partitions_request,
       PartitionsResponseCallback callback);
