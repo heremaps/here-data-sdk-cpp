@@ -30,6 +30,8 @@
 #include <olp/core/http/NetworkProxySettings.h>
 #include <testutils/CustomParameters.hpp>
 
+#include "Utils.h"
+
 using namespace ::olp::authentication;
 
 namespace {
@@ -420,7 +422,8 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenConcurrent) {
           TokenRequest{},
           [&, barrier, start](TokenEndpoint::TokenResponse token_response) {
             auto delta = std::chrono::high_resolution_clock::now() - start;
-            EXPECT_TRUE(token_response.IsSuccessful());
+            EXPECT_TRUE(token_response.IsSuccessful())
+                << token_response.GetError().GetMessage();
             EXPECT_FALSE(token_response.GetResult().GetAccessToken().empty());
             {
               std::lock_guard<std::mutex> guard(global_state_mutex);
@@ -441,7 +444,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenConcurrent) {
 
   auto delta_total_time =
       std::chrono::high_resolution_clock::now() - start_total_time;
-  EXPECT_LE((delta_total_time * 2), delta_sum)
+  EXPECT_LT(delta_total_time, delta_sum)
       << "Expect token request operations to have happened in parallel";
 
   EXPECT_EQ(access_tokens.size(), 5u);
@@ -462,7 +465,8 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenConcurrentFuture) {
       auto start = std::chrono::high_resolution_clock::now();
       auto token_response = token_endpoint_.RequestToken().get();
       auto delta = std::chrono::high_resolution_clock::now() - start;
-      EXPECT_TRUE(token_response.IsSuccessful());
+      EXPECT_TRUE(token_response.IsSuccessful())
+          << token_response.GetError().GetMessage();
       EXPECT_FALSE(token_response.GetResult().GetAccessToken().empty());
       {
         std::lock_guard<std::mutex> guard(global_state_mutex);
@@ -478,7 +482,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenConcurrentFuture) {
     threads[i].join();
   }
 
-  EXPECT_LE((delta_total_time * 2), delta_sum)
+  EXPECT_LT(delta_total_time, delta_sum)
       << "Expect token request operations to have happened in parallel";
 
   EXPECT_EQ(access_tokens.size(), 5u);
