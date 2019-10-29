@@ -38,7 +38,7 @@ CatalogClient::CatalogClient(client::HRN catalog,
                                               std::move(settings));
 }
 
-bool CatalogClient::cancelPendingRequests() {
+bool CatalogClient::CancelPendingRequests() {
   return impl_->CancelPendingRequests();
 }
 
