@@ -42,31 +42,28 @@ class VolatileLayerClientImpl;
  *
  * Example:
  * @code{.cpp}
- * const std::string kCatalog = "hrn:here:data:::hereos-internal-test-v2";
- * const std::string kLayerId = "hype-test";
- * const auto kHRN = olp::client::HRN::FromString(kCatalog);
- *
- * std::shared_ptr<olp::thread::TaskScheduler> task_scheduler =
+ * auto task_scheduler =
  *    olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
- * std::shared_ptr<olp::http::Network> http_client = olp::client::
+ * auto http_client = olp::client::
  *    OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
  *
- * olp::authentication::Settings settings;
+ * olp::authentication::Settings settings{"Your.Key.Id", "Your.Key.Secret"};
  * settings.task_scheduler = task_scheduler;
  * settings.network_request_handler = http_client;
  *
  * olp::client::AuthenticationSettings auth_settings;
- * auth_settings.provider = olp::authentication::TokenProviderDefault(
- *     kKeyId, kKeySecret, std::move(settings));
+ * auth_settings.provider =
+ *     olp::authentication::TokenProviderDefault(std::move(settings));
  *
  * auto client_settings = olp::client::OlpClientSettings();
  * client_settings.authentication_settings = auth_settings;
  * client_settings.task_scheduler = std::move(task_scheduler);
  * client_settings.network_request_handler = std::move(http_client);
  *
- * VolatileLayerClient client{kHRN, kLayerId, client_settings};
- * VolatileLayerClient::Callback<model::Data> callback = ... ;
- * auto token = client.GetData(request, cb);
+ * VolatileLayerClient client{"hrn:here:data:::your-catalog-hrn" "your-layer-id", client_settings};
+ * auto callback = [](olp::client::ApiResponse<olp::model::Data, olp::client::ApiError> response) {};
+ * auto request = DataRequest().WithPartitionId("269");
+ * auto token = client.GetData(request, callback);
  * @endcode
  *
  * @see
