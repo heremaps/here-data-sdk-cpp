@@ -106,6 +106,17 @@ client::CancellationToken VersionedLayerClientImpl::GetPartitions(
   return token;
 }
 
+client::CancellableFuture<PartitionsResponse>
+VersionedLayerClientImpl::GetPartitions(PartitionsRequest partitions_request) {
+  auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+  auto cancel_token = GetPartitions(std::move(partitions_request),
+                                    [promise](PartitionsResponse response) {
+                                      promise->set_value(std::move(response));
+                                    });
+  return client::CancellableFuture<PartitionsResponse>(std::move(cancel_token),
+                                                       std::move(promise));
+}
+
 client::CancellationToken VersionedLayerClientImpl::GetData(
     DataRequest request, DataResponseCallback callback) {
   auto add_task = [&](DataRequest& request, DataResponseCallback callback) {

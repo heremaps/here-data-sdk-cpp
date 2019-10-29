@@ -50,6 +50,11 @@ client::CancellationToken VersionedLayerClient::GetPartitions(
                               std::move(callback));
 }
 
+client::CancellableFuture<PartitionsResponse>
+VersionedLayerClient::GetPartitions(PartitionsRequest partitions_request) {
+  return impl_->GetPartitions(std::move(partitions_request));
+}
+
 client::CancellationToken VersionedLayerClient::PrefetchTiles(
     PrefetchTilesRequest request, PrefetchTilesResponseCallback callback) {
   return impl_->PrefetchTiles(std::move(request), std::move(callback));
