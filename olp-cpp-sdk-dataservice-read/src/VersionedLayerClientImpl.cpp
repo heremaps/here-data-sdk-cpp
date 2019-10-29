@@ -147,6 +147,17 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
   }
 }
 
+client::CancellableFuture<DataResponse> VersionedLayerClientImpl::GetData(
+    DataRequest data_request) {
+  auto promise = std::make_shared<std::promise<DataResponse>>();
+  auto cancel_token =
+      GetData(std::move(data_request), [promise](DataResponse response) {
+        promise->set_value(std::move(response));
+      });
+  return client::CancellableFuture<DataResponse>(std::move(cancel_token),
+                                                 std::move(promise));
+}
+
 client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
     PrefetchTilesRequest request, PrefetchTilesResponseCallback callback) {
   const int64_t request_key = pending_requests_->GenerateRequestPlaceholder();
