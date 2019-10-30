@@ -167,8 +167,8 @@ client_settings.cache =
     olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
 
 // Create a CatalogClient with appropriate HRN and settings.
-auto service_client = std::make_unique<olp::dataservice::read::CatalogClient>(
-    olp::client::HRN(kCatalogHRN), std::move(client_settings));
+olp::dataservice::read::CatalogClient catalog_client(
+    olp::client::HRN(kCatalogHRN), client_settings);
 ```
 
 The `OlpClientSettings` class pulls together all the different settings for customization of the client library behavior.
@@ -196,7 +196,7 @@ Then pass it to the `CatalogClient` via `GetCatalog` method:
 
 ```cpp
 // Run the CatalogRequest
-auto future = serviceClient->GetCatalog(request);
+auto future = catalog_client.GetCatalog(request);
 ```
 
 The execution result is a `CancellableFuture` that contains `CatalogResponse` object. The `CatalogResponse` class holds details of the completed operation and is used to determine operation success and access resultant data.
@@ -207,18 +207,16 @@ The execution result is a `CancellableFuture` that contains `CatalogResponse` ob
 
 ```cpp
 // Wait for the CatalogResponse response
-olp::dataservice::read::CatalogResponse catalogResponse =
+olp::dataservice::read::CatalogResponse catalog_response =
     future.GetFuture().get();
 
 // Check the response
-if (catalogResponse.IsSuccessful()) {
-    const olp::dataservice::read::CatalogResult& responseResult =
-        catalogResponse.GetResult();
-    OLP_SDK_LOG_INFO_F("read-example", "Catalog description: %s",
-                       responseResult.GetDescription().c_str());
+if (catalog_response.IsSuccessful()) {
+    const olp::dataservice::read::CatalogResult& response_result =
+        catalog_response.GetResult();
+    // Handle success
 } else {
-    OLP_SDK_LOG_ERROR("read-example",
-                      "Request catalog metadata - Failure");
+    // Handle fail
 }
 ```
 
@@ -250,20 +248,22 @@ The `ApiError` class contains details regarding to the incurred error, including
 To retrieve partition metadata, create a `PartitionsRequest`. The `PartitionsRequest` class allows to set the properties of the catalog request, including:
 
 * `WithBillingTag`: Sets the billing tag used for this request.
-* `WithLayerId`: Sets the layer id that partition metadata is retrieved from.
 
 ```cpp
 // Create a PartitionsRequest with appropriate LayerId
 auto request = olp::dataservice::read::PartitionsRequest()
-                    .WithLayerId(gLayerId)
                     .WithBillingTag(boost::none);
 ```
 
-Then pass it to the `CatalogClient` via `GetPartitions` method:
+Then pass it to the appropriate layer client, i.e. `VersionedLayerClient` via `GetPartitions` method:
 
 ```cpp
+// Create appropriate layer client with HRN, layer name and settings.
+olp::dataservice::read::VersionedLayerClient layer_client(
+    olp::client::HRN(kCatalogHRN), first_layer_id, client_settings);
+
 // Run the PartitionsRequest
-auto future = serviceClient->GetPartitions(request);
+auto future = layer_client.GetPartitions(request);
 ```
 
 The execution result is a `CancellableFuture` that contains `PartitionsResponse` object. The `PartitionsResponse` class holds the details of the completed operation and is used to determine operation success and access resultant data.
@@ -274,20 +274,16 @@ The execution result is a `CancellableFuture` that contains `PartitionsResponse`
 
 ```cpp
 // Wait for PartitionsResponse
-olp::dataservice::read::PartitionsResponse partitionsResponse =
+olp::dataservice::read::PartitionsResponse partitions_response =
     future.GetFuture().get();
-
+	
 // Check the response
-if (partitionsResponse.IsSuccessful()) {
-    const olp::dataservice::read::PartitionsResult& responseResult =
-        partitionsResponse.GetResult();
-    const std::vector<olp::dataservice::read::model::Partition>& partitions =
-        responseResult.GetPartitions();
-    OLP_SDK_LOG_INFO_F("read-example", "Layer contains %d partitions.",
-                       partitions.size());
+if (partitions_response.IsSuccessful()) {
+    const olp::dataservice::read::PartitionsResult& response_result =
+        partitions_response.GetResult();
+    // Handle success
 } else {
-    OLP_SDK_LOG_ERROR("read-example",
-                      "Request partition metadata - Failure");
+    // Handle fail
 }
 ```
 
@@ -299,7 +295,7 @@ The `Partition` class contains partition metadata and exposes the following memb
 
 * `GetChecksum`: Partition checksum.
 * `GetCompressedDataSize`: Returns the size of the compressed partition data.
-* `GetDataHandle`: Returns the handle that can be used by the `CatalogClient::GetData` function to retrieve the partition data.
+* `GetDataHandle`: Returns the handle that can be used by the `GetData` function to retrieve the partition data.
 * `GetDataSize`: Returns the size of the partition data.
 * `GetPartition`: Returns the partition Id.
 * `GetVersion`: Returns the latest catalog version for the partition.
@@ -308,7 +304,6 @@ The `Partition` class contains partition metadata and exposes the following memb
 
 To retrieve partition data, create the `DataRequest`. The `DataRequest` class allows to specify the parameters of the `GetData` function, including:
 
-* `WithLayerId`: Sets the layer id to use it for the request.
 * `WithPartitionId`: Sets the partition for the data request.
 * `WithDataHandle`: Sets the requested data handle, which can be found via the GetPartition call in the `olp::dataservice::read::model::Partition::GetDataHandle` member.
 * `WithBillingTag`: Sets the billing tag for the request.
@@ -316,35 +311,31 @@ To retrieve partition data, create the `DataRequest`. The `DataRequest` class al
 ```cpp
 // Create a DataRequest with appropriate LayerId and PartitionId
 auto request = olp::dataservice::read::DataRequest()
-                    .WithLayerId(gLayerId)
                     .WithPartitionId(gPartitionId)
                     .WithBillingTag(boost::none);
 ```
 
-Then pass it to the `CatalogClient` via `GetData` method:
+Then pass it to the `VersionedLayerClient` via `GetData` method:
 
 ```cpp
 // Run the DataRequest
-auto future = serviceClient->GetData(request);
+auto future = layer_client.GetData(request);
 ```
 
 The execution result is a `CancellableFuture` that contains `DataResponse` object.
 
 ```cpp
 // Wait for DataResponse
-olp::dataservice::read::DataResponse dataResponse =
+olp::dataservice::read::DataResponse data_response =
     future.GetFuture().get();
 
 // Check the response
-if (dataResponse.IsSuccessful()) {
-    const olp::dataservice::read::DataResult& responseResult =
-        dataResponse.GetResult();
-    OLP_SDK_LOG_INFO_F("read-example",
-                       "Request partition data - Success, data size - %d",
-                       responseResult->size());
+if (data_response.IsSuccessful()) {
+    const olp::dataservice::read::DataResult& response_result =
+        data_response.GetResult();
+    // Handle success
 } else {
-    OLP_SDK_LOG_ERROR("read-example",
-                      "Request partition data - Failure");
+    // Handle fail
 }
 ```
 

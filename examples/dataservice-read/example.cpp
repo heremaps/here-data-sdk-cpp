@@ -33,6 +33,7 @@
 #include <olp/dataservice/read/CatalogRequest.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
+#include <olp/dataservice/read/VersionedLayerClient.h>
 
 namespace {
 const std::string kKeyId("");      // your here.access.key.id
@@ -150,18 +151,18 @@ int RunExample() {
   client_settings.cache =
       olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
 
-  // Create a CatalogClient with appropriate HRN and settings.
-  auto service_client = std::make_unique<olp::dataservice::read::CatalogClient>(
-      olp::client::HRN(kCatalogHRN), std::move(client_settings));
-
   std::string first_layer_id;
   {  // Retrieve the catalog metadata
+    // Create a CatalogClient with appropriate HRN and settings.
+    olp::dataservice::read::CatalogClient catalog_client(
+        olp::client::HRN(kCatalogHRN), client_settings);
+
     // Create CatalogRequest
     auto request =
         olp::dataservice::read::CatalogRequest().WithBillingTag(boost::none);
 
     // Run the CatalogRequest
-    auto future = service_client->GetCatalog(request);
+    auto future = catalog_client.GetCatalog(request);
 
     // Wait for the CatalogResponse response
     olp::dataservice::read::CatalogResponse catalog_response =
@@ -171,16 +172,19 @@ int RunExample() {
     first_layer_id = HandleCatalogResponse(catalog_response);
   }
 
+  // Create appropriate layer client with HRN, layer name and settings.
+  olp::dataservice::read::VersionedLayerClient layer_client(
+      olp::client::HRN(kCatalogHRN), first_layer_id, client_settings);
+
   std::string first_partition_id;
   if (!first_layer_id.empty()) {
     // Retrieve the partitions metadata
     // Create a PartitionsRequest with appropriate LayerId
     auto request = olp::dataservice::read::PartitionsRequest()
-                       .WithLayerId(first_layer_id)
                        .WithBillingTag(boost::none);
 
     // Run the PartitionsRequest
-    auto future = service_client->GetPartitions(request);
+    auto future = layer_client.GetPartitions(request);
 
     // Wait for PartitionsResponse
     olp::dataservice::read::PartitionsResponse partitions_response =
@@ -197,12 +201,11 @@ int RunExample() {
     // Retrieve the partition data
     // Create a DataRequest with appropriate LayerId and PartitionId
     auto request = olp::dataservice::read::DataRequest()
-                       .WithLayerId(first_layer_id)
                        .WithPartitionId(first_partition_id)
                        .WithBillingTag(boost::none);
 
     // Run the DataRequest
-    auto future = service_client->GetData(request);
+    auto future = layer_client.GetData(request);
 
     // Wait for DataResponse
     olp::dataservice::read::DataResponse data_response =
