@@ -20,8 +20,8 @@ ulimit -c unlimited
 # Run unit tests
 ${FV_HOME}/gitlab-olp-cpp-sdk-authentication-test.sh 2>> errors.txt || TEST_FAILURE=1
 ${FV_HOME}/gitlab-olp-cpp-sdk-core-test.sh 2>> errors.txt || TEST_FAILURE=1
-${FV_HOME}/gitlab-olp-dataservice-read-test.sh 2>> errors.txt || TEST_FAILURE=1
-${FV_HOME}/gitlab-olp-dataservice-write-test.sh 2>> errors.txt || TEST_FAILURE=1
+${FV_HOME}/gitlab-olp-cpp-sdk-dataservice-read-test.sh 2>> errors.txt || TEST_FAILURE=1
+${FV_HOME}/gitlab-olp-cpp-sdk-dataservice-write-test.sh 2>> errors.txt || TEST_FAILURE=1
 
 # Run integration tests
 ${FV_HOME}/gitlab-olp-cpp-sdk-integration-test.sh 2>> errors.txt || TEST_FAILURE=1
@@ -61,6 +61,6 @@ do
     echo -e "$(basename ${report}): \t $(cat ${report} | sed -n 2p | sed -e "s/timestamp=.*//" | sed -e "s/\<testsuites//" )"
 done
 
-echo "Artifacts download URL: https://main.gitlab.in.here.com/olp/edge/olp-sdk/olp-sdk-cpp/-/jobs/$CI_JOB_ID/artifacts/download"
+echo "Artifacts download URL: ${CI_PROJECT_URL}-/jobs/${CI_JOB_ID}/artifacts/download"
 
 exit ${TEST_FAILURE}

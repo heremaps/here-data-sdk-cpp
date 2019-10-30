@@ -9,7 +9,7 @@ stages:
   - translate_report
   - deploy
 
-build_fv:
+build_test_fv:
   stage: build
   tags:
   - docker-prod
@@ -32,12 +32,33 @@ build_fv:
     # Check this issue status in Gitlab 12.4 (Oct 2019)
     #   junit: "reports/*.xml"
 
-build_nv:
+build_test_nv:
   stage: build
   tags:
   - docker-prod
   script:
-  - echo "NIGHTLY BUILD OK !"
+  - $CI_PROJECT_DIR/scripts/linux/nv/gitlab_build_valgrind.sh
+  - $CI_PROJECT_DIR/scripts/linux/nv/gitlab_test_valgrind.sh
+  only:
+    refs:
+      - master
+      - schedules
+    variables:
+      - $NIGHTLY
+  artifacts:
+    when: always
+    paths:
+      - reports
+      - $CI_PROJECT_DIR
+    expire_in: 1 year
+
+upload_sonar_nv:
+  stage: deploy
+  tags:
+  - docker-prod
+  image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_COVERAGE}:${DOCKER_IMAGE_COVERAGE_VERSION}
+  script:
+  - $CI_PROJECT_DIR/scripts/linux/nv/gitlab_cppcheck_and_upload_sonar.sh
   only:
     refs:
       - master
@@ -49,11 +70,6 @@ build_nv:
     paths:
       - reports
     expire_in: 1 year
-    # reports:
-    # https://gitlab.com/gitlab-org/gitlab-ce/issues/17081
-    # Check this issue status in Gitlab 12.4 (Oct 2019)
-    #   junit: "reports/*.xml"
-
 
 translate_report:
   stage: translate_report
@@ -77,7 +93,6 @@ translate_report:
       - master
       - schedules
     variables:
-      - $NIGHTLY
       - $FULLY
 
 pages:
@@ -95,5 +110,4 @@ pages:
       - master
       - schedules
     variables:
-      - $NIGHTLY
       - $FULLY
