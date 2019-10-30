@@ -13,6 +13,7 @@ var searchData=
   ['sphereprojection',['SphereProjection',['../classolp_1_1geo_1_1SphereProjection.html',1,'olp::geo']]],
   ['startbatchrequest',['StartBatchRequest',['../classolp_1_1dataservice_1_1write_1_1model_1_1StartBatchRequest.html',1,'olp::dataservice::write::model']]],
   ['streamlayerclient',['StreamLayerClient',['../classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html',1,'olp::dataservice::write']]],
+  ['streamlayerclientsettings',['StreamLayerClientSettings',['../structolp_1_1dataservice_1_1write_1_1StreamLayerClientSettings.html',1,'olp::dataservice::write']]],
   ['streamproperties',['StreamProperties',['../classolp_1_1dataservice_1_1read_1_1model_1_1StreamProperties.html',1,'olp::dataservice::read::model']]],
   ['stringindexvalue',['StringIndexValue',['../classolp_1_1dataservice_1_1write_1_1model_1_1StringIndexValue.html',1,'olp::dataservice::write::model']]],
   ['subtiles',['SubTiles',['../classolp_1_1geo_1_1SubTiles.html',1,'olp::geo']]],

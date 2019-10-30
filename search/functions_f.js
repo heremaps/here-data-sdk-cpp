@@ -2,7 +2,7 @@ var searchData=
 [
   ['rbegin',['rbegin',['../classolp_1_1utils_1_1LruCache.html#a8305dc2e9891c2ea1be19360e66e81f4',1,'olp::utils::LruCache']]],
   ['relationshiptoparent',['RelationshipToParent',['../classolp_1_1geo_1_1TileKey.html#af4b1741b8f654e4e5f5658d68f36b960',1,'olp::geo::TileKey']]],
-  ['remove',['Remove',['../classolp_1_1cache_1_1DefaultCache.html#a8311d372021e203e0059d803292d85a6',1,'olp::cache::DefaultCache::Remove()'],['../classolp_1_1cache_1_1KeyValueCache.html#a697030446468f24895b70fcbb2415e45',1,'olp::cache::KeyValueCache::Remove()'],['../classolp_1_1utils_1_1Dir.html#a9e98fffa7b8a847e6408df78005bd62f',1,'olp::utils::Dir::remove()']]],
+  ['remove',['remove',['../classolp_1_1utils_1_1Dir.html#a9e98fffa7b8a847e6408df78005bd62f',1,'olp::utils::Dir::remove()'],['../classolp_1_1cache_1_1DefaultCache.html#a8311d372021e203e0059d803292d85a6',1,'olp::cache::DefaultCache::Remove()'],['../classolp_1_1cache_1_1KeyValueCache.html#a697030446468f24895b70fcbb2415e45',1,'olp::cache::KeyValueCache::Remove()']]],
   ['removekeyswithprefix',['RemoveKeysWithPrefix',['../classolp_1_1cache_1_1DefaultCache.html#a66700b62c6943297119665d0e7ed3825',1,'olp::cache::DefaultCache::RemoveKeysWithPrefix()'],['../classolp_1_1cache_1_1KeyValueCache.html#aa7d086a6ee415431480f4d85809b1fad',1,'olp::cache::KeyValueCache::RemoveKeysWithPrefix()']]],
   ['rend',['rend',['../classolp_1_1utils_1_1LruCache.html#a7a1875c0b3535d955f64ddffcc80ed85',1,'olp::utils::LruCache']]],
   ['requestautorefreshingtoken',['RequestAutoRefreshingToken',['../classolp_1_1authentication_1_1TokenEndpoint.html#a231b4c15bad1b6378280f81f2ab54d0a',1,'olp::authentication::TokenEndpoint']]],

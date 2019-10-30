@@ -15,5 +15,5 @@ var searchData=
   ['httpresponse',['HttpResponse',['../classolp_1_1client_1_1HttpResponse.html',1,'olp::client']]],
   ['httpstatuscode',['HttpStatusCode',['../classolp_1_1http_1_1HttpStatusCode.html',1,'olp::http']]],
   ['httpverb',['HttpVerb',['../classolp_1_1http_1_1NetworkRequest.html#ac280dc7b10a02ce328cf1b6dcae42fd5',1,'olp::http::NetworkRequest']]],
-  ['here_20olp_20edge_20sdk_20c_2b_2b',['HERE OLP Edge SDK C++',['../index.html',1,'']]]
+  ['here_20olp_20sdk_20for_20c_2b_2b',['HERE OLP SDK for C++',['../index.html',1,'']]]
 ];

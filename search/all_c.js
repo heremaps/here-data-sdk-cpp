@@ -17,8 +17,7 @@ var searchData=
   ['normalized',['Normalized',['../classolp_1_1geo_1_1GeoCoordinates.html#a11191068993f25c67e9fd9746955c765',1,'olp::geo::GeoCoordinates']]],
   ['notfound',['NotFound',['../namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a38c300f4fc9ce8a77aad4a30de05cad8',1,'olp::client']]],
   ['notifications',['Notifications',['../classolp_1_1dataservice_1_1read_1_1model_1_1Notifications.html',1,'olp::dataservice::read::model']]],
-  ['notifyflusheventresults',['NotifyFlushEventResults',['../classolp_1_1dataservice_1_1write_1_1FlushEventListener.html#a383df3d7ea87790c7419ac699cf67db2',1,'olp::dataservice::write::FlushEventListener::NotifyFlushEventResults()'],['../classolp_1_1dataservice_1_1write_1_1DefaultFlushEventListener.html#aabe6b1e6aa7278284e8fbc516bb6dc81',1,'olp::dataservice::write::DefaultFlushEventListener::NotifyFlushEventResults()']]],
-  ['notifyflusheventstarted',['NotifyFlushEventStarted',['../classolp_1_1dataservice_1_1write_1_1FlushEventListener.html#a42b76397ede5ca44546836b8a1b9482f',1,'olp::dataservice::write::FlushEventListener::NotifyFlushEventStarted()'],['../classolp_1_1dataservice_1_1write_1_1DefaultFlushEventListener.html#a0a824f8eb942c4429d8697aca718ca76',1,'olp::dataservice::write::DefaultFlushEventListener::NotifyFlushEventStarted()']]],
+  ['notify',['Notify',['../classolp_1_1client_1_1Condition.html#a50f33dd18dbfad83a09cc60c0b48e725',1,'olp::client::Condition']]],
   ['nulllogstream',['NullLogStream',['../classolp_1_1logging_1_1NullLogStream.html',1,'olp::logging']]],
   ['numcorners',['numCorners',['../classolp_1_1math_1_1AlignedBox.html#aeb0c8620c28721c87e370bf5eda66f7e',1,'olp::math::AlignedBox']]]
 ];

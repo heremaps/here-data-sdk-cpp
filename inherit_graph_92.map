@@ -1,3 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classolp_1_1geo_1_1SubTiles.html" title="olp::geo::SubTiles" alt="" coords="5,5,132,32"/>
+<area shape="rect" id="node1" href="$classolp_1_1geo_1_1ISubdivisionScheme.html" title=" " alt="" coords="5,46,219,73"/>
+<area shape="rect" id="node2" href="$classolp_1_1geo_1_1HalfQuadTreeSubdivisionScheme.html" title=" " alt="" coords="267,5,512,47"/>
+<area shape="rect" id="node3" href="$classolp_1_1geo_1_1QuadTreeSubdivisionScheme.html" title=" " alt="" coords="280,71,499,112"/>
 </map>

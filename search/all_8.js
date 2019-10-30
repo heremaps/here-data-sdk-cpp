@@ -4,7 +4,7 @@ var searchData=
   ['identityprojection',['IdentityProjection',['../classolp_1_1geo_1_1IdentityProjection.html',1,'olp::geo']]],
   ['index',['Index',['../classolp_1_1dataservice_1_1write_1_1model_1_1Index.html',1,'olp::dataservice::write::model']]],
   ['indexdefinition',['IndexDefinition',['../classolp_1_1dataservice_1_1read_1_1model_1_1IndexDefinition.html',1,'olp::dataservice::read::model']]],
-  ['indexlayerclient',['IndexLayerClient',['../classolp_1_1dataservice_1_1write_1_1IndexLayerClient.html',1,'olp::dataservice::write::IndexLayerClient'],['../classolp_1_1dataservice_1_1write_1_1IndexLayerClient.html#aeb0b5db8060cfbb9ef5a98ddff89fed3',1,'olp::dataservice::write::IndexLayerClient::IndexLayerClient()']]],
+  ['indexlayerclient',['IndexLayerClient',['../classolp_1_1dataservice_1_1write_1_1IndexLayerClient.html',1,'olp::dataservice::write::IndexLayerClient'],['../classolp_1_1dataservice_1_1write_1_1IndexLayerClient.html#a14c1021892fd0fa07dae298478e4045a',1,'olp::dataservice::write::IndexLayerClient::IndexLayerClient()']]],
   ['indexproperties',['IndexProperties',['../classolp_1_1dataservice_1_1read_1_1model_1_1IndexProperties.html',1,'olp::dataservice::read::model']]],
   ['indexvalue',['IndexValue',['../classolp_1_1dataservice_1_1write_1_1model_1_1IndexValue.html',1,'olp::dataservice::write::model']]],
   ['initial_5fbackdown_5fperiod',['initial_backdown_period',['../structolp_1_1client_1_1RetrySettings.html#a52756933e17cf832974bc568cd2de846',1,'olp::client::RetrySettings']]],
@@ -26,12 +26,11 @@ var searchData=
   ['isnull',['IsNull',['../classolp_1_1client_1_1HRN.html#a99734c10679cb464462663ff7926ed90',1,'olp::client::HRN']]],
   ['isparentof',['IsParentOf',['../classolp_1_1geo_1_1TileKey.html#a2a65fc7ec9f62d8cd31ff2591e3913d5',1,'olp::geo::TileKey']]],
   ['isretryable',['IsRetryable',['../classolp_1_1http_1_1HttpStatusCode.html#ac41ef32fc379cb5135a8ae2327bbc2ed',1,'olp::http::HttpStatusCode']]],
-  ['issuccessful',['IsSuccessful',['../classolp_1_1client_1_1ApiResponse.html#abb531acb2cd49fce9e57d35fa7b8f5e1',1,'olp::client::ApiResponse']]],
-  ['issuccessfull',['IsSuccessfull',['../classolp_1_1http_1_1SendOutcome.html#a2c915f8e4033d8f3a0059f5ff3b6a533',1,'olp::http::SendOutcome']]],
+  ['issuccessful',['IsSuccessful',['../classolp_1_1client_1_1ApiResponse.html#abb531acb2cd49fce9e57d35fa7b8f5e1',1,'olp::client::ApiResponse::IsSuccessful()'],['../classolp_1_1http_1_1SendOutcome.html#ac113c256feb6734f9a02005f818569bc',1,'olp::http::SendOutcome::IsSuccessful()']]],
   ['isubdivisionscheme',['ISubdivisionScheme',['../classolp_1_1geo_1_1ISubdivisionScheme.html',1,'olp::geo']]],
   ['isunorderedmap',['IsUnorderedMap',['../structolp_1_1porting_1_1IsUnorderedMap.html',1,'olp::porting']]],
   ['isunorderedmap_3c_20std_3a_3aunordered_5fmap_3c_20args_2e_2e_2e_20_3e_20_3e',['IsUnorderedMap&lt; std::unordered_map&lt; ARGS... &gt; &gt;',['../structolp_1_1porting_1_1IsUnorderedMap_3_01std_1_1unordered__map_3_01ARGS_8_8_8_01_4_01_4.html',1,'olp::porting']]],
-  ['isvalid',['IsValid',['../classolp_1_1geo_1_1GeoCoordinates3d.html#acedb14cce32a552e7643c7f9ecd8b6ea',1,'olp::geo::GeoCoordinates3d::IsValid()'],['../classolp_1_1geo_1_1TileKey.html#a761c9465d10014fa67a973d0cc3c8589',1,'olp::geo::TileKey::IsValid()'],['../classolp_1_1logging_1_1Configuration.html#adba87925755b290f2c706f45cfac176b',1,'olp::logging::Configuration::isValid()'],['../classolp_1_1logging_1_1FileAppender.html#afdf77087b78cd98bdc6558081e14a406',1,'olp::logging::FileAppender::isValid()']]],
+  ['isvalid',['IsValid',['../classolp_1_1geo_1_1GeoCoordinates.html#ad88d59ef12f4afefedbce53e20dbaa58',1,'olp::geo::GeoCoordinates::IsValid()'],['../classolp_1_1geo_1_1GeoCoordinates3d.html#acedb14cce32a552e7643c7f9ecd8b6ea',1,'olp::geo::GeoCoordinates3d::IsValid()'],['../classolp_1_1geo_1_1TileKey.html#a761c9465d10014fa67a973d0cc3c8589',1,'olp::geo::TileKey::IsValid()'],['../classolp_1_1logging_1_1Configuration.html#adba87925755b290f2c706f45cfac176b',1,'olp::logging::Configuration::isValid()'],['../classolp_1_1logging_1_1FileAppender.html#afdf77087b78cd98bdc6558081e14a406',1,'olp::logging::FileAppender::isValid()']]],
   ['iterator',['Iterator',['../classolp_1_1geo_1_1SubTiles_1_1Iterator.html',1,'olp::geo::SubTiles']]],
   ['itilingscheme',['ITilingScheme',['../classolp_1_1geo_1_1ITilingScheme.html',1,'olp::geo']]]
 ];

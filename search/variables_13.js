@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['version',['version',['../classolp_1_1client_1_1HRN.html#ac7f1f36aeca55378b162c2bdab7020ad',1,'olp::client::HRN']]]
+  ['y',['y',['../classolp_1_1geo_1_1GeoPoint.html#a5d55af7022d2cdc62233eb5a5ee1098b',1,'olp::geo::GeoPoint']]]
 ];
