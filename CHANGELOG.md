@@ -11,6 +11,7 @@
 * `KeyValueCache` instance was added to `OlpClientSetting`.
 * Boost download source was changed.
 * Added `Condition` class helping repositories sync wait on the OLP response.
+* Updated read example and documentation to reflect recent changes in API.
 
 **olp-cpp-sdk-authentication**
 
