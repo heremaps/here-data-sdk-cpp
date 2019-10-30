@@ -187,7 +187,9 @@ static curl_code SslctxFunction(CURL* curl, void* sslctx, void*) {
 
 }  // anonymous namespace
 
-NetworkCurl::NetworkCurl() {}
+NetworkCurl::NetworkCurl(size_t max_requests_count)
+    : handles_(max_requests_count),
+      static_handle_count_(std::max(1lu, max_requests_count / 4)) {}
 
 NetworkCurl::~NetworkCurl() {
   if (state_ == WorkerState::STARTED) {
@@ -251,8 +253,8 @@ bool NetworkCurl::Initialize() {
 
   // handles setup
   std::shared_ptr<NetworkCurl> that = shared_from_this();
-  for (int i = 0; i < kTotalHandleCount; i++) {
-    if (i < kStaticHandleCount) {
+  for (int i = 0; i < handles_.size(); ++i) {
+    if (i < static_handle_count_) {
       handles_[i].handle = curl_easy_init();
     } else {
       handles_[i].handle = nullptr;
@@ -305,15 +307,15 @@ void NetworkCurl::Teardown() {
     std::lock_guard<std::mutex> lock(event_mutex_);
     events_.clear();
 
-    for (int i = 0; i < kTotalHandleCount; i++) {
-      if (handles_[i].handle) {
-        if (handles_[i].in_use) {
-          curl_multi_remove_handle(curl_, handles_[i].handle);
-          completed_messages.emplace_back(handles_[i].id, handles_[i].callback);
+    for (auto& handle : handles_) {
+      if (handle.handle) {
+        if (handle.in_use) {
+          curl_multi_remove_handle(curl_, handle.handle);
+          completed_messages.emplace_back(handle.id, handle.callback);
         }
-        curl_easy_cleanup(handles_[i].handle);
-        handles_[i].handle = nullptr;
-        handles_[i].self.reset();
+        curl_easy_cleanup(handle.handle);
+        handle.handle = nullptr;
+        handle.self.reset();
       }
     }
   }
@@ -583,10 +585,10 @@ void NetworkCurl::Cancel(RequestId id) {
     return;
   }
   std::lock_guard<std::mutex> lock(event_mutex_);
-  for (int i = 0; i < kTotalHandleCount; i++) {
-    if (handles_[i].in_use && (handles_[i].id == id)) {
-      handles_[i].cancelled = true;
-      AddEvent(EventInfo::Type::CANCEL_EVENT, &handles_[i]);
+  for (auto& handle : handles_) {
+    if (handle.in_use && (handle.id == id)) {
+      handle.cancelled = true;
+      AddEvent(EventInfo::Type::CANCEL_EVENT, &handle);
       return;
     }
   }
@@ -616,40 +618,40 @@ NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
     return nullptr;
   }
   std::lock_guard<std::mutex> lock(event_mutex_);
-  for (int i = 0; i < kTotalHandleCount; i++) {
-    if (!handles_[i].in_use) {
-      if (!handles_[i].handle) {
-        handles_[i].handle = curl_easy_init();
-        if (!handles_[i].handle) {
+  for (auto& handle : handles_) {
+    if (!handle.in_use) {
+      if (!handle.handle) {
+        handle.handle = curl_easy_init();
+        if (!handle.handle) {
           OLP_SDK_LOG_ERROR(kLogTag, "curl_easy_init returns nullptr");
           return nullptr;
         }
       }
-      handles_[i].in_use = true;
-      handles_[i].callback = callback;
-      handles_[i].header_callback = header_callback;
-      handles_[i].data_callback = data_callback;
-      handles_[i].max_age = -1;
-      handles_[i].expires = -1;
-      handles_[i].id = id;
-      handles_[i].count = 0;
-      handles_[i].offset = 0;
-      handles_[i].chunk = nullptr;
-      handles_[i].range_out = false;
-      handles_[i].cancelled = false;
-      handles_[i].transfer_timeout = 30;
-      handles_[i].retry_count = 0;
-      handles_[i].etag.clear();
-      handles_[i].content_type.clear();
-      handles_[i].date.clear();
-      handles_[i].payload = std::move(payload);
-      handles_[i].body = std::move(body);
-      handles_[i].send_time = std::chrono::steady_clock::now();
-      handles_[i].error_text[0] = 0;
-      handles_[i].get_statistics = false;
-      handles_[i].skip_content = false;
+      handle.in_use = true;
+      handle.callback = callback;
+      handle.header_callback = header_callback;
+      handle.data_callback = data_callback;
+      handle.max_age = -1;
+      handle.expires = -1;
+      handle.id = id;
+      handle.count = 0;
+      handle.offset = 0;
+      handle.chunk = nullptr;
+      handle.range_out = false;
+      handle.cancelled = false;
+      handle.transfer_timeout = 30;
+      handle.retry_count = 0;
+      handle.etag.clear();
+      handle.content_type.clear();
+      handle.date.clear();
+      handle.payload = std::move(payload);
+      handle.body = std::move(body);
+      handle.send_time = std::chrono::steady_clock::now();
+      handle.error_text[0] = 0;
+      handle.get_statistics = false;
+      handle.skip_content = false;
 
-      return &handles_[i];
+      return &handle;
     }
   }
 
@@ -799,14 +801,14 @@ size_t NetworkCurl::HeaderFunction(char* ptr, size_t size, size_t nitems,
 void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
   std::unique_lock<std::mutex> lock(event_mutex_);
   int index;
-  for (index = 0; index < kTotalHandleCount; index++) {
+  for (index = 0; index < handles_.size(); ++index) {
     if (handles_[index].in_use && (handles_[index].handle == handle)) {
       break;
     }
   }
 
   std::vector<std::pair<std::string, std::string> > statistics;
-  if (index < kTotalHandleCount) {
+  if (index < handles_.size()) {
     if (handles_[index].get_statistics) {
       statistics =
           GetStatistics(handles_[index].handle, handles_[index].retry_count);
@@ -899,7 +901,7 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
 }
 
 int NetworkCurl::GetHandleIndex(CURL* handle) {
-  for (int index = 0; index < kTotalHandleCount; index++) {
+  for (int index = 0; index < handles_.size(); index++) {
     if (handles_[index].in_use && (handles_[index].handle == handle)) {
       return index;
     }
@@ -1066,15 +1068,15 @@ void NetworkCurl::Run() {
       {
         auto now = std::chrono::steady_clock::now();
         std::lock_guard<std::mutex> lock(event_mutex_);
-        for (int i = 0; i < kTotalHandleCount; ++i) {
-          if (handles_[i].in_use) {
+        for (auto& handle : handles_) {
+          if (handle.in_use) {
             double total;
-            curl_easy_getinfo(handles_[i].handle, CURLINFO_TOTAL_TIME, &total);
+            curl_easy_getinfo(handle.handle, CURLINFO_TOTAL_TIME, &total);
             // if this handle was added at least 30 seconds ago but curl
             // total time is still 0 then something wrong has happened
-            if ((now - handles_[i].send_time > kHandleLostTimeout) &&
+            if ((now - handle.send_time > kHandleLostTimeout) &&
                 (total == 0.0)) {
-              lostHandles.push_back(handles_[i].handle);
+              lostHandles.push_back(handle.handle);
             }
           }
         }
@@ -1122,9 +1124,10 @@ void NetworkCurl::Run() {
       bool in_use_handles = false;
 
       std::unique_lock<std::mutex> lock(event_mutex_);
-      for (int i = 0; (i < kTotalHandleCount) && !in_use_handles; ++i) {
-        if (handles_[i].in_use) {
+      for (const auto& handle : handles_) {
+        if (handle.in_use) {
           in_use_handles = true;
+          break;
         }
       }
 
@@ -1162,9 +1165,9 @@ void NetworkCurl::Run() {
     }
 
     auto now = std::chrono::steady_clock::now();
-    long usable_handles = kStaticHandleCount;
+    long usable_handles = static_handle_count_;
     std::lock_guard<std::mutex> lock(event_mutex_);
-    for (int i = kStaticHandleCount; i < kTotalHandleCount; ++i) {
+    for (int i = static_handle_count_; i < handles_.size(); ++i) {
       auto& handle = handles_[i];
       if (handle.handle && !handle.in_use &&
           handle.send_time + kHandleReuseTimeout < now) {

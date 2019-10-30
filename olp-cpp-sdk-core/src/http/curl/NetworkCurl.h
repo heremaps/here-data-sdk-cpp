@@ -50,7 +50,7 @@ class NetworkCurl : public olp::http::Network,
   /**
    * @brief NetworkCurl constructor.
    */
-  NetworkCurl();
+  explicit NetworkCurl(size_t max_requests_count);
 
   /**
    * @brief ~NetworkCurl destructor.
@@ -80,8 +80,7 @@ class NetworkCurl : public olp::http::Network,
   /**
    * @brief Implementation of Send method from Network abstract class.
    */
-  SendOutcome Send(NetworkRequest request,
-                   Payload payload, Callback callback,
+  SendOutcome Send(NetworkRequest request, Payload payload, Callback callback,
                    HeaderCallback header_callback = nullptr,
                    DataCallback data_callback = nullptr) override;
 
@@ -148,12 +147,6 @@ class NetworkCurl : public olp::http::Network,
     /// Associated request context.
     RequestHandle* handle{};
   };
-
-  /// Number of CURL easy handles that are always opened.
-  static constexpr int kStaticHandleCount = 8;
-
-  /// Maximum allowed number of CURL easy handles.
-  static constexpr int kTotalHandleCount = 32;
 
   /**
    * @brief Actual routine that sends network request.
@@ -288,7 +281,10 @@ class NetworkCurl : public olp::http::Network,
   inline bool IsStarted() const;
 
   /// Contexts for every network request.
-  RequestHandle handles_[kTotalHandleCount] = {};
+  std::vector<RequestHandle> handles_;
+
+  /// Number of CURL easy handles that are always opened.
+  const size_t static_handle_count_;
 
   /// Condition variable used to notify worker thread on event.
   std::condition_variable event_condition_;
