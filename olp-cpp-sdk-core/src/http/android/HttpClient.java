@@ -57,6 +57,9 @@ public class HttpClient {
   private static AtomicInteger uniqueIdCounter = new AtomicInteger(1);
   private int uniqueId = INVALID_ID;
 
+  // The raw pointer to the C++ NetworkAndroid class
+  private long nativePtr;
+
   public enum HttpVerb {
     GET,
     POST,
@@ -549,6 +552,10 @@ public class HttpClient {
       this.executor.shutdown();
       this.executor = null;
     }
+    synchronized(this) {
+        // deinitialize the nativePtr to stop receiving scheduled events from Java to C++
+        this.nativePtr = 0;
+    }
   }
 
   public int registerClient() {
@@ -589,15 +596,16 @@ public class HttpClient {
   }
 
   // Native methods:
+  // Synchronization is required in order to provide thread-safe access to `nativePtr`
   // Callback for completed request
-  private native void completeRequest(
+  private synchronized native void completeRequest(
       int clientId, long requestId, int status, String error, String contentType);
   // Callback for data received
-  private native void dataCallback(int clientId, long requestId, byte[] data, int len);
+  private synchronized native void dataCallback(int clientId, long requestId, byte[] data, int len);
   // Callback set date and offset
-  private native void dateAndOffsetCallback(int clientId, long requestId, long date, long offset);
+  private synchronized native void dateAndOffsetCallback(int clientId, long requestId, long date, long offset);
   // Callback set date and offset
-  private native void headersCallback(int clientId, long requestId, String[] headers);
+  private synchronized native void headersCallback(int clientId, long requestId, String[] headers);
   // Reset request for retry
-  private native void resetRequest(int clientId, long requestId);
+  private synchronized native void resetRequest(int clientId, long requestId);
 }
