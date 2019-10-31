@@ -23,10 +23,9 @@
 #include <map>
 #include <sstream>
 
-#include <olp/core/logging/Log.h>
-
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
+#include <olp/core/logging/Log.h>
 // clang-format off
 #include "generated/parser/IndexParser.h"
 #include "generated/parser/PartitionsParser.h"
@@ -85,15 +84,16 @@ client::CancellationToken QueryApi::GetPartitionsbyId(
 
   std::string metadataUri = "/layers/" + layerId + "/partitions";
 
-  client::NetworkAsyncCallback callback = [partitionsCallback](
-                                              client::HttpResponse response) {
-    if (response.status != 200) {
-      partitionsCallback(client::ApiError(response.status, response.response));
-    } else {
-      partitionsCallback(
-          olp::parser::parse<model::Partitions>(response.response));
-    }
-  };
+  client::NetworkAsyncCallback callback =
+      [partitionsCallback](client::HttpResponse response) {
+        if (response.status != 200) {
+          partitionsCallback(
+              client::ApiError(response.status, response.response.str()));
+        } else {
+          partitionsCallback(
+              olp::parser::parse<model::Partitions>(response.response));
+        }
+      };
 
   return client.CallApi(metadataUri, "GET", queryParams, headerParams,
                         formParams, nullptr, "", callback);
@@ -123,16 +123,16 @@ client::CancellationToken QueryApi::QuadTreeIndex(
                             std::to_string(version) + "/quadkeys/" + quadKey +
                             "/depths/" + std::to_string(depth);
 
-  client::NetworkAsyncCallback callback =
-      [indexCallback](client::HttpResponse response) {
-        OLP_SDK_LOG_TRACE_F(LOGTAG, "QuadTreeIndex callback, status=%d",
-                            response.status);
-        if (response.status != 200) {
-          indexCallback(client::ApiError(response.status, response.response));
-        } else {
-          indexCallback(olp::parser::parse<model::Index>(response.response));
-        }
-      };
+  client::NetworkAsyncCallback callback = [indexCallback](
+                                              client::HttpResponse response) {
+    OLP_SDK_LOG_TRACE_F(LOGTAG, "QuadTreeIndex callback, status=%d",
+                        response.status);
+    if (response.status != 200) {
+      indexCallback(client::ApiError(response.status, response.response.str()));
+    } else {
+      indexCallback(olp::parser::parse<model::Index>(response.response));
+    }
+  };
 
   OLP_SDK_LOG_TRACE(LOGTAG, "QuadTreeIndex");
 

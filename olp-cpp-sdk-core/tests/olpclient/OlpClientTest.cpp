@@ -76,7 +76,7 @@ TEST_F(OlpClientTest, NumberOfAttempts) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   auto cancel_token = client_.CallApi(std::string(), "GET",
@@ -112,7 +112,7 @@ TEST_F(OlpClientTest, ZeroAttempts) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   auto cancel_token = client_.CallApi(std::string(), "GET",
@@ -145,7 +145,7 @@ TEST_F(OlpClientTest, DefaultRetryCondition) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   auto cancel_token = client_.CallApi(std::string(), "GET",
@@ -192,7 +192,7 @@ TEST_F(OlpClientTest, RetryCondition) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   auto cancel_token = client_.CallApi(std::string(), "GET",
@@ -229,7 +229,7 @@ TEST_F(OlpClientTest, RetryTimeLinear) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   auto cancel_token = client_.CallApi(std::string(), "GET",
@@ -275,7 +275,7 @@ TEST_F(OlpClientTest, RetryTimeExponential) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   auto cancel_token = client_.CallApi(std::string(), "GET",
@@ -321,7 +321,7 @@ TEST_F(OlpClientTest, SetInitialBackdownPeriod) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   auto cancel_token = client_.CallApi(std::string(), "GET",
@@ -361,7 +361,7 @@ TEST_F(OlpClientTest, Timeout) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   auto cancel_token = client_.CallApi(std::string(), "GET",
@@ -414,7 +414,7 @@ TEST_F(OlpClientTest, Proxy) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   client_.CallApi(std::string(), "GET",
@@ -469,7 +469,7 @@ TEST_F(OlpClientTest, EmptyProxy) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   client_.CallApi(std::string(), "GET",
@@ -502,7 +502,7 @@ TEST_F(OlpClientTest, HttpResponse) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   auto cancel_token = client_.CallApi(std::string(), "GET",
@@ -513,7 +513,7 @@ TEST_F(OlpClientTest, HttpResponse) {
 
   auto response = promise.get_future().get();
 
-  ASSERT_EQ("content", response.response);
+  ASSERT_EQ("content", response.response.str());
   ASSERT_EQ(200, response.status);
 }
 
@@ -538,7 +538,7 @@ TEST_F(OlpClientTest, Paths) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   client_.CallApi("/index", "GET", std::multimap<std::string, std::string>(),
@@ -571,7 +571,7 @@ TEST_F(OlpClientTest, MethodGET) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   client_.CallApi(std::string(), "GET",
@@ -603,7 +603,7 @@ TEST_F(OlpClientTest, MethodPOST) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   client_.CallApi(std::string(), "POST",
@@ -635,7 +635,7 @@ TEST_F(OlpClientTest, MethodPUT) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   client_.CallApi(std::string(), "PUT",
@@ -667,7 +667,7 @@ TEST_F(OlpClientTest, MethodDELETE) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   client_.CallApi(std::string(), "DELETE",
@@ -703,7 +703,7 @@ TEST_F(OlpClientTest, QueryParam) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   client_.CallApi("index", "GET", queryParams,
@@ -737,7 +737,7 @@ TEST_F(OlpClientTest, HeaderParams) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   client_.CallApi(std::string(), "GET",
@@ -778,7 +778,7 @@ TEST_F(OlpClientTest, DefaultHeaderParams) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   client_.CallApi(std::string(), "GET",
@@ -822,7 +822,7 @@ TEST_F(OlpClientTest, CombineHeaderParams) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   client_.CallApi(std::string(), "GET",
@@ -871,7 +871,7 @@ TEST_F(OlpClientTest, Content) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   client_.CallApi(std::string(), "GET",
@@ -922,11 +922,10 @@ TEST_F(OlpClientTest, CancelBeforeResponse) {
       .WillOnce(
           [=](olp::http::RequestId request_id) { was_cancelled->store(true); });
 
-  auto response_promise =
-      std::make_shared<std::promise<olp::client::HttpResponse>>();
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [response_promise](olp::client::HttpResponse http_response) {
-        response_promise->set_value(http_response);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(std::move(http_response));
       };
 
   auto cancel_token = client_.CallApi(std::string(), "GET",
@@ -939,7 +938,7 @@ TEST_F(OlpClientTest, CancelBeforeResponse) {
   wait_for_cancel->set_value(true);
   ASSERT_TRUE(was_cancelled->load());
   ASSERT_EQ(std::future_status::ready,
-            response_promise->get_future().wait_for(std::chrono::seconds(2)));
+            promise.get_future().wait_for(std::chrono::seconds(2)));
 }
 
 TEST_F(OlpClientTest, CancelAfterCompletion) {
@@ -967,7 +966,7 @@ TEST_F(OlpClientTest, CancelAfterCompletion) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   auto cancel_token = client_.CallApi(std::string(), "GET",
@@ -1010,11 +1009,10 @@ TEST_F(OlpClientTest, CancelDuplicate) {
       .WillOnce(
           [=](olp::http::RequestId request_id) { was_cancelled->store(true); });
 
-  auto response_promise =
-      std::make_shared<std::promise<olp::client::HttpResponse>>();
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [response_promise](olp::client::HttpResponse http_response) {
-        response_promise->set_value(http_response);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(std::move(http_response));
       };
 
   auto cancel_token = client_.CallApi(std::string(), "GET",
@@ -1031,7 +1029,7 @@ TEST_F(OlpClientTest, CancelDuplicate) {
 
   ASSERT_TRUE(was_cancelled->load());
   ASSERT_EQ(std::future_status::ready,
-            response_promise->get_future().wait_for(std::chrono::seconds(2)));
+            promise.get_future().wait_for(std::chrono::seconds(2)));
 }
 
 TEST_F(OlpClientTest, CancelRetry) {
@@ -1072,11 +1070,10 @@ TEST_F(OlpClientTest, CancelRetry) {
     cancelled->store(true);
   });
 
-  auto callback_promise =
-      std::make_shared<std::promise<olp::client::HttpResponse>>();
+  std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
-      [callback_promise](olp::client::HttpResponse http_response) {
-        callback_promise->set_value(http_response);
+      [&promise](olp::client::HttpResponse http_response) {
+        promise.set_value(std::move(http_response));
       };
 
   auto cancel_token = client_.CallApi(std::string(), std::string(),
@@ -1089,7 +1086,7 @@ TEST_F(OlpClientTest, CancelRetry) {
   cancel_token.cancel();
 
   EXPECT_EQ(std::future_status::ready,
-            callback_promise->get_future().wait_for(std::chrono::seconds(2)));
+            promise.get_future().wait_for(std::chrono::seconds(2)));
   ASSERT_LT(*number_of_tries, client_settings_.retry_settings.max_attempts);
 }
 
@@ -1115,7 +1112,7 @@ TEST_F(OlpClientTest, QueryMultiParams) {
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse http_response) {
-        promise.set_value(http_response);
+        promise.set_value(std::move(http_response));
       };
 
   std::multimap<std::string, std::string> queryParams = {
@@ -1175,7 +1172,7 @@ TEST_F(OlpClientTest, SlowDownError) {
   olp::client::NetworkAsyncCallback callback =
       [&promise](olp::client::HttpResponse response) {
         promise.set_value(
-            olp::client::ApiError(response.status, response.response));
+            olp::client::ApiError(response.status, response.response.str()));
       };
 
   auto cancel_token =

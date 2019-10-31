@@ -344,7 +344,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
         }
 
         auto document = std::make_shared<rapidjson::Document>();
-        rapidjson::IStreamWrapper stream(*payload.get());
+        rapidjson::IStreamWrapper stream(*payload);
         document->ParseStream(stream);
 
         std::shared_ptr<SignInResultImpl> resp_impl =
@@ -487,7 +487,7 @@ client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
         }
 
         auto document = std::make_shared<rapidjson::Document>();
-        rapidjson::IStreamWrapper stream(*payload.get());
+        rapidjson::IStreamWrapper stream(*payload);
         document->ParseStream(stream);
 
         std::shared_ptr<SignInUserResultImpl> resp_impl =
@@ -645,7 +645,7 @@ client::CancellationToken AuthenticationClient::Impl::SignOut(
                        }
 
                        auto document = std::make_shared<rapidjson::Document>();
-                       rapidjson::IStreamWrapper stream(*payload.get());
+                       rapidjson::IStreamWrapper stream(*payload);
                        document->ParseStream(stream);
 
                        std::shared_ptr<SignOutResultImpl> resp_impl =

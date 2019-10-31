@@ -79,15 +79,15 @@ CancellationToken QueryApi::GetPartitionsById(
 
   std::string queryUri = "/layers/" + layerId + "/partitions";
 
-  NetworkAsyncCallback callback =
-      [partitionsCallback](client::HttpResponse response) {
-        if (response.status != 200) {
-          partitionsCallback(ApiError(response.status, response.response));
-        } else {
-          partitionsCallback(
-              olp::parser::parse<model::Partitions>(response.response));
-        }
-      };
+  NetworkAsyncCallback callback = [partitionsCallback](
+                                      client::HttpResponse response) {
+    if (response.status != 200) {
+      partitionsCallback(ApiError(response.status, response.response.str()));
+    } else {
+      partitionsCallback(
+          olp::parser::parse<model::Partitions>(response.response));
+    }
+  };
 
   return client.CallApi(queryUri, "GET", queryParams, headerParams, formParams,
                         nullptr, "", callback);

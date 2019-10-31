@@ -18,7 +18,9 @@
  */
 
 #include "IndexApi.h"
-#include <iostream>
+
+#include <memory>
+#include <sstream>
 
 #include <olp/core/client/HttpResponse.h>
 // clang-format off
@@ -77,7 +79,7 @@ CancellationToken IndexApi::insertIndexes(
       data, "application/json", [callback](client::HttpResponse http_response) {
         if (http_response.status > 201) {
           callback(InsertIndexesResponse(
-              ApiError(http_response.status, http_response.response)));
+              ApiError(http_response.status, http_response.response.str())));
           return;
         }
 
@@ -123,7 +125,7 @@ CancellationToken IndexApi::performUpdate(
       "application/json", [callback](client::HttpResponse http_response) {
         if (http_response.status > 201) {
           callback(InsertIndexesResponse(
-              ApiError(http_response.status, http_response.response)));
+              ApiError(http_response.status, http_response.response.str())));
           return;
         }
 
