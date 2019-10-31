@@ -173,7 +173,7 @@ TEST(TaskContextTest, BlockingCancelIsWaiting) {
 
   EXPECT_EQ(response_received, 1);
   EXPECT_FALSE(response.IsSuccessful());
-  EXPECT_EQ(cancel_finished.wait_for(std::chrono::milliseconds(0)),
+  EXPECT_EQ(cancel_finished.wait_for(std::chrono::milliseconds(10)),
             std::future_status::ready);
   EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Cancelled);
 }
