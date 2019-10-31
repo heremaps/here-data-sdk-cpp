@@ -59,26 +59,12 @@ JavaVM* gJavaVM = nullptr;
 jclass gStringClass = nullptr;
 jobject gClassLoader = nullptr;
 jmethodID gFindClassMethod = 0;
+jfieldID gJniNativePtrField = 0;
 
-std::mutex& GetNetworksMutex() {
-  static std::mutex sNetworkClientsMutex;
-  return sNetworkClientsMutex;
-}
-
-std::map<int, std::shared_ptr<olp::http::NetworkAndroid> >& GetAllNetworks() {
-  static std::map<int, std::shared_ptr<olp::http::NetworkAndroid> > sNetworks;
-  return sNetworks;
-}
-
-std::shared_ptr<olp::http::NetworkAndroid> GetNetworkById(int network_id) {
-  std::lock_guard<std::mutex> lock(GetNetworksMutex());
-  auto& networks = GetAllNetworks();
-  auto it = networks.find(network_id);
-  if (it != networks.end()) {
-    return it->second;
-  }
-
-  return nullptr;
+olp::http::NetworkAndroid* GetNetworkAndroidNativePtr(JNIEnv* env,
+                                                      jobject http_client) {
+  jlong jnative_ptr = env->GetLongField(http_client, gJniNativePtrField);
+  return reinterpret_cast<olp::http::NetworkAndroid*>(jnative_ptr);
 }
 
 }  // namespace
@@ -289,10 +275,18 @@ bool NetworkAndroid::Initialize() {
     return false;
   }
 
-  {
-    std::lock_guard<std::mutex> networks_lock(GetNetworksMutex());
-    GetAllNetworks()[unique_id_] = shared_from_this();
+  // Get the 'nativePtr 'field and initialize it with current pointer
+  if (!gJniNativePtrField) {
+    gJniNativePtrField = env->GetFieldID(java_self_class_, "nativePtr", "J");
+    if (env->ExceptionOccurred()) {
+      OLP_SDK_LOG_ERROR(kLogTag,
+                        "initialize failed to get HttpClient.nativePtr");
+      env->ExceptionDescribe();
+      env->ExceptionClear();
+      return false;
+    }
   }
+  env->SetLongField(obj_, gJniNativePtrField, (jlong)this);
 
   run_thread_ = std::make_unique<std::thread>(NetworkAndroid::Run, this);
   {
@@ -319,13 +313,8 @@ void NetworkAndroid::Deinitialize() {
 
   // Finish run thread:
   if (run_thread_) {
-    if (run_thread_->get_id() != std::this_thread::get_id()) {
-      run_thread_->join();
-      run_thread_.reset();
-    } else {
-      run_thread_->detach();
-      run_thread_.reset();
-    }
+    run_thread_->join();
+    run_thread_.reset();
   }
 
   // Cancel all pending requests
@@ -347,30 +336,30 @@ void NetworkAndroid::Deinitialize() {
         DoCancel(env.GetEnv(), req.second->obj);
       }
     }
+  }
 
-    // Empty reponses queue
-    while (!responses_.empty()) {
-      completed_messages.emplace_back(responses_.front().id,
-                                      responses_.front().callback);
-      responses_.pop();
-    }
+  // Empty reponses queue
+  while (!responses_.empty()) {
+    completed_messages.emplace_back(responses_.front().id,
+                                    responses_.front().callback);
+    responses_.pop();
+  }
 
-    env.GetEnv()->CallVoidMethod(obj_, java_shutdown_method_);
-    if (env.GetEnv()->ExceptionOccurred()) {
-      OLP_SDK_LOG_ERROR(kLogTag, "Failed to call shutdown");
-      env.GetEnv()->ExceptionDescribe();
-      env.GetEnv()->ExceptionClear();
-    }
+  env.GetEnv()->CallVoidMethod(obj_, java_shutdown_method_);
+  if (env.GetEnv()->ExceptionOccurred()) {
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to call shutdown");
+    env.GetEnv()->ExceptionDescribe();
+    env.GetEnv()->ExceptionClear();
+  }
 
-    if (obj_) {
-      env.GetEnv()->DeleteGlobalRef(obj_);
-      obj_ = 0;
-    }
+  if (obj_) {
+    env.GetEnv()->DeleteGlobalRef(obj_);
+    obj_ = 0;
+  }
 
-    if (java_self_class_) {
-      env.GetEnv()->DeleteGlobalRef(java_self_class_);
-      java_self_class_ = nullptr;
-    }
+  if (java_self_class_) {
+    env.GetEnv()->DeleteGlobalRef(java_self_class_);
+    java_self_class_ = nullptr;
   }
 
   for (auto& pair : completed_messages) {
@@ -385,15 +374,6 @@ void NetworkAndroid::Deinitialize() {
     if (completion->ready.get_future().wait_for(std::chrono::seconds(2)) !=
         std::future_status::ready) {
       OLP_SDK_LOG_ERROR(kLogTag, "Pending requests not ready in 2 seconds");
-    }
-  }
-
-  {
-    std::lock_guard<std::mutex> lock(GetNetworksMutex());
-    auto& networks = GetAllNetworks();
-    auto network = networks.find(unique_id_);
-    if (network != networks.end()) {
-      networks.erase(network);
     }
   }
 }
@@ -690,9 +670,6 @@ void NetworkAndroid::Run(NetworkAndroid* self) {
 }
 
 void NetworkAndroid::SelfRun() {
-  // Hold a shared pointer so that object is not destroyed while thread is
-  // running
-  std::shared_ptr<NetworkAndroid> that = shared_from_this();
   {
     std::lock_guard<std::mutex> lock(responses_mutex_);
     started_ = true;
@@ -723,11 +700,11 @@ void NetworkAndroid::SelfRun() {
 
     if (response_data.IsValid()) {
       bool cancelled = false;
-      auto iter = that->cancelled_requests_.begin();
-      while (iter != that->cancelled_requests_.end()) {
+      auto iter = this->cancelled_requests_.begin();
+      while (iter != this->cancelled_requests_.end()) {
         if (*iter == response_data.id) {
           cancelled = true;
-          that->cancelled_requests_.erase(iter);
+          this->cancelled_requests_.erase(iter);
           break;
         }
         ++iter;
@@ -958,7 +935,6 @@ NetworkAndroid::ResponseData::ResponseData(
 #else
 #define OLP_SDK_NETWORK_ANDROID_EXPORT JNIEXPORT
 #endif
-
 /*
  * Callback to be called when response headers have been received
  */
@@ -967,7 +943,7 @@ Java_com_here_olp_network_HttpClient_headersCallback(JNIEnv* env, jobject obj,
                                                      jint client_id,
                                                      jlong request_id,
                                                      jobjectArray headers) {
-  auto network = olp::http::GetNetworkById(client_id);
+  auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
   if (!network) {
     OLP_SDK_LOG_WARNING(
         kLogTag,
@@ -984,7 +960,7 @@ extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
 Java_com_here_olp_network_HttpClient_dateAndOffsetCallback(
     JNIEnv* env, jobject obj, jint client_id, jlong request_id, jlong date,
     jlong offset) {
-  auto network = olp::http::GetNetworkById(client_id);
+  auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
   if (!network) {
     OLP_SDK_LOG_WARNING(
         kLogTag,
@@ -1002,7 +978,7 @@ Java_com_here_olp_network_HttpClient_dataCallback(JNIEnv* env, jobject obj,
                                                   jint client_id,
                                                   jlong request_id,
                                                   jbyteArray data, jint len) {
-  auto network = olp::http::GetNetworkById(client_id);
+  auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
   if (!network) {
     OLP_SDK_LOG_WARNING(
         kLogTag, "dataCallback to non-existing client with id=" << client_id);
@@ -1020,7 +996,7 @@ Java_com_here_olp_network_HttpClient_completeRequest(JNIEnv* env, jobject obj,
                                                      jlong request_id,
                                                      jint status, jstring error,
                                                      jstring content_type) {
-  auto network = olp::http::GetNetworkById(client_id);
+  auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
   if (!network) {
     OLP_SDK_LOG_WARNING(
         kLogTag,
@@ -1037,7 +1013,7 @@ extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
 Java_com_here_olp_network_HttpClient_resetRequest(JNIEnv* env, jobject obj,
                                                   jint client_id,
                                                   jlong request_id) {
-  auto network = olp::http::GetNetworkById(client_id);
+  auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
   if (!network) {
     OLP_SDK_LOG_WARNING(
         kLogTag, "resetRequest to non-existing client with id=" << client_id);
