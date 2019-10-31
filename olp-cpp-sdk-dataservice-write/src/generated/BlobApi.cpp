@@ -19,6 +19,9 @@
 
 #include "BlobApi.h"
 
+#include <memory>
+#include <sstream>
+
 #include <olp/core/client/HttpResponse.h>
 
 using namespace olp::client;
@@ -67,7 +70,7 @@ CancellationToken BlobApi::PutBlob(
       content_type, [callback](client::HttpResponse http_response) {
         if (http_response.status != 200 && http_response.status != 204) {
           callback(PutBlobResponse(
-              ApiError(http_response.status, http_response.response)));
+              ApiError(http_response.status, http_response.response.str())));
           return;
         }
 
@@ -99,7 +102,7 @@ CancellationToken BlobApi::deleteBlob(
       nullptr, "", [callback](client::HttpResponse http_response) {
         if (http_response.status != 200 && http_response.status != 202) {
           callback(PutBlobResponse(
-              ApiError(http_response.status, http_response.response)));
+              ApiError(http_response.status, http_response.response.str())));
           return;
         }
         callback(DeleteBlobRespone(ApiNoResult()));
@@ -132,7 +135,7 @@ CancellationToken BlobApi::checkBlobExists(
           return;
         } else {
           callback(CheckBlobRespone(
-              ApiError(http_response.status, http_response.response)));
+              ApiError(http_response.status, http_response.response.str())));
         }
       });
   return cancel_token;

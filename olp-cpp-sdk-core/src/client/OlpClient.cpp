@@ -75,30 +75,26 @@ CancellationToken ExecuteSingleRequest(
 
   if (!network) {
     HttpResponse result(static_cast<int>(olp::http::ErrorCode::OFFLINE_ERROR));
-    callback(result);
+    callback(std::move(result));
     return CancellationToken();
   }
 
   auto send_outcome = network->Send(
       request, response_body, [=](const http::NetworkResponse& response) {
-        HttpResponse result(response.GetStatus());
-        result.status = response.GetStatus();
-        result.response = response_body->str();
-        if (result.status >= 400 || result.status < 0) {
+        int status = response.GetStatus();
+        if (status >= 400 || status < 0) {
           if (response.GetError().empty()) {
-            result.response = "Error occured. Please check HTTP status code.";
+            response_body->str("Error occured. Please check HTTP status code.");
           } else {
-            result.response = response.GetError();
+            response_body->str(response.GetError());
           }
         }
-        callback(result);
+        callback(HttpResponse(status, std::move(*response_body)));
       });
 
   if (!send_outcome.IsSuccessful()) {
-    std::string error_message = ErrorCodeToString(send_outcome.GetErrorCode());
-    HttpResponse result{static_cast<int>(send_outcome.GetErrorCode()),
-                        std::move(error_message)};
-    callback(result);
+    callback(HttpResponse(static_cast<int>(send_outcome.GetErrorCode()),
+                          ErrorCodeToString(send_outcome.GetErrorCode())));
     return CancellationToken();
   }
 
@@ -130,7 +126,6 @@ http::NetworkRequest::HttpVerb GetHttpVerb(const std::string& verb) {
 }
 
 }  // anonymous namespace
-
 
 OlpClient::OlpClient() {}
 
@@ -205,7 +200,7 @@ NetworkAsyncCallback GetRetryCallback(
   return [=](HttpResponse response) {
     if (current_try >= settings.max_attempts ||
         !settings.retry_condition(response)) {
-      callback(response);
+      callback(std::move(response));
     } else {
       // TODO there must be a better way
       std::this_thread::sleep_for(
@@ -224,8 +219,9 @@ NetworkAsyncCallback GetRetryCallback(
                                    weak_cancel_context));
             },
             [callback]() {
-              callback(HttpResponse(static_cast<int>(http::ErrorCode::CANCELLED_ERROR),
-                                    "Operation Cancelled."));
+              callback(HttpResponse(
+                  static_cast<int>(http::ErrorCode::CANCELLED_ERROR),
+                  "Operation Cancelled."));
             });
       } else {
         callback(HttpResponse(static_cast<int>(http::ErrorCode::UNKNOWN_ERROR),

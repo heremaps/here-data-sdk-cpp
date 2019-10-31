@@ -20,13 +20,13 @@
 #include "IngestApi.h"
 
 #include <map>
+#include <memory>
+#include <sstream>
 
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
-
 #include <olp/dataservice/write/generated/model/ResponseOk.h>
 #include <olp/dataservice/write/generated/model/ResponseOkSingle.h>
-
 // clang-format off
 // Ordering Required - Parser template specializations before JsonParser.h
 #include "parser/ResponseOkParser.h"
@@ -91,8 +91,8 @@ client::CancellationToken IngestApi::IngestData(
       ingest_uri, "POST", query_params, header_params, form_params, data,
       content_type, [callback](client::HttpResponse http_response) {
         if (http_response.status != 200) {
-          callback(IngestDataResponse{
-              client::ApiError(http_response.status, http_response.response)});
+          callback(IngestDataResponse{client::ApiError(
+              http_response.status, http_response.response.str())});
           return;
         }
 
@@ -149,12 +149,9 @@ client::CancellationToken IngestApi::IngestSDII(
       [callback](client::HttpResponse http_response) {
         if (http_response.status != 200) {
           callback(IngestSdiiResponse(
-              ApiError(http_response.status, http_response.response)));
+              ApiError(http_response.status, http_response.response.str())));
           return;
         }
-
-        auto response_ok = std::make_shared<model::ResponseOk>(
-            olp::parser::parse<model::ResponseOk>(http_response.response));
 
         callback(IngestSdiiResponse(
             olp::parser::parse<model::ResponseOk>(http_response.response)));

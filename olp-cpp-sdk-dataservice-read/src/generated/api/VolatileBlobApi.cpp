@@ -20,6 +20,8 @@
 #include "VolatileBlobApi.h"
 
 #include <map>
+#include <memory>
+#include <sstream>
 
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
@@ -47,14 +49,15 @@ CancellationToken VolatileBlobApi::GetVolatileBlob(
 
   NetworkAsyncCallback callback =
       [dataResponseCallback](client::HttpResponse response) {
+        auto str_response = response.response.str();
         if (response.status != 200) {
-          dataResponseCallback(ApiError(response.status, response.response));
+          dataResponseCallback(ApiError(response.status, str_response));
         } else {
           dataResponseCallback(
               // TODO: response from HttpResponse should be already in
               // raw data format to avoid copy
-              std::make_shared<std::vector<unsigned char>>(
-                  response.response.begin(), response.response.end()));
+              std::make_shared<std::vector<unsigned char>>(str_response.begin(),
+                                                           str_response.end()));
         }
       };
 

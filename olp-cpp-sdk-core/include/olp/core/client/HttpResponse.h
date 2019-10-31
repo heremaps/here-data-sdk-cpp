@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <string>
+#include <sstream>
 
 #include <olp/core/CoreApi.h>
 #include <olp/core/http/NetworkTypes.h>
@@ -35,6 +35,8 @@ class CORE_API HttpResponse {
   HttpResponse() = default;
   HttpResponse(int status, std::string response = std::string())
       : status(status), response(std::move(response)) {}
+  HttpResponse(int status, std::stringstream&& response)
+      : status(status), response(std::move(response)) {}
 
   /**
    * @brief status Status of the HTTP request.
@@ -42,7 +44,7 @@ class CORE_API HttpResponse {
    * @see olp::network::HttpStatusCode for positive status numbers
    */
   int status{static_cast<int>(olp::http::ErrorCode::UNKNOWN_ERROR)};
-  std::string response;
+  std::stringstream response;
 };
 
 }  // namespace client

@@ -19,6 +19,9 @@
 
 #include "PublishApi.h"
 
+#include <memory>
+#include <sstream>
+
 #include <olp/core/client/HttpResponse.h>
 // clang-format off
 // Ordering Required - Parser template specializations before JsonParser.h
@@ -78,7 +81,7 @@ CancellationToken PublishApi::InitPublication(
       data, "application/json", [callback](client::HttpResponse http_response) {
         if (http_response.status != 200) {
           callback(InitPublicationResponse{
-              ApiError(http_response.status, http_response.response)});
+              ApiError(http_response.status, http_response.response.str())});
           return;
         }
 
@@ -132,7 +135,7 @@ CancellationToken PublishApi::UploadPartitions(
       data, "application/json", [callback](client::HttpResponse http_response) {
         if (http_response.status != 204) {
           callback(UploadPartitionsResponse{
-              ApiError(http_response.status, http_response.response)});
+              ApiError(http_response.status, http_response.response.str())});
           return;
         }
 
@@ -171,18 +174,18 @@ CancellationToken PublishApi::SubmitPublication(
 
   std::string submit_publication_uri = "/publications/" + publication_id;
 
-  auto cancel_token =
-      client.CallApi(submit_publication_uri, "PUT", query_params, header_params,
-                     form_params, nullptr, "application/json",
-                     [callback](client::HttpResponse http_response) {
-                       if (http_response.status != 204) {
-                         callback(SubmitPublicationResponse{ApiError(
-                             http_response.status, http_response.response)});
-                         return;
-                       }
+  auto cancel_token = client.CallApi(
+      submit_publication_uri, "PUT", query_params, header_params, form_params,
+      nullptr, "application/json",
+      [callback](client::HttpResponse http_response) {
+        if (http_response.status != 204) {
+          callback(SubmitPublicationResponse{
+              ApiError(http_response.status, http_response.response.str())});
+          return;
+        }
 
-                       callback(SubmitPublicationResponse(ApiNoResult()));
-                     });
+        callback(SubmitPublicationResponse(ApiNoResult()));
+      });
 
   return cancel_token;
 }
@@ -222,7 +225,7 @@ CancellationToken PublishApi::GetPublication(
       [callback](client::HttpResponse http_response) {
         if (http_response.status != 200) {
           callback(GetPublicationResponse{
-              ApiError(http_response.status, http_response.response)});
+              ApiError(http_response.status, http_response.response.str())});
           return;
         }
 
@@ -262,18 +265,18 @@ CancellationToken PublishApi::CancelPublication(
 
   std::string submit_publication_uri = "/publications/" + publication_id;
 
-  auto cancel_token =
-      client.CallApi(submit_publication_uri, "DELETE", query_params,
-                     header_params, form_params, nullptr, "application/json",
-                     [callback](client::HttpResponse http_response) {
-                       if (http_response.status != 204) {
-                         callback(SubmitPublicationResponse{ApiError(
-                             http_response.status, http_response.response)});
-                         return;
-                       }
+  auto cancel_token = client.CallApi(
+      submit_publication_uri, "DELETE", query_params, header_params,
+      form_params, nullptr, "application/json",
+      [callback](client::HttpResponse http_response) {
+        if (http_response.status != 204) {
+          callback(SubmitPublicationResponse{
+              ApiError(http_response.status, http_response.response.str())});
+          return;
+        }
 
-                       callback(SubmitPublicationResponse(ApiNoResult()));
-                     });
+        callback(SubmitPublicationResponse(ApiNoResult()));
+      });
 
   return cancel_token;
 }

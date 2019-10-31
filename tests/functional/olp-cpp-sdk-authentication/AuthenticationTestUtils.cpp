@@ -95,7 +95,7 @@ bool AuthenticationTestUtils::CreateFacebookTestUser(
                    user.token.status = network_response.GetStatus();
                    if (user.token.status == olp::http::HttpStatusCode::OK) {
                      auto document = std::make_shared<rapidjson::Document>();
-                     rapidjson::IStreamWrapper stream(*payload.get());
+                     rapidjson::IStreamWrapper stream(*payload);
                      document->ParseStream(stream);
                      const bool is_valid =
                          !document->HasParseError() &&
@@ -236,7 +236,7 @@ bool AuthenticationTestUtils::GetAccessTokenImpl(
                    token.status = network_response.GetStatus();
                    if (token.status == olp::http::HttpStatusCode::OK) {
                      auto document = std::make_shared<rapidjson::Document>();
-                     rapidjson::IStreamWrapper stream(*payload.get());
+                     rapidjson::IStreamWrapper stream(*payload);
                      document->ParseStream(stream);
                      bool is_valid = !document->HasParseError() &&
                                      document->HasMember(kAccessToken.c_str());

@@ -19,7 +19,11 @@
 
 #pragma once
 
+#include <sstream>
+
 #include <rapidjson/document.h>
+#include <rapidjson/istreamwrapper.h>
+
 #include "ParserWrapper.h"
 
 namespace olp {
@@ -28,7 +32,19 @@ template <typename T>
 inline T parse(const std::string& json) {
   rapidjson::Document doc;
   doc.Parse(json.c_str());
-  T result = T();
+  T result{};
+  if (doc.IsObject() || doc.IsArray()) {
+    from_json(doc, result);
+  }
+  return result;
+}
+
+template <typename T>
+inline T parse(std::stringstream& json_stream) {
+  rapidjson::Document doc;
+  rapidjson::IStreamWrapper stream(json_stream);
+  doc.ParseStream(stream);
+  T result{};
   if (doc.IsObject() || doc.IsArray()) {
     from_json(doc, result);
   }

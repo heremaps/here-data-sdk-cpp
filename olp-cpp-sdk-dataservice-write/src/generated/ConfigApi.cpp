@@ -20,10 +20,11 @@
 #include "ConfigApi.h"
 
 #include <map>
+#include <memory>
+#include <sstream>
 
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
-
 // clang-format off
 // Ordering Required - Parser template specializations before JsonParser.h
 #include "parser/CatalogParser.h"
@@ -67,7 +68,7 @@ CancellationToken ConfigApi::GetCatalog(
       [catalogCallback](client::HttpResponse response) {
         if (response.status != 200) {
           catalogCallback(CatalogResponse(
-              client::ApiError(response.status, response.response)));
+              client::ApiError(response.status, response.response.str())));
         } else {
           catalogCallback(CatalogResponse(
               olp::parser::parse<model::Catalog>(response.response)));

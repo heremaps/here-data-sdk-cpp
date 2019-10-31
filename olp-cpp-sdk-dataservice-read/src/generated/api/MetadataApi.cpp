@@ -72,15 +72,15 @@ CancellationToken MetadataApi::GetLayerVersions(
 
   std::string metadataUri = "/layerVersions";
 
-  NetworkAsyncCallback callback =
-      [layerVersionsCallback](client::HttpResponse response) {
-        if (response.status != 200) {
-          layerVersionsCallback(ApiError(response.status, response.response));
-        } else {
-          layerVersionsCallback(
-              olp::parser::parse<model::LayerVersions>(response.response));
-        }
-      };
+  NetworkAsyncCallback callback = [layerVersionsCallback](
+                                      client::HttpResponse response) {
+    if (response.status != 200) {
+      layerVersionsCallback(ApiError(response.status, response.response.str()));
+    } else {
+      layerVersionsCallback(
+          olp::parser::parse<model::LayerVersions>(response.response));
+    }
+  };
 
   return client.CallApi(metadataUri, "GET", queryParams, headerParams,
                         formParams, nullptr, "", callback);
@@ -114,15 +114,15 @@ CancellationToken MetadataApi::GetPartitions(
 
   std::string metadataUri = "/layers/" + layerId + "/partitions";
 
-  NetworkAsyncCallback callback =
-      [partitionsCallback](client::HttpResponse response) {
-        if (response.status != 200) {
-          partitionsCallback(ApiError(response.status, response.response));
-        } else {
-          partitionsCallback(
-              olp::parser::parse<model::Partitions>(response.response));
-        }
-      };
+  NetworkAsyncCallback callback = [partitionsCallback](
+                                      client::HttpResponse response) {
+    if (response.status != 200) {
+      partitionsCallback(ApiError(response.status, response.response.str()));
+    } else {
+      partitionsCallback(
+          olp::parser::parse<model::Partitions>(response.response));
+    }
+  };
 
   return client.CallApi(metadataUri, "GET", queryParams, headerParams,
                         formParams, nullptr, "", callback);
@@ -149,7 +149,8 @@ CancellationToken MetadataApi::GetLatestCatalogVersion(
   NetworkAsyncCallback callback =
       [catalogVersionCallback](client::HttpResponse response) {
         if (response.status != 200) {
-          catalogVersionCallback(ApiError(response.status, response.response));
+          catalogVersionCallback(
+              ApiError(response.status, response.response.str()));
         } else {
           catalogVersionCallback(
               olp::parser::parse<model::VersionResponse>(response.response));

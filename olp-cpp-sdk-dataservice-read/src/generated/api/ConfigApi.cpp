@@ -19,6 +19,8 @@
 
 #include "ConfigApi.h"
 
+#include <sstream>
+
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
 // clang-format off
@@ -50,7 +52,8 @@ CancellationToken ConfigApi::GetCatalog(
   NetworkAsyncCallback callback = [catalogCallback](
                                       client::HttpResponse response) {
     if (response.status != 200) {
-      catalogCallback(client::ApiError(response.status, response.response));
+      catalogCallback(
+          client::ApiError(response.status, response.response.str()));
     } else {
       catalogCallback(olp::parser::parse<model::Catalog>(response.response));
     }

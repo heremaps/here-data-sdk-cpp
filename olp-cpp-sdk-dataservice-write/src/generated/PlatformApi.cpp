@@ -19,10 +19,12 @@
 
 #include "PlatformApi.h"
 
+#include <memory>
+#include <sstream>
+
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
-
 // clang-format off
 #include "generated/parser/ApiParser.h"
 #include <olp/core/generated/parser/JsonParser.h>
@@ -44,8 +46,8 @@ client::CancellationToken PlatformApi::GetApis(
   client::NetworkAsyncCallback callback = [apisCallback](
                                               client::HttpResponse response) {
     if (response.status != 200) {
-      apisCallback(
-          ApisResponse(client::ApiError(response.status, response.response)));
+      apisCallback(ApisResponse(
+          client::ApiError(response.status, response.response.str())));
     } else {
       // parse the services
       // TODO catch any exception and return as Error
