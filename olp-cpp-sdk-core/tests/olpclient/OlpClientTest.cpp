@@ -24,6 +24,7 @@
 #include <future>
 #include <string>
 
+#include <olp/core/client/ApiError.h>
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientFactory.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
@@ -1154,4 +1155,32 @@ TEST_F(OlpClientTest, QueryMultiParams) {
                             [new_value](decltype(new_value) el) {
                               return el == new_value;
                             }) != headers.end());
+}
+
+TEST_F(OlpClientTest, SlowDownError) {
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
+
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest, olp::http::Network::Payload,
+                    olp::http::Network::Callback,
+                    olp::http::Network::HeaderCallback,
+                    olp::http::Network::DataCallback) {
+        return olp::http::SendOutcome(
+            olp::http::ErrorCode::NETWORK_OVERLOAD_ERROR);
+      });
+
+  std::promise<olp::client::ApiError> promise;
+  olp::client::NetworkAsyncCallback callback =
+      [&promise](olp::client::HttpResponse response) {
+        promise.set_value(
+            olp::client::ApiError(response.status, response.response));
+      };
+
+  auto cancel_token =
+      client_.CallApi({}, {}, {}, {}, {}, nullptr, {}, callback);
+
+  auto api_error = promise.get_future().get();
+  EXPECT_EQ(olp::client::ErrorCode::SlowDown, api_error.GetErrorCode());
 }

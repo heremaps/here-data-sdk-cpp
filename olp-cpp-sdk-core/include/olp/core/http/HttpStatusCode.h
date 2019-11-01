@@ -158,6 +158,8 @@ class HttpStatusCode {
           return olp::client::ErrorCode::AccessDenied;
         case olp::http::ErrorCode::INVALID_URL_ERROR:
           return olp::client::ErrorCode::ServiceUnavailable;
+        case olp::http::ErrorCode::NETWORK_OVERLOAD_ERROR:
+          return olp::client::ErrorCode::SlowDown;
         case olp::http::ErrorCode::UNKNOWN_ERROR:
         default:
           return olp::client::ErrorCode::Unknown;
