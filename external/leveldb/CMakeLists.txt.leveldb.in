@@ -22,16 +22,16 @@ project(leveldb-download NONE)
 include(ExternalProject)
 
 ExternalProject_Add(snappy
-  GIT_REPOSITORY    https://github.com/google/snappy.git
-  GIT_TAG           1.1.7
+  GIT_REPOSITORY    @OLP_SDK_CPP_SNAPPY_URL@
+  GIT_TAG           @OLP_SDK_CPP_SNAPPY_TAG@
   CMAKE_ARGS        ${CMAKE_ARGS} ${SNAPPY_CMAKE_ARGS}
   BUILD_COMMAND     "${CMAKE_COMMAND}" --build . --config ${CMAKE_BUILD_TYPE} ${EXTERNAL_BUILD_FLAGS}
   TEST_COMMAND      ""
 )
 
 ExternalProject_Add(leveldb
-  GIT_REPOSITORY    https://github.com/google/leveldb.git
-  GIT_TAG           1.21
+  GIT_REPOSITORY    @OLP_SDK_CPP_LEVELDB_URL@
+  GIT_TAG           @OLP_SDK_CPP_LEVELDB_TAG@
   PATCH_COMMAND     "${CMAKE_COMMAND}" -E copy_directory "${CMAKE_CURRENT_BINARY_DIR}/config/leveldb" "${CMAKE_CURRENT_BINARY_DIR}/download/leveldb-prefix/src/leveldb/."
   CMAKE_ARGS        ${CMAKE_ARGS} ${LEVELDB_CMAKE_ARGS}
   BUILD_COMMAND     "${CMAKE_COMMAND}" --build . --config ${CMAKE_BUILD_TYPE} ${EXTERNAL_BUILD_FLAGS}

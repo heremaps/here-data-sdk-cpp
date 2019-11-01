@@ -21,10 +21,8 @@ project(rapidjson-download NONE)
 
 include(ExternalProject)
 ExternalProject_Add(rapidjson
-  GIT_REPOSITORY    https://github.com/Tencent/rapidjson.git
-  GIT_TAG           master
-  GIT_SHALLOW       TRUE
-  GIT_PROGRESS      TRUE
+  GIT_REPOSITORY    @OLP_SDK_CPP_RAPIDJSON_URL@
+  GIT_TAG           @OLP_SDK_CPP_RAPIDJSON_TAG@
   SOURCE_DIR        "${CMAKE_CURRENT_BINARY_DIR}/src"
   BINARY_DIR        "${CMAKE_CURRENT_BINARY_DIR}/build"
   CONFIGURE_COMMAND ""
