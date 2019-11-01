@@ -21,7 +21,7 @@ project(boost-download NONE)
 
 include(ExternalProject)
 ExternalProject_Add(Boost
-  URL               https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz
+  URL               @OLP_SDK_CPP_BOOST_URL@
   DOWNLOAD_DIR      "${CMAKE_CURRENT_BINARY_DIR}/download"
   SOURCE_DIR        "${CMAKE_CURRENT_BINARY_DIR}/external_boost"
   CONFIGURE_COMMAND ""

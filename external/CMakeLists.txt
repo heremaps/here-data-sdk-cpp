@@ -35,6 +35,21 @@ if(NOT N EQUAL 0)
     endif()
 endif()
 
+# Setup versions for external project 
+set(OLP_SDK_CPP_GOOGLETEST_URL "https://github.com/google/googletest.git")
+set(OLP_SDK_CPP_GOOGLETEST_TAG "release-1.10.0")
+
+set(OLP_SDK_CPP_SNAPPY_URL "https://github.com/google/snappy.git")
+set(OLP_SDK_CPP_SNAPPY_TAG "1.1.7")
+
+set(OLP_SDK_CPP_LEVELDB_URL "https://github.com/google/leveldb.git")
+set(OLP_SDK_CPP_LEVELDB_TAG "1.21")
+
+set(OLP_SDK_CPP_RAPIDJSON_URL "https://github.com/Tencent/rapidjson.git")
+set(OLP_SDK_CPP_RAPIDJSON_TAG "master")
+
+set(OLP_SDK_CPP_BOOST_URL "https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz")
+
 # Add external projects
 add_subdirectory(googletest)
 
