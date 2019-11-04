@@ -152,6 +152,10 @@ Defaults to `ON`. If enabled, CMake downloads and compiles dependencies.
 
 Defaults to `OFF`. If enabled, this causes all libraries to be built without exceptions.
 
+#### `OLP_SDK_BOOST_THROW_EXCEPTION_EXTERNAL`
+
+Defaults to `OFF`. When `OLP_SDK_NO_EXCEPTION` is `ON`, `boost` requires `boost::throw_exception()` to be defined. If enabled, external definition of `boost::throw_exception()` used, otherwise library defines its own.
+
 #### `OLP_SDK_MSVC_PARALLEL_BUILD_ENABLE` (Windows Only)
 
 Defaults to `ON`. If enabled, this adds `/MP` compilation flag to build SDK using multiple cores.
