@@ -31,11 +31,13 @@ set(OLP_SDK_DATASERVICE_WRITE_TEST_SOURCES
 find_package(OpenSSL)
 
 if (ANDROID OR IOS)
-    add_library(olp-cpp-sdk-dataservice-write-tests-lib
+    set(OLP_SDK_DASERVICE_WRITE_TESTS_LIB olp-cpp-sdk-dataservice-write-tests-lib)
+
+    add_library(${OLP_SDK_DASERVICE_WRITE_TESTS_LIB}
         ${OLP_SDK_DATASERVICE_WRITE_TEST_SOURCES}
     )
 
-    target_link_libraries(olp-cpp-sdk-dataservice-write-tests-lib
+    target_link_libraries(${OLP_SDK_DASERVICE_WRITE_TESTS_LIB}
     PRIVATE
         custom-params
         gmock
@@ -46,24 +48,24 @@ if (ANDROID OR IOS)
     )
 
     # For internal testing
-    target_include_directories(olp-cpp-sdk-dataservice-write-tests-lib
+    target_include_directories(${OLP_SDK_DASERVICE_WRITE_TESTS_LIB}
     PRIVATE
         ${${PROJECT_NAME}_SOURCE_DIR}/src
     )
 
     # For checksum testing
     if(OPENSSL_FOUND)
-        target_include_directories(olp-cpp-sdk-dataservice-write-tests-lib
+        target_include_directories(${OLP_SDK_DASERVICE_WRITE_TESTS_LIB}
         PRIVATE
             ${OPENSSL_INCLUDE_DIR}
         )
 
-        target_link_libraries(olp-cpp-sdk-dataservice-write-tests-lib
+        target_link_libraries(${OLP_SDK_DASERVICE_WRITE_TESTS_LIB}
         PRIVATE
             ${OPENSSL_CRYPTO_LIBRARY}
         )
 
-        target_compile_definitions(olp-cpp-sdk-dataservice-write-tests-lib
+        target_compile_definitions(${OLP_SDK_DASERVICE_WRITE_TESTS_LIB}
         PRIVATE
             DATASERVICE_WRITE_HAS_OPENSSL
         )
@@ -72,14 +74,14 @@ if (ANDROID OR IOS)
     if (ANDROID)
         include(${CMAKE_SOURCE_DIR}/cmake/android/gen_android_test.cmake)
         gen_android_test_runner(olp-cpp-sdk-dataservice-write-tests
-            olp-cpp-sdk-dataservice-write-tests-lib)
+            ${OLP_SDK_DASERVICE_WRITE_TESTS_LIB})
         add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/android
             ${CMAKE_CURRENT_BINARY_DIR}/android)
 
     else()
         include(${CMAKE_SOURCE_DIR}/cmake/ios/gen_ios_test.cmake)
         gen_ios_test_runner(olp-cpp-sdk-dataservice-write-tests
-            olp-cpp-sdk-dataservice-write-tests-lib)
+            ${OLP_SDK_DASERVICE_WRITE_TESTS_LIB})
         add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/ios
             ${CMAKE_CURRENT_BINARY_DIR}/ios)
 

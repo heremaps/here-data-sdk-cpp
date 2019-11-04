@@ -34,10 +34,12 @@ set(OLP_SDK_INTEGRATIONAL_TESTS_SOURCES
 )
 
 if (ANDROID OR IOS)
-    add_library(olp-cpp-sdk-integration-tests-lib ${OLP_SDK_INTEGRATIONAL_TESTS_SOURCES})
-    target_link_libraries(olp-cpp-sdk-integration-tests-lib
+    set(OLP_SDK_INTEGRATION_TESTS_LIB olp-cpp-sdk-integration-tests-lib)
+
+    add_library(${OLP_SDK_INTEGRATION_TESTS_LIB} ${OLP_SDK_INTEGRATIONAL_TESTS_SOURCES})
+    target_link_libraries(${OLP_SDK_INTEGRATION_TESTS_LIB}
         PRIVATE
-            gtest
+            gmock
             olp-cpp-sdk-tests-common
             olp-cpp-sdk-core
             olp-cpp-sdk-authentication
@@ -48,13 +50,13 @@ if (ANDROID OR IOS)
     if (ANDROID)
         include(${CMAKE_SOURCE_DIR}/cmake/android/gen_android_test.cmake)
         gen_android_test_runner(olp-cpp-sdk-integration-tests
-            olp-cpp-sdk-integration-tests-lib)
+            ${OLP_SDK_INTEGRATION_TESTS_LIB})
         add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/android
             ${CMAKE_CURRENT_BINARY_DIR}/android)
 
     else()
         include(${CMAKE_SOURCE_DIR}/cmake/ios/gen_ios_test.cmake)
-        gen_ios_test_runner(olp-cpp-sdk-integration-tests olp-cpp-sdk-integration-tests-lib)
+        gen_ios_test_runner(olp-cpp-sdk-integration-tests ${OLP_SDK_INTEGRATION_TESTS_LIB})
         add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/ios
             ${CMAKE_CURRENT_BINARY_DIR}/ios)
 
