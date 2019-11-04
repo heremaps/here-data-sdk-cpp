@@ -32,6 +32,12 @@ VersionedLayerClient::VersionedLayerClient(client::HRN catalog,
     : impl_(std::make_unique<VersionedLayerClientImpl>(
           std::move(catalog), std::move(layer_id), std::move(settings))) {}
 
+VersionedLayerClient::VersionedLayerClient(
+    VersionedLayerClient&& other) noexcept = default;
+
+VersionedLayerClient& VersionedLayerClient::operator=(
+    VersionedLayerClient&& other) noexcept = default;
+
 VersionedLayerClient::~VersionedLayerClient() = default;
 
 client::CancellationToken VersionedLayerClient::GetData(

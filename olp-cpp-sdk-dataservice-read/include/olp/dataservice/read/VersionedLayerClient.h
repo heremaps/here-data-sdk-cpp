@@ -98,6 +98,12 @@ class DATASERVICE_READ_API VersionedLayerClient final {
   VersionedLayerClient(client::HRN catalog, std::string layer_id,
                        client::OlpClientSettings settings);
 
+  // Movable, non-copyable
+  VersionedLayerClient(const VersionedLayerClient& other) = delete; 
+  VersionedLayerClient(VersionedLayerClient&& other) noexcept; 
+  VersionedLayerClient& operator=(const VersionedLayerClient& other) = delete; 
+  VersionedLayerClient& operator=(VersionedLayerClient&& other) noexcept;
+
   ~VersionedLayerClient();
 
   /**
