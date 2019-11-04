@@ -82,6 +82,12 @@ class DATASERVICE_READ_API VolatileLayerClient final {
   VolatileLayerClient(client::HRN catalog, std::string layer_id,
                       client::OlpClientSettings settings);
 
+  // Movable, non-copyable
+  VolatileLayerClient(const VolatileLayerClient& other) = delete; 
+  VolatileLayerClient(VolatileLayerClient&& other) noexcept; 
+  VolatileLayerClient& operator=(const VolatileLayerClient& other) = delete; 
+  VolatileLayerClient& operator=(VolatileLayerClient&& other) noexcept;
+
   ~VolatileLayerClient();
 
   /**

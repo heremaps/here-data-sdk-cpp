@@ -19,9 +19,9 @@
 
 #include "olp/dataservice/read/CatalogClient.h"
 
+#include "CatalogClientImpl.h"
 #include "olp/core/cache/DefaultCache.h"
 #include "olp/core/client/OlpClientSettingsFactory.h"
-#include "CatalogClientImpl.h"
 
 namespace olp {
 namespace dataservice {
@@ -37,6 +37,11 @@ CatalogClient::CatalogClient(client::HRN catalog,
   impl_ = std::make_shared<CatalogClientImpl>(std::move(catalog),
                                               std::move(settings));
 }
+
+CatalogClient::CatalogClient(CatalogClient&& other) noexcept = default;
+
+CatalogClient& CatalogClient::operator=(CatalogClient&& other) noexcept =
+    default;
 
 bool CatalogClient::CancelPendingRequests() {
   return impl_->CancelPendingRequests();

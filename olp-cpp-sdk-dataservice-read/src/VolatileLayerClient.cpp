@@ -32,6 +32,12 @@ VolatileLayerClient::VolatileLayerClient(client::HRN catalog,
     : impl_(std::make_unique<VolatileLayerClientImpl>(
           std::move(catalog), std::move(layer_id), std::move(settings))) {}
 
+VolatileLayerClient::VolatileLayerClient(VolatileLayerClient&& other) noexcept =
+    default;
+
+VolatileLayerClient& VolatileLayerClient::operator=(
+    VolatileLayerClient&& other) noexcept = default;
+
 VolatileLayerClient::~VolatileLayerClient() = default;
 
 client::CancellationToken VolatileLayerClient::GetPartitions(

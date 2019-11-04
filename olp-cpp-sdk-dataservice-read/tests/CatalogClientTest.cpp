@@ -18,16 +18,17 @@
  */
 
 #include <gtest/gtest.h>
-#include <olp/dataservice/read/VolatileLayerClient.h>
+#include <olp/core/client/HRN.h>
+#include <olp/dataservice/read/CatalogClient.h>
 
 namespace {
 using namespace olp::dataservice::read;
 using namespace ::testing;
 
-TEST(VolatileLayerClientTest, CanBeMoved) {
-  VolatileLayerClient client_a(olp::client::HRN(), "", {});
-  VolatileLayerClient client_b(std::move(client_a));
-  VolatileLayerClient client_c(olp::client::HRN(), "", {});
+TEST(CatalogClientTest, CanBeMoved) {
+  CatalogClient client_a(olp::client::HRN(), {});
+  CatalogClient client_b(std::move(client_a));
+  CatalogClient client_c(olp::client::HRN(), {});
   client_c = std::move(client_b);
 }
 
