@@ -27,8 +27,6 @@ set(SETUP_TARGET ${BUILD_TARGET}-setup)
 
 set(TESTER_LIB ${PROJECT_NAME}-lib)
 
-get_property(CUSTOM_PARAMS_DIR TARGET custom-params PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
-
 # duplicated in gen_android_test.cmake
 string(REGEX REPLACE "[\.-]" "" PACKAGE_NAME @SERVICE_TEST_LIB_NAME@)
 
@@ -47,8 +45,6 @@ add_library(${TESTER_LIB} SHARED ${APP_SRC} ${APP_INC})
 
 target_include_directories(${TESTER_LIB}
     PRIVATE ${@SERVICE_TARGET_NAME@_INCLUDE_DIRS}
-    PRIVATE GTest
-    PRIVATE ${CUSTOM_PARAMS_DIR}
 )
 
 set (UNWIND "")
@@ -64,7 +60,7 @@ target_link_libraries(${TESTER_LIB}
     olp-cpp-sdk-core
     ${SVC_LIB}
     ${SVC_TEST_LIB}
-    custom-params
+    gtest
     "-Wl,--no-whole-archive"
 )
 

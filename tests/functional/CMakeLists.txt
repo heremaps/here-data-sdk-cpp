@@ -47,15 +47,17 @@ set(OLP_SDK_FUNCTIONAL_TESTS_HEADERS
 )
 
 if (ANDROID OR IOS)
-    add_library(olp-cpp-sdk-functional-tests-lib
+    set(OLP_SDK_FUNCTIONAL_TESTS_LIB olp-cpp-sdk-functional-tests-lib)
+
+    add_library(${OLP_SDK_FUNCTIONAL_TESTS_LIB}
         ${OLP_SDK_FUNCTIONAL_TESTS_SOURCES}
         ${OLP_SDK_FUNCTIONAL_TESTS_HEADERS})
-    target_include_directories(olp-cpp-sdk-functional-lib
+    target_include_directories(${OLP_SDK_FUNCTIONAL_TESTS_LIB}
         PRIVATE
             ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-dataservice-read/src
             utils
     )
-    target_link_libraries(olp-cpp-sdk-functional-tests-lib
+    target_link_libraries(${OLP_SDK_FUNCTIONAL_TESTS_LIB}
         PRIVATE
             custom-params
             gtest
@@ -68,13 +70,13 @@ if (ANDROID OR IOS)
     if (ANDROID)
         include(${CMAKE_SOURCE_DIR}/cmake/android/gen_android_test.cmake)
         gen_android_test_runner(olp-cpp-sdk-functional-tests
-            olp-cpp-sdk-functional-tests-lib)
+            ${OLP_SDK_FUNCTIONAL_TESTS_LIB})
         add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/android
             ${CMAKE_CURRENT_BINARY_DIR}/android)
 
     else()
         include(${CMAKE_SOURCE_DIR}/cmake/ios/gen_ios_test.cmake)
-        gen_ios_test_runner(olp-cpp-sdk-functional-tests olp-cpp-sdk-functional-tests-lib)
+        gen_ios_test_runner(olp-cpp-sdk-functional-tests ${OLP_SDK_FUNCTIONAL_TESTS_LIB})
         add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/ios
             ${CMAKE_CURRENT_BINARY_DIR}/ios)
 

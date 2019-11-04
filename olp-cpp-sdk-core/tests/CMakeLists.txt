@@ -44,8 +44,10 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
 )
 
 if (ANDROID OR IOS)
-    add_library(olp-cpp-sdk-core-tests-lib ${OLP_CPP_SDK_CORE_TESTS_SOURCES})
-    target_link_libraries(olp-cpp-sdk-core-tests-lib
+    set(OLP_SDK_CORE_TESTS_LIB olp-cpp-sdk-core-tests-lib)
+
+    add_library(${OLP_SDK_CORE_TESTS_LIB} ${OLP_CPP_SDK_CORE_TESTS_SOURCES})
+    target_link_libraries(${OLP_SDK_CORE_TESTS_LIB}
         PRIVATE
             custom-params
             gmock
@@ -55,20 +57,20 @@ if (ANDROID OR IOS)
 
     # Some tests include private headers of core. This should be fixed in tests,
     # only then here.
-    target_include_directories(olp-cpp-sdk-core-tests-lib
+    target_include_directories(${OLP_SDK_CORE_TESTS_LIB}
         PRIVATE
             ../src/cache
     )
     if (ANDROID)
         include(${CMAKE_SOURCE_DIR}/cmake/android/gen_android_test.cmake)
         gen_android_test_runner(olp-cpp-sdk-core-tests
-            olp-cpp-sdk-core-tests-lib)
+            ${OLP_SDK_CORE_TESTS_LIB})
         add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/android
             ${CMAKE_CURRENT_BINARY_DIR}/android)
 
     else()
         include(${CMAKE_SOURCE_DIR}/cmake/ios/gen_ios_test.cmake)
-        gen_ios_test_runner(olp-cpp-sdk-core-tests olp-cpp-sdk-core-tests-lib)
+        gen_ios_test_runner(olp-cpp-sdk-core-tests ${OLP_SDK_CORE_TESTS_LIB})
         add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/ios
             ${CMAKE_CURRENT_BINARY_DIR}/ios)
 
