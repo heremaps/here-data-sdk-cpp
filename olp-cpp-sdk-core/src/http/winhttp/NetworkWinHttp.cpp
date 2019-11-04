@@ -23,6 +23,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "../NetworkUtils.h"
@@ -32,6 +33,7 @@
 namespace {
 
 constexpr int kNetworkUncompressionChunkSize = 1024 * 16;
+constexpr auto kRequestCompletionSleepTime = std::chrono::milliseconds(1);
 
 LPCSTR
 ErrorToString(DWORD err) {
@@ -201,10 +203,11 @@ namespace http {
 
 constexpr auto kLogTag = "WinHttp";
 
-NetworkWinHttp::NetworkWinHttp()
+NetworkWinHttp::NetworkWinHttp(size_t max_request_count)
     : http_session_(NULL),
       thread_(INVALID_HANDLE_VALUE),
-      event_(INVALID_HANDLE_VALUE) {
+      event_(INVALID_HANDLE_VALUE),
+      http_requests_(max_request_count) {
   request_id_counter_.store(
       static_cast<RequestId>(RequestIdConstants::RequestIdMin));
 
@@ -233,16 +236,20 @@ NetworkWinHttp::~NetworkWinHttp() {
   std::vector<std::shared_ptr<ResultData>> pending_results;
   {
     std::unique_lock<std::recursive_mutex> lock(mutex_);
-    std::vector<std::shared_ptr<RequestData>> requests_to_cancel;
-    for (const auto& request : http_requests_) {
-      requests_to_cancel.push_back(request.second);
+    for (auto& request : http_requests_) {
+      if (request.in_use) {
+        pending_results.push_back(request.result_data);
+        WinHttpCloseHandle(request.http_request);
+        request.http_request = NULL;
+      }
     }
-    while (!requests_to_cancel.empty()) {
-      std::shared_ptr<RequestData> request = requests_to_cancel.front();
-      WinHttpCloseHandle(request->http_request);
-      request->http_request = NULL;
-      pending_results.push_back(request->result_data);
-      requests_to_cancel.erase(requests_to_cancel.begin());
+  }
+
+  // Before proceeding we need to be sure that request handles will not
+  // be used in RequestCallback
+  for (auto& request : http_requests_) {
+    while (request.in_use) {
+      std::this_thread::sleep_for(kRequestCompletionSleepTime);
     }
   }
 
@@ -313,7 +320,7 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
     return SendOutcome(ErrorCode::IO_ERROR);
   }
 
-  std::shared_ptr<RequestData> handle;
+  RequestData* handle = nullptr;
   {
     std::unique_lock<std::recursive_mutex> lock(mutex_);
     std::wstring server(url.data(), size_t(url_components.lpszUrlPath -
@@ -338,10 +345,11 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
 
     connection->last_used = GetTickCount64();
 
-    handle =
-        std::make_shared<RequestData>(id, connection, callback, header_callback,
-                                      data_callback, payload, request);
-    http_requests_[id] = handle;
+    handle = GetHandle(id, connection, callback, header_callback, data_callback,
+                       payload, request);
+    if (handle == nullptr) {
+      return SendOutcome(ErrorCode::NETWORK_OVERLOAD_ERROR);
+    }
   }
 
   const auto request_verb = request.GetVerb();
@@ -384,7 +392,6 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
 
     std::unique_lock<std::recursive_mutex> lock(mutex_);
 
-    http_requests_.erase(id);
     return SendOutcome(ErrorCode::IO_ERROR);
   }
 
@@ -496,12 +503,10 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
   /* Send the request */
   if (!WinHttpSendRequest(http_request, WINHTTP_NO_ADDITIONAL_HEADERS, 0,
                           (LPVOID)content, content_length, content_length,
-                          (DWORD_PTR)handle.get())) {
+                          (DWORD_PTR)handle)) {
     OLP_SDK_LOG_ERROR(kLogTag, "WinHttpSendRequest failed " << GetLastError());
 
-    std::unique_lock<std::recursive_mutex> lock(mutex_);
-
-    http_requests_.erase(id);
+    FreeHandle(id);
     return SendOutcome(ErrorCode::IO_ERROR);
   }
   handle->http_request = http_request;
@@ -510,16 +515,11 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
 }
 
 void NetworkWinHttp::Cancel(RequestId id) {
-  std::unique_lock<std::recursive_mutex> lock(mutex_);
-  auto it = http_requests_.find(id);
-  if (it == http_requests_.end()) {
-    return;
-  }
-
-  // Just closing the handle cancels the request
-  if (it->second->http_request) {
-    WinHttpCloseHandle(it->second->http_request);
-    it->second->http_request = NULL;
+  std::unique_lock<std::recursive_mutex> lock_guard(mutex_);
+  auto handle = FindHandle(id);
+  if (handle) {
+    WinHttpCloseHandle(handle->http_request);
+    handle->http_request = NULL;
   }
 }
 
@@ -534,16 +534,6 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
   if (!handle->connection_data || !handle->result_data) {
     OLP_SDK_LOG_WARNING(kLogTag, "RequestCallback to inactive handle");
     return;
-  }
-
-  // to extend RequestData lifetime till the end of function
-  std::shared_ptr<RequestData> that;
-
-  {
-    std::unique_lock<std::recursive_mutex> lock(
-        handle->connection_data->self->mutex_);
-
-    that = handle->connection_data->self->http_requests_[handle->request_id];
   }
 
   handle->connection_data->last_used = GetTickCount64();
@@ -911,11 +901,10 @@ void NetworkWinHttp::CompletionThread() {
       }
 
       if (result->completed) {
-        std::lock_guard<std::recursive_mutex> lock(mutex_);
-        auto it = http_requests_.find(result->request_id);
-        if (it != http_requests_.end()) {
-          http_requests_.erase(it);
-        }
+        std::unique_lock<std::recursive_mutex> lock(mutex_);
+        auto request = FindHandle(result->request_id);
+        WinHttpCloseHandle(request->http_request);
+        request->http_request = NULL;
       }
     }
 
@@ -935,6 +924,52 @@ void NetworkWinHttp::CompletionThread() {
       }
     }
   }
+}
+
+NetworkWinHttp::RequestData* NetworkWinHttp::GetHandle(
+    RequestId id, std::shared_ptr<ConnectionData> connection,
+    Network::Callback callback, Network::HeaderCallback header_callback,
+    Network::DataCallback data_callback, std::shared_ptr<std::ostream> payload,
+    const NetworkRequest& request) {
+  std::unique_lock<std::recursive_mutex> lock_guard(mutex_);
+
+  auto it =
+      std::find_if(http_requests_.begin(), http_requests_.end(),
+                   [&](const RequestData& request) { return !request.in_use; });
+  if (it != http_requests_.end()) {
+    *it = std::move(RequestData(id, connection, callback, header_callback,
+                                data_callback, payload, request));
+    it->in_use = true;
+    return &(*it);
+  }
+  return nullptr;
+}
+
+void NetworkWinHttp::FreeHandle(RequestData* request) {
+  std::unique_lock<std::recursive_mutex> lock_guard(mutex_);
+  if (request && request->in_use) {
+    *request = RequestData();
+  }
+}
+
+void NetworkWinHttp::FreeHandle(RequestId id) {
+  std::unique_lock<std::recursive_mutex> lock_guard(mutex_);
+  auto request = FindHandle(id);
+  if (request) {
+    *request = RequestData();
+  }
+}
+
+NetworkWinHttp::RequestData* NetworkWinHttp::FindHandle(RequestId id) {
+  auto it = std::find_if(http_requests_.begin(), http_requests_.end(),
+                         [&](const RequestData& request) {
+                           return request.in_use && request.request_id == id;
+                         });
+
+  if (it != http_requests_.end()) {
+    return &(*it);
+  }
+  return nullptr;
 }
 
 NetworkWinHttp::ResultData::ResultData(RequestId id, Network::Callback callback,
@@ -977,7 +1012,17 @@ NetworkWinHttp::RequestData::RequestData(
       resumed(false),
       ignore_data(request.GetVerb() == NetworkRequest::HttpVerb::HEAD),
       no_compression(false),
-      uncompress(false) {}
+      uncompress(false),
+      in_use(false) {}
+
+NetworkWinHttp::RequestData::RequestData()
+    : http_request(NULL),
+      request_id(static_cast<RequestId>(RequestIdConstants::RequestIdInvalid)),
+      resumed(false),
+      ignore_data(),
+      no_compression(false),
+      uncompress(false),
+      in_use(false) {}
 
 NetworkWinHttp::RequestData::~RequestData() {
   if (http_request) {
@@ -997,10 +1042,7 @@ void NetworkWinHttp::RequestData::Complete() {
 
 void NetworkWinHttp::RequestData::FreeHandle() {
   auto that = connection_data->self;
-  {
-    std::unique_lock<std::recursive_mutex> lock(that->mutex_);
-    that->http_requests_.erase(request_id);
-  }
+  that->FreeHandle(request_id);
 }
 
 }  // namespace http
