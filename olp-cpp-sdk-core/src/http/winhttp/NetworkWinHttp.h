@@ -20,7 +20,6 @@
 #pragma once
 
 #include <olp/core/http/Network.h>
-
 #include <windows.h>
 #include <winhttp.h>
 
@@ -43,7 +42,7 @@ namespace http {
  */
 class NetworkWinHttp : public Network {
  public:
-  NetworkWinHttp();
+  NetworkWinHttp(size_t max_request_count);
   ~NetworkWinHttp() override;
 
   // Non-copyable, non-movable
@@ -88,6 +87,7 @@ class NetworkWinHttp : public Network {
   };
 
   struct RequestData {
+    RequestData();
     RequestData(RequestId id, std::shared_ptr<ConnectionData> connection,
                 Network::Callback callback,
                 Network::HeaderCallback header_callback,
@@ -110,10 +110,22 @@ class NetworkWinHttp : public Network {
     bool ignore_data;
     bool no_compression;
     bool uncompress;
+    bool in_use;
 #ifdef NETWORK_HAS_ZLIB
     z_stream strm;
 #endif
   };
+
+  RequestData* GetHandle(RequestId id,
+                         std::shared_ptr<ConnectionData> connection,
+                         Network::Callback callback,
+                         Network::HeaderCallback header_callback,
+                         Network::DataCallback data_callback,
+                         std::shared_ptr<std::ostream> payload,
+                         const NetworkRequest& request);
+  void FreeHandle(RequestData* handle);
+  void FreeHandle(RequestId id);
+  RequestData* FindHandle(RequestId id);
 
   static void CALLBACK RequestCallback(HINTERNET, DWORD_PTR, DWORD, LPVOID,
                                        DWORD);
@@ -124,7 +136,7 @@ class NetworkWinHttp : public Network {
   std::recursive_mutex mutex_;
   std::unordered_map<std::wstring, std::shared_ptr<ConnectionData>>
       http_connections_;
-  std::unordered_map<RequestId, std::shared_ptr<RequestData>> http_requests_;
+  std::vector<RequestData> http_requests_;
   std::queue<std::shared_ptr<ResultData>> results_;
 
   HINTERNET http_session_;

@@ -44,7 +44,7 @@ CORE_API std::shared_ptr<Network> CreateDefaultNetwork(
 #elif NETWORK_HAS_IOS
   return std::make_shared<OLPNetworkIOS>(max_requests_count);
 #elif NETWORK_HAS_WINHTTP
-  return std::make_shared<NetworkWinHttp>();
+  return std::make_shared<NetworkWinHttp>(max_requests_count);
 #else
   static_assert(false, "No default network implementation provided");
 #endif
