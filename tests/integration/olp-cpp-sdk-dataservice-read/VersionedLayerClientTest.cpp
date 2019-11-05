@@ -18,9 +18,6 @@
  */
 
 #include <gmock/gmock.h>
-#include <chrono>
-#include <string>
-
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/NetworkMock.h>
 #include <olp/authentication/Settings.h>
@@ -28,6 +25,10 @@
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/porting/make_unique.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
+
+#include <chrono>
+#include <string>
+
 #include "HttpResponses.h"
 
 using namespace olp::dataservice::read;
@@ -74,13 +75,12 @@ constexpr char kHttpResponsePartitionsEmpty[] =
 constexpr char kHttpResponseLookupBlob[] =
     R"jsonString([{"api":"blob","version":"v1","baseURL":"https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString";
 
-constexpr char kHttpResponseBlobData_269[] =
-    R"jsonString(DT_2_0031)jsonString";
+constexpr char kHttpResponseBlobData_269[] = R"jsonString(DT_2_0031)jsonString";
 
 constexpr char kHttpResponseLatestCatalogVersion[] =
     R"jsonString({"version":4})jsonString";
 
-constexpr auto kWaitTimeout = std::chrono::seconds(1);
+constexpr auto kWaitTimeout = std::chrono::seconds(3);
 
 class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
  protected:
@@ -262,14 +262,14 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionAsync) {
           catalog, layer, *settings_);
   ASSERT_TRUE(catalog_client);
 
-  std::promise<DataResponse> promise;
-  std::future<DataResponse> future = promise.get_future();
+  auto promise = std::make_shared<std::promise<DataResponse>>();
+  std::future<DataResponse> future = promise->get_future();
   auto partition = GetArgument("dataservice_read_test_partition");
   auto token = catalog_client->GetData(
       olp::dataservice::read::DataRequest()
           .WithVersion(version)
           .WithPartitionId(partition),
-      [&promise](DataResponse response) { promise.set_value(response); });
+      [promise](DataResponse response) { promise->set_value(response); });
 
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
   DataResponse response = future.get();
@@ -832,11 +832,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsNoError) {
           catalog, layer, *settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
-  std::promise<PartitionsResponse> promise;
-  auto future = promise.get_future();
+  auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+  auto future = promise->get_future();
   auto token = catalog_client->GetPartitions(
       request,
-      [&promise](PartitionsResponse response) { promise.set_value(response); });
+      [promise](PartitionsResponse response) { promise->set_value(response); });
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
   PartitionsResponse response = future.get();
 
@@ -906,11 +906,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetEmptyPartitions) {
           catalog, layer, *settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
-  std::promise<PartitionsResponse> promise;
-  auto future = promise.get_future();
+  auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+  auto future = promise->get_future();
   auto token = catalog_client->GetPartitions(
       request,
-      [&promise](PartitionsResponse response) { promise.set_value(response); });
+      [promise](PartitionsResponse response) { promise->set_value(response); });
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
   PartitionsResponse response = future.get();
 
@@ -948,11 +948,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitions429Error) {
           catalog, layer, *settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
-  std::promise<PartitionsResponse> promise;
-  auto future = promise.get_future();
+  auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+  auto future = promise->get_future();
   auto token = catalog_client->GetPartitions(
       request,
-      [&promise](PartitionsResponse response) { promise.set_value(response); });
+      [promise](PartitionsResponse response) { promise->set_value(response); });
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
   PartitionsResponse response = future.get();
 
@@ -992,11 +992,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, ApiLookup429) {
           catalog, layer, *settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
-  std::promise<PartitionsResponse> promise;
-  auto future = promise.get_future();
+  auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+  auto future = promise->get_future();
   auto token = catalog_client->GetPartitions(
       request,
-      [&promise](PartitionsResponse response) { promise.set_value(response); });
+      [promise](PartitionsResponse response) { promise->set_value(response); });
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
   PartitionsResponse response = future.get();
 
@@ -1014,11 +1014,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsForInvalidLayer) {
           catalog, layer, *settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
-  std::promise<PartitionsResponse> promise;
-  auto future = promise.get_future();
+  auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+  auto future = promise->get_future();
   auto token = catalog_client->GetPartitions(
       request,
-      [&promise](PartitionsResponse response) { promise.set_value(response); });
+      [promise](PartitionsResponse response) { promise->set_value(response); });
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
   PartitionsResponse response = future.get();
 
@@ -1055,12 +1055,12 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsCacheWithUpdate) {
 
   // Request 1
   {
-    std::promise<PartitionsResponse> promise;
-    auto future = promise.get_future();
+    auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+    auto future = promise->get_future();
     auto request = PartitionsRequest().WithFetchOption(CacheWithUpdate);
     auto token = catalog_client->GetPartitions(
-        request, [&promise](PartitionsResponse response) {
-          promise.set_value(response);
+        request, [promise](PartitionsResponse response) {
+          promise->set_value(response);
         });
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
     PartitionsResponse response = future.get();
@@ -1072,12 +1072,12 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsCacheWithUpdate) {
 
   // Request 2
   {
-    std::promise<PartitionsResponse> promise;
-    auto future = promise.get_future();
+    auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+    auto future = promise->get_future();
     auto request = PartitionsRequest().WithFetchOption(CacheOnly);
     auto token = catalog_client->GetPartitions(
-        request, [&promise](PartitionsResponse response) {
-          promise.set_value(response);
+        request, [promise](PartitionsResponse response) {
+          promise->set_value(response);
         });
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
     PartitionsResponse response = future.get();
@@ -1108,11 +1108,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitions403CacheClear) {
   auto request = olp::dataservice::read::PartitionsRequest();
 
   {
-    std::promise<PartitionsResponse> promise;
-    auto future = promise.get_future();
+    auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+    auto future = promise->get_future();
     auto token = catalog_client->GetPartitions(
-        request, [&promise](PartitionsResponse response) {
-          promise.set_value(response);
+        request, [promise](PartitionsResponse response) {
+          promise->set_value(response);
         });
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
     PartitionsResponse response = future.get();
@@ -1124,11 +1124,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitions403CacheClear) {
   {
     request.WithFetchOption(OnlineOnly);
 
-    std::promise<PartitionsResponse> promise;
-    auto future = promise.get_future();
+    auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+    auto future = promise->get_future();
     auto token = catalog_client->GetPartitions(
-        request, [&promise](PartitionsResponse response) {
-          promise.set_value(response);
+        request, [promise](PartitionsResponse response) {
+          promise->set_value(response);
         });
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
     PartitionsResponse response = future.get();
@@ -1140,11 +1140,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitions403CacheClear) {
   // Check for cached response
   {
     request.WithFetchOption(CacheOnly);
-    std::promise<PartitionsResponse> promise;
-    auto future = promise.get_future();
+    auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+    auto future = promise->get_future();
     auto token = catalog_client->GetPartitions(
-        request, [&promise](PartitionsResponse response) {
-          promise.set_value(response);
+        request, [promise](PartitionsResponse response) {
+          promise->set_value(response);
         });
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
     PartitionsResponse response = future.get();
@@ -1169,11 +1169,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsGarbageResponse) {
                                    R"jsonString(kd3sdf\)jsonString"));
 
   auto request = olp::dataservice::read::PartitionsRequest();
-  std::promise<PartitionsResponse> promise;
-  auto future = promise.get_future();
+  auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+  auto future = promise->get_future();
   auto token = catalog_client->GetPartitions(
       request,
-      [&promise](PartitionsResponse response) { promise.set_value(response); });
+      [promise](PartitionsResponse response) { promise->set_value(response); });
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
   PartitionsResponse response = future.get();
 
@@ -1273,11 +1273,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       .Times(0);
 
   auto request = olp::dataservice::read::PartitionsRequest();
-  std::promise<PartitionsResponse> promise;
-  auto future = promise.get_future();
+  auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+  auto future = promise->get_future();
   auto token = catalog_client->GetPartitions(
       request,
-      [&promise](PartitionsResponse response) { promise.set_value(response); });
+      [promise](PartitionsResponse response) { promise->set_value(response); });
 
   wait_for_cancel->get_future().get();  // wait for handler to get the request
   token.cancel();
@@ -1367,11 +1367,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsVersion2) {
 
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithVersion(2);
-  std::promise<PartitionsResponse> promise;
-  auto future = promise.get_future();
+  auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+  auto future = promise->get_future();
   auto token = catalog_client->GetPartitions(
       request,
-      [&promise](PartitionsResponse response) { promise.set_value(response); });
+      [promise](PartitionsResponse response) { promise->set_value(response); });
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
   PartitionsResponse response = future.get();
 
@@ -1391,11 +1391,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsInvalidVersion) {
   auto request = olp::dataservice::read::PartitionsRequest();
   {
     request.WithVersion(10);
-    std::promise<PartitionsResponse> promise;
-    auto future = promise.get_future();
+    auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+    auto future = promise->get_future();
     auto token = catalog_client->GetPartitions(
-        request, [&promise](PartitionsResponse response) {
-          promise.set_value(response);
+        request, [promise](PartitionsResponse response) {
+          promise->set_value(response);
         });
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
     PartitionsResponse response = future.get();
@@ -1408,11 +1408,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsInvalidVersion) {
 
   {
     request.WithVersion(-1);
-    std::promise<PartitionsResponse> promise;
-    auto future = promise.get_future();
+    auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+    auto future = promise->get_future();
     auto token = catalog_client->GetPartitions(
-        request, [&promise](PartitionsResponse response) {
-          promise.set_value(response);
+        request, [promise](PartitionsResponse response) {
+          promise->set_value(response);
         });
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
     PartitionsResponse response = future.get();
@@ -1442,11 +1442,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsCacheOnly) {
 
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithFetchOption(CacheOnly);
-  std::promise<PartitionsResponse> promise;
-  auto future = promise.get_future();
+  auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+  auto future = promise->get_future();
   auto token = catalog_client->GetPartitions(
       request,
-      [&promise](PartitionsResponse response) { promise.set_value(response); });
+      [promise](PartitionsResponse response) { promise->set_value(response); });
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
   PartitionsResponse response = future.get();
 
@@ -1476,11 +1476,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsOnlineOnly) {
 
   auto request = olp::dataservice::read::PartitionsRequest();
   {
-    std::promise<PartitionsResponse> promise;
-    auto future = promise.get_future();
+    auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+    auto future = promise->get_future();
     auto token = catalog_client->GetPartitions(
-        request, [&promise](PartitionsResponse response) {
-          promise.set_value(response);
+        request, [promise](PartitionsResponse response) {
+          promise->set_value(response);
         });
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
     PartitionsResponse response = future.get();
@@ -1491,11 +1491,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsOnlineOnly) {
 
   {
     request.WithFetchOption(OnlineOnly);
-    std::promise<PartitionsResponse> promise;
-    auto future = promise.get_future();
+    auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+    auto future = promise->get_future();
     auto token = catalog_client->GetPartitions(
-        request, [&promise](PartitionsResponse response) {
-          promise.set_value(response);
+        request, [promise](PartitionsResponse response) {
+          promise->set_value(response);
         });
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
     PartitionsResponse response = future.get();
@@ -1523,11 +1523,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
                        .WithMinLevel(10)
                        .WithMaxLevel(12);
 
-    std::promise<PrefetchTilesResponse> promise;
-    std::future<PrefetchTilesResponse> future = promise.get_future();
+    auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
+    std::future<PrefetchTilesResponse> future = promise->get_future();
     auto token = client->PrefetchTiles(
-        request, [&promise](PrefetchTilesResponse response) {
-          promise.set_value(std::move(response));
+        request, [promise](PrefetchTilesResponse response) {
+          promise->set_value(std::move(response));
         });
 
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
@@ -1545,13 +1545,13 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
 
   {
     SCOPED_TRACE("Read cached data from pre-fetched sub-partition #1");
-    std::promise<DataResponse> promise;
-    std::future<DataResponse> future = promise.get_future();
+    auto promise = std::make_shared<std::promise<DataResponse>>();
+    std::future<DataResponse> future = promise->get_future();
     auto token = client->GetData(olp::dataservice::read::DataRequest()
                                      .WithPartitionId("23618365")
                                      .WithFetchOption(CacheOnly),
-                                 [&promise](DataResponse response) {
-                                   promise.set_value(std::move(response));
+                                 [promise](DataResponse response) {
+                                   promise->set_value(std::move(response));
                                  });
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
 
@@ -1564,14 +1564,14 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
 
   {
     SCOPED_TRACE("Read cached data from pre-fetched sub-partition #2");
-    std::promise<DataResponse> promise;
-    std::future<DataResponse> future = promise.get_future();
+    auto promise = std::make_shared<std::promise<DataResponse>>();
+    std::future<DataResponse> future = promise->get_future();
 
     auto token = client->GetData(olp::dataservice::read::DataRequest()
                                      .WithPartitionId("1476147")
                                      .WithFetchOption(CacheOnly),
-                                 [&promise](DataResponse response) {
-                                   promise.set_value(std::move(response));
+                                 [promise](DataResponse response) {
+                                   promise->set_value(std::move(response));
                                  });
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
 
