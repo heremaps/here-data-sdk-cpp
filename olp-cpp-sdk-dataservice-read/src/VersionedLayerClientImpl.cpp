@@ -25,6 +25,7 @@
 #include <olp/core/client/TaskContext.h>
 #include <olp/core/context/Context.h>
 #include <olp/core/thread/TaskScheduler.h>
+
 #include "PrefetchTilesProvider.h"
 #include "repositories/ApiRepository.h"
 #include "repositories/CatalogRepository.h"
@@ -175,8 +176,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
   const int64_t request_key = pending_requests_->GenerateRequestPlaceholder();
   auto pending_requests = pending_requests_;
   auto request_callback = [=](PrefetchTilesResponse response) {
-    pending_requests->Remove(request_key);
-    if (callback) {
+    if (pending_requests->Remove(request_key) && callback) {
       callback(std::move(response));
     }
   };
