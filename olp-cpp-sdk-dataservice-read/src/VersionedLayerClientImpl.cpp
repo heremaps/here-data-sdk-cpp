@@ -21,6 +21,7 @@
 
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+#include <olp/core/client/PendingRequests.h>
 #include <olp/core/client/TaskContext.h>
 #include <olp/core/context/Context.h>
 #include <olp/core/thread/TaskScheduler.h>
@@ -43,7 +44,7 @@ VersionedLayerClientImpl::VersionedLayerClientImpl(
       layer_id_(std::move(layer_id)),
       settings_(
           std::make_shared<client::OlpClientSettings>(std::move(settings))),
-      pending_requests_(std::make_shared<PendingRequests>()) {
+      pending_requests_(std::make_shared<client::PendingRequests>()) {
   if (!settings_->cache) {
     settings_->cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
   }

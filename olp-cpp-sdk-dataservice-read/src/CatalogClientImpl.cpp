@@ -19,8 +19,8 @@
 
 #include "CatalogClientImpl.h"
 
+#include <olp/core/client/PendingRequests.h>
 #include <olp/core/logging/Log.h>
-#include "PendingRequests.h"
 #include "PrefetchTilesProvider.h"
 #include "repositories/ApiRepository.h"
 #include "repositories/CatalogRepository.h"
@@ -63,7 +63,7 @@ CatalogClientImpl::CatalogClientImpl(HRN catalog, OlpClientSettings settings)
       catalog_, api_repo, catalog_repo_, data_repo_, std::move(prefetch_repo),
       settings_);
 
-  pending_requests_ = std::make_shared<PendingRequests>();
+  pending_requests_ = std::make_shared<client::PendingRequests>();
 }
 
 CatalogClientImpl::~CatalogClientImpl() { CancelPendingRequests(); }

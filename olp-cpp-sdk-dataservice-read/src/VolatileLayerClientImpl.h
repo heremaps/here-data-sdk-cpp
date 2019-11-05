@@ -26,9 +26,11 @@
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/Types.h>
 
-#include "PendingRequests.h"
-
 namespace olp {
+
+namespace client {
+class PendingRequests;
+}
 namespace dataservice {
 namespace read {
 
@@ -60,7 +62,7 @@ class VolatileLayerClientImpl {
   std::string layer_id_;
   std::shared_ptr<client::OlpClientSettings> settings_;
   std::shared_ptr<thread::TaskScheduler> task_scheduler_;
-  std::shared_ptr<PendingRequests> pending_requests_;
+  std::shared_ptr<client::PendingRequests> pending_requests_;
   std::shared_ptr<repository::PartitionsRepository> partition_repo_;
 };
 
