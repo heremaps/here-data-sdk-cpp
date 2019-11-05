@@ -37,7 +37,7 @@ class AuthenticationProductionTest : public ::testing::Test {
  protected:
   static void SetUpTestSuite() {
     s_network_ = olp::client::OlpClientSettingsFactory::
-        CreateDefaultNetworkRequestHandler(1);
+        CreateDefaultNetworkRequestHandler();
   }
 
   static void TearDownTestSuite() { s_network_.reset(); }
