@@ -17,6 +17,11 @@
 
 cmake_minimum_required(VERSION 3.5)
 
+if (ANDROID OR IOS)
+    message(STATUS "Currently the performance test runner for mobile platforms is not supported")
+    return()
+endif()
+
 set(OLP_SDK_PERFORMANCE_TESTS_SOURCES
     ./CatalogClientTest.cpp
 )
