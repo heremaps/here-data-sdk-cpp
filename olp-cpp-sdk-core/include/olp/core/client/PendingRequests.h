@@ -29,9 +29,11 @@
 #include <olp/core/client/TaskContext.h>
 
 namespace olp {
-namespace dataservice {
-namespace read {
+namespace client {
 
+/**
+ * @brief Container for not yet finished requests.
+ */
 class PendingRequests final {
  public:
   PendingRequests();
@@ -86,6 +88,5 @@ class PendingRequests final {
   std::mutex requests_lock_;
 };
 
-}  // namespace read
-}  // namespace dataservice
+}  // namespace client
 }  // namespace olp

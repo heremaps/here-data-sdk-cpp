@@ -34,6 +34,7 @@ namespace olp {
 namespace client {
 class OlpClient;
 struct OlpClientSettings;
+class PendingRequests;
 }  // namespace client
 
 namespace dataservice {
@@ -45,8 +46,6 @@ class CatalogRepository;
 class PartitionsRepository;
 class DataRepository;
 }  // namespace repository
-
-class PendingRequests;
 
 class CatalogClientImpl final {
  public:
@@ -95,7 +94,7 @@ class CatalogClientImpl final {
   std::shared_ptr<repository::PartitionsRepository> partition_repo_;
   std::shared_ptr<repository::DataRepository> data_repo_;
   std::shared_ptr<PrefetchTilesProvider> prefetch_provider_;
-  std::shared_ptr<PendingRequests> pending_requests_;
+  std::shared_ptr<client::PendingRequests> pending_requests_;
 
   template <typename Request, typename Response>
   client::CancellableFuture<Response> AsFuture(

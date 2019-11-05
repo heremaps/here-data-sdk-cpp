@@ -17,14 +17,13 @@
  * License-Filename: LICENSE
  */
 
-#include "PendingRequests.h"
+#include <olp/core/client/PendingRequests.h>
 
 #include <olp/core/client/TaskContext.h>
 #include <olp/core/logging/Log.h>
 
 namespace olp {
-namespace dataservice {
-namespace read {
+namespace client {
 
 namespace {
 constexpr auto kLogTag = "PendingRequests";
@@ -91,6 +90,5 @@ void PendingRequests::Remove(client::TaskContext task_context) {
   task_contexts_.erase(task_context);
 }
 
-}  // namespace read
-}  // namespace dataservice
+}  // namespace client
 }  // namespace olp
