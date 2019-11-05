@@ -74,7 +74,6 @@ NetworkAndroid::NetworkAndroid()
       jni_send_method_(nullptr),
       java_shutdown_method_(nullptr),
       obj_(nullptr),
-      unique_id_(0),
       started_(false),
       initialized_(false) {}
 
@@ -211,16 +210,6 @@ bool NetworkAndroid::Initialize() {
   env->DeleteLocalRef(network_class);
   env->DeleteLocalRef(network_class_name);
 
-  // Get registerClient method
-  jmethodID java_register_method =
-      env->GetMethodID(java_self_class_, "registerClient", "()I");
-  if (env->ExceptionOccurred()) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get HttpClient.registerClient");
-    env->ExceptionDescribe();
-    env->ExceptionClear();
-    return false;
-  }
-
   // Get shutdown method
   java_shutdown_method_ = env->GetMethodID(java_self_class_, "shutdown", "()V");
   if (env->ExceptionOccurred()) {
@@ -249,23 +238,10 @@ bool NetworkAndroid::Initialize() {
   obj_ = env->NewGlobalRef(obj);
   env->DeleteLocalRef(obj);
 
-  // Register the client
-  unique_id_ = env->CallIntMethod(obj_, java_register_method);
-  if (env->ExceptionOccurred()) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Failed to call registerClient");
-    env->ExceptionDescribe();
-    env->ExceptionClear();
-    env->DeleteGlobalRef(obj_);
-    env->DeleteGlobalRef(java_self_class_);
-    obj_ = nullptr;
-    java_self_class_ = nullptr;
-    return false;
-  }
-
   // Get send method
   jni_send_method_ = env->GetMethodID(
       java_self_class_, "send",
-      "(Ljava/lang/String;IIJII[Ljava/lang/String;[BLjava/lang/String;III)Lcom/"
+      "(Ljava/lang/String;IJII[Ljava/lang/String;[BLjava/lang/String;III)Lcom/"
       "here/olp/network/HttpClient$HttpTask;");
 
   if (env->ExceptionOccurred()) {
@@ -832,7 +808,6 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
 
   // Do sending
   const jint jhttp_verb = static_cast<jint>(request.GetVerb());
-  const jint junique_id = static_cast<jint>(unique_id_);
   const jlong jrequest_id = static_cast<jlong>(request_id);
   const jint jconnection_timeout =
       static_cast<jint>(request.GetSettings().GetConnectionTimeout());
@@ -843,7 +818,7 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
   const jint jmax_retries =
       static_cast<jint>(request.GetSettings().GetRetries());
   jobject task_obj = env.GetEnv()->CallObjectMethod(
-      obj_, jni_send_method_, jurl, jhttp_verb, junique_id, jrequest_id,
+      obj_, jni_send_method_, jurl, jhttp_verb, jrequest_id,
       jconnection_timeout, jtransfer_timeout, jheaders, jbody, jproxy,
       jproxy_port, jproxy_type, jmax_retries);
   if (env.GetEnv()->ExceptionOccurred() || !task_obj) {
@@ -940,14 +915,14 @@ NetworkAndroid::ResponseData::ResponseData(
  */
 extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
 Java_com_here_olp_network_HttpClient_headersCallback(JNIEnv* env, jobject obj,
-                                                     jint client_id,
                                                      jlong request_id,
                                                      jobjectArray headers) {
   auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
   if (!network) {
-    OLP_SDK_LOG_WARNING(
-        kLogTag,
-        "headersCallback to non-existing client with id=" << client_id);
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "headersCallback with id="
+                            << request_id
+                            << " to non-existing NetworkAndroid instance");
     return;
   }
   network->HeadersCallback(env, request_id, headers);
@@ -958,13 +933,13 @@ Java_com_here_olp_network_HttpClient_headersCallback(JNIEnv* env, jobject obj,
  */
 extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
 Java_com_here_olp_network_HttpClient_dateAndOffsetCallback(
-    JNIEnv* env, jobject obj, jint client_id, jlong request_id, jlong date,
-    jlong offset) {
+    JNIEnv* env, jobject obj, jlong request_id, jlong date, jlong offset) {
   auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
   if (!network) {
-    OLP_SDK_LOG_WARNING(
-        kLogTag,
-        "dateAndOffsetCallback to non-existing client with id=" << client_id);
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "dateAndOffsetCallback with id="
+                            << request_id
+                            << " to non-existing NetworkAndroid instance");
     return;
   }
   network->DateAndOffsetCallback(env, request_id, date, offset);
@@ -975,13 +950,14 @@ Java_com_here_olp_network_HttpClient_dateAndOffsetCallback(
  */
 extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
 Java_com_here_olp_network_HttpClient_dataCallback(JNIEnv* env, jobject obj,
-                                                  jint client_id,
                                                   jlong request_id,
                                                   jbyteArray data, jint len) {
   auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
   if (!network) {
     OLP_SDK_LOG_WARNING(
-        kLogTag, "dataCallback to non-existing client with id=" << client_id);
+        kLogTag,
+        "dataCallback with id=" << request_id
+                                << " to non-existing NetworkAndroid isntance");
     return;
   }
   network->DataReceived(env, request_id, data, len);
@@ -992,15 +968,15 @@ Java_com_here_olp_network_HttpClient_dataCallback(JNIEnv* env, jobject obj,
  */
 extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
 Java_com_here_olp_network_HttpClient_completeRequest(JNIEnv* env, jobject obj,
-                                                     jint client_id,
                                                      jlong request_id,
                                                      jint status, jstring error,
                                                      jstring content_type) {
   auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
   if (!network) {
-    OLP_SDK_LOG_WARNING(
-        kLogTag,
-        "completeRequest to non-existing client with id=" << client_id);
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "completeRequest with id="
+                            << request_id
+                            << " to non-existing NetworkAndroid instance");
     return;
   }
   network->CompleteRequest(env, request_id, status, error, content_type);
@@ -1011,12 +987,13 @@ Java_com_here_olp_network_HttpClient_completeRequest(JNIEnv* env, jobject obj,
  */
 extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
 Java_com_here_olp_network_HttpClient_resetRequest(JNIEnv* env, jobject obj,
-                                                  jint client_id,
                                                   jlong request_id) {
   auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
   if (!network) {
     OLP_SDK_LOG_WARNING(
-        kLogTag, "resetRequest to non-existing client with id=" << client_id);
+        kLogTag,
+        "resetRequest id=" << request_id
+                           << " to non-existing NetworkAndroid instance");
     return;
   }
   network->ResetRequest(env, request_id);

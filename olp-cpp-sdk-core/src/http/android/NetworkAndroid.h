@@ -38,8 +38,7 @@ namespace http {
  * @brief Implementation of Network interface for Android based on the
  * java.net.HttpURLConnection
  */
-class NetworkAndroid : public Network,
-                       public std::enable_shared_from_this<NetworkAndroid> {
+class NetworkAndroid : public Network {
  public:
   /**
    * @brief NetworkAndroid constructor
@@ -193,7 +192,6 @@ class NetworkAndroid : public Network,
   jmethodID jni_send_method_;
   jmethodID java_shutdown_method_;
   jobject obj_;
-  jint unique_id_;
 
   bool started_;
   bool initialized_;

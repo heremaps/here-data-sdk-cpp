@@ -37,7 +37,6 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -51,11 +50,6 @@ public class HttpClient {
   public static final int CANCELLED_ERROR = -5;
   public static final int TIMEOUT_ERROR = -7;
   public static final int THREAD_POOL_SIZE = 8;
-
-  public static final int INVALID_ID = 0;
-
-  private static AtomicInteger uniqueIdCounter = new AtomicInteger(1);
-  private int uniqueId = INVALID_ID;
 
   // The raw pointer to the C++ NetworkAndroid class
   private long nativePtr;
@@ -93,7 +87,6 @@ public class HttpClient {
     public Request(
         String url,
         HttpVerb verb,
-        int clientId,
         long requestId,
         int connectionTimeout,
         int requestTimeout,
@@ -105,7 +98,6 @@ public class HttpClient {
         int maxRetries) {
       this.url = url;
       this.verb = verb;
-      this.clientId = clientId;
       this.requestId = requestId;
       this.connectionTimeout = connectionTimeout;
       this.requestTimeout = requestTimeout;
@@ -149,10 +141,6 @@ public class HttpClient {
 
     public final HttpVerb verb() {
       return this.verb;
-    }
-
-    public final int clientId() {
-      return this.clientId;
     }
 
     public final long requestId() {
@@ -200,7 +188,6 @@ public class HttpClient {
     }
 
     private final String url;
-    private final int clientId;
     private final long requestId;
     private final int connectionTimeout;
     private final int requestTimeout;
@@ -351,7 +338,7 @@ public class HttpClient {
                 }
               } catch (SocketTimeoutException | UnknownHostException e) {
                 if (retryCount++ < request.maxRetries()) {
-                  resetRequest(request.clientId(), request.requestId());
+                  resetRequest(request.requestId());
                   continue;
                 } else {
                   throw e;
@@ -400,8 +387,8 @@ public class HttpClient {
 
             checkCancelled();
 
-            headersCallback(request.clientId(), request.requestId(), headersArray);
-            dateAndOffsetCallback(request.clientId(), request.requestId(), 0l, offset);
+            headersCallback(request.requestId(), headersArray);
+            dateAndOffsetCallback(request.requestId(), 0l, offset);
 
             // Do the input phase
             InputStream in = null;
@@ -421,7 +408,7 @@ public class HttpClient {
 
               while ((len = in.read(buffer)) >= 0) {
                 checkCancelled();
-                dataCallback(request.clientId(), request.requestId(), buffer, len);
+                dataCallback(request.requestId(), buffer, len);
               }
             }
             // Error handling:
@@ -437,7 +424,7 @@ public class HttpClient {
               }
             } catch (SocketTimeoutException e) {
               if (retryCount++ < request.maxRetries()) {
-                resetRequest(request.clientId(), request.requestId());
+                resetRequest(request.requestId());
                 continue;
               } else {
                 throw e;
@@ -449,21 +436,19 @@ public class HttpClient {
             // The request is completed, not cancelled or retried
             // Notifies the native (C++) side that request was completed
             isDone = true;
-            completeRequest(request.clientId(), request.requestId(), status, error, contentType);
+            completeRequest(request.requestId(), status, error, contentType);
           } while (!isDone);
         } catch (OperationCanceledException e) {
-          completeRequest(
-              request.clientId(), request.requestId(), CANCELLED_ERROR, "Cancelled", "");
+          completeRequest(request.requestId(), CANCELLED_ERROR, "Cancelled", "");
         } catch (SocketTimeoutException e) {
-          completeRequest(request.clientId(), request.requestId(), TIMEOUT_ERROR, "Timed out", "");
+          completeRequest(request.requestId(), TIMEOUT_ERROR, "Timed out", "");
         } catch (Exception e) {
           Log.e(LOGTAG, "HttpClient::HttpTask::run exception: " + e);
           e.printStackTrace();
           if (e instanceof UnknownHostException) {
-            completeRequest(
-                request.clientId(), request.requestId(), INVALID_URL_ERROR, "Unknown Host", "");
+            completeRequest(request.requestId(), INVALID_URL_ERROR, "Unknown Host", "");
           } else {
-            completeRequest(request.clientId(), request.requestId(), IO_ERROR, e.toString(), "");
+            completeRequest(request.requestId(), IO_ERROR, e.toString(), "");
           }
         } finally {
           cleanup(httpConn);
@@ -552,21 +537,15 @@ public class HttpClient {
       this.executor.shutdown();
       this.executor = null;
     }
-    synchronized(this) {
-        // deinitialize the nativePtr to stop receiving scheduled events from Java to C++
-        this.nativePtr = 0;
+    synchronized (this) {
+      // deinitialize the nativePtr to stop receiving scheduled events from Java to C++
+      this.nativePtr = 0;
     }
-  }
-
-  public int registerClient() {
-    uniqueId = this.uniqueIdCounter.getAndIncrement();
-    return uniqueId;
   }
 
   public HttpTask send(
       String url,
       int httpMethod,
-      int clientId,
       long requestId,
       int connTimeout,
       int reqTimeout,
@@ -580,7 +559,6 @@ public class HttpClient {
         new Request(
             url,
             HttpClient.toHttpVerb(httpMethod),
-            clientId,
             requestId,
             connTimeout,
             reqTimeout,
@@ -599,13 +577,13 @@ public class HttpClient {
   // Synchronization is required in order to provide thread-safe access to `nativePtr`
   // Callback for completed request
   private synchronized native void completeRequest(
-      int clientId, long requestId, int status, String error, String contentType);
+      long requestId, int status, String error, String contentType);
   // Callback for data received
-  private synchronized native void dataCallback(int clientId, long requestId, byte[] data, int len);
+  private synchronized native void dataCallback(long requestId, byte[] data, int len);
   // Callback set date and offset
-  private synchronized native void dateAndOffsetCallback(int clientId, long requestId, long date, long offset);
+  private synchronized native void dateAndOffsetCallback(long requestId, long date, long offset);
   // Callback set date and offset
-  private synchronized native void headersCallback(int clientId, long requestId, String[] headers);
+  private synchronized native void headersCallback(long requestId, String[] headers);
   // Reset request for retry
-  private synchronized native void resetRequest(int clientId, long requestId);
+  private synchronized native void resetRequest(long requestId);
 }
