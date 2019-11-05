@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-#include "TaskContext.h"
+#include <olp/core/client/TaskContext.h>
 
 #include <gtest/gtest.h>
 #include <olp/core/client/Condition.h>
@@ -25,7 +25,6 @@
 namespace {
 
 using namespace olp::client;
-using namespace olp::dataservice::read;
 
 using ResponseType = std::string;
 using Response = ApiResponse<ResponseType, ApiError>;

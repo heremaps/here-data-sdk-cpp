@@ -22,8 +22,8 @@
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+#include <olp/core/client/TaskContext.h>
 
-#include "TaskContext.h"
 #include "repositories/ApiRepository.h"
 #include "repositories/CatalogRepository.h"
 #include "repositories/DataRepository.h"
@@ -123,7 +123,7 @@ client::CancellationToken VolatileLayerClientImpl::GetData(
     };
 
     auto context =
-        TaskContext::Create(std::move(data_task), std::move(callback));
+        client::TaskContext::Create(std::move(data_task), std::move(callback));
 
     pending_requests->Insert(context);
 

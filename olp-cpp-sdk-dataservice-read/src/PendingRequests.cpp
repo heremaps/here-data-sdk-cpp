@@ -19,8 +19,8 @@
 
 #include "PendingRequests.h"
 
+#include <olp/core/client/TaskContext.h>
 #include <olp/core/logging/Log.h>
-#include "TaskContext.h"
 
 namespace olp {
 namespace dataservice {
@@ -71,7 +71,7 @@ bool PendingRequests::Insert(const client::CancellationToken& request,
   return true;
 }
 
-void PendingRequests::Insert(TaskContext task_context) {
+void PendingRequests::Insert(client::TaskContext task_context) {
   std::lock_guard<std::mutex> lk(requests_lock_);
   task_contexts_.insert(task_context);
 }
@@ -86,7 +86,7 @@ bool PendingRequests::Remove(int64_t key) {
   return false;
 }
 
-void PendingRequests::Remove(TaskContext task_context) {
+void PendingRequests::Remove(client::TaskContext task_context) {
   std::lock_guard<std::mutex> lk(requests_lock_);
   task_contexts_.erase(task_context);
 }
