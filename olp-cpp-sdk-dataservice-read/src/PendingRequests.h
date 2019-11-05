@@ -26,7 +26,7 @@
 #include <vector>
 
 #include <olp/core/client/CancellationToken.h>
-#include "TaskContext.h"
+#include <olp/core/client/TaskContext.h>
 
 namespace olp {
 namespace dataservice {
@@ -63,7 +63,7 @@ class PendingRequests final {
    * @brief Inserts task context into the requests container.
    * @param task_context Task context.
    */
-  void Insert(TaskContext task_context);
+  void Insert(client::TaskContext task_context);
 
   /**
    * @brief Removes a pending request and placholder.
@@ -76,12 +76,13 @@ class PendingRequests final {
    * @brief Removes a task context.
    * @param task_context Task context.
    */
-  void Remove(TaskContext task_context);
+  void Remove(client::TaskContext task_context);
 
  private:
   int64_t key_ = 0;
   std::unordered_map<int64_t, client::CancellationToken> requests_map_;
-  std::unordered_set<TaskContext, TaskContextHash> task_contexts_;
+  std::unordered_set<client::TaskContext, client::TaskContextHash>
+      task_contexts_;
   std::mutex requests_lock_;
 };
 

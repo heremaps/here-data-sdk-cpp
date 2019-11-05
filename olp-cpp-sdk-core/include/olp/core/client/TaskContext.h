@@ -29,11 +29,23 @@
 #include "olp/core/client/CancellationToken.h"
 
 namespace olp {
-namespace dataservice {
-namespace read {
+namespace client {
 
+/**
+ * @brief Generic type erased container, that encapsulates execution of
+ * asynchronous task and invocation of callback in guaranteed manner. Once
+ * result of provided task became available or error occurs, callback is
+ * invoked.
+ */
 class TaskContext {
  public:
+  /**
+   * @brief Constructs TaskContext with provided task and callback.
+   * @param execute_func Task to be executed.
+   * @param callback Is invoked once the result of execute_func is available or
+   * task is cancelled.
+   * @return TaskContext that can be used to run or cancel corresponding task.
+   */
   template <typename Exec, typename Callback>
   static TaskContext Create(Exec execute_func, Callback callback) {
     TaskContext context;
@@ -41,15 +53,29 @@ class TaskContext {
     return context;
   }
 
+  /**
+   * @brief Checks for cancellation, executes task and calls callback with
+   * result or error.
+   */
   void Execute() const { impl_->Execute(); }
 
+  /**
+   * @brief Cancel operation and wait for it finish.
+   * @param timeout Milliseconds to wait on task finish.
+   * @return False on timeout, True on notified wake.
+   */
   bool BlockingCancel(
       std::chrono::milliseconds timeout = std::chrono::seconds(60)) const {
     return impl_->BlockingCancel(timeout);
   }
 
+  /**
+   * @brief Provides token to cancel task.
+   * @return Token to cancel task.
+   */
   client::CancellationToken CancelToken() const { return impl_->CancelToken(); }
 
+  /// @brief Overload operator ==
   bool operator==(const TaskContext& other) const {
     return impl_ == other.impl_;
   }
@@ -70,8 +96,11 @@ class TaskContext {
   class Impl {
    public:
     virtual ~Impl() = default;
+
     virtual void Execute() = 0;
+
     virtual bool BlockingCancel(std::chrono::milliseconds timeout) = 0;
+
     virtual client::CancellationToken CancelToken() = 0;
   };
 
@@ -163,12 +192,14 @@ class TaskContext {
   std::shared_ptr<Impl> impl_;
 };
 
+/**
+ * @brief Helper for unordered_* containers.
+ */
 struct TaskContextHash {
   size_t operator()(const TaskContext& task_context) const {
     return std::hash<std::shared_ptr<TaskContext::Impl>>()(task_context.impl_);
   }
 };
 
-}  // namespace read
-}  // namespace dataservice
+}  // namespace client
 }  // namespace olp
