@@ -312,8 +312,8 @@ set (CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set (CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
 # Symbols visibilty
-set (CMAKE_C_FLAGS "${APPLE_VERSION_FLAG} -isysroot ${CMAKE_OSX_SYSROOT} -fvisibility=hidden -fvisibility-inlines-hidden")
-set (CMAKE_CXX_FLAGS "${APPLE_VERSION_FLAG} -isysroot ${CMAKE_OSX_SYSROOT} -fvisibility=hidden -fvisibility-inlines-hidden")
+set (CMAKE_C_FLAGS "${APPLE_VERSION_FLAG} -Wnullability-completeness -isysroot ${CMAKE_OSX_SYSROOT} -fvisibility=hidden -fvisibility-inlines-hidden")
+set (CMAKE_CXX_FLAGS "${APPLE_VERSION_FLAG} -Wnullability-completeness -isysroot ${CMAKE_OSX_SYSROOT} -fvisibility=hidden -fvisibility-inlines-hidden")
 
 set (CMAKE_C_LINK_FLAGS "${APPLE_VERSION_FLAG} -Wl,-search_paths_first ${CMAKE_C_LINK_FLAGS}")
 set (CMAKE_CXX_LINK_FLAGS "${APPLE_VERSION_FLAG} -Wl,-search_paths_first ${CMAKE_CXX_LINK_FLAGS}")
