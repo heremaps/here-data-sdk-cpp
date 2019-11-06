@@ -52,6 +52,11 @@ class CatalogRepository final {
       const read::CatalogRequest& request,
       const read::CatalogResponseCallback& callback);
 
+  static read::CatalogResponse GetCatalog(client::HRN catalog,
+                                          client::CancellationContext context,
+                                          read::CatalogRequest request,
+                                          client::OlpClientSettings settings);
+
   client::CancellationToken getLatestCatalogVersion(
       const read::CatalogVersionRequest& request,
       const read::CatalogVersionCallback& callback);
