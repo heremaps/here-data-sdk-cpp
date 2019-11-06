@@ -144,9 +144,98 @@ client::CancellationToken CatalogRepository::getCatalog(
     return client::CancellationToken(
         [cancel_context]() { cancel_context->CancelOperation(); });
   };
+
   OLP_SDK_LOG_INFO_F(kLogTag, "ExecuteOrAssociate '%s'", requestKey.c_str());
   return multiRequestContext_->ExecuteOrAssociate(requestKey, executeFn,
                                                   callback);
+}
+
+read::CatalogResponse CatalogRepository::GetCatalog(
+    client::HRN catalog, client::CancellationContext cancellation_context,
+    read::CatalogRequest request, client::OlpClientSettings settings) {
+  using namespace client;
+
+  const auto request_key = request.CreateKey();
+  const auto timeout = settings.retry_settings.timeout;
+  const auto fetch_options = request.GetFetchOption();
+
+  OLP_SDK_LOG_TRACE_F(kLogTag, "getCatalog '%s'", request_key.c_str());
+
+  repository::CatalogCacheRepository repository{catalog, settings.cache};
+
+  if (fetch_options != OnlineOnly) {
+    auto cached = repository.Get();
+    if (cached) {
+      OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' found!",
+                         request_key.c_str());
+      return *cached;
+    } else if (fetch_options == CacheOnly) {
+      OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' not found!",
+                         request_key.c_str());
+      return ApiError(ErrorCode::NotFound,
+                      "Cache only resource not found in cache (catalog).");
+    }
+  }
+
+  auto config_api = ApiClientLookup::LookupApi(
+      catalog, cancellation_context, "config", "v1", fetch_options, settings);
+
+  if (!config_api.IsSuccessful()) {
+    return config_api.GetError();
+  }
+
+  const OlpClient& client = config_api.GetResult();
+
+  Condition condition{};
+
+  // when the network operation took too much time we cancel it and exit
+  // execution, to make sure that network callback will not access dangling
+  // references we protect them with atomic bool flag.
+  auto interest_flag = std::make_shared<std::atomic_bool>(true);
+
+  read::CatalogResponse catalog_response;
+
+  cancellation_context.ExecuteOrCancelled(
+      [&]() {
+        auto token = ConfigApi::GetCatalog(
+            client, catalog.ToCatalogHRNString(), request.GetBillingTag(),
+            [&, interest_flag](CatalogResponse response) {
+              if (interest_flag->exchange(false)) {
+                catalog_response = std::move(response);
+                condition.Notify();
+              }
+            });
+
+        return CancellationToken([&, interest_flag, token]() {
+          if (interest_flag->exchange(false)) {
+            token.cancel();
+            condition.Notify();
+          }
+        });
+      },
+      [&condition]() { condition.Notify(); });
+
+  if (!condition.Wait(std::chrono::seconds{timeout})) {
+    cancellation_context.CancelOperation();
+    return ApiError(ErrorCode::RequestTimeout, "Network request timed out.");
+  }
+
+  interest_flag->store(false);
+
+  if (cancellation_context.IsCancelled()) {
+    return ApiError(ErrorCode::Cancelled, "Operation cancelled.");
+  }
+
+  if (catalog_response.IsSuccessful()) {
+    repository.Put(catalog_response.GetResult());
+  } else {
+    const auto& error = catalog_response.GetError();
+    if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
+      repository.Clear();
+    }
+  }
+
+  return catalog_response;
 }
 
 client::CancellationToken CatalogRepository::getLatestCatalogVersion(

@@ -71,6 +71,8 @@ void CatalogClientTestBase::SetUp() {
   settings_.cache =
       olp::client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
   client_ = olp::client::OlpClientFactory::Create(settings_);
+  settings_.task_scheduler =
+      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
 
   SetUpCommonNetworkMockCalls();
 }

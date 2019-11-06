@@ -25,6 +25,7 @@
 #include "repositories/ApiRepository.h"
 #include "repositories/CatalogRepository.h"
 #include "repositories/DataRepository.h"
+#include "repositories/ExecuteOrSchedule.inl"
 #include "repositories/PartitionsRepository.h"
 #include "repositories/PrefetchTilesRepository.h"
 
@@ -42,6 +43,9 @@ CatalogClientImpl::CatalogClientImpl(HRN catalog, OlpClientSettings settings)
     : catalog_(std::move(catalog)),
       settings_(std::make_shared<OlpClientSettings>(std::move(settings))) {
   auto cache = settings_->cache;
+  // to avoid capturing task scheduler inside a task, we need a copy of settings
+  // without the scheduler
+  task_scheduler_ = std::move(settings_->task_scheduler);
 
   // create repositories, satisfying dependencies.
   auto api_repo = std::make_shared<ApiRepository>(catalog_, settings_, cache);
@@ -74,45 +78,53 @@ bool CatalogClientImpl::CancelPendingRequests() {
 }
 
 CancellationToken CatalogClientImpl::GetCatalog(
-    const CatalogRequest& request, const CatalogResponseCallback& callback) {
-  OLP_SDK_LOG_TRACE_F(kLogTag, "GetCatalog '%s'", request.CreateKey().c_str());
-  CancellationToken token;
-  int64_t request_key = pending_requests_->GenerateRequestPlaceholder();
-  auto pending_requests = pending_requests_;
-  auto request_callback = [pending_requests, request_key,
-                           callback](CatalogResponse response) {
-    OLP_SDK_LOG_INFO(kLogTag, "GetCatalog remove key: " << request_key);
-    if (pending_requests->Remove(request_key)) {
-      callback(response);
-    }
+    CatalogRequest request, CatalogResponseCallback callback) {
+  auto add_task = [&](CatalogRequest request,
+                      CatalogResponseCallback callback) {
+    auto catalog = catalog_;
+    auto settings = *settings_;
+    auto pending_requests = pending_requests_;
+
+    auto data_task = [=](client::CancellationContext context) {
+      return repository::CatalogRepository::GetCatalog(catalog, context,
+                                                       request, settings);
+    };
+
+    auto context =
+        client::TaskContext::Create(std::move(data_task), std::move(callback));
+
+    pending_requests->Insert(context);
+
+    repository::ExecuteOrSchedule(task_scheduler_, [=]() {
+      context.Execute();
+      pending_requests->Remove(context);
+    });
+
+    return context.CancelToken();
   };
-  if (CacheWithUpdate == request.GetFetchOption()) {
-    auto req = request;
-    token = catalog_repo_->getCatalog(req.WithFetchOption(CacheOnly),
-                                      request_callback);
-    auto onlineKey = pending_requests_->GenerateRequestPlaceholder();
-    OLP_SDK_LOG_INFO(kLogTag, "GetCatalog add key: " << onlineKey);
-    pending_requests_->Insert(
-        catalog_repo_->getCatalog(
-            req.WithFetchOption(OnlineIfNotFound),
-            [pending_requests, onlineKey](CatalogResponse) {
-              pending_requests->Remove(onlineKey);
-            }),
-        onlineKey);
+
+  if (request.GetFetchOption() == FetchOptions::CacheWithUpdate) {
+    auto cache_token = add_task(
+        request.WithFetchOption(FetchOptions::CacheOnly), std::move(callback));
+    auto online_token =
+        add_task(request.WithFetchOption(FetchOptions::OnlineOnly), nullptr);
+
+    return client::CancellationToken([=]() {
+      cache_token.cancel();
+      online_token.cancel();
+    });
   } else {
-    OLP_SDK_LOG_INFO(kLogTag, "GetCatalog existing: " << request_key);
-    token = catalog_repo_->getCatalog(request, request_callback);
+    return add_task(std::move(request), std::move(callback));
   }
-  pending_requests_->Insert(token, request_key);
-  return token;
 }
 
 CancellableFuture<CatalogResponse> CatalogClientImpl::GetCatalog(
-    const CatalogRequest& request) {
+    CatalogRequest request) {
   return AsFuture<CatalogRequest, CatalogResponse>(
-      request, static_cast<client::CancellationToken (CatalogClientImpl::*)(
-                   const CatalogRequest&, const CatalogResponseCallback&)>(
-                   &CatalogClientImpl::GetCatalog));
+      std::move(request),
+      static_cast<client::CancellationToken (CatalogClientImpl::*)(
+          CatalogRequest, CatalogResponseCallback)>(
+          &CatalogClientImpl::GetCatalog));
 }
 
 CancellationToken CatalogClientImpl::GetCatalogMetadataVersion(
