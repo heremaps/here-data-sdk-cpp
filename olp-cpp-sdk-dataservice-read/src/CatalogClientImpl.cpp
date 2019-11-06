@@ -115,9 +115,8 @@ CancellableFuture<CatalogResponse> CatalogClientImpl::GetCatalog(
                    &CatalogClientImpl::GetCatalog));
 }
 
-CancellationToken CatalogClientImpl::GetCatalogMetadataVersion(
-    const CatalogVersionRequest& request,
-    const CatalogVersionCallback& callback) {
+CancellationToken CatalogClientImpl::GetLatestVersion(
+    CatalogVersionRequest request, CatalogVersionCallback callback) {
   OLP_SDK_LOG_TRACE_F(kLogTag, "GetCatalog '%s'", request.CreateKey().c_str());
   CancellationToken token;
   int64_t request_key = pending_requests_->GenerateRequestPlaceholder();
@@ -130,14 +129,13 @@ CancellationToken CatalogClientImpl::GetCatalogMetadataVersion(
     }
   };
   if (CacheWithUpdate == request.GetFetchOption()) {
-    auto req = request;
     token = catalog_repo_->getLatestCatalogVersion(
-        req.WithFetchOption(CacheOnly), request_callback);
+        request.WithFetchOption(CacheOnly), request_callback);
     auto onlineKey = pending_requests_->GenerateRequestPlaceholder();
     OLP_SDK_LOG_INFO(kLogTag, "GetCatalog add key: " << onlineKey);
     pending_requests_->Insert(
         catalog_repo_->getLatestCatalogVersion(
-            req.WithFetchOption(OnlineIfNotFound),
+            request.WithFetchOption(OnlineIfNotFound),
             [pending_requests, onlineKey](CatalogVersionResponse) {
               pending_requests->Remove(onlineKey);
             }),
@@ -150,14 +148,13 @@ CancellationToken CatalogClientImpl::GetCatalogMetadataVersion(
   return token;
 }
 
-CancellableFuture<CatalogVersionResponse>
-CatalogClientImpl::GetCatalogMetadataVersion(
-    const CatalogVersionRequest& request) {
+CancellableFuture<CatalogVersionResponse> CatalogClientImpl::GetLatestVersion(
+    CatalogVersionRequest request) {
   return AsFuture<CatalogVersionRequest, CatalogVersionResponse>(
-      request,
+      std::move(request),
       static_cast<client::CancellationToken (CatalogClientImpl::*)(
-          const CatalogVersionRequest&, const CatalogVersionCallback&)>(
-          &CatalogClientImpl::GetCatalogMetadataVersion));
+          CatalogVersionRequest, CatalogVersionCallback)>(
+          &CatalogClientImpl::GetLatestVersion));
 }
 
 olp::client::CancellationToken CatalogClientImpl::GetPartitions(

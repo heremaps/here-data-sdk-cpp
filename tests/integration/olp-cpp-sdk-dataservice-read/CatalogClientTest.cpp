@@ -1296,7 +1296,7 @@ TEST_P(CatalogClientTest, GetCatalogVersion) {
 
   auto request = CatalogVersionRequest().WithStartVersion(-1);
 
-  auto future = catalog_client->GetCatalogMetadataVersion(request);
+  auto future = catalog_client->GetLatestVersion(request);
   auto catalog_version_response = future.GetFuture().get();
 
   ASSERT_TRUE(catalog_version_response.IsSuccessful())
@@ -1439,7 +1439,7 @@ TEST_P(CatalogClientTest, GetCatalogVersionCancel) {
         promise.set_value(response);
       };
   olp::client::CancellationToken cancel_token =
-      catalog_client->GetCatalogMetadataVersion(request, callback);
+      catalog_client->GetLatestVersion(request, callback);
 
   wait_for_cancel->get_future().get();
   cancel_token.cancel();
@@ -1908,8 +1908,7 @@ TEST_P(CatalogClientTest, DISABLED_CancelPendingRequestsCatalog) {
 
   waits.push_back(wait_for_cancel2);
   pauses.push_back(pause_for_cancel2);
-  auto version_future =
-      catalog_client->GetCatalogMetadataVersion(version_request);
+  auto version_future = catalog_client->GetLatestVersion(version_request);
 
   for (auto wait : waits) {
     wait->get_future().get();
