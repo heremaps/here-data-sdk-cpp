@@ -42,8 +42,9 @@ class NetworkAndroid : public Network {
  public:
   /**
    * @brief NetworkAndroid constructor
+   * @param max_requests_count Maximum requests the NetworkAndroid can process.
    */
-  NetworkAndroid();
+  explicit NetworkAndroid(size_t max_requests_count);
 
   /**
    * @brief NetworkAndroid destructor
@@ -196,6 +197,8 @@ class NetworkAndroid : public Network {
   bool started_;
   bool initialized_;
   std::condition_variable run_thread_ready_cv_;
+
+  const size_t max_requests_count_;
 
   RequestId request_id_counter_{
       static_cast<RequestId>(RequestIdConstants::RequestIdMin)};
