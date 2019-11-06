@@ -15,9 +15,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-
-cmake_minimum_required(VERSION 3.5)
-
 set(OLP_SDK_DATASERVICE_WRITE_TEST_SOURCES
     CancellationTokenListTest.cpp
     ParserTest.cpp

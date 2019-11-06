@@ -15,9 +15,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-
-cmake_minimum_required(VERSION 3.5)
-
 set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     ApiClientLookupTest.cpp
     CatalogClientTest.cpp

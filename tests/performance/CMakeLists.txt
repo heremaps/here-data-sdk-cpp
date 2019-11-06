@@ -15,8 +15,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-cmake_minimum_required(VERSION 3.5)
-
 if (ANDROID OR IOS)
     message(STATUS "Currently the performance test runner for mobile platforms is not supported")
     return()
