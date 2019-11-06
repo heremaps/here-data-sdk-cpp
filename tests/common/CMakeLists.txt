@@ -15,8 +15,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-cmake_minimum_required(VERSION 3.5)
-
 set(OLP_SDK_TESTS_COMMON_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/matchers/NetworkUrlMatchers.h
     ${CMAKE_CURRENT_SOURCE_DIR}/mocks/NetworkMock.h

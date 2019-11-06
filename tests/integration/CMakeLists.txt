@@ -15,8 +15,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-cmake_minimum_required(VERSION 3.5)
-
 set(OLP_SDK_INTEGRATIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-authentication/AuthenticationClientTest.cpp
     ./olp-cpp-sdk-authentication/HereAccountOauth2Test.cpp

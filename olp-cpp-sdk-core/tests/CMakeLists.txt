@@ -15,8 +15,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-cmake_minimum_required(VERSION 3.5)
-
 set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./cache/DefaultCacheTest.cpp
     ./cache/InMemoryCacheTest.cpp
