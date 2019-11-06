@@ -57,15 +57,25 @@ client::CancellableFuture<CatalogResponse> CatalogClient::GetCatalog(
   return impl_->GetCatalog(request);
 }
 
+client::CancellationToken CatalogClient::GetLatestVersion(
+    CatalogVersionRequest request, CatalogVersionCallback callback) {
+  return impl_->GetLatestVersion(std::move(request), std::move(callback));
+}
+
+client::CancellableFuture<CatalogVersionResponse>
+CatalogClient::GetLatestVersion(CatalogVersionRequest request) {
+  return impl_->GetLatestVersion(std::move(request));
+}
+
 client::CancellationToken CatalogClient::GetCatalogMetadataVersion(
     const CatalogVersionRequest& request,
     const CatalogVersionCallback& callback) {
-  return impl_->GetCatalogMetadataVersion(request, callback);
+  return impl_->GetLatestVersion(request, callback);
 }
 
 client::CancellableFuture<CatalogVersionResponse>
 CatalogClient::GetCatalogMetadataVersion(const CatalogVersionRequest& request) {
-  return impl_->GetCatalogMetadataVersion(request);
+  return impl_->GetLatestVersion(request);
 }
 
 client::CancellationToken CatalogClient::GetPartitions(

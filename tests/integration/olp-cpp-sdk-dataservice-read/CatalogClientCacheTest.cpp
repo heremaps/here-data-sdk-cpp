@@ -98,7 +98,7 @@ TEST_P(CatalogClientCacheTest, GetApi) {
 
   auto request = CatalogVersionRequest().WithStartVersion(-1);
 
-  auto future = catalog_client->GetCatalogMetadataVersion(request);
+  auto future = catalog_client->GetLatestVersion(request);
   auto catalog_version_response = future.GetFuture().get();
 
   ASSERT_TRUE(catalog_version_response.IsSuccessful())
