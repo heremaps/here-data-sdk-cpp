@@ -40,7 +40,7 @@ CORE_API std::shared_ptr<Network> CreateDefaultNetwork(
 #ifdef NETWORK_HAS_CURL
   return std::make_shared<NetworkCurl>(max_requests_count);
 #elif NETWORK_HAS_ANDROID
-  return std::make_shared<NetworkAndroid>();
+  return std::make_shared<NetworkAndroid>(max_requests_count);
 #elif NETWORK_HAS_IOS
   return std::make_shared<OLPNetworkIOS>(max_requests_count);
 #elif NETWORK_HAS_WINHTTP

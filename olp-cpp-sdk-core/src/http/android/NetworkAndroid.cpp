@@ -69,13 +69,14 @@ olp::http::NetworkAndroid* GetNetworkAndroidNativePtr(JNIEnv* env,
 
 }  // namespace
 
-NetworkAndroid::NetworkAndroid()
+NetworkAndroid::NetworkAndroid(size_t max_requests_count)
     : java_self_class_(nullptr),
       jni_send_method_(nullptr),
       java_shutdown_method_(nullptr),
       obj_(nullptr),
       started_(false),
-      initialized_(false) {}
+      initialized_(false),
+      max_requests_count_(max_requests_count) {}
 
 NetworkAndroid::~NetworkAndroid() { Deinitialize(); }
 
@@ -339,10 +340,12 @@ void NetworkAndroid::Deinitialize() {
   }
 
   for (auto& pair : completed_messages) {
-    pair.second(NetworkResponse()
-                    .WithRequestId(pair.first)
-                    .WithStatus(static_cast<int>(ErrorCode::OFFLINE_ERROR))
-                    .WithError("Offline: network client is destroyed"));
+    if (auto callback = pair.second) {
+      callback(NetworkResponse()
+                   .WithRequestId(pair.first)
+                   .WithStatus(static_cast<int>(ErrorCode::OFFLINE_ERROR))
+                   .WithError("Offline: network client is destroyed"));
+    }
   }
 
   // TODO: replace without explicit waiting for specific amount of seconds
@@ -710,13 +713,6 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
     return SendOutcome(ErrorCode::OFFLINE_ERROR);
   }
 
-  if (requests_.size() >= 32) {
-    OLP_SDK_LOG_WARNING_F(kLogTag,
-                          "Can't send request with URL=[%s] - nework overload",
-                          request.GetUrl().c_str());
-    return SendOutcome(ErrorCode::NETWORK_OVERLOAD_ERROR);
-  }
-
   utils::JNIThreadBinder env(gJavaVM);
   if (env.GetEnv() == nullptr) {
     OLP_SDK_LOG_WARNING(kLogTag, "Failed to get Java Env");
@@ -797,18 +793,10 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
   // request is later fulfilled.
   auto request_data = std::make_shared<RequestData>(
       callback, header_callback, data_callback, request.GetUrl(), payload);
-  // Add the request to the request map
   RequestId request_id =
       static_cast<RequestId>(RequestIdConstants::RequestIdMin);
-  {
-    std::unique_lock<std::mutex> lock(requests_mutex_);
-    request_id = GenerateNextRequestId();
-    requests_.insert({request_id, request_data});
-  }
 
-  // Do sending
   const jint jhttp_verb = static_cast<jint>(request.GetVerb());
-  const jlong jrequest_id = static_cast<jlong>(request_id);
   const jint jconnection_timeout =
       static_cast<jint>(request.GetSettings().GetConnectionTimeout());
   const jint jtransfer_timeout =
@@ -817,25 +805,40 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
   const jint jproxy_type = static_cast<jint>(proxy_settings.GetType());
   const jint jmax_retries =
       static_cast<jint>(request.GetSettings().GetRetries());
-  jobject task_obj = env.GetEnv()->CallObjectMethod(
-      obj_, jni_send_method_, jurl, jhttp_verb, jrequest_id,
-      jconnection_timeout, jtransfer_timeout, jheaders, jbody, jproxy,
-      jproxy_port, jproxy_type, jmax_retries);
-  if (env.GetEnv()->ExceptionOccurred() || !task_obj) {
-    OLP_SDK_LOG_WARNING_F(kLogTag, "Failed to send the request with URL=[%s]",
-                          request.GetUrl().c_str());
-    env.GetEnv()->ExceptionDescribe();
-    env.GetEnv()->ExceptionClear();
-    {
-      std::unique_lock<std::mutex> lock(requests_mutex_);
-      requests_.erase(request_id);
+  // Do sending
+  {
+    std::lock_guard<std::mutex> lock(requests_mutex_);
+
+    if (requests_.size() >= max_requests_count_) {
+      OLP_SDK_LOG_WARNING_F(
+          kLogTag, "Can't send request with URL=[%s] - nework overload",
+          request.GetUrl().c_str());
+      return SendOutcome(ErrorCode::NETWORK_OVERLOAD_ERROR);
     }
-    return SendOutcome(ErrorCode::IO_ERROR);
+
+    // Add the request to the request map
+    request_id = GenerateNextRequestId();
+    requests_.insert({request_id, request_data});
+
+    const jlong jrequest_id = static_cast<jlong>(request_id);
+    auto task_obj = env.GetEnv()->CallObjectMethod(
+        obj_, jni_send_method_, jurl, jhttp_verb, jrequest_id,
+        jconnection_timeout, jtransfer_timeout, jheaders, jbody, jproxy,
+        jproxy_port, jproxy_type, jmax_retries);
+    if (env.GetEnv()->ExceptionOccurred() || !task_obj) {
+      OLP_SDK_LOG_WARNING_F(kLogTag, "Failed to send the request with URL=[%s]",
+                            request.GetUrl().c_str());
+      env.GetEnv()->ExceptionDescribe();
+      env.GetEnv()->ExceptionClear();
+      requests_.erase(request_id);
+      return SendOutcome(ErrorCode::IO_ERROR);
+    }
+
+    // Store the HttpTask object in order to grant possibility for cancelling
+    // requests
+    utils::JNIScopedLocalReference task_obj_ref(env.GetEnv(), task_obj);
+    request_data->obj = env.GetEnv()->NewGlobalRef(task_obj);
   }
-  // Store the HttpTask object in order to grant possibility for cancelling
-  // requests
-  utils::JNIScopedLocalReference task_obj_ref(env.GetEnv(), task_obj);
-  request_data->obj = env.GetEnv()->NewGlobalRef(task_obj);
 
   return SendOutcome(request_id);
 }
