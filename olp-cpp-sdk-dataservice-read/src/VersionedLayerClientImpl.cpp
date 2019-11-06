@@ -121,7 +121,7 @@ VersionedLayerClientImpl::GetPartitions(PartitionsRequest partitions_request) {
 
 client::CancellationToken VersionedLayerClientImpl::GetData(
     DataRequest request, DataResponseCallback callback) {
-  auto add_task = [&](DataRequest& request, DataResponseCallback callback) {
+  auto add_task = [&](DataRequest request, DataResponseCallback callback) {
     auto catalog = catalog_;
     auto layer_id = layer_id_;
     auto settings = *settings_;
@@ -156,7 +156,7 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
       online_token.cancel();
     });
   } else {
-    return add_task(request, std::move(callback));
+    return add_task(std::move(request), std::move(callback));
   }
 }
 
