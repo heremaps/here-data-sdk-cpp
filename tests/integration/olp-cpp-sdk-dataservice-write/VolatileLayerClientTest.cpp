@@ -59,7 +59,7 @@ class VolatileLayerClientTest : public ::testing::Test {
   }
 
   std::string GetTestCatalog() {
-    return "hrn:here:data:::olp-cpp-sdk-ingestion-test-catalog";
+    return "hrn:here:data::olp-here-test:olp-cpp-sdk-ingestion-test-catalog";
   }
 
   std::string GetTestLayer() {

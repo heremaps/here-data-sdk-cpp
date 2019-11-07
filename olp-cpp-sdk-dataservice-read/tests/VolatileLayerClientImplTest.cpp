@@ -32,13 +32,13 @@ using namespace ::testing;
 using namespace olp::tests::common;
 
 constexpr auto kUrlLookupVolatileBlob =
-    R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data:::hereos-internal-test-v2/apis/volatile-blob/v1)";
+    R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis/volatile-blob/v1)";
 
 constexpr auto kUrlVolatileBlobData =
     R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/4eed6ed1-0d32-43b9-ae79-043cb4256432)";
 
 constexpr auto kUrlLookupQuery =
-    R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data:::hereos-internal-test-v2/apis/query/v1)";
+    R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis/query/v1)";
 
 constexpr auto kUrlQueryPartition269 =
     R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?partition=269)";
@@ -57,7 +57,7 @@ constexpr auto kHttpResponseNoPartition =
 
 constexpr auto kBlobDataHandle = R"(4eed6ed1-0d32-43b9-ae79-043cb4256432)";
 
-const std::string kCatalog = "hrn:here:data:::hereos-internal-test-v2";
+const std::string kCatalog = "hrn:here:data::olp-here-test:hereos-internal-test-v2";
 const std::string kLayerId = "testlayer";
 const auto kHRN = olp::client::HRN::FromString(kCatalog);
 const auto kPartitionId = "269";

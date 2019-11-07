@@ -65,7 +65,7 @@ DataserviceReadVolatileLayerClientTest::
     ~DataserviceReadVolatileLayerClientTest() = default;
 
 std::string DataserviceReadVolatileLayerClientTest::GetTestCatalog() {
-  return "hrn:here:data:::hereos-internal-test-v2";
+  return "hrn:here:data::olp-here-test:hereos-internal-test-v2";
 }
 
 std::string DataserviceReadVolatileLayerClientTest::ApiErrorToString(

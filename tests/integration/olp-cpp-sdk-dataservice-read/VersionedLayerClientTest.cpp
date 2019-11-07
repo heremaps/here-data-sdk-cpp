@@ -39,7 +39,7 @@ namespace {
 
 std::string GetArgument(const std::string& name) {
   if (name == "dataservice_read_test_catalog") {
-    return "hrn:here:data:::here-optimized-map-for-visualization-2";
+    return "hrn:here:data::olp-here-test:here-optimized-map-for-visualization-2";
   } else if (name == "dataservice_read_test_layer") {
     return "testlayer";
   } else if (name == "dataservice_read_test_partition") {

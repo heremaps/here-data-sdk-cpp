@@ -110,7 +110,7 @@ TEST(ParserTest, Catalog) {
   std::string json_input =
       "{\
     \"id\": \"roadweather-catalog-v1\",\
-    \"hrn\": \"hrn:here:data:::my-catalog-v1\",\
+    \"hrn\": \"hrn:here:data::olp-here-test:my-catalog-v1\",\
     \"name\": \"string\",\
     \"summary\": \"Contains estimates for road conditions based on weather data.\",\
     \"description\": \"Road conditions are typically based on the temperature, comfort level, wind speed and direction. However, other weather-based data points can be taken into account.\",\
@@ -216,7 +216,7 @@ TEST(ParserTest, Catalog) {
   std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
 
   ASSERT_EQ("roadweather-catalog-v1", catalog.GetId());
-  ASSERT_EQ("hrn:here:data:::my-catalog-v1", catalog.GetHrn());
+  ASSERT_EQ("hrn:here:data::olp-here-test:my-catalog-v1", catalog.GetHrn());
   ASSERT_EQ("string", catalog.GetName());
   ASSERT_EQ("Contains estimates for road conditions based on weather data.",
             catalog.GetSummary());
@@ -368,8 +368,8 @@ TEST(ParserTest, CatalogCrash) {
       "\"billingTags\":[],"
       "\"created\":\"2019-02-04T23:12:35.707254Z\",\"layerType\":\"stream\"},{"
       "\"id\":\"olp-cpp-"
-      "sdk-ingestion-test-stream-layer-2\",\"hrn\":\"hrn:here:data:::olp-cpp-"
-      "sdk-ingestion-"
+      "sdk-ingestion-test-stream-layer-2\",\"hrn\":\"hrn:here:data::olp-here-"
+      "test:olp-cpp-sdk-ingestion-"
       "test-catalog:olp-cpp-sdk-ingestion-test-stream-layer-2\",\"name\":\"OLP "
       "CPP SDK "
       "Ingestion Test Stream Layer 2\",\"summary\":\"Second Stream Layer for "
@@ -391,8 +391,8 @@ TEST(ParserTest, CatalogCrash) {
       "\"billingTags\":[],"
       "\"created\":\"2019-02-05T22:11:54.412241Z\",\"layerType\":\"stream\"},{"
       "\"id\":\"olp-cpp-"
-      "sdk-ingestion-test-stream-layer-sdii\",\"hrn\":\"hrn:here:data:::olp-"
-      "cpp-sdk-ingestion-"
+      "sdk-ingestion-test-stream-layer-sdii\",\"hrn\":\"hrn:here:data::olp-"
+      "here-test:olp-cpp-sdk-ingestion-"
       "test-catalog:olp-cpp-sdk-ingestion-test-stream-layer-sdii\",\"name\":"
       "\"OLP CPP SDK "
       "Ingestion Test Stream Layer SDII\",\"summary\":\"SDII Stream Layer for "
@@ -552,7 +552,7 @@ TEST(ParserTest, VersionDependency) {
   auto json = R"(
       {
           "direct": true,
-          "hrn": "hrn:here:data:::my-catalog",
+          "hrn": "hrn:here:data::olp-here-test:my-catalog",
           "version": 1
       }
 )";
@@ -560,7 +560,7 @@ TEST(ParserTest, VersionDependency) {
   auto response = olp::parser::parse<VersionDependency>(json);
 
   EXPECT_TRUE(response.GetDirect());
-  EXPECT_STREQ("hrn:here:data:::my-catalog", response.GetHrn().c_str());
+  EXPECT_STREQ("hrn:here:data::olp-here-test:my-catalog", response.GetHrn().c_str());
   EXPECT_EQ(1, response.GetVersion());
 }
 
@@ -582,7 +582,7 @@ TEST(ParserTest, Publication) {
         "versionDependencies": [
           {
             "direct": true,
-            "hrn": "hrn:here:data:::my-catalog",
+            "hrn": "hrn:here:data::olp-here-test:my-catalog",
             "version": 1
           }
         ]
@@ -610,7 +610,7 @@ TEST(ParserTest, Publication) {
   auto version_dependency = response.GetVersionDependencies().get().at(0);
 
   EXPECT_TRUE(version_dependency.GetDirect());
-  EXPECT_STREQ("hrn:here:data:::my-catalog",
+  EXPECT_STREQ("hrn:here:data::olp-here-test:my-catalog",
                version_dependency.GetHrn().c_str());
   EXPECT_EQ(1, version_dependency.GetVersion());
 }

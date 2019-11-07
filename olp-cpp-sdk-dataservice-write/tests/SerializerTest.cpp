@@ -55,7 +55,7 @@ TEST(SerializerTest, Publication) {
 
   VersionDependency version_dependency;
   version_dependency.SetDirect(true);
-  version_dependency.SetHrn("hrn:here:data:::my-catalog");
+  version_dependency.SetHrn("hrn:here:data::olp-here-test:my-catalog");
   version_dependency.SetVersion(1);
   publication.SetVersionDependencies({version_dependency});
   publication.SetCatalogVersion(1);
@@ -79,7 +79,7 @@ TEST(SerializerTest, Publication) {
         "versionDependencies": [
           {
             "direct": true,
-            "hrn": "hrn:here:data:::my-catalog",
+            "hrn": "hrn:here:data::olp-here-test:my-catalog",
             "version": 1
           }
         ]

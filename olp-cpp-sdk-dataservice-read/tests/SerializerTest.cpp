@@ -81,7 +81,7 @@ TEST(SerializerTest, Catalog) {
   std::string expectedOutput =
       "{\
     \"id\": \"roadweather-catalog-v1\",\
-    \"hrn\": \"hrn:here:data:::my-catalog-v1\",\
+    \"hrn\": \"hrn:here:data::olp-here-test:my-catalog-v1\",\
     \"name\": \"string\",\
     \"summary\": \"Contains estimates for road conditions based on weather data.\",\
     \"description\": \"Road conditions are typically based on the temperature, comfort level, wind speed and direction. However, other weather-based data points can be taken into account.\",\
@@ -271,7 +271,7 @@ TEST(SerializerTest, Catalog) {
 
   Catalog catalog;
   catalog.SetId("roadweather-catalog-v1");
-  catalog.SetHrn("hrn:here:data:::my-catalog-v1");
+  catalog.SetHrn("hrn:here:data::olp-here-test:my-catalog-v1");
   catalog.SetName("string");
   catalog.SetSummary(
       "Contains estimates for road conditions based on weather data.");

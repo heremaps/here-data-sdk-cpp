@@ -37,7 +37,7 @@ using namespace client;
 using namespace dataservice::read;
 using namespace olp::tests::common;
 
-const std::string kCatalog = "hrn:here:data:::hereos-internal-test-v2";
+const std::string kCatalog = "hrn:here:data::olp-here-test:hereos-internal-test-v2";
 const std::string kLayerId = "test_layer";
 const std::string kPartitionId = "1111";
 constexpr int kVersion = 4;

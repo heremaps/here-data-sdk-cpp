@@ -177,7 +177,7 @@ TEST_P(CatalogClientTest, ReadNPartitionsFromVersionedLayer) {
 
   const auto client_settings = CreateCatalogClientSettings();
 
-  client::HRN hrn("hrn:here:data:::testhrn");
+  client::HRN hrn("hrn:here:data::olp-here-test:testhrn");
 
   std::vector<std::thread> client_threads;
 
