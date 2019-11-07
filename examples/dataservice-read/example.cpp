@@ -38,7 +38,7 @@
 namespace {
 const std::string kKeyId("");      // your here.access.key.id
 const std::string kKeySecret("");  // your here.access.key.secret
-const std::string kCatalogHRN("hrn:here:data:::edge-example-catalog");
+const std::string kCatalogHRN("hrn:here:data::olp-here-test:edge-example-catalog");
 constexpr size_t kMaxLayers(5);
 constexpr size_t kMaxPartitions(5);
 constexpr auto kLogTag = "read-example";

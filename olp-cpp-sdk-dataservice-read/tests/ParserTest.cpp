@@ -70,7 +70,7 @@ TEST(ParserTest, Catalog) {
   std::string json_input =
       "{\
     \"id\": \"roadweather-catalog-v1\",\
-    \"hrn\": \"hrn:here:data:::my-catalog-v1\",\
+    \"hrn\": \"hrn:here:data::olp-here-test:my-catalog-v1\",\
     \"name\": \"string\",\
     \"summary\": \"Contains estimates for road conditions based on weather data.\",\
     \"description\": \"Road conditions are typically based on the temperature, comfort level, wind speed and direction. However, other weather-based data points can be taken into account.\",\
@@ -176,7 +176,7 @@ TEST(ParserTest, Catalog) {
   std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
 
   ASSERT_EQ("roadweather-catalog-v1", catalog.GetId());
-  ASSERT_EQ("hrn:here:data:::my-catalog-v1", catalog.GetHrn());
+  ASSERT_EQ("hrn:here:data::olp-here-test:my-catalog-v1", catalog.GetHrn());
   ASSERT_EQ("string", catalog.GetName());
   ASSERT_EQ("Contains estimates for road conditions based on weather data.",
             catalog.GetSummary());

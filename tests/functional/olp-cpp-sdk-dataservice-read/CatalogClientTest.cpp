@@ -153,7 +153,7 @@ TEST_P(CatalogClientTest, GetCatalog) {
 }
 
 TEST_P(CatalogClientTest, GetPartitionsWithInvalidHrn) {
-  olp::client::HRN hrn("hrn:here:data:::nope-test-v2");
+  olp::client::HRN hrn("hrn:here:data::olp-here-test:nope-test-v2");
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -209,7 +209,7 @@ TEST_P(CatalogClientTest, GetPartitionsForInvalidLayer) {
 }
 
 TEST_P(CatalogClientTest, GetDataWithInvalidHrn) {
-  olp::client::HRN hrn("hrn:here:data:::nope-test-v2");
+  olp::client::HRN hrn("hrn:here:data::olp-here-test:nope-test-v2");
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);

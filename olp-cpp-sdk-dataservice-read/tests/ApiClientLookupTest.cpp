@@ -47,7 +47,7 @@ TEST(ApiClientLookupTest, LookupApi) {
   settings.network_request_handler = network;
   settings.retry_settings.timeout = 1;
 
-  const std::string catalog = "hrn:here:data:::hereos-internal-test-v2";
+  const std::string catalog = "hrn:here:data::olp-here-test:hereos-internal-test-v2";
   const auto catalog_hrn = HRN::FromString(catalog);
   const std::string service_name = "random_service";
   const std::string service_url = "http://random_service.com";

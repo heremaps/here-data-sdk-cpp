@@ -30,7 +30,7 @@
 #include <repositories/DataRepository.h>
 
 #define URL_LOOKUP_BLOB \
-  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data:::hereos-internal-test-v2/apis/blob/v1)"
+  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis/blob/v1)"
 
 #define URL_BLOB_DATA_269 \
   R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/4eed6ed1-0d32-43b9-ae79-043cb4256432)"
@@ -76,7 +76,7 @@ void DataRepositoryTest::TearDown() {
 }
 
 std::string DataRepositoryTest::GetTestCatalog() {
-  return "hrn:here:data:::hereos-internal-test-v2";
+  return "hrn:here:data::olp-here-test:hereos-internal-test-v2";
 }
 
 TEST_F(DataRepositoryTest, GetBlobData) {

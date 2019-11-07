@@ -51,7 +51,7 @@ CatalogClientTestBase::CatalogClientTestBase() = default;
 CatalogClientTestBase::~CatalogClientTestBase() = default;
 
 std::string CatalogClientTestBase::GetTestCatalog() {
-  return "hrn:here:data:::hereos-internal-test-v2";
+  return "hrn:here:data::olp-here-test:hereos-internal-test-v2";
 }
 
 std::string CatalogClientTestBase::ApiErrorToString(
