@@ -69,6 +69,101 @@ olp::http::NetworkAndroid* GetNetworkAndroidNativePtr(JNIEnv* env,
 
 }  // namespace
 
+#ifndef __clang__
+#define OLP_SDK_NETWORK_ANDROID_EXPORT \
+  __attribute__((externally_visible)) JNIEXPORT
+#else
+#define OLP_SDK_NETWORK_ANDROID_EXPORT JNIEXPORT
+#endif
+/*
+ * Callback to be called when response headers have been received
+ */
+extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
+Java_com_here_olp_network_HttpClient_headersCallback(JNIEnv* env, jobject obj,
+                                                     jlong request_id,
+                                                     jobjectArray headers) {
+  auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
+  if (!network) {
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "headersCallback with id="
+                            << request_id
+                            << " to non-existing NetworkAndroid instance");
+    return;
+  }
+  network->HeadersCallback(env, request_id, headers);
+}
+
+/*
+ * Callback to be called when a date header is received
+ */
+extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
+Java_com_here_olp_network_HttpClient_dateAndOffsetCallback(
+    JNIEnv* env, jobject obj, jlong request_id, jlong date, jlong offset) {
+  auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
+  if (!network) {
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "dateAndOffsetCallback with id="
+                            << request_id
+                            << " to non-existing NetworkAndroid instance");
+    return;
+  }
+  network->DateAndOffsetCallback(env, request_id, date, offset);
+}
+
+/*
+ * Callback to be called when a chunk of data is received
+ */
+extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
+Java_com_here_olp_network_HttpClient_dataCallback(JNIEnv* env, jobject obj,
+                                                  jlong request_id,
+                                                  jbyteArray data, jint len) {
+  auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
+  if (!network) {
+    OLP_SDK_LOG_WARNING(
+        kLogTag,
+        "dataCallback with id=" << request_id
+                                << " to non-existing NetworkAndroid isntance");
+    return;
+  }
+  network->DataReceived(env, request_id, data, len);
+}
+
+/*
+ * Callback to be called when a request is completed
+ */
+extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
+Java_com_here_olp_network_HttpClient_completeRequest(JNIEnv* env, jobject obj,
+                                                     jlong request_id,
+                                                     jint status, jstring error,
+                                                     jstring content_type) {
+  auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
+  if (!network) {
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "completeRequest with id="
+                            << request_id
+                            << " to non-existing NetworkAndroid instance");
+    return;
+  }
+  network->CompleteRequest(env, request_id, status, error, content_type);
+}
+
+/*
+ * Reset request upon retry
+ */
+extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
+Java_com_here_olp_network_HttpClient_resetRequest(JNIEnv* env, jobject obj,
+                                                  jlong request_id) {
+  auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
+  if (!network) {
+    OLP_SDK_LOG_WARNING(
+        kLogTag,
+        "resetRequest id=" << request_id
+                           << " to non-existing NetworkAndroid instance");
+    return;
+  }
+  network->ResetRequest(env, request_id);
+}
+
 NetworkAndroid::NetworkAndroid(size_t max_requests_count)
     : java_self_class_(nullptr),
       jni_send_method_(nullptr),
@@ -264,6 +359,32 @@ bool NetworkAndroid::Initialize() {
     }
   }
   env->SetLongField(obj_, gJniNativePtrField, (jlong)this);
+
+  static bool natives_registered = false;
+  if (!natives_registered) {
+    JNINativeMethod methods[] = {
+        {"headersCallback", "(J[Ljava/lang/String;)V",
+         (void*)&Java_com_here_olp_network_HttpClient_headersCallback},
+        {"dateAndOffsetCallback", "(JJJ)V",
+         (void*)&Java_com_here_olp_network_HttpClient_dateAndOffsetCallback},
+        {"dataCallback", "(J[BI)V",
+         (void*)&Java_com_here_olp_network_HttpClient_dataCallback},
+        {"completeRequest", "(JILjava/lang/String;Ljava/lang/String;)V",
+         (void*)&Java_com_here_olp_network_HttpClient_completeRequest},
+        {"resetRequest", "(J)V",
+         (void*)&Java_com_here_olp_network_HttpClient_resetRequest}};
+
+    env->RegisterNatives(java_self_class_, methods,
+                         sizeof(methods) / sizeof(methods[0]));
+    if (env->ExceptionOccurred()) {
+      OLP_SDK_LOG_ERROR(kLogTag, "Failed to register native methods");
+      env->ExceptionDescribe();
+      env->ExceptionClear();
+      return false;
+    }
+
+    natives_registered = true;
+  }
 
   run_thread_ = std::make_unique<std::thread>(NetworkAndroid::Run, this);
   {
@@ -906,98 +1027,3 @@ NetworkAndroid::ResponseData::ResponseData(
 
 }  // namespace http
 }  // namespace olp
-
-#ifndef __clang__
-#define OLP_SDK_NETWORK_ANDROID_EXPORT \
-  __attribute__((externally_visible)) JNIEXPORT
-#else
-#define OLP_SDK_NETWORK_ANDROID_EXPORT JNIEXPORT
-#endif
-/*
- * Callback to be called when response headers have been received
- */
-extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
-Java_com_here_olp_network_HttpClient_headersCallback(JNIEnv* env, jobject obj,
-                                                     jlong request_id,
-                                                     jobjectArray headers) {
-  auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
-  if (!network) {
-    OLP_SDK_LOG_WARNING(kLogTag,
-                        "headersCallback with id="
-                            << request_id
-                            << " to non-existing NetworkAndroid instance");
-    return;
-  }
-  network->HeadersCallback(env, request_id, headers);
-}
-
-/*
- * Callback to be called when a date header is received
- */
-extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
-Java_com_here_olp_network_HttpClient_dateAndOffsetCallback(
-    JNIEnv* env, jobject obj, jlong request_id, jlong date, jlong offset) {
-  auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
-  if (!network) {
-    OLP_SDK_LOG_WARNING(kLogTag,
-                        "dateAndOffsetCallback with id="
-                            << request_id
-                            << " to non-existing NetworkAndroid instance");
-    return;
-  }
-  network->DateAndOffsetCallback(env, request_id, date, offset);
-}
-
-/*
- * Callback to be called when a chunk of data is received
- */
-extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
-Java_com_here_olp_network_HttpClient_dataCallback(JNIEnv* env, jobject obj,
-                                                  jlong request_id,
-                                                  jbyteArray data, jint len) {
-  auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
-  if (!network) {
-    OLP_SDK_LOG_WARNING(
-        kLogTag,
-        "dataCallback with id=" << request_id
-                                << " to non-existing NetworkAndroid isntance");
-    return;
-  }
-  network->DataReceived(env, request_id, data, len);
-}
-
-/*
- * Callback to be called when a request is completed
- */
-extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
-Java_com_here_olp_network_HttpClient_completeRequest(JNIEnv* env, jobject obj,
-                                                     jlong request_id,
-                                                     jint status, jstring error,
-                                                     jstring content_type) {
-  auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
-  if (!network) {
-    OLP_SDK_LOG_WARNING(kLogTag,
-                        "completeRequest with id="
-                            << request_id
-                            << " to non-existing NetworkAndroid instance");
-    return;
-  }
-  network->CompleteRequest(env, request_id, status, error, content_type);
-}
-
-/*
- * Reset request upon retry
- */
-extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
-Java_com_here_olp_network_HttpClient_resetRequest(JNIEnv* env, jobject obj,
-                                                  jlong request_id) {
-  auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
-  if (!network) {
-    OLP_SDK_LOG_WARNING(
-        kLogTag,
-        "resetRequest id=" << request_id
-                           << " to non-existing NetworkAndroid instance");
-    return;
-  }
-  network->ResetRequest(env, request_id);
-}
