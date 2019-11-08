@@ -19,11 +19,12 @@
 
 #include "PartitionsRepository.h"
 
+#include <olp/core/client/Condition.h>
+#include <olp/core/logging/Log.h>
+
 #include <algorithm>
 #include <sstream>
 
-#include <olp/core/client/Condition.h>
-#include <olp/core/logging/Log.h>
 #include "ApiRepository.h"
 #include "CatalogRepository.h"
 #include "ExecuteOrSchedule.inl"
@@ -461,6 +462,118 @@ CancellationToken PartitionsRepository::GetPartitionsById(
   };
   return multiRequestContext_->ExecuteOrAssociate(requestKey, executeFn,
                                                   callback);
+}
+
+PartitionsResponse PartitionsRepository::GetVersionedPartitions(
+    client::HRN catalog, std::string layer,
+    client::CancellationContext cancellation_context,
+    read::PartitionsRequest request, client::OlpClientSettings settings) {
+  if (!request.GetVersion()) {
+    // get latest version of the layer if it wasn't set by the user
+    auto latest_version_response =
+        repository::CatalogRepository::GetLatestVersion(
+            catalog, cancellation_context,
+            CatalogVersionRequest()
+                .WithFetchOption(request.GetFetchOption())
+                .WithBillingTag(request.GetBillingTag()),
+            settings);
+    if (!latest_version_response.IsSuccessful()) {
+      return latest_version_response.GetError();
+    }
+    request.WithVersion(latest_version_response.GetResult().GetVersion());
+  }
+  return GetPartitions(std::move(catalog), std::move(layer),
+                       std::move(cancellation_context), std::move(request),
+                       std::move(settings));
+}
+
+PartitionsResponse PartitionsRepository::GetPartitions(
+    client::HRN catalog, std::string layer,
+    client::CancellationContext cancellation_context,
+    read::PartitionsRequest request, client::OlpClientSettings settings) {
+  auto fetch_option = request.GetFetchOption();
+  std::chrono::seconds timeout{settings.retry_settings.timeout};
+
+  repository::PartitionsCacheRepository repository(catalog, settings.cache);
+
+  if (fetch_option != OnlineOnly) {
+    auto cached_partitions = repository.Get(request);
+    if (cached_partitions) {
+      OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
+                         request.CreateKey().c_str());
+      return cached_partitions.get();
+    } else if (fetch_option == CacheOnly) {
+      OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' not found!",
+                         request.CreateKey().c_str());
+      return ApiError(ErrorCode::NotFound,
+                      "Cache only resource not found in cache (partition).");
+    }
+  }
+
+  auto query_api =
+      ApiClientLookup::LookupApi(catalog, cancellation_context, "metadata",
+                                 "v1", fetch_option, std::move(settings));
+
+  if (!query_api.IsSuccessful()) {
+    return query_api.GetError();
+  }
+
+  auto client = query_api.GetResult();
+
+  auto flag = std::make_shared<std::atomic_bool>(true);
+  Condition condition;
+
+  MetadataApi::PartitionsResponse metadata_response;
+  auto callback = [&, flag](PartitionsResponse response) {
+    if (flag->exchange(false)) {
+      metadata_response = std::move(response);
+      condition.Notify();
+    }
+  };
+
+  cancellation_context.ExecuteOrCancelled(
+      [&, flag]() {
+        auto token = MetadataApi::GetPartitions(
+            client, layer, request.GetVersion(), boost::none, boost::none,
+            request.GetBillingTag(), callback);
+        return client::CancellationToken([&, token, flag]() {
+          if (flag->exchange(false)) {
+            token.cancel();
+            condition.Notify();
+          }
+        });
+      },
+      [&]() { condition.Notify(); });
+
+  if (!condition.Wait(timeout)) {
+    cancellation_context.CancelOperation();
+    return client::ApiError(client::ErrorCode::RequestTimeout,
+                            "Network request timed out.");
+  }
+
+  flag->store(false);
+
+  if (cancellation_context.IsCancelled()) {
+    // We can't use api response here because it could potentially be
+    // uninitialized.
+    return client::ApiError(client::ErrorCode::Cancelled,
+                            "Operation cancelled.");
+  }
+
+  if (metadata_response.IsSuccessful()) {
+    OLP_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",
+                       request.CreateKey().c_str());
+    repository.Put(request, metadata_response.GetResult(), boost::none, true);
+  } else {
+    const auto& error = metadata_response.GetError();
+    if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
+      OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
+                         request.CreateKey().c_str());
+      repository.Clear(layer);
+    }
+  }
+
+  return metadata_response;
 }
 
 QueryApi::PartitionsResponse PartitionsRepository::GetPartitionById(

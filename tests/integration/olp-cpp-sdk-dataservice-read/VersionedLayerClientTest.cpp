@@ -159,6 +159,25 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
                                    olp::http::HttpStatusCode::OK),
                                HTTP_RESPONSE_LAYER_VERSIONS_V2));
 
+    ON_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS_V10), _, _, _, _))
+        .WillByDefault(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::BAD_REQUEST),
+                               HTTP_RESPONSE_LAYER_VERSIONS_V2));
+
+    ON_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS_VN1), _, _, _, _))
+        .WillByDefault(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::BAD_REQUEST),
+                               HTTP_RESPONSE_INVALID_VERSION_VN1));
+
+    ON_CALL(*network_mock_,
+            Send(IsGetRequest(URL_PARTITIONS_INVALID_LAYER), _, _, _, _))
+        .WillByDefault(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::BAD_REQUEST),
+                               HTTP_RESPONSE_INVALID_LAYER));
+
     ON_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS_V2), _, _, _, _))
         .WillByDefault(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
@@ -1023,7 +1042,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsForInvalidLayer) {
   PartitionsResponse response = future.get();
 
   ASSERT_FALSE(response.IsSuccessful()) << response.GetError().GetMessage();
-  ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
+  ASSERT_EQ(olp::client::ErrorCode::BadRequest,
             response.GetError().GetErrorCode());
 }
 
@@ -1361,8 +1380,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsVersion2) {
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(0);
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LAYER_VERSIONS_V2), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS_V2), _, _, _, _))
       .Times(1);
 
   auto request = olp::dataservice::read::PartitionsRequest();
@@ -1421,10 +1439,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsInvalidVersion) {
     ASSERT_EQ(olp::client::ErrorCode::BadRequest,
               response.GetError().GetErrorCode());
     ASSERT_EQ(400, response.GetError().GetHttpStatusCode());
-    ASSERT_FALSE(response.IsSuccessful());
-    ASSERT_EQ(olp::client::ErrorCode::BadRequest,
-              response.GetError().GetErrorCode());
-    ASSERT_EQ(400, response.GetError().GetHttpStatusCode());
   }
 }
 
@@ -1465,10 +1479,12 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsOnlineOnly) {
   {
     testing::InSequence s;
 
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
         .Times(1);
 
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
         .WillOnce(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
                                "Server busy at the moment."));

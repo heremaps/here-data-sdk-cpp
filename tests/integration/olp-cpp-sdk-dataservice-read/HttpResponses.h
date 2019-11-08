@@ -42,11 +42,20 @@
 #define URL_LAYER_VERSIONS_VN1 \
   R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layerVersions?version=-1)"
 
+#define URL_PARTITIONS_INVALID_LAYER \
+  R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/somewhat_not_okay/partitions?version=4)"
+
 #define URL_PARTITIONS \
   R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?version=4)"
 
 #define URL_PARTITIONS_V2 \
-  R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?version=3)"
+  R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?version=2)"
+
+#define URL_PARTITIONS_V10 \
+  R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?version=10)"
+
+#define URL_PARTITIONS_VN1 \
+  R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?version=-1)"
 
 #define URL_LOOKUP_QUERY \
   R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/)"+GetTestCatalog()+R"(/apis/query/v1)"
@@ -109,7 +118,7 @@
   R"jsonString({"version":4,"layerVersions":[{"layer":"hype-test-prefetch","version":4,"timestamp":1547159598712},{"layer":"hype-test-prefetch-2","version":4,"timestamp":1547159598712},{"layer":"testlayer_res","version":4,"timestamp":1547159598712},{"layer":"testlayer","version":4,"timestamp":1547159598712},{"layer":"testlayer_gzip","version":4,"timestamp":1547159598712},{"layer":"multilevel_testlayer","version":4,"timestamp":1547159598712}]})jsonString"
 
 #define HTTP_RESPONSE_LAYER_VERSIONS_V2 \
-  R"jsonString({"version":2,"layerVersions":[{"layer":"testlayer","version":3,"timestamp":1547159598712}]})jsonString"
+  R"jsonString({"version":2,"layerVersions":[{"layer":"testlayer","version":2,"timestamp":1547159598712}]})jsonString"
 
 #define HTTP_RESPONSE_PARTITIONS \
   R"jsonString({ "partitions": [{"version":4,"partition":"269","layer":"testlayer","dataHandle":"4eed6ed1-0d32-43b9-ae79-043cb4256432"},{"version":4,"partition":"270","layer":"testlayer","dataHandle":"30640762-b429-47b9-9ed6-7a4af6086e8e"},{"version":4,"partition":"3","layer":"testlayer","dataHandle":"data:SomethingBaH!"},{"version":4,"partition":"here_van_wc2018_pool","layer":"testlayer","dataHandle":"bcde4cc0-2678-40e9-b791-c630faee14c3"}]})jsonString"
@@ -138,6 +147,9 @@
 
 #define HTTP_RESPONSE_INVALID_VERSION_V10 \
   R"jsonString({"title":"Bad Request","detail":[{"name":"version","error":"Invalid version: latest known version is 4"}],"status":400})jsonString"
+
+#define HTTP_RESPONSE_INVALID_LAYER \
+  R"jsonString({"title":"Bad Request","detail":[{"name":"layer","error":"Layer 'somewhat_not_okay' is missing in the catalog configuration."}],"status":400})jsonString"
 
 // <PREFETCH URLs and RESPONSEs>
 #define URL_CONFIG_V2 \
