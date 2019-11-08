@@ -42,11 +42,20 @@
 #define URL_LAYER_VERSIONS_VN1 \
   R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layerVersions?version=-1)"
 
+#define URL_PARTITIONS_INVALID_LAYER \
+  R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/somewhat_not_okay/partitions?version=4)"
+
 #define URL_PARTITIONS \
   R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?version=4)"
 
 #define URL_PARTITIONS_V2 \
-  R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?version=3)"
+  R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?version=2)"
+
+#define URL_PARTITIONS_V10 \
+  R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?version=10)"
+
+#define URL_PARTITIONS_VN1 \
+  R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?version=-1)"
 
 #define URL_LOOKUP_QUERY \
   R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/)"+GetTestCatalog()+R"(/apis/query/v1)"

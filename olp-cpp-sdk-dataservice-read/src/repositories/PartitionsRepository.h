@@ -62,6 +62,16 @@ class PartitionsRepository final {
   std::shared_ptr<PartitionsCacheRepository> GetPartitionsCacheRepository() {
     return cache_;
   }
+  
+  static PartitionsResponse GetVersionedPartitions(
+      const client::HRN& catalog, const std::string& layer,
+      client::CancellationContext cancellation_context,
+      read::PartitionsRequest data_request, client::OlpClientSettings settings);
+
+  static PartitionsResponse GetPartitions(
+      const client::HRN& catalog, const std::string& layer,
+      client::CancellationContext cancellation_context,
+      read::PartitionsRequest request, client::OlpClientSettings settings);
 
   static QueryApi::PartitionsResponse GetPartitionById(
       const client::HRN& catalog, const std::string& layer,

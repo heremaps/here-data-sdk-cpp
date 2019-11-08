@@ -111,7 +111,7 @@ class CatalogClientTest : public ::testing::TestWithParam<CacheType> {
     auto network = std::move(settings_.network_request_handler);
     // when test ends we must be sure that network pointer is not captured
     // anywhere
-    assert(network.use_count() == 1);
+    EXPECT_EQ(network.use_count(), 1);
   }
 
  protected:
