@@ -31,6 +31,7 @@
 #include "PartitionsRepository.h"
 #include "generated/api/VolatileBlobApi.h"
 #include "olp/dataservice/read/CatalogRequest.h"
+#include "olp/dataservice/read/CatalogVersionRequest.h"
 #include "olp/dataservice/read/DataRequest.h"
 #include "olp/dataservice/read/PartitionsRequest.h"
 
@@ -337,9 +338,12 @@ DataResponse DataRepository::GetVersionedData(
   if (!request.GetDataHandle()) {
     if (!request.GetVersion()) {
       // get latest version of the layer if it wasn't set by the user
+      CatalogVersionRequest version_request;
+      version_request.WithFetchOption(request.GetFetchOption())
+          .WithBillingTag(request.GetBillingTag());
       auto latest_version_response =
-          repository::CatalogRepository::GetLatestVersion(catalog, context,
-                                                          request, settings);
+          repository::CatalogRepository::GetLatestVersion(
+              catalog, context, std::move(version_request), settings);
       if (!latest_version_response.IsSuccessful()) {
         return latest_version_response.GetError();
       }

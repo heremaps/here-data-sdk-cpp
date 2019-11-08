@@ -86,8 +86,9 @@ CancellationToken CatalogClientImpl::GetCatalog(
     auto pending_requests = pending_requests_;
 
     auto data_task = [=](client::CancellationContext context) {
-      return repository::CatalogRepository::GetCatalog(catalog, context,
-                                                       request, settings);
+      return repository::CatalogRepository::GetCatalog(
+          std::move(catalog), std::move(context), std::move(request),
+          std::move(settings));
     };
 
     auto context =
@@ -130,34 +131,44 @@ CancellableFuture<CatalogResponse> CatalogClientImpl::GetCatalog(
 CancellationToken CatalogClientImpl::GetLatestVersion(
     CatalogVersionRequest request, CatalogVersionCallback callback) {
   OLP_SDK_LOG_TRACE_F(kLogTag, "GetCatalog '%s'", request.CreateKey().c_str());
-  CancellationToken token;
-  int64_t request_key = pending_requests_->GenerateRequestPlaceholder();
-  auto pending_requests = pending_requests_;
-  auto request_callback = [pending_requests, request_key,
-                           callback](CatalogVersionResponse response) {
-    OLP_SDK_LOG_INFO(kLogTag, "GetCatalog remove key: " << request_key);
-    if (pending_requests->Remove(request_key)) {
-      callback(response);
-    }
+  auto add_task = [&](CatalogVersionRequest request,
+                      CatalogVersionCallback callback) {
+    auto catalog = catalog_;
+    auto settings = *settings_;
+    auto pending_requests = pending_requests_;
+
+    auto data_task = [=](client::CancellationContext context) {
+      return repository::CatalogRepository::GetLatestVersion(
+          std::move(catalog), std::move(context), std::move(request),
+          std::move(settings));
+    };
+
+    auto context =
+        client::TaskContext::Create(std::move(data_task), std::move(callback));
+
+    pending_requests->Insert(context);
+
+    repository::ExecuteOrSchedule(task_scheduler_, [=]() {
+      context.Execute();
+      pending_requests->Remove(context);
+    });
+
+    return context.CancelToken();
   };
-  if (CacheWithUpdate == request.GetFetchOption()) {
-    token = catalog_repo_->getLatestCatalogVersion(
-        request.WithFetchOption(CacheOnly), request_callback);
-    auto onlineKey = pending_requests_->GenerateRequestPlaceholder();
-    OLP_SDK_LOG_INFO(kLogTag, "GetCatalog add key: " << onlineKey);
-    pending_requests_->Insert(
-        catalog_repo_->getLatestCatalogVersion(
-            request.WithFetchOption(OnlineIfNotFound),
-            [pending_requests, onlineKey](CatalogVersionResponse) {
-              pending_requests->Remove(onlineKey);
-            }),
-        onlineKey);
+
+  if (request.GetFetchOption() == FetchOptions::CacheWithUpdate) {
+    auto cache_token = add_task(
+        request.WithFetchOption(FetchOptions::CacheOnly), std::move(callback));
+    auto online_token =
+        add_task(request.WithFetchOption(FetchOptions::OnlineOnly), nullptr);
+
+    return client::CancellationToken([=]() {
+      cache_token.cancel();
+      online_token.cancel();
+    });
   } else {
-    OLP_SDK_LOG_INFO(kLogTag, "GetCatalog existing: " << request_key);
-    token = catalog_repo_->getLatestCatalogVersion(request, request_callback);
+    return add_task(std::move(request), std::move(callback));
   }
-  pending_requests_->Insert(token, request_key);
-  return token;
 }
 
 CancellableFuture<CatalogVersionResponse> CatalogClientImpl::GetLatestVersion(
