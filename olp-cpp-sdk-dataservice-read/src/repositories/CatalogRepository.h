@@ -62,9 +62,8 @@ class CatalogRepository final {
       const read::CatalogVersionCallback& callback);
 
   static MetadataApi::CatalogVersionResponse GetLatestVersion(
-      const client::HRN& catalog,
-      client::CancellationContext cancellation_context,
-      const DataRequest& data_request, client::OlpClientSettings settings);
+      client::HRN catalog, client::CancellationContext cancellation_context,
+      CatalogVersionRequest request, client::OlpClientSettings settings);
 
  private:
   client::HRN hrn_;

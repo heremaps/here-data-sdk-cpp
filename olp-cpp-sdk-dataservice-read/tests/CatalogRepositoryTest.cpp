@@ -26,6 +26,8 @@
 #include <olp/core/client/OlpClientFactory.h>
 #include "ApiClientLookup.h"
 #include "olp/dataservice/read/CatalogRequest.h"
+#include "olp/dataservice/read/CatalogVersionRequest.h"
+#include "olp/dataservice/read/DataRequest.h"
 
 #define OLP_SDK_URL_LOOKUP_METADATA \
   R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis/metadata/v1)"
@@ -56,7 +58,8 @@ using namespace olp::dataservice::read;
 using namespace ::testing;
 using namespace olp::tests::common;
 
-const std::string kCatalog = "hrn:here:data::olp-here-test:hereos-internal-test-v2";
+const std::string kCatalog =
+    "hrn:here:data::olp-here-test:hereos-internal-test-v2";
 const std::string kLatestVersionCacheKey = kCatalog + "::latestVersion";
 const std::string kCatalogCacheKey = kCatalog + "::catalog";
 const std::string kMetadataServiceName = "metadata";
@@ -97,7 +100,7 @@ class CatalogRepositoryTest : public ::testing::Test {
 TEST_F(CatalogRepositoryTest, GetLatestVersionCacheOnlyFound) {
   olp::client::CancellationContext context;
 
-  auto request = DataRequest();
+  auto request = CatalogVersionRequest();
 
   request.WithFetchOption(CacheOnly);
 
@@ -118,7 +121,7 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionCacheOnlyFound) {
 TEST_F(CatalogRepositoryTest, GetLatestVersionCacheOnlyNotFound) {
   olp::client::CancellationContext context;
 
-  auto request = olp::dataservice::read::DataRequest();
+  auto request = CatalogVersionRequest();
 
   request.WithFetchOption(CacheOnly);
 
@@ -143,7 +146,7 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionCacheOnlyNotFound) {
 TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyNotFound) {
   olp::client::CancellationContext context;
 
-  auto request = olp::dataservice::read::DataRequest();
+  auto request = CatalogVersionRequest();
 
   request.WithFetchOption(OnlineOnly);
 
@@ -170,7 +173,7 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyNotFound) {
 TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyFoundAndCacheWritten) {
   olp::client::CancellationContext context;
 
-  auto request = olp::dataservice::read::DataRequest();
+  auto request = CatalogVersionRequest();
 
   request.WithFetchOption(OnlineOnly);
 
@@ -208,7 +211,7 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyFoundAndCacheWritten) {
 TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyUserCancelled1) {
   olp::client::CancellationContext context;
 
-  auto request = olp::dataservice::read::DataRequest();
+  auto request = CatalogVersionRequest();
 
   std::promise<bool> cancelled;
 
@@ -249,7 +252,7 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyUserCancelled1) {
 TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyUserCancelled2) {
   olp::client::CancellationContext context;
 
-  auto request = olp::dataservice::read::DataRequest();
+  auto request = CatalogVersionRequest();
 
   ON_CALL(*network_,
           Send(IsGetRequest(OLP_SDK_URL_LOOKUP_METADATA), _, _, _, _))
@@ -282,7 +285,7 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionCancelledBeforeExecution) {
   settings_.retry_settings.timeout = 0;
   olp::client::CancellationContext context;
 
-  auto request = olp::dataservice::read::DataRequest();
+  auto request = CatalogVersionRequest();
 
   ON_CALL(*network_, Send(_, _, _, _, _))
       .WillByDefault([&](olp::http::NetworkRequest, olp::http::Network::Payload,
@@ -307,7 +310,7 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionCancelledBeforeExecution) {
 TEST_F(CatalogRepositoryTest, GetLatestVersionTimeouted) {
   olp::client::CancellationContext context;
 
-  auto request = olp::dataservice::read::DataRequest();
+  auto request = CatalogVersionRequest();
 
   ON_CALL(*network_,
           Send(IsGetRequest(OLP_SDK_URL_LOOKUP_METADATA), _, _, _, _))
@@ -392,7 +395,7 @@ TEST_F(CatalogRepositoryTest, GetCatalogCacheOnlyFound) {
 TEST_F(CatalogRepositoryTest, GetCatalogCacheOnlyNotFound) {
   olp::client::CancellationContext context;
 
-  auto request = olp::dataservice::read::DataRequest();
+  auto request = CatalogVersionRequest();
 
   request.WithFetchOption(CacheOnly);
 

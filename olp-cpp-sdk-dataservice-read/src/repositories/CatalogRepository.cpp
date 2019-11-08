@@ -329,23 +329,22 @@ client::CancellationToken CatalogRepository::getLatestCatalogVersion(
 }
 
 MetadataApi::CatalogVersionResponse CatalogRepository::GetLatestVersion(
-    const client::HRN& catalog,
-    client::CancellationContext cancellation_context,
-    const DataRequest& data_request, client::OlpClientSettings settings) {
+    client::HRN catalog, client::CancellationContext cancellation_context,
+    CatalogVersionRequest request, client::OlpClientSettings settings) {
   using namespace client;
 
   repository::CatalogCacheRepository repository(catalog, settings.cache);
 
-  auto fetch_option = data_request.GetFetchOption();
+  auto fetch_option = request.GetFetchOption();
   if (fetch_option != OnlineOnly) {
     auto cached_version = repository.GetVersion();
     if (cached_version) {
       OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' found!",
-                         data_request.CreateKey().c_str());
+                         request.CreateKey().c_str());
       return cached_version.value();
     } else if (fetch_option == CacheOnly) {
       OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' not found!",
-                         data_request.CreateKey().c_str());
+                         request.CreateKey().c_str());
       return ApiError(
           ErrorCode::NotFound,
           "Cache only resource not found in cache (catalog version).");
@@ -354,9 +353,9 @@ MetadataApi::CatalogVersionResponse CatalogRepository::GetLatestVersion(
 
   const auto timeout = settings.retry_settings.timeout;
 
-  auto metadata_api =
-      ApiClientLookup::LookupApi(catalog, cancellation_context, "metadata",
-                                 "v1", fetch_option, std::move(settings));
+  auto metadata_api = ApiClientLookup::LookupApi(
+      std::move(catalog), cancellation_context, "metadata", "v1", fetch_option,
+      std::move(settings));
 
   if (!metadata_api.IsSuccessful()) {
     return metadata_api.GetError();
@@ -375,7 +374,7 @@ MetadataApi::CatalogVersionResponse CatalogRepository::GetLatestVersion(
   cancellation_context.ExecuteOrCancelled(
       [&]() {
         auto token = MetadataApi::GetLatestCatalogVersion(
-            client, -1, data_request.GetBillingTag(),
+            client, -1, request.GetBillingTag(),
             [&, interest_flag](MetadataApi::CatalogVersionResponse response) {
               if (interest_flag->exchange(false)) {
                 version_response = std::move(response);
