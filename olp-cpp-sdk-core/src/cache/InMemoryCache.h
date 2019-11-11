@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <time.h>
+#include <chrono>
 #include <functional>
 #include <map>
 #include <mutex>
@@ -32,42 +32,61 @@
 
 namespace olp {
 namespace cache {
+
+/**
+ * @brief In-memory cache that implements a LRU and a time based eviction
+ * policy.
+ */
 class InMemoryCache {
  public:
+  static constexpr size_t kSizeMax = std::numeric_limits<std::size_t>::max();
+  static constexpr time_t kExpiryMax = std::numeric_limits<time_t>::max();
+
   using ItemTuple = std::tuple<std::string, time_t, boost::any, size_t>;
-
+  using ItemTuples = std::vector<ItemTuple>;
   using TimeProvider = std::function<time_t()>;
-  static TimeProvider& DefaultTimeProvider();
-
   using ModelCacheCostFunc = std::function<std::size_t(const ItemTuple&)>;
-  static ModelCacheCostFunc& EqualityCacheCost();
-  static ModelCacheCostFunc& PresetModelSizeCacheCost();
 
-  InMemoryCache(size_t maxSize = (std::numeric_limits<std::size_t>::max)(),
-                ModelCacheCostFunc cacheCost = PresetModelSizeCacheCost(),
-                TimeProvider timeProvider = DefaultTimeProvider());
+  /// Default cache cost based on size.
+  struct DefaultCacheCost {
+    std::size_t operator()(const ItemTuple& value) const {
+      auto result = std::get<3>(value);
+      return (result == 0) ? 1u : result;
+    }
+  };
+
+  /// Default time provider using std::chrono::system_clock.
+  struct DefaultTimeProvider {
+    time_t operator()() const {
+      auto now = std::chrono::system_clock::now();
+      return std::chrono::system_clock::to_time_t(now);
+    }
+  };
+
+  InMemoryCache(size_t max_size = kSizeMax,
+                ModelCacheCostFunc cache_cost = DefaultCacheCost(),
+                TimeProvider time_provider = DefaultTimeProvider());
 
   bool Put(const std::string& key, const boost::any& item,
-           time_t expireSeconds = (std::numeric_limits<time_t>::max)(),
-           size_t = 1);
+           time_t expire_seconds = kExpiryMax, size_t = 1u);
 
   boost::any Get(const std::string& key);
   size_t Size() const;
   void Clear();
 
-  void Remove(const std::string& key);
-  void RemoveKeysWithPrefix(const std::string& keyPrefix);
+  bool Remove(const std::string& key);
+  void RemoveKeysWithPrefix(const std::string& key_prefix);
 
- private:
+ protected:
   bool PurgeExpired();
-  bool PurgeExpired(time_t expireTime);
+  bool PurgeExpired(time_t expire_time);
   void OnEviction(const std::string& key, ItemTuple&& value);
 
  private:
-  std::mutex m_mutex;
-  utils::LruCache<std::string, ItemTuple, ModelCacheCostFunc> m_itemTuples;
-  std::map<time_t, std::vector<ItemTuple> > m_itemExpiries;
-  TimeProvider m_timeProvider;
+  mutable std::mutex mutex_;
+  utils::LruCache<std::string, ItemTuple, ModelCacheCostFunc> item_tuples_;
+  std::map<time_t, ItemTuples> item_expiries_;
+  TimeProvider time_provider_;
 };
 }  // namespace cache
 }  // namespace olp

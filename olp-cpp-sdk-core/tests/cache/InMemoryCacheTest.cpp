@@ -25,138 +25,142 @@
 #include "InMemoryCache.h"
 
 namespace {
-  std::string key(int index) {
-    return "key" + std::to_string(index);
+std::string Key(int index) { return "key" + std::to_string(index); }
+
+std::string Value(int index) { return "value" + std::to_string(index); }
+
+void Populate(olp::cache::InMemoryCache& cache, int count, int first = 0) {
+  for (int i = 0; i < count; i++) {
+    cache.Put(Key(i + first), Value(i + first));
+  }
+}
+
+using ItemTuple = olp::cache::InMemoryCache::ItemTuple;
+using EqualityCacheCost = olp::utils::CacheCost<ItemTuple>;
+using Data = std::shared_ptr<std::vector<unsigned char>>;
+
+Data CreateDataContainer(int length) {
+  std::vector<unsigned char> data;
+  for (auto i = 0; i < length; i++) {
+    data.push_back(i);
   }
 
-  std::string value(int index){
-    return "value" + std::to_string(index);
-  }
-
-  void populate(olp::cache::InMemoryCache& cache, int count, int first) {
-    for (int i = 0; i < count; i++) {
-        cache.Put(key(i + first), value(i + first));
-    }
-  }
-
-  void populate(olp::cache::InMemoryCache& cache, int count) {
-    populate(cache, count, 0);
-  }
-};
+  return std::make_shared<std::vector<unsigned char>>(data);
+}
 
 TEST(InMemoryCacheTest, Empty) {
-  olp::cache::InMemoryCache inMemCache;
-
-  ASSERT_TRUE(inMemCache.Get("keyNotExist").empty());
-  ASSERT_EQ(0u, inMemCache.Size());
+  olp::cache::InMemoryCache cache;
+  ASSERT_TRUE(cache.Get("keyNotExist").empty());
+  ASSERT_EQ(0u, cache.Size());
 }
 
 TEST(InMemoryCacheTest, NoLimit) {
-  olp::cache::InMemoryCache inMemCache;
+  olp::cache::InMemoryCache cache;
 
-  populate(inMemCache, 10);
-  ASSERT_EQ(10u, inMemCache.Size());
+  Populate(cache, 10);
+  ASSERT_EQ(10u, cache.Size());
 
-  auto i0 = inMemCache.Get("key0");
+  auto i0 = cache.Get("key0");
   ASSERT_FALSE(i0.empty());
   ASSERT_EQ("value0", boost::any_cast<std::string>(i0));
 
-  auto i9 = inMemCache.Get("key9");
+  auto i9 = cache.Get("key9");
   ASSERT_FALSE(i9.empty());
   ASSERT_EQ("value9", boost::any_cast<std::string>(i9));
 
-  ASSERT_TRUE(inMemCache.Get("key10").empty());
+  ASSERT_TRUE(cache.Get("key10").empty());
 }
 
 TEST(InMemoryCacheTest, PutTooLarge) {
-  olp::cache::InMemoryCache inMemCache(0);
+  olp::cache::InMemoryCache cache(0);
   std::string oversized("oversized");
 
-  ASSERT_FALSE(inMemCache.Put(oversized, "value: " + oversized));
-  ASSERT_TRUE(inMemCache.Get(oversized).empty());
-  ASSERT_EQ(0u, inMemCache.Size());
+  ASSERT_FALSE(cache.Put(oversized, "value: " + oversized));
+  ASSERT_TRUE(cache.Get(oversized).empty());
+  ASSERT_EQ(0u, cache.Size());
 }
 
 TEST(InMemoryCacheTest, Clear) {
-  olp::cache::InMemoryCache inMemCache;
-  populate(inMemCache, 10);
-  ASSERT_EQ(10u, inMemCache.Size());
+  olp::cache::InMemoryCache cache;
+  Populate(cache, 10);
+  ASSERT_EQ(10u, cache.Size());
 
-  inMemCache.Clear();
-  ASSERT_EQ(0u, inMemCache.Size());
+  cache.Clear();
+  ASSERT_EQ(0u, cache.Size());
 }
 
 TEST(InMemoryCacheTest, Remove) {
-  olp::cache::InMemoryCache inMemCache;
-  populate(inMemCache, 10);
-  ASSERT_EQ(10u, inMemCache.Size());
+  olp::cache::InMemoryCache cache;
+  Populate(cache, 10);
+  ASSERT_EQ(10u, cache.Size());
 
-  inMemCache.Remove(key(1));
-  ASSERT_EQ(9u, inMemCache.Size());
+  cache.Remove(Key(1));
+  ASSERT_EQ(9u, cache.Size());
 }
 
 TEST(InMemoryCacheTest, RemoveWithPrefix) {
-  olp::cache::InMemoryCache inMemCache;
-  populate(inMemCache, 11);
-  ASSERT_EQ(11u, inMemCache.Size());
+  olp::cache::InMemoryCache cache;
+  Populate(cache, 11);
+  ASSERT_EQ(11u, cache.Size());
 
-  inMemCache.RemoveKeysWithPrefix(key(1));  // removes "key1", "key10"
-  ASSERT_EQ(9u, inMemCache.Size());          // "key2" .. "key9"
+  cache.RemoveKeysWithPrefix(Key(1));  // removes "key1", "key10"
+  ASSERT_EQ(9u, cache.Size());         // "key2" .. "key9"
 
-  inMemCache.RemoveKeysWithPrefix(key(4));
-  ASSERT_EQ(8u, inMemCache.Size());  // "key2" .. "key3", "key5" .. "key9"
+  cache.RemoveKeysWithPrefix(Key(4));
+  ASSERT_EQ(8u, cache.Size());  // "key2" .. "key3", "key5" .. "key9"
 
-  inMemCache.RemoveKeysWithPrefix("doesnotexist");
-  ASSERT_EQ(8u, inMemCache.Size());  // "key2" .. "key3", "key5" .. "key9"
+  cache.RemoveKeysWithPrefix("doesnotexist");
+  ASSERT_EQ(8u, cache.Size());  // "key2" .. "key3", "key5" .. "key9"
 
-  inMemCache.RemoveKeysWithPrefix("key");
-  ASSERT_EQ(0u, inMemCache.Size());
+  cache.RemoveKeysWithPrefix("key");
+  ASSERT_EQ(0u, cache.Size());
 }
 
 TEST(InMemoryCacheTest, PutOverwritesPrevious) {
-  olp::cache::InMemoryCache inMemCache;
+  olp::cache::InMemoryCache cache;
 
   std::string key("duplicateKey");
-  std::string origValue("original");
+  std::string orig_value("original");
 
-  inMemCache.Put(key, origValue);
+  cache.Put(key, orig_value);
 
-  ASSERT_EQ(1u, inMemCache.Size());
-  auto value = inMemCache.Get(key);
+  ASSERT_EQ(1u, cache.Size());
+  auto value = cache.Get(key);
   ASSERT_FALSE(value.empty());
-  ASSERT_EQ(origValue, boost::any_cast<std::string>(origValue));
+  ASSERT_EQ(orig_value, boost::any_cast<std::string>(value));
 
-  std::string updatedValue("updatedValue");
-  inMemCache.Put(key, updatedValue);
+  std::string updated_value("updatedValue");
+  cache.Put(key, updated_value);
 
-  value = inMemCache.Get(key);
+  value = cache.Get(key);
   ASSERT_FALSE(value.empty());
-  ASSERT_EQ(updatedValue, boost::any_cast<std::string>(value));
+  ASSERT_EQ(updated_value, boost::any_cast<std::string>(value));
 }
 
 TEST(InMemoryCacheTest, InsertOverLimit) {
-  olp::cache::InMemoryCache inMemCache(1);
-  populate(inMemCache, 2);
-  ASSERT_EQ(1u, inMemCache.Size());
-  ASSERT_TRUE(inMemCache.Get("key0").empty());
-  auto i1 = inMemCache.Get("key1");
+  olp::cache::InMemoryCache cache(1);
+  Populate(cache, 2);
+
+  ASSERT_EQ(1u, cache.Size());
+  ASSERT_TRUE(cache.Get("key0").empty());
+  auto i1 = cache.Get("key1");
   ASSERT_FALSE(i1.empty());
   ASSERT_EQ("value1", boost::any_cast<std::string>(i1));
 }
 
 TEST(InMemoryCacheTest, GetReorders) {
-  olp::cache::InMemoryCache inMemCache(2);
-  populate(inMemCache, 2);
-  ASSERT_EQ(2u, inMemCache.Size());
+  olp::cache::InMemoryCache cache(2);
+  Populate(cache, 2);
+  ASSERT_EQ(2u, cache.Size());
 
-  auto i0 = inMemCache.Get("key0");
+  auto i0 = cache.Get("key0");
   ASSERT_FALSE(i0.empty());
   ASSERT_EQ("value0", boost::any_cast<std::string>(i0));
 
-  populate(inMemCache, 1, 2);
-  ASSERT_TRUE(inMemCache.Get("key1").empty());
+  Populate(cache, 1, 2);
+  ASSERT_TRUE(cache.Get("key1").empty());
 
-  auto i2 = inMemCache.Get("key2");
+  auto i2 = cache.Get("key2");
   ASSERT_FALSE(i2.empty());
   ASSERT_EQ("value2", boost::any_cast<std::string>(i2));
 }
@@ -164,92 +168,81 @@ TEST(InMemoryCacheTest, GetReorders) {
 TEST(InMemoryCacheTest, GetSingleExpired) {
   time_t now = std::time(nullptr);
 
-  olp::cache::InMemoryCache inMemCache(
-      10, olp::cache::InMemoryCache::EqualityCacheCost(),
-      [&now]() { return now; });
+  olp::cache::InMemoryCache cache(10, EqualityCacheCost(), [&] { return now; });
 
-  std::string withExpiry("withExpiry");
-  std::string withLaterExpiry("withLaterExpiry");
-  std::string noExpiry("noExpiry");
+  std::string with_expiry("withExpiry");
+  std::string with_later_expiry("withLaterExpiry");
+  std::string no_expiry("noExpiry");
 
-  inMemCache.Put(withExpiry, "value: " + withExpiry, 1);
-  inMemCache.Put(withLaterExpiry, "value: " + withLaterExpiry, 10);
-  inMemCache.Put(noExpiry, "value: " + noExpiry);
-  ASSERT_EQ(3u, inMemCache.Size());
+  cache.Put(with_expiry, "value: " + with_expiry, 1);
+  cache.Put(with_later_expiry, "value: " + with_later_expiry, 10);
+  cache.Put(no_expiry, "value: " + no_expiry);
+  ASSERT_EQ(3u, cache.Size());
 
   // wait 2 seconds
   now += 2;
 
   // cache doesn't purge expired until we call 'Get' or 'Put'
-  ASSERT_EQ(3u, inMemCache.Size());
+  ASSERT_EQ(3u, cache.Size());
 
   // withExpiry should be expired, withLaterExpiry and noExpiry still value
-  ASSERT_TRUE(inMemCache.Get(withExpiry).empty());
+  ASSERT_TRUE(cache.Get(with_expiry).empty());
 
-  auto withLaterExpiryVal
-      = inMemCache.Get(withLaterExpiry);
-  ASSERT_FALSE(withLaterExpiryVal.empty());
-  auto noExpiryVal
-      = inMemCache.Get(noExpiry);
-  ASSERT_FALSE(noExpiryVal.empty());
+  auto with_later_expiry_val = cache.Get(with_later_expiry);
+  ASSERT_FALSE(with_later_expiry_val.empty());
+  auto no_expiry_val = cache.Get(no_expiry);
+  ASSERT_FALSE(no_expiry_val.empty());
 
-  ASSERT_EQ(2u, inMemCache.Size());
+  ASSERT_EQ(2u, cache.Size());
 }
 
 TEST(InMemoryCacheTest, GetMultipleExpired) {
   time_t now = std::time(nullptr);
 
-  olp::cache::InMemoryCache inMemCache(
-      10, olp::cache::InMemoryCache::EqualityCacheCost(),
-      [&now]() { return now; });
+  olp::cache::InMemoryCache cache(10, EqualityCacheCost(), [&] { return now; });
 
-  std::string withExpiry("withExpiry");
-  std::string withSameExpiry("withSameExpiry");
-  std::string withLaterExpiry("withLaterExpiry");
-  std::string noExpiry("noExpiry");
+  std::string with_expiry("withExpiry");
+  std::string with_same_expiry("withSameExpiry");
+  std::string with_later_expiry("withLaterExpiry");
+  std::string no_expiry("noExpiry");
 
-  inMemCache.Put(withExpiry, "value: " + withExpiry, 1);
-  inMemCache.Put(withSameExpiry, "value: " + withSameExpiry, 1);
-  inMemCache.Put(withLaterExpiry, "value: " + withLaterExpiry, 10);
-  inMemCache.Put(noExpiry, "value: " + noExpiry);
-  ASSERT_EQ(4u, inMemCache.Size());
+  cache.Put(with_expiry, "value: " + with_expiry, 1);
+  cache.Put(with_same_expiry, "value: " + with_same_expiry, 1);
+  cache.Put(with_later_expiry, "value: " + with_later_expiry, 10);
+  cache.Put(no_expiry, "value: " + no_expiry);
+  ASSERT_EQ(4u, cache.Size());
 
   // wait 2 seconds
   now += 2;
 
   // cache doesn't purge expired until we call 'Get' or 'Put'
-  ASSERT_EQ(4u, inMemCache.Size());
+  ASSERT_EQ(4u, cache.Size());
 
-  // withExpiry and withSameExpiry should be expired,
-  // withLaterExpiry and noExpiry still valid
-  ASSERT_TRUE(inMemCache.Get(withExpiry).empty());
-  ASSERT_TRUE(inMemCache.Get(withSameExpiry).empty());
-  ASSERT_FALSE(inMemCache.Get(withLaterExpiry).empty());
-  ASSERT_FALSE(inMemCache.Get(noExpiry).empty());
+  // with_expiry and with_same_expiry should be expired,
+  // with_later_expiry and no_expiry still valid
+  ASSERT_TRUE(cache.Get(with_expiry).empty());
+  ASSERT_TRUE(cache.Get(with_same_expiry).empty());
+  ASSERT_FALSE(cache.Get(with_later_expiry).empty());
+  ASSERT_FALSE(cache.Get(no_expiry).empty());
 
-  ASSERT_EQ(2u, inMemCache.Size());
+  ASSERT_EQ(2u, cache.Size());
 }
 
 TEST(InMemoryCacheTest, PutMultipleExpired) {
   time_t now = std::time(nullptr);
 
-  olp::cache::InMemoryCache inMemCache(
-      10, olp::cache::InMemoryCache::EqualityCacheCost(),
-      [&now]() { return now; });
+  olp::cache::InMemoryCache cache(10, EqualityCacheCost(), [&] { return now; });
 
-  std::string withExpiry("withExpiry");
-  std::string withSameExpiry("withSameExpiry");
-  std::string withLaterExpiry("withLaterExpiry");
-  std::string noExpiry("noExpiry");
+  std::string with_expiry("withExpiry");
+  std::string with_same_expiry("withSameExpiry");
+  std::string with_later_expiry("withLaterExpiry");
+  std::string no_expiry("noExpiry");
 
-  inMemCache.Put(withExpiry,
-                  "value: " + withExpiry, 1);
-  inMemCache.Put(withSameExpiry,
-                  "value: " + withSameExpiry, 1);
-  inMemCache.Put(withLaterExpiry,
-                  "value: " + withLaterExpiry, 10);
-  inMemCache.Put(noExpiry, "value: " + noExpiry);
-  ASSERT_EQ(4u, inMemCache.Size());
+  cache.Put(with_expiry, "value: " + with_expiry, 1);
+  cache.Put(with_same_expiry, "value: " + with_same_expiry, 1);
+  cache.Put(with_later_expiry, "value: " + with_later_expiry, 10);
+  cache.Put(no_expiry, "value: " + no_expiry);
+  ASSERT_EQ(4u, cache.Size());
 
   // wait 2 seconds
   now += 2;
@@ -257,196 +250,170 @@ TEST(InMemoryCacheTest, PutMultipleExpired) {
   // cache doesn't purge expired until we call 'Get' or 'Put'
 
   std::string trigger("trigger");
-  inMemCache.Put(trigger, "value: " + trigger);
+  cache.Put(trigger, "value: " + trigger);
 
-  // withExpiry and withSameExpiry should be expired,
-  // withLaterExpiry and noExpiry still valid
-  ASSERT_EQ(3u, inMemCache.Size());
-  ASSERT_TRUE(inMemCache.Get(withExpiry).empty());
-  ASSERT_TRUE(inMemCache.Get(withSameExpiry).empty());
-  ASSERT_FALSE(inMemCache.Get(withLaterExpiry).empty());
-  ASSERT_FALSE(inMemCache.Get(noExpiry).empty());
-  ASSERT_FALSE(inMemCache.Get(trigger).empty());
+  // with_expiry and with_same_expiry should be expired,
+  // with_later_expiry and no_expiry still valid
+  ASSERT_EQ(3u, cache.Size());
+  ASSERT_TRUE(cache.Get(with_expiry).empty());
+  ASSERT_TRUE(cache.Get(with_same_expiry).empty());
+  ASSERT_FALSE(cache.Get(with_later_expiry).empty());
+  ASSERT_FALSE(cache.Get(no_expiry).empty());
+  ASSERT_FALSE(cache.Get(trigger).empty());
 }
 
 TEST(InMemoryCacheTest, ItemWithExpiryEvicted) {
   time_t now = std::time(nullptr);
 
   // max 2
-  olp::cache::InMemoryCache inMemCache(
-      2, olp::cache::InMemoryCache::EqualityCacheCost(),
-      [&now]() { return now; });
+  olp::cache::InMemoryCache cache(2, EqualityCacheCost(), [&] { return now; });
 
   // insert with expiry
-  std::string withExpiry("withExpiry");
-  inMemCache.Put(withExpiry,
-                  "value: " + withExpiry, 1);
+  std::string with_expiry("withExpiry");
+  cache.Put(with_expiry, "value: " + with_expiry, 1);
 
   // insert 2 more
-  std::string noExpiry("noExpiry");
+  std::string no_expiry("noExpiry");
   std::string another("another");
 
-  inMemCache.Put(noExpiry, "value: " + noExpiry);
-  inMemCache.Put(another, "value: " + another);
+  cache.Put(no_expiry, "value: " + no_expiry);
+  cache.Put(another, "value: " + another);
 
-  ASSERT_EQ(2u, inMemCache.Size());
+  ASSERT_EQ(2u, cache.Size());
 
   // wait 2 seconds
   now += 2;
 
   // Get items
-  ASSERT_FALSE(inMemCache.Get(noExpiry).empty());
-  ASSERT_FALSE(inMemCache.Get(another).empty());
+  ASSERT_FALSE(cache.Get(no_expiry).empty());
+  ASSERT_FALSE(cache.Get(another).empty());
 }
 
 TEST(InMemoryCacheTest, ItemsWithExpiryEvicted) {
   time_t now = std::time(nullptr);
 
   // max 2
-  olp::cache::InMemoryCache inMemCache(
-      2, olp::cache::InMemoryCache::EqualityCacheCost(),
-      [&now]() { return now; });
+  olp::cache::InMemoryCache cache(2, EqualityCacheCost(), [&] { return now; });
 
   // insert 2 with same expiry
-  std::string withExpiry("withExpiry");
-  inMemCache.Put(withExpiry,
-                  "value: " + withExpiry, 1);
-  std::string dupExpiry("dupExpiry");
-  inMemCache.Put(dupExpiry, "value: " + dupExpiry,
-                  1);
+  std::string with_expiry("withExpiry");
+  cache.Put(with_expiry, "value: " + with_expiry, 1);
+  std::string dup_expiry("dupExpiry");
+  cache.Put(dup_expiry, "value: " + dup_expiry, 1);
 
   // insert with same expiry
-  std::string tripExpiry("tripExpiry");
-  inMemCache.Put(tripExpiry,
-                  "value: " + tripExpiry, 1);
-  ASSERT_TRUE(inMemCache.Get(withExpiry).empty());
-  ASSERT_FALSE(inMemCache.Get(dupExpiry).empty());
-  ASSERT_FALSE(inMemCache.Get(tripExpiry).empty());
+  std::string trip_expiry("tripExpiry");
+  cache.Put(trip_expiry, "value: " + trip_expiry, 1);
+  ASSERT_TRUE(cache.Get(with_expiry).empty());
+  ASSERT_FALSE(cache.Get(dup_expiry).empty());
+  ASSERT_FALSE(cache.Get(trip_expiry).empty());
 
   // insert without expiry
-  std::string noExpiry("noExpiry");
-  inMemCache.Put(noExpiry, "value: " + noExpiry);
-  ASSERT_TRUE(inMemCache.Get(dupExpiry).empty());
-  ASSERT_FALSE(inMemCache.Get(tripExpiry).empty());
-  ASSERT_FALSE(inMemCache.Get(noExpiry).empty());
+  std::string no_expiry("noExpiry");
+  cache.Put(no_expiry, "value: " + no_expiry);
+  ASSERT_TRUE(cache.Get(dup_expiry).empty());
+  ASSERT_FALSE(cache.Get(trip_expiry).empty());
+  ASSERT_FALSE(cache.Get(no_expiry).empty());
 
   // insert with same expiry
-  std::string sameExpiry("sameExpiry");
-  inMemCache.Put(sameExpiry,
-                  "value: " + sameExpiry, 1);
+  std::string same_expiry("sameExpiry");
+  cache.Put(same_expiry, "value: " + same_expiry, 1);
 
   // wait 2 seconds
   now += 2;
 
   // Get remaining item
-  ASSERT_TRUE(inMemCache.Get(withExpiry).empty());
-  ASSERT_TRUE(inMemCache.Get(dupExpiry).empty());
-  ASSERT_TRUE(inMemCache.Get(tripExpiry).empty());
-  ASSERT_TRUE(inMemCache.Get(sameExpiry).empty());
-  ASSERT_FALSE(inMemCache.Get(noExpiry).empty());
+  ASSERT_TRUE(cache.Get(with_expiry).empty());
+  ASSERT_TRUE(cache.Get(dup_expiry).empty());
+  ASSERT_TRUE(cache.Get(trip_expiry).empty());
+  ASSERT_TRUE(cache.Get(same_expiry).empty());
+  ASSERT_FALSE(cache.Get(no_expiry).empty());
 }
 
 TEST(InMemoryCacheTest, CustomCost) {
   std::string oversized("oversized");
-  auto oversizedModel = "value: " + oversized;
+  auto oversized_model = "value: " + oversized;
 
-  struct MyCacheCost
-  {
-    std::size_t
-    operator()(const olp::cache::InMemoryCache::ItemTuple& s) const {
-      return 2;
-    }
+  struct MyCacheCost {
+    std::size_t operator()(const ItemTuple& s) const { return 2; }
   };
 
-  olp::cache::InMemoryCache inMemCache(1, MyCacheCost());
+  auto cost_func = [](const ItemTuple& tuple) { return 2; };
 
-  ASSERT_FALSE(inMemCache.Put(oversized, oversizedModel));
-  ASSERT_TRUE(inMemCache.Get(oversized).empty());
-  ASSERT_EQ(0u, inMemCache.Size());
+  olp::cache::InMemoryCache cache(1, MyCacheCost());
 
-  auto costFunc = [](const olp::cache::InMemoryCache::ItemTuple& tuple) {
-    return 2;
-  };
+  ASSERT_FALSE(cache.Put(oversized, oversized_model));
+  ASSERT_TRUE(cache.Get(oversized).empty());
+  ASSERT_EQ(0u, cache.Size());
 
-  olp::cache::InMemoryCache inMemCache2(1, std::move(costFunc));
+  olp::cache::InMemoryCache cache2(1, std::move(cost_func));
 
-  ASSERT_FALSE(inMemCache2.Put(oversized, oversizedModel));
-  ASSERT_TRUE(inMemCache2.Get(oversized).empty());
-  ASSERT_EQ(0u, inMemCache2.Size());
+  ASSERT_FALSE(cache2.Put(oversized, oversized_model));
+  ASSERT_TRUE(cache2.Get(oversized).empty());
+  ASSERT_EQ(0u, cache2.Size());
 }
 
 TEST(InMemoryCacheTest, StaticNoLimit) {
-  olp::cache::InMemoryCache inMemCache;
+  olp::cache::InMemoryCache cache;
 
-  populate(inMemCache, 10);
-  ASSERT_EQ(10u, inMemCache.Size());
+  Populate(cache, 10);
+  ASSERT_EQ(10u, cache.Size());
 
-  olp::cache::InMemoryCache inMemCache2;
+  olp::cache::InMemoryCache cache2;
 
-  populate(inMemCache2, 10);
-  ASSERT_EQ(10u, inMemCache2.Size());
-}
-
-using Data = std::shared_ptr<std::vector<unsigned char>>;
-
-Data createDataContainer(int length) {
-  std::vector< unsigned char > data;
-  for (auto i = 0; i < length; i++)
-      data.push_back(i);
-
-  return std::make_shared<std::vector<unsigned char>>(data);
+  Populate(cache2, 10);
+  ASSERT_EQ(10u, cache2.Size());
 }
 
 TEST(InMemoryCacheTest, ClassBasedCustomCost) {
-  olp::cache::InMemoryCache::ModelCacheCostFunc classModelCacheCost =
-    [](const olp::cache::InMemoryCache::ItemTuple& tuple) {
-      auto modelItem = std::get<2>(tuple);
+  auto class_model_cache_cost = [](const ItemTuple& tuple) {
+    auto model_item = std::get<2>(tuple);
+    std::size_t result(1u);
 
-      std::size_t result(1);
+    if (auto data_container = boost::any_cast<Data>(model_item)) {
+      auto data_size = data_container->size();
+      result = (data_size > 0) ? data_size : result;
+    }
 
-      if (auto dataContainer = boost::any_cast<Data>(modelItem)) {
-        auto dataSize = dataContainer->size();
+    return result;
+  };
 
-        if (dataSize > 0)
-            result = dataSize;
-      }
-      return result;
-    };
-
-  olp::cache::InMemoryCache inMemCache(10, classModelCacheCost);
+  olp::cache::InMemoryCache cache(10, class_model_cache_cost);
 
   std::string empty("empty");
-  auto emptyContainer = createDataContainer(0);
+  auto empty_container = CreateDataContainer(0);
 
   {
-    ASSERT_TRUE(inMemCache.Put(empty, emptyContainer));
-    ASSERT_FALSE(inMemCache.Get(empty).empty());
-    ASSERT_EQ(1u, inMemCache.Size());
-    inMemCache.Clear();
-    ASSERT_EQ(0u, inMemCache.Size());
+    ASSERT_TRUE(cache.Put(empty, empty_container));
+    ASSERT_FALSE(cache.Get(empty).empty());
+    ASSERT_EQ(1u, cache.Size());
+    cache.Clear();
+    ASSERT_EQ(0u, cache.Size());
   }
 
   std::string max("max");
-  auto maxContainer = createDataContainer(10);
+  auto max_container = CreateDataContainer(10);
+
   {
-    ASSERT_TRUE(inMemCache.Put(max, maxContainer));
-    ASSERT_FALSE(inMemCache.Get(max).empty());
-    ASSERT_EQ(10u, inMemCache.Size());
+    ASSERT_TRUE(cache.Put(max, max_container));
+    ASSERT_FALSE(cache.Get(max).empty());
+    ASSERT_EQ(10u, cache.Size());
 
-    ASSERT_TRUE(inMemCache.Put(empty, emptyContainer));
-    ASSERT_FALSE(inMemCache.Get(empty).empty());
-    ASSERT_EQ(1u, inMemCache.Size());
+    ASSERT_TRUE(cache.Put(empty, empty_container));
+    ASSERT_FALSE(cache.Get(empty).empty());
+    ASSERT_EQ(1u, cache.Size());
 
-    inMemCache.Clear();
-    ASSERT_EQ(0u, inMemCache.Size());
+    cache.Clear();
+    ASSERT_EQ(0u, cache.Size());
   }
 
   {
     std::string oversize("oversize");
-    auto oversizeContainer = createDataContainer(11);
+    auto oversize_container = CreateDataContainer(11);
 
-    ASSERT_FALSE(inMemCache.Put(oversize, oversizeContainer));
-    ASSERT_TRUE(inMemCache.Get(oversize).empty());
-    ASSERT_EQ(0u, inMemCache.Size());
+    ASSERT_FALSE(cache.Put(oversize, oversize_container));
+    ASSERT_TRUE(cache.Get(oversize).empty());
+    ASSERT_EQ(0u, cache.Size());
   }
 }
+}  // namespace
