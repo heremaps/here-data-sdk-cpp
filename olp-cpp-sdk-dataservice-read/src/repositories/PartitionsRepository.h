@@ -68,10 +68,10 @@ class PartitionsRepository final {
       client::CancellationContext cancellation_context,
       read::PartitionsRequest data_request, client::OlpClientSettings settings);
 
-  static PartitionsResponse GetPartitions(
+  static PartitionsResponse GetVolatilePartitions(
       client::HRN catalog, std::string layer,
       client::CancellationContext cancellation_context,
-      read::PartitionsRequest request, client::OlpClientSettings settings);
+      read::PartitionsRequest data_request, client::OlpClientSettings settings);
 
   static QueryApi::PartitionsResponse GetPartitionById(
       const client::HRN& catalog, const std::string& layer,
@@ -79,6 +79,12 @@ class PartitionsRepository final {
       const DataRequest& data_request, client::OlpClientSettings settings);
 
  private:
+  static PartitionsResponse GetPartitions(
+      client::HRN catalog, std::string layer,
+      client::CancellationContext cancellation_context,
+      read::PartitionsRequest request, client::OlpClientSettings settings,
+      boost::optional<time_t> expiry = boost::none);
+
   client::HRN hrn_;
   std::shared_ptr<ApiRepository> apiRepo_;
   std::shared_ptr<CatalogRepository> catalogRepo_;

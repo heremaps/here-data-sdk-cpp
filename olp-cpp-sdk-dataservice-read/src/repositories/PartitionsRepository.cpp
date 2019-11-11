@@ -78,6 +78,22 @@ std::string GetKey(const PartitionsRequest& request,
   return ss.str();
 }
 
+ApiResponse<boost::optional<time_t>, ApiError> TtlForLayer(
+    const std::vector<model::Layer>& layers, const std::string& layer_id) {
+  for (const auto& layer : layers) {
+    if (layer.GetId() == layer_id) {
+      boost::optional<time_t> expiry;
+      if (layer.GetTtl()) {
+        expiry = *layer.GetTtl() / 1000;
+      }
+      return expiry;
+    }
+  }
+
+  return ApiError(client::ErrorCode::NotFound,
+                  "Layer specified doesn't exist.");
+}
+
 void GetLayerVersion(std::shared_ptr<CancellationContext> cancel_context,
                      const OlpClient& client, const PartitionsRequest& request,
                      const LayerVersionCallback& callback,
@@ -487,10 +503,42 @@ PartitionsResponse PartitionsRepository::GetVersionedPartitions(
                        std::move(settings));
 }
 
-PartitionsResponse PartitionsRepository::GetPartitions(
+PartitionsResponse PartitionsRepository::GetVolatilePartitions(
     client::HRN catalog, std::string layer,
     client::CancellationContext cancellation_context,
     read::PartitionsRequest request, client::OlpClientSettings settings) {
+  request.WithLayerId(layer);
+  request.WithVersion(boost::none);
+
+  CatalogRequest catalog_request;
+  catalog_request.WithBillingTag(request.GetBillingTag())
+      .WithFetchOption(request.GetFetchOption());
+
+  auto catalog_response = repository::CatalogRepository::GetCatalog(
+      catalog, cancellation_context, catalog_request, settings);
+
+  if (!catalog_response.IsSuccessful()) {
+    return catalog_response.GetError();
+  }
+
+  auto expiry_response =
+      TtlForLayer(catalog_response.GetResult().GetLayers(), layer);
+
+  if (!expiry_response.IsSuccessful()) {
+    return expiry_response.GetError();
+  }
+
+  auto expiry = expiry_response.GetResult();
+  return GetPartitions(std::move(catalog), std::move(layer),
+                       cancellation_context, std::move(request),
+                       std::move(settings), std::move(expiry));
+}
+
+PartitionsResponse PartitionsRepository::GetPartitions(
+    client::HRN catalog, std::string layer,
+    client::CancellationContext cancellation_context,
+    read::PartitionsRequest request, client::OlpClientSettings settings,
+    boost::optional<time_t> expiry) {
   auto fetch_option = request.GetFetchOption();
   std::chrono::seconds timeout{settings.retry_settings.timeout};
 
@@ -563,7 +611,7 @@ PartitionsResponse PartitionsRepository::GetPartitions(
   if (metadata_response.IsSuccessful()) {
     OLP_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",
                        request.CreateKey().c_str());
-    repository.Put(request, metadata_response.GetResult(), boost::none, true);
+    repository.Put(request, metadata_response.GetResult(), expiry, true);
   } else {
     const auto& error = metadata_response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {

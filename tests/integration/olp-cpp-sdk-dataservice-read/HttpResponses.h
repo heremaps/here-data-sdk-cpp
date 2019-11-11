@@ -57,6 +57,12 @@
 #define URL_PARTITIONS_VN1 \
   R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?version=-1)"
 
+#define URL_PARTITIONS_VOLATILE \
+  R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions)"
+
+#define URL_PARTITIONS_VOLATILE_INVALID_LAYER \
+  R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/somewhat_not_okay/partitions)"
+
 #define URL_LOOKUP_QUERY \
   R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/)"+GetTestCatalog()+R"(/apis/query/v1)"
 
