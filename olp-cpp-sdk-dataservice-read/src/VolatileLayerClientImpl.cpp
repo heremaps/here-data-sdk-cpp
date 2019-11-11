@@ -25,6 +25,7 @@
 #include <olp/core/client/PendingRequests.h>
 #include <olp/core/client/TaskContext.h>
 
+#include "Common.h"
 #include "repositories/ApiRepository.h"
 #include "repositories/CatalogRepository.h"
 #include "repositories/DataRepository.h"
@@ -72,8 +73,8 @@ VolatileLayerClientImpl::~VolatileLayerClientImpl() {
 
 client::CancellationToken VolatileLayerClientImpl::GetPartitions(
     PartitionsRequest request, PartitionsResponseCallback callback) {
-  auto add_task = [&](PartitionsRequest request,
-                      PartitionsResponseCallback callback) {
+  auto schedule_get_partitions = [&](PartitionsRequest request,
+                                     PartitionsResponseCallback callback) {
     auto catalog = catalog_;
     auto layer_id = layer_id_;
     auto settings = *settings_;
@@ -98,19 +99,8 @@ client::CancellationToken VolatileLayerClientImpl::GetPartitions(
     return context.CancelToken();
   };
 
-  if (request.GetFetchOption() == FetchOptions::CacheWithUpdate) {
-    auto cache_token = add_task(
-        request.WithFetchOption(FetchOptions::CacheOnly), std::move(callback));
-    auto online_token =
-        add_task(request.WithFetchOption(FetchOptions::OnlineOnly), nullptr);
-
-    return client::CancellationToken([=]() {
-      cache_token.cancel();
-      online_token.cancel();
-    });
-  } else {
-    return add_task(std::move(request), std::move(callback));
-  }
+  return ScheduleFetch(std::move(schedule_get_partitions), std::move(request),
+                       std::move(callback));
 }
 
 client::CancellableFuture<PartitionsResponse>
@@ -125,7 +115,8 @@ VolatileLayerClientImpl::GetPartitions(PartitionsRequest request) {
 
 client::CancellationToken VolatileLayerClientImpl::GetData(
     DataRequest request, DataResponseCallback callback) {
-  auto add_task = [&](DataRequest request, DataResponseCallback callback) {
+  auto schedule_get_data = [&](DataRequest request,
+                               DataResponseCallback callback) {
     auto catalog = catalog_;
     auto layer_id = layer_id_;
     auto settings = *settings_;
@@ -149,19 +140,8 @@ client::CancellationToken VolatileLayerClientImpl::GetData(
     return context.CancelToken();
   };
 
-  if (request.GetFetchOption() == FetchOptions::CacheWithUpdate) {
-    auto cache_token = add_task(
-        request.WithFetchOption(FetchOptions::CacheOnly), std::move(callback));
-    auto online_token =
-        add_task(request.WithFetchOption(FetchOptions::OnlineOnly), nullptr);
-
-    return client::CancellationToken([=]() {
-      cache_token.cancel();
-      online_token.cancel();
-    });
-  } else {
-    return add_task(std::move(request), std::move(callback));
-  }
+  return ScheduleFetch(std::move(schedule_get_data), std::move(request),
+                       std::move(callback));
 }
 
 client::CancellableFuture<DataResponse> VolatileLayerClientImpl::GetData(
