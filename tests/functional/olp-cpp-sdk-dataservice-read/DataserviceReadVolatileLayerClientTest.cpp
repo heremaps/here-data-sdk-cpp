@@ -41,10 +41,11 @@ using namespace testing;
 
 namespace {
 
-const auto kAppIdEnvName = "dataservice_read_test_appid";
-const auto kAppSecretEnvName = "dataservice_read_test_secret";
-const auto kCatalogEnvName = "dataservice_read_test_catalog";
+const auto kAppIdEnvName = "dataservice_read_volatile_test_appid";
+const auto kAppSecretEnvName = "dataservice_read_volatile_test_secret";
+const auto kCatalogEnvName = "dataservice_read_volatile_test_catalog";
 const auto kLayerEnvName = "dataservice_read_volatile_layer";
+
 const auto kTimeout = std::chrono::seconds(5);
 
 class VolatileLayerClientTest : public ::testing::Test {

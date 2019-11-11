@@ -18,4 +18,7 @@ export dataservice_read_test_versioned_prefetch_tile="5904591"
 export dataservice_read_test_versioned_prefetch_subpartition1="23618365"
 export dataservice_read_test_versioned_prefetch_subpartition2="1476147"
 
-export dataservice_read_volatile_layer="testlayer"
+export dataservice_read_volatile_test_appid="${dataservice_read_volatile_test_appid}"
+export dataservice_read_volatile_test_secret="${dataservice_read_volatile_test_secret}"
+export dataservice_read_volatile_layer="test-volatile-layer"
+export dataservice_read_volatile_test_catalog="hrn:here:data::olp-here-test:here-olp-sdk-cpp"

@@ -84,6 +84,8 @@ void DataserviceReadVolatileLayerClientTest::SetUp() {
   olp::cache::CacheSettings cache_settings;
   settings_.cache =
       olp::client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
+  settings_.task_scheduler =
+      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
 
   SetUpCommonNetworkMockCalls();
 }
@@ -109,164 +111,17 @@ void DataserviceReadVolatileLayerClientTest::SetUpCommonNetworkMockCalls() {
                              HTTP_RESPONSE_LOOKUP_METADATA));
 
   ON_CALL(*network_mock_,
-          Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_LATEST_CATALOG_VERSION));
-
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LAYER_VERSIONS), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_LAYER_VERSIONS));
-
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
+          Send(IsGetRequest(URL_PARTITIONS_VOLATILE), _, _, _, _))
       .WillByDefault(
           ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                              HTTP_RESPONSE_PARTITIONS));
 
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_LOOKUP_QUERY));
-
   ON_CALL(*network_mock_,
-          Send(IsGetRequest(URL_QUERY_PARTITION_269), _, _, _, _))
+          Send(IsGetRequest(URL_PARTITIONS_VOLATILE_INVALID_LAYER), _, _, _, _))
       .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_PARTITION_269));
-
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_LOOKUP_BLOB));
-
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_BLOB_DATA_269));
-
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITION_3), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_PARTITION_3));
-
-  ON_CALL(*network_mock_,
-          Send(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_LOOKUP_VOLATILE_BLOB));
-
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LAYER_VERSIONS_V2), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_LAYER_VERSIONS_V2));
-
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS_V2), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_PARTITIONS_V2));
-
-  ON_CALL(*network_mock_,
-          Send(IsGetRequest(URL_QUERY_PARTITION_269_V2), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_PARTITION_269_V2));
-
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269_V2), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_BLOB_DATA_269_V2));
-
-  ON_CALL(*network_mock_,
-          Send(IsGetRequest(URL_QUERY_PARTITION_269_V10), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(400),
-                             HTTP_RESPONSE_INVALID_VERSION_V10));
-
-  ON_CALL(*network_mock_,
-          Send(IsGetRequest(URL_QUERY_PARTITION_269_VN1), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(400),
+          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                 olp::http::HttpStatusCode::NOT_FOUND),
                              HTTP_RESPONSE_INVALID_VERSION_VN1));
-
-  ON_CALL(*network_mock_,
-          Send(IsGetRequest(URL_LAYER_VERSIONS_V10), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(400),
-                             HTTP_RESPONSE_INVALID_VERSION_V10));
-
-  ON_CALL(*network_mock_,
-          Send(IsGetRequest(URL_LAYER_VERSIONS_VN1), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(400),
-                             HTTP_RESPONSE_INVALID_VERSION_VN1));
-
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG_V2), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_CONFIG_V2));
-
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_QUADKEYS_23618364), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_QUADKEYS_23618364));
-
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_QUADKEYS_1476147), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_QUADKEYS_1476147));
-
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_QUADKEYS_5904591), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_QUADKEYS_5904591));
-
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_QUADKEYS_369036), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_QUADKEYS_369036));
-
-  ON_CALL(*network_mock_,
-          Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_1), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_BLOB_DATA_PREFETCH_1));
-
-  ON_CALL(*network_mock_,
-          Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_2), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_BLOB_DATA_PREFETCH_2));
-
-  ON_CALL(*network_mock_,
-          Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_3), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_BLOB_DATA_PREFETCH_3));
-
-  ON_CALL(*network_mock_,
-          Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_4), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_BLOB_DATA_PREFETCH_4));
-
-  ON_CALL(*network_mock_,
-          Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_5), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_BLOB_DATA_PREFETCH_5));
-
-  ON_CALL(*network_mock_,
-          Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_6), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_BLOB_DATA_PREFETCH_6));
-
-  ON_CALL(*network_mock_,
-          Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_7), _, _, _, _))
-      .WillByDefault(
-          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_BLOB_DATA_PREFETCH_7));
 
   // Catch any non-interesting network calls that don't need to be verified
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _)).Times(testing::AtLeast(0));
@@ -294,6 +149,56 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitions) {
   ASSERT_TRUE(partitions_response.IsSuccessful())
       << ApiErrorToString(partitions_response.GetError());
   ASSERT_EQ(4u, partitions_response.GetResult().GetPartitions().size());
+}
+
+TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsVersionIsIgnored) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
+      .Times(1);
+
+  olp::dataservice::read::VolatileLayerClient client(hrn, "testlayer",
+                                                     settings_);
+
+  {
+    SCOPED_TRACE(
+        "Online request with version in request. Version should be ignored.");
+    auto request = olp::dataservice::read::PartitionsRequest();
+    request.WithVersion(4);
+    request.WithFetchOption(FetchOptions::OnlineOnly);
+
+    PartitionsResponse partitions_response;
+    olp::client::Condition condition;
+    client.GetPartitions(request, [&](PartitionsResponse response) {
+      partitions_response = std::move(response);
+      condition.Notify();
+    });
+
+    ASSERT_TRUE(condition.Wait(kTimeout));
+
+    ASSERT_TRUE(partitions_response.IsSuccessful())
+        << ApiErrorToString(partitions_response.GetError());
+    ASSERT_EQ(4u, partitions_response.GetResult().GetPartitions().size());
+  }
+
+  {
+    SCOPED_TRACE("Cache have data without version");
+    auto request = olp::dataservice::read::PartitionsRequest();
+    request.WithFetchOption(FetchOptions::CacheOnly);
+
+    PartitionsResponse partitions_response;
+    olp::client::Condition condition;
+    client.GetPartitions(request, [&](PartitionsResponse response) {
+      partitions_response = std::move(response);
+      condition.Notify();
+    });
+
+    ASSERT_TRUE(condition.Wait(kTimeout));
+
+    ASSERT_TRUE(partitions_response.IsSuccessful())
+        << ApiErrorToString(partitions_response.GetError());
+    ASSERT_EQ(4u, partitions_response.GetResult().GetPartitions().size());
+  }
 }
 
 TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsCancellableFuture) {
@@ -345,7 +250,8 @@ TEST_F(DataserviceReadVolatileLayerClientTest,
 TEST_F(DataserviceReadVolatileLayerClientTest, GetEmptyPartitions) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_PARTITIONS_VOLATILE), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                    HTTP_RESPONSE_EMPTY_PARTITIONS));
 
@@ -406,13 +312,15 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitions429Error) {
   {
     testing::InSequence s;
 
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_PARTITIONS_VOLATILE), _, _, _, _))
         .Times(2)
         .WillRepeatedly(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
                                "Server busy at the moment."));
 
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_PARTITIONS_VOLATILE), _, _, _, _))
         .Times(1);
   }
 
@@ -485,7 +393,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, ApiLookup429) {
 TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsForInvalidLayer) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  olp::dataservice::read::VolatileLayerClient client(hrn, "InvalidLayer",
+  olp::dataservice::read::VolatileLayerClient client(hrn, "somewhat_not_okay",
                                                      settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
@@ -500,7 +408,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsForInvalidLayer) {
 
   ASSERT_FALSE(partitions_response.IsSuccessful())
       << ApiErrorToString(partitions_response.GetError());
-  ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
+  ASSERT_EQ(olp::client::ErrorCode::NotFound,
             partitions_response.GetError().GetErrorCode());
 }
 
@@ -580,110 +488,6 @@ TEST_F(DataserviceReadVolatileLayerClientTest,
             partitions_response.GetError().GetErrorCode());
 }
 
-TEST_F(DataserviceReadVolatileLayerClientTest,
-       GetPartitionsCancelLatestCatalogVersion) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  // Setup the expected calls :
-  auto wait_for_cancel = std::make_shared<std::promise<void>>();
-  auto pause_for_cancel = std::make_shared<std::promise<void>>();
-
-  olp::http::RequestId request_id;
-  NetworkCallback send_mock;
-  CancelCallback cancel_mock;
-
-  std::tie(request_id, send_mock, cancel_mock) =
-      GenerateNetworkMockActions(wait_for_cancel, pause_for_cancel,
-                                 {200, HTTP_RESPONSE_LATEST_CATALOG_VERSION});
-
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
-      .Times(1)
-      .WillOnce(testing::Invoke(std::move(send_mock)));
-
-  EXPECT_CALL(*network_mock_, Cancel(request_id))
-      .WillOnce(testing::Invoke(std::move(cancel_mock)));
-
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LAYER_VERSIONS), _, _, _, _))
-      .Times(0);
-
-  std::promise<PartitionsResponse> promise;
-  auto callback = [&promise](PartitionsResponse response) {
-    promise.set_value(response);
-  };
-
-  VolatileLayerClient client(hrn, "testlayer", settings_);
-
-  auto request = olp::dataservice::read::PartitionsRequest();
-  auto cancel_token = client.GetPartitions(request, callback);
-
-  wait_for_cancel->get_future().get();  // wait for handler to get the request
-  cancel_token.cancel();
-  pause_for_cancel->set_value();  // unblock the handler
-  PartitionsResponse partitions_response = promise.get_future().get();
-
-  ASSERT_FALSE(partitions_response.IsSuccessful())
-      << ApiErrorToString(partitions_response.GetError());
-  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            partitions_response.GetError().GetHttpStatusCode())
-      << ApiErrorToString(partitions_response.GetError());
-  ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            partitions_response.GetError().GetErrorCode())
-      << ApiErrorToString(partitions_response.GetError());
-}
-
-TEST_F(DataserviceReadVolatileLayerClientTest,
-       DISABLED_GetPartitionsCancelLayerVersions) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  // Setup the expected calls :
-  auto wait_for_cancel = std::make_shared<std::promise<void>>();
-  auto pause_for_cancel = std::make_shared<std::promise<void>>();
-
-  olp::http::RequestId request_id;
-  NetworkCallback send_mock;
-  CancelCallback cancel_mock;
-
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LAYER_VERSIONS});
-
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LAYER_VERSIONS), _, _, _, _))
-      .Times(1)
-      .WillOnce(testing::Invoke(std::move(send_mock)));
-
-  EXPECT_CALL(*network_mock_, Cancel(request_id))
-      .WillOnce(testing::Invoke(std::move(cancel_mock)));
-
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
-      .Times(0);
-
-  std::promise<PartitionsResponse> promise;
-  auto callback = [&promise](PartitionsResponse response) {
-    promise.set_value(response);
-  };
-
-  VolatileLayerClient client(hrn, "testlayer", settings_);
-
-  auto request = olp::dataservice::read::PartitionsRequest();
-  auto cancel_token = client.GetPartitions(request, callback);
-
-  wait_for_cancel->get_future().get();  // wait for handler to get the request
-  cancel_token.cancel();
-  pause_for_cancel->set_value();  // unblock the handler
-  PartitionsResponse partitions_response = promise.get_future().get();
-
-  ASSERT_FALSE(partitions_response.IsSuccessful())
-      << ApiErrorToString(partitions_response.GetError());
-  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            partitions_response.GetError().GetHttpStatusCode())
-      << ApiErrorToString(partitions_response.GetError());
-  ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            partitions_response.GetError().GetErrorCode())
-      << ApiErrorToString(partitions_response.GetError());
-}
-
 TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsCacheOnly) {
   olp::client::HRN hrn(GetTestCatalog());
 
@@ -758,8 +562,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsOnlineOnly) {
   }
 }
 
-TEST_F(DataserviceReadVolatileLayerClientTest,
-       DISABLED_GetPartitionsCacheWithUpdate) {
+TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsCacheWithUpdate) {
   olp::logging::Log::setLevel(olp::logging::Level::Trace);
 
   olp::client::HRN hrn(GetTestCatalog());
@@ -777,12 +580,10 @@ TEST_F(DataserviceReadVolatileLayerClientTest,
       wait_to_start_signal, pre_callback_wait, {200, HTTP_RESPONSE_PARTITIONS},
       wait_for_end_signal);
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_PARTITIONS_VOLATILE), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
-
-  EXPECT_CALL(*network_mock_, Cancel(request_id))
-      .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   olp::dataservice::read::VolatileLayerClient client(hrn, "testlayer",
                                                      settings_);
@@ -827,9 +628,11 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitions403CacheClear) {
                                                      settings_);
   {
     testing::InSequence s;
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_PARTITIONS_VOLATILE), _, _, _, _))
         .Times(1);
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_PARTITIONS_VOLATILE), _, _, _, _))
         .WillOnce(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
   }

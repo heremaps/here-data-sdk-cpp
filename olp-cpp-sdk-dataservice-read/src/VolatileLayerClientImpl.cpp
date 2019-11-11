@@ -72,32 +72,45 @@ VolatileLayerClientImpl::~VolatileLayerClientImpl() {
 
 client::CancellationToken VolatileLayerClientImpl::GetPartitions(
     PartitionsRequest request, PartitionsResponseCallback callback) {
-  request.WithLayerId(layer_id_);
-  client::CancellationToken token;
-  int64_t request_key = pending_requests_->GenerateRequestPlaceholder();
-  auto pending_requests = pending_requests_;
-  auto request_callback = [pending_requests, request_key,
-                           callback](PartitionsResponse response) {
-    if (pending_requests->Remove(request_key)) {
-      callback(response);
-    }
+  auto add_task = [&](PartitionsRequest request,
+                      PartitionsResponseCallback callback) {
+    auto catalog = catalog_;
+    auto layer_id = layer_id_;
+    auto settings = *settings_;
+    auto pending_requests = pending_requests_;
+
+    auto data_task = [=](client::CancellationContext context) {
+      return repository::PartitionsRepository::GetVolatilePartitions(
+          std::move(catalog), std::move(layer_id), std::move(context),
+          std::move(request), std::move(settings));
+    };
+
+    auto context =
+        client::TaskContext::Create(std::move(data_task), std::move(callback));
+
+    pending_requests->Insert(context);
+
+    repository::ExecuteOrSchedule(task_scheduler_, [=]() {
+      context.Execute();
+      pending_requests->Remove(context);
+    });
+
+    return context.CancelToken();
   };
-  if (CacheWithUpdate == request.GetFetchOption()) {
-    token = partition_repo_->GetPartitions(request.WithFetchOption(CacheOnly),
-                                           request_callback);
-    auto onlineKey = pending_requests_->GenerateRequestPlaceholder();
-    pending_requests_->Insert(
-        partition_repo_->GetPartitions(
-            request.WithFetchOption(OnlineIfNotFound),
-            [pending_requests, onlineKey](PartitionsResponse) {
-              pending_requests->Remove(onlineKey);
-            }),
-        onlineKey);
+
+  if (request.GetFetchOption() == FetchOptions::CacheWithUpdate) {
+    auto cache_token = add_task(
+        request.WithFetchOption(FetchOptions::CacheOnly), std::move(callback));
+    auto online_token =
+        add_task(request.WithFetchOption(FetchOptions::OnlineOnly), nullptr);
+
+    return client::CancellationToken([=]() {
+      cache_token.cancel();
+      online_token.cancel();
+    });
   } else {
-    token = partition_repo_->GetPartitions(request, request_callback);
+    return add_task(std::move(request), std::move(callback));
   }
-  pending_requests_->Insert(token, request_key);
-  return token;
 }
 
 client::CancellableFuture<PartitionsResponse>
