@@ -60,14 +60,6 @@ CatalogClientImpl::CatalogClientImpl(HRN catalog, OlpClientSettings settings)
   data_repo_ = std::make_shared<DataRepository>(
       catalog_, api_repo, catalog_repo_, partition_repo_, cache);
 
-  auto prefetch_repo = std::make_shared<PrefetchTilesRepository>(
-      catalog_, api_repo, partition_repo_->GetPartitionsCacheRepository(),
-      settings_);
-
-  prefetch_provider_ = std::make_shared<PrefetchTilesProvider>(
-      catalog_, api_repo, catalog_repo_, data_repo_, std::move(prefetch_repo),
-      settings_);
-
   pending_requests_ = std::make_shared<client::PendingRequests>();
 }
 
@@ -235,31 +227,6 @@ client::CancellableFuture<DataResponse> CatalogClientImpl::GetData(
                    const DataRequest&, const DataResponseCallback&)>(
                    &CatalogClientImpl::GetData));
 }
-
-client::CancellationToken CatalogClientImpl::PrefetchTiles(
-    const PrefetchTilesRequest& request,
-    const PrefetchTilesResponseCallback& callback) {
-  int64_t request_key = pending_requests_->GenerateRequestPlaceholder();
-  auto request_callback = [=](const PrefetchTilesResponse& response) {
-    pending_requests_->Remove(request_key);
-    callback(response);
-  };
-
-  auto token = prefetch_provider_->PrefetchTiles(request, request_callback);
-
-  pending_requests_->Insert(token, request_key);
-  return token;
-}
-
-client::CancellableFuture<PrefetchTilesResponse>
-CatalogClientImpl::PrefetchTiles(const PrefetchTilesRequest& request) {
-  return AsFuture<PrefetchTilesRequest, PrefetchTilesResponse>(
-      request,
-      static_cast<client::CancellationToken (CatalogClientImpl::*)(
-          const PrefetchTilesRequest&, const PrefetchTilesResponseCallback&)>(
-          &CatalogClientImpl::PrefetchTiles));
-}
-
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

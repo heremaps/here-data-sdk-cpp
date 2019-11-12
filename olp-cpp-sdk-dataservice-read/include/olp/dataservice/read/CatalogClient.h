@@ -191,44 +191,6 @@ class DATASERVICE_READ_API CatalogClient final {
   OLP_SDK_DEPRECATED("Will be removed in 1.0")
   client::CancellableFuture<DataResponse> GetData(const DataRequest& request);
 
-  /**
-   * @brief pre-fetches a set of tiles asynchronously
-   *
-   * Recursively downloads all tilekeys up to maxLevel.
-   *
-   * Note - this does not guarantee that all tiles are available offline, as the
-   * cache might overflow and data might be evicted at any point.
-   *
-   * @param request contains the complete set of request parameters.
-   * @param callback the callback to involve when the operation finished
-   * @param statusCallback the callback to involve to indicate status of the
-   * operation
-   * @return A token that can be used to cancel this prefetch request
-   * @deprecated Will be removed in 1.0
-   */
-  OLP_SDK_DEPRECATED("Will be removed in 1.0")
-  client::CancellationToken PrefetchTiles(
-      const PrefetchTilesRequest& request,
-      const PrefetchTilesResponseCallback& callback);
-
-  /**
-   * @brief pre-fetches a set of tiles asynchronously
-   *
-   * Recursively downloads all tilekeys up to maxLevel.
-   *
-   * Note - this does not guarantee that all tiles are available offline, as the
-   * cache might overflow and data might be evicted at any point.
-   *
-   * @param request contains the complete set of request parameters.
-   * @return CancellableFuture of type PrefetchTilesResponse, which when
-   * complete will contain the data or an error. Alternatively, the
-   * CancellableFuture can be used to cancel this request.
-   * @deprecated Will be removed in 1.0
-   */
-  OLP_SDK_DEPRECATED("Will be removed in 1.0")
-  client::CancellableFuture<PrefetchTilesResponse> PrefetchTiles(
-      const PrefetchTilesRequest& request);
-
  private:
   std::shared_ptr<CatalogClientImpl> impl_;
 };
