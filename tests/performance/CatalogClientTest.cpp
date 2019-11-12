@@ -22,13 +22,13 @@
 
 #include <gtest/gtest.h>
 
+#include "olp/core/cache/CacheSettings.h"
 #include "olp/core/cache/KeyValueCache.h"
 #include "olp/core/client/HRN.h"
 #include "olp/core/client/OlpClientSettings.h"
 #include "olp/core/client/OlpClientSettingsFactory.h"
 #include "olp/core/logging/Log.h"
 #include "olp/dataservice/read/CatalogClient.h"
-#include "olp/dataservice/read/DataRequest.h"
 
 namespace {
 struct CatalogClientTestConfiguration {
@@ -208,4 +208,4 @@ TEST_P(CatalogClientTest, ReadNPartitionsFromVersionedLayer) {
 INSTANTIATE_TEST_SUITE_P(MemoryUsage, CatalogClientTest,
                          ::testing::Values(CatalogClientTestConfiguration{
                              3, 5, 5, std::chrono::hours(10)}));
-}  // namespace
+} // namespace

@@ -22,13 +22,15 @@
 #include <functional>
 #include <memory>
 
-#include <olp/core/cache/CacheSettings.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/geo/tiling/TileKey.h>
 #include <olp/core/porting/deprecated.h>
-#include "DataServiceReadApi.h"
-#include "olp/dataservice/read/PrefetchTileResult.h"
-#include "olp/dataservice/read/Types.h"
+#include <olp/dataservice/read/CatalogRequest.h>
+#include <olp/dataservice/read/CatalogVersionRequest.h>
+#include <olp/dataservice/read/DataRequest.h>
+#include <olp/dataservice/read/DataServiceReadApi.h>
+#include <olp/dataservice/read/PartitionsRequest.h>
+#include <olp/dataservice/read/Types.h>
 
 namespace olp {
 
@@ -40,12 +42,6 @@ namespace dataservice {
 namespace read {
 
 class CatalogClientImpl;
-
-class CatalogRequest;
-class CatalogVersionRequest;
-class DataRequest;
-class PartitionsRequest;
-class PrefetchTilesRequest;
 
 /**
  * @brief The CatalogClient class. Marshals Requests and their Results.

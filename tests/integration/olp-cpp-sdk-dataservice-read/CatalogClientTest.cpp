@@ -20,6 +20,7 @@
 #include <gmock/gmock.h>
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/NetworkMock.h>
+#include <olp/core/cache/CacheSettings.h>
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
@@ -27,11 +28,6 @@
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
 #include <olp/dataservice/read/CatalogClient.h>
-#include <olp/dataservice/read/CatalogRequest.h>
-#include <olp/dataservice/read/CatalogVersionRequest.h>
-#include <olp/dataservice/read/DataRequest.h>
-#include <olp/dataservice/read/PartitionsRequest.h>
-#include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/model/Catalog.h>
 #include "CatalogClientTestBase.h"
 #include "HttpResponses.h"

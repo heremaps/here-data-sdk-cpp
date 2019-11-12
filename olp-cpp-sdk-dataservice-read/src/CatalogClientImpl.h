@@ -29,6 +29,7 @@
 #include <olp/dataservice/read/CatalogVersionRequest.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
+#include <olp/dataservice/read/PrefetchTilesRequest.h>
 
 namespace olp {
 namespace client {

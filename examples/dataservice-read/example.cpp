@@ -30,9 +30,6 @@
 #include <olp/core/porting/make_unique.h>
 
 #include <olp/dataservice/read/CatalogClient.h>
-#include <olp/dataservice/read/CatalogRequest.h>
-#include <olp/dataservice/read/DataRequest.h>
-#include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 
 namespace {
