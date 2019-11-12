@@ -78,13 +78,6 @@ class CatalogClientImpl final {
 
   client::CancellableFuture<DataResponse> GetData(const DataRequest& request);
 
-  client::CancellationToken PrefetchTiles(
-      const PrefetchTilesRequest& request,
-      const PrefetchTilesResponseCallback& callback);
-
-  client::CancellableFuture<PrefetchTilesResponse> PrefetchTiles(
-      const PrefetchTilesRequest& request);
-
  private:
   client::HRN catalog_;
   std::shared_ptr<client::OlpClientSettings> settings_;
@@ -92,7 +85,6 @@ class CatalogClientImpl final {
   std::shared_ptr<repository::CatalogRepository> catalog_repo_;
   std::shared_ptr<repository::PartitionsRepository> partition_repo_;
   std::shared_ptr<repository::DataRepository> data_repo_;
-  std::shared_ptr<PrefetchTilesProvider> prefetch_provider_;
   std::shared_ptr<client::PendingRequests> pending_requests_;
 
   template <typename Request, typename Response>

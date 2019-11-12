@@ -517,64 +517,6 @@ TEST_P(CatalogClientTest, GetDataCompressed) {
             data_response_compressed.GetResult()->size());
 }
 
-TEST_P(CatalogClientTest, Prefetch) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  auto catalog_client =
-      std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
-
-  std::vector<olp::geo::TileKey> tile_keys;
-  tile_keys.emplace_back(olp::geo::TileKey::FromHereTile("5904591"));
-
-  auto request = olp::dataservice::read::PrefetchTilesRequest()
-                     .WithLayerId("hype-test-prefetch")
-                     .WithTileKeys(tile_keys)
-                     .WithMinLevel(10)
-                     .WithMaxLevel(12);
-
-  auto future = catalog_client->PrefetchTiles(request);
-
-  auto response = future.GetFuture().get();
-  ASSERT_TRUE(response.IsSuccessful());
-
-  auto& result = response.GetResult();
-
-  for (auto tile_result : result) {
-    ASSERT_TRUE(tile_result->IsSuccessful());
-    ASSERT_TRUE(tile_result->tile_key_.IsValid());
-
-    DumpTileKey(tile_result->tile_key_);
-  }
-  ASSERT_EQ(6u, result.size());
-
-  // Second part, use the cache, fetch a partition that's the child of 5904591
-  {
-    auto request = olp::dataservice::read::DataRequest();
-    request.WithLayerId("hype-test-prefetch")
-        .WithPartitionId("23618365")
-        .WithFetchOption(FetchOptions::CacheOnly);
-    auto future = catalog_client->GetData(request);
-
-    auto data_response = future.GetFuture().get();
-
-    EXPECT_SUCCESS(data_response);
-    ASSERT_LT(0, data_response.GetResult()->size());
-  }
-  // The parent of 5904591 should be fetched too
-  {
-    auto request = olp::dataservice::read::DataRequest();
-    request.WithLayerId("hype-test-prefetch")
-        .WithPartitionId("1476147")
-        .WithFetchOption(FetchOptions::CacheOnly);
-    auto future = catalog_client->GetData(request);
-
-    auto data_response = future.GetFuture().get();
-
-    EXPECT_SUCCESS(data_response);
-    ASSERT_LT(0, data_response.GetResult()->size());
-  }
-}
-
 INSTANTIATE_TEST_SUITE_P(, CatalogClientTest,
                          ::testing::Values(CacheType::BOTH));
 

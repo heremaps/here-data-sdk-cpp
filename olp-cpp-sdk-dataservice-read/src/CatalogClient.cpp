@@ -98,18 +98,6 @@ client::CancellableFuture<DataResponse> CatalogClient::GetData(
     const DataRequest& request) {
   return impl_->GetData(request);
 }
-
-client::CancellationToken CatalogClient::PrefetchTiles(
-    const PrefetchTilesRequest& request,
-    const PrefetchTilesResponseCallback& callback) {
-  return impl_->PrefetchTiles(request, callback);
-}
-
-client::CancellableFuture<PrefetchTilesResponse> CatalogClient::PrefetchTiles(
-    const PrefetchTilesRequest& request) {
-  return impl_->PrefetchTiles(request);
-}
-
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp
