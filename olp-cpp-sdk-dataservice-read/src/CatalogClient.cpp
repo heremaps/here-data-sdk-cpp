@@ -48,13 +48,13 @@ bool CatalogClient::CancelPendingRequests() {
 }
 
 client::CancellationToken CatalogClient::GetCatalog(
-    const CatalogRequest& request, const CatalogResponseCallback& callback) {
-  return impl_->GetCatalog(request, callback);
+    CatalogRequest request, CatalogResponseCallback callback) {
+  return impl_->GetCatalog(std::move(request), std::move(callback));
 }
 
 client::CancellableFuture<CatalogResponse> CatalogClient::GetCatalog(
-    const CatalogRequest& request) {
-  return impl_->GetCatalog(request);
+    CatalogRequest request) {
+  return impl_->GetCatalog(std::move(request));
 }
 
 client::CancellationToken CatalogClient::GetLatestVersion(
@@ -68,14 +68,13 @@ CatalogClient::GetLatestVersion(CatalogVersionRequest request) {
 }
 
 client::CancellationToken CatalogClient::GetCatalogMetadataVersion(
-    const CatalogVersionRequest& request,
-    const CatalogVersionCallback& callback) {
-  return impl_->GetLatestVersion(request, callback);
+    CatalogVersionRequest request, CatalogVersionCallback callback) {
+  return impl_->GetLatestVersion(std::move(request), std::move(callback));
 }
 
 client::CancellableFuture<CatalogVersionResponse>
-CatalogClient::GetCatalogMetadataVersion(const CatalogVersionRequest& request) {
-  return impl_->GetLatestVersion(request);
+CatalogClient::GetCatalogMetadataVersion(CatalogVersionRequest request) {
+  return impl_->GetLatestVersion(std::move(request));
 }
 
 client::CancellationToken CatalogClient::GetPartitions(

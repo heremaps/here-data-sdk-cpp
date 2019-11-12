@@ -75,8 +75,8 @@ class DATASERVICE_READ_API CatalogClient final {
    * available, or an error is encountered.
    * @return A token that can be used to cancel this request
    */
-  client::CancellationToken GetCatalog(const CatalogRequest& request,
-                                       const CatalogResponseCallback& callback);
+  client::CancellationToken GetCatalog(CatalogRequest request,
+                                       CatalogResponseCallback callback);
 
   /**
    * @brief fetches catalog configuration asynchronously.
@@ -85,8 +85,7 @@ class DATASERVICE_READ_API CatalogClient final {
    * contain the catalog configuration or an error. Alternatively, the
    * CancellableFuture can be used to cancel this request.
    */
-  client::CancellableFuture<CatalogResponse> GetCatalog(
-      const CatalogRequest& request);
+  client::CancellableFuture<CatalogResponse> GetCatalog(CatalogRequest request);
 
   /**
    * @brief fetches catalog version asynchronously.
@@ -119,8 +118,7 @@ class DATASERVICE_READ_API CatalogClient final {
   OLP_SDK_DEPRECATED(
       "Will be removed in 1.1, please use GetLatestVersion() instead")
   client::CancellationToken GetCatalogMetadataVersion(
-      const CatalogVersionRequest& request,
-      const CatalogVersionCallback& callback);
+      CatalogVersionRequest request, CatalogVersionCallback callback);
 
   /**
    * @brief fetches catalog version asynchronously.
@@ -133,7 +131,7 @@ class DATASERVICE_READ_API CatalogClient final {
   OLP_SDK_DEPRECATED(
       "Will be removed in 1.1, please use GetLatestVersion() instead")
   client::CancellableFuture<CatalogVersionResponse> GetCatalogMetadataVersion(
-      const CatalogVersionRequest& request);
+      CatalogVersionRequest request);
 
   /**
    * @brief fetches a list partitions for given generic layer asynchronously.
