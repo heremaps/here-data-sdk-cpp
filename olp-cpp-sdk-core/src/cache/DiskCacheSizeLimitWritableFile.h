@@ -21,29 +21,29 @@
 
 #include <memory>
 
-#include <leveldb/env.h>
+#include <rocksdb/env.h>
 
 namespace olp {
 namespace cache {
 class DiskCacheSizeLimitEnv;
 
-class DiskCacheSizeLimitWritableFile : public leveldb::WritableFile {
+class DiskCacheSizeLimitWritableFile : public rocksdb::WritableFile {
  public:
   DiskCacheSizeLimitWritableFile(DiskCacheSizeLimitEnv* owner,
-                                 leveldb::WritableFile* file);
+                                 std::unique_ptr<rocksdb::WritableFile> file);
   ~DiskCacheSizeLimitWritableFile() override = default;
 
-  leveldb::Status Append(const leveldb::Slice& data) override;
+  rocksdb::Status Append(const rocksdb::Slice& data) override;
 
-  leveldb::Status Close() override;
+  rocksdb::Status Close() override;
 
-  leveldb::Status Flush() override;
+  rocksdb::Status Flush() override;
 
-  leveldb::Status Sync() override;
+  rocksdb::Status Sync() override;
 
  private:
   DiskCacheSizeLimitEnv* owner_{nullptr};
-  std::unique_ptr<leveldb::WritableFile> file_;
+  std::unique_ptr<rocksdb::WritableFile> file_;
 };
 
 }  // namespace cache

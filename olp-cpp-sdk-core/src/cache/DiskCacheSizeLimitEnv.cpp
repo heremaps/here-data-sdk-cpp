@@ -20,6 +20,8 @@
 #include "DiskCacheSizeLimitEnv.h"
 #include "DiskCacheSizeLimitWritableFile.h"
 
+#include "olp/core/porting/make_unique.h"
+
 namespace olp {
 namespace cache {
 namespace {
@@ -40,10 +42,10 @@ const char PathSeparator() {
 
 }  // namespace
 
-DiskCacheSizeLimitEnv::DiskCacheSizeLimitEnv(leveldb::Env* env,
+DiskCacheSizeLimitEnv::DiskCacheSizeLimitEnv(rocksdb::Env* env,
                                              const std::string& base_path,
                                              bool enforce_strict_data_save)
-    : leveldb::EnvWrapper(env),
+    : rocksdb::EnvWrapper(env),
       enforce_strict_data_save_(enforce_strict_data_save) {
   std::vector<std::string> children;
   if (target()->GetChildren(base_path, &children).ok()) {
@@ -55,20 +57,25 @@ DiskCacheSizeLimitEnv::DiskCacheSizeLimitEnv(leveldb::Env* env,
   }
 }
 
-leveldb::Status DiskCacheSizeLimitEnv::NewWritableFile(
-    const std::string& f, leveldb::WritableFile** r) {
-  leveldb::WritableFile* file = nullptr;
-  leveldb::Status status = leveldb::Status::OK();
+rocksdb::Status DiskCacheSizeLimitEnv::NewWritableFile(
+    const std::string& f, std::unique_ptr<rocksdb::WritableFile>* r,
+    const rocksdb::EnvOptions& options) {
+  std::unique_ptr<rocksdb::WritableFile> file;
+  rocksdb::Status status = rocksdb::Status::OK();
+
+  IsLogFile(f);
 
   if (enforce_strict_data_save_ || !IsLogFile(f)) {
-    status = target()->NewWritableFile(f, &file);
+    status = target()->NewWritableFile(f, &file, options);
   }
 
-  if (status.ok()) *r = new DiskCacheSizeLimitWritableFile(this, file);
+  if (status.ok())
+    *r =
+        std::make_unique<DiskCacheSizeLimitWritableFile>(this, std::move(file));
   return status;
 }
 
-leveldb::Status DiskCacheSizeLimitEnv::DeleteFile(const std::string& f) {
+rocksdb::Status DiskCacheSizeLimitEnv::DeleteFile(const std::string& f) {
   uint64_t size = 0;
   if (target()->GetFileSize(f, &size).ok()) total_size_ -= size;
   return target()->DeleteFile(f);

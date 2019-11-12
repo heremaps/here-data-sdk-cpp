@@ -28,14 +28,15 @@
 #include <tuple>
 #include <vector>
 
-#include <leveldb/env.h>
-#include <leveldb/write_batch.h>
+#include <rocksdb/env.h>
+#include <rocksdb/write_batch.h>
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/client/ApiError.h>
+#include <olp/core/logging/Level.h>
 
-namespace leveldb {
+namespace rocksdb {
 class DB;
-}  // namespace leveldb
+}  // namespace rocksdb
 
 using namespace olp::client;
 
@@ -73,11 +74,6 @@ struct StorageSettings {
 
 class DiskCache {
  public:
-  // logger that forwards leveldb log messages to our logging framework
-  class LevelDBLogger : public leveldb::Logger {
-    void Logv(const char* format, va_list ap) override;
-  };
-
   DiskCache();
   ~DiskCache();
   OpenResult Open(const std::string& dataPath,
@@ -88,26 +84,19 @@ class DiskCache {
 
   bool Clear();
 
-  ApiError openError() const { return error_; }
+  ApiError OpenError() const { return error_; }
 
   bool Put(const std::string& key, const std::string& value);
 
   boost::optional<std::string> Get(const std::string& key);
 
-  size_t Size() const;
-
   bool Remove(const std::string& key);
   bool RemoveKeysWithPrefix(const std::string& keyPrefix);
 
  private:
-  void setOpenError(const leveldb::Status& status);
-  bool applyBatch(std::unique_ptr<leveldb::WriteBatch> batch);
-
- private:
   std::string disk_cache_path_;
-  std::unique_ptr<leveldb::DB> database_;
+  std::unique_ptr<rocksdb::DB> database_;
   std::unique_ptr<DiskCacheSizeLimitEnv> environment_;
-  std::unique_ptr<LevelDBLogger> leveldb_logger_;
   uint64_t max_size_{std::uint64_t(-1)};
   bool check_crc_{false};
   ApiError error_;

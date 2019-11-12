@@ -21,8 +21,7 @@ set(DESCRIPTION "Core network and utility library for the HERE OLP SDK C++")
 
 find_package(RapidJSON REQUIRED)
 find_package(Boost REQUIRED)
-find_package(leveldb REQUIRED)
-find_package(Snappy REQUIRED)
+find_package(RocksDB REQUIRED)
 find_package(Threads REQUIRED)
 
 include(configs/ConfigNetwork.cmake)
@@ -236,8 +235,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
     $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${rocksdb_INCLUDE_DIR}>
     $<BUILD_INTERFACE:${RapidJSON_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${leveldb_INCLUDE_DIR}>
     $<INSTALL_INTERFACE:include>)
 
 if (ANDROID)
@@ -256,8 +255,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NETWORK_CURL_LIBRARIES}
         ${NETWORK_WINHTTP_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
-    PRIVATE
-        leveldb::leveldb
+        RocksDB::rocksdb
 )
 
 if(IOS)

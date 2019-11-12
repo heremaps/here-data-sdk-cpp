@@ -24,37 +24,37 @@ namespace olp {
 namespace cache {
 
 DiskCacheSizeLimitWritableFile::DiskCacheSizeLimitWritableFile(
-    DiskCacheSizeLimitEnv* owner, leveldb::WritableFile* file)
-    : owner_(owner), file_(file) {}
+    DiskCacheSizeLimitEnv* owner, std::unique_ptr<rocksdb::WritableFile> file)
+    : owner_(owner), file_(std::move(file)) {}
 
-leveldb::Status DiskCacheSizeLimitWritableFile::Append(
-    const leveldb::Slice& data) {
+rocksdb::Status DiskCacheSizeLimitWritableFile::Append(
+    const rocksdb::Slice& data) {
   if (file_) {
     owner_->AddSize(data.size());
     return file_->Append(data);
   }
-  return leveldb::Status::OK();
+  return rocksdb::Status::OK();
 }
 
-leveldb::Status DiskCacheSizeLimitWritableFile::Close() {
+rocksdb::Status DiskCacheSizeLimitWritableFile::Close() {
   if (file_) {
     return file_->Close();
   }
-  return leveldb::Status::OK();
+  return rocksdb::Status::OK();
 }
 
-leveldb::Status DiskCacheSizeLimitWritableFile::Flush() {
+rocksdb::Status DiskCacheSizeLimitWritableFile::Flush() {
   if (file_) {
     return file_->Flush();
   }
-  return leveldb::Status::OK();
+  return rocksdb::Status::OK();
 }
 
-leveldb::Status DiskCacheSizeLimitWritableFile::Sync() {
+rocksdb::Status DiskCacheSizeLimitWritableFile::Sync() {
   if (file_) {
     return file_->Sync();
   }
-  return leveldb::Status::OK();
+  return rocksdb::Status::OK();
 }
 }  // namespace cache
 }  // namespace olp

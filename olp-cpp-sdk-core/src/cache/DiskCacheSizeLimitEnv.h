@@ -23,21 +23,22 @@
 #include <cstdint>
 #include <memory>
 
-#include <leveldb/env.h>
+#include <rocksdb/env.h>
 
 namespace olp {
 namespace cache {
 
-class DiskCacheSizeLimitEnv : public leveldb::EnvWrapper {
+class DiskCacheSizeLimitEnv : public rocksdb::EnvWrapper {
  public:
   // Initialize an EnvWrapper that delegates all calls to *t
-  DiskCacheSizeLimitEnv(leveldb::Env* env, const std::string& base_path,
+  DiskCacheSizeLimitEnv(rocksdb::Env* env, const std::string& base_path,
                         bool enforce_strict_data_save);
 
-  leveldb::Status NewWritableFile(const std::string& f,
-                                  leveldb::WritableFile** r) override;
+  rocksdb::Status NewWritableFile(const std::string& f,
+                                  std::unique_ptr<rocksdb::WritableFile>* r,
+                                  const rocksdb::EnvOptions& options) override;
 
-  leveldb::Status DeleteFile(const std::string& f) override;
+  rocksdb::Status DeleteFile(const std::string& f) override;
 
   void AddSize(size_t size);
 
