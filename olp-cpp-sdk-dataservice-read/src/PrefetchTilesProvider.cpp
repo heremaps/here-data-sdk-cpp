@@ -26,6 +26,7 @@
 #include "olp/dataservice/read/CatalogVersionRequest.h"
 #include "olp/dataservice/read/DataRequest.h"
 #include "olp/dataservice/read/PrefetchTilesRequest.h"
+#include "olp/dataservice/read/PrefetchTileResult.h"
 
 #include "repositories/ApiRepository.h"
 #include "repositories/CatalogRepository.h"

@@ -20,8 +20,8 @@
 #include "olp/dataservice/read/CatalogClient.h"
 
 #include "CatalogClientImpl.h"
-#include "olp/core/cache/DefaultCache.h"
-#include "olp/core/client/OlpClientSettingsFactory.h"
+#include <olp/core/cache/DefaultCache.h>
+#include <olp/core/client/OlpClientSettingsFactory.h>
 
 namespace olp {
 namespace dataservice {
@@ -29,7 +29,7 @@ namespace read {
 
 CatalogClient::CatalogClient(client::HRN catalog,
                              client::OlpClientSettings settings) {
-  // If the user did not specify cache, we creade a default one (memory only)
+  // If the user did not specify cache, we create a default one (memory only)
   if (!settings.cache) {
     settings.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
   }

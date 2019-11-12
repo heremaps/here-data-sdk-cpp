@@ -10,10 +10,6 @@
 #include <olp/core/porting/make_unique.h>
 #include <olp/core/utils/Dir.h>
 #include <olp/dataservice/read/CatalogClient.h>
-#include <olp/dataservice/read/CatalogRequest.h>
-#include <olp/dataservice/read/CatalogVersionRequest.h>
-#include <olp/dataservice/read/DataRequest.h>
-#include <olp/dataservice/read/PartitionsRequest.h>
 #include "HttpResponses.h"
 
 namespace {
