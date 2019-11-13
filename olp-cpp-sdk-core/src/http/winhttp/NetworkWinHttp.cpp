@@ -419,7 +419,7 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
                                        << GetLastError() << " "
                                        << request.GetUrl());
     }
-    if (!proxy.GetUsername().empty() && !proxy.GetUsername().empty()) {
+    if (!proxy.GetUsername().empty() && !proxy.GetPassword().empty()) {
       std::wstring proxy_username;
       const auto username_res =
           ConvertMultiByteToWideChar(proxy.GetUsername(), proxy_username);
