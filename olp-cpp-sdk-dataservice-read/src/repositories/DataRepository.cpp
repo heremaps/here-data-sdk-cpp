@@ -392,6 +392,11 @@ DataResponse DataRepository::GetBlobData(
     return ApiError(ErrorCode::PreconditionFailed, "Data handle is missing");
   }
 
+  if (IsInlineData(data_handle.value())) {
+    return std::make_shared<std::vector<unsigned char>>(
+        data_handle.value().begin(), data_handle.value().end());
+  }
+
   repository::DataCacheRepository repository(catalog, settings.cache);
 
   if (fetch_option != OnlineOnly) {
