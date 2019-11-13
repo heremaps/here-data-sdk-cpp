@@ -69,7 +69,21 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
     ASSERT_EQ(network.use_count(), 1);
   }
 
- protected:
+  std::string GetTestCatalog() {
+    return CustomParameters::getArgument("dataservice_read_test_catalog");
+  }
+
+  template <typename T>
+  T GetExecutionTime(std::function<T()> func) {
+    auto start_time = std::chrono::high_resolution_clock::now();
+    auto result = func();
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> time = end - start_time;
+    std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
+
+    return result;
+  }
+
   std::shared_ptr<olp::client::OlpClientSettings> settings_;
 };
 
@@ -286,6 +300,368 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWithCancellableFuture) {
   }
 
   ASSERT_EQ(6u, result.size());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsWithInvalidHrn) {
+  olp::client::HRN hrn("hrn:here:data::olp-here-test:nope-test-v2");
+
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          hrn, "testlayer", *settings_);
+
+  auto request = olp::dataservice::read::PartitionsRequest();
+  auto partitions_response =
+      GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
+        auto future = catalog_client->GetPartitions(request);
+        return future.GetFuture().get();
+      });
+
+  ASSERT_FALSE(partitions_response.IsSuccessful());
+  ASSERT_EQ(403, partitions_response.GetError().GetHttpStatusCode());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitions) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          hrn, "testlayer", *settings_);
+
+  auto request = olp::dataservice::read::PartitionsRequest();
+  auto partitions_response =
+      GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
+        auto future = catalog_client->GetPartitions(request);
+        return future.GetFuture().get();
+      });
+
+  EXPECT_SUCCESS(partitions_response);
+  ASSERT_EQ(4u, partitions_response.GetResult().GetPartitions().size());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsForInvalidLayer) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          hrn, "invalidLayer", *settings_);
+
+  auto request = olp::dataservice::read::PartitionsRequest();
+  auto partitions_response =
+      GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
+        auto future = catalog_client->GetPartitions(request);
+        return future.GetFuture().get();
+      });
+
+  ASSERT_FALSE(partitions_response.IsSuccessful())
+      << ErrorMessage(partitions_response.GetError());
+  ASSERT_EQ(olp::client::ErrorCode::BadRequest,
+            partitions_response.GetError().GetErrorCode());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithInvalidHrn) {
+  olp::client::HRN hrn("hrn:here:data::olp-here-test:nope-test-v2");
+
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          hrn, "testlayer", *settings_);
+
+  auto request = olp::dataservice::read::DataRequest();
+  request.WithDataHandle("d5d73b64-7365-41c3-8faf-aa6ad5bab135");
+  auto data_response =
+      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+        auto future = catalog_client->GetData(request);
+        return future.GetFuture().get();
+      });
+
+  ASSERT_FALSE(data_response.IsSuccessful());
+  ASSERT_EQ(403, data_response.GetError().GetHttpStatusCode());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithHandle) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          hrn, "testlayer", *settings_);
+
+  auto request = olp::dataservice::read::DataRequest();
+  request.WithDataHandle("d5d73b64-7365-41c3-8faf-aa6ad5bab135");
+  auto data_response =
+      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+        auto future = catalog_client->GetData(request);
+        return future.GetFuture().get();
+      });
+
+  EXPECT_SUCCESS(data_response);
+  ASSERT_LT(0, data_response.GetResult()->size());
+  std::string data_string(data_response.GetResult()->begin(),
+                          data_response.GetResult()->end());
+  ASSERT_EQ("DT_2_0031", data_string);
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithInvalidDataHandle) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          hrn, "testlayer", *settings_);
+
+  auto request = olp::dataservice::read::DataRequest();
+  request.WithDataHandle("invalidDataHandle");
+  auto data_response =
+      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+        auto future = catalog_client->GetData(request);
+        return future.GetFuture().get();
+      });
+
+  ASSERT_FALSE(data_response.IsSuccessful());
+  ASSERT_EQ(404, data_response.GetError().GetHttpStatusCode());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetDataHandleWithInvalidLayer) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          hrn, "invalidLayer", *settings_);
+
+  auto request = olp::dataservice::read::DataRequest();
+  request.WithDataHandle("invalidDataHandle");
+  auto data_response =
+      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+        auto future = catalog_client->GetData(request);
+        return future.GetFuture().get();
+      });
+
+  ASSERT_FALSE(data_response.IsSuccessful());
+  ASSERT_EQ(olp::client::ErrorCode::NotFound,
+            data_response.GetError().GetErrorCode());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithPartitionId) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          hrn, "testlayer", *settings_);
+
+  auto request = olp::dataservice::read::DataRequest();
+  request.WithPartitionId("269");
+  auto data_response =
+      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+        auto future = catalog_client->GetData(request);
+        return future.GetFuture().get();
+      });
+
+  EXPECT_SUCCESS(data_response);
+  ASSERT_LT(0, data_response.GetResult()->size());
+  std::string data_string(data_response.GetResult()->begin(),
+                          data_response.GetResult()->end());
+  ASSERT_EQ("DT_2_0031", data_string);
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest,
+       GetDataWithPartitionIdVersion2) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          hrn, "testlayer", *settings_);
+
+  auto request = olp::dataservice::read::DataRequest();
+  request.WithPartitionId("269").WithVersion(2);
+  auto data_response =
+      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+        auto future = catalog_client->GetData(request);
+        return future.GetFuture().get();
+      });
+
+  EXPECT_SUCCESS(data_response);
+  ASSERT_LT(0, data_response.GetResult()->size());
+  std::string data_string(data_response.GetResult()->begin(),
+                          data_response.GetResult()->end());
+  ASSERT_EQ("DT_2_0031", data_string);
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest,
+       GetDataWithPartitionIdInvalidVersion) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          hrn, "testlayer", *settings_);
+
+  auto request = olp::dataservice::read::DataRequest();
+  request.WithPartitionId("269").WithVersion(10);
+  auto data_response =
+      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+        auto future = catalog_client->GetData(request);
+        return future.GetFuture().get();
+      });
+
+  ASSERT_FALSE(data_response.IsSuccessful());
+  ASSERT_EQ(olp::client::ErrorCode::BadRequest,
+            data_response.GetError().GetErrorCode());
+  ASSERT_EQ(400, data_response.GetError().GetHttpStatusCode());
+
+  request.WithVersion(-1);
+  data_response = GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+    auto future = catalog_client->GetData(request);
+    return future.GetFuture().get();
+  });
+
+  ASSERT_FALSE(data_response.IsSuccessful());
+  ASSERT_EQ(olp::client::ErrorCode::BadRequest,
+            data_response.GetError().GetErrorCode());
+  ASSERT_EQ(400, data_response.GetError().GetHttpStatusCode());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsVersion2) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          hrn, "testlayer", *settings_);
+
+  auto request = olp::dataservice::read::PartitionsRequest();
+  request.WithVersion(2);
+  auto partitions_response =
+      GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
+        auto future = catalog_client->GetPartitions(request);
+        return future.GetFuture().get();
+      });
+
+  EXPECT_SUCCESS(partitions_response);
+  ASSERT_LT(0, partitions_response.GetResult().GetPartitions().size());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsInvalidVersion) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          hrn, "testlayer", *settings_);
+
+  auto request = olp::dataservice::read::PartitionsRequest();
+  request.WithVersion(10);
+  auto partitions_response =
+      GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
+        auto future = catalog_client->GetPartitions(request);
+        return future.GetFuture().get();
+      });
+
+  ASSERT_FALSE(partitions_response.IsSuccessful());
+  ASSERT_EQ(olp::client::ErrorCode::BadRequest,
+            partitions_response.GetError().GetErrorCode());
+  ASSERT_EQ(400, partitions_response.GetError().GetHttpStatusCode());
+
+  request.WithVersion(-1);
+  partitions_response =
+      GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
+        auto future = catalog_client->GetPartitions(request);
+        return future.GetFuture().get();
+      });
+
+  ASSERT_FALSE(partitions_response.IsSuccessful());
+  ASSERT_EQ(olp::client::ErrorCode::BadRequest,
+            partitions_response.GetError().GetErrorCode());
+  ASSERT_EQ(400, partitions_response.GetError().GetHttpStatusCode());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest,
+       GetDataWithNonExistentPartitionId) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          hrn, "testlayer", *settings_);
+
+  auto request = olp::dataservice::read::DataRequest();
+  request.WithPartitionId("noPartition");
+  auto data_response =
+      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+        auto future = catalog_client->GetData(request);
+        return future.GetFuture().get();
+      });
+
+  EXPECT_FALSE(data_response.IsSuccessful());
+  ASSERT_EQ(olp::client::ErrorCode::NotFound,
+            data_response.GetError().GetErrorCode());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithInvalidLayerId) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          hrn, "invalidLayer", *settings_);
+
+  auto request = olp::dataservice::read::DataRequest();
+  request.WithPartitionId("269");
+  auto data_response =
+      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+        auto future = catalog_client->GetData(request);
+        return future.GetFuture().get();
+      });
+
+  ASSERT_FALSE(data_response.IsSuccessful());
+  ASSERT_EQ(olp::client::ErrorCode::BadRequest,
+            data_response.GetError().GetErrorCode());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithEmptyField) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          hrn, "testlayer", *settings_);
+
+  auto request = olp::dataservice::read::DataRequest();
+  request.WithPartitionId("1");
+  auto data_response =
+      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+        auto future = catalog_client->GetData(request);
+        return future.GetFuture().get();
+      });
+
+  EXPECT_FALSE(data_response.IsSuccessful());
+  ASSERT_EQ(olp::client::ErrorCode::NotFound,
+            data_response.GetError().GetErrorCode());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetDataCompressed) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          hrn, "testlayer", *settings_);
+
+  auto request = olp::dataservice::read::DataRequest();
+  request.WithPartitionId("here_van_wc2018_pool");
+  auto data_response =
+      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+        auto future = catalog_client->GetData(request);
+        return future.GetFuture().get();
+      });
+
+  EXPECT_SUCCESS(data_response);
+  ASSERT_LT(0u, data_response.GetResult()->size());
+
+  catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          hrn, "testlayer_gzip", *settings_);
+  auto request_compressed = olp::dataservice::read::DataRequest();
+  request_compressed.WithPartitionId("here_van_wc2018_pool");
+  auto data_response_compressed =
+      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+        auto future = catalog_client->GetData(request_compressed);
+        return future.GetFuture().get();
+      });
+
+  EXPECT_SUCCESS(data_response_compressed);
+  ASSERT_LT(0u, data_response_compressed.GetResult()->size());
+  ASSERT_EQ(data_response.GetResult()->size(),
+            data_response_compressed.GetResult()->size());
 }
 
 }  // namespace
