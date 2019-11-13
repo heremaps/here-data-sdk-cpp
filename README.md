@@ -119,7 +119,7 @@ Alternatively, if you want to use the SDK directly in your CMake project, you ca
 
 ### Building on Windows [![Windows build status][3]][4]
 
-We assume that you have installed CMake and Microsoft Visual Studio 2013.
+We assume that you have installed CMake and Microsoft Visual Studio 2017.
 
 Launch Visual Studio as administrator and open the folder containing the SDK or a CMake-based project using the SDK. Make sure that the target in Visual Studio does not contain "* (Default)". For example, select "x64-Debug" instead of "x64-Debug (Default)".
 Using the provided CMake menu by the Visual C++ tools for CMake, generate the `.cmake` files and build the entire project normally.
