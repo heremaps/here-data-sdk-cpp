@@ -9,7 +9,7 @@
 #include <olp/core/client/HRN.h>
 #include <olp/core/porting/make_unique.h>
 #include <olp/core/utils/Dir.h>
-#include <olp/dataservice/read/CatalogClient.h>
+#include <olp/dataservice/read/VolatileLayerClient.h>
 #include <olp/dataservice/read/CatalogRequest.h>
 #include <olp/dataservice/read/CatalogVersionRequest.h>
 #include <olp/dataservice/read/DataRequest.h>
@@ -31,7 +31,7 @@ constexpr auto kClientTestDir = "/catalog_client_test";
 constexpr auto kClientTestCacheDir = "/cata.log_client_test/cache";
 #endif
 
-class CatalogClientCacheTest : public CatalogClientTestBase {
+class VolatileLayerClientCacheTest : public CatalogClientTestBase {
  protected:
   void SetUp() override {
     CatalogClientTestBase::SetUp();
@@ -84,53 +84,68 @@ class CatalogClientCacheTest : public CatalogClientTestBase {
   std::shared_ptr<olp::cache::DefaultCache> cache_;
 };
 
-TEST_P(CatalogClientCacheTest, GetApi) {
+TEST_P(VolatileLayerClientCacheTest, GetVolatilePartitionsExpiry) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
-      .Times(1);
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
-      .Times(1);
+  {
+    testing::InSequence s;
 
-  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsGetRequest("https://metadata.data.api.platform.here.com/"
+                          "metadata/v1/catalogs/hereos-internal-test-v2/"
+                          "layers/testlayer_volatile/partitions"),
+             _, _, _, _))
+        .Times(1)
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+                               HTTP_RESPONSE_PARTITIONS_V2));
 
-  auto request = CatalogVersionRequest().WithStartVersion(-1);
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsGetRequest("https://metadata.data.api.platform.here.com/"
+                          "metadata/v1/catalogs/hereos-internal-test-v2/"
+                          "layers/testlayer_volatile/partitions"),
+             _, _, _, _))
+        .Times(1)
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+                               HTTP_RESPONSE_EMPTY_PARTITIONS));
+  }
 
-  auto future = catalog_client->GetLatestVersion(request);
-  auto catalog_version_response = future.GetFuture().get();
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VolatileLayerClient>(hrn, "testlayer_volatile", settings_);
 
-  ASSERT_TRUE(catalog_version_response.IsSuccessful())
-      << ApiErrorToString(catalog_version_response.GetError());
+  auto request = olp::dataservice::read::PartitionsRequest();
+
+  auto future = catalog_client->GetPartitions(request);
+
+  auto partitions_response = future.GetFuture().get();
+
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+  ASSERT_EQ(1u, partitions_response.GetResult().GetPartitions().size());
+
+  // hit the cache only, should be still be there
+  request.WithFetchOption(olp::dataservice::read::CacheOnly);
+  future = catalog_client->GetPartitions(request);
+  partitions_response = future.GetFuture().get();
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+  ASSERT_EQ(1u, partitions_response.GetResult().GetPartitions().size());
+
+  // wait for the layer to expire in cache
+  std::this_thread::sleep_for(std::chrono::seconds(2));
+  request.WithFetchOption(olp::dataservice::read::OnlineIfNotFound);
+  future = catalog_client->GetPartitions(request);
+  partitions_response = future.GetFuture().get();
+
+  ASSERT_TRUE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+  ASSERT_EQ(0u, partitions_response.GetResult().GetPartitions().size());
 }
 
-TEST_P(CatalogClientCacheTest, GetCatalog) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-      .Times(1);
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-      .Times(1);
-
-  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
-  auto request = CatalogRequest();
-  auto future = catalog_client->GetCatalog(request);
-  CatalogResponse catalog_response = future.GetFuture().get();
-
-  ASSERT_TRUE(catalog_response.IsSuccessful())
-      << ApiErrorToString(catalog_response.GetError());
-
-  future = catalog_client->GetCatalog(request);
-  CatalogResponse catalog_response2 = future.GetFuture().get();
-
-  ASSERT_TRUE(catalog_response2.IsSuccessful())
-      << ApiErrorToString(catalog_response2.GetError());
-  ASSERT_EQ(catalog_response2.GetResult().GetName(),
-            catalog_response.GetResult().GetName());
-}
-
-INSTANTIATE_TEST_SUITE_P(, CatalogClientCacheTest,
+INSTANTIATE_TEST_SUITE_P(, VolatileLayerClientCacheTest,
                          ::testing::Values(CacheType::IN_MEMORY,
                                            CacheType::DISK, CacheType::BOTH,
                                            CacheType::NONE));
