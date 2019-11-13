@@ -104,9 +104,10 @@ class CatalogClientTest : public ::testing::TestWithParam<CacheType> {
   void TearDown() override {
     client_.reset();
     auto network = std::move(settings_.network_request_handler);
+    settings_ = olp::client::OlpClientSettings();
     // when test ends we must be sure that network pointer is not captured
     // anywhere
-    assert(network.use_count() == 1);
+    EXPECT_EQ(network.use_count(), 1);
   }
 
  protected:
