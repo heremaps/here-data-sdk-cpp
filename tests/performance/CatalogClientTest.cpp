@@ -28,7 +28,7 @@
 #include "olp/core/client/OlpClientSettings.h"
 #include "olp/core/client/OlpClientSettingsFactory.h"
 #include "olp/core/logging/Log.h"
-#include "olp/dataservice/read/CatalogClient.h"
+#include "olp/dataservice/read/VersionedLayerClient.h"
 
 namespace {
 struct CatalogClientTestConfiguration {
@@ -100,12 +100,12 @@ std::shared_ptr<olp::http::Network> CatalogClientTest::s_network;
 
 namespace {
 
-void ClientThread(
-    const std::uint8_t client_id,
-    std::shared_ptr<olp::dataservice::read::CatalogClient> service_client,
-    std::string layer_id, std::chrono::milliseconds sleep_interval,
-    std::chrono::seconds runtime,
-    std::atomic<olp::http::RequestId>& request_counter) {
+void ClientThread(const std::uint8_t client_id,
+                  std::shared_ptr<olp::dataservice::read::VersionedLayerClient>
+                      service_client,
+                  std::chrono::milliseconds sleep_interval,
+                  std::chrono::seconds runtime,
+                  std::atomic<olp::http::RequestId>& request_counter) {
   std::atomic_int success_responses{0};
   std::atomic_int failed_responses{0};
 
@@ -117,9 +117,8 @@ void ClientThread(
   while (end_timestamp > std::chrono::steady_clock::now()) {
     const auto partition_id = request_counter.fetch_add(1);
 
-    auto request = olp::dataservice::read::DataRequest()
-                       .WithLayerId(layer_id)
-                       .WithPartitionId(std::to_string(partition_id));
+    auto request = olp::dataservice::read::DataRequest().WithPartitionId(
+        std::to_string(partition_id));
 
     service_client->GetData(
         request, [&](olp::dataservice::read::DataResponse response) {
@@ -188,11 +187,12 @@ TEST_P(CatalogClientTest, ReadNPartitionsFromVersionedLayer) {
 
   for (std::uint8_t i = 0; i < parameter.calling_thread_count; ++i) {
     // Will be removed after API alignment
-    auto service_client = std::make_shared<dataservice::read::CatalogClient>(
-        hrn, client_settings);
-    auto thread = std::thread(ClientThread, i, std::move(service_client),
-                              kVersionedLayerId, sleep_interval,
-                              parameter.runtime, std::ref(request_counter));
+    auto service_client =
+        std::make_shared<dataservice::read::VersionedLayerClient>(
+            hrn, kVersionedLayerId, client_settings);
+    auto thread =
+        std::thread(ClientThread, i, std::move(service_client), sleep_interval,
+                    parameter.runtime, std::ref(request_counter));
     client_threads.push_back(std::move(thread));
   }
 
