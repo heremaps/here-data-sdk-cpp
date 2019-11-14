@@ -44,38 +44,6 @@ namespace read {
 class DATASERVICE_READ_API PrefetchTilesRequest final {
  public:
   /**
-   * @brief GetLayerId gets the request's layer id.
-   * @return the layer id.
-   * @deprecated Will be removed in 1.0
-   */
-  OLP_SDK_DEPRECATED("Will be removed in 1.0")
-  inline const std::string& GetLayerId() const { return layer_id_; }
-
-  /**
-   * @brief WithLayerId sets the layer id of the request.
-   * @param layerId the layer id the requested tiles belong to.
-   * @return a reference to the updated PrefetchTilesRequest.
-   * @deprecated Will be removed in 1.0
-   */
-  OLP_SDK_DEPRECATED("Will be removed in 1.0")
-  inline PrefetchTilesRequest& WithLayerId(const std::string& layerId) {
-    layer_id_ = layerId;
-    return *this;
-  }
-
-  /**
-   * @brief WithLayerId sets the layer id of the request.
-   * @param layerId the layer id the requested tiles belong to.
-   * @return a reference to the updated PrefetchTilesRequest.
-   * @deprecated Will be removed in 1.0
-   */
-  OLP_SDK_DEPRECATED("Will be removed in 1.0")
-  inline PrefetchTilesRequest& WithLayerId(std::string&& layerId) {
-    layer_id_ = std::move(layerId);
-    return *this;
-  }
-
-  /**
    * @brief GetPartitionId gets the request's Partition Id.
    * @return the partition id.
    */
@@ -159,9 +127,9 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    * @param none
    * @return string representation of the request
    */
-  inline std::string CreateKey() const {
+  inline std::string CreateKey(const std::string& layer_id) const {
     std::stringstream out;
-    out << GetLayerId();
+    out << layer_id;
 
     out << "[" << GetMinLevel() << "/" << GetMaxLevel() << "]";
 

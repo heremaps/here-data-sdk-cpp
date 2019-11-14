@@ -43,7 +43,7 @@ class PartitionsCacheRepository;
 
 class PartitionsRepository final {
  public:
-  PartitionsRepository(const client::HRN& hrn,
+  PartitionsRepository(const client::HRN& hrn, std::string layer_id,
                        std::shared_ptr<ApiRepository> apiRepo,
                        std::shared_ptr<CatalogRepository> catalogRepo,
                        std::shared_ptr<cache::KeyValueCache> cache_);
@@ -86,6 +86,7 @@ class PartitionsRepository final {
       boost::optional<time_t> expiry = boost::none);
 
   client::HRN hrn_;
+  std::string layer_id_;
   std::shared_ptr<ApiRepository> apiRepo_;
   std::shared_ptr<CatalogRepository> catalogRepo_;
   std::shared_ptr<PartitionsCacheRepository> cache_;

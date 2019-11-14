@@ -61,17 +61,19 @@ VersionedLayerClientImpl::VersionedLayerClientImpl(
       catalog_, api_repo, settings_->cache);
 
   partition_repo_ = std::make_shared<repository::PartitionsRepository>(
-      catalog_, api_repo, catalog_repo, settings_->cache);
+      catalog_, layer_id, api_repo, catalog_repo, settings_->cache);
 
   auto data_repo = std::make_shared<repository::DataRepository>(
-      catalog_, api_repo, catalog_repo, partition_repo_, settings_->cache);
+      catalog_, layer_id, api_repo, catalog_repo, partition_repo_,
+      settings_->cache);
 
   auto prefetch_repo = std::make_shared<repository::PrefetchTilesRepository>(
-      catalog_, api_repo, partition_repo_->GetPartitionsCacheRepository(),
-      settings_);
+      catalog_, layer_id, api_repo,
+      partition_repo_->GetPartitionsCacheRepository(), settings_);
 
   prefetch_provider_ = std::make_shared<PrefetchTilesProvider>(
-      catalog_, api_repo, catalog_repo, data_repo, prefetch_repo, settings_);
+      catalog_, layer_id, api_repo, catalog_repo, data_repo, prefetch_repo,
+      settings_);
 }
 
 VersionedLayerClientImpl::~VersionedLayerClientImpl() {
@@ -80,7 +82,6 @@ VersionedLayerClientImpl::~VersionedLayerClientImpl() {
 
 client::CancellationToken VersionedLayerClientImpl::GetPartitions(
     PartitionsRequest request, PartitionsResponseCallback callback) {
-  request.WithLayerId(layer_id_);
   auto schedule_get_partitions = [&](PartitionsRequest request,
                                      PartitionsResponseCallback callback) {
     auto catalog = catalog_;
@@ -173,7 +174,6 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
     }
   };
 
-  request.WithLayerId(layer_id_);
   auto token = prefetch_provider_->PrefetchTiles(request, request_callback);
   pending_requests->Insert(token, request_key);
   return token;

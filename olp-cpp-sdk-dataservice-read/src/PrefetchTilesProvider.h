@@ -41,7 +41,7 @@ class DataRepository;
 class PrefetchTilesProvider final {
  public:
   PrefetchTilesProvider(
-      const client::HRN& hrn,
+      const client::HRN& hrn, std::string layer_id,
       std::shared_ptr<repository::ApiRepository> apiRepo,
       std::shared_ptr<repository::CatalogRepository> catalogRepo,
       std::shared_ptr<repository::DataRepository> dataRepo,
@@ -81,6 +81,7 @@ class PrefetchTilesProvider final {
   std::shared_ptr<repository::DataRepository> dataRepo_;
   std::shared_ptr<repository::PrefetchTilesRepository> prefetchTilesRepo_;
   std::shared_ptr<olp::client::OlpClientSettings> settings_;
+  std::string layer_id_;
 };
 
 }  // namespace read

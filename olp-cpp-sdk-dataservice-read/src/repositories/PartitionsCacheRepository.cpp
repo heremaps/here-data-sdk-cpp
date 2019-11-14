@@ -36,15 +36,15 @@
 namespace {
 constexpr auto kLogTag = "PartitionsCacheRepository";
 
-std::string CreateKey(const std::string& hrn, const std::string& layerId,
+std::string CreateKey(const std::string& hrn, const std::string& layer_id,
                       const std::string& partitionId,
                       const boost::optional<int64_t>& version) {
-  return hrn + "::" + layerId + "::" + partitionId +
+  return hrn + "::" + layer_id + "::" + partitionId +
          "::" + (version ? std::to_string(*version) + "::partition" : "");
 }
-std::string CreateKey(const std::string& hrn, const std::string& layerId,
+std::string CreateKey(const std::string& hrn, const std::string& layer_id,
                       const boost::optional<int64_t>& version) {
-  return hrn + "::" + layerId +
+  return hrn + "::" + layer_id +
          "::" + (version ? std::to_string(*version) + "::partitions" : "");
 }
 std::string CreateKey(const std::string& hrn, const int64_t catalogVersion) {
@@ -63,6 +63,7 @@ PartitionsCacheRepository::PartitionsCacheRepository(
 
 void PartitionsCacheRepository::Put(const PartitionsRequest& request,
                                     const model::Partitions& partitions,
+                                    const std::string& layer_id,
                                     const boost::optional<time_t>& expiry,
                                     bool allLayer) {
   std::string hrn(hrn_.ToCatalogHRNString());
@@ -71,7 +72,7 @@ void PartitionsCacheRepository::Put(const PartitionsRequest& request,
   time_t no_expiry = std::numeric_limits<time_t>::max();
 
   for (auto partition : partitions.GetPartitions()) {
-    auto key = CreateKey(hrn, request.GetLayerId(), partition.GetPartition(),
+    auto key = CreateKey(hrn, layer_id, partition.GetPartition(),
                          request.GetVersion());
     OLP_SDK_LOG_INFO_F(kLogTag, "Put '%s'", key.c_str());
     cache_->Put(key, partition,
@@ -82,7 +83,7 @@ void PartitionsCacheRepository::Put(const PartitionsRequest& request,
     }
   }
   if (allLayer) {
-    auto key = CreateKey(hrn, request.GetLayerId(), request.GetVersion());
+    auto key = CreateKey(hrn, layer_id, request.GetVersion());
     OLP_SDK_LOG_INFO_F(kLogTag, "Put '%s'", key.c_str());
     cache_->Put(key, partitionIds,
                 [=]() { return olp::serializer::serialize(partitionIds); },
@@ -92,14 +93,13 @@ void PartitionsCacheRepository::Put(const PartitionsRequest& request,
 
 model::Partitions PartitionsCacheRepository::Get(
     const PartitionsRequest& request,
-    const std::vector<std::string>& partitionIds) {
+    const std::vector<std::string>& partitionIds, const std::string& layer_id) {
   std::string hrn(hrn_.ToCatalogHRNString());
   OLP_SDK_LOG_TRACE_F(kLogTag, "Get '%s'", hrn.c_str());
   model::Partitions cachedPartitionsModel;
   std::vector<model::Partition> cachedPartitions;
   for (auto partitionId : partitionIds) {
-    auto key =
-        CreateKey(hrn, request.GetLayerId(), partitionId, request.GetVersion());
+    auto key = CreateKey(hrn, layer_id, partitionId, request.GetVersion());
     OLP_SDK_LOG_INFO_F(kLogTag, "Get '%s'", key.c_str());
     auto cachedPartition =
         cache_->Get(key, [](const std::string& serializedObject) {
@@ -115,9 +115,9 @@ model::Partitions PartitionsCacheRepository::Get(
 }
 
 boost::optional<model::Partitions> PartitionsCacheRepository::Get(
-    const PartitionsRequest& request) {
+    const PartitionsRequest& request, const std::string& layer_id) {
   std::string hrn(hrn_.ToCatalogHRNString());
-  auto key = CreateKey(hrn, request.GetLayerId(), request.GetVersion());
+  auto key = CreateKey(hrn, layer_id, request.GetVersion());
   OLP_SDK_LOG_TRACE_F(kLogTag, "Get '%s'", key.c_str());
   auto cachedIds = cache_->Get(key, [](const std::string& serializedIds) {
     return parser::parse<std::vector<std::string>>(serializedIds);
@@ -126,7 +126,8 @@ boost::optional<model::Partitions> PartitionsCacheRepository::Get(
     return boost::none;
   }
 
-  return Get(request, boost::any_cast<std::vector<std::string>>(cachedIds));
+  return Get(request, boost::any_cast<std::vector<std::string>>(cachedIds),
+             layer_id);
 }
 
 void PartitionsCacheRepository::Put(int64_t catalogVersion,
@@ -161,15 +162,15 @@ void PartitionsCacheRepository::Clear(const std::string& layer_id) {
 
 void PartitionsCacheRepository::ClearPartitions(
     const PartitionsRequest& request,
-    const std::vector<std::string>& partitionIds) {
+    const std::vector<std::string>& partitionIds, const std::string& layer_id) {
   std::string hrn(hrn_.ToCatalogHRNString());
   OLP_SDK_LOG_INFO_F(kLogTag, "ClearPartitions '%s'", hrn.c_str());
-  auto cachedPartitions = Get(request, partitionIds);
+  auto cachedPartitions = Get(request, partitionIds, layer_id);
   // Partitions not processed here are not cached to begin with.
   for (auto partition : cachedPartitions.GetPartitions()) {
-    cache_->RemoveKeysWithPrefix(hrn + "::" + request.GetLayerId() +
+    cache_->RemoveKeysWithPrefix(hrn + "::" + layer_id +
                                  "::" + partition.GetDataHandle());
-    cache_->RemoveKeysWithPrefix(hrn + "::" + request.GetLayerId() +
+    cache_->RemoveKeysWithPrefix(hrn + "::" + layer_id +
                                  "::" + partition.GetPartition());
   }
 }

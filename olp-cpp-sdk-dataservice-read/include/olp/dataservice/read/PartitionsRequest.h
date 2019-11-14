@@ -38,38 +38,6 @@ namespace read {
 class DATASERVICE_READ_API PartitionsRequest final {
  public:
   /**
-   * @brief GetLayerId gets the request's layer id.
-   * @return the layer id.
-   * @deprecated Will be removed in 1.0
-   */
-  OLP_SDK_DEPRECATED("Will be removed in 1.0")
-  inline const std::string& GetLayerId() const { return layer_id_; }
-
-  /**
-   * @brief WithLayerId sets the layer id of the request.
-   * @param layerId the layer the requested partitions belong to.
-   * @return a reference to the updated PartitionsRequest.
-   * @deprecated Will be removed in 1.0
-   */
-  OLP_SDK_DEPRECATED("Will be removed in 1.0")
-  inline PartitionsRequest& WithLayerId(const std::string& layerId) {
-    layer_id_ = layerId;
-    return *this;
-  }
-
-  /**
-   * @brief WithLayerId sets the layer id of the request.
-   * @param layerId the layer the requested partitions belong to.
-   * @return a reference to the updated PartitionsRequest.
-   * @deprecated Will be removed in 1.0
-   */
-  OLP_SDK_DEPRECATED("Will be removed in 1.0")
-  inline PartitionsRequest& WithLayerId(std::string&& layerId) {
-    layer_id_ = std::move(layerId);
-    return *this;
-  }
-
-  /**
    * @brief WithVersion sets the catalog metadata version of the request.
    * @param catalogMetadataVersion The catalog metadta version of the requested
    * partions. If no version is specified, the latest will be retrieved.
@@ -146,9 +114,9 @@ class DATASERVICE_READ_API PartitionsRequest final {
    * @param none
    * @return string representation of the request
    */
-  std::string CreateKey() const {
+  std::string CreateKey(const std::string& layer_id) const {
     std::stringstream out;
-    out << GetLayerId();
+    out << layer_id;
 
     if (GetVersion()) {
       out << "@" << GetVersion().get();

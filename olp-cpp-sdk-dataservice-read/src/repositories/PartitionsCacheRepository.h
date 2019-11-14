@@ -43,13 +43,15 @@ class PartitionsCacheRepository final {
   ~PartitionsCacheRepository() = default;
 
   void Put(const PartitionsRequest& request,
-           const model::Partitions& partitions,
+           const model::Partitions& partitions, const std::string& layer_id,
            const boost::optional<time_t>& expiry, bool allLayer = false);
 
   model::Partitions Get(const PartitionsRequest& request,
-                        const std::vector<std::string>& partitionIds);
+                        const std::vector<std::string>& partitionIds,
+                        const std::string& layer_id);
 
-  boost::optional<model::Partitions> Get(const PartitionsRequest& request);
+  boost::optional<model::Partitions> Get(const PartitionsRequest& request,
+                                         const std::string& layer_id);
 
   void Put(int64_t catalogVersion, const model::LayerVersions& layerVersions);
 
@@ -58,8 +60,8 @@ class PartitionsCacheRepository final {
   void Clear(const std::string& layer_id);
 
   void ClearPartitions(const PartitionsRequest& request,
-                       const std::vector<std::string>& partitionIds);
-
+                       const std::vector<std::string>& partitionIds,
+                       const std::string& layer_id);
 
  private:
   client::HRN hrn_;

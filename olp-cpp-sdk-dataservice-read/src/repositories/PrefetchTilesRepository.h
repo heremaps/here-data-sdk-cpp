@@ -51,7 +51,8 @@ using SubTilesResponseCallback =
 class PrefetchTilesRepository final {
  public:
   PrefetchTilesRepository(
-      const client::HRN& hrn, std::shared_ptr<ApiRepository> apiRepo,
+      const client::HRN& hrn, std::string layer_id,
+      std::shared_ptr<ApiRepository> apiRepo,
       std::shared_ptr<PartitionsCacheRepository> partitionsCache,
       std::shared_ptr<olp::client::OlpClientSettings> settings);
 
@@ -83,7 +84,7 @@ class PrefetchTilesRepository final {
       PartitionsCacheRepository& partitionsCache,
       const PrefetchTilesRequest& prefetchRequest, geo::TileKey tile,
       int64_t version, boost::optional<time_t> expiry, int32_t depth,
-      const SubQuadsResponseCallback& callback);
+      const std::string& layer_id, const SubQuadsResponseCallback& callback);
 
  private:
   static SubQuadsRequest EffectiveTileKeys(const geo::TileKey& tilekey,
@@ -99,6 +100,7 @@ class PrefetchTilesRepository final {
 
  private:
   client::HRN hrn_;
+  std::string layer_id_;
   std::shared_ptr<ApiRepository> apiRepo_;
   std::shared_ptr<PartitionsCacheRepository> partitionsCache_;
   std::shared_ptr<olp::client::OlpClientSettings> settings_;
