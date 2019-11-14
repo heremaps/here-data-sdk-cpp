@@ -49,13 +49,13 @@ constexpr auto kVolatileBlobService = "volatile-blob";
 
 void GetDataInternal(std::shared_ptr<CancellationContext> cancellationContext,
                      std::shared_ptr<ApiRepository> apiRepo,
-                     const std::string& layerType,
+                     const std::string& layer_id, const std::string& layerType,
                      const read::DataRequest& request,
                      const read::DataResponseCallback& callback,
                      DataCacheRepository& cache) {
   std::string service;
   std::function<CancellationToken(const OlpClient&)> dataFunc;
-  auto key = request.CreateKey();
+  auto key = request.CreateKey(layer_id);
   OLP_SDK_LOG_TRACE_F(kLogTag, "GetDataInternal '%s'", key.c_str());
   auto cancel_callback = [callback, key]() {
     OLP_SDK_LOG_INFO_F(kLogTag, "cancelled '%s'", key.c_str());
@@ -66,13 +66,12 @@ void GetDataInternal(std::shared_ptr<CancellationContext> cancellationContext,
   auto cacheDataResponseCallback = [=, &cache](DataResponse response) {
     if (response.IsSuccessful()) {
       OLP_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache", key.c_str());
-      cache.Put(response.GetResult(), request.GetLayerId(),
+      cache.Put(response.GetResult(), layer_id,
                 request.GetDataHandle().value_or(std::string()));
     } else {
       if (403 == response.GetError().GetHttpStatusCode()) {
         OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache", key.c_str());
-        cache.Clear(request.GetLayerId(),
-                    request.GetDataHandle().value_or(std::string()));
+        cache.Clear(layer_id, request.GetDataHandle().value_or(std::string()));
       }
     }
     callback(response);
@@ -82,17 +81,17 @@ void GetDataInternal(std::shared_ptr<CancellationContext> cancellationContext,
     service = "blob";
     dataFunc = [=](const OlpClient& client) {
       OLP_SDK_LOG_INFO_F(kLogTag, "getBlob '%s", key.c_str());
-      return BlobApi::GetBlob(client, request.GetLayerId(),
-                              *request.GetDataHandle(), request.GetBillingTag(),
-                              boost::none, cacheDataResponseCallback);
+      return BlobApi::GetBlob(client, layer_id, *request.GetDataHandle(),
+                              request.GetBillingTag(), boost::none,
+                              cacheDataResponseCallback);
     };
   } else if (layerType == "volatile") {
     service = "volatile-blob";
     dataFunc = [=](const OlpClient& client) {
       OLP_SDK_LOG_INFO_F(kLogTag, "getVolatileBlob '%s", key.c_str());
       return VolatileBlobApi::GetVolatileBlob(
-          client, request.GetLayerId(), *request.GetDataHandle(),
-          request.GetBillingTag(), cacheDataResponseCallback);
+          client, layer_id, *request.GetDataHandle(), request.GetBillingTag(),
+          cacheDataResponseCallback);
     };
   } else {
     // TODO handle stream api
@@ -106,9 +105,8 @@ void GetDataInternal(std::shared_ptr<CancellationContext> cancellationContext,
       [=, &cache]() {
         /* Check the cache */
         if (OnlineOnly != request.GetFetchOption()) {
-          auto cachedData =
-              cache.Get(request.GetLayerId(),
-                        request.GetDataHandle().value_or(std::string()));
+          auto cachedData = cache.Get(
+              layer_id, request.GetDataHandle().value_or(std::string()));
           if (cachedData) {
             ExecuteOrSchedule(apiRepo->GetOlpClientSettings(), [=] {
               OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
@@ -153,11 +151,13 @@ void GetDataInternal(std::shared_ptr<CancellationContext> cancellationContext,
 }  // namespace
 
 DataRepository::DataRepository(
-    const client::HRN& hrn, std::shared_ptr<ApiRepository> apiRepo,
+    const client::HRN& hrn, std::string layer_id,
+    std::shared_ptr<ApiRepository> apiRepo,
     std::shared_ptr<CatalogRepository> catalogRepo,
     std::shared_ptr<PartitionsRepository> partitionsRepo,
     std::shared_ptr<cache::KeyValueCache> cache)
     : hrn_(hrn),
+      layer_id_(std::move(layer_id)),
       apiRepo_(apiRepo),
       catalogRepo_(catalogRepo),
       partitionsRepo_(partitionsRepo),
@@ -179,7 +179,8 @@ bool DataRepository::IsInlineData(const std::string& dataHandle) {
 CancellationToken DataRepository::GetData(
     const read::DataRequest& request,
     const read::DataResponseCallback& callback) {
-  auto key = request.CreateKey();
+  auto layer_id = layer_id_;
+  auto key = request.CreateKey(layer_id);
   OLP_SDK_LOG_TRACE_F(kLogTag, "GetData '%s'", key.c_str());
   if (!request.GetDataHandle() && !request.GetPartitionId()) {
     OLP_SDK_LOG_INFO_F(kLogTag, "getData for '%s' failed", key.c_str());
@@ -220,7 +221,7 @@ CancellationToken DataRepository::GetData(
                 auto itr =
                     std::find_if(catalogLayers.begin(), catalogLayers.end(),
                                  [&](const model::Layer& layer) {
-                                   return layer.GetId() == request.GetLayerId();
+                                   return layer.GetId() == layer_id;
                                  });
 
                 if (itr == catalogLayers.end()) {
@@ -233,8 +234,8 @@ CancellationToken DataRepository::GetData(
 
                 auto layerType = itr->GetLayerType();
                 if (request.GetDataHandle()) {
-                  GetDataInternal(cancel_context, apiRepo, layerType, request,
-                                  callback, cache);
+                  GetDataInternal(cancel_context, apiRepo, layer_id, layerType,
+                                  request, callback, cache);
                 } else {
                   auto getPartitionsCallback = [=, &cache](
                                                    PartitionsResponse
@@ -269,21 +270,20 @@ CancellationToken DataRepository::GetData(
                                   partitionsRequest
                                       .WithBillingTag(
                                           appendedRequest.GetBillingTag())
-                                      .WithLayerId(appendedRequest.GetLayerId())
                                       .WithVersion(
                                           appendedRequest.GetVersion());
                                   std::vector<std::string> partitions;
                                   partitions.push_back(
                                       *appendedRequest.GetPartitionId());
                                   partitionsCache_->ClearPartitions(
-                                      partitionsRequest, partitions);
+                                      partitionsRequest, partitions, layer_id);
                                 }
                               }
                               callback(response);
                             };
-                        GetDataInternal(cancel_context, apiRepo, layerType,
-                                        appendedRequest, verifyResponseCallback,
-                                        cache);
+                        GetDataInternal(cancel_context, apiRepo, layer_id,
+                                        layerType, appendedRequest,
+                                        verifyResponseCallback, cache);
                       }
                     } else {
                       // Backend returns an empty partition list if the
@@ -301,7 +301,6 @@ CancellationToken DataRepository::GetData(
                         partitionsRequest
                             .WithBillingTag(request.GetBillingTag())
                             .WithFetchOption(request.GetFetchOption())
-                            .WithLayerId(request.GetLayerId())
                             .WithVersion(request.GetVersion());
                         std::vector<std::string> partitions;
                         partitions.push_back(*request.GetPartitionId());
@@ -327,8 +326,8 @@ void DataRepository::GetData(
     std::shared_ptr<client::CancellationContext> cancellationContext,
     const std::string& layerType, const read::DataRequest& request,
     const read::DataResponseCallback& callback) {
-  GetDataInternal(cancellationContext, apiRepo_, layerType, request, callback,
-                  *cache_);
+  GetDataInternal(cancellationContext, apiRepo_, layer_id_, layerType, request,
+                  callback, *cache_);
 }
 
 DataResponse DataRepository::GetVersionedData(
@@ -398,11 +397,11 @@ DataResponse DataRepository::GetBlobData(
     auto cached_data = repository.Get(layer, data_handle.value());
     if (cached_data) {
       OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
-                         data_request.CreateKey().c_str());
+                         data_request.CreateKey(layer).c_str());
       return cached_data.value();
     } else if (fetch_option == CacheOnly) {
       OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' not found!",
-                         data_request.CreateKey().c_str());
+                         data_request.CreateKey(layer).c_str());
       return ApiError(ErrorCode::NotFound,
                       "Cache only resource not found in cache (data).");
     }
@@ -479,7 +478,7 @@ DataResponse DataRepository::GetBlobData(
     const auto& error = blob_response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
       OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
-                         data_request.CreateKey().c_str());
+                         data_request.CreateKey(layer).c_str());
       repository.Clear(layer, data_handle.value());
     }
   }

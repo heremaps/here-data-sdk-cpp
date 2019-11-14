@@ -25,8 +25,8 @@
 #include "olp/dataservice/read/CatalogRequest.h"
 #include "olp/dataservice/read/CatalogVersionRequest.h"
 #include "olp/dataservice/read/DataRequest.h"
-#include "olp/dataservice/read/PrefetchTilesRequest.h"
 #include "olp/dataservice/read/PrefetchTileResult.h"
+#include "olp/dataservice/read/PrefetchTilesRequest.h"
 
 #include "repositories/ApiRepository.h"
 #include "repositories/CatalogRepository.h"
@@ -45,12 +45,14 @@ constexpr auto kLogTag = "PrefetchTilesProvider";
 using namespace olp::client;
 
 PrefetchTilesProvider::PrefetchTilesProvider(
-    const HRN& /*hrn*/, std::shared_ptr<repository::ApiRepository> apiRepo,
+    const HRN& /*hrn*/, std::string layer_id,
+    std::shared_ptr<repository::ApiRepository> apiRepo,
     std::shared_ptr<repository::CatalogRepository> catalogRepo,
     std::shared_ptr<repository::DataRepository> dataRepo,
     std::shared_ptr<repository::PrefetchTilesRepository> prefetchTilesRepo,
     std::shared_ptr<olp::client::OlpClientSettings> settings)
     : apiRepo_(std::move(apiRepo)),
+      layer_id_(std::move(layer_id)),
       catalogRepo_(std::move(catalogRepo)),
       dataRepo_(std::move(dataRepo)),
       prefetchTilesRepo_(std::move(prefetchTilesRepo)),
@@ -61,7 +63,7 @@ PrefetchTilesProvider::PrefetchTilesProvider(
 client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
     const PrefetchTilesRequest& request,
     const PrefetchTilesResponseCallback& callback) {
-  auto key = request.CreateKey();
+  auto key = request.CreateKey(layer_id_);
   OLP_SDK_LOG_TRACE_F(kLogTag, "getCatalog(%s)", key.c_str());
   auto isBusy = prefetchProviderBusy_->exchange(true);
   if (isBusy) {
@@ -90,6 +92,7 @@ client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
   auto catalogRepo = catalogRepo_;
   auto dataRepo = dataRepo_;
   auto prefetchTilesRepo = prefetchTilesRepo_;
+  auto layer_id = layer_id_;
 
   // Get the catalog (and layers) config
   CatalogRequest catalogRequest;
@@ -109,8 +112,8 @@ client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
 
               auto layers = catalogResponse.GetResult().GetLayers();
               auto layerResult = std::find_if(
-                  layers.begin(), layers.end(), [request](model::Layer layer) {
-                    return (layer.GetId().compare(request.GetLayerId()) == 0);
+                  layers.begin(), layers.end(), [layer_id](model::Layer layer) {
+                    return (layer.GetId().compare(layer_id) == 0);
                   });
               if (layerResult == layers.end()) {
                 // Layer not found
@@ -225,9 +228,7 @@ void PrefetchTilesProvider::QueryDataForEachSubTile(
                                                     PrefetchTileNoError());
       } else {
         DataRequest dataRequest;
-
         dataRequest.WithDataHandle(subtile.second)
-            .WithLayerId(request.GetLayerId())
             .WithBillingTag(request.GetBillingTag());
 
         auto p = std::make_shared<
