@@ -67,18 +67,10 @@ class CatalogClientImpl final {
   client::CancellableFuture<CatalogVersionResponse> GetLatestVersion(
       CatalogVersionRequest request);
 
-  client::CancellationToken GetData(const DataRequest& request,
-                                    const DataResponseCallback& callback);
-
-  client::CancellableFuture<DataResponse> GetData(const DataRequest& request);
-
  private:
   client::HRN catalog_;
-  std::shared_ptr<client::OlpClientSettings> settings_;
+  client::OlpClientSettings settings_;
   std::shared_ptr<thread::TaskScheduler> task_scheduler_;
-  std::shared_ptr<repository::CatalogRepository> catalog_repo_;
-  std::shared_ptr<repository::PartitionsRepository> partition_repo_;
-  std::shared_ptr<repository::DataRepository> data_repo_;
   std::shared_ptr<client::PendingRequests> pending_requests_;
 
   template <typename Request, typename Response>

@@ -129,37 +129,6 @@ class DATASERVICE_READ_API CatalogClient final {
   client::CancellableFuture<CatalogVersionResponse> GetCatalogMetadataVersion(
       CatalogVersionRequest request);
 
-  /**
-   * @brief fetches data for a partition or data handle asynchronously. If the
-   * specified partition or data handle cannot be found in the layer, the
-   * callback will be invoked with an empty DataResponse (nullptr for result and
-   * error). If neither Partition Id or Data Handle were set in the request, the
-   * callback will be invoked with an error with ErrorCode::InvalidRequest.
-   * @param request contains the complete set of request parameters.
-   * @param callback will be invoked once the DataResult is available, or an
-   * error is encountered.
-   * @return A token that can be used to cancel this request
-   * @deprecated Will be removed in 1.0
-   */
-  OLP_SDK_DEPRECATED("Will be removed in 1.0")
-  client::CancellationToken GetData(const DataRequest& request,
-                                    const DataResponseCallback& callback);
-
-  /**
-   * @brief fetches data for a partition or data handle asynchronously. If the
-   * specified partition or data handle cannot be found in the layer, an empty
-   * DataResponse (nullptr for result and error) will be returned. If neither
-   * Partition Id or Data Handle were set in the request, an error with code
-   * ErrorCode::InvalidRequest will be returned.
-   * @param request contains the complete set of request parameters.
-   * @return CancellableFuture of type DataResponse, which when complete will
-   * contain the data or an error. Alternatively, the CancellableFuture can be
-   * used to cancel this request.
-   * @deprecated Will be removed in 1.0
-   */
-  OLP_SDK_DEPRECATED("Will be removed in 1.0")
-  client::CancellableFuture<DataResponse> GetData(const DataRequest& request);
-
  private:
   std::shared_ptr<CatalogClientImpl> impl_;
 };
