@@ -77,17 +77,6 @@ CatalogClient::GetCatalogMetadataVersion(CatalogVersionRequest request) {
   return impl_->GetLatestVersion(std::move(request));
 }
 
-client::CancellationToken CatalogClient::GetPartitions(
-    const PartitionsRequest& request,
-    const PartitionsResponseCallback& callback) {
-  return impl_->GetPartitions(request, callback);
-}
-
-client::CancellableFuture<PartitionsResponse> CatalogClient::GetPartitions(
-    const PartitionsRequest& request) {
-  return impl_->GetPartitions(request);
-}
-
 client::CancellationToken CatalogClient::GetData(
     const DataRequest& request, const DataResponseCallback& callback) {
   return impl_->GetData(request, callback);
