@@ -67,11 +67,6 @@ class CatalogClientImpl final {
   client::CancellableFuture<CatalogVersionResponse> GetLatestVersion(
       CatalogVersionRequest request);
 
-  client::CancellationToken GetData(const DataRequest& request,
-                                    const DataResponseCallback& callback);
-
-  client::CancellableFuture<DataResponse> GetData(const DataRequest& request);
-
  private:
   client::HRN catalog_;
   std::shared_ptr<client::OlpClientSettings> settings_;
