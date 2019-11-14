@@ -42,7 +42,7 @@ using namespace olp::client;
 namespace olp {
 namespace cache {
 
-class DiskCacheSizeLimit;
+class DiskCacheSizeLimitEnv;
 
 /**
  * @brief The OpenResult enum defines the result of the open() operation
@@ -106,7 +106,7 @@ class DiskCache {
  private:
   std::string disk_cache_path_;
   std::unique_ptr<leveldb::DB> database_;
-  std::unique_ptr<DiskCacheSizeLimit> environment_;
+  std::unique_ptr<DiskCacheSizeLimitEnv> environment_;
   std::unique_ptr<LevelDBLogger> leveldb_logger_;
   uint64_t max_size_{std::uint64_t(-1)};
   bool check_crc_{false};

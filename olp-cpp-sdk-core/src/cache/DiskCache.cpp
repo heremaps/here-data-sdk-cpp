@@ -31,7 +31,7 @@
 #include <leveldb/iterator.h>
 #include <leveldb/options.h>
 #include <leveldb/write_batch.h>
-#include "DiskCacheSizeLimit.h"
+#include "DiskCacheSizeLimitEnv.h"
 #include "olp/core/logging/Log.h"
 #include "olp/core/porting/make_unique.h"
 #include "olp/core/utils/Dir.h"
@@ -188,7 +188,7 @@ OpenResult DiskCache::Open(const std::string& dataPath,
       removeOtherDB(dataPath, versionedDataPath);
 
     if (max_size_ != std::uint64_t(-1)) {
-      environment_ = std::make_unique<DiskCacheSizeLimit>(
+      environment_ = std::make_unique<DiskCacheSizeLimitEnv>(
           leveldb::Env::Default(), versionedDataPath,
           settings.enforce_immediate_flush);
       options.env = environment_.get();
@@ -241,7 +241,7 @@ bool DiskCache::Put(const std::string& key, const std::string& value) {
   if (!database_) return false;
 
   if (environment_ && (max_size_ != std::uint64_t(-1))) {
-    if (environment_->size() >= max_size_) return false;
+    if (environment_->Size() >= max_size_) return false;
   }
 
   const leveldb::Status& status = database_->Put(
