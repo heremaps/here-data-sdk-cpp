@@ -1,7 +1,24 @@
 #!/bin/bash -e
-# Running every test one by one
+#
+# Copyright (C) 2019 HERE Europe B.V.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# SPDX-License-Identifier: Apache-2.0
+# License-Filename: LICENSE
 
 
+# Variables
 export REPO_HOME=$PWD
 export FV_HOME=${REPO_HOME}/scripts/linux/fv
 rm -rf reports && mkdir -p reports              # folder for reports storage
@@ -17,6 +34,7 @@ EXPECTED_REPORT_COUNT=6                         # expected that we generate 6 re
 #for core dump backtrace
 ulimit -c unlimited
 
+# Running every test one by one
 # Run unit tests
 ${FV_HOME}/gitlab-olp-cpp-sdk-authentication-test.sh 2>> errors.txt || TEST_FAILURE=1
 ${FV_HOME}/gitlab-olp-cpp-sdk-core-test.sh 2>> errors.txt || TEST_FAILURE=1
