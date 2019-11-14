@@ -130,31 +130,6 @@ class DATASERVICE_READ_API CatalogClient final {
       CatalogVersionRequest request);
 
   /**
-   * @brief fetches a list partitions for given generic layer asynchronously.
-   * @param request contains the complete set of request parameters.
-   * @param callback will be invoked once the list of partitions is available,
-   * or an error is encountered.
-   * @return A token that can be used to cancel this request
-   * @deprecated Will be removed in 1.0
-   */
-  OLP_SDK_DEPRECATED("Will be removed in 1.0")
-  client::CancellationToken GetPartitions(
-      const PartitionsRequest& request,
-      const PartitionsResponseCallback& callback);
-
-  /**
-   * @brief fetches a list of partitions for given generic layer asynchronously.
-   * @param request contains the complete set of request parameters.
-   * @return CancellableFuture of type PartitionsResponse, which when complete
-   * will contain the list of partitions or an error. Alternatively, the
-   * CancellableFuture can be used to cancel this request.
-   * @deprecated Will be removed in 1.0
-   */
-  OLP_SDK_DEPRECATED("Will be removed in 1.0")
-  client::CancellableFuture<PartitionsResponse> GetPartitions(
-      const PartitionsRequest& request);
-
-  /**
    * @brief fetches data for a partition or data handle asynchronously. If the
    * specified partition or data handle cannot be found in the layer, the
    * callback will be invoked with an empty DataResponse (nullptr for result and

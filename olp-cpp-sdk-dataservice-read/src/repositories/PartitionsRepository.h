@@ -50,10 +50,6 @@ class PartitionsRepository final {
 
   ~PartitionsRepository() = default;
 
-  client::CancellationToken GetPartitions(
-      const read::PartitionsRequest& request,
-      const read::PartitionsResponseCallback& callback);
-
   client::CancellationToken GetPartitionsById(
       const read::PartitionsRequest& request,
       const std::vector<std::string>& partitions,

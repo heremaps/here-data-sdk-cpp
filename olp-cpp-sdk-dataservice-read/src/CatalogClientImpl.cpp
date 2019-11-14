@@ -151,46 +151,6 @@ CancellableFuture<CatalogVersionResponse> CatalogClientImpl::GetLatestVersion(
           &CatalogClientImpl::GetLatestVersion));
 }
 
-olp::client::CancellationToken CatalogClientImpl::GetPartitions(
-    const PartitionsRequest& request,
-    const PartitionsResponseCallback& callback) {
-  CancellationToken token;
-  int64_t request_key = pending_requests_->GenerateRequestPlaceholder();
-  auto pending_requests = pending_requests_;
-  auto request_callback = [pending_requests, request_key,
-                           callback](PartitionsResponse response) {
-    if (pending_requests->Remove(request_key)) {
-      callback(response);
-    }
-  };
-  if (CacheWithUpdate == request.GetFetchOption()) {
-    auto req = request;
-    token = partition_repo_->GetPartitions(req.WithFetchOption(CacheOnly),
-                                           request_callback);
-    auto onlineKey = pending_requests_->GenerateRequestPlaceholder();
-    pending_requests_->Insert(
-        partition_repo_->GetPartitions(
-            req.WithFetchOption(OnlineIfNotFound),
-            [pending_requests, onlineKey](PartitionsResponse) {
-              pending_requests->Remove(onlineKey);
-            }),
-        onlineKey);
-  } else {
-    token = partition_repo_->GetPartitions(request, request_callback);
-  }
-  pending_requests_->Insert(token, request_key);
-  return token;
-}
-
-olp::client::CancellableFuture<PartitionsResponse>
-CatalogClientImpl::GetPartitions(const PartitionsRequest& request) {
-  return AsFuture<PartitionsRequest, PartitionsResponse>(
-      request,
-      static_cast<client::CancellationToken (CatalogClientImpl::*)(
-          const PartitionsRequest&, const PartitionsResponseCallback&)>(
-          &CatalogClientImpl::GetPartitions));
-}
-
 client::CancellationToken CatalogClientImpl::GetData(
     const DataRequest& request, const DataResponseCallback& callback) {
   CancellationToken token;

@@ -67,13 +67,6 @@ class CatalogClientImpl final {
   client::CancellableFuture<CatalogVersionResponse> GetLatestVersion(
       CatalogVersionRequest request);
 
-  client::CancellationToken GetPartitions(
-      const PartitionsRequest& request,
-      const PartitionsResponseCallback& callback);
-
-  client::CancellableFuture<PartitionsResponse> GetPartitions(
-      const PartitionsRequest& request);
-
   client::CancellationToken GetData(const DataRequest& request,
                                     const DataResponseCallback& callback);
 
