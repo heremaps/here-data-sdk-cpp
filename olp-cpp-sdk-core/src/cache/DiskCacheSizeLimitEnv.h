@@ -17,31 +17,36 @@
  * License-Filename: LICENSE
  */
 
-#include "DiskCacheSizeLimit.h"
+#pragma once
+
+#include <atomic>
+#include <cstdint>
+#include <memory>
+
+#include <leveldb/env.h>
 
 namespace olp {
 namespace cache {
-namespace {
-bool isLogFile(const std::string& fname) {
-  static constexpr char logSuffix[] = ".log";
-  constexpr size_t logSuffixLength = 4;
-  return fname.compare(fname.size() - logSuffixLength, logSuffixLength,
-                       logSuffix) == 0;
-}
-}  // namespace
 
-leveldb::Status DiskCacheSizeLimit::NewWritableFile(const std::string& f,
-                                                    leveldb::WritableFile** r) {
-  leveldb::WritableFile* file = nullptr;
-  leveldb::Status status = leveldb::Status::OK();
+class DiskCacheSizeLimitEnv : public leveldb::EnvWrapper {
+ public:
+  // Initialize an EnvWrapper that delegates all calls to *t
+  DiskCacheSizeLimitEnv(leveldb::Env* env, const std::string& base_path,
+                        bool enforce_strict_data_save);
 
-  if (m_enforceStrictDataSave || !isLogFile(f)) {
-    status = m_env->NewWritableFile(f, &file);
-  }
+  leveldb::Status NewWritableFile(const std::string& f,
+                                  leveldb::WritableFile** r) override;
 
-  if (status.ok()) *r = new DisckCacheSizeLimitWritableFile(this, file);
-  return status;
-}
+  leveldb::Status DeleteFile(const std::string& f) override;
+
+  void AddSize(size_t size);
+
+  uint64_t Size() const;
+
+ private:
+  std::atomic<uint64_t> total_size_{0};
+  bool enforce_strict_data_save_{false};
+};
 
 }  // namespace cache
 }  // namespace olp
