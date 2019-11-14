@@ -16,16 +16,16 @@
 # License-Filename: LICENSE
 if(IOS)
     set(OLP_SDK_HTTP_IOS_SOURCES
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPNetworkIOS.mm"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPNetworkIOS.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPNetworkConstants.mm"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPNetworkConstants.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPHttpTask.mm"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPHttpTask+Internal.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPHttpTask.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPHttpClient.mm"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPHttpClient+Internal.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/ios/OLPHttpClient.h"
+        "${CMAKE_CURRENT_LIST_DIR}/../src/http/ios/OLPNetworkIOS.mm"
+        "${CMAKE_CURRENT_LIST_DIR}/../src/http/ios/OLPNetworkIOS.h"
+        "${CMAKE_CURRENT_LIST_DIR}/../src/http/ios/OLPNetworkConstants.mm"
+        "${CMAKE_CURRENT_LIST_DIR}/../src/http/ios/OLPNetworkConstants.h"
+        "${CMAKE_CURRENT_LIST_DIR}/../src/http/ios/OLPHttpTask.mm"
+        "${CMAKE_CURRENT_LIST_DIR}/../src/http/ios/OLPHttpTask+Internal.h"
+        "${CMAKE_CURRENT_LIST_DIR}/../src/http/ios/OLPHttpTask.h"
+        "${CMAKE_CURRENT_LIST_DIR}/../src/http/ios/OLPHttpClient.mm"
+        "${CMAKE_CURRENT_LIST_DIR}/../src/http/ios/OLPHttpClient+Internal.h"
+        "${CMAKE_CURRENT_LIST_DIR}/../src/http/ios/OLPHttpClient.h"
     )
 
     add_definitions(-DNETWORK_HAS_IOS)
