@@ -40,7 +40,8 @@ class DataCacheRepository;
 
 class DataRepository final {
  public:
-  DataRepository(const client::HRN& hrn, std::shared_ptr<ApiRepository> apiRepo,
+  DataRepository(const client::HRN& hrn, std::string layer_id,
+                 std::shared_ptr<ApiRepository> apiRepo,
                  std::shared_ptr<CatalogRepository> catalogRepo,
                  std::shared_ptr<PartitionsRepository> partitionsRepo,
                  std::shared_ptr<cache::KeyValueCache> cache);
@@ -76,6 +77,7 @@ class DataRepository final {
 
  private:
   client::HRN hrn_;
+  std::string layer_id_;
   std::shared_ptr<ApiRepository> apiRepo_;
   std::shared_ptr<CatalogRepository> catalogRepo_;
   std::shared_ptr<PartitionsRepository> partitionsRepo_;

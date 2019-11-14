@@ -64,7 +64,7 @@ VolatileLayerClientImpl::VolatileLayerClientImpl(
       catalog_, api_repo, cache);
 
   partition_repo_ = std::make_shared<repository::PartitionsRepository>(
-      catalog_, api_repo, catalog_repo, cache);
+      catalog_, layer_id_, api_repo, catalog_repo, cache);
 }
 
 VolatileLayerClientImpl::~VolatileLayerClientImpl() {

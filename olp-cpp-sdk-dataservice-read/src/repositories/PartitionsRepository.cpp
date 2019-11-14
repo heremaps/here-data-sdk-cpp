@@ -49,9 +49,10 @@ using LayerVersionReponse = ApiResponse<int64_t, client::ApiError>;
 using LayerVersionCallback = std::function<void(LayerVersionReponse)>;
 
 std::string GetKey(const PartitionsRequest& request,
-                   const std::vector<std::string>& partitions) {
+                   const std::vector<std::string>& partitions,
+                   const std::string& layer_id) {
   std::stringstream ss;
-  ss << request.GetLayerId();
+  ss << layer_id;
 
   ss << "[";
   bool first = true;
@@ -98,13 +99,14 @@ void GetLayerVersion(std::shared_ptr<CancellationContext> cancel_context,
                      const OlpClient& client, const PartitionsRequest& request,
                      const LayerVersionCallback& callback,
                      std::shared_ptr<PartitionsCacheRepository> cache,
-                     std::shared_ptr<ApiRepository> apiRepo) {
-  auto key = request.CreateKey();
+                     std::shared_ptr<ApiRepository> apiRepo,
+                     const std::string& layer_id) {
+  auto key = request.CreateKey(layer_id);
   auto layerVersionsCallback = [=](model::LayerVersions layerVersions) {
     auto& versionLayers = layerVersions.GetLayerVersions();
     auto itr = std::find_if(versionLayers.begin(), versionLayers.end(),
                             [&](const model::LayerVersion& layer) {
-                              return layer.GetLayer() == request.GetLayerId();
+                              return layer.GetLayer() == layer_id;
                             });
 
     if (itr != versionLayers.end()) {
@@ -155,7 +157,7 @@ void GetLayerVersion(std::shared_ptr<CancellationContext> cancel_context,
 }
 
 void appendPartitionsRequest(
-    const PartitionsRequest& request,
+    const PartitionsRequest& request, const std::string& layer_id,
     const std::shared_ptr<CatalogRepository>& catalogRepo,
     const std::shared_ptr<CancellationContext>& cancel_context,
     const std::function<void()>& cancel_callback,
@@ -179,7 +181,7 @@ void appendPartitionsRequest(
               auto itr =
                   std::find_if(catalogLayers.begin(), catalogLayers.end(),
                                [&](const model::Layer& layer) {
-                                 return layer.GetId() == request.GetLayerId();
+                                 return layer.GetId() == layer_id;
                                });
 
               if (itr == catalogLayers.end()) {
@@ -232,10 +234,12 @@ void appendPartitionsRequest(
 }  // namespace
 
 PartitionsRepository::PartitionsRepository(
-    const HRN& hrn, std::shared_ptr<ApiRepository> apiRepo,
+    const HRN& hrn, std::string layer_id,
+    std::shared_ptr<ApiRepository> apiRepo,
     std::shared_ptr<CatalogRepository> catalogRepo,
     std::shared_ptr<cache::KeyValueCache> cache)
     : hrn_(hrn),
+      layer_id_(std::move(layer_id)),
       apiRepo_(apiRepo),
       catalogRepo_(catalogRepo),
       cache_(std::make_shared<PartitionsCacheRepository>(hrn, cache)) {
@@ -255,8 +259,9 @@ CancellationToken PartitionsRepository::GetPartitionsById(
   auto apiRepo = apiRepo_;
   auto cache = cache_;
   auto cancel_context = std::make_shared<CancellationContext>();
+  auto layer_id = layer_id_;
 
-  auto requestKey = GetKey(request, partitions);
+  auto requestKey = GetKey(request, partitions, layer_id);
   OLP_SDK_LOG_TRACE_F(kLogTag, "GetPartitionsById '%s'", requestKey.c_str());
 
   auto cancel_callback = [callback, requestKey]() {
@@ -271,7 +276,8 @@ CancellationToken PartitionsRepository::GetPartitionsById(
           [=]() {
             /* Check the cache first */
             if (OnlineOnly != request.GetFetchOption()) {
-              auto cachedPartitions = cache->Get(appendedRequest, partitions);
+              auto cachedPartitions =
+                  cache->Get(appendedRequest, partitions, layer_id);
               // Only used cache if we have all requested ids.
               if (cachedPartitions.GetPartitions().size() ==
                   partitions.size()) {
@@ -298,14 +304,16 @@ CancellationToken PartitionsRepository::GetPartitionsById(
                   if (response.IsSuccessful()) {
                     OLP_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",
                                        requestKey.c_str());
-                    cache->Put(appendedRequest, response.GetResult(), expiry);
+                    cache->Put(appendedRequest, response.GetResult(), layer_id,
+                               expiry);
                   } else {
                     if (response.GetError().GetHttpStatusCode() ==
                         http::HttpStatusCode::FORBIDDEN) {
                       OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
                                          requestKey.c_str());
                       // Delete partitions only but not the layer
-                      cache->ClearPartitions(appendedRequest, partitions);
+                      cache->ClearPartitions(appendedRequest, partitions,
+                                             layer_id);
                     }
                   }
                   callback(response);
@@ -327,9 +335,9 @@ CancellationToken PartitionsRepository::GetPartitionsById(
                                            "getApiClient '%s' getting catalog",
                                            requestKey.c_str());
                         return QueryApi::GetPartitionsbyId(
-                            response.GetResult(), appendedRequest.GetLayerId(),
-                            partitions, appendedRequest.GetVersion(),
-                            boost::none, appendedRequest.GetBillingTag(),
+                            response.GetResult(), layer_id, partitions,
+                            appendedRequest.GetVersion(), boost::none,
+                            appendedRequest.GetBillingTag(),
                             cachePartitionsResponseCallback);
                       },
                       cancel_callback);
@@ -338,7 +346,7 @@ CancellationToken PartitionsRepository::GetPartitionsById(
           cancel_callback);
     };
 
-    appendPartitionsRequest(request, catalogRepo_, cancel_context,
+    appendPartitionsRequest(request, layer_id, catalogRepo_, cancel_context,
                             cancel_callback, callback, fetchPartitions);
 
     return CancellationToken(
@@ -375,7 +383,6 @@ PartitionsResponse PartitionsRepository::GetVolatilePartitions(
     client::HRN catalog, std::string layer,
     client::CancellationContext cancellation_context,
     read::PartitionsRequest request, client::OlpClientSettings settings) {
-  request.WithLayerId(layer);
   request.WithVersion(boost::none);
 
   CatalogRequest catalog_request;
@@ -413,14 +420,14 @@ PartitionsResponse PartitionsRepository::GetPartitions(
   repository::PartitionsCacheRepository repository(catalog, settings.cache);
 
   if (fetch_option != OnlineOnly) {
-    auto cached_partitions = repository.Get(request);
+    auto cached_partitions = repository.Get(request, layer);
     if (cached_partitions) {
       OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
-                         request.CreateKey().c_str());
+                         request.CreateKey(layer).c_str());
       return cached_partitions.get();
     } else if (fetch_option == CacheOnly) {
       OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' not found!",
-                         request.CreateKey().c_str());
+                         request.CreateKey(layer).c_str());
       return ApiError(ErrorCode::NotFound,
                       "Cache only resource not found in cache (partition).");
     }
@@ -478,13 +485,13 @@ PartitionsResponse PartitionsRepository::GetPartitions(
 
   if (metadata_response.IsSuccessful()) {
     OLP_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",
-                       request.CreateKey().c_str());
-    repository.Put(request, metadata_response.GetResult(), expiry, true);
+                       request.CreateKey(layer).c_str());
+    repository.Put(request, metadata_response.GetResult(), layer, expiry, true);
   } else {
     const auto& error = metadata_response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
       OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
-                         request.CreateKey().c_str());
+                         request.CreateKey(layer).c_str());
       repository.Clear(layer);
     }
   }
@@ -508,21 +515,21 @@ QueryApi::PartitionsResponse PartitionsRepository::GetPartitionById(
 
   const std::vector<std::string> partitions{partition_id.value()};
   PartitionsRequest partition_request;
-  partition_request.WithLayerId(layer)
-      .WithBillingTag(data_request.GetBillingTag())
+  partition_request.WithBillingTag(data_request.GetBillingTag())
       .WithVersion(version);
 
   auto fetch_option = data_request.GetFetchOption();
 
   if (fetch_option != OnlineOnly) {
-    auto cached_partitions = repository.Get(partition_request, partitions);
+    auto cached_partitions =
+        repository.Get(partition_request, partitions, layer);
     if (cached_partitions.GetPartitions().size() == partitions.size()) {
       OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
-                         data_request.CreateKey().c_str());
+                         data_request.CreateKey(layer).c_str());
       return cached_partitions;
     } else if (fetch_option == CacheOnly) {
       OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' not found!",
-                         data_request.CreateKey().c_str());
+                         data_request.CreateKey(layer).c_str());
       return ApiError(ErrorCode::NotFound,
                       "Cache only resource not found in cache (partition).");
     }
@@ -585,16 +592,16 @@ QueryApi::PartitionsResponse PartitionsRepository::GetPartitionById(
 
   if (query_response.IsSuccessful()) {
     OLP_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",
-                       data_request.CreateKey().c_str());
-    repository.Put(partition_request, query_response.GetResult(),
+                       data_request.CreateKey(layer).c_str());
+    repository.Put(partition_request, query_response.GetResult(), layer,
                    boost::none /* TODO: expiration */);
   } else {
     const auto& error = query_response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
       OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
-                         data_request.CreateKey().c_str());
+                         data_request.CreateKey(layer).c_str());
       // Delete partitions only but not the layer
-      repository.ClearPartitions(partition_request, partitions);
+      repository.ClearPartitions(partition_request, partitions, layer);
     }
   }
 

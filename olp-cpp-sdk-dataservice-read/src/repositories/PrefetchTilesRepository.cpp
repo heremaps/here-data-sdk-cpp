@@ -41,10 +41,12 @@ constexpr std::uint32_t kMaxQuadTreeIndexDepth = 4u;
 using namespace olp::client;
 
 PrefetchTilesRepository::PrefetchTilesRepository(
-    const HRN& hrn, std::shared_ptr<ApiRepository> apiRepo,
+    const HRN& hrn, std::string layer_id,
+    std::shared_ptr<ApiRepository> apiRepo,
     std::shared_ptr<PartitionsCacheRepository> partitionsCache,
     std::shared_ptr<olp::client::OlpClientSettings> settings)
     : hrn_(hrn),
+      layer_id_(std::move(layer_id)),
       apiRepo_(std::move(apiRepo)),
       partitionsCache_(std::move(partitionsCache)),
       settings_(std::move(settings)) {}
@@ -145,6 +147,7 @@ void PrefetchTilesRepository::GetSubTiles(
     const SubTilesResponseCallback& callback) {
   auto api_repo = apiRepo_;
   auto& partitions_cache = *partitionsCache_;
+  auto layer_id = layer_id_;
 
   auto executeFn = [=, &partitions_cache]() {
     std::vector<std::future<SubQuadsResponse>> futures;
@@ -155,6 +158,7 @@ void PrefetchTilesRepository::GetSubTiles(
         GetSubQuads(
             cancel_context, api_repo, partitions_cache, prefetchRequest,
             subtile.second.first, version, expiry, subtile.second.second,
+            layer_id,
             [=](const SubQuadsResponse& response) { p->set_value(response); });
 
         return p->get_future().get();
@@ -190,7 +194,7 @@ void PrefetchTilesRepository::GetSubQuads(
     PartitionsCacheRepository& partitionsCache,
     const PrefetchTilesRequest& prefetchRequest, geo::TileKey tile,
     int64_t version, boost::optional<time_t> expiry, int32_t depth,
-    const SubQuadsResponseCallback& callback) {
+    const std::string& layer_id, const SubQuadsResponseCallback& callback) {
   OLP_SDK_LOG_TRACE_F(kLogTag, "GetSubQuads(%s, %" PRId64 ", %" PRId32 ")",
                       tile.ToHereTile().c_str(), version, depth);
 
@@ -219,9 +223,8 @@ void PrefetchTilesRepository::GetSubQuads(
                         "QuadTreeIndex execute(%s, %" PRId64 ", %" PRId32 ")",
                         tile.ToHereTile().c_str(), version, depth);
                     return QueryApi::QuadTreeIndex(
-                        response.GetResult(), prefetchRequest.GetLayerId(),
-                        version, tile_key, depth, boost::none,
-                        prefetchRequest.GetBillingTag(),
+                        response.GetResult(), layer_id, version, tile_key,
+                        depth, boost::none, prefetchRequest.GetBillingTag(),
                         [=, &partitionsCache](
                             QueryApi::QuadTreeIndexResponse indexResponse) {
                           if (!indexResponse.IsSuccessful()) {
@@ -255,11 +258,9 @@ void PrefetchTilesRepository::GetSubQuads(
 
                           // add to cache
                           PartitionsRequest mockPartitionsRequest;
-                          mockPartitionsRequest
-                              .WithLayerId(prefetchRequest.GetLayerId())
-                              .WithVersion(version);
+                          mockPartitionsRequest.WithVersion(version);
                           partitionsCache.Put(mockPartitionsRequest, partitions,
-                                              expiry,
+                                              layer_id, expiry,
                                               false);  // get layer expiry
 
                           callback(result);
