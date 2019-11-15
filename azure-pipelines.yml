@@ -9,10 +9,23 @@ schedules:
     include:
     - master
 
-pool:
-  vmImage: 'vs2017-win2016'
 variables:
   BUILD_TYPE: RelWithDebInfo
-steps:
-- script: bash -x scripts/windows/build.sh
-  displayName: 'Build Stage'
+jobs:
+- job: Windows_build
+  pool:
+    vmImage: 'vs2017-win2016'
+  steps:
+  - bash: scripts/windows/build.sh
+
+- job: MacOS_build
+  pool:
+    vmImage: 'macOS-10.14'
+  steps:
+  - bash: scripts/macos/psv/azure_macos_build_psv.sh
+
+- job: iOS_build
+  pool:
+    vmImage: 'macOS-10.14'
+  steps:
+  - bash: scripts/ios/azure_ios_build_psv.sh

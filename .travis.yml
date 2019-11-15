@@ -50,15 +50,6 @@ matrix:
     - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
     - ls -la $ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake # for verification that needed script exist
     script: $WORKSPACE/scripts/android/build.sh
-  - os: osx
-    osx_image: xcode10.2
-    env: BUILD_TYPE=RelWithDebInfo WORKSPACE=$TRAVIS_BUILD_DIR
-    name: OSX Build
-    script: $WORKSPACE/scripts/macos/psv/travis_build_psv.sh
-  - os: osx
-    osx_image: xcode10.2
-    name: IOS Build
-    script: $WORKSPACE/scripts/ios/build.sh
 branches:
   only:
   - master
