@@ -36,7 +36,7 @@ namespace model {
  * @brief PublishIndexRequest used to publish data into an OLP
  * Index Layer.
  */
-class PublishIndexRequest {
+class DATASERVICE_WRITE_API PublishIndexRequest {
  public:
   PublishIndexRequest() = default;
 
