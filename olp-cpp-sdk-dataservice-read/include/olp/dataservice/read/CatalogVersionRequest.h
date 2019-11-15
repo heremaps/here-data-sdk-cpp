@@ -53,7 +53,7 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
    * @param startVersion an int64_t
    * @return a reference to the updated CatalogVersionRequest
    */
-  inline const CatalogVersionRequest& WithStartVersion(int64_t startVersion) {
+  inline CatalogVersionRequest& WithStartVersion(int64_t startVersion) {
     start_version_ = startVersion;
     return *this;
   }
