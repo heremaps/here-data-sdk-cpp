@@ -128,7 +128,7 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
     OLPHttpTask* task = nil;
     NSString* url = [NSString stringWithUTF8String:request.GetUrl().c_str()];
     if (url.length == 0) {
-      OLP_SDK_LOG_WARNING(kLogTag, "Invalid request URL");
+      OLP_SDK_LOG_WARNING(kLogTag, "Send failed - invalid URL");
       return SendOutcome(ErrorCode::INVALID_URL_ERROR);
     }
 
@@ -136,11 +136,11 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
     {
       std::lock_guard<std::mutex> lock(mutex_);
       if (http_client_.activeTasks.count >= max_requests_count_) {
-        OLP_SDK_LOG_WARNING_F(kLogTag,
-                              "Can't send request - reached max requests "
-                              "count:[%lu / %lu], URL:[%s]",
-                              http_client_.activeTasks.count,
-                              max_requests_count_, request.GetUrl().c_str());
+        OLP_SDK_LOG_DEBUG_F(kLogTag,
+                            "Send failed - reached max requests "
+                            "count=%lu/%lu, url=%s",
+                            http_client_.activeTasks.count, max_requests_count_,
+                            request.GetUrl().c_str());
         return SendOutcome(ErrorCode::NETWORK_OVERLOAD_ERROR);
       }
 
@@ -150,7 +150,8 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
       task = [http_client_ createTaskWithProxy:proxy_settings andId:request_id];
     }
     if (!task) {
-      OLP_SDK_LOG_WARNING_F(kLogTag, "Can't create task for request URL=[%s]",
+      OLP_SDK_LOG_WARNING_F(kLogTag,
+                            "Send failed - can't create task for url=%s",
                             request.GetUrl().c_str());
       return SendOutcome(ErrorCode::UNKNOWN_ERROR);
     }
@@ -175,9 +176,10 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
     // setup handler for NSURLSessionDataTask::didReceiveResponse
     task.responseHandler = ^(NSHTTPURLResponse* response) {
       if (!weak_task) {
-        OLP_SDK_LOG_WARNING_F(kLogTag,
-                              "Response received after task=[%llu] was deleted",
-                              requestId);
+        OLP_SDK_LOG_WARNING_F(
+            kLogTag,
+            "Response received after task with request_id=%llu was deleted",
+            requestId);
         return;
       }
       __strong OLPHttpTask* strong_task = weak_task;
@@ -215,13 +217,19 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
     task.dataHandler = ^(NSData* data) {
       if (!weak_task) {
         OLP_SDK_LOG_WARNING_F(
-            kLogTag, "Data received after task=[%llu] was deleted", requestId);
+            kLogTag,
+            "Data received after task with request_id=%llu was deleted",
+            requestId);
         return;
       }
       __strong OLPHttpTask* strong_task = weak_task;
       OLPHttpTaskResponseData* response_data = strong_task.responseData;
       if (response_data.rangeOut) {
-        OLP_SDK_LOG_TRACE(kLogTag, "Datacallback out of range");
+        OLP_SDK_LOG_TRACE_F(kLogTag,
+                            "Datacallback out of range, "
+                            "request_id=%llu, url=%s",
+                            strong_task.requestId,
+                            [strong_task.url UTF8String]);
         return;
       }
 
@@ -235,9 +243,10 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
         if (payload->tellp() != std::streampos(response_data.count)) {
           payload->seekp(response_data.count);
           if (payload->fail()) {
-            OLP_SDK_LOG_WARNING(
-                kLogTag,
-                "Reception stream doesn't support setting write point");
+            OLP_SDK_LOG_WARNING_F(kLogTag,
+                                  "Payload seekp() failed, request_id=%llu, url=%s",
+                                  strong_task.requestId,
+                                  [strong_task.url UTF8String]);
             payload->clear();
           }
         }
@@ -252,7 +261,8 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
     task.completionHandler = ^(NSError* error) {
       if (!weak_task) {
         OLP_SDK_LOG_WARNING_F(
-            kLogTag, "Completion received after task=[%llu] was deleted",
+            kLogTag,
+            "Completion received after task with request_id=%llu was deleted",
             requestId);
         return;
       }
@@ -297,7 +307,7 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
     // Perform send request asycnrhonously in a NSURLSession's thread
     OLPHttpTaskStatus ret = [task run];
     if (OLPHttpTaskStatusOk != ret) {
-      OLP_SDK_LOG_WARNING_F(kLogTag, "Can't run task with id=[%llu]; url=[%s]",
+      OLP_SDK_LOG_WARNING_F(kLogTag, "Can't run task, request_id=%llu, url=%s",
                             task.requestId, request.GetUrl().c_str());
       return SendOutcome(kInvalidRequestId);
     }

@@ -101,8 +101,9 @@ constexpr auto kLogTag = "OLPHttpTask";
   // Cache the task id for fast retrieve later on
   [_httpClient registerDataTask:_dataTask forHttpTask:self];
 
-  OLP_SDK_LOG_TRACE_F(
-      kLogTag, "Run task: id=[%llu]; task_id=[%lu];\t httpMethod=[%s];\t [%s])",
+  OLP_SDK_LOG_DEBUG_F(
+      kLogTag,
+      "Run task, request_id=%llu, task_id=%lu, http_method=%s, url=%s)",
       self.requestId, (unsigned long)self.dataTask.taskIdentifier,
       [request.HTTPMethod UTF8String], [[self getDebugCurlString] UTF8String]);
 
@@ -114,7 +115,7 @@ constexpr auto kLogTag = "OLPHttpTask";
   if (self.isCancelled) {
     return NO;
   }
-  OLP_SDK_LOG_TRACE_F(kLogTag, "Cancelled task: id=[%llu]", self.requestId);
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Cancel task, request_id=%llu", self.requestId);
 
   self.cancelled = YES;
   @synchronized(self) {
@@ -133,10 +134,12 @@ constexpr auto kLogTag = "OLPHttpTask";
 #pragma mark - Response handlers
 
 - (void)didCompleteWithError:(NSError*)error {
-  OLP_SDK_LOG_TRACE_F(
-      kLogTag, "task is completed: id=[%llu]; taskIdentifier=[%u]; error=[%i]",
-      self.requestId, (unsigned int)self.dataTask.taskIdentifier,
-      (int)error.code);
+  OLP_SDK_LOG_DEBUG_F(kLogTag,
+                      "Task is completed, request_id=%llu, url=%s, "
+                      "task_id=%u, error=%i",
+                      self.requestId, [self.url UTF8String],
+                      (unsigned int)self.dataTask.taskIdentifier,
+                      (int)error.code);
 
   OLPHttpTaskCompletionHandler completionHandler = nil;
   @synchronized(self) {
@@ -156,9 +159,10 @@ constexpr auto kLogTag = "OLPHttpTask";
 
 - (void)didReceiveResponse:(NSURLResponse*)response {
   OLP_SDK_LOG_TRACE_F(kLogTag,
-                      "task receives response: id=[%llu]; taskIdentifier=[%u] "
-                      "responseCode=[%i]",
-                      self.requestId,
+                      "didReceiveResponse, request_id=%llu, url=%s, "
+                      "task_identifier=%u,"
+                      "status_code=%i",
+                      self.requestId, [response.URL.absoluteString UTF8String],
                       (unsigned int)self.dataTask.taskIdentifier,
                       (int)[(NSHTTPURLResponse*)response statusCode]);
 
@@ -176,11 +180,12 @@ constexpr auto kLogTag = "OLPHttpTask";
 }
 
 - (void)didReceiveData:(NSData*)data {
-  OLP_SDK_LOG_TRACE_F(
-      kLogTag,
-      "task receives data: id=[%llu]; taskIdentifier=[%u] dataLength=[%lu]",
-      self.requestId, (unsigned int)self.dataTask.taskIdentifier,
-      (unsigned long)data.length);
+  OLP_SDK_LOG_TRACE_F(kLogTag,
+                      "didReceiveData, request_id=%llu, url=%s, "
+                      "task_id=%u, data_length=%lu",
+                      self.requestId, [self.url UTF8String],
+                      (unsigned int)self.dataTask.taskIdentifier,
+                      (unsigned long)data.length);
 
   OLPHttpTaskDataHandler dataHandler = nil;
 
@@ -208,16 +213,19 @@ constexpr auto kLogTag = "OLPHttpTask";
 #pragma mark - Private methods
 
 - (NSString*)getDebugCurlString {
-  NSMutableString* debugHeaders = [[NSMutableString alloc] init];
+  if (olp::logging::Log::getLevel() == olp::logging::Level::Trace) {
+    NSMutableString* debugHeaders = [[NSMutableString alloc] init];
 
-  for (NSString* key in self.headers) {
-    [debugHeaders appendFormat:@"%@\"%@:%@\"", @" --header ", key,
-                               [self.headers objectForKey:key]];
+    for (NSString* key in self.headers) {
+      [debugHeaders appendFormat:@"%@\"%@:%@\"", @" --header ", key,
+                                 [self.headers objectForKey:key]];
+    }
+
+    return [NSString
+        stringWithFormat:@"curl -vvv \"%@\"%@", self.url, debugHeaders];
+  } else {
+    return self.url;
   }
-
-  return
-      [NSString stringWithFormat:@"curl -vvv \"%@\"%@", self.url, debugHeaders];
 }
 
 @end
-
