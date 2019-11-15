@@ -37,7 +37,7 @@ typedef std::string IndexName;
 /**
  @brief Type of indexes supported for index layer
  */
-enum class IndexType {
+enum class DATASERVICE_WRITE_API IndexType {
   /**
    IndexValue that holds a string type with a maximum length of 40.
    */
@@ -93,7 +93,7 @@ class DATASERVICE_WRITE_API IndexValue {
 /**
  @brief UnsupportedIndexValue that is not supported by OLP index layer
  */
-class UnsupportedIndexValue final : public IndexValue {
+class DATASERVICE_WRITE_API UnsupportedIndexValue final : public IndexValue {
  public:
   virtual ~UnsupportedIndexValue() = default;
   UnsupportedIndexValue(IndexType type) : IndexValue(type) {}
@@ -102,7 +102,7 @@ class UnsupportedIndexValue final : public IndexValue {
 /**
  @brief BooleanIndexValue that is supported by OLP index layer indexField
  */
-class BooleanIndexValue final : public IndexValue {
+class DATASERVICE_WRITE_API BooleanIndexValue final : public IndexValue {
   bool booleanValue_{false};
 
  public:
@@ -195,7 +195,7 @@ class DATASERVICE_WRITE_API EmptyIndexValue final : public IndexValue {
   EmptyIndexValue(IndexType type) : IndexValue(type) {}
 };
 
-class Index {
+class DATASERVICE_WRITE_API Index final {
  public:
   Index() = default;
   virtual ~Index() = default;
