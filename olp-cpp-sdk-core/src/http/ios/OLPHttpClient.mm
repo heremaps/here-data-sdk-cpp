@@ -51,7 +51,7 @@ constexpr auto kLogTag = "OLPHttpClient";
 - (instancetype)init {
   self = [super init];
   if (self) {
-    OLP_SDK_LOG_TRACE_F(kLogTag, "Created client=[%p] ", (__bridge void*)self);
+    OLP_SDK_LOG_TRACE_F(kLogTag, "Created client=%p ", (__bridge void*)self);
     _delegateQueue = [[NSOperationQueue alloc] init];
     _delegateQueue.name = @"com.here.olp.network.HttpClientSessionQueue";
 
@@ -67,15 +67,15 @@ constexpr auto kLogTag = "OLPHttpClient";
 }
 
 - (void)dealloc {
-  OLP_SDK_LOG_TRACE_F(kLogTag, "destroyed client=[%p] ", (__bridge void*)self);
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Destroyed client=%p ", (__bridge void*)self);
   if (self.sharedUrlSession) {
     [self cleanup];
   }
 }
 
 - (void)cleanup {
-  OLP_SDK_LOG_TRACE_F(kLogTag, "cleanup tasks for client=[%p]",
-                       (__bridge void*)self);
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Cleanup tasks for client=%p",
+                      (__bridge void*)self);
 
   [self.sharedUrlSession finishTasksAndInvalidate];
   [self.urlSessions
@@ -141,7 +141,7 @@ constexpr auto kLogTag = "OLPHttpClient";
     task = _tasks[@(identifier)];
   }
   if (!task) {
-    OLP_SDK_LOG_WARNING_F(kLogTag, "Cancelling unknown request with id=[%llu] ",
+    OLP_SDK_LOG_WARNING_F(kLogTag, "Cancelling unknown request, id=%llu",
                           identifier);
     return;
   }
@@ -168,6 +168,10 @@ constexpr auto kLogTag = "OLPHttpClient";
     didCompleteWithError:(NSError*)error {
   if (!self.sharedUrlSession &&
       NSURLErrorCancelled != error.code) {  // Cleanup called and not cancelled
+    OLP_SDK_LOG_WARNING_F(kLogTag,
+                          "didCompleteWithError failed, "
+                          "task_id=%u; error=%i",
+                          (unsigned int)task.taskIdentifier, (int)error.code);
     return;
   }
 
@@ -176,6 +180,12 @@ constexpr auto kLogTag = "OLPHttpClient";
     if ([httpTask isValid]) {
       [httpTask didCompleteWithError:error];
       [self removeTaskWithId:httpTask.requestId];
+    } else {
+      OLP_SDK_LOG_WARNING_F(
+          kLogTag,
+          "didCompleteWithError failed - can't find the task, "
+          "task_id=%u, error=%i",
+          (unsigned int)task.taskIdentifier, (int)error.code);
     }
   }
 }
@@ -186,6 +196,12 @@ constexpr auto kLogTag = "OLPHttpClient";
      completionHandler:(void (^)(NSURLSessionResponseDisposition disposition))
                            completionHandler {
   if (!self.sharedUrlSession) {  // Cleanup called
+    OLP_SDK_LOG_WARNING_F(kLogTag,
+                          "didReceiveResponse failed - invalid session, "
+                          "task_id=%u, url=%s, status_code=%i",
+                          (unsigned int)dataTask.taskIdentifier,
+                          [response.URL.absoluteString UTF8String],
+                          (int)[(NSHTTPURLResponse*)response statusCode]);
     return;
   }
 
@@ -194,6 +210,14 @@ constexpr auto kLogTag = "OLPHttpClient";
         [self taskWithTaskIdentifier:dataTask.taskIdentifier];
     if ([httpTask isValid] && ![httpTask isCancelled]) {
       [httpTask didReceiveResponse:response];
+    } else {
+      OLP_SDK_LOG_WARNING_F(
+          kLogTag,
+          "didReceiveResponse failed - task can't be found or cancelled, "
+          "task_id=%u, url=%s, status=%i",
+          (unsigned int)dataTask.taskIdentifier,
+          [response.URL.absoluteString UTF8String],
+          (int)[(NSHTTPURLResponse*)response statusCode]);
     }
     completionHandler(NSURLSessionResponseAllow);
   }
@@ -203,6 +227,10 @@ constexpr auto kLogTag = "OLPHttpClient";
           dataTask:(NSURLSessionDataTask*)dataTask
     didReceiveData:(NSData*)data {
   if (!self.sharedUrlSession) {  // Cleanup called
+    OLP_SDK_LOG_WARNING_F(kLogTag,
+                          "didReceiveData failed - invalid session, "
+                          "task_id=%u",
+                          (unsigned int)dataTask.taskIdentifier);
     return;
   }
 
@@ -211,6 +239,12 @@ constexpr auto kLogTag = "OLPHttpClient";
         [self taskWithTaskIdentifier:dataTask.taskIdentifier];
     if ([httpTask isValid] && ![httpTask isCancelled]) {
       [httpTask didReceiveData:data];
+    } else {
+      OLP_SDK_LOG_WARNING_F(
+          kLogTag,
+          "didReceiveData failed - task can't be found or cancelled, "
+          "task_id=%u",
+          (unsigned int)dataTask.taskIdentifier);
     }
   }
 }
@@ -221,6 +255,10 @@ constexpr auto kLogTag = "OLPHttpClient";
       completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition,
                                   NSURLCredential*))completionHandler {
   if (!self.sharedUrlSession) {  // Cleanup called
+    OLP_SDK_LOG_WARNING_F(kLogTag,
+                          "didReceiveChallenge failed - invalid session, "
+                          "task_id=%u",
+                          (unsigned int)dataTask.taskIdentifier);
     return;
   }
 
@@ -258,18 +296,26 @@ constexpr auto kLogTag = "OLPHttpClient";
              completionHandler:
                  (void (^)(NSURLRequest* _Nullable))completionHandler {
   if (!self.sharedUrlSession) {  // Cleanup called
+    OLP_SDK_LOG_WARNING_F(
+        kLogTag,
+        "willPerformHTTPRedirection failed - invalid session, "
+        "task_id=%u, status=%i, origin_url=%s, new_url=%s",
+        (unsigned int)task.taskIdentifier, (int)response.statusCode,
+        task.originalRequest.URL.absoluteString.UTF8String,
+        request.URL.absoluteString.UTF8String);
     return;
   }
 
   NSURLRequest* originalRequest = task.originalRequest;
   NSString* authorizationHeaderValue =
       originalRequest.allHTTPHeaderFields[@"Authorization"];
-  OLP_SDK_LOG_TRACE_F(
-      kLogTag,
-      "HTTPRedirection: self=[%p]; status=[%i]; originURL=[%s]; newURL=[%s]",
-      (__bridge void*)self, (int)response.statusCode,
-      originalRequest.URL.absoluteString.UTF8String,
-      request.URL.absoluteString.UTF8String);
+  OLP_SDK_LOG_TRACE_F(kLogTag,
+                      "HTTPRedirection: self=%p, task_id=%u, "
+                      "status=%i, origin_url=%s, new_url=%s",
+                      (__bridge void*)self, (unsigned int)task.taskIdentifier,
+                      (int)response.statusCode,
+                      originalRequest.URL.absoluteString.UTF8String,
+                      request.URL.absoluteString.UTF8String);
   NSMutableURLRequest* newRequest = [[NSMutableURLRequest alloc] init];
   newRequest.URL = request.URL;
   newRequest.timeoutInterval = request.timeoutInterval;
