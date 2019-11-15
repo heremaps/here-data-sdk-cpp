@@ -8,8 +8,10 @@ The HERE OLP SDK for C++ is a _work-in-progress_ C++ client for [HERE Open Locat
 
 | Platform                       | Status                          |
 | :----------------------------- | :------------------------------ |
-| Linux/macOS/iOS/Android        | [![Linux build status][1]][2]   |
-| Windows                        | [![Windows build status][3]][4] |
+| Linux/Android                  | [![Linux build status][1]][2]   |
+| MacOS                          | [![macOS build status][3]][4]   |
+| iOS                            | [![iOS build status][7]][4]     |
+| Windows                        | [![Windows build status][8]][4] |
 
 **Test Coverage**
 
@@ -19,10 +21,12 @@ The HERE OLP SDK for C++ is a _work-in-progress_ C++ client for [HERE Open Locat
 
 [1]: https://travis-ci.com/heremaps/here-olp-sdk-cpp.svg?branch=master
 [2]: https://travis-ci.com/heremaps/here-olp-sdk-cpp
-[3]: https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master
+[3]: https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=Windows_build
 [4]: https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master
 [5]: https://codecov.io/gh/heremaps/here-olp-sdk-cpp/branch/master/graph/badge.svg
 [6]: https://codecov.io/gh/heremaps/here-olp-sdk-cpp/
+[7]: https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=MacOS_build
+[8]: https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=iOS_build
 
 ## Why Use
 
@@ -47,8 +51,8 @@ The SDK has been tested on the following platforms and with the following requir
 | ------- | -------- |
 | Ubuntu | GCC 5.4 and Clang 7.0 |
 | Windows | MSVC++ 2017  |
-| MacOS | Apple Clang 10.0.1 |
-| iOS |  XCode 10.2, Swift 5.0 |
+| MacOS | Apple Clang 11.0.0 |
+| iOS |  XCode 11.1, Swift 5.0 |
 | Android |  API level 21 |
 
 ## Dependencies
