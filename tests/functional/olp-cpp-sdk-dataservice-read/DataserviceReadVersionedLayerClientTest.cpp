@@ -393,6 +393,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithHandle) {
       });
 
   EXPECT_SUCCESS(data_response);
+  ASSERT_TRUE(data_response.GetResult() != nullptr);
   ASSERT_LT(0, data_response.GetResult()->size());
   std::string data_string(data_response.GetResult()->begin(),
                           data_response.GetResult()->end());
@@ -454,6 +455,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithPartitionId) {
       });
 
   EXPECT_SUCCESS(data_response);
+  ASSERT_TRUE(data_response.GetResult() != nullptr);
   ASSERT_LT(0, data_response.GetResult()->size());
   std::string data_string(data_response.GetResult()->begin(),
                           data_response.GetResult()->end());
@@ -477,6 +479,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       });
 
   EXPECT_SUCCESS(data_response);
+  ASSERT_TRUE(data_response.GetResult() != nullptr);
   ASSERT_LT(0, data_response.GetResult()->size());
   std::string data_string(data_response.GetResult()->begin(),
                           data_response.GetResult()->end());
@@ -645,6 +648,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataCompressed) {
       });
 
   EXPECT_SUCCESS(data_response);
+  ASSERT_TRUE(data_response.GetResult() != nullptr);
   ASSERT_LT(0u, data_response.GetResult()->size());
 
   catalog_client =
@@ -659,6 +663,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataCompressed) {
       });
 
   EXPECT_SUCCESS(data_response_compressed);
+  ASSERT_TRUE(data_response_compressed.GetResult() != nullptr);
   ASSERT_LT(0u, data_response_compressed.GetResult()->size());
   ASSERT_EQ(data_response.GetResult()->size(),
             data_response_compressed.GetResult()->size());
