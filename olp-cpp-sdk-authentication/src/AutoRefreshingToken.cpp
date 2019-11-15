@@ -87,15 +87,21 @@ struct AutoRefreshingToken::Impl {
     current_token_ =
         token_endpoint_.RequestToken(cancellation_token, token_request_).get();
 
-    if (current_token_.IsSuccessful()) {
-      auto expiry_time = current_token_.GetResult().GetExpiryTime();
-      OLP_SDK_LOG_INFO_F(kLogTag, "Token OK, expires=%s",
-                         std::asctime(std::gmtime(&expiry_time)));
-    } else {
+    if (!current_token_.IsSuccessful()) {
       OLP_SDK_LOG_INFO_F(
           kLogTag, "Token NOK, code=%d, error=%s",
           static_cast<int>(current_token_.GetError().GetErrorCode()),
           current_token_.GetError().GetMessage().c_str());
+    } else if (current_token_.GetResult().GetErrorResponse().code != 0) {
+      const auto result = current_token_.GetResult();
+      OLP_SDK_LOG_INFO_F(kLogTag, "Token NOK, status=%d, code=%d, error=%s",
+                         static_cast<int>(result.GetHttpStatus()),
+                         static_cast<int>(result.GetErrorResponse().code),
+                         result.GetErrorResponse().message.c_str());
+    } else {
+      auto expiry_time = current_token_.GetResult().GetExpiryTime();
+      OLP_SDK_LOG_INFO_F(kLogTag, "Token OK, expires=%s",
+                         std::asctime(std::gmtime(&expiry_time)));
     }
 
     token_refresh_time_ = ComputeRefreshTime(
@@ -116,15 +122,22 @@ struct AutoRefreshingToken::Impl {
         [&, callback, minimum_validity](TokenEndpoint::TokenResponse response) {
           current_token = response;
 
-          if (current_token.IsSuccessful()) {
-            auto expiry_time = current_token.GetResult().GetExpiryTime();
-            OLP_SDK_LOG_INFO_F(kLogTag, "Token OK, expires=%s",
-                               std::asctime(std::gmtime(&expiry_time)));
-          } else {
+          if (!current_token.IsSuccessful()) {
             OLP_SDK_LOG_INFO_F(
                 kLogTag, "Token NOK, code=%d, error=%s",
                 static_cast<int>(current_token.GetError().GetErrorCode()),
                 current_token.GetError().GetMessage().c_str());
+          } else if (current_token.GetResult().GetErrorResponse().code != 0) {
+            const auto result = current_token.GetResult();
+            OLP_SDK_LOG_INFO_F(kLogTag,
+                               "Token NOK, status=%d code=%d, error=%s",
+                               static_cast<int>(result.GetHttpStatus()),
+                               static_cast<int>(result.GetErrorResponse().code),
+                               result.GetErrorResponse().message.c_str());
+          } else {
+            auto expiry_time = current_token.GetResult().GetExpiryTime();
+            OLP_SDK_LOG_INFO_F(kLogTag, "Token OK, expires=%s",
+                               std::asctime(std::gmtime(&expiry_time)));
           }
 
           token_refresh_time = ComputeRefreshTime(
