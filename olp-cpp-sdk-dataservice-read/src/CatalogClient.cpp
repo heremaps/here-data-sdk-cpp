@@ -19,29 +19,24 @@
 
 #include "olp/dataservice/read/CatalogClient.h"
 
+#include <olp/core/porting/make_unique.h>
 #include "CatalogClientImpl.h"
-#include <olp/core/cache/DefaultCache.h>
-#include <olp/core/client/OlpClientSettingsFactory.h>
 
 namespace olp {
 namespace dataservice {
 namespace read {
 
 CatalogClient::CatalogClient(client::HRN catalog,
-                             client::OlpClientSettings settings) {
-  // If the user did not specify cache, we create a default one (memory only)
-  if (!settings.cache) {
-    settings.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
-  }
-
-  impl_ = std::make_shared<CatalogClientImpl>(std::move(catalog),
-                                              std::move(settings));
-}
+                             client::OlpClientSettings settings)
+    : impl_(std::make_unique<CatalogClientImpl>(std::move(catalog),
+                                                std::move(settings))) {}
 
 CatalogClient::CatalogClient(CatalogClient&& other) noexcept = default;
 
 CatalogClient& CatalogClient::operator=(CatalogClient&& other) noexcept =
     default;
+
+CatalogClient::~CatalogClient() = default;
 
 bool CatalogClient::CancelPendingRequests() {
   return impl_->CancelPendingRequests();

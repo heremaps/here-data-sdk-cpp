@@ -19,6 +19,8 @@
 
 #include "CatalogClientImpl.h"
 
+#include <olp/core/cache/DefaultCache.h>
+#include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/client/PendingRequests.h>
 #include <olp/core/logging/Log.h>
 #include "Common.h"
@@ -41,8 +43,11 @@ constexpr auto kLogTag = "CatalogClientImpl";
 }
 
 CatalogClientImpl::CatalogClientImpl(HRN catalog, OlpClientSettings settings)
-    : catalog_(std::move(catalog)),
-      settings_(std::move(settings)) {
+    : catalog_(std::move(catalog)), settings_(std::move(settings)) {
+  if (!settings_.cache) {
+    settings_.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
+  }
+
   // to avoid capturing task scheduler inside a task, we need a copy of settings
   // without the scheduler
   task_scheduler_ = std::move(settings_.task_scheduler);
