@@ -21,16 +21,16 @@ cmake_minimum_required(VERSION 3.9)
 project(olp-cpp-sdk VERSION 0.8.0)
 
 # Add preprocessor definitions for the SDK version and platform name
-add_definitions(-DOLP_SDK_VERSION_STRING=\"${olp-cpp-sdk_VERSION}\")
+add_definitions(-DOLP_SDK_VERSION_STRING="\"${olp-cpp-sdk_VERSION}\"")
 add_definitions(-DOLP_SDK_VERSION_MAJOR=${olp-cpp-sdk_VERSION_MAJOR})
 add_definitions(-DOLP_SDK_VERSION_MINOR=${olp-cpp-sdk_VERSION_MINOR})
 add_definitions(-DOLP_SDK_VERSION_PATCH=${olp-cpp-sdk_VERSION_PATCH})
 
 if (APPLE AND IOS)
     # To distinguish iOS platform from other Darwin platforms
-    add_definitions(-DOLP_SDK_PLATFORM_NAME=\"iOS\")
+    add_definitions(-DOLP_SDK_PLATFORM_NAME="\"iOS\"")
 else()
-    add_definitions(-DOLP_SDK_PLATFORM_NAME=\"${CMAKE_SYSTEM_NAME}\")
+    add_definitions(-DOLP_SDK_PLATFORM_NAME="\"${CMAKE_SYSTEM_NAME}\"")
 endif()
 
 # Options
