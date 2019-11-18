@@ -222,9 +222,15 @@ static curl_code SslctxFunction(CURL* curl, void* sslctx, void*) {
 
 NetworkCurl::NetworkCurl(size_t max_requests_count)
     : handles_(max_requests_count),
-      static_handle_count_(std::max(1lu, max_requests_count / 4)) {}
+      static_handle_count_(std::max(1lu, max_requests_count / 4)) {
+  OLP_SDK_LOG_TRACE(kLogTag, "Created NetworkCurl with address="
+                                 << this
+                                 << ", handles_count=" << max_requests_count);
+}
 
 NetworkCurl::~NetworkCurl() {
+  OLP_SDK_LOG_TRACE(kLogTag, "Destroyed NetworkCurl object, this=" << this);
+
   if (state_ == WorkerState::STARTED) {
     Deinitialize();
   }
@@ -236,18 +242,18 @@ NetworkCurl::~NetworkCurl() {
 bool NetworkCurl::Initialize() {
   std::lock_guard<std::mutex> init_lock(init_mutex_);
   if (state_ != WorkerState::STOPPED) {
-    OLP_SDK_LOG_DEBUG(kLogTag, "Already initialized");
+    OLP_SDK_LOG_DEBUG(kLogTag, "Already initialized, this=" << this);
     return true;
   }
 
 #ifdef NETWORK_HAS_PIPE2
   if (pipe2(pipe_, O_NONBLOCK)) {
-    OLP_SDK_LOG_ERROR(kLogTag, "pipe2 failed");
+    OLP_SDK_LOG_ERROR(kLogTag, "pipe2 failed, this=" << this);
     return false;
   }
 #elif defined NETWORK_HAS_PIPE
   if (pipe(pipe_)) {
-    OLP_SDK_LOG_ERROR(kLogTag, "pipe failed");
+    OLP_SDK_LOG_ERROR(kLogTag, "pipe failed, this=" << this);
     return false;
   }
   // Set pipes non blocking
@@ -256,14 +262,14 @@ bool NetworkCurl::Initialize() {
     flags = 0;
   }
   if (fcntl(pipe_[0], F_SETFL, flags | O_NONBLOCK)) {
-    OLP_SDK_LOG_ERROR(kLogTag, "fcntl for pipe failed");
+    OLP_SDK_LOG_ERROR(kLogTag, "fcntl for pipe failed, this=" << this);
     return false;
   }
   if (-1 == (flags = fcntl(pipe_[1], F_GETFL, 0))) {
     flags = 0;
   }
   if (fcntl(pipe_[1], F_SETFL, flags | O_NONBLOCK)) {
-    OLP_SDK_LOG_ERROR(kLogTag, "fcntl for pipe failed");
+    OLP_SDK_LOG_ERROR(kLogTag, "fcntl for pipe failed, this=" << this);
     return false;
   }
 #endif
@@ -280,7 +286,7 @@ bool NetworkCurl::Initialize() {
   // cURL setup
   curl_ = curl_multi_init();
   if (!curl_) {
-    OLP_SDK_LOG_ERROR(kLogTag, "curl_multi_init failed");
+    OLP_SDK_LOG_ERROR(kLogTag, "curl_multi_init failed, this=" << this);
     return false;
   }
 
@@ -310,9 +316,12 @@ bool NetworkCurl::Initialize() {
 void NetworkCurl::Deinitialize() {
   // Stop worker thread
   if (state_ != WorkerState::STARTED) {
-    OLP_SDK_LOG_DEBUG(kLogTag, "Already deinitialized");
+    OLP_SDK_LOG_DEBUG(kLogTag, "Already deinitialized, this=" << this);
     return;
   }
+
+  OLP_SDK_LOG_TRACE(kLogTag, "Deinitialize NetworkCurl, this=" << this);
+
   {
     std::lock_guard<std::mutex> lock(event_mutex_);
     state_ = WorkerState::STOPPING;
@@ -331,7 +340,8 @@ void NetworkCurl::Teardown() {
 #if (defined NETWORK_HAS_PIPE) || (defined NETWORK_HAS_PIPE2)
   char tmp = 1;
   if (write(pipe_[1], &tmp, 1) < 0) {
-    OLP_SDK_LOG_INFO(kLogTag, "deinitialize - failed to write pipe " << errno);
+    OLP_SDK_LOG_INFO(kLogTag, "Deinitialize, failed to write pipe, err="
+                                  << errno << ", this=" << this);
   }
 #endif
 
@@ -410,6 +420,8 @@ SendOutcome NetworkCurl::Send(NetworkRequest request,
                               Network::DataCallback data_callback) {
   if (!Initialized()) {
     if (!Initialize()) {
+      OLP_SDK_LOG_ERROR(kLogTag, "Send failed - network is uninitialized, url="
+                                     << request.GetUrl());
       return SendOutcome(ErrorCode::OFFLINE_ERROR);
     }
   }
@@ -445,9 +457,9 @@ ErrorCode NetworkCurl::SendImplementation(
     const std::shared_ptr<std::ostream>& payload,
     Network::HeaderCallback header_callback,
     Network::DataCallback data_callback, Network::Callback callback) {
-  OLP_SDK_LOG_TRACE(kLogTag, "send with id = " << id);
-
   if (!IsStarted()) {
+    OLP_SDK_LOG_ERROR(
+        kLogTag, "Send failed - network is offline, url=" << request.GetUrl());
     return ErrorCode::IO_ERROR;
   }
 
@@ -456,9 +468,11 @@ ErrorCode NetworkCurl::SendImplementation(
   RequestHandle* handle = GetHandle(id, callback, header_callback,
                                     data_callback, payload, request.GetBody());
   if (!handle) {
-    OLP_SDK_LOG_WARNING(kLogTag, "curl handle is nullptr");
     return ErrorCode::NETWORK_OVERLOAD_ERROR;
   }
+
+  OLP_SDK_LOG_DEBUG(kLogTag, "Send request with url=" << request.GetUrl()
+                                                      << ", id=" << id);
 
   handle->transfer_timeout = config.GetTransferTimeout();
   handle->max_retries = config.GetRetries();
@@ -557,9 +571,10 @@ ErrorCode NetworkCurl::SendImplementation(
     CURLcode error = curl_easy_setopt(handle->handle, CURLOPT_CAINFO,
                                       curl_ca_bundle.c_str());
     if (CURLE_OK != error) {
+      OLP_SDK_LOG_ERROR(kLogTag, "Send failed - curl_easy_setopt error="
+                                     << error << ", id=" << id);
       return ErrorCode::UNKNOWN_ERROR;
     }
-    OLP_SDK_LOG_DEBUG(kLogTag, "curl bundle path: " << curl_ca_bundle);
   }
 #endif
 
@@ -592,10 +607,8 @@ ErrorCode NetworkCurl::SendImplementation(
   curl_easy_setopt(handle->handle, CURLOPT_ERRORBUFFER, handle->error_text);
 
 #if (LIBCURL_VERSION_MAJOR >= 7) && (LIBCURL_VERSION_MINOR >= 21)
-  // if (config && config->IsAutoDecompressionEnabled()) {
   curl_easy_setopt(handle->handle, CURLOPT_ACCEPT_ENCODING, "");
   curl_easy_setopt(handle->handle, CURLOPT_TRANSFER_ENCODING, 1L);
-  // }
 #endif
 
 #if (LIBCURL_VERSION_MAJOR >= 7) && (LIBCURL_VERSION_MINOR >= 25)
@@ -613,9 +626,8 @@ ErrorCode NetworkCurl::SendImplementation(
 }
 
 void NetworkCurl::Cancel(RequestId id) {
-  OLP_SDK_LOG_TRACE(kLogTag, "cancel with id = " << id);
-
   if (!IsStarted()) {
+    OLP_SDK_LOG_ERROR(kLogTag, "Cancel failed - network is offline, id=" << id);
     return;
   }
   std::lock_guard<std::mutex> lock(event_mutex_);
@@ -623,11 +635,12 @@ void NetworkCurl::Cancel(RequestId id) {
     if (handle.in_use && (handle.id == id)) {
       handle.cancelled = true;
       AddEvent(EventInfo::Type::CANCEL_EVENT, &handle);
+
+      OLP_SDK_LOG_TRACE(kLogTag, "Cancel request with id=" << id);
       return;
     }
   }
-  OLP_SDK_LOG_WARNING(kLogTag, "cancel for non-existing request " << id);
-  return;
+  OLP_SDK_LOG_WARNING(kLogTag, "Cancel non-existing request with id=" << id);
 }
 
 void NetworkCurl::AddEvent(EventInfo::Type type, RequestHandle* handle) {
@@ -636,10 +649,12 @@ void NetworkCurl::AddEvent(EventInfo::Type type, RequestHandle* handle) {
 #if (defined NETWORK_HAS_PIPE) || (defined NETWORK_HAS_PIPE2)
   char tmp = 1;
   if (write(pipe_[1], &tmp, 1) < 0) {
-    OLP_SDK_LOG_INFO(kLogTag, "addEvent - failed " << errno);
+    OLP_SDK_LOG_INFO(kLogTag, "AddEvent - failed for id=" << handle->id
+                                                          << ", err=" << errno);
   }
 #else
-  OLP_SDK_LOG_WARNING(kLogTag, "addEvent - no pipe");
+  OLP_SDK_LOG_WARNING(kLogTag, "AddEvent for id=" << handle->id
+                                                  << " - no pipe");
 #endif
 }
 
@@ -649,7 +664,8 @@ NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
     Network::DataCallback data_callback, Network::Payload payload,
     NetworkRequest::RequestBodyType body) {
   if (!IsStarted()) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Network is not started");
+    OLP_SDK_LOG_ERROR(kLogTag,
+                      "GetHandle failed - network is offline, id=" << id);
     return nullptr;
   }
   std::lock_guard<std::mutex> lock(event_mutex_);
@@ -658,7 +674,8 @@ NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
       if (!handle.handle) {
         handle.handle = curl_easy_init();
         if (!handle.handle) {
-          OLP_SDK_LOG_ERROR(kLogTag, "curl_easy_init returns nullptr");
+          OLP_SDK_LOG_ERROR(kLogTag,
+                            "GetHandle - curl_easy_init failed, id=" << id);
           return nullptr;
         }
         curl_easy_setopt(handle.handle, CURLOPT_NOSIGNAL, 1);
@@ -691,7 +708,8 @@ NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
     }
   }
 
-  OLP_SDK_LOG_WARNING(kLogTag, "all curl handles are in use");
+  OLP_SDK_LOG_DEBUG(kLogTag,
+                    "GetHandle failed - all CURL handles are busy, id=" << id);
   return nullptr;
 }
 
@@ -718,7 +736,8 @@ size_t NetworkCurl::RxFunction(void* ptr, size_t size, size_t nmemb,
                                RequestHandle* handle) {
   const size_t len = size * nmemb;
 
-  OLP_SDK_LOG_TRACE(kLogTag, "Received " << len << " bytes");
+  OLP_SDK_LOG_TRACE(kLogTag, "Received " << len
+                                         << " bytes for id=" << handle->id);
 
   std::shared_ptr<NetworkCurl> that = handle->self.lock();
   if (!that) {
@@ -741,9 +760,8 @@ size_t NetworkCurl::RxFunction(void* ptr, size_t size, size_t nmemb,
         if (handle->payload->tellp() != std::streampos(handle->count)) {
           handle->payload->seekp(handle->count);
           if (handle->payload->fail()) {
-            OLP_SDK_LOG_WARNING(
-                kLogTag,
-                "Reception stream doesn't support setting write point");
+            OLP_SDK_LOG_WARNING(kLogTag,
+                                "Payload seekp() failed, id=" << handle->id);
             handle->payload->clear();
           }
         }
@@ -825,10 +843,12 @@ size_t NetworkCurl::HeaderFunction(char* ptr, size_t size, size_t nitems,
       } else if ((str[21] >= '0') && (str[21] <= '9')) {
         handle->offset = std::stoll(str.substr(21));
       } else {
-        OLP_SDK_LOG_WARNING(kLogTag, "Invalid Content-Range header: " << str);
+        OLP_SDK_LOG_WARNING(kLogTag, "Invalid Content-Range header for id="
+                                         << handle->id << " : " << str);
       }
     } else {
-      OLP_SDK_LOG_WARNING(kLogTag, "Invalid Content-Range header: " << str);
+      OLP_SDK_LOG_WARNING(kLogTag, "Invalid Content-Range header for id="
+                                       << handle->id << " : " << str);
     }
   }
   return len;
@@ -867,7 +887,8 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
     std::string etag = handles_[index].etag;
     std::string contentType = handles_[index].content_type;
     if (!callback) {
-      OLP_SDK_LOG_WARNING(kLogTag, "Complete to request without callback");
+      OLP_SDK_LOG_DEBUG(kLogTag, "Request completed - no callback, id="
+                                     << handles_[index].id);
       ReleaseHandleUnlocked(&handles_[index]);
       return;
     }
@@ -909,21 +930,24 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
       }
     }
 
+    const char* url;
+    curl_easy_getinfo(handles_[index].handle, CURLINFO_EFFECTIVE_URL, &url);
+
     if ((status > 0) && ((status < 200) || (status >= 500))) {
       if (!handles_[index].cancelled &&
           (handles_[index].retry_count++ < handles_[index].max_retries)) {
-        const char* url;
-        curl_easy_getinfo(handles_[index].handle, CURLINFO_EFFECTIVE_URL, &url);
-        OLP_SDK_LOG_DEBUG(kLogTag, "Retry after: " << error << "; " << url);
+        OLP_SDK_LOG_DEBUG(kLogTag, "Retrying request with id="
+                                       << handles_[index].id << ", url=" << url
+                                       << " err=" << error);
         handles_[index].count = 0;
         lock.lock();
         events_.emplace_back(EventInfo::Type::SEND_EVENT, &handles_[index]);
         return;
       }
     }
-
-    OLP_SDK_LOG_DEBUG(
-        kLogTag, "Completed message " << handles_[index].id << " " << error);
+    OLP_SDK_LOG_DEBUG(kLogTag, "Completed message id=" << handles_[index].id
+                                                       << ", url=" << url
+                                                       << ", status=" << error);
 
     auto response = NetworkResponse()
                         .WithRequestId(handles_[index].id)
@@ -932,7 +956,7 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
     ReleaseHandle(&handles_[index]);
     callback(response);
   } else {
-    OLP_SDK_LOG_WARNING(kLogTag, "Complete to unknown message");
+    OLP_SDK_LOG_WARNING(kLogTag, "Complete message to unknown request");
   }
 }
 
@@ -965,9 +989,10 @@ void NetworkCurl::Run() {
               CURLMcode res =
                   curl_multi_add_handle(curl_, event.handle->handle);
               if ((res != CURLM_OK) && (res != CURLM_CALL_MULTI_PERFORM)) {
-                OLP_SDK_LOG_ERROR(kLogTag, "Send failed with "
-                                               << res << " "
-                                               << curl_multi_strerror(res));
+                OLP_SDK_LOG_ERROR(
+                    kLogTag, "Send failed for id="
+                                 << event.handle->id << " with result=" << res
+                                 << ", error=" << curl_multi_strerror(res));
                 msgs.push_back(event.handle->handle);
               }
             }
@@ -1018,8 +1043,8 @@ void NetworkCurl::Run() {
           CompleteMessage(handle, result);
           lock.lock();
         } else {
-          OLP_SDK_LOG_ERROR(kLogTag,
-                            "Message complete with unknown state " << msg->msg);
+          OLP_SDK_LOG_ERROR(kLogTag, "Message complete with unknown state "
+                                         << msg->msg);
           int handle_index = GetHandleIndex(handle);
           if (handle_index >= 0) {
             if (!handles_[handle_index].callback) {
@@ -1127,19 +1152,21 @@ void NetworkCurl::Run() {
               curl_multi_remove_handle(curl_, handle);
 
           if (remove_handle_status == CURLM_OK) {
-            OLP_SDK_LOG_WARNING(kLogTag, "Releasing lost handle for " << url);
+            OLP_SDK_LOG_WARNING(kLogTag,
+                                "Releasing lost handle for url=" << url);
             CompleteMessage(handle, CURLE_OPERATION_TIMEDOUT);
           } else {
-            OLP_SDK_LOG_ERROR(
-                kLogTag, "lost handle curl_multi_remove_handle error %s "
-                             << std::to_string(remove_handle_status) << " for "
-                             << url);
+            OLP_SDK_LOG_ERROR(kLogTag,
+                              "Lost handle curl_multi_remove_handle error="
+                                  << std::to_string(remove_handle_status)
+                                  << ", url=" << url);
 
             int handle_index = GetHandleIndex(handle);
             if (handle_index >= 0) {
               if (!handles_[handle_index].callback) {
-                OLP_SDK_LOG_WARNING(kLogTag,
-                                    "Complete to request without callback");
+                OLP_SDK_LOG_DEBUG(kLogTag,
+                                  "Request completed - no callback, id="
+                                      << handles_[handle_index].id);
               } else {
                 auto response =
                     NetworkResponse()
@@ -1224,7 +1251,7 @@ void NetworkCurl::Run() {
     state_ = WorkerState::STOPPED;
     event_condition_.notify_one();
   }
-  OLP_SDK_LOG_DEBUG(kLogTag, "Thread exit");
+  OLP_SDK_LOG_DEBUG(kLogTag, "Thread exit, this=" << this);
 }
 
 }  // namespace http
