@@ -56,7 +56,7 @@ class DATASERVICE_READ_API CatalogClient final {
   CatalogClient& operator=(const CatalogClient& other) = delete;
   CatalogClient& operator=(CatalogClient&& other) noexcept;
 
-  ~CatalogClient() = default;
+  ~CatalogClient();
 
   /**
    * @brief Cancel currently active requests.
@@ -130,7 +130,7 @@ class DATASERVICE_READ_API CatalogClient final {
       CatalogVersionRequest request);
 
  private:
-  std::shared_ptr<CatalogClientImpl> impl_;
+  std::unique_ptr<CatalogClientImpl> impl_;
 };
 
 }  // namespace read
