@@ -23,6 +23,7 @@
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/client/PendingRequests.h>
 #include <olp/core/logging/Log.h>
+
 #include "Common.h"
 #include "PrefetchTilesProvider.h"
 #include "repositories/ApiRepository.h"
@@ -55,11 +56,13 @@ CatalogClientImpl::CatalogClientImpl(HRN catalog, OlpClientSettings settings)
   pending_requests_ = std::make_shared<client::PendingRequests>();
 }
 
-CatalogClientImpl::~CatalogClientImpl() { CancelPendingRequests(); }
+CatalogClientImpl::~CatalogClientImpl() {
+  pending_requests_->CancelAllAndWait();
+}
 
 bool CatalogClientImpl::CancelPendingRequests() {
   OLP_SDK_LOG_TRACE(kLogTag, "CancelPendingRequests");
-  return pending_requests_->CancelPendingRequests();
+  return pending_requests_->CancelAll();
 }
 
 CancellationToken CatalogClientImpl::GetCatalog(

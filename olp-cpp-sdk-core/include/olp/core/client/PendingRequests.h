@@ -40,10 +40,18 @@ class PendingRequests final {
   ~PendingRequests();
 
   /**
-   * @brief Cancels all pending requests.
+   * @brief Cancels all pending tasks
+   * @note This call does not wait for the tasks to finalize, use
+   * CancelAllAndWait() to also wait for the tasks to finalize..
    * @return True on success
    */
-  bool CancelPendingRequests();
+  bool CancelAll();
+  
+  /**
+   * @brief Cancels all pending tasks and waits for all beeing finalized.
+   * @return True on success
+   */
+  bool CancelAllAndWait();
 
   /**
    * @brief Generates a placehoder for request cancellation token and returns a
@@ -82,11 +90,15 @@ class PendingRequests final {
 
  private:
   int64_t key_ = 0;
-  std::unordered_map<int64_t, client::CancellationToken> requests_map_;
-  std::unordered_set<client::TaskContext, client::TaskContextHash>
-      task_contexts_;
+  using RequestMap = std::unordered_map<int64_t, client::CancellationToken>;
+  using ContextMap =
+      std::unordered_set<client::TaskContext, client::TaskContextHash>;
+  RequestMap requests_map_;
+  ContextMap task_contexts_;
+
   std::mutex requests_lock_;
 };
 
 }  // namespace client
 }  // namespace olp
+

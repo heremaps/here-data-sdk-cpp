@@ -18,7 +18,6 @@
  */
 
 #include <olp/core/client/PendingRequests.h>
-
 #include <olp/core/client/TaskContext.h>
 #include <olp/core/logging/Log.h>
 
@@ -33,15 +32,33 @@ PendingRequests::PendingRequests(){};
 
 PendingRequests::~PendingRequests(){};
 
-bool PendingRequests::CancelPendingRequests() {
-  requests_lock_.lock();
-  // Create local copy of the requests to cancel
-  auto contexts = std::move(task_contexts_);
-  auto requests_map = requests_map_;
+bool PendingRequests::CancelAll() {
+  RequestMap requests_map;
+  ContextMap contexts;
+  {
+    std::lock_guard<std::mutex> lk(requests_lock_);
+    requests_map = requests_map_;
+    contexts = task_contexts_;
+  }
 
-  requests_lock_.unlock();
   for (auto& pair : requests_map) {
     pair.second.cancel();
+  }
+
+  for (auto context : contexts) {
+    context.CancelToken().cancel();
+  }
+
+  return true;
+}
+
+bool PendingRequests::CancelAllAndWait() {
+  CancelAll();
+
+  ContextMap contexts;
+  {
+    std::lock_guard<std::mutex> lk(requests_lock_);
+    contexts = std::move(task_contexts_);
   }
 
   for (auto context : contexts) {

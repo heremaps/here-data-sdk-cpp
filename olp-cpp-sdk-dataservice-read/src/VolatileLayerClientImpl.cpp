@@ -68,7 +68,7 @@ VolatileLayerClientImpl::VolatileLayerClientImpl(
 }
 
 VolatileLayerClientImpl::~VolatileLayerClientImpl() {
-  pending_requests_->CancelPendingRequests();
+  pending_requests_->CancelAllAndWait();
 }
 
 client::CancellationToken VolatileLayerClientImpl::GetPartitions(
