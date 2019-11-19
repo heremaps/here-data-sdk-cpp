@@ -143,7 +143,9 @@ class TaskContext {
         auto response = function(context_);
         // Cancel could occur during function execution, in that case we ignore
         // the response.
-        if (!context_.IsCancelled()) {
+        if (!context_.IsCancelled() ||
+            (!response.IsSuccessful() &&
+             response.GetError().GetErrorCode() == ErrorCode::RequestTimeout)) {
           user_response = std::move(response);
         }
       }
@@ -163,7 +165,9 @@ class TaskContext {
       }
 
       // Cancel operation and wait for notification
-      context_.CancelOperation();
+      if (!context_.IsCancelled()) {
+        context_.CancelOperation();
+      }
 
       {
         std::lock_guard<std::mutex> lock(mutex_);

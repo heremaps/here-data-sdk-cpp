@@ -75,7 +75,7 @@ VersionedLayerClientImpl::VersionedLayerClientImpl(
 }
 
 VersionedLayerClientImpl::~VersionedLayerClientImpl() {
-  pending_requests_->CancelPendingRequests();
+  pending_requests_->CancelAllAndWait();
 }
 
 client::CancellationToken VersionedLayerClientImpl::GetPartitions(

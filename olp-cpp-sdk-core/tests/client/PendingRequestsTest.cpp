@@ -36,13 +36,13 @@ TEST(PendingRequestsTest, RemoveMissingKeyWillFail) {
   EXPECT_FALSE(pending_request.Remove(0));
 }
 
-TEST(PendingRequestsTest, CancelAllPendingRequest) {
+TEST(PendingRequestsTest, CancelAll) {
   PendingRequests pending_request;
   auto key = pending_request.GenerateRequestPlaceholder();
   bool cancelled = false;
   auto token = olp::client::CancellationToken([&]() { cancelled = true; });
   EXPECT_TRUE(pending_request.Insert(token, key));
-  EXPECT_TRUE(pending_request.CancelPendingRequests());
+  EXPECT_TRUE(pending_request.CancelAll());
   EXPECT_TRUE(cancelled);
 }
 

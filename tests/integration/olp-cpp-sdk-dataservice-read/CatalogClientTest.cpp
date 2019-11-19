@@ -25,6 +25,8 @@
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
 #include <olp/dataservice/read/CatalogClient.h>
+#include <olp/dataservice/read/model/Catalog.h>
+
 #include "CatalogClientTestBase.h"
 #include "HttpResponses.h"
 
@@ -416,10 +418,9 @@ TEST_P(CatalogClientTest, GetCatalog403CacheClear) {
   ASSERT_FALSE(catalog_response.IsSuccessful());
 }
 
-TEST_P(CatalogClientTest, DISABLED_CancelPendingRequestsCatalog) {
+TEST_P(CatalogClientTest, CancelPendingRequestsCatalog) {
   olp::client::HRN hrn(GetTestCatalog());
   testing::InSequence s;
-  std::vector<std::shared_ptr<std::promise<void>>> waits;
   std::vector<std::shared_ptr<std::promise<void>>> pauses;
 
   auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
@@ -427,19 +428,16 @@ TEST_P(CatalogClientTest, DISABLED_CancelPendingRequestsCatalog) {
   auto version_request = CatalogVersionRequest().WithFetchOption(OnlineOnly);
 
   // Make a few requests
-  auto wait_for_cancel1 = std::make_shared<std::promise<void>>();
-  auto pause_for_cancel1 = std::make_shared<std::promise<void>>();
-  auto wait_for_cancel2 = std::make_shared<std::promise<void>>();
-  auto pause_for_cancel2 = std::make_shared<std::promise<void>>();
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   {
     olp::http::RequestId request_id;
     NetworkCallback send_mock;
     CancelCallback cancel_mock;
 
-    std::tie(request_id, send_mock, cancel_mock) =
-        GenerateNetworkMockActions(wait_for_cancel1, pause_for_cancel1,
-                                   {200, HTTP_RESPONSE_LOOKUP_CONFIG});
+    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+        wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
@@ -450,44 +448,19 @@ TEST_P(CatalogClientTest, DISABLED_CancelPendingRequestsCatalog) {
         .WillOnce(testing::Invoke(std::move(cancel_mock)));
   }
 
-  {
-    olp::http::RequestId request_id;
-    NetworkCallback send_mock;
-    CancelCallback cancel_mock;
-
-    std::tie(request_id, send_mock, cancel_mock) =
-        GenerateNetworkMockActions(wait_for_cancel2, pause_for_cancel2,
-                                   {200, HTTP_RESPONSE_LOOKUP_METADATA});
-
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
-        .Times(1)
-        .WillOnce(testing::Invoke(std::move(send_mock)));
-
-    EXPECT_CALL(*network_mock_, Cancel(request_id))
-        .WillOnce(testing::Invoke(std::move(cancel_mock)));
-  }
-
-  waits.push_back(wait_for_cancel1);
-  pauses.push_back(pause_for_cancel1);
   auto catalog_future = catalog_client->GetCatalog(catalog_request);
-
-  waits.push_back(wait_for_cancel2);
-  pauses.push_back(pause_for_cancel2);
   auto version_future = catalog_client->GetLatestVersion(version_request);
 
-  for (auto wait : waits) {
-    wait->get_future().get();
-  }
+  // We are using only one thread so we can only have one network request
+  // active. So just wait for it.
+  wait_for_cancel->get_future().get();
+
   // Cancel them all
   catalog_client->CancelPendingRequests();
-  for (auto pause : pauses) {
-    pause->set_value();
-  }
+  pause_for_cancel->set_value();
 
   // Verify they are all cancelled
   CatalogResponse catalog_response = catalog_future.GetFuture().get();
-
   ASSERT_FALSE(catalog_response.IsSuccessful())
       << ApiErrorToString(catalog_response.GetError());
 
