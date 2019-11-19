@@ -21,7 +21,7 @@ if (ANDROID OR IOS)
 endif()
 
 set(OLP_SDK_PERFORMANCE_TESTS_SOURCES
-    ./CatalogClientTest.cpp
+    ./MemoryTest.cpp
 )
 
 add_executable(olp-cpp-sdk-performance-tests ${OLP_SDK_PERFORMANCE_TESTS_SOURCES})
