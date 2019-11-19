@@ -407,7 +407,7 @@ SendOutcome NetworkCurl::Send(NetworkRequest request,
 }
 
 ErrorCode NetworkCurl::SendImplementation(
-    const NetworkRequest& request, int id,
+    const NetworkRequest& request, RequestId id,
     const std::shared_ptr<std::ostream>& payload,
     Network::HeaderCallback header_callback,
     Network::DataCallback data_callback, Network::Callback callback) {
@@ -610,7 +610,8 @@ void NetworkCurl::AddEvent(EventInfo::Type type, RequestHandle* handle) {
 }
 
 NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
-    int id, Network::Callback callback, Network::HeaderCallback header_callback,
+    RequestId id, Network::Callback callback,
+    Network::HeaderCallback header_callback,
     Network::DataCallback data_callback, Network::Payload payload,
     NetworkRequest::RequestBodyType body) {
   if (!IsStarted()) {

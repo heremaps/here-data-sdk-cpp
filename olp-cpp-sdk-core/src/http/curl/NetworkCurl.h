@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <curl/curl.h>
 #include <olp/core/http/Network.h>
 #include <olp/core/http/NetworkRequest.h>
 
@@ -32,8 +33,6 @@
 #include <mutex>
 #include <string>
 #include <thread>
-
-#include <curl/curl.h>
 #ifdef NETWORK_HAS_OPENSSL
 #include <openssl/crypto.h>
 #endif
@@ -114,7 +113,7 @@ class NetworkCurl : public olp::http::Network,
     int index{};
     int max_age{};
     time_t expires{};
-    int id{};
+    RequestId id{};
     bool ignore_offset{};
     bool in_use{};
     bool range_out{};
@@ -164,7 +163,7 @@ class NetworkCurl : public olp::http::Network,
    * users can consider the request as done.
    * @return ErrorCode.
    */
-  ErrorCode SendImplementation(const NetworkRequest& request, int id,
+  ErrorCode SendImplementation(const NetworkRequest& request, RequestId id,
                                const std::shared_ptr<std::ostream>& payload,
                                Network::HeaderCallback header_callback,
                                Network::DataCallback data_callback,
@@ -217,7 +216,7 @@ class NetworkCurl : public olp::http::Network,
    * @param[in] payload Stream for response body.
    * @return Pointer to allocated RequestHandle.
    */
-  RequestHandle* GetHandle(int id, Network::Callback callback,
+  RequestHandle* GetHandle(RequestId id, Network::Callback callback,
                            Network::HeaderCallback headerCallback,
                            Network::DataCallback dataCallback,
                            Network::Payload payload,
