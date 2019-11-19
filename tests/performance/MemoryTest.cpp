@@ -22,28 +22,39 @@
 
 #include <gtest/gtest.h>
 
-#include "olp/core/cache/CacheSettings.h"
-#include "olp/core/cache/KeyValueCache.h"
-#include "olp/core/client/HRN.h"
-#include "olp/core/client/OlpClientSettings.h"
-#include "olp/core/client/OlpClientSettingsFactory.h"
-#include "olp/core/logging/Log.h"
-#include "olp/dataservice/read/VersionedLayerClient.h"
+#include <olp/core/cache/CacheSettings.h>
+#include <olp/core/cache/KeyValueCache.h>
+#include <olp/core/client/HRN.h>
+#include <olp/core/client/OlpClientSettings.h>
+#include <olp/core/client/OlpClientSettingsFactory.h>
+#include <olp/core/logging/Log.h>
+#include <olp/core/utils/Dir.h>
+#include <olp/dataservice/read/VersionedLayerClient.h>
+#include <testutils/CustomParameters.hpp>
+
+#include "NullCache.h"
 
 namespace {
+
+using CacheFactory =
+    std::function<std::shared_ptr<olp::cache::KeyValueCache>()>;
+
 struct TestConfiguration {
+  std::string configuration_name;
   std::uint16_t requests_per_second;
   std::uint8_t calling_thread_count;
   std::uint8_t task_scheduler_capacity;
   std::chrono::seconds runtime;
+  CacheFactory cache_factory;
 };
 
 std::ostream& operator<<(std::ostream& os, const TestConfiguration& config) {
-  return os << "CatalogClientTestConfiguration("
-            << ".calling_thread_count=" << config.calling_thread_count
+  return os << "TestConfiguration("
+            << ".configuration_name=" << config.configuration_name
+            << ", .calling_thread_count=" << config.calling_thread_count
             << ", .task_scheduler_capacity=" << config.task_scheduler_capacity
             << ", .requests_per_second=" << config.requests_per_second
-            << ", .runtime=" << config.runtime.count() << ")\n";
+            << ", .runtime=" << config.runtime.count() << ")";
 }
 
 const std::string kVersionedLayerId("versioned_test_layer");
@@ -83,9 +94,7 @@ class MemoryTest : public ::testing::TestWithParam<TestConfiguration> {
     client_settings.task_scheduler = task_scheduler;
     client_settings.network_request_handler = s_network;
     client_settings.proxy_settings = GetLocalhostProxySettings();
-    client_settings.cache =
-        olp::client::OlpClientSettingsFactory::CreateDefaultCache(
-            cache_settings);
+    client_settings.cache = parameter.cache_factory();
 
     return client_settings;
   }
@@ -199,11 +208,75 @@ TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
   }
 }
 
+/*
+ * 10 hours stability test with default constructed cache.
+ */
+TestConfiguration LongRunningTest() {
+  return TestConfiguration{"10h_test", 3, 5, 5, std::chrono::hours(10),
+                           nullptr};
+}
+
+/*
+ * Short 5 minutes test to collect SDK allocations without cache.
+ */
+TestConfiguration ShortRunningTestWithNullCache() {
+  auto cache_factory = []() { return std::make_shared<NullCache>(); };
+  return TestConfiguration{
+      "short_test_null_cache", 3, 5, 5, std::chrono::minutes(5),
+      std::move(cache_factory)};
+}
+
+/*
+ * Short 5 minutes test to collect SDK allocations with in memory cache.
+ */
+TestConfiguration ShortRunningTestWithMemoryCache() {
+  using namespace olp;
+  auto cache_factory = []() {
+    cache::CacheSettings settings;
+    return client::OlpClientSettingsFactory::CreateDefaultCache(settings);
+  };
+  return TestConfiguration{
+      "short_test_memory_cache", 3, 5, 5, std::chrono::minutes(5),
+      std::move(cache_factory)};
+}
+
+/*
+ * Short 5 minutes test to collect SDK allocations with both in memory cache and
+ * disk cache.
+ */
+TestConfiguration ShortRunningTestWithDiskCache() {
+  using namespace olp;
+  auto cache_factory = []() {
+    cache::CacheSettings settings;
+    auto location = CustomParameters::getArgument("cache_location");
+    if (location.empty()) {
+      location = utils::Dir::TempDirectory() + "/performance_test";
+    }
+    settings.disk_path = location;
+    return client::OlpClientSettingsFactory::CreateDefaultCache(settings);
+  };
+  return TestConfiguration{
+      "short_test_disk_cache", 3, 5, 5, std::chrono::minutes(5),
+      std::move(cache_factory)};
+}
+
+std::vector<TestConfiguration> Configurations() {
+  std::vector<TestConfiguration> configurations;
+  configurations.emplace_back(ShortRunningTestWithNullCache());
+  configurations.emplace_back(ShortRunningTestWithMemoryCache());
+  configurations.emplace_back(ShortRunningTestWithDiskCache());
+  configurations.emplace_back(LongRunningTest());
+  return configurations;
+}
+
+std::string TestName(const testing::TestParamInfo<TestConfiguration>& info) {
+  return info.param.configuration_name;
+}
+
 //  std::uint16_t requests_per_second;
 //  std::uint8_t calling_thread_count;
 //  std::uint8_t task_scheduler_capacity;
 //  std::chrono::seconds runtime;
 INSTANTIATE_TEST_SUITE_P(MemoryUsage, MemoryTest,
-                         ::testing::Values(TestConfiguration{
-                             3, 5, 5, std::chrono::hours(10)}));
+                         ::testing::ValuesIn(Configurations()), TestName);
 }  // namespace
