@@ -34,6 +34,10 @@
 
 #include <curl/curl.h>
 
+#if defined(HAVE_SIGNAL_H)
+#include <signal.h>
+#endif
+
 #ifdef NETWORK_HAS_OPENSSL
 #include <openssl/crypto.h>
 #endif
@@ -101,6 +105,35 @@ std::string CaBundlePath() {
   return bundle_path;
 }
 #endif
+
+#if defined(IGNORE_SIGPIPE)
+
+// Block SIGPIPE signals for the current thread and all threads it creates.
+int BlockSigpipe() {
+  sigset_t sigset;
+  int err;
+
+  if (0 != (err = sigemptyset(&sigset))) {
+    return err;
+  }
+
+  if (0 != (err = sigaddset(&sigset, SIGPIPE))) {
+    return err;
+  }
+
+  err = pthread_sigmask(SIG_BLOCK, &sigset, NULL);
+
+  return err;
+}
+
+// Curl7.35+OpenSSL can write into closed sockets sometimes which results
+// in the process being terminated with SIGPIPE on Linux. Here's
+// a workaround for that bug. It block SIGPIPE for the startup thread and
+// hence for all other threads in the application. The variable itself is
+// not used but can be examined.
+int BlockSigpipeResult = BlockSigpipe();
+
+#endif  // IGNORE_SIGPIPE
 
 // To avoid static_cast and possible values changes in CURL
 curl_proxytype ToCurlProxyType(olp::http::NetworkProxySettings::Type type) {
@@ -256,6 +289,7 @@ bool NetworkCurl::Initialize() {
   for (int i = 0; i < handles_.size(); ++i) {
     if (i < static_handle_count_) {
       handles_[i].handle = curl_easy_init();
+      curl_easy_setopt(handles_[i].handle, CURLOPT_NOSIGNAL, 1);
     } else {
       handles_[i].handle = nullptr;
     }
@@ -627,6 +661,7 @@ NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
           OLP_SDK_LOG_ERROR(kLogTag, "curl_easy_init returns nullptr");
           return nullptr;
         }
+        curl_easy_setopt(handle.handle, CURLOPT_NOSIGNAL, 1);
       }
       handle.in_use = true;
       handle.callback = callback;
@@ -1001,8 +1036,8 @@ void NetworkCurl::Run() {
                       .WithError("CURL error");
               handles_[handle_index].callback(response);
               lock.lock();
-              curl_multi_remove_handle(curl_, handles_[handle_index].handle);
             }
+            curl_multi_remove_handle(curl_, handles_[handle_index].handle);
           } else {
             OLP_SDK_LOG_ERROR(
                 kLogTag,
