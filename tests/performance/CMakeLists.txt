@@ -22,11 +22,13 @@ endif()
 
 set(OLP_SDK_PERFORMANCE_TESTS_SOURCES
     ./MemoryTest.cpp
+    ./NullCache.h
 )
 
 add_executable(olp-cpp-sdk-performance-tests ${OLP_SDK_PERFORMANCE_TESTS_SOURCES})
 target_link_libraries(olp-cpp-sdk-performance-tests
     PRIVATE
+        custom-params
         gtest_main
         olp-cpp-sdk-authentication
         olp-cpp-sdk-dataservice-read
