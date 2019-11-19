@@ -286,7 +286,7 @@ endif()
 if(CURL_FOUND)
     include(CheckIncludeFile)
     check_include_file(signal.h HAVE_SIGNAL_H)
-    if(HAVE_SIGNAL_H AND Thread_FOUND)
+    if(HAVE_SIGNAL_H)
         target_compile_definitions(${PROJECT_NAME}
             PRIVATE HAVE_SIGNAL_H IGNORE_SIGPIPE)
     endif()
