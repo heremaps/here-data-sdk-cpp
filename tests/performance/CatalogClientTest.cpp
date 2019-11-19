@@ -31,15 +31,14 @@
 #include "olp/dataservice/read/VersionedLayerClient.h"
 
 namespace {
-struct CatalogClientTestConfiguration {
+struct TestConfiguration {
   std::uint16_t requests_per_second;
   std::uint8_t calling_thread_count;
   std::uint8_t task_scheduler_capacity;
   std::chrono::seconds runtime;
 };
 
-std::ostream& operator<<(std::ostream& os,
-                         const CatalogClientTestConfiguration& config) {
+std::ostream& operator<<(std::ostream& os, const TestConfiguration& config) {
   return os << "CatalogClientTestConfiguration("
             << ".calling_thread_count=" << config.calling_thread_count
             << ", .task_scheduler_capacity=" << config.task_scheduler_capacity
@@ -49,8 +48,7 @@ std::ostream& operator<<(std::ostream& os,
 
 const std::string kVersionedLayerId("versioned_test_layer");
 
-class CatalogClientTest
-    : public ::testing::TestWithParam<CatalogClientTestConfiguration> {
+class MemoryTest : public ::testing::TestWithParam<TestConfiguration> {
  public:
   static void SetUpTestSuite() {
     s_network = olp::client::OlpClientSettingsFactory::
@@ -96,7 +94,7 @@ class CatalogClientTest
   static std::shared_ptr<olp::http::Network> s_network;
 };
 
-std::shared_ptr<olp::http::Network> CatalogClientTest::s_network;
+std::shared_ptr<olp::http::Network> MemoryTest::s_network;
 
 namespace {
 
@@ -166,7 +164,7 @@ void ClientThread(const std::uint8_t client_id,
  * To run the test, you need to start a local OLP mock server first.
  * Valgrind, heaptrack, other tools are used to collect the output.
  */
-TEST_P(CatalogClientTest, ReadNPartitionsFromVersionedLayer) {
+TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
   using namespace olp;
 
   const auto& parameter = GetParam();
@@ -205,7 +203,7 @@ TEST_P(CatalogClientTest, ReadNPartitionsFromVersionedLayer) {
 //  std::uint8_t calling_thread_count;
 //  std::uint8_t task_scheduler_capacity;
 //  std::chrono::seconds runtime;
-INSTANTIATE_TEST_SUITE_P(MemoryUsage, CatalogClientTest,
-                         ::testing::Values(CatalogClientTestConfiguration{
+INSTANTIATE_TEST_SUITE_P(MemoryUsage, MemoryTest,
+                         ::testing::Values(TestConfiguration{
                              3, 5, 5, std::chrono::hours(10)}));
-} // namespace
+}  // namespace
