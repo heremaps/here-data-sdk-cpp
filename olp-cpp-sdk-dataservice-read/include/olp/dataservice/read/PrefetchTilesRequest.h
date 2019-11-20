@@ -60,7 +60,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    */
   inline PrefetchTilesRequest& WithTileKeys(
       std::vector<geo::TileKey> tile_keys) {
-    tile_keys_ = tile_keys;
+    tile_keys_ = std::move(tile_keys);
     return *this;
   }
 
@@ -90,6 +90,25 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   }
 
   /**
+   * @brief Sets the catalog version to be used for the requests.
+   * @param version The catalog version of the requested partitions. If no
+   * version is specified, the latest will be retrieved.
+   * @return a reference to the updated PrefetchTilesRequest.
+   */
+  inline PrefetchTilesRequest& WithVersion(boost::optional<int64_t> version) {
+    catalog_version_ = std::move(version);
+    return *this;
+  }
+
+  /**
+   * @brief Get the catalog version requested for the partitions.
+   * @return The catalog version, or boost::none if not set.
+   */
+  inline const boost::optional<std::int64_t>& GetVersion() const {
+    return catalog_version_;
+  }
+
+  /**
    * @brief BillingTag is an optional free-form tag which is used for
    * grouping billing records together. If supplied, it must be between 4 - 16
    * characters, contain only alpha/numeric ASCII characters  [A-Za-z0-9].
@@ -100,25 +119,25 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   }
 
   /**
-   * @brief WithBillingTag sets the billing tag. See ::GetBillingTag() for usage
-   * and format.
-   * @param billingTag a string or boost::none
-   * @return a reference to the updated CatalogRequest
+   * @brief Sets the billing tag to be used for the request(s).
+   * @see GetBillingTag() for usage and format.
+   * @param tag A string or boost::none.
+   * @return a reference to the updated PrefetchTilesRequest.
    */
   inline PrefetchTilesRequest& WithBillingTag(
-      boost::optional<std::string> billingTag) {
-    billing_tag_ = billingTag;
+      boost::optional<std::string> tag) {
+    billing_tag_ = std::move(tag);
     return *this;
   }
 
   /**
-   * @brief WithBillingTag sets the billing tag. See ::GetBillingTag() for usage
-   * and format.
-   * @param billingTag a string or boost::none
-   * @return a reference to the updated CatalogRequest
+   * @brief Sets the billing tag to be used for the request(s).
+   * @see GetBillingTag() for usage and format.
+   * @param tag rvalue reference to be moved.
+   * @return a reference to the updated PrefetchTilesRequest.
    */
-  inline PrefetchTilesRequest& WithBillingTag(std::string&& billingTag) {
-    billing_tag_ = std::move(billingTag);
+  inline PrefetchTilesRequest& WithBillingTag(std::string&& tag) {
+    billing_tag_ = std::move(tag);
     return *this;
   }
 
@@ -129,16 +148,14 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    */
   inline std::string CreateKey(const std::string& layer_id) const {
     std::stringstream out;
-    out << layer_id;
-
-    out << "[" << GetMinLevel() << "/" << GetMaxLevel() << "]";
-
-    out << "(" << GetTileKeys().size() << ")";
-
+    out << layer_id << "[" << GetMinLevel() << "/" << GetMaxLevel() << "]"
+        << "(" << GetTileKeys().size() << ")";
+    if (GetVersion()) {
+      out << "@" << GetVersion().get();
+    }
     if (GetBillingTag()) {
       out << "$" << GetBillingTag().get();
     }
-
     return out.str();
   }
 
@@ -147,6 +164,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   std::vector<geo::TileKey> tile_keys_;
   unsigned int min_level_{0};
   unsigned int max_level_{0};
+  boost::optional<int64_t> catalog_version_;
   boost::optional<std::string> billing_tag_;
 };
 
