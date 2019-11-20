@@ -903,8 +903,10 @@ void NetworkWinHttp::CompletionThread() {
       if (result->completed) {
         std::unique_lock<std::recursive_mutex> lock(mutex_);
         auto request = FindHandle(result->request_id);
-        WinHttpCloseHandle(request->http_request);
-        request->http_request = NULL;
+        if (request) {
+          WinHttpCloseHandle(request->http_request);
+          request->http_request = NULL;
+        }
       }
     }
 
