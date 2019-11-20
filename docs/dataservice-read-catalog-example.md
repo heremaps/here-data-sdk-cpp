@@ -1,8 +1,8 @@
 # Read example
 
-This example shows how to retrieve catalog metadata, partition metadata, and partition data using the HERE OLP SDK for C++.
+This example shows how to retrieve catalog configuration, partition metadata, and partition data using the HERE OLP SDK for C++.
 
-Before you run the example, authorize by replacing the placeholders in `examples/dataservice-read/example.cpp` with your app access key id and secret access key, which you can find on the platform `Apps & keys` page:
+Before you run the example, authorize by replacing the placeholders in `examples/dataservice-read/example.cpp` with your app access key id and access key secret that you can find on the platform `Apps & keys` page:
 
 ```cpp
 const std::string kKeyId(""); // your here.access.key.id
@@ -130,13 +130,12 @@ Once everything is set up correctly, build and run the example application on yo
 
 ### CatalogClient
 
-The main entry point for the OLP is `CatalogClient`. This class provides a high-level interface for the retrieval of `OLP` catalog data and configuration, and defines the following operations:
+The main entry point for the OLP is `CatalogClient`. This class provides a high-level interface to retrieve `OLP` catalog data and configuration, and defines the following operations:
 
 * `GetCatalog`: Fetches the catalog configuration asynchronously.
-* `GetPartitions`: Fetches the full list of partitions for the given generic layer asynchronously.
-* `GetData`: Fetches data of a partition or data handle asynchronously.
+* `GetLatestVersion`: Fetches the catalog version asynchronously.
 
-To create a `CatalogClient`, provide the corresponding `HRN` (Here Resource Name) and preconfigured `OlpClientSettings`:
+To create a `CatalogClient`, provide the corresponding Here Resource Name (`HRN`) and the preconfigured `OlpClientSettings`:
 
 ```cpp
 // Create a task scheduler instance
@@ -180,9 +179,9 @@ The `OlpClientSettings` class pulls together all the different settings for cust
 
 Configuration of the `authentication_settings` is sufficient to start using the `CatalogClient`.
 
-### Retrieve catalog metadata
+### Retrieve catalog configuration
 
-To retrieve catalog metadata, create a `CatalogRequest`. The `CatalogRequest` class allows to set properties of the catalog request, including:
+To retrieve catalog configuration, create a `CatalogRequest`. The `CatalogRequest` class allows you to set properties of the catalog request, including:
 
 * `WithBillingTag`: Sets the billing tag used for this request.
 
@@ -245,7 +244,7 @@ The `ApiError` class contains details regarding to the incurred error, including
 
 ### Retrieve partitions metadata
 
-To retrieve partition metadata, create a `PartitionsRequest`. The `PartitionsRequest` class allows to set the properties of the catalog request, including:
+The `GetPartition` method in the `VersionedLayerClient` object fetches partitions metadata for a particular layer. To retrieve partitions metadata, create a `PartitionsRequest`. The `PartitionsRequest` class allows you to set the properties of the partition request, including:
 
 * `WithBillingTag`: Sets the billing tag used for this request.
 
@@ -276,7 +275,7 @@ The execution result is a `CancellableFuture` that contains `PartitionsResponse`
 // Wait for PartitionsResponse
 olp::dataservice::read::PartitionsResponse partitions_response =
     future.GetFuture().get();
-	
+
 // Check the response
 if (partitions_response.IsSuccessful()) {
     const olp::dataservice::read::PartitionsResult& response_result =
@@ -302,10 +301,10 @@ The `Partition` class contains partition metadata and exposes the following memb
 
 ### Retrieve partition data
 
-To retrieve partition data, create the `DataRequest`. The `DataRequest` class allows to specify the parameters of the `GetData` function, including:
+The `GetData` method in the `VersionedLayerClient` object fetches data for a partition or data handle asynchronously. To retrieve partition data, create the `DataRequest`. The `DataRequest` class allows you to specify the following parameters of the data request:
 
 * `WithPartitionId`: Sets the partition for the data request.
-* `WithDataHandle`: Sets the requested data handle, which can be found via the GetPartition call in the `olp::dataservice::read::model::Partition::GetDataHandle` member.
+* `WithDataHandle`: Sets the requested data handle which can be found via the `GetPartition` call in the `olp::dataservice::read::model::Partition::GetDataHandle` member.
 * `WithBillingTag`: Sets the billing tag for the request.
 
 ```cpp
