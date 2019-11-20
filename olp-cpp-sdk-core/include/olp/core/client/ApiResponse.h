@@ -45,9 +45,9 @@ class ApiResponse {
   ApiResponse() = default;
 
   /**
-   * @brief ApiResponse Constructor for a successfully executed request.
+   * @brief ApiResponse Constructor for moving a successfully executed request.
    */
-  ApiResponse(const ResultType& result) : result_(result), success_(true) {}
+  ApiResponse(ResultType result) : result_(std::move(result)), success_(true) {}
 
   /**
    * @brief ApiResponse Constructor if request unsuccessfully executed
@@ -83,7 +83,7 @@ class ApiResponse {
  private:
   ResultType result_{};
   ErrorType error_{};
-  bool success_ {false};
+  bool success_{false};
 };
 
 template <typename T>

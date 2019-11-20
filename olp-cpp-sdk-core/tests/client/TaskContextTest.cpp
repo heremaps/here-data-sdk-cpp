@@ -38,19 +38,23 @@ class TaskContextTestable : public TaskContext {
   std::function<void(void)> notify;
 
   template <typename Exec, typename Callback>
-  static TaskContextTestable Create(Exec execute_func, Callback callback) {
-    TaskContextTestable context;
-    context.SetExecutors(std::move(execute_func), std::move(callback));
-    return context;
+  static TaskContextTestable Create(
+      Exec execute_func, Callback callback,
+      CancellationContext context = CancellationContext()) {
+    TaskContextTestable task;
+    task.SetExecutors(std::move(execute_func), std::move(callback),
+                      std::move(context));
+    return task;
   }
 
   template <typename Exec, typename Callback,
             typename ExecResult = typename std::result_of<
                 Exec(olp::client::CancellationContext)>::type>
-  void SetExecutors(Exec execute_func, Callback callback) {
+  void SetExecutors(Exec execute_func, Callback callback,
+                    CancellationContext context) {
     auto impl =
         std::make_shared<TaskContextImpl<typename ExecResult::ResultType>>(
-            std::move(execute_func), std::move(callback));
+            std::move(execute_func), std::move(callback), std::move(context));
     notify = [=]() { impl->condition_.Notify(); };
     impl_ = impl;
   }
