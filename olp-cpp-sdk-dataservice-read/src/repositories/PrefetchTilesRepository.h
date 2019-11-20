@@ -72,19 +72,34 @@ class PrefetchTilesRepository final {
       const std::vector<geo::TileKey>& tilekeys, unsigned int minLevel,
       unsigned int maxLevel);
 
+  // NOTE: Will removed soon
   void GetSubTiles(
       std::shared_ptr<client::CancellationContext> cancellationContext,
       const PrefetchTilesRequest& prefetchRequest, int64_t version,
       boost::optional<time_t> expiry, const SubQuadsRequest& request,
       const SubTilesResponseCallback& callback);
 
-  static void GetSubQuads(
-      std::shared_ptr<client::CancellationContext> cancellationContext,
-      std::shared_ptr<ApiRepository> apiRepo,
-      PartitionsCacheRepository& partitionsCache,
-      const PrefetchTilesRequest& prefetchRequest, geo::TileKey tile,
-      int64_t version, boost::optional<time_t> expiry, int32_t depth,
-      const std::string& layer_id, const SubQuadsResponseCallback& callback);
+  SubTilesResponse GetSubTiles(const std::string& layer_id,
+                               const PrefetchTilesRequest& request,
+                               const SubQuadsRequest& sub_quads,
+                               client::CancellationContext context);
+
+  // NOTE: Will removed soon
+  static void GetSubQuads(client::CancellationContext cancellationContext,
+                          std::shared_ptr<ApiRepository> apiRepo,
+                          PartitionsCacheRepository& partitionsCache,
+                          const PrefetchTilesRequest& prefetchRequest,
+                          geo::TileKey tile, int64_t version,
+                          boost::optional<time_t> expiry, int32_t depth,
+                          const std::string& layer_id,
+                          const SubQuadsResponseCallback& callback);
+
+  static SubQuadsResponse GetSubQuads(const client::HRN& catalog,
+                                      const std::string& layer_id,
+                                      const PrefetchTilesRequest& request,
+                                      geo::TileKey tile, int32_t depth,
+                                      const client::OlpClientSettings& settings,
+                                      client::CancellationContext context);
 
  private:
   static SubQuadsRequest EffectiveTileKeys(const geo::TileKey& tilekey,
@@ -103,7 +118,7 @@ class PrefetchTilesRepository final {
   std::string layer_id_;
   std::shared_ptr<ApiRepository> apiRepo_;
   std::shared_ptr<PartitionsCacheRepository> partitionsCache_;
-  std::shared_ptr<olp::client::OlpClientSettings> settings_;
+  std::shared_ptr<client::OlpClientSettings> settings_;
 };
 
 }  // namespace repository

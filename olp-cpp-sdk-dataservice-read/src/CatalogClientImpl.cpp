@@ -25,13 +25,9 @@
 #include <olp/core/logging/Log.h>
 
 #include "Common.h"
-#include "PrefetchTilesProvider.h"
 #include "repositories/ApiRepository.h"
 #include "repositories/CatalogRepository.h"
-#include "repositories/DataRepository.h"
 #include "repositories/ExecuteOrSchedule.inl"
-#include "repositories/PartitionsRepository.h"
-#include "repositories/PrefetchTilesRepository.h"
 
 namespace olp {
 namespace dataservice {

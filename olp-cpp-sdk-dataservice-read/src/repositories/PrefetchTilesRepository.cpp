@@ -22,6 +22,7 @@
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/geo/tiling/TileKey.h>
 #include <olp/core/logging/Log.h>
+#include <olp/core/thread/Atomic.h>
 #include <olp/core/thread/TaskScheduler.h>
 #include "generated/api/QueryApi.h"
 
@@ -156,7 +157,7 @@ void PrefetchTilesRepository::GetSubTiles(
       futures.push_back(std::async([=, &partitions_cache]() {
         auto p = std::make_shared<std::promise<SubQuadsResponse>>();
         GetSubQuads(
-            cancel_context, api_repo, partitions_cache, prefetchRequest,
+            *cancel_context, api_repo, partitions_cache, prefetchRequest,
             subtile.second.first, version, expiry, subtile.second.second,
             layer_id,
             [=](const SubQuadsResponse& response) { p->set_value(response); });
@@ -188,9 +189,52 @@ void PrefetchTilesRepository::GetSubTiles(
   }
 }
 
+SubTilesResponse PrefetchTilesRepository::GetSubTiles(
+    const std::string& layer_id, const PrefetchTilesRequest& request,
+    const SubQuadsRequest& sub_quads, CancellationContext context) {
+  // Version needs to be set, else we cannot move forward
+  if (!request.GetVersion()) {
+    OLP_SDK_LOG_WARNING_F(kLogTag,
+                          "GetSubTiles: catalog version missing, key=%s",
+                          request.CreateKey(layer_id).c_str());
+    return {{ErrorCode::InvalidArgument, "Catalog version invalid"}};
+  }
+
+  OLP_SDK_LOG_INFO_F(kLogTag, "GetSubTiles: hrn=%s, layer=%s, quads=%zu",
+                     hrn_.ToString().c_str(), layer_id.c_str(),
+                     sub_quads.size());
+
+  SubTilesResult result;
+
+  for (const auto& quad : sub_quads) {
+    if (context.IsCancelled()) {
+      return {{ErrorCode::Cancelled, "Cancelled", true}};
+    }
+
+    auto& tile = quad.second.first;
+    auto& depth = quad.second.second;
+
+    auto response =
+        GetSubQuads(hrn_, layer_id, request, tile, depth, *settings_, context);
+
+    if (!response.IsSuccessful()) {
+      // Just abort if something else then 404 Not Found is returned
+      auto& error = response.GetError();
+      if (error.GetHttpStatusCode() != http::HttpStatusCode::NOT_FOUND) {
+        return error;
+      }
+    }
+
+    const auto& subtiles = response.GetResult();
+    result.reserve(result.size() + subtiles.size());
+    result.insert(result.end(), subtiles.begin(), subtiles.end());
+  }
+
+  return result;
+}
+
 void PrefetchTilesRepository::GetSubQuads(
-    std::shared_ptr<client::CancellationContext> cancel_context,
-    std::shared_ptr<ApiRepository> apiRepo,
+    CancellationContext cancel_context, std::shared_ptr<ApiRepository> apiRepo,
     PartitionsCacheRepository& partitionsCache,
     const PrefetchTilesRequest& prefetchRequest, geo::TileKey tile,
     int64_t version, boost::optional<time_t> expiry, int32_t depth,
@@ -207,16 +251,17 @@ void PrefetchTilesRepository::GetSubQuads(
 
   auto tile_key = tile.ToHereTile();
 
-  cancel_context->ExecuteOrCancelled(
-      [=, &partitionsCache]() {
+  cancel_context.ExecuteOrCancelled(
+      [=, &partitionsCache]() mutable {
         return apiRepo->getApiClient(
-            "query", "v1", [=, &partitionsCache](ApiClientResponse response) {
+            "query", "v1",
+            [=, &partitionsCache](ApiClientResponse response) mutable {
               if (!response.IsSuccessful()) {
                 callback(response.GetError());
                 return;
               }
 
-              cancel_context->ExecuteOrCancelled(
+              cancel_context.ExecuteOrCancelled(
                   [=, &partitionsCache]() {
                     OLP_SDK_LOG_INFO_F(
                         kLogTag,
@@ -270,6 +315,89 @@ void PrefetchTilesRepository::GetSubQuads(
             });
       },
       cancel_callback);
+}
+
+SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
+    const HRN& catalog, const std::string& layer_id,
+    const PrefetchTilesRequest& request, geo::TileKey tile, int32_t depth,
+    const OlpClientSettings& settings, CancellationContext context) {
+  OLP_SDK_LOG_TRACE_F(kLogTag, "GetSubQuads(%s, %" PRId64 ", %" PRId32 ")",
+                      tile.ToHereTile().c_str(), request.GetVersion().get(),
+                      depth);
+
+  auto query_api =
+      ApiClientLookup::LookupApi(catalog, context, "query", "v1",
+                                 FetchOptions::OnlineIfNotFound, settings);
+
+  if (!query_api.IsSuccessful()) {
+    return query_api.GetError();
+  }
+
+  using QuadTreeIndexResponse = QueryApi::QuadTreeIndexResponse;
+  using QuadTreeIndexPromise = std::promise<QuadTreeIndexResponse>;
+  auto promise = std::make_shared<QuadTreeIndexPromise>();
+  auto tile_key = tile.ToHereTile();
+  auto version = request.GetVersion().get();
+
+  context.ExecuteOrCancelled(
+      [&] {
+        OLP_SDK_LOG_INFO_F(kLogTag,
+                           "GetSubQuads execute(%s, %" PRId64 ", %" PRId32 ")",
+                           tile_key.c_str(), version, depth);
+
+        return QueryApi::QuadTreeIndex(
+            query_api.GetResult(), layer_id, version, tile_key, depth,
+            boost::none, request.GetBillingTag(),
+            [=](QuadTreeIndexResponse response) {
+              promise->set_value(std::move(response));
+            });
+      },
+      [=]() {
+        OLP_SDK_LOG_INFO_F(
+            kLogTag, "GetSubQuads cancelled(%s, %" PRId64 ", %" PRId32 ")",
+            tile_key.c_str(), version, depth);
+        promise->set_value({{ErrorCode::Cancelled, "Cancelled", true}});
+      });
+
+  // Wait for response
+  auto future = promise->get_future();
+  auto quad_tree = future.get();
+
+  if (context.IsCancelled()) {
+    return {{ErrorCode::Cancelled, "Cancelled", true}};
+  }
+
+  if (!quad_tree.IsSuccessful()) {
+    OLP_SDK_LOG_INFO_F(kLogTag,
+                       "GetSubQuads failed(%s, %" PRId64 ", %" PRId32 ")",
+                       tile_key.c_str(), version, depth);
+    return quad_tree.GetError();
+  }
+
+  SubQuadsResult result;
+  model::Partitions partitions;
+
+  auto subquads = quad_tree.GetResult().GetSubQuads();
+  result.reserve(subquads.size());
+  partitions.GetMutablePartitions().reserve(subquads.size());
+
+  for (auto subquad : subquads) {
+    auto subtile = tile.AddedSubHereTile(subquad->GetSubQuadKey());
+
+    // Add to result
+    result.emplace_back(subtile, subquad->GetDataHandle());
+
+    // add to bulk partitions for cacheing
+    partitions.GetMutablePartitions().emplace_back(
+        PartitionFromSubQuad(subquad, subtile.ToHereTile()));
+  }
+
+  // add to cache
+  repository::PartitionsCacheRepository cache(catalog, settings.cache);
+  cache.Put(PartitionsRequest().WithVersion(version), partitions, layer_id,
+            boost::none, false);
+
+  return result;
 }
 
 model::Partition PrefetchTilesRepository::PartitionFromSubQuad(
