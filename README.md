@@ -1,6 +1,6 @@
 # HERE OLP SDK for C++
 
-The HERE OLP SDK for C++ is a _work-in-progress_ C++ client for [HERE Open Location Platform](https://platform.here.com).
+The HERE OLP SDK for C++ is a C++ client for [HERE Open Location Platform](https://platform.here.com).
 
 ## Health Сheck
 
@@ -94,7 +94,7 @@ To build the HERE OLP SDK for C++, run the following commands in the root of the
 ```bash
 mkdir build && cd build
 cmake ..
-make
+cmake --build .
 ```
 
 To build the [Doxygen](http://www.doxygen.nl/) documentation, you need to have CMake version 3.9 or later, and set `OLP_SDK_BUILD_DOC=ON` when running CMake configuration:
@@ -102,7 +102,7 @@ To build the [Doxygen](http://www.doxygen.nl/) documentation, you need to have C
 ```bash
 mkdir build && cd build
 cmake -DOLP_SDK_BUILD_DOC=ON ..
-make docs
+cmake --build . --target docs
 ```
 
 #### Install
