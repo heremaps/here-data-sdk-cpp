@@ -43,36 +43,33 @@ class DATASERVICE_READ_API PrefetchTileNoError {
 class DATASERVICE_READ_API PrefetchTileResult
     : public client::ApiResponse<PrefetchTileNoError, client::ApiError> {
  public:
-  PrefetchTileResult()
-      : client::ApiResponse<PrefetchTileNoError, client::ApiError>() {}
+  using base_type = client::ApiResponse<PrefetchTileNoError, client::ApiError>;
+
+  PrefetchTileResult() : base_type() {}
 
   /**
    * @brief PrefetchTileResult Constructor for a successfully executed request.
    */
   PrefetchTileResult(const geo::TileKey& tile,
                      const PrefetchTileNoError& result)
-      : client::ApiResponse<PrefetchTileNoError, client::ApiError>(result),
-        tile_key_(tile) {}
+      : base_type(result), tile_key_(tile) {}
 
   /**
    * @brief PrefetchTileResult Constructor if request unsuccessfully executed
    */
   PrefetchTileResult(const geo::TileKey& tile, const client::ApiError& error)
-      : client::ApiResponse<PrefetchTileNoError, client::ApiError>(error),
-        tile_key_(tile) {}
+      : base_type(error), tile_key_(tile) {}
 
   /**
    * @brief PrefetchTileResult Copy constructor.
    */
   PrefetchTileResult(const PrefetchTileResult& r)
-      : client::ApiResponse<PrefetchTileNoError, client::ApiError>(r),
-        tile_key_(r.tile_key_) {}
+      : base_type(r), tile_key_(r.tile_key_) {}
 
   /**
    * @brief ApiResponse Constructor if request unsuccessfully executed
    */
-  PrefetchTileResult(const client::ApiError& error)
-      : client::ApiResponse<PrefetchTileNoError, client::ApiError>(error) {}
+  PrefetchTileResult(const client::ApiError& error) : base_type(error) {}
 
  public:
   /// The pre-fetched tile key.
