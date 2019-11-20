@@ -2033,11 +2033,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataCacheWithUpdate) {
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest,
-       DISABLED_CancelPendingRequestsPartitions) {
+       CancelPendingRequestsPartitions) {
   olp::client::HRN hrn(GetTestCatalog());
-  testing::InSequence s;
-  std::vector<std::shared_ptr<std::promise<void>>> waits;
-  std::vector<std::shared_ptr<std::promise<void>>> pauses;
 
   auto client =
       std::make_unique<VersionedLayerClient>(hrn, "testlayer", *settings_);
@@ -2045,11 +2042,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   auto data_request =
       DataRequest().WithPartitionId("269").WithFetchOption(OnlineOnly);
 
-  // Make a few requests
-  auto wait_for_cancel1 = std::make_shared<std::promise<void>>();
-  auto pause_for_cancel1 = std::make_shared<std::promise<void>>();
-  auto wait_for_cancel2 = std::make_shared<std::promise<void>>();
-  auto pause_for_cancel2 = std::make_shared<std::promise<void>>();
+  auto request_started = std::make_shared<std::promise<void>>();
+  auto continue_request = std::make_shared<std::promise<void>>();
 
   {
     olp::http::RequestId request_id;
@@ -2057,24 +2051,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
     CancelCallback cancel_mock;
 
     std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-        wait_for_cancel1, pause_for_cancel1,
-        {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LAYER_VERSIONS});
-
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LAYER_VERSIONS), _, _, _, _))
-        .Times(1)
-        .WillOnce(testing::Invoke(std::move(send_mock)));
-
-    EXPECT_CALL(*network_mock_, Cancel(request_id))
-        .WillOnce(testing::Invoke(std::move(cancel_mock)));
-  }
-  {
-    olp::http::RequestId request_id;
-    NetworkCallback send_mock;
-    CancelCallback cancel_mock;
-
-    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-        wait_for_cancel2, pause_for_cancel2,
+        request_started, continue_request,
         {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_BLOB_DATA_269});
 
     EXPECT_CALL(*network_mock_,
@@ -2086,26 +2063,13 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
         .WillOnce(testing::Invoke(std::move(cancel_mock)));
   }
 
-  waits.push_back(wait_for_cancel1);
-  pauses.push_back(pause_for_cancel1);
+  auto data_future = client->GetData(data_request);
   auto partitions_future = client->GetPartitions(partitions_request);
 
-  waits.push_back(wait_for_cancel2);
-  pauses.push_back(pause_for_cancel2);
-  auto data_future = client->GetData(data_request);
-  std::cout << "waiting" << std::endl;
-  for (auto wait : waits) {
-    wait->get_future().get();
-  }
-  std::cout << "done waitingg" << std::endl;
-  // Cancel them all
-  client.reset();
-  std::cout << "done cancelling" << std::endl;
-  for (auto pause : pauses) {
-    pause->set_value();
-  }
+  request_started->get_future().get();
+  client->CancelPendingRequests();
+  continue_request->set_value();
 
-  // Verify they are all cancelled
   PartitionsResponse partitions_response = partitions_future.GetFuture().get();
 
   ASSERT_FALSE(partitions_response.IsSuccessful())
