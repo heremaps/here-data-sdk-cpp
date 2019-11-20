@@ -40,6 +40,10 @@ VersionedLayerClient& VersionedLayerClient::operator=(
 
 VersionedLayerClient::~VersionedLayerClient() = default;
 
+bool VersionedLayerClient::CancelPendingRequests() {
+  return impl_->CancelPendingRequests();
+}
+
 client::CancellationToken VersionedLayerClient::GetData(
     DataRequest data_request, DataResponseCallback callback) {
   return impl_->GetData(std::move(data_request), std::move(callback));

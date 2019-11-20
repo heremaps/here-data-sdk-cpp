@@ -107,6 +107,12 @@ class DATASERVICE_READ_API VersionedLayerClient final {
   ~VersionedLayerClient();
 
   /**
+   * @brief Cancels all active and pending requests.
+   * @return True on success.
+   */
+  bool CancelPendingRequests();
+
+  /**
    * @brief Fetches data for a partition ID or data handle asynchronously.
    *
    * If the specified partition ID or data handle cannot be found in the layer,

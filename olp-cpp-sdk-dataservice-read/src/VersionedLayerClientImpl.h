@@ -51,6 +51,8 @@ class VersionedLayerClientImpl {
 
   virtual ~VersionedLayerClientImpl();
 
+  virtual bool CancelPendingRequests();
+
   virtual client::CancellationToken GetData(DataRequest data_request,
                                             DataResponseCallback callback);
 

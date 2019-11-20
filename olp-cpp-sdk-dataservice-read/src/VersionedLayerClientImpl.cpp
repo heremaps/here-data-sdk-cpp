@@ -39,6 +39,10 @@ namespace olp {
 namespace dataservice {
 namespace read {
 
+namespace {
+constexpr auto kLogTag = "VersionedLayerClientImpl";
+}  // namespace
+
 VersionedLayerClientImpl::VersionedLayerClientImpl(
     client::HRN catalog, std::string layer_id,
     client::OlpClientSettings settings)
@@ -78,6 +82,11 @@ VersionedLayerClientImpl::VersionedLayerClientImpl(
 
 VersionedLayerClientImpl::~VersionedLayerClientImpl() {
   pending_requests_->CancelAllAndWait();
+}
+
+bool VersionedLayerClientImpl::CancelPendingRequests() {
+  OLP_SDK_LOG_TRACE(kLogTag, "CancelPendingRequests");
+  return pending_requests_->CancelAll();
 }
 
 client::CancellationToken VersionedLayerClientImpl::GetPartitions(
