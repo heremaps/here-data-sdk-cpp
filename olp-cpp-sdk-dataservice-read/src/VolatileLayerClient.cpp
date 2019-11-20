@@ -40,6 +40,10 @@ VolatileLayerClient& VolatileLayerClient::operator=(
 
 VolatileLayerClient::~VolatileLayerClient() = default;
 
+bool VolatileLayerClient::CancelPendingRequests() {
+  return impl_->CancelPendingRequests();
+}
+
 client::CancellationToken VolatileLayerClient::GetPartitions(
     PartitionsRequest request, PartitionsResponseCallback callback) {
   return impl_->GetPartitions(std::move(request), std::move(callback));

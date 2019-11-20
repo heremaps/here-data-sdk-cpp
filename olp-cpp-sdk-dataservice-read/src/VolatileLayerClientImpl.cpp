@@ -71,6 +71,11 @@ VolatileLayerClientImpl::~VolatileLayerClientImpl() {
   pending_requests_->CancelAllAndWait();
 }
 
+bool VolatileLayerClientImpl::CancelPendingRequests() {
+  OLP_SDK_LOG_TRACE(kLogTag, "CancelPendingRequests");
+  return pending_requests_->CancelAll();
+}
+
 client::CancellationToken VolatileLayerClientImpl::GetPartitions(
     PartitionsRequest request, PartitionsResponseCallback callback) {
   auto schedule_get_partitions = [&](PartitionsRequest request,

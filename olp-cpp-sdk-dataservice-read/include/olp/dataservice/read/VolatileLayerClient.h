@@ -91,6 +91,12 @@ class DATASERVICE_READ_API VolatileLayerClient final {
   ~VolatileLayerClient();
 
   /**
+   * @brief Cancels all active and pending requests.
+   * @return True on success.
+   */
+  bool CancelPendingRequests();
+
+  /**
    * @brief Fetches a list partitions for given volatile layer asynchronously.
    * @param request contains the complete set of request parameters.
    * @param callback will be invoked once the list of partitions is available,

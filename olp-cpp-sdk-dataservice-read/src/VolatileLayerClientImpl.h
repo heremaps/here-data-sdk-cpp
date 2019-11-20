@@ -46,6 +46,8 @@ class VolatileLayerClientImpl {
 
   virtual ~VolatileLayerClientImpl();
 
+  virtual bool CancelPendingRequests();
+
   virtual client::CancellationToken GetPartitions(
       PartitionsRequest request, PartitionsResponseCallback callback);
 
