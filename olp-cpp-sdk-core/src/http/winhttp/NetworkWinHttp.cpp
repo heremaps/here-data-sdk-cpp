@@ -188,8 +188,8 @@ std::wstring ProxyString(const olp::http::NetworkProxySettings& proxy) {
       proxy_string_stream << "http://";
   }
 
-  proxy_string_stream << std::wstring(proxy.GetUsername().begin(),
-                                      proxy.GetUsername().end());
+  proxy_string_stream << std::wstring(proxy.GetHostname().begin(),
+                                      proxy.GetHostname().end());
   proxy_string_stream << ':';
   proxy_string_stream << proxy.GetPort();
 
