@@ -44,13 +44,17 @@ class TaskContext {
    * @param execute_func Task to be executed.
    * @param callback Is invoked once the result of execute_func is available or
    * task is cancelled.
+   * @param context The CancellationContext to be used.
    * @return TaskContext that can be used to run or cancel corresponding task.
    */
   template <typename Exec, typename Callback>
-  static TaskContext Create(Exec execute_func, Callback callback) {
-    TaskContext context;
-    context.SetExecutors(std::move(execute_func), std::move(callback));
-    return context;
+  static TaskContext Create(
+      Exec execute_func, Callback callback,
+      client::CancellationContext context = client::CancellationContext()) {
+    TaskContext task;
+    task.SetExecutors(std::move(execute_func), std::move(callback),
+                      std::move(context));
+    return task;
   }
 
   /**
@@ -88,9 +92,10 @@ class TaskContext {
   template <typename Exec, typename Callback,
             typename ExecResult = typename std::result_of<
                 Exec(client::CancellationContext)>::type>
-  void SetExecutors(Exec execute_func, Callback callback) {
+  void SetExecutors(Exec execute_func, Callback callback,
+                    client::CancellationContext context) {
     impl_ = std::make_shared<TaskContextImpl<typename ExecResult::ResultType>>(
-        std::move(execute_func), std::move(callback));
+        std::move(execute_func), std::move(callback), std::move(context));
   }
 
   class Impl {
@@ -111,9 +116,11 @@ class TaskContext {
     using ExecuteFunc = std::function<Response(client::CancellationContext)>;
     using UserCallback = std::function<void(Response)>;
 
-    TaskContextImpl(ExecuteFunc execute_func, UserCallback callback)
+    TaskContextImpl(ExecuteFunc execute_func, UserCallback callback,
+                    client::CancellationContext context)
         : execute_func_(std::move(execute_func)),
           callback_(std::move(callback)),
+          context_(std::move(context)),
           state_{State::PENDING} {}
 
     ~TaskContextImpl() {}

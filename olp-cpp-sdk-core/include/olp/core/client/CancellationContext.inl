@@ -25,11 +25,11 @@ namespace client {
 inline CancellationContext::CancellationContext()
     : impl_(std::make_shared<CancellationContextImpl>()) {}
 
-inline void CancellationContext::ExecuteOrCancelled(
+inline bool CancellationContext::ExecuteOrCancelled(
     const std::function<CancellationToken()>& execute_fn,
     const std::function<void()>& cancel_fn) {
   if (!impl_) {
-    return;
+    return true;
   }
 
   std::lock_guard<std::recursive_mutex> lock(impl_->mutex_);
@@ -38,12 +38,14 @@ inline void CancellationContext::ExecuteOrCancelled(
     if (cancel_fn) {
       cancel_fn();
     }
-    return;
+    return false;
   }
 
   if (execute_fn) {
     impl_->sub_operation_cancel_token_ = execute_fn();
   }
+
+  return true;
 }
 
 inline void CancellationContext::CancelOperation() {

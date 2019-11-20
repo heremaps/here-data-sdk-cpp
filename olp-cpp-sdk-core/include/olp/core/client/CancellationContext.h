@@ -50,9 +50,11 @@ class CORE_API CancellationContext {
    * CancellationContext will propogate a cancel request to.
    * @param cancel_fn A function which will be called if this operation is
    * already cancelled.
+   * @return true in case of successfull execution, false in case context was
+   * cancelled.
    * @deprecated Will be removed once TaskScheduler will be used.
    */
-  void ExecuteOrCancelled(const ExecuteFuncType& execute_fn,
+  bool ExecuteOrCancelled(const ExecuteFuncType& execute_fn,
                           const CancelFuncType& cancel_fn = nullptr);
 
   /**
