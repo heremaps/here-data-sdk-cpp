@@ -730,23 +730,14 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetVolatileDataByPartitionId) {
               Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(0);
 
-  EXPECT_CALL(
-      *network_mock_,
-      Send(IsGetRequest("https://query.data.api.platform.here.com/query/v1/"
-                        "catalogs/hereos-internal-test-v2/layers/"
-                        "testlayer_volatile/partitions?partition=269"),
-           _, _, _, _))
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_QUERY_VOLATILE_PARTITION_269), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    HTTP_RESPONSE_PARTITIONS_V2));
 
-  EXPECT_CALL(
-      *network_mock_,
-      Send(IsGetRequest(
-               "https://volatile-blob-ireland.data.api.platform.here.com/"
-               "blobstore/v1/catalogs/hereos-internal-test-v2/layers/"
-               "testlayer_volatile/data/4eed6ed1-0d32-43b9-ae79-043cb4256410"),
-           _, _, _, _))
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_VOLATILE_BLOB_DATA), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    "someData"));
@@ -767,6 +758,73 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetVolatileDataByPartitionId) {
   std::string data_string(data_response.GetResult()->begin(),
                           data_response.GetResult()->end());
   ASSERT_EQ("someData", data_string);
+}
+
+TEST_F(DataserviceReadVolatileLayerClientTest,
+       CancelPendingRequestsPartitions) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto client = std::make_unique<VolatileLayerClient>(hrn, "testlayer_volatile",
+                                                      settings_);
+  auto partitions_request = PartitionsRequest().WithFetchOption(OnlineOnly);
+  auto data_request =
+      DataRequest().WithPartitionId("269").WithFetchOption(OnlineOnly);
+
+  auto request_started = std::make_shared<std::promise<void>>();
+  auto continue_request = std::make_shared<std::promise<void>>();
+
+  {
+    olp::http::RequestId request_id;
+    NetworkCallback send_mock;
+    CancelCallback cancel_mock;
+
+    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+        request_started, continue_request,
+        {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_PARTITIONS_V2});
+
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsGetRequest(URL_QUERY_VOLATILE_PARTITION_269), _, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+
+    EXPECT_CALL(*network_mock_, Cancel(request_id))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+
+    ON_CALL(*network_mock_,
+            Send(IsGetRequest(URL_VOLATILE_BLOB_DATA), _, _, _, _))
+        .WillByDefault(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               "someData"));
+  }
+
+  auto data_future = client->GetData(data_request);
+  auto partitions_future = client->GetPartitions(partitions_request);
+
+  request_started->get_future().get();
+  client->CancelPendingRequests();
+  continue_request->set_value();
+
+  PartitionsResponse partitions_response = partitions_future.GetFuture().get();
+
+  ASSERT_FALSE(partitions_response.IsSuccessful())
+      << ApiErrorToString(partitions_response.GetError());
+
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            partitions_response.GetError().GetHttpStatusCode());
+  ASSERT_EQ(olp::client::ErrorCode::Cancelled,
+            partitions_response.GetError().GetErrorCode());
+
+  DataResponse data_response = data_future.GetFuture().get();
+
+  ASSERT_FALSE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            data_response.GetError().GetHttpStatusCode());
+  ASSERT_EQ(olp::client::ErrorCode::Cancelled,
+            data_response.GetError().GetErrorCode());
 }
 
 }  // namespace
