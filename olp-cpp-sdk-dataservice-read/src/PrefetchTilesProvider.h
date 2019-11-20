@@ -42,11 +42,12 @@ class PrefetchTilesProvider final {
  public:
   PrefetchTilesProvider(
       const client::HRN& hrn, std::string layer_id,
-      std::shared_ptr<repository::ApiRepository> apiRepo,
-      std::shared_ptr<repository::CatalogRepository> catalogRepo,
-      std::shared_ptr<repository::DataRepository> dataRepo,
-      std::shared_ptr<repository::PrefetchTilesRepository> prefetchTilesRepo,
-      std::shared_ptr<olp::client::OlpClientSettings> settings);
+      std::shared_ptr<repository::ApiRepository> api_repo,
+      std::shared_ptr<repository::CatalogRepository> catalog_repo,
+      std::shared_ptr<repository::DataRepository> data_repo,
+      std::shared_ptr<repository::PrefetchTilesRepository> prefetch_tiles_repo,
+      std::shared_ptr<client::OlpClientSettings> settings);
+
   /**
    * @brief pre-fetches a set of tiles asynchronously
    *
@@ -68,19 +69,19 @@ class PrefetchTilesProvider final {
       const PrefetchTilesResponseCallback& callback);
 
   static void QueryDataForEachSubTile(
-      std::shared_ptr<client::CancellationContext> cancel_context,
-      std::shared_ptr<repository::DataRepository> dataRepo,
-      const PrefetchTilesRequest& prefetchRequest, const std::string& layerType,
+      client::CancellationContext context,
+      std::shared_ptr<repository::DataRepository> data_repo,
+      const PrefetchTilesRequest& request, const std::string& layer_type,
       const repository::SubTilesResult& results,
       const PrefetchTilesResponseCallback& callback);
 
  private:
-  std::shared_ptr<std::atomic_bool> prefetchProviderBusy_;
-  std::shared_ptr<repository::ApiRepository> apiRepo_;
-  std::shared_ptr<repository::CatalogRepository> catalogRepo_;
-  std::shared_ptr<repository::DataRepository> dataRepo_;
-  std::shared_ptr<repository::PrefetchTilesRepository> prefetchTilesRepo_;
-  std::shared_ptr<olp::client::OlpClientSettings> settings_;
+  std::shared_ptr<std::atomic_bool> prefetch_provider_busy_;
+  std::shared_ptr<repository::ApiRepository> api_repo_;
+  std::shared_ptr<repository::CatalogRepository> catalog_repo_;
+  std::shared_ptr<repository::DataRepository> data_repo_;
+  std::shared_ptr<repository::PrefetchTilesRepository> prefetch_tiles_repo_;
+  std::shared_ptr<client::OlpClientSettings> settings_;
   const std::string layer_id_;
 };
 

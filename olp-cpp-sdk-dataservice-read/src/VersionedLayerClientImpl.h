@@ -31,6 +31,7 @@
 #include <olp/dataservice/read/PrefetchTileResult.h>
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/Types.h>
+#include "repositories/ExecuteOrSchedule.inl"
 
 namespace olp {
 namespace thread {
@@ -40,7 +41,8 @@ namespace dataservice {
 namespace read {
 namespace repository {
 class PartitionsRepository;
-}
+class PrefetchTilesRepository;
+}  // namespace repository
 
 class PrefetchTilesProvider;
 
@@ -72,14 +74,14 @@ class VersionedLayerClientImpl {
   virtual client::CancellableFuture<PrefetchTilesResponse> PrefetchTiles(
       PrefetchTilesRequest request);
 
- protected:
+ private:
   client::HRN catalog_;
   std::string layer_id_;
   std::shared_ptr<client::OlpClientSettings> settings_;
   std::shared_ptr<thread::TaskScheduler> task_scheduler_;
   std::shared_ptr<client::PendingRequests> pending_requests_;
   std::shared_ptr<repository::PartitionsRepository> partition_repo_;
-  std::shared_ptr<PrefetchTilesProvider> prefetch_provider_;
+  std::shared_ptr<repository::PrefetchTilesRepository> prefetch_repo_;
 };
 
 }  // namespace read

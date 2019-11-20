@@ -42,86 +42,85 @@ namespace {
 constexpr auto kLogTag = "PrefetchTilesProvider";
 }  // namespace
 
-using namespace olp::client;
-
 PrefetchTilesProvider::PrefetchTilesProvider(
-    const HRN& /*hrn*/, std::string layer_id,
-    std::shared_ptr<repository::ApiRepository> apiRepo,
-    std::shared_ptr<repository::CatalogRepository> catalogRepo,
-    std::shared_ptr<repository::DataRepository> dataRepo,
-    std::shared_ptr<repository::PrefetchTilesRepository> prefetchTilesRepo,
-    std::shared_ptr<olp::client::OlpClientSettings> settings)
-    : apiRepo_(std::move(apiRepo)),
-      layer_id_(std::move(layer_id)),
-      catalogRepo_(std::move(catalogRepo)),
-      dataRepo_(std::move(dataRepo)),
-      prefetchTilesRepo_(std::move(prefetchTilesRepo)),
-      settings_(std::move(settings)) {
-  prefetchProviderBusy_ = std::make_shared<std::atomic_bool>(false);
-}
+    const client::HRN& /*hrn*/, std::string layer_id,
+    std::shared_ptr<repository::ApiRepository> api_repo,
+    std::shared_ptr<repository::CatalogRepository> catalog_repo,
+    std::shared_ptr<repository::DataRepository> data_repo,
+    std::shared_ptr<repository::PrefetchTilesRepository> prefetch_tiles_repo,
+    std::shared_ptr<client::OlpClientSettings> settings)
+    : prefetch_provider_busy_(std::make_shared<std::atomic_bool>(false)),
+      api_repo_(std::move(api_repo)),
+      catalog_repo_(std::move(catalog_repo)),
+      data_repo_(std::move(data_repo)),
+      prefetch_tiles_repo_(std::move(prefetch_tiles_repo)),
+      settings_(std::move(settings)),
+      layer_id_(std::move(layer_id)) {}
 
 client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
     const PrefetchTilesRequest& request,
     const PrefetchTilesResponseCallback& callback) {
   auto key = request.CreateKey(layer_id_);
-  OLP_SDK_LOG_TRACE_F(kLogTag, "getCatalog(%s)", key.c_str());
-  auto isBusy = prefetchProviderBusy_->exchange(true);
-  if (isBusy) {
+  OLP_SDK_LOG_TRACE_F(kLogTag, "PrefetchTiles(%s)", key.c_str());
+
+  if (prefetch_provider_busy_->exchange(true)) {
     repository::ExecuteOrSchedule(settings_.get(), [=]() {
-      OLP_SDK_LOG_INFO_F(kLogTag, "getCatalog(%s) busy", key.c_str());
-      callback(
-          {{ErrorCode::SlowDown, "Busy prefetching at the moment.", true}});
+      OLP_SDK_LOG_INFO_F(kLogTag, "PrefetchTiles(%s) busy", key.c_str());
+      callback({{client::ErrorCode::SlowDown, "Busy prefetching at the moment.",
+                 true}});
     });
     return client::CancellationToken();
   }
 
-  auto busy = prefetchProviderBusy_;
-  auto completionCallback = [=](const PrefetchTilesResponse& response) {
+  auto busy = prefetch_provider_busy_;
+  auto completion_callback = [=](PrefetchTilesResponse response) {
     busy->store(false);
-    callback(response);
+    callback(std::move(response));
   };
 
-  auto cancel_context = std::make_shared<CancellationContext>();
+  client::CancellationContext cancel_context;
 
-  auto cancel_callback = [completionCallback, key]() {
-    OLP_SDK_LOG_INFO_F(kLogTag, "getCatalog(%s) cancelled", key.c_str());
-    completionCallback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
+  auto cancel_callback = [=]() {
+    OLP_SDK_LOG_INFO_F(kLogTag, "PrefetchTiles(%s) cancelled", key.c_str());
+    completion_callback(
+        {{client::ErrorCode::Cancelled, "Operation cancelled.", true}});
   };
 
-  auto apiRepo = apiRepo_;
-  auto catalogRepo = catalogRepo_;
-  auto dataRepo = dataRepo_;
-  auto prefetchTilesRepo = prefetchTilesRepo_;
+  auto api_repo = api_repo_;
+  auto catalog_repo = catalog_repo_;
+  auto data_repo = data_repo_;
+  auto prefetch_tiles_repo = prefetch_tiles_repo_;
   auto layer_id = layer_id_;
 
   // Get the catalog (and layers) config
-  CatalogRequest catalogRequest;
-  catalogRequest.WithBillingTag(request.GetBillingTag());
-  cancel_context->ExecuteOrCancelled(
-      [=]() {
-        OLP_SDK_LOG_INFO_F(kLogTag, "getCatalog(%s) execute", key.c_str());
+  CatalogRequest catalog_request;
+  catalog_request.WithBillingTag(request.GetBillingTag());
 
-        return catalogRepo->getCatalog(
-            catalogRequest, [=](read::CatalogResponse catalogResponse) {
-              if (!catalogResponse.IsSuccessful()) {
-                OLP_SDK_LOG_INFO_F(kLogTag, "getCatalog(%s) unsuccessful",
+  cancel_context.ExecuteOrCancelled(
+      [=]() mutable {
+        OLP_SDK_LOG_INFO_F(kLogTag, "PrefetchTiles(%s) execute", key.c_str());
+
+        return catalog_repo->getCatalog(
+            catalog_request,
+            [=](read::CatalogResponse catalog_response) mutable {
+              if (!catalog_response.IsSuccessful()) {
+                OLP_SDK_LOG_INFO_F(kLogTag, "PrefetchTiles(%s) unsuccessful",
                                    key.c_str());
-                completionCallback(catalogResponse.GetError());
+                completion_callback(catalog_response.GetError());
                 return;
               }
 
-              auto layers = catalogResponse.GetResult().GetLayers();
+              auto layers = catalog_response.GetResult().GetLayers();
               auto layerResult = std::find_if(
                   layers.begin(), layers.end(), [layer_id](model::Layer layer) {
                     return (layer.GetId().compare(layer_id) == 0);
                   });
               if (layerResult == layers.end()) {
                 // Layer not found
-                OLP_SDK_LOG_INFO_F(
-                    kLogTag, "getLatestCatalogVersion(%s) layer not found",
-                    key.c_str());
-                completionCallback(ApiError(client::ErrorCode::InvalidArgument,
-                                            "Layer specified doesn't exist."));
+                OLP_SDK_LOG_INFO_F(kLogTag, "PrefetchTiles(%s) layer not found",
+                                   key.c_str());
+                completion_callback({{client::ErrorCode::InvalidArgument,
+                                      "Layer specified doesn't exist."}});
                 return;
               }
               auto layerType = (*layerResult).GetLayerType();
@@ -131,8 +130,8 @@ client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
               }
 
               // Get the catalog version
-              cancel_context->ExecuteOrCancelled(
-                  [=]() {
+              cancel_context.ExecuteOrCancelled(
+                  [=]() mutable {
                     OLP_SDK_LOG_INFO_F(kLogTag,
                                        "getLatestCatalogVersion(%s) execute",
                                        key.c_str());
@@ -140,15 +139,15 @@ client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
                     catalogVersionRequest
                         .WithBillingTag(request.GetBillingTag())
                         .WithStartVersion(-1);
-                    return catalogRepo->getLatestCatalogVersion(
+                    return catalog_repo->getLatestCatalogVersion(
                         catalogVersionRequest,
-                        [=](CatalogVersionResponse response) {
+                        [=](CatalogVersionResponse response) mutable {
                           if (!response.IsSuccessful()) {
                             OLP_SDK_LOG_INFO_F(
                                 kLogTag,
                                 "getLatestCatalogVersion(%s) unseccessful",
                                 key.c_str());
-                            completionCallback(response.GetError());
+                            completion_callback(response.GetError());
                             return;
                           }
 
@@ -156,18 +155,18 @@ client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
 
                           // Calculate the minimal set of Tile keys and depth to
                           // cover tree.
-                          auto calculatedTileKeys = repository::
+                          auto calculated_tile_keys = repository::
                               PrefetchTilesRepository::EffectiveTileKeys(
                                   request.GetTileKeys(), request.GetMinLevel(),
                                   request.GetMaxLevel());
 
-                          if (calculatedTileKeys.size() == 0) {
+                          if (calculated_tile_keys.empty()) {
                             OLP_SDK_LOG_INFO_F(
                                 kLogTag,
                                 "getLatestCatalogVersion(%s) tile/level "
                                 "mismatch",
                                 key.c_str());
-                            completionCallback(
+                            completion_callback(
                                 {{client::ErrorCode::InvalidArgument,
                                   "TileKey and Levels mismatch."}});
                             return;
@@ -175,27 +174,27 @@ client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
 
                           OLP_SDK_LOG_INFO_F(kLogTag,
                                              "EffectiveTileKeys, count = %lu",
-                                             calculatedTileKeys.size());
-                          prefetchTilesRepo->GetSubTiles(
-                              cancel_context, request, version, expiry,
-                              calculatedTileKeys,
+                                             calculated_tile_keys.size());
+                          prefetch_tiles_repo->GetSubTiles(
+                              nullptr, request, version, expiry,
+                              calculated_tile_keys,
                               [=](const repository::SubTilesResponse&
-                                      response) {
+                                      response) mutable {
                                 if (!response.IsSuccessful()) {
                                   OLP_SDK_LOG_INFO_F(
                                       kLogTag,
                                       "SubTilesResponse(%s) unseccessful",
                                       key.c_str());
-                                  completionCallback({response.GetError()});
+                                  completion_callback({response.GetError()});
                                   return;
                                 }
 
                                 // Query for each of the tiles' data handle (or
                                 // just embedded data)
                                 QueryDataForEachSubTile(
-                                    cancel_context, dataRepo, request,
+                                    cancel_context, data_repo, request,
                                     layerType, response.GetResult(),
-                                    completionCallback);
+                                    completion_callback);
                               });
                         });
                   },
@@ -204,14 +203,14 @@ client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
       },
       cancel_callback);
 
-  return CancellationToken(
-      [cancel_context]() { cancel_context->CancelOperation(); });
+  return client::CancellationToken(
+      [=]() mutable { cancel_context.CancelOperation(); });
 }
 
 void PrefetchTilesProvider::QueryDataForEachSubTile(
-    std::shared_ptr<client::CancellationContext> cancel_context,
-    std::shared_ptr<repository::DataRepository> dataRepo,
-    const PrefetchTilesRequest& request, const std::string& layerType,
+    client::CancellationContext context,
+    std::shared_ptr<repository::DataRepository> data_repo,
+    const PrefetchTilesRequest& request, const std::string& layer_type,
     const repository::SubTilesResult& subtiles,
     const PrefetchTilesResponseCallback& callback) {
   OLP_SDK_LOG_TRACE_F(kLogTag, "QueryDataForEachSubTile, count = %lu",
@@ -245,19 +244,22 @@ void PrefetchTilesProvider::QueryDataForEachSubTile(
                 subtile.first, PrefetchTileNoError()));
           }
         };
-        dataRepo->GetData(cancel_context, layerType, dataRequest, dataCallback);
+        // Disabled currently to be able to transition to raw
+        // CancellationContext. Will be remove in next commit.
+        // data_repo->GetData(context, layer_type, dataRequest, dataCallback);
         return p->get_future().get();
       }
     }));
   }
 
-  auto result = std::make_shared<PrefetchTilesResult>();
+  auto result = PrefetchTilesResult();
+  result.reserve(futures.size());
+
   for (auto& f : futures) {
-    auto r = f.get();
-    result->push_back(r);
+    result.push_back(f.get());
   }
 
-  callback({*result});
+  callback({std::move(result)});
 }
 
 }  // namespace read
