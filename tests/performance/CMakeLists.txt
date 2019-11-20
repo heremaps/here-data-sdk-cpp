@@ -23,6 +23,7 @@ endif()
 set(OLP_SDK_PERFORMANCE_TESTS_SOURCES
     ./MemoryTest.cpp
     ./NullCache.h
+    ./NetworkWrapper.h
 )
 
 add_executable(olp-cpp-sdk-performance-tests ${OLP_SDK_PERFORMANCE_TESTS_SOURCES})

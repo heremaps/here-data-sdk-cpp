@@ -33,6 +33,7 @@
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include <testutils/CustomParameters.hpp>
 
+#include "NetworkWrapper.h"
 #include "NullCache.h"
 
 namespace {
@@ -63,8 +64,7 @@ const std::string kVersionedLayerId("versioned_test_layer");
 class MemoryTest : public ::testing::TestWithParam<TestConfiguration> {
  public:
   static void SetUpTestSuite() {
-    s_network = olp::client::OlpClientSettingsFactory::
-        CreateDefaultNetworkRequestHandler();
+    s_network = std::make_shared<olp::tests::http::Http2HttpNetworkWrapper>();
   }
   static void TearDownTestSuite() { s_network.reset(); }
 
