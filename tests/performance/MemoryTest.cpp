@@ -28,6 +28,7 @@
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/logging/Log.h>
+#include <olp/core/porting/make_unique.h>
 #include <olp/core/utils/Dir.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include <testutils/CustomParameters.hpp>
@@ -108,7 +109,7 @@ std::shared_ptr<olp::http::Network> MemoryTest::s_network;
 namespace {
 
 void ClientThread(const std::uint8_t client_id,
-                  std::shared_ptr<olp::dataservice::read::VersionedLayerClient>
+                  std::unique_ptr<olp::dataservice::read::VersionedLayerClient>
                       service_client,
                   std::chrono::milliseconds sleep_interval,
                   std::chrono::seconds runtime,
@@ -149,6 +150,8 @@ void ClientThread(const std::uint8_t client_id,
 
     std::this_thread::sleep_for(sleep_interval);
   }
+
+  service_client.reset();
 
   OLP_SDK_LOG_CRITICAL_INFO_F(
       "ClientThread",
@@ -195,7 +198,7 @@ TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
   for (std::uint8_t i = 0; i < parameter.calling_thread_count; ++i) {
     // Will be removed after API alignment
     auto service_client =
-        std::make_shared<dataservice::read::VersionedLayerClient>(
+        std::make_unique<dataservice::read::VersionedLayerClient>(
             hrn, kVersionedLayerId, client_settings);
     auto thread =
         std::thread(ClientThread, i, std::move(service_client), sleep_interval,
