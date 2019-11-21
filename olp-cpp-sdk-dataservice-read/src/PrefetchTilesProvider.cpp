@@ -28,7 +28,6 @@
 #include "olp/dataservice/read/PrefetchTileResult.h"
 #include "olp/dataservice/read/PrefetchTilesRequest.h"
 
-#include "repositories/ApiRepository.h"
 #include "repositories/CatalogRepository.h"
 #include "repositories/DataRepository.h"
 #include "repositories/ExecuteOrSchedule.inl"
@@ -45,16 +44,13 @@ constexpr auto kLogTag = "PrefetchTilesProvider";
 using namespace olp::client;
 
 PrefetchTilesProvider::PrefetchTilesProvider(
-    const HRN& /*hrn*/, std::string layer_id,
-    std::shared_ptr<repository::ApiRepository> apiRepo,
+    const HRN& hrn, std::string layer_id,
     std::shared_ptr<repository::CatalogRepository> catalogRepo,
-    std::shared_ptr<repository::DataRepository> dataRepo,
     std::shared_ptr<repository::PrefetchTilesRepository> prefetchTilesRepo,
     std::shared_ptr<olp::client::OlpClientSettings> settings)
-    : apiRepo_(std::move(apiRepo)),
+    : hrn_(hrn),
       layer_id_(std::move(layer_id)),
       catalogRepo_(std::move(catalogRepo)),
-      dataRepo_(std::move(dataRepo)),
       prefetchTilesRepo_(std::move(prefetchTilesRepo)),
       settings_(std::move(settings)) {
   prefetchProviderBusy_ = std::make_shared<std::atomic_bool>(false);
@@ -88,11 +84,11 @@ client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
     completionCallback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
   };
 
-  auto apiRepo = apiRepo_;
   auto catalogRepo = catalogRepo_;
-  auto dataRepo = dataRepo_;
   auto prefetchTilesRepo = prefetchTilesRepo_;
   auto layer_id = layer_id_;
+  auto hrn = hrn_;
+  auto settings = settings_;
 
   // Get the catalog (and layers) config
   CatalogRequest catalogRequest;
@@ -193,8 +189,8 @@ client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
                                 // Query for each of the tiles' data handle (or
                                 // just embedded data)
                                 QueryDataForEachSubTile(
-                                    cancel_context, dataRepo, request,
-                                    layerType, response.GetResult(),
+                                    hrn, layer_id, settings, cancel_context,
+                                    request, layerType, response.GetResult(),
                                     completionCallback);
                               });
                         });
@@ -209,8 +205,9 @@ client::CancellationToken PrefetchTilesProvider::PrefetchTiles(
 }
 
 void PrefetchTilesProvider::QueryDataForEachSubTile(
+    client::HRN hrn_, std::string layer_id_,
+    std::shared_ptr<olp::client::OlpClientSettings> settings_,
     std::shared_ptr<client::CancellationContext> cancel_context,
-    std::shared_ptr<repository::DataRepository> dataRepo,
     const PrefetchTilesRequest& request, const std::string& layerType,
     const repository::SubTilesResult& subtiles,
     const PrefetchTilesResponseCallback& callback) {
@@ -218,38 +215,40 @@ void PrefetchTilesProvider::QueryDataForEachSubTile(
                       subtiles.size());
 
   std::vector<std::future<std::shared_ptr<PrefetchTileResult>>> futures;
+  std::vector<client::CancellationContext> cancelation_contexts;
+
+  futures.reserve(subtiles.size());
+  cancelation_contexts.reserve(subtiles.size());
 
   // Query for each of the tiles' data
   for (auto subtile : subtiles) {
+    client::CancellationContext context;
     futures.push_back(std::async([=]() {
-      // Check for embedded data
-      if (repository::DataRepository::IsInlineData(subtile.second)) {
+      DataRequest dataRequest;
+      dataRequest.WithDataHandle(subtile.second)
+          .WithBillingTag(request.GetBillingTag());
+
+      auto response = repository::DataRepository::GetVersionedData(
+          hrn_, layer_id_, dataRequest, context, *settings_);
+
+      if (response.IsSuccessful()) {
         return std::make_shared<PrefetchTileResult>(subtile.first,
                                                     PrefetchTileNoError());
       } else {
-        DataRequest dataRequest;
-        dataRequest.WithDataHandle(subtile.second)
-            .WithBillingTag(request.GetBillingTag());
-
-        auto p = std::make_shared<
-            std::promise<std::shared_ptr<PrefetchTileResult>>>();
-
-        auto dataCallback = [=](DataResponse response) {
-          // add Tile response.
-          std::shared_ptr<PrefetchTileResult> r;
-          if (!response.IsSuccessful()) {
-            p->set_value(std::make_shared<PrefetchTileResult>(
-                subtile.first, response.GetError()));
-          } else {
-            p->set_value(std::make_shared<PrefetchTileResult>(
-                subtile.first, PrefetchTileNoError()));
-          }
-        };
-        dataRepo->GetData(cancel_context, layerType, dataRequest, dataCallback);
-        return p->get_future().get();
+        return std::make_shared<PrefetchTileResult>(subtile.first,
+                                                    response.GetError());
       }
     }));
+    cancelation_contexts.emplace_back(std::move(context));
   }
+
+  cancel_context->ExecuteOrCancelled([cancelation_contexts]() {
+    return client::CancellationToken([cancelation_contexts]() {
+      for (auto context : cancelation_contexts) {
+        context.CancelOperation();
+      }
+    });
+  });
 
   auto result = std::make_shared<PrefetchTilesResult>();
   for (auto& f : futures) {

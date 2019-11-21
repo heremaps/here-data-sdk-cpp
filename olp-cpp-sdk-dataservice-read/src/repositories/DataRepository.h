@@ -40,21 +40,6 @@ class DataCacheRepository;
 
 class DataRepository final {
  public:
-  DataRepository(const client::HRN& hrn, std::string layer_id,
-                 std::shared_ptr<ApiRepository> apiRepo,
-                 std::shared_ptr<CatalogRepository> catalogRepo,
-                 std::shared_ptr<PartitionsRepository> partitionsRepo,
-                 std::shared_ptr<cache::KeyValueCache> cache);
-
-  ~DataRepository() = default;
-
-  client::CancellationToken GetData(const read::DataRequest& request,
-                                    const read::DataResponseCallback& callback);
-
-  void GetData(std::shared_ptr<client::CancellationContext> cancellationContext,
-               const std::string& layerType, const read::DataRequest& request,
-               const read::DataResponseCallback& callback);
-
   static DataResponse GetVersionedData(const client::HRN& catalog,
                                        const std::string& layer_id,
                                        DataRequest data_request,
@@ -72,18 +57,6 @@ class DataRepository final {
       const std::string& service, const DataRequest& data_request,
       client::CancellationContext cancellation_context,
       client::OlpClientSettings settings);
-
-  static bool IsInlineData(const std::string& dataHandle);
-
- private:
-  client::HRN hrn_;
-  std::string layer_id_;
-  std::shared_ptr<ApiRepository> apiRepo_;
-  std::shared_ptr<CatalogRepository> catalogRepo_;
-  std::shared_ptr<PartitionsRepository> partitionsRepo_;
-  std::shared_ptr<DataCacheRepository> cache_;
-  std::shared_ptr<PartitionsCacheRepository> partitionsCache_;
-  std::shared_ptr<MultiRequestContext<read::DataResponse>> multiRequestContext_;
 };
 }  // namespace repository
 }  // namespace read

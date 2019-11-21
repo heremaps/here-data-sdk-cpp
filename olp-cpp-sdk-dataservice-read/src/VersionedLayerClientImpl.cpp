@@ -67,16 +67,12 @@ VersionedLayerClientImpl::VersionedLayerClientImpl(
   partition_repo_ = std::make_shared<repository::PartitionsRepository>(
       catalog_, layer_id_, api_repo, catalog_repo, settings_->cache);
 
-  auto data_repo = std::make_shared<repository::DataRepository>(
-      catalog_, layer_id_, api_repo, catalog_repo, partition_repo_,
-      settings_->cache);
-
   auto prefetch_repo = std::make_shared<repository::PrefetchTilesRepository>(
       catalog_, layer_id_, api_repo,
       partition_repo_->GetPartitionsCacheRepository(), settings_);
 
   prefetch_provider_ = std::make_shared<PrefetchTilesProvider>(
-      catalog_, layer_id_, api_repo, catalog_repo, data_repo, prefetch_repo,
+      catalog_, layer_id_, catalog_repo, prefetch_repo,
       settings_);
 }
 

@@ -35,16 +35,13 @@ namespace read {
 namespace repository {
 class ApiRepository;
 class CatalogRepository;
-class DataRepository;
 }  // namespace repository
 
 class PrefetchTilesProvider final {
  public:
   PrefetchTilesProvider(
       const client::HRN& hrn, std::string layer_id,
-      std::shared_ptr<repository::ApiRepository> apiRepo,
       std::shared_ptr<repository::CatalogRepository> catalogRepo,
-      std::shared_ptr<repository::DataRepository> dataRepo,
       std::shared_ptr<repository::PrefetchTilesRepository> prefetchTilesRepo,
       std::shared_ptr<olp::client::OlpClientSettings> settings);
   /**
@@ -68,20 +65,20 @@ class PrefetchTilesProvider final {
       const PrefetchTilesResponseCallback& callback);
 
   static void QueryDataForEachSubTile(
+      client::HRN hrn_, std::string layer_id_,
+      std::shared_ptr<olp::client::OlpClientSettings> settings_,
       std::shared_ptr<client::CancellationContext> cancel_context,
-      std::shared_ptr<repository::DataRepository> dataRepo,
       const PrefetchTilesRequest& prefetchRequest, const std::string& layerType,
       const repository::SubTilesResult& results,
       const PrefetchTilesResponseCallback& callback);
 
  private:
+  const client::HRN hrn_;
+  const std::string layer_id_;
   std::shared_ptr<std::atomic_bool> prefetchProviderBusy_;
-  std::shared_ptr<repository::ApiRepository> apiRepo_;
   std::shared_ptr<repository::CatalogRepository> catalogRepo_;
-  std::shared_ptr<repository::DataRepository> dataRepo_;
   std::shared_ptr<repository::PrefetchTilesRepository> prefetchTilesRepo_;
   std::shared_ptr<olp::client::OlpClientSettings> settings_;
-  const std::string layer_id_;
 };
 
 }  // namespace read
