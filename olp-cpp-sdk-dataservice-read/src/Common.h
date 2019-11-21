@@ -20,7 +20,10 @@
 #pragma once
 
 #include <olp/core/client/CancellationToken.h>
+#include <olp/core/client/PendingRequests.h>
+#include <olp/core/thread/TaskScheduler.h>
 #include <olp/dataservice/read/FetchOptions.h>
+#include "repositories/ExecuteOrSchedule.inl"
 
 namespace olp {
 namespace dataservice {
@@ -56,6 +59,35 @@ inline client::CancellationToken ScheduleFetch(TaskScheduler&& schedule_task,
 
   return schedule_task(std::forward<Request>(request),
                        std::forward<Callback>(callback));
+}
+
+/*
+ * @brief Common function used to wrap a lambda function and a callback that
+ * consumes the function result with a TaskContext class and schedule this to a
+ * task scheduler.
+ * @param task_scheduler Task scheduler instance.
+ * @param pending_requests PendingRequests instance that tracks current
+ * requests.
+ * @param task Function that will be executed.
+ * @param callback Function that will consume task output.
+ * @param args Additional agrs to pass to TaskContext.
+ * @return CancellationToken used to cancel the operation.
+ */
+template <typename Function, typename Callback, typename... Args>
+inline client::CancellationToken AddTask(
+    const std::shared_ptr<thread::TaskScheduler>& task_scheduler,
+    const std::shared_ptr<client::PendingRequests>& pending_requests,
+    Function task, Callback callback, Args&&... args) {
+  auto context = client::TaskContext::Create(
+      std::move(task), std::move(callback), std::forward<Args>(args)...);
+  pending_requests->Insert(context);
+
+  repository::ExecuteOrSchedule(task_scheduler, [=] {
+    context.Execute();
+    pending_requests->Remove(context);
+  });
+
+  return context.CancelToken();
 }
 
 }  // namespace read

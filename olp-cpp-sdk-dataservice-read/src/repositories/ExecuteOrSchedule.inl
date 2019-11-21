@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+#pragma once
+
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/thread/TaskScheduler.h>
 
@@ -25,11 +27,9 @@ namespace dataservice {
 namespace read {
 namespace repository {
 
-namespace {
-
 using CallFuncType = thread::TaskScheduler::CallFuncType;
 
-void ExecuteOrSchedule(
+inline void ExecuteOrSchedule(
     const std::shared_ptr<thread::TaskScheduler>& task_scheduler,
     CallFuncType&& func) {
   if (!task_scheduler) {
@@ -40,13 +40,11 @@ void ExecuteOrSchedule(
   }
 }
 
-void ExecuteOrSchedule(const client::OlpClientSettings* settings,
-                       CallFuncType&& func) {
+inline void ExecuteOrSchedule(const client::OlpClientSettings* settings,
+                              CallFuncType&& func) {
   ExecuteOrSchedule(settings ? settings->task_scheduler : nullptr,
                     std::move(func));
 }
-
-}  // namespace
 
 }  // namespace repository
 }  // namespace read
