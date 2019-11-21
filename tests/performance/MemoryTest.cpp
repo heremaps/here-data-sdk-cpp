@@ -70,7 +70,8 @@ class MemoryTest : public ::testing::TestWithParam<TestConfiguration> {
 
   olp::http::NetworkProxySettings GetLocalhostProxySettings() {
     return olp::http::NetworkProxySettings()
-        .WithHostname("http://localhost:3000")
+        .WithHostname("localhost")
+        .WithPort(3000)
         .WithUsername("test_user")
         .WithPassword("test_password")
         .WithType(olp::http::NetworkProxySettings::Type::HTTP);
