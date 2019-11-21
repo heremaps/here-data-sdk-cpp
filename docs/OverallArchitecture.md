@@ -113,8 +113,8 @@ Feature                          |  Status
 ---------------------------------|--------------
 Reading from versioned layer     | Implemented
 Reading from volatile layer      | Implemented
-Reading from stream layer        | Implemented
-Reading from indexed layer       | Implemented
+Reading from stream layer        | Planned
+Reading from indexed layer       | Planned
 API Lookup Service               | Implemented
 Get catalog and layer configuration | Implemented
 Get partition metadata for all partitions | Implemented
