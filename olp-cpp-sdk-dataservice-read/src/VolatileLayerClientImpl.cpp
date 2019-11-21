@@ -78,7 +78,6 @@ client::CancellationToken VolatileLayerClientImpl::GetPartitions(
     auto catalog = catalog_;
     auto layer_id = layer_id_;
     auto settings = *settings_;
-    auto pending_requests = pending_requests_;
 
     auto data_task = [=](client::CancellationContext context) {
       return repository::PartitionsRepository::GetVolatilePartitions(
@@ -86,17 +85,8 @@ client::CancellationToken VolatileLayerClientImpl::GetPartitions(
           std::move(request), std::move(settings));
     };
 
-    auto context =
-        client::TaskContext::Create(std::move(data_task), std::move(callback));
-
-    pending_requests->Insert(context);
-
-    repository::ExecuteOrSchedule(task_scheduler_, [=]() {
-      context.Execute();
-      pending_requests->Remove(context);
-    });
-
-    return context.CancelToken();
+    return AddTask(task_scheduler_, pending_requests_, std::move(data_task),
+                   std::move(callback));
   };
 
   return ScheduleFetch(std::move(schedule_get_partitions), std::move(request),
@@ -120,24 +110,14 @@ client::CancellationToken VolatileLayerClientImpl::GetData(
     auto catalog = catalog_;
     auto layer_id = layer_id_;
     auto settings = *settings_;
-    auto pending_requests = pending_requests_;
 
-    auto data_task = [=](client::CancellationContext context) {
+    auto partitions_task = [=](client::CancellationContext context) {
       return repository::DataRepository::GetVolatileData(
           catalog, layer_id, request, context, settings);
     };
 
-    auto context =
-        client::TaskContext::Create(std::move(data_task), std::move(callback));
-
-    pending_requests->Insert(context);
-
-    repository::ExecuteOrSchedule(task_scheduler_, [=]() {
-      context.Execute();
-      pending_requests->Remove(context);
-    });
-
-    return context.CancelToken();
+    return AddTask(task_scheduler_, pending_requests_,
+                   std::move(partitions_task), std::move(callback));
   };
 
   return ScheduleFetch(std::move(schedule_get_data), std::move(request),

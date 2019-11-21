@@ -71,25 +71,15 @@ CancellationToken CatalogClientImpl::GetCatalog(
                                   CatalogResponseCallback callback) {
     auto catalog = catalog_;
     auto settings = settings_;
-    auto pending_requests = pending_requests_;
 
-    auto data_task = [=](client::CancellationContext context) {
+    auto get_catalog_task = [=](client::CancellationContext context) {
       return repository::CatalogRepository::GetCatalog(
           std::move(catalog), std::move(context), std::move(request),
           std::move(settings));
     };
 
-    auto context =
-        client::TaskContext::Create(std::move(data_task), std::move(callback));
-
-    pending_requests->Insert(context);
-
-    repository::ExecuteOrSchedule(task_scheduler_, [=]() {
-      context.Execute();
-      pending_requests->Remove(context);
-    });
-
-    return context.CancelToken();
+    return AddTask(task_scheduler_, pending_requests_,
+                   std::move(get_catalog_task), std::move(callback));
   };
 
   return ScheduleFetch(std::move(schedule_get_catalog), std::move(request),
@@ -98,11 +88,13 @@ CancellationToken CatalogClientImpl::GetCatalog(
 
 CancellableFuture<CatalogResponse> CatalogClientImpl::GetCatalog(
     CatalogRequest request) {
-  return AsFuture<CatalogRequest, CatalogResponse>(
-      std::move(request),
-      static_cast<client::CancellationToken (CatalogClientImpl::*)(
-          CatalogRequest, CatalogResponseCallback)>(
-          &CatalogClientImpl::GetCatalog));
+  auto promise = std::make_shared<std::promise<CatalogResponse>>();
+  auto cancel_token =
+      GetCatalog(std::move(request), [promise](CatalogResponse response) {
+        promise->set_value(std::move(response));
+      });
+  return client::CancellableFuture<CatalogResponse>(std::move(cancel_token),
+                                                    std::move(promise));
 }
 
 CancellationToken CatalogClientImpl::GetLatestVersion(
@@ -112,25 +104,15 @@ CancellationToken CatalogClientImpl::GetLatestVersion(
                                          CatalogVersionCallback callback) {
     auto catalog = catalog_;
     auto settings = settings_;
-    auto pending_requests = pending_requests_;
 
-    auto data_task = [=](client::CancellationContext context) {
+    auto get_latest_version_task = [=](client::CancellationContext context) {
       return repository::CatalogRepository::GetLatestVersion(
           std::move(catalog), std::move(context), std::move(request),
           std::move(settings));
     };
 
-    auto context =
-        client::TaskContext::Create(std::move(data_task), std::move(callback));
-
-    pending_requests->Insert(context);
-
-    repository::ExecuteOrSchedule(task_scheduler_, [=]() {
-      context.Execute();
-      pending_requests->Remove(context);
-    });
-
-    return context.CancelToken();
+    return AddTask(task_scheduler_, pending_requests_,
+                   std::move(get_latest_version_task), std::move(callback));
   };
 
   return ScheduleFetch(std::move(schedule_get_latest_version),
@@ -139,11 +121,13 @@ CancellationToken CatalogClientImpl::GetLatestVersion(
 
 CancellableFuture<CatalogVersionResponse> CatalogClientImpl::GetLatestVersion(
     CatalogVersionRequest request) {
-  return AsFuture<CatalogVersionRequest, CatalogVersionResponse>(
-      std::move(request),
-      static_cast<client::CancellationToken (CatalogClientImpl::*)(
-          CatalogVersionRequest, CatalogVersionCallback)>(
-          &CatalogClientImpl::GetLatestVersion));
+  auto promise = std::make_shared<std::promise<CatalogVersionResponse>>();
+  auto cancel_token = GetLatestVersion(
+      std::move(request), [promise](CatalogVersionResponse response) {
+        promise->set_value(std::move(response));
+      });
+  return client::CancellableFuture<CatalogVersionResponse>(
+      std::move(cancel_token), std::move(promise));
 }
 }  // namespace read
 }  // namespace dataservice

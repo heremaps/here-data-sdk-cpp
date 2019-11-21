@@ -72,21 +72,6 @@ class CatalogClientImpl final {
   client::OlpClientSettings settings_;
   std::shared_ptr<thread::TaskScheduler> task_scheduler_;
   std::shared_ptr<client::PendingRequests> pending_requests_;
-
-  template <typename Request, typename Response>
-  client::CancellableFuture<Response> AsFuture(
-      const Request& request, std::function<client::CancellationToken(
-                                  CatalogClientImpl*, const Request&,
-                                  const std::function<void(Response)>&)>
-                                  func) {
-    auto promise = std::make_shared<std::promise<Response> >();
-
-    auto cancel_token = func(this, request, [promise](Response response) {
-      promise->set_value(response);
-    });
-
-    return client::CancellableFuture<Response>(cancel_token, promise);
-  }
 };
 
 }  // namespace read

@@ -96,24 +96,14 @@ client::CancellationToken VersionedLayerClientImpl::GetPartitions(
     auto catalog = catalog_;
     auto layer_id = layer_id_;
     auto settings = *settings_;
-    auto pending_requests = pending_requests_;
 
     auto partitions_task = [=](client::CancellationContext context) {
       return repository::PartitionsRepository::GetVersionedPartitions(
           catalog, layer_id, context, std::move(request), settings);
     };
 
-    auto context = client::TaskContext::Create(std::move(partitions_task),
-                                               std::move(callback));
-
-    pending_requests->Insert(context);
-
-    repository::ExecuteOrSchedule(task_scheduler_, [=]() {
-      context.Execute();
-      pending_requests->Remove(context);
-    });
-
-    return context.CancelToken();
+    return AddTask(task_scheduler_, pending_requests_,
+                   std::move(partitions_task), std::move(callback));
   };
 
   return ScheduleFetch(std::move(schedule_get_partitions), std::move(request),
@@ -138,25 +128,15 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
     auto catalog = catalog_;
     auto layer_id = layer_id_;
     auto settings = *settings_;
-    auto pending_requests = pending_requests_;
-
+    
     auto data_task = [=](client::CancellationContext context) {
       return repository::DataRepository::GetVersionedData(
           std::move(catalog), std::move(layer_id), std::move(request), context,
           std::move(settings));
     };
 
-    auto context =
-        client::TaskContext::Create(std::move(data_task), std::move(callback));
-
-    pending_requests->Insert(context);
-
-    repository::ExecuteOrSchedule(task_scheduler_, [=]() {
-      context.Execute();
-      pending_requests->Remove(context);
-    });
-
-    return context.CancelToken();
+    return AddTask(task_scheduler_, pending_requests_, std::move(data_task),
+                   std::move(callback));
   };
   return ScheduleFetch(std::move(schedule_get_data), std::move(request),
                        std::move(callback));
