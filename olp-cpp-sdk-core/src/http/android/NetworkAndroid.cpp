@@ -84,10 +84,9 @@ Java_com_here_olp_network_HttpClient_headersCallback(JNIEnv* env, jobject obj,
                                                      jobjectArray headers) {
   auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
   if (!network) {
-    OLP_SDK_LOG_WARNING(kLogTag,
-                        "headersCallback with id="
-                            << request_id
-                            << " to non-existing NetworkAndroid instance");
+    OLP_SDK_LOG_WARNING(
+        kLogTag, "HeadersCallback failed - network is invalid, request_id="
+                     << request_id);
     return;
   }
   network->HeadersCallback(env, request_id, headers);
@@ -101,10 +100,10 @@ Java_com_here_olp_network_HttpClient_dateAndOffsetCallback(
     JNIEnv* env, jobject obj, jlong request_id, jlong date, jlong offset) {
   auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
   if (!network) {
-    OLP_SDK_LOG_WARNING(kLogTag,
-                        "dateAndOffsetCallback with id="
-                            << request_id
-                            << " to non-existing NetworkAndroid instance");
+    OLP_SDK_LOG_WARNING(
+        kLogTag,
+        "DateAndOffsetCallback failed - network is invalid, request_id="
+            << request_id);
     return;
   }
   network->DateAndOffsetCallback(env, request_id, date, offset);
@@ -121,8 +120,7 @@ Java_com_here_olp_network_HttpClient_dataCallback(JNIEnv* env, jobject obj,
   if (!network) {
     OLP_SDK_LOG_WARNING(
         kLogTag,
-        "dataCallback with id=" << request_id
-                                << " to non-existing NetworkAndroid isntance");
+        "DataCallback failed - network is invalid, request_id=" << request_id);
     return;
   }
   network->DataReceived(env, request_id, data, len);
@@ -138,10 +136,9 @@ Java_com_here_olp_network_HttpClient_completeRequest(JNIEnv* env, jobject obj,
                                                      jstring content_type) {
   auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
   if (!network) {
-    OLP_SDK_LOG_WARNING(kLogTag,
-                        "completeRequest with id="
-                            << request_id
-                            << " to non-existing NetworkAndroid instance");
+    OLP_SDK_LOG_WARNING(
+        kLogTag, "CompleteRequest failed - network is invalid, request_id="
+                     << request_id);
     return;
   }
   network->CompleteRequest(env, request_id, status, error, content_type);
@@ -157,8 +154,7 @@ Java_com_here_olp_network_HttpClient_resetRequest(JNIEnv* env, jobject obj,
   if (!network) {
     OLP_SDK_LOG_WARNING(
         kLogTag,
-        "resetRequest id=" << request_id
-                           << " to non-existing NetworkAndroid instance");
+        "ResetRequest failed - network is invalid, request_id=" << request_id);
     return;
   }
   network->ResetRequest(env, request_id);
@@ -171,14 +167,20 @@ NetworkAndroid::NetworkAndroid(size_t max_requests_count)
       obj_(nullptr),
       started_(false),
       initialized_(false),
-      max_requests_count_(max_requests_count) {}
+      max_requests_count_(max_requests_count) {
+  OLP_SDK_LOG_TRACE(kLogTag, "Created NetworkAndroid, this="
+                                 << this
+                                 << ", requests_count=" << max_requests_count);
+}
 
-NetworkAndroid::~NetworkAndroid() { Deinitialize(); }
+NetworkAndroid::~NetworkAndroid() {
+  OLP_SDK_LOG_TRACE(kLogTag, "Destroyed NetworkAndroid, this=" << this);
+  Deinitialize();
+}
 
 void NetworkAndroid::SetJavaVM(JavaVM* vm, jobject application) {
   if (gJavaVM != nullptr) {
-    OLP_SDK_LOG_DEBUG(kLogTag,
-                      "setJavaVM previously called, no need to set it now");
+    OLP_SDK_LOG_DEBUG(kLogTag, "SetJavaVM is already set");
     return;
   }
 
@@ -187,15 +189,14 @@ void NetworkAndroid::SetJavaVM(JavaVM* vm, jobject application) {
   JNIEnv* env;
   if (gJavaVM->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) !=
       JNI_OK) {
-    OLP_SDK_LOG_ERROR(kLogTag, "setJavaVm failed to get Java Env");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get JNIEnv");
     return;
   }
 
   // Find the ClassLoader java class
   jclass application_class = env->GetObjectClass(application);
   if (!application_class || env->ExceptionOccurred()) {
-    OLP_SDK_LOG_ERROR(
-        kLogTag, "Failed to get the java class for the application object");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get application's java class");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return;
@@ -213,7 +214,7 @@ void NetworkAndroid::SetJavaVM(JavaVM* vm, jobject application) {
   jobject class_loader =
       env->CallObjectMethod(application, java_get_class_loader_method);
   if (env->ExceptionOccurred()) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get getClassLoader");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed during call to getClassLoader");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return;
@@ -222,7 +223,7 @@ void NetworkAndroid::SetJavaVM(JavaVM* vm, jobject application) {
 
   jclass class_loader_class = env->FindClass("java/lang/ClassLoader");
   if (env->ExceptionOccurred()) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Failed to find getClassLoader");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to find ClassLoader");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return;
@@ -241,7 +242,7 @@ void NetworkAndroid::SetJavaVM(JavaVM* vm, jobject application) {
   // Find the java.lang.String class
   jstring string_class_name = env->NewStringUTF("java/lang/String");
   if (env->ExceptionOccurred()) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Failed to create class name string");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to create String class name");
     env->ExceptionDescribe();
     env->ExceptionClear();
     return;
@@ -268,19 +269,23 @@ bool NetworkAndroid::Initialize() {
   }
 
   if (!gJavaVM) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Can't initialize NetworkAndroid - no Java VM");
+    OLP_SDK_LOG_ERROR(kLogTag, "Initialize failed - no Java VM, this=" << this);
     return false;
   }
 
   if (!gClassLoader || !gFindClassMethod || !gStringClass) {
-    OLP_SDK_LOG_ERROR(kLogTag, "JNI methods are not initiliazed");
+    OLP_SDK_LOG_ERROR(
+        kLogTag,
+        "Initialize failed - JNI methods are not initiliazed, this=" << this);
     return false;
   }
 
   utils::JNIThreadBinder binder(gJavaVM);
   JNIEnv* env = binder.GetEnv();
   if (env == nullptr) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get JNIEnv ojbect");
+    OLP_SDK_LOG_ERROR(
+        kLogTag,
+        "Initialize failed - can't retrieve JNIEnv ojbect, this=" << this);
     return false;
   }
 
@@ -288,7 +293,9 @@ bool NetworkAndroid::Initialize() {
   jstring network_class_name =
       env->NewStringUTF("com/here/olp/network/HttpClient");
   if (env->ExceptionOccurred()) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Failed to create class name string");
+    OLP_SDK_LOG_ERROR(
+        kLogTag,
+        "Initialize failed - couldn't create HttpClient string, this=" << this);
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -297,7 +304,9 @@ bool NetworkAndroid::Initialize() {
   jclass network_class = (jclass)(env->CallObjectMethod(
       gClassLoader, gFindClassMethod, network_class_name));
   if (env->ExceptionOccurred()) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get HttpClient");
+    OLP_SDK_LOG_ERROR(
+        kLogTag,
+        "Initialize failed - can't get HttpClient class, this=" << this);
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -309,7 +318,9 @@ bool NetworkAndroid::Initialize() {
   // Get shutdown method
   java_shutdown_method_ = env->GetMethodID(java_self_class_, "shutdown", "()V");
   if (env->ExceptionOccurred()) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get HttpClient.shutdown");
+    OLP_SDK_LOG_ERROR(
+        kLogTag,
+        "Initialize failed - can't get HttpClient.shutdown, this=" << this);
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -318,7 +329,9 @@ bool NetworkAndroid::Initialize() {
   jmethodID java_init_method =
       env->GetMethodID(java_self_class_, "<init>", "()V");
   if (env->ExceptionOccurred()) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get HttpClient.HttpClient");
+    OLP_SDK_LOG_ERROR(
+        kLogTag,
+        "Initialize failed - can't get HttpClient ctor, this=" << this);
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -326,7 +339,9 @@ bool NetworkAndroid::Initialize() {
 
   jobject obj = env->NewObject(java_self_class_, java_init_method);
   if (env->ExceptionOccurred()) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Failed to create HttpClient");
+    OLP_SDK_LOG_ERROR(
+        kLogTag,
+        "Initialize failed - failed to create HttpClient, this=" << this);
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -341,7 +356,9 @@ bool NetworkAndroid::Initialize() {
       "here/olp/network/HttpClient$HttpTask;");
 
   if (env->ExceptionOccurred()) {
-    OLP_SDK_LOG_ERROR(kLogTag, "initialize failed to get HttpClient::send");
+    OLP_SDK_LOG_ERROR(
+        kLogTag,
+        "Initialize failed - can't get HttpClient.send, this=" << this);
     env->ExceptionDescribe();
     env->ExceptionClear();
     return false;
@@ -351,8 +368,9 @@ bool NetworkAndroid::Initialize() {
   if (!gJniNativePtrField) {
     gJniNativePtrField = env->GetFieldID(java_self_class_, "nativePtr", "J");
     if (env->ExceptionOccurred()) {
-      OLP_SDK_LOG_ERROR(kLogTag,
-                        "initialize failed to get HttpClient.nativePtr");
+      OLP_SDK_LOG_ERROR(
+          kLogTag,
+          "Initialize failed - can't get HttpClient.nativePtr, this=" << this);
       env->ExceptionDescribe();
       env->ExceptionClear();
       return false;
@@ -377,7 +395,9 @@ bool NetworkAndroid::Initialize() {
     env->RegisterNatives(java_self_class_, methods,
                          sizeof(methods) / sizeof(methods[0]));
     if (env->ExceptionOccurred()) {
-      OLP_SDK_LOG_ERROR(kLogTag, "Failed to register native methods");
+      OLP_SDK_LOG_ERROR(
+          kLogTag,
+          "Initialize failed - can't register native methods, this=" << this);
       env->ExceptionDescribe();
       env->ExceptionClear();
       return false;
@@ -407,6 +427,9 @@ void NetworkAndroid::Deinitialize() {
     started_ = false;
     initialized_ = false;
   }
+
+  OLP_SDK_LOG_TRACE(kLogTag, "Deinitialize network, this=" << this);
+
   run_thread_ready_cv_.notify_all();
 
   // Finish run thread:
@@ -418,7 +441,8 @@ void NetworkAndroid::Deinitialize() {
   // Cancel all pending requests
   utils::JNIThreadBinder env(gJavaVM);
   if (env.GetEnv() == nullptr) {
-    OLP_SDK_LOG_ERROR(kLogTag, "deinitialize failed to get Java Env");
+    OLP_SDK_LOG_ERROR(
+        kLogTag, "Deinitialize failed - can't get Java Env, this=" << this);
     return;
   }
 
@@ -473,20 +497,23 @@ void NetworkAndroid::Deinitialize() {
   if (completion) {
     if (completion->ready.get_future().wait_for(std::chrono::seconds(2)) !=
         std::future_status::ready) {
-      OLP_SDK_LOG_ERROR(kLogTag, "Pending requests not ready in 2 seconds");
+      OLP_SDK_LOG_WARNING(kLogTag,
+                          "Requests are not ready in 2 seconds, this=" << this);
     }
   }
 }
 
 void NetworkAndroid::DoCancel(JNIEnv* env, jobject object) {
   if (object == nullptr) {
-    OLP_SDK_LOG_ERROR(kLogTag, "HttpTask object is null");
+    OLP_SDK_LOG_ERROR(
+        kLogTag, "DoCancel failed - HttpTask object is null, this=" << this);
     return;
   }
 
   jclass cls = env->GetObjectClass(object);
   if (env->ExceptionOccurred()) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get HttpTask");
+    OLP_SDK_LOG_ERROR(
+        kLogTag, "DoCancel failed - can't get HttpTask class, this=" << this);
     env->ExceptionDescribe();
     env->ExceptionClear();
     return;
@@ -494,7 +521,9 @@ void NetworkAndroid::DoCancel(JNIEnv* env, jobject object) {
 
   jmethodID mid = env->GetMethodID(cls, "cancelTask", "()V");
   if (env->ExceptionOccurred()) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Failed to get HttpTask.cancel");
+    OLP_SDK_LOG_ERROR(
+        kLogTag,
+        "DoCancel failed - can't get HttpTask.cancel method, this=" << this);
     env->ExceptionDescribe();
     env->ExceptionClear();
     env->DeleteLocalRef(cls);
@@ -504,7 +533,10 @@ void NetworkAndroid::DoCancel(JNIEnv* env, jobject object) {
 
   env->CallVoidMethod(object, mid);
   if (env->ExceptionOccurred()) {
-    OLP_SDK_LOG_ERROR(kLogTag, "HttpClient.Request.cancel failed");
+    OLP_SDK_LOG_ERROR(
+        kLogTag,
+        "DoCancel failed - HttpClient.Request.cancel call failed, this="
+            << this);
     env->ExceptionDescribe();
     env->ExceptionClear();
   }
@@ -534,7 +566,7 @@ void NetworkAndroid::HeadersCallback(JNIEnv* env, RequestId request_id,
       if (env->ExceptionOccurred()) {
         OLP_SDK_LOG_ERROR(
             kLogTag,
-            "Failed to get key of the header for request=" << request_id);
+            "Failed to get key of the header for request_id=" << request_id);
         env->ExceptionDescribe();
         env->ExceptionClear();
         return;
@@ -545,7 +577,7 @@ void NetworkAndroid::HeadersCallback(JNIEnv* env, RequestId request_id,
       if (env->ExceptionOccurred()) {
         OLP_SDK_LOG_ERROR(
             kLogTag,
-            "Failed to get value of the header for request=" << request_id);
+            "Failed to get value of the header for request_id=" << request_id);
         env->ExceptionDescribe();
         env->ExceptionClear();
         return;
@@ -590,12 +622,15 @@ void NetworkAndroid::DataReceived(JNIEnv* env, RequestId request_id,
 
     auto req = requests_.find(request_id);
     if (req == requests_.end()) {
-      OLP_SDK_LOG_ERROR(
-          kLogTag, "Data received to unknown request with id=" << request_id);
+      OLP_SDK_LOG_WARNING(
+          kLogTag, "DataReceived failed - unknown request_id=" << request_id);
       return;
     }
     request = req->second;
   }
+
+  OLP_SDK_LOG_TRACE(
+      kLogTag, "Received " << len << " bytes for request_id=" << request_id);
 
   jbyte* jdata = env->GetByteArrayElements(data, NULL);
   if (auto payload = request->payload) {
@@ -603,7 +638,7 @@ void NetworkAndroid::DataReceived(JNIEnv* env, RequestId request_id,
       payload->seekp(request->count);
       if (payload->fail()) {
         OLP_SDK_LOG_WARNING(
-            kLogTag, "Reception stream doesn't support setting write point");
+            kLogTag, "Payload seekp() failed, request_id=" << request_id);
         payload->clear();
       }
     }
@@ -626,13 +661,17 @@ void NetworkAndroid::CompleteRequest(JNIEnv* env, RequestId request_id,
   std::unique_lock<std::mutex> lock(requests_mutex_);
   auto iter_request = requests_.find(request_id);
   if (iter_request == requests_.end()) {
-    OLP_SDK_LOG_ERROR(
+    OLP_SDK_LOG_WARNING(
         kLogTag,
-        "Complete call is received to unknown request with id=" << request_id);
+        "CompleteRequest is received with unknown request_id=" << request_id);
     return;
   }
 
   auto request_data = iter_request->second;
+
+  OLP_SDK_LOG_DEBUG(kLogTag, "CompleteRequest, request_id="
+                                 << request_id << ", url=" << request_data->url
+                                 << ", status=" << status);
   // We don't need the object anymore
   env->DeleteGlobalRef(request_data->obj);
   request_data->obj = nullptr;
@@ -683,8 +722,8 @@ void NetworkAndroid::ResetRequest(JNIEnv* env, RequestId request_id) {
 
   auto req = requests_.find(request_id);
   if (req == requests_.end()) {
-    OLP_SDK_LOG_ERROR(kLogTag,
-                      "Reset of unknown request with id=" << request_id);
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "ResetRequest of unknown request_id=" << request_id);
     return;
   }
   req->second->Reinitialize();
@@ -699,7 +738,7 @@ jobjectArray NetworkAndroid::CreateExtraHeaders(
 
   jstring jempty_string = env->NewStringUTF("");
   if (!jempty_string || env->ExceptionOccurred()) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Failed to create an empty string");
+    OLP_SDK_LOG_WARNING(kLogTag, "Failed to create an empty string");
     return 0;
   }
 
@@ -709,7 +748,8 @@ jobjectArray NetworkAndroid::CreateExtraHeaders(
       header_count, gStringClass, jempty_string);
   if (!headers || env->ExceptionOccurred()) {
     env->DeleteLocalRef(jempty_string);
-    OLP_SDK_LOG_ERROR(kLogTag, "Failed to create string array for headers");
+    OLP_SDK_LOG_ERROR(
+        kLogTag, "Failed to allocate strings array count=" << header_count);
     return 0;
   }
   env->DeleteLocalRef(jempty_string);
@@ -717,18 +757,16 @@ jobjectArray NetworkAndroid::CreateExtraHeaders(
   for (size_t i = 0; i < extra_headers.size(); ++i) {
     jstring name = env->NewStringUTF(extra_headers[i].first.c_str());
     if (!name || env->ExceptionOccurred()) {
-      OLP_SDK_LOG_ERROR(kLogTag,
-                        "Failed to create extra header name string: index="
-                            << i << "; name=" << extra_headers[i].first);
+      OLP_SDK_LOG_ERROR(
+          kLogTag, "Failed to create header name=" << extra_headers[i].first);
       return 0;
     }
     utils::JNIScopedLocalReference name_ref(env, name);
 
     jstring value = env->NewStringUTF(extra_headers[i].second.c_str());
     if (!value || env->ExceptionOccurred()) {
-      OLP_SDK_LOG_ERROR(kLogTag,
-                        "Failed to create extra header value string: index="
-                            << i << "; value=" << extra_headers[i].second);
+      OLP_SDK_LOG_ERROR(
+          kLogTag, "Failed to create header value=" << extra_headers[i].second);
       return 0;
     }
     utils::JNIScopedLocalReference value_ref(env, value);
@@ -736,15 +774,13 @@ jobjectArray NetworkAndroid::CreateExtraHeaders(
     env->SetObjectArrayElement(headers, i * 2, name);
     if (env->ExceptionOccurred()) {
       OLP_SDK_LOG_ERROR(kLogTag,
-                        "Failed to set extra header value string: index="
-                            << i << "; name=" << extra_headers[i].first);
+                        "Failed to set header name=" << extra_headers[i].first);
       return 0;
     }
     env->SetObjectArrayElement(headers, i * 2 + 1, value);
     if (env->ExceptionOccurred()) {
       OLP_SDK_LOG_ERROR(
-          kLogTag, "Failed to set extra header value string: index="
-                       << i << "; value=" << extra_headers[i].second.c_str());
+          kLogTag, "Failed to set header value=" << extra_headers[i].second);
       return 0;
     }
   }
@@ -770,6 +806,8 @@ void NetworkAndroid::Run(NetworkAndroid* self) {
 }
 
 void NetworkAndroid::SelfRun() {
+  OLP_SDK_LOG_TRACE(kLogTag, "Worker thread start, this=" << this);
+
   {
     std::lock_guard<std::mutex> lock(responses_mutex_);
     started_ = true;
@@ -819,6 +857,8 @@ void NetworkAndroid::SelfRun() {
       }
     }
   }
+
+  OLP_SDK_LOG_TRACE(kLogTag, "Worker thread finish, this=" << this);
 }
 
 SendOutcome NetworkAndroid::Send(NetworkRequest request,
@@ -827,24 +867,23 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
                                  Network::HeaderCallback header_callback,
                                  Network::DataCallback data_callback) {
   if (!Initialize()) {
-    OLP_SDK_LOG_WARNING_F(
-        kLogTag,
-        "Can't send request with URL=[%s] - can't initialize NetworkAndroid",
-        request.GetUrl().c_str());
+    OLP_SDK_LOG_ERROR(
+        kLogTag, "Send failed - network is offline, url=" << request.GetUrl());
     return SendOutcome(ErrorCode::OFFLINE_ERROR);
   }
 
   utils::JNIThreadBinder env(gJavaVM);
   if (env.GetEnv() == nullptr) {
-    OLP_SDK_LOG_WARNING(kLogTag, "Failed to get Java Env");
+    OLP_SDK_LOG_ERROR(
+        kLogTag, "Send failed - invalid Java Env, url=" << request.GetUrl());
     return SendOutcome(ErrorCode::IO_ERROR);
   }
 
   // Convert the URL to jstring
   jstring jurl = env.GetEnv()->NewStringUTF(request.GetUrl().c_str());
   if (!jurl || env.GetEnv()->ExceptionOccurred()) {
-    OLP_SDK_LOG_WARNING_F(kLogTag, "Can't create a JNI String for URL=[%s]",
-                          request.GetUrl().c_str());
+    OLP_SDK_LOG_ERROR(kLogTag, "Send failed - can't create a JNI String, url="
+                                   << request.GetUrl());
     env.GetEnv()->ExceptionDescribe();
     env.GetEnv()->ExceptionClear();
     return SendOutcome(ErrorCode::IO_ERROR);
@@ -855,9 +894,8 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
   jobjectArray jheaders =
       CreateExtraHeaders(env.GetEnv(), request.GetHeaders());
   if (env.GetEnv()->ExceptionOccurred()) {
-    OLP_SDK_LOG_WARNING_F(
-        kLogTag, "Can't create a JNI Headers for request with URL=[%s]",
-        request.GetUrl().c_str());
+    OLP_SDK_LOG_ERROR(kLogTag, "Send failed - can't create JNI Headers, url="
+                                   << request.GetUrl());
     env.GetEnv()->ExceptionDescribe();
     env.GetEnv()->ExceptionClear();
     return SendOutcome(ErrorCode::IO_ERROR);
@@ -878,9 +916,8 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
 
     jbody = env.GetEnv()->NewByteArray(size);
     if (!jbody || env.GetEnv()->ExceptionOccurred()) {
-      OLP_SDK_LOG_WARNING_F(kLogTag,
-                            "Can't allocate array for request's body: URL=[%s]",
-                            request.GetUrl().c_str());
+      OLP_SDK_LOG_ERROR(kLogTag, "Send failed - can't allocate a body, url="
+                                     << request.GetUrl());
       env.GetEnv()->ExceptionDescribe();
       env.GetEnv()->ExceptionClear();
       return SendOutcome(ErrorCode::IO_ERROR);
@@ -899,9 +936,9 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
   if (is_proxy_valid) {
     jproxy = env.GetEnv()->NewStringUTF(proxy_settings.GetHostname().c_str());
     if (!jproxy || env.GetEnv()->ExceptionOccurred()) {
-      OLP_SDK_LOG_WARNING_F(
-          kLogTag, "Failed to create proxy string for request with URL=[%s]",
-          request.GetUrl().c_str());
+      OLP_SDK_LOG_ERROR(kLogTag, "Send failed - can't create a proxy, url="
+                                     << request.GetUrl() << ", proxy="
+                                     << proxy_settings.GetHostname());
       env.GetEnv()->ExceptionDescribe();
       env.GetEnv()->ExceptionClear();
       return SendOutcome(ErrorCode::IO_ERROR);
@@ -931,9 +968,8 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
     std::lock_guard<std::mutex> lock(requests_mutex_);
 
     if (requests_.size() >= max_requests_count_) {
-      OLP_SDK_LOG_WARNING_F(
-          kLogTag, "Can't send request with URL=[%s] - nework overload",
-          request.GetUrl().c_str());
+      OLP_SDK_LOG_WARNING(
+          kLogTag, "Send failed - network overload, url=" << request.GetUrl());
       return SendOutcome(ErrorCode::NETWORK_OVERLOAD_ERROR);
     }
 
@@ -947,8 +983,8 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
         jconnection_timeout, jtransfer_timeout, jheaders, jbody, jproxy,
         jproxy_port, jproxy_type, jmax_retries);
     if (env.GetEnv()->ExceptionOccurred() || !task_obj) {
-      OLP_SDK_LOG_WARNING_F(kLogTag, "Failed to send the request with URL=[%s]",
-                            request.GetUrl().c_str());
+      OLP_SDK_LOG_ERROR(
+          kLogTag, "Send failed - HttpClient error, url=" << request.GetUrl());
       env.GetEnv()->ExceptionDescribe();
       env.GetEnv()->ExceptionClear();
       requests_.erase(request_id);
@@ -967,8 +1003,8 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
 void NetworkAndroid::Cancel(RequestId request_id) {
   utils::JNIThreadBinder env(gJavaVM);
   if (env.GetEnv() == nullptr) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Failed to cancel request with id="
-                                   << request_id << " - invalid Java Env");
+    OLP_SDK_LOG_ERROR(
+        kLogTag, "Cancel failed - invalid Java Env, request_id=" << request_id);
     return;
   }
 
@@ -976,10 +1012,12 @@ void NetworkAndroid::Cancel(RequestId request_id) {
     std::unique_lock<std::mutex> lock(requests_mutex_);
     auto request_iter = requests_.find(request_id);
     if (request_iter == requests_.end()) {
-      OLP_SDK_LOG_WARNING(
-          kLogTag, "Can't cancel unknown request with id=" << request_id);
+      OLP_SDK_LOG_WARNING(kLogTag,
+                          "Cancel failed - unknown request_id=" << request_id);
       return;
     }
+
+    OLP_SDK_LOG_TRACE(kLogTag, "Cancel request with id=" << request_id);
 
     auto request = request_iter->second;
     DoCancel(env.GetEnv(), request->obj);
