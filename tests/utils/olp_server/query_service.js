@@ -27,6 +27,45 @@ function randomString(length) {
     return result;
 }
 
+function generateQuadKeyMetadata(key, version) {
+    return {
+        version: Math.floor(Math.random() * version),
+        subQuadKey: key.toString(),
+        dataHandle: randomString(35)
+    }
+}
+
+function generateQuadKeyMetadataParent(key, version) {
+    return {
+        version: Math.floor(Math.random() * version),
+        partition: key.toString(),
+        dataHandle: randomString(35)
+    }
+}
+
+function traverseKeyToRoot(key, version) {
+    key >>= 2;
+    let keys = [];
+    while (key > 1) {
+        keys.push(generateQuadKeyMetadataParent(key, version));
+        key >>= 2;
+    }
+    return keys;
+}
+
+function traverseKey(key, depth, depthLimit, version) {
+    if (depth <= depthLimit) {
+        let values = [];
+        values.push(generateQuadKeyMetadata(key, version));
+        values = values.concat(traverseKey((key << 2) + 0, depth + 1, depthLimit, version));
+        values = values.concat(traverseKey((key << 2) + 1, depth + 1, depthLimit, version));
+        values = values.concat(traverseKey((key << 2) + 2, depth + 1, depthLimit, version));
+        values = values.concat(traverseKey((key << 2) + 3, depth + 1, depthLimit, version));
+        return values;
+    }
+    return [];
+}
+
 function generatePartitions(requested_partitions, layer, version) {
     var partitions = []
     for (var i = 0; i < requested_partitions.length; i++) {
@@ -58,10 +97,25 @@ function generateGetPartitionsApiResponse(request, query) {
     }
 }
 
+function generateQueryTreeApiResponse(request, query) {
+    const version = request[2]
+    const key = request[3]
+    const depth = request[4]
+    
+    return {
+        subQuads: traverseKey(1, 0, depth, version),
+        parentQuads: traverseKeyToRoot(key, version)
+    }
+}
+
 const methods = [
 {
     regex: /layers\/(.+)\/partitions$/,
     handler: generateGetPartitionsApiResponse
+},
+{
+    regex: /layers\/(.+)\/versions\/(.+)\/quadkeys\/(.+)\/depths\/(\d{1})/,
+    handler: generateQueryTreeApiResponse
 }
 ]
 
