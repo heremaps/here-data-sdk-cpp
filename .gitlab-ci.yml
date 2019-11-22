@@ -6,6 +6,7 @@ variables:
 
 stages:
   - build
+  - test
   - translate_report
   - deploy
 
@@ -52,6 +53,29 @@ build_test_nv:
       - $CI_PROJECT_DIR
     expire_in: 1 year
 
+test_performance_nv:
+  stage: test
+  tags:
+  - docker-prod
+  image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_PERFORMANCE}:${DOCKER_IMAGE_PERFORMANCE_VERSION}
+  script:
+  - $CI_PROJECT_DIR/scripts/linux/nv/gitlab_test_performance.sh
+  only:
+    refs:
+      - master
+      - schedules
+    variables:
+      - $NIGHTLY
+  artifacts:
+    when: always
+    paths:
+      - ./*.gz
+      - ./*.html
+      - cache
+      - heaptrack
+      - reports
+    expire_in: 1 year
+
 upload_sonar_nv:
   stage: deploy
   tags:
@@ -65,11 +89,6 @@ upload_sonar_nv:
       - schedules
     variables:
       - $NIGHTLY
-  artifacts:
-    when: always
-    paths:
-      - reports
-    expire_in: 1 year
 
 translate_report:
   stage: translate_report
@@ -83,6 +102,7 @@ translate_report:
     # - python -m junit2htmlreport --merge olp-merged-report.xml reports/*.xml
     # - python -m junit2htmlreport olp-merged-report.xml
     - python -m junit2htmlreport --report-matrix reports/index.html reports/*.xml
+    - cat heaptrack_report.html >> reports/index.html
     - mkdir -p .public
     - cp reports/*.html .public/
   artifacts:
@@ -94,6 +114,7 @@ translate_report:
       - schedules
     variables:
       - $FULLY
+      - $NIGHTLY
 
 pages:
   stage: deploy
@@ -111,3 +132,4 @@ pages:
       - schedules
     variables:
       - $FULLY
+      - $NIGHTLY
