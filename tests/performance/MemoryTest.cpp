@@ -97,7 +97,10 @@ class MemoryTest : public ::testing::TestWithParam<TestConfiguration> {
 std::shared_ptr<olp::http::Network> MemoryTest::s_network;
 
 void MemoryTest::SetUpTestSuite() {
-  s_network = std::make_shared<olp::tests::http::Http2HttpNetworkWrapper>();
+  auto network = std::make_shared<olp::tests::http::Http2HttpNetworkWrapper>();
+  network->EnableErrors(true);
+  network->EnableTimeouts(true);
+  s_network = std::move(network);
 }
 
 void MemoryTest::TearDownTestSuite() { s_network.reset(); }

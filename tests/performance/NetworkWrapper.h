@@ -33,15 +33,14 @@ using namespace olp::http;
  */
 class Http2HttpNetworkWrapper : public Network {
  public:
+  Http2HttpNetworkWrapper()
+      : network_{std::move(olp::http::CreateDefaultNetwork(32))} {}
+
   SendOutcome Send(NetworkRequest request, Payload payload, Callback callback,
                    HeaderCallback header_callback = nullptr,
                    DataCallback data_callback = nullptr) override {
-    auto url = request.GetUrl();
-    auto pos = url.find("https");
-    if (pos != std::string::npos) {
-      url.replace(pos, 5, "http");
-      request.WithUrl(url);
-    }
+    ReplaceHttps2Http(request);
+    InsertDebugHeaders(request);
 
     return network_->Send(std::move(request), std::move(payload),
                           std::move(callback), std::move(header_callback),
@@ -50,10 +49,43 @@ class Http2HttpNetworkWrapper : public Network {
 
   void Cancel(RequestId id) override { network_->Cancel(id); }
 
-  Http2HttpNetworkWrapper()
-      : network_{std::move(olp::http::CreateDefaultNetwork(32))} {}
+  /*
+   * Adds special header, which signal mock server to generate timeouts and
+   * stalls when serving requests.
+   */
+  void EnableTimeouts(bool with_timeouts) { with_timeouts_ = with_timeouts; }
+
+  /*
+   * Adds special header, which signal mock server to generate errors when
+   * serving requests. Error rate is 10%.
+   */
+  void EnableErrors(bool with_errors) { with_errors_ = with_errors; }
 
  private:
+  static void ReplaceHttps2Http(NetworkRequest &request) {
+    auto url = request.GetUrl();
+    auto pos = url.find("https");
+    if (pos != std::string::npos) {
+      url.replace(pos, 5, "http");
+      request.WithUrl(url);
+    }
+  }
+
+  /*
+   * Note: headers with empty values are optimized out.
+   */
+  void InsertDebugHeaders(NetworkRequest &request) {
+    if (with_errors_) {
+      request.WithHeader("debug-with-errors", "Ok");
+    }
+
+    if (with_timeouts_) {
+      request.WithHeader("debug-with-timeouts", "Ok");
+    }
+  }
+
+  bool with_timeouts_ = false;
+  bool with_errors_ = false;
   std::shared_ptr<Network> network_;
 };
 }  // namespace http
