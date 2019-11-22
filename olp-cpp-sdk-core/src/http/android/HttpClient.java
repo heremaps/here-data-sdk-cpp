@@ -117,14 +117,14 @@ public class HttpClient {
         case 6:
         case 7:
           this.proxyType = Proxy.Type.SOCKS;
-          Log.e(
+          Log.w(
               LOGTAG,
               "HttpClient::Request(): Unsupported proxy version ("
                   + proxyType
                   + "). Falling back to SOCKS4(4)");
           break;
         default:
-          Log.e(
+          Log.w(
               LOGTAG,
               "HttpClient::Request(): Unsupported proxy version ("
                   + proxyType
