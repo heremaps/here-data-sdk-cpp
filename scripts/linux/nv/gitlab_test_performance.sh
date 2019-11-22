@@ -17,7 +17,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-ulimit -c unlimited # for core dump backtrace
+# For core dump backtrace
+ulimit -c unlimited
 
 # Start local server
 node tests/utils/olp_server/server.js & export SERVER_PID=$!
@@ -38,11 +39,46 @@ echo ">>> Local Server started for further performance test ... >>>"
 
 export cache_location="cache"
 
-heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*short_test_null_cache"
-heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*short_test_memory_cache"
-heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*short_test_disk_cache"
+echo ">>> Start performance tests ... >>>"
+heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*short_test_null_cache" 2>> errors.txt || TEST_FAILURE=1
+mv heaptrack.olp-cpp-sdk-performance-tests.*.gz short_test_null_cache.gz
+heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*short_test_memory_cache" 2>> errors.txt || TEST_FAILURE=1
+mv heaptrack.olp-cpp-sdk-performance-tests.*.gz short_test_memory_cache.gz
+heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*short_test_disk_cache" 2>> errors.txt || TEST_FAILURE=1
+mv heaptrack.olp-cpp-sdk-performance-tests.*.gz short_test_disk_cache.gz
+echo ">>> Finished performance tests . >>>"
 
-du -h $cache_location
+if [[ ${TEST_FAILURE} == 1 ]]; then
+        echo "Printing error.txt ###########################################"
+        cat errors.txt
+        echo "End of error.txt #############################################"
+        echo "CRASH ERROR. One of test groups contains crash. Report was not generated for that group ! "
+else
+    echo "OK. Full list of tests passed. "
+fi
+
+mkdir reports/heaptrack
+mkdir heaptrack
+
+# Third party dependency needed for pretty graph generation below
+git clone --depth=1 https://github.com/brendangregg/FlameGraph
+
+for archive_name in short_test_null_cache short_test_memory_cache short_test_disk_cache
+do
+    heaptrack_print --print-leaks \
+      --print-flamegraph heaptrack/flamegraph_${archive_name}.data \
+      --file ${archive_name}.gz > reports/heaptrack/report_${archive_name}.txt
+    # Pretty graph generation
+    ./FlameGraph/flamegraph.pl --title="Flame Graph: ${archive_name}" heaptrack/flamegraph_${archive_name}.data > reports/heaptrack/flamegraph_${archive_name}.svg
+    cat reports/heaptrack/flamegraph_${archive_name}.svg >> heaptrack_report.html
+done
+cp heaptrack_report.html reports
+ls -la heaptrack
+ls -la
+
+du ${cache_location}
+du ${cache_location}/*
+ls -la ${cache_location}
 
 # TODO:
 #  1. print the total allocations done
@@ -51,6 +87,7 @@ du -h $cache_location
 #  4. track the disk IO made by SDK
 #  5. track the CPU load
 
-#Kill local server
-kill -15 $SERVER_PID
-wait $SERVER_PID # Waiter for server process to be exited correctly
+# Gracefully stop local server
+kill -15 ${SERVER_PID}
+# Waiter for server process to be exited correctly
+wait ${SERVER_PID}
