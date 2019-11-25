@@ -139,7 +139,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
   if (options != OnlineOnly) {
     auto url = repository.Get(service, service_version);
     if (url) {
-      OLP_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> from cache",
+      OLP_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s, %s) -> from cache",
                          service.c_str(), service_version.c_str());
       client::OlpClient client;
       client.SetSettings(std::move(settings));
@@ -154,28 +154,36 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
 
   client::Condition condition{};
 
-  auto client = std::make_shared<client::OlpClient>();
-  client->SetSettings(std::move(settings));
-
   // when the network operation took too much time we cancel it and exit
   // execution, to make sure that network callback will not access dangling
   // references we protect them with atomic bool flag.
   auto flag = std::make_shared<std::atomic_bool>(true);
 
-  ApiClientLookup::ApiClientResponse api_response;
-  auto api_client_callback =
-      [&, flag](ApiClientLookup::ApiClientResponse response) {
-        if (flag->exchange(false)) {
-          api_response = std::move(response);
-          condition.Notify();
-        }
-      };
+  PlatformApi::ApisResponse api_response;
+  auto api_callback = [&, flag](PlatformApi::ApisResponse response) {
+    if (flag->exchange(false)) {
+      api_response = std::move(response);
+      condition.Notify();
+    }
+  };
 
   cancellation_context.ExecuteOrCancelled(
       [&, flag]() {
-        auto token = ApiClientLookup::LookupApiClient(
-            client, service, service_version, catalog,
-            std::move(api_client_callback));
+        const auto& base_url = GetDatastoreServerUrl(catalog.partition);
+
+        client::OlpClient client;
+        client.SetBaseUrl(base_url);
+        client.SetSettings(std::move(settings));
+
+        client::CancellationToken token;
+        if (service == "config") {
+          token = PlatformApi::GetApis(client, service, service_version,
+                                       api_callback);
+        } else {
+          token = ResourcesApi::GetApis(client, catalog.ToCatalogHRNString(),
+                                        service, service_version, api_callback);
+        }
+
         return client::CancellationToken([&, token, flag]() {
           if (flag->exchange(false)) {
             token.cancel();
@@ -204,14 +212,38 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
                             "Operation cancelled.");
   }
 
-  if (api_response.IsSuccessful()) {
-    OLP_SDK_LOG_INFO_F(kLogTag, "getApiClient(%s, %s) -> into cache",
-                       service.c_str(), service_version.c_str());
-    repository.Put(service, service_version,
-                   api_response.GetResult().GetBaseUrl());
+  if (!api_response.IsSuccessful()) {
+    OLP_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s - unsuccessful: %s",
+                       service.c_str(), service_version.c_str(),
+                       catalog.partition.c_str(),
+                       api_response.GetError().GetMessage().c_str());
+    return api_response.GetError();
   }
 
-  return api_response;
+  const auto& api_result = api_response.GetResult();
+
+  if (api_result.size() < 1) {
+    OLP_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s - service not available",
+                       service.c_str(), service_version.c_str(),
+                       catalog.partition.c_str());
+
+    return client::ApiError(client::ErrorCode::ServiceUnavailable,
+                            "Service/Version not available for given HRN");
+  }
+
+  const auto& base_url = api_result.at(0).GetBaseUrl();
+
+  repository.Put(service, service_version, base_url);
+
+  OLP_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s - OK, base_url=%s",
+                     service.c_str(), service_version.c_str(),
+                     catalog.partition.c_str(), base_url.c_str());
+
+  client::OlpClient client;
+  client.SetBaseUrl(base_url);
+  client.SetSettings(std::move(settings));
+
+  return std::move(client);
 }
 
 }  // namespace read
