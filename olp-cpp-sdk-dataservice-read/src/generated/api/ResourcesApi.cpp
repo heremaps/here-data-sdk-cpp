@@ -36,31 +36,38 @@ namespace read {
 client::CancellationToken ResourcesApi::GetApis(
     std::shared_ptr<client::OlpClient> client, const std::string& hrn,
     const std::string& service, const std::string& service_version,
-    const ApisCallback& apisCallback) {
-  std::multimap<std::string, std::string> headerParams;
-  headerParams.insert(std::make_pair("Accept", "application/json"));
-  std::multimap<std::string, std::string> queryParams;
-  std::multimap<std::string, std::string> formParams;
+    const ApisCallback& callback) {
+  return GetApis(*client, hrn, service, service_version, callback);
+}
+
+client::CancellationToken ResourcesApi::GetApis(
+    const client::OlpClient& client, const std::string& hrn,
+    const std::string& service, const std::string& service_version,
+    const ApisCallback& callback) {
+  std::multimap<std::string, std::string> header_params;
+  header_params.insert(std::make_pair("Accept", "application/json"));
+  std::multimap<std::string, std::string> query_params;
+  std::multimap<std::string, std::string> form_params;
 
   // scan apis at resource endpoint
-  std::string resourceUrl =
+  std::string resource_url =
       "/resources/" + hrn + "/apis/" + service + "/" + service_version;
 
-  client::NetworkAsyncCallback callback =
-      [apisCallback](client::HttpResponse response) {
+  client::NetworkAsyncCallback network_callback =
+      [callback](client::HttpResponse response) {
         if (response.status != 200) {
-          apisCallback(ApisResponse(
+          callback(ApisResponse(
               client::ApiError(response.status, response.response.str())));
         } else {
           // parse the services
           // TODO catch any exception and return as Error
-          apisCallback(
+          callback(
               ApisResponse(parser::parse<olp::dataservice::read::model::Apis>(
                   response.response)));
         }
       };
-  return client->CallApi(resourceUrl, "GET", queryParams, headerParams,
-                         formParams, nullptr, "", callback);
+  return client.CallApi(resource_url, "GET", query_params, header_params,
+                        form_params, nullptr, "", network_callback);
 }
 
 }  // namespace read
