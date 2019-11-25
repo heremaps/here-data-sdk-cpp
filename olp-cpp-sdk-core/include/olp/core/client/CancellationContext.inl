@@ -58,7 +58,7 @@ inline void CancellationContext::CancelOperation() {
     return;
   }
 
-  impl_->sub_operation_cancel_token_.cancel();
+  impl_->sub_operation_cancel_token_.Cancel();
   impl_->sub_operation_cancel_token_ = CancellationToken();
   impl_->is_cancelled_ = true;
 }

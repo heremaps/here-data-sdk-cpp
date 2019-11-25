@@ -206,7 +206,7 @@ TEST(TaskContextTest, CancelToken) {
 
   EXPECT_TRUE(execution_started.Wait());
 
-  context.CancelToken().cancel();
+  context.CancelToken().Cancel();
 
   continue_execution.Notify();
 

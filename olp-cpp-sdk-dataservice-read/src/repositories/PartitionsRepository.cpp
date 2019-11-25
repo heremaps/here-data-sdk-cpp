@@ -461,7 +461,7 @@ PartitionsResponse PartitionsRepository::GetPartitions(
             request.GetBillingTag(), callback);
         return client::CancellationToken([&, token, flag]() {
           if (flag->exchange(false)) {
-            token.cancel();
+            token.Cancel();
             condition.Notify();
           }
         });
@@ -568,7 +568,7 @@ QueryApi::PartitionsResponse PartitionsRepository::GetPartitionById(
             data_request.GetBillingTag(), std::move(query_client_callback));
         return client::CancellationToken([&, token, flag]() {
           if (flag->exchange(false)) {
-            token.cancel();
+            token.Cancel();
             condition.Notify();
           }
         });

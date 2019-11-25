@@ -84,7 +84,7 @@ AuthenticationCommonTestFixture::AcceptTerms(
         });
 
     if (do_cancel) {
-      cancel_token.cancel();
+      cancel_token.Cancel();
     }
 
     response = std::make_shared<AuthenticationClient::SignInUserResponse>(
@@ -135,7 +135,7 @@ AuthenticationCommonTestFixture::SignOutUser(const std::string& access_token,
       });
 
   if (do_cancel) {
-    cancel_token.cancel();
+    cancel_token.Cancel();
   }
 
   return request_future.get();

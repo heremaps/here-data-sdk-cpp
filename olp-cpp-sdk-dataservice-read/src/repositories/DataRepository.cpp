@@ -446,7 +446,7 @@ DataResponse DataRepository::GetBlobData(
 
         return client::CancellationToken([&, token, flag]() {
           if (flag->exchange(false)) {
-            token.cancel();
+            token.Cancel();
             condition.Notify();
           }
         });

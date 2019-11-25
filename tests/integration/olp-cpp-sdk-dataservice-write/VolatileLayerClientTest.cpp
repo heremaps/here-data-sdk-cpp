@@ -218,7 +218,7 @@ TEST_F(VolatileLayerClientTest, PublishDataCancelConfig) {
                                                    .WithLayerId(GetTestLayer())
                                                    .WithPartitionId("1111"));
   wait_for_cancel->get_future().get();
-  promise.GetCancellationToken().cancel();
+  promise.GetCancellationToken().Cancel();
   pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();
@@ -264,7 +264,7 @@ TEST_F(VolatileLayerClientTest, PublishDataCancelBlob) {
                                                    .WithLayerId(GetTestLayer())
                                                    .WithPartitionId("1111"));
   wait_for_cancel->get_future().get();
-  promise.GetCancellationToken().cancel();
+  promise.GetCancellationToken().Cancel();
   pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();
@@ -314,7 +314,7 @@ TEST_F(VolatileLayerClientTest, PublishDataCancelCatalog) {
                                                    .WithLayerId(GetTestLayer())
                                                    .WithPartitionId("1111"));
   wait_for_cancel->get_future().get();
-  promise.GetCancellationToken().cancel();
+  promise.GetCancellationToken().Cancel();
   pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();

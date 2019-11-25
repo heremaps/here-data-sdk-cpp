@@ -22,6 +22,7 @@
 #include <functional>
 
 #include <olp/core/CoreApi.h>
+#include <olp/core/porting/deprecated.h>
 
 namespace olp {
 namespace client {
@@ -40,18 +41,18 @@ class CORE_API CancellationToken {
    * @param func an operation that should be used to cancel an authentication
    * request.
    */
-  CancellationToken(const std::function<void()> func);
-
-  /**
-   * @brief Copy Constructor
-   * @param other object to copy from
-   */
-  CancellationToken(const CancellationToken& other);
+  CancellationToken(std::function<void()> func);
 
   /**
    * @brief Cancels the current operation, calls the func_ instance variable.
    */
+  OLP_SDK_DEPRECATED("Deprecated, use Cancel instead.")
   void cancel() const;
+
+  /**
+   * @brief Cancels the current operation, calls the func_ instance variable.
+   */
+  void Cancel() const;
 
  private:
   std::function<void()> func_{};

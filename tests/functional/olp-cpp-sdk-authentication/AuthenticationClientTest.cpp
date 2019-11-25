@@ -61,7 +61,7 @@ class AuthenticationClientTest : public AuthenticationCommonTestFixture {
           std::chrono::seconds(expires_in));
 
       if (do_cancel) {
-        cancel_token.cancel();
+        cancel_token.Cancel();
       }
       response = std::make_shared<AuthenticationClient::SignInClientResponse>(
           request_future.get());
@@ -97,7 +97,7 @@ class AuthenticationClientTest : public AuthenticationCommonTestFixture {
           });
 
       if (do_cancel) {
-        cancel_token.cancel();
+        cancel_token.Cancel();
       }
 
       response = std::make_shared<AuthenticationClient::SignInUserResponse>(
@@ -135,7 +135,7 @@ class AuthenticationClientTest : public AuthenticationCommonTestFixture {
           });
 
       if (do_cancel) {
-        cancel_token.cancel();
+        cancel_token.Cancel();
       }
 
       response = std::make_shared<AuthenticationClient::SignInUserResponse>(
@@ -168,7 +168,7 @@ class AuthenticationClientTest : public AuthenticationCommonTestFixture {
         });
 
     if (do_cancel) {
-      cancel_token.cancel();
+      cancel_token.Cancel();
     }
 
     return request_future.get();

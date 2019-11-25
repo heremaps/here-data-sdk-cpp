@@ -298,7 +298,7 @@ TEST(VolatileLayerClientImplTest, GetDataCancellableFutureCancel) {
       client.GetData(DataRequest().WithPartitionId(kPartitionId));
 
   auto data_future = cancellable.GetFuture();
-  cancellable.GetCancellationToken().cancel();
+  cancellable.GetCancellationToken().Cancel();
   ASSERT_EQ(data_future.wait_for(kTimeout), std::future_status::ready);
 
   auto data_response = data_future.get();

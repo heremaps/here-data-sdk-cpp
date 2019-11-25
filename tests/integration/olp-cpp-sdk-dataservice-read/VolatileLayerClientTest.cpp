@@ -250,7 +250,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest,
   auto cancellable = client.GetPartitions(request);
   auto future = cancellable.GetFuture();
 
-  cancellable.GetCancellationToken().cancel();
+  cancellable.GetCancellationToken().Cancel();
   ASSERT_EQ(std::future_status::ready, future.wait_for(kTimeout));
 
   auto response = future.get();
@@ -494,7 +494,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest,
   auto cancel_token = client.GetPartitions(request, callback);
 
   wait_for_cancel->get_future().get();  // wait for handler to get the request
-  cancel_token.cancel();
+  cancel_token.Cancel();
   pause_for_cancel->set_value();  // unblock the handler
   PartitionsResponse partitions_response = promise.get_future().get();
 

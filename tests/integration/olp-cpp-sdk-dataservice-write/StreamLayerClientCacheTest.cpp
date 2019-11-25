@@ -367,7 +367,7 @@ TEST_F(StreamLayerClientCacheTest, DISABLED_FlushDataCancel) {
 
   auto promise = client_->Flush(model::FlushRequest());
   wait_for_cancel->get_future().get();
-  promise.GetCancellationToken().cancel();
+  promise.GetCancellationToken().Cancel();
   pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();

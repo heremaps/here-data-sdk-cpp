@@ -64,7 +64,7 @@ void CancellationTokenList::CancelAll() {
       auto it = std::lower_bound(begin(tokenList_), end(tokenList_), id,
                                  CancellationTokenListCmp());
       if (it == end(tokenList_) || std::get<0>(*it) != id) continue;
-      std::get<1>(*it).cancel();
+      std::get<1>(*it).Cancel();
     }
 
     {

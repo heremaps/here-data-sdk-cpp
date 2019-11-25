@@ -52,8 +52,8 @@ inline client::CancellationToken ScheduleFetch(TaskScheduler&& schedule_task,
         std::move(request.WithFetchOption(FetchOptions::OnlineOnly)), nullptr);
 
     return client::CancellationToken([=]() {
-      cache_token.cancel();
-      online_token.cancel();
+      cache_token.Cancel();
+      online_token.Cancel();
     });
   }
 
