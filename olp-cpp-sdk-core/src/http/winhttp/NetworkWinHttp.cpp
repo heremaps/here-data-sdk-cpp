@@ -230,9 +230,15 @@ NetworkWinHttp::NetworkWinHttp(size_t max_request_count)
   // used by the thread.
   thread_ = CreateThread(NULL, 0, NetworkWinHttp::Run, this, 0, NULL);
   SetThreadPriority(thread_, THREAD_PRIORITY_ABOVE_NORMAL);
+
+  OLP_SDK_LOG_TRACE(kLogTag, "Created NetworkWinHttp with address="
+                                 << this
+                                 << ", handles_count=" << max_request_count);
 }
 
 NetworkWinHttp::~NetworkWinHttp() {
+  OLP_SDK_LOG_TRACE(kLogTag, "Destroying NetworkWinHttp, this=" << this);
+
   std::vector<std::shared_ptr<ResultData>> pending_results;
   {
     std::unique_lock<std::recursive_mutex> lock(mutex_);
@@ -307,16 +313,15 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
 
   std::wstring url(request.GetUrl().begin(), request.GetUrl().end());
   if (!WinHttpCrackUrl(url.c_str(), (DWORD)url.length(), 0, &url_components)) {
-    OLP_SDK_LOG_WARNING(kLogTag, "WinHttpCrackUrl failed " << request.GetUrl()
-                                                           << " "
-                                                           << GetLastError());
+    OLP_SDK_LOG_ERROR(kLogTag, "WinHttpCrackUrl failed, url="
+                                   << request.GetUrl()
+                                   << ", error=" << GetLastError());
     return SendOutcome(ErrorCode::INVALID_URL_ERROR);
   }
 
   if ((url_components.nScheme != INTERNET_SCHEME_HTTP) &&
       (url_components.nScheme != INTERNET_SCHEME_HTTPS)) {
-    OLP_SDK_LOG_WARNING(kLogTag,
-                        "Invalid scheme on request " << request.GetUrl());
+    OLP_SDK_LOG_ERROR(kLogTag, "Invalid scheme, url=" << request.GetUrl());
     return SendOutcome(ErrorCode::IO_ERROR);
   }
 
@@ -339,6 +344,9 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
       connection->http_connection =
           WinHttpConnect(http_session_, host_name.data(), port, 0);
       if (!connection->http_connection) {
+        OLP_SDK_LOG_ERROR(kLogTag, "WinHttpConnect failed, url="
+                                       << request.GetUrl()
+                                       << ", error=" << GetLastError());
         return SendOutcome(ErrorCode::OFFLINE_ERROR);
       }
     }
@@ -348,6 +356,8 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
     handle = GetHandle(id, connection, callback, header_callback, data_callback,
                        payload, request);
     if (handle == nullptr) {
+      OLP_SDK_LOG_DEBUG(kLogTag,
+                        "All handles are in use, url=" << request.GetUrl());
       return SendOutcome(ErrorCode::NETWORK_OVERLOAD_ERROR);
     }
   }
@@ -388,9 +398,9 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
                          url_components.lpszUrlPath, NULL, WINHTTP_NO_REFERER,
                          WINHTTP_DEFAULT_ACCEPT_TYPES, flags);
   if (!http_request) {
-    OLP_SDK_LOG_ERROR(kLogTag, "WinHttpOpenRequest failed " << GetLastError());
-
-    std::unique_lock<std::recursive_mutex> lock(mutex_);
+    OLP_SDK_LOG_ERROR(kLogTag, "WinHttpOpenRequest failed, url="
+                                   << request.GetUrl()
+                                   << ", error=" << GetLastError());
 
     return SendOutcome(ErrorCode::IO_ERROR);
   }
@@ -415,47 +425,46 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
 
     if (!WinHttpSetOption(http_request, WINHTTP_OPTION_PROXY, &proxy_info,
                           sizeof(proxy_info))) {
-      OLP_SDK_LOG_WARNING(kLogTag, "WinHttpSetOption(Proxy) failed "
-                                       << GetLastError() << " "
-                                       << request.GetUrl());
+      OLP_SDK_LOG_WARNING(kLogTag, "WinHttpSetOption(Proxy) failed, url="
+                                       << request.GetUrl()
+                                       << ", error=" << GetLastError());
     }
     if (!proxy.GetUsername().empty() && !proxy.GetPassword().empty()) {
       std::wstring proxy_username;
       const auto username_res =
           ConvertMultiByteToWideChar(proxy.GetUsername(), proxy_username);
+      if (!username_res) {
+        OLP_SDK_LOG_WARNING(kLogTag, "Proxy username conversion failure, url="
+                                         << request.GetUrl()
+                                         << ", error=" << GetLastError());
+      }
 
       std::wstring proxy_password;
       const auto password_res =
           ConvertMultiByteToWideChar(proxy.GetPassword(), proxy_password);
+      if (!password_res) {
+        OLP_SDK_LOG_WARNING(kLogTag, "Proxy password conversion failure, url="
+                                         << request.GetUrl()
+                                         << ", error=" << GetLastError());
+      }
 
       if (username_res && password_res) {
         LPCWSTR proxy_lpcwstr_username = proxy_username.c_str();
         if (!WinHttpSetOption(http_request, WINHTTP_OPTION_PROXY_USERNAME,
                               const_cast<LPWSTR>(proxy_lpcwstr_username),
                               wcslen(proxy_lpcwstr_username))) {
-          OLP_SDK_LOG_WARNING(kLogTag,
-                              "WinHttpSetOption(proxy username) failed "
-                                  << GetLastError() << " " << request.GetUrl());
+          OLP_SDK_LOG_WARNING(
+              kLogTag, "WinHttpSetOption(proxy username) failed, url="
+                           << request.GetUrl() << ", error=" << GetLastError());
         }
 
         LPCWSTR proxy_lpcwstr_password = proxy_password.c_str();
         if (!WinHttpSetOption(http_request, WINHTTP_OPTION_PROXY_PASSWORD,
                               const_cast<LPWSTR>(proxy_lpcwstr_password),
                               wcslen(proxy_lpcwstr_password))) {
-          OLP_SDK_LOG_WARNING(kLogTag,
-                              "WinHttpSetOption(proxy password) failed "
-                                  << GetLastError() << " " << request.GetUrl());
-        }
-      } else {
-        if (!username_res) {
-          OLP_SDK_LOG_WARNING(kLogTag, "Proxy username conversion failure "
-                                           << GetLastError() << " "
-                                           << request.GetUrl());
-        }
-        if (!password_res) {
-          OLP_SDK_LOG_WARNING(kLogTag, "Proxy password conversion failure "
-                                           << GetLastError() << " "
-                                           << request.GetUrl());
+          OLP_SDK_LOG_WARNING(
+              kLogTag, "WinHttpSetOption(proxy password) failed, url="
+                           << request.GetUrl() << ", error=" << GetLastError());
         }
       }
     }
@@ -496,25 +505,33 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
 
   if (!WinHttpAddRequestHeaders(http_request, header_stream.str().c_str(),
                                 DWORD(-1), WINHTTP_ADDREQ_FLAG_ADD)) {
-    OLP_SDK_LOG_ERROR(kLogTag,
-                      "WinHttpAddRequestHeaders() failed " << GetLastError());
+    OLP_SDK_LOG_WARNING(kLogTag, "WinHttpAddRequestHeaders failed, url="
+                                     << request.GetUrl()
+                                     << ", error=" << GetLastError());
   }
 
   /* Send the request */
   if (!WinHttpSendRequest(http_request, WINHTTP_NO_ADDITIONAL_HEADERS, 0,
                           (LPVOID)content, content_length, content_length,
                           (DWORD_PTR)handle)) {
-    OLP_SDK_LOG_ERROR(kLogTag, "WinHttpSendRequest failed " << GetLastError());
+    OLP_SDK_LOG_ERROR(kLogTag, "WinHttpSendRequest failed, url="
+                                   << request.GetUrl()
+                                   << ", error=" << GetLastError());
 
     FreeHandle(id);
     return SendOutcome(ErrorCode::IO_ERROR);
   }
   handle->http_request = http_request;
 
+  OLP_SDK_LOG_DEBUG(kLogTag,
+                    "Send request, url=" << request.GetUrl() << ", id=" << id);
+
   return SendOutcome(id);
 }
 
 void NetworkWinHttp::Cancel(RequestId id) {
+  OLP_SDK_LOG_TRACE(kLogTag, "Cancel request with id=" << id);
+
   std::unique_lock<std::recursive_mutex> lock_guard(mutex_);
   auto handle = FindHandle(id);
   if (handle) {
@@ -532,7 +549,8 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
 
   RequestData* handle = reinterpret_cast<RequestData*>(context);
   if (!handle->connection_data || !handle->result_data) {
-    OLP_SDK_LOG_WARNING(kLogTag, "RequestCallback to inactive handle");
+    OLP_SDK_LOG_WARNING(kLogTag, "RequestCallback to inactive handle, id="
+                                     << handle->request_id);
     return;
   }
 
@@ -548,10 +566,18 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
       handle->result_data->cancelled = true;
     }
 
+    OLP_SDK_LOG_DEBUG(kLogTag, "RequestCallback - request error, status="
+                                   << handle->result_data->status
+                                   << ", id=" << handle->request_id);
+
     handle->Complete();
   } else if (status == WINHTTP_CALLBACK_STATUS_SENDREQUEST_COMPLETE) {
     // We have sent request, now receive a response
-    WinHttpReceiveResponse(handle->http_request, NULL);
+    if (!WinHttpReceiveResponse(handle->http_request, NULL)) {
+      OLP_SDK_LOG_WARNING(kLogTag, "WinHttpReceiveResponse failed, id="
+                                       << handle->request_id
+                                       << ", error=" << GetLastError());
+    }
   } else if (status == WINHTTP_CALLBACK_STATUS_HEADERS_AVAILABLE) {
     Network::HeaderCallback callback = nullptr;
     {
@@ -709,10 +735,9 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
               handle->strm.next_in = Z_NULL;
               inflateInit2(&handle->strm, 16 + MAX_WBITS);
 #else
-              OLP_SDK_LOG_ERROR(
-                  kLogTag,
-                  "Gzip encoding but compression no supported and no "
-                  "ZLIB found");
+              OLP_SDK_LOG_ERROR(kLogTag,
+                                "Gzip encoding failed - ZLIB not found, id="
+                                    << handle->request_id);
 #endif
             }
             LocalFree(str);
@@ -725,7 +750,11 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
     }
 
     // We have received headers, now receive data
-    WinHttpQueryDataAvailable(handle->http_request, NULL);
+    if (!WinHttpQueryDataAvailable(handle->http_request, NULL)) {
+      OLP_SDK_LOG_WARNING(kLogTag, "WinHttpQueryDataAvailable failed, id="
+                                       << handle->request_id
+                                       << ", error=" << GetLastError());
+    }
   } else if (status == WINHTTP_CALLBACK_STATUS_DATA_AVAILABLE) {
     assert(status_info_length == sizeof(DWORD));
     DWORD size = *reinterpret_cast<DWORD*>(status_info);
@@ -733,13 +762,18 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
       // Data is available read it
       LPVOID buffer = (LPVOID)LocalAlloc(LPTR, size);
       if (!buffer) {
-        OLP_SDK_LOG_ERROR(kLogTag,
-                          "Out of memory reeceiving " << size << " bytes");
+        OLP_SDK_LOG_ERROR(kLogTag, "Out of memory reeceiving "
+                                       << size
+                                       << " bytes, id=" << handle->request_id);
         handle->result_data->status = ERROR_NOT_ENOUGH_MEMORY;
         handle->Complete();
         return;
       }
-      WinHttpReadData(handle->http_request, buffer, size, NULL);
+      if (!WinHttpReadData(handle->http_request, buffer, size, NULL)) {
+        OLP_SDK_LOG_WARNING(kLogTag, "WinHttpReadData failed, id="
+                                         << handle->request_id
+                                         << ", error=" << GetLastError());
+      }
     } else {
       // Request is complete
       if (handle->result_data->status != 416) {
@@ -752,6 +786,9 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
         }
       }
       handle->result_data->completed = true;
+      OLP_SDK_LOG_DEBUG(
+          kLogTag, "Completed request, id=" << handle->request_id << ", status="
+                                            << handle->result_data->status);
       handle->Complete();
     }
   } else if (status == WINHTTP_CALLBACK_STATUS_READ_COMPLETE) {
@@ -777,7 +814,8 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
           int r = inflate(&handle->strm, Z_NO_FLUSH);
 
           if ((r != Z_OK) && (r != Z_STREAM_END)) {
-            OLP_SDK_LOG_ERROR(kLogTag, "Uncompression failed");
+            OLP_SDK_LOG_ERROR(
+                kLogTag, "Uncompression failed, id=" << handle->request_id);
             LocalFree((HLOCAL)compressed);
             LocalFree((HLOCAL)data_buffer);
             handle->result_data->status = ERROR_INVALID_BLOCK;
@@ -802,6 +840,8 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
       }
 #endif
 
+      OLP_SDK_LOG_TRACE(kLogTag, "Received " << data_len << " bytes for id="
+                                             << handle->request_id);
       if (data_len) {
         std::uint64_t total_offset = 0;
 
@@ -817,9 +857,8 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
                 std::streampos(handle->result_data->count)) {
               handle->payload->seekp(handle->result_data->count);
               if (handle->payload->fail()) {
-                OLP_SDK_LOG_WARNING(
-                    kLogTag,
-                    "Reception stream doesn't support setting write point");
+                OLP_SDK_LOG_WARNING(kLogTag, "Payload seekp() failed, id="
+                                                 << handle->request_id);
                 handle->payload->clear();
               }
             }
@@ -832,7 +871,11 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
       LocalFree((HLOCAL)data_buffer);
     }
 
-    WinHttpQueryDataAvailable(handle->http_request, NULL);
+    if (!WinHttpQueryDataAvailable(handle->http_request, NULL)) {
+      OLP_SDK_LOG_WARNING(kLogTag, "WinHttpQueryDataAvailable failed, id="
+                                       << handle->request_id
+                                       << ", error=" << GetLastError());
+    }
   } else if (status == WINHTTP_CALLBACK_STATUS_HANDLE_CLOSING) {
     // Only now is it safe to free the handle
     // See
@@ -840,8 +883,9 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
     handle->FreeHandle();
     return;
   } else {
-    OLP_SDK_LOG_ERROR(kLogTag,
-                      "Unknown callback " << std::hex << status << std::dec);
+    OLP_SDK_LOG_ERROR(
+        kLogTag, "Unknown callback, status=" << std::hex << status << std::dec
+                                             << ", id=" << handle->request_id);
   }
 }
 
