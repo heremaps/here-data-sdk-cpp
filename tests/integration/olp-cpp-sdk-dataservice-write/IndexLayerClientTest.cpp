@@ -319,7 +319,7 @@ TEST_F(IndexLayerClientTest, PublishDataCancelConfig) {
                                            .WithData(data_)
                                            .WithLayerId(GetTestLayer()));
   wait_for_cancel->get_future().get();
-  promise.GetCancellationToken().cancel();
+  promise.GetCancellationToken().Cancel();
   pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();
@@ -364,7 +364,7 @@ TEST_F(IndexLayerClientTest, PublishDataCancelBlob) {
                                            .WithLayerId(GetTestLayer()));
 
   wait_for_cancel->get_future().get();
-  promise.GetCancellationToken().cancel();
+  promise.GetCancellationToken().Cancel();
   pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();
@@ -409,7 +409,7 @@ TEST_F(IndexLayerClientTest, PublishDataCancelIndex) {
                                            .WithLayerId(GetTestLayer()));
 
   wait_for_cancel->get_future().get();
-  promise.GetCancellationToken().cancel();
+  promise.GetCancellationToken().Cancel();
   pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();
@@ -454,7 +454,7 @@ TEST_F(IndexLayerClientTest, PublishDataCancelGetCatalog) {
                                            .WithLayerId(GetTestLayer()));
 
   wait_for_cancel->get_future().get();
-  promise.GetCancellationToken().cancel();
+  promise.GetCancellationToken().Cancel();
   pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();
@@ -499,7 +499,7 @@ TEST_F(IndexLayerClientTest, PublishDataCancelPutBlob) {
                                            .WithLayerId(GetTestLayer()));
 
   wait_for_cancel->get_future().get();
-  promise.GetCancellationToken().cancel();
+  promise.GetCancellationToken().Cancel();
   pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();

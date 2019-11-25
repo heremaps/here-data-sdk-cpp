@@ -346,7 +346,7 @@ TEST_F(StreamLayerClientTest, PublishDataCancel) {
   auto promise = client_->PublishData(
       PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
   wait_for_cancel->get_future().get();
-  promise.GetCancellationToken().cancel();
+  promise.GetCancellationToken().Cancel();
   pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();
@@ -382,7 +382,7 @@ TEST_F(StreamLayerClientTest, PublishDataCancelLongDelay) {
   auto promise = client_->PublishData(
       PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
   wait_for_cancel->get_future().get();
-  promise.GetCancellationToken().cancel();
+  promise.GetCancellationToken().Cancel();
   pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();
@@ -558,7 +558,7 @@ TEST_F(StreamLayerClientTest, PublishSdiiCancel) {
                                           .WithSdiiMessageList(sdii_data_)
                                           .WithLayerId(GetTestLayerSdii()));
   wait_for_cancel->get_future().get();
-  promise.GetCancellationToken().cancel();
+  promise.GetCancellationToken().Cancel();
   pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();

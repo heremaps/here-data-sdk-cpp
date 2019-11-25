@@ -132,7 +132,7 @@ TEST_P(CatalogClientTest, GetCatalogCancelApiLookup) {
       catalog_client->GetCatalog(request, callback);
 
   wait_for_cancel->get_future().get();
-  cancel_token.cancel();
+  cancel_token.Cancel();
   pause_for_cancel->set_value();
   CatalogResponse catalog_response = promise.get_future().get();
 
@@ -180,7 +180,7 @@ TEST_P(CatalogClientTest, GetCatalogCancelConfig) {
 
   wait_for_cancel->get_future().get();
   std::cout << "Cancelling" << std::endl;
-  cancel_token.cancel();  // crashing?
+  cancel_token.Cancel();  // crashing?
   std::cout << "Cancelled, unblocking response" << std::endl;
   pause_for_cancel->set_value();
   std::cout << "Post Cancel, get response" << std::endl;
@@ -216,7 +216,7 @@ TEST_P(CatalogClientTest, GetCatalogCancelAfterCompletion) {
   ASSERT_TRUE(catalog_response.IsSuccessful())
       << ApiErrorToString(catalog_response.GetError());
 
-  cancel_token.cancel();
+  cancel_token.Cancel();
 }
 
 TEST_P(CatalogClientTest, GetCatalogVersion) {
@@ -281,7 +281,7 @@ TEST_P(CatalogClientTest, GetCatalogVersionCancel) {
       catalog_client->GetLatestVersion(request, callback);
 
   wait_for_cancel->get_future().get();
-  cancel_token.cancel();
+  cancel_token.Cancel();
   pause_for_cancel->set_value();
   CatalogVersionResponse version_response = promise.get_future().get();
 

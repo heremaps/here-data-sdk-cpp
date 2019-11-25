@@ -42,11 +42,11 @@ bool PendingRequests::CancelAll() {
   }
 
   for (auto& pair : requests_map) {
-    pair.second.cancel();
+    pair.second.Cancel();
   }
 
   for (auto context : contexts) {
-    context.CancelToken().cancel();
+    context.CancelToken().Cancel();
   }
 
   return true;

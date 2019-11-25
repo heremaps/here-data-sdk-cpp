@@ -153,7 +153,7 @@ class EnabledAutoFlushControllerImpl
   void Cancel() {
     std::lock_guard<std::mutex> lock(cancel_mutex_);
     for (auto& pair : cancel_token_map_) {
-      pair.second.cancel();
+      pair.second.Cancel();
     }
     is_cancelled_ = true;
   }

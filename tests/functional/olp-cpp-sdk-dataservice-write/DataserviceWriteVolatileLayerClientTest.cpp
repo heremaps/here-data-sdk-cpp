@@ -401,7 +401,7 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, PublishDataAsync) {
   auto response_future = response_promise.get_future();
   auto status = response_future.wait_for(std::chrono::seconds(30));
   if (status != std::future_status::ready) {
-    cancel_token.cancel();
+    cancel_token.Cancel();
   }
   auto response = response_future.get();
 

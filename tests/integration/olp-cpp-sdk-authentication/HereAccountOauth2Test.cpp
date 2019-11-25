@@ -88,7 +88,7 @@ void TestAutoRefreshingTokenCancel(
   // with the same old token
   threads[1] = std::thread([&]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    cancellationToken.cancel();
+    cancellationToken.Cancel();
   });
   threads[0].join();
   threads[1].join();

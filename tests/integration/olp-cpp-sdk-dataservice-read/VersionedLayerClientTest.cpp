@@ -654,7 +654,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       [&promise](DataResponse response) { promise.set_value(response); });
 
   wait_for_cancel->get_future().get();
-  token.cancel();
+  token.Cancel();
   pause_for_cancel->set_value();
 
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
@@ -699,7 +699,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   auto cancellable_future = client->GetData(std::move(data_request));
 
   wait_for_cancel->get_future().get();
-  cancellable_future.GetCancellationToken().cancel();
+  cancellable_future.GetCancellationToken().Cancel();
   pause_for_cancel->set_value();
 
   auto raw_future = cancellable_future.GetFuture();
@@ -750,7 +750,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       [&promise](DataResponse response) { promise.set_value(response); });
 
   wait_for_cancel->get_future().get();
-  token.cancel();
+  token.Cancel();
   pause_for_cancel->set_value();
 
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
@@ -803,7 +803,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       [&promise](DataResponse response) { promise.set_value(response); });
 
   wait_for_cancel->get_future().get();
-  token.cancel();
+  token.Cancel();
   pause_for_cancel->set_value();
 
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
@@ -860,7 +860,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       [&promise](DataResponse response) { promise.set_value(response); });
 
   wait_for_cancel->get_future().get();
-  token.cancel();
+  token.Cancel();
   pause_for_cancel->set_value();
 
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
@@ -926,7 +926,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   auto cancellable_future = client->GetPartitions(request);
   auto future = cancellable_future.GetFuture();
 
-  cancellable_future.GetCancellationToken().cancel();
+  cancellable_future.GetCancellationToken().Cancel();
 
   ASSERT_EQ(std::future_status::ready, future.wait_for(kWaitTimeout));
 
@@ -1262,7 +1262,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       [&promise](PartitionsResponse response) { promise.set_value(response); });
 
   wait_for_cancel->get_future().get();  // wait for handler to get the request
-  token.cancel();
+  token.Cancel();
   pause_for_cancel->set_value();  // unblock the handler
 
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
@@ -1318,7 +1318,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       [promise](PartitionsResponse response) { promise->set_value(response); });
 
   wait_for_cancel->get_future().get();  // wait for handler to get the request
-  token.cancel();
+  token.Cancel();
   pause_for_cancel->set_value();  // unblock the handler
 
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
@@ -1372,7 +1372,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       [&promise](PartitionsResponse response) { promise.set_value(response); });
 
   wait_for_cancel->get_future().get();  // wait for handler to get the request
-  token.cancel();
+  token.Cancel();
   pause_for_cancel->set_value();  // unblock the handler
 
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
@@ -1796,7 +1796,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesCancelOnLookup) {
       });
 
   wait_for_cancel->get_future().get();
-  token.cancel();
+  token.Cancel();
   pause_for_cancel->set_value();
 
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
@@ -1874,7 +1874,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   auto cancel_future = client->PrefetchTiles(request);
 
   wait_for_cancel->get_future().get();
-  cancel_future.GetCancellationToken().cancel();
+  cancel_future.GetCancellationToken().Cancel();
   pause_for_cancel->set_value();
 
   auto raw_future = cancel_future.GetFuture();
@@ -2134,7 +2134,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       client->GetData(request, callback);
 
   wait_for_cancel->get_future().get();  // wait for handler to get the request
-  cancel_token.cancel();
+  cancel_token.Cancel();
   pause_for_cancel->set_value();  // unblock the handler
 
   DataResponse data_response = promise.get_future().get();
@@ -2191,7 +2191,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       client->GetData(request, callback);
 
   wait_for_cancel->get_future().get();  // wait for handler to get the request
-  cancel_token.cancel();
+  cancel_token.Cancel();
   pause_for_cancel->set_value();  // unblock the handler
 
   DataResponse data_response = promise.get_future().get();
@@ -2248,7 +2248,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       client->GetData(request, callback);
 
   wait_for_cancel->get_future().get();  // wait for handler to get the request
-  cancel_token.cancel();
+  cancel_token.Cancel();
   pause_for_cancel->set_value();  // unblock the handler
 
   DataResponse data_response = promise.get_future().get();
@@ -2305,7 +2305,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       client->GetData(request, callback);
 
   wait_for_cancel->get_future().get();  // wait for handler to get the request
-  cancel_token.cancel();
+  cancel_token.Cancel();
   pause_for_cancel->set_value();  // unblock the handler
 
   DataResponse data_response = promise.get_future().get();
@@ -2361,7 +2361,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       client->GetData(request, callback);
 
   wait_for_cancel->get_future().get();  // wait for handler to get the request
-  cancel_token.cancel();
+  cancel_token.Cancel();
   pause_for_cancel->set_value();  // unblock the handler
 
   DataResponse data_response = promise.get_future().get();
@@ -2414,7 +2414,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       client->GetData(request, callback);
 
   wait_for_cancel->get_future().get();  // wait for handler to get the request
-  cancel_token.cancel();
+  cancel_token.Cancel();
   pause_for_cancel->set_value();  // unblock the handler
 
   DataResponse data_response = promise.get_future().get();

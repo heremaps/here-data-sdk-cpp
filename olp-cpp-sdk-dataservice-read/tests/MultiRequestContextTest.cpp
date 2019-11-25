@@ -226,7 +226,7 @@ TEST(MultiRequestContextTest, CancelSingle) {
               response_future.wait_for(std::chrono::milliseconds(100)));
     std::cout << "cancel()" << std::endl;
 
-    context_cancel_token.cancel();
+    context_cancel_token.Cancel();
 
     // was cancel called?
     auto f = cancel_called_promise.get_future();
@@ -306,7 +306,7 @@ TEST(MultiRequestContextTest, CancelAfterCompletion) {
 
   ASSERT_EQ(expected_response, actual_response);
 
-  context_cancel_token.cancel();
+  context_cancel_token.Cancel();
 
   // Cancel should not be called.
   ASSERT_EQ(std::future_status::timeout, cancel_promise.get_future().wait_for(
@@ -357,7 +357,7 @@ TEST(MultiRequestContextTest, MultiCancel) {
   ASSERT_TRUE(context_callback);
 
   // Cancel the first request
-  context_cancel_token.cancel();
+  context_cancel_token.Cancel();
 
   // 1st callback should be invoked
   {

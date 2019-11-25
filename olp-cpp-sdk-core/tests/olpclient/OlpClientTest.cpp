@@ -934,7 +934,7 @@ TEST_F(OlpClientTest, CancelBeforeResponse) {
                                       std::multimap<std::string, std::string>(),
                                       nullptr, std::string(), callback);
 
-  cancel_token.cancel();
+  cancel_token.Cancel();
   wait_for_cancel->set_value(true);
   ASSERT_TRUE(was_cancelled->load());
   ASSERT_EQ(std::future_status::ready,
@@ -976,7 +976,7 @@ TEST_F(OlpClientTest, CancelAfterCompletion) {
                                       nullptr, std::string(), callback);
 
   auto response = promise.get_future().get();
-  cancel_token.cancel();
+  cancel_token.Cancel();
 
   ASSERT_TRUE(was_cancelled->load());
 }
@@ -1021,11 +1021,11 @@ TEST_F(OlpClientTest, CancelDuplicate) {
                                       std::multimap<std::string, std::string>(),
                                       nullptr, std::string(), callback);
 
-  cancel_token.cancel();
-  cancel_token.cancel();
-  cancel_token.cancel();
+  cancel_token.Cancel();
+  cancel_token.Cancel();
+  cancel_token.Cancel();
   wait_for_cancel->set_value(true);
-  cancel_token.cancel();
+  cancel_token.Cancel();
 
   ASSERT_TRUE(was_cancelled->load());
   ASSERT_EQ(std::future_status::ready,
@@ -1083,7 +1083,7 @@ TEST_F(OlpClientTest, CancelRetry) {
                                       nullptr, std::string(), callback);
 
   wait_for_cancel->get_future().get();
-  cancel_token.cancel();
+  cancel_token.Cancel();
 
   EXPECT_EQ(std::future_status::ready,
             promise.get_future().wait_for(std::chrono::seconds(2)));

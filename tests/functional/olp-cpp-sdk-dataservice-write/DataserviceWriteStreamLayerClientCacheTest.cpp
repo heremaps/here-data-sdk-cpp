@@ -275,7 +275,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataSingleAsync) {
   auto response_future = response_promise.get_future();
   auto status = response_future.wait_for(std::chrono::seconds(30));
   if (status != std::future_status::ready) {
-    cancel_token.cancel();
+    cancel_token.Cancel();
   }
   auto response = response_future.get();
 
@@ -298,7 +298,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataMultipleAsync) {
   auto response_future = response_promise.get_future();
   auto status = response_future.wait_for(std::chrono::seconds(30));
   if (status != std::future_status::ready) {
-    cancel_token.cancel();
+    cancel_token.Cancel();
   }
   auto response = response_future.get();
 
@@ -318,7 +318,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataCancel) {
 
   std::thread([cancel_future]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    cancel_future.GetCancellationToken().cancel();
+    cancel_future.GetCancellationToken().Cancel();
   }).detach();
 
   auto response = cancel_future.GetFuture().get();

@@ -264,7 +264,7 @@ TEST_F(DataserviceWriteStreamLayerClientTest, PublishDataAsync) {
   auto response_future = response_promise.get_future();
   auto status = response_future.wait_for(std::chrono::seconds(30));
   if (status != std::future_status::ready) {
-    cancel_token.cancel();
+    cancel_token.Cancel();
   }
   auto response = response_future.get();
 
@@ -277,7 +277,7 @@ TEST_F(DataserviceWriteStreamLayerClientTest, PublishDataCancel) {
 
   std::thread([cancel_future]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    cancel_future.GetCancellationToken().cancel();
+    cancel_future.GetCancellationToken().Cancel();
   }).detach();
 
   auto response = cancel_future.GetFuture().get();
@@ -302,7 +302,7 @@ TEST_F(DataserviceWriteStreamLayerClientTest, PublishDataCancelLongDelay) {
 
   std::thread([cancel_future]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(1200));
-    cancel_future.GetCancellationToken().cancel();
+    cancel_future.GetCancellationToken().Cancel();
   }).detach();
 
   auto response = cancel_future.GetFuture().get();
@@ -328,7 +328,7 @@ TEST_F(DataserviceWriteStreamLayerClientTest,
 
   std::thread([cancel_future]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    cancel_future.GetCancellationToken().cancel();
+    cancel_future.GetCancellationToken().Cancel();
   }).detach();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(400));
@@ -358,7 +358,7 @@ TEST_F(DataserviceWriteStreamLayerClientTest,
 
   std::thread([cancel_future]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    cancel_future.GetCancellationToken().cancel();
+    cancel_future.GetCancellationToken().Cancel();
   }).detach();
 
   auto response = cancel_future.GetFuture().get();
@@ -570,7 +570,7 @@ TEST_F(DataserviceWriteStreamLayerClientTest, PublishSdiiAsync) {
   auto response_future = response_promise.get_future();
   auto status = response_future.wait_for(std::chrono::seconds(30));
   if (status != std::future_status::ready) {
-    cancel_token.cancel();
+    cancel_token.Cancel();
   }
   auto response = response_future.get();
 
@@ -585,7 +585,7 @@ TEST_F(DataserviceWriteStreamLayerClientTest, PublishSdiiCancel) {
 
   std::thread([cancel_future]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    cancel_future.GetCancellationToken().cancel();
+    cancel_future.GetCancellationToken().Cancel();
   }).detach();
 
   auto response = cancel_future.GetFuture().get();
@@ -612,7 +612,7 @@ TEST_F(DataserviceWriteStreamLayerClientTest, PublishSdiiCancelLongDelay) {
 
   std::thread([cancel_future]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(1200));
-    cancel_future.GetCancellationToken().cancel();
+    cancel_future.GetCancellationToken().Cancel();
   }).detach();
 
   auto response = cancel_future.GetFuture().get();

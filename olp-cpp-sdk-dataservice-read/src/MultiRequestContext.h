@@ -65,7 +65,7 @@ class MultiRequestContext final {
       OLP_SDK_LOG_INFO_F(kMultiRequestContextLogTag,
                          "~MultiRequestContext() -> cancelling id %s",
                          itr->first.c_str());
-      itr->second->cancellation_token_.cancel();
+      itr->second->cancellation_token_.Cancel();
     }
   }
 
@@ -199,7 +199,7 @@ class MultiRequestContext final {
           // this is the last callback.
           // cancel the underlying request, allowing the provider to invoke the
           // callback(s)
-          context->cancellation_token_.cancel();
+          context->cancellation_token_.Cancel();
         }
 
         auto req = *requestItr;

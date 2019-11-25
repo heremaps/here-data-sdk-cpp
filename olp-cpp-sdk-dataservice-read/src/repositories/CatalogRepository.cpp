@@ -208,7 +208,7 @@ read::CatalogResponse CatalogRepository::GetCatalog(
 
         return CancellationToken([&, interest_flag, token]() {
           if (interest_flag->exchange(false)) {
-            token.cancel();
+            token.Cancel();
             condition.Notify();
           }
         });
@@ -384,7 +384,7 @@ MetadataApi::CatalogVersionResponse CatalogRepository::GetLatestVersion(
 
         return client::CancellationToken([&, interest_flag, token]() {
           if (interest_flag->exchange(false)) {
-            token.cancel();
+            token.Cancel();
             condition.Notify();
           }
         });

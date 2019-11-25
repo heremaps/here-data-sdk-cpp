@@ -186,7 +186,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
 
         return client::CancellationToken([&, token, flag]() {
           if (flag->exchange(false)) {
-            token.cancel();
+            token.Cancel();
             condition.Notify();
           }
         });
