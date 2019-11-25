@@ -256,6 +256,8 @@ auto request = olp::dataservice::read::PartitionsRequest()
 
 Then pass it to the appropriate layer client, i.e. `VersionedLayerClient` via `GetPartitions` method:
 
+> Note: If your layer has lots of partitions or uses TileKeys as partition IDs, then this operation can fail because of the large amount of data.
+
 ```cpp
 // Create appropriate layer client with HRN, layer name and settings.
 olp::dataservice::read::VersionedLayerClient layer_client(

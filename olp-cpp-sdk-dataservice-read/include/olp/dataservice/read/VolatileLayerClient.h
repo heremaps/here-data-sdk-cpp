@@ -98,6 +98,8 @@ class DATASERVICE_READ_API VolatileLayerClient final {
 
   /**
    * @brief Fetches a list partitions for given volatile layer asynchronously.
+   * @note If your layer has lots of partitions or uses TileKeys as
+   * partition IDs, then this operation can fail because of the large amount of data.
    * @param request contains the complete set of request parameters.
    * @param callback will be invoked once the list of partitions is available,
    * or an error is encountered.
@@ -108,6 +110,8 @@ class DATASERVICE_READ_API VolatileLayerClient final {
 
   /**
    * @brief Fetches a list partitions for given volatile layer asynchronously.
+   * @note If your layer has lots of partitions or uses TileKeys as
+   * partition IDs, then this operation can fail because of the large amount of data.
    * @param request contains the complete set of request parameters.
    * @return CancellableFuture, which when complete will contain the
    * PartitionsResponse or an error. Alternatively, the CancellableFuture can be

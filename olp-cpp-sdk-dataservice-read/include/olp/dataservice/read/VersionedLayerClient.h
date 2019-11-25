@@ -150,6 +150,8 @@ class DATASERVICE_READ_API VersionedLayerClient final {
   /**
    * @brief Fetches a list of partitions for the given generic layer
    * asynchronously.
+   * @note If your layer has lots of partitions or uses TileKeys as
+   * partition IDs, then this operation can fail because of the large amount of data.
    * @param partitions_request Contains the complete set of the request
    * parameters.
    * @note GetLayerId value of the \c PartitionsRequest is ignored, and the
@@ -164,6 +166,8 @@ class DATASERVICE_READ_API VersionedLayerClient final {
   /**
    * @brief Fetches a list of partitions for the given generic layer
    * asynchronously.
+   * @note If your layer has lots of partitions or uses TileKeys as
+   * partition IDs, then this operation can fail because of the large amount of data.
    * @param partitions_request Contains the complete set of the request
    * parameters.
    * @note GetLayerId value of the \c PartitionsRequest is ignored, and the
