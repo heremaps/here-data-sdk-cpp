@@ -83,6 +83,24 @@ do
     eval "${test_command}"
     result=$?
     echo "-----> Finished ${test_group_name} - Result=${result}"
+
+    # Add retry to functional/online tests. Some online tests are flaky due to third party reason.
+    count=0
+    while [[ ${result} -ne 0 && ${test_group_name} == "functional" ]];
+    do
+        count=count+1
+        echo "This is ${count} time retry ..."
+        echo "-----> Calling \"${test_command}\" for ${test_group_name} : "
+        eval "${test_command}"
+        result=$?
+        echo "-----> Finished ${test_group_name} - Result=${result}"
+
+        # Stop after 3 retry
+        if [[ ${count} = 3 ]]; then
+            break
+        fi
+    done
+    # End of retry part. This part can be removed anytime.
 }
 done
 
