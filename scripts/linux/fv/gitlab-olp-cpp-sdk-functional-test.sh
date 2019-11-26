@@ -25,7 +25,7 @@ node $REPO_HOME/tests/utils/mock_server/server.js & export SERVER_PID=$!
 # Add waiter for server to be started. No other way to solve that.
 # Curl returns code 1 - means server still down. Curl returns 0 when server is up
 RC=1
-while [ $RC -ne 0 ];
+while [[ ${RC} -ne 0 ]];
 do
         set +e
         curl -s http://localhost:3000
@@ -40,6 +40,26 @@ $REPO_HOME/build/tests/functional/olp-cpp-sdk-functional-tests \
     --gtest_output="xml:$REPO_HOME/reports/olp-functional-test-report.xml" \
     --gtest_filter="-ArcGisAuthenticationTest.SignInArcGis":"FacebookAuthenticationTest.SignInFacebook"
 
-#Kill local server
-kill -15 $SERVER_PID
-wait $SERVER_PID # Waiter for server process to be exited correctly
+# Add retry to functional/online tests. Some online tests are flaky due to third party reason.
+result=$?
+count=0
+while [[ ${result} -ne 0 ]];
+do
+    count=count+1
+    echo "This is ${count} time retry ..."
+    $REPO_HOME/build/tests/functional/olp-cpp-sdk-functional-tests \
+        --gtest_output="xml:$REPO_HOME/reports/olp-functional-test-report.xml" \
+        --gtest_filter="-ArcGisAuthenticationTest.SignInArcGis":"FacebookAuthenticationTest.SignInFacebook"
+    result=$?
+
+    # Stop after 3 retry
+    if [[ ${count} = 3 ]]; then
+        break
+    fi
+done
+# End of retry part. This part can be removed anytime.
+
+# Kill local server
+kill -15 ${SERVER_PID}
+# Waiter for server process to be exited correctly
+wait ${SERVER_PID}
