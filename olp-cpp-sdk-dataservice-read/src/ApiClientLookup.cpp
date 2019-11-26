@@ -199,6 +199,9 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
 
   if (!condition.Wait(std::chrono::seconds(settings.retry_settings.timeout))) {
     cancellation_context.CancelOperation();
+    OLP_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s - timeout",
+                       service.c_str(), service_version.c_str(),
+                       catalog.partition.c_str());
     return client::ApiError(client::ErrorCode::RequestTimeout,
                             "Network request timed out.");
   }

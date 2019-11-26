@@ -461,6 +461,7 @@ DataResponse DataRepository::GetBlobData(
     // We are just about exit the execution.
 
     cancellation_context.CancelOperation();
+    OLP_SDK_LOG_INFO_F(kLogTag, "timeout");
     return ApiError(ErrorCode::RequestTimeout, "Network request timed out.");
   }
 
