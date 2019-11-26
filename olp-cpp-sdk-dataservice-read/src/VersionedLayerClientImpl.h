@@ -75,11 +75,8 @@ class VersionedLayerClientImpl {
  private:
   client::HRN catalog_;
   std::string layer_id_;
-  std::shared_ptr<client::OlpClientSettings> settings_;
-  std::shared_ptr<thread::TaskScheduler> task_scheduler_;
+  client::OlpClientSettings settings_;
   std::shared_ptr<client::PendingRequests> pending_requests_;
-  std::shared_ptr<repository::PartitionsRepository> partition_repo_;
-  std::shared_ptr<repository::PrefetchTilesRepository> prefetch_repo_;
 };
 
 }  // namespace read

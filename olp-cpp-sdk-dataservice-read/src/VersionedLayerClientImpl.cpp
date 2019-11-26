@@ -24,10 +24,10 @@
 #include <olp/core/client/PendingRequests.h>
 #include <olp/core/client/TaskContext.h>
 #include <olp/core/context/Context.h>
+#include <olp/core/logging/Log.h>
 #include <olp/core/thread/TaskScheduler.h>
 #include <olp/dataservice/read/CatalogVersionRequest.h>
 #include "Common.h"
-#include "repositories/ApiRepository.h"
 #include "repositories/CatalogRepository.h"
 #include "repositories/DataRepository.h"
 #include "repositories/PartitionsRepository.h"
@@ -46,31 +46,11 @@ VersionedLayerClientImpl::VersionedLayerClientImpl(
     client::OlpClientSettings settings)
     : catalog_(std::move(catalog)),
       layer_id_(std::move(layer_id)),
-      settings_(
-          std::make_shared<client::OlpClientSettings>(std::move(settings))),
+      settings_(std::move(settings)),
       pending_requests_(std::make_shared<client::PendingRequests>()) {
-  if (!settings_->cache) {
-    settings_->cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
+  if (!settings_.cache) {
+    settings_.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
   }
-  // to avoid capturing task scheduler inside a task, we need a copy of settings
-  // without the scheduler
-  task_scheduler_ = std::move(settings_->task_scheduler);
-
-  auto api_repo = std::make_shared<repository::ApiRepository>(
-      catalog_, settings_, settings_->cache);
-
-  auto catalog_repo = std::make_shared<repository::CatalogRepository>(
-      catalog_, api_repo, settings_->cache);
-
-  partition_repo_ = std::make_shared<repository::PartitionsRepository>(
-      catalog_, layer_id_, api_repo, catalog_repo, settings_->cache);
-
-  auto data_repo = std::make_shared<repository::DataRepository>(
-      catalog_, layer_id_, api_repo, catalog_repo, partition_repo_,
-      settings_->cache);
-
-  prefetch_repo_ = std::make_shared<repository::PrefetchTilesRepository>(
-      catalog_, layer_id_, settings_);
 }
 
 VersionedLayerClientImpl::~VersionedLayerClientImpl() {
@@ -88,14 +68,14 @@ client::CancellationToken VersionedLayerClientImpl::GetPartitions(
                                      PartitionsResponseCallback callback) {
     auto catalog = catalog_;
     auto layer_id = layer_id_;
-    auto settings = *settings_;
+    auto settings = settings_;
 
     auto partitions_task = [=](client::CancellationContext context) {
       return repository::PartitionsRepository::GetVersionedPartitions(
           catalog, layer_id, context, std::move(request), settings);
     };
 
-    return AddTask(task_scheduler_, pending_requests_,
+    return AddTask(settings.task_scheduler, pending_requests_,
                    std::move(partitions_task), std::move(callback));
   };
 
@@ -120,7 +100,7 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
                                DataResponseCallback callback) {
     auto catalog = catalog_;
     auto layer_id = layer_id_;
-    auto settings = *settings_;
+    auto settings = settings_;
 
     auto data_task = [=](client::CancellationContext context) {
       return repository::DataRepository::GetVersionedData(
@@ -128,8 +108,8 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
           std::move(settings));
     };
 
-    return AddTask(task_scheduler_, pending_requests_, std::move(data_task),
-                   std::move(callback));
+    return AddTask(settings.task_scheduler, pending_requests_,
+                   std::move(data_task), std::move(callback));
   };
   return ScheduleFetch(std::move(schedule_get_data), std::move(request),
                        std::move(callback));
@@ -158,13 +138,11 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
 
   auto catalog = catalog_;
   auto layer_id = layer_id_;
-  auto settings = *settings_;
-  auto task_scheduler = task_scheduler_;
+  auto settings = settings_;
   auto pending_requests = pending_requests_;
-  auto prefetch_repo = prefetch_repo_;
 
   auto token = AddTask(
-      task_scheduler_, pending_requests,
+      settings.task_scheduler, pending_requests,
       [=](CancellationContext context) mutable -> EmptyResponse {
         if (request.GetTileKeys().empty()) {
           OLP_SDK_LOG_WARNING_F(kLogTag,
@@ -214,8 +192,8 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
                             sub_quads.size(), key.c_str());
 
         // Now get metadata for subtiles using QueryApi::QuadTreeIndex
-        auto sub_tiles =
-            prefetch_repo->GetSubTiles(layer_id, request, sub_quads, context);
+        auto sub_tiles = repository::PrefetchTilesRepository::GetSubTiles(
+            catalog, layer_id, request, sub_quads, context, settings);
 
         if (!sub_tiles.IsSuccessful()) {
           return sub_tiles.GetError();
@@ -249,7 +227,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
           auto handle = it->second;
           auto context_it = contexts.emplace(contexts.end());
 
-          AddTask(task_scheduler, pending_requests,
+          AddTask(settings.task_scheduler, pending_requests,
                   [=](CancellationContext inner_context) {
                     // Get blob data
                     auto data = repository::DataRepository::GetVersionedData(
@@ -285,7 +263,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
         // Task to wait for previously triggered data download to collect
         // responses and trigger user callback.
         AddTask(
-            task_scheduler, pending_requests,
+            settings.task_scheduler, pending_requests,
             [=](CancellationContext inner_context) -> PrefetchTilesResponse {
               PrefetchTilesResult result;
               result.reserve(futures->size());

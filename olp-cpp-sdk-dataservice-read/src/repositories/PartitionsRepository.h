@@ -26,8 +26,6 @@
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
-#include "MultiRequestContext.h"
-#include "generated/api/QueryApi.h"
 #include "olp/dataservice/read/Types.h"
 
 namespace olp {
@@ -43,22 +41,6 @@ class PartitionsCacheRepository;
 
 class PartitionsRepository final {
  public:
-  PartitionsRepository(const client::HRN& hrn, std::string layer_id,
-                       std::shared_ptr<ApiRepository> apiRepo,
-                       std::shared_ptr<CatalogRepository> catalogRepo,
-                       std::shared_ptr<cache::KeyValueCache> cache_);
-
-  ~PartitionsRepository() = default;
-
-  client::CancellationToken GetPartitionsById(
-      const read::PartitionsRequest& request,
-      const std::vector<std::string>& partitions,
-      const read::PartitionsResponseCallback& callback);
-
-  std::shared_ptr<PartitionsCacheRepository> GetPartitionsCacheRepository() {
-    return cache_;
-  }
-
   static PartitionsResponse GetVersionedPartitions(
       client::HRN catalog, std::string layer,
       client::CancellationContext cancellation_context,
@@ -69,7 +51,7 @@ class PartitionsRepository final {
       client::CancellationContext cancellation_context,
       read::PartitionsRequest data_request, client::OlpClientSettings settings);
 
-  static QueryApi::PartitionsResponse GetPartitionById(
+  static PartitionsResponse GetPartitionById(
       const client::HRN& catalog, const std::string& layer,
       client::CancellationContext cancellation_context,
       const DataRequest& data_request, client::OlpClientSettings settings);
@@ -80,14 +62,6 @@ class PartitionsRepository final {
       client::CancellationContext cancellation_context,
       read::PartitionsRequest request, client::OlpClientSettings settings,
       boost::optional<time_t> expiry = boost::none);
-
-  const client::HRN hrn_;
-  const std::string layer_id_;
-  std::shared_ptr<ApiRepository> apiRepo_;
-  std::shared_ptr<CatalogRepository> catalogRepo_;
-  std::shared_ptr<PartitionsCacheRepository> cache_;
-  std::shared_ptr<MultiRequestContext<read::PartitionsResponse>>
-      multiRequestContext_;
 };
 }  // namespace repository
 }  // namespace read

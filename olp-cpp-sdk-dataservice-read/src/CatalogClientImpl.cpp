@@ -25,7 +25,6 @@
 #include <olp/core/logging/Log.h>
 
 #include "Common.h"
-#include "repositories/ApiRepository.h"
 #include "repositories/CatalogRepository.h"
 #include "repositories/ExecuteOrSchedule.inl"
 

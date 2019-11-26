@@ -37,22 +37,9 @@ namespace read {
  */
 class ApiClientLookup {
  public:
-  using ApisResponse = client::ApiResponse<model::Apis, client::ApiError>;
-  using ApisCallback = std::function<void(ApisResponse)>;
-
-  static client::CancellationToken LookupApi(
-      std::shared_ptr<client::OlpClient> client, const std::string& service,
-      const std::string& service_version, const client::HRN& hrn,
-      const ApisCallback& callback);
-
   using ApiClientResponse =
       client::ApiResponse<client::OlpClient, client::ApiError>;
   using ApiClientCallback = std::function<void(ApiClientResponse)>;
-
-  static client::CancellationToken LookupApiClient(
-      std::shared_ptr<client::OlpClient> client, const std::string& service,
-      const std::string& service_version, const client::HRN& hrn,
-      const ApiClientCallback& callback);
 
   static ApiClientResponse LookupApi(
       const client::HRN& catalog,

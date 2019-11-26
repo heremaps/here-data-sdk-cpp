@@ -24,7 +24,7 @@
 #include <olp/core/client/Condition.h>
 #include <olp/core/logging/Log.h>
 
-#include "ApiRepository.h"
+#include "ApiClientLookup.h"
 #include "CatalogCacheRepository.h"
 #include "ExecuteOrSchedule.inl"
 #include "generated/api/ConfigApi.h"
@@ -42,117 +42,9 @@ constexpr auto kLogTag = "CatalogRepository";
 
 }  // namespace
 
-CatalogRepository::CatalogRepository(
-    const client::HRN& hrn, std::shared_ptr<ApiRepository> apiRepo,
-    std::shared_ptr<cache::KeyValueCache> cache)
-    : hrn_(hrn),
-      apiRepo_(apiRepo),
-      cache_(std::make_shared<CatalogCacheRepository>(hrn, cache)) {
-  CatalogResponse cancelledResponse{
-      {static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-       "Operation cancelled."}};
-  multiRequestContext_ =
-      std::make_shared<MultiRequestContext<CatalogResponse>>(cancelledResponse);
-}
-
-client::CancellationToken CatalogRepository::getCatalog(
-    const CatalogRequest& request, const CatalogResponseCallback& callback) {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  auto cancel_context = std::make_shared<client::CancellationContext>();
-  auto& cache = cache_;
-
-  auto requestKey = request.CreateKey();
-  OLP_SDK_LOG_TRACE_F(kLogTag, "getCatalog '%s'", requestKey.c_str());
-
-  auto executeFn = [=](CatalogResponseCallback callback) {
-    cancel_context->ExecuteOrCancelled(
-        [=]() {
-          OLP_SDK_LOG_INFO_F(kLogTag, "checking catalog '%s' cache",
-                             requestKey.c_str());
-          // Check the cache
-          if (OnlineOnly != request.GetFetchOption()) {
-            auto cachedCatalog = cache->Get();
-            if (cachedCatalog) {
-              ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
-                OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' found!",
-                                   requestKey.c_str());
-                callback(*cachedCatalog);
-              });
-              return client::CancellationToken();
-            } else if (CacheOnly == request.GetFetchOption()) {
-              ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
-                OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' not found!",
-                                   requestKey.c_str());
-                callback(client::ApiError(
-                    client::ErrorCode::NotFound,
-                    "Cache only resource not found in cache (catalog)."));
-              });
-              return client::CancellationToken();
-            }
-          }
-          // Query Network
-          auto cacheCatalogResponseCallback = [=](CatalogResponse response) {
-            OLP_SDK_LOG_INFO_F(kLogTag, "network response '%s'",
-                               requestKey.c_str());
-            if (response.IsSuccessful()) {
-              OLP_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",
-                                 requestKey.c_str());
-              cache->Put(response.GetResult());
-            } else {
-              if (403 == response.GetError().GetHttpStatusCode()) {
-                OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
-                                   requestKey.c_str());
-                cache->Clear();
-              }
-            }
-            callback(response);
-          };
-
-          return apiRepo_->getApiClient(
-              "config", "v1", [=](ApiClientResponse response) {
-                if (!response.IsSuccessful()) {
-                  OLP_SDK_LOG_INFO_F(kLogTag, "getApiClient '%s' unsuccessful",
-                                     requestKey.c_str());
-                  callback(response.GetError());
-                  return;
-                }
-
-                cancel_context->ExecuteOrCancelled(
-                    [=]() {
-                      OLP_SDK_LOG_INFO_F(kLogTag,
-                                         "getApiClient '%s' getting catalog",
-                                         requestKey.c_str());
-                      return ConfigApi::GetCatalog(
-                          response.GetResult(), hrn, request.GetBillingTag(),
-                          cacheCatalogResponseCallback);
-                    },
-                    [=]() {
-                      OLP_SDK_LOG_INFO_F(kLogTag, "getApiClient '%s' cancelled",
-                                         requestKey.c_str());
-                      callback({{client::ErrorCode::Cancelled,
-                                 "Operation cancelled.", true}});
-                    });
-              });
-        },
-
-        [=]() {
-          OLP_SDK_LOG_INFO_F(kLogTag, "Cancelled '%s'", requestKey.c_str());
-          callback(
-              {{client::ErrorCode::Cancelled, "Operation cancelled.", true}});
-        });
-
-    return client::CancellationToken(
-        [cancel_context]() { cancel_context->CancelOperation(); });
-  };
-
-  OLP_SDK_LOG_INFO_F(kLogTag, "ExecuteOrAssociate '%s'", requestKey.c_str());
-  return multiRequestContext_->ExecuteOrAssociate(requestKey, executeFn,
-                                                  callback);
-}
-
-read::CatalogResponse CatalogRepository::GetCatalog(
+CatalogResponse CatalogRepository::GetCatalog(
     client::HRN catalog, client::CancellationContext cancellation_context,
-    read::CatalogRequest request, client::OlpClientSettings settings) {
+    CatalogRequest request, client::OlpClientSettings settings) {
   using namespace client;
 
   const auto request_key = request.CreateKey();
@@ -193,7 +85,7 @@ read::CatalogResponse CatalogRepository::GetCatalog(
   // references we protect them with atomic bool flag.
   auto interest_flag = std::make_shared<std::atomic_bool>(true);
 
-  read::CatalogResponse catalog_response;
+  CatalogResponse catalog_response;
 
   cancellation_context.ExecuteOrCancelled(
       [&]() {
@@ -239,97 +131,7 @@ read::CatalogResponse CatalogRepository::GetCatalog(
   return catalog_response;
 }
 
-client::CancellationToken CatalogRepository::getLatestCatalogVersion(
-    const CatalogVersionRequest& request,
-    const CatalogVersionCallback& callback) {
-  auto cancel_context = std::make_shared<client::CancellationContext>();
-  auto& cache = cache_;
-
-  auto requestKey = request.CreateKey();
-  OLP_SDK_LOG_TRACE_F(kLogTag, "getCatalogVersion '%s'", requestKey.c_str());
-
-  cancel_context->ExecuteOrCancelled(
-      [=]() {
-        OLP_SDK_LOG_INFO_F(kLogTag, "checking catalog '%s' cache",
-                           requestKey.c_str());
-        // Check the cache if cache-only request.
-        if (CacheOnly == request.GetFetchOption()) {
-          auto cachedVersion = cache->GetVersion();
-          if (cachedVersion) {
-            ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
-              OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' found!",
-                                 requestKey.c_str());
-              callback(*cachedVersion);
-            });
-          } else {
-            ExecuteOrSchedule(apiRepo_->GetOlpClientSettings(), [=] {
-              OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' not found!",
-                                 requestKey.c_str());
-              callback(client::ApiError(
-                  client::ErrorCode::NotFound,
-                  "Cache only resource not found in cache (catalog version)."));
-            });
-          }
-          return client::CancellationToken();
-        }
-        // Network Query
-        auto cacheVersionResponseCallback =
-            [=](CatalogVersionResponse response) {
-              OLP_SDK_LOG_INFO_F(kLogTag, "network response '%s'",
-                                 requestKey.c_str());
-              if (response.IsSuccessful()) {
-                OLP_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",
-                                   requestKey.c_str());
-                cache->PutVersion(response.GetResult());
-              } else {
-                if (403 == response.GetError().GetHttpStatusCode()) {
-                  OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
-                                     requestKey.c_str());
-                  cache->Clear();
-                }
-              }
-              callback(response);
-            };
-        return apiRepo_->getApiClient(
-            "metadata", "v1", [=](ApiClientResponse response) {
-              if (!response.IsSuccessful()) {
-                OLP_SDK_LOG_INFO_F(kLogTag, "getApiClient '%s' unsuccessful",
-                                   requestKey.c_str());
-                callback(response.GetError());
-                return;
-              }
-
-              cancel_context->ExecuteOrCancelled(
-                  [=]() {
-                    OLP_SDK_LOG_INFO_F(
-                        kLogTag,
-                        "getApiClient '%s' getting latest catalog version",
-                        requestKey.c_str());
-                    return MetadataApi::GetLatestCatalogVersion(
-                        response.GetResult(), request.GetStartVersion(),
-                        request.GetBillingTag(), cacheVersionResponseCallback);
-                  },
-                  [=]() {
-                    OLP_SDK_LOG_INFO_F(kLogTag, "getApiClient '%s' cancelled",
-                                       requestKey.c_str());
-                    callback({{client::ErrorCode::Cancelled,
-                               "Operation cancelled.", true}});
-                  });
-            });
-      },
-
-      [=]() {
-        OLP_SDK_LOG_INFO_F(kLogTag, "Cancelled '%s'", requestKey.c_str());
-        callback(
-            {{client::ErrorCode::Cancelled, "Operation cancelled.", true}});
-      });
-
-  OLP_SDK_LOG_INFO_F(kLogTag, "ExecuteOrAssociate '%s'", requestKey.c_str());
-  return client::CancellationToken(
-      [cancel_context]() { cancel_context->CancelOperation(); });
-}
-
-MetadataApi::CatalogVersionResponse CatalogRepository::GetLatestVersion(
+CatalogVersionResponse CatalogRepository::GetLatestVersion(
     client::HRN catalog, client::CancellationContext cancellation_context,
     CatalogVersionRequest request, client::OlpClientSettings settings) {
   using namespace client;

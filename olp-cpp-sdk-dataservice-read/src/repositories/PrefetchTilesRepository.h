@@ -22,11 +22,14 @@
 #include <map>
 #include <string>
 
+#include <olp/core/client/ApiError.h>
+#include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/HRN.h>
+#include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/geo/tiling/TileKey.h>
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/model/Partitions.h>
-#include "ApiRepository.h"
 #include "PartitionsCacheRepository.h"
 #include "generated/model/Index.h"
 
@@ -44,9 +47,6 @@ using SubTilesResponse = client::ApiResponse<SubTilesResult, client::ApiError>;
 
 class PrefetchTilesRepository final {
  public:
-  PrefetchTilesRepository(const client::HRN& hrn, std::string layer_id,
-                          std::shared_ptr<client::OlpClientSettings> settings);
-
   /**
    * @brief Given tile keys, return all related tile keys that are between
    * minLevel and maxLevel, and the depth. If the tile key is lower than the
@@ -61,10 +61,11 @@ class PrefetchTilesRepository final {
       const std::vector<geo::TileKey>& tile_keys, unsigned int min_level,
       unsigned int max_level);
 
-  SubTilesResponse GetSubTiles(const std::string& layer_id,
-                               const PrefetchTilesRequest& request,
-                               const SubQuadsRequest& sub_quads,
-                               client::CancellationContext context);
+  static SubTilesResponse GetSubTiles(
+      const client::HRN& catalog, const std::string& layer_id,
+      const PrefetchTilesRequest& request, const SubQuadsRequest& sub_quads,
+      client::CancellationContext context,
+      const client::OlpClientSettings& settings);
 
   static SubQuadsResponse GetSubQuads(const client::HRN& catalog,
                                       const std::string& layer_id,
@@ -81,11 +82,6 @@ class PrefetchTilesRepository final {
 
   static std::vector<geo::TileKey> GetChildAtLevel(const geo::TileKey& tile_key,
                                                    unsigned int min_level);
-
- private:
-  client::HRN hrn_;
-  std::string layer_id_;
-  std::shared_ptr<client::OlpClientSettings> settings_;
 };
 
 }  // namespace repository

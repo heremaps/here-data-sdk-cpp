@@ -24,9 +24,9 @@
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/client/PendingRequests.h>
 #include <olp/core/client/TaskContext.h>
+#include <olp/core/logging/Log.h>
 
 #include "Common.h"
-#include "repositories/ApiRepository.h"
 #include "repositories/CatalogRepository.h"
 #include "repositories/DataRepository.h"
 #include "repositories/ExecuteOrSchedule.inl"
@@ -45,26 +45,11 @@ VolatileLayerClientImpl::VolatileLayerClientImpl(
     client::OlpClientSettings settings)
     : catalog_(std::move(catalog)),
       layer_id_(std::move(layer_id)),
-      settings_(
-          std::make_shared<client::OlpClientSettings>(std::move(settings))),
+      settings_(std::move(settings)),
       pending_requests_(std::make_shared<client::PendingRequests>()) {
-  if (!settings_->cache) {
-    settings_->cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
+  if (!settings_.cache) {
+    settings_.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
   }
-  // to avoid capturing task scheduler inside a task, we need a copy of settings
-  // without the scheduler
-  task_scheduler_ = std::move(settings_->task_scheduler);
-
-  auto cache = settings_->cache;
-
-  auto api_repo =
-      std::make_shared<repository::ApiRepository>(catalog_, settings_, cache);
-
-  auto catalog_repo = std::make_shared<repository::CatalogRepository>(
-      catalog_, api_repo, cache);
-
-  partition_repo_ = std::make_shared<repository::PartitionsRepository>(
-      catalog_, layer_id_, api_repo, catalog_repo, cache);
 }
 
 VolatileLayerClientImpl::~VolatileLayerClientImpl() {
@@ -82,7 +67,7 @@ client::CancellationToken VolatileLayerClientImpl::GetPartitions(
                                      PartitionsResponseCallback callback) {
     auto catalog = catalog_;
     auto layer_id = layer_id_;
-    auto settings = *settings_;
+    auto settings = settings_;
 
     auto data_task = [=](client::CancellationContext context) {
       return repository::PartitionsRepository::GetVolatilePartitions(
@@ -90,8 +75,8 @@ client::CancellationToken VolatileLayerClientImpl::GetPartitions(
           std::move(request), std::move(settings));
     };
 
-    return AddTask(task_scheduler_, pending_requests_, std::move(data_task),
-                   std::move(callback));
+    return AddTask(settings.task_scheduler, pending_requests_,
+                   std::move(data_task), std::move(callback));
   };
 
   return ScheduleFetch(std::move(schedule_get_partitions), std::move(request),
@@ -114,14 +99,14 @@ client::CancellationToken VolatileLayerClientImpl::GetData(
                                DataResponseCallback callback) {
     auto catalog = catalog_;
     auto layer_id = layer_id_;
-    auto settings = *settings_;
+    auto settings = settings_;
 
     auto partitions_task = [=](client::CancellationContext context) {
       return repository::DataRepository::GetVolatileData(
           catalog, layer_id, request, context, settings);
     };
 
-    return AddTask(task_scheduler_, pending_requests_,
+    return AddTask(settings.task_scheduler, pending_requests_,
                    std::move(partitions_task), std::move(callback));
   };
 
