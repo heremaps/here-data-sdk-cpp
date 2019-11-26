@@ -102,7 +102,7 @@ translate_report:
     # - python -m junit2htmlreport --merge olp-merged-report.xml reports/*.xml
     # - python -m junit2htmlreport olp-merged-report.xml
     - python -m junit2htmlreport --report-matrix reports/index.html reports/*.xml
-    - cat heaptrack_report.html >> reports/index.html
+    - if [ "$NIGHTLY" == "1" ]; then cat heaptrack_report.html >> reports/index.html; fi
     - mkdir -p .public
     - cp reports/*.html .public/
   artifacts:
