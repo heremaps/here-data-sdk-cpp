@@ -22,11 +22,11 @@
 #include <atomic>
 #include <mutex>
 
+#include <olp/core/client/ApiError.h>
+#include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/CancellationContext.h>
+#include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/Condition.h>
-#include "olp/core/client/ApiError.h"
-#include "olp/core/client/ApiResponse.h"
-#include "olp/core/client/CancellationContext.h"
-#include "olp/core/client/CancellationToken.h"
 
 namespace olp {
 namespace client {
@@ -160,6 +160,11 @@ class TaskContext {
       if (callback) {
         callback(std::move(user_response));
       }
+
+      // Resources needs to be released before notification, else lambas would
+      // have captured resources like network or TaskScheduler
+      function = nullptr;
+      callback = nullptr;
 
       condition_.Notify();
 
