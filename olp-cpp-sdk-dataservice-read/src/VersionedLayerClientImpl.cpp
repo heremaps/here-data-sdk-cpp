@@ -170,8 +170,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
           OLP_SDK_LOG_WARNING_F(kLogTag,
                                 "PrefetchTiles : invalid request, layer=%s",
                                 layer_id.c_str());
-          callback({{ErrorCode::InvalidArgument, "Empty tile key list"}});
-          return EmptyResponse(PrefetchTileNoError());
+          return {{ErrorCode::InvalidArgument, "Empty tile key list"}};
         }
 
         // Get Catalog version first if none set.
@@ -189,8 +188,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
                 kLogTag,
                 "PrefetchTiles: getting catalog version failed, key=%s",
                 request.CreateKey(layer_id).c_str());
-            callback(response.GetError());
-            return EmptyResponse(PrefetchTileNoError());
+            return response.GetError();
           }
 
           request.WithVersion(response.GetResult().GetVersion());
@@ -209,8 +207,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
           OLP_SDK_LOG_WARNING_F(kLogTag,
                                 "PrefetchTiles: tile/level mismatch, key=%s",
                                 key.c_str());
-          callback({{ErrorCode::InvalidArgument, "TileKeys/levels mismatch"}});
-          return EmptyResponse(PrefetchTileNoError());
+          return {{ErrorCode::InvalidArgument, "TileKeys/levels mismatch"}};
         }
 
         OLP_SDK_LOG_DEBUG_F(kLogTag, "PrefetchTiles, subquads=%zu, key=%s",
@@ -221,16 +218,14 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
             prefetch_repo->GetSubTiles(layer_id, request, sub_quads, context);
 
         if (!sub_tiles.IsSuccessful()) {
-          callback(sub_tiles.GetError());
-          return EmptyResponse(PrefetchTileNoError());
+          return sub_tiles.GetError();
         }
 
         const auto& tiles_result = sub_tiles.GetResult();
         if (tiles_result.empty()) {
           OLP_SDK_LOG_WARNING_F(
               kLogTag, "PrefetchTiles: subtiles empty, key=%s", key.c_str());
-          callback({{ErrorCode::InvalidArgument, "Subquads retrieval failed"}});
-          return EmptyResponse(PrefetchTileNoError());
+          return {{ErrorCode::InvalidArgument, "Subquads retrieval failed"}};
         }
 
         OLP_SDK_LOG_INFO_F(kLogTag, "Prefetch start, key=%s, tiles=%zu",
@@ -324,7 +319,14 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
       // Because the handling of prefetch tiles responses is performed by the
       // inner-task, no need to set a callback here. Otherwise, the user would
       // be notified with empty results.
-      nullptr);
+      // It is possible to not invoke inner task, when it was cancelled before
+      // execution.
+      [callback](EmptyResponse response) {
+        // Inner task only generates successfull result
+        if (!response.IsSuccessful()) {
+          callback(response.GetError());
+        }
+      });
 
   return token;
 }  // namespace read

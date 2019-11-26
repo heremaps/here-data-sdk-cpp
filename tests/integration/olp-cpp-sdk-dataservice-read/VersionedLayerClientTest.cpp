@@ -2005,6 +2005,67 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
             data_response.GetError().GetErrorCode());
 }
 
+TEST_F(DataserviceReadVersionedLayerClientTest, CancelPendingRequestsPrefetch) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto client =
+      std::make_unique<VersionedLayerClient>(hrn, "testlayer", *settings_);
+  auto prefetch_request = PrefetchTilesRequest();
+  auto data_request =
+      DataRequest().WithPartitionId("269").WithFetchOption(OnlineOnly);
+
+  auto request_started = std::make_shared<std::promise<void>>();
+  auto continue_request = std::make_shared<std::promise<void>>();
+
+  {
+    olp::http::RequestId request_id;
+    NetworkCallback send_mock;
+    CancelCallback cancel_mock;
+
+    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+        request_started, continue_request,
+        {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_BLOB_DATA_269});
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+
+    EXPECT_CALL(*network_mock_, Cancel(request_id))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+  }
+
+  auto data_future = client->GetData(data_request).GetFuture();
+  auto prefetch_future = client->PrefetchTiles(prefetch_request).GetFuture();
+
+  request_started->get_future().get();
+  client->CancelPendingRequests();
+  continue_request->set_value();
+
+  ASSERT_EQ(prefetch_future.wait_for(kWaitTimeout), std::future_status::ready);
+  auto prefetch_response = prefetch_future.get();
+
+  ASSERT_FALSE(prefetch_response.IsSuccessful())
+      << ApiErrorToString(prefetch_response.GetError());
+
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            prefetch_response.GetError().GetHttpStatusCode());
+  ASSERT_EQ(olp::client::ErrorCode::Cancelled,
+            prefetch_response.GetError().GetErrorCode());
+
+  ASSERT_EQ(data_future.wait_for(kWaitTimeout), std::future_status::ready);
+
+  auto data_response = data_future.get();
+
+  ASSERT_FALSE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            data_response.GetError().GetHttpStatusCode());
+  ASSERT_EQ(olp::client::ErrorCode::Cancelled,
+            data_response.GetError().GetErrorCode());
+}
+
 TEST_F(DataserviceReadVersionedLayerClientTest,
        DISABLED_GetDataWithPartitionIdCancelLookupMetadata) {
   olp::client::HRN hrn(GetTestCatalog());
