@@ -27,6 +27,7 @@
 #include <olp/core/logging/Log.h>
 #include <olp/core/thread/Atomic.h>
 #include <olp/core/thread/TaskScheduler.h>
+#include "ApiClientLookup.h"
 #include "generated/api/QueryApi.h"
 
 namespace olp {
@@ -52,13 +53,6 @@ model::Partition PartitionFromSubQuad(const model::SubQuad& sub_quad,
 }  // namespace
 
 using namespace olp::client;
-
-PrefetchTilesRepository::PrefetchTilesRepository(
-    const HRN& hrn, std::string layer_id,
-    std::shared_ptr<olp::client::OlpClientSettings> settings)
-    : hrn_(hrn),
-      layer_id_(std::move(layer_id)),
-      settings_(std::move(settings)) {}
 
 SubQuadsRequest PrefetchTilesRepository::EffectiveTileKeys(
     const std::vector<geo::TileKey>& tile_keys, unsigned int min_level,
@@ -158,32 +152,33 @@ std::vector<geo::TileKey> PrefetchTilesRepository::GetChildAtLevel(
 }
 
 SubTilesResponse PrefetchTilesRepository::GetSubTiles(
-    const std::string& layer_id, const PrefetchTilesRequest& request,
-    const SubQuadsRequest& sub_quads, CancellationContext context) {
+    const client::HRN& catalog, const std::string& layer_id,
+    const PrefetchTilesRequest& request, const SubQuadsRequest& sub_quads,
+    CancellationContext context, const client::OlpClientSettings& settings) {
   // Version needs to be set, else we cannot move forward
   if (!request.GetVersion()) {
     OLP_SDK_LOG_WARNING_F(kLogTag,
                           "GetSubTiles: catalog version missing, key=%s",
                           request.CreateKey(layer_id).c_str());
-    return {{ErrorCode::InvalidArgument, "Catalog version invalid"}};
+    return ApiError{ErrorCode::InvalidArgument, "Catalog version invalid"};
   }
 
   OLP_SDK_LOG_INFO_F(kLogTag, "GetSubTiles: hrn=%s, layer=%s, quads=%zu",
-                     hrn_.ToString().c_str(), layer_id.c_str(),
+                     catalog.ToString().c_str(), layer_id.c_str(),
                      sub_quads.size());
 
   SubTilesResult result;
 
   for (const auto& quad : sub_quads) {
     if (context.IsCancelled()) {
-      return {{ErrorCode::Cancelled, "Cancelled", true}};
+      return client::ApiError{ErrorCode::Cancelled, "Cancelled", true};
     }
 
     auto& tile = quad.second.first;
     auto& depth = quad.second.second;
 
     auto response =
-        GetSubQuads(hrn_, layer_id, request, tile, depth, *settings_, context);
+        GetSubQuads(catalog, layer_id, request, tile, depth, settings, context);
 
     if (!response.IsSuccessful()) {
       // Just abort if something else then 404 Not Found is returned
@@ -248,7 +243,7 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
   auto quad_tree = future.get();
 
   if (context.IsCancelled()) {
-    return {{ErrorCode::Cancelled, "Cancelled", true}};
+    return client::ApiError{ErrorCode::Cancelled, "Cancelled", true};
   }
 
   if (!quad_tree.IsSuccessful()) {

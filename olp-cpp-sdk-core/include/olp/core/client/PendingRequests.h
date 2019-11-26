@@ -36,9 +36,6 @@ namespace client {
  */
 class PendingRequests final {
  public:
-  PendingRequests();
-  ~PendingRequests();
-
   /**
    * @brief Cancels all pending tasks
    * @note This call does not wait for the tasks to finalize, use
@@ -46,7 +43,7 @@ class PendingRequests final {
    * @return True on success
    */
   bool CancelAll();
-  
+
   /**
    * @brief Cancels all pending tasks and waits for all beeing finalized.
    * @return True on success
@@ -54,51 +51,22 @@ class PendingRequests final {
   bool CancelAllAndWait();
 
   /**
-   * @brief Generates a placehoder for request cancellation token and returns a
-   * key associated with it.
-   * @return Returns a key associated with a placeholder.
-   */
-  int64_t GenerateRequestPlaceholder();
-
-  /**
-   * @brief Inserts request cancellation token into the placeholder associated
-   * with a key.
-   * @param token Cancellation token.
-   * @param key Key associated with a placeholder.
-   * @return True on success, false when the placeholder is missing.
-   */
-  bool Insert(const client::CancellationToken& token, int64_t key);
-
-  /**
    * @brief Inserts task context into the requests container.
    * @param task_context Task context.
    */
-  void Insert(client::TaskContext task_context);
-
-  /**
-   * @brief Removes a pending request and placholder.
-   * @param key Internal request key to remove
-   * @return True on success
-   */
-  bool Remove(int64_t key);
+  void Insert(TaskContext task_context);
 
   /**
    * @brief Removes a task context.
    * @param task_context Task context.
    */
-  void Remove(client::TaskContext task_context);
+  void Remove(TaskContext task_context);
 
  private:
-  int64_t key_ = 0;
-  using RequestMap = std::unordered_map<int64_t, client::CancellationToken>;
-  using ContextMap =
-      std::unordered_set<client::TaskContext, client::TaskContextHash>;
-  RequestMap requests_map_;
+  using ContextMap = std::unordered_set<TaskContext, TaskContextHash>;
   ContextMap task_contexts_;
-
-  std::mutex requests_lock_;
+  std::mutex task_contexts_lock_;
 };
 
 }  // namespace client
 }  // namespace olp
-

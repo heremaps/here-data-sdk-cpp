@@ -22,7 +22,6 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./client/CancellationContextTest.cpp
     ./client/ConditionTest.cpp
     ./client/TaskContextTest.cpp
-    ./client/PendingRequestsTest.cpp
 
     ./geo/coordinates/GeoCoordinates3dTest.cpp
     ./geo/coordinates/GeoCoordinatesTest.cpp

@@ -89,16 +89,10 @@ class ApiTest : public ::testing::Test {
 TEST_F(ApiTest, GetCatalog) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  std::promise<olp::dataservice::read::ApiClientLookup::ApiClientResponse>
-      config_client_promise;
-  olp::dataservice::read::ApiClientLookup::LookupApiClient(
-      olp::client::OlpClientFactory::Create(*settings_), "config", "v1", hrn,
-      [&config_client_promise](
-          olp::dataservice::read::ApiClientLookup::ApiClientResponse response) {
-        config_client_promise.set_value(response);
-      });
+  auto client_response = olp::dataservice::read::ApiClientLookup::LookupApi(
+      hrn, {}, "config", "v1",
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound, *settings_);
 
-  auto client_response = config_client_promise.get_future().get();
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
   auto config_client = client_response.GetResult();
@@ -127,16 +121,10 @@ TEST_F(ApiTest, GetCatalog) {
 TEST_F(ApiTest, GetPartitions) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  std::promise<olp::dataservice::read::ApiClientLookup::ApiClientResponse>
-      metadata_client_promise;
-  olp::dataservice::read::ApiClientLookup::LookupApiClient(
-      olp::client::OlpClientFactory::Create(*settings_), "metadata", "v1", hrn,
-      [&metadata_client_promise](
-          olp::dataservice::read::ApiClientLookup::ApiClientResponse response) {
-        metadata_client_promise.set_value(response);
-      });
+  auto client_response = olp::dataservice::read::ApiClientLookup::LookupApi(
+      hrn, {}, "metadata", "v1",
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound, *settings_);
 
-  auto client_response = metadata_client_promise.get_future().get();
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
   auto metadata_client = client_response.GetResult();
@@ -167,16 +155,10 @@ TEST_F(ApiTest, GetPartitions) {
 TEST_F(ApiTest, GetPartitionById) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  std::promise<olp::dataservice::read::ApiClientLookup::ApiClientResponse>
-      metadata_client_promise;
-  olp::dataservice::read::ApiClientLookup::LookupApiClient(
-      olp::client::OlpClientFactory::Create(*settings_), "query", "v1", hrn,
-      [&metadata_client_promise](
-          olp::dataservice::read::ApiClientLookup::ApiClientResponse response) {
-        metadata_client_promise.set_value(response);
-      });
+  auto client_response = olp::dataservice::read::ApiClientLookup::LookupApi(
+      hrn, {}, "query", "v1",
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound, *settings_);
 
-  auto client_response = metadata_client_promise.get_future().get();
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
   auto query_client = client_response.GetResult();
@@ -255,16 +237,10 @@ TEST_F(ApiTest, GetPartitionById) {
 TEST_F(ApiTest, GetCatalogVersion) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  std::promise<olp::dataservice::read::ApiClientLookup::ApiClientResponse>
-      metadata_client_promise;
-  olp::dataservice::read::ApiClientLookup::LookupApiClient(
-      olp::client::OlpClientFactory::Create(*settings_), "metadata", "v1", hrn,
-      [&metadata_client_promise](
-          olp::dataservice::read::ApiClientLookup::ApiClientResponse response) {
-        metadata_client_promise.set_value(response);
-      });
+  auto client_response = olp::dataservice::read::ApiClientLookup::LookupApi(
+      hrn, {}, "metadata", "v1",
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound, *settings_);
 
-  auto client_response = metadata_client_promise.get_future().get();
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
   auto metadata_client = client_response.GetResult();
@@ -294,16 +270,10 @@ TEST_F(ApiTest, GetCatalogVersion) {
 TEST_F(ApiTest, GetLayerVersions) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  std::promise<olp::dataservice::read::ApiClientLookup::ApiClientResponse>
-      metadata_client_promise;
-  olp::dataservice::read::ApiClientLookup::LookupApiClient(
-      olp::client::OlpClientFactory::Create(*settings_), "metadata", "v1", hrn,
-      [&metadata_client_promise](
-          olp::dataservice::read::ApiClientLookup::ApiClientResponse response) {
-        metadata_client_promise.set_value(response);
-      });
+  auto client_response = olp::dataservice::read::ApiClientLookup::LookupApi(
+      hrn, {}, "metadata", "v1",
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound, *settings_);
 
-  auto client_response = metadata_client_promise.get_future().get();
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
   auto metadata_client = client_response.GetResult();
@@ -334,16 +304,10 @@ TEST_F(ApiTest, GetLayerVersions) {
 TEST_F(ApiTest, GetBlob) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  std::promise<olp::dataservice::read::ApiClientLookup::ApiClientResponse>
-      blob_client_promise;
-  olp::dataservice::read::ApiClientLookup::LookupApiClient(
-      olp::client::OlpClientFactory::Create(*settings_), "blob", "v1", hrn,
-      [&blob_client_promise](
-          olp::dataservice::read::ApiClientLookup::ApiClientResponse response) {
-        blob_client_promise.set_value(response);
-      });
+  auto client_response = olp::dataservice::read::ApiClientLookup::LookupApi(
+      hrn, {}, "blob", "v1",
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound, *settings_);
 
-  auto client_response = blob_client_promise.get_future().get();
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
   auto blob_client = client_response.GetResult();
@@ -375,17 +339,10 @@ TEST_F(ApiTest, GetBlob) {
 TEST_F(ApiTest, DISABLED_GetVolatileBlob) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  std::promise<olp::dataservice::read::ApiClientLookup::ApiClientResponse>
-      volatile_blobl_client_promise;
-  olp::dataservice::read::ApiClientLookup::LookupApiClient(
-      olp::client::OlpClientFactory::Create(*settings_), "volatile-blob", "v1",
-      hrn,
-      [&volatile_blobl_client_promise](
-          olp::dataservice::read::ApiClientLookup::ApiClientResponse response) {
-        volatile_blobl_client_promise.set_value(response);
-      });
+  auto client_response = olp::dataservice::read::ApiClientLookup::LookupApi(
+      hrn, {}, "volatile-blob", "v1",
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound, *settings_);
 
-  auto client_response = volatile_blobl_client_promise.get_future().get();
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
   auto volatile_blob_client = client_response.GetResult();
@@ -417,17 +374,10 @@ TEST_F(ApiTest, DISABLED_GetVolatileBlob) {
 TEST_F(ApiTest, QuadTreeIndex) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  // get the query client
-  std::promise<olp::dataservice::read::ApiClientLookup::ApiClientResponse>
-      query_client_promise;
-  olp::dataservice::read::ApiClientLookup::LookupApiClient(
-      olp::client::OlpClientFactory::Create(*settings_), "query", "v1", hrn,
-      [&query_client_promise](
-          olp::dataservice::read::ApiClientLookup::ApiClientResponse response) {
-        query_client_promise.set_value(response);
-      });
+  auto client_response = olp::dataservice::read::ApiClientLookup::LookupApi(
+      hrn, {}, "query", "v1",
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound, *settings_);
 
-  auto client_response = query_client_promise.get_future().get();
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
   auto query_client = client_response.GetResult();

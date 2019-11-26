@@ -28,21 +28,11 @@ namespace {
 constexpr auto kLogTag = "PendingRequests";
 }
 
-PendingRequests::PendingRequests(){};
-
-PendingRequests::~PendingRequests(){};
-
 bool PendingRequests::CancelAll() {
-  RequestMap requests_map;
   ContextMap contexts;
   {
-    std::lock_guard<std::mutex> lk(requests_lock_);
-    requests_map = requests_map_;
+    std::lock_guard<std::mutex> lock(task_contexts_lock_);
     contexts = task_contexts_;
-  }
-
-  for (auto& pair : requests_map) {
-    pair.second.Cancel();
   }
 
   for (auto context : contexts) {
@@ -57,7 +47,7 @@ bool PendingRequests::CancelAllAndWait() {
 
   ContextMap contexts;
   {
-    std::lock_guard<std::mutex> lk(requests_lock_);
+    std::lock_guard<std::mutex> lock(task_contexts_lock_);
     contexts = std::move(task_contexts_);
   }
 
@@ -70,40 +60,13 @@ bool PendingRequests::CancelAllAndWait() {
   return true;
 }
 
-int64_t PendingRequests::GenerateRequestPlaceholder() {
-  std::lock_guard<std::mutex> lk(requests_lock_);
-  key_++;
-  requests_map_[key_] = client::CancellationToken();
-  return key_;
-}
-
-bool PendingRequests::Insert(const client::CancellationToken& request,
-                             int64_t key) {
-  std::lock_guard<std::mutex> lk(requests_lock_);
-  if (requests_map_.find(key) == requests_map_.end()) {
-    return false;
-  }
-  requests_map_[key] = request;
-  return true;
-}
-
-void PendingRequests::Insert(client::TaskContext task_context) {
-  std::lock_guard<std::mutex> lk(requests_lock_);
+void PendingRequests::Insert(TaskContext task_context) {
+  std::lock_guard<std::mutex> lock(task_contexts_lock_);
   task_contexts_.insert(task_context);
 }
 
-bool PendingRequests::Remove(int64_t key) {
-  std::lock_guard<std::mutex> lk(requests_lock_);
-  auto request = requests_map_.find(key);
-  if (request != requests_map_.end()) {
-    requests_map_.erase(request);
-    return true;
-  }
-  return false;
-}
-
-void PendingRequests::Remove(client::TaskContext task_context) {
-  std::lock_guard<std::mutex> lk(requests_lock_);
+void PendingRequests::Remove(TaskContext task_context) {
+  std::lock_guard<std::mutex> lock(task_contexts_lock_);
   task_contexts_.erase(task_context);
 }
 
