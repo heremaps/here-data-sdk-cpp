@@ -217,6 +217,7 @@ read::CatalogResponse CatalogRepository::GetCatalog(
 
   if (!condition.Wait(std::chrono::seconds{timeout})) {
     cancellation_context.CancelOperation();
+    OLP_SDK_LOG_INFO_F(kLogTag, "timeout");
     return ApiError(ErrorCode::RequestTimeout, "Network request timed out.");
   }
 
@@ -393,6 +394,7 @@ MetadataApi::CatalogVersionResponse CatalogRepository::GetLatestVersion(
 
   if (!condition.Wait(std::chrono::seconds{timeout})) {
     cancellation_context.CancelOperation();
+    OLP_SDK_LOG_INFO_F(kLogTag, "timeout");
     return ApiError(ErrorCode::RequestTimeout, "Network request timed out.");
   }
   interest_flag->store(false);

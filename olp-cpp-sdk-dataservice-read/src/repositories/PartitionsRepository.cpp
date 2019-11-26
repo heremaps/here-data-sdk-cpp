@@ -470,6 +470,7 @@ PartitionsResponse PartitionsRepository::GetPartitions(
 
   if (!condition.Wait(timeout)) {
     cancellation_context.CancelOperation();
+    OLP_SDK_LOG_INFO_F(kLogTag, "timeout");
     return client::ApiError(client::ErrorCode::RequestTimeout,
                             "Network request timed out.");
   }
@@ -577,6 +578,7 @@ QueryApi::PartitionsResponse PartitionsRepository::GetPartitionById(
 
   if (!condition.Wait(timeout)) {
     cancellation_context.CancelOperation();
+    OLP_SDK_LOG_INFO_F(kLogTag, "timeout");
     return client::ApiError(client::ErrorCode::RequestTimeout,
                             "Network request timed out.");
   }

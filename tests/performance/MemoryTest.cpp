@@ -133,6 +133,7 @@ olp::client::OlpClientSettings MemoryTest::CreateCatalogClientSettings() {
   client_settings.network_request_handler = s_network;
   client_settings.proxy_settings = GetLocalhostProxySettings();
   client_settings.cache = parameter.cache_factory();
+  client_settings.retry_settings.timeout = 1;
 
   return client_settings;
 }
