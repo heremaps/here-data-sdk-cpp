@@ -87,8 +87,9 @@ class MemoryTest : public ::testing::TestWithParam<TestConfiguration> {
   std::atomic<olp::http::RequestId> request_counter_;
   std::vector<std::thread> client_threads_;
 
-  std::atomic_int success_responses_{0};
-  std::atomic_int failed_responses_{0};
+  std::atomic_size_t total_requests_{0};
+  std::atomic_size_t success_responses_{0};
+  std::atomic_size_t failed_responses_{0};
 
   std::mutex errors_mutex_;
   std::map<int, int> errors_;
@@ -141,6 +142,7 @@ void MemoryTest::SetUp() {
   using namespace olp;
   request_counter_.store(
       static_cast<http::RequestId>(http::RequestIdConstants::RequestIdMin));
+  total_requests_.store(0);
   success_responses_.store(0);
   failed_responses_.store(0);
   errors_.clear();
@@ -152,14 +154,19 @@ void MemoryTest::TearDown() {
   }
   client_threads_.clear();
 
-  OLP_SDK_LOG_CRITICAL_INFO_F(
-      "MemoryTest", "Test finished. Succeed responses %d, failed responses %d",
-      success_responses_.load(), failed_responses_.load());
+  OLP_SDK_LOG_CRITICAL_INFO_F("MemoryTest",
+                              "Test finished. Total requests %zu, succeed "
+                              "responses %zu, failed responses %zu",
+                              total_requests_.load(), success_responses_.load(),
+                              failed_responses_.load());
 
   for (const auto& error : errors_) {
     OLP_SDK_LOG_CRITICAL_INFO_F("MemoryTest", "error %d - count %d",
                                 error.first, error.second);
   }
+
+  size_t total_requests = success_responses_.load() + failed_responses_.load();
+  EXPECT_EQ(total_requests_.load(), total_requests);
 }
 
 void MemoryTest::StartThreads(TestFunction test_body) {
@@ -214,7 +221,7 @@ TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
 
       auto request = olp::dataservice::read::DataRequest().WithPartitionId(
           std::to_string(partition_id));
-
+      total_requests_.fetch_add(1);
       service_client.GetData(
           request, [&](olp::dataservice::read::DataResponse response) {
             if (response.IsSuccessful()) {
@@ -260,7 +267,7 @@ TEST_P(MemoryTest, PrefetchPartitionsFromVersionedLayer) {
                          .WithMinLevel(level)
                          .WithVersion(17)
                          .WithTileKeys(tile_keys);
-
+      total_requests_.fetch_add(1);
       service_client.PrefetchTiles(
           std::move(request),
           [&](olp::dataservice::read::PrefetchTilesResponse response) {
