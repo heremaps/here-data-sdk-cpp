@@ -59,113 +59,127 @@ std::ostream& operator<<(std::ostream& os, const TestConfiguration& config) {
             << ", .runtime=" << config.runtime.count() << ")";
 }
 
+const olp::client::HRN kCatalog("hrn:here:data::olp-here-test:testhrn");
 const std::string kVersionedLayerId("versioned_test_layer");
 
 class MemoryTest : public ::testing::TestWithParam<TestConfiguration> {
  public:
-  static void SetUpTestSuite() {
-    s_network = std::make_shared<olp::tests::http::Http2HttpNetworkWrapper>();
-  }
-  static void TearDownTestSuite() { s_network.reset(); }
+  static void SetUpTestSuite();
+  static void TearDownTestSuite();
 
-  olp::http::NetworkProxySettings GetLocalhostProxySettings() {
-    return olp::http::NetworkProxySettings()
-        .WithHostname("localhost")
-        .WithPort(3000)
-        .WithUsername("test_user")
-        .WithPassword("test_password")
-        .WithType(olp::http::NetworkProxySettings::Type::HTTP);
-  }
+  olp::http::NetworkProxySettings GetLocalhostProxySettings();
 
-  olp::client::OlpClientSettings CreateCatalogClientSettings() {
-    auto parameter = GetParam();
+  olp::client::OlpClientSettings CreateCatalogClientSettings();
 
-    std::shared_ptr<olp::thread::TaskScheduler> task_scheduler = nullptr;
-    if (parameter.task_scheduler_capacity != 0) {
-      task_scheduler =
-          olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(
-              parameter.task_scheduler_capacity);
-    }
+  void SetUp() override;
 
-    olp::client::AuthenticationSettings auth_settings;
-    auth_settings.provider = []() { return "invalid"; };
+  void TearDown() override;
 
-    olp::cache::CacheSettings cache_settings{};
-    olp::client::OlpClientSettings client_settings;
-    client_settings.authentication_settings = auth_settings;
-    client_settings.task_scheduler = task_scheduler;
-    client_settings.network_request_handler = s_network;
-    client_settings.proxy_settings = GetLocalhostProxySettings();
-    client_settings.cache = parameter.cache_factory();
+  using TestFunction = std::function<void(const std::uint8_t thread_id)>;
 
-    return client_settings;
-  }
+  void StartThreads(TestFunction test_body);
+
+  void ReportError(const olp::client::ApiError& error);
 
  protected:
   static std::shared_ptr<olp::http::Network> s_network;
+
+  std::atomic<olp::http::RequestId> request_counter_;
+  std::vector<std::thread> client_threads_;
+
+  std::atomic_int success_responses_{0};
+  std::atomic_int failed_responses_{0};
+
+  std::mutex errors_mutex_;
+  std::map<int, int> errors_;
 };
 
 std::shared_ptr<olp::http::Network> MemoryTest::s_network;
 
-namespace {
+void MemoryTest::SetUpTestSuite() {
+  s_network = std::make_shared<olp::tests::http::Http2HttpNetworkWrapper>();
+}
 
-void ClientThread(const std::uint8_t client_id,
-                  std::unique_ptr<olp::dataservice::read::VersionedLayerClient>
-                      service_client,
-                  std::chrono::milliseconds sleep_interval,
-                  std::chrono::seconds runtime,
-                  std::atomic<olp::http::RequestId>& request_counter) {
-  std::atomic_int success_responses{0};
-  std::atomic_int failed_responses{0};
+void MemoryTest::TearDownTestSuite() { s_network.reset(); }
 
-  std::mutex errors_mutex;
-  std::map<int, int> errors;
+olp::http::NetworkProxySettings MemoryTest::GetLocalhostProxySettings() {
+  return olp::http::NetworkProxySettings()
+      .WithHostname("localhost")
+      .WithPort(3000)
+      .WithUsername("test_user")
+      .WithPassword("test_password")
+      .WithType(olp::http::NetworkProxySettings::Type::HTTP);
+}
 
-  const auto end_timestamp = std::chrono::steady_clock::now() + runtime;
+olp::client::OlpClientSettings MemoryTest::CreateCatalogClientSettings() {
+  auto parameter = GetParam();
 
-  while (end_timestamp > std::chrono::steady_clock::now()) {
-    const auto partition_id = request_counter.fetch_add(1);
-
-    auto request = olp::dataservice::read::DataRequest().WithPartitionId(
-        std::to_string(partition_id));
-
-    service_client->GetData(
-        request, [&](olp::dataservice::read::DataResponse response) {
-          if (response.IsSuccessful()) {
-            success_responses.fetch_add(1);
-          } else {
-            failed_responses.fetch_add(1);
-
-            // Collect errors information
-            std::lock_guard<std::mutex> lock(errors_mutex);
-            const auto& error = response.GetError();
-            const auto error_code = static_cast<int>(error.GetErrorCode());
-            const auto error_it = errors.find(error_code);
-            if (error_it != errors.end()) {
-              error_it->second++;
-            } else {
-              errors[error_code] = 1;
-            }
-          }
-        });
-
-    std::this_thread::sleep_for(sleep_interval);
+  std::shared_ptr<olp::thread::TaskScheduler> task_scheduler = nullptr;
+  if (parameter.task_scheduler_capacity != 0) {
+    task_scheduler =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(
+            parameter.task_scheduler_capacity);
   }
 
-  service_client.reset();
+  olp::client::AuthenticationSettings auth_settings;
+  auth_settings.provider = []() { return "invalid"; };
+
+  olp::client::OlpClientSettings client_settings;
+  client_settings.authentication_settings = auth_settings;
+  client_settings.task_scheduler = task_scheduler;
+  client_settings.network_request_handler = s_network;
+  client_settings.proxy_settings = GetLocalhostProxySettings();
+  client_settings.cache = parameter.cache_factory();
+
+  return client_settings;
+}
+
+void MemoryTest::SetUp() {
+  using namespace olp;
+  request_counter_.store(
+      static_cast<http::RequestId>(http::RequestIdConstants::RequestIdMin));
+  success_responses_.store(0);
+  failed_responses_.store(0);
+  errors_.clear();
+}
+
+void MemoryTest::TearDown() {
+  for (auto& thread : client_threads_) {
+    thread.join();
+  }
+  client_threads_.clear();
 
   OLP_SDK_LOG_CRITICAL_INFO_F(
-      "ClientThread",
-      "Client %d finished, succeed responses %d, failed responses %d",
-      client_id, success_responses.load(), failed_responses.load());
+      "MemoryTest", "Test finished. Succeed responses %d, failed responses %d",
+      success_responses_.load(), failed_responses_.load());
 
-  for (const auto& error : errors) {
-    OLP_SDK_LOG_CRITICAL_INFO_F("ClientThread",
-                                "Client %d, error %d - count %d", client_id,
+  for (const auto& error : errors_) {
+    OLP_SDK_LOG_CRITICAL_INFO_F("MemoryTest", "error %d - count %d",
                                 error.first, error.second);
   }
 }
-}  // namespace
+
+void MemoryTest::StartThreads(TestFunction test_body) {
+  using namespace olp;
+
+  const auto& parameter = GetParam();
+
+  for (std::uint8_t i = 0; i < parameter.calling_thread_count; ++i) {
+    client_threads_.emplace_back(std::thread(test_body, i));
+  }
+}
+
+void MemoryTest::ReportError(const olp::client::ApiError& error) {
+  const auto error_code = static_cast<int>(error.GetErrorCode());
+
+  std::lock_guard<std::mutex> lock(errors_mutex_);
+  const auto error_it = errors_.find(error_code);
+  if (error_it != errors_.end()) {
+    error_it->second++;
+  } else {
+    errors_[error_code] = 1;
+  }
+}
 
 /*
  * Test performs N requests per second for M duration. All requests are unique.
@@ -178,38 +192,86 @@ void ClientThread(const std::uint8_t client_id,
  * Valgrind, heaptrack, other tools are used to collect the output.
  */
 TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
-  using namespace olp;
-
   const auto& parameter = GetParam();
 
   const auto sleep_interval =
       std::chrono::milliseconds(1000 / parameter.requests_per_second);
 
-  const auto client_settings = CreateCatalogClientSettings();
+  auto settings = CreateCatalogClientSettings();
 
-  client::HRN hrn("hrn:here:data::olp-here-test:testhrn");
+  StartThreads([=](const std::uint8_t thread_id) {
+    olp::dataservice::read::VersionedLayerClient service_client(
+        kCatalog, kVersionedLayerId, settings);
 
-  std::vector<std::thread> client_threads;
+    const auto end_timestamp =
+        std::chrono::steady_clock::now() + parameter.runtime;
 
-  std::atomic<http::RequestId> request_counter;
+    while (end_timestamp > std::chrono::steady_clock::now()) {
+      const auto partition_id = request_counter_.fetch_add(1);
 
-  request_counter.store(
-      static_cast<http::RequestId>(http::RequestIdConstants::RequestIdMin));
+      auto request = olp::dataservice::read::DataRequest().WithPartitionId(
+          std::to_string(partition_id));
 
-  for (std::uint8_t i = 0; i < parameter.calling_thread_count; ++i) {
-    // Will be removed after API alignment
-    auto service_client =
-        std::make_unique<dataservice::read::VersionedLayerClient>(
-            hrn, kVersionedLayerId, client_settings);
-    auto thread =
-        std::thread(ClientThread, i, std::move(service_client), sleep_interval,
-                    parameter.runtime, std::ref(request_counter));
-    client_threads.push_back(std::move(thread));
-  }
+      service_client.GetData(
+          request, [&](olp::dataservice::read::DataResponse response) {
+            if (response.IsSuccessful()) {
+              success_responses_.fetch_add(1);
+            } else {
+              failed_responses_.fetch_add(1);
+              ReportError(response.GetError());
+            }
+          });
 
-  for (auto& thread : client_threads) {
-    thread.join();
-  }
+      std::this_thread::sleep_for(sleep_interval);
+    }
+  });
+}
+
+TEST_P(MemoryTest, PrefetchPartitionsFromVersionedLayer) {
+  const auto& parameter = GetParam();
+
+  const auto sleep_interval =
+      std::chrono::milliseconds(1000 / parameter.requests_per_second);
+
+  auto settings = CreateCatalogClientSettings();
+
+  StartThreads([=](const std::uint8_t thread_id) {
+    olp::dataservice::read::VersionedLayerClient service_client(
+        kCatalog, kVersionedLayerId, settings);
+
+    const auto end_timestamp =
+        std::chrono::steady_clock::now() + parameter.runtime;
+
+    while (end_timestamp > std::chrono::steady_clock::now()) {
+      const auto partition_id = request_counter_.fetch_add(1);
+
+      const auto level = 10;
+      const auto tile_count = 1 << level;
+
+      std::vector<olp::geo::TileKey> tile_keys = {
+          olp::geo::TileKey::FromRowColumnLevel(rand() % tile_count,
+                                                rand() % tile_count, level)};
+
+      auto request = olp::dataservice::read::PrefetchTilesRequest()
+                         .WithMaxLevel(level + 2)
+                         .WithMinLevel(level)
+                         .WithVersion(17)
+                         .WithTileKeys(tile_keys);
+
+      service_client.PrefetchTiles(
+          std::move(request),
+          [&](olp::dataservice::read::PrefetchTilesResponse response) {
+            if (response.IsSuccessful()) {
+              success_responses_.fetch_add(1);
+            } else {
+              failed_responses_.fetch_add(1);
+              ReportError(response.GetError());
+            }
+          });
+
+      std::this_thread::sleep_for(sleep_interval);
+    }
+  });
 }
 
 /*
