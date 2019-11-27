@@ -24,12 +24,11 @@
 
 #include <olp/core/client/HRN.h>
 #include <olp/core/geo/tiling/TileKey.h>
+#include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/model/Partitions.h>
-
 #include "ApiRepository.h"
 #include "PartitionsCacheRepository.h"
 #include "generated/model/Index.h"
-#include "olp/dataservice/read/PrefetchTilesRequest.h"
 
 namespace olp {
 namespace dataservice {
@@ -40,23 +39,13 @@ using TileKeyAndDepth = std::pair<geo::TileKey, int32_t>;
 using SubQuadsRequest = std::map<std::string, TileKeyAndDepth>;
 using SubQuadsResult = std::vector<std::pair<geo::TileKey, std::string>>;
 using SubQuadsResponse = client::ApiResponse<SubQuadsResult, client::ApiError>;
-using SubQuadsResponseCallback =
-    std::function<void(const SubQuadsResponse& response)>;
-
 using SubTilesResult = SubQuadsResult;
 using SubTilesResponse = client::ApiResponse<SubTilesResult, client::ApiError>;
-using SubTilesResponseCallback =
-    std::function<void(const SubTilesResponse& response)>;
 
 class PrefetchTilesRepository final {
  public:
-  PrefetchTilesRepository(
-      const client::HRN& hrn, std::string layer_id,
-      std::shared_ptr<ApiRepository> apiRepo,
-      std::shared_ptr<PartitionsCacheRepository> partitionsCache,
-      std::shared_ptr<olp::client::OlpClientSettings> settings);
-
-  ~PrefetchTilesRepository() = default;
+  PrefetchTilesRepository(const client::HRN& hrn, std::string layer_id,
+                          std::shared_ptr<client::OlpClientSettings> settings);
 
   /**
    * @brief Given tile keys, return all related tile keys that are between
@@ -69,30 +58,13 @@ class PrefetchTilesRepository final {
    * @param maxLevel Maximum level of the resultant tile keys.
    */
   static SubQuadsRequest EffectiveTileKeys(
-      const std::vector<geo::TileKey>& tilekeys, unsigned int minLevel,
-      unsigned int maxLevel);
-
-  // NOTE: Will removed soon
-  void GetSubTiles(
-      std::shared_ptr<client::CancellationContext> cancellationContext,
-      const PrefetchTilesRequest& prefetchRequest, int64_t version,
-      boost::optional<time_t> expiry, const SubQuadsRequest& request,
-      const SubTilesResponseCallback& callback);
+      const std::vector<geo::TileKey>& tile_keys, unsigned int min_level,
+      unsigned int max_level);
 
   SubTilesResponse GetSubTiles(const std::string& layer_id,
                                const PrefetchTilesRequest& request,
                                const SubQuadsRequest& sub_quads,
                                client::CancellationContext context);
-
-  // NOTE: Will removed soon
-  static void GetSubQuads(client::CancellationContext cancellationContext,
-                          std::shared_ptr<ApiRepository> apiRepo,
-                          PartitionsCacheRepository& partitionsCache,
-                          const PrefetchTilesRequest& prefetchRequest,
-                          geo::TileKey tile, int64_t version,
-                          boost::optional<time_t> expiry, int32_t depth,
-                          const std::string& layer_id,
-                          const SubQuadsResponseCallback& callback);
 
   static SubQuadsResponse GetSubQuads(const client::HRN& catalog,
                                       const std::string& layer_id,
@@ -102,22 +74,17 @@ class PrefetchTilesRepository final {
                                       client::CancellationContext context);
 
  private:
-  static SubQuadsRequest EffectiveTileKeys(const geo::TileKey& tilekey,
-                                           unsigned int minLevel,
-                                           unsigned int maxLevel,
-                                           bool addAncestors);
+  static SubQuadsRequest EffectiveTileKeys(const geo::TileKey& tile_key,
+                                           unsigned int min_level,
+                                           unsigned int max_level,
+                                           bool add_ancestors);
 
-  static std::vector<geo::TileKey> GetChildAtLevel(const geo::TileKey& tilekey,
-                                                   unsigned int minLevel);
-
-  static model::Partition PartitionFromSubQuad(
-      std::shared_ptr<model::SubQuad> subQuad, const std::string& partition);
+  static std::vector<geo::TileKey> GetChildAtLevel(const geo::TileKey& tile_key,
+                                                   unsigned int min_level);
 
  private:
   client::HRN hrn_;
   std::string layer_id_;
-  std::shared_ptr<ApiRepository> apiRepo_;
-  std::shared_ptr<PartitionsCacheRepository> partitionsCache_;
   std::shared_ptr<client::OlpClientSettings> settings_;
 };
 

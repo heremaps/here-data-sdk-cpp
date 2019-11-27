@@ -19,15 +19,15 @@
 
 #include "PrefetchTilesRepository.h"
 
+#include <inttypes.h>
+#include <vector>
+
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/geo/tiling/TileKey.h>
 #include <olp/core/logging/Log.h>
 #include <olp/core/thread/Atomic.h>
 #include <olp/core/thread/TaskScheduler.h>
 #include "generated/api/QueryApi.h"
-
-#include <inttypes.h>
-#include <vector>
 
 namespace olp {
 namespace dataservice {
@@ -37,32 +37,40 @@ namespace repository {
 namespace {
 constexpr auto kLogTag = "PrefetchTilesRepository";
 constexpr std::uint32_t kMaxQuadTreeIndexDepth = 4u;
+
+model::Partition PartitionFromSubQuad(const model::SubQuad& sub_quad,
+                                      const std::string& partition) {
+  model::Partition ret;
+  ret.SetPartition(partition);
+  ret.SetDataHandle(sub_quad.GetDataHandle());
+  ret.SetVersion(sub_quad.GetVersion());
+  ret.SetDataSize(sub_quad.GetDataSize());
+  ret.SetChecksum(sub_quad.GetChecksum());
+  ret.SetCompressedDataSize(sub_quad.GetCompressedDataSize());
+  return ret;
+}
 }  // namespace
 
 using namespace olp::client;
 
 PrefetchTilesRepository::PrefetchTilesRepository(
     const HRN& hrn, std::string layer_id,
-    std::shared_ptr<ApiRepository> apiRepo,
-    std::shared_ptr<PartitionsCacheRepository> partitionsCache,
     std::shared_ptr<olp::client::OlpClientSettings> settings)
     : hrn_(hrn),
       layer_id_(std::move(layer_id)),
-      apiRepo_(std::move(apiRepo)),
-      partitionsCache_(std::move(partitionsCache)),
       settings_(std::move(settings)) {}
 
 SubQuadsRequest PrefetchTilesRepository::EffectiveTileKeys(
-    const std::vector<geo::TileKey>& tilekeys, unsigned int minLevel,
-    unsigned int maxLevel) {
+    const std::vector<geo::TileKey>& tile_keys, unsigned int min_level,
+    unsigned int max_level) {
   SubQuadsRequest ret;
-  for (auto tilekey : tilekeys) {
-    auto childTiles = EffectiveTileKeys(tilekey, minLevel, maxLevel, true);
-    for (auto tile : childTiles) {
+  for (auto tile_key : tile_keys) {
+    auto child_tiles = EffectiveTileKeys(tile_key, min_level, max_level, true);
+    for (auto tile : child_tiles) {
       // check if child already exist, if so, use the greater depth
-      auto oldChild = ret.find(tile.first);
-      if (oldChild != ret.end()) {
-        ret[tile.first] = std::max((*oldChild).second, tile.second);
+      auto old_child = ret.find(tile.first);
+      if (old_child != ret.end()) {
+        ret[tile.first] = std::max((*old_child).second, tile.second);
       } else {
         ret[tile.first] = tile.second;
       }
@@ -73,55 +81,61 @@ SubQuadsRequest PrefetchTilesRepository::EffectiveTileKeys(
 }
 
 SubQuadsRequest PrefetchTilesRepository::EffectiveTileKeys(
-    const geo::TileKey& tilekey, unsigned int minLevel, unsigned int maxLevel,
-    bool addAncestors) {
+    const geo::TileKey& tile_key, unsigned int min_level,
+    unsigned int max_level, bool add_ancestors) {
   SubQuadsRequest ret;
-  auto currentLevel = tilekey.Level();
+  auto current_level = tile_key.Level();
 
-  auto AddParents = [tilekey, minLevel, maxLevel, &ret]() {
-    auto tile{tilekey.Parent()};
-    while (tile.Level() >= minLevel) {
-      if (tile.Level() <= maxLevel)
+  auto AddParents = [&]() {
+    auto tile{tile_key.Parent()};
+    while (tile.Level() >= min_level) {
+      if (tile.Level() <= max_level)
         ret[tile.ToHereTile()] = std::make_pair(tile, 0);
       tile = tile.Parent();
     }
   };
 
-  auto AddChildren = [minLevel, maxLevel, &ret](const geo::TileKey& tilekey) {
-    auto childTiles = EffectiveTileKeys(tilekey, minLevel, maxLevel, false);
-    for (auto tile : childTiles) {
+  auto AddChildren = [&](const geo::TileKey& tile) {
+    auto child_tiles = EffectiveTileKeys(tile, min_level, max_level, false);
+    for (auto tile : child_tiles) {
       // check if child already exist, if so, use the greater depth
-      auto oldChild = ret.find(tile.first);
-      if (oldChild != ret.end())
-        ret[tile.first] = std::max((*oldChild).second, tile.second);
+      auto old_child = ret.find(tile.first);
+      if (old_child != ret.end())
+        ret[tile.first] = std::max((*old_child).second, tile.second);
       else
         ret[tile.first] = tile.second;
     }
   };
 
-  if (currentLevel > maxLevel) {
+  if (current_level > max_level) {
     // if this tile is greater than max, find the parent of this and push the
     // ones between min and max
     AddParents();
-  } else if (currentLevel < minLevel) {
+  } else if (current_level < min_level) {
     // if this tile is less than min, find the children that are min and start
     // from there
-    auto children = GetChildAtLevel(tilekey, minLevel);
-    for (auto child : children) AddChildren(child);
+    auto children = GetChildAtLevel(tile_key, min_level);
+    for (auto child : children) {
+      AddChildren(child);
+    }
   } else {
     // tile is within min and max
-    if (addAncestors) AddParents();
+    if (add_ancestors) {
+      AddParents();
+    }
 
-    auto tilekeyStr = tilekey.ToHereTile();
-    if (maxLevel - currentLevel <= kMaxQuadTreeIndexDepth)
-      ret[tilekeyStr] = std::make_pair(tilekey, maxLevel - currentLevel);
-    else {
+    auto tile_key_str = tile_key.ToHereTile();
+    if (max_level - current_level <= kMaxQuadTreeIndexDepth) {
+      ret[tile_key_str] = std::make_pair(tile_key, max_level - current_level);
+    } else {
       // Backend only takes MAX_QUAD_TREE_INDEX_DEPTH at a time, so we have to
-      // manually calcuate all the tiles that should included
-      ret[tilekeyStr] = std::make_pair(tilekey, kMaxQuadTreeIndexDepth);
+      // manually calculate all the tiles that should included
+      ret[tile_key_str] = std::make_pair(tile_key, kMaxQuadTreeIndexDepth);
       auto children =
-          GetChildAtLevel(tilekey, currentLevel + kMaxQuadTreeIndexDepth + 1);
-      for (auto child : children) AddChildren(child);
+          GetChildAtLevel(tile_key, current_level + kMaxQuadTreeIndexDepth + 1);
+      for (auto child : children) {
+        AddChildren(child);
+      }
     }
   }
 
@@ -129,64 +143,18 @@ SubQuadsRequest PrefetchTilesRepository::EffectiveTileKeys(
 }
 
 std::vector<geo::TileKey> PrefetchTilesRepository::GetChildAtLevel(
-    const geo::TileKey& tilekey, unsigned int minLevel) {
-  std::vector<geo::TileKey> ret;
-  if (tilekey.Level() >= minLevel) return {tilekey};
+    const geo::TileKey& tile_key, unsigned int min_level) {
+  if (tile_key.Level() >= min_level) {
+    return {tile_key};
+  }
 
-  for (std::uint8_t i = 0; i < 4; i++) {
-    auto child = GetChildAtLevel(tilekey.GetChild(i), minLevel);
+  std::vector<geo::TileKey> ret;
+  for (std::uint8_t index = 0; index < kMaxQuadTreeIndexDepth; ++index) {
+    auto child = GetChildAtLevel(tile_key.GetChild(index), min_level);
     ret.insert(ret.end(), child.begin(), child.end());
   }
 
   return ret;
-}
-
-void PrefetchTilesRepository::GetSubTiles(
-    std::shared_ptr<client::CancellationContext> cancel_context,
-    const PrefetchTilesRequest& prefetchRequest, int64_t version,
-    boost::optional<time_t> expiry, const SubQuadsRequest& request,
-    const SubTilesResponseCallback& callback) {
-  auto api_repo = apiRepo_;
-  auto& partitions_cache = *partitionsCache_;
-  auto layer_id = layer_id_;
-
-  auto executeFn = [=, &partitions_cache]() {
-    std::vector<std::future<SubQuadsResponse>> futures;
-
-    for (auto subtile : request) {
-      futures.push_back(std::async([=, &partitions_cache]() {
-        auto p = std::make_shared<std::promise<SubQuadsResponse>>();
-        GetSubQuads(
-            *cancel_context, api_repo, partitions_cache, prefetchRequest,
-            subtile.second.first, version, expiry, subtile.second.second,
-            layer_id,
-            [=](const SubQuadsResponse& response) { p->set_value(response); });
-
-        return p->get_future().get();
-      }));
-    }
-
-    auto results = std::make_shared<SubTilesResult>();
-    for (auto& f : futures) {
-      auto response = f.get();
-      if (response.IsSuccessful()) {
-        for (auto subresult : response.GetResult()) {
-          results->push_back(subresult);
-        }
-      } else {
-        // TODO do something with the error
-      }
-    }
-
-    callback({*results});
-  };
-
-  if (settings_ && settings_->task_scheduler) {
-    settings_->task_scheduler->ScheduleTask(std::move(executeFn));
-  } else {
-    // Direct call will end up in a deadlock in network thread.
-    std::thread(std::move(executeFn)).detach();
-  }
 }
 
 SubTilesResponse PrefetchTilesRepository::GetSubTiles(
@@ -231,90 +199,6 @@ SubTilesResponse PrefetchTilesRepository::GetSubTiles(
   }
 
   return result;
-}
-
-void PrefetchTilesRepository::GetSubQuads(
-    CancellationContext cancel_context, std::shared_ptr<ApiRepository> apiRepo,
-    PartitionsCacheRepository& partitionsCache,
-    const PrefetchTilesRequest& prefetchRequest, geo::TileKey tile,
-    int64_t version, boost::optional<time_t> expiry, int32_t depth,
-    const std::string& layer_id, const SubQuadsResponseCallback& callback) {
-  OLP_SDK_LOG_TRACE_F(kLogTag, "GetSubQuads(%s, %" PRId64 ", %" PRId32 ")",
-                      tile.ToHereTile().c_str(), version, depth);
-
-  auto cancel_callback = [callback, tile, version, depth]() {
-    OLP_SDK_LOG_INFO_F(kLogTag,
-                       "GetSubQuads cancelled(%s, %" PRId64 ", %" PRId32 ")",
-                       tile.ToHereTile().c_str(), version, depth);
-    callback({{ErrorCode::Cancelled, "Operation cancelled.", true}});
-  };
-
-  auto tile_key = tile.ToHereTile();
-
-  cancel_context.ExecuteOrCancelled(
-      [=, &partitionsCache]() mutable {
-        return apiRepo->getApiClient(
-            "query", "v1",
-            [=, &partitionsCache](ApiClientResponse response) mutable {
-              if (!response.IsSuccessful()) {
-                callback(response.GetError());
-                return;
-              }
-
-              cancel_context.ExecuteOrCancelled(
-                  [=, &partitionsCache]() {
-                    OLP_SDK_LOG_INFO_F(
-                        kLogTag,
-                        "QuadTreeIndex execute(%s, %" PRId64 ", %" PRId32 ")",
-                        tile.ToHereTile().c_str(), version, depth);
-                    return QueryApi::QuadTreeIndex(
-                        response.GetResult(), layer_id, version, tile_key,
-                        depth, boost::none, prefetchRequest.GetBillingTag(),
-                        [=, &partitionsCache](
-                            QueryApi::QuadTreeIndexResponse indexResponse) {
-                          if (!indexResponse.IsSuccessful()) {
-                            OLP_SDK_LOG_INFO_F(
-                                kLogTag,
-                                "QuadTreeIndex Error(%s, %" PRId64 ", %" PRId32
-                                ")",
-                                tile.ToHereTile().c_str(), version, depth);
-                            callback(indexResponse.GetError());
-                            return;
-                          }
-
-                          OLP_SDK_LOG_INFO(kLogTag, "QuadTreeIndex Success");
-                          SubQuadsResult result;
-                          model::Partitions partitions;
-                          for (auto subquad :
-                               indexResponse.GetResult().GetSubQuads()) {
-                            auto subtile =
-                                tile.AddedSubHereTile(subquad->GetSubQuadKey());
-
-                            std::pair<geo::TileKey, std::string> p =
-                                std::make_pair(subtile,
-                                               subquad->GetDataHandle());
-
-                            // add to bulk partitions for cacheing
-                            partitions.GetMutablePartitions().push_back(
-                                PartitionFromSubQuad(subquad,
-                                                     subtile.ToHereTile()));
-                            result.push_back(p);
-                          }
-
-                          // add to cache
-                          PartitionsRequest mockPartitionsRequest;
-                          mockPartitionsRequest.WithVersion(version);
-                          partitionsCache.Put(mockPartitionsRequest, partitions,
-                                              layer_id, expiry,
-                                              false);  // get layer expiry
-
-                          callback(result);
-                        });
-                  },
-                  cancel_callback);
-            });
-      },
-      cancel_callback);
 }
 
 SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
@@ -389,7 +273,7 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
 
     // add to bulk partitions for cacheing
     partitions.GetMutablePartitions().emplace_back(
-        PartitionFromSubQuad(subquad, subtile.ToHereTile()));
+        PartitionFromSubQuad(*subquad, subtile.ToHereTile()));
   }
 
   // add to cache
@@ -398,20 +282,6 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
             boost::none, false);
 
   return result;
-}
-
-model::Partition PrefetchTilesRepository::PartitionFromSubQuad(
-    std::shared_ptr<model::SubQuad> subQuad, const std::string& partition) {
-  model::Partition ret;
-  ret.SetPartition(partition);
-  ret.SetDataHandle(subQuad->GetDataHandle());
-  ret.SetVersion(subQuad->GetVersion());
-
-  ret.SetDataSize(subQuad->GetDataSize());
-  ret.SetChecksum(subQuad->GetChecksum());
-  ret.SetCompressedDataSize(subQuad->GetCompressedDataSize());
-
-  return ret;
 }
 
 }  // namespace repository

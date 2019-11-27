@@ -25,8 +25,8 @@
 #include <olp/core/client/TaskContext.h>
 #include <olp/core/context/Context.h>
 #include <olp/core/thread/TaskScheduler.h>
+#include <olp/dataservice/read/CatalogVersionRequest.h>
 #include "Common.h"
-#include "PrefetchTilesProvider.h"
 #include "repositories/ApiRepository.h"
 #include "repositories/CatalogRepository.h"
 #include "repositories/DataRepository.h"
@@ -70,7 +70,7 @@ VersionedLayerClientImpl::VersionedLayerClientImpl(
       settings_->cache);
 
   prefetch_repo_ = std::make_shared<repository::PrefetchTilesRepository>(
-      catalog_, layer_id_, nullptr, nullptr, settings_);
+      catalog_, layer_id_, settings_);
 }
 
 VersionedLayerClientImpl::~VersionedLayerClientImpl() {
