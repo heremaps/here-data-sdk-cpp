@@ -24,12 +24,10 @@
 
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
-#include <olp/dataservice/read/CatalogClient.h>
+#include <olp/core/client/OlpClientSettings.h>
 #include <olp/dataservice/read/CatalogRequest.h>
 #include <olp/dataservice/read/CatalogVersionRequest.h>
-#include <olp/dataservice/read/DataRequest.h>
-#include <olp/dataservice/read/PartitionsRequest.h>
-#include <olp/dataservice/read/PrefetchTilesRequest.h>
+#include <olp/dataservice/read/Types.h>
 
 namespace olp {
 namespace client {
@@ -40,12 +38,8 @@ class PendingRequests;
 
 namespace dataservice {
 namespace read {
-
-class PrefetchTilesProvider;
 namespace repository {
 class CatalogRepository;
-class PartitionsRepository;
-class DataRepository;
 }  // namespace repository
 
 class CatalogClientImpl final {

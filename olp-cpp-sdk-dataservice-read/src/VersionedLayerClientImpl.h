@@ -44,8 +44,6 @@ class PartitionsRepository;
 class PrefetchTilesRepository;
 }  // namespace repository
 
-class PrefetchTilesProvider;
-
 class VersionedLayerClientImpl {
  public:
   VersionedLayerClientImpl(client::HRN catalog, std::string layer_id,
