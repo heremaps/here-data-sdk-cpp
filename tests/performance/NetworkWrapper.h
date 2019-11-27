@@ -21,24 +21,19 @@
 
 #include <olp/core/http/Network.h>
 
-namespace olp {
-namespace tests {
-namespace http {
-
-using namespace olp::http;
-
 /*
  * Node test server is limited to http proxy. Wrapper alters ongoing requests
  * from https to http.
  */
-class Http2HttpNetworkWrapper : public Network {
+class Http2HttpNetworkWrapper : public olp::http::Network {
  public:
   Http2HttpNetworkWrapper()
       : network_{std::move(olp::http::CreateDefaultNetwork(32))} {}
 
-  SendOutcome Send(NetworkRequest request, Payload payload, Callback callback,
-                   HeaderCallback header_callback = nullptr,
-                   DataCallback data_callback = nullptr) override {
+  olp::http::SendOutcome Send(olp::http::NetworkRequest request,
+                              Payload payload, Callback callback,
+                              HeaderCallback header_callback = nullptr,
+                              DataCallback data_callback = nullptr) override {
     ReplaceHttps2Http(request);
     InsertDebugHeaders(request);
 
@@ -47,22 +42,22 @@ class Http2HttpNetworkWrapper : public Network {
                           std::move(data_callback));
   }
 
-  void Cancel(RequestId id) override { network_->Cancel(id); }
+  void Cancel(olp::http::RequestId id) override { network_->Cancel(id); }
 
   /*
    * Adds special header, which signal mock server to generate timeouts and
    * stalls when serving requests.
    */
-  void EnableTimeouts(bool with_timeouts) { with_timeouts_ = with_timeouts; }
+  void WithTimeouts(bool with_timeouts) { with_timeouts_ = with_timeouts; }
 
   /*
    * Adds special header, which signal mock server to generate errors when
    * serving requests. Error rate is 10%.
    */
-  void EnableErrors(bool with_errors) { with_errors_ = with_errors; }
+  void WithErrors(bool with_errors) { with_errors_ = with_errors; }
 
  private:
-  static void ReplaceHttps2Http(NetworkRequest &request) {
+  static void ReplaceHttps2Http(olp::http::NetworkRequest &request) {
     auto url = request.GetUrl();
     auto pos = url.find("https");
     if (pos != std::string::npos) {
@@ -74,7 +69,7 @@ class Http2HttpNetworkWrapper : public Network {
   /*
    * Note: headers with empty values are optimized out.
    */
-  void InsertDebugHeaders(NetworkRequest &request) {
+  void InsertDebugHeaders(olp::http::NetworkRequest &request) {
     if (with_errors_) {
       request.WithHeader("debug-with-errors", "Ok");
     }
@@ -86,8 +81,5 @@ class Http2HttpNetworkWrapper : public Network {
 
   bool with_timeouts_ = false;
   bool with_errors_ = false;
-  std::shared_ptr<Network> network_;
+  std::shared_ptr<olp::http::Network> network_;
 };
-}  // namespace http
-}  // namespace tests
-}  // namespace olp
