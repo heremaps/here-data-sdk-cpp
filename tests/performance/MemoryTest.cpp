@@ -21,7 +21,6 @@
 #include <memory>
 
 #include <gtest/gtest.h>
-
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/HRN.h>
@@ -30,16 +29,16 @@
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
 #include <olp/core/utils/Dir.h>
+#include <olp/dataservice/read/CatalogClient.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include <testutils/CustomParameters.hpp>
-
 #include "NetworkWrapper.h"
 #include "NullCache.h"
 
 namespace {
-
-using CacheFactory =
-    std::function<std::shared_ptr<olp::cache::KeyValueCache>()>;
+using KeyValueCachePtr = std::shared_ptr<olp::cache::KeyValueCache>;
+using CacheFactory = std::function<KeyValueCachePtr()>;
+using TestFunction = std::function<void(uint8_t thread_id)>;
 
 struct TestConfiguration {
   std::string configuration_name;
@@ -59,6 +58,11 @@ std::ostream& operator<<(std::ostream& os, const TestConfiguration& config) {
             << ", .runtime=" << config.runtime.count() << ")";
 }
 
+constexpr std::chrono::milliseconds GetSleepPeriod(uint32_t requests) {
+  return std::chrono::milliseconds(1000 / requests);
+}
+
+constexpr auto kLogTag = "MemoryTest";
 const olp::client::HRN kCatalog("hrn:here:data::olp-here-test:testhrn");
 const std::string kVersionedLayerId("versioned_test_layer");
 
@@ -68,17 +72,12 @@ class MemoryTest : public ::testing::TestWithParam<TestConfiguration> {
   static void TearDownTestSuite();
 
   olp::http::NetworkProxySettings GetLocalhostProxySettings();
-
   olp::client::OlpClientSettings CreateCatalogClientSettings();
 
   void SetUp() override;
-
   void TearDown() override;
 
-  using TestFunction = std::function<void(const std::uint8_t thread_id)>;
-
   void StartThreads(TestFunction test_body);
-
   void ReportError(const olp::client::ApiError& error);
 
  protected:
@@ -98,9 +97,9 @@ class MemoryTest : public ::testing::TestWithParam<TestConfiguration> {
 std::shared_ptr<olp::http::Network> MemoryTest::s_network;
 
 void MemoryTest::SetUpTestSuite() {
-  auto network = std::make_shared<olp::tests::http::Http2HttpNetworkWrapper>();
-  network->EnableErrors(true);
-  network->EnableTimeouts(true);
+  auto network = std::make_shared<Http2HttpNetworkWrapper>();
+  network->WithErrors(false);
+  network->WithTimeouts(false);
   s_network = std::move(network);
 }
 
@@ -156,27 +155,30 @@ void MemoryTest::TearDown() {
   }
   client_threads_.clear();
 
-  OLP_SDK_LOG_CRITICAL_INFO_F("MemoryTest",
-                              "Test finished. Total requests %zu, succeed "
+  OLP_SDK_LOG_CRITICAL_INFO_F(kLogTag,
+                              "Test finished, total requests %zu, succeed "
                               "responses %zu, failed responses %zu",
                               total_requests_.load(), success_responses_.load(),
                               failed_responses_.load());
 
   for (const auto& error : errors_) {
-    OLP_SDK_LOG_CRITICAL_INFO_F("MemoryTest", "error %d - count %d",
-                                error.first, error.second);
+    OLP_SDK_LOG_CRITICAL_INFO_F(kLogTag, "error %d - count %d", error.first,
+                                error.second);
   }
 
   size_t total_requests = success_responses_.load() + failed_responses_.load();
   EXPECT_EQ(total_requests_.load(), total_requests);
+
+  // Reset network flags
+  auto& network = dynamic_cast<Http2HttpNetworkWrapper&>(*s_network);
+  network.WithErrors(false);
+  network.WithTimeouts(false);
 }
 
 void MemoryTest::StartThreads(TestFunction test_body) {
-  using namespace olp;
-
   const auto& parameter = GetParam();
 
-  for (std::uint8_t i = 0; i < parameter.calling_thread_count; ++i) {
+  for (uint8_t i = 0; i < parameter.calling_thread_count; ++i) {
     client_threads_.emplace_back(std::thread(test_body, i));
   }
 }
@@ -193,9 +195,80 @@ void MemoryTest::ReportError(const olp::client::ApiError& error) {
   }
 }
 
+///
+/// CatalogClient
+///
+
+TEST_P(MemoryTest, ReadLatestVersionCatalogClient) {
+  const auto& parameter = GetParam();
+  auto settings = CreateCatalogClientSettings();
+
+  StartThreads([=](uint8_t thread_id) {
+    olp::dataservice::read::CatalogClient service_client(kCatalog, settings);
+
+    const auto end_timestamp =
+        std::chrono::steady_clock::now() + parameter.runtime;
+
+    while (end_timestamp > std::chrono::steady_clock::now()) {
+      int64_t start_version = rand() % (100 + 1);
+
+      auto request =
+          olp::dataservice::read::CatalogVersionRequest().WithStartVersion(
+              start_version);
+      total_requests_.fetch_add(1);
+      service_client.GetLatestVersion(
+          request,
+          [&](olp::dataservice::read::CatalogVersionResponse response) {
+            if (response.IsSuccessful()) {
+              success_responses_.fetch_add(1);
+            } else {
+              failed_responses_.fetch_add(1);
+              ReportError(response.GetError());
+            }
+          });
+
+      std::this_thread::sleep_for(
+          GetSleepPeriod(parameter.requests_per_second));
+    }
+  });
+}
+
+TEST_P(MemoryTest, ReadMetadataCatalogClient) {
+  const auto& parameter = GetParam();
+  auto settings = CreateCatalogClientSettings();
+
+  StartThreads([=](uint8_t thread_id) {
+    olp::dataservice::read::CatalogClient service_client(kCatalog, settings);
+
+    const auto end_timestamp =
+        std::chrono::steady_clock::now() + parameter.runtime;
+
+    while (end_timestamp > std::chrono::steady_clock::now()) {
+      auto request = olp::dataservice::read::CatalogRequest();
+      total_requests_.fetch_add(1);
+      service_client.GetCatalog(
+          request, [&](olp::dataservice::read::CatalogResponse response) {
+            if (response.IsSuccessful()) {
+              success_responses_.fetch_add(1);
+            } else {
+              failed_responses_.fetch_add(1);
+              ReportError(response.GetError());
+            }
+          });
+
+      std::this_thread::sleep_for(
+          GetSleepPeriod(parameter.requests_per_second));
+    }
+  });
+}
+
+///
+/// VersionedLayerClient
+///
+
 /*
- * Test performs N requests per second for M duration. All requests are unique.
- * Total requests number calculated as:
+ * Test performs N requests per second for M duration. All requests are
+ * unique. Total requests number calculated as:
  *
  * total_count = requests_per_second * calling_thread_count
  *
@@ -206,12 +279,9 @@ void MemoryTest::ReportError(const olp::client::ApiError& error) {
 TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
   const auto& parameter = GetParam();
 
-  const auto sleep_interval =
-      std::chrono::milliseconds(1000 / parameter.requests_per_second);
-
   auto settings = CreateCatalogClientSettings();
 
-  StartThreads([=](const std::uint8_t thread_id) {
+  StartThreads([=](uint8_t thread_id) {
     olp::dataservice::read::VersionedLayerClient service_client(
         kCatalog, kVersionedLayerId, settings);
 
@@ -234,7 +304,8 @@ TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
             }
           });
 
-      std::this_thread::sleep_for(sleep_interval);
+      std::this_thread::sleep_for(
+          GetSleepPeriod(parameter.requests_per_second));
     }
   });
 }
@@ -242,12 +313,9 @@ TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
 TEST_P(MemoryTest, PrefetchPartitionsFromVersionedLayer) {
   const auto& parameter = GetParam();
 
-  const auto sleep_interval =
-      std::chrono::milliseconds(1000 / parameter.requests_per_second);
-
   auto settings = CreateCatalogClientSettings();
 
-  StartThreads([=](const std::uint8_t thread_id) {
+  StartThreads([=](uint8_t thread_id) {
     olp::dataservice::read::VersionedLayerClient service_client(
         kCatalog, kVersionedLayerId, settings);
 
@@ -281,7 +349,8 @@ TEST_P(MemoryTest, PrefetchPartitionsFromVersionedLayer) {
             }
           });
 
-      std::this_thread::sleep_for(sleep_interval);
+      std::this_thread::sleep_for(
+          GetSleepPeriod(parameter.requests_per_second));
     }
   });
 }
@@ -319,8 +388,8 @@ TestConfiguration ShortRunningTestWithMemoryCache() {
 }
 
 /*
- * Short 5 minutes test to collect SDK allocations with both in memory cache and
- * disk cache.
+ * Short 5 minutes test to collect SDK allocations with both in memory cache
+ * and disk cache.
  */
 TestConfiguration ShortRunningTestWithDiskCache() {
   using namespace olp;
