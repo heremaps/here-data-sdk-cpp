@@ -180,28 +180,16 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, StartBatch) {
           .get();
   EXPECT_SUCCESS(complete_batch_response);
 
-  for (int i = 0; i < 100; ++i) {
-    get_batch_response =
-        volatile_client->GetBatch(response.GetResult()).GetFuture().get();
+  get_batch_response =
+      volatile_client->GetBatch(response.GetResult()).GetFuture().get();
+  EXPECT_SUCCESS(get_batch_response);
+  ASSERT_EQ(response.GetResult().GetId().value(),
+            get_batch_response.GetResult().GetId().value());
 
-    EXPECT_SUCCESS(get_batch_response);
-    ASSERT_EQ(response.GetResult().GetId().value(),
-              get_batch_response.GetResult().GetId().value());
-    if (get_batch_response.GetResult().GetDetails()->GetState() !=
-        "succeeded") {
-      ASSERT_EQ("submitted",
-                get_batch_response.GetResult().GetDetails()->GetState());
-    } else {
-      break;
-    }
-  }
-  // There are can be a case that GetBatch() is not "succeeded", but in
-  // "submitted" state even after 100 iterations,
-  // which actually means that there are might be a problem on the server side,
-  // (or just long delay). Thus, better to rewrite this test, or do not rely on
-  // the real server, but use mocked server.
-  // ASSERT_EQ("succeeded",
-  // get_batch_response.GetResult().GetDetails()->GetState());
+  const auto state = get_batch_response.GetResult().GetDetails()->GetState();
+  ASSERT_TRUE(state == "succeeded" || state == "submitted")
+      << "Where state: " << state
+      << " not equal neither: 'succeeded' nor 'submitted'";
 }
 
 TEST_F(DataserviceWriteVolatileLayerClientTest, PublishToBatch) {
@@ -232,29 +220,15 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, PublishToBatch) {
       volatile_client->CompleteBatch(response.GetResult()).GetFuture().get();
   EXPECT_SUCCESS(complete_batch_response);
 
-  GetBatchResponse get_batch_response;
-  for (int i = 0; i < 100; ++i) {
-    get_batch_response =
-        volatile_client->GetBatch(response.GetResult()).GetFuture().get();
-
-    EXPECT_SUCCESS(get_batch_response);
-    ASSERT_EQ(response.GetResult().GetId().value(),
-              get_batch_response.GetResult().GetId().value());
-    if (get_batch_response.GetResult().GetDetails()->GetState() !=
-        "succeeded") {
-      ASSERT_EQ("submitted",
-                get_batch_response.GetResult().GetDetails()->GetState());
-    } else {
-      break;
-    }
-  }
-  // There are can be a case that GetBatch() is not "succeeded", but in
-  // "submitted" state even after 100 iterations,
-  // which actually means that there are might be a problem on the server side,
-  // (or just long delay). Thus, better to rewrite this test, or do not rely on
-  // the real server, but use mocked server.
-  // ASSERT_EQ("succeeded",
-  // get_batch_response.GetResult().GetDetails()->GetState());
+  GetBatchResponse get_batch_response =
+      volatile_client->GetBatch(response.GetResult()).GetFuture().get();
+  EXPECT_SUCCESS(get_batch_response);
+  ASSERT_EQ(response.GetResult().GetId().value(),
+            get_batch_response.GetResult().GetId().value());
+  const auto state = get_batch_response.GetResult().GetDetails()->GetState();
+  ASSERT_TRUE(state == "succeeded" || state == "submitted")
+      << "Where state: " << state
+      << " not equal neither: 'succeeded' nor 'submitted'";
 }
 
 TEST_F(DataserviceWriteVolatileLayerClientTest, PublishToBatchInvalid) {
@@ -335,28 +309,15 @@ TEST_F(DataserviceWriteVolatileLayerClientTest,
           .get();
   EXPECT_SUCCESS(complete_batch_response);
 
-  for (int i = 0; i < 100; ++i) {
-    get_batch_response =
-        volatile_client->GetBatch(response.GetResult()).GetFuture().get();
-
-    EXPECT_SUCCESS(get_batch_response);
-    ASSERT_EQ(response.GetResult().GetId().value(),
-              get_batch_response.GetResult().GetId().value());
-    if (get_batch_response.GetResult().GetDetails()->GetState() !=
-        "succeeded") {
-      ASSERT_EQ("submitted",
-                get_batch_response.GetResult().GetDetails()->GetState());
-    } else {
-      break;
-    }
-  }
-  // There are can be a case that GetBatch() is not "succeeded", but in
-  // "submitted" state even after 100 iterations,
-  // which actually means that there are might be a problem on the server side,
-  // (or just long delay). Thus, better to rewrite this test, or do not rely on
-  // the real server, but use mocked server.
-  // ASSERT_EQ("succeeded",
-  // get_batch_response.GetResult().GetDetails()->GetState());
+  get_batch_response =
+      volatile_client->GetBatch(response.GetResult()).GetFuture().get();
+  EXPECT_SUCCESS(get_batch_response);
+  ASSERT_EQ(response.GetResult().GetId().value(),
+            get_batch_response.GetResult().GetId().value());
+  const auto state = get_batch_response.GetResult().GetDetails()->GetState();
+  ASSERT_TRUE(state == "succeeded" || state == "submitted")
+      << "Where state: " << state
+      << " not equal neither: 'succeeded' nor 'submitted'";
 }
 
 TEST_F(DataserviceWriteVolatileLayerClientTest, CancelAllRequests) {
