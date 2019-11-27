@@ -56,6 +56,7 @@ do
         set -e
 done
 echo ">>> Local Server started for further functional test ... >>>"
+result=0
 
 ### Running two auto-test groups
 for test_group_name in integration functional
@@ -80,19 +81,16 @@ do
     test_command="export GLIBCXX_FORCE_NEW=; ${valgrind_command} ${test_command}"
 
     echo "-----> Calling \"${test_command}\" for ${test_group_name} : "
-    eval "${test_command}"
-    result=$?
+    eval "${test_command}" || result=1
     echo "-----> Finished ${test_group_name} - Result=${result}"
 
     # Add retry to functional/online tests. Some online tests are flaky due to third party reason.
     count=0
     while [[ ${result} -ne 0 && ${test_group_name} == "functional" ]];
     do
-        count=count+1
-        echo "This is ${count} time retry ..."
+        count=$((count+1)) && echo "This is ${count} time retry ..."
         echo "-----> Calling \"${test_command}\" for ${test_group_name} : "
-        eval "${test_command}"
-        result=$?
+        eval "${test_command}" || result=1
         echo "-----> Finished ${test_group_name} - Result=${result}"
 
         # Stop after 3 retry
@@ -126,8 +124,7 @@ do
     test_command="export GLIBCXX_FORCE_NEW=; $valgrind_command $test_command"
 
     echo "-----> Calling $test_command for $test_name : "
-    eval "${test_command}"
-    result=$?
+    eval "${test_command}" || result=1
     echo "-----> Finished $test_name - Result=$result"
 }
 done
