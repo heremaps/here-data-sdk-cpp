@@ -34,23 +34,22 @@ do
         set -e
 done
 
+result=0
 echo ">>> Functional Test ... >>>"
 source $FV_HOME/olp-cpp-sdk-functional-test.variables
 $REPO_HOME/build/tests/functional/olp-cpp-sdk-functional-tests \
     --gtest_output="xml:$REPO_HOME/reports/olp-functional-test-report.xml" \
-    --gtest_filter="-ArcGisAuthenticationTest.SignInArcGis":"FacebookAuthenticationTest.SignInFacebook"
+    --gtest_filter="-ArcGisAuthenticationTest.SignInArcGis":"FacebookAuthenticationTest.SignInFacebook" || result=1
 
 # Add retry to functional/online tests. Some online tests are flaky due to third party reason.
-result=$?
+echo "Last return code in $result"
 count=0
 while [[ ${result} -ne 0 ]];
 do
-    count=count+1
-    echo "This is ${count} time retry ..."
+    count=$((count+1)) && echo "This is ${count} time retry ..."
     $REPO_HOME/build/tests/functional/olp-cpp-sdk-functional-tests \
         --gtest_output="xml:$REPO_HOME/reports/olp-functional-test-report.xml" \
-        --gtest_filter="-ArcGisAuthenticationTest.SignInArcGis":"FacebookAuthenticationTest.SignInFacebook"
-    result=$?
+        --gtest_filter="-ArcGisAuthenticationTest.SignInArcGis":"FacebookAuthenticationTest.SignInFacebook" || result=1
 
     # Stop after 3 retry
     if [[ ${count} = 3 ]]; then
