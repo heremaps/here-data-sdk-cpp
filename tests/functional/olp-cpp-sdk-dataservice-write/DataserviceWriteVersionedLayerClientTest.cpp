@@ -36,9 +36,6 @@ const std::string kEndpoint = "endpoint";
 const std::string kAppid = "dataservice_write_test_appid";
 const std::string kSecret = "dataservice_write_test_secret";
 const std::string kCatalog = "dataservice_write_test_catalog";
-const std::string kLayer = "layer";
-const std::string kLayer2 = "layer2";
-const std::string kLayerSdii = "layer_sdii";
 const std::string kVersionedLayer = "versioned_layer";
 
 class DataserviceWriteVersionedLayerClientTest : public ::testing::Test {
@@ -148,31 +145,10 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, StartBatch) {
   EXPECT_SUCCESS(get_batch_response);
   ASSERT_EQ(response.GetResult().GetId().value(),
             get_batch_response.GetResult().GetId().value());
-  ASSERT_EQ("submitted",
-            get_batch_response.GetResult().GetDetails()->GetState());
-
-  for (int i = 0; i < 100; ++i) {
-    get_batch_response =
-        versioned_client->GetBatch(response.GetResult()).GetFuture().get();
-
-    EXPECT_SUCCESS(get_batch_response);
-    ASSERT_EQ(response.GetResult().GetId().value(),
-              get_batch_response.GetResult().GetId().value());
-    if (get_batch_response.GetResult().GetDetails()->GetState() !=
-        "succeeded") {
-      ASSERT_EQ("submitted",
-                get_batch_response.GetResult().GetDetails()->GetState());
-    } else {
-      break;
-    }
-  }
-  // There are can be a case that GetBatch() is not "succeeded", but in
-  // "submitted" state even after 100 iterations,
-  // which actually means that there are might be a problem on the server side,
-  // (or just long delay). Thus, better to rewrite this test, or do not rely on
-  // the real server, but use mocked server.
-  // ASSERT_EQ("succeeded",
-  // get_batch_response.GetResult().GetDetails()->GetState());
+  const auto state = get_batch_response.GetResult().GetDetails()->GetState();
+  ASSERT_TRUE(state == "succeeded" || state == "submitted")
+      << "Where state: " << state
+      << " not equal neither: 'succeeded' nor 'submitted'";
 }
 
 TEST_F(DataserviceWriteVersionedLayerClientTest, DeleteClient) {
@@ -307,28 +283,15 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatch) {
 
   EXPECT_SUCCESS(complete_batch_response);
 
-  for (int i = 0; i < 100; ++i) {
-    get_batch_response =
-        versioned_client->GetBatch(response.GetResult()).GetFuture().get();
-
-    EXPECT_SUCCESS(get_batch_response);
-    ASSERT_EQ(response.GetResult().GetId().value(),
-              get_batch_response.GetResult().GetId().value());
-    if (get_batch_response.GetResult().GetDetails()->GetState() !=
-        "succeeded") {
-      ASSERT_EQ("submitted",
-                get_batch_response.GetResult().GetDetails()->GetState());
-    } else {
-      break;
-    }
-  }
-  // There are can be a case that GetBatch() is not "succeeded", but in
-  // "submitted" state even after 100 iterations,
-  // which actually means that there are might be a problem on the server side,
-  // (or just long delay). Thus, better to rewrite this test, or do not rely on
-  // the real server, but use mocked server.
-  // ASSERT_EQ("succeeded",
-  // get_batch_response.GetResult().GetDetails()->GetState());
+  get_batch_response =
+      versioned_client->GetBatch(response.GetResult()).GetFuture().get();
+  EXPECT_SUCCESS(get_batch_response);
+  ASSERT_EQ(response.GetResult().GetId().value(),
+            get_batch_response.GetResult().GetId().value());
+  const auto state = get_batch_response.GetResult().GetDetails()->GetState();
+  ASSERT_TRUE(state == "succeeded" || state == "submitted")
+      << "Where state: " << state
+      << " not equal neither: 'succeeded' nor 'submitted'";
 }
 
 TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchDeleteClient) {
@@ -393,27 +356,15 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchDeleteClient) {
 
   EXPECT_SUCCESS(complete_batch_response);
 
-  for (int i = 0; i < 100; ++i) {
-    get_batch_response =
-        versioned_client->GetBatch(response.GetResult()).GetFuture().get();
-
-    EXPECT_SUCCESS(get_batch_response);
-    ASSERT_EQ(response.GetResult().GetId().value(),
-              get_batch_response.GetResult().GetId().value());
-    if (get_batch_response.GetResult().GetDetails()->GetState() !=
-        "succeeded") {
-      ASSERT_EQ("submitted",
-                get_batch_response.GetResult().GetDetails()->GetState());
-    } else {
-      break;
-    }
-  }
-  // This check contradicts with the previous assertion - we can have a case,
-  // when the state of the last (i == 99) get_batch_response is "submitted',
-  // but not 'succeeded', thus, in the previous loop we accept such case
-  // as a valid one, but here, we treat such case as an error.
-  // ASSERT_EQ("succeeded",
-  // get_batch_response.GetResult().GetDetails()->GetState());
+  get_batch_response =
+      versioned_client->GetBatch(response.GetResult()).GetFuture().get();
+  EXPECT_SUCCESS(get_batch_response);
+  ASSERT_EQ(response.GetResult().GetId().value(),
+            get_batch_response.GetResult().GetId().value());
+  const auto state = get_batch_response.GetResult().GetDetails()->GetState();
+  ASSERT_TRUE(state == "succeeded" || state == "submitted")
+      << "Where state: " << state
+      << " not equal neither: 'succeeded' nor 'submitted'";
 }
 
 TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchMulti) {
@@ -474,28 +425,15 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchMulti) {
 
   EXPECT_SUCCESS(complete_batch_response);
 
-  for (int i = 0; i < 100; ++i) {
-    get_batch_response =
-        versioned_client->GetBatch(response.GetResult()).GetFuture().get();
-
-    EXPECT_SUCCESS(get_batch_response);
-    ASSERT_EQ(response.GetResult().GetId().value(),
-              get_batch_response.GetResult().GetId().value());
-    if (get_batch_response.GetResult().GetDetails()->GetState() !=
-        "succeeded") {
-      ASSERT_EQ("submitted",
-                get_batch_response.GetResult().GetDetails()->GetState());
-    } else {
-      break;
-    }
-  }
-  // There are can be a case that GetBatch() is not "succeeded", but in
-  // "submitted" state even after 100 iterations,
-  // which actually means that there are might be a problem on the server side,
-  // (or just long delay). Thus, better to rewrite this test, or do not rely on
-  // the real server, but use mocked server.
-  // ASSERT_EQ("succeeded",
-  // get_batch_response.GetResult().GetDetails()->GetState());
+  get_batch_response =
+      versioned_client->GetBatch(response.GetResult()).GetFuture().get();
+  EXPECT_SUCCESS(get_batch_response);
+  ASSERT_EQ(response.GetResult().GetId().value(),
+            get_batch_response.GetResult().GetId().value());
+  const auto state = get_batch_response.GetResult().GetDetails()->GetState();
+  ASSERT_TRUE(state == "succeeded" || state == "submitted")
+      << "Where state: " << state
+      << " not equal neither: 'succeeded' nor 'submitted'";
 }
 
 TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchCancel) {
