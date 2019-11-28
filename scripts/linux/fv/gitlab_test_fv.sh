@@ -41,11 +41,11 @@ ${FV_HOME}/gitlab-olp-cpp-sdk-core-test.sh 2>> errors.txt || TEST_FAILURE=1
 ${FV_HOME}/gitlab-olp-cpp-sdk-dataservice-read-test.sh 2>> errors.txt || TEST_FAILURE=1
 ${FV_HOME}/gitlab-olp-cpp-sdk-dataservice-write-test.sh 2>> errors.txt || TEST_FAILURE=1
 
-# Run integration tests
-${FV_HOME}/gitlab-olp-cpp-sdk-integration-test.sh 2>> errors.txt || TEST_FAILURE=1
-
 # Run functional tests
 ${FV_HOME}/gitlab-olp-cpp-sdk-functional-test.sh 2>> errors.txt || TEST_FAILURE=1
+
+# Run integration tests
+${FV_HOME}/gitlab-olp-cpp-sdk-integration-test.sh 2>> errors.txt || TEST_FAILURE=1
 
 # Lines below are added for pretty data sum-up and finalize results of this script is case of FAILURE
 if [[ ${TEST_FAILURE} == 1 ]]; then
