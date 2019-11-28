@@ -34,7 +34,7 @@ namespace client {
 /**
  * @brief Container for not yet finished requests.
  */
-class PendingRequests final {
+class CORE_API PendingRequests final {
  public:
   /**
    * @brief Cancels all pending tasks
