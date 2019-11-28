@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include <olp/core/http/Network.h>
 
 /*
