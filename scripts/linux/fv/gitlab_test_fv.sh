@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 #
 # Copyright (C) 2019 HERE Europe B.V.
 #
@@ -29,6 +29,7 @@ if [ -z $production_service_secret ] || [ -z $production_service_id ] ; then
 fi
 
 TEST_FAILURE=0
+RETRY_COUNT=0
 EXPECTED_REPORT_COUNT=6                         # expected that we generate 6 reports
 
 #for core dump backtrace
@@ -42,7 +43,35 @@ ${FV_HOME}/gitlab-olp-cpp-sdk-dataservice-read-test.sh 2>> errors.txt || TEST_FA
 ${FV_HOME}/gitlab-olp-cpp-sdk-dataservice-write-test.sh 2>> errors.txt || TEST_FAILURE=1
 
 # Run functional tests
-${FV_HOME}/gitlab-olp-cpp-sdk-functional-test.sh 2>> errors.txt || TEST_FAILURE=1
+# Add retry to functional/online tests. Some online tests are flaky due to third party reason
+# Test failure must return code 1 only. Other return code are not handled in retry.
+# Allowing tests failures (exit codes not 0) for online tests is done by set command below. Process is controlled by retry mechanism below.
+set +e
+while true
+do
+    # Stop after 3 retry
+    if [[ ${RETRY_COUNT} -eq 3 ]]; then
+        echo "Reach limit (${RETRY_COUNT}) of retries ..."
+        break
+    fi
+
+    RETRY_COUNT=$((RETRY_COUNT+1))
+    echo "This is ${RETRY_COUNT} time retry ..."
+
+    # Run functional tests
+    ${FV_HOME}/gitlab-olp-cpp-sdk-functional-test.sh 2>> errors.txt
+    if [[ $? -eq 1 ]]; then
+        TEST_FAILURE=1
+        continue
+    else
+        # Return to success
+        TEST_FAILURE=0
+        break
+    fi
+done
+set -e
+# End of retry part. This part can be removed anytime.
+
 
 # Run integration tests
 ${FV_HOME}/gitlab-olp-cpp-sdk-integration-test.sh 2>> errors.txt || TEST_FAILURE=1
