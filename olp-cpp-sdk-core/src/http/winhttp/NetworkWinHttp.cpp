@@ -577,6 +577,7 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
       OLP_SDK_LOG_WARNING(kLogTag, "WinHttpReceiveResponse failed, id="
                                        << handle->request_id
                                        << ", error=" << GetLastError());
+      handle->Complete();
     }
   } else if (status == WINHTTP_CALLBACK_STATUS_HEADERS_AVAILABLE) {
     Network::HeaderCallback callback = nullptr;
@@ -773,6 +774,7 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
         OLP_SDK_LOG_WARNING(kLogTag, "WinHttpReadData failed, id="
                                          << handle->request_id
                                          << ", error=" << GetLastError());
+        handle->Complete();
       }
     } else {
       // Request is complete
@@ -875,6 +877,7 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
       OLP_SDK_LOG_WARNING(kLogTag, "WinHttpQueryDataAvailable failed, id="
                                        << handle->request_id
                                        << ", error=" << GetLastError());
+      handle->Complete();
     }
   } else if (status == WINHTTP_CALLBACK_STATUS_HANDLE_CLOSING) {
     // Only now is it safe to free the handle
