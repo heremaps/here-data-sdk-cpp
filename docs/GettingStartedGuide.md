@@ -2,29 +2,29 @@
 
 ## Get Credentials
 
-Prior to any catalog or service request to the [HERE Open Location Platform](https://platform.here.com) (OLP), you must obtain authentication and authorization credentials.
+To create catalog or service requests to the [HERE Open Location Platform](https://platform.here.com), you need to have the OLP authentication and authorization credentials.
 
-The following approaches are available for authenticating to the OLP within your application:
+The following two authentication approaches are available within your application:
 
-1. Using the _platform credentials_ available from the OLP portal in combination with the HERE OLP SDK for C++ authentication library.
-2. Using the access key ID and access key secret in the platform credentials as described in the [Authentication and Authorization Developer's Guide](https://developer.here.com/olp/documentation/access_control/topics/introduction.html) to create your own authentication and authorization client for retrieving HERE tokens, which you can then provide to the HERE OLP SDK for C++ libraries.
+1. Using your **platform credentials** that are available on the platform portal by means of the HERE OLP SDK for TypeScript authentication library.
+2. Using the **access key ID** and **access key secret** from the platform credentials as described in the [Authentication and Authorization Developer's Guide](https://developer.here.com/olp/documentation/access_control/topics/introduction.html) to create your own authentication and authorization client for retrieving HERE tokens that you can then provide to the HERE OLP SDK for C++ libraries.
 
-To obtain your platform credentials, create a new application via the [Apps and Keys](https://platform.here.com/profile/apps-and-keys) page. Then click **Create a key** to download these credentials. For more information on obtaining platform credentials, see the [Manage Apps](https://developer.here.com/olp/documentation/access-control/user-guide/topics/manage-apps.html) section of the [Teams and Permissions User Guide](https://developer.here.com/olp/documentation/access-control/user-guide/index.html).
+To get your platform credentials, on the [Apps and Keys](https://platform.here.com/profile/apps-and-keys) page, create a new application. Then, to download the credentials, click **Create a key**. For more information on how to get platform credentials, see the [Manage Apps](https://developer.here.com/olp/documentation/access-control/user-guide/topics/manage-apps.html) section of the [Teams and Permissions User Guide](https://developer.here.com/olp/documentation/access-control/user-guide/index.html).
 
 ## OLP Prerequisite Knowledge
 
-The use of the HERE OLP SDK for C++ requires a basic understanding of the following concepts related to the OLP:
+To use the HERE Open Location Platform (OLP) SDK for C++, you need to understand the following concepts related to OLP:
 
-* [OLP catalog](https://developer.here.com/olp/documentation/data-user-guide/shared_content/topics/olp/concepts/catalogs.html)
-* [OLP layers](https://developer.here.com/olp/documentation/data-user-guide/shared_content/topics/olp/concepts/layers.html)
-* [OLP partitions](https://developer.here.com/olp/documentation/data-user-guide/shared_content/topics/olp/concepts/partitions.html)
-* [HRN (HERE Resource Name)](https://developer.here.com/olp/documentation/data-user-guide/shared_content/topics/olp/concepts/hrn.html)
+* [Catalogs](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/catalogs.html)
+* [Layers](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/layers.html)
+* [Partitions](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/partitions.html)
+* [HERE Resource Names (HRNs)](https://developer.here.com/olp/documentation/data-user-guide/shared_content/topics/olp/concepts/hrn.html)
 
 For more information, see the [HERE OLP Data User Guide](https://developer.here.com/olp/documentation/data-user-guide/index.html).
 
 ## Available Components
 
-The HERE OLP SDK for C++ is composed of separate libraries with their own distinct functionality. For a component overview, see the [architectural overview](OverallArchitecture.md)
+The HERE OLP SDK for C++ contains separate libraries, each of which has a distinct functionality. For more information about the components, see the [architectural overview](OverallArchitecture.md).
 
 ## HERE OLP SDK for C++ in CMake Projects
 
