@@ -81,7 +81,7 @@ After you provide your app access key id, secret access key, catalog, and layer 
 
 ## Building and running on iOS
 
-This example shows how to integrate and use the HERE OLP SDK for C++ for a basic iOS application,written in Objective-C language.
+This example shows how to integrate and use the HERE OLP SDK for C++ for a basic iOS application written in the Objective-C language.
 
 ### Prerequisites
 
@@ -106,14 +106,15 @@ cmake .. -GXcode  -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/iOS.cmake -DPLATFOR
 
 ### Build and run the application on the device
 
-Now open the generated `XCode` project:
+Now, open the generated `XCode` project:
+
 ```bash
 open olp-cpp-sdk.xcodeproj
 ```
 
-Select the `dataservice-write-example` from the schemes list in the `XCode` project and specify your authorization credentials for the `dataservice-write-example` target.
+In the `XCode`, from the schemes list, select the `dataservice-write-example` project and specify your authorization credentials for the `dataservice-write-example` target.
 
-Once everything is set up correctly, build and run the example application on your device. After building and running of example is complete, you see the `Publish Successful` message in the main UI screen. If you encounter an error message, e.g. `Publish Failed`, please check the device's logs for the detailed description of the error.
+Once everything is set up correctly, build and run the example application on your device. When the building and running of the example are completed, on the main UI screen, you see the `Publish Successful` message. If you get an error message, for example, `Publish Failed`, check the device logs for the detailed description of the error.
 
 ## How it works
 
