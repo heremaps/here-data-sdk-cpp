@@ -29,6 +29,8 @@
 #include <olp/authentication/TokenEndpoint.h>
 #include <olp/authentication/TokenProvider.h>
 #include <olp/authentication/TokenResult.h>
+#include <olp/core/cache/CacheSettings.h>
+#include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClient.h>
@@ -67,6 +69,8 @@ class ApiTest : public ::testing::Test {
     settings_ = std::make_shared<olp::client::OlpClientSettings>();
     settings_->authentication_settings = auth_client_settings;
     settings_->network_request_handler = network;
+    settings_->cache =
+        olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
 
     client_ = olp::client::OlpClientFactory::Create(*settings_);
   }
