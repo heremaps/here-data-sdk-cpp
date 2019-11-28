@@ -37,7 +37,7 @@ namespace client {
  * result of provided task became available or error occurs, callback is
  * invoked.
  */
-class TaskContext {
+class CORE_API TaskContext {
  public:
   /**
    * @brief Constructs TaskContext with provided task and callback.
