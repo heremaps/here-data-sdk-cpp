@@ -44,6 +44,12 @@ struct AUTHENTICATION_API ErrorResponse {
    * request.
    */
   std::string message;
+
+  /**
+   * @brief Here Account error id returned as a result of an authentication
+   * request.
+   */
+  std::string error_id;
 };
 
 /**

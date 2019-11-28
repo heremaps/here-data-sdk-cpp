@@ -173,6 +173,11 @@ class AuthenticationClientTest : public AuthenticationCommonTestFixture {
 
     return request_future.get();
   }
+
+  std::string GetErrorId(
+      const AuthenticationClient::SignInUserResponse& response) const {
+    return response.GetResult().GetErrorResponse().error_id;
+  }
 };
 
 TEST_F(AuthenticationClientTest, SignInClient) {
@@ -332,11 +337,14 @@ TEST_F(AuthenticationClientTest, SignUpInUser) {
 
   AuthenticationClient::SignInUserResponse response5 = SignInUser(email);
   EXPECT_EQ(olp::http::HttpStatusCode::UNAUTHORIZED,
-            response5.GetResult().GetStatus());
+            response5.GetResult().GetStatus())
+      << GetErrorId(response5);
   EXPECT_EQ(kErrorAccountNotFoundCode,
-            response5.GetResult().GetErrorResponse().code);
+            response5.GetResult().GetErrorResponse().code)
+      << GetErrorId(response5);
   EXPECT_EQ(kErrorAccountNotFoundMessage,
-            response5.GetResult().GetErrorResponse().message);
+            response5.GetResult().GetErrorResponse().message)
+      << GetErrorId(response5);
 }
 
 TEST_F(AuthenticationClientTest, SignUpUserCancel) {

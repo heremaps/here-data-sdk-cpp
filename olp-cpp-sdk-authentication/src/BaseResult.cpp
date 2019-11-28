@@ -31,6 +31,7 @@ namespace authentication {
 static const char* FIELD_NAME = "name";
 static const char* ERROR_CODE = "errorCode";
 static const char* ERROR_FIELDS = "errorFields";
+static const char* ERROR_ID = "errorId";
 static const char* ERROR_MESSAGE = "message";
 static const char* LINE_END = ".";
 
@@ -46,6 +47,10 @@ BaseResult::BaseResult(int status, std::string error,
   // If HTTP error, try to get error details
   if (!HasError() || !is_valid_ || !json_document->HasMember(ERROR_CODE)) {
     return;
+  }
+
+  if (json_document->HasMember(ERROR_ID)) {
+    error_.error_id = (*json_document)[ERROR_ID].GetString();
   }
 
   // Enhance error message with network response error details
