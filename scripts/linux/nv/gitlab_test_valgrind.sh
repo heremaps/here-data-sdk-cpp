@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 #
 # Copyright (C) 2019 HERE Europe B.V.
 #
@@ -85,20 +85,34 @@ do
     echo "-----> Finished ${test_group_name} - Result=${result}"
 
     # Add retry to functional/online tests. Some online tests are flaky due to third party reason
-    # Test failure should return code 1
-    retry_count=0
-    while [[ ${result} = 1 && ${test_group_name} == "functional" ]];
+    # Test failure must return code 1 only. Other return code are not handled in retry.
+    RETRY_COUNT=0
+    while true
     do
-        retry_count=$((retry_count+1)) && echo "This is ${retry_count} time retry ..."
-        echo "-----> Calling \"${test_command}\" for ${test_group_name} : "
-        eval "${test_command}"
-        result=$?
-        echo "-----> Finished ${test_group_name} - Result=${result}"
+        if [[ ${test_group_name} == "functional" ]]; then
+            # Stop after 3 retry
+            if [[ ${RETRY_COUNT} -eq 3 ]]; then
+                echo "Reach limit (${RETRY_COUNT}) of retries ..."
+                break
+            fi
+            RETRY_COUNT=$((RETRY_COUNT+1))
+            echo "This is ${RETRY_COUNT} time retry ..."
 
-        # Stop after 3 retry
-        if [[ ${retry_count} = 3 ]]; then
-            break
+            # Run functional tests
+            echo "-----> Calling \"${test_command}\" for ${test_group_name} : "
+            eval "${test_command}"
+            result=$?
+            echo "-----> Finished ${test_group_name} - Result=${result}"
+            if [[ ${result} -eq 1 ]]; then
+                TEST_FAILURE=1
+                continue
+            else
+                # Return to success
+                TEST_FAILURE=0
+                break
+            fi
         fi
+        break
     done
     # End of retry part. This part can be removed anytime.
 }
