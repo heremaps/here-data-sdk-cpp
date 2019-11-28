@@ -16,6 +16,7 @@
 # License-Filename: LICENSE
 
 set(OLP_SDK_DATASERVICE_WRITE_TEST_SOURCES
+    ApiClientLookupTest.cpp
     CancellationTokenListTest.cpp
     ParserTest.cpp
     SerializerTest.cpp

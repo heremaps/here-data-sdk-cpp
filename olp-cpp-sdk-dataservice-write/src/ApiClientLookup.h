@@ -51,6 +51,11 @@ class ApiClientLookup {
       std::shared_ptr<client::OlpClient> client, const std::string& service,
       const std::string& service_version, const client::HRN& hrn,
       const ApiClientCallback& callback);
+
+  static ApiClientResponse LookupApiClient(
+      const client::HRN& catalog,
+      client::CancellationContext cancellation_context, std::string service,
+      std::string service_version, client::OlpClientSettings settings);
 };
 
 }  // namespace write
