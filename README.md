@@ -69,7 +69,7 @@ The dependencies of the HERE OLP SDK for C++ are the following:
 
 ## Building the SDK
 
-[CMake](https://cmake.org/download/) is the main build system. The minimal required version of CMake is 3.5.
+[CMake](https://cmake.org/download/) is the main build system. The minimal required version of CMake is 3.9.
 
 CMake downloads [leveldb](https://github.com/google/leveldb), [snappy](https://github.com/google/snappy), [rapidjson](https://github.com/Tencent/rapidjson), and [Boost](https://www.boost.org/). This can be disabled by setting `OLP_SDK_BUILD_EXTERNAL_DEPS` to `OFF`. For details on CMake flags, see [below](#cmake-flags).
 
