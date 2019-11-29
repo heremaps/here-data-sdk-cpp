@@ -1,3 +1,28 @@
+## v1.0.0 (03/12/2019)
+
+**Common**
+
+* A new CMake flag `OLP_SDK_BOOST_THROW_EXCEPTION_EXTERNAL` was introduced to compile the SDK without exceptions. The user needs to provide the custom `boost::throw_exception` function.
+* `olp::client::HttpResponse` now holds `std::stringstream` instead of `std::string`. This removes expensive copies.
+* The CMake minimum version increased to 3.9.
+* The `cancel` method in `CancellationToken` is deprecated in favor of the newly introduced `Cancel` method.
+* Network logs improved for all platforms.
+* Various bug fixes and improvements.
+* The Network limit is now implemented for all platforms. When the limit is reached, the `Network::Send` method returns `olp::http::ErrorCode::NETWORK_OVERLOAD_ERROR`, and client users receive `olp::client::ErrorCode::SlowDown` as a response.
+* Android network client can now be used when Java VM is embedded in a native application.
+
+**olp-cpp-sdk-dataservice-read**
+
+* The `VersionedLayerClient` and `VolatileLayerClient` classes are now movable and non-copyable.
+* The `TaskContext` and `PendingRequests` classes moved to the core component, and are now public.
+* The `GetCatalogMetadataVersion` method in `CatalogClient` is deprecated. The `GetLatestVersion` method should be used instead.
+* All deprecated methods marked in v0.8.0 are now removed.
+* A new optional parameter for a catalog version was added to `PrefetchTileRequest`. It is used by `VersionedLayerClient::PrefetchTiles()`. If not provided, the latest catalog version is queried from OLP instead.
+
+**olp-cpp-sdk-dataservice-write**
+
+* Missing `DATASERVICE_WRITE_API` was added to various classes.
+
 ## v0.8.0-beta (31/10/2019)
 
 **Common**

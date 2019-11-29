@@ -15,7 +15,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-project(olp-cpp-sdk-dataservice-read VERSION 0.8.0)
+project(olp-cpp-sdk-dataservice-read VERSION 1.0.0)
 set(DESCRIPTION "C++ API library for reading OLP data")
 
 file(GLOB_RECURSE INC "include/*.h*")
