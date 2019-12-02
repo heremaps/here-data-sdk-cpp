@@ -44,20 +44,6 @@ using CatalogCallback = std::function<void(CatalogResponse)>;
 class ConfigApi {
  public:
   /**
-   * @brief Call to retrieve the configuration of a catalog.
-   * @param client Instance of OlpClient used to make REST request.
-   * @param catalog_hrn Full catalog name.
-   * @param billing_tag An optional free-form tag which is used for grouping
-   * billing records together. If supplied, it must be between 4 - 16
-   * characters, contain only alpha/numeric ASCII characters  [A-Za-z0-9].
-   *
-   * @return A CancellableFuture containing the CatalogResponse
-   */
-  static client::CancellableFuture<CatalogResponse> GetCatalog(
-      std::shared_ptr<client::OlpClient> client, const std::string& catalog_hrn,
-      boost::optional<std::string> billing_tag);
-
-  /**
    * @brief Call to asynchronously retrieve the configuration of a catalog.
    * @param client Instance of OlpClient used to make REST request.
    * @param catalog_hrn Full catalog name.
@@ -71,6 +57,11 @@ class ConfigApi {
    */
   static client::CancellationToken GetCatalog(
       std::shared_ptr<client::OlpClient> client, const std::string& catalog_hrn,
+      boost::optional<std::string> billing_tag,
+      const CatalogCallback& callback);
+
+  static client::CancellationToken GetCatalogB(
+      const client::OlpClient& client, const std::string& catalog_hrn,
       boost::optional<std::string> billing_tag,
       const CatalogCallback& callback);
 };

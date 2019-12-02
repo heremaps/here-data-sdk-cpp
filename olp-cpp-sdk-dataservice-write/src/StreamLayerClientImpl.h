@@ -29,10 +29,16 @@
 #include "ApiClientLookup.h"
 #include "generated/model/Catalog.h"
 
+#include "generated/BlobApi.h"
+#include "generated/ConfigApi.h"
+#include "generated/IngestApi.h"
+#include "generated/PublishApi.h"
+
 namespace olp {
 namespace client {
 class CancellationContext;
-}
+class PendingRequests;
+}  // namespace client
 
 namespace dataservice {
 namespace write {
@@ -49,70 +55,103 @@ class StreamLayerClientImpl
                         StreamLayerClientSettings client_settings,
                         client::OlpClientSettings settings);
 
-  olp::client::CancellableFuture<PublishDataResponse> PublishData(
+  ~StreamLayerClientImpl();
+
+  client::CancellableFuture<PublishDataResponse> PublishData(
       const model::PublishDataRequest& request);
-  olp::client::CancellationToken PublishData(
+
+  client::CancellationToken PublishData(
       const model::PublishDataRequest& request, PublishDataCallback callback);
 
   boost::optional<std::string> Queue(const model::PublishDataRequest& request);
-  olp::client::CancellableFuture<StreamLayerClient::FlushResponse> Flush(
+  client::CancellableFuture<StreamLayerClient::FlushResponse> Flush(
       model::FlushRequest request);
-  olp::client::CancellationToken Flush(
-      model::FlushRequest request, StreamLayerClient::FlushCallback callback);
+
+  client::CancellationToken Flush(model::FlushRequest request,
+                                  StreamLayerClient::FlushCallback callback);
+
   size_t QueueSize() const;
+
   boost::optional<model::PublishDataRequest> PopFromQueue();
 
-  olp::client::CancellableFuture<PublishSdiiResponse> PublishSdii(
+  client::CancellableFuture<PublishSdiiResponse> PublishSdii(
       const model::PublishSdiiRequest& request);
-  olp::client::CancellationToken PublishSdii(
+
+  client::CancellationToken PublishSdii(
       const model::PublishSdiiRequest& request, PublishSdiiCallback callback);
 
- private:
-  client::CancellationToken InitApiClients(
-      const std::shared_ptr<client::CancellationContext>& cancel_context,
-      InitApiClientsCallback callback);
-  client::CancellationToken InitApiClientsGreaterThanTwentyMib(
-      const std::shared_ptr<client::CancellationContext>& cancel_context,
-      InitApiClientsCallback callback);
-  client::CancellationToken InitCatalogModel(
-      const model::PublishDataRequest& request,
-      const InitCatalogModelCallback& callback);
-  void InitPublishDataGreaterThanTwentyMib(
-      const std::shared_ptr<client::CancellationContext>& cancel_context,
-      const model::PublishDataRequest& request,
-      const PublishDataCallback& callback);
-
-  void AquireInitLock();
-  void NotifyInitAborted();
-  void NotifyInitCompleted();
-
-  std::string FindContentTypeForLayerId(const std::string& layer_id);
-  client::CancellationToken PublishDataLessThanTwentyMib(
-      const model::PublishDataRequest& request,
-      const PublishDataCallback& callback);
-  client::CancellationToken PublishDataGreaterThanTwentyMib(
-      const model::PublishDataRequest& request,
-      const PublishDataCallback& callback);
+ protected:
   std::string GetUuidListKey() const;
+
+  static std::string FindContentTypeForLayerId(const model::Catalog& catalog,
+                                               const std::string& layer_id);
+
+  virtual PublishDataResponse PublishDataTask(
+      client::HRN catalog, client::OlpClientSettings settings,
+      model::PublishDataRequest request,
+      client::CancellationContext cancellation_context);
+
+  virtual PublishSdiiResponse PublishSdiiTask(
+      client::HRN catalog, client::OlpClientSettings settings,
+      model::PublishSdiiRequest request,
+      client::CancellationContext cancellation_context);
+
+  virtual PublishDataResponse PublishDataLessThanTwentyMibTask(
+      client::HRN catalog, client::OlpClientSettings settings,
+      model::PublishDataRequest request,
+      client::CancellationContext cancellation_context);
+
+  virtual PublishDataResponse PublishDataGreaterThanTwentyMibTask(
+      client::HRN catalog, client::OlpClientSettings settings,
+      model::PublishDataRequest request,
+      client::CancellationContext cancellation_context);
+
+  virtual CatalogResponse GetCatalog(client::HRN catalog,
+                                     client::CancellationContext context,
+                                     model::PublishDataRequest request,
+                                     client::OlpClientSettings settings);
+
+  virtual InitPublicationResponse InitPublication(
+      client::HRN catalog, client::CancellationContext context,
+      model::PublishDataRequest request, client::OlpClientSettings settings);
+
+  virtual SubmitPublicationResponse SubmitPublication(
+      client::HRN catalog, client::CancellationContext context,
+      model::PublishDataRequest request, std::string publication_id,
+      client::OlpClientSettings settings);
+
+  virtual PutBlobResponse PutBlob(client::HRN catalog,
+                                  client::CancellationContext context,
+                                  model::PublishDataRequest request,
+                                  std::string content_type,
+                                  std::string data_handle,
+                                  client::OlpClientSettings settings);
+
+  virtual UploadPartitionsResponse UploadPartition(
+      client::HRN catalog, client::CancellationContext context,
+      model::PublishDataRequest request, std::string publication_id,
+      model::PublishPartitions partitions, std::string partition_id,
+      client::OlpClientSettings settings);
+
+  virtual IngestDataResponse IngestData(client::HRN catalog,
+                                        client::CancellationContext context,
+                                        model::PublishDataRequest request,
+                                        std::string content_type,
+                                        client::OlpClientSettings settings);
+
+  virtual PublishSdiiResponse IngestSDII(client::HRN catalog,
+                                         client::CancellationContext,
+                                         model::PublishSdiiRequest request,
+                                         client::OlpClientSettings settings);
 
  private:
   client::HRN catalog_;
-  model::Catalog catalog_model_;
-
   client::OlpClientSettings settings_;
-
-  std::shared_ptr<client::OlpClient> apiclient_config_;
-  std::shared_ptr<client::OlpClient> apiclient_ingest_;
-  std::shared_ptr<client::OlpClient> apiclient_blob_;
-  std::shared_ptr<client::OlpClient> apiclient_publish_;
-
-  std::mutex init_mutex_;
-  std::condition_variable init_cv_;
-  bool init_inprogress_;
-
   std::shared_ptr<cache::KeyValueCache> cache_;
   mutable std::mutex cache_mutex_;
   StreamLayerClientSettings stream_client_settings_;
+  std::shared_ptr<client::PendingRequests> pending_requests_;
+  std::shared_ptr<thread::TaskScheduler> task_scheduler_;
 };
 
 }  // namespace write

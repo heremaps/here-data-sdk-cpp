@@ -21,6 +21,7 @@ set(OLP_SDK_DATASERVICE_WRITE_TEST_SOURCES
     ParserTest.cpp
     SerializerTest.cpp
     StartBatchRequestTest.cpp
+    StreamLayerClientImplTest.cpp
     ThreadSafeQueueTest.cpp
     TimeUtilsTest.cpp
     )
