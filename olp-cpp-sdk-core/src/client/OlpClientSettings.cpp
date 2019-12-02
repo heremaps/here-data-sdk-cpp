@@ -28,5 +28,7 @@ unsigned int DefaultBackdownPolicy(unsigned int milliseconds) {
 
 bool DefaultRetryCondition(const HttpResponse&) { return false; }
 
+bool DefaultRetryConditionNew(int http_code) { return false; }
+
 }  // namespace client
 }  // namespace olp

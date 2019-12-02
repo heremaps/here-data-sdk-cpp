@@ -25,6 +25,7 @@
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/CancellationContext.h>
 #include "olp/dataservice/read/model/Catalog.h"
 
 namespace olp {
@@ -40,7 +41,6 @@ namespace read {
 class ConfigApi {
  public:
   using CatalogResponse = client::ApiResponse<model::Catalog, client::ApiError>;
-  using CatalogCallback = std::function<void(CatalogResponse)>;
 
   /**
    * @brief Call to asynchronously retrieve the configuration of a catalog.
@@ -54,9 +54,10 @@ class ConfigApi {
    *
    * @return The cancellation token.
    */
-  static client::CancellationToken GetCatalog(
-      const client::OlpClient& client, const std::string& catalogHrn,
-      boost::optional<std::string> billingTag, const CatalogCallback& callback);
+  static CatalogResponse GetCatalog(const client::OlpClient& client,
+                                    const std::string& catalogHrn,
+                                    boost::optional<std::string> billingTag,
+                                    client::CancellationContext context);
 };
 
 }  // namespace read

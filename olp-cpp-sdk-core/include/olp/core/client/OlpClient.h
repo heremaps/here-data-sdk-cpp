@@ -29,6 +29,7 @@
 #include "OlpClientSettings.h"
 
 #include <olp/core/CoreApi.h>
+#include <olp/core/porting/deprecated.h>
 
 namespace olp {
 namespace network {
@@ -83,6 +84,7 @@ class CORE_API OlpClient {
    *
    * @return A method to call to cancel the request.
    */
+  OLP_SDK_DEPRECATED("Use different CallApi")
   CancellationToken CallApi(
       const std::string& path, const std::string& method,
       const std::multimap<std::string, std::string>& query_params,
@@ -91,6 +93,14 @@ class CORE_API OlpClient {
       const std::shared_ptr<std::vector<unsigned char>>& post_body,
       const std::string& content_type,
       const NetworkAsyncCallback& callback) const;
+
+  HttpResponse CallApi(
+      std::string path, std::string method,
+      std::multimap<std::string, std::string> query_params,
+      std::multimap<std::string, std::string> header_params,
+      std::multimap<std::string, std::string> form_params,
+      std::shared_ptr<std::vector<unsigned char>> post_body,
+      std::string content_type, CancellationContext context) const;
 
  private:
   std::shared_ptr<http::NetworkRequest> CreateRequest(

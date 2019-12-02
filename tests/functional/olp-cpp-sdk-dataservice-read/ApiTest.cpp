@@ -101,18 +101,9 @@ TEST_F(ApiTest, GetCatalog) {
       << ApiErrorToString(client_response.GetError());
   auto config_client = client_response.GetResult();
 
-  std::promise<olp::dataservice::read::ConfigApi::CatalogResponse>
-      catalog_promise;
-  auto catalog_callback =
-      [&catalog_promise](
-          olp::dataservice::read::ConfigApi::CatalogResponse catalog_response) {
-        catalog_promise.set_value(catalog_response);
-      };
-
   auto start_time = std::chrono::high_resolution_clock::now();
-  auto cancel_fn = olp::dataservice::read::ConfigApi::GetCatalog(
-      config_client, GetTestCatalog(), boost::none, catalog_callback);
-  auto catalog_response = catalog_promise.get_future().get();
+  auto catalog_response = olp::dataservice::read::ConfigApi::GetCatalog(
+      config_client, GetTestCatalog(), boost::none, {});
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;
@@ -133,20 +124,10 @@ TEST_F(ApiTest, GetPartitions) {
       << ApiErrorToString(client_response.GetError());
   auto metadata_client = client_response.GetResult();
 
-  std::promise<olp::dataservice::read::MetadataApi::PartitionsResponse>
-      partitions_promise;
-  auto partitions_callback =
-      [&partitions_promise](
-          olp::dataservice::read::MetadataApi::PartitionsResponse
-              partitions_response) {
-        partitions_promise.set_value(partitions_response);
-      };
-
   auto start_time = std::chrono::high_resolution_clock::now();
-  olp::dataservice::read::MetadataApi::GetPartitions(
+  auto partitions_response = olp::dataservice::read::MetadataApi::GetPartitions(
       metadata_client, "testlayer", 1, boost::none, boost::none, boost::none,
-      partitions_callback);
-  auto partitions_response = partitions_promise.get_future().get();
+      {});
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;
@@ -169,21 +150,13 @@ TEST_F(ApiTest, GetPartitionById) {
 
   {
     SCOPED_TRACE("Test with 2 partitions");
-    std::promise<olp::dataservice::read::MetadataApi::PartitionsResponse>
-        partitions_promise;
-    auto partitions_callback =
-        [&partitions_promise](
-            olp::dataservice::read::MetadataApi::PartitionsResponse
-                partitions_response) {
-          partitions_promise.set_value(partitions_response);
-        };
 
     auto start_time = std::chrono::high_resolution_clock::now();
     std::vector<std::string> partitions = {"269", "270"};
-    olp::dataservice::read::QueryApi::GetPartitionsbyId(
-        query_client, "testlayer", partitions, 1, boost::none, boost::none,
-        partitions_callback);
-    auto partitions_response = partitions_promise.get_future().get();
+    auto partitions_response =
+        olp::dataservice::read::QueryApi::GetPartitionsbyId(
+            query_client, "testlayer", partitions, 1, boost::none, boost::none,
+            {});
     auto end = std::chrono::high_resolution_clock::now();
 
     std::chrono::duration<double> time = end - start_time;
@@ -201,22 +174,14 @@ TEST_F(ApiTest, GetPartitionById) {
 
   {
     SCOPED_TRACE("Test with single partition");
-    std::promise<olp::dataservice::read::MetadataApi::PartitionsResponse>
-        partitions_promise;
-    auto partitions_callback =
-        [&partitions_promise](
-            olp::dataservice::read::MetadataApi::PartitionsResponse
-                partitions_response) {
-          partitions_promise.set_value(partitions_response);
-        };
 
     auto start_time = std::chrono::high_resolution_clock::now();
     std::vector<std::string> partitions = {"270"};
     std::vector<std::string> additional_fields = {"checksum", "dataSize"};
-    olp::dataservice::read::QueryApi::GetPartitionsbyId(
-        query_client, "testlayer", partitions, 1, additional_fields,
-        boost::none, partitions_callback);
-    auto partitions_response = partitions_promise.get_future().get();
+    auto partitions_response =
+        olp::dataservice::read::QueryApi::GetPartitionsbyId(
+            query_client, "testlayer", partitions, 1, additional_fields,
+            boost::none, {});
     auto end = std::chrono::high_resolution_clock::now();
 
     std::chrono::duration<double> time = end - start_time;
@@ -249,19 +214,10 @@ TEST_F(ApiTest, GetCatalogVersion) {
       << ApiErrorToString(client_response.GetError());
   auto metadata_client = client_response.GetResult();
 
-  std::promise<olp::dataservice::read::MetadataApi::CatalogVersionResponse>
-      version_response_promise;
-  auto version_response_callback =
-      [&version_response_promise](
-          olp::dataservice::read::MetadataApi::CatalogVersionResponse
-              partitions_response) {
-        version_response_promise.set_value(partitions_response);
-      };
-
   auto start_time = std::chrono::high_resolution_clock::now();
-  olp::dataservice::read::MetadataApi::GetLatestCatalogVersion(
-      metadata_client, -1, boost::none, version_response_callback);
-  auto version_response = version_response_promise.get_future().get();
+  auto version_response =
+      olp::dataservice::read::MetadataApi::GetLatestCatalogVersion(
+          metadata_client, -1, boost::none, {});
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;
@@ -282,19 +238,10 @@ TEST_F(ApiTest, GetLayerVersions) {
       << ApiErrorToString(client_response.GetError());
   auto metadata_client = client_response.GetResult();
 
-  std::promise<olp::dataservice::read::MetadataApi::LayerVersionsResponse>
-      layer_versions_promise;
-  auto layer_versions_callback =
-      [&layer_versions_promise](
-          olp::dataservice::read::MetadataApi::LayerVersionsResponse
-              partitions_response) {
-        layer_versions_promise.set_value(partitions_response);
-      };
-
   auto start_time = std::chrono::high_resolution_clock::now();
-  olp::dataservice::read::MetadataApi::GetLayerVersions(
-      metadata_client, 1, boost::none, layer_versions_callback);
-  auto layer_versions_response = layer_versions_promise.get_future().get();
+  auto layer_versions_response =
+      olp::dataservice::read::MetadataApi::GetLayerVersions(metadata_client, 1,
+                                                            boost::none, {});
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;
@@ -316,18 +263,10 @@ TEST_F(ApiTest, GetBlob) {
       << ApiErrorToString(client_response.GetError());
   auto blob_client = client_response.GetResult();
 
-  std::promise<olp::dataservice::read::BlobApi::DataResponse> data_promise;
-  auto data_callback =
-      [&data_promise](
-          olp::dataservice::read::BlobApi::DataResponse data_response) {
-        data_promise.set_value(data_response);
-      };
-
   auto start_time = std::chrono::high_resolution_clock::now();
-  olp::dataservice::read::BlobApi::GetBlob(
+  auto data_response = olp::dataservice::read::BlobApi::GetBlob(
       blob_client, "testlayer", "d5d73b64-7365-41c3-8faf-aa6ad5bab135",
-      boost::none, boost::none, data_callback);
-  auto data_response = data_promise.get_future().get();
+      boost::none, boost::none, {});
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;
@@ -351,18 +290,11 @@ TEST_F(ApiTest, DISABLED_GetVolatileBlob) {
       << ApiErrorToString(client_response.GetError());
   auto volatile_blob_client = client_response.GetResult();
 
-  std::promise<olp::dataservice::read::BlobApi::DataResponse> data_promise;
-  auto data_callback =
-      [&data_promise](
-          olp::dataservice::read::BlobApi::DataResponse data_response) {
-        data_promise.set_value(data_response);
-      };
-
   auto start_time = std::chrono::high_resolution_clock::now();
-  olp::dataservice::read::VolatileBlobApi::GetVolatileBlob(
-      volatile_blob_client, "testlayer", "d5d73b64-7365-41c3-8faf-aa6ad5bab135",
-      boost::none, data_callback);
-  auto data_response = data_promise.get_future().get();
+  olp::dataservice::read::BlobApi::DataResponse data_response =
+      olp::dataservice::read::VolatileBlobApi::GetVolatileBlob(
+          volatile_blob_client, "testlayer",
+          "d5d73b64-7365-41c3-8faf-aa6ad5bab135", boost::none, {});
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;
@@ -390,20 +322,11 @@ TEST_F(ApiTest, QuadTreeIndex) {
   int64_t version = 3;
   std::string quad_key("5904591");
   int32_t depth = 2;
-
-  std::promise<olp::dataservice::read::QueryApi::QuadTreeIndexResponse>
-      index_promise;
-  auto quad_tree_index_callback =
-      [&index_promise](
-          olp::dataservice::read::QueryApi::QuadTreeIndexResponse response) {
-        index_promise.set_value(response);
-      };
-
+  
   auto start_time = std::chrono::high_resolution_clock::now();
-  auto cancel_fn = olp::dataservice::read::QueryApi::QuadTreeIndex(
+  auto index_response = olp::dataservice::read::QueryApi::QuadTreeIndex(
       query_client, layer_id, version, quad_key, depth, boost::none,
-      boost::none, quad_tree_index_callback);
-  auto index_response = index_promise.get_future().get();
+      boost::none, {});
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;

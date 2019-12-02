@@ -58,6 +58,8 @@ CORE_API unsigned int DefaultBackdownPolicy(unsigned int milliseconds);
  */
 CORE_API bool DefaultRetryCondition(const olp::client::HttpResponse& response);
 
+CORE_API bool DefaultRetryConditionNew(int http_code);
+
 struct AuthenticationSettings {
   /**
    * @brief Function to be implemented by the client which should return an
@@ -112,6 +114,8 @@ struct RetrySettings {
    */
   using RetryCondition = std::function<bool(const HttpResponse&)>;
 
+  using RetryConditionNew = std::function<bool(int http_code)>;
+
   /**
    * @brief number of attempts. Default is 3.
    */
@@ -139,6 +143,8 @@ struct RetrySettings {
    * should be attempted.
    */
   RetryCondition retry_condition = DefaultRetryCondition;
+
+  RetryConditionNew retry_condition_new = DefaultRetryConditionNew;
 };
 
 /**

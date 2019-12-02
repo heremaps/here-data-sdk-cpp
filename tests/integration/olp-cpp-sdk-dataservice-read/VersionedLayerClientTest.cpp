@@ -982,10 +982,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitions429Error) {
   }
 
   olp::client::RetrySettings retry_settings;
-  retry_settings.retry_condition =
-      [](const olp::client::HttpResponse& response) {
-        return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == response.status;
-      };
+  retry_settings.retry_condition_new = [](int status) {
+    return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == status;
+  };
   settings_->retry_settings = retry_settings;
   auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
@@ -1025,10 +1024,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest, ApiLookup429) {
   }
 
   olp::client::RetrySettings retry_settings;
-  retry_settings.retry_condition =
-      [](const olp::client::HttpResponse& response) {
-        return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == response.status;
-      };
+  retry_settings.retry_condition_new = [](int status) {
+    return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == status;
+  };
   settings_->retry_settings = retry_settings;
   auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
@@ -1845,10 +1843,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetData429Error) {
   }
 
   olp::client::RetrySettings retry_settings;
-  retry_settings.retry_condition =
-      [](const olp::client::HttpResponse& response) {
-        return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == response.status;
-      };
+  retry_settings.retry_condition_new = [](int status) {
+    return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == status;
+  };
   settings_->retry_settings = retry_settings;
   auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", *settings_);

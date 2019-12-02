@@ -24,6 +24,7 @@
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/CancellationContext.h>
 #include <boost/optional.hpp>
 #include "generated/model/LayerVersions.h"
 #include "olp/dataservice/read/model/VersionResponse.h"
@@ -43,15 +44,12 @@ class MetadataApi {
  public:
   using PartitionsResponse =
       client::ApiResponse<model::Partitions, client::ApiError>;
-  using PartitionsCallback = std::function<void(PartitionsResponse)>;
 
   using CatalogVersionResponse =
       client::ApiResponse<model::VersionResponse, client::ApiError>;
-  using CatalogVersionCallback = std::function<void(CatalogVersionResponse)>;
 
   using LayerVersionsResponse =
       client::ApiResponse<model::LayerVersions, client::ApiError>;
-  using LayerVersionsCallback = std::function<void(LayerVersionsResponse)>;
 
   /**
    * @brief Call to asynchronously retrieve the latest metadata version for each
@@ -66,10 +64,10 @@ class MetadataApi {
    *
    * @return The cancellation token.
    */
-  static client::CancellationToken GetLayerVersions(
+  static LayerVersionsResponse GetLayerVersions(
       const client::OlpClient& client, int64_t version,
       boost::optional<std::string> billingTag,
-      const LayerVersionsCallback& callback);
+      client::CancellationContext context);
 
   /**
    * @brief Call to asynchronously retrieve metadata for all partitions in a
@@ -95,13 +93,14 @@ class MetadataApi {
    *
    * @return The cancellation token.
    */
-  static client::CancellationToken GetPartitions(
+  static PartitionsResponse GetPartitions(
       const client::OlpClient& client, const std::string& layerId,
       boost::optional<int64_t> version,
       boost::optional<std::vector<std::string>> additionalFields,
       boost::optional<std::string> range,
       boost::optional<std::string> billingTag,
-      const PartitionsCallback& callback);
+      client::CancellationContext context
+      );
 
   /**
    * @brief Call to asynchronously retrieve the latest metadata version for the
@@ -119,10 +118,10 @@ class MetadataApi {
    *
    * @return The cancellation token.
    */
-  static client::CancellationToken GetLatestCatalogVersion(
+  static CatalogVersionResponse GetLatestCatalogVersion(
       const client::OlpClient& client, int64_t startVersion,
       boost::optional<std::string> billingTag,
-      const CatalogVersionCallback& callback);
+      client::CancellationContext context);
 };
 
 }  // namespace read

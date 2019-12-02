@@ -340,10 +340,9 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitions429Error) {
   }
 
   olp::client::RetrySettings retry_settings;
-  retry_settings.retry_condition =
-      [](const olp::client::HttpResponse& response) {
-        return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == response.status;
-      };
+  retry_settings.retry_condition_new = [](int status) {
+    return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == status;
+  };
   settings_.retry_settings = retry_settings;
   olp::dataservice::read::VolatileLayerClient client(hrn, "testlayer",
                                                      settings_);
@@ -383,10 +382,9 @@ TEST_F(DataserviceReadVolatileLayerClientTest, ApiLookup429) {
   }
 
   olp::client::RetrySettings retry_settings;
-  retry_settings.retry_condition =
-      [](const olp::client::HttpResponse& response) {
-        return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == response.status;
-      };
+  retry_settings.retry_condition_new = [](int status) {
+    return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == status;
+  };
   settings_.retry_settings = retry_settings;
   olp::dataservice::read::VolatileLayerClient client(hrn, "testlayer",
                                                      settings_);

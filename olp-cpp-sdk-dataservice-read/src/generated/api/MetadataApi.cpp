@@ -55,10 +55,10 @@ namespace dataservice {
 namespace read {
 using namespace olp::client;
 
-CancellationToken MetadataApi::GetLayerVersions(
+MetadataApi::LayerVersionsResponse MetadataApi::GetLayerVersions(
     const OlpClient& client, int64_t version,
     boost::optional<std::string> billingTag,
-    const LayerVersionsCallback& layerVersionsCallback) {
+    client::CancellationContext context) {
   std::multimap<std::string, std::string> headerParams;
   headerParams.insert(std::make_pair("Accept", "application/json"));
 
@@ -72,26 +72,23 @@ CancellationToken MetadataApi::GetLayerVersions(
 
   std::string metadataUri = "/layerVersions";
 
-  NetworkAsyncCallback callback = [layerVersionsCallback](
-                                      client::HttpResponse response) {
-    if (response.status != 200) {
-      layerVersionsCallback(ApiError(response.status, response.response.str()));
-    } else {
-      layerVersionsCallback(
-          olp::parser::parse<model::LayerVersions>(response.response));
-    }
-  };
+  client::HttpResponse response =
+      client.CallApi(metadataUri, "GET", queryParams, headerParams, formParams,
+                     nullptr, "", context);
 
-  return client.CallApi(metadataUri, "GET", queryParams, headerParams,
-                        formParams, nullptr, "", callback);
+  if (response.status != 200) {
+    return ApiError(response.status, response.response.str());
+  } else {
+    return olp::parser::parse<model::LayerVersions>(response.response);
+  }
 }
 
-CancellationToken MetadataApi::GetPartitions(
+MetadataApi::PartitionsResponse MetadataApi::GetPartitions(
     const OlpClient& client, const std::string& layerId,
     boost::optional<int64_t> version,
     boost::optional<std::vector<std::string>> additionalFields,
     boost::optional<std::string> range, boost::optional<std::string> billingTag,
-    const PartitionsCallback& partitionsCallback) {
+    client::CancellationContext context) {
   std::multimap<std::string, std::string> headerParams;
   headerParams.insert(std::make_pair("Accept", "application/json"));
   if (range) {
@@ -114,24 +111,20 @@ CancellationToken MetadataApi::GetPartitions(
 
   std::string metadataUri = "/layers/" + layerId + "/partitions";
 
-  NetworkAsyncCallback callback = [partitionsCallback](
-                                      client::HttpResponse response) {
-    if (response.status != 200) {
-      partitionsCallback(ApiError(response.status, response.response.str()));
-    } else {
-      partitionsCallback(
-          olp::parser::parse<model::Partitions>(response.response));
-    }
-  };
-
-  return client.CallApi(metadataUri, "GET", queryParams, headerParams,
-                        formParams, nullptr, "", callback);
+  client::HttpResponse response =
+      client.CallApi(metadataUri, "GET", queryParams, headerParams, formParams,
+                     nullptr, "", context);
+  if (response.status != 200) {
+    return ApiError(response.status, response.response.str());
+  } else {
+    return olp::parser::parse<model::Partitions>(response.response);
+  }
 }
 
-CancellationToken MetadataApi::GetLatestCatalogVersion(
+MetadataApi::CatalogVersionResponse MetadataApi::GetLatestCatalogVersion(
     const OlpClient& client, int64_t startVersion,
     boost::optional<std::string> billingTag,
-    const CatalogVersionCallback& catalogVersionCallback) {
+    client::CancellationContext context) {
   std::multimap<std::string, std::string> headerParams;
   headerParams.insert(std::make_pair("Accept", "application/json"));
 
@@ -146,19 +139,14 @@ CancellationToken MetadataApi::GetLatestCatalogVersion(
 
   std::string metadataUri = "/versions/latest";
 
-  NetworkAsyncCallback callback =
-      [catalogVersionCallback](client::HttpResponse response) {
-        if (response.status != 200) {
-          catalogVersionCallback(
-              ApiError(response.status, response.response.str()));
-        } else {
-          catalogVersionCallback(
-              olp::parser::parse<model::VersionResponse>(response.response));
-        }
-      };
-
-  return client.CallApi(metadataUri, "GET", queryParams, headerParams,
-                        formParams, nullptr, "", callback);
+  client::HttpResponse response =
+      client.CallApi(metadataUri, "GET", queryParams, headerParams, formParams,
+                     nullptr, "", context);
+  if (response.status != 200) {
+    return ApiError(response.status, response.response.str());
+  } else {
+    return olp::parser::parse<model::VersionResponse>(response.response);
+  }
 }
 
 }  // namespace read

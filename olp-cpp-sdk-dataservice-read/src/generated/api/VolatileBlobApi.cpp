@@ -31,10 +31,10 @@ namespace dataservice {
 namespace read {
 using namespace olp::client;
 
-CancellationToken VolatileBlobApi::GetVolatileBlob(
+VolatileBlobApi::DataResponse VolatileBlobApi::GetVolatileBlob(
     const OlpClient& client, const std::string& layerId,
     const std::string& dataHandle, boost::optional<std::string> billingTag,
-    const DataResponseCallback& dataResponseCallback) {
+    client::CancellationContext context) {
   std::multimap<std::string, std::string> headerParams;
   headerParams.insert(std::make_pair("Accept", "application/json"));
 
@@ -47,22 +47,18 @@ CancellationToken VolatileBlobApi::GetVolatileBlob(
 
   std::string metadataUri = "/layers/" + layerId + "/data/" + dataHandle;
 
-  NetworkAsyncCallback callback =
-      [dataResponseCallback](client::HttpResponse response) {
-        auto str_response = response.response.str();
-        if (response.status != 200) {
-          dataResponseCallback(ApiError(response.status, str_response));
-        } else {
-          dataResponseCallback(
-              // TODO: response from HttpResponse should be already in
-              // raw data format to avoid copy
-              std::make_shared<std::vector<unsigned char>>(str_response.begin(),
-                                                           str_response.end()));
-        }
-      };
-
-  return client.CallApi(metadataUri, "GET", queryParams, headerParams,
-                        formParams, nullptr, "", callback);
+  client::HttpResponse response =
+      client.CallApi(metadataUri, "GET", queryParams, headerParams, formParams,
+                     nullptr, "", context);
+  auto str_response = response.response.str();
+  if (response.status != 200) {
+    return ApiError(response.status, std::move(str_response));
+  } else {
+    // TODO: response from HttpResponse should be already in
+    // raw data format to avoid copy
+    return std::make_shared<std::vector<unsigned char>>(str_response.begin(),
+                                                        str_response.end());
+  }
 }
 
 }  // namespace read

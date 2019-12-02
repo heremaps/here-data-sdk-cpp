@@ -25,6 +25,8 @@
 #include <sstream>
 #include <thread>
 
+#include "olp/core/client/Condition.h"
+#include "olp/core/client/ErrorCode.h"
 #include "olp/core/http/NetworkConstants.h"
 #include "olp/core/utils/Url.h"
 
@@ -125,6 +127,18 @@ http::NetworkRequest::HttpVerb GetHttpVerb(const std::string& verb) {
   return http_verb;
 }
 
+static const auto kUnknownErrorText =
+    "Error occured. Please check HTTP status code.";
+
+static const auto cancelled_error_response =
+    http::NetworkResponse()
+        .WithStatus(static_cast<int>(http::ErrorCode::CANCELLED_ERROR))
+        .WithError("Operation Cancelled.");
+
+static const auto timeout_error_response =
+    http::NetworkResponse()
+        .WithStatus(static_cast<int>(http::ErrorCode::TIMEOUT_ERROR))
+        .WithError("Network request timed out.");
 }  // anonymous namespace
 
 OlpClient::OlpClient() {}
@@ -284,6 +298,146 @@ CancellationToken OlpClient::CallApi(
 
   return CancellationToken(
       [cancel_context]() { cancel_context->CancelOperation(); });
+}
+
+HttpResponse OlpClient::CallApi(
+    std::string path, std::string method,
+    std::multimap<std::string, std::string> query_params,
+    std::multimap<std::string, std::string> header_params,
+    std::multimap<std::string, std::string> form_params,
+    std::shared_ptr<std::vector<unsigned char>> post_body,
+    std::string content_type, CancellationContext context) const {
+  http::NetworkRequest network_request(
+      olp::utils::Url::Construct(base_url_, path, query_params));
+
+  network_request.WithVerb(GetHttpVerb(method));
+
+  if (settings_.authentication_settings) {
+    std::string bearer = http::kBearer + std::string(" ") +
+                         settings_.authentication_settings.get().provider();
+    network_request.WithHeader(http::kAuthorizationHeader, bearer);
+  }
+
+  for (const auto& header : default_headers_) {
+    network_request.WithHeader(header.first, header.second);
+  }
+
+  std::string custom_user_agent;
+  for (const auto& header : header_params) {
+    // Merge all User-Agent headers into one header.
+    // This is required for (at least) iOS network implementation,
+    // which uses headers dictionary without any duplicates.
+    // User agents entries are usually separated by a whitespace, e.g.
+    // Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Firefox/47.0
+    if (CaseInsensitiveCompare(header.first, http::kUserAgentHeader)) {
+      custom_user_agent += header.second + std::string(" ");
+    } else {
+      network_request.WithHeader(header.first, header.second);
+    }
+  }
+
+  custom_user_agent += http::kOlpSdkUserAgent;
+  network_request.WithHeader(http::kUserAgentHeader, custom_user_agent);
+
+  if (!content_type.empty()) {
+    network_request.WithHeader(http::kContentTypeHeader, content_type);
+  }
+
+  network_request.WithBody(post_body);
+
+  ////////
+
+  const auto& retry_settings = settings_.retry_settings;
+  auto backdown_period = retry_settings.initial_backdown_period;
+
+  olp::http::NetworkSettings network_settings;
+
+  network_settings.WithTransferTimeout(retry_settings.timeout)
+      .WithConnectionTimeout(retry_settings.timeout);
+  // TODO: for now we do not pass retry and back-off settings to network as we
+  // handle it here.
+  //    .WithRetries(retry_settings.max_attempts);
+  network_settings.WithProxySettings(
+      settings_.proxy_settings.value_or(olp::http::NetworkProxySettings()));
+
+  network_request.WithSettings(std::move(network_settings));
+
+  http::NetworkResponse network_response = cancelled_error_response;
+
+  for (int i = 0; i < retry_settings.max_attempts && !context.IsCancelled(); i++) {
+    auto interest_flag = std::make_shared<std::atomic_bool>(true);
+
+    Condition condition{};
+
+    auto response_body = std::make_shared<std::stringstream>();
+
+    auto network = settings_.network_request_handler;
+
+    http::SendOutcome outcome =
+        network->Send(network_request, response_body,
+                      [&, interest_flag](http::NetworkResponse response) {
+                        if (interest_flag->exchange(false)) {
+                          network_response = std::move(response);
+                          condition.Notify();
+                        }
+                      });
+
+    if (outcome.IsSuccessful()) {
+      context.ExecuteOrCancelled(
+          [&, interest_flag]() {
+            return CancellationToken([&, interest_flag]() {
+              if (interest_flag->exchange(false)) {
+                network->Cancel(outcome.GetRequestId());
+                network_response = cancelled_error_response;
+                network_response.WithRequestId(outcome.GetRequestId());
+                condition.Notify();
+              }
+            });
+          },
+          [&condition]() { condition.Notify(); });
+
+      if (!condition.Wait(std::chrono::seconds(retry_settings.timeout))) {
+        network->Cancel(outcome.GetRequestId());
+        network_response = timeout_error_response;
+      }
+
+      interest_flag->store(false);
+
+      if (context.IsCancelled()) {
+        network_response = cancelled_error_response;
+      }
+    } else {
+      network_response =
+          http::NetworkResponse()
+              .WithStatus(static_cast<int>(outcome.GetErrorCode()))
+              .WithError(ErrorCodeToString(outcome.GetErrorCode()));
+    }
+
+    int status = network_response.GetStatus();
+
+    if (status >= 400 || status < 0) {
+      if (retry_settings.retry_condition_new(status)) {
+        // do the periodical sleep and check for cancellation status in between.
+        auto duration_to_sleep = backdown_period;
+        while (duration_to_sleep > 0 && !context.IsCancelled()) {
+          auto sleep_ms = std::min(1000, duration_to_sleep);
+          std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
+          duration_to_sleep -= sleep_ms;
+        }
+
+        backdown_period = retry_settings.backdown_policy(backdown_period);
+        continue;
+      }
+
+      const std::string& error = network_response.GetError();
+      response_body->str(error.empty() ? kUnknownErrorText : error);
+    }
+
+    return HttpResponse{status, std::move(*response_body)};
+  }
+
+  return HttpResponse{network_response.GetStatus(),
+                      network_response.GetError()};
 }
 
 }  // namespace client

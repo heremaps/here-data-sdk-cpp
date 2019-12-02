@@ -23,6 +23,7 @@
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/CancellationContext.h>
 #include <boost/optional.hpp>
 #include "olp/dataservice/read/model/Data.h"
 
@@ -61,10 +62,12 @@ class BlobApi {
    * @return The cancellation token.
    */
 
-  static client::CancellationToken GetBlob(
-      const client::OlpClient& client, const std::string& layerId,
-      const std::string& dataHandle, boost::optional<std::string> billingTag,
-      boost::optional<std::string> range, const DataResponseCallback& callback);
+  static DataResponse GetBlob(const client::OlpClient& client,
+                              const std::string& layerId,
+                              const std::string& dataHandle,
+                              boost::optional<std::string> billingTag,
+                              boost::optional<std::string> range,
+                              client::CancellationContext context);
 };
 
 }  // namespace read

@@ -133,9 +133,13 @@ olp::client::OlpClientSettings MemoryTest::CreateCatalogClientSettings() {
   client_settings.task_scheduler = task_scheduler;
   client_settings.network_request_handler = std::move(network);
   client_settings.proxy_settings = GetLocalhostProxySettings();
+  client_settings.retry_settings.retry_condition_new = [](int status) {
+    return status == olp::http::HttpStatusCode::SERVICE_UNAVAILABLE ||
+           status == olp::http::HttpStatusCode::INTERNAL_SERVER_ERROR;
+  };
   client_settings.cache =
       parameter.cache_factory ? parameter.cache_factory() : nullptr;
-  client_settings.retry_settings.timeout = 1;
+  // client_settings.retry_settings.timeout = 1;
 
   return client_settings;
 }
@@ -386,6 +390,9 @@ TestConfiguration LongRunningTest() {
 TestConfiguration ShortRunningTestWithNullCache() {
   TestConfiguration configuration;
   configuration.configuration_name = "short_test_null_cache";
+  configuration.runtime = std::chrono::seconds(5);
+  configuration.with_errors = true;
+  configuration.with_timeouts = true;
   configuration.cache_factory = []() { return std::make_shared<NullCache>(); };
   return configuration;
 }

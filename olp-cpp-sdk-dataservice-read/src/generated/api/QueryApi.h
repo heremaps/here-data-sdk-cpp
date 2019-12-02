@@ -24,9 +24,10 @@
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/CancellationContext.h>
 #include <boost/optional.hpp>
-#include "olp/dataservice/read/model/Partitions.h"
 #include "generated/model/Index.h"
+#include "olp/dataservice/read/model/Partitions.h"
 
 namespace olp {
 namespace client {
@@ -42,7 +43,6 @@ class QueryApi {
  public:
   using PartitionsResponse =
       client::ApiResponse<model::Partitions, client::ApiError>;
-  using PartitionsCallback = std::function<void(PartitionsResponse)>;
 
   /**
    * @brief Call to asynchronously retrieve metadata for specified partitions in
@@ -64,17 +64,16 @@ class QueryApi {
    *
    * @return The cancellation token.
    */
-  static client::CancellationToken GetPartitionsbyId(
+  static PartitionsResponse GetPartitionsbyId(
       const client::OlpClient& client, const std::string& layerId,
       const std::vector<std::string>& partition,
       boost::optional<int64_t> version,
       boost::optional<std::vector<std::string>> additionalFields,
       boost::optional<std::string> billingTag,
-      const PartitionsCallback& callback);
+      client::CancellationContext context);
 
   using QuadTreeIndexResponse =
       client::ApiResponse<model::Index, client::ApiError>;
-  using QuadTreeIndexCallback = std::function<void(QuadTreeIndexResponse)>;
 
   /**
    * @brief Gets index metadata
@@ -102,12 +101,12 @@ class QueryApi {
    * Grouping billing records by billing tag will be available in a future
    * release.
    **/
-  static client::CancellationToken QuadTreeIndex(
+  static QuadTreeIndexResponse QuadTreeIndex(
       const client::OlpClient& client, const std::string& layerId,
       int64_t version, const std::string& quadKey, int32_t depth,
       boost::optional<std::vector<std::string>> additionalFields,
       boost::optional<std::string> billingTag,
-      const QuadTreeIndexCallback& callback);
+      client::CancellationContext context);
 };
 
 }  // namespace read

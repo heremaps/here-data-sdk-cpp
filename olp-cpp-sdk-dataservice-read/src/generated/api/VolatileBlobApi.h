@@ -23,6 +23,7 @@
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/CancellationContext.h>
 #include <boost/optional.hpp>
 #include "olp/dataservice/read/model/Data.h"
 
@@ -39,7 +40,6 @@ namespace read {
 class VolatileBlobApi {
  public:
   using DataResponse = client::ApiResponse<model::Data, client::ApiError>;
-  using DataResponseCallback = std::function<void(DataResponse)>;
 
   /**
    * @brief Call to asynchronously retrieve a volatile data blob for specified
@@ -55,10 +55,10 @@ class VolatileBlobApi {
    * @return The cancellation token.
    */
 
-  static client::CancellationToken GetVolatileBlob(
+  static DataResponse GetVolatileBlob(
       const client::OlpClient& client, const std::string& layerId,
       const std::string& dataHandle, boost::optional<std::string> billingTag,
-      const DataResponseCallback& callback);
+      client::CancellationContext context);
 };
 
 }  // namespace read

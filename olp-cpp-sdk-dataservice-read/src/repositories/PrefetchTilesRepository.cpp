@@ -212,39 +212,12 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
     return query_api.GetError();
   }
 
-  using QuadTreeIndexResponse = QueryApi::QuadTreeIndexResponse;
-  using QuadTreeIndexPromise = std::promise<QuadTreeIndexResponse>;
-  auto promise = std::make_shared<QuadTreeIndexPromise>();
   auto tile_key = tile.ToHereTile();
   auto version = request.GetVersion().get();
 
-  context.ExecuteOrCancelled(
-      [&] {
-        OLP_SDK_LOG_INFO_F(kLogTag,
-                           "GetSubQuads execute(%s, %" PRId64 ", %" PRId32 ")",
-                           tile_key.c_str(), version, depth);
-
-        return QueryApi::QuadTreeIndex(
-            query_api.GetResult(), layer_id, version, tile_key, depth,
-            boost::none, request.GetBillingTag(),
-            [=](QuadTreeIndexResponse response) {
-              promise->set_value(std::move(response));
-            });
-      },
-      [=]() {
-        OLP_SDK_LOG_INFO_F(
-            kLogTag, "GetSubQuads cancelled(%s, %" PRId64 ", %" PRId32 ")",
-            tile_key.c_str(), version, depth);
-        promise->set_value({{ErrorCode::Cancelled, "Cancelled", true}});
-      });
-
-  // Wait for response
-  auto future = promise->get_future();
-  auto quad_tree = future.get();
-
-  if (context.IsCancelled()) {
-    return client::ApiError{ErrorCode::Cancelled, "Cancelled", true};
-  }
+  auto quad_tree = QueryApi::QuadTreeIndex(
+      query_api.GetResult(), layer_id, version, tile_key, depth, boost::none,
+      request.GetBillingTag(), context);
 
   if (!quad_tree.IsSuccessful()) {
     OLP_SDK_LOG_INFO_F(kLogTag,

@@ -233,7 +233,10 @@ TEST_F(DataRepositoryTest, GetBlobDataInProgressCancel) {
           [&](olp::http::NetworkRequest, olp::http::Network::Payload,
               olp::http::Network::Callback, olp::http::Network::HeaderCallback,
               olp::http::Network::DataCallback) -> olp::http::SendOutcome {
-            std::thread([&]() { context.CancelOperation(); }).detach();
+            std::thread([&]() { 
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                context.CancelOperation(); 
+            }).detach();
             constexpr auto unused_request_id = 12;
             return olp::http::SendOutcome(unused_request_id);
           });

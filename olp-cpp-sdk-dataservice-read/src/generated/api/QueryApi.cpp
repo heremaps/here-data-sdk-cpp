@@ -55,13 +55,13 @@ namespace read {
 
 #define LOGTAG "QUERY_API"
 
-client::CancellationToken QueryApi::GetPartitionsbyId(
+QueryApi::PartitionsResponse QueryApi::GetPartitionsbyId(
     const client::OlpClient& client, const std::string& layerId,
     const std::vector<std::string>& partitions,
     boost::optional<int64_t> version,
     boost::optional<std::vector<std::string>> additionalFields,
     boost::optional<std::string> billingTag,
-    const PartitionsCallback& partitionsCallback) {
+    client::CancellationContext context) {
   std::multimap<std::string, std::string> headerParams;
   headerParams.insert(std::make_pair("Accept", "application/json"));
 
@@ -84,27 +84,23 @@ client::CancellationToken QueryApi::GetPartitionsbyId(
 
   std::string metadataUri = "/layers/" + layerId + "/partitions";
 
-  client::NetworkAsyncCallback callback =
-      [partitionsCallback](client::HttpResponse response) {
-        if (response.status != 200) {
-          partitionsCallback(
-              client::ApiError(response.status, response.response.str()));
-        } else {
-          partitionsCallback(
-              olp::parser::parse<model::Partitions>(response.response));
-        }
-      };
+  client::HttpResponse response =
+      client.CallApi(metadataUri, "GET", queryParams, headerParams, formParams,
+                     nullptr, "", context);
 
-  return client.CallApi(metadataUri, "GET", queryParams, headerParams,
-                        formParams, nullptr, "", callback);
+  if (response.status != 200) {
+    return client::ApiError(response.status, response.response.str());
+  } else {
+    return olp::parser::parse<model::Partitions>(response.response);
+  }
 }
 
-client::CancellationToken QueryApi::QuadTreeIndex(
+QueryApi::QuadTreeIndexResponse QueryApi::QuadTreeIndex(
     const client::OlpClient& client, const std::string& layerId,
     int64_t version, const std::string& quadKey, int32_t depth,
     boost::optional<std::vector<std::string>> additionalFields,
     boost::optional<std::string> billingTag,
-    const QuadTreeIndexCallback& indexCallback) {
+    client::CancellationContext context) {
   std::multimap<std::string, std::string> headerParams;
   headerParams.insert(std::make_pair("Accept", "application/json"));
 
@@ -123,21 +119,18 @@ client::CancellationToken QueryApi::QuadTreeIndex(
                             std::to_string(version) + "/quadkeys/" + quadKey +
                             "/depths/" + std::to_string(depth);
 
-  client::NetworkAsyncCallback callback = [indexCallback](
-                                              client::HttpResponse response) {
-    OLP_SDK_LOG_TRACE_F(LOGTAG, "QuadTreeIndex callback, status=%d",
-                        response.status);
-    if (response.status != 200) {
-      indexCallback(client::ApiError(response.status, response.response.str()));
-    } else {
-      indexCallback(olp::parser::parse<model::Index>(response.response));
-    }
-  };
-
   OLP_SDK_LOG_TRACE(LOGTAG, "QuadTreeIndex");
+  client::HttpResponse response =
+      client.CallApi(metadataUri, "GET", queryParams, headerParams, formParams,
+                     nullptr, "", context);
 
-  return client.CallApi(metadataUri, "GET", queryParams, headerParams,
-                        formParams, nullptr, "", callback);
+  OLP_SDK_LOG_TRACE_F(LOGTAG, "QuadTreeIndex callback, status=%d",
+                      response.status);
+  if (response.status != 200) {
+    return client::ApiError(response.status, response.response.str());
+  } else {
+    return olp::parser::parse<model::Index>(response.response);
+  }
 }
 
 }  // namespace read

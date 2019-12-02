@@ -148,46 +148,9 @@ PartitionsResponse PartitionsRepository::GetPartitions(
 
   auto client = query_api.GetResult();
 
-  auto flag = std::make_shared<std::atomic_bool>(true);
-  Condition condition;
-
-  PartitionsResponse metadata_response;
-  auto callback = [&, flag](PartitionsResponse response) {
-    if (flag->exchange(false)) {
-      metadata_response = std::move(response);
-      condition.Notify();
-    }
-  };
-
-  cancellation_context.ExecuteOrCancelled(
-      [&, flag]() {
-        auto token = MetadataApi::GetPartitions(
-            client, layer, request.GetVersion(), boost::none, boost::none,
-            request.GetBillingTag(), callback);
-        return client::CancellationToken([&, token, flag]() {
-          if (flag->exchange(false)) {
-            token.Cancel();
-            condition.Notify();
-          }
-        });
-      },
-      [&]() { condition.Notify(); });
-
-  if (!condition.Wait(timeout)) {
-    cancellation_context.CancelOperation();
-    OLP_SDK_LOG_INFO_F(kLogTag, "timeout");
-    return client::ApiError(client::ErrorCode::RequestTimeout,
-                            "Network request timed out.");
-  }
-
-  flag->store(false);
-
-  if (cancellation_context.IsCancelled()) {
-    // We can't use api response here because it could potentially be
-    // uninitialized.
-    return client::ApiError(client::ErrorCode::Cancelled,
-                            "Operation cancelled.");
-  }
+  PartitionsResponse metadata_response = MetadataApi::GetPartitions(
+      client, layer, request.GetVersion(), boost::none, boost::none,
+      request.GetBillingTag(), cancellation_context);
 
   if (metadata_response.IsSuccessful()) {
     OLP_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",
@@ -251,50 +214,9 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
 
   const client::OlpClient& client = query_api.GetResult();
 
-  Condition condition{};
-
-  // when the network operation took too much time we cancel it and exit
-  // execution, to make sure that network callback will not access dangling
-  // references we protect them with atomic bool flag.
-  auto flag = std::make_shared<std::atomic_bool>(true);
-
-  PartitionsResponse query_response;
-  auto query_client_callback = [&, flag](PartitionsResponse response) {
-    if (flag->exchange(false)) {
-      query_response = std::move(response);
-      condition.Notify();
-    }
-  };
-
-  cancellation_context.ExecuteOrCancelled(
-      [&, flag]() {
-        auto token = QueryApi::GetPartitionsbyId(
-            client, layer, partitions, version, boost::none,
-            data_request.GetBillingTag(), std::move(query_client_callback));
-        return client::CancellationToken([&, token, flag]() {
-          if (flag->exchange(false)) {
-            token.Cancel();
-            condition.Notify();
-          }
-        });
-      },
-      [&]() { condition.Notify(); });
-
-  if (!condition.Wait(timeout)) {
-    cancellation_context.CancelOperation();
-    OLP_SDK_LOG_INFO_F(kLogTag, "timeout");
-    return client::ApiError(client::ErrorCode::RequestTimeout,
-                            "Network request timed out.");
-  }
-
-  flag->store(false);
-
-  if (cancellation_context.IsCancelled()) {
-    // We can't use api response here because it could potentially be
-    // uninitialized.
-    return client::ApiError(client::ErrorCode::Cancelled,
-                            "Operation cancelled.");
-  }
+  PartitionsResponse query_response = QueryApi::GetPartitionsbyId(
+      client, layer, partitions, version, boost::none,
+      data_request.GetBillingTag(), cancellation_context);
 
   if (query_response.IsSuccessful()) {
     OLP_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",

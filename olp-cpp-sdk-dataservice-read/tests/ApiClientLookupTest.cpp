@@ -191,7 +191,11 @@ TEST(ApiClientLookupTest, LookupApi) {
                           olp::http::Network::DataCallback data_callback)
                 -> olp::http::SendOutcome {
               // spawn a 'user' response of cancelling
-              std::thread([&context]() { context.CancelOperation(); }).detach();
+              std::thread([&context]() { 
+                  std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                  context.CancelOperation(); 
+
+              }).detach();
 
               // note no network response thread spawns
 

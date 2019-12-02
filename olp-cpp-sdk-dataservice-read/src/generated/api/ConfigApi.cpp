@@ -35,10 +35,10 @@ namespace dataservice {
 namespace read {
 using namespace olp::client;
 
-CancellationToken ConfigApi::GetCatalog(
+ConfigApi::CatalogResponse ConfigApi::GetCatalog(
     const OlpClient& client, const std::string& catalogHrn,
     boost::optional<std::string> billingTag,
-    const CatalogCallback& catalogCallback) {
+    client::CancellationContext context) {
   std::multimap<std::string, std::string> headerParams;
   headerParams.insert(std::make_pair("Accept", "application/json"));
   std::multimap<std::string, std::string> queryParams;
@@ -49,18 +49,15 @@ CancellationToken ConfigApi::GetCatalog(
 
   std::string catalogUri = "/catalogs/" + catalogHrn;
 
-  NetworkAsyncCallback callback = [catalogCallback](
-                                      client::HttpResponse response) {
-    if (response.status != 200) {
-      catalogCallback(
-          client::ApiError(response.status, response.response.str()));
-    } else {
-      catalogCallback(olp::parser::parse<model::Catalog>(response.response));
-    }
-  };
+  client::HttpResponse response =
+      client.CallApi(catalogUri, "GET", queryParams, headerParams, formParams,
+                     nullptr, "", context);
 
-  return client.CallApi(catalogUri, "GET", queryParams, headerParams,
-                        formParams, nullptr, "", callback);
+  if (response.status != 200) {
+    return client::ApiError(response.status, response.response.str());
+  } else {
+    return olp::parser::parse<model::Catalog>(response.response);
+  }
 }
 
 }  // namespace read

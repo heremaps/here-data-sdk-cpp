@@ -24,6 +24,7 @@
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/CancellationContext.h>
 #include "generated/model/Api.h"
 
 namespace olp {
@@ -39,22 +40,6 @@ namespace read {
 class PlatformApi {
  public:
   using ApisResponse = client::ApiResponse<model::Apis, client::ApiError>;
-  using ApisCallback = std::function<void(ApisResponse)>;
-
-  /**
-   * @deprecated
-   * @brief Call to lookup platform base urls.
-   * @param client Instance of OlpClient used to make REST request.
-   * @param service Name of the service.
-   * @param serviceVersion Version of the service.
-   * @param A callback function to invoke with the collection of Api services
-   * that match the parameters.
-   *
-   * @return The cancellation token.
-   */
-  static client::CancellationToken GetApis(
-      std::shared_ptr<client::OlpClient> client, const std::string& service,
-      const std::string& serviceVersion, const ApisCallback& callback);
 
   /**
    * @brief Call to lookup platform base urls.
@@ -66,10 +51,10 @@ class PlatformApi {
    *
    * @return The cancellation token.
    */
-  static client::CancellationToken GetApis(const client::OlpClient& client,
-                                           const std::string& service,
-                                           const std::string& service_version,
-                                           const ApisCallback& callback);
+  static ApisResponse GetApis(const client::OlpClient& client,
+                              const std::string& service,
+                              const std::string& service_version,
+                              client::CancellationContext context);
 };
 
 }  // namespace read
