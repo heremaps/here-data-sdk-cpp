@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 #
 # Copyright (C) 2019 HERE Europe B.V.
 #
@@ -39,6 +39,7 @@ source $FV_HOME/olp-cpp-sdk-functional-test.variables
 $REPO_HOME/build/tests/functional/olp-cpp-sdk-functional-tests \
     --gtest_output="xml:$REPO_HOME/reports/olp-functional-test-report.xml" \
     --gtest_filter="-ArcGisAuthenticationTest.SignInArcGis":"FacebookAuthenticationTest.SignInFacebook"
+export result=$?
 
 # Kill local server
 kill -15 ${SERVER_PID}

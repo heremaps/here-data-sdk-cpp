@@ -60,7 +60,7 @@ do
 
     # Run functional tests
     ${FV_HOME}/gitlab-olp-cpp-sdk-functional-test.sh 2>> errors.txt
-    if [[ $? -eq 1 ]]; then
+    if [[ $? -eq 1 || ${result} -eq 1 ]]; then
         TEST_FAILURE=1
         continue
     else
