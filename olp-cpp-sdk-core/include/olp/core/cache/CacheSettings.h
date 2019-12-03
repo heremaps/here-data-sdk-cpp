@@ -23,6 +23,8 @@
 
 #include <boost/optional.hpp>
 
+#include <olp/core/porting/deprecated.h>
+
 namespace olp {
 
 namespace cache {
@@ -40,7 +42,14 @@ struct CacheSettings {
   /**
    * @brief Path to save contents on disk
    */
+  OLP_SDK_DEPRECATED("Use disk_path_mutable instead. Will be removed 03.2020")
   boost::optional<std::string> disk_path = boost::none;
+
+  /**
+   * @brief Path to the mutable (read-write) cache, where SDK will cache and
+   * lookup the content. User should have write permissions.
+   */
+  boost::optional<std::string> disk_path_mutable = boost::none;
 
   /**
    * @brief Set the upper limit of disk space to use for persistent stores in

@@ -415,7 +415,7 @@ TestConfiguration ShortRunningTestWithDiskCache() {
   if (location.empty()) {
     location = utils::Dir::TempDirectory() + "/performance_test";
   }
-  settings.disk_path = location;
+  settings.disk_path_mutable = location;
 
   TestConfiguration configuration;
   configuration.configuration_name = "short_test_disk_cache";

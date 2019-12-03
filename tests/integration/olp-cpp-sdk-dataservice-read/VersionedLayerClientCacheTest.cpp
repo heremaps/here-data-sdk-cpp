@@ -43,15 +43,15 @@ class VersionedLayerClientCacheTest : public CatalogClientTestBase {
       }
       case CacheType::DISK: {
         settings.max_memory_cache_size = 0;
-        settings.disk_path =
+        settings.disk_path_mutable =
             olp::utils::Dir::TempDirectory() + kClientTestCacheDir;
-        ClearCache(settings.disk_path.get());
+        ClearCache(settings.disk_path_mutable.get());
         break;
       }
       case CacheType::BOTH: {
-        settings.disk_path =
+        settings.disk_path_mutable =
             olp::utils::Dir::TempDirectory() + kClientTestCacheDir;
-        ClearCache(settings.disk_path.get());
+        ClearCache(settings.disk_path_mutable.get());
         break;
       }
       case CacheType::NONE: {
