@@ -1,7 +1,7 @@
 var searchData=
 [
   ['indexlayerclient',['IndexLayerClient',['../classolp_1_1dataservice_1_1write_1_1IndexLayerClient.html#a14c1021892fd0fa07dae298478e4045a',1,'olp::dataservice::write::IndexLayerClient']]],
-  ['insert',['Insert',['../classolp_1_1utils_1_1LruCache.html#a4e20a7aa761a31004f3a04e9488b9cab',1,'olp::utils::LruCache']]],
+  ['insert',['Insert',['../classolp_1_1client_1_1PendingRequests.html#a7928bc4b43c863c890c7fe32e80b6512',1,'olp::client::PendingRequests::Insert()'],['../classolp_1_1utils_1_1LruCache.html#a4e20a7aa761a31004f3a04e9488b9cab',1,'olp::utils::LruCache::Insert()']]],
   ['insertorassign',['InsertOrAssign',['../classolp_1_1utils_1_1LruCache.html#ab8d4ae68f00a5f1ee4e34f3f8494d6e3',1,'olp::utils::LruCache']]],
   ['intersects',['Intersects',['../classolp_1_1math_1_1AlignedBox.html#a1372bdfeb254485cce350a7dcc3d6735',1,'olp::math::AlignedBox']]],
   ['iscancelled',['IsCancelled',['../classolp_1_1client_1_1CancellationContext.html#a806b8afdba157ab6f531c8c20595c719',1,'olp::client::CancellationContext::IsCancelled()'],['../classolp_1_1http_1_1NetworkResponse.html#a7a3ac0b295d4a5559216786597abf124',1,'olp::http::NetworkResponse::IsCancelled()']]],

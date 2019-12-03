@@ -1,3 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classolp_1_1dataservice_1_1read_1_1CatalogClient.html" title="The CatalogClient class. Marshals Requests and their Results." alt="" coords="5,5,168,47"/>
+<area shape="rect" id="node1" href="$classolp_1_1client_1_1TaskContext_1_1Impl.html" title="olp::client::TaskContext\l::Impl" alt="" coords="5,5,167,47"/>
+<area shape="rect" id="node2" href="$classolp_1_1client_1_1TaskContext_1_1TaskContextImpl.html" title="olp::client::TaskContext\l::TaskContextImpl\&lt; T \&gt;" alt="" coords="215,5,377,47"/>
 </map>

@@ -2,6 +2,7 @@ var searchData=
 [
   ['iappender',['IAppender',['../classolp_1_1logging_1_1IAppender.html',1,'olp::logging']]],
   ['identityprojection',['IdentityProjection',['../classolp_1_1geo_1_1IdentityProjection.html',1,'olp::geo']]],
+  ['impl',['Impl',['../classolp_1_1client_1_1TaskContext_1_1Impl.html',1,'olp::client::TaskContext']]],
   ['index',['Index',['../classolp_1_1dataservice_1_1write_1_1model_1_1Index.html',1,'olp::dataservice::write::model']]],
   ['indexdefinition',['IndexDefinition',['../classolp_1_1dataservice_1_1read_1_1model_1_1IndexDefinition.html',1,'olp::dataservice::read::model']]],
   ['indexlayerclient',['IndexLayerClient',['../classolp_1_1dataservice_1_1write_1_1IndexLayerClient.html',1,'olp::dataservice::write']]],

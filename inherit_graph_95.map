@@ -1,3 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classolp_1_1geo_1_1SubTiles.html" title=" " alt="" coords="5,5,143,32"/>
+<area shape="rect" id="node1" href="$classolp_1_1geo_1_1IProjection.html" title="olp::geo::IProjection" alt="" coords="5,97,144,123"/>
+<area shape="rect" id="node2" href="$classolp_1_1geo_1_1EquirectangularProjection.html" title="Equirectangular (plate carree) projection. " alt="" coords="215,5,381,47"/>
+<area shape="rect" id="node3" href="$classolp_1_1geo_1_1IdentityProjection.html" title="Identity projection. This passes the coordinates through unchanged. This is usually used to send lat/..." alt="" coords="209,71,387,98"/>
+<area shape="rect" id="node4" href="$classolp_1_1geo_1_1SphereProjection.html" title="Projection of geo coordinates onto a sphere using earth radius. " alt="" coords="211,122,385,149"/>
+<area shape="rect" id="node5" href="$classolp_1_1geo_1_1WebMercatorProjection.html" title="Web mercator projection. " alt="" coords="192,173,404,199"/>
 </map>

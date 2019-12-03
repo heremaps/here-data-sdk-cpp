@@ -1,0 +1,19 @@
+CMakeCache.txt
+CMakeFiles
+Makefile
+cmake_install.cmake
+install_manifest.txt
+CMakeLists.txt.user
+build*/
+*.doap
+.repo
+
+# Visual Studio Code
+.vscode/
+
+# Visual Studio
+.vs/
+CMakeSettings.json
+
+# Android Studio
+!build.gradle*

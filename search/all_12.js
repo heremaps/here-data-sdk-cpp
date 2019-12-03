@@ -2,6 +2,9 @@ var searchData=
 [
   ['tag',['Tag',['../classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4ac101058e7ea21bbbf2a5ac893088e90b',1,'olp::logging::MessageFormatter']]],
   ['task_5fscheduler',['task_scheduler',['../structolp_1_1authentication_1_1Settings.html#a613b8ae683f2288b6b03b3692f1485a7',1,'olp::authentication::Settings::task_scheduler()'],['../structolp_1_1client_1_1OlpClientSettings.html#ae4092fe43dabe5f8a574c836dfe8cb8e',1,'olp::client::OlpClientSettings::task_scheduler()']]],
+  ['taskcontext',['TaskContext',['../classolp_1_1client_1_1TaskContext.html',1,'olp::client']]],
+  ['taskcontexthash',['TaskContextHash',['../structolp_1_1client_1_1TaskContextHash.html',1,'olp::client']]],
+  ['taskcontextimpl',['TaskContextImpl',['../classolp_1_1client_1_1TaskContext_1_1TaskContextImpl.html',1,'olp::client::TaskContext']]],
   ['tempdirectory',['TempDirectory',['../classolp_1_1utils_1_1Dir.html#ad7d7d070f4ff96fed05839e08ceff408',1,'olp::utils::Dir']]],
   ['threadid',['ThreadId',['../classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4a693e7589872f7acd3e69d831d022d6ea',1,'olp::logging::MessageFormatter']]],
   ['threadpooltaskscheduler',['ThreadPoolTaskScheduler',['../classolp_1_1thread_1_1ThreadPoolTaskScheduler.html',1,'olp::thread::ThreadPoolTaskScheduler'],['../classolp_1_1thread_1_1ThreadPoolTaskScheduler.html#a058fe8cd917e748888ad20735fb916a0',1,'olp::thread::ThreadPoolTaskScheduler::ThreadPoolTaskScheduler()']]],

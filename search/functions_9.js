@@ -2,7 +2,7 @@ var searchData=
 [
   ['level',['Level',['../classolp_1_1geo_1_1TileKey.html#ac514df3c47e96513d10a1ff76c091bb0',1,'olp::geo::TileKey']]],
   ['load',['load',['../classolp_1_1logging_1_1FilterGroup.html#a36f067c71413023faa002e436bb270a7',1,'olp::logging::FilterGroup::load(const std::string &amp;fileName)'],['../classolp_1_1logging_1_1FilterGroup.html#a9ddda275f39f0255c62331433ac3fbeb',1,'olp::logging::FilterGroup::load(std::istream &amp;stream)']]],
-  ['locked',['locked',['../classolp_1_1thread_1_1Atomic.html#a34c38b265213a8d6cd9241800018475d',1,'olp::thread::Atomic::locked(Functor &amp;&amp;lambda) -&gt; decltype(lambda(std::declval&lt; Type &amp; &gt;()))'],['../classolp_1_1thread_1_1Atomic.html#a56817a861772c94395f4a9a97e575072',1,'olp::thread::Atomic::locked(Functor &amp;&amp;lambda) const -&gt; decltype(lambda(std::declval&lt; const Type &amp; &gt;())) const']]],
+  ['locked',['locked',['../classolp_1_1thread_1_1Atomic.html#a8dd6acaefeb286cfa8dde8d999c51ad3',1,'olp::thread::Atomic::locked(Functor &amp;&amp;lambda) -&gt; decltype(lambda(std::declval&lt; Type &amp;&gt;()))'],['../classolp_1_1thread_1_1Atomic.html#a77c3fed0d524aa4f7bc16220ed5f1fd5',1,'olp::thread::Atomic::locked(Functor &amp;&amp;lambda) const -&gt; decltype(lambda(std::declval&lt; const Type &amp;&gt;())) const']]],
   ['lockedassign',['lockedAssign',['../classolp_1_1thread_1_1Atomic.html#aea422db1cd3ee2689e71c266abf8a095',1,'olp::thread::Atomic']]],
   ['lockedcopy',['lockedCopy',['../classolp_1_1thread_1_1Atomic.html#a27e9008c31422da214cce4c3078cf89b',1,'olp::thread::Atomic']]],
   ['lockedmove',['lockedMove',['../classolp_1_1thread_1_1Atomic.html#ad9af8cbfb6f322158b511bb0cfe9126b',1,'olp::thread::Atomic']]],
