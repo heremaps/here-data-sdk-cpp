@@ -29,7 +29,7 @@
 
 TEST(DefaultCacheTest, BasicTest) {
   olp::cache::CacheSettings settings;
-  settings.disk_path = olp::utils::Dir::TempDirectory() + "/unittest";
+  settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
   olp::cache::DefaultCache cache(settings);
   ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
   ASSERT_TRUE(cache.Clear());
@@ -129,7 +129,7 @@ TEST(DefaultCacheTest, RemoveWithPrefix) {
 TEST(DefaultCacheTest, BasicDiskTest) {
   olp::cache::CacheSettings settings;
   settings.max_memory_cache_size = 0;
-  settings.disk_path = olp::utils::Dir::TempDirectory() + "/unittest";
+  settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
   olp::cache::DefaultCache cache(settings);
   ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
   ASSERT_TRUE(cache.Clear());
@@ -146,7 +146,7 @@ TEST(DefaultCacheTest, BasicDiskTest) {
 TEST(DefaultCacheTest, ExpiredDiskTest) {
   olp::cache::CacheSettings settings;
   settings.max_memory_cache_size = 0;
-  settings.disk_path = olp::utils::Dir::TempDirectory() + "/unittest";
+  settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
   olp::cache::DefaultCache cache(settings);
   ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
   ASSERT_TRUE(cache.Clear());
@@ -196,7 +196,7 @@ TEST(DefaultCacheTest, ExpiredMemTest) {
 
 TEST(DefaultCacheTest, BadPath) {
   olp::cache::CacheSettings settings;
-  settings.disk_path = std::string("/////this/is/a/bad/path");
+  settings.disk_path_mutable = std::string("/////this/is/a/bad/path");
   olp::cache::DefaultCache cache(settings);
   ASSERT_EQ(olp::cache::DefaultCache::OpenDiskPathFailure, cache.Open());
 
@@ -212,7 +212,7 @@ TEST(DefaultCacheTest, BadPath) {
 
 TEST(DefaultCacheTest, AlreadyInUsePath) {
   olp::cache::CacheSettings settings;
-  settings.disk_path = olp::utils::Dir::TempDirectory() + "/unittest";
+  settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
   olp::cache::DefaultCache cache(settings);
   ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
 
