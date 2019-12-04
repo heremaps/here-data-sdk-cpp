@@ -26,87 +26,107 @@
 
 namespace olp {
 namespace client {
+
 std::string HRN::ToString() const {
   std::ostringstream ret;
-  std::string genericPart = ":" + region + ":" + account + ":";
+  std::string generic_part = ":" + region + ":" + account + ":";
   ret << "hrn:" << partition << ":";
-  switch (this->service) {
+  switch (service) {
     case ServiceType::Data: {
-      ret << "data" << genericPart << this->catalogId;
-      if (!this->layerId.empty()) ret << ":" << this->layerId;
+      ret << "data" << generic_part << catalogId;
+      if (!layerId.empty()) {
+        ret << ":" << layerId;
+      }
       break;
     }
     case ServiceType::Schema:
-      ret << "schema" << genericPart << this->groupId << ":" << this->schemaName
-          << ":" << this->version;
+      ret << "schema" << generic_part << groupId << ":" << schemaName << ":"
+          << version;
       break;
     case ServiceType::Pipeline:
-      ret << "pipeline" << genericPart << this->pipelineId;
+      ret << "pipeline" << generic_part << pipelineId;
       break;
     default:
-      ret << genericPart;
+      ret << generic_part;
       break;
   }
   return ret.str();
 }
 
 std::string HRN::ToCatalogHRNString() const {
-  if (this->service != ServiceType::Data) return std::string();
+  if (service != ServiceType::Data) {
+    return std::string();
+  }
 
   return "hrn:" + partition + ":data:" + region + ":" + account + ":" +
-         this->catalogId;
+         catalogId;
 }
 
 HRN::HRN(const std::string& input) {
   Tokenizer tokenizer(input, ':');
 
   // hrn must start with "hrn:"
-  if (!tokenizer.hasNext()) return;
-
-  std::string protocol = tokenizer.next();
-
-  // as an exception, also allow passing in direct URLs. Eases the use of
-  // command line tools that want to access custom catalog URLs.
-  if (protocol == "http" || protocol == "https") {
-    this->catalogId = input;
-    this->partition = "catalog-url";
+  if (!tokenizer.HasNext()) {
     return;
   }
 
-  if (protocol != "hrn") return;
+  std::string protocol = tokenizer.Next();
+
+  if (protocol != "hrn") {
+    return;
+  }
 
   // fill up the rest of the fields
-  if (tokenizer.hasNext()) this->partition = tokenizer.next();
-  if (tokenizer.hasNext()) {
-    auto serviceStr = tokenizer.next();
-    if (serviceStr.compare("data") == 0)
-      this->service = ServiceType::Data;
-    else if (serviceStr.compare("schema") == 0)
-      this->service = ServiceType::Schema;
-    else if (serviceStr.compare("pipeline") == 0)
-      this->service = ServiceType::Pipeline;
-    else {
-      this->service = ServiceType::Unknown;
+  if (tokenizer.HasNext()) {
+    partition = tokenizer.Next();
+  }
+
+  if (tokenizer.HasNext()) {
+    auto service_str = tokenizer.Next();
+    if (service_str.compare("data") == 0) {
+      service = ServiceType::Data;
+    } else if (service_str.compare("schema") == 0) {
+      service = ServiceType::Schema;
+    } else if (service_str.compare("pipeline") == 0) {
+      service = ServiceType::Pipeline;
+    } else {
+      service = ServiceType::Unknown;
       assert(false);  // invalid service type
     }
   }
-  if (tokenizer.hasNext()) this->region = tokenizer.next();
-  if (tokenizer.hasNext()) this->account = tokenizer.next();
+  if (tokenizer.HasNext()) {
+    region = tokenizer.Next();
+  }
+  if (tokenizer.HasNext()) {
+    account = tokenizer.Next();
+  }
 
-  switch (this->service) {
+  switch (service) {
     case ServiceType::Data: {
-      if (tokenizer.hasNext()) this->catalogId = tokenizer.next();
-      if (tokenizer.hasNext()) this->layerId = tokenizer.tail();
+      if (tokenizer.HasNext()) {
+        catalogId = tokenizer.Next();
+      }
+      if (tokenizer.HasNext()) {
+        layerId = tokenizer.Tail();
+      }
       break;
     }
     case ServiceType::Schema: {
-      if (tokenizer.hasNext()) this->groupId = tokenizer.next();
-      if (tokenizer.hasNext()) this->schemaName = tokenizer.next();
-      if (tokenizer.hasNext()) this->version = tokenizer.tail();
+      if (tokenizer.HasNext()) {
+        groupId = tokenizer.Next();
+      }
+      if (tokenizer.HasNext()) {
+        schemaName = tokenizer.Next();
+      }
+      if (tokenizer.HasNext()) {
+        version = tokenizer.Tail();
+      }
       break;
     }
     case ServiceType::Pipeline: {
-      if (tokenizer.hasNext()) this->pipelineId = tokenizer.tail();
+      if (tokenizer.HasNext()) {
+        pipelineId = tokenizer.Tail();
+      }
       break;
     }
     default:
@@ -119,7 +139,7 @@ bool HRN::operator==(const HRN& other) const {
               region == other.region && account == other.account);
 
   if (ret) {
-    switch (this->service) {
+    switch (service) {
       case ServiceType::Data:
         ret = (catalogId == other.catalogId && layerId == other.layerId);
         break;
@@ -141,26 +161,20 @@ bool HRN::operator==(const HRN& other) const {
 bool HRN::operator!=(const HRN& other) const { return !operator==(other); }
 
 bool HRN::IsNull() const {
-  bool ret = partition.empty() && region.empty() && account.empty();
-  if (ret) {
-    switch (this->service) {
-      case ServiceType::Data: {
-        ret = catalogId.empty() && layerId.empty();
-        break;
-      }
-      case ServiceType::Schema:
-        ret = this->groupId.empty() && this->schemaName.empty() &&
-              this->version.empty();
-        break;
-      case ServiceType::Pipeline:
-        ret = this->pipelineId.empty();
-        break;
-      default:
-        break;
-    }
+  switch (service) {
+    case ServiceType::Data:
+      // Note: region, account, layerId fields are optional.
+      return partition.empty() || catalogId.empty();
+    case ServiceType::Schema:
+      // Note: region, account fields are optional.
+      return partition.empty() || groupId.empty() || schemaName.empty() ||
+             version.empty();
+    case ServiceType::Pipeline:
+      // Note: region, account fields are optional.
+      return partition.empty() || pipelineId.empty();
+    default:
+      return true;
   }
-
-  return ret;
 }
 
 HRN HRN::FromString(const std::string& input) {
