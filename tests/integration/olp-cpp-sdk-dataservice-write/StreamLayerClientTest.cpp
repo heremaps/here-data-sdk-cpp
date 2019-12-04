@@ -146,6 +146,8 @@ class StreamLayerClientTest : public ::testing::Test {
     olp::client::OlpClientSettings client_settings;
     network_ = std::make_shared<NetworkMock>();
     client_settings.network_request_handler = network_;
+    client_settings.task_scheduler =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
     SetUpCommonNetworkMockCalls(*network_);
 
     return std::make_shared<StreamLayerClient>(
@@ -490,16 +492,10 @@ TEST_F(StreamLayerClientTest, SequentialPublishDifferentLayer) {
 }
 
 TEST_F(StreamLayerClientTest, PublishSdii) {
-  {
-    testing::InSequence dummy;
-
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_SDII), _, _, _, _))
-        .Times(1);
-  }
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+      .Times(1);
+  EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_SDII), _, _, _, _))
+      .Times(1);
 
   auto response = client_
                       ->PublishSdii(PublishSdiiRequest()
@@ -512,17 +508,11 @@ TEST_F(StreamLayerClientTest, PublishSdii) {
 }
 
 TEST_F(StreamLayerClientTest, PublishSDIIBillingTag) {
-  {
-    testing::InSequence dummy;
-
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_,
-                Send(IsPostRequest(URL_INGEST_SDII_BILLING_TAG), _, _, _, _))
-        .Times(1);
-  }
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+      .Times(1);
+  EXPECT_CALL(*network_,
+              Send(IsPostRequest(URL_INGEST_SDII_BILLING_TAG), _, _, _, _))
+      .Times(1);
 
   auto response = client_
                       ->PublishSdii(PublishSdiiRequest()
@@ -544,15 +534,13 @@ TEST_F(StreamLayerClientTest, PublishSdiiCancel) {
   CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
-  {
-    InSequence s;
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(1)
-        .WillOnce(testing::Invoke(std::move(send_mock)));
-    EXPECT_CALL(*network_, Cancel(request_id))
-        .WillOnce(testing::Invoke(std::move(cancel_mock)));
-  }
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_INGEST});
+
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+      .Times(1)
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+  EXPECT_CALL(*network_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   auto promise = client_->PublishSdii(PublishSdiiRequest()
                                           .WithSdiiMessageList(sdii_data_)
@@ -567,15 +555,10 @@ TEST_F(StreamLayerClientTest, PublishSdiiCancel) {
 }
 
 TEST_F(StreamLayerClientTest, SDIIConcurrentPublishSameIngestApi) {
-  {
-    testing::InSequence s;
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_SDII), _, _, _, _))
-        .Times(6);
-  }
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+      .Times(1);
+  EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_SDII), _, _, _, _))
+      .Times(6);
 
   auto publish_data = [&]() {
     auto response = client_

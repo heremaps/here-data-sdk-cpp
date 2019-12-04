@@ -32,7 +32,8 @@
 namespace olp {
 namespace client {
 class CancellationContext;
-}
+class PendingRequests;
+}  // namespace client
 
 namespace dataservice {
 namespace write {
@@ -49,6 +50,10 @@ class StreamLayerClientImpl
                         StreamLayerClientSettings client_settings,
                         client::OlpClientSettings settings);
 
+  ~StreamLayerClientImpl();
+
+  bool CancelPendingRequests();
+
   olp::client::CancellableFuture<PublishDataResponse> PublishData(
       const model::PublishDataRequest& request);
   olp::client::CancellationToken PublishData(
@@ -62,10 +67,22 @@ class StreamLayerClientImpl
   size_t QueueSize() const;
   boost::optional<model::PublishDataRequest> PopFromQueue();
 
-  olp::client::CancellableFuture<PublishSdiiResponse> PublishSdii(
+  client::CancellableFuture<PublishSdiiResponse> PublishSdii(
       const model::PublishSdiiRequest& request);
-  olp::client::CancellationToken PublishSdii(
+
+  client::CancellationToken PublishSdii(
       const model::PublishSdiiRequest& request, PublishSdiiCallback callback);
+
+ protected:
+  virtual PublishSdiiResponse PublishSdiiTask(
+      client::HRN catalog, client::OlpClientSettings settings,
+      model::PublishSdiiRequest request,
+      client::CancellationContext cancellation_context);
+
+  virtual PublishSdiiResponse IngestSDII(client::HRN catalog,
+                                         client::CancellationContext,
+                                         model::PublishSdiiRequest request,
+                                         client::OlpClientSettings settings);
 
  private:
   client::CancellationToken InitApiClients(
@@ -113,6 +130,9 @@ class StreamLayerClientImpl
   std::shared_ptr<cache::KeyValueCache> cache_;
   mutable std::mutex cache_mutex_;
   StreamLayerClientSettings stream_client_settings_;
+
+  std::shared_ptr<client::PendingRequests> pending_requests_;
+  std::shared_ptr<thread::TaskScheduler> task_scheduler_;
 };
 
 }  // namespace write
