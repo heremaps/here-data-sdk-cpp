@@ -43,18 +43,6 @@ namespace olp {
 namespace dataservice {
 namespace write {
 
-CancellableFuture<InitPublicationResponse> PublishApi::InitPublication(
-    const OlpClient& client, const model::Publication& publication,
-    const boost::optional<std::string>& billing_tag) {
-  auto promise = std::make_shared<std::promise<InitPublicationResponse>>();
-  auto cancel_token =
-      InitPublication(client, publication, billing_tag,
-                      [promise](InitPublicationResponse response) {
-                        promise->set_value(std::move(response));
-                      });
-  return CancellableFuture<InitPublicationResponse>(cancel_token, promise);
-}
-
 CancellationToken PublishApi::InitPublication(
     const OlpClient& client, const model::Publication& publication,
     const boost::optional<std::string>& billing_tag,
@@ -90,19 +78,6 @@ CancellationToken PublishApi::InitPublication(
       });
 
   return cancel_token;
-}
-
-CancellableFuture<UploadPartitionsResponse> PublishApi::UploadPartitions(
-    const OlpClient& client, const model::PublishPartitions& publish_partitions,
-    const std::string& publication_id, const std::string& layer_id,
-    const boost::optional<std::string>& billing_tag) {
-  auto promise = std::make_shared<std::promise<UploadPartitionsResponse>>();
-  auto cancel_token = UploadPartitions(
-      client, publish_partitions, publication_id, layer_id, billing_tag,
-      [promise](UploadPartitionsResponse response) {
-        promise->set_value(std::move(response));
-      });
-  return CancellableFuture<UploadPartitionsResponse>(cancel_token, promise);
 }
 
 CancellationToken PublishApi::UploadPartitions(
@@ -145,18 +120,6 @@ CancellationToken PublishApi::UploadPartitions(
   return cancel_token;
 }
 
-CancellableFuture<SubmitPublicationResponse> PublishApi::SubmitPublication(
-    const OlpClient& client, const std::string& publication_id,
-    const boost::optional<std::string>& billing_tag) {
-  auto promise = std::make_shared<std::promise<SubmitPublicationResponse>>();
-  auto cancel_token =
-      SubmitPublication(client, publication_id, billing_tag,
-                        [promise](SubmitPublicationResponse response) {
-                          promise->set_value(std::move(response));
-                        });
-  return CancellableFuture<SubmitPublicationResponse>(cancel_token, promise);
-}
-
 CancellationToken PublishApi::SubmitPublication(
     const OlpClient& client, const std::string& publication_id,
     const boost::optional<std::string>& billing_tag,
@@ -188,18 +151,6 @@ CancellationToken PublishApi::SubmitPublication(
       });
 
   return cancel_token;
-}
-
-CancellableFuture<GetPublicationResponse> PublishApi::GetPublication(
-    const OlpClient& client, const std::string& publication_id,
-    const boost::optional<std::string>& billing_tag) {
-  auto promise = std::make_shared<std::promise<GetPublicationResponse>>();
-  auto cancel_token =
-      GetPublication(client, publication_id, billing_tag,
-                     [promise](GetPublicationResponse response) {
-                       promise->set_value(std::move(response));
-                     });
-  return CancellableFuture<GetPublicationResponse>(cancel_token, promise);
 }
 
 CancellationToken PublishApi::GetPublication(
@@ -234,18 +185,6 @@ CancellationToken PublishApi::GetPublication(
       });
 
   return cancel_token;
-}
-
-CancellableFuture<CancelPublicationResponse> PublishApi::CancelPublication(
-    const client::OlpClient& client, const std::string& publication_id,
-    const boost::optional<std::string>& billing_tag) {
-  auto promise = std::make_shared<std::promise<CancelPublicationResponse>>();
-  auto cancel_token =
-      CancelPublication(client, publication_id, billing_tag,
-                        [promise](CancelPublicationResponse response) {
-                          promise->set_value(std::move(response));
-                        });
-  return CancellableFuture<CancelPublicationResponse>(cancel_token, promise);
 }
 
 CancellationToken PublishApi::CancelPublication(
