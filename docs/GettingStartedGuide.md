@@ -6,7 +6,7 @@ To create catalog or service requests to the [HERE Open Location Platform](https
 
 The following two authentication approaches are available within your application:
 
-1. Using your **platform credentials** that are available on the platform portal by means of the HERE OLP SDK for TypeScript authentication library.
+1. Using your **platform credentials** that are available on the platform portal by means of the HERE OLP SDK for C++ authentication library.
 2. Using the **access key ID** and **access key secret** from the platform credentials as described in the [Authentication and Authorization Developer's Guide](https://developer.here.com/olp/documentation/access_control/topics/introduction.html) to create your own authentication and authorization client for retrieving HERE tokens that you can then provide to the HERE OLP SDK for C++ libraries.
 
 To get your platform credentials, on the [Apps and Keys](https://platform.here.com/profile/apps-and-keys) page, create a new application. Then, to download the credentials, click **Create a key**. For more information on how to get platform credentials, see the [Manage Apps](https://developer.here.com/olp/documentation/access-control/user-guide/topics/manage-apps.html) section of the [Teams and Permissions User Guide](https://developer.here.com/olp/documentation/access-control/user-guide/index.html).
