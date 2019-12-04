@@ -87,12 +87,13 @@ client::CancellationToken IngestApi::IngestData(
   return cancel_token;
 }
 
-client::CancellationToken IngestApi::IngestSDII(
+IngestSdiiResponse IngestApi::IngestSdii(
     const client::OlpClient& client, const std::string& layer_id,
     const std::shared_ptr<std::vector<unsigned char>>& sdii_message_list,
     const boost::optional<std::string>& trace_id,
     const boost::optional<std::string>& billing_tag,
-    const boost::optional<std::string>& checksum, IngestSdiiCallback callback) {
+    const boost::optional<std::string>& checksum,
+    client::CancellationContext context) {
   std::multimap<std::string, std::string> header_params;
   std::multimap<std::string, std::string> query_params;
   std::multimap<std::string, std::string> form_params;
@@ -111,22 +112,17 @@ client::CancellationToken IngestApi::IngestSDII(
   }
 
   std::string ingest_uri = "/layers/" + layer_id + "/sdiiMessageList";
+  auto response = client.CallApi(ingest_uri, "POST", query_params,
+                                 header_params, form_params, sdii_message_list,
+                                 "application/x-protobuf", context);
 
-  auto cancel_token = client.CallApi(
-      ingest_uri, "POST", query_params, header_params, form_params,
-      sdii_message_list, "application/x-protobuf",
-      [callback](client::HttpResponse http_response) {
-        if (http_response.status != 200) {
-          callback(IngestSdiiResponse(
-              ApiError(http_response.status, http_response.response.str())));
-          return;
-        }
+  if (response.status != olp::http::HttpStatusCode::OK) {
+    return IngestSdiiResponse(
+        ApiError(response.status, response.response.str()));
+  }
 
-        callback(IngestSdiiResponse(
-            olp::parser::parse<model::ResponseOk>(http_response.response)));
-      });
-
-  return cancel_token;
+  return IngestSdiiResponse(
+      olp::parser::parse<model::ResponseOk>(response.response));
 }
 
 }  // namespace write
