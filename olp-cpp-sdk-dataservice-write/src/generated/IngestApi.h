@@ -29,7 +29,8 @@
 namespace olp {
 namespace client {
 class OlpClient;
-}
+class CancellationContext;
+}  // namespace client
 
 namespace dataservice {
 namespace write {
@@ -44,7 +45,6 @@ using IngestDataCallback = std::function<void(IngestDataResponse)>;
 
 using IngestSdiiResponse =
     client::ApiResponse<model::ResponseOk, client::ApiError>;
-using IngestSdiiCallback = std::function<void(IngestSdiiResponse)>;
 
 /**
  * @brief API responsible for ingesting data into an OLP Stream Layer.
@@ -109,19 +109,17 @@ class IngestApi {
    * verifies the integrity of your request and prevents modification by a third
    * party.It will be created by the service if not provided. A SHA-256 hash
    * consists of 256 bits or 64 chars.
-   * @param callback IngestSdiiCallback which will be called with the
-   * IngestSdiiResponse when the operation completes.
+   * @param context A CancellationContext, which can be used to cancel request.
    *
-   * @return A CancellationToken which can be used to cancel the ongoing
-   * request.
+   * @return A IngestSdiiResponse which contains error or ResponseOk
    */
-  static client::CancellationToken IngestSDII(
+  static IngestSdiiResponse IngestSdii(
       const client::OlpClient& client, const std::string& layer_id,
       const std::shared_ptr<std::vector<unsigned char>>& sdii_message_list,
       const boost::optional<std::string>& trace_id,
       const boost::optional<std::string>& billing_tag,
       const boost::optional<std::string>& checksum,
-      IngestSdiiCallback callback);
+      client::CancellationContext context);
 };
 
 }  // namespace write

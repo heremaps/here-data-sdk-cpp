@@ -25,6 +25,8 @@
 #include <boost/uuid/uuid_io.hpp>
 
 #include <olp/core/client/CancellationContext.h>
+#include <olp/core/client/PendingRequests.h>
+#include <olp/core/client/TaskContext.h>
 #include <olp/core/logging/Log.h>
 #include <olp/core/thread/TaskScheduler.h>
 #include <olp/dataservice/write/model/PublishDataRequest.h>
@@ -61,16 +63,16 @@ std::string GenerateUuid() {
   return boost::uuids::to_string(gen());
 }
 
-void ExecuteOrSchedule(const OlpClientSettings& settings,
+void ExecuteOrSchedule(const std::shared_ptr<thread::TaskScheduler>& scheduler,
                        thread::TaskScheduler::CallFuncType&& func) {
-  if (!settings.task_scheduler) {
+  if (!scheduler) {
     // User didn't specify a TaskScheduler, execute sync
     func();
     return;
   }
 
   // Schedule for async execution
-  settings.task_scheduler->ScheduleTask(std::move(func));
+  scheduler->ScheduleTask(std::move(func));
 }
 }  // namespace
 
@@ -89,7 +91,18 @@ StreamLayerClientImpl::StreamLayerClientImpl(
       init_inprogress_(false),
       cache_(settings_.cache),
       cache_mutex_(),
-      stream_client_settings_(std::move(client_settings)) {}
+      stream_client_settings_(std::move(client_settings)),
+      pending_requests_(std::make_shared<client::PendingRequests>()),
+      task_scheduler_(std::move(settings_.task_scheduler)) {}
+
+StreamLayerClientImpl::~StreamLayerClientImpl() {
+  pending_requests_->CancelAllAndWait();
+}
+
+bool StreamLayerClientImpl::CancelPendingRequests() {
+  OLP_SDK_LOG_TRACE(kLogTag, "CancelPendingRequests");
+  return pending_requests_->CancelAll();
+}
 
 CancellationToken StreamLayerClientImpl::InitApiClients(
     const std::shared_ptr<CancellationContext>& cancel_context,
@@ -418,7 +431,7 @@ olp::client::CancellationToken StreamLayerClientImpl::Flush(
     callback(std::move(response));
   };
 
-  ExecuteOrSchedule(settings_, func);
+  ExecuteOrSchedule(task_scheduler_, func);
   return CancellationToken([=]() mutable { cancel_context.CancelOperation(); });
 }
 
@@ -750,78 +763,62 @@ CancellationToken StreamLayerClientImpl::PublishDataGreaterThanTwentyMib(
 }
 
 CancellableFuture<PublishSdiiResponse> StreamLayerClientImpl::PublishSdii(
-    const model::PublishSdiiRequest& request) {
+    model::PublishSdiiRequest request) {
   auto promise = std::make_shared<std::promise<PublishSdiiResponse> >();
   auto cancel_token =
-      PublishSdii(request, [promise](PublishSdiiResponse response) {
+      PublishSdii(std::move(request), [promise](PublishSdiiResponse response) {
         promise->set_value(std::move(response));
       });
   return CancellableFuture<PublishSdiiResponse>(cancel_token, promise);
 }
 
 CancellationToken StreamLayerClientImpl::PublishSdii(
-    const model::PublishSdiiRequest& request, PublishSdiiCallback callback) {
+    model::PublishSdiiRequest request, PublishSdiiCallback callback) {
+  using std::placeholders::_1;
+  auto context = olp::client::TaskContext::Create(
+      std::bind(&StreamLayerClientImpl::PublishSdiiTask, this,
+                std::move(request), _1),
+      callback);
+
+  auto pending_requests = pending_requests_;
+  pending_requests->Insert(context);
+
+  ExecuteOrSchedule(task_scheduler_, [=]() {
+    context.Execute();
+    pending_requests->Remove(context);
+  });
+
+  return context.CancelToken();
+}
+
+PublishSdiiResponse StreamLayerClientImpl::PublishSdiiTask(
+    model::PublishSdiiRequest request,
+    olp::client::CancellationContext context) {
   if (!request.GetSdiiMessageList()) {
-    callback(PublishSdiiResponse(ApiError(ErrorCode::InvalidArgument,
-                                          "Request sdii message list null.")));
-    return CancellationToken();
+    return {{ErrorCode::InvalidArgument, "Request sdii message list null."}};
   }
 
   if (request.GetLayerId().empty()) {
-    callback(PublishSdiiResponse(
-        ApiError(ErrorCode::InvalidArgument, "Request layer id empty.")));
-    return CancellationToken();
+    return {{ErrorCode::InvalidArgument, "Request layer id empty."}};
   }
 
-  // Sdii publish init is complete when apiclient_config_ is valid
-  if (!apiclient_config_ || apiclient_config_->GetBaseUrl().empty()) {
-    AquireInitLock();
+  return IngestSdii(std::move(request), context);
+}
+
+PublishSdiiResponse StreamLayerClientImpl::IngestSdii(
+    model::PublishSdiiRequest request, client::CancellationContext context) {
+  auto api_response = ApiClientLookup::LookupApiClient(
+      catalog_, context, "ingest", "v1", settings_);
+
+  if (!api_response.IsSuccessful()) {
+    return api_response.GetError();
   }
 
-  auto cancel_context = std::make_shared<CancellationContext>();
-  auto self = shared_from_this();
-
-  cancel_context->ExecuteOrCancelled(
-      [=]() -> CancellationToken {
-        return self->InitApiClients(
-            cancel_context, [=](boost::optional<ApiError> init_api_error) {
-              if (init_api_error) {
-                NotifyInitAborted();
-                callback(PublishSdiiResponse(init_api_error.get()));
-                return;
-              }
-
-              NotifyInitCompleted();
-
-              cancel_context->ExecuteOrCancelled(
-                  [=]() -> CancellationToken {
-                    return IngestApi::IngestSDII(
-                        *self->apiclient_ingest_, request.GetLayerId(),
-                        request.GetSdiiMessageList(), request.GetTraceId(),
-                        request.GetBillingTag(), request.GetChecksum(),
-                        [callback](IngestSdiiResponse response) {
-                          callback(std::move(response));
-                        });
-                  },
-                  [callback]() {
-                    callback(PublishSdiiResponse(ApiError(
-                        ErrorCode::Cancelled, "Operation cancelled.", true)));
-                  });
-            });
-        ;
-      },
-      [callback]() {
-        callback(PublishSdiiResponse(
-            ApiError(ErrorCode::Cancelled, "Operation cancelled.", true)));
-      });
-
-  std::weak_ptr<StreamLayerClientImpl> weak_self{self};
-  return CancellationToken([cancel_context, weak_self]() {
-    cancel_context->CancelOperation();
-    if (auto strong_self = weak_self.lock()) {
-      strong_self->NotifyInitAborted();
-    }
-  });
+  auto client = api_response.GetResult();
+  return IngestApi::IngestSdii(client, request.GetLayerId(),
+                               request.GetSdiiMessageList(),
+                               request.GetTraceId(), request.GetBillingTag(),
+                               request.GetChecksum(), context);
 }
 
 }  // namespace write
