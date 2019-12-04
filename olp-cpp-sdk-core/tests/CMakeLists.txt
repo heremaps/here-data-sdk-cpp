@@ -21,6 +21,7 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
 
     ./client/CancellationContextTest.cpp
     ./client/ConditionTest.cpp
+    ./client/HRNTest.cpp
     ./client/TaskContextTest.cpp
 
     ./geo/coordinates/GeoCoordinates3dTest.cpp

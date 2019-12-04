@@ -27,49 +27,43 @@ namespace client {
 // simple tokenizer for char separated strings
 struct Tokenizer {
   Tokenizer(const std::string& input, char separator)
-      : str(input), pos(0), sep(separator) {}
+      : str_(input), pos_(0), sep_(separator) {}
 
-  bool hasNext() const { return !str.empty() && (pos != std::string::npos); }
+  bool HasNext() const { return !str_.empty() && (pos_ != std::string::npos); }
 
-  std::string next() {
-    if (pos == std::string::npos) return std::string();
+  std::string Next() {
+    if (pos_ == std::string::npos) {
+      return std::string();
+    }
 
-    size_t begin = pos;
-    size_t separator_position = str.find_first_of(sep, pos);
+    size_t begin = pos_;
+    size_t separator_position = str_.find_first_of(sep_, pos_);
 
     // handle last token in string
     if (separator_position == std::string::npos) {
-      pos = std::string::npos;
-      return str.substr(begin);
+      pos_ = std::string::npos;
+      return str_.substr(begin);
     }
 
-    pos = separator_position + 1;
-    return str.substr(begin, separator_position - begin);
+    pos_ = separator_position + 1;
+    return str_.substr(begin, separator_position - begin);
   }
 
   // returns the entire remaining string
-  std::string tail() {
-    if (pos == std::string::npos) return std::string();
-    size_t begin = pos;
-    pos = std::string::npos;
-    return str.substr(begin);
-  }
-
-  std::uint64_t nextUInt64() {
-    const std::string next_str = next();
-    return strtoull(next_str.c_str(), nullptr, 10);
-  }
-
-  int nextInt() {
-    const std::string next_str = next();
-    return int(strtol(next_str.c_str(), nullptr, 10));
+  std::string Tail() {
+    if (pos_ == std::string::npos) {
+      return std::string();
+    }
+    size_t begin = pos_;
+    pos_ = std::string::npos;
+    return str_.substr(begin);
   }
 
   Tokenizer& operator=(const Tokenizer&) = delete;
 
-  const std::string& str;
-  size_t pos{0};
-  char sep{'\0'};
+  const std::string& str_;
+  size_t pos_{0};
+  char sep_{'\0'};
 };
 }  // namespace client
 }  // namespace olp
