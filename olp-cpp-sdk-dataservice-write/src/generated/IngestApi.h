@@ -71,37 +71,6 @@ class IngestApi {
    * verifies the integrity of your request and prevents modification by a third
    * party.It will be created by the service if not provided. A SHA-256 hash
    * consists of 256 bits or 64 chars.
-   *
-   * @return A CancellableFuture containing the IngestDataResponse.
-   */
-  static olp::client::CancellableFuture<IngestDataResponse> IngestData(
-      const client::OlpClient& client, const std::string& layer_id,
-      const std::string& content_type,
-      const std::shared_ptr<std::vector<unsigned char>>& data,
-      const boost::optional<std::string>& trace_id = boost::none,
-      const boost::optional<std::string>& billing_tag = boost::none,
-      const boost::optional<std::string>& checksum = boost::none);
-
-  /**
-   * @brief Call to ingest data into an OLP Stream Layer.
-   * @param client Instance of OlpClient used to make REST request.
-   * @param layer_id Layer of the catalog where you want to store the data. The
-   * layer type must be Stream.
-   * @param content_type The content type configured for the target layer.
-   * @param data Content to be uploaded to OLP.
-   * @param trace_id Optional. A unique message ID, such as a UUID. This can be
-   * included in the request if you want to use an ID that you define. If you do
-   * not include an ID, one will be generated during ingestion and included in
-   * the response. You can use this ID to track your request and identify the
-   * message in the catalog.
-   * @param billing_tag Optional. An optional free-form tag which is used for
-   * grouping billing records together. If supplied, it must be between 4 - 16
-   * characters, contain only alpha/numeric ASCII characters [A-Za-z0-9].
-   * @param checksum A SHA-256 hash you can provide for
-   * validation against the calculated value on the request body hash. This
-   * verifies the integrity of your request and prevents modification by a third
-   * party.It will be created by the service if not provided. A SHA-256 hash
-   * consists of 256 bits or 64 chars.
    * @param callback IngestDataCallback which will be called with the
    * IngestDataResponse when the operation completes.
    *
@@ -116,39 +85,6 @@ class IngestApi {
       const boost::optional<std::string>& billing_tag,
       const boost::optional<std::string>& checksum,
       IngestDataCallback callback);
-
-  /**
-   * @brief Send list of SDII messages to a stream layer.
-   * SDII message data must be in SDII MessageList protobuf format. For more
-   * information please see the OLP Sensor Data Ingestion Interface
-   * documentation and schemas.
-   * @note the Content-Type for this request is always "application/x-protobuf".
-   * @param client Instance of OlpClient used to make REST request.
-   * @param layer_id Layer of the catalog where you want to store the data.
-   * @param sdii_message_list SDII MessageList data encoded in protobuf format
-   * according to the OLP SDII Message List schema. The maximum size is 20 MB.
-   * @param trace_id Optional. A unique message ID, such as a UUID. This can be
-   * included in the request if you want to use an ID that you define. If you do
-   * not include an ID, one will be generated during ingestion and included in
-   * the response. You can use this ID to track your request and identify the
-   * message in the catalog.
-   * @param billing_tag Optional. An optional free-form tag which is used for
-   * grouping billing records together. If supplied, it must be between 4 - 16
-   * characters, contain only alpha/numeric ASCII characters [A-Za-z0-9].
-   * @param checksum A SHA-256 hash you can provide for
-   * validation against the calculated value on the request body hash. This
-   * verifies the integrity of your request and prevents modification by a third
-   * party.It will be created by the service if not provided. A SHA-256 hash
-   * consists of 256 bits or 64 chars.
-   *
-   * @return A CancellableFuture containing the IngestSdiiResponse.
-   */
-  static olp::client::CancellableFuture<IngestSdiiResponse> IngestSDII(
-      const client::OlpClient& client, const std::string& layer_id,
-      const std::shared_ptr<std::vector<unsigned char>>& sdii_message_list,
-      const boost::optional<std::string>& trace_id = boost::none,
-      const boost::optional<std::string>& billing_tag = boost::none,
-      const boost::optional<std::string>& checksum = boost::none);
 
   /**
    * @brief Send list of SDII messages to a stream layer.

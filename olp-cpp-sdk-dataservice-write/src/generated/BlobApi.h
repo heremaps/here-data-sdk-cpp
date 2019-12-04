@@ -70,33 +70,6 @@ class BlobApi {
    * @param billing_tag Optional. An optional free-form tag which is used for
    * grouping billing records together. If supplied, it must be between 4 - 16
    * characters, contain only alpha/numeric ASCII characters [A-Za-z0-9].
-   *
-   * @return A CancellableFuture containing the PutBlobResponse.
-   */
-  static client::CancellableFuture<PutBlobResponse> PutBlob(
-      const client::OlpClient& client, const std::string& layer_id,
-      const std::string& content_type, const std::string& data_handle,
-      const std::shared_ptr<std::vector<unsigned char>>& data,
-      const boost::optional<std::string>& billing_tag = boost::none);
-
-  /**
-   * @brief Publishes a data blob
-   * Persists the data blob in the underlying storage mechanism (volume). Use
-   * this upload mechanism for blobs smaller than 50 MB. The size limit for
-   * blobs uploaded this way is 5 GB but we do not recommend uploading blobs
-   * this large with this method. When the operation completes successfully
-   * there is no guarantee that the data blob will be immediately available
-   * although in most cases it will be. To check if the data blob is available
-   * use the HEAD method.
-   * @param client Instance of OlpClient used to make REST request.
-   * @param layer_id The ID of the layer that the data blob belongs to.
-   * @param content_type The content type configured for the target layer.
-   * @param data_handle The data handle (ID) represents an identifier for the
-   * data blob.
-   * @param data Content to be uploaded to OLP.
-   * @param billing_tag Optional. An optional free-form tag which is used for
-   * grouping billing records together. If supplied, it must be between 4 - 16
-   * characters, contain only alpha/numeric ASCII characters [A-Za-z0-9].
    * @param callback PutBlobCallback which will be called with the
    * PutBlobResponse when the operation completes.
    *

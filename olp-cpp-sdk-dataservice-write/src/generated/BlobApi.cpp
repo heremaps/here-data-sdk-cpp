@@ -34,19 +34,6 @@ namespace olp {
 namespace dataservice {
 namespace write {
 
-CancellableFuture<PutBlobResponse> BlobApi::PutBlob(
-    const OlpClient& client, const std::string& layer_id,
-    const std::string& content_type, const std::string& data_handle,
-    const std::shared_ptr<std::vector<unsigned char>>& data,
-    const boost::optional<std::string>& billing_tag) {
-  auto promise = std::make_shared<std::promise<PutBlobResponse>>();
-  auto cancel_token = PutBlob(client, layer_id, content_type, data_handle, data,
-                              billing_tag, [promise](PutBlobResponse response) {
-                                promise->set_value(std::move(response));
-                              });
-  return CancellableFuture<PutBlobResponse>(cancel_token, promise);
-}
-
 CancellationToken BlobApi::PutBlob(
     const OlpClient& client, const std::string& layer_id,
     const std::string& content_type, const std::string& data_handle,

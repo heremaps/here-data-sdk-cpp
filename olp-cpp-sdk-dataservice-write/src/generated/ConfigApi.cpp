@@ -36,20 +36,6 @@ namespace dataservice {
 namespace write {
 using namespace olp::client;
 
-CancellableFuture<CatalogResponse> ConfigApi::GetCatalog(
-    std::shared_ptr<OlpClient> client, const std::string& catalog_hrn,
-    boost::optional<std::string> billing_tag) {
-  auto promise = std::make_shared<std::promise<CatalogResponse>>();
-
-  auto cancel_token =
-      ConfigApi::GetCatalog(client, catalog_hrn, billing_tag,
-                            [promise](CatalogResponse catalog_response) {
-                              promise->set_value(std::move(catalog_response));
-                            });
-
-  return client::CancellableFuture<CatalogResponse>(cancel_token, promise);
-}
-
 CancellationToken ConfigApi::GetCatalog(
     std::shared_ptr<OlpClient> client, const std::string& catalog_hrn,
     boost::optional<std::string> billing_tag,

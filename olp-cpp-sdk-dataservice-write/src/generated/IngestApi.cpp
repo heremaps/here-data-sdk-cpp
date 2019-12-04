@@ -45,22 +45,6 @@ const std::string kQueryParamBillingTag = "billingTag";
 namespace olp {
 namespace dataservice {
 namespace write {
-olp::client::CancellableFuture<IngestDataResponse> IngestApi::IngestData(
-    const OlpClient& client, const std::string& layer_id,
-    const std::string& content_type,
-    const std::shared_ptr<std::vector<unsigned char>>& data,
-    const boost::optional<std::string>& trace_id,
-    const boost::optional<std::string>& billing_tag,
-    const boost::optional<std::string>& checksum) {
-  auto promise = std::make_shared<std::promise<IngestDataResponse>>();
-  auto cancel_token =
-      IngestData(client, layer_id, content_type, data, trace_id, billing_tag,
-                 checksum, [promise](IngestDataResponse response) {
-                   promise->set_value(std::move(response));
-                 });
-  return client::CancellableFuture<IngestDataResponse>(cancel_token, promise);
-}
-
 client::CancellationToken IngestApi::IngestData(
     const client::OlpClient& client, const std::string& layer_id,
     const std::string& content_type,
@@ -101,21 +85,6 @@ client::CancellationToken IngestApi::IngestData(
       });
 
   return cancel_token;
-}
-
-olp::client::CancellableFuture<IngestSdiiResponse> IngestApi::IngestSDII(
-    const OlpClient& client, const std::string& layer_id,
-    const std::shared_ptr<std::vector<unsigned char>>& sdii_message_list,
-    const boost::optional<std::string>& trace_id,
-    const boost::optional<std::string>& billing_tag,
-    const boost::optional<std::string>& checksum) {
-  auto promise = std::make_shared<std::promise<IngestSdiiResponse>>();
-  auto cancel_token =
-      IngestSDII(client, layer_id, sdii_message_list, trace_id, billing_tag,
-                 checksum, [promise](IngestSdiiResponse response) {
-                   promise->set_value(std::move(response));
-                 });
-  return client::CancellableFuture<IngestSdiiResponse>(cancel_token, promise);
 }
 
 client::CancellationToken IngestApi::IngestSDII(
