@@ -103,32 +103,6 @@ class DATASERVICE_READ_API CatalogClient final {
   client::CancellableFuture<CatalogVersionResponse> GetLatestVersion(
       CatalogVersionRequest request);
 
-  /**
-   * @brief fetches catalog version asynchronously.
-   * @param request contains the complete set of request parameters.
-   * @param callback will be invoked once the catalog version is
-   * available, or an error is encountered.
-   * @return A token that can be used to cancel this request
-   * @deprecated Will be removed in 1.1, please use \c GetLatestVersion instead.
-   */
-  OLP_SDK_DEPRECATED(
-      "Will be removed in 1.1, please use GetLatestVersion() instead")
-  client::CancellationToken GetCatalogMetadataVersion(
-      CatalogVersionRequest request, CatalogVersionCallback callback);
-
-  /**
-   * @brief fetches catalog version asynchronously.
-   * @param request contains the complete set of request parameters.
-   * @return CancellableFuture of type CatalogVersionResponse, which when
-   * complete will contain the catalog configuration or an error.
-   * Alternatively, the CancellableFuture can be used to cancel this request.
-   * @deprecated Will be removed in 1.1, please use \c GetLatestVersion instead.
-   */
-  OLP_SDK_DEPRECATED(
-      "Will be removed in 1.1, please use GetLatestVersion() instead")
-  client::CancellableFuture<CatalogVersionResponse> GetCatalogMetadataVersion(
-      CatalogVersionRequest request);
-
  private:
   std::unique_ptr<CatalogClientImpl> impl_;
 };

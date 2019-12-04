@@ -61,16 +61,6 @@ client::CancellableFuture<CatalogVersionResponse>
 CatalogClient::GetLatestVersion(CatalogVersionRequest request) {
   return impl_->GetLatestVersion(std::move(request));
 }
-
-client::CancellationToken CatalogClient::GetCatalogMetadataVersion(
-    CatalogVersionRequest request, CatalogVersionCallback callback) {
-  return impl_->GetLatestVersion(std::move(request), std::move(callback));
-}
-
-client::CancellableFuture<CatalogVersionResponse>
-CatalogClient::GetCatalogMetadataVersion(CatalogVersionRequest request) {
-  return impl_->GetLatestVersion(std::move(request));
-}
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

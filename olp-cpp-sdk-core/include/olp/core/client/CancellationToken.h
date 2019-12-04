@@ -46,12 +46,6 @@ class CORE_API CancellationToken {
   /**
    * @brief Cancels the current operation, calls the func_ instance variable.
    */
-  OLP_SDK_DEPRECATED("Deprecated, use Cancel instead.")
-  void cancel() const;
-
-  /**
-   * @brief Cancels the current operation, calls the func_ instance variable.
-   */
   void Cancel() const;
 
  private:
