@@ -24,8 +24,6 @@ namespace client {
 CancellationToken::CancellationToken(std::function<void()> func)
     : func_(std::move(func)) {}
 
-void CancellationToken::cancel() const { Cancel(); }
-
 void CancellationToken::Cancel() const {
   if (func_) {
     func_();
