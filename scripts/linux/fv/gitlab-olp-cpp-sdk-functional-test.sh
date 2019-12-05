@@ -45,3 +45,4 @@ export result=$?
 kill -15 ${SERVER_PID}
 # Waiter for server process to be exited correctly
 wait ${SERVER_PID}
+exit ${result}
