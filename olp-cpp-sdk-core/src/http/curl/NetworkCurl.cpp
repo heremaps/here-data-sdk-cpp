@@ -222,7 +222,8 @@ static curl_code SslctxFunction(CURL* curl, void* sslctx, void*) {
 
 NetworkCurl::NetworkCurl(size_t max_requests_count)
     : handles_(max_requests_count),
-      static_handle_count_(std::max(1lu, max_requests_count / 4)) {
+      static_handle_count_(
+          std::max(static_cast<size_t>(1u), max_requests_count / 4)) {
   OLP_SDK_LOG_TRACE(kLogTag, "Created NetworkCurl with address="
                                  << this
                                  << ", handles_count=" << max_requests_count);
