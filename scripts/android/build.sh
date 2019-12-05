@@ -21,7 +21,7 @@
 mkdir -p build && cd build
 cmake .. -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake" \
 	-DANDROID_PLATFORM=android-28 \
-	-DANDROID_ABI=arm64-v8a \
+	-DANDROID_ABI=armeabi-v7a \
 	-DOLP_SDK_ENABLE_TESTING=NO \
 	-DOLP_SDK_BUILD_EXAMPLES=ON
 
