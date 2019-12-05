@@ -25,11 +25,15 @@
 #include <sstream>
 #include <thread>
 
+#include "olp/core/client/Condition.h"
+#include "olp/core/client/ErrorCode.h"
 #include "olp/core/http/NetworkConstants.h"
+#include "olp/core/logging/Log.h"
 #include "olp/core/utils/Url.h"
 
 namespace olp {
 namespace client {
+constexpr auto kLogTag = "OlpClient";
 
 namespace {
 bool CaseInsensitiveCompare(const std::string& str1, const std::string& str2) {
@@ -124,7 +128,6 @@ http::NetworkRequest::HttpVerb GetHttpVerb(const std::string& verb) {
 
   return http_verb;
 }
-
 }  // anonymous namespace
 
 OlpClient::OlpClient() {}
@@ -224,8 +227,12 @@ NetworkAsyncCallback GetRetryCallback(
                   "Operation Cancelled."));
             });
       } else {
-        callback(HttpResponse(static_cast<int>(http::ErrorCode::UNKNOWN_ERROR),
-                              "Unknown error."));
+        OLP_SDK_LOG_WARNING(kLogTag, "");
+        // Last (and only) strong reference reference lives in cancellation
+        // token, which is reset on CancelOperation.
+        callback(
+            HttpResponse(static_cast<int>(http::ErrorCode::CANCELLED_ERROR),
+                         "Operation Cancelled."));
       }
     }
   };
@@ -284,6 +291,53 @@ CancellationToken OlpClient::CallApi(
 
   return CancellationToken(
       [cancel_context]() { cancel_context->CancelOperation(); });
+}
+
+HttpResponse OlpClient::CallApi(
+    std::string path, std::string method,
+    std::multimap<std::string, std::string> query_params,
+    std::multimap<std::string, std::string> header_params,
+    std::multimap<std::string, std::string> form_params,
+    std::shared_ptr<std::vector<unsigned char>> post_body,
+    std::string content_type, CancellationContext context) const {
+  olp::client::Condition condition;
+  auto flag = std::make_shared<std::atomic_bool>(true);
+  HttpResponse response;
+
+  auto callback = [&, flag](HttpResponse inner_response) {
+    if (flag->exchange(false)) {
+      response = std::move(inner_response);
+      condition.Notify();
+    }
+  };
+
+  context.ExecuteOrCancelled(
+      [&, flag]() {
+        auto token = CallApi(path, method, query_params, header_params,
+                             form_params, post_body, content_type, callback);
+        return olp::client::CancellationToken([&, token, flag]() {
+          if (flag->exchange(false)) {
+            token.Cancel();
+            condition.Notify();
+          }
+        });
+      },
+      [&]() { condition.Notify(); });
+
+  if (!condition.Wait()) {
+    context.CancelOperation();
+    OLP_SDK_LOG_INFO_F(kLogTag, "timeout");
+    return {static_cast<int>(http::ErrorCode::TIMEOUT_ERROR),
+            "Operation Cancelled."};
+  }
+
+  flag->store(false);
+
+  if (context.IsCancelled()) {
+    return {static_cast<int>(http::ErrorCode::CANCELLED_ERROR),
+            "Operation Cancelled."};
+  }
+  return response;
 }
 
 }  // namespace client
