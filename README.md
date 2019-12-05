@@ -50,6 +50,7 @@ The SDK has been tested on the following platforms and with the following requir
 | Platform | Minimum requirement |
 | ------- | -------- |
 | Ubuntu | GCC 5.4 and Clang 7.0 |
+| Embedded Linux (32/64 bit) | GCC-arm/GCC-aarch64 5.4 |
 | Windows | MSVC++ 2017  |
 | MacOS | Apple Clang 11.0.0 |
 | iOS |  XCode 11.1, Swift 5.0 |
