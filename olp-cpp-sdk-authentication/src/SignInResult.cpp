@@ -58,6 +58,8 @@ const std::string& SignInResult::GetUserIdentifier() const {
   return impl_->GetUserIdentifier();
 }
 
+const std::string& SignInResult::GetScope() const { return impl_->GetScope(); }
+
 SignInResult::SignInResult(std::shared_ptr<SignInResultImpl> impl)
     : impl_(impl) {}
 

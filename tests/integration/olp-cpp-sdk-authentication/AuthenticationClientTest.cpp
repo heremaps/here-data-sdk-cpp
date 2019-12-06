@@ -104,7 +104,8 @@ void TestCheckErrorFields(const ErrorFields& errorFields) {
 
 class AuthenticationClientTest : public ::testing::Test {
  public:
-  AuthenticationClientTest() : key_("key"), secret_("secret") {}
+  AuthenticationClientTest()
+      : key_("key"), secret_("secret"), scope_("scope") {}
   void SetUp() {
     client_ = std::make_unique<AuthenticationClient>(
         "https://authentication.server.url");
@@ -209,7 +210,57 @@ class AuthenticationClientTest : public ::testing::Test {
   std::shared_ptr<olp::thread::TaskScheduler> task_scheduler_;
   const std::string key_;
   const std::string secret_;
+  const std::string scope_;
 };
+
+TEST_F(AuthenticationClientTest, SignInClientScope) {
+  AuthenticationCredentials credentials(key_, secret_);
+  std::promise<AuthenticationClient::SignInClientResponse> request;
+  auto request_future = request.get_future();
+
+  EXPECT_CALL(*network_, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << kResponseWithScope;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::http::HttpStatusCode::OK));
+        if (data_callback) {
+          auto raw = const_cast<char*>(kResponseWithScope.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0,
+                        kResponseWithScope.size());
+        }
+
+        return olp::http::SendOutcome(request_id);
+      });
+
+  AuthenticationClient::SignInProperties properties;
+  properties.scope = scope_;
+  std::time_t now = std::time(nullptr);
+  client_->SignInClient(
+      credentials, properties,
+      [&](const AuthenticationClient::SignInClientResponse& response) {
+        request.set_value(response);
+      });
+  request_future.wait();
+
+  AuthenticationClient::SignInClientResponse response = request_future.get();
+  EXPECT_TRUE(response.IsSuccessful());
+  EXPECT_FALSE(response.GetResult().GetAccessToken().empty());
+  EXPECT_EQ(kResponseToken, response.GetResult().GetAccessToken());
+  EXPECT_GE(now + kMaxExpiryTime, response.GetResult().GetExpiryTime());
+  EXPECT_LT(now + kMinExpiryTime, response.GetResult().GetExpiryTime());
+  EXPECT_EQ("bearer", response.GetResult().GetTokenType());
+  EXPECT_TRUE(response.GetResult().GetRefreshToken().empty());
+  EXPECT_TRUE(response.GetResult().GetUserIdentifier().empty());
+  EXPECT_EQ(response.GetResult().GetScope(), scope_);
+}
 
 TEST_F(AuthenticationClientTest, SignInClientData) {
   AuthenticationCredentials credentials("key_", secret_);
@@ -263,32 +314,7 @@ TEST_F(AuthenticationClientTest, SignInClientData) {
   AuthenticationClient::SignInClientResponse response = request_future.get();
   EXPECT_TRUE(response.IsSuccessful());
   EXPECT_FALSE(response.GetResult().GetAccessToken().empty());
-  EXPECT_EQ(
-      "tyJhbGciOiJSUzUxMiIsImN0eSI6IkpXVCIsImlzcyI6IkhFUkUiLCJhaWQiOiJTcFR5dkQ0"
-      "RjZ1dWhVY0t3Zj"
-      "BPRC"
-      "IsImlhdCI6MTUyMjY5OTY2MywiZXhwIjoxNTIyNzAzMjYzLCJraWQiOiJqMSJ9."
-      "ZXlKaGJHY2lPaUprYVhJaUxDSmxibU1pT2lKQk1qVTJRMEpETFVoVE5URXlJbjAuLkNuSXBW"
-      "VG14bFBUTFhqdF"
-      "l0OD"
-      "VodVEuTk1aMzRVSndtVnNOX21Zd3pwa1UydVFfMklCbE9QeWw0VEJWQnZXczcwRXdoQWRld0"
-      "tpR09KOGFHOWtK"
-      "eTBo"
-      "YWg2SS03Y01WbXQ4S3ppUHVKOXZqV2U1Q0F4cER0LU0yQUxhQTJnZWlIZXJuaEEwZ1ZRR3pV"
-      "akw5OEhDdkpEc2"
-      "YuQX"
-      "hxNTRPTG9FVDhqV2ZreTgtZHY4ZUR1SzctRnJOWklGSms0RHZGa2F5Yw.bfSc5sXovW0-"
-      "yGTqWDZtsVvqIxeNl9IGFbtzRBRkHCHEjthZzeRscB6oc707JTpiuRmDKJe6oFU03RocTS99"
-      "YBlM3p5rP2moad"
-      "DNmP"
-      "3Uag4elo6z0ZE_w1BP7So7rMX1k4NymfEATdmyXVnjAhBlTPQqOYIWV-"
-      "UNCXWCIzLSuwaJ96N1d8XZeiA1jkpsp4CKfcSSm9hgsKNA95SWPnZAHyqOYlO0sDE28osOIj"
-      "N2UVSUKlO1BDtL"
-      "iPLt"
-      "a_dIqvqFUU5aRi_"
-      "dcYqkJcZh195ojzeAcvDGI6HqS2zUMTdpYUhlwwfpkxGwrFmlAxgx58xKSeVt0sPvtabZBAW"
-      "8uh2NGg",
-      response.GetResult().GetAccessToken());
+  EXPECT_EQ(kResponseToken, response.GetResult().GetAccessToken());
   EXPECT_GE(now + kMaxExpiryTime, response.GetResult().GetExpiryTime());
   EXPECT_LT(now + kMinExpiryTime, response.GetResult().GetExpiryTime());
   EXPECT_EQ("bearer", response.GetResult().GetTokenType());
@@ -308,32 +334,7 @@ TEST_F(AuthenticationClientTest, SignInClientData) {
   AuthenticationClient::SignInClientResponse response_2 =
       request_future_2.get();
   EXPECT_TRUE(response_2.IsSuccessful());
-  EXPECT_EQ(
-      "tyJhbGciOiJSUzUxMiIsImN0eSI6IkpXVCIsImlzcyI6IkhFUkUiLCJhaWQiOiJTcFR5dkQ0"
-      "RjZ1dWhVY0t3Zj"
-      "BPRC"
-      "IsImlhdCI6MTUyMjY5OTY2MywiZXhwIjoxNTIyNzAzMjYzLCJraWQiOiJqMSJ9."
-      "ZXlKaGJHY2lPaUprYVhJaUxDSmxibU1pT2lKQk1qVTJRMEpETFVoVE5URXlJbjAuLkNuSXBW"
-      "VG14bFBUTFhqdF"
-      "l0OD"
-      "VodVEuTk1aMzRVSndtVnNOX21Zd3pwa1UydVFfMklCbE9QeWw0VEJWQnZXczcwRXdoQWRld0"
-      "tpR09KOGFHOWtK"
-      "eTBo"
-      "YWg2SS03Y01WbXQ4S3ppUHVKOXZqV2U1Q0F4cER0LU0yQUxhQTJnZWlIZXJuaEEwZ1ZRR3pV"
-      "akw5OEhDdkpEc2"
-      "YuQX"
-      "hxNTRPTG9FVDhqV2ZreTgtZHY4ZUR1SzctRnJOWklGSms0RHZGa2F5Yw.bfSc5sXovW0-"
-      "yGTqWDZtsVvqIxeNl9IGFbtzRBRkHCHEjthZzeRscB6oc707JTpiuRmDKJe6oFU03RocTS99"
-      "YBlM3p5rP2moad"
-      "DNmP"
-      "3Uag4elo6z0ZE_w1BP7So7rMX1k4NymfEATdmyXVnjAhBlTPQqOYIWV-"
-      "UNCXWCIzLSuwaJ96N1d8XZeiA1jkpsp4CKfcSSm9hgsKNA95SWPnZAHyqOYlO0sDE28osOIj"
-      "N2UVSUKlO1BDtL"
-      "iPLt"
-      "a_dIqvqFUU5aRi_"
-      "dcYqkJcZh195ojzeAcvDGI6HqS2zUMTdpYUhlwwfpkxGwrFmlAxgx58xKSeVt0sPvtabZBAW"
-      "8uh2NGg",
-      response_2.GetResult().GetAccessToken());
+  EXPECT_EQ(kResponseToken, response_2.GetResult().GetAccessToken());
   ;
   EXPECT_GE(now_2 + kMaxExpiryTime, response_2.GetResult().GetExpiryTime());
   EXPECT_LT(now_2 + kMinExpiryTime, response_2.GetResult().GetExpiryTime());

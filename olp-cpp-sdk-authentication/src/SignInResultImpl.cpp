@@ -25,6 +25,7 @@
 namespace {
 constexpr auto kTokenType = "tokenType";
 constexpr auto kUserId = "userId";
+constexpr auto kScope = "scope";
 }  // namespace
 
 namespace olp {
@@ -60,6 +61,8 @@ SignInResultImpl::SignInResultImpl(
                        (*json_document)[Constants::EXPIRES_IN].GetUint();
       if (json_document->HasMember(kUserId))
         user_identifier_ = (*json_document)[kUserId].GetString();
+      if (json_document->HasMember(kScope))
+        scope_ = (*json_document)[kScope].GetString();
     }
   }
 }
@@ -83,6 +86,8 @@ time_t SignInResultImpl::GetExpiryTime() const { return expiry_time_; }
 const std::string& SignInResultImpl::GetUserIdentifier() const {
   return user_identifier_;
 }
+
+const std::string& SignInResultImpl::GetScope() const { return scope_; }
 
 bool SignInResultImpl::IsValid() const { return is_valid_; }
 

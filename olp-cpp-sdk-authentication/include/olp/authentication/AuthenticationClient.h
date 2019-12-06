@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <boost/optional.hpp>
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -65,6 +66,23 @@ static const std::string kHereAccountProductionUrl =
  */
 class AUTHENTICATION_API AuthenticationClient {
  public:
+  /**
+   * @brief General properties used to sign in using client credentials.
+   */
+  struct SignInProperties {
+    /**
+     * @brief scope Optional. Scope that should be assigned to access token.
+     */
+    boost::optional<std::string> scope{boost::none};
+
+    /**
+     * @brief expires_in Optional. Number of seconds before token expires, must
+     * number zero or more. Ignored if zero or greater than default expiration
+     * of the application.
+     */
+    std::chrono::seconds expires_in{0};
+  };
+
   /**
    * @brief The password user sign-in properties struct.
    */
@@ -284,10 +302,31 @@ class AUTHENTICATION_API AuthenticationClient {
    * application.
    * @return CancellationToken that can be used to cancel the request.
    */
+  OLP_SDK_DEPRECATED(
+      "Deprecated. Please use version with properties parameter. Will be "
+      "removed by 03.2020")
   client::CancellationToken SignInClient(
       const AuthenticationCredentials& credentials,
       const SignInClientCallback& callback,
       const std::chrono::seconds& expires_in = std::chrono::seconds(0));
+
+  /**
+   * @brief Sign in with HERE account client credentials, requests a client
+   * access token that identifies the application or service by providing client
+   * credentials. Client access tokens can not be refreshed, instead request a
+   * new one using client credentials.
+   * @param credentials Client access keys issued for the client by the HERE
+   * Account as part of the onboarding or support process.
+   * @param properties SignInProperties structure that has scope and expire
+   * properties.
+   * @param callback The method to be called when request is completed. In case
+   * of successful client sign-in request, the returned HTTP status is 200.
+   * Otherwise, check the response error.
+   * @return CancellationToken that can be used to cancel the request.
+   */
+  client::CancellationToken SignInClient(AuthenticationCredentials credentials,
+                                         SignInProperties properties,
+                                         SignInClientCallback callback);
 
   /**
    * @brief Sign in by providing the user email and password previously

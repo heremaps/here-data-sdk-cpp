@@ -76,6 +76,8 @@ class SignInResultImpl : public BaseResult {
    */
   bool IsValid() const override;
 
+  const std::string& GetScope() const;
+
  private:
   bool is_valid_;
 
@@ -85,6 +87,7 @@ class SignInResultImpl : public BaseResult {
   time_t expiry_time_;
   std::string refresh_token_;
   std::string user_identifier_;
+  std::string scope_;
 };
 }  // namespace authentication
 }  // namespace olp
