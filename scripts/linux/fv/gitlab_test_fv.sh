@@ -77,6 +77,7 @@ set -e
 ${FV_HOME}/gitlab-olp-cpp-sdk-integration-test.sh 2>> errors.txt || TEST_FAILURE=1
 
 # Lines below are added for pretty data sum-up and finalize results of this script is case of FAILURE
+set +x  # to avoid dirty output at the end on logs
 if [[ ${TEST_FAILURE} == 1 ]]; then
     export REPORT_COUNT=$(ls ${REPO_HOME}/reports | wc -l)
     if [[ ${REPORT_COUNT} -ne ${EXPECTED_REPORT_COUNT} || ${REPORT_COUNT} == 0 ]]; then

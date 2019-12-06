@@ -98,23 +98,26 @@ do
             RETRY_COUNT=$((RETRY_COUNT+1))
             echo "This is ${RETRY_COUNT} time retry ..."
 
-            # Run functional tests
-            echo "-----> Calling \"${test_command}\" for ${test_group_name} : "
-            eval "${test_command}"
-            result=$?
-            echo "-----> Finished ${test_group_name} - Result=${result}"
             if [[ ${result} -eq 1 ]]; then
+                # Run functional tests if it failed above
+                echo "-----> Calling \"${test_command}\" for ${test_group_name} : "
+                eval "${test_command}"
+                result=$?
+                echo "-----> Finished ${test_group_name} - Result=${result}"
+            fi
+            if [[ ${result} -eq 1 ]]; then
+                # Return to next loop and do retry
                 TEST_FAILURE=1
                 continue
             else
-                # Return to success
+                # Return to success and exit from loop
                 TEST_FAILURE=0
                 break
             fi
         fi
         break
     done
-    # End of retry part. This part can be removed anytime.
+    # End of retry part. This part can be removed anytime when online tests are stable.
 }
 done
 
@@ -152,6 +155,7 @@ cd ..
 ls -la reports/
 ls -la reports/valgrind
 
+set +x  # to avoid dirty output at the end on logs
 for failreport in $(ls ${REPO_HOME}/reports/*.xml)
 do
     echo "Parsing ${failreport} ..."
