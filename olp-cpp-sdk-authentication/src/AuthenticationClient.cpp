@@ -82,6 +82,7 @@ constexpr auto kDateOfBirth = "dob";
 constexpr auto kEmail = "email";
 constexpr auto kFirstName = "firstname";
 constexpr auto kGrantType = "grantType";
+constexpr auto kScope = "scope";
 constexpr auto kInviteToken = "inviteToken";
 constexpr auto kLanguage = "language";
 constexpr auto kLastName = "lastname";
@@ -165,9 +166,8 @@ class AuthenticationClient::Impl final {
    * @return CancellationToken that can be used to cancel the request.
    */
   client::CancellationToken SignInClient(
-      const AuthenticationCredentials& credentials,
-      const std::chrono::seconds& expires_in,
-      const AuthenticationClient::SignInClientCallback& callback);
+      AuthenticationCredentials credentials, SignInProperties properties,
+      AuthenticationClient::SignInClientCallback callback);
 
   client::CancellationToken SignInHereUser(
       const AuthenticationCredentials& credentials,
@@ -212,7 +212,7 @@ class AuthenticationClient::Impl final {
   std::string generateBearerHeader(const std::string& bearer_token);
 
   http::NetworkRequest::RequestBodyType generateClientBody(
-      unsigned int expires_in);
+      const SignInProperties& properties);
   http::NetworkRequest::RequestBodyType generateUserBody(
       const AuthenticationClient::UserProperties& properties);
   http::NetworkRequest::RequestBodyType generateFederatedBody(
@@ -279,9 +279,8 @@ AuthenticationClient::Impl::Impl(const std::string& authentication_server_url,
       network_settings_() {}
 
 client::CancellationToken AuthenticationClient::Impl::SignInClient(
-    const AuthenticationCredentials& credentials,
-    const std::chrono::seconds& expires_in,
-    const AuthenticationClient::SignInClientCallback& callback) {
+    AuthenticationCredentials credentials, SignInProperties properties,
+    AuthenticationClient::SignInClientCallback callback) {
   if (!network_) {
     ExecuteOrSchedule(task_scheduler_, [callback] {
       AuthenticationError result({static_cast<int>(http::ErrorCode::IO_ERROR),
@@ -303,8 +302,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
 
   std::shared_ptr<std::stringstream> payload =
       std::make_shared<std::stringstream>();
-  request.WithBody(
-      generateClientBody(static_cast<unsigned int>(expires_in.count())));
+  request.WithBody(generateClientBody(properties));
   auto cache = client_token_cache_;
   auto send_outcome = network_->Send(
       request, payload,
@@ -724,7 +722,8 @@ std::string AuthenticationClient::Impl::generateBearerHeader(
 }
 
 http::NetworkRequest::RequestBodyType
-AuthenticationClient::Impl::generateClientBody(unsigned int expires_in) {
+AuthenticationClient::Impl::generateClientBody(
+    const SignInProperties& properties) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
   writer.StartObject();
@@ -732,11 +731,16 @@ AuthenticationClient::Impl::generateClientBody(unsigned int expires_in) {
   writer.Key(kGrantType);
   writer.String(kClientGrantType);
 
+  auto expires_in = static_cast<unsigned int>(properties.expires_in.count());
   if (expires_in > 0) {
     writer.Key(Constants::EXPIRES_IN);
     writer.Uint(expires_in);
   }
 
+  if (properties.scope) {
+    writer.Key(kScope);
+    writer.String(properties.scope.get().c_str());
+  }
   writer.EndObject();
   auto content = data.GetString();
   return std::make_shared<std::vector<unsigned char> >(
@@ -764,7 +768,6 @@ AuthenticationClient::Impl::generateUserBody(const UserProperties& properties) {
     writer.Key(Constants::EXPIRES_IN);
     writer.Uint(properties.expires_in);
   }
-
   writer.EndObject();
   auto content = data.GetString();
   return std::make_shared<std::vector<unsigned char> >(
@@ -842,7 +845,6 @@ AuthenticationClient::Impl::generateRefreshBody(
     writer.Key(Constants::EXPIRES_IN);
     writer.Uint(properties.expires_in);
   }
-
   writer.EndObject();
   auto content = data.GetString();
   return std::make_shared<std::vector<unsigned char> >(
@@ -942,7 +944,16 @@ client::CancellationToken AuthenticationClient::SignInClient(
     const AuthenticationCredentials& credentials,
     const SignInClientCallback& callback,
     const std::chrono::seconds& expires_in) {
-  return impl_->SignInClient(credentials, expires_in, callback);
+  SignInProperties properties;
+  properties.expires_in = expires_in;
+  return impl_->SignInClient(credentials, properties, callback);
+}
+
+client::CancellationToken AuthenticationClient::SignInClient(
+    AuthenticationCredentials credentials, SignInProperties properties,
+    SignInClientCallback callback) {
+  return impl_->SignInClient(std::move(credentials), std::move(properties),
+                             std::move(callback));
 }
 
 client::CancellationToken AuthenticationClient::SignInHereUser(

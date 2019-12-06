@@ -99,6 +99,12 @@ class AUTHENTICATION_API SignInResult {
    */
   const std::string& GetUserIdentifier() const;
 
+  /**
+   * @brief Scope that is assigned to access token.
+   * @return String containing the scope.
+   */
+  const std::string& GetScope() const;
+
  private:
   friend class SignInUserResult;
   friend class AuthenticationClient;
