@@ -34,15 +34,9 @@ namespace olp {
 namespace dataservice {
 namespace read {
 
-client::CancellationToken PlatformApi::GetApis(
-    std::shared_ptr<client::OlpClient> client, const std::string& service,
-    const std::string& serviceVersion, const ApisCallback& callback) {
-  return GetApis(*client, service, serviceVersion, callback);
-}
-
-client::CancellationToken PlatformApi::GetApis(
+PlatformApi::ApisResponse PlatformApi::GetApis(
     const client::OlpClient& client, const std::string& service,
-    const std::string& service_version, const ApisCallback& callback) {
+    const std::string& service_version, const client::CancellationContext& context) {
   std::multimap<std::string, std::string> header_params;
   header_params.insert(std::make_pair("Accept", "application/json"));
   std::multimap<std::string, std::string> query_params;
@@ -51,24 +45,16 @@ client::CancellationToken PlatformApi::GetApis(
   std::string platform_url =
       "/platform/apis/" + service + "/" + service_version;
 
-  client::NetworkAsyncCallback network_callback =
-      [callback](client::HttpResponse response) {
-        if (response.status != 200) {
-          callback(ApisResponse(
-              client::ApiError(response.status, response.response.str())));
-        } else {
-          // parse the services
-          // TODO catch any exception and return as Error
-          callback(
-              ApisResponse(parser::parse<olp::dataservice::read::model::Apis>(
-                  response.response)));
-        }
-      };
-
-  return client.CallApi(platform_url, "GET", query_params, header_params,
-                        form_params, nullptr, "", network_callback);
+  auto response =
+      client.CallApi(platform_url, "GET", query_params, header_params,
+                     form_params, nullptr, "", context);
+  if (response.status != http::HttpStatusCode::OK) {
+    return ApisResponse(
+        client::ApiError(response.status, response.response.str()));
+  }
+  return ApisResponse(
+      parser::parse<olp::dataservice::read::model::Apis>(response.response));
 }
-
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp
