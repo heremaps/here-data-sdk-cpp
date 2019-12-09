@@ -33,41 +33,27 @@ namespace olp {
 namespace dataservice {
 namespace read {
 
-client::CancellationToken ResourcesApi::GetApis(
-    std::shared_ptr<client::OlpClient> client, const std::string& hrn,
-    const std::string& service, const std::string& service_version,
-    const ApisCallback& callback) {
-  return GetApis(*client, hrn, service, service_version, callback);
-}
-
-client::CancellationToken ResourcesApi::GetApis(
+ResourcesApi::ApisResponse ResourcesApi::GetApis(
     const client::OlpClient& client, const std::string& hrn,
     const std::string& service, const std::string& service_version,
-    const ApisCallback& callback) {
+    const client::CancellationContext& context) {
   std::multimap<std::string, std::string> header_params;
-  header_params.insert(std::make_pair("Accept", "application/json"));
+  header_params.emplace("Accept", "application/json");
   std::multimap<std::string, std::string> query_params;
   std::multimap<std::string, std::string> form_params;
-
   // scan apis at resource endpoint
   std::string resource_url =
       "/resources/" + hrn + "/apis/" + service + "/" + service_version;
+  auto response =
+      client.CallApi(resource_url, "GET", query_params, header_params,
+                     form_params, nullptr, "", context);
 
-  client::NetworkAsyncCallback network_callback =
-      [callback](client::HttpResponse response) {
-        if (response.status != 200) {
-          callback(ApisResponse(
-              client::ApiError(response.status, response.response.str())));
-        } else {
-          // parse the services
-          // TODO catch any exception and return as Error
-          callback(
-              ApisResponse(parser::parse<olp::dataservice::read::model::Apis>(
-                  response.response)));
-        }
-      };
-  return client.CallApi(resource_url, "GET", query_params, header_params,
-                        form_params, nullptr, "", network_callback);
+  if (response.status != http::HttpStatusCode::OK) {
+    return ApisResponse(
+        client::ApiError(response.status, response.response.str()));
+  }
+  return ApisResponse(
+      parser::parse<olp::dataservice::read::model::Apis>(response.response));
 }
 
 }  // namespace read

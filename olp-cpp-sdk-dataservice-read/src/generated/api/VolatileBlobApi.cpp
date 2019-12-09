@@ -50,7 +50,7 @@ CancellationToken VolatileBlobApi::GetVolatileBlob(
   NetworkAsyncCallback callback =
       [dataResponseCallback](client::HttpResponse response) {
         auto str_response = response.response.str();
-        if (response.status != 200) {
+        if (response.status != http::HttpStatusCode::OK) {
           dataResponseCallback(ApiError(response.status, str_response));
         } else {
           dataResponseCallback(
