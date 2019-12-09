@@ -29,7 +29,8 @@
 namespace olp {
 namespace client {
 class OlpClient;
-}
+class CancellationContext;
+}  // namespace client
 
 namespace dataservice {
 namespace read {
@@ -39,14 +40,13 @@ namespace read {
 class BlobApi {
  public:
   using DataResponse = client::ApiResponse<model::Data, client::ApiError>;
-  using DataResponseCallback = std::function<void(DataResponse)>;
 
   /**
-   * @brief Call to asynchronously retrieve a data blob for specified handle.
+   * @brief Retrieves a data blob for specified handle.
    * @param client Instance of OlpClient used to make REST request.
-   * @param layerId Layer id.
-   * @param dataHandle Indentifies a specific blob.
-   * @param billingTag An optional free-form tag which is used for grouping
+   * @param layer_id Layer id.
+   * @param data_handle Indentifies a specific blob.
+   * @param billing_tag An optional free-form tag which is used for grouping
    * billing records together. If supplied, it must be between 4 - 16
    * characters, contain only alpha/numeric ASCII characters  [A-Za-z0-9].
    * @param range Use this parameter to resume download of a large response for
@@ -56,15 +56,16 @@ class BlobApi {
    * only supports a single byte range. The range parameter can also be
    * specified as a query parameter, i.e. range=bytes=10-. For volatile layers
    * use the pagination links returned in the response body.
-   * @param callback A callback function to invoke with the data response.
+   * @param context A CancellationContext, which can be used to cancel the pending request.
    *
-   * @return The cancellation token.
+   * @return Data response.
    */
-
-  static client::CancellationToken GetBlob(
-      const client::OlpClient& client, const std::string& layerId,
-      const std::string& dataHandle, boost::optional<std::string> billingTag,
-      boost::optional<std::string> range, const DataResponseCallback& callback);
+  static DataResponse GetBlob(const client::OlpClient& client,
+                              const std::string& layer_id,
+                              const std::string& data_handle,
+                              boost::optional<std::string> billing_tag,
+                              boost::optional<std::string> range,
+                              const client::CancellationContext& context);
 };
 
 }  // namespace read

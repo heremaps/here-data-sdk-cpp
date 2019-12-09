@@ -29,6 +29,7 @@
 namespace olp {
 namespace client {
 class OlpClient;
+class CancellationContext;
 }
 
 namespace dataservice {
@@ -39,26 +40,24 @@ namespace read {
 class VolatileBlobApi {
  public:
   using DataResponse = client::ApiResponse<model::Data, client::ApiError>;
-  using DataResponseCallback = std::function<void(DataResponse)>;
 
   /**
-   * @brief Call to asynchronously retrieve a volatile data blob for specified
-   * handle.
+   * @brief Retrieves a volatile data blob for specified handle.
    * @param client Instance of OlpClient used to make REST request.
-   * @param layerId Layer id.
-   * @param dataHandle Indentifies a specific blob.
-   * @param billingTag An optional free-form tag which is used for grouping
+   * @param layer_id Layer id.
+   * @param data_handle Identifies a specific blob.
+   * @param billing_tag An optional free-form tag which is used for grouping
    * billing records together. If supplied, it must be between 4 - 16
    * characters, contain only alpha/numeric ASCII characters  [A-Za-z0-9].
-   * @param callback A callback function to invoke with the data response.
+   * @param context A CancellationContext, which can be used to cancel request.
    *
-   * @return The cancellation token.
+   * @return Data response.
    */
-
-  static client::CancellationToken GetVolatileBlob(
-      const client::OlpClient& client, const std::string& layerId,
-      const std::string& dataHandle, boost::optional<std::string> billingTag,
-      const DataResponseCallback& callback);
+  static DataResponse GetVolatileBlob(const client::OlpClient& client,
+                                      const std::string& layer_id,
+                                      const std::string& data_handle,
+                                      boost::optional<std::string> billing_tag,
+                                      const client::CancellationContext& context);
 };
 
 }  // namespace read

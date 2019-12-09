@@ -274,18 +274,12 @@ TEST_F(ApiTest, GetBlob) {
       << ApiErrorToString(client_response.GetError());
   auto blob_client = client_response.GetResult();
 
-  std::promise<olp::dataservice::read::BlobApi::DataResponse> data_promise;
-  auto data_callback =
-      [&data_promise](
-          olp::dataservice::read::BlobApi::DataResponse data_response) {
-        data_promise.set_value(data_response);
-      };
+  olp::client::CancellationContext context;
 
   auto start_time = std::chrono::high_resolution_clock::now();
-  olp::dataservice::read::BlobApi::GetBlob(
+  auto data_response = olp::dataservice::read::BlobApi::GetBlob(
       blob_client, "testlayer", "d5d73b64-7365-41c3-8faf-aa6ad5bab135",
-      boost::none, boost::none, data_callback);
-  auto data_response = data_promise.get_future().get();
+      boost::none, boost::none, context);
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;
@@ -308,19 +302,10 @@ TEST_F(ApiTest, DISABLED_GetVolatileBlob) {
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
   auto volatile_blob_client = client_response.GetResult();
-
-  std::promise<olp::dataservice::read::BlobApi::DataResponse> data_promise;
-  auto data_callback =
-      [&data_promise](
-          olp::dataservice::read::BlobApi::DataResponse data_response) {
-        data_promise.set_value(data_response);
-      };
-
   auto start_time = std::chrono::high_resolution_clock::now();
-  olp::dataservice::read::VolatileBlobApi::GetVolatileBlob(
+  auto data_response = olp::dataservice::read::VolatileBlobApi::GetVolatileBlob(
       volatile_blob_client, "testlayer", "d5d73b64-7365-41c3-8faf-aa6ad5bab135",
-      boost::none, data_callback);
-  auto data_response = data_promise.get_future().get();
+      boost::none, {});
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;

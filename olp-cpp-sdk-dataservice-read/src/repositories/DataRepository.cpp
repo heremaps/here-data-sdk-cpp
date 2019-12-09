@@ -134,63 +134,16 @@ DataResponse DataRepository::GetBlobData(
     return blob_api.GetError();
   }
 
-  const client::OlpClient& client = blob_api.GetResult();
-
-  Condition condition;
-
-  // when the network operation took too much time we cancel it and exit
-  // execution, to make sure that network callback will not access dangling
-  // references we protect them with atomic bool flag.
-  auto flag = std::make_shared<std::atomic_bool>(true);
-
   BlobApi::DataResponse blob_response;
-  auto blob_callback = [&, flag](BlobApi::DataResponse response) {
-    if (flag->exchange(false)) {
-      blob_response = std::move(response);
-      condition.Notify();
-    }
-  };
 
-  cancellation_context.ExecuteOrCancelled(
-      [&]() {
-        client::CancellationToken token;
-        if (service == "blob") {
-          token = BlobApi::GetBlob(client, layer, data_handle.value(),
-                                   data_request.GetBillingTag(), boost::none,
-                                   std::move(blob_callback));
-        } else {
-          token = VolatileBlobApi::GetVolatileBlob(
-              client, layer, data_handle.value(), data_request.GetBillingTag(),
-              std::move(blob_callback));
-        }
-
-        return client::CancellationToken([&, token, flag]() {
-          if (flag->exchange(false)) {
-            token.Cancel();
-            condition.Notify();
-          }
-        });
-      },
-      [&]() {
-        // if context was cancelled before the execution setup, unblock the
-        // upcoming wait routine.
-        condition.Notify();
-      });
-
-  if (!condition.Wait()) {
-    // We are just about exit the execution.
-
-    cancellation_context.CancelOperation();
-    OLP_SDK_LOG_INFO_F(kLogTag, "timeout");
-    return ApiError(ErrorCode::RequestTimeout, "Network request timed out.");
-  }
-
-  flag->store(false);
-
-  if (cancellation_context.IsCancelled()) {
-    // We can't use blob response here because it could potentially be
-    // uninitialized.
-    return ApiError(ErrorCode::Cancelled, "Operation cancelled.");
+  if (service == kBlobService) {
+    blob_response = BlobApi::GetBlob(
+        blob_api.GetResult(), layer, data_handle.value(),
+        data_request.GetBillingTag(), boost::none, cancellation_context);
+  } else {
+    blob_response = VolatileBlobApi::GetVolatileBlob(
+        blob_api.GetResult(), layer, data_handle.value(),
+        data_request.GetBillingTag(), cancellation_context);
   }
 
   if (blob_response.IsSuccessful()) {

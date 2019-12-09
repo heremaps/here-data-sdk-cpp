@@ -31,42 +31,31 @@ namespace dataservice {
 namespace read {
 using namespace olp::client;
 
-CancellationToken VolatileBlobApi::GetVolatileBlob(
-    const OlpClient& client, const std::string& layerId,
-    const std::string& dataHandle, boost::optional<std::string> billingTag,
-    const DataResponseCallback& dataResponseCallback) {
-  std::multimap<std::string, std::string> headerParams;
-  headerParams.insert(std::make_pair("Accept", "application/json"));
-
-  std::multimap<std::string, std::string> queryParams;
-  if (billingTag) {
-    queryParams.insert(std::make_pair("billingTag", *billingTag));
+VolatileBlobApi::DataResponse VolatileBlobApi::GetVolatileBlob(
+    const OlpClient& client, const std::string& layer_id,
+    const std::string& data_handle, boost::optional<std::string> billing_tag,
+    const CancellationContext& context) {
+  std::multimap<std::string, std::string> header_params;
+  header_params.insert(std::make_pair("Accept", "application/json"));
+  std::multimap<std::string, std::string> query_params;
+  if (billing_tag) {
+    query_params.insert(std::make_pair("billingTag", *billing_tag));
   }
 
-  std::multimap<std::string, std::string> formParams;
+  std::multimap<std::string, std::string> form_params;
+  std::string metadata_uri = "/layers/" + layer_id + "/data/" + data_handle;
+  auto response =
+      client.CallApi(metadata_uri, "GET", query_params, header_params,
+                     form_params, nullptr, "", context);
+  
+  auto str_response = response.response.str();
+  if (response.status != http::HttpStatusCode::OK) {
+    return ApiError(response.status, str_response);
+  }
 
-  std::string metadataUri = "/layers/" + layerId + "/data/" + dataHandle;
-
-  NetworkAsyncCallback callback =
-      [dataResponseCallback](client::HttpResponse response) {
-        auto str_response = response.response.str();
-        if (response.status != http::HttpStatusCode::OK) {
-          dataResponseCallback(ApiError(response.status, str_response));
-        } else {
-          dataResponseCallback(
-              // TODO: response from HttpResponse should be already in
-              // raw data format to avoid copy
-              std::make_shared<std::vector<unsigned char>>(str_response.begin(),
-                                                           str_response.end()));
-        }
-      };
-
-  return client.CallApi(metadataUri, "GET", queryParams, headerParams,
-                        formParams, nullptr, "", callback);
+  return std::make_shared<std::vector<unsigned char>>(str_response.begin(),
+                                                      str_response.end());
 }
-
 }  // namespace read
-
 }  // namespace dataservice
-
 }  // namespace olp
