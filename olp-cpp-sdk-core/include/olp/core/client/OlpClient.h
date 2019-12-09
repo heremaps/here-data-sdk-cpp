@@ -92,6 +92,14 @@ class CORE_API OlpClient {
       const std::string& content_type,
       const NetworkAsyncCallback& callback) const;
 
+  HttpResponse CallApi(std::string path, std::string method,
+                       std::multimap<std::string, std::string> query_params,
+                       std::multimap<std::string, std::string> header_params,
+                       std::multimap<std::string, std::string> form_params,
+                       std::shared_ptr<std::vector<unsigned char>> post_body,
+                       std::string content_type,
+                       CancellationContext context) const;
+
  private:
   std::shared_ptr<http::NetworkRequest> CreateRequest(
       const std::string& path, const std::string& method,
