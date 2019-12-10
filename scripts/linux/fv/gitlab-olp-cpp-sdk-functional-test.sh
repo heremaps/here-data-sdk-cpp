@@ -45,4 +45,5 @@ export result=$?
 kill -15 ${SERVER_PID}
 # Waiter for server process to be exited correctly
 wait ${SERVER_PID}
+echo "Functional test finished with status: ${result}"
 exit ${result}
