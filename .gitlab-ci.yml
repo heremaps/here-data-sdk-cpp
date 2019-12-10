@@ -10,7 +10,21 @@ stages:
   - translate_report
   - deploy
 
-build_test_fv:
+build_linux_armhf_fv:
+  stage: build
+  tags:
+  - docker-prod
+  image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_ARMHF}:${DOCKER_IMAGE_ARMHF_VERSION}
+  script:
+  - $CI_PROJECT_DIR/scripts/linux-armhf/fv/gitlab_build_armhf_fv.sh
+  only:
+    refs:
+      - master
+      - schedules
+    variables:
+      - $FULLY
+
+build_test_linux_fv:
   stage: build
   tags:
   - docker-prod
