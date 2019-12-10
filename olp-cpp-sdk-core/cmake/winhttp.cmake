@@ -20,7 +20,7 @@ if(WIN32)
         "${CMAKE_CURRENT_LIST_DIR}/../src/http/winhttp/NetworkWinHttp.h"
     )
 
-    add_definitions(-DNETWORK_HAS_WINHTTP)
+    add_definitions(-DOLP_SDK_NETWORK_HAS_WINHTTP)
     set(NETWORK_WINHTTP_LIBRARIES winhttp)
 
     find_package(ZLIB QUIET)

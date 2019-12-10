@@ -38,7 +38,7 @@
 #include <signal.h>
 #endif
 
-#ifdef NETWORK_HAS_OPENSSL
+#ifdef OLP_SDK_NETWORK_HAS_OPENSSL
 #include <openssl/crypto.h>
 #endif
 #ifdef NETWORK_USE_TIMEPROVIDER
@@ -85,7 +85,7 @@ std::vector<std::pair<std::string, std::string> > GetStatistics(
   return statistics;
 }
 
-#ifdef NETWORK_HAS_OPENSSL
+#ifdef OLP_SDK_NETWORK_HAS_OPENSSL
 
 const auto curl_ca_bundle_name = "ca-bundle.crt";
 
@@ -180,7 +180,7 @@ int ConvertErrorCode(CURLcode curl_code) {
   }
 }
 
-#ifdef NETWORK_HAS_OPENSSL
+#ifdef OLP_SDK_NETWORK_HAS_OPENSSL
 // Lifetime of the mutex table is managed by NetworkCurl object.
 static std::mutex* gSslMutexes;
 
@@ -247,12 +247,12 @@ bool NetworkCurl::Initialize() {
     return true;
   }
 
-#ifdef NETWORK_HAS_PIPE2
+#ifdef OLP_SDK_NETWORK_HAS_PIPE2
   if (pipe2(pipe_, O_NONBLOCK)) {
     OLP_SDK_LOG_ERROR(kLogTag, "pipe2 failed, this=" << this);
     return false;
   }
-#elif defined NETWORK_HAS_PIPE
+#elif defined OLP_SDK_NETWORK_HAS_PIPE
   if (pipe(pipe_)) {
     OLP_SDK_LOG_ERROR(kLogTag, "pipe failed, this=" << this);
     return false;
@@ -275,7 +275,7 @@ bool NetworkCurl::Initialize() {
   }
 #endif
 
-#ifdef NETWORK_HAS_OPENSSL
+#ifdef OLP_SDK_NETWORK_HAS_OPENSSL
   // OpenSSL setup
   ssl_mutexes_ = std::make_unique<std::mutex[]>(CRYPTO_num_locks());
   gSslMutexes = ssl_mutexes_.get();
@@ -338,7 +338,7 @@ void NetworkCurl::Deinitialize() {
 }
 
 void NetworkCurl::Teardown() {
-#if (defined NETWORK_HAS_PIPE) || (defined NETWORK_HAS_PIPE2)
+#if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
   char tmp = 1;
   if (write(pipe_[1], &tmp, 1) < 0) {
     OLP_SDK_LOG_INFO(kLogTag, "Deinitialize, failed to write pipe, err="
@@ -369,7 +369,7 @@ void NetworkCurl::Teardown() {
   curl_multi_cleanup(curl_);
   curl_ = nullptr;
 
-#ifdef NETWORK_HAS_OPENSSL
+#ifdef OLP_SDK_NETWORK_HAS_OPENSSL
   // OpenSSL teardown
   CRYPTO_set_id_callback(nullptr);
   CRYPTO_set_locking_callback(nullptr);
@@ -377,7 +377,7 @@ void NetworkCurl::Teardown() {
   ssl_mutexes_.reset();
 #endif
 
-#if (defined NETWORK_HAS_PIPE) || (defined NETWORK_HAS_PIPE2)
+#if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
   close(pipe_[0]);
   close(pipe_[1]);
 #endif
@@ -563,7 +563,7 @@ ErrorCode NetworkCurl::SendImplementation(
     curl_easy_setopt(handle->handle, CURLOPT_HTTPHEADER, handle->chunk);
   }
 
-#ifdef NETWORK_HAS_OPENSSL
+#ifdef OLP_SDK_NETWORK_HAS_OPENSSL
   std::string curl_ca_bundle = "";
   if (curl_ca_bundle.empty()) {
     curl_ca_bundle = CaBundlePath();
@@ -647,7 +647,7 @@ void NetworkCurl::Cancel(RequestId id) {
 void NetworkCurl::AddEvent(EventInfo::Type type, RequestHandle* handle) {
   events_.emplace_back(type, handle);
   event_condition_.notify_all();
-#if (defined NETWORK_HAS_PIPE) || (defined NETWORK_HAS_PIPE2)
+#if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
   char tmp = 1;
   if (write(pipe_[1], &tmp, 1) < 0) {
     OLP_SDK_LOG_INFO(kLogTag, "AddEvent - failed for id=" << handle->id
@@ -1091,7 +1091,7 @@ void NetworkCurl::Run() {
     int maxfd = 0;
     fd_set rfds;
     FD_ZERO(&rfds);
-#if (defined NETWORK_HAS_PIPE) || (defined NETWORK_HAS_PIPE2)
+#if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
     FD_SET(pipe_[0], &rfds);
 #endif
     fd_set wfds;
@@ -1104,7 +1104,7 @@ void NetworkCurl::Run() {
     }
     bool missing_descriptors = maxfd == -1;
 
-#if (defined NETWORK_HAS_PIPE) || (defined NETWORK_HAS_PIPE2)
+#if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
     if (maxfd < pipe_[0]) {
       maxfd = pipe_[0];
     }
@@ -1219,7 +1219,7 @@ void NetworkCurl::Run() {
       interval.tv_sec = timeout / 1000;
       interval.tv_usec = (timeout % 1000) * 1000;
       ::select(maxfd + 1, &rfds, &wfds, &excfds, &interval);
-#if (defined NETWORK_HAS_PIPE) || (defined NETWORK_HAS_PIPE2)
+#if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
       if (FD_ISSET(pipe_[0], &rfds)) {
         char tmp;
         while (read(pipe_[0], &tmp, 1) > 0) {

@@ -33,7 +33,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
-#ifdef NETWORK_HAS_OPENSSL
+#ifdef OLP_SDK_NETWORK_HAS_OPENSSL
 #include <openssl/crypto.h>
 #endif
 
@@ -328,7 +328,7 @@ class NetworkCurl : public olp::http::Network,
   /// UNIX Pipe used to notify sleeping worker thread during select() call.
   int pipe_[2]{};
 
-#ifdef NETWORK_HAS_OPENSSL
+#ifdef OLP_SDK_NETWORK_HAS_OPENSSL
   /// Mutexes that are used by OpenSSL to synchronize during concurrent
   /// network transfer.
   std::unique_ptr<std::mutex[]> ssl_mutexes_{};
