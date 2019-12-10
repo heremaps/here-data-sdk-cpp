@@ -28,7 +28,7 @@ if(IOS)
         "${CMAKE_CURRENT_LIST_DIR}/../src/http/ios/OLPHttpClient.h"
     )
 
-    add_definitions(-DNETWORK_HAS_IOS)
+    add_definitions(-DOLP_SDK_NETWORK_HAS_IOS)
 else()
     set(OLP_SDK_HTTP_IOS_SOURCES)
 endif()

@@ -21,13 +21,13 @@
 
 #include "olp/core/utils/WarningWorkarounds.h"
 
-#ifdef NETWORK_HAS_CURL
+#ifdef OLP_SDK_NETWORK_HAS_CURL
 #include "curl/NetworkCurl.h"
-#elif NETWORK_HAS_ANDROID
+#elif OLP_SDK_NETWORK_HAS_ANDROID
 #include "android/NetworkAndroid.h"
-#elif NETWORK_HAS_IOS
+#elif OLP_SDK_NETWORK_HAS_IOS
 #include "ios/OLPNetworkIOS.h"
-#elif NETWORK_HAS_WINHTTP
+#elif OLP_SDK_NETWORK_HAS_WINHTTP
 #include "winhttp/NetworkWinHttp.h"
 #endif
 
@@ -37,13 +37,13 @@ namespace http {
 CORE_API std::shared_ptr<Network> CreateDefaultNetwork(
     size_t max_requests_count) {
   CORE_UNUSED(max_requests_count);
-#ifdef NETWORK_HAS_CURL
+#ifdef OLP_SDK_NETWORK_HAS_CURL
   return std::make_shared<NetworkCurl>(max_requests_count);
-#elif NETWORK_HAS_ANDROID
+#elif OLP_SDK_NETWORK_HAS_ANDROID
   return std::make_shared<NetworkAndroid>(max_requests_count);
-#elif NETWORK_HAS_IOS
+#elif OLP_SDK_NETWORK_HAS_IOS
   return std::make_shared<OLPNetworkIOS>(max_requests_count);
-#elif NETWORK_HAS_WINHTTP
+#elif OLP_SDK_NETWORK_HAS_WINHTTP
   return std::make_shared<NetworkWinHttp>(max_requests_count);
 #else
   static_assert(false, "No default network implementation provided");

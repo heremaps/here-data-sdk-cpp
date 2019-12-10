@@ -19,7 +19,7 @@ if(NOT ANDROID)
     return()
 endif()
 
-add_definitions(-DNETWORK_HAS_ANDROID)
+add_definitions(-DOLP_SDK_NETWORK_HAS_ANDROID)
 set(NETWORK_ANDROID_LIBRARIES ${ANDROID_LIBRARY})
 include_directories(${ANDROID_INCLUDE_DIR})
 
