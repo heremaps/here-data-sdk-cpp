@@ -21,6 +21,7 @@
 
 #include <string>
 
+#include <boost/optional/optional.hpp>
 #include "AuthenticationApi.h"
 
 namespace olp {
@@ -32,6 +33,38 @@ namespace authentication {
  */
 class AUTHENTICATION_API AuthenticationCredentials {
  public:
+  /*
+   * @brief Reads your access credentials from an input stream that is
+   * interpreted as a sequence of characters.
+   *
+   * The stream must contain the following sequences of characters:
+   * * here.access.key.id = <your access key ID>
+   * * here.access.key.secret = <your access key secret>
+   *
+   * @param[in] stream The stream from which the credentials are read.
+   * @return An optional value with your credentials if the credentials were
+   * read successfully, or no value in case of failure.
+   */
+  static boost::optional<AuthenticationCredentials> ReadFromStream(
+      std::istream& stream);
+
+  /*
+   * @brief Parses the **credentials.properties** file downloaded from the OLP
+   * [website](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html)
+   * and retrieves a value with your credentials.
+   *
+   * The file must contain the following lines:
+   * * here.access.key.id = <your access key ID>
+   * * here.access.key.secret = <your access key secret>
+   *
+   * @param[in] filename The path to the file that contains the credentials.
+   * An empty path is replaced with the following default path:
+   * $HOME/.here/credentials.properties
+   * @return An optional value with your credentials if the credentials were
+   * read successfully, or no value in case of failure.
+   */
+  static boost::optional<AuthenticationCredentials> ReadFromFile(
+      std::string filename = {});
   AuthenticationCredentials() = delete;
 
   /**

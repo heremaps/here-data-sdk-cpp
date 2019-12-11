@@ -16,7 +16,7 @@
 # License-Filename: LICENSE
 
 set(OLP_AUTHENTICATION_TEST_SOURCES
-    placeholder.cpp
+    AuthenticationCredentialsTest.cpp
 )
 
 if (ANDROID OR IOS)
