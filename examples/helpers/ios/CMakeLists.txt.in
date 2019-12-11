@@ -21,7 +21,7 @@ if (NOT IOS)
     message(FATAL_ERROR "Unsupported platform!")
 endif()
 
-project(@OLP_SDK_EXAMPLE_TARGET_NAME@ VERSION 1.0.0)
+project(@OLP_SDK_EXAMPLE_TARGET_NAME@ VERSION 1.1.0)
 
 add_executable(@OLP_SDK_EXAMPLE_TARGET_NAME@
                 ${CMAKE_CURRENT_SOURCE_DIR}/example.h
