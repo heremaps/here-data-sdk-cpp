@@ -19,7 +19,7 @@
 
 
 # Start local server
-node $REPO_HOME/tests/utils/mock_server/server.js & export SERVER_PID=$!
+node $REPO_HOME/tests/utils/mock_server/server.js & SERVER_PID=$!
 
 # Node can start server in 1 second, but not faster.
 # Add waiter for server to be started. No other way to solve that.
@@ -30,7 +30,7 @@ do
         set +e
         curl -s http://localhost:3000
         RC=$?
-        sleep 0.15
+        sleep 0.2
         set -e
 done
 
@@ -39,11 +39,12 @@ source $FV_HOME/olp-cpp-sdk-functional-test.variables
 $REPO_HOME/build/tests/functional/olp-cpp-sdk-functional-tests \
     --gtest_output="xml:$REPO_HOME/reports/olp-functional-test-report.xml" \
     --gtest_filter="-ArcGisAuthenticationTest.SignInArcGis":"FacebookAuthenticationTest.SignInFacebook"
-export result=$?
+result=$?
+echo "Functional test finished with status: ${result}"
 
 # Kill local server
-kill -15 ${SERVER_PID}
+# Some workarounds applied below due to unstable nodejs mock_server shutdown
+kill -15 ${SERVER_PID} || wait
 # Waiter for server process to be exited correctly
-wait ${SERVER_PID}
-echo "Functional test finished with status: ${result}"
+wait ${SERVER_PID} || wait
 exit ${result}
