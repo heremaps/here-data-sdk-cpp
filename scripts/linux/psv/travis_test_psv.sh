@@ -28,8 +28,7 @@ CPP_TEST_SOURCE_DARASERVICE_WRITE=build/olp-cpp-sdk-dataservice-write/tests
 CPP_TEST_SOURCE_INTEGRATION=build/tests/integration
 echo ">>> Authentication Test ... >>>"
 $CPP_TEST_SOURCE_AUTHENTICATION/olp-cpp-sdk-authentication-tests \
-    --gtest_output="xml:olp-cpp-sdk-authentication-tests-report.xml" \
-    --gtest_filter="AuthenticationOfflineTest.*"
+    --gtest_output="xml:olp-cpp-sdk-authentication-tests-report.xml"
 echo ">>> Core Test ... >>>"
 $CPP_TEST_SOURCE_CORE/olp-cpp-sdk-core-tests \
     --gtest_output="xml:olp-cpp-sdk-core-tests-report.xml"

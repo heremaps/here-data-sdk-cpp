@@ -129,8 +129,15 @@ int RunExample() {
   std::shared_ptr<olp::http::Network> http_client = olp::client::
       OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
 
-  // Initialize authentication settings
-  olp::authentication::Settings settings({kKeyId, kKeySecret});
+  // Get your access credentials from the **credentials.properties** file that
+  // you can download from the Open Location Platform (OLP)
+  // [website](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html).
+  const auto read_credentials_result =
+      olp::authentication::AuthenticationCredentials::ReadFromFile();
+
+  // Initialize authentication settings.
+  olp::authentication::Settings settings{
+      read_credentials_result.get_value_or({kKeyId, kKeySecret})};
   settings.task_scheduler = task_scheduler;
   settings.network_request_handler = http_client;
 
