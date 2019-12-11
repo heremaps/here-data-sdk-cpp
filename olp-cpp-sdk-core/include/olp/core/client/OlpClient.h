@@ -92,6 +92,25 @@ class CORE_API OlpClient {
       const std::string& content_type,
       const NetworkAsyncCallback& callback) const;
 
+  /**
+   * @brief Executes the REST request through the network stack in a blocking
+   * way.
+   * @param path The path that is appended to the base URL.
+   * @param method Choose one of the following methods: GET, POST, DELETE, PUT.
+   * @param query_params The parameters that are appended to the path URL.
+   * @param header_params The headers used to customize request.
+   * @param form_params (For the POST request) Populate one of the following
+   * parameters: `form_params` or `post_body`.
+   * @param post_body (For the POST request) Populate one of the following
+   * parameters: `form_params` or `post_body`. This data must not be modified
+   * until the request is completed.
+   * @param content_type The content type of the `post_body` or `form_params`
+   * parameters.
+   * @param context The `CancellationContext` instance that is used to cancel
+   * the request.
+   *
+   * @return The `HttpResponse` instance.
+   */
   HttpResponse CallApi(std::string path, std::string method,
                        std::multimap<std::string, std::string> query_params,
                        std::multimap<std::string, std::string> header_params,

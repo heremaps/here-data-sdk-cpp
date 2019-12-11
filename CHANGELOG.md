@@ -1,3 +1,23 @@
+## v1.1.0 (11/12/2019)
+
+**Common**
+* The deprecated `olp::client::CancellationToken::cancel()` method was removed. Use `olp::client::CancellationToken::Cancel()` instead.
+* The `curl` network implementation was fixed and can now compile on 32 bits architecture.
+* The `disk_path` field in `olp::cache::CacheSettings` is deprecated. Use the `disk_path_mutable` field instead.
+* A new synchronous `CallApi` method was added to `olp::client::OlpClient`.
+* `pipe` and `pipe2` symbols detection are enhanced in curl.cmake.
+
+**olp-cpp-sdk-authentication**
+* The `SignInClient` method in `olp::authentication::AuthenticationClient` is deprecated in favor of the newly introduced `SignInClient` method with a different signature.
+* The `scope` support was added to OAuth2 through `olp::authentication::SignInProperties`. You can now access the project bound resources using the `olp::authentication::SignInProperties::scope` field.
+* The `error_id` field was added to the `ErrorResponse` structure. You can use it to get the `errorId` string from the authentication error response.
+
+**olp-cpp-sdk-dataservice-read**
+* The deprecated `GetCatalogMetadataVersion` method was removed from the `olp::dataservice::read::CatalogClient`.
+
+**olp-cpp-sdk-dataservice-write**
+* Legacy and unused code were removed.
+
 ## v1.0.0 (03/12/2019)
 
 **Common**
