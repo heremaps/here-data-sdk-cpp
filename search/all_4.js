@@ -15,6 +15,7 @@ var searchData=
   ['equatorialradius',['EquatorialRadius',['../classolp_1_1geo_1_1EarthConstants.html#a51edb393c51a89235266b566ef03cc88',1,'olp::geo::EarthConstants']]],
   ['equirectangularprojection',['EquirectangularProjection',['../classolp_1_1geo_1_1EquirectangularProjection.html',1,'olp::geo']]],
   ['erase',['Erase',['../classolp_1_1utils_1_1LruCache.html#a502520692b6773c890ed357d0bec2d18',1,'olp::utils::LruCache']]],
+  ['error_5fid',['error_id',['../structolp_1_1authentication_1_1ErrorResponse.html#a60bdc03389d68e415cd937593df0a799',1,'olp::authentication::ErrorResponse']]],
   ['errorcode',['ErrorCode',['../namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59',1,'olp::client::ErrorCode()'],['../namespaceolp_1_1http.html#a61c765861938a212070d01911a6b6a17',1,'olp::http::ErrorCode()']]],
   ['errorfield',['ErrorField',['../structolp_1_1authentication_1_1ErrorField.html',1,'olp::authentication']]],
   ['errorfields',['ErrorFields',['../namespaceolp_1_1authentication.html#aee1f6de5b659eb659c18eeb171dc4a02',1,'olp::authentication']]],
@@ -23,5 +24,5 @@ var searchData=
   ['execute',['Execute',['../classolp_1_1client_1_1TaskContext.html#a8822dbffe28a487d7aed647c36f3cc9a',1,'olp::client::TaskContext']]],
   ['executeorcancelled',['ExecuteOrCancelled',['../classolp_1_1client_1_1CancellationContext.html#abbe5f588ea888b0f90b219ef3e6c280a',1,'olp::client::CancellationContext']]],
   ['exists',['exists',['../classolp_1_1utils_1_1Dir.html#ad1cb55b4729a39aff844c37aa2f36089',1,'olp::utils::Dir']]],
-  ['expires_5fin',['expires_in',['../structolp_1_1authentication_1_1AuthenticationClient_1_1UserProperties.html#ab4545e27f07d7716c9b62544bd389584',1,'olp::authentication::AuthenticationClient::UserProperties::expires_in()'],['../structolp_1_1authentication_1_1AuthenticationClient_1_1FederatedProperties.html#a1d4293fd55bd45906b2515f67da89b81',1,'olp::authentication::AuthenticationClient::FederatedProperties::expires_in()'],['../structolp_1_1authentication_1_1AuthenticationClient_1_1RefreshProperties.html#aea3c4951480f059f8fed97bb9f4a4467',1,'olp::authentication::AuthenticationClient::RefreshProperties::expires_in()']]]
+  ['expires_5fin',['expires_in',['../structolp_1_1authentication_1_1AuthenticationClient_1_1SignInProperties.html#ae02f7d8df14e384bb8621b8a6a3fd419',1,'olp::authentication::AuthenticationClient::SignInProperties::expires_in()'],['../structolp_1_1authentication_1_1AuthenticationClient_1_1UserProperties.html#ab4545e27f07d7716c9b62544bd389584',1,'olp::authentication::AuthenticationClient::UserProperties::expires_in()'],['../structolp_1_1authentication_1_1AuthenticationClient_1_1FederatedProperties.html#a1d4293fd55bd45906b2515f67da89b81',1,'olp::authentication::AuthenticationClient::FederatedProperties::expires_in()'],['../structolp_1_1authentication_1_1AuthenticationClient_1_1RefreshProperties.html#aea3c4951480f059f8fed97bb9f4a4467',1,'olp::authentication::AuthenticationClient::RefreshProperties::expires_in()']]]
 ];

@@ -1,3 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classolp_1_1client_1_1ApiError.html" title="olp::client::ApiError" alt="" coords="5,5,139,32"/>
+<area shape="rect" id="node1" href="$classolp_1_1cache_1_1KeyValueCache.html" title="Interface for cache expecting a key,value pair." alt="" coords="5,5,201,32"/>
+<area shape="rect" id="node2" href="$classolp_1_1cache_1_1DefaultCache.html" title="Default cache that provides an in&#45;memory LRU cache and persistance of cached key,value pairs." alt="" coords="249,5,433,32"/>
 </map>

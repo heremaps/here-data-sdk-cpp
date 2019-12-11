@@ -1,9 +1,10 @@
 <map id="olp::dataservice::write::model::IndexValue" name="olp::dataservice::write::model::IndexValue">
-<area shape="rect" id="node2" href="$classolp_1_1dataservice_1_1write_1_1model_1_1BooleanIndexValue.html" title="BooleanIndexValue that is supported by OLP index layer indexField. " alt="" coords="219,5,404,47"/>
-<area shape="rect" id="node3" href="$classolp_1_1dataservice_1_1write_1_1model_1_1EmptyIndexValue.html" title="EmptyIndexValue that is passed to by OLP index layer indexField. " alt="" coords="223,71,399,112"/>
-<area shape="rect" id="node4" href="$classolp_1_1dataservice_1_1write_1_1model_1_1HereTileIndexValue.html" title="HereTileIndexValue that is supported by OLP index layer indexField. " alt="" coords="218,136,405,177"/>
-<area shape="rect" id="node5" href="$classolp_1_1dataservice_1_1write_1_1model_1_1IntIndexValue.html" title="IntIndexValue that is supported by OLP index layer indexField. " alt="" coords="235,201,388,243"/>
-<area shape="rect" id="node6" href="$classolp_1_1dataservice_1_1write_1_1model_1_1StringIndexValue.html" title="IntIndexValue that is supported by OLP index layer indexField. " alt="" coords="225,267,397,308"/>
-<area shape="rect" id="node7" href="$classolp_1_1dataservice_1_1write_1_1model_1_1TimeWindowIndexValue.html" title="TimeWindowIndexValue that is supported by OLP index layer indexField. " alt="" coords="204,332,419,373"/>
-<area shape="rect" id="node8" href="$classolp_1_1dataservice_1_1write_1_1model_1_1UnsupportedIndexValue.html" title="UnsupportedIndexValue that is not supported by OLP index layer. " alt="" coords="205,397,417,439"/>
+<area shape="rect" id="node1" title="IndexValue that is supported by OLP index layer." alt="" coords="5,201,172,243"/>
+<area shape="rect" id="node2" href="$classolp_1_1dataservice_1_1write_1_1model_1_1BooleanIndexValue.html" title="BooleanIndexValue that is supported by OLP index layer indexField." alt="" coords="236,5,440,47"/>
+<area shape="rect" id="node3" href="$classolp_1_1dataservice_1_1write_1_1model_1_1EmptyIndexValue.html" title="EmptyIndexValue that is passed to by OLP index layer indexField." alt="" coords="241,71,435,112"/>
+<area shape="rect" id="node4" href="$classolp_1_1dataservice_1_1write_1_1model_1_1HereTileIndexValue.html" title="HereTileIndexValue that is supported by OLP index layer indexField." alt="" coords="235,136,441,177"/>
+<area shape="rect" id="node5" href="$classolp_1_1dataservice_1_1write_1_1model_1_1IntIndexValue.html" title="IntIndexValue that is supported by OLP index layer indexField." alt="" coords="254,201,422,243"/>
+<area shape="rect" id="node6" href="$classolp_1_1dataservice_1_1write_1_1model_1_1StringIndexValue.html" title="IntIndexValue that is supported by OLP index layer indexField." alt="" coords="243,267,433,308"/>
+<area shape="rect" id="node7" href="$classolp_1_1dataservice_1_1write_1_1model_1_1TimeWindowIndexValue.html" title="TimeWindowIndexValue that is supported by OLP index layer indexField." alt="" coords="220,332,456,373"/>
+<area shape="rect" id="node8" href="$classolp_1_1dataservice_1_1write_1_1model_1_1UnsupportedIndexValue.html" title="UnsupportedIndexValue that is not supported by OLP index layer." alt="" coords="221,397,455,439"/>
 </map>

@@ -4,6 +4,7 @@ var searchData=
   ['scope',['Scope',['../classolp_1_1context_1_1Context_1_1Scope.html',1,'olp::context::Context']]],
   ['sendoutcome',['SendOutcome',['../classolp_1_1http_1_1SendOutcome.html',1,'olp::http']]],
   ['settings',['Settings',['../structolp_1_1authentication_1_1Settings.html',1,'olp::authentication']]],
+  ['signinproperties',['SignInProperties',['../structolp_1_1authentication_1_1AuthenticationClient_1_1SignInProperties.html',1,'olp::authentication::AuthenticationClient']]],
   ['signinresult',['SignInResult',['../classolp_1_1authentication_1_1SignInResult.html',1,'olp::authentication']]],
   ['signinuserresult',['SignInUserResult',['../classolp_1_1authentication_1_1SignInUserResult.html',1,'olp::authentication']]],
   ['signoutresult',['SignOutResult',['../classolp_1_1authentication_1_1SignOutResult.html',1,'olp::authentication']]],

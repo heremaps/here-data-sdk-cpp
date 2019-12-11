@@ -79,6 +79,7 @@ var searchData=
   ['getrequestid',['GetRequestId',['../classolp_1_1http_1_1NetworkResponse.html#a8631be5cc71b0c7c4f3042e60d5d02e8',1,'olp::http::NetworkResponse::GetRequestId()'],['../classolp_1_1http_1_1SendOutcome.html#abc04d3a4cdfbab59bbfe875ab50f909f',1,'olp::http::SendOutcome::GetRequestId()']]],
   ['getresult',['GetResult',['../classolp_1_1client_1_1ApiResponse.html#a24012ebe168758bafcc45399b8d8b4af',1,'olp::client::ApiResponse']]],
   ['getretries',['GetRetries',['../classolp_1_1http_1_1NetworkSettings.html#a9bb5f97918ddd54b61a354db0faf1909',1,'olp::http::NetworkSettings']]],
+  ['getscope',['GetScope',['../classolp_1_1authentication_1_1SignInResult.html#af6c2f7c0f5600a8a4a02701a431919f3',1,'olp::authentication::SignInResult']]],
   ['getsdiimessagelist',['GetSdiiMessageList',['../classolp_1_1dataservice_1_1write_1_1model_1_1PublishSdiiRequest.html#a957f4b30e3bd65d660db8451fe5ca4e5',1,'olp::dataservice::write::model::PublishSdiiRequest']]],
   ['getsecret',['GetSecret',['../classolp_1_1authentication_1_1AuthenticationCredentials.html#ab92cbf0480d31207016461447e7a7a73',1,'olp::authentication::AuthenticationCredentials']]],
   ['getsettings',['GetSettings',['../classolp_1_1http_1_1NetworkRequest.html#a00bbf289e39a5754fa99fd8c48ff69c2',1,'olp::http::NetworkRequest']]],
