@@ -49,22 +49,24 @@ ${FV_HOME}/gitlab-olp-cpp-sdk-dataservice-write-test.sh 2>> errors.txt || TEST_F
 set +e
 while true
 do
-    # Stop after 3 retry
-    if [[ ${RETRY_COUNT} -eq 3 ]]; then
+    # Stop after 2rd retry
+    if [[ ${RETRY_COUNT} -eq 2 ]]; then
         echo "Reach limit (${RETRY_COUNT}) of retries ..."
         break
     fi
 
     if [[ ${RETRY_COUNT} -eq 0 ]]; then
-        echo "This is ${RETRY_COUNT} time run ..."
+        echo "This is (${RETRY_COUNT}) time run ..."
     else
         RETRY_COUNT=$((RETRY_COUNT+1))
-        echo "This is ${RETRY_COUNT} time retry ..."
+        sleep 10
+        echo "This is (${RETRY_COUNT}) time retry ..."
     fi
 
     # Run functional tests
-    ${FV_HOME}/gitlab-olp-cpp-sdk-functional-test.sh 2>> errors.txt
+    ${FV_HOME}/gitlab-olp-cpp-sdk-functional-test.sh
     if [[ $? -eq 1 ]]; then
+        # Functional test failed with exit code 1 means some tests failed
         TEST_FAILURE=1
         continue
     else
@@ -74,7 +76,7 @@ do
     fi
 done
 set -e
-# End of retry part. This part can be removed anytime.
+# End of retry part. This part can be removed any time later or after all online tests are stable.
 
 
 # Run integration tests
