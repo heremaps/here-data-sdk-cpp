@@ -22,6 +22,11 @@ coverage:
         threshold: 1
 ignore:
   - olp-cpp-sdk-authentication/tests
+  - olp-cpp-sdk-core/src/http/android
+  - olp-cpp-sdk-core/src/http/curl
+  - olp-cpp-sdk-core/src/http/ios
+  - olp-cpp-sdk-core/src/http/winhttp
+  - olp-cpp-sdk-core/src/http/Network.cpp
   - olp-cpp-sdk-core/tests
   - olp-cpp-sdk-dataservice-read/tests
   - olp-cpp-sdk-dataservice-write/tests
