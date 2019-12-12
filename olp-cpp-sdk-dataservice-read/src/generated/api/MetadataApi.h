@@ -32,6 +32,7 @@
 namespace olp {
 namespace client {
 class OlpClient;
+class CancellationContext;
 }
 
 namespace dataservice {
@@ -43,42 +44,37 @@ class MetadataApi {
  public:
   using PartitionsResponse =
       client::ApiResponse<model::Partitions, client::ApiError>;
-  using PartitionsCallback = std::function<void(PartitionsResponse)>;
 
   using CatalogVersionResponse =
       client::ApiResponse<model::VersionResponse, client::ApiError>;
-  using CatalogVersionCallback = std::function<void(CatalogVersionResponse)>;
 
   using LayerVersionsResponse =
       client::ApiResponse<model::LayerVersions, client::ApiError>;
-  using LayerVersionsCallback = std::function<void(LayerVersionsResponse)>;
 
   /**
-   * @brief Call to asynchronously retrieve the latest metadata version for each
-   * layer of a specified catalog metadata version.
+   * @brief Retrieves the latest metadata version for each layer of a specified
+   * catalog metadata version.
    * @param client Instance of OlpClient used to make REST request.
    * @param version The catalog version.
-   * @param billingTag An optional free-form tag which is used for grouping
+   * @param billing_tag An optional free-form tag which is used for grouping
    * billing records together. If supplied, it must be between 4 - 16
    * characters, contain only alpha/numeric ASCII characters  [A-Za-z0-9].
-   * @param callback A callback function to invoke with the layer versions.
-   * response.
+   * @param context A CancellationContext, which can be used to cancel request.
    *
-   * @return The cancellation token.
+   * @return The LayerVersions response.
    */
-  static client::CancellationToken GetLayerVersions(
+  static LayerVersionsResponse GetLayerVersions(
       const client::OlpClient& client, int64_t version,
-      boost::optional<std::string> billingTag,
-      const LayerVersionsCallback& callback);
+      boost::optional<std::string> billing_tag,
+      const client::CancellationContext& context);
 
   /**
-   * @brief Call to asynchronously retrieve metadata for all partitions in a
-   * specified layer.
+   * @brief Retrieves metadata for all partitions in a specified layer.
    * @param client Instance of OlpClient used to make REST request.
    * @param layerId Layer id.
    * @param version Specify the version for a versioned layer. Doesn't apply for
    * other layer types.
-   * @param additionalFields Additional fields - dataSize, checksum,
+   * @param additional_fields Additional fields - dataSize, checksum,
    * compressedDataSize.
    * @param range Use this parameter to resume download of a large response for
    * versioned layers when there is a connection issue between the client and
@@ -87,42 +83,39 @@ class MetadataApi {
    * only supports a single byte range. The range parameter can also be
    * specified as a query parameter, i.e. range=bytes=10-. For volatile layers
    * use the pagination links returned in the response body.
-   * @param billingTag An optional free-form tag which is used for grouping
+   * @param billing_tag An optional free-form tag which is used for grouping
    * billing records together. If supplied, it must be between 4 - 16
    * characters, contain only alpha/numeric ASCII characters  [A-Za-z0-9].
-   * @param callback A callback function to invoke with the partitions
-   * response.
+   * @param context A CancellationContext, which can be used to cancel request.
    *
-   * @return The cancellation token.
+   * @return The Partitions response.
    */
-  static client::CancellationToken GetPartitions(
+  static PartitionsResponse GetPartitions(
       const client::OlpClient& client, const std::string& layerId,
       boost::optional<int64_t> version,
-      boost::optional<std::vector<std::string>> additionalFields,
+      boost::optional<std::vector<std::string>> additional_fields,
       boost::optional<std::string> range,
-      boost::optional<std::string> billingTag,
-      const PartitionsCallback& callback);
+      boost::optional<std::string> billing_tag,
+      const client::CancellationContext& context);
 
   /**
-   * @brief Call to asynchronously retrieve the latest metadata version for the
-   * catalog.
+   * @brief Retrieves the latest metadata version for the catalog.
    * @param client Instance of OlpClient used to make REST request.
-   * @param startVersion The catalog version returned from a prior request. Save
-   * the version from each request so it can used in the startVersion parameter
-   * of subsequent requests. If the version from a prior request is not
-   * avaliable, set the parameter to -1.
-   * @param billingTag An optional free-form tag which is used for grouping
+   * @param start_version The catalog version returned from a prior request.
+   * Save the version from each request so it can used in the startVersion
+   * parameter of subsequent requests. If the version from a prior request is
+   * not avaliable, set the parameter to -1.
+   * @param billing_tag An optional free-form tag which is used for grouping
    * billing records together. If supplied, it must be between 4 - 16
    * characters, contain only alpha/numeric ASCII characters  [A-Za-z0-9].
-   * @param callback A callback function to invoke with the catalog version.
-   * response.
+   * @param context A CancellationContext, which can be used to cancel request.
    *
-   * @return The cancellation token.
+   * @return The CatalogVersion response.
    */
-  static client::CancellationToken GetLatestCatalogVersion(
-      const client::OlpClient& client, int64_t startVersion,
-      boost::optional<std::string> billingTag,
-      const CatalogVersionCallback& callback);
+  static CatalogVersionResponse GetLatestCatalogVersion(
+      const client::OlpClient& client, int64_t start_version,
+      boost::optional<std::string> billing_tag,
+      const client::CancellationContext& context);
 };
 
 }  // namespace read

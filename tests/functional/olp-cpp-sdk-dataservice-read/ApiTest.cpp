@@ -132,21 +132,13 @@ TEST_F(ApiTest, GetPartitions) {
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
   auto metadata_client = client_response.GetResult();
-
-  std::promise<olp::dataservice::read::MetadataApi::PartitionsResponse>
-      partitions_promise;
-  auto partitions_callback =
-      [&partitions_promise](
-          olp::dataservice::read::MetadataApi::PartitionsResponse
-              partitions_response) {
-        partitions_promise.set_value(partitions_response);
-      };
+  olp::client::CancellationContext context;
 
   auto start_time = std::chrono::high_resolution_clock::now();
-  olp::dataservice::read::MetadataApi::GetPartitions(
+  auto partitions_response = olp::dataservice::read::MetadataApi::GetPartitions(
       metadata_client, "testlayer", 1, boost::none, boost::none, boost::none,
-      partitions_callback);
-  auto partitions_response = partitions_promise.get_future().get();
+      context);
+
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;
@@ -232,20 +224,11 @@ TEST_F(ApiTest, GetCatalogVersion) {
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
   auto metadata_client = client_response.GetResult();
-
-  std::promise<olp::dataservice::read::MetadataApi::CatalogVersionResponse>
-      version_response_promise;
-  auto version_response_callback =
-      [&version_response_promise](
-          olp::dataservice::read::MetadataApi::CatalogVersionResponse
-              partitions_response) {
-        version_response_promise.set_value(partitions_response);
-      };
+  olp::client::CancellationContext context;
 
   auto start_time = std::chrono::high_resolution_clock::now();
-  olp::dataservice::read::MetadataApi::GetLatestCatalogVersion(
-      metadata_client, -1, boost::none, version_response_callback);
-  auto version_response = version_response_promise.get_future().get();
+  auto version_response = olp::dataservice::read::MetadataApi::GetLatestCatalogVersion(
+      metadata_client, -1, boost::none, context);
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;
@@ -265,20 +248,11 @@ TEST_F(ApiTest, GetLayerVersions) {
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
   auto metadata_client = client_response.GetResult();
-
-  std::promise<olp::dataservice::read::MetadataApi::LayerVersionsResponse>
-      layer_versions_promise;
-  auto layer_versions_callback =
-      [&layer_versions_promise](
-          olp::dataservice::read::MetadataApi::LayerVersionsResponse
-              partitions_response) {
-        layer_versions_promise.set_value(partitions_response);
-      };
+  olp::client::CancellationContext context;
 
   auto start_time = std::chrono::high_resolution_clock::now();
-  olp::dataservice::read::MetadataApi::GetLayerVersions(
-      metadata_client, 1, boost::none, layer_versions_callback);
-  auto layer_versions_response = layer_versions_promise.get_future().get();
+  auto layer_versions_response = olp::dataservice::read::MetadataApi::GetLayerVersions(
+      metadata_client, 1, boost::none, context);
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;
