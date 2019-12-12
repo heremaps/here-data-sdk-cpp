@@ -27,6 +27,8 @@
 
 namespace {
 
+constexpr auto kDeleteUserWait = std::chrono::seconds(5);
+
 class AuthenticationClientTest : public AuthenticationCommonTestFixture {
  protected:
   void SetUp() override {
@@ -335,6 +337,10 @@ TEST_F(AuthenticationClientTest, SignUpInUser) {
   EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT, response4.status);
   EXPECT_STREQ(kErrorNoContent.c_str(), response4.error.c_str());
 
+  // We need to wait for user deletion on server some time before checking
+  // that it is fully deleted.
+  std::this_thread::sleep_for(kDeleteUserWait);
+
   AuthenticationClient::SignInUserResponse response5 = SignInUser(email);
   EXPECT_EQ(olp::http::HttpStatusCode::UNAUTHORIZED,
             response5.GetResult().GetStatus())
@@ -483,6 +489,10 @@ TEST_F(AuthenticationClientTest, SignInRefresh) {
       DeleteUser(response4.GetResult().GetAccessToken());
   EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT, response6.status);
   EXPECT_STREQ(kErrorNoContent.c_str(), response6.error.c_str());
+
+  // We need to wait for user deletion on server some time before checking
+  // that it is fully deleted.
+  std::this_thread::sleep_for(kDeleteUserWait);
 
   AuthenticationClient::SignInUserResponse response7 = SignInUser(email);
   EXPECT_EQ(olp::http::HttpStatusCode::UNAUTHORIZED,
