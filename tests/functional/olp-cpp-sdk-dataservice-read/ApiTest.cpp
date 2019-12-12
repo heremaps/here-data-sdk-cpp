@@ -110,9 +110,9 @@ TEST_F(ApiTest, GetCatalog) {
       };
 
   auto start_time = std::chrono::high_resolution_clock::now();
-  auto cancel_fn = olp::dataservice::read::ConfigApi::GetCatalog(
-      config_client, GetTestCatalog(), boost::none, catalog_callback);
-  auto catalog_response = catalog_promise.get_future().get();
+  auto catalog_response = olp::dataservice::read::ConfigApi::GetCatalog(
+      config_client, GetTestCatalog(), boost::none,
+      olp::client::CancellationContext{});
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;
