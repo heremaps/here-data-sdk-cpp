@@ -146,48 +146,9 @@ PartitionsResponse PartitionsRepository::GetPartitions(
     return query_api.GetError();
   }
 
-  auto client = query_api.GetResult();
-
-  auto flag = std::make_shared<std::atomic_bool>(true);
-  Condition condition;
-
-  PartitionsResponse metadata_response;
-  auto callback = [&, flag](PartitionsResponse response) {
-    if (flag->exchange(false)) {
-      metadata_response = std::move(response);
-      condition.Notify();
-    }
-  };
-
-  cancellation_context.ExecuteOrCancelled(
-      [&, flag]() {
-        auto token = MetadataApi::GetPartitions(
-            client, layer, request.GetVersion(), boost::none, boost::none,
-            request.GetBillingTag(), callback);
-        return client::CancellationToken([&, token, flag]() {
-          if (flag->exchange(false)) {
-            token.Cancel();
-            condition.Notify();
-          }
-        });
-      },
-      [&]() { condition.Notify(); });
-
-  if (!condition.Wait(timeout)) {
-    cancellation_context.CancelOperation();
-    OLP_SDK_LOG_INFO_F(kLogTag, "timeout");
-    return client::ApiError(client::ErrorCode::RequestTimeout,
-                            "Network request timed out.");
-  }
-
-  flag->store(false);
-
-  if (cancellation_context.IsCancelled()) {
-    // We can't use api response here because it could potentially be
-    // uninitialized.
-    return client::ApiError(client::ErrorCode::Cancelled,
-                            "Operation cancelled.");
-  }
+  auto metadata_response = MetadataApi::GetPartitions(
+      query_api.GetResult(), layer, request.GetVersion(), boost::none,
+      boost::none, request.GetBillingTag(), cancellation_context);
 
   if (metadata_response.IsSuccessful()) {
     OLP_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",

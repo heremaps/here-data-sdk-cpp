@@ -114,8 +114,6 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
     }
   }
 
-  const auto timeout = settings.retry_settings.timeout;
-
   auto metadata_api = ApiClientLookup::LookupApi(
       std::move(catalog), cancellation_context, "metadata", "v1", fetch_option,
       std::move(settings));
@@ -126,44 +124,8 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
 
   const client::OlpClient& client = metadata_api.GetResult();
 
-  Condition condition{};
-
-  // when the network operation took too much time we cancel it and exit
-  // execution, to make sure that network callback will not access dangling
-  // references we protect them with atomic bool flag.
-  auto interest_flag = std::make_shared<std::atomic_bool>(true);
-
-  MetadataApi::CatalogVersionResponse version_response;
-  cancellation_context.ExecuteOrCancelled(
-      [&]() {
-        auto token = MetadataApi::GetLatestCatalogVersion(
-            client, -1, request.GetBillingTag(),
-            [&, interest_flag](MetadataApi::CatalogVersionResponse response) {
-              if (interest_flag->exchange(false)) {
-                version_response = std::move(response);
-                condition.Notify();
-              }
-            });
-
-        return client::CancellationToken([&, interest_flag, token]() {
-          if (interest_flag->exchange(false)) {
-            token.Cancel();
-            condition.Notify();
-          }
-        });
-      },
-      [&condition]() { condition.Notify(); });
-
-  if (!condition.Wait(std::chrono::seconds{timeout})) {
-    cancellation_context.CancelOperation();
-    OLP_SDK_LOG_INFO_F(kLogTag, "timeout");
-    return ApiError(ErrorCode::RequestTimeout, "Network request timed out.");
-  }
-  interest_flag->store(false);
-
-  if (cancellation_context.IsCancelled()) {
-    return ApiError(ErrorCode::Cancelled, "Operation cancelled.");
-  }
+  auto version_response = MetadataApi::GetLatestCatalogVersion(
+      client, -1, request.GetBillingTag(), cancellation_context);
 
   if (version_response.IsSuccessful()) {
     repository.PutVersion(version_response.GetResult());
