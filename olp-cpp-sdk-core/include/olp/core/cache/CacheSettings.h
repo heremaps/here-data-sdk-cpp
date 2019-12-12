@@ -86,6 +86,16 @@ struct CacheSettings {
    * @brief Set the disk cache open options.
    */
   OpenOptions openOptions = OpenOptions::Default;
+
+  /**
+   * @brief Path to the protected (readonly) cache. This cache is used as a
+   * primary cache for lookup. DefaultCache will open this cache in read-only
+   * mode and will not write to it in case the disk_path_mutable is empty. This
+   * path should only be used in case users would like to have a stable fallback
+   * state or offline data that they can always access regardless of the network
+   * state.
+   */
+  boost::optional<std::string> disk_path_protected = boost::none;
 };
 
 }  // namespace cache
