@@ -19,6 +19,7 @@
 
 #include "ConfigApi.h"
 
+#include <map>
 #include <sstream>
 
 #include <olp/core/client/HttpResponse.h>
@@ -28,43 +29,32 @@
 #include <olp/core/generated/parser/JsonParser.h>
 // clang-format on
 
-#include <map>
-
 namespace olp {
 namespace dataservice {
 namespace read {
 using namespace olp::client;
 
-CancellationToken ConfigApi::GetCatalog(
-    const OlpClient& client, const std::string& catalogHrn,
-    boost::optional<std::string> billingTag,
-    const CatalogCallback& catalogCallback) {
-  std::multimap<std::string, std::string> headerParams;
-  headerParams.insert(std::make_pair("Accept", "application/json"));
-  std::multimap<std::string, std::string> queryParams;
-  if (billingTag) {
-    queryParams.insert(std::make_pair("billingTag", *billingTag));
+ConfigApi::CatalogResponse ConfigApi::GetCatalog(
+    const OlpClient& client, const std::string& catalog_hrn,
+    boost::optional<std::string> billing_tag,
+    client::CancellationContext context) {
+  std::multimap<std::string, std::string> header_params;
+  header_params.insert(std::make_pair("Accept", "application/json"));
+  std::multimap<std::string, std::string> query_params;
+  if (billing_tag) {
+    query_params.insert(std::make_pair("billingTag", *billing_tag));
   }
-  std::multimap<std::string, std::string> formParams;
+  std::string catalog_uri = "/catalogs/" + catalog_hrn;
 
-  std::string catalogUri = "/catalogs/" + catalogHrn;
-
-  NetworkAsyncCallback callback = [catalogCallback](
-                                      client::HttpResponse response) {
-    if (response.status != 200) {
-      catalogCallback(
-          client::ApiError(response.status, response.response.str()));
-    } else {
-      catalogCallback(olp::parser::parse<model::Catalog>(response.response));
-    }
-  };
-
-  return client.CallApi(catalogUri, "GET", queryParams, headerParams,
-                        formParams, nullptr, "", callback);
+  client::HttpResponse response = client.CallApi(
+      std::move(catalog_uri), "GET", std::move(query_params),
+      std::move(header_params), {}, nullptr, std::string{}, std::move(context));
+  if (response.status != olp::http::HttpStatusCode::OK) {
+    return client::ApiError(response.status, response.response.str());
+  }
+  return olp::parser::parse<model::Catalog>(response.response);
 }
 
 }  // namespace read
-
 }  // namespace dataservice
-
 }  // namespace olp

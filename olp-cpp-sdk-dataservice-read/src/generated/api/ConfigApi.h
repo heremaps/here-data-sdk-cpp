@@ -25,6 +25,7 @@
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/CancellationContext.h>
 #include "olp/dataservice/read/model/Catalog.h"
 
 namespace olp {
@@ -40,23 +41,23 @@ namespace read {
 class ConfigApi {
  public:
   using CatalogResponse = client::ApiResponse<model::Catalog, client::ApiError>;
-  using CatalogCallback = std::function<void(CatalogResponse)>;
 
   /**
-   * @brief Call to asynchronously retrieve the configuration of a catalog.
+   * @brief Call to synchronously retrieve the configuration of a catalog.
    * @param client Instance of OlpClient used to make REST request.
-   * @param catalogHrn Full catalog name.
-   * @param An optional free-form tag which is used for grouping billing
-   * records together. If supplied, it must be between 4 - 16 characters,
+   * @param catalog_hrn Full catalog name.
+   * @param billing_tag An optional free-form tag which is used for grouping
+   * billing records together. If supplied, it must be between 4 - 16
+   * characters,
    * contain only alpha/numeric ASCII characters  [A-Za-z0-9].
-   * @param A callback function to invoke with the catalog configuration
-   * response.
-   *
-   * @return The cancellation token.
+   * @param context A CancellationContext instance which can be used to cancel
+   * this method.
+   * @return The result of operation as a client::ApiResponse object.
    */
-  static client::CancellationToken GetCatalog(
-      const client::OlpClient& client, const std::string& catalogHrn,
-      boost::optional<std::string> billingTag, const CatalogCallback& callback);
+  static CatalogResponse GetCatalog(const client::OlpClient& client,
+                                    const std::string& catalog_hrn,
+                                    boost::optional<std::string> billing_tag,
+                                    client::CancellationContext context);
 };
 
 }  // namespace read

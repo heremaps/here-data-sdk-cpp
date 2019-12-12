@@ -48,7 +48,6 @@ CatalogResponse CatalogRepository::GetCatalog(
   using namespace client;
 
   const auto request_key = request.CreateKey();
-  const auto timeout = settings.retry_settings.timeout;
   const auto fetch_options = request.GetFetchOption();
 
   OLP_SDK_LOG_TRACE_F(kLogTag, "getCatalog '%s'", request_key.c_str());
@@ -77,48 +76,9 @@ CatalogResponse CatalogRepository::GetCatalog(
   }
 
   const OlpClient& client = config_api.GetResult();
-
-  Condition condition{};
-
-  // when the network operation took too much time we cancel it and exit
-  // execution, to make sure that network callback will not access dangling
-  // references we protect them with atomic bool flag.
-  auto interest_flag = std::make_shared<std::atomic_bool>(true);
-
-  CatalogResponse catalog_response;
-
-  cancellation_context.ExecuteOrCancelled(
-      [&]() {
-        auto token = ConfigApi::GetCatalog(
-            client, catalog.ToCatalogHRNString(), request.GetBillingTag(),
-            [&, interest_flag](CatalogResponse response) {
-              if (interest_flag->exchange(false)) {
-                catalog_response = std::move(response);
-                condition.Notify();
-              }
-            });
-
-        return CancellationToken([&, interest_flag, token]() {
-          if (interest_flag->exchange(false)) {
-            token.Cancel();
-            condition.Notify();
-          }
-        });
-      },
-      [&condition]() { condition.Notify(); });
-
-  if (!condition.Wait(std::chrono::seconds{timeout})) {
-    cancellation_context.CancelOperation();
-    OLP_SDK_LOG_INFO_F(kLogTag, "timeout");
-    return ApiError(ErrorCode::RequestTimeout, "Network request timed out.");
-  }
-
-  interest_flag->store(false);
-
-  if (cancellation_context.IsCancelled()) {
-    return ApiError(ErrorCode::Cancelled, "Operation cancelled.");
-  }
-
+  auto catalog_response =
+      ConfigApi::GetCatalog(client, catalog.ToCatalogHRNString(),
+                            request.GetBillingTag(), cancellation_context);
   if (catalog_response.IsSuccessful()) {
     repository.Put(catalog_response.GetResult());
   } else {
