@@ -939,16 +939,16 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
           (handles_[index].retry_count++ < handles_[index].max_retries)) {
         OLP_SDK_LOG_DEBUG(kLogTag, "Retrying request with id="
                                        << handles_[index].id << ", url=" << url
-                                       << " err=" << error);
+                                       << " err=(" << status << ") " << error);
         handles_[index].count = 0;
         lock.lock();
         events_.emplace_back(EventInfo::Type::SEND_EVENT, &handles_[index]);
         return;
       }
     }
-    OLP_SDK_LOG_DEBUG(kLogTag, "Completed message id=" << handles_[index].id
-                                                       << ", url=" << url
-                                                       << ", status=" << error);
+    OLP_SDK_LOG_DEBUG(kLogTag, "Completed message id="
+                                   << handles_[index].id << ", url=" << url
+                                   << ", status=(" << status << ") " << error);
 
     auto response = NetworkResponse()
                         .WithRequestId(handles_[index].id)
