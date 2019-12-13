@@ -20,6 +20,7 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <fstream>
 #include <string>
 #include <thread>
 
@@ -194,9 +195,9 @@ TEST(DefaultCacheTest, ExpiredMemTest) {
   ASSERT_TRUE(cache.Clear());
 }
 
-TEST(DefaultCacheTest, BadPath) {
+TEST(DefaultCacheTest, BadPathMutable) {
   olp::cache::CacheSettings settings;
-  settings.disk_path_mutable = std::string("/////this/is/a/bad/path");
+  settings.disk_path_mutable = std::string("/////this/is/a/bad/mutable/path");
   olp::cache::DefaultCache cache(settings);
   ASSERT_EQ(olp::cache::DefaultCache::OpenDiskPathFailure, cache.Open());
 
@@ -208,6 +209,23 @@ TEST(DefaultCacheTest, BadPath) {
       cache.Get("key1", [](const std::string& data) { return data; });
   ASSERT_FALSE(key1DataRead.empty());
   ASSERT_EQ(key1DataString, boost::any_cast<std::string>(key1DataRead));
+}
+
+TEST(DefaultCacheTest, BadPathProtected) {
+  olp::cache::CacheSettings settings;
+  settings.disk_path_protected =
+      std::string("/////this/is/a/bad/protected/path");
+  olp::cache::DefaultCache cache(settings);
+  ASSERT_EQ(olp::cache::DefaultCache::OpenDiskPathFailure, cache.Open());
+
+  // Verify that in-memory still works after bad path was set for memcache
+  std::string key1_data_string{"this is key1's data"};
+  cache.Put("key1", key1_data_string, [=]() { return key1_data_string; },
+            std::numeric_limits<time_t>::max());
+  auto key1_data_read =
+      cache.Get("key1", [](const std::string& data) { return data; });
+  ASSERT_FALSE(key1_data_read.empty());
+  ASSERT_EQ(key1_data_string, boost::any_cast<std::string>(key1_data_read));
 }
 
 TEST(DefaultCacheTest, AlreadyInUsePath) {
