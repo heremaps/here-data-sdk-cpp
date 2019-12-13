@@ -407,7 +407,7 @@ TestConfiguration ShortRunningTestWithMemoryCache() {
  * Short 5 minutes test to collect SDK allocations with both in memory cache
  * and disk cache.
  */
-TestConfiguration ShortRunningTestWithDiskCache() {
+TestConfiguration ShortRunningTestWithMutableCache() {
   using namespace olp;
 
   cache::CacheSettings settings;
@@ -429,7 +429,7 @@ std::vector<TestConfiguration> Configurations() {
   std::vector<TestConfiguration> configurations;
   configurations.emplace_back(ShortRunningTestWithNullCache());
   configurations.emplace_back(ShortRunningTestWithMemoryCache());
-  configurations.emplace_back(ShortRunningTestWithDiskCache());
+  configurations.emplace_back(ShortRunningTestWithMutableCache());
   configurations.emplace_back(LongRunningTest());
   return configurations;
 }
