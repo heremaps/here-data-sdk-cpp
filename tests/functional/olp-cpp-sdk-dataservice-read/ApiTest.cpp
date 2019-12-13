@@ -169,21 +169,13 @@ TEST_F(ApiTest, GetPartitionById) {
 
   {
     SCOPED_TRACE("Test with 2 partitions");
-    std::promise<olp::dataservice::read::MetadataApi::PartitionsResponse>
-        partitions_promise;
-    auto partitions_callback =
-        [&partitions_promise](
-            olp::dataservice::read::MetadataApi::PartitionsResponse
-                partitions_response) {
-          partitions_promise.set_value(partitions_response);
-        };
 
     auto start_time = std::chrono::high_resolution_clock::now();
     std::vector<std::string> partitions = {"269", "270"};
-    olp::dataservice::read::QueryApi::GetPartitionsbyId(
-        query_client, "testlayer", partitions, 1, boost::none, boost::none,
-        partitions_callback);
-    auto partitions_response = partitions_promise.get_future().get();
+    auto partitions_response =
+        olp::dataservice::read::QueryApi::GetPartitionsbyId(
+            query_client, "testlayer", partitions, 1, boost::none, boost::none,
+            olp::client::CancellationContext{});
     auto end = std::chrono::high_resolution_clock::now();
 
     std::chrono::duration<double> time = end - start_time;
@@ -201,22 +193,14 @@ TEST_F(ApiTest, GetPartitionById) {
 
   {
     SCOPED_TRACE("Test with single partition");
-    std::promise<olp::dataservice::read::MetadataApi::PartitionsResponse>
-        partitions_promise;
-    auto partitions_callback =
-        [&partitions_promise](
-            olp::dataservice::read::MetadataApi::PartitionsResponse
-                partitions_response) {
-          partitions_promise.set_value(partitions_response);
-        };
 
     auto start_time = std::chrono::high_resolution_clock::now();
     std::vector<std::string> partitions = {"270"};
     std::vector<std::string> additional_fields = {"checksum", "dataSize"};
-    olp::dataservice::read::QueryApi::GetPartitionsbyId(
-        query_client, "testlayer", partitions, 1, additional_fields,
-        boost::none, partitions_callback);
-    auto partitions_response = partitions_promise.get_future().get();
+    auto partitions_response =
+        olp::dataservice::read::QueryApi::GetPartitionsbyId(
+            query_client, "testlayer", partitions, 1, additional_fields,
+            boost::none, olp::client::CancellationContext{});
     auto end = std::chrono::high_resolution_clock::now();
 
     std::chrono::duration<double> time = end - start_time;
@@ -391,19 +375,10 @@ TEST_F(ApiTest, QuadTreeIndex) {
   std::string quad_key("5904591");
   int32_t depth = 2;
 
-  std::promise<olp::dataservice::read::QueryApi::QuadTreeIndexResponse>
-      index_promise;
-  auto quad_tree_index_callback =
-      [&index_promise](
-          olp::dataservice::read::QueryApi::QuadTreeIndexResponse response) {
-        index_promise.set_value(response);
-      };
-
   auto start_time = std::chrono::high_resolution_clock::now();
-  auto cancel_fn = olp::dataservice::read::QueryApi::QuadTreeIndex(
+  auto index_response = olp::dataservice::read::QueryApi::QuadTreeIndex(
       query_client, layer_id, version, quad_key, depth, boost::none,
-      boost::none, quad_tree_index_callback);
-  auto index_response = index_promise.get_future().get();
+      boost::none, olp::client::CancellationContext{});
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;
