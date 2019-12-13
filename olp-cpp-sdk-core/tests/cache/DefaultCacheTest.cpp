@@ -20,6 +20,7 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <fstream>
 #include <string>
 #include <thread>
 
@@ -218,4 +219,58 @@ TEST(DefaultCacheTest, AlreadyInUsePath) {
 
   olp::cache::DefaultCache cache2(settings);
   ASSERT_EQ(olp::cache::DefaultCache::OpenDiskPathFailure, cache2.Open());
+}
+
+class ProtectedCacheTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    cache_path = olp::utils::Dir::TempDirectory() + "/unittest";
+
+    // Create cache
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = cache_path;
+    olp::cache::DefaultCache cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+    std::string key1DataString{"this is key1's data"};
+    cache.Put("key1", key1DataString, [=]() { return key1DataString; },
+              (std::numeric_limits<time_t>::max)());
+    auto key1DataRead =
+        cache.Get("key1", [](const std::string& data) { return data; });
+    ASSERT_FALSE(key1DataRead.empty());
+    ASSERT_EQ(key1DataString, boost::any_cast<std::string>(key1DataRead));
+  }
+
+  void TearDown() override {
+    // Remove cache
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = cache_path;
+    olp::cache::DefaultCache cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+  }
+
+  std::string cache_path;
+};
+
+TEST_F(ProtectedCacheTest, AlreadyInUsePath) {
+  olp::cache::CacheSettings settings;
+  settings.disk_path_protected = cache_path;
+  olp::cache::DefaultCache cache(settings);
+  ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+
+  olp::cache::DefaultCache cache2(settings);
+  ASSERT_EQ(olp::cache::DefaultCache::OpenDiskPathFailure, cache2.Open());
+}
+
+TEST_F(ProtectedCacheTest, MissingCache) {
+  const auto incorrect_folder = "incorrect_folder";
+  olp::cache::CacheSettings settings;
+  settings.disk_path_protected = incorrect_folder;
+  olp::cache::DefaultCache cache(settings);
+  ASSERT_EQ(olp::cache::DefaultCache::OpenDiskPathFailure, cache.Open());
+
+  // Check if no cache file was created.
+  std::ifstream cache_file(incorrect_folder);
+  ASSERT_FALSE(cache_file.good());
 }

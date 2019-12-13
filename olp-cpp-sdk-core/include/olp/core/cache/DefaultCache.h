@@ -54,8 +54,8 @@ class CORE_API DefaultCache : public KeyValueCache {
   /**
    * @brief Open the cache to start read/write operations.
    *
-   * @return StorageOpenResult if there were problems opening the path on the
-   * disk.
+   * @return StorageOpenResult if there were problems opening any of the
+   * provided pathes on the disk.
    */
   StorageOpenResult Open();
 
@@ -131,7 +131,8 @@ class CORE_API DefaultCache : public KeyValueCache {
   CacheSettings settings_;
   bool is_open_{false};
   std::unique_ptr<InMemoryCache> memory_cache_;
-  std::unique_ptr<DiskCache> disk_cache_;
+  std::unique_ptr<DiskCache> mutable_cache_;
+  std::unique_ptr<DiskCache> protected_cache_;
   std::mutex cache_lock_;
   // TODO: leveldb cache
 };
