@@ -140,6 +140,7 @@ set(OLP_SDK_HTTP_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/http/NetworkRequest.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/http/NetworkResponse.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/http/NetworkSettings.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/http/NetworkTypes.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/http/NetworkUtils.cpp"
 )
 

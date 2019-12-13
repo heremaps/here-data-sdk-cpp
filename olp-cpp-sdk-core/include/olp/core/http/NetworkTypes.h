@@ -21,6 +21,9 @@
 
 #include <cstdint>
 #include <limits>
+#include <string>
+
+#include <olp/core/CoreApi.h>
 
 namespace olp {
 namespace http {
@@ -119,6 +122,11 @@ class SendOutcome final {
   /// Error code.
   ErrorCode error_code_{ErrorCode::SUCCESS};
 };
+
+/**
+ * @brief Helper function used to convert error code to human readable string.
+ */
+CORE_API std::string ErrorCodeToString(ErrorCode code);
 
 }  // namespace http
 }  // namespace olp
