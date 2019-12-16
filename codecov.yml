@@ -30,5 +30,14 @@ ignore:
   - olp-cpp-sdk-core/tests
   - olp-cpp-sdk-dataservice-read/tests
   - olp-cpp-sdk-dataservice-write/tests
+  - olp-cpp-sdk-dataservice-write/src/AutoFlushController.cpp
+  - olp-cpp-sdk-dataservice-write/src/AutoFlushController.h
+  - olp-cpp-sdk-dataservice-write/src/AutoFlushSettings.h
+  - olp-cpp-sdk-dataservice-write/src/BackgroundTaskCollection.cpp
+  - olp-cpp-sdk-dataservice-write/src/BackgroundTaskCollection.h
+  - olp-cpp-sdk-dataservice-write/src/DefaultFlushEventListener.cpp
+  - olp-cpp-sdk-dataservice-write/src/DefaultFlushEventListener.h
+  - olp-cpp-sdk-dataservice-write/src/FlushEventListener.h
+  - olp-cpp-sdk-dataservice-write/src/FlushMetrics.h
   - tests
   - testutils
