@@ -19,6 +19,8 @@
 
 #include "AuthenticationCommonTestFixture.h"
 
+#include <gmock/gmock.h>
+
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
 #include <testutils/CustomParameters.hpp>
@@ -26,8 +28,6 @@
 #include "TestConstants.h"
 
 namespace {
-
-constexpr auto kDeleteUserWait = std::chrono::seconds(5);
 
 class AuthenticationClientTest : public AuthenticationCommonTestFixture {
  protected:
@@ -337,13 +337,12 @@ TEST_F(AuthenticationClientTest, SignUpInUser) {
   EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT, response4.status);
   EXPECT_STREQ(kErrorNoContent.c_str(), response4.error.c_str());
 
-  // We need to wait for user deletion on server some time before checking
-  // that it is fully deleted.
-  std::this_thread::sleep_for(kDeleteUserWait);
-
   AuthenticationClient::SignInUserResponse response5 = SignInUser(email);
-  EXPECT_EQ(olp::http::HttpStatusCode::UNAUTHORIZED,
-            response5.GetResult().GetStatus())
+  // According to the AAA team, we should expect one of 401 or 404 status.
+  using namespace testing;
+  EXPECT_THAT(response5.GetResult().GetStatus(),
+              AnyOf(Eq(olp::http::HttpStatusCode::UNAUTHORIZED),
+                    Eq(olp::http::HttpStatusCode::NOT_FOUND)))
       << GetErrorId(response5);
   EXPECT_EQ(kErrorAccountNotFoundCode,
             response5.GetResult().GetErrorResponse().code)
@@ -490,17 +489,19 @@ TEST_F(AuthenticationClientTest, SignInRefresh) {
   EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT, response6.status);
   EXPECT_STREQ(kErrorNoContent.c_str(), response6.error.c_str());
 
-  // We need to wait for user deletion on server some time before checking
-  // that it is fully deleted.
-  std::this_thread::sleep_for(kDeleteUserWait);
-
   AuthenticationClient::SignInUserResponse response7 = SignInUser(email);
-  EXPECT_EQ(olp::http::HttpStatusCode::UNAUTHORIZED,
-            response7.GetResult().GetStatus());
+  // According to the AAA team, we should expect one of 401 or 404 status.
+  using namespace testing;
+  EXPECT_THAT(response7.GetResult().GetStatus(),
+              AnyOf(Eq(olp::http::HttpStatusCode::UNAUTHORIZED),
+                    Eq(olp::http::HttpStatusCode::NOT_FOUND)))
+      << GetErrorId(response7);
   EXPECT_EQ(kErrorAccountNotFoundCode,
-            response7.GetResult().GetErrorResponse().code);
+            response7.GetResult().GetErrorResponse().code)
+      << GetErrorId(response7);
   EXPECT_EQ(kErrorAccountNotFoundMessage,
-            response7.GetResult().GetErrorResponse().message);
+            response7.GetResult().GetErrorResponse().message)
+      << GetErrorId(response7);
 }
 
 TEST_F(AuthenticationClientTest, SignInRefreshCancel) {
