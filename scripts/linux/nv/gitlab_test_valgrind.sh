@@ -126,7 +126,7 @@ for test_name in "${TEST_TARGET_NAMES[@]}"
 do
 {
     if [[ ${test_name} == "olp-cpp-sdk-core-test" ]] ; then
-        EXCEPTION="--gtest_filter="-DefaultCacheTest.BadPath""
+        EXCEPTION="--gtest_filter="-DefaultCacheTest.BadPathMutable""
     else
         EXCEPTION=""
     fi
