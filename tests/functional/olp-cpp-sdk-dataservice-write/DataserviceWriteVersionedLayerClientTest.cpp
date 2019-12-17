@@ -41,6 +41,10 @@ const std::string kLayer2 = "layer2";
 const std::string kLayerSdii = "layer_sdii";
 const std::string kVersionedLayer = "versioned_layer";
 
+// The limit for 100 retries is 10 minutes. Therefore, the wait time between
+// retries is 6 seconds.
+const auto kWaitBeforeRetry = std::chrono::seconds(6);
+
 class DataserviceWriteVersionedLayerClientTest : public ::testing::Test {
  protected:
   static std::shared_ptr<olp::http::Network> s_network;
@@ -162,17 +166,14 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, StartBatch) {
         "succeeded") {
       ASSERT_EQ("submitted",
                 get_batch_response.GetResult().GetDetails()->GetState());
+      std::this_thread::sleep_for(kWaitBeforeRetry);
     } else {
       break;
     }
   }
-  // There are can be a case that GetBatch() is not "succeeded", but in
-  // "submitted" state even after 100 iterations,
-  // which actually means that there are might be a problem on the server side,
-  // (or just long delay). Thus, better to rewrite this test, or do not rely on
-  // the real server, but use mocked server.
-  // ASSERT_EQ("succeeded",
-  // get_batch_response.GetResult().GetDetails()->GetState());
+
+  ASSERT_EQ("succeeded",
+            get_batch_response.GetResult().GetDetails()->GetState());
 }
 
 TEST_F(DataserviceWriteVersionedLayerClientTest, DeleteClient) {
@@ -318,17 +319,13 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatch) {
         "succeeded") {
       ASSERT_EQ("submitted",
                 get_batch_response.GetResult().GetDetails()->GetState());
+      std::this_thread::sleep_for(kWaitBeforeRetry);
     } else {
       break;
     }
   }
-  // There are can be a case that GetBatch() is not "succeeded", but in
-  // "submitted" state even after 100 iterations,
-  // which actually means that there are might be a problem on the server side,
-  // (or just long delay). Thus, better to rewrite this test, or do not rely on
-  // the real server, but use mocked server.
-  // ASSERT_EQ("succeeded",
-  // get_batch_response.GetResult().GetDetails()->GetState());
+  ASSERT_EQ("succeeded",
+            get_batch_response.GetResult().GetDetails()->GetState());
 }
 
 TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchDeleteClient) {
@@ -404,16 +401,13 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchDeleteClient) {
         "succeeded") {
       ASSERT_EQ("submitted",
                 get_batch_response.GetResult().GetDetails()->GetState());
+      std::this_thread::sleep_for(kWaitBeforeRetry);
     } else {
       break;
     }
   }
-  // This check contradicts with the previous assertion - we can have a case,
-  // when the state of the last (i == 99) get_batch_response is "submitted',
-  // but not 'succeeded', thus, in the previous loop we accept such case
-  // as a valid one, but here, we treat such case as an error.
-  // ASSERT_EQ("succeeded",
-  // get_batch_response.GetResult().GetDetails()->GetState());
+  ASSERT_EQ("succeeded",
+            get_batch_response.GetResult().GetDetails()->GetState());
 }
 
 TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchMulti) {
@@ -485,17 +479,13 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchMulti) {
         "succeeded") {
       ASSERT_EQ("submitted",
                 get_batch_response.GetResult().GetDetails()->GetState());
+      std::this_thread::sleep_for(kWaitBeforeRetry);
     } else {
       break;
     }
   }
-  // There are can be a case that GetBatch() is not "succeeded", but in
-  // "submitted" state even after 100 iterations,
-  // which actually means that there are might be a problem on the server side,
-  // (or just long delay). Thus, better to rewrite this test, or do not rely on
-  // the real server, but use mocked server.
-  // ASSERT_EQ("succeeded",
-  // get_batch_response.GetResult().GetDetails()->GetState());
+  ASSERT_EQ("succeeded",
+            get_batch_response.GetResult().GetDetails()->GetState());
 }
 
 TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchCancel) {
