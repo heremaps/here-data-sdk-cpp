@@ -171,6 +171,112 @@ TEST(DefaultCacheTest, ExpiredDiskTest) {
   ASSERT_TRUE(cache.Clear());
 }
 
+TEST(DefaultCacheTest, ProtectedCacheTest) {
+  const auto protected_path = olp::utils::Dir::TempDirectory() + "/protected";
+  const std::string key1_data_string = "this is key1's data";
+  const std::string key2_data_string = "this is key2's data";
+  const std::string key1 = "key1";
+  const std::string key2 = "key2";
+  {
+    SCOPED_TRACE("Setup cache");
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = protected_path;
+    olp::cache::DefaultCache cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+
+    ASSERT_TRUE(cache.Clear());
+    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; },
+              (std::numeric_limits<time_t>::max)());
+
+    cache.Close();
+  }
+  {
+    SCOPED_TRACE("Get from protected - success");
+    olp::cache::CacheSettings settings;
+    settings.disk_path_protected = protected_path;
+    olp::cache::DefaultCache cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+
+    auto key1_data_read =
+        cache.Get(key1, [](const std::string& data) { return data; });
+    ASSERT_FALSE(key1_data_read.empty());
+    ASSERT_EQ(key1_data_string, boost::any_cast<std::string>(key1_data_read));
+  }
+  {
+    SCOPED_TRACE("Get from protected - missing key");
+
+    olp::cache::CacheSettings settings;
+    settings.disk_path_protected = protected_path;
+    olp::cache::DefaultCache cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+
+    auto key2_data_read =
+        cache.Get(key2, [](const std::string& data) { return data; });
+    ASSERT_TRUE(key2_data_read.empty());
+  }
+  {
+    SCOPED_TRACE("Get from protected - fall-back to mutable");
+
+    const std::string mutable_path =
+        olp::utils::Dir::TempDirectory() + "/mutable";
+
+    olp::cache::CacheSettings settings;
+    settings.max_memory_cache_size = 0;
+    settings.disk_path_mutable = mutable_path;
+    settings.disk_path_protected = protected_path;
+
+    olp::cache::DefaultCache cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+
+    // Put to mutable
+    cache.Put(key2, key2_data_string, [=]() { return key2_data_string; },
+              (std::numeric_limits<time_t>::max)());
+
+    auto key2_data_read =
+        cache.Get(key2, [](const std::string& data) { return data; });
+    ASSERT_FALSE(key2_data_read.empty());
+    ASSERT_EQ(key2_data_string, boost::any_cast<std::string>(key2_data_read));
+    ASSERT_TRUE(cache.Clear());
+  }
+  {
+    SCOPED_TRACE("Remove from protected - blocked");
+    olp::cache::CacheSettings settings;
+    settings.disk_path_protected = protected_path;
+    olp::cache::DefaultCache cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+
+    ASSERT_TRUE(cache.Remove(key1));
+
+    auto key1_data_read =
+        cache.Get(key1, [](const std::string& data) { return data; });
+    ASSERT_FALSE(key1_data_read.empty());
+    ASSERT_EQ(key1_data_string, boost::any_cast<std::string>(key1_data_read));
+  }
+  {
+    SCOPED_TRACE("Put to protected - blocked");
+    olp::cache::CacheSettings settings;
+    settings.disk_path_protected = protected_path;
+    olp::cache::DefaultCache cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+
+    // Put and clear
+    cache.Put(key2, key2_data_string, [=]() { return key2_data_string; },
+              (std::numeric_limits<time_t>::max)());
+    ASSERT_TRUE(cache.Clear());
+
+    // key2 is missing for protected cache
+    auto key2_data_read =
+        cache.Get(key2, [](const std::string& data) { return data; });
+    ASSERT_TRUE(key2_data_read.empty());
+
+    // Check if key1 is still in protected
+    auto key1_data_read =
+        cache.Get(key1, [](const std::string& data) { return data; });
+    ASSERT_FALSE(key1_data_read.empty());
+    ASSERT_EQ(key1_data_string, boost::any_cast<std::string>(key1_data_read));
+  }
+}
+
 TEST(DefaultCacheTest, ExpiredMemTest) {
   olp::cache::DefaultCache cache;
   ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
