@@ -1,23 +1,23 @@
 # HERE OLP SDK for C++
 
-The HERE OLP SDK for C++ is a C++ client for [HERE Open Location Platform](https://platform.here.com).
+The HERE OLP SDK for C++ is a C++ client for the [HERE Open Location Platform](https://platform.here.com).
 
 ## Health Сheck
 
-**Build & Test**
+### Build and Test
 
-| Platform                       | Status                          |
-| :----------------------------- | :------------------------------ |
-| Linux/Android                  | [![Linux build status][1]][2]   |
-| MacOS                          | [![macOS build status][3]][4]   |
-| iOS                            | [![iOS build status][7]][4]     |
-| Windows                        | [![Windows build status][8]][4] |
+| Platform      | Status                          |
+| :------------ | :------------------------------ |
+| Linux/Android | [![Linux build status][1]][2]   |
+| MacOS         | [![macOS build status][3]][4]   |
+| iOS           | [![iOS build status][7]][4]     |
+| Windows       | [![Windows build status][8]][4] |
 
-**Test Coverage**
+### Test Coverage
 
-| Platform                       | Status                          |
-| :----------------------------- | :------------------------------ |
-| Linux                          | [![Linux code coverage][5]][6]  |
+| Platform | Status                         |
+| :------- | :----------------------------- |
+| Linux    | [![Linux code coverage][5]][6] |
 
 [1]: https://travis-ci.com/heremaps/here-olp-sdk-cpp.svg?branch=master
 [2]: https://travis-ci.com/heremaps/here-olp-sdk-cpp
@@ -30,89 +30,75 @@ The HERE OLP SDK for C++ is a C++ client for [HERE Open Location Platform](https
 
 ## Why Use
 
-The HERE OLP SDK for C++ provides support for core HERE Open Location Platform (OLP) use cases through a set of native C++ interfaces. The SDK is intended to save your time and effort on using OLP REST APIs and provides a set of stable APIs that simplify complex OLP operations and remove the burden of keeping up to date with the latest OLP REST API changes.
+The Open Location Platform (OLP) SDK for C++ provides support for the core HERE OLP use cases through a set of native C++ interfaces. The SDK is intended to save your time and effort on using OLP REST APIs. It provides a set of stable APIs that simplify complex OLP operations and keeps up to date with the latest OLP REST API changes.
 
-It's a modern (C++11 or later), lightweight, and modular SDK with minimal dependencies that is targeted towards a wide range of hardware platforms, from embedded devices to desktops.
+The OLP SDK for C++ is a modern (C++11), lightweight, and modular SDK with minimal dependencies targeted towards a wide range of hardware platforms from embedded devices to desktops.
 
 This SDK lets you:
 
-* Authenticate to HERE Open Location Platform (OLP) using client credentials.
-* Read catalog and partitions metadata.
-* Retrieve data from versioned and volatile layers of OLP catalogs.
-* Upload your own data to OLP.
+- Authenticate to HERE OLP using client credentials
+- Read catalog and partition metadata
+- Retrieve data from versioned and volatile layers of OLP catalogs
+- Upload data to OLP
 
-Additionally, the SDK includes convenient classes for work with the geospatial tiling schemes that are used by most OLP catalog layers.
+Additionally, the SDK includes classes for work with geospatial tiling schemes that are used by most OLP catalog layers.
 
 ## Supported Platforms
 
-The SDK has been tested on the following platforms and with the following requirements:
+The table below lists the platforms on which the OLP SDK for C++ has been tested.
 
-| Platform | Minimum requirement |
-| ------- | -------- |
-| Ubuntu | GCC 5.4 and Clang 7.0 |
+| Platform                   | Minimum requirement     |
+| :------------------------- | :---------------------- |
+| Ubuntu                     | GCC 5.4 and Clang 7.0   |
 | Embedded Linux (32/64 bit) | GCC-arm/GCC-aarch64 5.4 |
-| Windows | MSVC++ 2017  |
-| MacOS | Apple Clang 11.0.0 |
-| iOS |  XCode 11.1, Swift 5.0 |
-| Android |  API level 21 |
+| Windows                    | MSVC++ 2017             |
+| macOS                      | Apple Clang 11.0.0      |
+| iOS                        | Xcode 11.1, Swift 5.0   |
+| Android                    | API level 21            |
+
+<h6 id="dependencies"></h6>
 
 ## Dependencies
 
-The dependencies of the HERE OLP SDK for C++ are the following:
+The table below lists the dependencies of the HERE OLP SDK for C++.
 
-| Library   | Minimum version |
-| --------- | --------------- |
-| OpenSSL   | 1.0.2 |
-| Boost (headers only) | 1.69.0 |
-| leveldb   | 1.21 |
-| snappy    | 1.1.7 |
-| rapidjson | latest |
+| Library              | Minimum version |
+| :------------------- | :-------------- |
+| OpenSSL              | 1.0.2           |
+| Boost (headers only) | 1.69.0          |
+| LevelDB              | 1.21            |
+| Snappy               | 1.1.7           |
+| RapidJSON            | latest          |
 
-## Building the SDK
+<h6 id="additional-linux-dependencies"></h6>
 
-[CMake](https://cmake.org/download/) is the main build system. The minimal required version of CMake is 3.9.
+### Additional Linux Dependencies
 
-CMake downloads [leveldb](https://github.com/google/leveldb), [snappy](https://github.com/google/snappy), [rapidjson](https://github.com/Tencent/rapidjson), and [Boost](https://www.boost.org/). This can be disabled by setting `OLP_SDK_BUILD_EXTERNAL_DEPS` to `OFF`. For details on CMake flags, see [below](#cmake-flags).
+To build the HERE OLP SDK for C++ on Linux, additionally to the dependencies listed in the previous section, you also need to have [libcurl](https://curl.haxx.se/download.html) 7.47.0 or later.
 
-Optionally, if you want to build documentation from annotated source code, you need to install [Doxygen](http://www.doxygen.nl/).
-
-### Building on Linux [![Linux build status][1]][2] [![Linux code coverage][5]][6]
-
-#### Additional Linux Dependencies
-
-Additionally to the dependencies listed above, building the SDK on Linux requires [libcurl](https://curl.haxx.se/download.html) 7.47.0 or later.
-
-To install the dependencies, run the following command:
+To install the dependencies on Linux, run the following command:
 
 ```bash
 sudo apt-get update && sudo apt-get --yes install git g++ make cmake libssl-dev libcurl4-openssl-dev libboost-all-dev
 ```
 
-#### Build
+## Install the SDK
 
-To build the HERE OLP SDK for C++, run the following commands in the root of the repository folder after cloning:
+By default, the HERE OLP SDK for C++ downloads and compiles its dependencies. The versions of the downloaded dependencies may conflict with the versions that are already installed on your system. Therefore, the downloaded dependencies are not added to the install targets.
 
-```bash
-mkdir build && cd build
-cmake ..
-cmake --build .
-```
+You can use the HERE OLP SDK for C++ in your CMake project or install it on your system.
 
-To build the [Doxygen](http://www.doxygen.nl/) documentation, you need to have CMake version 3.9 or later, and set `OLP_SDK_BUILD_DOC=ON` when running CMake configuration:
+Тo use the SDK directly in your CMake project, add the SDK via `add_subdirectory()`.
 
-```bash
-mkdir build && cd build
-cmake -DOLP_SDK_BUILD_DOC=ON ..
-cmake --build . --target docs
-```
+To install the SDK on your system:
 
-#### Install
+1. Install all the dependencies needed for the SDK.<br>For more information on dependencies, see the [Dependencies](#dependencies) and [Additional Linux Dependencies](#additional-linux-dependencies) sections.
 
-By default this SDK downloads and compiles its dependencies. The versions of downloaded dependencies may conflict with versions already installed on your system, so they are not added to the install targets.
+2. (Optional) To find the required dependencies in the system, set the `OLP_SDK_BUILD_EXTERNAL_DEPS` flag to `OFF`.
 
-Therefore, to install the HERE OLP SDK for C++, you must first install all its dependencies. Then you need to configure the SDK with `OLP_SDK_BUILD_EXTERNAL_DEPS` set to `OFF` so that it finds required dependencies in the system.
+3. (Optional) To build the SDK as a shared library, set the `BUILD_SHARED_LIBS` flag to `ON`.
 
-Another option is to build the SDK as a shared library, setting the `BUILD_SHARED_LIBS` flag to `ON`.
+**Example**
 
 The following command builds and installs the HERE OLP SDK for C++:
 
@@ -120,64 +106,83 @@ The following command builds and installs the HERE OLP SDK for C++:
 cmake --build . --target install
 ```
 
-Alternatively, if you want to use the SDK directly in your CMake project, you can add it via `add_subdirectory()`.
+## Build the SDK
 
-### Building on Windows [![Windows build status][3]][4]
+[CMake](https://cmake.org/download/) is the main build system. The minimal required version of CMake is 3.9.
 
-We assume that you have installed CMake and Microsoft Visual Studio 2017.
+CMake downloads [LevelDB](https://github.com/google/leveldb), [Snappy](https://github.com/google/snappy), [RapidJSON](https://github.com/Tencent/rapidjson), and [Boost](https://www.boost.org/). To disable downloading, set `OLP_SDK_BUILD_EXTERNAL_DEPS` to `OFF`. For details on CMake flags, see the [CMake Flags](#cmake-flags) section.
 
-Launch Visual Studio as administrator and open the folder containing the SDK or a CMake-based project using the SDK. Make sure that the target in Visual Studio does not contain "* (Default)". For example, select "x64-Debug" instead of "x64-Debug (Default)".
-Using the provided CMake menu by the Visual C++ tools for CMake, generate the `.cmake` files and build the entire project normally.
+To build the HERE OLP SDK for C++:
 
-> **Note:**
-> Visual Studio uses a default build directory that has a long path name. It's recommended that you edit the generated `CMakeSettings.json` and change the build directory to a short path name, since dependencies for the SDK are installed within the build directory. This ensures that the maximum length for each individual path is not greater than 260 characters. For details, see [here](https://docs.microsoft.com/en-us/windows/desktop/fileio/naming-a-file).
+1. Clone the repository folder.
+2. In the root of the repository folder, run the following commands:
+
+```bash
+    mkdir build && cd build
+    cmake ..
+    cmake --build .
+```
+
+If you cannot build the SDK on Windows using this instruction, see [Build on Windows](#build-on-windows).
+
+<h6 id="build-on-windows"></h6>
+
+### Build on Windows
+
+[![Windows build status][3]][4]
+
+We assume that you have installed CMake, Microsoft Visual Studio 2017, and the Visual C++ tools for CMake component.
+
+To build the HERE OLP SDK for C++ on Windows:
+
+1. Launch Microsoft Visual Studio as administrator.
+
+2. Open the folder containing the SDK or a CMake-based project that uses the SDK.
+
+3. In Microsoft Visual Studio, check that the target does not contain "(Default)".<br>For example, select "x64-Debug" instead of "x64-Debug (Default)".
+
+4. Using the CMake menu provided by the Visual C++ tools for CMake, generate the `.cmake` files, and build the entire project with default options.
+
+> **Note:** Microsoft Visual Studio uses a default build directory that has a long path name. Since dependencies for the SDK are installed within the build directory, it is recommended that you edit the generated `CMakeSettings.json` file and change the build directory path name to a shorter path name. This ensures that the maximum length of each path is not greater than 260 characters. For details, see the [Naming Files, Paths, and Namespaces](https://docs.microsoft.com/en-us/windows/desktop/fileio/naming-a-file) section of the Windows Dev Center documentation.
+
+### Generate Documentation with Doxygen
+
+If you want to build documentation from annotated source code, you need to have [Doxygen](http://www.doxygen.nl/) and CMake version 3.9 or later.
+
+To generate Doxygen documentation, set the `OLP_SDK_BUILD_DOC` flag to `ON` when running the CMake configuration:
+
+```bash
+mkdir build && cd build
+cmake -DOLP_SDK_BUILD_DOC=ON ..
+cmake --build . --target docs
+```
+
+<h6 id="cmake-flags"></h6>
 
 ### CMake Flags
 
-#### `BUILD_SHARED_LIBS`
-
-Defaults to `OFF`. If enabled, this causes all libraries to be built as shared.
-
-#### `OLP_SDK_BUILD_DOC`
-
-Defaults to `OFF`. If enabled, the API reference is to be generated in your build directory.
-
-> **Note:**
-> This requires [Doxygen](http://www.doxygen.nl/) to be installed.
-
-#### `OLP_SDK_ENABLE_TESTING`
-
-Defaults to `ON`. If enabled, unit tests are to be built for each library.
-
-#### `OLP_SDK_BUILD_EXTERNAL_DEPS`
-
-Defaults to `ON`. If enabled, CMake downloads and compiles dependencies.
-
-#### `OLP_SDK_NO_EXCEPTION`
-
-Defaults to `OFF`. If enabled, this causes all libraries to be built without exceptions.
-
-#### `OLP_SDK_BOOST_THROW_EXCEPTION_EXTERNAL`
-
-Defaults to `OFF`. When `OLP_SDK_NO_EXCEPTION` is `ON`, `boost` requires `boost::throw_exception()` to be defined. If enabled, external definition of `boost::throw_exception()` used, otherwise library defines its own.
-
-#### `OLP_SDK_MSVC_PARALLEL_BUILD_ENABLE` (Windows Only)
-
-Defaults to `ON`. If enabled, this adds `/MP` compilation flag to build SDK using multiple cores.
+| Flag                                                | Description                                                                                                                                                                                                                               |
+| :-------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BUILD_SHARED_LIBS`                                 | Defaults to `OFF`. If enabled, all libraries are built as shared.                                                                                                                                                                         |
+| `OLP_SDK_BUILD_DOC`                                 | Defaults to `OFF`. If enabled, the API reference is generated in your build directory.<br> **Note:** Before you download the API reference, install [Doxygen](http://www.doxygen.nl/).                                                    |
+| `OLP_SDK_ENABLE_TESTING`                            | Defaults to `ON`. If enabled, unit tests are built for each library.                                                                                                                                                                      |
+| `OLP_SDK_BUILD_EXTERNAL_DEPS`                       | Defaults to `ON`. If enabled, CMake downloads and compiles dependencies.                                                                                                                                                                  |
+| `OLP_SDK_NO_EXCEPTION`                              | Defaults to `OFF`. If enabled, all libraries are built without exceptions.                                                                                                                                                                |
+| `OLP_SDK_BOOST_THROW_EXCEPTION_EXTERNAL`            | Defaults to `OFF`. When `OLP_SDK_NO_EXCEPTION` is `ON`, `boost` requires `boost::throw_exception()` to be defined. If enabled, the external definition of `boost::throw_exception()` is used. Otherwise, the library uses own definition. |
+| `OLP_SDK_MSVC_PARALLEL_BUILD_ENABLE` (Windows Only) | Defaults to `ON`. If enabled, the `/MP` compilation flag is added to build the SDK using multiple cores.                                                                                                                                  |
 
 ## SDK Usage
 
-To learn how to use the HERE OLP SDK for C++, see the [Getting Started Guide](docs/GettingStartedGuide.md).
+To learn how to use the HERE OLP SDK for C++, see the [Getting Started Guide](https://github.com/heremaps/here-olp-sdk-cpp/blob/master/docs/GettingStartedGuide.md).
 
 ## Contribution
 
-For details, see the [HERE OLP SDK C++ Contributors Guide](CONTRIBUTING.md).
+For details, see the [HERE OLP SDK C++ Contributors Guide](https://github.com/heremaps/here-olp-sdk-cpp/blob/master/CONTRIBUTING.md).
 
 ## LICENSE
 
 Copyright (C) 2019 HERE Europe B.V.
 
-For license details, see the [LICENSE](LICENSE) file in the root of this project.
+For license details, see the [LICENSE](https://github.com/heremaps/here-olp-sdk-cpp/blob/master/LICENSE) file in the root of this project.
 
-> **Note:**
-> This project has Open Source Software dependencies that are downloaded and installed upon execution of the abovementioned installation commands. For further details, see the CMake configuration files included in the [external](/external) directory.
+> **Note:** This project has Open Source Software dependencies that are downloaded and installed upon execution of the abovementioned installation commands. For further details, see the CMake configuration files included in the [external](https://github.com/heremaps/here-olp-sdk-cpp/tree/master/external) directory.
