@@ -127,6 +127,9 @@ class CORE_API DefaultCache : public KeyValueCache {
  private:
   StorageOpenResult SetupStorage();
 
+  boost::optional<std::pair<std::string, time_t>> GetFromDiscCache(
+      const std::string& key);
+
  private:
   CacheSettings settings_;
   bool is_open_;

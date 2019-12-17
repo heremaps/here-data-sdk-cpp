@@ -195,21 +195,15 @@ boost::any DefaultCache::Get(const std::string& key, const Decoder& decoder) {
     }
   }
 
-  if (mutable_cache_) {
-    auto expiry = GetRemainingExpiryTime(key, *mutable_cache_);
-    if (expiry <= 0) {
-      PurgeDiskItem(key, *mutable_cache_);
-      return boost::any();
-    }
+  auto disc_cache = GetFromDiscCache(key);
 
-    auto value = mutable_cache_->Get(key);
-    if (value) {
-      auto decoded_item = decoder(value.get());
-      if (memory_cache_) {
-        memory_cache_->Put(key, decoded_item, expiry, value->size());
-      }
-      return decoded_item;
+  if (disc_cache) {
+    auto decoded_item = decoder(disc_cache->first);
+    if (memory_cache_) {
+      memory_cache_->Put(key, decoded_item, disc_cache->second,
+                         disc_cache->first.size());
     }
+    return decoded_item;
   }
 
   return boost::any();
@@ -231,22 +225,16 @@ std::shared_ptr<std::vector<unsigned char>> DefaultCache::Get(
     }
   }
 
-  if (mutable_cache_) {
-    auto expiry = GetRemainingExpiryTime(key, *mutable_cache_);
-    if (expiry <= 0) {
-      PurgeDiskItem(key, *mutable_cache_);
-      return nullptr;
-    }
+  auto disc_cache = GetFromDiscCache(key);
 
-    auto value = mutable_cache_->Get(key);
-    if (value) {
-      auto data = std::make_shared<std::vector<unsigned char>>(
-          value.get().begin(), value.get().end());
-      if (memory_cache_) {
-        memory_cache_->Put(key, data, expiry, value->size());
-      }
-      return data;
+  if (disc_cache) {
+    auto data = std::make_shared<std::vector<unsigned char>>(
+        disc_cache->first.begin(), disc_cache->first.end());
+
+    if (memory_cache_) {
+      memory_cache_->Put(key, data, disc_cache->second, data->size());
     }
+    return data;
   }
 
   return nullptr;
@@ -338,6 +326,32 @@ DefaultCache::StorageOpenResult DefaultCache::SetupStorage() {
   }
 
   return result;
+}
+
+boost::optional<std::pair<std::string, time_t>> DefaultCache::GetFromDiscCache(
+    const std::string& key) {
+  if (protected_cache_) {
+    auto result = protected_cache_->Get(key);
+
+    if (result) {
+      return std::make_pair(std::move(result.value()),
+                            std::numeric_limits<time_t>::max());
+    }
+  }
+
+  if (mutable_cache_) {
+    auto expiry = GetRemainingExpiryTime(key, *mutable_cache_);
+    if (expiry <= 0) {
+      PurgeDiskItem(key, *mutable_cache_);
+    } else {
+      auto result = mutable_cache_->Get(key);
+
+      if (result) {
+        return std::make_pair(std::move(result.value()), expiry);
+      }
+    }
+  }
+  return boost::none;
 }
 }  // namespace cache
 }  // namespace olp
