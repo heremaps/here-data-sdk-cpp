@@ -36,61 +36,54 @@ EXPECTED_REPORT_COUNT=6                         # expected that we generate 6 re
 ulimit -c unlimited
 
 # Running every test one by one
-# Run unit tests
-${FV_HOME}/gitlab-olp-cpp-sdk-authentication-test.sh 2>> errors.txt || TEST_FAILURE=1
-${FV_HOME}/gitlab-olp-cpp-sdk-core-test.sh 2>> errors.txt || TEST_FAILURE=1
-${FV_HOME}/gitlab-olp-cpp-sdk-dataservice-read-test.sh 2>> errors.txt || TEST_FAILURE=1
-${FV_HOME}/gitlab-olp-cpp-sdk-dataservice-write-test.sh 2>> errors.txt || TEST_FAILURE=1
+# Functional tests must run first,
+# as we have retry mechanism which causes problems with other tests results if they run before functional.
 
 # Run functional tests
 # Add retry to functional/online tests. Some online tests are flaky due to third party reason
 # Test failure must return code 1 only. Other return code are not handled in retry.
 # Allowing tests failures (exit codes not 0) for online tests is done by set command below. Process is controlled by retry mechanism below.
+# Stop after 2nd retry.
 set +e
-while true
+for RETRY_COUNT in 1 2
 do
-    # Stop after 2rd retry
-    if [[ ${RETRY_COUNT} -eq 2 ]]; then
-        echo "Reach limit (${RETRY_COUNT}) of retries ..."
-        break
-    fi
+	echo "This is (${RETRY_COUNT}) time run ..."
 
-    if [[ ${RETRY_COUNT} -eq 0 ]]; then
-        echo "This is (${RETRY_COUNT}) time run ..."
-    else
-        RETRY_COUNT=$((RETRY_COUNT+1))
-        sleep 10
-        echo "This is (${RETRY_COUNT}) time retry ..."
-    fi
+	# Run functional tests
+	${FV_HOME}/gitlab-olp-cpp-sdk-functional-test.sh
 
-    # Run functional tests
-    ${FV_HOME}/gitlab-olp-cpp-sdk-functional-test.sh
-    if [[ $? -eq 1 ]]; then
-        # Functional test failed with exit code 1 means some tests failed
-        TEST_FAILURE=1
-        continue
-    else
-        # Return to success
-        TEST_FAILURE=0
+	if [[ $? -eq 1 ]]; then
+	    # Functional test failed with exit code 1 means some tests failed
+		TEST_FAILURE=1
+		sleep 10
+	else
+	    # Return to success
+		TEST_FAILURE=0
         break
-    fi
+	fi
 done
 set -e
 # End of retry part. This part can be removed any time later or after all online tests are stable.
 
 
 # Run integration tests
-${FV_HOME}/gitlab-olp-cpp-sdk-integration-test.sh 2>> errors.txt || TEST_FAILURE=1
+${FV_HOME}/gitlab-olp-cpp-sdk-integration-test.sh || TEST_FAILURE=1
+
+# Run unit tests
+${FV_HOME}/gitlab-olp-cpp-sdk-authentication-test.sh || TEST_FAILURE=1
+${FV_HOME}/gitlab-olp-cpp-sdk-core-test.sh || TEST_FAILURE=1
+${FV_HOME}/gitlab-olp-cpp-sdk-dataservice-read-test.sh || TEST_FAILURE=1
+${FV_HOME}/gitlab-olp-cpp-sdk-dataservice-write-test.sh || TEST_FAILURE=1
+
 
 # Lines below are added for pretty data sum-up and finalize results of this script is case of FAILURE
 set +x  # to avoid dirty output at the end on logs
 if [[ ${TEST_FAILURE} == 1 ]]; then
     export REPORT_COUNT=$(ls ${REPO_HOME}/reports | wc -l)
     if [[ ${REPORT_COUNT} -ne ${EXPECTED_REPORT_COUNT} || ${REPORT_COUNT} == 0 ]]; then
-        echo "Printing error.txt ###########################################"
-        cat errors.txt
-        echo "End of error.txt #############################################"
+        echo "##################################################################################################"
         echo "CRASH ERROR. One of test groups contains crash. Report was not generated for that group ! "
+        echo "##################################################################################################"
     fi
 else
     echo "OK. Full list of test reports was generated. "
@@ -102,10 +95,9 @@ do
     echo "Parsing ${failreport} ..."
     if $(grep -q "<failure" "${failreport}" ) ; then
         echo "${failreport} contains errors : "
+        echo "Printing report ##################################################################################"
         cat ${failreport}
-        echo "Printing error.txt ###########################################"
-        cat errors.txt
-        echo "End of error.txt #############################################"
+        echo "End of report ####################################################################################"
     fi
 done
 
