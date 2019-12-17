@@ -65,6 +65,27 @@ CancellationToken ConfigApi::GetCatalog(
                          formParams, nullptr, "", callback);
 }
 
+CatalogResponse ConfigApi::GetCatalog(const OlpClient& client,
+                                      const std::string& catalog_hrn,
+                                      boost::optional<std::string> billing_tag,
+                                      client::CancellationContext context) {
+  std::multimap<std::string, std::string> header_params;
+  header_params.insert(std::make_pair("Accept", "application/json"));
+  std::multimap<std::string, std::string> query_params;
+  if (billing_tag) {
+    query_params.insert(std::make_pair("billingTag", *billing_tag));
+  }
+  std::string catalog_uri = "/catalogs/" + catalog_hrn;
+
+  client::HttpResponse response = client.CallApi(
+      std::move(catalog_uri), "GET", std::move(query_params),
+      std::move(header_params), {}, nullptr, std::string{}, std::move(context));
+  if (response.status != olp::http::HttpStatusCode::OK) {
+    return client::ApiError(response.status, response.response.str());
+  }
+  return olp::parser::parse<model::Catalog>(response.response);
+}
+
 }  // namespace write
 }  // namespace dataservice
 }  // namespace olp

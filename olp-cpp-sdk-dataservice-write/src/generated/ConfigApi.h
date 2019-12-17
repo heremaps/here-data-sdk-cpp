@@ -26,6 +26,7 @@
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/OlpClient.h>
 
 #include "model/Catalog.h"
@@ -59,6 +60,23 @@ class ConfigApi {
       std::shared_ptr<client::OlpClient> client, const std::string& catalog_hrn,
       boost::optional<std::string> billing_tag,
       const CatalogCallback& callback);
+
+  /**
+   * @brief Call to synchronously retrieve the configuration of a catalog.
+   * @param client Instance of OlpClient used to make REST request.
+   * @param catalog_hrn Full catalog name.
+   * @param billing_tag An optional free-form tag which is used for grouping
+   * billing records together. If supplied, it must be between 4 - 16
+   * characters,
+   * contain only alpha/numeric ASCII characters  [A-Za-z0-9].
+   * @param context A CancellationContext instance which can be used to cancel
+   * this method.
+   * @return The result of operation as a client::ApiResponse object.
+   */
+  static CatalogResponse GetCatalog(const client::OlpClient& client,
+                                    const std::string& catalog_hrn,
+                                    boost::optional<std::string> billing_tag,
+                                    client::CancellationContext context);
 };
 
 }  // namespace write
