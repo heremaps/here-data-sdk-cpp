@@ -31,10 +31,13 @@
 
 #include "olp/core/client/ApiResponse.h"
 #include "olp/core/client/CancellationToken.h"
+#include "olp/core/porting/warning_disable.h"
 
 namespace olp {
 namespace authentication {
 class AutoRefreshingToken;
+PORTING_PUSH_WARNINGS()
+PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 
 /**
  * @brief The TokenEndpoint class directly corresponds to the token endpoint as
@@ -107,6 +110,7 @@ class AUTHENTICATION_API TokenEndpoint {
   struct Impl;
   std::shared_ptr<Impl> impl_;
 };
+PORTING_POP_WARNINGS()
 
 }  // namespace authentication
 }  // namespace olp

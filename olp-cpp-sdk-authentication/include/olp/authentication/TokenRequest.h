@@ -23,6 +23,7 @@
 #include <cstdint>
 
 #include "AuthenticationApi.h"
+#include <olp/core/porting/deprecated.h>
 
 namespace olp {
 namespace authentication {
@@ -30,7 +31,8 @@ namespace authentication {
  * @brief The TokenRequest class holds parameters of an OAuth2.0 Authorization
  * Grant Request.
  */
-class AUTHENTICATION_API TokenRequest {
+class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 04.2020")
+    TokenRequest {
  public:
   /**
    * @brief Constructor.

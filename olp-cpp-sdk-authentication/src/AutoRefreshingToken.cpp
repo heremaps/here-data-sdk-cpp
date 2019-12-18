@@ -25,6 +25,7 @@
 #include "olp/authentication/TokenEndpoint.h"
 #include "olp/core/client/CancellationToken.h"
 #include "olp/core/logging/Log.h"
+#include "olp/core/porting/warning_disable.h"
 
 namespace {
 constexpr auto kLogTag = "authentication::AutoRefreshingToken";
@@ -40,6 +41,8 @@ std::chrono::system_clock::time_point ComputeRefreshTime(
 
 namespace olp {
 namespace authentication {
+PORTING_PUSH_WARNINGS()
+PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 
 struct AutoRefreshingToken::Impl {
   Impl(TokenEndpoint token_endpoint, TokenRequest token_request)
@@ -176,6 +179,7 @@ client::CancellationToken AutoRefreshingToken::GetToken(
     const std::chrono::seconds& minimum_validity) const {
   return impl_->GetToken(callback, minimum_validity);
 }
+PORTING_POP_WARNINGS()
 
 }  // namespace authentication
 }  // namespace olp
