@@ -29,6 +29,7 @@
 #include "TokenResult.h"
 
 #include "olp/core/client/CancellationToken.h"
+#include "olp/core/porting/warning_disable.h"
 
 namespace olp {
 namespace authentication {
@@ -114,7 +115,10 @@ class AUTHENTICATION_API AutoRefreshingToken {
    * @param token_endpoint the token endpoint to refresh against
    * @param token_request the token request to send to the token endpoint
    */
+  PORTING_PUSH_WARNINGS()
+  PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
   AutoRefreshingToken(TokenEndpoint token_endpoint, TokenRequest token_request);
+  PORTING_POP_WARNINGS()
 
  private:
   struct Impl;

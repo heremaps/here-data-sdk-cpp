@@ -48,6 +48,8 @@ struct TokenEndpoint::Impl {
     auth_client_.SetTaskScheduler(std::move(settings.task_scheduler));
   }
 
+  PORTING_PUSH_WARNINGS()
+  PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
   client::CancellationToken RequestToken(const TokenRequest& token_request,
                                          const RequestTokenCallback& callback) {
     return auth_client_.SignInClient(
@@ -126,6 +128,7 @@ AutoRefreshingToken TokenEndpoint::RequestAutoRefreshingToken(
     const TokenRequest& token_request) {
   return AutoRefreshingToken(*this, token_request);
 }
+PORTING_POP_WARNINGS()
 
 }  // namespace authentication
 }  // namespace olp
