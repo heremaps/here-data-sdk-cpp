@@ -1,32 +1,23 @@
 # HERE OLP SDK for C++
 
-The HERE OLP SDK for C++ is a C++ client for the [HERE Open Location Platform](https://platform.here.com).
+The HERE OLP SDK for C++ is a C++ client for the <a href="https://platform.here.com" target="_blank">HERE Open Location Platform</a>.
 
 ## Health Сheck
 
 ### Build and Test
 
-| Platform      | Status                          |
-| :------------ | :------------------------------ |
-| Linux/Android | [![Linux build status][1]][2]   |
-| MacOS         | [![macOS build status][3]][4]   |
-| iOS           | [![iOS build status][7]][4]     |
-| Windows       | [![Windows build status][8]][4] |
+| Platform      | Status                                                                                                                                                                                                                                                                              |
+| :------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Linux/Android | <a href="https://travis-ci.com/heremaps/here-olp-sdk-cpp" target="_blank"><img src="https://travis-ci.com/heremaps/here-olp-sdk-cpp.svg?branch=master" alt="Linux build status"/></a>                                                                                               |
+| MacOS         | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=Windows_build" alt="macOS build status"/></a> |
+| iOS           | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=MacOS_build" alt="iOS build status"/></a>     |
+| Windows       | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=iOS_build" alt="Windows build status"/></a>   |
 
 ### Test Coverage
 
-| Platform | Status                         |
-| :------- | :----------------------------- |
-| Linux    | [![Linux code coverage][5]][6] |
-
-[1]: https://travis-ci.com/heremaps/here-olp-sdk-cpp.svg?branch=master
-[2]: https://travis-ci.com/heremaps/here-olp-sdk-cpp
-[3]: https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=Windows_build
-[4]: https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master
-[5]: https://codecov.io/gh/heremaps/here-olp-sdk-cpp/branch/master/graph/badge.svg
-[6]: https://codecov.io/gh/heremaps/here-olp-sdk-cpp/
-[7]: https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=MacOS_build
-[8]: https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=iOS_build
+| Platform | Status                                                                                                                                                                                              |
+| :------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Linux    | <a href="https://codecov.io/gh/heremaps/here-olp-sdk-cpp/" target="_blank"><img src="https://codecov.io/gh/heremaps/here-olp-sdk-cpp/branch/master/graph/badge.svg" alt="Linux code coverage"/></a> |
 
 ## Why Use
 
@@ -74,7 +65,7 @@ The table below lists the dependencies of the HERE OLP SDK for C++.
 
 ### Additional Linux Dependencies
 
-To build the HERE OLP SDK for C++ on Linux, additionally to the dependencies listed in the previous section, you also need to have [libcurl](https://curl.haxx.se/download.html) 7.47.0 or later.
+To build the HERE OLP SDK for C++ on Linux, additionally to the dependencies listed in the previous section, you also need to have <a href="https://curl.haxx.se/download.html" target="_blank">libcurl</a> 7.47.0 or later.
 
 To install the dependencies on Linux, run the following command:
 
@@ -108,9 +99,9 @@ cmake --build . --target install
 
 ## Build the SDK
 
-[CMake](https://cmake.org/download/) is the main build system. The minimal required version of CMake is 3.9.
+<a href="https://cmake.org/download/" target="_blank">CMake</a> is the main build system. The minimal required version of CMake is 3.9.
 
-CMake downloads [LevelDB](https://github.com/google/leveldb), [Snappy](https://github.com/google/snappy), [RapidJSON](https://github.com/Tencent/rapidjson), and [Boost](https://www.boost.org/). To disable downloading, set `OLP_SDK_BUILD_EXTERNAL_DEPS` to `OFF`. For details on CMake flags, see the [CMake Flags](#cmake-flags) section.
+CMake downloads <a href="https://github.com/google/leveldb" target="_blank">LevelDB</a>, <a href="https://github.com/google/snappy" target="_blank">Snappy</a>, <a href="https://github.com/Tencent/rapidjson" target="_blank">RapidJSON</a>, and <a href="https://www.boost.org/" target="_blank">Boost</a>. To disable downloading, set `OLP_SDK_BUILD_EXTERNAL_DEPS` to `OFF`. For details on CMake flags, see the [CMake Flags](#cmake-flags) section.
 
 To build the HERE OLP SDK for C++:
 
@@ -129,7 +120,7 @@ If you cannot build the SDK on Windows using this instruction, see [Build on Win
 
 ### Build on Windows
 
-[![Windows build status][3]][4]
+<a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=Windows_build" alt="Windows build status"/></a>
 
 We assume that you have installed CMake, Microsoft Visual Studio 2017, and the Visual C++ tools for CMake component.
 
@@ -143,11 +134,11 @@ To build the HERE OLP SDK for C++ on Windows:
 
 4. Using the CMake menu provided by the Visual C++ tools for CMake, generate the `.cmake` files, and build the entire project with default options.
 
-> **Note:** Microsoft Visual Studio uses a default build directory that has a long path name. Since dependencies for the SDK are installed within the build directory, it is recommended that you edit the generated `CMakeSettings.json` file and change the build directory path name to a shorter path name. This ensures that the maximum length of each path is not greater than 260 characters. For details, see the [Naming Files, Paths, and Namespaces](https://docs.microsoft.com/en-us/windows/desktop/fileio/naming-a-file) section of the Windows Dev Center documentation.
+> **Note:** Microsoft Visual Studio uses a default build directory that has a long path name. Since dependencies for the SDK are installed within the build directory, it is recommended that you edit the generated `CMakeSettings.json` file and change the build directory path name to a shorter path name. This ensures that the maximum length of each path is not greater than 260 characters. For details, see the <a href="https://docs.microsoft.com/en-us/windows/desktop/fileio/naming-a-file" target="_blank">Naming Files, Paths, and Namespaces</a> section of the Windows Dev Center documentation.
 
 ### Generate Documentation with Doxygen
 
-If you want to build documentation from annotated source code, you need to have [Doxygen](http://www.doxygen.nl/) and CMake version 3.9 or later.
+If you want to build documentation from annotated source code, you need to have <a href="http://www.doxygen.nl/" target="_blank">Doxygen</a> and CMake version 3.9 or later.
 
 To generate Doxygen documentation, set the `OLP_SDK_BUILD_DOC` flag to `ON` when running the CMake configuration:
 
@@ -164,7 +155,7 @@ cmake --build . --target docs
 | Flag                                                | Description                                                                                                                                                                                                                               |
 | :-------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `BUILD_SHARED_LIBS`                                 | Defaults to `OFF`. If enabled, all libraries are built as shared.                                                                                                                                                                         |
-| `OLP_SDK_BUILD_DOC`                                 | Defaults to `OFF`. If enabled, the API reference is generated in your build directory.<br> **Note:** Before you download the API reference, install [Doxygen](http://www.doxygen.nl/).                                                    |
+| `OLP_SDK_BUILD_DOC`                                 | Defaults to `OFF`. If enabled, the API reference is generated in your build directory.<br> **Note:** Before you download the API reference, install <a href="http://www.doxygen.nl/" target="_blank">Doxygen</a>.                         |
 | `OLP_SDK_ENABLE_TESTING`                            | Defaults to `ON`. If enabled, unit tests are built for each library.                                                                                                                                                                      |
 | `OLP_SDK_BUILD_EXTERNAL_DEPS`                       | Defaults to `ON`. If enabled, CMake downloads and compiles dependencies.                                                                                                                                                                  |
 | `OLP_SDK_NO_EXCEPTION`                              | Defaults to `OFF`. If enabled, all libraries are built without exceptions.                                                                                                                                                                |
@@ -173,16 +164,16 @@ cmake --build . --target docs
 
 ## SDK Usage
 
-To learn how to use the HERE OLP SDK for C++, see the [Getting Started Guide](https://github.com/heremaps/here-olp-sdk-cpp/blob/master/docs/GettingStartedGuide.md).
+To learn how to use the HERE OLP SDK for C++, see the <a href="https://github.com/heremaps/here-olp-sdk-cpp/blob/master/docs/GettingStartedGuide.md" target="_blank">Getting Started Guide</a>.
 
 ## Contribution
 
-For details, see the [HERE OLP SDK C++ Contributors Guide](https://github.com/heremaps/here-olp-sdk-cpp/blob/master/CONTRIBUTING.md).
+For details, see the <a href="https://github.com/heremaps/here-olp-sdk-cpp/blob/master/CONTRIBUTING.md" target="_blank">HERE OLP SDK C++ Contributors Guide</a>.
 
 ## LICENSE
 
 Copyright (C) 2019 HERE Europe B.V.
 
-For license details, see the [LICENSE](https://github.com/heremaps/here-olp-sdk-cpp/blob/master/LICENSE) file in the root of this project.
+For license details, see the <a href="https://github.com/heremaps/here-olp-sdk-cpp/blob/master/LICENSE" target="_blank">LICENSE</a> file in the root of this project.
 
-> **Note:** This project has Open Source Software dependencies that are downloaded and installed upon execution of the abovementioned installation commands. For further details, see the CMake configuration files included in the [external](https://github.com/heremaps/here-olp-sdk-cpp/tree/master/external) directory.
+> **Note:** This project has Open Source Software dependencies that are downloaded and installed upon execution of the abovementioned installation commands. For further details, see the CMake configuration files included in the <a href="https://github.com/heremaps/here-olp-sdk-cpp/tree/master/external" target="_blank">external</a> directory.
