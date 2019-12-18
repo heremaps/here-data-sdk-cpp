@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['messageformatter',['MessageFormatter',['../classolp_1_1logging_1_1MessageFormatter.html',1,'olp::logging']]]
+  ['messageformatter_769',['MessageFormatter',['../classolp_1_1logging_1_1_message_formatter.html',1,'olp::logging']]]
 ];

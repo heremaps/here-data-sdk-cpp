@@ -1,4 +1,0 @@
-<map id="olp::client::OlpClientSettings" name="olp::client::OlpClientSettings">
-<area shape="rect" id="node1" title="OlpClient settings class. Use this class to configure the behaviour of the OlpClient." alt="" coords="5,95,212,121"/>
-<area shape="rect" id="node2" href="$structolp_1_1client_1_1RetrySettings.html" title=" " alt="" coords="18,5,199,32"/>
-</map>
