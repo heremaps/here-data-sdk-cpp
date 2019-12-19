@@ -244,6 +244,7 @@ class AUTHENTICATION_API AuthenticationClient {
    * "https://account.api.here.com")
    * @param token_cache_limit Maximum number of tokens that will be cached.
    */
+  OLP_SDK_DEPRECATED("Deprecated. Will be removed in 04.2020")
   AuthenticationClient(
       const std::string& authentication_server_url = kHereAccountProductionUrl,
       size_t token_cache_limit = 100u);
@@ -487,6 +488,7 @@ class AUTHENTICATION_API AuthenticationClient {
    * @param proxy_settings proxy settings to be used by the network layer when
    * making requests.
    */
+  OLP_SDK_DEPRECATED("Deprecated. Will be removed in 04.2020")
   void SetNetworkProxySettings(
       const http::NetworkProxySettings& proxy_settings);
 
@@ -496,6 +498,7 @@ class AUTHENTICATION_API AuthenticationClient {
    * Should not be nullptr, otherwise any access to class' method calls would
    * render http::ErrorCode::IO_ERROR
    */
+  OLP_SDK_DEPRECATED("Deprecated. Will be removed in 04.2020")
   void SetNetwork(std::shared_ptr<http::Network> network);
 
   /**
@@ -503,6 +506,7 @@ class AUTHENTICATION_API AuthenticationClient {
    * @param task_scheduler Shared TaskScheduler instance to be used for requests
    * outcomes. If set to nullptr, callbacks will be sent synchronously.
    */
+  OLP_SDK_DEPRECATED("Deprecated. Will be removed in 04.2020")
   void SetTaskScheduler(std::shared_ptr<thread::TaskScheduler> task_scheduler);
 
  private:
