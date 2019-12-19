@@ -28,6 +28,7 @@
 #include "olp/authentication/SignInResult.h"
 #include "olp/authentication/TokenRequest.h"
 #include "olp/core/logging/Log.h"
+#include "olp/core/porting/warning_disable.h"
 
 namespace {
 const std::string kOauth2TokenEndpoint = "/oauth2/token";
@@ -40,12 +41,15 @@ struct TokenEndpoint::Impl {
   explicit Impl(Settings settings)
       : auth_client_(std::move(settings.token_endpoint_url)),
         auth_credentials_(std::move(settings.credentials)) {
+    PORTING_PUSH_WARNINGS()
+    PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
     if (settings.network_proxy_settings) {
       auth_client_.SetNetworkProxySettings(
           settings.network_proxy_settings.get());
     }
     auth_client_.SetNetwork(std::move(settings.network_request_handler));
     auth_client_.SetTaskScheduler(std::move(settings.task_scheduler));
+    PORTING_POP_WARNINGS()
   }
 
   client::CancellationToken RequestToken(const TokenRequest& token_request,
