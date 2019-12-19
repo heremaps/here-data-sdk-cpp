@@ -237,17 +237,20 @@ void StreamLayerClientImpl::NotifyInitCompleted() {
 
 std::string StreamLayerClientImpl::FindContentTypeForLayerId(
     const std::string& layer_id) {
-  std::string content_type;
-  for (auto layer : catalog_model_.GetLayers()) {
+  return FindContentTypeForLayerId(catalog_model_, layer_id);
+}
+
+std::string StreamLayerClientImpl::FindContentTypeForLayerId(
+    const model::Catalog& catalog, const std::string& layer_id) {
+  for (const auto& layer : catalog.GetLayers()) {
     if (layer.GetId() == layer_id) {
       // TODO optimization opportunity - cache
       // content-type for layer when found for O(1)
       // subsequent lookup.
-      content_type = layer.GetContentType();
-      break;
+      return layer.GetContentType();
     }
   }
-  return content_type;
+  return {};
 }
 
 std::string StreamLayerClientImpl::GetUuidListKey() const {
@@ -535,6 +538,51 @@ CancellationToken StreamLayerClientImpl::PublishDataLessThanTwentyMib(
       strong_self->NotifyInitAborted();
     }
   });
+}
+
+PublishDataResponse StreamLayerClientImpl::PublishDataLessThanTwentyMibSync(
+    const model::PublishDataRequest& request,
+    client::CancellationContext context) {
+  auto response = ApiClientLookup::LookupApiClient(catalog_, context, "config",
+                                                   "v1", settings_);
+  if (!response.IsSuccessful()) {
+    return PublishDataResponse(response.GetError());
+  }
+
+  client::OlpClient client = response.GetResult();
+  auto catalog_response = ConfigApi::GetCatalog(
+      client, catalog_.ToString(), request.GetBillingTag(), context);
+  if (!catalog_response.IsSuccessful()) {
+    return PublishDataResponse(catalog_response.GetError());
+  }
+
+  auto catalog = catalog_response.GetResult();
+  auto content_type = FindContentTypeForLayerId(catalog, request.GetLayerId());
+  if (content_type.empty()) {
+    return PublishDataResponse(
+        ApiError(ErrorCode::InvalidArgument,
+                 "Unable to find the Layer ID provided in "
+                 "the PublishDataRequest in the "
+                 "Catalog specified when creating this "
+                 "StreamLayerClient instance."));
+  }
+
+  auto ingest_api = ApiClientLookup::LookupApiClient(catalog_, context,
+                                                     "ingest", "v1", settings_);
+  if (!ingest_api.IsSuccessful()) {
+    return PublishDataResponse(ingest_api.GetError());
+  }
+
+  auto ingest_api_client = ingest_api.GetResult();
+  auto ingest_data_response = IngestApi::IngestData(
+      ingest_api_client, request.GetLayerId(), content_type, request.GetData(),
+      request.GetTraceId(), request.GetBillingTag(), request.GetChecksum(),
+      context);
+  if (!ingest_data_response.IsSuccessful()) {
+    return ingest_data_response;
+  }
+
+  return ingest_data_response;
 }
 
 void StreamLayerClientImpl::InitPublishDataGreaterThanTwentyMib(

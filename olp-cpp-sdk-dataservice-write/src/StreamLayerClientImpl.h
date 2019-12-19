@@ -70,8 +70,8 @@ class StreamLayerClientImpl
   client::CancellableFuture<PublishSdiiResponse> PublishSdii(
       model::PublishSdiiRequest request);
 
-  client::CancellationToken PublishSdii(
-      model::PublishSdiiRequest request, PublishSdiiCallback callback);
+  client::CancellationToken PublishSdii(model::PublishSdiiRequest request,
+                                        PublishSdiiCallback callback);
 
  protected:
   virtual PublishSdiiResponse PublishSdiiTask(
@@ -79,6 +79,12 @@ class StreamLayerClientImpl
 
   virtual PublishSdiiResponse IngestSdii(model::PublishSdiiRequest request,
                                          client::CancellationContext context);
+
+  // TODO: rename me into PublishDataLessThanTwentyMib once
+  // StreamLayerClientImpl will be moved to sync API
+  virtual PublishDataResponse PublishDataLessThanTwentyMibSync(
+      const model::PublishDataRequest& request,
+      client::CancellationContext context);
 
  private:
   client::CancellationToken InitApiClients(
@@ -99,7 +105,15 @@ class StreamLayerClientImpl
   void NotifyInitAborted();
   void NotifyInitCompleted();
 
+  /**
+   * @deprecated Need to be removed once \c StreamLayerClientImpl will be
+   * completely moved to sync API.
+   */
   std::string FindContentTypeForLayerId(const std::string& layer_id);
+
+  std::string FindContentTypeForLayerId(const model::Catalog& catalog,
+                                        const std::string& layer_id);
+
   client::CancellationToken PublishDataLessThanTwentyMib(
       const model::PublishDataRequest& request,
       const PublishDataCallback& callback);
