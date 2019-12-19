@@ -28,6 +28,8 @@
 #include "TokenEndpoint.h"
 #include "TokenResult.h"
 
+#include "olp/core/porting/deprecated.h"
+
 namespace olp {
 namespace authentication {
 /** @file TokenProvider.h */
@@ -39,7 +41,8 @@ namespace authentication {
  * @param minimumValidity the minimum token validity to use in seconds.
  */
 template <long long MinimumValidity>
-class TokenProvider {
+class OLP_SDK_DEPRECATED("Deprecated. Will be removed in 04.2020")
+    TokenProvider {
  public:
   /**
    * @brief Constructor
