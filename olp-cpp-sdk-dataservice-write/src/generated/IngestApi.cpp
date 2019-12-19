@@ -25,6 +25,7 @@
 
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
+#include <olp/core/logging/Log.h>
 #include <olp/dataservice/write/generated/model/ResponseOk.h>
 #include <olp/dataservice/write/generated/model/ResponseOkSingle.h>
 // clang-format off
@@ -40,11 +41,14 @@ namespace {
 const std::string kHeaderParamChecksum = "X-HERE-Checksum";
 const std::string kHeaderParamTraceId = "X-HERE-TraceId";
 const std::string kQueryParamBillingTag = "billingTag";
+
+constexpr auto kLogTag = "IngestApi";
 }  // namespace
 
 namespace olp {
 namespace dataservice {
 namespace write {
+
 client::CancellationToken IngestApi::IngestData(
     const client::OlpClient& client, const std::string& layer_id,
     const std::string& content_type,
@@ -85,6 +89,48 @@ client::CancellationToken IngestApi::IngestData(
       });
 
   return cancel_token;
+}
+
+IngestDataResponse IngestApi::IngestData(
+    const client::OlpClient& client, const std::string& layer_id,
+    const std::string& content_type,
+    const std::shared_ptr<std::vector<unsigned char>>& data,
+    const boost::optional<std::string>& trace_id,
+    const boost::optional<std::string>& billing_tag,
+    const boost::optional<std::string>& checksum,
+    client::CancellationContext context) {
+  std::multimap<std::string, std::string> query_params;
+  std::multimap<std::string, std::string> form_params;
+  std::multimap<std::string, std::string> header_params;
+
+  header_params.insert(std::make_pair("Accept", "application/json"));
+  if (trace_id) {
+    header_params.insert(std::make_pair(kHeaderParamTraceId, trace_id.get()));
+  }
+  if (checksum) {
+    header_params.insert(std::make_pair(kHeaderParamChecksum, checksum.get()));
+  }
+
+  if (billing_tag) {
+    query_params.insert(
+        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+  }
+
+  const std::string ingest_uri = "/layers/" + layer_id;
+
+  auto http_response = client.CallApi(
+      ingest_uri, "POST", std::move(query_params), std::move(header_params),
+      std::move(form_params), data, content_type, context);
+  if (http_response.status != olp::http::HttpStatusCode::OK) {
+    OLP_SDK_LOG_ERROR_F(
+        kLogTag, "Error during OlpClient::CallApi call, uri=%s, status=%i",
+        ingest_uri.c_str(), http_response.status);
+    return IngestDataResponse{
+        client::ApiError(http_response.status, http_response.response.str())};
+  }
+
+  return IngestDataResponse(
+      olp::parser::parse<model::ResponseOkSingle>(http_response.response));
 }
 
 IngestSdiiResponse IngestApi::IngestSdii(
