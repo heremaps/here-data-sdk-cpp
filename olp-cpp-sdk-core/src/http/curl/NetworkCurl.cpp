@@ -45,10 +45,10 @@
 #include <openssl/ssl.h>
 #endif
 
-#include "../NetworkUtils.h"
 #ifdef NETWORK_USE_TIMEPROVIDER
 #include "timeprovider/TimeProvider.h"
 #endif
+#include "olp/core/http/NetworkUtils.h"
 #include "olp/core/logging/Log.h"
 #include "olp/core/porting/make_unique.h"
 #include "olp/core/porting/platform.h"

@@ -24,7 +24,7 @@
 #include "olp/core/logging/Log.h"
 #include "olp/core/http/Network.h"
 #include "olp/core/http/NetworkTypes.h"
-#include "../NetworkUtils.h"
+#include "olp/core/http/NetworkUtils.h"
 
 #import "OLPHttpClient+Internal.h"
 #import "OLPHttpTask.h"

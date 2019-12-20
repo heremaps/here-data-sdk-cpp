@@ -26,7 +26,7 @@
 #include <thread>
 #include <vector>
 
-#include "../NetworkUtils.h"
+#include "olp/core/http/NetworkUtils.h"
 #include "olp/core/logging/Log.h"
 #include "olp/core/porting/make_unique.h"
 
