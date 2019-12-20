@@ -43,6 +43,7 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
 
     ./thread/SyncQueueTest.cpp
     ./thread/ThreadPoolTaskSchedulerTest.cpp
+    ./http/NetworkUtils.cpp
 )
 
 if (ANDROID OR IOS)

@@ -40,7 +40,6 @@ class NetworkUtils {
 
 };  // class NetworkUtils
 
-
 std::string HttpErrorToString(int error);
 
 }  // namespace http

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-#include "NetworkUtils.h"
+#include "olp/core/http/NetworkUtils.h"
 
 #include <string>
 
@@ -50,11 +50,15 @@ bool NetworkUtils::CaseInsensitiveStartsWith(const std::string& str1,
 size_t NetworkUtils::CaseInsensitiveFind(const std::string& str1,
                                          const std::string& str2,
                                          size_t offset /* = 0*/) {
-  while (offset < str1.length() - str2.length()) {
-    if (SimpleToUpper(str1[offset]) == SimpleToUpper(str2[0])) {
-      if (CaseInsensitiveStartsWith(str1, str2, offset)) return offset;
+  if (!str2.empty() && str1.length() >= str2.length()) {
+    while (offset <= str1.length() - str2.length()) {
+      if (SimpleToUpper(str1[offset]) == SimpleToUpper(str2[0])) {
+        if (CaseInsensitiveStartsWith(str1, str2, offset)) {
+          return offset;
+        }
+      }
+      offset++;
     }
-    offset++;
   }
   return std::string::npos;
 }
