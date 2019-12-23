@@ -72,6 +72,12 @@ class ApiResponse {
    * otherwise.
    */
   inline const ResultType& GetResult() const { return result_; }
+  /**
+   * @brief MoveResult Moves the result for a succcessfully executed request
+   * @return A valid Result if IsSuccessful() returns true. Undefined,
+   * otherwise.
+   */
+  inline ResultType&& MoveResult() { return std::move(result_); }
 
   /**
    * @brief GetError Gets the error for an unsucccessful request attempt.

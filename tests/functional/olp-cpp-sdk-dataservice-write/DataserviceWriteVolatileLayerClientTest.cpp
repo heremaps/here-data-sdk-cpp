@@ -131,7 +131,7 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, GetBaseVersion) {
   auto response = volatile_client->GetBaseVersion().GetFuture().get();
 
   EXPECT_SUCCESS(response);
-  auto version_response = response.GetResult();
+  auto version_response = response.MoveResult();
   ASSERT_GE(version_response.GetVersion(), 0);
 }
 

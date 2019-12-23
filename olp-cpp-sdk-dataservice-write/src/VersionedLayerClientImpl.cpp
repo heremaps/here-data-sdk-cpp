@@ -189,7 +189,7 @@ client::CancellationToken VersionedLayerClientImpl::StartBatch(
             !init_pub_response.GetResult().GetId()) {
           callback(std::move(init_pub_response.GetError()));
         } else {
-          callback(std::move(init_pub_response.GetResult()));
+          callback(init_pub_response.MoveResult());
         }
       };
 
@@ -265,7 +265,7 @@ olp::client::CancellationToken VersionedLayerClientImpl::GetBaseVersion(
             callback(std::move(response.GetError()));
           }
         } else {
-          callback(std::move(response.GetResult()));
+          callback(response.MoveResult());
         }
       };
 
@@ -331,7 +331,7 @@ olp::client::CancellationToken VersionedLayerClientImpl::GetBatch(
         if (!getPublicationResponse.IsSuccessful()) {
           callback(std::move(getPublicationResponse.GetError()));
         } else {
-          callback(std::move(getPublicationResponse.GetResult()));
+          callback(getPublicationResponse.MoveResult());
         }
       };
 
@@ -396,7 +396,7 @@ olp::client::CancellationToken VersionedLayerClientImpl::CompleteBatch(
         if (!submitPublicationResponse.IsSuccessful()) {
           callback(std::move(submitPublicationResponse.GetError()));
         } else {
-          callback(std::move(submitPublicationResponse.GetResult()));
+          callback(submitPublicationResponse.MoveResult());
         }
       };
 
@@ -462,7 +462,7 @@ olp::client::CancellationToken VersionedLayerClientImpl::CancelBatch(
         if (!cancelPublicationResponse.IsSuccessful()) {
           callback(std::move(cancelPublicationResponse.GetError()));
         } else {
-          callback(std::move(cancelPublicationResponse.GetResult()));
+          callback(cancelPublicationResponse.GetResult());
         }
       };
 
@@ -594,7 +594,7 @@ void VersionedLayerClientImpl::InitCatalogModel(
     if (!response.IsSuccessful()) {
       callback(std::move(response.GetError()));
     } else {
-      catalog_model_ = response.GetResult();
+      catalog_model_ = response.MoveResult();
       callback(boost::none);
     }
   };
@@ -643,7 +643,7 @@ void VersionedLayerClientImpl::UploadPartition(
     if (!response.IsSuccessful()) {
       callback(std::move(response.GetError()));
     } else {
-      callback(std::move(response.GetResult()));
+      callback(response.MoveResult());
     }
   };
 
@@ -701,7 +701,7 @@ void VersionedLayerClientImpl::UploadBlob(
     if (!response.IsSuccessful()) {
       callback(std::move(response.GetError()));
     } else {
-      callback(std::move(response.GetResult()));
+      callback(response.MoveResult());
     }
   };
 
@@ -773,7 +773,7 @@ client::CancellationToken VersionedLayerClientImpl::CheckDataExists(
         if (!check_data_exists_response.IsSuccessful()) {
           callback(std::move(check_data_exists_response.GetError()));
         } else {
-          callback(std::move(check_data_exists_response.GetResult()));
+          callback(check_data_exists_response.MoveResult());
         }
       };
 

@@ -50,7 +50,7 @@ std::string HandleCatalogResponse(
     OLP_SDK_LOG_INFO_F(kLogTag, "Catalog description: %s",
                        response_result.GetDescription().c_str());
 
-    auto layers = response_result.GetLayers();
+    const auto& layers = response_result.GetLayers();
     if (!layers.empty()) {
       first_layer_id = layers.front().GetId();
     }
@@ -78,7 +78,7 @@ std::string HandlePartitionsResponse(
   std::string first_partition_id;
   if (partitions_response.IsSuccessful()) {
     const auto& response_result = partitions_response.GetResult();
-    auto partitions = response_result.GetPartitions();
+    const auto& partitions = response_result.GetPartitions();
     OLP_SDK_LOG_INFO_F(kLogTag, "Layer contains %ld partitions.",
                        partitions.size());
 
