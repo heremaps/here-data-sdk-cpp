@@ -109,10 +109,9 @@ PartitionsResponse PartitionsRepository::GetVolatilePartitions(
     return expiry_response.GetError();
   }
 
-  auto expiry = expiry_response.GetResult();
   return GetPartitions(std::move(catalog), std::move(layer),
                        cancellation_context, std::move(request),
-                       std::move(settings), std::move(expiry));
+                       std::move(settings), expiry_response.MoveResult());
 }
 
 PartitionsResponse PartitionsRepository::GetPartitions(

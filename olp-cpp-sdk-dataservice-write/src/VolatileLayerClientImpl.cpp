@@ -192,7 +192,7 @@ CancellationToken VolatileLayerClientImpl::InitCatalogModel(
           return;
         }
 
-        self->catalog_model_ = catalog_response.GetResult();
+        self->catalog_model_ = catalog_response.MoveResult();
 
         callback(boost::none);
       });
@@ -247,7 +247,7 @@ olp::client::CancellationToken VolatileLayerClientImpl::GetBaseVersion(
             callback(std::move(response.GetError()));
           }
         } else {
-          callback(std::move(response.GetResult()));
+          callback(response.MoveResult());
         }
       };
 
@@ -301,7 +301,7 @@ client::CancellationToken VolatileLayerClientImpl::StartBatch(
             !init_pub_response.GetResult().GetId()) {
           callback(std::move(init_pub_response.GetError()));
         } else {
-          callback(std::move(init_pub_response.GetResult()));
+          callback(init_pub_response.MoveResult());
         }
       };
 
@@ -516,7 +516,7 @@ olp::client::CancellationToken VolatileLayerClientImpl::GetBatch(
         if (!getPublicationResponse.IsSuccessful()) {
           callback(std::move(getPublicationResponse.GetError()));
         } else {
-          callback(std::move(getPublicationResponse.GetResult()));
+          callback(getPublicationResponse.MoveResult());
         }
       };
 
@@ -578,9 +578,9 @@ olp::client::CancellationToken VolatileLayerClientImpl::GetDataHandleMap(
           if (!response.IsSuccessful()) {
             callback(std::move(response.GetError()));
           } else {
-            auto partitions = response.GetResult().GetPartitions();
+            const auto& partitions = response.GetResult().GetPartitions();
             std::map<std::string, std::string> dataHandleMap;
-            for (model::Partition& p : partitions) {
+            for (const model::Partition& p : partitions) {
               if (std::find(partitionIds.begin(), partitionIds.end(),
                             p.GetPartition()) != partitionIds.end()) {
                 dataHandleMap[p.GetPartition()] = p.GetDataHandle();
@@ -698,7 +698,7 @@ olp::client::CancellationToken VolatileLayerClientImpl::PublishToBatch(
         if (!upload_partitions_response.IsSuccessful()) {
           callback(std::move(upload_partitions_response.GetError()));
         } else {
-          callback(std::move(upload_partitions_response.GetResult()));
+          callback(upload_partitions_response.MoveResult());
         }
       };
 
@@ -782,7 +782,7 @@ olp::client::CancellationToken VolatileLayerClientImpl::CompleteBatch(
         if (!submitPublicationResponse.IsSuccessful()) {
           callback(std::move(submitPublicationResponse.GetError()));
         } else {
-          callback(std::move(submitPublicationResponse.GetResult()));
+          callback(submitPublicationResponse.MoveResult());
         }
       };
 

@@ -162,12 +162,10 @@ SubTilesResponse PrefetchTilesRepository::GetSubTiles(
                           request.CreateKey(layer_id).c_str());
     return ApiError{ErrorCode::InvalidArgument, "Catalog version invalid"};
   }
-
+  SubTilesResult result;
   OLP_SDK_LOG_INFO_F(kLogTag, "GetSubTiles: hrn=%s, layer=%s, quads=%zu",
                      catalog.ToString().c_str(), layer_id.c_str(),
                      sub_quads.size());
-
-  SubTilesResult result;
 
   for (const auto& quad : sub_quads) {
     if (context.IsCancelled()) {
@@ -187,10 +185,10 @@ SubTilesResponse PrefetchTilesRepository::GetSubTiles(
         return error;
       }
     }
-
-    const auto& subtiles = response.GetResult();
+    auto subtiles = response.MoveResult();
     result.reserve(result.size() + subtiles.size());
-    result.insert(result.end(), subtiles.begin(), subtiles.end());
+    result.insert(result.end(), std::make_move_iterator(subtiles.begin()),
+                  std::make_move_iterator(subtiles.end()));
   }
 
   return result;
@@ -235,11 +233,11 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
   SubQuadsResult result;
   model::Partitions partitions;
 
-  auto subquads = quad_tree.GetResult().GetSubQuads();
+  const auto& subquads = quad_tree.GetResult().GetSubQuads();
   result.reserve(subquads.size());
   partitions.GetMutablePartitions().reserve(subquads.size());
 
-  for (auto subquad : subquads) {
+  for (const auto& subquad : subquads) {
     auto subtile = tile.AddedSubHereTile(subquad->GetSubQuadKey());
 
     // Add to result

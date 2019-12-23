@@ -165,7 +165,7 @@ TEST_F(HereAccountOauth2Test, AutoRefreshingTokenCancelSync) {
                          const std::chrono::seconds minimumValidity) {
         return GetTokenFromSyncRequest(cancellationToken, autoToken,
                                        minimumValidity)
-            .GetResult();
+            .MoveResult();
       });
 }
 
@@ -243,6 +243,6 @@ TEST_F(HereAccountOauth2Test, AutoRefreshingTokenCancelAsync) {
                          const std::chrono::seconds minimumValidity) {
         return GetTokenFromAsyncRequest(cancellationToken, autoToken,
                                         minimumValidity)
-            .GetResult();
+            .MoveResult();
       });
 }

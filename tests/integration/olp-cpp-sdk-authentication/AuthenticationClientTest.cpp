@@ -590,9 +590,9 @@ TEST_F(AuthenticationClientTest, SignOutUser) {
 
   AuthenticationClient::SignOutUserResponse response = request_future.get();
   EXPECT_TRUE(response.IsSuccessful());
-  SignOutResult s = response.GetResult();
+  SignOutResult s = response.MoveResult();
   EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT, s.GetStatus());
-  EXPECT_EQ(kErrorNoContent, response.GetResult().GetErrorResponse().message);
+  EXPECT_EQ(kErrorNoContent, s.GetErrorResponse().message);
 }
 
 TEST_F(AuthenticationClientTest, SignInFacebookData) {

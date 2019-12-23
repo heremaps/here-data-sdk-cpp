@@ -160,7 +160,7 @@ CancellationToken IndexLayerClientImpl::InitCatalogModel(
           return;
         }
 
-        self->catalog_model_ = catalog_response.GetResult();
+        self->catalog_model_ = catalog_response.MoveResult();
 
         callback(boost::none);
       });

@@ -96,7 +96,7 @@ struct AutoRefreshingToken::Impl {
           static_cast<int>(current_token_.GetError().GetErrorCode()),
           current_token_.GetError().GetMessage().c_str());
     } else if (current_token_.GetResult().GetErrorResponse().code != 0) {
-      const auto result = current_token_.GetResult();
+      const auto& result = current_token_.GetResult();
       OLP_SDK_LOG_INFO_F(kLogTag, "Token NOK, status=%d, code=%d, error=%s",
                          static_cast<int>(result.GetHttpStatus()),
                          static_cast<int>(result.GetErrorResponse().code),
@@ -131,7 +131,7 @@ struct AutoRefreshingToken::Impl {
                 static_cast<int>(current_token.GetError().GetErrorCode()),
                 current_token.GetError().GetMessage().c_str());
           } else if (current_token.GetResult().GetErrorResponse().code != 0) {
-            const auto result = current_token.GetResult();
+            const auto& result = current_token.GetResult();
             OLP_SDK_LOG_INFO_F(kLogTag,
                                "Token NOK, status=%d code=%d, error=%s",
                                static_cast<int>(result.GetHttpStatus()),

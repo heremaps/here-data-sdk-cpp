@@ -215,7 +215,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApiClient(
     return api_response.GetError();
   }
 
-  auto client = api_response.GetResult();
+  auto client = api_response.MoveResult();
   if (client.GetBaseUrl().empty()) {
     OLP_SDK_LOG_WARNING_F(kLogTag, "LookupApi(%s/%s): %s - empty base URL",
                           service.c_str(), service_version.c_str(),

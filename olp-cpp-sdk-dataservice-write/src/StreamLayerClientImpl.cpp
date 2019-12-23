@@ -211,7 +211,7 @@ CancellationToken StreamLayerClientImpl::InitCatalogModel(
           return;
         }
 
-        self->catalog_model_ = catalog_response.GetResult();
+        self->catalog_model_ = catalog_response.MoveResult();
 
         callback(boost::none);
       });
@@ -814,7 +814,7 @@ PublishSdiiResponse StreamLayerClientImpl::IngestSdii(
     return api_response.GetError();
   }
 
-  auto client = api_response.GetResult();
+  auto client = api_response.MoveResult();
   return IngestApi::IngestSdii(client, request.GetLayerId(),
                                request.GetSdiiMessageList(),
                                request.GetTraceId(), request.GetBillingTag(),

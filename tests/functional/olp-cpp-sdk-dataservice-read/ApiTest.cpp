@@ -99,7 +99,7 @@ TEST_F(ApiTest, GetCatalog) {
 
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
-  auto config_client = client_response.GetResult();
+  auto config_client = client_response.MoveResult();
 
   std::promise<olp::dataservice::read::ConfigApi::CatalogResponse>
       catalog_promise;
@@ -131,7 +131,7 @@ TEST_F(ApiTest, GetPartitions) {
 
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
-  auto metadata_client = client_response.GetResult();
+  auto metadata_client = client_response.MoveResult();
   olp::client::CancellationContext context;
 
   auto start_time = std::chrono::high_resolution_clock::now();
@@ -157,7 +157,7 @@ TEST_F(ApiTest, GetPartitionById) {
 
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
-  auto query_client = client_response.GetResult();
+  auto query_client = client_response.MoveResult();
 
   {
     SCOPED_TRACE("Test with 2 partitions");
@@ -223,7 +223,7 @@ TEST_F(ApiTest, GetCatalogVersion) {
 
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
-  auto metadata_client = client_response.GetResult();
+  auto metadata_client = client_response.MoveResult();
   olp::client::CancellationContext context;
 
   auto start_time = std::chrono::high_resolution_clock::now();
@@ -247,7 +247,7 @@ TEST_F(ApiTest, GetLayerVersions) {
 
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
-  auto metadata_client = client_response.GetResult();
+  auto metadata_client = client_response.MoveResult();
   olp::client::CancellationContext context;
 
   auto start_time = std::chrono::high_resolution_clock::now();
@@ -272,7 +272,7 @@ TEST_F(ApiTest, GetBlob) {
 
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
-  auto blob_client = client_response.GetResult();
+  auto blob_client = client_response.MoveResult();
 
   olp::client::CancellationContext context;
 
@@ -301,7 +301,7 @@ TEST_F(ApiTest, DISABLED_GetVolatileBlob) {
 
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
-  auto volatile_blob_client = client_response.GetResult();
+  auto volatile_blob_client = client_response.MoveResult();
   auto start_time = std::chrono::high_resolution_clock::now();
   auto data_response = olp::dataservice::read::VolatileBlobApi::GetVolatileBlob(
       volatile_blob_client, "testlayer", "d5d73b64-7365-41c3-8faf-aa6ad5bab135",
@@ -327,7 +327,7 @@ TEST_F(ApiTest, QuadTreeIndex) {
 
   ASSERT_TRUE(client_response.IsSuccessful())
       << ApiErrorToString(client_response.GetError());
-  auto query_client = client_response.GetResult();
+  auto query_client = client_response.MoveResult();
 
   std::string layer_id("hype-test-prefetch");
   int64_t version = 3;
