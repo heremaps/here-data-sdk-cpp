@@ -80,6 +80,39 @@ CancellationToken PublishApi::InitPublication(
   return cancel_token;
 }
 
+InitPublicationResponse PublishApi::InitPublication(
+    const OlpClient& client, const model::Publication& publication,
+    const boost::optional<std::string>& billing_tag,
+    client::CancellationContext cancellation_context) {
+  std::multimap<std::string, std::string> header_params;
+  std::multimap<std::string, std::string> query_params;
+  std::multimap<std::string, std::string> form_params;
+
+  header_params.insert(std::make_pair("Accept", "application/json"));
+
+  if (billing_tag) {
+    query_params.insert(
+        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+  }
+
+  std::string init_publication_uri = "/publications";
+
+  auto serialized_publication = serializer::serialize(publication);
+  auto data = std::make_shared<std::vector<unsigned char>>(
+      serialized_publication.begin(), serialized_publication.end());
+
+  auto http_response = client.CallApi(
+      std::move(init_publication_uri), "POST", std::move(query_params),
+      std::move(header_params), std::move(form_params), std::move(data),
+      "application/json", cancellation_context);
+  if (http_response.status != olp::http::HttpStatusCode::OK) {
+    return InitPublicationResponse(
+        ApiError(http_response.status, http_response.response.str()));
+  }
+
+  return olp::parser::parse<model::Publication>(http_response.response);
+}
+
 CancellationToken PublishApi::UploadPartitions(
     const OlpClient& client, const model::PublishPartitions& publish_partitions,
     const std::string& publication_id, const std::string& layer_id,
@@ -120,6 +153,44 @@ CancellationToken PublishApi::UploadPartitions(
   return cancel_token;
 }
 
+UploadPartitionsResponse PublishApi::UploadPartitions(
+    const client::OlpClient& client,
+    const model::PublishPartitions& publish_partitions,
+    const std::string& publication_id, const std::string& layer_id,
+    const boost::optional<std::string>& billing_tag,
+    client::CancellationContext cancellation_context) {
+  std::multimap<std::string, std::string> header_params;
+  std::multimap<std::string, std::string> query_params;
+  std::multimap<std::string, std::string> form_params;
+
+  header_params.insert(std::make_pair("Accept", "application/json"));
+
+  if (billing_tag) {
+    query_params.insert(
+        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+  }
+
+  std::string upload_partitions_uri =
+      "/layers/" + layer_id + "/publications/" + publication_id + "/partitions";
+
+  auto serialized_publish_partitions =
+      serializer::serialize(publish_partitions);
+  auto data = std::make_shared<std::vector<unsigned char>>(
+      serialized_publish_partitions.begin(),
+      serialized_publish_partitions.end());
+
+  auto http_response = client.CallApi(
+      std::move(upload_partitions_uri), "POST", std::move(query_params),
+      std::move(header_params), std::move(form_params), std::move(data),
+      "application/json", cancellation_context);
+  if (http_response.status != olp::http::HttpStatusCode::NO_CONTENT) {
+    return UploadPartitionsResponse(
+        ApiError(http_response.status, http_response.response.str()));
+  }
+
+  return UploadPartitionsResponse(ApiNoResult());
+}
+
 CancellationToken PublishApi::SubmitPublication(
     const OlpClient& client, const std::string& publication_id,
     const boost::optional<std::string>& billing_tag,
@@ -151,6 +222,35 @@ CancellationToken PublishApi::SubmitPublication(
       });
 
   return cancel_token;
+}
+
+SubmitPublicationResponse PublishApi::SubmitPublication(
+    const client::OlpClient& client, const std::string& publication_id,
+    const boost::optional<std::string>& billing_tag,
+    client::CancellationContext cancellation_context) {
+  std::multimap<std::string, std::string> header_params;
+  std::multimap<std::string, std::string> query_params;
+  std::multimap<std::string, std::string> form_params;
+
+  header_params.insert(std::make_pair("Accept", "application/json"));
+
+  if (billing_tag) {
+    query_params.insert(
+        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+  }
+
+  std::string submit_publication_uri = "/publications/" + publication_id;
+  auto http_response = client.CallApi(
+      std::move(submit_publication_uri), "PUT", std::move(query_params),
+      std::move(header_params), std::move(form_params), nullptr,
+      "application/json", cancellation_context);
+
+  if (http_response.status != olp::http::HttpStatusCode::NO_CONTENT) {
+    return SubmitPublicationResponse(
+        ApiError(http_response.status, http_response.response.str()));
+  }
+
+  return SubmitPublicationResponse(ApiNoResult());
 }
 
 CancellationToken PublishApi::GetPublication(
