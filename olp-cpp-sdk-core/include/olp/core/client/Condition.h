@@ -43,8 +43,12 @@ class Condition final {
     {
       std::unique_lock<std::mutex> lock(mutex_);
       signaled_ = true;
+
+      // Condition should be under the lock in order to not run into the data
+      // race, which might occur when spurious wakeup happens in the other
+      // thread while waiting for the condition's signal.
+      condition_.notify_one();
     }
-    condition_.notify_one();
   }
 
   /**
