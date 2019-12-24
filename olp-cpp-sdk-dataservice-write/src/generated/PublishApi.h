@@ -84,11 +84,18 @@ class PublishApi {
    * InitPublicationResponse when the operation completes.
    * @return A CancellationToken which can be used to cancel the ongoing
    * request.
+   * @deprecated Should be removed once all clients are moved to sync API
    */
   static client::CancellationToken InitPublication(
       const client::OlpClient& client, const model::Publication& publication,
       const boost::optional<std::string>& billing_tag,
       InitPublicationCallback callback);
+
+  /** @brief Sync version of \c InitPublication method. */
+  static InitPublicationResponse InitPublication(
+      const client::OlpClient& client, const model::Publication& publication,
+      const boost::optional<std::string>& billing_tag,
+      client::CancellationContext cancellation_context);
 
   /**
    * @brief Upload partitions
@@ -111,6 +118,7 @@ class PublishApi {
    * UploadPartitionsResponse when the operation completes.
    * @return A CancellationToken which can be used to cancel the ongoing
    * request.
+   * @deprecated Should be removed once all clients are moved to sync API
    */
   static client::CancellationToken UploadPartitions(
       const client::OlpClient& client,
@@ -118,6 +126,14 @@ class PublishApi {
       const std::string& publication_id, const std::string& layer_id,
       const boost::optional<std::string>& billing_tag,
       UploadPartitionsCallback callback);
+
+  /** @brief Sync version of \c UploadPartitions method. */
+  static UploadPartitionsResponse UploadPartitions(
+      const client::OlpClient& client,
+      const model::PublishPartitions& publish_partitions,
+      const std::string& publication_id, const std::string& layer_id,
+      const boost::optional<std::string>& billing_tag,
+      client::CancellationContext cancellation_context);
 
   /**
    * @brief Submits a publication
@@ -137,11 +153,18 @@ class PublishApi {
    * SubmitPublicationResponse when the operation completes.
    * @return A CancellationToken which can be used to cancel the ongoing
    * request.
+   * @deprecated Should be removed once all clients are moved to sync API
    */
   static client::CancellationToken SubmitPublication(
       const client::OlpClient& client, const std::string& publication_id,
       const boost::optional<std::string>& billing_tag,
       SubmitPublicationCallback callback);
+
+  /** @brief Sync version of \c SubmitPublication method. */
+  static SubmitPublicationResponse SubmitPublication(
+      const client::OlpClient& client, const std::string& publication_id,
+      const boost::optional<std::string>& billing_tag,
+      client::CancellationContext cancellation_context);
 
   /**
    * @brief Gets a publication
