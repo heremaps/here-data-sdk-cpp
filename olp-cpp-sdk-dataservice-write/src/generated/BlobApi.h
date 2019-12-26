@@ -25,6 +25,7 @@
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiNoResult.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/OlpClient.h>
 
 namespace olp {
@@ -75,6 +76,8 @@ class BlobApi {
    *
    * @return A CancellationToken which can be used to cancel the ongoing
    * request.
+   * @deprecated Should be removed once all the clients will be migrated to the
+   * sync API.
    */
   static client::CancellationToken PutBlob(
       const client::OlpClient& client, const std::string& layer_id,
@@ -82,6 +85,16 @@ class BlobApi {
       const std::shared_ptr<std::vector<unsigned char>>& data,
       const boost::optional<std::string>& billing_tag,
       PutBlobCallback callback);
+
+  /**
+   * @brief Synchronous version of \c PutBlob method.
+   */
+  static PutBlobResponse PutBlob(
+      const client::OlpClient& client, const std::string& layer_id,
+      const std::string& content_type, const std::string& data_handle,
+      const std::shared_ptr<std::vector<unsigned char>>& data,
+      const boost::optional<std::string>& billing_tag,
+      client::CancellationContext cancel_contex);
 
   /**
    * @brief Delete a data blob
