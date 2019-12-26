@@ -67,6 +67,39 @@ CancellationToken BlobApi::PutBlob(
   return cancel_token;
 }
 
+PutBlobResponse BlobApi::PutBlob(
+    const OlpClient& client, const std::string& layer_id,
+    const std::string& content_type, const std::string& data_handle,
+    const std::shared_ptr<std::vector<unsigned char>>& data,
+    const boost::optional<std::string>& billing_tag,
+    client::CancellationContext cancel_context) {
+  std::multimap<std::string, std::string> header_params;
+  std::multimap<std::string, std::string> query_params;
+  std::multimap<std::string, std::string> form_params;
+
+  header_params.insert(std::make_pair("Accept", "application/json"));
+
+  if (billing_tag) {
+    query_params.insert(
+        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+  }
+
+  std::string put_blob_uri = "/layers/" + layer_id + "/data/" + data_handle;
+
+  auto http_response =
+      client.CallApi(std::move(put_blob_uri), "PUT", std::move(query_params),
+                     std::move(header_params), std::move(form_params),
+                     std::move(data), std::move(content_type), cancel_context);
+
+  if (http_response.status != olp::http::HttpStatusCode::OK &&
+      http_response.status != olp::http::HttpStatusCode::NO_CONTENT) {
+    return PutBlobResponse(
+        ApiError(http_response.status, http_response.response.str()));
+  }
+
+  return PutBlobResponse(ApiNoResult());
+}
+
 CancellationToken BlobApi::deleteBlob(
     const client::OlpClient& client, const std::string& layer_id,
     const std::string& data_handle,
