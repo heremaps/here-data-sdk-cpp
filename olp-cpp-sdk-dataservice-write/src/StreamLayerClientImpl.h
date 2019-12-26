@@ -86,6 +86,12 @@ class StreamLayerClientImpl
       const model::PublishDataRequest& request,
       client::CancellationContext context);
 
+  virtual PublishDataResponse PublishDataGreaterThanTwentyMibSync(
+      const model::PublishDataRequest& request,
+      client::CancellationContext context);
+
+  virtual std::string GenerateUuid() const;
+
  private:
   client::CancellationToken InitApiClients(
       const std::shared_ptr<client::CancellationContext>& cancel_context,

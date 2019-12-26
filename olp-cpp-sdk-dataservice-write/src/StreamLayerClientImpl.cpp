@@ -58,11 +58,6 @@ namespace {
 constexpr auto kLogTag = "StreamLayerClientImpl";
 constexpr int64_t kTwentyMib = 20971520;  // 20 MiB
 
-std::string GenerateUuid() {
-  static boost::uuids::random_generator gen;
-  return boost::uuids::to_string(gen());
-}
-
 void ExecuteOrSchedule(const std::shared_ptr<thread::TaskScheduler>& scheduler,
                        thread::TaskScheduler::CallFuncType&& func) {
   if (!scheduler) {
@@ -543,6 +538,10 @@ CancellationToken StreamLayerClientImpl::PublishDataLessThanTwentyMib(
 PublishDataResponse StreamLayerClientImpl::PublishDataLessThanTwentyMibSync(
     const model::PublishDataRequest& request,
     client::CancellationContext context) {
+  OLP_SDK_LOG_TRACE_F(kLogTag,
+                      "Started publishing data less than 20 MB, size=%zu B",
+                      request.GetData()->size());
+
   auto response = ApiClientLookup::LookupApiClient(catalog_, context, "config",
                                                    "v1", settings_);
   if (!response.IsSuccessful()) {
@@ -561,10 +560,10 @@ PublishDataResponse StreamLayerClientImpl::PublishDataLessThanTwentyMibSync(
   if (content_type.empty()) {
     return PublishDataResponse(
         ApiError(ErrorCode::InvalidArgument,
-                 "Unable to find the Layer ID provided in "
-                 "the PublishDataRequest in the "
-                 "Catalog specified when creating this "
-                 "StreamLayerClient instance."));
+                 "Unable to find the Layer ID=`" + request.GetLayerId() +
+                     "` provided in the PublishDataRequest in the "
+                     "Catalog=" +
+                     catalog_.ToString()));
   }
 
   auto ingest_api = ApiClientLookup::LookupApiClient(catalog_, context,
@@ -581,6 +580,12 @@ PublishDataResponse StreamLayerClientImpl::PublishDataLessThanTwentyMibSync(
   if (!ingest_data_response.IsSuccessful()) {
     return ingest_data_response;
   }
+
+  OLP_SDK_LOG_TRACE_F(
+      kLogTag,
+      "Successfully published data less than 20 MB, size=%zu B, trace_id=%s",
+      request.GetData()->size(),
+      ingest_data_response.GetResult().GetTraceID().c_str());
 
   return ingest_data_response;
 }
@@ -810,6 +815,112 @@ CancellationToken StreamLayerClientImpl::PublishDataGreaterThanTwentyMib(
   });
 }
 
+PublishDataResponse StreamLayerClientImpl::PublishDataGreaterThanTwentyMibSync(
+    const model::PublishDataRequest& request,
+    client::CancellationContext context) {
+  OLP_SDK_LOG_TRACE_F(kLogTag,
+                      "Started publishing data greater than 20MB, size=%zu B",
+                      request.GetData()->size());
+
+  auto config_response = ApiClientLookup::LookupApiClient(
+      catalog_, context, "config", "v1", settings_);
+  if (!config_response.IsSuccessful()) {
+    return PublishDataResponse(config_response.GetError());
+  }
+
+  client::OlpClient config_client = config_response.MoveResult();
+  auto catalog_response = ConfigApi::GetCatalog(
+      config_client, catalog_.ToString(), request.GetBillingTag(), context);
+  if (!catalog_response.IsSuccessful()) {
+    return PublishDataResponse(catalog_response.GetError());
+  }
+
+  auto catalog = catalog_response.MoveResult();
+  auto content_type = FindContentTypeForLayerId(catalog, request.GetLayerId());
+  if (content_type.empty()) {
+    return PublishDataResponse(
+        ApiError(ErrorCode::InvalidArgument,
+                 "Unable to find the Layer ID=`" + request.GetLayerId() +
+                     "` provided in the PublishDataRequest in the "
+                     "Catalog=" +
+                     catalog_.ToString()));
+  }
+
+  // Init api clients for publications:
+  auto publish_client_response = ApiClientLookup::LookupApiClient(
+      catalog_, context, "publish", "v2", settings_);
+  if (!publish_client_response.IsSuccessful()) {
+    return PublishDataResponse(publish_client_response.GetError());
+  }
+  client::OlpClient publish_client = publish_client_response.MoveResult();
+
+  auto blob_client_response = ApiClientLookup::LookupApiClient(
+      catalog_, context, "blob", "v1", settings_);
+  if (!blob_client_response.IsSuccessful()) {
+    return PublishDataResponse(blob_client_response.GetError());
+  }
+  client::OlpClient blob_client = blob_client_response.MoveResult();
+
+  // 1. init publication:
+  Publication publication;
+  publication.SetLayerIds({request.GetLayerId()});
+  auto init_publicaion_response = PublishApi::InitPublication(
+      publish_client, publication, request.GetBillingTag(), context);
+  if (!init_publicaion_response.IsSuccessful()) {
+    return PublishDataResponse(init_publicaion_response.GetError());
+  }
+
+  if (!init_publicaion_response.GetResult().GetId()) {
+    return PublishDataResponse(ApiError(ErrorCode::InvalidArgument,
+                                        "Response from server on "
+                                        "InitPublication request doesn't "
+                                        "contain any publication"));
+  }
+  const std::string publication_id =
+      init_publicaion_response.GetResult().GetId().get();
+
+  // 2. Put blob API:
+  const auto data_handle = GenerateUuid();
+  auto put_blob_response = BlobApi::PutBlob(
+      blob_client, request.GetLayerId(), content_type, data_handle,
+      request.GetData(), request.GetBillingTag(), context);
+  if (!put_blob_response.IsSuccessful()) {
+    return PublishDataResponse(put_blob_response.GetError());
+  }
+
+  // 3. Upload partition:
+  const auto partition_id = GenerateUuid();
+  PublishPartition publish_partition;
+  publish_partition.SetPartition(partition_id);
+  publish_partition.SetDataHandle(data_handle);
+  PublishPartitions partitions;
+  partitions.SetPartitions({publish_partition});
+
+  auto upload_partitions_response = PublishApi::UploadPartitions(
+      publish_client, partitions, publication_id, request.GetLayerId(),
+      request.GetBillingTag(), context);
+  if (!upload_partitions_response.IsSuccessful()) {
+    return PublishDataResponse(upload_partitions_response.GetError());
+  }
+
+  // 4. Sumbit publication:
+  auto submit_publication_response = PublishApi::SubmitPublication(
+      publish_client, publication_id, request.GetBillingTag(), context);
+  if (!submit_publication_response.IsSuccessful()) {
+    return PublishDataResponse(submit_publication_response.GetError());
+  }
+
+  // 5. final result on successful submit of publication:
+  model::ResponseOkSingle response_ok_single;
+  response_ok_single.SetTraceID(partition_id);
+
+  OLP_SDK_LOG_TRACE_F(
+      kLogTag,
+      "Successfully published data greater than 20 MB, size=%zu B, trace_id=%s",
+      request.GetData()->size(), partition_id.c_str());
+  return PublishDataResponse(response_ok_single);
+}
+
 CancellableFuture<PublishSdiiResponse> StreamLayerClientImpl::PublishSdii(
     model::PublishSdiiRequest request) {
   auto promise = std::make_shared<std::promise<PublishSdiiResponse> >();
@@ -867,6 +978,11 @@ PublishSdiiResponse StreamLayerClientImpl::IngestSdii(
                                request.GetSdiiMessageList(),
                                request.GetTraceId(), request.GetBillingTag(),
                                request.GetChecksum(), context);
+}
+
+std::string StreamLayerClientImpl::GenerateUuid() const {
+  static boost::uuids::random_generator gen;
+  return boost::uuids::to_string(gen());
 }
 
 }  // namespace write

@@ -65,8 +65,46 @@ const std::string kPostIngestDataHttpResponse =
     R"jsonString({"TraceID":")jsonString" + kPostIngestDataTraceID +
     R"jsonString("})jsonString";
 
+// PublishDataGreaterThan20Mb-specific constants:
+const std::string kPublishBaseUrl =
+    "https://some.publish.url/catalogs/" + kHRN.ToString();
+const std::string kPublishRequestUrl =
+    "https://api-lookup.data.api.platform.here.com/lookup/v1/resources/" +
+    kHRN.ToString() + "/apis/publish/v2";
+const std::string kPublishHttpResponse =
+    R"jsonString([{"api":"publish","version":"v2","baseURL":")jsonString" +
+    kPublishBaseUrl + R"jsonString(","parameters":{}}])jsonString";
+
+const std::string kBlobBaseUrl =
+    "https://some.blob.url/catalogs/" + kHRN.ToString();
+const std::string kBlobRequestUrl =
+    "https://api-lookup.data.api.platform.here.com/lookup/v1/resources/" +
+    kHRN.ToString() + "/apis/blob/v1";
+const std::string kBlobHttpResponse =
+    R"jsonString([{"api":"blob","version":"v1","baseURL":")jsonString" +
+    kBlobBaseUrl + R"jsonString(","parameters":{}}])jsonString";
+
+const std::string kPublicationId = "aa-bbbbb-cccc-ddddd-qqqqq";
+const std::string kInitPublicationUrl = kPublishBaseUrl + "/publications";
+const std::string kInitPublicationHttpResponse =
+    R"jsonString({"catalogId":"catalog","catalogVersion":99999,"details":{}, "id":")jsonString" +
+    kPublicationId + R"jsonString(","layerIds":[")jsonString" + kLayerName +
+    R"jsonString("]})jsonString";
+
+const std::string kMockedDataHandle = "some-generated-uuid";
+const std::string kPutBlobRequestUrl =
+    kBlobBaseUrl + "/layers/" + kLayerName + "/data/" + kMockedDataHandle;
+
+const std::string kUploadPartitionRequestUrl = kPublishBaseUrl + "/layers/" +
+                                               kLayerName + "/publications/" +
+                                               kPublicationId + "/partitions";
+
+const std::string kSubmitPublicationRequestUrl =
+    kPublishBaseUrl + "/publications/" + kPublicationId;
+
 class MockStreamLayerClientImpl : public StreamLayerClientImpl {
  public:
+  using StreamLayerClientImpl::PublishDataGreaterThanTwentyMibSync;
   using StreamLayerClientImpl::PublishDataLessThanTwentyMibSync;
   using StreamLayerClientImpl::StreamLayerClientImpl;
 
@@ -74,6 +112,8 @@ class MockStreamLayerClientImpl : public StreamLayerClientImpl {
               (model::PublishSdiiRequest request,
                client::CancellationContext context),
               (override));
+
+  MOCK_METHOD(std::string, GenerateUuid, (), (const override));
 };
 
 class StreamLayerClientImplTest : public ::testing::Test {
@@ -412,6 +452,269 @@ TEST_F(StreamLayerClientImplTest, CancelPublishDataLessThanTwentyMibSync) {
               response.GetError().GetErrorCode());
 
     *cancel_context = client::CancellationContext{};
+  }
+}
+
+TEST_F(StreamLayerClientImplTest,
+       SuccessfullyPublishDataGreaterThanTwentyMibSync) {
+  auto data = std::make_shared<std::vector<unsigned char>>(1, 'a');
+  auto request =
+      model::PublishDataRequest().WithData(data).WithLayerId(kLayerName);
+
+  auto settings = settings_;
+  settings.cache = nullptr;
+
+  const std::string kMockedPartitionId = "some-generated-partition-uuid";
+  MockStreamLayerClientImpl client{kHRN, StreamLayerClientSettings{}, settings};
+
+  // Mock the generated UUIDs for the data handle and partition id
+  EXPECT_CALL(client, GenerateUuid)
+      .WillOnce(Return(kMockedDataHandle))
+      .WillOnce(Return(kMockedPartitionId));
+
+  EXPECT_CALL(*network_, Send(IsGetRequest(kConfigRequestUrl), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kConfigHttpResponse));
+
+  EXPECT_CALL(*network_, Send(IsGetRequest(kGetCatalogRequest), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kGetCatalogResponse));
+
+  EXPECT_CALL(*network_, Send(IsGetRequest(kPublishRequestUrl), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kPublishHttpResponse));
+
+  EXPECT_CALL(*network_, Send(IsGetRequest(kBlobRequestUrl), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kBlobHttpResponse));
+
+  EXPECT_CALL(*network_, Send(IsPostRequest(kInitPublicationUrl), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kInitPublicationHttpResponse));
+
+  EXPECT_CALL(*network_, Send(IsPutRequest(kPutBlobRequestUrl), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   std::string{}));
+
+  EXPECT_CALL(*network_,
+              Send(IsPostRequest(kUploadPartitionRequestUrl), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::NO_CONTENT),
+                                   std::string{}));
+
+  EXPECT_CALL(*network_,
+              Send(IsPutRequest(kSubmitPublicationRequestUrl), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::NO_CONTENT),
+                                   std::string{}));
+  auto response = client.PublishDataGreaterThanTwentyMibSync(
+      request, client::CancellationContext{});
+  ASSERT_TRUE(response.IsSuccessful());
+  ASSERT_EQ(kMockedPartitionId, response.GetResult().GetTraceID());
+}
+
+TEST_F(StreamLayerClientImplTest, FailedPublishDataGreaterThanTwentyMibSync) {
+  auto data = std::make_shared<std::vector<unsigned char>>(1, 'a');
+  auto request =
+      model::PublishDataRequest().WithData(data).WithLayerId(kLayerName);
+
+  auto settings = settings_;
+  settings.cache = nullptr;
+
+  const std::string kMockedPartitionId = "some-generated-partition-uuid";
+  MockStreamLayerClientImpl client{kHRN, StreamLayerClientSettings{}, settings};
+
+  {
+    SCOPED_TRACE("Failed on getting a config API URL");
+
+    EXPECT_CALL(*network_, Send(IsGetRequest(kConfigRequestUrl), _, _, _, _))
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::BAD_REQUEST),
+                               std::string{}))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kConfigHttpResponse));
+
+    auto response = client.PublishDataGreaterThanTwentyMibSync(
+        request, client::CancellationContext{});
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
+              response.GetError().GetHttpStatusCode());
+  }
+
+  {
+    SCOPED_TRACE("Failed on retrieving a catalog");
+
+    EXPECT_CALL(*network_, Send(IsGetRequest(kGetCatalogRequest), _, _, _, _))
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::BAD_REQUEST),
+                               std::string{}))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kGetCatalogResponse));
+
+    auto response = client.PublishDataGreaterThanTwentyMibSync(
+        request, client::CancellationContext{});
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
+              response.GetError().GetHttpStatusCode());
+  }
+
+  {
+    SCOPED_TRACE("Failed on retrieving catalog with invalid layer");
+
+    auto request2 = request;
+    request2.WithLayerId("invalid_layer_id");
+    auto response = client.PublishDataGreaterThanTwentyMibSync(
+        request2, client::CancellationContext{});
+
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(olp::client::ErrorCode::InvalidArgument,
+              response.GetError().GetErrorCode());
+  }
+
+  {
+    SCOPED_TRACE("Failed on getting a publish API URL");
+
+    EXPECT_CALL(*network_, Send(IsGetRequest(kPublishRequestUrl), _, _, _, _))
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::BAD_REQUEST),
+                               std::string{}))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kPublishHttpResponse));
+
+    auto response = client.PublishDataGreaterThanTwentyMibSync(
+        request, client::CancellationContext{});
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
+              response.GetError().GetHttpStatusCode());
+  }
+
+  {
+    SCOPED_TRACE("Failed on getting a blob API URL");
+
+    EXPECT_CALL(*network_, Send(IsGetRequest(kBlobRequestUrl), _, _, _, _))
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::BAD_REQUEST),
+                               std::string{}))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kBlobHttpResponse));
+
+    auto response = client.PublishDataGreaterThanTwentyMibSync(
+        request, client::CancellationContext{});
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
+              response.GetError().GetHttpStatusCode());
+  }
+
+  {
+    SCOPED_TRACE("Failed on init publication");
+
+    EXPECT_CALL(*network_, Send(IsPostRequest(kInitPublicationUrl), _, _, _, _))
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::BAD_REQUEST),
+                               std::string{}))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kInitPublicationHttpResponse));
+
+    auto response = client.PublishDataGreaterThanTwentyMibSync(
+        request, client::CancellationContext{});
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
+              response.GetError().GetHttpStatusCode());
+  }
+
+  {
+    SCOPED_TRACE("Failed on put blob data");
+
+    EXPECT_CALL(client, GenerateUuid).WillOnce(Return(kMockedDataHandle));
+
+    EXPECT_CALL(*network_, Send(IsPutRequest(kPutBlobRequestUrl), _, _, _, _))
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::BAD_REQUEST),
+                               std::string{}))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               std::string{}));
+
+    auto response = client.PublishDataGreaterThanTwentyMibSync(
+        request, client::CancellationContext{});
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
+              response.GetError().GetHttpStatusCode());
+
+    Mock::VerifyAndClearExpectations(&client);
+  }
+
+  {
+    SCOPED_TRACE("Failed on upload partition blob data");
+
+    EXPECT_CALL(client, GenerateUuid)
+        .WillOnce(Return(kMockedDataHandle))
+        .WillOnce(Return(kMockedPartitionId));
+
+    EXPECT_CALL(*network_,
+                Send(IsPostRequest(kUploadPartitionRequestUrl), _, _, _, _))
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::BAD_REQUEST),
+                               std::string{}))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::NO_CONTENT),
+                               std::string{}));
+
+    auto response = client.PublishDataGreaterThanTwentyMibSync(
+        request, client::CancellationContext{});
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
+              response.GetError().GetHttpStatusCode());
+
+    Mock::VerifyAndClearExpectations(&client);
+  }
+
+  {
+    SCOPED_TRACE("Failed on submit publication");
+
+    EXPECT_CALL(client, GenerateUuid)
+        .WillOnce(Return(kMockedDataHandle))
+        .WillOnce(Return(kMockedPartitionId));
+
+    EXPECT_CALL(*network_,
+                Send(IsPutRequest(kSubmitPublicationRequestUrl), _, _, _, _))
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::BAD_REQUEST),
+                               std::string{}));
+
+    auto response = client.PublishDataGreaterThanTwentyMibSync(
+        request, client::CancellationContext{});
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
+              response.GetError().GetHttpStatusCode());
+
+    Mock::VerifyAndClearExpectations(&client);
   }
 }
 
