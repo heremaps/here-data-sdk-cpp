@@ -70,7 +70,14 @@ include(coverage)
 
 if(OLP_SDK_BUILD_EXTERNAL_DEPS)
     # Add third-party dependencies
+    set(INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/install)
     add_subdirectory(external)
+    # set CMAKE_PREFIX_PATH or set each dependency dir individually or provide a custom find module
+    set(CMAKE_PREFIX_PATH ${INSTALL_DIR} ${CMAKE_PREFIX_PATH})
+
+    set(BOOST_ROOT        ${INSTALL_DIR}/boost)
+    set(Boost_INCLUDE_DIR ${INSTALL_DIR}/boost)
+    set(Boost_LIBRARY_DIR ${INSTALL_DIR}/boost)
 endif()
 
 # Add the sdks

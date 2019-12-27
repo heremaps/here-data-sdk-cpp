@@ -1,0 +1,53 @@
+include(ExternalProject)
+
+ExternalProject_Add(googletest
+  GIT_REPOSITORY    "https://github.com/google/googletest.git"
+  GIT_TAG           "release-1.10.0"
+  INSTALL_DIR       @INSTALL_DIR@
+  CMAKE_ARGS        -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
+)
+
+ExternalProject_Add(RapidJSON
+  GIT_REPOSITORY    "https://github.com/Tencent/rapidjson.git"
+  GIT_TAG           "v1.1.0"
+  INSTALL_DIR       @INSTALL_DIR@
+  CMAKE_ARGS        -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
+                    -DRAPIDJSON_BUILD_DOC=OFF
+                    -DRAPIDJSON_BUILD_EXAMPLES=OFF
+                    -DRAPIDJSON_BUILD_TESTS=OFF
+                    -DRAPIDJSON_BUILD_THIRDPARTY_GTEST=OFF
+)
+
+ExternalProject_Add(snappy
+  GIT_REPOSITORY    "https://github.com/google/snappy.git"
+  GIT_TAG           "1.1.7"
+  INSTALL_DIR       @INSTALL_DIR@
+  CMAKE_ARGS        @COMMON_ARGS@
+                    -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
+                    -DSNAPPY_BUILD_TESTS=OFF
+)
+
+ExternalProject_Add(leveldb
+  GIT_REPOSITORY    "https://github.com/google/leveldb.git"
+  GIT_TAG           "1.22"
+  INSTALL_DIR       @INSTALL_DIR@
+  CMAKE_ARGS        @COMMON_ARGS@
+                    -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+                    -DCMAKE_PREFIX_PATH:PATH=<INSTALL_DIR> 
+                    -DLEVELDB_BUILD_TESTS=OFF
+                    -DLEVELDB_BUILD_BENCHMARKS=OFF
+                    -DHAVE_CRC32C=OFF
+                    -DHAVE_TCMALLOC=OFF
+                    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+)
+
+ExternalProject_Add_StepDependencies(leveldb build snappy)
+
+ExternalProject_Add(boost-download
+  URL               "https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz"
+  SOURCE_DIR        @INSTALL_DIR@/boost
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND     ""
+  INSTALL_COMMAND   ""
+  TEST_COMMAND      ""
+)
