@@ -21,8 +21,7 @@ set(DESCRIPTION "Core network and utility library for the HERE OLP SDK C++")
 
 find_package(RapidJSON REQUIRED)
 find_package(Boost REQUIRED)
-find_package(leveldb REQUIRED)
-find_package(Snappy REQUIRED)
+find_package(leveldb 1.22 REQUIRED CONFIG)
 find_package(Threads REQUIRED)
 
 include(configs/ConfigNetwork.cmake)
@@ -232,13 +231,14 @@ if (OLP_SDK_NO_EXCEPTION AND NOT OLP_SDK_BOOST_THROW_EXCEPTION_EXTERNAL)
         PRIVATE OLP_SDK_BOOST_THROW_EXCEPTION=1)
 endif()
 
-target_include_directories(${PROJECT_NAME} PUBLIC
+target_include_directories(${PROJECT_NAME} 
+PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
     $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${RapidJSON_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${leveldb_INCLUDE_DIR}>
+    $<BUILD_INTERFACE:${INSTALL_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 
 if (ANDROID)

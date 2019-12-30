@@ -69,8 +69,10 @@ include(common)
 include(coverage)
 
 if(OLP_SDK_BUILD_EXTERNAL_DEPS)
+    set(INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/install)
     # Add third-party dependencies
     add_subdirectory(external)
+    set(CMAKE_PREFIX_PATH ${INSTALL_DIR})
 endif()
 
 # Add the sdks
