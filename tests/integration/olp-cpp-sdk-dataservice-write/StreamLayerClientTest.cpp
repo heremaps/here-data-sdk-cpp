@@ -260,11 +260,11 @@ TEST_F(StreamLayerClientTest, PublishData) {
   {
     testing::InSequence dummy;
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
         .Times(1);
@@ -284,16 +284,14 @@ TEST_F(StreamLayerClientTest, PublishDataGreaterThanTwentyMib) {
   {
     testing::InSequence dummy;
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_,
                 Send(IsGetRequest(URL_LOOKUP_PUBLISH_V2), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_,
                 Send(IsPostRequest(URL_INIT_PUBLICATION), _, _, _, _))
@@ -331,16 +329,21 @@ TEST_F(StreamLayerClientTest, PublishDataCancel) {
   CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
+      wait_for_cancel, pause_for_cancel,
+      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_INGEST});
 
   {
     testing::InSequence dummy;
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+        .Times(1);
+
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
         .Times(1)
         .WillOnce(testing::Invoke(std::move(send_mock)));
+
     EXPECT_CALL(*network_, Cancel(request_id))
         .WillOnce(testing::Invoke(std::move(cancel_mock)));
   }
@@ -349,6 +352,78 @@ TEST_F(StreamLayerClientTest, PublishDataCancel) {
       PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
   wait_for_cancel->get_future().get();
   promise.GetCancellationToken().Cancel();
+  pause_for_cancel->set_value();
+
+  auto response = promise.GetFuture().get();
+
+  ASSERT_NO_FATAL_FAILURE(PublishFailureAssertions(response));
+}
+
+TEST_F(StreamLayerClientTest, PublishDataCancelOnDestroy) {
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
+
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
+
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+      wait_for_cancel, pause_for_cancel,
+      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_CONFIG});
+
+  {
+    testing::InSequence dummy;
+
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+
+    EXPECT_CALL(*network_, Cancel(request_id))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+  }
+
+  auto promise = client_->PublishData(
+      PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
+  wait_for_cancel->get_future().get();
+
+  client_.reset();
+  pause_for_cancel->set_value();
+
+  auto response = promise.GetFuture().get();
+
+  ASSERT_NO_FATAL_FAILURE(PublishFailureAssertions(response));
+}
+
+TEST_F(StreamLayerClientTest, PublishDataGreaterThanTwentyMibCancelOnDestroy) {
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
+
+  olp::http::RequestId request_id;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
+
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+      wait_for_cancel, pause_for_cancel,
+      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_CONFIG});
+
+  {
+    testing::InSequence dummy;
+
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+
+    EXPECT_CALL(*network_, Cancel(request_id))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+  }
+
+  auto large_data =
+      std::make_shared<std::vector<unsigned char>>(kTwentyMib + 1, 'z');
+  auto promise = client_->PublishData(
+      PublishDataRequest().WithData(large_data).WithLayerId(GetTestLayer()));
+  wait_for_cancel->get_future().get();
+
+  client_.reset();
   pause_for_cancel->set_value();
 
   auto response = promise.GetFuture().get();
@@ -365,13 +440,12 @@ TEST_F(StreamLayerClientTest, PublishDataCancelLongDelay) {
   CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_GET_CATALOG});
+      wait_for_cancel, pause_for_cancel,
+      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_GET_CATALOG});
 
   {
     testing::InSequence dummy;
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
@@ -396,12 +470,12 @@ TEST_F(StreamLayerClientTest, BillingTag) {
   {
     testing::InSequence dummy;
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_,
                 Send(IsGetRequest(URL_GET_CATALOG_BILLING_TAG), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_,
                 Send(IsPostRequest(URL_INGEST_DATA_BILLING_TAG), _, _, _, _))
@@ -420,18 +494,14 @@ TEST_F(StreamLayerClientTest, BillingTag) {
 }
 
 TEST_F(StreamLayerClientTest, ConcurrentPublishSameIngestApi) {
-  {
-    testing::InSequence dummy;
-
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
-        .Times(5);
-  }
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+      .Times(1);
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+      .Times(5);
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+      .Times(1);
+  EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
+      .Times(5);
 
   auto publish_data = [&]() {
     auto response =
@@ -457,21 +527,17 @@ TEST_F(StreamLayerClientTest, ConcurrentPublishSameIngestApi) {
 }
 
 TEST_F(StreamLayerClientTest, SequentialPublishDifferentLayer) {
-  {
-    testing::InSequence dummy;
-
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_,
-                Send(IsPostRequest(URL_INGEST_DATA_LAYER_2), _, _, _, _))
-        .Times(1);
-  }
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+      .Times(1);
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+      .Times(2);
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+      .Times(1);
+  EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
+      .Times(1);
+  EXPECT_CALL(*network_,
+              Send(IsPostRequest(URL_INGEST_DATA_LAYER_2), _, _, _, _))
+      .Times(1);
 
   auto response =
       client_

@@ -54,10 +54,15 @@ class StreamLayerClientImpl
 
   bool CancelPendingRequests();
 
-  olp::client::CancellableFuture<PublishDataResponse> PublishData(
+  olp::client::CancellableFuture<PublishDataResponse> PublishDataOld(
       const model::PublishDataRequest& request);
-  olp::client::CancellationToken PublishData(
+  olp::client::CancellationToken PublishDataOld(
       const model::PublishDataRequest& request, PublishDataCallback callback);
+
+  olp::client::CancellableFuture<PublishDataResponse> PublishData(
+      model::PublishDataRequest request);
+  olp::client::CancellationToken PublishData(model::PublishDataRequest request,
+                                             PublishDataCallback callback);
 
   boost::optional<std::string> Queue(const model::PublishDataRequest& request);
   olp::client::CancellableFuture<StreamLayerClient::FlushResponse> Flush(
@@ -76,6 +81,9 @@ class StreamLayerClientImpl
  protected:
   virtual PublishSdiiResponse PublishSdiiTask(
       model::PublishSdiiRequest request, client::CancellationContext context);
+
+  virtual PublishDataResponse PublishDataTask(
+      model::PublishDataRequest request, client::CancellationContext context);
 
   virtual PublishSdiiResponse IngestSdii(model::PublishSdiiRequest request,
                                          client::CancellationContext context);

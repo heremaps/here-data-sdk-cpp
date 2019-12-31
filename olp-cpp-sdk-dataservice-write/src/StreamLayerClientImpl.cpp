@@ -28,6 +28,7 @@
 #include <olp/core/client/PendingRequests.h>
 #include <olp/core/client/TaskContext.h>
 #include <olp/core/logging/Log.h>
+#include <olp/core/porting/make_unique.h>
 #include <olp/core/thread/TaskScheduler.h>
 #include <olp/dataservice/write/model/PublishDataRequest.h>
 #include <olp/dataservice/write/model/PublishSdiiRequest.h>
@@ -269,11 +270,11 @@ size_t StreamLayerClientImpl::QueueSize() const {
   return 0;
 }
 
-CancellableFuture<PublishDataResponse> StreamLayerClientImpl::PublishData(
+CancellableFuture<PublishDataResponse> StreamLayerClientImpl::PublishDataOld(
     const model::PublishDataRequest& request) {
   auto promise = std::make_shared<std::promise<PublishDataResponse> >();
   auto cancel_token =
-      PublishData(request, [promise](PublishDataResponse response) {
+      PublishDataOld(request, [promise](PublishDataResponse response) {
         promise->set_value(std::move(response));
       });
   return CancellableFuture<PublishDataResponse>(cancel_token, promise);
@@ -401,12 +402,12 @@ olp::client::CancellationToken StreamLayerClientImpl::Flush(
       // TODO: This needs a redesign as pushing multiple publishes also on the
       // TaskScheduler would mean a dead-lock in case we have a single-thread
       // pool and this is waiting on each publish to finish. So while this loop
-      // here is active we will not be able to redesign PublishData() internally
-      // to use the TaskScheduler.
+      // here is active we will not be able to redesign PublishDataOld()
+      // internally to use the TaskScheduler.
       std::promise<void> barrier;
       cancel_context.ExecuteOrCancelled(
           [&]() -> CancellationToken {
-            return self->PublishData(
+            return self->PublishDataOld(
                 *publish_request, [&](PublishDataResponse publish_response) {
                   response.emplace_back(std::move(publish_response));
                   barrier.set_value();
@@ -433,7 +434,7 @@ olp::client::CancellationToken StreamLayerClientImpl::Flush(
   return CancellationToken([=]() mutable { cancel_context.CancelOperation(); });
 }
 
-CancellationToken StreamLayerClientImpl::PublishData(
+CancellationToken StreamLayerClientImpl::PublishDataOld(
     const model::PublishDataRequest& request, PublishDataCallback callback) {
   if (!request.GetData()) {
     callback(PublishDataResponse(
@@ -446,6 +447,50 @@ CancellationToken StreamLayerClientImpl::PublishData(
     return PublishDataLessThanTwentyMib(request, callback);
   } else {
     return PublishDataGreaterThanTwentyMib(request, callback);
+  }
+}
+
+olp::client::CancellableFuture<PublishDataResponse>
+StreamLayerClientImpl::PublishData(const model::PublishDataRequest request) {
+  auto promise = std::make_shared<std::promise<PublishDataResponse> >();
+  auto cancel_token =
+      PublishData(std::move(request), [promise](PublishDataResponse response) {
+        promise->set_value(std::move(response));
+      });
+  return CancellableFuture<PublishDataResponse>(cancel_token, promise);
+}
+
+CancellationToken StreamLayerClientImpl::PublishData(
+    model::PublishDataRequest request, PublishDataCallback callback) {
+  if (!request.GetData()) {
+    callback(PublishDataResponse(
+        ApiError(ErrorCode::InvalidArgument, "Request's data is null.")));
+    return CancellationToken();
+  }
+
+  using std::placeholders::_1;
+  TaskContext task_context = olp::client::TaskContext::Create(
+      std::bind(&StreamLayerClientImpl::PublishDataTask, this, request, _1),
+      callback);
+
+  auto pending_requests = pending_requests_;
+  pending_requests->Insert(task_context);
+
+  ExecuteOrSchedule(task_scheduler_, [=]() {
+    task_context.Execute();
+    pending_requests->Remove(task_context);
+  });
+
+  return task_context.CancelToken();
+}
+
+PublishDataResponse StreamLayerClientImpl::PublishDataTask(
+    model::PublishDataRequest request, client::CancellationContext context) {
+  const int64_t data_size = request.GetData()->size() * sizeof(unsigned char);
+  if (data_size <= kTwentyMib) {
+    return PublishDataLessThanTwentyMibSync(request, context);
+  } else {
+    return PublishDataGreaterThanTwentyMibSync(request, context);
   }
 }
 
