@@ -18,9 +18,6 @@
 # Do not export external projects to the cmake user package registry
 set(CMAKE_EXPORT_NO_PACKAGE_REGISTRY ON)
 
-# External config dirs
-set(EXTERNAL_BINARY_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/install)
-
 include(ProcessorCount)
 ProcessorCount(N)
 
@@ -29,10 +26,23 @@ get_filename_component(compilername ${CMAKE_MAKE_PROGRAM} NAME)
 
 if(NOT N EQUAL 0)
     if (${compilername} STREQUAL "MSBuild.exe")
-        set(EXTERNAL_BUILD_FLAGS -- /m:${N})
+        set(EXTERNAL_BUILD_FLAGS "-- /m:${N}")
     elseif(NOT (CMAKE_GENERATOR STREQUAL Xcode))
-        set(EXTERNAL_BUILD_FLAGS -- -j${N})
+        set(EXTERNAL_BUILD_FLAGS "-- -j${N}")
     endif()
+endif()
+
+set(COMMON_PLATFORM_FLAGS)
+
+if(ANDROID)
+  set(COMMON_PLATFORM_FLAGS -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} 
+                            -DANDROID_PLATFORM=${ANDROID_PLATFORM}
+                            -DANDROID_STL=${ANDROID_STL}
+                            -DANDROID_ABI=${ANDROID_ABI})
+elseif(IOS)
+  set(COMMON_PLATFORM_FLAGS -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+                            -DPLATFORM=${PLATFORM}
+                            -DSIMULATOR=${SIMULATOR})
 endif()
 
 # Setup versions for external project 
@@ -56,10 +66,9 @@ if(NOT TARGET GTest AND NOT GTest_FOUND)
     add_subdirectory(googletest)
 endif()
 
-find_package(RapidJSON QUIET)
+find_package(RapidJSON 1.1.0 QUIET)
 if(NOT TARGET RapidJSON AND NOT RapidJSON_FOUND)
     add_subdirectory(rapidjson)
-    set(RapidJSON_DIR ${EXTERNAL_RapidJSON_DIR} PARENT_SCOPE)
 endif()
 
 find_package(leveldb QUIET)
