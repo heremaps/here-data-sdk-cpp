@@ -40,33 +40,39 @@ static constexpr auto kDefaultMinimumValiditySeconds =
 static constexpr auto kForceRefresh = std::chrono::seconds(0);
 
 /**
- * @brief The AutoRefreshingToken class manages caching the requested token and
- * refreshing it when needed.
+ * @brief Manages token requests.
+ *
+ * Requests a new token from the token endpoint and automatically refreshes it
+ * when the token is about to expire.
  */
 class AUTHENTICATION_API AutoRefreshingToken {
  public:
   /**
-   * @brief The getTokenCallback type specifies the callback signature required
-   * for when the get token request is completed.
+   * @brief Specifies the callback signature that is required
+   * when the get token request is completed.
    */
   using GetTokenCallback =
       std::function<void(const TokenEndpoint::TokenResponse& response)>;
 
   /**
-   * Synchronously gets a token which is always fresh. If no token has been
-   * retrieved yet or the current token is expired or will expire within five
-   * minutes a new token is requested, otherwise the cached token is returned.
-   * This method is thread safe.
-   * @note This method blocks when a new token needs to be retrieved. Therefore
-   * it should not be called from a time sensitive thread (e.g. UI thread).
-   * @throw This method might throw a std::future_error exception.
+   * @brief Synchronously gets a token that is always fresh.
    *
-   * @param cancellation_token a token used to cancel the operation.
-   * @param minimum_validity Optional. Sets the minimum validity period of the
-   * token in seconds, The default validity period is 5 minutes. If the period
-   * is set to 0, the token will be refreshed immediately.
-   * @return A new TokenResponse if the old one is expired. Otherwise the cached
-   * token response.
+   * If no token has been retrieved yet or the current token is expired or
+   * expires within five minutes, a new token is requested. Otherwise,
+   * the cached token is returned. This method is thread-safe.
+   * @note This method is blocked when a new token needs to be retrieved.
+   * Therefore, the token should not be called from a time-sensitive thread (for
+   * example, the UI thread).
+   * @throw std::future_error Thrown when a failure occurs.
+   * Contains the error code and message.
+   *
+   * @param cancellation_token The token used to cancel the operation.
+   * @param minimum_validity (Optional) Sets the minimum validity period of
+   * the token in seconds. The default validity period is 5 minutes. If
+   * the period is set to 0, the token is refreshed immediately.
+   *
+   * @return The `TokenResponse` instance if the old one is expired.
+   * Otherwise, returns the cached `TokenResponse` instance.
    */
 
   TokenEndpoint::TokenResponse GetToken(
@@ -75,35 +81,42 @@ class AUTHENTICATION_API AutoRefreshingToken {
           kDefaultMinimumValiditySeconds) const;
 
   /**
-   * Synchronously gets a token which is always fresh. If no token has been
-   * retrieved yet or the current token is expired or will expire within five
-   * minutes a new token is requested, otherwise the cached token is returned.
-   * This method is thread safe.
-   * @note This method blocks when a new token needs to be retrieved. Therefore
-   * it should not be called from a time sensitive thread (e.g. UI thread).
-   * @throw This method might throw a std::future_error exception.
+   * @brief Synchronously gets a token that is always fresh.
    *
-   * @param minimum_validity Optional. Sets the minimum validity period of the
-   * token in seconds, The default validity period is 5 minutes. If the period
-   * is set to 0, the token will be refreshed immediately.
-   * @return A new TokenResponse if the old one is expired. Otherwise the cached
-   * token response.
+   * If no token has been retrieved yet or the current token is expired or
+   * expires within five minutes, a new token is requested. Otherwise,
+   * the cached token is returned. This method is thread-safe.
+   * @note This method is blocked when a new token needs to be retrieved.
+   * Therefore, it should not be called from a time-sensitive thread (for
+   * example, the UI thread).
+   * @throw std::future_error Thrown when a failure occurs.
+   * Contains the error code and message.
+   *
+   * @param minimum_validity (Optional) Sets the minimum validity period of
+   * the token in seconds. The default validity period is 5 minutes. If
+   * the period is set to 0, the token is refreshed immediately.
+   *
+   * @return The `TokenResponse` instance if the old one is expired.
+   * Otherwise, the cached `TokenResponse` instance.
    */
   TokenEndpoint::TokenResponse GetToken(
       const std::chrono::seconds& minimum_validity =
           kDefaultMinimumValiditySeconds) const;
 
   /**
-   * Aysnchronously gets a token which is always fresh. If no token has been
-   * retrieved yet or the current token is expired or will expire within five
-   * minutes a new token is requested, otherwise the cached token is returned.
-   * This method is thread safe.
+   * @brief Asynchronously gets a token that is always fresh.
    *
-   * @param callback A callback containing the TokenResponse.
-   * @param minimum_validity Optional. Sets the minimum validity period of the
-   * token in seconds, The default validity period is 5 minutes. If the period
-   * is set to 0, the token will be refreshed immediately.
-   * @return CancellationToken a token used to cancel the operation.
+   * If no token has been retrieved yet or the current token is expired or
+   * expires within five minutes, a new token is requested. Otherwise,
+   * the cached token is returned. This method is thread-safe.
+   *
+   * @param callback The callback that contains the `TokenResponse` instance.
+   * @param minimum_validity (Optional) Sets the minimum validity period of
+   * the token in seconds. The default validity period is 5 minutes. If
+   * the period is set to 0, the token is refreshed immediately.
+   *
+   * @return The `CancellationToken` instance that is used to cancel
+   * the operation.
    */
   client::CancellationToken GetToken(
       const GetTokenCallback& callback,
@@ -111,9 +124,11 @@ class AUTHENTICATION_API AutoRefreshingToken {
           kDefaultMinimumValiditySeconds) const;
 
   /**
-   * @brief Constructor
-   * @param token_endpoint the token endpoint to refresh against
-   * @param token_request the token request to send to the token endpoint
+   * @brief Creates the `AutoRefreshingToken` instance.
+   *
+   * @param token_endpoint The token endpoint against which the token is
+   * refreshed.
+   * @param token_request The token request that is sent to the token endpoint.
    */
   PORTING_PUSH_WARNINGS()
   PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")

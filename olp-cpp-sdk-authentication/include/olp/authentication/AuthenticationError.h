@@ -26,30 +26,49 @@
 
 namespace olp {
 namespace authentication {
+
+/**
+ * @brief Contains information on the authentication error.
+ *
+ * You can get the following information on the authentication error: the error
+ * code ( \ref GetErrorCode ) and error message ( \ref GetMessage ).
+ */
 class AUTHENTICATION_API AuthenticationError {
  public:
   /**
-   * @brief Authentication error information container
+   * @brief Creates the default `AuthenticationError` instance.
    */
   AuthenticationError() = default;
 
+  /**
+   * @brief Creates a new `AuthenticationError` instance.
+   * 
+   * @param network_code The error code.
+   * @param message The error message.
+   */
   AuthenticationError(int network_code, const std::string& message)
-      : error_code_(http::HttpStatusCode::GetErrorCode(network_code))
-      , message_(message)
-      , is_retryable_(IsRetryableNetworkCode(network_code)) {}
+      : error_code_(http::HttpStatusCode::GetErrorCode(network_code)),
+        message_(message),
+        is_retryable_(IsRetryableNetworkCode(network_code)) {}
 
   /**
-   * Gets the error code
+   * @brief Gets the error code.
+   *
+   * @return The error code.
    */
   inline const client::ErrorCode& GetErrorCode() const { return error_code_; }
 
   /**
-   * Gets the error message.
+   * @brief Gets the error message.
+   *
+   * @return The error message.
    */
   inline const std::string& GetMessage() const { return message_; }
 
   /**
-   * Returns true if a request can be retried for this error.
+   * @brief Determines if the request should be retried for this error.
+   *
+   * @return True if the request can be retried for this error; false otherwise.
    */
   inline bool ShouldRetry() const { return is_retryable_; }
 

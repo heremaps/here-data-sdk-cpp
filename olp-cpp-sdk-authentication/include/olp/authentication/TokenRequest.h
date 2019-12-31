@@ -22,29 +22,33 @@
 #include <chrono>
 #include <cstdint>
 
-#include "AuthenticationApi.h"
 #include <olp/core/porting/deprecated.h>
+#include "AuthenticationApi.h"
 
 namespace olp {
 namespace authentication {
 /**
- * @brief The TokenRequest class holds parameters of an OAuth2.0 Authorization
- * Grant Request.
+ * @brief Holds the parameters of the OAuth2.0 Authorization
+ * Grant request.
  */
 class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 04.2020")
     TokenRequest {
  public:
   /**
-   * @brief Constructor.
-   * @param expiresIn Optional. The number of seconds until the new access token
-   * expires.
+   * @brief Creates the `TokenRequest` instance.
+   * @param expiresIn (Optional) The number of seconds left before the new
+   * access token expires.
    */
-  TokenRequest(const std::chrono::seconds& expires_in = std::chrono::seconds(0));
+  TokenRequest(
+      const std::chrono::seconds& expires_in = std::chrono::seconds(0));
 
   /**
-   * @brief The number of seconds before token expires. Ignored if zero or
-   * greater than default expiration supported by the token endpoint.
-   * @return Number of seconds before token expires.
+   * @brief The number of seconds left before the token expires.
+   *
+   * Ignored if it is zero or greater than the default expiration time supported
+   * by the access token endpoint.
+   *
+   * @return The number of seconds left before the token expires.
    */
   std::chrono::seconds GetExpiresIn() const;
 

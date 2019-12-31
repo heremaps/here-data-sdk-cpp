@@ -27,43 +27,47 @@
 namespace olp {
 namespace authentication {
 /**
- * @brief These stucts contain detailed descriptions of the errors returned as
- * part of the response for authentication operations.
+ * @brief Detailed descriptions of errors returned as
+ * a response to an authentication operation.
+ *
+ * You can get the following information on the errors: the name of the field
+ * with the invalid value, error code, message, and ID.
  */
 struct AUTHENTICATION_API ErrorResponse {
   /**
-   * @brief Here Account error code returned as a result of a request. In case
-   * of error code 400200 which specifies that invalid data was sent part of the
-   * request, futher details can be retrieved by calling the error_fields method
-   * of the response. See ErrorFields, ErrorField.
+   * @brief The HERE Account error code returned as a result of
+   * the authentication request. In case of the error code 400200 that specifies
+   * that invalid data was sent as a part of the request, further details can be
+   * retrieved by calling the `error_fields` method of the response.
+   * @see `ErrorFields`, `ErrorField`.
    */
   unsigned int code = 0ul;
 
   /**
-   * @brief Here Account error message returned as a result of an authentication
-   * request.
+   * @brief The HERE Account error message returned as a result of
+   * the authentication request.
    */
   std::string message;
 
   /**
-   * @brief Here Account error id returned as a result of an authentication
+   * @brief The HERE Account error ID returned as a result of the authentication
    * request.
    */
   std::string error_id;
 };
 
 /**
- * @brief Input Field specific error
+ * @brief An input field error.
  */
 struct AUTHENTICATION_API ErrorField : ErrorResponse {
   /**
-   * @brief Name of the input field for which an invalid value was provided.
+   * @brief The name of the input field with the invalid value.
    */
   std::string name;
 };
 
 /**
- * @brief ErrorFields - List of ErrorField objects
+ * @brief The list of the `ErrorField` objects.
  */
 using ErrorFields = std::list<ErrorField>;
 

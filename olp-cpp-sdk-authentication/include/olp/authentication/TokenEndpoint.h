@@ -40,69 +40,88 @@ PORTING_PUSH_WARNINGS()
 PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 
 /**
- * @brief The TokenEndpoint class directly corresponds to the token endpoint as
- * specified in the OAuth2.0 Specification.
+ * @brief Corresponds to the token endpoint as specified in the OAuth2.0
+ * specification.
  */
 class AUTHENTICATION_API TokenEndpoint {
  public:
   /**
-   * @brief RequestTokenCallback is a type that defines the signature used to
-   * return the response to the client.
+   * @brief Defines the signature used to return the response to the client.
    */
   using TokenResponse = client::ApiResponse<TokenResult, AuthenticationError>;
+  /**
+   * @brief Defines the callback that is invoked when the response on
+   * `TokenRequest` is returned.
+   */
   using RequestTokenCallback = std::function<void(TokenResponse)>;
 
   /**
-   * POST to the token endpoint to get a HERE Access Token, for use with HERE
-   * Services. Returns just the token, to be used as an Authorization: Bearer
+   * @brief Executes the POST request method to the token endpoint.
+   *
+   * The request gets the HERE Access token that is used to access the HERE OLP
+   * Services. Returns the token that is used as the `Authorization: Bearer`
    * token value.
    *
-   * @param token_request the token request.
-   * @param callback RequestTokenCallback for passing the TokenResponse back to
-   * the caller.
-   * @return CancellationToken that can be used to cancel the request.
+   * @param token_request The `TokenRequest` instance.
+   * @param callback The `RequestTokenCallback` instance that passes
+   * the `TokenResponse` instance back to the caller.
+   *
+   * @return The `CancellationToken` instance that can be used to cancel
+   * the request.
    */
   client::CancellationToken RequestToken(
       const TokenRequest& token_request,
       const RequestTokenCallback& callback) const;
 
   /**
-   * POST to the token endpoint to get a HERE Access Token, for use with HERE
-   * Services. Returns just the token, to be used as an Authorization: Bearer
+   * @brief Executes the POST request method to the token endpoint.
+   *
+   * The request gets the HERE Access token that is used to access the HERE OLP
+   * Services. Returns the token that is used as the `Authorization: Bearer`
    * token value.
    *
-   * @param cancellation_token that can be used to cancel the request.
-   * @param token_request the token request.
-   * @return A future object which will contain the TokenResponse.
+   * @param cancellation_token The `CancellationToken` instance that can be used
+   * to cancel the request.
+   * @param token_request The `TokenRequest` instance.
+   *
+   * @return The future object that contains the `TokenResponse` instance.
    */
   std::future<TokenResponse> RequestToken(
       client::CancellationToken& cancellation_token,
       const TokenRequest& token_request = TokenRequest()) const;
 
   /**
-   * POST to the token endpoint to get a HERE Access Token, for use with HERE
-   * Services. Returns just the token, to be used as an Authorization: Bearer
+   * Executes the POST request method to the token endpoint.
+   *
+   * The request gets the HERE Access token that is used to access the HERE OLP
+   * Services. Returns the token that is used as the `Authorization: Bearer`
    * token value.
    *
-   * @param token_request the token request.
-   * @return A future object which will contain the TokenResponse.
+   * @param token_request The `TokenRequest` instance.
+   *
+   * @return The future object that contains the `TokenResponse` instance.
    */
   std::future<TokenResponse> RequestToken(
       const TokenRequest& token_request = TokenRequest()) const;
 
   /**
-   * Obtain an AutoRefreshingToken which manages caching the requested token and
-   * refreshing it when needed.
+   * @brief Gets the `AutoRefreshingToken` instance that caches the requested
+   * token and refreshes it when needed.
    *
-   * @param token_request the token request.
-   * @return An AutoRefreshingToken which manages token caching and refresh.
+   * @param token_request The `TokenRequest` instance.
+   *
+   * @return The `AutoRefreshingToken` instance that caches the requested
+   * token and refreshes it when needed.
    */
   AutoRefreshingToken RequestAutoRefreshingToken(
       const TokenRequest& token_request = TokenRequest());
 
   /**
-   * @brief Constructor
-   * @param settings the settings object for this endpoint
+   * @brief Creates the `TokenEndpoint` instance with the given `settings`
+   * parameter.
+   *
+   * @param settings The `Settings` object that is used to customize
+   * the `TokenEndpoint` instance.
    */
   explicit TokenEndpoint(Settings settings);
 
