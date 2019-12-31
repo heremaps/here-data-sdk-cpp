@@ -35,32 +35,47 @@ namespace authentication {
 /** @file TokenProvider.h */
 
 /**
- * Use TokenProviderDefault typedef to use default minimumValidity value. @see
- * TokenProviderDefault
- * @brief Provides authentication tokens given appropriate OLP user credentials.
- * @param minimumValidity the minimum token validity to use in seconds.
+ * @brief Provides the authentication tokens if the HERE Open Location Platform
+ * (OLP) user credentials are valid.
+ *
+ * @param MinimumValidity The minimum token validity time (in seconds).
+ * To use the default `MinimumValidity` value, use the `TokenProviderDefault`
+ * typedef.
+ *
+ * @see `TokenProviderDefault`
  */
 template <long long MinimumValidity>
 class OLP_SDK_DEPRECATED("Deprecated. Will be removed in 04.2020")
     TokenProvider {
  public:
   /**
-   * @brief Constructor
-   * @param settings Settings which can be used to configure a TokenEndpoint
-   * instance.
+   * @brief Creates the `TokenProvider` instance with the `settings` parameter.
+   *
+   * @param settings The settings that can be used to configure
+   * the `TokenEndpoint` instance.
    */
   explicit TokenProvider(Settings settings)
-      : token_(TokenEndpoint(std::move(settings)).RequestAutoRefreshingToken()) {}
+      : token_(
+            TokenEndpoint(std::move(settings)).RequestAutoRefreshingToken()) {}
 
   /**
-   * @brief bool type conversion
-   * @returns true if previous token request was successful.
+   * @brief Casts the `TokenProvider` instance to the `bool` type.
+   *
+   * Returns true if the previous token request was successful.
+   *
+   * @returns True if the previous token request was successful; false
+   * otherwise.
    */
   operator bool() const { return IsTokenResponseOK(GetResponse()); }
 
   /**
-   * @brief Retrieves an access token and returns as a string to the user.
-   * @returns the access token.
+   * @brief Casts the `TokenProvider` instance to the `std::string` type.
+   *
+   * Returns the access token string if the response is successful. Otherwise,
+   * returns an empty string.
+   *
+   * @returns The access token string if the response is successful; an empty
+   * string otherwise.
    */
   std::string operator()() const {
     return GetResponse().IsSuccessful()
@@ -69,9 +84,10 @@ class OLP_SDK_DEPRECATED("Deprecated. Will be removed in 04.2020")
   }
 
   /**
-   * @brief Allows the olp::client::ApiError object associated
-   * with the last request to be accessed if token request is unsuccessful.
-   * @returns the error if the last token request failed.
+   * @brief Allows the `olp::client::ApiError` object associated
+   * with the last request to be accessed if the token request is unsuccessful.
+   *
+   * @returns An error if the last token request failed.
    */
   ErrorResponse GetErrorResponse() const {
     return GetResponse().IsSuccessful()
@@ -80,8 +96,10 @@ class OLP_SDK_DEPRECATED("Deprecated. Will be removed in 04.2020")
   }
 
   /**
-   * @brief Allows the http status code of the last request to be retrieved.
-   * @returns http status code
+   * @brief Gets the HTTP status code of the last request.
+   *
+   * @returns The HTTP code of the last token request if it was successful.
+   * Otherwise, returns the HTTP 503 Service Unavailable server error.
    */
   int GetHttpStatusCode() const {
     return GetResponse().IsSuccessful()
@@ -105,8 +123,10 @@ class OLP_SDK_DEPRECATED("Deprecated. Will be removed in 04.2020")
 };
 
 /**
- * @brief TokenProviderDefault - provides authentication tokens given
- * appropriate OLP user credentials using the default minimum token validity.
+ * @brief Provides the authentication tokens using the default minimum token
+ * validity.
+ *
+ * The HERE OLP user credentials should be valid.
  */
 using TokenProviderDefault = TokenProvider<kDefaultMinimumValidity>;
 

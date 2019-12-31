@@ -31,63 +31,66 @@ namespace authentication {
 class SignInUserResultImpl;
 
 /**
- * @brief The SignInUserResult class represents the response to a user sign-in
- * operation.
+ * @brief A response to your sign-in operation.
  *
- * If a HTTP status of 412 (PRECONDITION_FAILED) or 201 (CREATED) is returned,
- * the response will return terms of re-acceptance. This response may be
- * received on the first sign in, or any subsequent sign-in, for any user
- * authentication method, as long as the user has not accepted the latest terms
- * for their country.
+ * If the HTTP status of 412 (PRECONDITION_FAILED) or 201 (CREATED) is returned,
+ * the response returns terms of re-acceptance. Not to receive this response
+ * again, accept the latest terms for your country.
  */
 class AUTHENTICATION_API SignInUserResult : public SignInResult {
  public:
   /**
-   * @brief Destructor
+   * @brief A default destructor.
    */
   ~SignInUserResult() override;
 
   /**
-   * @brief Constructor
+   * @brief A default constructor.
    */
   SignInUserResult() noexcept;
 
   /**
-   * @brief Terms acceptance token getter method.
-   * @return String containing the token required for the 'terms acceptance API'
-   * (only filled when status is 412 or 201).
+   * @brief Gets the terms acceptance token.
+   *
+   * @return The string that contains the token required for the terms
+   * acceptance API (filled in only when the HTTP status is 412 or 201).
    */
   const std::string& GetTermAcceptanceToken() const;
 
   /**
-   * @brief Terms of service url getter method.
-   * @return String containing the URL to the most recent terms of service,
-   * appropriate for the user's country and language (only filled when status is
-   * 412 or 201).
+   * @brief Gets the URL of the terms of service.
+   *
+   * @return The string that contains the URL of the most recent terms of
+   * service appropriate for your country and language (filled in only when
+   * the HTTP status is 412 or 201).
    */
   const std::string& GetTermsOfServiceUrl() const;
 
   /**
-   * @brief Terms of service url json getter method.
-   * @return String containing the URL to the most recent JSON version of terms
-   * of service, appropriate for the user's country and language (only filled
-   * when status is 412 or 201).
+   * @brief Gets the URL of the most recent JSON version of the terms of
+   * service.
+   *
+   * @return The string that contains the URL of the most recent JSON version of
+   * the terms of service appropriate for your country and language (filled in
+   * only when the HTTP status is 412 or 201).
    */
   const std::string& GetTermsOfServiceUrlJson() const;
 
   /**
-   * @brief Private policy url getter method.
-   * @return String containing the URL to the most recent privacy policy,
-   * appropriate for the user's country and language (only filled when status is
-   * 412 or 201).
+   * @brief Gets the most recent privacy policy URL.
+   *
+   * @return The string that contains the URL of the most recent privacy policy
+   * appropriate for your country and language (filled in only when the HTTP
+   * status is 412 or 201).
    */
   const std::string& GetPrivatePolicyUrl() const;
 
   /**
-   * @brief Private policy url json getter method.
-   * @return String containing the URL to the most recent JSON version of
-   * privacy policy, appropriate for the user's country and language (only
-   * filled when status is 412 or 201).
+   * @brief Gets the URL of the most recent privacy policy JSON.
+   *
+   * @return The string that contains the URL of the most recent JSON version of
+   * the privacy policy appropriate for your country and language
+   * (filled in only when the HTTP status is 412 or 201).
    */
   const std::string& GetPrivatePolicyUrlJson() const;
 

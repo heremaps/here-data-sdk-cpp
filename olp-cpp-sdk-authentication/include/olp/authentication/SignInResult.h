@@ -31,77 +31,87 @@ namespace authentication {
 class SignInResultImpl;
 
 /**
- * @brief SignInResponse represents the response to a client or user sign-in
- * operation.
+ * @brief A response to a client or user sign-in operation.
  */
 class AUTHENTICATION_API SignInResult {
  public:
   /**
-   * @brief Destructor
+   * @brief A default destructor.
    */
   virtual ~SignInResult();
 
   /**
-   * @brief Constructor
+   * @brief A default constructor.
    */
   SignInResult() noexcept;
 
   /**
-   * @brief HTTP status code getter method.
-   * @return Status code of the HTTP response, if a positive value returned. A
-   * negative value indicates a possible networking issue (retrying the request
-   * is recommended).
+   * @brief Gets an HTTP status code.
+   *
+   * @return The status code of the HTTP response if a positive value is
+   * returned. A negative value indicates a possible networking error. If you
+   * get the negative value, retry the request.
    */
   int GetStatus() const;
 
   /**
-   * @brief Error description getter method.
-   * @return Error description of failed request.
+   * @brief Gets an error description.
+   *
+   * @return The error description of the failed request.
    */
   const ErrorResponse& GetErrorResponse() const;
 
   /**
-   * @brief List of all specific input field errors getter method.
-   * @return List of input field errors.
+   * @brief Gets a list of all specific input field errors.
+   *
+   * @return The list of input field errors.
    */
   const ErrorFields& GetErrorFields() const;
 
   /**
-   * @brief Access token getter method.
-   * @return String containing the new HERE Account client or user access token,
-   * identifying the signed-in client or user.
+   * @brief Gets an access token.
+   *
+   * @return The string that contains the new HERE Account client or user access
+   * token that identifies the signed-in client or user.
    */
   const std::string& GetAccessToken() const;
 
   /**
-   * @brief Access token type getter method.
-   * @return String containing the access token type (always "bearer").
+   * @brief Gets the access token type.
+   *
+   * @return The string containing the access token type (always a bearer
+   * token).
    */
   const std::string& GetTokenType() const;
 
   /**
-   * @brief Refresh token getter method.
-   * @return String containing a token which is used to obtain a new access
-   * token using the refresh API. Refresh token is always issued as part of the
-   * response to a user sign in operation.
+   * @brief Gets a refresh token.
+   *
+   * @return The string with the token that is used to get a new access
+   * token via the refresh API. The refresh token is always issued as a part of
+   * a response to a user sign-in operation.
    */
   const std::string& GetRefreshToken() const;
 
   /**
-   * @brief Access token expiry time getter method.
-   * @return Epoch time when the token is expiring, -1 for invalid.
+   * @brief Gets the access token expiry time.
+   *
+   * @return The Epoch time when the token expires, or -1 if the token is
+   * invalid.
    */
   time_t GetExpiryTime() const;
 
   /**
-   * @brief Here account user identifier getter method.
-   * @return String containing the HERE Account user ID.
+   * @brief Gets the HERE Account user identifier.
+   *
+   * @return The string that contains the HERE Account user ID.
    */
   const std::string& GetUserIdentifier() const;
 
   /**
-   * @brief Scope that is assigned to access token.
-   * @return String containing the scope.
+   * @brief Gets the scope that is assigned to the access token.
+   *
+   * @return The string that contains the scope assigned to the access token.
    */
   const std::string& GetScope() const;
 

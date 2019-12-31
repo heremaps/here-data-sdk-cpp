@@ -42,32 +42,50 @@ static const std::string kHereAccountProductionTokenUrl =
     "https://account.api.here.com/oauth2/token";
 
 /**
- * @brief Settings which can be used to configure a TokenEndpoint instance.
+ * @brief Configures the `TokenEndpoint` instance.
+ *
+ * Contains settings that customize the `TokenEndpoint` class.
  */
 struct AUTHENTICATION_API Settings {
   /**
-   * @brief Constructor
-   * @param credentials The client credentials to access OLP.
+   * @brief Creates the `Settings` instance.
+   *
+   * @param credentials Your access credentials to the Open Location Platform
+   * (OLP).
    */
   Settings(AuthenticationCredentials credentials)
       : credentials(std::move(credentials)) {}
 
-  /// Client credentials
+  /**
+   * @brief The access key ID and access key secret that you got from the HERE
+   * Account as a part of the onboarding or support process on the developer
+   * portal.
+   */
   AuthenticationCredentials credentials;
 
-  /// The network instance to be used to internally operate with OLP services.
+  /**
+   * @brief The network instance that is used to internally operate with the OLP
+   * services.
+   */
   std::shared_ptr<http::Network> network_request_handler;
 
-  /// Optional. The TaskScheduler class to be used for managing callbacks
-  /// enqueue
+  /**
+   * @brief (Optional) The `TaskScheduler` class that is used to manage
+   * the callbacks enqueue.
+   */
   std::shared_ptr<thread::TaskScheduler> task_scheduler;
 
-  /// Optional. network_proxy_settings containing proxy configuration settings
-  /// for the network layer.
+  /**
+   * @brief (Optional) The configuration settings for the network layer.
+   */
   boost::optional<http::NetworkProxySettings> network_proxy_settings;
 
-  /// Optional. The token endpoint server URL. Note that only standard OAuth2
-  /// Token URLs (those ending in 'oauth2/token') are supported.
+  /**
+   * @brief (Optional) The server URL of the token endpoint.
+   *
+   * @note Only standard OAuth2 Token URLs (those ending in `oauth2/token`) are
+   * supported.
+   */
   std::string token_endpoint_url{kHereAccountProductionTokenUrl};
 };
 

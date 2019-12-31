@@ -31,44 +31,53 @@ namespace authentication {
 class SignUpResultImpl;
 
 /**
- * @brief The SignUpResponse class represents the response to a user sign-up
- * operation.
+ * @brief A response to the sign-up operation with your HERE Account user ID.
+ *
+ * Contains the following results of your sign-up request:
+ * status ( \ref GetStatus ), user ID ( \ref GetUserIdentifier ),
+ * and, in case of an unsuccessful sign-out operation, 
+ * the error description ( \ref GetErrorResponse ) and
+ * input fields errors ( \ref GetErrorFields ).
  */
 class AUTHENTICATION_API SignUpResult {
  public:
   /**
-   * @brief Destructor
+   * @brief A default destructor.
    */
   virtual ~SignUpResult();
 
   /**
-   * @brief Constructor
+   * @brief A default constructor.
    */
   SignUpResult() noexcept;
 
   /**
-   * @brief HTTP status code getter method.
-   * @return Status code of the HTTP response, if a positive value returned. A
-   * negative value indicates a possible networking issue (retrying the request
-   * is recommended).
+   * @brief Gets the HTTP status code.
+   *
+   * @return The status code of the HTTP response if a positive value is
+   * returned. A negative value indicates a possible networking error. If you
+   * get the negative value, retry the request.
    */
   int GetStatus() const;
 
   /**
-   * @brief Error description getter method.
-   * @return Error description of failed request.
+   * @brief Gets an error description.
+   *
+   * @return The error description of the failed request.
    */
   const ErrorResponse& GetErrorResponse() const;
 
   /**
-   * @brief List of all specific input field errors getter method.
-   * @return List of input field errors.
+   * @brief Gets a list of all specific input field errors.
+   *
+   * @return The list of input field errors.
    */
   const ErrorFields& GetErrorFields() const;
 
   /**
-   * @brief Here account user identifier getter method.
-   * @return String containing the HERE Account user ID.
+   * @brief Gets the HERE Account user identifier.
+   *
+   * @return The string that contains the HERE Account user ID.
    */
   const std::string& GetUserIdentifier() const;
 

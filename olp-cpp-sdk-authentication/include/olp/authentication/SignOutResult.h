@@ -30,38 +30,45 @@ namespace authentication {
 class SignOutResultImpl;
 
 /**
- * @brief The SignOutResult class represents the response to a user sign-out
- * operation.
+ * @brief A response to your sign-out operation.
+ *
+ * Contains the following results of your sign-out request:
+ * status ( \ref GetStatus ) and, in case of an unsuccessful
+ * sign-out operation, the error description ( \ref GetErrorResponse )
+ * and input field errors ( \ref GetErrorFields ).
  */
 class AUTHENTICATION_API SignOutResult {
  public:
   /**
-   * @brief Destructor
+   * @brief A default destructor.
    */
   virtual ~SignOutResult();
 
   /**
-   * @brief Constructor
+   * @brief A default constructor.
    */
   SignOutResult() noexcept;
 
   /**
-   * @brief HTTP status code getter method.
-   * @return Status code of the HTTP response, if a positive value returned. A
-   * negative value indicates a possible networking issue (retrying the request
-   * is recommended).
+   * @brief Gets the HTTP status code.
+   *
+   * @return The status code of the HTTP response if a positive value is
+   * returned. A negative value indicates a possible networking error. If you
+   * get the negative value, retry the request.
    */
   int GetStatus() const;
 
   /**
-   * @brief Error description getter method.
-   * @return Error description of failed request.
+   * @brief Gets an error description.
+   *
+   * @return The error description of the failed request.
    */
   const ErrorResponse& GetErrorResponse() const;
 
   /**
-   * @brief List of all specific input field errors getter method.
-   * @return List of input field errors.
+   * @brief Gets a list of all specific input field errors.
+   *
+   * @return The list of input field errors.
    */
   const ErrorFields& GetErrorFields() const;
 

@@ -28,57 +28,71 @@
 namespace olp {
 namespace authentication {
 /**
- * @brief The TokenResponse class represents a parsed response received from an
- * OAuth2.0 token endpoint.
+ * @brief A parsed response received from the OAuth2.0 token endpoint.
+ *
+ * You can get the following information: the access token issued by
+ * the authorization server ( \ref GetAccessToken ), its expiry time
+ * ( \ref GetExpiryTime ), HTTP status code ( \ref GetHttpStatus ),
+ * and error description ( \ref GetErrorResponse ) in case of a failure.
  */
 class AUTHENTICATION_API TokenResult {
  public:
   /**
-   * @brief Constructor
+   * @brief Creates the `TokenResult` instance.
+   *
    * @param access_token The access token issued by the authorization server.
-   * @param expiry_time Epoch time when the token is expiring, -1 for invalid.
-   * @param http_status Status code of the HTTP response, if a positive value
-   * returned. A negative value indicates a possible networking issue (retrying
-   * the request is recommended)
-   * @param error Error description for the request.
+   * @param expiry_time The Epoch time when the token expires, or -1 if
+   * the token is invalid.
+   * @param http_status The status code of the HTTP response.
+   * @param error The error description of the request.
    */
   TokenResult(std::string access_token, time_t expiry_time, int http_status,
               ErrorResponse error);
 
   /**
-   * @brief Constructor
+   * @brief Creates the default `TokenResult` instance.
    */
   TokenResult() = default;
 
   /**
-   * @brief Copy Constructor
-   * @param other the object to copy from
+   * @brief Creates the `TokenResult` instance that is a copy
+   * of the `other` token result.
+   *
+   * @param other The `TokenResult` instance from which the access
+   * key ID, access key secret, expiry time, HTTP status code, and error
+   * description are copied.
    */
   TokenResult(const TokenResult& other);
 
   /**
    * @brief Gets the access token issued by the authorization server.
-   * @return access token issued by the authorization server.
+   *
+   * @return The access token issued by the authorization server.
    */
   const std::string& GetAccessToken() const;
 
   /**
-   * @brief Gets the Epoch time when the token is expiring, -1 for invalid.
-   * @return Epoch time when the token is expiring, -1 for invalid.
+   * @brief Gets the Epoch time when the token expires, or -1 if the token is
+   * invalid.
+   *
+   * @return The Epoch time when the token expires, or -1 if the token is
+   * invalid.
    */
   time_t GetExpiryTime() const;
 
   /**
-   * @brief Status code of the HTTP response, if a positive value returned. A
-   * negative value indicates a possible networking issue (retrying the request
-   * is recommended).
-   * @return Status code of the HTTP response
+   * @brief Gets the HTTP status code.
+   *
+   * @return The status code of the HTTP response if a positive value is
+   * returned. A negative value indicates a possible networking error. If you
+   * get the negative value, retry the request.
    */
   int GetHttpStatus() const;
 
   /**
-   * @brief Error description for the request.
-   * @return Error description for the request.
+   * @brief Gets an error description.
+   *
+   * @return The error description of the failed request.
    */
   ErrorResponse GetErrorResponse() const;
 
