@@ -167,7 +167,7 @@ To authenticate using client credentials:
 
    You get the `credentials.properties` file.
 
-2. Initialize the authentification settings using the **here.access.key.іd** and **here.access.key.secret** from the `credentials.properties` file as `kKeyId` and `kKeySecret` respectively.
+2. Initialize the authentication settings using the **here.access.key.іd** and **here.access.key.secret** from the `credentials.properties` file as `kKeyId` and `kKeySecret` respectively.
 
    ```cpp
    olp::authentication::Settings settings({kKeyId, kKeySecret});
