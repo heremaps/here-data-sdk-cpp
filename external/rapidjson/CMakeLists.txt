@@ -17,14 +17,8 @@
 
 # RapidJSON
 # Download and unpack rapidjson at configure time
-configure_file(CMakeLists.txt.rapidjson.in download/CMakeLists.txt)
 
-# Workaround to override options in rapidjson cmake
-option(RAPIDJSON_BUILD_DOC "Build rapidjson documentation." OFF)
-option(RAPIDJSON_BUILD_EXAMPLES "Build rapidjson examples." OFF)
-option(RAPIDJSON_BUILD_TESTS "Build rapidjson perftests and unittests." OFF)
-option(RAPIDJSON_BUILD_THIRDPARTY_GTEST
-    "Use gtest installation in `thirdparty/gtest` by default if available" OFF)
+configure_file(CMakeLists.txt.rapidjson.in download/CMakeLists.txt)
 
 execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
   RESULT_VARIABLE result
@@ -32,18 +26,10 @@ execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
 if(result)
   message(FATAL_ERROR "CMake step for rapidjson failed: ${result}")
 endif()
+
 execute_process(COMMAND ${CMAKE_COMMAND} --build .
   RESULT_VARIABLE result
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/download)
 if(result)
   message(FATAL_ERROR "Build step for rapidjson failed: ${result}")
 endif()
-
-# Add rapidjson directly to our build.
-add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/src
-                 ${CMAKE_CURRENT_BINARY_DIR}/build
-                 EXCLUDE_FROM_ALL)
-
-# Provide the dir to the rapidjson cmake configuration files
-set(EXTERNAL_RapidJSON_DIR ${CMAKE_CURRENT_BINARY_DIR}/build PARENT_SCOPE)
-
