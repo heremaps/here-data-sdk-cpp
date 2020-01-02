@@ -28,7 +28,6 @@
 #include <olp/core/client/PendingRequests.h>
 #include <olp/core/client/TaskContext.h>
 #include <olp/core/logging/Log.h>
-#include <olp/core/porting/make_unique.h>
 #include <olp/core/thread/TaskScheduler.h>
 #include <olp/dataservice/write/model/PublishDataRequest.h>
 #include <olp/dataservice/write/model/PublishSdiiRequest.h>
@@ -399,23 +398,8 @@ olp::client::CancellationToken StreamLayerClientImpl::Flush(
         continue;
       }
 
-      // TODO: This needs a redesign as pushing multiple publishes also on the
-      // TaskScheduler would mean a dead-lock in case we have a single-thread
-      // pool and this is waiting on each publish to finish. So while this loop
-      // here is active we will not be able to redesign PublishDataOld()
-      // internally to use the TaskScheduler.
-      std::promise<void> barrier;
-      cancel_context.ExecuteOrCancelled(
-          [&]() -> CancellationToken {
-            return self->PublishDataOld(
-                *publish_request, [&](PublishDataResponse publish_response) {
-                  response.emplace_back(std::move(publish_response));
-                  barrier.set_value();
-                });
-          },
-          [&barrier]() { barrier.set_value(); });
-
-      barrier.get_future().get();
+      auto publish_response = PublishDataTask(*publish_request, cancel_context);
+      response.emplace_back(std::move(publish_response));
 
       // If cancelled queue back task
       if (cancel_context.IsCancelled()) {

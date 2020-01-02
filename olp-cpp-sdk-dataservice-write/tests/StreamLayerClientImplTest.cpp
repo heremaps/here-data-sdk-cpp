@@ -22,6 +22,7 @@
 #include <mocks/CacheMock.h>
 #include <mocks/NetworkMock.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+#include <unordered_set>
 #include "StreamLayerClientImpl.h"
 
 namespace {
@@ -113,7 +114,12 @@ class MockStreamLayerClientImpl : public StreamLayerClientImpl {
                client::CancellationContext context),
               (override));
 
-  MOCK_METHOD(std::string, GenerateUuid, (), (const override));
+  MOCK_METHOD(PublishDataResponse, PublishDataTask,
+              (model::PublishDataRequest request,
+               client::CancellationContext context),
+              (override));
+
+  MOCK_METHOD(std::string, GenerateUuid, (), (const, override));
 };
 
 class StreamLayerClientImplTest : public ::testing::Test {
@@ -716,6 +722,58 @@ TEST_F(StreamLayerClientImplTest, FailedPublishDataGreaterThanTwentyMibSync) {
 
     Mock::VerifyAndClearExpectations(&client);
   }
+}
+
+TEST_F(StreamLayerClientImplTest, QueueAndFlush) {
+  const size_t kBatchSize = 10;
+  settings_.cache =
+      olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+
+  auto client = std::make_shared<MockStreamLayerClientImpl>(
+      kHRN, StreamLayerClientSettings{}, settings_);
+
+  size_t uuid_call_count = 1;
+  // Forward trace ID from request to response
+  ON_CALL(*client, PublishDataTask(_, _))
+      .WillByDefault(
+          [](model::PublishDataRequest request,
+             client::CancellationContext context) -> PublishDataResponse {
+            PublishDataResult result;
+            result.SetTraceID(request.GetTraceId().get());
+            return PublishDataResponse{result};
+          });
+  ON_CALL(*client, GenerateUuid)
+      .WillByDefault([&uuid_call_count]() -> std::string {
+        return std::to_string(uuid_call_count++);
+      });
+
+  EXPECT_CALL(*client, PublishDataTask(_, _)).Times(kBatchSize);
+  EXPECT_CALL(*client, GenerateUuid()).Times(kBatchSize);
+
+  // queues all  requests:
+  for (size_t i = 0; i < kBatchSize; ++i) {
+    model::PublishDataRequest request =
+        model::PublishDataRequest()
+            .WithTraceId(std::to_string(i))
+            .WithData(std::make_shared<std::vector<unsigned char>>(1, 'z'))
+            .WithLayerId("layer");
+
+    auto error = client->Queue(std::move(request));
+    EXPECT_EQ(boost::none, error) << *error;
+  }
+
+  EXPECT_EQ(client->QueueSize(), kBatchSize);
+
+  // Flush all requests and verify whether responses are successful
+  auto response = client->Flush(model::FlushRequest()).GetFuture().get();
+  EXPECT_EQ(response.size(), kBatchSize);
+  std::unordered_set<std::string> trace_ids;
+  for (const auto &r : response) {
+    EXPECT_TRUE(r.IsSuccessful());
+    trace_ids.insert(r.GetResult().GetTraceID());
+  }
+
+  EXPECT_EQ(kBatchSize, trace_ids.size());
 }
 
 }  // namespace
