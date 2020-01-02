@@ -50,179 +50,274 @@ include(cmake/winhttp.cmake)
 include(cmake/android.cmake)
 include(cmake/ios.cmake)
 
-file(GLOB CACHE_HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/cache/*.h"
+set(OLP_SDK_CACHE_HEADERS
+    ./include/olp/core/cache/CacheSettings.h
+    ./include/olp/core/cache/DefaultCache.h
+    ./include/olp/core/cache/KeyValueCache.h
 )
 
-file(GLOB CLIENT_HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/client/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/client/*.inl"
+set(OLP_SDK_CLIENT_HEADERS
+    ./include/olp/core/client/ApiError.h
+    ./include/olp/core/client/ApiNoResult.h
+    ./include/olp/core/client/ApiResponse.h
+    ./include/olp/core/client/CancellationContext.h
+    ./include/olp/core/client/CancellationContext.inl
+    ./include/olp/core/client/CancellationToken.h
+    ./include/olp/core/client/Condition.h
+    ./include/olp/core/client/ErrorCode.h
+    ./include/olp/core/client/HRN.h
+    ./include/olp/core/client/HttpResponse.h
+    ./include/olp/core/client/OlpClient.h
+    ./include/olp/core/client/OlpClientFactory.h
+    ./include/olp/core/client/OlpClientSettings.h
+    ./include/olp/core/client/OlpClientSettingsFactory.h
+    ./include/olp/core/client/PendingRequests.h
+    ./include/olp/core/client/TaskContext.h
 )
 
-file(GLOB GENERATED_MODEL_HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/generated/model/*.h"
-    )
-
-file(GLOB GENERATED_HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/generated/model/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/generated/parser/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/generated/serializer/*.h"
+set(OLP_SDK_GENERATED_HEADERS
+    ./include/olp/core/generated/parser/JsonParser.h
+    ./include/olp/core/generated/parser/ParserWrapper.h
+    ./include/olp/core/generated/serializer/SerializerWrapper.h
 )
 
 set(OLP_SDK_HTTP_HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/HttpStatusCode.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/Network.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/HttpStatusCode.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/NetworkConstants.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/NetworkProxySettings.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/NetworkRequest.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/NetworkResponse.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/NetworkSettings.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/http/NetworkTypes.h"
+    ./include/olp/core/http/HttpStatusCode.h
+    ./include/olp/core/http/Network.h
+    ./include/olp/core/http/HttpStatusCode.h
+    ./include/olp/core/http/NetworkConstants.h
+    ./include/olp/core/http/NetworkProxySettings.h
+    ./include/olp/core/http/NetworkRequest.h
+    ./include/olp/core/http/NetworkResponse.h
+    ./include/olp/core/http/NetworkSettings.h
+    ./include/olp/core/http/NetworkTypes.h
 )
-file(GLOB PLATFORM_HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/context/*.h"
+
+set(OLP_SDK_PLATFORM_HEADERS
+    ./include/olp/core/context/Context.h
 )
+
 file(GLOB PORTING_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/porting/*.h"
     "${CMAKE_CURRENT_BINARY_DIR}/include/olp/core/porting/*.h"
 )
-file(GLOB UTILS_HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/utils/*.h"
-)
-file(GLOB LOGGING_HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/logging/*.h"
-)
-file(GLOB THREAD_HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/thread/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/thread/*.inl"
+
+set(OLP_SDK_UTILS_HEADERS
+    ./include/olp/core/utils/Base64.h
+    ./include/olp/core/utils/Config.h
+    ./include/olp/core/utils/Dir.h
+    ./include/olp/core/utils/LruCache.h
+    ./include/olp/core/utils/Url.h
+    ./include/olp/core/utils/WarningWorkarounds.h
 )
 
-file(GLOB GEOCOORDINATES_HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/geo/coordinates/*.h"
-)
-file(GLOB GEOPROJECTION_HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/geo/projection/*.h"
-)
-file(GLOB GEOTILING_HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/geo/tiling/*.h"
-)
-file(GLOB GEOTYPE_HEADER
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/geo/*.h"
-)
-
-file(GLOB MATH_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/math/*.h")
-
-file(GLOB COREAPI_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/*.h")
-
-file(GLOB_RECURSE GEO_SOURCE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/geo/*.cpp"
+set(OLP_SDK_LOGGING_HEADERS
+    ./include/olp/core/logging/Appender.h
+    ./include/olp/core/logging/Configuration.h
+    ./include/olp/core/logging/ConsoleAppender.h
+    ./include/olp/core/logging/DebugAppender.h
+    ./include/olp/core/logging/FileAppender.h
+    ./include/olp/core/logging/FilterGroup.h
+    ./include/olp/core/logging/Format.h
+    ./include/olp/core/logging/Level.h
+    ./include/olp/core/logging/Log.h
+    ./include/olp/core/logging/LogMessage.h
+    ./include/olp/core/logging/MessageFormatter.h
 )
 
-file(GLOB CACHE_SOURCE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/cache/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/cache/*.h"
+set(OLP_SDK_THREAD_HEADERS
+    ./include/olp/core/thread/Atomic.h
+    ./include/olp/core/thread/SyncQueue.h
+    ./include/olp/core/thread/SyncQueue.inl
+    ./include/olp/core/thread/TaskScheduler.h
+    ./include/olp/core/thread/ThreadPoolTaskScheduler.h
 )
 
-file(GLOB CLIENT_SOURCE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/client/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/client/*.h"
+set(OLP_SDK_GEOCOORDINATES_HEADERS
+    ./include/olp/core/geo/coordinates/GeoCoordinates.h
+    ./include/olp/core/geo/coordinates/GeoCoordinates3d.h
+    ./include/olp/core/geo/coordinates/GeoPoint.h
+    ./include/olp/core/geo/coordinates/GeoRectangle.h
 )
 
-file(GLOB GENERATED_SOURCE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/generated/parser/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/generated/serializer/*.cpp"
+set(OLP_SDP_GEOPROJECTION_HEADERS
+    ./include/olp/core/geo/projection/EarthConstants.h
+    ./include/olp/core/geo/projection/EquirectangularProjection.h
+    ./include/olp/core/geo/projection/IdentityProjection.h
+    ./include/olp/core/geo/projection/IProjection.h
+    ./include/olp/core/geo/projection/SphereProjection.h
+    ./include/olp/core/geo/projection/WebMercatorProjection.h
+)
+
+set(OLP_SDK_GEOTILING_HEADERS
+    ./include/olp/core/geo/tiling/HalfQuadTreeSubdivisionScheme.h
+    ./include/olp/core/geo/tiling/ISubdivisionScheme.h
+    ./include/olp/core/geo/tiling/ITilingScheme.h
+    ./include/olp/core/geo/tiling/QuadTreeSubdivisionScheme.h
+    ./include/olp/core/geo/tiling/SubTiles.h
+    ./include/olp/core/geo/tiling/TileKey.h
+    ./include/olp/core/geo/tiling/TileKeyUtils.h
+    ./include/olp/core/geo/tiling/TileTreeTraverse.h
+    ./include/olp/core/geo/tiling/TilingScheme.h
+    ./include/olp/core/geo/tiling/TilingSchemeRegistry.h
+)
+
+set(OLP_SDK_GEOTYPE_HEADER
+    ./include/olp/core/geo/Types.h
+)
+
+set(OLP_SDK_MATH_HEADERS
+    ./include/olp/core/math/AlignedBox.h
+    ./include/olp/core/math/Math.h
+    ./include/olp/core/math/Size.h
+    ./include/olp/core/math/Types.h
+    ./include/olp/core/math/Vector.h
+)
+
+set(OLP_SDK_COREAPI_HEADERS
+    ./include/olp/core/CoreApi.h
+)
+
+set(OLP_SDK_GEO_SOURCES
+    ./src/geo/coordinates/GeoCoordinates.cpp
+    ./src/geo/coordinates/GeoCoordinates3d.cpp
+    ./src/geo/coordinates/GeoRectangle.cpp
+    ./src/geo/projection/EquirectangularProjection.cpp
+    ./src/geo/projection/IdentityProjection.cpp
+    ./src/geo/projection/SphereProjection.cpp
+    ./src/geo/projection/WebMercatorProjection.cpp
+    ./src/geo/tiling/HalfQuadTreeSubdivisionScheme.cpp
+    ./src/geo/tiling/QuadTreeSubdivisionScheme.cpp
+    ./src/geo/tiling/TileKey.cpp
+    ./src/geo/tiling/TileKeyUtils.cpp
+    ./src/geo/tiling/TileTreeTraverse.cpp
+)
+
+set(OLP_SDK_CACHE_SOURCES
+    ./src/cache/DefaultCache.cpp
+    ./src/cache/DiskCache.cpp
+    ./src/cache/DiskCache.h
+    ./src/cache/DiskCacheSizeLimitEnv.cpp
+    ./src/cache/DiskCacheSizeLimitEnv.h
+    ./src/cache/DiskCacheSizeLimitWritableFile.cpp
+    ./src/cache/DiskCacheSizeLimitWritableFile.h
+    ./src/cache/InMemoryCache.cpp
+    ./src/cache/InMemoryCache.h
+)
+
+set(OLP_SDK_CLIENT_SOURCES
+    ./src/client/CancellationToken.cpp
+    ./src/client/HRN.cpp
+    ./src/client/OlpClient.cpp
+    ./src/client/OlpClientFactory.cpp
+    ./src/client/OlpClientSettings.cpp
+    ./src/client/OlpClientSettingsFactory.cpp
+    ./src/client/PendingRequests.cpp
+    ./src/client/Tokenizer.h
 )
 
 set(OLP_SDK_HTTP_SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/http/Network.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/http/NetworkProxySettings.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/http/NetworkRequest.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/http/NetworkResponse.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/http/NetworkSettings.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/http/NetworkTypes.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/http/NetworkUtils.cpp"
+    ./src/http/Network.cpp
+    ./src/http/NetworkProxySettings.cpp
+    ./src/http/NetworkRequest.cpp
+    ./src/http/NetworkResponse.cpp
+    ./src/http/NetworkSettings.cpp
+    ./src/http/NetworkTypes.cpp
+    ./src/http/NetworkUtils.cpp
 )
 
 if (ANDROID)
-
     # http network Android implementation:
     set(OLP_SDK_HTTP_ANDROID_SOURCES
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/android/NetworkAndroid.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/android/NetworkAndroid.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/android/utils/JNIThreadBinder.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/http/android/utils/JNIScopedLocalReference.h"
+        ./src/http/android/NetworkAndroid.h
+        ./src/http/android/NetworkAndroid.cpp
+        ./src/http/android/utils/JNIThreadBinder.h
+        ./src/http/android/utils/JNIScopedLocalReference.h
     )
-    set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_ANDROID_SOURCES})
 
+    set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_ANDROID_SOURCES})
     set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_ANDROID)
 endif()
+
 if (UNIX AND NOT ANDROID)
     set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_CURL_SOURCES})
 
     set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_CURL)
 endif()
+
 if (IOS)
     set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_IOS_SOURCES})
 
     set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_IOS)
 endif()
+
 if (WIN32)
     set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_WIN_SOURCES})
 
     set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_WINHTTP)
 endif()
 
-file(GLOB PLATFORM_SOURCE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/context/*.cpp"
-)
-file(GLOB UTILS_SOURCE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/utils/*.cpp"
-)
-file(GLOB LOGGING_SOURCE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/logging/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/logging/*.h"
-)
-file(GLOB THREAD_SOURCE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/thread/*.cpp"
+set(OLP_SDK_PLATFORM_SOURCES
+    ./src/context/Context.cpp
 )
 
-file(GLOB CORE_HEADERS
-    ${CACHE_HEADERS}
-    ${CLIENT_HEADERS}
-    ${GENERATED_HEADERS}
+set(OLP_SDK_UTILS_SOURCES
+    ./src/utils/Base64.cpp
+    ./src/utils/BoostExceptionHandle.cpp
+    ./src/utils/Dir.cpp
+    ./src/utils/Url.cpp
+)
+
+set(OLP_SDK_LOGGING_SOURCES
+    ./src/logging/Configuration.cpp
+    ./src/logging/ConsoleAppender.cpp
+    ./src/logging/DebugAppender.cpp
+    ./src/logging/FileAppender.cpp
+    ./src/logging/FilterGroup.cpp
+    ./src/logging/Format.cpp
+    ./src/logging/Log.cpp
+    ./src/logging/MessageFormatter.cpp
+    ./src/logging/ThreadId.cpp
+    ./src/logging/ThreadId.h
+)
+
+set(OLP_SDK_THREAD_SOURCES
+    ./src/thread/ThreadPoolTaskScheduler.cpp
+)
+
+set(OLP_SDK_CORE_HEADERS
+    ${OLP_SDK_CACHE_HEADERS}
+    ${OLP_SDK_CLIENT_HEADERS}
+    ${OLP_SDK_GENERATED_HEADERS}
     ${OLP_SDK_HTTP_HEADERS}
-    ${PLATFORM_HEADERS}
+    ${OLP_SDK_PLATFORM_HEADERS}
     ${PORTING_HEADERS}
-    ${UTILS_HEADERS}
-    ${LOGGING_HEADERS}
-    ${THREAD_HEADERS}
-    ${MATH_HEADERS}
-    ${GEOCOORDINATES_HEADERS}
-    ${GEOPROJECTION_HEADERS}
-    ${GEOTILING_HEADERS}
-    ${COREAPI_HEADER}
-    ${GEOTYPE_HEADER}
+    ${OLP_SDK_UTILS_HEADERS}
+    ${OLP_SDK_LOGGING_HEADERS}
+    ${OLP_SDK_THREAD_HEADERS}
+    ${OLP_SDK_MATH_HEADERS}
+    ${OLP_SDK_GEOCOORDINATES_HEADERS}
+    ${OLP_SDP_GEOPROJECTION_HEADERS}
+    ${OLP_SDK_GEOTILING_HEADERS}
+    ${OLP_SDK_COREAPI_HEADERS}
+    ${OLP_SDK_GEOTYPE_HEADER}
 )
 
-file(GLOB CORE_SOURCE
-    ${CACHE_SOURCE}
-    ${CLIENT_SOURCE}
-    ${GENERATED_SOURCE}
+set(OLP_SDK_CORE_SOURCES
+    ${OLP_SDK_CACHE_SOURCES}
+    ${OLP_SDK_CLIENT_SOURCES}
     ${OLP_SDK_HTTP_SOURCES}
-    ${PLATFORM_SOURCE}
-    ${UTILS_SOURCE}
-    ${LOGGING_SOURCE}
-    ${THREAD_SOURCE}
-    ${GEO_SOURCE}
+    ${OLP_SDK_PLATFORM_SOURCES}
+    ${OLP_SDK_UTILS_SOURCES}
+    ${OLP_SDK_LOGGING_SOURCES}
+    ${OLP_SDK_THREAD_SOURCES}
+    ${OLP_SDK_GEO_SOURCES}
 )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
-add_library(${PROJECT_NAME}
-    ${CORE_SOURCE}
-    ${CORE_HEADERS})
+add_library(${PROJECT_NAME} ${OLP_SDK_CORE_SOURCES} ${OLP_SDK_CORE_HEADERS})
 
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE ${OLP_SDK_DEFAULT_NETWORK_DEFINITION})
@@ -316,20 +411,19 @@ endif()
 
 # install component
 install (FILES ${OLP_SDK_HTTP_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/http)
-install (FILES ${PLATFORM_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/platform)
+install (FILES ${OLP_SDK_PLATFORM_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/platform)
 install (FILES ${PORTING_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/porting)
-install (FILES ${UTILS_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/utils)
-install (FILES ${THREAD_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/thread)
-install (FILES ${CACHE_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/cache)
-install (FILES ${CLIENT_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/client)
-install (FILES ${GENERATED_MODEL_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/generated/model)
-install (FILES ${MATH_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/math)
-install (FILES ${GEOCOORDINATES_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo/coordinates)
-install (FILES ${GEOPROJECTION_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo/projection)
-install (FILES ${GEOTILING_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo/tiling)
-install (FILES ${LOGGING_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/logging)
-install (FILES ${COREAPI_HEADER} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/)
-install (FILES ${GEOTYPE_HEADER} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo)
+install (FILES ${OLP_SDK_UTILS_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/utils)
+install (FILES ${OLP_SDK_THREAD_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/thread)
+install (FILES ${OLP_SDK_CACHE_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/cache)
+install (FILES ${OLP_SDK_CLIENT_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/client)
+install (FILES ${OLP_SDK_MATH_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/math)
+install (FILES ${OLP_SDK_GEOCOORDINATES_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo/coordinates)
+install (FILES ${OLP_SDP_GEOPROJECTION_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo/projection)
+install (FILES ${OLP_SDK_GEOTILING_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo/tiling)
+install (FILES ${OLP_SDK_LOGGING_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/logging)
+install (FILES ${OLP_SDK_COREAPI_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/)
+install (FILES ${OLP_SDK_GEOTYPE_HEADER} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo)
 
 export_config()
 
