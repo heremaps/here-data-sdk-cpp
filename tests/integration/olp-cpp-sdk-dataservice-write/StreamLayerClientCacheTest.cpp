@@ -133,7 +133,8 @@ class StreamLayerClientCacheTest : public ::testing::Test {
     SetUpCommonNetworkMockCalls(*network_);
 
     return std::make_shared<StreamLayerClient>(
-        olp::client::HRN{GetTestCatalog()}, stream_client_settings_, client_settings);
+        olp::client::HRN{GetTestCatalog()}, stream_client_settings_,
+        client_settings);
   }
 
   void SetUpCommonNetworkMockCalls(NetworkMock& network) {
@@ -292,11 +293,11 @@ TEST_F(StreamLayerClientCacheTest, FlushDataSingle) {
   {
     testing::InSequence dummy;
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
         .Times(1);
@@ -314,18 +315,14 @@ TEST_F(StreamLayerClientCacheTest, FlushDataSingle) {
 }
 
 TEST_F(StreamLayerClientCacheTest, FlushDataMultiple) {
-  {
-    testing::InSequence dummy;
-
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
-        .Times(5);
-  }
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+      .Times(1);
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+      .Times(5);
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+      .Times(1);
+  EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
+      .Times(5);
 
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(5));
 
@@ -378,18 +375,16 @@ TEST_F(StreamLayerClientCacheTest, DISABLED_FlushDataCancel) {
 }
 
 TEST_F(StreamLayerClientCacheTest, FlushDataMaxEventsDefaultSetting) {
-  {
-    testing::InSequence dummy;
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+      .Times(1);
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+      .Times(5);
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+      .Times(1);
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
-        .Times(5);
-  }
+  EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
+      .Times(5);
+
   ASSERT_NO_FATAL_FAILURE(FlushDataOnSettingSuccessAssertions());
 }
 
@@ -397,18 +392,15 @@ TEST_F(StreamLayerClientCacheTest, FlushDataMaxEventsValidCustomSetting) {
   const int max_events_per_flush = 3;
   disk_cache_->Close();
   client_ = CreateStreamLayerClient();
-  {
-    testing::InSequence dummy;
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
-        .Times(3);
-  }
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+      .Times(1);
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+      .Times(3);
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+      .Times(1);
+  EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
+      .Times(3);
 
   ASSERT_NO_FATAL_FAILURE(
       FlushDataOnSettingSuccessAssertions(max_events_per_flush));
@@ -421,11 +413,11 @@ TEST_F(StreamLayerClientCacheTest, FlushDataMaxEventsInvalidCustomSetting) {
   {
     testing::InSequence dummy;
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(0);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
         .Times(0);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+        .Times(0);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
         .Times(0);
     EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
         .Times(0);
@@ -440,18 +432,16 @@ TEST_F(StreamLayerClientCacheTest, FlushSettingsMaximumRequests) {
   const auto kMaxRequests = std::numeric_limits<size_t>::max();
   ASSERT_EQ(stream_client_settings_.maximum_requests, kMaxRequests);
   client_ = CreateStreamLayerClient();
-  {
-    testing::InSequence dummy;
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
-        .Times(15);
-  }
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+      .Times(1);
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+      .Times(15);
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+      .Times(1);
+
+  EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
+      .Times(15);
 
   QueueMultipleEvents(15);
   auto response = client_->Flush(model::FlushRequest()).GetFuture().get();
