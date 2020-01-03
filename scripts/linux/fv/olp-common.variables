@@ -10,6 +10,7 @@ export index_layer="olp-cpp-sdk-ingestion-test-index-layer"
 ###
 export service_id="${appid}"
 export service_secret="${secret}"
+export service_client_id="${client_id}"
 export production_service_id="${production_service_id}"
 export production_service_secret="${production_service_secret}"
 export facebook_access_token="${facebook_access_token}"
