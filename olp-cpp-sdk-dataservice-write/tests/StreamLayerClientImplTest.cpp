@@ -105,8 +105,8 @@ const std::string kSubmitPublicationRequestUrl =
 
 class MockStreamLayerClientImpl : public StreamLayerClientImpl {
  public:
-  using StreamLayerClientImpl::PublishDataGreaterThanTwentyMibSync;
-  using StreamLayerClientImpl::PublishDataLessThanTwentyMibSync;
+  using StreamLayerClientImpl::PublishDataGreaterThanTwentyMib;
+  using StreamLayerClientImpl::PublishDataLessThanTwentyMib;
   using StreamLayerClientImpl::StreamLayerClientImpl;
 
   MOCK_METHOD(PublishSdiiResponse, IngestSdii,
@@ -186,8 +186,7 @@ TEST_F(StreamLayerClientImplTest, PublishSdii) {
   }
 }
 
-TEST_F(StreamLayerClientImplTest,
-       SuccessfullyPublishDataLessThanTwentyMibSync) {
+TEST_F(StreamLayerClientImplTest, SuccessfullyPublishDataLessThanTwentyMib) {
   auto data = std::make_shared<std::vector<unsigned char>>(1, 'a');
   auto request =
       model::PublishDataRequest().WithData(data).WithLayerId(kLayerName);
@@ -218,13 +217,13 @@ TEST_F(StreamLayerClientImplTest,
                                        olp::http::HttpStatusCode::OK),
                                    kPostIngestDataHttpResponse));
 
-  auto response = client.PublishDataLessThanTwentyMibSync(
+  auto response = client.PublishDataLessThanTwentyMib(
       request, client::CancellationContext{});
   ASSERT_TRUE(response.IsSuccessful());
   ASSERT_EQ(kPostIngestDataTraceID, response.GetResult().GetTraceID());
 }
 
-TEST_F(StreamLayerClientImplTest, FaliedPublishDataLessThanTwentyMibSync) {
+TEST_F(StreamLayerClientImplTest, FaliedPublishDataLessThanTwentyMib) {
   auto data = std::make_shared<std::vector<unsigned char>>(1, 'a');
   auto request =
       model::PublishDataRequest().WithData(data).WithLayerId(kLayerName);
@@ -251,7 +250,7 @@ TEST_F(StreamLayerClientImplTest, FaliedPublishDataLessThanTwentyMibSync) {
                                    olp::http::HttpStatusCode::OK),
                                kConfigHttpResponse));
 
-    auto response = client.PublishDataLessThanTwentyMibSync(
+    auto response = client.PublishDataLessThanTwentyMib(
         request, client::CancellationContext{});
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -272,7 +271,7 @@ TEST_F(StreamLayerClientImplTest, FaliedPublishDataLessThanTwentyMibSync) {
                                    olp::http::HttpStatusCode::OK),
                                kGetCatalogResponse));
 
-    auto response = client.PublishDataLessThanTwentyMibSync(
+    auto response = client.PublishDataLessThanTwentyMib(
         request, client::CancellationContext{});
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -286,7 +285,7 @@ TEST_F(StreamLayerClientImplTest, FaliedPublishDataLessThanTwentyMibSync) {
 
     auto request2 = request;
     request2.WithLayerId("invalid_layer_id");
-    auto response = client.PublishDataLessThanTwentyMibSync(
+    auto response = client.PublishDataLessThanTwentyMib(
         request2, client::CancellationContext{});
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -307,7 +306,7 @@ TEST_F(StreamLayerClientImplTest, FaliedPublishDataLessThanTwentyMibSync) {
                                    olp::http::HttpStatusCode::OK),
                                kIngestHttpResponse));
 
-    auto response = client.PublishDataLessThanTwentyMibSync(
+    auto response = client.PublishDataLessThanTwentyMib(
         request, client::CancellationContext{});
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -330,7 +329,7 @@ TEST_F(StreamLayerClientImplTest, FaliedPublishDataLessThanTwentyMibSync) {
                                    olp::http::HttpStatusCode::BAD_REQUEST),
                                std::string{}));
 
-    auto response = client.PublishDataLessThanTwentyMibSync(
+    auto response = client.PublishDataLessThanTwentyMib(
         request, client::CancellationContext{});
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -340,7 +339,7 @@ TEST_F(StreamLayerClientImplTest, FaliedPublishDataLessThanTwentyMibSync) {
   }
 }
 
-TEST_F(StreamLayerClientImplTest, CancelPublishDataLessThanTwentyMibSync) {
+TEST_F(StreamLayerClientImplTest, CancelPublishDataLessThanTwentyMib) {
   auto data = std::make_shared<std::vector<unsigned char>>(1, 'a');
   auto request =
       model::PublishDataRequest().WithData(data).WithLayerId(kLayerName);
@@ -356,7 +355,7 @@ TEST_F(StreamLayerClientImplTest, CancelPublishDataLessThanTwentyMibSync) {
     cancel_context.CancelOperation();
 
     auto response =
-        client.PublishDataLessThanTwentyMibSync(request, cancel_context);
+        client.PublishDataLessThanTwentyMib(request, cancel_context);
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(olp::client::ErrorCode::Cancelled,
@@ -394,7 +393,7 @@ TEST_F(StreamLayerClientImplTest, CancelPublishDataLessThanTwentyMibSync) {
                                kConfigHttpResponse));
 
     auto response =
-        client.PublishDataLessThanTwentyMibSync(request, *cancel_context);
+        client.PublishDataLessThanTwentyMib(request, *cancel_context);
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(olp::client::ErrorCode::Cancelled,
@@ -414,7 +413,7 @@ TEST_F(StreamLayerClientImplTest, CancelPublishDataLessThanTwentyMibSync) {
                                kGetCatalogResponse));
 
     auto response =
-        client.PublishDataLessThanTwentyMibSync(request, *cancel_context);
+        client.PublishDataLessThanTwentyMib(request, *cancel_context);
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(olp::client::ErrorCode::Cancelled,
@@ -434,7 +433,7 @@ TEST_F(StreamLayerClientImplTest, CancelPublishDataLessThanTwentyMibSync) {
                                kIngestHttpResponse));
 
     auto response =
-        client.PublishDataLessThanTwentyMibSync(request, *cancel_context);
+        client.PublishDataLessThanTwentyMib(request, *cancel_context);
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(olp::client::ErrorCode::Cancelled,
@@ -451,7 +450,7 @@ TEST_F(StreamLayerClientImplTest, CancelPublishDataLessThanTwentyMibSync) {
         .WillOnce(cancel_request);
 
     auto response =
-        client.PublishDataLessThanTwentyMibSync(request, *cancel_context);
+        client.PublishDataLessThanTwentyMib(request, *cancel_context);
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(olp::client::ErrorCode::Cancelled,
@@ -461,8 +460,7 @@ TEST_F(StreamLayerClientImplTest, CancelPublishDataLessThanTwentyMibSync) {
   }
 }
 
-TEST_F(StreamLayerClientImplTest,
-       SuccessfullyPublishDataGreaterThanTwentyMibSync) {
+TEST_F(StreamLayerClientImplTest, SuccessfullyPublishDataGreaterThanTwentyMib) {
   auto data = std::make_shared<std::vector<unsigned char>>(1, 'a');
   auto request =
       model::PublishDataRequest().WithData(data).WithLayerId(kLayerName);
@@ -519,13 +517,13 @@ TEST_F(StreamLayerClientImplTest,
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::NO_CONTENT),
                                    std::string{}));
-  auto response = client.PublishDataGreaterThanTwentyMibSync(
+  auto response = client.PublishDataGreaterThanTwentyMib(
       request, client::CancellationContext{});
   ASSERT_TRUE(response.IsSuccessful());
   ASSERT_EQ(kMockedPartitionId, response.GetResult().GetTraceID());
 }
 
-TEST_F(StreamLayerClientImplTest, FailedPublishDataGreaterThanTwentyMibSync) {
+TEST_F(StreamLayerClientImplTest, FailedPublishDataGreaterThanTwentyMib) {
   auto data = std::make_shared<std::vector<unsigned char>>(1, 'a');
   auto request =
       model::PublishDataRequest().WithData(data).WithLayerId(kLayerName);
@@ -549,7 +547,7 @@ TEST_F(StreamLayerClientImplTest, FailedPublishDataGreaterThanTwentyMibSync) {
                                    olp::http::HttpStatusCode::OK),
                                kConfigHttpResponse));
 
-    auto response = client.PublishDataGreaterThanTwentyMibSync(
+    auto response = client.PublishDataGreaterThanTwentyMib(
         request, client::CancellationContext{});
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
@@ -569,7 +567,7 @@ TEST_F(StreamLayerClientImplTest, FailedPublishDataGreaterThanTwentyMibSync) {
                                    olp::http::HttpStatusCode::OK),
                                kGetCatalogResponse));
 
-    auto response = client.PublishDataGreaterThanTwentyMibSync(
+    auto response = client.PublishDataGreaterThanTwentyMib(
         request, client::CancellationContext{});
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
@@ -581,7 +579,7 @@ TEST_F(StreamLayerClientImplTest, FailedPublishDataGreaterThanTwentyMibSync) {
 
     auto request2 = request;
     request2.WithLayerId("invalid_layer_id");
-    auto response = client.PublishDataGreaterThanTwentyMibSync(
+    auto response = client.PublishDataGreaterThanTwentyMib(
         request2, client::CancellationContext{});
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -602,7 +600,7 @@ TEST_F(StreamLayerClientImplTest, FailedPublishDataGreaterThanTwentyMibSync) {
                                    olp::http::HttpStatusCode::OK),
                                kPublishHttpResponse));
 
-    auto response = client.PublishDataGreaterThanTwentyMibSync(
+    auto response = client.PublishDataGreaterThanTwentyMib(
         request, client::CancellationContext{});
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
@@ -622,7 +620,7 @@ TEST_F(StreamLayerClientImplTest, FailedPublishDataGreaterThanTwentyMibSync) {
                                    olp::http::HttpStatusCode::OK),
                                kBlobHttpResponse));
 
-    auto response = client.PublishDataGreaterThanTwentyMibSync(
+    auto response = client.PublishDataGreaterThanTwentyMib(
         request, client::CancellationContext{});
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
@@ -642,7 +640,7 @@ TEST_F(StreamLayerClientImplTest, FailedPublishDataGreaterThanTwentyMibSync) {
                                    olp::http::HttpStatusCode::OK),
                                kInitPublicationHttpResponse));
 
-    auto response = client.PublishDataGreaterThanTwentyMibSync(
+    auto response = client.PublishDataGreaterThanTwentyMib(
         request, client::CancellationContext{});
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
@@ -664,7 +662,7 @@ TEST_F(StreamLayerClientImplTest, FailedPublishDataGreaterThanTwentyMibSync) {
                                    olp::http::HttpStatusCode::OK),
                                std::string{}));
 
-    auto response = client.PublishDataGreaterThanTwentyMibSync(
+    auto response = client.PublishDataGreaterThanTwentyMib(
         request, client::CancellationContext{});
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
@@ -691,7 +689,7 @@ TEST_F(StreamLayerClientImplTest, FailedPublishDataGreaterThanTwentyMibSync) {
                                    olp::http::HttpStatusCode::NO_CONTENT),
                                std::string{}));
 
-    auto response = client.PublishDataGreaterThanTwentyMibSync(
+    auto response = client.PublishDataGreaterThanTwentyMib(
         request, client::CancellationContext{});
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
@@ -714,7 +712,7 @@ TEST_F(StreamLayerClientImplTest, FailedPublishDataGreaterThanTwentyMibSync) {
                                    olp::http::HttpStatusCode::BAD_REQUEST),
                                std::string{}));
 
-    auto response = client.PublishDataGreaterThanTwentyMibSync(
+    auto response = client.PublishDataGreaterThanTwentyMib(
         request, client::CancellationContext{});
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,

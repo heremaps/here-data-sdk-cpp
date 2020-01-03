@@ -76,15 +76,11 @@ class StreamLayerClientImpl
   virtual PublishSdiiResponse IngestSdii(model::PublishSdiiRequest request,
                                          client::CancellationContext context);
 
-  // TODO: rename me into PublishDataLessThanTwentyMib once
-  // StreamLayerClientImpl will be moved to sync API
-  virtual PublishDataResponse PublishDataLessThanTwentyMibSync(
-      const model::PublishDataRequest& request,
-      client::CancellationContext context);
+  virtual PublishDataResponse PublishDataLessThanTwentyMib(
+      model::PublishDataRequest request, client::CancellationContext context);
 
-  virtual PublishDataResponse PublishDataGreaterThanTwentyMibSync(
-      const model::PublishDataRequest& request,
-      client::CancellationContext context);
+  virtual PublishDataResponse PublishDataGreaterThanTwentyMib(
+      model::PublishDataRequest request, client::CancellationContext context);
 
   virtual std::string GenerateUuid() const;
 

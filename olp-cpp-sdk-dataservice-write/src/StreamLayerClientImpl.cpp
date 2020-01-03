@@ -302,15 +302,15 @@ PublishDataResponse StreamLayerClientImpl::PublishDataTask(
     model::PublishDataRequest request, client::CancellationContext context) {
   const int64_t data_size = request.GetData()->size() * sizeof(unsigned char);
   if (data_size <= kTwentyMib) {
-    return PublishDataLessThanTwentyMibSync(request, context);
+    return PublishDataLessThanTwentyMib(std::move(request), std::move(context));
   } else {
-    return PublishDataGreaterThanTwentyMibSync(request, context);
+    return PublishDataGreaterThanTwentyMib(std::move(request),
+                                           std::move(context));
   }
 }
 
-PublishDataResponse StreamLayerClientImpl::PublishDataLessThanTwentyMibSync(
-    const model::PublishDataRequest& request,
-    client::CancellationContext context) {
+PublishDataResponse StreamLayerClientImpl::PublishDataLessThanTwentyMib(
+    model::PublishDataRequest request, client::CancellationContext context) {
   OLP_SDK_LOG_TRACE_F(kLogTag,
                       "Started publishing data less than 20 MB, size=%zu B",
                       request.GetData()->size());
@@ -363,9 +363,8 @@ PublishDataResponse StreamLayerClientImpl::PublishDataLessThanTwentyMibSync(
   return ingest_data_response;
 }
 
-PublishDataResponse StreamLayerClientImpl::PublishDataGreaterThanTwentyMibSync(
-    const model::PublishDataRequest& request,
-    client::CancellationContext context) {
+PublishDataResponse StreamLayerClientImpl::PublishDataGreaterThanTwentyMib(
+    model::PublishDataRequest request, client::CancellationContext context) {
   OLP_SDK_LOG_TRACE_F(kLogTag,
                       "Started publishing data greater than 20MB, size=%zu B",
                       request.GetData()->size());
