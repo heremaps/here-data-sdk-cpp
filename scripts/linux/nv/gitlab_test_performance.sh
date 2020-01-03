@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 #
 # Copyright (C) 2019 HERE Europe B.V.
 #
@@ -32,7 +32,7 @@ do
         set +e
         curl -s http://localhost:3000
         RC=$?
-        sleep 0.15
+        sleep 0.2
         set -e
 done
 echo ">>> Local Server started for further performance test ... >>>"
@@ -40,12 +40,23 @@ echo ">>> Local Server started for further performance test ... >>>"
 export cache_location="cache"
 
 echo ">>> Start performance tests ... >>>"
-heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*short_test_null_cache" 2>> errors.txt || TEST_FAILURE=1
-mv heaptrack.olp-cpp-sdk-performance-tests.*.gz short_test_null_cache.gz
-heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*short_test_memory_cache" 2>> errors.txt || TEST_FAILURE=1
-mv heaptrack.olp-cpp-sdk-performance-tests.*.gz short_test_memory_cache.gz
-heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*short_test_disk_cache" 2>> errors.txt || TEST_FAILURE=1
-mv heaptrack.olp-cpp-sdk-performance-tests.*.gz short_test_disk_cache.gz
+heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*ReadNPartitionsFromVersionedLayer/short_test_null_cache" 2>> errors.txt || TEST_FAILURE=1
+mv heaptrack.olp-cpp-sdk-performance-tests.*.gz heaptrack.ReadNPartitionsFromVersionedLayer.short_test_null_cache.gz
+
+heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*ReadNPartitionsFromVersionedLayer/short_test_memory_cache" 2>> errors.txt || TEST_FAILURE=1
+mv heaptrack.olp-cpp-sdk-performance-tests.*.gz heaptrack.ReadNPartitionsFromVersionedLayer.short_test_memory_cache.gz
+
+heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*ReadNPartitionsFromVersionedLayer/short_test_disk_cache" 2>> errors.txt || TEST_FAILURE=1
+mv heaptrack.olp-cpp-sdk-performance-tests.*.gz heaptrack.ReadNPartitionsFromVersionedLayer.short_test_disk_cache.gz
+
+heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*PrefetchPartitionsFromVersionedLayer/short_test_null_cache" 2>> errors.txt || TEST_FAILURE=1
+mv heaptrack.olp-cpp-sdk-performance-tests.*.gz heaptrack.PrefetchPartitionsFromVersionedLayer.short_test_null_cache.gz
+
+heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*PrefetchPartitionsFromVersionedLayer/short_test_memory_cache" 2>> errors.txt || TEST_FAILURE=1
+mv heaptrack.olp-cpp-sdk-performance-tests.*.gz heaptrack.PrefetchPartitionsFromVersionedLayer.short_test_memory_cache.gz
+
+heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*PrefetchPartitionsFromVersionedLayer/short_test_disk_cache" 2>> errors.txt || TEST_FAILURE=1
+mv heaptrack.olp-cpp-sdk-performance-tests.*.gz heaptrack.PrefetchPartitionsFromVersionedLayer.short_test_disk_cache.gz
 echo ">>> Finished performance tests . >>>"
 
 if [[ ${TEST_FAILURE} == 1 ]]; then
@@ -63,11 +74,16 @@ mkdir heaptrack
 # Third party dependency needed for pretty graph generation below
 git clone --depth=1 https://github.com/brendangregg/FlameGraph
 
-for archive_name in short_test_null_cache short_test_memory_cache short_test_disk_cache
+# test names
+t1=short_test_disk_cache
+t2=short_test_memory_cache
+t3=short_test_null_cache
+
+for archive_name in PrefetchPartitionsFromVersionedLayer.$t1 PrefetchPartitionsFromVersionedLayer.$t2 PrefetchPartitionsFromVersionedLayer.$t3 ReadNPartitionsFromVersionedLayer.$t1 ReadNPartitionsFromVersionedLayer.$t2 ReadNPartitionsFromVersionedLayer.$t3
 do
     heaptrack_print --print-leaks \
       --print-flamegraph heaptrack/flamegraph_${archive_name}.data \
-      --file ${archive_name}.gz > reports/heaptrack/report_${archive_name}.txt
+      --file heaptrack.${archive_name}.gz > reports/heaptrack/report_${archive_name}.txt
     # Pretty graph generation
     ./FlameGraph/flamegraph.pl --title="Flame Graph: ${archive_name}" heaptrack/flamegraph_${archive_name}.data > reports/heaptrack/flamegraph_${archive_name}.svg
     cat reports/heaptrack/flamegraph_${archive_name}.svg >> heaptrack_report.html
@@ -82,10 +98,9 @@ ls -la ${cache_location}
 
 # TODO:
 #  1. print the total allocations done
-#  2. generate nice looking graphs using heaptrack_print and flamegraph.pl
-#  3. use watch command on cache directory, like: watch "du | cut -d'.' -f1 >> cache.csv" and plot a disk size graph
-#  4. track the disk IO made by SDK
-#  5. track the CPU load
+#  2. use watch command on cache directory, like: watch "du | cut -d'.' -f1 >> cache.csv" and plot a disk size graph
+#  3. track the disk IO made by SDK
+#  4. track the CPU load
 
 # Gracefully stop local server
 kill -15 ${SERVER_PID}
