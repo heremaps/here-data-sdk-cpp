@@ -51,6 +51,13 @@ class SignInResultImpl : public BaseResult {
   const std::string& GetTokenType() const;
 
   /**
+   * @brief The client ID getter method
+   * @return string containing the client id that is associated with the access
+   * token
+   */
+  const std::string& GetClientId() const;
+
+  /**
    * @brief Refresh token getter method
    * @return string containing a token which is used to obtain a new access
    * token using the refresh API. Refresh token is always issued unless
@@ -79,11 +86,15 @@ class SignInResultImpl : public BaseResult {
   const std::string& GetScope() const;
 
  private:
+  static std::string ParseJwtToken(const std::string&);
+  static std::string ParseClientIdFromToken(const std::string& token);
+
   bool is_valid_;
 
  protected:
   std::string access_token_;
   std::string token_type_;
+  std::string client_id_;
   time_t expiry_time_;
   std::string refresh_token_;
   std::string user_identifier_;

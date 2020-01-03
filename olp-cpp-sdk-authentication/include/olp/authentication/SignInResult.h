@@ -77,6 +77,14 @@ class AUTHENTICATION_API SignInResult {
   const std::string& GetAccessToken() const;
 
   /**
+   * @brief Gets client ID
+   * @return The string that contains the client ID that is associated with the
+   * access token. In case of parsing errors this method will return empty
+   * string. Proper message will be printed to log.
+   */
+  const std::string& GetClientId() const;
+
+  /**
    * @brief Gets the access token type.
    *
    * @return The string containing the access token type (always a bearer
