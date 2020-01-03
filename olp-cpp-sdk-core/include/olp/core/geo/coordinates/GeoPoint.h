@@ -26,41 +26,91 @@
 namespace olp {
 namespace geo {
 /**
- * @brief A geographic location using WGS84 coordinates encoded in 32bit
- * unsigned integer.
+ * @brief A geographic location that uses WGS84 coordinates encoded in
+ * a 32-bit unsigned integer.
+ *
+ * Latitude values range from 0 at the equator to 90&nbsp;degrees northwards and
+ * -90&nbsp;degrees southwards. Longitude values range from 0 at the prime
+ * meridian to 180&nbsp;degrees eastwards and -180&nbsp;degrees westwards.
+ *
+ * The X-Y coordinates system is used to get the geographic location:
+ * * x &ndash; a longitude represented as a 32-bit unsigned integer.
+ * * y &ndash; a latitude represented as a 32-bit unsigned integer.
+ *
+ * The internal representation of angles is radians:
+ * * x rad = -180 ... +180 (-Pi ... +Pi)
+ * * y rad = -90 ... +90 (-Pi/2 ... +Pi/2)
+ *
+ * To get `GeoPoint` from geographic coordinates, you can use the `ToGeoPoint`
+ * method of the `GeoCoordinates` class.
  */
 class CORE_API GeoPoint {
  public:
   GeoPoint();
 
   /**
-   * Construct the point
-   * @param[in] xx X-coordinate
-   * @param[in] yy Y-coordinate
+   * @brief Creates the `GeoPoint` instance that uses the location longitude
+   * (`x`) and latitude (`y`) values represented as 32-bit unsigned integers.
+   *
+   * @param[in] xx The X-coordinate value of the location longitude represented
+   * as a 32-bit unsigned integer.
+   * @param[in] yy The Y-coordinate value of the location latitude represented
+   * as a 32-bit unsigned integer.
    */
   GeoPoint(std::uint32_t xx, std::uint32_t yy);
 
   /**
-   * Absolute world X-coordinate.
-   * Value range for each component is 32 bit unsigned integer
+   * @brief An absolute world X-coordinate value.
+   *
+   * The value range for each component is a 32-bit unsigned integer.
+   *
+   * The `x` value can be calculated using the following formula:
+   * `x = (x rad + Pi) * max(uint32_t) / 2*Pi`
    */
   std::uint32_t x;
   /**
-   * Absolute world Y-coordinate.
-   * Value range for each component is 32 bit unsigned integer
+   * @brief An absolute world Y-coordinate value.
+   *
+   * The value range for each component is a 32-bit unsigned integer.
+   *
+   * The y value can be calculated using the following formula:
+   * `y = (y rad + Pi/2) * max(uint32_t) / 2 * Pi`
    */
   std::uint32_t y;
 
-  /// Overload operator ==
+  /**
+   * @brief Compares if the `x` and `y` values of the `GeoPoint` parameter are
+   * the same as the `x` and `y` values of the `other` parameter.
+   *
+   * @param other The `GeoPoint` instance.
+   *
+   * @return True if the `x` and `y` values of the `GeoPoint` and `other`
+   * parameters are equal; false otherwise.
+   */
   bool operator==(const GeoPoint& other) const;
 
-  /// Overload operator !=
+  /**
+   * @brief Compares if the `x` and `y` values of the `GeoPoint` parameter are
+   * not the same as the `x` and `y` values of the `other` parameter.
+   *
+   * @param other The `GeoPoint` instance.
+   *
+   * @return True if the `x` and `y` values of the `GeoPoint` and `other`
+   * parameters are not equal; false otherwise.
+   */
   inline bool operator!=(const GeoPoint& other) const {
     return !operator==(other);
   }
 
-   /// Overload operator +=. Add x and y from the passed paramter to the x
-   /// and y of this object, respectively.
+  /**
+   * @brief Adds the `x` and `y` values of the
+   * `GeoPoint` parameter to the `x` and `y` values of the `other` parameter,
+   * respectively.
+   *
+   * @param other The `GeoPoint` instance.
+   *
+   * @return The reference to the `GeoPoint` instance.
+   */
   GeoPoint& operator+=(const GeoPoint& other);
 };
 
