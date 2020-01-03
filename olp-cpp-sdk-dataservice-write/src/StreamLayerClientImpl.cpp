@@ -19,12 +19,12 @@
 
 #include "StreamLayerClientImpl.h"
 
-#include <boost/format.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
 #include <olp/core/client/CancellationContext.h>
+#include <olp/core/client/OlpClient.h>
 #include <olp/core/client/PendingRequests.h>
 #include <olp/core/client/TaskContext.h>
 #include <olp/core/logging/Log.h>
@@ -75,15 +75,7 @@ StreamLayerClientImpl::StreamLayerClientImpl(
     HRN catalog, StreamLayerClientSettings client_settings,
     OlpClientSettings settings)
     : catalog_(std::move(catalog)),
-      catalog_model_(),
       settings_(std::move(settings)),
-      apiclient_config_(nullptr),
-      apiclient_ingest_(nullptr),
-      apiclient_blob_(nullptr),
-      apiclient_publish_(nullptr),
-      init_mutex_(),
-      init_cv_(),
-      init_inprogress_(false),
       cache_(settings_.cache),
       cache_mutex_(),
       stream_client_settings_(std::move(client_settings)),
@@ -97,142 +89,6 @@ StreamLayerClientImpl::~StreamLayerClientImpl() {
 bool StreamLayerClientImpl::CancelPendingRequests() {
   OLP_SDK_LOG_TRACE(kLogTag, "CancelPendingRequests");
   return pending_requests_->CancelAll();
-}
-
-CancellationToken StreamLayerClientImpl::InitApiClients(
-    const std::shared_ptr<CancellationContext>& cancel_context,
-    InitApiClientsCallback callback) {
-  if (apiclient_config_ && !apiclient_config_->GetBaseUrl().empty()) {
-    callback(boost::none);
-    return CancellationToken();
-  }
-
-  apiclient_ingest_ = OlpClientFactory::Create(settings_);
-
-  auto self = shared_from_this();
-  return ApiClientLookup::LookupApi(
-      apiclient_ingest_, "ingest", "v1", catalog_,
-      [=](ApiClientLookup::ApisResponse apis) {
-        if (!apis.IsSuccessful()) {
-          callback(std::move(apis.GetError()));
-          return;
-        }
-        self->apiclient_ingest_->SetBaseUrl(
-            apis.GetResult().at(0).GetBaseUrl());
-
-        cancel_context->ExecuteOrCancelled(
-            [=]() -> CancellationToken {
-              self->apiclient_config_ = OlpClientFactory::Create(settings_);
-
-              return ApiClientLookup::LookupApi(
-                  apiclient_config_, "config", "v1", catalog_,
-                  [=](ApiClientLookup::ApisResponse apis) {
-                    if (!apis.IsSuccessful()) {
-                      callback(std::move(apis.GetError()));
-                      return;
-                    }
-                    self->apiclient_config_->SetBaseUrl(
-                        apis.GetResult().at(0).GetBaseUrl());
-
-                    callback(boost::none);
-                  });
-            },
-            [=]() {
-              callback(
-                  ApiError(ErrorCode::Cancelled, "Operation cancelled.", true));
-            });
-      });
-}
-
-CancellationToken StreamLayerClientImpl::InitApiClientsGreaterThanTwentyMib(
-    const std::shared_ptr<CancellationContext>& cancel_context,
-    InitApiClientsCallback callback) {
-  if (apiclient_blob_ && !apiclient_blob_->GetBaseUrl().empty()) {
-    callback(boost::none);
-    return CancellationToken();
-  }
-
-  apiclient_publish_ = OlpClientFactory::Create(settings_);
-
-  auto self = shared_from_this();
-  return ApiClientLookup::LookupApi(
-      apiclient_publish_, "publish", "v2", catalog_,
-      [=](ApiClientLookup::ApisResponse apis) {
-        if (!apis.IsSuccessful()) {
-          callback(std::move(apis.GetError()));
-          return;
-        }
-        self->apiclient_publish_->SetBaseUrl(
-            apis.GetResult().at(0).GetBaseUrl());
-
-        cancel_context->ExecuteOrCancelled(
-            [=]() -> CancellationToken {
-              self->apiclient_blob_ = OlpClientFactory::Create(settings_);
-
-              return ApiClientLookup::LookupApi(
-                  apiclient_blob_, "blob", "v1", catalog_,
-                  [=](ApiClientLookup::ApisResponse apis) {
-                    if (!apis.IsSuccessful()) {
-                      callback(std::move(apis.GetError()));
-                      return;
-                    }
-                    self->apiclient_blob_->SetBaseUrl(
-                        apis.GetResult().at(0).GetBaseUrl());
-
-                    callback(boost::none);
-                  });
-            },
-            [=]() {
-              callback(
-                  ApiError(ErrorCode::Cancelled, "Operation cancelled.", true));
-            });
-      });
-}
-
-CancellationToken StreamLayerClientImpl::InitCatalogModel(
-    const model::PublishDataRequest& request,
-    const InitCatalogModelCallback& callback) {
-  if (!catalog_model_.GetId().empty()) {
-    callback(boost::none);
-    return CancellationToken();
-  }
-
-  auto self = shared_from_this();
-  return ConfigApi::GetCatalog(
-      apiclient_config_, catalog_.ToString(), request.GetBillingTag(),
-      [=](CatalogResponse catalog_response) {
-        if (!catalog_response.IsSuccessful()) {
-          callback(std::move(catalog_response.GetError()));
-          return;
-        }
-
-        self->catalog_model_ = catalog_response.MoveResult();
-
-        callback(boost::none);
-      });
-}
-
-void StreamLayerClientImpl::AquireInitLock() {
-  std::unique_lock<std::mutex> lock(init_mutex_);
-  init_cv_.wait(lock, [=] { return !init_inprogress_; });
-  init_inprogress_ = true;
-}
-
-void StreamLayerClientImpl::NotifyInitAborted() {
-  std::unique_lock<std::mutex> lock(init_mutex_);
-  init_inprogress_ = false;
-  init_cv_.notify_one();
-}
-
-void StreamLayerClientImpl::NotifyInitCompleted() {
-  std::unique_lock<std::mutex> lock(init_mutex_);
-  init_inprogress_ = false;
-  init_cv_.notify_all();
-}
-
-std::string StreamLayerClientImpl::FindContentTypeForLayerId(
-    const std::string& layer_id) {
-  return FindContentTypeForLayerId(catalog_model_, layer_id);
 }
 
 std::string StreamLayerClientImpl::FindContentTypeForLayerId(
@@ -267,16 +123,6 @@ size_t StreamLayerClientImpl::QueueSize() const {
   }
 
   return 0;
-}
-
-CancellableFuture<PublishDataResponse> StreamLayerClientImpl::PublishDataOld(
-    const model::PublishDataRequest& request) {
-  auto promise = std::make_shared<std::promise<PublishDataResponse> >();
-  auto cancel_token =
-      PublishDataOld(request, [promise](PublishDataResponse response) {
-        promise->set_value(std::move(response));
-      });
-  return CancellableFuture<PublishDataResponse>(cancel_token, promise);
 }
 
 boost::optional<std::string> StreamLayerClientImpl::Queue(
@@ -418,22 +264,6 @@ olp::client::CancellationToken StreamLayerClientImpl::Flush(
   return CancellationToken([=]() mutable { cancel_context.CancelOperation(); });
 }
 
-CancellationToken StreamLayerClientImpl::PublishDataOld(
-    const model::PublishDataRequest& request, PublishDataCallback callback) {
-  if (!request.GetData()) {
-    callback(PublishDataResponse(
-        ApiError(ErrorCode::InvalidArgument, "Request data null.")));
-    return CancellationToken();
-  }
-
-  const int64_t data_size = request.GetData()->size() * sizeof(unsigned char);
-  if (data_size <= kTwentyMib) {
-    return PublishDataLessThanTwentyMib(request, callback);
-  } else {
-    return PublishDataGreaterThanTwentyMib(request, callback);
-  }
-}
-
 olp::client::CancellableFuture<PublishDataResponse>
 StreamLayerClientImpl::PublishData(const model::PublishDataRequest request) {
   auto promise = std::make_shared<std::promise<PublishDataResponse> >();
@@ -476,92 +306,6 @@ PublishDataResponse StreamLayerClientImpl::PublishDataTask(
   } else {
     return PublishDataGreaterThanTwentyMibSync(request, context);
   }
-}
-
-CancellationToken StreamLayerClientImpl::PublishDataLessThanTwentyMib(
-    const model::PublishDataRequest& request,
-    const PublishDataCallback& callback) {
-  // Publish < 20MB init is complete when catalog model is valid
-  if (catalog_model_.GetId().empty()) {
-    AquireInitLock();
-  }
-
-  auto cancel_context = std::make_shared<CancellationContext>();
-  auto self = shared_from_this();
-  cancel_context->ExecuteOrCancelled(
-      [=]() -> CancellationToken {
-        return self->InitApiClients(
-            cancel_context, [=](boost::optional<ApiError> init_api_error) {
-              if (init_api_error) {
-                NotifyInitAborted();
-                callback(PublishDataResponse(init_api_error.get()));
-                return;
-              }
-
-              cancel_context->ExecuteOrCancelled(
-                  [=]() -> CancellationToken {
-                    return self->InitCatalogModel(
-                        request, [=](boost::optional<ApiError>
-                                         init_catalog_model_error) {
-                          if (init_catalog_model_error) {
-                            NotifyInitAborted();
-                            callback(PublishDataResponse(
-                                init_catalog_model_error.get()));
-                            return;
-                          }
-
-                          NotifyInitCompleted();
-
-                          auto content_type = self->FindContentTypeForLayerId(
-                              request.GetLayerId());
-                          if (content_type.empty()) {
-                            callback(PublishDataResponse(ApiError(
-                                ErrorCode::InvalidArgument,
-                                "Unable to find the Layer ID provided in "
-                                "the PublishDataRequest in the "
-                                "Catalog specified when creating this "
-                                "StreamLayerClient instance.")));
-                            return;
-                          }
-
-                          cancel_context->ExecuteOrCancelled(
-                              [=]() -> CancellationToken {
-                                return IngestApi::IngestData(
-                                    *self->apiclient_ingest_,
-                                    request.GetLayerId(), content_type,
-                                    request.GetData(), request.GetTraceId(),
-                                    request.GetBillingTag(),
-                                    request.GetChecksum(),
-                                    [callback](IngestDataResponse response) {
-                                      callback(std::move(response));
-                                    });
-                              },
-                              [=]() {
-                                callback(PublishDataResponse(
-                                    ApiError(ErrorCode::Cancelled,
-                                             "Operation cancelled.", true)));
-                                return;
-                              });
-                        });
-                  },
-                  [=]() {
-                    callback(PublishDataResponse(ApiError(
-                        ErrorCode::Cancelled, "Operation cancelled.", true)));
-                  });
-            });
-      },
-      [=]() {
-        callback(PublishDataResponse(
-            ApiError(ErrorCode::Cancelled, "Operation cancelled.", true)));
-      });
-
-  std::weak_ptr<StreamLayerClientImpl> weak_self{self};
-  return CancellationToken([cancel_context, weak_self]() {
-    cancel_context->CancelOperation();
-    if (auto strong_self = weak_self.lock()) {
-      strong_self->NotifyInitAborted();
-    }
-  });
 }
 
 PublishDataResponse StreamLayerClientImpl::PublishDataLessThanTwentyMibSync(
@@ -617,231 +361,6 @@ PublishDataResponse StreamLayerClientImpl::PublishDataLessThanTwentyMibSync(
       ingest_data_response.GetResult().GetTraceID().c_str());
 
   return ingest_data_response;
-}
-
-void StreamLayerClientImpl::InitPublishDataGreaterThanTwentyMib(
-    const std::shared_ptr<client::CancellationContext>& cancel_context,
-    const model::PublishDataRequest& request,
-    const PublishDataCallback& callback) {
-  // Publish > 20MB init is complete when catalog model AND apiclient_blob_ are
-  // valid
-  if (catalog_model_.GetId().empty() ||
-      (!apiclient_blob_ || apiclient_blob_->GetBaseUrl().empty())) {
-    AquireInitLock();
-  }
-
-  auto self = shared_from_this();
-  cancel_context->ExecuteOrCancelled(
-      [=]() -> CancellationToken {
-        return self->InitApiClients(
-            cancel_context, [=](boost::optional<ApiError> init_api_error) {
-              if (init_api_error) {
-                NotifyInitAborted();
-                callback(PublishDataResponse(init_api_error.get()));
-                return;
-              }
-
-              cancel_context->ExecuteOrCancelled(
-                  [=]() -> CancellationToken {
-                    return self->InitApiClientsGreaterThanTwentyMib(
-                        cancel_context,
-                        [=](boost::optional<ApiError> init_api_error) {
-                          if (init_api_error) {
-                            NotifyInitAborted();
-                            callback(PublishDataResponse(init_api_error.get()));
-                            return;
-                          }
-
-                          cancel_context->ExecuteOrCancelled(
-                              [=]() -> CancellationToken {
-                                return self->InitCatalogModel(
-                                    request, [=](boost::optional<ApiError>
-                                                     init_catalog_model_error) {
-                                      if (init_catalog_model_error) {
-                                        NotifyInitAborted();
-                                        callback(PublishDataResponse(
-                                            init_catalog_model_error.get()));
-                                        return;
-                                      }
-
-                                      NotifyInitCompleted();
-
-                                      // Empty success response indicates
-                                      // initialization completed successfully.
-                                      callback(PublishDataResponse(
-                                          ResponseOkSingle()));
-                                    });
-                              },
-                              [=]() {
-                                callback(PublishDataResponse(
-                                    ApiError(ErrorCode::Cancelled,
-                                             "Operation cancelled.", true)));
-                              });
-                        });
-                  },
-                  [=]() {
-                    callback(PublishDataResponse(ApiError(
-                        ErrorCode::Cancelled, "Operation cancelled.", true)));
-                  });
-            });
-      },
-      [=]() {
-        callback(PublishDataResponse(
-            ApiError(ErrorCode::Cancelled, "Operation cancelled.", true)));
-      });
-}
-
-CancellationToken StreamLayerClientImpl::PublishDataGreaterThanTwentyMib(
-    const model::PublishDataRequest& request,
-    const PublishDataCallback& callback) {
-  auto self = shared_from_this();
-  auto cancel_context = std::make_shared<CancellationContext>();
-  auto cancel_function = [callback]() {
-    callback(PublishDataResponse(
-        ApiError(ErrorCode::Cancelled, "Operation cancelled.", true)));
-  };
-
-  // Publishing data greater than 20MiBs requires several steps: 1.
-  // Initialze the Publication, 2. Upload the Data 3. Upload publication
-  // metadata 4. Submit the publication. The functions to perform these steps
-  // are decomposed into anonoymous functions to avoid callback hell. They are
-  // declared in order from last called to first called.
-
-  auto submit_publication_callback =
-      [=](SubmitPublicationResponse submit_publication_response,
-          std::string partition_id) {
-        if (!submit_publication_response.IsSuccessful()) {
-          callback(PublishDataResponse(submit_publication_response.GetError()));
-          return;
-        }
-        model::ResponseOkSingle response_ok_single;
-        response_ok_single.SetTraceID(partition_id);
-        callback(PublishDataResponse(response_ok_single));
-      };
-
-  auto submit_publication_function =
-      [=](std::string publication_id,
-          std::string partition_id) -> CancellationToken {
-    return PublishApi::SubmitPublication(
-        *self->apiclient_publish_, publication_id, request.GetBillingTag(),
-        std::bind(submit_publication_callback, std::placeholders::_1,
-                  partition_id));
-  };
-
-  auto upload_partitions_callback =
-      [=](UploadPartitionsResponse upload_partitions_response,
-          std::string publication_id, std::string partition_id) {
-        if (!upload_partitions_response.IsSuccessful()) {
-          callback(PublishDataResponse(upload_partitions_response.GetError()));
-          return;
-        }
-
-        cancel_context->ExecuteOrCancelled(
-            std::bind(submit_publication_function, publication_id,
-                      partition_id),
-            cancel_function);
-      };
-
-  auto upload_partitions_function =
-      [=](std::string publication_id, PublishPartitions partitions,
-          std::string partition_id) -> CancellationToken {
-    return PublishApi::UploadPartitions(
-        *self->apiclient_publish_, partitions, publication_id,
-        request.GetLayerId(), request.GetBillingTag(),
-        std::bind(upload_partitions_callback, std::placeholders::_1,
-                  publication_id, partition_id));
-  };
-
-  auto put_blob_callback = [=](PutBlobResponse put_blob_response,
-                               std::string publication_id,
-                               std::string data_handle) {
-    if (!put_blob_response.IsSuccessful()) {
-      callback(PublishDataResponse(put_blob_response.GetError()));
-      return;
-    }
-
-    const auto partition_id = GenerateUuid();
-    PublishPartition publish_partition;
-    publish_partition.SetPartition(partition_id);
-    publish_partition.SetDataHandle(data_handle);
-    PublishPartitions partitions;
-    partitions.SetPartitions({publish_partition});
-
-    cancel_context->ExecuteOrCancelled(
-        std::bind(upload_partitions_function, publication_id, partitions,
-                  partition_id),
-        cancel_function);
-  };
-
-  auto put_blob_function = [=](std::string publication_id,
-                               std::string content_type,
-                               std::string data_handle) -> CancellationToken {
-    return BlobApi::PutBlob(*self->apiclient_blob_, request.GetLayerId(),
-                            content_type, data_handle, request.GetData(),
-                            request.GetBillingTag(),
-                            std::bind(put_blob_callback, std::placeholders::_1,
-                                      publication_id, data_handle));
-  };
-
-  auto init_publication_callback =
-      [=](InitPublicationResponse init_pub_response) {
-        if (!init_pub_response.IsSuccessful() ||
-            !init_pub_response.GetResult().GetId()) {
-          callback(PublishDataResponse(init_pub_response.GetError()));
-          return;
-        }
-
-        auto content_type =
-            self->FindContentTypeForLayerId(request.GetLayerId());
-        if (content_type.empty()) {
-          auto errmsg = boost::format(
-                            "Unable to find the Layer ID (%1%) "
-                            "provided in the PublishDataRequest in the "
-                            "Catalog specified when creating this "
-                            "StreamLayerClient instance.") %
-                        request.GetLayerId();
-          callback(PublishDataResponse(
-              ApiError(ErrorCode::InvalidArgument, errmsg.str())));
-          return;
-        }
-
-        const auto data_handle = GenerateUuid();
-
-        cancel_context->ExecuteOrCancelled(
-            std::bind(put_blob_function,
-                      init_pub_response.GetResult().GetId().get(), content_type,
-                      data_handle),
-            cancel_function);
-      };
-
-  auto init_publication_function = [=]() -> CancellationToken {
-    Publication pub;
-    pub.SetLayerIds({request.GetLayerId()});
-
-    return PublishApi::InitPublication(*self->apiclient_publish_, pub,
-                                       request.GetBillingTag(),
-                                       init_publication_callback);
-  };
-
-  auto post_intialize_callback = [=](PublishDataResponse response) {
-    if (response.IsSuccessful()) {
-      cancel_context->ExecuteOrCancelled(init_publication_function,
-                                         cancel_function);
-    } else {
-      callback(response);
-    }
-  };
-
-  InitPublishDataGreaterThanTwentyMib(cancel_context, request,
-                                      post_intialize_callback);
-
-  std::weak_ptr<StreamLayerClientImpl> weak_self{self};
-  return CancellationToken([cancel_context, weak_self]() {
-    cancel_context->CancelOperation();
-    if (auto strong_self = weak_self.lock()) {
-      strong_self->NotifyInitAborted();
-    }
-  });
 }
 
 PublishDataResponse StreamLayerClientImpl::PublishDataGreaterThanTwentyMibSync(

@@ -22,11 +22,9 @@
 #include <mutex>
 
 #include <olp/core/client/HRN.h>
-#include <olp/core/client/OlpClient.h>
-#include <olp/core/client/OlpClientFactory.h>
+#include <olp/core/client/OlpClientSettings.h>
 
 #include <olp/dataservice/write/StreamLayerClient.h>
-#include "ApiClientLookup.h"
 #include "generated/model/Catalog.h"
 
 namespace olp {
@@ -38,11 +36,6 @@ class PendingRequests;
 namespace dataservice {
 namespace write {
 
-using InitApiClientsCallback =
-    std::function<void(boost::optional<client::ApiError>)>;
-using InitCatalogModelCallback =
-    std::function<void(boost::optional<client::ApiError>)>;
-
 class StreamLayerClientImpl
     : public std::enable_shared_from_this<StreamLayerClientImpl> {
  public:
@@ -53,11 +46,6 @@ class StreamLayerClientImpl
   ~StreamLayerClientImpl();
 
   bool CancelPendingRequests();
-
-  olp::client::CancellableFuture<PublishDataResponse> PublishDataOld(
-      const model::PublishDataRequest& request);
-  olp::client::CancellationToken PublishDataOld(
-      const model::PublishDataRequest& request, PublishDataCallback callback);
 
   olp::client::CancellableFuture<PublishDataResponse> PublishData(
       model::PublishDataRequest request);
@@ -101,55 +89,15 @@ class StreamLayerClientImpl
   virtual std::string GenerateUuid() const;
 
  private:
-  client::CancellationToken InitApiClients(
-      const std::shared_ptr<client::CancellationContext>& cancel_context,
-      InitApiClientsCallback callback);
-  client::CancellationToken InitApiClientsGreaterThanTwentyMib(
-      const std::shared_ptr<client::CancellationContext>& cancel_context,
-      InitApiClientsCallback callback);
-  client::CancellationToken InitCatalogModel(
-      const model::PublishDataRequest& request,
-      const InitCatalogModelCallback& callback);
-  void InitPublishDataGreaterThanTwentyMib(
-      const std::shared_ptr<client::CancellationContext>& cancel_context,
-      const model::PublishDataRequest& request,
-      const PublishDataCallback& callback);
-
-  void AquireInitLock();
-  void NotifyInitAborted();
-  void NotifyInitCompleted();
-
-  /**
-   * @deprecated Need to be removed once \c StreamLayerClientImpl will be
-   * completely moved to sync API.
-   */
-  std::string FindContentTypeForLayerId(const std::string& layer_id);
-
   std::string FindContentTypeForLayerId(const model::Catalog& catalog,
                                         const std::string& layer_id);
 
-  client::CancellationToken PublishDataLessThanTwentyMib(
-      const model::PublishDataRequest& request,
-      const PublishDataCallback& callback);
-  client::CancellationToken PublishDataGreaterThanTwentyMib(
-      const model::PublishDataRequest& request,
-      const PublishDataCallback& callback);
   std::string GetUuidListKey() const;
 
  private:
   client::HRN catalog_;
-  model::Catalog catalog_model_;
 
   client::OlpClientSettings settings_;
-
-  std::shared_ptr<client::OlpClient> apiclient_config_;
-  std::shared_ptr<client::OlpClient> apiclient_ingest_;
-  std::shared_ptr<client::OlpClient> apiclient_blob_;
-  std::shared_ptr<client::OlpClient> apiclient_publish_;
-
-  std::mutex init_mutex_;
-  std::condition_variable init_cv_;
-  bool init_inprogress_;
 
   std::shared_ptr<cache::KeyValueCache> cache_;
   mutable std::mutex cache_mutex_;
