@@ -321,114 +321,190 @@ TEST_F(StreamLayerClientTest, PublishDataGreaterThanTwentyMib) {
 }
 
 TEST_F(StreamLayerClientTest, PublishDataCancel) {
-  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  using PromisePtr = std::shared_ptr<std::promise<void>>;
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
+  auto setup_network_expectations_on_cancel =
+      [](std::shared_ptr<NetworkMock> network)
+      -> std::pair<PromisePtr, PromisePtr> {
+    auto wait_for_cancel = std::make_shared<std::promise<void>>();
+    auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
-  olp::http::RequestId request_id;
-  NetworkCallback send_mock;
-  CancelCallback cancel_mock;
+    olp::http::RequestId request_id;
+    NetworkCallback send_mock;
+    CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      wait_for_cancel, pause_for_cancel,
-      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_INGEST});
+    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+        wait_for_cancel, pause_for_cancel,
+        {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_INGEST});
+
+    {
+      EXPECT_CALL(*network, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+          .Times(1);
+      EXPECT_CALL(*network, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+          .Times(1);
+      EXPECT_CALL(*network, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+          .Times(1)
+          .WillOnce(testing::Invoke(std::move(send_mock)));
+      EXPECT_CALL(*network, Cancel(request_id))
+          .WillOnce(testing::Invoke(std::move(cancel_mock)));
+    }
+
+    return {wait_for_cancel, pause_for_cancel};
+  };
+
+  auto publish_request =
+      PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer());
 
   {
-    testing::InSequence dummy;
+    SCOPED_TRACE("Cancel PublishData via cancellation token");
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
-        .Times(1);
+    auto client = CreateStreamLayerClient();
+    auto network_promises = setup_network_expectations_on_cancel(network_);
+    auto wait_for_cancel = network_promises.first;
+    auto pause_for_cancel = network_promises.second;
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(1)
-        .WillOnce(testing::Invoke(std::move(send_mock)));
+    auto cancel_future = client->PublishData(publish_request);
+    wait_for_cancel->get_future().get();
+    cancel_future.GetCancellationToken().Cancel();
+    pause_for_cancel->set_value();
 
-    EXPECT_CALL(*network_, Cancel(request_id))
-        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+    auto response = cancel_future.GetFuture().get();
+    EXPECT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
+
+    Mock::VerifyAndClearExpectations(network_.get());
   }
 
-  auto promise = client_->PublishData(
-      PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
-  wait_for_cancel->get_future().get();
-  promise.GetCancellationToken().Cancel();
-  pause_for_cancel->set_value();
+  {
+    SCOPED_TRACE("Cancel PublishData via CancelPendingRequests");
 
-  auto response = promise.GetFuture().get();
+    auto client = CreateStreamLayerClient();
+    auto network_promises = setup_network_expectations_on_cancel(network_);
+    auto wait_for_cancel = network_promises.first;
+    auto pause_for_cancel = network_promises.second;
 
-  ASSERT_NO_FATAL_FAILURE(PublishFailureAssertions(response));
+    auto cancel_future = client->PublishData(publish_request);
+    wait_for_cancel->get_future().get();
+    client->CancelPendingRequests();
+    pause_for_cancel->set_value();
+
+    auto response = cancel_future.GetFuture().get();
+    EXPECT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
+    Mock::VerifyAndClearExpectations(network_.get());
+  }
+
+  {
+    SCOPED_TRACE("Cancel PublishData on client being destroyed");
+
+    auto client = CreateStreamLayerClient();
+    auto network_promises = setup_network_expectations_on_cancel(network_);
+    auto wait_for_cancel = network_promises.first;
+    auto pause_for_cancel = network_promises.second;
+
+    auto cancel_future = client->PublishData(publish_request);
+    wait_for_cancel->get_future().get();
+    client.reset();
+    pause_for_cancel->set_value();
+
+    auto response = cancel_future.GetFuture().get();
+    EXPECT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
+    Mock::VerifyAndClearExpectations(network_.get());
+  }
 }
 
-TEST_F(StreamLayerClientTest, PublishDataCancelOnDestroy) {
-  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+TEST_F(StreamLayerClientTest, PublishDataGreaterThanTwentyMibCancel) {
+  using PromisePtr = std::shared_ptr<std::promise<void>>;
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
+  auto setup_network_expectations_on_cancel =
+      [](std::shared_ptr<NetworkMock> network)
+      -> std::pair<PromisePtr, PromisePtr> {
+    auto wait_for_cancel = std::make_shared<std::promise<void>>();
+    auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
-  olp::http::RequestId request_id;
-  NetworkCallback send_mock;
-  CancelCallback cancel_mock;
+    olp::http::RequestId request_id;
+    NetworkCallback send_mock;
+    CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      wait_for_cancel, pause_for_cancel,
-      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_CONFIG});
+    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+        wait_for_cancel, pause_for_cancel,
+        {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_CONFIG});
 
-  {
-    testing::InSequence dummy;
+    {
+      testing::InSequence dummy;
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1)
-        .WillOnce(testing::Invoke(std::move(send_mock)));
+      EXPECT_CALL(*network, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+          .Times(1)
+          .WillOnce(testing::Invoke(std::move(send_mock)));
 
-    EXPECT_CALL(*network_, Cancel(request_id))
-        .WillOnce(testing::Invoke(std::move(cancel_mock)));
-  }
+      EXPECT_CALL(*network, Cancel(request_id))
+          .WillOnce(testing::Invoke(std::move(cancel_mock)));
+    }
 
-  auto promise = client_->PublishData(
-      PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
-  wait_for_cancel->get_future().get();
-
-  client_.reset();
-  pause_for_cancel->set_value();
-
-  auto response = promise.GetFuture().get();
-
-  ASSERT_NO_FATAL_FAILURE(PublishFailureAssertions(response));
-}
-
-TEST_F(StreamLayerClientTest, PublishDataGreaterThanTwentyMibCancelOnDestroy) {
-  auto wait_for_cancel = std::make_shared<std::promise<void>>();
-  auto pause_for_cancel = std::make_shared<std::promise<void>>();
-
-  olp::http::RequestId request_id;
-  NetworkCallback send_mock;
-  CancelCallback cancel_mock;
-
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      wait_for_cancel, pause_for_cancel,
-      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_CONFIG});
-
-  {
-    testing::InSequence dummy;
-
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1)
-        .WillOnce(testing::Invoke(std::move(send_mock)));
-
-    EXPECT_CALL(*network_, Cancel(request_id))
-        .WillOnce(testing::Invoke(std::move(cancel_mock)));
-  }
+    return {wait_for_cancel, pause_for_cancel};
+  };
 
   auto large_data =
       std::make_shared<std::vector<unsigned char>>(kTwentyMib + 1, 'z');
-  auto promise = client_->PublishData(
-      PublishDataRequest().WithData(large_data).WithLayerId(GetTestLayer()));
-  wait_for_cancel->get_future().get();
+  auto publish_request =
+      PublishDataRequest().WithData(large_data).WithLayerId(GetTestLayer());
 
-  client_.reset();
-  pause_for_cancel->set_value();
+  {
+    SCOPED_TRACE(
+        "Cancel PublishDataGreaterThanTwentyMib via cancellation token");
 
-  auto response = promise.GetFuture().get();
+    auto client = CreateStreamLayerClient();
+    auto network_promises = setup_network_expectations_on_cancel(network_);
+    auto wait_for_cancel = network_promises.first;
+    auto pause_for_cancel = network_promises.second;
 
-  ASSERT_NO_FATAL_FAILURE(PublishFailureAssertions(response));
+    auto cancel_future = client->PublishData(publish_request);
+    wait_for_cancel->get_future().get();
+    cancel_future.GetCancellationToken().Cancel();
+    pause_for_cancel->set_value();
+
+    auto response = cancel_future.GetFuture().get();
+    EXPECT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
+
+    Mock::VerifyAndClearExpectations(network_.get());
+  }
+
+  {
+    SCOPED_TRACE(
+        "Cancel PublishDataGreaterThanTwentyMib via CancelPendingRequests");
+
+    auto client = CreateStreamLayerClient();
+    auto network_promises = setup_network_expectations_on_cancel(network_);
+    auto wait_for_cancel = network_promises.first;
+    auto pause_for_cancel = network_promises.second;
+
+    auto cancel_future = client->PublishData(publish_request);
+    wait_for_cancel->get_future().get();
+    client->CancelPendingRequests();
+    pause_for_cancel->set_value();
+
+    auto response = cancel_future.GetFuture().get();
+    EXPECT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
+
+    Mock::VerifyAndClearExpectations(network_.get());
+  }
+
+  {
+    SCOPED_TRACE("Cancel PublishDataGreaterThanTwentyMib on client destroy");
+
+    auto client = CreateStreamLayerClient();
+    auto network_promises = setup_network_expectations_on_cancel(network_);
+    auto wait_for_cancel = network_promises.first;
+    auto pause_for_cancel = network_promises.second;
+
+    auto cancel_future = client->PublishData(publish_request);
+    wait_for_cancel->get_future().get();
+    client.reset();
+    pause_for_cancel->set_value();
+
+    auto response = cancel_future.GetFuture().get();
+    EXPECT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
+
+    Mock::VerifyAndClearExpectations(network_.get());
+  }
 }
 
 TEST_F(StreamLayerClientTest, PublishDataCancelLongDelay) {
@@ -592,33 +668,76 @@ TEST_F(StreamLayerClientTest, PublishSDIIBillingTag) {
 }
 
 TEST_F(StreamLayerClientTest, PublishSdiiCancel) {
-  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  using PromisePtr = std::shared_ptr<std::promise<void>>;
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
+  auto setup_network_expectations_on_cancel =
+      [](std::shared_ptr<NetworkMock> network)
+      -> std::pair<PromisePtr, PromisePtr> {
+    auto wait_for_cancel = std::make_shared<std::promise<void>>();
+    auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
-  olp::http::RequestId request_id;
-  NetworkCallback send_mock;
-  CancelCallback cancel_mock;
+    olp::http::RequestId request_id;
+    NetworkCallback send_mock;
+    CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      wait_for_cancel, pause_for_cancel,
-      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_INGEST});
+    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+        wait_for_cancel, pause_for_cancel,
+        {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_INGEST});
 
-  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-      .Times(1)
-      .WillOnce(testing::Invoke(std::move(send_mock)));
-  EXPECT_CALL(*network_, Cancel(request_id))
-      .WillOnce(testing::Invoke(std::move(cancel_mock)));
+    EXPECT_CALL(*network, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+    EXPECT_CALL(*network, Cancel(request_id))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
-  auto promise = client_->PublishSdii(PublishSdiiRequest()
-                                          .WithSdiiMessageList(sdii_data_)
-                                          .WithLayerId(GetTestLayerSdii()));
-  wait_for_cancel->get_future().get();
-  promise.GetCancellationToken().Cancel();
-  pause_for_cancel->set_value();
+    return {wait_for_cancel, pause_for_cancel};
+  };
 
-  auto response = promise.GetFuture().get();
+  auto publish_request = PublishSdiiRequest()
+                             .WithSdiiMessageList(sdii_data_)
+                             .WithLayerId(GetTestLayerSdii());
 
-  ASSERT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
+  {
+    SCOPED_TRACE("Cancel PublishSdii via cancellation token");
+
+    auto client = CreateStreamLayerClient();
+    auto network_promises = setup_network_expectations_on_cancel(network_);
+    auto wait_for_cancel = network_promises.first;
+    auto pause_for_cancel = network_promises.second;
+
+    auto cancel_future = client->PublishSdii(publish_request);
+    wait_for_cancel->get_future().get();
+    cancel_future.GetCancellationToken().Cancel();
+    pause_for_cancel->set_value();
+
+    auto response = cancel_future.GetFuture().get();
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::Cancelled);
+
+    EXPECT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
+
+    Mock::VerifyAndClearExpectations(network_.get());
+  }
+
+  {
+    SCOPED_TRACE("Cancel PublishSdii via cancellation token");
+
+    auto client = CreateStreamLayerClient();
+    auto network_promises = setup_network_expectations_on_cancel(network_);
+    auto wait_for_cancel = network_promises.first;
+    auto pause_for_cancel = network_promises.second;
+
+    auto cancel_future = client->PublishSdii(publish_request);
+    wait_for_cancel->get_future().get();
+    client->CancelPendingRequests();
+    pause_for_cancel->set_value();
+
+    auto response = cancel_future.GetFuture().get();
+
+    EXPECT_NO_FATAL_FAILURE(PublishCancelledAssertions(response));
+
+    Mock::VerifyAndClearExpectations(network_.get());
+  }
 }
 
 TEST_F(StreamLayerClientTest, SDIIConcurrentPublishSameIngestApi) {

@@ -45,6 +45,10 @@ StreamLayerClient::StreamLayerClient(client::HRN catalog,
       std::move(catalog), std::move(client_settings), std::move(settings));
 }
 
+void StreamLayerClient::CancelPendingRequests() {
+  impl_->CancelPendingRequests();
+}
+
 olp::client::CancellableFuture<PublishDataResponse>
 StreamLayerClient::PublishData(model::PublishDataRequest request) {
   return impl_->PublishData(request);
