@@ -82,7 +82,7 @@ class VersionedLayerClientImpl;
  * @endcode
  *
  * @see
- * https://developer.here.com/olp/documentation/data-api/data_dev_guide/shared_content/topics/olp/concepts/layers.html
+ * https://developer.here.com/olp/documentation/data-api/data_dev_guide/rest/layers/layers.html
  * @see
  * https://developer.here.com/olp/documentation/data-api/data_dev_guide/rest/getting-data-versioned.html
  */
