@@ -28,8 +28,6 @@
 #include "TokenEndpoint.h"
 #include "TokenResult.h"
 
-#include "olp/core/porting/deprecated.h"
-
 namespace olp {
 namespace authentication {
 /** @file TokenProvider.h */
@@ -45,8 +43,7 @@ namespace authentication {
  * @see `TokenProviderDefault`
  */
 template <long long MinimumValidity>
-class OLP_SDK_DEPRECATED("Deprecated. Will be removed in 04.2020")
-    TokenProvider {
+class TokenProvider {
  public:
   /**
    * @brief Creates the `TokenProvider` instance with the `settings` parameter.
