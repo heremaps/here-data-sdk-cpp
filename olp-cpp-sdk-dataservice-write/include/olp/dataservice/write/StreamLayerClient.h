@@ -80,6 +80,17 @@ class DATASERVICE_WRITE_API StreamLayerClient {
                     client::OlpClientSettings settings);
 
   /**
+   * @brief Cancels all the ongoing publish operations that this client started.
+   *
+   * Returns instantly and does not wait for the callbacks.
+   * Use this operation to cancel all the submitted publish requests without
+   * destroying the actual client instance.
+   * @note This operation does not cancel publish requests queued by the \ref
+   * Queue method.
+   */
+  void CancelPendingRequests();
+
+  /**
    * @brief Publishes data to an OLP stream layer.
    * @note Content-Type for this request is implicitly based on the
    * layer metadata for the target layer on OLP.
