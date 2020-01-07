@@ -37,7 +37,9 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./geo/tiling/TileKeyTest.cpp
     ./geo/tiling/TileKeyUtilsTest.cpp
 
+    ./logging/ConfigurationTest.cpp
     ./logging/MessageFormatterTest.cpp
+    ./logging/MockAppender.cpp
 
     ./olpclient/OlpClientTest.cpp
 
