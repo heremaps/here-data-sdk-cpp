@@ -43,7 +43,8 @@ PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
  * @brief Corresponds to the token endpoint as specified in the OAuth2.0
  * specification.
  */
-class AUTHENTICATION_API TokenEndpoint {
+class AUTHENTICATION_API AUTHENTICATION_API
+OLP_SDK_DEPRECATED("Will be removed in 04.2020") TokenEndpoint {
  public:
   /**
    * @brief Defines the signature used to return the response to the client.
