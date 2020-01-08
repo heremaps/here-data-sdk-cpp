@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.Proxy;
 import java.net.URL;
@@ -40,13 +41,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.net.ssl.SSLException;
+
 public class HttpClient {
   private static final String LOGTAG = "HttpClient";
 
   // The replica of http/NetworkType.h error codes
-  // TODO: retrieve them via native method
   public static final int IO_ERROR = -1;
+  public static final int AUTHORIZATION_ERROR = -2;
   public static final int INVALID_URL_ERROR = -3;
+  public static final int OFFLINE_ERROR = -4;
   public static final int CANCELLED_ERROR = -5;
   public static final int TIMEOUT_ERROR = -7;
   public static final int THREAD_POOL_SIZE = 8;
@@ -438,18 +442,22 @@ public class HttpClient {
             isDone = true;
             completeRequest(request.requestId(), status, error, contentType);
           } while (!isDone);
+        } catch (SSLException e) {
+          completeRequest(request.requestId(), AUTHORIZATION_ERROR, "SSL connection failed.", "");
+        } catch (MalformedURLException e) {
+          completeRequest(
+              request.requestId(), INVALID_URL_ERROR, "The provided URL is not valid.", "");
         } catch (OperationCanceledException e) {
           completeRequest(request.requestId(), CANCELLED_ERROR, "Cancelled", "");
         } catch (SocketTimeoutException e) {
           completeRequest(request.requestId(), TIMEOUT_ERROR, "Timed out", "");
+        } catch (java.net.UnknownHostException e) {
+          completeRequest(
+              request.requestId(), OFFLINE_ERROR, "The device has no internet connectivity", "");
         } catch (Exception e) {
           Log.e(LOGTAG, "HttpClient::HttpTask::run exception: " + e);
           e.printStackTrace();
-          if (e instanceof UnknownHostException) {
-            completeRequest(request.requestId(), INVALID_URL_ERROR, "Unknown Host", "");
-          } else {
-            completeRequest(request.requestId(), IO_ERROR, e.toString(), "");
-          }
+          completeRequest(request.requestId(), IO_ERROR, e.toString(), "");
         } finally {
           cleanup(httpConn);
         }
