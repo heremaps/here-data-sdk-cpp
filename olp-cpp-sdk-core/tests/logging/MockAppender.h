@@ -19,9 +19,10 @@
 
 #pragma once
 
-#include <olp/core/logging/Appender.h>
 #include <string>
 #include <vector>
+
+#include <olp/core/logging/Appender.h>
 
 namespace testing {
 

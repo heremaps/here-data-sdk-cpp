@@ -18,9 +18,10 @@
  */
 
 #include <gtest/gtest.h>
+#include <memory>
+
 #include <olp/core/logging/Configuration.h>
 #include <olp/core/logging/Log.h>
-#include <memory>
 #include "MockAppender.h"
 
 namespace {
