@@ -18,6 +18,7 @@
  */
 
 #include <gtest/gtest.h>
+
 #include <olp/core/logging/MessageFormatter.h>
 
 namespace {
