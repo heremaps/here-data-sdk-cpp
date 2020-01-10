@@ -33,25 +33,27 @@ namespace dataservice {
 namespace read {
 
 /**
- * @brief The CatalogVersionRequest class encapsulates the fields required to
- * request the Catalog configuration.
+ * @brief Encapsulates the fields required to request catalog configuration.
  */
 class DATASERVICE_READ_API CatalogVersionRequest final {
  public:
   /**
-   * @brief Mandatory for versioned layers; the beginning of the range of
-   * versions you want to get (exclusive). By convention -1 indicates the
-   * initial version before the first publication. After the first publication,
-   * the catalog version is 0.
-   * @return the start version.
+   * @brief Gets a catalog start version (exclusive) for the request.
+   *
+   * Mandatory for versioned layers.
+   * By convention -1 indicates the initial version before the first
+   * publication. After the first publication, the catalog version is 0.
+   *
+   * @return The catalog start version.
    */
   inline int64_t GetStartVersion() const { return start_version_; }
 
   /**
-   * @brief WithStartVersion sets the start version. See ::GetStartVersion() for
-   * usage.
-   * @param startVersion an int64_t
-   * @return a reference to the updated CatalogVersionRequest
+   * @brief Sets the catalog start version.
+   *
+   * @see `::GetStartVersion()` for usage.
+   * @param startVersion The catalog start version.
+   * @return A reference to the updated `CatalogVersionRequest` instance.
    */
   inline CatalogVersionRequest& WithStartVersion(int64_t startVersion) {
     start_version_ = startVersion;
@@ -59,20 +61,26 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
   }
 
   /**
-   * @brief BillingTag is an optional free-form tag which is used for
-   * grouping billing records together. If supplied, it must be between 4 - 16
-   * characters, contain only alpha/numeric ASCII characters  [A-Za-z0-9].
-   * @return the billing tag, or boost::none if not set.
+   * @brief Gets a billing tag to group billing records together.
+   *
+   * The billing tag is an optional free-form tag that is used for grouping
+   * billing records together. If supplied, it must be 4–16 characters
+   * long and contain only alphanumeric ASCII characters [A-Za-z0-9].
+   *
+   * @return The `BillingTag` string or `boost::none` if the billing tag is not
+   * set.
    */
   inline const boost::optional<std::string>& GetBillingTag() const {
     return billing_tag_;
   }
 
   /**
-   * @brief WithBillingTag sets the billing tag. See ::GetBillingTag() for usage
-   * and format.
-   * @param billingTag a string or boost::none
-   * @return a reference to the updated CatalogVersionRequest
+   * @brief Sets the billing tag for the request.
+   *
+   * @see `GetBillingTag()` for usage and format.
+   *
+   * @param billingTag The `BillingTag` string or `boost::none`.
+   * @return A reference to the updated `CatalogVersionRequest` instance.
    */
   inline CatalogVersionRequest& WithBillingTag(
       boost::optional<std::string> billingTag) {
@@ -81,10 +89,13 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
   }
 
   /**
-   * @brief WithBillingTag sets the billing tag. See ::GetBillingTag() for usage
-   * and format.
-   * @param billingTag a string or boost::none
-   * @return a reference to the updated CatalogVersionRequest
+   * @brief Sets the billing tag for the request.
+   *
+   * @see `GetBillingTag()` for usage and format.
+   *
+   * @param billingTag The rvalue reference to the `BillingTag` string or
+   * `boost::none`.
+   * @return A reference to the updated `CatalogVersionRequest` instance.
    */
   inline CatalogVersionRequest& WithBillingTag(std::string&& billingTag) {
     billing_tag_ = std::move(billingTag);
@@ -92,18 +103,23 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
   }
 
   /**
-   * @brief FetchOption will control how requests are handled. Default option
-   * is OnlineIfNotFound, which will query the network only if the requested
-   * resource is not in the cache.
-   * @return the fetchOption
+   * @brief Gets a fetch option that controls how requests are handled.
+   *
+   * The default option is `OnlineIfNotFound` that queries the network if
+   * the requested resource is not in the cache.
+   *
+   * @return The fetch option.
    */
   inline FetchOptions GetFetchOption() const { return fetch_option_; }
 
   /**
-   * @brief WithFetchOption sets the fetch option. See ::GetFetchOption() for
-   * usage and format.
-   * @param fetchoption enums
-   * @return a reference to the updated CatalogVersionRequest
+   * @brief Sets the fetch option that you can use to set the source from
+   * which data should be fetched.
+   *
+   * @see `GetFetchOption()` for usage and format.
+   *
+   * @param fetchoption The `FetchOption` enum.
+   * @return A reference to the updated `CatalogVersionRequest` instance.
    */
   inline CatalogVersionRequest& WithFetchOption(FetchOptions fetchoption) {
     fetch_option_ = fetchoption;
@@ -111,9 +127,9 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
   }
 
   /**
-   * @brief Creates readable format for the request.
-   * @param none
-   * @return string representation of the request
+   * @brief Creates a readable format of the request.
+   *
+   * @return A string representation of the request.
    */
   inline std::string CreateKey() const {
     std::stringstream out;

@@ -32,16 +32,18 @@ namespace dataservice {
 namespace read {
 
 /**
- * @brief The PartitionsRequest class encapsulates the fields required to
- * request the list of partitions for a given catalog and layer.
+ * @brief Encapsulates the fields required to request a list of partitions for
+ * a given catalog and layer.
  */
 class DATASERVICE_READ_API PartitionsRequest final {
  public:
   /**
-   * @brief WithVersion sets the catalog metadata version of the request.
-   * @param catalogMetadataVersion The catalog metadta version of the requested
-   * partions. If no version is specified, the latest will be retrieved.
-   * @return a reference to the updated PartitionsRequest.
+   * @brief Sets the catalog metadata version for the request of the requested
+   * partitions.
+   *
+   * @param catalogMetadataVersion The catalog metadata version of the requested
+   * partitions. If the version is not specified, the latest version is used.
+   * @return A reference to the updated `PartitionsRequest` instance.
    */
   inline PartitionsRequest& WithVersion(
       boost::optional<int64_t> catalogMetadataVersion) {
@@ -50,28 +52,36 @@ class DATASERVICE_READ_API PartitionsRequest final {
   }
 
   /**
-   * @brief Get the catalog metadata version requested for the partitions.
-   * @return the billing tag, or boost::none if not set.
+   * @brief Gets the catalog metadata version of the requested partitions.
+   *
+   * @return The catalog metadata version.
    */
   inline const boost::optional<std::int64_t>& GetVersion() const {
     return catalog_metadata_version_;
   }
 
   /**
-   * @brief BillingTag is an optional free-form tag which is used for
-   * grouping billing records together. If supplied, it must be between 4 - 16
-   * characters, contain only alpha/numeric ASCII characters  [A-Za-z0-9].
-   * @return the billing tag, or boost::none if not set.
+   * @brief Gets a billing tag to group billing records together.
+   *
+   * The billing tag is an optional free-form tag that is used for grouping
+   * billing records together. If supplied, it must be 4–16 characters
+   * long and contain only alphanumeric ASCII characters [A-Za-z0-9].
+   *
+   * @return The `BillingTag` string or `boost::none` if the billing tag is not
+   * set.
    */
   inline const boost::optional<std::string>& GetBillingTag() const {
     return billing_tag_;
   }
 
   /**
-   * @brief WithBillingTag sets the billing tag. See ::GetBillingTag() for usage
-   * and format.
-   * @param billingTag a string or boost::none
-   * @return a reference to the updated PartitionsRequest
+   * @brief Sets the billing tag for the request.
+   *
+   * @see `GetBillingTag()` for usage and format.
+   *
+   * @param billingTag The `BillingTag` string or `boost::none`.
+   *
+   * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
   inline PartitionsRequest& WithBillingTag(
       boost::optional<std::string> billingTag) {
@@ -80,10 +90,14 @@ class DATASERVICE_READ_API PartitionsRequest final {
   }
 
   /**
-   * @brief WithBillingTag sets the billing tag. See ::GetBillingTag() for usage
-   * and format.
-   * @param billingTag a string or boost::none
-   * @return a reference to the updated PartitionsRequest
+   * @brief Sets the billing tag for the request.
+   *
+   * @see `GetBillingTag()` for usage and format.
+   *
+   * @param billingTag The rvalue reference to the `BillingTag` string or
+   * `boost::none`.
+   *
+   * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
   inline PartitionsRequest& WithBillingTag(std::string&& billingTag) {
     billing_tag_ = std::move(billingTag);
@@ -91,18 +105,23 @@ class DATASERVICE_READ_API PartitionsRequest final {
   }
 
   /**
-   * @brief FetchOption will control how requests are handled. Default option
-   * is OnlineIfNotFound, which will query the network only if the requested
-   * resource is not in the cache.
-   * @return the fetchOption
+   * @brief Gets a fetch option that controls how requests are handled.
+   *
+   * The default option is `OnlineIfNotFound` that queries the network if
+   * the requested resource is not in the cache.
+   *
+   * @return The fetch option.
    */
   inline FetchOptions GetFetchOption() const { return fetch_option_; }
 
   /**
-   * @brief WithFetchOption sets the fetch option. See ::GetFetchOption() for
-   * usage and format.
-   * @param fetchoption enums
-   * @return a reference to the updated PartitionsRequest
+   * @brief Sets the fetch option that you can use to set the source from
+   * which data should be fetched.
+   *
+   * @see `GetFetchOption()` for usage and format.
+   *
+   * @param fetchoption The `FetchOption` enum.
+   * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
   inline PartitionsRequest& WithFetchOption(FetchOptions fetchoption) {
     fetch_option_ = fetchoption;
@@ -110,9 +129,11 @@ class DATASERVICE_READ_API PartitionsRequest final {
   }
 
   /**
-   * @brief Creates readable format for the request.
-   * @param layer_id Layer ID request is used for.
-   * @return string representation of the request.
+   * @brief Creates a readable format for the request.
+   *
+   * @param layer_id The ID of the layer that is used for the request.
+   *
+   * @return A string representation of the request.
    */
   std::string CreateKey(const std::string& layer_id) const {
     std::stringstream out;

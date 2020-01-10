@@ -30,9 +30,11 @@ namespace read {
 namespace model {
 
 /**
- * @brief Model to represent the version of the catalog metadata. Incremented
- * every time catalog metadata is changed. e.g. by publishing new partitions to
- * durable layers.
+ * @brief A model used to represent a catalog metadata version.
+ *
+ * The version is incremented every time catalog metadata is changed. For
+ * example, when you publish new partitions to durable layers, the catalog
+ * metadata version changes.
  */
 class DATASERVICE_READ_API VersionResponse {
  public:
@@ -43,8 +45,23 @@ class DATASERVICE_READ_API VersionResponse {
   int64_t version_{0};
 
  public:
+  /**
+   * @brief Gets the catalog metadata version.
+   *
+   * @return The catalog metadata version.
+   */
   const int64_t& GetVersion() const { return version_; }
+  /**
+   * @brief Gets a mutable reference to the catalog metadata version.
+   *
+   * @return The mutable reference to the catalog metadata version.
+   */
   int64_t& GetMutableVersion() { return version_; }
+  /**
+   * @brief Sets the catalog metadata version for the request.
+   *
+   * @param value The catalog metadata version.
+   */
   void SetVersion(const int64_t& value) { this->version_ = value; }
 };
 

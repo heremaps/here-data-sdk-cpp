@@ -39,23 +39,22 @@ namespace dataservice {
 namespace read {
 class VersionedLayerClientImpl;
 
+// clang-format off
 /**
- * @brief Client that acquires data from an OLP versioned layer. The versioned
- * layer stores slowly-changing data that must remain logically consistent with
- * other layers in a catalog.
+ * @brief Gets data from a versioned layer of the Open Location Platform (OLP).
  *
- * @note When you request a particular version of data from a versioned layer,
- * the partition that gets returned may have a lower version number than you
- * requested. Only those layers and partitions that are updated have their
- * version updated to the catalog new version number. The version of a
- * layer or partition represents the catalog version in which the layer or
- * partition was last updated.
+ * The versioned layer stores slowly-changing data that must remain logically
+ * consistent with other layers in a catalog. You can request any data version
+ * from the versioned
+ * layer.
+ * When you request a particular version of data from the versioned layer,
+ * the partition you receive in the response may have a lower version number
+ * than you requested. The version of a layer or partition represents the
+ * catalog version in which the layer or partition was last updated.
  *
- * @note If a catalog version is not specified, the latest version is used. To
- * query the latest version of a catalog, an additional request to OLP is
- * needed.
+ * @note If the catalog version is not specified, the latest version is used.
  *
- * Example with version provided that saves one network request:
+ * An example with the catalog version provided that saves one network request:
  * @code{.cpp}
  * auto task_scheduler =
  *    olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
@@ -75,146 +74,166 @@ class VersionedLayerClientImpl;
  * client_settings.task_scheduler = std::move(task_scheduler);
  * client_settings.network_request_handler = std::move(http_client);
  *
- * VersionedLayerClient client{"hrn:here:data:::your-catalog-hrn" "your-layer-id", client_settings};
+ * VersionedLayerClient client{"hrn:here:data:::your-catalog-hrn", "your-layer-id", client_settings};
  * auto callback = [](olp::client::ApiResponse<olp::model::Data, olp::client::ApiError> response) {};
  * auto request = DataRequest().WithVersion(100).WithPartitionId("269");
  * auto token = client.GetData(request, callback);
  * @endcode
  *
  * @see
- * https://developer.here.com/olp/documentation/data-api/data_dev_guide/rest/layers/layers.html
- * @see
- * https://developer.here.com/olp/documentation/data-api/data_dev_guide/rest/getting-data-versioned.html
+ * The [versioned
+ * layer](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/layers.html#versioned-layers)
+ * section in the Data User Guide.
  */
+// clang-format on
 class DATASERVICE_READ_API VersionedLayerClient final {
  public:
   /**
-   * @brief VersionedLayerClient constructor
-   * @param catalog HRN of the catalog to which this layer belongs.
-   * @param layer_id Layer ID of the versioned layer that is used for all
-   * requests.
-   * @param settings Settings used to control the client instance behavior.
+   * @brief Creates the `VersionedLayerClient` instance.
+   *
+   * @param catalog The HERE Resource Name (HRN) of the catalog that contains
+   * the versioned layer from which you want to get data.
+   * @param layer_id The layer ID of the versioned layer from which you want to
+   * get data.
+   * @param settings The `OlpClientSettings` instance.
    */
   VersionedLayerClient(client::HRN catalog, std::string layer_id,
                        client::OlpClientSettings settings);
 
-  // Movable, non-copyable
-  VersionedLayerClient(const VersionedLayerClient& other) = delete; 
-  VersionedLayerClient(VersionedLayerClient&& other) noexcept; 
-  VersionedLayerClient& operator=(const VersionedLayerClient& other) = delete; 
+  /// Movable, non-copyable
+  VersionedLayerClient(const VersionedLayerClient& other) = delete;
+  VersionedLayerClient(VersionedLayerClient&& other) noexcept;
+  VersionedLayerClient& operator=(const VersionedLayerClient& other) = delete;
   VersionedLayerClient& operator=(VersionedLayerClient&& other) noexcept;
 
   ~VersionedLayerClient();
 
   /**
    * @brief Cancels all active and pending requests.
-   * @return True on success.
+   *
+   * @return True if the request is successful; false otherwise.
    */
   bool CancelPendingRequests();
 
   /**
-   * @brief Fetches data for a partition ID or data handle asynchronously.
+   * @brief Fetches data asynchronously using a partition ID or data handle.
    *
    * If the specified partition ID or data handle cannot be found in the layer,
-   * the callback is invoked with an empty DataResponse (a nullptr result and
-   * error). If the partition ID or data handle are not set in the request, the
-   * callback is invoked with the error ErrorCode::InvalidRequest. If the
-   * version is not specified, an additional request to OLP is created to
-   * retrieve the latest available partition version.
+   * the callback is invoked with the empty `DataResponse` object (the `nullptr`
+   * result and an error). If a partition ID or data handle is not set in
+   * the request, the callback is invoked with the following error:
+   * `ErrorCode::InvalidRequest`. If the version is not specified, an additional
+   * request to OLP is created to retrieve the latest available partition
+   * version.
    *
-   * @param data_request Contains the complete set of the request parameters.
-   * @note GetLayerId value of the \c DataRequest is ignored, and the parameter
-   * from the constructor is used instead.
-   * @param callback Is invoked once the DataResult is available or an error is
-   * encountered.
-   * @return Token that can be used to cancel the GetData request.
+   * @param data_request The `DataRequest` instance that contains a complete set
+   * of request parameters.
+   * @note The `GetLayerId` value of the \c DataRequest object is ignored, and
+   * the parameter from the constructor is used instead.
+   * @param callback The `DataResponseCallback` object that is invoked if
+   * the `DataResult` object is available or an error is encountered.
+   * @return A token that can be used to cancel this request.
    */
   client::CancellationToken GetData(DataRequest data_request,
                                     DataResponseCallback callback);
 
   /**
-   * @brief Fetches data for a partition or data handle asynchronously. If the
-   * specified partition or data handle cannot be found in the layer, the
-   * callback will be invoked with an empty DataResponse (nullptr for result and
-   * error). If neither Partition Id or Data Handle were set in the request, the
-   * callback will be invoked with an error with ErrorCode::InvalidRequest.
-   * @param data_request contains the complete set of request parameters.
-   * \note \c DataRequest's GetLayerId value will be ignored and the parameter
-   * from the constructor will be used instead.
-   * @return \c CancellableFuture of type \c DataResponse, which when
-   * complete will contain the data or an error. Alternatively, the
-   * \c CancellableFuture can be used to cancel this request.
+   * @brief Fetches data asynchronously using a partition ID or data handle.
+   *
+   * If the specified partition or data handle cannot be found in the layer,
+   * the callback is invoked with the empty `DataResponse` object (the `nullptr`
+   * result and an error). If a partition ID or data handle is not set in
+   * the request, the callback is invoked with the following error:
+   * `ErrorCode::InvalidRequest`.
+   *
+   * @param data_request The `DataRequest` instance that contains a complete set
+   * of request parameters.
+   * @note The `GetLayerId` value of the \c DataRequest object is ignored, and
+   * the parameter from the constructor is used instead.
+   * @return `CancellableFuture` that contains the `DataResponse` instance
+   * or an error. You can also use `CancellableFuture` to cancel this request.
    */
   client::CancellableFuture<DataResponse> GetData(DataRequest data_request);
 
   /**
-   * @brief Fetches a list of partitions for the given generic layer
+   * @brief Fetches a list of partitions of the given generic layer
    * asynchronously.
-   * @note If your layer has lots of partitions or uses TileKeys as
-   * partition IDs, then this operation can fail because of the large amount of data.
-   * @param partitions_request Contains the complete set of the request
-   * parameters.
-   * @note GetLayerId value of the \c PartitionsRequest is ignored, and the
-   * parameter from the constructor is used instead.
-   * @param callback Is invoked once the list of partitions is available or an
-   * error is encountered.
-   * @return Token that can be used to cancel the GetPartitions request.
+   *
+   * @note If your layer has lots of partitions or uses tile keys as
+   * partition IDs, then this operation can fail because of the large amount of
+   * data.
+   *
+   * @param partitions_request The `PartitionsRequest` instance that contains
+   * a complete set of request parameters.
+   * @note The `GetLayerId` value of the \c PartitionsRequest object is ignored,
+   * and the parameter from the constructor is used instead.
+   * @param callback The `PartitionsResponseCallback` object that is invoked if
+   * the list of partitions is available or an error is encountered.
+   * @return A token that can be used to cancel this request.
    */
   client::CancellationToken GetPartitions(PartitionsRequest partitions_request,
                                           PartitionsResponseCallback callback);
 
   /**
-   * @brief Fetches a list of partitions for the given generic layer
+   * @brief Fetches a list of partitions of the given generic layer
    * asynchronously.
-   * @note If your layer has lots of partitions or uses TileKeys as
-   * partition IDs, then this operation can fail because of the large amount of data.
-   * @param partitions_request Contains the complete set of the request
-   * parameters.
-   * @note GetLayerId value of the \c PartitionsRequest is ignored, and the
-   * parameter from the constructor is used instead.
-   * @return \c CancellableFuture of type \c PartitionsResponse, which when
-   * complete will contain the data or an error. Alternatively, the
-   * \c CancellableFuture can be used to cancel this request.
+   *
+   * @note If your layer has lots of partitions or uses tile keys as
+   * partition IDs, then this operation can fail because of the large amount of
+   * data.
+   *
+   * @param partitions_request The `PartitionsRequest` instance that contains
+   * a complete set of request parameters.
+   * @note The `GetLayerId` value of the \c PartitionsRequest object is ignored,
+   * and the parameter from the constructor is used instead.
+   * @return `CancellableFuture` that contains the `PartitionsResponse` instance
+   * with data or an error. You can also use `CancellableFuture` to cancel this
+   * request.
    */
   client::CancellableFuture<PartitionsResponse> GetPartitions(
       PartitionsRequest partitions_request);
 
   /**
-   * @brief Pre-fetches a set of tiles asychronously.
+   * @brief Prefetches a set of tiles asynchronously.
    *
-   * This method recursively downloads all tilekeys from the minLevel to
-   * maxLevel parameters of the \c PrefetchTilesRequest. It helps to reduce the
-   * network load by using the pre-fetched tiles data from cache.
+   * This method recursively downloads all tile keys from the `minLevel`
+   * parameter to the `maxLevel` parameter of the \c PrefetchTilesRequest
+   * object. It helps to reduce the network load by using the prefetched tiles
+   * data from the cache.
    *
-   * @note This does not guarantee that all tiles are available offline as the
-   * cache might overflow and data might be evicted at any point.
+   * @note This method does not guarantee that all tiles are available offline
+   * as the cache might overflow, and data might be evicted at any point.
    *
-   * @param request Contains the complete set of the request parameters.
-   * @note GetLayerId value of the \c PrefetchTilesRequest is ignored, and the
-   * parameter from the constructor is used instead.
-   * @param callback Is invoked once the \c PrefetchTilesResult is available or
-   * an error is encountered.
-   * @return Token that can be used to cancel this request.
+   * @param request The `PrefetchTilesRequest` instance that contains
+   * a complete set of request parameters.
+   * @note The `GetLayerId` value of the \c PrefetchTilesRequest object is
+   * ignored, and the parameter from the constructor is used instead.
+   * @param callback The `PrefetchTilesResponseCallback` object that is invoked
+   * if the `PrefetchTilesResult` instance is available or an error is
+   * encountered.
+   * @return A token that can be used to cancel this request.
    */
   client::CancellationToken PrefetchTiles(
       PrefetchTilesRequest request, PrefetchTilesResponseCallback callback);
 
   /**
-   * @brief Pre-fetches a set of tiles asychronously.
+   * @brief Prefetches a set of tiles asynchronously.
    *
-   * This method recursively downloads all tilekeys from the minLevel to
-   * maxLevel specified in the \c PrefetchTilesRequest properties. This helps to
-   * reduce the network load by using the pre-fetched tiles data from cache.
+   * This method recursively downloads all tile keys from the `minLevel`
+   * parameter to the `maxLevel` parameter of the \c PrefetchTilesRequest
+   * object. It helps to reduce the network load by using the prefetched tiles
+   * data from the cache.
    *
-   * @note This does not guarantee that all tiles are available offline as the
-   * cache might overflow and data might be evicted at any point.
+   * @note This method does not guarantee that all tiles are available offline
+   * as the cache might overflow, and data might be evicted at any point.
    *
-   * @param request Contains the complete set of the request parameters.
-   * @note GetLayerId value of the \c PrefetchTilesRequest is ignored, and
-   * the parameter from the constructor is used instead.
-   * @return CancellableFuture of the \c PrefetchTilesResponse type. When
-   * completed, the CancellableFuture contains data or an error. Alternatively,
-   * the \c CancellableFuture can be used to cancel this request.
+   * @param request The `PrefetchTilesRequest` instance that contains
+   * a complete set of request parameters.
+   * @note The `GetLayerId` value of the \c PrefetchTilesRequest object is
+   * ignored, and the parameter from the constructor is used instead.
+   * @return `CancellableFuture` that contains the `PrefetchTilesResponse`
+   * instance with data or an error. You can also use `CancellableFuture` to
+   * cancel this request.
    */
   client::CancellableFuture<PrefetchTilesResponse> PrefetchTiles(
       PrefetchTilesRequest request);

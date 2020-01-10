@@ -33,30 +33,32 @@ namespace dataservice {
 namespace read {
 
 /**
- * @brief The PrefetchTilesRequest class encapsulates the fields required to
- * prefetch the specified layers, tiles and levels.
+ * @brief Encapsulates the fields required to prefetch the specified layers,
+ * tiles, and levels.
  *
- * Tilekeys can be on any level. Tilekeys below maxLevel will have the ancestors
- * fetched from minLevel to maxLevel. Children of tilekeys above minLevel will
- * be downloaded from minLevel to maxLevel. Tilekeys above maxLevel will be
- * recursively downloaded down to maxLevel.
+ * Tile keys can be at any level. Tile keys below the maximum tile level have
+ * the ancestors fetched from the minimum tile level. The children of the tile
+ * keys above the minimum tile level are downloaded from the minimum to maximum
+ * tile level. The tile keys above the maximum tile level are recursively
+ * downloaded down to the maximum tile level.
  */
 class DATASERVICE_READ_API PrefetchTilesRequest final {
  public:
   /**
-   * @brief GetPartitionId gets the request's Partition Id.
-   * @return the partition id.
+   * @brief Gets a vector with tile keys.
+   *
+   * @return The vector with the tile keys.
    */
   inline const std::vector<geo::TileKey>& GetTileKeys() const {
     return tile_keys_;
   }
 
   /**
-   * @brief WithTileKeys sets the request's tile keys. If the tile key
-   * cannot be found in the layer, the callback will come back with an empty
-   * response (null for data and error)
-   * @param partitionId the Partition Id.
-   * @return a reference to the updated PrefetchTilesRequest.
+   * @brief Sets the tile keys for the request.
+   *
+   * @param tile_keys The vector with the tile keys.
+   *
+   * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
   inline PrefetchTilesRequest& WithTileKeys(
       std::vector<geo::TileKey> tile_keys) {
@@ -65,11 +67,11 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   }
 
   /**
-   * @brief WithTileKeys sets the request's tile keys. If the tile key
-   * cannot be found in the layer, the callback will come back with an empty
-   * response (null for data and error).
-   * @param tile_keys the Tile Keys.
-   * @return a reference to the updated PrefetchTilesRequest.
+   * @brief Sets the tile keys for the request.
+   *
+   * @param tile_keys The rvalue reference to the vector with the tile keys.
+   *
+   * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
   inline PrefetchTilesRequest& WithTileKeys(
       std::vector<geo::TileKey>&& tile_keys) {
@@ -77,23 +79,48 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
     return *this;
   }
 
+  /**
+   * @brief Gets the minimum tile level.
+   *
+   * @return The minimum tile level.
+   */
   inline unsigned int GetMinLevel() const { return min_level_; }
+
+  /**
+   * @brief Sets the minimum tile level for the request.
+   *
+   * @param min_level The minimum tile level.
+   * @return A reference to the updated `PrefetchTilesRequest` instance.
+   */
   inline PrefetchTilesRequest& WithMinLevel(unsigned int min_level) {
     min_level_ = min_level;
     return *this;
   }
-
+  /**
+   * @brief Gets the maximum tile level.
+   *
+   * @return The maximum tile level.
+   */
   inline unsigned int GetMaxLevel() const { return max_level_; }
+
+  /**
+   * @brief Sets the maximum tile level for the request.
+   *
+   * @param max_level The maximum tile level.
+   * @return A reference to the updated `PrefetchTilesRequest` instance.
+   */
   inline PrefetchTilesRequest& WithMaxLevel(unsigned int max_level) {
     max_level_ = max_level;
     return *this;
   }
 
   /**
-   * @brief Sets the catalog version to be used for the requests.
+   * @brief Sets the catalog version for the request.
+   *
    * @param version The catalog version of the requested partitions. If no
-   * version is specified, the latest will be retrieved.
-   * @return a reference to the updated PrefetchTilesRequest.
+   * version is specified, the latest version is used.
+   *
+   * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
   inline PrefetchTilesRequest& WithVersion(boost::optional<int64_t> version) {
     catalog_version_ = std::move(version);
@@ -101,28 +128,37 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   }
 
   /**
-   * @brief Get the catalog version requested for the partitions.
-   * @return The catalog version, or boost::none if not set.
+   * @brief Gets a catalog version for the request.
+   *
+   * @return The catalog version or `boost::none` if the catalog version is not
+   * set.
    */
   inline const boost::optional<std::int64_t>& GetVersion() const {
     return catalog_version_;
   }
 
   /**
-   * @brief BillingTag is an optional free-form tag which is used for
-   * grouping billing records together. If supplied, it must be between 4 - 16
-   * characters, contain only alpha/numeric ASCII characters  [A-Za-z0-9].
-   * @return the billing tag, or boost::none if not set.
+   * @brief Gets a billing tag to group billing records together.
+   *
+   * The billing tag is an optional free-form tag that is used for grouping
+   * billing records together. If supplied, it must be 4–16 characters
+   * long and contain only alphanumeric ASCII characters [A-Za-z0-9].
+   *
+   * @return The `BillingTag` string or `boost::none` if the billing tag is not
+   * set.
    */
   inline const boost::optional<std::string>& GetBillingTag() const {
     return billing_tag_;
   }
 
   /**
-   * @brief Sets the billing tag to be used for the request(s).
-   * @see GetBillingTag() for usage and format.
-   * @param tag A string or boost::none.
-   * @return a reference to the updated PrefetchTilesRequest.
+   * @brief Sets the billing tag for the request.
+   *
+   * @see `GetBillingTag()` for usage and format.
+   *
+   * @param tag The `BillingTag` string or `boost::none`.
+   *
+   * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
   inline PrefetchTilesRequest& WithBillingTag(
       boost::optional<std::string> tag) {
@@ -131,10 +167,14 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   }
 
   /**
-   * @brief Sets the billing tag to be used for the request(s).
-   * @see GetBillingTag() for usage and format.
-   * @param tag rvalue reference to be moved.
-   * @return a reference to the updated PrefetchTilesRequest.
+   * @brief Sets the billing tag for the request.
+   *
+   * @see `GetBillingTag()` for usage and format.
+   *
+   * @param tag The rvalue reference to the `BillingTag` string or
+   * `boost::none`.
+   *
+   * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
   inline PrefetchTilesRequest& WithBillingTag(std::string&& tag) {
     billing_tag_ = std::move(tag);
@@ -142,9 +182,11 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   }
 
   /**
-   * @brief Creates readable format for the request.
-   * @param layer_id Layer ID request is used for.
-   * @return string representation of the request.
+   * @brief Creates a readable format for the request.
+   *
+   * @param layer_id The ID of the layer that is used for the request.
+   *
+   * @return A string representation of the request.
    */
   inline std::string CreateKey(const std::string& layer_id) const {
     std::stringstream out;
