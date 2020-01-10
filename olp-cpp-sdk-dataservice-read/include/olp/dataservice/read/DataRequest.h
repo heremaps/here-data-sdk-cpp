@@ -33,11 +33,11 @@ namespace read {
 
 /**
  * @brief The DataRequest class encapsulates the fields required to
- * request the data for a given catalog and layer and partition (aka tile).
+ * request the data for a given catalog and layer and partition.
  *
- * Layer Id is required, and either Partition Id or Data Handle must be
- * provided. If both Partition Id and Data Handle are set in the request, the
- * Request fails with an ErrorCode::InvalidRequest Error.
+ * Either Partition Id or Data Handle must be provided. If both Partition Id and
+ * Data Handle are set in the request, the Request fails with an
+ * ErrorCode::PreconditionFailed Error.
  */
 class DATASERVICE_READ_API DataRequest final {
  public:
@@ -210,7 +210,6 @@ class DATASERVICE_READ_API DataRequest final {
   }
 
  private:
-  std::string layer_id_;
   boost::optional<std::string> partition_id_;
   boost::optional<int64_t> catalog_metadata_version_;
   boost::optional<std::string> data_handle_;
