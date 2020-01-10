@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,10 @@
  * SPDX-License-Identifier: Apache-2.0
  * License-Filename: LICENSE
  */
-#include <future>
-#include <iostream>
+
+#include "ReadExample.h"
 
 #include <olp/authentication/TokenProvider.h>
-
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/HRN.h>
@@ -28,14 +27,13 @@
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
-
 #include <olp/dataservice/read/CatalogClient.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 
+#include <future>
+#include <iostream>
+
 namespace {
-const std::string kKeyId("");      // your here.access.key.id
-const std::string kKeySecret("");  // your here.access.key.secret
-const std::string kCatalogHRN("hrn:here:data::olp-here-test:edge-example-catalog");
 constexpr size_t kMaxLayers(5);
 constexpr size_t kMaxPartitions(5);
 constexpr auto kLogTag = "read-example";
@@ -120,7 +118,7 @@ bool HandleDataResponse(
 }
 }  // namespace
 
-int RunExample() {
+int RunExampleRead(const AccessKey& access_key, const std::string& catalog) {
   // Create a task scheduler instance
   std::shared_ptr<olp::thread::TaskScheduler> task_scheduler =
       olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
@@ -137,7 +135,7 @@ int RunExample() {
 
   // Initialize authentication settings.
   olp::authentication::Settings settings{
-      read_credentials_result.get_value_or({kKeyId, kKeySecret})};
+      read_credentials_result.get_value_or({access_key.id, access_key.secret})};
   settings.task_scheduler = task_scheduler;
   settings.network_request_handler = http_client;
 
@@ -159,7 +157,7 @@ int RunExample() {
   {  // Retrieve the catalog metadata
     // Create a CatalogClient with appropriate HRN and settings.
     olp::dataservice::read::CatalogClient catalog_client(
-        olp::client::HRN(kCatalogHRN), client_settings);
+        olp::client::HRN(catalog), client_settings);
 
     // Create CatalogRequest
     auto request =
@@ -178,14 +176,14 @@ int RunExample() {
 
   // Create appropriate layer client with HRN, layer name and settings.
   olp::dataservice::read::VersionedLayerClient layer_client(
-      olp::client::HRN(kCatalogHRN), first_layer_id, client_settings);
+      olp::client::HRN(catalog), first_layer_id, client_settings);
 
   std::string first_partition_id;
   if (!first_layer_id.empty()) {
     // Retrieve the partitions metadata
     // Create a PartitionsRequest with appropriate LayerId
-    auto request = olp::dataservice::read::PartitionsRequest()
-                       .WithBillingTag(boost::none);
+    auto request =
+        olp::dataservice::read::PartitionsRequest().WithBillingTag(boost::none);
 
     // Run the PartitionsRequest
     auto future = layer_client.GetPartitions(request);

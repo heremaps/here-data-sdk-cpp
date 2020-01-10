@@ -35,6 +35,7 @@ The core module offers the following platform-independent functionality:
 * **thread** - utility classes commonly used in concurrent programming
 * **utils** - some utilities such as base64 or LRU cache
 
+For more information on how to use cache, see the [cache example](dataservice-cache-example.md).
 #### olp-cpp-sdk-authentication
 
 The authentication module wraps the HERE Authentication and Authorization REST API. It's an OAuth 2.0 compliant REST API that lets you obtain short-lived access tokens that are used to authenticate requests to HERE services. Tokens expire after 24 hours.

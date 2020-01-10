@@ -92,8 +92,7 @@ endif()
 
 # Add example
 if(OLP_SDK_BUILD_EXAMPLES)
-    add_subdirectory(examples/dataservice-read)
-    add_subdirectory(examples/dataservice-write)
+    add_subdirectory(examples)
 endif()
 
 # Add uninstall script

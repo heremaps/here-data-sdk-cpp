@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,4 +19,10 @@
 
 #pragma once
 
-int RunExample();
+#include <string>
+
+struct AccessKey
+{
+  std::string id;      // Your here.access.key.id
+  std::string secret;  // Your here.access.key.secret
+};

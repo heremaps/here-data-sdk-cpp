@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,35 +17,31 @@
  * License-Filename: LICENSE
  */
 
-#include "example.h"
-
-#include <fstream>
-#include <iostream>
+#include "WriteExample.h"
 
 #include <olp/authentication/TokenProvider.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/logging/Log.h>
-
 #include <olp/dataservice/write/StreamLayerClient.h>
 #include <olp/dataservice/write/model/PublishDataRequest.h>
+
+#include <fstream>
+#include <iostream>
 
 using namespace olp::dataservice::write;
 using namespace olp::dataservice::write::model;
 
 namespace {
-const std::string kKeyId("");            // your here.access.key.id
-const std::string kKeySecret("");        // your here.access.key.secret
-const std::string kCatalogHRN("");       // your catalog HRN where to write to
-const std::string kLayer("");            // layer name inside catalog to use
 const std::string kData("hello world");  // data to write
 
 constexpr auto kLogTag = "write-example";
 constexpr size_t kPublishRequestsSize = 5u;
 }  // namespace
 
-int RunExample() {
+int RunExampleWrite(const AccessKey& access_key, const std::string& catalog,
+                    const std::string& layer_id) {
   auto buffer = std::make_shared<std::vector<unsigned char>>(std::begin(kData),
                                                              std::end(kData));
 
@@ -58,7 +54,7 @@ int RunExample() {
       OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
 
   // Initialize authentication settings
-  olp::authentication::Settings settings({kKeyId, kKeySecret});
+  olp::authentication::Settings settings({access_key.id, access_key.secret});
   settings.task_scheduler = std::move(task_scheduler);
   settings.network_request_handler = http_client;
 
@@ -75,11 +71,11 @@ int RunExample() {
 
   auto stream_client_settings = StreamLayerClientSettings{};
   auto client = std::make_shared<StreamLayerClient>(
-      olp::client::HRN{kCatalogHRN}, std::move(stream_client_settings),
+      olp::client::HRN{catalog}, std::move(stream_client_settings),
       std::move(client_settings));
 
   // Create a publish data request
-  auto request = PublishDataRequest().WithData(buffer).WithLayerId(kLayer);
+  auto request = PublishDataRequest().WithData(buffer).WithLayerId(layer_id);
 
   // Single publish to stream layer
   {

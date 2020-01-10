@@ -41,8 +41,11 @@ find_package(leveldb REQUIRED)
 find_package(Threads REQUIRED)
 
 add_library(@OLP_SDK_EXAMPLE_TARGET_NAME@ SHARED
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/example.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/example.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/Examples.h
+	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/ReadExample.h
+	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/WriteExample.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/WriteExample.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/ReadExample.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/MainActivityNative.cpp)
 
 # Find and copy the OlpHttpClient.jar into the corresponding libs directory

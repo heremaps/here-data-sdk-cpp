@@ -19,7 +19,8 @@
 
 #import "ViewController.h"
 
-#include "example.h"
+#include "ReadExample.h"
+#include "WriteExample.h"
 
 @interface ViewController ()
 
@@ -44,7 +45,7 @@
   __weak ViewController* weakSelf = self;
   dispatch_async(
       dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
-        __block int result = RunExample();
+        __block int result = RunExampleRead({}, "") | RunExampleWrite({}, "", "");
 
         // Display the results in the main thread
         dispatch_async(dispatch_get_main_queue(), ^{
