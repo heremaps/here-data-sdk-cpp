@@ -28,6 +28,9 @@ namespace olp {
 namespace dataservice {
 namespace read {
 
+/**
+ * @brief A helper class for the 'ApiResponse` class.
+ */
 class DATASERVICE_READ_API PrefetchTileNoError {
  public:
   PrefetchTileNoError() = default;
@@ -36,43 +39,68 @@ class DATASERVICE_READ_API PrefetchTileNoError {
 };
 
 /**
- * @brif Class representing the result of pre-fetch operation.
- * It will contain either a successful result represented as \c geo::TileKey
- * object or will contain the failure error.
+ * @brief Represents the result of a prefetch operation.
+ *
+ * If successful, contains the \c geo::TileKey object; otherwise, contains
+ * the failure error.
  */
 class DATASERVICE_READ_API PrefetchTileResult
     : public client::ApiResponse<PrefetchTileNoError, client::ApiError> {
  public:
+  /**
+   * @brief A parent type of the current `PrefetchTileResult` class.
+   */
   using base_type = client::ApiResponse<PrefetchTileNoError, client::ApiError>;
 
   PrefetchTileResult() : base_type() {}
 
   /**
-   * @brief PrefetchTileResult Constructor for a successfully executed request.
+   * @brief Creates the `PrefetchTileResult` instance if the corresponding
+   * response was successful.
+   *
+   * @param tile The `TileKey` instance that addresses a tile in a quadtree.
+   * @param result The `PrefetchTileNoError` instance.
    */
   PrefetchTileResult(const geo::TileKey& tile,
                      const PrefetchTileNoError& result)
       : base_type(result), tile_key_(tile) {}
 
   /**
-   * @brief PrefetchTileResult Constructor if request unsuccessfully executed
+   * @brief Creates the `PrefetchTileResult` instance if the corresponding
+   * response was not successful.
+   *
+   * @param tile The `TileKey` instance that addresses a tile in a quadtree.
+   * @param error The `ApiError` instance that contains information about the
+   * error.
    */
   PrefetchTileResult(const geo::TileKey& tile, const client::ApiError& error)
       : base_type(error), tile_key_(tile) {}
 
   /**
-   * @brief PrefetchTileResult Copy constructor.
+   * @brief Creates the `PrefetchTileResult` instance that is a copy of the `r`
+   * parameter.
+   *
+   * @param r The `PrefetchTileResult` instance that contains a tile key and
+   * error information.
    */
   PrefetchTileResult(const PrefetchTileResult& r)
       : base_type(r), tile_key_(r.tile_key_) {}
 
   /**
-   * @brief ApiResponse Constructor if request unsuccessfully executed
+   * @brief Creates the `ApiResponse` instance if the corresponding response was
+   * not successful.
+   *
+   * @param error The `ApiError` instance that contains information about
+   * the error.
    */
   PrefetchTileResult(const client::ApiError& error) : base_type(error) {}
 
  public:
-  /// The pre-fetched tile key.
+  /**
+   * @brief The `TileKey` instance that addresses a tile in a quadtree.
+   *
+   * @param tile_key_ The prefetched tile key.
+   */
   geo::TileKey tile_key_;
 };
 

@@ -19,29 +19,30 @@
 
 #pragma once
 
-
 namespace olp {
 namespace dataservice {
 namespace read {
 enum FetchOptions {
 
   /**
-   * Default option. Queries network if resource is not found in cache.
+   * A default option. Queries the network if the requested resource is not
+   * found in the cache.
    */
   OnlineIfNotFound,
 
   /**
-   * Skips cache lookups and queries network right away.
+   * Skips cache lookups and queries the network right away.
    */
   OnlineOnly,
 
   /**
-   * Returns immediately if cache lookup fails.
+   * Returns immediately if a cache lookup fails.
    */
   CacheOnly,
 
   /**
-   * Returns cached resource if found and updates cache in the background.
+   * Returns the requested cached resource if it is found and updates the cache
+   * in the background.
    */
   CacheWithUpdate
 };
