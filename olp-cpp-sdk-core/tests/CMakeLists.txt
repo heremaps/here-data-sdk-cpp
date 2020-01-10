@@ -41,6 +41,7 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./logging/DisabledLoggingTest.cpp
     ./logging/FileAppenderTest.cpp
     ./logging/FilterGroupTest.cpp
+    ./logging/FormatTest.cpp
     ./logging/MessageFormatterTest.cpp
     ./logging/MockAppender.cpp
 
