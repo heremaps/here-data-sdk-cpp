@@ -25,8 +25,8 @@ function(gen_android_example_application
         message(FATAL_ERROR "Unsupported platform!")
     endif()
 
-    # Copy all the files from helpers directory except the *.in files
-    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/android/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/android)
+    # Copy all the files from android directory except the *.in files
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/android/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/android)
     file(GLOB_RECURSE EXCLUDED_IN_FILES ${CMAKE_CURRENT_BINARY_DIR}/android/*.in)
     file(REMOVE ${EXCLUDED_IN_FILES})
 
@@ -62,53 +62,66 @@ function(gen_android_example_application
     endif()
 
     configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/android/app/build.gradle.in
+        ${CMAKE_CURRENT_SOURCE_DIR}/android/app/build.gradle.in
         ${CMAKE_CURRENT_BINARY_DIR}/android/app/build.gradle
         @ONLY
     )
 
     configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/android/app/CMakeLists.txt.in
+        ${CMAKE_CURRENT_SOURCE_DIR}/android/app/CMakeLists.txt.in
         ${CMAKE_CURRENT_BINARY_DIR}/android/app/CMakeLists.txt
         @ONLY
     )
 
     configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/android/app/src/main/AndroidManifest.xml.in
+        ${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/AndroidManifest.xml.in
         ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/AndroidManifest.xml
         @ONLY
     )
 
     configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/android/app/src/main/cpp/MainActivityNative.cpp.in
+        ${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/cpp/MainActivityNative.cpp.in
         ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/cpp/MainActivityNative.cpp
         @ONLY
     )
 
     configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/android/app/src/main/java/MainActivity.java.in
+        ${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/java/MainActivity.java.in
         ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/java/com/here/android/olp/${OLP_SDK_EXAMPLE_PACKAGE_NAME}/MainActivity.java
         @ONLY
     )
 
     configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/../helpers/android/app/src/main/res/values/strings.xml.in
+        ${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/res/values/strings.xml.in
         ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/res/values/strings.xml
         @ONLY
     )
 
-    # Symlink (or copy - depending on the platform) the example.h / example.cpp files to the gradle fodler
-    set(OLP_SDK_EXAMPLE_H_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/example.h)
-    set(OLP_SDK_EXAMPLE_H_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/cpp/example.h)
-    set(OLP_SDK_EXAMPLE_CPP_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/example.cpp)
-    set(OLP_SDK_EXAMPLE_CPP_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/cpp/example.cpp)
+    # Symlink (or copy - depending on the platform) the *.h / *.cpp files to the gradle fodler
+    set(OLP_SDK_EXAMPLE_H_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Examples.h)
+    set(OLP_SDK_EXAMPLE_H_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/cpp/Examples.h)
+    set(OLP_SDK_EXAMPLE_READ_H_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/ReadExample.h)
+    set(OLP_SDK_EXAMPLE_READ_H_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/cpp/ReadExample.h)
+    set(OLP_SDK_EXAMPLE_WRITE_H_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/WriteExample.h)
+    set(OLP_SDK_EXAMPLE_WRITE_H_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/cpp/WriteExample.h)
+    set(OLP_SDK_EXAMPLE_CPP_WRITE_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/WriteExample.cpp)
+    set(OLP_SDK_EXAMPLE_CPP_READ_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/ReadExample.cpp)
+    set(OLP_SDK_EXAMPLE_CPP_CACHE_FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/ProtectedCacheExample.cpp)
+    set(OLP_SDK_EXAMPLE_CPP_WRITE_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/cpp/WriteExample.cpp)
+    set(OLP_SDK_EXAMPLE_CPP_READ_FILE_DST ${CMAKE_CURRENT_BINARY_DIR}/android/app/src/main/cpp/ReadExample.cpp)
 
     if(CMAKE_HOST_WIN32 AND NOT CYGWIN AND NOT MSYS)
         execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${OLP_SDK_EXAMPLE_H_FILE_SRC} ${OLP_SDK_EXAMPLE_H_FILE_DST})
-        execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${OLP_SDK_EXAMPLE_CPP_FILE_SRC} ${OLP_SDK_EXAMPLE_CPP_FILE_DST})
+        execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${OLP_SDK_EXAMPLE_READ_H_FILE_SRC} ${OLP_SDK_EXAMPLE_READ_H_FILE_DST})
+        execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${OLP_SDK_EXAMPLE_WRITE_H_FILE_SRC} ${OLP_SDK_EXAMPLE_WRITE_H_FILE_DST})
+        execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${OLP_SDK_EXAMPLE_CPP_WRITE_FILE_SRC} ${OLP_SDK_EXAMPLE_CPP_WRITE_FILE_DST})
+        execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${OLP_SDK_EXAMPLE_CPP_READ_FILE_SRC} ${OLP_SDK_EXAMPLE_CPP_READ_FILE_DST})
     else(CMAKE_HOST_WIN32 AND NOT CYGWIN AND NOT MSYS)
         execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${OLP_SDK_EXAMPLE_H_FILE_SRC} ${OLP_SDK_EXAMPLE_H_FILE_DST})
-        execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${OLP_SDK_EXAMPLE_CPP_FILE_SRC} ${OLP_SDK_EXAMPLE_CPP_FILE_DST})
+        execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${OLP_SDK_EXAMPLE_READ_H_FILE_SRC} ${OLP_SDK_EXAMPLE_READ_H_FILE_DST})
+        execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${OLP_SDK_EXAMPLE_WRITE_H_FILE_SRC} ${OLP_SDK_EXAMPLE_WRITE_H_FILE_DST})
+        execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${OLP_SDK_EXAMPLE_CPP_WRITE_FILE_SRC} ${OLP_SDK_EXAMPLE_CPP_WRITE_FILE_DST})
+        execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${OLP_SDK_EXAMPLE_CPP_READ_FILE_SRC} ${OLP_SDK_EXAMPLE_CPP_READ_FILE_DST})
     endif(CMAKE_HOST_WIN32 AND NOT CYGWIN AND NOT MSYS)
 
 endfunction()

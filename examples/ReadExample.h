@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,4 +19,14 @@
 
 #pragma once
 
-int RunExample();
+#include "Examples.h"
+
+/**
+ * @brief Dataservice read example. Authenticate client using access key id and
+ * secret. Get catalog and partition metadata, as well as partition data using
+ * the HERE Open Location Platform.
+ * @param access_key here.access.key.id and here.access.key.secret.
+ * @param The HERE Resource Name (HRN) of the catalog from which you want to read data.
+ * @return result of publish data(0 - if succeed)
+ */
+int RunExampleRead(const AccessKey& access_key, const std::string& catalog);

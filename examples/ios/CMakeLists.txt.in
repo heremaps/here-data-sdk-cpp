@@ -24,8 +24,10 @@ endif()
 project(@OLP_SDK_EXAMPLE_TARGET_NAME@ VERSION 1.1.0)
 
 add_executable(@OLP_SDK_EXAMPLE_TARGET_NAME@
-                ${CMAKE_CURRENT_SOURCE_DIR}/example.h
-                ${CMAKE_CURRENT_SOURCE_DIR}/example.cpp)
+                ${CMAKE_CURRENT_SOURCE_DIR}/ReadExample.h
+                ${CMAKE_CURRENT_SOURCE_DIR}/WriteExample.h
+                ${CMAKE_CURRENT_SOURCE_DIR}/WriteExample.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/ReadExample.cpp)
 
 find_library(CORE_FOUNDATION Foundation)
 find_library(CF_NETWORK_FRAMEWORK CFNetwork)

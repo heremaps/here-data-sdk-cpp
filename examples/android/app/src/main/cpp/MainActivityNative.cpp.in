@@ -24,17 +24,24 @@
 
 #include <olp/core/platform/Context.h>
 
-#include "example.h"
+#include "ReadExample.h"
+#include "WriteExample.h"
 
 namespace {
 std::unique_ptr<olp::context::Context::Scope> gNetworkScope;
 JavaVM* gJavaVM = nullptr;
+const AccessKey access_key{
+    "", ""};  // Your access key ID and access key secret.
+const std::string catalog;     // The HRN of the catalog to which you want to publish data.
+const std::string layer_id;    // The ID of the layer inside the catalog to which you
+                               // want to publish data.
+
 }  // namespace
 
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_here_android_olp_@OLP_SDK_EXAMPLE_PACKAGE_JNI_NAME@_MainActivity_runExampleNative(
     JNIEnv* env, jobject /* this */) {
-  const auto result = RunExample();
+  const auto result = RunExampleRead(access_key, catalog) | RunExampleWrite(access_key, catalog, layer_id) ;
 
   return env->NewStringUTF(result == 0 ? "@OLP_SDK_SUCCESSFUL_EXAMPLE_EXECUTION_STRING@"
                                        : "@OLP_SDK_FAILING_EXAMPLE_EXECUTION_STRING@");

@@ -7,11 +7,11 @@ Before you run the example project, authorize to HERE OLP:
 1. On the [Apps & keys](https://platform.here.com/admin/apps) page, copy your application access key ID and access key secret.
    For instructions on how to get the access key ID and access key secret, see the [Get Credentials](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html) section in the Terms and Permissions User Guide.
 
-2. In `examples/dataservice-read/example.cpp`, replace the placeholders with your access key ID and access key secret.
+2. In `examples/main.cpp`, replace the placeholders with your access key ID, access key secret, and Here Resource Name (HRN) of the catalog.
+   **Note:**  You can also specify these values using the command line options.
 
    ```cpp
-   const std::string kKeyId(""); // your here.access.key.id
-   const std::string kKeySecret(""); // your here.access.key.secret
+   AccessKey access_key{};  // Your access key ID and access key secret.
    ```
 
 ## Build and Run on Linux
@@ -28,15 +28,19 @@ To build and run the example project on Linux:
 2. In the **build** folder, build the example project.
 
    ```bash
-   cmake --build . --target dataservice-read-example
+   cmake --build . --target dataservice-example 
    ```
 
 3. Execute the example project.
 
    ```bash
-   ./examples/dataservice-read/dataservice-read-example
+   ./examples/dataservice-example --example read --key_id "here.access.key.id" --key_secret "here.access.key.secret" --catalog "catalog"
    ```
 
+4. (Optional) To run the example with other parameters, run the help command, and then select the needed parameter. 
+   ```bash
+   ./examples/dataservice-example --help
+   ```
 After building and running the example project, you see the following information:
 
 - `edge-example-catalog` &ndash; a catalog description
@@ -64,7 +68,7 @@ To integrate the HERE OLP SDK for C++ libraries in the Android example project:
 Before you integrate the HERE OLP SDK for C++ libraries in the Android example project:
 
 1. Set up the Android environment.
-2. Replace the placeholders in `examples/dataservice-read/example.cpp` with your application access key ID and access key secret.
+2.  In `examples/android/app/src/main/cpp/MainActivityNative.cpp.in`, replace the placeholders with your application access key ID, access key secret, and catalog HRN and specify that the example should run `RunExampleRead`.
    For instructions on how to get the access key ID and access key secret, see the [Get Credentials](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html) section in the Terms and Permissions User Guide.
 
 ### <a name="build-sdk-android"></a>Build the HERE OLP SDK for C++
@@ -82,7 +86,7 @@ To build the HERE OLP SDK for C++ on Android:
    cmake .. -DCMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DOLP_SDK_BUILD_EXAMPLES=ON -DOLP_SDK_ENABLE_TESTING=OFF
    ```
 
-   The `CMake` command generates a `Gradle` project in the `build/examples/dataservice-read/android` folder.
+   The `CMake` command generates a `Gradle` project in the `build/examples/android` folder.
 
 5. Install the HERE OLP SDK for C++ libraries into the **sysroot** directory.
 
@@ -95,11 +99,11 @@ To build the HERE OLP SDK for C++ on Android:
 
 To build and run the APK:
 
-1. In the Android Studio IDE, open the `build/examples/dataservice-read/android/build.gradle` script.
-2. Provide your application access key ID and access key secret.
-3. Install and run the `dataservice_read_example` APK.
+1. In the Android Studio IDE, open the `build/examples/android/build.gradle` script.
+2. Provide your application access key ID, access key secret, and catalog HRN.
+3. Install and run the `dataservice_example` APK.
 
-The main screen displays the following message: "Reading the partition data from the specified catalog completed successfully."
+The main screen displays the following message: "Example has finished successfully"
 
 ## Build and run on iOS
 
@@ -116,7 +120,7 @@ Before you integrate the HERE OLP SDK for C++ libraries in the iOS example proje
 1. To set up the iOS development environment, install the `XCode` and command-line tools.
 2. Install external dependencies.
    For information on dependencies and installation instructions, see the [related section](https://github.com/heremaps/here-olp-sdk-cpp#dependencies) in the README.md file.
-3. Replace the placeholders in `examples/dataservice-read/example.cpp` with your application access key ID and access key secret.
+3. In `examples/ios/ViewController.mm`, replace the placeholders with your application access key ID, access key secret, and catalog HRN and specify that the example should run `RunExampleRead`.
    For instructions on how to get the access key ID and access key secret, see the [Get Credentials](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html) section in the Terms and Permissions User Guide.
 
 ### <a name="build-sdk-ios"></a>Build the HERE OLP SDK for C++
@@ -145,9 +149,9 @@ To build an run the example application on iOS:
    open olp-cpp-sdk.xcodeproj
    ```
 
-2. In the `XCode` project, from the list of schemes, select the `dataservice-read-example` scheme.
+2. In the `XCode` project, from the list of schemes, select the `dataservice-example` scheme.
 
-3. In the `dataservice-read-example` target, specify your application access key ID and access key secret.
+3. In the `dataservice-example` target, specify your application access key ID and access key secret.
 
 4. Build and run the example application.
 
@@ -167,10 +171,10 @@ To authenticate using client credentials:
 
    You get the `credentials.properties` file.
 
-2. Initialize the authentication settings using the **here.access.key.іd** and **here.access.key.secret** from the `credentials.properties` file as `kKeyId` and `kKeySecret` respectively.
+2. Initialize the authentication settings using the **here.access.key.іd** and **here.access.key.secret** from the `credentials.properties` file as `access_key.id` and `access_key.secret` respectively.
 
    ```cpp
-   olp::authentication::Settings settings({kKeyId, kKeySecret});
+   olp::authentication::Settings  settings({access_key.id, access_key.secret});
    settings.task_scheduler = task_scheduler;
    settings.network_request_handler = http_client;
    ```
@@ -250,7 +254,7 @@ To get catalog metadata:
 
    ```cpp
    olp::dataservice::read::CatalogClient catalog_client(
-           olp::client::HRN(kCatalogHRN), client_settings);
+           olp::client::HRN(catalog), client_settings);
    ```
 
 4. Create the `CatalogRequest` object.
@@ -340,7 +344,7 @@ To get partition metadata:
 
    ```cpp
    olp::dataservice::read::VersionedLayerClient layer_client(
-   olp::client::HRN(kCatalogHRN), layer_id, client_settings);
+   olp::client::HRN(catalog), layer_id, client_settings);
    ```
 
 4. Create the `PartitionsRequest` object.
@@ -406,7 +410,7 @@ To get data from the versioned layer:
 
    ```cpp
    olp::dataservice::read::VersionedLayerClient layer_client(
-   olp::client::HRN(kCatalogHRN), layer_id, client_settings);
+   olp::client::HRN(catalog), layer_id, client_settings);
    ```
 
 4. Create the `DataRequest` object with the layer version and partition ID.

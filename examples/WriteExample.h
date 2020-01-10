@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,17 @@
  * License-Filename: LICENSE
  */
 
-#include "example.h"
+#pragma once
 
-int main(int argc, char** argv) {
-    return RunExample();
-}
+#include "Examples.h"
+
+/**
+ * @brief Dataservice write example. Authenticate client using access key id and
+ * secret. Publish data to some layer in HRN catalog.
+ * @param access_key Your access key ID and access key secret.
+ * @param The HERE Resource Name (HRN) of the catalog to which you want to publish data.
+ * @param layer_id The layer ID of the catalog to which you want to publish data.
+ * @return result of publish data(0 - if succeed)
+ */
+int RunExampleWrite(const AccessKey& access_key, const std::string& catalog,
+                    const std::string& layer_id);

@@ -28,10 +28,6 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain
 #cmake --build . # this is alternative option for build
 sudo make install -j$(nproc)
 
-pushd examples/dataservice-read/android
-sudo ./gradlew assemble
-popd
-
-pushd examples/dataservice-write/android
+pushd examples/android
 sudo ./gradlew assemble
 popd
