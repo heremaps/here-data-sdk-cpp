@@ -54,6 +54,11 @@ DataResponse DataRepository::GetVersionedData(
     const client::HRN& catalog, const std::string& layer_id,
     DataRequest request, client::CancellationContext context,
     client::OlpClientSettings settings) {
+  if (request.GetDataHandle() && request.GetPartitionId()) {
+    return ApiError(ErrorCode::PreconditionFailed,
+                    "Both data handle and partition id specified");
+  }
+
   if (!request.GetDataHandle()) {
     if (!request.GetVersion()) {
       // get latest version of the layer if it wasn't set by the user
@@ -164,6 +169,11 @@ DataResponse DataRepository::GetVolatileData(
     const client::HRN& catalog, const std::string& layer_id,
     DataRequest request, client::CancellationContext context,
     client::OlpClientSettings settings) {
+  if (request.GetDataHandle() && request.GetPartitionId()) {
+    return ApiError(ErrorCode::PreconditionFailed,
+                    "Both data handle and partition id specified");
+  }
+
   if (!request.GetDataHandle()) {
     auto partitions_response =
         repository::PartitionsRepository::GetPartitionById(

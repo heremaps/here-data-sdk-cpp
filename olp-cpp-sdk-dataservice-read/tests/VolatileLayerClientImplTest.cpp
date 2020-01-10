@@ -57,7 +57,8 @@ constexpr auto kHttpResponseNoPartition =
 
 constexpr auto kBlobDataHandle = R"(4eed6ed1-0d32-43b9-ae79-043cb4256432)";
 
-const std::string kCatalog = "hrn:here:data::olp-here-test:hereos-internal-test-v2";
+const std::string kCatalog =
+    "hrn:here:data::olp-here-test:hereos-internal-test-v2";
 const std::string kLayerId = "testlayer";
 const auto kHRN = olp::client::HRN::FromString(kCatalog);
 const auto kPartitionId = "269";
@@ -136,6 +137,25 @@ TEST(VolatileLayerClientImplTest, GetData) {
     ASSERT_TRUE(response.IsSuccessful());
 
     Mock::VerifyAndClearExpectations(network_mock.get());
+  }
+
+  {
+    SCOPED_TRACE("Get Data with PartitionId and DataHandle");
+    std::promise<DataResponse> promise;
+    std::future<DataResponse> future = promise.get_future();
+
+    auto token = client.GetData(
+        DataRequest()
+            .WithPartitionId(kPartitionId)
+            .WithDataHandle(kBlobDataHandle),
+        [&](DataResponse response) { promise.set_value(response); });
+
+    EXPECT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::PreconditionFailed);
   }
 
   {
