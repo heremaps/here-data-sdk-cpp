@@ -21,32 +21,35 @@
 
 #include <map>
 #include <memory>
+#include <string>
 #include <vector>
 
-#include <rapidjson/rapidjson.h>
 #include <boost/optional.hpp>
+#include <rapidjson/document.h>
 
 namespace olp {
 namespace serializer {
-inline void to_json(const std::string& x,
-                    rapidjson::Value& value,
+
+inline void to_json(const std::string& x, rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
   value.SetString(rapidjson::StringRef(x.c_str()), allocator);
 }
 
-inline void to_json(int64_t x,
-                    rapidjson::Value& value,
+inline void to_json(int32_t x, rapidjson::Value& value,
+                    rapidjson::Document::AllocatorType& allocator) {
+  value.SetInt(x);
+}
+
+inline void to_json(int64_t x, rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
   value.SetInt64(x);
 }
 
-inline void to_json(double x,
-                    rapidjson::Value& value,
+inline void to_json(double x, rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
   value.SetDouble(x);
 }
-inline void to_json(bool x,
-                    rapidjson::Value& value,
+inline void to_json(bool x, rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
   value.SetBool(x);
 }
@@ -59,8 +62,7 @@ inline void to_json(const std::shared_ptr<std::vector<unsigned char>>& x,
 }
 
 template <typename T>
-inline void to_json(const boost::optional<T>& x,
-                    rapidjson::Value& value,
+inline void to_json(const boost::optional<T>& x, rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
   if (x) {
     to_json(x.get(), value, allocator);
@@ -70,8 +72,7 @@ inline void to_json(const boost::optional<T>& x,
 }
 
 template <typename T>
-inline void to_json(const std::map<std::string, T>& x,
-                    rapidjson::Value& value,
+inline void to_json(const std::map<std::string, T>& x, rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   for (auto itr = x.begin(); itr != x.end(); ++itr) {
@@ -83,12 +84,11 @@ inline void to_json(const std::map<std::string, T>& x,
 }
 
 template <typename T>
-inline void to_json(const std::vector<T>& x,
-                    rapidjson::Value& value,
+inline void to_json(const std::vector<T>& x, rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
   value.SetArray();
-  for (typename std::vector<T>::const_iterator itr = x.begin();
-       itr != x.end(); ++itr) {
+  for (typename std::vector<T>::const_iterator itr = x.begin(); itr != x.end();
+       ++itr) {
     rapidjson::Value item_value;
     to_json(*itr, item_value, allocator);
     value.PushBack(item_value, allocator);
@@ -96,8 +96,7 @@ inline void to_json(const std::vector<T>& x,
 }
 
 template <typename T>
-inline void serialize(const std::string& key,
-                      const T& x,
+inline void serialize(const std::string& key, const T& x,
                       rapidjson::Value& value,
                       rapidjson::Document::AllocatorType& allocator) {
   rapidjson::Value item_value;
@@ -110,5 +109,4 @@ inline void serialize(const std::string& key,
 }
 
 }  // namespace serializer
-
 }  // namespace olp

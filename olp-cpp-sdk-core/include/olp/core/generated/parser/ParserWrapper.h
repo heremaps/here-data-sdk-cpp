@@ -21,15 +21,21 @@
 
 #include <map>
 #include <memory>
+#include <string>
 #include <vector>
 
-#include <rapidjson/rapidjson.h>
 #include <boost/optional.hpp>
+#include <rapidjson/rapidjson.h>
 
 namespace olp {
 namespace parser {
+
 inline void from_json(const rapidjson::Value& value, std::string& x) {
   x = value.GetString();
+}
+
+inline void from_json(const rapidjson::Value& value, int32_t& x) {
+  x = value.GetInt();
 }
 
 inline void from_json(const rapidjson::Value& value, int64_t& x) {
@@ -89,5 +95,4 @@ inline T parse(const rapidjson::Value& value, const std::string& name) {
 }
 
 }  // namespace parser
-
 }  // namespace olp
