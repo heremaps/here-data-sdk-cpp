@@ -24,9 +24,8 @@
 #include <vector>
 
 #include <olp/core/geo/tiling/TileKey.h>
-#include <olp/core/porting/deprecated.h>
+#include <olp/dataservice/read/DataServiceReadApi.h>
 #include <boost/optional.hpp>
-#include "DataServiceReadApi.h"
 
 namespace olp {
 namespace dataservice {

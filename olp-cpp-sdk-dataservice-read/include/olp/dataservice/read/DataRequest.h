@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,9 @@
 #include <sstream>
 #include <string>
 
-#include <olp/core/porting/deprecated.h>
+#include <olp/dataservice/read/DataServiceReadApi.h>
+#include <olp/dataservice/read/FetchOptions.h>
 #include <boost/optional.hpp>
-#include "DataServiceReadApi.h"
-#include "FetchOptions.h"
 
 namespace olp {
 namespace dataservice {
@@ -42,6 +41,25 @@ namespace read {
 class DATASERVICE_READ_API DataRequest final {
  public:
   /**
+   * @brief WithVersion sets the catalog metadata version of the request.
+   * @param catalog_version The catalog metadta version of the requested
+   * partions. If no version is specified, the latest will be retrieved.
+   * @return a reference to the updated PartitionsRequest.
+   */
+  inline DataRequest& WithVersion(boost::optional<int64_t> catalog_version) {
+    catalog_version_ = catalog_version;
+    return *this;
+  }
+
+  /**
+   * @brief Get the catalog metadata version requested for the partitions.
+   * @return the billing tag, or boost::none if not set.
+   */
+  inline const boost::optional<std::int64_t>& GetVersion() const {
+    return catalog_version_;
+  }
+
+  /**
    * @brief GetPartitionId gets the request's Partition Id.
    * @return the partition id.
    */
@@ -53,12 +71,12 @@ class DATASERVICE_READ_API DataRequest final {
    * @brief WithPartitionId sets the request's Partition Id. If the partition
    * cannot be found in the layer, the callback will come back with an empty
    * response (null for data and error)
-   * @param partitionId the Partition Id.
+   * @param partition_id the Partition Id.
    * @return a reference to the updated DataRequest.
    */
   inline DataRequest& WithPartitionId(
-      boost::optional<std::string> partitionId) {
-    partition_id_ = partitionId;
+      boost::optional<std::string> partition_id) {
+    partition_id_ = std::move(partition_id);
     return *this;
   }
 
@@ -66,32 +84,12 @@ class DATASERVICE_READ_API DataRequest final {
    * @brief WithPartitionId sets the request's Partition Id. If the partition
    * cannot be found in the layer, the callback will come back with an empty
    * response (null for data and error).
-   * @param partitionId the Partition Id.
+   * @param partition_id the Partition Id.
    * @return a reference to the updated DataRequest.
    */
-  inline DataRequest& WithPartitionId(std::string&& partitionId) {
-    partition_id_ = std::move(partitionId);
+  inline DataRequest& WithPartitionId(std::string&& partition_id) {
+    partition_id_ = std::move(partition_id);
     return *this;
-  }
-
-  /**
-   * @brief WithVersion sets the catalog metadata version of the request.
-   * @param catalogMetadataVersion The catalog metadta version of the requested
-   * partions. If no version is specified, the latest will be retrieved.
-   * @return a reference to the updated PartitionsRequest.
-   */
-  inline DataRequest& WithVersion(
-      boost::optional<int64_t> catalogMetadataVersion) {
-    catalog_metadata_version_ = catalogMetadataVersion;
-    return *this;
-  }
-
-  /**
-   * @brief Get the catalog metadata version requested for the partitions.
-   * @return the billing tag, or boost::none if not set.
-   */
-  inline const boost::optional<std::int64_t>& GetVersion() const {
-    return catalog_metadata_version_;
   }
 
   /**
@@ -106,11 +104,11 @@ class DATASERVICE_READ_API DataRequest final {
    * @brief WithDataHandle sets the request's Data Handle. If the data handle
    * cannot be found in the layer, the callback will come back with an empty
    * response (null for data and error).
-   * @param dataHandle the Data Handle.
+   * @param data_handle the Data Handle.
    * @return a reference to the updated DataRequest.
    */
-  inline DataRequest& WithDataHandle(boost::optional<std::string> dataHandle) {
-    data_handle_ = dataHandle;
+  inline DataRequest& WithDataHandle(boost::optional<std::string> data_handle) {
+    data_handle_ = std::move(data_handle);
     return *this;
   }
 
@@ -118,11 +116,11 @@ class DATASERVICE_READ_API DataRequest final {
    * @brief WithDataHandle sets the request's Data Handle. If the data handle
    * cannot be found in the layer, the callback will come back with an empty
    * response (null for data and error).
-   * @param dataHandle the Data Handle.
+   * @param data_handle the Data Handle.
    * @return a reference to the updated DataRequest.
    */
-  inline DataRequest& WithDataHandle(std::string&& dataHandle) {
-    data_handle_ = std::move(dataHandle);
+  inline DataRequest& WithDataHandle(std::string&& data_handle) {
+    data_handle_ = std::move(data_handle);
     return *this;
   }
 
@@ -139,23 +137,22 @@ class DATASERVICE_READ_API DataRequest final {
   /**
    * @brief WithBillingTag sets the billing tag. See ::GetBillingTag() for usage
    * and format.
-   * @param billingTag a string or boost::none
+   * @param tag a string or boost::none
    * @return a reference to the updated DataRequest
    */
-  inline DataRequest& WithBillingTag(
-      const boost::optional<std::string>& billingTag) {
-    billing_tag_ = billingTag;
+  inline DataRequest& WithBillingTag(const boost::optional<std::string>& tag) {
+    billing_tag_ = tag;
     return *this;
   }
 
   /**
    * @brief WithBillingTag sets the billing tag. See ::GetBillingTag() for usage
    * and format.
-   * @param billingTag a string or boost::none
+   * @param tag a string or boost::none
    * @return a reference to the updated DataRequest
    */
-  inline DataRequest& WithBillingTag(std::string&& billingTag) {
-    billing_tag_ = std::move(billingTag);
+  inline DataRequest& WithBillingTag(std::string&& tag) {
+    billing_tag_ = std::move(tag);
     return *this;
   }
 
@@ -170,11 +167,11 @@ class DATASERVICE_READ_API DataRequest final {
   /**
    * @brief WithFetchOption sets the fetch option. See ::GetFetchOption() for
    * usage and format.
-   * @param fetchoption enums
+   * @param fetch_option enums
    * @return a reference to the updated DataRequest
    */
-  inline DataRequest& WithFetchOption(FetchOptions fetchoption) {
-    fetch_option_ = fetchoption;
+  inline DataRequest& WithFetchOption(FetchOptions fetch_option) {
+    fetch_option_ = fetch_option;
     return *this;
   }
 
@@ -185,36 +182,29 @@ class DATASERVICE_READ_API DataRequest final {
    */
   inline std::string CreateKey(const std::string& layer_id) const {
     std::stringstream out;
-    out << layer_id;
-
-    out << "[";
-
+    out << layer_id << "[";
     if (GetPartitionId()) {
       out << GetPartitionId().get();
     } else if (GetDataHandle()) {
       out << GetDataHandle().get();
     }
     out << "]";
-
     if (GetVersion()) {
       out << "@" << GetVersion().get();
     }
-
     if (GetBillingTag()) {
       out << "$" << GetBillingTag().get();
     }
-
     out << "^" << GetFetchOption();
-
     return out.str();
   }
 
  private:
   boost::optional<std::string> partition_id_;
-  boost::optional<int64_t> catalog_metadata_version_;
+  boost::optional<int64_t> catalog_version_;
   boost::optional<std::string> data_handle_;
   boost::optional<std::string> billing_tag_;
-  FetchOptions fetch_option_ = OnlineIfNotFound;
+  FetchOptions fetch_option_{OnlineIfNotFound};
 };
 
 }  // namespace read
