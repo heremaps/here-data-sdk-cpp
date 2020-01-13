@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,9 @@
 #include <sstream>
 #include <string>
 
-#include <olp/core/porting/deprecated.h>
+#include <olp/dataservice/read/DataServiceReadApi.h>
+#include <olp/dataservice/read/FetchOptions.h>
 #include <boost/optional.hpp>
-#include "DataServiceReadApi.h"
-#include "FetchOptions.h"
 
 namespace olp {
 namespace dataservice {
@@ -41,13 +40,13 @@ class DATASERVICE_READ_API PartitionsRequest final {
    * @brief Sets the catalog metadata version for the request of the requested
    * partitions.
    *
-   * @param catalogMetadataVersion The catalog metadata version of the requested
+   * @param catalog_version The catalog metadata version of the requested
    * partitions. If the version is not specified, the latest version is used.
    * @return A reference to the updated `PartitionsRequest` instance.
    */
   inline PartitionsRequest& WithVersion(
-      boost::optional<int64_t> catalogMetadataVersion) {
-    catalog_metadata_version_ = catalogMetadataVersion;
+      boost::optional<int64_t> catalog_version) {
+    catalog_version_ = std::move(catalog_version);
     return *this;
   }
 
@@ -57,7 +56,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
    * @return The catalog metadata version.
    */
   inline const boost::optional<std::int64_t>& GetVersion() const {
-    return catalog_metadata_version_;
+    return catalog_version_;
   }
 
   /**
@@ -79,7 +78,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
    *
    * @see `GetBillingTag()` for usage and format.
    *
-   * @param billingTag The `BillingTag` string or `boost::none`.
+   * @param tag The `BillingTag` string or `boost::none`.
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
@@ -94,13 +93,13 @@ class DATASERVICE_READ_API PartitionsRequest final {
    *
    * @see `GetBillingTag()` for usage and format.
    *
-   * @param billingTag The rvalue reference to the `BillingTag` string or
+   * @param tag The rvalue reference to the `BillingTag` string or
    * `boost::none`.
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
-  inline PartitionsRequest& WithBillingTag(std::string&& billingTag) {
-    billing_tag_ = std::move(billingTag);
+  inline PartitionsRequest& WithBillingTag(std::string&& tag) {
+    billing_tag_ = std::move(tag);
     return *this;
   }
 
@@ -120,11 +119,11 @@ class DATASERVICE_READ_API PartitionsRequest final {
    *
    * @see `GetFetchOption()` for usage and format.
    *
-   * @param fetchoption The `FetchOption` enum.
+   * @param fetch_option The `FetchOption` enum.
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
-  inline PartitionsRequest& WithFetchOption(FetchOptions fetchoption) {
-    fetch_option_ = fetchoption;
+  inline PartitionsRequest& WithFetchOption(FetchOptions fetch_option) {
+    fetch_option_ = fetch_option;
     return *this;
   }
 
@@ -138,25 +137,20 @@ class DATASERVICE_READ_API PartitionsRequest final {
   std::string CreateKey(const std::string& layer_id) const {
     std::stringstream out;
     out << layer_id;
-
     if (GetVersion()) {
       out << "@" << GetVersion().get();
     }
-
     if (GetBillingTag()) {
       out << "$" << GetBillingTag().get();
     }
-
     out << "^" << GetFetchOption();
-
     return out.str();
   }
 
  private:
-  std::string layer_id_;
-  boost::optional<int64_t> catalog_metadata_version_;
+  boost::optional<int64_t> catalog_version_;
   boost::optional<std::string> billing_tag_;
-  FetchOptions fetch_option_ = OnlineIfNotFound;
+  FetchOptions fetch_option_{OnlineIfNotFound};
 };
 
 }  // namespace read

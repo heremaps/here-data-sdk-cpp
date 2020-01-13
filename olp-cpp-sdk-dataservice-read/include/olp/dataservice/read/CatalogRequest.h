@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,12 @@
 
 #pragma once
 
-#include "FetchOptions.h"
-
 #include <sstream>
 #include <string>
 
+#include <olp/dataservice/read/DataServiceReadApi.h>
+#include <olp/dataservice/read/FetchOptions.h>
 #include <boost/optional.hpp>
-
-#include "DataServiceReadApi.h"
 
 namespace olp {
 namespace dataservice {
@@ -56,12 +54,11 @@ class DATASERVICE_READ_API CatalogRequest final {
    *
    * @see `GetBillingTag()` for usage and format.
    *
-   * @param billingTag The `BillingTag` string or `boost::none`.
+   * @param tag The `BillingTag` string or `boost::none`.
    * @return A reference to the updated `CatalogRequest` instance.
    */
-  inline CatalogRequest& WithBillingTag(
-      boost::optional<std::string> billingTag) {
-    billing_tag_ = billingTag;
+  inline CatalogRequest& WithBillingTag(boost::optional<std::string> tag) {
+    billing_tag_ = std::move(tag);
     return *this;
   }
 
@@ -70,12 +67,12 @@ class DATASERVICE_READ_API CatalogRequest final {
    *
    * @see `GetBillingTag()` for usage and format.
    *
-   * @param billingTag The rvalue reference to the `BillingTag` string or
+   * @param tag The rvalue reference to the `BillingTag` string or
    * `boost::none`.
    * @return A reference to the updated `CatalogRequest` instance.
    */
-  inline CatalogRequest& WithBillingTag(std::string&& billingTag) {
-    billing_tag_ = std::move(billingTag);
+  inline CatalogRequest& WithBillingTag(std::string&& tag) {
+    billing_tag_ = std::move(tag);
     return *this;
   }
 
@@ -90,16 +87,16 @@ class DATASERVICE_READ_API CatalogRequest final {
   inline FetchOptions GetFetchOption() const { return fetch_option_; }
 
   /**
-   * * @brief Sets the fetch option that you can use to set the source from
+   * @brief Sets the fetch option that you can use to set the source from
    * which data should be fetched.
    *
    * @see `GetFetchOption()` for usage and format.
    *
-   * @param fetchoption The `FetchOption` enum.
+   * @param fetch_option The `FetchOption` enum.
    * @return A reference to the updated `CatalogVersionRequest` instance.
    */
-  inline CatalogRequest& WithFetchOption(FetchOptions fetchoption) {
-    fetch_option_ = fetchoption;
+  inline CatalogRequest& WithFetchOption(FetchOptions fetch_option) {
+    fetch_option_ = fetch_option;
     return *this;
   }
 
@@ -110,19 +107,16 @@ class DATASERVICE_READ_API CatalogRequest final {
    */
   inline std::string CreateKey() const {
     std::stringstream out;
-
     if (GetBillingTag()) {
       out << "$" << GetBillingTag().get();
     }
-
     out << "^" << GetFetchOption();
-
     return out.str();
   }
 
  private:
   boost::optional<std::string> billing_tag_;
-  FetchOptions fetch_option_ = OnlineIfNotFound;
+  FetchOptions fetch_option_{OnlineIfNotFound};
 };
 
 }  // namespace read
