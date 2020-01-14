@@ -36,8 +36,7 @@ class PendingRequests;
 namespace dataservice {
 namespace write {
 
-class StreamLayerClientImpl
-    : public std::enable_shared_from_this<StreamLayerClientImpl> {
+class StreamLayerClientImpl {
  public:
   StreamLayerClientImpl(client::HRN catalog,
                         StreamLayerClientSettings client_settings,
