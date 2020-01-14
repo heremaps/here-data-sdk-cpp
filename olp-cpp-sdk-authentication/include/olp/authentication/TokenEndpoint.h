@@ -30,6 +30,7 @@
 #include "TokenResult.h"
 
 #include "olp/core/client/ApiResponse.h"
+#include "olp/core/client/ApiError.h"
 #include "olp/core/client/CancellationToken.h"
 #include "olp/core/porting/warning_disable.h"
 
@@ -49,7 +50,7 @@ OLP_SDK_DEPRECATED("Will be removed in 04.2020") TokenEndpoint {
   /**
    * @brief Defines the signature used to return the response to the client.
    */
-  using TokenResponse = client::ApiResponse<TokenResult, AuthenticationError>;
+  using TokenResponse = client::ApiResponse<TokenResult, client::ApiError>;
   /**
    * @brief Defines the callback that is invoked when the response on
    * `TokenRequest` is returned.

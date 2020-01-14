@@ -28,6 +28,7 @@
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/http/NetworkProxySettings.h>
+#include <olp/core/client/ApiError.h>
 
 #include "AuthenticationApi.h"
 #include "AuthenticationCredentials.h"
@@ -280,7 +281,7 @@ class AUTHENTICATION_API AuthenticationClient {
    * completed.
    */
   using SignInClientResponse =
-      client::ApiResponse<SignInResult, AuthenticationError>;
+      client::ApiResponse<SignInResult, client::ApiError>;
   /**
    * @brief Called when the client sign-in request is completed.
    */
@@ -292,7 +293,7 @@ class AUTHENTICATION_API AuthenticationClient {
    * completed.
    */
   using SignInUserResponse =
-      client::ApiResponse<SignInUserResult, AuthenticationError>;
+      client::ApiResponse<SignInUserResult, client::ApiError>;
   /**
    * @brief Called when the user sign-in request is completed.
    */
