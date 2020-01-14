@@ -25,7 +25,7 @@ The HERE OLP SDK for C++ contains separate libraries, each of which has a distin
 
 ## HERE OLP SDK for C++ in CMake Projects
 
-Once the libraries are installed, you can find them using the `find_package()` function within your project. For more information on how to install libraries, see [the related section](../README.md#Install) in the README.md file.
+Once the libraries are installed, you can find them using the `find_package()` function within your project. For more information on how to install libraries, see [the related section](../README.md#install-the-sdk) in the README.md file.
 
 ```CMake
 find_package(olp-cpp-sdk-core REQUIRED)
