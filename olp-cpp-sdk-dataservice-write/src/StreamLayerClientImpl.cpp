@@ -212,7 +212,7 @@ StreamLayerClientImpl::PopFromQueue() {
 olp::client::CancellableFuture<StreamLayerClient::FlushResponse>
 StreamLayerClientImpl::Flush(model::FlushRequest request) {
   auto promise =
-      std::make_shared<std::promise<StreamLayerClient::FlushResponse> >();
+      std::make_shared<std::promise<StreamLayerClient::FlushResponse>>();
   auto cancel_token = Flush(
       std::move(request), [promise](StreamLayerClient::FlushResponse response) {
         promise->set_value(std::move(response));
@@ -223,50 +223,74 @@ StreamLayerClientImpl::Flush(model::FlushRequest request) {
 
 olp::client::CancellationToken StreamLayerClientImpl::Flush(
     model::FlushRequest request, StreamLayerClient::FlushCallback callback) {
-  CancellationContext cancel_context;
+  // Because TaskContext accepts the execution callbacks which return only
+  // ApiResponse object, we need to simulate the 'empty' response in order to
+  // be able to use Flush execution lambda in TaskContext.
+  struct EmptyFlushResponse {};
+  using EmptyFlushApiResponse =
+      client::ApiResponse<EmptyFlushResponse, client::ApiError>;
 
-  auto self = shared_from_this();
+  // this flag is required in order to protect the user from 2 `callback`
+  // invocation: one during execution phase and other when `Flush` is cancelled.
+  auto exec_started = std::make_shared<std::atomic_bool>(false);
 
-  auto func = [=]() mutable {
-    StreamLayerClient::FlushResponse response;
+  auto task_context = TaskContext::Create(
+      [=](CancellationContext context) -> EmptyFlushApiResponse {
+        exec_started->exchange(true);
 
-    const auto maximum_events_number = request.GetNumberOfRequestsToFlush();
-    if (maximum_events_number < 0) {
-      callback(std::move(response));
-      return;
-    }
+        StreamLayerClient::FlushResponse responses;
+        const auto maximum_events_number = request.GetNumberOfRequestsToFlush();
+        if (maximum_events_number < 0) {
+          callback(std::move(responses));
+          return EmptyFlushApiResponse{};
+        }
 
-    int counter = 0;
-    while ((!maximum_events_number || counter < maximum_events_number) &&
-           (self->QueueSize() > 0) && !cancel_context.IsCancelled()) {
-      auto publish_request = self->PopFromQueue();
-      if (publish_request == boost::none) {
-        continue;
-      }
+        int counter = 0;
+        while ((!maximum_events_number || counter < maximum_events_number) &&
+               (this->QueueSize() > 0) && !context.IsCancelled()) {
+          auto publish_request = this->PopFromQueue();
+          if (publish_request == boost::none) {
+            continue;
+          }
 
-      auto publish_response = PublishDataTask(*publish_request, cancel_context);
-      response.emplace_back(std::move(publish_response));
+          auto publish_response = PublishDataTask(*publish_request, context);
+          responses.emplace_back(std::move(publish_response));
 
-      // If cancelled queue back task
-      if (cancel_context.IsCancelled()) {
-        self->Queue(*publish_request);
-        break;
-      }
+          // If cancelled queue back task
+          if (context.IsCancelled()) {
+            this->Queue(*publish_request);
+            break;
+          }
 
-      counter++;
-    }
+          counter++;
+        }
 
-    OLP_SDK_LOG_INFO_F(kLogTag, "Flushed %d publish requests", counter);
-    callback(std::move(response));
-  };
+        OLP_SDK_LOG_INFO_F(kLogTag, "Flushed %d publish requests", counter);
+        callback(responses);
+        return EmptyFlushApiResponse{};
+      },
+      [=](EmptyFlushApiResponse response) {
+        // we don't need to notify user 2 times, cause we already invoke a
+        // callback in the execution function:
+        if (!exec_started->load()) {
+          callback(StreamLayerClient::FlushResponse{});
+        }
+      });
 
-  ExecuteOrSchedule(task_scheduler_, func);
-  return CancellationToken([=]() mutable { cancel_context.CancelOperation(); });
+  auto pending_requests = pending_requests_;
+  pending_requests->Insert(task_context);
+
+  ExecuteOrSchedule(task_scheduler_, [=]() {
+    task_context.Execute();
+    pending_requests->Remove(task_context);
+  });
+
+  return task_context.CancelToken();
 }
 
 olp::client::CancellableFuture<PublishDataResponse>
 StreamLayerClientImpl::PublishData(const model::PublishDataRequest request) {
-  auto promise = std::make_shared<std::promise<PublishDataResponse> >();
+  auto promise = std::make_shared<std::promise<PublishDataResponse>>();
   auto cancel_token =
       PublishData(std::move(request), [promise](PublishDataResponse response) {
         promise->set_value(std::move(response));
@@ -470,7 +494,7 @@ PublishDataResponse StreamLayerClientImpl::PublishDataGreaterThanTwentyMib(
 
 CancellableFuture<PublishSdiiResponse> StreamLayerClientImpl::PublishSdii(
     model::PublishSdiiRequest request) {
-  auto promise = std::make_shared<std::promise<PublishSdiiResponse> >();
+  auto promise = std::make_shared<std::promise<PublishSdiiResponse>>();
   auto cancel_token =
       PublishSdii(std::move(request), [promise](PublishSdiiResponse response) {
         promise->set_value(std::move(response));

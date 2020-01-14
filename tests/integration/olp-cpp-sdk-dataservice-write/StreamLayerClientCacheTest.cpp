@@ -63,6 +63,17 @@ void PublishDataSuccessAssertions(
   EXPECT_FALSE(result.GetResult().GetTraceID().empty());
 }
 
+void PublishDataCancelledAssertions(
+    const olp::client::ApiResponse<ResponseOkSingle, olp::client::ApiError>&
+        result) {
+  EXPECT_FALSE(result.IsSuccessful());
+  EXPECT_TRUE(result.GetResult().GetTraceID().empty());
+  EXPECT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            result.GetError().GetHttpStatusCode());
+  EXPECT_EQ(olp::client::ErrorCode::Cancelled,
+            result.GetError().GetErrorCode());
+}
+
 template <typename T>
 void PublishFailureAssertions(
     const olp::client::ApiResponse<T, olp::client::ApiError>& result) {
@@ -334,44 +345,100 @@ TEST_F(StreamLayerClientCacheTest, FlushDataMultiple) {
   }
 }
 
-TEST_F(StreamLayerClientCacheTest, DISABLED_FlushDataCancel) {
-  auto wait_for_cancel = std::make_shared<std::promise<void>>();
-  auto pause_for_cancel = std::make_shared<std::promise<void>>();
+TEST_F(StreamLayerClientCacheTest, FlushDataCancel) {
+  using PromisePtr = std::shared_ptr<std::promise<void>>;
+  auto setup_network_expectations_on_cancel =
+      [](std::shared_ptr<NetworkMock> network)
+      -> std::pair<PromisePtr, PromisePtr> {
+    auto wait_for_cancel = std::make_shared<std::promise<void>>();
+    auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
-  olp::http::RequestId request_id;
-  NetworkCallback send_mock;
-  CancelCallback cancel_mock;
+    olp::http::RequestId request_id;
+    NetworkCallback send_mock;
+    CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
+    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+        wait_for_cancel, pause_for_cancel,
+        {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_INGEST});
+
+    {
+      EXPECT_CALL(*network, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+          .Times(1);
+      EXPECT_CALL(*network, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+          .Times(1);
+      EXPECT_CALL(*network, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+          .Times(1)
+          .WillOnce(testing::Invoke(std::move(send_mock)));
+      EXPECT_CALL(*network, Cancel(request_id))
+          .WillOnce(testing::Invoke(std::move(cancel_mock)));
+    }
+
+    return {wait_for_cancel, pause_for_cancel};
+  };
+
+  auto network = std::make_shared<NetworkMock>();
+  olp::client::OlpClientSettings client_settings;
+  client_settings.network_request_handler = network;
+  client_settings.task_scheduler =
+      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
+  auto kHRN = olp::client::HRN{GetTestCatalog()};
+
+  PublishDataRequest publish_request =
+      PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer());
 
   {
-    testing::InSequence dummy;
+    SCOPED_TRACE("Cancel Flush via cancellation token");
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1)
-        .WillOnce(testing::Invoke(std::move(send_mock)));
-    EXPECT_CALL(*network_, Cancel(request_id))
-        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+    SetUpCommonNetworkMockCalls(*network);
+    auto promises = setup_network_expectations_on_cancel(network);
+    auto wait_for_cancel = promises.first;
+    auto pause_for_cancel = promises.second;
+
+    auto client = std::make_shared<StreamLayerClient>(
+        kHRN, StreamLayerClientSettings{}, client_settings);
+    auto error = client->Queue(publish_request);
+
+    EXPECT_FALSE(error) << error.get();
+
+    auto promise = client->Flush(model::FlushRequest());
+    wait_for_cancel->get_future().get();
+    promise.GetCancellationToken().Cancel();
+    pause_for_cancel->set_value();
+
+    auto response = promise.GetFuture().get();
+
+    EXPECT_EQ(1, response.size());
+    EXPECT_NO_FATAL_FAILURE(PublishDataCancelledAssertions(response[0]));
+
+    Mock::VerifyAndClearExpectations(network.get());
   }
 
-  auto error = client_->Queue(
-      PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
+  {
+    SCOPED_TRACE("Cancel Flush on client destroy");
 
-  ASSERT_FALSE(error) << error.get();
+    SetUpCommonNetworkMockCalls(*network);
+    auto promises = setup_network_expectations_on_cancel(network);
+    auto wait_for_cancel = promises.first;
+    auto pause_for_cancel = promises.second;
 
-  auto promise = client_->Flush(model::FlushRequest());
-  wait_for_cancel->get_future().get();
-  promise.GetCancellationToken().Cancel();
-  pause_for_cancel->set_value();
+    auto client = std::make_shared<StreamLayerClient>(
+        kHRN, StreamLayerClientSettings{}, client_settings);
+    auto error = client->Queue(publish_request);
 
-  auto response = promise.GetFuture().get();
+    EXPECT_FALSE(error) << error.get();
 
-  ASSERT_EQ(1, response.size());
+    auto promise = client->Flush(model::FlushRequest());
+    wait_for_cancel->get_future().get();
+    client.reset();
+    pause_for_cancel->set_value();
 
-  ASSERT_NO_FATAL_FAILURE(PublishFailureAssertions(response[0]));
+    auto response = promise.GetFuture().get();
+
+    EXPECT_EQ(1, response.size());
+    EXPECT_NO_FATAL_FAILURE(PublishDataCancelledAssertions(response[0]));
+
+    Mock::VerifyAndClearExpectations(network.get());
+  }
 }
 
 TEST_F(StreamLayerClientCacheTest, FlushDataMaxEventsDefaultSetting) {
