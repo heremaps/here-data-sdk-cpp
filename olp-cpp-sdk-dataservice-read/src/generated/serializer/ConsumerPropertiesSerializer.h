@@ -26,9 +26,10 @@
 namespace olp {
 namespace serializer {
 
-inline void to_json(const dataservice::read::ConsumerOptions& x,
-                    rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType& allocator) {
+template <>
+inline void to_json<dataservice::read::ConsumerOption>(
+    const std::vector<dataservice::read::ConsumerOption>& x,
+    rapidjson::Value& value, rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   for (auto itr = x.begin(); itr != x.end(); ++itr) {
     serialize(itr->GetKey(), itr->GetValue(), value, allocator);
