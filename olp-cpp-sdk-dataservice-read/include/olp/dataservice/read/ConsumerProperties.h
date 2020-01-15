@@ -44,10 +44,10 @@ class DATASERVICE_READ_API ConsumerOption final {
       : key_{std::move(key)}, value_{value} {}
 
   ConsumerOption(std::string key, int32_t value)
-      : key_{std::move(key)}, value_{std::move(std::to_string(value))} {}
+      : key_{std::move(key)}, value_{std::to_string(value)} {}
 
   ConsumerOption(std::string key, bool value)
-      : key_{std::move(key)}, value_{std::move(std::to_string(value))} {}
+      : key_{std::move(key)}, value_{std::to_string(value)} {}
 
   const std::string& GetKey() const { return key_; };
   const std::string& GetValue() const { return value_; };
