@@ -32,7 +32,7 @@ namespace read {
 namespace model {
 
 /**
- * @brief Model to represent a partition in a layer.
+ * @brief A model that represents a partition in a layer.
  */
 class DATASERVICE_READ_API Partition {
  public:
@@ -48,45 +48,204 @@ class DATASERVICE_READ_API Partition {
   boost::optional<int64_t> version_;
 
  public:
+  /**
+   * @brief (Optional) Gets the partition checksum.
+   *
+   * It is only provided to the API calls that explicitly request a checksum and
+   * only matches partitions that have a checksum defined. You can request
+   * partitions with a specific checksum by using the `additionalFields` query
+   * parameter. If you need to compare data sets for this catalog, set this
+   * field to match the `SHA-1` checksum of the corresponding data blob.
+   * The maximum length of the checksum field is 128 characters.
+   *
+   * @return The partition checksum.
+   */
   const boost::optional<std::string>& GetChecksum() const { return checksum_; }
+  /**
+   * @brief (Optional) Gets a mutable reference to the partition checksum.
+   *
+   * @see `GetChecksum` for information on the checksum.
+   *
+   * @return The mutable reference to the partition checksum.
+   */
   boost::optional<std::string>& GetMutableChecksum() { return checksum_; }
+  /**
+   * @brief (Optional) Sets the partition checksum.
+   *
+   * @see `GetChecksum` for information on the checksum.
+   *
+   * @param value The partition checksum.
+   */
   void SetChecksum(const boost::optional<std::string>& value) {
     this->checksum_ = value;
   }
 
+  /**
+   * @brief (Optional) Gets the compressed size of the partition data in bytes
+   * when data compression is enabled.
+   *
+   * It is only provided to the API calls that explicitly request the compressed
+   * data size and only matches partitions that have a compressed data size
+   * defined. You can request partitions with a specific compressed data size by
+   * using the `additionalFields` query parameter.
+   *
+   * @return The compressed size of the partition data.
+   */
   const boost::optional<int64_t>& GetCompressedDataSize() const {
     return compressed_data_size_;
   }
+  /**
+   * @brief (Optional) Gets a mutable reference to the compressed size of
+   * the partition data in bytes when data compression is enabled.
+   *
+   * @see `GetCompressedDataSize` for information on the compressed size of
+   * the partition data.
+   *
+   * @return The mutable reference to the compressed size of the partition data.
+   */
   boost::optional<int64_t>& GetMutableCompressedDataSize() {
     return compressed_data_size_;
   }
+  /**
+   * @brief (Optional) Sets the compressed size of the partition data.
+   *
+   * @see `GetCompressedDataSize` for information on the compressed size of
+   * the partition data.
+   *
+   * @param value The compressed size of the partition data.
+   */
   void SetCompressedDataSize(const boost::optional<int64_t>& value) {
     this->compressed_data_size_ = value;
   }
 
+  /**
+   * @brief Get the partition data handle.
+   *
+   * You use the data handle to retrieve the data that relates to this
+   * partition. The data handle identifies a specific blob so that you can
+   * request the blob contents with the Blob API. When requesting data from
+   * the Blob API, you must specify the catalog ID, layer ID, and data
+   * handle.
+   *
+   * @return The partition data handle.
+   */
   const std::string& GetDataHandle() const { return data_handle_; }
+  /**
+   * @brief Gets a mutable reference to the partition data handle.
+   *
+   * @see `GetPartition` for information on the partition data handle.
+   *
+   * @return The partition data handle.
+   */
   std::string& GetMutableDataHandle() { return data_handle_; }
+  /**
+   * @brief Sets the partition data handle.
+   *
+   * @see `GetPartition` for information on the partition data handle.
+   *
+   * @param value The partition data handle.
+   */
   void SetDataHandle(const std::string& value) { this->data_handle_ = value; }
 
+  /**
+   * @brief (Optional) Gets the uncompressed size of the partition data in
+   * bytes.
+   *
+   * It is only provided to the API calls that explicitly request the data size
+   * and only matches partitions that have a data size defined. You can request
+   * partitions with a specific data size by using the `additionalFields` query
+   * parameter.
+   *
+   * @return The uncompressed size of the partition data
+   */
   const boost::optional<int64_t>& GetDataSize() const { return data_size_; }
+  /**
+   * @brief (Optional) Gets a mutable reference to the uncompressed size of
+   * the partition data in bytes.
+   *
+   * @see `GetDataSize` for information on the uncompressed size of
+   * the partition data.
+   *
+   * @return The mutable reference to the uncompressed size of the partition
+   * data.
+   */
   boost::optional<int64_t>& GetMutableDataSize() { return data_size_; }
+  /**
+   * @brief (Optional) Sets the uncompressed size of the partition data.
+   *
+   * @see `GetDataSize` for information on the uncompressed size of
+   * the partition data.
+   *
+   * @param value The uncompressed size of the partition data.
+   */
   void SetDataSize(const boost::optional<int64_t>& value) {
     this->data_size_ = value;
   }
 
+  /**
+   * @brief Gets the partition key.
+   *
+   * It is a unique key for a partition within a layer. If the layer
+   * partitioning scheme is HERE Tile, the partition key is equivalent to
+   * the tile key. The partition key cannot be empty. The maximum length of
+   * the partition key is 500 characters.
+   *
+   * @return The partition key.
+   */
   const std::string& GetPartition() const { return partition_; }
+  /**
+   * @brief Gets a mutable reference to the partition key.
+   *
+   * @see `GetPartition` for information on the partition key.
+   *
+   * @return The mutable reference to the partition key.
+   */
   std::string& GetMutablePartition() { return partition_; }
+  /**
+   * @brief Sets the partition key.
+   *
+   * @see `GetPartition` for information on the partition key.
+   *
+   * @param value The partition key.
+   */
   void SetPartition(const std::string& value) { this->partition_ = value; }
 
+  /**
+   * @brief (Optional) Gets the version of the catalog when this partition was
+   * last changed.
+   *
+   * It is only provided for active versioned partitions.
+   *
+   * @note For volatile partitions, the version is always -1.
+   *
+   * @return The version of the catalog when this partition was last changed.
+   */
   const boost::optional<int64_t>& GetVersion() const { return version_; }
+  /**
+   * @brief (Optional) Gets a mutable reference to the version of the catalog
+   * when this partition was last changed.
+   *
+   * @see `GetVersion` for information on partition versions.
+   *
+   * @return The mutable reference to the version of the catalog when this
+   * partition was last changed.
+   */
   boost::optional<int64_t>& GetMutableVersion() { return version_; }
+  /**
+   * @brief (Optional) Sets the partition version.
+   *
+   * @see `GetVersion` for information on partition versions.
+   *
+   * @param value The version of the catalog when this partition was last
+   * changed.
+   */
   void SetVersion(const boost::optional<int64_t>& value) {
     this->version_ = value;
   }
 };
 
 /**
- * @brief Model to represent a collection of partitions of a layer.
+ * @brief A model that represents a collection of layer partitions.
  */
 class Partitions {
  public:
@@ -97,8 +256,24 @@ class Partitions {
   std::vector<Partition> partitions_;
 
  public:
+  /**
+   * @brief Gets the list of partitions for the given layer and layer version.
+   *
+   * @return The list of partitions.
+   */
   const std::vector<Partition>& GetPartitions() const { return partitions_; }
+  /**
+   * @brief Gets a mutable reference to the list of partitions for the given
+   * layer and layer version.
+   *
+   * @return The mutable reference to the list of partitions.
+   */
   std::vector<Partition>& GetMutablePartitions() { return partitions_; }
+  /**
+   * @brief Sets the list of partitions.
+   *
+   * @param value The list of partitions for the given layer and layer version.
+   */
   void SetPartitions(const std::vector<Partition>& value) {
     this->partitions_ = value;
   }
