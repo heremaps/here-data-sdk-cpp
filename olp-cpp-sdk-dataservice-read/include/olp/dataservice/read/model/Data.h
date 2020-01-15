@@ -27,7 +27,7 @@ namespace dataservice {
 namespace read {
 namespace model {
 /**
- * @brief Container for large amounts of binary data
+ * @brief A container for large amounts of binary data.
  */
 using Data = std::shared_ptr<std::vector<unsigned char>>;
 
