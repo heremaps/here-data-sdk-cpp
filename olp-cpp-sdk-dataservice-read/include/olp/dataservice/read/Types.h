@@ -78,6 +78,13 @@ using PrefetchTilesResponse = Response<PrefetchTilesResult>;
 /// Prefetch completion callback type
 using PrefetchTilesResponseCallback = Callback<PrefetchTilesResult>;
 
+/// The subcribe ID type of the stream layer client.
+using SubscriptionId = std::string;
+/// The subscribe tiles response type of the stream layer client.
+using SubscribeResponse = Response<SubscriptionId>;
+/// The subscribe completion callback type of the stream layer client.
+using SubscribeResponseCallback = Callback<SubscriptionId>;
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

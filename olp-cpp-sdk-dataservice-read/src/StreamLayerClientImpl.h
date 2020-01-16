@@ -19,8 +19,13 @@
 
 #pragma once
 
+#include <memory>
+
+#include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
+#include <olp/core/client/PendingRequests.h>
+#include <olp/dataservice/read/SubscribeRequest.h>
 #include <olp/dataservice/read/Types.h>
 
 namespace olp {
@@ -34,10 +39,38 @@ class StreamLayerClientImpl {
 
   virtual ~StreamLayerClientImpl();
 
+  virtual bool CancelPendingRequests();
+
+  virtual client::CancellationToken Subscribe(
+      SubscribeRequest request, SubscribeResponseCallback callback);
+
+  virtual client::CancellableFuture<SubscribeResponse> Subscribe(
+      SubscribeRequest request);
+
  private:
+  /// A struct that aggregates the stream layer client parameters.
+  struct StreamLayerClientContext {
+    StreamLayerClientContext(std::string subscription_id,
+                             std::string subscription_mode,
+                             std::string node_base_url,
+                             std::string x_correlation_id)
+        : subscription_id(subscription_id),
+          subscription_mode(subscription_mode),
+          node_base_url(node_base_url),
+          x_correlation_id(x_correlation_id) {}
+
+    std::string subscription_id;
+    std::string subscription_mode;
+    std::string node_base_url;
+    std::string x_correlation_id;
+  };
+
   client::HRN catalog_;
   std::string layer_id_;
   client::OlpClientSettings settings_;
+  std::shared_ptr<client::PendingRequests> pending_requests_;
+  std::mutex mutex_;
+  std::unique_ptr<StreamLayerClientContext> client_context_;
 };
 
 }  // namespace read

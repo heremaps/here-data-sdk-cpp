@@ -39,6 +39,20 @@ StreamLayerClient& StreamLayerClient::operator=(
 
 StreamLayerClient::~StreamLayerClient() = default;
 
+bool StreamLayerClient::CancelPendingRequests() {
+  return impl_->CancelPendingRequests();
+}
+
+client::CancellationToken StreamLayerClient::Subscribe(
+    SubscribeRequest request, SubscribeResponseCallback callback) {
+  return impl_->Subscribe(std::move(request), std::move(callback));
+}
+
+client::CancellableFuture<SubscribeResponse> StreamLayerClient::Subscribe(
+    SubscribeRequest request) {
+  return impl_->Subscribe(std::move(request));
+}
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

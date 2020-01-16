@@ -21,9 +21,13 @@
 
 #include <memory>
 
+#include <olp/core/client/CancellationContext.h>
+#include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
+#include <olp/dataservice/read/SubscribeRequest.h>
+#include <olp/dataservice/read/Types.h>
 
 namespace olp {
 namespace dataservice {
@@ -31,12 +35,14 @@ namespace read {
 class StreamLayerClientImpl;
 
 /**
- * @brief Client that provides the ability to consume data from a stream layer
- * in real time. The client reads the data in the order it is added to the
- * queue. Once the client reads the data, the data is no longer available to
+ * @brief Provides the ability to consume data from a stream layer
+ * in real time.
+ *
+ * The client reads the data in the order it is added to the queue.
+ * Once the client reads the data, the data is no longer available to
  * that client, but the data remains available to other clients.
  *
- * Example with creating the client:
+ * Example of subscribing to a stream layer:
  * @code{.cpp}
  * auto task_scheduler =
  *    olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
@@ -58,12 +64,22 @@ class StreamLayerClientImpl;
  *
  * StreamLayerClient client{"hrn:here:data:::your-catalog-hrn", "your-layer-id",
  * client_settings};
+ *
+ * auto callback =
+ *     [](olp::dataservice::read::SubscribeResponse){};
+ * using SubscribeRequest = olp::dataservice::read::SubscribeRequest;
+ *
+ * auto request =
+ * olp::dataservice::read::SubscribeRequest().WithSubscriptionMode(
+ *             olp::dataservice::read::SubscribeRequest::SubscriptionMode::kSerial));
+ * auto cancellable_future = stream_client.Subscribe(request);
  * @endcode
  *
- * @see
- * https://developer.here.com/olp/documentation/data-api/data_dev_guide/rest/layers/layers.html
- * @see
- * https://developer.here.com/olp/documentation/data-api/data_dev_guide/rest/getting-data-stream.html
+ * @see The
+ * [Layers](https://developer.here.com/olp/documentation/data-api/data_dev_guide/rest/layers/layers.html)
+ * and [Get Data from a Stream
+ * Layer](https://developer.here.com/olp/documentation/data-api/data_dev_guide/rest/getting-data-stream.html)
+ * sections in the Data API Developer Guide.
  */
 class DATASERVICE_READ_API StreamLayerClient final {
  public:
@@ -85,6 +101,39 @@ class DATASERVICE_READ_API StreamLayerClient final {
   StreamLayerClient& operator=(StreamLayerClient&& other) noexcept;
 
   ~StreamLayerClient();
+
+  /**
+   * @brief Cancels all the active and pending requests.
+   *
+   * @return True on success.
+   */
+  bool CancelPendingRequests();
+
+  /**
+   * @brief Enables message consumption for the specific stream layer.
+   *
+   * @param request  The `SubscribeRequest` instance that contains a complete
+   * set of request parameters.
+   * @param callback The `SubscribeResponseCallback` object that is invoked when
+   * the subscription request is completed.
+   *
+   * @return A token that can be used to cancel this request.
+   */
+  client::CancellationToken Subscribe(SubscribeRequest request,
+                                      SubscribeResponseCallback callback);
+
+  /**
+   * @brief Enables message consumption for the specific stream layer.
+   *
+   * @param request The `SubscribeRequest` instance that contains a complete set
+   * of request parameters.
+   *
+   * @return `CancellableFuture` that contains
+   * `SubscribeId` or an error. You can also use `CancellableFuture` to cancel
+   * this request.
+   */
+  client::CancellableFuture<SubscribeResponse> Subscribe(
+      SubscribeRequest request);
 
  private:
   std::unique_ptr<StreamLayerClientImpl> impl_;
