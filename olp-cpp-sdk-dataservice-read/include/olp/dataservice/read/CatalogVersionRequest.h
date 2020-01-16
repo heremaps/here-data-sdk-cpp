@@ -38,7 +38,7 @@ namespace read {
 class DATASERVICE_READ_API CatalogVersionRequest final {
  public:
   /**
-   * @brief Gets a catalog start version (exclusive) for the request.
+   * @brief Gets the catalog start version (exclusive) for the request.
    *
    * Mandatory for versioned layers.
    * By convention -1 indicates the initial version before the first
@@ -51,7 +51,7 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
   /**
    * @brief Sets the catalog start version.
    *
-   * @see `::GetStartVersion()` for usage.
+   * @see `GetStartVersion()` for information on usage.
    * @param startVersion The catalog start version.
    * @return A reference to the updated `CatalogVersionRequest` instance.
    */
@@ -61,7 +61,7 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
   }
 
   /**
-   * @brief Gets a billing tag to group billing records together.
+   * @brief Gets the billing tag to group billing records together.
    *
    * The billing tag is an optional free-form tag that is used for grouping
    * billing records together. If supplied, it must be 4–16 characters
@@ -77,7 +77,7 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
   /**
    * @brief Sets the billing tag for the request.
    *
-   * @see `GetBillingTag()` for usage and format.
+   * @see `GetBillingTag()` for information on usage and format.
    *
    * @param billingTag The `BillingTag` string or `boost::none`.
    * @return A reference to the updated `CatalogVersionRequest` instance.
@@ -91,7 +91,7 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
   /**
    * @brief Sets the billing tag for the request.
    *
-   * @see `GetBillingTag()` for usage and format.
+   * @see `GetBillingTag()` for information on usage and format.
    *
    * @param billingTag The rvalue reference to the `BillingTag` string or
    * `boost::none`.
@@ -103,7 +103,7 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
   }
 
   /**
-   * @brief Gets a fetch option that controls how requests are handled.
+   * @brief Gets the fetch option that controls how requests are handled.
    *
    * The default option is `OnlineIfNotFound` that queries the network if
    * the requested resource is not in the cache.
@@ -116,7 +116,7 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
    * @brief Sets the fetch option that you can use to set the source from
    * which data should be fetched.
    *
-   * @see `GetFetchOption()` for usage and format.
+   * @see `GetFetchOption()` for information on usage and format.
    *
    * @param fetchoption The `FetchOption` enum.
    * @return A reference to the updated `CatalogVersionRequest` instance.

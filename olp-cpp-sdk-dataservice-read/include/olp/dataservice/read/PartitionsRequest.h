@@ -32,16 +32,17 @@ namespace read {
 
 /**
  * @brief Encapsulates the fields required to request a list of partitions for
- * a given catalog and layer.
+ * the given catalog and layer.
  */
 class DATASERVICE_READ_API PartitionsRequest final {
  public:
   /**
-   * @brief Sets the catalog metadata version for the request of the requested
-   * partitions.
+   * @brief Sets the catalog metadata version.
    *
    * @param catalog_version The catalog metadata version of the requested
-   * partitions. If the version is not specified, the latest version is used.
+   * partitions. If the version is not specified, the latest version is
+   * retrieved.
+   *
    * @return A reference to the updated `PartitionsRequest` instance.
    */
   inline PartitionsRequest& WithVersion(
@@ -60,7 +61,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
   }
 
   /**
-   * @brief Gets a billing tag to group billing records together.
+   * @brief Gets the billing tag to group billing records together.
    *
    * The billing tag is an optional free-form tag that is used for grouping
    * billing records together. If supplied, it must be 4–16 characters
@@ -76,7 +77,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
   /**
    * @brief Sets the billing tag for the request.
    *
-   * @see `GetBillingTag()` for usage and format.
+   * @see `GetBillingTag()` for information on usage and format.
    *
    * @param tag The `BillingTag` string or `boost::none`.
    *
@@ -91,7 +92,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
   /**
    * @brief Sets the billing tag for the request.
    *
-   * @see `GetBillingTag()` for usage and format.
+   * @see `GetBillingTag()` for information on usage and format.
    *
    * @param tag The rvalue reference to the `BillingTag` string or
    * `boost::none`.
@@ -104,7 +105,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
   }
 
   /**
-   * @brief Gets a fetch option that controls how requests are handled.
+   * @brief Gets the fetch option that controls how requests are handled.
    *
    * The default option is `OnlineIfNotFound` that queries the network if
    * the requested resource is not in the cache.
@@ -117,7 +118,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
    * @brief Sets the fetch option that you can use to set the source from
    * which data should be fetched.
    *
-   * @see `GetFetchOption()` for usage and format.
+   * @see `GetFetchOption()` for information on usage and format.
    *
    * @param fetch_option The `FetchOption` enum.
    * @return A reference to the updated `PrefetchTilesRequest` instance.

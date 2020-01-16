@@ -44,7 +44,7 @@ namespace read {
 class DATASERVICE_READ_API PrefetchTilesRequest final {
  public:
   /**
-   * @brief Gets a vector with tile keys.
+   * @brief Gets a vector with the tile keys.
    *
    * @return The vector with the tile keys.
    */
@@ -117,7 +117,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    * @brief Sets the catalog version for the request.
    *
    * @param version The catalog version of the requested partitions. If no
-   * version is specified, the latest version is used.
+   * version is specified, the latest version is retrieved.
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
@@ -127,7 +127,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   }
 
   /**
-   * @brief Gets a catalog version for the request.
+   * @brief Gets the catalog version for the request.
    *
    * @return The catalog version or `boost::none` if the catalog version is not
    * set.
@@ -137,7 +137,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   }
 
   /**
-   * @brief Gets a billing tag to group billing records together.
+   * @brief Gets the billing tag to group billing records together.
    *
    * The billing tag is an optional free-form tag that is used for grouping
    * billing records together. If supplied, it must be 4–16 characters
@@ -153,7 +153,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   /**
    * @brief Sets the billing tag for the request.
    *
-   * @see `GetBillingTag()` for usage and format.
+   * @see `GetBillingTag()` for information on usage and format.
    *
    * @param tag The `BillingTag` string or `boost::none`.
    *
@@ -168,7 +168,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   /**
    * @brief Sets the billing tag for the request.
    *
-   * @see `GetBillingTag()` for usage and format.
+   * @see `GetBillingTag()` for information on usage and format.
    *
    * @param tag The rvalue reference to the `BillingTag` string or
    * `boost::none`.

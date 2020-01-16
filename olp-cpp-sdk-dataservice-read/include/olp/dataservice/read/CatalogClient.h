@@ -47,15 +47,15 @@ class CatalogClientImpl;
  * @brief Provides a high-level interface to access data hosted on `OLP` using
  * the HERE Open Location Platform (OLP) Data API.
  *
- * The behaviour of the `CatalogClient`object can be defined via
+ * The behavior of the `CatalogClient` object can be defined via
  * `OlpClientSettings`.
  *
  * You can overwrite the default implementation for the following items:
  *   * The task scheduler.
  *     By default, all request calls are performed synchronously.
  *   * The network.
- *     You can set the default implementation (@see
- *  `olp::client::OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler`)
+ *     You can set the default implementation
+ *     (`olp::client::OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler`)
  *     or pass a custom network implementation to the `CatalogClient` object.
  *   * The on-disk cache.
  *     By default, the `CatalogClient` object uses the default implementation
@@ -65,7 +65,8 @@ class DATASERVICE_READ_API CatalogClient final {
  public:
   /**
    * @brief Creates the `CatalogClient` instance.
-   * @param catalog The HERE Resource Name (HRN) of the `OLP` catalog
+   *
+   * @param catalog The HERE Resource Name (HRN) of the `OLP` catalog.
    * @param settings The desired configuration of the `CatalogClient` instance.
    */
   CatalogClient(client::HRN catalog, client::OlpClientSettings settings);
@@ -80,25 +81,30 @@ class DATASERVICE_READ_API CatalogClient final {
 
   /**
    * @brief Cancels the currently active requests.
-   * @return True on success
+   *
+   * @return True on success.
    */
   bool CancelPendingRequests();
 
   /**
-   * @brief Fetches the catalog configuration asynchronously.
+   * @brief Gets the catalog configuration asynchronously.
+   *
    * @param request The `CatalogRequest` instance that contains a complete set
    * of request parameters.
    * @param callback The `CatalogResponseCallback` object that is invoked if
    * the catalog configuration is available or an error is encountered.
-   * @return A token that can be used to cancel this request
+   *
+   * @return A token that can be used to cancel this request.
    */
   client::CancellationToken GetCatalog(CatalogRequest request,
                                        CatalogResponseCallback callback);
 
   /**
-   * @brief Fetches the catalog configuration asynchronously.
+   * @brief Gets the catalog configuration asynchronously.
+   *
    * @param request The `CatalogRequest` instance that contains a complete set
    * of request parameters.
+   *
    * @return `CancellableFuture` that contains the `CatalogResponse`
    * instance with the catalog configuration or an error. You can also
    * use `CancellableFuture` to cancel this request.
@@ -106,20 +112,24 @@ class DATASERVICE_READ_API CatalogClient final {
   client::CancellableFuture<CatalogResponse> GetCatalog(CatalogRequest request);
 
   /**
-   * @brief Fetches the catalog version asynchronously.
+   * @brief Gets the catalog version asynchronously.
+   *
    * @param request The `CatalogVersionRequest` instance that contains
    * a complete set of request parameters.
    * @param callback The `CatalogVersionCallback` object that is invoked if
    * the catalog version is available or an error is encountered.
-   * @return A token that can be used to cancel this request
+   *
+   * @return A token that can be used to cancel this request.
    */
   client::CancellationToken GetLatestVersion(CatalogVersionRequest request,
                                              CatalogVersionCallback callback);
 
   /**
-   * @brief Fetches the catalog version asynchronously.
+   * @brief Gets the catalog version asynchronously.
+   *
    * @param request The `CatalogVersionRequest` instance that contains
    * a complete set of request parameters.
+   *
    * @return CancellableFuture` that contains the `CatalogVersionResponse`
    * instance with the catalog configuration or an error. You can also
    * use `CancellableFuture` to cancel this request.
