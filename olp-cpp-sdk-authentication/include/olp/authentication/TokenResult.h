@@ -19,6 +19,9 @@
 
 #pragma once
 
+#include <olp/core/porting/deprecated.h>
+
+#include <chrono>
 #include <ctime>
 #include <string>
 
@@ -50,6 +53,16 @@ class AUTHENTICATION_API TokenResult {
               ErrorResponse error);
 
   /**
+   * @brief Creates the `TokenResult` instance.
+   *
+   * @param access_token The access token issued by the authorization server.
+   * @param expires_in Duration for which token stays valid.
+   * @param http_status The status code of the HTTP response.
+   * @param error The error description of the request.
+   */
+  TokenResult(std::string access_token, std::chrono::seconds expires_in,
+              int http_status, ErrorResponse error);
+  /**
    * @brief Creates the default `TokenResult` instance.
    */
   TokenResult() = default;
@@ -79,6 +92,13 @@ class AUTHENTICATION_API TokenResult {
    * invalid.
    */
   time_t GetExpiryTime() const;
+  
+  /**
+   * @brief Gets the access token expiry time in seconds.
+   *
+   * @return Duration for which token stays valid.
+   */
+  std::chrono::seconds GetExpiresIn() const;
 
   /**
    * @brief Gets the HTTP status code.
@@ -99,6 +119,7 @@ class AUTHENTICATION_API TokenResult {
  private:
   std::string access_token_;
   time_t expiry_time_;
+  std::chrono::seconds expires_in_;
   int http_status_;
   ErrorResponse error_;
 };

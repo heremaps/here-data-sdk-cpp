@@ -29,7 +29,6 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-
 #include "Constants.h"
 #include "Crypto.h"
 #include "SignInResultImpl.h"
@@ -37,6 +36,7 @@
 #include "SignOutResultImpl.h"
 #include "SignUpResultImpl.h"
 #include "olp/authentication/AuthenticationError.h"
+#include "olp/core/client/ApiError.h"
 #include "olp/core/client/CancellationToken.h"
 #include "olp/core/client/ErrorCode.h"
 #include "olp/core/http/HttpStatusCode.h"
@@ -75,6 +75,7 @@ const std::string kOauthEndpoint = "/oauth2/token";
 const std::string kSignoutEndpoint = "/logout";
 const std::string kTermsEndpoint = "/terms";
 const std::string kUserEndpoint = "/user";
+const std::string kTimestampEndpoint = "/timestamp";
 
 // JSON fields
 constexpr auto kCountryCode = "countryCode";
@@ -179,10 +180,16 @@ class AuthenticationClient::Impl final {
   void SetTaskScheduler(std::shared_ptr<TaskScheduler> task_scheduler);
 
  private:
+  using TimeResponse = client::ApiResponse<time_t, client::ApiError>;
+  using TimeCallback = std::function<void(TimeResponse)>;
+
+  client::CancellationToken GetTimeFromServer(TimeCallback callback);
+
   std::string base64Encode(const std::vector<uint8_t>& vector);
 
   std::string generateHeader(const AuthenticationCredentials& credentials,
-                             const std::string& url);
+                             const std::string& url,
+                             const time_t& timestamp = std::time(nullptr));
   std::string generateBearerHeader(const std::string& bearer_token);
 
   http::NetworkRequest::RequestBodyType generateClientBody(
@@ -264,54 +271,140 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
     return client::CancellationToken();
   }
   std::weak_ptr<http::Network> weak_network(network_);
+
+  auto cache = client_token_cache_;
+
+  client::CancellationContext context;
+
+  auto time_callback = [=](TimeResponse response) mutable {
+    if (!response.IsSuccessful()) {
+      callback(AuthenticationError(
+          static_cast<int>(response.GetError().GetErrorCode()),
+          response.GetError().GetMessage()));
+      return;
+    }
+
+    std::string url = server_url_;
+    url.append(kOauthEndpoint);
+    http::NetworkRequest request(url);
+    request.WithVerb(http::NetworkRequest::HttpVerb::POST);
+    request.WithHeader(http::kAuthorizationHeader,
+                       generateHeader(credentials, url, response.GetResult()));
+    request.WithHeader(http::kContentTypeHeader, kApplicationJson);
+    request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
+    request.WithSettings(network_settings_);
+
+    std::shared_ptr<std::stringstream> payload =
+        std::make_shared<std::stringstream>();
+    request.WithBody(generateClientBody(properties));
+
+    auto network_callback = [callback, payload, credentials, cache](
+                                const http::NetworkResponse& network_response) {
+      auto response_status = network_response.GetStatus();
+      auto error_msg = network_response.GetError();
+
+      // Network not available, use cached token if available
+      if (response_status < 0) {
+        // Request cancelled, return
+        if (response_status ==
+            static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR)) {
+          callback({{response_status, error_msg}});
+          return;
+        }
+
+        auto cached_response_found =
+            cache->locked([credentials, callback](
+                              utils::LruCache<std::string, SignInResult>& c) {
+              auto it = c.Find(credentials.GetKey());
+              if (it != c.end()) {
+                SignInClientResponse response(it->value());
+                callback(response);
+                return true;
+              }
+              return false;
+            });
+
+        if (!cached_response_found) {
+          // Return an error response
+          SignInClientResponse error_response(
+              AuthenticationError(response_status, error_msg));
+          callback(error_response);
+        }
+
+        return;
+      }
+
+      auto document = std::make_shared<rapidjson::Document>();
+      rapidjson::IStreamWrapper stream(*payload);
+      document->ParseStream(stream);
+
+      std::shared_ptr<SignInResultImpl> resp_impl =
+          std::make_shared<SignInResultImpl>(response_status, error_msg,
+                                             document);
+      SignInResult response(resp_impl);
+
+      if (response_status == http::HttpStatusCode::OK) {
+        // Cache the response
+        cache->locked([credentials, &response](
+                          utils::LruCache<std::string, SignInResult>& c) {
+          return c.InsertOrAssign(credentials.GetKey(), response);
+        });
+      }
+      callback(response);
+    };
+
+    context.ExecuteOrCancelled(
+        [&]() {
+          auto send_outcome =
+              network_->Send(request, payload, network_callback);
+          if (!send_outcome.IsSuccessful()) {
+            std::string error_message =
+                ErrorCodeToString(send_outcome.GetErrorCode());
+            callback(AuthenticationError(
+                static_cast<int>(send_outcome.GetErrorCode()), error_message));
+            return client::CancellationToken();
+          }
+          auto request_id = send_outcome.GetRequestId();
+          return client::CancellationToken([weak_network, request_id]() {
+            auto network = weak_network.lock();
+
+            if (network) {
+              network->Cancel(request_id);
+            }
+          });
+        },
+        [&]() {
+          callback(AuthenticationError(
+              static_cast<int>(http::ErrorCode::CANCELLED_ERROR), "Cancelled"));
+        });
+  };
+
+  context.ExecuteOrCancelled(
+      [&]() { return GetTimeFromServer(std::move(time_callback)); }, []() {});
+  return client::CancellationToken(
+      [context]() mutable { context.CancelOperation(); });
+}
+
+client::CancellationToken AuthenticationClient::Impl::GetTimeFromServer(
+    TimeCallback callback) {
+  std::weak_ptr<http::Network> weak_network(network_);
   std::string url = server_url_;
-  url.append(kOauthEndpoint);
+  url.append(kTimestampEndpoint);
   http::NetworkRequest request(url);
-  request.WithVerb(http::NetworkRequest::HttpVerb::POST);
-  request.WithHeader(http::kAuthorizationHeader,
-                     generateHeader(credentials, url));
-  request.WithHeader(http::kContentTypeHeader, kApplicationJson);
+  request.WithVerb(http::NetworkRequest::HttpVerb::GET);
   request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
   request.WithSettings(network_settings_);
 
   std::shared_ptr<std::stringstream> payload =
       std::make_shared<std::stringstream>();
-  request.WithBody(generateClientBody(properties));
-  auto cache = client_token_cache_;
+  auto cache = user_token_cache_;
+
   auto send_outcome = network_->Send(
       request, payload,
-      [callback, payload, credentials,
-       cache](const http::NetworkResponse& network_response) {
-        auto response_status = network_response.GetStatus();
-        auto error_msg = network_response.GetError();
-
-        // Network not available, use cached token if available
-        if (response_status < 0) {
-          // Request cancelled, return
-          if (response_status == static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR)) {
-            callback({{response_status, error_msg}});
-            return;
-          }
-
-          auto cached_response_found =
-              cache->locked([credentials, callback](
-                                utils::LruCache<std::string, SignInResult>& c) {
-                auto it = c.Find(credentials.GetKey());
-                if (it != c.end()) {
-                  SignInClientResponse response(it->value());
-                  callback(response);
-                  return true;
-                }
-                return false;
-              });
-
-          if (!cached_response_found) {
-            // Return an error response
-            SignInClientResponse error_response(
-                AuthenticationError(response_status, error_msg));
-            callback(error_response);
-          }
-
+      [callback, payload](const http::NetworkResponse& network_response) {
+        if (network_response.GetStatus() < 0) {
+          callback(
+              client::ApiError(client::ApiError(network_response.GetStatus())));
           return;
         }
 
@@ -319,42 +412,31 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
         rapidjson::IStreamWrapper stream(*payload);
         document->ParseStream(stream);
 
-        std::shared_ptr<SignInResultImpl> resp_impl =
-            std::make_shared<SignInResultImpl>(response_status, error_msg,
-                                               document);
-        SignInResult response(resp_impl);
-
-        if (!resp_impl->IsValid()) {
-          callback(response);
+        if (!document->IsObject()) {
+          callback(
+              client::ApiError(client::ErrorCode::InternalFailure,
+                               "JSON     document root is not an Object type"));
           return;
         }
 
-        switch (response_status) {
-          case http::HttpStatusCode::OK: {
-            // Cache the response
-            cache->locked([credentials, &response](
-                              utils::LruCache<std::string, SignInResult>& c) {
-              return c.InsertOrAssign(credentials.GetKey(), response);
-            });
-            // intentially do not break
-          }
-          default:
-            callback(response);
-            break;
+        const auto timestamp_it = document->FindMember("timestamp");
+        if (timestamp_it == document->MemberEnd() ||
+            !timestamp_it->value.IsUint()) {
+          callback(client::ApiError(
+              client::ErrorCode::InternalFailure,
+              "JSon document must contain timestamp integer field"));
+          return;
         }
+
+        callback(timestamp_it->value.GetUint());
       });
 
   if (!send_outcome.IsSuccessful()) {
-    ExecuteOrSchedule(task_scheduler_, [send_outcome, callback] {
-      std::string error_message =
-          ErrorCodeToString(send_outcome.GetErrorCode());
-      AuthenticationError result({static_cast<int>(send_outcome.GetErrorCode()),
-                                  std::move(error_message)});
-      callback(result);
-    });
+    std::string error_message = ErrorCodeToString(send_outcome.GetErrorCode());
+    callback(client::ApiError(static_cast<int>(send_outcome.GetErrorCode()),
+                              error_message));
     return client::CancellationToken();
   }
-
   auto request_id = send_outcome.GetRequestId();
   return client::CancellationToken([weak_network, request_id]() {
     auto network = weak_network.lock();
@@ -432,7 +514,8 @@ client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
         // Network not available, use cached token if available
         if (response_status < 0) {
           // Request cancelled, return
-          if (response_status == static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR)) {
+          if (response_status ==
+              static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR)) {
             callback({{response_status, error_msg}});
             return;
           }
@@ -660,9 +743,10 @@ std::string AuthenticationClient::Impl::base64Encode(
 }
 
 std::string AuthenticationClient::Impl::generateHeader(
-    const AuthenticationCredentials& credentials, const std::string& url) {
+    const AuthenticationCredentials& credentials, const std::string& url,
+    const time_t& timestamp) {
   std::string uid = generateUid();
-  const std::string currentTime = std::to_string(std::time(nullptr));
+  const std::string currentTime = std::to_string(timestamp);
   const std::string encodedUri = Url::Encode(url);
   const std::string encodedQuery = Url::Encode(
       kOauthConsumerKey + kParamEquals + credentials.GetKey() + kParamAdd +
