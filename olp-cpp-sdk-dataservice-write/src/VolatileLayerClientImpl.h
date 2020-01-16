@@ -25,6 +25,7 @@
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientFactory.h>
+#include <olp/core/client/PendingRequests.h>
 #include "ApiClientLookup.h"
 
 #include <olp/dataservice/write/VolatileLayerClient.h>
@@ -63,6 +64,8 @@ class VolatileLayerClientImpl
       GetBaseVersionCallback callback);
 
   void CancelAll();
+
+  void CancelPendingRequests();
 
   olp::client::CancellableFuture<PublishPartitionDataResponse>
   PublishPartitionData(const model::PublishPartitionDataRequest& request);
@@ -129,6 +132,8 @@ class VolatileLayerClientImpl
   std::shared_ptr<client::OlpClient> apiclient_query_;
 
   CancellationTokenList tokenList_;
+
+  std::shared_ptr<client::PendingRequests> pending_requests_;
 
   std::mutex mutex_;
   std::condition_variable cond_var_;

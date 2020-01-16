@@ -25,6 +25,7 @@
 #include <generated/model/PublishPartitions.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/OlpClient.h>
+#include <olp/core/client/PendingRequests.h>
 #include "CancellationTokenList.h"
 #include "generated/model/Catalog.h"
 
@@ -90,6 +91,8 @@ class VersionedLayerClientImpl
 
   void CancelAll();
 
+  void CancelPendingRequests();
+
   client::CancellableFuture<PublishPartitionDataResponse> PublishToBatch(
       const model::Publication& pub,
       const model::PublishPartitionDataRequest& request);
@@ -141,6 +144,8 @@ class VersionedLayerClientImpl
   std::shared_ptr<client::OlpClient> apiclient_query_;
 
   CancellationTokenList tokenList_;
+
+  std::shared_ptr<client::PendingRequests> pending_requests_;
 
   std::mutex mutex_;
   std::condition_variable cond_var_;

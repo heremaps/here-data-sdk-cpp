@@ -24,6 +24,7 @@
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
+#include <olp/core/porting/deprecated.h>
 
 #include <olp/dataservice/write/DataServiceWriteApi.h>
 #include <olp/dataservice/write/generated/model/Publication.h>
@@ -176,8 +177,20 @@ class DATASERVICE_WRITE_API VersionedLayerClient {
    * cancel operations that have been started, so you will need to call
    * CancelBatch after this if you have a batch operation in progress
    * (StartBatch successfully completed).
+   * @deprecated Use \ref CancelPendingRequests intead.
    */
+  OLP_SDK_DEPRECATED(
+      "Use CancelPendingRequests instead. Will be removed in 05.2020")
   void CancelAll();
+
+  /**
+   * @brief Cancels all the ongoing operations that this client started.
+   *
+   * Returns instantly and does not wait for the callbacks.
+   * Use this operation to cancel all the pending requests without
+   * destroying the actual client instance.
+   */
+  void CancelPendingRequests();
 
   /**
    * @brief Call to publish data into an OLP Versioned Layer.

@@ -30,7 +30,6 @@ VersionedLayerClient::VersionedLayerClient(client::HRN catalog,
     : impl_(std::make_shared<VersionedLayerClientImpl>(std::move(catalog),
                                                        std::move(settings))) {}
 
-
 olp::client::CancellableFuture<StartBatchResponse>
 VersionedLayerClient::StartBatch(model::StartBatchRequest request) {
   return impl_->StartBatch(request);
@@ -82,6 +81,10 @@ olp::client::CancellationToken VersionedLayerClient::CancelBatch(
 }
 
 void VersionedLayerClient::CancelAll() { impl_->CancelAll(); }
+
+void VersionedLayerClient::CancelPendingRequests() {
+  impl_->CancelPendingRequests();
+}
 
 olp::client::CancellableFuture<PublishPartitionDataResponse>
 VersionedLayerClient::PublishToBatch(

@@ -30,6 +30,10 @@ IndexLayerClient::IndexLayerClient(client::HRN catalog,
 
 void IndexLayerClient::CancelAll() { impl_->CancelAll(); }
 
+void IndexLayerClient::CancelPendingRequests() {
+  impl_->CancelPendingRequests();
+}
+
 olp::client::CancellableFuture<PublishIndexResponse>
 IndexLayerClient::PublishIndex(model::PublishIndexRequest request) {
   return impl_->PublishIndex(request);

@@ -55,9 +55,13 @@ IndexLayerClientImpl::IndexLayerClientImpl(HRN catalog,
       apiclient_config_(nullptr),
       apiclient_blob_(nullptr),
       apiclient_index_(nullptr),
+      pending_requests_(std::make_shared<client::PendingRequests>()),
       init_in_progress_(false) {}
 
-IndexLayerClientImpl::~IndexLayerClientImpl() { CancelAll(); }
+IndexLayerClientImpl::~IndexLayerClientImpl() {
+  CancelAll();
+  pending_requests_->CancelAllAndWait();
+}
 
 olp::client::CancellationToken IndexLayerClientImpl::InitApiClients(
     std::shared_ptr<client::CancellationContext> cancel_context,
@@ -142,6 +146,8 @@ olp::client::CancellationToken IndexLayerClientImpl::InitApiClients(
 }
 
 void IndexLayerClientImpl::CancelAll() { tokenList_.CancelAll(); }
+
+void IndexLayerClientImpl::CancelPendingRequests() { CancelAll(); }
 
 CancellationToken IndexLayerClientImpl::InitCatalogModel(
     const model::PublishIndexRequest& request,
