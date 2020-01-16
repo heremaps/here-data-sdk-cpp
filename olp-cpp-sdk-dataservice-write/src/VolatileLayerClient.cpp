@@ -31,6 +31,10 @@ VolatileLayerClient::VolatileLayerClient(client::HRN catalog,
 
 void VolatileLayerClient::CancelAll() { impl_->CancelAll(); }
 
+void VolatileLayerClient::CancelPendingRequests() {
+  impl_->CancelPendingRequests();
+}
+
 olp::client::CancellableFuture<PublishPartitionDataResponse>
 VolatileLayerClient::PublishPartitionData(
     model::PublishPartitionDataRequest request) {

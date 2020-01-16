@@ -48,9 +48,14 @@ namespace dataservice {
 namespace write {
 VolatileLayerClientImpl::VolatileLayerClientImpl(HRN catalog,
                                                  OlpClientSettings settings)
-    : catalog_(std::move(catalog)), settings_(std::move(settings)) {}
+    : catalog_(std::move(catalog)),
+      settings_(std::move(settings)),
+      pending_requests_(std::make_shared<client::PendingRequests>()) {}
 
-VolatileLayerClientImpl::~VolatileLayerClientImpl() { CancelAll(); }
+VolatileLayerClientImpl::~VolatileLayerClientImpl() {
+  CancelAll();
+  pending_requests_->CancelAllAndWait();
+}
 
 olp::client::CancellationToken VolatileLayerClientImpl::InitApiClients(
     std::shared_ptr<client::CancellationContext> cancel_context,
@@ -174,6 +179,8 @@ olp::client::CancellationToken VolatileLayerClientImpl::InitApiClients(
 }
 
 void VolatileLayerClientImpl::CancelAll() { tokenList_.CancelAll(); }
+
+void VolatileLayerClientImpl::CancelPendingRequests() { CancelAll(); }
 
 CancellationToken VolatileLayerClientImpl::InitCatalogModel(
     const model::PublishPartitionDataRequest& /*request*/,

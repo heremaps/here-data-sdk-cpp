@@ -83,7 +83,7 @@ class DATASERVICE_WRITE_API StreamLayerClient {
    * @brief Cancels all the ongoing publish operations that this client started.
    *
    * Returns instantly and does not wait for the callbacks.
-   * Use this operation to cancel all the submitted publish requests without
+   * Use this operation to cancel all the pending publish requests without
    * destroying the actual client instance.
    * @note This operation does not cancel publish requests queued by the \ref
    * Queue method.

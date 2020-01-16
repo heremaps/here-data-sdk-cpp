@@ -53,9 +53,13 @@ VersionedLayerClientImpl::VersionedLayerClientImpl(
       apiclient_metadata_(nullptr),
       apiclient_publish_(nullptr),
       apiclient_query_(nullptr),
+      pending_requests_(std::make_shared<client::PendingRequests>()),
       init_in_progress_(false) {}
 
-VersionedLayerClientImpl::~VersionedLayerClientImpl() { CancelAll(); }
+VersionedLayerClientImpl::~VersionedLayerClientImpl() {
+  CancelAll();
+  pending_requests_->CancelAllAndWait();
+}
 
 olp::client::CancellationToken VersionedLayerClientImpl::InitApiClients(
     std::shared_ptr<client::CancellationContext> cancel_context,
@@ -494,6 +498,8 @@ olp::client::CancellationToken VersionedLayerClientImpl::CancelBatch(
 }
 
 void VersionedLayerClientImpl::CancelAll() { tokenList_.CancelAll(); }
+
+void VersionedLayerClientImpl::CancelPendingRequests() { CancelAll(); }
 
 olp::client::CancellableFuture<PublishPartitionDataResponse>
 VersionedLayerClientImpl::PublishToBatch(

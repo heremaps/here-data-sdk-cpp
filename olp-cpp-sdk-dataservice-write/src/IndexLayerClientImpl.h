@@ -24,6 +24,7 @@
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientFactory.h>
+#include <olp/core/client/PendingRequests.h>
 #include "ApiClientLookup.h"
 #include "CancellationTokenList.h"
 
@@ -53,6 +54,8 @@ class IndexLayerClientImpl
   virtual ~IndexLayerClientImpl();
 
   void CancelAll();
+
+  void CancelPendingRequests();
 
   olp::client::CancellableFuture<PublishIndexResponse> PublishIndex(
       const model::PublishIndexRequest& request);
@@ -96,6 +99,8 @@ class IndexLayerClientImpl
   std::shared_ptr<client::OlpClient> apiclient_index_;
 
   CancellationTokenList tokenList_;
+
+  std::shared_ptr<client::PendingRequests> pending_requests_;
 
   std::mutex mutex_;
   std::condition_variable cond_var_;
