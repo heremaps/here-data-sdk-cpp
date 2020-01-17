@@ -35,9 +35,7 @@ else()
   set(LEVELDB_CMAKE_ARGS "${LEVELDB_CMAKE_ARGS} -DHAVE_CRC32C=OFF -DHAVE_TCMALLOC=OFF")
 endif()
 
-if(BUILD_SHARED_LIBS)
-  set(LEVELDB_CMAKE_ARGS "${LEVELDB_CMAKE_ARGS} -DCMAKE_POSITION_INDEPENDENT_CODE=ON")
-endif()
+set(LEVELDB_CMAKE_ARGS "${LEVELDB_CMAKE_ARGS} -DCMAKE_POSITION_INDEPENDENT_CODE=ON")
 
 # Download and unpack leveldb at configure time
 configure_file(CMakeLists.txt.leveldb.in download/CMakeLists.txt)

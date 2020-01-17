@@ -44,7 +44,7 @@ option(OLP_SDK_MSVC_PARALLEL_BUILD_ENABLE "Enable parallel build on MSVC" ON)
 
 # C++ standard version. Minimum supported version is 11.
 set(CMAKE_CXX_STANDARD 11)
-
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Set no exception
 if (OLP_SDK_NO_EXCEPTION)
     set(CMAKE_CXX_FLAGS "-fno-exceptions ${CMAKE_CXX_FLAGS}")
