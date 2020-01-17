@@ -26,30 +26,6 @@ matrix:
     env: BUILD_TYPE=COVERAGE WORKSPACE=$TRAVIS_BUILD_DIR
     name: Linux Build using gcc & tests & code coverage
     script: $WORKSPACE/scripts/linux/psv/travis_build_psv.sh && $WORKSPACE/scripts/linux/psv/travis_test_psv.sh
-  - language: android
-    dist: xenial
-    jdk: oraclejdk8
-    name: Android Build
-    android:
-      components:
-      - tools
-      - platform-tools
-      - build-tools-28.0.3
-      - android-28
-      - extra-google-m2repository
-      - extra-android-m2repository # for design library
-      licenses:
-      - android-sdk-preview-license-.+
-      - android-sdk-license-.+
-      - google-gdk-license-.+
-      - patcher
-      - ndk-bundle
-    install:
-    - echo y | sdkmanager "ndk-bundle"
-    before_script:
-    - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
-    - ls -la $ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake # for verification that needed script exist
-    script: $WORKSPACE/scripts/android/build.sh
 branches:
   only:
   - master

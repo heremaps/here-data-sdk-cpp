@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 #
 # Copyright (C) 2019 HERE Europe B.V.
 #
@@ -26,8 +26,12 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain
 	-DOLP_SDK_BUILD_EXAMPLES=ON
 
 #cmake --build . # this is alternative option for build
-sudo make install -j
-cd $WORKSPACE/build/examples/dataservice-read/android
+sudo make install -j$(nproc)
+
+pushd examples/dataservice-read/android
 sudo ./gradlew assemble
-cd $WORKSPACE/build/examples/dataservice-write/android
+popd
+
+pushd examples/dataservice-write/android
 sudo ./gradlew assemble
+popd
