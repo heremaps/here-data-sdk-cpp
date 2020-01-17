@@ -10,7 +10,8 @@ schedules:
     - master
 
 variables:
-  BUILD_TYPE: RelWithDebInfo
+  BUILD_TYPE: "RelWithDebInfo"
+
 jobs:
 - job: Windows_build
   pool:
@@ -29,3 +30,16 @@ jobs:
     vmImage: 'macOS-10.14'
   steps:
   - bash: scripts/ios/azure_ios_build_psv.sh
+
+- job: Android_build
+  pool:
+    vmImage: 'ubuntu-18.04'
+  variables:
+    ANDROID_NDK_HOME: $(ANDROID_HOME)/ndk-bundle
+    LD_PRELOAD: "/lib/x86_64-linux-gnu/libSegFault.so"
+    SEGFAULT_SIGNALS: "all"
+  steps:
+    - bash: ls -la $(ANDROID_NDK_HOME)/build/cmake/android.toolchain.cmake
+      displayName: Verification of cmake script exist.
+    - bash: ANDROID_NDK_HOME=$(ANDROID_NDK_HOME) && scripts/android/build.sh
+      displayName: Android build and Examples.
