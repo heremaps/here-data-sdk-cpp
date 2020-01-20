@@ -64,8 +64,7 @@ class CORE_API DefaultCache : public KeyValueCache {
    * @param settings Settings for the cache.
    */
   DefaultCache(const CacheSettings& settings = CacheSettings());
-
-  virtual ~DefaultCache();
+  ~DefaultCache() override;
 
   /**
    * @brief Opens the cache to start read/write operations.
@@ -95,8 +94,8 @@ class CORE_API DefaultCache : public KeyValueCache {
    * @param expiry Time in seconds to when pair will expire
    * @return Returns true if the operation is successfull, false otherwise.
    */
-  virtual bool Put(const std::string& key, const boost::any& value,
-                   const Encoder& encoder, time_t expiry);
+  bool Put(const std::string& key, const boost::any& value,
+           const Encoder& encoder, time_t expiry) override;
 
   /**
    * @brief Stores the raw binary data as value into the cache.
@@ -105,9 +104,8 @@ class CORE_API DefaultCache : public KeyValueCache {
    * @param expiry Time in seconds to when pair will expire
    * @return Returns true if the operation is successfull, false otherwise.
    */
-  virtual bool Put(const std::string& key,
-                   const std::shared_ptr<std::vector<unsigned char>> value,
-                   time_t expiry);
+  bool Put(const std::string& key, const KeyValueCache::ValueTypePtr value,
+           time_t expiry) override;
 
   /**
    * @brief Gets the key-value pair from the cache.
@@ -115,14 +113,13 @@ class CORE_API DefaultCache : public KeyValueCache {
    * @param decoder A method is provided to decode a value from a string if
    * needed
    */
-  virtual boost::any Get(const std::string& key, const Decoder& decoder);
+  boost::any Get(const std::string& key, const Decoder& decoder) override;
 
   /**
    * @brief Gets the key and binary data from the cache.
    * @param key Key to look for
    */
-  virtual std::shared_ptr<std::vector<unsigned char>> Get(
-      const std::string& key);
+  KeyValueCache::ValueTypePtr Get(const std::string& key) override;
 
   /**
    * @brief Removes the key-value pair from the cache.
@@ -130,7 +127,7 @@ class CORE_API DefaultCache : public KeyValueCache {
    *
    * @return Returns true if the operation is successfull, false otherwise.
    */
-  virtual bool Remove(const std::string& key);
+  bool Remove(const std::string& key) override;
 
   /**
    * @brief Removes the values with the keys matching the given
@@ -139,11 +136,10 @@ class CORE_API DefaultCache : public KeyValueCache {
    *
    * @return Returns true on removal, false otherwise.
    */
-  virtual bool RemoveKeysWithPrefix(const std::string& prefix);
+  bool RemoveKeysWithPrefix(const std::string& prefix) override;
 
  private:
   StorageOpenResult SetupStorage();
-
   boost::optional<std::pair<std::string, time_t>> GetFromDiscCache(
       const std::string& key);
 

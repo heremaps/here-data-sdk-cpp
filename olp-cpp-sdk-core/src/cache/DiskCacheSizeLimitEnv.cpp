@@ -18,11 +18,13 @@
  */
 
 #include "DiskCacheSizeLimitEnv.h"
+
 #include "DiskCacheSizeLimitWritableFile.h"
 
 namespace olp {
 namespace cache {
 namespace {
+
 bool IsLogFile(const std::string& name) {
   static constexpr char log_suffix[] = ".log";
   constexpr size_t log_suffix_length = 4;
@@ -49,8 +51,10 @@ DiskCacheSizeLimitEnv::DiskCacheSizeLimitEnv(leveldb::Env* env,
   if (target()->GetChildren(base_path, &children).ok()) {
     for (const std::string& child : children) {
       uint64_t size;
-      std::string fullPath(base_path + PathSeparator() + child);
-      if (target()->GetFileSize(fullPath, &size).ok()) total_size_ += size;
+      std::string full_path(base_path + PathSeparator() + child);
+      if (target()->GetFileSize(full_path, &size).ok()) {
+        total_size_ += size;
+      }
     }
   }
 }
@@ -64,13 +68,18 @@ leveldb::Status DiskCacheSizeLimitEnv::NewWritableFile(
     status = target()->NewWritableFile(f, &file);
   }
 
-  if (status.ok()) *r = new DiskCacheSizeLimitWritableFile(this, file);
+  if (status.ok()) {
+    *r = new DiskCacheSizeLimitWritableFile(this, file);
+  }
+
   return status;
 }
 
 leveldb::Status DiskCacheSizeLimitEnv::DeleteFile(const std::string& f) {
   uint64_t size = 0;
-  if (target()->GetFileSize(f, &size).ok()) total_size_ -= size;
+  if (target()->GetFileSize(f, &size).ok()) {
+    total_size_ -= size;
+  }
   return target()->DeleteFile(f);
 }
 
