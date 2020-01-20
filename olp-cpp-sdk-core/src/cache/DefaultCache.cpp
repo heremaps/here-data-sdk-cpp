@@ -77,7 +77,6 @@ void ValidateDiskPath(olp::cache::CacheSettings& settings) {
 }  // namespace
 
 namespace olp {
-
 namespace cache {
 
 DefaultCache::DefaultCache(const CacheSettings& settings)
@@ -353,5 +352,6 @@ boost::optional<std::pair<std::string, time_t>> DefaultCache::GetFromDiscCache(
   }
   return boost::none;
 }
+
 }  // namespace cache
 }  // namespace olp

@@ -40,108 +40,105 @@ namespace olp {
 namespace cache {
 
 namespace {
-
 constexpr auto kLogTag = "Storage.LevelDB";
 
-static inline leveldb::Slice toLeveldbSlice(const std::string& slice) {
+leveldb::Slice ToLeveldbSlice(const std::string& slice) {
   return leveldb::Slice(slice);
 }
 
-std::vector<std::string> tokenizePath(const std::string& dirName,
+std::vector<std::string> TokenizePath(const std::string& directory_name,
                                       std::string delimiter) {
   std::regex regexp{"[" + delimiter + "]+"};
-  std::sregex_token_iterator iterator(dirName.begin(), dirName.end(), regexp,
-                                      -1);
-  std::vector<std::string> dirNames;
-  std::copy_if(iterator, {}, std::back_inserter(dirNames),
+  std::sregex_token_iterator iterator(directory_name.begin(),
+                                      directory_name.end(), regexp, -1);
+  std::vector<std::string> directory_names;
+  std::copy_if(iterator, {}, std::back_inserter(directory_names),
                [](const std::string& matched_element) {
                  return !matched_element.empty();
                });
-  return dirNames;
+  return directory_names;
 }
 
 // Create all nested directories according to the provided path ('dirName').
-void createDir(const std::string& dirName) {
-  auto dirNames = tokenizePath(dirName, "/");
-  if (dirNames.size() <= 1u) {
-    // For Windows path format - size less or equal 1 means path was'nt separate
+void CreateDir(const std::string& directory_name) {
+  auto directory_names = TokenizePath(directory_name, "/");
+  if (directory_names.size() <= 1u) {
+    // For Windows path format - size less or equal 1 means path wasn't separate
     // by ('/') 4 * "\\\\" means "\" in path - 2x for string formatting purpose
     // 2x for regex.
-    dirNames = tokenizePath(dirName, "\\\\");
+    directory_names = TokenizePath(directory_name, "\\\\");
   }
+
   std::string path = "/";
-  for (const auto& dirName : dirNames) {
-    path += dirName + "/";
+  for (const auto& name : directory_names) {
+    path += name + "/";
     leveldb::Env::Default()->CreateDir(path);
   }
 }
 
-static bool repairCache(const std::string& versionedDataPath) {
+static bool RepairCache(const std::string& data_path) {
   // first
-  leveldb::Status status =
-      leveldb::RepairDB(versionedDataPath, leveldb::Options());
+  auto status = leveldb::RepairDB(data_path, leveldb::Options());
   if (status.ok()) {
-    OLP_SDK_LOG_WARNING(kLogTag,
-                        "Database corrupted, repaired " << versionedDataPath);
-    leveldb::Env::Default()->DeleteDir(versionedDataPath + "/lost");
+    OLP_SDK_LOG_INFO(kLogTag, "RepairCache: repaired - " << data_path);
+    leveldb::Env::Default()->DeleteDir(data_path + "/lost");
     return true;
   }
   OLP_SDK_LOG_ERROR(kLogTag,
-                    "Database corrupted, repair failed: " << status.ToString());
+                    "RepairCache: repair failed - " << status.ToString());
 
   // repair failed, delete the entire cache;
-  status = leveldb::DestroyDB(versionedDataPath, leveldb::Options());
+  status = leveldb::DestroyDB(data_path, leveldb::Options());
   if (!status.ok()) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Destroying database after corruption failed: "
-                                   << status.ToString());
+    OLP_SDK_LOG_ERROR(kLogTag,
+                      "RepairCache: destroying corrupted database failed - "
+                          << status.ToString());
     return false;
   }
   OLP_SDK_LOG_WARNING(
-      kLogTag, "Destroyed database after corruption: " << versionedDataPath);
+      kLogTag, "RepairCache: destroyed corrupted database - " << data_path);
   return true;
 }
 
-void removeOtherDB(const std::string& dataPath,
-                   const std::string& versionedDataPathToKeep) {
-  std::vector<std::string> pathContents;
-  leveldb::Status status =
-      leveldb::Env::Default()->GetChildren(dataPath, &pathContents);
+void RemoveOtherDB(const std::string& data_path,
+                   const std::string& data_path_to_keep) {
+  std::vector<std::string> path_contents;
+  auto status = leveldb::Env::Default()->GetChildren(data_path, &path_contents);
   if (!status.ok()) {
-    OLP_SDK_LOG_WARNING(
-        kLogTag, "Clearing other DBs in folder: failed to list folder \""
-                     << dataPath << "\" contents - " << status.ToString());
+    OLP_SDK_LOG_WARNING(kLogTag, "RemoveOtherDB: failed to list folder \""
+                                     << data_path << "\" contents - "
+                                     << status.ToString());
     return;
   }
 
-  for (auto& item : pathContents) {
+  for (auto& item : path_contents) {
     // We shouldn't be checking .. for a database as we may not have rights and
     // should not be deleting files outside the specified folder
-    if (item.compare("..") == 0) continue;
+    if (item.compare("..") == 0) {
+      continue;
+    }
 
-    const std::string fullPath = dataPath + '/' + item;
-    if (fullPath != versionedDataPathToKeep) {
-      status = leveldb::DestroyDB(fullPath, leveldb::Options());
-      if (!status.ok())
-        OLP_SDK_LOG_WARNING(
-            kLogTag,
-            "Clearing other DBs in folder: failed to destroy database \""
-                << fullPath << "\" - " << status.ToString());
+    const std::string full_path = data_path + '/' + item;
+    if (full_path == data_path_to_keep) {
+      continue;
+    }
+
+    status = leveldb::DestroyDB(full_path, leveldb::Options());
+    if (!status.ok()) {
+      OLP_SDK_LOG_WARNING(kLogTag,
+                          "RemoveOtherDB: failed to destroy database \""
+                              << full_path << "\" - " << status.ToString());
     }
   }
 }
 
 }  // anonymous namespace
 
-DiskCache::DiskCache() {}
-
-DiskCache::~DiskCache() {
-  // if (m_compactionThread.joinable()) m_compactionThread.join();
-
-  Close();
-}
+DiskCache::DiskCache() = default;
+DiskCache::~DiskCache() { Close(); }
 
 void DiskCache::LevelDBLogger::Logv(const char* format, va_list ap) {
-  OLP_SDK_LOG_TRACE_F("Storage.LevelDB.leveldb", format, ap);
+  OLP_SDK_LOG_DEBUG_F("Storage.LevelDB.leveldb", format, ap);
 }
 
 void DiskCache::Close() { database_.reset(); }
@@ -153,63 +150,59 @@ bool DiskCache::Clear() {
   return true;
 }
 
-OpenResult DiskCache::Open(const std::string& dataPath,
-                           const std::string& versionedDataPath,
-                           StorageSettings settings, OpenOptions openOptions) {
-  disk_cache_path_ = dataPath;
+OpenResult DiskCache::Open(const std::string& data_path,
+                           const std::string& versioned_data_path,
+                           StorageSettings settings, OpenOptions options) {
+  disk_cache_path_ = data_path;
   if (!olp::utils::Dir::exists(disk_cache_path_)) {
     if (!olp::utils::Dir::create(disk_cache_path_)) {
       return OpenResult::Fail;
     }
   }
 
-  bool isReadOnly = (openOptions & ReadOnly) == ReadOnly;
-
+  bool is_read_only = (options & ReadOnly) == ReadOnly;
   max_size_ = settings.max_disk_storage;
 
-  leveldb::Options options;
-  options.info_log = leveldb_logger_.get();
-
-  // maximum write buffer of 32 MB is most optimal even for batch imports
-  options.write_buffer_size = settings.max_chunk_size;
+  leveldb::Options open_options;
+  open_options.info_log = leveldb_logger_.get();
+  open_options.write_buffer_size = settings.max_chunk_size;
   if (settings.max_file_size != 0) {
-    options.max_file_size = settings.max_file_size;
+    open_options.max_file_size = settings.max_file_size;
   }
 
-  if (!isReadOnly) {
-    options.create_if_missing = true;
+  if (!is_read_only) {
+    open_options.create_if_missing = true;
 
-    // create the directory if it doesn't exist
-    createDir(dataPath);
+    // Create the directory if it doesn't exist
+    CreateDir(data_path);
 
-    // remove other DBs only if provided the versioned path - do nothing
+    // Remove other DBs only if provided the versioned path - do nothing
     // otherwise
-    if (dataPath != versionedDataPath)
-      removeOtherDB(dataPath, versionedDataPath);
+    if (data_path != versioned_data_path)
+      RemoveOtherDB(data_path, versioned_data_path);
 
-    if (max_size_ != std::uint64_t(-1)) {
+    if (max_size_ != kSizeMax) {
       environment_ = std::make_unique<DiskCacheSizeLimitEnv>(
-          leveldb::Env::Default(), versionedDataPath,
+          leveldb::Env::Default(), versioned_data_path,
           settings.enforce_immediate_flush);
-      options.env = environment_.get();
+      open_options.env = environment_.get();
     }
   }
 
   leveldb::DB* db = nullptr;
-  check_crc_ = openOptions & CheckCrc;
+  check_crc_ = options & CheckCrc;
 
-  // first attempt in opening the db
-  leveldb::Status status = leveldb::DB::Open(options, versionedDataPath, &db);
+  // First attempt in opening the db
+  auto status = leveldb::DB::Open(open_options, versioned_data_path, &db);
 
-  if (!status.ok() && !isReadOnly)
-    OLP_SDK_LOG_WARNING(kLogTag, "Cannot open database ("
-                                     << status.ToString()
-                                     << ") attempting repair");
+  if (!status.ok() && !is_read_only)
+    OLP_SDK_LOG_WARNING(kLogTag, "Open: failed, attempting repair, error="
+                                     << status.ToString());
 
-  // if the database is r/w and corrupted, attempt to repair & reopen
-  if ((status.IsCorruption() || status.IsIOError()) && !isReadOnly &&
-      repairCache(versionedDataPath) == true) {
-    status = leveldb::DB::Open(options, versionedDataPath, &db);
+  // If the database is r/w and corrupted, attempt to repair & reopen
+  if ((status.IsCorruption() || status.IsIOError()) && !is_read_only &&
+      RepairCache(versioned_data_path) == true) {
+    status = leveldb::DB::Open(open_options, versioned_data_path, &db);
     if (status.ok()) {
       database_.reset(db);
       return OpenResult::Repaired;
@@ -217,7 +210,7 @@ OpenResult DiskCache::Open(const std::string& dataPath,
   }
 
   if (!status.ok()) {
-    setOpenError(status);
+    SetOpenError(status);
     return OpenResult::Fail;
   }
 
@@ -225,40 +218,48 @@ OpenResult DiskCache::Open(const std::string& dataPath,
   return OpenResult::Success;
 }
 
-void DiskCache::setOpenError(const leveldb::Status& status) {
-  ErrorCode code = ErrorCode::Unknown;
-  if (status.IsNotFound()) code = ErrorCode::NotFound;
-  if (status.IsInvalidArgument()) code = ErrorCode::InvalidArgument;
-  if (status.IsCorruption() || status.IsIOError())
-    code = ErrorCode::InternalFailure;
-  if (status.IsNotSupportedError()) code = ErrorCode::BadRequest;
-  std::string errorMessage = status.ToString();
-  OLP_SDK_LOG_FATAL(kLogTag, "Cannot open database " << errorMessage);
-  error_ = ApiError(code, std::move(errorMessage));
+void DiskCache::SetOpenError(const leveldb::Status& status) {
+  client::ErrorCode code = client::ErrorCode::Unknown;
+  if (status.IsNotFound()) {
+    code = client::ErrorCode::NotFound;
+  }
+  if (status.IsInvalidArgument()) {
+    code = client::ErrorCode::InvalidArgument;
+  }
+  if (status.IsCorruption() || status.IsIOError()) {
+    code = client::ErrorCode::InternalFailure;
+  }
+  if (status.IsNotSupportedError()) {
+    code = client::ErrorCode::BadRequest;
+  }
+  std::string error_message = status.ToString();
+  OLP_SDK_LOG_ERROR(kLogTag, "Open: failed, error=" << error_message);
+  error_ = client::ApiError(code, std::move(error_message));
 }
 
 bool DiskCache::Put(const std::string& key, const std::string& value) {
-  if (!database_) return false;
-
-  if (environment_ && (max_size_ != std::uint64_t(-1))) {
-    if (environment_->Size() >= max_size_) return false;
+  if (!database_) {
+    return false;
   }
 
-  const leveldb::Status& status = database_->Put(
-      leveldb::WriteOptions(), toLeveldbSlice(key), toLeveldbSlice(value));
+  if (environment_ && (max_size_ != kSizeMax) &&
+      (environment_->Size() >= max_size_)) {
+    return false;
+  }
+
+  const auto status = database_->Put(
+      leveldb::WriteOptions(), ToLeveldbSlice(key), ToLeveldbSlice(value));
   if (!status.ok()) {
-    OLP_SDK_LOG_FATAL(kLogTag,
-                      "Failed to write the database " << status.ToString());
+    OLP_SDK_LOG_ERROR(kLogTag, "Put: failed, status=" << status.ToString());
     return false;
   }
   return true;
 }
 
 boost::optional<std::string> DiskCache::Get(const std::string& key) {
-  if (!database_) return boost::none;
   std::string res;
-  return database_->Get({}, toLeveldbSlice(key), &res).ok()
-             ? boost::make_optional(res)
+  return database_ && database_->Get({}, ToLeveldbSlice(key), &res).ok()
+             ? boost::optional<std::string>(std::move(res))
              : boost::none;
 }
 
@@ -268,8 +269,11 @@ bool DiskCache::Remove(const std::string& key) {
   return true;
 }
 
-bool DiskCache::RemoveKeysWithPrefix(const std::string& keyPrefix) {
-  if (!database_) return false;
+bool DiskCache::RemoveKeysWithPrefix(const std::string& prefix) {
+  if (!database_) {
+    return false;
+  }
+
   auto batch = std::make_unique<leveldb::WriteBatch>();
 
   leveldb::ReadOptions opts;
@@ -278,24 +282,23 @@ bool DiskCache::RemoveKeysWithPrefix(const std::string& keyPrefix) {
   std::unique_ptr<leveldb::Iterator> iterator;
   iterator.reset(database_->NewIterator(opts));
 
-  if (keyPrefix.empty()) {
+  if (prefix.empty()) {
     for (iterator->SeekToFirst(); iterator->Valid(); iterator->Next()) {
       batch->Delete(iterator->key());
     }
   } else {
-    for (iterator->Seek(keyPrefix);
-         iterator->Valid() && iterator->key().starts_with(keyPrefix);
+    for (iterator->Seek(prefix);
+         iterator->Valid() && iterator->key().starts_with(prefix);
          iterator->Next()) {
       batch->Delete(iterator->key());
     }
   }
 
-  const leveldb::Status& status =
-      database_->Write(leveldb::WriteOptions(), batch.get());
+  const auto status = database_->Write(leveldb::WriteOptions(), batch.get());
   if (!status.ok()) {
-    OLP_SDK_LOG_FATAL(kLogTag,
-                      "Failed to write the database " << status.ToString();
-                      return false;);
+    OLP_SDK_LOG_ERROR(
+        kLogTag, "RemoveKeysWithPrefix: failed, status=" << status.ToString());
+    return false;
   }
   return true;
 }

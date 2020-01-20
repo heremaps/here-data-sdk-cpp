@@ -37,80 +37,82 @@ namespace leveldb {
 class DB;
 }  // namespace leveldb
 
-using namespace olp::client;
-
 namespace olp {
 namespace cache {
-
 class DiskCacheSizeLimitEnv;
 
 /**
- * @brief The OpenResult enum defines the result of the open() operation
+ * @brief The OpenResult enum defines the result of the open() operation.
  */
 enum class OpenResult {
-  /// Opening the store failed. Use openError() for details
+  /// Opening the store failed. Use openError() for details.
   Fail,
   /// The store was corrupted and has been repaired. Internal integrity might be
   /// broken.
   Repaired,
-  /// The store was successfully opened
+  /// The store was successfully opened.
   Success
 };
 
 struct StorageSettings {
-  /// maxSizeB is maximum size of storage on disk in bytes
+  /// The maximum allowed size of storage on disk in bytes.
   uint64_t max_disk_storage = 0u;
-  /// chunkMaxSizeB is maximum size of data in memory before it gets flushed
-  /// to disk. Data is kept in memory until its size reaches this value and
-  /// then data is flushed to disk.
-  uint64_t max_chunk_size = 1024 * 1024 * 32;
-  /// enforceImmediateFlush flag to enable double-writes to disk to avoid data
-  /// losses between ignition cycles.
+  /// The maximum size of data in memory before it gets flushed to disk.
+  /// Data is kept in memory until its size reaches this value and then data is
+  /// flushed to disk. A maximum write buffer of 32 MB is most optimal even for
+  /// batch imports.
+  uint64_t max_chunk_size = 32 * 1024u * 1024u;
+  /// Flag to enable double-writes to disk to avoid data losses between ignition
+  /// cycles.
   bool enforce_immediate_flush = true;
-  /// Maximum size of one file in storage, default 2mb
+  /// Maximum size of one file in storage, default 2MBytes.
   size_t max_file_size = 2 * 1024u * 1024u;
 };
 
+/**
+ * @brief Class which abstracts the on-disk database engine.
+ */
 class DiskCache {
  public:
-  // logger that forwards leveldb log messages to our logging framework
+  static constexpr uint64_t kSizeMax = std::numeric_limits<uint64_t>::max();
+
+  /// Logger that forwards leveldb log messages to our logging framework.
   class LevelDBLogger : public leveldb::Logger {
     void Logv(const char* format, va_list ap) override;
   };
 
   DiskCache();
   ~DiskCache();
-  OpenResult Open(const std::string& dataPath,
-                  const std::string& versionedDataPath,
-                  StorageSettings settings, OpenOptions openOptions);
+  OpenResult Open(const std::string& data_path,
+                  const std::string& versioned_data_path,
+                  StorageSettings settings, OpenOptions options);
 
   void Close();
-
   bool Clear();
-
-  ApiError openError() const { return error_; }
+  client::ApiError OpenError() const { return error_; }
 
   bool Put(const std::string& key, const std::string& value);
-
   boost::optional<std::string> Get(const std::string& key);
 
   size_t Size() const;
 
+  /// Remove single key/value from DB.
   bool Remove(const std::string& key);
-  bool RemoveKeysWithPrefix(const std::string& keyPrefix);
+  /// Empty prefix deleted everything from DB.
+  bool RemoveKeysWithPrefix(const std::string& prefix);
 
  private:
-  void setOpenError(const leveldb::Status& status);
-  bool applyBatch(std::unique_ptr<leveldb::WriteBatch> batch);
+  void SetOpenError(const leveldb::Status& status);
+  bool ApplyBatch(std::unique_ptr<leveldb::WriteBatch> batch);
 
  private:
   std::string disk_cache_path_;
   std::unique_ptr<leveldb::DB> database_;
   std::unique_ptr<DiskCacheSizeLimitEnv> environment_;
   std::unique_ptr<LevelDBLogger> leveldb_logger_;
-  uint64_t max_size_{std::uint64_t(-1)};
+  uint64_t max_size_{kSizeMax};
   bool check_crc_{false};
-  ApiError error_;
+  client::ApiError error_;
 };
 
 }  // namespace cache
