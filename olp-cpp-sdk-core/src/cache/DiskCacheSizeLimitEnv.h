@@ -33,6 +33,7 @@ class DiskCacheSizeLimitEnv : public leveldb::EnvWrapper {
   // Initialize an EnvWrapper that delegates all calls to *t
   DiskCacheSizeLimitEnv(leveldb::Env* env, const std::string& base_path,
                         bool enforce_strict_data_save);
+  ~DiskCacheSizeLimitEnv() override = default;
 
   leveldb::Status NewWritableFile(const std::string& f,
                                   leveldb::WritableFile** r) override;

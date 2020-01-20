@@ -39,7 +39,7 @@ std::string CreateExpiryKey(const std::string& key) { return key + "::expiry"; }
 time_t GetRemainingExpiryTime(const std::string& key,
                               olp::cache::DiskCache& disk_cache) {
   auto expiry_key = CreateExpiryKey(key);
-  auto expiry = (std::numeric_limits<time_t>::max)();
+  auto expiry = olp::cache::KeyValueCache::kDefaultExpiry;
   auto expiry_value = disk_cache.Get(expiry_key);
   if (expiry_value) {
     expiry = std::stol(*expiry_value);
@@ -86,28 +86,28 @@ DefaultCache::DefaultCache(const CacheSettings& settings)
       mutable_cache_(nullptr),
       protected_cache_(nullptr) {}
 
-DefaultCache::~DefaultCache() {}
+DefaultCache::~DefaultCache() = default;
 
 DefaultCache::StorageOpenResult DefaultCache::Open() {
-  std::lock_guard<std::mutex> lk(cache_lock_);
+  std::lock_guard<std::mutex> lock(cache_lock_);
   is_open_ = true;
   return SetupStorage();
 }
 
 void DefaultCache::Close() {
-  std::lock_guard<std::mutex> lk(cache_lock_);
+  std::lock_guard<std::mutex> lock(cache_lock_);
   if (!is_open_) {
     return;
   }
+
   memory_cache_.reset();
   mutable_cache_.reset();
   protected_cache_.reset();
-
   is_open_ = false;
 }
 
 bool DefaultCache::Clear() {
-  std::lock_guard<std::mutex> lk(cache_lock_);
+  std::lock_guard<std::mutex> lock(cache_lock_);
   if (!is_open_) {
     return false;
   }
@@ -127,10 +127,11 @@ bool DefaultCache::Clear() {
 
 bool DefaultCache::Put(const std::string& key, const boost::any& value,
                        const Encoder& encoder, time_t expiry) {
-  std::lock_guard<std::mutex> lk(cache_lock_);
+  std::lock_guard<std::mutex> lock(cache_lock_);
   if (!is_open_) {
     return false;
   }
+
   auto encodedItem = encoder();
   if (memory_cache_) {
     if (!memory_cache_->Put(key, value, expiry, encodedItem.size()))
@@ -138,7 +139,7 @@ bool DefaultCache::Put(const std::string& key, const boost::any& value,
   }
 
   if (mutable_cache_) {
-    if (expiry < (std::numeric_limits<time_t>::max)()) {
+    if (expiry < KeyValueCache::kDefaultExpiry) {
       if (!StoreExpiry(key, *mutable_cache_, expiry)) {
         return false;
       }
@@ -148,13 +149,13 @@ bool DefaultCache::Put(const std::string& key, const boost::any& value,
       return false;
     }
   }
+
   return true;
 }
 
 bool DefaultCache::Put(const std::string& key,
-                       const std::shared_ptr<std::vector<unsigned char>> value,
-                       time_t expiry) {
-  std::lock_guard<std::mutex> lk(cache_lock_);
+                       const KeyValueCache::ValueTypePtr value, time_t expiry) {
+  std::lock_guard<std::mutex> lock(cache_lock_);
   if (!is_open_) {
     return false;
   }
@@ -166,7 +167,7 @@ bool DefaultCache::Put(const std::string& key,
   }
 
   if (mutable_cache_) {
-    if (expiry < (std::numeric_limits<time_t>::max)()) {
+    if (expiry < KeyValueCache::kDefaultExpiry) {
       if (!StoreExpiry(key, *mutable_cache_, expiry)) {
         return false;
       }
@@ -182,7 +183,7 @@ bool DefaultCache::Put(const std::string& key,
 }
 
 boost::any DefaultCache::Get(const std::string& key, const Decoder& decoder) {
-  std::lock_guard<std::mutex> lk(cache_lock_);
+  std::lock_guard<std::mutex> lock(cache_lock_);
   if (!is_open_) {
     return boost::any();
   }
@@ -208,9 +209,8 @@ boost::any DefaultCache::Get(const std::string& key, const Decoder& decoder) {
   return boost::any();
 }
 
-std::shared_ptr<std::vector<unsigned char>> DefaultCache::Get(
-    const std::string& key) {
-  std::lock_guard<std::mutex> lk(cache_lock_);
+KeyValueCache::ValueTypePtr DefaultCache::Get(const std::string& key) {
+  std::lock_guard<std::mutex> lock(cache_lock_);
   if (!is_open_) {
     return nullptr;
   }
@@ -219,15 +219,13 @@ std::shared_ptr<std::vector<unsigned char>> DefaultCache::Get(
     auto value = memory_cache_->Get(key);
 
     if (!value.empty()) {
-      return boost::any_cast<std::shared_ptr<std::vector<unsigned char>>>(
-          value);
+      return boost::any_cast<KeyValueCache::ValueTypePtr>(value);
     }
   }
 
   auto disc_cache = GetFromDiscCache(key);
-
   if (disc_cache) {
-    auto data = std::make_shared<std::vector<unsigned char>>(
+    auto data = std::make_shared<KeyValueCache::ValueType>(
         disc_cache->first.begin(), disc_cache->first.end());
 
     if (memory_cache_) {
@@ -240,7 +238,7 @@ std::shared_ptr<std::vector<unsigned char>> DefaultCache::Get(
 }
 
 bool DefaultCache::Remove(const std::string& key) {
-  std::lock_guard<std::mutex> lk(cache_lock_);
+  std::lock_guard<std::mutex> lock(cache_lock_);
   if (!is_open_) {
     return false;
   }
@@ -250,14 +248,16 @@ bool DefaultCache::Remove(const std::string& key) {
   }
 
   if (mutable_cache_) {
-    if (!mutable_cache_->Remove(key)) return false;
+    if (!mutable_cache_->Remove(key)) {
+      return false;
+    }
   }
 
   return true;
 }
 
 bool DefaultCache::RemoveKeysWithPrefix(const std::string& key) {
-  std::lock_guard<std::mutex> lk(cache_lock_);
+  std::lock_guard<std::mutex> lock(cache_lock_);
   if (!is_open_) {
     return false;
   }
@@ -270,7 +270,7 @@ bool DefaultCache::RemoveKeysWithPrefix(const std::string& key) {
     return mutable_cache_->RemoveKeysWithPrefix(key);
   }
   return true;
-}  // namespace cache
+}
 
 DefaultCache::StorageOpenResult DefaultCache::SetupStorage() {
   auto result = Success;
@@ -331,10 +331,9 @@ boost::optional<std::pair<std::string, time_t>> DefaultCache::GetFromDiscCache(
     const std::string& key) {
   if (protected_cache_) {
     auto result = protected_cache_->Get(key);
-
     if (result) {
-      return std::make_pair(std::move(result.value()),
-                            std::numeric_limits<time_t>::max());
+      auto default_expiry = KeyValueCache::kDefaultExpiry;
+      return std::make_pair(std::move(result.value()), default_expiry);
     }
   }
 

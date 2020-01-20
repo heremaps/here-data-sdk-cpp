@@ -21,12 +21,10 @@
 
 #include <string>
 
+#include <olp/core/porting/deprecated.h>
 #include <boost/optional.hpp>
 
-#include <olp/core/porting/deprecated.h>
-
 namespace olp {
-
 namespace cache {
 
 /**
@@ -109,5 +107,4 @@ struct CacheSettings {
 };
 
 }  // namespace cache
-
 }  // namespace olp

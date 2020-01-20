@@ -26,12 +26,10 @@
 #include <string>
 #include <vector>
 
+#include <olp/core/CoreApi.h>
 #include <boost/any.hpp>
 
-#include <olp/core/CoreApi.h>
-
 namespace olp {
-
 namespace cache {
 
 using Encoder = std::function<std::string()>;
@@ -42,6 +40,13 @@ using Decoder = std::function<boost::any(const std::string&)>;
  */
 class CORE_API KeyValueCache {
  public:
+  /// No expiry by default.
+  static constexpr time_t kDefaultExpiry = std::numeric_limits<time_t>::max();
+  /// Value type to be stored in the DB.
+  using ValueType = std::vector<unsigned char>;
+  /// Shared pointer type to the DB entry.
+  using ValueTypePtr = std::shared_ptr<ValueType>;
+
   virtual ~KeyValueCache() = default;
 
   /**
@@ -54,8 +59,7 @@ class CORE_API KeyValueCache {
    * @return Returns true if the operation is successfull, false otherwise.
    */
   virtual bool Put(const std::string& key, const boost::any& value,
-                   const Encoder& encoder,
-                   time_t expiry = (std::numeric_limits<time_t>::max)()) = 0;
+                   const Encoder& encoder, time_t expiry = kDefaultExpiry) = 0;
 
   /**
    * @brief Store raw binary data as value into the cache
@@ -64,9 +68,8 @@ class CORE_API KeyValueCache {
    * @param expiry Time in seconds to when pair will expire
    * @return Returns true if the operation is successfull, false otherwise.
    */
-  virtual bool Put(const std::string& key,
-                   const std::shared_ptr<std::vector<unsigned char>> value,
-                   time_t expiry = (std::numeric_limits<time_t>::max)()) = 0;
+  virtual bool Put(const std::string& key, const ValueTypePtr value,
+                   time_t expiry = kDefaultExpiry) = 0;
 
   /**
    * @brief Get key,value pair from the cache
@@ -80,8 +83,7 @@ class CORE_API KeyValueCache {
    * @brief Get key and binary data from the cache
    * @param key Key to look for
    */
-  virtual std::shared_ptr<std::vector<unsigned char>> Get(
-      const std::string& key) = 0;
+  virtual ValueTypePtr Get(const std::string& key) = 0;
 
   /**
    * @brief Remove a key,value pair from the cache
@@ -101,5 +103,4 @@ class CORE_API KeyValueCache {
 };
 
 }  // namespace cache
-
 }  // namespace olp

@@ -56,5 +56,6 @@ leveldb::Status DiskCacheSizeLimitWritableFile::Sync() {
   }
   return leveldb::Status::OK();
 }
+
 }  // namespace cache
 }  // namespace olp
