@@ -21,66 +21,72 @@
 
 namespace olp {
 namespace client {
+
+/**
+ * @brief Represents all possible errors that might happen during a user
+ * request.
+ */
 enum class ErrorCode {
   /**
-   * Unknown error, see error message for details
+   * An unknown error. See the error message for details.
    */
   Unknown = 0,
 
   /**
-   * Request was cancelled (usually by the user)
+   * The request was cancelled (usually by the user).
    */
   Cancelled,
 
   /**
-   * Request passed invalid aruguments
+   * The request passed invalid arguments.
    */
   InvalidArgument,
 
   /**
-   * Request exceeded timeout limit
+   * The request exceeded the timeout limit.
    */
   RequestTimeout,
 
   /**
-   * Internal server failure
+   * Internal server failure.
    */
   InternalFailure,
 
   /**
-   * Request service is unavailable
+   * The requested service is not available.
    */
   ServiceUnavailable,
 
   /**
-   * Access denied to service due to insufficient credentials
+   * The access to the service was denied due to insufficient credentials.
    */
   AccessDenied,
 
   /**
-   * Request malformed
+   * The URL malformed or some data parameters are not formed correctly.
    */
   BadRequest,
 
   /**
-   * Conditions to access service are unmet
+   * The conditions required to access the service are not met.
    */
   PreconditionFailed,
 
   /**
-   * Requested resource not found
+   * The requested resource was not found.
    */
   NotFound,
 
   /**
-   * Too many requests sent in a given amount of time
+   * Too many requests sent in a given amount of time.
    */
   SlowDown,
 
   /**
-   * Network connection error detected
+   * The network connection error.
    */
   NetworkConnection
 };
-}
+
+}  // namespace client
 }  // namespace olp
