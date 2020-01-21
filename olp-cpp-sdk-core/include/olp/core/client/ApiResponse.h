@@ -28,10 +28,13 @@ namespace olp {
 namespace client {
 
 /**
- * Template class representing the outcome of making a request.  It will contain
- * either a successful result or the failure error.  The caller must check
- * whether the outcome of the request was a success before attempting to access
- *  the result or the error.
+ * Represents a request outcome.
+ *
+ * Contains a successful result or failure error. Before you try to access
+ * the result of the error, check the request outcome.
+ *
+ * @tparam Result The result type.
+ * @tparam Error The error type.
  */
 template <typename Result, typename Error>
 class ApiResponse {
@@ -39,9 +42,6 @@ class ApiResponse {
   using ResultType = Result;
   using ErrorType = Error;
 
-  /**
-   * @brief ApiResponse Default constructor.
-   */
   ApiResponse() = default;
 
   /**
@@ -50,7 +50,9 @@ class ApiResponse {
   ApiResponse(ResultType result) : result_(std::move(result)), success_(true) {}
 
   /**
-   * @brief ApiResponse Constructor if request unsuccessfully executed
+   * @brief Creates the `ApiResponse` instance if the request is not successful.
+   *
+   * @param error The `ErrorType` instance.
    */
   ApiResponse(const ErrorType& error) : error_(error), success_(false) {}
 
@@ -72,6 +74,7 @@ class ApiResponse {
    * otherwise.
    */
   inline const ResultType& GetResult() const { return result_; }
+
   /**
    * @brief MoveResult Moves the result for a succcessfully executed request
    * @return A valid Result if IsSuccessful() returns true. Undefined,
@@ -92,22 +95,50 @@ class ApiResponse {
   bool success_{false};
 };
 
+/**
+ * @brief A wrapper template that you can use to cancel the request or wait for
+ * it to finalize.
+ *
+ * @tparam T The result type.
+ */
 template <typename T>
 class CancellableFuture {
  public:
-  CancellableFuture(const CancellationToken& cancel_token,
-                    const std::shared_ptr<std::promise<T>>& promise)
-      : cancel_token_(cancel_token), promise_(promise) {}
+  /// The typedef for the sharable promise.
+  using PromisePtr = std::shared_ptr<std::promise<T>>;
 
+  /**
+   * @brief Creates the `CancellableFuture` instance with `CancellationToken`
+   * and `std::promise`.
+   *
+   * @param cancel_token The `CancellationToken` instance.
+   * @param promise The `PromisePtr` instance.
+   */
+  CancellableFuture(const CancellationToken& cancel_token, PromisePtr promise)
+      : cancel_token_(cancel_token), promise_(std::move(promise)) {}
+
+  /**
+   * @brief Gets the `CancellationToken` reference used to cancell the ongoing
+   * operation.
+   *
+   * @return The constant reference to the `CancellationToken` instance.
+   */
   inline const CancellationToken& GetCancellationToken() const {
     return cancel_token_;
   }
 
+  /**
+   * @brief Gets the future associated with the `std::promise` that you
+   * specified during initialization.
+   *
+   * @return The future with the result of the asynchronous request.
+   */
   inline std::future<T> GetFuture() const { return promise_->get_future(); }
 
  private:
   CancellationToken cancel_token_;
-  std::shared_ptr<std::promise<T>> promise_;
+  PromisePtr promise_;
 };
+
 }  // namespace client
 }  // namespace olp

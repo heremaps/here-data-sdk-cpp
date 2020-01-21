@@ -21,7 +21,8 @@
 
 namespace olp {
 namespace client {
-CancellationToken::CancellationToken(std::function<void()> func)
+
+CancellationToken::CancellationToken(CancelFuncType func)
     : func_(std::move(func)) {}
 
 void CancellationToken::Cancel() const {
