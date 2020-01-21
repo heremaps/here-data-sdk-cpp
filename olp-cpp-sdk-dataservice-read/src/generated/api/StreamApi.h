@@ -26,6 +26,7 @@
 #include <olp/core/client/ApiResponse.h>
 #include <olp/dataservice/read/ConsumerProperties.h>
 #include <olp/dataservice/read/Types.h>
+#include <olp/dataservice/read/model/Messages.h>
 #include <olp/dataservice/read/model/StreamOffsets.h>
 #include "generated/model/SubscribeResponse.h"
 
@@ -46,6 +47,9 @@ class StreamApi {
  public:
   /// Subscribe response type.
   using SubscribeApiResponse = Response<model::SubscribeResponse>;
+
+  /// Subscribe response type.
+  using ConsumeDataApiResponse = Response<model::Messages>;
 
   /// CommitOffsets response type. Returns status of the HTTP request on
   /// success.
@@ -90,6 +94,38 @@ class StreamApi {
       const boost::optional<std::string>& mode,
       const boost::optional<std::string>& consumer_id,
       const boost::optional<ConsumerProperties>& subscription_properties,
+      const client::CancellationContext& context,
+      std::string& x_correlation_id);
+
+  /**
+   * @brief Consumes data from a layer.
+   *
+   * Returns messages from a stream layer formatted similar to a [Partition
+   * object](https://developer.here.com/olp/documentation/data-client-library/api_reference_scala/index.html#com.here.platform.data.client.javadsl.Partition).
+   * If the data size is less than 1 MB, the `data` field will be populated. If
+   * the data size is greater than 1 MB, a data handle will be returned pointing
+   * to the object stored in the Blob store. The base path to be used is the
+   * value of 'nodeBaseURL' returned from `/subscribe` POST request.
+   *
+   * @param client Instance of OlpClient used to make REST request.
+   * @param layer_id The ID of the stream layer.
+   * @param subscription_id The subscriptionId received in the response of the
+   * `/subscribe` request (required if mode=parallel).
+   * @param mode The subscription mode of this subscriptionId (as provided in
+   * `/subscribe` POST API).
+   * @param context A CancellationContext, which can be used to cancel the
+   * pending request.
+   * @param[in,out] x_correlation_id The correlation-id (value of Response
+   * Header 'X-Correlation-Id') from prior step in the process. See the [API
+   * Reference](https://developer.here.com/olp/documentation/data-store/api-reference.html)
+   * for the `stream` API. After the call it will be assigned to the
+   * correlation-id of the latest response in case of successful call.
+   * @return The result of operation as a client::ApiResponse object.
+   */
+  static ConsumeDataApiResponse ConsumeData(
+      const client::OlpClient& client, const std::string& layer_id,
+      const boost::optional<std::string>& subscription_id,
+      const boost::optional<std::string>& mode,
       const client::CancellationContext& context,
       std::string& x_correlation_id);
 

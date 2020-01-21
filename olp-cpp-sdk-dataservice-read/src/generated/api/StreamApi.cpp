@@ -27,6 +27,8 @@
 #include <olp/core/logging/Log.h>
 #include <olp/dataservice/read/model/Data.h>
 // clang-format off
+#include "generated/parser/MessagesParser.h"
+#include "generated/parser/StreamOffsetParser.h"
 #include "generated/parser/SubscribeResponseParser.h"
 #include <olp/core/generated/parser/JsonParser.h>
 #include "generated/serializer/ConsumerPropertiesSerializer.h"
@@ -90,6 +92,43 @@ StreamApi::SubscribeApiResponse StreamApi::Subscribe(
   // when http_response.header will be implemented.
 
   return parser::parse<model::SubscribeResponse>(http_response.response);
+}
+
+StreamApi::ConsumeDataApiResponse StreamApi::ConsumeData(
+    const client::OlpClient& client, const std::string& layer_id,
+    const boost::optional<std::string>& subscription_id,
+    const boost::optional<std::string>& mode,
+    const client::CancellationContext& context,
+    std::string& x_correlation_id) {
+  const std::string metadata_uri = "/layers/" + layer_id + "/partitions";
+
+  std::multimap<std::string, std::string> query_params;
+  if (subscription_id) {
+    query_params.emplace("subscriptionId", subscription_id.get());
+  }
+
+  if (mode) {
+    query_params.emplace("mode", mode.get());
+  }
+
+  std::multimap<std::string, std::string> header_params;
+  header_params.emplace("Accept", "application/json");
+  header_params.emplace("X-Correlation-Id", x_correlation_id);
+
+  auto http_response = client.CallApi(
+      metadata_uri, "GET", std::move(query_params), std::move(header_params),
+      {}, nullptr, std::string{}, std::move(context));
+  if (http_response.status != http::HttpStatusCode::OK) {
+    return client::ApiError(http_response.status, http_response.response.str());
+  }
+
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "consumeData, uri=%s, status=%d",
+                      metadata_uri.c_str(), http_response.status);
+
+  // TODO: Set x_correlation_id to the value received in http_response.header
+  // when http_response.header will be implemented.
+
+  return parser::parse<model::Messages>(http_response.response);
 }
 
 StreamApi::CommitOffsetsApiResponse StreamApi::CommitOffsets(
