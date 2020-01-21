@@ -116,7 +116,7 @@ client::CancellationToken StreamLayerClientImpl::Subscribe(
 
     if (!subscription.IsSuccessful()) {
       OLP_SDK_LOG_WARNING_F(kLogTag, "Subscribe: unsuccessful, error=%s",
-                            stream_api.GetError().GetMessage().c_str());
+                            subscription.GetError().GetMessage().c_str());
       return subscription.GetError();
     }
 
@@ -152,6 +152,78 @@ client::CancellableFuture<SubscribeResponse> StreamLayerClientImpl::Subscribe(
       });
 
   return olp::client::CancellableFuture<SubscribeResponse>(
+      std::move(cancel_token), std::move(promise));
+}
+
+client::CancellationToken StreamLayerClientImpl::Unsubscribe(
+    UnsubscribeResponseCallback callback) {
+  auto unsubscribe_task =
+      [=](client::CancellationContext context) -> UnsubscribeResponse {
+    std::string subscription_id;
+    std::string subscription_mode;
+    std::string node_base_url;
+    std::string x_correlation_id;
+
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      if (!client_context_) {
+        OLP_SDK_LOG_WARNING_F(kLogTag,
+                              "Unubscribe: unsuccessful, not subscribed");
+
+        return client::ApiError(client::ErrorCode::PreconditionFailed,
+                                "Not subscribed", false);
+      }
+
+      subscription_id = client_context_->subscription_id;
+      subscription_mode = client_context_->subscription_mode;
+      node_base_url = client_context_->node_base_url;
+      x_correlation_id = client_context_->x_correlation_id;
+    }
+
+    OLP_SDK_LOG_INFO_F(
+        kLogTag,
+        "Unsubscribe: started, subscription_id=%s, subscription_mode=%s, "
+        "node_base_url=%s, x_correlation_id=%s",
+        subscription_id.c_str(), subscription_mode.c_str(),
+        node_base_url.c_str(), x_correlation_id.c_str());
+
+    client::OlpClient client;
+    client.SetBaseUrl(node_base_url);
+    client.SetSettings(settings_);
+
+    const auto response = StreamApi::DeleteSubscription(
+        client, layer_id_, subscription_id, subscription_mode, x_correlation_id,
+        context);
+
+    if (!response.IsSuccessful()) {
+      OLP_SDK_LOG_WARNING_F(kLogTag, "Unsubscribe: unsuccessful, error=%s",
+                            response.GetError().GetMessage().c_str());
+      return response.GetError();
+    }
+
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      client_context_.release();
+    }
+
+    OLP_SDK_LOG_INFO_F(kLogTag, "Unsubscribe: done, subscription_id=%s",
+                       subscription_id.c_str());
+
+    return subscription_id;
+  };
+
+  return AddTask(settings_.task_scheduler, pending_requests_,
+                 std::move(unsubscribe_task), std::move(callback));
+}
+
+olp::client::CancellableFuture<UnsubscribeResponse>
+StreamLayerClientImpl::Unsubscribe() {
+  auto promise = std::make_shared<std::promise<UnsubscribeResponse>>();
+  auto cancel_token = Unsubscribe([promise](UnsubscribeResponse response) {
+    promise->set_value(std::move(response));
+  });
+
+  return olp::client::CancellableFuture<UnsubscribeResponse>(
       std::move(cancel_token), std::move(promise));
 }
 
