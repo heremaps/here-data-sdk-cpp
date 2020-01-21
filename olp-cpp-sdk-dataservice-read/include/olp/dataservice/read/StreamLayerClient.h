@@ -42,7 +42,7 @@ class StreamLayerClientImpl;
  * Once the client reads the data, the data is no longer available to
  * that client, but the data remains available to other clients.
  *
- * Example of subscribing to a stream layer:
+ * Example of subscribing to and unsubscribing from a stream layer:
  * @code{.cpp}
  * auto task_scheduler =
  *    olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
@@ -65,14 +65,23 @@ class StreamLayerClientImpl;
  * StreamLayerClient client{"hrn:here:data:::your-catalog-hrn", "your-layer-id",
  * client_settings};
  *
- * auto callback =
- *     [](olp::dataservice::read::SubscribeResponse){};
- * using SubscribeRequest = olp::dataservice::read::SubscribeRequest;
- *
  * auto request =
  * olp::dataservice::read::SubscribeRequest().WithSubscriptionMode(
- *             olp::dataservice::read::SubscribeRequest::SubscriptionMode::kSerial));
- * auto cancellable_future = stream_client.Subscribe(request);
+ *     olp::dataservice::read::SubscribeRequest::SubscriptionMode::kSerial));
+ *
+ * auto subscribe_response = stream_client.Subscribe(request).GetFuture().get();
+ * if (subscribe_response.IsSuccessful()) {
+ *     // Successfully subscribed, now you can consume data from the stream
+ * layer
+ * }
+ *
+ * // Consume data from the stream layer, seek offsets, etc.
+ *
+ * // After you are finished and you want to stop consumption unsubscribe
+ * auto unsubscribe_response = stream_client.Unsubscribe().GetFuture().get();
+ * if (unsubscribe_response.IsSuccessful()) {
+ *     // Successfully unsubscribed.
+ * }
  * @endcode
  *
  * @see The
@@ -128,12 +137,30 @@ class DATASERVICE_READ_API StreamLayerClient final {
    * @param request The `SubscribeRequest` instance that contains a complete set
    * of request parameters.
    *
-   * @return `CancellableFuture` that contains
-   * `SubscribeId` or an error. You can also use `CancellableFuture` to cancel
-   * this request.
+   * @return `CancellableFuture` that contains `SubscribeId` or an error. You
+   * can also use `CancellableFuture` to cancel this request.
    */
   client::CancellableFuture<SubscribeResponse> Subscribe(
       SubscribeRequest request);
+
+  /**
+   * @brief Deletes the current subscription for the stream layer.
+   *
+   * @param callback The `UnsubscribeResponseCallback` object that is invoked
+   * when the unsubscription request is completed.
+   *
+   * @return A token that can be used to cancel this request.
+   */
+  client::CancellationToken Unsubscribe(UnsubscribeResponseCallback callback);
+
+  /**
+   * @brief Deletes the current subscription for the stream layer.
+   *
+   * @return `CancellableFuture` that contains `SubscribeId` of the deleted
+   * subscription or an error. You can also use `CancellableFuture` to cancel
+   * this request.
+   */
+  client::CancellableFuture<UnsubscribeResponse> Unsubscribe();
 
  private:
   std::unique_ptr<StreamLayerClientImpl> impl_;
