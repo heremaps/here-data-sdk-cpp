@@ -58,9 +58,19 @@ client::CancellationToken StreamLayerClient::Unsubscribe(
   return impl_->Unsubscribe(std::move(callback));
 }
 
-olp::client::CancellableFuture<UnsubscribeResponse>
+client::CancellableFuture<UnsubscribeResponse>
 StreamLayerClient::Unsubscribe() {
   return impl_->Unsubscribe();
+}
+
+client::CancellationToken StreamLayerClient::GetData(
+    const model::Message& message, DataResponseCallback callback) {
+  return impl_->GetData(message, callback);
+}
+
+client::CancellableFuture<DataResponse> StreamLayerClient::GetData(
+    const model::Message& message) {
+  return impl_->GetData(message);
 }
 
 }  // namespace read
