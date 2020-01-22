@@ -29,6 +29,8 @@
 #include "generated/parser/PartitionsParser.h"
 #include "generated/parser/VersionResponseParser.h"
 #include "generated/parser/IndexParser.h"
+#include "generated/parser/MessagesParser.h"
+#include "generated/parser/SubscribeResponseParser.h"
 #include <olp/core/generated/parser/JsonParser.h>
 // clang-format on
 
@@ -438,6 +440,169 @@ TEST(ParserTest, Index) {
     ASSERT_EQ("checksum", optional->GetChecksum().get());
     ASSERT_EQ(10101, optional->GetCompressedDataSize().get());
     ASSERT_EQ(21212, optional->GetDataSize().get());
+  }
+}
+
+TEST(ParserTest, Messages) {
+  {
+    const std::string kData =
+        "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwBAMAAAClLOS0AAAABGdBTUEAALGPC/"
+        "xhBQAAABhQTFRFvb29AACEAP8AhIKEPb5x2m9E5413aFQirhRuvAMqCw+"
+        "6kE2BVsa8miQaYSKyshxFvhqdzKx8UsPYk9gDEcY1ghZXcPbENtax8g5T+"
+        "3zHYufF1Lf9HdIZBfNEiKAAAAAElFTkSuQmCC";
+
+    const std::string valid_message_json =
+        "{\
+      \"metaData\":{\
+      \"partition\":\"314010583\",\
+      \"checksum\":\"ff7494d6f17da702862e550c907c0a91\",\
+      \"compressedDataSize\":152417,\
+      \"dataSize\":250110,\
+      \"data\":\"" +
+        kData +
+        "\",\
+      \"dataHandle\":\"bb76b7747e7523596e74a138b15d92ec\",\
+      \"timestamp\":1517916706\
+      },\
+    \"offset\":{\
+    \"partition\":7,\
+    \"offset\":38562\
+      }}";
+    const std::string invalid_message_json = "{\"some_invalid_json\":\"yes\"}";
+
+    const std::string messages_json = "{\"messages\":[" + valid_message_json +
+                                      "," + invalid_message_json + "]}";
+    auto messages = olp::parser::parse<olp::dataservice::read::model::Messages>(
+                        messages_json)
+                        .GetMessages();
+    ASSERT_EQ(2, messages.size());
+
+    {
+      SCOPED_TRACE("Parse valid message");
+
+      const std::vector<unsigned char> kDataVec(kData.begin(), kData.end());
+      auto valid_message = messages[0];
+
+      {
+        SCOPED_TRACE("Verify valid metadata");
+
+        auto metadata = valid_message.GetMetaData();
+        EXPECT_EQ(std::string("314010583"), metadata.GetPartition());
+
+        ASSERT_TRUE(metadata.GetData() != nullptr);
+        EXPECT_EQ(kDataVec, *metadata.GetData());
+
+        // Verify optional fields:
+        ASSERT_TRUE(metadata.GetChecksum());
+        ASSERT_TRUE(metadata.GetCompressedDataSize());
+        ASSERT_TRUE(metadata.GetDataSize());
+        ASSERT_TRUE(metadata.GetDataHandle());
+        ASSERT_TRUE(metadata.GetTimestamp());
+
+        EXPECT_EQ(std::string("ff7494d6f17da702862e550c907c0a91"),
+                  metadata.GetChecksum().get());
+        EXPECT_EQ(152417, metadata.GetCompressedDataSize().get());
+        EXPECT_EQ(250110, metadata.GetDataSize().get());
+        EXPECT_EQ(std::string("bb76b7747e7523596e74a138b15d92ec"),
+                  metadata.GetDataHandle().get());
+        EXPECT_EQ(1517916706, metadata.GetTimestamp().get());
+      }
+
+      {
+        SCOPED_TRACE("Verify valid data");
+
+        ASSERT_TRUE(valid_message.GetData() != nullptr);
+        EXPECT_EQ(kDataVec, *valid_message.GetData());
+      }
+
+      {
+        SCOPED_TRACE("Verify valid stream offset");
+
+        auto stream_offset = valid_message.GetOffset();
+        EXPECT_EQ(7, stream_offset.GetPartition());
+        EXPECT_EQ(38562, stream_offset.GetOffset());
+      }
+    }
+
+    {
+      SCOPED_TRACE("Parse invalid message");
+
+      auto invalid_message = messages[1];
+      {
+        SCOPED_TRACE("Verify invalid metadata");
+
+        auto metadata = invalid_message.GetMetaData();
+        EXPECT_TRUE(metadata.GetPartition().empty());
+        EXPECT_TRUE(metadata.GetData() == nullptr);
+
+        // Verify invalid optional fields:
+        EXPECT_FALSE(metadata.GetChecksum());
+        EXPECT_FALSE(metadata.GetCompressedDataSize());
+        EXPECT_FALSE(metadata.GetDataSize());
+        EXPECT_FALSE(metadata.GetDataHandle());
+        EXPECT_FALSE(metadata.GetTimestamp());
+      }
+
+      {
+        SCOPED_TRACE("Verify invalid data");
+
+        EXPECT_TRUE(invalid_message.GetData() == nullptr);
+      }
+
+      {
+        SCOPED_TRACE("Verify invalid stream offset");
+
+        auto stream_offset = invalid_message.GetOffset();
+        EXPECT_EQ(0, stream_offset.GetPartition());
+        EXPECT_EQ(0, stream_offset.GetOffset());
+      }
+    }
+  }
+
+  {
+    SCOPED_TRACE("Parse invalid messages array");
+
+    const std::string invalid_messages_json =
+        "\"invalid_messages_array\":\"yes\"";
+    auto messages = olp::parser::parse<olp::dataservice::read::model::Messages>(
+                        invalid_messages_json)
+                        .GetMessages();
+    EXPECT_TRUE(messages.empty());
+  }
+}
+
+TEST(ParserTest, SubscribeResponse) {
+  {
+    SCOPED_TRACE("Parse valid SubscribeResponse");
+    const std::string kNodeBaseUrl =
+        "https://some.stream.url/stream/catalog-id";
+    const std::string kSubscriptionId =
+        "-1920183912.123e4567-e89b-12d3-a456-556642440000";
+    const std::string kValidSubscribeResponse =
+        "{\
+      \"nodeBaseURL\":\"" +
+        kNodeBaseUrl + "\",\"subscriptionId\":\"" + kSubscriptionId + "\"}";
+
+    const auto response =
+        olp::parser::parse<olp::dataservice::read::model::SubscribeResponse>(
+            kValidSubscribeResponse);
+    EXPECT_EQ(kNodeBaseUrl, response.GetNodeBaseURL());
+    EXPECT_EQ(kSubscriptionId, response.GetSubscriptionId());
+  }
+
+  {
+    SCOPED_TRACE("Parse invalid SubscribeResponse");
+    const std::string kInvalidSubscribeResponse =
+        "{\
+      \"invalid_nodeBaseURL\":\"some_url\",\
+      \"invalid_subscriptionId\":\"42\"\
+      }";
+
+    const auto response =
+        olp::parser::parse<olp::dataservice::read::model::SubscribeResponse>(
+            kInvalidSubscribeResponse);
+    EXPECT_TRUE(response.GetNodeBaseURL().empty());
+    EXPECT_TRUE(response.GetSubscriptionId().empty());
   }
 }
 
