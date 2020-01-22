@@ -28,6 +28,7 @@
 #include <olp/dataservice/read/DataServiceReadApi.h>
 #include <olp/dataservice/read/SubscribeRequest.h>
 #include <olp/dataservice/read/Types.h>
+#include <olp/dataservice/read/model/Messages.h>
 
 namespace olp {
 namespace dataservice {
@@ -161,6 +162,41 @@ class DATASERVICE_READ_API StreamLayerClient final {
    * this request.
    */
   client::CancellableFuture<UnsubscribeResponse> Unsubscribe();
+
+  /**
+   * @brief Downloads message data using a data handle from the given message
+   * metadata.
+   *
+   * Users should use this method to download data only for messages that
+   * include a data handle and that have the size of the data greater than 1 MB.
+   * Message with data size less then 1 MB will have the data embedded.
+   *
+   * @param message  The `Message` instance that was retrieved using `Poll`
+   * method.
+   * @param callback The `DataResponseCallback` object that is invoked when the
+   * get data request is completed.
+   *
+   * @return A token that can be used to cancel this request.
+   */
+  client::CancellationToken GetData(const model::Message& message,
+                                    DataResponseCallback callback);
+
+  /**
+   * @brief Downloads message data using a data handle from the given message
+   * metadata.
+   *
+   * Users should use this method to download data only for messages that
+   * include a data handle and that have the size of the data greater than 1 MB.
+   * Message with data size less then 1 MB will have the data embedded.
+   *
+   * @param message  The `Message` instance that was retrieved using `Poll`
+   * method.
+   *
+   * @return `CancellableFuture` that contains `DataResult` or an error. You can
+   * also use `CancellableFuture` to cancel this request.
+   */
+  client::CancellableFuture<DataResponse> GetData(
+      const model::Message& message);
 
  private:
   std::unique_ptr<StreamLayerClientImpl> impl_;

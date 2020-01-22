@@ -27,6 +27,7 @@
 #include <olp/core/client/PendingRequests.h>
 #include <olp/dataservice/read/SubscribeRequest.h>
 #include <olp/dataservice/read/Types.h>
+#include <olp/dataservice/read/model/Messages.h>
 
 namespace olp {
 namespace dataservice {
@@ -51,7 +52,13 @@ class StreamLayerClientImpl {
       UnsubscribeResponseCallback callback);
 
   virtual client::CancellableFuture<UnsubscribeResponse> Unsubscribe();
-   
+
+  virtual client::CancellationToken GetData(const model::Message& message,
+                                            DataResponseCallback callback);
+
+  virtual client::CancellableFuture<DataResponse> GetData(
+      const model::Message& message);
+
  private:
   /// A struct that aggregates the stream layer client parameters.
   struct StreamLayerClientContext {

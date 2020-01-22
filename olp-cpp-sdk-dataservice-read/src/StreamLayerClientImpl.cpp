@@ -27,6 +27,7 @@
 #include <olp/core/thread/TaskScheduler.h>
 #include "ApiClientLookup.h"
 #include "Common.h"
+#include "generated/api/BlobApi.h"
 #include "generated/api/StreamApi.h"
 #include "repositories/ExecuteOrSchedule.inl"
 
@@ -40,6 +41,8 @@ constexpr auto kSubscriptionModeParallel = "parallel";
 constexpr auto kSubscriptionModeSerial = "serial";
 constexpr auto kStreamService = "stream";
 constexpr auto kStreamVersion = "v2";
+constexpr auto kBlobService = "blob";
+constexpr auto kBlobVersion = "v1";
 
 std::string GetSubscriptionMode(SubscribeRequest::SubscriptionMode mode) {
   return mode == SubscribeRequest::SubscriptionMode::kSerial
@@ -216,7 +219,7 @@ client::CancellationToken StreamLayerClientImpl::Unsubscribe(
                  std::move(unsubscribe_task), std::move(callback));
 }
 
-olp::client::CancellableFuture<UnsubscribeResponse>
+client::CancellableFuture<UnsubscribeResponse>
 StreamLayerClientImpl::Unsubscribe() {
   auto promise = std::make_shared<std::promise<UnsubscribeResponse>>();
   auto cancel_token = Unsubscribe([promise](UnsubscribeResponse response) {
@@ -225,6 +228,56 @@ StreamLayerClientImpl::Unsubscribe() {
 
   return olp::client::CancellableFuture<UnsubscribeResponse>(
       std::move(cancel_token), std::move(promise));
+}
+
+client::CancellationToken StreamLayerClientImpl::GetData(
+    const model::Message& message, DataResponseCallback callback) {
+  const auto& data_handle = message.GetMetaData().GetDataHandle();
+  auto get_data_task =
+      [=](client::CancellationContext context) -> DataResponse {
+    if (!data_handle) {
+      OLP_SDK_LOG_WARNING(kLogTag,
+                          "GetData: message does not contain data handle");
+      return client::ApiError(client::ErrorCode::InvalidArgument,
+                              "Data handle is missing in the message metadata. "
+                              "Please use embedded message data directly.");
+    }
+
+    OLP_SDK_LOG_INFO_F(kLogTag, "GetData: started, data_handle=%s",
+                       data_handle.value().c_str());
+
+    auto blob_api = ApiClientLookup::LookupApi(
+        catalog_, context, kBlobService, kBlobVersion,
+        FetchOptions::OnlineIfNotFound, settings_);
+
+    if (!blob_api.IsSuccessful()) {
+      return blob_api.GetError();
+    }
+
+    const auto blob_response =
+        BlobApi::GetBlob(blob_api.GetResult(), layer_id_, data_handle.value(),
+                         boost::none, boost::none, context);
+
+    OLP_SDK_LOG_INFO_F(kLogTag,
+                       "GetData: done, blob_response is successful: %s",
+                       blob_response.IsSuccessful() ? "true" : "false");
+
+    return blob_response;
+  };
+
+  return AddTask(settings_.task_scheduler, pending_requests_,
+                 std::move(get_data_task), std::move(callback));
+}
+
+client::CancellableFuture<DataResponse> StreamLayerClientImpl::GetData(
+    const model::Message& message) {
+  auto promise = std::make_shared<std::promise<DataResponse>>();
+  auto cancel_token = GetData(message, [promise](DataResponse response) {
+    promise->set_value(std::move(response));
+  });
+
+  return olp::client::CancellableFuture<DataResponse>(std::move(cancel_token),
+                                                      std::move(promise));
 }
 
 }  // namespace read
