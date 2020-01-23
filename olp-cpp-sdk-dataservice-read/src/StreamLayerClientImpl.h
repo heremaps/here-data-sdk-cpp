@@ -51,7 +51,7 @@ class StreamLayerClientImpl {
       UnsubscribeResponseCallback callback);
 
   virtual client::CancellableFuture<UnsubscribeResponse> Unsubscribe();
-   
+
  private:
   /// A struct that aggregates the stream layer client parameters.
   struct StreamLayerClientContext {
