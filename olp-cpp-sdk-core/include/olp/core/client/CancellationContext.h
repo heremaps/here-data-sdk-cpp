@@ -22,9 +22,9 @@
 #include <functional>
 #include <memory>
 #include <mutex>
-#include "CancellationToken.h"
 
 #include <olp/core/CoreApi.h>
+#include <olp/core/client/CancellationToken.h>
 
 namespace olp {
 namespace client {

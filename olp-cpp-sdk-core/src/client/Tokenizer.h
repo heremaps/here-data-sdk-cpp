@@ -24,7 +24,8 @@
 
 namespace olp {
 namespace client {
-// simple tokenizer for char separated strings
+
+/// Simple tokenizer for char separated strings
 struct Tokenizer {
   Tokenizer(const std::string& input, char separator)
       : str_(input), pos_(0), sep_(separator) {}
@@ -33,7 +34,7 @@ struct Tokenizer {
 
   std::string Next() {
     if (pos_ == std::string::npos) {
-      return std::string();
+      return {};
     }
 
     size_t begin = pos_;
@@ -52,7 +53,7 @@ struct Tokenizer {
   // returns the entire remaining string
   std::string Tail() {
     if (pos_ == std::string::npos) {
-      return std::string();
+      return {};
     }
     size_t begin = pos_;
     pos_ = std::string::npos;

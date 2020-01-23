@@ -19,10 +19,11 @@
 
 #pragma once
 
-#include <olp/core/client/CancellationContext.h>
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
+
+#include <olp/core/client/CancellationContext.h>
 
 namespace olp {
 namespace client {
@@ -40,15 +41,13 @@ class Condition final {
    * routine.
    */
   void Notify() {
-    {
-      std::unique_lock<std::mutex> lock(mutex_);
-      signaled_ = true;
+    std::unique_lock<std::mutex> lock(mutex_);
+    signaled_ = true;
 
-      // Condition should be under the lock in order to not run into the data
-      // race, which might occur when spurious wakeup happens in the other
-      // thread while waiting for the condition's signal.
-      condition_.notify_one();
-    }
+    // Condition should be under the lock in order to not run into the data
+    // race, which might occur when spurious wakeup happens in the other
+    // thread while waiting for the condition's signal.
+    condition_.notify_one();
   }
 
   /**
