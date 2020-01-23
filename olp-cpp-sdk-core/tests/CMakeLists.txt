@@ -22,6 +22,7 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./client/CancellationContextTest.cpp
     ./client/ConditionTest.cpp
     ./client/HRNTest.cpp
+    ./client/OlpClientTest.cpp
     ./client/TaskContextTest.cpp
 
     ./geo/coordinates/GeoCoordinates3dTest.cpp
@@ -45,8 +46,6 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./logging/LogTest.cpp
     ./logging/MessageFormatterTest.cpp
     ./logging/MockAppender.cpp
-
-    ./olpclient/OlpClientTest.cpp
 
     ./thread/SyncQueueTest.cpp
     ./thread/ThreadPoolTaskSchedulerTest.cpp
