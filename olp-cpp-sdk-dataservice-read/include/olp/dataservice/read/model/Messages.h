@@ -38,11 +38,13 @@ namespace model {
 class DATASERVICE_READ_API Metadata final {
  public:
   /**
-   * @brief Gets the partition of this metata.
+   * @brief Gets the partition of this metadata.
    *
-   * @return The
-   * [partition](https://developer.here.com/olp/documentation/data-api/data_dev_guide/rest/layers/partitions.html)
-   * to which this metadata content is related.
+   * For more information on partitions, see the [related
+   * section](https://developer.here.com/olp/documentation/data-api/data_dev_guide/rest/layers/partitions.html)
+   * in the Data API Developer Guide.
+   *
+   * @return The partition to which this metadata content is related.
    */
   const std::string& GetPartition() const { return partition_; }
   /**
@@ -55,8 +57,8 @@ class DATASERVICE_READ_API Metadata final {
   /**
    * @brief (Optional) Gets the checksum of this metadata.
    *
-   * The algorithm used to calculate the checksum is user specific. It is not a
-   * secure hash. It is used only to detect changes in the content.
+   * The algorithm used to calculate the checksum is user-specific. It is not
+   * a secure hash. It is used only to detect changes in the content.
    *
    * Examples: `MD5` or `SHA1`
    *
@@ -68,31 +70,31 @@ class DATASERVICE_READ_API Metadata final {
    *
    * @see `GetChecksum` for information on the checksum.
    *
-   * @param The checksum string.
+   * @param value The checksum string.
    */
   void SetChecksum(boost::optional<std::string> value) {
     checksum_ = std::move(value);
   }
 
   /**
-   * @brief (Optional) Gets the compressed size of the data in bytes.
+   * @brief (Optional) Gets the compressed size of the content (in bytes).
    *
    * It is present only if the \ref `GetDataHandle` method is not empty.
    * Applicable also if `Content-Encoding` is set to `gzip` when uploading and
    * downloading data.
    *
-   * @return The compressed size of content in bytes.
+   * @return The compressed size of the content (in bytes).
    */
   const boost::optional<int64_t>& GetCompressedDataSize() const {
     return compressed_data_size_;
   }
   /**
-   * @brief (Optional) Sets the compressed size of content.
+   * @brief (Optional) Sets the compressed size of the content.
    *
    * @see `GetCompressedDataSize` for information on the compressed size of
    * content.
    *
-   * @param value The compressed size of content in bytes.
+   * @param value The compressed size of the content (in bytes).
    */
   void SetCompressedDataSize(boost::optional<int64_t> value) {
     compressed_data_size_ = value;
@@ -102,7 +104,8 @@ class DATASERVICE_READ_API Metadata final {
    * @brief (Optional) Gets the nominal size (in bytes) of the content.
    *
    * It is present only if the \ref `GetDataHandle` method is not empty.
-   * @note When compression is enabled, this field contains the the size of
+   *
+   * @note When compression is enabled, this field contains the size of
    * the uncompressed content.
    *
    * @return The data size in bytes.
@@ -153,7 +156,7 @@ class DATASERVICE_READ_API Metadata final {
   }
 
   /**
-   * @brief (Optional) Sets data handle of this content.
+   * @brief (Optional) Sets the data handle of this content.
    *
    * @see `GetDataHandle` for information on the data handle.
    *
@@ -242,7 +245,7 @@ class DATASERVICE_READ_API Messages final {
   /**
    * @brief Gets the vector of messages.
    *
-   * @return The vector of messages consumed from \ref StreamLayerClient.
+   * @return The vector of messages consumed from \ref `StreamLayerClient`.
    */
   const std::vector<Message>& GetMessages() const { return messages_; };
   /**

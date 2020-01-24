@@ -121,6 +121,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
    * @see `GetFetchOption()` for information on usage and format.
    *
    * @param fetch_option The `FetchOption` enum.
+   *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
   inline PartitionsRequest& WithFetchOption(FetchOptions fetch_option) {

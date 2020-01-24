@@ -76,9 +76,9 @@ class StreamLayerClientImpl;
  * layer
  * }
  *
- * // Consume data from the stream layer, seek offsets, etc.
+ * // Consume data from the stream layer, seek offsets, and so on.
  *
- * // After you are finished and you want to stop consumption unsubscribe
+ * // If you want to stop consumption, you can unsubscribe.
  * auto unsubscribe_response = stream_client.Unsubscribe().GetFuture().get();
  * if (unsubscribe_response.IsSuccessful()) {
  *     // Successfully unsubscribed.
@@ -94,17 +94,18 @@ class StreamLayerClientImpl;
 class DATASERVICE_READ_API StreamLayerClient final {
  public:
   /**
-   * @brief StreamLayerClient constructor.
-   * @param catalog the catalog's HRN that the stream layer client uses during
+   * @brief Creates the `StreamLayerClient` instance.
+   *
+   * @param catalog The HRN of the catalog that the stream layer client uses for
    * requests.
-   * @param layer_id an ID of the layer that the client uses during
+   * @param layer_id The ID of the layer that the client uses for
    * requests.
-   * @param settings settings the client instance settings.
+   * @param settings The `OlpClientSettings` instance.
    */
   StreamLayerClient(client::HRN catalog, std::string layer_id,
                     client::OlpClientSettings settings);
 
-  // Movable, non-copyable
+  /// Movable, non-copyable
   StreamLayerClient(const StreamLayerClient& other) = delete;
   StreamLayerClient(StreamLayerClient&& other) noexcept;
   StreamLayerClient& operator=(const StreamLayerClient& other) = delete;
@@ -138,8 +139,8 @@ class DATASERVICE_READ_API StreamLayerClient final {
    * @param request The `SubscribeRequest` instance that contains a complete set
    * of request parameters.
    *
-   * @return `CancellableFuture` that contains `SubscribeId` or an error. You
-   * can also use `CancellableFuture` to cancel this request.
+   * @return `CancellableFuture` that contains the `SubscribeId` instance or
+   * an error. You can also use `CancellableFuture` to cancel this request.
    */
   client::CancellableFuture<SubscribeResponse> Subscribe(
       SubscribeRequest request);
@@ -157,21 +158,21 @@ class DATASERVICE_READ_API StreamLayerClient final {
   /**
    * @brief Deletes the current subscription for the stream layer.
    *
-   * @return `CancellableFuture` that contains `SubscribeId` of the deleted
-   * subscription or an error. You can also use `CancellableFuture` to cancel
-   * this request.
+   * @return `CancellableFuture` that contains the `SubscribeId` instance of
+   * the deleted subscription or an error. You can also use `CancellableFuture`
+   * to cancel this request.
    */
   client::CancellableFuture<UnsubscribeResponse> Unsubscribe();
 
   /**
-   * @brief Downloads message data using a data handle from the given message
-   * metadata.
+   * @brief Downloads the message data using the data handle from the given
+   * message metadata.
    *
    * Users should use this method to download data only for messages that
-   * include a data handle and that have the size of the data greater than 1 MB.
-   * Message with data size less then 1 MB will have the data embedded.
+   * include a data handle and that have data size greater than 1 MB.
+   * Messages with data size less than 1 MB will have the data embedded.
    *
-   * @param message  The `Message` instance that was retrieved using `Poll`
+   * @param message  The `Message` instance that was retrieved using the `Poll`
    * method.
    * @param callback The `DataResponseCallback` object that is invoked when the
    * get data request is completed.
@@ -186,10 +187,10 @@ class DATASERVICE_READ_API StreamLayerClient final {
    * metadata.
    *
    * Users should use this method to download data only for messages that
-   * include a data handle and that have the size of the data greater than 1 MB.
-   * Message with data size less then 1 MB will have the data embedded.
+   * include a data handle and that have data size greater than 1 MB.
+   * Messages with data size less than 1 MB will have the data embedded.
    *
-   * @param message  The `Message` instance that was retrieved using `Poll`
+   * @param message  The `Message` instance that was retrieved using the `Poll`
    * method.
    *
    * @return `CancellableFuture` that contains `DataResult` or an error. You can

@@ -132,6 +132,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * the parameter from the constructor is used instead.
    * @param callback The `DataResponseCallback` object that is invoked if
    * the `DataResult` object is available or an error is encountered.
+   *
    * @return A token that can be used to cancel this request.
    */
   client::CancellationToken GetData(DataRequest data_request,
@@ -150,6 +151,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * of request parameters.
    * @note The `GetLayerId` value of the \c DataRequest object is ignored, and
    * the parameter from the constructor is used instead.
+   *
    * @return `CancellableFuture` that contains the `DataResponse` instance
    * or an error. You can also use `CancellableFuture` to cancel this request.
    */
@@ -169,6 +171,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * and the parameter from the constructor is used instead.
    * @param callback The `PartitionsResponseCallback` object that is invoked if
    * the list of partitions is available or an error is encountered.
+   *
    * @return A token that can be used to cancel this request.
    */
   client::CancellationToken GetPartitions(PartitionsRequest partitions_request,
@@ -186,6 +189,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * a complete set of request parameters.
    * @note The `GetLayerId` value of the \c PartitionsRequest object is ignored,
    * and the parameter from the constructor is used instead.
+   *
    * @return `CancellableFuture` that contains the `PartitionsResponse` instance
    * with data or an error. You can also use `CancellableFuture` to cancel this
    * request.
@@ -211,6 +215,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * @param callback The `PrefetchTilesResponseCallback` object that is invoked
    * if the `PrefetchTilesResult` instance is available or an error is
    * encountered.
+   *
    * @return A token that can be used to cancel this request.
    */
   client::CancellationToken PrefetchTiles(
@@ -231,6 +236,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * a complete set of request parameters.
    * @note The `GetLayerId` value of the \c PrefetchTilesRequest object is
    * ignored, and the parameter from the constructor is used instead.
+   *
    * @return `CancellableFuture` that contains the `PrefetchTilesResponse`
    * instance with data or an error. You can also use `CancellableFuture` to
    * cancel this request.

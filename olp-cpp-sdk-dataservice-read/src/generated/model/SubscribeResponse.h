@@ -43,12 +43,13 @@ class SubscribeResponse final {
  private:
   /// A subscription is created in a specific server instance. This base URL
   /// represents the specific server node on which this subscription was
-  /// created. This base URL should be used instead of the base URL returned by
-  /// the `lookup` service when making further calls to StreamApi methods.
+  /// created. Use this base URL instead of the base URL returned by
+  /// the API Lookup Service when you make further calls to the `StreamApi`
+  /// methods.
   std::string node_base_url_;
 
   /// A unique identifier of the subscription. It is used to make further calls
-  /// to StreamApi methods.
+  /// to the `StreamApi` methods.
   std::string subscription_id_;
 };
 
