@@ -95,5 +95,9 @@ if(OLP_SDK_BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
 
+if(NOT CMAKE_CROSSCOMPILING)
+    add_subdirectory(tools/cache-dumper)
+endif()
+
 # Add uninstall script
 add_custom_target(uninstall "${CMAKE_COMMAND}" -P "${CMAKE_MODULE_PATH}/uninstall.cmake")
