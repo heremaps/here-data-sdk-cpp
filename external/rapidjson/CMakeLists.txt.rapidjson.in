@@ -32,5 +32,6 @@ ExternalProject_Add(rapidjson
                     -DRAPIDJSON_BUILD_TESTS=OFF
                     -DRAPIDJSON_BUILD_THIRDPARTY_GTEST=OFF
                     -DRAPIDJSON_ENABLE_INSTRUMENTATION_OPT=OFF
+                    -DCMAKE_EXPORT_NO_PACKAGE_REGISTRY=ON
   TEST_COMMAND      ""
 )
