@@ -312,11 +312,7 @@ TEST_F(StreamLayerClientImplTest, FaliedPublishDataLessThanTwentyMib) {
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(olp::http::HttpStatusCode::BAD_REQUEST,
               response.GetError().GetHttpStatusCode());
-    // For some reason the OlpClient return error string as:
-    // 'Error occured. Please check HTTP status code.'
-    // Maybe we should reconsider this...
-    EXPECT_EQ("Error occured. Please check HTTP status code.",
-              response.GetError().GetMessage());
+    EXPECT_TRUE(response.GetError().GetMessage().empty());
   }
 
   {

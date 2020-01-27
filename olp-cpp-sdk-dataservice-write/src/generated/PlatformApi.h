@@ -23,6 +23,7 @@
 #include <string>
 
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/CancellationContext.h>
 #include "generated/model/Api.h"
 #include "olp/core/client/ApiError.h"
 
@@ -54,6 +55,14 @@ class PlatformApi {
   static client::CancellationToken GetApis(
       std::shared_ptr<client::OlpClient> client, const std::string& service,
       const std::string& serviceVersion, const ApisCallback& callback);
+
+  /**
+   * @brief Synchronous version of \c GetApis method.
+   */
+  static ApisResponse GetApis(const client::OlpClient& client,
+                              const std::string& service,
+                              const std::string& service_version,
+                              client::CancellationContext context);
 };
 
 }  // namespace write

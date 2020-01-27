@@ -103,6 +103,15 @@ class DataserviceWriteStreamLayerClientCacheTest : public ::testing::Test {
     if (disk_cache_) {
       disk_cache_->Close();
     }
+
+    // verify that no other thread contains network or task scheduler instance:
+    auto network = network_;
+    auto scheduler = task_scheduler_;
+    network_.reset();
+    task_scheduler_.reset();
+
+    ASSERT_EQ(network.use_count(), 1);
+    ASSERT_EQ(scheduler.use_count(), 1);
   }
 
   std::string GetTestCatalog() {
@@ -122,8 +131,10 @@ class DataserviceWriteStreamLayerClientCacheTest : public ::testing::Test {
   }
 
   virtual std::shared_ptr<StreamLayerClient> CreateStreamLayerClient() {
-    auto network = olp::client::OlpClientSettingsFactory::
+    network_ = olp::client::OlpClientSettingsFactory::
         CreateDefaultNetworkRequestHandler();
+    task_scheduler_ =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
 
     const auto app_id = CustomParameters::getArgument(kAppid);
     const auto secret = CustomParameters::getArgument(kSecret);
@@ -131,7 +142,7 @@ class DataserviceWriteStreamLayerClientCacheTest : public ::testing::Test {
     olp::authentication::Settings authentication_settings({app_id, secret});
     authentication_settings.token_endpoint_url =
         CustomParameters::getArgument(kEndpoint);
-    authentication_settings.network_request_handler = network;
+    authentication_settings.network_request_handler = network_;
 
     olp::authentication::TokenProviderDefault provider(authentication_settings);
 
@@ -140,9 +151,8 @@ class DataserviceWriteStreamLayerClientCacheTest : public ::testing::Test {
 
     olp::client::OlpClientSettings settings;
     settings.authentication_settings = auth_client_settings;
-    settings.network_request_handler = network;
-    settings.task_scheduler =
-        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
+    settings.network_request_handler = network_;
+    settings.task_scheduler = task_scheduler_;
 
     disk_cache_ = std::make_shared<olp::cache::DefaultCache>();
     EXPECT_EQ(disk_cache_->Open(),
@@ -168,7 +178,8 @@ class DataserviceWriteStreamLayerClientCacheTest : public ::testing::Test {
  protected:
   std::shared_ptr<StreamLayerClient> client_;
   std::shared_ptr<std::vector<unsigned char>> data_;
-
+  std::shared_ptr<olp::http::Network> network_;
+  std::shared_ptr<olp::thread::TaskScheduler> task_scheduler_;
   std::shared_ptr<olp::cache::DefaultCache> disk_cache_;
   StreamLayerClientSettings stream_client_settings_;
 };
