@@ -89,6 +89,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    * @brief Sets the minimum tile level for the request.
    *
    * @param min_level The minimum tile level.
+   *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
   inline PrefetchTilesRequest& WithMinLevel(unsigned int min_level) {
@@ -106,6 +107,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    * @brief Sets the maximum tile level for the request.
    *
    * @param max_level The maximum tile level.
+   *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
   inline PrefetchTilesRequest& WithMaxLevel(unsigned int max_level) {

@@ -29,16 +29,38 @@ namespace read {
 namespace model {
 
 /**
- * @brief An offset in a specific partition of the stream layer.
+ * @brief An offset in a specific partition of a stream layer.
  */
 class DATASERVICE_READ_API StreamOffset final {
  public:
   StreamOffset() = default;
 
+  /**
+   * @brief Gets the partition of the stream layer for which this offset
+   * applies.
+   *
+   * @return The partition of the stream layer for which this offset applies.
+   */
   int32_t GetPartition() const { return partition_; }
+  /**
+   * @brief Sets the partition of the stream layer.
+   *
+   * @param value The partition of the stream layer for which this offset
+   * applies.
+   */
   void SetPartition(int32_t value) { partition_ = value; }
 
+  /**
+   * @brief Gets the offset in the partition of the stream layer.
+   *
+   * @return The offset in the stream layer partition.
+   */
   int64_t GetOffset() const { return offset_; };
+  /**
+   * @brief Sets the offset for the request.
+   *
+   * @param value The offset in the stream layer partition.
+   */
   void SetOffset(int64_t value) { offset_ = value; }
 
  private:
@@ -52,13 +74,23 @@ class DATASERVICE_READ_API StreamOffset final {
 };
 
 /**
- * @brief Represent a list of offsets.
+ * @brief Represents a list of offsets.
  */
 class DATASERVICE_READ_API StreamOffsets final {
  public:
   StreamOffsets() = default;
 
+  /**
+   * @brief Gets the list of offsets.
+   *
+   * @return The list of offsets.
+   */
   const std::vector<StreamOffset>& GetOffsets() const { return offsets_; };
+  /**
+   * @brief Sets the list of offsets.
+   *
+   * @param value The list of offsets.
+   */
   void SetOffsets(std::vector<StreamOffset> value) {
     offsets_ = std::move(value);
   };

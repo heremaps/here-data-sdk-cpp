@@ -115,6 +115,7 @@ class DATASERVICE_READ_API VolatileLayerClient final {
    * set of request parameters.
    * @param callback The `PartitionsResponseCallback` object that is invoked if
    * the list of partitions is available or an error is encountered.
+   *
    * @return A token that can be used to cancel this request.
    */
   client::CancellationToken GetPartitions(PartitionsRequest request,
@@ -129,6 +130,7 @@ class DATASERVICE_READ_API VolatileLayerClient final {
    *
    * @param request The `PartitionsRequest` instance that contains a complete
    * set of request parameters.
+   *
    * @return `CancellableFuture` that contains the `PartitionsResponse` instance
    * with data or an error. You can also use `CancellableFuture` to cancel this
    * request.
@@ -149,6 +151,7 @@ class DATASERVICE_READ_API VolatileLayerClient final {
    * request parameters.
    * @param callback The `DataResponseCallback` object that is invoked if
    * the `DataResult` object is available or an error is encountered.
+   *
    * @return A token that can be used to cancel this request.
    */
   olp::client::CancellationToken GetData(DataRequest request,
@@ -165,6 +168,7 @@ class DATASERVICE_READ_API VolatileLayerClient final {
    *
    * @param request The `DataRequest` instance that contains a complete set of
    * the request parameters.
+   *
    * @return `CancellableFuture` that contains the `DataResponse` instance
    * with data or an error. You can also use `CancellableFuture` to cancel this
    * request.

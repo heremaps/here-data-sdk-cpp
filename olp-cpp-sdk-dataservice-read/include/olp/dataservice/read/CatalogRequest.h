@@ -55,6 +55,7 @@ class DATASERVICE_READ_API CatalogRequest final {
    * @see `GetBillingTag()` for information on usage and format.
    *
    * @param tag The `BillingTag` string or `boost::none`.
+   *
    * @return A reference to the updated `CatalogRequest` instance.
    */
   inline CatalogRequest& WithBillingTag(boost::optional<std::string> tag) {
@@ -69,6 +70,7 @@ class DATASERVICE_READ_API CatalogRequest final {
    *
    * @param tag The rvalue reference to the `BillingTag` string or
    * `boost::none`.
+   *
    * @return A reference to the updated `CatalogRequest` instance.
    */
   inline CatalogRequest& WithBillingTag(std::string&& tag) {
@@ -93,6 +95,7 @@ class DATASERVICE_READ_API CatalogRequest final {
    * @see `GetFetchOption()` for information on usage and format.
    *
    * @param fetch_option The `FetchOption` enum.
+   *
    * @return A reference to the updated `CatalogVersionRequest` instance.
    */
   inline CatalogRequest& WithFetchOption(FetchOptions fetch_option) {

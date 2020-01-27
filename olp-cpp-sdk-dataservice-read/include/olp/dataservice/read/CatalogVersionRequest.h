@@ -52,7 +52,9 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
    * @brief Sets the catalog start version.
    *
    * @see `GetStartVersion()` for information on usage.
+   *
    * @param startVersion The catalog start version.
+   *
    * @return A reference to the updated `CatalogVersionRequest` instance.
    */
   inline CatalogVersionRequest& WithStartVersion(int64_t startVersion) {
@@ -80,6 +82,7 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
    * @see `GetBillingTag()` for information on usage and format.
    *
    * @param billingTag The `BillingTag` string or `boost::none`.
+   *
    * @return A reference to the updated `CatalogVersionRequest` instance.
    */
   inline CatalogVersionRequest& WithBillingTag(
@@ -95,6 +98,7 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
    *
    * @param billingTag The rvalue reference to the `BillingTag` string or
    * `boost::none`.
+   *
    * @return A reference to the updated `CatalogVersionRequest` instance.
    */
   inline CatalogVersionRequest& WithBillingTag(std::string&& billingTag) {
@@ -119,6 +123,7 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
    * @see `GetFetchOption()` for information on usage and format.
    *
    * @param fetchoption The `FetchOption` enum.
+   *
    * @return A reference to the updated `CatalogVersionRequest` instance.
    */
   inline CatalogVersionRequest& WithFetchOption(FetchOptions fetchoption) {

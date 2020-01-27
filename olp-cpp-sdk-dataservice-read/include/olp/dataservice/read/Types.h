@@ -35,47 +35,47 @@ namespace read {
 
 class PrefetchTileResult;
 
-/// Response template type
+/// The response template type.
 template <typename ResultType>
 using Response = client::ApiResponse<ResultType, client::ApiError>;
 
-/// Callback template type
+/// The callback template type.
 template <typename ResultType>
 using Callback = std::function<void(Response<ResultType>)>;
 
-/// Catalog configuration alias type
+/// The alias type of the catalog configuration.
 using CatalogResult = model::Catalog;
-/// Catalog configuration response type
+/// The catalog configuration response type.
 using CatalogResponse = Response<CatalogResult>;
-/// Catalog configuration response callback type
+/// The callback type of the catalog configuration response.
 using CatalogResponseCallback = Callback<CatalogResult>;
 
-/// Catalog version result alias type
+/// The alias type of the catalog version result.
 using CatalogVersionResult = model::VersionResponse;
-/// Catalog version response type
+/// The catalog version response type.
 using CatalogVersionResponse = Response<CatalogVersionResult>;
-/// Catalog version response callback type
+/// The callback type of the catalog version response.
 using CatalogVersionCallback = Callback<CatalogVersionResult>;
 
-/// Partition metadata result alias type
+/// The alias type of the partition metadata result.
 using PartitionsResult = model::Partitions;
-/// Partition metadata response type
+/// The partition metadata response type.
 using PartitionsResponse = Response<PartitionsResult>;
-/// Partition metadata response callback type
+/// The callback type of the partition metadata response.
 using PartitionsResponseCallback = Callback<PartitionsResult>;
 
-/// Data alias type
+/// The data alias type.
 using DataResult = model::Data;
-/// Data response alias
+/// The data response alias.
 using DataResponse = Response<DataResult>;
-/// Data response callback type
+/// The callback type of the data response.
 using DataResponseCallback = Callback<DataResult>;
 
-/// Prefetch tiles result alias
+/// The alias of the prefetch tiles result.
 using PrefetchTilesResult = std::vector<std::shared_ptr<PrefetchTileResult>>;
-/// Prefetch tiles response type
+/// The prefetch tiles response type.
 using PrefetchTilesResponse = Response<PrefetchTilesResult>;
-/// Prefetch completion callback type
+/// The callback type of the prefetch completion.
 using PrefetchTilesResponseCallback = Callback<PrefetchTilesResult>;
 
 /// The subscribe ID type of the stream layer client.

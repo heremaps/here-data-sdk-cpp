@@ -212,6 +212,7 @@ class DATASERVICE_READ_API DataRequest final {
    * @see `GetFetchOption()` for information on usage and format.
    *
    * @param fetch_option The `FetchOption` enum.
+   *
    * @return A reference to the updated `DataRequest` instance.
    */
   inline DataRequest& WithFetchOption(FetchOptions fetch_option) {
