@@ -134,8 +134,11 @@ bool DefaultCache::Put(const std::string& key, const boost::any& value,
 
   auto encodedItem = encoder();
   if (memory_cache_) {
-    if (!memory_cache_->Put(key, value, expiry, encodedItem.size()))
-      return false;
+    if (!memory_cache_->Put(key, value, expiry, encodedItem.size())) {
+      OLP_SDK_LOG_WARNING_F(kLogTag,
+                            "Failed to store value in memory cache %s, size %d",
+                            key.c_str(), static_cast<int>(encodedItem.size()));
+    }
   }
 
   if (mutable_cache_) {
@@ -162,7 +165,9 @@ bool DefaultCache::Put(const std::string& key,
 
   if (memory_cache_) {
     if (!memory_cache_->Put(key, value, expiry, value->size())) {
-      return false;
+      OLP_SDK_LOG_WARNING_F(kLogTag,
+                            "Failed to store value in memory cache %s, size %d",
+                            key.c_str(), static_cast<int>(value->size()));
     }
   }
 

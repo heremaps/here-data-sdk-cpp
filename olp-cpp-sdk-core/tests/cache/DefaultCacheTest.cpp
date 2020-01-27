@@ -343,3 +343,30 @@ TEST(DefaultCacheTest, AlreadyInUsePath) {
   olp::cache::DefaultCache cache2(settings);
   ASSERT_EQ(olp::cache::DefaultCache::OpenDiskPathFailure, cache2.Open());
 }
+
+TEST(DefaultCacheTest, ValueGreaterThanMemCacheLimit) {
+  using namespace olp::cache;
+
+  const std::string content_key = "test_key";
+  const std::string content =
+      "a very long string that does not fit into the in memory cache";
+
+  olp::cache::CacheSettings settings;
+  settings.max_memory_cache_size = 10;
+  settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/mutable";
+
+  DefaultCache cache(settings);
+  EXPECT_EQ(cache.Open(), DefaultCache::StorageOpenResult::Success);
+
+  auto input_buffer = std::make_shared<std::vector<unsigned char>>(
+      std::begin(content), std::end(content));
+  EXPECT_TRUE(cache.Put(content_key, input_buffer, 15));
+
+  auto output_buffer = cache.Get(content_key);
+  ASSERT_TRUE(output_buffer != nullptr);
+
+  EXPECT_TRUE(std::equal(output_buffer->begin(), output_buffer->end(),
+                         content.begin()));
+
+  cache.Close();
+}
