@@ -90,8 +90,26 @@
 #define URL_PARTITION_3 \
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?partition=3&version=4)"
 
+#define URL_STREAM_SUBSCRIBE_SERIAL \
+  R"(https://stream-ireland.data.api.platform.here.com/stream/v2/catalogs/hereos-internal-test-v2/layers/testlayer/subscribe?mode=serial)"
+
+#define URL_STREAM_SUBSCRIBE_PARALLEL \
+  R"(https://stream-ireland.data.api.platform.here.com/stream/v2/catalogs/hereos-internal-test-v2/layers/testlayer/subscribe?mode=parallel)"
+
+#define URL_STREAM_SUBSCRIBE_SUBSCRIPTION_ID \
+  R"(https://stream-ireland.data.api.platform.here.com/stream/v2/catalogs/hereos-internal-test-v2/layers/testlayer/subscribe?mode=serial&subscriptionId=subscribe_id_12345)"
+
+#define URL_STREAM_SUBSCRIBE_CONSUMER_ID \
+  R"(https://stream-ireland.data.api.platform.here.com/stream/v2/catalogs/hereos-internal-test-v2/layers/testlayer/subscribe?consumerId=consumer_id_1234&mode=serial)"
+
+#define URL_STREAM_SUBSCRIBE_ALL_PARAMETERS \
+  R"(https://stream-ireland.data.api.platform.here.com/stream/v2/catalogs/hereos-internal-test-v2/layers/testlayer/subscribe?consumerId=consumer_id_1234&mode=parallel&subscriptionId=subscribe_id_12345)"
+
 #define URL_LOOKUP_VOLATILE_BLOB \
   R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/)"+GetTestCatalog()+R"(/apis/volatile-blob/v1)"
+
+#define URL_LOOKUP_STREAM \
+  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/)"+GetTestCatalog()+R"(/apis/stream/v2)"
 
 #define CONFIG_BASE_URL "https://config.data.api.platform.in.here.com/config/v1"
 
@@ -108,6 +126,9 @@
 #define HTTP_RESPONSE_LOOKUP_BLOB \
   R"jsonString([{"api":"blob","version":"v1","baseURL":"https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString"
 
+#define HTTP_RESPONSE_LOOKUP_STREAM \
+  R"jsonString([{"api":"stream","version":"v1","baseURL":"https://stream-ireland.data.api.platform.here.com/stream/v2/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString"
+
 #define HTTP_RESPONSE_LOOKUP_VOLATILE_BLOB \
   R"jsonString([{"api":"volatile-blob","version":"v1","baseURL":"https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString"
 
@@ -116,6 +137,12 @@
 
 #define HTTP_RESPONSE_403 \
   R"jsonString("Forbidden - A catalog with the specified HRN doesn't exist or access to this catalog is forbidden)jsonString"
+
+#define HTTP_RESPONSE_SUBSCRIBE_403 \
+  R"jsonString({ "error": "Forbidden Error", "error_description": "Error description" })jsonString"
+
+#define HTTP_RESPONSE_SUBSCRIBE_404 \
+  R"jsonString({ "title": "Stream layer not found", "status": 404, "code": "E213016", "cause": "Stream layer for catalog=hrn:here:data::olp-here-test:hereos-internal-test-v2","action": "Verify stream layer name and existence, and retry", "correlationId": "correlationId_12345"})jsonString"
 
 #define HTTP_RESPONSE_LATEST_CATALOG_VERSION \
   R"jsonString({"version":4})jsonString"
@@ -156,6 +183,9 @@
 
 #define HTTP_RESPONSE_INVALID_LAYER \
   R"jsonString({"title":"Bad Request","detail":[{"name":"layer","error":"Layer 'somewhat_not_okay' is missing in the catalog configuration."}],"status":400})jsonString"
+
+#define HTTP_RESPONSE_STREAM_LAYER_SUBSCRIPTION \
+  R"jsonString({ "nodeBaseURL": "https://some.stream.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2", "subscriptionId": "subscribe_id_12345" })jsonString"
 
 // <PREFETCH URLs and RESPONSEs>
 #define URL_CONFIG_V2 \

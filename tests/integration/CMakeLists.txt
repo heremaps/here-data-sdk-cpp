@@ -24,6 +24,7 @@ set(OLP_SDK_INTEGRATIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-dataservice-read/CatalogClientTestBase.cpp
     ./olp-cpp-sdk-dataservice-read/CatalogClientTest.cpp
     ./olp-cpp-sdk-dataservice-read/HttpResponses.h
+    ./olp-cpp-sdk-dataservice-read/StreamLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-read/VersionedLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-read/VolatileLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-write/HttpResponses.h
