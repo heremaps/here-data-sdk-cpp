@@ -133,6 +133,15 @@ class DataserviceWriteStreamLayerClientTest : public ::testing::Test {
   virtual void TearDown() override {
     data_.reset();
     client_.reset();
+
+    // verify that no other thread contains network or task scheduler instance:
+    auto network = network_;
+    auto scheduler = task_scheduler_;
+    network_.reset();
+    task_scheduler_.reset();
+
+    ASSERT_EQ(network.use_count(), 1);
+    ASSERT_EQ(scheduler.use_count(), 1);
   }
 
   std::string GetTestCatalog() {
@@ -158,8 +167,10 @@ class DataserviceWriteStreamLayerClientTest : public ::testing::Test {
   }
 
   virtual std::shared_ptr<StreamLayerClient> CreateStreamLayerClient() {
-    auto network = olp::client::OlpClientSettingsFactory::
+    network_ = olp::client::OlpClientSettingsFactory::
         CreateDefaultNetworkRequestHandler();
+    task_scheduler_ =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
 
     const auto app_id = CustomParameters::getArgument(kAppid);
     const auto secret = CustomParameters::getArgument(kSecret);
@@ -167,7 +178,7 @@ class DataserviceWriteStreamLayerClientTest : public ::testing::Test {
     olp::authentication::Settings authentication_settings({app_id, secret});
     authentication_settings.token_endpoint_url =
         CustomParameters::getArgument(kEndpoint);
-    authentication_settings.network_request_handler = network;
+    authentication_settings.network_request_handler = network_;
 
     olp::authentication::TokenProviderDefault provider(authentication_settings);
 
@@ -176,9 +187,8 @@ class DataserviceWriteStreamLayerClientTest : public ::testing::Test {
 
     olp::client::OlpClientSettings settings;
     settings.authentication_settings = auth_client_settings;
-    settings.network_request_handler = network;
-    settings.task_scheduler =
-        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
+    settings.network_request_handler = network_;
+    settings.task_scheduler = task_scheduler_;
 
     return std::make_shared<StreamLayerClient>(
         olp::client::HRN{GetTestCatalog()}, StreamLayerClientSettings{},
@@ -201,6 +211,8 @@ class DataserviceWriteStreamLayerClientTest : public ::testing::Test {
   std::shared_ptr<StreamLayerClient> client_;
   std::shared_ptr<std::vector<unsigned char>> data_;
   std::shared_ptr<std::vector<unsigned char>> sdii_data_;
+  std::shared_ptr<olp::http::Network> network_;
+  std::shared_ptr<olp::thread::TaskScheduler> task_scheduler_;
 };
 
 TEST_F(DataserviceWriteStreamLayerClientTest, PublishData) {

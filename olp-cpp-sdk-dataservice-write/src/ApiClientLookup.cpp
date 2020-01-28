@@ -19,11 +19,11 @@
 
 #include "ApiClientLookup.h"
 
+#include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/Condition.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClient.h>
-#include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/logging/Log.h>
 #include "generated/PlatformApi.h"
 #include "generated/ResourcesApi.h"
@@ -157,77 +157,73 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApiClient(
     }
   }
 
-  client::Condition condition;
-  // when the network operation took too much time we cancel it and exit
-  // execution, to make sure that network callback will not access dangling
-  // references we protect them with atomic bool flag.
-  auto flag = std::make_shared<std::atomic_bool>(true);
+  OLP_SDK_LOG_TRACE_F(kLogTag, "LookupApiClient(%s/%s): %s", service.c_str(),
+                      service_version.c_str(), catalog.partition.c_str());
 
-  ApiClientResponse api_response;
-  auto api_callback = [&, flag](ApiClientResponse response) {
-    if (flag->exchange(false)) {
-      api_response = std::move(response);
-      condition.Notify();
-    }
-  };
-
-  cancellation_context.ExecuteOrCancelled(
-      [&, flag]() {
-        auto client_ptr = std::make_shared<olp::client::OlpClient>();
-        client_ptr->SetSettings(settings);
-
-        auto token = ApiClientLookup::LookupApiClient(
-            client_ptr, service, service_version, catalog, api_callback);
-        return client::CancellationToken([&, token, flag]() {
-          if (flag->exchange(false)) {
-            token.Cancel();
-            condition.Notify();
-          }
-        });
-      },
-      [&]() {
-        // if context was cancelled before the execution setup, unblock the
-        // upcoming wait routine.
-        condition.Notify();
-      });
-  if (!condition.Wait(std::chrono::seconds(settings.retry_settings.timeout))) {
-    cancellation_context.CancelOperation();
-    OLP_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s - timeout",
-                       service.c_str(), service_version.c_str(),
-                       catalog.partition.c_str());
-    return client::ApiError(client::ErrorCode::RequestTimeout,
-                            "Network request timed out.");
+  // compare the hrn
+  const auto base_url = GetDatastoreServerUrl(catalog.partition);
+  if (base_url.empty()) {
+    OLP_SDK_LOG_INFO_F(
+        kLogTag, "LookupApiClient(%s/%s): %s Lookup URL not found",
+        service.c_str(), service_version.c_str(), catalog.partition.c_str());
+    return client::ApiError(client::ErrorCode::NotFound,
+                            "Invalid or broken HRN");
   }
 
-  flag->store(false);
+  ApisResponse api_response;
+  client::OlpClient input_client;
+  input_client.SetBaseUrl(base_url);
+  input_client.SetSettings(settings);
 
-  if (cancellation_context.IsCancelled()) {
-    // We can't use api response here because it could potentially be
-    // uninitialized.
-    OLP_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s - cancelled",
+  if (service == "config") {
+    OLP_SDK_LOG_INFO_F(kLogTag, "LookupApiClient(%s/%s): %s - config service",
                        service.c_str(), service_version.c_str(),
                        catalog.partition.c_str());
-    return client::ApiError(client::ErrorCode::Cancelled,
-                            "Operation cancelled.");
+
+    // scan apis at platform apis
+    api_response = PlatformApi::GetApis(input_client, service, service_version,
+                                        cancellation_context);
+  } else {
+    OLP_SDK_LOG_INFO_F(kLogTag, "LookupApiClient(%s/%s): %s - resource service",
+                       service.c_str(), service_version.c_str(),
+                       catalog.partition.c_str());
+
+    // scan apis at resource endpoint
+    api_response =
+        ResourcesApi::GetApis(input_client, catalog.ToCatalogHRNString(),
+                              service, service_version, cancellation_context);
   }
 
   if (!api_response.IsSuccessful()) {
+    OLP_SDK_LOG_INFO_F(kLogTag, "LookupApiClient(%s/%s): %s - unsuccessful: %s",
+                       service.c_str(), service_version.c_str(),
+                       catalog.partition.c_str(),
+                       api_response.GetError().GetMessage().c_str());
     return api_response.GetError();
+  } else if (api_response.GetResult().empty()) {
+    OLP_SDK_LOG_INFO_F(
+        kLogTag, "LookupApiClient(%s/%s): %s - service not available",
+        service.c_str(), service_version.c_str(), catalog.partition.c_str());
+    return client::ApiError(client::ErrorCode::ServiceUnavailable,
+                            "Service/Version not available for given HRN");
   }
 
-  auto client = api_response.MoveResult();
-  if (client.GetBaseUrl().empty()) {
-    OLP_SDK_LOG_WARNING_F(kLogTag, "LookupApi(%s/%s): %s - empty base URL",
-                          service.c_str(), service_version.c_str(),
-                          catalog.partition.c_str());
+  const auto output_base_url = api_response.GetResult().front().GetBaseUrl();
+  if (output_base_url.empty()) {
+    OLP_SDK_LOG_WARNING_F(
+        kLogTag, "LookupApiClient(%s/%s): %s - empty base URL", service.c_str(),
+        service_version.c_str(), catalog.partition.c_str());
   }
+
+  client::OlpClient output_client;
+  output_client.SetBaseUrl(output_base_url);
 
   if (cache) {
-    const auto& base_url = client.GetBaseUrl();
-
     constexpr time_t kExpiryTimeInSecs = 3600;
-    if (cache->Put(cache_key, base_url, [base_url]() { return base_url; },
-                   kExpiryTimeInSecs)) {
+    if (cache->Put(
+            cache_key, output_base_url,
+            [output_base_url]() { return output_base_url; },
+            kExpiryTimeInSecs)) {
       OLP_SDK_LOG_TRACE_F(kLogTag, "Put '%s' to cache", cache_key.c_str());
     } else {
       OLP_SDK_LOG_WARNING_F(kLogTag, "Failed to put '%s' to cache",
@@ -235,8 +231,8 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApiClient(
     }
   }
 
-  client.SetSettings(settings);
-  return ApiClientResponse{std::move(client)};
+  output_client.SetSettings(settings);
+  return ApiClientResponse{std::move(output_client)};
 }
 
 }  // namespace write
