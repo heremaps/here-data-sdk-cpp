@@ -30,7 +30,19 @@ TokenResult::TokenResult(std::string access_token, time_t expiry_time,
     : access_token_(std::move(access_token)),
       expiry_time_(expiry_time),
       http_status_(http_status),
-      error_(std::move(error)) {}
+      error_(std::move(error)) {
+  expires_in_ = std::chrono::seconds(expiry_time_ - std::time(nullptr));
+}
+
+TokenResult::TokenResult(std::string access_token,
+                         std::chrono::seconds expires_in, int http_status,
+                         ErrorResponse error)
+    : access_token_(std::move(access_token)),
+      expires_in_(std::move(expires_in)),
+      http_status_(http_status),
+      error_(std::move(error)) {
+  expiry_time_ = std::time(nullptr) + expires_in_.count();
+}
 
 TokenResult::TokenResult(const TokenResult& other) {
   this->access_token_ = other.access_token_;
@@ -42,6 +54,8 @@ TokenResult::TokenResult(const TokenResult& other) {
 const std::string& TokenResult::GetAccessToken() const { return access_token_; }
 
 time_t TokenResult::GetExpiryTime() const { return expiry_time_; }
+
+std::chrono::seconds TokenResult::GetExpiresIn() const { return expires_in_; }
 
 int TokenResult::GetHttpStatus() const { return http_status_; }
 

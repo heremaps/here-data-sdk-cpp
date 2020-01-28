@@ -22,6 +22,7 @@
 #include <ctime>
 #include <memory>
 #include <string>
+#include <chrono>
 
 #include "BaseResult.h"
 
@@ -71,6 +72,12 @@ class SignInResultImpl : public BaseResult {
    */
   time_t GetExpiryTime() const;
 
+    /**
+   * @brief Gets the access token expiry time in seconds.
+   * @return Duration for which token stays valid.
+   */
+  std::chrono::seconds GetExpiresIn() const;
+
   /**
    * @brief Here account user identifier
    * @return string containing the HERE Account user ID.
@@ -96,6 +103,8 @@ class SignInResultImpl : public BaseResult {
   std::string token_type_;
   std::string client_id_;
   time_t expiry_time_;
+  std::chrono::seconds expires_in_;
+  
   std::string refresh_token_;
   std::string user_identifier_;
   std::string scope_;

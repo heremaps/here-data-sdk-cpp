@@ -62,7 +62,7 @@ struct TokenEndpoint::Impl {
             const AuthenticationClient::SignInClientResponse& signInResponse) {
           if (signInResponse.IsSuccessful()) {
             TokenResult result(signInResponse.GetResult().GetAccessToken(),
-                               signInResponse.GetResult().GetExpiryTime(),
+                               signInResponse.GetResult().GetExpiresIn(),
                                signInResponse.GetResult().GetStatus(),
                                signInResponse.GetResult().GetErrorResponse());
             callback(TokenResponse(result));

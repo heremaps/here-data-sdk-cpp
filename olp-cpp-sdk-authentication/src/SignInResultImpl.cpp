@@ -38,13 +38,9 @@ namespace olp {
 namespace authentication {
 
 namespace {
-bool IsJwtToken(const std::string& token) {
-  return token.front() == 'e';
-}
+bool IsJwtToken(const std::string& token) { return token.front() == 'e'; }
 
-bool IsHnToken(const std::string& token) {
-    return token.front() == 'h';
-}
+bool IsHnToken(const std::string& token) { return token.front() == 'h'; }
 }  // namespace
 
 SignInResultImpl::SignInResultImpl() noexcept
@@ -77,6 +73,8 @@ SignInResultImpl::SignInResultImpl(
       if (json_document->HasMember(Constants::EXPIRES_IN))
         expiry_time_ = std::time(nullptr) +
                        (*json_document)[Constants::EXPIRES_IN].GetUint();
+      expires_in_ = std::chrono::seconds(
+          (*json_document)[Constants::EXPIRES_IN].GetUint());
       if (json_document->HasMember(kUserId))
         user_identifier_ = (*json_document)[kUserId].GetString();
       if (json_document->HasMember(kScope))
@@ -99,6 +97,10 @@ const std::string& SignInResultImpl::GetTokenType() const {
 
 const std::string& SignInResultImpl::GetRefreshToken() const {
   return refresh_token_;
+}
+
+std::chrono::seconds SignInResultImpl::GetExpiresIn() const {
+  return expires_in_;
 }
 
 time_t SignInResultImpl::GetExpiryTime() const { return expiry_time_; }

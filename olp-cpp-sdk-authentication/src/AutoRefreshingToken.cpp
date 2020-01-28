@@ -30,10 +30,11 @@
 namespace {
 constexpr auto kLogTag = "authentication::AutoRefreshingToken";
 
-std::chrono::system_clock::time_point ComputeRefreshTime(
-    time_t expiry_time, const std::chrono::seconds& minimum_validity) {
-  auto expiry_time_chrono = std::chrono::system_clock::from_time_t(expiry_time);
-  auto now = std::chrono::system_clock::now();
+std::chrono::steady_clock::time_point ComputeRefreshTime(
+    std::chrono::seconds expires_in,
+    const std::chrono::seconds& minimum_validity) {
+  auto now = std::chrono::steady_clock::now();
+  auto expiry_time_chrono = now + expires_in;
   return (expiry_time_chrono <= now) ? now
                                      : (expiry_time_chrono - minimum_validity);
 }
@@ -77,7 +78,7 @@ struct AutoRefreshingToken::Impl {
 
  private:
   bool ShouldRefreshNow() const {
-    return std::chrono::system_clock::now() >= token_refresh_time_;
+    return std::chrono::steady_clock::now() >= token_refresh_time_;
   }
 
   bool ForceRefresh(const std::chrono::seconds& minimum_validity) const {
@@ -108,7 +109,7 @@ struct AutoRefreshingToken::Impl {
     }
 
     token_refresh_time_ = ComputeRefreshTime(
-        current_token_.GetResult().GetExpiryTime(), minimum_validity);
+        current_token_.GetResult().GetExpiresIn(), minimum_validity);
   }
 
   client::CancellationToken TryRefreshCurrentToken(
@@ -144,7 +145,7 @@ struct AutoRefreshingToken::Impl {
           }
 
           token_refresh_time = ComputeRefreshTime(
-              current_token.GetResult().GetExpiryTime(), minimum_validity);
+              current_token.GetResult().GetExpiresIn(), minimum_validity);
           callback(response);
         });
   }
@@ -153,7 +154,7 @@ struct AutoRefreshingToken::Impl {
   TokenEndpoint token_endpoint_;
   TokenRequest token_request_;
   TokenEndpoint::TokenResponse current_token_;
-  std::chrono::system_clock::time_point token_refresh_time_;
+  std::chrono::steady_clock::time_point token_refresh_time_;
   std::mutex token_mutex_;
 };
 

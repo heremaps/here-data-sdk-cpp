@@ -18,7 +18,7 @@
  */
 
 #include <gmock/gmock.h>
-
+#include <matchers/NetworkUrlMatchers.h>
 #include <mocks/NetworkMock.h>
 #include <olp/authentication/AuthenticationClient.h>
 #include <olp/authentication/AutoRefreshingToken.h>
@@ -34,6 +34,7 @@ using testing::_;
 
 namespace {
 const std::string kErrorOk = "OK";
+const std::string kTimestampUrl = R"(https://account.api.here.com/timestamp)";
 
 TokenEndpoint::TokenResponse GetTokenFromSyncRequest(
     olp::client::CancellationToken& cancellationToken,
@@ -154,7 +155,28 @@ TEST_F(HereAccountOauth2Test, AutoRefreshingTokenCancelSync) {
 
         return olp::http::SendOutcome(request_id);
       });
+  EXPECT_CALL(*network_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
+      .Times(2)
+      .WillRepeatedly([&](olp::http::NetworkRequest request,
+                          olp::http::Network::Payload payload,
+                          olp::http::Network::Callback callback,
+                          olp::http::Network::HeaderCallback header_callback,
+                          olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << kResponseTime;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::http::HttpStatusCode::OK));
+        if (data_callback) {
+          auto raw = const_cast<char*>(kResponseTime.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0,
+                        kResponseTime.size());
+        }
 
+        return olp::http::SendOutcome(request_id);
+      });
   Settings settings({key_, secret_});
   settings.network_request_handler = network_;
   TokenEndpoint token_endpoint(settings);
@@ -172,10 +194,10 @@ TEST_F(HereAccountOauth2Test, AutoRefreshingTokenCancelSync) {
 TEST_F(HereAccountOauth2Test, AutoRefreshingTokenBackendError) {
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
       .WillOnce([&](olp::http::NetworkRequest request,
-                          olp::http::Network::Payload payload,
-                          olp::http::Network::Callback callback,
-                          olp::http::Network::HeaderCallback header_callback,
-                          olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
         olp::http::RequestId request_id(5);
         if (payload) {
           *payload << kResponseUnauthorized;
@@ -192,7 +214,27 @@ TEST_F(HereAccountOauth2Test, AutoRefreshingTokenBackendError) {
 
         return olp::http::SendOutcome(request_id);
       });
+  EXPECT_CALL(*network_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                          olp::http::Network::Payload payload,
+                          olp::http::Network::Callback callback,
+                          olp::http::Network::HeaderCallback header_callback,
+                          olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << kResponseTime;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::http::HttpStatusCode::OK));
+        if (data_callback) {
+          auto raw = const_cast<char*>(kResponseTime.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0,
+                        kResponseTime.size());
+        }
 
+        return olp::http::SendOutcome(request_id);
+      });
   Settings settings({key_, secret_});
   settings.network_request_handler = network_;
   TokenEndpoint token_endpoint(settings);

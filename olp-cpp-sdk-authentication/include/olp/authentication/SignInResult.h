@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <ctime>
 #include <memory>
 #include <string>
@@ -108,6 +109,13 @@ class AUTHENTICATION_API SignInResult {
    * invalid.
    */
   time_t GetExpiryTime() const;
+
+  /**
+   * @brief Gets the access token expiry time in seconds.
+   *
+   * @return Duration for which token stays valid.
+   */
+  std::chrono::seconds GetExpiresIn() const;
 
   /**
    * @brief Gets the HERE Account user identifier.
