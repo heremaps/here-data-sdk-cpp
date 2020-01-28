@@ -184,6 +184,7 @@ class AuthenticationClient::Impl final {
   using TimeCallback = std::function<void(TimeResponse)>;
 
   client::CancellationToken GetTimeFromServer(TimeCallback callback);
+  static TimeResponse ParseTimeResponse(std::stringstream& payload);
 
   std::string base64Encode(const std::vector<uint8_t>& vector);
 
@@ -385,6 +386,27 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
       [context]() mutable { context.CancelOperation(); });
 }
 
+AuthenticationClient::Impl::TimeResponse
+AuthenticationClient::Impl::ParseTimeResponse(std::stringstream& payload) {
+  auto document = std::make_shared<rapidjson::Document>();
+  rapidjson::IStreamWrapper stream(payload);
+  document->ParseStream(stream);
+
+  if (!document->IsObject()) {
+    return client::ApiError(client::ErrorCode::InternalFailure,
+                            "JSON document root is not an Object type");
+  }
+
+  const auto timestamp_it = document->FindMember("timestamp");
+  if (timestamp_it == document->MemberEnd() || !timestamp_it->value.IsUint()) {
+    return client::ApiError(
+        client::ErrorCode::InternalFailure,
+        "JSON document must contain timestamp integer field");
+  }
+
+  return timestamp_it->value.GetUint();
+}
+
 client::CancellationToken AuthenticationClient::Impl::GetTimeFromServer(
     TimeCallback callback) {
   std::weak_ptr<http::Network> weak_network(network_);
@@ -402,33 +424,13 @@ client::CancellationToken AuthenticationClient::Impl::GetTimeFromServer(
   auto send_outcome = network_->Send(
       request, payload,
       [callback, payload](const http::NetworkResponse& network_response) {
-        if (network_response.GetStatus() < 0) {
+        if (network_response.GetStatus() != http::HttpStatusCode::OK) {
           callback(
-              client::ApiError(client::ApiError(network_response.GetStatus())));
+              client::ApiError(network_response.GetStatus()));
           return;
         }
 
-        auto document = std::make_shared<rapidjson::Document>();
-        rapidjson::IStreamWrapper stream(*payload);
-        document->ParseStream(stream);
-
-        if (!document->IsObject()) {
-          callback(
-              client::ApiError(client::ErrorCode::InternalFailure,
-                               "JSON     document root is not an Object type"));
-          return;
-        }
-
-        const auto timestamp_it = document->FindMember("timestamp");
-        if (timestamp_it == document->MemberEnd() ||
-            !timestamp_it->value.IsUint()) {
-          callback(client::ApiError(
-              client::ErrorCode::InternalFailure,
-              "JSon document must contain timestamp integer field"));
-          return;
-        }
-
-        callback(timestamp_it->value.GetUint());
+        callback(ParseTimeResponse(*payload));
       });
 
   if (!send_outcome.IsSuccessful()) {
