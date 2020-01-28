@@ -36,6 +36,10 @@
 namespace {
 constexpr auto kLogTag = "CatalogCacheRepository";
 
+// Currently, we expire the catalog version after 5 minutes. Later we plan to
+// give the user the control when to expire it.
+constexpr auto kCatalogVersionExpireTime = 5 * 60;
+
 std::string CreateKey(const std::string& hrn) { return hrn + "::catalog"; }
 std::string VersionKey(const std::string& hrn) {
   return hrn + "::latestVersion";
@@ -78,7 +82,8 @@ void CatalogCacheRepository::PutVersion(const model::VersionResponse& version) {
   std::string hrn(hrn_.ToCatalogHRNString());
   OLP_SDK_LOG_TRACE_F(kLogTag, "PutVersion '%s'", hrn.c_str());
   cache_->Put(VersionKey(hrn), version,
-              [version]() { return olp::serializer::serialize(version); });
+              [version]() { return olp::serializer::serialize(version); },
+              kCatalogVersionExpireTime);
 }
 
 boost::optional<model::VersionResponse> CatalogCacheRepository::GetVersion() {
