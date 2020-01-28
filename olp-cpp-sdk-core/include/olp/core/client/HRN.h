@@ -26,75 +26,132 @@
 
 namespace olp {
 namespace client {
-/// \brief The Here Resource Name (HRN) class, this allows HRN's to be passed to
-/// the operations that require it.
+
+/**
+ * @brief The Here Resource Name (HRN) class, this allows HRN's to be passed to
+ * the operations that require it.
+ */
 class CORE_API HRN {
  public:
-  /// The ServiceType enum defines the different objects that a HRN can refer to
+  /**
+   * @brief The ServiceType enum defines the different objects that a HRN can
+   * refer to.
+   */
   enum ServiceType {
-    Unknown,  ///< the service type is unknown
-    Data,     ///< a data catalog
-    Schema,   ///< a schema type
-    Pipeline  ///< a pipeline instance
+    Unknown,  ///< The service type is unknown.
+    Data,     ///< This HRN represents a data catalog.
+    Schema,   ///< This HRN represents a schema type.
+    Pipeline  ///< This HRN represents a pipeline instance.
   };
 
-  /// the partition of the HRN
-  std::string partition;
-  /// the service of the HRN
-  ServiceType service{ServiceType::Unknown};
-  /// the region of the HRN
-  std::string region;
-  /// the account of the HRN
-  std::string account;
-
-  /// Catalog ID, valid when HRNServiceType == Data
-  std::string catalogId;
-  /// Layer ID, optional
-  std::string layerId;
-
-  /// Group ID, valid when HRNServiceType == Schema
-  std::string groupId;
-  /// Schema Name
-  std::string schemaName;
-  /// Version
-  std::string version;
-
-  /// Pipeline ID, valid when HRNServiceType == Pipeline
-  std::string pipelineId;
-
-  /// \brief returns this HRN in its string form, prefixed with hrn:
-  std::string ToString() const;
-
-  /// \brief returns this HRN in its string form for catalog ID, prefixed with
-  /// hrn:
-  std::string ToCatalogHRNString() const;
-
-  /// \brief default constructor
-  HRN() = default;
-
-  /// \brief constructs a HRN from its string form. Must start with "hrn:".
-  /// As a special case to support existing command line clients, http: and
-  /// https: are also accepted
+  /**
+   * @brief Constructs a `HRN` from its string form.
+   *
+   * The passed string must start with "hrn:".
+   *
+   * @param input The `HRN` in string form.
+   */
   explicit HRN(const std::string& input);
 
-  /// \brief constructs a HRN from its string form. Must start with "hrn:".
-  /// As a special case to support existing command line clients, http: and
-  /// https: are also accepted
+  /**
+   * @brief Constructs a new instance of `HRN` from its string form.
+   *
+   * The passed string must start with "hrn:".
+   *
+   * @param input The `HRN` in string form.
+   *
+   * @return A new instance of `HRN` created from string.
+   */
   static HRN FromString(const std::string& input);
 
-  /// \brief constructs a HRN from its string form. Must start with "hrn:".
-  /// As a special case to support existing command line clients, http: and
-  /// https: are also accepted
+  /**
+   * @brief Constructs a unique instance of `HRN` from its string form.
+   *
+   * The passed string must start with "hrn:".
+   *
+   * @param input The `HRN` in string form.
+   *
+   * @return A new instance of `HRN` created from string.
+   */
   static std::unique_ptr<HRN> UniqueFromString(const std::string& input);
 
-  /// \brief The HRN class equality operator
-  bool operator==(const HRN& other) const;
+  HRN() = default;
 
-  /// \brief The HRN class inequality operator
-  bool operator!=(const HRN& other) const;
+  /**
+   * @brief The HRN class equality operator.
+   */
+  bool operator==(const HRN& rhs) const;
 
-  /// \brief returns true if HRN is null (all fields empty), false otherwise
+  /**
+   * @brief The HRN class inequality operator.
+   */
+  bool operator!=(const HRN& rhs) const;
+
+  /**
+   * @brief The HRN class bool operator.
+   *
+   * @return Returns true if this `HRN` instance has all service type relevant
+   * fields not empty, false otherwise.
+   */
+  explicit operator bool() const;
+
+  /**
+   * @brief Checks the internal status of the `HRN` instance.
+   *
+   * @return Returns true if this `HRN` instance has at least one of the service
+   * type relevant fields empty, false otherwise.
+   */
   bool IsNull() const;
+
+  /**
+   * @brief Returns this `HRN` instance in its string form, prefixed with
+   * "hrn:".
+   */
+  std::string ToString() const;
+
+  /**
+   * @brief Returns this `HRN` instance in its string form for catalog ID,
+   * prefixed with "hrn:".
+   *
+   * @note Only relevant for when the `HRN` has ServiceType == Data.
+   */
+  std::string ToCatalogHRNString() const;
+
+  /// The partition of the HRN, must be valid when ServiceType == Data or when
+  /// when ServiceType == Pipeline
+  /// @deprecated This field will be marked as private by 05.2020.
+  std::string partition;
+  /// The service of the HRN.
+  /// @deprecated This field will be marked as private by 05.2020.
+  ServiceType service{ServiceType::Unknown};
+  /// The region of the HRN.
+  /// @deprecated This field will be marked as private by 05.2020.
+  std::string region;
+  /// The account of the HRN.
+  /// @deprecated This field will be marked as private by 05.2020.
+  std::string account;
+
+  /// The catalog ID, must be valid when ServiceType == Data.
+  /// @deprecated This field will be marked as private by 05.2020.
+  std::string catalogId;
+  /// The layer ID, optional.
+  /// @deprecated This field will be marked as private by 05.2020.
+  std::string layerId;
+
+  /// The group ID, must be valid when ServiceType == Schema.
+  /// @deprecated This field will be marked as private by 05.2020.
+  std::string groupId;
+  /// The schema name, must be valid when ServiceType == Schema.
+  /// @deprecated This field will be marked as private by 05.2020.
+  std::string schemaName;
+  /// The version, must be valid when ServiceType == Schema.
+  /// @deprecated This field will be marked as private by 05.2020.
+  std::string version;
+
+  /// Pipeline ID, valid when ServiceType == Pipeline.
+  /// @deprecated This field will be marked as private by 05.2020.
+  std::string pipelineId;
 };
+
 }  // namespace client
 }  // namespace olp

@@ -19,84 +19,102 @@
 
 #include "olp/core/client/HRN.h"
 
-#include <cassert>
 #include <sstream>
 
+#include <olp/core/logging/Log.h>
+#include <olp/core/porting/make_unique.h>
 #include "Tokenizer.h"
+
+namespace {
+constexpr auto kLogTag = "HRN";
+static const std::string kDataTag = "data";
+static const std::string kPipelineTag = "pipeline";
+static const std::string kSchemaTag = "schema";
+static const std::string kHRNTag = "hrn:";
+static constexpr char kSeparator = ':';
+}  // namespace
 
 namespace olp {
 namespace client {
 
 std::string HRN::ToString() const {
   std::ostringstream ret;
-  std::string generic_part = ":" + region + ":" + account + ":";
-  ret << "hrn:" << partition << ":";
+  const auto generic_part =
+      kSeparator + region + kSeparator + account + kSeparator;
+  ret << kHRNTag << partition << kSeparator;
+
   switch (service) {
     case ServiceType::Data: {
-      ret << "data" << generic_part << catalogId;
+      ret << kDataTag << generic_part << catalogId;
       if (!layerId.empty()) {
-        ret << ":" << layerId;
+        ret << kSeparator << layerId;
       }
       break;
     }
-    case ServiceType::Schema:
-      ret << "schema" << generic_part << groupId << ":" << schemaName << ":"
-          << version;
+    case ServiceType::Schema: {
+      ret << kSchemaTag << generic_part << groupId << kSeparator << schemaName
+          << kSeparator << version;
       break;
-    case ServiceType::Pipeline:
-      ret << "pipeline" << generic_part << pipelineId;
+    }
+    case ServiceType::Pipeline: {
+      ret << kPipelineTag << generic_part << pipelineId;
       break;
-    default:
+    }
+    default: {
       ret << generic_part;
       break;
+    }
   }
+
   return ret.str();
 }
 
 std::string HRN::ToCatalogHRNString() const {
   if (service != ServiceType::Data) {
-    return std::string();
+    OLP_SDK_LOG_WARNING_F(kLogTag, "ToCatalogHRNString: ServiceType != Data");
+    return {};
   }
 
-  return "hrn:" + partition + ":data:" + region + ":" + account + ":" +
-         catalogId;
+  return kHRNTag + partition + kSeparator + kDataTag + kSeparator + region +
+         kSeparator + account + kSeparator + catalogId;
 }
 
 HRN::HRN(const std::string& input) {
-  Tokenizer tokenizer(input, ':');
+  Tokenizer tokenizer(input, kSeparator);
 
-  // hrn must start with "hrn:"
+  // Must start with "hrn:"
   if (!tokenizer.HasNext()) {
     return;
   }
 
-  std::string protocol = tokenizer.Next();
-
+  const auto protocol = tokenizer.Next();
   if (protocol != "hrn") {
     return;
   }
 
-  // fill up the rest of the fields
   if (tokenizer.HasNext()) {
     partition = tokenizer.Next();
   }
 
   if (tokenizer.HasNext()) {
     auto service_str = tokenizer.Next();
-    if (service_str.compare("data") == 0) {
+    if (service_str == kDataTag) {
       service = ServiceType::Data;
-    } else if (service_str.compare("schema") == 0) {
+    } else if (service_str == kSchemaTag) {
       service = ServiceType::Schema;
-    } else if (service_str.compare("pipeline") == 0) {
+    } else if (service_str == kPipelineTag) {
       service = ServiceType::Pipeline;
     } else {
-      service = ServiceType::Unknown;
-      assert(false);  // invalid service type
+      OLP_SDK_LOG_WARNING_F(kLogTag, "Constructor: invalid service=%s",
+                            service_str.c_str());
+      return;
     }
   }
+
   if (tokenizer.HasNext()) {
     region = tokenizer.Next();
   }
+
   if (tokenizer.HasNext()) {
     account = tokenizer.Next();
   }
@@ -134,31 +152,29 @@ HRN::HRN(const std::string& input) {
   }
 }
 
-bool HRN::operator==(const HRN& other) const {
-  bool ret = (partition == other.partition && service == other.service &&
-              region == other.region && account == other.account);
-
-  if (ret) {
-    switch (service) {
-      case ServiceType::Data:
-        ret = (catalogId == other.catalogId && layerId == other.layerId);
-        break;
-      case ServiceType::Schema:
-        ret = (groupId == other.groupId && schemaName == other.schemaName &&
-               version == other.version);
-        break;
-      case ServiceType::Pipeline:
-        ret = (pipelineId == other.pipelineId);
-        break;
-      default:
-        break;
-    }
+bool HRN::operator==(const HRN& rhs) const {
+  // Common sections need to match for all types
+  if (partition != rhs.partition || service != rhs.service ||
+      region != rhs.region || account != rhs.account) {
+    return false;
   }
 
-  return ret;
+  switch (service) {
+    case ServiceType::Data: {
+      return (catalogId == rhs.catalogId && layerId == rhs.layerId);
+    }
+    case ServiceType::Schema: {
+      return (groupId == rhs.groupId && schemaName == rhs.schemaName &&
+              version == rhs.version);
+    }
+    case ServiceType::Pipeline: {
+      return (pipelineId == rhs.pipelineId);
+    }
+    default: { return false; }
+  }
 }
 
-bool HRN::operator!=(const HRN& other) const { return !operator==(other); }
+bool HRN::operator!=(const HRN& rhs) const { return !operator==(rhs); }
 
 bool HRN::IsNull() const {
   switch (service) {
@@ -177,13 +193,13 @@ bool HRN::IsNull() const {
   }
 }
 
-HRN HRN::FromString(const std::string& input) {
-  HRN result{input};
-  return result;
-}
+HRN::operator bool() const { return !IsNull(); }
+
+HRN HRN::FromString(const std::string& input) { return HRN(input); }
 
 std::unique_ptr<HRN> HRN::UniqueFromString(const std::string& input) {
-  return std::unique_ptr<HRN>(new HRN(input));
+  return std::make_unique<HRN>(input);
 }
+
 }  // namespace client
 }  // namespace olp
