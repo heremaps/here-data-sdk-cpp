@@ -39,7 +39,7 @@ using ::testing::_;
 class CallApiWrapper {
  public:
   virtual HttpResponse CallApi(
-      std::string path, std::string method,
+      std::string path, olp::http::NetworkRequest::HttpVerb method,
       std::multimap<std::string, std::string> query_params,
       std::multimap<std::string, std::string> header_params,
       std::multimap<std::string, std::string> form_params,
@@ -54,7 +54,7 @@ class CallApiSync : public CallApiWrapper {
       : client_{client} {}
 
   HttpResponse CallApi(
-      std::string path, std::string method,
+      std::string path, olp::http::NetworkRequest::HttpVerb method,
       std::multimap<std::string, std::string> query_params,
       std::multimap<std::string, std::string> header_params,
       std::multimap<std::string, std::string> form_params,
@@ -77,7 +77,7 @@ class CallApiAsync : public CallApiWrapper {
       : client_{client} {}
 
   HttpResponse CallApi(
-      std::string path, std::string method,
+      std::string path, olp::http::NetworkRequest::HttpVerb method,
       std::multimap<std::string, std::string> query_params,
       std::multimap<std::string, std::string> header_params,
       std::multimap<std::string, std::string> form_params,
@@ -180,7 +180,8 @@ TEST_P(OlpClientTest, NumberOfAttempts) {
   client_.SetSettings(client_settings_);
 
   auto response = call_wrapper_->CallApi(
-      std::string(), "GET", std::multimap<std::string, std::string>(),
+      std::string(), olp::http::NetworkRequest::HttpVerb::GET,
+      std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
 
@@ -208,7 +209,7 @@ TEST_P(OlpClientTest, ZeroAttempts) {
   client_.SetSettings(client_settings_);
 
   auto response = call_wrapper_->CallApi(
-      std::string(), "GET", std::multimap<std::string, std::string>(),
+      std::string(), olp::http::NetworkRequest::HttpVerb::GET, std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
 
@@ -233,7 +234,7 @@ TEST_P(OlpClientTest, DefaultRetryCondition) {
   client_.SetSettings(client_settings_);
 
   auto response = call_wrapper_->CallApi(
-      std::string(), "GET", std::multimap<std::string, std::string>(),
+      std::string(), olp::http::NetworkRequest::HttpVerb::GET, std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
 
@@ -272,7 +273,7 @@ TEST_P(OlpClientTest, RetryCondition) {
   client_.SetSettings(client_settings_);
 
   auto response = call_wrapper_->CallApi(
-      std::string(), "GET", std::multimap<std::string, std::string>(),
+      std::string(), olp::http::NetworkRequest::HttpVerb::GET, std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
 
@@ -301,7 +302,7 @@ TEST_P(OlpClientTest, RetryTimeLinear) {
       });
 
   auto response = call_wrapper_->CallApi(
-      std::string(), "GET", std::multimap<std::string, std::string>(),
+      std::string(), olp::http::NetworkRequest::HttpVerb::GET, std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
 
@@ -340,7 +341,7 @@ TEST_P(OlpClientTest, RetryTimeExponential) {
       });
 
   auto response = call_wrapper_->CallApi(
-      std::string(), "GET", std::multimap<std::string, std::string>(),
+      std::string(), olp::http::NetworkRequest::HttpVerb::GET, std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
 
@@ -378,7 +379,7 @@ TEST_P(OlpClientTest, SetInitialBackdownPeriod) {
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
   auto response = call_wrapper_->CallApi(
-      std::string(), "GET", std::multimap<std::string, std::string>(),
+      std::string(), olp::http::NetworkRequest::HttpVerb::GET, std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
 
@@ -411,7 +412,7 @@ TEST_P(OlpClientTest, Timeout) {
       });
 
   auto response = call_wrapper_->CallApi(
-      std::string(), "GET", std::multimap<std::string, std::string>(),
+      std::string(), olp::http::NetworkRequest::HttpVerb::GET, std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
 
@@ -455,7 +456,7 @@ TEST_P(OlpClientTest, Proxy) {
       });
 
   auto response = call_wrapper_->CallApi(
-      std::string(), "GET", std::multimap<std::string, std::string>(),
+      std::string(), olp::http::NetworkRequest::HttpVerb::GET, std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
 
@@ -501,7 +502,7 @@ TEST_P(OlpClientTest, EmptyProxy) {
       });
 
   auto response = call_wrapper_->CallApi(
-      std::string(), "GET", std::multimap<std::string, std::string>(),
+      std::string(), olp::http::NetworkRequest::HttpVerb::GET, std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
 
@@ -526,7 +527,7 @@ TEST_P(OlpClientTest, HttpResponse) {
       });
 
   auto response = call_wrapper_->CallApi(
-      std::string(), "GET", std::multimap<std::string, std::string>(),
+      std::string(), olp::http::NetworkRequest::HttpVerb::GET, std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
   ASSERT_EQ("content", response.response.str());
@@ -552,7 +553,7 @@ TEST_P(OlpClientTest, Paths) {
       });
 
   auto response = call_wrapper_->CallApi(
-      "/index", "GET", std::multimap<std::string, std::string>(),
+      "/index", olp::http::NetworkRequest::HttpVerb::GET, std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
 
@@ -577,7 +578,7 @@ TEST_P(OlpClientTest, MethodGET) {
       });
 
   auto response = call_wrapper_->CallApi(
-      std::string(), "GET", std::multimap<std::string, std::string>(),
+      std::string(), olp::http::NetworkRequest::HttpVerb::GET, std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
   ASSERT_EQ(olp::http::NetworkRequest::HttpVerb::GET, verb);
@@ -601,7 +602,7 @@ TEST_P(OlpClientTest, MethodPOST) {
       });
 
   auto response = call_wrapper_->CallApi(
-      std::string(), "POST", std::multimap<std::string, std::string>(),
+      std::string(), olp::http::NetworkRequest::HttpVerb::POST, std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
   ASSERT_EQ(olp::http::NetworkRequest::HttpVerb::POST, verb);
@@ -631,7 +632,7 @@ TEST_P(OlpClientTest, MethodPUT) {
       };
 
   auto response = call_wrapper_->CallApi(
-      std::string(), "PUT", std::multimap<std::string, std::string>(),
+      std::string(), olp::http::NetworkRequest::HttpVerb::PUT, std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
   ASSERT_EQ(olp::http::NetworkRequest::HttpVerb::PUT, verb);
@@ -655,7 +656,8 @@ TEST_P(OlpClientTest, MethodDELETE) {
       });
 
   auto response = call_wrapper_->CallApi(
-      std::string(), "DELETE", std::multimap<std::string, std::string>(),
+      std::string(),
+      olp::http::NetworkRequest::HttpVerb::DEL, std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
   ASSERT_EQ(olp::http::NetworkRequest::HttpVerb::DEL, verb);
@@ -683,7 +685,7 @@ TEST_P(OlpClientTest, QueryParam) {
   queryParams.insert(std::make_pair("var2", "2"));
 
   auto response = call_wrapper_->CallApi(
-      "index", "GET", queryParams, std::multimap<std::string, std::string>(),
+      "index", olp::http::NetworkRequest::HttpVerb::GET, queryParams, std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
 
   ASSERT_EQ("index?var1=&var2=2", url);
@@ -710,7 +712,7 @@ TEST_P(OlpClientTest, HeaderParams) {
       });
 
   auto response = call_wrapper_->CallApi(
-      std::string(), "GET", std::multimap<std::string, std::string>(),
+      std::string(), olp::http::NetworkRequest::HttpVerb::GET, std::multimap<std::string, std::string>(),
       header_params, std::multimap<std::string, std::string>(), nullptr,
       std::string());
 
@@ -744,7 +746,7 @@ TEST_P(OlpClientTest, DefaultHeaderParams) {
       });
 
   auto response = call_wrapper_->CallApi(
-      std::string(), "GET", std::multimap<std::string, std::string>(),
+      std::string(), olp::http::NetworkRequest::HttpVerb::GET, std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
 
@@ -780,7 +782,7 @@ TEST_P(OlpClientTest, CombineHeaderParams) {
       });
 
   auto response = call_wrapper_->CallApi(
-      std::string(), "GET", std::multimap<std::string, std::string>(),
+      std::string(), olp::http::NetworkRequest::HttpVerb::GET, std::multimap<std::string, std::string>(),
       header_params, std::multimap<std::string, std::string>(), nullptr,
       std::string());
 
@@ -828,7 +830,7 @@ TEST_P(OlpClientTest, Content) {
       };
 
   auto response = call_wrapper_->CallApi(
-      std::string(), "GET", std::multimap<std::string, std::string>(),
+      std::string(), olp::http::NetworkRequest::HttpVerb::GET, std::multimap<std::string, std::string>(),
       header_params, std::multimap<std::string, std::string>(), content,
       "plain-text");
   ASSERT_LE(3u, result_headers.size());
@@ -880,7 +882,7 @@ TEST_P(OlpClientTest, CancelBeforeResponse) {
   olp::client::CancellationContext context;
 
   auto response_future = std::async(std::launch::async, [&]() {
-    return call_wrapper_->CallApi(std::string(), "GET",
+    return call_wrapper_->CallApi(std::string(), olp::http::NetworkRequest::HttpVerb::GET,
                                   std::multimap<std::string, std::string>(),
                                   std::multimap<std::string, std::string>(),
                                   std::multimap<std::string, std::string>(),
@@ -905,7 +907,7 @@ TEST_P(OlpClientTest, CancelBeforeExecution) {
   EXPECT_CALL(*network, Send(_, _, _, _, _)).Times(0);
   olp::client::CancellationContext context;
   context.CancelOperation();
-  auto response = client_.CallApi(std::string(), "GET",
+  auto response = client_.CallApi(std::string(), olp::http::NetworkRequest::HttpVerb::GET,
                                   std::multimap<std::string, std::string>(),
                                   std::multimap<std::string, std::string>(),
                                   std::multimap<std::string, std::string>(),
@@ -943,7 +945,7 @@ TEST_P(OlpClientTest, CancelAfterCompletion) {
         promise.set_value(std::move(http_response));
       };
 
-  auto cancel_token = client_.CallApi(std::string(), "GET",
+  auto cancel_token = client_.CallApi(std::string(), olp::http::NetworkRequest::HttpVerb::GET,
                                       std::multimap<std::string, std::string>(),
                                       std::multimap<std::string, std::string>(),
                                       std::multimap<std::string, std::string>(),
@@ -991,7 +993,7 @@ TEST_P(OlpClientTest, CancelDuplicate) {
         promise.set_value(std::move(http_response));
       };
 
-  auto cancel_token = client_.CallApi(std::string(), "GET",
+  auto cancel_token = client_.CallApi(std::string(), olp::http::NetworkRequest::HttpVerb::GET,
                                       std::multimap<std::string, std::string>(),
                                       std::multimap<std::string, std::string>(),
                                       std::multimap<std::string, std::string>(),
@@ -1046,7 +1048,8 @@ TEST_P(OlpClientTest, CancelRetry) {
   olp::client::CancellationContext context;
 
   auto response = std::async(std::launch::async, [&]() {
-    return call_wrapper_->CallApi(std::string(), std::string(),
+    return call_wrapper_->CallApi(std::string(),
+                                  olp::http::NetworkRequest::HttpVerb(),
                                   std::multimap<std::string, std::string>(),
                                   std::multimap<std::string, std::string>(),
                                   std::multimap<std::string, std::string>(),
@@ -1095,9 +1098,9 @@ TEST_P(OlpClientTest, QueryMultiParams) {
 
   std::multimap<std::string, std::string> form_params;
 
-  auto response = call_wrapper_->CallApi(std::string(), std::string(),
-                                         queryParams, header_params,
-                                         form_params, nullptr, std::string());
+  auto response = call_wrapper_->CallApi(
+      std::string(), olp::http::NetworkRequest::HttpVerb(), queryParams,
+      header_params, form_params, nullptr, std::string());
   // query test
   for (auto q : queryParams) {
     std::string param_equal_value = q.first + "=" + q.second;

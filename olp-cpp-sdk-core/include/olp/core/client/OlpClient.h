@@ -83,6 +83,7 @@ class CORE_API OlpClient {
    *
    * @return A method to call to cancel the request.
    */
+  OLP_SDK_DEPRECATED("Deprecated. Will be removed in 06.2020. Please use other overloads")
   CancellationToken CallApi(
       const std::string& path, const std::string& method,
       const std::multimap<std::string, std::string>& query_params,
@@ -111,7 +112,61 @@ class CORE_API OlpClient {
    *
    * @return The `HttpResponse` instance.
    */
+  OLP_SDK_DEPRECATED("Deprecated. Will be removed in 06.2020. Please use other overloads")
   HttpResponse CallApi(std::string path, std::string method,
+                       std::multimap<std::string, std::string> query_params,
+                       std::multimap<std::string, std::string> header_params,
+                       std::multimap<std::string, std::string> form_params,
+                       std::shared_ptr<std::vector<unsigned char>> post_body,
+                       std::string content_type,
+                       CancellationContext context) const;
+
+  /**
+   * @brief Execute the REST request through the network stack
+   * @param path Path that is appended to the base url.
+   * @param method The request HTTP method.
+   * @param query_params Params that is appended to the path url.
+   * @param header_params Headers to customize request.
+   * @param form_params For a POST request, form_params or post_body should be
+   * populated, but not both.
+   * @param post_body For a POST request, form_params or post_body should be
+   * populated, but not both.
+   * This data must not be modified until the request is completed.
+   * @param content_type Content type for the post_body or form_params.
+   * @param callback a function callback to receive the HttpResponse.
+   *
+   * @return A method to call to cancel the request.
+   */
+  CancellationToken CallApi(
+      const std::string& path, http::NetworkRequest::HttpVerb method,
+      const std::multimap<std::string, std::string>& query_params,
+      const std::multimap<std::string, std::string>& header_params,
+      const std::multimap<std::string, std::string>& form_params,
+      const std::shared_ptr<std::vector<unsigned char>>& post_body,
+      const std::string& content_type,
+      const NetworkAsyncCallback& callback) const;
+
+  /**
+   * @brief Executes the REST request through the network stack in a blocking
+   * way.
+   * @param path The path that is appended to the base URL.
+   * @param method The request HTTP method.
+   * @param query_params The parameters that are appended to the path URL.
+   * @param header_params The headers used to customize request.
+   * @param form_params (For the POST request) Populate one of the following
+   * parameters: `form_params` or `post_body`.
+   * @param post_body (For the POST request) Populate one of the following
+   * parameters: `form_params` or `post_body`. This data must not be modified
+   * until the request is completed.
+   * @param content_type The content type of the `post_body` or `form_params`
+   * parameters.
+   * @param context The `CancellationContext` instance that is used to cancel
+   * the request.
+   *
+   * @return The `HttpResponse` instance.
+   */
+  HttpResponse CallApi(std::string path,
+                       http::NetworkRequest::HttpVerb method,
                        std::multimap<std::string, std::string> query_params,
                        std::multimap<std::string, std::string> header_params,
                        std::multimap<std::string, std::string> form_params,
@@ -122,6 +177,13 @@ class CORE_API OlpClient {
  private:
   std::shared_ptr<http::NetworkRequest> CreateRequest(
       const std::string& path, const std::string& method,
+      const std::multimap<std::string, std::string>& query_params,
+      const std::multimap<std::string, std::string>& header_params,
+      const std::shared_ptr<std::vector<unsigned char>>& post_body,
+      const std::string& content_type) const;
+
+  std::shared_ptr<http::NetworkRequest> CreateRequest(
+      const std::string& path, olp::http::NetworkRequest::HttpVerb method,
       const std::multimap<std::string, std::string>& query_params,
       const std::multimap<std::string, std::string>& header_params,
       const std::shared_ptr<std::vector<unsigned char>>& post_body,

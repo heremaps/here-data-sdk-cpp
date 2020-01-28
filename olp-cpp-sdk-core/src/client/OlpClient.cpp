@@ -197,10 +197,20 @@ std::shared_ptr<http::NetworkRequest> OlpClient::CreateRequest(
     const std::multimap<std::string, std::string>& header_params,
     const std::shared_ptr<std::vector<unsigned char>>& post_body,
     const std::string& content_type) const {
+  auto http_verb = GetHttpVerb(method);
+  return CreateRequest(path, http_verb, query_params, header_params, post_body,
+                       content_type);
+}
+
+std::shared_ptr<http::NetworkRequest> OlpClient::CreateRequest(
+    const std::string& path, http::NetworkRequest::HttpVerb http_verb,
+    const std::multimap<std::string, std::string>& query_params,
+    const std::multimap<std::string, std::string>& header_params,
+    const std::shared_ptr<std::vector<unsigned char>>& post_body,
+    const std::string& content_type) const {
   auto network_request = std::make_shared<http::NetworkRequest>(
       olp::utils::Url::Construct(base_url_, path, query_params));
 
-  http::NetworkRequest::HttpVerb http_verb = GetHttpVerb(method);
   network_request->WithVerb(http_verb);
 
   if (settings_.authentication_settings &&
@@ -291,6 +301,19 @@ CancellationToken OlpClient::CallApi(
     const std::shared_ptr<std::vector<unsigned char>>& post_body,
     const std::string& content_type,
     const NetworkAsyncCallback& callback) const {
+  auto http_verb = GetHttpVerb(method);
+  return CallApi(path, http_verb, query_params, header_params, form_params,
+                 post_body, content_type, callback);
+}
+
+CancellationToken OlpClient::CallApi(
+    const std::string& path, http::NetworkRequest::HttpVerb method,
+    const std::multimap<std::string, std::string>& query_params,
+    const std::multimap<std::string, std::string>& header_params,
+    const std::multimap<std::string, std::string>& form_params,
+    const std::shared_ptr<std::vector<unsigned char>>& post_body,
+    const std::string& content_type,
+    const NetworkAsyncCallback& callback) const {
   auto network_request = CreateRequest(path, method, query_params,
                                        header_params, post_body, content_type);
 
@@ -342,13 +365,25 @@ HttpResponse OlpClient::CallApi(
     std::string path, std::string method,
     std::multimap<std::string, std::string> query_params,
     std::multimap<std::string, std::string> header_params,
-    std::multimap<std::string, std::string> forms_params,
+    std::multimap<std::string, std::string> form_params,
+    std::shared_ptr<std::vector<unsigned char>> post_body,
+    std::string content_type, CancellationContext context) const {
+  auto http_verb = GetHttpVerb(method);
+  return CallApi(path, http_verb, query_params, header_params, form_params,
+                 post_body, content_type, context);
+}
+
+HttpResponse OlpClient::CallApi(
+    std::string path, http::NetworkRequest::HttpVerb method,
+    std::multimap<std::string, std::string> query_params,
+    std::multimap<std::string, std::string> header_params,
+    std::multimap<std::string, std::string> form_params,
     std::shared_ptr<std::vector<unsigned char>> post_body,
     std::string content_type, CancellationContext context) const {
   http::NetworkRequest network_request(
       olp::utils::Url::Construct(base_url_, path, query_params));
 
-  network_request.WithVerb(GetHttpVerb(method));
+  network_request.WithVerb(method);
 
   if (settings_.authentication_settings &&
       settings_.authentication_settings.get().provider) {
