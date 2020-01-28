@@ -25,13 +25,17 @@
 #include "StreamLayerClientImpl.h"
 
 namespace {
+using namespace ::testing;
+using namespace olp;
 using namespace olp::client;
 using namespace olp::dataservice::read;
-using namespace ::testing;
 using namespace olp::tests::common;
 
 constexpr auto kUrlLookupStream =
     R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis/stream/v2)";
+
+constexpr auto kUrlLookupBlob =
+    R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis/blob/v1)";
 
 constexpr auto kUrlStreamSubscribe =
     R"(https://some.stream.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/subscribe?mode=serial)";
@@ -39,11 +43,16 @@ constexpr auto kUrlStreamSubscribe =
 constexpr auto kUrlStreamUnsubscribe =
     R"(https://some.stream.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/subscribe?mode=serial&subscriptionId=12345)";
 
-constexpr auto kHttpResponseEmpty =
-    R"jsonString()jsonString";
+constexpr auto kUrlBlobGetBlob =
+    R"(https://some.stream.url/blobstore/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/data/123-some-data-handle-456)";
+
+constexpr auto kHttpResponseEmpty = R"jsonString()jsonString";
 
 constexpr auto kHttpResponseLookupStream =
     R"jsonString([{"api":"stream","version":"v2","baseURL":"https://some.stream.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2","parameters":{}}])jsonString";
+
+constexpr auto kHttpResponseLookupBlob =
+    R"jsonString([{"api":"blob","version":"v1","baseURL":"https://some.stream.url/blobstore/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2","parameters":{}}])jsonString";
 
 constexpr auto kHttpResponseSubscribe =
     R"jsonString({ "nodeBaseURL": "https://some.stream.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2", "subscriptionId": "12345" })jsonString";
@@ -59,10 +68,16 @@ const std::string kCatalog =
 const std::string kConsumerID = "consumer_id_1234";
 const ConsumerProperties kConsumerProperties = {
     {"key1", "value1"}, {"key2", 10}, {"key3", true}};
-const auto kHRN = olp::client::HRN::FromString(kCatalog);
+const auto kHRN = HRN::FromString(kCatalog);
 const std::string kLayerId = "testlayer";
 const auto kTimeout = std::chrono::seconds(5);
 const std::string kSubscriptionId = "12345";
+const std::string kDataHandle = "123-some-data-handle-456";
+const std::string kBlobData =
+    "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwBAMAAAClLOS0AAAABGdBTUEAALGPC/"
+    "xhBQAAABhQTFRFvb29AACEAP8AhIKEPb5x2m9E5413aFQirhRuvAMqCw+"
+    "6kE2BVsa8miQaYSKyshxFvhqdzKx8UsPYk9gDEcY1ghZXcPbENtax8g5T+"
+    "3zHYufF1Lf9HdIZBfNEiKAAAAAElFTkSuQmCC";
 
 enum class RequestMethod { GET, POST, DELETE };
 
@@ -74,19 +89,19 @@ void SetupNetworkExpectation(NetworkMock& network_mock, T url, T response,
     case RequestMethod::GET: {
       EXPECT_CALL(network_mock, Send(IsGetRequest(url), _, _, _, _))
           .WillOnce(ReturnHttpResponse(
-              olp::http::NetworkResponse().WithStatus(status), response));
+              http::NetworkResponse().WithStatus(status), response));
       return;
     }
     case RequestMethod::POST: {
       EXPECT_CALL(network_mock, Send(IsPostRequest(url), _, _, _, _))
           .WillOnce(ReturnHttpResponse(
-              olp::http::NetworkResponse().WithStatus(status), response));
+              http::NetworkResponse().WithStatus(status), response));
       return;
     }
     case RequestMethod::DELETE: {
       EXPECT_CALL(network_mock, Send(IsDeleteRequest(url), _, _, _, _))
           .WillOnce(ReturnHttpResponse(
-              olp::http::NetworkResponse().WithStatus(status), response));
+              http::NetworkResponse().WithStatus(status), response));
       return;
     }
     default:
@@ -97,7 +112,7 @@ void SetupNetworkExpectation(NetworkMock& network_mock, T url, T response,
 TEST(StreamLayerClientImplTest, Subscribe) {
   auto network_mock = std::make_shared<NetworkMock>();
   auto cache_mock = std::make_shared<CacheMock>();
-  olp::client::OlpClientSettings settings;
+  OlpClientSettings settings;
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;
 
@@ -108,14 +123,14 @@ TEST(StreamLayerClientImplTest, Subscribe) {
 
     SetupNetworkExpectation(*network_mock, kUrlLookupStream,
                             kHttpResponseLookupStream,
-                            olp::http::HttpStatusCode::OK);
+                            http::HttpStatusCode::OK);
 
-    SetupNetworkExpectation(
-        *network_mock, kUrlStreamSubscribe, kHttpResponseSubscribe,
-        olp::http::HttpStatusCode::CREATED, RequestMethod::POST);
+    SetupNetworkExpectation(*network_mock, kUrlStreamSubscribe,
+                            kHttpResponseSubscribe,
+                            http::HttpStatusCode::CREATED, RequestMethod::POST);
 
     std::promise<SubscribeResponse> promise;
-    std::future<SubscribeResponse> future(promise.get_future());
+    auto future = promise.get_future();
 
     client.Subscribe(SubscribeRequest(), [&](SubscribeResponse response) {
       promise.set_value(response);
@@ -138,14 +153,14 @@ TEST(StreamLayerClientImplTest, Subscribe) {
 
     SetupNetworkExpectation(*network_mock, kUrlLookupStream,
                             kHttpResponseLookupStream,
-                            olp::http::HttpStatusCode::OK);
+                            http::HttpStatusCode::OK);
 
     SetupNetworkExpectation(
         *network_mock, kUrlStreamSubscribe, kHttpResponseSubscribeForbidden,
-        olp::http::HttpStatusCode::FORBIDDEN, RequestMethod::POST);
+        http::HttpStatusCode::FORBIDDEN, RequestMethod::POST);
 
     std::promise<SubscribeResponse> promise;
-    std::future<SubscribeResponse> future(promise.get_future());
+    auto future = promise.get_future();
 
     client.Subscribe(SubscribeRequest(), [&](SubscribeResponse response) {
       promise.set_value(response);
@@ -163,7 +178,7 @@ TEST(StreamLayerClientImplTest, Subscribe) {
 TEST(StreamLayerClientImplTest, SubscribeCancellableFuture) {
   auto network_mock = std::make_shared<NetworkMock>();
   auto cache_mock = std::make_shared<CacheMock>();
-  olp::client::OlpClientSettings settings;
+  OlpClientSettings settings;
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;
 
@@ -174,11 +189,11 @@ TEST(StreamLayerClientImplTest, SubscribeCancellableFuture) {
 
     SetupNetworkExpectation(*network_mock, kUrlLookupStream,
                             kHttpResponseLookupStream,
-                            olp::http::HttpStatusCode::OK);
+                            http::HttpStatusCode::OK);
 
-    SetupNetworkExpectation(
-        *network_mock, kUrlStreamSubscribe, kHttpResponseSubscribe,
-        olp::http::HttpStatusCode::CREATED, RequestMethod::POST);
+    SetupNetworkExpectation(*network_mock, kUrlStreamSubscribe,
+                            kHttpResponseSubscribe,
+                            http::HttpStatusCode::CREATED, RequestMethod::POST);
 
     auto future = client.Subscribe(SubscribeRequest()).GetFuture();
 
@@ -199,11 +214,11 @@ TEST(StreamLayerClientImplTest, SubscribeCancellableFuture) {
 
     SetupNetworkExpectation(*network_mock, kUrlLookupStream,
                             kHttpResponseLookupStream,
-                            olp::http::HttpStatusCode::OK);
+                            http::HttpStatusCode::OK);
 
-    SetupNetworkExpectation(
-        *network_mock, kUrlStreamSubscribe, kHttpResponseSubscribe,
-        olp::http::HttpStatusCode::CREATED, RequestMethod::POST);
+    SetupNetworkExpectation(*network_mock, kUrlStreamSubscribe,
+                            kHttpResponseSubscribe,
+                            http::HttpStatusCode::CREATED, RequestMethod::POST);
 
     {
       auto future = client.Subscribe(SubscribeRequest()).GetFuture();
@@ -223,8 +238,7 @@ TEST(StreamLayerClientImplTest, SubscribeCancellableFuture) {
       const auto& response = future.get();
       ASSERT_FALSE(response.IsSuccessful());
 
-      ASSERT_EQ(response.GetError().GetErrorCode(),
-                olp::client::ErrorCode::InvalidArgument);
+      ASSERT_EQ(response.GetError().GetErrorCode(), ErrorCode::InvalidArgument);
     }
     Mock::VerifyAndClearExpectations(network_mock.get());
   }
@@ -233,18 +247,16 @@ TEST(StreamLayerClientImplTest, SubscribeCancellableFuture) {
 TEST(StreamLayerClientImplTest, SubscribeCancel) {
   auto network_mock = std::make_shared<NetworkMock>();
   auto cache_mock = std::make_shared<CacheMock>();
-  olp::client::OlpClientSettings settings;
+  OlpClientSettings settings;
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;
   settings.task_scheduler =
-      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
+      OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
 
   {
     // Simulate a loaded queue
     std::promise<void> promise;
-    std::future<void> future(promise.get_future());
-
-    // Simulate a loaded queue
+    auto future = promise.get_future();
     settings.task_scheduler->ScheduleTask([&future]() { future.get(); });
 
     StreamLayerClientImpl client(kHRN, kLayerId, settings);
@@ -261,19 +273,18 @@ TEST(StreamLayerClientImplTest, SubscribeCancel) {
     auto response = subscribe_future.get();
 
     EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::Cancelled);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Cancelled);
   }
 }
 
 TEST(StreamLayerClientImplTest, SubscribeCancelOnClientDestroy) {
   auto network_mock = std::make_shared<NetworkMock>();
   auto cache_mock = std::make_shared<CacheMock>();
-  olp::client::OlpClientSettings settings;
+  OlpClientSettings settings;
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;
   settings.task_scheduler =
-      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
+      OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
 
   {
     // Simulate a loaded queue
@@ -291,15 +302,14 @@ TEST(StreamLayerClientImplTest, SubscribeCancelOnClientDestroy) {
     auto response = subscribe_future.get();
     // Callback must be called during client destructor.
     EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::Cancelled);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Cancelled);
   }
 }
 
 TEST(StreamLayerClientImplTest, Unsubscribe) {
   auto network_mock = std::make_shared<NetworkMock>();
   auto cache_mock = std::make_shared<CacheMock>();
-  olp::client::OlpClientSettings settings;
+  OlpClientSettings settings;
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;
 
@@ -311,14 +321,14 @@ TEST(StreamLayerClientImplTest, Unsubscribe) {
     {
       SetupNetworkExpectation(*network_mock, kUrlLookupStream,
                               kHttpResponseLookupStream,
-                              olp::http::HttpStatusCode::OK);
+                              http::HttpStatusCode::OK);
 
       SetupNetworkExpectation(
           *network_mock, kUrlStreamSubscribe, kHttpResponseSubscribe,
-          olp::http::HttpStatusCode::CREATED, RequestMethod::POST);
+          http::HttpStatusCode::CREATED, RequestMethod::POST);
 
       std::promise<SubscribeResponse> promise;
-      std::future<SubscribeResponse> future(promise.get_future());
+      auto future = promise.get_future();
       client.Subscribe(SubscribeRequest(), [&](SubscribeResponse response) {
         promise.set_value(response);
       });
@@ -332,11 +342,11 @@ TEST(StreamLayerClientImplTest, Unsubscribe) {
     }
     {
       SetupNetworkExpectation(*network_mock, kUrlStreamUnsubscribe,
-                              kHttpResponseEmpty, olp::http::HttpStatusCode::OK,
+                              kHttpResponseEmpty, http::HttpStatusCode::OK,
                               RequestMethod::DELETE);
 
       std::promise<UnsubscribeResponse> promise;
-      std::future<UnsubscribeResponse> future(promise.get_future());
+      auto future = promise.get_future();
       client.Unsubscribe(
           [&](UnsubscribeResponse response) { promise.set_value(response); });
 
@@ -358,7 +368,7 @@ TEST(StreamLayerClientImplTest, Unsubscribe) {
 
     {
       std::promise<UnsubscribeResponse> promise;
-      std::future<UnsubscribeResponse> future(promise.get_future());
+      auto future = promise.get_future();
 
       client.Unsubscribe(
           [&](UnsubscribeResponse response) { promise.set_value(response); });
@@ -369,7 +379,7 @@ TEST(StreamLayerClientImplTest, Unsubscribe) {
       ASSERT_FALSE(response.IsSuccessful());
 
       ASSERT_EQ(response.GetError().GetErrorCode(),
-                olp::client::ErrorCode::PreconditionFailed);
+                ErrorCode::PreconditionFailed);
     }
 
     Mock::VerifyAndClearExpectations(network_mock.get());
@@ -383,14 +393,14 @@ TEST(StreamLayerClientImplTest, Unsubscribe) {
     {
       SetupNetworkExpectation(*network_mock, kUrlLookupStream,
                               kHttpResponseLookupStream,
-                              olp::http::HttpStatusCode::OK);
+                              http::HttpStatusCode::OK);
 
       SetupNetworkExpectation(
           *network_mock, kUrlStreamSubscribe, kHttpResponseSubscribe,
-          olp::http::HttpStatusCode::CREATED, RequestMethod::POST);
+          http::HttpStatusCode::CREATED, RequestMethod::POST);
 
       std::promise<SubscribeResponse> promise;
-      std::future<SubscribeResponse> future(promise.get_future());
+      auto future = promise.get_future();
       client.Subscribe(SubscribeRequest(), [&](SubscribeResponse response) {
         promise.set_value(response);
       });
@@ -405,11 +415,11 @@ TEST(StreamLayerClientImplTest, Unsubscribe) {
     {
       SetupNetworkExpectation(*network_mock, kUrlStreamUnsubscribe,
                               kHttpResponseUnsubscribeNotFound,
-                              olp::http::HttpStatusCode::NOT_FOUND,
+                              http::HttpStatusCode::NOT_FOUND,
                               RequestMethod::DELETE);
 
       std::promise<UnsubscribeResponse> promise;
-      std::future<UnsubscribeResponse> future(promise.get_future());
+      auto future = promise.get_future();
 
       client.Unsubscribe(
           [&](UnsubscribeResponse response) { promise.set_value(response); });
@@ -419,8 +429,7 @@ TEST(StreamLayerClientImplTest, Unsubscribe) {
       const auto& response = future.get();
       ASSERT_FALSE(response.IsSuccessful());
 
-      ASSERT_EQ(response.GetError().GetErrorCode(),
-                olp::client::ErrorCode::NotFound);
+      ASSERT_EQ(response.GetError().GetErrorCode(), ErrorCode::NotFound);
     }
 
     Mock::VerifyAndClearExpectations(network_mock.get());
@@ -430,7 +439,7 @@ TEST(StreamLayerClientImplTest, Unsubscribe) {
 TEST(StreamLayerClientImplTest, UnsubscribeCancellableFuture) {
   auto network_mock = std::make_shared<NetworkMock>();
   auto cache_mock = std::make_shared<CacheMock>();
-  olp::client::OlpClientSettings settings;
+  OlpClientSettings settings;
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;
 
@@ -439,11 +448,11 @@ TEST(StreamLayerClientImplTest, UnsubscribeCancellableFuture) {
   {
     SetupNetworkExpectation(*network_mock, kUrlLookupStream,
                             kHttpResponseLookupStream,
-                            olp::http::HttpStatusCode::OK);
+                            http::HttpStatusCode::OK);
 
-    SetupNetworkExpectation(
-        *network_mock, kUrlStreamSubscribe, kHttpResponseSubscribe,
-        olp::http::HttpStatusCode::CREATED, RequestMethod::POST);
+    SetupNetworkExpectation(*network_mock, kUrlStreamSubscribe,
+                            kHttpResponseSubscribe,
+                            http::HttpStatusCode::CREATED, RequestMethod::POST);
 
     auto future = client.Subscribe(SubscribeRequest()).GetFuture();
 
@@ -456,7 +465,7 @@ TEST(StreamLayerClientImplTest, UnsubscribeCancellableFuture) {
   }
   {
     SetupNetworkExpectation(*network_mock, kUrlStreamUnsubscribe,
-                            kHttpResponseEmpty, olp::http::HttpStatusCode::OK,
+                            kHttpResponseEmpty, http::HttpStatusCode::OK,
                             RequestMethod::DELETE);
 
     auto future = client.Unsubscribe().GetFuture();
@@ -475,19 +484,18 @@ TEST(StreamLayerClientImplTest, UnsubscribeCancellableFuture) {
 TEST(StreamLayerClientImplTest, UnsubscribeCancel) {
   auto network_mock = std::make_shared<NetworkMock>();
   auto cache_mock = std::make_shared<CacheMock>();
-  olp::client::OlpClientSettings settings;
+  OlpClientSettings settings;
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;
   settings.task_scheduler =
-      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
+      OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
 
   SetupNetworkExpectation(*network_mock, kUrlLookupStream,
-                          kHttpResponseLookupStream,
-                          olp::http::HttpStatusCode::OK);
+                          kHttpResponseLookupStream, http::HttpStatusCode::OK);
 
-  SetupNetworkExpectation(
-      *network_mock, kUrlStreamSubscribe, kHttpResponseSubscribe,
-      olp::http::HttpStatusCode::CREATED, RequestMethod::POST);
+  SetupNetworkExpectation(*network_mock, kUrlStreamSubscribe,
+                          kHttpResponseSubscribe, http::HttpStatusCode::CREATED,
+                          RequestMethod::POST);
 
   StreamLayerClientImpl client(kHRN, kLayerId, settings);
 
@@ -504,9 +512,7 @@ TEST(StreamLayerClientImplTest, UnsubscribeCancel) {
   {
     // Simulate a loaded queue
     std::promise<void> promise;
-    std::future<void> future(promise.get_future());
-
-    // Simulate a loaded queue
+    auto future = promise.get_future();
     settings.task_scheduler->ScheduleTask([&future]() { future.get(); });
 
     auto cancellable = client.Unsubscribe();
@@ -521,11 +527,195 @@ TEST(StreamLayerClientImplTest, UnsubscribeCancel) {
     auto response = unsubscribe_future.get();
 
     EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::Cancelled);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Cancelled);
   }
 
   Mock::VerifyAndClearExpectations(network_mock.get());
+}
+
+TEST(StreamLayerClientImplTest, GetData) {
+  auto network_mock = std::make_shared<NetworkMock>();
+  auto cache_mock = std::make_shared<CacheMock>();
+  OlpClientSettings settings;
+  settings.network_request_handler = network_mock;
+  settings.cache = cache_mock;
+
+  {
+    SCOPED_TRACE("GetData success");
+
+    SetupNetworkExpectation(*network_mock, kUrlLookupBlob,
+                            kHttpResponseLookupBlob, http::HttpStatusCode::OK);
+
+    SetupNetworkExpectation(*network_mock, kUrlBlobGetBlob, kBlobData.c_str(),
+                            http::HttpStatusCode::OK);
+
+    StreamLayerClientImpl client(kHRN, kLayerId, settings);
+
+    std::promise<DataResponse> promise;
+    auto future = promise.get_future();
+
+    model::Metadata metadata;
+    metadata.SetDataHandle(kDataHandle);
+    model::Message message;
+    message.SetMetaData(metadata);
+
+    client.GetData(message,
+                   [&](DataResponse response) { promise.set_value(response); });
+
+    ASSERT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    EXPECT_TRUE(response.IsSuccessful());
+    ASSERT_TRUE(response.GetResult());
+
+    EXPECT_THAT(*response.GetResult(),
+                ElementsAreArray(kBlobData.begin(), kBlobData.end()));
+
+    Mock::VerifyAndClearExpectations(network_mock.get());
+  }
+  {
+    SCOPED_TRACE("GetData fails, no data handle");
+
+    EXPECT_CALL(*network_mock, Send(_, _, _, _, _)).Times(0);
+
+    StreamLayerClientImpl client(kHRN, kLayerId, settings);
+
+    std::promise<DataResponse> promise;
+    auto future = promise.get_future();
+
+    client.GetData(model::Message{},
+                   [&](DataResponse response) { promise.set_value(response); });
+
+    ASSERT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::InvalidArgument);
+
+    Mock::VerifyAndClearExpectations(network_mock.get());
+  }
+  {
+    SCOPED_TRACE("GetData fails, lookup server error");
+
+    SetupNetworkExpectation(*network_mock, kUrlLookupBlob, kHttpResponseEmpty,
+                            http::HttpStatusCode::AUTHENTICATION_TIMEOUT);
+
+    StreamLayerClientImpl client(kHRN, kLayerId, settings);
+
+    std::promise<DataResponse> promise;
+    auto future = promise.get_future();
+
+    model::Metadata metadata;
+    metadata.SetDataHandle(kDataHandle);
+    model::Message message;
+    message.SetMetaData(metadata);
+
+    client.GetData(message,
+                   [&](DataResponse response) { promise.set_value(response); });
+
+    ASSERT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetHttpStatusCode(),
+              http::HttpStatusCode::AUTHENTICATION_TIMEOUT);
+
+    Mock::VerifyAndClearExpectations(network_mock.get());
+  }
+  {
+    SCOPED_TRACE("GetData fails, blob server error");
+
+    SetupNetworkExpectation(*network_mock, kUrlLookupBlob,
+                            kHttpResponseLookupBlob, http::HttpStatusCode::OK);
+
+    SetupNetworkExpectation(*network_mock, kUrlBlobGetBlob, kHttpResponseEmpty,
+                            http::HttpStatusCode::NOT_FOUND);
+
+    StreamLayerClientImpl client(kHRN, kLayerId, settings);
+
+    std::promise<DataResponse> promise;
+    auto future = promise.get_future();
+
+    model::Metadata metadata;
+    metadata.SetDataHandle(kDataHandle);
+    model::Message message;
+    message.SetMetaData(metadata);
+
+    client.GetData(message,
+                   [&](DataResponse response) { promise.set_value(response); });
+
+    ASSERT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetHttpStatusCode(),
+              http::HttpStatusCode::NOT_FOUND);
+
+    Mock::VerifyAndClearExpectations(network_mock.get());
+  }
+}
+
+TEST(StreamLayerClientImplTest, GetDataCancellableFuture) {
+  auto network_mock = std::make_shared<NetworkMock>();
+  auto cache_mock = std::make_shared<CacheMock>();
+  OlpClientSettings settings;
+  settings.network_request_handler = network_mock;
+  settings.cache = cache_mock;
+
+  SetupNetworkExpectation(*network_mock, kUrlLookupBlob,
+                          kHttpResponseLookupBlob, http::HttpStatusCode::OK);
+
+  SetupNetworkExpectation(*network_mock, kUrlBlobGetBlob, kBlobData.c_str(),
+                          http::HttpStatusCode::OK);
+
+  StreamLayerClientImpl client(kHRN, kLayerId, settings);
+
+  model::Metadata metadata;
+  metadata.SetDataHandle(kDataHandle);
+  model::Message message;
+  message.SetMetaData(metadata);
+
+  auto future = client.GetData(message).GetFuture();
+
+  ASSERT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+  const auto& response = future.get();
+  EXPECT_TRUE(response.IsSuccessful());
+  ASSERT_TRUE(response.GetResult());
+
+  EXPECT_THAT(*response.GetResult(),
+              ElementsAreArray(kBlobData.begin(), kBlobData.end()));
+}
+
+TEST(StreamLayerClientImplTest, GetDataCancel) {
+  auto network_mock = std::make_shared<NetworkMock>();
+  auto cache_mock = std::make_shared<CacheMock>();
+  OlpClientSettings settings;
+  settings.network_request_handler = network_mock;
+  settings.cache = cache_mock;
+  settings.task_scheduler =
+      OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
+
+  // Simulate a loaded queue
+  std::promise<void> promise;
+  auto future = promise.get_future();
+  settings.task_scheduler->ScheduleTask([&future]() { future.get(); });
+
+  StreamLayerClientImpl client(kHRN, kLayerId, settings);
+
+  auto cancellable = client.GetData(model::Message{});
+
+  auto get_data_future = cancellable.GetFuture();
+  cancellable.GetCancellationToken().Cancel();
+
+  promise.set_value();
+
+  ASSERT_EQ(get_data_future.wait_for(kTimeout), std::future_status::ready);
+
+  auto response = get_data_future.get();
+
+  EXPECT_FALSE(response.IsSuccessful());
+  EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Cancelled);
 }
 
 TEST(SubscribeRequestTest, SubscribeRequest) {
