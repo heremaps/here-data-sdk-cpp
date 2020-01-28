@@ -18,6 +18,7 @@
  */
 
 #include <chrono>
+#include <limits>
 #include <regex>
 #include <string>
 
@@ -27,8 +28,10 @@
 // Ordering Required - Serializer template specializations before JsonSerializer.h
 #include "generated/serializer/ApiSerializer.h"
 #include "generated/serializer/CatalogSerializer.h"
+#include "generated/serializer/ConsumerPropertiesSerializer.h"
 #include "generated/serializer/LayerVersionsSerializer.h"
 #include "generated/serializer/PartitionsSerializer.h"
+#include "generated/serializer/StreamOffsetsSerializer.h"
 #include "generated/serializer/VersionResponseSerializer.h"
 #include "generated/serializer/JsonSerializer.h"
 
@@ -424,6 +427,70 @@ TEST(SerializerTest, VersionResponse) {
   RemoveWhitespaceAndNewlines(expectedOutput);
   RemoveWhitespaceAndNewlines(json);
   ASSERT_EQ(expectedOutput, json);
+}
+
+TEST(SerializerTest, ConsumerProperties) {
+  std::string expected_output =
+      "{\
+    \"kafkaConsumerProperties\":{\
+    \"key_string\":\"value_string\",\
+    \"key_c-string\":\"value_c-string\",\
+    \"key_int32\":\"42\",\
+    \"key_bool\":\"1\"\
+    }\
+    }";
+
+  olp::dataservice::read::ConsumerOptions expected_options = {
+      olp::dataservice::read::ConsumerOption("key_string",
+                                             std::string("value_string")),
+      olp::dataservice::read::ConsumerOption("key_c-string", "value_c-string"),
+      olp::dataservice::read::ConsumerOption("key_int32", int32_t{42}),
+      olp::dataservice::read::ConsumerOption("key_bool", true)};
+
+  olp::dataservice::read::ConsumerProperties props(expected_options);
+  auto json = olp::serializer::serialize(props);
+
+  RemoveWhitespaceAndNewlines(expected_output);
+  RemoveWhitespaceAndNewlines(json);
+
+  EXPECT_EQ(expected_output, json);
+}
+
+TEST(SerializerTest, StreamOffset) {
+  constexpr auto kMinInt32 = std::numeric_limits<int32_t>::min();
+  constexpr auto kMaxInt64 = std::numeric_limits<int64_t>::max();
+
+  std::string expected_output =
+      "{\"offsets\":[\
+    {\
+        \"partition\":7,\
+        \"offset\":38562\
+    },\
+    {\
+        \"partition\":-2147483648,\
+        \"offset\":9223372036854775807\
+    }\
+    ]}";
+
+  StreamOffset kOffset1;
+  kOffset1.SetPartition(7);
+  kOffset1.SetOffset(38562);
+
+  StreamOffset kOffset2;
+  kOffset2.SetPartition(kMinInt32);
+  kOffset2.SetOffset(kMaxInt64);
+
+  const std::vector<StreamOffset> expected_offsets = {kOffset1, kOffset2};
+
+  StreamOffsets offsets;
+  offsets.SetOffsets(expected_offsets);
+
+  auto json = olp::serializer::serialize(offsets);
+
+  RemoveWhitespaceAndNewlines(expected_output);
+  RemoveWhitespaceAndNewlines(json);
+
+  EXPECT_EQ(expected_output, json);
 }
 
 }  // namespace
