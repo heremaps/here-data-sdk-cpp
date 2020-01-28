@@ -444,18 +444,10 @@ TEST(SerializerTest, ConsumerProperties) {
       olp::dataservice::read::ConsumerOption("key_string",
                                              std::string("value_string")),
       olp::dataservice::read::ConsumerOption("key_c-string", "value_c-string"),
-      olp::dataservice::read::ConsumerOption("key_int32", (int32_t)42),
+      olp::dataservice::read::ConsumerOption("key_int32", int32_t{42}),
       olp::dataservice::read::ConsumerOption("key_bool", true)};
 
   olp::dataservice::read::ConsumerProperties props(expected_options);
-
-  const auto& options = props.GetProperties();
-  ASSERT_EQ(expected_options.size(), options.size());
-  for (size_t i = 0; i < expected_options.size(); ++i) {
-    EXPECT_EQ(expected_options[i].GetKey(), options[i].GetKey());
-    EXPECT_EQ(expected_options[i].GetValue(), options[i].GetValue());
-  }
-
   auto json = olp::serializer::serialize(props);
 
   RemoveWhitespaceAndNewlines(expected_output);
@@ -465,8 +457,8 @@ TEST(SerializerTest, ConsumerProperties) {
 }
 
 TEST(SerializerTest, StreamOffset) {
-  constexpr auto kMinInt32_t = std::numeric_limits<int32_t>::min();
-  constexpr auto kMaxInt64_t = std::numeric_limits<int64_t>::max();
+  constexpr auto kMinInt32 = std::numeric_limits<int32_t>::min();
+  constexpr auto kMaxInt64 = std::numeric_limits<int64_t>::max();
 
   std::string expected_output =
       "{\"offsets\":[\
@@ -485,21 +477,13 @@ TEST(SerializerTest, StreamOffset) {
   kOffset1.SetOffset(38562);
 
   StreamOffset kOffset2;
-  kOffset2.SetPartition(kMinInt32_t);
-  kOffset2.SetOffset(kMaxInt64_t);
+  kOffset2.SetPartition(kMinInt32);
+  kOffset2.SetOffset(kMaxInt64);
 
   const std::vector<StreamOffset> expected_offsets = {kOffset1, kOffset2};
 
   StreamOffsets offsets;
   offsets.SetOffsets(expected_offsets);
-
-  const auto& offsets_vec = offsets.GetOffsets();
-  ASSERT_EQ(expected_offsets.size(), offsets_vec.size());
-  for (size_t i = 0; i < expected_offsets.size(); ++i) {
-    EXPECT_EQ(expected_offsets[i].GetPartition(),
-              offsets_vec[i].GetPartition());
-    EXPECT_EQ(expected_offsets[i].GetOffset(), offsets_vec[i].GetOffset());
-  }
 
   auto json = olp::serializer::serialize(offsets);
 
