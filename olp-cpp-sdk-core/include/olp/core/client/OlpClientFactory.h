@@ -32,21 +32,22 @@ class OlpClient;
 }
 
 /**
- * @brief client namespace
+ * @brief The `client` namespace.
  */
 namespace client {
 /**
- * @brief Factory that creates OlpClient instances that is used for all REST
- * requests.
+ * @brief Creates the `OlpClient` instances that are used for every HTTP
+ * request.
  */
 
 class CORE_API OlpClientFactory {
  public:
   /**
-   * @brief Creates an OlpClient instance used for all REST requests.
-   * @param settings Settings for the OlpClient.
+   * @brief Creates the `OlpClient` instance used for every HTTP request.
    *
-   * @return An instance of OlpClient.
+   * @param settings The `OlpClientSettings` instance.
+   *
+   * @return The OlpClient instance.
    */
   static std::shared_ptr<OlpClient> Create(const OlpClientSettings& settings);
 };

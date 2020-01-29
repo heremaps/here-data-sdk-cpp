@@ -23,8 +23,9 @@ namespace olp {
 namespace client {
 
 /**
- * Used when an ApiResponse does not contain result data. E.g. a HTTP 200
- * response with no response body.
+ * @brief Used when `ApiResponse` does not contain result data.
+ *
+ * Example: the HTTP 200 response with no response body.
  */
 class ApiNoResult {};
 

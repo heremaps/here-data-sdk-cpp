@@ -29,32 +29,35 @@ namespace olp {
 namespace client {
 
 /**
- * @brief The Condition helper class allows to wait until the notification is
- * called by a task or cancellation is performed by the user.
+ * @brief A helper class that allows one thread to call and wait for a
+ * notification in the other thread.
  */
 class Condition final {
  public:
   Condition() = default;
 
   /**
-   * @brief Should be called by task's callback to notify \c Wait to unblock the
-   * routine.
+   * @brief Called by the task callback to notify `Wait` to unblock
+   * the routine.
    */
   void Notify() {
     std::unique_lock<std::mutex> lock(mutex_);
     signaled_ = true;
 
-    // Condition should be under the lock in order to not run into the data
-    // race, which might occur when spurious wakeup happens in the other
-    // thread while waiting for the condition's signal.
+    // Condition should be under the lock not to run into the data
+    // race that might occur when a spurious wakeup happens in the other
+    // thread while waiting for the condition signal.
     condition_.notify_one();
   }
 
   /**
-   * @brief Waits a task for a \c Notify or \c CancellationContext to be
-   * cancelled by the user.
-   * @param timeout milliseconds to wait on condition
-   * @return True on notified wake, False on timeout
+   * @brief Waits for the `Notify` function.
+   *
+   * @param timeout The time (in milliseconds) during which the `Wait`
+   * function waits for the notification.
+   *
+   * @return True if the notification is returned before the timeout; false
+   * otherwise.
    */
   bool Wait(std::chrono::milliseconds timeout = std::chrono::seconds(60)) {
     std::unique_lock<std::mutex> lock(mutex_);

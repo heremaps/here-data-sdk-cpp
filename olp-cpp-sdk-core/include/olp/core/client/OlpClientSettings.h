@@ -45,75 +45,123 @@ class Network;
 
 namespace client {
 
+/**
+ * @brief The type alias of the asynchronous network callback.
+ *
+ * Used to receive the `HttpResponse` instance.
+ */
 using NetworkAsyncCallback = std::function<void(HttpResponse)>;
+/**
+ * @brief The type alias of the cancel function.
+ *
+ * Used to cancel the asynchronous network operation.
+ */
 using NetworkAsyncCancel = std::function<void()>;
 
 /**
- * @brief Default BackdownPolicy which simply returns the original wait time.
+ * @brief The default backdown policy that returns the original wait time.
  */
 CORE_API unsigned int DefaultBackdownPolicy(unsigned int milliseconds);
 
 /**
- * @brief Default RetryCondition which is to disable retries.
+ * @brief The default retry condition that disables retries.
  */
 CORE_API bool DefaultRetryCondition(const olp::client::HttpResponse& response);
 
+/**
+ * @brief A set of settings that manages the `TokenProviderCallback` and
+ * `TokenProviderCancelCallback` functions.
+ *
+ * The `TokenProviderCallback` function requests the OAuth2
+ * bearer access token. The `TokenProviderCancelCallback` function cancels that
+ * request. Both functions are user-provided.
+ * The struct is used internally by the `OlpClient` class.
+ */
 struct AuthenticationSettings {
   /**
-   * @brief Function to be implemented by the client which should return an
-   * OAuth2 Bearer Access Token to be used as the Authorization Header on
-   * Service calls.
+   * @brief Implemented by the client that should return the OAuth2 bearer
+   * access token.
    *
-   * This allows for an external OAuth2 library to be used to provide
-   * Authentication functionality for any Service.
+   * The access token should be used as the authorization header for the service
+   * calls. This allows for an external OAuth2 library to be used to provide
+   * the authentication functionality for any service.
    *
-   * @note The provided token should be authorized to access the resources
-   * provided by OLP Data Services you are trying to request. Also, the token
-   * should not be expired by the time the Service request will be sent to the
-   * server. Otherwise, a Service-specific Authorization error is returned when
-   * calls are made.
+   * The provided token should be authorized to access the resources
+   * provided by the Open Location Platform (OLP) Data Services you are trying
+   * to request. Also, the token should not be expired by the time the service
+   * request is sent to the server. Otherwise, a service-specific authorization
+   * error is returned when calls are made.
    *
-   * @note An empty string can be returned for the Token if the Service is
+   * An empty string can be returned for the token if the service is
    * offline.
    */
   using TokenProviderCallback = std::function<std::string()>;
 
   /**
-   * @brief A callback function which can be implemented by the client to allow
-   * for cancelling an ongoing request to a TokenProviderCallback.
+   * @brief Cancels the ongoing `TokenProviderCallback` request.
    *
-   * This allows for a TokenProviderCallback request to be cancelled by calls to
-   * a Service's cancel methods (e.g. CancellationToken). This method will only
-   * be called if both it and a TokenProviderCallback callback are set and a
-   * Service's cancel method is called while the TokenProviderCallback request
-   * is currently being made (i.e. it will NOT be called if the
-   * TokenProviderCallback request has finished and a Service's cancel method is
-   * called while a subsequent part of the Service request is being made).
-   * @see CancellationToken
-   * @see TokenProviderCallback
+   * Cancels the `TokenProviderCallback` request by calls to the service cancel
+   * methods (for example, `CancellationToken`). This method is only called if
+   * both it and the `TokenProviderCallback` callback are set, and a service
+   * cancel method is called while the `TokenProviderCallback` request is
+   * currently being made. For example, it is not called if the
+   * `TokenProviderCallback` request has finished and a service cancel method is
+   * called while a subsequent part of the service request is being made.
+   *
+   * @see `CancellationToken` and `TokenProviderCallback` or more
+   * details.
    */
   using TokenProviderCancelCallback = std::function<void()>;
 
+  /**
+   * @brief The user-provided function that returns the OAuth2 bearer access
+   * token.
+   *
+   * @see `TokenProviderCallback` for more details.
+   */
   TokenProviderCallback provider;
+
+  /**
+   * @brief (Optional) The user-provided function that is used to cancel
+   * the ongoing access token request.
+   *
+   * @see `TokenProviderCallback` and `TokenProviderCancelCallback` for more
+   * details.
+   */
   boost::optional<TokenProviderCancelCallback> cancel;
 };
 
+/**
+ * @brief A collection of settings that controls how failed requests should be
+ * treated by the OLP SDK.
+ *
+ * For example, it specifies whether the failed request should be retried, how
+ * long OLP SDK needs to wait for the next retry attempt, the number of maximum
+ * retries, and so on.
+ *
+ * You can customize all of these settings. The settings are used internally by
+ * the `OlpClient` class.
+ */
 struct RetrySettings {
   /**
-   * @brief A function which takes the current timeout in milliseconds, and
-   * returns what should be used for the next timeout. Allows an incremental
-   * backdown or other strategy to be configured.
+   * @brief Takes the current timeout (in milliseconds) and
+   * returns what should be used for the next timeout.
+   *
+   * Allows an incremental backdown or other strategies to be configured.
    */
   using BackdownPolicy = std::function<int(int)>;
 
   /**
-   * @brief A function which in a HttpResponse, and a bool result. True if retry
-   * is desired, false otherwise.
+   * @brief Checks whether the retry is desired.
+   *
+   * @see `HttpResponse` for more details.
    */
   using RetryCondition = std::function<bool(const HttpResponse&)>;
 
   /**
-   * @brief number of attempts. Default is 3.
+   * @brief The number of attempts.
+   *
+   * The default value is 3.
    */
   int max_attempts = 3;
 
@@ -123,62 +171,67 @@ struct RetrySettings {
   int timeout = 60;
 
   /**
-   * @brief The period after an error, before the first retry attempt (in
+   * @brief The period between the error and the first retry attempt (in
    * milliseconds).
    */
   int initial_backdown_period = 200;
 
   /**
-   * @brief The BackdownPolicy to use for retry attempts.
-   * @return BackdownPolicy.
+   * @brief The backdown policy that should be used for the retry attempts.
+   *
+   * @return The backdown policy.
    */
   BackdownPolicy backdown_policy = DefaultBackdownPolicy;
 
   /**
-   * @brief The RetryCondition used to evaluate responses to determine if retry
-   * should be attempted.
+   * @brief Evaluates responses to determine if the retry should be attempted.
    */
   RetryCondition retry_condition = DefaultRetryCondition;
 };
 
 /**
- * @brief OlpClient settings class. Use this class to configure the behaviour of
- * the OlpClient.
+ * @brief Configures the behavior of the `OlpClient` class.
  */
 struct OlpClientSettings {
   /**
-   * @brief The retry settings to use.
+   * @brief The retry settings.
    */
   RetrySettings retry_settings;
 
   /**
-   * @brief The network proxy settings to use. Set boost::none to remove any
-   * exisitng proxy settings.
+   * @brief The network proxy settings.
+   *
+   * To remove any existing proxy settings, set to `boost::none`.
    */
   boost::optional<http::NetworkProxySettings> proxy_settings = boost::none;
 
   /**
-   * @brief The authentication settings to use. Set boost::none to remove
-   * any existing settings.
+   * @brief The authentication settings.
+   *
+   * To remove any existing authentication settings, set to `boost::none`.
    */
   boost::optional<AuthenticationSettings> authentication_settings = boost::none;
 
   /**
-   * @brief The task scheduler instance. In case of nullptr set, all request
-   * calls will be performed synchronous.
+   * @brief The `TaskScheduler` instance.
+   *
+   * If `nullptr` is set, all request calls are performed synchronously.
    */
   std::shared_ptr<thread::TaskScheduler> task_scheduler = nullptr;
 
   /**
-   * @brief The network instance to be used to internally operate with OLP
-   * services.
+   * @brief The `Network` instance.
+   *
+   * Used to internally operate with the OLP services.
    */
   std::shared_ptr<http::Network> network_request_handler = nullptr;
 
   /**
-   * @brief The key/value cache will be used for storing different request
-   * results, like metadata, partition data, URLs from Look-up API and others.
-   * Set to nullptr to only use in-memory LRU cache with limited size.
+   * @brief The key-value cache that is used for storing different request
+   * results such as metadata, partition data, URLs from the API Lookup Service,
+   * and others.
+   *
+   * To only use the in-memory LRU cache with limited size, set to `nullptr`.
    */
   std::shared_ptr<cache::KeyValueCache> cache = nullptr;
 };

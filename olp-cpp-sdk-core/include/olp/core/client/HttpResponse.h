@@ -28,22 +28,40 @@ namespace olp {
 namespace client {
 
 /**
- * @brief Response from a REST request.
+ * @brief An HTTP response.
  */
 class CORE_API HttpResponse {
  public:
   HttpResponse() = default;
+  /**
+   * @brief Creates the `HttpResponse` instance.
+   *
+   * @param status The HTTP status.
+   * @param response The response body.
+   */
   HttpResponse(int status, std::string response = std::string())
       : status(status), response(std::move(response)) {}
+  /**
+   * @brief Creates the `HttpResponse` instance.
+   *
+   * @param status The HTTP status.
+   * @param response The response body.
+   */
   HttpResponse(int status, std::stringstream&& response)
       : status(status), response(std::move(response)) {}
 
   /**
-   * @brief status Status of the HTTP request.
-   * @see olp::network::Network::ErrorCode for negative status numbers
-   * @see olp::network::HttpStatusCode for positive status numbers
+   * @brief The HTTP status.
+   *
+   * @see `ErrorCode` for information on negative status
+   * numbers.
+   * @see `HttpStatusCode` for information on positive status
+   * numbers.
    */
   int status{static_cast<int>(olp::http::ErrorCode::UNKNOWN_ERROR)};
+  /**
+   * @brief The HTTP response.
+   */
   std::stringstream response;
 };
 

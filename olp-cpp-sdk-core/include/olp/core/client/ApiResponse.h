@@ -28,10 +28,10 @@ namespace olp {
 namespace client {
 
 /**
- * Represents a request outcome.
+ * @brief Represents a request outcome.
  *
  * Contains a successful result or failure error. Before you try to access
- * the result of the error, check the request outcome.
+ * the error result, check the request outcome.
  *
  * @tparam Result The result type.
  * @tparam Error The error type.
@@ -39,13 +39,23 @@ namespace client {
 template <typename Result, typename Error>
 class ApiResponse {
  public:
+  /**
+   * @brief The type of result.
+   */
   using ResultType = Result;
+  /**
+   * @brief The type of error.
+   */
   using ErrorType = Error;
 
   ApiResponse() = default;
 
   /**
-   * @brief ApiResponse Constructor for moving a successfully executed request.
+   * @brief Creates the `ApiResponse` instance.
+   *
+   * Used for moving the successfully executed request.
+   *
+   * @param result The `ResultType` instance.
    */
   ApiResponse(ResultType result) : result_(std::move(result)), success_(true) {}
 
@@ -57,35 +67,39 @@ class ApiResponse {
   ApiResponse(const ErrorType& error) : error_(error), success_(false) {}
 
   /**
-   * @brief ApiResponse Copy constructor.
+   * @brief Creates the `ApiResponse` instance that is a copy of the `r`
+   * parameter.
+   *
+   * @param r The `ApiResponse` instance from which the response is copied.
    */
   ApiResponse(const ApiResponse& r)
       : result_(r.result_), error_(r.error_), success_(r.success_) {}
 
   /**
-   * @brief IsSuccessful Gets the status of the request attempt.
-   * @return True is request successfully completed.
+   * @brief Checks the status of the request attempt.
+   *
+   * @return True if the request is successfully completed; false otherwise.
    */
   inline bool IsSuccessful() const { return success_; }
 
   /**
-   * @brief GetResult Gets the result for a succcessfully executed request
-   * @return A valid Result if IsSuccessful() returns true. Undefined,
-   * otherwise.
+   * @brief Gets the result of the successfully executed request.
+   *
+   * @return The result instance.
    */
   inline const ResultType& GetResult() const { return result_; }
 
   /**
-   * @brief MoveResult Moves the result for a succcessfully executed request
-   * @return A valid Result if IsSuccessful() returns true. Undefined,
-   * otherwise.
+   * @brief Moves the result of the successfully executed request.
+   *
+   * @return The forwarding reference to the result instance.
    */
   inline ResultType&& MoveResult() { return std::move(result_); }
 
   /**
-   * @brief GetError Gets the error for an unsucccessful request attempt.
-   * @return A valid Error if IsSuccessful() returns false. Undefined,
-   * otherwise.
+   * @brief Gets the error of the unsuccessful request attempt.
+   *
+   * @return The result instance.
    */
   inline const ErrorType& GetError() const { return error_; }
 
@@ -96,7 +110,7 @@ class ApiResponse {
 };
 
 /**
- * @brief A wrapper template that you can use to cancel the request or wait for
+ * @brief A wrapper template that you can use to cancel a request or wait for
  * it to finalize.
  *
  * @tparam T The result type.
@@ -104,7 +118,9 @@ class ApiResponse {
 template <typename T>
 class CancellableFuture {
  public:
-  /// The typedef for the sharable promise.
+  /**
+   * @brief The sharable promise type.
+   */
   using PromisePtr = std::shared_ptr<std::promise<T>>;
 
   /**
@@ -118,7 +134,7 @@ class CancellableFuture {
       : cancel_token_(cancel_token), promise_(std::move(promise)) {}
 
   /**
-   * @brief Gets the `CancellationToken` reference used to cancell the ongoing
+   * @brief Gets the `CancellationToken` reference used to cancel the ongoing
    * operation.
    *
    * @return The constant reference to the `CancellationToken` instance.

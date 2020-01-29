@@ -32,20 +32,25 @@ namespace olp {
 namespace client {
 
 /**
- * @brief Generic type erased container, that encapsulates execution of
- * asynchronous task and invocation of callback in guaranteed manner. Once
- * result of provided task became available or error occurs, callback is
- * invoked.
+ * @brief Encapsulates the execution of an asynchronous task and invocation of
+ * a callback in a guaranteed manner.
+ *
+ * When the result of the provided task is available, or an error occurs,
+ * the callback is invoked.
  */
 class CORE_API TaskContext {
  public:
   /**
-   * @brief Constructs TaskContext with provided task and callback.
-   * @param execute_func Task to be executed.
-   * @param callback Is invoked once the result of execute_func is available or
-   * task is cancelled.
-   * @param context The CancellationContext to be used.
-   * @return TaskContext that can be used to run or cancel corresponding task.
+   * @brief Creates the `TaskContext` instance with the provided task and
+   * callback.
+   *
+   * @param execute_func The task that should be executed.
+   * @param callback Is invoked once the result of `execute_func` is available
+   * or the task is cancelled.
+   * @param context The `CancellationContext` instance.
+   *
+   * @return The `TaskContext` instance that can be used to run or cancel
+   * the task.
    */
   template <typename Exec, typename Callback>
   static TaskContext Create(
@@ -58,15 +63,18 @@ class CORE_API TaskContext {
   }
 
   /**
-   * @brief Checks for cancellation, executes task and calls callback with
-   * result or error.
+   * @brief Checks for the cancellation, executes the task, and calls
+   * the callback with the result or error.
    */
   void Execute() const { impl_->Execute(); }
 
   /**
-   * @brief Cancel operation and wait for it finish.
-   * @param timeout Milliseconds to wait on task finish.
-   * @return False on timeout, True on notified wake.
+   * @brief Cancels the operation and waits for the notification.
+   *
+   * @param timeout The time (in milliseconds) to wait for the task to finish.
+   *
+   * @return True if the notification is returned before the timeout; false
+   * otherwise.
    */
   bool BlockingCancel(
       std::chrono::milliseconds timeout = std::chrono::seconds(60)) const {
@@ -74,17 +82,29 @@ class CORE_API TaskContext {
   }
 
   /**
-   * @brief Provides token to cancel task.
-   * @return Token to cancel task.
+   * @brief Provides a token to cancel the task.
+   *
+   * @return The `CancellationToken` instance.
    */
   client::CancellationToken CancelToken() const { return impl_->CancelToken(); }
 
-  /// @brief Overload operator ==
+  /**
+   * @brief Checks whether the values of the `TaskContext` parameter are
+   * the same as the values of the `other` parameter.
+   *
+   * @param other The `TaskContext` instance.
+   *
+   * @return True if the values of the `TaskContext` and `other` parameters are
+   * equal; false otherwise.
+   */
   bool operator==(const TaskContext& other) const {
     return impl_ == other.impl_;
   }
 
  protected:
+  /**
+   * @brief A helper for unordered containers.
+   */
   friend struct TaskContextHash;
 
   TaskContext() = default;
@@ -92,30 +112,86 @@ class CORE_API TaskContext {
   template <typename Exec, typename Callback,
             typename ExecResult = typename std::result_of<
                 Exec(client::CancellationContext)>::type>
+  /**
+   * @brief Sets the executors for the request.
+   *
+   * @param execute_func The task that should be executed.
+   * @param callback Is invoked once the result of `execute_func` is available
+   * or the task is cancelled.
+   * @param context The `CancellationContext` instance.
+   */
   void SetExecutors(Exec execute_func, Callback callback,
                     client::CancellationContext context) {
     impl_ = std::make_shared<TaskContextImpl<typename ExecResult::ResultType>>(
         std::move(execute_func), std::move(callback), std::move(context));
   }
 
+  /**
+   * @brief An implementation helper interface used to declare the `Execute`,
+   * `BlockingCancel`, and `CancelToken` functions used by the `TaskContext`
+   * instance.
+   */
   class Impl {
    public:
     virtual ~Impl() = default;
 
+    /**
+     * @brief Checks for the cancellation, executes the task, and calls
+     * the callback with the result or error.
+     */
     virtual void Execute() = 0;
 
+    /**
+     * @brief Cancels the operation and waits for the notification.
+     *
+     * @param timeout The time (in milliseconds) to wait for the task to finish.
+     *
+     * @return True if the notification is returned before the timeout; false
+     * otherwise.
+     */
     virtual bool BlockingCancel(std::chrono::milliseconds timeout) = 0;
 
+    /**
+     * @brief Provides a token to cancel the task.
+     *
+     * @return The `CancellationToken` instance.
+     */
     virtual client::CancellationToken CancelToken() = 0;
   };
 
+  /**
+   * @brief Implements the `Impl` interface.
+   *
+   * Erases the type of the `Result` object produced by the `ExecuteFunc`
+   * function and passes it to the `UserCallback` instance.
+   *
+   * @tparam T The result type.
+   */
   template <typename T>
   class TaskContextImpl : public Impl {
    public:
+    /**
+     * @brief Wraps the `T` typename in the API
+     * response.
+     */
     using Response = client::ApiResponse<T, client::ApiError>;
+    /**
+     * @brief The task that produces the `Response` instance.
+     */
     using ExecuteFunc = std::function<Response(client::CancellationContext)>;
+    /**
+     * @brief Consumes the `Response` instance.
+     */
     using UserCallback = std::function<void(Response)>;
 
+    /**
+     * @brief Creates the `TaskContextImpl` instance.
+     *
+     * @param execute_func The task that should be executed.
+     * @param callback Is invoked once the result of `execute_func` is available
+     * or the task is cancelled.
+     * @param context The `CancellationContext` instance.
+     */
     TaskContextImpl(ExecuteFunc execute_func, UserCallback callback,
                     client::CancellationContext context)
         : execute_func_(std::move(execute_func)),
@@ -125,6 +201,10 @@ class CORE_API TaskContext {
 
     ~TaskContextImpl() {}
 
+    /**
+     * @brief Checks for the cancellation, executes the task, and calls
+     * the callback with the result or error.
+     */
     void Execute() override {
       State expected_state = State::PENDING;
 
@@ -132,7 +212,7 @@ class CORE_API TaskContext {
         return;
       }
 
-      // Moving the user callback and function guarantee that they will be
+      // Moving the user callback and function guarantee that they are
       // executed exactly once
       ExecuteFunc function = nullptr;
       UserCallback callback = nullptr;
@@ -148,8 +228,8 @@ class CORE_API TaskContext {
 
       if (function && !context_.IsCancelled()) {
         auto response = function(context_);
-        // Cancel could occur during function execution, in that case we ignore
-        // the response.
+        // Cancel could occur during the function execution. In that case,
+        // ignore the response.
         if (!context_.IsCancelled() ||
             (!response.IsSuccessful() &&
              response.GetError().GetErrorCode() == ErrorCode::RequestTimeout)) {
@@ -161,8 +241,8 @@ class CORE_API TaskContext {
         callback(std::move(user_response));
       }
 
-      // Resources needs to be released before notification, else lambas would
-      // have captured resources like network or TaskScheduler
+      // Resources need to be released before the notification, else lambas
+      // would have captured resources like network or `TaskScheduler`.
       function = nullptr;
       callback = nullptr;
 
@@ -171,12 +251,20 @@ class CORE_API TaskContext {
       state_.store(State::COMPLETED);
     }
 
+    /**
+     * @brief Cancels the operation and waits for the notification.
+     *
+     * @param timeout The time (in milliseconds) to wait for the task to finish.
+     *
+     * @return True if the notification is returned before the timeout; false
+     * otherwise.
+     */
     bool BlockingCancel(std::chrono::milliseconds timeout) override {
       if (state_.load() == State::COMPLETED) {
         return true;
       }
 
-      // Cancel operation and wait for notification
+      // Cancels the operation and waits for the notification.
       if (!context_.IsCancelled()) {
         context_.CancelOperation();
       }
@@ -189,29 +277,81 @@ class CORE_API TaskContext {
       return condition_.Wait(timeout);
     }
 
+    /**
+     * @brief Provides a token to cancel the task.
+     *
+     * @return The `CancellationToken` instance.
+     */
     client::CancellationToken CancelToken() override {
       auto context = context_;
       return client::CancellationToken(
           [context]() mutable { context.CancelOperation(); });
     }
 
-    enum class State { PENDING, IN_PROGRESS, COMPLETED };
+    /**
+     * @brief Indicates the state of the request.
+     */
+    enum class State {
+      /**
+       * @brief The request waits to be executed.
+       */
+      PENDING,
 
+      /**
+       * @brief The request is being executed.
+       */
+      IN_PROGRESS,
+
+      /**
+       * @brief The request execution finished.
+       */
+      COMPLETED
+    };
+
+    /**
+     * @brief The mutex lock used to protect from the concurrent read and write
+     * operations.
+     */
     std::mutex mutex_;
+    /**
+     * @brief The `ExecuteFunc` instance.
+     */
     ExecuteFunc execute_func_;
+    /**
+     * @brief The `UserCallback` instance.
+     */
     UserCallback callback_;
+    /**
+     * @brief The `CancellationContext` instance.
+     */
     client::CancellationContext context_;
+    /**
+     * @brief The `Condition` instance.
+     */
     client::Condition condition_;
+    /**
+     * @brief The `State` enum of the atomic type.
+     */
     std::atomic<State> state_;
   };
 
+  /**
+   * @brief The `Impl` instance.
+   */
   std::shared_ptr<Impl> impl_;
 };
 
 /**
- * @brief Helper for unordered_* containers.
+ * @brief A helper for unordered containers.
  */
 struct TaskContextHash {
+  /**
+   * @brief The hash function for the `TaskContext` instance.
+   *
+   * @param task_context The `TaskContext` instance.
+   *
+   * @return The hash for the `TaskContext` instance.
+   */
   size_t operator()(const TaskContext& task_context) const {
     return std::hash<std::shared_ptr<TaskContext::Impl>>()(task_context.impl_);
   }

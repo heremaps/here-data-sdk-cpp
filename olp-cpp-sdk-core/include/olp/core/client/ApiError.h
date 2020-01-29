@@ -62,8 +62,8 @@ class CORE_API ApiError {
   /**
    * @brief Creates the `ApiError` instance with the HTTP status code.
    *
-   * Represents the server status. Evaluates the HTTP status code and sets the
-   * `error_code_` and `is_retriable_ flag` parameters . You can call this
+   * Represents the server status. Evaluates the HTTP status code and sets
+   * the `error_code_` and `is_retriable_ flag` parameters. You can call this
    * constructor using the HTTP status code and error text message.
    *
    * @param http_status_code The HTTP status code returned by the server.
@@ -76,28 +76,30 @@ class CORE_API ApiError {
         is_retryable_(http::HttpStatusCode::IsRetryable(http_status_code)) {}
 
   /**
-   * Gets the error code.
+   * @brief Gets the error code.
    *
    * @return The code associated with the error.
    */
   inline ErrorCode GetErrorCode() const { return error_code_; }
 
   /**
-   * Gets the HTTP status code.
+   * @brief Gets the HTTP status code.
    *
    * @return The HTTP status code.
    */
   inline int GetHttpStatusCode() const { return http_status_code_; }
 
   /**
-   * Gets the error message.
+   * @brief Gets the error message.
    *
    * @return The error message associated with the error.
    */
   inline const std::string& GetMessage() const { return message_; }
 
   /**
-   * Returns true if a request can be retried for this error.
+   * @brief Checks if the request can be retried for this error.
+   *
+   * @return True if the request can be retried for this error; false otherwise.
    */
   inline bool ShouldRetry() const { return is_retryable_; }
 

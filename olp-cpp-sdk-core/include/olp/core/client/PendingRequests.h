@@ -32,33 +32,39 @@ namespace olp {
 namespace client {
 
 /**
- * @brief Container for not yet finished requests.
+ * @brief A container for requests that have not finished yet.
  */
 class CORE_API PendingRequests final {
  public:
   /**
-   * @brief Cancels all pending tasks
-   * @note This call does not wait for the tasks to finalize, use
-   * CancelAllAndWait() to also wait for the tasks to finalize..
-   * @return True on success
+   * @brief Cancels all the pending tasks.
+   *
+   * @note This call does not wait for the tasks to finalize. To wait for
+   * the tasks to finalize, use `CancelAllAndWait()`.
+   *
+   * @return True on success; false otherwise.
    */
   bool CancelAll();
 
   /**
-   * @brief Cancels all pending tasks and waits for all beeing finalized.
-   * @return True on success
+   * @brief Cancels all the pending tasks and waits for the tasks that are
+   * finalizing.
+   *
+   * @return True on success; false otherwise.
    */
   bool CancelAllAndWait();
 
   /**
-   * @brief Inserts task context into the requests container.
-   * @param task_context Task context.
+   * @brief Inserts the task context into the request container.
+   *
+   * @param task_context The `TaskContext` instance.
    */
   void Insert(TaskContext task_context);
 
   /**
-   * @brief Removes a task context.
-   * @param task_context Task context.
+   * @brief Removes the task context.
+   *
+   * @param task_context The `TaskContext` instance.
    */
   void Remove(TaskContext task_context);
 

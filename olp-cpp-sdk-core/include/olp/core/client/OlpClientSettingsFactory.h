@@ -36,36 +36,46 @@ class Network;
 
 namespace client {
 /**
- * @brief Factory that helps to fill-in OlpClientSettings structure with various
+ * @brief Fills in the `OlpClientSettings` structure with
  * default handlers.
  */
 class CORE_API OlpClientSettingsFactory final {
  public:
   /**
-   * @brief Creates a TaskScheduler instance used for all delayed operations,
-   * which is defaulted to olp::thread::ThreadPoolTaskScheduler with one worker
+   * @brief Creates the `TaskScheduler` instance used for all the delayed
+   * operations.
+   *
+   * Defaulted to `olp::thread::ThreadPoolTaskScheduler` with one worker
    * thread spawned by default.
-   * @return An instance of TaskScheduler.
+   *
+   * @return The `TaskScheduler` instance.
    */
   static std::unique_ptr<thread::TaskScheduler> CreateDefaultTaskScheduler(
       size_t thread_count = 1u);
 
   /**
-   * @brief Creates a Network instance used for all non-local requests,
-   * which is defaulted to platform-specific implementation.
-   * @return An instance of Network.
+   * @brief Creates the `Network` instance used for all the non-local requests.
+   *
+   * Defaulted to platform-specific implementation.
+   *
+   * @return The `Network` instance.
    */
   static std::shared_ptr<http::Network> CreateDefaultNetworkRequestHandler(
       size_t max_requests_count = 30u);
 
   /**
-   * @brief Creates a KeyValueCache instance that includes both a small
+   * @brief Creates the `KeyValueCache` instance that includes both a small
    * in-memory LRU cache and a larger persistent database cache.
-   * The returned cache instance is initialized, opened and ready to be used.
-   * @note The database cache is only created if the provided CacheSettings
-   * include a valid disk path with according write permissions set.
-   * @param[in] settings The cache settings.
-   * @return An instance of KeyValueCache.
+   *
+   * The returned cache instance is initialized, opened, and ready to be used.
+   *
+   * @note The database cache is only created if the provided `CacheSettings`
+   * instance includes a valid disk path with the corresponding write
+   * permissions set.
+   *
+   * @param[in] settings The `CacheSettings` instance.
+   *
+   * @return The `KeyValueCache` instance.
    */
   static std::unique_ptr<cache::KeyValueCache> CreateDefaultCache(
       const cache::CacheSettings& settings);
