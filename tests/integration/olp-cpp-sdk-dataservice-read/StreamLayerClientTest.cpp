@@ -122,6 +122,18 @@ void ReadStreamLayerClientTest::SetUpCommonNetworkMockCalls() {
                                  olp::http::HttpStatusCode::CREATED),
                              HTTP_RESPONSE_STREAM_LAYER_SUBSCRIPTION));
 
+  ON_CALL(*network_mock_,
+          Send(IsDeleteRequest(URL_STREAM_UNSUBSCRIBE_SERIAL), _, _, _, _))
+      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                            olp::http::HttpStatusCode::OK),
+                                        HTTP_RESPONSE_EMPTY));
+
+  ON_CALL(*network_mock_,
+          Send(IsDeleteRequest(URL_STREAM_UNSUBSCRIBE_PARALLEL), _, _, _, _))
+      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                            olp::http::HttpStatusCode::OK),
+                                        HTTP_RESPONSE_EMPTY));
+
   // Catch any non-interesting network calls that don't need to be verified
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _)).Times(AtLeast(0));
 }
@@ -471,24 +483,248 @@ TEST_F(ReadStreamLayerClientTest, SubscribeCancelFuture) {
   EXPECT_EQ(ErrorCode::Cancelled, response.GetError().GetErrorCode());
 }
 
-TEST_F(ReadStreamLayerClientTest, CancelPendingRequestsSubscribe) {
+TEST_F(ReadStreamLayerClientTest, Unsubscribe) {
+  HRN hrn(GetTestCatalog());
+
+  {
+    SCOPED_TRACE("Unsubscribe succeeds, serial subscription");
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+        .Times(1);
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsPostRequest(URL_STREAM_SUBSCRIBE_SERIAL), _, _, _, _))
+        .Times(1);
+
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsDeleteRequest(URL_STREAM_UNSUBSCRIBE_SERIAL), _, _, _, _))
+        .Times(1);
+
+    StreamLayerClient client(hrn, kLayerId, settings_);
+
+    auto subscribe_future = client.Subscribe(SubscribeRequest()).GetFuture();
+    ASSERT_EQ(subscribe_future.wait_for(kTimeout), std::future_status::ready);
+    ASSERT_TRUE(subscribe_future.get().IsSuccessful());
+
+    // Unsubscribe part
+    UnsubscribeResponse unsubscribe_response;
+    Condition condition;
+    client.Unsubscribe([&](UnsubscribeResponse response) {
+      unsubscribe_response = std::move(response);
+      condition.Notify();
+    });
+
+    ASSERT_TRUE(condition.Wait(kTimeout));
+    ASSERT_TRUE(unsubscribe_response.IsSuccessful());
+    EXPECT_EQ(kSubscriptionId, unsubscribe_response.GetResult());
+
+    ::Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE("Unsubscribe succeeds, parallel subscription");
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+        .Times(1);
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsPostRequest(URL_STREAM_SUBSCRIBE_PARALLEL), _, _, _, _))
+        .Times(1);
+
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsDeleteRequest(URL_STREAM_UNSUBSCRIBE_PARALLEL), _, _, _, _))
+        .Times(1);
+
+    StreamLayerClient client(hrn, kLayerId, settings_);
+
+    auto subscribe_future =
+        client
+            .Subscribe(SubscribeRequest().WithSubscriptionMode(
+                SubscribeRequest::SubscriptionMode::kParallel))
+            .GetFuture();
+    ASSERT_EQ(subscribe_future.wait_for(kTimeout), std::future_status::ready);
+    ASSERT_TRUE(subscribe_future.get().IsSuccessful());
+
+    // Unsubscribe part
+    UnsubscribeResponse unsubscribe_response;
+    Condition condition;
+    client.Unsubscribe([&](UnsubscribeResponse response) {
+      unsubscribe_response = std::move(response);
+      condition.Notify();
+    });
+
+    ASSERT_TRUE(condition.Wait(kTimeout));
+    ASSERT_TRUE(unsubscribe_response.IsSuccessful());
+    EXPECT_EQ(kSubscriptionId, unsubscribe_response.GetResult());
+
+    ::Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE(
+        "Unsubscribe succeeds, parallel subscription with provided ConsumerID "
+        "and SubscriptionID");
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+        .Times(1);
+
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsPostRequest(URL_STREAM_SUBSCRIBE_ALL_PARAMETERS), _, _, _, _))
+        .Times(1);
+
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsDeleteRequest(URL_STREAM_UNSUBSCRIBE_PARALLEL), _, _, _, _))
+        .Times(1);
+
+    StreamLayerClient client(hrn, kLayerId, settings_);
+
+    auto subscribe_future =
+        client
+            .Subscribe(SubscribeRequest()
+                           .WithConsumerId(kConsumerID)
+                           .WithSubscriptionId(kSubscriptionId)
+                           .WithSubscriptionMode(
+                               SubscribeRequest::SubscriptionMode::kParallel))
+            .GetFuture();
+    ASSERT_EQ(subscribe_future.wait_for(kTimeout), std::future_status::ready);
+    ASSERT_TRUE(subscribe_future.get().IsSuccessful());
+
+    UnsubscribeResponse unsubscribe_response;
+    Condition condition;
+    client.Unsubscribe([&](UnsubscribeResponse response) {
+      unsubscribe_response = std::move(response);
+      condition.Notify();
+    });
+
+    ASSERT_TRUE(condition.Wait(kTimeout));
+    ASSERT_TRUE(unsubscribe_response.IsSuccessful());
+    EXPECT_EQ(kSubscriptionId, unsubscribe_response.GetResult());
+
+    ::Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE("Unsubscribe fails, subscription missing");
+
+    StreamLayerClient client(hrn, kLayerId, settings_);
+
+    UnsubscribeResponse unsubscribe_response;
+    Condition condition;
+    client.Unsubscribe([&](UnsubscribeResponse response) {
+      unsubscribe_response = std::move(response);
+      condition.Notify();
+    });
+
+    ASSERT_TRUE(condition.Wait(kTimeout));
+    ASSERT_FALSE(unsubscribe_response.IsSuccessful());
+
+    EXPECT_EQ(unsubscribe_response.GetError().GetErrorCode(),
+              ErrorCode::PreconditionFailed);
+
+    ::Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE("Unsubscribe fails, server error");
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+        .Times(1);
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsPostRequest(URL_STREAM_SUBSCRIBE_SERIAL), _, _, _, _))
+        .Times(1);
+
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsDeleteRequest(URL_STREAM_UNSUBSCRIBE_SERIAL), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::NOT_FOUND),
+                                     HTTP_RESPONSE_UNSUBSCRIBE_404));
+
+    StreamLayerClient client(hrn, kLayerId, settings_);
+
+    auto subscribe_future = client.Subscribe(SubscribeRequest()).GetFuture();
+    ASSERT_EQ(subscribe_future.wait_for(kTimeout), std::future_status::ready);
+    ASSERT_TRUE(subscribe_future.get().IsSuccessful());
+
+    // Unsubscribe part
+    UnsubscribeResponse unsubscribe_response;
+    Condition condition;
+    client.Unsubscribe([&](UnsubscribeResponse response) {
+      unsubscribe_response = std::move(response);
+      condition.Notify();
+    });
+
+    ASSERT_TRUE(condition.Wait(kTimeout));
+    ASSERT_FALSE(unsubscribe_response.IsSuccessful());
+    EXPECT_EQ(unsubscribe_response.GetError().GetErrorCode(),
+              ErrorCode::NotFound);
+
+    ::Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+}
+
+TEST_F(ReadStreamLayerClientTest, UnsubscribeCancellableFuture) {
+  HRN hrn(GetTestCatalog());
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+      .Times(1);
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsPostRequest(URL_STREAM_SUBSCRIBE_SERIAL), _, _, _, _))
+      .Times(1);
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsDeleteRequest(URL_STREAM_UNSUBSCRIBE_SERIAL), _, _, _, _))
+      .Times(1);
+
+  StreamLayerClient client(hrn, kLayerId, settings_);
+
+  auto subscribe_future = client.Subscribe(SubscribeRequest()).GetFuture();
+  ASSERT_EQ(subscribe_future.wait_for(kTimeout), std::future_status::ready);
+  ASSERT_TRUE(subscribe_future.get().IsSuccessful());
+
+  // Unsubscribe part
+  UnsubscribeResponse unsubscribe_response;
+  auto unsubscribe_future = client.Unsubscribe().GetFuture();
+
+  ASSERT_EQ(unsubscribe_future.wait_for(kTimeout), std::future_status::ready);
+
+  const auto& response = unsubscribe_future.get();
+  ASSERT_TRUE(response.IsSuccessful());
+
+  EXPECT_EQ(response.GetResult(), kSubscriptionId);
+}
+
+TEST_F(ReadStreamLayerClientTest, UnsubscribeCancelFuture) {
   HRN hrn(GetTestCatalog());
 
   auto request_started = std::make_shared<std::promise<void>>();
   auto continue_request = std::make_shared<std::promise<void>>();
-
   {
     olp::http::RequestId request_id;
     NetworkCallback send_mock;
     CancelCallback cancel_mock;
 
-    std::tie(request_id, send_mock, cancel_mock) =
-        GenerateNetworkMockActions(request_started, continue_request,
-                                   {olp::http::HttpStatusCode::OK,
-                                    HTTP_RESPONSE_STREAM_LAYER_SUBSCRIPTION});
+    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+        request_started, continue_request,
+        {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_EMPTY});
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+        .Times(1);
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsPostRequest(URL_STREAM_SUBSCRIBE_SERIAL), _, _, _, _))
+        .Times(1);
+
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsDeleteRequest(URL_STREAM_UNSUBSCRIBE_SERIAL), _, _, _, _))
         .Times(1)
         .WillOnce(Invoke(std::move(send_mock)));
 
@@ -498,19 +734,56 @@ TEST_F(ReadStreamLayerClientTest, CancelPendingRequestsSubscribe) {
 
   StreamLayerClient client(hrn, kLayerId, settings_);
 
-  auto future = client.Subscribe(SubscribeRequest());
+  auto subscribe_future = client.Subscribe(SubscribeRequest()).GetFuture();
+  ASSERT_EQ(subscribe_future.wait_for(kTimeout), std::future_status::ready);
+  ASSERT_TRUE(subscribe_future.get().IsSuccessful());
+
+  auto cancellable_future = client.Unsubscribe();
 
   request_started->get_future().get();
-  client.CancelPendingRequests();
+  cancellable_future.GetCancellationToken().Cancel();
   continue_request->set_value();
 
-  auto subscribe_response = future.GetFuture().get();
+  auto unsubscribe_response = cancellable_future.GetFuture().get();
+
+  ASSERT_FALSE(unsubscribe_response.IsSuccessful());
+
+  EXPECT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            unsubscribe_response.GetError().GetHttpStatusCode());
+  EXPECT_EQ(ErrorCode::Cancelled,
+            unsubscribe_response.GetError().GetErrorCode());
+}
+
+TEST_F(ReadStreamLayerClientTest, CancelPendingRequests) {
+  HRN hrn(GetTestCatalog());
+
+  // Simulate a loaded queue
+  std::promise<void> promise;
+  auto future = promise.get_future();
+  settings_.task_scheduler->ScheduleTask([&future]() { future.get(); });
+
+  StreamLayerClient client(hrn, kLayerId, settings_);
+
+  auto subscribe_future = client.Subscribe(SubscribeRequest());
+  auto unsubscribe_future = client.Unsubscribe();
+
+  client.CancelPendingRequests();
+
+  promise.set_value();
+
+  auto subscribe_response = subscribe_future.GetFuture().get();
 
   ASSERT_FALSE(subscribe_response.IsSuccessful());
-
   EXPECT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
             subscribe_response.GetError().GetHttpStatusCode());
   EXPECT_EQ(ErrorCode::Cancelled, subscribe_response.GetError().GetErrorCode());
+
+  auto unsubscribe_response = unsubscribe_future.GetFuture().get();
+  ASSERT_FALSE(unsubscribe_response.IsSuccessful());
+  EXPECT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            unsubscribe_response.GetError().GetHttpStatusCode());
+  EXPECT_EQ(ErrorCode::Cancelled,
+            unsubscribe_response.GetError().GetErrorCode());
 }
 
 }  // namespace

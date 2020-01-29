@@ -105,6 +105,12 @@
 #define URL_STREAM_SUBSCRIBE_ALL_PARAMETERS \
   R"(https://stream-ireland.data.api.platform.here.com/stream/v2/catalogs/hereos-internal-test-v2/layers/testlayer/subscribe?consumerId=consumer_id_1234&mode=parallel&subscriptionId=subscribe_id_12345)"
 
+#define URL_STREAM_UNSUBSCRIBE_SERIAL \
+  R"(https://some.stream.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/subscribe?mode=serial&subscriptionId=subscribe_id_12345)"
+
+#define URL_STREAM_UNSUBSCRIBE_PARALLEL \
+  R"(https://some.stream.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/subscribe?mode=parallel&subscriptionId=subscribe_id_12345)"
+
 #define URL_LOOKUP_VOLATILE_BLOB \
   R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/)"+GetTestCatalog()+R"(/apis/volatile-blob/v1)"
 
@@ -143,6 +149,11 @@
 
 #define HTTP_RESPONSE_SUBSCRIBE_404 \
   R"jsonString({ "title": "Stream layer not found", "status": 404, "code": "E213016", "cause": "Stream layer for catalog=hrn:here:data::olp-here-test:hereos-internal-test-v2","action": "Verify stream layer name and existence, and retry", "correlationId": "correlationId_12345"})jsonString"
+
+#define HTTP_RESPONSE_UNSUBSCRIBE_404 \
+  R"jsonString({"title": "Subscription not found","status": 404,"code": "E213003","cause": "SubscriptionId subscribe_id_12345 not found","action": "Subscribe again","correlationId": "123"})jsonString"
+
+#define HTTP_RESPONSE_EMPTY R"jsonString()jsonString"
 
 #define HTTP_RESPONSE_LATEST_CATALOG_VERSION \
   R"jsonString({"version":4})jsonString"
