@@ -44,13 +44,6 @@ TokenResult::TokenResult(std::string access_token,
   expiry_time_ = std::time(nullptr) + expires_in_.count();
 }
 
-TokenResult::TokenResult(const TokenResult& other) {
-  this->access_token_ = other.access_token_;
-  this->expiry_time_ = other.expiry_time_;
-  this->http_status_ = other.http_status_;
-  this->error_ = other.error_;
-}
-
 const std::string& TokenResult::GetAccessToken() const { return access_token_; }
 
 time_t TokenResult::GetExpiryTime() const { return expiry_time_; }

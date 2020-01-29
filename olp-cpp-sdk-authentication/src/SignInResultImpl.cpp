@@ -70,11 +70,12 @@ SignInResultImpl::SignInResultImpl(
         token_type_ = (*json_document)[kTokenType].GetString();
       if (json_document->HasMember(Constants::REFRESH_TOKEN))
         refresh_token_ = (*json_document)[Constants::REFRESH_TOKEN].GetString();
-      if (json_document->HasMember(Constants::EXPIRES_IN))
+      if (json_document->HasMember(Constants::EXPIRES_IN)) {
         expiry_time_ = std::time(nullptr) +
                        (*json_document)[Constants::EXPIRES_IN].GetUint();
-      expires_in_ = std::chrono::seconds(
-          (*json_document)[Constants::EXPIRES_IN].GetUint());
+        expires_in_ = std::chrono::seconds(
+            (*json_document)[Constants::EXPIRES_IN].GetUint());
+      }
       if (json_document->HasMember(kUserId))
         user_identifier_ = (*json_document)[kUserId].GetString();
       if (json_document->HasMember(kScope))

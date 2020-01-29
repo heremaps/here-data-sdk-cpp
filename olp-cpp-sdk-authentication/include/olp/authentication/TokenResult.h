@@ -68,16 +68,6 @@ class AUTHENTICATION_API TokenResult {
   TokenResult() = default;
 
   /**
-   * @brief Creates the `TokenResult` instance that is a copy
-   * of the `other` token result.
-   *
-   * @param other The `TokenResult` instance from which the access
-   * key ID, access key secret, expiry time, HTTP status code, and error
-   * description are copied.
-   */
-  TokenResult(const TokenResult& other);
-
-  /**
    * @brief Gets the access token issued by the authorization server.
    *
    * @return The access token issued by the authorization server.
