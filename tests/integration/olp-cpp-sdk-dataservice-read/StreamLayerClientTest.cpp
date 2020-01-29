@@ -36,6 +36,7 @@ using namespace testing;
 const std::string kCatalog =
     "hrn:here:data::olp-here-test:hereos-internal-test-v2";
 const std::string kConsumerID = "consumer_id_1234";
+const std::string kDataHandle = "4eed6ed1-0d32-43b9-ae79-043cb4256432";
 const std::string kLayerId = "testlayer";
 const std::string kSubscriptionId = "subscribe_id_12345";
 const auto kTimeout = std::chrono::seconds(5);
@@ -77,7 +78,7 @@ void ReadStreamLayerClientTest::SetUp() {
 }
 
 void ReadStreamLayerClientTest::TearDown() {
-  ::Mock::VerifyAndClearExpectations(network_mock_.get());
+  Mock::VerifyAndClearExpectations(network_mock_.get());
   network_mock_.reset();
 }
 
@@ -134,6 +135,16 @@ void ReadStreamLayerClientTest::SetUpCommonNetworkMockCalls() {
                                             olp::http::HttpStatusCode::OK),
                                         HTTP_RESPONSE_EMPTY));
 
+  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+      .WillByDefault(
+          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+                             HTTP_RESPONSE_LOOKUP_BLOB));
+
+  ON_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
+      .WillByDefault(
+          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
+                             HTTP_RESPONSE_BLOB_DATA_STREAM_MESSAGE));
+
   // Catch any non-interesting network calls that don't need to be verified
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _)).Times(AtLeast(0));
 }
@@ -167,7 +178,7 @@ TEST_F(ReadStreamLayerClientTest, Subscribe) {
 
     EXPECT_EQ(kSubscriptionId, subscribe_response.GetResult().c_str());
 
-    ::Mock::VerifyAndClearExpectations(network_mock_.get());
+    Mock::VerifyAndClearExpectations(network_mock_.get());
   }
   {
     SCOPED_TRACE("Subscribe succeeds, parallel");
@@ -198,7 +209,7 @@ TEST_F(ReadStreamLayerClientTest, Subscribe) {
 
     EXPECT_EQ(kSubscriptionId, subscribe_response.GetResult().c_str());
 
-    ::Mock::VerifyAndClearExpectations(network_mock_.get());
+    Mock::VerifyAndClearExpectations(network_mock_.get());
   }
   {
     SCOPED_TRACE("Subscribe succeeds, with subscriptionID");
@@ -229,7 +240,7 @@ TEST_F(ReadStreamLayerClientTest, Subscribe) {
 
     EXPECT_EQ(kSubscriptionId, subscribe_response.GetResult().c_str());
 
-    ::Mock::VerifyAndClearExpectations(network_mock_.get());
+    Mock::VerifyAndClearExpectations(network_mock_.get());
   }
   {
     SCOPED_TRACE("Subscribe succeeds, with consumerID");
@@ -260,7 +271,7 @@ TEST_F(ReadStreamLayerClientTest, Subscribe) {
 
     EXPECT_EQ(kSubscriptionId, subscribe_response.GetResult().c_str());
 
-    ::Mock::VerifyAndClearExpectations(network_mock_.get());
+    Mock::VerifyAndClearExpectations(network_mock_.get());
   }
   {
     SCOPED_TRACE("Subscribe succeeds, multiple query parameters");
@@ -295,7 +306,7 @@ TEST_F(ReadStreamLayerClientTest, Subscribe) {
 
     EXPECT_EQ(kSubscriptionId, subscribe_response.GetResult().c_str());
 
-    ::Mock::VerifyAndClearExpectations(network_mock_.get());
+    Mock::VerifyAndClearExpectations(network_mock_.get());
   }
   {
     SCOPED_TRACE("Subscribe fails, incorrect request");
@@ -323,7 +334,7 @@ TEST_F(ReadStreamLayerClientTest, Subscribe) {
 
     EXPECT_FALSE(subscribe_response.IsSuccessful());
 
-    ::Mock::VerifyAndClearExpectations(network_mock_.get());
+    Mock::VerifyAndClearExpectations(network_mock_.get());
   }
   {
     SCOPED_TRACE("Subscribe fails, incorrect hrn");
@@ -347,7 +358,7 @@ TEST_F(ReadStreamLayerClientTest, Subscribe) {
 
     EXPECT_FALSE(subscribe_response.IsSuccessful());
 
-    ::Mock::VerifyAndClearExpectations(network_mock_.get());
+    Mock::VerifyAndClearExpectations(network_mock_.get());
   }
   {
     SCOPED_TRACE("Subscribe fails, incorrect layer");
@@ -375,7 +386,7 @@ TEST_F(ReadStreamLayerClientTest, Subscribe) {
 
     EXPECT_FALSE(subscribe_response.IsSuccessful());
 
-    ::Mock::VerifyAndClearExpectations(network_mock_.get());
+    Mock::VerifyAndClearExpectations(network_mock_.get());
   }
 }
 
@@ -520,7 +531,7 @@ TEST_F(ReadStreamLayerClientTest, Unsubscribe) {
     ASSERT_TRUE(unsubscribe_response.IsSuccessful());
     EXPECT_EQ(kSubscriptionId, unsubscribe_response.GetResult());
 
-    ::Mock::VerifyAndClearExpectations(network_mock_.get());
+    Mock::VerifyAndClearExpectations(network_mock_.get());
   }
   {
     SCOPED_TRACE("Unsubscribe succeeds, parallel subscription");
@@ -560,7 +571,7 @@ TEST_F(ReadStreamLayerClientTest, Unsubscribe) {
     ASSERT_TRUE(unsubscribe_response.IsSuccessful());
     EXPECT_EQ(kSubscriptionId, unsubscribe_response.GetResult());
 
-    ::Mock::VerifyAndClearExpectations(network_mock_.get());
+    Mock::VerifyAndClearExpectations(network_mock_.get());
   }
   {
     SCOPED_TRACE(
@@ -605,7 +616,7 @@ TEST_F(ReadStreamLayerClientTest, Unsubscribe) {
     ASSERT_TRUE(unsubscribe_response.IsSuccessful());
     EXPECT_EQ(kSubscriptionId, unsubscribe_response.GetResult());
 
-    ::Mock::VerifyAndClearExpectations(network_mock_.get());
+    Mock::VerifyAndClearExpectations(network_mock_.get());
   }
   {
     SCOPED_TRACE("Unsubscribe fails, subscription missing");
@@ -625,7 +636,7 @@ TEST_F(ReadStreamLayerClientTest, Unsubscribe) {
     EXPECT_EQ(unsubscribe_response.GetError().GetErrorCode(),
               ErrorCode::PreconditionFailed);
 
-    ::Mock::VerifyAndClearExpectations(network_mock_.get());
+    Mock::VerifyAndClearExpectations(network_mock_.get());
   }
   {
     SCOPED_TRACE("Unsubscribe fails, server error");
@@ -664,7 +675,7 @@ TEST_F(ReadStreamLayerClientTest, Unsubscribe) {
     EXPECT_EQ(unsubscribe_response.GetError().GetErrorCode(),
               ErrorCode::NotFound);
 
-    ::Mock::VerifyAndClearExpectations(network_mock_.get());
+    Mock::VerifyAndClearExpectations(network_mock_.get());
   }
 }
 
@@ -754,6 +765,204 @@ TEST_F(ReadStreamLayerClientTest, UnsubscribeCancelFuture) {
             unsubscribe_response.GetError().GetErrorCode());
 }
 
+TEST_F(ReadStreamLayerClientTest, GetData) {
+  HRN hrn(GetTestCatalog());
+
+  {
+    SCOPED_TRACE("GetData success");
+
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+        .Times(1);
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
+        .Times(1);
+
+    StreamLayerClient client(hrn, kLayerId, settings_);
+
+    std::promise<DataResponse> promise;
+    auto future = promise.get_future();
+
+    model::Metadata metadata;
+    metadata.SetDataHandle(kDataHandle);
+    model::Message message;
+    message.SetMetaData(metadata);
+
+    client.GetData(message,
+                   [&](DataResponse response) { promise.set_value(response); });
+
+    ASSERT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    EXPECT_TRUE(response.IsSuccessful());
+    ASSERT_TRUE(response.GetResult());
+
+    const std::string blob_data = HTTP_RESPONSE_BLOB_DATA_STREAM_MESSAGE;
+    EXPECT_THAT(*response.GetResult(),
+                ElementsAreArray(blob_data.begin(), blob_data.end()));
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE("GetData fails, no data handle");
+
+    StreamLayerClient client(hrn, kLayerId, settings_);
+
+    std::promise<DataResponse> promise;
+    auto future = promise.get_future();
+
+    client.GetData(model::Message{},
+                   [&](DataResponse response) { promise.set_value(response); });
+
+    ASSERT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::InvalidArgument);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE("GetData fails, lookup server error");
+
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(
+                olp::http::HttpStatusCode::AUTHENTICATION_TIMEOUT),
+            HTTP_RESPONSE_EMPTY));
+
+    StreamLayerClient client(hrn, kLayerId, settings_);
+
+    std::promise<DataResponse> promise;
+    auto future = promise.get_future();
+
+    model::Metadata metadata;
+    metadata.SetDataHandle(kDataHandle);
+    model::Message message;
+    message.SetMetaData(metadata);
+
+    client.GetData(message,
+                   [&](DataResponse response) { promise.set_value(response); });
+
+    ASSERT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetHttpStatusCode(),
+              olp::http::HttpStatusCode::AUTHENTICATION_TIMEOUT);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE("GetData fails, blob server error");
+
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+        .Times(1);
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::NOT_FOUND),
+                                     HTTP_RESPONSE_EMPTY));
+
+    StreamLayerClient client(hrn, kLayerId, settings_);
+
+    std::promise<DataResponse> promise;
+    auto future = promise.get_future();
+
+    model::Metadata metadata;
+    metadata.SetDataHandle(kDataHandle);
+    model::Message message;
+    message.SetMetaData(metadata);
+
+    client.GetData(message,
+                   [&](DataResponse response) { promise.set_value(response); });
+
+    ASSERT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetHttpStatusCode(),
+              olp::http::HttpStatusCode::NOT_FOUND);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+}
+
+TEST_F(ReadStreamLayerClientTest, GetDataCancellableFuture) {
+  HRN hrn(GetTestCatalog());
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+      .Times(1);
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
+      .Times(1);
+
+  StreamLayerClient client(hrn, kLayerId, settings_);
+
+  model::Metadata metadata;
+  metadata.SetDataHandle(kDataHandle);
+  model::Message message;
+  message.SetMetaData(metadata);
+
+  auto future = client.GetData(message).GetFuture();
+
+  ASSERT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+  const auto& response = future.get();
+  EXPECT_TRUE(response.IsSuccessful());
+  ASSERT_TRUE(response.GetResult());
+
+  const std::string blob_data = HTTP_RESPONSE_BLOB_DATA_STREAM_MESSAGE;
+  EXPECT_THAT(*response.GetResult(),
+              ElementsAreArray(blob_data.begin(), blob_data.end()));
+}
+
+TEST_F(ReadStreamLayerClientTest, GetDataCancel) {
+  HRN hrn(GetTestCatalog());
+
+  auto request_started = std::make_shared<std::promise<void>>();
+  auto continue_request = std::make_shared<std::promise<void>>();
+
+  {
+    olp::http::RequestId request_id;
+    NetworkCallback send_mock;
+    CancelCallback cancel_mock;
+
+    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+        request_started, continue_request,
+        {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_BLOB});
+
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(std::move(send_mock)));
+
+    EXPECT_CALL(*network_mock_, Cancel(request_id))
+        .WillOnce(Invoke(std::move(cancel_mock)));
+  }
+
+  StreamLayerClient client(hrn, kLayerId, settings_);
+
+  model::Metadata metadata;
+  metadata.SetDataHandle(kDataHandle);
+  model::Message message;
+  message.SetMetaData(metadata);
+
+  auto future = client.GetData(message);
+
+  request_started->get_future().get();
+  future.GetCancellationToken().Cancel();
+  continue_request->set_value();
+
+  auto response = future.GetFuture().get();
+
+  ASSERT_FALSE(response.IsSuccessful());
+
+  EXPECT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            response.GetError().GetHttpStatusCode());
+  EXPECT_EQ(ErrorCode::Cancelled, response.GetError().GetErrorCode());
+}
+
 TEST_F(ReadStreamLayerClientTest, CancelPendingRequests) {
   HRN hrn(GetTestCatalog());
 
@@ -765,6 +974,7 @@ TEST_F(ReadStreamLayerClientTest, CancelPendingRequests) {
   StreamLayerClient client(hrn, kLayerId, settings_);
 
   auto subscribe_future = client.Subscribe(SubscribeRequest());
+  auto get_data_future = client.GetData(model::Message());
   auto unsubscribe_future = client.Unsubscribe();
 
   client.CancelPendingRequests();
@@ -772,11 +982,16 @@ TEST_F(ReadStreamLayerClientTest, CancelPendingRequests) {
   promise.set_value();
 
   auto subscribe_response = subscribe_future.GetFuture().get();
-
   ASSERT_FALSE(subscribe_response.IsSuccessful());
   EXPECT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
             subscribe_response.GetError().GetHttpStatusCode());
   EXPECT_EQ(ErrorCode::Cancelled, subscribe_response.GetError().GetErrorCode());
+
+  auto get_data_response = get_data_future.GetFuture().get();
+  ASSERT_FALSE(get_data_response.IsSuccessful());
+  EXPECT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            get_data_response.GetError().GetHttpStatusCode());
+  EXPECT_EQ(ErrorCode::Cancelled, get_data_response.GetError().GetErrorCode());
 
   auto unsubscribe_response = unsubscribe_future.GetFuture().get();
   ASSERT_FALSE(unsubscribe_response.IsSuccessful());
