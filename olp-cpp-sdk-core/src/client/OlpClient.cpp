@@ -255,8 +255,14 @@ NetworkAsyncCallback GetRetryCallback(
       std::this_thread::sleep_for(
           std::chrono::milliseconds(current_backdown_period));
 
-      auto next_backdown_period =
-          settings.backdown_policy(current_backdown_period);
+      int next_backdown_period = 0;
+      // New backdown policy should be superior to previous policy version:
+      if (auto backdown_strategy = settings.backdown_strategy) {
+        next_backdown_period =
+            backdown_strategy(settings.initial_backdown_period, current_try);
+      } else if (auto backdown_policy = settings.backdown_policy) {
+        next_backdown_period = backdown_policy(current_backdown_period);
+      }
       auto cancel_context = weak_cancel_context.lock();
       if (cancel_context) {
         cancel_context->ExecuteOrCancelled(
@@ -318,6 +324,7 @@ CancellationToken OlpClient::CallApi(
   retry_settings.initial_backdown_period =
       settings_.retry_settings.initial_backdown_period;
   retry_settings.backdown_policy = settings_.retry_settings.backdown_policy;
+  retry_settings.backdown_strategy = settings_.retry_settings.backdown_strategy;
   retry_settings.retry_condition = settings_.retry_settings.retry_condition;
 
   NetworkAsyncCallback retry_callback = GetRetryCallback(
@@ -400,7 +407,7 @@ HttpResponse OlpClient::CallApi(
   auto response =
       SendRequest(network_request, settings_, retry_settings, context);
 
-  for (int i = 0; i < retry_settings.max_attempts && !context.IsCancelled();
+  for (int i = 1; i <= retry_settings.max_attempts && !context.IsCancelled();
        i++) {
     if (StatusSuccess(response.status)) {
       return response;
@@ -418,7 +425,13 @@ HttpResponse OlpClient::CallApi(
       duration_to_sleep -= sleep_ms;
     }
 
-    backdown_period = retry_settings.backdown_policy(backdown_period);
+    // New backdown policy should be superior to previous policy version:
+    if (auto backdown_strategy = retry_settings.backdown_strategy) {
+      backdown_period =
+          backdown_strategy(retry_settings.initial_backdown_period, i);
+    } else if (auto backdown_policy = retry_settings.backdown_policy) {
+      backdown_period = backdown_policy(backdown_period);
+    }
     response = SendRequest(network_request, settings_, retry_settings, context);
   }
 
