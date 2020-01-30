@@ -280,7 +280,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
   auto time_callback = [=](TimeResponse response) mutable {
     if (!response.IsSuccessful()) {
       callback(AuthenticationError(
-          static_cast<int>(response.GetError().GetErrorCode()),
+          static_cast<int>(response.GetError().GetHttpStatusCode()),
           response.GetError().GetMessage()));
       return;
     }
@@ -426,7 +426,7 @@ client::CancellationToken AuthenticationClient::Impl::GetTimeFromServer(
       [callback, payload](const http::NetworkResponse& network_response) {
         if (network_response.GetStatus() != http::HttpStatusCode::OK) {
           callback(
-              client::ApiError(network_response.GetStatus()));
+              client::ApiError(network_response.GetStatus(), network_response.GetError()));
           return;
         }
 
