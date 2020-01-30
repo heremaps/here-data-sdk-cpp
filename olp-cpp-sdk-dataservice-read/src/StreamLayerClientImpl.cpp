@@ -19,6 +19,9 @@
 
 #include "StreamLayerClientImpl.h"
 
+#include <iterator>
+#include <set>
+
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
@@ -128,8 +131,12 @@ client::CancellationToken StreamLayerClientImpl::Subscribe(
       std::lock_guard<std::mutex> lock(mutex_);
 
       client_context_ = std::make_unique<StreamLayerClientContext>(
-          subscripton_id, subscription_mode,
-          subscription.GetResult().GetNodeBaseURL(), correlation_id);
+          subscripton_id, subscription_mode, correlation_id,
+          std::make_shared<client::OlpClient>());
+
+      client_context_->client->SetBaseUrl(
+          subscription.GetResult().GetNodeBaseURL());
+      client_context_->client->SetSettings(settings_);
     }
 
     OLP_SDK_LOG_INFO_F(kLogTag,
@@ -164,14 +171,14 @@ client::CancellationToken StreamLayerClientImpl::Unsubscribe(
       [=](client::CancellationContext context) -> UnsubscribeResponse {
     std::string subscription_id;
     std::string subscription_mode;
-    std::string node_base_url;
     std::string x_correlation_id;
+    std::shared_ptr<client::OlpClient> client;
 
     {
       std::lock_guard<std::mutex> lock(mutex_);
       if (!client_context_) {
         OLP_SDK_LOG_WARNING_F(kLogTag,
-                              "Unubscribe: unsuccessful, not subscribed");
+                              "Unsubscribe: unsuccessful, not subscribed");
 
         return client::ApiError(client::ErrorCode::PreconditionFailed,
                                 "Not subscribed", false);
@@ -179,24 +186,19 @@ client::CancellationToken StreamLayerClientImpl::Unsubscribe(
 
       subscription_id = client_context_->subscription_id;
       subscription_mode = client_context_->subscription_mode;
-      node_base_url = client_context_->node_base_url;
       x_correlation_id = client_context_->x_correlation_id;
+      client = client_context_->client;
     }
 
-    OLP_SDK_LOG_INFO_F(
-        kLogTag,
-        "Unsubscribe: started, subscription_id=%s, subscription_mode=%s, "
-        "node_base_url=%s, x_correlation_id=%s",
-        subscription_id.c_str(), subscription_mode.c_str(),
-        node_base_url.c_str(), x_correlation_id.c_str());
-
-    client::OlpClient client;
-    client.SetBaseUrl(node_base_url);
-    client.SetSettings(settings_);
+    OLP_SDK_LOG_INFO_F(kLogTag,
+                       "Unsubscribe: started, subscription_id=%s, "
+                       "subscription_mode=%s, x_correlation_id=%s",
+                       subscription_id.c_str(), subscription_mode.c_str(),
+                       x_correlation_id.c_str());
 
     const auto response = StreamApi::DeleteSubscription(
-        client, layer_id_, subscription_id, subscription_mode, x_correlation_id,
-        context);
+        *client, layer_id_, subscription_id, subscription_mode,
+        x_correlation_id, context);
 
     if (!response.IsSuccessful()) {
       OLP_SDK_LOG_WARNING_F(kLogTag, "Unsubscribe: unsuccessful, error=%s",
@@ -206,7 +208,7 @@ client::CancellationToken StreamLayerClientImpl::Unsubscribe(
 
     {
       std::lock_guard<std::mutex> lock(mutex_);
-      client_context_.release();
+      client_context_.reset();
     }
 
     OLP_SDK_LOG_INFO_F(kLogTag, "Unsubscribe: done, subscription_id=%s",
@@ -278,6 +280,102 @@ client::CancellableFuture<DataResponse> StreamLayerClientImpl::GetData(
 
   return olp::client::CancellableFuture<DataResponse>(std::move(cancel_token),
                                                       std::move(promise));
+}
+
+client::CancellationToken StreamLayerClientImpl::Poll(
+    PollResponseCallback callback) {
+  auto poll_task = [=](client::CancellationContext context) -> PollResponse {
+    std::string subscription_id;
+    std::string subscription_mode;
+    std::string x_correlation_id;
+    std::shared_ptr<client::OlpClient> client;
+
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      if (!client_context_) {
+        OLP_SDK_LOG_WARNING_F(kLogTag,
+                              "Poll: unsuccessful, not subscribed");
+
+        return client::ApiError(client::ErrorCode::PreconditionFailed,
+                                "Not subscribed", false);
+      }
+
+      subscription_id = client_context_->subscription_id;
+      subscription_mode = client_context_->subscription_mode;
+      x_correlation_id = client_context_->x_correlation_id;
+      client = client_context_->client;
+    }
+
+    OLP_SDK_LOG_INFO_F(kLogTag,
+                       "Poll: started, subscription_id=%s, "
+                       "subscription_mode=%s, x_correlation_id=%s",
+                       subscription_id.c_str(), subscription_mode.c_str(),
+                       x_correlation_id.c_str());
+
+    auto data =
+        StreamApi::ConsumeData(*client, layer_id_, subscription_id,
+                               subscription_mode, context, x_correlation_id);
+
+    if (!data.IsSuccessful()) {
+      OLP_SDK_LOG_WARNING_F(kLogTag, "Poll: couldn't consume data, error=%s",
+                            data.GetError().GetMessage().c_str());
+      return data.GetError();
+    }
+
+    auto res = data.MoveResult();
+
+    const auto& messages = res.GetMessages();
+
+    if (messages.empty()) {
+      OLP_SDK_LOG_INFO_F(kLogTag, "Poll: done, no new messages received.");
+      return res;
+    }
+
+    // Get offsets for all partitions presented in messages.
+    struct Compare {
+      bool operator()(const model::StreamOffset& lhs,
+                      const model::StreamOffset& rhs) const {
+        return lhs.GetPartition() < rhs.GetPartition();
+      }
+      };
+
+      std::set<model::StreamOffset, Compare> stream_offsets;
+
+      std::transform(messages.rbegin(), messages.rend(),
+                     std::inserter(stream_offsets, stream_offsets.end()),
+                     [](const model::Message& msg) { return msg.GetOffset(); });
+
+      // Commit offsets
+      model::StreamOffsets offsets_request;
+      offsets_request.SetOffsets(std::vector<model::StreamOffset>(
+          stream_offsets.begin(), stream_offsets.end()));
+      auto commit_res = StreamApi::CommitOffsets(
+          *client, layer_id_, offsets_request, subscription_id,
+          subscription_mode, context, x_correlation_id);
+
+      if (!commit_res.IsSuccessful()) {
+        OLP_SDK_LOG_WARNING_F(kLogTag, "Poll: commit offsets unsuccessful, error=%s",
+                              commit_res.GetError().GetMessage().c_str());
+        return commit_res.GetError();
+      }
+      OLP_SDK_LOG_INFO_F(kLogTag, "Poll: done, response is successful.");
+
+      return res;
+
+  };
+
+  return AddTask(settings_.task_scheduler, pending_requests_,
+                 std::move(poll_task), std::move(callback));
+}
+
+client::CancellableFuture<PollResponse> StreamLayerClientImpl::Poll() {
+  auto promise = std::make_shared<std::promise<PollResponse>>();
+  auto cancel_token = Poll([promise](PollResponse response) {
+    promise->set_value(std::move(response));
+  });
+
+  return olp::client::CancellableFuture<PollResponse>(std::move(cancel_token),
+                                                        std::move(promise));
 }
 
 }  // namespace read

@@ -73,6 +73,15 @@ client::CancellableFuture<DataResponse> StreamLayerClient::GetData(
   return impl_->GetData(message);
 }
 
+client::CancellationToken StreamLayerClient::Poll(
+    PollResponseCallback callback) {
+  return impl_->Poll(callback);
+}
+
+client::CancellableFuture<PollResponse> StreamLayerClient::Poll() {
+  return impl_->Poll();
+}
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

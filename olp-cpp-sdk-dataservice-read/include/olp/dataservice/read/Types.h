@@ -26,6 +26,7 @@
 
 #include <olp/dataservice/read/model/Catalog.h>
 #include <olp/dataservice/read/model/Data.h>
+#include <olp/dataservice/read/model/Messages.h>
 #include <olp/dataservice/read/model/Partitions.h>
 #include <olp/dataservice/read/model/VersionResponse.h>
 
@@ -90,6 +91,12 @@ using UnsubscribeResponse = Response<SubscriptionId>;
 /// The unsubscribe completion callback type of the stream layer client.
 using UnsubscribeResponseCallback = Callback<SubscriptionId>;
 
+/// The alias type of the messages result.
+using MessagesResult = model::Messages;
+/// The poll response type of the stream layer client.
+using PollResponse = Response<MessagesResult>;
+/// The poll completion callback type of the stream layer client.
+using PollResponseCallback = Callback<MessagesResult>;
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

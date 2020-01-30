@@ -30,6 +30,10 @@
 #include <olp/dataservice/read/model/Messages.h>
 
 namespace olp {
+namespace client {
+class OlpClient;
+}
+
 namespace dataservice {
 namespace read {
 
@@ -59,22 +63,25 @@ class StreamLayerClientImpl {
   virtual client::CancellableFuture<DataResponse> GetData(
       const model::Message& message);
 
+  virtual client::CancellationToken Poll(PollResponseCallback callback);
+  virtual client::CancellableFuture<PollResponse> Poll();
+
  private:
   /// A struct that aggregates the stream layer client parameters.
   struct StreamLayerClientContext {
     StreamLayerClientContext(std::string subscription_id,
                              std::string subscription_mode,
-                             std::string node_base_url,
-                             std::string x_correlation_id)
+                             std::string x_correlation_id,
+                             std::shared_ptr<client::OlpClient> client)
         : subscription_id(subscription_id),
           subscription_mode(subscription_mode),
-          node_base_url(node_base_url),
-          x_correlation_id(x_correlation_id) {}
+          x_correlation_id(x_correlation_id),
+          client(client) {}
 
     std::string subscription_id;
     std::string subscription_mode;
-    std::string node_base_url;
     std::string x_correlation_id;
+    std::shared_ptr<client::OlpClient> client;
   };
 
   client::HRN catalog_;
