@@ -44,10 +44,6 @@ const std::string& SignInResult::GetAccessToken() const {
   return impl_->GetAccessToken();
 }
 
-const std::string& SignInResult::GetClientId() const {
-  return impl_->GetClientId();
-}
-
 const std::string& SignInResult::GetTokenType() const {
   return impl_->GetTokenType();
 }
