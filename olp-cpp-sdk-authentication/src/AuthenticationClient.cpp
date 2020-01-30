@@ -35,7 +35,6 @@
 #include "SignInUserResultImpl.h"
 #include "SignOutResultImpl.h"
 #include "SignUpResultImpl.h"
-#include "olp/authentication/AuthenticationError.h"
 #include "olp/core/client/ApiError.h"
 #include "olp/core/client/CancellationToken.h"
 #include "olp/core/client/ErrorCode.h"
@@ -265,8 +264,8 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
     AuthenticationClient::SignInClientCallback callback) {
   if (!network_) {
     ExecuteOrSchedule(task_scheduler_, [callback] {
-      AuthenticationError result({static_cast<int>(http::ErrorCode::IO_ERROR),
-                                  "Cannot sign in while offline"});
+      client::ApiError result({static_cast<int>(http::ErrorCode::IO_ERROR),
+                               "Cannot sign in while offline"});
       callback(result);
     });
     return client::CancellationToken();
@@ -325,7 +324,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
         if (!cached_response_found) {
           // Return an error response
           SignInClientResponse error_response(
-              AuthenticationError(response_status, error_msg));
+              client::ApiError(response_status, error_msg));
           callback(error_response);
         }
 
@@ -358,7 +357,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
           if (!send_outcome.IsSuccessful()) {
             std::string error_message =
                 ErrorCodeToString(send_outcome.GetErrorCode());
-            callback(AuthenticationError(
+            callback(client::ApiError(
                 static_cast<int>(send_outcome.GetErrorCode()), error_message));
             return client::CancellationToken();
           }
@@ -372,7 +371,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
           });
         },
         [&]() {
-          callback(AuthenticationError(
+          callback(client::ApiError(
               static_cast<int>(http::ErrorCode::CANCELLED_ERROR), "Cancelled"));
         });
   };
@@ -422,8 +421,8 @@ client::CancellationToken AuthenticationClient::Impl::GetTimeFromServer(
       request, payload,
       [callback, payload](const http::NetworkResponse& network_response) {
         if (network_response.GetStatus() != http::HttpStatusCode::OK) {
-          callback(
-              client::ApiError(network_response.GetStatus(), network_response.GetError()));
+          callback(client::ApiError(network_response.GetStatus(),
+                                    network_response.GetError()));
           return;
         }
 
@@ -482,8 +481,8 @@ client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
     const SignInUserCallback& callback) {
   if (!network_) {
     ExecuteOrSchedule(task_scheduler_, [callback] {
-      AuthenticationError result({static_cast<int>(http::ErrorCode::IO_ERROR),
-                                  "Cannot handle user request while offline"});
+      client::ApiError result({static_cast<int>(http::ErrorCode::IO_ERROR),
+                               "Cannot handle user request while offline"});
       callback(result);
     });
     return client::CancellationToken();
@@ -573,8 +572,8 @@ client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
     ExecuteOrSchedule(task_scheduler_, [send_outcome, callback] {
       std::string error_message =
           ErrorCodeToString(send_outcome.GetErrorCode());
-      AuthenticationError result({static_cast<int>(send_outcome.GetErrorCode()),
-                                  std::move(error_message)});
+      client::ApiError result({static_cast<int>(send_outcome.GetErrorCode()),
+                               std::move(error_message)});
       callback(result);
     });
     return client::CancellationToken();
@@ -595,8 +594,8 @@ client::CancellationToken AuthenticationClient::Impl::SignUpHereUser(
     const SignUpProperties& properties, const SignUpCallback& callback) {
   if (!network_) {
     ExecuteOrSchedule(task_scheduler_, [callback] {
-      AuthenticationError result({static_cast<int>(http::ErrorCode::IO_ERROR),
-                                  "Cannot sign up while offline"});
+      client::ApiError result({static_cast<int>(http::ErrorCode::IO_ERROR),
+                               "Cannot sign up while offline"});
       callback(result);
     });
     return client::CancellationToken();
@@ -624,7 +623,7 @@ client::CancellationToken AuthenticationClient::Impl::SignUpHereUser(
 
                        if (response_status < 0) {
                          // Network error response
-                         AuthenticationError error(response_status, error_msg);
+                         client::ApiError error(response_status, error_msg);
                          callback(error);
                          return;
                        }
@@ -644,8 +643,8 @@ client::CancellationToken AuthenticationClient::Impl::SignUpHereUser(
     ExecuteOrSchedule(task_scheduler_, [send_outcome, callback] {
       std::string error_message =
           ErrorCodeToString(send_outcome.GetErrorCode());
-      AuthenticationError result({static_cast<int>(send_outcome.GetErrorCode()),
-                                  std::move(error_message)});
+      client::ApiError result({static_cast<int>(send_outcome.GetErrorCode()),
+                               std::move(error_message)});
       callback(result);
     });
     return client::CancellationToken();
@@ -666,8 +665,8 @@ client::CancellationToken AuthenticationClient::Impl::SignOut(
     const std::string& userAccessToken, const SignOutUserCallback& callback) {
   if (!network_) {
     ExecuteOrSchedule(task_scheduler_, [callback] {
-      AuthenticationError result({static_cast<int>(http::ErrorCode::IO_ERROR),
-                                  "Cannot sign out while offline"});
+      client::ApiError result({static_cast<int>(http::ErrorCode::IO_ERROR),
+                               "Cannot sign out while offline"});
       callback(result);
     });
     return client::CancellationToken();
@@ -693,7 +692,7 @@ client::CancellationToken AuthenticationClient::Impl::SignOut(
 
                        if (response_status < 0) {
                          // Network error response not available
-                         AuthenticationError error(response_status, error_msg);
+                         client::ApiError error(response_status, error_msg);
                          callback(error);
                          return;
                        }
@@ -713,8 +712,8 @@ client::CancellationToken AuthenticationClient::Impl::SignOut(
     ExecuteOrSchedule(task_scheduler_, [send_outcome, callback] {
       std::string error_message =
           ErrorCodeToString(send_outcome.GetErrorCode());
-      AuthenticationError result({static_cast<int>(send_outcome.GetErrorCode()),
-                                  std::move(error_message)});
+      client::ApiError result({static_cast<int>(send_outcome.GetErrorCode()),
+                               std::move(error_message)});
       callback(result);
     });
     return client::CancellationToken();
