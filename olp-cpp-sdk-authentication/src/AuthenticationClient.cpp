@@ -278,19 +278,16 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
   client::CancellationContext context;
 
   auto time_callback = [=](TimeResponse response) mutable {
-    if (!response.IsSuccessful()) {
-      callback(AuthenticationError(
-          static_cast<int>(response.GetError().GetHttpStatusCode()),
-          response.GetError().GetMessage()));
-      return;
-    }
+    // As a fallback use local system time as a timestamp
+    time_t timestamp =
+        response.IsSuccessful() ? response.GetResult() : std::time(nullptr);
 
     std::string url = server_url_;
     url.append(kOauthEndpoint);
     http::NetworkRequest request(url);
     request.WithVerb(http::NetworkRequest::HttpVerb::POST);
     request.WithHeader(http::kAuthorizationHeader,
-                       generateHeader(credentials, url, response.GetResult()));
+                       generateHeader(credentials, url, timestamp));
     request.WithHeader(http::kContentTypeHeader, kApplicationJson);
     request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
     request.WithSettings(network_settings_);

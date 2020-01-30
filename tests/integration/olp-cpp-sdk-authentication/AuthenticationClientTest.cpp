@@ -172,12 +172,12 @@ class AuthenticationClientTest : public ::testing::Test {
 
     EXPECT_CALL(*network_, Send(testing::_, testing::_, testing::_, testing::_,
                                 testing::_))
-        .Times(1)
-        .WillOnce([&](olp::http::NetworkRequest request,
-                      olp::http::Network::Payload payload,
-                      olp::http::Network::Callback callback,
-                      olp::http::Network::HeaderCallback header_callback,
-                      olp::http::Network::DataCallback data_callback) {
+        .Times(2)  // First is GetTimeFromServer(). Second is actual SignIn.
+        .WillRepeatedly([&](olp::http::NetworkRequest request,
+                            olp::http::Network::Payload payload,
+                            olp::http::Network::Callback callback,
+                            olp::http::Network::HeaderCallback header_callback,
+                            olp::http::Network::DataCallback data_callback) {
           olp::http::RequestId request_id(5);
           if (payload) {
             *payload << data;
