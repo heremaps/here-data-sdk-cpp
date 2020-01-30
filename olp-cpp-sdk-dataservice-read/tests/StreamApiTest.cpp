@@ -48,6 +48,12 @@ MATCHER_P(BodyEq, expected_body, "") {
              : expected_body_str.empty();
 }
 
+MATCHER_P(HeadersContain, expected_header, "") {
+  const auto& headers = arg.GetHeaders();
+  return std::find(headers.begin(), headers.end(), expected_header) !=
+         headers.end();
+}
+
 class StreamApiTest : public Test {
  protected:
   void SetUp() override {
@@ -77,6 +83,10 @@ const std::string kSubscriptionId{"test-subscription-id-123"};
 const std::string kConsumerId{"test-consumer-id-987"};
 const std::string kLayerId{"test-layer"};
 const std::string kSerialMode{"serial"};
+const std::string kParallelMode{"parallel"};
+const std::string kCorrelationId{"test-correlation-id"};
+const std::pair<std::string, std::string> kCorrelationIdHeader{
+    "X-Correlation-Id", kCorrelationId};
 
 constexpr auto kUrlStreamSubscribeNoQueryParams =
     R"(https://some.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/subscribe)";
@@ -84,11 +94,17 @@ constexpr auto kUrlStreamSubscribeNoQueryParams =
 constexpr auto kUrlStreamSubscribeWithQueryParams =
     R"(https://some.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/subscribe?consumerId=test-consumer-id-987&mode=serial&subscriptionId=test-subscription-id-123)";
 
+constexpr auto kUrlStreamUnsubscribe =
+    R"(https://some.node.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/subscribe?mode=parallel&subscriptionId=test-subscription-id-123)";
+
 constexpr auto kHttpResponseSubscribeSucceeds =
     R"jsonString({ "nodeBaseURL": "https://some.node.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2", "subscriptionId": "test-subscription-id-123" })jsonString";
 
 constexpr auto kHttpResponseSubscribeFails =
     R"jsonString({ "title": "Subscription mode not supported", "status": 400, "code": "E213002", "cause": "Subscription mode 'singleton' not supported", "action": "Retry with valid subscription mode 'serial' or 'parallel'", "correlationId": "4199533b-6290-41db-8d79-edf4f4019a74" })jsonString";
+
+constexpr auto kHttpResponseUnsubscribeFails =
+    R"jsonString({ "error": "Unauthorized", "error_description": "Token Validation Failure - invalid time in token" })jsonString";
 
 constexpr auto kHttpRequestBodyWithConsumerProperties =
     R"jsonString({"kafkaConsumerProperties":{"field_string":"abc","field_int":"456","field_bool":"1"}})jsonString";
@@ -178,4 +194,53 @@ TEST_F(StreamApiTest, Subscribe) {
   }
 }
 
+TEST_F(StreamApiTest, DeleteSubscription) {
+  {
+    SCOPED_TRACE("DeleteSubscription succeeds");
+
+    EXPECT_CALL(*network_mock_,
+                Send(AllOf(IsDeleteRequest(kUrlStreamUnsubscribe),
+                           HeadersContain(kCorrelationIdHeader)),
+                     _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK), ""));
+
+    olp_client_.SetBaseUrl(kNodeBaseUrl);
+    CancellationContext context;
+    const auto unsubscribe_response =
+        StreamApi::DeleteSubscription(olp_client_, kLayerId, kSubscriptionId,
+                                      kParallelMode, kCorrelationId, context);
+
+    EXPECT_TRUE(unsubscribe_response.IsSuccessful())
+        << ApiErrorToString(unsubscribe_response.GetError());
+    EXPECT_EQ(unsubscribe_response.GetResult(), http::HttpStatusCode::OK);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE("DeleteSubscription fails");
+
+    EXPECT_CALL(*network_mock_,
+                Send(AllOf(IsDeleteRequest(kUrlStreamUnsubscribe),
+                           HeadersContain(kCorrelationIdHeader)),
+                     _, _, _, _))
+        .WillOnce(ReturnHttpResponse(http::NetworkResponse().WithStatus(
+                                         http::HttpStatusCode::UNAUTHORIZED),
+                                     kHttpResponseUnsubscribeFails));
+
+    olp_client_.SetBaseUrl(kNodeBaseUrl);
+    CancellationContext context;
+    const auto unsubscribe_response =
+        StreamApi::DeleteSubscription(olp_client_, kLayerId, kSubscriptionId,
+                                      kParallelMode, kCorrelationId, context);
+
+    EXPECT_FALSE(unsubscribe_response.IsSuccessful());
+    EXPECT_EQ(unsubscribe_response.GetError().GetHttpStatusCode(),
+              http::HttpStatusCode::UNAUTHORIZED);
+    EXPECT_EQ(unsubscribe_response.GetError().GetMessage(),
+              kHttpResponseUnsubscribeFails);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+}
 }  // namespace
