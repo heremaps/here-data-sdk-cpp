@@ -103,8 +103,6 @@ constexpr auto kHttpResponseSubscribeSucceeds =
 constexpr auto kHttpResponseSubscribeFails =
     R"jsonString({ "title": "Subscription mode not supported", "status": 400, "code": "E213002", "cause": "Subscription mode 'singleton' not supported", "action": "Retry with valid subscription mode 'serial' or 'parallel'", "correlationId": "4199533b-6290-41db-8d79-edf4f4019a74" })jsonString";
 
-constexpr auto kHttpResponseUnsubscribeSucceeds = "";
-
 constexpr auto kHttpResponseUnsubscribeFails =
     R"jsonString({ "error": "Unauthorized", "error_description": "Token Validation Failure - invalid time in token" })jsonString";
 
@@ -205,8 +203,7 @@ TEST_F(StreamApiTest, DeleteSubscription) {
                            HeadersContain(kCorrelationIdHeader)),
                      _, _, _, _))
         .WillOnce(ReturnHttpResponse(
-            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
-            kHttpResponseUnsubscribeSucceeds));
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK), ""));
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
     CancellationContext context;
