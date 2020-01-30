@@ -106,6 +106,12 @@ constexpr auto kUrlSubscribeNoQueryParams =
 constexpr auto kUrlSubscribeWithQueryParams =
     R"(https://some.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/subscribe?consumerId=test-consumer-id-987&mode=serial&subscriptionId=test-subscription-id-123)";
 
+constexpr auto kUrlConsumeDataNoQueryParams =
+    R"(https://some.node.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/partitions)";
+
+constexpr auto kUrlConsumeDataWithQueryParams =
+    R"(https://some.node.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/partitions?mode=parallel&subscriptionId=test-subscription-id-123)";
+
 constexpr auto kUrlCommitOffsetsNoQueryParams =
     R"(https://some.node.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/offsets)";
 
@@ -124,8 +130,14 @@ constexpr auto kUrlUnsubscribe =
 constexpr auto kHttpResponseSubscribeSucceeds =
     R"jsonString({ "nodeBaseURL": "https://some.node.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2", "subscriptionId": "test-subscription-id-123" })jsonString";
 
+constexpr auto kHttpResponseConsumeDataSucceeds =
+    R"jsonString({ "messages": [ { "metaData": { "partition": "314010583", "checksum": "ff7494d6f17da702862e550c907c0a91", "data": "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwBAMAAAClLOS0AAAABGdBTUEAALGPC", "timestamp": 1517916706 }, "offset": { "partition": 7, "offset": 38562 } }, { "metaData": { "partition": "385010413", "checksum": "19a0c709c055e268207ad71f6d4947ff", "compressedDataSize": 152417, "dataSize": 250110, "dataHandle": "1b2ca68f-d4a0-4379-8120-cd025640510c", "timestamp": 1517918813 }, "offset": { "partition": 8, "offset": 27458 } } ] })jsonString";
+
 constexpr auto kHttpResponseSubscribeFails =
     R"jsonString({ "title": "Subscription mode not supported", "status": 400, "code": "E213002", "cause": "Subscription mode 'singleton' not supported", "action": "Retry with valid subscription mode 'serial' or 'parallel'", "correlationId": "4199533b-6290-41db-8d79-edf4f4019a74" })jsonString";
+
+constexpr auto kHttpResponseConsumeDataFails =
+    R"jsonString({ "title": "Subscription not found", "status": 404, "code": "E213003", "cause": "SubscriptionId -1920183912.123e4567-e89b-12d3-a456-556642440000 not found", "action": "Subscribe again", "correlationId": "4199533b-6290-41db-8d79-edf4f4019a74" })jsonString";
 
 constexpr auto kHttpResponseCommitOffsetsFails =
     R"jsonString({ "title": "Unable to commit offset", "status": 409, "code": "E213028", "cause": "Unable to commit offset", "action": "Commit cannot be completed. Continue with reading and committing new messages", "correlationId": "4199533b-6290-41db-8d79-edf4f4019a74" })jsonString";
@@ -220,6 +232,84 @@ TEST_F(StreamApiTest, Subscribe) {
               http::HttpStatusCode::FORBIDDEN);
     EXPECT_EQ(subscribe_response.GetError().GetMessage(),
               kHttpResponseSubscribeFails);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+}
+
+TEST_F(StreamApiTest, ConsumeData) {
+  {
+    SCOPED_TRACE("ConsumeData without optional input fields succeeds");
+
+    EXPECT_CALL(*network_mock_,
+                Send(AllOf(IsGetRequest(kUrlConsumeDataNoQueryParams),
+                           HeadersContain(kCorrelationIdHeader)),
+                     _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            kHttpResponseConsumeDataSucceeds));
+
+    olp_client_.SetBaseUrl(kNodeBaseUrl);
+    std::string x_correlation_id = kCorrelationId;
+    CancellationContext context;
+    const auto consume_data_response =
+        StreamApi::ConsumeData(olp_client_, kLayerId, boost::none, boost::none,
+                               context, x_correlation_id);
+
+    EXPECT_TRUE(consume_data_response.IsSuccessful())
+        << ApiErrorToString(consume_data_response.GetError());
+    EXPECT_EQ(consume_data_response.GetResult().GetMessages().size(), 2);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE("ConsumeData with all optional input fields succeeds");
+
+    EXPECT_CALL(*network_mock_,
+                Send(AllOf(IsGetRequest(kUrlConsumeDataWithQueryParams),
+                           HeadersContain(kCorrelationIdHeader)),
+                     _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            kHttpResponseConsumeDataSucceeds));
+
+    olp_client_.SetBaseUrl(kNodeBaseUrl);
+    std::string x_correlation_id = kCorrelationId;
+    CancellationContext context;
+    const auto consume_data_response =
+        StreamApi::ConsumeData(olp_client_, kLayerId, kSubscriptionId,
+                               kParallelMode, context, x_correlation_id);
+
+    EXPECT_TRUE(consume_data_response.IsSuccessful())
+        << ApiErrorToString(consume_data_response.GetError());
+    EXPECT_EQ(consume_data_response.GetResult().GetMessages().size(), 2);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE("ConsumeData fails");
+
+    EXPECT_CALL(*network_mock_,
+                Send(AllOf(IsGetRequest(kUrlConsumeDataNoQueryParams),
+                           HeadersContain(kCorrelationIdHeader)),
+                     _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::NOT_FOUND),
+            kHttpResponseConsumeDataFails));
+
+    olp_client_.SetBaseUrl(kNodeBaseUrl);
+    std::string x_correlation_id = kCorrelationId;
+    CancellationContext context;
+    const auto consume_data_response =
+        StreamApi::ConsumeData(olp_client_, kLayerId, boost::none, boost::none,
+                               context, x_correlation_id);
+
+    EXPECT_FALSE(consume_data_response.IsSuccessful());
+    EXPECT_EQ(consume_data_response.GetError().GetHttpStatusCode(),
+              http::HttpStatusCode::NOT_FOUND);
+    EXPECT_EQ(consume_data_response.GetError().GetMessage(),
+              kHttpResponseConsumeDataFails);
+    EXPECT_EQ(consume_data_response.GetResult().GetMessages().size(), 0);
 
     Mock::VerifyAndClearExpectations(network_mock_.get());
   }
