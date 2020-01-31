@@ -24,6 +24,7 @@
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/OlpClientSettings.h>
+#include <olp/core/porting/deprecated.h>
 #include <olp/dataservice/write/DataServiceWriteApi.h>
 #include <olp/dataservice/write/StreamLayerClientSettings.h>
 #include <olp/dataservice/write/generated/model/ResponseOk.h>
@@ -46,9 +47,14 @@ class StreamLayerClientImpl;
  * @brief Creates an instance of the default cache with the provided settings.
  * @param settings Cache settings.
  * @return DefaultCache instance.
+ * @deprecated Use olp::client::OlpClientSettingsFactory::CreateDefaultCache()
+ * instead. Will be remove by 06.2020.
  */
+OLP_SDK_DEPRECATED(
+    "Please use OlpClientSettingsFactory::CreateDefaultCache() instead. "
+    "Will be removed by 06.2020")
 std::shared_ptr<cache::KeyValueCache> CreateDefaultCache(
-    const cache::CacheSettings& settings = cache::CacheSettings());
+    cache::CacheSettings settings = {});
 
 using PublishDataResult = olp::dataservice::write::model::ResponseOkSingle;
 using PublishDataResponse =
@@ -68,7 +74,8 @@ class DATASERVICE_WRITE_API StreamLayerClient {
 
   /**
    * @brief StreamLayerClient Constructor.
-   * @param catalog OLP HRN that specifies the catalog to which this client writes.
+   * @param catalog OLP HRN that specifies the catalog to which this client
+   * writes.
    * @param client_settings \c StreamLayerClient settings used to control
    * the behaviour of flush mechanism and other StreamLayerClient specific
    * properties.
@@ -149,8 +156,8 @@ class DATASERVICE_WRITE_API StreamLayerClient {
 
   /**
    * @brief Sends a list of SDII messages to an OLP stream layer.
-   * The SDII message data must be in the SDII MessageList protobuf format. For more
-   * information, please see the OLP Sensor Data Ingestion Interface
+   * The SDII message data must be in the SDII MessageList protobuf format. For
+   * more information, please see the OLP Sensor Data Ingestion Interface
    * documentation and schemas.
    * @param request PublishSdiiRequest object that represents the parameters for
    * this PublishSdii call.
@@ -161,8 +168,8 @@ class DATASERVICE_WRITE_API StreamLayerClient {
 
   /**
    * @brief Sends a list of SDII messages to an OLP stream layer.
-   * The SDII message data must be in the SDII MessageList protobuf format. For more
-   * information, please see the OLP Sensor Data Ingestion Interface
+   * The SDII message data must be in the SDII MessageList protobuf format. For
+   * more information, please see the OLP Sensor Data Ingestion Interface
    * documentation and schemas.
    * @param request PublishSdiiRequest object that represents the parameters for
    * this PublishSdii call.

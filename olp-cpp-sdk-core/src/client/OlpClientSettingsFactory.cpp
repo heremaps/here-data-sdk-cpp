@@ -40,9 +40,8 @@ OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler(
 }
 
 std::unique_ptr<cache::KeyValueCache>
-OlpClientSettingsFactory::CreateDefaultCache(
-    const cache::CacheSettings& settings) {
-  auto cache = std::make_unique<cache::DefaultCache>(settings);
+OlpClientSettingsFactory::CreateDefaultCache(cache::CacheSettings settings) {
+  auto cache = std::make_unique<cache::DefaultCache>(std::move(settings));
   cache->Open();
   return std::move(cache);
 }

@@ -28,10 +28,9 @@ namespace dataservice {
 namespace write {
 
 std::shared_ptr<cache::KeyValueCache> CreateDefaultCache(
-    const cache::CacheSettings& settings) {
-  auto cache = std::make_shared<cache::DefaultCache>(settings);
-  cache->Open();
-  return std::move(cache);
+    cache::CacheSettings settings) {
+  return client::OlpClientSettingsFactory::CreateDefaultCache(
+      std::move(settings));
 }
 
 StreamLayerClient::StreamLayerClient(client::HRN catalog,
