@@ -39,6 +39,18 @@ std::string ApiErrorToString(const ApiError& error) {
   return result_stream.str();
 }
 
+model::StreamOffsets GetStreamOffsets() {
+  model::StreamOffset offset1;
+  offset1.SetPartition(7);
+  offset1.SetOffset(38562);
+  model::StreamOffset offset2;
+  offset2.SetPartition(8);
+  offset2.SetOffset(27458);
+  model::StreamOffsets offsets;
+  offsets.SetOffsets({offset1, offset2});
+  return offsets;
+}
+
 MATCHER_P(BodyEq, expected_body, "") {
   std::string expected_body_str(expected_body);
 
@@ -88,13 +100,19 @@ const std::string kCorrelationId{"test-correlation-id"};
 const std::pair<std::string, std::string> kCorrelationIdHeader{
     "X-Correlation-Id", kCorrelationId};
 
-constexpr auto kUrlStreamSubscribeNoQueryParams =
+constexpr auto kUrlSubscribeNoQueryParams =
     R"(https://some.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/subscribe)";
 
-constexpr auto kUrlStreamSubscribeWithQueryParams =
+constexpr auto kUrlSubscribeWithQueryParams =
     R"(https://some.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/subscribe?consumerId=test-consumer-id-987&mode=serial&subscriptionId=test-subscription-id-123)";
 
-constexpr auto kUrlStreamUnsubscribe =
+constexpr auto kUrlCommitOffsetsNoQueryParams =
+    R"(https://some.node.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/offsets)";
+
+constexpr auto kUrlCommitOffsetsWithQueryParams =
+    R"(https://some.node.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/offsets?mode=parallel&subscriptionId=test-subscription-id-123)";
+
+constexpr auto kUrlUnsubscribe =
     R"(https://some.node.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/subscribe?mode=parallel&subscriptionId=test-subscription-id-123)";
 
 constexpr auto kHttpResponseSubscribeSucceeds =
@@ -103,19 +121,24 @@ constexpr auto kHttpResponseSubscribeSucceeds =
 constexpr auto kHttpResponseSubscribeFails =
     R"jsonString({ "title": "Subscription mode not supported", "status": 400, "code": "E213002", "cause": "Subscription mode 'singleton' not supported", "action": "Retry with valid subscription mode 'serial' or 'parallel'", "correlationId": "4199533b-6290-41db-8d79-edf4f4019a74" })jsonString";
 
+constexpr auto kHttpResponseCommitOffsetsFails =
+    R"jsonString({ "title": "Unable to commit offset", "status": 409, "code": "E213028", "cause": "Unable to commit offset", "action": "Commit cannot be completed. Continue with reading and committing new messages", "correlationId": "4199533b-6290-41db-8d79-edf4f4019a74" })jsonString";
+
 constexpr auto kHttpResponseUnsubscribeFails =
     R"jsonString({ "error": "Unauthorized", "error_description": "Token Validation Failure - invalid time in token" })jsonString";
 
 constexpr auto kHttpRequestBodyWithConsumerProperties =
     R"jsonString({"kafkaConsumerProperties":{"field_string":"abc","field_int":"456","field_bool":"1"}})jsonString";
 
+constexpr auto kHttpRequestBodyWithStreamOffsets =
+    R"jsonString({"offsets":[{"partition":7,"offset":38562},{"partition":8,"offset":27458}]})jsonString";
+
 TEST_F(StreamApiTest, Subscribe) {
   {
     SCOPED_TRACE("Subscribe without optional input fields succeeds");
 
-    EXPECT_CALL(
-        *network_mock_,
-        Send(IsPostRequest(kUrlStreamSubscribeNoQueryParams), _, _, _, _))
+    EXPECT_CALL(*network_mock_,
+                Send(IsPostRequest(kUrlSubscribeNoQueryParams), _, _, _, _))
         .WillOnce(ReturnHttpResponse(
             http::NetworkResponse().WithStatus(http::HttpStatusCode::CREATED),
             kHttpResponseSubscribeSucceeds));
@@ -139,7 +162,7 @@ TEST_F(StreamApiTest, Subscribe) {
     SCOPED_TRACE("Subscribe with all optional input fields succeeds");
 
     EXPECT_CALL(*network_mock_,
-                Send(AllOf(IsPostRequest(kUrlStreamSubscribeWithQueryParams),
+                Send(AllOf(IsPostRequest(kUrlSubscribeWithQueryParams),
                            BodyEq(kHttpRequestBodyWithConsumerProperties)),
                      _, _, _, _))
         .WillOnce(ReturnHttpResponse(
@@ -170,9 +193,8 @@ TEST_F(StreamApiTest, Subscribe) {
   {
     SCOPED_TRACE("Subscribe fails");
 
-    EXPECT_CALL(
-        *network_mock_,
-        Send(IsPostRequest(kUrlStreamSubscribeNoQueryParams), _, _, _, _))
+    EXPECT_CALL(*network_mock_,
+                Send(IsPostRequest(kUrlSubscribeNoQueryParams), _, _, _, _))
         .WillOnce(ReturnHttpResponse(
             http::NetworkResponse().WithStatus(http::HttpStatusCode::FORBIDDEN),
             kHttpResponseSubscribeFails));
@@ -194,12 +216,92 @@ TEST_F(StreamApiTest, Subscribe) {
   }
 }
 
+TEST_F(StreamApiTest, CommitOffsets) {
+  const auto stream_offsets = GetStreamOffsets();
+
+  {
+    SCOPED_TRACE("CommitOffsets without optional input fields succeeds");
+
+    EXPECT_CALL(*network_mock_,
+                Send(AllOf(IsPutRequest(kUrlCommitOffsetsNoQueryParams),
+                           HeadersContain(kCorrelationIdHeader),
+                           BodyEq(kHttpRequestBodyWithStreamOffsets)),
+                     _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK), ""));
+
+    olp_client_.SetBaseUrl(kNodeBaseUrl);
+    std::string x_correlation_id = kCorrelationId;
+    CancellationContext context;
+    const auto commit_offsets_response = StreamApi::CommitOffsets(
+        olp_client_, kLayerId, stream_offsets, boost::none, boost::none,
+        context, x_correlation_id);
+
+    EXPECT_TRUE(commit_offsets_response.IsSuccessful())
+        << ApiErrorToString(commit_offsets_response.GetError());
+    EXPECT_EQ(commit_offsets_response.GetResult(), http::HttpStatusCode::OK);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE("CommitOffsets with all optional input fields succeeds");
+
+    EXPECT_CALL(*network_mock_,
+                Send(AllOf(IsPutRequest(kUrlCommitOffsetsWithQueryParams),
+                           HeadersContain(kCorrelationIdHeader),
+                           BodyEq(kHttpRequestBodyWithStreamOffsets)),
+                     _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK), ""));
+
+    olp_client_.SetBaseUrl(kNodeBaseUrl);
+    std::string x_correlation_id = kCorrelationId;
+    CancellationContext context;
+    const auto commit_offsets_response = StreamApi::CommitOffsets(
+        olp_client_, kLayerId, stream_offsets, kSubscriptionId, kParallelMode,
+        context, x_correlation_id);
+
+    EXPECT_TRUE(commit_offsets_response.IsSuccessful())
+        << ApiErrorToString(commit_offsets_response.GetError());
+    EXPECT_EQ(commit_offsets_response.GetResult(), http::HttpStatusCode::OK);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE("CommitOffsets fails");
+
+    EXPECT_CALL(*network_mock_,
+                Send(AllOf(IsPutRequest(kUrlCommitOffsetsNoQueryParams),
+                           HeadersContain(kCorrelationIdHeader),
+                           BodyEq(kHttpRequestBodyWithStreamOffsets)),
+                     _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::CONFLICT),
+            kHttpResponseCommitOffsetsFails));
+
+    olp_client_.SetBaseUrl(kNodeBaseUrl);
+    std::string x_correlation_id = kCorrelationId;
+    CancellationContext context;
+    const auto commit_offsets_response = StreamApi::CommitOffsets(
+        olp_client_, kLayerId, stream_offsets, boost::none, boost::none,
+        context, x_correlation_id);
+
+    EXPECT_FALSE(commit_offsets_response.IsSuccessful());
+    EXPECT_EQ(commit_offsets_response.GetError().GetHttpStatusCode(),
+              http::HttpStatusCode::CONFLICT);
+    EXPECT_EQ(commit_offsets_response.GetError().GetMessage(),
+              kHttpResponseCommitOffsetsFails);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+}
+
 TEST_F(StreamApiTest, DeleteSubscription) {
   {
     SCOPED_TRACE("DeleteSubscription succeeds");
 
     EXPECT_CALL(*network_mock_,
-                Send(AllOf(IsDeleteRequest(kUrlStreamUnsubscribe),
+                Send(AllOf(IsDeleteRequest(kUrlUnsubscribe),
                            HeadersContain(kCorrelationIdHeader)),
                      _, _, _, _))
         .WillOnce(ReturnHttpResponse(
@@ -221,7 +323,7 @@ TEST_F(StreamApiTest, DeleteSubscription) {
     SCOPED_TRACE("DeleteSubscription fails");
 
     EXPECT_CALL(*network_mock_,
-                Send(AllOf(IsDeleteRequest(kUrlStreamUnsubscribe),
+                Send(AllOf(IsDeleteRequest(kUrlUnsubscribe),
                            HeadersContain(kCorrelationIdHeader)),
                      _, _, _, _))
         .WillOnce(ReturnHttpResponse(http::NetworkResponse().WithStatus(
