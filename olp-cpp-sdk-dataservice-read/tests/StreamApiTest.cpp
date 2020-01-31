@@ -40,18 +40,14 @@ std::string ApiErrorToString(const ApiError& error) {
 }
 
 model::StreamOffsets GetStreamOffsets() {
-  static model::StreamOffsets offsets;
-
-  if (offsets.GetOffsets().empty()) {
-    model::StreamOffset offset1;
-    offset1.SetPartition(7);
-    offset1.SetOffset(38562);
-    model::StreamOffset offset2;
-    offset2.SetPartition(8);
-    offset2.SetOffset(27458);
-    offsets.SetOffsets({offset1, offset2});
-  }
-
+  model::StreamOffset offset1;
+  offset1.SetPartition(7);
+  offset1.SetOffset(38562);
+  model::StreamOffset offset2;
+  offset2.SetPartition(8);
+  offset2.SetOffset(27458);
+  model::StreamOffsets offsets;
+  offsets.SetOffsets({offset1, offset2});
   return offsets;
 }
 
@@ -221,6 +217,8 @@ TEST_F(StreamApiTest, Subscribe) {
 }
 
 TEST_F(StreamApiTest, CommitOffsets) {
+  const auto stream_offsets = GetStreamOffsets();
+
   {
     SCOPED_TRACE("CommitOffsets without optional input fields succeeds");
 
@@ -236,7 +234,7 @@ TEST_F(StreamApiTest, CommitOffsets) {
     std::string x_correlation_id = kCorrelationId;
     CancellationContext context;
     const auto commit_offsets_response = StreamApi::CommitOffsets(
-        olp_client_, kLayerId, GetStreamOffsets(), boost::none, boost::none,
+        olp_client_, kLayerId, stream_offsets, boost::none, boost::none,
         context, x_correlation_id);
 
     EXPECT_TRUE(commit_offsets_response.IsSuccessful())
@@ -260,8 +258,8 @@ TEST_F(StreamApiTest, CommitOffsets) {
     std::string x_correlation_id = kCorrelationId;
     CancellationContext context;
     const auto commit_offsets_response = StreamApi::CommitOffsets(
-        olp_client_, kLayerId, GetStreamOffsets(), kSubscriptionId,
-        kParallelMode, context, x_correlation_id);
+        olp_client_, kLayerId, stream_offsets, kSubscriptionId, kParallelMode,
+        context, x_correlation_id);
 
     EXPECT_TRUE(commit_offsets_response.IsSuccessful())
         << ApiErrorToString(commit_offsets_response.GetError());
@@ -285,7 +283,7 @@ TEST_F(StreamApiTest, CommitOffsets) {
     std::string x_correlation_id = kCorrelationId;
     CancellationContext context;
     const auto commit_offsets_response = StreamApi::CommitOffsets(
-        olp_client_, kLayerId, GetStreamOffsets(), boost::none, boost::none,
+        olp_client_, kLayerId, stream_offsets, boost::none, boost::none,
         context, x_correlation_id);
 
     EXPECT_FALSE(commit_offsets_response.IsSuccessful());
