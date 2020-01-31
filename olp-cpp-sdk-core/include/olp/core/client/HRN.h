@@ -28,128 +28,185 @@ namespace olp {
 namespace client {
 
 /**
- * @brief The Here Resource Name (HRN) class, this allows HRN's to be passed to
- * the operations that require it.
+ * @brief Allows a Here Resource Name (HRN) to be passed to the operations that
+ * require it.
  */
 class CORE_API HRN {
  public:
   /**
-   * @brief The ServiceType enum defines the different objects that a HRN can
-   * refer to.
+   * @brief Defines the objects to which the HRN can refer.
    */
   enum ServiceType {
     Unknown,  ///< The service type is unknown.
-    Data,     ///< This HRN represents a data catalog.
-    Schema,   ///< This HRN represents a schema type.
-    Pipeline  ///< This HRN represents a pipeline instance.
+    Data,     ///< This HRN represents the data catalog.
+    Schema,   ///< This HRN represents the schema type.
+    Pipeline  ///< This HRN represents the pipeline instance.
   };
 
   /**
-   * @brief Constructs a `HRN` from its string form.
+   * @brief Creates the `HRN` instance from a string.
    *
-   * The passed string must start with "hrn:".
+   * The passed string must start with `hrn:`.
    *
-   * @param input The `HRN` in string form.
+   * @param input The `HRN` string.
    */
   explicit HRN(const std::string& input);
 
   /**
-   * @brief Constructs a new instance of `HRN` from its string form.
+   * @brief Creates the `HRN` instance from a string.
    *
-   * The passed string must start with "hrn:".
+   * The passed string must start with `hrn:`.
    *
-   * @param input The `HRN` in string form.
+   * @param input The `HRN` string.
    *
-   * @return A new instance of `HRN` created from string.
+   * @return The `HRN` instance created from the string.
    */
   static HRN FromString(const std::string& input);
 
   /**
-   * @brief Constructs a unique instance of `HRN` from its string form.
+   * @brief Creates the unique `HRN` instance from a string.
    *
-   * The passed string must start with "hrn:".
+   * The passed string must start with `hrn:`.
    *
-   * @param input The `HRN` in string form.
+   * @param input The `HRN` string.
    *
-   * @return A new instance of `HRN` created from string.
+   * @return The unique `HRN` instance created from the string.
    */
   static std::unique_ptr<HRN> UniqueFromString(const std::string& input);
 
   HRN() = default;
 
   /**
-   * @brief The HRN class equality operator.
+   * @brief Checks whether the values of the `HRN` parameter are
+   * the same as the values of the `rhs` parameter.
+   *
+   * @param rhs The `HRN` instance.
+   *
+   * @return True if the values of the `HRN` and `rhs` parameters are
+   * equal; false otherwise.
    */
   bool operator==(const HRN& rhs) const;
 
   /**
-   * @brief The HRN class inequality operator.
+   * @brief Checks whether the values of the `HRN` parameter are not
+   * the same as the values of the `rhs` parameter.
+   *
+   * @param rhs The `HRN` instance.
+   *
+   * @return True if the values of the `HRN` and `rhs` parameters are
+   * not equal; false otherwise.
    */
   bool operator!=(const HRN& rhs) const;
 
   /**
-   * @brief The HRN class bool operator.
+   * @brief Checks whether the service type fields of the `HRN` instance are not
+   * empty.
    *
-   * @return Returns true if this `HRN` instance has all service type relevant
-   * fields not empty, false otherwise.
+   * @return True if the service type fields of the `HRN` instance are not
+   * empty; false otherwise.
    */
   explicit operator bool() const;
 
   /**
-   * @brief Checks the internal status of the `HRN` instance.
+   * @brief Checks whether any of the service type fields of the `HRN` instance
+   * are empty.
    *
-   * @return Returns true if this `HRN` instance has at least one of the service
-   * type relevant fields empty, false otherwise.
+   * @return True if at least one of the service type fields of the `HRN`
+   * instance is empty; false otherwise.
    */
   bool IsNull() const;
 
   /**
-   * @brief Returns this `HRN` instance in its string form, prefixed with
-   * "hrn:".
+   * @brief Converts this HRN to a string.
+   *
+   * Example: `hrn:partition:service:region:account:resource`
+   *
+   * @return The `HRN` string that has the `hrn:` prefix.
    */
   std::string ToString() const;
 
   /**
-   * @brief Returns this `HRN` instance in its string form for catalog ID,
-   * prefixed with "hrn:".
+   * @brief Converts this HRN to a string catalog ID.
    *
-   * @note Only relevant for when the `HRN` has ServiceType == Data.
+   * @note Only relevant if the HRN has `ServiceType == Data`.
+   *
+   * @return The catalog ID that has the `hrn:` prefix.
    */
   std::string ToCatalogHRNString() const;
 
-  /// The partition of the HRN, must be valid when ServiceType == Data or when
-  /// when ServiceType == Pipeline
-  /// @deprecated This field will be marked as private by 05.2020.
+  /**
+   * @brief The partition of the HRN.
+   *
+   * Must be valid when `ServiceType == Data` or when `ServiceType == Pipeline`.
+   *
+   * @deprecated This field will be marked as private by 05.2020.
+   */
   std::string partition;
-  /// The service of the HRN.
-  /// @deprecated This field will be marked as private by 05.2020.
+  /**
+   * @brief The service type of the HRN.
+   *
+   * @deprecated This field will be marked as private by 05.2020.
+   */
   ServiceType service{ServiceType::Unknown};
-  /// The region of the HRN.
-  /// @deprecated This field will be marked as private by 05.2020.
+  /**
+   * @brief The region of the HRN.
+   *
+   * @deprecated This field will be marked as private by 05.2020.
+   */
   std::string region;
-  /// The account of the HRN.
-  /// @deprecated This field will be marked as private by 05.2020.
+  /**
+   * @brief The account of the HRN.
+   *
+   * @deprecated This field will be marked as private by 05.2020.
+   */
   std::string account;
-
-  /// The catalog ID, must be valid when ServiceType == Data.
-  /// @deprecated This field will be marked as private by 05.2020.
+  /**
+   * @brief The catalog ID.
+   *
+   * Must be valid when `ServiceType == Data`.
+   *
+   * @deprecated This field will be marked as private by 05.2020.
+   */
   std::string catalogId;
-  /// The layer ID, optional.
-  /// @deprecated This field will be marked as private by 05.2020.
+  /**
+   * @brief (Optional) The layer ID.
+   *
+   * @deprecated This field will be marked as private by 05.2020.
+   */
   std::string layerId;
 
-  /// The group ID, must be valid when ServiceType == Schema.
-  /// @deprecated This field will be marked as private by 05.2020.
+  /**
+   * @brief The group ID.
+   *
+   * Must be valid if `ServiceType == Schema`.
+   *
+   * @deprecated This field will be marked as private by 05.2020.
+   */
   std::string groupId;
-  /// The schema name, must be valid when ServiceType == Schema.
-  /// @deprecated This field will be marked as private by 05.2020.
+  /**
+   * @brief The schema name.
+   *
+   * Must be valid if `ServiceType == Schema`.
+   *
+   * @deprecated This field will be marked as private by 05.2020.
+   */
   std::string schemaName;
-  /// The version, must be valid when ServiceType == Schema.
-  /// @deprecated This field will be marked as private by 05.2020.
+  /**
+   * @brief The catalog version.
+   *
+   * Must be valid if `ServiceType == Schema`.
+   *
+   * @deprecated This field will be marked as private by 05.2020.
+   */
   std::string version;
 
-  /// Pipeline ID, valid when ServiceType == Pipeline.
-  /// @deprecated This field will be marked as private by 05.2020.
+  /**
+   * @brief The pipeline ID. Valid if `HRNServiceType == Pipeline`.
+   *
+   * Must be valid if `ServiceType == Schema`.
+   *
+   * @deprecated This field will be marked as private by 05.2020.
+   */
   std::string pipelineId;
 };
 

@@ -30,60 +30,84 @@ namespace olp {
 namespace client {
 
 /**
- * @brief Wrapper which manages cancellation state for any asynchronous
- * operations in a thread safe way.
- * All public APIs are thread safe.
+ * @brief A wrapper that manages the cancellation state of an asynchronous
+ * operation in a thread-safe way.
+ *
+ * All public APIs are thread-safe.
+ *
  * This class is both movable and copyable.
  */
 class CORE_API CancellationContext {
  public:
+  /**
+   * @brief The type alias of the operation function.
+   */
   using ExecuteFuncType = std::function<CancellationToken()>;
+  /**
+   * @brief The type alias of the cancel function.
+   */
   using CancelFuncType = std::function<void()>;
 
   CancellationContext();
 
   /**
-   * @brief Execute a given cancellable code block if the operation has not yet
-   * been cancelled. Otherwise, execute a custom cancellation function.
-   * @param execute_fn A function to execute if this operation is not yet
-   * cancelled. This function should return a CancellationToken which
-   * CancellationContext will propogate a cancel request to.
-   * @param cancel_fn A function which will be called if this operation is
-   * already cancelled.
-   * @return true in case of successfull execution, false in case context was
+   * @brief Executes the given cancellable code block if the operation is not
    * cancelled.
-   * @deprecated Will be removed once TaskScheduler will be used.
+   *
+   * Otherwise, executes the custom cancellation function.
+   *
+   * @param execute_fn The function that should be executed if this operation is
+   * not cancelled. This function should return `CancellationToken` for which
+   * `CancellationContext` propagates a cancel request.
+   * @param cancel_fn The function that is called if this operation is
+   * cancelled.
+   *
+   * @return True if the execution is successful; false if the context was
+   * cancelled.
+   *
+   * @deprecated Will be removed. Use `TaskScheduler` instead.
    */
   bool ExecuteOrCancelled(const ExecuteFuncType& execute_fn,
                           const CancelFuncType& cancel_fn = nullptr);
 
   /**
-   * @brief Allows the user to cancel an ongoing operation in a threadsafe way.
+   * @brief Cancels the ongoing operation in a thread-safe way.
    */
   void CancelOperation();
 
   /**
-   * @brief Check if this context was cancelled.
-   * @return `true` on context cancelled, `false` otherwise.
+   * @brief Checks whether this context is cancelled.
+   *
+   * @return True if the context is cancelled; false otherwise.
    */
   bool IsCancelled() const;
 
  private:
   /**
-   * @brief Implementation to be able to shared a instance of
-   * CancellationContext.
+   * @brief An implementation used to shared the `CancellationContext` instance.
    */
   struct CancellationContextImpl {
-    /// Mutex lock to protect from concurrent read/write.
+    /**
+     * @brief The mutex lock used to protect the `CancellationContext` object
+     * from the concurrent read and write operations.
+     */
     mutable std::recursive_mutex mutex_;
-    /// Sub operation context return from ExecuteOrCancelled() execute_fn.
-    /// @deprecated This will be removed once TaskScheduler is used.
+    /**
+     * @brief The suboperation context returned from `execute_fn` of
+     * `ExecuteOrCancelled()`.
+     *
+     * @deprecated Will be removed. Use `TaskScheduler` instead.
+     */
     CancellationToken sub_operation_cancel_token_{};
-    /// Flag that will be set to `true` on CancelOperation().
+    /**
+     * @brief The flag that is set to `true` for `CancelOperation()`.
+     */
     bool is_cancelled_{false};
   };
 
-  /// Shared implementation.
+  /**
+   * @brief The shared implementation.
+   */
   std::shared_ptr<CancellationContextImpl> impl_;
 };
 

@@ -48,7 +48,7 @@ enum class ErrorCode {
   RequestTimeout,
 
   /**
-   * Internal server failure.
+   * An internal server failure.
    */
   InternalFailure,
 

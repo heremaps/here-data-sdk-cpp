@@ -38,7 +38,7 @@ class NetworkConfig;
 
 namespace client {
 /**
- * @brief This class is responsible for executing the REST requests.
+ * @brief Executes HTTP requests.
  */
 class CORE_API OlpClient {
  public:
@@ -46,42 +46,51 @@ class CORE_API OlpClient {
   virtual ~OlpClient() = default;
 
   /**
-   * @brief Set the base url used for all requests.
-   * @param baseUrl Base url.
+   * @brief Sets the base URL used for all requests.
+
+   * @param baseUrl The base URL.
    */
   void SetBaseUrl(const std::string& baseUrl);
 
   /**
-   * @brief Get the base url.
+   * @brief Gets the base URL.
+   *
+   * @return The base URL.
    */
   const std::string& GetBaseUrl() const;
 
   /**
-   * @brief Get the default headers that is added for each request.
+   * @brief Gets the default headers that are added to each request.
+   *
+   * @return The default headers.
    */
   std::multimap<std::string, std::string>& GetMutableDefaultHeaders();
 
   /**
-   * @brief Set the client settings.
-   * @param settings Client settings.
+   * @brief Sets the client settings.
+   *
+   * @param settings The client settings.
    */
   void SetSettings(const OlpClientSettings& settings);
 
   /**
-   * @brief Execute the REST request through the network stack
-   * @param path Path that is appended to the base url.
-   * @param method Choice of GET, POST, DELETE, PUT.
-   * @param query_params Params that is appended to the path url.
-   * @param header_params Headers to customize request.
-   * @param form_params For a POST request, form_params or post_body should be
-   * populated, but not both.
-   * @param post_body For a POST request, form_params or post_body should be
-   * populated, but not both.
-   * This data must not be modified until the request is completed.
-   * @param content_type Content type for the post_body or form_params.
-   * @param callback a function callback to receive the HttpResponse.
+   * @brief Executes the HTTP request through the network stack.
    *
-   * @return A method to call to cancel the request.
+   * @param path The path that is appended to the base URL.
+   * @param method Select one of the following methods: `GET`, `POST`, `DELETE`,
+   * or `PUT`.
+   * @param query_params The parameters that are appended to the URL path.
+   * @param header_params The headers used to customize the request.
+   * @param form_params For the `POST` request, populate `form_params` or
+   * `post_body`, but not both.
+   * @param post_body For the `POST` request, populate `form_params` or
+   * `post_body`, but not both. This data must not be modified until
+   * the request is completed.
+   * @param content_type The content type for the `post_body` or `form_params`.
+   * @param callback The function callback used to receive the `HttpResponse`
+   * instance.
+   *
+   * @return The method used to call or to cancel the request.
    */
   CancellationToken CallApi(
       const std::string& path, const std::string& method,
@@ -93,19 +102,20 @@ class CORE_API OlpClient {
       const NetworkAsyncCallback& callback) const;
 
   /**
-   * @brief Executes the REST request through the network stack in a blocking
+   * @brief Executes the HTTP request through the network stack in a blocking
    * way.
+   *
    * @param path The path that is appended to the base URL.
-   * @param method Choose one of the following methods: GET, POST, DELETE, PUT.
-   * @param query_params The parameters that are appended to the path URL.
-   * @param header_params The headers used to customize request.
-   * @param form_params (For the POST request) Populate one of the following
-   * parameters: `form_params` or `post_body`.
-   * @param post_body (For the POST request) Populate one of the following
-   * parameters: `form_params` or `post_body`. This data must not be modified
-   * until the request is completed.
-   * @param content_type The content type of the `post_body` or `form_params`
-   * parameters.
+   * @param method Select one of the following methods: `GET`, `POST`, `DELETE`,
+   * or `PUT`.
+   * @param query_params The parameters that are appended to the URL path.
+   * @param header_params The headers used to customize the request.
+   * @param form_params For the `POST` request, populate `form_params` or
+   * `post_body`, but not both.
+   * @param post_body For the `POST` request, populate `form_params` or
+   * `post_body`, but not both. This data must not be modified until
+   * the request is completed.
+   * @param content_type The content type for the `post_body` or `form_params`.
    * @param context The `CancellationContext` instance that is used to cancel
    * the request.
    *

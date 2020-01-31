@@ -28,11 +28,13 @@ namespace olp {
 namespace client {
 
 /**
- * @brief Cancels service requests
+ * @brief Cancels service requests.
  */
 class CORE_API CancellationToken {
  public:
-  /// The alias for the cancellation function.
+  /**
+   * @brief The alias for the cancellation function.
+   */
   using CancelFuncType = std::function<void()>;
 
   CancellationToken() = default;
@@ -40,7 +42,7 @@ class CORE_API CancellationToken {
   /**
    * @brief Creates the `CancellationToken` instance.
    *
-   * @param func The operation that should be used to cancel the ongoing.
+   * @param func The operation that should be used to cancel the ongoing
    * operation.
    */
   CancellationToken(CancelFuncType func);
