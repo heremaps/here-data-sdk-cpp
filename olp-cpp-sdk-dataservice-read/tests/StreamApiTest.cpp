@@ -112,6 +112,12 @@ constexpr auto kUrlCommitOffsetsNoQueryParams =
 constexpr auto kUrlCommitOffsetsWithQueryParams =
     R"(https://some.node.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/offsets?mode=parallel&subscriptionId=test-subscription-id-123)";
 
+constexpr auto kUrlSeekToOffsetNoQueryParams =
+    R"(https://some.node.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/seek)";
+
+constexpr auto kUrlSeekToOffsetWithQueryParams =
+    R"(https://some.node.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/seek?mode=serial&subscriptionId=test-subscription-id-123)";
+
 constexpr auto kUrlUnsubscribe =
     R"(https://some.node.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/subscribe?mode=parallel&subscriptionId=test-subscription-id-123)";
 
@@ -123,6 +129,9 @@ constexpr auto kHttpResponseSubscribeFails =
 
 constexpr auto kHttpResponseCommitOffsetsFails =
     R"jsonString({ "title": "Unable to commit offset", "status": 409, "code": "E213028", "cause": "Unable to commit offset", "action": "Commit cannot be completed. Continue with reading and committing new messages", "correlationId": "4199533b-6290-41db-8d79-edf4f4019a74" })jsonString";
+
+constexpr auto kHttpResponseSeekToOffsetFails =
+    R"jsonString({ "title": "Realm not found", "status": 400, "code": "E213017", "cause": "App / user is not associated with a realm", "action": "Update access token and retry", "correlationId": "4199533b-6290-41db-8d79-edf4f4019a74" })jsonString";
 
 constexpr auto kHttpResponseUnsubscribeFails =
     R"jsonString({ "error": "Unauthorized", "error_description": "Token Validation Failure - invalid time in token" })jsonString";
@@ -291,6 +300,86 @@ TEST_F(StreamApiTest, CommitOffsets) {
               http::HttpStatusCode::CONFLICT);
     EXPECT_EQ(commit_offsets_response.GetError().GetMessage(),
               kHttpResponseCommitOffsetsFails);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+}
+
+TEST_F(StreamApiTest, SeekToOffset) {
+  const auto stream_offsets = GetStreamOffsets();
+
+  {
+    SCOPED_TRACE("SeekToOffset without optional input fields succeeds");
+
+    EXPECT_CALL(*network_mock_,
+                Send(AllOf(IsPutRequest(kUrlSeekToOffsetNoQueryParams),
+                           HeadersContain(kCorrelationIdHeader),
+                           BodyEq(kHttpRequestBodyWithStreamOffsets)),
+                     _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK), ""));
+
+    olp_client_.SetBaseUrl(kNodeBaseUrl);
+    std::string x_correlation_id = kCorrelationId;
+    CancellationContext context;
+    const auto seek_to_offset_response = StreamApi::SeekToOffset(
+        olp_client_, kLayerId, stream_offsets, boost::none, boost::none,
+        context, x_correlation_id);
+
+    EXPECT_TRUE(seek_to_offset_response.IsSuccessful())
+        << ApiErrorToString(seek_to_offset_response.GetError());
+    EXPECT_EQ(seek_to_offset_response.GetResult(), http::HttpStatusCode::OK);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE("SeekToOffset with all optional input fields succeeds");
+
+    EXPECT_CALL(*network_mock_,
+                Send(AllOf(IsPutRequest(kUrlSeekToOffsetWithQueryParams),
+                           HeadersContain(kCorrelationIdHeader),
+                           BodyEq(kHttpRequestBodyWithStreamOffsets)),
+                     _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK), ""));
+
+    olp_client_.SetBaseUrl(kNodeBaseUrl);
+    std::string x_correlation_id = kCorrelationId;
+    CancellationContext context;
+    const auto commit_offsets_response = StreamApi::SeekToOffset(
+        olp_client_, kLayerId, stream_offsets, kSubscriptionId, kSerialMode,
+        context, x_correlation_id);
+
+    EXPECT_TRUE(commit_offsets_response.IsSuccessful())
+        << ApiErrorToString(commit_offsets_response.GetError());
+    EXPECT_EQ(commit_offsets_response.GetResult(), http::HttpStatusCode::OK);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE("SeekToOffset fails");
+
+    EXPECT_CALL(*network_mock_,
+                Send(AllOf(IsPutRequest(kUrlSeekToOffsetNoQueryParams),
+                           HeadersContain(kCorrelationIdHeader),
+                           BodyEq(kHttpRequestBodyWithStreamOffsets)),
+                     _, _, _, _))
+        .WillOnce(ReturnHttpResponse(http::NetworkResponse().WithStatus(
+                                         http::HttpStatusCode::BAD_REQUEST),
+                                     kHttpResponseSeekToOffsetFails));
+
+    olp_client_.SetBaseUrl(kNodeBaseUrl);
+    std::string x_correlation_id = kCorrelationId;
+    CancellationContext context;
+    const auto commit_offsets_response = StreamApi::SeekToOffset(
+        olp_client_, kLayerId, stream_offsets, boost::none, boost::none,
+        context, x_correlation_id);
+
+    EXPECT_FALSE(commit_offsets_response.IsSuccessful());
+    EXPECT_EQ(commit_offsets_response.GetError().GetHttpStatusCode(),
+              http::HttpStatusCode::BAD_REQUEST);
+    EXPECT_EQ(commit_offsets_response.GetError().GetMessage(),
+              kHttpResponseSeekToOffsetFails);
 
     Mock::VerifyAndClearExpectations(network_mock_.get());
   }
