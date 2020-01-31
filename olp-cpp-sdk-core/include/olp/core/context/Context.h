@@ -33,57 +33,109 @@
 namespace olp {
 namespace context {
 /**
- * @brief The Context class represents the application context
+ * @brief Represents the application context.
  *
- * Client application must initialize its Context before using any other
- * functionality of the library.
+ * Before your application uses any other functionality of the library,
+ * initialize the `Context` class.
  */
-
 struct ContextData;
 
+/**
+ * @brief Used only for the Android environment to correctly initialize
+ * the `NetworkAndroid` class.
+ *
+ * Initialize the `Context` class before you send network requests in
+ * the Android environment.
+ * To use the `Context` class, cerate the `Scope` object first.
+ */
 class CORE_API Context {
  public:
+  /**
+   * @brief Called when the `Context` object is initialized.
+   *
+   * Controlled by the `Scope` class.
+   *
+   * @see `Scope` for more information.
+   */
   using InitializedCallback = std::function<void()>;
+
+  /**
+   * @brief Called when the `Context` object is deinitialized.
+   *
+   * Controlled by the `Scope` class.
+   *
+   * @see `Scope` for more information.
+   */
   using DeinitializedCallback = std::function<void()>;
 
   /**
-   * @brief addInitializeCallbacks Register functions to be called after the
-   * context is initialized and destroyed.
-   * @param initCallback
-   * @param deinitCalback
+   * @brief Registers functions that are called when the context is initialized
+   * and destroyed.
+   *
+   * @param initCallback The `InitializedCallback` instance.
+   * @param deinitCalback The `DeinitializedCallback` instance.
    */
   static void addInitializeCallbacks(InitializedCallback initCallback,
                                      DeinitializedCallback deinitCalback);
 
   /**
-   * @brief The Scope class initializes the context in its constructor (if not
-   * already initialized) and deinitializes in the destructor (when no other
-   * Scope instances exist). Instead of calling Context::init() and
-   * Context::deinit() manually, simply instantiate a Context::Scope() object.
+   * @brief Initializes the `Context` class in its constructor (if it is not
+   * already initialized) and deinitializes in its destructor (if there are
+   * no other `Scope` instances).
+   *
+   * Instead of calling `Context::init()` and `Context::deinit()` manually,
+   * instantiate the `Context::Scope()` object.
    */
   class CORE_API Scope {
    public:
-    /// see Context::init()
+    /**
+     * @brief Creates the `Scope` instance.
+     *
+     * The `Scope` instance is used to initialize the `Context` class.
+     * It also automatically initializes the `Context` callbacks.
+     *
+     * @see `InitializedCallback` for more information.
+     */
     Scope();
 
 #ifdef ANDROID
-    /// see Context::init()
+    /**
+     * @brief Creates the `Scope` instance.
+     *
+     * The `Scope` instance is used to initialize the `Context` class.
+     * It also automatically initializes the `Context` callbacks.
+     *
+     * @see `InitializedCallback` for more information.
+     *
+     * @param vm The `JavaVM` instance.
+     * @param context The `android.content.Context` instance.
+     */
     Scope(JavaVM* vm, jobject context);
 #endif
 
-    /// deleted copy constructor
+    /**
+     * @brief The deleted copy constructor.
+     */
     Scope(const Scope&) = delete;
-    /// deleted assignment operator
+    /**
+     * @brief The deleted assignment operator.
+     */
     Scope& operator=(const Scope&) = delete;
 
-    /// see Context::deinit()
+    /**
+     * @brief Invokes deinitialized callbacks of the `Context` class.
+     *
+     * @see `DeinitializedCallback` for more information.
+     */
     ~Scope();
 
    private:
     std::shared_ptr<ContextData> m_cd;
   };
 
-  /// deleted default constructor
+  /**
+   * @brief The deleted default constructor.
+   */
   Context() = delete;
 
   friend class Context::Scope;
@@ -102,8 +154,21 @@ class CORE_API Context {
 
  public:
 #ifdef ANDROID
-  /// returns a Java VM object
+  /**
+   * @brief Gets the `JavaVM` object.
+   *
+   * @note Use it only after you initialize the `Context` class.
+   *
+   * @return The `JavaVM` object.
+   */
   static JavaVM* getJavaVM();
+  /**
+   * @brief Get the `android.content.Context` instance.
+   *
+   * @note Use it only after you initialize the `Context` class.
+   *
+   * @return The `android.content.Context` instance.
+   */
   static jobject getAndroidContext();
 #endif
 };
