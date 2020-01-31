@@ -39,21 +39,6 @@ std::string ApiErrorToString(const ApiError& error) {
   return result_stream.str();
 }
 
-MATCHER_P(BodyEq, expected_body, "") {
-  std::string expected_body_str(expected_body);
-
-  return arg.GetBody()
-             ? std::equal(expected_body_str.begin(), expected_body_str.end(),
-                          arg.GetBody()->begin())
-             : expected_body_str.empty();
-}
-
-MATCHER_P(HeadersContain, expected_header, "") {
-  const auto& headers = arg.GetHeaders();
-  return std::find(headers.begin(), headers.end(), expected_header) !=
-         headers.end();
-}
-
 class StreamApiTest : public Test {
  protected:
   void SetUp() override {
