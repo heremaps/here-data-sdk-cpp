@@ -19,6 +19,7 @@
 
 #include "olp/core/client/OlpClientSettings.h"
 #include "olp/core/client/HttpResponse.h"
+#include "olp/core/http/HttpStatusCode.h"
 
 namespace olp {
 namespace client {
@@ -26,7 +27,15 @@ unsigned int DefaultBackdownPolicy(unsigned int milliseconds) {
   return milliseconds;
 }
 
-bool DefaultRetryCondition(const HttpResponse&) { return false; }
+bool DefaultRetryCondition(const HttpResponse& response) {
+  switch (response.status) {
+    case http::HttpStatusCode::INTERNAL_SERVER_ERROR:
+    case http::HttpStatusCode::SERVICE_UNAVAILABLE:
+      return true;
+    default:
+      return false;
+  }
+}
 
 }  // namespace client
 }  // namespace olp

@@ -23,6 +23,7 @@
 #include <chrono>
 #include <future>
 #include <string>
+#include <queue>
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/OlpClient.h>
@@ -216,17 +217,29 @@ TEST_P(OlpClientTest, ZeroAttempts) {
 }
 
 TEST_P(OlpClientTest, DefaultRetryCondition) {
-  client_settings_.retry_settings.max_attempts = 6;
+  client_settings_.retry_settings.max_attempts = 3;
 
   auto network = std::make_shared<NetworkMock>();
   client_settings_.network_request_handler = network;
+
+  auto attempt_statuses = std::queue<int>{{500, 503, 200}};
   EXPECT_CALL(*network, Send(_, _, _, _, _))
-      .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
-                    olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
-        callback(olp::http::NetworkResponse().WithStatus(429));
+      .Times(attempt_statuses.size())
+      .WillRepeatedly([&attempt_statuses](
+                          olp::http::NetworkRequest request,
+                          olp::http::Network::Payload payload,
+                          olp::http::Network::Callback callback,
+                          olp::http::Network::HeaderCallback header_callback,
+                          olp::http::Network::DataCallback data_callback) {
+        if (attempt_statuses.empty()) {
+          ADD_FAILURE_AT(__FILE__, __LINE__) << "Unexpected retry attempt";
+          return olp::http::SendOutcome(olp::http::ErrorCode::UNKNOWN_ERROR);
+        }
+
+        auto status = attempt_statuses.front();
+        attempt_statuses.pop();
+        callback(olp::http::NetworkResponse().WithStatus(status));
+
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
 
@@ -237,7 +250,7 @@ TEST_P(OlpClientTest, DefaultRetryCondition) {
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
 
-  ASSERT_EQ(429, response.status);
+  ASSERT_EQ(200, response.status);
 }
 
 TEST_P(OlpClientTest, RetryCondition) {
