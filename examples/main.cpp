@@ -17,15 +17,18 @@
  * License-Filename: LICENSE
  */
 
+#include "Options.h"
 #include "ProtectedCacheExample.h"
 #include "ReadExample.h"
 #include "WriteExample.h"
 
-#include <getopt.h>
+#include <iostream>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
-#include <iostream>
+
+bool IsMatch(const std::string& name, const tools::Option& option) {
+  return name == option.short_name || name == option.long_name;
+}
 
 enum Examples : int {
   read_example = 0b1,
@@ -39,7 +42,7 @@ constexpr auto usage =
     "example [read, write, cache] \n -i [--key_id] here.access.key.id \n -s "
     "[--key_secret] here.access.key.secret \n"
     " -c [--catalog] catalog HRN (HERE Resource Name). \n"
-    " -l [--layer_id] t layer ID inside the catalog where you want to "
+    " -l [--layer_id] the layer ID inside the catalog where you want to "
     "publish data to(required for write example). \n"
     " -h [--help]: show usage \n For "
     "instructions on how to get the access key ID and access key secret, see "
@@ -47,6 +50,80 @@ constexpr auto usage =
     "Credentials](https://developer.here.com/olp/documentation/access-control/"
     "user-guide/topics/get-credentials.html) section in the Terms and "
     "Permissions User Guide.";
+
+int RequiredArgumentError(const tools::Option& arg) {
+  std::cout << "option requires an argument -- '" << arg.short_name << '\''
+            << " [" << arg.long_name << "] " << arg.description << std::endl;
+  return 0;
+}
+int ParseArguments(const int argc, char** argv, AccessKey& access_key,
+                   std::string& catalog, std::string& layer_id) {
+  int examples_to_run = 0;
+
+  const std::vector<std::string> arguments(argv + 1, argv + argc);
+  auto it = arguments.begin();
+
+  while (it != arguments.end()) {
+    if (IsMatch(*it, tools::kHelpOption)) {
+      std::cout << usage << std::endl;
+      return 0;
+    }
+
+    if (IsMatch(*it, tools::kKeyIdOption)) {
+      // Here access key ID.
+      if (++it == arguments.end()) {
+        return RequiredArgumentError(tools::kKeyIdOption);
+      }
+      access_key.id = *it;
+    } else if (IsMatch(*it, tools::kKeySecretOption)) {
+      // Here access key secret.
+      if (++it == arguments.end()) {
+        return RequiredArgumentError(tools::kKeySecretOption);
+      }
+      access_key.secret = *it;
+    } else if (IsMatch(*it, tools::kExampleOption)) {
+      if (++it == arguments.end()) {
+        return RequiredArgumentError(tools::kExampleOption);
+      }
+
+      if (*it == "read") {
+        examples_to_run = Examples::read_example;
+      } else if (*it == "write") {
+        examples_to_run = Examples::write_example;
+      } else if (*it == "cache") {
+        examples_to_run = Examples::cache_example;
+      } else {
+        std::cout
+            << "Example was not found. Please use values:read, write, cache"
+            << std::endl;
+        return 0;
+      }
+
+    } else if (IsMatch(*it, tools::kCatalogOption)) {
+      if (++it == arguments.end()) {
+        return RequiredArgumentError(tools::kCatalogOption);
+      }
+      catalog = *it;
+    } else if (IsMatch(*it, tools::kLayerIdOption)) {
+      if (++it == arguments.end()) {
+        return RequiredArgumentError(tools::kLayerIdOption);
+      }
+      layer_id = *it;
+    } else if (IsMatch(*it, tools::kAllOption)) {
+      examples_to_run = Examples::all_examples;
+    } else {
+      fprintf(stderr, usage);
+    }
+    ++it;
+  }
+
+  if (examples_to_run == 0) {
+    std::cout << "Please specify command line arguments." << std::endl;
+    std::cout << usage << std::endl;
+  }
+
+  return examples_to_run;
+}
 
 int RunExamples(const AccessKey& access_key, int examples_to_run,
                 const std::string& catalog, const std::string& layer_id) {
@@ -77,63 +154,17 @@ int RunExamples(const AccessKey& access_key, int examples_to_run,
 }
 
 int main(int argc, char** argv) {
-  static struct option long_options[] = {
-      {"example", required_argument, 0, 'e'},
-      {"key_id", required_argument, 0, 'i'},
-      {"key_secret", required_argument, 0, 's'},
-      {"catalog", required_argument, 0, 'c'},
-      {"layer_id", required_argument, 0, 'l'},
-      {"all", no_argument, 0, 'a'},
-      {"help", no_argument, 0, 'h'},
-      {0, 0, 0, 0}};
-
   AccessKey access_key{};  // You can specify your here.access.key.id 
                            // and here.access.key.secret
   std::string catalog;     // the HRN of the catalog to which you to publish data
   std::string layer_id;    // the of the layer inside the catalog to which you
                            // want to publish data
 
-  int examples_to_run = 0;
-  int opt, option_index;
-  while ((opt = getopt_long(argc, argv, "e:i:s:c:l:ah", long_options,
-                            &option_index)) != EOF)
-    switch (opt) {
-      case 'c':
-        catalog = optarg;
-        break;
-      case 'l':
-        layer_id = optarg;
-        break;
-      case 'i':
-        access_key.id = optarg;
-        break;
-      case 's':
-        access_key.secret = optarg;
-        break;
-      case 'e':
-        std::cout << "Run example " << optarg << std::endl;
-        if (strcmp(optarg, "read") == 0)
-          examples_to_run = Examples::read_example;
-        else if (strcmp(optarg, "write") == 0)
-          examples_to_run = Examples::write_example;
-        else if (strcmp(optarg, "cache") == 0)
-          examples_to_run = Examples::cache_example;
-        else
-          std::cout
-              << "Example was not found. Please use values:read, write, cache"
-              << std::endl;
-        break;
-      case 'a':
-        examples_to_run = Examples::all_examples;
-        break;
-      case 'h':
-        std::cout << usage << std::endl;
-        return 0;
-      case '?':
-      default:
-        fprintf(stderr, usage);
-        return 0;
-    }
+  int examples_to_run =
+      ParseArguments(argc, argv, access_key, catalog, layer_id);
+  if (examples_to_run == 0) {
+    return 0;
+  }
 
   if (access_key.id.empty() || access_key.secret.empty()) {
     std::cout << "Please specify your access key ID and access key secret. For "
