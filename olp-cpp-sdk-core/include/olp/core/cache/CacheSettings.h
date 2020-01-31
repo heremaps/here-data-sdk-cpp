@@ -28,7 +28,7 @@ namespace olp {
 namespace cache {
 
 /**
- * @brief Options for opening the disk cache.
+ * @brief Options for opening a disk cache.
  */
 enum OpenOptions : unsigned char {
   Default = 0x00,  /*!< Opens the disk cache in the read-write mode. */
@@ -45,14 +45,17 @@ struct CacheSettings {
    *
    * If this parameter is not set, the downloaded data is stored
    * only in the in-memory cache that is limited by `#max_memory_cache_size`.
+   *
    * @deprecated Use #disk_path_mutable instead.
    */
   OLP_SDK_DEPRECATED("Use disk_path_mutable instead. Will be removed 03.2020")
   boost::optional<std::string> disk_path = boost::none;
 
   /**
-   * @brief The path to the mutable (read-write) on-disk cache where the
-   * SDK will cache and lookup the content. You should have write permissions.
+   * @brief The path to the mutable (read-write) on-disk cache where
+   * the SDK caches and lookups the content.
+   *
+   * You should have write permissions.
    *
    * If this parameter is not set, the downloaded data is stored
    * only in the in-memory cache that is limited by `#max_memory_cache_size`.
@@ -60,48 +63,56 @@ struct CacheSettings {
   boost::optional<std::string> disk_path_mutable = boost::none;
 
   /**
-   * @brief Set the upper limit of disk space to use for persistent stores in
-   * bytes. Default is 32 MB. Set it to std::uint64_t(-1) in order to never
-   * evict data.
+   * @brief Sets the upper limit (in bytes) of the disk space that is used for
+   * persistent stores.
+   *
+   * The default value is 32 MB. To never evict data, set `max_disk_storage` to
+   * `std::uint64_t(-1)`.
    */
   std::uint64_t max_disk_storage = 1024ull * 1024ull * 32ull;
 
   /**
-   * @brief Set the upper limit of runtime memory to be used before being
-   * written to disk in bytes. Default is 32 Mb.
+   * @brief Sets the upper limit of the runtime memory (in bytes) before it is
+   * written to the disk.
+   *
+   * The default value is 32 MB.
    */
   size_t max_chunk_size = 1024u * 1024u * 32u;
 
   /**
-   * @brief Set the to indicate that continuous flushes to disk are
-   * necessary to preserve maximum data between ignition cycles
+   * @brief Sets the flag to indicate that continuous flushes to the disk are
+   * necessary to preserve maximum data between the ignition cycles.
    */
   bool enforce_immediate_flush = true;
 
   /**
-   * @brief Set the maximum permissable size of one file in storage in bytes.
-   * Default is 2 MB.
+   * @brief Sets the maximum permissible size of one file in the storage (in
+   * bytes).
+   *
+   * The default value is 2 MB.
    */
   size_t max_file_size = 1024u * 1024u * 2u;
 
   /**
-   * @brief Set the upper limit of the in-memory data cache size in bytes.
-   * 0 means the in-memory cache is not used. Default is 1 MB.
+   * @brief Sets the upper limit of the in-memory data cache size (in bytes).
+   *
+   * If set to `0`, the in-memory cache is not used. The default value is 1 MB.
    */
   size_t max_memory_cache_size = 1024u * 1024u;
 
   /**
-   * @brief Set the disk cache open options.
+   * @brief Sets the disk cache open options.
    */
   OpenOptions openOptions = OpenOptions::Default;
 
   /**
-   * @brief Path to the protected (readonly) cache. This cache is used as a
-   * primary cache for lookup. DefaultCache will open this cache in read-only
-   * mode and will not write to it in case the disk_path_mutable is empty. This
-   * path should only be used in case users would like to have a stable fallback
-   * state or offline data that they can always access regardless of the network
-   * state.
+   * @brief The path to the protected (read-only) cache.
+   *
+   * This cache is used as a primary cache for lookup. `DefaultCache` opens this
+   * cache in the read-only mode and does not write to it if
+   * `disk_path_mutable` is empty. Use this cash if you want to have a stable
+   * fallback state or offline data that you can always access regardless of
+   * the network state.
    */
   boost::optional<std::string> disk_path_protected = boost::none;
 };

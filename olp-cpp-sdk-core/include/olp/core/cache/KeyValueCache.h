@@ -36,68 +36,89 @@ using Encoder = std::function<std::string()>;
 using Decoder = std::function<boost::any(const std::string&)>;
 
 /**
- * @brief Interface for cache expecting a key,value pair.
+ * @brief An interface for a cache that expects a key-value pair.
  */
 class CORE_API KeyValueCache {
  public:
-  /// No expiry by default.
+  /**
+   * @brief The expiry time of the key-value pair.
+   *
+   * By default, the key-value pair has no expiry time.
+   */
   static constexpr time_t kDefaultExpiry = std::numeric_limits<time_t>::max();
-  /// Value type to be stored in the DB.
+
+  /**
+   * @brief The value type that is stored in the DB.
+   */
   using ValueType = std::vector<unsigned char>;
-  /// Shared pointer type to the DB entry.
+
+  /**
+   * @brief The shared pointer type of the DB entry.
+   */
   using ValueTypePtr = std::shared_ptr<ValueType>;
 
   virtual ~KeyValueCache() = default;
 
   /**
-   * @brief Store key,value pair into the cache
-   * @param key Key for this value
-   * @param value The value of any type
-   * @param encoder A method provided to encode the specified value into a
-   * string
-   * @param expiry Time in seconds to when pair will expire
-   * @return Returns true if the operation is successfull, false otherwise.
+   * @brief Stores the key-value pair in the cache.
+   *
+   * @param key The key for this value.
+   * @param value The value of any type.
+   * @param encoder Encodes the specified value into a string.
+   * @param expiry The expiry time (in seconds) of the key-value pair.
+   *
+   * @return True if the operation is successful; false otherwise.
    */
   virtual bool Put(const std::string& key, const boost::any& value,
                    const Encoder& encoder, time_t expiry = kDefaultExpiry) = 0;
 
   /**
-   * @brief Store raw binary data as value into the cache
-   * @param key Key for this value
-   * @param value binary data to be stored
-   * @param expiry Time in seconds to when pair will expire
-   * @return Returns true if the operation is successfull, false otherwise.
+   * @brief Stores the raw binary data as a value in the cache.
+   *
+   * @param key The key for this value.
+   * @param value The binary data that should be stored.
+   * @param expiry The expiry time (in seconds) of the key-value pair.
+   *
+   * @return True if the operation is successful; false otherwise.
    */
   virtual bool Put(const std::string& key, const ValueTypePtr value,
                    time_t expiry = kDefaultExpiry) = 0;
 
   /**
-   * @brief Get key,value pair from the cache
-   * @param key Key to look for
-   * @param decoder A method is provided to decode a value from a string if
-   * needed
+   * @brief Gets the key-value pair from the cache.
+   *
+   * @param key The key that is used to look for the key-value pair.
+   * @param decoder Decodes the value from a string.
+   *
+   * @return The key-value pair.
    */
   virtual boost::any Get(const std::string& key, const Decoder& encoder) = 0;
 
   /**
-   * @brief Get key and binary data from the cache
-   * @param key Key to look for
+   * @brief Gets the key and binary data from the cache.
+   *
+   * @param key The key that is used to look for the binary data.
+   *
+   * @return The key and binary data.
    */
   virtual ValueTypePtr Get(const std::string& key) = 0;
 
   /**
-   * @brief Remove a key,value pair from the cache
-   * @param key Key for the value to remove from cache
+   * @brief Removes the key-value pair from the cache.
    *
-   * @return Returns true if the operation is successfull, false otherwise.
+   * @param key The key for the value.
+   *
+   * @return True if the operation is successful; false otherwise.
    */
   virtual bool Remove(const std::string& key) = 0;
 
   /**
-   * @brief Remove values with keys matching the given prefix from the cache
-   * @param prefix Prefix to look for
+   * @brief Removes the values with the keys that match the given
+   * prefix from the cache.
    *
-   * @return Returns true on removal, false otherwise.
+   * @param prefix The prefix that matches the keys.
+   *
+   * @return True if the values are removed; false otherwise.
    */
   virtual bool RemoveKeysWithPrefix(const std::string& prefix) = 0;
 };
