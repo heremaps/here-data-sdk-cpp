@@ -22,8 +22,8 @@
 
 #include <chrono>
 #include <future>
-#include <string>
 #include <queue>
+#include <string>
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/OlpClient.h>
@@ -430,6 +430,57 @@ TEST_P(OlpClientTest, RetryWithExponentialBackdownStrategy) {
   for (size_t i = 1; i < timestamps.size(); ++i) {
     ASSERT_GE((timestamps[i] - timestamps[i - 1]).count(), wait_times[i - 1]);
   }
+}
+
+TEST_P(OlpClientTest, RetryTimeout) {
+  const auto kInitialBackdownPeriod = 400;  // msec
+  const size_t kMaxRetries = 3;
+  const size_t kTimeout = 1;  // seconds
+  // Setup retry settings:
+  client_settings_.retry_settings.initial_backdown_period =
+      kInitialBackdownPeriod;
+  client_settings_.retry_settings.max_attempts = kMaxRetries;
+  client_settings_.retry_settings.timeout = kTimeout;
+
+  client_settings_.retry_settings.retry_condition =
+      ([](const olp::client::HttpResponse&) { return true; });
+  client_settings_.retry_settings.backdown_policy = ([](int timeout) -> int {
+    return 2 * timeout;
+  });
+
+  size_t current_attempt = 0;
+  const size_t kSuccessfulAttempt = kMaxRetries + 1;
+
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillRepeatedly(
+          [&current_attempt](olp::http::NetworkRequest request,
+                             olp::http::Network::Payload payload,
+                             olp::http::Network::Callback callback,
+                             olp::http::Network::HeaderCallback header_callback,
+                             olp::http::Network::DataCallback data_callback) {
+            current_attempt++;
+            // the test shouldn't reach the last retry due to timeout
+            // restrictions in retry settings
+            if (current_attempt == kSuccessfulAttempt) {
+              auto fail_helper = []() { FAIL(); };
+              fail_helper();
+
+              callback(olp::http::NetworkResponse().WithStatus(
+                  olp::http::HttpStatusCode::OK));
+            } else {
+              callback(olp::http::NetworkResponse().WithStatus(
+                  olp::http::HttpStatusCode::TOO_MANY_REQUESTS));
+            }
+            return olp::http::SendOutcome(olp::http::RequestId(5));
+          });
+
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
+  auto response = call_wrapper_->CallApi("", "GET", {}, {}, {}, nullptr, "");
+
+  ASSERT_EQ(olp::http::HttpStatusCode::TOO_MANY_REQUESTS, response.status);
 }
 
 TEST_P(OlpClientTest, SetInitialBackdownPeriod) {

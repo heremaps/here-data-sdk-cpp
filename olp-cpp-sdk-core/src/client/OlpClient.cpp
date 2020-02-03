@@ -240,20 +240,26 @@ std::shared_ptr<http::NetworkRequest> OlpClient::CreateRequest(
 }
 
 NetworkAsyncCallback GetRetryCallback(
-    int current_try, int current_backdown_period, const RetrySettings& settings,
+    int current_try, int current_backdown_period,
+    long long accumulated_wait_time, const RetrySettings& settings,
     const NetworkAsyncCallback& callback,
     const std::shared_ptr<http::NetworkRequest>& network_request,
     std::weak_ptr<http::Network> network,
     const std::weak_ptr<CancellationContext>& weak_cancel_context) {
   ++current_try;
   return [=](HttpResponse response) {
+    const long long max_wait_time =
+        settings.timeout * 1000ll;  // convert seconds to msecs
     if (current_try > settings.max_attempts ||
-        !settings.retry_condition(response)) {
+        !settings.retry_condition(response) ||
+        accumulated_wait_time >= max_wait_time) {
       callback(std::move(response));
     } else {
       // TODO there must be a better way
-      std::this_thread::sleep_for(
-          std::chrono::milliseconds(current_backdown_period));
+      // Make sure that we don't wait longer than `timeout` in retry settings
+      const long long actual_wait_time = std::min<long long>(
+          current_backdown_period, max_wait_time - accumulated_wait_time);
+      std::this_thread::sleep_for(std::chrono::milliseconds(actual_wait_time));
 
       int next_backdown_period = 0;
       // New backdown policy should be superior to previous policy version:
@@ -269,8 +275,9 @@ NetworkAsyncCallback GetRetryCallback(
             [&]() -> CancellationToken {
               return ExecuteSingleRequest(
                   network, *network_request,
-                  GetRetryCallback(current_try, next_backdown_period, settings,
-                                   callback, network_request, network,
+                  GetRetryCallback(current_try, next_backdown_period,
+                                   accumulated_wait_time + actual_wait_time,
+                                   settings, callback, network_request, network,
                                    weak_cancel_context));
             },
             [callback]() {
@@ -328,7 +335,7 @@ CancellationToken OlpClient::CallApi(
   retry_settings.retry_condition = settings_.retry_settings.retry_condition;
 
   NetworkAsyncCallback retry_callback = GetRetryCallback(
-      0, settings_.retry_settings.initial_backdown_period, retry_settings,
+      0, settings_.retry_settings.initial_backdown_period, 0, retry_settings,
       callback, network_request, network, cancel_context);
 
   cancel_context->ExecuteOrCancelled(
@@ -407,7 +414,12 @@ HttpResponse OlpClient::CallApi(
   auto response =
       SendRequest(network_request, settings_, retry_settings, context);
 
-  for (int i = 1; i <= retry_settings.max_attempts && !context.IsCancelled();
+  // Make sure that we don't wait longer than `timeout` in retry settings
+  long long accumulated_wait_time = backdown_period;
+  const long long max_wait_time =
+      retry_settings.timeout * 1000ll;  // convert seconds to msecs
+  for (int i = 1; i <= retry_settings.max_attempts && !context.IsCancelled() &&
+                  accumulated_wait_time < max_wait_time;
        i++) {
     if (StatusSuccess(response.status)) {
       return response;
@@ -418,9 +430,12 @@ HttpResponse OlpClient::CallApi(
     }
 
     // do the periodical sleep and check for cancellation status in between.
-    auto duration_to_sleep = backdown_period;
+    auto duration_to_sleep = std::min<long long>(
+        backdown_period, max_wait_time - accumulated_wait_time);
+    accumulated_wait_time += duration_to_sleep;
+
     while (duration_to_sleep > 0 && !context.IsCancelled()) {
-      auto sleep_ms = std::min(1000, duration_to_sleep);
+      auto sleep_ms = std::min<long long>(1000, duration_to_sleep);
       std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
       duration_to_sleep -= sleep_ms;
     }

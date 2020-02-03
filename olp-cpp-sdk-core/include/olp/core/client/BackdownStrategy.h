@@ -34,8 +34,10 @@ namespace client {
  * randomization.
  *
  * The actual formula can be described as:
- * ``` wait_time = random_between(0, initial_backdown_period_msec * (2 ^
- * cap(retry_count, 3)))```
+ * @code{.unparsed}
+ * wait_time = random_between(0, initial_backdown_period_msec * (2 ^
+ * retry_count))
+ * @endcode
  */
 struct CORE_API ExponentialBackdownStrategy {
  public:
@@ -50,10 +52,8 @@ struct CORE_API ExponentialBackdownStrategy {
    * @return Wait time in milliseconds for the next retry attempt.
    */
   int operator()(int initial_backdown_period_msec, size_t retry_count) {
-    constexpr size_t kMaxRetries = 3;
     const auto exponential_wait_time =
-        initial_backdown_period_msec *
-        (1 << std::min<size_t>(retry_count, kMaxRetries));
+        initial_backdown_period_msec * (1 << retry_count);
 
     static thread_local std::mt19937 generator(std::random_device{}());
     std::uniform_int_distribution<int> dist(0, exponential_wait_time);
