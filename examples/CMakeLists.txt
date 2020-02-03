@@ -71,8 +71,9 @@ else()
         olp-cpp-sdk-dataservice-read)
 
     add_executable(${OLP_SDK_DATASERVICE_EXAMPLE_TARGET}
+        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Examples.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+        ${CMAKE_CURRENT_SOURCE_DIR}/Options.h)
 
     target_link_libraries(${OLP_SDK_DATASERVICE_EXAMPLE_TARGET}
        ${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET}
