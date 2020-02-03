@@ -1,6 +1,46 @@
+## v1.2.0 (04/02/2020)
+
+**Common**
+
+* Added a protected read-only cache. For details, see `olp::cache::CacheSettings`.
+* Added a protected read-only cache [usage example](https://github.com/heremaps/here-olp-sdk-cpp/blob/c30c4051ec012eaca09b7aa7ba4c7e8f6cd7a576/docs/dataservice-cache-example.md).
+* Added ARM platform support for Embedded Linux with GCC 5.4 (32/64 bit).
+* Added the `ErrorCodeToString` function to olp/core/http/NetworkTypes.h.
+* Improved the `olp::http::NetworkCurl` logging.
+* Changed the `IsNull` function in the `olp::client::HRN` class to handle realms according to platform changes.
+* Added the bool operator to the `olp::client::HRN` class. You can now use the operator to check whether all the service type fields in the `olp::client::HRN` class are not empty.
+* Fixed a possible data race in the `olp::client::Condition` class.
+* Added the `MoveResult` method to the `olp::client::ApiResponse` class. The method returns an rvalue reference to the result.
+* CMake now requires RapidJSON v1.1.0.
+* Various CMake cleanups.
+* Improved error handling in Android `HttpClient`.
+* Fixed the linking error when SDK was statically linked inside a shared library with `CMAKE_POSITION_INDEPENDENT_CODE=ON`.
+* The retry policy now handles server errors automatically.
+
+**olp-cpp-sdk-authentication**
+
+* Added a possibility to parse credentials from a file or stream in `olp::authentication::AuthenticationCredentials`. Now, to get credentials for the `AuthenticationCredentials` class, you can use the **credentials.properties** file that is provided by the platform.
+* Deprecated the `olp::authentication::TokenEndpoint` class. It will be removed by 04.2020.
+* Deprecated the `olp::authentication::TokenRequest` class. It will be removed by 04.2020.
+* Deprecated various methods in `olp::authentication::AuthenticationClient`.
+* Authentication now gets the current timestamp from the platform and uses it to request the OAuth2 token that prevents replay attacks. As a fallback, the system time is used.
+
+**olp-cpp-sdk-dataservice-read**
+
+* The `olp::dataservice::read::QueryApi`, `olp::dataservice::read::MetadataApi`, `olp::dataservice::read::LookupApi`, and `olp::dataservice::read::BlobApi` classes are now blocking and use the new synchronous `CallApi` method in `OlpClient`.
+* The `GetData` method of the versioned and volatile layer now triggers the `olp::client::ErrorCode::PreconditionFailed` error if both a partition ID and data handle are passed in the data request.
+* **Work-in-progress**: Added reading support for streamed data using the new `olp::dataservice::read::StreamLayerClient`. Currently, you can only subscribe, unsubscribe, and get data from a stream layer message.
+
+**olp-cpp-sdk-dataservice-write**
+
+* Enhanced `olp::dataservice::write::StreamLayerClient` to use `olp::thread::TaskScheduler` for asynchronous operations instead of network threads.
+* Removed the unused `olp::dataservice::write::ThreadSafeQueue` class.
+* Deprecated the `CancelAll` methods in all layers. Use the `CancelPendingRequests` methods instead.
+
 ## v1.1.0 (11/12/2019)
 
 **Common**
+
 * The deprecated `olp::client::CancellationToken::cancel()` method was removed. Use `olp::client::CancellationToken::Cancel()` instead.
 * The `curl` network implementation was fixed and can now compile on 32 bits architecture.
 * The `disk_path` field in `olp::cache::CacheSettings` is deprecated. Use the `disk_path_mutable` field instead.
@@ -8,14 +48,17 @@
 * `pipe` and `pipe2` symbols detection are enhanced in curl.cmake.
 
 **olp-cpp-sdk-authentication**
+
 * The `SignInClient` method in `olp::authentication::AuthenticationClient` is deprecated in favor of the newly introduced `SignInClient` method with a different signature.
 * The `scope` support was added to OAuth2 through `olp::authentication::SignInProperties`. You can now access the project bound resources using the `olp::authentication::SignInProperties::scope` field.
 * The `error_id` field was added to the `ErrorResponse` structure. You can use it to get the `errorId` string from the authentication error response.
 
 **olp-cpp-sdk-dataservice-read**
+
 * The deprecated `GetCatalogMetadataVersion` method was removed from the `olp::dataservice::read::CatalogClient`.
 
 **olp-cpp-sdk-dataservice-write**
+
 * Legacy and unused code were removed.
 
 ## v1.0.0 (03/12/2019)

@@ -41,7 +41,7 @@ elseif(ANDROID)
                                     ${OLP_SDK_EXAMPLE_FAILURE_STRING})
 
 else()
-    project(${OLP_SDK_DATASERVICE_EXAMPLE_TARGET} VERSION 1.1.0)
+    project(${OLP_SDK_DATASERVICE_EXAMPLE_TARGET} VERSION 1.2.0)
 
     add_library(${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET}
         ${CMAKE_CURRENT_SOURCE_DIR}/ReadExample.cpp
