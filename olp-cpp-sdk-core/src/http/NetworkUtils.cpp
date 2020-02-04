@@ -30,9 +30,13 @@ char NetworkUtils::SimpleToUpper(char c) {
 bool NetworkUtils::CaseInsensitiveCompare(const std::string& str1,
                                           const std::string& str2,
                                           size_t offset /* = 0*/) {
-  if ((str1.length() - offset) != str2.length()) return false;
+  if ((str1.length() < offset) || (str1.length() - offset) != str2.length()) {
+    return false;
+  }
   for (std::size_t i = 0; i < str2.length(); i++) {
-    if (SimpleToUpper(str1[i + offset]) != SimpleToUpper(str2[i])) return false;
+    if (SimpleToUpper(str1[i + offset]) != SimpleToUpper(str2[i])) {
+      return false;
+    }
   }
   return true;
 }
@@ -40,9 +44,13 @@ bool NetworkUtils::CaseInsensitiveCompare(const std::string& str1,
 bool NetworkUtils::CaseInsensitiveStartsWith(const std::string& str1,
                                              const std::string& str2,
                                              size_t offset /* = 0*/) {
-  if ((str1.length() - offset) < str2.length()) return false;
+  if ((str1.length() < offset) || (str1.length() - offset) < str2.length()) {
+    return false;
+  }
   for (std::size_t i = 0; i < str2.length(); i++) {
-    if (SimpleToUpper(str1[i + offset]) != SimpleToUpper(str2[i])) return false;
+    if (SimpleToUpper(str1[i + offset]) != SimpleToUpper(str2[i])) {
+      return false;
+    }
   }
   return true;
 }
