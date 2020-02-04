@@ -46,11 +46,10 @@ struct CORE_API ExponentialBackdownStrategy {
    * @brief Function to compute next retry attempt wait time based on number of
    * retries and initial backdown period.
    *
-   * @param initial_backdown_period_msec Initial backdown period in
-   * milliseconds.
+   * @param initial_backdown_period Initial backdown period.
    * @param retry_count Number of retries already made.
    *
-   * @return Wait time in milliseconds for the next retry attempt.
+   * @return Timeout for the next retry attempt.
    */
   std::chrono::milliseconds operator()(
       std::chrono::milliseconds initial_backdown_period, size_t retry_count) {

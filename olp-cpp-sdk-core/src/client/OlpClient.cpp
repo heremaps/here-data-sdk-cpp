@@ -183,10 +183,9 @@ std::chrono::milliseconds CalculateNextWaitTime(
         current_try);
   } else if (auto backdown_policy = settings.backdown_policy) {
     return std::chrono::milliseconds(
-        backdown_policy(current_backdown_period.count()));
-  } else {
-    return std::chrono::milliseconds::zero();
+        backdown_policy(static_cast<int>(current_backdown_period.count())));
   }
+  return std::chrono::milliseconds::zero();
 }
 }  // anonymous namespace
 
@@ -276,7 +275,7 @@ NetworkAsyncCallback GetRetryCallback(
           current_backdown_period, max_wait_time - accumulated_wait_time);
       std::this_thread::sleep_for(actual_wait_time);
 
-      const auto next_backdown_period =
+      const auto next_wait_time =
           CalculateNextWaitTime(settings, current_backdown_period, current_try);
 
       auto cancel_context = weak_cancel_context.lock();
@@ -285,7 +284,7 @@ NetworkAsyncCallback GetRetryCallback(
             [&]() -> CancellationToken {
               return ExecuteSingleRequest(
                   network, *network_request,
-                  GetRetryCallback(current_try, next_backdown_period,
+                  GetRetryCallback(current_try, next_wait_time,
                                    accumulated_wait_time + actual_wait_time,
                                    settings, callback, network_request, network,
                                    weak_cancel_context));

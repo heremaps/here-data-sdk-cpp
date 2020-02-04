@@ -369,7 +369,7 @@ TEST_P(OlpClientTest, RetryTimeExponential) {
 }
 
 TEST_P(OlpClientTest, RetryWithExponentialBackdownStrategy) {
-  const std::chrono::milliseconds::rep kInitialBackdownPeriod = 100;  // msec
+  const std::chrono::milliseconds::rep kInitialBackdownPeriod = 100;
   size_t expected_retry_count = 0;
   std::vector<std::chrono::milliseconds::rep> wait_times = {
       kInitialBackdownPeriod};
@@ -397,9 +397,7 @@ TEST_P(OlpClientTest, RetryWithExponentialBackdownStrategy) {
   // previous version of backdown policy shouldn't be called,
   // if the new backdown policy was specified
   client_settings_.retry_settings.backdown_policy = [](int period) -> int {
-    // we can't invoke FAIL directly from the callback:
-    auto fail_helper = []() { FAIL(); };
-    fail_helper();
+    ADD_FAILURE();
     return period;
   };
 
@@ -435,14 +433,11 @@ TEST_P(OlpClientTest, RetryWithExponentialBackdownStrategy) {
 }
 
 TEST_P(OlpClientTest, RetryTimeout) {
-  const auto kInitialBackdownPeriod = 400;  // msec
   const size_t kMaxRetries = 3;
-  const size_t kTimeout = 1;  // seconds
   // Setup retry settings:
-  client_settings_.retry_settings.initial_backdown_period =
-      kInitialBackdownPeriod;
+  client_settings_.retry_settings.initial_backdown_period = 400;  // msec
   client_settings_.retry_settings.max_attempts = kMaxRetries;
-  client_settings_.retry_settings.timeout = kTimeout;
+  client_settings_.retry_settings.timeout = 1;  // seconds
 
   client_settings_.retry_settings.retry_condition =
       ([](const olp::client::HttpResponse&) { return true; });
@@ -465,8 +460,7 @@ TEST_P(OlpClientTest, RetryTimeout) {
             // the test shouldn't reach the last retry due to timeout
             // restrictions in retry settings
             if (current_attempt == kSuccessfulAttempt) {
-              auto fail_helper = []() { FAIL(); };
-              fail_helper();
+              ADD_FAILURE();
 
               callback(olp::http::NetworkResponse().WithStatus(
                   olp::http::HttpStatusCode::OK));

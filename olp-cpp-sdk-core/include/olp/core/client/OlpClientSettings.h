@@ -155,7 +155,7 @@ struct RetrySettings {
 
   /**
    * @brief A strategy for calculating retry timeouts based on
-   * the initial backdown duration in milliseconds and retry count.
+   * the initial backdown duration and retry count.
    */
   using BackdownStrategy = std::function<std::chrono::milliseconds(
       std::chrono::milliseconds, size_t)>;
