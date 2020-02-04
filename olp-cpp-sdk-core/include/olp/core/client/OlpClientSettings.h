@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <functional>
 #include <memory>
 #include <string>
@@ -153,14 +154,11 @@ struct RetrySettings {
   using BackdownPolicy = std::function<int(int)>;
 
   /**
-   * @brief A strategy which takes the initial backdown period in milliseconds
-   * with current retry count, and returns what should be used for the next wait
-   * timeout.
-   *
-   * Is superior to the \ref BackdownPolicy, as it computes wait time based on
-   * the retry count as well.
+   * @brief A strategy for calculating retry timeouts based on
+   * the initial backdown duration in milliseconds and retry count.
    */
-  using BackdownStrategy = std::function<int(int, size_t)>;
+  using BackdownStrategy = std::function<std::chrono::milliseconds(
+      std::chrono::milliseconds, size_t)>;
 
   /**
    * @brief Checks whether the retry is desired.
@@ -189,21 +187,22 @@ struct RetrySettings {
 
   /**
    * @brief The backdown policy that should be used for the retry attempts.
-   * 
-   * @deprecated Use \ref backdown_strategy instead.
+   *
+   * @deprecated Use \ref backdown_strategy instead. Will be removed by 06.2020.
    *
    * @return The backdown policy.
    */
   BackdownPolicy backdown_policy = DefaultBackdownPolicy;
 
   /**
-   * @brief The strategy used for retry attempts.
+   * @brief Backdown strategy.
    *
-   * The backdown strategy used to compute new wait time to retry failed
-   * requests. By default it is not specified and, if specified, it will used
-   * instead \ref backdown_policy.
+   * Used for calculating retry timeouts for failed requests. It is superior to
+   * the \ref backdown_policy, as it computes wait time based on
+   * the retry count as well. By default, it is unset, and \ref backdown_policy
+   * is used.
    *
-   * @note You can use the \ref ExponentialBackdownStrategy from OLP SDK as new
+   * @note You can use the \ref ExponentialBackdownStrategy as the new
    * backdown strategy.
    */
   BackdownStrategy backdown_strategy = nullptr;

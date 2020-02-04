@@ -369,9 +369,10 @@ TEST_P(OlpClientTest, RetryTimeExponential) {
 }
 
 TEST_P(OlpClientTest, RetryWithExponentialBackdownStrategy) {
-  const auto kInitialBackdownPeriod = 100;  // msec
+  const std::chrono::milliseconds::rep kInitialBackdownPeriod = 100;  // msec
   size_t expected_retry_count = 0;
-  std::vector<int> wait_times = {kInitialBackdownPeriod};
+  std::vector<std::chrono::milliseconds::rep> wait_times = {
+      kInitialBackdownPeriod};
 
   // Setup retry settings:
   client_settings_.retry_settings.initial_backdown_period =
@@ -382,13 +383,14 @@ TEST_P(OlpClientTest, RetryWithExponentialBackdownStrategy) {
 
   client_settings_.retry_settings.backdown_strategy =
       [kInitialBackdownPeriod, &expected_retry_count, &wait_times](
-          int period, size_t retry_count) -> int {
-    EXPECT_EQ(kInitialBackdownPeriod, period);
+          std::chrono::milliseconds period,
+          size_t retry_count) -> std::chrono::milliseconds {
+    EXPECT_EQ(kInitialBackdownPeriod, period.count());
     EXPECT_EQ(++expected_retry_count, retry_count);
 
     const auto wait_time = olp::client::ExponentialBackdownStrategy()(
-        kInitialBackdownPeriod, retry_count);
-    wait_times.push_back(wait_time);
+        std::chrono::milliseconds(kInitialBackdownPeriod), retry_count);
+    wait_times.push_back(wait_time.count());
     return wait_time;
   };
 
@@ -444,9 +446,8 @@ TEST_P(OlpClientTest, RetryTimeout) {
 
   client_settings_.retry_settings.retry_condition =
       ([](const olp::client::HttpResponse&) { return true; });
-  client_settings_.retry_settings.backdown_policy = ([](int timeout) -> int {
-    return 2 * timeout;
-  });
+  client_settings_.retry_settings.backdown_policy =
+      ([](int timeout) -> int { return 2 * timeout; });
 
   size_t current_attempt = 0;
   const size_t kSuccessfulAttempt = kMaxRetries + 1;

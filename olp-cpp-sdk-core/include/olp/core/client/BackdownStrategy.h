@@ -19,8 +19,9 @@
 
 #pragma once
 
-#include <olp/core/CoreApi.h>
+#include <chrono>
 #include <random>
+#include <olp/core/CoreApi.h>
 
 namespace olp {
 namespace client {
@@ -42,7 +43,7 @@ namespace client {
 struct CORE_API ExponentialBackdownStrategy {
  public:
   /**
-   * @brief Function to compute next retry attemp wait time based on number of
+   * @brief Function to compute next retry attempt wait time based on number of
    * retries and initial backdown period.
    *
    * @param initial_backdown_period_msec Initial backdown period in
@@ -51,13 +52,15 @@ struct CORE_API ExponentialBackdownStrategy {
    *
    * @return Wait time in milliseconds for the next retry attempt.
    */
-  int operator()(int initial_backdown_period_msec, size_t retry_count) {
+  std::chrono::milliseconds operator()(
+      std::chrono::milliseconds initial_backdown_period, size_t retry_count) {
     const auto exponential_wait_time =
-        initial_backdown_period_msec * (1 << retry_count);
+        initial_backdown_period.count() * (1 << retry_count);
 
-    static thread_local std::mt19937 generator(std::random_device{}());
-    std::uniform_int_distribution<int> dist(0, exponential_wait_time);
-    return dist(generator);
+    static thread_local std::mt19937 kGenerator(std::random_device{}());
+    std::uniform_int_distribution<std::chrono::milliseconds::rep> dist(
+        0, exponential_wait_time);
+    return std::chrono::milliseconds(dist(kGenerator));
   }
 };
 
