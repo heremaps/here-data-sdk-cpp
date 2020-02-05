@@ -19,12 +19,14 @@
 
 #pragma once
 
+#include <chrono>
 #include <functional>
 #include <memory>
 #include <string>
 
 #include <boost/optional.hpp>
 
+#include <olp/core/client/BackdownStrategy.h>
 #include "olp/core/client/CancellationToken.h"
 #include "olp/core/client/HttpResponse.h"
 #include "olp/core/http/Network.h"
@@ -152,6 +154,13 @@ struct RetrySettings {
   using BackdownPolicy = std::function<int(int)>;
 
   /**
+   * @brief A strategy for calculating retry timeouts based on
+   * the initial backdown duration and retry count.
+   */
+  using BackdownStrategy = std::function<std::chrono::milliseconds(
+      std::chrono::milliseconds, size_t)>;
+
+  /**
    * @brief Checks whether the retry is desired.
    *
    * @see `HttpResponse` for more details.
@@ -179,9 +188,24 @@ struct RetrySettings {
   /**
    * @brief The backdown policy that should be used for the retry attempts.
    *
+   * @deprecated Use \ref backdown_strategy instead. Will be removed by 06.2020.
+   *
    * @return The backdown policy.
    */
   BackdownPolicy backdown_policy = DefaultBackdownPolicy;
+
+  /**
+   * @brief Backdown strategy.
+   *
+   * Used for calculating retry timeouts for failed requests. It is superior to
+   * the \ref backdown_policy, as it computes wait time based on
+   * the retry count as well. By default, it is unset, and \ref backdown_policy
+   * is used.
+   *
+   * @note You can use the \ref ExponentialBackdownStrategy as the new
+   * backdown strategy.
+   */
+  BackdownStrategy backdown_strategy = nullptr;
 
   /**
    * @brief Evaluates responses to determine if the retry should be attempted.

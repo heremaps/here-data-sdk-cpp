@@ -22,8 +22,8 @@
 
 #include <chrono>
 #include <future>
-#include <string>
 #include <queue>
+#include <string>
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/OlpClient.h>
@@ -366,6 +366,116 @@ TEST_P(OlpClientTest, RetryTimeExponential) {
               std::chrono::milliseconds(backdownPeriod));
     backdownPeriod *= 2;
   }
+}
+
+TEST_P(OlpClientTest, RetryWithExponentialBackdownStrategy) {
+  const std::chrono::milliseconds::rep kInitialBackdownPeriod = 100;
+  size_t expected_retry_count = 0;
+  std::vector<std::chrono::milliseconds::rep> wait_times = {
+      kInitialBackdownPeriod};
+
+  // Setup retry settings:
+  client_settings_.retry_settings.initial_backdown_period =
+      kInitialBackdownPeriod;
+
+  client_settings_.retry_settings.retry_condition =
+      ([](const olp::client::HttpResponse&) { return true; });
+
+  client_settings_.retry_settings.backdown_strategy =
+      [kInitialBackdownPeriod, &expected_retry_count, &wait_times](
+          std::chrono::milliseconds period,
+          size_t retry_count) -> std::chrono::milliseconds {
+    EXPECT_EQ(kInitialBackdownPeriod, period.count());
+    EXPECT_EQ(++expected_retry_count, retry_count);
+
+    const auto wait_time = olp::client::ExponentialBackdownStrategy()(
+        std::chrono::milliseconds(kInitialBackdownPeriod), retry_count);
+    wait_times.push_back(wait_time.count());
+    return wait_time;
+  };
+
+  // previous version of backdown policy shouldn't be called,
+  // if the new backdown policy was specified
+  client_settings_.retry_settings.backdown_policy = [](int period) -> int {
+    ADD_FAILURE();
+    return period;
+  };
+
+  auto network = std::make_shared<NetworkMock>();
+  const auto requests_count = client_settings_.retry_settings.max_attempts + 1;
+  std::vector<std::chrono::system_clock::time_point> timestamps;
+
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .Times(requests_count)
+      .WillRepeatedly([&](olp::http::NetworkRequest request,
+                          olp::http::Network::Payload payload,
+                          olp::http::Network::Callback callback,
+                          olp::http::Network::HeaderCallback header_callback,
+                          olp::http::Network::DataCallback data_callback) {
+        timestamps.push_back(std::chrono::system_clock::now());
+        callback(olp::http::NetworkResponse().WithStatus(
+            olp::http::HttpStatusCode::TOO_MANY_REQUESTS));
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
+  auto response = call_wrapper_->CallApi("", "GET", {}, {}, {}, nullptr, "");
+
+  ASSERT_EQ(olp::http::HttpStatusCode::TOO_MANY_REQUESTS, response.status);
+  ASSERT_EQ(client_settings_.retry_settings.max_attempts, expected_retry_count);
+
+  // verify that duration between retries matches actual wait time from
+  // backdown policy
+  for (size_t i = 1; i < timestamps.size(); ++i) {
+    ASSERT_GE((timestamps[i] - timestamps[i - 1]).count(), wait_times[i - 1]);
+  }
+}
+
+TEST_P(OlpClientTest, RetryTimeout) {
+  const size_t kMaxRetries = 3;
+  // Setup retry settings:
+  client_settings_.retry_settings.initial_backdown_period = 400;  // msec
+  client_settings_.retry_settings.max_attempts = kMaxRetries;
+  client_settings_.retry_settings.timeout = 1;  // seconds
+
+  client_settings_.retry_settings.retry_condition =
+      ([](const olp::client::HttpResponse&) { return true; });
+  client_settings_.retry_settings.backdown_policy =
+      ([](int timeout) -> int { return 2 * timeout; });
+
+  size_t current_attempt = 0;
+  const size_t kSuccessfulAttempt = kMaxRetries + 1;
+
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillRepeatedly(
+          [&current_attempt](olp::http::NetworkRequest request,
+                             olp::http::Network::Payload payload,
+                             olp::http::Network::Callback callback,
+                             olp::http::Network::HeaderCallback header_callback,
+                             olp::http::Network::DataCallback data_callback) {
+            current_attempt++;
+            // the test shouldn't reach the last retry due to timeout
+            // restrictions in retry settings
+            if (current_attempt == kSuccessfulAttempt) {
+              ADD_FAILURE();
+
+              callback(olp::http::NetworkResponse().WithStatus(
+                  olp::http::HttpStatusCode::OK));
+            } else {
+              callback(olp::http::NetworkResponse().WithStatus(
+                  olp::http::HttpStatusCode::TOO_MANY_REQUESTS));
+            }
+            return olp::http::SendOutcome(olp::http::RequestId(5));
+          });
+
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
+  auto response = call_wrapper_->CallApi("", "GET", {}, {}, {}, nullptr, "");
+
+  ASSERT_EQ(olp::http::HttpStatusCode::TOO_MANY_REQUESTS, response.status);
 }
 
 TEST_P(OlpClientTest, SetInitialBackdownPeriod) {
