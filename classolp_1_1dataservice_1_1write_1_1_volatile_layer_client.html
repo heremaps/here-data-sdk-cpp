@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -84,10 +84,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a0167b5b7d94a7c2e1f84f013a91e9dc2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_volatile_layer_client.html#a0167b5b7d94a7c2e1f84f013a91e9dc2">VolatileLayerClient</a> (<a class="el" href="classolp_1_1client_1_1_h_r_n.html">client::HRN</a> catalog, <a class="el" href="structolp_1_1client_1_1_olp_client_settings.html">client::OlpClientSettings</a> settings)</td></tr>
 <tr class="memdesc:a0167b5b7d94a7c2e1f84f013a91e9dc2"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_volatile_layer_client.html" title="Client responsible for writing data into an OLP Volatile Layer.">VolatileLayerClient</a> Constructor.  <a href="classolp_1_1dataservice_1_1write_1_1_volatile_layer_client.html#a0167b5b7d94a7c2e1f84f013a91e9dc2">More...</a><br /></td></tr>
 <tr class="separator:a0167b5b7d94a7c2e1f84f013a91e9dc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8fb86cfe8769f015d5c29372a0a64203"><td class="memItemLeft" align="right" valign="top"><a id="a8fb86cfe8769f015d5c29372a0a64203"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_volatile_layer_client.html#a8fb86cfe8769f015d5c29372a0a64203">CancelAll</a> ()</td></tr>
-<tr class="memdesc:a8fb86cfe8769f015d5c29372a0a64203"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancel all pending requests. <br /></td></tr>
-<tr class="separator:a8fb86cfe8769f015d5c29372a0a64203"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d6da705fc8ca446ab397461793d9635"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_volatile_layer_client.html#a6d6da705fc8ca446ab397461793d9635">OLP_SDK_DEPRECATED</a> (&quot;Use <a class="el" href="classolp_1_1dataservice_1_1write_1_1_volatile_layer_client.html#addd510328a9cabe9226b4167df46adc4">CancelPendingRequests</a> instead. Will be removed in 05.2020&quot;) void CancelAll()</td></tr>
+<tr class="memdesc:a6d6da705fc8ca446ab397461793d9635"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancel all pending requests.  <a href="classolp_1_1dataservice_1_1write_1_1_volatile_layer_client.html#a6d6da705fc8ca446ab397461793d9635">More...</a><br /></td></tr>
+<tr class="separator:a6d6da705fc8ca446ab397461793d9635"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:addd510328a9cabe9226b4167df46adc4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_volatile_layer_client.html#addd510328a9cabe9226b4167df46adc4">CancelPendingRequests</a> ()</td></tr>
+<tr class="memdesc:addd510328a9cabe9226b4167df46adc4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancels all the ongoing operations that this client started.  <a href="classolp_1_1dataservice_1_1write_1_1_volatile_layer_client.html#addd510328a9cabe9226b4167df46adc4">More...</a><br /></td></tr>
+<tr class="separator:addd510328a9cabe9226b4167df46adc4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a018d8378a24ada47892db9580b532d1d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellable_future.html">olp::client::CancellableFuture</a>&lt; <a class="el" href="classolp_1_1client_1_1_api_response.html">PublishPartitionDataResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_volatile_layer_client.html#a018d8378a24ada47892db9580b532d1d">PublishPartitionData</a> (<a class="el" href="classolp_1_1dataservice_1_1write_1_1model_1_1_publish_partition_data_request.html">model::PublishPartitionDataRequest</a> request)</td></tr>
 <tr class="memdesc:a018d8378a24ada47892db9580b532d1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Call to publish data into an OLP Volatile Layer.  <a href="classolp_1_1dataservice_1_1write_1_1_volatile_layer_client.html#a018d8378a24ada47892db9580b532d1d">More...</a><br /></td></tr>
 <tr class="separator:a018d8378a24ada47892db9580b532d1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -164,6 +166,26 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="addd510328a9cabe9226b4167df46adc4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#addd510328a9cabe9226b4167df46adc4">&#9670;&nbsp;</a></span>CancelPendingRequests()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void olp::dataservice::write::VolatileLayerClient::CancelPendingRequests </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Cancels all the ongoing operations that this client started. </p>
+<p>Returns instantly and does not wait for the callbacks. Use this operation to cancel all the pending requests without destroying the actual client instance. </p>
+
+</div>
+</div>
 <a id="a981b886e102fe66f33057f6c795189f6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a981b886e102fe66f33057f6c795189f6">&#9670;&nbsp;</a></span>CompleteBatch() <span class="overload">[1/2]</span></h2>
 
@@ -338,6 +360,27 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>cancellation token </dd></dl>
+
+</div>
+</div>
+<a id="a6d6da705fc8ca446ab397461793d9635"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6d6da705fc8ca446ab397461793d9635">&#9670;&nbsp;</a></span>OLP_SDK_DEPRECATED()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">olp::dataservice::write::VolatileLayerClient::OLP_SDK_DEPRECATED </td>
+          <td>(</td>
+          <td class="paramtype">&quot;Use <a class="el" href="classolp_1_1dataservice_1_1write_1_1_volatile_layer_client.html#addd510328a9cabe9226b4167df46adc4">CancelPendingRequests</a> instead. Will be removed in 05.2020&quot;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Cancel all pending requests. </p>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000017">Deprecated:</a></b></dt><dd>Use <a class="el" href="classolp_1_1dataservice_1_1write_1_1_volatile_layer_client.html#addd510328a9cabe9226b4167df46adc4">CancelPendingRequests</a> intead. </dd></dl>
 
 </div>
 </div>
@@ -581,7 +624,7 @@ Data - must NOT be defiend as this call is for updating metadata (e.g. Partition
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><a class="el" href="classolp_1_1client_1_1_cancellation_token.html" title="Control object for cancelling service requests.">olp::client::CancellationToken</a> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="classolp_1_1client_1_1_cancellation_token.html" title="Cancels service requests.">olp::client::CancellationToken</a> </dd></dl>
 
 </div>
 </div>

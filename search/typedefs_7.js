@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['levelnamemap_1322',['LevelNameMap',['../classolp_1_1logging_1_1_message_formatter.html#a26b2623b8306380bd03f5dd19079f7a0',1,'olp::logging::MessageFormatter']]]
+  ['initializedcallback_1716',['InitializedCallback',['../classolp_1_1context_1_1_context.html#ab2bb2c65ba9d9530af2e40a97722dfe7',1,'olp::context::Context']]]
 ];

@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -74,7 +74,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Container for not yet finished requests.  
+<p>A container for requests that have not finished yet.  
  <a href="classolp_1_1client_1_1_pending_requests.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_pending_requests_8h_source.html">PendingRequests.h</a>&gt;</code></p>
@@ -82,20 +82,20 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:afa3e26a5508db62b41db0900a2897a6c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_pending_requests.html#afa3e26a5508db62b41db0900a2897a6c">CancelAll</a> ()</td></tr>
-<tr class="memdesc:afa3e26a5508db62b41db0900a2897a6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancels all pending tasks.  <a href="classolp_1_1client_1_1_pending_requests.html#afa3e26a5508db62b41db0900a2897a6c">More...</a><br /></td></tr>
+<tr class="memdesc:afa3e26a5508db62b41db0900a2897a6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancels all the pending tasks.  <a href="classolp_1_1client_1_1_pending_requests.html#afa3e26a5508db62b41db0900a2897a6c">More...</a><br /></td></tr>
 <tr class="separator:afa3e26a5508db62b41db0900a2897a6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5484249ed82aca4171c8ec698b680503"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_pending_requests.html#a5484249ed82aca4171c8ec698b680503">CancelAllAndWait</a> ()</td></tr>
-<tr class="memdesc:a5484249ed82aca4171c8ec698b680503"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancels all pending tasks and waits for all beeing finalized.  <a href="classolp_1_1client_1_1_pending_requests.html#a5484249ed82aca4171c8ec698b680503">More...</a><br /></td></tr>
+<tr class="memdesc:a5484249ed82aca4171c8ec698b680503"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancels all the pending tasks and waits for the tasks that are finalizing.  <a href="classolp_1_1client_1_1_pending_requests.html#a5484249ed82aca4171c8ec698b680503">More...</a><br /></td></tr>
 <tr class="separator:a5484249ed82aca4171c8ec698b680503"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7928bc4b43c863c890c7fe32e80b6512"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_pending_requests.html#a7928bc4b43c863c890c7fe32e80b6512">Insert</a> (<a class="el" href="classolp_1_1client_1_1_task_context.html">TaskContext</a> task_context)</td></tr>
-<tr class="memdesc:a7928bc4b43c863c890c7fe32e80b6512"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts task context into the requests container.  <a href="classolp_1_1client_1_1_pending_requests.html#a7928bc4b43c863c890c7fe32e80b6512">More...</a><br /></td></tr>
+<tr class="memdesc:a7928bc4b43c863c890c7fe32e80b6512"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts the task context into the request container.  <a href="classolp_1_1client_1_1_pending_requests.html#a7928bc4b43c863c890c7fe32e80b6512">More...</a><br /></td></tr>
 <tr class="separator:a7928bc4b43c863c890c7fe32e80b6512"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af5da9fe2855a44a6ae50e4756b8a3295"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_pending_requests.html#af5da9fe2855a44a6ae50e4756b8a3295">Remove</a> (<a class="el" href="classolp_1_1client_1_1_task_context.html">TaskContext</a> task_context)</td></tr>
-<tr class="memdesc:af5da9fe2855a44a6ae50e4756b8a3295"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes a task context.  <a href="classolp_1_1client_1_1_pending_requests.html#af5da9fe2855a44a6ae50e4756b8a3295">More...</a><br /></td></tr>
+<tr class="memdesc:af5da9fe2855a44a6ae50e4756b8a3295"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the task context.  <a href="classolp_1_1client_1_1_pending_requests.html#af5da9fe2855a44a6ae50e4756b8a3295">More...</a><br /></td></tr>
 <tr class="separator:af5da9fe2855a44a6ae50e4756b8a3295"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Container for not yet finished requests. </p>
+<div class="textblock"><p>A container for requests that have not finished yet. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="afa3e26a5508db62b41db0900a2897a6c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afa3e26a5508db62b41db0900a2897a6c">&#9670;&nbsp;</a></span>CancelAll()</h2>
@@ -112,9 +112,9 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Cancels all pending tasks. </p>
-<dl class="section note"><dt>Note</dt><dd>This call does not wait for the tasks to finalize, use <a class="el" href="classolp_1_1client_1_1_pending_requests.html#a5484249ed82aca4171c8ec698b680503" title="Cancels all pending tasks and waits for all beeing finalized.">CancelAllAndWait()</a> to also wait for the tasks to finalize.. </dd></dl>
-<dl class="section return"><dt>Returns</dt><dd>True on success </dd></dl>
+<p>Cancels all the pending tasks. </p>
+<dl class="section note"><dt>Note</dt><dd>This call does not wait for the tasks to finalize. To wait for the tasks to finalize, use <code><a class="el" href="classolp_1_1client_1_1_pending_requests.html#a5484249ed82aca4171c8ec698b680503" title="Cancels all the pending tasks and waits for the tasks that are finalizing.">CancelAllAndWait()</a></code>.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>True on success; false otherwise. </dd></dl>
 
 </div>
 </div>
@@ -133,8 +133,8 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Cancels all pending tasks and waits for all beeing finalized. </p>
-<dl class="section return"><dt>Returns</dt><dd>True on success </dd></dl>
+<p>Cancels all the pending tasks and waits for the tasks that are finalizing. </p>
+<dl class="section return"><dt>Returns</dt><dd>True on success; false otherwise. </dd></dl>
 
 </div>
 </div>
@@ -154,10 +154,10 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Inserts task context into the requests container. </p>
+<p>Inserts the task context into the request container. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">task_context</td><td>Task context. </td></tr>
+    <tr><td class="paramname">task_context</td><td>The <code><a class="el" href="classolp_1_1client_1_1_task_context.html" title="Encapsulates the execution of an asynchronous task and invocation of a callback in a guaranteed manne...">TaskContext</a></code> instance. </td></tr>
   </table>
   </dd>
 </dl>
@@ -180,10 +180,10 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Removes a task context. </p>
+<p>Removes the task context. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">task_context</td><td>Task context. </td></tr>
+    <tr><td class="paramname">task_context</td><td>The <code><a class="el" href="classolp_1_1client_1_1_task_context.html" title="Encapsulates the execution of an asynchronous task and invocation of a callback in a guaranteed manne...">TaskContext</a></code> instance. </td></tr>
   </table>
   </dd>
 </dl>

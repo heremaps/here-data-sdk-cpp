@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -74,15 +74,18 @@ $(function() {
 <li>Callback
 : <a class="el" href="classolp_1_1http_1_1_network.html#af0a5a2c85909ff38ad56d356c557b748">olp::http::Network</a>
 </li>
+<li>callback_
+: <a class="el" href="classolp_1_1client_1_1_task_context_1_1_task_context_impl.html#a0ed230ccde9ebcac99fca1d3b4c37cd0">olp::client::TaskContext::TaskContextImpl&lt; T &gt;</a>
+</li>
+<li>cancel
+: <a class="el" href="structolp_1_1client_1_1_authentication_settings.html#a7e2df1759d3f4689670b1850c8184537">olp::client::AuthenticationSettings</a>
+</li>
 <li>Cancel()
 : <a class="el" href="classolp_1_1client_1_1_cancellation_token.html#a9fc96f9b56644437a0a385760a90d086">olp::client::CancellationToken</a>
 , <a class="el" href="classolp_1_1http_1_1_network.html#a22cbb26cc175c8e28d5d4693e9cf147f">olp::http::Network</a>
 </li>
 <li>CancelAll()
 : <a class="el" href="classolp_1_1client_1_1_pending_requests.html#afa3e26a5508db62b41db0900a2897a6c">olp::client::PendingRequests</a>
-, <a class="el" href="classolp_1_1dataservice_1_1write_1_1_index_layer_client.html#a32f4e39f99c4d37a3b5d24ee3dc8e8a4">olp::dataservice::write::IndexLayerClient</a>
-, <a class="el" href="classolp_1_1dataservice_1_1write_1_1_versioned_layer_client.html#a9228e87fe864ecb1901c34b6c3c64dc0">olp::dataservice::write::VersionedLayerClient</a>
-, <a class="el" href="classolp_1_1dataservice_1_1write_1_1_volatile_layer_client.html#a8fb86cfe8769f015d5c29372a0a64203">olp::dataservice::write::VolatileLayerClient</a>
 </li>
 <li>CancelAllAndWait()
 : <a class="el" href="classolp_1_1client_1_1_pending_requests.html#a5484249ed82aca4171c8ec698b680503">olp::client::PendingRequests</a>
@@ -90,19 +93,36 @@ $(function() {
 <li>CancelBatch()
 : <a class="el" href="classolp_1_1dataservice_1_1write_1_1_versioned_layer_client.html#a07089cdbd334a96de66789c83eb5faa1">olp::dataservice::write::VersionedLayerClient</a>
 </li>
+<li>CancelFuncType
+: <a class="el" href="classolp_1_1client_1_1_cancellation_context.html#adf67a7396c4a4a7ea1e2fc55430ea926">olp::client::CancellationContext</a>
+, <a class="el" href="classolp_1_1client_1_1_cancellation_token.html#a01f7e2c223fe308d507ef02ce8a1a871">olp::client::CancellationToken</a>
+</li>
+<li>CancellableFuture()
+: <a class="el" href="classolp_1_1client_1_1_cancellable_future.html#a21c30273793cc1a9b5bc9c8b67bbd3a7">olp::client::CancellableFuture&lt; T &gt;</a>
+</li>
 <li>CancellationToken()
-: <a class="el" href="classolp_1_1client_1_1_cancellation_token.html#a0b0c663ccd5e644b17edc54d596f1461">olp::client::CancellationToken</a>
+: <a class="el" href="classolp_1_1client_1_1_cancellation_token.html#af145205ad037b8aa289bc6dd12029325">olp::client::CancellationToken</a>
 </li>
 <li>CancelOperation()
 : <a class="el" href="classolp_1_1client_1_1_cancellation_context.html#ab1ebc5c5e88f7ca464336151b9ec054a">olp::client::CancellationContext</a>
 </li>
 <li>CancelPendingRequests()
 : <a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_client.html#a02c32fd84274ebb0a3e89564578a6e14">olp::dataservice::read::CatalogClient</a>
+, <a class="el" href="classolp_1_1dataservice_1_1read_1_1_stream_layer_client.html#a797ca5d2297c904fadb04a69e670cf6d">olp::dataservice::read::StreamLayerClient</a>
 , <a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#a10eb90778415a3d8635ccacac6e8e790">olp::dataservice::read::VersionedLayerClient</a>
 , <a class="el" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html#a8b08111739ba3bb04832b503f450e00a">olp::dataservice::read::VolatileLayerClient</a>
+, <a class="el" href="classolp_1_1dataservice_1_1write_1_1_index_layer_client.html#ae45684f1dc4ed5fb0306b87770e5a38c">olp::dataservice::write::IndexLayerClient</a>
+, <a class="el" href="classolp_1_1dataservice_1_1write_1_1_stream_layer_client.html#a529daa75598f61ace231f9ac5657ef8e">olp::dataservice::write::StreamLayerClient</a>
+, <a class="el" href="classolp_1_1dataservice_1_1write_1_1_versioned_layer_client.html#ac44357979dd5c9bf423458c43515a84c">olp::dataservice::write::VersionedLayerClient</a>
+, <a class="el" href="classolp_1_1dataservice_1_1write_1_1_volatile_layer_client.html#addd510328a9cabe9226b4167df46adc4">olp::dataservice::write::VolatileLayerClient</a>
 </li>
 <li>CancelToken()
 : <a class="el" href="classolp_1_1client_1_1_task_context.html#ab5f6a10b37a8b5c237ec41ec5c471d9f">olp::client::TaskContext</a>
+, <a class="el" href="classolp_1_1client_1_1_task_context_1_1_impl.html#a632f6c830e995421aac52994bee1404c">olp::client::TaskContext::Impl</a>
+, <a class="el" href="classolp_1_1client_1_1_task_context_1_1_task_context_impl.html#aea6dd2db6fd2618cf123eb2ffdad7075">olp::client::TaskContext::TaskContextImpl&lt; T &gt;</a>
+</li>
+<li>CatalogClient()
+: <a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_client.html#ad037e9572a0d8c76d6328c29c57ee809">olp::dataservice::read::CatalogClient</a>
 </li>
 <li>catalogId
 : <a class="el" href="classolp_1_1client_1_1_h_r_n.html#a2a8c1f33e09f62c20714ab08422ea239">olp::client::HRN</a>
@@ -159,8 +179,11 @@ $(function() {
 : <a class="el" href="classolp_1_1utils_1_1_lru_cache.html#a366690852c7d09dc964a3451232448c9">olp::utils::LruCache&lt; Key, Value, CacheCostFunc, Compare, Alloc &gt;</a>
 </li>
 <li>CompleteBatch()
-: <a class="el" href="classolp_1_1dataservice_1_1write_1_1_versioned_layer_client.html#adb59cfba0d7adccefc83aec57f263d40">olp::dataservice::write::VersionedLayerClient</a>
-, <a class="el" href="classolp_1_1dataservice_1_1write_1_1_volatile_layer_client.html#a981b886e102fe66f33057f6c795189f6">olp::dataservice::write::VolatileLayerClient</a>
+: <a class="el" href="classolp_1_1dataservice_1_1write_1_1_versioned_layer_client.html#a1cb0a9049120e11981c49aeb6026bc6c">olp::dataservice::write::VersionedLayerClient</a>
+, <a class="el" href="classolp_1_1dataservice_1_1write_1_1_volatile_layer_client.html#a95abae85ffae091cf74845d4e1d559c8">olp::dataservice::write::VolatileLayerClient</a>
+</li>
+<li>condition_
+: <a class="el" href="classolp_1_1client_1_1_task_context_1_1_task_context_impl.html#a411b226b09f8adb771db013640db234b">olp::client::TaskContext::TaskContextImpl&lt; T &gt;</a>
 </li>
 <li>configure()
 : <a class="el" href="classolp_1_1logging_1_1_log.html#a31d229cfce4a8d8985328733e7aea8e8">olp::logging::Log</a>
@@ -171,11 +194,20 @@ $(function() {
 <li>Construct()
 : <a class="el" href="classolp_1_1utils_1_1_url.html#a6f23cd43f8b00336a8b32c577684b8ba">olp::utils::Url</a>
 </li>
+<li>ConsumerOption()
+: <a class="el" href="classolp_1_1dataservice_1_1read_1_1_consumer_option.html#a121b00b1f14692dd55f7016d96a26081">olp::dataservice::read::ConsumerOption</a>
+</li>
+<li>ConsumerProperties()
+: <a class="el" href="classolp_1_1dataservice_1_1read_1_1_consumer_properties.html#a65336a78dae5225e75425a98ba622625">olp::dataservice::read::ConsumerProperties</a>
+</li>
 <li>Contains()
 : <a class="el" href="classolp_1_1math_1_1_aligned_box.html#adec682b9ca3153e6e227f13eceaeae4b">olp::math::AlignedBox&lt; T, N &gt;</a>
 </li>
 <li>Context()
 : <a class="el" href="classolp_1_1context_1_1_context.html#ae394d282afbc8202250419b223d556cf">olp::context::Context</a>
+</li>
+<li>context_
+: <a class="el" href="classolp_1_1client_1_1_task_context_1_1_task_context_impl.html#acbe742018a94091afe74963ee8a5924f">olp::client::TaskContext::TaskContextImpl&lt; T &gt;</a>
 </li>
 <li>CornerArrayType
 : <a class="el" href="classolp_1_1math_1_1_aligned_box.html#a914cfc9d711d9ba0729f6e9f2506a5c7">olp::math::AlignedBox&lt; T, N &gt;</a>

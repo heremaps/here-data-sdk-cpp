@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -73,28 +73,104 @@ $(function() {
 <div class="title">olp::client::TaskContext::Impl Class Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>An implementation helper interface used to declare the <code>Execute</code>, <code>BlockingCancel</code>, and <code>CancelToken</code> functions used by the <code><a class="el" href="classolp_1_1client_1_1_task_context.html" title="Encapsulates the execution of an asynchronous task and invocation of a callback in a guaranteed manne...">TaskContext</a></code> instance.  
+ <a href="classolp_1_1client_1_1_task_context_1_1_impl.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="_task_context_8h_source.html">TaskContext.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for olp::client::TaskContext::Impl:</div>
 <div class="dyncontent">
  <div class="center">
   <img src="classolp_1_1client_1_1_task_context_1_1_impl.png" usemap="#olp::client::TaskContext::Impl_map" alt=""/>
   <map id="olp::client::TaskContext::Impl_map" name="olp::client::TaskContext::Impl_map">
-<area href="classolp_1_1client_1_1_task_context_1_1_task_context_impl.html" alt="olp::client::TaskContext::TaskContextImpl&lt; T &gt;" shape="rect" coords="0,56,266,80"/>
+<area href="classolp_1_1client_1_1_task_context_1_1_task_context_impl.html" title="Implements the Impl interface." alt="olp::client::TaskContext::TaskContextImpl&lt; T &gt;" shape="rect" coords="0,56,266,80"/>
   </map>
 </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a98fe22cb69077638c27fd714d7edf576"><td class="memItemLeft" align="right" valign="top"><a id="a98fe22cb69077638c27fd714d7edf576"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Execute</b> ()=0</td></tr>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_task_context_1_1_impl.html#a98fe22cb69077638c27fd714d7edf576">Execute</a> ()=0</td></tr>
+<tr class="memdesc:a98fe22cb69077638c27fd714d7edf576"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks for the cancellation, executes the task, and calls the callback with the result or error. <br /></td></tr>
 <tr class="separator:a98fe22cb69077638c27fd714d7edf576"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aab0c0e727f71af2f0cbc5b15c5a3f60c"><td class="memItemLeft" align="right" valign="top"><a id="aab0c0e727f71af2f0cbc5b15c5a3f60c"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>BlockingCancel</b> (std::chrono::milliseconds timeout)=0</td></tr>
+<tr class="memitem:aab0c0e727f71af2f0cbc5b15c5a3f60c"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_task_context_1_1_impl.html#aab0c0e727f71af2f0cbc5b15c5a3f60c">BlockingCancel</a> (std::chrono::milliseconds timeout)=0</td></tr>
+<tr class="memdesc:aab0c0e727f71af2f0cbc5b15c5a3f60c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancels the operation and waits for the notification.  <a href="classolp_1_1client_1_1_task_context_1_1_impl.html#aab0c0e727f71af2f0cbc5b15c5a3f60c">More...</a><br /></td></tr>
 <tr class="separator:aab0c0e727f71af2f0cbc5b15c5a3f60c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a632f6c830e995421aac52994bee1404c"><td class="memItemLeft" align="right" valign="top"><a id="a632f6c830e995421aac52994bee1404c"></a>
-virtual <a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><b>CancelToken</b> ()=0</td></tr>
+<tr class="memitem:a632f6c830e995421aac52994bee1404c"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_task_context_1_1_impl.html#a632f6c830e995421aac52994bee1404c">CancelToken</a> ()=0</td></tr>
+<tr class="memdesc:a632f6c830e995421aac52994bee1404c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides a token to cancel the task.  <a href="classolp_1_1client_1_1_task_context_1_1_impl.html#a632f6c830e995421aac52994bee1404c">More...</a><br /></td></tr>
 <tr class="separator:a632f6c830e995421aac52994bee1404c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>An implementation helper interface used to declare the <code>Execute</code>, <code>BlockingCancel</code>, and <code>CancelToken</code> functions used by the <code><a class="el" href="classolp_1_1client_1_1_task_context.html" title="Encapsulates the execution of an asynchronous task and invocation of a callback in a guaranteed manne...">TaskContext</a></code> instance. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="aab0c0e727f71af2f0cbc5b15c5a3f60c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aab0c0e727f71af2f0cbc5b15c5a3f60c">&#9670;&nbsp;</a></span>BlockingCancel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool olp::client::TaskContext::Impl::BlockingCancel </td>
+          <td>(</td>
+          <td class="paramtype">std::chrono::milliseconds&#160;</td>
+          <td class="paramname"><em>timeout</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Cancels the operation and waits for the notification. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">timeout</td><td>The time (in milliseconds) to wait for the task to finish.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>True if the notification is returned before the timeout; false otherwise. </dd></dl>
+
+<p>Implemented in <a class="el" href="classolp_1_1client_1_1_task_context_1_1_task_context_impl.html#ad866176c1a044b832298b24cf95b1b95">olp::client::TaskContext::TaskContextImpl&lt; T &gt;</a>.</p>
+
+</div>
+</div>
+<a id="a632f6c830e995421aac52994bee1404c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a632f6c830e995421aac52994bee1404c">&#9670;&nbsp;</a></span>CancelToken()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a> olp::client::TaskContext::Impl::CancelToken </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Provides a token to cancel the task. </p>
+<dl class="section return"><dt>Returns</dt><dd>The <code><a class="el" href="classolp_1_1client_1_1_cancellation_token.html" title="Cancels service requests.">CancellationToken</a></code> instance. </dd></dl>
+
+<p>Implemented in <a class="el" href="classolp_1_1client_1_1_task_context_1_1_task_context_impl.html#aea6dd2db6fd2618cf123eb2ffdad7075">olp::client::TaskContext::TaskContextImpl&lt; T &gt;</a>.</p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>olp-cpp-sdk-core/include/olp/core/client/<a class="el" href="_task_context_8h_source.html">TaskContext.h</a></li>
 </ul>

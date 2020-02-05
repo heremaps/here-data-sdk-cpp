@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -99,6 +99,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1_network_settings.html">NetworkSettings</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class contains configuration for the network.  <a href="classolp_1_1http_1_1_network_settings.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1_network_utils.html">NetworkUtils</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classolp_1_1http_1_1_network.html" title="The Network class represents HTTP client abstraction.">Network</a> internal utilities.  <a href="classolp_1_1http_1_1_network_utils.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1_send_outcome.html">SendOutcome</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper class representing the outcome of making a network request. It will contain either a valid RequestId or the error code in case request trigger failed. The caller must check whether the outcome of the request was a success before attempting to access the result or the error.  <a href="classolp_1_1http_1_1_send_outcome.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -146,6 +149,9 @@ CORE_API std::shared_ptr&lt; <a class="el" href="classolp_1_1http_1_1_network.ht
 CORE_API std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1http.html#aa8aa1b3eaa94d47031f24abc93255e80">ErrorCodeToString</a> (<a class="el" href="namespaceolp_1_1http.html#a61c765861938a212070d01911a6b6a17">ErrorCode</a> code)</td></tr>
 <tr class="memdesc:aa8aa1b3eaa94d47031f24abc93255e80"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper function used to convert error code to human readable string. <br /></td></tr>
 <tr class="separator:aa8aa1b3eaa94d47031f24abc93255e80"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9540df2ff1a364feda8d6b818bb34ca0"><td class="memItemLeft" align="right" valign="top"><a id="a9540df2ff1a364feda8d6b818bb34ca0"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>HttpErrorToString</b> (int error)</td></tr>
+<tr class="separator:a9540df2ff1a364feda8d6b818bb34ca0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The HTTP namespace provides a platform specific network abstraction layer. </p>

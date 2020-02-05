@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -101,34 +101,34 @@ $(function() {
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;<span class="keyword">namespace </span>authentication {</div>
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="keyword">class </span>SignOutResultImpl;</div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160; </div>
-<div class="line"><a name="l00036"></a><span class="lineno"><a class="line" href="classolp_1_1authentication_1_1_sign_out_result.html">   36</a></span>&#160;<span class="keyword">class </span>AUTHENTICATION_API <a class="code" href="classolp_1_1authentication_1_1_sign_out_result.html">SignOutResult</a> {</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;  <span class="keyword">virtual</span> ~<a class="code" href="classolp_1_1authentication_1_1_sign_out_result.html">SignOutResult</a>();</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160; </div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;  <a class="code" href="classolp_1_1authentication_1_1_sign_out_result.html">SignOutResult</a>() noexcept;</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160; </div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;  <span class="keywordtype">int</span> GetStatus() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160; </div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;  <span class="keyword">const</span> <a class="code" href="structolp_1_1authentication_1_1_error_response.html">ErrorResponse</a>&amp; GetErrorResponse() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160; </div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;  <span class="keyword">const</span> <a class="code" href="namespaceolp_1_1authentication.html#aee1f6de5b659eb659c18eeb171dc4a02">ErrorFields</a>&amp; GetErrorFields() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00040"></a><span class="lineno"><a class="line" href="classolp_1_1authentication_1_1_sign_out_result.html">   40</a></span>&#160;<span class="keyword">class </span>AUTHENTICATION_API <a class="code" href="classolp_1_1authentication_1_1_sign_out_result.html">SignOutResult</a> {</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;  <span class="keyword">virtual</span> ~<a class="code" href="classolp_1_1authentication_1_1_sign_out_result.html">SignOutResult</a>();</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160; </div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;  <a class="code" href="classolp_1_1authentication_1_1_sign_out_result.html">SignOutResult</a>() noexcept;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;  <span class="keywordtype">int</span> GetStatus() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160; </div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;  <span class="keyword">const</span> <a class="code" href="structolp_1_1authentication_1_1_error_response.html">ErrorResponse</a>&amp; GetErrorResponse() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160; </div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160; <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;  <span class="keyword">friend</span> <span class="keyword">class </span><a class="code" href="classolp_1_1authentication_1_1_authentication_client.html">AuthenticationClient</a>;</div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160; </div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;  <a class="code" href="classolp_1_1authentication_1_1_sign_out_result.html">SignOutResult</a>(std::shared_ptr&lt;SignOutResultImpl&gt; impl);</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160; </div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160; <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;  std::shared_ptr&lt;SignOutResultImpl&gt; impl_;</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;};</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;}  <span class="comment">// namespace authentication</span></div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;  <span class="keyword">const</span> <a class="code" href="namespaceolp_1_1authentication.html#aee1f6de5b659eb659c18eeb171dc4a02">ErrorFields</a>&amp; GetErrorFields() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160; </div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160; <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;  <span class="keyword">friend</span> <span class="keyword">class </span><a class="code" href="classolp_1_1authentication_1_1_authentication_client.html">AuthenticationClient</a>;</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160; </div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;  <a class="code" href="classolp_1_1authentication_1_1_sign_out_result.html">SignOutResult</a>(std::shared_ptr&lt;SignOutResultImpl&gt; impl);</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160; </div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160; <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;  std::shared_ptr&lt;SignOutResultImpl&gt; impl_;</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;};</div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;}  <span class="comment">// namespace authentication</span></div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;}  <span class="comment">// namespace olp</span></div>
 </div><!-- fragment --></div><!-- contents -->
-<div class="ttc" id="anamespaceolp_1_1authentication_html_aee1f6de5b659eb659c18eeb171dc4a02"><div class="ttname"><a href="namespaceolp_1_1authentication.html#aee1f6de5b659eb659c18eeb171dc4a02">olp::authentication::ErrorFields</a></div><div class="ttdeci">std::list&lt; ErrorField &gt; ErrorFields</div><div class="ttdoc">ErrorFields - List of ErrorField objects.</div><div class="ttdef"><b>Definition:</b> ErrorResponse.h:68</div></div>
-<div class="ttc" id="aclassolp_1_1authentication_1_1_sign_out_result_html"><div class="ttname"><a href="classolp_1_1authentication_1_1_sign_out_result.html">olp::authentication::SignOutResult</a></div><div class="ttdoc">The SignOutResult class represents the response to a user sign-out operation.</div><div class="ttdef"><b>Definition:</b> SignOutResult.h:36</div></div>
-<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">olp namespace</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:43</div></div>
-<div class="ttc" id="astructolp_1_1authentication_1_1_error_response_html"><div class="ttname"><a href="structolp_1_1authentication_1_1_error_response.html">olp::authentication::ErrorResponse</a></div><div class="ttdoc">These stucts contain detailed descriptions of the errors returned as part of the response for authent...</div><div class="ttdef"><b>Definition:</b> ErrorResponse.h:33</div></div>
-<div class="ttc" id="aclassolp_1_1authentication_1_1_authentication_client_html"><div class="ttname"><a href="classolp_1_1authentication_1_1_authentication_client.html">olp::authentication::AuthenticationClient</a></div><div class="ttdoc">AuthenticationClient is a C++ client API class that provides programatic access to HERE Account authe...</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:67</div></div>
+<div class="ttc" id="anamespaceolp_1_1authentication_html_aee1f6de5b659eb659c18eeb171dc4a02"><div class="ttname"><a href="namespaceolp_1_1authentication.html#aee1f6de5b659eb659c18eeb171dc4a02">olp::authentication::ErrorFields</a></div><div class="ttdeci">std::list&lt; ErrorField &gt; ErrorFields</div><div class="ttdoc">The list of the ErrorField objects.</div><div class="ttdef"><b>Definition:</b> ErrorResponse.h:72</div></div>
+<div class="ttc" id="aclassolp_1_1authentication_1_1_sign_out_result_html"><div class="ttname"><a href="classolp_1_1authentication_1_1_sign_out_result.html">olp::authentication::SignOutResult</a></div><div class="ttdoc">A response to your sign-out operation.</div><div class="ttdef"><b>Definition:</b> SignOutResult.h:40</div></div>
+<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">The olp namespace.</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:43</div></div>
+<div class="ttc" id="astructolp_1_1authentication_1_1_error_response_html"><div class="ttname"><a href="structolp_1_1authentication_1_1_error_response.html">olp::authentication::ErrorResponse</a></div><div class="ttdoc">Detailed descriptions of errors returned as a response to an authentication operation.</div><div class="ttdef"><b>Definition:</b> ErrorResponse.h:36</div></div>
+<div class="ttc" id="aclassolp_1_1authentication_1_1_authentication_client_html"><div class="ttname"><a href="classolp_1_1authentication_1_1_authentication_client.html">olp::authentication::AuthenticationClient</a></div><div class="ttdoc">An API class of the C++ client that provides programmatic access to the HERE Account authentication s...</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:68</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

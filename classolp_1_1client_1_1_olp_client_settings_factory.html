@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -74,7 +74,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Factory that helps to fill-in <a class="el" href="structolp_1_1client_1_1_olp_client_settings.html" title="OlpClient settings class. Use this class to configure the behaviour of the OlpClient.">OlpClientSettings</a> structure with various default handlers.  
+<p>Fills in the <code><a class="el" href="structolp_1_1client_1_1_olp_client_settings.html" title="Configures the behavior of the OlpClient class.">OlpClientSettings</a></code> structure with default handlers.  
  <a href="classolp_1_1client_1_1_olp_client_settings_factory.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_olp_client_settings_factory_8h_source.html">OlpClientSettingsFactory.h</a>&gt;</code></p>
@@ -82,17 +82,17 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a67f547a761b34910c5b60f8b6e1233c1"><td class="memItemLeft" align="right" valign="top">static std::unique_ptr&lt; thread::TaskScheduler &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client_settings_factory.html#a67f547a761b34910c5b60f8b6e1233c1">CreateDefaultTaskScheduler</a> (size_t thread_count=1u)</td></tr>
-<tr class="memdesc:a67f547a761b34910c5b60f8b6e1233c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a TaskScheduler instance used for all delayed operations, which is defaulted to <a class="el" href="classolp_1_1thread_1_1_thread_pool_task_scheduler.html">olp::thread::ThreadPoolTaskScheduler</a> with one worker thread spawned by default.  <a href="classolp_1_1client_1_1_olp_client_settings_factory.html#a67f547a761b34910c5b60f8b6e1233c1">More...</a><br /></td></tr>
+<tr class="memdesc:a67f547a761b34910c5b60f8b6e1233c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code>TaskScheduler</code> instance used for all the delayed operations.  <a href="classolp_1_1client_1_1_olp_client_settings_factory.html#a67f547a761b34910c5b60f8b6e1233c1">More...</a><br /></td></tr>
 <tr class="separator:a67f547a761b34910c5b60f8b6e1233c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2d7121fa1c55ec4c339f3378f7078dd2"><td class="memItemLeft" align="right" valign="top">static std::shared_ptr&lt; <a class="el" href="classolp_1_1http_1_1_network.html">http::Network</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client_settings_factory.html#a2d7121fa1c55ec4c339f3378f7078dd2">CreateDefaultNetworkRequestHandler</a> (size_t max_requests_count=30u)</td></tr>
-<tr class="memdesc:a2d7121fa1c55ec4c339f3378f7078dd2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a Network instance used for all non-local requests, which is defaulted to platform-specific implementation.  <a href="classolp_1_1client_1_1_olp_client_settings_factory.html#a2d7121fa1c55ec4c339f3378f7078dd2">More...</a><br /></td></tr>
+<tr class="memdesc:a2d7121fa1c55ec4c339f3378f7078dd2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code>Network</code> instance used for all the non-local requests.  <a href="classolp_1_1client_1_1_olp_client_settings_factory.html#a2d7121fa1c55ec4c339f3378f7078dd2">More...</a><br /></td></tr>
 <tr class="separator:a2d7121fa1c55ec4c339f3378f7078dd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d61076b1036e6a2d216b8811f894c23"><td class="memItemLeft" align="right" valign="top">static std::unique_ptr&lt; <a class="el" href="classolp_1_1cache_1_1_key_value_cache.html">cache::KeyValueCache</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client_settings_factory.html#a0d61076b1036e6a2d216b8811f894c23">CreateDefaultCache</a> (const <a class="el" href="structolp_1_1cache_1_1_cache_settings.html">cache::CacheSettings</a> &amp;settings)</td></tr>
-<tr class="memdesc:a0d61076b1036e6a2d216b8811f894c23"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a KeyValueCache instance that includes both a small in-memory LRU cache and a larger persistent database cache. The returned cache instance is initialized, opened and ready to be used.  <a href="classolp_1_1client_1_1_olp_client_settings_factory.html#a0d61076b1036e6a2d216b8811f894c23">More...</a><br /></td></tr>
+<tr class="memdesc:a0d61076b1036e6a2d216b8811f894c23"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code>KeyValueCache</code> instance that includes both a small in-memory LRU cache and a larger persistent database cache.  <a href="classolp_1_1client_1_1_olp_client_settings_factory.html#a0d61076b1036e6a2d216b8811f894c23">More...</a><br /></td></tr>
 <tr class="separator:a0d61076b1036e6a2d216b8811f894c23"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Factory that helps to fill-in <a class="el" href="structolp_1_1client_1_1_olp_client_settings.html" title="OlpClient settings class. Use this class to configure the behaviour of the OlpClient.">OlpClientSettings</a> structure with various default handlers. </p>
+<div class="textblock"><p>Fills in the <code><a class="el" href="structolp_1_1client_1_1_olp_client_settings.html" title="Configures the behavior of the OlpClient class.">OlpClientSettings</a></code> structure with default handlers. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a0d61076b1036e6a2d216b8811f894c23"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0d61076b1036e6a2d216b8811f894c23">&#9670;&nbsp;</a></span>CreateDefaultCache()</h2>
@@ -118,15 +118,16 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Creates a KeyValueCache instance that includes both a small in-memory LRU cache and a larger persistent database cache. The returned cache instance is initialized, opened and ready to be used. </p>
-<dl class="section note"><dt>Note</dt><dd>The database cache is only created if the provided CacheSettings include a valid disk path with according write permissions set. </dd></dl>
+<p>Creates the <code>KeyValueCache</code> instance that includes both a small in-memory LRU cache and a larger persistent database cache. </p>
+<p>The returned cache instance is initialized, opened, and ready to be used.</p>
+<dl class="section note"><dt>Note</dt><dd>The database cache is only created if the provided <code>CacheSettings</code> instance includes a valid disk path with the corresponding write permissions set.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">settings</td><td>The cache settings. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">settings</td><td>The <code>CacheSettings</code> instance.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>An instance of KeyValueCache. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The <code>KeyValueCache</code> instance. </dd></dl>
 
 </div>
 </div>
@@ -154,8 +155,9 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Creates a Network instance used for all non-local requests, which is defaulted to platform-specific implementation. </p>
-<dl class="section return"><dt>Returns</dt><dd>An instance of Network. </dd></dl>
+<p>Creates the <code>Network</code> instance used for all the non-local requests. </p>
+<p>Defaulted to platform-specific implementation.</p>
+<dl class="section return"><dt>Returns</dt><dd>The <code>Network</code> instance. </dd></dl>
 
 </div>
 </div>
@@ -183,8 +185,9 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Creates a TaskScheduler instance used for all delayed operations, which is defaulted to <a class="el" href="classolp_1_1thread_1_1_thread_pool_task_scheduler.html">olp::thread::ThreadPoolTaskScheduler</a> with one worker thread spawned by default. </p>
-<dl class="section return"><dt>Returns</dt><dd>An instance of TaskScheduler. </dd></dl>
+<p>Creates the <code>TaskScheduler</code> instance used for all the delayed operations. </p>
+<p>Defaulted to <code><a class="el" href="classolp_1_1thread_1_1_thread_pool_task_scheduler.html">olp::thread::ThreadPoolTaskScheduler</a></code> with one worker thread spawned by default.</p>
+<dl class="section return"><dt>Returns</dt><dd>The <code>TaskScheduler</code> instance. </dd></dl>
 
 </div>
 </div>

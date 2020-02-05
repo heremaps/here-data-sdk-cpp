@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -74,7 +74,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>The TokenResponse class represents a parsed response received from an OAuth2.0 token endpoint.  
+<p>A parsed response received from the OAuth2.0 token endpoint.  
  <a href="classolp_1_1authentication_1_1_token_result.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_token_result_8h_source.html">TokenResult.h</a>&gt;</code></p>
@@ -82,30 +82,34 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a922455af93d502936583264581850201"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_token_result.html#a922455af93d502936583264581850201">TokenResult</a> (std::string access_token, time_t expiry_time, int http_status, <a class="el" href="structolp_1_1authentication_1_1_error_response.html">ErrorResponse</a> error)</td></tr>
-<tr class="memdesc:a922455af93d502936583264581850201"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <a href="classolp_1_1authentication_1_1_token_result.html#a922455af93d502936583264581850201">More...</a><br /></td></tr>
+<tr class="memdesc:a922455af93d502936583264581850201"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1authentication_1_1_token_result.html" title="A parsed response received from the OAuth2.0 token endpoint.">TokenResult</a></code> instance.  <a href="classolp_1_1authentication_1_1_token_result.html#a922455af93d502936583264581850201">More...</a><br /></td></tr>
 <tr class="separator:a922455af93d502936583264581850201"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59652e136fd0ffa5fcf97e0e86a88eb9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_token_result.html#a59652e136fd0ffa5fcf97e0e86a88eb9">TokenResult</a> (std::string access_token, std::chrono::seconds expires_in, int http_status, <a class="el" href="structolp_1_1authentication_1_1_error_response.html">ErrorResponse</a> error)</td></tr>
+<tr class="memdesc:a59652e136fd0ffa5fcf97e0e86a88eb9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1authentication_1_1_token_result.html" title="A parsed response received from the OAuth2.0 token endpoint.">TokenResult</a></code> instance.  <a href="classolp_1_1authentication_1_1_token_result.html#a59652e136fd0ffa5fcf97e0e86a88eb9">More...</a><br /></td></tr>
+<tr class="separator:a59652e136fd0ffa5fcf97e0e86a88eb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab9d782b2173a488484965e8efd59bc0c"><td class="memItemLeft" align="right" valign="top"><a id="ab9d782b2173a488484965e8efd59bc0c"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_token_result.html#ab9d782b2173a488484965e8efd59bc0c">TokenResult</a> ()=default</td></tr>
-<tr class="memdesc:ab9d782b2173a488484965e8efd59bc0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor. <br /></td></tr>
+<tr class="memdesc:ab9d782b2173a488484965e8efd59bc0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the default <code><a class="el" href="classolp_1_1authentication_1_1_token_result.html" title="A parsed response received from the OAuth2.0 token endpoint.">TokenResult</a></code> instance. <br /></td></tr>
 <tr class="separator:ab9d782b2173a488484965e8efd59bc0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab27b220ace32030a90fae3b1446f5275"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_token_result.html#ab27b220ace32030a90fae3b1446f5275">TokenResult</a> (const <a class="el" href="classolp_1_1authentication_1_1_token_result.html">TokenResult</a> &amp;other)</td></tr>
-<tr class="memdesc:ab27b220ace32030a90fae3b1446f5275"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy Constructor.  <a href="classolp_1_1authentication_1_1_token_result.html#ab27b220ace32030a90fae3b1446f5275">More...</a><br /></td></tr>
-<tr class="separator:ab27b220ace32030a90fae3b1446f5275"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adf0668a51c4a78899c2b221e4730f959"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_token_result.html#adf0668a51c4a78899c2b221e4730f959">GetAccessToken</a> () const</td></tr>
 <tr class="memdesc:adf0668a51c4a78899c2b221e4730f959"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the access token issued by the authorization server.  <a href="classolp_1_1authentication_1_1_token_result.html#adf0668a51c4a78899c2b221e4730f959">More...</a><br /></td></tr>
 <tr class="separator:adf0668a51c4a78899c2b221e4730f959"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a17394be02ae07648efc4a6a2fea11edb"><td class="memItemLeft" align="right" valign="top">time_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_token_result.html#a17394be02ae07648efc4a6a2fea11edb">GetExpiryTime</a> () const</td></tr>
-<tr class="memdesc:a17394be02ae07648efc4a6a2fea11edb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the Epoch time when the token is expiring, -1 for invalid.  <a href="classolp_1_1authentication_1_1_token_result.html#a17394be02ae07648efc4a6a2fea11edb">More...</a><br /></td></tr>
+<tr class="memdesc:a17394be02ae07648efc4a6a2fea11edb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the Epoch time when the token expires, or -1 if the token is invalid.  <a href="classolp_1_1authentication_1_1_token_result.html#a17394be02ae07648efc4a6a2fea11edb">More...</a><br /></td></tr>
 <tr class="separator:a17394be02ae07648efc4a6a2fea11edb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3686b5bc4086ac3e1bcc4a5b34dc4a6a"><td class="memItemLeft" align="right" valign="top">std::chrono::seconds&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_token_result.html#a3686b5bc4086ac3e1bcc4a5b34dc4a6a">GetExpiresIn</a> () const</td></tr>
+<tr class="memdesc:a3686b5bc4086ac3e1bcc4a5b34dc4a6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the access token expiry time in seconds.  <a href="classolp_1_1authentication_1_1_token_result.html#a3686b5bc4086ac3e1bcc4a5b34dc4a6a">More...</a><br /></td></tr>
+<tr class="separator:a3686b5bc4086ac3e1bcc4a5b34dc4a6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab679aca12442c444440b24078679e41d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_token_result.html#ab679aca12442c444440b24078679e41d">GetHttpStatus</a> () const</td></tr>
-<tr class="memdesc:ab679aca12442c444440b24078679e41d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Status code of the HTTP response, if a positive value returned. A negative value indicates a possible networking issue (retrying the request is recommended).  <a href="classolp_1_1authentication_1_1_token_result.html#ab679aca12442c444440b24078679e41d">More...</a><br /></td></tr>
+<tr class="memdesc:ab679aca12442c444440b24078679e41d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the HTTP status code.  <a href="classolp_1_1authentication_1_1_token_result.html#ab679aca12442c444440b24078679e41d">More...</a><br /></td></tr>
 <tr class="separator:ab679aca12442c444440b24078679e41d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a679b20c893e19a99c370c2bbde6689d4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structolp_1_1authentication_1_1_error_response.html">ErrorResponse</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_token_result.html#a679b20c893e19a99c370c2bbde6689d4">GetErrorResponse</a> () const</td></tr>
-<tr class="memdesc:a679b20c893e19a99c370c2bbde6689d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Error description for the request.  <a href="classolp_1_1authentication_1_1_token_result.html#a679b20c893e19a99c370c2bbde6689d4">More...</a><br /></td></tr>
+<tr class="memdesc:a679b20c893e19a99c370c2bbde6689d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets an error description.  <a href="classolp_1_1authentication_1_1_token_result.html#a679b20c893e19a99c370c2bbde6689d4">More...</a><br /></td></tr>
 <tr class="separator:a679b20c893e19a99c370c2bbde6689d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The TokenResponse class represents a parsed response received from an OAuth2.0 token endpoint. </p>
+<div class="textblock"><p>A parsed response received from the OAuth2.0 token endpoint. </p>
+<p>You can get the following information: the access token issued by the authorization server ( <a class="el" href="classolp_1_1authentication_1_1_token_result.html#adf0668a51c4a78899c2b221e4730f959">GetAccessToken</a> ), its expiry time ( <a class="el" href="classolp_1_1authentication_1_1_token_result.html#a17394be02ae07648efc4a6a2fea11edb">GetExpiryTime</a> ), HTTP status code ( <a class="el" href="classolp_1_1authentication_1_1_token_result.html#ab679aca12442c444440b24078679e41d">GetHttpStatus</a> ), and error description ( <a class="el" href="classolp_1_1authentication_1_1_token_result.html#a679b20c893e19a99c370c2bbde6689d4">GetErrorResponse</a> ) in case of a failure. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a922455af93d502936583264581850201"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a922455af93d502936583264581850201">&#9670;&nbsp;</a></span>TokenResult() <span class="overload">[1/2]</span></h2>
@@ -145,21 +149,21 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Constructor. </p>
+<p>Creates the <code><a class="el" href="classolp_1_1authentication_1_1_token_result.html" title="A parsed response received from the OAuth2.0 token endpoint.">TokenResult</a></code> instance. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">access_token</td><td>The access token issued by the authorization server. </td></tr>
-    <tr><td class="paramname">expiry_time</td><td>Epoch time when the token is expiring, -1 for invalid. </td></tr>
-    <tr><td class="paramname">http_status</td><td>Status code of the HTTP response, if a positive value returned. A negative value indicates a possible networking issue (retrying the request is recommended) </td></tr>
-    <tr><td class="paramname">error</td><td>Error description for the request. </td></tr>
+    <tr><td class="paramname">expiry_time</td><td>The Epoch time when the token expires, or -1 if the token is invalid. </td></tr>
+    <tr><td class="paramname">http_status</td><td>The status code of the HTTP response. </td></tr>
+    <tr><td class="paramname">error</td><td>The error description of the request. </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="ab27b220ace32030a90fae3b1446f5275"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab27b220ace32030a90fae3b1446f5275">&#9670;&nbsp;</a></span>TokenResult() <span class="overload">[2/2]</span></h2>
+<a id="a59652e136fd0ffa5fcf97e0e86a88eb9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a59652e136fd0ffa5fcf97e0e86a88eb9">&#9670;&nbsp;</a></span>TokenResult() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -167,17 +171,42 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">olp::authentication::TokenResult::TokenResult </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classolp_1_1authentication_1_1_token_result.html">TokenResult</a> &amp;&#160;</td>
-          <td class="paramname"><em>other</em></td><td>)</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>access_token</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">std::chrono::seconds&#160;</td>
+          <td class="paramname"><em>expires_in</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>http_status</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structolp_1_1authentication_1_1_error_response.html">ErrorResponse</a>&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Copy Constructor. </p>
+<p>Creates the <code><a class="el" href="classolp_1_1authentication_1_1_token_result.html" title="A parsed response received from the OAuth2.0 token endpoint.">TokenResult</a></code> instance. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">other</td><td>the object to copy from </td></tr>
+    <tr><td class="paramname">access_token</td><td>The access token issued by the authorization server. </td></tr>
+    <tr><td class="paramname">expires_in</td><td>Duration for which token stays valid. </td></tr>
+    <tr><td class="paramname">http_status</td><td>The status code of the HTTP response. </td></tr>
+    <tr><td class="paramname">error</td><td>The error description of the request. </td></tr>
   </table>
   </dd>
 </dl>
@@ -201,7 +230,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Gets the access token issued by the authorization server. </p>
-<dl class="section return"><dt>Returns</dt><dd>access token issued by the authorization server. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The access token issued by the authorization server. </dd></dl>
 
 </div>
 </div>
@@ -220,8 +249,28 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Error description for the request. </p>
-<dl class="section return"><dt>Returns</dt><dd>Error description for the request. </dd></dl>
+<p>Gets an error description. </p>
+<dl class="section return"><dt>Returns</dt><dd>The error description of the failed request. </dd></dl>
+
+</div>
+</div>
+<a id="a3686b5bc4086ac3e1bcc4a5b34dc4a6a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3686b5bc4086ac3e1bcc4a5b34dc4a6a">&#9670;&nbsp;</a></span>GetExpiresIn()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::chrono::seconds olp::authentication::TokenResult::GetExpiresIn </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the access token expiry time in seconds. </p>
+<dl class="section return"><dt>Returns</dt><dd>Duration for which token stays valid. </dd></dl>
 
 </div>
 </div>
@@ -240,8 +289,8 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Gets the Epoch time when the token is expiring, -1 for invalid. </p>
-<dl class="section return"><dt>Returns</dt><dd>Epoch time when the token is expiring, -1 for invalid. </dd></dl>
+<p>Gets the Epoch time when the token expires, or -1 if the token is invalid. </p>
+<dl class="section return"><dt>Returns</dt><dd>The Epoch time when the token expires, or -1 if the token is invalid. </dd></dl>
 
 </div>
 </div>
@@ -260,8 +309,8 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Status code of the HTTP response, if a positive value returned. A negative value indicates a possible networking issue (retrying the request is recommended). </p>
-<dl class="section return"><dt>Returns</dt><dd>Status code of the HTTP response </dd></dl>
+<p>Gets the HTTP status code. </p>
+<dl class="section return"><dt>Returns</dt><dd>The status code of the HTTP response if a positive value is returned. A negative value indicates a possible networking error. If you get the negative value, retry the request. </dd></dl>
 
 </div>
 </div>

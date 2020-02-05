@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -74,59 +74,59 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>The <a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="The DataRequest class encapsulates the fields required to request the data for a given catalog and la...">DataRequest</a> class encapsulates the fields required to request the data for a given catalog and layer and partition (aka tile).  
+<p>Encapsulates the fields required to request data for the given catalog, layer, and partition.  
  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_data_request_8h_source.html">DataRequest.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a7e61d2342b017acce67c08ccd6c712eb"><td class="memItemLeft" align="right" valign="top">const boost::optional&lt; std::string &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a7e61d2342b017acce67c08ccd6c712eb">GetPartitionId</a> () const</td></tr>
-<tr class="memdesc:a7e61d2342b017acce67c08ccd6c712eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">GetPartitionId gets the request's Partition Id.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a7e61d2342b017acce67c08ccd6c712eb">More...</a><br /></td></tr>
-<tr class="separator:a7e61d2342b017acce67c08ccd6c712eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab1c76cb5377a46bdf3e5d8ced9f2a423"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#ab1c76cb5377a46bdf3e5d8ced9f2a423">WithPartitionId</a> (boost::optional&lt; std::string &gt; partitionId)</td></tr>
-<tr class="memdesc:ab1c76cb5377a46bdf3e5d8ced9f2a423"><td class="mdescLeft">&#160;</td><td class="mdescRight">WithPartitionId sets the request's Partition Id. If the partition cannot be found in the layer, the callback will come back with an empty response (null for data and error)  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#ab1c76cb5377a46bdf3e5d8ced9f2a423">More...</a><br /></td></tr>
-<tr class="separator:ab1c76cb5377a46bdf3e5d8ced9f2a423"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adc3e2d9881628094f942a09d289b1783"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#adc3e2d9881628094f942a09d289b1783">WithPartitionId</a> (std::string &amp;&amp;partitionId)</td></tr>
-<tr class="memdesc:adc3e2d9881628094f942a09d289b1783"><td class="mdescLeft">&#160;</td><td class="mdescRight">WithPartitionId sets the request's Partition Id. If the partition cannot be found in the layer, the callback will come back with an empty response (null for data and error).  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#adc3e2d9881628094f942a09d289b1783">More...</a><br /></td></tr>
-<tr class="separator:adc3e2d9881628094f942a09d289b1783"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9e2a67d64b16a6b1bb212b417f367bae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a9e2a67d64b16a6b1bb212b417f367bae">WithVersion</a> (boost::optional&lt; int64_t &gt; catalogMetadataVersion)</td></tr>
-<tr class="memdesc:a9e2a67d64b16a6b1bb212b417f367bae"><td class="mdescLeft">&#160;</td><td class="mdescRight">WithVersion sets the catalog metadata version of the request.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a9e2a67d64b16a6b1bb212b417f367bae">More...</a><br /></td></tr>
-<tr class="separator:a9e2a67d64b16a6b1bb212b417f367bae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4edcf41dcc84fdabc988e69de77b2ac6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a4edcf41dcc84fdabc988e69de77b2ac6">WithVersion</a> (boost::optional&lt; int64_t &gt; catalog_version)</td></tr>
+<tr class="memdesc:a4edcf41dcc84fdabc988e69de77b2ac6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the catalog metadata version.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a4edcf41dcc84fdabc988e69de77b2ac6">More...</a><br /></td></tr>
+<tr class="separator:a4edcf41dcc84fdabc988e69de77b2ac6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a74400c1e6ea847fb704677ca17ed264d"><td class="memItemLeft" align="right" valign="top">const boost::optional&lt; std::int64_t &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a74400c1e6ea847fb704677ca17ed264d">GetVersion</a> () const</td></tr>
-<tr class="memdesc:a74400c1e6ea847fb704677ca17ed264d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the catalog metadata version requested for the partitions.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a74400c1e6ea847fb704677ca17ed264d">More...</a><br /></td></tr>
+<tr class="memdesc:a74400c1e6ea847fb704677ca17ed264d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the catalog metadata version of the requested partitions.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a74400c1e6ea847fb704677ca17ed264d">More...</a><br /></td></tr>
 <tr class="separator:a74400c1e6ea847fb704677ca17ed264d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e61d2342b017acce67c08ccd6c712eb"><td class="memItemLeft" align="right" valign="top">const boost::optional&lt; std::string &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a7e61d2342b017acce67c08ccd6c712eb">GetPartitionId</a> () const</td></tr>
+<tr class="memdesc:a7e61d2342b017acce67c08ccd6c712eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the ID of the requested partition.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a7e61d2342b017acce67c08ccd6c712eb">More...</a><br /></td></tr>
+<tr class="separator:a7e61d2342b017acce67c08ccd6c712eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a139365b58b0514546d6bc9a118c83a84"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a139365b58b0514546d6bc9a118c83a84">WithPartitionId</a> (boost::optional&lt; std::string &gt; partition_id)</td></tr>
+<tr class="memdesc:a139365b58b0514546d6bc9a118c83a84"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the partition ID.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a139365b58b0514546d6bc9a118c83a84">More...</a><br /></td></tr>
+<tr class="separator:a139365b58b0514546d6bc9a118c83a84"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae327529be34cf0df0b62b5a4f15a97ec"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#ae327529be34cf0df0b62b5a4f15a97ec">WithPartitionId</a> (std::string &amp;&amp;partition_id)</td></tr>
+<tr class="memdesc:ae327529be34cf0df0b62b5a4f15a97ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the partition ID.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#ae327529be34cf0df0b62b5a4f15a97ec">More...</a><br /></td></tr>
+<tr class="separator:ae327529be34cf0df0b62b5a4f15a97ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a06b6c1508f383a237eeb356058071fef"><td class="memItemLeft" align="right" valign="top">const boost::optional&lt; std::string &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a06b6c1508f383a237eeb356058071fef">GetDataHandle</a> () const</td></tr>
-<tr class="memdesc:a06b6c1508f383a237eeb356058071fef"><td class="mdescLeft">&#160;</td><td class="mdescRight">GetDataHandle gets the request's Data Handle.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a06b6c1508f383a237eeb356058071fef">More...</a><br /></td></tr>
+<tr class="memdesc:a06b6c1508f383a237eeb356058071fef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the partition data handle.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a06b6c1508f383a237eeb356058071fef">More...</a><br /></td></tr>
 <tr class="separator:a06b6c1508f383a237eeb356058071fef"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a70f8959b86b7045d6af4ca454965a752"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a70f8959b86b7045d6af4ca454965a752">WithDataHandle</a> (boost::optional&lt; std::string &gt; dataHandle)</td></tr>
-<tr class="memdesc:a70f8959b86b7045d6af4ca454965a752"><td class="mdescLeft">&#160;</td><td class="mdescRight">WithDataHandle sets the request's Data Handle. If the data handle cannot be found in the layer, the callback will come back with an empty response (null for data and error).  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a70f8959b86b7045d6af4ca454965a752">More...</a><br /></td></tr>
-<tr class="separator:a70f8959b86b7045d6af4ca454965a752"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a601f153b4e4a9a5f242928c54ce0d585"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a601f153b4e4a9a5f242928c54ce0d585">WithDataHandle</a> (std::string &amp;&amp;dataHandle)</td></tr>
-<tr class="memdesc:a601f153b4e4a9a5f242928c54ce0d585"><td class="mdescLeft">&#160;</td><td class="mdescRight">WithDataHandle sets the request's Data Handle. If the data handle cannot be found in the layer, the callback will come back with an empty response (null for data and error).  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a601f153b4e4a9a5f242928c54ce0d585">More...</a><br /></td></tr>
-<tr class="separator:a601f153b4e4a9a5f242928c54ce0d585"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abafc1318d235bb7055b529f06c56e7d9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#abafc1318d235bb7055b529f06c56e7d9">WithDataHandle</a> (boost::optional&lt; std::string &gt; data_handle)</td></tr>
+<tr class="memdesc:abafc1318d235bb7055b529f06c56e7d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the partition data handle.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#abafc1318d235bb7055b529f06c56e7d9">More...</a><br /></td></tr>
+<tr class="separator:abafc1318d235bb7055b529f06c56e7d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac8d561a1f1b32e69d73d24ff068fc715"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#ac8d561a1f1b32e69d73d24ff068fc715">WithDataHandle</a> (std::string &amp;&amp;data_handle)</td></tr>
+<tr class="memdesc:ac8d561a1f1b32e69d73d24ff068fc715"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the partition data handle.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#ac8d561a1f1b32e69d73d24ff068fc715">More...</a><br /></td></tr>
+<tr class="separator:ac8d561a1f1b32e69d73d24ff068fc715"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa17cf1919db10033d27bac021fcc60e6"><td class="memItemLeft" align="right" valign="top">const boost::optional&lt; std::string &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#aa17cf1919db10033d27bac021fcc60e6">GetBillingTag</a> () const</td></tr>
-<tr class="memdesc:aa17cf1919db10033d27bac021fcc60e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">BillingTag is an optional free-form tag which is used for grouping billing records together. If supplied, it must be between 4 - 16 characters, contain only alpha/numeric ASCII characters [A-Za-z0-9].  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#aa17cf1919db10033d27bac021fcc60e6">More...</a><br /></td></tr>
+<tr class="memdesc:aa17cf1919db10033d27bac021fcc60e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the billing tag to group billing records together.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#aa17cf1919db10033d27bac021fcc60e6">More...</a><br /></td></tr>
 <tr class="separator:aa17cf1919db10033d27bac021fcc60e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab432c490b564b51c1a00e4b97a6a5a5d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#ab432c490b564b51c1a00e4b97a6a5a5d">WithBillingTag</a> (const boost::optional&lt; std::string &gt; &amp;billingTag)</td></tr>
-<tr class="memdesc:ab432c490b564b51c1a00e4b97a6a5a5d"><td class="mdescLeft">&#160;</td><td class="mdescRight">WithBillingTag sets the billing tag. See ::GetBillingTag() for usage and format.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#ab432c490b564b51c1a00e4b97a6a5a5d">More...</a><br /></td></tr>
-<tr class="separator:ab432c490b564b51c1a00e4b97a6a5a5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a35febf160ecf3c0b7474299ff4d0c859"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a35febf160ecf3c0b7474299ff4d0c859">WithBillingTag</a> (std::string &amp;&amp;billingTag)</td></tr>
-<tr class="memdesc:a35febf160ecf3c0b7474299ff4d0c859"><td class="mdescLeft">&#160;</td><td class="mdescRight">WithBillingTag sets the billing tag. See ::GetBillingTag() for usage and format.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a35febf160ecf3c0b7474299ff4d0c859">More...</a><br /></td></tr>
-<tr class="separator:a35febf160ecf3c0b7474299ff4d0c859"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb9d4d3bbea9cdca6a3cc69e8e57144d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#acb9d4d3bbea9cdca6a3cc69e8e57144d">WithBillingTag</a> (const boost::optional&lt; std::string &gt; &amp;tag)</td></tr>
+<tr class="memdesc:acb9d4d3bbea9cdca6a3cc69e8e57144d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the billing tag for the request.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#acb9d4d3bbea9cdca6a3cc69e8e57144d">More...</a><br /></td></tr>
+<tr class="separator:acb9d4d3bbea9cdca6a3cc69e8e57144d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0857727a099c21e753e99c4940bfbd00"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a0857727a099c21e753e99c4940bfbd00">WithBillingTag</a> (std::string &amp;&amp;tag)</td></tr>
+<tr class="memdesc:a0857727a099c21e753e99c4940bfbd00"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the billing tag for the request.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a0857727a099c21e753e99c4940bfbd00">More...</a><br /></td></tr>
+<tr class="separator:a0857727a099c21e753e99c4940bfbd00"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a69366ed5d306bf855b8e5274f1ea817c"><td class="memItemLeft" align="right" valign="top">FetchOptions&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a69366ed5d306bf855b8e5274f1ea817c">GetFetchOption</a> () const</td></tr>
-<tr class="memdesc:a69366ed5d306bf855b8e5274f1ea817c"><td class="mdescLeft">&#160;</td><td class="mdescRight">FetchOption will control how requests are handled. Default option is OnlineIfNotFound, which will query the network only if the requested resource is not in the cache.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a69366ed5d306bf855b8e5274f1ea817c">More...</a><br /></td></tr>
+<tr class="memdesc:a69366ed5d306bf855b8e5274f1ea817c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the fetch option that controls how requests are handled.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a69366ed5d306bf855b8e5274f1ea817c">More...</a><br /></td></tr>
 <tr class="separator:a69366ed5d306bf855b8e5274f1ea817c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0a7d6180a2affb117ead7f9b3e9906cd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a0a7d6180a2affb117ead7f9b3e9906cd">WithFetchOption</a> (FetchOptions fetchoption)</td></tr>
-<tr class="memdesc:a0a7d6180a2affb117ead7f9b3e9906cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">WithFetchOption sets the fetch option. See ::GetFetchOption() for usage and format.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a0a7d6180a2affb117ead7f9b3e9906cd">More...</a><br /></td></tr>
-<tr class="separator:a0a7d6180a2affb117ead7f9b3e9906cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adcd7944b497f9eb171417af0e0860ebe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#adcd7944b497f9eb171417af0e0860ebe">WithFetchOption</a> (FetchOptions fetch_option)</td></tr>
+<tr class="memdesc:adcd7944b497f9eb171417af0e0860ebe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the fetch option that you can use to set the source from which data should be fetched.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#adcd7944b497f9eb171417af0e0860ebe">More...</a><br /></td></tr>
+<tr class="separator:adcd7944b497f9eb171417af0e0860ebe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4e4d349c2c947226bcdeb10dc1ee7ea5"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a4e4d349c2c947226bcdeb10dc1ee7ea5">CreateKey</a> (const std::string &amp;layer_id) const</td></tr>
-<tr class="memdesc:a4e4d349c2c947226bcdeb10dc1ee7ea5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates readable format for the request.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a4e4d349c2c947226bcdeb10dc1ee7ea5">More...</a><br /></td></tr>
+<tr class="memdesc:a4e4d349c2c947226bcdeb10dc1ee7ea5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a readable format for the request.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a4e4d349c2c947226bcdeb10dc1ee7ea5">More...</a><br /></td></tr>
 <tr class="separator:a4e4d349c2c947226bcdeb10dc1ee7ea5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The <a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="The DataRequest class encapsulates the fields required to request the data for a given catalog and la...">DataRequest</a> class encapsulates the fields required to request the data for a given catalog and layer and partition (aka tile). </p>
-<p>Layer Id is required, and either Partition Id or Data Handle must be provided. If both Partition Id and Data Handle are set in the request, the Request fails with an ErrorCode::InvalidRequest Error. </p>
+<div class="textblock"><p>Encapsulates the fields required to request data for the given catalog, layer, and partition. </p>
+<p>You should specify either a partition ID or a data handle. If both the partition ID and data handle are set in the request, the request fails with the following error: <code>ErrorCode::PreconditionFailed</code>. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a4e4d349c2c947226bcdeb10dc1ee7ea5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4e4d349c2c947226bcdeb10dc1ee7ea5">&#9670;&nbsp;</a></span>CreateKey()</h2>
@@ -152,14 +152,14 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Creates readable format for the request. </p>
+<p>Creates a readable format for the request. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">layer_id</td><td>Layer ID request is used for. </td></tr>
+    <tr><td class="paramname">layer_id</td><td>The ID of the layer that is used for the request.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>string representation of the request. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A string representation of the request. </dd></dl>
 
 </div>
 </div>
@@ -186,8 +186,9 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>BillingTag is an optional free-form tag which is used for grouping billing records together. If supplied, it must be between 4 - 16 characters, contain only alpha/numeric ASCII characters [A-Za-z0-9]. </p>
-<dl class="section return"><dt>Returns</dt><dd>the billing tag, or boost::none if not set. </dd></dl>
+<p>Gets the billing tag to group billing records together. </p>
+<p>The billing tag is an optional free-form tag that is used for grouping billing records together. If supplied, it must be 4–16 characters long and contain only alphanumeric ASCII characters [A-Za-z0-9].</p>
+<dl class="section return"><dt>Returns</dt><dd>The <code>BillingTag</code> string or <code>boost::none</code> if the billing tag is not set. </dd></dl>
 
 </div>
 </div>
@@ -214,8 +215,9 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>GetDataHandle gets the request's Data Handle. </p>
-<dl class="section return"><dt>Returns</dt><dd>the data handle. </dd></dl>
+<p>Get the partition data handle. </p>
+<p>You can use the data handle to retrieve the data that relates to this partition. The data handle identifies a specific blob so that you can request the blob contents with the Blob API. When requesting data from the Blob API, you must specify the catalog ID, layer ID, and data handle.</p>
+<dl class="section return"><dt>Returns</dt><dd>The partition data handle. </dd></dl>
 
 </div>
 </div>
@@ -242,8 +244,9 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>FetchOption will control how requests are handled. Default option is OnlineIfNotFound, which will query the network only if the requested resource is not in the cache. </p>
-<dl class="section return"><dt>Returns</dt><dd>the fetchOption </dd></dl>
+<p>Gets the fetch option that controls how requests are handled. </p>
+<p>The default option is <code>OnlineIfNotFound</code> that queries the network if the requested resource is not in the cache.</p>
+<dl class="section return"><dt>Returns</dt><dd>The fetch option. </dd></dl>
 
 </div>
 </div>
@@ -270,8 +273,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>GetPartitionId gets the request's Partition Id. </p>
-<dl class="section return"><dt>Returns</dt><dd>the partition id. </dd></dl>
+<p>Gets the ID of the requested partition. </p>
+<dl class="section return"><dt>Returns</dt><dd>The partition ID. </dd></dl>
 
 </div>
 </div>
@@ -298,13 +301,13 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Get the catalog metadata version requested for the partitions. </p>
-<dl class="section return"><dt>Returns</dt><dd>the billing tag, or boost::none if not set. </dd></dl>
+<p>Gets the catalog metadata version of the requested partitions. </p>
+<dl class="section return"><dt>Returns</dt><dd>The catalog metadata version. </dd></dl>
 
 </div>
 </div>
-<a id="ab432c490b564b51c1a00e4b97a6a5a5d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab432c490b564b51c1a00e4b97a6a5a5d">&#9670;&nbsp;</a></span>WithBillingTag() <span class="overload">[1/2]</span></h2>
+<a id="acb9d4d3bbea9cdca6a3cc69e8e57144d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acb9d4d3bbea9cdca6a3cc69e8e57144d">&#9670;&nbsp;</a></span>WithBillingTag() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -316,7 +319,7 @@ Public Member Functions</h2></td></tr>
           <td class="memname"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a>&amp; olp::dataservice::read::DataRequest::WithBillingTag </td>
           <td>(</td>
           <td class="paramtype">const boost::optional&lt; std::string &gt; &amp;&#160;</td>
-          <td class="paramname"><em>billingTag</em></td><td>)</td>
+          <td class="paramname"><em>tag</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -327,19 +330,20 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>WithBillingTag sets the billing tag. See ::GetBillingTag() for usage and format. </p>
+<p>Sets the billing tag for the request. </p>
+<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#aa17cf1919db10033d27bac021fcc60e6" title="Gets the billing tag to group billing records together.">GetBillingTag()</a></code> for information on usage and format.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">billingTag</td><td>a string or boost::none </td></tr>
+    <tr><td class="paramname">tag</td><td>The <code>BillingTag</code> string or <code>boost::none</code>.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>a reference to the updated <a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="The DataRequest class encapsulates the fields required to request the data for a given catalog and la...">DataRequest</a> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="Encapsulates the fields required to request data for the given catalog, layer, and partition.">DataRequest</a></code> instance. </dd></dl>
 
 </div>
 </div>
-<a id="a35febf160ecf3c0b7474299ff4d0c859"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a35febf160ecf3c0b7474299ff4d0c859">&#9670;&nbsp;</a></span>WithBillingTag() <span class="overload">[2/2]</span></h2>
+<a id="a0857727a099c21e753e99c4940bfbd00"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0857727a099c21e753e99c4940bfbd00">&#9670;&nbsp;</a></span>WithBillingTag() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -351,7 +355,7 @@ Public Member Functions</h2></td></tr>
           <td class="memname"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a>&amp; olp::dataservice::read::DataRequest::WithBillingTag </td>
           <td>(</td>
           <td class="paramtype">std::string &amp;&amp;&#160;</td>
-          <td class="paramname"><em>billingTag</em></td><td>)</td>
+          <td class="paramname"><em>tag</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -362,19 +366,20 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>WithBillingTag sets the billing tag. See ::GetBillingTag() for usage and format. </p>
+<p>Sets the billing tag for the request. </p>
+<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#aa17cf1919db10033d27bac021fcc60e6" title="Gets the billing tag to group billing records together.">GetBillingTag()</a></code> for information on usage and format.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">billingTag</td><td>a string or boost::none </td></tr>
+    <tr><td class="paramname">tag</td><td>The rvalue reference to the <code>BillingTag</code> string or <code>boost::none</code>.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>a reference to the updated <a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="The DataRequest class encapsulates the fields required to request the data for a given catalog and la...">DataRequest</a> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="Encapsulates the fields required to request data for the given catalog, layer, and partition.">DataRequest</a></code> instance. </dd></dl>
 
 </div>
 </div>
-<a id="a70f8959b86b7045d6af4ca454965a752"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a70f8959b86b7045d6af4ca454965a752">&#9670;&nbsp;</a></span>WithDataHandle() <span class="overload">[1/2]</span></h2>
+<a id="abafc1318d235bb7055b529f06c56e7d9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abafc1318d235bb7055b529f06c56e7d9">&#9670;&nbsp;</a></span>WithDataHandle() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -386,7 +391,7 @@ Public Member Functions</h2></td></tr>
           <td class="memname"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a>&amp; olp::dataservice::read::DataRequest::WithDataHandle </td>
           <td>(</td>
           <td class="paramtype">boost::optional&lt; std::string &gt;&#160;</td>
-          <td class="paramname"><em>dataHandle</em></td><td>)</td>
+          <td class="paramname"><em>data_handle</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -397,19 +402,21 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>WithDataHandle sets the request's Data Handle. If the data handle cannot be found in the layer, the callback will come back with an empty response (null for data and error). </p>
+<p>Sets the partition data handle. </p>
+<p>If the data handle cannot be found in the layer, the callback returns with an empty response (the <code>null</code> result for data and an error).</p>
+<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a06b6c1508f383a237eeb356058071fef" title="Get the partition data handle.">GetDataHandle</a></code> for information on the partition data handle.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">dataHandle</td><td>the Data Handle. </td></tr>
+    <tr><td class="paramname">data_handle</td><td>The partition data handle.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>a reference to the updated <a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="The DataRequest class encapsulates the fields required to request the data for a given catalog and la...">DataRequest</a>. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="Encapsulates the fields required to request data for the given catalog, layer, and partition.">DataRequest</a></code> instance. </dd></dl>
 
 </div>
 </div>
-<a id="a601f153b4e4a9a5f242928c54ce0d585"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a601f153b4e4a9a5f242928c54ce0d585">&#9670;&nbsp;</a></span>WithDataHandle() <span class="overload">[2/2]</span></h2>
+<a id="ac8d561a1f1b32e69d73d24ff068fc715"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac8d561a1f1b32e69d73d24ff068fc715">&#9670;&nbsp;</a></span>WithDataHandle() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -421,7 +428,7 @@ Public Member Functions</h2></td></tr>
           <td class="memname"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a>&amp; olp::dataservice::read::DataRequest::WithDataHandle </td>
           <td>(</td>
           <td class="paramtype">std::string &amp;&amp;&#160;</td>
-          <td class="paramname"><em>dataHandle</em></td><td>)</td>
+          <td class="paramname"><em>data_handle</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -432,19 +439,21 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>WithDataHandle sets the request's Data Handle. If the data handle cannot be found in the layer, the callback will come back with an empty response (null for data and error). </p>
+<p>Sets the partition data handle. </p>
+<p>If the data handle cannot be found in the layer, the callback returns with an empty response (the <code>null</code> result for data and an error).</p>
+<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a06b6c1508f383a237eeb356058071fef" title="Get the partition data handle.">GetDataHandle</a></code> for information on the partition data handle.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">dataHandle</td><td>the Data Handle. </td></tr>
+    <tr><td class="paramname">data_handle</td><td>The partition data handle.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>a reference to the updated <a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="The DataRequest class encapsulates the fields required to request the data for a given catalog and la...">DataRequest</a>. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="Encapsulates the fields required to request data for the given catalog, layer, and partition.">DataRequest</a></code> instance. </dd></dl>
 
 </div>
 </div>
-<a id="a0a7d6180a2affb117ead7f9b3e9906cd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0a7d6180a2affb117ead7f9b3e9906cd">&#9670;&nbsp;</a></span>WithFetchOption()</h2>
+<a id="adcd7944b497f9eb171417af0e0860ebe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adcd7944b497f9eb171417af0e0860ebe">&#9670;&nbsp;</a></span>WithFetchOption()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -456,7 +465,7 @@ Public Member Functions</h2></td></tr>
           <td class="memname"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a>&amp; olp::dataservice::read::DataRequest::WithFetchOption </td>
           <td>(</td>
           <td class="paramtype">FetchOptions&#160;</td>
-          <td class="paramname"><em>fetchoption</em></td><td>)</td>
+          <td class="paramname"><em>fetch_option</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -467,19 +476,20 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>WithFetchOption sets the fetch option. See ::GetFetchOption() for usage and format. </p>
+<p>Sets the fetch option that you can use to set the source from which data should be fetched. </p>
+<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a69366ed5d306bf855b8e5274f1ea817c" title="Gets the fetch option that controls how requests are handled.">GetFetchOption()</a></code> for information on usage and format.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">fetchoption</td><td>enums </td></tr>
+    <tr><td class="paramname">fetch_option</td><td>The <code>FetchOption</code> enum.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>a reference to the updated <a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="The DataRequest class encapsulates the fields required to request the data for a given catalog and la...">DataRequest</a> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="Encapsulates the fields required to request data for the given catalog, layer, and partition.">DataRequest</a></code> instance. </dd></dl>
 
 </div>
 </div>
-<a id="ab1c76cb5377a46bdf3e5d8ced9f2a423"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab1c76cb5377a46bdf3e5d8ced9f2a423">&#9670;&nbsp;</a></span>WithPartitionId() <span class="overload">[1/2]</span></h2>
+<a id="a139365b58b0514546d6bc9a118c83a84"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a139365b58b0514546d6bc9a118c83a84">&#9670;&nbsp;</a></span>WithPartitionId() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -491,7 +501,7 @@ Public Member Functions</h2></td></tr>
           <td class="memname"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a>&amp; olp::dataservice::read::DataRequest::WithPartitionId </td>
           <td>(</td>
           <td class="paramtype">boost::optional&lt; std::string &gt;&#160;</td>
-          <td class="paramname"><em>partitionId</em></td><td>)</td>
+          <td class="paramname"><em>partition_id</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -502,19 +512,20 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>WithPartitionId sets the request's Partition Id. If the partition cannot be found in the layer, the callback will come back with an empty response (null for data and error) </p>
+<p>Sets the partition ID. </p>
+<p>If the partition cannot be found in the layer, the callback returns with an empty response (the <code>null</code> result for data and an error).</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">partitionId</td><td>the Partition Id. </td></tr>
+    <tr><td class="paramname">partition_id</td><td>The partition ID.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>a reference to the updated <a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="The DataRequest class encapsulates the fields required to request the data for a given catalog and la...">DataRequest</a>. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="Encapsulates the fields required to request data for the given catalog, layer, and partition.">DataRequest</a></code> instance. </dd></dl>
 
 </div>
 </div>
-<a id="adc3e2d9881628094f942a09d289b1783"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adc3e2d9881628094f942a09d289b1783">&#9670;&nbsp;</a></span>WithPartitionId() <span class="overload">[2/2]</span></h2>
+<a id="ae327529be34cf0df0b62b5a4f15a97ec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae327529be34cf0df0b62b5a4f15a97ec">&#9670;&nbsp;</a></span>WithPartitionId() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -526,7 +537,7 @@ Public Member Functions</h2></td></tr>
           <td class="memname"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a>&amp; olp::dataservice::read::DataRequest::WithPartitionId </td>
           <td>(</td>
           <td class="paramtype">std::string &amp;&amp;&#160;</td>
-          <td class="paramname"><em>partitionId</em></td><td>)</td>
+          <td class="paramname"><em>partition_id</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -537,19 +548,20 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>WithPartitionId sets the request's Partition Id. If the partition cannot be found in the layer, the callback will come back with an empty response (null for data and error). </p>
+<p>Sets the partition ID. </p>
+<p>If the partition cannot be found in the layer, the callback returns with an empty response (the <code>null</code> result for data and an error).</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">partitionId</td><td>the Partition Id. </td></tr>
+    <tr><td class="paramname">partition_id</td><td>The partition ID.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>a reference to the updated <a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="The DataRequest class encapsulates the fields required to request the data for a given catalog and la...">DataRequest</a>. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="Encapsulates the fields required to request data for the given catalog, layer, and partition.">DataRequest</a></code> instance. </dd></dl>
 
 </div>
 </div>
-<a id="a9e2a67d64b16a6b1bb212b417f367bae"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9e2a67d64b16a6b1bb212b417f367bae">&#9670;&nbsp;</a></span>WithVersion()</h2>
+<a id="a4edcf41dcc84fdabc988e69de77b2ac6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4edcf41dcc84fdabc988e69de77b2ac6">&#9670;&nbsp;</a></span>WithVersion()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -561,7 +573,7 @@ Public Member Functions</h2></td></tr>
           <td class="memname"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a>&amp; olp::dataservice::read::DataRequest::WithVersion </td>
           <td>(</td>
           <td class="paramtype">boost::optional&lt; int64_t &gt;&#160;</td>
-          <td class="paramname"><em>catalogMetadataVersion</em></td><td>)</td>
+          <td class="paramname"><em>catalog_version</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -572,14 +584,14 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>WithVersion sets the catalog metadata version of the request. </p>
+<p>Sets the catalog metadata version. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">catalogMetadataVersion</td><td>The catalog metadta version of the requested partions. If no version is specified, the latest will be retrieved. </td></tr>
+    <tr><td class="paramname">catalog_version</td><td>The catalog metadata version of the requested partitions. If the version is not specified, the latest version is retrieved.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>a reference to the updated <a class="el" href="classolp_1_1dataservice_1_1read_1_1_partitions_request.html" title="The PartitionsRequest class encapsulates the fields required to request the list of partitions for a ...">PartitionsRequest</a>. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="Encapsulates the fields required to request data for the given catalog, layer, and partition.">DataRequest</a></code> instance. </dd></dl>
 
 </div>
 </div>

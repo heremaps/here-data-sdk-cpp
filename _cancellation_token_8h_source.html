@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -98,22 +98,27 @@ $(function() {
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160; </div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespaceolp.html">olp</a> {</div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;<span class="keyword">namespace </span>client {</div>
-<div class="line"><a name="l00032"></a><span class="lineno"><a class="line" href="classolp_1_1client_1_1_cancellation_token.html">   32</a></span>&#160;<span class="keyword">class </span>CORE_API <a class="code" href="classolp_1_1client_1_1_cancellation_token.html">CancellationToken</a> {</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;  <a class="code" href="classolp_1_1client_1_1_cancellation_token.html">CancellationToken</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160; </div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;  <a class="code" href="classolp_1_1client_1_1_cancellation_token.html">CancellationToken</a>(std::function&lt;<span class="keywordtype">void</span>()&gt; func);</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160; </div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  <span class="keywordtype">void</span> Cancel() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160; </div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;  std::function&lt;void()&gt; func_{};</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;};</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;}  <span class="comment">// namespace client</span></div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160; </div>
+<div class="line"><a name="l00033"></a><span class="lineno"><a class="line" href="classolp_1_1client_1_1_cancellation_token.html">   33</a></span>&#160;<span class="keyword">class </span>CORE_API <a class="code" href="classolp_1_1client_1_1_cancellation_token.html">CancellationToken</a> {</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00038"></a><span class="lineno"><a class="line" href="classolp_1_1client_1_1_cancellation_token.html#a01f7e2c223fe308d507ef02ce8a1a871">   38</a></span>&#160;  <span class="keyword">using</span> <a class="code" href="classolp_1_1client_1_1_cancellation_token.html#a01f7e2c223fe308d507ef02ce8a1a871">CancelFuncType</a> = std::function&lt;void()&gt;;</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160; </div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  <a class="code" href="classolp_1_1client_1_1_cancellation_token.html">CancellationToken</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160; </div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;  <a class="code" href="classolp_1_1client_1_1_cancellation_token.html">CancellationToken</a>(<a class="code" href="classolp_1_1client_1_1_cancellation_token.html#a01f7e2c223fe308d507ef02ce8a1a871">CancelFuncType</a> func);</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160; </div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;  <span class="keywordtype">void</span> Cancel() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160; </div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160; <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;  <a class="code" href="classolp_1_1client_1_1_cancellation_token.html#a01f7e2c223fe308d507ef02ce8a1a871">CancelFuncType</a> func_;</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;};</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160; </div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;}  <span class="comment">// namespace client</span></div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;}  <span class="comment">// namespace olp</span></div>
 </div><!-- fragment --></div><!-- contents -->
-<div class="ttc" id="aclassolp_1_1client_1_1_cancellation_token_html"><div class="ttname"><a href="classolp_1_1client_1_1_cancellation_token.html">olp::client::CancellationToken</a></div><div class="ttdoc">Control object for cancelling service requests.</div><div class="ttdef"><b>Definition:</b> CancellationToken.h:32</div></div>
-<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">olp namespace</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:43</div></div>
+<div class="ttc" id="aclassolp_1_1client_1_1_cancellation_token_html"><div class="ttname"><a href="classolp_1_1client_1_1_cancellation_token.html">olp::client::CancellationToken</a></div><div class="ttdoc">Cancels service requests.</div><div class="ttdef"><b>Definition:</b> CancellationToken.h:33</div></div>
+<div class="ttc" id="aclassolp_1_1client_1_1_cancellation_token_html_a01f7e2c223fe308d507ef02ce8a1a871"><div class="ttname"><a href="classolp_1_1client_1_1_cancellation_token.html#a01f7e2c223fe308d507ef02ce8a1a871">olp::client::CancellationToken::CancelFuncType</a></div><div class="ttdeci">std::function&lt; void()&gt; CancelFuncType</div><div class="ttdoc">The alias for the cancellation function.</div><div class="ttdef"><b>Definition:</b> CancellationToken.h:38</div></div>
+<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">The olp namespace.</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:43</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

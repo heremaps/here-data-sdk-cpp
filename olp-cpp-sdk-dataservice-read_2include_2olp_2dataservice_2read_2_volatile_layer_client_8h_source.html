@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -107,48 +107,49 @@ $(function() {
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;<span class="keyword">namespace </span>read {</div>
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="keyword">class </span>VolatileLayerClientImpl;</div>
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160; </div>
-<div class="line"><a name="l00072"></a><span class="lineno"><a class="line" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">   72</a></span>&#160;<span class="keyword">class </span>DATASERVICE_READ_API <a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a> final {</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;  <a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>(<a class="code" href="classolp_1_1client_1_1_h_r_n.html">client::HRN</a> catalog, std::string layer_id,</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;                      <a class="code" href="structolp_1_1client_1_1_olp_client_settings.html">client::OlpClientSettings</a> settings);</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160; </div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;  <span class="comment">// Movable, non-copyable</span></div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;  <a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>(<span class="keyword">const</span> <a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>&amp; other) = <span class="keyword">delete</span>; </div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;  <a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>(<a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>&amp;&amp; other) noexcept; </div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;  <a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>&amp; operator=(<span class="keyword">const</span> <a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>&amp; other) = <span class="keyword">delete</span>; </div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;  <a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>&amp; operator=(<a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>&amp;&amp; other) noexcept;</div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160; </div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;  ~<a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>();</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160; </div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;  <span class="keywordtype">bool</span> CancelPendingRequests();</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160; </div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;  <a class="code" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a> GetPartitions(<a class="code" href="classolp_1_1dataservice_1_1read_1_1_partitions_request.html">PartitionsRequest</a> request,</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;                                          PartitionsResponseCallback callback);</div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160; </div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;  <a class="code" href="classolp_1_1client_1_1_cancellable_future.html">olp::client::CancellableFuture&lt;PartitionsResponse&gt;</a> GetPartitions(</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;      <a class="code" href="classolp_1_1dataservice_1_1read_1_1_partitions_request.html">PartitionsRequest</a> request);</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160; </div>
-<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;  <a class="code" href="classolp_1_1client_1_1_cancellation_token.html">olp::client::CancellationToken</a> GetData(<a class="code" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> request,</div>
-<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;                                         DataResponseCallback callback);</div>
-<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160; </div>
-<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;  <a class="code" href="classolp_1_1client_1_1_cancellable_future.html">olp::client::CancellableFuture&lt;DataResponse&gt;</a> GetData(<a class="code" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> request);</div>
-<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160; </div>
-<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160; <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;  std::unique_ptr&lt;VolatileLayerClientImpl&gt; impl_;</div>
-<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;};</div>
-<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160; </div>
-<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;}  <span class="comment">// namespace read</span></div>
-<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;}  <span class="comment">// namespace dataservice</span></div>
-<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;<span class="comment">// clang-format off</span></div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;<span class="comment"></span><span class="comment">// clang-format on</span></div>
+<div class="line"><a name="l00078"></a><span class="lineno"><a class="line" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">   78</a></span>&#160;<span class="keyword">class </span>DATASERVICE_READ_API <a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a> final {</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;  <a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>(<a class="code" href="classolp_1_1client_1_1_h_r_n.html">client::HRN</a> catalog, std::string layer_id,</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;                      <a class="code" href="structolp_1_1client_1_1_olp_client_settings.html">client::OlpClientSettings</a> settings);</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160; </div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;  <a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>(<span class="keyword">const</span> <a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>&amp; other) = <span class="keyword">delete</span>;</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;  <a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>(<a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>&amp;&amp; other) noexcept;</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;  <a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>&amp; operator=(<span class="keyword">const</span> <a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>&amp; other) = <span class="keyword">delete</span>;</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;  <a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>&amp; operator=(<a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>&amp;&amp; other) noexcept;</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160; </div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;  ~<a class="code" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">VolatileLayerClient</a>();</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160; </div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;  <span class="keywordtype">bool</span> CancelPendingRequests();</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160; </div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;  <a class="code" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a> GetPartitions(<a class="code" href="classolp_1_1dataservice_1_1read_1_1_partitions_request.html">PartitionsRequest</a> request,</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;                                          PartitionsResponseCallback callback);</div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160; </div>
+<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;  <a class="code" href="classolp_1_1client_1_1_cancellable_future.html">olp::client::CancellableFuture&lt;PartitionsResponse&gt;</a> GetPartitions(</div>
+<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;      <a class="code" href="classolp_1_1dataservice_1_1read_1_1_partitions_request.html">PartitionsRequest</a> request);</div>
+<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160; </div>
+<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;  <a class="code" href="classolp_1_1client_1_1_cancellation_token.html">olp::client::CancellationToken</a> GetData(<a class="code" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> request,</div>
+<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;                                         DataResponseCallback callback);</div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160; </div>
+<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;  <a class="code" href="classolp_1_1client_1_1_cancellable_future.html">olp::client::CancellableFuture&lt;DataResponse&gt;</a> GetData(<a class="code" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> request);</div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160; </div>
+<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160; <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;  std::unique_ptr&lt;VolatileLayerClientImpl&gt; impl_;</div>
+<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;};</div>
+<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160; </div>
+<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;}  <span class="comment">// namespace read</span></div>
+<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;}  <span class="comment">// namespace dataservice</span></div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;}  <span class="comment">// namespace olp</span></div>
 </div><!-- fragment --></div><!-- contents -->
-<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_partitions_request_html"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_partitions_request.html">olp::dataservice::read::PartitionsRequest</a></div><div class="ttdoc">The PartitionsRequest class encapsulates the fields required to request the list of partitions for a ...</div><div class="ttdef"><b>Definition:</b> PartitionsRequest.h:38</div></div>
-<div class="ttc" id="aclassolp_1_1client_1_1_cancellation_token_html"><div class="ttname"><a href="classolp_1_1client_1_1_cancellation_token.html">olp::client::CancellationToken</a></div><div class="ttdoc">Control object for cancelling service requests.</div><div class="ttdef"><b>Definition:</b> CancellationToken.h:32</div></div>
-<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_data_request_html"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_data_request.html">olp::dataservice::read::DataRequest</a></div><div class="ttdoc">The DataRequest class encapsulates the fields required to request the data for a given catalog and la...</div><div class="ttdef"><b>Definition:</b> DataRequest.h:42</div></div>
-<div class="ttc" id="astructolp_1_1client_1_1_olp_client_settings_html"><div class="ttname"><a href="structolp_1_1client_1_1_olp_client_settings.html">olp::client::OlpClientSettings</a></div><div class="ttdoc">OlpClient settings class. Use this class to configure the behaviour of the OlpClient.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:148</div></div>
-<div class="ttc" id="aclassolp_1_1client_1_1_h_r_n_html"><div class="ttname"><a href="classolp_1_1client_1_1_h_r_n.html">olp::client::HRN</a></div><div class="ttdoc">The Here Resource Name (HRN) class, this allows HRN's to be passed to the operations that require it.</div><div class="ttdef"><b>Definition:</b> HRN.h:31</div></div>
-<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">olp namespace</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:43</div></div>
-<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_volatile_layer_client_html"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">olp::dataservice::read::VolatileLayerClient</a></div><div class="ttdoc">The VolatileLayerClient is aimed at acquiring data from a volatile layer of the OLP....</div><div class="ttdef"><b>Definition:</b> VolatileLayerClient.h:72</div></div>
-<div class="ttc" id="aclassolp_1_1client_1_1_cancellable_future_html"><div class="ttname"><a href="classolp_1_1client_1_1_cancellable_future.html">olp::client::CancellableFuture</a></div><div class="ttdef"><b>Definition:</b> ApiResponse.h:90</div></div>
+<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_partitions_request_html"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_partitions_request.html">olp::dataservice::read::PartitionsRequest</a></div><div class="ttdoc">Encapsulates the fields required to request a list of partitions for the given catalog and layer.</div><div class="ttdef"><b>Definition:</b> PartitionsRequest.h:37</div></div>
+<div class="ttc" id="aclassolp_1_1client_1_1_cancellation_token_html"><div class="ttname"><a href="classolp_1_1client_1_1_cancellation_token.html">olp::client::CancellationToken</a></div><div class="ttdoc">Cancels service requests.</div><div class="ttdef"><b>Definition:</b> CancellationToken.h:33</div></div>
+<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_data_request_html"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_data_request.html">olp::dataservice::read::DataRequest</a></div><div class="ttdoc">Encapsulates the fields required to request data for the given catalog, layer, and partition.</div><div class="ttdef"><b>Definition:</b> DataRequest.h:41</div></div>
+<div class="ttc" id="astructolp_1_1client_1_1_olp_client_settings_html"><div class="ttname"><a href="structolp_1_1client_1_1_olp_client_settings.html">olp::client::OlpClientSettings</a></div><div class="ttdoc">Configures the behavior of the OlpClient class.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:219</div></div>
+<div class="ttc" id="aclassolp_1_1client_1_1_h_r_n_html"><div class="ttname"><a href="classolp_1_1client_1_1_h_r_n.html">olp::client::HRN</a></div><div class="ttdoc">Allows a Here Resource Name (HRN) to be passed to the operations that require it.</div><div class="ttdef"><b>Definition:</b> HRN.h:34</div></div>
+<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">The olp namespace.</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:43</div></div>
+<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_volatile_layer_client_html"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html">olp::dataservice::read::VolatileLayerClient</a></div><div class="ttdoc">Gets data from a volatile layer of the Open Location Platform (OLP).</div><div class="ttdef"><b>Definition:</b> VolatileLayerClient.h:78</div></div>
+<div class="ttc" id="aclassolp_1_1client_1_1_cancellable_future_html"><div class="ttname"><a href="classolp_1_1client_1_1_cancellable_future.html">olp::client::CancellableFuture</a></div><div class="ttdoc">A wrapper template that you can use to cancel a request or wait for it to finalize.</div><div class="ttdef"><b>Definition:</b> ApiResponse.h:119</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

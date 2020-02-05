@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -114,10 +114,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a7d8e89a0ca3b27aee0cf7ab19fa0a57a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">olp::client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_versioned_layer_client.html#a7d8e89a0ca3b27aee0cf7ab19fa0a57a">CancelBatch</a> (const <a class="el" href="classolp_1_1dataservice_1_1write_1_1model_1_1_publication.html">model::Publication</a> &amp;pub, CancelBatchCallback callback)</td></tr>
 <tr class="memdesc:a7d8e89a0ca3b27aee0cf7ab19fa0a57a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancel the given batch operation.  <a href="classolp_1_1dataservice_1_1write_1_1_versioned_layer_client.html#a7d8e89a0ca3b27aee0cf7ab19fa0a57a">More...</a><br /></td></tr>
 <tr class="separator:a7d8e89a0ca3b27aee0cf7ab19fa0a57a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9228e87fe864ecb1901c34b6c3c64dc0"><td class="memItemLeft" align="right" valign="top"><a id="a9228e87fe864ecb1901c34b6c3c64dc0"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_versioned_layer_client.html#a9228e87fe864ecb1901c34b6c3c64dc0">CancelAll</a> ()</td></tr>
-<tr class="memdesc:a9228e87fe864ecb1901c34b6c3c64dc0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancel all pending operations started by this client. This will only cancel operations that have been started, so you will need to call CancelBatch after this if you have a batch operation in progress (StartBatch successfully completed). <br /></td></tr>
-<tr class="separator:a9228e87fe864ecb1901c34b6c3c64dc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0bbb6c9784c510e8658fd51707ff2015"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_versioned_layer_client.html#a0bbb6c9784c510e8658fd51707ff2015">OLP_SDK_DEPRECATED</a> (&quot;Use <a class="el" href="classolp_1_1dataservice_1_1write_1_1_versioned_layer_client.html#ac44357979dd5c9bf423458c43515a84c">CancelPendingRequests</a> instead. Will be removed in 05.2020&quot;) void CancelAll()</td></tr>
+<tr class="memdesc:a0bbb6c9784c510e8658fd51707ff2015"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancel all pending operations started by this client. This will only cancel operations that have been started, so you will need to call CancelBatch after this if you have a batch operation in progress (StartBatch successfully completed).  <a href="classolp_1_1dataservice_1_1write_1_1_versioned_layer_client.html#a0bbb6c9784c510e8658fd51707ff2015">More...</a><br /></td></tr>
+<tr class="separator:a0bbb6c9784c510e8658fd51707ff2015"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac44357979dd5c9bf423458c43515a84c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_versioned_layer_client.html#ac44357979dd5c9bf423458c43515a84c">CancelPendingRequests</a> ()</td></tr>
+<tr class="memdesc:ac44357979dd5c9bf423458c43515a84c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancels all the ongoing operations that this client started.  <a href="classolp_1_1dataservice_1_1write_1_1_versioned_layer_client.html#ac44357979dd5c9bf423458c43515a84c">More...</a><br /></td></tr>
+<tr class="separator:ac44357979dd5c9bf423458c43515a84c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0a34c129e92f77611465046adb3c20db"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellable_future.html">olp::client::CancellableFuture</a>&lt; <a class="el" href="classolp_1_1client_1_1_api_response.html">PublishPartitionDataResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_versioned_layer_client.html#a0a34c129e92f77611465046adb3c20db">PublishToBatch</a> (const <a class="el" href="classolp_1_1dataservice_1_1write_1_1model_1_1_publication.html">model::Publication</a> &amp;pub, <a class="el" href="classolp_1_1dataservice_1_1write_1_1model_1_1_publish_partition_data_request.html">model::PublishPartitionDataRequest</a> request)</td></tr>
 <tr class="memdesc:a0a34c129e92f77611465046adb3c20db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Call to publish data into an OLP Versioned Layer.  <a href="classolp_1_1dataservice_1_1write_1_1_versioned_layer_client.html#a0a34c129e92f77611465046adb3c20db">More...</a><br /></td></tr>
 <tr class="separator:a0a34c129e92f77611465046adb3c20db"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -237,6 +239,26 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 
 </div>
 </div>
+<a id="ac44357979dd5c9bf423458c43515a84c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac44357979dd5c9bf423458c43515a84c">&#9670;&nbsp;</a></span>CancelPendingRequests()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void olp::dataservice::write::VersionedLayerClient::CancelPendingRequests </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Cancels all the ongoing operations that this client started. </p>
+<p>Returns instantly and does not wait for the callbacks. Use this operation to cancel all the pending requests without destroying the actual client instance. </p>
+
+</div>
+</div>
 <a id="ac244a9100b9482b005af4d283a01388e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac244a9100b9482b005af4d283a01388e">&#9670;&nbsp;</a></span>CheckDataExists() <span class="overload">[1/2]</span></h2>
 
@@ -298,7 +320,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><a class="el" href="classolp_1_1client_1_1_cancellation_token.html" title="Control object for cancelling service requests.">olp::client::CancellationToken</a> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="classolp_1_1client_1_1_cancellation_token.html" title="Cancels service requests.">olp::client::CancellationToken</a> </dd></dl>
 
 </div>
 </div>
@@ -479,6 +501,27 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 
 </div>
 </div>
+<a id="a0bbb6c9784c510e8658fd51707ff2015"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0bbb6c9784c510e8658fd51707ff2015">&#9670;&nbsp;</a></span>OLP_SDK_DEPRECATED()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">olp::dataservice::write::VersionedLayerClient::OLP_SDK_DEPRECATED </td>
+          <td>(</td>
+          <td class="paramtype">&quot;Use <a class="el" href="classolp_1_1dataservice_1_1write_1_1_versioned_layer_client.html#ac44357979dd5c9bf423458c43515a84c">CancelPendingRequests</a> instead. Will be removed in 05.2020&quot;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Cancel all pending operations started by this client. This will only cancel operations that have been started, so you will need to call CancelBatch after this if you have a batch operation in progress (StartBatch successfully completed). </p>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000016">Deprecated:</a></b></dt><dd>Use <a class="el" href="classolp_1_1dataservice_1_1write_1_1_versioned_layer_client.html#ac44357979dd5c9bf423458c43515a84c">CancelPendingRequests</a> intead. </dd></dl>
+
+</div>
+</div>
 <a id="a0a34c129e92f77611465046adb3c20db"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0a34c129e92f77611465046adb3c20db">&#9670;&nbsp;</a></span>PublishToBatch() <span class="overload">[1/2]</span></h2>
 
@@ -623,7 +666,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><a class="el" href="classolp_1_1client_1_1_cancellation_token.html" title="Control object for cancelling service requests.">olp::client::CancellationToken</a> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="classolp_1_1client_1_1_cancellation_token.html" title="Cancels service requests.">olp::client::CancellationToken</a> </dd></dl>
 
 </div>
 </div>

@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -102,21 +102,24 @@ $(function() {
 <div class="line"><a name="l00033"></a><span class="lineno"><a class="line" href="classolp_1_1client_1_1_http_response.html">   33</a></span>&#160;<span class="keyword">class </span>CORE_API <a class="code" href="classolp_1_1client_1_1_http_response.html">HttpResponse</a> {</div>
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160; <span class="keyword">public</span>:</div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;  <a class="code" href="classolp_1_1client_1_1_http_response.html">HttpResponse</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;  <a class="code" href="classolp_1_1client_1_1_http_response.html">HttpResponse</a>(<span class="keywordtype">int</span> status, std::string response = std::string())</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;      : status(status), response(std::move(response)) {}</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;  <a class="code" href="classolp_1_1client_1_1_http_response.html">HttpResponse</a>(<span class="keywordtype">int</span> status, std::stringstream&amp;&amp; response)</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;      : status(status), response(std::move(response)) {}</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160; </div>
-<div class="line"><a name="l00046"></a><span class="lineno"><a class="line" href="classolp_1_1client_1_1_http_response.html#aa9410fa9a262ca0860ef686a12ca5a22">   46</a></span>&#160;  <span class="keywordtype">int</span> status{static_cast&lt;int&gt;(<a class="code" href="namespaceolp_1_1http.html#a61c765861938a212070d01911a6b6a17a9a10f345b0f755d461a8673a5e9ef6b4">olp::http::ErrorCode::UNKNOWN_ERROR</a>)};</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;  std::stringstream response;</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;};</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160; </div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;}  <span class="comment">// namespace client</span></div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00042"></a><span class="lineno"><a class="line" href="classolp_1_1client_1_1_http_response.html#a7ecac17ef6b979e9d20664e95e5490b5">   42</a></span>&#160;  <a class="code" href="classolp_1_1client_1_1_http_response.html#a7ecac17ef6b979e9d20664e95e5490b5">HttpResponse</a>(<span class="keywordtype">int</span> status, std::string response = std::string())</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;      : status(status), response(std::move(response)) {}</div>
+<div class="line"><a name="l00050"></a><span class="lineno"><a class="line" href="classolp_1_1client_1_1_http_response.html#a4be24b30e3013af25355e6b29001a56f">   50</a></span>&#160;  <a class="code" href="classolp_1_1client_1_1_http_response.html#a4be24b30e3013af25355e6b29001a56f">HttpResponse</a>(<span class="keywordtype">int</span> status, std::stringstream&amp;&amp; response)</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;      : status(status), response(std::move(response)) {}</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160; </div>
+<div class="line"><a name="l00061"></a><span class="lineno"><a class="line" href="classolp_1_1client_1_1_http_response.html#aa9410fa9a262ca0860ef686a12ca5a22">   61</a></span>&#160;  <span class="keywordtype">int</span> status{static_cast&lt;int&gt;(<a class="code" href="namespaceolp_1_1http.html#a61c765861938a212070d01911a6b6a17a9a10f345b0f755d461a8673a5e9ef6b4">olp::http::ErrorCode::UNKNOWN_ERROR</a>)};</div>
+<div class="line"><a name="l00065"></a><span class="lineno"><a class="line" href="classolp_1_1client_1_1_http_response.html#a2c41780eb45b457ecc7c942f67ba8a23">   65</a></span>&#160;  std::stringstream <a class="code" href="classolp_1_1client_1_1_http_response.html#a2c41780eb45b457ecc7c942f67ba8a23">response</a>;</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;};</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160; </div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;}  <span class="comment">// namespace client</span></div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;}  <span class="comment">// namespace olp</span></div>
 </div><!-- fragment --></div><!-- contents -->
+<div class="ttc" id="aclassolp_1_1client_1_1_http_response_html_a4be24b30e3013af25355e6b29001a56f"><div class="ttname"><a href="classolp_1_1client_1_1_http_response.html#a4be24b30e3013af25355e6b29001a56f">olp::client::HttpResponse::HttpResponse</a></div><div class="ttdeci">HttpResponse(int status, std::stringstream &amp;&amp;response)</div><div class="ttdoc">Creates the HttpResponse instance.</div><div class="ttdef"><b>Definition:</b> HttpResponse.h:50</div></div>
+<div class="ttc" id="aclassolp_1_1client_1_1_http_response_html_a7ecac17ef6b979e9d20664e95e5490b5"><div class="ttname"><a href="classolp_1_1client_1_1_http_response.html#a7ecac17ef6b979e9d20664e95e5490b5">olp::client::HttpResponse::HttpResponse</a></div><div class="ttdeci">HttpResponse(int status, std::string response=std::string())</div><div class="ttdoc">Creates the HttpResponse instance.</div><div class="ttdef"><b>Definition:</b> HttpResponse.h:42</div></div>
 <div class="ttc" id="anamespaceolp_1_1http_html_a61c765861938a212070d01911a6b6a17a9a10f345b0f755d461a8673a5e9ef6b4"><div class="ttname"><a href="namespaceolp_1_1http.html#a61c765861938a212070d01911a6b6a17a9a10f345b0f755d461a8673a5e9ef6b4">olp::http::ErrorCode::UNKNOWN_ERROR</a></div><div class="ttdoc">Internal error, that can't be interpreted.</div></div>
-<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">olp namespace</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:43</div></div>
-<div class="ttc" id="aclassolp_1_1client_1_1_http_response_html"><div class="ttname"><a href="classolp_1_1client_1_1_http_response.html">olp::client::HttpResponse</a></div><div class="ttdoc">Response from a REST request.</div><div class="ttdef"><b>Definition:</b> HttpResponse.h:33</div></div>
+<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">The olp namespace.</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:43</div></div>
+<div class="ttc" id="aclassolp_1_1client_1_1_http_response_html_a2c41780eb45b457ecc7c942f67ba8a23"><div class="ttname"><a href="classolp_1_1client_1_1_http_response.html#a2c41780eb45b457ecc7c942f67ba8a23">olp::client::HttpResponse::response</a></div><div class="ttdeci">std::stringstream response</div><div class="ttdoc">The HTTP response.</div><div class="ttdef"><b>Definition:</b> HttpResponse.h:65</div></div>
+<div class="ttc" id="aclassolp_1_1client_1_1_http_response_html"><div class="ttname"><a href="classolp_1_1client_1_1_http_response.html">olp::client::HttpResponse</a></div><div class="ttdoc">An HTTP response.</div><div class="ttdef"><b>Definition:</b> HttpResponse.h:33</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

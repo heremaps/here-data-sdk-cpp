@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -74,7 +74,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>The password user sign-in properties struct.  
+<p>The user sign-in properties struct.  
  <a href="structolp_1_1authentication_1_1_authentication_client_1_1_user_properties.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_authentication_client_8h_source.html">AuthenticationClient.h</a>&gt;</code></p>
@@ -83,20 +83,37 @@ $(function() {
 Public Attributes</h2></td></tr>
 <tr class="memitem:ac8d258d8f70b92b30fe2566b04b02b0f"><td class="memItemLeft" align="right" valign="top"><a id="ac8d258d8f70b92b30fe2566b04b02b0f"></a>
 std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_user_properties.html#ac8d258d8f70b92b30fe2566b04b02b0f">email</a></td></tr>
-<tr class="memdesc:ac8d258d8f70b92b30fe2566b04b02b0f"><td class="mdescLeft">&#160;</td><td class="mdescRight">email Required. A valid email address. <br /></td></tr>
+<tr class="memdesc:ac8d258d8f70b92b30fe2566b04b02b0f"><td class="mdescLeft">&#160;</td><td class="mdescRight">(Required) Your valid email address. <br /></td></tr>
 <tr class="separator:ac8d258d8f70b92b30fe2566b04b02b0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1c447523630cc024dc04fa4e6340aaba"><td class="memItemLeft" align="right" valign="top"><a id="a1c447523630cc024dc04fa4e6340aaba"></a>
 std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_user_properties.html#a1c447523630cc024dc04fa4e6340aaba">password</a></td></tr>
-<tr class="memdesc:a1c447523630cc024dc04fa4e6340aaba"><td class="mdescLeft">&#160;</td><td class="mdescRight">password. Required. Plain-text password. <br /></td></tr>
+<tr class="memdesc:a1c447523630cc024dc04fa4e6340aaba"><td class="mdescLeft">&#160;</td><td class="mdescRight">(Required) Your plain-text password. <br /></td></tr>
 <tr class="separator:a1c447523630cc024dc04fa4e6340aaba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab4545e27f07d7716c9b62544bd389584"><td class="memItemLeft" align="right" valign="top"><a id="ab4545e27f07d7716c9b62544bd389584"></a>
-unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_user_properties.html#ab4545e27f07d7716c9b62544bd389584">expires_in</a> = 0</td></tr>
-<tr class="memdesc:ab4545e27f07d7716c9b62544bd389584"><td class="mdescLeft">&#160;</td><td class="mdescRight">expires_in Optional. Number of seconds before token expires, must number zero or more. Ignored if zero or greater than default expiration of the application. <br /></td></tr>
+<tr class="memitem:ab4545e27f07d7716c9b62544bd389584"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_user_properties.html#ab4545e27f07d7716c9b62544bd389584">expires_in</a> = 0</td></tr>
+<tr class="memdesc:ab4545e27f07d7716c9b62544bd389584"><td class="mdescLeft">&#160;</td><td class="mdescRight">(Optional) The number of seconds left before the access token expires.  <a href="structolp_1_1authentication_1_1_authentication_client_1_1_user_properties.html#ab4545e27f07d7716c9b62544bd389584">More...</a><br /></td></tr>
 <tr class="separator:ab4545e27f07d7716c9b62544bd389584"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The password user sign-in properties struct. </p>
-</div><hr/>The documentation for this struct was generated from the following file:<ul>
+<div class="textblock"><p>The user sign-in properties struct. </p>
+</div><h2 class="groupheader">Member Data Documentation</h2>
+<a id="ab4545e27f07d7716c9b62544bd389584"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab4545e27f07d7716c9b62544bd389584">&#9670;&nbsp;</a></span>expires_in</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned int olp::authentication::AuthenticationClient::UserProperties::expires_in = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>(Optional) The number of seconds left before the access token expires. </p>
+<p>It must be equal to or more than zero. Ignored if it is zero or greater than the default expiration time of the application. </p>
+
+</div>
+</div>
+<hr/>The documentation for this struct was generated from the following file:<ul>
 <li>olp-cpp-sdk-authentication/include/olp/authentication/<a class="el" href="_authentication_client_8h_source.html">AuthenticationClient.h</a></li>
 </ul>
 </div><!-- contents -->

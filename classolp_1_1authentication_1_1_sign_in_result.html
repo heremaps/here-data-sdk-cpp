@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -75,7 +75,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>SignInResponse represents the response to a client or user sign-in operation.  
+<p>A response to a client or user sign-in operation.  
  <a href="classolp_1_1authentication_1_1_sign_in_result.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_sign_in_result_8h_source.html">SignInResult.h</a>&gt;</code></p>
@@ -85,7 +85,7 @@ Inheritance diagram for olp::authentication::SignInResult:</div>
  <div class="center">
   <img src="classolp_1_1authentication_1_1_sign_in_result.png" usemap="#olp::authentication::SignInResult_map" alt=""/>
   <map id="olp::authentication::SignInResult_map" name="olp::authentication::SignInResult_map">
-<area href="classolp_1_1authentication_1_1_sign_in_user_result.html" title="The SignInUserResult class represents the response to a user sign-in operation." alt="olp::authentication::SignInUserResult" shape="rect" coords="0,56,214,80"/>
+<area href="classolp_1_1authentication_1_1_sign_in_user_result.html" title="A response to your sign-in operation." alt="olp::authentication::SignInUserResult" shape="rect" coords="0,56,214,80"/>
   </map>
 </div></div>
 <table class="memberdecls">
@@ -93,38 +93,41 @@ Inheritance diagram for olp::authentication::SignInResult:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a9144259a44ccfa0b214771f03d16f945"><td class="memItemLeft" align="right" valign="top"><a id="a9144259a44ccfa0b214771f03d16f945"></a>
 virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_sign_in_result.html#a9144259a44ccfa0b214771f03d16f945">~SignInResult</a> ()</td></tr>
-<tr class="memdesc:a9144259a44ccfa0b214771f03d16f945"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destructor. <br /></td></tr>
+<tr class="memdesc:a9144259a44ccfa0b214771f03d16f945"><td class="mdescLeft">&#160;</td><td class="mdescRight">A default destructor. <br /></td></tr>
 <tr class="separator:a9144259a44ccfa0b214771f03d16f945"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6fe1f86c13664140da9e281175d59f9c"><td class="memItemLeft" align="right" valign="top"><a id="a6fe1f86c13664140da9e281175d59f9c"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_sign_in_result.html#a6fe1f86c13664140da9e281175d59f9c">SignInResult</a> () noexcept</td></tr>
-<tr class="memdesc:a6fe1f86c13664140da9e281175d59f9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor. <br /></td></tr>
+<tr class="memdesc:a6fe1f86c13664140da9e281175d59f9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">A default constructor. <br /></td></tr>
 <tr class="separator:a6fe1f86c13664140da9e281175d59f9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a88bb0381dc9670d09c64ac7a9ced6dc1"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_sign_in_result.html#a88bb0381dc9670d09c64ac7a9ced6dc1">GetStatus</a> () const</td></tr>
-<tr class="memdesc:a88bb0381dc9670d09c64ac7a9ced6dc1"><td class="mdescLeft">&#160;</td><td class="mdescRight">HTTP status code getter method.  <a href="classolp_1_1authentication_1_1_sign_in_result.html#a88bb0381dc9670d09c64ac7a9ced6dc1">More...</a><br /></td></tr>
+<tr class="memdesc:a88bb0381dc9670d09c64ac7a9ced6dc1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets an HTTP status code.  <a href="classolp_1_1authentication_1_1_sign_in_result.html#a88bb0381dc9670d09c64ac7a9ced6dc1">More...</a><br /></td></tr>
 <tr class="separator:a88bb0381dc9670d09c64ac7a9ced6dc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1e61394b9e9a70b68f75fd72c39e2b4b"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structolp_1_1authentication_1_1_error_response.html">ErrorResponse</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_sign_in_result.html#a1e61394b9e9a70b68f75fd72c39e2b4b">GetErrorResponse</a> () const</td></tr>
-<tr class="memdesc:a1e61394b9e9a70b68f75fd72c39e2b4b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Error description getter method.  <a href="classolp_1_1authentication_1_1_sign_in_result.html#a1e61394b9e9a70b68f75fd72c39e2b4b">More...</a><br /></td></tr>
+<tr class="memdesc:a1e61394b9e9a70b68f75fd72c39e2b4b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets an error description.  <a href="classolp_1_1authentication_1_1_sign_in_result.html#a1e61394b9e9a70b68f75fd72c39e2b4b">More...</a><br /></td></tr>
 <tr class="separator:a1e61394b9e9a70b68f75fd72c39e2b4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adaea44ef7c51ba56b66b621df1527a80"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespaceolp_1_1authentication.html#aee1f6de5b659eb659c18eeb171dc4a02">ErrorFields</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_sign_in_result.html#adaea44ef7c51ba56b66b621df1527a80">GetErrorFields</a> () const</td></tr>
-<tr class="memdesc:adaea44ef7c51ba56b66b621df1527a80"><td class="mdescLeft">&#160;</td><td class="mdescRight">List of all specific input field errors getter method.  <a href="classolp_1_1authentication_1_1_sign_in_result.html#adaea44ef7c51ba56b66b621df1527a80">More...</a><br /></td></tr>
+<tr class="memdesc:adaea44ef7c51ba56b66b621df1527a80"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets a list of all specific input field errors.  <a href="classolp_1_1authentication_1_1_sign_in_result.html#adaea44ef7c51ba56b66b621df1527a80">More...</a><br /></td></tr>
 <tr class="separator:adaea44ef7c51ba56b66b621df1527a80"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac690537b6865f8427b65a615d1f83b7d"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_sign_in_result.html#ac690537b6865f8427b65a615d1f83b7d">GetAccessToken</a> () const</td></tr>
-<tr class="memdesc:ac690537b6865f8427b65a615d1f83b7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Access token getter method.  <a href="classolp_1_1authentication_1_1_sign_in_result.html#ac690537b6865f8427b65a615d1f83b7d">More...</a><br /></td></tr>
+<tr class="memdesc:ac690537b6865f8427b65a615d1f83b7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets an access token.  <a href="classolp_1_1authentication_1_1_sign_in_result.html#ac690537b6865f8427b65a615d1f83b7d">More...</a><br /></td></tr>
 <tr class="separator:ac690537b6865f8427b65a615d1f83b7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adaee30d2a1721ba117969e5455ecf216"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_sign_in_result.html#adaee30d2a1721ba117969e5455ecf216">GetTokenType</a> () const</td></tr>
-<tr class="memdesc:adaee30d2a1721ba117969e5455ecf216"><td class="mdescLeft">&#160;</td><td class="mdescRight">Access token type getter method.  <a href="classolp_1_1authentication_1_1_sign_in_result.html#adaee30d2a1721ba117969e5455ecf216">More...</a><br /></td></tr>
+<tr class="memdesc:adaee30d2a1721ba117969e5455ecf216"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the access token type.  <a href="classolp_1_1authentication_1_1_sign_in_result.html#adaee30d2a1721ba117969e5455ecf216">More...</a><br /></td></tr>
 <tr class="separator:adaee30d2a1721ba117969e5455ecf216"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad3ce817991e67fa1a4b80de27e7864ee"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_sign_in_result.html#ad3ce817991e67fa1a4b80de27e7864ee">GetRefreshToken</a> () const</td></tr>
-<tr class="memdesc:ad3ce817991e67fa1a4b80de27e7864ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Refresh token getter method.  <a href="classolp_1_1authentication_1_1_sign_in_result.html#ad3ce817991e67fa1a4b80de27e7864ee">More...</a><br /></td></tr>
+<tr class="memdesc:ad3ce817991e67fa1a4b80de27e7864ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets a refresh token.  <a href="classolp_1_1authentication_1_1_sign_in_result.html#ad3ce817991e67fa1a4b80de27e7864ee">More...</a><br /></td></tr>
 <tr class="separator:ad3ce817991e67fa1a4b80de27e7864ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a97dc8c8f2cafa4e5bbf508f2d0a76e6a"><td class="memItemLeft" align="right" valign="top">time_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_sign_in_result.html#a97dc8c8f2cafa4e5bbf508f2d0a76e6a">GetExpiryTime</a> () const</td></tr>
-<tr class="memdesc:a97dc8c8f2cafa4e5bbf508f2d0a76e6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Access token expiry time getter method.  <a href="classolp_1_1authentication_1_1_sign_in_result.html#a97dc8c8f2cafa4e5bbf508f2d0a76e6a">More...</a><br /></td></tr>
+<tr class="memdesc:a97dc8c8f2cafa4e5bbf508f2d0a76e6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the access token expiry time.  <a href="classolp_1_1authentication_1_1_sign_in_result.html#a97dc8c8f2cafa4e5bbf508f2d0a76e6a">More...</a><br /></td></tr>
 <tr class="separator:a97dc8c8f2cafa4e5bbf508f2d0a76e6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5defad886e422c90c539b64bec83a543"><td class="memItemLeft" align="right" valign="top">std::chrono::seconds&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_sign_in_result.html#a5defad886e422c90c539b64bec83a543">GetExpiresIn</a> () const</td></tr>
+<tr class="memdesc:a5defad886e422c90c539b64bec83a543"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the access token expiry time in seconds.  <a href="classolp_1_1authentication_1_1_sign_in_result.html#a5defad886e422c90c539b64bec83a543">More...</a><br /></td></tr>
+<tr class="separator:a5defad886e422c90c539b64bec83a543"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa6adca2f64d776d7a51105249cb9e81"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_sign_in_result.html#afa6adca2f64d776d7a51105249cb9e81">GetUserIdentifier</a> () const</td></tr>
-<tr class="memdesc:afa6adca2f64d776d7a51105249cb9e81"><td class="mdescLeft">&#160;</td><td class="mdescRight">Here account user identifier getter method.  <a href="classolp_1_1authentication_1_1_sign_in_result.html#afa6adca2f64d776d7a51105249cb9e81">More...</a><br /></td></tr>
+<tr class="memdesc:afa6adca2f64d776d7a51105249cb9e81"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the HERE Account user identifier.  <a href="classolp_1_1authentication_1_1_sign_in_result.html#afa6adca2f64d776d7a51105249cb9e81">More...</a><br /></td></tr>
 <tr class="separator:afa6adca2f64d776d7a51105249cb9e81"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af6c2f7c0f5600a8a4a02701a431919f3"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_sign_in_result.html#af6c2f7c0f5600a8a4a02701a431919f3">GetScope</a> () const</td></tr>
-<tr class="memdesc:af6c2f7c0f5600a8a4a02701a431919f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scope that is assigned to access token.  <a href="classolp_1_1authentication_1_1_sign_in_result.html#af6c2f7c0f5600a8a4a02701a431919f3">More...</a><br /></td></tr>
+<tr class="memdesc:af6c2f7c0f5600a8a4a02701a431919f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the scope that is assigned to the access token.  <a href="classolp_1_1authentication_1_1_sign_in_result.html#af6c2f7c0f5600a8a4a02701a431919f3">More...</a><br /></td></tr>
 <tr class="separator:af6c2f7c0f5600a8a4a02701a431919f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
@@ -137,7 +140,7 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>AuthenticationClient
 <tr class="separator:a82d22b410c3b385aeb18efb2fd2a53ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>SignInResponse represents the response to a client or user sign-in operation. </p>
+<div class="textblock"><p>A response to a client or user sign-in operation. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="ac690537b6865f8427b65a615d1f83b7d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac690537b6865f8427b65a615d1f83b7d">&#9670;&nbsp;</a></span>GetAccessToken()</h2>
@@ -154,8 +157,8 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>AuthenticationClient
       </table>
 </div><div class="memdoc">
 
-<p>Access token getter method. </p>
-<dl class="section return"><dt>Returns</dt><dd>String containing the new HERE Account client or user access token, identifying the signed-in client or user. </dd></dl>
+<p>Gets an access token. </p>
+<dl class="section return"><dt>Returns</dt><dd>The string that contains the new HERE Account client or user access token that identifies the signed-in client or user. </dd></dl>
 
 </div>
 </div>
@@ -174,8 +177,8 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>AuthenticationClient
       </table>
 </div><div class="memdoc">
 
-<p>List of all specific input field errors getter method. </p>
-<dl class="section return"><dt>Returns</dt><dd>List of input field errors. </dd></dl>
+<p>Gets a list of all specific input field errors. </p>
+<dl class="section return"><dt>Returns</dt><dd>The list of input field errors. </dd></dl>
 
 </div>
 </div>
@@ -194,8 +197,28 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>AuthenticationClient
       </table>
 </div><div class="memdoc">
 
-<p>Error description getter method. </p>
-<dl class="section return"><dt>Returns</dt><dd>Error description of failed request. </dd></dl>
+<p>Gets an error description. </p>
+<dl class="section return"><dt>Returns</dt><dd>The error description of the failed request. </dd></dl>
+
+</div>
+</div>
+<a id="a5defad886e422c90c539b64bec83a543"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5defad886e422c90c539b64bec83a543">&#9670;&nbsp;</a></span>GetExpiresIn()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::chrono::seconds olp::authentication::SignInResult::GetExpiresIn </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the access token expiry time in seconds. </p>
+<dl class="section return"><dt>Returns</dt><dd>Duration for which token stays valid. </dd></dl>
 
 </div>
 </div>
@@ -214,8 +237,8 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>AuthenticationClient
       </table>
 </div><div class="memdoc">
 
-<p>Access token expiry time getter method. </p>
-<dl class="section return"><dt>Returns</dt><dd>Epoch time when the token is expiring, -1 for invalid. </dd></dl>
+<p>Gets the access token expiry time. </p>
+<dl class="section return"><dt>Returns</dt><dd>The Epoch time when the token expires, or -1 if the token is invalid. </dd></dl>
 
 </div>
 </div>
@@ -234,8 +257,8 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>AuthenticationClient
       </table>
 </div><div class="memdoc">
 
-<p>Refresh token getter method. </p>
-<dl class="section return"><dt>Returns</dt><dd>String containing a token which is used to obtain a new access token using the refresh API. Refresh token is always issued as part of the response to a user sign in operation. </dd></dl>
+<p>Gets a refresh token. </p>
+<dl class="section return"><dt>Returns</dt><dd>The string with the token that is used to get a new access token via the refresh API. The refresh token is always issued as a part of a response to a user sign-in operation. </dd></dl>
 
 </div>
 </div>
@@ -254,8 +277,8 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>AuthenticationClient
       </table>
 </div><div class="memdoc">
 
-<p>Scope that is assigned to access token. </p>
-<dl class="section return"><dt>Returns</dt><dd>String containing the scope. </dd></dl>
+<p>Gets the scope that is assigned to the access token. </p>
+<dl class="section return"><dt>Returns</dt><dd>The string that contains the scope assigned to the access token. </dd></dl>
 
 </div>
 </div>
@@ -274,8 +297,8 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>AuthenticationClient
       </table>
 </div><div class="memdoc">
 
-<p>HTTP status code getter method. </p>
-<dl class="section return"><dt>Returns</dt><dd>Status code of the HTTP response, if a positive value returned. A negative value indicates a possible networking issue (retrying the request is recommended). </dd></dl>
+<p>Gets an HTTP status code. </p>
+<dl class="section return"><dt>Returns</dt><dd>The status code of the HTTP response if a positive value is returned. A negative value indicates a possible networking error. If you get the negative value, retry the request. </dd></dl>
 
 </div>
 </div>
@@ -294,8 +317,8 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>AuthenticationClient
       </table>
 </div><div class="memdoc">
 
-<p>Access token type getter method. </p>
-<dl class="section return"><dt>Returns</dt><dd>String containing the access token type (always "bearer"). </dd></dl>
+<p>Gets the access token type. </p>
+<dl class="section return"><dt>Returns</dt><dd>The string containing the access token type (always a bearer token). </dd></dl>
 
 </div>
 </div>
@@ -314,8 +337,8 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>AuthenticationClient
       </table>
 </div><div class="memdoc">
 
-<p>Here account user identifier getter method. </p>
-<dl class="section return"><dt>Returns</dt><dd>String containing the HERE Account user ID. </dd></dl>
+<p>Gets the HERE Account user identifier. </p>
+<dl class="section return"><dt>Returns</dt><dd>The string that contains the HERE Account user ID. </dd></dl>
 
 </div>
 </div>

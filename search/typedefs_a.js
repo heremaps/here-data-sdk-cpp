@@ -1,7 +1,5 @@
 var searchData=
 [
-  ['signinclientresponse_1328',['SignInClientResponse',['../classolp_1_1authentication_1_1_authentication_client.html#a793327efeee563f4b06e4ddf5ee88862',1,'olp::authentication::AuthenticationClient']]],
-  ['signinuserresponse_1329',['SignInUserResponse',['../classolp_1_1authentication_1_1_authentication_client.html#a5b9b2173f67006839317046b55ddef4c',1,'olp::authentication::AuthenticationClient']]],
-  ['signoutuserresponse_1330',['SignOutUserResponse',['../classolp_1_1authentication_1_1_authentication_client.html#a7dde0c4bd0972c19df28f9e9dc55545c',1,'olp::authentication::AuthenticationClient']]],
-  ['signupresponse_1331',['SignUpResponse',['../classolp_1_1authentication_1_1_authentication_client.html#a8536ebbdd05bdf5561a6e921f8983df1',1,'olp::authentication::AuthenticationClient']]]
+  ['payload_1720',['Payload',['../classolp_1_1http_1_1_network.html#a2d55d803454a41277d8200f25d4e2714',1,'olp::http::Network']]],
+  ['promiseptr_1721',['PromisePtr',['../classolp_1_1client_1_1_cancellable_future.html#a27868331f026830fa414d922116fef8e',1,'olp::client::CancellableFuture']]]
 ];

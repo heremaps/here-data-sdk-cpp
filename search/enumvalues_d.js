@@ -1,7 +1,9 @@
 var searchData=
 [
-  ['requestidinvalid_1374',['RequestIdInvalid',['../namespaceolp_1_1http.html#a35616292ce390a1ae1e7f1983db2fed2a94cade3eb0e835e26032dcbde51d833a',1,'olp::http']]],
-  ['requestidmax_1375',['RequestIdMax',['../namespaceolp_1_1http.html#a35616292ce390a1ae1e7f1983db2fed2a47b86dbaea001f80fa51aa2b98c48cfa',1,'olp::http']]],
-  ['requestidmin_1376',['RequestIdMin',['../namespaceolp_1_1http.html#a35616292ce390a1ae1e7f1983db2fed2a6e0e63b410cd8e1cb8dd801630e3e4d7',1,'olp::http']]],
-  ['requesttimeout_1377',['RequestTimeout',['../namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a3632c2e4e6225d4d9fcd2a6fd2c65048',1,'olp::client']]]
+  ['patch_1780',['PATCH',['../classolp_1_1http_1_1_network_request.html#ac280dc7b10a02ce328cf1b6dcae42fd5a63bc9a3997d66d835d9f3ec29451407d',1,'olp::http::NetworkRequest']]],
+  ['pending_1781',['PENDING',['../classolp_1_1client_1_1_task_context_1_1_task_context_impl.html#a5ac308628e18a0fc9c18806b5e58714fac69f06e1a9b016d133907b4e5f5864d2',1,'olp::client::TaskContext::TaskContextImpl']]],
+  ['pipeline_1782',['Pipeline',['../classolp_1_1client_1_1_h_r_n.html#a47188d24604800fd02b73b52ce021c23a3cd918500b556db506c83ad4d36ffc8d',1,'olp::client::HRN']]],
+  ['post_1783',['POST',['../classolp_1_1http_1_1_network_request.html#ac280dc7b10a02ce328cf1b6dcae42fd5aa02439ec229d8be0e74b0c1602392310',1,'olp::http::NetworkRequest']]],
+  ['preconditionfailed_1784',['PreconditionFailed',['../namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a3542a02d18f11f46d53990d91752a6d4',1,'olp::client']]],
+  ['put_1785',['PUT',['../classolp_1_1http_1_1_network_request.html#ac280dc7b10a02ce328cf1b6dcae42fd5a3e75383a5992a6d15fb81e872e46e256',1,'olp::http::NetworkRequest']]]
 ];

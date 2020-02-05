@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -78,7 +78,7 @@ $(function() {
 <p>Client responsible for writing data to an OLP stream layer.  
  <a href="classolp_1_1dataservice_1_1write_1_1_stream_layer_client.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_stream_layer_client_8h_source.html">StreamLayerClient.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="olp-cpp-sdk-dataservice-write_2include_2olp_2dataservice_2write_2_stream_layer_client_8h_source.html">StreamLayerClient.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
@@ -94,6 +94,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:addcf7a2cc14548d28424be8fc264e9f6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_stream_layer_client.html#addcf7a2cc14548d28424be8fc264e9f6">StreamLayerClient</a> (<a class="el" href="classolp_1_1client_1_1_h_r_n.html">client::HRN</a> catalog, <a class="el" href="structolp_1_1dataservice_1_1write_1_1_stream_layer_client_settings.html">StreamLayerClientSettings</a> client_settings, <a class="el" href="structolp_1_1client_1_1_olp_client_settings.html">client::OlpClientSettings</a> settings)</td></tr>
 <tr class="memdesc:addcf7a2cc14548d28424be8fc264e9f6"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_stream_layer_client.html" title="Client responsible for writing data to an OLP stream layer.">StreamLayerClient</a> Constructor.  <a href="classolp_1_1dataservice_1_1write_1_1_stream_layer_client.html#addcf7a2cc14548d28424be8fc264e9f6">More...</a><br /></td></tr>
 <tr class="separator:addcf7a2cc14548d28424be8fc264e9f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a529daa75598f61ace231f9ac5657ef8e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_stream_layer_client.html#a529daa75598f61ace231f9ac5657ef8e">CancelPendingRequests</a> ()</td></tr>
+<tr class="memdesc:a529daa75598f61ace231f9ac5657ef8e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancels all the ongoing publish operations that this client started.  <a href="classolp_1_1dataservice_1_1write_1_1_stream_layer_client.html#a529daa75598f61ace231f9ac5657ef8e">More...</a><br /></td></tr>
+<tr class="separator:a529daa75598f61ace231f9ac5657ef8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1976f797156b3bb28e84fa1e45b3be37"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellable_future.html">olp::client::CancellableFuture</a>&lt; <a class="el" href="classolp_1_1client_1_1_api_response.html">PublishDataResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_stream_layer_client.html#a1976f797156b3bb28e84fa1e45b3be37">PublishData</a> (<a class="el" href="classolp_1_1dataservice_1_1write_1_1model_1_1_publish_data_request.html">model::PublishDataRequest</a> request)</td></tr>
 <tr class="memdesc:a1976f797156b3bb28e84fa1e45b3be37"><td class="mdescLeft">&#160;</td><td class="mdescRight">Publishes data to an OLP stream layer.  <a href="classolp_1_1dataservice_1_1write_1_1_stream_layer_client.html#a1976f797156b3bb28e84fa1e45b3be37">More...</a><br /></td></tr>
 <tr class="separator:a1976f797156b3bb28e84fa1e45b3be37"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -164,6 +167,26 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a529daa75598f61ace231f9ac5657ef8e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a529daa75598f61ace231f9ac5657ef8e">&#9670;&nbsp;</a></span>CancelPendingRequests()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void olp::dataservice::write::StreamLayerClient::CancelPendingRequests </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Cancels all the ongoing publish operations that this client started. </p>
+<p>Returns instantly and does not wait for the callbacks. Use this operation to cancel all the pending publish requests without destroying the actual client instance. </p><dl class="section note"><dt>Note</dt><dd>This operation does not cancel publish requests queued by the <a class="el" href="classolp_1_1dataservice_1_1write_1_1_stream_layer_client.html#a980058385b3fad16cc5793cae2e652b8">Queue</a> method. </dd></dl>
+
+</div>
+</div>
 <a id="a2be9b60219605540e85e16fff08c1e49"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2be9b60219605540e85e16fff08c1e49">&#9670;&nbsp;</a></span>Flush() <span class="overload">[1/2]</span></h2>
 
@@ -389,7 +412,7 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>olp-cpp-sdk-dataservice-write/include/olp/dataservice/write/<a class="el" href="_stream_layer_client_8h_source.html">StreamLayerClient.h</a></li>
+<li>olp-cpp-sdk-dataservice-write/include/olp/dataservice/write/<a class="el" href="olp-cpp-sdk-dataservice-write_2include_2olp_2dataservice_2write_2_stream_layer_client_8h_source.html">StreamLayerClient.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

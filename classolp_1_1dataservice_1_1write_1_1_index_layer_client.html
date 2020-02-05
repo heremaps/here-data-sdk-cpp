@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -84,10 +84,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a14c1021892fd0fa07dae298478e4045a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_index_layer_client.html#a14c1021892fd0fa07dae298478e4045a">IndexLayerClient</a> (<a class="el" href="classolp_1_1client_1_1_h_r_n.html">client::HRN</a> catalog, <a class="el" href="structolp_1_1client_1_1_olp_client_settings.html">client::OlpClientSettings</a> settings)</td></tr>
 <tr class="memdesc:a14c1021892fd0fa07dae298478e4045a"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_index_layer_client.html" title="Client that is responsible for writing data to an OLP index layer.">IndexLayerClient</a> Constructor.  <a href="classolp_1_1dataservice_1_1write_1_1_index_layer_client.html#a14c1021892fd0fa07dae298478e4045a">More...</a><br /></td></tr>
 <tr class="separator:a14c1021892fd0fa07dae298478e4045a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a32f4e39f99c4d37a3b5d24ee3dc8e8a4"><td class="memItemLeft" align="right" valign="top"><a id="a32f4e39f99c4d37a3b5d24ee3dc8e8a4"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_index_layer_client.html#a32f4e39f99c4d37a3b5d24ee3dc8e8a4">CancelAll</a> ()</td></tr>
-<tr class="memdesc:a32f4e39f99c4d37a3b5d24ee3dc8e8a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancels all pending requests. <br /></td></tr>
-<tr class="separator:a32f4e39f99c4d37a3b5d24ee3dc8e8a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e5a2ef905be0aaec90c7facdf671380"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_index_layer_client.html#a3e5a2ef905be0aaec90c7facdf671380">OLP_SDK_DEPRECATED</a> (&quot;Use <a class="el" href="classolp_1_1dataservice_1_1write_1_1_index_layer_client.html#ae45684f1dc4ed5fb0306b87770e5a38c">CancelPendingRequests</a> instead. Will be removed in 05.2020&quot;) void CancelAll()</td></tr>
+<tr class="memdesc:a3e5a2ef905be0aaec90c7facdf671380"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancels all pending requests.  <a href="classolp_1_1dataservice_1_1write_1_1_index_layer_client.html#a3e5a2ef905be0aaec90c7facdf671380">More...</a><br /></td></tr>
+<tr class="separator:a3e5a2ef905be0aaec90c7facdf671380"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae45684f1dc4ed5fb0306b87770e5a38c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_index_layer_client.html#ae45684f1dc4ed5fb0306b87770e5a38c">CancelPendingRequests</a> ()</td></tr>
+<tr class="memdesc:ae45684f1dc4ed5fb0306b87770e5a38c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancels all the ongoing operations that this client started.  <a href="classolp_1_1dataservice_1_1write_1_1_index_layer_client.html#ae45684f1dc4ed5fb0306b87770e5a38c">More...</a><br /></td></tr>
+<tr class="separator:ae45684f1dc4ed5fb0306b87770e5a38c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5813b40dc714104d1dd1058a8f9618e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellable_future.html">olp::client::CancellableFuture</a>&lt; <a class="el" href="classolp_1_1client_1_1_api_response.html">PublishIndexResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1_index_layer_client.html#a5813b40dc714104d1dd1058a8f9618e0">PublishIndex</a> (<a class="el" href="classolp_1_1dataservice_1_1write_1_1model_1_1_publish_index_request.html">model::PublishIndexRequest</a> request)</td></tr>
 <tr class="memdesc:a5813b40dc714104d1dd1058a8f9618e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Publishes an index to an OLP index layer.  <a href="classolp_1_1dataservice_1_1write_1_1_index_layer_client.html#a5813b40dc714104d1dd1058a8f9618e0">More...</a><br /></td></tr>
 <tr class="separator:a5813b40dc714104d1dd1058a8f9618e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -148,6 +150,26 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="ae45684f1dc4ed5fb0306b87770e5a38c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae45684f1dc4ed5fb0306b87770e5a38c">&#9670;&nbsp;</a></span>CancelPendingRequests()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void olp::dataservice::write::IndexLayerClient::CancelPendingRequests </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Cancels all the ongoing operations that this client started. </p>
+<p>Returns instantly and does not wait for the callbacks. Use this operation to cancel all the pending requests without destroying the actual client instance. </p>
+
+</div>
+</div>
 <a id="adc599a7150290caa63b138bdc0a4ecf4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adc599a7150290caa63b138bdc0a4ecf4">&#9670;&nbsp;</a></span>DeleteIndexData() <span class="overload">[1/2]</span></h2>
 
@@ -210,6 +232,27 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>CancellationToken that can be used to cancel the ongoing request. </dd></dl>
+
+</div>
+</div>
+<a id="a3e5a2ef905be0aaec90c7facdf671380"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3e5a2ef905be0aaec90c7facdf671380">&#9670;&nbsp;</a></span>OLP_SDK_DEPRECATED()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">olp::dataservice::write::IndexLayerClient::OLP_SDK_DEPRECATED </td>
+          <td>(</td>
+          <td class="paramtype">&quot;Use <a class="el" href="classolp_1_1dataservice_1_1write_1_1_index_layer_client.html#ae45684f1dc4ed5fb0306b87770e5a38c">CancelPendingRequests</a> instead. Will be removed in 05.2020&quot;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Cancels all pending requests. </p>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000015">Deprecated:</a></b></dt><dd>Use <a class="el" href="classolp_1_1dataservice_1_1write_1_1_index_layer_client.html#ae45684f1dc4ed5fb0306b87770e5a38c">CancelPendingRequests</a> intead. </dd></dl>
 
 </div>
 </div>

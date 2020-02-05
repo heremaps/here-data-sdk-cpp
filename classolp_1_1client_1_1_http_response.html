@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -75,32 +75,124 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Response from a REST request.  
+<p>An HTTP response.  
  <a href="classolp_1_1client_1_1_http_response.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_http_response_8h_source.html">HttpResponse.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a7ecac17ef6b979e9d20664e95e5490b5"><td class="memItemLeft" align="right" valign="top"><a id="a7ecac17ef6b979e9d20664e95e5490b5"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>HttpResponse</b> (int <a class="el" href="classolp_1_1client_1_1_http_response.html#aa9410fa9a262ca0860ef686a12ca5a22">status</a>, std::string response=std::string())</td></tr>
+<tr class="memitem:a7ecac17ef6b979e9d20664e95e5490b5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_http_response.html#a7ecac17ef6b979e9d20664e95e5490b5">HttpResponse</a> (int <a class="el" href="classolp_1_1client_1_1_http_response.html#aa9410fa9a262ca0860ef686a12ca5a22">status</a>, std::string <a class="el" href="classolp_1_1client_1_1_http_response.html#a2c41780eb45b457ecc7c942f67ba8a23">response</a>=std::string())</td></tr>
+<tr class="memdesc:a7ecac17ef6b979e9d20664e95e5490b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1_http_response.html" title="An HTTP response.">HttpResponse</a></code> instance.  <a href="classolp_1_1client_1_1_http_response.html#a7ecac17ef6b979e9d20664e95e5490b5">More...</a><br /></td></tr>
 <tr class="separator:a7ecac17ef6b979e9d20664e95e5490b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4be24b30e3013af25355e6b29001a56f"><td class="memItemLeft" align="right" valign="top"><a id="a4be24b30e3013af25355e6b29001a56f"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>HttpResponse</b> (int <a class="el" href="classolp_1_1client_1_1_http_response.html#aa9410fa9a262ca0860ef686a12ca5a22">status</a>, std::stringstream &amp;&amp;response)</td></tr>
+<tr class="memitem:a4be24b30e3013af25355e6b29001a56f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_http_response.html#a4be24b30e3013af25355e6b29001a56f">HttpResponse</a> (int <a class="el" href="classolp_1_1client_1_1_http_response.html#aa9410fa9a262ca0860ef686a12ca5a22">status</a>, std::stringstream &amp;&amp;<a class="el" href="classolp_1_1client_1_1_http_response.html#a2c41780eb45b457ecc7c942f67ba8a23">response</a>)</td></tr>
+<tr class="memdesc:a4be24b30e3013af25355e6b29001a56f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1_http_response.html" title="An HTTP response.">HttpResponse</a></code> instance.  <a href="classolp_1_1client_1_1_http_response.html#a4be24b30e3013af25355e6b29001a56f">More...</a><br /></td></tr>
 <tr class="separator:a4be24b30e3013af25355e6b29001a56f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:aa9410fa9a262ca0860ef686a12ca5a22"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_http_response.html#aa9410fa9a262ca0860ef686a12ca5a22">status</a> {static_cast&lt;int&gt;(<a class="el" href="namespaceolp_1_1http.html#a61c765861938a212070d01911a6b6a17a9a10f345b0f755d461a8673a5e9ef6b4">olp::http::ErrorCode::UNKNOWN_ERROR</a>)}</td></tr>
-<tr class="memdesc:aa9410fa9a262ca0860ef686a12ca5a22"><td class="mdescLeft">&#160;</td><td class="mdescRight">status Status of the HTTP request.  <a href="classolp_1_1client_1_1_http_response.html#aa9410fa9a262ca0860ef686a12ca5a22">More...</a><br /></td></tr>
+<tr class="memdesc:aa9410fa9a262ca0860ef686a12ca5a22"><td class="mdescLeft">&#160;</td><td class="mdescRight">The HTTP status.  <a href="classolp_1_1client_1_1_http_response.html#aa9410fa9a262ca0860ef686a12ca5a22">More...</a><br /></td></tr>
 <tr class="separator:aa9410fa9a262ca0860ef686a12ca5a22"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2c41780eb45b457ecc7c942f67ba8a23"><td class="memItemLeft" align="right" valign="top"><a id="a2c41780eb45b457ecc7c942f67ba8a23"></a>
-std::stringstream&#160;</td><td class="memItemRight" valign="bottom"><b>response</b></td></tr>
+std::stringstream&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_http_response.html#a2c41780eb45b457ecc7c942f67ba8a23">response</a></td></tr>
+<tr class="memdesc:a2c41780eb45b457ecc7c942f67ba8a23"><td class="mdescLeft">&#160;</td><td class="mdescRight">The HTTP response. <br /></td></tr>
 <tr class="separator:a2c41780eb45b457ecc7c942f67ba8a23"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Response from a REST request. </p>
-</div><h2 class="groupheader">Member Data Documentation</h2>
+<div class="textblock"><p>An HTTP response. </p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a7ecac17ef6b979e9d20664e95e5490b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7ecac17ef6b979e9d20664e95e5490b5">&#9670;&nbsp;</a></span>HttpResponse() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">olp::client::HttpResponse::HttpResponse </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>status</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>response</em> = <code>std::string()</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates the <code><a class="el" href="classolp_1_1client_1_1_http_response.html" title="An HTTP response.">HttpResponse</a></code> instance. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">status</td><td>The HTTP status. </td></tr>
+    <tr><td class="paramname">response</td><td>The response body. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a4be24b30e3013af25355e6b29001a56f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4be24b30e3013af25355e6b29001a56f">&#9670;&nbsp;</a></span>HttpResponse() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">olp::client::HttpResponse::HttpResponse </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>status</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::stringstream &amp;&amp;&#160;</td>
+          <td class="paramname"><em>response</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates the <code><a class="el" href="classolp_1_1client_1_1_http_response.html" title="An HTTP response.">HttpResponse</a></code> instance. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">status</td><td>The HTTP status. </td></tr>
+    <tr><td class="paramname">response</td><td>The response body. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
 <a id="aa9410fa9a262ca0860ef686a12ca5a22"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa9410fa9a262ca0860ef686a12ca5a22">&#9670;&nbsp;</a></span>status</h2>
 
@@ -113,10 +205,10 @@ std::stringstream&#160;</td><td class="memItemRight" valign="bottom"><b>response
       </table>
 </div><div class="memdoc">
 
-<p>status Status of the HTTP request. </p>
-<dl class="section see"><dt>See also</dt><dd>olp::network::Network::ErrorCode for negative <a class="el" href="classolp_1_1client_1_1_http_response.html#aa9410fa9a262ca0860ef686a12ca5a22" title="status Status of the HTTP request.">status</a> numbers </dd>
+<p>The HTTP status. </p>
+<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59" title="Represents all possible errors that might happen during a user request.">ErrorCode</a></code> for information on negative <a class="el" href="classolp_1_1client_1_1_http_response.html#aa9410fa9a262ca0860ef686a12ca5a22" title="The HTTP status.">status</a> numbers. </dd>
 <dd>
-olp::network::HttpStatusCode for positive <a class="el" href="classolp_1_1client_1_1_http_response.html#aa9410fa9a262ca0860ef686a12ca5a22" title="status Status of the HTTP request.">status</a> numbers </dd></dl>
+<code>HttpStatusCode</code> for information on positive <a class="el" href="classolp_1_1client_1_1_http_response.html#aa9410fa9a262ca0860ef686a12ca5a22" title="The HTTP status.">status</a> numbers. </dd></dl>
 
 </div>
 </div>

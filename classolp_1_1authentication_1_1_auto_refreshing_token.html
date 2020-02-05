@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -75,7 +75,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>The <a class="el" href="classolp_1_1authentication_1_1_auto_refreshing_token.html" title="The AutoRefreshingToken class manages caching the requested token and refreshing it when needed.">AutoRefreshingToken</a> class manages caching the requested token and refreshing it when needed.  
+<p>Manages token requests.  
  <a href="classolp_1_1authentication_1_1_auto_refreshing_token.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_auto_refreshing_token_8h_source.html">AutoRefreshingToken.h</a>&gt;</code></p>
@@ -83,24 +83,28 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:a4aac1487494795c634e8608602f3c6fa"><td class="memItemLeft" align="right" valign="top"><a id="a4aac1487494795c634e8608602f3c6fa"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_auto_refreshing_token.html#a4aac1487494795c634e8608602f3c6fa">GetTokenCallback</a> = std::function&lt; void(const <a class="el" href="classolp_1_1authentication_1_1_token_endpoint.html#aa80d76f0915be0216aace00983b91afd">TokenEndpoint::TokenResponse</a> &amp;response)&gt;</td></tr>
-<tr class="memdesc:a4aac1487494795c634e8608602f3c6fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">The getTokenCallback type specifies the callback signature required for when the get token request is completed. <br /></td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_auto_refreshing_token.html#a4aac1487494795c634e8608602f3c6fa">GetTokenCallback</a> = std::function&lt; void(const TokenEndpoint::TokenResponse &amp;response)&gt;</td></tr>
+<tr class="memdesc:a4aac1487494795c634e8608602f3c6fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies the callback signature that is required when the get token request is completed. <br /></td></tr>
 <tr class="separator:a4aac1487494795c634e8608602f3c6fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:adc4d123c0dc1e983f9498b9d86df9777"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1authentication_1_1_token_endpoint.html#aa80d76f0915be0216aace00983b91afd">TokenEndpoint::TokenResponse</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_auto_refreshing_token.html#adc4d123c0dc1e983f9498b9d86df9777">GetToken</a> (<a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a> &amp;cancellation_token, const std::chrono::seconds &amp;minimum_validity=kDefaultMinimumValiditySeconds) const</td></tr>
+<tr class="memitem:adc4d123c0dc1e983f9498b9d86df9777"><td class="memItemLeft" align="right" valign="top">TokenEndpoint::TokenResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_auto_refreshing_token.html#adc4d123c0dc1e983f9498b9d86df9777">GetToken</a> (<a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a> &amp;cancellation_token, const std::chrono::seconds &amp;minimum_validity=kDefaultMinimumValiditySeconds) const</td></tr>
+<tr class="memdesc:adc4d123c0dc1e983f9498b9d86df9777"><td class="mdescLeft">&#160;</td><td class="mdescRight">Synchronously gets a token that is always fresh.  <a href="classolp_1_1authentication_1_1_auto_refreshing_token.html#adc4d123c0dc1e983f9498b9d86df9777">More...</a><br /></td></tr>
 <tr class="separator:adc4d123c0dc1e983f9498b9d86df9777"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a773e91745ccf743169e685dd16375d98"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1authentication_1_1_token_endpoint.html#aa80d76f0915be0216aace00983b91afd">TokenEndpoint::TokenResponse</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_auto_refreshing_token.html#a773e91745ccf743169e685dd16375d98">GetToken</a> (const std::chrono::seconds &amp;minimum_validity=kDefaultMinimumValiditySeconds) const</td></tr>
+<tr class="memitem:a773e91745ccf743169e685dd16375d98"><td class="memItemLeft" align="right" valign="top">TokenEndpoint::TokenResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_auto_refreshing_token.html#a773e91745ccf743169e685dd16375d98">GetToken</a> (const std::chrono::seconds &amp;minimum_validity=kDefaultMinimumValiditySeconds) const</td></tr>
+<tr class="memdesc:a773e91745ccf743169e685dd16375d98"><td class="mdescLeft">&#160;</td><td class="mdescRight">Synchronously gets a token that is always fresh.  <a href="classolp_1_1authentication_1_1_auto_refreshing_token.html#a773e91745ccf743169e685dd16375d98">More...</a><br /></td></tr>
 <tr class="separator:a773e91745ccf743169e685dd16375d98"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a16ed13643c76395b0e9b977cda460192"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_auto_refreshing_token.html#a16ed13643c76395b0e9b977cda460192">GetToken</a> (const <a class="el" href="classolp_1_1authentication_1_1_auto_refreshing_token.html#a4aac1487494795c634e8608602f3c6fa">GetTokenCallback</a> &amp;callback, const std::chrono::seconds &amp;minimum_validity=kDefaultMinimumValiditySeconds) const</td></tr>
+<tr class="memdesc:a16ed13643c76395b0e9b977cda460192"><td class="mdescLeft">&#160;</td><td class="mdescRight">Asynchronously gets a token that is always fresh.  <a href="classolp_1_1authentication_1_1_auto_refreshing_token.html#a16ed13643c76395b0e9b977cda460192">More...</a><br /></td></tr>
 <tr class="separator:a16ed13643c76395b0e9b977cda460192"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a002fe15800b7269101778472ea80222f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_auto_refreshing_token.html#a002fe15800b7269101778472ea80222f">AutoRefreshingToken</a> (<a class="el" href="classolp_1_1authentication_1_1_token_endpoint.html">TokenEndpoint</a> token_endpoint, <a class="el" href="classolp_1_1authentication_1_1_token_request.html">TokenRequest</a> token_request)</td></tr>
-<tr class="memdesc:a002fe15800b7269101778472ea80222f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <a href="classolp_1_1authentication_1_1_auto_refreshing_token.html#a002fe15800b7269101778472ea80222f">More...</a><br /></td></tr>
+<tr class="memitem:a002fe15800b7269101778472ea80222f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_auto_refreshing_token.html#a002fe15800b7269101778472ea80222f">AutoRefreshingToken</a> (TokenEndpoint token_endpoint, TokenRequest token_request)</td></tr>
+<tr class="memdesc:a002fe15800b7269101778472ea80222f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1authentication_1_1_auto_refreshing_token.html" title="Manages token requests.">AutoRefreshingToken</a></code> instance.  <a href="classolp_1_1authentication_1_1_auto_refreshing_token.html#a002fe15800b7269101778472ea80222f">More...</a><br /></td></tr>
 <tr class="separator:a002fe15800b7269101778472ea80222f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The <a class="el" href="classolp_1_1authentication_1_1_auto_refreshing_token.html" title="The AutoRefreshingToken class manages caching the requested token and refreshing it when needed.">AutoRefreshingToken</a> class manages caching the requested token and refreshing it when needed. </p>
+<div class="textblock"><p>Manages token requests. </p>
+<p>Requests a new token from the token endpoint and automatically refreshes it when the token is about to expire. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a002fe15800b7269101778472ea80222f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a002fe15800b7269101778472ea80222f">&#9670;&nbsp;</a></span>AutoRefreshingToken()</h2>
@@ -111,13 +115,13 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">olp::authentication::AutoRefreshingToken::AutoRefreshingToken </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classolp_1_1authentication_1_1_token_endpoint.html">TokenEndpoint</a>&#160;</td>
+          <td class="paramtype">TokenEndpoint&#160;</td>
           <td class="paramname"><em>token_endpoint</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classolp_1_1authentication_1_1_token_request.html">TokenRequest</a>&#160;</td>
+          <td class="paramtype">TokenRequest&#160;</td>
           <td class="paramname"><em>token_request</em>&#160;</td>
         </tr>
         <tr>
@@ -128,11 +132,11 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Constructor. </p>
+<p>Creates the <code><a class="el" href="classolp_1_1authentication_1_1_auto_refreshing_token.html" title="Manages token requests.">AutoRefreshingToken</a></code> instance. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">token_endpoint</td><td>the token endpoint to refresh against </td></tr>
-    <tr><td class="paramname">token_request</td><td>the token request to send to the token endpoint </td></tr>
+    <tr><td class="paramname">token_endpoint</td><td>The token endpoint against which the token is refreshed. </td></tr>
+    <tr><td class="paramname">token_request</td><td>The token request that is sent to the token endpoint. </td></tr>
   </table>
   </dd>
 </dl>
@@ -147,7 +151,7 @@ Public Member Functions</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classolp_1_1authentication_1_1_token_endpoint.html#aa80d76f0915be0216aace00983b91afd">TokenEndpoint::TokenResponse</a> olp::authentication::AutoRefreshingToken::GetToken </td>
+          <td class="memname">TokenEndpoint::TokenResponse olp::authentication::AutoRefreshingToken::GetToken </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a> &amp;&#160;</td>
           <td class="paramname"><em>cancellation_token</em>, </td>
@@ -165,21 +169,23 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Synchronously gets a token which is always fresh. If no token has been retrieved yet or the current token is expired or will expire within five minutes a new token is requested, otherwise the cached token is returned. This method is thread safe. </p><dl class="section note"><dt>Note</dt><dd>This method blocks when a new token needs to be retrieved. Therefore it should not be called from a time sensitive thread (e.g. UI thread). </dd></dl>
+
+<p>Synchronously gets a token that is always fresh. </p>
+<p>If no token has been retrieved yet or the current token is expired or expires within five minutes, a new token is requested. Otherwise, the cached token is returned. This method is thread-safe. </p><dl class="section note"><dt>Note</dt><dd>This method is blocked when a new token needs to be retrieved. Therefore, the token should not be called from a time-sensitive thread (for example, the UI thread). </dd></dl>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
-    <tr><td class="paramname">This</td><td>method might throw a std::future_error exception.</td></tr>
+    <tr><td class="paramname">std::future_error</td><td>Thrown when a failure occurs. Contains the error code and message.</td></tr>
   </table>
   </dd>
 </dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">cancellation_token</td><td>a token used to cancel the operation. </td></tr>
-    <tr><td class="paramname">minimum_validity</td><td>Optional. Sets the minimum validity period of the token in seconds, The default validity period is 5 minutes. If the period is set to 0, the token will be refreshed immediately. </td></tr>
+    <tr><td class="paramname">cancellation_token</td><td>The token used to cancel the operation. </td></tr>
+    <tr><td class="paramname">minimum_validity</td><td>(Optional) Sets the minimum validity period of the token in seconds. The default validity period is 5 minutes. If the period is set to 0, the token is refreshed immediately.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>A new TokenResponse if the old one is expired. Otherwise the cached token response. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The <code>TokenResponse</code> instance if the old one is expired. Otherwise, returns the cached <code>TokenResponse</code> instance. </dd></dl>
 
 </div>
 </div>
@@ -208,15 +214,17 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Aysnchronously gets a token which is always fresh. If no token has been retrieved yet or the current token is expired or will expire within five minutes a new token is requested, otherwise the cached token is returned. This method is thread safe.</p>
+
+<p>Asynchronously gets a token that is always fresh. </p>
+<p>If no token has been retrieved yet or the current token is expired or expires within five minutes, a new token is requested. Otherwise, the cached token is returned. This method is thread-safe.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">callback</td><td>A callback containing the TokenResponse. </td></tr>
-    <tr><td class="paramname">minimum_validity</td><td>Optional. Sets the minimum validity period of the token in seconds, The default validity period is 5 minutes. If the period is set to 0, the token will be refreshed immediately. </td></tr>
+    <tr><td class="paramname">callback</td><td>The callback that contains the <code>TokenResponse</code> instance. </td></tr>
+    <tr><td class="paramname">minimum_validity</td><td>(Optional) Sets the minimum validity period of the token in seconds. The default validity period is 5 minutes. If the period is set to 0, the token is refreshed immediately.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>CancellationToken a token used to cancel the operation. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The <code>CancellationToken</code> instance that is used to cancel the operation. </dd></dl>
 
 </div>
 </div>
@@ -227,7 +235,7 @@ Public Member Functions</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classolp_1_1authentication_1_1_token_endpoint.html#aa80d76f0915be0216aace00983b91afd">TokenEndpoint::TokenResponse</a> olp::authentication::AutoRefreshingToken::GetToken </td>
+          <td class="memname">TokenEndpoint::TokenResponse olp::authentication::AutoRefreshingToken::GetToken </td>
           <td>(</td>
           <td class="paramtype">const std::chrono::seconds &amp;&#160;</td>
           <td class="paramname"><em>minimum_validity</em> = <code>kDefaultMinimumValiditySeconds</code></td><td>)</td>
@@ -235,20 +243,22 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Synchronously gets a token which is always fresh. If no token has been retrieved yet or the current token is expired or will expire within five minutes a new token is requested, otherwise the cached token is returned. This method is thread safe. </p><dl class="section note"><dt>Note</dt><dd>This method blocks when a new token needs to be retrieved. Therefore it should not be called from a time sensitive thread (e.g. UI thread). </dd></dl>
+
+<p>Synchronously gets a token that is always fresh. </p>
+<p>If no token has been retrieved yet or the current token is expired or expires within five minutes, a new token is requested. Otherwise, the cached token is returned. This method is thread-safe. </p><dl class="section note"><dt>Note</dt><dd>This method is blocked when a new token needs to be retrieved. Therefore, it should not be called from a time-sensitive thread (for example, the UI thread). </dd></dl>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
-    <tr><td class="paramname">This</td><td>method might throw a std::future_error exception.</td></tr>
+    <tr><td class="paramname">std::future_error</td><td>Thrown when a failure occurs. Contains the error code and message.</td></tr>
   </table>
   </dd>
 </dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">minimum_validity</td><td>Optional. Sets the minimum validity period of the token in seconds, The default validity period is 5 minutes. If the period is set to 0, the token will be refreshed immediately. </td></tr>
+    <tr><td class="paramname">minimum_validity</td><td>(Optional) Sets the minimum validity period of the token in seconds. The default validity period is 5 minutes. If the period is set to 0, the token is refreshed immediately.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>A new TokenResponse if the old one is expired. Otherwise the cached token response. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The <code>TokenResponse</code> instance if the old one is expired. Otherwise, the cached <code>TokenResponse</code> instance. </dd></dl>
 
 </div>
 </div>

@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -71,7 +71,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">/*</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019 HERE Europe B.V.</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019-2020 HERE Europe B.V.</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment"> * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment"> * you may not use this file except in compliance with the License.</span></div>
@@ -91,74 +91,66 @@ $(function() {
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160; </div>
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="preprocessor">#pragma once</span></div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160; </div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="preprocessor">#include &quot;FetchOptions.h&quot;</span></div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160; </div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="preprocessor">#include &lt;sstream&gt;</span></div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160; </div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="preprocessor">#include &lt;sstream&gt;</span></div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160; </div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="preprocessor">#include &lt;olp/dataservice/read/DataServiceReadApi.h&gt;</span></div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="preprocessor">#include &lt;olp/dataservice/read/FetchOptions.h&gt;</span></div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="preprocessor">#include &lt;boost/optional.hpp&gt;</span></div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160; </div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;<span class="preprocessor">#include &quot;DataServiceReadApi.h&quot;</span></div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160; </div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespaceolp.html">olp</a> {</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="keyword">namespace </span>dataservice {</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="keyword">namespace </span>read {</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160; </div>
-<div class="line"><a name="l00039"></a><span class="lineno"><a class="line" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html">   39</a></span>&#160;<span class="keyword">class </span>DATASERVICE_READ_API <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html">CatalogRequest</a> final {</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00047"></a><span class="lineno"><a class="line" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a7cc9c4572a679660db988c1a5c71963a">   47</a></span>&#160;  <span class="keyword">inline</span> <span class="keyword">const</span> boost::optional&lt;std::string&gt;&amp; <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a7cc9c4572a679660db988c1a5c71963a">GetBillingTag</a>()<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    <span class="keywordflow">return</span> billing_tag_;</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  }</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160; </div>
-<div class="line"><a name="l00057"></a><span class="lineno"><a class="line" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a9f339325116a9cc63d441af10a752262">   57</a></span>&#160;  <span class="keyword">inline</span> <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html">CatalogRequest</a>&amp; <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a9f339325116a9cc63d441af10a752262">WithBillingTag</a>(</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;      boost::optional&lt;std::string&gt; billingTag) {</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    billing_tag_ = billingTag;</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;  }</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160; </div>
-<div class="line"><a name="l00069"></a><span class="lineno"><a class="line" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#ae15cb5f334521381f563db43c52b3c31">   69</a></span>&#160;  <span class="keyword">inline</span> <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html">CatalogRequest</a>&amp; <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#ae15cb5f334521381f563db43c52b3c31">WithBillingTag</a>(std::string&amp;&amp; billingTag) {</div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;    billing_tag_ = std::move(billingTag);</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;  }</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160; </div>
-<div class="line"><a name="l00080"></a><span class="lineno"><a class="line" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a14fdaec59f6a8d37658b237397d12082">   80</a></span>&#160;  <span class="keyword">inline</span> FetchOptions <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a14fdaec59f6a8d37658b237397d12082">GetFetchOption</a>()<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;    <span class="keywordflow">return</span> fetch_option_;</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;  }</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160; </div>
-<div class="line"><a name="l00090"></a><span class="lineno"><a class="line" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a23391b780a9141e160d762e7065ae1bc">   90</a></span>&#160;  <span class="keyword">inline</span> <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html">CatalogRequest</a>&amp; <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a23391b780a9141e160d762e7065ae1bc">WithFetchOption</a>(FetchOptions fetchoption) {</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    fetch_option_ = fetchoption;</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;  }</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160; </div>
-<div class="line"><a name="l00100"></a><span class="lineno"><a class="line" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#aac051a571511d8cab28dd2235eceaa75">  100</a></span>&#160;  <span class="keyword">inline</span> std::string <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#aac051a571511d8cab28dd2235eceaa75">CreateKey</a>()<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    std::stringstream out;</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160; </div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;    <span class="keywordflow">if</span> (GetBillingTag()) {</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;      out &lt;&lt; <span class="stringliteral">&quot;$&quot;</span> &lt;&lt; GetBillingTag().get();</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;    }</div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160; </div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    out &lt;&lt; <span class="stringliteral">&quot;^&quot;</span> &lt;&lt; GetFetchOption();</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160; </div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;    <span class="keywordflow">return</span> out.str();</div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;  }</div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160; </div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;  boost::optional&lt;std::string&gt; billing_tag_;</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;  FetchOptions fetch_option_ = OnlineIfNotFound;</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;};</div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160; </div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;}  <span class="comment">// namespace read</span></div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;}  <span class="comment">// namespace dataservice</span></div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespaceolp.html">olp</a> {</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="keyword">namespace </span>dataservice {</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="keyword">namespace </span>read {</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160; </div>
+<div class="line"><a name="l00036"></a><span class="lineno"><a class="line" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html">   36</a></span>&#160;<span class="keyword">class </span>DATASERVICE_READ_API <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html">CatalogRequest</a> final {</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00048"></a><span class="lineno"><a class="line" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a7cc9c4572a679660db988c1a5c71963a">   48</a></span>&#160;  <span class="keyword">inline</span> <span class="keyword">const</span> boost::optional&lt;std::string&gt;&amp; <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a7cc9c4572a679660db988c1a5c71963a">GetBillingTag</a>()<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    <span class="keywordflow">return</span> billing_tag_;</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;  }</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
+<div class="line"><a name="l00061"></a><span class="lineno"><a class="line" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a95d3095e82533c1a6767d1fe339afcf0">   61</a></span>&#160;  <span class="keyword">inline</span> <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html">CatalogRequest</a>&amp; <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a95d3095e82533c1a6767d1fe339afcf0">WithBillingTag</a>(boost::optional&lt;std::string&gt; tag) {</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    billing_tag_ = std::move(tag);</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;  }</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160; </div>
+<div class="line"><a name="l00076"></a><span class="lineno"><a class="line" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a02a1e8e227cb55ff3833965939f08654">   76</a></span>&#160;  <span class="keyword">inline</span> <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html">CatalogRequest</a>&amp; <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a02a1e8e227cb55ff3833965939f08654">WithBillingTag</a>(std::string&amp;&amp; tag) {</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    billing_tag_ = std::move(tag);</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;  }</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160; </div>
+<div class="line"><a name="l00089"></a><span class="lineno"><a class="line" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a14fdaec59f6a8d37658b237397d12082">   89</a></span>&#160;  <span class="keyword">inline</span> FetchOptions <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a14fdaec59f6a8d37658b237397d12082">GetFetchOption</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> fetch_option_; }</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160; </div>
+<div class="line"><a name="l00101"></a><span class="lineno"><a class="line" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a5cb050d22f60217c7d16589516140ed6">  101</a></span>&#160;  <span class="keyword">inline</span> <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html">CatalogRequest</a>&amp; <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a5cb050d22f60217c7d16589516140ed6">WithFetchOption</a>(FetchOptions fetch_option) {</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    fetch_option_ = fetch_option;</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;  }</div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160; </div>
+<div class="line"><a name="l00111"></a><span class="lineno"><a class="line" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#aac051a571511d8cab28dd2235eceaa75">  111</a></span>&#160;  <span class="keyword">inline</span> std::string <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#aac051a571511d8cab28dd2235eceaa75">CreateKey</a>()<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;    std::stringstream out;</div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;    <span class="keywordflow">if</span> (GetBillingTag()) {</div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;      out &lt;&lt; <span class="stringliteral">&quot;$&quot;</span> &lt;&lt; GetBillingTag().get();</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    }</div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;    out &lt;&lt; <span class="stringliteral">&quot;^&quot;</span> &lt;&lt; GetFetchOption();</div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    <span class="keywordflow">return</span> out.str();</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;  }</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160; </div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160; <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;  boost::optional&lt;std::string&gt; billing_tag_;</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;  FetchOptions fetch_option_{OnlineIfNotFound};</div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;};</div>
+<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160; </div>
+<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;}  <span class="comment">// namespace read</span></div>
+<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;}  <span class="comment">// namespace dataservice</span></div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;}  <span class="comment">// namespace olp</span></div>
 </div><!-- fragment --></div><!-- contents -->
-<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_catalog_request_html_a9f339325116a9cc63d441af10a752262"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a9f339325116a9cc63d441af10a752262">olp::dataservice::read::CatalogRequest::WithBillingTag</a></div><div class="ttdeci">CatalogRequest &amp; WithBillingTag(boost::optional&lt; std::string &gt; billingTag)</div><div class="ttdoc">WithBillingTag sets the billing tag. See ::GetBillingTag() for usage and format.</div><div class="ttdef"><b>Definition:</b> CatalogRequest.h:57</div></div>
-<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_catalog_request_html"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html">olp::dataservice::read::CatalogRequest</a></div><div class="ttdoc">The CatalogRequest class encapsulates the fields required to request the Catalog configuration.</div><div class="ttdef"><b>Definition:</b> CatalogRequest.h:39</div></div>
-<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_catalog_request_html_a7cc9c4572a679660db988c1a5c71963a"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a7cc9c4572a679660db988c1a5c71963a">olp::dataservice::read::CatalogRequest::GetBillingTag</a></div><div class="ttdeci">const boost::optional&lt; std::string &gt; &amp; GetBillingTag() const</div><div class="ttdoc">BillingTag is an optional free-form tag which is used for grouping billing records together....</div><div class="ttdef"><b>Definition:</b> CatalogRequest.h:47</div></div>
-<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_catalog_request_html_a23391b780a9141e160d762e7065ae1bc"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a23391b780a9141e160d762e7065ae1bc">olp::dataservice::read::CatalogRequest::WithFetchOption</a></div><div class="ttdeci">CatalogRequest &amp; WithFetchOption(FetchOptions fetchoption)</div><div class="ttdoc">WithFetchOption sets the fetch option. See ::GetFetchOption() for usage and format.</div><div class="ttdef"><b>Definition:</b> CatalogRequest.h:90</div></div>
-<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">olp namespace</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:43</div></div>
-<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_catalog_request_html_aac051a571511d8cab28dd2235eceaa75"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#aac051a571511d8cab28dd2235eceaa75">olp::dataservice::read::CatalogRequest::CreateKey</a></div><div class="ttdeci">std::string CreateKey() const</div><div class="ttdoc">Creates readable format for the request.</div><div class="ttdef"><b>Definition:</b> CatalogRequest.h:100</div></div>
-<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_catalog_request_html_ae15cb5f334521381f563db43c52b3c31"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#ae15cb5f334521381f563db43c52b3c31">olp::dataservice::read::CatalogRequest::WithBillingTag</a></div><div class="ttdeci">CatalogRequest &amp; WithBillingTag(std::string &amp;&amp;billingTag)</div><div class="ttdoc">WithBillingTag sets the billing tag. See ::GetBillingTag() for usage and format.</div><div class="ttdef"><b>Definition:</b> CatalogRequest.h:69</div></div>
-<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_catalog_request_html_a14fdaec59f6a8d37658b237397d12082"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a14fdaec59f6a8d37658b237397d12082">olp::dataservice::read::CatalogRequest::GetFetchOption</a></div><div class="ttdeci">FetchOptions GetFetchOption() const</div><div class="ttdoc">FetchOption will control how requests are handled. Default option is OnlineIfNotFound,...</div><div class="ttdef"><b>Definition:</b> CatalogRequest.h:80</div></div>
+<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_catalog_request_html_a02a1e8e227cb55ff3833965939f08654"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a02a1e8e227cb55ff3833965939f08654">olp::dataservice::read::CatalogRequest::WithBillingTag</a></div><div class="ttdeci">CatalogRequest &amp; WithBillingTag(std::string &amp;&amp;tag)</div><div class="ttdoc">Sets the billing tag for the request.</div><div class="ttdef"><b>Definition:</b> CatalogRequest.h:76</div></div>
+<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_catalog_request_html"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html">olp::dataservice::read::CatalogRequest</a></div><div class="ttdoc">Encapsulates the fields required to request catalog configuration.</div><div class="ttdef"><b>Definition:</b> CatalogRequest.h:36</div></div>
+<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_catalog_request_html_a7cc9c4572a679660db988c1a5c71963a"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a7cc9c4572a679660db988c1a5c71963a">olp::dataservice::read::CatalogRequest::GetBillingTag</a></div><div class="ttdeci">const boost::optional&lt; std::string &gt; &amp; GetBillingTag() const</div><div class="ttdoc">Gets the billing tag to group billing records together.</div><div class="ttdef"><b>Definition:</b> CatalogRequest.h:48</div></div>
+<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_catalog_request_html_a5cb050d22f60217c7d16589516140ed6"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a5cb050d22f60217c7d16589516140ed6">olp::dataservice::read::CatalogRequest::WithFetchOption</a></div><div class="ttdeci">CatalogRequest &amp; WithFetchOption(FetchOptions fetch_option)</div><div class="ttdoc">Sets the fetch option that you can use to set the source from which data should be fetched.</div><div class="ttdef"><b>Definition:</b> CatalogRequest.h:101</div></div>
+<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">The olp namespace.</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:43</div></div>
+<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_catalog_request_html_aac051a571511d8cab28dd2235eceaa75"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#aac051a571511d8cab28dd2235eceaa75">olp::dataservice::read::CatalogRequest::CreateKey</a></div><div class="ttdeci">std::string CreateKey() const</div><div class="ttdoc">Creates a readable format of the request.</div><div class="ttdef"><b>Definition:</b> CatalogRequest.h:111</div></div>
+<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_catalog_request_html_a95d3095e82533c1a6767d1fe339afcf0"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a95d3095e82533c1a6767d1fe339afcf0">olp::dataservice::read::CatalogRequest::WithBillingTag</a></div><div class="ttdeci">CatalogRequest &amp; WithBillingTag(boost::optional&lt; std::string &gt; tag)</div><div class="ttdoc">Sets the billing tag for the request.</div><div class="ttdef"><b>Definition:</b> CatalogRequest.h:61</div></div>
+<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_catalog_request_html_a14fdaec59f6a8d37658b237397d12082"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_catalog_request.html#a14fdaec59f6a8d37658b237397d12082">olp::dataservice::read::CatalogRequest::GetFetchOption</a></div><div class="ttdeci">FetchOptions GetFetchOption() const</div><div class="ttdoc">Gets the fetch option that controls how requests are handled.</div><div class="ttdef"><b>Definition:</b> CatalogRequest.h:89</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

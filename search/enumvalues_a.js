@@ -1,7 +1,4 @@
 var searchData=
 [
-  ['network_5foverload_5ferror_1364',['NETWORK_OVERLOAD_ERROR',['../namespaceolp_1_1http.html#a61c765861938a212070d01911a6b6a17a61b3ad176dc0deca3eba62ca264a8355',1,'olp::http']]],
-  ['networkconnection_1365',['NetworkConnection',['../namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a3deb8bdcfe75a4deb1b6e06dcf0fb443',1,'olp::client']]],
-  ['none_1366',['NONE',['../classolp_1_1http_1_1_network_proxy_settings.html#a14fdb8e380337a0d349f092bf9fa0cb2ab50339a10e1de285ac99d4c3990b8693',1,'olp::http::NetworkProxySettings']]],
-  ['notfound_1367',['NotFound',['../namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a38c300f4fc9ce8a77aad4a30de05cad8',1,'olp::client']]]
+  ['message_1774',['Message',['../classolp_1_1logging_1_1_message_formatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4a4c2a8fe7eaf24721cc7a9f0175115bd4',1,'olp::logging::MessageFormatter']]]
 ];

@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -74,26 +74,34 @@ $(function() {
 <div class="title">olp::client::AuthenticationSettings Struct Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>A set of settings that manages the <code>TokenProviderCallback</code> and <code>TokenProviderCancelCallback</code> functions.  
+ <a href="structolp_1_1client_1_1_authentication_settings.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="_olp_client_settings_8h_source.html">OlpClientSettings.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:ab6073dcc4d615301cbc5770add5e91c2"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1client_1_1_authentication_settings.html#ab6073dcc4d615301cbc5770add5e91c2">TokenProviderCallback</a> = std::function&lt; std::string()&gt;</td></tr>
-<tr class="memdesc:ab6073dcc4d615301cbc5770add5e91c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to be implemented by the client which should return an OAuth2 Bearer Access Token to be used as the Authorization Header on Service calls.  <a href="structolp_1_1client_1_1_authentication_settings.html#ab6073dcc4d615301cbc5770add5e91c2">More...</a><br /></td></tr>
+<tr class="memdesc:ab6073dcc4d615301cbc5770add5e91c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implemented by the client that should return the OAuth2 bearer access token.  <a href="structolp_1_1client_1_1_authentication_settings.html#ab6073dcc4d615301cbc5770add5e91c2">More...</a><br /></td></tr>
 <tr class="separator:ab6073dcc4d615301cbc5770add5e91c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2f09e92369bf14adf30b623810beba2c"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1client_1_1_authentication_settings.html#a2f09e92369bf14adf30b623810beba2c">TokenProviderCancelCallback</a> = std::function&lt; void()&gt;</td></tr>
-<tr class="memdesc:a2f09e92369bf14adf30b623810beba2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">A callback function which can be implemented by the client to allow for cancelling an ongoing request to a TokenProviderCallback.  <a href="structolp_1_1client_1_1_authentication_settings.html#a2f09e92369bf14adf30b623810beba2c">More...</a><br /></td></tr>
+<tr class="memdesc:a2f09e92369bf14adf30b623810beba2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancels the ongoing <code>TokenProviderCallback</code> request.  <a href="structolp_1_1client_1_1_authentication_settings.html#a2f09e92369bf14adf30b623810beba2c">More...</a><br /></td></tr>
 <tr class="separator:a2f09e92369bf14adf30b623810beba2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a8a4240addea5ddd967ed14f0b9858dac"><td class="memItemLeft" align="right" valign="top"><a id="a8a4240addea5ddd967ed14f0b9858dac"></a>
-<a class="el" href="structolp_1_1client_1_1_authentication_settings.html#ab6073dcc4d615301cbc5770add5e91c2">TokenProviderCallback</a>&#160;</td><td class="memItemRight" valign="bottom"><b>provider</b></td></tr>
+<tr class="memitem:a8a4240addea5ddd967ed14f0b9858dac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structolp_1_1client_1_1_authentication_settings.html#ab6073dcc4d615301cbc5770add5e91c2">TokenProviderCallback</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1client_1_1_authentication_settings.html#a8a4240addea5ddd967ed14f0b9858dac">provider</a></td></tr>
+<tr class="memdesc:a8a4240addea5ddd967ed14f0b9858dac"><td class="mdescLeft">&#160;</td><td class="mdescRight">The user-provided function that returns the OAuth2 bearer access token.  <a href="structolp_1_1client_1_1_authentication_settings.html#a8a4240addea5ddd967ed14f0b9858dac">More...</a><br /></td></tr>
 <tr class="separator:a8a4240addea5ddd967ed14f0b9858dac"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7e2df1759d3f4689670b1850c8184537"><td class="memItemLeft" align="right" valign="top"><a id="a7e2df1759d3f4689670b1850c8184537"></a>
-boost::optional&lt; <a class="el" href="structolp_1_1client_1_1_authentication_settings.html#a2f09e92369bf14adf30b623810beba2c">TokenProviderCancelCallback</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>cancel</b></td></tr>
+<tr class="memitem:a7e2df1759d3f4689670b1850c8184537"><td class="memItemLeft" align="right" valign="top">boost::optional&lt; <a class="el" href="structolp_1_1client_1_1_authentication_settings.html#a2f09e92369bf14adf30b623810beba2c">TokenProviderCancelCallback</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1client_1_1_authentication_settings.html#a7e2df1759d3f4689670b1850c8184537">cancel</a></td></tr>
+<tr class="memdesc:a7e2df1759d3f4689670b1850c8184537"><td class="mdescLeft">&#160;</td><td class="mdescRight">(Optional) The user-provided function that is used to cancel the ongoing access token request.  <a href="structolp_1_1client_1_1_authentication_settings.html#a7e2df1759d3f4689670b1850c8184537">More...</a><br /></td></tr>
 <tr class="separator:a7e2df1759d3f4689670b1850c8184537"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A set of settings that manages the <code>TokenProviderCallback</code> and <code>TokenProviderCancelCallback</code> functions. </p>
+<p>The <code>TokenProviderCallback</code> function requests the OAuth2 bearer access token. The <code>TokenProviderCancelCallback</code> function cancels that request. Both functions are user-provided. The struct is used internally by the <code><a class="el" href="classolp_1_1client_1_1_olp_client.html" title="Executes HTTP requests.">OlpClient</a></code> class. </p>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="ab6073dcc4d615301cbc5770add5e91c2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab6073dcc4d615301cbc5770add5e91c2">&#9670;&nbsp;</a></span>TokenProviderCallback</h2>
 
@@ -106,11 +114,10 @@ boost::optional&lt; <a class="el" href="structolp_1_1client_1_1_authentication_s
       </table>
 </div><div class="memdoc">
 
-<p>Function to be implemented by the client which should return an OAuth2 Bearer Access Token to be used as the Authorization Header on Service calls. </p>
-<p>This allows for an external OAuth2 library to be used to provide Authentication functionality for any Service.</p>
-<dl class="section note"><dt>Note</dt><dd>The provided token should be authorized to access the resources provided by OLP Data Services you are trying to request. Also, the token should not be expired by the time the Service request will be sent to the server. Otherwise, a Service-specific Authorization error is returned when calls are made.</dd>
-<dd>
-An empty string can be returned for the Token if the Service is offline. </dd></dl>
+<p>Implemented by the client that should return the OAuth2 bearer access token. </p>
+<p>The access token should be used as the authorization header for the service calls. This allows for an external OAuth2 library to be used to provide the authentication functionality for any service.</p>
+<p>The provided token should be authorized to access the resources provided by the Open Location Platform (OLP) Data Services you are trying to request. Also, the token should not be expired by the time the service request is sent to the server. Otherwise, a service-specific authorization error is returned when calls are made.</p>
+<p>An empty string can be returned for the token if the service is offline. </p>
 
 </div>
 </div>
@@ -126,10 +133,44 @@ An empty string can be returned for the Token if the Service is offline. </dd></
       </table>
 </div><div class="memdoc">
 
-<p>A callback function which can be implemented by the client to allow for cancelling an ongoing request to a TokenProviderCallback. </p>
-<p>This allows for a TokenProviderCallback request to be cancelled by calls to a Service's cancel methods (e.g. <a class="el" href="classolp_1_1client_1_1_cancellation_token.html" title="Control object for cancelling service requests.">CancellationToken</a>). This method will only be called if both it and a TokenProviderCallback callback are set and a Service's cancel method is called while the TokenProviderCallback request is currently being made (i.e. it will NOT be called if the TokenProviderCallback request has finished and a Service's cancel method is called while a subsequent part of the Service request is being made). </p><dl class="section see"><dt>See also</dt><dd><a class="el" href="classolp_1_1client_1_1_cancellation_token.html" title="Control object for cancelling service requests.">CancellationToken</a> </dd>
-<dd>
-<a class="el" href="structolp_1_1client_1_1_authentication_settings.html#ab6073dcc4d615301cbc5770add5e91c2" title="Function to be implemented by the client which should return an OAuth2 Bearer Access Token to be used...">TokenProviderCallback</a> </dd></dl>
+<p>Cancels the ongoing <code>TokenProviderCallback</code> request. </p>
+<p>Cancels the <code>TokenProviderCallback</code> request by calls to the service cancel methods (for example, <code><a class="el" href="classolp_1_1client_1_1_cancellation_token.html" title="Cancels service requests.">CancellationToken</a></code>). This method is only called if both it and the <code>TokenProviderCallback</code> callback are set, and a service cancel method is called while the <code>TokenProviderCallback</code> request is currently being made. For example, it is not called if the <code>TokenProviderCallback</code> request has finished and a service cancel method is called while a subsequent part of the service request is being made.</p>
+<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="classolp_1_1client_1_1_cancellation_token.html" title="Cancels service requests.">CancellationToken</a></code> and <code><a class="el" href="structolp_1_1client_1_1_authentication_settings.html#ab6073dcc4d615301cbc5770add5e91c2" title="Implemented by the client that should return the OAuth2 bearer access token.">TokenProviderCallback</a></code> or more details. </dd></dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a7e2df1759d3f4689670b1850c8184537"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7e2df1759d3f4689670b1850c8184537">&#9670;&nbsp;</a></span>cancel</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">boost::optional&lt;<a class="el" href="structolp_1_1client_1_1_authentication_settings.html#a2f09e92369bf14adf30b623810beba2c">TokenProviderCancelCallback</a>&gt; olp::client::AuthenticationSettings::cancel</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>(Optional) The user-provided function that is used to cancel the ongoing access token request. </p>
+<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="structolp_1_1client_1_1_authentication_settings.html#ab6073dcc4d615301cbc5770add5e91c2" title="Implemented by the client that should return the OAuth2 bearer access token.">TokenProviderCallback</a></code> and <code><a class="el" href="structolp_1_1client_1_1_authentication_settings.html#a2f09e92369bf14adf30b623810beba2c" title="Cancels the ongoing TokenProviderCallback request.">TokenProviderCancelCallback</a></code> for more details. </dd></dl>
+
+</div>
+</div>
+<a id="a8a4240addea5ddd967ed14f0b9858dac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a4240addea5ddd967ed14f0b9858dac">&#9670;&nbsp;</a></span>provider</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structolp_1_1client_1_1_authentication_settings.html#ab6073dcc4d615301cbc5770add5e91c2">TokenProviderCallback</a> olp::client::AuthenticationSettings::provider</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The user-provided function that returns the OAuth2 bearer access token. </p>
+<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="structolp_1_1client_1_1_authentication_settings.html#ab6073dcc4d615301cbc5770add5e91c2" title="Implemented by the client that should return the OAuth2 bearer access token.">TokenProviderCallback</a></code> for more details. </dd></dl>
 
 </div>
 </div>

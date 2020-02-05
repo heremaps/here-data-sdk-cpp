@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -74,7 +74,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>The federated (Facebook, Google, ArcGIS) sign-in properties struct.  
+<p>The federated (Facebook, Google, ArcGIS) sign-in properties structure.  
  <a href="structolp_1_1authentication_1_1_authentication_client_1_1_federated_properties.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_authentication_client_8h_source.html">AuthenticationClient.h</a>&gt;</code></p>
@@ -83,28 +83,77 @@ $(function() {
 Public Attributes</h2></td></tr>
 <tr class="memitem:a2baa410105e0943390d356bbcbce9fe6"><td class="memItemLeft" align="right" valign="top"><a id="a2baa410105e0943390d356bbcbce9fe6"></a>
 std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_federated_properties.html#a2baa410105e0943390d356bbcbce9fe6">access_token</a></td></tr>
-<tr class="memdesc:a2baa410105e0943390d356bbcbce9fe6"><td class="mdescLeft">&#160;</td><td class="mdescRight">access_token A valid Facebook, Google or ArcGis access token, obtained from Facebook, Google or ArcGis sign-in is required. <br /></td></tr>
+<tr class="memdesc:a2baa410105e0943390d356bbcbce9fe6"><td class="mdescLeft">&#160;</td><td class="mdescRight">(Required) A valid Facebook, Google, or ArcGis access token obtained from the Facebook, Google, or ArcGis token endpoint. <br /></td></tr>
 <tr class="separator:a2baa410105e0943390d356bbcbce9fe6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aec96ca3973d003d43d3f3fe660de415c"><td class="memItemLeft" align="right" valign="top"><a id="aec96ca3973d003d43d3f3fe660de415c"></a>
-std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_federated_properties.html#aec96ca3973d003d43d3f3fe660de415c">country_code</a></td></tr>
-<tr class="memdesc:aec96ca3973d003d43d3f3fe660de415c"><td class="mdescLeft">&#160;</td><td class="mdescRight">country_code Required for first time sign-in, optional for subsequent sign-ins. ISO 3166-1 alpha-3 country code. <br /></td></tr>
+<tr class="memitem:aec96ca3973d003d43d3f3fe660de415c"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_federated_properties.html#aec96ca3973d003d43d3f3fe660de415c">country_code</a></td></tr>
+<tr class="memdesc:aec96ca3973d003d43d3f3fe660de415c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Required for the first time sign-in; optional for the subsequent sign-ins.  <a href="structolp_1_1authentication_1_1_authentication_client_1_1_federated_properties.html#aec96ca3973d003d43d3f3fe660de415c">More...</a><br /></td></tr>
 <tr class="separator:aec96ca3973d003d43d3f3fe660de415c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5509b1716d7f36313c6dff1874439f4f"><td class="memItemLeft" align="right" valign="top"><a id="a5509b1716d7f36313c6dff1874439f4f"></a>
-std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_federated_properties.html#a5509b1716d7f36313c6dff1874439f4f">language</a></td></tr>
-<tr class="memdesc:a5509b1716d7f36313c6dff1874439f4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">language Required if first time sign-in, optional for subsequent sign-ins. ISO 639-1 2 letter language code. <br /></td></tr>
+<tr class="memitem:a5509b1716d7f36313c6dff1874439f4f"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_federated_properties.html#a5509b1716d7f36313c6dff1874439f4f">language</a></td></tr>
+<tr class="memdesc:a5509b1716d7f36313c6dff1874439f4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Required for the first time sign-in; optional for the ubsequent sign-ins.  <a href="structolp_1_1authentication_1_1_authentication_client_1_1_federated_properties.html#a5509b1716d7f36313c6dff1874439f4f">More...</a><br /></td></tr>
 <tr class="separator:a5509b1716d7f36313c6dff1874439f4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6e841974064e2469e633d0aa759ad358"><td class="memItemLeft" align="right" valign="top"><a id="a6e841974064e2469e633d0aa759ad358"></a>
 std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_federated_properties.html#a6e841974064e2469e633d0aa759ad358">email</a></td></tr>
-<tr class="memdesc:a6e841974064e2469e633d0aa759ad358"><td class="mdescLeft">&#160;</td><td class="mdescRight">email Required for first time sign in and if access token doesn't have email permission. Optional for subsequent sign-ins. <br /></td></tr>
+<tr class="memdesc:a6e841974064e2469e633d0aa759ad358"><td class="mdescLeft">&#160;</td><td class="mdescRight">Required for the first time sign-in and if your access token doesn't have the email permission; optional for the subsequent sign-ins. <br /></td></tr>
 <tr class="separator:a6e841974064e2469e633d0aa759ad358"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1d4293fd55bd45906b2515f67da89b81"><td class="memItemLeft" align="right" valign="top"><a id="a1d4293fd55bd45906b2515f67da89b81"></a>
-unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_federated_properties.html#a1d4293fd55bd45906b2515f67da89b81">expires_in</a> = 0</td></tr>
-<tr class="memdesc:a1d4293fd55bd45906b2515f67da89b81"><td class="mdescLeft">&#160;</td><td class="mdescRight">expires_in Optional. Number of seconds before token expires, must be zero or more. Ignored if zero or if greater than default expiration of the application. <br /></td></tr>
+<tr class="memitem:a1d4293fd55bd45906b2515f67da89b81"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_federated_properties.html#a1d4293fd55bd45906b2515f67da89b81">expires_in</a> = 0</td></tr>
+<tr class="memdesc:a1d4293fd55bd45906b2515f67da89b81"><td class="mdescLeft">&#160;</td><td class="mdescRight">(Optional) The number of seconds left before the access token expires.  <a href="structolp_1_1authentication_1_1_authentication_client_1_1_federated_properties.html#a1d4293fd55bd45906b2515f67da89b81">More...</a><br /></td></tr>
 <tr class="separator:a1d4293fd55bd45906b2515f67da89b81"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The federated (Facebook, Google, ArcGIS) sign-in properties struct. </p>
-</div><hr/>The documentation for this struct was generated from the following file:<ul>
+<div class="textblock"><p>The federated (Facebook, Google, ArcGIS) sign-in properties structure. </p>
+</div><h2 class="groupheader">Member Data Documentation</h2>
+<a id="aec96ca3973d003d43d3f3fe660de415c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec96ca3973d003d43d3f3fe660de415c">&#9670;&nbsp;</a></span>country_code</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string olp::authentication::AuthenticationClient::FederatedProperties::country_code</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Required for the first time sign-in; optional for the subsequent sign-ins. </p>
+<p>The country code should be in the ISO 3166-1 alpha-3 format. </p>
+
+</div>
+</div>
+<a id="a1d4293fd55bd45906b2515f67da89b81"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1d4293fd55bd45906b2515f67da89b81">&#9670;&nbsp;</a></span>expires_in</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned int olp::authentication::AuthenticationClient::FederatedProperties::expires_in = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>(Optional) The number of seconds left before the access token expires. </p>
+<p>It must be equal to or more than zero. Ignored if it is zero or greater than the default expiration time supported by the application. </p>
+
+</div>
+</div>
+<a id="a5509b1716d7f36313c6dff1874439f4f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5509b1716d7f36313c6dff1874439f4f">&#9670;&nbsp;</a></span>language</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string olp::authentication::AuthenticationClient::FederatedProperties::language</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Required for the first time sign-in; optional for the ubsequent sign-ins. </p>
+<p>The language code should be in the ISO 639-1 alpha-2 format. </p>
+
+</div>
+</div>
+<hr/>The documentation for this struct was generated from the following file:<ul>
 <li>olp-cpp-sdk-authentication/include/olp/authentication/<a class="el" href="_authentication_client_8h_source.html">AuthenticationClient.h</a></li>
 </ul>
 </div><!-- contents -->

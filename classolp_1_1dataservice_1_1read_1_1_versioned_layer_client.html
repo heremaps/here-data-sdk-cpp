@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -74,7 +74,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Client that acquires data from an OLP versioned layer. The versioned layer stores slowly-changing data that must remain logically consistent with other layers in a catalog.  
+<p>Gets data from a versioned layer of the Open Location Platform (OLP).  
  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="olp-cpp-sdk-dataservice-read_2include_2olp_2dataservice_2read_2_versioned_layer_client_8h_source.html">VersionedLayerClient.h</a>&gt;</code></p>
@@ -82,10 +82,11 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ae9c1c5440238ba88b5d0fd59fa2886b2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#ae9c1c5440238ba88b5d0fd59fa2886b2">VersionedLayerClient</a> (<a class="el" href="classolp_1_1client_1_1_h_r_n.html">client::HRN</a> catalog, std::string layer_id, <a class="el" href="structolp_1_1client_1_1_olp_client_settings.html">client::OlpClientSettings</a> settings)</td></tr>
-<tr class="memdesc:ae9c1c5440238ba88b5d0fd59fa2886b2"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html" title="Client that acquires data from an OLP versioned layer. The versioned layer stores slowly-changing dat...">VersionedLayerClient</a> constructor.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#ae9c1c5440238ba88b5d0fd59fa2886b2">More...</a><br /></td></tr>
+<tr class="memdesc:ae9c1c5440238ba88b5d0fd59fa2886b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html" title="Gets data from a versioned layer of the Open Location Platform (OLP).">VersionedLayerClient</a></code> instance.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#ae9c1c5440238ba88b5d0fd59fa2886b2">More...</a><br /></td></tr>
 <tr class="separator:ae9c1c5440238ba88b5d0fd59fa2886b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a381243e4a532261e6292b672eb492841"><td class="memItemLeft" align="right" valign="top"><a id="a381243e4a532261e6292b672eb492841"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>VersionedLayerClient</b> (const <a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html">VersionedLayerClient</a> &amp;other)=delete</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#a381243e4a532261e6292b672eb492841">VersionedLayerClient</a> (const <a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html">VersionedLayerClient</a> &amp;other)=delete</td></tr>
+<tr class="memdesc:a381243e4a532261e6292b672eb492841"><td class="mdescLeft">&#160;</td><td class="mdescRight">Movable, non-copyable. <br /></td></tr>
 <tr class="separator:a381243e4a532261e6292b672eb492841"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0efd136264cb539d3b5ab9b40fe462ac"><td class="memItemLeft" align="right" valign="top"><a id="a0efd136264cb539d3b5ab9b40fe462ac"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>VersionedLayerClient</b> (<a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html">VersionedLayerClient</a> &amp;&amp;other) noexcept</td></tr>
@@ -100,30 +101,29 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a10eb90778415a3d8635ccacac6e8e790"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancels all active and pending requests.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#a10eb90778415a3d8635ccacac6e8e790">More...</a><br /></td></tr>
 <tr class="separator:a10eb90778415a3d8635ccacac6e8e790"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5d6a175e5af23f0efdf5697e182682a7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#a5d6a175e5af23f0efdf5697e182682a7">GetData</a> (<a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> data_request, DataResponseCallback callback)</td></tr>
-<tr class="memdesc:a5d6a175e5af23f0efdf5697e182682a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetches data for a partition ID or data handle asynchronously.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#a5d6a175e5af23f0efdf5697e182682a7">More...</a><br /></td></tr>
+<tr class="memdesc:a5d6a175e5af23f0efdf5697e182682a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetches data asynchronously using a partition ID or data handle.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#a5d6a175e5af23f0efdf5697e182682a7">More...</a><br /></td></tr>
 <tr class="separator:a5d6a175e5af23f0efdf5697e182682a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad3d9cd8c93ff73965c47fb277c4903cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellable_future.html">client::CancellableFuture</a>&lt; <a class="el" href="classolp_1_1client_1_1_api_response.html">DataResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#ad3d9cd8c93ff73965c47fb277c4903cf">GetData</a> (<a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> data_request)</td></tr>
-<tr class="memdesc:ad3d9cd8c93ff73965c47fb277c4903cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetches data for a partition or data handle asynchronously. If the specified partition or data handle cannot be found in the layer, the callback will be invoked with an empty DataResponse (nullptr for result and error). If neither Partition Id or Data Handle were set in the request, the callback will be invoked with an error with ErrorCode::InvalidRequest.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#ad3d9cd8c93ff73965c47fb277c4903cf">More...</a><br /></td></tr>
+<tr class="memdesc:ad3d9cd8c93ff73965c47fb277c4903cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetches data asynchronously using a partition ID or data handle.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#ad3d9cd8c93ff73965c47fb277c4903cf">More...</a><br /></td></tr>
 <tr class="separator:ad3d9cd8c93ff73965c47fb277c4903cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa03f42fc70e94e445121204898a38ade"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#aa03f42fc70e94e445121204898a38ade">GetPartitions</a> (<a class="el" href="classolp_1_1dataservice_1_1read_1_1_partitions_request.html">PartitionsRequest</a> partitions_request, PartitionsResponseCallback callback)</td></tr>
-<tr class="memdesc:aa03f42fc70e94e445121204898a38ade"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetches a list of partitions for the given generic layer asynchronously.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#aa03f42fc70e94e445121204898a38ade">More...</a><br /></td></tr>
+<tr class="memdesc:aa03f42fc70e94e445121204898a38ade"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetches a list of partitions of the given generic layer asynchronously.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#aa03f42fc70e94e445121204898a38ade">More...</a><br /></td></tr>
 <tr class="separator:aa03f42fc70e94e445121204898a38ade"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aff231c033335efaa0210490a8562c21e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellable_future.html">client::CancellableFuture</a>&lt; <a class="el" href="classolp_1_1client_1_1_api_response.html">PartitionsResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#aff231c033335efaa0210490a8562c21e">GetPartitions</a> (<a class="el" href="classolp_1_1dataservice_1_1read_1_1_partitions_request.html">PartitionsRequest</a> partitions_request)</td></tr>
-<tr class="memdesc:aff231c033335efaa0210490a8562c21e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetches a list of partitions for the given generic layer asynchronously.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#aff231c033335efaa0210490a8562c21e">More...</a><br /></td></tr>
+<tr class="memdesc:aff231c033335efaa0210490a8562c21e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetches a list of partitions of the given generic layer asynchronously.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#aff231c033335efaa0210490a8562c21e">More...</a><br /></td></tr>
 <tr class="separator:aff231c033335efaa0210490a8562c21e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abcd3092de89897e52e100bd92b8db1b8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#abcd3092de89897e52e100bd92b8db1b8">PrefetchTiles</a> (<a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html">PrefetchTilesRequest</a> request, PrefetchTilesResponseCallback callback)</td></tr>
-<tr class="memdesc:abcd3092de89897e52e100bd92b8db1b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pre-fetches a set of tiles asychronously.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#abcd3092de89897e52e100bd92b8db1b8">More...</a><br /></td></tr>
+<tr class="memdesc:abcd3092de89897e52e100bd92b8db1b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prefetches a set of tiles asynchronously.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#abcd3092de89897e52e100bd92b8db1b8">More...</a><br /></td></tr>
 <tr class="separator:abcd3092de89897e52e100bd92b8db1b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ace0d54b6dcb1bf55c0d9409f519de87c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellable_future.html">client::CancellableFuture</a>&lt; <a class="el" href="classolp_1_1client_1_1_api_response.html">PrefetchTilesResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#ace0d54b6dcb1bf55c0d9409f519de87c">PrefetchTiles</a> (<a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html">PrefetchTilesRequest</a> request)</td></tr>
-<tr class="memdesc:ace0d54b6dcb1bf55c0d9409f519de87c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pre-fetches a set of tiles asychronously.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#ace0d54b6dcb1bf55c0d9409f519de87c">More...</a><br /></td></tr>
+<tr class="memdesc:ace0d54b6dcb1bf55c0d9409f519de87c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prefetches a set of tiles asynchronously.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#ace0d54b6dcb1bf55c0d9409f519de87c">More...</a><br /></td></tr>
 <tr class="separator:ace0d54b6dcb1bf55c0d9409f519de87c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Client that acquires data from an OLP versioned layer. The versioned layer stores slowly-changing data that must remain logically consistent with other layers in a catalog. </p>
-<dl class="section note"><dt>Note</dt><dd>When you request a particular version of data from a versioned layer, the partition that gets returned may have a lower version number than you requested. Only those layers and partitions that are updated have their version updated to the catalog new version number. The version of a layer or partition represents the catalog version in which the layer or partition was last updated.</dd>
-<dd>
-If a catalog version is not specified, the latest version is used. To query the latest version of a catalog, an additional request to OLP is needed.</dd></dl>
-<p>Example with version provided that saves one network request: </p><div class="fragment"><div class="line"><span class="keyword">auto</span> task_scheduler =</div>
+<div class="textblock"><p>Gets data from a versioned layer of the Open Location Platform (OLP). </p>
+<p>The versioned layer stores slowly-changing data that must remain logically consistent with other layers in a catalog. You can request any data version from the versioned layer. When you request a particular version of data from the versioned layer, the partition you receive in the response may have a lower version number than you requested. The version of a layer or partition represents the catalog version in which the layer or partition was last updated.</p>
+<dl class="section note"><dt>Note</dt><dd>If the catalog version is not specified, the latest version is used.</dd></dl>
+<p>An example with the catalog version provided that saves one network request: </p><div class="fragment"><div class="line"><span class="keyword">auto</span> task_scheduler =</div>
 <div class="line">   <a class="code" href="classolp_1_1client_1_1_olp_client_settings_factory.html#a67f547a761b34910c5b60f8b6e1233c1">olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler</a>(1u);</div>
 <div class="line"><span class="keyword">auto</span> http_client = <a class="code" href="classolp_1_1client_1_1_olp_client_settings_factory.html#a2d7121fa1c55ec4c339f3378f7078dd2">olp::client::</a></div>
 <div class="line"><a class="code" href="classolp_1_1client_1_1_olp_client_settings_factory.html#a2d7121fa1c55ec4c339f3378f7078dd2">   OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler</a>();</div>
@@ -133,7 +133,7 @@ If a catalog version is not specified, the latest version is used. To query the 
 <div class="line">settings.network_request_handler = http_client;</div>
 <div class="line"> </div>
 <div class="line"><a class="code" href="structolp_1_1client_1_1_authentication_settings.html">olp::client::AuthenticationSettings</a> auth_settings;</div>
-<div class="line">auth_settings.provider =</div>
+<div class="line">auth_settings.<a class="code" href="structolp_1_1client_1_1_authentication_settings.html#a8a4240addea5ddd967ed14f0b9858dac">provider</a> =</div>
 <div class="line">    <a class="code" href="namespaceolp_1_1authentication.html#add9e77c777aa9984099a62d7ca94ba5c">olp::authentication::TokenProviderDefault</a>(std::move(settings));</div>
 <div class="line"> </div>
 <div class="line"><span class="keyword">auto</span> client_settings = <a class="code" href="structolp_1_1client_1_1_olp_client_settings.html">olp::client::OlpClientSettings</a>();</div>
@@ -141,13 +141,11 @@ If a catalog version is not specified, the latest version is used. To query the 
 <div class="line">client_settings.task_scheduler = std::move(task_scheduler);</div>
 <div class="line">client_settings.network_request_handler = std::move(http_client);</div>
 <div class="line"> </div>
-<div class="line"><a class="code" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#ae9c1c5440238ba88b5d0fd59fa2886b2">VersionedLayerClient</a> client{<span class="stringliteral">&quot;hrn:here:data:::your-catalog-hrn&quot;</span> <span class="stringliteral">&quot;your-layer-id&quot;</span>, client_settings};</div>
+<div class="line"><a class="code" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#ae9c1c5440238ba88b5d0fd59fa2886b2">VersionedLayerClient</a> client{<span class="stringliteral">&quot;hrn:here:data:::your-catalog-hrn&quot;</span>, <span class="stringliteral">&quot;your-layer-id&quot;</span>, client_settings};</div>
 <div class="line"><span class="keyword">auto</span> callback = [](<a class="code" href="classolp_1_1client_1_1_api_response.html">olp::client::ApiResponse&lt;olp::model::Data, olp::client::ApiError&gt;</a> response) {};</div>
 <div class="line"><span class="keyword">auto</span> request = DataRequest().WithVersion(100).WithPartitionId(<span class="stringliteral">&quot;269&quot;</span>);</div>
 <div class="line"><span class="keyword">auto</span> token = client.GetData(request, callback);</div>
-</div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a href="https://developer.here.com/olp/documentation/data-api/data_dev_guide/shared_content/topics/olp/concepts/layers.html">https://developer.here.com/olp/documentation/data-api/data_dev_guide/shared_content/topics/olp/concepts/layers.html</a> </dd>
-<dd>
-<a href="https://developer.here.com/olp/documentation/data-api/data_dev_guide/rest/getting-data-versioned.html">https://developer.here.com/olp/documentation/data-api/data_dev_guide/rest/getting-data-versioned.html</a> </dd></dl>
+</div><!-- fragment --><dl class="section see"><dt>See also</dt><dd>The <a href="https://developer.here.com/olp/documentation/data-user-guide/portal/layers/layers.html#versioned-layers">versioned layer</a> section in the Data User Guide. </dd></dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ae9c1c5440238ba88b5d0fd59fa2886b2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae9c1c5440238ba88b5d0fd59fa2886b2">&#9670;&nbsp;</a></span>VersionedLayerClient()</h2>
@@ -181,12 +179,12 @@ If a catalog version is not specified, the latest version is used. To query the 
       </table>
 </div><div class="memdoc">
 
-<p><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html" title="Client that acquires data from an OLP versioned layer. The versioned layer stores slowly-changing dat...">VersionedLayerClient</a> constructor. </p>
+<p>Creates the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html" title="Gets data from a versioned layer of the Open Location Platform (OLP).">VersionedLayerClient</a></code> instance. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">catalog</td><td>HRN of the catalog to which this layer belongs. </td></tr>
-    <tr><td class="paramname">layer_id</td><td>Layer ID of the versioned layer that is used for all requests. </td></tr>
-    <tr><td class="paramname">settings</td><td>Settings used to control the client instance behavior. </td></tr>
+    <tr><td class="paramname">catalog</td><td>The HERE Resource Name (HRN) of the catalog that contains the versioned layer from which you want to get data. </td></tr>
+    <tr><td class="paramname">layer_id</td><td>The layer ID of the versioned layer from which you want to get data. </td></tr>
+    <tr><td class="paramname">settings</td><td>The <code>OlpClientSettings</code> instance. </td></tr>
   </table>
   </dd>
 </dl>
@@ -210,7 +208,7 @@ If a catalog version is not specified, the latest version is used. To query the 
 </div><div class="memdoc">
 
 <p>Cancels all active and pending requests. </p>
-<dl class="section return"><dt>Returns</dt><dd>True on success. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>True if the request is successful; false otherwise. </dd></dl>
 
 </div>
 </div>
@@ -230,15 +228,16 @@ If a catalog version is not specified, the latest version is used. To query the 
       </table>
 </div><div class="memdoc">
 
-<p>Fetches data for a partition or data handle asynchronously. If the specified partition or data handle cannot be found in the layer, the callback will be invoked with an empty DataResponse (nullptr for result and error). If neither Partition Id or Data Handle were set in the request, the callback will be invoked with an error with ErrorCode::InvalidRequest. </p>
+<p>Fetches data asynchronously using a partition ID or data handle. </p>
+<p>If the specified partition or data handle cannot be found in the layer, the callback is invoked with the empty <code>DataResponse</code> object (the <code>nullptr</code> result and an error). If a partition ID or data handle is not set in the request, the callback is invoked with the following error: <code>ErrorCode::InvalidRequest</code>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">data_request</td><td>contains the complete set of request parameters. </td></tr>
+    <tr><td class="paramname">data_request</td><td>The <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="Encapsulates the fields required to request data for the given catalog, layer, and partition.">DataRequest</a></code> instance that contains a complete set of request parameters. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd><code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="The DataRequest class encapsulates the fields required to request the data for a given catalog and la...">DataRequest</a>'s</code> GetLayerId value will be ignored and the parameter from the constructor will be used instead. </dd></dl>
-<dl class="section return"><dt>Returns</dt><dd><code>CancellableFuture</code> of type <code>DataResponse</code>, which when complete will contain the data or an error. Alternatively, the <code>CancellableFuture</code> can be used to cancel this request. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>The <code>GetLayerId</code> value of the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="Encapsulates the fields required to request data for the given catalog, layer, and partition.">DataRequest</a></code> object is ignored, and the parameter from the constructor is used instead.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><code>CancellableFuture</code> that contains the <code>DataResponse</code> instance or an error. You can also use <code>CancellableFuture</code> to cancel this request. </dd></dl>
 
 </div>
 </div>
@@ -268,22 +267,22 @@ If a catalog version is not specified, the latest version is used. To query the 
       </table>
 </div><div class="memdoc">
 
-<p>Fetches data for a partition ID or data handle asynchronously. </p>
-<p>If the specified partition ID or data handle cannot be found in the layer, the callback is invoked with an empty DataResponse (a nullptr result and error). If the partition ID or data handle are not set in the request, the callback is invoked with the error ErrorCode::InvalidRequest. If the version is not specified, an additional request to OLP is created to retrieve the latest available partition version.</p>
+<p>Fetches data asynchronously using a partition ID or data handle. </p>
+<p>If the specified partition ID or data handle cannot be found in the layer, the callback is invoked with the empty <code>DataResponse</code> object (the <code>nullptr</code> result and an error). If a partition ID or data handle is not set in the request, the callback is invoked with the following error: <code>ErrorCode::InvalidRequest</code>. If the version is not specified, an additional request to OLP is created to retrieve the latest available partition version.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">data_request</td><td>Contains the complete set of the request parameters. </td></tr>
+    <tr><td class="paramname">data_request</td><td>The <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="Encapsulates the fields required to request data for the given catalog, layer, and partition.">DataRequest</a></code> instance that contains a complete set of request parameters. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>GetLayerId value of the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="The DataRequest class encapsulates the fields required to request the data for a given catalog and la...">DataRequest</a></code> is ignored, and the parameter from the constructor is used instead. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>The <code>GetLayerId</code> value of the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="Encapsulates the fields required to request data for the given catalog, layer, and partition.">DataRequest</a></code> object is ignored, and the parameter from the constructor is used instead. </dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">callback</td><td>Is invoked once the DataResult is available or an error is encountered. </td></tr>
+    <tr><td class="paramname">callback</td><td>The <code>DataResponseCallback</code> object that is invoked if the <code>DataResult</code> object is available or an error is encountered.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Token that can be used to cancel the GetData request. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A token that can be used to cancel this request. </dd></dl>
 
 </div>
 </div>
@@ -303,16 +302,16 @@ If a catalog version is not specified, the latest version is used. To query the 
       </table>
 </div><div class="memdoc">
 
-<p>Fetches a list of partitions for the given generic layer asynchronously. </p>
-<dl class="section note"><dt>Note</dt><dd>If your layer has lots of partitions or uses TileKeys as partition IDs, then this operation can fail because of the large amount of data. </dd></dl>
+<p>Fetches a list of partitions of the given generic layer asynchronously. </p>
+<dl class="section note"><dt>Note</dt><dd>If your layer has lots of partitions or uses tile keys as partition IDs, then this operation can fail because of the large amount of data.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">partitions_request</td><td>Contains the complete set of the request parameters. </td></tr>
+    <tr><td class="paramname">partitions_request</td><td>The <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_partitions_request.html" title="Encapsulates the fields required to request a list of partitions for the given catalog and layer.">PartitionsRequest</a></code> instance that contains a complete set of request parameters. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>GetLayerId value of the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_partitions_request.html" title="The PartitionsRequest class encapsulates the fields required to request the list of partitions for a ...">PartitionsRequest</a></code> is ignored, and the parameter from the constructor is used instead. </dd></dl>
-<dl class="section return"><dt>Returns</dt><dd><code>CancellableFuture</code> of type <code>PartitionsResponse</code>, which when complete will contain the data or an error. Alternatively, the <code>CancellableFuture</code> can be used to cancel this request. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>The <code>GetLayerId</code> value of the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_partitions_request.html" title="Encapsulates the fields required to request a list of partitions for the given catalog and layer.">PartitionsRequest</a></code> object is ignored, and the parameter from the constructor is used instead.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><code>CancellableFuture</code> that contains the <code>PartitionsResponse</code> instance with data or an error. You can also use <code>CancellableFuture</code> to cancel this request. </dd></dl>
 
 </div>
 </div>
@@ -342,22 +341,22 @@ If a catalog version is not specified, the latest version is used. To query the 
       </table>
 </div><div class="memdoc">
 
-<p>Fetches a list of partitions for the given generic layer asynchronously. </p>
-<dl class="section note"><dt>Note</dt><dd>If your layer has lots of partitions or uses TileKeys as partition IDs, then this operation can fail because of the large amount of data. </dd></dl>
+<p>Fetches a list of partitions of the given generic layer asynchronously. </p>
+<dl class="section note"><dt>Note</dt><dd>If your layer has lots of partitions or uses tile keys as partition IDs, then this operation can fail because of the large amount of data.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">partitions_request</td><td>Contains the complete set of the request parameters. </td></tr>
+    <tr><td class="paramname">partitions_request</td><td>The <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_partitions_request.html" title="Encapsulates the fields required to request a list of partitions for the given catalog and layer.">PartitionsRequest</a></code> instance that contains a complete set of request parameters. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>GetLayerId value of the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_partitions_request.html" title="The PartitionsRequest class encapsulates the fields required to request the list of partitions for a ...">PartitionsRequest</a></code> is ignored, and the parameter from the constructor is used instead. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>The <code>GetLayerId</code> value of the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_partitions_request.html" title="Encapsulates the fields required to request a list of partitions for the given catalog and layer.">PartitionsRequest</a></code> object is ignored, and the parameter from the constructor is used instead. </dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">callback</td><td>Is invoked once the list of partitions is available or an error is encountered. </td></tr>
+    <tr><td class="paramname">callback</td><td>The <code>PartitionsResponseCallback</code> object that is invoked if the list of partitions is available or an error is encountered.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Token that can be used to cancel the GetPartitions request. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A token that can be used to cancel this request. </dd></dl>
 
 </div>
 </div>
@@ -377,17 +376,17 @@ If a catalog version is not specified, the latest version is used. To query the 
       </table>
 </div><div class="memdoc">
 
-<p>Pre-fetches a set of tiles asychronously. </p>
-<p>This method recursively downloads all tilekeys from the minLevel to maxLevel specified in the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html" title="The PrefetchTilesRequest class encapsulates the fields required to prefetch the specified layers,...">PrefetchTilesRequest</a></code> properties. This helps to reduce the network load by using the pre-fetched tiles data from cache.</p>
-<dl class="section note"><dt>Note</dt><dd>This does not guarantee that all tiles are available offline as the cache might overflow and data might be evicted at any point.</dd></dl>
+<p>Prefetches a set of tiles asynchronously. </p>
+<p>This method recursively downloads all tile keys from the <code>minLevel</code> parameter to the <code>maxLevel</code> parameter of the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html" title="Encapsulates the fields required to prefetch the specified layers, tiles, and levels.">PrefetchTilesRequest</a></code> object. It helps to reduce the network load by using the prefetched tiles data from the cache.</p>
+<dl class="section note"><dt>Note</dt><dd>This method does not guarantee that all tiles are available offline as the cache might overflow, and data might be evicted at any point.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">request</td><td>Contains the complete set of the request parameters. </td></tr>
+    <tr><td class="paramname">request</td><td>The <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html" title="Encapsulates the fields required to prefetch the specified layers, tiles, and levels.">PrefetchTilesRequest</a></code> instance that contains a complete set of request parameters. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>GetLayerId value of the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html" title="The PrefetchTilesRequest class encapsulates the fields required to prefetch the specified layers,...">PrefetchTilesRequest</a></code> is ignored, and the parameter from the constructor is used instead. </dd></dl>
-<dl class="section return"><dt>Returns</dt><dd>CancellableFuture of the <code>PrefetchTilesResponse</code> type. When completed, the CancellableFuture contains data or an error. Alternatively, the <code>CancellableFuture</code> can be used to cancel this request. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>The <code>GetLayerId</code> value of the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html" title="Encapsulates the fields required to prefetch the specified layers, tiles, and levels.">PrefetchTilesRequest</a></code> object is ignored, and the parameter from the constructor is used instead.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><code>CancellableFuture</code> that contains the <code>PrefetchTilesResponse</code> instance with data or an error. You can also use <code>CancellableFuture</code> to cancel this request. </dd></dl>
 
 </div>
 </div>
@@ -417,23 +416,23 @@ If a catalog version is not specified, the latest version is used. To query the 
       </table>
 </div><div class="memdoc">
 
-<p>Pre-fetches a set of tiles asychronously. </p>
-<p>This method recursively downloads all tilekeys from the minLevel to maxLevel parameters of the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html" title="The PrefetchTilesRequest class encapsulates the fields required to prefetch the specified layers,...">PrefetchTilesRequest</a></code>. It helps to reduce the network load by using the pre-fetched tiles data from cache.</p>
-<dl class="section note"><dt>Note</dt><dd>This does not guarantee that all tiles are available offline as the cache might overflow and data might be evicted at any point.</dd></dl>
+<p>Prefetches a set of tiles asynchronously. </p>
+<p>This method recursively downloads all tile keys from the <code>minLevel</code> parameter to the <code>maxLevel</code> parameter of the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html" title="Encapsulates the fields required to prefetch the specified layers, tiles, and levels.">PrefetchTilesRequest</a></code> object. It helps to reduce the network load by using the prefetched tiles data from the cache.</p>
+<dl class="section note"><dt>Note</dt><dd>This method does not guarantee that all tiles are available offline as the cache might overflow, and data might be evicted at any point.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">request</td><td>Contains the complete set of the request parameters. </td></tr>
+    <tr><td class="paramname">request</td><td>The <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html" title="Encapsulates the fields required to prefetch the specified layers, tiles, and levels.">PrefetchTilesRequest</a></code> instance that contains a complete set of request parameters. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>GetLayerId value of the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html" title="The PrefetchTilesRequest class encapsulates the fields required to prefetch the specified layers,...">PrefetchTilesRequest</a></code> is ignored, and the parameter from the constructor is used instead. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>The <code>GetLayerId</code> value of the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html" title="Encapsulates the fields required to prefetch the specified layers, tiles, and levels.">PrefetchTilesRequest</a></code> object is ignored, and the parameter from the constructor is used instead. </dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">callback</td><td>Is invoked once the <code>PrefetchTilesResult</code> is available or an error is encountered. </td></tr>
+    <tr><td class="paramname">callback</td><td>The <code>PrefetchTilesResponseCallback</code> object that is invoked if the <code>PrefetchTilesResult</code> instance is available or an error is encountered.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Token that can be used to cancel this request. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A token that can be used to cancel this request. </dd></dl>
 
 </div>
 </div>
@@ -441,15 +440,16 @@ If a catalog version is not specified, the latest version is used. To query the 
 <li>olp-cpp-sdk-dataservice-read/include/olp/dataservice/read/<a class="el" href="olp-cpp-sdk-dataservice-read_2include_2olp_2dataservice_2read_2_versioned_layer_client_8h_source.html">VersionedLayerClient.h</a></li>
 </ul>
 </div><!-- contents -->
-<div class="ttc" id="anamespaceolp_1_1authentication_html_add9e77c777aa9984099a62d7ca94ba5c"><div class="ttname"><a href="namespaceolp_1_1authentication.html#add9e77c777aa9984099a62d7ca94ba5c">olp::authentication::TokenProviderDefault</a></div><div class="ttdeci">TokenProvider&lt; kDefaultMinimumValidity &gt; TokenProviderDefault</div><div class="ttdoc">TokenProviderDefault - provides authentication tokens given appropriate OLP user credentials using th...</div><div class="ttdef"><b>Definition:</b> TokenProvider.h:108</div></div>
-<div class="ttc" id="astructolp_1_1client_1_1_authentication_settings_html"><div class="ttname"><a href="structolp_1_1client_1_1_authentication_settings.html">olp::client::AuthenticationSettings</a></div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:61</div></div>
-<div class="ttc" id="aclassolp_1_1client_1_1_olp_client_settings_factory_html_a2d7121fa1c55ec4c339f3378f7078dd2"><div class="ttname"><a href="classolp_1_1client_1_1_olp_client_settings_factory.html#a2d7121fa1c55ec4c339f3378f7078dd2">olp::client::OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler</a></div><div class="ttdeci">static std::shared_ptr&lt; http::Network &gt; CreateDefaultNetworkRequestHandler(size_t max_requests_count=30u)</div><div class="ttdoc">Creates a Network instance used for all non-local requests, which is defaulted to platform-specific i...</div></div>
-<div class="ttc" id="aclassolp_1_1client_1_1_olp_client_settings_factory_html_a67f547a761b34910c5b60f8b6e1233c1"><div class="ttname"><a href="classolp_1_1client_1_1_olp_client_settings_factory.html#a67f547a761b34910c5b60f8b6e1233c1">olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler</a></div><div class="ttdeci">static std::unique_ptr&lt; thread::TaskScheduler &gt; CreateDefaultTaskScheduler(size_t thread_count=1u)</div><div class="ttdoc">Creates a TaskScheduler instance used for all delayed operations, which is defaulted to olp::thread::...</div></div>
-<div class="ttc" id="aclassolp_1_1client_1_1_api_response_html"><div class="ttname"><a href="classolp_1_1client_1_1_api_response.html">olp::client::ApiResponse</a></div><div class="ttdef"><b>Definition:</b> ApiResponse.h:37</div></div>
-<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_versioned_layer_client_html_ae9c1c5440238ba88b5d0fd59fa2886b2"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#ae9c1c5440238ba88b5d0fd59fa2886b2">olp::dataservice::read::VersionedLayerClient::VersionedLayerClient</a></div><div class="ttdeci">VersionedLayerClient(client::HRN catalog, std::string layer_id, client::OlpClientSettings settings)</div><div class="ttdoc">VersionedLayerClient constructor.</div></div>
-<div class="ttc" id="astructolp_1_1client_1_1_olp_client_settings_html"><div class="ttname"><a href="structolp_1_1client_1_1_olp_client_settings.html">olp::client::OlpClientSettings</a></div><div class="ttdoc">OlpClient settings class. Use this class to configure the behaviour of the OlpClient.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:148</div></div>
-<div class="ttc" id="astructolp_1_1authentication_1_1_settings_html"><div class="ttname"><a href="structolp_1_1authentication_1_1_settings.html">olp::authentication::Settings</a></div><div class="ttdoc">Settings which can be used to configure a TokenEndpoint instance.</div><div class="ttdef"><b>Definition:</b> Settings.h:47</div></div>
-<div class="ttc" id="astructolp_1_1authentication_1_1_settings_html_a613b8ae683f2288b6b03b3692f1485a7"><div class="ttname"><a href="structolp_1_1authentication_1_1_settings.html#a613b8ae683f2288b6b03b3692f1485a7">olp::authentication::Settings::task_scheduler</a></div><div class="ttdeci">std::shared_ptr&lt; thread::TaskScheduler &gt; task_scheduler</div><div class="ttdef"><b>Definition:</b> Settings.h:63</div></div>
+<div class="ttc" id="anamespaceolp_1_1authentication_html_add9e77c777aa9984099a62d7ca94ba5c"><div class="ttname"><a href="namespaceolp_1_1authentication.html#add9e77c777aa9984099a62d7ca94ba5c">olp::authentication::TokenProviderDefault</a></div><div class="ttdeci">TokenProvider&lt; kDefaultMinimumValidity &gt; TokenProviderDefault</div><div class="ttdoc">Provides the authentication tokens using the default minimum token validity.</div><div class="ttdef"><b>Definition:</b> TokenProvider.h:128</div></div>
+<div class="ttc" id="astructolp_1_1client_1_1_authentication_settings_html"><div class="ttname"><a href="structolp_1_1client_1_1_authentication_settings.html">olp::client::AuthenticationSettings</a></div><div class="ttdoc">A set of settings that manages the TokenProviderCallback and TokenProviderCancelCallback functions.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:82</div></div>
+<div class="ttc" id="aclassolp_1_1client_1_1_olp_client_settings_factory_html_a2d7121fa1c55ec4c339f3378f7078dd2"><div class="ttname"><a href="classolp_1_1client_1_1_olp_client_settings_factory.html#a2d7121fa1c55ec4c339f3378f7078dd2">olp::client::OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler</a></div><div class="ttdeci">static std::shared_ptr&lt; http::Network &gt; CreateDefaultNetworkRequestHandler(size_t max_requests_count=30u)</div><div class="ttdoc">Creates the Network instance used for all the non-local requests.</div></div>
+<div class="ttc" id="aclassolp_1_1client_1_1_olp_client_settings_factory_html_a67f547a761b34910c5b60f8b6e1233c1"><div class="ttname"><a href="classolp_1_1client_1_1_olp_client_settings_factory.html#a67f547a761b34910c5b60f8b6e1233c1">olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler</a></div><div class="ttdeci">static std::unique_ptr&lt; thread::TaskScheduler &gt; CreateDefaultTaskScheduler(size_t thread_count=1u)</div><div class="ttdoc">Creates the TaskScheduler instance used for all the delayed operations.</div></div>
+<div class="ttc" id="aclassolp_1_1client_1_1_api_response_html"><div class="ttname"><a href="classolp_1_1client_1_1_api_response.html">olp::client::ApiResponse</a></div><div class="ttdoc">Represents a request outcome.</div><div class="ttdef"><b>Definition:</b> ApiResponse.h:40</div></div>
+<div class="ttc" id="astructolp_1_1client_1_1_authentication_settings_html_a8a4240addea5ddd967ed14f0b9858dac"><div class="ttname"><a href="structolp_1_1client_1_1_authentication_settings.html#a8a4240addea5ddd967ed14f0b9858dac">olp::client::AuthenticationSettings::provider</a></div><div class="ttdeci">TokenProviderCallback provider</div><div class="ttdoc">The user-provided function that returns the OAuth2 bearer access token.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:124</div></div>
+<div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_versioned_layer_client_html_ae9c1c5440238ba88b5d0fd59fa2886b2"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#ae9c1c5440238ba88b5d0fd59fa2886b2">olp::dataservice::read::VersionedLayerClient::VersionedLayerClient</a></div><div class="ttdeci">VersionedLayerClient(client::HRN catalog, std::string layer_id, client::OlpClientSettings settings)</div><div class="ttdoc">Creates the VersionedLayerClient instance.</div></div>
+<div class="ttc" id="astructolp_1_1client_1_1_olp_client_settings_html"><div class="ttname"><a href="structolp_1_1client_1_1_olp_client_settings.html">olp::client::OlpClientSettings</a></div><div class="ttdoc">Configures the behavior of the OlpClient class.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:219</div></div>
+<div class="ttc" id="astructolp_1_1authentication_1_1_settings_html"><div class="ttname"><a href="structolp_1_1authentication_1_1_settings.html">olp::authentication::Settings</a></div><div class="ttdoc">Configures the TokenEndpoint instance.</div><div class="ttdef"><b>Definition:</b> Settings.h:49</div></div>
+<div class="ttc" id="astructolp_1_1authentication_1_1_settings_html_a613b8ae683f2288b6b03b3692f1485a7"><div class="ttname"><a href="structolp_1_1authentication_1_1_settings.html#a613b8ae683f2288b6b03b3692f1485a7">olp::authentication::Settings::task_scheduler</a></div><div class="ttdeci">std::shared_ptr&lt; thread::TaskScheduler &gt; task_scheduler</div><div class="ttdoc">(Optional) The TaskScheduler class that is used to manage the callbacks enqueue.</div><div class="ttdef"><b>Definition:</b> Settings.h:76</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

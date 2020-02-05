@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -77,33 +77,38 @@ $(function() {
 <div class="title">olp::context::Context Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>Used only for the Android environment to correctly initialize the <code>NetworkAndroid</code> class.  
+ <a href="classolp_1_1context_1_1_context.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="_context_8h_source.html">Context.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1context_1_1_context_1_1_scope.html">Scope</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <a class="el" href="classolp_1_1context_1_1_context_1_1_scope.html" title="The Scope class initializes the context in its constructor (if not already initialized) and deinitial...">Scope</a> class initializes the context in its constructor (if not already initialized) and deinitializes in the destructor (when no other <a class="el" href="classolp_1_1context_1_1_context_1_1_scope.html" title="The Scope class initializes the context in its constructor (if not already initialized) and deinitial...">Scope</a> instances exist). Instead of calling Context::init() and Context::deinit() manually, simply instantiate a Context::Scope() object.  <a href="classolp_1_1context_1_1_context_1_1_scope.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes the <code><a class="el" href="classolp_1_1context_1_1_context.html" title="Used only for the Android environment to correctly initialize the NetworkAndroid class.">Context</a></code> class in its constructor (if it is not already initialized) and deinitializes in its destructor (if there are no other <code><a class="el" href="classolp_1_1context_1_1_context_1_1_scope.html" title="Initializes the Context class in its constructor (if it is not already initialized) and deinitializes...">Scope</a></code> instances).  <a href="classolp_1_1context_1_1_context_1_1_scope.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:ab2bb2c65ba9d9530af2e40a97722dfe7"><td class="memItemLeft" align="right" valign="top"><a id="ab2bb2c65ba9d9530af2e40a97722dfe7"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>InitializedCallback</b> = std::function&lt; void()&gt;</td></tr>
+<tr class="memitem:ab2bb2c65ba9d9530af2e40a97722dfe7"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1context_1_1_context.html#ab2bb2c65ba9d9530af2e40a97722dfe7">InitializedCallback</a> = std::function&lt; void()&gt;</td></tr>
+<tr class="memdesc:ab2bb2c65ba9d9530af2e40a97722dfe7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called when the <code><a class="el" href="classolp_1_1context_1_1_context.html" title="Used only for the Android environment to correctly initialize the NetworkAndroid class.">Context</a></code> object is initialized.  <a href="classolp_1_1context_1_1_context.html#ab2bb2c65ba9d9530af2e40a97722dfe7">More...</a><br /></td></tr>
 <tr class="separator:ab2bb2c65ba9d9530af2e40a97722dfe7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae0b0746867391397796d282dcc402940"><td class="memItemLeft" align="right" valign="top"><a id="ae0b0746867391397796d282dcc402940"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>DeinitializedCallback</b> = std::function&lt; void()&gt;</td></tr>
+<tr class="memitem:ae0b0746867391397796d282dcc402940"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1context_1_1_context.html#ae0b0746867391397796d282dcc402940">DeinitializedCallback</a> = std::function&lt; void()&gt;</td></tr>
+<tr class="memdesc:ae0b0746867391397796d282dcc402940"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called when the <code><a class="el" href="classolp_1_1context_1_1_context.html" title="Used only for the Android environment to correctly initialize the NetworkAndroid class.">Context</a></code> object is deinitialized.  <a href="classolp_1_1context_1_1_context.html#ae0b0746867391397796d282dcc402940">More...</a><br /></td></tr>
 <tr class="separator:ae0b0746867391397796d282dcc402940"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ae394d282afbc8202250419b223d556cf"><td class="memItemLeft" align="right" valign="top"><a id="ae394d282afbc8202250419b223d556cf"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1context_1_1_context.html#ae394d282afbc8202250419b223d556cf">Context</a> ()=delete</td></tr>
-<tr class="memdesc:ae394d282afbc8202250419b223d556cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">deleted default constructor <br /></td></tr>
+<tr class="memdesc:ae394d282afbc8202250419b223d556cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The deleted default constructor. <br /></td></tr>
 <tr class="separator:ae394d282afbc8202250419b223d556cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a021d23c2bc1c9def3cef4940aae3eed1"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1context_1_1_context.html#a021d23c2bc1c9def3cef4940aae3eed1">addInitializeCallbacks</a> (InitializedCallback initCallback, DeinitializedCallback deinitCalback)</td></tr>
-<tr class="memdesc:a021d23c2bc1c9def3cef4940aae3eed1"><td class="mdescLeft">&#160;</td><td class="mdescRight">addInitializeCallbacks Register functions to be called after the context is initialized and destroyed.  <a href="classolp_1_1context_1_1_context.html#a021d23c2bc1c9def3cef4940aae3eed1">More...</a><br /></td></tr>
+<tr class="memitem:a021d23c2bc1c9def3cef4940aae3eed1"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1context_1_1_context.html#a021d23c2bc1c9def3cef4940aae3eed1">addInitializeCallbacks</a> (<a class="el" href="classolp_1_1context_1_1_context.html#ab2bb2c65ba9d9530af2e40a97722dfe7">InitializedCallback</a> initCallback, <a class="el" href="classolp_1_1context_1_1_context.html#ae0b0746867391397796d282dcc402940">DeinitializedCallback</a> deinitCalback)</td></tr>
+<tr class="memdesc:a021d23c2bc1c9def3cef4940aae3eed1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers functions that are called when the context is initialized and destroyed.  <a href="classolp_1_1context_1_1_context.html#a021d23c2bc1c9def3cef4940aae3eed1">More...</a><br /></td></tr>
 <tr class="separator:a021d23c2bc1c9def3cef4940aae3eed1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
@@ -112,6 +117,46 @@ Friends</h2></td></tr>
 class&#160;</td><td class="memItemRight" valign="bottom"><b>Context::Scope</b></td></tr>
 <tr class="separator:ad7213d76322445220f6fea2140886805"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Used only for the Android environment to correctly initialize the <code>NetworkAndroid</code> class. </p>
+<p>Initialize the <code><a class="el" href="classolp_1_1context_1_1_context.html" title="Used only for the Android environment to correctly initialize the NetworkAndroid class.">Context</a></code> class before you send network requests in the Android environment. To use the <code><a class="el" href="classolp_1_1context_1_1_context.html" title="Used only for the Android environment to correctly initialize the NetworkAndroid class.">Context</a></code> class, cerate the <code><a class="el" href="classolp_1_1context_1_1_context_1_1_scope.html" title="Initializes the Context class in its constructor (if it is not already initialized) and deinitializes...">Scope</a></code> object first. </p>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
+<a id="ae0b0746867391397796d282dcc402940"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae0b0746867391397796d282dcc402940">&#9670;&nbsp;</a></span>DeinitializedCallback</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="classolp_1_1context_1_1_context.html#ae0b0746867391397796d282dcc402940">olp::context::Context::DeinitializedCallback</a> =  std::function&lt;void()&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Called when the <code><a class="el" href="classolp_1_1context_1_1_context.html" title="Used only for the Android environment to correctly initialize the NetworkAndroid class.">Context</a></code> object is deinitialized. </p>
+<p>Controlled by the <code><a class="el" href="classolp_1_1context_1_1_context_1_1_scope.html" title="Initializes the Context class in its constructor (if it is not already initialized) and deinitializes...">Scope</a></code> class.</p>
+<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="classolp_1_1context_1_1_context_1_1_scope.html" title="Initializes the Context class in its constructor (if it is not already initialized) and deinitializes...">Scope</a></code> for more information. </dd></dl>
+
+</div>
+</div>
+<a id="ab2bb2c65ba9d9530af2e40a97722dfe7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab2bb2c65ba9d9530af2e40a97722dfe7">&#9670;&nbsp;</a></span>InitializedCallback</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="classolp_1_1context_1_1_context.html#ab2bb2c65ba9d9530af2e40a97722dfe7">olp::context::Context::InitializedCallback</a> =  std::function&lt;void()&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Called when the <code><a class="el" href="classolp_1_1context_1_1_context.html" title="Used only for the Android environment to correctly initialize the NetworkAndroid class.">Context</a></code> object is initialized. </p>
+<p>Controlled by the <code><a class="el" href="classolp_1_1context_1_1_context_1_1_scope.html" title="Initializes the Context class in its constructor (if it is not already initialized) and deinitializes...">Scope</a></code> class.</p>
+<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="classolp_1_1context_1_1_context_1_1_scope.html" title="Initializes the Context class in its constructor (if it is not already initialized) and deinitializes...">Scope</a></code> for more information. </dd></dl>
+
+</div>
+</div>
 <h2 class="groupheader">Member Function Documentation</h2>
 <a id="a021d23c2bc1c9def3cef4940aae3eed1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a021d23c2bc1c9def3cef4940aae3eed1">&#9670;&nbsp;</a></span>addInitializeCallbacks()</h2>
@@ -125,13 +170,13 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>Context::Scope</b></
         <tr>
           <td class="memname">static void olp::context::Context::addInitializeCallbacks </td>
           <td>(</td>
-          <td class="paramtype">InitializedCallback&#160;</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1context_1_1_context.html#ab2bb2c65ba9d9530af2e40a97722dfe7">InitializedCallback</a>&#160;</td>
           <td class="paramname"><em>initCallback</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">DeinitializedCallback&#160;</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1context_1_1_context.html#ae0b0746867391397796d282dcc402940">DeinitializedCallback</a>&#160;</td>
           <td class="paramname"><em>deinitCalback</em>&#160;</td>
         </tr>
         <tr>
@@ -147,11 +192,11 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>Context::Scope</b></
 </table>
 </div><div class="memdoc">
 
-<p>addInitializeCallbacks Register functions to be called after the context is initialized and destroyed. </p>
+<p>Registers functions that are called when the context is initialized and destroyed. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">initCallback</td><td></td></tr>
-    <tr><td class="paramname">deinitCalback</td><td></td></tr>
+    <tr><td class="paramname">initCallback</td><td>The <code>InitializedCallback</code> instance. </td></tr>
+    <tr><td class="paramname">deinitCalback</td><td>The <code>DeinitializedCallback</code> instance. </td></tr>
   </table>
   </dd>
 </dl>

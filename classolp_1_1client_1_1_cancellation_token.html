@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -67,6 +67,7 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="classolp_1_1client_1_1_cancellation_token-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -74,30 +75,33 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Control object for cancelling service requests.  
+<p>Cancels service requests.  
  <a href="classolp_1_1client_1_1_cancellation_token.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_cancellation_token_8h_source.html">CancellationToken.h</a>&gt;</code></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a01f7e2c223fe308d507ef02ce8a1a871"><td class="memItemLeft" align="right" valign="top"><a id="a01f7e2c223fe308d507ef02ce8a1a871"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html#a01f7e2c223fe308d507ef02ce8a1a871">CancelFuncType</a> = std::function&lt; void()&gt;</td></tr>
+<tr class="memdesc:a01f7e2c223fe308d507ef02ce8a1a871"><td class="mdescLeft">&#160;</td><td class="mdescRight">The alias for the cancellation function. <br /></td></tr>
+<tr class="separator:a01f7e2c223fe308d507ef02ce8a1a871"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a0b0c663ccd5e644b17edc54d596f1461"><td class="memItemLeft" align="right" valign="top"><a id="a0b0c663ccd5e644b17edc54d596f1461"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html#a0b0c663ccd5e644b17edc54d596f1461">CancellationToken</a> ()=default</td></tr>
-<tr class="memdesc:a0b0c663ccd5e644b17edc54d596f1461"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor. <br /></td></tr>
-<tr class="separator:a0b0c663ccd5e644b17edc54d596f1461"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6e2db789f1a5d55f037e2ae025466955"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html#a6e2db789f1a5d55f037e2ae025466955">CancellationToken</a> (std::function&lt; void()&gt; func)</td></tr>
-<tr class="memdesc:a6e2db789f1a5d55f037e2ae025466955"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <a href="classolp_1_1client_1_1_cancellation_token.html#a6e2db789f1a5d55f037e2ae025466955">More...</a><br /></td></tr>
-<tr class="separator:a6e2db789f1a5d55f037e2ae025466955"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af145205ad037b8aa289bc6dd12029325"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html#af145205ad037b8aa289bc6dd12029325">CancellationToken</a> (<a class="el" href="classolp_1_1client_1_1_cancellation_token.html#a01f7e2c223fe308d507ef02ce8a1a871">CancelFuncType</a> func)</td></tr>
+<tr class="memdesc:af145205ad037b8aa289bc6dd12029325"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1_cancellation_token.html" title="Cancels service requests.">CancellationToken</a></code> instance.  <a href="classolp_1_1client_1_1_cancellation_token.html#af145205ad037b8aa289bc6dd12029325">More...</a><br /></td></tr>
+<tr class="separator:af145205ad037b8aa289bc6dd12029325"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9fc96f9b56644437a0a385760a90d086"><td class="memItemLeft" align="right" valign="top"><a id="a9fc96f9b56644437a0a385760a90d086"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html#a9fc96f9b56644437a0a385760a90d086">Cancel</a> () const</td></tr>
-<tr class="memdesc:a9fc96f9b56644437a0a385760a90d086"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancels the current operation, calls the func_ instance variable. <br /></td></tr>
+<tr class="memdesc:a9fc96f9b56644437a0a385760a90d086"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancels the current operation and calls the <code>func_</code> instance. <br /></td></tr>
 <tr class="separator:a9fc96f9b56644437a0a385760a90d086"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Control object for cancelling service requests. </p>
+<div class="textblock"><p>Cancels service requests. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a6e2db789f1a5d55f037e2ae025466955"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6e2db789f1a5d55f037e2ae025466955">&#9670;&nbsp;</a></span>CancellationToken()</h2>
+<a id="af145205ad037b8aa289bc6dd12029325"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af145205ad037b8aa289bc6dd12029325">&#9670;&nbsp;</a></span>CancellationToken()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -105,17 +109,17 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
         <tr>
           <td class="memname">olp::client::CancellationToken::CancellationToken </td>
           <td>(</td>
-          <td class="paramtype">std::function&lt; void()&gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html#a01f7e2c223fe308d507ef02ce8a1a871">CancelFuncType</a>&#160;</td>
           <td class="paramname"><em>func</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Constructor. </p>
+<p>Creates the <code><a class="el" href="classolp_1_1client_1_1_cancellation_token.html" title="Cancels service requests.">CancellationToken</a></code> instance. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">func</td><td>an operation that should be used to cancel an authentication request. </td></tr>
+    <tr><td class="paramname">func</td><td>The operation that should be used to cancel the ongoing operation. </td></tr>
   </table>
   </dd>
 </dl>

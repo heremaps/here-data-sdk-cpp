@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -74,7 +74,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>The <a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html" title="The CatalogVersionRequest class encapsulates the fields required to request the Catalog configuration...">CatalogVersionRequest</a> class encapsulates the fields required to request the Catalog configuration.  
+<p>Encapsulates the fields required to request catalog configuration.  
  <a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_catalog_version_request_8h_source.html">CatalogVersionRequest.h</a>&gt;</code></p>
@@ -82,32 +82,32 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a85999f5f400c14d2b5094aeb5393c421"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a85999f5f400c14d2b5094aeb5393c421">GetStartVersion</a> () const</td></tr>
-<tr class="memdesc:a85999f5f400c14d2b5094aeb5393c421"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mandatory for versioned layers; the beginning of the range of versions you want to get (exclusive). By convention -1 indicates the initial version before the first publication. After the first publication, the catalog version is 0.  <a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a85999f5f400c14d2b5094aeb5393c421">More...</a><br /></td></tr>
+<tr class="memdesc:a85999f5f400c14d2b5094aeb5393c421"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the catalog start version (exclusive) for the request.  <a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a85999f5f400c14d2b5094aeb5393c421">More...</a><br /></td></tr>
 <tr class="separator:a85999f5f400c14d2b5094aeb5393c421"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad774d7ccf88c7c5a3b20bd3dbfb213cb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html">CatalogVersionRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#ad774d7ccf88c7c5a3b20bd3dbfb213cb">WithStartVersion</a> (int64_t startVersion)</td></tr>
-<tr class="memdesc:ad774d7ccf88c7c5a3b20bd3dbfb213cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">WithStartVersion sets the start version. See ::GetStartVersion() for usage.  <a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#ad774d7ccf88c7c5a3b20bd3dbfb213cb">More...</a><br /></td></tr>
+<tr class="memdesc:ad774d7ccf88c7c5a3b20bd3dbfb213cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the catalog start version.  <a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#ad774d7ccf88c7c5a3b20bd3dbfb213cb">More...</a><br /></td></tr>
 <tr class="separator:ad774d7ccf88c7c5a3b20bd3dbfb213cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa7a20c158768fc020b73362207e69b9d"><td class="memItemLeft" align="right" valign="top">const boost::optional&lt; std::string &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#aa7a20c158768fc020b73362207e69b9d">GetBillingTag</a> () const</td></tr>
-<tr class="memdesc:aa7a20c158768fc020b73362207e69b9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">BillingTag is an optional free-form tag which is used for grouping billing records together. If supplied, it must be between 4 - 16 characters, contain only alpha/numeric ASCII characters [A-Za-z0-9].  <a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#aa7a20c158768fc020b73362207e69b9d">More...</a><br /></td></tr>
+<tr class="memdesc:aa7a20c158768fc020b73362207e69b9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the billing tag to group billing records together.  <a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#aa7a20c158768fc020b73362207e69b9d">More...</a><br /></td></tr>
 <tr class="separator:aa7a20c158768fc020b73362207e69b9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9d7f55a4b003efe9be46006add010eab"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html">CatalogVersionRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a9d7f55a4b003efe9be46006add010eab">WithBillingTag</a> (boost::optional&lt; std::string &gt; billingTag)</td></tr>
-<tr class="memdesc:a9d7f55a4b003efe9be46006add010eab"><td class="mdescLeft">&#160;</td><td class="mdescRight">WithBillingTag sets the billing tag. See ::GetBillingTag() for usage and format.  <a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a9d7f55a4b003efe9be46006add010eab">More...</a><br /></td></tr>
+<tr class="memdesc:a9d7f55a4b003efe9be46006add010eab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the billing tag for the request.  <a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a9d7f55a4b003efe9be46006add010eab">More...</a><br /></td></tr>
 <tr class="separator:a9d7f55a4b003efe9be46006add010eab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af30b2aa2c62a5ecc75252ff80a9c74a2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html">CatalogVersionRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#af30b2aa2c62a5ecc75252ff80a9c74a2">WithBillingTag</a> (std::string &amp;&amp;billingTag)</td></tr>
-<tr class="memdesc:af30b2aa2c62a5ecc75252ff80a9c74a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">WithBillingTag sets the billing tag. See ::GetBillingTag() for usage and format.  <a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#af30b2aa2c62a5ecc75252ff80a9c74a2">More...</a><br /></td></tr>
+<tr class="memdesc:af30b2aa2c62a5ecc75252ff80a9c74a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the billing tag for the request.  <a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#af30b2aa2c62a5ecc75252ff80a9c74a2">More...</a><br /></td></tr>
 <tr class="separator:af30b2aa2c62a5ecc75252ff80a9c74a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d2039890f8930ba65dd590eae493415"><td class="memItemLeft" align="right" valign="top">FetchOptions&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a4d2039890f8930ba65dd590eae493415">GetFetchOption</a> () const</td></tr>
-<tr class="memdesc:a4d2039890f8930ba65dd590eae493415"><td class="mdescLeft">&#160;</td><td class="mdescRight">FetchOption will control how requests are handled. Default option is OnlineIfNotFound, which will query the network only if the requested resource is not in the cache.  <a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a4d2039890f8930ba65dd590eae493415">More...</a><br /></td></tr>
+<tr class="memdesc:a4d2039890f8930ba65dd590eae493415"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the fetch option that controls how requests are handled.  <a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a4d2039890f8930ba65dd590eae493415">More...</a><br /></td></tr>
 <tr class="separator:a4d2039890f8930ba65dd590eae493415"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a15946dd3250096d073b88b03b6e37072"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html">CatalogVersionRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a15946dd3250096d073b88b03b6e37072">WithFetchOption</a> (FetchOptions fetchoption)</td></tr>
-<tr class="memdesc:a15946dd3250096d073b88b03b6e37072"><td class="mdescLeft">&#160;</td><td class="mdescRight">WithFetchOption sets the fetch option. See ::GetFetchOption() for usage and format.  <a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a15946dd3250096d073b88b03b6e37072">More...</a><br /></td></tr>
+<tr class="memdesc:a15946dd3250096d073b88b03b6e37072"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the fetch option that you can use to set the source from which data should be fetched.  <a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a15946dd3250096d073b88b03b6e37072">More...</a><br /></td></tr>
 <tr class="separator:a15946dd3250096d073b88b03b6e37072"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a99e2bb4be6d8fe5015e33f943287d130"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a99e2bb4be6d8fe5015e33f943287d130">CreateKey</a> () const</td></tr>
-<tr class="memdesc:a99e2bb4be6d8fe5015e33f943287d130"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates readable format for the request.  <a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a99e2bb4be6d8fe5015e33f943287d130">More...</a><br /></td></tr>
+<tr class="memdesc:a99e2bb4be6d8fe5015e33f943287d130"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a readable format of the request.  <a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a99e2bb4be6d8fe5015e33f943287d130">More...</a><br /></td></tr>
 <tr class="separator:a99e2bb4be6d8fe5015e33f943287d130"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The <a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html" title="The CatalogVersionRequest class encapsulates the fields required to request the Catalog configuration...">CatalogVersionRequest</a> class encapsulates the fields required to request the Catalog configuration. </p>
+<div class="textblock"><p>Encapsulates the fields required to request catalog configuration. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a99e2bb4be6d8fe5015e33f943287d130"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a99e2bb4be6d8fe5015e33f943287d130">&#9670;&nbsp;</a></span>CreateKey()</h2>
@@ -132,14 +132,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Creates readable format for the request. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">none</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>string representation of the request </dd></dl>
+<p>Creates a readable format of the request. </p>
+<dl class="section return"><dt>Returns</dt><dd>A string representation of the request. </dd></dl>
 
 </div>
 </div>
@@ -166,8 +160,9 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>BillingTag is an optional free-form tag which is used for grouping billing records together. If supplied, it must be between 4 - 16 characters, contain only alpha/numeric ASCII characters [A-Za-z0-9]. </p>
-<dl class="section return"><dt>Returns</dt><dd>the billing tag, or boost::none if not set. </dd></dl>
+<p>Gets the billing tag to group billing records together. </p>
+<p>The billing tag is an optional free-form tag that is used for grouping billing records together. If supplied, it must be 4–16 characters long and contain only alphanumeric ASCII characters [A-Za-z0-9].</p>
+<dl class="section return"><dt>Returns</dt><dd>The <code>BillingTag</code> string or <code>boost::none</code> if the billing tag is not set. </dd></dl>
 
 </div>
 </div>
@@ -194,8 +189,9 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>FetchOption will control how requests are handled. Default option is OnlineIfNotFound, which will query the network only if the requested resource is not in the cache. </p>
-<dl class="section return"><dt>Returns</dt><dd>the fetchOption </dd></dl>
+<p>Gets the fetch option that controls how requests are handled. </p>
+<p>The default option is <code>OnlineIfNotFound</code> that queries the network if the requested resource is not in the cache.</p>
+<dl class="section return"><dt>Returns</dt><dd>The fetch option. </dd></dl>
 
 </div>
 </div>
@@ -222,8 +218,9 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Mandatory for versioned layers; the beginning of the range of versions you want to get (exclusive). By convention -1 indicates the initial version before the first publication. After the first publication, the catalog version is 0. </p>
-<dl class="section return"><dt>Returns</dt><dd>the start version. </dd></dl>
+<p>Gets the catalog start version (exclusive) for the request. </p>
+<p>Mandatory for versioned layers. By convention -1 indicates the initial version before the first publication. After the first publication, the catalog version is 0.</p>
+<dl class="section return"><dt>Returns</dt><dd>The catalog start version. </dd></dl>
 
 </div>
 </div>
@@ -251,14 +248,15 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>WithBillingTag sets the billing tag. See ::GetBillingTag() for usage and format. </p>
+<p>Sets the billing tag for the request. </p>
+<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#aa7a20c158768fc020b73362207e69b9d" title="Gets the billing tag to group billing records together.">GetBillingTag()</a></code> for information on usage and format.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">billingTag</td><td>a string or boost::none </td></tr>
+    <tr><td class="paramname">billingTag</td><td>The <code>BillingTag</code> string or <code>boost::none</code>.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>a reference to the updated <a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html" title="The CatalogVersionRequest class encapsulates the fields required to request the Catalog configuration...">CatalogVersionRequest</a> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html" title="Encapsulates the fields required to request catalog configuration.">CatalogVersionRequest</a></code> instance. </dd></dl>
 
 </div>
 </div>
@@ -286,14 +284,15 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>WithBillingTag sets the billing tag. See ::GetBillingTag() for usage and format. </p>
+<p>Sets the billing tag for the request. </p>
+<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#aa7a20c158768fc020b73362207e69b9d" title="Gets the billing tag to group billing records together.">GetBillingTag()</a></code> for information on usage and format.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">billingTag</td><td>a string or boost::none </td></tr>
+    <tr><td class="paramname">billingTag</td><td>The rvalue reference to the <code>BillingTag</code> string or <code>boost::none</code>.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>a reference to the updated <a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html" title="The CatalogVersionRequest class encapsulates the fields required to request the Catalog configuration...">CatalogVersionRequest</a> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html" title="Encapsulates the fields required to request catalog configuration.">CatalogVersionRequest</a></code> instance. </dd></dl>
 
 </div>
 </div>
@@ -321,14 +320,15 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>WithFetchOption sets the fetch option. See ::GetFetchOption() for usage and format. </p>
+<p>Sets the fetch option that you can use to set the source from which data should be fetched. </p>
+<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a4d2039890f8930ba65dd590eae493415" title="Gets the fetch option that controls how requests are handled.">GetFetchOption()</a></code> for information on usage and format.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">fetchoption</td><td>enums </td></tr>
+    <tr><td class="paramname">fetchoption</td><td>The <code>FetchOption</code> enum.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>a reference to the updated <a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html" title="The CatalogVersionRequest class encapsulates the fields required to request the Catalog configuration...">CatalogVersionRequest</a> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html" title="Encapsulates the fields required to request catalog configuration.">CatalogVersionRequest</a></code> instance. </dd></dl>
 
 </div>
 </div>
@@ -356,14 +356,15 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>WithStartVersion sets the start version. See ::GetStartVersion() for usage. </p>
+<p>Sets the catalog start version. </p>
+<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a85999f5f400c14d2b5094aeb5393c421" title="Gets the catalog start version (exclusive) for the request.">GetStartVersion()</a></code> for information on usage.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">startVersion</td><td>an int64_t </td></tr>
+    <tr><td class="paramname">startVersion</td><td>The catalog start version.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>a reference to the updated <a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html" title="The CatalogVersionRequest class encapsulates the fields required to request the Catalog configuration...">CatalogVersionRequest</a> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html" title="Encapsulates the fields required to request catalog configuration.">CatalogVersionRequest</a></code> instance. </dd></dl>
 
 </div>
 </div>

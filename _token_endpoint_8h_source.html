@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">1.2.0</span>
    </div>
   </td>
  </tr>
@@ -103,47 +103,51 @@ $(function() {
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160; </div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="preprocessor">#include &quot;olp/core/client/ApiResponse.h&quot;</span></div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="preprocessor">#include &quot;olp/core/client/CancellationToken.h&quot;</span></div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160; </div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespaceolp.html">olp</a> {</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="keyword">namespace </span>authentication {</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="keyword">class </span>AutoRefreshingToken;</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160; </div>
-<div class="line"><a name="l00043"></a><span class="lineno"><a class="line" href="classolp_1_1authentication_1_1_token_endpoint.html">   43</a></span>&#160;<span class="keyword">class </span>AUTHENTICATION_API <a class="code" href="classolp_1_1authentication_1_1_token_endpoint.html">TokenEndpoint</a> {</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00049"></a><span class="lineno"><a class="line" href="classolp_1_1authentication_1_1_token_endpoint.html#aa80d76f0915be0216aace00983b91afd">   49</a></span>&#160;  <span class="keyword">using</span> <a class="code" href="classolp_1_1client_1_1_api_response.html">TokenResponse</a> = <a class="code" href="classolp_1_1client_1_1_api_response.html">client::ApiResponse&lt;TokenResult, AuthenticationError&gt;</a>;</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;  <span class="keyword">using</span> RequestTokenCallback = std::function&lt;void(<a class="code" href="classolp_1_1client_1_1_api_response.html">TokenResponse</a>)&gt;;</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;  <a class="code" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a> RequestToken(</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;      <span class="keyword">const</span> <a class="code" href="classolp_1_1authentication_1_1_token_request.html">TokenRequest</a>&amp; token_request,</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;      <span class="keyword">const</span> RequestTokenCallback&amp; callback) <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160; </div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;  std::future&lt;TokenResponse&gt; RequestToken(</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;      <a class="code" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a>&amp; cancellation_token,</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;      <span class="keyword">const</span> <a class="code" href="classolp_1_1authentication_1_1_token_request.html">TokenRequest</a>&amp; token_request = <a class="code" href="classolp_1_1authentication_1_1_token_request.html">TokenRequest</a>()) <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160; </div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;  std::future&lt;TokenResponse&gt; RequestToken(</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;      <span class="keyword">const</span> <a class="code" href="classolp_1_1authentication_1_1_token_request.html">TokenRequest</a>&amp; token_request = <a class="code" href="classolp_1_1authentication_1_1_token_request.html">TokenRequest</a>()) <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;  <a class="code" href="classolp_1_1authentication_1_1_auto_refreshing_token.html">AutoRefreshingToken</a> RequestAutoRefreshingToken(</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;      <span class="keyword">const</span> <a class="code" href="classolp_1_1authentication_1_1_token_request.html">TokenRequest</a>&amp; token_request = <a class="code" href="classolp_1_1authentication_1_1_token_request.html">TokenRequest</a>());</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160; </div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;  <span class="keyword">explicit</span> <a class="code" href="classolp_1_1authentication_1_1_token_endpoint.html">TokenEndpoint</a>(<a class="code" href="structolp_1_1authentication_1_1_settings.html">Settings</a> settings);</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160; </div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160; <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;  <span class="keyword">struct </span>Impl;</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;  std::shared_ptr&lt;Impl&gt; impl_;</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;};</div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160; </div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;}  <span class="comment">// namespace authentication</span></div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="preprocessor">#include &quot;olp/core/porting/warning_disable.h&quot;</span></div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160; </div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespaceolp.html">olp</a> {</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="keyword">namespace </span>authentication {</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;<span class="keyword">class </span>AutoRefreshingToken;</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;PORTING_PUSH_WARNINGS()</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;PORTING_CLANG_GCC_DISABLE_WARNING(&quot;-Wdeprecated-declarations&quot;)</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160; </div>
+<div class="line"><a name="l00046"></a><span class="lineno"><a class="line" href="namespaceolp_1_1authentication.html#a036068dea4006ea8710a1afec79ca948">   46</a></span>&#160;class AUTHENTICATION_API <a class="code" href="namespaceolp_1_1authentication.html#a036068dea4006ea8710a1afec79ca948">OLP_SDK_DEPRECATED</a>(&quot;Will be removed in 04.2020&quot;)</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    TokenEndpoint {</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;  <span class="keyword">using</span> TokenResponse = <a class="code" href="classolp_1_1client_1_1_api_response.html">client::ApiResponse&lt;TokenResult, AuthenticationError&gt;</a>;</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;  <span class="keyword">using</span> RequestTokenCallback = std::function&lt;void(TokenResponse)&gt;;</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160; </div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;  <a class="code" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a> RequestToken(</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;      <span class="keyword">const</span> TokenRequest&amp; token_request,</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;      <span class="keyword">const</span> RequestTokenCallback&amp; callback) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160; </div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;  std::future&lt;TokenResponse&gt; RequestToken(</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;      <a class="code" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a>&amp; cancellation_token,</div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;      <span class="keyword">const</span> TokenRequest&amp; token_request = TokenRequest()) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160; </div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;  std::future&lt;TokenResponse&gt; RequestToken(</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;      <span class="keyword">const</span> TokenRequest&amp; token_request = TokenRequest()) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160; </div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;  <a class="code" href="classolp_1_1authentication_1_1_auto_refreshing_token.html">AutoRefreshingToken</a> RequestAutoRefreshingToken(</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;      <span class="keyword">const</span> TokenRequest&amp; token_request = TokenRequest());</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160; </div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;  <span class="keyword">explicit</span> TokenEndpoint(<a class="code" href="structolp_1_1authentication_1_1_settings.html">Settings</a> settings);</div>
+<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160; </div>
+<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160; <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;  <span class="keyword">struct </span>Impl;</div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;  std::shared_ptr&lt;Impl&gt; impl_;</div>
+<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;};</div>
+<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;PORTING_POP_WARNINGS()</div>
+<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160; </div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;}  <span class="comment">// namespace authentication</span></div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;}  <span class="comment">// namespace olp</span></div>
 </div><!-- fragment --></div><!-- contents -->
-<div class="ttc" id="aclassolp_1_1client_1_1_cancellation_token_html"><div class="ttname"><a href="classolp_1_1client_1_1_cancellation_token.html">olp::client::CancellationToken</a></div><div class="ttdoc">Control object for cancelling service requests.</div><div class="ttdef"><b>Definition:</b> CancellationToken.h:32</div></div>
-<div class="ttc" id="aclassolp_1_1authentication_1_1_token_endpoint_html"><div class="ttname"><a href="classolp_1_1authentication_1_1_token_endpoint.html">olp::authentication::TokenEndpoint</a></div><div class="ttdoc">The TokenEndpoint class directly corresponds to the token endpoint as specified in the OAuth2....</div><div class="ttdef"><b>Definition:</b> TokenEndpoint.h:43</div></div>
-<div class="ttc" id="aclassolp_1_1authentication_1_1_auto_refreshing_token_html"><div class="ttname"><a href="classolp_1_1authentication_1_1_auto_refreshing_token.html">olp::authentication::AutoRefreshingToken</a></div><div class="ttdoc">The AutoRefreshingToken class manages caching the requested token and refreshing it when needed.</div><div class="ttdef"><b>Definition:</b> AutoRefreshingToken.h:45</div></div>
-<div class="ttc" id="aclassolp_1_1client_1_1_api_response_html"><div class="ttname"><a href="classolp_1_1client_1_1_api_response.html">olp::client::ApiResponse</a></div><div class="ttdef"><b>Definition:</b> ApiResponse.h:37</div></div>
-<div class="ttc" id="aclassolp_1_1authentication_1_1_token_request_html"><div class="ttname"><a href="classolp_1_1authentication_1_1_token_request.html">olp::authentication::TokenRequest</a></div><div class="ttdoc">The TokenRequest class holds parameters of an OAuth2.0 Authorization Grant Request.</div><div class="ttdef"><b>Definition:</b> TokenRequest.h:33</div></div>
-<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">olp namespace</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:43</div></div>
-<div class="ttc" id="astructolp_1_1authentication_1_1_settings_html"><div class="ttname"><a href="structolp_1_1authentication_1_1_settings.html">olp::authentication::Settings</a></div><div class="ttdoc">Settings which can be used to configure a TokenEndpoint instance.</div><div class="ttdef"><b>Definition:</b> Settings.h:47</div></div>
+<div class="ttc" id="aclassolp_1_1client_1_1_cancellation_token_html"><div class="ttname"><a href="classolp_1_1client_1_1_cancellation_token.html">olp::client::CancellationToken</a></div><div class="ttdoc">Cancels service requests.</div><div class="ttdef"><b>Definition:</b> CancellationToken.h:33</div></div>
+<div class="ttc" id="aclassolp_1_1authentication_1_1_auto_refreshing_token_html"><div class="ttname"><a href="classolp_1_1authentication_1_1_auto_refreshing_token.html">olp::authentication::AutoRefreshingToken</a></div><div class="ttdoc">Manages token requests.</div><div class="ttdef"><b>Definition:</b> AutoRefreshingToken.h:48</div></div>
+<div class="ttc" id="anamespaceolp_1_1authentication_html_a036068dea4006ea8710a1afec79ca948"><div class="ttname"><a href="namespaceolp_1_1authentication.html#a036068dea4006ea8710a1afec79ca948">olp::authentication::OLP_SDK_DEPRECATED</a></div><div class="ttdeci">class AUTHENTICATION_API OLP_SDK_DEPRECATED(&quot;Will be removed in 04.2020&quot;) TokenEndpoint</div><div class="ttdoc">Corresponds to the token endpoint as specified in the OAuth2.0 specification.</div><div class="ttdef"><b>Definition:</b> TokenEndpoint.h:46</div></div>
+<div class="ttc" id="aclassolp_1_1client_1_1_api_response_html"><div class="ttname"><a href="classolp_1_1client_1_1_api_response.html">olp::client::ApiResponse</a></div><div class="ttdoc">Represents a request outcome.</div><div class="ttdef"><b>Definition:</b> ApiResponse.h:40</div></div>
+<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">The olp namespace.</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:43</div></div>
+<div class="ttc" id="astructolp_1_1authentication_1_1_settings_html"><div class="ttname"><a href="structolp_1_1authentication_1_1_settings.html">olp::authentication::Settings</a></div><div class="ttdoc">Configures the TokenEndpoint instance.</div><div class="ttdef"><b>Definition:</b> Settings.h:49</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">
