@@ -72,6 +72,21 @@ MATCHER_P(IsDeleteRequestPrefix, url, "") {
   return (res.first == url_string.end());
 }
 
+MATCHER_P(BodyEq, expected_body, "") {
+  std::string expected_body_str(expected_body);
+
+  return arg.GetBody()
+             ? std::equal(expected_body_str.begin(), expected_body_str.end(),
+                          arg.GetBody()->begin())
+             : expected_body_str.empty();
+}
+
+MATCHER_P(HeadersContain, expected_header, "") {
+  const auto& headers = arg.GetHeaders();
+  return std::find(headers.begin(), headers.end(), expected_header) !=
+         headers.end();
+}
+
 }  // namespace common
 }  // namespace tests
 }  // namespace olp
