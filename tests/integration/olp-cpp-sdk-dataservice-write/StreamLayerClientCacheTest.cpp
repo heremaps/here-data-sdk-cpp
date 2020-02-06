@@ -381,7 +381,7 @@ TEST_F(StreamLayerClientCacheTest, FlushDataCancel) {
   client_settings.network_request_handler = network;
   client_settings.task_scheduler =
       olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
-  auto kHRN = olp::client::HRN{GetTestCatalog()};
+  auto kHrn = olp::client::HRN{GetTestCatalog()};
 
   PublishDataRequest publish_request =
       PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer());
@@ -395,7 +395,7 @@ TEST_F(StreamLayerClientCacheTest, FlushDataCancel) {
     auto pause_for_cancel = promises.second;
 
     auto client = std::make_shared<StreamLayerClient>(
-        kHRN, StreamLayerClientSettings{}, client_settings);
+        kHrn, StreamLayerClientSettings{}, client_settings);
     auto error = client->Queue(publish_request);
 
     EXPECT_FALSE(error) << error.get();
@@ -422,7 +422,7 @@ TEST_F(StreamLayerClientCacheTest, FlushDataCancel) {
     auto pause_for_cancel = promises.second;
 
     auto client = std::make_shared<StreamLayerClient>(
-        kHRN, StreamLayerClientSettings{}, client_settings);
+        kHrn, StreamLayerClientSettings{}, client_settings);
     auto error = client->Queue(publish_request);
 
     EXPECT_FALSE(error) << error.get();

@@ -141,7 +141,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
 
   const std::string kCacheKey =
       kCatalog + "::" + kServiceName + "::" + kServiceVersion + "::api";
-  const auto kHRN = olp::client::HRN::FromString(kCatalog);
+  const auto kHrn = olp::client::HRN::FromString(kCatalog);
 
   {
     SCOPED_TRACE("Fetch from cache positive");
@@ -154,7 +154,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
     settings_with_cache.cache = cache;
 
     auto response = ApiClientLookup::LookupApiClient(
-        kHRN, olp::client::CancellationContext{}, kServiceName, kServiceVersion,
+        kHrn, olp::client::CancellationContext{}, kServiceName, kServiceVersion,
         settings_with_cache);
     EXPECT_TRUE(response.IsSuccessful());
     EXPECT_EQ(response.GetResult().GetBaseUrl(), kServiceUrl);
@@ -179,7 +179,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
                                      GetLookupApiHttpResponse()));
 
     auto response = ApiClientLookup::LookupApiClient(
-        kHRN, olp::client::CancellationContext{}, kServiceName, kServiceVersion,
+        kHrn, olp::client::CancellationContext{}, kServiceName, kServiceVersion,
         settings_with_cache);
     EXPECT_TRUE(response.IsSuccessful());
     EXPECT_EQ(response.GetResult().GetBaseUrl(), GetLookupApiBaseUrl());
@@ -196,7 +196,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
                                      GetLookupApiHttpResponse()));
 
     auto response = ApiClientLookup::LookupApiClient(
-        kHRN, olp::client::CancellationContext{}, kServiceName, kServiceVersion,
+        kHrn, olp::client::CancellationContext{}, kServiceName, kServiceVersion,
         settings_);
     EXPECT_TRUE(response.IsSuccessful());
     EXPECT_EQ(response.GetResult().GetBaseUrl(), GetLookupApiBaseUrl());
@@ -214,7 +214,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
                                "Failed"));
 
     auto response = ApiClientLookup::LookupApiClient(
-        kHRN, olp::client::CancellationContext{}, kServiceName, kServiceVersion,
+        kHrn, olp::client::CancellationContext{}, kServiceName, kServiceVersion,
         settings_);
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
@@ -240,7 +240,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
     EXPECT_CALL(*network_, Cancel(_)).Times(1).WillOnce(Return());
 
     auto response = ApiClientLookup::LookupApiClient(
-        kHRN, olp::client::CancellationContext{}, kServiceName, kServiceVersion,
+        kHrn, olp::client::CancellationContext{}, kServiceName, kServiceVersion,
         settings_);
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
@@ -263,7 +263,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
         });
 
     auto response = ApiClientLookup::LookupApiClient(
-        kHRN, olp::client::CancellationContext{}, kServiceName, kServiceVersion,
+        kHrn, olp::client::CancellationContext{}, kServiceName, kServiceVersion,
         settings_);
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
@@ -290,7 +290,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
         });
     EXPECT_CALL(*network_, Cancel(_)).Times(1).WillOnce(Return());
     auto response = ApiClientLookup::LookupApiClient(
-        kHRN, context, kServiceName, kServiceVersion, settings_);
+        kHrn, context, kServiceName, kServiceVersion, settings_);
     EXPECT_FALSE(response.IsSuccessful());
     auto err_code = response.GetError().GetErrorCode();
     EXPECT_EQ(err_code, olp::client::ErrorCode::Cancelled);
@@ -302,7 +302,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
     olp::client::CancellationContext context;
     context.CancelOperation();
     auto response = ApiClientLookup::LookupApiClient(
-        kHRN, context, kServiceName, kServiceVersion, settings_);
+        kHrn, context, kServiceName, kServiceVersion, settings_);
 
     EXPECT_FALSE(response.IsSuccessful());
     auto err_code = response.GetError().GetErrorCode();
