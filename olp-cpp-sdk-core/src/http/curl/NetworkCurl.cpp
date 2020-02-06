@@ -227,6 +227,12 @@ NetworkCurl::NetworkCurl(size_t max_requests_count)
   OLP_SDK_LOG_TRACE(kLogTag, "Created NetworkCurl with address="
                                  << this
                                  << ", handles_count=" << max_requests_count);
+  auto error = curl_global_init(CURL_GLOBAL_ALL);
+  curl_initialized_ = (error == CURLE_OK);
+  if (!curl_initialized_) {
+    OLP_SDK_LOG_ERROR_F(kLogTag, "Error initializing Curl. Error: %i",
+                        static_cast<int>(error));
+  }
 }
 
 NetworkCurl::~NetworkCurl() {
@@ -235,6 +241,9 @@ NetworkCurl::~NetworkCurl() {
   if (state_ == WorkerState::STARTED) {
     Deinitialize();
   }
+  if (curl_initialized_) {
+    curl_global_cleanup();
+  }
   if (stderr_) {
     fclose(stderr_);
   }
@@ -242,6 +251,11 @@ NetworkCurl::~NetworkCurl() {
 
 bool NetworkCurl::Initialize() {
   std::lock_guard<std::mutex> init_lock(init_mutex_);
+  if (!curl_initialized_) {
+    OLP_SDK_LOG_ERROR(kLogTag, "Curl was not initialized.");
+    return false;
+  }
+
   if (state_ != WorkerState::STOPPED) {
     OLP_SDK_LOG_DEBUG(kLogTag, "Already initialized, this=" << this);
     return true;

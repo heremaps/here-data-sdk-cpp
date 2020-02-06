@@ -333,6 +333,9 @@ class NetworkCurl : public olp::http::Network,
   /// network transfer.
   std::unique_ptr<std::mutex[]> ssl_mutexes_{};
 #endif
+
+  /// Stores value if `curl_global_init()` was successful on construction.
+  bool curl_initialized_;
 };
 
 }  // namespace http

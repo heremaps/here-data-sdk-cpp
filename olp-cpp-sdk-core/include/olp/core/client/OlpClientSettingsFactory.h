@@ -58,6 +58,17 @@ class CORE_API OlpClientSettingsFactory final {
    *
    * Defaulted to platform-specific implementation.
    *
+   * On UNIX platforms, the default network request handler is libcurl-based and
+   * has the known issue of static initialization and cleanup that needs special
+   * care. Therefore, we recommend initializing this network request handler at
+   * a very early stage, preferably as global static or from the main thread,
+   * and pass it on to every created client. For this matter, it is also not
+   * recommended to create multiple network request handlers.
+   *
+   * @see [cURL documentation]
+   * (Lhttps://curl.haxx.se/libcurl/c/curl_global_init.html) for more
+   * information.
+   *
    * @return The `Network` instance.
    */
   static std::shared_ptr<http::Network> CreateDefaultNetworkRequestHandler(
