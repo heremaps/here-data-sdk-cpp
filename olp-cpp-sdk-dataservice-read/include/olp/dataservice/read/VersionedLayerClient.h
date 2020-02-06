@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <boost/optional.hpp>
 #include <memory>
 #include <vector>
 
@@ -96,8 +97,29 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * @param layer_id The layer ID of the versioned layer from which you want to
    * get data.
    * @param settings The `OlpClientSettings` instance.
+   *
+   * @deprecated This ctor will be removed by 06.2020.
+   */
+  OLP_SDK_DEPRECATED(
+      "Use ctor with explicitly specified version. This ctor will be removed "
+      "by 06.2020")
+  VersionedLayerClient(client::HRN catalog, std::string layer_id,
+                       client::OlpClientSettings settings);
+  /**
+   * @brief Creates the `VersionedLayerClient` instance with specific catalog
+   * version.
+   *
+   * @param catalog The HERE Resource Name (HRN) of the catalog that contains
+   * the versioned layer from which you want to get data.
+   * @param layer_id The layer ID of the versioned layer from which you want to
+   * get data.
+   * @param catalog_version The version of the catalog from which you want
+   * retrieve data. If no version is specified, last available version will be
+   * used instead.
+   * @param settings The `OlpClientSettings` instance.
    */
   VersionedLayerClient(client::HRN catalog, std::string layer_id,
+                       boost::optional<int64_t> catalog_version,
                        client::OlpClientSettings settings);
 
   /// Movable, non-copyable

@@ -43,9 +43,11 @@ constexpr auto kLogTag = "VersionedLayerClientImpl";
 
 VersionedLayerClientImpl::VersionedLayerClientImpl(
     client::HRN catalog, std::string layer_id,
+    boost::optional<int64_t> catalog_version,
     client::OlpClientSettings settings)
     : catalog_(std::move(catalog)),
       layer_id_(std::move(layer_id)),
+      catalog_version_(std::move(catalog_version)),
       settings_(std::move(settings)),
       pending_requests_(std::make_shared<client::PendingRequests>()) {
   if (!settings_.cache) {
