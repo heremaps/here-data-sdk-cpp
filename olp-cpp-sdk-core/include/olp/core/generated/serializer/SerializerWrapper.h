@@ -32,33 +32,32 @@ namespace serializer {
 
 inline void to_json(const std::string& x, rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
-  value.SetString(rapidjson::StringRef(x.c_str()), allocator);
+  value.SetString(rapidjson::StringRef(x.c_str(), x.size()), allocator);
 }
 
 inline void to_json(int32_t x, rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType& allocator) {
+                    rapidjson::Document::AllocatorType&) {
   value.SetInt(x);
 }
 
 inline void to_json(int64_t x, rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType& allocator) {
+                    rapidjson::Document::AllocatorType&) {
   value.SetInt64(x);
 }
 
 inline void to_json(double x, rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType& allocator) {
+                    rapidjson::Document::AllocatorType&) {
   value.SetDouble(x);
 }
 inline void to_json(bool x, rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType& allocator) {
+                    rapidjson::Document::AllocatorType&) {
   value.SetBool(x);
 }
 
 inline void to_json(const std::shared_ptr<std::vector<unsigned char>>& x,
                     rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
-  std::string s(*x->begin(), *x->end());
-  value.SetString(rapidjson::StringRef(s.c_str()));
+  value.SetString(reinterpret_cast<char*>(x->data()), x->size(), allocator);
 }
 
 template <typename T>
@@ -76,10 +75,11 @@ inline void to_json(const std::map<std::string, T>& x, rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   for (auto itr = x.begin(); itr != x.end(); ++itr) {
+    const auto& key = itr->first;
     rapidjson::Value item_value;
     to_json(itr->second, item_value, allocator);
-    value.AddMember(rapidjson::StringRef(itr->first.c_str()), item_value,
-                    allocator);
+    value.AddMember(rapidjson::StringRef(key.c_str(), key.size()),
+                    std::move(item_value), allocator);
   }
 }
 
@@ -91,7 +91,7 @@ inline void to_json(const std::vector<T>& x, rapidjson::Value& value,
        ++itr) {
     rapidjson::Value item_value;
     to_json(*itr, item_value, allocator);
-    value.PushBack(item_value, allocator);
+    value.PushBack(std::move(item_value), allocator);
   }
 }
 
@@ -99,12 +99,12 @@ template <typename T>
 inline void serialize(const std::string& key, const T& x,
                       rapidjson::Value& value,
                       rapidjson::Document::AllocatorType& allocator) {
-  rapidjson::Value item_value;
-  to_json(x, item_value, allocator);
   rapidjson::Value key_value;
   to_json(key, key_value, allocator);
+  rapidjson::Value item_value;
+  to_json(x, item_value, allocator);
   if (!item_value.IsNull()) {
-    value.AddMember(key_value, item_value, allocator);
+    value.AddMember(std::move(key_value), std::move(item_value), allocator);
   }
 }
 
