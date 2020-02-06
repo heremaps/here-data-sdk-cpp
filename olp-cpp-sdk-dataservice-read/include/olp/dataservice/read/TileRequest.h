@@ -19,12 +19,12 @@
 
 #pragma once
 
-#include <boost/optional.hpp>
 #include <sstream>
 #include <string>
 
 #include <olp/core/geo/tiling/TileKey.h>
 #include <olp/dataservice/read/FetchOptions.h>
+#include <boost/optional.hpp>
 
 namespace olp {
 namespace dataservice {
@@ -62,8 +62,8 @@ class DATASERVICE_READ_API TileRequest final {
    *
    * @return A reference to the updated `TileRequest` instance.
    */
-  inline TileRequest& WithBillingTag(const boost::optional<std::string>& tag) {
-    billing_tag_ = tag;
+  inline TileRequest& WithBillingTag(const boost::optional<std::string> tag) {
+    billing_tag_ = std::move(tag);
     return *this;
   }
 
@@ -77,7 +77,7 @@ class DATASERVICE_READ_API TileRequest final {
    *
    * @return A reference to the updated `TileRequest` instance.
    */
-  inline TileRequest& WithBillingTag(std::string&& tag) {
+  inline TileRequest& WithBillingTag(std::string tag) {
     billing_tag_ = std::move(tag);
     return *this;
   }
@@ -89,20 +89,8 @@ class DATASERVICE_READ_API TileRequest final {
    *
    * @return A reference to the updated `TileRequest` instance.
    */
-  inline TileRequest& WithTileKey(geo::TileKey&& tile_key) {
+  inline TileRequest& WithTileKey(geo::TileKey tile_key) {
     tile_key_ = std::move(tile_key);
-    return *this;
-  }
-
-  /**
-   * @brief Sets the tile key for the request.
-   *
-   * @param tile_key Tile key value.
-   *
-   * @return A reference to the updated `TileRequest` instance.
-   */
-  inline TileRequest& WithTileKey(const geo::TileKey& tile_key) {
-    tile_key_ = tile_key;
     return *this;
   }
 
@@ -111,48 +99,7 @@ class DATASERVICE_READ_API TileRequest final {
    *
    * @return The tile key or `boost::none` if tile_key is not set.
    */
-  inline const boost::optional<geo::TileKey>& GetTileKey() const {
-    return tile_key_;
-  }
-
-  /**
-   * @brief Sets offset value for the request.
-   *
-   * @param offset Offset value, it must be from 0 to 4. By default offset is 2.
-   *
-   * @return A reference to the updated `TileRequest` instance.
-   */
-  inline TileRequest& WithOffset(unsigned int offset) {
-    offset_ = offset;
-    return *this;
-  }
-
-  /**
-   * @brief Gets the offset.
-   *
-   * @return offset value.
-   */
-  inline unsigned int GetOffset() const { return offset_; }
-
-  /**
-   * @brief Sets depth value for the request.
-   *
-   * @param depth Depth value. The maximum allowed value for the depth parameter
-   * is 4. By default depth is 4.
-   *
-   * @return A reference to the updated `TileRequest` instance.
-   */
-  inline TileRequest& WithDepth(unsigned int depth) {
-    depth_ = depth;
-    return *this;
-  }
-
-  /**
-   * @brief Gets a depth value.
-   *
-   * @return depth value.
-   */
-  inline unsigned int GetDepth() const { return depth_; }
+  inline const geo::TileKey& GetTileKey() const { return tile_key_; }
 
   /**
    * @brief Gets the fetch option that controls how requests are handled.
@@ -186,24 +133,17 @@ class DATASERVICE_READ_API TileRequest final {
    */
   inline std::string CreateKey() const {
     std::stringstream out;
-    if (GetTileKey()) {
-      out << "key:" << GetTileKey().get();
-    }
+    out << "key:" << GetTileKey();
     if (GetBillingTag()) {
       out << "$" << GetBillingTag().get();
     }
     out << "^" << GetFetchOption();
-    out << "[";
-    out << GetOffset() << ":" << GetDepth();
-    out << "]";
     return out.str();
   }
 
  private:
   boost::optional<std::string> billing_tag_;
-  boost::optional<geo::TileKey> tile_key_;
-  unsigned int offset_{2};
-  unsigned int depth_{4};
+  geo::TileKey tile_key_;
   FetchOptions fetch_option_{OnlineIfNotFound};
 };
 
