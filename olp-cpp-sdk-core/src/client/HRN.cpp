@@ -30,7 +30,7 @@ constexpr auto kLogTag = "HRN";
 static const std::string kDataTag = "data";
 static const std::string kPipelineTag = "pipeline";
 static const std::string kSchemaTag = "schema";
-static const std::string kHRNTag = "hrn:";
+static const std::string kHrnTag = "hrn:";
 static constexpr char kSeparator = ':';
 }  // namespace
 
@@ -41,7 +41,7 @@ std::string HRN::ToString() const {
   std::ostringstream ret;
   const auto generic_part =
       kSeparator + region + kSeparator + account + kSeparator;
-  ret << kHRNTag << partition << kSeparator;
+  ret << kHrnTag << partition << kSeparator;
 
   switch (service) {
     case ServiceType::Data: {
@@ -75,7 +75,7 @@ std::string HRN::ToCatalogHRNString() const {
     return {};
   }
 
-  return kHRNTag + partition + kSeparator + kDataTag + kSeparator + region +
+  return kHrnTag + partition + kSeparator + kDataTag + kSeparator + region +
          kSeparator + account + kSeparator + catalogId;
 }
 

@@ -60,7 +60,7 @@ constexpr auto kBlobDataHandle = R"(4eed6ed1-0d32-43b9-ae79-043cb4256432)";
 const std::string kCatalog =
     "hrn:here:data::olp-here-test:hereos-internal-test-v2";
 const std::string kLayerId = "testlayer";
-const auto kHRN = olp::client::HRN::FromString(kCatalog);
+const auto kHrn = olp::client::HRN::FromString(kCatalog);
 const auto kPartitionId = "269";
 const auto kTimeout = std::chrono::seconds(5);
 
@@ -79,7 +79,7 @@ TEST(VolatileLayerClientImplTest, GetData) {
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;
 
-  VolatileLayerClientImpl client(kHRN, kLayerId, settings);
+  VolatileLayerClientImpl client(kHrn, kLayerId, settings);
 
   {
     SCOPED_TRACE("Get Data with DataHandle");
@@ -194,7 +194,7 @@ TEST(VolatileLayerClientImplTest, GetDataCancellableFuture) {
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;
 
-  VolatileLayerClientImpl client(kHRN, kLayerId, settings);
+  VolatileLayerClientImpl client(kHrn, kLayerId, settings);
 
   {
     SCOPED_TRACE("Get Data with DataHandle");
@@ -289,7 +289,7 @@ TEST(VolatileLayerClientImplTest, GetDataCancelOnClientDestroy) {
     {
       // Client owns the task scheduler
       auto caller_thread_id = std::this_thread::get_id();
-      VolatileLayerClientImpl client(kHRN, kLayerId, std::move(settings));
+      VolatileLayerClientImpl client(kHrn, kLayerId, std::move(settings));
       client.GetData(DataRequest().WithPartitionId(kPartitionId),
                      [&](DataResponse response) {
                        data_response = std::move(response);
@@ -312,7 +312,7 @@ TEST(VolatileLayerClientImplTest, GetDataCancellableFutureCancel) {
   settings.cache = cache_mock;
   settings.task_scheduler =
       olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
-  VolatileLayerClientImpl client(kHRN, kLayerId, std::move(settings));
+  VolatileLayerClientImpl client(kHrn, kLayerId, std::move(settings));
 
   auto cancellable =
       client.GetData(DataRequest().WithPartitionId(kPartitionId));

@@ -31,7 +31,7 @@ using namespace olp::tests::common;
 const std::string kCatalog =
     "hrn:here:data::olp-here-test:hereos-internal-test-v2";
 const std::string kLayerId = "testlayer";
-const auto kHRN = olp::client::HRN::FromString(kCatalog);
+const auto kHrn = olp::client::HRN::FromString(kCatalog);
 const auto kPartitionId = "269";
 const auto kTimeout = std::chrono::seconds(5);
 
@@ -51,7 +51,7 @@ TEST(VersionedLayerClientTest, GetData) {
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;
 
-  VersionedLayerClient client(kHRN, kLayerId, settings);
+  VersionedLayerClient client(kHrn, kLayerId, settings);
   {
     SCOPED_TRACE("Get Data with PartitionId and DataHandle");
     std::promise<DataResponse> promise;
