@@ -32,7 +32,7 @@ using namespace olp;
 using namespace olp::dataservice::write;
 using namespace olp::tests::common;
 
-const olp::client::HRN kHRN{"hrn:here:data:::catalog"};
+const olp::client::HRN kHrn{"hrn:here:data:::catalog"};
 constexpr auto kLayerName = "layer";
 
 const std::string kConfigBaseUrl = "https://some.config.url/config/v1";
@@ -45,15 +45,15 @@ const std::string kConfigHttpResponse =
 
 const std::string kIngestRequestUrl =
     "https://api-lookup.data.api.platform.here.com/lookup/v1/resources/" +
-    kHRN.ToString() + "/apis/ingest/v1";
+    kHrn.ToString() + "/apis/ingest/v1";
 const std::string kIngestBaseUrl =
-    "https://some.ingest.url/ingest/v1/catalogs/" + kHRN.ToString();
+    "https://some.ingest.url/ingest/v1/catalogs/" + kHrn.ToString();
 const std::string kIngestHttpResponse =
     R"jsonString([{"api":"ingest","version":"v1","baseURL":")jsonString" +
     kIngestBaseUrl + R"jsonString(","parameters":{}}])jsonString";
 
 const std::string kGetCatalogRequest =
-    kConfigBaseUrl + "/catalogs/" + kHRN.ToString();
+    kConfigBaseUrl + "/catalogs/" + kHrn.ToString();
 const std::string kGetCatalogResponse =
     R"jsonString({"id":"catalog","hrn":")jsonString" + kConfigBaseUrl +
     R"jsonString(","layers":[{"id":"layer","hrn":"hrn:here:data:::catalog:layer",
@@ -68,19 +68,19 @@ const std::string kPostIngestDataHttpResponse =
 
 // PublishDataGreaterThan20Mb-specific constants:
 const std::string kPublishBaseUrl =
-    "https://some.publish.url/catalogs/" + kHRN.ToString();
+    "https://some.publish.url/catalogs/" + kHrn.ToString();
 const std::string kPublishRequestUrl =
     "https://api-lookup.data.api.platform.here.com/lookup/v1/resources/" +
-    kHRN.ToString() + "/apis/publish/v2";
+    kHrn.ToString() + "/apis/publish/v2";
 const std::string kPublishHttpResponse =
     R"jsonString([{"api":"publish","version":"v2","baseURL":")jsonString" +
     kPublishBaseUrl + R"jsonString(","parameters":{}}])jsonString";
 
 const std::string kBlobBaseUrl =
-    "https://some.blob.url/catalogs/" + kHRN.ToString();
+    "https://some.blob.url/catalogs/" + kHrn.ToString();
 const std::string kBlobRequestUrl =
     "https://api-lookup.data.api.platform.here.com/lookup/v1/resources/" +
-    kHRN.ToString() + "/apis/blob/v1";
+    kHrn.ToString() + "/apis/blob/v1";
 const std::string kBlobHttpResponse =
     R"jsonString([{"api":"blob","version":"v1","baseURL":")jsonString" +
     kBlobBaseUrl + R"jsonString(","parameters":{}}])jsonString";
@@ -156,7 +156,7 @@ TEST_F(StreamLayerClientImplTest, PublishSdii) {
   request.WithTraceId(trace_id);
 
   auto client = std::make_shared<MockStreamLayerClientImpl>(
-      kHRN, StreamLayerClientSettings{}, settings_);
+      kHrn, StreamLayerClientSettings{}, settings_);
 
   EXPECT_CALL(*client, IngestSdii).WillOnce(Return(model::ResponseOk{}));
 
@@ -194,7 +194,7 @@ TEST_F(StreamLayerClientImplTest, SuccessfullyPublishDataLessThanTwentyMib) {
   auto settings = settings_;
   settings.cache = nullptr;
 
-  MockStreamLayerClientImpl client{kHRN, StreamLayerClientSettings{}, settings};
+  MockStreamLayerClientImpl client{kHrn, StreamLayerClientSettings{}, settings};
 
   EXPECT_CALL(*network_, Send(IsGetRequest(kConfigRequestUrl), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
@@ -231,7 +231,7 @@ TEST_F(StreamLayerClientImplTest, FaliedPublishDataLessThanTwentyMib) {
   auto settings = settings_;
   settings.cache = nullptr;
 
-  MockStreamLayerClientImpl client{kHRN, StreamLayerClientSettings{}, settings};
+  MockStreamLayerClientImpl client{kHrn, StreamLayerClientSettings{}, settings};
 
   // Current expectations on NetworkMock will first return a failing response
   // and after each subsequent request with same URL will return correct
@@ -343,7 +343,7 @@ TEST_F(StreamLayerClientImplTest, CancelPublishDataLessThanTwentyMib) {
   auto settings = settings_;
   settings.cache = nullptr;
 
-  MockStreamLayerClientImpl client{kHRN, StreamLayerClientSettings{}, settings};
+  MockStreamLayerClientImpl client{kHrn, StreamLayerClientSettings{}, settings};
   {
     SCOPED_TRACE("Cancelled before publish call");
 
@@ -465,7 +465,7 @@ TEST_F(StreamLayerClientImplTest, SuccessfullyPublishDataGreaterThanTwentyMib) {
   settings.cache = nullptr;
 
   const std::string kMockedPartitionId = "some-generated-partition-uuid";
-  MockStreamLayerClientImpl client{kHRN, StreamLayerClientSettings{}, settings};
+  MockStreamLayerClientImpl client{kHrn, StreamLayerClientSettings{}, settings};
 
   // Mock the generated UUIDs for the data handle and partition id
   EXPECT_CALL(client, GenerateUuid)
@@ -528,7 +528,7 @@ TEST_F(StreamLayerClientImplTest, FailedPublishDataGreaterThanTwentyMib) {
   settings.cache = nullptr;
 
   const std::string kMockedPartitionId = "some-generated-partition-uuid";
-  MockStreamLayerClientImpl client{kHRN, StreamLayerClientSettings{}, settings};
+  MockStreamLayerClientImpl client{kHrn, StreamLayerClientSettings{}, settings};
 
   {
     SCOPED_TRACE("Failed on getting a config API URL");
@@ -724,7 +724,7 @@ TEST_F(StreamLayerClientImplTest, QueueAndFlush) {
       olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
 
   auto client = std::make_shared<MockStreamLayerClientImpl>(
-      kHRN, StreamLayerClientSettings{}, settings_);
+      kHrn, StreamLayerClientSettings{}, settings_);
 
   size_t uuid_call_count = 1;
   // Forward trace ID from request to response
