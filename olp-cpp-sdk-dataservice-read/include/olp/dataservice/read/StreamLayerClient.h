@@ -201,10 +201,10 @@ class DATASERVICE_READ_API StreamLayerClient final {
 
   /**
    * @brief Reads messages from a stream layer and commits successfully
-   * consumed messages before handing them over to you.
+   * consumed messages before returning them to you.
    *
    * Only possible if subscribed successfully.
-   * If the payload is more the 1 MB, then it is not embedded into the metadata.
+   * If the payload is more than 1 MB, then it is not embedded into the metadata.
    * To download the data, call `GetData(Message)`.
    *
    * @param callback The `PollResponseCallback` object that is invoked when
@@ -216,10 +216,10 @@ class DATASERVICE_READ_API StreamLayerClient final {
 
   /**
    * @brief Reads messages from a stream layer and commits successfully
-   * consumed messages before handing them over to you.
+   * consumed messages before returning them to you.
    *
    * Only possible if subscribed successfully.
-   * If the payload is more the 1 MB, then it is not embedded into the metadata.
+   * If the payload is more than 1 MB, then it is not embedded into the metadata.
    * To download the data, call `GetData(Message)`.
    *
    * @return `CancellableFuture` that contains `PollResponse` or an error. You
