@@ -451,7 +451,7 @@ TEST_P(OlpClientTest, RetryTimeout) {
   client_settings_.network_request_handler = network;
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .WillRepeatedly(
-          [&current_attempt](olp::http::NetworkRequest request,
+          [&current_attempt, kSuccessfulAttempt](olp::http::NetworkRequest request,
                              olp::http::Network::Payload payload,
                              olp::http::Network::Callback callback,
                              olp::http::Network::HeaderCallback header_callback,
