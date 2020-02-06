@@ -62,7 +62,7 @@ class DATASERVICE_READ_API TileRequest final {
    *
    * @return A reference to the updated `TileRequest` instance.
    */
-  inline TileRequest& WithBillingTag(const boost::optional<std::string> tag) {
+  inline TileRequest& WithBillingTag(boost::optional<std::string> tag) {
     billing_tag_ = std::move(tag);
     return *this;
   }

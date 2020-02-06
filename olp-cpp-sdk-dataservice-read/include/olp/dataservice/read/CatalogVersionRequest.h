@@ -87,7 +87,7 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
    */
   inline CatalogVersionRequest& WithBillingTag(
       boost::optional<std::string> billingTag) {
-    billing_tag_ = billingTag;
+    billing_tag_ = std::move(billingTag);
     return *this;
   }
 
