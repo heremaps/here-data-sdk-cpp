@@ -19,9 +19,10 @@
 
 #pragma once
 
-#include <boost/optional.hpp>
 #include <memory>
 #include <vector>
+
+#include <boost/optional.hpp>
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
@@ -109,6 +110,15 @@ class DATASERVICE_READ_API VersionedLayerClient final {
   /**
    * @brief Creates the `VersionedLayerClient` instance with the specified
    * catalog version.
+   *
+   * The instance of this client is locked to the specified catalog version
+   * passed to the constructor and can't be changed. This way we assure data
+   * consistency. Keep in mind that catalog version provided with requests like
+   * \ref DataRequest, \ref PartitionsRequest, and \ref PrefetchTilesRequest
+   * will be ignored.
+   *
+   * @note if you didn't specify the catalog version, the last available version
+   * is used instead.
    *
    * @param catalog The HERE Resource Name (HRN) of the catalog that contains
    * the versioned layer from which you want to get data.

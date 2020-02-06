@@ -19,8 +19,9 @@
 
 #pragma once
 
-#include <boost/optional.hpp>
 #include <memory>
+
+#include <boost/optional.hpp>
 
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
