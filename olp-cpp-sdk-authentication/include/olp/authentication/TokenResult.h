@@ -56,7 +56,7 @@ class AUTHENTICATION_API TokenResult {
    * @brief Creates the `TokenResult` instance.
    *
    * @param access_token The access token issued by the authorization server.
-   * @param expires_in Duration for which token stays valid.
+   * @param expires_in The expiry time of the access token.
    * @param http_status The status code of the HTTP response.
    * @param error The error description of the request.
    */
@@ -82,11 +82,11 @@ class AUTHENTICATION_API TokenResult {
    * invalid.
    */
   time_t GetExpiryTime() const;
-  
+
   /**
-   * @brief Gets the access token expiry time in seconds.
+   * @brief Gets the access token expiry time.
    *
-   * @return Duration for which token stays valid.
+   * @return The expiry time of the access token.
    */
   std::chrono::seconds GetExpiresIn() const;
 
