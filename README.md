@@ -6,13 +6,13 @@ The HERE OLP SDK for C++ is a C++ client for the <a href="https://platform.here.
 
 ### Build and Test
 
-| Platform      | Status                                                                                                                                                                                                                                                                              |
-| :------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Linux         | <a href="https://travis-ci.com/heremaps/here-olp-sdk-cpp" target="_blank"><img src="https://travis-ci.com/heremaps/here-olp-sdk-cpp.svg?branch=master" alt="Linux build status"/></a>                                                                                               |
-| MacOS         | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=Windows_build" alt="macOS build status"/></a> |
-| iOS           | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=MacOS_build" alt="iOS build status"/></a>     |
-| Windows       | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=iOS_build" alt="Windows build status"/></a>   |
-| Android       | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=Android_build" alt="Android build status"/></a>   |
+| Platform | Status                                                                                                                                                                                                                                                                                |
+| :------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Linux    | <a href="https://travis-ci.com/heremaps/here-olp-sdk-cpp" target="_blank"><img src="https://travis-ci.com/heremaps/here-olp-sdk-cpp.svg?branch=master" alt="Linux build status"/></a>                                                                                                 |
+| MacOS    | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=Windows_build" alt="macOS build status"/></a>   |
+| iOS      | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=MacOS_build" alt="iOS build status"/></a>       |
+| Windows  | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=iOS_build" alt="Windows build status"/></a>     |
+| Android  | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=Android_build" alt="Android build status"/></a> |
 
 ### Test Coverage
 
@@ -173,7 +173,7 @@ For details, see the <a href="https://github.com/heremaps/here-olp-sdk-cpp/blob/
 
 ## LICENSE
 
-Copyright (C) 2019 HERE Europe B.V.
+Copyright (C) 2019–2020 HERE Europe B.V.
 
 For license details, see the <a href="https://github.com/heremaps/here-olp-sdk-cpp/blob/master/LICENSE" target="_blank">LICENSE</a> file in the root of this project.
 
