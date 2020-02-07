@@ -31,9 +31,12 @@
 #include "olp/core/logging/Log.h"
 #include "olp/core/utils/Url.h"
 
+namespace {
+constexpr auto kLogTag = "OlpClient";
+}  // namespace
+
 namespace olp {
 namespace client {
-constexpr auto kLogTag = "OlpClient";
 
 static const auto kCancelledErrorResponse =
     http::NetworkResponse()
