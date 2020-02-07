@@ -21,20 +21,21 @@
 
 #include <chrono>
 #include <random>
+
 #include <olp/core/CoreApi.h>
 
 namespace olp {
 namespace client {
 
 /**
- * @brief Functor which computes wait time for the next retry attempt via
- * exponential backoff with added jitter.
+ * @brief Computes wait time for the next retry attempt via
+ * the exponential backoff with the added jitter.
  *
- * This backoff strategy is based on the exponential wait time approach, i.e.
- * when wait time exponentially grows with each retry attempt, but with added
- * randomization.
+ * This backoff strategy is based on the exponential wait-time approach.
+ * For example, when the wait time exponentially grows with each retry attempt,
+ * but randomization is added.
  *
- * The actual formula can be described as:
+ * The actual formula can be described in the following way:
  * @code{.unparsed}
  * wait_time = random_between(0, initial_backdown_period_msec * (2 ^
  * retry_count))
@@ -43,13 +44,13 @@ namespace client {
 struct CORE_API ExponentialBackdownStrategy {
  public:
   /**
-   * @brief Function to compute next retry attempt wait time based on number of
+   * @brief Computes the next retry attempt wait time based on the number of
    * retries and initial backdown period.
    *
-   * @param initial_backdown_period Initial backdown period.
-   * @param retry_count Number of retries already made.
+   * @param initial_backdown_period The initial backdown period.
+   * @param retry_count The number of retries that are already made.
    *
-   * @return Timeout for the next retry attempt.
+   * @return The timeout for the next retry attempt.
    */
   std::chrono::milliseconds operator()(
       std::chrono::milliseconds initial_backdown_period, size_t retry_count) {
