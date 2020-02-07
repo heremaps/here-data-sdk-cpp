@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 #
 # Copyright (C) 2019 HERE Europe B.V.
 #
@@ -17,6 +17,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
+# Show initial ccache data
+ccache -s
 
 # For core dump backtrace
 ulimit -c unlimited
@@ -31,4 +33,6 @@ cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
     ..
 
 make -j$(nproc)
+
+# Show last ccache data
 ccache -s

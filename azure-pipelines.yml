@@ -18,18 +18,21 @@ jobs:
     vmImage: 'vs2017-win2016'
   steps:
   - bash: scripts/windows/build.sh
+    displayName: 'Windows Build'
 
 - job: MacOS_build
   pool:
     vmImage: 'macOS-10.14'
   steps:
   - bash: scripts/macos/psv/azure_macos_build_psv.sh
+    displayName: 'MacOS Build'
 
 - job: iOS_build
   pool:
     vmImage: 'macOS-10.14'
   steps:
   - bash: scripts/ios/azure_ios_build_psv.sh
+    displayName: 'iOS Build'
 
 - job: Android_build
   pool:
@@ -40,6 +43,28 @@ jobs:
     SEGFAULT_SIGNALS: "all"
   steps:
     - bash: ls -la $(ANDROID_NDK_HOME)/build/cmake/android.toolchain.cmake
-      displayName: Verification of cmake script exist.
+      displayName: 'Verification of cmake script'
     - bash: ANDROID_NDK_HOME=$(ANDROID_NDK_HOME) && scripts/android/build.sh
-      displayName: Android build and Examples.
+      displayName: 'Android build and Examples'
+
+- job: Linux_build_clang
+  pool:
+    vmImage: 'ubuntu-18.04'
+  variables:
+    LD_PRELOAD: "/lib/x86_64-linux-gnu/libSegFault.so"
+    SEGFAULT_SIGNALS: "all"
+    CC: clang-7
+    CXX: clang++-7
+    CCACHE_DIR: $(Pipeline.Workspace)/ccache
+  steps:
+  - bash: |
+        sudo apt-get install libcurl4-openssl-dev clang-7 ccache -y --no-install-recommends
+        echo "##vso[task.prependpath]/usr/lib/ccache"
+    displayName: 'Install dependencies'
+  - task: Cache@2
+    inputs:
+        key: 'ccache | "$(Agent.OS)"'
+        path: $(CCACHE_DIR)
+    displayName: ccache
+  - bash: scripts/linux/psv/build_psv.sh
+    displayName: 'Linux Clang Build'
