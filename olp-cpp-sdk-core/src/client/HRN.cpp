@@ -27,11 +27,11 @@
 
 namespace {
 constexpr auto kLogTag = "HRN";
-static const std::string kDataTag = "data";
-static const std::string kPipelineTag = "pipeline";
-static const std::string kSchemaTag = "schema";
-static const std::string kHrnTag = "hrn:";
-static constexpr char kSeparator = ':';
+constexpr auto kDataTag = "data";
+constexpr auto kPipelineTag = "pipeline";
+constexpr auto kSchemaTag = "schema";
+constexpr auto kHrnTag = "hrn:";
+constexpr char kSeparator = ':';
 }  // namespace
 
 namespace olp {
