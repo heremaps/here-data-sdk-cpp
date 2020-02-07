@@ -154,8 +154,8 @@ struct RetrySettings {
   using BackdownPolicy = std::function<int(int)>;
 
   /**
-   * @brief A strategy for calculating retry timeouts based on
-   * the initial backdown duration and retry count.
+   * @brief Calculates the number of retry timeouts based on
+   * the initial backdown duration and retries count.
    */
   using BackdownStrategy = std::function<std::chrono::milliseconds(
       std::chrono::milliseconds, size_t)>;
@@ -188,21 +188,22 @@ struct RetrySettings {
   /**
    * @brief The backdown policy that should be used for the retry attempts.
    *
-   * @deprecated Use \ref backdown_strategy instead. Will be removed by 06.2020.
+   * @deprecated Use \ref backdown_strategy instead. Will be removed by
+   * 06.2020.
    *
    * @return The backdown policy.
    */
   BackdownPolicy backdown_policy = DefaultBackdownPolicy;
 
   /**
-   * @brief Backdown strategy.
+   * @brief The backdown strategy.
    *
-   * Used for calculating retry timeouts for failed requests. It is superior to
-   * the \ref backdown_policy, as it computes wait time based on
-   * the retry count as well. By default, it is unset, and \ref backdown_policy
+   * Calculates the number of retry timeouts for failed requests. It is superior
+   * to \ref backdown_policy as it computes the wait time based on the retry
+   * count. By default, `backdown_strategy` is unset, and \ref backdown_policy
    * is used.
    *
-   * @note You can use the \ref ExponentialBackdownStrategy as the new
+   * @note You can use the \ref `ExponentialBackdownStrategy` as the new
    * backdown strategy.
    */
   BackdownStrategy backdown_strategy = nullptr;
