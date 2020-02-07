@@ -237,7 +237,7 @@ void DiskCache::SetOpenError(const leveldb::Status& status) {
   error_ = client::ApiError(code, std::move(error_message));
 }
 
-bool DiskCache::Put(const std::string& key, const std::string& value) {
+bool DiskCache::Put(const std::string& key, leveldb::Slice slice) {
   if (!database_) {
     return false;
   }
@@ -247,8 +247,8 @@ bool DiskCache::Put(const std::string& key, const std::string& value) {
     return false;
   }
 
-  const auto status = database_->Put(
-      leveldb::WriteOptions(), ToLeveldbSlice(key), ToLeveldbSlice(value));
+  const auto status =
+      database_->Put(leveldb::WriteOptions(), ToLeveldbSlice(key), slice);
   if (!status.ok()) {
     OLP_SDK_LOG_ERROR(kLogTag, "Put: failed, status=" << status.ToString());
     return false;

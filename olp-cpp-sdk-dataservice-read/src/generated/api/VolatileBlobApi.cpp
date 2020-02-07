@@ -44,17 +44,17 @@ VolatileBlobApi::DataResponse VolatileBlobApi::GetVolatileBlob(
 
   std::multimap<std::string, std::string> form_params;
   std::string metadata_uri = "/layers/" + layer_id + "/data/" + data_handle;
-  auto response =
+  auto api_response =
       client.CallApi(metadata_uri, "GET", query_params, header_params,
                      form_params, nullptr, "", context);
-  
-  auto str_response = response.response.str();
-  if (response.status != http::HttpStatusCode::OK) {
-    return ApiError(response.status, str_response);
+
+  if (api_response.status != http::HttpStatusCode::OK) {
+    return ApiError(api_response.status, api_response.response.str());
   }
 
-  return std::make_shared<std::vector<unsigned char>>(str_response.begin(),
-                                                      str_response.end());
+  auto result = std::make_shared<std::vector<unsigned char>>();
+  api_response.GetResponse(*result);
+  return result;
 }
 }  // namespace read
 }  // namespace dataservice

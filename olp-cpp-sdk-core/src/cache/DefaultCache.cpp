@@ -178,8 +178,9 @@ bool DefaultCache::Put(const std::string& key,
       }
     }
 
-    std::string val(value->begin(), value->end());
-    if (!mutable_cache_->Put(key, val)) {
+    leveldb::Slice slice(reinterpret_cast<const char*>(value->data()),
+                         value->size());
+    if (!mutable_cache_->Put(key, slice)) {
       return false;
     }
   }
@@ -230,8 +231,10 @@ KeyValueCache::ValueTypePtr DefaultCache::Get(const std::string& key) {
 
   auto disc_cache = GetFromDiscCache(key);
   if (disc_cache) {
-    auto data = std::make_shared<KeyValueCache::ValueType>(
-        disc_cache->first.begin(), disc_cache->first.end());
+    const std::string& cached_data = disc_cache->first;
+    auto data = std::make_shared<KeyValueCache::ValueType>(cached_data.size());
+
+    std::memcpy(&data->front(), cached_data.data(), cached_data.size());
 
     if (memory_cache_) {
       memory_cache_->Put(key, data, disc_cache->second, data->size());
