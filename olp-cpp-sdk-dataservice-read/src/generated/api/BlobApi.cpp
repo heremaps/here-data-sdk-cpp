@@ -53,13 +53,13 @@ BlobApi::DataResponse BlobApi::GetBlob(const client::OlpClient& client,
           client.CallApi(metadata_uri, "GET", query_params, header_params,
   {}, nullptr, "", context);
 
-  auto str_response = api_response.response.str();
   if (api_response.status != http::HttpStatusCode::OK) {
-    return ApiError(api_response.status, str_response);
+    return ApiError(api_response.status, api_response.response.str());
   }
 
-  return std::make_shared<std::vector<unsigned char>>(str_response.begin(),
-                                                      str_response.end());
+  auto result = std::make_shared<std::vector<unsigned char>>();
+  api_response.GetResponse(*result);
+  return result;
 }
 }  // namespace read
 }  // namespace dataservice

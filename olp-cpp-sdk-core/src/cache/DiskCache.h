@@ -91,10 +91,9 @@ class DiskCache {
   bool Clear();
   client::ApiError OpenError() const { return error_; }
 
-  bool Put(const std::string& key, const std::string& value);
-  boost::optional<std::string> Get(const std::string& key);
+  bool Put(const std::string& key, leveldb::Slice slice);
 
-  size_t Size() const;
+  boost::optional<std::string> Get(const std::string& key);
 
   /// Remove single key/value from DB.
   bool Remove(const std::string& key);
@@ -103,7 +102,6 @@ class DiskCache {
 
  private:
   void SetOpenError(const leveldb::Status& status);
-  bool ApplyBatch(std::unique_ptr<leveldb::WriteBatch> batch);
 
  private:
   std::string disk_cache_path_;

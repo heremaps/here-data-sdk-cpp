@@ -20,6 +20,7 @@
 #pragma once
 
 #include <sstream>
+#include <vector>
 
 #include <olp/core/CoreApi.h>
 #include <olp/core/http/NetworkTypes.h>
@@ -51,6 +52,20 @@ class CORE_API HttpResponse {
       : status(status), response(std::move(response)) {}
 
   /**
+   * @brief Copy `HttpResponse` content to a vector of unsigned chars.
+   *
+   * @param output Reference to a vector.
+   */
+  void GetResponse(std::vector<unsigned char>& output);
+
+  /**
+   * @brief Copy `HttpResponse` content to a string.
+   *
+   * @param output Reference to a string.
+   */
+  void GetResponse(std::string& output);
+
+  /**
    * @brief The HTTP status.
    *
    * @see `ErrorCode` for information on negative status
@@ -64,6 +79,17 @@ class CORE_API HttpResponse {
    */
   std::stringstream response;
 };
+
+inline void HttpResponse::GetResponse(std::vector<unsigned char>& output) {
+  response.seekg(0, std::ios::end);
+  output.resize(response.tellg());
+  response.seekg(0, std::ios::beg);
+  response.read(reinterpret_cast<char*>(output.data()), output.size());
+}
+
+inline void HttpResponse::GetResponse(std::string& output) {
+  output = response.str();
+}
 
 }  // namespace client
 }  // namespace olp
