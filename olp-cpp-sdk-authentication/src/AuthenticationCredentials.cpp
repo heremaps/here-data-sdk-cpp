@@ -33,16 +33,16 @@ const std::string kHereAccessKeySecret = "here.access.key.secret";
 std::string GetDefaultPath() {
   const char* env;
 #ifdef _WIN32
-  if (env = std::getenv("HOMEDRIVE")) {
+  if ((env = std::getenv("HOMEDRIVE"))) {
     std::string path{env};
 
-    if (env = std::getenv("HOMEPATH")) {
+    if ((env = std::getenv("HOMEPATH"))) {
       path.append(env).append("\\.here\\credentials.properties");
       return path;
     }
   }
 #else
-  if (env = std::getenv("HOME")) {
+  if ((env = std::getenv("HOME"))) {
     return std::string(env) + "/.here/credentials.properties";
   }
 #endif  // _WIN32
