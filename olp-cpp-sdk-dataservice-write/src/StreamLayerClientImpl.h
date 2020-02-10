@@ -42,7 +42,7 @@ class StreamLayerClientImpl {
                         StreamLayerClientSettings client_settings,
                         client::OlpClientSettings settings);
 
-  ~StreamLayerClientImpl();
+  virtual ~StreamLayerClientImpl();
 
   bool CancelPendingRequests();
 
