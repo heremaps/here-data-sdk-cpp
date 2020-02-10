@@ -55,7 +55,7 @@ struct CORE_API ExponentialBackdownStrategy {
   std::chrono::milliseconds operator()(
       std::chrono::milliseconds initial_backdown_period, size_t retry_count) {
     const auto exponential_wait_time =
-        initial_backdown_period.count() * (1 << retry_count);
+        initial_backdown_period.count() * (size_t{1} << retry_count);
 
     static thread_local std::mt19937 kGenerator(std::random_device{}());
     std::uniform_int_distribution<std::chrono::milliseconds::rep> dist(

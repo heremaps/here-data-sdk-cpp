@@ -224,7 +224,7 @@ TEST_P(OlpClientTest, DefaultRetryCondition) {
 
   auto attempt_statuses = std::queue<int>{{500, 503, 200}};
   EXPECT_CALL(*network, Send(_, _, _, _, _))
-      .Times(attempt_statuses.size())
+      .Times(static_cast<int>(attempt_statuses.size()))
       .WillRepeatedly([&attempt_statuses](
                           olp::http::NetworkRequest request,
                           olp::http::Network::Payload payload,
@@ -450,26 +450,26 @@ TEST_P(OlpClientTest, RetryTimeout) {
   auto network = std::make_shared<NetworkMock>();
   client_settings_.network_request_handler = network;
   EXPECT_CALL(*network, Send(_, _, _, _, _))
-      .WillRepeatedly(
-          [&current_attempt](olp::http::NetworkRequest request,
-                             olp::http::Network::Payload payload,
-                             olp::http::Network::Callback callback,
-                             olp::http::Network::HeaderCallback header_callback,
-                             olp::http::Network::DataCallback data_callback) {
-            current_attempt++;
-            // the test shouldn't reach the last retry due to timeout
-            // restrictions in retry settings
-            if (current_attempt == kSuccessfulAttempt) {
-              ADD_FAILURE();
+      .WillRepeatedly([&current_attempt, kSuccessfulAttempt](
+                          olp::http::NetworkRequest request,
+                          olp::http::Network::Payload payload,
+                          olp::http::Network::Callback callback,
+                          olp::http::Network::HeaderCallback header_callback,
+                          olp::http::Network::DataCallback data_callback) {
+        current_attempt++;
+        // the test shouldn't reach the last retry due to timeout
+        // restrictions in retry settings
+        if (current_attempt == kSuccessfulAttempt) {
+          ADD_FAILURE();
 
-              callback(olp::http::NetworkResponse().WithStatus(
-                  olp::http::HttpStatusCode::OK));
-            } else {
-              callback(olp::http::NetworkResponse().WithStatus(
-                  olp::http::HttpStatusCode::TOO_MANY_REQUESTS));
-            }
-            return olp::http::SendOutcome(olp::http::RequestId(5));
-          });
+          callback(olp::http::NetworkResponse().WithStatus(
+              olp::http::HttpStatusCode::OK));
+        } else {
+          callback(olp::http::NetworkResponse().WithStatus(
+              olp::http::HttpStatusCode::TOO_MANY_REQUESTS));
+        }
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
 
   client_settings_.network_request_handler = network;
   client_.SetSettings(client_settings_);

@@ -84,7 +84,7 @@ class ApiClientLookupTest : public ::testing::TestWithParam<LookupApiType> {
     EXPECT_EQ(network.use_count(), 1);
   }
 
-  const std::string GetServiceName() {
+  std::string GetServiceName() {
     switch (GetParam()) {
       case LookupApiType::Config:
         return kConfigServiceName;
@@ -92,10 +92,11 @@ class ApiClientLookupTest : public ::testing::TestWithParam<LookupApiType> {
         return kPublishServiceName;
       default:
         assert(false);
+        return {};
     }
   }
 
-  const std::string GetLookupApiRequestUrl() {
+  std::string GetLookupApiRequestUrl() {
     switch (GetParam()) {
       case LookupApiType::Config:
         return kConfigRequestUrl;
@@ -103,10 +104,11 @@ class ApiClientLookupTest : public ::testing::TestWithParam<LookupApiType> {
         return kPublishRequestUrl;
       default:
         assert(false);
+        return {};
     }
   }
 
-  const std::string GetLookupApiBaseUrl() {
+  std::string GetLookupApiBaseUrl() {
     switch (GetParam()) {
       case LookupApiType::Config:
         return kConfigBaseUrl;
@@ -114,10 +116,11 @@ class ApiClientLookupTest : public ::testing::TestWithParam<LookupApiType> {
         return kPublishBaseUrl;
       default:
         assert(false);
+        return {};
     }
   }
 
-  const std::string GetLookupApiHttpResponse() {
+  std::string GetLookupApiHttpResponse() {
     switch (GetParam()) {
       case LookupApiType::Config:
         return kConfigHttpResponse;
@@ -125,6 +128,7 @@ class ApiClientLookupTest : public ::testing::TestWithParam<LookupApiType> {
         return kPublishHttpResponse;
       default:
         assert(false);
+        return {};
     }
   }
 
