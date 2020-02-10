@@ -103,9 +103,9 @@ class AUTHENTICATION_API SignInResult {
   time_t GetExpiryTime() const;
 
   /**
-   * @brief Gets the access token expiry time in seconds.
+   * @brief Gets the access token expiry time.
    *
-   * @return Duration for which token stays valid.
+   * @return The expiry time of the access token.
    */
   std::chrono::seconds GetExpiresIn() const;
 
