@@ -293,7 +293,7 @@ bool NetworkCurl::Initialize() {
 
   // handles setup
   std::shared_ptr<NetworkCurl> that = shared_from_this();
-  for (int i = 0; i < handles_.size(); ++i) {
+  for (size_t i = 0; i < handles_.size(); ++i) {
     if (i < static_handle_count_) {
       handles_[i].handle = curl_easy_init();
       curl_easy_setopt(handles_[i].handle, CURLOPT_NOSIGNAL, 1);
@@ -857,8 +857,8 @@ size_t NetworkCurl::HeaderFunction(char* ptr, size_t size, size_t nitems,
 
 void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
   std::unique_lock<std::mutex> lock(event_mutex_);
-  int index;
-  for (index = 0; index < handles_.size(); ++index) {
+  size_t index = 0;
+  for (; index < handles_.size(); ++index) {
     if (handles_[index].in_use && (handles_[index].handle == handle)) {
       break;
     }
@@ -962,9 +962,9 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
 }
 
 int NetworkCurl::GetHandleIndex(CURL* handle) {
-  for (int index = 0; index < handles_.size(); index++) {
+  for (size_t index = 0; index < handles_.size(); index++) {
     if (handles_[index].in_use && (handles_[index].handle == handle)) {
-      return index;
+      return static_cast<int>(index);
     }
   }
   return -1;
@@ -1231,7 +1231,7 @@ void NetworkCurl::Run() {
     auto now = std::chrono::steady_clock::now();
     long usable_handles = static_handle_count_;
     std::lock_guard<std::mutex> lock(event_mutex_);
-    for (int i = static_handle_count_; i < handles_.size(); ++i) {
+    for (size_t i = static_handle_count_; i < handles_.size(); ++i) {
       auto& handle = handles_[i];
       if (handle.handle && !handle.in_use &&
           handle.send_time + kHandleReuseTimeout < now) {
