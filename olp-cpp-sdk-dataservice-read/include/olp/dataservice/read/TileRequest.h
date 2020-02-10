@@ -129,11 +129,13 @@ class DATASERVICE_READ_API TileRequest final {
   /**
    * @brief Creates a readable format for the request.
    *
+   * @param layer_id The ID of the layer that is used for the request.
+   *
    * @return A string representation of the request.
    */
-  inline std::string CreateKey() const {
+  inline std::string CreateKey(const std::string& layer_id) const {
     std::stringstream out;
-    out << "key:" << GetTileKey();
+    out << layer_id << "[" << GetTileKey().ToHereTile() << "]";
     if (GetBillingTag()) {
       out << "$" << GetBillingTag().get();
     }
