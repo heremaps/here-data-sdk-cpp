@@ -100,7 +100,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionAsync) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          catalog, layer, *settings_);
+          catalog, layer, version, *settings_);
   ASSERT_TRUE(catalog_client);
 
   std::promise<DataResponse> promise;
@@ -109,7 +109,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionAsync) {
       "dataservice_read_test_versioned_partition");
   auto token = catalog_client->GetData(
       olp::dataservice::read::DataRequest()
-          .WithVersion(version)
           .WithPartitionId(partition),
       [&promise](DataResponse response) { promise.set_value(response); });
 
@@ -161,7 +160,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionSync) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          catalog, layer, *settings_);
+          catalog, layer, version, *settings_);
   ASSERT_TRUE(catalog_client);
 
   DataResponse response;
@@ -169,7 +168,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionSync) {
       "dataservice_read_test_versioned_partition");
   auto token = catalog_client->GetData(
       olp::dataservice::read::DataRequest()
-          .WithVersion(version)
           .WithPartitionId(partition),
       [&response](DataResponse resp) { response = std::move(resp); });
   EXPECT_SUCCESS(response);
@@ -468,10 +466,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", *settings_);
+          hrn, "testlayer", 2, *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
-  request.WithPartitionId("269").WithVersion(2);
+  request.WithPartitionId("269");
   auto data_response =
       GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
         auto future = catalog_client->GetData(request);
@@ -492,10 +490,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", *settings_);
+          hrn, "testlayer", 10, *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
-  request.WithPartitionId("269").WithVersion(10);
+  request.WithPartitionId("269");
   auto data_response =
       GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
         auto future = catalog_client->GetData(request);
@@ -524,7 +522,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsVersion2) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", *settings_);
+          hrn, "testlayer", 2, *settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   request.WithVersion(2);
@@ -541,34 +539,40 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsVersion2) {
 TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsInvalidVersion) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  auto catalog_client =
-      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", *settings_);
+  {
+    auto catalog_client =
+        std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+            hrn, "testlayer", 10, *settings_);
 
-  auto request = olp::dataservice::read::PartitionsRequest();
-  request.WithVersion(10);
-  auto partitions_response =
-      GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
-        auto future = catalog_client->GetPartitions(request);
-        return future.GetFuture().get();
-      });
+    auto request = olp::dataservice::read::PartitionsRequest();
+    auto partitions_response =
+        GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
+          auto future = catalog_client->GetPartitions(request);
+          return future.GetFuture().get();
+        });
 
-  ASSERT_FALSE(partitions_response.IsSuccessful());
-  ASSERT_EQ(olp::client::ErrorCode::BadRequest,
-            partitions_response.GetError().GetErrorCode());
-  ASSERT_EQ(400, partitions_response.GetError().GetHttpStatusCode());
+    ASSERT_FALSE(partitions_response.IsSuccessful());
+    ASSERT_EQ(olp::client::ErrorCode::BadRequest,
+              partitions_response.GetError().GetErrorCode());
+    ASSERT_EQ(400, partitions_response.GetError().GetHttpStatusCode());
+  }
 
-  request.WithVersion(-1);
-  partitions_response =
-      GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
-        auto future = catalog_client->GetPartitions(request);
-        return future.GetFuture().get();
-      });
+  {
+    auto catalog_client =
+        std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+            hrn, "testlayer", -2, *settings_);
+    auto request = olp::dataservice::read::PartitionsRequest();
+    auto partitions_response =
+        GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
+          auto future = catalog_client->GetPartitions(request);
+          return future.GetFuture().get();
+        });
 
-  ASSERT_FALSE(partitions_response.IsSuccessful());
-  ASSERT_EQ(olp::client::ErrorCode::BadRequest,
-            partitions_response.GetError().GetErrorCode());
-  ASSERT_EQ(400, partitions_response.GetError().GetHttpStatusCode());
+    ASSERT_FALSE(partitions_response.IsSuccessful());
+    ASSERT_EQ(olp::client::ErrorCode::BadRequest,
+              partitions_response.GetError().GetErrorCode());
+    ASSERT_EQ(400, partitions_response.GetError().GetHttpStatusCode());
+  }
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest,
@@ -577,7 +581,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", *settings_);
+          hrn, "testlayer", boost::none, *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithPartitionId("noPartition");
@@ -597,7 +601,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithInvalidLayerId) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "invalidLayer", *settings_);
+          hrn, "invalidLayer", boost::none, *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithPartitionId("269");
@@ -617,7 +621,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithEmptyField) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", *settings_);
+          hrn, "testlayer", boost::none, *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithPartitionId("1");
@@ -637,7 +641,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataCompressed) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", *settings_);
+          hrn, "testlayer", boost::none, *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithPartitionId("here_van_wc2018_pool");
@@ -653,7 +657,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataCompressed) {
 
   catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer_gzip", *settings_);
+          hrn, "testlayer_gzip", boost::none, *settings_);
   auto request_compressed = olp::dataservice::read::DataRequest();
   request_compressed.WithPartitionId("here_van_wc2018_pool");
   auto data_response_compressed =
