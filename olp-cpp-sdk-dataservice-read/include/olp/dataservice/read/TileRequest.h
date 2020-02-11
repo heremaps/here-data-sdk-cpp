@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,49 +19,26 @@
 
 #pragma once
 
-#include "FetchOptions.h"
-
 #include <sstream>
 #include <string>
 
+#include <olp/core/geo/tiling/TileKey.h>
+#include <olp/dataservice/read/FetchOptions.h>
 #include <boost/optional.hpp>
-
-#include "DataServiceReadApi.h"
 
 namespace olp {
 namespace dataservice {
 namespace read {
 
 /**
- * @brief Encapsulates the fields required to request catalog configuration.
+ * @brief Encapsulates the fields required to request tile for the given
+ * key.
+ *
+ * You should specify tile key. Additionaly offset and depth could be set. If
+ * not set used default values, for offset default value is 2, for depth - 4.
  */
-class DATASERVICE_READ_API CatalogVersionRequest final {
+class DATASERVICE_READ_API TileRequest final {
  public:
-  /**
-   * @brief Gets the catalog start version (exclusive) for the request.
-   *
-   * Mandatory for versioned layers.
-   * By convention -1 indicates the initial version before the first
-   * publication. After the first publication, the catalog version is 0.
-   *
-   * @return The catalog start version.
-   */
-  inline int64_t GetStartVersion() const { return start_version_; }
-
-  /**
-   * @brief Sets the catalog start version.
-   *
-   * @see `GetStartVersion()` for information on usage.
-   *
-   * @param startVersion The catalog start version.
-   *
-   * @return A reference to the updated `CatalogVersionRequest` instance.
-   */
-  inline CatalogVersionRequest& WithStartVersion(int64_t startVersion) {
-    start_version_ = startVersion;
-    return *this;
-  }
-
   /**
    * @brief Gets the billing tag to group billing records together.
    *
@@ -81,13 +58,12 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
    *
    * @see `GetBillingTag()` for information on usage and format.
    *
-   * @param billingTag The `BillingTag` string or `boost::none`.
+   * @param tag The `BillingTag` string or `boost::none`.
    *
-   * @return A reference to the updated `CatalogVersionRequest` instance.
+   * @return A reference to the updated `TileRequest` instance.
    */
-  inline CatalogVersionRequest& WithBillingTag(
-      boost::optional<std::string> billingTag) {
-    billing_tag_ = std::move(billingTag);
+  inline TileRequest& WithBillingTag(boost::optional<std::string> tag) {
+    billing_tag_ = std::move(tag);
     return *this;
   }
 
@@ -96,15 +72,34 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
    *
    * @see `GetBillingTag()` for information on usage and format.
    *
-   * @param billingTag The rvalue reference to the `BillingTag` string or
+   * @param tag The rvalue reference to the `BillingTag` string or
    * `boost::none`.
    *
-   * @return A reference to the updated `CatalogVersionRequest` instance.
+   * @return A reference to the updated `TileRequest` instance.
    */
-  inline CatalogVersionRequest& WithBillingTag(std::string&& billingTag) {
-    billing_tag_ = std::move(billingTag);
+  inline TileRequest& WithBillingTag(std::string tag) {
+    billing_tag_ = std::move(tag);
     return *this;
   }
+
+  /**
+   * @brief Sets the tile key for the request.
+   *
+   * @param tile_key Tile key value.
+   *
+   * @return A reference to the updated `TileRequest` instance.
+   */
+  inline TileRequest& WithTileKey(geo::TileKey tile_key) {
+    tile_key_ = std::move(tile_key);
+    return *this;
+  }
+
+  /**
+   * @brief Gets a tile key value.
+   *
+   * @return The tile key or `boost::none` if tile_key is not set.
+   */
+  inline const geo::TileKey& GetTileKey() const { return tile_key_; }
 
   /**
    * @brief Gets the fetch option that controls how requests are handled.
@@ -122,37 +117,35 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
    *
    * @see `GetFetchOption()` for information on usage and format.
    *
-   * @param fetchoption The `FetchOption` enum.
+   * @param fetch_option The `FetchOption` enum.
    *
-   * @return A reference to the updated `CatalogVersionRequest` instance.
+   * @return A reference to the updated `TileRequest` instance.
    */
-  inline CatalogVersionRequest& WithFetchOption(FetchOptions fetchoption) {
-    fetch_option_ = fetchoption;
+  inline TileRequest& WithFetchOption(FetchOptions fetch_option) {
+    fetch_option_ = fetch_option;
     return *this;
   }
 
   /**
-   * @brief Creates a readable format of the request.
+   * @brief Creates a readable format for the request.
+   *
+   * @param layer_id The ID of the layer that is used for the request.
    *
    * @return A string representation of the request.
    */
-  inline std::string CreateKey() const {
+  inline std::string CreateKey(const std::string& layer_id) const {
     std::stringstream out;
-
-    out << "@" << GetStartVersion();
-
+    out << layer_id << "[" << GetTileKey().ToHereTile() << "]";
     if (GetBillingTag()) {
       out << "$" << GetBillingTag().get();
     }
-
     out << "^" << GetFetchOption();
-
     return out.str();
   }
 
  private:
-  int64_t start_version_{0};
   boost::optional<std::string> billing_tag_;
+  geo::TileKey tile_key_;
   FetchOptions fetch_option_{OnlineIfNotFound};
 };
 

@@ -175,8 +175,8 @@ class DATASERVICE_READ_API DataRequest final {
    *
    * @return A reference to the updated `DataRequest` instance.
    */
-  inline DataRequest& WithBillingTag(const boost::optional<std::string>& tag) {
-    billing_tag_ = tag;
+  inline DataRequest& WithBillingTag(boost::optional<std::string> tag) {
+    billing_tag_ = std::move(tag);
     return *this;
   }
 
