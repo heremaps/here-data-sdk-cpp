@@ -97,9 +97,9 @@ void TestAutoRefreshingTokenCancel(
   ASSERT_EQ(tokenResponses.size(), 2u);
   ASSERT_EQ(tokenResponses[0].GetResult().GetAccessToken(),
             tokenResponses[1].GetResult().GetAccessToken());
-  ASSERT_LE(abs(tokenResponses[1].GetResult().GetExpiryTime() -
-                tokenResponses[0].GetResult().GetExpiryTime()),
-            10);
+  ASSERT_LE(std::abs(tokenResponses[1].GetResult().GetExpiryTime() -
+                     tokenResponses[0].GetResult().GetExpiryTime()),
+            10ll);
 }
 
 }  // namespace

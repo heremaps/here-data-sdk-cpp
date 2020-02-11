@@ -101,14 +101,6 @@ TEST_F(ApiTest, GetCatalog) {
       << ApiErrorToString(client_response.GetError());
   auto config_client = client_response.MoveResult();
 
-  std::promise<olp::dataservice::read::ConfigApi::CatalogResponse>
-      catalog_promise;
-  auto catalog_callback =
-      [&catalog_promise](
-          olp::dataservice::read::ConfigApi::CatalogResponse catalog_response) {
-        catalog_promise.set_value(catalog_response);
-      };
-
   auto start_time = std::chrono::high_resolution_clock::now();
   auto catalog_response = olp::dataservice::read::ConfigApi::GetCatalog(
       config_client, GetTestCatalog(), boost::none,

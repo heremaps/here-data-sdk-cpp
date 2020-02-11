@@ -69,12 +69,6 @@ std::ostream& operator<<(std::ostream& os, const CacheType cache_type) {
   }
 }
 
-void DumpTileKey(const olp::geo::TileKey& tile_key) {
-  std::cout << "Tile: " << tile_key.ToHereTile()
-            << ", level: " << tile_key.Level()
-            << ", parent: " << tile_key.Parent().ToHereTile() << std::endl;
-}
-
 class CatalogClientTest : public ::testing::TestWithParam<CacheType> {
  public:
   void SetUp() override {

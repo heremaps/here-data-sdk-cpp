@@ -44,7 +44,6 @@ namespace repository {
 using namespace olp::client;
 
 namespace {
-constexpr auto kDataInlinePrefix = "data:";
 constexpr auto kLogTag = "DataRepository";
 constexpr auto kBlobService = "blob";
 constexpr auto kVolatileBlobService = "volatile-blob";

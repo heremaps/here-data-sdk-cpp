@@ -39,6 +39,8 @@ using ::testing::_;
 
 class CallApiWrapper {
  public:
+  virtual ~CallApiWrapper() = default;
+
   virtual HttpResponse CallApi(
       std::string path, std::string method,
       std::multimap<std::string, std::string> query_params,
@@ -267,8 +269,7 @@ TEST_P(OlpClientTest, RetryCondition) {
   client_settings_.network_request_handler = network;
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .Times(goodAttempt)
-      .WillRepeatedly([&current_attempt, goodAttempt](
-                          olp::http::NetworkRequest request,
+      .WillRepeatedly([&](olp::http::NetworkRequest request,
                           olp::http::Network::Payload payload,
                           olp::http::Network::Callback callback,
                           olp::http::Network::HeaderCallback header_callback,
@@ -450,8 +451,7 @@ TEST_P(OlpClientTest, RetryTimeout) {
   auto network = std::make_shared<NetworkMock>();
   client_settings_.network_request_handler = network;
   EXPECT_CALL(*network, Send(_, _, _, _, _))
-      .WillRepeatedly([&current_attempt, kSuccessfulAttempt](
-                          olp::http::NetworkRequest request,
+      .WillRepeatedly([&](olp::http::NetworkRequest request,
                           olp::http::Network::Payload payload,
                           olp::http::Network::Callback callback,
                           olp::http::Network::HeaderCallback header_callback,

@@ -32,7 +32,7 @@ bool IsLogFile(const std::string& name) {
                       log_suffix) == 0;
 }
 
-const char PathSeparator() {
+char PathSeparator() {
 #ifdef WIN32
   return '\\';
 #else

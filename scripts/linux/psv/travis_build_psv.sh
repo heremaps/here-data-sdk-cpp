@@ -24,9 +24,10 @@ ulimit -c unlimited
 mkdir -p build
 cd build
 cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+    -DCMAKE_CXX_FLAGS="-Wall -Wextra -Wno-deprecated-declarations -Wno-unused-parameter" \
+    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
     -DOLP_SDK_BUILD_EXAMPLES=ON \
     -DBUILD_SHARED_LIBS=ON \
-    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
     ..
 
 make -j$(nproc)
