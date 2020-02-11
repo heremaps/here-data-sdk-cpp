@@ -24,6 +24,7 @@
 #include <vector>
 
 #include <olp/core/geo/tiling/TileKey.h>
+#include <olp/core/porting/deprecated.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
 #include <boost/optional.hpp>
 
@@ -122,7 +123,11 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    * version is specified, the latest version is retrieved.
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
+   * 
+   * @deprecated The version is now a part of the VersionedLayerClient
+   * constructor.
    */
+  OLP_SDK_DEPRECATED("Deprecated, to be removed in 06.2020")
   inline PrefetchTilesRequest& WithVersion(boost::optional<int64_t> version) {
     catalog_version_ = std::move(version);
     return *this;
@@ -133,7 +138,11 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    *
    * @return The catalog version or `boost::none` if the catalog version is not
    * set.
+   *
+   * @deprecated The version is now a part of the VersionedLayerClient
+   * constructor.
    */
+  OLP_SDK_DEPRECATED("Deprecated, to be removed in 06.2020")
   inline const boost::optional<std::int64_t>& GetVersion() const {
     return catalog_version_;
   }
