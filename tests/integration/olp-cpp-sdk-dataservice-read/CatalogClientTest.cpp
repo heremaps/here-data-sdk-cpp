@@ -37,12 +37,6 @@ using namespace testing;
 using namespace olp::tests::common;
 using namespace olp::tests::integration;
 
-void DumpTileKey(const olp::geo::TileKey& tile_key) {
-  std::cout << "Tile: " << tile_key.ToHereTile()
-            << ", level: " << tile_key.Level()
-            << ", parent: " << tile_key.Parent().ToHereTile() << std::endl;
-}
-
 class CatalogClientTest : public CatalogClientTestBase {};
 
 TEST_P(CatalogClientTest, GetCatalog) {

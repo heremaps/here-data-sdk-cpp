@@ -38,8 +38,6 @@ constexpr auto kClientCacheDir = "\\catalog_client_example\\cache";
 #else
 constexpr auto kClientCacheDir = "/cata.log_client_example/cache";
 #endif
-constexpr size_t kMaxLayers(5);
-constexpr size_t kMaxPartitions(5);
 
 std::string first_layer_id("versioned-world-layer");
 std::string first_partition_id("1");

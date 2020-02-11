@@ -163,7 +163,7 @@ TEST(SyncQueueTest, ConcurrentUsage) {
 
   // Start threads push tasks to be handled
   for (size_t idx = 0; idx < kNumThreads; ++idx) {
-    threads.emplace_back([this, idx, &sync_queue] {
+    threads.emplace_back([idx, &sync_queue] {
       for (;;) {
         SyncIncType task;
         if (!sync_queue.Pull(task)) {

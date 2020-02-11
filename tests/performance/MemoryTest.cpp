@@ -333,8 +333,6 @@ TEST_P(MemoryTest, PrefetchPartitionsFromVersionedLayer) {
         std::chrono::steady_clock::now() + parameter.runtime;
 
     while (end_timestamp > std::chrono::steady_clock::now()) {
-      const auto partition_id = request_counter_.fetch_add(1);
-
       const auto level = 10;
       const auto tile_count = 1 << level;
 

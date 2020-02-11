@@ -221,7 +221,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
         while (!context.IsCancelled() && it != tiles_result.end()) {
           auto promise = std::make_shared<PrefetchResultPromise>();
           auto flag = std::make_shared<std::atomic_bool>(false);
-          futures->emplace_back(std::move(promise->get_future()));
+          futures->emplace_back(promise->get_future());
 
           auto tile = it->first;
           auto handle = it->second;
