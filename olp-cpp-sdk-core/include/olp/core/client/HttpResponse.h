@@ -20,7 +20,6 @@
 #pragma once
 
 #include <sstream>
-#include <vector>
 
 #include <olp/core/CoreApi.h>
 #include <olp/core/http/NetworkTypes.h>
@@ -33,10 +32,6 @@ namespace client {
  */
 class CORE_API HttpResponse {
  public:
-  /**
-   * @brief Type alias for HTTP headers.
-   */
-  using HeadersType = std::vector<std::pair<std::string, std::string>>;
 
   HttpResponse() = default;
   /**
@@ -60,10 +55,10 @@ class CORE_API HttpResponse {
    *
    * @param status The HTTP status.
    * @param response The response body.
-   * @param headers The headers of the responce.
+   * @param headers Response headers.
    */
   HttpResponse(int status, std::stringstream&& response,
-               HeadersType&& headers)
+               http::HeadersType&& headers)
       : status(status),
         response(std::move(response)),
         headers(std::move(headers)) {}
@@ -79,11 +74,12 @@ class CORE_API HttpResponse {
   /**
    * @brief The HTTP response.
    */
+
   std::stringstream response;
   /**
    * @brief HTTP headers.
    */
-  HeadersType headers;
+  http::HeadersType headers;
 };
 
 }  // namespace client

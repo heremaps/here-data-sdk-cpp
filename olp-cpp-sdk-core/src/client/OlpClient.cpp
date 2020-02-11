@@ -127,7 +127,7 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
   Condition condition{};
   auto response_body = std::make_shared<std::stringstream>();
   http::SendOutcome outcome{http::ErrorCode::CANCELLED_ERROR};
-  HttpResponse::HeadersType headers;
+  http::HeadersType headers;
 
   context.ExecuteOrCancelled(
       [&]() {
