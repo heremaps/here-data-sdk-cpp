@@ -17,9 +17,11 @@
  * License-Filename: LICENSE
  */
 
+const cluster = require('cluster');
 const http = require('http')
 const URL = require('url')
 const services = require('./urls.js')
+const numCPUs = require('os').cpus().length;
 
 const lookup_service_handler = require('./lookup_service.js')
 const config_service_handler = require('./config_service.js')
@@ -114,20 +116,37 @@ const requestHandler = async (request, response) => {
   response.end('Not implemented')
 }
 
-const server = http.createServer(requestHandler)
 
-server.listen(port, (err) => {
-  if (err) {
-    return console.log('something bad happened', err)
+if (cluster.isMaster) {
+  console.log(`Master ${process.pid} is running`);
+
+  // Fork workers.
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork();
   }
 
-  console.log(`server is listening on ${port}`)
-})
-
-// Handle termination by Travis
-process.on('SIGTERM', function () {
-  server.close(function () {
-    console.log(`Graceful shutdown`)
-    process.exit(0);
+  //Check if work id is died
+  cluster.on('exit', (worker, code, signal) => {
+    console.log(`worker ${worker.process.pid} died`);
   });
-});
+} else {
+
+  const server = http.createServer(requestHandler)
+
+  server.listen(port, (err) => {
+    if (err) {
+      return console.log('something bad happened', err)
+    }
+  
+    console.log(`server is listening on ${port}`)
+  })
+  
+  // Handle termination by Travis
+  process.on('SIGTERM', function () {
+    server.close(function () {
+      console.log(`Graceful shutdown`)
+      process.exit(0);
+    });
+  });
+  
+}
