@@ -130,6 +130,7 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
   Condition condition{};
   auto response_body = std::make_shared<std::stringstream>();
   http::SendOutcome outcome{http::ErrorCode::CANCELLED_ERROR};
+  http::HeadersType headers;
 
   context.ExecuteOrCancelled(
       [&]() {
@@ -140,6 +141,9 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
                 network_response = std::move(response);
                 condition.Notify();
               }
+            },
+            [&headers](std::string key, std::string value) {
+              headers.emplace_back(std::move(key), std::move(value));
             });
 
         return CancellationToken([&, interest_flag]() {
@@ -172,7 +176,8 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
     return ToHttpResponse(kCancelledErrorResponse);
   }
 
-  return {network_response.GetStatus(), std::move(*response_body)};
+  return {network_response.GetStatus(), std::move(*response_body),
+          std::move(headers)};
 }
 
 bool StatusSuccess(int status) { return status >= 0 && status < 400; }

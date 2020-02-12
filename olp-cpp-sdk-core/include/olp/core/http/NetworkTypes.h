@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <limits>
 #include <string>
+#include <vector>
 
 #include <olp/core/CoreApi.h>
 
@@ -127,6 +128,11 @@ class SendOutcome final {
  * @brief Helper function used to convert error code to human readable string.
  */
 CORE_API std::string ErrorCodeToString(ErrorCode code);
+
+/**
+ * @brief Type alias for HTTP headers.
+ */
+using HeadersType = std::vector<std::pair<std::string, std::string>>;
 
 }  // namespace http
 }  // namespace olp

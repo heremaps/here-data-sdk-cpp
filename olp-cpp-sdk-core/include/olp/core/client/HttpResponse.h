@@ -33,6 +33,7 @@ namespace client {
  */
 class CORE_API HttpResponse {
  public:
+
   HttpResponse() = default;
   /**
    * @brief Creates the `HttpResponse` instance.
@@ -50,7 +51,18 @@ class CORE_API HttpResponse {
    */
   HttpResponse(int status, std::stringstream&& response)
       : status(status), response(std::move(response)) {}
-
+  /**
+   * @brief Creates the `HttpResponse` instance.
+   *
+   * @param status The HTTP status.
+   * @param response The response body.
+   * @param headers Response headers.
+   */
+  HttpResponse(int status, std::stringstream&& response,
+               http::HeadersType&& headers)
+      : status(status),
+        response(std::move(response)),
+        headers(std::move(headers)) {}
   /**
    * @brief Copy `HttpResponse` content to a vector of unsigned chars.
    *
@@ -77,7 +89,12 @@ class CORE_API HttpResponse {
   /**
    * @brief The HTTP response.
    */
+
   std::stringstream response;
+  /**
+   * @brief HTTP headers.
+   */
+  http::HeadersType headers;
 };
 
 inline void HttpResponse::GetResponse(std::vector<unsigned char>& output) {

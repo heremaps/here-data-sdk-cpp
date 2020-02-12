@@ -37,8 +37,6 @@ class CORE_API NetworkRequest final {
  public:
   /// Short type alias for HTTP request body.
   using RequestBodyType = std::shared_ptr<const std::vector<std::uint8_t>>;
-  /// Short type alias for HTTP request header.
-  using RequestHeadersType = std::vector<std::pair<std::string, std::string>>;
 
   /// HTTP method as in https://tools.ietf.org/html/rfc2616.
   enum class HttpVerb {
@@ -60,7 +58,7 @@ class CORE_API NetworkRequest final {
    * @brief Get all HTTP headers.
    * @return vector of HTTP headers.
    */
-  const RequestHeadersType& GetHeaders() const;
+  const HeadersType& GetHeaders() const;
 
   /**
    * @brief Add extra HTTP header.
@@ -128,7 +126,7 @@ class CORE_API NetworkRequest final {
   /// Request URL.
   std::string url_;
   /// HTTP headers.
-  RequestHeadersType headers_;
+  HeadersType headers_;
   /// Body of HTTP request.
   RequestBodyType body_;
   /// Network settings for this request.
