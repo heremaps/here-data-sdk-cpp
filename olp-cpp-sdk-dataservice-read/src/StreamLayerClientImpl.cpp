@@ -177,11 +177,11 @@ client::CancellationToken StreamLayerClientImpl::Unsubscribe(
     {
       std::lock_guard<std::mutex> lock(mutex_);
       if (!client_context_) {
-        OLP_SDK_LOG_WARNING_F(kLogTag,
-                              "Unsubscribe: unsuccessful, not subscribed");
+        OLP_SDK_LOG_WARNING_F(
+            kLogTag, "Unsubscribe: unsuccessful, subscription missing");
 
         return client::ApiError(client::ErrorCode::PreconditionFailed,
-                                "Not subscribed", false);
+                                "Subscription missing", false);
       }
 
       subscription_id = client_context_->subscription_id;
@@ -294,10 +294,10 @@ client::CancellationToken StreamLayerClientImpl::Poll(
       std::lock_guard<std::mutex> lock(mutex_);
       if (!client_context_) {
         OLP_SDK_LOG_WARNING_F(kLogTag,
-                              "Poll: unsuccessful, not subscribed");
+                              "Poll: unsuccessful, subscription missing");
 
         return client::ApiError(client::ErrorCode::PreconditionFailed,
-                                "Not subscribed", false);
+                                "Subscription missing", false);
       }
 
       subscription_id = client_context_->subscription_id;
@@ -376,6 +376,66 @@ client::CancellableFuture<PollResponse> StreamLayerClientImpl::Poll() {
 
   return olp::client::CancellableFuture<PollResponse>(std::move(cancel_token),
                                                         std::move(promise));
+}
+
+client::CancellationToken StreamLayerClientImpl::Seek(
+    SeekRequest request, SeekResponseCallback callback) {
+  auto seek_task = [=](client::CancellationContext context) -> SeekResponse {
+    std::string subscription_id;
+    std::string subscription_mode;
+    std::string x_correlation_id;
+    std::shared_ptr<client::OlpClient> client;
+
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      if (!client_context_) {
+        OLP_SDK_LOG_WARNING_F(kLogTag,
+                              "Seek: unsuccessful, subscription missing");
+        return client::ApiError(client::ErrorCode::PreconditionFailed,
+                                "Subscription missing", false);
+      }
+
+      subscription_id = client_context_->subscription_id;
+      subscription_mode = client_context_->subscription_mode;
+      x_correlation_id = client_context_->x_correlation_id;
+      client = client_context_->client;
+    }
+
+    auto const& offsets = request.GetOffsets();
+    if (offsets.GetOffsets().empty()) {
+      OLP_SDK_LOG_WARNING_F(kLogTag,
+                            "Seek: unsuccessful, stream offsets missing");
+      return client::ApiError(client::ErrorCode::PreconditionFailed,
+                              "Stream offsets missing", false);
+    }
+
+    auto res =
+        StreamApi::SeekToOffset(*client, layer_id_, offsets, subscription_id,
+                                subscription_mode, context, x_correlation_id);
+
+    if (!res.IsSuccessful()) {
+      OLP_SDK_LOG_WARNING_F(kLogTag,
+                            "Seek: seek offsets unsuccessful, error=%s",
+                            res.GetError().GetMessage().c_str());
+      return res.GetError();
+    }
+    OLP_SDK_LOG_INFO_F(kLogTag, "Seek: done, response is successful.");
+
+    return res;
+  };
+
+  return AddTask(settings_.task_scheduler, pending_requests_,
+                 std::move(seek_task), std::move(callback));
+}
+client::CancellableFuture<SeekResponse> StreamLayerClientImpl::Seek(
+    SeekRequest request) {
+  auto promise = std::make_shared<std::promise<SeekResponse>>();
+  auto cancel_token = Seek(request, [promise](SeekResponse response) {
+    promise->set_value(std::move(response));
+  });
+
+  return olp::client::CancellableFuture<SeekResponse>(std::move(cancel_token),
+                                                      std::move(promise));
 }
 
 }  // namespace read

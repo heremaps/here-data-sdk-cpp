@@ -97,6 +97,16 @@ using MessagesResult = model::Messages;
 using PollResponse = Response<MessagesResult>;
 /// The poll completion callback type of the stream layer client.
 using PollResponseCallback = Callback<MessagesResult>;
+
+/** @brief The alias of the seek response result.
+ *
+ * The status of the HTTP request.
+ */
+using SeekResult = int;
+/// The seek response type of the stream layer client.
+using SeekResponse = Response<SeekResult>;
+/// The seek completion callback type of the stream layer client.
+using SeekResponseCallback = Callback<SeekResult>;
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

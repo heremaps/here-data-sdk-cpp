@@ -25,6 +25,7 @@
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/PendingRequests.h>
+#include <olp/dataservice/read/SeekRequest.h>
 #include <olp/dataservice/read/SubscribeRequest.h>
 #include <olp/dataservice/read/Types.h>
 #include <olp/dataservice/read/model/Messages.h>
@@ -65,6 +66,10 @@ class StreamLayerClientImpl {
 
   virtual client::CancellationToken Poll(PollResponseCallback callback);
   virtual client::CancellableFuture<PollResponse> Poll();
+
+  virtual client::CancellationToken Seek(SeekRequest request,
+                                         SeekResponseCallback callback);
+  virtual client::CancellableFuture<SeekResponse> Seek(SeekRequest request);
 
  private:
   /// A struct that aggregates the stream layer client parameters.

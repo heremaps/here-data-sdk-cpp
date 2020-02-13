@@ -117,6 +117,9 @@
 #define URL_LOOKUP_STREAM \
   R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/)"+GetTestCatalog()+R"(/apis/stream/v2)"
 
+#define URL_SEEK_STREAM \
+  R"(https://some.stream.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/seek?mode=serial&subscriptionId=subscribe_id_12345)"
+
 #define CONFIG_BASE_URL "https://config.data.api.platform.in.here.com/config/v1"
 
 #define HTTP_RESPONSE_LOOKUP_CONFIG                                                    \

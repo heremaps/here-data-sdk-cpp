@@ -47,6 +47,7 @@ class ReadStreamLayerClientTest : public Test {
   ~ReadStreamLayerClientTest() = default;
   std::string GetTestCatalog() { return kCatalog; }
   static std::string ApiErrorToString(const ApiError& error);
+  static model::StreamOffsets GetStreamOffsets();
 
   void SetUp() override;
   void TearDown() override;
@@ -65,6 +66,18 @@ std::string ReadStreamLayerClientTest::ApiErrorToString(const ApiError& error) {
                 << ", status: " << error.GetHttpStatusCode()
                 << ", message: " << error.GetMessage();
   return result_stream.str();
+}
+
+model::StreamOffsets ReadStreamLayerClientTest::GetStreamOffsets() {
+  model::StreamOffset offset1;
+  offset1.SetPartition(7);
+  offset1.SetOffset(38562);
+  model::StreamOffset offset2;
+  offset2.SetPartition(8);
+  offset2.SetOffset(27458);
+  model::StreamOffsets offsets;
+  offsets.SetOffsets({offset1, offset2});
+  return offsets;
 }
 
 void ReadStreamLayerClientTest::SetUp() {
@@ -999,6 +1012,186 @@ TEST_F(ReadStreamLayerClientTest, CancelPendingRequests) {
             unsubscribe_response.GetError().GetHttpStatusCode());
   EXPECT_EQ(ErrorCode::Cancelled,
             unsubscribe_response.GetError().GetErrorCode());
+}
+
+TEST_F(ReadStreamLayerClientTest, Seek) {
+  HRN hrn(GetTestCatalog());
+  auto stream_offsets = GetStreamOffsets();
+
+  {
+    SCOPED_TRACE("Seek success");
+
+    StreamLayerClient client(hrn, kLayerId, settings_);
+    auto subscribe_future = client.Subscribe(SubscribeRequest()).GetFuture();
+    ASSERT_EQ(subscribe_future.wait_for(kTimeout), std::future_status::ready);
+    ASSERT_TRUE(subscribe_future.get().IsSuccessful());
+
+    EXPECT_CALL(*network_mock_, Send(IsPutRequest(URL_SEEK_STREAM), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     HTTP_RESPONSE_EMPTY));
+
+    std::promise<SeekResponse> promise;
+    auto future = promise.get_future();
+    SeekRequest request;
+    client.Seek(request.WithOffsets(stream_offsets),
+                [&](SeekResponse response) { promise.set_value(response); });
+
+    EXPECT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    EXPECT_TRUE(response.IsSuccessful());
+    EXPECT_EQ(response.GetResult(), olp::http::HttpStatusCode::OK);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE("Seek fails, subscription is missing");
+
+    StreamLayerClient client(hrn, kLayerId, settings_);
+
+    std::promise<SeekResponse> promise;
+    auto future = promise.get_future();
+    SeekRequest request;
+    client.Seek(request.WithOffsets(stream_offsets),
+                [&](SeekResponse response) { promise.set_value(response); });
+
+    EXPECT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::PreconditionFailed);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE("Seek fails, StreamOffsets is empty");
+
+    StreamLayerClient client(hrn, kLayerId, settings_);
+    auto subscribe_future = client.Subscribe(SubscribeRequest()).GetFuture();
+    ASSERT_EQ(subscribe_future.wait_for(kTimeout), std::future_status::ready);
+    ASSERT_TRUE(subscribe_future.get().IsSuccessful());
+
+    std::promise<SeekResponse> promise;
+    auto future = promise.get_future();
+    SeekRequest request;
+    client.Seek(request,
+                [&](SeekResponse response) { promise.set_value(response); });
+
+    EXPECT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::PreconditionFailed);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE("Seek fails, server error on SeekToOffset");
+
+    StreamLayerClient client(hrn, kLayerId, settings_);
+    auto subscribe_future = client.Subscribe(SubscribeRequest()).GetFuture();
+    ASSERT_EQ(subscribe_future.wait_for(kTimeout), std::future_status::ready);
+    ASSERT_TRUE(subscribe_future.get().IsSuccessful());
+
+    EXPECT_CALL(*network_mock_, Send(IsPutRequest(URL_SEEK_STREAM), _, _, _, _))
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::BAD_REQUEST),
+                               HTTP_RESPONSE_EMPTY));
+
+    std::promise<SeekResponse> promise;
+    auto future = promise.get_future();
+    SeekRequest request;
+    client.Seek(request.WithOffsets(stream_offsets),
+                [&](SeekResponse response) { promise.set_value(response); });
+
+    EXPECT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetHttpStatusCode(),
+              olp::http::HttpStatusCode::BAD_REQUEST);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+}
+
+TEST_F(ReadStreamLayerClientTest, SeekCancellableFuture) {
+  HRN hrn(GetTestCatalog());
+
+  StreamLayerClient client(hrn, kLayerId, settings_);
+  auto subscribe_future = client.Subscribe(SubscribeRequest()).GetFuture();
+  ASSERT_EQ(subscribe_future.wait_for(kTimeout), std::future_status::ready);
+  ASSERT_TRUE(subscribe_future.get().IsSuccessful());
+
+  EXPECT_CALL(*network_mock_, Send(IsPutRequest(URL_SEEK_STREAM), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_EMPTY));
+
+  auto stream_offsets = GetStreamOffsets();
+  SeekRequest request;
+  auto cancellable = client.Seek(request.WithOffsets(stream_offsets));
+  auto future = cancellable.GetFuture();
+
+  EXPECT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+  const auto& response = future.get();
+  EXPECT_TRUE(response.IsSuccessful());
+  EXPECT_EQ(response.GetResult(), olp::http::HttpStatusCode::OK);
+
+  Mock::VerifyAndClearExpectations(network_mock_.get());
+}
+
+TEST_F(ReadStreamLayerClientTest, SeekCancel) {
+  HRN hrn(GetTestCatalog());
+
+  auto request_started = std::make_shared<std::promise<void>>();
+  auto continue_request = std::make_shared<std::promise<void>>();
+  {
+    olp::http::RequestId request_id;
+    NetworkCallback send_mock;
+    CancelCallback cancel_mock;
+
+    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+        request_started, continue_request,
+        {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_EMPTY});
+
+    EXPECT_CALL(*network_mock_, Send(IsPutRequest(URL_SEEK_STREAM), _, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(std::move(send_mock)));
+
+    EXPECT_CALL(*network_mock_, Cancel(request_id))
+        .WillOnce(Invoke(std::move(cancel_mock)));
+  }
+
+  StreamLayerClient client(hrn, kLayerId, settings_);
+  auto subscribe_future = client.Subscribe(SubscribeRequest()).GetFuture();
+  ASSERT_EQ(subscribe_future.wait_for(kTimeout), std::future_status::ready);
+  ASSERT_TRUE(subscribe_future.get().IsSuccessful());
+
+  auto stream_offsets = GetStreamOffsets();
+  SeekRequest request;
+  auto cancellable = client.Seek(request.WithOffsets(stream_offsets));
+  auto future = cancellable.GetFuture();
+  auto token = cancellable.GetCancellationToken();
+
+  request_started->get_future().get();
+  token.Cancel();
+  continue_request->set_value();
+
+  EXPECT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+  const auto& response = future.get();
+  EXPECT_FALSE(response.IsSuccessful());
+  EXPECT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            response.GetError().GetHttpStatusCode());
+  EXPECT_EQ(ErrorCode::Cancelled, response.GetError().GetErrorCode());
+
+  Mock::VerifyAndClearExpectations(network_mock_.get());
 }
 
 }  // namespace
