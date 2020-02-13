@@ -38,7 +38,7 @@ SignInResultImpl::SignInResultImpl() noexcept
 SignInResultImpl::SignInResultImpl(
     int status, std::string error,
     std::shared_ptr<rapidjson::Document> json_document) noexcept
-    : BaseResult(status, error, json_document), expiry_time_() {
+    : BaseResult(status, error, json_document), expiry_time_(), expires_in_() {
   is_valid_ = this->BaseResult::IsValid() &&
               json_document->HasMember(Constants::ACCESS_TOKEN) &&
               json_document->HasMember(kTokenType) &&
