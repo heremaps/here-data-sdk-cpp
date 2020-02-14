@@ -30,16 +30,16 @@ namespace olp {
 namespace thread {
 
 /**
- * @brief The SyncQueue class is a thread safe container adapter.
+ * @brief A thread-safe container adapter.
  *
- * @tparam T queue item to be stored inside the buffer.
- * @tparam Container The type of the underlying container that should mimic the
- * API of std::queue providing the following functions:
- * - empty()
- * - push(T&&)
- * - push(const T&)
- * - front()
- * - pop()
+ * @tparam T The queue item that should be stored inside the buffer.
+ * @tparam Container The type of the underlying container that should mimic
+ * the API of `std::queue` that provides the following functions:
+ * - `empty()`
+ * - `push(T&&)`
+ * - `push(const T&)`
+ * - `front()`
+ * - `pop()`
  */
 template <typename T, typename Container>
 class CORE_API SyncQueue final {
@@ -47,40 +47,48 @@ class CORE_API SyncQueue final {
   SyncQueue() noexcept;
   ~SyncQueue();
 
-  // Non-copyable, non-movable
+  /// Non-copyable, non-movable
   SyncQueue(const SyncQueue&) = delete;
+  /// Non-copyable, non-movable
   SyncQueue& operator=(const SyncQueue&) = delete;
+  /// Non-copyable, non-movable
   SyncQueue(SyncQueue&&) = delete;
+  /// Non-copyable, non-movable
   SyncQueue& operator=(SyncQueue&&) = delete;
 
   /**
-   * @brief Check if this SyncQueue is empty or not.
-   * @return \c true if SyncQueue is empty, \c false otherwise.
+   * @brief Checks whether this `SyncQueue` instance is empty.
+   *
+   * @return True if this `SyncQueue` instance is empty; false otherwise.
    */
   bool Empty() const;
 
   /**
-   * @brief Closes this SyncQueue, deletes all queued elements and blocks users
-   * from pulling any elements from the queue.
+   * @brief Closes this `SyncQueue` instance, deletes all the queued elements,
+   * and blocks you from pulling any elements from the queue.
    */
   void Close();
 
   /**
-   * @brief Pulls one element from the SyncQueue.
+   * @brief Pulls one element from the `SyncQueue` instance.
+   *
    * @param element The element pulled from the queue.
-   * @return \c true if pull was successfull, \c false if SyncQueue was closed.
-   * Once closed the SyncQueue will not open again.
+   *
+   * @return True if the pull was successful; false if the `SyncQueue` instance
+   * was closed. Once closed, the `SyncQueue` instance does not open again.
    */
   bool Pull(T& element);
 
   /**
-   * @brief Forwards the passed element into the SyncQueue.
+   * @brief Forwards the passed element into the `SyncQueue` instance.
+   *
    * @param element The rvalue reference to the element.
    */
   void Push(T&& element);
 
   /**
-   * @brief Copies the passed element into the SyncQueue.
+   * @brief Copies the passed element into the `SyncQueue` instance.
+   *
    * @param element The const lvalue reference to the element.
    */
   void Push(const T& element);

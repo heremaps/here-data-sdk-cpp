@@ -28,29 +28,43 @@
 namespace olp {
 namespace thread {
 
+/**
+ * @brief An implementation of the `TaskScheduler` instance that uses a thread
+ * pool.
+ *
+ */
 class CORE_API ThreadPoolTaskScheduler final : public TaskScheduler {
  public:
   /**
-   * @brief Constructor with default thread_count set to 1.
-   * @param[in] thread_count Number of threads to be initialized in the thread
-   * pool.
+   * @brief Creates the `ThreadPoolTaskScheduler` object with one thread.
+   *
+   * @param thread_count The number of threads initialized in the thread pool.
    */
   ThreadPoolTaskScheduler(size_t thread_count = 1u);
 
   /**
-   * @brief Destructor that will close the SyncQueue and join threads.
+   * @brief Closes the `SyncQueue` instance and joins threads.
    */
   ~ThreadPoolTaskScheduler() override;
 
-  // Non-copyable, non-movable
+  /// Non-copyable, non-movable
   ThreadPoolTaskScheduler(const ThreadPoolTaskScheduler&) = delete;
+  /// Non-copyable, non-movable
   ThreadPoolTaskScheduler& operator=(const ThreadPoolTaskScheduler&) = delete;
+  /// Non-copyable, non-movable
   ThreadPoolTaskScheduler(ThreadPoolTaskScheduler&&) = delete;
+  /// Non-copyable, non-movable
   ThreadPoolTaskScheduler& operator=(ThreadPoolTaskScheduler&&) = delete;
 
  protected:
-  /// Override base class method to enqueue tasks and execute them eventually on
-  /// the next free thread from the thread pool.
+  /**
+   * @brief Overrides the base class method to enqueue tasks and execute them on
+   * the next free thread from the thread pool.
+   *
+   * @param func The rvalue reference of the task that should be enqueued.
+   * Move this task into your queue. No internal references are
+   * kept. Once this method is called, you own the task.
+   */
   void EnqueueTask(TaskScheduler::CallFuncType&& func) override;
 
  private:

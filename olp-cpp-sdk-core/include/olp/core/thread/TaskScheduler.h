@@ -26,40 +26,46 @@ namespace olp {
 namespace thread {
 
 /**
- * @brief The TaskScheduler class is an abstract interface to be used as base
- * for a custom thread scheduling strategy.
+ * @brief An abstract interface that is used as a base for the custom thread
+ * scheduling strategy.
  *
- * Subclasses should inherit from this class and implement virtual EnqueueTask,
- * that takes any callable target (lambda expression, bind expression or any
- * other function object) as input and adds it to the execution pipeline.
+ * Subclasses should inherit from this class and implement virtual
+ * `EnqueueTask` that takes any callable target (lambda expression, bind
+ * expression, or any other function object) as input and adds it to
+ * the execution pipeline.
  *
  */
 class CORE_API TaskScheduler {
  public:
-  /// Alias for abstract interface input.
+  /// Alias for the abstract interface input.
   using CallFuncType = std::function<void()>;
 
   virtual ~TaskScheduler() = default;
 
   /**
-   * @brief Use this method to schedule a asynchronous task.
-   * @param[in] func The callable target to be added to the scheduling pipeline.
+   * @brief Schedules the asynchronous task.
+   *
+   * @param[in] func The callable target that should be added to the scheduling
+   * pipeline.
    */
   void ScheduleTask(CallFuncType&& func) { EnqueueTask(std::move(func)); }
 
   /**
-   * @brief Use this methods to schedule a asynchronous cancellable task.
-   * @param[in] func The callable target to be added to the scheduling pipeline.
-   * As the CancellationContext created internally will be passed as input, the
-   * func callable should have the following signature:
+   * @brief Schedules the asynchronous cancellable task.
+   *
+   * @param[in] func The callable target that should be added to the scheduling
+   * pipeline. As `CancellationContext` is created internally, it is passed as
+   * input, so the callable function should have the following signature:
+   *
    * @code
    *     void func(CancellationContext& context);
-   * @encode
-   * @return Returns a \c CancellationContext copy to the caller which can be
-   * used to cancel the enqueued tasks. Tasks can only be cancelled before
-   * execution or during execution if the task itself is designed to support
-   * this. Tasks are also able to cancel the operation themselves as they get a
-   * non-const reference to the \c CancellationContext.
+   * @endcode
+   *
+   * @return Returns the \c CancellationContext copy to the caller. The copy can
+   * be used to cancel the enqueued tasks. Tasks can only be canceled before or
+   * during execution if the task itself is designed to support this. Tasks are
+   * also able to cancel the operation themselves as they get a non-const
+   * reference to the \c CancellationContext class.
    */
   template <class Function, typename std::enable_if<!std::is_convertible<
                                 decltype(std::declval<Function>()),
@@ -77,16 +83,16 @@ class CORE_API TaskScheduler {
 
  protected:
   /**
-   * @brief Abstract enqueue task interface to be implemented by
-   * subclass.
+   * @brief The abstract enqueue task interface that is implemented by
+   * the subclass.
    *
-   * Implement this method in your subclass taking TaskScheduler
-   * as base and provide a custom algorithm for scheduling tasks
+   * Implement this method in the subclass that takes `TaskScheduler`
+   * as a base and provides a custom algorithm for scheduling tasks
    * enqueued by the SDK.
    *
-   * @param[in] func Rvalue reference of the task to be enqueued.
-   * Move this task into your queue. No internal reference is
-   * kept, once called you own the task.
+   * @param[in] func The rvalue reference of the task that should be enqueued.
+   * Move this task into your queue. No internal references are
+   * kept. Once this method is called, you own the task.
    */
   virtual void EnqueueTask(CallFuncType&&) = 0;
 };
