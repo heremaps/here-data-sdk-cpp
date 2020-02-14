@@ -21,6 +21,7 @@
 
 #include <gmock/gmock.h>
 
+#include <olp/core/http/NetworkConstants.h>
 #include <olp/core/http/NetworkRequest.h>
 
 namespace olp {
@@ -85,6 +86,17 @@ MATCHER_P(HeadersContain, expected_header, "") {
   const auto& headers = arg.GetHeaders();
   return std::find(headers.begin(), headers.end(), expected_header) !=
          headers.end();
+}
+
+MATCHER(HeadersContainAuthorization, "") {
+  const auto& headers = arg.GetHeaders();
+  // headers must contain "Authorization" key and "Bearer xxxx" value
+  return std::find_if(
+             headers.begin(), headers.end(),
+             [](const std::pair<std::string, std::string>& header) {
+               return header.first == olp::http::kAuthorizationHeader &&
+                      header.second.length() > strlen(olp::http::kBearer) + 2;
+             }) != headers.end();
 }
 
 }  // namespace common

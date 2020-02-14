@@ -22,6 +22,7 @@
 #include <mocks/NetworkMock.h>
 #include <olp/authentication/AuthenticationClient.h>
 #include <olp/core/http/HttpStatusCode.h>
+#include <olp/core/http/NetworkConstants.h>
 #include <olp/core/porting/make_unique.h>
 
 #include <future>
@@ -170,8 +171,7 @@ class AuthenticationClientTest : public ::testing::Test {
     std::promise<AuthenticationClient::SignInClientResponse> request;
     auto request_future = request.get_future();
 
-    EXPECT_CALL(*network_, Send(testing::_, testing::_, testing::_, testing::_,
-                                testing::_))
+    EXPECT_CALL(*network_, Send(_, _, _, _, _))
         .Times(2)  // First is GetTimeFromServer(). Second is actual SignIn.
         .WillRepeatedly([&](olp::http::NetworkRequest request,
                             olp::http::Network::Payload payload,
@@ -640,6 +640,54 @@ TEST_F(AuthenticationClientTest, SignOutUser) {
   SignOutResult s = response.MoveResult();
   EXPECT_EQ(olp::http::HttpStatusCode::NO_CONTENT, s.GetStatus());
   EXPECT_EQ(kErrorNoContent, s.GetErrorResponse().message);
+}
+
+TEST_F(AuthenticationClientTest, SignInFederated) {
+  AuthenticationCredentials credentials(key_, secret_);
+  std::promise<AuthenticationClient::SignInUserResponse> request;
+  auto request_future = request.get_future();
+
+  std::string body = R"({ "grantType": "xyz", "token": "test_token", "realm": "my_realm" })";
+
+  using namespace testing;
+
+  auto request_matcher = AllOf(HeadersContainAuthorization(), BodyEq(body));
+
+  EXPECT_CALL(*network_, Send(request_matcher, _, _, _, _))
+      .Times(1)
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << kUserSigninResponse;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::http::HttpStatusCode::OK)
+                     .WithError(kErrorOk));
+        return olp::http::SendOutcome(request_id);
+      });
+
+  client_->SignInFederated(
+      credentials, body,
+      [&](const AuthenticationClient::SignInUserResponse& response) {
+        request.set_value(response);
+      });
+
+  auto response = request_future.get();
+
+  EXPECT_TRUE(response.IsSuccessful());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response.GetResult().GetStatus());
+  EXPECT_EQ(kErrorOk, response.GetResult().GetErrorResponse().message);
+  EXPECT_FALSE(response.GetResult().GetAccessToken().empty());
+  EXPECT_EQ("password_grant_token", response.GetResult().GetAccessToken());
+  EXPECT_EQ("bearer", response.GetResult().GetTokenType());
+  EXPECT_LT(0ll, response.GetResult().GetExpiresIn().count());
+  EXPECT_FALSE(response.GetResult().GetRefreshToken().empty());
+  EXPECT_FALSE(response.GetResult().GetUserIdentifier().empty());
 }
 
 TEST_F(AuthenticationClientTest, SignInFacebookData) {

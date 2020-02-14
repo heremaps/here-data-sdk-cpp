@@ -35,6 +35,7 @@ set(OLP_SDK_FUNCTIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-authentication/AuthenticationTestUtils.cpp
     ./olp-cpp-sdk-authentication/FacebookAuthenticationTest.cpp
     ./olp-cpp-sdk-authentication/GoogleAuthenticationTest.cpp
+    ./olp-cpp-sdk-authentication/FederatedAuthenticationTest.cpp
     ./olp-cpp-sdk-authentication/HereAccountOauth2ProductionTest.cpp
 )
 
