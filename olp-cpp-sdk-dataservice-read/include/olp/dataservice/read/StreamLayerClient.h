@@ -26,6 +26,7 @@
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
+#include <olp/dataservice/read/SeekRequest.h>
 #include <olp/dataservice/read/SubscribeRequest.h>
 #include <olp/dataservice/read/Types.h>
 #include <olp/dataservice/read/model/Messages.h>
@@ -226,6 +227,42 @@ class DATASERVICE_READ_API StreamLayerClient final {
    * can also use `CancellableFuture` to cancel this request.
    */
   client::CancellableFuture<PollResponse> Poll();
+
+  /**
+   * @brief Allows changing the data stream reading offset.
+   *
+   * If the commit is successful, the message consumption starts from the
+   * specified offset.
+   *
+   * Only possible if subscribed successfully.
+   * Offsets shouldn't be empty.
+   *
+   * @param request The `SeekRequest` instance that contains a complete set
+   * of request parameters.
+   * @param callback The `SeekResponseCallback` object that is invoked when
+   * the `Seek` request is completed.
+   *
+   * @return A token that can be used to cancel this request.
+   */
+  client::CancellationToken Seek(SeekRequest request,
+                                 SeekResponseCallback callback);
+
+  /**
+   * @brief Allows changing the data stream reading offset.
+   *
+   * If the commit is successful, the message consumption starts from the
+   * specified offset.
+   *
+   * Only possible if subscribed successfully.
+   * Offsets shouldn't be empty.
+   *
+   * @param request The `SeekRequest` instance that contains a complete set
+   * of request parameters.
+   *
+   * @return `CancellableFuture` that contains `SeekResponse` or an error. You
+   * can also use `CancellableFuture` to cancel this request.
+   */
+  client::CancellableFuture<SeekResponse> Seek(SeekRequest request);
 
  private:
   std::unique_ptr<StreamLayerClientImpl> impl_;

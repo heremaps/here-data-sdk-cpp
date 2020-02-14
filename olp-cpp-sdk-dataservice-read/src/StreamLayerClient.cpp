@@ -82,6 +82,16 @@ client::CancellableFuture<PollResponse> StreamLayerClient::Poll() {
   return impl_->Poll();
 }
 
+client::CancellationToken StreamLayerClient::Seek(
+    SeekRequest request, SeekResponseCallback callback) {
+  return impl_->Seek(std::move(request), std::move(callback));
+}
+
+client::CancellableFuture<SeekResponse> StreamLayerClient::Seek(
+    SeekRequest request) {
+  return impl_->Seek(std::move(request));
+}
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

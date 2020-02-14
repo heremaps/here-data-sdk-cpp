@@ -46,6 +46,9 @@ constexpr auto kUrlStreamConsume =
 constexpr auto kUrlStreamCommitOffsets =
     R"(https://stream.node.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/offsets?mode=serial&subscriptionId=12345)";
 
+constexpr auto kUrlStreamSeekToOffsets =
+    R"(https://stream.node.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/seek?mode=serial&subscriptionId=12345)";
+
 constexpr auto kUrlStreamUnsubscribe =
     R"(https://stream.node.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/subscribe?mode=serial&subscriptionId=12345)";
 
@@ -57,6 +60,9 @@ constexpr auto kHttpRequestBodyOffsetsTwoPartitions =
 
 constexpr auto kHttpRequestBodyOffsetsOnePartition =
     R"jsonString({"offsets":[{"partition":1,"offset":4}]})jsonString";
+
+constexpr auto kHttpRequestBodyWithStreamOffsets =
+    R"jsonString({"offsets":[{"partition":7,"offset":38562},{"partition":8,"offset":27458}]})jsonString";
 
 constexpr auto kHttpResponseEmpty = R"jsonString()jsonString";
 
@@ -90,6 +96,9 @@ constexpr auto kHttpResponsePollConsumeBadRequest =
 constexpr auto kHttpResponsePollCommitConflict =
     R"jsonString({"title":"Unable to commit offset","status":409,"code":"E213028","cause":"Unable to commit offset","action":"Commit cannot be completed. Continue with reading and committing new messages","correlationId":"4199533b-6290-41db-8d79-edf4f4019a74"})jsonString";
 
+constexpr auto kHttpResponseSeekFails =
+    R"jsonString({ "title": "Realm not found", "status": 400, "code": "E213017", "cause": "App / user is not associated with a realm", "action": "Update access token and retry", "correlationId": "4199533b-6290-41db-8d79-edf4f4019a74" })jsonString";
+
 constexpr auto kHttpResponseUnsubscribeNotFound =
     R"jsonString({"title":"Subscription not found","status":404,"code":"E213003","cause":"SubscriptionId 12345 not found","action":"Subscribe again","correlationId":"123"})jsonString";
 
@@ -120,6 +129,18 @@ model::Message PrepareMessage(const std::string& metadata_partition,
   message.SetOffset(stream_offset);
 
   return message;
+}
+
+model::StreamOffsets GetStreamOffsets() {
+  model::StreamOffset offset1;
+  offset1.SetPartition(7);
+  offset1.SetOffset(38562);
+  model::StreamOffset offset2;
+  offset2.SetPartition(8);
+  offset2.SetOffset(27458);
+  model::StreamOffsets offsets;
+  offsets.SetOffsets({offset1, offset2});
+  return offsets;
 }
 
 MATCHER_P(EqMessage, message, "Equality matcher for the Messages") {
@@ -897,6 +918,158 @@ TEST_F(StreamLayerClientImplTest, PollCancel) {
   ASSERT_EQ(poll_future.wait_for(kTimeout), std::future_status::ready);
 
   const auto& response = poll_future.get();
+  EXPECT_FALSE(response.IsSuccessful());
+  EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Cancelled);
+
+  Mock::VerifyAndClearExpectations(network_mock_.get());
+}
+
+TEST_F(StreamLayerClientImplTest, Seek) {
+  model::StreamOffsets offsets = GetStreamOffsets();
+  {
+    SCOPED_TRACE("Seek success");
+
+    StreamLayerClientImpl client(kHrn, kLayerId, settings_);
+    SimulateSubscription(client);
+
+    SetupNetworkExpectation(kUrlStreamSeekToOffsets, kHttpResponseEmpty,
+                            http::HttpStatusCode::OK, RequestMethod::PUT,
+                            kHttpRequestBodyWithStreamOffsets);
+
+    std::promise<SeekResponse> promise;
+    auto future = promise.get_future();
+    SeekRequest seek_request;
+    seek_request.WithOffsets(offsets);
+    client.Seek(seek_request,
+                [&](SeekResponse response) { promise.set_value(response); });
+
+    ASSERT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    EXPECT_TRUE(response.IsSuccessful());
+    EXPECT_EQ(response.GetResult(), http::HttpStatusCode::OK);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE("Seek fails, subscription is missing");
+
+    StreamLayerClientImpl client(kHrn, kLayerId, settings_);
+
+    std::promise<SeekResponse> promise;
+    auto future = promise.get_future();
+    SeekRequest seek_request;
+    seek_request.WithOffsets(offsets);
+    client.Seek(seek_request,
+                [&](SeekResponse response) { promise.set_value(response); });
+
+    ASSERT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              client::ErrorCode::PreconditionFailed);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE("Seek fails, StreamOffsets is empty");
+
+    StreamLayerClientImpl client(kHrn, kLayerId, settings_);
+    SimulateSubscription(client);
+
+    std::promise<SeekResponse> promise;
+    auto future = promise.get_future();
+    SeekRequest seek_request;
+    client.Seek(seek_request,
+                [&](SeekResponse response) { promise.set_value(response); });
+
+    ASSERT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              client::ErrorCode::PreconditionFailed);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+  {
+    SCOPED_TRACE("Seek fails, server error on SeekToOffset");
+
+    StreamLayerClientImpl client(kHrn, kLayerId, settings_);
+    SimulateSubscription(client);
+
+    SetupNetworkExpectation(kUrlStreamSeekToOffsets, kHttpResponseSeekFails,
+                            http::HttpStatusCode::BAD_REQUEST,
+                            RequestMethod::PUT,
+                            kHttpRequestBodyWithStreamOffsets);
+
+    std::promise<SeekResponse> promise;
+    auto future = promise.get_future();
+    SeekRequest seek_request;
+    seek_request.WithOffsets(offsets);
+    client.Seek(seek_request,
+                [&](SeekResponse response) { promise.set_value(response); });
+
+    ASSERT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetHttpStatusCode(),
+              http::HttpStatusCode::BAD_REQUEST);
+    EXPECT_EQ(response.GetError().GetMessage(), kHttpResponseSeekFails);
+
+    Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+}
+
+TEST_F(StreamLayerClientImplTest, SeekCancellableFuture) {
+  StreamLayerClientImpl client(kHrn, kLayerId, settings_);
+  SimulateSubscription(client);
+
+  SetupNetworkExpectation(kUrlStreamSeekToOffsets, kHttpResponseEmpty,
+                          http::HttpStatusCode::OK, RequestMethod::PUT,
+                          kHttpRequestBodyWithStreamOffsets);
+
+  SeekRequest seek_request;
+  model::StreamOffsets offsets = GetStreamOffsets();
+  seek_request.WithOffsets(offsets);
+  auto future = client.Seek(seek_request).GetFuture();
+
+  ASSERT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+  const auto& response = future.get();
+  EXPECT_TRUE(response.IsSuccessful());
+
+  Mock::VerifyAndClearExpectations(network_mock_.get());
+}
+
+TEST_F(StreamLayerClientImplTest, SeekCancel) {
+  settings_.task_scheduler =
+      OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
+
+  StreamLayerClientImpl client(kHrn, kLayerId, settings_);
+  SimulateSubscription(client);
+
+  // Simulate a loaded queue
+  std::promise<void> promise;
+  auto future = promise.get_future();
+  settings_.task_scheduler->ScheduleTask([&future]() { future.get(); });
+
+  SeekRequest seek_request;
+  model::StreamOffsets offsets = GetStreamOffsets();
+  seek_request.WithOffsets(offsets);
+
+  auto cancellable = client.Seek(seek_request);
+  auto cancel_future = cancellable.GetFuture();
+  auto token = cancellable.GetCancellationToken();
+  token.Cancel();
+
+  promise.set_value();
+
+  ASSERT_EQ(cancel_future.wait_for(kTimeout), std::future_status::ready);
+
+  const auto& response = cancel_future.get();
   EXPECT_FALSE(response.IsSuccessful());
   EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Cancelled);
 
