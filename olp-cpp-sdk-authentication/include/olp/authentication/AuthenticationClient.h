@@ -387,6 +387,32 @@ class AUTHENTICATION_API AuthenticationClient {
   client::CancellationToken SignInHereUser(
       const AuthenticationCredentials& credentials,
       const UserProperties& properties, const SignInUserCallback& callback);
+  
+  /**
+   * @brief Signs in with a custom request body.
+   *
+   * This method provides the mechanism to authenticate with the HERE Platform
+   * using a custom request body. You should use this method when the HERE
+   * Platform authentication backend offers you individual parameters or
+   * endpoint. 
+   *
+   * @param credentials The `AuthenticationCredentials` instance.
+   * @param request_body The request body that will be passed to the oauth
+   * endpoint.
+   * @param callback The `SignInUserCallback` method that is called when
+   * the user sign-in request is completed. If successful, the returned HTTP
+   * status is 200. If a new account is created as a part of the sign-in request
+   * and terms must be accepted, the returned HTTP status is 201  for the first
+   * time and 412 for subsequent requests as long as you accept the terms.
+   * Otherwise, check the response error.
+   *
+   * @return The `CancellationToken` instance that can be used to cancel
+   * the request.
+   */
+  client::CancellationToken SignInFederated(
+      AuthenticationCredentials credentials, std::string request_body,
+      SignInUserCallback callback);
+
   /**
    * @brief Signs in with your valid Facebook token and requests your user
    * access token.

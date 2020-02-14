@@ -150,6 +150,10 @@ class AuthenticationClient::Impl final {
       const AuthenticationClient::SignInUserCallback& callback);
 
   client::CancellationToken SignInFederated(
+      AuthenticationCredentials credentials, std::string request_body,
+      AuthenticationClient::SignInUserCallback callback);
+
+  client::CancellationToken SignInFederated(
       const AuthenticationCredentials& credentials,
       const FederatedSignInType& type,
       const AuthenticationClient::FederatedProperties& properties,
@@ -452,6 +456,15 @@ client::CancellationToken AuthenticationClient::Impl::SignInHereUser(
     const AuthenticationClient::SignInUserCallback& callback) {
   return HandleUserRequest(credentials, kOauthEndpoint,
                            generateUserBody(properties), callback);
+}
+
+client::CancellationToken AuthenticationClient::Impl::SignInFederated(
+    AuthenticationCredentials credentials, std::string request_body,
+    AuthenticationClient::SignInUserCallback callback) {
+  auto payload =
+      std::make_shared<std::vector<unsigned char>>(request_body.size());
+  std::memcpy(payload->data(), request_body.data(), request_body.size());
+  return HandleUserRequest(credentials, kOauthEndpoint, payload, callback);
 }
 
 client::CancellationToken AuthenticationClient::Impl::SignInRefresh(
@@ -1017,6 +1030,13 @@ client::CancellationToken AuthenticationClient::SignInHereUser(
     const AuthenticationCredentials& credentials,
     const UserProperties& properties, const SignInUserCallback& callback) {
   return impl_->SignInHereUser(credentials, properties, callback);
+}
+
+client::CancellationToken AuthenticationClient::SignInFederated(
+    AuthenticationCredentials credentials, std::string request_body,
+    SignInUserCallback callback) {
+  return impl_->SignInFederated(std::move(credentials), std::move(request_body),
+                                std::move(callback));
 }
 
 client::CancellationToken AuthenticationClient::SignInFacebook(
