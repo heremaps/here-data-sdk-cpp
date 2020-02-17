@@ -39,15 +39,19 @@ namespace read {
 
 namespace {
 constexpr auto kLogTag = "VersionedLayerClientImpl";
+constexpr int64_t kInvalidVersion = -1;
 }  // namespace
 
 VersionedLayerClientImpl::VersionedLayerClientImpl(
     client::HRN catalog, std::string layer_id,
+    boost::optional<int64_t> catalog_version,
     client::OlpClientSettings settings)
     : catalog_(std::move(catalog)),
       layer_id_(std::move(layer_id)),
       settings_(std::move(settings)),
-      pending_requests_(std::make_shared<client::PendingRequests>()) {
+      pending_requests_(std::make_shared<client::PendingRequests>()),
+      catalog_version_(catalog_version ? catalog_version.get()
+                                       : kInvalidVersion) {
   if (!settings_.cache) {
     settings_.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
   }
@@ -64,13 +68,27 @@ bool VersionedLayerClientImpl::CancelPendingRequests() {
 
 client::CancellationToken VersionedLayerClientImpl::GetPartitions(
     PartitionsRequest request, PartitionsResponseCallback callback) {
+  if (request.GetVersion()) {
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "PartitionsRequest::WithVersion() is deprecated. Use "
+                        "VersionedLayerClient constructor to specify version");
+  }
+
   auto schedule_get_partitions = [&](PartitionsRequest request,
                                      PartitionsResponseCallback callback) {
     auto catalog = catalog_;
     auto layer_id = layer_id_;
     auto settings = settings_;
 
-    auto partitions_task = [=](client::CancellationContext context) {
+    auto partitions_task =
+        [=](client::CancellationContext context) mutable -> PartitionsResponse {
+      auto version_response = GetVersion(request.GetBillingTag(),
+                                         request.GetFetchOption(), context);
+      if (!version_response.IsSuccessful()) {
+        return version_response.GetError();
+      }
+      request.WithVersion(version_response.GetResult().GetVersion());
+
       return repository::PartitionsRepository::GetVersionedPartitions(
           catalog, layer_id, context, std::move(request), settings);
     };
@@ -96,13 +114,29 @@ VersionedLayerClientImpl::GetPartitions(PartitionsRequest partitions_request) {
 
 client::CancellationToken VersionedLayerClientImpl::GetData(
     DataRequest request, DataResponseCallback callback) {
+  if (request.GetVersion()) {
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "DataRequest::WithVersion() is deprecated. Use "
+                        "VersionedLayerClient constructor to specify version");
+  }
+
   auto schedule_get_data = [&](DataRequest request,
                                DataResponseCallback callback) {
     auto catalog = catalog_;
     auto layer_id = layer_id_;
     auto settings = settings_;
 
-    auto data_task = [=](client::CancellationContext context) {
+    auto data_task =
+        [=](client::CancellationContext context) mutable -> DataResponse {
+      if (!request.GetDataHandle()) {
+        auto version_response = GetVersion(request.GetBillingTag(),
+                                           request.GetFetchOption(), context);
+        if (!version_response.IsSuccessful()) {
+          return version_response.GetError();
+        }
+        request.WithVersion(version_response.GetResult().GetVersion());
+      }
+
       return repository::DataRepository::GetVersionedData(
           std::move(catalog), std::move(layer_id), std::move(request), context,
           std::move(settings));
@@ -151,26 +185,17 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
           return {{ErrorCode::InvalidArgument, "Empty tile key list"}};
         }
 
-        // Get Catalog version first if none set.
-        if (!request.GetVersion()) {
-          OLP_SDK_LOG_INFO_F(kLogTag,
-                             "PrefetchTiles: getting catalog version, key=%s",
-                             request.CreateKey(layer_id).c_str());
-          auto response = repository::CatalogRepository::GetLatestVersion(
-              catalog, context,
-              CatalogVersionRequest().WithBillingTag(request.GetBillingTag()),
-              settings);
+        auto response =
+            GetVersion(request.GetBillingTag(), OnlineIfNotFound, context);
 
-          if (!response.IsSuccessful()) {
-            OLP_SDK_LOG_WARNING_F(
-                kLogTag,
-                "PrefetchTiles: getting catalog version failed, key=%s",
-                request.CreateKey(layer_id).c_str());
-            return response.GetError();
-          }
-
-          request.WithVersion(response.GetResult().GetVersion());
+        if (!response.IsSuccessful()) {
+          OLP_SDK_LOG_WARNING_F(
+              kLogTag, "PrefetchTiles: getting catalog version failed, key=%s",
+              request.CreateKey(layer_id).c_str());
+          return response.GetError();
         }
+
+        request.WithVersion(response.GetResult().GetVersion());
 
         const auto key = request.CreateKey(layer_id);
         OLP_SDK_LOG_INFO_F(kLogTag, "PrefetchTiles: using key=%s", key.c_str());
@@ -318,6 +343,36 @@ VersionedLayerClientImpl::PrefetchTiles(PrefetchTilesRequest request) {
                                     });
   return client::CancellableFuture<PrefetchTilesResponse>(cancel_token,
                                                           promise);
+}
+
+CatalogVersionResponse VersionedLayerClientImpl::GetVersion(
+    boost::optional<std::string> billing_tag, const FetchOptions& fetch_options,
+    const client::CancellationContext& context) {
+  auto version = catalog_version_.load();
+  if (version != kInvalidVersion) {
+    model::VersionResponse response;
+    response.SetVersion(version);
+    return response;
+  }
+
+  CatalogVersionRequest request;
+  request.WithBillingTag(billing_tag);
+  request.WithFetchOption(fetch_options);
+  auto response = repository::CatalogRepository::GetLatestVersion(
+      catalog_, context, request, settings_);
+
+  if (!response.IsSuccessful()) {
+    return response;
+  }
+
+  if (!catalog_version_.compare_exchange_weak(
+          version, response.GetResult().GetVersion())) {
+    model::VersionResponse response;
+    response.SetVersion(version);
+    return response;
+  }
+
+  return response;
 }
 
 }  // namespace read

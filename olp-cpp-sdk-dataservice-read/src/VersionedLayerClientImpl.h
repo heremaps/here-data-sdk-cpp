@@ -21,6 +21,7 @@
 
 #include <memory>
 
+#include <boost/optional.hpp>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
@@ -47,6 +48,7 @@ class PrefetchTilesRepository;
 class VersionedLayerClientImpl {
  public:
   VersionedLayerClientImpl(client::HRN catalog, std::string layer_id,
+                           boost::optional<int64_t> catalog_version,
                            client::OlpClientSettings settings);
 
   virtual ~VersionedLayerClientImpl();
@@ -73,10 +75,15 @@ class VersionedLayerClientImpl {
       PrefetchTilesRequest request);
 
  private:
+  CatalogVersionResponse GetVersion(boost::optional<std::string> billing_tag,
+                                    const FetchOptions& fetch_options,
+                                    const client::CancellationContext& context);
+
   client::HRN catalog_;
   std::string layer_id_;
   client::OlpClientSettings settings_;
   std::shared_ptr<client::PendingRequests> pending_requests_;
+  std::atomic<int64_t> catalog_version_;
 };
 
 }  // namespace read

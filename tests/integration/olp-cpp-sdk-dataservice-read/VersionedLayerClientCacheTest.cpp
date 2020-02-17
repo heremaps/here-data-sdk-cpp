@@ -206,6 +206,13 @@ TEST_P(VersionedLayerClientCacheTest, GetPartitions) {
 TEST_P(VersionedLayerClientCacheTest, GetDataWithPartitionIdDifferentVersions) {
   olp::client::HRN hrn(GetTestCatalog());
 
+  // Test with this parameter is not relevant anymore for cache type none since
+  // we cannot query 2 versions from one instance of versioned layer client and
+  // we cannot share default in-memory created cache between 2 instances.
+  if (GetParam() == CacheType::NONE) {
+    return;
+  }
+
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
       .Times(1);
@@ -235,14 +242,18 @@ TEST_P(VersionedLayerClientCacheTest, GetDataWithPartitionIdDifferentVersions) {
               Send(IsGetRequest(URL_BLOB_DATA_269_V2), _, _, _, _))
       .Times(1);
 
-  auto catalog_client =
+  auto catalog_client_1 =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", settings_);
+          hrn, "testlayer", boost::none, settings_);
+
+  auto catalog_client_2 =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          hrn, "testlayer", 2, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   {
     request.WithPartitionId("269");
-    auto data_response = catalog_client->GetData(request).GetFuture().get();
+    auto data_response = catalog_client_1->GetData(request).GetFuture().get();
 
     ASSERT_TRUE(data_response.IsSuccessful())
         << ApiErrorToString(data_response.GetError());
@@ -253,8 +264,7 @@ TEST_P(VersionedLayerClientCacheTest, GetDataWithPartitionIdDifferentVersions) {
   }
 
   {
-    request.WithVersion(2);
-    auto data_response = catalog_client->GetData(request).GetFuture().get();
+    auto data_response = catalog_client_2->GetData(request).GetFuture().get();
 
     ASSERT_TRUE(data_response.IsSuccessful())
         << ApiErrorToString(data_response.GetError());
@@ -265,8 +275,7 @@ TEST_P(VersionedLayerClientCacheTest, GetDataWithPartitionIdDifferentVersions) {
   }
 
   {
-    request.WithVersion(boost::none);
-    auto data_response = catalog_client->GetData(request).GetFuture().get();
+    auto data_response = catalog_client_1->GetData(request).GetFuture().get();
 
     ASSERT_TRUE(data_response.IsSuccessful())
         << ApiErrorToString(data_response.GetError());
@@ -277,8 +286,7 @@ TEST_P(VersionedLayerClientCacheTest, GetDataWithPartitionIdDifferentVersions) {
   }
 
   {
-    request.WithVersion(2);
-    auto data_response = catalog_client->GetData(request).GetFuture().get();
+    auto data_response = catalog_client_2->GetData(request).GetFuture().get();
 
     ASSERT_TRUE(data_response.IsSuccessful())
         << ApiErrorToString(data_response.GetError());
