@@ -59,7 +59,7 @@ class CORE_API HttpResponse {
    * @param headers Response headers.
    */
   HttpResponse(int status, std::stringstream&& response,
-               http::HeadersType&& headers)
+               http::Headers&& headers)
       : status(status),
         response(std::move(response)),
         headers(std::move(headers)) {}
@@ -94,7 +94,7 @@ class CORE_API HttpResponse {
   /**
    * @brief HTTP headers.
    */
-  http::HeadersType headers;
+  http::Headers headers;
 };
 
 inline void HttpResponse::GetResponse(std::vector<unsigned char>& output) {

@@ -82,8 +82,8 @@ const std::string kLayerId{"test-layer"};
 const std::string kSerialMode{"serial"};
 const std::string kParallelMode{"parallel"};
 const std::string kCorrelationId{"test-correlation-id"};
-const std::pair<std::string, std::string> kCorrelationIdHeader{
-    "X-Correlation-Id", kCorrelationId};
+const olp::http::Header kCorrelationIdHeader{"X-Correlation-Id",
+                                                 kCorrelationId};
 
 constexpr auto kUrlSubscribeNoQueryParams =
     R"(https://some.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/subscribe)";
@@ -173,7 +173,7 @@ TEST_F(StreamApiTest, Subscribe) {
                      _, _, _, _))
         .WillOnce(ReturnHttpResponse(
             http::NetworkResponse().WithStatus(http::HttpStatusCode::CREATED),
-            kHttpResponseSubscribeSucceeds));
+            kHttpResponseSubscribeSucceeds, {kCorrelationIdHeader}));
 
     ConsumerProperties subscription_properties{
         ConsumerOption("field_string", "abc"),
@@ -193,6 +193,7 @@ TEST_F(StreamApiTest, Subscribe) {
     EXPECT_EQ(subscribe_response.GetResult().GetNodeBaseURL(), kNodeBaseUrl);
     EXPECT_EQ(subscribe_response.GetResult().GetSubscriptionId(),
               kSubscriptionId);
+    EXPECT_EQ(x_correlation_id, kCorrelationId);
 
     Mock::VerifyAndClearExpectations(network_mock_.get());
   }
@@ -203,7 +204,7 @@ TEST_F(StreamApiTest, Subscribe) {
                 Send(IsPostRequest(kUrlSubscribeNoQueryParams), _, _, _, _))
         .WillOnce(ReturnHttpResponse(
             http::NetworkResponse().WithStatus(http::HttpStatusCode::FORBIDDEN),
-            kHttpResponseSubscribeFails));
+            kHttpResponseSubscribeFails, {kCorrelationIdHeader}));
 
     olp_client_.SetBaseUrl(kBaseUrl);
     std::string x_correlation_id;
@@ -232,7 +233,7 @@ TEST_F(StreamApiTest, ConsumeData) {
                      _, _, _, _))
         .WillOnce(ReturnHttpResponse(
             http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
-            kHttpResponseConsumeDataSucceeds));
+            kHttpResponseConsumeDataSucceeds, {kCorrelationIdHeader}));
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
     std::string x_correlation_id = kCorrelationId;
@@ -244,6 +245,7 @@ TEST_F(StreamApiTest, ConsumeData) {
     EXPECT_TRUE(consume_data_response.IsSuccessful())
         << ApiErrorToString(consume_data_response.GetError());
     EXPECT_EQ(consume_data_response.GetResult().GetMessages().size(), 2);
+    EXPECT_EQ(x_correlation_id, kCorrelationId);
 
     Mock::VerifyAndClearExpectations(network_mock_.get());
   }
@@ -256,7 +258,7 @@ TEST_F(StreamApiTest, ConsumeData) {
                      _, _, _, _))
         .WillOnce(ReturnHttpResponse(
             http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
-            kHttpResponseConsumeDataSucceeds));
+            kHttpResponseConsumeDataSucceeds, {kCorrelationIdHeader}));
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
     std::string x_correlation_id = kCorrelationId;
@@ -268,6 +270,7 @@ TEST_F(StreamApiTest, ConsumeData) {
     EXPECT_TRUE(consume_data_response.IsSuccessful())
         << ApiErrorToString(consume_data_response.GetError());
     EXPECT_EQ(consume_data_response.GetResult().GetMessages().size(), 2);
+    EXPECT_EQ(x_correlation_id, kCorrelationId);
 
     Mock::VerifyAndClearExpectations(network_mock_.get());
   }
@@ -295,6 +298,7 @@ TEST_F(StreamApiTest, ConsumeData) {
     EXPECT_EQ(consume_data_response.GetError().GetMessage(),
               kHttpResponseConsumeDataFails);
     EXPECT_EQ(consume_data_response.GetResult().GetMessages().size(), 0);
+    EXPECT_EQ(x_correlation_id, kCorrelationId);
 
     Mock::VerifyAndClearExpectations(network_mock_.get());
   }
@@ -312,7 +316,8 @@ TEST_F(StreamApiTest, CommitOffsets) {
                            BodyEq(kHttpRequestBodyWithStreamOffsets)),
                      _, _, _, _))
         .WillOnce(ReturnHttpResponse(
-            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK), ""));
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK), "",
+            {kCorrelationIdHeader}));
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
     std::string x_correlation_id = kCorrelationId;
@@ -324,6 +329,7 @@ TEST_F(StreamApiTest, CommitOffsets) {
     EXPECT_TRUE(commit_offsets_response.IsSuccessful())
         << ApiErrorToString(commit_offsets_response.GetError());
     EXPECT_EQ(commit_offsets_response.GetResult(), http::HttpStatusCode::OK);
+    EXPECT_EQ(x_correlation_id, kCorrelationId);
 
     Mock::VerifyAndClearExpectations(network_mock_.get());
   }
@@ -336,7 +342,8 @@ TEST_F(StreamApiTest, CommitOffsets) {
                            BodyEq(kHttpRequestBodyWithStreamOffsets)),
                      _, _, _, _))
         .WillOnce(ReturnHttpResponse(
-            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK), ""));
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK), "",
+            {kCorrelationIdHeader}));
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
     std::string x_correlation_id = kCorrelationId;
@@ -348,6 +355,7 @@ TEST_F(StreamApiTest, CommitOffsets) {
     EXPECT_TRUE(commit_offsets_response.IsSuccessful())
         << ApiErrorToString(commit_offsets_response.GetError());
     EXPECT_EQ(commit_offsets_response.GetResult(), http::HttpStatusCode::OK);
+    EXPECT_EQ(x_correlation_id, kCorrelationId);
 
     Mock::VerifyAndClearExpectations(network_mock_.get());
   }
@@ -361,7 +369,7 @@ TEST_F(StreamApiTest, CommitOffsets) {
                      _, _, _, _))
         .WillOnce(ReturnHttpResponse(
             http::NetworkResponse().WithStatus(http::HttpStatusCode::CONFLICT),
-            kHttpResponseCommitOffsetsFails));
+            kHttpResponseCommitOffsetsFails, {kCorrelationIdHeader}));
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
     std::string x_correlation_id = kCorrelationId;
@@ -375,6 +383,7 @@ TEST_F(StreamApiTest, CommitOffsets) {
               http::HttpStatusCode::CONFLICT);
     EXPECT_EQ(commit_offsets_response.GetError().GetMessage(),
               kHttpResponseCommitOffsetsFails);
+    EXPECT_EQ(x_correlation_id, kCorrelationId);
 
     Mock::VerifyAndClearExpectations(network_mock_.get());
   }
@@ -392,7 +401,8 @@ TEST_F(StreamApiTest, SeekToOffset) {
                            BodyEq(kHttpRequestBodyWithStreamOffsets)),
                      _, _, _, _))
         .WillOnce(ReturnHttpResponse(
-            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK), ""));
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK), "",
+            {kCorrelationIdHeader}));
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
     std::string x_correlation_id = kCorrelationId;
@@ -404,6 +414,7 @@ TEST_F(StreamApiTest, SeekToOffset) {
     EXPECT_TRUE(seek_to_offset_response.IsSuccessful())
         << ApiErrorToString(seek_to_offset_response.GetError());
     EXPECT_EQ(seek_to_offset_response.GetResult(), http::HttpStatusCode::OK);
+    EXPECT_EQ(x_correlation_id, kCorrelationId);
 
     Mock::VerifyAndClearExpectations(network_mock_.get());
   }
@@ -416,7 +427,8 @@ TEST_F(StreamApiTest, SeekToOffset) {
                            BodyEq(kHttpRequestBodyWithStreamOffsets)),
                      _, _, _, _))
         .WillOnce(ReturnHttpResponse(
-            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK), ""));
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK), "",
+            {kCorrelationIdHeader}));
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
     std::string x_correlation_id = kCorrelationId;
@@ -428,6 +440,7 @@ TEST_F(StreamApiTest, SeekToOffset) {
     EXPECT_TRUE(commit_offsets_response.IsSuccessful())
         << ApiErrorToString(commit_offsets_response.GetError());
     EXPECT_EQ(commit_offsets_response.GetResult(), http::HttpStatusCode::OK);
+    EXPECT_EQ(x_correlation_id, kCorrelationId);
 
     Mock::VerifyAndClearExpectations(network_mock_.get());
   }
@@ -441,7 +454,8 @@ TEST_F(StreamApiTest, SeekToOffset) {
                      _, _, _, _))
         .WillOnce(ReturnHttpResponse(http::NetworkResponse().WithStatus(
                                          http::HttpStatusCode::BAD_REQUEST),
-                                     kHttpResponseSeekToOffsetFails));
+                                     kHttpResponseSeekToOffsetFails,
+                                     {kCorrelationIdHeader}));
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
     std::string x_correlation_id = kCorrelationId;
