@@ -59,6 +59,10 @@ class NetworkMock : public olp::http::Network {
 struct MockedResponseInformation {
   int status;        /// HTTP status code for response.
   const char* data;  /// Body of HTTP response.
+  http::Headers headers;
+  MockedResponseInformation(int status, const char* data,
+                            http::Headers&& headers = {})
+      : status(status), data(data), headers(std::move(headers)) {}
 };
 
 /**
