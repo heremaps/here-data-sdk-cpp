@@ -102,7 +102,7 @@ ls -la ${cache_location}
 #  3. track the disk IO made by SDK
 #  4. track the CPU load
 
-# Gracefully stop local server
-kill -15 ${SERVER_PID}
-# Waiter for server process to be exited correctly
-wait ${SERVER_PID}
+# Termiante the mock server
+kill -TERM $SERVER_PID
+
+wait
