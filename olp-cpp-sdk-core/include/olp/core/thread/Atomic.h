@@ -25,30 +25,51 @@
 namespace olp {
 namespace thread {
 /**
- * Simple atomic wrapper.
- * Depending on the provided MutexType this can be either multi-read /
- * single-write or single-read / single-write.
+ * @brief A simple atomic wrapper.
+ *
+ * Depending on the provided `MutexType`, it can be
+ * multi-read/single-write or single-read/single-write.
+ *
+ * @tparam Type The member type to which atomic access is required.
+ * @tparam MutexType Defines the lock type.
+ * @tparam ReadLockType Defines the locking strategy for the atomic read
+ * operation.
  */
 template <class Type, typename MutexType = std::mutex,
           typename ReadLockType = std::lock_guard<MutexType> >
 class Atomic {
  public:
+  /**
+   * @brief Alias for the type.
+   */
   using value_type = Type;
+
+  /**
+   * @brief Alias for the atomic write mutex lock.
+   */
   using WriteLockType = std::lock_guard<MutexType>;
 
   /**
-   * Construct.
+   * @brief Creates the `Atomic` instance.
+   *
+   * @tparam SomeType The variable type that is used for initialization.
+   * @param am The rvalue reference of the `SomeType` instance.
    */
   template <class SomeType>
   Atomic(SomeType&& am) : m(std::forward<SomeType>(am)) {}
 
   /**
-   * Construct.
+   * @brief Creates the `Atomic` instance.
    */
   Atomic() : m() {}
 
   /**
-   * Calls the lambda while having a unique lock on the data.
+   * @brief Calls the lambda function using the unique lock.
+   *
+   * @tparam Functor Accepts the single parameter of `Type&`.
+   * @param lambda The function of the `Functor` type.
+   *
+   * @return The lambda result.
    */
   template <class Functor>
   auto locked(Functor&& lambda) -> decltype(lambda(std::declval<Type&>())) {
@@ -57,8 +78,14 @@ class Atomic {
   }
 
   /**
-   * Calls the lambda while having a lock on the data.
-   * const version.
+   * @brief Calls the lambda using the lock.
+   *
+   * Used for the const version of this class.
+   *
+   * @tparam Functor Accepts the single parameter of const `Type&`.
+   * @param lambda The function of the `Functor` type.
+   *
+   * @return The lambda result.
    */
   template <class Functor>
   auto locked(Functor&& lambda) const
@@ -68,7 +95,9 @@ class Atomic {
   }
 
   /**
-   * Return a copy of the data while holding a lock.
+   * @brief Gets a copy of the data using the lock.
+   *
+   * @return The copy of the data.
    */
   Type lockedCopy() const {
     ReadLockType lock(m_mutex);
@@ -76,7 +105,9 @@ class Atomic {
   }
 
   /**
-   * Return the moved data while having a unique lock.
+   * @brief Gets a copy of the moved data using the unique lock.
+   *
+   * @return The copy of the moved data.
    */
   Type lockedMove() {
     WriteLockType lock(m_mutex);
@@ -84,7 +115,10 @@ class Atomic {
   }
 
   /**
-   * Assign the data while having a unique lock.
+   * @brief Assigns the data using the unique lock.
+   *
+   * @tparam SomeType The variable type that is used for initialization.
+   * @param am The rvalue reference of the `SomeType` instance.
    */
   template <class SomeType>
   void lockedAssign(SomeType&& am) {
@@ -93,7 +127,9 @@ class Atomic {
   }
 
   /**
-   * Swap while having a unique lock on the data.
+   * @brief Exchanges context with the `Type` object using the unique lock.
+   *
+   * @param other The copy of the value specified in the `Type` object.
    */
   void lockedSwap(Type& other) {
     WriteLockType lock(m_mutex);
@@ -101,7 +137,10 @@ class Atomic {
   }
 
   /**
-   * Swap with Type() while having a unique lock on the data and move.
+   * @brief Exchanges context with the `Type` object using the unique lock and
+   * moves data.
+   *
+   * @return The copy of the value specified in the `Type` object.
    */
   Type lockedSwapWithDefault() {
     WriteLockType lock(m_mutex);
@@ -111,7 +150,9 @@ class Atomic {
   }
 
   /**
-   * Convert to bool if wrapped type is bool convertible.
+   * @brief Converts to bool if the wrapped type is bool convertible.
+   *
+   * @return True if the wrapped type is bool convertible; false otherwise.
    */
   explicit operator bool() const {
     ReadLockType lock(m_mutex);
@@ -119,7 +160,14 @@ class Atomic {
   }
 
  protected:
+  /**
+   * @brief Defines the lock type.
+   */
   mutable MutexType m_mutex;
+
+  /**
+   * @brief The member type to which atomic access is required.
+   */
   Type m;
 };
 
