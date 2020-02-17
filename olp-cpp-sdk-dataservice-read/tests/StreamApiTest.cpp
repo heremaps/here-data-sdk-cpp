@@ -82,7 +82,7 @@ const std::string kLayerId{"test-layer"};
 const std::string kSerialMode{"serial"};
 const std::string kParallelMode{"parallel"};
 const std::string kCorrelationId{"test-correlation-id"};
-const olp::http::HeaderPair kCorrelationIdHeader{"X-Correlation-Id",
+const olp::http::Header kCorrelationIdHeader{"X-Correlation-Id",
                                                  kCorrelationId};
 
 constexpr auto kUrlSubscribeNoQueryParams =

@@ -39,11 +39,11 @@
 namespace {
 constexpr auto kLogTag = "read::StreamApi";
 
-void HandleCorrelationId(const olp::http::HeadersType& headers,
+void HandleCorrelationId(const olp::http::Headers& headers,
                          std::string& x_correlation_id) {
   auto it =
       std::find_if(std::begin(headers), std::end(headers),
-                   [&](const olp::http::HeaderPair& header) {
+                   [&](const olp::http::Header& header) {
                      return (header.first.compare("X-Correlation-Id") == 0);
                    });
   if (it != headers.end()) {

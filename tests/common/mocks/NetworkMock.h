@@ -91,7 +91,7 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
 
 NetworkCallback ReturnHttpResponse(olp::http::NetworkResponse response,
                                    const std::string& response_body,
-                                   const http::HeadersType& headers = {});
+                                   const http::Headers& headers = {});
 
 }  // namespace common
 }  // namespace tests

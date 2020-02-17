@@ -58,7 +58,7 @@ class CORE_API NetworkRequest final {
    * @brief Get all HTTP headers.
    * @return vector of HTTP headers.
    */
-  const HeadersType& GetHeaders() const;
+  const Headers& GetHeaders() const;
 
   /**
    * @brief Add extra HTTP header.
@@ -126,7 +126,7 @@ class CORE_API NetworkRequest final {
   /// Request URL.
   std::string url_;
   /// HTTP headers.
-  HeadersType headers_;
+  Headers headers_;
   /// Body of HTTP request.
   RequestBodyType body_;
   /// Network settings for this request.

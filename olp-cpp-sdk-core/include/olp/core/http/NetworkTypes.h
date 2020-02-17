@@ -132,12 +132,12 @@ CORE_API std::string ErrorCodeToString(ErrorCode code);
 /**
  * @brief Type alias for HTTP header.
  */
-using HeaderPair = std::pair<std::string, std::string>;
+using Header = std::pair<std::string, std::string>;
 
 /**
  * @brief Type alias for vector of HTTP headers.
  */
-using HeadersType = std::vector<HeaderPair>;
+using Headers = std::vector<Header>;
 
 }  // namespace http
 }  // namespace olp

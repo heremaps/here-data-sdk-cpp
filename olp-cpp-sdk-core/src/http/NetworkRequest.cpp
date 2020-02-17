@@ -23,7 +23,7 @@ namespace http {
 
 NetworkRequest::NetworkRequest(std::string url) : url_{std::move(url)} {}
 
-const HeadersType& NetworkRequest::GetHeaders() const { return headers_; }
+const Headers& NetworkRequest::GetHeaders() const { return headers_; }
 
 const std::string& NetworkRequest::GetUrl() const { return url_; }
 

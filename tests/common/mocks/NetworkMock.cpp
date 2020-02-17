@@ -104,7 +104,7 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
 
 NetworkCallback ReturnHttpResponse(olp::http::NetworkResponse response,
                                    const std::string& response_body,
-                                   const http::HeadersType& headers) {
+                                   const http::Headers& headers) {
   return [=](olp::http::NetworkRequest request,
              olp::http::Network::Payload payload,
              olp::http::Network::Callback callback,
