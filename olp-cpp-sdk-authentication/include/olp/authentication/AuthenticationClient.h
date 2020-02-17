@@ -387,14 +387,14 @@ class AUTHENTICATION_API AuthenticationClient {
   client::CancellationToken SignInHereUser(
       const AuthenticationCredentials& credentials,
       const UserProperties& properties, const SignInUserCallback& callback);
-  
+
   /**
    * @brief Signs in with a custom request body.
    *
    * This method provides the mechanism to authenticate with the HERE Platform
    * using a custom request body. You should use this method when the HERE
    * Platform authentication backend offers you individual parameters or
-   * endpoint. 
+   * endpoint.
    *
    * @param credentials The `AuthenticationCredentials` instance.
    * @param request_body The request body that will be passed to the oauth
