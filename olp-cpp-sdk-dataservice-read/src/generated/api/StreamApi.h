@@ -256,6 +256,9 @@ class StreamApi {
       const boost::optional<std::string>& mode,
       const client::CancellationContext& context, const std::string& endpoint,
       std::string& x_correlation_id);
+
+  static bool HandleCorrelationId(const http::HeadersType& headers,
+                                  std::string& x_correlation_id);
 };
 
 }  // namespace read

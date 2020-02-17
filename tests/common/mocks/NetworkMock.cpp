@@ -103,7 +103,8 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
 ///
 
 NetworkCallback ReturnHttpResponse(olp::http::NetworkResponse response,
-                                   const std::string& response_body) {
+                                   const std::string& response_body,
+                                   const http::HeadersType& headers) {
   return [=](olp::http::NetworkRequest request,
              olp::http::Network::Payload payload,
              olp::http::Network::Callback callback,
@@ -111,9 +112,13 @@ NetworkCallback ReturnHttpResponse(olp::http::NetworkResponse response,
              olp::http::Network::DataCallback data_callback)
              -> olp::http::SendOutcome {
     std::thread([=]() {
+      for (const auto& header : headers) {
+        header_callback(header.first, header.second);
+      }
       *payload << response_body;
       callback(response);
-    }).detach();
+    })
+        .detach();
 
     constexpr auto unused_request_id = 5;
     return olp::http::SendOutcome(unused_request_id);
