@@ -38,6 +38,19 @@
 
 namespace {
 constexpr auto kLogTag = "read::StreamApi";
+
+void HandleCorrelationId(const olp::http::HeadersType& headers,
+                         std::string& x_correlation_id) {
+  auto it =
+      std::find_if(std::begin(headers), std::end(headers),
+                   [&](const olp::http::HeaderPair& header) {
+                     return (header.first.compare("X-Correlation-Id") == 0);
+                   });
+  if (it != headers.end()) {
+    x_correlation_id = it->second;
+  }
+}
+
 }  // namespace
 
 namespace olp {
@@ -87,11 +100,8 @@ StreamApi::SubscribeApiResponse StreamApi::Subscribe(
 
   OLP_SDK_LOG_DEBUG_F(kLogTag, "subscribe, uri=%s, status=%d",
                       metadata_uri.c_str(), http_response.status);
-  if (!HandleCorrelationId(http_response.headers, x_correlation_id)) {
-    OLP_SDK_LOG_INFO(kLogTag,
-                     "X-Correlation-Id was not found in responce headers");
-  }
 
+  HandleCorrelationId(http_response.headers, x_correlation_id);
   return parser::parse<model::SubscribeResponse>(http_response.response);
 }
 
@@ -126,11 +136,7 @@ StreamApi::ConsumeDataApiResponse StreamApi::ConsumeData(
   OLP_SDK_LOG_DEBUG_F(kLogTag, "consumeData, uri=%s, status=%d",
                       metadata_uri.c_str(), http_response.status);
 
-  if (!HandleCorrelationId(http_response.headers, x_correlation_id)) {
-    OLP_SDK_LOG_INFO(kLogTag,
-                     "X-Correlation-Id was not found in responce headers");
-  }
-
+  HandleCorrelationId(http_response.headers, x_correlation_id);
   return parser::parse<model::Messages>(http_response.response);
 }
 
@@ -220,28 +226,8 @@ Response<int> StreamApi::HandleOffsets(
   OLP_SDK_LOG_DEBUG_F(kLogTag, "handleOffsets, uri=%s, status=%d",
                       metadata_uri.c_str(), http_response.status);
 
-  if (!HandleCorrelationId(http_response.headers, x_correlation_id)) {
-    OLP_SDK_LOG_INFO(kLogTag,
-                     "X-Correlation-Id was not found in responce headers");
-  }
-
+  HandleCorrelationId(http_response.headers, x_correlation_id);
   return http_response.status;
-}
-
-bool StreamApi::HandleCorrelationId(const http::HeadersType& headers,
-                                    std::string& x_correlation_id) {
-  auto it = std::find_if(std::begin(headers), std::end(headers),
-                         [](const std::pair<std::string, std::string>& header) {
-                           if (header.first.compare("X-Correlation-Id") == 0) {
-                             return true;
-                           }
-                           return false;
-                         });
-  if (it != headers.end()) {
-    x_correlation_id = it->second;
-    return true;
-  }
-  return false;
 }
 
 }  // namespace read

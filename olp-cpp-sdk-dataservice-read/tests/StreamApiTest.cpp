@@ -82,8 +82,8 @@ const std::string kLayerId{"test-layer"};
 const std::string kSerialMode{"serial"};
 const std::string kParallelMode{"parallel"};
 const std::string kCorrelationId{"test-correlation-id"};
-const std::pair<std::string, std::string> kCorrelationIdHeader{
-    "X-Correlation-Id", kCorrelationId};
+const olp::http::HeaderPair kCorrelationIdHeader{"X-Correlation-Id",
+                                                 kCorrelationId};
 
 constexpr auto kUrlSubscribeNoQueryParams =
     R"(https://some.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/subscribe)";

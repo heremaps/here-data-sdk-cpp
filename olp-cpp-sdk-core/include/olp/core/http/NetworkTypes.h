@@ -130,9 +130,14 @@ class SendOutcome final {
 CORE_API std::string ErrorCodeToString(ErrorCode code);
 
 /**
- * @brief Type alias for HTTP headers.
+ * @brief Type alias for HTTP header.
  */
-using HeadersType = std::vector<std::pair<std::string, std::string>>;
+using HeaderPair = std::pair<std::string, std::string>;
+
+/**
+ * @brief Type alias for vector of HTTP headers.
+ */
+using HeadersType = std::vector<HeaderPair>;
 
 }  // namespace http
 }  // namespace olp
