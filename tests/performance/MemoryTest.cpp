@@ -21,6 +21,7 @@
 #include <memory>
 
 #include <gtest/gtest.h>
+#include <mockserver/Client.h>
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/HRN.h>
@@ -32,7 +33,7 @@
 #include <olp/dataservice/read/CatalogClient.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include <testutils/CustomParameters.hpp>
-#include "NetworkWrapper.h"
+#include "MockResponses.h"
 #include "NullCache.h"
 
 namespace {
@@ -69,13 +70,16 @@ bool ShouldCancel(const TestConfiguration& configuration) {
   float cancel_chance = configuration.cancelation_chance;
   cancel_chance = std::min(cancel_chance, 1.f);
   cancel_chance = std::max(cancel_chance, 0.f);
-  int thresold = static_cast<int>(cancel_chance * 100);
-  return rand() % 100 <= thresold;
+  int threshold = static_cast<int>(cancel_chance * 100);
+  return rand() % 100 <= threshold;
 }
+
+const auto kMockServerHost = "localhost";
+const auto kMockServerPort = 1080;
 
 constexpr auto kLogTag = "MemoryTest";
 const olp::client::HRN kCatalog("hrn:here:data::olp-here-test:testhrn");
-const std::string kVersionedLayerId("versioned_test_layer");
+const std::string kVersionedLayerId("testlayer");
 
 class MemoryTest : public ::testing::TestWithParam<TestConfiguration> {
  public:
@@ -90,6 +94,13 @@ class MemoryTest : public ::testing::TestWithParam<TestConfiguration> {
 
   void RandomlyCancel(olp::client::CancellationToken token);
 
+  std::string GetTestCatalog();
+
+ protected:
+  void MockGetResponse(const std::string& path_matcher,
+                       const std::string& response);
+  void MockResponses();
+
  protected:
   std::atomic<olp::http::RequestId> request_counter_;
   std::vector<std::thread> client_threads_;
@@ -100,14 +111,14 @@ class MemoryTest : public ::testing::TestWithParam<TestConfiguration> {
 
   std::mutex errors_mutex_;
   std::map<int, int> errors_;
+
+  std::unique_ptr<mockserver::Client> mock_server_client_;
 };
 
 olp::http::NetworkProxySettings MemoryTest::GetLocalhostProxySettings() {
   return olp::http::NetworkProxySettings()
-      .WithHostname("localhost")
-      .WithPort(3000)
-      .WithUsername("test_user")
-      .WithPassword("test_password")
+      .WithHostname(kMockServerHost)
+      .WithPort(kMockServerPort)
       .WithType(olp::http::NetworkProxySettings::Type::HTTP);
 }
 
@@ -121,9 +132,8 @@ olp::client::OlpClientSettings MemoryTest::CreateCatalogClientSettings() {
             parameter.task_scheduler_capacity);
   }
 
-  auto network = std::make_shared<Http2HttpNetworkWrapper>();
-  network->WithErrors(parameter.with_errors);
-  network->WithTimeouts(parameter.with_timeouts);
+  auto network = olp::client::OlpClientSettingsFactory::
+      CreateDefaultNetworkRequestHandler();
 
   olp::client::AuthenticationSettings auth_settings;
   auth_settings.provider = []() { return "invalid"; };
@@ -135,7 +145,7 @@ olp::client::OlpClientSettings MemoryTest::CreateCatalogClientSettings() {
   client_settings.proxy_settings = GetLocalhostProxySettings();
   client_settings.cache =
       parameter.cache_factory ? parameter.cache_factory() : nullptr;
-  client_settings.retry_settings.timeout = 1;
+  client_settings.retry_settings.max_attempts = 0;
 
   return client_settings;
 }
@@ -148,6 +158,18 @@ void MemoryTest::SetUp() {
   success_responses_.store(0);
   failed_responses_.store(0);
   errors_.clear();
+
+  auto network = olp::client::OlpClientSettingsFactory::
+      CreateDefaultNetworkRequestHandler();
+  mock_server_client_ = std::make_unique<mockserver::Client>(network);
+
+  // Check the MockServer status by verifying open ports.
+  const auto ports = mock_server_client_->Ports();
+  ASSERT_TRUE(ports.size() > 0u);
+  EXPECT_EQ(kMockServerPort, ports[0]);
+
+  mock_server_client_->Reset();
+  MockResponses();
 }
 
 void MemoryTest::TearDown() {
@@ -197,6 +219,32 @@ void MemoryTest::RandomlyCancel(olp::client::CancellationToken token) {
     std::this_thread::sleep_for(std::chrono::microseconds(rand() % 3000));
     token.Cancel();
   }
+}
+
+std::string MemoryTest::GetTestCatalog() { return kCatalog.ToString(); }
+
+void MemoryTest::MockGetResponse(const std::string& path_matcher,
+                                 const std::string& response) {
+  mock_server_client_->MockResponse("GET", path_matcher, response);
+}
+
+void MemoryTest::MockResponses() {
+  MockGetResponse(PATH_MATCHER_LOOKUP_METADATA, HTTP_RESPONSE_LOOKUP_METADATA);
+  MockGetResponse(PATH_MATCHER_LATEST_CATALOG_VERSION,
+                  HTTP_RESPONSE_LATEST_CATALOG_VERSION);
+  MockGetResponse(PATH_MATCHER_LOOKUP_CONFIG, HTTP_RESPONSE_LOOKUP_CONFIG);
+  MockGetResponse(PATH_MATCHER_CONFIG, HTTP_RESPONSE_CONFIG);
+  MockGetResponse(PATH_MATCHER_LOOKUP_QUERY, HTTP_RESPONSE_LOOKUP_QUERY);
+  MockGetResponse(PATH_MATCHER_QUERY_PARTITION_269, HTTP_RESPONSE_PARTITION_269);
+  MockGetResponse(PATH_MATCHER_LOOKUP_BLOB, HTTP_RESPONSE_LOOKUP_BLOB);
+  MockGetResponse(PATH_MATCHER_BLOB_DATA_269, HTTP_RESPONSE_BLOB_DATA_269);
+  MockGetResponse(PATH_MATCHER_QUADKEYS_1476147, HTTP_RESPONSE_QUADKEYS_1476147);
+  MockGetResponse(PATH_MATCHER_QUADKEYS_5904591, HTTP_RESPONSE_QUADKEYS_5904591);
+  MockGetResponse(PATH_MATCHER_BLOB_DATA_PREFETCH_1, HTTP_RESPONSE_BLOB_DATA_PREFETCH_1);
+  MockGetResponse(PATH_MATCHER_BLOB_DATA_PREFETCH_2, HTTP_RESPONSE_BLOB_DATA_PREFETCH_2);
+  MockGetResponse(PATH_MATCHER_BLOB_DATA_PREFETCH_3, HTTP_RESPONSE_BLOB_DATA_PREFETCH_3);
+  MockGetResponse(PATH_MATCHER_BLOB_DATA_PREFETCH_4, HTTP_RESPONSE_BLOB_DATA_PREFETCH_4);
+  MockGetResponse(PATH_MATCHER_BLOB_DATA_PREFETCH_5, HTTP_RESPONSE_BLOB_DATA_PREFETCH_5);
 }
 
 ///
@@ -286,7 +334,6 @@ TEST_P(MemoryTest, ReadMetadataCatalogClient) {
  */
 TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
   const auto& parameter = GetParam();
-
   auto settings = CreateCatalogClientSettings();
 
   StartThreads([=](uint8_t thread_id) {
@@ -322,12 +369,14 @@ TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
 
 TEST_P(MemoryTest, PrefetchPartitionsFromVersionedLayer) {
   const auto& parameter = GetParam();
-
   auto settings = CreateCatalogClientSettings();
+
+  olp::client::HRN catalog(GetTestCatalog());
+  constexpr auto kLayerId = "hype-test-prefetch";
 
   StartThreads([=](uint8_t thread_id) {
     olp::dataservice::read::VersionedLayerClient service_client(
-        kCatalog, kVersionedLayerId, settings);
+        catalog, kLayerId, settings);
 
     const auto end_timestamp =
         std::chrono::steady_clock::now() + parameter.runtime;
@@ -337,14 +386,12 @@ TEST_P(MemoryTest, PrefetchPartitionsFromVersionedLayer) {
       const auto tile_count = 1 << level;
 
       std::vector<olp::geo::TileKey> tile_keys = {
-          olp::geo::TileKey::FromRowColumnLevel(rand() % tile_count,
-                                                rand() % tile_count, level)};
+          olp::geo::TileKey::FromHereTile("5904591")};
 
       auto request = olp::dataservice::read::PrefetchTilesRequest()
-                         .WithMaxLevel(level + 2)
-                         .WithMinLevel(level)
-                         .WithVersion(17)
-                         .WithTileKeys(tile_keys);
+                         .WithTileKeys(tile_keys)
+                         .WithMinLevel(10)
+                         .WithMaxLevel(12);
       total_requests_.fetch_add(1);
       auto token = service_client.PrefetchTiles(
           std::move(request),

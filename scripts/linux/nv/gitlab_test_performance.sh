@@ -20,22 +20,21 @@
 # For core dump backtrace
 ulimit -c unlimited
 
-# Start local server
-node tests/utils/olp_server/server.js & export SERVER_PID=$!
+# Start MockServer
+nohup node tools/mock-server/server.js > mock-server-out.log 2>mock-server-error.log &
 
-# Node can start server in 1 second, but not faster.
-# Add waiter for server to be started. No other way to solve that.
+# Wait until it's up.
 # Curl returns code 1 - means server still down. Curl returns 0 when server is up
 RC=1
 while [[ ${RC} -ne 0 ]];
 do
         set +e
-        curl -s http://localhost:3000
+        curl -s http://localhost:1080
         RC=$?
         sleep 0.2
         set -e
 done
-echo ">>> Local Server started for further performance test ... >>>"
+echo ">>> MockServer started ... >>>"
 
 export cache_location="cache"
 

@@ -13,10 +13,10 @@ stages:
 build_linux_armhf_fv:
   stage: build
   tags:
-  - docker-prod
+    - docker-prod
   image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_ARMHF}:${DOCKER_IMAGE_ARMHF_VERSION}
   script:
-  - $CI_PROJECT_DIR/scripts/linux-armhf/fv/gitlab_build_armhf_fv.sh
+    - $CI_PROJECT_DIR/scripts/linux-armhf/fv/gitlab_build_armhf_fv.sh
   only:
     refs:
       - master
@@ -27,10 +27,10 @@ build_linux_armhf_fv:
 build_test_linux_fv:
   stage: build
   tags:
-  - docker-prod
+    - docker-prod
   script:
-  - $CI_PROJECT_DIR/scripts/linux/fv/gitlab_build_fv.sh
-  - $CI_PROJECT_DIR/scripts/linux/fv/gitlab_test_fv.sh
+    - $CI_PROJECT_DIR/scripts/linux/fv/gitlab_build_fv.sh
+    - $CI_PROJECT_DIR/scripts/linux/fv/gitlab_test_fv.sh
   only:
     refs:
       - master
@@ -49,10 +49,10 @@ build_test_linux_fv:
 build_test_nv:
   stage: build
   tags:
-  - docker-prod
+    - docker-prod
   script:
-  - $CI_PROJECT_DIR/scripts/linux/nv/gitlab_build_valgrind.sh
-  - $CI_PROJECT_DIR/scripts/linux/nv/gitlab_test_valgrind.sh
+    - $CI_PROJECT_DIR/scripts/linux/nv/gitlab_build_valgrind.sh
+    - $CI_PROJECT_DIR/scripts/linux/nv/gitlab_test_valgrind.sh
   only:
     refs:
       - master
@@ -69,10 +69,13 @@ build_test_nv:
 test_performance_nv:
   stage: test
   tags:
-  - docker-prod
+    - docker-prod
   image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_PERFORMANCE}:${DOCKER_IMAGE_PERFORMANCE_VERSION}
+  before_script:
+    - curl -L https://npmjs.org/install.sh | sudo sh
+    - cd $CI_PROJECT_DIR/tools/mock-server && npm install
   script:
-  - $CI_PROJECT_DIR/scripts/linux/nv/gitlab_test_performance.sh
+    - $CI_PROJECT_DIR/scripts/linux/nv/gitlab_test_performance.sh
   only:
     refs:
       - master
@@ -92,10 +95,10 @@ test_performance_nv:
 upload_sonar_nv:
   stage: deploy
   tags:
-  - docker-prod
+    - docker-prod
   image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_COVERAGE}:${DOCKER_IMAGE_COVERAGE_VERSION}
   script:
-  - $CI_PROJECT_DIR/scripts/linux/nv/gitlab_cppcheck_and_upload_sonar.sh
+    - $CI_PROJECT_DIR/scripts/linux/nv/gitlab_cppcheck_and_upload_sonar.sh
   only:
     refs:
       - master
@@ -106,7 +109,7 @@ upload_sonar_nv:
 translate_report:
   stage: translate_report
   tags:
-  - docker-prod
+    - docker-prod
   image: python:3.6
   when: always
   before_script:

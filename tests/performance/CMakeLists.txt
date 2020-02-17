@@ -22,8 +22,8 @@ endif()
 
 set(OLP_SDK_PERFORMANCE_TESTS_SOURCES
     ./MemoryTest.cpp
+    ./MockResponses.h
     ./NullCache.h
-    ./NetworkWrapper.h
 )
 
 add_executable(olp-cpp-sdk-performance-tests ${OLP_SDK_PERFORMANCE_TESTS_SOURCES})
@@ -33,4 +33,5 @@ target_link_libraries(olp-cpp-sdk-performance-tests
         gtest_main
         olp-cpp-sdk-authentication
         olp-cpp-sdk-dataservice-read
+        mock-server-client
 )
