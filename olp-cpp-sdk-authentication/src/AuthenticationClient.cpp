@@ -126,11 +126,25 @@ enum class FederatedSignInType { FacebookSignIn, GoogleSignIn, ArcgisSignIn };
 
 class AuthenticationClient::Impl final {
  public:
+  /// The sign in cache alias type
+  using SignInCacheType = Atomic<utils::LruCache<std::string, SignInResult>>;
+
+  /// The sign in user cache alias type
+  using SignInUserCacheType =
+      Atomic<utils::LruCache<std::string, SignInUserResult>>;
+
   /**
    * @brief Constructor
    * @param token_cache_limit Maximum number of tokens that will be cached.
    */
   Impl(const std::string& authentication_server_url, size_t token_cache_limit);
+
+  /**
+   * @brief Constructor
+   * @param settings The authentication settings that can be used to configure
+   * the `Impl`  instance.
+   */
+  Impl(AuthenticationSettings settings);
 
   /**
    * @brief Sign in with client credentials
@@ -219,63 +233,60 @@ class AuthenticationClient::Impl final {
       const AuthenticationClient::SignInUserCallback& callback);
 
  private:
-  std::string server_url_;
-  std::shared_ptr<
-      olp::thread::Atomic<utils::LruCache<std::string, SignInResult> > >
-      client_token_cache_;
-  std::shared_ptr<
-      olp::thread::Atomic<utils::LruCache<std::string, SignInUserResult> > >
-      user_token_cache_;
-  http::NetworkSettings network_settings_;
-  std::shared_ptr<http::Network> network_;
-  std::shared_ptr<thread::TaskScheduler> task_scheduler_;
+  std::shared_ptr<SignInCacheType> client_token_cache_;
+  std::shared_ptr<SignInUserCacheType> user_token_cache_;
+  AuthenticationSettings settings_;
 
   mutable std::mutex token_mutex_;
 };
 
 void AuthenticationClient::Impl::SetNetworkProxySettings(
     const http::NetworkProxySettings& proxy_settings) {
-  network_settings_.WithProxySettings(proxy_settings);
+  settings_.network_proxy_settings = proxy_settings;
 }
 
 void AuthenticationClient::Impl::SetNetwork(
     std::shared_ptr<http::Network> network) {
-  if (network_ != network) {
-    network_ = std::move(network);
+  if (settings_.network_request_handler != network) {
+    settings_.network_request_handler = std::move(network);
   }
 }
 
 void AuthenticationClient::Impl::SetTaskScheduler(
     std::shared_ptr<TaskScheduler> task_scheduler) {
-  if (task_scheduler_ != task_scheduler) {
-    task_scheduler_ = std::move(task_scheduler);
+  if (settings_.task_scheduler != task_scheduler) {
+    settings_.task_scheduler = std::move(task_scheduler);
   }
 }
 
 AuthenticationClient::Impl::Impl(const std::string& authentication_server_url,
                                  size_t token_cache_limit)
-    : server_url_(authentication_server_url),
-      client_token_cache_(std::make_shared<
-                          Atomic<utils::LruCache<std::string, SignInResult> > >(
-          token_cache_limit)),
+    : client_token_cache_(std::make_shared<SignInCacheType>(token_cache_limit)),
       user_token_cache_(
-          std::make_shared<
-              Atomic<utils::LruCache<std::string, SignInUserResult> > >(
-              token_cache_limit)),
-      network_settings_() {}
+          std::make_shared<SignInUserCacheType>(token_cache_limit)) {
+  settings_.token_endpoint_url = authentication_server_url;
+  settings_.token_cache_limit = token_cache_limit;
+}
+
+AuthenticationClient::Impl::Impl(AuthenticationSettings settings)
+    : client_token_cache_(
+          std::make_shared<SignInCacheType>(settings.token_cache_limit)),
+      user_token_cache_(
+          std::make_shared<SignInUserCacheType>(settings.token_cache_limit)),
+      settings_(std::move(settings)) {}
 
 client::CancellationToken AuthenticationClient::Impl::SignInClient(
     AuthenticationCredentials credentials, SignInProperties properties,
     AuthenticationClient::SignInClientCallback callback) {
-  if (!network_) {
-    ExecuteOrSchedule(task_scheduler_, [callback] {
+  if (!settings_.network_request_handler) {
+    ExecuteOrSchedule(settings_.task_scheduler, [callback] {
       AuthenticationError result({static_cast<int>(http::ErrorCode::IO_ERROR),
                                   "Cannot sign in while offline"});
       callback(result);
     });
     return client::CancellationToken();
   }
-  std::weak_ptr<http::Network> weak_network(network_);
+  std::weak_ptr<http::Network> weak_network(settings_.network_request_handler);
 
   auto cache = client_token_cache_;
 
@@ -286,15 +297,20 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
     time_t timestamp =
         response.IsSuccessful() ? response.GetResult() : std::time(nullptr);
 
-    std::string url = server_url_;
+    std::string url = settings_.token_endpoint_url;
     url.append(kOauthEndpoint);
+    http::NetworkSettings network_settings;
+    if (settings_.network_proxy_settings) {
+      network_settings.WithProxySettings(
+          settings_.network_proxy_settings.get());
+    }
     http::NetworkRequest request(url);
     request.WithVerb(http::NetworkRequest::HttpVerb::POST);
     request.WithHeader(http::kAuthorizationHeader,
                        generateHeader(credentials, url, timestamp));
     request.WithHeader(http::kContentTypeHeader, kApplicationJson);
     request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
-    request.WithSettings(network_settings_);
+    request.WithSettings(std::move(network_settings));
 
     std::shared_ptr<std::stringstream> payload =
         std::make_shared<std::stringstream>();
@@ -357,8 +373,8 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
 
     context.ExecuteOrCancelled(
         [&]() {
-          auto send_outcome =
-              network_->Send(request, payload, network_callback);
+          auto send_outcome = settings_.network_request_handler->Send(
+              request, payload, network_callback);
           if (!send_outcome.IsSuccessful()) {
             std::string error_message =
                 ErrorCodeToString(send_outcome.GetErrorCode());
@@ -410,19 +426,23 @@ AuthenticationClient::Impl::ParseTimeResponse(std::stringstream& payload) {
 
 client::CancellationToken AuthenticationClient::Impl::GetTimeFromServer(
     TimeCallback callback) {
-  std::weak_ptr<http::Network> weak_network(network_);
-  std::string url = server_url_;
+  std::weak_ptr<http::Network> weak_network(settings_.network_request_handler);
+  std::string url = settings_.token_endpoint_url;
   url.append(kTimestampEndpoint);
+  http::NetworkSettings network_settings;
+  if (settings_.network_proxy_settings) {
+    network_settings.WithProxySettings(settings_.network_proxy_settings.get());
+  }
   http::NetworkRequest request(url);
   request.WithVerb(http::NetworkRequest::HttpVerb::GET);
   request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
-  request.WithSettings(network_settings_);
+  request.WithSettings(std::move(network_settings));
 
   std::shared_ptr<std::stringstream> payload =
       std::make_shared<std::stringstream>();
   auto cache = user_token_cache_;
 
-  auto send_outcome = network_->Send(
+  auto send_outcome = settings_.network_request_handler->Send(
       request, payload,
       [callback, payload](const http::NetworkResponse& network_response) {
         if (network_response.GetStatus() != http::HttpStatusCode::OK) {
@@ -493,30 +513,34 @@ client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
     const AuthenticationCredentials& credentials, const std::string& endpoint,
     const http::NetworkRequest::RequestBodyType& request_body,
     const SignInUserCallback& callback) {
-  if (!network_) {
-    ExecuteOrSchedule(task_scheduler_, [callback] {
+  if (!settings_.network_request_handler) {
+    ExecuteOrSchedule(settings_.task_scheduler, [callback] {
       AuthenticationError result({static_cast<int>(http::ErrorCode::IO_ERROR),
                                   "Cannot handle user request while offline"});
       callback(result);
     });
     return client::CancellationToken();
   }
-  std::weak_ptr<http::Network> weak_network(network_);
-  std::string url = server_url_;
+  std::weak_ptr<http::Network> weak_network(settings_.network_request_handler);
+  std::string url = settings_.token_endpoint_url;
   url.append(endpoint);
   http::NetworkRequest request(url);
+  http::NetworkSettings network_settings;
+  if (settings_.network_proxy_settings) {
+    network_settings.WithProxySettings(settings_.network_proxy_settings.get());
+  }
   request.WithVerb(http::NetworkRequest::HttpVerb::POST);
   request.WithHeader(http::kAuthorizationHeader,
                      generateHeader(credentials, url));
   request.WithHeader(http::kContentTypeHeader, kApplicationJson);
   request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
-  request.WithSettings(network_settings_);
+  request.WithSettings(std::move(network_settings));
 
   std::shared_ptr<std::stringstream> payload =
       std::make_shared<std::stringstream>();
   request.WithBody(request_body);
   auto cache = user_token_cache_;
-  auto send_outcome = network_->Send(
+  auto send_outcome = settings_.network_request_handler->Send(
       request, payload,
       [callback, payload, credentials,
        cache](const http::NetworkResponse& network_response) {
@@ -583,7 +607,7 @@ client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
       });
 
   if (!send_outcome.IsSuccessful()) {
-    ExecuteOrSchedule(task_scheduler_, [send_outcome, callback] {
+    ExecuteOrSchedule(settings_.task_scheduler, [send_outcome, callback] {
       std::string error_message =
           ErrorCodeToString(send_outcome.GetErrorCode());
       AuthenticationError result({static_cast<int>(send_outcome.GetErrorCode()),
@@ -606,55 +630,59 @@ client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
 client::CancellationToken AuthenticationClient::Impl::SignUpHereUser(
     const AuthenticationCredentials& credentials,
     const SignUpProperties& properties, const SignUpCallback& callback) {
-  if (!network_) {
-    ExecuteOrSchedule(task_scheduler_, [callback] {
+  if (!settings_.network_request_handler) {
+    ExecuteOrSchedule(settings_.task_scheduler, [callback] {
       AuthenticationError result({static_cast<int>(http::ErrorCode::IO_ERROR),
                                   "Cannot sign up while offline"});
       callback(result);
     });
     return client::CancellationToken();
   }
-  std::weak_ptr<http::Network> weak_network(network_);
-  std::string url = server_url_;
+  std::weak_ptr<http::Network> weak_network(settings_.network_request_handler);
+  std::string url = settings_.token_endpoint_url;
   url.append(kUserEndpoint);
   http::NetworkRequest request(url);
+  http::NetworkSettings network_settings;
+  if (settings_.network_proxy_settings) {
+    network_settings.WithProxySettings(settings_.network_proxy_settings.get());
+  }
   request.WithVerb(http::NetworkRequest::HttpVerb::POST);
   request.WithHeader(http::kAuthorizationHeader,
                      generateHeader(credentials, url));
   request.WithHeader(http::kContentTypeHeader, kApplicationJson);
   request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
-  request.WithSettings(network_settings_);
+  request.WithSettings(std::move(network_settings));
 
   std::shared_ptr<std::stringstream> payload =
       std::make_shared<std::stringstream>();
   request.WithBody(generateSignUpBody(properties));
-  auto send_outcome =
-      network_->Send(request, payload,
-                     [callback, payload, credentials](
-                         const http::NetworkResponse& network_response) {
-                       auto response_status = network_response.GetStatus();
-                       auto error_msg = network_response.GetError();
+  auto send_outcome = settings_.network_request_handler->Send(
+      request, payload,
+      [callback, payload,
+       credentials](const http::NetworkResponse& network_response) {
+        auto response_status = network_response.GetStatus();
+        auto error_msg = network_response.GetError();
 
-                       if (response_status < 0) {
-                         // Network error response
-                         AuthenticationError error(response_status, error_msg);
-                         callback(error);
-                         return;
-                       }
+        if (response_status < 0) {
+          // Network error response
+          AuthenticationError error(response_status, error_msg);
+          callback(error);
+          return;
+        }
 
-                       auto document = std::make_shared<rapidjson::Document>();
-                       rapidjson::IStreamWrapper stream(*payload.get());
-                       document->ParseStream(stream);
+        auto document = std::make_shared<rapidjson::Document>();
+        rapidjson::IStreamWrapper stream(*payload.get());
+        document->ParseStream(stream);
 
-                       std::shared_ptr<SignUpResultImpl> resp_impl =
-                           std::make_shared<SignUpResultImpl>(
-                               response_status, error_msg, document);
-                       SignUpResult response(resp_impl);
-                       callback(response);
-                     });
+        std::shared_ptr<SignUpResultImpl> resp_impl =
+            std::make_shared<SignUpResultImpl>(response_status, error_msg,
+                                               document);
+        SignUpResult response(resp_impl);
+        callback(response);
+      });
 
   if (!send_outcome.IsSuccessful()) {
-    ExecuteOrSchedule(task_scheduler_, [send_outcome, callback] {
+    ExecuteOrSchedule(settings_.task_scheduler, [send_outcome, callback] {
       std::string error_message =
           ErrorCodeToString(send_outcome.GetErrorCode());
       AuthenticationError result({static_cast<int>(send_outcome.GetErrorCode()),
@@ -677,53 +705,57 @@ client::CancellationToken AuthenticationClient::Impl::SignUpHereUser(
 client::CancellationToken AuthenticationClient::Impl::SignOut(
     const AuthenticationCredentials& credentials,
     const std::string& userAccessToken, const SignOutUserCallback& callback) {
-  if (!network_) {
-    ExecuteOrSchedule(task_scheduler_, [callback] {
+  if (!settings_.network_request_handler) {
+    ExecuteOrSchedule(settings_.task_scheduler, [callback] {
       AuthenticationError result({static_cast<int>(http::ErrorCode::IO_ERROR),
                                   "Cannot sign out while offline"});
       callback(result);
     });
     return client::CancellationToken();
   }
-  std::weak_ptr<http::Network> weak_network(network_);
-  std::string url = server_url_;
+  std::weak_ptr<http::Network> weak_network(settings_.network_request_handler);
+  std::string url = settings_.token_endpoint_url;
   url.append(kSignoutEndpoint);
   http::NetworkRequest request(url);
+  http::NetworkSettings network_settings;
+  if (settings_.network_proxy_settings) {
+    network_settings.WithProxySettings(settings_.network_proxy_settings.get());
+  }
   request.WithVerb(http::NetworkRequest::HttpVerb::POST);
   request.WithHeader(http::kAuthorizationHeader,
                      generateBearerHeader(userAccessToken));
   request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
-  request.WithSettings(network_settings_);
+  request.WithSettings(std::move(network_settings));
 
   std::shared_ptr<std::stringstream> payload =
       std::make_shared<std::stringstream>();
-  auto send_outcome =
-      network_->Send(request, payload,
-                     [callback, payload, credentials](
-                         const http::NetworkResponse& network_response) {
-                       auto response_status = network_response.GetStatus();
-                       auto error_msg = network_response.GetError();
+  auto send_outcome = settings_.network_request_handler->Send(
+      request, payload,
+      [callback, payload,
+       credentials](const http::NetworkResponse& network_response) {
+        auto response_status = network_response.GetStatus();
+        auto error_msg = network_response.GetError();
 
-                       if (response_status < 0) {
-                         // Network error response not available
-                         AuthenticationError error(response_status, error_msg);
-                         callback(error);
-                         return;
-                       }
+        if (response_status < 0) {
+          // Network error response not available
+          AuthenticationError error(response_status, error_msg);
+          callback(error);
+          return;
+        }
 
-                       auto document = std::make_shared<rapidjson::Document>();
-                       rapidjson::IStreamWrapper stream(*payload);
-                       document->ParseStream(stream);
+        auto document = std::make_shared<rapidjson::Document>();
+        rapidjson::IStreamWrapper stream(*payload);
+        document->ParseStream(stream);
 
-                       std::shared_ptr<SignOutResultImpl> resp_impl =
-                           std::make_shared<SignOutResultImpl>(
-                               response_status, error_msg, document);
-                       SignOutResult response(resp_impl);
-                       callback(response);
-                     });
+        std::shared_ptr<SignOutResultImpl> resp_impl =
+            std::make_shared<SignOutResultImpl>(response_status, error_msg,
+                                                document);
+        SignOutResult response(resp_impl);
+        callback(response);
+      });
 
   if (!send_outcome.IsSuccessful()) {
-    ExecuteOrSchedule(task_scheduler_, [send_outcome, callback] {
+    ExecuteOrSchedule(settings_.task_scheduler, [send_outcome, callback] {
       std::string error_message =
           ErrorCodeToString(send_outcome.GetErrorCode());
       AuthenticationError result({static_cast<int>(send_outcome.GetErrorCode()),
@@ -1007,6 +1039,9 @@ std::string AuthenticationClient::Impl::generateUid() {
 AuthenticationClient::AuthenticationClient(
     const std::string& authenticationServerUrl, size_t tokenCacheLimit)
     : impl_(std::make_unique<Impl>(authenticationServerUrl, tokenCacheLimit)) {}
+
+AuthenticationClient::AuthenticationClient(AuthenticationSettings settings)
+    : impl_(std::make_unique<Impl>(std::move(settings))) {}
 
 AuthenticationClient::~AuthenticationClient() = default;
 
