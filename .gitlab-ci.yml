@@ -38,14 +38,13 @@ build_test_linux_fv:
     variables:
       - $FULLY
   artifacts:
+    reports:
+      junit:
+      - reports/*.xml
     when: always
     paths:
       - reports
     expire_in: 1 year
-    # reports:
-    # https://gitlab.com/gitlab-org/gitlab-ce/issues/17081
-    # Check this issue status in Gitlab 12.4 (Oct 2019)
-    #   junit: "reports/*.xml"
 
 build_test_nv:
   stage: build
