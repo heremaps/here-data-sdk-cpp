@@ -66,7 +66,7 @@ CancellationToken ExecuteSingleRequest(
     std::weak_ptr<http::Network> weak_network,
     const http::NetworkRequest& request, const NetworkAsyncCallback& callback) {
   auto response_body = std::make_shared<std::stringstream>();
-
+  auto headers = std::make_shared<http::Headers>();
   auto network = weak_network.lock();
 
   if (!network) {
@@ -76,7 +76,8 @@ CancellationToken ExecuteSingleRequest(
   }
 
   auto send_outcome = network->Send(
-      request, response_body, [=](const http::NetworkResponse& response) {
+      request, response_body,
+      [=](const http::NetworkResponse& response) {
         int status = response.GetStatus();
         if (status >= 400 || status < 0) {
           if (response.GetError().empty()) {
@@ -85,7 +86,11 @@ CancellationToken ExecuteSingleRequest(
             response_body->str(response.GetError());
           }
         }
-        callback(HttpResponse(status, std::move(*response_body)));
+        callback(HttpResponse(status, std::move(*response_body),
+                              std::move(*headers)));
+      },
+      [headers](std::string key, std::string value) {
+        headers->emplace_back(std::move(key), std::move(value));
       });
 
   if (!send_outcome.IsSuccessful()) {
@@ -142,8 +147,10 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
                 condition.Notify();
               }
             },
-            [&headers](std::string key, std::string value) {
-              headers.emplace_back(std::move(key), std::move(value));
+            [&headers, interest_flag](std::string key, std::string value) {
+              if (interest_flag->load()) {
+                headers.emplace_back(std::move(key), std::move(value));
+              }
             });
 
         return CancellationToken([&, interest_flag]() {

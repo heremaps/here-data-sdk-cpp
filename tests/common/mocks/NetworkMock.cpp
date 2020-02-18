@@ -52,13 +52,13 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
       [request_id, completed, pre_signal, wait_for_signal, response_information,
        post_signal, callback_placeholder](
           NetworkRequest request, Network::Payload payload,
-          Network::Callback callback, Network::HeaderCallback,
+          Network::Callback callback, Network::HeaderCallback header_callback,
           Network::DataCallback data_callback) -> olp::http::SendOutcome {
     *callback_placeholder = callback;
 
     auto mocked_network_block = [request, pre_signal, wait_for_signal,
-                                 completed, callback, response_information,
-                                 post_signal, payload]() {
+                                 completed, header_callback, callback,
+                                 response_information, post_signal, payload]() {
       // emulate a small response delay
       std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
@@ -72,6 +72,9 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
       if (!completed->exchange(true)) {
         const auto data_len = strlen(response_information.data);
         payload->write(response_information.data, data_len);
+        for (const auto& header : response_information.headers) {
+          header_callback(header.first, header.second);
+        }
         callback(NetworkResponse().WithStatus(response_information.status));
       }
 

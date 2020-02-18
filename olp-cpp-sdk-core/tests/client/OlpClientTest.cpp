@@ -1019,6 +1019,63 @@ TEST_P(OlpClientTest, CancelBeforeResponse) {
 }
 
 // Test is valid only valid for sync api
+TEST_P(OlpClientTest, CancelBeforeResponseAndCallHeadersCb) {
+  auto wait_for_cancel = std::make_shared<std::promise<bool>>();
+  auto wait_for_reach_network = std::make_shared<std::promise<bool>>();
+  auto was_cancelled = std::make_shared<std::atomic_bool>(false);
+
+  client_.SetBaseUrl("https://www.google.com");
+
+  auto network = std::make_shared<NetworkMock>();
+  client_settings_.network_request_handler = network;
+  client_.SetSettings(client_settings_);
+
+  olp::http::Network::HeaderCallback headers_cb;
+
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        std::thread handler_thread([wait_for_reach_network, wait_for_cancel,
+                                    callback, header_callback, &headers_cb]() {
+          wait_for_reach_network->set_value(true);
+          wait_for_cancel->get_future().get();
+          headers_cb = std::move(header_callback);
+          callback(olp::http::NetworkResponse().WithStatus(200));
+        });
+        handler_thread.detach();
+
+        return olp::http::SendOutcome(olp::http::RequestId(5));
+      });
+
+  EXPECT_CALL(*network, Cancel(5))
+      .WillOnce(
+          [=](olp::http::RequestId request_id) { was_cancelled->store(true); });
+
+  olp::client::CancellationContext context;
+
+  auto response_future = std::async(std::launch::async, [&]() {
+    return call_wrapper_->CallApi(
+        std::string(), "GET", std::multimap<std::string, std::string>(),
+        {{"header", "header"}}, std::multimap<std::string, std::string>(),
+        nullptr, std::string(), context);
+  });
+  wait_for_reach_network->get_future().wait();
+  context.CancelOperation();
+  wait_for_cancel->set_value(true);
+
+  ASSERT_EQ(std::future_status::ready,
+            response_future.wait_for(std::chrono::seconds(2)));
+
+  // call headers callback after call was canceled
+  headers_cb("header", "header");
+
+  EXPECT_TRUE(was_cancelled->load());
+}
+
+// Test is valid only valid for sync api
 TEST_P(OlpClientTest, CancelBeforeExecution) {
   client_.SetBaseUrl("https://www.google.com");
   auto network = std::make_shared<NetworkMock>();
