@@ -22,6 +22,7 @@
 #include <sstream>
 #include <string>
 
+#include <olp/core/porting/deprecated.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
 #include <olp/dataservice/read/FetchOptions.h>
 #include <boost/optional.hpp>
@@ -44,7 +45,11 @@ class DATASERVICE_READ_API PartitionsRequest final {
    * retrieved.
    *
    * @return A reference to the updated `PartitionsRequest` instance.
+   *
+   * @deprecated The version is now a part of the VersionedLayerClient
+   * constructor.
    */
+  OLP_SDK_DEPRECATED("Deprecated, to be removed in 06.2020")
   inline PartitionsRequest& WithVersion(
       boost::optional<int64_t> catalog_version) {
     catalog_version_ = std::move(catalog_version);
@@ -55,7 +60,11 @@ class DATASERVICE_READ_API PartitionsRequest final {
    * @brief Gets the catalog metadata version of the requested partitions.
    *
    * @return The catalog metadata version.
+   *
+   * @deprecated The version is now a part of the VersionedLayerClient
+   * constructor.
    */
+  OLP_SDK_DEPRECATED("Deprecated, to be removed in 06.2020")
   inline const boost::optional<std::int64_t>& GetVersion() const {
     return catalog_version_;
   }
