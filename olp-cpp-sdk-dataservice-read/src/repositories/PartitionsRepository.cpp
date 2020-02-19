@@ -233,6 +233,18 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
   return query_response;
 }
 
+model::Partition PartitionsRepository::PartitionFromSubQuad(
+    const model::SubQuad& sub_quad, const std::string& partition) {
+  model::Partition ret;
+  ret.SetPartition(partition);
+  ret.SetDataHandle(sub_quad.GetDataHandle());
+  ret.SetVersion(sub_quad.GetVersion());
+  ret.SetDataSize(sub_quad.GetDataSize());
+  ret.SetChecksum(sub_quad.GetChecksum());
+  ret.SetCompressedDataSize(sub_quad.GetCompressedDataSize());
+  return ret;
+}
+
 }  // namespace repository
 }  // namespace read
 }  // namespace dataservice

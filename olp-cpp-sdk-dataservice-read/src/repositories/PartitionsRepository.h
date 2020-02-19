@@ -27,6 +27,7 @@
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include "olp/dataservice/read/Types.h"
+#include "generated/model/Index.h"
 
 namespace olp {
 namespace dataservice {
@@ -56,6 +57,8 @@ class PartitionsRepository final {
       client::CancellationContext cancellation_context,
       const DataRequest& data_request, client::OlpClientSettings settings);
 
+  static model::Partition PartitionFromSubQuad(
+      const model::SubQuad& sub_quad, const std::string& partition);
  private:
   static PartitionsResponse GetPartitions(
       client::HRN catalog, std::string layer,

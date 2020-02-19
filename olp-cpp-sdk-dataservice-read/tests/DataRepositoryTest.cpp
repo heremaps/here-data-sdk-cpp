@@ -27,6 +27,7 @@
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/dataservice/read/DataRequest.h>
+#include <olp/dataservice/read/TileRequest.h>
 #include <repositories/DataRepository.h>
 
 #define URL_LOOKUP_BLOB \
@@ -34,6 +35,12 @@
 
 #define URL_BLOB_DATA_269 \
   R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/4eed6ed1-0d32-43b9-ae79-043cb4256432)"
+
+#define URL_BLOB_DATA_5904591 \
+  R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1)"
+
+#define URL_BLOB_DATA_23618364 \
+  R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/f9a9fd8e-eb1b-48e5-bfdb-4392b3826443)"
 
 #define HTTP_RESPONSE_LOOKUP_BLOB \
   R"jsonString([{"api":"blob","version":"v1","baseURL":"https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString"
@@ -43,6 +50,21 @@
 
 #define BLOB_DATA_HANDLE R"(4eed6ed1-0d32-43b9-ae79-043cb4256432)"
 
+#define BLOB_DATA_HANDLE_23618364 R"(f9a9fd8e-eb1b-48e5-bfdb-4392b3826443)"
+
+#define BLOB_DATA_HANDLE_5904591 R"(e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1)"
+
+#define URL_LOOKUP_QUERY \
+  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis/query/v1)"
+
+#define HTTP_RESPONSE_LOOKUP_QUERY \
+  R"jsonString([{"api":"query","version":"v1","baseURL":"https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2","parameters":{}}])jsonString"
+
+#define QUERY_TREE_INDEX \
+  R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/5904591/depths/4)"
+
+#define SUB_QUADS \
+  R"jsonString({"subQuads": [{"subQuadKey":"4","version":4,"dataHandle":"f9a9fd8e-eb1b-48e5-bfdb-4392b3826443"},{"subQuadKey":"5","version":4,"dataHandle":"e119d20e-c7c6-4563-ae88-8aa5c6ca75c3"},{"subQuadKey":"6","version":4,"dataHandle":"a7a1afdf-db7e-4833-9627-d38bee6e2f81"},{"subQuadKey":"7","version":4,"dataHandle":"9d515348-afce-44e8-bc6f-3693cfbed104"},{"subQuadKey":"1","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": [{"partition":"1476147","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"}]})jsonString"
 namespace {
 
 using testing::_;
@@ -249,6 +271,224 @@ TEST_F(DataRepositoryTest, GetBlobDataInProgressCancel) {
           hrn, kLayerId, kService, request, context, *settings_);
   ASSERT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::Cancelled);
+}
+
+TEST_F(DataRepositoryTest, CheckCashedPartitions) {
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP_QUERY));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(QUERY_TREE_INDEX), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   SUB_QUADS));
+
+  olp::client::HRN hrn(GetTestCatalog());
+  int64_t version = 4;
+
+  // query partitions and store to cache
+  {
+    auto request = olp::dataservice::read::TileRequest().WithTileKey(
+        olp::geo::TileKey::FromHereTile("5904591"));
+    olp::client::CancellationContext context;
+    std::string requested_tile_data_handle;
+    auto response = olp::dataservice::read::repository::DataRepository::
+        QueryPartitionsAndGetDataHandle(hrn, kLayerId, request, version,
+                                        context, *settings_,
+                                        requested_tile_data_handle);
+
+    ASSERT_TRUE(response.GetHttpStatusCode() !=
+                static_cast<int>(olp::http::ErrorCode::SUCCESS));
+    ASSERT_EQ(requested_tile_data_handle,"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1");
+  }
+
+  //check if all partitions stored in cache
+  {
+    auto request = olp::dataservice::read::TileRequest().WithTileKey(
+        olp::geo::TileKey::FromHereTile("23618364"));
+    auto partitions = olp::dataservice::read::repository::DataRepository::
+        GetPartitionsFromCache(hrn, kLayerId, request, version, *settings_);
+
+    //check if partitions was stored to cache
+    ASSERT_FALSE(partitions.GetPartitions().size() == 0);
+    ASSERT_EQ(partitions.GetPartitions().front().GetDataHandle(),
+              BLOB_DATA_HANDLE_23618364);
+  }
+}
+
+TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTree) {
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP_QUERY));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(QUERY_TREE_INDEX), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   SUB_QUADS));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP_BLOB));
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_BLOB_DATA_5904591), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   "someData"));
+
+  olp::client::HRN hrn(GetTestCatalog());
+  int64_t version = 4;
+
+  // request data for tile
+  {
+    auto request = olp::dataservice::read::TileRequest().WithTileKey(
+        olp::geo::TileKey::FromHereTile("5904591"));
+    olp::client::CancellationContext context;
+    auto response = olp::dataservice::read::repository::DataRepository::
+        GetVersionedDataTileQuadTree(hrn, kLayerId, request, version, context,
+                                     *settings_);
+    ASSERT_TRUE(response.IsSuccessful());
+  }
+
+  // second request for another tile key, data handle should be found in cache,
+  // no need to query online
+  {
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_BLOB_DATA_23618364), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     "someData"));
+
+    auto request = olp::dataservice::read::TileRequest().WithTileKey(
+        olp::geo::TileKey::FromHereTile("23618364"));
+    olp::client::CancellationContext context;
+    auto response = olp::dataservice::read::repository::DataRepository::
+        GetVersionedDataTileQuadTree(hrn, kLayerId, request, version, context,
+                                     *settings_);
+    ASSERT_TRUE(response.IsSuccessful());
+  }
+}
+
+TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTreeOnlineOnly) {
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP_QUERY));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(QUERY_TREE_INDEX), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   SUB_QUADS));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP_BLOB));
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_BLOB_DATA_5904591), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   "someData"));
+
+  olp::client::HRN hrn(GetTestCatalog());
+  int64_t version = 4;
+
+  // request for tile key, but use OnlineOnly option,
+  {
+    auto request =
+        olp::dataservice::read::TileRequest()
+            .WithTileKey(olp::geo::TileKey::FromHereTile("5904591"))
+            .WithFetchOption(olp::dataservice::read::FetchOptions::OnlineOnly);
+    olp::client::CancellationContext context;
+    auto response = olp::dataservice::read::repository::DataRepository::
+        GetVersionedDataTileQuadTree(hrn, kLayerId, request, version, context,
+                                     *settings_);
+    ASSERT_TRUE(response.IsSuccessful());
+  }
+}
+
+TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTreeImmediateCancel) {
+  olp::client::HRN hrn(GetTestCatalog());
+  int64_t version = 4;
+
+  auto request = olp::dataservice::read::TileRequest().WithTileKey(
+      olp::geo::TileKey::FromHereTile("5904591"));
+  olp::client::CancellationContext context;
+
+  context.CancelOperation();
+  ASSERT_TRUE(context.IsCancelled());
+
+  auto response = olp::dataservice::read::repository::DataRepository::
+      GetVersionedDataTileQuadTree(hrn, kLayerId, request, version, context,
+                                   *settings_);
+
+  ASSERT_EQ(response.GetError().GetErrorCode(),
+            olp::client::ErrorCode::Cancelled);
+}
+
+TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTreeInProgressCancel) {
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP_QUERY));
+
+  olp::client::CancellationContext context;
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(QUERY_TREE_INDEX), _, _, _, _))
+      .WillOnce(
+          [&](olp::http::NetworkRequest, olp::http::Network::Payload,
+              olp::http::Network::Callback, olp::http::Network::HeaderCallback,
+              olp::http::Network::DataCallback) -> olp::http::SendOutcome {
+            std::thread([&]() { context.CancelOperation(); }).detach();
+            constexpr auto unused_request_id = 12;
+            return olp::http::SendOutcome(unused_request_id);
+          });
+
+  EXPECT_CALL(*network_mock_, Cancel(_)).WillOnce(testing::Return());
+
+  olp::client::HRN hrn(GetTestCatalog());
+  int64_t version = 4;
+
+  auto request = olp::dataservice::read::TileRequest().WithTileKey(
+      olp::geo::TileKey::FromHereTile("5904591"));
+
+  auto response = olp::dataservice::read::repository::DataRepository::
+      GetVersionedDataTileQuadTree(hrn, kLayerId, request, version, context,
+                                   *settings_);
+
+  ASSERT_EQ(response.GetError().GetErrorCode(),
+            olp::client::ErrorCode::Cancelled);
+}
+
+TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTreeReturnEmpty) {
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP_QUERY));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(QUERY_TREE_INDEX), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   "no_data_handle_in_responce"));
+
+  olp::client::HRN hrn(GetTestCatalog());
+  int64_t version = 4;
+  olp::client::CancellationContext context;
+
+  auto request = olp::dataservice::read::TileRequest().WithTileKey(
+      olp::geo::TileKey::FromHereTile("5904591"));
+
+  auto response = olp::dataservice::read::repository::DataRepository::
+      GetVersionedDataTileQuadTree(hrn, kLayerId, request, version, context,
+                                   *settings_);
+
+  ASSERT_FALSE(response.IsSuccessful());
+  ASSERT_EQ(response.GetError().GetErrorCode(),
+            olp::client::ErrorCode::NotFound);
 }
 
 }  // namespace

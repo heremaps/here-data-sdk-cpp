@@ -28,6 +28,7 @@
 #include <olp/core/thread/Atomic.h>
 #include <olp/core/thread/TaskScheduler.h>
 #include "ApiClientLookup.h"
+#include "PartitionsRepository.h"
 #include "generated/api/QueryApi.h"
 
 namespace olp {
@@ -38,18 +39,6 @@ namespace repository {
 namespace {
 constexpr auto kLogTag = "PrefetchTilesRepository";
 constexpr std::uint32_t kMaxQuadTreeIndexDepth = 4u;
-
-model::Partition PartitionFromSubQuad(const model::SubQuad& sub_quad,
-                                      const std::string& partition) {
-  model::Partition ret;
-  ret.SetPartition(partition);
-  ret.SetDataHandle(sub_quad.GetDataHandle());
-  ret.SetVersion(sub_quad.GetVersion());
-  ret.SetDataSize(sub_quad.GetDataSize());
-  ret.SetChecksum(sub_quad.GetChecksum());
-  ret.SetCompressedDataSize(sub_quad.GetCompressedDataSize());
-  return ret;
-}
 }  // namespace
 
 using namespace olp::client;
@@ -245,7 +234,7 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
 
     // add to bulk partitions for cacheing
     partitions.GetMutablePartitions().emplace_back(
-        PartitionFromSubQuad(*subquad, subtile.ToHereTile()));
+        PartitionsRepository::PartitionFromSubQuad(*subquad, subtile.ToHereTile()));
   }
 
   // add to cache

@@ -29,10 +29,16 @@ namespace olp {
 namespace dataservice {
 namespace read {
 class DataRequest;
+class TileRequest;
 namespace repository {
 
 class DataRepository final {
  public:
+  static DataResponse GetVersionedDataTileQuadTree(
+      const client::HRN& catalog, const std::string& layer_id,
+      TileRequest request, int64_t version,
+      client::CancellationContext context, client::OlpClientSettings settings);
+
   static DataResponse GetVersionedData(const client::HRN& catalog,
                                        const std::string& layer_id,
                                        DataRequest data_request,
@@ -50,6 +56,16 @@ class DataRepository final {
       const std::string& service, const DataRequest& data_request,
       client::CancellationContext cancellation_context,
       client::OlpClientSettings settings);
+
+  static client::ApiError QueryPartitionsAndGetDataHandle(
+      const client::HRN& catalog, const std::string& layer_id,
+      TileRequest request, int64_t version, client::CancellationContext context,
+      client::OlpClientSettings settings,
+      std::string& requested_tile_data_handle);
+
+  static model::Partitions GetPartitionsFromCache(
+      const client::HRN& catalog, const std::string& layer_id,
+      TileRequest request, int64_t version, client::OlpClientSettings settings);
 };
 }  // namespace repository
 }  // namespace read
