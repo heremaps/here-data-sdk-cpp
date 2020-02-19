@@ -37,8 +37,8 @@ class TaskScheduler;
 
 namespace authentication {
 /// The default token endpoint url.
-static constexpr auto kHereAccountProductionTokenEndpointUrl =
-    "https://account.api.here.com/oauth2/token";
+static constexpr auto kHereAccountProductionUrl =
+    "https://account.api.here.com";
 
 /**
  * @brief Configures the `TokenEndpoint` instance.
@@ -51,13 +51,13 @@ struct AUTHENTICATION_API AuthenticationSettings {
    *
    * To remove any existing proxy settings, set to boost::none.
    */
-  boost::optional<http::NetworkProxySettings> network_proxy_settings;
+  boost::optional<http::NetworkProxySettings> network_proxy_settings{};
 
   /**
    * @brief The network instance that is used to internally operate with the OLP
    * services.
    */
-  std::shared_ptr<http::Network> network_request_handler = nullptr;
+  std::shared_ptr<http::Network> network_request_handler{nullptr};
 
   /**
    * @brief The `TaskScheduler` class that is used to manage
@@ -65,15 +65,18 @@ struct AUTHENTICATION_API AuthenticationSettings {
    *
    * If nullptr, all request calls are performed synchronously.
    */
-  std::shared_ptr<thread::TaskScheduler> task_scheduler;
+  std::shared_ptr<thread::TaskScheduler> task_scheduler{nullptr};
 
   /**
    * @brief The server URL of the token endpoint.
-   *
-   * @note Only standard OAuth2 Token URLs (those ending in `oauth2/token`) are
-   * supported.
    */
-  std::string token_endpoint_url{kHereAccountProductionTokenEndpointUrl};
+  std::string token_endpoint_url{kHereAccountProductionUrl};
+
+  /**
+   * @brief The maximum number of tokens that can be stored in LRU
+   * in-memory cache.
+   */
+  size_t token_cache_limit{100u};
 };
 
 }  // namespace authentication

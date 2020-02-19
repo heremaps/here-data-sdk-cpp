@@ -25,6 +25,7 @@
 #include <memory>
 #include <string>
 
+#include <olp/authentication/AuthenticationSettings.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/http/NetworkProxySettings.h>
@@ -54,9 +55,6 @@ class TaskScheduler;
  * @brief The authentication namespace
  */
 namespace authentication {
-
-static const std::string kHereAccountProductionUrl =
-    "https://account.api.here.com";
 
 /**
  * @brief An API class of the C++ client that provides
@@ -269,6 +267,14 @@ class AUTHENTICATION_API AuthenticationClient {
   AuthenticationClient(
       const std::string& authentication_server_url = kHereAccountProductionUrl,
       size_t token_cache_limit = 100u);
+
+  /**
+   * @brief Creates the `AuthenticationClient` instance.
+   *
+   * @param settings The authentication settings that can be used to configure
+   * the `AuthenticationClient` instance.
+   */
+  explicit AuthenticationClient(AuthenticationSettings settings);
 
   /**
    * @brief A default destructor.
