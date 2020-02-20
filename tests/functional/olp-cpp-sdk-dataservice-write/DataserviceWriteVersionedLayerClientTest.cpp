@@ -119,7 +119,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, StartBatchInvalid) {
   ASSERT_FALSE(cancel_batch_response.IsSuccessful());
 }
 
-TEST_F(DataserviceWriteVersionedLayerClientTest, DISABLED_StartBatch) {
+TEST_F(DataserviceWriteVersionedLayerClientTest, StartBatch) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response = versioned_client
                       ->StartBatch(StartBatchRequest().WithLayers(
@@ -265,7 +265,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, CancelAllBatch) {
   ASSERT_FALSE(response.IsSuccessful());
 }
 
-TEST_F(DataserviceWriteVersionedLayerClientTest, DISABLED_PublishToBatch) {
+TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatch) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response = versioned_client
                       ->StartBatch(StartBatchRequest().WithLayers(
@@ -328,8 +328,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, DISABLED_PublishToBatch) {
             get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_F(DataserviceWriteVersionedLayerClientTest,
-       DISABLED_PublishToBatchDeleteClient) {
+TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchDeleteClient) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response = versioned_client
                       ->StartBatch(StartBatchRequest().WithLayers(
@@ -411,7 +410,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest,
             get_batch_response.GetResult().GetDetails()->GetState());
 }
 
-TEST_F(DataserviceWriteVersionedLayerClientTest, DISABLED_PublishToBatchMulti) {
+TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchMulti) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response = versioned_client
                       ->StartBatch(StartBatchRequest().WithLayers(
