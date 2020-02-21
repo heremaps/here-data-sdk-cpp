@@ -1018,7 +1018,6 @@ TEST_P(OlpClientTest, CancelBeforeResponse) {
   EXPECT_TRUE(was_cancelled->load());
 }
 
-// Test is valid only valid for sync api
 TEST_P(OlpClientTest, CancelBeforeResponseAndCallHeadersCb) {
   auto wait_for_cancel = std::make_shared<std::promise<bool>>();
   auto wait_for_reach_network = std::make_shared<std::promise<bool>>();
@@ -1040,9 +1039,9 @@ TEST_P(OlpClientTest, CancelBeforeResponseAndCallHeadersCb) {
                     olp::http::Network::DataCallback data_callback) {
         std::thread handler_thread([wait_for_reach_network, wait_for_cancel,
                                     callback, header_callback, &headers_cb]() {
+          headers_cb = std::move(header_callback);
           wait_for_reach_network->set_value(true);
           wait_for_cancel->get_future().get();
-          headers_cb = std::move(header_callback);
           callback(olp::http::NetworkResponse().WithStatus(200));
         });
         handler_thread.detach();
