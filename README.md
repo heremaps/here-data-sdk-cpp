@@ -56,7 +56,7 @@ The table below lists the dependencies of the HERE OLP SDK for C++.
 
 | Library              | Minimum version |
 | :------------------- | :-------------- |
-| OpenSSL              | 1.0.2           |
+| OpenSSL              | 1.1.1           |
 | Boost (headers only) | 1.69.0          |
 | LevelDB              | 1.21            |
 | Snappy               | 1.1.7           |
