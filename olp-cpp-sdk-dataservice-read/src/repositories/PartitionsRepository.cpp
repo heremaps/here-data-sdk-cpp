@@ -254,9 +254,8 @@ PartitionsResponse PartitionsRepository::QueryPartitionsAndGetDataHandle(
     std::string& requested_tile_data_handle) {
   auto fetch_option = request.GetFetchOption();
   auto tile = request.GetTileKey().ToHereTile();
-  auto query_api =
-      ApiClientLookup::LookupApi(catalog, context, "query", "v1",
-                                 FetchOptions::OnlineIfNotFound, settings);
+  auto query_api = ApiClientLookup::LookupApi(
+      catalog, context, "query", "v1", request.GetFetchOption(), settings);
 
   if (!query_api.IsSuccessful()) {
     OLP_SDK_LOG_ERROR(kLogTag,
@@ -307,6 +306,22 @@ PartitionsResponse PartitionsRepository::QueryPartitionsAndGetDataHandle(
   return std::move(partitions);
 }
 
+model::Partitions PartitionsRepository::GetTileFromCache(
+    const client::HRN& catalog, const std::string& layer_id,
+    TileRequest request, int64_t version, client::OlpClientSettings settings) {
+  if (request.GetFetchOption() != OnlineOnly) {
+    repository::PartitionsCacheRepository repository(catalog, settings.cache);
+
+    PartitionsRequest partition_request;
+    partition_request.WithBillingTag(request.GetBillingTag())
+        .WithVersion(version);
+
+    const std::vector<std::string> partitions{
+        request.GetTileKey().ToHereTile()};
+    return repository.Get(partition_request, partitions, layer_id);
+  }
+  return {};
+}
 }  // namespace repository
 }  // namespace read
 }  // namespace dataservice

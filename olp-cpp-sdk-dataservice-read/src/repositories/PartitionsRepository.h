@@ -67,6 +67,12 @@ class PartitionsRepository final {
       client::OlpClientSettings settings,
       std::string& requested_tile_data_handle);
 
+  static model::Partitions GetTileFromCache(const client::HRN& catalog,
+                                            const std::string& layer_id,
+                                            TileRequest request,
+                                            int64_t version,
+                                            client::OlpClientSettings settings);
+
  private:
   static PartitionsResponse GetPartitions(
       client::HRN catalog, std::string layer,

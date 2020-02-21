@@ -274,49 +274,6 @@ TEST_F(DataRepositoryTest, GetBlobDataInProgressCancel) {
             olp::client::ErrorCode::Cancelled);
 }
 
-TEST_F(DataRepositoryTest, CheckCashedPartitions) {
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   HTTP_RESPONSE_LOOKUP_QUERY));
-
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(QUERY_TREE_INDEX), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   SUB_QUADS));
-
-  olp::client::HRN hrn(GetTestCatalog());
-  int64_t version = 4;
-
-  // query partitions and store to cache
-  {
-    auto request = olp::dataservice::read::TileRequest().WithTileKey(
-        olp::geo::TileKey::FromHereTile("5904591"));
-    olp::client::CancellationContext context;
-    std::string requested_tile_data_handle;
-    auto response = olp::dataservice::read::repository::PartitionsRepository::
-        QueryPartitionsAndGetDataHandle(hrn, kLayerId, request, version,
-                                        context, *settings_,
-                                        requested_tile_data_handle);
-
-    ASSERT_TRUE(response.IsSuccessful());
-    ASSERT_EQ(requested_tile_data_handle,"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1");
-  }
-
-  //check if all partitions stored in cache
-  {
-    auto request = olp::dataservice::read::TileRequest().WithTileKey(
-        olp::geo::TileKey::FromHereTile("23618364"));
-    auto partitions = olp::dataservice::read::repository::DataRepository::
-        GetPartitionsFromCache(hrn, kLayerId, request, version, *settings_);
-
-    //check if partitions was stored to cache
-    ASSERT_FALSE(partitions.GetPartitions().size() == 0);
-    ASSERT_EQ(partitions.GetPartitions().front().GetDataHandle(),
-              BLOB_DATA_HANDLE_23618364);
-  }
-}
-
 TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTree) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(

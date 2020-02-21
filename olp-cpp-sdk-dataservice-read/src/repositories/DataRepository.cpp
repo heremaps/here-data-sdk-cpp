@@ -50,23 +50,6 @@ constexpr auto kBlobService = "blob";
 constexpr auto kVolatileBlobService = "volatile-blob";
 }  // namespace
 
-model::Partitions DataRepository::GetPartitionsFromCache(
-    const client::HRN& catalog, const std::string& layer_id,
-    TileRequest request, int64_t version, client::OlpClientSettings settings) {
-  if (request.GetFetchOption() != OnlineOnly) {
-    repository::PartitionsCacheRepository repository(catalog, settings.cache);
-
-    PartitionsRequest partition_request;
-    partition_request.WithBillingTag(request.GetBillingTag())
-        .WithVersion(version);
-
-    const std::vector<std::string> partitions{
-        request.GetTileKey().ToHereTile()};
-    return repository.Get(partition_request, partitions, layer_id);
-  }
-  return {};
-}
-
 DataResponse DataRepository::GetVersionedDataTileQuadTree(
     const client::HRN& catalog, const std::string& layer_id,
     TileRequest request, int64_t version, client::CancellationContext context,
@@ -74,8 +57,8 @@ DataResponse DataRepository::GetVersionedDataTileQuadTree(
   auto tile = request.GetTileKey().ToHereTile();
   std::string requested_tile_data_handle;
 
-  auto cached_partitions =
-      GetPartitionsFromCache(catalog, layer_id, request, version, settings);
+  auto cached_partitions = PartitionsRepository::GetTileFromCache(
+      catalog, layer_id, request, version, settings);
   if (cached_partitions.GetPartitions().size() > 0) {
     OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
                        request.CreateKey(layer_id).c_str());
@@ -89,6 +72,11 @@ DataResponse DataRepository::GetVersionedDataTileQuadTree(
         break;
       }
     }
+  } else if (request.GetFetchOption() == CacheOnly) {
+    OLP_SDK_LOG_INFO_F(kLogTag, "cache tile '%s' not found!",
+                       request.CreateKey(layer_id).c_str());
+    return ApiError(ErrorCode::NotFound,
+                    "Cache only resource not found in cache (data).");
   } else {
     auto response = PartitionsRepository::QueryPartitionsAndGetDataHandle(
         catalog, layer_id, request, version, context, settings,
@@ -108,7 +96,8 @@ DataResponse DataRepository::GetVersionedDataTileQuadTree(
 
   DataRequest data_request = DataRequest()
                                  .WithDataHandle(requested_tile_data_handle)
-                                 .WithVersion(version);
+                                 .WithVersion(version)
+                                 .WithFetchOption(request.GetFetchOption());
   // get the data using a data handle for reqested tile
   return repository::DataRepository::GetBlobData(
       catalog, layer_id, kBlobService, data_request, context, settings);

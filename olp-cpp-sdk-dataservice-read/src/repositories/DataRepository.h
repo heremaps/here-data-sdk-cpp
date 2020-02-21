@@ -56,10 +56,6 @@ class DataRepository final {
       const std::string& service, const DataRequest& data_request,
       client::CancellationContext cancellation_context,
       client::OlpClientSettings settings);
-
-  static model::Partitions GetPartitionsFromCache(
-      const client::HRN& catalog, const std::string& layer_id,
-      TileRequest request, int64_t version, client::OlpClientSettings settings);
 };
 }  // namespace repository
 }  // namespace read
