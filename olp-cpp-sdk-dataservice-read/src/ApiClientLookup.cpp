@@ -76,7 +76,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
   const auto& base_url = GetDatastoreServerUrl(catalog.partition);
   client::OlpClient client;
   client.SetBaseUrl(base_url);
-  client.SetSettings(std::move(settings));
+  client.SetSettings(settings);
   PlatformApi::ApisResponse api_response;
   if (service == "config") {
     api_response = PlatformApi::GetApis(client, service, service_version,
@@ -114,8 +114,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
 
   client::OlpClient service_client;
   service_client.SetBaseUrl(service_url);
-  service_client.SetSettings(std::move(settings));
-
+  service_client.SetSettings(settings);
   return std::move(service_client);
 }
 

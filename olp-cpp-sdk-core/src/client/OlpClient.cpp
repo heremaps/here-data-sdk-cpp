@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ constexpr auto kLogTag = "OlpClient";
 namespace olp {
 namespace client {
 
+namespace {
 static const auto kCancelledErrorResponse =
     http::NetworkResponse()
         .WithStatus(static_cast<int>(http::ErrorCode::CANCELLED_ERROR))
@@ -52,7 +53,13 @@ HttpResponse ToHttpResponse(const http::NetworkResponse& response) {
   return {response.GetStatus(), response.GetError()};
 }
 
-namespace {
+HttpResponse ToHttpResponse(const http::SendOutcome& outcome) {
+  return {static_cast<int>(outcome.GetErrorCode()),
+          http::ErrorCodeToString(outcome.GetErrorCode())};
+}
+
+bool StatusSuccess(int status) { return status >= 0 && status < 400; }
+
 bool CaseInsensitiveCompare(const std::string& str1, const std::string& str2) {
   return (str1.size() == str2.size()) &&
          std::equal(str1.begin(), str1.end(), str2.begin(),
@@ -60,6 +67,15 @@ bool CaseInsensitiveCompare(const std::string& str1, const std::string& str2) {
                       return (c1 == c2) ||
                              (std::tolower(c1) == std::tolower(c2));
                     });
+}
+
+void AddBearer(const boost::optional<AuthenticationSettings>& settings,
+               http::NetworkRequest& request) {
+  if (settings && settings.get().provider) {
+    std::string bearer =
+        http::kBearer + std::string(" ") + settings.get().provider();
+    request.WithHeader(http::kAuthorizationHeader, bearer);
+  }
 }
 
 CancellationToken ExecuteSingleRequest(
@@ -70,8 +86,8 @@ CancellationToken ExecuteSingleRequest(
   auto network = weak_network.lock();
 
   if (!network) {
-    HttpResponse result(static_cast<int>(olp::http::ErrorCode::OFFLINE_ERROR));
-    callback(std::move(result));
+    callback({static_cast<int>(http::ErrorCode::OFFLINE_ERROR),
+              "Network layer offline or missing."});
     return CancellationToken();
   }
 
@@ -79,23 +95,21 @@ CancellationToken ExecuteSingleRequest(
       request, response_body,
       [=](const http::NetworkResponse& response) {
         int status = response.GetStatus();
-        if (status >= 400 || status < 0) {
-          if (response.GetError().empty()) {
-            response_body->str("Error occured. Please check HTTP status code.");
-          } else {
-            response_body->str(response.GetError());
-          }
+        if (!StatusSuccess(status)) {
+          response_body->str(
+              response.GetError().empty()
+                  ? "Error occurred. Please check HTTP status code"
+                  : response.GetError());
         }
-        callback(HttpResponse(status, std::move(*response_body),
-                              std::move(*headers)));
+
+        callback({status, std::move(*response_body), std::move(*headers)});
       },
       [headers](std::string key, std::string value) {
         headers->emplace_back(std::move(key), std::move(value));
       });
 
   if (!send_outcome.IsSuccessful()) {
-    callback(HttpResponse(static_cast<int>(send_outcome.GetErrorCode()),
-                          ErrorCodeToString(send_outcome.GetErrorCode())));
+    callback(ToHttpResponse(send_outcome));
     return CancellationToken();
   }
 
@@ -103,7 +117,6 @@ CancellationToken ExecuteSingleRequest(
 
   return CancellationToken([weak_network, request_id]() {
     auto network = weak_network.lock();
-
     if (network) {
       network->Cancel(request_id);
     }
@@ -111,19 +124,17 @@ CancellationToken ExecuteSingleRequest(
 }
 
 http::NetworkRequest::HttpVerb GetHttpVerb(const std::string& verb) {
-  http::NetworkRequest::HttpVerb http_verb =
-      http::NetworkRequest::HttpVerb::GET;
+  if (verb.compare("GET") == 0) {
+    return http::NetworkRequest::HttpVerb::GET;
+  } else if (verb.compare("PUT") == 0) {
+    return http::NetworkRequest::HttpVerb::PUT;
+  } else if (verb.compare("POST") == 0) {
+    return http::NetworkRequest::HttpVerb::POST;
+  } else if (verb.compare("DELETE") == 0) {
+    return http::NetworkRequest::HttpVerb::DEL;
+  }
 
-  if (verb.compare("GET") == 0)
-    http_verb = http::NetworkRequest::HttpVerb::GET;
-  else if (verb.compare("PUT") == 0)
-    http_verb = http::NetworkRequest::HttpVerb::PUT;
-  else if (verb.compare("POST") == 0)
-    http_verb = http::NetworkRequest::HttpVerb::POST;
-  else if (verb.compare("DELETE") == 0)
-    http_verb = http::NetworkRequest::HttpVerb::DEL;
-
-  return http_verb;
+  return http::NetworkRequest::HttpVerb::GET;
 }
 
 HttpResponse SendRequest(const http::NetworkRequest& request,
@@ -131,14 +142,15 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
                          const olp::client::RetrySettings& retry_settings,
                          client::CancellationContext context) {
   struct ResponseData {
-    olp::client::Condition condition_;
-    olp::http::NetworkResponse response_{kCancelledErrorResponse};
-    olp::http::Headers headers_;
+    Condition condition_;
+    http::NetworkResponse response_{kCancelledErrorResponse};
+    http::Headers headers_;
   };
 
   auto response_data = std::make_shared<ResponseData>();
   auto response_body = std::make_shared<std::stringstream>();
   http::SendOutcome outcome{http::ErrorCode::CANCELLED_ERROR};
+  const auto timeout = std::chrono::seconds(retry_settings.timeout);
 
   context.ExecuteOrCancelled(
       [&]() {
@@ -153,8 +165,16 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
                                                    std::move(value));
             });
 
+        if (!outcome.IsSuccessful()) {
+          OLP_SDK_LOG_WARNING_F(kLogTag,
+                                "SendRequest: sending request failed, url=%s",
+                                request.GetUrl().c_str());
+          return CancellationToken();
+        }
+
         auto request_handler = settings.network_request_handler;
         auto request_id = outcome.GetRequestId();
+
         return CancellationToken([=]() {
           request_handler->Cancel(request_id);
           response_data->condition_.Notify();
@@ -163,13 +183,12 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
       [&]() { response_data->condition_.Notify(); });
 
   if (!outcome.IsSuccessful()) {
-    return {static_cast<int>(outcome.GetErrorCode()),
-            ErrorCodeToString(outcome.GetErrorCode())};
+    return ToHttpResponse(outcome);
   }
 
-  if (!response_data->condition_.Wait(
-          std::chrono::seconds(retry_settings.timeout))) {
-    OLP_SDK_LOG_INFO_F(kLogTag, "Timeout");
+  if (!response_data->condition_.Wait(timeout)) {
+    OLP_SDK_LOG_WARNING_F(kLogTag, "Request %" PRIu64 " timed out!",
+                          outcome.GetRequestId());
     context.CancelOperation();
     return ToHttpResponse(kTimeoutErrorResponse);
   }
@@ -181,8 +200,6 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
   return {response_data->response_.GetStatus(), std::move(*response_body),
           std::move(response_data->headers_)};
 }
-
-bool StatusSuccess(int status) { return status >= 0 && status < 400; }
 
 std::chrono::milliseconds CalculateNextWaitTime(
     const RetrySettings& settings,
@@ -197,9 +214,11 @@ std::chrono::milliseconds CalculateNextWaitTime(
   }
   return std::chrono::milliseconds::zero();
 }
-}  // anonymous namespace
 
-OlpClient::OlpClient() {}
+}  // namespace
+
+OlpClient::OlpClient() = default;
+OlpClient::~OlpClient() = default;
 
 void OlpClient::SetBaseUrl(const std::string& base_url) {
   base_url_ = base_url;
@@ -207,7 +226,7 @@ void OlpClient::SetBaseUrl(const std::string& base_url) {
 
 const std::string& OlpClient::GetBaseUrl() const { return base_url_; }
 
-std::multimap<std::string, std::string>& OlpClient::GetMutableDefaultHeaders() {
+OlpClient::ParametersType& OlpClient::GetMutableDefaultHeaders() {
   return default_headers_;
 }
 
@@ -217,22 +236,15 @@ void OlpClient::SetSettings(const OlpClientSettings& settings) {
 
 std::shared_ptr<http::NetworkRequest> OlpClient::CreateRequest(
     const std::string& path, const std::string& method,
-    const std::multimap<std::string, std::string>& query_params,
-    const std::multimap<std::string, std::string>& header_params,
-    const std::shared_ptr<std::vector<unsigned char>>& post_body,
-    const std::string& content_type) const {
+    const OlpClient::ParametersType& query_params,
+    const OlpClient::ParametersType& header_params,
+    const RequestBodyType& post_body, const std::string& content_type) const {
   auto network_request = std::make_shared<http::NetworkRequest>(
-      olp::utils::Url::Construct(base_url_, path, query_params));
+      utils::Url::Construct(base_url_, path, query_params));
 
-  http::NetworkRequest::HttpVerb http_verb = GetHttpVerb(method);
-  network_request->WithVerb(http_verb);
+  network_request->WithVerb(GetHttpVerb(method));
 
-  if (settings_.authentication_settings &&
-      settings_.authentication_settings.get().provider) {
-    std::string bearer = http::kBearer + std::string(" ") +
-                         settings_.authentication_settings.get().provider();
-    network_request->WithHeader(http::kAuthorizationHeader, bearer);
-  }
+  AddBearer(settings_.authentication_settings, *network_request);
 
   for (const auto& header : default_headers_) {
     network_request->WithHeader(header.first, header.second);
@@ -275,123 +287,106 @@ NetworkAsyncCallback GetRetryCallback(
     const auto max_wait_time =
         std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::seconds(settings.timeout));
+
     if (current_try > settings.max_attempts ||
         !settings.retry_condition(response) ||
         accumulated_wait_time >= max_wait_time) {
+      // Response is either successull or retries count/time expired
       callback(std::move(response));
+      return;
+    }
+
+    // TODO there must be a better way
+    const auto actual_wait_time = std::min(
+        current_backdown_period, max_wait_time - accumulated_wait_time);
+    std::this_thread::sleep_for(actual_wait_time);
+
+    const auto next_wait_time =
+        CalculateNextWaitTime(settings, current_backdown_period, current_try);
+
+    auto cancel_context = weak_cancel_context.lock();
+    if (cancel_context) {
+      cancel_context->ExecuteOrCancelled(
+          [&]() -> CancellationToken {
+            return ExecuteSingleRequest(
+                network, *network_request,
+                GetRetryCallback(current_try, next_wait_time,
+                                 accumulated_wait_time + actual_wait_time,
+                                 settings, callback, network_request, network,
+                                 weak_cancel_context));
+          },
+          [callback] { callback(ToHttpResponse(kCancelledErrorResponse)); });
     } else {
-      // TODO there must be a better way
-      const auto actual_wait_time = std::min(
-          current_backdown_period, max_wait_time - accumulated_wait_time);
-      std::this_thread::sleep_for(actual_wait_time);
-
-      const auto next_wait_time =
-          CalculateNextWaitTime(settings, current_backdown_period, current_try);
-
-      auto cancel_context = weak_cancel_context.lock();
-      if (cancel_context) {
-        cancel_context->ExecuteOrCancelled(
-            [&]() -> CancellationToken {
-              return ExecuteSingleRequest(
-                  network, *network_request,
-                  GetRetryCallback(current_try, next_wait_time,
-                                   accumulated_wait_time + actual_wait_time,
-                                   settings, callback, network_request, network,
-                                   weak_cancel_context));
-            },
-            [callback]() {
-              callback(HttpResponse(
-                  static_cast<int>(http::ErrorCode::CANCELLED_ERROR),
-                  "Operation Cancelled."));
-            });
-      } else {
-        // Last (and only) strong reference lives in cancellation
-        // token, which is reset on CancelOperation.
-        callback(
-            HttpResponse(static_cast<int>(http::ErrorCode::CANCELLED_ERROR),
-                         "Operation Cancelled."));
-      }
+      // Last (and only) strong reference lives in cancellation
+      // token, which is reset on CancelOperation.
+      callback(ToHttpResponse(kCancelledErrorResponse));
     }
   };
 }
 
 CancellationToken OlpClient::CallApi(
     const std::string& path, const std::string& method,
-    const std::multimap<std::string, std::string>& query_params,
-    const std::multimap<std::string, std::string>& header_params,
-    const std::multimap<std::string, std::string>& form_params,
-    const std::shared_ptr<std::vector<unsigned char>>& post_body,
+    const OlpClient::ParametersType& query_params,
+    const OlpClient::ParametersType& header_params,
+    const OlpClient::ParametersType& form_params,
+    const OlpClient::RequestBodyType& post_body,
     const std::string& content_type,
     const NetworkAsyncCallback& callback) const {
   auto network_request = CreateRequest(path, method, query_params,
                                        header_params, post_body, content_type);
 
-  auto proxy_settings = olp::http::NetworkProxySettings();
+  const auto& retry_settings = settings_.retry_settings;
 
-  if (this->settings_.proxy_settings) {
-    proxy_settings = *this->settings_.proxy_settings;
-  }
-  olp::http::NetworkSettings network_settings;
-  network_settings.WithConnectionTimeout(
-      this->settings_.retry_settings.timeout);
-  network_settings.WithTransferTimeout(this->settings_.retry_settings.timeout);
-  network_settings.WithRetries(this->settings_.retry_settings.max_attempts);
+  auto network_settings =
+      http::NetworkSettings()
+          .WithConnectionTimeout(retry_settings.timeout)
+          .WithTransferTimeout(retry_settings.timeout)
+          .WithRetries(retry_settings.max_attempts)
+          .WithProxySettings(
+              settings_.proxy_settings.value_or(http::NetworkProxySettings()));
 
-  network_settings.WithProxySettings(std::move(proxy_settings));
   network_request->WithSettings(std::move(network_settings));
 
   auto cancel_context = std::make_shared<CancellationContext>();
-  std::weak_ptr<olp::http::Network> network =
-      this->settings_.network_request_handler;
+  std::weak_ptr<olp::http::Network> network = settings_.network_request_handler;
 
-  RetrySettings retry_settings;
-  retry_settings.max_attempts = settings_.retry_settings.max_attempts;
-  retry_settings.timeout = settings_.retry_settings.timeout;
-  retry_settings.initial_backdown_period =
-      settings_.retry_settings.initial_backdown_period;
-  retry_settings.backdown_policy = settings_.retry_settings.backdown_policy;
-  retry_settings.backdown_strategy = settings_.retry_settings.backdown_strategy;
-  retry_settings.retry_condition = settings_.retry_settings.retry_condition;
-
-  NetworkAsyncCallback retry_callback =
-      GetRetryCallback(0,
-                       std::chrono::milliseconds(
-                           settings_.retry_settings.initial_backdown_period),
-                       std::chrono::milliseconds::zero(), retry_settings,
-                       callback, network_request, network, cancel_context);
+  auto retry_callback = GetRetryCallback(
+      0, std::chrono::milliseconds(retry_settings.initial_backdown_period),
+      std::chrono::milliseconds::zero(), retry_settings, callback,
+      network_request, network, cancel_context);
 
   cancel_context->ExecuteOrCancelled(
       [=]() -> CancellationToken {
         return ExecuteSingleRequest(network, *network_request, retry_callback);
       },
-      [callback]() {
-        callback(
-            HttpResponse(static_cast<int>(http::ErrorCode::CANCELLED_ERROR),
-                         "Operation Cancelled."));
-      });
+      [callback] { callback(ToHttpResponse(kCancelledErrorResponse)); });
 
   return CancellationToken(
       [cancel_context]() { cancel_context->CancelOperation(); });
 }
 
-HttpResponse OlpClient::CallApi(
-    std::string path, std::string method,
-    std::multimap<std::string, std::string> query_params,
-    std::multimap<std::string, std::string> header_params,
-    std::multimap<std::string, std::string> forms_params,
-    std::shared_ptr<std::vector<unsigned char>> post_body,
-    std::string content_type, CancellationContext context) const {
-  http::NetworkRequest network_request(
-      olp::utils::Url::Construct(base_url_, path, query_params));
+HttpResponse OlpClient::CallApi(std::string path, std::string method,
+                                OlpClient::ParametersType query_params,
+                                OlpClient::ParametersType header_params,
+                                OlpClient::ParametersType forms_params,
+                                OlpClient::RequestBodyType post_body,
+                                std::string content_type,
+                                CancellationContext context) const {
+  const auto& retry_settings = settings_.retry_settings;
+  auto network_settings =
+      http::NetworkSettings()
+          .WithTransferTimeout(retry_settings.timeout)
+          .WithConnectionTimeout(retry_settings.timeout)
+          .WithProxySettings(
+              settings_.proxy_settings.value_or(http::NetworkProxySettings()));
 
-  network_request.WithVerb(GetHttpVerb(method));
+  auto network_request =
+      http::NetworkRequest(utils::Url::Construct(base_url_, path, query_params))
+          .WithVerb(GetHttpVerb(method))
+          .WithBody(std::move(post_body))
+          .WithSettings(std::move(network_settings));
 
-  if (settings_.authentication_settings &&
-      settings_.authentication_settings.get().provider) {
-    std::string bearer = http::kBearer + std::string(" ") +
-                         settings_.authentication_settings.get().provider();
-    network_request.WithHeader(http::kAuthorizationHeader, bearer);
-  }
+  AddBearer(settings_.authentication_settings, network_request);
 
   for (const auto& header : default_headers_) {
     network_request.WithHeader(header.first, header.second);
@@ -418,21 +413,8 @@ HttpResponse OlpClient::CallApi(
     network_request.WithHeader(http::kContentTypeHeader, content_type);
   }
 
-  network_request.WithBody(post_body);
-
-  const auto& retry_settings = settings_.retry_settings;
   auto backdown_period =
       std::chrono::milliseconds(retry_settings.initial_backdown_period);
-
-  olp::http::NetworkSettings network_settings;
-
-  network_settings.WithTransferTimeout(retry_settings.timeout)
-      .WithConnectionTimeout(retry_settings.timeout);
-
-  network_settings.WithProxySettings(
-      settings_.proxy_settings.value_or(olp::http::NetworkProxySettings()));
-
-  network_request.WithSettings(std::move(network_settings));
 
   auto response =
       SendRequest(network_request, settings_, retry_settings, context);
@@ -471,5 +453,6 @@ HttpResponse OlpClient::CallApi(
 
   return response;
 }
+
 }  // namespace client
 }  // namespace olp
