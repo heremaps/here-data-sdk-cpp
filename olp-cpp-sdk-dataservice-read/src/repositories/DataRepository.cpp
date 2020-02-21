@@ -31,7 +31,6 @@
 #include "PartitionsCacheRepository.h"
 #include "PartitionsRepository.h"
 #include "generated/api/BlobApi.h"
-#include "generated/api/QueryApi.h"
 #include "generated/api/VolatileBlobApi.h"
 #include "olp/dataservice/read/CatalogRequest.h"
 #include "olp/dataservice/read/CatalogVersionRequest.h"
@@ -49,7 +48,6 @@ namespace {
 constexpr auto kLogTag = "DataRepository";
 constexpr auto kBlobService = "blob";
 constexpr auto kVolatileBlobService = "volatile-blob";
-constexpr std::uint32_t kMaxQuadTreeIndexDepth = 4u;
 }  // namespace
 
 model::Partitions DataRepository::GetPartitionsFromCache(
@@ -67,66 +65,6 @@ model::Partitions DataRepository::GetPartitionsFromCache(
     return repository.Get(partition_request, partitions, layer_id);
   }
   return {};
-}
-
-client::ApiError DataRepository::QueryPartitionsAndGetDataHandle(
-    const client::HRN& catalog, const std::string& layer_id,
-    TileRequest request, int64_t version, client::CancellationContext context,
-    client::OlpClientSettings settings,
-    std::string& requested_tile_data_handle) {
-  auto fetch_option = request.GetFetchOption();
-  auto tile = request.GetTileKey().ToHereTile();
-  auto query_api =
-      ApiClientLookup::LookupApi(catalog, context, "query", "v1",
-                                 FetchOptions::OnlineIfNotFound, settings);
-
-  if (!query_api.IsSuccessful()) {
-    OLP_SDK_LOG_ERROR(kLogTag,
-                      "QueryPartitionsAndGetDataHandle: LookupApi failed.");
-    return query_api.GetError();
-  }
-
-  auto quad_tree = QueryApi::QuadTreeIndex(
-      query_api.GetResult(), layer_id, version, tile, kMaxQuadTreeIndexDepth,
-      boost::none, request.GetBillingTag(), context);
-
-  if (!quad_tree.IsSuccessful()) {
-    OLP_SDK_LOG_ERROR_F(kLogTag,
-                        "QuadTreeIndex failed (%s, %" PRId64 ", %" PRId32 ")",
-                        tile.c_str(), version, kMaxQuadTreeIndexDepth);
-    return quad_tree.GetError();
-  }
-
-  model::Partitions partitions;
-  const auto& subquads = quad_tree.GetResult().GetSubQuads();
-  partitions.GetMutablePartitions().reserve(subquads.size());
-
-  OLP_SDK_LOG_TRACE_F(kLogTag, "Requested tile subquads size %lu.",
-                      subquads.size());
-
-  for (const auto& subquad : subquads) {
-    auto subtile =
-        request.GetTileKey().AddedSubHereTile(subquad->GetSubQuadKey());
-    // find data handle for requested tile
-    if (subtile.ToHereTile().compare(tile) == 0) {
-      requested_tile_data_handle = subquad->GetDataHandle();
-      OLP_SDK_LOG_INFO_F(kLogTag, "Requested tile data handle: %s.",
-                         requested_tile_data_handle.c_str());
-    }
-    // add partitions for caching
-    partitions.GetMutablePartitions().emplace_back(
-        PartitionsRepository::PartitionFromSubQuad(*subquad,
-                                                   subtile.ToHereTile()));
-  }
-
-  // add partitions to cache
-  repository::PartitionsCacheRepository repository(catalog, settings.cache);
-
-  if (fetch_option != OnlineOnly) {
-    repository.Put(PartitionsRequest().WithVersion(version), partitions,
-                   layer_id, boost::none);
-  }
-  return client::ApiError{olp::http::HttpStatusCode::OK};
 }
 
 DataResponse DataRepository::GetVersionedDataTileQuadTree(
@@ -152,12 +90,11 @@ DataResponse DataRepository::GetVersionedDataTileQuadTree(
       }
     }
   } else {
-    auto response = QueryPartitionsAndGetDataHandle(catalog, layer_id, request,
-                                                    version, context, settings,
-                                                    requested_tile_data_handle);
-    if (response.GetHttpStatusCode() !=
-        static_cast<int>(olp::http::HttpStatusCode::OK)) {
-      return response;
+    auto response = PartitionsRepository::QueryPartitionsAndGetDataHandle(
+        catalog, layer_id, request, version, context, settings,
+        requested_tile_data_handle);
+    if (!response.IsSuccessful()) {
+      return response.GetError();
     }
   }
 

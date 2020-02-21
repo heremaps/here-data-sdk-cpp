@@ -29,6 +29,7 @@
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/TileRequest.h>
 #include <repositories/DataRepository.h>
+#include <repositories/PartitionsRepository.h>
 
 #define URL_LOOKUP_BLOB \
   R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis/blob/v1)"
@@ -293,13 +294,12 @@ TEST_F(DataRepositoryTest, CheckCashedPartitions) {
         olp::geo::TileKey::FromHereTile("5904591"));
     olp::client::CancellationContext context;
     std::string requested_tile_data_handle;
-    auto response = olp::dataservice::read::repository::DataRepository::
+    auto response = olp::dataservice::read::repository::PartitionsRepository::
         QueryPartitionsAndGetDataHandle(hrn, kLayerId, request, version,
                                         context, *settings_,
                                         requested_tile_data_handle);
 
-    ASSERT_TRUE(response.GetHttpStatusCode() !=
-                static_cast<int>(olp::http::ErrorCode::SUCCESS));
+    ASSERT_TRUE(response.IsSuccessful());
     ASSERT_EQ(requested_tile_data_handle,"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1");
   }
 

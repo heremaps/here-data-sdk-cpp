@@ -34,6 +34,7 @@ namespace dataservice {
 namespace read {
 class DataRequest;
 class PartitionsRequest;
+class TileRequest;
 
 namespace repository {
 class ApiRepository;
@@ -59,6 +60,13 @@ class PartitionsRepository final {
 
   static model::Partition PartitionFromSubQuad(
       const model::SubQuad& sub_quad, const std::string& partition);
+
+  static PartitionsResponse QueryPartitionsAndGetDataHandle(
+      const client::HRN& catalog, const std::string& layer_id,
+      TileRequest request, int64_t version, client::CancellationContext context,
+      client::OlpClientSettings settings,
+      std::string& requested_tile_data_handle);
+
  private:
   static PartitionsResponse GetPartitions(
       client::HRN catalog, std::string layer,

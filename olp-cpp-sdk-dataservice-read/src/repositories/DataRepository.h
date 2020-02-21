@@ -57,12 +57,6 @@ class DataRepository final {
       client::CancellationContext cancellation_context,
       client::OlpClientSettings settings);
 
-  static client::ApiError QueryPartitionsAndGetDataHandle(
-      const client::HRN& catalog, const std::string& layer_id,
-      TileRequest request, int64_t version, client::CancellationContext context,
-      client::OlpClientSettings settings,
-      std::string& requested_tile_data_handle);
-
   static model::Partitions GetPartitionsFromCache(
       const client::HRN& catalog, const std::string& layer_id,
       TileRequest request, int64_t version, client::OlpClientSettings settings);
