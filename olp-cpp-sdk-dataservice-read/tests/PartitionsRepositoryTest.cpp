@@ -105,11 +105,12 @@ TEST(PartitionsRepositoryTest, GetPartitionById) {
 
   const DataRequest request{
       DataRequest().WithPartitionId(kPartitionId).WithVersion(kVersion)};
-
-  const std::string cache_key_no_version =
+  const std::string part_cache_key =
       kCatalog + "::" + kLayerId + "::" + kPartitionId + "::";
+
+  const std::string cache_key_no_version = part_cache_key + "partition";
   const std::string cache_key =
-      cache_key_no_version + std::to_string(kVersion) + "::partition";
+      part_cache_key + std::to_string(kVersion) + "::partition";
 
   auto setup_online_only_mocks = [&]() {
     ON_CALL(*cache, Get(_, _))
