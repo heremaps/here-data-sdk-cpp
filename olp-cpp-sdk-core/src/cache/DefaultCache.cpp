@@ -166,10 +166,12 @@ bool DefaultCache::Put(const std::string& key,
   }
 
   if (memory_cache_) {
-    if (!memory_cache_->Put(key, value, expiry, value->size())) {
+    const auto size = value->size();
+    const bool result = memory_cache_->Put(key, value, expiry, size);
+    if (!result && size > settings_.max_memory_cache_size) {
       OLP_SDK_LOG_WARNING_F(kLogTag,
                             "Failed to store value in memory cache %s, size %d",
-                            key.c_str(), static_cast<int>(value->size()));
+                            key.c_str(), static_cast<int>(size));
     }
   }
 
