@@ -1,0 +1,23 @@
+{
+    "name": "@here/mock-server",
+    "description": "MockServer runner",
+    "author": {
+        "name": "HERE Global B.V. and its affiliate(s)",
+        "url": "https://here.com"
+    },
+    "license": "Apache-2.0",
+    "private": true,
+    "version": "0.0.1",
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:heremaps/here-olp-sdk-cpp.git",
+        "directory": "tests/utils/mock-server"
+    },
+    "keywords": [
+        "HERE",
+        "HERE Technologies"
+    ],
+    "dependencies": {
+        "mockserver-node": "^5.9.0"
+    }
+}
