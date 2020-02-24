@@ -23,13 +23,13 @@
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
+#include "olp/dataservice/read/DataRequest.h"
 #include "olp/dataservice/read/Types.h"
+#include "olp/dataservice/read/TileRequest.h"
 
 namespace olp {
 namespace dataservice {
 namespace read {
-class DataRequest;
-class TileRequest;
 namespace repository {
 
 class DataRepository final {

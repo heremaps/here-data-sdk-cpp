@@ -29,6 +29,7 @@
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/TileRequest.h>
 #include <repositories/DataRepository.h>
+#include <repositories/PartitionsCacheRepository.h>
 #include <repositories/PartitionsRepository.h>
 
 #define URL_LOOKUP_BLOB \
@@ -66,6 +67,13 @@
 
 #define SUB_QUADS \
   R"jsonString({"subQuads": [{"subQuadKey":"4","version":4,"dataHandle":"f9a9fd8e-eb1b-48e5-bfdb-4392b3826443"},{"subQuadKey":"5","version":4,"dataHandle":"e119d20e-c7c6-4563-ae88-8aa5c6ca75c3"},{"subQuadKey":"6","version":4,"dataHandle":"a7a1afdf-db7e-4833-9627-d38bee6e2f81"},{"subQuadKey":"7","version":4,"dataHandle":"9d515348-afce-44e8-bc6f-3693cfbed104"},{"subQuadKey":"1","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": [{"partition":"1476147","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"}]})jsonString"
+
+#define QUERY_PARTITION_23618364 \
+  R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/partitions?partition=23618364&version=4)"
+
+#define RESPONSE_PARTITION_23618364 \
+  R"jsonString({ "partitions": [{"version":4,"partition":"23618364","layer":"testlayer","dataHandle":"f9a9fd8e-eb1b-48e5-bfdb-4392b3826443"}]})jsonString"
+
 namespace {
 
 using testing::_;
@@ -313,6 +321,12 @@ TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTree) {
   // second request for another tile key, data handle should be found in cache,
   // no need to query online
   {
+    ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+        .WillByDefault(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               HTTP_RESPONSE_LOOKUP_BLOB));
+
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_BLOB_DATA_23618364), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
@@ -446,6 +460,73 @@ TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTreeReturnEmpty) {
   ASSERT_FALSE(response.IsSuccessful());
   ASSERT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::NotFound);
+}
+
+TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTreeParentTileInCache) {
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP_QUERY));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(QUERY_TREE_INDEX), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   SUB_QUADS));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP_BLOB));
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_BLOB_DATA_5904591), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   "someData"));
+
+  olp::client::HRN hrn(GetTestCatalog());
+  int64_t version = 4;
+
+  // request data for tile
+  {
+    auto request = olp::dataservice::read::TileRequest().WithTileKey(
+        olp::geo::TileKey::FromHereTile("5904591"));
+    olp::client::CancellationContext context;
+    auto response = olp::dataservice::read::repository::DataRepository::
+        GetVersionedDataTileQuadTree(hrn, kLayerId, request, version, context,
+                                     *settings_);
+    ASSERT_TRUE(response.IsSuccessful());
+  }
+
+  // clear partition and than request it. No query tree index should be
+  // requested, as parent tile still in cache
+  {
+    olp::dataservice::read::repository::PartitionsCacheRepository repository(
+        hrn, settings_->cache);
+    olp::dataservice::read::PartitionsRequest partition_request =
+        olp::dataservice::read::PartitionsRequest().WithVersion(4);
+    const std::vector<std::string> partitions{"23618364"};
+    repository.ClearPartitions(partition_request, partitions, kLayerId);
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(QUERY_PARTITION_23618364), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     RESPONSE_PARTITION_23618364));
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_BLOB_DATA_23618364), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     "someData"));
+
+    auto request = olp::dataservice::read::TileRequest().WithTileKey(
+        olp::geo::TileKey::FromHereTile("23618364"));
+    olp::client::CancellationContext context;
+    auto response = olp::dataservice::read::repository::DataRepository::
+        GetVersionedDataTileQuadTree(hrn, kLayerId, request, version, context,
+                                     *settings_);
+    ASSERT_TRUE(response.IsSuccessful());
+  }
 }
 
 }  // namespace

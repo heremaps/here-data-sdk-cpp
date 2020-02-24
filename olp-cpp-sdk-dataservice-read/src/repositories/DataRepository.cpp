@@ -78,6 +78,21 @@ DataResponse DataRepository::GetVersionedDataTileQuadTree(
     return ApiError(ErrorCode::NotFound,
                     "Cache only resource not found in cache (data).");
   } else {
+    auto parent_tile = request;
+    parent_tile.WithTileKey(request.GetTileKey().Parent());
+    auto cached_partitions = PartitionsRepository::GetTileFromCache(
+        catalog, layer_id, parent_tile, version, settings);
+    if (cached_partitions.GetPartitions().size() != 0) {
+      DataRequest data_request =
+          DataRequest()
+              .WithPartitionId(request.GetTileKey().ToHereTile())
+              .WithVersion(version)
+              .WithFetchOption(request.GetFetchOption());
+      // get the requested tile data, if parent tile was found in cache
+      return repository::DataRepository::GetVersionedData(
+          catalog, layer_id, data_request, context, settings);
+    }
+
     auto response = PartitionsRepository::QueryPartitionsAndGetDataHandle(
         catalog, layer_id, request, version, context, settings,
         requested_tile_data_handle);

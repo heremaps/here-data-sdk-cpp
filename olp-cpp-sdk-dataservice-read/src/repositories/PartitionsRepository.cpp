@@ -41,7 +41,7 @@ using namespace olp::client;
 
 namespace {
 constexpr auto kLogTag = "PartitionsRepository";
-constexpr std::uint32_t kMaxQuadTreeIndexDepth = 4u;
+constexpr uint32_t kMaxQuadTreeIndexDepth = 4u;
 
 using LayerVersionReponse = ApiResponse<int64_t, client::ApiError>;
 using LayerVersionCallback = std::function<void(LayerVersionReponse)>;
