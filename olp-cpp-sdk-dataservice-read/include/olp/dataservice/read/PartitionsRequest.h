@@ -21,6 +21,7 @@
 
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include <olp/core/porting/deprecated.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
@@ -37,6 +38,35 @@ namespace read {
  */
 class DATASERVICE_READ_API PartitionsRequest final {
  public:
+  /// The alias type of the vector of partitions ids
+  using PartitionIds = std::vector<std::string>;
+
+  /**
+   * @brief Sets the list of partitions.
+   * 
+   * When set to boost::none, the GetPartitions method will download the whole
+   * layer metadata. Additionally, a single request supports up to 100
+   * partitions.
+   *
+   * @param partitions The list of partitions to request.
+   *
+   * @return A reference to the updated `PartitionsRequest` instance.
+   */
+  inline PartitionsRequest& WithPartitionIds(
+      boost::optional<PartitionIds> partition_ids) {
+    partition_ids_ = std::move(partition_ids);
+    return *this;
+  }
+
+  /**
+   * @brief Gets the list of the partitions.
+   *
+   * @return The optional vector of strings that represent partitions.
+   */
+  inline const boost::optional<PartitionIds>& GetPartitionIds() const {
+    return partition_ids_;
+  }
+
   /**
    * @brief Sets the catalog metadata version.
    *
@@ -159,6 +189,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
   }
 
  private:
+  boost::optional<PartitionIds> partition_ids_;
   boost::optional<int64_t> catalog_version_;
   boost::optional<std::string> billing_tag_;
   FetchOptions fetch_option_{OnlineIfNotFound};
