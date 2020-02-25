@@ -282,7 +282,7 @@ TEST_F(DataRepositoryTest, GetBlobDataInProgressCancel) {
             olp::client::ErrorCode::Cancelled);
 }
 
-TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTree) {
+TEST_F(DataRepositoryTest, GetVersionedDataTile) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
@@ -312,9 +312,9 @@ TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTree) {
     auto request = olp::dataservice::read::TileRequest().WithTileKey(
         olp::geo::TileKey::FromHereTile("5904591"));
     olp::client::CancellationContext context;
-    auto response = olp::dataservice::read::repository::DataRepository::
-        GetVersionedDataTileQuadTree(hrn, kLayerId, request, version, context,
-                                     *settings_);
+    auto response =
+        olp::dataservice::read::repository::DataRepository::GetVersionedTile(
+            hrn, kLayerId, request, version, context, *settings_);
     ASSERT_TRUE(response.IsSuccessful());
   }
 
@@ -336,14 +336,14 @@ TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTree) {
     auto request = olp::dataservice::read::TileRequest().WithTileKey(
         olp::geo::TileKey::FromHereTile("23618364"));
     olp::client::CancellationContext context;
-    auto response = olp::dataservice::read::repository::DataRepository::
-        GetVersionedDataTileQuadTree(hrn, kLayerId, request, version, context,
-                                     *settings_);
+    auto response =
+        olp::dataservice::read::repository::DataRepository::GetVersionedTile(
+            hrn, kLayerId, request, version, context, *settings_);
     ASSERT_TRUE(response.IsSuccessful());
   }
 }
 
-TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTreeOnlineOnly) {
+TEST_F(DataRepositoryTest, GetVersionedDataTileOnlineOnly) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
@@ -375,14 +375,14 @@ TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTreeOnlineOnly) {
             .WithTileKey(olp::geo::TileKey::FromHereTile("5904591"))
             .WithFetchOption(olp::dataservice::read::FetchOptions::OnlineOnly);
     olp::client::CancellationContext context;
-    auto response = olp::dataservice::read::repository::DataRepository::
-        GetVersionedDataTileQuadTree(hrn, kLayerId, request, version, context,
-                                     *settings_);
+    auto response =
+        olp::dataservice::read::repository::DataRepository::GetVersionedTile(
+            hrn, kLayerId, request, version, context, *settings_);
     ASSERT_TRUE(response.IsSuccessful());
   }
 }
 
-TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTreeImmediateCancel) {
+TEST_F(DataRepositoryTest, GetVersionedDataTileImmediateCancel) {
   olp::client::HRN hrn(GetTestCatalog());
   int64_t version = 4;
 
@@ -393,15 +393,15 @@ TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTreeImmediateCancel) {
   context.CancelOperation();
   ASSERT_TRUE(context.IsCancelled());
 
-  auto response = olp::dataservice::read::repository::DataRepository::
-      GetVersionedDataTileQuadTree(hrn, kLayerId, request, version, context,
-                                   *settings_);
+  auto response =
+      olp::dataservice::read::repository::DataRepository::GetVersionedTile(
+          hrn, kLayerId, request, version, context, *settings_);
 
   ASSERT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::Cancelled);
 }
 
-TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTreeInProgressCancel) {
+TEST_F(DataRepositoryTest, GetVersionedDataTileInProgressCancel) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
@@ -427,15 +427,15 @@ TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTreeInProgressCancel) {
   auto request = olp::dataservice::read::TileRequest().WithTileKey(
       olp::geo::TileKey::FromHereTile("5904591"));
 
-  auto response = olp::dataservice::read::repository::DataRepository::
-      GetVersionedDataTileQuadTree(hrn, kLayerId, request, version, context,
-                                   *settings_);
+  auto response =
+      olp::dataservice::read::repository::DataRepository::GetVersionedTile(
+          hrn, kLayerId, request, version, context, *settings_);
 
   ASSERT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::Cancelled);
 }
 
-TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTreeReturnEmpty) {
+TEST_F(DataRepositoryTest, GetVersionedDataTileReturnEmpty) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
@@ -453,80 +453,12 @@ TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTreeReturnEmpty) {
   auto request = olp::dataservice::read::TileRequest().WithTileKey(
       olp::geo::TileKey::FromHereTile("5904591"));
 
-  auto response = olp::dataservice::read::repository::DataRepository::
-      GetVersionedDataTileQuadTree(hrn, kLayerId, request, version, context,
-                                   *settings_);
+  auto response =
+      olp::dataservice::read::repository::DataRepository::GetVersionedTile(
+          hrn, kLayerId, request, version, context, *settings_);
 
   ASSERT_FALSE(response.IsSuccessful());
   ASSERT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::NotFound);
 }
-
-TEST_F(DataRepositoryTest, GetVersionedDataTileQuadTreeParentTileInCache) {
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   HTTP_RESPONSE_LOOKUP_QUERY));
-
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(QUERY_TREE_INDEX), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   SUB_QUADS));
-
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   HTTP_RESPONSE_LOOKUP_BLOB));
-
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_BLOB_DATA_5904591), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   "someData"));
-
-  olp::client::HRN hrn(GetTestCatalog());
-  int64_t version = 4;
-
-  // request data for tile
-  {
-    auto request = olp::dataservice::read::TileRequest().WithTileKey(
-        olp::geo::TileKey::FromHereTile("5904591"));
-    olp::client::CancellationContext context;
-    auto response = olp::dataservice::read::repository::DataRepository::
-        GetVersionedDataTileQuadTree(hrn, kLayerId, request, version, context,
-                                     *settings_);
-    ASSERT_TRUE(response.IsSuccessful());
-  }
-
-  // clear partition and than request it. No query tree index should be
-  // requested, as parent tile still in cache
-  {
-    olp::dataservice::read::repository::PartitionsCacheRepository repository(
-        hrn, settings_->cache);
-    olp::dataservice::read::PartitionsRequest partition_request =
-        olp::dataservice::read::PartitionsRequest().WithVersion(4);
-    const std::vector<std::string> partitions{"23618364"};
-    repository.ClearPartitions(partition_request, partitions, kLayerId);
-
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(QUERY_PARTITION_23618364), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     RESPONSE_PARTITION_23618364));
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_BLOB_DATA_23618364), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     "someData"));
-
-    auto request = olp::dataservice::read::TileRequest().WithTileKey(
-        olp::geo::TileKey::FromHereTile("23618364"));
-    olp::client::CancellationContext context;
-    auto response = olp::dataservice::read::repository::DataRepository::
-        GetVersionedDataTileQuadTree(hrn, kLayerId, request, version, context,
-                                     *settings_);
-    ASSERT_TRUE(response.IsSuccessful());
-  }
-}
-
 }  // namespace

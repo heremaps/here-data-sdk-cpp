@@ -34,10 +34,11 @@ namespace repository {
 
 class DataRepository final {
  public:
-  static DataResponse GetVersionedDataTileQuadTree(
-      const client::HRN& catalog, const std::string& layer_id,
-      TileRequest request, int64_t version,
-      client::CancellationContext context, client::OlpClientSettings settings);
+  static DataResponse GetVersionedTile(const client::HRN& catalog,
+                                       const std::string& layer_id,
+                                       TileRequest request, int64_t version,
+                                       client::CancellationContext context,
+                                       client::OlpClientSettings settings);
 
   static DataResponse GetVersionedData(const client::HRN& catalog,
                                        const std::string& layer_id,

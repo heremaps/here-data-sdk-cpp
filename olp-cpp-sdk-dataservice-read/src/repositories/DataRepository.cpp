@@ -34,9 +34,7 @@
 #include "generated/api/VolatileBlobApi.h"
 #include "olp/dataservice/read/CatalogRequest.h"
 #include "olp/dataservice/read/CatalogVersionRequest.h"
-#include "olp/dataservice/read/DataRequest.h"
 #include "olp/dataservice/read/PartitionsRequest.h"
-#include "olp/dataservice/read/TileRequest.h"
 
 namespace olp {
 namespace dataservice {
@@ -50,7 +48,7 @@ constexpr auto kBlobService = "blob";
 constexpr auto kVolatileBlobService = "volatile-blob";
 }  // namespace
 
-DataResponse DataRepository::GetVersionedDataTileQuadTree(
+DataResponse DataRepository::GetVersionedTile(
     const client::HRN& catalog, const std::string& layer_id,
     TileRequest request, int64_t version, client::CancellationContext context,
     client::OlpClientSettings settings) {
@@ -78,21 +76,6 @@ DataResponse DataRepository::GetVersionedDataTileQuadTree(
     return ApiError(ErrorCode::NotFound,
                     "Cache only resource not found in cache (data).");
   } else {
-    auto parent_tile = request;
-    parent_tile.WithTileKey(request.GetTileKey().Parent());
-    auto cached_partitions = PartitionsRepository::GetTileFromCache(
-        catalog, layer_id, parent_tile, version, settings);
-    if (cached_partitions.GetPartitions().size() != 0) {
-      DataRequest data_request =
-          DataRequest()
-              .WithPartitionId(request.GetTileKey().ToHereTile())
-              .WithVersion(version)
-              .WithFetchOption(request.GetFetchOption());
-      // get the requested tile data, if parent tile was found in cache
-      return repository::DataRepository::GetVersionedData(
-          catalog, layer_id, data_request, context, settings);
-    }
-
     auto response = PartitionsRepository::QueryPartitionsAndGetDataHandle(
         catalog, layer_id, request, version, context, settings,
         requested_tile_data_handle);
@@ -103,8 +86,7 @@ DataResponse DataRepository::GetVersionedDataTileQuadTree(
 
   if (requested_tile_data_handle.empty()) {
     OLP_SDK_LOG_ERROR(
-        kLogTag,
-        "GetVersionedDataTileQuadTree: requested tile handle was not found");
+        kLogTag, "GetVersionedDataTile: requested tile handle was not found");
     return client::ApiError(client::ErrorCode::NotFound,
                             "Requested tile handle was not found.");
   }
