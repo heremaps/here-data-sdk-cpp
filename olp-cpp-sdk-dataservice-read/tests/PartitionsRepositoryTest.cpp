@@ -104,8 +104,10 @@ const std::string kSubQuads =
 
 const std::string kBlobDataHandle23618364 =
     R"(f9a9fd8e-eb1b-48e5-bfdb-4392b3826443)";
+class PartitionsRepositoryTest : public ::testing::Test,
+                                 protected repository::PartitionsRepository {};
 
-TEST(PartitionsRepositoryTest, GetPartitionById) {
+TEST_F(PartitionsRepositoryTest, GetPartitionById) {
   using namespace testing;
   using testing::Return;
 
@@ -539,7 +541,7 @@ TEST(PartitionsRepositoryTest, GetPartitionById) {
   }
 }
 
-TEST(PartitionsRepositoryTest, GetVolatilePartitions) {
+TEST_F(PartitionsRepositoryTest, GetVolatilePartitions) {
   using namespace testing;
   using testing::Return;
 
@@ -613,7 +615,7 @@ TEST(PartitionsRepositoryTest, GetVolatilePartitions) {
   }
 }
 
-TEST(PartitionsRepositoryTest, CheckCashedPartitions) {
+TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
   using namespace testing;
   std::shared_ptr<cache::KeyValueCache> default_cache =
       olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
@@ -642,13 +644,11 @@ TEST(PartitionsRepositoryTest, CheckCashedPartitions) {
     auto request = olp::dataservice::read::TileRequest().WithTileKey(
         olp::geo::TileKey::FromHereTile("5904591"));
     olp::client::CancellationContext context;
-    std::string requested_tile_data_handle;
-    auto response = olp::dataservice::read::repository::PartitionsRepository::
-        QueryPartitionsAndGetDataHandle(hrn, layer, request, version, context,
-                                        settings, requested_tile_data_handle);
+    auto response = QueryPartitionForVersionedTile(hrn, layer, request, version,
+                                                   context, settings);
 
     ASSERT_TRUE(response.IsSuccessful());
-    ASSERT_EQ(requested_tile_data_handle,
+    ASSERT_EQ(response.GetResult().GetPartitions().front().GetDataHandle(),
               "e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1");
   }
 
@@ -657,12 +657,68 @@ TEST(PartitionsRepositoryTest, CheckCashedPartitions) {
         "Check if all partitions stored in cache, request another tile");
     auto request = olp::dataservice::read::TileRequest().WithTileKey(
         olp::geo::TileKey::FromHereTile("23618364"));
-    auto partitions = olp::dataservice::read::repository::PartitionsRepository::
-        GetTileFromCache(hrn, layer, request, version, settings);
+    auto partitions = GetTileFromCache(hrn, layer, request, version, settings);
 
     // check if partition was stored to cache
     ASSERT_FALSE(partitions.GetPartitions().size() == 0);
     ASSERT_EQ(partitions.GetPartitions().front().GetDataHandle(),
+              kBlobDataHandle23618364);
+  }
+}
+
+TEST_F(PartitionsRepositoryTest, GetPartitionForVersionedTile) {
+  using namespace testing;
+  std::shared_ptr<cache::KeyValueCache> default_cache =
+      olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+  auto mock_network = std::make_shared<NetworkMock>();
+  OlpClientSettings settings;
+  settings.cache = default_cache;
+  settings.network_request_handler = mock_network;
+  settings.retry_settings.timeout = 1;
+
+  EXPECT_CALL(*mock_network, Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponceLookupQuery));
+
+  EXPECT_CALL(*mock_network, Send(IsGetRequest(kQueryTreeIndex), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kSubQuads));
+
+  const auto hrn = HRN::FromString(kCatalog);
+  int64_t version = 4;
+  auto layer = "testlayer";
+
+  {
+    SCOPED_TRACE("query partitions and store to cache");
+    auto request = olp::dataservice::read::TileRequest().WithTileKey(
+        olp::geo::TileKey::FromHereTile("5904591"));
+    olp::client::CancellationContext context;
+    auto response = PartitionsRepository::GetPartitionForVersionedTile(
+        hrn, layer, request, version, context, settings);
+
+    ASSERT_TRUE(response.IsSuccessful());
+    ASSERT_EQ(response.GetResult().GetPartitions().front().GetDataHandle(),
+              "e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1");
+  }
+
+  {
+    SCOPED_TRACE(
+        "Check if all partitions stored in cache, request another tile");
+    EXPECT_CALL(*mock_network, Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
+        .Times(0);
+
+    auto request = olp::dataservice::read::TileRequest().WithTileKey(
+        olp::geo::TileKey::FromHereTile("23618364"));
+    olp::client::CancellationContext context;
+    auto response = PartitionsRepository::GetPartitionForVersionedTile(
+        hrn, layer, request, version, context, settings);
+
+    // check if partition was stored to cache
+    ASSERT_TRUE(response.IsSuccessful());
+    ASSERT_TRUE(response.GetResult().GetPartitions().size() == 1);
+    ASSERT_EQ(response.GetResult().GetPartitions().front().GetDataHandle(),
               kBlobDataHandle23618364);
   }
 }

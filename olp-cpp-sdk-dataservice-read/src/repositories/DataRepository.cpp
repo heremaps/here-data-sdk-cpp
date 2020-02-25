@@ -52,49 +52,21 @@ DataResponse DataRepository::GetVersionedTile(
     const client::HRN& catalog, const std::string& layer_id,
     TileRequest request, int64_t version, client::CancellationContext context,
     client::OlpClientSettings settings) {
-  auto tile = request.GetTileKey().ToHereTile();
-  std::string requested_tile_data_handle;
+  auto responce = PartitionsRepository::GetPartitionForVersionedTile(
+      catalog, layer_id, request, version, context, settings);
 
-  auto cached_partitions = PartitionsRepository::GetTileFromCache(
-      catalog, layer_id, request, version, settings);
-  if (cached_partitions.GetPartitions().size() > 0) {
-    OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
-                       request.CreateKey(layer_id).c_str());
-
-    for (const auto& partition : cached_partitions.GetPartitions()) {
-      // find data handle for requested tile
-      if (partition.GetPartition().compare(tile) == 0) {
-        requested_tile_data_handle = partition.GetDataHandle();
-        OLP_SDK_LOG_INFO_F(kLogTag, "Requested tile data handle: %s.",
-                           requested_tile_data_handle.c_str());
-        break;
-      }
-    }
-  } else if (request.GetFetchOption() == CacheOnly) {
-    OLP_SDK_LOG_INFO_F(kLogTag, "cache tile '%s' not found!",
-                       request.CreateKey(layer_id).c_str());
-    return ApiError(ErrorCode::NotFound,
-                    "Cache only resource not found in cache (data).");
-  } else {
-    auto response = PartitionsRepository::QueryPartitionsAndGetDataHandle(
-        catalog, layer_id, request, version, context, settings,
-        requested_tile_data_handle);
-    if (!response.IsSuccessful()) {
-      return response.GetError();
-    }
+  if (!responce.IsSuccessful()) {
+    OLP_SDK_LOG_ERROR(kLogTag,
+                      "GetVersionedDataTile: request prtition for tile failed");
+    return responce.GetError();
   }
 
-  if (requested_tile_data_handle.empty()) {
-    OLP_SDK_LOG_ERROR(
-        kLogTag, "GetVersionedDataTile: requested tile handle was not found");
-    return client::ApiError(client::ErrorCode::NotFound,
-                            "Requested tile handle was not found.");
-  }
-
-  DataRequest data_request = DataRequest()
-                                 .WithDataHandle(requested_tile_data_handle)
-                                 .WithVersion(version)
-                                 .WithFetchOption(request.GetFetchOption());
+  DataRequest data_request =
+      DataRequest()
+          .WithDataHandle(
+              responce.GetResult().GetPartitions().front().GetDataHandle())
+          .WithVersion(version)
+          .WithFetchOption(request.GetFetchOption());
   // get the data using a data handle for reqested tile
   return repository::DataRepository::GetBlobData(
       catalog, layer_id, kBlobService, data_request, context, settings);

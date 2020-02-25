@@ -247,11 +247,42 @@ model::Partition PartitionsRepository::PartitionFromSubQuad(
   return ret;
 }
 
-PartitionsResponse PartitionsRepository::QueryPartitionsAndGetDataHandle(
+PartitionsResponse PartitionsRepository::GetPartitionForVersionedTile(
     const client::HRN& catalog, const std::string& layer_id,
     TileRequest request, int64_t version, client::CancellationContext context,
-    client::OlpClientSettings settings,
-    std::string& requested_tile_data_handle) {
+    client::OlpClientSettings settings) {
+  auto tile = request.GetTileKey().ToHereTile();
+  auto cached_partitions =
+      GetTileFromCache(catalog, layer_id, request, version, settings);
+  if (cached_partitions.GetPartitions().size() > 0) {
+    OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
+                       request.CreateKey(layer_id).c_str());
+
+    for (const auto& partition : cached_partitions.GetPartitions()) {
+      // find data handle for requested tile
+      if (partition.GetPartition().compare(tile) == 0) {
+        OLP_SDK_LOG_INFO_F(kLogTag, "Requested tile data handle: %s.",
+                           partition.GetDataHandle().c_str());
+        model::Partitions result;
+        result.SetPartitions({partition});
+        return std::move(result);
+      }
+    }
+  } else if (request.GetFetchOption() == CacheOnly) {
+    OLP_SDK_LOG_INFO_F(kLogTag, "cache tile '%s' not found!",
+                       request.CreateKey(layer_id).c_str());
+    return ApiError(ErrorCode::NotFound,
+                    "Cache only resource not found in cache (data).");
+  }
+
+  return QueryPartitionForVersionedTile(catalog, layer_id, request, version,
+                                        context, settings);
+}
+
+PartitionsResponse PartitionsRepository::QueryPartitionForVersionedTile(
+    const client::HRN& catalog, const std::string& layer_id,
+    TileRequest request, int64_t version, client::CancellationContext context,
+    client::OlpClientSettings settings) {
   auto fetch_option = request.GetFetchOption();
   auto tile = request.GetTileKey().ToHereTile();
   auto query_api = ApiClientLookup::LookupApi(
@@ -273,10 +304,10 @@ PartitionsResponse PartitionsRepository::QueryPartitionsAndGetDataHandle(
                         tile.c_str(), version, kMaxQuadTreeIndexDepth);
     return quad_tree.GetError();
   }
-
-  model::Partitions partitions;
+  model::Partitions result;
+  model::Partitions partitions_for_caching;
   const auto& subquads = quad_tree.GetResult().GetSubQuads();
-  partitions.GetMutablePartitions().reserve(subquads.size());
+  partitions_for_caching.GetMutablePartitions().reserve(subquads.size());
 
   OLP_SDK_LOG_TRACE_F(kLogTag, "Requested tile subquads size %lu.",
                       subquads.size());
@@ -284,26 +315,34 @@ PartitionsResponse PartitionsRepository::QueryPartitionsAndGetDataHandle(
   for (const auto& subquad : subquads) {
     auto subtile =
         request.GetTileKey().AddedSubHereTile(subquad->GetSubQuadKey());
-    // find data handle for requested tile
-    if (subtile.ToHereTile().compare(tile) == 0) {
-      requested_tile_data_handle = subquad->GetDataHandle();
-      OLP_SDK_LOG_INFO_F(kLogTag, "Requested tile data handle: %s.",
-                         requested_tile_data_handle.c_str());
-    }
     // add partitions for caching
-    partitions.GetMutablePartitions().emplace_back(
+    partitions_for_caching.GetMutablePartitions().emplace_back(
         PartitionsRepository::PartitionFromSubQuad(*subquad,
                                                    subtile.ToHereTile()));
+    // find data handle for requested tile
+    if (subtile.ToHereTile().compare(tile) == 0) {
+      OLP_SDK_LOG_INFO_F(kLogTag, "Requested tile data handle: %s.",
+                         partitions_for_caching.GetMutablePartitions()
+                             .back()
+                             .GetDataHandle()
+                             .c_str());
+      result.SetPartitions(
+          {partitions_for_caching.GetMutablePartitions().back()});
+    }
   }
-
-  // add partitions to cache
-  repository::PartitionsCacheRepository repository(catalog, settings.cache);
 
   if (fetch_option != OnlineOnly) {
-    repository.Put(PartitionsRequest().WithVersion(version), partitions,
-                   layer_id, boost::none);
+    // add partitions to cache
+    repository::PartitionsCacheRepository repository(catalog, settings.cache);
+    repository.Put(PartitionsRequest().WithVersion(version),
+                   partitions_for_caching, layer_id, boost::none);
   }
-  return std::move(partitions);
+
+  if (result.GetPartitions().size() == 0) {
+    return ApiError(ErrorCode::NotFound,
+                    "Partition for requested TileKey was not found.");
+  }
+  return std::move(result);
 }
 
 model::Partitions PartitionsRepository::GetTileFromCache(
