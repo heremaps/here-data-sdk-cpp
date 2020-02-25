@@ -34,7 +34,7 @@ TileTreeTraverse::NodeContainer TileTreeTraverse::SubNodes(
     const Node& node) const {
   const auto& subdivision = sub_division_scheme_.GetSubdivisionAt(node.Level());
   const unsigned subTileCount = subdivision.Width() * subdivision.Height();
-  const uint16_t subTileMask = ~(~0 << subTileCount);
+  const uint16_t subTileMask = ~(~0u << subTileCount);
 
   return NodeContainer(node, 1, subTileMask);
 }
