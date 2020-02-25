@@ -591,19 +591,13 @@ client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
           return;
         }
 
-        switch (response_status) {
-          case http::HttpStatusCode::OK: {
-            // Cache the response
-            cache->locked(
-                [credentials,
-                 &response](utils::LruCache<std::string, SignInUserResult>& c) {
-                  return c.InsertOrAssign(credentials.GetKey(), response);
-                });
-          }
-          default:
-            callback(response);
-            break;
+        if (response_status == http::HttpStatusCode::OK) {
+          cache->locked([credentials, &response](
+                            utils::LruCache<std::string, SignInUserResult>& c) {
+            return c.InsertOrAssign(credentials.GetKey(), response);
+          });
         }
+        callback(response);
       });
 
   if (!send_outcome.IsSuccessful()) {
