@@ -17,7 +17,6 @@
 
 
 set(OLP_SDK_FUNCTIONAL_TESTS_SOURCES
-    ./olp-cpp-sdk-core/NetworkTest.cpp
     ./olp-cpp-sdk-core/OlpClientDefaultAsyncHttpTest.cpp
     ./olp-cpp-sdk-dataservice-read/ApiTest.cpp
     ./olp-cpp-sdk-dataservice-read/CatalogClientTest.cpp
