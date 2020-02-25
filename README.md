@@ -8,7 +8,8 @@ The HERE OLP SDK for C++ is a C++ client for the <a href="https://platform.here.
 
 | Platform | Status                                                                                                                                                                                                                                                                                |
 | :------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Linux    | <a href="https://travis-ci.com/heremaps/here-olp-sdk-cpp" target="_blank"><img src="https://travis-ci.com/heremaps/here-olp-sdk-cpp.svg?branch=master" alt="Linux build status"/></a>                                                                                                 |
+| Linux GCC   | <a href="https://travis-ci.com/heremaps/here-olp-sdk-cpp" target="_blank"><img src="https://travis-ci.com/heremaps/here-olp-sdk-cpp.svg?branch=master" alt="Linux build status"/></a>                                                                                                 |
+| Linux Clang | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=Linux_build_clang" alt="Android build status"/></a> |
 | MacOS    | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=Windows_build" alt="macOS build status"/></a>   |
 | iOS      | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=MacOS_build" alt="iOS build status"/></a>       |
 | Windows  | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=iOS_build" alt="Windows build status"/></a>     |
@@ -41,7 +42,7 @@ The table below lists the platforms on which the OLP SDK for C++ has been tested
 
 | Platform                   | Minimum requirement     |
 | :------------------------- | :---------------------- |
-| Ubuntu                     | GCC 5.4 and Clang 7.0   |
+| Ubuntu                     | GCC 7.4 and Clang 7.0   |
 | Embedded Linux (32/64 bit) | GCC-arm/GCC-aarch64 5.4 |
 | Windows                    | MSVC++ 2017             |
 | macOS                      | Apple Clang 11.0.0      |
