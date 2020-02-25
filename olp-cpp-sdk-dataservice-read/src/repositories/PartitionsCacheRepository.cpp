@@ -40,12 +40,12 @@ std::string CreateKey(const std::string& hrn, const std::string& layer_id,
                       const std::string& partitionId,
                       const boost::optional<int64_t>& version) {
   return hrn + "::" + layer_id + "::" + partitionId +
-         "::" + (version ? std::to_string(*version) + "::partition" : "");
+         "::" + (version ? std::to_string(*version) + "::" : "") + "partition";
 }
 std::string CreateKey(const std::string& hrn, const std::string& layer_id,
                       const boost::optional<int64_t>& version) {
   return hrn + "::" + layer_id +
-         "::" + (version ? std::to_string(*version) + "::partitions" : "");
+         "::" + (version ? std::to_string(*version) + "::" : "") + "partitions";
 }
 std::string CreateKey(const std::string& hrn, const int64_t catalogVersion) {
   return hrn + "::" + std::to_string(catalogVersion) + "::layerVersions";
@@ -155,7 +155,7 @@ boost::optional<model::LayerVersions> PartitionsCacheRepository::Get(
 
 void PartitionsCacheRepository::Clear(const std::string& layer_id) {
   std::string hrn(hrn_.ToCatalogHRNString());
-  auto key = CreateKey(hrn, layer_id, boost::none);
+  auto key = hrn + "::" + layer_id + "::";
   OLP_SDK_LOG_INFO_F(kLogTag, "Clear '%s'", key.c_str());
   cache_->RemoveKeysWithPrefix(key);
 }
