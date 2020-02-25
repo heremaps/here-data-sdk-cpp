@@ -40,23 +40,6 @@ ulimit -c unlimited # for core dump backtrace
 
 cd build
 
-# Start local server
-node ${REPO_HOME}/tests/utils/mock_server/server.js & export SERVER_PID=$!
-
-# Node can start server in 1 second, but not faster.
-# Add waiter for server to be started. No other way to solve that.
-# Curl returns code 1 - means server still down. Curl returns 0 when server is up
-RC=1
-while [[ ${RC} -ne 0 ]];
-do
-        set +e
-        curl -s http://localhost:3000
-        RC=$?
-        sleep 0.15
-        set -e
-done
-echo ">>> Local Server started for further functional test ... >>>"
-
 ### Running two auto-test groups
 for test_group_name in integration functional
 do
