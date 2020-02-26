@@ -673,4 +673,78 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataCompressed) {
             data_response_compressed.GetResult()->size());
 }
 
+TEST_F(DataserviceReadVersionedLayerClientTest, GetTile) {
+  const auto catalog =
+      olp::client::HRN::FromString(CustomParameters::getArgument(
+          "dataservice_read_test_versioned_prefetch_catalog"));
+  const auto kLayerId = CustomParameters::getArgument(
+      "dataservice_read_test_versioned_prefetch_layer");
+  const auto kTileId = CustomParameters::getArgument(
+      "dataservice_read_test_versioned_prefetch_tile");
+
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      catalog, kLayerId, *settings_);
+
+  auto request = olp::dataservice::read::TileRequest().WithTileKey(
+      olp::geo::TileKey::FromHereTile(kTileId));
+
+  auto data_response_compressed =
+      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+        auto future = client->GetData(request);
+        return future.GetFuture().get();
+      });
+
+  EXPECT_SUCCESS(data_response_compressed);
+  ASSERT_TRUE(data_response_compressed.GetResult() != nullptr);
+  ASSERT_EQ(140u, data_response_compressed.GetResult()->size());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetTileWithInvalidLayerId) {
+  const auto catalog =
+      olp::client::HRN::FromString(CustomParameters::getArgument(
+          "dataservice_read_test_versioned_prefetch_catalog"));
+  const auto kTileId = CustomParameters::getArgument(
+      "dataservice_read_test_versioned_prefetch_tile");
+
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      catalog, "invalidLayer", *settings_);
+
+  auto request = olp::dataservice::read::TileRequest().WithTileKey(
+      olp::geo::TileKey::FromHereTile(kTileId));
+
+  auto data_response =
+      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+        auto future = client->GetData(request);
+        return future.GetFuture().get();
+      });
+
+  ASSERT_FALSE(data_response.IsSuccessful());
+  ASSERT_EQ(olp::client::ErrorCode::BadRequest,
+            data_response.GetError().GetErrorCode());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetTileEmptyField) {
+  const auto catalog =
+      olp::client::HRN::FromString(CustomParameters::getArgument(
+          "dataservice_read_test_versioned_prefetch_catalog"));
+  const auto kLayerId = CustomParameters::getArgument(
+      "dataservice_read_test_versioned_prefetch_layer");
+
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      catalog, kLayerId, *settings_);
+
+  auto request = olp::dataservice::read::TileRequest().WithTileKey(
+      olp::geo::TileKey::FromHereTile(""));
+
+  auto data_response_compressed =
+      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+        auto future = client->GetData(request);
+        return future.GetFuture().get();
+      });
+
+  EXPECT_FALSE(data_response_compressed.IsSuccessful());
+  ASSERT_EQ(olp::client::ErrorCode::NotFound,
+            data_response_compressed.GetError().GetErrorCode());
+}
+
 }  // namespace

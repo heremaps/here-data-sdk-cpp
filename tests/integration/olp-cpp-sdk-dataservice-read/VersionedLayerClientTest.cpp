@@ -65,7 +65,7 @@ std::string ApiErrorToString(const olp::client::ApiError& error) {
 }
 
 constexpr char kHttpResponseLookupQuery[] =
-    R"jsonString([{"api":"query","version":"v1","baseURL":"https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString";
+    R"jsonString([{"api":"query","version":"v1","baseURL":"https://query.data.api.platform.here.com/query/v1/catalogs/here-optimized-map-for-visualization-2","parameters":{}}])jsonString";
 
 constexpr char kHttpResponsePartition_269[] =
     R"jsonString({ "partitions": [{"version":4,"partition":"269","layer":"testlayer","dataHandle":"4eed6ed1-0d32-43b9-ae79-043cb4256432"}]})jsonString";
@@ -74,12 +74,27 @@ constexpr char kHttpResponsePartitionsEmpty[] =
     R"jsonString({ "partitions": []})jsonString";
 
 constexpr char kHttpResponseLookupBlob[] =
-    R"jsonString([{"api":"blob","version":"v1","baseURL":"https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString";
+    R"jsonString([{"api":"blob","version":"v1","baseURL":"https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/here-optimized-map-for-visualization-2","parameters":{}}])jsonString";
 
 constexpr char kHttpResponseBlobData_269[] = R"jsonString(DT_2_0031)jsonString";
 
 constexpr char kHttpResponseLatestCatalogVersion[] =
     R"jsonString({"version":4})jsonString";
+
+constexpr char kHttpResponseBlobData_5904591[] =
+    R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/here-optimized-map-for-visualization-2/layers/testlayer/data/e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1)";
+
+constexpr char kHttpLookupQuery[] =
+    R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:here-optimized-map-for-visualization-2/apis/query/v1)";
+
+constexpr char kHttpResponseLookupApiQuery[] =
+    R"jsonString([{"api":"query","version":"v1","baseURL":"https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:here-optimized-map-for-visualization-2","parameters":{}}])jsonString";
+
+constexpr char kHttpQueryTreeIndex[] =
+    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:here-optimized-map-for-visualization-2/layers/testlayer/versions/4/quadkeys/5904591/depths/4)";
+
+constexpr char kHttpSubQuads[] =
+    R"jsonString({"subQuads": [{"subQuadKey":"4","version":4,"dataHandle":"f9a9fd8e-eb1b-48e5-bfdb-4392b3826443"},{"subQuadKey":"5","version":4,"dataHandle":"e119d20e-c7c6-4563-ae88-8aa5c6ca75c3"},{"subQuadKey":"6","version":4,"dataHandle":"a7a1afdf-db7e-4833-9627-d38bee6e2f81"},{"subQuadKey":"7","version":4,"dataHandle":"9d515348-afce-44e8-bc6f-3693cfbed104"},{"subQuadKey":"1","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": [{"partition":"1476147","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"}]})jsonString";
 
 constexpr auto kWaitTimeout = std::chrono::seconds(3);
 
@@ -2501,4 +2516,127 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataOnlineOnly) {
   data_response = future.GetFuture().get();
   ASSERT_FALSE(data_response.IsSuccessful());
 }
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetTile) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      hrn, "testlayer", 4, *settings_);
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponseLookupApiQuery));
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(kHttpQueryTreeIndex), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpSubQuads));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponseLookupBlob));
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(kHttpResponseBlobData_5904591), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   "someData"));
+
+  auto request = olp::dataservice::read::TileRequest().WithTileKey(
+      olp::geo::TileKey::FromHereTile("5904591"));
+  auto data_response = client->GetData(request).GetFuture().get();
+
+  ASSERT_TRUE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+  ASSERT_LT(0, data_response.GetResult()->size());
+  std::string data_string(data_response.GetResult()->begin(),
+                          data_response.GetResult()->end());
+  ASSERT_EQ("someData", data_string);
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetTileCacheOnly) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
+      .Times(0);
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      hrn, "testlayer", 4, *settings_);
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
+      .Times(0);
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(kHttpQueryTreeIndex), _, _, _, _))
+      .Times(0);
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+      .Times(0);
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(kHttpResponseBlobData_5904591), _, _, _, _))
+      .Times(0);
+
+  auto request = olp::dataservice::read::TileRequest()
+                     .WithTileKey(olp::geo::TileKey::FromHereTile("5904591"))
+                     .WithFetchOption(CacheOnly);
+  auto future = client->GetData(request);
+  auto data_response = future.GetFuture().get();
+  ASSERT_FALSE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetTileOnlineOnly) {
+  olp::client::HRN hrn(GetTestCatalog());
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      hrn, "testlayer", 4, *settings_);
+  {
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kHttpResponseLookupApiQuery));
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(kHttpQueryTreeIndex), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kHttpSubQuads));
+
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kHttpResponseLookupBlob));
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(kHttpResponseBlobData_5904591), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     "someData"));
+  }
+  auto request = olp::dataservice::read::TileRequest().WithTileKey(
+      olp::geo::TileKey::FromHereTile("5904591"));
+  auto data_response = client->GetData(request).GetFuture().get();
+
+  ASSERT_TRUE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+  ASSERT_LT(0, data_response.GetResult()->size());
+  std::string data_string(data_response.GetResult()->begin(),
+                          data_response.GetResult()->end());
+  ASSERT_EQ("someData", data_string);
+  // Check if data was cached with previous request
+  auto future = client->GetData(request);
+  data_response = future.GetFuture().get();
+  ASSERT_TRUE(data_response.IsSuccessful());
+  // Should fail despite cached response
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
+                                   "Server busy at the moment."));
+  future = client->GetData(request.WithFetchOption(OnlineOnly));
+  data_response = future.GetFuture().get();
+  ASSERT_FALSE(data_response.IsSuccessful());
+}
+
 }  // namespace
