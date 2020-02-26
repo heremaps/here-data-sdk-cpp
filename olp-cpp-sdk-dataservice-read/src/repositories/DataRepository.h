@@ -25,38 +25,36 @@
 #include <olp/core/client/OlpClientSettings.h>
 #include "olp/dataservice/read/DataRequest.h"
 #include "olp/dataservice/read/Types.h"
-#include "olp/dataservice/read/TileRequest.h"
 
 namespace olp {
 namespace dataservice {
 namespace read {
+class TileRequest;
 namespace repository {
 
 class DataRepository final {
  public:
-  static DataResponse GetVersionedTile(const client::HRN& catalog,
-                                       const std::string& layer_id,
-                                       TileRequest request, int64_t version,
-                                       client::CancellationContext context,
-                                       client::OlpClientSettings settings);
+  static DataResponse GetVersionedTile(
+      const client::HRN& catalog, const std::string& layer_id,
+      const TileRequest& request, int64_t version,
+      client::CancellationContext context,
+      const client::OlpClientSettings& settings);
 
-  static DataResponse GetVersionedData(const client::HRN& catalog,
-                                       const std::string& layer_id,
-                                       DataRequest data_request,
-                                       client::CancellationContext context,
-                                       client::OlpClientSettings settings);
+  static DataResponse GetVersionedData(
+      const client::HRN& catalog, const std::string& layer_id,
+      DataRequest data_request, client::CancellationContext context,
+      const client::OlpClientSettings& settings);
 
-  static DataResponse GetVolatileData(const client::HRN& catalog,
-                                      const std::string& layer_id,
-                                      DataRequest request,
-                                      client::CancellationContext context,
-                                      client::OlpClientSettings settings);
+  static DataResponse GetVolatileData(
+      const client::HRN& catalog, const std::string& layer_id,
+      DataRequest request, client::CancellationContext context,
+      const client::OlpClientSettings& settings);
 
   static DataResponse GetBlobData(
       const client::HRN& catalog, const std::string& layer,
       const std::string& service, const DataRequest& data_request,
       client::CancellationContext cancellation_context,
-      client::OlpClientSettings settings);
+      const client::OlpClientSettings& settings);
 };
 }  // namespace repository
 }  // namespace read

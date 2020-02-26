@@ -119,7 +119,7 @@ PartitionsResponse PartitionsRepository::GetVolatilePartitions(
 PartitionsResponse PartitionsRepository::GetPartitions(
     client::HRN catalog, std::string layer,
     client::CancellationContext cancellation_context, PartitionsRequest request,
-    client::OlpClientSettings settings, boost::optional<time_t> expiry) {
+    const client::OlpClientSettings& settings, boost::optional<time_t> expiry) {
   auto fetch_option = request.GetFetchOption();
   std::chrono::seconds timeout{settings.retry_settings.timeout};
 
@@ -249,12 +249,13 @@ model::Partition PartitionsRepository::PartitionFromSubQuad(
 
 PartitionsResponse PartitionsRepository::GetPartitionForVersionedTile(
     const client::HRN& catalog, const std::string& layer_id,
-    TileRequest request, int64_t version, client::CancellationContext context,
-    client::OlpClientSettings settings) {
+    const TileRequest& request, int64_t version,
+    client::CancellationContext context,
+    const client::OlpClientSettings& settings) {
   auto tile = request.GetTileKey().ToHereTile();
   auto cached_partitions =
       GetTileFromCache(catalog, layer_id, request, version, settings);
-  if (cached_partitions.GetPartitions().size() > 0) {
+  if (!cached_partitions.GetPartitions().empty()) {
     OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
                        request.CreateKey(layer_id).c_str());
 
@@ -281,16 +282,17 @@ PartitionsResponse PartitionsRepository::GetPartitionForVersionedTile(
 
 PartitionsResponse PartitionsRepository::QueryPartitionForVersionedTile(
     const client::HRN& catalog, const std::string& layer_id,
-    TileRequest request, int64_t version, client::CancellationContext context,
-    client::OlpClientSettings settings) {
+    const TileRequest& request, int64_t version,
+    client::CancellationContext context, client::OlpClientSettings settings) {
   auto fetch_option = request.GetFetchOption();
-  auto tile = request.GetTileKey().ToHereTile();
+  const auto& tile_key = request.GetTileKey();
+  auto tile = tile_key.ToHereTile();
   auto query_api = ApiClientLookup::LookupApi(
       catalog, context, "query", "v1", request.GetFetchOption(), settings);
 
   if (!query_api.IsSuccessful()) {
     OLP_SDK_LOG_ERROR(kLogTag,
-                      "QueryPartitionsAndGetDataHandle: LookupApi failed.");
+                      "QueryPartitionForVersionedTile: LookupApi failed.");
     return query_api.GetError();
   }
 
@@ -305,37 +307,34 @@ PartitionsResponse PartitionsRepository::QueryPartitionForVersionedTile(
     return quad_tree.GetError();
   }
   model::Partitions result;
-  model::Partitions partitions_for_caching;
+  model::Partitions partitions;
+  auto& partitions_vector = partitions.GetMutablePartitions();
   const auto& subquads = quad_tree.GetResult().GetSubQuads();
-  partitions_for_caching.GetMutablePartitions().reserve(subquads.size());
+  partitions_vector.reserve(subquads.size());
 
-  OLP_SDK_LOG_TRACE_F(kLogTag, "Requested tile subquads size %lu.",
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "Requested tile subquads size %lu.",
                       subquads.size());
 
   for (const auto& subquad : subquads) {
     auto subtile =
         request.GetTileKey().AddedSubHereTile(subquad->GetSubQuadKey());
     // add partitions for caching
-    partitions_for_caching.GetMutablePartitions().emplace_back(
-        PartitionsRepository::PartitionFromSubQuad(*subquad,
-                                                   subtile.ToHereTile()));
+    partitions_vector.emplace_back(
+        PartitionFromSubQuad(*subquad, subtile.ToHereTile()));
     // find data handle for requested tile
-    if (subtile.ToHereTile().compare(tile) == 0) {
-      OLP_SDK_LOG_INFO_F(kLogTag, "Requested tile data handle: %s.",
-                         partitions_for_caching.GetMutablePartitions()
-                             .back()
-                             .GetDataHandle()
-                             .c_str());
-      result.SetPartitions(
-          {partitions_for_caching.GetMutablePartitions().back()});
+    if (subtile == tile_key) {
+      OLP_SDK_LOG_INFO_F(
+          kLogTag, "Requested tile data handle: %s.",
+          partitions.GetMutablePartitions().back().GetDataHandle().c_str());
+      result.SetPartitions({partitions.GetMutablePartitions().back()});
     }
   }
 
   if (fetch_option != OnlineOnly) {
     // add partitions to cache
     repository::PartitionsCacheRepository repository(catalog, settings.cache);
-    repository.Put(PartitionsRequest().WithVersion(version),
-                   partitions_for_caching, layer_id, boost::none);
+    repository.Put(PartitionsRequest().WithVersion(version), partitions,
+                   layer_id, boost::none);
   }
 
   if (result.GetPartitions().size() == 0) {
@@ -347,13 +346,14 @@ PartitionsResponse PartitionsRepository::QueryPartitionForVersionedTile(
 
 model::Partitions PartitionsRepository::GetTileFromCache(
     const client::HRN& catalog, const std::string& layer_id,
-    TileRequest request, int64_t version, client::OlpClientSettings settings) {
+    const TileRequest& request, int64_t version,
+    const client::OlpClientSettings& settings) {
   if (request.GetFetchOption() != OnlineOnly) {
     repository::PartitionsCacheRepository repository(catalog, settings.cache);
 
-    PartitionsRequest partition_request;
-    partition_request.WithBillingTag(request.GetBillingTag())
-        .WithVersion(version);
+    auto partition_request = PartitionsRequest()
+                                 .WithBillingTag(request.GetBillingTag())
+                                 .WithVersion(version);
 
     const std::vector<std::string> partitions{
         request.GetTileKey().ToHereTile()};

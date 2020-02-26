@@ -35,6 +35,7 @@
 #include "olp/dataservice/read/CatalogRequest.h"
 #include "olp/dataservice/read/CatalogVersionRequest.h"
 #include "olp/dataservice/read/PartitionsRequest.h"
+#include "olp/dataservice/read/TileRequest.h"
 
 namespace olp {
 namespace dataservice {
@@ -50,23 +51,23 @@ constexpr auto kVolatileBlobService = "volatile-blob";
 
 DataResponse DataRepository::GetVersionedTile(
     const client::HRN& catalog, const std::string& layer_id,
-    TileRequest request, int64_t version, client::CancellationContext context,
-    client::OlpClientSettings settings) {
-  auto responce = PartitionsRepository::GetPartitionForVersionedTile(
+    const TileRequest& request, int64_t version,
+    client::CancellationContext context,
+    const client::OlpClientSettings& settings) {
+  auto response = PartitionsRepository::GetPartitionForVersionedTile(
       catalog, layer_id, request, version, context, settings);
 
-  if (!responce.IsSuccessful()) {
+  if (!response.IsSuccessful()) {
     OLP_SDK_LOG_ERROR(kLogTag,
                       "GetVersionedDataTile: request prtition for tile failed");
-    return responce.GetError();
+    return response.GetError();
   }
+  const auto& partition = response.GetResult().GetPartitions().front();
 
-  DataRequest data_request =
-      DataRequest()
-          .WithDataHandle(
-              responce.GetResult().GetPartitions().front().GetDataHandle())
-          .WithVersion(version)
-          .WithFetchOption(request.GetFetchOption());
+  auto data_request = DataRequest()
+                          .WithDataHandle(partition.GetDataHandle())
+                          .WithVersion(version)
+                          .WithFetchOption(request.GetFetchOption());
   // get the data using a data handle for reqested tile
   return repository::DataRepository::GetBlobData(
       catalog, layer_id, kBlobService, data_request, context, settings);
@@ -75,7 +76,7 @@ DataResponse DataRepository::GetVersionedTile(
 DataResponse DataRepository::GetVersionedData(
     const client::HRN& catalog, const std::string& layer_id,
     DataRequest request, client::CancellationContext context,
-    client::OlpClientSettings settings) {
+    const client::OlpClientSettings& settings) {
   if (request.GetDataHandle() && request.GetPartitionId()) {
     return ApiError(ErrorCode::PreconditionFailed,
                     "Both data handle and partition id specified");
@@ -128,7 +129,7 @@ DataResponse DataRepository::GetBlobData(
     const client::HRN& catalog, const std::string& layer,
     const std::string& service, const DataRequest& data_request,
     client::CancellationContext cancellation_context,
-    client::OlpClientSettings settings) {
+    const client::OlpClientSettings& settings) {
   using namespace client;
 
   auto fetch_option = data_request.GetFetchOption();
@@ -190,7 +191,7 @@ DataResponse DataRepository::GetBlobData(
 DataResponse DataRepository::GetVolatileData(
     const client::HRN& catalog, const std::string& layer_id,
     DataRequest request, client::CancellationContext context,
-    client::OlpClientSettings settings) {
+    const client::OlpClientSettings& settings) {
   if (request.GetDataHandle() && request.GetPartitionId()) {
     return ApiError(ErrorCode::PreconditionFailed,
                     "Both data handle and partition id specified");
