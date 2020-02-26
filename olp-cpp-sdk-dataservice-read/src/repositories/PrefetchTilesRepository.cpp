@@ -71,15 +71,16 @@ SubQuadsRequest PrefetchTilesRepository::EffectiveTileKeys(
 
   auto AddParents = [&]() {
     auto tile{tile_key.Parent()};
-    while (tile.Level() >= min_level) {
+    while (tile.Level() >= min_level && tile.IsValid()) {
       if (tile.Level() <= max_level)
         ret[tile.ToHereTile()] = std::make_pair(tile, 0);
       tile = tile.Parent();
     }
   };
 
-  auto AddChildren = [&](const geo::TileKey& tile) {
-    auto child_tiles = EffectiveTileKeys(tile, min_level, max_level, false);
+  auto AddChildren = [&](const geo::TileKey& tile, unsigned int min,
+                         unsigned int max) {
+    auto child_tiles = EffectiveTileKeys(tile, min, max, false);
     for (auto tile : child_tiles) {
       // check if child already exist, if so, use the greater depth
       auto old_child = ret.find(tile.first);
@@ -99,7 +100,7 @@ SubQuadsRequest PrefetchTilesRepository::EffectiveTileKeys(
     // from there
     auto children = GetChildAtLevel(tile_key, min_level);
     for (auto child : children) {
-      AddChildren(child);
+      AddChildren(child, min_level, max_level);
     }
   } else {
     // tile is within min and max
@@ -111,13 +112,14 @@ SubQuadsRequest PrefetchTilesRepository::EffectiveTileKeys(
     if (max_level - current_level <= kMaxQuadTreeIndexDepth) {
       ret[tile_key_str] = std::make_pair(tile_key, max_level - current_level);
     } else {
-      // Backend only takes MAX_QUAD_TREE_INDEX_DEPTH at a time, so we have to
+      // Backend only takes kMaxQuadTreeIndexDepth at a time, so we have to
       // manually calculate all the tiles that should included
       ret[tile_key_str] = std::make_pair(tile_key, kMaxQuadTreeIndexDepth);
       auto children =
           GetChildAtLevel(tile_key, current_level + kMaxQuadTreeIndexDepth + 1);
       for (auto child : children) {
-        AddChildren(child);
+        AddChildren(child, current_level,
+                    current_level + kMaxQuadTreeIndexDepth);
       }
     }
   }
@@ -127,6 +129,9 @@ SubQuadsRequest PrefetchTilesRepository::EffectiveTileKeys(
 
 std::vector<geo::TileKey> PrefetchTilesRepository::GetChildAtLevel(
     const geo::TileKey& tile_key, unsigned int min_level) {
+  if (!tile_key.IsValid()) {
+    return {};
+  }
   if (tile_key.Level() >= min_level) {
     return {tile_key};
   }
