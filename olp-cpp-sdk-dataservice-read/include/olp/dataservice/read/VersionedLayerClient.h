@@ -200,9 +200,12 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * invoked with the empty `DataResponse` object (the `nullptr` result and an
    * error). Version for request used from VersionedLayerClient constructor
    * parameter. If no version is specified, the last available version is used
-   * instead.
-   * @note QuadTree with depth 4 are queried and stored in cache. It is
-   * optimisation for future GetData requests.
+   * instead. GetData(TileRequest) method optimizes the metadata query by
+   * requesting a QuadTree with depth 4 and store all subquads in cache. This
+   * way all further GetData(TileRequest) request that are contained within this
+   * QuadTree will profit from the already cached metadata.
+   * @note Calling this method only makes sense if you have a persistent cache
+   * connected.
    *
    * @param request The `TileRequest` instance that contains a complete set
    * of request parameters.
@@ -220,9 +223,12 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * invoked with the empty `DataResponse` object (the `nullptr` result and an
    * error). Version for request used from VersionedLayerClient constructor
    * parameter. If no version is specified, the last available version is used
-   * instead.
-   * @note QuadTree with depth 4 are queried and stored in cache. It is
-   * optimisation for future GetData requests.
+   * instead.GetData(TileRequest) method optimizes the metadata query by
+   * requesting a QuadTree with depth 4 and store all subquads in cache. This
+   * way all further GetData(TileRequest) request that are contained within this
+   * QuadTree will profit from the already cached metadata.
+   * @note Calling this method only makes sense if you have a persistent cache
+   * connected.
    *
    * @param request The `TileRequest` instance that contains a complete set
    * of request parameters.
