@@ -220,6 +220,9 @@
 #define URL_QUADKEYS_369036 \
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/369036/depths/0)"
 
+#define URL_QUADKEYS_1 \
+  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/1/depths/0)"
+
 #define URL_QUERY_PARTITION_23618365 \
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/)"+GetTestCatalog()+R"(/layers/hype-test-prefetch/partitions?partition=23618365&version=4)"
 

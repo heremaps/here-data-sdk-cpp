@@ -212,6 +212,11 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                    olp::http::HttpStatusCode::OK),
                                HTTP_RESPONSE_QUADKEYS_5904591));
+    ON_CALL(*network_mock_, Send(IsGetRequest(URL_QUADKEYS_1), _, _, _, _))
+        .WillByDefault(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               HTTP_RESPONSE_QUADKEYS_5904591));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_1), _, _, _, _))
@@ -1606,6 +1611,39 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
         << ApiErrorToString(response.GetError());
     ASSERT_TRUE(response.GetResult() != nullptr);
     ASSERT_NE(response.GetResult()->size(), 0u);
+  }
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest,
+       PrefetchTilesWithCancellableFutureWrongLevels) {
+  olp::client::HRN catalog(GetTestCatalog());
+  constexpr auto kLayerId = "hype-test-prefetch";
+
+  std::vector<olp::geo::TileKey> tile_keys = {
+      olp::geo::TileKey::FromHereTile("5904591")};
+
+  auto request = olp::dataservice::read::PrefetchTilesRequest()
+                     .WithTileKeys(tile_keys)
+                     .WithMinLevel(0)
+                     .WithMaxLevel(0);
+
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      catalog, kLayerId, *settings_);
+  ASSERT_TRUE(client);
+
+  auto cancel_future = client->PrefetchTiles(request);
+  auto raw_future = cancel_future.GetFuture();
+
+  ASSERT_NE(raw_future.wait_for(kWaitTimeout), std::future_status::timeout);
+  PrefetchTilesResponse response = raw_future.get();
+  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_FALSE(response.GetResult().empty());
+
+  const auto& result = response.GetResult();
+  for (auto tile_result : result) {
+    ASSERT_TRUE(tile_result->IsSuccessful())
+        << tile_result->GetError().GetMessage();
+    ASSERT_TRUE(tile_result->tile_key_.IsValid());
   }
 }
 
