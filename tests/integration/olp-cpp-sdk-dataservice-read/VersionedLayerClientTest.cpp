@@ -216,7 +216,7 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
         .WillByDefault(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                    olp::http::HttpStatusCode::OK),
-                               HTTP_RESPONSE_QUADKEYS_5904591));
+                               HTTP_RESPONSE_QUADKEYS_1));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_1), _, _, _, _))
@@ -1614,8 +1614,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
   }
 }
 
-TEST_F(DataserviceReadVersionedLayerClientTest,
-       PrefetchTilesWithCancellableFutureWrongLevels) {
+TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWrongLevels) {
   olp::client::HRN catalog(GetTestCatalog());
   constexpr auto kLayerId = "hype-test-prefetch";
 
@@ -1636,15 +1635,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   ASSERT_NE(raw_future.wait_for(kWaitTimeout), std::future_status::timeout);
   PrefetchTilesResponse response = raw_future.get();
-  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
-  ASSERT_FALSE(response.GetResult().empty());
-
-  const auto& result = response.GetResult();
-  for (auto tile_result : result) {
-    ASSERT_TRUE(tile_result->IsSuccessful())
-        << tile_result->GetError().GetMessage();
-    ASSERT_TRUE(tile_result->tile_key_.IsValid());
-  }
+  ASSERT_FALSE(response.IsSuccessful());
+  ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
+            response.GetError().GetErrorCode());
+  ASSERT_TRUE(response.GetResult().empty());
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest,
