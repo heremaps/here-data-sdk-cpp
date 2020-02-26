@@ -28,6 +28,7 @@
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
+#include <olp/dataservice/read/TileRequest.h>
 #include <olp/dataservice/read/model/Partitions.h>
 
 // clang-format off
@@ -89,7 +90,24 @@ const std::string kOlpSdkUrlPartitions =
 const std::string kOlpSdkHttpResponsePartitions =
     R"jsonString({ "partitions": [{"version":4,"partition":"269","layer":"testlayer","dataHandle":"4eed6ed1-0d32-43b9-ae79-043cb4256432"},{"version":4,"partition":"270","layer":"testlayer","dataHandle":"30640762-b429-47b9-9ed6-7a4af6086e8e"},{"version":4,"partition":"3","layer":"testlayer","dataHandle":"data:SomethingBaH!"},{"version":4,"partition":"here_van_wc2018_pool","layer":"testlayer","dataHandle":"bcde4cc0-2678-40e9-b791-c630faee14c3"}]})jsonString";
 
-TEST(PartitionsRepositoryTest, GetPartitionById) {
+const std::string kUrlLookupQuery =
+    R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis/query/v1)";
+
+const std::string kHttpResponceLookupQuery =
+    R"jsonString([{"api":"query","version":"v1","baseURL":"https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2","parameters":{}}])jsonString";
+
+const std::string kQueryTreeIndex =
+    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/5904591/depths/4)";
+
+const std::string kSubQuads =
+    R"jsonString({"subQuads": [{"subQuadKey":"4","version":4,"dataHandle":"f9a9fd8e-eb1b-48e5-bfdb-4392b3826443"},{"subQuadKey":"5","version":4,"dataHandle":"e119d20e-c7c6-4563-ae88-8aa5c6ca75c3"},{"subQuadKey":"6","version":4,"dataHandle":"a7a1afdf-db7e-4833-9627-d38bee6e2f81"},{"subQuadKey":"7","version":4,"dataHandle":"9d515348-afce-44e8-bc6f-3693cfbed104"},{"subQuadKey":"1","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": [{"partition":"1476147","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"}]})jsonString";
+
+const std::string kBlobDataHandle23618364 =
+    R"(f9a9fd8e-eb1b-48e5-bfdb-4392b3826443)";
+class PartitionsRepositoryTest : public ::testing::Test,
+                                 protected repository::PartitionsRepository {};
+
+TEST_F(PartitionsRepositoryTest, GetPartitionById) {
   using namespace testing;
   using testing::Return;
 
@@ -524,7 +542,7 @@ TEST(PartitionsRepositoryTest, GetPartitionById) {
   }
 }
 
-TEST(PartitionsRepositoryTest, GetVolatilePartitions) {
+TEST_F(PartitionsRepositoryTest, GetVolatilePartitions) {
   using namespace testing;
   using testing::Return;
 
@@ -595,6 +613,114 @@ TEST(PartitionsRepositoryTest, GetVolatilePartitions) {
     ASSERT_TRUE(cache_only_response.IsSuccessful())
         << cache_only_response.GetError().GetMessage();
     EXPECT_EQ(cache_only_response.GetResult().GetPartitions().size(), 4);
+  }
+}
+
+TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
+  using namespace testing;
+  std::shared_ptr<cache::KeyValueCache> default_cache =
+      olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+  auto mock_network = std::make_shared<NetworkMock>();
+  OlpClientSettings settings;
+  settings.cache = default_cache;
+  settings.network_request_handler = mock_network;
+  settings.retry_settings.timeout = 1;
+
+  EXPECT_CALL(*mock_network, Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponceLookupQuery));
+
+  EXPECT_CALL(*mock_network, Send(IsGetRequest(kQueryTreeIndex), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kSubQuads));
+
+  const auto hrn = HRN::FromString(kCatalog);
+  int64_t version = 4;
+  auto layer = "testlayer";
+
+  {
+    SCOPED_TRACE("query partitions and store to cache");
+    auto request = olp::dataservice::read::TileRequest().WithTileKey(
+        olp::geo::TileKey::FromHereTile("5904591"));
+    olp::client::CancellationContext context;
+    auto response = QueryPartitionForVersionedTile(hrn, layer, request, version,
+                                                   context, settings);
+
+    ASSERT_TRUE(response.IsSuccessful());
+    ASSERT_EQ(response.GetResult().GetPartitions().front().GetDataHandle(),
+              "e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1");
+  }
+
+  {
+    SCOPED_TRACE(
+        "Check if all partitions stored in cache, request another tile");
+    auto request = olp::dataservice::read::TileRequest().WithTileKey(
+        olp::geo::TileKey::FromHereTile("23618364"));
+    auto partitions = GetTileFromCache(hrn, layer, request, version, settings);
+
+    // check if partition was stored to cache
+    ASSERT_FALSE(partitions.GetPartitions().size() == 0);
+    ASSERT_EQ(partitions.GetPartitions().front().GetDataHandle(),
+              kBlobDataHandle23618364);
+  }
+}
+
+TEST_F(PartitionsRepositoryTest, GetPartitionForVersionedTile) {
+  using namespace testing;
+  std::shared_ptr<cache::KeyValueCache> default_cache =
+      olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+  auto mock_network = std::make_shared<NetworkMock>();
+  OlpClientSettings settings;
+  settings.cache = default_cache;
+  settings.network_request_handler = mock_network;
+  settings.retry_settings.timeout = 1;
+
+  EXPECT_CALL(*mock_network, Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponceLookupQuery));
+
+  EXPECT_CALL(*mock_network, Send(IsGetRequest(kQueryTreeIndex), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kSubQuads));
+
+  const auto hrn = HRN::FromString(kCatalog);
+  int64_t version = 4;
+  auto layer = "testlayer";
+
+  {
+    SCOPED_TRACE("query partitions and store to cache");
+    auto request = olp::dataservice::read::TileRequest().WithTileKey(
+        olp::geo::TileKey::FromHereTile("5904591"));
+    olp::client::CancellationContext context;
+    auto response = PartitionsRepository::GetPartitionForVersionedTile(
+        hrn, layer, request, version, context, settings);
+
+    ASSERT_TRUE(response.IsSuccessful());
+    ASSERT_EQ(response.GetResult().GetPartitions().front().GetDataHandle(),
+              "e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1");
+  }
+
+  {
+    SCOPED_TRACE(
+        "Check if all partitions stored in cache, request another tile");
+    EXPECT_CALL(*mock_network, Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
+        .Times(0);
+
+    auto request = olp::dataservice::read::TileRequest().WithTileKey(
+        olp::geo::TileKey::FromHereTile("23618364"));
+    olp::client::CancellationContext context;
+    auto response = PartitionsRepository::GetPartitionForVersionedTile(
+        hrn, layer, request, version, context, settings);
+
+    // check if partition was stored to cache
+    ASSERT_TRUE(response.IsSuccessful());
+    ASSERT_TRUE(response.GetResult().GetPartitions().size() == 1);
+    ASSERT_EQ(response.GetResult().GetPartitions().front().GetDataHandle(),
+              kBlobDataHandle23618364);
   }
 }
 }  // namespace

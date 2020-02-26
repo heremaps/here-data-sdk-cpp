@@ -26,20 +26,21 @@
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
+#include "generated/model/Index.h"
+#include "olp/dataservice/read/DataRequest.h"
+#include "olp/dataservice/read/PartitionsRequest.h"
 #include "olp/dataservice/read/Types.h"
 
 namespace olp {
 namespace dataservice {
 namespace read {
-class DataRequest;
-class PartitionsRequest;
-
+class TileRequest;
 namespace repository {
 class ApiRepository;
 class CatalogRepository;
 class PartitionsCacheRepository;
 
-class PartitionsRepository final {
+class PartitionsRepository {
  public:
   static PartitionsResponse GetVersionedPartitions(
       client::HRN catalog, std::string layer,
@@ -56,11 +57,32 @@ class PartitionsRepository final {
       client::CancellationContext cancellation_context,
       const DataRequest& data_request, client::OlpClientSettings settings);
 
+  static model::Partition PartitionFromSubQuad(
+      const model::SubQuad& sub_quad, const std::string& partition);
+
+  static PartitionsResponse GetPartitionForVersionedTile(
+      const client::HRN& catalog, const std::string& layer_id,
+      const TileRequest& request, int64_t version,
+      client::CancellationContext context,
+      const client::OlpClientSettings& settings);
+
+ protected:
+  static PartitionsResponse QueryPartitionForVersionedTile(
+      const client::HRN& catalog, const std::string& layer_id,
+      const TileRequest& request, int64_t version,
+      client::CancellationContext context, client::OlpClientSettings settings);
+
+  static model::Partitions GetTileFromCache(
+      const client::HRN& catalog, const std::string& layer_id,
+      const TileRequest& request, int64_t version,
+      const client::OlpClientSettings& settings);
+
  private:
   static PartitionsResponse GetPartitions(
       client::HRN catalog, std::string layer,
       client::CancellationContext cancellation_context,
-      read::PartitionsRequest request, client::OlpClientSettings settings,
+      read::PartitionsRequest request,
+      const client::OlpClientSettings& settings,
       boost::optional<time_t> expiry = boost::none);
 };
 }  // namespace repository
