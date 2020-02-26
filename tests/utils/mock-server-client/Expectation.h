@@ -45,7 +45,7 @@ struct Expectation {
 
   struct BinaryResponse {
     std::string type = "BINARY";
-    std::vector<std::uint8_t> base64_bytes;
+    std::string base64_string;
   };
 
   RequestMatcher request;
@@ -73,7 +73,7 @@ void to_json(const Expectation::BinaryResponse& x, rapidjson::Value& value,
              rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   olp::serializer::serialize("type", x.type, value, allocator);
-  olp::serializer::serialize("base64Bytes", x.base64_bytes, value, allocator);
+  olp::serializer::serialize("base64Bytes", x.base64_string, value, allocator);
 }
 
 void to_json(const Expectation::ResponseAction& x, rapidjson::Value& value,

@@ -27,6 +27,7 @@
 #include <olp/core/client/OlpClientFactory.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/generated/parser/JsonParser.h>
+#include <olp/core/http/HttpStatusCode.h>
 #include "Expectation.h"
 #include "Status.h"
 
@@ -60,9 +61,28 @@ class Client {
     CreateExpectation(expectation);
   }
 
+  void MockBinaryResponse(const std::string& method_matcher,
+                          const std::string& path_matcher,
+                          const std::string& response_body) {
+    auto expectation = Expectation{};
+    expectation.request.path = path_matcher;
+    expectation.request.method = method_matcher;
+
+    auto binary_response = Expectation::BinaryResponse{};
+    binary_response.base64_string = response_body;
+
+    boost::optional<Expectation::ResponseAction> action =
+        Expectation::ResponseAction{};
+    action->body = binary_response;
+    expectation.action = action;
+
+    CreateExpectation(expectation);
+  }
+
   std::vector<int32_t> Ports() const {
     auto response =
-        http_client_->CallApi(kStatusPath, "PUT", {}, {}, {}, nullptr, "", {});
+        http_client_->CallApi(kStatusPath, "PUT", {}, {}, {}, nullptr, "",
+                              olp::client::CancellationContext{});
 
     if (response.status != olp::http::HttpStatusCode::OK) {
       return {};
@@ -75,7 +95,8 @@ class Client {
 
   void Reset() {
     auto response =
-        http_client_->CallApi(kResetPath, "PUT", {}, {}, {}, nullptr, "", {});
+        http_client_->CallApi(kResetPath, "PUT", {}, {}, {}, nullptr, "",
+                              olp::client::CancellationContext{});
 
     return;
   }
@@ -86,8 +107,9 @@ class Client {
     const std::shared_ptr<std::vector<unsigned char>> request_body =
         std::make_shared<std::vector<unsigned char>>(data.begin(), data.end());
 
-    auto response = http_client_->CallApi(kExpectationPath, "PUT", {}, {}, {},
-                                          request_body, "", {});
+    auto response =
+        http_client_->CallApi(kExpectationPath, "PUT", {}, {}, {}, request_body,
+                              "", olp::client::CancellationContext{});
 
     return;
   }
