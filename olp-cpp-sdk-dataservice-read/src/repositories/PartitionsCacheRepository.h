@@ -44,10 +44,10 @@ class PartitionsCacheRepository final {
 
   void Put(const PartitionsRequest& request,
            const model::Partitions& partitions, const std::string& layer_id,
-           const boost::optional<time_t>& expiry, bool allLayer = false);
+           const boost::optional<time_t>& expiry, bool layer_metadata = false);
 
   model::Partitions Get(const PartitionsRequest& request,
-                        const std::vector<std::string>& partitionIds,
+                        const std::vector<std::string>& partition_ids,
                         const std::string& layer_id);
 
   boost::optional<model::Partitions> Get(const PartitionsRequest& request,

@@ -43,8 +43,8 @@ class DATASERVICE_READ_API PartitionsRequest final {
 
   /**
    * @brief Sets the list of partitions.
-   * 
-   * When set to boost::none, the GetPartitions method will download the whole
+   *
+   * When the list is empty, the GetPartitions method will download the whole
    * layer metadata. Additionally, a single request supports up to 100
    * partitions.
    *
@@ -52,8 +52,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
    *
    * @return A reference to the updated `PartitionsRequest` instance.
    */
-  inline PartitionsRequest& WithPartitionIds(
-      boost::optional<PartitionIds> partition_ids) {
+  inline PartitionsRequest& WithPartitionIds(PartitionIds partition_ids) {
     partition_ids_ = std::move(partition_ids);
     return *this;
   }
@@ -61,11 +60,9 @@ class DATASERVICE_READ_API PartitionsRequest final {
   /**
    * @brief Gets the list of the partitions.
    *
-   * @return The optional vector of strings that represent partitions.
+   * @return The vector of strings that represent partitions.
    */
-  inline const boost::optional<PartitionIds>& GetPartitionIds() const {
-    return partition_ids_;
-  }
+  inline const PartitionIds& GetPartitionIds() const { return partition_ids_; }
 
   /**
    * @brief Sets the catalog metadata version.
@@ -189,7 +186,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
   }
 
  private:
-  boost::optional<PartitionIds> partition_ids_;
+  PartitionIds partition_ids_;
   boost::optional<int64_t> catalog_version_;
   boost::optional<std::string> billing_tag_;
   FetchOptions fetch_option_{OnlineIfNotFound};

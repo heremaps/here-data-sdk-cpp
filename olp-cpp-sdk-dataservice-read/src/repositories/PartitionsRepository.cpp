@@ -121,7 +121,6 @@ PartitionsResponse PartitionsRepository::GetPartitions(
     client::CancellationContext cancellation_context, PartitionsRequest request,
     const client::OlpClientSettings& settings, boost::optional<time_t> expiry) {
   auto fetch_option = request.GetFetchOption();
-  std::chrono::seconds timeout{settings.retry_settings.timeout};
 
   repository::PartitionsCacheRepository repository(catalog, settings.cache);
 
@@ -139,24 +138,46 @@ PartitionsResponse PartitionsRepository::GetPartitions(
     }
   }
 
-  auto query_api =
-      ApiClientLookup::LookupApi(catalog, cancellation_context, "metadata",
-                                 "v1", fetch_option, std::move(settings));
+  PartitionsResponse response;
 
-  if (!query_api.IsSuccessful()) {
-    return query_api.GetError();
+  const auto& partition_ids = request.GetPartitionIds();
+
+  if (partition_ids.empty()) {
+    auto metadata_api =
+        ApiClientLookup::LookupApi(catalog, cancellation_context, "metadata",
+                                   "v1", fetch_option, std::move(settings));
+
+    if (!metadata_api.IsSuccessful()) {
+      return metadata_api.GetError();
+    }
+
+    response = MetadataApi::GetPartitions(
+        metadata_api.GetResult(), layer, request.GetVersion(), boost::none,
+        boost::none, request.GetBillingTag(), cancellation_context);
+  } else {
+    auto query_api =
+        ApiClientLookup::LookupApi(catalog, cancellation_context, "query", "v1",
+                                   fetch_option, std::move(settings));
+
+    if (!query_api.IsSuccessful()) {
+      return query_api.GetError();
+    }
+
+    response = QueryApi::GetPartitionsbyId(
+        query_api.GetResult(), layer, partition_ids, request.GetVersion(),
+        boost::none, request.GetBillingTag(), cancellation_context);
   }
 
-  auto metadata_response = MetadataApi::GetPartitions(
-      query_api.GetResult(), layer, request.GetVersion(), boost::none,
-      boost::none, request.GetBillingTag(), cancellation_context);
+  // Save all partitions only when downloaded via metadata API
+  const bool is_layer_metadata = partition_ids.empty();
 
-  if (metadata_response.IsSuccessful()) {
+  if (response.IsSuccessful()) {
     OLP_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",
                        request.CreateKey(layer).c_str());
-    repository.Put(request, metadata_response.GetResult(), layer, expiry, true);
+    repository.Put(request, response.GetResult(), layer, expiry,
+                   is_layer_metadata);
   } else {
-    const auto& error = metadata_response.GetError();
+    const auto& error = response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
       OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
                          request.CreateKey(layer).c_str());
@@ -164,7 +185,7 @@ PartitionsResponse PartitionsRepository::GetPartitions(
     }
   }
 
-  return metadata_response;
+  return response;
 }
 
 PartitionsResponse PartitionsRepository::GetPartitionById(
