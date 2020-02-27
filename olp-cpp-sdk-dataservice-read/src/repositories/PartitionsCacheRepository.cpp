@@ -153,10 +153,6 @@ boost::optional<model::Partitions> PartitionsCacheRepository::Get(
     }
   }
 
-  if (partitions && (*partitions).GetPartitions().empty()) {
-    return boost::none;
-  }
-
   return partitions;
 }
 
