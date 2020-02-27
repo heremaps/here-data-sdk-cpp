@@ -44,7 +44,8 @@ using namespace olp::tests::common;
 
 const std::string kCatalog =
     "hrn:here:data::olp-here-test:hereos-internal-test-v2";
-const std::string kLayerId = "test_layer";
+const std::string kVersionedLayerId = "test_layer";
+const std::string kVolatileLayerId = "testlayer_volatile";
 const std::string kPartitionId = "1111";
 const std::string kInvalidPartitionId = "2222";
 constexpr int kVersion = 4;
@@ -58,7 +59,7 @@ const std::string kCacheKeyMetadata = kCatalog + "::query::v1::api";
 
 const std::string kOlpSdkUrlPartitionByIdNoVersion =
     R"(https://query.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/)" +
-    kLayerId + R"(/partitions?partition=)" + kPartitionId;
+    kVersionedLayerId + R"(/partitions?partition=)" + kPartitionId;
 const std::string kOlpSdkUrlPartitionById = kOlpSdkUrlPartitionByIdNoVersion +
                                             R"(&version=)" +
                                             std::to_string(kVersion);
@@ -66,6 +67,9 @@ const std::string kOlpSdkHttpResponsePartitionById =
     R"jsonString({ "partitions": [{"version":42,"partition":")jsonString" +
     kPartitionId +
     R"jsonString(","layer":"olp-cpp-sdk-ingestion-test-volatile-layer","dataHandle":"PartitionsRepositoryTest-partitionId"}]})jsonString";
+
+const std::string kOlpSdkHttpResponseEmptyPartitionList =
+    R"({ "partitions": [] })";
 
 const std::string kOlpSdkUrlLookupConfig =
     R"(https://api-lookup.data.api.platform.here.com/lookup/v1/platform/apis/config/v1)";
@@ -85,8 +89,13 @@ const std::string kOlpSdkUrlLookupMetadata2 =
 const std::string kOlpSdkHttpResponseLookupMetadata2 =
     R"jsonString([{"api":"metadata","version":"v1","baseURL":"https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString";
 
-const std::string kOlpSdkUrlPartitions =
-    R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/testlayer_volatile/partitions)";
+const std::string kOlpSdkUrlVersionedPartitions =
+    R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/)" +
+    kVersionedLayerId + R"(/partitions?version=)" + std::to_string(kVersion);
+
+const std::string kOlpSdkUrlVolatilePartitions =
+    R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/)" +
+    kVolatileLayerId + R"(/partitions)";
 
 const std::string kOlpSdkHttpResponsePartitions =
     R"jsonString({ "partitions": [{"version":4,"partition":"269","layer":"testlayer","dataHandle":"4eed6ed1-0d32-43b9-ae79-043cb4256432"},{"version":4,"partition":"270","layer":"testlayer","dataHandle":"30640762-b429-47b9-9ed6-7a4af6086e8e"},{"version":4,"partition":"3","layer":"testlayer","dataHandle":"data:SomethingBaH!"},{"version":4,"partition":"here_van_wc2018_pool","layer":"testlayer","dataHandle":"bcde4cc0-2678-40e9-b791-c630faee14c3"}]})jsonString";
@@ -125,7 +134,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
   const DataRequest request{
       DataRequest().WithPartitionId(kPartitionId).WithVersion(kVersion)};
   const std::string part_cache_key =
-      kCatalog + "::" + kLayerId + "::" + kPartitionId + "::";
+      kCatalog + "::" + kVersionedLayerId + "::" + kPartitionId + "::";
 
   const std::string cache_key_no_version = part_cache_key + "partition";
   const std::string cache_key =
@@ -161,7 +170,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kLayerId, context,
+        catalog_hrn, kVersionedLayerId, context,
         DataRequest(request).WithFetchOption(CacheOnly), settings);
 
     ASSERT_TRUE(response.IsSuccessful());
@@ -184,7 +193,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kLayerId, context,
+        catalog_hrn, kVersionedLayerId, context,
         DataRequest(request).WithFetchOption(CacheOnly), settings);
 
     ASSERT_FALSE(response.IsSuccessful());
@@ -198,7 +207,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kLayerId, context,
+        catalog_hrn, kVersionedLayerId, context,
         DataRequest(request).WithPartitionId(boost::none), settings);
 
     ASSERT_FALSE(response.IsSuccessful());
@@ -223,7 +232,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     EXPECT_CALL(*cache, Put(Eq(cache_key), _, _, _)).Times(1);
 
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kLayerId, context,
+        catalog_hrn, kVersionedLayerId, context,
         DataRequest(request).WithFetchOption(OnlineOnly), settings);
 
     ASSERT_TRUE(response.IsSuccessful());
@@ -251,7 +260,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     EXPECT_CALL(*cache, Put(Eq(cache_key_no_version), _, _, _)).Times(1);
 
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kLayerId, context,
+        catalog_hrn, kVersionedLayerId, context,
         DataRequest(request)
             .WithFetchOption(OnlineOnly)
             .WithVersion(boost::none),
@@ -281,7 +290,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kLayerId, context,
+        catalog_hrn, kVersionedLayerId, context,
         DataRequest(request).WithFetchOption(OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -303,7 +312,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kLayerId, context,
+        catalog_hrn, kVersionedLayerId, context,
         DataRequest(request).WithFetchOption(OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -328,7 +337,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kLayerId, context,
+        catalog_hrn, kVersionedLayerId, context,
         DataRequest(request).WithFetchOption(OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -355,7 +364,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
         });
 
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kLayerId, context,
+        catalog_hrn, kVersionedLayerId, context,
         DataRequest(request).WithFetchOption(OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -383,7 +392,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
         });
 
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kLayerId, context,
+        catalog_hrn, kVersionedLayerId, context,
         DataRequest(request).WithFetchOption(OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -412,7 +421,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     EXPECT_CALL(*network, Cancel(_)).Times(1).WillOnce(Return());
 
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kLayerId, context,
+        catalog_hrn, kVersionedLayerId, context,
         DataRequest(request).WithFetchOption(OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -443,7 +452,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     EXPECT_CALL(*network, Cancel(_)).Times(1).WillOnce(Return());
 
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kLayerId, context,
+        catalog_hrn, kVersionedLayerId, context,
         DataRequest(request).WithFetchOption(OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -477,7 +486,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     EXPECT_CALL(*network, Cancel(_)).Times(1).WillOnce(Return());
 
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kLayerId, context,
+        catalog_hrn, kVersionedLayerId, context,
         DataRequest(request).WithFetchOption(OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -512,7 +521,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     EXPECT_CALL(*network, Cancel(_)).Times(1).WillOnce(Return());
 
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kLayerId, context,
+        catalog_hrn, kVersionedLayerId, context,
         DataRequest(request).WithFetchOption(OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -528,7 +537,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     client::CancellationContext context;
     context.CancelOperation();
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kLayerId, context,
+        catalog_hrn, kVersionedLayerId, context,
         DataRequest(request).WithFetchOption(OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -558,11 +567,11 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
     settings.retry_settings.timeout = 1;
 
     const std::string cache_key_1 =
-        kCatalog + "::" + kLayerId + "::" + kPartitionId +
+        kCatalog + "::" + kVersionedLayerId + "::" + kPartitionId +
         "::" + std::to_string(kVersion) + "::partition";
 
     const std::string cache_key_2 =
-        kCatalog + "::" + kLayerId + "::" + kInvalidPartitionId +
+        kCatalog + "::" + kVersionedLayerId + "::" + kInvalidPartitionId +
         "::" + std::to_string(kVersion) + "::partition";
 
     const std::string query_cache_response =
@@ -583,12 +592,11 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
     request.WithVersion(4);
     request.WithFetchOption(CacheOnly);
     auto response = repository::PartitionsRepository::GetVersionedPartitions(
-        catalog, kLayerId, context, request, settings);
+        catalog, kVersionedLayerId, context, request, settings);
 
     ASSERT_FALSE(response.IsSuccessful());
     EXPECT_TRUE(response.GetResult().GetPartitions().empty());
   }
-
   {
     SCOPED_TRACE("Successfull fetch from network with a list of partitions");
 
@@ -614,10 +622,46 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
     request.WithPartitionIds({kPartitionId});
     request.WithVersion(4);
     auto response = repository::PartitionsRepository::GetVersionedPartitions(
-        catalog, kLayerId, context, request, settings);
+        catalog, kVersionedLayerId, context, request, settings);
 
     ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
     EXPECT_EQ(response.GetResult().GetPartitions().size(), 1);
+  }
+  {
+    SCOPED_TRACE("Successfull fetch from network, empty layer");
+
+    OlpClientSettings settings;
+    settings.cache = default_cache;
+    settings.network_request_handler = mock_network;
+    settings.retry_settings.timeout = 1;
+
+    EXPECT_CALL(*mock_network,
+                Send(IsGetRequest(kOlpSdkUrlLookupMetadata2), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kOlpSdkHttpResponseLookupMetadata2));
+
+    EXPECT_CALL(*mock_network,
+                Send(IsGetRequest(kOlpSdkUrlVersionedPartitions), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kOlpSdkHttpResponseEmptyPartitionList));
+
+    CancellationContext context;
+    PartitionsRequest request;
+    request.WithVersion(4);
+    auto response = repository::PartitionsRepository::GetVersionedPartitions(
+        catalog, kVersionedLayerId, context, request, settings);
+
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    EXPECT_TRUE(response.GetResult().GetPartitions().empty());
+
+    request.WithFetchOption(dataservice::read::FetchOptions::CacheOnly);
+    response = repository::PartitionsRepository::GetVersionedPartitions(
+        catalog, kVersionedLayerId, context, request, settings);
+
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    EXPECT_TRUE(response.GetResult().GetPartitions().empty());
   }
 }
 
@@ -649,12 +693,10 @@ TEST_F(PartitionsRepositoryTest, GetVolatilePartitions) {
                                    kOlpSdkHttpResponseLookupMetadata2));
 
   EXPECT_CALL(*mock_network,
-              Send(IsGetRequest(kOlpSdkUrlPartitions), _, _, _, _))
+              Send(IsGetRequest(kOlpSdkUrlVolatilePartitions), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kOlpSdkHttpResponsePartitions));
-
-  const auto layer = "testlayer_volatile";
 
   {
     SCOPED_TRACE("Successfull fetch from network");
@@ -667,7 +709,7 @@ TEST_F(PartitionsRepositoryTest, GetVolatilePartitions) {
     CancellationContext context;
     PartitionsRequest request;
     auto response = repository::PartitionsRepository::GetVolatilePartitions(
-        catalog, layer, context, request, settings);
+        catalog, kVolatileLayerId, context, request, settings);
 
     ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
     EXPECT_EQ(response.GetResult().GetPartitions().size(), 4);
@@ -687,7 +729,7 @@ TEST_F(PartitionsRepositoryTest, GetVolatilePartitions) {
 
     auto cache_only_response =
         repository::PartitionsRepository::GetVolatilePartitions(
-            catalog, layer, context, request, settings);
+            catalog, kVolatileLayerId, context, request, settings);
 
     ASSERT_TRUE(cache_only_response.IsSuccessful())
         << cache_only_response.GetError().GetMessage();
