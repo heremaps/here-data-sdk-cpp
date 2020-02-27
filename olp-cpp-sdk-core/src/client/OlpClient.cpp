@@ -130,61 +130,56 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
                          const olp::client::OlpClientSettings& settings,
                          const olp::client::RetrySettings& retry_settings,
                          client::CancellationContext context) {
-  http::NetworkResponse network_response = kCancelledErrorResponse;
-  auto interest_flag = std::make_shared<std::atomic_bool>(true);
-  Condition condition{};
+  struct ResponseData {
+    olp::client::Condition condition_;
+    olp::http::NetworkResponse response_{kCancelledErrorResponse};
+    olp::http::Headers headers_;
+  };
+
+  auto response_data = std::make_shared<ResponseData>();
   auto response_body = std::make_shared<std::stringstream>();
   http::SendOutcome outcome{http::ErrorCode::CANCELLED_ERROR};
-  http::Headers headers;
 
   context.ExecuteOrCancelled(
       [&]() {
         outcome = settings.network_request_handler->Send(
             request, response_body,
-            [&, interest_flag](http::NetworkResponse response) {
-              if (interest_flag->exchange(false)) {
-                network_response = std::move(response);
-                condition.Notify();
-              }
+            [response_data](http::NetworkResponse response) {
+              response_data->response_ = std::move(response);
+              response_data->condition_.Notify();
             },
-            [&headers, interest_flag](std::string key, std::string value) {
-              if (interest_flag->load()) {
-                headers.emplace_back(std::move(key), std::move(value));
-              }
+            [response_data](std::string key, std::string value) {
+              response_data->headers_.emplace_back(std::move(key),
+                                                   std::move(value));
             });
 
-        return CancellationToken([&, interest_flag]() {
-          if (interest_flag->exchange(false)) {
-            settings.network_request_handler->Cancel(outcome.GetRequestId());
-            network_response = kCancelledErrorResponse;
-            network_response.WithRequestId(outcome.GetRequestId());
-            condition.Notify();
-          }
+        auto request_handler = settings.network_request_handler;
+        auto request_id = outcome.GetRequestId();
+        return CancellationToken([=]() {
+          request_handler->Cancel(request_id);
+          response_data->condition_.Notify();
         });
       },
-      [&condition]() { condition.Notify(); });
+      [&]() { response_data->condition_.Notify(); });
 
   if (!outcome.IsSuccessful()) {
     return {static_cast<int>(outcome.GetErrorCode()),
             ErrorCodeToString(outcome.GetErrorCode())};
   }
 
-  if (!condition.Wait(std::chrono::seconds(retry_settings.timeout))) {
+  if (!response_data->condition_.Wait(
+          std::chrono::seconds(retry_settings.timeout))) {
     OLP_SDK_LOG_INFO_F(kLogTag, "Timeout");
     context.CancelOperation();
     return ToHttpResponse(kTimeoutErrorResponse);
   }
 
-  // If request was cancelled before execution, we reach here without
-  // calling callback or cancellation token, meaning interest_flag is still
-  // true.
-  interest_flag->store(false);
   if (context.IsCancelled()) {
     return ToHttpResponse(kCancelledErrorResponse);
   }
 
-  return {network_response.GetStatus(), std::move(*response_body),
-          std::move(headers)};
+  return {response_data->response_.GetStatus(), std::move(*response_body),
+          std::move(response_data->headers_)};
 }
 
 bool StatusSuccess(int status) { return status >= 0 && status < 400; }
