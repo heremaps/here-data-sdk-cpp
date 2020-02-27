@@ -2619,6 +2619,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileOnlineOnly) {
                                          olp::http::HttpStatusCode::OK),
                                      "someData"));
   }
+  SCOPED_TRACE("Request data using TileKey.");
   auto request = olp::dataservice::read::TileRequest().WithTileKey(
       olp::geo::TileKey::FromHereTile("5904591"));
   auto data_response = client->GetData(request).GetFuture().get();
@@ -2629,17 +2630,22 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileOnlineOnly) {
   std::string data_string(data_response.GetResult()->begin(),
                           data_response.GetResult()->end());
   ASSERT_EQ("someData", data_string);
-  // Check if data was cached with previous request
-  auto future = client->GetData(request);
-  data_response = future.GetFuture().get();
-  ASSERT_TRUE(data_response.IsSuccessful());
-  // Should fail despite cached response
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
-                                   "Server busy at the moment."));
-  future = client->GetData(request.WithFetchOption(OnlineOnly));
-  data_response = future.GetFuture().get();
-  ASSERT_FALSE(data_response.IsSuccessful());
+
+  {
+    SCOPED_TRACE("Check if data was cached with previous request.");
+    auto future = client->GetData(request);
+    data_response = future.GetFuture().get();
+    ASSERT_TRUE(data_response.IsSuccessful());
+    SCOPED_TRACE("Next call should fail despite cached response.");
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
+                               "Server busy at the moment."));
+    future = client->GetData(request.WithFetchOption(OnlineOnly));
+    data_response = future.GetFuture().get();
+    ASSERT_FALSE(data_response.IsSuccessful());
+  }
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetTileTwoSequentialCalls) {
@@ -2681,8 +2687,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileTwoSequentialCalls) {
                             data_response.GetResult()->end());
     ASSERT_EQ("someData", data_string);
   }
-  // second request for another tile key, data handle should be found in cache,
-  // no need to query online
+  SCOPED_TRACE(
+      "second request for another tile key, data handle should be found in "
+      "cache, no need to query online");
   {
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
