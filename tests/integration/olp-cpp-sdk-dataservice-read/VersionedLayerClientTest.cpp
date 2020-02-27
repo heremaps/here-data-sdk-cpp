@@ -2619,31 +2619,35 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileOnlineOnly) {
                                          olp::http::HttpStatusCode::OK),
                                      "someData"));
   }
-  SCOPED_TRACE("Request data using TileKey.");
   auto request = olp::dataservice::read::TileRequest().WithTileKey(
       olp::geo::TileKey::FromHereTile("5904591"));
-  auto data_response = client->GetData(request).GetFuture().get();
+  {
+    SCOPED_TRACE("Request data using TileKey.");
+    auto data_response = client->GetData(request).GetFuture().get();
 
-  ASSERT_TRUE(data_response.IsSuccessful())
-      << ApiErrorToString(data_response.GetError());
-  ASSERT_LT(0, data_response.GetResult()->size());
-  std::string data_string(data_response.GetResult()->begin(),
-                          data_response.GetResult()->end());
-  ASSERT_EQ("someData", data_string);
+    ASSERT_TRUE(data_response.IsSuccessful())
+        << ApiErrorToString(data_response.GetError());
+    ASSERT_LT(0, data_response.GetResult()->size());
+    std::string data_string(data_response.GetResult()->begin(),
+                            data_response.GetResult()->end());
+    ASSERT_EQ("someData", data_string);
+  }
 
   {
-    SCOPED_TRACE("Check if data was cached with previous request.");
+    SCOPED_TRACE("Check cached data.");
     auto future = client->GetData(request);
-    data_response = future.GetFuture().get();
+    auto data_response = future.GetFuture().get();
     ASSERT_TRUE(data_response.IsSuccessful());
-    SCOPED_TRACE("Next call should fail despite cached response.");
+  }
+  {
+    SCOPED_TRACE("Check OnlineOnly request");
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
         .WillOnce(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
                                "Server busy at the moment."));
-    future = client->GetData(request.WithFetchOption(OnlineOnly));
-    data_response = future.GetFuture().get();
+    auto future = client->GetData(request.WithFetchOption(OnlineOnly));
+    auto data_response = future.GetFuture().get();
     ASSERT_FALSE(data_response.IsSuccessful());
   }
 }
@@ -2652,7 +2656,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileTwoSequentialCalls) {
   olp::client::HRN hrn(GetTestCatalog());
   auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", 4, *settings_);
-  {
+
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
@@ -2675,22 +2679,21 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileTwoSequentialCalls) {
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
                                      "someData"));
+    {
+      SCOPED_TRACE("Request data using TileRequest");
+      auto request = olp::dataservice::read::TileRequest().WithTileKey(
+          olp::geo::TileKey::FromHereTile("5904591"));
+      auto data_response = client->GetData(request).GetFuture().get();
 
-    auto request = olp::dataservice::read::TileRequest().WithTileKey(
-        olp::geo::TileKey::FromHereTile("5904591"));
-    auto data_response = client->GetData(request).GetFuture().get();
-
-    ASSERT_TRUE(data_response.IsSuccessful())
-        << ApiErrorToString(data_response.GetError());
-    ASSERT_LT(0, data_response.GetResult()->size());
-    std::string data_string(data_response.GetResult()->begin(),
-                            data_response.GetResult()->end());
-    ASSERT_EQ("someData", data_string);
+      ASSERT_TRUE(data_response.IsSuccessful())
+          << ApiErrorToString(data_response.GetError());
+      ASSERT_LT(0, data_response.GetResult()->size());
+      std::string data_string(data_response.GetResult()->begin(),
+                              data_response.GetResult()->end());
+      ASSERT_EQ("someData", data_string);
   }
-  SCOPED_TRACE(
-      "second request for another tile key, data handle should be found in "
-      "cache, no need to query online");
   {
+    SCOPED_TRACE("Neighboring tile, same subquad, check metadata cached");
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
         .Times(0);
