@@ -36,6 +36,27 @@ class Constants {
   static const char* ACCESS_TOKEN;
   static const char* EXPIRES_IN;
   static const char* REFRESH_TOKEN;
+
+  // introspect app strings
+  static const char* CLIENT_ID;
+  static const char* NAME;
+  static const char* DESCRIPTION;
+  static const char* REDIRECT_URIS;
+  static const char* ALLOWED_SCOPES;
+  static const char* TOKEN_ENDPOINT_AUTH_METHOD;
+  static const char* TOKEN_ENDPOINT_AUTH_METHOD_REASON;
+  static const char* DOB_REQUIRED;
+  static const char* TOKEN_DURATION;
+  static const char* REFERRERS;
+  static const char* STATUS;
+  static const char* APP_CODE_ENABLED;
+  static const char* CREATED_TIME;
+  static const char* REALM;
+  static const char* TYPE;
+  static const char* RESPONSE_TYPES;
+  static const char* TIER;
+  static const char* HRN;
+  static const char* MESSAGE;
 };
 
 }  // namespace authentication

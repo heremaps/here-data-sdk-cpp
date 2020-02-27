@@ -32,5 +32,27 @@ const unsigned int Constants::INVALID_DATA_ERROR_CODE = 400200;
 const char* Constants::ACCESS_TOKEN = "accessToken";
 const char* Constants::EXPIRES_IN = "expiresIn";
 const char* Constants::REFRESH_TOKEN = "refreshToken";
+
+const char* Constants::CLIENT_ID = "clientId";
+const char* Constants::NAME = "name";
+const char* Constants::DESCRIPTION = "description";
+const char* Constants::REDIRECT_URIS = "redirectUris";
+const char* Constants::ALLOWED_SCOPES = "allowedScopes";
+const char* Constants::TOKEN_ENDPOINT_AUTH_METHOD = "tokenEndpointAuthMethod";
+const char* Constants::TOKEN_ENDPOINT_AUTH_METHOD_REASON =
+    "tokenEndpointAuthMethodReason";
+const char* Constants::DOB_REQUIRED = "dobRequired";
+const char* Constants::TOKEN_DURATION = "tokenDuration";
+const char* Constants::REFERRERS = "referrers";
+const char* Constants::STATUS = "status";
+const char* Constants::APP_CODE_ENABLED = "appCodeEnabled";
+const char* Constants::CREATED_TIME = "createdTime";
+const char* Constants::REALM = "realm";
+const char* Constants::TYPE = "type";
+const char* Constants::RESPONSE_TYPES = "responseTypes";
+const char* Constants::TIER = "tier";
+const char* Constants::HRN = "hrn";
+const char* Constants::MESSAGE = "message";
+
 }  // namespace authentication
 }  // namespace olp

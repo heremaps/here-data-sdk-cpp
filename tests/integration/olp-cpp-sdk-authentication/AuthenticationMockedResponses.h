@@ -104,3 +104,9 @@ const std::string kResponseErrorFields = R"JSON(
 const std::string kSignupHereUserResponse = R"JSON(
     {"userId": "HERE-5fa10eda-39ff-4cbc-9b0c-5acba4685649"}
     )JSON";
+const std::string kIntrospectAppResponse = R"JSON(
+    {"clientId": "DdcIHVVKuMvTQrdci1FW", "name": "My Third Party App", "description": "This is a longer description of My Third Party App.", "redirectUris": [ "https://www.example.com", "https://qa.example.com" ], "allowedScopes": [ "email", "profile" ], "tokenEndpointAuthMethod": "client_secret_jwt", "tokenEndpointAuthMethodReason": "Here's the reason why client_secret_jwt was not used.", "dobRequired": false, "tokenDuration": 3600, "referrers": [ "localhost", "127.0.0.1", "www.facebook.com/hello/world/" ], "status": "active", "appCodeEnabled": true, "createdTime": 1432216394712, "realm": "HERE", "type": "application", "responseTypes": [ "code" ], "tier": "olp_tier_50k", "hrn": "hrn:here:account::HERE:app/DdcIHVVKuMvTQrdci1FW"}    
+    )JSON";
+const std::string kInvalidAccessTokenResponse = R"JSON(
+    {"errorId":"ERROR-cf976ca6-bf6e-44f7-a9e6-e271766c61fe","httpStatus":401,"errorCode":400601,"message":"Invalid accessToken.","error":"invalid_request","error_description":"errorCode: '400601'. Invalid accessToken."}
+    )JSON";

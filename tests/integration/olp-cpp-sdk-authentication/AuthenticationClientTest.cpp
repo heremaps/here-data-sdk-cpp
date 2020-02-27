@@ -39,6 +39,9 @@ namespace {
 const std::string kTimestampUrl =
     R"(https://authentication.server.url/timestamp)";
 
+const std::string kIntrospectUrl =
+    R"(https://authentication.server.url/app/me)";
+
 constexpr unsigned int kExpirtyTime = 3600;
 constexpr unsigned int kMaxExpiryTime = kExpirtyTime + 30;
 constexpr unsigned int kMinExpiryTime = kExpirtyTime - 10;
@@ -647,7 +650,8 @@ TEST_F(AuthenticationClientTest, SignInFederated) {
   std::promise<AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
 
-  std::string body = R"({ "grantType": "xyz", "token": "test_token", "realm": "my_realm" })";
+  std::string body =
+      R"({ "grantType": "xyz", "token": "test_token", "realm": "my_realm" })";
 
   using namespace testing;
 
@@ -1096,4 +1100,109 @@ TEST_F(AuthenticationClientTest, TestHttpRequestErrorCodes) {
                        kErrorUndefined);
   ExecuteSigninRequest(100000, 100000, kErrorUndefined);
   ExecuteSigninRequest(-100000, -100000, kErrorUndefined);
+}
+
+TEST_F(AuthenticationClientTest, IntrospectApp) {
+  {
+    SCOPED_TRACE("Successful request");
+    EXPECT_CALL(*network_, Send(IsGetRequest(kIntrospectUrl), _, _, _, _))
+        .WillOnce([&](olp::http::NetworkRequest request,
+                      olp::http::Network::Payload payload,
+                      olp::http::Network::Callback callback,
+                      olp::http::Network::HeaderCallback header_callback,
+                      olp::http::Network::DataCallback data_callback) {
+          olp::http::RequestId request_id(3);
+          if (payload) {
+            *payload << kIntrospectAppResponse;
+          }
+
+          callback(olp::http::NetworkResponse()
+                       .WithRequestId(request_id)
+                       .WithStatus(olp::http::HttpStatusCode::OK));
+          return olp::http::SendOutcome(request_id);
+        });
+    std::promise<IntrospectAppResponse> request;
+    auto future = request.get_future();
+    client_->IntrospectApp(kResponseToken,
+                           [&](const IntrospectAppResponse& response) {
+                             request.set_value(response);
+                           });
+    IntrospectAppResponse response = future.get();
+    auto result = response.GetResult();
+    auto error = response.GetError();
+    EXPECT_TRUE(response.IsSuccessful());
+    EXPECT_FALSE(result.GetClientId().empty());
+    EXPECT_FALSE(result.GetName().empty());
+    EXPECT_FALSE(result.GetDescription().empty());
+    EXPECT_FALSE(result.GetRedirectUris().empty());
+    EXPECT_FALSE(result.GetAllowedScopes().empty());
+    EXPECT_FALSE(result.GetTokenEndpointAuthMethod().empty());
+    EXPECT_FALSE(result.GetTokenEndpointAuthMethodReason().empty());
+    EXPECT_FALSE(result.GetDobRequired());
+    EXPECT_TRUE(result.GetTokenDuration() > 0);
+    EXPECT_FALSE(result.GetReferrers().empty());
+    EXPECT_FALSE(result.GetStatus().empty());
+    EXPECT_TRUE(result.GetAppCodeEnabled());
+    EXPECT_TRUE(result.GetCreatedTime() > 0);
+    EXPECT_FALSE(result.GetRealm().empty());
+    EXPECT_FALSE(result.GetType().empty());
+    EXPECT_FALSE(result.GetResponseTypes().empty());
+    EXPECT_FALSE(result.GetTier().empty());
+    EXPECT_FALSE(result.GetHRN().empty());
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
+  {
+    SCOPED_TRACE("Invalid access token");
+    EXPECT_CALL(*network_, Send(IsGetRequest(kIntrospectUrl), _, _, _, _))
+        .WillOnce([&](olp::http::NetworkRequest request,
+                      olp::http::Network::Payload payload,
+                      olp::http::Network::Callback callback,
+                      olp::http::Network::HeaderCallback header_callback,
+                      olp::http::Network::DataCallback data_callback) {
+          olp::http::RequestId request_id(3);
+          if (payload) {
+            *payload << kInvalidAccessTokenResponse;
+          }
+          callback(olp::http::NetworkResponse()
+                       .WithRequestId(request_id)
+                       .WithStatus(olp::http::HttpStatusCode::UNAUTHORIZED));
+          return olp::http::SendOutcome(request_id);
+        });
+    std::promise<IntrospectAppResponse> request;
+    auto future = request.get_future();
+    client_->IntrospectApp(kResponseToken,
+                           [&](const IntrospectAppResponse& response) {
+                             request.set_value(response);
+                           });
+    IntrospectAppResponse response = future.get();
+    auto error = response.GetError();
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(error.GetErrorCode(), olp::client::ErrorCode::AccessDenied);
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
+}
+
+TEST_F(AuthenticationClientTest, IntrospectAppCancel) {
+  // Simulate a loaded queue
+  std::promise<void> promise;
+  auto future = promise.get_future();
+  task_scheduler_->ScheduleTask([&future]() { future.get(); });
+
+  std::promise<IntrospectAppResponse> request;
+  auto introspect_future = request.get_future();
+  auto cancel_token = client_->IntrospectApp(
+      kResponseToken, [&](const IntrospectAppResponse& response) {
+        request.set_value(response);
+      });
+  cancel_token.Cancel();
+  promise.set_value();
+
+  auto response = introspect_future.get();
+  EXPECT_FALSE(response.IsSuccessful());
+  EXPECT_EQ(response.GetError().GetErrorCode(),
+            olp::client::ErrorCode::Cancelled);
+
+  testing::Mock::VerifyAndClearExpectations(network_.get());
 }

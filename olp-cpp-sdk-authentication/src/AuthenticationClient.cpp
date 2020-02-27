@@ -22,6 +22,7 @@
 #include <chrono>
 #include <sstream>
 
+#include <olp/core/client/PendingRequests.h>
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
 #include <rapidjson/stringbuffer.h>
@@ -29,6 +30,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+
 #include "Constants.h"
 #include "Crypto.h"
 #include "SignInResultImpl.h"
@@ -39,6 +41,7 @@
 #include "olp/core/client/ApiError.h"
 #include "olp/core/client/CancellationToken.h"
 #include "olp/core/client/ErrorCode.h"
+#include "olp/core/client/OlpClient.h"
 #include "olp/core/http/HttpStatusCode.h"
 #include "olp/core/http/Network.h"
 #include "olp/core/http/NetworkConstants.h"
@@ -55,6 +58,8 @@ using namespace olp::thread;
 using namespace olp::utils;
 
 namespace {
+using namespace olp::authentication;
+
 // Helper characters
 constexpr auto kParamAdd = "&";
 constexpr auto kParamComma = ",";
@@ -76,6 +81,7 @@ const std::string kSignoutEndpoint = "/logout";
 const std::string kTermsEndpoint = "/terms";
 const std::string kUserEndpoint = "/user";
 const std::string kTimestampEndpoint = "/timestamp";
+const std::string kIntrospectAppEndpoint = "/app/me";
 
 // JSON fields
 constexpr auto kCountryCode = "countryCode";
@@ -117,6 +123,120 @@ void ExecuteOrSchedule(
   task_scheduler->ScheduleTask(std::move(func));
 }
 
+/*
+ * @brief Common function used to wrap a lambda function and a callback that
+ * consumes the function result with a TaskContext class and schedule this to a
+ * task scheduler.
+ * @param task_scheduler Task scheduler instance.
+ * @param pending_requests PendingRequests instance that tracks current
+ * requests.
+ * @param task Function that will be executed.
+ * @param callback Function that will consume task output.
+ * @param args Additional agrs to pass to TaskContext.
+ * @return CancellationToken used to cancel the operation.
+ */
+template <typename Function, typename Callback, typename... Args>
+inline olp::client::CancellationToken AddTask(
+    std::shared_ptr<olp::thread::TaskScheduler>& task_scheduler,
+    const std::shared_ptr<olp::client::PendingRequests>& pending_requests,
+    Function task, Callback callback, Args&&... args) {
+  auto context = olp::client::TaskContext::Create(
+      std::move(task), std::move(callback), std::forward<Args>(args)...);
+  pending_requests->Insert(context);
+
+  ExecuteOrSchedule(task_scheduler, [=] {
+    context.Execute();
+    pending_requests->Remove(context);
+  });
+
+  return context.CancelToken();
+}
+
+IntrospectAppResult GetIntrospectAppResult(const rapidjson::Document& doc) {
+  IntrospectAppResult result;
+  if (doc.HasMember(Constants::CLIENT_ID)) {
+    result.SetClientId(doc[Constants::CLIENT_ID].GetString());
+  }
+  if (doc.HasMember(Constants::NAME)) {
+    result.SetName(doc[Constants::NAME].GetString());
+  }
+  if (doc.HasMember(Constants::DESCRIPTION)) {
+    result.SetDescription(doc[Constants::DESCRIPTION].GetString());
+  }
+  if (doc.HasMember(Constants::REDIRECT_URIS)) {
+    auto uris = doc[Constants::REDIRECT_URIS].GetArray();
+    std::vector<std::string> value_array;
+    value_array.reserve(uris.Size());
+    for (auto& value : uris) {
+      value_array.push_back(value.GetString());
+    }
+    result.SetReditectUris(std::move(value_array));
+  }
+  if (doc.HasMember(Constants::ALLOWED_SCOPES)) {
+    auto scopes = doc[Constants::ALLOWED_SCOPES].GetArray();
+    std::vector<std::string> value_array;
+    value_array.reserve(scopes.Size());
+    for (auto& value : scopes) {
+      value_array.push_back(value.GetString());
+    }
+    result.SetAllowedScopes(std::move(value_array));
+  }
+  if (doc.HasMember(Constants::TOKEN_ENDPOINT_AUTH_METHOD)) {
+    result.SetTokenEndpointAuthMethod(
+        doc[Constants::TOKEN_ENDPOINT_AUTH_METHOD].GetString());
+  }
+  if (doc.HasMember(Constants::TOKEN_ENDPOINT_AUTH_METHOD_REASON)) {
+    result.SetTokenEndpointAuthMethodReason(
+        doc[Constants::TOKEN_ENDPOINT_AUTH_METHOD_REASON].GetString());
+  }
+  if (doc.HasMember(Constants::DOB_REQUIRED)) {
+    result.SetDobRequired(doc[Constants::DOB_REQUIRED].GetBool());
+  }
+  if (doc.HasMember(Constants::TOKEN_DURATION)) {
+    result.SetTokenDuration(doc[Constants::TOKEN_DURATION].GetInt());
+  }
+  if (doc.HasMember(Constants::REFERRERS)) {
+    auto uris = doc[Constants::REFERRERS].GetArray();
+    std::vector<std::string> value_array;
+    value_array.reserve(uris.Size());
+    for (auto& value : uris) {
+      value_array.push_back(value.GetString());
+    }
+    result.SetReferrers(std::move(value_array));
+  }
+  if (doc.HasMember(Constants::STATUS)) {
+    result.SetStatus(doc[Constants::STATUS].GetString());
+  }
+  if (doc.HasMember(Constants::APP_CODE_ENABLED)) {
+    result.SetAppCodeEnabled(doc[Constants::APP_CODE_ENABLED].GetBool());
+  }
+  if (doc.HasMember(Constants::CREATED_TIME)) {
+    result.SetCreatedTime(doc[Constants::CREATED_TIME].GetInt64());
+  }
+  if (doc.HasMember(Constants::REALM)) {
+    result.SetRealm(doc[Constants::REALM].GetString());
+  }
+  if (doc.HasMember(Constants::TYPE)) {
+    result.SetType(doc[Constants::TYPE].GetString());
+  }
+  if (doc.HasMember(Constants::RESPONSE_TYPES)) {
+    auto types = doc[Constants::RESPONSE_TYPES].GetArray();
+    std::vector<std::string> value_array;
+    value_array.reserve(types.Size());
+    for (auto& value : types) {
+      value_array.push_back(value.GetString());
+    }
+    result.SetResponseTypes(std::move(value_array));
+  }
+  if (doc.HasMember(Constants::TIER)) {
+    result.SetTier(doc[Constants::TIER].GetString());
+  }
+  if (doc.HasMember(Constants::HRN)) {
+    result.SetHrn(doc[Constants::HRN].GetString());
+  }
+  return result;
+}
+
 }  // namespace
 
 namespace olp {
@@ -145,6 +265,11 @@ class AuthenticationClient::Impl final {
    * the `Impl`  instance.
    */
   Impl(AuthenticationSettings settings);
+
+  /**
+   * @brief Destructor
+   */
+  ~Impl();
 
   /**
    * @brief Sign in with client credentials
@@ -189,6 +314,9 @@ class AuthenticationClient::Impl final {
   client::CancellationToken SignOut(
       const AuthenticationCredentials& credentials,
       const std::string& userAccessToken, const SignOutUserCallback& callback);
+
+  client::CancellationToken IntrospectApp(std::string access_token,
+                                          IntrospectAppCallback callback);
 
   void SetNetworkProxySettings(
       const http::NetworkProxySettings& proxy_settings);
@@ -236,7 +364,7 @@ class AuthenticationClient::Impl final {
   std::shared_ptr<SignInCacheType> client_token_cache_;
   std::shared_ptr<SignInUserCacheType> user_token_cache_;
   AuthenticationSettings settings_;
-
+  std::shared_ptr<client::PendingRequests> pending_requests_;
   mutable std::mutex token_mutex_;
 };
 
@@ -263,7 +391,8 @@ AuthenticationClient::Impl::Impl(const std::string& authentication_server_url,
                                  size_t token_cache_limit)
     : client_token_cache_(std::make_shared<SignInCacheType>(token_cache_limit)),
       user_token_cache_(
-          std::make_shared<SignInUserCacheType>(token_cache_limit)) {
+          std::make_shared<SignInUserCacheType>(token_cache_limit)),
+      pending_requests_(std::make_shared<client::PendingRequests>()) {
   settings_.token_endpoint_url = authentication_server_url;
   settings_.token_cache_limit = token_cache_limit;
 }
@@ -273,7 +402,10 @@ AuthenticationClient::Impl::Impl(AuthenticationSettings settings)
           std::make_shared<SignInCacheType>(settings.token_cache_limit)),
       user_token_cache_(
           std::make_shared<SignInUserCacheType>(settings.token_cache_limit)),
-      settings_(std::move(settings)) {}
+      settings_(std::move(settings)),
+      pending_requests_(std::make_shared<client::PendingRequests>()) {}
+
+AuthenticationClient::Impl::~Impl() { pending_requests_->CancelAllAndWait(); }
 
 client::CancellationToken AuthenticationClient::Impl::SignInClient(
     AuthenticationCredentials credentials, SignInProperties properties,
@@ -446,8 +578,8 @@ client::CancellationToken AuthenticationClient::Impl::GetTimeFromServer(
       request, payload,
       [callback, payload](const http::NetworkResponse& network_response) {
         if (network_response.GetStatus() != http::HttpStatusCode::OK) {
-          callback(
-              client::ApiError(network_response.GetStatus(), network_response.GetError()));
+          callback(client::ApiError(network_response.GetStatus(),
+                                    network_response.GetError()));
           return;
         }
 
@@ -769,6 +901,67 @@ client::CancellationToken AuthenticationClient::Impl::SignOut(
   });
 }
 
+client::CancellationToken AuthenticationClient::Impl::IntrospectApp(
+    std::string access_token, IntrospectAppCallback callback) {
+  using ResponseType =
+      client::ApiResponse<IntrospectAppResult, client::ApiError>;
+
+  auto introspect_app_task =
+      [=](client::CancellationContext context) -> ResponseType {
+    if (!settings_.network_request_handler) {
+      client::ApiError result({static_cast<int>(http::ErrorCode::IO_ERROR),
+                               "Cannot introspect app while offline"});
+      return std::move(result);
+    }
+
+    client::AuthenticationSettings auth_settings;
+    auth_settings.provider = [&access_token]() { return access_token; };
+
+    client::OlpClientSettings settings;
+    settings.network_request_handler = settings_.network_request_handler;
+    settings.task_scheduler = settings_.task_scheduler;
+    settings.proxy_settings = settings_.network_proxy_settings;
+    settings.authentication_settings = auth_settings;
+
+    client::OlpClient client;
+    client.SetBaseUrl(settings_.token_endpoint_url);
+    client.SetSettings(settings);
+
+    auto http_result = client.CallApi(kIntrospectAppEndpoint, "GET", {}, {}, {},
+                                      nullptr, {}, context);
+
+    rapidjson::Document document;
+    rapidjson::IStreamWrapper stream(http_result.response);
+    document.ParseStream(stream);
+    if (http_result.status != http::HttpStatusCode::OK) {
+      // HttpResult response can be error message or valid json with it.
+      std::string msg = http_result.response.str();
+      if (!document.HasParseError() && document.HasMember(Constants::MESSAGE)) {
+        msg = document[Constants::MESSAGE].GetString();
+      }
+      client::ApiError error({http_result.status, msg});
+      return std::move(error);
+    }
+
+    IntrospectAppResult response_result = GetIntrospectAppResult(document);
+    return std::move(response_result);
+  };
+
+  // wrap_callback needed to convert client::ApiError into AuthenticationError.
+  auto wrap_callback = [callback](ResponseType response) {
+    if (!response.IsSuccessful()) {
+      const auto& error = response.GetError();
+      callback({{error.GetHttpStatusCode(), error.GetMessage()}});
+      return;
+    }
+
+    callback(response.MoveResult());
+  };
+
+  return AddTask(settings_.task_scheduler, pending_requests_,
+                 std::move(introspect_app_task), std::move(wrap_callback));
+}
+
 std::string AuthenticationClient::Impl::base64Encode(
     const std::vector<uint8_t>& vector) {
   std::string ret = olp::utils::Base64Encode(vector);
@@ -839,8 +1032,8 @@ AuthenticationClient::Impl::generateClientBody(
   }
   writer.EndObject();
   auto content = data.GetString();
-  return std::make_shared<std::vector<unsigned char> >(
-      content, content + data.GetSize());
+  return std::make_shared<std::vector<unsigned char>>(content,
+                                                      content + data.GetSize());
 }
 
 http::NetworkRequest::RequestBodyType
@@ -866,8 +1059,8 @@ AuthenticationClient::Impl::generateUserBody(const UserProperties& properties) {
   }
   writer.EndObject();
   auto content = data.GetString();
-  return std::make_shared<std::vector<unsigned char> >(
-      content, content + data.GetSize());
+  return std::make_shared<std::vector<unsigned char>>(content,
+                                                      content + data.GetSize());
 }
 
 http::NetworkRequest::RequestBodyType
@@ -915,8 +1108,8 @@ AuthenticationClient::Impl::generateFederatedBody(
 
   writer.EndObject();
   auto content = data.GetString();
-  return std::make_shared<std::vector<unsigned char> >(
-      content, content + data.GetSize());
+  return std::make_shared<std::vector<unsigned char>>(content,
+                                                      content + data.GetSize());
 }
 
 http::NetworkRequest::RequestBodyType
@@ -943,8 +1136,8 @@ AuthenticationClient::Impl::generateRefreshBody(
   }
   writer.EndObject();
   auto content = data.GetString();
-  return std::make_shared<std::vector<unsigned char> >(
-      content, content + data.GetSize());
+  return std::make_shared<std::vector<unsigned char>>(content,
+                                                      content + data.GetSize());
 }
 
 http::NetworkRequest::RequestBodyType
@@ -1001,8 +1194,8 @@ AuthenticationClient::Impl::generateSignUpBody(
 
   writer.EndObject();
   auto content = data.GetString();
-  return std::make_shared<std::vector<unsigned char> >(
-      content, content + data.GetSize());
+  return std::make_shared<std::vector<unsigned char>>(content,
+                                                      content + data.GetSize());
 }
 
 http::NetworkRequest::RequestBodyType
@@ -1017,8 +1210,8 @@ AuthenticationClient::Impl::generateAcceptTermBody(
 
   writer.EndObject();
   auto content = data.GetString();
-  return std::make_shared<std::vector<unsigned char> >(
-      content, content + data.GetSize());
+  return std::make_shared<std::vector<unsigned char>>(content,
+                                                      content + data.GetSize());
 }
 
 std::string AuthenticationClient::Impl::generateUid() {
@@ -1111,6 +1304,11 @@ client::CancellationToken AuthenticationClient::SignOut(
     const AuthenticationCredentials& credentials,
     const std::string& user_access_token, const SignOutUserCallback& callback) {
   return impl_->SignOut(credentials, user_access_token, callback);
+}
+
+client::CancellationToken AuthenticationClient::IntrospectApp(
+    std::string access_token, IntrospectAppCallback callback) {
+  return impl_->IntrospectApp(std::move(access_token), std::move(callback));
 }
 
 void AuthenticationClient::SetNetworkProxySettings(
