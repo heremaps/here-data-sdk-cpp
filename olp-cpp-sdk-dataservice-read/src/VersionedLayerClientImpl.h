@@ -31,6 +31,7 @@
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/PrefetchTileResult.h>
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
+#include <olp/dataservice/read/TileRequest.h>
 #include <olp/dataservice/read/Types.h>
 #include "repositories/ExecuteOrSchedule.inl"
 
@@ -60,6 +61,12 @@ class VersionedLayerClientImpl {
 
   virtual client::CancellableFuture<DataResponse> GetData(
       DataRequest data_request);
+
+  virtual client::CancellationToken GetData(TileRequest tile_request,
+                                            DataResponseCallback callback);
+
+  virtual client::CancellableFuture<DataResponse> GetData(
+      TileRequest tile_request);
 
   virtual client::CancellationToken GetPartitions(
       PartitionsRequest partitions_request,

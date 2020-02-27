@@ -84,6 +84,16 @@ VersionedLayerClient::PrefetchTiles(PrefetchTilesRequest request) {
   return impl_->PrefetchTiles(std::move(request));
 }
 
+client::CancellationToken VersionedLayerClient::GetData(
+    TileRequest request, DataResponseCallback callback) {
+  return impl_->GetData(std::move(request), std::move(callback));
+}
+
+client::CancellableFuture<DataResponse> VersionedLayerClient::GetData(
+    TileRequest request) {
+  return impl_->GetData(std::move(request));
+}
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

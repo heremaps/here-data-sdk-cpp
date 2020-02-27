@@ -345,6 +345,7 @@ VersionedLayerClientImpl::PrefetchTiles(PrefetchTilesRequest request) {
                                                           promise);
 }
 
+
 CatalogVersionResponse VersionedLayerClientImpl::GetVersion(
     boost::optional<std::string> billing_tag, const FetchOptions& fetch_options,
     const client::CancellationContext& context) {
@@ -373,6 +374,48 @@ CatalogVersionResponse VersionedLayerClientImpl::GetVersion(
   }
 
   return response;
+}
+
+client::CancellationToken VersionedLayerClientImpl::GetData(
+    TileRequest request, DataResponseCallback callback) {
+  auto schedule_get_data = [&](TileRequest request,
+                               DataResponseCallback callback) {
+    auto catalog = catalog_;
+    auto layer_id = layer_id_;
+    auto settings = settings_;
+    auto pending_requests = pending_requests_;
+
+    auto data_task = [=](client::CancellationContext context) -> DataResponse {
+      auto version_response = GetVersion(request.GetBillingTag(),
+                                         request.GetFetchOption(), context);
+      if (!version_response.IsSuccessful()) {
+        return version_response.GetError();
+      }
+
+      return repository::DataRepository::GetVersionedTile(
+          std::move(catalog), std::move(layer_id), std::move(request),
+          version_response.GetResult().GetVersion(), context,
+          std::move(settings));
+    };
+
+    return AddTask(settings.task_scheduler, pending_requests,
+                   std::move(data_task), std::move(callback));
+  };
+
+  return ScheduleFetch(std::move(schedule_get_data), std::move(request),
+                       std::move(callback));
+}
+
+client::CancellableFuture<DataResponse> VersionedLayerClientImpl::GetData(
+    TileRequest request) {
+  auto promise = std::make_shared<std::promise<DataResponse>>();
+  auto cancel_token =
+      GetData(std::move(request), [promise](DataResponse response) {
+        promise->set_value(std::move(response));
+      });
+  return client::CancellableFuture<DataResponse>(std::move(cancel_token),
+                                                 std::move(promise));
+
 }
 
 }  // namespace read
