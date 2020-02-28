@@ -76,9 +76,9 @@ class VersionedLayerClientImpl;
  * client_settings.task_scheduler = std::move(task_scheduler);
  * client_settings.network_request_handler = std::move(http_client);
  *
- * VersionedLayerClient client{"hrn:here:data:::your-catalog-hrn", "your-layer-id", client_settings};
+ * VersionedLayerClient client{"hrn:here:data:::your-catalog-hrn", "your-layer-id", "catalog-version", client_settings};
  * auto callback = [](olp::client::ApiResponse<olp::model::Data, olp::client::ApiError> response) {};
- * auto request = DataRequest().WithVersion(100).WithPartitionId("269");
+ * auto request = DataRequest().WithPartitionId("269");
  * auto token = client.GetData(request, callback);
  * @endcode
  *

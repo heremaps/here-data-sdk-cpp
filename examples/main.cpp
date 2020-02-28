@@ -22,9 +22,10 @@
 #include "ReadExample.h"
 #include "WriteExample.h"
 
-#include <iostream>
 #include <stdio.h>
 #include <string.h>
+#include <iostream>
+#include <sstream>
 
 bool IsMatch(const std::string& name, const tools::Option& option) {
   return name == option.short_name || name == option.long_name;
@@ -42,6 +43,8 @@ constexpr auto usage =
     "example [read, write, cache] \n -i [--key_id] here.access.key.id \n -s "
     "[--key_secret] here.access.key.secret \n"
     " -c [--catalog] catalog HRN (HERE Resource Name). \n"
+    " -v [--catalog_version] The version of the catalog from which you wan to"
+    "get data(used in read example, optional). \n"
     " -l [--layer_id] the layer ID inside the catalog where you want to "
     "publish data to(required for write example). \n"
     " -h [--help]: show usage \n For "
@@ -57,7 +60,9 @@ int RequiredArgumentError(const tools::Option& arg) {
   return 0;
 }
 int ParseArguments(const int argc, char** argv, AccessKey& access_key,
-                   std::string& catalog, std::string& layer_id) {
+                   std::string& catalog,
+                   boost::optional<int64_t>& catalog_version,
+                   std::string& layer_id) {
   int examples_to_run = 0;
 
   const std::vector<std::string> arguments(argv + 1, argv + argc);
@@ -104,6 +109,16 @@ int ParseArguments(const int argc, char** argv, AccessKey& access_key,
         return RequiredArgumentError(tools::kCatalogOption);
       }
       catalog = *it;
+    } else if (IsMatch(*it, tools::kCatalogVersionOption)) {
+      ++it;
+      catalog_version = 0;
+      std::stringstream ss(*it);
+      ss >> *catalog_version;
+      if (ss.fail() || !ss.eof()) {
+        std::cout << "invalid catalog version value -- '" << *it
+                  << "', but int64 is expected." << std::endl;
+        catalog_version = boost::none;
+      }
     } else if (IsMatch(*it, tools::kLayerIdOption)) {
       if (++it == arguments.end()) {
         return RequiredArgumentError(tools::kLayerIdOption);
@@ -126,10 +141,12 @@ int ParseArguments(const int argc, char** argv, AccessKey& access_key,
 }
 
 int RunExamples(const AccessKey& access_key, int examples_to_run,
-                const std::string& catalog, const std::string& layer_id) {
+                const std::string& catalog,
+                const boost::optional<int64_t>& catalog_version,
+                const std::string& layer_id) {
   if (examples_to_run & Examples::read_example) {
     std::cout << "Read Example" << std::endl;
-    if (RunExampleRead(access_key, catalog)) {
+    if (RunExampleRead(access_key, catalog, catalog_version)) {
       std::cout << "Read Example failed" << std::endl;
       return -1;
     }
@@ -159,9 +176,10 @@ int main(int argc, char** argv) {
   std::string catalog;     // the HRN of the catalog to which you to publish data
   std::string layer_id;    // the of the layer inside the catalog to which you
                            // want to publish data
+  boost::optional<int64_t> catalog_version;  // version of the catalog.
 
-  int examples_to_run =
-      ParseArguments(argc, argv, access_key, catalog, layer_id);
+  int examples_to_run = ParseArguments(argc, argv, access_key, catalog,
+                                       catalog_version, layer_id);
   if (examples_to_run == 0) {
     return 0;
   }
@@ -183,5 +201,6 @@ int main(int argc, char** argv) {
               << std::endl;
   }
 
-  return RunExamples(access_key, examples_to_run, catalog, layer_id);
+  return RunExamples(access_key, examples_to_run, catalog, catalog_version,
+                     layer_id);
 }
