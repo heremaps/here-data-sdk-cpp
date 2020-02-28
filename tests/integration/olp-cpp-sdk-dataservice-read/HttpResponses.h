@@ -220,9 +220,6 @@
 #define URL_QUADKEYS_369036 \
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/369036/depths/0)"
 
-#define URL_QUADKEYS_1 \
-  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/1/depths/0)"
-
 #define URL_QUERY_PARTITION_23618365 \
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/)"+GetTestCatalog()+R"(/layers/hype-test-prefetch/partitions?partition=23618365&version=4)"
 
@@ -264,9 +261,6 @@
 
 #define HTTP_RESPONSE_QUADKEYS_1476147 \
   R"jsonString({"subQuads": [{"version":4,"subQuadKey":"1","dataHandle":"f9a9fd8e-eb1b-48e5-bfdb-4392b3826443"}],"parentQuads": [{"version":4,"partition":"1476147","dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"}]})jsonString"
-
-#define HTTP_RESPONSE_QUADKEYS_1 \
-  R"jsonString({"subQuads": [],"parentQuads": []})jsonString"
 
 #define HTTP_RESPONSE_QUADKEYS_5904591 \
   R"jsonString({"subQuads": [{"version":4,"subQuadKey":"4","dataHandle":"f9a9fd8e-eb1b-48e5-bfdb-4392b3826443"},{"version":4,"subQuadKey":"5","dataHandle":"e119d20e-c7c6-4563-ae88-8aa5c6ca75c3"},{"version":4,"subQuadKey":"6","dataHandle":"a7a1afdf-db7e-4833-9627-d38bee6e2f81"},{"version":4,"subQuadKey":"7","dataHandle":"9d515348-afce-44e8-bc6f-3693cfbed104"},{"version":4,"subQuadKey":"1","dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": [{"version":4,"partition":"1476147","dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"}]})jsonString"

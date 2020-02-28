@@ -212,11 +212,6 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                    olp::http::HttpStatusCode::OK),
                                HTTP_RESPONSE_QUADKEYS_5904591));
-    ON_CALL(*network_mock_, Send(IsGetRequest(URL_QUADKEYS_1), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               HTTP_RESPONSE_QUADKEYS_1));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_1), _, _, _, _))
@@ -1621,13 +1616,19 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWrongLevels) {
   std::vector<olp::geo::TileKey> tile_keys = {
       olp::geo::TileKey::FromHereTile("5904591")};
 
+  ON_CALL(*network_mock_, Send(_, _, _, _, _))
+      .WillByDefault(
+          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                 olp::http::HttpStatusCode::FORBIDDEN),
+                             HTTP_RESPONSE_403));
+
   auto request = olp::dataservice::read::PrefetchTilesRequest()
                      .WithTileKeys(tile_keys)
                      .WithMinLevel(0)
                      .WithMaxLevel(0);
 
   auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-      catalog, kLayerId, *settings_);
+      catalog, kLayerId, 4, *settings_);
   ASSERT_TRUE(client);
 
   auto cancel_future = client->PrefetchTiles(request);
@@ -1636,7 +1637,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWrongLevels) {
   ASSERT_NE(raw_future.wait_for(kWaitTimeout), std::future_status::timeout);
   PrefetchTilesResponse response = raw_future.get();
   ASSERT_FALSE(response.IsSuccessful());
-  ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
+  ASSERT_EQ(olp::client::ErrorCode::AccessDenied,
             response.GetError().GetErrorCode());
   ASSERT_TRUE(response.GetResult().empty());
 }

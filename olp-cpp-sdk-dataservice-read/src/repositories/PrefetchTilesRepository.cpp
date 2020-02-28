@@ -69,6 +69,11 @@ SubQuadsRequest PrefetchTilesRepository::EffectiveTileKeys(
   SubQuadsRequest ret;
   auto current_level = tile_key.Level();
 
+  // min/max values was not set. Use default wide range.
+  if (max_level == 0 && min_level == 0) {
+    max_level = geo::TileKey().Level();
+  }
+
   auto AddParents = [&]() {
     auto tile{tile_key.Parent()};
     while (tile.Level() >= min_level && tile.IsValid()) {
