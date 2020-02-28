@@ -280,8 +280,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWrongLevels) {
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kTileId)};
 
-    SCOPED_TRACE("min/max levels are 0");
     {
+      SCOPED_TRACE("min/max levels are 0");
       auto request = olp::dataservice::read::PrefetchTilesRequest()
                          .WithTileKeys(tile_keys)
                          .WithMinLevel(0)
@@ -307,8 +307,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWrongLevels) {
       ASSERT_EQ(10u, result.size());
     }
 
-    SCOPED_TRACE(" min level greater than max level");
     {
+      SCOPED_TRACE(" min level greater than max level");
       auto request = olp::dataservice::read::PrefetchTilesRequest()
                          .WithTileKeys(tile_keys)
                          .WithMinLevel(-1)
@@ -326,8 +326,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWrongLevels) {
       EXPECT_FALSE(response.IsSuccessful());
       ASSERT_TRUE(response.GetResult().empty());
     }
-    SCOPED_TRACE(" min/max levels are very wide range");
     {
+      SCOPED_TRACE(" min/max levels are very wide range");
       auto request = olp::dataservice::read::PrefetchTilesRequest()
                          .WithTileKeys(tile_keys)
                          .WithMinLevel(0)
