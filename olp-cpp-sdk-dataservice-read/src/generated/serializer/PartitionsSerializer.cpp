@@ -33,6 +33,7 @@ void to_json(const dataservice::read::model::Partition& x,
   serialize("compressedDataSize", x.GetCompressedDataSize(), value, allocator);
   serialize("dataHandle", x.GetDataHandle(), value, allocator);
   serialize("dataSize", x.GetDataSize(), value, allocator);
+  serialize("crc", x.GetCrc(), value, allocator);
   serialize("partition", x.GetPartition(), value, allocator);
   serialize("version", x.GetVersion(), value, allocator);
 }

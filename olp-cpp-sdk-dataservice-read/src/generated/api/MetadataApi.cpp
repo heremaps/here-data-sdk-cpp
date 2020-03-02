@@ -84,7 +84,7 @@ MetadataApi::LayerVersionsResponse MetadataApi::GetLayerVersions(
 MetadataApi::PartitionsResponse MetadataApi::GetPartitions(
     const OlpClient& client, const std::string& layer_id,
     boost::optional<int64_t> version,
-    boost::optional<std::vector<std::string>> additional_fields,
+    const std::vector<std::string>& additional_fields,
     boost::optional<std::string> range,
     boost::optional<std::string> billing_tag,
     const client::CancellationContext& context) {
@@ -95,9 +95,9 @@ MetadataApi::PartitionsResponse MetadataApi::GetPartitions(
   }
 
   std::multimap<std::string, std::string> query_params;
-  if (additional_fields) {
+  if (!additional_fields.empty()) {
     query_params.emplace("additionalFields",
-                         concatStringArray(*additional_fields, ","));
+                         concatStringArray(additional_fields, ","));
   }
   if (billing_tag) {
     query_params.emplace("billingTag", *billing_tag);

@@ -31,6 +31,7 @@ void from_json(const rapidjson::Value& value, model::Partition& x) {
       parse<boost::optional<int64_t>>(value, "compressedDataSize"));
   x.SetDataHandle(parse<std::string>(value, "dataHandle"));
   x.SetDataSize(parse<boost::optional<int64_t>>(value, "dataSize"));
+  x.SetCrc(parse<boost::optional<std::string>>(value, "crc"));
   x.SetPartition(parse<std::string>(value, "partition"));
   x.SetVersion(parse<boost::optional<int64_t>>(value, "version"));
 }

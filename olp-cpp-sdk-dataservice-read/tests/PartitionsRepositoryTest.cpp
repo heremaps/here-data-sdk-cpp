@@ -26,6 +26,7 @@
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+#include <olp/core/utils/Url.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/TileRequest.h>
@@ -57,16 +58,31 @@ const std::string kOlpSdkHttpResponseLookupQuery =
     R"jsonString([{"api":"query","version":"v1","baseURL":"https://query.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString";
 const std::string kCacheKeyMetadata = kCatalog + "::query::v1::api";
 
-const std::string kOlpSdkUrlPartitionByIdNoVersion =
+const std::string kOlpSdkUrlPartitionByIdBase =
     R"(https://query.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/)" +
-    kVersionedLayerId + R"(/partitions?partition=)" + kPartitionId;
+    kVersionedLayerId + R"(/partitions)";
+
+const std::string kOlpSdkUrlPartitionByIdNoVersion =
+    kOlpSdkUrlPartitionByIdBase + R"(?partition=)" + kPartitionId;
+
 const std::string kOlpSdkUrlPartitionById = kOlpSdkUrlPartitionByIdNoVersion +
                                             R"(&version=)" +
                                             std::to_string(kVersion);
+
+const std::string kOlpSdkUrlPartitionByIdWithAdditionalParams =
+    kOlpSdkUrlPartitionByIdBase + R"(?additionalFields=)" +
+    olp::utils::Url::Encode(R"(checksum,compressedDataSize,crc,dataSize)") +
+    R"(&partition=)" + kPartitionId + R"(&version=)" + std::to_string(kVersion);
+
 const std::string kOlpSdkHttpResponsePartitionById =
     R"jsonString({ "partitions": [{"version":42,"partition":")jsonString" +
     kPartitionId +
     R"jsonString(","layer":"olp-cpp-sdk-ingestion-test-volatile-layer","dataHandle":"PartitionsRepositoryTest-partitionId"}]})jsonString";
+
+const std::string kOlpSdkHttpResponsePartitionByIdWithAdditionalFields =
+    R"jsonString({ "partitions": [{"version":42,"partition":")jsonString" +
+    kPartitionId +
+    R"jsonString(","layer":"olp-cpp-sdk-ingestion-test-volatile-layer","dataHandle":"PartitionsRepositoryTest-partitionId","checksum":"xxx","compressedDataSize":15,"dataSize":10,"crc":"yyy"}]})jsonString";
 
 const std::string kOlpSdkHttpResponseEmptyPartitionList =
     R"({ "partitions": [] })";
@@ -114,6 +130,7 @@ const std::string kSubQuads =
 
 const std::string kBlobDataHandle23618364 =
     R"(f9a9fd8e-eb1b-48e5-bfdb-4392b3826443)";
+
 class PartitionsRepositoryTest : public ::testing::Test,
                                  protected repository::PartitionsRepository {};
 
@@ -735,6 +752,72 @@ TEST_F(PartitionsRepositoryTest, GetVolatilePartitions) {
         << cache_only_response.GetError().GetMessage();
     EXPECT_EQ(cache_only_response.GetResult().GetPartitions().size(), 4);
   }
+}
+
+TEST_F(PartitionsRepositoryTest, AdditionalFields) {
+  using namespace testing;
+
+  std::shared_ptr<cache::KeyValueCache> default_cache =
+      olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+
+  auto mock_network = std::make_shared<NetworkMock>();
+  const auto catalog = HRN::FromString(kCatalog);
+
+  EXPECT_CALL(*mock_network,
+              Send(IsGetRequest(kOlpSdkUrlLookupQuery), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kOlpSdkHttpResponseLookupQuery));
+
+  EXPECT_CALL(*mock_network,
+              Send(IsGetRequest(kOlpSdkUrlPartitionByIdWithAdditionalParams), _,
+                   _, _, _))
+      .WillOnce(ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(
+              olp::http::HttpStatusCode::OK),
+          kOlpSdkHttpResponsePartitionByIdWithAdditionalFields));
+
+  OlpClientSettings settings;
+  settings.cache = default_cache;
+  settings.network_request_handler = mock_network;
+
+  CancellationContext context;
+  PartitionsRequest request;
+
+  request.WithPartitionIds({kPartitionId});
+  request.WithVersion(4);
+  request.WithAdditionalFields(
+      {PartitionsRequest::kChecksum, PartitionsRequest::kCompressedDataSize,
+       PartitionsRequest::kCrc, PartitionsRequest::kDataSize});
+
+  auto response = repository::PartitionsRepository::GetVersionedPartitions(
+      catalog, kVersionedLayerId, context, request, settings);
+
+  ASSERT_TRUE(response.IsSuccessful());
+  auto result = response.GetResult();
+  auto partitions = result.GetPartitions();
+  ASSERT_EQ(partitions.size(), 1);
+  EXPECT_EQ(partitions[0].GetDataSize().value_or(0), 10);
+  EXPECT_EQ(partitions[0].GetCompressedDataSize().value_or(0), 15);
+  EXPECT_EQ(partitions[0].GetChecksum().value_or(""), "xxx");
+  EXPECT_EQ(partitions[0].GetCrc().value_or(""), "yyy");
+
+  request.WithFetchOption(FetchOptions::CacheOnly);
+
+  auto response_2 = repository::PartitionsRepository::GetVersionedPartitions(
+      catalog, kVersionedLayerId, context, request, settings);
+
+  ASSERT_TRUE(response_2.IsSuccessful());
+
+  auto cached_result = response_2.GetResult();
+  auto cached_partitions = cached_result.GetPartitions();
+  ASSERT_EQ(cached_partitions.size(), 1);
+
+  EXPECT_EQ(partitions[0].GetDataSize(), cached_partitions[0].GetDataSize());
+  EXPECT_EQ(partitions[0].GetCompressedDataSize(),
+            cached_partitions[0].GetCompressedDataSize());
+  EXPECT_EQ(partitions[0].GetChecksum(), cached_partitions[0].GetChecksum());
+  EXPECT_EQ(partitions[0].GetCrc(), cached_partitions[0].GetCrc());
 }
 
 TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {

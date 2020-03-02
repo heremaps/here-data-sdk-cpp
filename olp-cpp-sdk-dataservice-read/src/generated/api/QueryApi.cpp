@@ -60,7 +60,7 @@ QueryApi::PartitionsResponse QueryApi::GetPartitionsbyId(
     const client::OlpClient& client, const std::string& layer_id,
     const std::vector<std::string>& partitions,
     boost::optional<int64_t> version,
-    boost::optional<std::vector<std::string>> additional_fields,
+    const std::vector<std::string>& additional_fields,
     boost::optional<std::string> billing_tag,
     client::CancellationContext context) {
   std::multimap<std::string, std::string> header_params;
@@ -70,9 +70,9 @@ QueryApi::PartitionsResponse QueryApi::GetPartitionsbyId(
   for (const auto& partition : partitions) {
     query_params.emplace("partition", partition);
   }
-  if (additional_fields) {
+  if (!additional_fields.empty()) {
     query_params.insert(std::make_pair(
-        "additionalFields", ConcatStringArray(*additional_fields, ",")));
+        "additionalFields", ConcatStringArray(additional_fields, ",")));
   }
   if (billing_tag) {
     query_params.insert(std::make_pair("billingTag", *billing_tag));
