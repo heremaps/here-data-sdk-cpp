@@ -1,6 +1,6 @@
 coverage:
   range: 60..100
-  round: down
+  round: nearest
   precision: 1
   status:
     project:
@@ -40,4 +40,8 @@ ignore:
   - olp-cpp-sdk-dataservice-write/src/FlushEventListener.h
   - olp-cpp-sdk-dataservice-write/src/FlushMetrics.h
   - tests
-  - testutils
+  - scripts
+  - examples
+  - docs
+  - external
+
