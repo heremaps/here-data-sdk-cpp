@@ -263,6 +263,98 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
   }
 }
 
+TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWrongLevels) {
+  const auto catalog =
+      olp::client::HRN::FromString(CustomParameters::getArgument(
+          "dataservice_read_test_versioned_prefetch_catalog"));
+  const auto kLayerId = CustomParameters::getArgument(
+      "dataservice_read_test_versioned_prefetch_layer");
+  const auto kTileId = CustomParameters::getArgument(
+      "dataservice_read_test_versioned_prefetch_tile");
+
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      catalog, kLayerId, *settings_);
+
+  {
+    SCOPED_TRACE("Prefetch tiles online and store them in memory cache");
+    std::vector<olp::geo::TileKey> tile_keys = {
+        olp::geo::TileKey::FromHereTile(kTileId)};
+
+    {
+      SCOPED_TRACE("min/max levels are 0");
+      auto request = olp::dataservice::read::PrefetchTilesRequest()
+                         .WithTileKeys(tile_keys)
+                         .WithMinLevel(0)
+                         .WithMaxLevel(0);
+
+      std::promise<PrefetchTilesResponse> promise;
+      std::future<PrefetchTilesResponse> future = promise.get_future();
+      auto token = client->PrefetchTiles(
+          request, [&promise](PrefetchTilesResponse response) {
+            promise.set_value(std::move(response));
+          });
+
+      ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+      PrefetchTilesResponse response = future.get();
+      EXPECT_SUCCESS(response);
+      const auto& result = response.GetResult();
+
+      for (auto tile_result : result) {
+        EXPECT_SUCCESS(*tile_result);
+        ASSERT_TRUE(tile_result->tile_key_.IsValid());
+      }
+
+      ASSERT_EQ(10u, result.size());
+    }
+
+    {
+      SCOPED_TRACE(" min level greater than max level");
+      auto request = olp::dataservice::read::PrefetchTilesRequest()
+                         .WithTileKeys(tile_keys)
+                         .WithMinLevel(-1)
+                         .WithMaxLevel(0);
+
+      std::promise<PrefetchTilesResponse> promise;
+      std::future<PrefetchTilesResponse> future = promise.get_future();
+      auto token = client->PrefetchTiles(
+          request, [&promise](PrefetchTilesResponse response) {
+            promise.set_value(std::move(response));
+          });
+
+      ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+      PrefetchTilesResponse response = future.get();
+      EXPECT_FALSE(response.IsSuccessful());
+      ASSERT_TRUE(response.GetResult().empty());
+    }
+    {
+      SCOPED_TRACE(" min/max levels are very wide range");
+      auto request = olp::dataservice::read::PrefetchTilesRequest()
+                         .WithTileKeys(tile_keys)
+                         .WithMinLevel(0)
+                         .WithMaxLevel(-1);
+
+      std::promise<PrefetchTilesResponse> promise;
+      std::future<PrefetchTilesResponse> future = promise.get_future();
+      auto token = client->PrefetchTiles(
+          request, [&promise](PrefetchTilesResponse response) {
+            promise.set_value(std::move(response));
+          });
+
+      ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+      PrefetchTilesResponse response = future.get();
+      EXPECT_SUCCESS(response);
+      const auto& result = response.GetResult();
+
+      for (auto tile_result : result) {
+        EXPECT_SUCCESS(*tile_result);
+        ASSERT_TRUE(tile_result->tile_key_.IsValid());
+      }
+
+      ASSERT_EQ(10u, result.size());
+    }
+  }
+}
+
 TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWithCancellableFuture) {
   const auto catalog =
       olp::client::HRN::FromString(CustomParameters::getArgument(

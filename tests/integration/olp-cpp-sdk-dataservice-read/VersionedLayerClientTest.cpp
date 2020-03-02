@@ -1627,6 +1627,39 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
   }
 }
 
+TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWrongLevels) {
+  olp::client::HRN catalog(GetTestCatalog());
+  constexpr auto kLayerId = "hype-test-prefetch";
+
+  std::vector<olp::geo::TileKey> tile_keys = {
+      olp::geo::TileKey::FromHereTile("5904591")};
+
+  ON_CALL(*network_mock_, Send(_, _, _, _, _))
+      .WillByDefault(
+          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                 olp::http::HttpStatusCode::FORBIDDEN),
+                             HTTP_RESPONSE_403));
+
+  auto request = olp::dataservice::read::PrefetchTilesRequest()
+                     .WithTileKeys(tile_keys)
+                     .WithMinLevel(0)
+                     .WithMaxLevel(0);
+
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      catalog, kLayerId, 4, *settings_);
+  ASSERT_TRUE(client);
+
+  auto cancel_future = client->PrefetchTiles(request);
+  auto raw_future = cancel_future.GetFuture();
+
+  ASSERT_NE(raw_future.wait_for(kWaitTimeout), std::future_status::timeout);
+  PrefetchTilesResponse response = raw_future.get();
+  ASSERT_FALSE(response.IsSuccessful());
+  ASSERT_EQ(olp::client::ErrorCode::AccessDenied,
+            response.GetError().GetErrorCode());
+  ASSERT_TRUE(response.GetResult().empty());
+}
+
 TEST_F(DataserviceReadVersionedLayerClientTest,
        PrefetchTilesCancelOnClientDeletion) {
   auto wait_for_cancel = std::make_shared<std::promise<void>>();
