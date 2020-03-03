@@ -26,6 +26,7 @@
 #include <string>
 
 #include <olp/authentication/AuthenticationSettings.h>
+#include <olp/authentication/Types.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/http/NetworkProxySettings.h>
@@ -584,6 +585,23 @@ class AUTHENTICATION_API AuthenticationClient {
       const AuthenticationCredentials& credentials,
       const std::string& user_access_token,
       const SignOutUserCallback& callback);
+
+  /**
+   * @brief Retrieves the application associated with the client access token.
+   *
+   * The application does not need permissions to access this endpoint.
+   * It will allow any client access token to retrieve its own information.
+   *
+   * @param access_token A valid access token that is associated with the
+   * application.
+   * @param callback The`IntrospectAppCallback` method that is called when
+   * the client introspect request is completed.
+   *
+   * @return The `CancellationToken` instance that can be used to cancel
+   * the request.
+   */
+  client::CancellationToken IntrospectApp(std::string access_token,
+                                          IntrospectAppCallback callback);
 
   /**
    * @brief Sets the `NetworkProxySettings` instance used by the underlying

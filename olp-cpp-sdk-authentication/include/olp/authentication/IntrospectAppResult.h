@@ -121,8 +121,6 @@ class AUTHENTICATION_API IntrospectAppResult {
   /**
    * @brief Token endpoint authentication method.
    *
-   * The default value will be "client_secret_jwt".
-   *
    * @return The token endpoint authentication method.
    */
   const std::string& GetTokenEndpointAuthMethod() const {

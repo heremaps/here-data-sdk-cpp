@@ -176,6 +176,38 @@ class AuthenticationClientTest : public AuthenticationCommonTestFixture {
     return request_future.get();
   }
 
+  IntrospectAppResponse IntrospectApp(const std::string& access_token,
+                                      std::time_t& now,
+                                      unsigned int expires_in = kLimitExpiry,
+                                      bool do_cancel = false) {
+    std::shared_ptr<IntrospectAppResponse> response;
+    unsigned int retry = 0u;
+    do {
+      if (retry > 0u) {
+        OLP_SDK_LOG_WARNING(__func__,
+                            "Request retry attempted (" << retry << ")");
+        std::this_thread::sleep_for(
+            std::chrono::seconds(retry * kRetryDelayInSecs));
+      }
+
+      std::promise<IntrospectAppResponse> request;
+      auto request_future = request.get_future();
+
+      now = std::time(nullptr);
+      auto cancel_token = client_->IntrospectApp(
+          access_token,
+          [&](const IntrospectAppResponse& resp) { request.set_value(resp); });
+
+      if (do_cancel) {
+        cancel_token.Cancel();
+      }
+      response = std::make_shared<IntrospectAppResponse>(request_future.get());
+    } while ((!response->IsSuccessful()) && (++retry < kMaxRetryCount) &&
+             !do_cancel);
+
+    return *response;
+  }
+
   std::string GetErrorId(
       const AuthenticationClient::SignInUserResponse& response) const {
     return response.GetResult().GetErrorResponse().error_id;
@@ -626,5 +658,40 @@ TEST_F(AuthenticationClientTest, ErrorFields) {
     EXPECT_EQ(message, it->message);
     EXPECT_EQ(code, it->code);
   }
+}
+
+TEST_F(AuthenticationClientTest, IntrospectApp) {
+  AuthenticationCredentials credentials(id_, secret_);
+
+  std::time_t now;
+  auto response = SignInClient(credentials, now, kExpiryTime);
+  auto result = response.GetResult();
+  EXPECT_TRUE(response.IsSuccessful());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, result.GetStatus());
+
+  auto token = result.GetAccessToken();
+  auto introspect_response = IntrospectApp(token, now, kExpiryTime);
+  auto introspect_result = introspect_response.GetResult();
+
+  EXPECT_TRUE(introspect_response.IsSuccessful());
+  EXPECT_FALSE(introspect_result.GetClientId().empty());
+  EXPECT_FALSE(introspect_result.GetName().empty());
+  EXPECT_FALSE(introspect_result.GetTokenEndpointAuthMethod().empty());
+  EXPECT_FALSE(introspect_result.GetStatus().empty());
+  EXPECT_TRUE(introspect_result.GetCreatedTime() > 0);
+  EXPECT_FALSE(introspect_result.GetRealm().empty());
+  EXPECT_FALSE(introspect_result.GetType().empty());
+  EXPECT_FALSE(introspect_result.GetTier().empty());
+  EXPECT_FALSE(introspect_result.GetHRN().empty());
+}
+
+TEST_F(AuthenticationClientTest, IntrospectAppInvalidAccessToken) {
+  AuthenticationCredentials credentials(id_, secret_);
+
+  std::time_t now;
+  auto response = IntrospectApp(kAccessToken, now, kExpiryTime);
+  auto result = response.GetResult();
+
+  EXPECT_FALSE(response.IsSuccessful());
 }
 }  // namespace
