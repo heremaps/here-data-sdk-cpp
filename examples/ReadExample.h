@@ -21,12 +21,18 @@
 
 #include "Examples.h"
 
+#include <boost/optional.hpp>
+
 /**
  * @brief Dataservice read example. Authenticate client using access key id and
  * secret. Get catalog and partition metadata, as well as partition data using
  * the HERE Open Location Platform.
  * @param access_key here.access.key.id and here.access.key.secret.
- * @param The HERE Resource Name (HRN) of the catalog from which you want to read data.
+ * @param catalog The HERE Resource Name (HRN) of the catalog from which you
+ * want to read data.
+ * @param catalog_version The desired version of the catalog.
  * @return result of publish data(0 - if succeed)
  */
-int RunExampleRead(const AccessKey& access_key, const std::string& catalog);
+int RunExampleRead(
+    const AccessKey& access_key, const std::string& catalog,
+    const boost::optional<int64_t>& catalog_version = boost::none);

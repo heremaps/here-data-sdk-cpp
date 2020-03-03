@@ -118,7 +118,8 @@ bool HandleDataResponse(
 }
 }  // namespace
 
-int RunExampleRead(const AccessKey& access_key, const std::string& catalog) {
+int RunExampleRead(const AccessKey& access_key, const std::string& catalog,
+                   const boost::optional<int64_t>& catalog_version) {
   // Create a task scheduler instance
   std::shared_ptr<olp::thread::TaskScheduler> task_scheduler =
       olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
@@ -174,9 +175,10 @@ int RunExampleRead(const AccessKey& access_key, const std::string& catalog) {
     first_layer_id = HandleCatalogResponse(catalog_response);
   }
 
-  // Create appropriate layer client with HRN, layer name and settings.
+  // Create appropriate layer client with HRN, layer name, version and settings.
   olp::dataservice::read::VersionedLayerClient layer_client(
-      olp::client::HRN(catalog), first_layer_id, client_settings);
+      olp::client::HRN(catalog), first_layer_id, catalog_version,
+      client_settings);
 
   std::string first_partition_id;
   if (!first_layer_id.empty()) {

@@ -36,6 +36,11 @@ const Option kKeySecretOption{"-s", "--key_secret",
 const Option kCatalogOption{"-c", "--catalog",
                             "Catalog HRN (HERE Resource Name)."};
 
+const Option kCatalogVersionOption{
+    "-v", "--catalog_version",
+    "The version of the catalog from which you wan to "
+    "get data(used in read example, optional)."};
+
 const Option kLayerIdOption{"-l", "--layer_id",
                             "The layer ID inside the catalog where you want to "
                             "publish data to(required for write example)."};
