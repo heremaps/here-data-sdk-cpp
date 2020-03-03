@@ -141,7 +141,7 @@ PartitionsResponse PartitionsRepository::GetPartitions(
   PartitionsResponse response;
 
   const auto& partition_ids = request.GetPartitionIds();
-
+  
   if (partition_ids.empty()) {
     auto metadata_api =
         ApiClientLookup::LookupApi(catalog, cancellation_context, "metadata",
@@ -152,8 +152,9 @@ PartitionsResponse PartitionsRepository::GetPartitions(
     }
 
     response = MetadataApi::GetPartitions(
-        metadata_api.GetResult(), layer, request.GetVersion(), boost::none,
-        boost::none, request.GetBillingTag(), cancellation_context);
+        metadata_api.GetResult(), layer, request.GetVersion(),
+        request.GetAdditionalFields(), boost::none, request.GetBillingTag(),
+        cancellation_context);
   } else {
     auto query_api =
         ApiClientLookup::LookupApi(catalog, cancellation_context, "query", "v1",
@@ -165,7 +166,8 @@ PartitionsResponse PartitionsRepository::GetPartitions(
 
     response = QueryApi::GetPartitionsbyId(
         query_api.GetResult(), layer, partition_ids, request.GetVersion(),
-        boost::none, request.GetBillingTag(), cancellation_context);
+        request.GetAdditionalFields(), request.GetBillingTag(),
+        cancellation_context);
   }
 
   // Save all partitions only when downloaded via metadata API
@@ -235,8 +237,8 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
   const client::OlpClient& client = query_api.GetResult();
 
   PartitionsResponse query_response = QueryApi::GetPartitionsbyId(
-      client, layer, partitions, version, boost::none,
-      data_request.GetBillingTag(), cancellation_context);
+      client, layer, partitions, version, {}, data_request.GetBillingTag(),
+      cancellation_context);
 
   if (query_response.IsSuccessful()) {
     OLP_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",

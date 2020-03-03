@@ -296,6 +296,7 @@ TEST(ParserTest, Partitions) {
         \"compressedDataSize\": 1024,\
         \"dataHandle\": \"1b2ca68f-d4a0-4379-8120-cd025640510c\",\
         \"dataSize\": 1024,\
+        \"crc\": \"291f66\",\
         \"partition\": \"314010583\",\
         \"version\": 2\
       }\
@@ -318,6 +319,8 @@ TEST(ParserTest, Partitions) {
   ASSERT_EQ(1024, *partitions.GetPartitions().at(0).GetCompressedDataSize());
   ASSERT_EQ("1b2ca68f-d4a0-4379-8120-cd025640510c",
             partitions.GetPartitions().at(0).GetDataHandle());
+  ASSERT_TRUE(partitions.GetPartitions().at(0).GetCrc());
+  ASSERT_EQ("291f66", *partitions.GetPartitions().at(0).GetCrc());
   ASSERT_TRUE(partitions.GetPartitions().at(0).GetDataSize());
   ASSERT_EQ(1024, *partitions.GetPartitions().at(0).GetDataSize());
   ASSERT_EQ("314010583", partitions.GetPartitions().at(0).GetPartition());

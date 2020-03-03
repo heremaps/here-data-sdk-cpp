@@ -44,6 +44,7 @@ class DATASERVICE_READ_API Partition {
   boost::optional<int64_t> compressed_data_size_;
   std::string data_handle_;
   boost::optional<int64_t> data_size_;
+  boost::optional<std::string> crc_;
   std::string partition_;
   boost::optional<int64_t> version_;
 
@@ -180,6 +181,35 @@ class DATASERVICE_READ_API Partition {
    */
   void SetDataSize(const boost::optional<int64_t>& value) {
     this->data_size_ = value;
+  }
+
+  /**
+   * Optional value for the CRC of the partition data in bytes.
+   *
+   * The response only includes the data size if you specify crc in the
+   * additionalFields query parameter, and if crc was specified in the partition
+   * metadata when it was published.
+   *
+   * @return The partition CRC.
+   */
+  const boost::optional<std::string>& GetCrc() const { return crc_; }
+  /**
+   * @brief (Optional) Gets a mutable reference to the partition crc.
+   *
+   * @see `GetCrc` for information on the crc.
+   *
+   * @return The mutable reference to the partition crc.
+   */
+  boost::optional<std::string>& GetMutableCrc() { return crc_; }
+  /**
+   * @brief (Optional) Sets the partition crc.
+   *
+   * @see `GetCrc` for information on the crc.
+   *
+   * @param value The partition crc.
+   */
+  void SetCrc(boost::optional<std::string> value) {
+    this->crc_ = std::move(value);
   }
 
   /**

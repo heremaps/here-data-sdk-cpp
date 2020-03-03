@@ -93,7 +93,7 @@ class MetadataApi {
   static PartitionsResponse GetPartitions(
       const client::OlpClient& client, const std::string& layerId,
       boost::optional<int64_t> version,
-      boost::optional<std::vector<std::string>> additional_fields,
+      const std::vector<std::string>& additional_fields,
       boost::optional<std::string> range,
       boost::optional<std::string> billing_tag,
       const client::CancellationContext& context);

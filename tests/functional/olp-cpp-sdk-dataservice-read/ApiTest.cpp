@@ -128,8 +128,7 @@ TEST_F(ApiTest, GetPartitions) {
 
   auto start_time = std::chrono::high_resolution_clock::now();
   auto partitions_response = olp::dataservice::read::MetadataApi::GetPartitions(
-      metadata_client, "testlayer", 1, boost::none, boost::none, boost::none,
-      context);
+      metadata_client, "testlayer", 1, {}, boost::none, boost::none, context);
 
   auto end = std::chrono::high_resolution_clock::now();
 
@@ -158,7 +157,7 @@ TEST_F(ApiTest, GetPartitionById) {
     std::vector<std::string> partitions = {"269", "270"};
     auto partitions_response =
         olp::dataservice::read::QueryApi::GetPartitionsbyId(
-            query_client, "testlayer", partitions, 1, boost::none, boost::none,
+            query_client, "testlayer", partitions, 1, {}, boost::none,
             olp::client::CancellationContext{});
     auto end = std::chrono::high_resolution_clock::now();
 
@@ -219,8 +218,9 @@ TEST_F(ApiTest, GetCatalogVersion) {
   olp::client::CancellationContext context;
 
   auto start_time = std::chrono::high_resolution_clock::now();
-  auto version_response = olp::dataservice::read::MetadataApi::GetLatestCatalogVersion(
-      metadata_client, -1, boost::none, context);
+  auto version_response =
+      olp::dataservice::read::MetadataApi::GetLatestCatalogVersion(
+          metadata_client, -1, boost::none, context);
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;
@@ -243,8 +243,9 @@ TEST_F(ApiTest, GetLayerVersions) {
   olp::client::CancellationContext context;
 
   auto start_time = std::chrono::high_resolution_clock::now();
-  auto layer_versions_response = olp::dataservice::read::MetadataApi::GetLayerVersions(
-      metadata_client, 1, boost::none, context);
+  auto layer_versions_response =
+      olp::dataservice::read::MetadataApi::GetLayerVersions(
+          metadata_client, 1, boost::none, context);
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;

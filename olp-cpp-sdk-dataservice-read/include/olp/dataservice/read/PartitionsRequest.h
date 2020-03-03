@@ -41,6 +41,22 @@ class DATASERVICE_READ_API PartitionsRequest final {
   /// The alias type of the vector of partitions ids
   using PartitionIds = std::vector<std::string>;
 
+  /// Additional field to request partition data size, see GetPartitions
+  static constexpr const char* kDataSize = "dataSize";
+
+  /// Additional field to request partition checksum, see GetPartitions
+  static constexpr const char* kChecksum = "checksum";
+
+  /// Additional field to request partition compressed data size, see
+  /// GetPartitions
+  static constexpr const char* kCompressedDataSize = "compressedDataSize";
+
+  /// Additional field to request partition crc, see GetPartitions
+  static constexpr const char* kCrc = "crc";
+
+  /// The alias type of the set of additional fields
+  using AdditionalFields = std::vector<std::string>;
+
   /**
    * @brief Sets the list of partitions.
    *
@@ -63,6 +79,35 @@ class DATASERVICE_READ_API PartitionsRequest final {
    * @return The vector of strings that represent partitions.
    */
   inline const PartitionIds& GetPartitionIds() const { return partition_ids_; }
+
+  /**
+   * @brief Sets the list of additional fields.
+   *
+   * When specified, the result metadata will include the additional information
+   * requested. The supported fields are:
+   *  - dataSize
+   *  - checksum
+   *  - compressedDataSize
+   *  - crc
+   *
+   * @param fields The list of additional fields.
+   *
+   * @return A reference to the updated `PartitionsRequest` instance.
+   */
+  inline PartitionsRequest& WithAdditionalFields(
+      AdditionalFields additional_fields) {
+    additional_fields_ = std::move(additional_fields);
+    return *this;
+  }
+
+  /**
+   * @brief Gets the list of additional fields.
+   *
+   * @return The set of additional fields.
+   */
+  inline const AdditionalFields& GetAdditionalFields() const {
+    return additional_fields_;
+  }
 
   /**
    * @brief Sets the catalog metadata version.
@@ -187,6 +232,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
 
  private:
   PartitionIds partition_ids_;
+  AdditionalFields additional_fields_;
   boost::optional<int64_t> catalog_version_;
   boost::optional<std::string> billing_tag_;
   FetchOptions fetch_option_{OnlineIfNotFound};
