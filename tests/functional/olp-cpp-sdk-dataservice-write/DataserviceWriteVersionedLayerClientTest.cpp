@@ -146,15 +146,6 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, StartBatch) {
           .get();
   EXPECT_SUCCESS(complete_batch_response);
 
-  get_batch_response =
-      versioned_client->GetBatch(response.GetResult()).GetFuture().get();
-
-  EXPECT_SUCCESS(get_batch_response);
-  ASSERT_EQ(response.GetResult().GetId().value(),
-            get_batch_response.GetResult().GetId().value());
-  ASSERT_EQ("submitted",
-            get_batch_response.GetResult().GetDetails()->GetState());
-
   for (int i = 0; i < 100; ++i) {
     get_batch_response =
         versioned_client->GetBatch(response.GetResult()).GetFuture().get();
