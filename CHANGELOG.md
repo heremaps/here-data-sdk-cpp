@@ -1,3 +1,36 @@
+## v1.3.0 (04/03/2020)
+
+**Common**
+
+* Response headers are now stored in `olp::client::HttpResponse`. `olp::client::OlpClient::CallApi()` collects and adds headers to the response.
+* X-Correlation-ID is now extracted from the HTTP response headers and used for subsequent requests in `olp::dataservice::read::StreamLayerClient`.
+* Added a new backdown strategy to `olp::client::RetrySettings`.
+  The default implementation is `olp::client::ExponentialBackdownStrategy` that restricts the maximum wait time during failed retries of network requests in the `olp::network::client::OlpClient` class (both synchronous and asynchronous versions). The accumulated wait time during retries should not be longer than the `RetrySettings.timeout` property.
+* Added `curl_global_init()` and `curl_global_cleanup()` to the `olp::http::NetworkCurl` class (Linux default implementation).
+  For more information, see the `olp::client::OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler()` function.
+* Fixed MSVC, Clang, and GCC warnings. Now, when you build with `-Wall -Wextra`, you should not face any hidden warnings, as the codebase is protected by a pre-release verification job.
+* Fixed the possible thread concurrency problem in the `olp::client::OlpClient` class that resulted in a crash in some situations.
+* Reduced data copy in the JSON serializers to increase performance.
+
+**olp-cpp-sdk-authentication**
+
+* Added a new API to `olp::authentication::AuthenticationClient` that you can use to perform a generic federated authentication with a custom request body.
+* Added the `olp::authentication::AuthenticationClient::IntrospectApp()` method that you can use to retrieve information
+  about the application associated with a particular access token.
+* Added a new `olp::authentication::AuthenticationClient` constructor using `olp::authentication::AuthenticationSettings` to setup network and task scheduler. It is a part of an ongoing authentication refactoring. Switch to this constructor instead of using the individual setters.
+
+**olp-cpp-sdk-dataservice-read**
+
+* `olp::dataservice::read::PartitionsRequest` now supports a list of partition IDs. This way, when you use `olp::dataservice::read::VersionedLayerClient` and `olp::dataservice::read::VolatileLayerClient`, you can also request certain partitions instead of the entire layer metadata.
+* Added the `Seek` method to `olp::dataservice::read::StreamLayerClient`. This method can be used to start reading messages from a stream layer at any given position.
+* Added the `Poll` method to `olp::dataservice::read::StreamLayerClient`. This method reads messages from a stream layer and commits successfully consumed messages before handing them over to you.
+* Added the `olp::dataservice::read::TileRequest` class and corresponding `GetData` overload to `olp::dataservice::read::VersionedLayerClient`. Now, you can get data using a tile key. Internally, the metadata retrieval is optimized by using a quadtree request and saves bandwidth on subsequent `GetData` calls.
+* Added additional fields to the `olp::dataservice::read::PartitionsRequest` class. Now, you can access the following additional metadata
+  fields: data size, compressed data size, checksum, and CRC.
+* Deprecated the `WithVersion` and the `GetVersion` methods in the `olp::dataservice::read::DataRequest`, `olp::dataservice::read::PartitionsRequest` and `olp::dataservice::read::PrefetchTilesRequest` classes. `olp::dataservice::read::VersionedLayerClient` now locks the catalog version either to the value provided on the constructor or by requesting the latest catalog version from the backend. This ensures that consistent data is provided for the instance lifecycle.
+* Fixed cache keys by appending 'partition' and 'partitions' to key values in `olp::dataservice::read::VolatileLayerClient`.
+* Fixed the infinite loop in the `olp::dataservice::read::VersionedLayerClient::PrefetchTiles()` method when min/max levels are not specified.
+
 ## v1.2.0 (04/02/2020)
 
 **Common**
