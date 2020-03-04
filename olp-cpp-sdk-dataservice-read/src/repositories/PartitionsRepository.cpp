@@ -352,13 +352,10 @@ PartitionsResponse PartitionsRepository::QueryPartitionForVersionedTile(
       result.SetPartitions({partitions.GetMutablePartitions().back()});
     }
   }
-
-  if (fetch_option != OnlineOnly) {
     // add partitions to cache
     repository::PartitionsCacheRepository repository(catalog, settings.cache);
     repository.Put(PartitionsRequest().WithVersion(version), partitions,
                    layer_id, boost::none);
-  }
 
   if (result.GetPartitions().size() == 0) {
     return ApiError(ErrorCode::NotFound,
