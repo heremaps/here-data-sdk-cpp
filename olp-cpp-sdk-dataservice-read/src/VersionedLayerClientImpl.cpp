@@ -98,19 +98,13 @@ client::CancellationToken VersionedLayerClientImpl::GetPartitions(
   };
 
   if (request.GetFetchOption() == CacheWithUpdate) {
-    request.WithFetchOption(FetchOptions::OnlineIfNotFound);
-    return ScheduleFetch(
-        [&](PartitionsRequest, PartitionsResponseCallback callback) {
-          return AddTask(
-              settings_.task_scheduler, pending_requests_,
-              [=](client::CancellationContext) -> PartitionsResponse {
-                return {{client::ErrorCode::InvalidArgument,
-                         "CacheWithUpdate option can not be used for versioned "
-                         "layer."}};
-              },
-              std::move(callback));
-        },
-        std::move(request), std::move(callback));
+    auto task = [=](client::CancellationContext) -> PartitionsResponse {
+      return {{client::ErrorCode::InvalidArgument,
+               "CacheWithUpdate option can not be used for versioned "
+               "layer."}};
+    };
+    return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
+                   std::move(callback));
   }
 
   return ScheduleFetch(std::move(schedule_get_partitions), std::move(request),
@@ -163,19 +157,13 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
   };
 
   if (request.GetFetchOption() == CacheWithUpdate) {
-    request.WithFetchOption(FetchOptions::OnlineIfNotFound);
-    return ScheduleFetch(
-        [&](DataRequest, DataResponseCallback callback) {
-          return AddTask(
-              settings_.task_scheduler, pending_requests_,
-              [=](client::CancellationContext) -> DataResponse {
-                return {{client::ErrorCode::InvalidArgument,
-                         "CacheWithUpdate option can not be used for versioned "
-                         "layer."}};
-              },
-              std::move(callback));
-        },
-        std::move(request), std::move(callback));
+    auto task = [=](client::CancellationContext) -> DataResponse {
+      return {{client::ErrorCode::InvalidArgument,
+               "CacheWithUpdate option can not be used for versioned "
+               "layer."}};
+    };
+    return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
+                   std::move(callback));
   }
   return ScheduleFetch(std::move(schedule_get_data), std::move(request),
                        std::move(callback));
@@ -435,19 +423,13 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
   };
 
   if (request.GetFetchOption() == CacheWithUpdate) {
-    request.WithFetchOption(FetchOptions::OnlineIfNotFound);
-    return ScheduleFetch(
-        [&](TileRequest, DataResponseCallback callback) {
-          return AddTask(
-              settings_.task_scheduler, pending_requests_,
-              [=](client::CancellationContext) -> DataResponse {
-                return {{client::ErrorCode::InvalidArgument,
-                         "CacheWithUpdate option can not be used for versioned "
-                         "layer."}};
-              },
-              std::move(callback));
-        },
-        std::move(request), std::move(callback));
+    auto task = [=](client::CancellationContext) -> DataResponse {
+      return {{client::ErrorCode::InvalidArgument,
+               "CacheWithUpdate option can not be used for versioned "
+               "layer."}};
+    };
+    return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
+                   std::move(callback));
   }
 
   return ScheduleFetch(std::move(schedule_get_data), std::move(request),
