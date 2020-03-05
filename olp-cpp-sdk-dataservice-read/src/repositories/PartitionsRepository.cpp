@@ -307,7 +307,6 @@ PartitionsResponse PartitionsRepository::QueryPartitionForVersionedTile(
     const client::HRN& catalog, const std::string& layer_id,
     const TileRequest& request, int64_t version,
     client::CancellationContext context, client::OlpClientSettings settings) {
-  auto fetch_option = request.GetFetchOption();
   const auto& tile_key = request.GetTileKey();
   auto tile = tile_key.ToHereTile();
   auto query_api = ApiClientLookup::LookupApi(
