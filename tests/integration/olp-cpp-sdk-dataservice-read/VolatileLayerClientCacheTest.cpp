@@ -88,8 +88,6 @@ TEST_P(VolatileLayerClientCacheTest, GetVolatilePartitionsExpiry) {
   olp::client::HRN hrn(GetTestCatalog());
 
   {
-    testing::InSequence s;
-
     EXPECT_CALL(
         *network_mock_,
         Send(IsGetRequest("https://metadata.data.api.platform.here.com/"
@@ -100,17 +98,6 @@ TEST_P(VolatileLayerClientCacheTest, GetVolatilePartitionsExpiry) {
         .WillRepeatedly(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                                HTTP_RESPONSE_PARTITIONS_V2));
-
-    EXPECT_CALL(
-        *network_mock_,
-        Send(IsGetRequest("https://metadata.data.api.platform.here.com/"
-                          "metadata/v1/catalogs/hereos-internal-test-v2/"
-                          "layers/testlayer_volatile/partitions"),
-             _, _, _, _))
-        .Times(1)
-        .WillRepeatedly(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_EMPTY_PARTITIONS));
   }
 
   auto catalog_client =
@@ -125,7 +112,7 @@ TEST_P(VolatileLayerClientCacheTest, GetVolatilePartitionsExpiry) {
   ASSERT_TRUE(partitions_response.IsSuccessful())
       << ApiErrorToString(partitions_response.GetError());
   ASSERT_EQ(1u, partitions_response.GetResult().GetPartitions().size());
-
+  
   // hit the cache only, should be still be there
   request.WithFetchOption(olp::dataservice::read::CacheOnly);
   future = catalog_client->GetPartitions(request);
@@ -135,14 +122,21 @@ TEST_P(VolatileLayerClientCacheTest, GetVolatilePartitionsExpiry) {
   ASSERT_EQ(1u, partitions_response.GetResult().GetPartitions().size());
 
   // wait for the layer to expire in cache
-  std::this_thread::sleep_for(std::chrono::seconds(2));
-  request.WithFetchOption(olp::dataservice::read::OnlineIfNotFound);
-  future = catalog_client->GetPartitions(request);
-  partitions_response = future.GetFuture().get();
-
-  ASSERT_TRUE(partitions_response.IsSuccessful())
-      << ApiErrorToString(partitions_response.GetError());
-  ASSERT_EQ(0u, partitions_response.GetResult().GetPartitions().size());
+  bool expired = false;
+  // Expiriation time in that HTTP_RESPONSE_CONFIG + 5 seconds
+  const auto timeout = std::chrono::seconds(35);
+  const auto end_time = std::chrono::steady_clock::now() + timeout;
+  while (std::chrono::steady_clock::now() < end_time) {
+    request.WithFetchOption(olp::dataservice::read::CacheOnly);
+    future = catalog_client->GetPartitions(request);
+    partitions_response = future.GetFuture().get();
+    if (!partitions_response.IsSuccessful()) {
+      expired = true;
+      break;
+    }
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+  }
+  ASSERT_TRUE(expired);
 }
 
 INSTANTIATE_TEST_SUITE_P(, VolatileLayerClientCacheTest,
