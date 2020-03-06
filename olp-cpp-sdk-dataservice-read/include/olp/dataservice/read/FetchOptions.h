@@ -43,6 +43,7 @@ enum FetchOptions {
   /**
    * Returns the requested cached resource if it is found and updates the cache
    * in the background.
+   * @note Do not Use for versioned layer client requests.
    */
   CacheWithUpdate
 };
