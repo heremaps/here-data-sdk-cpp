@@ -66,5 +66,6 @@ struct Tokenizer {
   size_t pos_{0};
   char sep_{'\0'};
 };
+
 }  // namespace client
 }  // namespace olp

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,11 @@
 #include <boost/optional.hpp>
 
 #include <olp/core/client/BackdownStrategy.h>
-#include "olp/core/client/CancellationToken.h"
-#include "olp/core/client/HttpResponse.h"
-#include "olp/core/http/Network.h"
+#include <olp/core/client/CancellationToken.h>
+#include <olp/core/client/HttpResponse.h>
+#include <olp/core/http/Network.h>
 
 namespace olp {
-
 namespace cache {
 class KeyValueCache;
 }  // namespace cache
@@ -46,13 +45,13 @@ class Network;
 }  // namespace http
 
 namespace client {
-
 /**
  * @brief The type alias of the asynchronous network callback.
  *
  * Used to receive the `HttpResponse` instance.
  */
 using NetworkAsyncCallback = std::function<void(HttpResponse)>;
+
 /**
  * @brief The type alias of the cancel function.
  *

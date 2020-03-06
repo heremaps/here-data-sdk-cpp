@@ -17,7 +17,8 @@
  * License-Filename: LICENSE
  */
 
-#include <olp/core/client/PendingRequests.h>
+#include "olp/core/client/PendingRequests.h"
+
 #include <olp/core/client/TaskContext.h>
 #include <olp/core/logging/Log.h>
 
