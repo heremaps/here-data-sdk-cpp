@@ -60,7 +60,7 @@ namespace http {
 namespace {
 
 const char* kLogTag = "CURL";
-constexpr std::chrono::seconds kHandleLostTimeout(30);
+constexpr std::chrono::seconds kHandleLostTimeout(0);
 constexpr std::chrono::seconds kHandleReuseTimeout(120);
 
 std::vector<std::pair<std::string, std::string> > GetStatistics(
@@ -487,8 +487,13 @@ ErrorCode NetworkCurl::SendImplementation(
   }
 
   OLP_SDK_LOG_DEBUG(kLogTag, "Send request with url=" << request.GetUrl()
-                                                      << ", id=" << id);
+                                                      << ", id=" << id<<" handle="<<handle->handle);
 
+if(id==2)
+{
+  OLP_SDK_LOG_TRACE(kLogTag, "sleep 4 sec SendImplementation " << std::this_thread::get_id()<< ", id=" << id<<" handle="<<handle->handle);
+   std::this_thread::sleep_for(std::chrono::seconds(4));
+}
   handle->transfer_timeout = config.GetTransferTimeout();
   handle->max_retries = config.GetRetries();
   handle->ignore_offset = false;   // request.IgnoreOffset();
@@ -500,6 +505,8 @@ ErrorCode NetworkCurl::SendImplementation(
     sstrm << header.first;
     sstrm << ": ";
     sstrm << header.second;
+    OLP_SDK_LOG_TRACE(kLogTag, "append SendImplementation " << std::this_thread::get_id()<< ", id=" << id<<" handle="<<handle->handle<<" chunk="<<handle->chunk);
+if(id==2)   std::this_thread::sleep_for(std::chrono::milliseconds(400));
     handle->chunk = curl_slist_append(handle->chunk, sstrm.str().c_str());
   }
 
@@ -632,6 +639,11 @@ ErrorCode NetworkCurl::SendImplementation(
   curl_easy_setopt(handle->handle, CURLOPT_TCP_KEEPIDLE, 120L);
   curl_easy_setopt(handle->handle, CURLOPT_TCP_KEEPINTVL, 60L);
 #endif
+  if(id==2)
+  {
+    OLP_SDK_LOG_TRACE(kLogTag, "sleep 4 sec ended" << std::this_thread::get_id()<< ", id=" << id<<" handle="<<handle->handle);
+     std::this_thread::sleep_for(std::chrono::seconds(3));
+  }
 
   {
     std::lock_guard<std::mutex> lock(event_mutex_);
@@ -651,7 +663,7 @@ void NetworkCurl::Cancel(RequestId id) {
       handle.cancelled = true;
       AddEvent(EventInfo::Type::CANCEL_EVENT, &handle);
 
-      OLP_SDK_LOG_TRACE(kLogTag, "Cancel request with id=" << id);
+      OLP_SDK_LOG_TRACE(kLogTag, "Cancel request with id=" << id<<" handle="<<handle.handle);
       return;
     }
   }
@@ -736,6 +748,8 @@ void NetworkCurl::ReleaseHandle(RequestHandle* handle) {
 void NetworkCurl::ReleaseHandleUnlocked(RequestHandle* handle) {
   curl_easy_reset(handle->handle);
   if (handle->chunk) {
+      OLP_SDK_LOG_DEBUG(kLogTag,
+                        "handle->chunk free " << handle->id);
     curl_slist_free_all(handle->chunk);
     handle->chunk = nullptr;
   }
@@ -1014,9 +1028,13 @@ void NetworkCurl::Run() {
             break;
           }
           case EventInfo::Type::CANCEL_EVENT:
+            OLP_SDK_LOG_TRACE(kLogTag, "Cancel request in_use=" << event.handle->in_use<<" handle="<<event.handle->handle);
             if (event.handle->in_use) {
               curl_multi_remove_handle(curl_, event.handle->handle);
               event_mutex_.unlock();
+OLP_SDK_LOG_TRACE(kLogTag, "sleep 2 sec Cancel request "<< std::this_thread::get_id()<< " in_use=" << event.handle->in_use<<" handle="<<event.handle->handle);
+
+    std::this_thread::sleep_for(std::chrono::seconds(2));
               CompleteMessage(event.handle->handle, CURLE_OPERATION_TIMEDOUT);
               event_mutex_.lock();
             }
@@ -1041,7 +1059,7 @@ void NetworkCurl::Run() {
       } while (IsStarted() &&
                curl_multi_perform(curl_, &running) == CURLM_CALL_MULTI_PERFORM);
     }
-
+OLP_SDK_LOG_TRACE(kLogTag, "run "<<std::this_thread::get_id());
     // Handle completed messages
     int left;
     bool completed = false;
@@ -1140,7 +1158,6 @@ void NetworkCurl::Run() {
       // too long (more than a few seconds perhaps) before you call
       // curl_multi_perform() again.
       std::vector<CURL*> lostHandles;
-
       {
         auto now = std::chrono::steady_clock::now();
         std::lock_guard<std::mutex> lock(event_mutex_);
@@ -1153,10 +1170,12 @@ void NetworkCurl::Run() {
             if ((now - handle.send_time > kHandleLostTimeout) &&
                 (total == 0.0)) {
               lostHandles.push_back(handle.handle);
+              OLP_SDK_LOG_TRACE(kLogTag, "lostHandles=" << handle.handle);
             }
           }
         }
       }
+      std::this_thread::sleep_for(std::chrono::seconds(2));
       if (!lostHandles.empty() && IsStarted()) {
         // release all lost handles
         for (CURL* handle : lostHandles) {
@@ -1190,12 +1209,13 @@ void NetworkCurl::Run() {
                         .WithError("CURL error");
                 handles_[handle_index].callback(response);
               }
-
+OLP_SDK_LOG_TRACE(kLogTag, "lostHandles del =" << handles_[handle_index].handle);
               ReleaseHandle(&handles_[handle_index]);
             }
           }
         }
       }
+   std::this_thread::sleep_for(std::chrono::seconds(5));
       if (!IsStarted()) {
         continue;
       }

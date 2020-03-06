@@ -79,7 +79,7 @@ class LogImpl {
 
 LogImpl::LogImpl()
     : m_configuration(Configuration::createDefault()),
-      m_defaultLevel(Level::Debug) {}
+      m_defaultLevel(Level::Trace) {}
 
 LogImpl::~LogImpl() { aliveStatus() = false; }
 

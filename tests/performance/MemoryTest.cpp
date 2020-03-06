@@ -43,7 +43,7 @@ using TestFunction = std::function<void(uint8_t thread_id)>;
 struct TestConfiguration {
   std::string configuration_name;
   std::uint16_t requests_per_second = 3;
-  std::uint8_t calling_thread_count = 5;
+  std::uint8_t calling_thread_count = 1;
   std::uint8_t task_scheduler_capacity = 5;
   std::chrono::seconds runtime = std::chrono::minutes(5);
   CacheFactory cache_factory;
@@ -133,9 +133,8 @@ olp::client::OlpClientSettings MemoryTest::CreateCatalogClientSettings() {
   client_settings.task_scheduler = task_scheduler;
   client_settings.network_request_handler = std::move(network);
   client_settings.proxy_settings = GetLocalhostProxySettings();
-  client_settings.cache =
-      parameter.cache_factory ? parameter.cache_factory() : nullptr;
-  client_settings.retry_settings.timeout = 1;
+  client_settings.cache = parameter.cache_factory ? parameter.cache_factory() : nullptr;
+  client_settings.retry_settings.timeout = 20;
 
   return client_settings;
 }
@@ -200,77 +199,6 @@ void MemoryTest::RandomlyCancel(olp::client::CancellationToken token) {
 }
 
 ///
-/// CatalogClient
-///
-
-TEST_P(MemoryTest, ReadLatestVersionCatalogClient) {
-  const auto& parameter = GetParam();
-  auto settings = CreateCatalogClientSettings();
-
-  StartThreads([=](uint8_t thread_id) {
-    olp::dataservice::read::CatalogClient service_client(kCatalog, settings);
-
-    const auto end_timestamp =
-        std::chrono::steady_clock::now() + parameter.runtime;
-
-    while (end_timestamp > std::chrono::steady_clock::now()) {
-      int64_t start_version = rand() % (100 + 1);
-
-      auto request =
-          olp::dataservice::read::CatalogVersionRequest().WithStartVersion(
-              start_version);
-      total_requests_.fetch_add(1);
-      auto token = service_client.GetLatestVersion(
-          request,
-          [&](olp::dataservice::read::CatalogVersionResponse response) {
-            if (response.IsSuccessful()) {
-              success_responses_.fetch_add(1);
-            } else {
-              failed_responses_.fetch_add(1);
-              ReportError(response.GetError());
-            }
-          });
-
-      RandomlyCancel(std::move(token));
-
-      std::this_thread::sleep_for(
-          GetSleepPeriod(parameter.requests_per_second));
-    }
-  });
-}
-
-TEST_P(MemoryTest, ReadMetadataCatalogClient) {
-  const auto& parameter = GetParam();
-  auto settings = CreateCatalogClientSettings();
-
-  StartThreads([=](uint8_t thread_id) {
-    olp::dataservice::read::CatalogClient service_client(kCatalog, settings);
-
-    const auto end_timestamp =
-        std::chrono::steady_clock::now() + parameter.runtime;
-
-    while (end_timestamp > std::chrono::steady_clock::now()) {
-      auto request = olp::dataservice::read::CatalogRequest();
-      total_requests_.fetch_add(1);
-      auto token = service_client.GetCatalog(
-          request, [&](olp::dataservice::read::CatalogResponse response) {
-            if (response.IsSuccessful()) {
-              success_responses_.fetch_add(1);
-            } else {
-              failed_responses_.fetch_add(1);
-              ReportError(response.GetError());
-            }
-          });
-
-      RandomlyCancel(std::move(token));
-
-      std::this_thread::sleep_for(
-          GetSleepPeriod(parameter.requests_per_second));
-    }
-  });
-}
-
-///
 /// VersionedLayerClient
 ///
 
@@ -296,7 +224,8 @@ TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
     const auto end_timestamp =
         std::chrono::steady_clock::now() + parameter.runtime;
 
-    while (end_timestamp > std::chrono::steady_clock::now()) {
+    int i =0;
+    while (i++<2 && end_timestamp > std::chrono::steady_clock::now()) {
       const auto partition_id = request_counter_.fetch_add(1);
 
       auto request = olp::dataservice::read::DataRequest().WithPartitionId(
@@ -310,60 +239,19 @@ TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
               failed_responses_.fetch_add(1);
               ReportError(response.GetError());
             }
-          });
-
-      RandomlyCancel(std::move(token));
-
-      std::this_thread::sleep_for(
-          GetSleepPeriod(parameter.requests_per_second));
+          });std::this_thread::sleep_for(std::chrono::seconds(1));
+    if(i==1)    token.Cancel();
+      //RandomlyCancel(std::move(token));
+//if(i==3)
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+//      std::this_thread::sleep_for(
+ //         GetSleepPeriod(parameter.requests_per_second));
     }
+
+    std::this_thread::sleep_for(std::chrono::seconds(6));
   });
 }
 
-TEST_P(MemoryTest, PrefetchPartitionsFromVersionedLayer) {
-  const auto& parameter = GetParam();
-
-  auto settings = CreateCatalogClientSettings();
-
-  StartThreads([=](uint8_t thread_id) {
-    olp::dataservice::read::VersionedLayerClient service_client(
-        kCatalog, kVersionedLayerId, settings);
-
-    const auto end_timestamp =
-        std::chrono::steady_clock::now() + parameter.runtime;
-
-    while (end_timestamp > std::chrono::steady_clock::now()) {
-      const auto level = 10;
-      const auto tile_count = 1 << level;
-
-      std::vector<olp::geo::TileKey> tile_keys = {
-          olp::geo::TileKey::FromRowColumnLevel(rand() % tile_count,
-                                                rand() % tile_count, level)};
-
-      auto request = olp::dataservice::read::PrefetchTilesRequest()
-                         .WithMaxLevel(level + 2)
-                         .WithMinLevel(level)
-                         .WithVersion(17)
-                         .WithTileKeys(tile_keys);
-      total_requests_.fetch_add(1);
-      auto token = service_client.PrefetchTiles(
-          std::move(request),
-          [&](olp::dataservice::read::PrefetchTilesResponse response) {
-            if (response.IsSuccessful()) {
-              success_responses_.fetch_add(1);
-            } else {
-              failed_responses_.fetch_add(1);
-              ReportError(response.GetError());
-            }
-          });
-
-      RandomlyCancel(std::move(token));
-
-      std::this_thread::sleep_for(
-          GetSleepPeriod(parameter.requests_per_second));
-    }
-  });
-}
 
 /*
  * 10 hours stability test with default constructed cache.
@@ -374,60 +262,13 @@ TestConfiguration LongRunningTest() {
   configuration.with_errors = true;
   configuration.with_timeouts = true;
   configuration.runtime = std::chrono::hours(10);
-  configuration.cancelation_chance = 0.25f;
-  return configuration;
-}
-
-/*
- * Short 5 minutes test to collect SDK allocations without cache.
- */
-TestConfiguration ShortRunningTestWithNullCache() {
-  TestConfiguration configuration;
-  configuration.configuration_name = "short_test_null_cache";
+  configuration.cancelation_chance = 0.75f;
   configuration.cache_factory = []() { return std::make_shared<NullCache>(); };
-  return configuration;
-}
-
-/*
- * Short 5 minutes test to collect SDK allocations with in memory cache.
- */
-TestConfiguration ShortRunningTestWithMemoryCache() {
-  using namespace olp;
-  TestConfiguration configuration;
-  configuration.configuration_name = "short_test_memory_cache";
-  configuration.cache_factory = []() {
-    return client::OlpClientSettingsFactory::CreateDefaultCache({});
-  };
-  return configuration;
-}
-
-/*
- * Short 5 minutes test to collect SDK allocations with both in memory cache
- * and disk cache.
- */
-TestConfiguration ShortRunningTestWithMutableCache() {
-  using namespace olp;
-
-  cache::CacheSettings settings;
-  auto location = CustomParameters::getArgument("cache_location");
-  if (location.empty()) {
-    location = utils::Dir::TempDirectory() + "/performance_test";
-  }
-  settings.disk_path_mutable = location;
-
-  TestConfiguration configuration;
-  configuration.configuration_name = "short_test_disk_cache";
-  configuration.cache_factory = [settings]() {
-    return client::OlpClientSettingsFactory::CreateDefaultCache(settings);
-  };
   return configuration;
 }
 
 std::vector<TestConfiguration> Configurations() {
   std::vector<TestConfiguration> configurations;
-  configurations.emplace_back(ShortRunningTestWithNullCache());
-  configurations.emplace_back(ShortRunningTestWithMemoryCache());
-  configurations.emplace_back(ShortRunningTestWithMutableCache());
   configurations.emplace_back(LongRunningTest());
   return configurations;
 }
@@ -435,7 +276,6 @@ std::vector<TestConfiguration> Configurations() {
 std::string TestName(const testing::TestParamInfo<TestConfiguration>& info) {
   return info.param.configuration_name;
 }
-
 //  std::uint16_t requests_per_second;
 //  std::uint8_t calling_thread_count;
 //  std::uint8_t task_scheduler_capacity;

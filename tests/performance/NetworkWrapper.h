@@ -29,7 +29,7 @@
  */
 class Http2HttpNetworkWrapper : public olp::http::Network {
  public:
-  Http2HttpNetworkWrapper() : network_{olp::http::CreateDefaultNetwork(32)} {}
+  Http2HttpNetworkWrapper() : network_{olp::http::CreateDefaultNetwork(3)} {}
 
   olp::http::SendOutcome Send(olp::http::NetworkRequest request,
                               Payload payload, Callback callback,
