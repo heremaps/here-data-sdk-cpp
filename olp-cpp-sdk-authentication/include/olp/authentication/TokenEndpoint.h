@@ -22,20 +22,21 @@
 #include <future>
 #include <memory>
 
-#include "AuthenticationApi.h"
-#include "AuthenticationCredentials.h"
-#include "AuthenticationError.h"
-#include "Settings.h"
-#include "TokenRequest.h"
-#include "TokenResult.h"
-
-#include "olp/core/client/ApiResponse.h"
-#include "olp/core/client/CancellationToken.h"
-#include "olp/core/porting/warning_disable.h"
+#include <olp/authentication/AuthenticationApi.h>
+#include <olp/authentication/AuthenticationCredentials.h>
+#include <olp/authentication/AuthenticationError.h>
+#include <olp/authentication/Settings.h>
+#include <olp/authentication/TokenRequest.h>
+#include <olp/authentication/TokenResult.h>
+#include <olp/authentication/Types.h>
+#include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/CancellationToken.h>
+#include <olp/core/porting/warning_disable.h>
 
 namespace olp {
 namespace authentication {
 class AutoRefreshingToken;
+
 PORTING_PUSH_WARNINGS()
 PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 
@@ -46,22 +47,18 @@ PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 04.2020")
     TokenEndpoint {
  public:
-  /**
-   * @brief Defines the signature used to return the response to the client.
-   */
-  using TokenResponse = client::ApiResponse<TokenResult, AuthenticationError>;
-  /**
-   * @brief Defines the callback that is invoked when the response on
-   * `TokenRequest` is returned.
-   */
-  using RequestTokenCallback = std::function<void(TokenResponse)>;
+  /// Defines the signature used to return the response to the client.
+  using TokenResponse = Response<TokenResult>;
+  /// Defines the callback that is invoked when the response on
+  /// `TokenRequest` is returned.
+  using RequestTokenCallback = Callback<TokenResult>;
 
   /**
    * @brief Executes the POST request method to the token endpoint.
    *
-   * The request gets the HERE Access token that is used to access the HERE OLP
-   * Services. Returns the token that is used as the `Authorization: Bearer`
-   * token value.
+   * The request gets the HERE Access token that is used to access the HERE
+   * OLP Services. Returns the token that is used as the `Authorization:
+   * Bearer` token value.
    *
    * @param token_request The `TokenRequest` instance.
    * @param callback The `RequestTokenCallback` instance that passes
@@ -127,10 +124,10 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 04.2020")
   explicit TokenEndpoint(Settings settings);
 
  private:
-  struct Impl;
+  class Impl;
   std::shared_ptr<Impl> impl_;
 };
-PORTING_POP_WARNINGS()
 
+PORTING_POP_WARNINGS()
 }  // namespace authentication
 }  // namespace olp
