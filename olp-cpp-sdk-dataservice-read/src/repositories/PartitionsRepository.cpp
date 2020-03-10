@@ -124,7 +124,7 @@ PartitionsResponse PartitionsRepository::GetPartitions(
 
   repository::PartitionsCacheRepository repository(catalog, settings.cache);
 
-  if (fetch_option != OnlineOnly) {
+  if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_partitions = repository.Get(request, layer);
     if (cached_partitions) {
       OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
@@ -212,7 +212,7 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
 
   auto fetch_option = data_request.GetFetchOption();
 
-  if (fetch_option != OnlineOnly) {
+  if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_partitions =
         repository.Get(partition_request, partitions, layer);
     if (cached_partitions.GetPartitions().size() == partitions.size()) {
@@ -355,7 +355,7 @@ PartitionsResponse PartitionsRepository::QueryPartitionForVersionedTile(
     }
   }
 
-  if (fetch_option != OnlineOnly) {
+  if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     // add partitions to cache
     repository::PartitionsCacheRepository repository(catalog, settings.cache);
     repository.Put(PartitionsRequest().WithVersion(version), partitions,

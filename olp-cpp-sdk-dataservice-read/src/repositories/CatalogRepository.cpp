@@ -54,7 +54,7 @@ CatalogResponse CatalogRepository::GetCatalog(
 
   repository::CatalogCacheRepository repository{catalog, settings.cache};
 
-  if (fetch_options != OnlineOnly) {
+  if (fetch_options != OnlineOnly && fetch_options != CacheWithUpdate) {
     auto cached = repository.Get();
     if (cached) {
       OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' found!",
@@ -100,7 +100,7 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
   repository::CatalogCacheRepository repository(catalog, settings.cache);
 
   auto fetch_option = request.GetFetchOption();
-  if (fetch_option != OnlineOnly) {
+  if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_version = repository.GetVersion();
     if (cached_version) {
       OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' found!",

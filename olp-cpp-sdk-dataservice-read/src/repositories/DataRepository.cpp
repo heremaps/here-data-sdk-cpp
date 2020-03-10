@@ -141,7 +141,7 @@ DataResponse DataRepository::GetBlobData(
 
   repository::DataCacheRepository repository(catalog, settings.cache);
 
-  if (fetch_option != OnlineOnly) {
+  if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_data = repository.Get(layer, data_handle.value());
     if (cached_data) {
       OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
