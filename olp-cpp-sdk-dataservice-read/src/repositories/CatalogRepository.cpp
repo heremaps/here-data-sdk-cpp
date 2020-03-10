@@ -128,9 +128,10 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
   auto version_response = MetadataApi::GetLatestCatalogVersion(
       client, -1, request.GetBillingTag(), cancellation_context);
 
-  if (version_response.IsSuccessful()) {
+  if (version_response.IsSuccessful() && fetch_option != OnlineOnly) {
     repository.PutVersion(version_response.GetResult());
-  } else {
+  }
+  if (!version_response.IsSuccessful()) {
     const auto& error = version_response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
       repository.Clear();

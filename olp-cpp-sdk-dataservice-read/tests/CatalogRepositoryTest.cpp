@@ -183,9 +183,9 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyFoundAndCacheWritten) {
         return boost::any{};
       });
 
-  EXPECT_CALL(*cache_, Put(Eq(kLatestVersionCacheKey), _, _, _)).Times(1);
+  EXPECT_CALL(*cache_, Put(Eq(kLatestVersionCacheKey), _, _, _)).Times(0);
 
-  EXPECT_CALL(*cache_, Put(Eq(kMetadataCacheKey), _, _, _)).Times(1);
+  EXPECT_CALL(*cache_, Put(Eq(kMetadataCacheKey), _, _, _)).Times(0);
 
   EXPECT_CALL(*network_,
               Send(IsGetRequest(OLP_SDK_URL_LOOKUP_METADATA), _, _, _, _))
@@ -351,9 +351,9 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyFoundAndCacheWritten) {
         return boost::any{};
       });
 
-  EXPECT_CALL(*cache_, Put(Eq(kCatalogCacheKey), _, _, _)).Times(1);
+  EXPECT_CALL(*cache_, Put(Eq(kCatalogCacheKey), _, _, _)).Times(0);
 
-  EXPECT_CALL(*cache_, Put(Eq(kConfigCacheKey), _, _, _)).Times(1);
+  EXPECT_CALL(*cache_, Put(Eq(kConfigCacheKey), _, _, _)).Times(0);
 
   ON_CALL(*network_, Send(IsGetRequest(OLP_SDK_URL_LOOKUP_CONFIG), _, _, _, _))
       .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(

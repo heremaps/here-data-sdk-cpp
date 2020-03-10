@@ -171,7 +171,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
                                          olp::http::HttpStatusCode::OK),
                                      kOlpSdkHttpResponseLookupQuery));
 
-    EXPECT_CALL(*cache, Put(Eq(kCacheKeyMetadata), _, _, _)).Times(1);
+    EXPECT_CALL(*cache, Put(Eq(kCacheKeyMetadata), _, _, _)).Times(0);
   };
 
   {
@@ -246,7 +246,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
                                          olp::http::HttpStatusCode::OK),
                                      kOlpSdkHttpResponsePartitionById));
 
-    EXPECT_CALL(*cache, Put(Eq(cache_key), _, _, _)).Times(1);
+    EXPECT_CALL(*cache, Put(Eq(cache_key), _, _, _)).Times(0);
 
     auto response = repository::PartitionsRepository::GetPartitionById(
         catalog_hrn, kVersionedLayerId, context,
@@ -274,7 +274,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
                                      kOlpSdkHttpResponsePartitionById));
-    EXPECT_CALL(*cache, Put(Eq(cache_key_no_version), _, _, _)).Times(1);
+    EXPECT_CALL(*cache, Put(Eq(cache_key_no_version), _, _, _)).Times(0);
 
     auto response = repository::PartitionsRepository::GetPartitionById(
         catalog_hrn, kVersionedLayerId, context,
