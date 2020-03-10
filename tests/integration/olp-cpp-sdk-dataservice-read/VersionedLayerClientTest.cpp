@@ -550,7 +550,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest,
-       GetDataFromPartitionCacheAndUpdateSync) {
+       GetDataFromPartitionOnlineIfNotFoundCacheUpdate) {
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
@@ -582,10 +582,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   auto token = client->GetData(
       olp::dataservice::read::DataRequest()
           .WithPartitionId(partition)
-          .WithFetchOption(FetchOptions::CacheWithUpdate),
+          .WithFetchOption(FetchOptions::OnlineIfNotFound),
       [&response](DataResponse resp) { response = std::move(resp); });
-  ASSERT_FALSE(response.IsSuccessful());
-  ASSERT_FALSE(response.GetResult() != nullptr);
+  ASSERT_TRUE(response.IsSuccessful());
 
   token = client->GetData(
       olp::dataservice::read::DataRequest()
@@ -868,7 +867,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       olp::dataservice::read::DataRequest()
           .WithVersion(version)
           .WithPartitionId(partition)
-          .WithFetchOption(FetchOptions::CacheWithUpdate),
+          .WithFetchOption(FetchOptions::OnlineIfNotFound),
       [&promise](DataResponse response) { promise.set_value(response); });
 
   wait_for_cancel->get_future().get();
@@ -1084,25 +1083,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsCacheWithUpdate) {
   auto catalog = olp::client::HRN::FromString(
       GetArgument("dataservice_read_test_catalog"));
   auto layer = GetArgument("dataservice_read_test_layer");
-
-  auto wait_to_start_signal = std::make_shared<std::promise<void>>();
-  auto pre_callback_wait = std::make_shared<std::promise<void>>();
-  pre_callback_wait->set_value();
-  auto wait_for_end_signal = std::make_shared<std::promise<void>>();
-
-  olp::http::RequestId request_id;
-  NetworkCallback send_mock;
-  CancelCallback cancel_mock;
-
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      wait_to_start_signal, pre_callback_wait,
-      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_PARTITIONS},
-      wait_for_end_signal);
-
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
-      .Times(1)
-      .WillOnce(testing::Invoke(std::move(send_mock)));
-
   auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
 
@@ -1121,8 +1101,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsCacheWithUpdate) {
     ASSERT_FALSE(response.IsSuccessful()) << response.GetError().GetMessage();
   }
 
-  wait_for_end_signal->get_future().get();
-
   // Request 2
   {
     auto promise = std::make_shared<std::promise<PartitionsResponse>>();
@@ -1134,8 +1112,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsCacheWithUpdate) {
         });
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
     PartitionsResponse response = future.get();
-    // Cache should be available here.
-    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    // Cache should not be available for versioned layer.
+    ASSERT_FALSE(response.IsSuccessful()) << response.GetError().GetMessage();
   }
 }
 
@@ -1949,24 +1927,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetData403CacheClear) {
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetDataCacheWithUpdate) {
   olp::client::HRN hrn(GetTestCatalog());
-  // Setup the expected calls :
-  auto wait_to_start_signal = std::make_shared<std::promise<void>>();
-  auto pre_callback_wait = std::make_shared<std::promise<void>>();
-  pre_callback_wait->set_value();
-  auto wait_for_end_signal = std::make_shared<std::promise<void>>();
-
-  olp::http::RequestId request_id;
-  NetworkCallback send_mock;
-  CancelCallback cancel_mock;
-
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      wait_to_start_signal, pre_callback_wait,
-      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_BLOB_DATA_269},
-      wait_for_end_signal);
-
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-      .Times(1)
-      .WillOnce(testing::Invoke(std::move(send_mock)));
 
   auto client =
       std::make_unique<VersionedLayerClient>(hrn, "testlayer", *settings_);
@@ -1979,13 +1939,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataCacheWithUpdate) {
   ASSERT_FALSE(data_response.IsSuccessful())
       << ApiErrorToString(data_response.GetError());
   // Request 2 to check there is a cached value.
-  // waiting for cache to fill-in
-  wait_for_end_signal->get_future().get();
   request.WithFetchOption(CacheOnly);
   future = client->GetData(request);
   data_response = future.GetFuture().get();
-  // Cache should be available here.
-  ASSERT_TRUE(data_response.IsSuccessful())
+  // Cache should not be available for versioned layer.
+  ASSERT_FALSE(data_response.IsSuccessful())
       << ApiErrorToString(data_response.GetError());
 }
 
@@ -2680,6 +2638,31 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileOnlineOnly) {
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
                                "Server busy at the moment."));
     auto future = client->GetData(request.WithFetchOption(OnlineOnly));
+    auto data_response = future.GetFuture().get();
+    ASSERT_FALSE(data_response.IsSuccessful());
+  }
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetTileCacheWithUpdate) {
+  olp::client::HRN hrn(GetTestCatalog());
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      hrn, "testlayer", 4, *settings_);
+
+  auto request = olp::dataservice::read::TileRequest()
+                     .WithTileKey(olp::geo::TileKey::FromHereTile("5904591"))
+                     .WithFetchOption(CacheWithUpdate);
+  {
+    std::cout << "request<=" << request.GetFetchOption() << std::endl;
+    SCOPED_TRACE("Request data using TileKey.");
+    auto data_response = client->GetData(request).GetFuture().get();
+
+    ASSERT_FALSE(data_response.IsSuccessful())
+        << ApiErrorToString(data_response.GetError());
+  }
+
+  {
+    SCOPED_TRACE("Check cache, should not be avialible.");
+    auto future = client->GetData(request.WithFetchOption(CacheOnly));
     auto data_response = future.GetFuture().get();
     ASSERT_FALSE(data_response.IsSuccessful());
   }

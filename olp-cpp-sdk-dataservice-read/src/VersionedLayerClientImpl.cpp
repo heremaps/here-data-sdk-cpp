@@ -74,6 +74,16 @@ client::CancellationToken VersionedLayerClientImpl::GetPartitions(
                         "VersionedLayerClient constructor to specify version");
   }
 
+  if (request.GetFetchOption() == CacheWithUpdate) {
+    auto task = [](client::CancellationContext) -> PartitionsResponse {
+      return {{client::ErrorCode::InvalidArgument,
+               "CacheWithUpdate option can not be used for versioned "
+               "layer"}};
+    };
+    return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
+                   std::move(callback));
+  }
+
   auto schedule_get_partitions = [&](PartitionsRequest request,
                                      PartitionsResponseCallback callback) {
     auto catalog = catalog_;
@@ -120,6 +130,16 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
                         "VersionedLayerClient constructor to specify version");
   }
 
+  if (request.GetFetchOption() == CacheWithUpdate) {
+    auto task = [](client::CancellationContext) -> DataResponse {
+      return {{client::ErrorCode::InvalidArgument,
+               "CacheWithUpdate option can not be used for versioned "
+               "layer"}};
+    };
+    return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
+                   std::move(callback));
+  }
+
   auto schedule_get_data = [&](DataRequest request,
                                DataResponseCallback callback) {
     auto catalog = catalog_;
@@ -145,6 +165,7 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
     return AddTask(settings.task_scheduler, pending_requests_,
                    std::move(data_task), std::move(callback));
   };
+
   return ScheduleFetch(std::move(schedule_get_data), std::move(request),
                        std::move(callback));
 }
@@ -378,6 +399,16 @@ CatalogVersionResponse VersionedLayerClientImpl::GetVersion(
 
 client::CancellationToken VersionedLayerClientImpl::GetData(
     TileRequest request, DataResponseCallback callback) {
+  if (request.GetFetchOption() == CacheWithUpdate) {
+    auto task = [](client::CancellationContext) -> DataResponse {
+      return {{client::ErrorCode::InvalidArgument,
+               "CacheWithUpdate option can not be used for versioned "
+               "layer"}};
+    };
+    return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
+                   std::move(callback));
+  }
+
   auto schedule_get_data = [&](TileRequest request,
                                DataResponseCallback callback) {
     auto catalog = catalog_;
