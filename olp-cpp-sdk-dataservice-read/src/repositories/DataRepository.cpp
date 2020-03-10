@@ -174,9 +174,11 @@ DataResponse DataRepository::GetBlobData(
         data_request.GetBillingTag(), cancellation_context);
   }
 
-  if (blob_response.IsSuccessful()) {
+  if (blob_response.IsSuccessful() && fetch_option != OnlineOnly) {
     repository.Put(blob_response.GetResult(), layer, data_handle.value());
-  } else {
+  }
+
+  if (!blob_response.IsSuccessful()) {
     const auto& error = blob_response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
       OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",

@@ -79,9 +79,10 @@ CatalogResponse CatalogRepository::GetCatalog(
   auto catalog_response =
       ConfigApi::GetCatalog(client, catalog.ToCatalogHRNString(),
                             request.GetBillingTag(), cancellation_context);
-  if (catalog_response.IsSuccessful()) {
+  if (catalog_response.IsSuccessful() && fetch_options != OnlineOnly) {
     repository.Put(catalog_response.GetResult());
-  } else {
+  }
+  if (!catalog_response.IsSuccessful()) {
     const auto& error = catalog_response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
       repository.Clear();
