@@ -1,4 +1,4 @@
-# Copyright (C) 2019 HERE Europe B.V.
+# Copyright (C) 2019-2020 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-project(olp-cpp-sdk-dataservice-read VERSION 1.2.0)
+project(olp-cpp-sdk-dataservice-read VERSION 1.3.0)
 set(DESCRIPTION "C++ API library for reading OLP data")
 
 file(GLOB_RECURSE INC "include/*.h*")
