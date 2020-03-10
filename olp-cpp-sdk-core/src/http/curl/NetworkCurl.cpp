@@ -908,6 +908,7 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
       return;
     }
 
+    lock.unlock();
     std::string error("Success");
     int status;
     if ((result == CURLE_OK) || (result == CURLE_HTTP_RETURNED_ERROR)) {
@@ -954,6 +955,7 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
                                        << handles_[index].id << ", url=" << url
                                        << " err=(" << status << ") " << error);
         handles_[index].count = 0;
+        lock.lock();
         events_.emplace_back(EventInfo::Type::SEND_EVENT, &handles_[index]);
         return;
       }
@@ -966,7 +968,7 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
                         .WithRequestId(handles_[index].id)
                         .WithStatus(status)
                         .WithError(error);
-    ReleaseHandleUnlocked(&handles_[index]);
+    ReleaseHandle(&handles_[index]);
     callback(response);
   } else {
     OLP_SDK_LOG_WARNING(kLogTag, "Complete message to unknown request");
@@ -1076,7 +1078,6 @@ void NetworkCurl::Run() {
               lock.lock();
             }
             curl_multi_remove_handle(curl_, handles_[handle_index].handle);
-            ReleaseHandleUnlocked(&handles_[handle_index]);
           } else {
             OLP_SDK_LOG_ERROR(
                 kLogTag,
