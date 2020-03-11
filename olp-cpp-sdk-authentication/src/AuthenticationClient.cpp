@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1231,15 +1231,6 @@ AuthenticationClient::AuthenticationClient(AuthenticationSettings settings)
     : impl_(std::make_unique<Impl>(std::move(settings))) {}
 
 AuthenticationClient::~AuthenticationClient() = default;
-
-client::CancellationToken AuthenticationClient::SignInClient(
-    const AuthenticationCredentials& credentials,
-    const SignInClientCallback& callback,
-    const std::chrono::seconds& expires_in) {
-  SignInProperties properties;
-  properties.expires_in = expires_in;
-  return impl_->SignInClient(credentials, properties, callback);
-}
 
 client::CancellationToken AuthenticationClient::SignInClient(
     AuthenticationCredentials credentials, SignInProperties properties,

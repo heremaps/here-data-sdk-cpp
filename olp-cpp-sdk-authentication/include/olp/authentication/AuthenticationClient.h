@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -327,33 +327,6 @@ class AUTHENTICATION_API AuthenticationClient {
    */
   using SignOutUserCallback =
       std::function<void(const SignOutUserResponse& response)>;
-
-  /**
-   * @brief Deprecated. Use the `SignInClient` method that has the `properties`
-   * parameter.
-   *
-   * Signs in with your HERE Account client credentials. Requests the client
-   * access token. Client access tokens cannot be refreshed. Instead,
-   * request a new client access token using your client credentials.
-   *
-   * @param credentials The `AuthenticationCredentials` instance.
-   * @param callback The`SignInClientCallback` method that is called when
-   * the client sign-in request is completed. If successful, the returned HTTP
-   * status is 200. Otherwise, check the response error.
-   * @param expires_in (Optional) The number of seconds left before the access
-   * token expires. Ignored if it is zero or greater than the default expiration
-   * time supported by the application.
-   *
-   * @return The `CancellationToken` instance that can be used to cancel
-   * the equest.
-   */
-  OLP_SDK_DEPRECATED(
-      "Deprecated. Please use version with properties parameter. Will be "
-      "removed by 03.2020")
-  client::CancellationToken SignInClient(
-      const AuthenticationCredentials& credentials,
-      const SignInClientCallback& callback,
-      const std::chrono::seconds& expires_in = std::chrono::seconds(0));
 
   /**
    * @brief Signs in with your HERE Account client credentials and reuests

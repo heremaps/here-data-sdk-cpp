@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,12 +55,15 @@ class AuthenticationClientTest : public AuthenticationCommonTestFixture {
       auto request_future = request.get_future();
 
       now = std::time(nullptr);
+
+      AuthenticationClient::SignInProperties props;
+      props.expires_in = std::chrono::seconds(expires_in);
+
       auto cancel_token = client_->SignInClient(
-          credentials,
+          credentials, props,
           [&](const AuthenticationClient::SignInClientResponse& resp) {
             request.set_value(resp);
-          },
-          std::chrono::seconds(expires_in));
+          });
 
       if (do_cancel) {
         cancel_token.Cancel();
