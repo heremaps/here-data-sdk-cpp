@@ -19,11 +19,7 @@
 
 #include "olp/core/porting/warning_disable.h"
 
-PORTING_PUSH_WARNINGS()
-PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
-// Generated class methods use a deprecated field and generate warning
 #include "olp/core/cache/DefaultCache.h"
-PORTING_POP_WARNINGS()
 
 #include "DiskCache.h"
 #include "InMemoryCache.h"
@@ -62,16 +58,6 @@ bool StoreExpiry(const std::string& key, olp::cache::DiskCache& disk_cache,
       expiry_key,
       std::to_string(expiry +
                      olp::cache::InMemoryCache::DefaultTimeProvider()()));
-}
-
-void ValidateDiskPath(olp::cache::CacheSettings& settings) {
-  if (!settings.disk_path_mutable) {
-    PORTING_PUSH_WARNINGS()
-    PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
-    PORTING_MSVC_DISABLE_WARNINGS(4996)
-    settings.disk_path_mutable = settings.disk_path;
-    PORTING_POP_WARNINGS()
-  }
 }
 
 }  // namespace
@@ -294,9 +280,6 @@ DefaultCache::StorageOpenResult DefaultCache::SetupStorage() {
   if (settings_.max_memory_cache_size > 0) {
     memory_cache_.reset(new InMemoryCache(settings_.max_memory_cache_size));
   }
-
-  // Temporary code for backwards compatibility.
-  ValidateDiskPath(settings_);
 
   if (settings_.disk_path_mutable) {
     StorageSettings storage_settings;
