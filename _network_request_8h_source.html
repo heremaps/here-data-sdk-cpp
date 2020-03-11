@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.2.0</span>
+   &#160;<span id="projectnumber">1.3.0</span>
    </div>
   </td>
  </tr>
@@ -105,55 +105,54 @@ $(function() {
 <div class="line"><a name="l00036"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1_network_request.html">   36</a></span>&#160;<span class="keyword">class </span>CORE_API <a class="code" href="classolp_1_1http_1_1_network_request.html">NetworkRequest</a> final {</div>
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160; <span class="keyword">public</span>:</div>
 <div class="line"><a name="l00039"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1_network_request.html#aae13881b97baa0d2d3d9a416dde924c9">   39</a></span>&#160;  <span class="keyword">using</span> <a class="code" href="classolp_1_1http_1_1_network_request.html#aae13881b97baa0d2d3d9a416dde924c9">RequestBodyType</a> = std::shared_ptr&lt;const std::vector&lt;std::uint8_t&gt;&gt;;</div>
-<div class="line"><a name="l00041"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1_network_request.html#a317457acb9a8a5d4e4268fd2d6539a4d">   41</a></span>&#160;  <span class="keyword">using</span> <a class="code" href="classolp_1_1http_1_1_network_request.html#a317457acb9a8a5d4e4268fd2d6539a4d">RequestHeadersType</a> = std::vector&lt;std::pair&lt;std::string, std::string&gt;&gt;;</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160; </div>
-<div class="line"><a name="l00044"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1_network_request.html#ac280dc7b10a02ce328cf1b6dcae42fd5">   44</a></span>&#160;  <span class="keyword">enum class</span> <a class="code" href="classolp_1_1http_1_1_network_request.html#ac280dc7b10a02ce328cf1b6dcae42fd5">HttpVerb</a> {</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;    GET = 0,    </div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    POST = 1,   </div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    HEAD = 2,   </div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    PUT = 3,    </div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    DEL = 4,    </div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    PATCH = 5,  </div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;  };</div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160; </div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;  <span class="keyword">explicit</span> <a class="code" href="classolp_1_1http_1_1_network_request.html">NetworkRequest</a>(std::string url);</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160; </div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;  <span class="keyword">const</span> RequestHeadersType&amp; GetHeaders() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160; </div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;  <a class="code" href="classolp_1_1http_1_1_network_request.html">NetworkRequest</a>&amp; WithHeader(std::string name, std::string value);</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160; </div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;  <span class="keyword">const</span> std::string&amp; GetUrl() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160; </div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;  <a class="code" href="classolp_1_1http_1_1_network_request.html">NetworkRequest</a>&amp; WithUrl(std::string url);</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160; </div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;  HttpVerb GetVerb() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160; </div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;  <a class="code" href="classolp_1_1http_1_1_network_request.html">NetworkRequest</a>&amp; WithVerb(HttpVerb verb);</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160; </div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;  RequestBodyType GetBody() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160; </div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;  <a class="code" href="classolp_1_1http_1_1_network_request.html">NetworkRequest</a>&amp; WithBody(RequestBodyType body);</div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160; </div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;  <span class="keyword">const</span> <a class="code" href="classolp_1_1http_1_1_network_settings.html">NetworkSettings</a>&amp; GetSettings() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160; </div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;  <a class="code" href="classolp_1_1http_1_1_network_request.html">NetworkRequest</a>&amp; WithSettings(<a class="code" href="classolp_1_1http_1_1_network_settings.html">NetworkSettings</a> settings);</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160; </div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160; <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;  HttpVerb verb_{HttpVerb::GET};</div>
-<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;  std::string url_;</div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;  RequestHeadersType headers_;</div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;  RequestBodyType body_;</div>
-<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;  NetworkSettings settings_;</div>
-<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;};</div>
-<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160; </div>
-<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;}  <span class="comment">// namespace http</span></div>
-<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160; </div>
+<div class="line"><a name="l00042"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1_network_request.html#ac280dc7b10a02ce328cf1b6dcae42fd5">   42</a></span>&#160;  <span class="keyword">enum class</span> <a class="code" href="classolp_1_1http_1_1_network_request.html#ac280dc7b10a02ce328cf1b6dcae42fd5">HttpVerb</a> {</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    GET = 0,    </div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    POST = 1,   </div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;    HEAD = 2,   </div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    PUT = 3,    </div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    DEL = 4,    </div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    PATCH = 5,  </div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  };</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160; </div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;  <span class="keyword">explicit</span> <a class="code" href="classolp_1_1http_1_1_network_request.html">NetworkRequest</a>(std::string url);</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160; </div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;  <span class="keyword">const</span> <a class="code" href="namespaceolp_1_1http.html#ae2f7d2a838ca66559b0abdac68a7514c">Headers</a>&amp; GetHeaders() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160; </div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;  <a class="code" href="classolp_1_1http_1_1_network_request.html">NetworkRequest</a>&amp; WithHeader(std::string name, std::string value);</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160; </div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;  <span class="keyword">const</span> std::string&amp; GetUrl() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160; </div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;  <a class="code" href="classolp_1_1http_1_1_network_request.html">NetworkRequest</a>&amp; WithUrl(std::string url);</div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160; </div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;  HttpVerb GetVerb() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;  <a class="code" href="classolp_1_1http_1_1_network_request.html">NetworkRequest</a>&amp; WithVerb(HttpVerb verb);</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160; </div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;  RequestBodyType GetBody() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160; </div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;  <a class="code" href="classolp_1_1http_1_1_network_request.html">NetworkRequest</a>&amp; WithBody(RequestBodyType body);</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160; </div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;  <span class="keyword">const</span> <a class="code" href="classolp_1_1http_1_1_network_settings.html">NetworkSettings</a>&amp; GetSettings() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160; </div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;  <a class="code" href="classolp_1_1http_1_1_network_request.html">NetworkRequest</a>&amp; WithSettings(<a class="code" href="classolp_1_1http_1_1_network_settings.html">NetworkSettings</a> settings);</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160; </div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160; <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;  HttpVerb verb_{HttpVerb::GET};</div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;  std::string url_;</div>
+<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;  <a class="code" href="namespaceolp_1_1http.html#ae2f7d2a838ca66559b0abdac68a7514c">Headers</a> headers_;</div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;  RequestBodyType body_;</div>
+<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;  NetworkSettings settings_;</div>
+<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;};</div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160; </div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;}  <span class="comment">// namespace http</span></div>
+<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;}  <span class="comment">// namespace olp</span></div>
 </div><!-- fragment --></div><!-- contents -->
-<div class="ttc" id="aclassolp_1_1http_1_1_network_request_html_ac280dc7b10a02ce328cf1b6dcae42fd5"><div class="ttname"><a href="classolp_1_1http_1_1_network_request.html#ac280dc7b10a02ce328cf1b6dcae42fd5">olp::http::NetworkRequest::HttpVerb</a></div><div class="ttdeci">HttpVerb</div><div class="ttdoc">HTTP method as in https://tools.ietf.org/html/rfc2616.</div><div class="ttdef"><b>Definition:</b> NetworkRequest.h:44</div></div>
-<div class="ttc" id="aclassolp_1_1http_1_1_network_request_html_a317457acb9a8a5d4e4268fd2d6539a4d"><div class="ttname"><a href="classolp_1_1http_1_1_network_request.html#a317457acb9a8a5d4e4268fd2d6539a4d">olp::http::NetworkRequest::RequestHeadersType</a></div><div class="ttdeci">std::vector&lt; std::pair&lt; std::string, std::string &gt; &gt; RequestHeadersType</div><div class="ttdoc">Short type alias for HTTP request header.</div><div class="ttdef"><b>Definition:</b> NetworkRequest.h:41</div></div>
+<div class="ttc" id="aclassolp_1_1http_1_1_network_request_html_ac280dc7b10a02ce328cf1b6dcae42fd5"><div class="ttname"><a href="classolp_1_1http_1_1_network_request.html#ac280dc7b10a02ce328cf1b6dcae42fd5">olp::http::NetworkRequest::HttpVerb</a></div><div class="ttdeci">HttpVerb</div><div class="ttdoc">HTTP method as in https://tools.ietf.org/html/rfc2616.</div><div class="ttdef"><b>Definition:</b> NetworkRequest.h:42</div></div>
+<div class="ttc" id="anamespaceolp_1_1http_html_ae2f7d2a838ca66559b0abdac68a7514c"><div class="ttname"><a href="namespaceolp_1_1http.html#ae2f7d2a838ca66559b0abdac68a7514c">olp::http::Headers</a></div><div class="ttdeci">std::vector&lt; Header &gt; Headers</div><div class="ttdoc">Type alias for vector of HTTP headers.</div><div class="ttdef"><b>Definition:</b> NetworkTypes.h:140</div></div>
 <div class="ttc" id="aclassolp_1_1http_1_1_network_settings_html"><div class="ttname"><a href="classolp_1_1http_1_1_network_settings.html">olp::http::NetworkSettings</a></div><div class="ttdoc">This class contains configuration for the network.</div><div class="ttdef"><b>Definition:</b> NetworkSettings.h:35</div></div>
 <div class="ttc" id="aclassolp_1_1http_1_1_network_request_html_aae13881b97baa0d2d3d9a416dde924c9"><div class="ttname"><a href="classolp_1_1http_1_1_network_request.html#aae13881b97baa0d2d3d9a416dde924c9">olp::http::NetworkRequest::RequestBodyType</a></div><div class="ttdeci">std::shared_ptr&lt; const std::vector&lt; std::uint8_t &gt; &gt; RequestBodyType</div><div class="ttdoc">Short type alias for HTTP request body.</div><div class="ttdef"><b>Definition:</b> NetworkRequest.h:39</div></div>
-<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">The olp namespace.</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:43</div></div>
+<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">The olp namespace.</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:45</div></div>
 <div class="ttc" id="aclassolp_1_1http_1_1_network_request_html"><div class="ttname"><a href="classolp_1_1http_1_1_network_request.html">olp::http::NetworkRequest</a></div><div class="ttdoc">This class represents network request abstraction for an HTTP request.</div><div class="ttdef"><b>Definition:</b> NetworkRequest.h:36</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

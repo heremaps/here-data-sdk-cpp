@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.2.0</span>
+   &#160;<span id="projectnumber">1.3.0</span>
    </div>
   </td>
  </tr>
@@ -108,9 +108,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aa17cf1919db10033d27bac021fcc60e6"><td class="memItemLeft" align="right" valign="top">const boost::optional&lt; std::string &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#aa17cf1919db10033d27bac021fcc60e6">GetBillingTag</a> () const</td></tr>
 <tr class="memdesc:aa17cf1919db10033d27bac021fcc60e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the billing tag to group billing records together.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#aa17cf1919db10033d27bac021fcc60e6">More...</a><br /></td></tr>
 <tr class="separator:aa17cf1919db10033d27bac021fcc60e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acb9d4d3bbea9cdca6a3cc69e8e57144d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#acb9d4d3bbea9cdca6a3cc69e8e57144d">WithBillingTag</a> (const boost::optional&lt; std::string &gt; &amp;tag)</td></tr>
-<tr class="memdesc:acb9d4d3bbea9cdca6a3cc69e8e57144d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the billing tag for the request.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#acb9d4d3bbea9cdca6a3cc69e8e57144d">More...</a><br /></td></tr>
-<tr class="separator:acb9d4d3bbea9cdca6a3cc69e8e57144d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a233d0a9fc93f30b2233059f7a71723d7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a233d0a9fc93f30b2233059f7a71723d7">WithBillingTag</a> (boost::optional&lt; std::string &gt; tag)</td></tr>
+<tr class="memdesc:a233d0a9fc93f30b2233059f7a71723d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the billing tag for the request.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a233d0a9fc93f30b2233059f7a71723d7">More...</a><br /></td></tr>
+<tr class="separator:a233d0a9fc93f30b2233059f7a71723d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0857727a099c21e753e99c4940bfbd00"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a0857727a099c21e753e99c4940bfbd00">WithBillingTag</a> (std::string &amp;&amp;tag)</td></tr>
 <tr class="memdesc:a0857727a099c21e753e99c4940bfbd00"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the billing tag for the request.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a0857727a099c21e753e99c4940bfbd00">More...</a><br /></td></tr>
 <tr class="separator:a0857727a099c21e753e99c4940bfbd00"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -302,12 +302,13 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Gets the catalog metadata version of the requested partitions. </p>
-<dl class="section return"><dt>Returns</dt><dd>The catalog metadata version. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The catalog metadata version.</dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000015">Deprecated:</a></b></dt><dd>The version is now a part of the <a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html" title="Gets data from a versioned layer of the Open Location Platform (OLP).">VersionedLayerClient</a> constructor. </dd></dl>
 
 </div>
 </div>
-<a id="acb9d4d3bbea9cdca6a3cc69e8e57144d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acb9d4d3bbea9cdca6a3cc69e8e57144d">&#9670;&nbsp;</a></span>WithBillingTag() <span class="overload">[1/2]</span></h2>
+<a id="a233d0a9fc93f30b2233059f7a71723d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a233d0a9fc93f30b2233059f7a71723d7">&#9670;&nbsp;</a></span>WithBillingTag() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -318,7 +319,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a>&amp; olp::dataservice::read::DataRequest::WithBillingTag </td>
           <td>(</td>
-          <td class="paramtype">const boost::optional&lt; std::string &gt; &amp;&#160;</td>
+          <td class="paramtype">boost::optional&lt; std::string &gt;&#160;</td>
           <td class="paramname"><em>tag</em></td><td>)</td>
           <td></td>
         </tr>
@@ -591,7 +592,8 @@ Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="Encapsulates the fields required to request data for the given catalog, layer, and partition.">DataRequest</a></code> instance. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="Encapsulates the fields required to request data for the given catalog, layer, and partition.">DataRequest</a></code> instance.</dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000014">Deprecated:</a></b></dt><dd>The version is now a part of the <a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html" title="Gets data from a versioned layer of the Open Location Platform (OLP).">VersionedLayerClient</a> constructor. </dd></dl>
 
 </div>
 </div>

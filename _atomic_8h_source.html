@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.2.0</span>
+   &#160;<span id="projectnumber">1.3.0</span>
    </div>
   </td>
  </tr>
@@ -96,83 +96,89 @@ $(function() {
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160; </div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespaceolp.html">olp</a> {</div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="keyword">namespace </span>thread {</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">class </span>Type, <span class="keyword">typename</span> MutexType = std::mutex,</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;          <span class="keyword">typename</span> ReadLockType = std::lock_guard&lt;MutexType&gt; &gt;</div>
-<div class="line"><a name="l00034"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html">   34</a></span>&#160;<span class="keyword">class </span><a class="code" href="classolp_1_1thread_1_1_atomic.html">Atomic</a> {</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;  <span class="keyword">using</span> value_type = Type;</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;  <span class="keyword">using</span> WriteLockType = std::lock_guard&lt;MutexType&gt;;</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160; </div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> SomeType&gt;</div>
-<div class="line"><a name="l00043"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#a7da78ed7a01836a374445c91d56aabf8">   43</a></span>&#160;  <a class="code" href="classolp_1_1thread_1_1_atomic.html#a7da78ed7a01836a374445c91d56aabf8">Atomic</a>(SomeType&amp;&amp; am) : m(std::forward&lt;SomeType&gt;(am)) {}</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160; </div>
-<div class="line"><a name="l00048"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#abda7f6cbe02ec2f3b669b23812b302e4">   48</a></span>&#160;  <a class="code" href="classolp_1_1thread_1_1_atomic.html#abda7f6cbe02ec2f3b669b23812b302e4">Atomic</a>() : m() {}</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160; </div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> Functor&gt;</div>
-<div class="line"><a name="l00054"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#a34c38b265213a8d6cd9241800018475d">   54</a></span>&#160;  <span class="keyword">auto</span> <a class="code" href="classolp_1_1thread_1_1_atomic.html#a34c38b265213a8d6cd9241800018475d">locked</a>(Functor&amp;&amp; lambda) -&gt; decltype(lambda(std::declval&lt;Type&amp;&gt;())) {</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    WriteLockType lock(m_mutex);</div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;    <span class="keywordflow">return</span> lambda(m);</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;  }</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160; </div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> Functor&gt;</div>
-<div class="line"><a name="l00064"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#a56817a861772c94395f4a9a97e575072">   64</a></span>&#160;  <span class="keyword">auto</span> <a class="code" href="classolp_1_1thread_1_1_atomic.html#a56817a861772c94395f4a9a97e575072">locked</a>(Functor&amp;&amp; lambda) <span class="keyword">const</span></div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;      -&gt; decltype(lambda(std::declval&lt;const Type&amp;&gt;()))<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    ReadLockType lock(m_mutex);</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    <span class="keywordflow">return</span> lambda(m);</div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;  }</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160; </div>
-<div class="line"><a name="l00073"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#a27e9008c31422da214cce4c3078cf89b">   73</a></span>&#160;  Type <a class="code" href="classolp_1_1thread_1_1_atomic.html#a27e9008c31422da214cce4c3078cf89b">lockedCopy</a>()<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;    ReadLockType lock(m_mutex);</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    <span class="keywordflow">return</span> m;</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;  }</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160; </div>
-<div class="line"><a name="l00081"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#ad9af8cbfb6f322158b511bb0cfe9126b">   81</a></span>&#160;  Type <a class="code" href="classolp_1_1thread_1_1_atomic.html#ad9af8cbfb6f322158b511bb0cfe9126b">lockedMove</a>() {</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;    WriteLockType lock(m_mutex);</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;    <span class="keywordflow">return</span> std::move(m);</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;  }</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160; </div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> SomeType&gt;</div>
-<div class="line"><a name="l00090"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#aea422db1cd3ee2689e71c266abf8a095">   90</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classolp_1_1thread_1_1_atomic.html#aea422db1cd3ee2689e71c266abf8a095">lockedAssign</a>(SomeType&amp;&amp; am) {</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    WriteLockType lock(m_mutex);</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    m = std::forward&lt;SomeType&gt;(am);</div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;  }</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160; </div>
-<div class="line"><a name="l00098"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#abeb3a8e667c82f4387ab832d71c4cff2">   98</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classolp_1_1thread_1_1_atomic.html#abeb3a8e667c82f4387ab832d71c4cff2">lockedSwap</a>(Type&amp; other) {</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;    WriteLockType lock(m_mutex);</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    std::swap(m, other);</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;  }</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160; </div>
-<div class="line"><a name="l00106"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#afe1f02f722956776ceb3293309be82ad">  106</a></span>&#160;  Type <a class="code" href="classolp_1_1thread_1_1_atomic.html#afe1f02f722956776ceb3293309be82ad">lockedSwapWithDefault</a>() {</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    WriteLockType lock(m_mutex);</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;    Type other{};</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;    std::swap(m, other);</div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;    <span class="keywordflow">return</span> other;</div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;  }</div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160; </div>
-<div class="line"><a name="l00116"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#a69a7a08bda7ba81996868be561791b58">  116</a></span>&#160;  <span class="keyword">explicit</span> <span class="keyword">operator</span> bool()<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    ReadLockType lock(m_mutex);</div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;    <span class="keywordflow">return</span> static_cast&lt;bool&gt;(m);</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;  }</div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160; </div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160; <span class="keyword">protected</span>:</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;  <span class="keyword">mutable</span> MutexType m_mutex;</div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;  Type m;</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;};</div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160; </div>
-<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;}  <span class="comment">// namespace thread</span></div>
-<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">class </span>Type, <span class="keyword">typename</span> MutexType = std::mutex,</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;          <span class="keyword">typename</span> ReadLockType = std::lock_guard&lt;MutexType&gt; &gt;</div>
+<div class="line"><a name="l00040"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html">   40</a></span>&#160;<span class="keyword">class </span><a class="code" href="classolp_1_1thread_1_1_atomic.html">Atomic</a> {</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00045"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#a5dda7405fa7a4c9281c261ac1cc378d1">   45</a></span>&#160;  <span class="keyword">using</span> <a class="code" href="classolp_1_1thread_1_1_atomic.html#a5dda7405fa7a4c9281c261ac1cc378d1">value_type</a> = Type;</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160; </div>
+<div class="line"><a name="l00050"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#a62ccc891c261a8a372d0fde6f1335128">   50</a></span>&#160;  <span class="keyword">using</span> <a class="code" href="classolp_1_1thread_1_1_atomic.html#a62ccc891c261a8a372d0fde6f1335128">WriteLockType</a> = std::lock_guard&lt;MutexType&gt;;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> SomeType&gt;</div>
+<div class="line"><a name="l00059"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#a7da78ed7a01836a374445c91d56aabf8">   59</a></span>&#160;  <a class="code" href="classolp_1_1thread_1_1_atomic.html#a7da78ed7a01836a374445c91d56aabf8">Atomic</a>(SomeType&amp;&amp; am) : <a class="code" href="classolp_1_1thread_1_1_atomic.html#a60125a7b0c98824061efd7bef76c0bae">m</a>(std::forward&lt;SomeType&gt;(am)) {}</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160; </div>
+<div class="line"><a name="l00064"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#abda7f6cbe02ec2f3b669b23812b302e4">   64</a></span>&#160;  <a class="code" href="classolp_1_1thread_1_1_atomic.html#abda7f6cbe02ec2f3b669b23812b302e4">Atomic</a>() : <a class="code" href="classolp_1_1thread_1_1_atomic.html#a60125a7b0c98824061efd7bef76c0bae">m</a>() {}</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160; </div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> Functor&gt;</div>
+<div class="line"><a name="l00075"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#a34c38b265213a8d6cd9241800018475d">   75</a></span>&#160;  <span class="keyword">auto</span> <a class="code" href="classolp_1_1thread_1_1_atomic.html#a34c38b265213a8d6cd9241800018475d">locked</a>(Functor&amp;&amp; lambda) -&gt; decltype(lambda(std::declval&lt;Type&amp;&gt;())) {</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;    <a class="code" href="classolp_1_1thread_1_1_atomic.html#a62ccc891c261a8a372d0fde6f1335128">WriteLockType</a> lock(<a class="code" href="classolp_1_1thread_1_1_atomic.html#a8ab4628b6381466996b54c6d9caf62a0">m_mutex</a>);</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    <span class="keywordflow">return</span> lambda(<a class="code" href="classolp_1_1thread_1_1_atomic.html#a60125a7b0c98824061efd7bef76c0bae">m</a>);</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;  }</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160; </div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> Functor&gt;</div>
+<div class="line"><a name="l00091"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#a56817a861772c94395f4a9a97e575072">   91</a></span>&#160;  <span class="keyword">auto</span> <a class="code" href="classolp_1_1thread_1_1_atomic.html#a56817a861772c94395f4a9a97e575072">locked</a>(Functor&amp;&amp; lambda) <span class="keyword">const</span></div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;      -&gt; decltype(lambda(std::declval&lt;const Type&amp;&gt;()))<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    ReadLockType lock(<a class="code" href="classolp_1_1thread_1_1_atomic.html#a8ab4628b6381466996b54c6d9caf62a0">m_mutex</a>);</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    <span class="keywordflow">return</span> lambda(<a class="code" href="classolp_1_1thread_1_1_atomic.html#a60125a7b0c98824061efd7bef76c0bae">m</a>);</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;  }</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160; </div>
+<div class="line"><a name="l00102"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#a27e9008c31422da214cce4c3078cf89b">  102</a></span>&#160;  Type <a class="code" href="classolp_1_1thread_1_1_atomic.html#a27e9008c31422da214cce4c3078cf89b">lockedCopy</a>()<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;    ReadLockType lock(<a class="code" href="classolp_1_1thread_1_1_atomic.html#a8ab4628b6381466996b54c6d9caf62a0">m_mutex</a>);</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;    <span class="keywordflow">return</span> <a class="code" href="classolp_1_1thread_1_1_atomic.html#a60125a7b0c98824061efd7bef76c0bae">m</a>;</div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;  }</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160; </div>
+<div class="line"><a name="l00112"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#ad9af8cbfb6f322158b511bb0cfe9126b">  112</a></span>&#160;  Type <a class="code" href="classolp_1_1thread_1_1_atomic.html#ad9af8cbfb6f322158b511bb0cfe9126b">lockedMove</a>() {</div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;    <a class="code" href="classolp_1_1thread_1_1_atomic.html#a62ccc891c261a8a372d0fde6f1335128">WriteLockType</a> lock(<a class="code" href="classolp_1_1thread_1_1_atomic.html#a8ab4628b6381466996b54c6d9caf62a0">m_mutex</a>);</div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    <span class="keywordflow">return</span> std::move(<a class="code" href="classolp_1_1thread_1_1_atomic.html#a60125a7b0c98824061efd7bef76c0bae">m</a>);</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;  }</div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160; </div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> SomeType&gt;</div>
+<div class="line"><a name="l00124"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#aea422db1cd3ee2689e71c266abf8a095">  124</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classolp_1_1thread_1_1_atomic.html#aea422db1cd3ee2689e71c266abf8a095">lockedAssign</a>(SomeType&amp;&amp; am) {</div>
+<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;    <a class="code" href="classolp_1_1thread_1_1_atomic.html#a62ccc891c261a8a372d0fde6f1335128">WriteLockType</a> lock(<a class="code" href="classolp_1_1thread_1_1_atomic.html#a8ab4628b6381466996b54c6d9caf62a0">m_mutex</a>);</div>
+<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;    <a class="code" href="classolp_1_1thread_1_1_atomic.html#a60125a7b0c98824061efd7bef76c0bae">m</a> = std::forward&lt;SomeType&gt;(am);</div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;  }</div>
+<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160; </div>
+<div class="line"><a name="l00134"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#abeb3a8e667c82f4387ab832d71c4cff2">  134</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classolp_1_1thread_1_1_atomic.html#abeb3a8e667c82f4387ab832d71c4cff2">lockedSwap</a>(Type&amp; other) {</div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;    <a class="code" href="classolp_1_1thread_1_1_atomic.html#a62ccc891c261a8a372d0fde6f1335128">WriteLockType</a> lock(<a class="code" href="classolp_1_1thread_1_1_atomic.html#a8ab4628b6381466996b54c6d9caf62a0">m_mutex</a>);</div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;    std::swap(<a class="code" href="classolp_1_1thread_1_1_atomic.html#a60125a7b0c98824061efd7bef76c0bae">m</a>, other);</div>
+<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;  }</div>
+<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160; </div>
+<div class="line"><a name="l00145"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#afe1f02f722956776ceb3293309be82ad">  145</a></span>&#160;  Type <a class="code" href="classolp_1_1thread_1_1_atomic.html#afe1f02f722956776ceb3293309be82ad">lockedSwapWithDefault</a>() {</div>
+<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;    <a class="code" href="classolp_1_1thread_1_1_atomic.html#a62ccc891c261a8a372d0fde6f1335128">WriteLockType</a> lock(<a class="code" href="classolp_1_1thread_1_1_atomic.html#a8ab4628b6381466996b54c6d9caf62a0">m_mutex</a>);</div>
+<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;    Type other{};</div>
+<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;    std::swap(<a class="code" href="classolp_1_1thread_1_1_atomic.html#a60125a7b0c98824061efd7bef76c0bae">m</a>, other);</div>
+<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;    <span class="keywordflow">return</span> other;</div>
+<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;  }</div>
+<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160; </div>
+<div class="line"><a name="l00157"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#a69a7a08bda7ba81996868be561791b58">  157</a></span>&#160;  <span class="keyword">explicit</span> <span class="keyword">operator</span> bool()<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;    ReadLockType lock(<a class="code" href="classolp_1_1thread_1_1_atomic.html#a8ab4628b6381466996b54c6d9caf62a0">m_mutex</a>);</div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;    <span class="keywordflow">return</span> static_cast&lt;bool&gt;(<a class="code" href="classolp_1_1thread_1_1_atomic.html#a60125a7b0c98824061efd7bef76c0bae">m</a>);</div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;  }</div>
+<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160; </div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160; <span class="keyword">protected</span>:</div>
+<div class="line"><a name="l00166"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#a8ab4628b6381466996b54c6d9caf62a0">  166</a></span>&#160;  <span class="keyword">mutable</span> MutexType <a class="code" href="classolp_1_1thread_1_1_atomic.html#a8ab4628b6381466996b54c6d9caf62a0">m_mutex</a>;</div>
+<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160; </div>
+<div class="line"><a name="l00171"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_atomic.html#a60125a7b0c98824061efd7bef76c0bae">  171</a></span>&#160;  Type <a class="code" href="classolp_1_1thread_1_1_atomic.html#a60125a7b0c98824061efd7bef76c0bae">m</a>;</div>
+<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;};</div>
+<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160; </div>
+<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;}  <span class="comment">// namespace thread</span></div>
+<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;}  <span class="comment">// namespace olp</span></div>
 </div><!-- fragment --></div><!-- contents -->
-<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_a27e9008c31422da214cce4c3078cf89b"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#a27e9008c31422da214cce4c3078cf89b">olp::thread::Atomic::lockedCopy</a></div><div class="ttdeci">Type lockedCopy() const</div><div class="ttdef"><b>Definition:</b> Atomic.h:73</div></div>
-<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_aea422db1cd3ee2689e71c266abf8a095"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#aea422db1cd3ee2689e71c266abf8a095">olp::thread::Atomic::lockedAssign</a></div><div class="ttdeci">void lockedAssign(SomeType &amp;&amp;am)</div><div class="ttdef"><b>Definition:</b> Atomic.h:90</div></div>
-<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_a7da78ed7a01836a374445c91d56aabf8"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#a7da78ed7a01836a374445c91d56aabf8">olp::thread::Atomic::Atomic</a></div><div class="ttdeci">Atomic(SomeType &amp;&amp;am)</div><div class="ttdef"><b>Definition:</b> Atomic.h:43</div></div>
-<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html">olp::thread::Atomic</a></div><div class="ttdef"><b>Definition:</b> Atomic.h:34</div></div>
-<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_ad9af8cbfb6f322158b511bb0cfe9126b"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#ad9af8cbfb6f322158b511bb0cfe9126b">olp::thread::Atomic::lockedMove</a></div><div class="ttdeci">Type lockedMove()</div><div class="ttdef"><b>Definition:</b> Atomic.h:81</div></div>
-<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_abda7f6cbe02ec2f3b669b23812b302e4"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#abda7f6cbe02ec2f3b669b23812b302e4">olp::thread::Atomic::Atomic</a></div><div class="ttdeci">Atomic()</div><div class="ttdef"><b>Definition:</b> Atomic.h:48</div></div>
-<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_a34c38b265213a8d6cd9241800018475d"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#a34c38b265213a8d6cd9241800018475d">olp::thread::Atomic::locked</a></div><div class="ttdeci">auto locked(Functor &amp;&amp;lambda) -&gt; decltype(lambda(std::declval&lt; Type &amp; &gt;()))</div><div class="ttdef"><b>Definition:</b> Atomic.h:54</div></div>
-<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_abeb3a8e667c82f4387ab832d71c4cff2"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#abeb3a8e667c82f4387ab832d71c4cff2">olp::thread::Atomic::lockedSwap</a></div><div class="ttdeci">void lockedSwap(Type &amp;other)</div><div class="ttdef"><b>Definition:</b> Atomic.h:98</div></div>
-<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_afe1f02f722956776ceb3293309be82ad"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#afe1f02f722956776ceb3293309be82ad">olp::thread::Atomic::lockedSwapWithDefault</a></div><div class="ttdeci">Type lockedSwapWithDefault()</div><div class="ttdef"><b>Definition:</b> Atomic.h:106</div></div>
-<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">The olp namespace.</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:43</div></div>
-<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_a56817a861772c94395f4a9a97e575072"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#a56817a861772c94395f4a9a97e575072">olp::thread::Atomic::locked</a></div><div class="ttdeci">auto locked(Functor &amp;&amp;lambda) const -&gt; decltype(lambda(std::declval&lt; const Type &amp; &gt;())) const</div><div class="ttdef"><b>Definition:</b> Atomic.h:64</div></div>
+<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_a60125a7b0c98824061efd7bef76c0bae"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#a60125a7b0c98824061efd7bef76c0bae">olp::thread::Atomic::m</a></div><div class="ttdeci">Type m</div><div class="ttdoc">The member type to which atomic access is required.</div><div class="ttdef"><b>Definition:</b> Atomic.h:171</div></div>
+<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_a27e9008c31422da214cce4c3078cf89b"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#a27e9008c31422da214cce4c3078cf89b">olp::thread::Atomic::lockedCopy</a></div><div class="ttdeci">Type lockedCopy() const</div><div class="ttdoc">Gets a copy of the data using the lock.</div><div class="ttdef"><b>Definition:</b> Atomic.h:102</div></div>
+<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_aea422db1cd3ee2689e71c266abf8a095"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#aea422db1cd3ee2689e71c266abf8a095">olp::thread::Atomic::lockedAssign</a></div><div class="ttdeci">void lockedAssign(SomeType &amp;&amp;am)</div><div class="ttdoc">Assigns the data using the unique lock.</div><div class="ttdef"><b>Definition:</b> Atomic.h:124</div></div>
+<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_a8ab4628b6381466996b54c6d9caf62a0"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#a8ab4628b6381466996b54c6d9caf62a0">olp::thread::Atomic::m_mutex</a></div><div class="ttdeci">MutexType m_mutex</div><div class="ttdoc">Defines the lock type.</div><div class="ttdef"><b>Definition:</b> Atomic.h:166</div></div>
+<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_a7da78ed7a01836a374445c91d56aabf8"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#a7da78ed7a01836a374445c91d56aabf8">olp::thread::Atomic::Atomic</a></div><div class="ttdeci">Atomic(SomeType &amp;&amp;am)</div><div class="ttdoc">Creates the Atomic instance.</div><div class="ttdef"><b>Definition:</b> Atomic.h:59</div></div>
+<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html">olp::thread::Atomic</a></div><div class="ttdoc">A simple atomic wrapper.</div><div class="ttdef"><b>Definition:</b> Atomic.h:40</div></div>
+<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_ad9af8cbfb6f322158b511bb0cfe9126b"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#ad9af8cbfb6f322158b511bb0cfe9126b">olp::thread::Atomic::lockedMove</a></div><div class="ttdeci">Type lockedMove()</div><div class="ttdoc">Gets a copy of the moved data using the unique lock.</div><div class="ttdef"><b>Definition:</b> Atomic.h:112</div></div>
+<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_a5dda7405fa7a4c9281c261ac1cc378d1"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#a5dda7405fa7a4c9281c261ac1cc378d1">olp::thread::Atomic::value_type</a></div><div class="ttdeci">Type value_type</div><div class="ttdoc">Alias for the type.</div><div class="ttdef"><b>Definition:</b> Atomic.h:45</div></div>
+<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_abda7f6cbe02ec2f3b669b23812b302e4"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#abda7f6cbe02ec2f3b669b23812b302e4">olp::thread::Atomic::Atomic</a></div><div class="ttdeci">Atomic()</div><div class="ttdoc">Creates the Atomic instance.</div><div class="ttdef"><b>Definition:</b> Atomic.h:64</div></div>
+<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_a34c38b265213a8d6cd9241800018475d"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#a34c38b265213a8d6cd9241800018475d">olp::thread::Atomic::locked</a></div><div class="ttdeci">auto locked(Functor &amp;&amp;lambda) -&gt; decltype(lambda(std::declval&lt; Type &amp; &gt;()))</div><div class="ttdoc">Calls the lambda function using the unique lock.</div><div class="ttdef"><b>Definition:</b> Atomic.h:75</div></div>
+<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_abeb3a8e667c82f4387ab832d71c4cff2"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#abeb3a8e667c82f4387ab832d71c4cff2">olp::thread::Atomic::lockedSwap</a></div><div class="ttdeci">void lockedSwap(Type &amp;other)</div><div class="ttdoc">Exchanges context with the Type object using the unique lock.</div><div class="ttdef"><b>Definition:</b> Atomic.h:134</div></div>
+<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_afe1f02f722956776ceb3293309be82ad"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#afe1f02f722956776ceb3293309be82ad">olp::thread::Atomic::lockedSwapWithDefault</a></div><div class="ttdeci">Type lockedSwapWithDefault()</div><div class="ttdoc">Exchanges context with the Type object using the unique lock and moves data.</div><div class="ttdef"><b>Definition:</b> Atomic.h:145</div></div>
+<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">The olp namespace.</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:45</div></div>
+<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_a56817a861772c94395f4a9a97e575072"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#a56817a861772c94395f4a9a97e575072">olp::thread::Atomic::locked</a></div><div class="ttdeci">auto locked(Functor &amp;&amp;lambda) const -&gt; decltype(lambda(std::declval&lt; const Type &amp; &gt;())) const</div><div class="ttdoc">Calls the lambda using the lock.</div><div class="ttdef"><b>Definition:</b> Atomic.h:91</div></div>
+<div class="ttc" id="aclassolp_1_1thread_1_1_atomic_html_a62ccc891c261a8a372d0fde6f1335128"><div class="ttname"><a href="classolp_1_1thread_1_1_atomic.html#a62ccc891c261a8a372d0fde6f1335128">olp::thread::Atomic::WriteLockType</a></div><div class="ttdeci">std::lock_guard&lt; MutexType &gt; WriteLockType</div><div class="ttdoc">Alias for the atomic write mutex lock.</div><div class="ttdef"><b>Definition:</b> Atomic.h:50</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

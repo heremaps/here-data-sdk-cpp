@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.2.0</span>
+   &#160;<span id="projectnumber">1.3.0</span>
    </div>
   </td>
  </tr>
@@ -97,36 +97,42 @@ $(function() {
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespaceolp.html">olp</a> {</div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="keyword">namespace </span>thread {</div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160; </div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="keyword">class </span>CORE_API TaskScheduler {</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  <span class="keyword">using</span> CallFuncType = std::function&lt;void()&gt;;</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160; </div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;  <span class="keyword">virtual</span> ~TaskScheduler() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160; </div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;  <span class="keywordtype">void</span> ScheduleTask(CallFuncType&amp;&amp; func) { EnqueueTask(std::move(func)); }</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160; </div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class </span>Function, <span class="keyword">typename</span> std::enable_if&lt;!std::is_convertible&lt;</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;                                decltype(std::declval&lt;Function&gt;()),</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;                                CallFuncType&gt;::value&gt;::type* = <span class="keyword">nullptr</span>&gt;</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;  client::CancellationContext ScheduleTask(Function&amp;&amp; func) {</div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;    client::CancellationContext context;</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    <span class="keyword">auto</span> task = [func, context]() {</div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;      <span class="keywordflow">if</span> (!context.IsCancelled()) {</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;        func(context);</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;      };</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;    };</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;    EnqueueTask(std::move(task));</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    <span class="keywordflow">return</span> context;</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;  }</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160; </div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160; <span class="keyword">protected</span>:</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;  <span class="keyword">virtual</span> <span class="keywordtype">void</span> EnqueueTask(CallFuncType&amp;&amp;) = 0;</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;};</div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160; </div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;}  <span class="comment">// namespace thread</span></div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00038"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_task_scheduler.html">   38</a></span>&#160;<span class="keyword">class </span>CORE_API <a class="code" href="classolp_1_1thread_1_1_task_scheduler.html">TaskScheduler</a> {</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00041"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_task_scheduler.html#a54f91863ec0c34f219b21d09d9b09f5a">   41</a></span>&#160;  <span class="keyword">using</span> <a class="code" href="classolp_1_1thread_1_1_task_scheduler.html#a54f91863ec0c34f219b21d09d9b09f5a">CallFuncType</a> = std::function&lt;void()&gt;;</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160; </div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;  <span class="keyword">virtual</span> ~<a class="code" href="classolp_1_1thread_1_1_task_scheduler.html">TaskScheduler</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160; </div>
+<div class="line"><a name="l00051"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_task_scheduler.html#ad085c04262d876f3ebc916ec6342d8f6">   51</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classolp_1_1thread_1_1_task_scheduler.html#ad085c04262d876f3ebc916ec6342d8f6">ScheduleTask</a>(<a class="code" href="classolp_1_1thread_1_1_task_scheduler.html#a54f91863ec0c34f219b21d09d9b09f5a">CallFuncType</a>&amp;&amp; func) { EnqueueTask(std::move(func)); }</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160; </div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class </span>Function, <span class="keyword">typename</span> std::enable_if&lt;!std::is_convertible&lt;</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;                                decltype(std::declval&lt;Function&gt;()),</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;                                CallFuncType&gt;::value&gt;::type* = <span class="keyword">nullptr</span>&gt;</div>
+<div class="line"><a name="l00073"></a><span class="lineno"><a class="line" href="classolp_1_1thread_1_1_task_scheduler.html#a9f174afffe1867d50fe687cd67a2d8d9">   73</a></span>&#160;  <a class="code" href="classolp_1_1client_1_1_cancellation_context.html">client::CancellationContext</a> <a class="code" href="classolp_1_1thread_1_1_task_scheduler.html#a9f174afffe1867d50fe687cd67a2d8d9">ScheduleTask</a>(Function&amp;&amp; func) {</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;    <a class="code" href="classolp_1_1client_1_1_cancellation_context.html">client::CancellationContext</a> context;</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    <span class="keyword">auto</span> task = [func, context]() {</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;      <span class="keywordflow">if</span> (!context.<a class="code" href="classolp_1_1client_1_1_cancellation_context.html#a806b8afdba157ab6f531c8c20595c719">IsCancelled</a>()) {</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;        func(context);</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;      };</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;    };</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;    EnqueueTask(std::move(task));</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;    <span class="keywordflow">return</span> context;</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;  }</div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160; </div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160; <span class="keyword">protected</span>:</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;  <span class="keyword">virtual</span> <span class="keywordtype">void</span> EnqueueTask(CallFuncType&amp;&amp;) = 0;</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;};</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160; </div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;}  <span class="comment">// namespace thread</span></div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;}  <span class="comment">// namespace olp</span></div>
 </div><!-- fragment --></div><!-- contents -->
-<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">The olp namespace.</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:43</div></div>
+<div class="ttc" id="aclassolp_1_1client_1_1_cancellation_context_html"><div class="ttname"><a href="classolp_1_1client_1_1_cancellation_context.html">olp::client::CancellationContext</a></div><div class="ttdoc">A wrapper that manages the cancellation state of an asynchronous operation in a thread-safe way.</div><div class="ttdef"><b>Definition:</b> CancellationContext.h:40</div></div>
+<div class="ttc" id="aclassolp_1_1thread_1_1_task_scheduler_html_a9f174afffe1867d50fe687cd67a2d8d9"><div class="ttname"><a href="classolp_1_1thread_1_1_task_scheduler.html#a9f174afffe1867d50fe687cd67a2d8d9">olp::thread::TaskScheduler::ScheduleTask</a></div><div class="ttdeci">client::CancellationContext ScheduleTask(Function &amp;&amp;func)</div><div class="ttdoc">Schedules the asynchronous cancellable task.</div><div class="ttdef"><b>Definition:</b> TaskScheduler.h:73</div></div>
+<div class="ttc" id="aclassolp_1_1thread_1_1_task_scheduler_html"><div class="ttname"><a href="classolp_1_1thread_1_1_task_scheduler.html">olp::thread::TaskScheduler</a></div><div class="ttdoc">An abstract interface that is used as a base for the custom thread scheduling strategy.</div><div class="ttdef"><b>Definition:</b> TaskScheduler.h:38</div></div>
+<div class="ttc" id="aclassolp_1_1thread_1_1_task_scheduler_html_a54f91863ec0c34f219b21d09d9b09f5a"><div class="ttname"><a href="classolp_1_1thread_1_1_task_scheduler.html#a54f91863ec0c34f219b21d09d9b09f5a">olp::thread::TaskScheduler::CallFuncType</a></div><div class="ttdeci">std::function&lt; void()&gt; CallFuncType</div><div class="ttdoc">Alias for the abstract interface input.</div><div class="ttdef"><b>Definition:</b> TaskScheduler.h:41</div></div>
+<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">The olp namespace.</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:45</div></div>
+<div class="ttc" id="aclassolp_1_1thread_1_1_task_scheduler_html_ad085c04262d876f3ebc916ec6342d8f6"><div class="ttname"><a href="classolp_1_1thread_1_1_task_scheduler.html#ad085c04262d876f3ebc916ec6342d8f6">olp::thread::TaskScheduler::ScheduleTask</a></div><div class="ttdeci">void ScheduleTask(CallFuncType &amp;&amp;func)</div><div class="ttdoc">Schedules the asynchronous task.</div><div class="ttdef"><b>Definition:</b> TaskScheduler.h:51</div></div>
+<div class="ttc" id="aclassolp_1_1client_1_1_cancellation_context_html_a806b8afdba157ab6f531c8c20595c719"><div class="ttname"><a href="classolp_1_1client_1_1_cancellation_context.html#a806b8afdba157ab6f531c8c20595c719">olp::client::CancellationContext::IsCancelled</a></div><div class="ttdeci">bool IsCancelled() const</div><div class="ttdoc">Checks whether this context is cancelled.</div><div class="ttdef"><b>Definition:</b> CancellationContext.inl:66</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

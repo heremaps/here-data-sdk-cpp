@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.2.0</span>
+   &#160;<span id="projectnumber">1.3.0</span>
    </div>
   </td>
  </tr>
@@ -75,14 +75,16 @@ Build and Test</h2>
 <tr class="markdownTableHead">
 <th class="markdownTableHeadLeft">Platform  </th><th class="markdownTableHeadLeft">Status   </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyLeft">Linux  </td><td class="markdownTableBodyLeft"><a href="https://travis-ci.com/heremaps/here-olp-sdk-cpp" target="_blank"><img src="https://travis-ci.com/heremaps/here-olp-sdk-cpp.svg?branch=master" alt="Linux build status" class="inline"/></a>   </td></tr>
+<td class="markdownTableBodyLeft">Linux GCC  </td><td class="markdownTableBodyLeft"><a href="https://travis-ci.com/heremaps/here-olp-sdk-cpp" target="_blank"><img src="https://travis-ci.com/heremaps/here-olp-sdk-cpp.svg?branch=master" alt="Linux build status" class="inline"/></a>   </td></tr>
 <tr class="markdownTableRowEven">
+<td class="markdownTableBodyLeft">Linux Clang  </td><td class="markdownTableBodyLeft"><a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&amp;branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&amp;jobName=Linux_build_clang" alt="Android build status" class="inline"/></a>   </td></tr>
+<tr class="markdownTableRowOdd">
 <td class="markdownTableBodyLeft">MacOS  </td><td class="markdownTableBodyLeft"><a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&amp;branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&amp;jobName=Windows_build" alt="macOS build status" class="inline"/></a>   </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyLeft">iOS  </td><td class="markdownTableBodyLeft"><a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&amp;branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&amp;jobName=MacOS_build" alt="iOS build status" class="inline"/></a>   </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyLeft">Windows  </td><td class="markdownTableBodyLeft"><a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&amp;branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&amp;jobName=iOS_build" alt="Windows build status" class="inline"/></a>   </td></tr>
+<td class="markdownTableBodyLeft">iOS  </td><td class="markdownTableBodyLeft"><a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&amp;branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&amp;jobName=MacOS_build" alt="iOS build status" class="inline"/></a>   </td></tr>
 <tr class="markdownTableRowOdd">
+<td class="markdownTableBodyLeft">Windows  </td><td class="markdownTableBodyLeft"><a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&amp;branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&amp;jobName=iOS_build" alt="Windows build status" class="inline"/></a>   </td></tr>
+<tr class="markdownTableRowEven">
 <td class="markdownTableBodyLeft">Android  </td><td class="markdownTableBodyLeft"><a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&amp;branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&amp;jobName=Android_build" alt="Android build status" class="inline"/></a>   </td></tr>
 </table>
 <h2><a class="anchor" id="autotoc_md3"></a>
@@ -112,7 +114,7 @@ Supported Platforms</h1>
 <tr class="markdownTableHead">
 <th class="markdownTableHeadLeft">Platform  </th><th class="markdownTableHeadLeft">Minimum requirement   </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyLeft">Ubuntu  </td><td class="markdownTableBodyLeft">GCC 5.4 and Clang 7.0   </td></tr>
+<td class="markdownTableBodyLeft">Ubuntu  </td><td class="markdownTableBodyLeft">GCC 7.4 and Clang 7.0   </td></tr>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyLeft">Embedded Linux (32/64 bit)  </td><td class="markdownTableBodyLeft">GCC-arm/GCC-aarch64 5.4   </td></tr>
 <tr class="markdownTableRowOdd">
@@ -132,7 +134,7 @@ Dependencies</h1>
 <tr class="markdownTableHead">
 <th class="markdownTableHeadLeft">Library  </th><th class="markdownTableHeadLeft">Minimum version   </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyLeft">OpenSSL  </td><td class="markdownTableBodyLeft">1.0.2   </td></tr>
+<td class="markdownTableBodyLeft">OpenSSL  </td><td class="markdownTableBodyLeft">1.1.1   </td></tr>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyLeft">Boost (headers only)  </td><td class="markdownTableBodyLeft">1.69.0   </td></tr>
 <tr class="markdownTableRowOdd">
@@ -229,7 +231,7 @@ Contribution</h1>
 <p>For details, see the <a href="https://github.com/heremaps/here-olp-sdk-cpp/blob/master/CONTRIBUTING.md" target="_blank">HERE OLP SDK C++ Contributors Guide</a>.</p>
 <h1><a class="anchor" id="autotoc_md15"></a>
 LICENSE</h1>
-<p>Copyright (C) 2019 HERE Europe B.V.</p>
+<p>Copyright (C) 2019–2020 HERE Europe B.V.</p>
 <p>For license details, see the <a href="https://github.com/heremaps/here-olp-sdk-cpp/blob/master/LICENSE" target="_blank">LICENSE</a> file in the root of this project.</p>
 <blockquote class="doxtable">
 <p><b>Note:</b> This project has Open Source Software dependencies that are downloaded and installed upon execution of the abovementioned installation commands. For further details, see the CMake configuration files included in the <a href="https://github.com/heremaps/here-olp-sdk-cpp/tree/master/external" target="_blank">external</a> directory. </p>

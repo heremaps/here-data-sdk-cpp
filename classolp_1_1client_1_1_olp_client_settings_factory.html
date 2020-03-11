@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.2.0</span>
+   &#160;<span id="projectnumber">1.3.0</span>
    </div>
   </td>
  </tr>
@@ -81,7 +81,7 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a67f547a761b34910c5b60f8b6e1233c1"><td class="memItemLeft" align="right" valign="top">static std::unique_ptr&lt; thread::TaskScheduler &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client_settings_factory.html#a67f547a761b34910c5b60f8b6e1233c1">CreateDefaultTaskScheduler</a> (size_t thread_count=1u)</td></tr>
+<tr class="memitem:a67f547a761b34910c5b60f8b6e1233c1"><td class="memItemLeft" align="right" valign="top">static std::unique_ptr&lt; <a class="el" href="classolp_1_1thread_1_1_task_scheduler.html">thread::TaskScheduler</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client_settings_factory.html#a67f547a761b34910c5b60f8b6e1233c1">CreateDefaultTaskScheduler</a> (size_t thread_count=1u)</td></tr>
 <tr class="memdesc:a67f547a761b34910c5b60f8b6e1233c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code>TaskScheduler</code> instance used for all the delayed operations.  <a href="classolp_1_1client_1_1_olp_client_settings_factory.html#a67f547a761b34910c5b60f8b6e1233c1">More...</a><br /></td></tr>
 <tr class="separator:a67f547a761b34910c5b60f8b6e1233c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2d7121fa1c55ec4c339f3378f7078dd2"><td class="memItemLeft" align="right" valign="top">static std::shared_ptr&lt; <a class="el" href="classolp_1_1http_1_1_network.html">http::Network</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client_settings_factory.html#a2d7121fa1c55ec4c339f3378f7078dd2">CreateDefaultNetworkRequestHandler</a> (size_t max_requests_count=30u)</td></tr>
@@ -157,6 +157,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>Creates the <code>Network</code> instance used for all the non-local requests. </p>
 <p>Defaulted to platform-specific implementation.</p>
+<p>On UNIX platforms, the default network request handler is libcurl-based and has the known issue of static initialization and cleanup that needs special care. Therefore, we recommend initializing this network request handler at a very early stage, preferably as global static or from the main thread, and pass it on to every created client. For this matter, it is also not recommended to create multiple network request handlers.</p>
+<dl class="section see"><dt>See also</dt><dd><a href="Lhttps://curl.haxx.se/libcurl/c/curl_global_init.html">cURL documentation</a> for more information.</dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>The <code>Network</code> instance. </dd></dl>
 
 </div>
@@ -171,7 +173,7 @@ Static Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static std::unique_ptr&lt;thread::TaskScheduler&gt; olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler </td>
+          <td class="memname">static std::unique_ptr&lt;<a class="el" href="classolp_1_1thread_1_1_task_scheduler.html">thread::TaskScheduler</a>&gt; olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler </td>
           <td>(</td>
           <td class="paramtype">size_t&#160;</td>
           <td class="paramname"><em>thread_count</em> = <code>1u</code></td><td>)</td>
@@ -186,7 +188,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Creates the <code>TaskScheduler</code> instance used for all the delayed operations. </p>
-<p>Defaulted to <code><a class="el" href="classolp_1_1thread_1_1_thread_pool_task_scheduler.html">olp::thread::ThreadPoolTaskScheduler</a></code> with one worker thread spawned by default.</p>
+<p>Defaulted to <code><a class="el" href="classolp_1_1thread_1_1_thread_pool_task_scheduler.html" title="An implementation of the TaskScheduler instance that uses a thread pool.">olp::thread::ThreadPoolTaskScheduler</a></code> with one worker thread spawned by default.</p>
 <dl class="section return"><dt>Returns</dt><dd>The <code>TaskScheduler</code> instance. </dd></dl>
 
 </div>

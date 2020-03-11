@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.2.0</span>
+   &#160;<span id="projectnumber">1.3.0</span>
    </div>
   </td>
  </tr>
@@ -119,7 +119,7 @@ $(function() {
 <div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160; </div>
 <div class="line"><a name="l00088"></a><span class="lineno"><a class="line" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a9d7f55a4b003efe9be46006add010eab">   88</a></span>&#160;  <span class="keyword">inline</span> <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html">CatalogVersionRequest</a>&amp; <a class="code" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a9d7f55a4b003efe9be46006add010eab">WithBillingTag</a>(</div>
 <div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;      boost::optional&lt;std::string&gt; billingTag) {</div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    billing_tag_ = billingTag;</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    billing_tag_ = std::move(billingTag);</div>
 <div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
 <div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;  }</div>
 <div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160; </div>
@@ -166,7 +166,7 @@ $(function() {
 <div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_catalog_version_request_html_af30b2aa2c62a5ecc75252ff80a9c74a2"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#af30b2aa2c62a5ecc75252ff80a9c74a2">olp::dataservice::read::CatalogVersionRequest::WithBillingTag</a></div><div class="ttdeci">CatalogVersionRequest &amp; WithBillingTag(std::string &amp;&amp;billingTag)</div><div class="ttdoc">Sets the billing tag for the request.</div><div class="ttdef"><b>Definition:</b> CatalogVersionRequest.h:104</div></div>
 <div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_catalog_version_request_html_a99e2bb4be6d8fe5015e33f943287d130"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a99e2bb4be6d8fe5015e33f943287d130">olp::dataservice::read::CatalogVersionRequest::CreateKey</a></div><div class="ttdeci">std::string CreateKey() const</div><div class="ttdoc">Creates a readable format of the request.</div><div class="ttdef"><b>Definition:</b> CatalogVersionRequest.h:139</div></div>
 <div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_catalog_version_request_html_a9d7f55a4b003efe9be46006add010eab"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a9d7f55a4b003efe9be46006add010eab">olp::dataservice::read::CatalogVersionRequest::WithBillingTag</a></div><div class="ttdeci">CatalogVersionRequest &amp; WithBillingTag(boost::optional&lt; std::string &gt; billingTag)</div><div class="ttdoc">Sets the billing tag for the request.</div><div class="ttdef"><b>Definition:</b> CatalogVersionRequest.h:88</div></div>
-<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">The olp namespace.</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:43</div></div>
+<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">The olp namespace.</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:45</div></div>
 <div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_catalog_version_request_html_aa7a20c158768fc020b73362207e69b9d"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#aa7a20c158768fc020b73362207e69b9d">olp::dataservice::read::CatalogVersionRequest::GetBillingTag</a></div><div class="ttdeci">const boost::optional&lt; std::string &gt; &amp; GetBillingTag() const</div><div class="ttdoc">Gets the billing tag to group billing records together.</div><div class="ttdef"><b>Definition:</b> CatalogVersionRequest.h:75</div></div>
 <div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_catalog_version_request_html_a4d2039890f8930ba65dd590eae493415"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#a4d2039890f8930ba65dd590eae493415">olp::dataservice::read::CatalogVersionRequest::GetFetchOption</a></div><div class="ttdeci">FetchOptions GetFetchOption() const</div><div class="ttdoc">Gets the fetch option that controls how requests are handled.</div><div class="ttdef"><b>Definition:</b> CatalogVersionRequest.h:117</div></div>
 <!-- start footer part -->

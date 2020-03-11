@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.2.0</span>
+   &#160;<span id="projectnumber">1.3.0</span>
    </div>
   </td>
  </tr>
@@ -93,31 +93,32 @@ $(function() {
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160; </div>
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="preprocessor">#include &lt;chrono&gt;</span></div>
 <div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="preprocessor">#include &lt;random&gt;</span></div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="preprocessor">#include &lt;olp/core/CoreApi.h&gt;</span></div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160; </div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespaceolp.html">olp</a> {</div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="keyword">namespace </span>client {</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160; </div>
-<div class="line"><a name="l00043"></a><span class="lineno"><a class="line" href="structolp_1_1client_1_1_exponential_backdown_strategy.html">   43</a></span>&#160;<span class="keyword">struct </span>CORE_API <a class="code" href="structolp_1_1client_1_1_exponential_backdown_strategy.html">ExponentialBackdownStrategy</a> {</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00054"></a><span class="lineno"><a class="line" href="structolp_1_1client_1_1_exponential_backdown_strategy.html#af29fe44d0fa728103b734f263860ab24">   54</a></span>&#160;  std::chrono::milliseconds <a class="code" href="structolp_1_1client_1_1_exponential_backdown_strategy.html#af29fe44d0fa728103b734f263860ab24">operator()</a>(</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;      std::chrono::milliseconds initial_backdown_period, <span class="keywordtype">size_t</span> retry_count) {</div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> exponential_wait_time =</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;        initial_backdown_period.count() * (1 &lt;&lt; retry_count);</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160; </div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    <span class="keyword">static</span> thread_local std::mt19937 kGenerator(std::random_device{}());</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    std::uniform_int_distribution&lt;std::chrono::milliseconds::rep&gt; dist(</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;        0, exponential_wait_time);</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    <span class="keywordflow">return</span> std::chrono::milliseconds(dist(kGenerator));</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;  }</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;};</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160; </div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;}  <span class="comment">// namespace client</span></div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160; </div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="preprocessor">#include &lt;olp/core/CoreApi.h&gt;</span></div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160; </div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespaceolp.html">olp</a> {</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;<span class="keyword">namespace </span>client {</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160; </div>
+<div class="line"><a name="l00044"></a><span class="lineno"><a class="line" href="structolp_1_1client_1_1_exponential_backdown_strategy.html">   44</a></span>&#160;<span class="keyword">struct </span>CORE_API <a class="code" href="structolp_1_1client_1_1_exponential_backdown_strategy.html">ExponentialBackdownStrategy</a> {</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00055"></a><span class="lineno"><a class="line" href="structolp_1_1client_1_1_exponential_backdown_strategy.html#af29fe44d0fa728103b734f263860ab24">   55</a></span>&#160;  std::chrono::milliseconds <a class="code" href="structolp_1_1client_1_1_exponential_backdown_strategy.html#af29fe44d0fa728103b734f263860ab24">operator()</a>(</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;      std::chrono::milliseconds initial_backdown_period, <span class="keywordtype">size_t</span> retry_count) {</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> exponential_wait_time =</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;        initial_backdown_period.count() * (<span class="keywordtype">size_t</span>{1} &lt;&lt; retry_count);</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160; </div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    <span class="keyword">static</span> thread_local std::mt19937 kGenerator(std::random_device{}());</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    std::uniform_int_distribution&lt;std::chrono::milliseconds::rep&gt; dist(</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;        0, exponential_wait_time);</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    <span class="keywordflow">return</span> std::chrono::milliseconds(dist(kGenerator));</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;  }</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;};</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160; </div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;}  <span class="comment">// namespace client</span></div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;}  <span class="comment">// namespace olp</span></div>
 </div><!-- fragment --></div><!-- contents -->
-<div class="ttc" id="astructolp_1_1client_1_1_exponential_backdown_strategy_html_af29fe44d0fa728103b734f263860ab24"><div class="ttname"><a href="structolp_1_1client_1_1_exponential_backdown_strategy.html#af29fe44d0fa728103b734f263860ab24">olp::client::ExponentialBackdownStrategy::operator()</a></div><div class="ttdeci">std::chrono::milliseconds operator()(std::chrono::milliseconds initial_backdown_period, size_t retry_count)</div><div class="ttdoc">Function to compute next retry attempt wait time based on number of retries and initial backdown peri...</div><div class="ttdef"><b>Definition:</b> BackdownStrategy.h:54</div></div>
-<div class="ttc" id="astructolp_1_1client_1_1_exponential_backdown_strategy_html"><div class="ttname"><a href="structolp_1_1client_1_1_exponential_backdown_strategy.html">olp::client::ExponentialBackdownStrategy</a></div><div class="ttdoc">Functor which computes wait time for the next retry attempt via exponential backoff with added jitter...</div><div class="ttdef"><b>Definition:</b> BackdownStrategy.h:43</div></div>
-<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">The olp namespace.</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:43</div></div>
+<div class="ttc" id="astructolp_1_1client_1_1_exponential_backdown_strategy_html_af29fe44d0fa728103b734f263860ab24"><div class="ttname"><a href="structolp_1_1client_1_1_exponential_backdown_strategy.html#af29fe44d0fa728103b734f263860ab24">olp::client::ExponentialBackdownStrategy::operator()</a></div><div class="ttdeci">std::chrono::milliseconds operator()(std::chrono::milliseconds initial_backdown_period, size_t retry_count)</div><div class="ttdoc">Computes the next retry attempt wait time based on the number of retries and initial backdown period.</div><div class="ttdef"><b>Definition:</b> BackdownStrategy.h:55</div></div>
+<div class="ttc" id="astructolp_1_1client_1_1_exponential_backdown_strategy_html"><div class="ttname"><a href="structolp_1_1client_1_1_exponential_backdown_strategy.html">olp::client::ExponentialBackdownStrategy</a></div><div class="ttdoc">Computes wait time for the next retry attempt via the exponential backoff with the added jitter.</div><div class="ttdef"><b>Definition:</b> BackdownStrategy.h:44</div></div>
+<div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">The olp namespace.</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:45</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

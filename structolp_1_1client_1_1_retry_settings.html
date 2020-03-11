@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.2.0</span>
+   &#160;<span id="projectnumber">1.3.0</span>
    </div>
   </td>
  </tr>
@@ -87,7 +87,7 @@ Public Types</h2></td></tr>
 <tr class="separator:a10c747efdf7d953864f85f24ba805cb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4f5c161ae82405535e971f0eb4f1a42a"><td class="memItemLeft" align="right" valign="top"><a id="a4f5c161ae82405535e971f0eb4f1a42a"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1client_1_1_retry_settings.html#a4f5c161ae82405535e971f0eb4f1a42a">BackdownStrategy</a> = std::function&lt; std::chrono::milliseconds(std::chrono::milliseconds, size_t)&gt;</td></tr>
-<tr class="memdesc:a4f5c161ae82405535e971f0eb4f1a42a"><td class="mdescLeft">&#160;</td><td class="mdescRight">A strategy for calculating retry timeouts based on the initial backdown duration and retry count. <br /></td></tr>
+<tr class="memdesc:a4f5c161ae82405535e971f0eb4f1a42a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculates the number of retry timeouts based on the initial backdown duration and retries count. <br /></td></tr>
 <tr class="separator:a4f5c161ae82405535e971f0eb4f1a42a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8912b47049a4184e3dad2bccd7ed7570"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1client_1_1_retry_settings.html#a8912b47049a4184e3dad2bccd7ed7570">RetryCondition</a> = std::function&lt; bool(const <a class="el" href="classolp_1_1client_1_1_http_response.html">HttpResponse</a> &amp;)&gt;</td></tr>
 <tr class="memdesc:a8912b47049a4184e3dad2bccd7ed7570"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks whether the retry is desired.  <a href="structolp_1_1client_1_1_retry_settings.html#a8912b47049a4184e3dad2bccd7ed7570">More...</a><br /></td></tr>
@@ -110,7 +110,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struc
 <tr class="memdesc:a1c9b531d2747a6410beaeb3327422d92"><td class="mdescLeft">&#160;</td><td class="mdescRight">The backdown policy that should be used for the retry attempts.  <a href="structolp_1_1client_1_1_retry_settings.html#a1c9b531d2747a6410beaeb3327422d92">More...</a><br /></td></tr>
 <tr class="separator:a1c9b531d2747a6410beaeb3327422d92"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af7f7126cb9827179d3ad25e9fb4d4800"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structolp_1_1client_1_1_retry_settings.html#a4f5c161ae82405535e971f0eb4f1a42a">BackdownStrategy</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1client_1_1_retry_settings.html#af7f7126cb9827179d3ad25e9fb4d4800">backdown_strategy</a> = nullptr</td></tr>
-<tr class="memdesc:af7f7126cb9827179d3ad25e9fb4d4800"><td class="mdescLeft">&#160;</td><td class="mdescRight">Backdown strategy.  <a href="structolp_1_1client_1_1_retry_settings.html#af7f7126cb9827179d3ad25e9fb4d4800">More...</a><br /></td></tr>
+<tr class="memdesc:af7f7126cb9827179d3ad25e9fb4d4800"><td class="mdescLeft">&#160;</td><td class="mdescRight">The backdown strategy.  <a href="structolp_1_1client_1_1_retry_settings.html#af7f7126cb9827179d3ad25e9fb4d4800">More...</a><br /></td></tr>
 <tr class="separator:af7f7126cb9827179d3ad25e9fb4d4800"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab049f676af74edc2f52da7666b76c9c1"><td class="memItemLeft" align="right" valign="top"><a id="ab049f676af74edc2f52da7666b76c9c1"></a>
 <a class="el" href="structolp_1_1client_1_1_retry_settings.html#a8912b47049a4184e3dad2bccd7ed7570">RetryCondition</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1client_1_1_retry_settings.html#ab049f676af74edc2f52da7666b76c9c1">retry_condition</a> = <a class="el" href="namespaceolp_1_1client.html#ab80697f6a09bd5a74834e744957fc840">DefaultRetryCondition</a></td></tr>
@@ -170,7 +170,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struc
 </div><div class="memdoc">
 
 <p>The backdown policy that should be used for the retry attempts. </p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000014">Deprecated:</a></b></dt><dd>Use <a class="el" href="structolp_1_1client_1_1_retry_settings.html#af7f7126cb9827179d3ad25e9fb4d4800">backdown_strategy</a> instead. Will be removed by 06.2020.</dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000013">Deprecated:</a></b></dt><dd>Use <a class="el" href="structolp_1_1client_1_1_retry_settings.html#af7f7126cb9827179d3ad25e9fb4d4800">backdown_strategy</a> instead. Will be removed by 06.2020.</dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>The backdown policy. </dd></dl>
 
 </div>
@@ -187,9 +187,9 @@ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struc
       </table>
 </div><div class="memdoc">
 
-<p>Backdown strategy. </p>
-<p>Used for calculating retry timeouts for failed requests. It is superior to the <a class="el" href="structolp_1_1client_1_1_retry_settings.html#a1c9b531d2747a6410beaeb3327422d92">backdown_policy</a>, as it computes wait time based on the retry count as well. By default, it is unset, and <a class="el" href="structolp_1_1client_1_1_retry_settings.html#a1c9b531d2747a6410beaeb3327422d92">backdown_policy</a> is used.</p>
-<dl class="section note"><dt>Note</dt><dd>You can use the <a class="el" href="structolp_1_1client_1_1_exponential_backdown_strategy.html">ExponentialBackdownStrategy</a> as the new backdown strategy. </dd></dl>
+<p>The backdown strategy. </p>
+<p>Calculates the number of retry timeouts for failed requests. It is superior to <a class="el" href="structolp_1_1client_1_1_retry_settings.html#a1c9b531d2747a6410beaeb3327422d92">backdown_policy</a> as it computes the wait time based on the retry count. By default, <code>backdown_strategy</code> is unset, and <a class="el" href="structolp_1_1client_1_1_retry_settings.html#a1c9b531d2747a6410beaeb3327422d92">backdown_policy</a> is used.</p>
+<dl class="section note"><dt>Note</dt><dd>You can use the <code><a class="el" href="structolp_1_1client_1_1_exponential_backdown_strategy.html" title="Computes wait time for the next retry attempt via the exponential backoff with the added jitter.">ExponentialBackdownStrategy</a></code> as the new backdown strategy. </dd></dl>
 
 </div>
 </div>

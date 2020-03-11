@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.2.0</span>
+   &#160;<span id="projectnumber">1.3.0</span>
    </div>
   </td>
  </tr>
@@ -117,6 +117,14 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a7820137a17429b15b0f1e9be05f0e7a0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1_partition.html#a7820137a17429b15b0f1e9be05f0e7a0">SetDataSize</a> (const boost::optional&lt; int64_t &gt; &amp;value)</td></tr>
 <tr class="memdesc:a7820137a17429b15b0f1e9be05f0e7a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">(Optional) Sets the uncompressed size of the partition data.  <a href="classolp_1_1dataservice_1_1read_1_1model_1_1_partition.html#a7820137a17429b15b0f1e9be05f0e7a0">More...</a><br /></td></tr>
 <tr class="separator:a7820137a17429b15b0f1e9be05f0e7a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca07e897edf817ff8aa071796b055234"><td class="memItemLeft" align="right" valign="top">const boost::optional&lt; std::string &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1_partition.html#aca07e897edf817ff8aa071796b055234">GetCrc</a> () const</td></tr>
+<tr class="separator:aca07e897edf817ff8aa071796b055234"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a719934814bb8370291fe5f2d32da4403"><td class="memItemLeft" align="right" valign="top">boost::optional&lt; std::string &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1_partition.html#a719934814bb8370291fe5f2d32da4403">GetMutableCrc</a> ()</td></tr>
+<tr class="memdesc:a719934814bb8370291fe5f2d32da4403"><td class="mdescLeft">&#160;</td><td class="mdescRight">(Optional) Gets a mutable reference to the partition crc.  <a href="classolp_1_1dataservice_1_1read_1_1model_1_1_partition.html#a719934814bb8370291fe5f2d32da4403">More...</a><br /></td></tr>
+<tr class="separator:a719934814bb8370291fe5f2d32da4403"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2e2097ed3feb2077f84cdb3e89360f2f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1_partition.html#a2e2097ed3feb2077f84cdb3e89360f2f">SetCrc</a> (boost::optional&lt; std::string &gt; value)</td></tr>
+<tr class="memdesc:a2e2097ed3feb2077f84cdb3e89360f2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">(Optional) Sets the partition crc.  <a href="classolp_1_1dataservice_1_1read_1_1model_1_1_partition.html#a2e2097ed3feb2077f84cdb3e89360f2f">More...</a><br /></td></tr>
+<tr class="separator:a2e2097ed3feb2077f84cdb3e89360f2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2928c7c53e5998946d76e82b26208131"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1_partition.html#a2928c7c53e5998946d76e82b26208131">GetPartition</a> () const</td></tr>
 <tr class="memdesc:a2928c7c53e5998946d76e82b26208131"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the partition key.  <a href="classolp_1_1dataservice_1_1read_1_1model_1_1_partition.html#a2928c7c53e5998946d76e82b26208131">More...</a><br /></td></tr>
 <tr class="separator:a2928c7c53e5998946d76e82b26208131"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -194,6 +202,34 @@ Public Member Functions</h2></td></tr>
 <p>(Optional) Gets the compressed size of the partition data in bytes when data compression is enabled. </p>
 <p>It is only provided to the API calls that explicitly request the compressed data size and only matches partitions that have a compressed data size defined. You can request partitions with a specific compressed data size by using the <code>additionalFields</code> query parameter.</p>
 <dl class="section return"><dt>Returns</dt><dd>The compressed size of the partition data. </dd></dl>
+
+</div>
+</div>
+<a id="aca07e897edf817ff8aa071796b055234"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aca07e897edf817ff8aa071796b055234">&#9670;&nbsp;</a></span>GetCrc()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const boost::optional&lt;std::string&gt;&amp; olp::dataservice::read::model::Partition::GetCrc </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Optional value for the CRC of the partition data in bytes.</p>
+<p>The response only includes the data size if you specify crc in the additionalFields query parameter, and if crc was specified in the partition metadata when it was published.</p>
+<dl class="section return"><dt>Returns</dt><dd>The partition CRC. </dd></dl>
 
 </div>
 </div>
@@ -310,6 +346,35 @@ Public Member Functions</h2></td></tr>
 <p>(Optional) Gets a mutable reference to the compressed size of the partition data in bytes when data compression is enabled. </p>
 <dl class="section see"><dt>See also</dt><dd><code><a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1_partition.html#a2850aecb38006afe5f68ed68594ecd75" title="(Optional) Gets the compressed size of the partition data in bytes when data compression is enabled.">GetCompressedDataSize</a></code> for information on the compressed size of the partition data.</dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>The mutable reference to the compressed size of the partition data. </dd></dl>
+
+</div>
+</div>
+<a id="a719934814bb8370291fe5f2d32da4403"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a719934814bb8370291fe5f2d32da4403">&#9670;&nbsp;</a></span>GetMutableCrc()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">boost::optional&lt;std::string&gt;&amp; olp::dataservice::read::model::Partition::GetMutableCrc </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>(Optional) Gets a mutable reference to the partition crc. </p>
+<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1_partition.html#aca07e897edf817ff8aa071796b055234">GetCrc</a></code> for information on the crc.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The mutable reference to the partition crc. </dd></dl>
 
 </div>
 </div>
@@ -552,6 +617,41 @@ Public Member Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">value</td><td>The compressed size of the partition data. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a2e2097ed3feb2077f84cdb3e89360f2f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2e2097ed3feb2077f84cdb3e89360f2f">&#9670;&nbsp;</a></span>SetCrc()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void olp::dataservice::read::model::Partition::SetCrc </td>
+          <td>(</td>
+          <td class="paramtype">boost::optional&lt; std::string &gt;&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>(Optional) Sets the partition crc. </p>
+<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1_partition.html#aca07e897edf817ff8aa071796b055234">GetCrc</a></code> for information on the crc.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">value</td><td>The partition crc. </td></tr>
   </table>
   </dd>
 </dl>

@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.2.0</span>
+   &#160;<span id="projectnumber">1.3.0</span>
    </div>
   </td>
  </tr>
@@ -139,6 +139,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a3e4eaa8ee8b2d2042330494dc3d31a6c"><td class="memItemLeft" align="right" valign="top"><a id="a3e4eaa8ee8b2d2042330494dc3d31a6c"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>AuthenticationClient</b> (const std::string &amp;authentication_server_url=kHereAccountProductionUrl, size_t token_cache_limit=100u)</td></tr>
 <tr class="separator:a3e4eaa8ee8b2d2042330494dc3d31a6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a170af465b4d8beb4b1f71c86877013ac"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#a170af465b4d8beb4b1f71c86877013ac">AuthenticationClient</a> (<a class="el" href="structolp_1_1authentication_1_1_authentication_settings.html">AuthenticationSettings</a> settings)</td></tr>
+<tr class="memdesc:a170af465b4d8beb4b1f71c86877013ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1authentication_1_1_authentication_client.html" title="An API class of the C++ client that provides programmatic access to the HERE Account authentication s...">AuthenticationClient</a></code> instance.  <a href="classolp_1_1authentication_1_1_authentication_client.html#a170af465b4d8beb4b1f71c86877013ac">More...</a><br /></td></tr>
+<tr class="separator:a170af465b4d8beb4b1f71c86877013ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af0cb4e349fd8ebd510d4e162ee873da9"><td class="memItemLeft" align="right" valign="top"><a id="af0cb4e349fd8ebd510d4e162ee873da9"></a>
 virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#af0cb4e349fd8ebd510d4e162ee873da9">~AuthenticationClient</a> ()</td></tr>
 <tr class="memdesc:af0cb4e349fd8ebd510d4e162ee873da9"><td class="mdescLeft">&#160;</td><td class="mdescRight">A default destructor. <br /></td></tr>
@@ -146,6 +149,9 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
 <tr class="memitem:a84d362cf2a799d1b83f92ca7eaf13086"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#a84d362cf2a799d1b83f92ca7eaf13086">SignInHereUser</a> (const <a class="el" href="classolp_1_1authentication_1_1_authentication_credentials.html">AuthenticationCredentials</a> &amp;credentials, const <a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_user_properties.html">UserProperties</a> &amp;properties, const <a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a> &amp;callback)</td></tr>
 <tr class="memdesc:a84d362cf2a799d1b83f92ca7eaf13086"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signs in with the email and password that you used for registration via the sign-up API and requests your user access token.  <a href="classolp_1_1authentication_1_1_authentication_client.html#a84d362cf2a799d1b83f92ca7eaf13086">More...</a><br /></td></tr>
 <tr class="separator:a84d362cf2a799d1b83f92ca7eaf13086"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e9cc3c00d95a4185c7a461e20b7ecbd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#a7e9cc3c00d95a4185c7a461e20b7ecbd">SignInFederated</a> (<a class="el" href="classolp_1_1authentication_1_1_authentication_credentials.html">AuthenticationCredentials</a> credentials, std::string request_body, <a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a> callback)</td></tr>
+<tr class="memdesc:a7e9cc3c00d95a4185c7a461e20b7ecbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signs in with a custom request body.  <a href="classolp_1_1authentication_1_1_authentication_client.html#a7e9cc3c00d95a4185c7a461e20b7ecbd">More...</a><br /></td></tr>
+<tr class="separator:a7e9cc3c00d95a4185c7a461e20b7ecbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab069876acf2fd840de7c1485ccf34b65"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#ab069876acf2fd840de7c1485ccf34b65">SignInFacebook</a> (const <a class="el" href="classolp_1_1authentication_1_1_authentication_credentials.html">AuthenticationCredentials</a> &amp;credentials, const <a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_federated_properties.html">FederatedProperties</a> &amp;properties, const <a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a> &amp;callback)</td></tr>
 <tr class="memdesc:ab069876acf2fd840de7c1485ccf34b65"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signs in with your valid Facebook token and requests your user access token.  <a href="classolp_1_1authentication_1_1_authentication_client.html#ab069876acf2fd840de7c1485ccf34b65">More...</a><br /></td></tr>
 <tr class="separator:ab069876acf2fd840de7c1485ccf34b65"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -167,20 +173,58 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
 <tr class="memitem:a949a094935663b36c3a7e13957ab5084"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#a949a094935663b36c3a7e13957ab5084">SignOut</a> (const <a class="el" href="classolp_1_1authentication_1_1_authentication_credentials.html">AuthenticationCredentials</a> &amp;credentials, const std::string &amp;user_access_token, const <a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#aee305db79791c1892063f18ed3adf615">SignOutUserCallback</a> &amp;callback)</td></tr>
 <tr class="memdesc:a949a094935663b36c3a7e13957ab5084"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signs out the user.  <a href="classolp_1_1authentication_1_1_authentication_client.html#a949a094935663b36c3a7e13957ab5084">More...</a><br /></td></tr>
 <tr class="separator:a949a094935663b36c3a7e13957ab5084"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec9758309419641ee563eb7507f82942"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#aec9758309419641ee563eb7507f82942">IntrospectApp</a> (std::string access_token, <a class="el" href="namespaceolp_1_1authentication.html#a41d51d80040d6fecf9e3fa1f64203e53">IntrospectAppCallback</a> callback)</td></tr>
+<tr class="memdesc:aec9758309419641ee563eb7507f82942"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves the application associated with the client access token.  <a href="classolp_1_1authentication_1_1_authentication_client.html#aec9758309419641ee563eb7507f82942">More...</a><br /></td></tr>
+<tr class="separator:aec9758309419641ee563eb7507f82942"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abafb4e786e0c4be82b401b2d1b2c7777"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#abafb4e786e0c4be82b401b2d1b2c7777">SetNetworkProxySettings</a> (const <a class="el" href="classolp_1_1http_1_1_network_proxy_settings.html">http::NetworkProxySettings</a> &amp;proxy_settings)</td></tr>
 <tr class="memdesc:abafb4e786e0c4be82b401b2d1b2c7777"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the <code>NetworkProxySettings</code> instance used by the underlying network layer to make requests.  <a href="classolp_1_1authentication_1_1_authentication_client.html#abafb4e786e0c4be82b401b2d1b2c7777">More...</a><br /></td></tr>
 <tr class="separator:abafb4e786e0c4be82b401b2d1b2c7777"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a87c7cf2a79602022f311a07b908ec075"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#a87c7cf2a79602022f311a07b908ec075">SetNetwork</a> (std::shared_ptr&lt; <a class="el" href="classolp_1_1http_1_1_network.html">http::Network</a> &gt; network)</td></tr>
 <tr class="memdesc:a87c7cf2a79602022f311a07b908ec075"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the <code>Network</code> class handler used to make requests.  <a href="classolp_1_1authentication_1_1_authentication_client.html#a87c7cf2a79602022f311a07b908ec075">More...</a><br /></td></tr>
 <tr class="separator:a87c7cf2a79602022f311a07b908ec075"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8d3fb16bcd9909f5bd120a44d78d7d17"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#a8d3fb16bcd9909f5bd120a44d78d7d17">SetTaskScheduler</a> (std::shared_ptr&lt; thread::TaskScheduler &gt; task_scheduler)</td></tr>
+<tr class="memitem:a8d3fb16bcd9909f5bd120a44d78d7d17"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#a8d3fb16bcd9909f5bd120a44d78d7d17">SetTaskScheduler</a> (std::shared_ptr&lt; <a class="el" href="classolp_1_1thread_1_1_task_scheduler.html">thread::TaskScheduler</a> &gt; task_scheduler)</td></tr>
 <tr class="memdesc:a8d3fb16bcd9909f5bd120a44d78d7d17"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the <code>TaskScheduler</code> class.  <a href="classolp_1_1authentication_1_1_authentication_client.html#a8d3fb16bcd9909f5bd120a44d78d7d17">More...</a><br /></td></tr>
 <tr class="separator:a8d3fb16bcd9909f5bd120a44d78d7d17"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>An API class of the C++ client that provides programmatic access to the HERE Account authentication service. </p>
 <p>The supported APIs mirror the REST APIs currently available for the HERE Account authentication service. </p>
-</div><h2 class="groupheader">Member Function Documentation</h2>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a170af465b4d8beb4b1f71c86877013ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a170af465b4d8beb4b1f71c86877013ac">&#9670;&nbsp;</a></span>AuthenticationClient()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">olp::authentication::AuthenticationClient::AuthenticationClient </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structolp_1_1authentication_1_1_authentication_settings.html">AuthenticationSettings</a>&#160;</td>
+          <td class="paramname"><em>settings</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates the <code><a class="el" href="classolp_1_1authentication_1_1_authentication_client.html" title="An API class of the C++ client that provides programmatic access to the HERE Account authentication s...">AuthenticationClient</a></code> instance. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">settings</td><td>The authentication settings that can be used to configure the <code><a class="el" href="classolp_1_1authentication_1_1_authentication_client.html" title="An API class of the C++ client that provides programmatic access to the HERE Account authentication s...">AuthenticationClient</a></code> instance. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
 <a id="a819df97c7a19a20e13eda44900f8f908"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a819df97c7a19a20e13eda44900f8f908">&#9670;&nbsp;</a></span>AcceptTerms()</h2>
 
@@ -223,6 +267,45 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
     <tr><td class="paramname">credentials</td><td>The <code><a class="el" href="classolp_1_1authentication_1_1_authentication_credentials.html" title="The access key ID and access key secret that you got from the HERE Account as a part of the onboardin...">AuthenticationCredentials</a></code> instance. </td></tr>
     <tr><td class="paramname">reacceptance_token</td><td>The terms re-acceptance token from the HTTP 412 or HTTP 201 response: <code>SignInUserResponse::term_acceptance_token()</code>. </td></tr>
     <tr><td class="paramname">callback</td><td>The <code>SignInUserCallback</code> method that is called when the user sign-in request is completed. If successful, the returned HTTP status is 204. Otherwise, check the response error.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The <code>CancellationToken</code> instance that can be used to cancel the request. </dd></dl>
+
+</div>
+</div>
+<a id="aec9758309419641ee563eb7507f82942"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec9758309419641ee563eb7507f82942">&#9670;&nbsp;</a></span>IntrospectApp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a> olp::authentication::AuthenticationClient::IntrospectApp </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>access_token</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceolp_1_1authentication.html#a41d51d80040d6fecf9e3fa1f64203e53">IntrospectAppCallback</a>&#160;</td>
+          <td class="paramname"><em>callback</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Retrieves the application associated with the client access token. </p>
+<p>The application does not need permissions to access this endpoint. It will allow any client access token to retrieve its own information.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">access_token</td><td>A valid access token that is associated with the application. </td></tr>
+    <tr><td class="paramname">callback</td><td>The<code>IntrospectAppCallback</code> method that is called when the client introspect request is completed.</td></tr>
   </table>
   </dd>
 </dl>
@@ -292,7 +375,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
         <tr>
           <td class="memname">void olp::authentication::AuthenticationClient::SetTaskScheduler </td>
           <td>(</td>
-          <td class="paramtype">std::shared_ptr&lt; thread::TaskScheduler &gt;&#160;</td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="classolp_1_1thread_1_1_task_scheduler.html">thread::TaskScheduler</a> &gt;&#160;</td>
           <td class="paramname"><em>task_scheduler</em></td><td>)</td>
           <td></td>
         </tr>
@@ -394,6 +477,52 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
     <tr><td class="paramname">credentials</td><td>The <code><a class="el" href="classolp_1_1authentication_1_1_authentication_credentials.html" title="The access key ID and access key secret that you got from the HERE Account as a part of the onboardin...">AuthenticationCredentials</a></code> instance. </td></tr>
     <tr><td class="paramname">properties</td><td>The <code><a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_federated_properties.html" title="The federated (Facebook, Google, ArcGIS) sign-in properties structure.">FederatedProperties</a></code> structure. </td></tr>
     <tr><td class="paramname">callback</td><td>The <code>SignInUserCallback</code> method that is called when the user sign-in request is completed. If successful, the returned HTTP status is 200. If a new account is created as a part of the sign-in request and terms must be accepted, the returned HTTP status is 201. Otherwise, check the response error.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The <code>CancellationToken</code> instance that can be used to cancel the request. </dd></dl>
+
+</div>
+</div>
+<a id="a7e9cc3c00d95a4185c7a461e20b7ecbd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7e9cc3c00d95a4185c7a461e20b7ecbd">&#9670;&nbsp;</a></span>SignInFederated()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a> olp::authentication::AuthenticationClient::SignInFederated </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1authentication_1_1_authentication_credentials.html">AuthenticationCredentials</a>&#160;</td>
+          <td class="paramname"><em>credentials</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>request_body</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a>&#160;</td>
+          <td class="paramname"><em>callback</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Signs in with a custom request body. </p>
+<p>This method provides the mechanism to authenticate with the HERE Platform using a custom request body. You should use this method when the HERE Platform authentication backend offers you individual parameters or endpoint.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">credentials</td><td>The <code><a class="el" href="classolp_1_1authentication_1_1_authentication_credentials.html" title="The access key ID and access key secret that you got from the HERE Account as a part of the onboardin...">AuthenticationCredentials</a></code> instance. </td></tr>
+    <tr><td class="paramname">request_body</td><td>The request body that will be passed to the oauth endpoint. </td></tr>
+    <tr><td class="paramname">callback</td><td>The <code>SignInUserCallback</code> method that is called when the user sign-in request is completed. If successful, the returned HTTP status is 200. If a new account is created as a part of the sign-in request and terms must be accepted, the returned HTTP status is 201 for the first time and 412 for subsequent requests as long as you accept the terms. Otherwise, check the response error.</td></tr>
   </table>
   </dd>
 </dl>

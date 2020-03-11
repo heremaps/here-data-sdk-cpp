@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.2.0</span>
+   &#160;<span id="projectnumber">1.3.0</span>
    </div>
   </td>
  </tr>
@@ -98,19 +98,15 @@ Public Types</h2></td></tr>
 using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1_network_request.html#aae13881b97baa0d2d3d9a416dde924c9">RequestBodyType</a> = std::shared_ptr&lt; const std::vector&lt; std::uint8_t &gt; &gt;</td></tr>
 <tr class="memdesc:aae13881b97baa0d2d3d9a416dde924c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Short type alias for HTTP request body. <br /></td></tr>
 <tr class="separator:aae13881b97baa0d2d3d9a416dde924c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a317457acb9a8a5d4e4268fd2d6539a4d"><td class="memItemLeft" align="right" valign="top"><a id="a317457acb9a8a5d4e4268fd2d6539a4d"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1_network_request.html#a317457acb9a8a5d4e4268fd2d6539a4d">RequestHeadersType</a> = std::vector&lt; std::pair&lt; std::string, std::string &gt; &gt;</td></tr>
-<tr class="memdesc:a317457acb9a8a5d4e4268fd2d6539a4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Short type alias for HTTP request header. <br /></td></tr>
-<tr class="separator:a317457acb9a8a5d4e4268fd2d6539a4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ad3716e6eddd5e3cefa8a8e4ffc0e7d40"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1_network_request.html#ad3716e6eddd5e3cefa8a8e4ffc0e7d40">NetworkRequest</a> (std::string url)</td></tr>
 <tr class="memdesc:ad3716e6eddd5e3cefa8a8e4ffc0e7d40"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classolp_1_1http_1_1_network_request.html" title="This class represents network request abstraction for an HTTP request.">NetworkRequest</a> constructor.  <a href="classolp_1_1http_1_1_network_request.html#ad3716e6eddd5e3cefa8a8e4ffc0e7d40">More...</a><br /></td></tr>
 <tr class="separator:ad3716e6eddd5e3cefa8a8e4ffc0e7d40"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a57d7496eff1334b48807158adb21b2cb"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classolp_1_1http_1_1_network_request.html#a317457acb9a8a5d4e4268fd2d6539a4d">RequestHeadersType</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1_network_request.html#a57d7496eff1334b48807158adb21b2cb">GetHeaders</a> () const</td></tr>
-<tr class="memdesc:a57d7496eff1334b48807158adb21b2cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get all HTTP headers.  <a href="classolp_1_1http_1_1_network_request.html#a57d7496eff1334b48807158adb21b2cb">More...</a><br /></td></tr>
-<tr class="separator:a57d7496eff1334b48807158adb21b2cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8506e01019444b99872750ebc2db2b9e"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespaceolp_1_1http.html#ae2f7d2a838ca66559b0abdac68a7514c">Headers</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1_network_request.html#a8506e01019444b99872750ebc2db2b9e">GetHeaders</a> () const</td></tr>
+<tr class="memdesc:a8506e01019444b99872750ebc2db2b9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get all HTTP headers.  <a href="classolp_1_1http_1_1_network_request.html#a8506e01019444b99872750ebc2db2b9e">More...</a><br /></td></tr>
+<tr class="separator:a8506e01019444b99872750ebc2db2b9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a957bbba9d859e2fba3193ff0d3d6f0a9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1http_1_1_network_request.html">NetworkRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1_network_request.html#a957bbba9d859e2fba3193ff0d3d6f0a9">WithHeader</a> (std::string name, std::string value)</td></tr>
 <tr class="memdesc:a957bbba9d859e2fba3193ff0d3d6f0a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add extra HTTP header.  <a href="classolp_1_1http_1_1_network_request.html#a957bbba9d859e2fba3193ff0d3d6f0a9">More...</a><br /></td></tr>
 <tr class="separator:a957bbba9d859e2fba3193ff0d3d6f0a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -236,14 +232,14 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a57d7496eff1334b48807158adb21b2cb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a57d7496eff1334b48807158adb21b2cb">&#9670;&nbsp;</a></span>GetHeaders()</h2>
+<a id="a8506e01019444b99872750ebc2db2b9e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8506e01019444b99872750ebc2db2b9e">&#9670;&nbsp;</a></span>GetHeaders()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="classolp_1_1http_1_1_network_request.html#a317457acb9a8a5d4e4268fd2d6539a4d">RequestHeadersType</a>&amp; olp::http::NetworkRequest::GetHeaders </td>
+          <td class="memname">const <a class="el" href="namespaceolp_1_1http.html#ae2f7d2a838ca66559b0abdac68a7514c">Headers</a>&amp; olp::http::NetworkRequest::GetHeaders </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>

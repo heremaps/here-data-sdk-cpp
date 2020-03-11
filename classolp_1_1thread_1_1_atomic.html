@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.2.0</span>
+   &#160;<span id="projectnumber">1.3.0</span>
    </div>
   </td>
  </tr>
@@ -76,61 +76,88 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
+<p>A simple atomic wrapper.  
+ <a href="classolp_1_1thread_1_1_atomic.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_atomic_8h_source.html">Atomic.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:a5dda7405fa7a4c9281c261ac1cc378d1"><td class="memItemLeft" align="right" valign="top"><a id="a5dda7405fa7a4c9281c261ac1cc378d1"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>value_type</b> = Type</td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_atomic.html#a5dda7405fa7a4c9281c261ac1cc378d1">value_type</a> = Type</td></tr>
+<tr class="memdesc:a5dda7405fa7a4c9281c261ac1cc378d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Alias for the type. <br /></td></tr>
 <tr class="separator:a5dda7405fa7a4c9281c261ac1cc378d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a62ccc891c261a8a372d0fde6f1335128"><td class="memItemLeft" align="right" valign="top"><a id="a62ccc891c261a8a372d0fde6f1335128"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>WriteLockType</b> = std::lock_guard&lt; MutexType &gt;</td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_atomic.html#a62ccc891c261a8a372d0fde6f1335128">WriteLockType</a> = std::lock_guard&lt; MutexType &gt;</td></tr>
+<tr class="memdesc:a62ccc891c261a8a372d0fde6f1335128"><td class="mdescLeft">&#160;</td><td class="mdescRight">Alias for the atomic write mutex lock. <br /></td></tr>
 <tr class="separator:a62ccc891c261a8a372d0fde6f1335128"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a7da78ed7a01836a374445c91d56aabf8"><td class="memTemplParams" colspan="2">template&lt;class SomeType &gt; </td></tr>
 <tr class="memitem:a7da78ed7a01836a374445c91d56aabf8"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_atomic.html#a7da78ed7a01836a374445c91d56aabf8">Atomic</a> (SomeType &amp;&amp;am)</td></tr>
+<tr class="memdesc:a7da78ed7a01836a374445c91d56aabf8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1thread_1_1_atomic.html" title="A simple atomic wrapper.">Atomic</a></code> instance.  <a href="classolp_1_1thread_1_1_atomic.html#a7da78ed7a01836a374445c91d56aabf8">More...</a><br /></td></tr>
 <tr class="separator:a7da78ed7a01836a374445c91d56aabf8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abda7f6cbe02ec2f3b669b23812b302e4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_atomic.html#abda7f6cbe02ec2f3b669b23812b302e4">Atomic</a> ()</td></tr>
+<tr class="memitem:abda7f6cbe02ec2f3b669b23812b302e4"><td class="memItemLeft" align="right" valign="top"><a id="abda7f6cbe02ec2f3b669b23812b302e4"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_atomic.html#abda7f6cbe02ec2f3b669b23812b302e4">Atomic</a> ()</td></tr>
+<tr class="memdesc:abda7f6cbe02ec2f3b669b23812b302e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1thread_1_1_atomic.html" title="A simple atomic wrapper.">Atomic</a></code> instance. <br /></td></tr>
 <tr class="separator:abda7f6cbe02ec2f3b669b23812b302e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a34c38b265213a8d6cd9241800018475d"><td class="memTemplParams" colspan="2">template&lt;class Functor &gt; </td></tr>
 <tr class="memitem:a34c38b265213a8d6cd9241800018475d"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_atomic.html#a34c38b265213a8d6cd9241800018475d">locked</a> (Functor &amp;&amp;lambda) -&gt; decltype(lambda(std::declval&lt; Type &amp; &gt;()))</td></tr>
+<tr class="memdesc:a34c38b265213a8d6cd9241800018475d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calls the lambda function using the unique lock.  <a href="classolp_1_1thread_1_1_atomic.html#a34c38b265213a8d6cd9241800018475d">More...</a><br /></td></tr>
 <tr class="separator:a34c38b265213a8d6cd9241800018475d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a56817a861772c94395f4a9a97e575072"><td class="memTemplParams" colspan="2">template&lt;class Functor &gt; </td></tr>
 <tr class="memitem:a56817a861772c94395f4a9a97e575072"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_atomic.html#a56817a861772c94395f4a9a97e575072">locked</a> (Functor &amp;&amp;lambda) const -&gt; decltype(lambda(std::declval&lt; const Type &amp; &gt;())) const</td></tr>
+<tr class="memdesc:a56817a861772c94395f4a9a97e575072"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calls the lambda using the lock.  <a href="classolp_1_1thread_1_1_atomic.html#a56817a861772c94395f4a9a97e575072">More...</a><br /></td></tr>
 <tr class="separator:a56817a861772c94395f4a9a97e575072"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a27e9008c31422da214cce4c3078cf89b"><td class="memItemLeft" align="right" valign="top">Type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_atomic.html#a27e9008c31422da214cce4c3078cf89b">lockedCopy</a> () const</td></tr>
+<tr class="memdesc:a27e9008c31422da214cce4c3078cf89b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets a copy of the data using the lock.  <a href="classolp_1_1thread_1_1_atomic.html#a27e9008c31422da214cce4c3078cf89b">More...</a><br /></td></tr>
 <tr class="separator:a27e9008c31422da214cce4c3078cf89b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad9af8cbfb6f322158b511bb0cfe9126b"><td class="memItemLeft" align="right" valign="top">Type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_atomic.html#ad9af8cbfb6f322158b511bb0cfe9126b">lockedMove</a> ()</td></tr>
+<tr class="memdesc:ad9af8cbfb6f322158b511bb0cfe9126b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets a copy of the moved data using the unique lock.  <a href="classolp_1_1thread_1_1_atomic.html#ad9af8cbfb6f322158b511bb0cfe9126b">More...</a><br /></td></tr>
 <tr class="separator:ad9af8cbfb6f322158b511bb0cfe9126b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aea422db1cd3ee2689e71c266abf8a095"><td class="memTemplParams" colspan="2">template&lt;class SomeType &gt; </td></tr>
 <tr class="memitem:aea422db1cd3ee2689e71c266abf8a095"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_atomic.html#aea422db1cd3ee2689e71c266abf8a095">lockedAssign</a> (SomeType &amp;&amp;am)</td></tr>
+<tr class="memdesc:aea422db1cd3ee2689e71c266abf8a095"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assigns the data using the unique lock.  <a href="classolp_1_1thread_1_1_atomic.html#aea422db1cd3ee2689e71c266abf8a095">More...</a><br /></td></tr>
 <tr class="separator:aea422db1cd3ee2689e71c266abf8a095"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abeb3a8e667c82f4387ab832d71c4cff2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_atomic.html#abeb3a8e667c82f4387ab832d71c4cff2">lockedSwap</a> (Type &amp;other)</td></tr>
+<tr class="memdesc:abeb3a8e667c82f4387ab832d71c4cff2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Exchanges context with the <code>Type</code> object using the unique lock.  <a href="classolp_1_1thread_1_1_atomic.html#abeb3a8e667c82f4387ab832d71c4cff2">More...</a><br /></td></tr>
 <tr class="separator:abeb3a8e667c82f4387ab832d71c4cff2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afe1f02f722956776ceb3293309be82ad"><td class="memItemLeft" align="right" valign="top">Type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_atomic.html#afe1f02f722956776ceb3293309be82ad">lockedSwapWithDefault</a> ()</td></tr>
+<tr class="memdesc:afe1f02f722956776ceb3293309be82ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Exchanges context with the <code>Type</code> object using the unique lock and moves data.  <a href="classolp_1_1thread_1_1_atomic.html#afe1f02f722956776ceb3293309be82ad">More...</a><br /></td></tr>
 <tr class="separator:afe1f02f722956776ceb3293309be82ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a69a7a08bda7ba81996868be561791b58"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_atomic.html#a69a7a08bda7ba81996868be561791b58">operator bool</a> () const</td></tr>
+<tr class="memdesc:a69a7a08bda7ba81996868be561791b58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts to bool if the wrapped type is bool convertible.  <a href="classolp_1_1thread_1_1_atomic.html#a69a7a08bda7ba81996868be561791b58">More...</a><br /></td></tr>
 <tr class="separator:a69a7a08bda7ba81996868be561791b58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:a8ab4628b6381466996b54c6d9caf62a0"><td class="memItemLeft" align="right" valign="top"><a id="a8ab4628b6381466996b54c6d9caf62a0"></a>
-MutexType&#160;</td><td class="memItemRight" valign="bottom"><b>m_mutex</b></td></tr>
+MutexType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_atomic.html#a8ab4628b6381466996b54c6d9caf62a0">m_mutex</a></td></tr>
+<tr class="memdesc:a8ab4628b6381466996b54c6d9caf62a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines the lock type. <br /></td></tr>
 <tr class="separator:a8ab4628b6381466996b54c6d9caf62a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a60125a7b0c98824061efd7bef76c0bae"><td class="memItemLeft" align="right" valign="top"><a id="a60125a7b0c98824061efd7bef76c0bae"></a>
-Type&#160;</td><td class="memItemRight" valign="bottom"><b>m</b></td></tr>
+Type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_atomic.html#a60125a7b0c98824061efd7bef76c0bae">m</a></td></tr>
+<tr class="memdesc:a60125a7b0c98824061efd7bef76c0bae"><td class="mdescLeft">&#160;</td><td class="mdescRight">The member type to which atomic access is required. <br /></td></tr>
 <tr class="separator:a60125a7b0c98824061efd7bef76c0bae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;class Type, typename MutexType = std::mutex, typename ReadLockType = std::lock_guard&lt;MutexType&gt;&gt;<br />
 class olp::thread::Atomic&lt; Type, MutexType, ReadLockType &gt;</h3>
 
-<p>Simple atomic wrapper. Depending on the provided MutexType this can be either multi-read / single-write or single-read / single-write. </p>
+<p>A simple atomic wrapper. </p>
+<p>Depending on the provided <code>MutexType</code>, it can be multi-read/single-write or single-read/single-write.</p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Type</td><td>The member type to which atomic access is required. </td></tr>
+    <tr><td class="paramname">MutexType</td><td>Defines the lock type. </td></tr>
+    <tr><td class="paramname">ReadLockType</td><td>Defines the locking strategy for the atomic read operation. </td></tr>
+  </table>
+  </dd>
+</dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a7da78ed7a01836a374445c91d56aabf8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7da78ed7a01836a374445c91d56aabf8">&#9670;&nbsp;</a></span>Atomic() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a7da78ed7a01836a374445c91d56aabf8">&#9670;&nbsp;</a></span>Atomic()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -156,35 +183,20 @@ template&lt;class SomeType &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Construct. </p>
 
-</div>
-</div>
-<a id="abda7f6cbe02ec2f3b669b23812b302e4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abda7f6cbe02ec2f3b669b23812b302e4">&#9670;&nbsp;</a></span>Atomic() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;class Type , typename MutexType  = std::mutex, typename ReadLockType  = std::lock_guard&lt;MutexType&gt;&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classolp_1_1thread_1_1_atomic.html">olp::thread::Atomic</a>&lt; Type, MutexType, ReadLockType &gt;::<a class="el" href="classolp_1_1thread_1_1_atomic.html">Atomic</a> </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Construct. </p>
+<p>Creates the <code><a class="el" href="classolp_1_1thread_1_1_atomic.html" title="A simple atomic wrapper.">Atomic</a></code> instance. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">SomeType</td><td>The variable type that is used for initialization. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">am</td><td>The rvalue reference of the <code>SomeType</code> instance. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -216,7 +228,21 @@ template&lt;class Functor &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Calls the lambda while having a unique lock on the data. </p>
+
+<p>Calls the lambda function using the unique lock. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Functor</td><td>Accepts the single parameter of <code>Type&amp;</code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">lambda</td><td>The function of the <code>Functor</code> type.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The lambda result. </dd></dl>
 
 </div>
 </div>
@@ -247,7 +273,22 @@ template&lt;class Functor &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Calls the lambda while having a lock on the data. const version. </p>
+
+<p>Calls the lambda using the lock. </p>
+<p>Used for the const version of this class.</p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Functor</td><td>Accepts the single parameter of const <code>Type&amp;</code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">lambda</td><td>The function of the <code>Functor</code> type.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The lambda result. </dd></dl>
 
 </div>
 </div>
@@ -278,7 +319,20 @@ template&lt;class SomeType &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Assign the data while having a unique lock. </p>
+
+<p>Assigns the data using the unique lock. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">SomeType</td><td>The variable type that is used for initialization. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">am</td><td>The rvalue reference of the <code>SomeType</code> instance. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -306,7 +360,9 @@ template&lt;class Type , typename MutexType  = std::mutex, typename ReadLockType
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Return a copy of the data while holding a lock. </p>
+
+<p>Gets a copy of the data using the lock. </p>
+<dl class="section return"><dt>Returns</dt><dd>The copy of the data. </dd></dl>
 
 </div>
 </div>
@@ -334,7 +390,9 @@ template&lt;class Type , typename MutexType  = std::mutex, typename ReadLockType
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Return the moved data while having a unique lock. </p>
+
+<p>Gets a copy of the moved data using the unique lock. </p>
+<dl class="section return"><dt>Returns</dt><dd>The copy of the moved data. </dd></dl>
 
 </div>
 </div>
@@ -363,7 +421,14 @@ template&lt;class Type , typename MutexType  = std::mutex, typename ReadLockType
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Swap while having a unique lock on the data. </p>
+
+<p>Exchanges context with the <code>Type</code> object using the unique lock. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">other</td><td>The copy of the value specified in the <code>Type</code> object. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -391,7 +456,9 @@ template&lt;class Type , typename MutexType  = std::mutex, typename ReadLockType
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Swap with Type() while having a unique lock on the data and move. </p>
+
+<p>Exchanges context with the <code>Type</code> object using the unique lock and moves data. </p>
+<dl class="section return"><dt>Returns</dt><dd>The copy of the value specified in the <code>Type</code> object. </dd></dl>
 
 </div>
 </div>
@@ -419,7 +486,9 @@ template&lt;class Type , typename MutexType  = std::mutex, typename ReadLockType
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Convert to bool if wrapped type is bool convertible. </p>
+
+<p>Converts to bool if the wrapped type is bool convertible. </p>
+<dl class="section return"><dt>Returns</dt><dd>True if the wrapped type is bool convertible; false otherwise. </dd></dl>
 
 </div>
 </div>
