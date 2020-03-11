@@ -41,17 +41,6 @@ enum OpenOptions : unsigned char {
  */
 struct CacheSettings {
   /**
-   * @brief The path to the on-disk cache.
-   *
-   * If this parameter is not set, the downloaded data is stored
-   * only in the in-memory cache that is limited by `#max_memory_cache_size`.
-   *
-   * @deprecated Use #disk_path_mutable instead.
-   */
-  OLP_SDK_DEPRECATED("Use disk_path_mutable instead. Will be removed 03.2020")
-  boost::optional<std::string> disk_path = boost::none;
-
-  /**
    * @brief The path to the mutable (read-write) on-disk cache where
    * the SDK caches and lookups the content.
    *
