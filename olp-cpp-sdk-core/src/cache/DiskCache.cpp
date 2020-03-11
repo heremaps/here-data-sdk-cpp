@@ -258,7 +258,9 @@ bool DiskCache::Put(const std::string& key, leveldb::Slice slice) {
 
 boost::optional<std::string> DiskCache::Get(const std::string& key) {
   std::string res;
-  return database_ && database_->Get({}, ToLeveldbSlice(key), &res).ok()
+  leveldb::ReadOptions options;
+  options.verify_checksums = check_crc_;
+  return database_ && database_->Get(options, ToLeveldbSlice(key), &res).ok()
              ? boost::optional<std::string>(std::move(res))
              : boost::none;
 }
