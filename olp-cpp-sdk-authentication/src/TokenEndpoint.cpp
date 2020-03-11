@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,27 +37,30 @@ constexpr auto kLogTag = "here::account::oauth2::TokenEndpoint";
 
 namespace olp {
 namespace authentication {
+
+namespace {
+AuthenticationSettings ConvertSettings(Settings settings) {
+  AuthenticationSettings auth_settings;
+  auth_settings.network_proxy_settings = settings.network_proxy_settings;
+  auth_settings.task_scheduler = settings.task_scheduler;
+  auth_settings.network_request_handler = settings.network_request_handler;
+  auth_settings.token_endpoint_url = settings.token_endpoint_url;
+  return auth_settings;
+}
+
+}  // namespace
+
 struct TokenEndpoint::Impl {
   explicit Impl(Settings settings)
-      : auth_client_(std::move(settings.token_endpoint_url)),
-        auth_credentials_(std::move(settings.credentials)) {
-    PORTING_PUSH_WARNINGS()
-    PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
-    if (settings.network_proxy_settings) {
-      auth_client_.SetNetworkProxySettings(
-          settings.network_proxy_settings.get());
-    }
-    auth_client_.SetNetwork(std::move(settings.network_request_handler));
-    auth_client_.SetTaskScheduler(std::move(settings.task_scheduler));
-    PORTING_POP_WARNINGS()
-  }
+      : auth_client_(ConvertSettings(settings)),
+        auth_credentials_(std::move(settings.credentials)) {}
 
-  PORTING_PUSH_WARNINGS()
-  PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
   client::CancellationToken RequestToken(const TokenRequest& token_request,
                                          const RequestTokenCallback& callback) {
+    AuthenticationClient::SignInProperties properties;
+    properties.expires_in = token_request.GetExpiresIn();
     return auth_client_.SignInClient(
-        auth_credentials_,
+        auth_credentials_, properties,
         [callback](
             const AuthenticationClient::SignInClientResponse& signInResponse) {
           if (signInResponse.IsSuccessful()) {
@@ -69,8 +72,7 @@ struct TokenEndpoint::Impl {
           } else {
             callback(signInResponse.GetError());
           }
-        },
-        token_request.GetExpiresIn());
+        });
   }
 
   std::future<TokenResponse> RequestToken(
@@ -132,7 +134,6 @@ AutoRefreshingToken TokenEndpoint::RequestAutoRefreshingToken(
     const TokenRequest& token_request) {
   return AutoRefreshingToken(*this, token_request);
 }
-PORTING_POP_WARNINGS()
 
 }  // namespace authentication
 }  // namespace olp

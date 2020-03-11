@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -197,7 +197,7 @@ class AuthenticationClientTest : public ::testing::Test {
         });
 
     client_->SignInClient(
-        credentials,
+        credentials, {},
         [&](const AuthenticationClient::SignInClientResponse& response) {
           request.set_value(response);
         });
@@ -355,7 +355,7 @@ TEST_F(AuthenticationClientTest, SignInClientData) {
 
   std::time_t now = std::time(nullptr);
   client_->SignInClient(
-      credentials,
+      credentials, {},
       [&](const AuthenticationClient::SignInClientResponse& response) {
         request.set_value(response);
       });
@@ -375,7 +375,7 @@ TEST_F(AuthenticationClientTest, SignInClientData) {
   auto request_future_2 = request_2.get_future();
   std::time_t now_2 = std::time(nullptr);
   client_->SignInClient(
-      credentials,
+      credentials, {},
       [&](const AuthenticationClient::SignInClientResponse& response) {
         request_2.set_value(response);
       });

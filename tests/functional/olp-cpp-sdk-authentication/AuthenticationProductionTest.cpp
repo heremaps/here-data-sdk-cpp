@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,12 +69,15 @@ TEST_F(AuthenticationProductionTest, SignInClient) {
       CustomParameters::getArgument("production_service_secret"));
   std::promise<AuthenticationClient::SignInClientResponse> request;
   auto request_future = request.get_future();
+
+  AuthenticationClient::SignInProperties props_1;
+  props_1.expires_in = std::chrono::seconds(kExpiryTime);
+
   client_->SignInClient(
-      credentials,
+      credentials, props_1,
       [&](const AuthenticationClient::SignInClientResponse& response) {
         request.set_value(response);
-      },
-      std::chrono::seconds(kExpiryTime));
+      });
 
   AuthenticationClient::SignInClientResponse response = request_future.get();
   std::time_t now = std::time(nullptr);
@@ -92,12 +95,14 @@ TEST_F(AuthenticationProductionTest, SignInClient) {
   std::promise<AuthenticationClient::SignInClientResponse> request_2;
   now = std::time(nullptr);
   auto request_future_2 = request_2.get_future();
+
+  AuthenticationClient::SignInProperties props_2;
+  props_2.expires_in = std::chrono::seconds(kExtendedExpiryTime);
   client_->SignInClient(
-      credentials,
+      credentials, props_2,
       [&](const AuthenticationClient::SignInClientResponse& response) {
         request_2.set_value(response);
-      },
-      std::chrono::seconds(kExtendedExpiryTime));
+      });
 
   AuthenticationClient::SignInClientResponse response_2 =
       request_future_2.get();
@@ -112,12 +117,14 @@ TEST_F(AuthenticationProductionTest, SignInClient) {
   std::promise<AuthenticationClient::SignInClientResponse> request_3;
   now = std::time(nullptr);
   auto request_future_3 = request_3.get_future();
+
+  AuthenticationClient::SignInProperties props_3;
+  props_3.expires_in = std::chrono::seconds(kCustomExpiryTime);
   client_->SignInClient(
-      credentials,
+      credentials, props_3,
       [&](const AuthenticationClient::SignInClientResponse& response) {
         request_3.set_value(response);
-      },
-      std::chrono::seconds(kCustomExpiryTime));
+      });
 
   AuthenticationClient::SignInClientResponse response_3 =
       request_future_3.get();
@@ -138,8 +145,9 @@ TEST_F(AuthenticationProductionTest, SignInClientMaxExpiration) {
   std::promise<AuthenticationClient::SignInClientResponse> request;
   auto request_future = request.get_future();
   time_t now = std::time(nullptr);
+
   client_->SignInClient(
-      credentials,
+      credentials, {},
       [&](const AuthenticationClient::SignInClientResponse& response) {
         request.set_value(response);
       });
@@ -154,12 +162,14 @@ TEST_F(AuthenticationProductionTest, SignInClientMaxExpiration) {
   std::promise<AuthenticationClient::SignInClientResponse> request_2;
   auto request_future_2 = request_2.get_future();
   now = std::time(nullptr);
+
+  AuthenticationClient::SignInProperties props;
+  props.expires_in = std::chrono::seconds(90000);
   client_->SignInClient(
-      credentials,
+      credentials, props,
       [&](const AuthenticationClient::SignInClientResponse& response) {
         request_2.set_value(response);
-      },
-      std::chrono::seconds(90000));
+      });
 
   AuthenticationClient::SignInClientResponse response_2 =
       request_future_2.get();
@@ -179,7 +189,7 @@ TEST_F(AuthenticationProductionTest, InvalidCredentials) {
   std::promise<AuthenticationClient::SignInClientResponse> request;
   auto request_future = request.get_future();
   client_->SignInClient(
-      credentials,
+      credentials, {},
       [&](const AuthenticationClient::SignInClientResponse& response) {
         request.set_value(response);
       });
