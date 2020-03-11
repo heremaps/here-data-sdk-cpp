@@ -60,8 +60,6 @@ namespace http {
 namespace {
 
 const char* kLogTag = "CURL";
-constexpr std::chrono::seconds kHandleLostTimeout(30);
-constexpr std::chrono::seconds kHandleReuseTimeout(120);
 
 std::vector<std::pair<std::string, std::string> > GetStatistics(
     CURL* handle, std::size_t retryCount) {
