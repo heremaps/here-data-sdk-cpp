@@ -20,15 +20,16 @@
 #include "olp/core/client/OlpClientFactory.h"
 
 #include "olp/core/client/OlpClient.h"
+#include "olp/core/client/OlpClientSettings.h"
 
 namespace olp {
 namespace client {
 
 std::shared_ptr<OlpClient> OlpClientFactory::Create(
     const OlpClientSettings& settings) {
-  auto olpClient = std::make_shared<OlpClient>();
-  olpClient->SetSettings(settings);
-  return olpClient;
+  auto olp_client = std::make_shared<OlpClient>();
+  olp_client->SetSettings(settings);
+  return olp_client;
 }
 
 }  // namespace client

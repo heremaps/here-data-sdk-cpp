@@ -17,8 +17,10 @@
  * License-Filename: LICENSE
  */
 
-#include <random>
 #include "olp/core/client/OlpClientSettings.h"
+
+#include <random>
+
 #include "olp/core/client/HttpResponse.h"
 #include "olp/core/http/HttpStatusCode.h"
 

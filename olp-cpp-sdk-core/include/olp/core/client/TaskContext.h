@@ -102,9 +102,7 @@ class CORE_API TaskContext {
   }
 
  protected:
-  /**
-   * @brief A helper for unordered containers.
-   */
+  /// A helper for unordered containers.
   friend struct TaskContextHash;
 
   TaskContext() = default;
@@ -170,18 +168,11 @@ class CORE_API TaskContext {
   template <typename T>
   class TaskContextImpl : public Impl {
    public:
-    /**
-     * @brief Wraps the `T` typename in the API
-     * response.
-     */
+    /// Wraps the `T` typename in the API response.
     using Response = client::ApiResponse<T, client::ApiError>;
-    /**
-     * @brief The task that produces the `Response` instance.
-     */
+    /// The task that produces the `Response` instance.
     using ExecuteFunc = std::function<Response(client::CancellationContext)>;
-    /**
-     * @brief Consumes the `Response` instance.
-     */
+    /// Consumes the `Response` instance.
     using UserCallback = std::function<void(Response)>;
 
     /**
@@ -199,7 +190,7 @@ class CORE_API TaskContext {
           context_(std::move(context)),
           state_{State::PENDING} {}
 
-    ~TaskContextImpl() {}
+    ~TaskContextImpl() override{};
 
     /**
      * @brief Checks for the cancellation, executes the task, and calls
@@ -247,7 +238,6 @@ class CORE_API TaskContext {
       callback = nullptr;
 
       condition_.Notify();
-
       state_.store(State::COMPLETED);
     }
 
@@ -292,52 +282,30 @@ class CORE_API TaskContext {
      * @brief Indicates the state of the request.
      */
     enum class State {
-      /**
-       * @brief The request waits to be executed.
-       */
+      /// The request waits to be executed.
       PENDING,
-
-      /**
-       * @brief The request is being executed.
-       */
+      /// The request is being executed.
       IN_PROGRESS,
-
-      /**
-       * @brief The request execution finished.
-       */
+      /// The request execution finished.
       COMPLETED
     };
 
-    /**
-     * @brief The mutex lock used to protect from the concurrent read and write
-     * operations.
-     */
+    /// The mutex lock used to protect from the concurrent read and write
+    /// operations.
     std::mutex mutex_;
-    /**
-     * @brief The `ExecuteFunc` instance.
-     */
+    /// The `ExecuteFunc` instance.
     ExecuteFunc execute_func_;
-    /**
-     * @brief The `UserCallback` instance.
-     */
+    /// The `UserCallback` instance.
     UserCallback callback_;
-    /**
-     * @brief The `CancellationContext` instance.
-     */
+    /// The `CancellationContext` instance.
     client::CancellationContext context_;
-    /**
-     * @brief The `Condition` instance.
-     */
+    /// The `Condition` instance.
     client::Condition condition_;
-    /**
-     * @brief The `State` enum of the atomic type.
-     */
+    /// The `State` enum of the atomic type.
     std::atomic<State> state_;
   };
 
-  /**
-   * @brief The `Impl` instance.
-   */
+  /// The `Impl` instance.
   std::shared_ptr<Impl> impl_;
 };
 

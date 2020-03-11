@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,24 +22,21 @@
 #include <memory>
 #include <string>
 
-#include "OlpClientSettings.h"
-
 #include <olp/core/CoreApi.h>
 
 namespace olp {
-namespace client {
-class OlpClient;
-}
 
 /**
  * @brief The `client` namespace.
  */
 namespace client {
+class OlpClient;
+struct OlpClientSettings;
+
 /**
  * @brief Creates the `OlpClient` instances that are used for every HTTP
  * request.
  */
-
 class CORE_API OlpClientFactory {
  public:
   /**
@@ -53,5 +50,4 @@ class CORE_API OlpClientFactory {
 };
 
 }  // namespace client
-
 }  // namespace olp
