@@ -65,8 +65,8 @@ bool StoreExpiry(const std::string& key, olp::cache::DiskCache& disk_cache,
 namespace olp {
 namespace cache {
 
-DefaultCache::DefaultCache(const CacheSettings& settings)
-    : settings_(settings),
+DefaultCache::DefaultCache(CacheSettings settings)
+    : settings_(std::move(settings)),
       is_open_(false),
       memory_cache_(nullptr),
       mutable_cache_(nullptr),
