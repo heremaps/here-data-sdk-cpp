@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,9 @@
 #include <string>
 #include <vector>
 
-#include "CancellationContext.h"
-#include "OlpClientSettings.h"
-
 #include <olp/core/CoreApi.h>
+#include <olp/core/client/CancellationContext.h>
+#include <olp/core/client/OlpClientSettings.h>
 
 namespace olp {
 namespace network {
@@ -38,19 +37,24 @@ class NetworkConfig;
 
 namespace client {
 /**
- * @brief Executes HTTP requests.
+ * @brief Executes HTTP requests by using the base url and the provided
+ * parameters and body.
  */
 class CORE_API OlpClient {
  public:
+  /// Alias for the parameters and headers type.
+  using ParametersType = std::multimap<std::string, std::string>;
+  using RequestBodyType = std::shared_ptr<std::vector<std::uint8_t>>;
+
   OlpClient();
-  virtual ~OlpClient() = default;
+  virtual ~OlpClient();
 
   /**
    * @brief Sets the base URL used for all requests.
 
-   * @param baseUrl The base URL.
+   * @param base_url The base URL.
    */
-  void SetBaseUrl(const std::string& baseUrl);
+  void SetBaseUrl(const std::string& base_url);
 
   /**
    * @brief Gets the base URL.
@@ -64,7 +68,7 @@ class CORE_API OlpClient {
    *
    * @return The default headers.
    */
-  std::multimap<std::string, std::string>& GetMutableDefaultHeaders();
+  ParametersType& GetMutableDefaultHeaders();
 
   /**
    * @brief Sets the client settings.
@@ -92,14 +96,13 @@ class CORE_API OlpClient {
    *
    * @return The method used to call or to cancel the request.
    */
-  CancellationToken CallApi(
-      const std::string& path, const std::string& method,
-      const std::multimap<std::string, std::string>& query_params,
-      const std::multimap<std::string, std::string>& header_params,
-      const std::multimap<std::string, std::string>& form_params,
-      const std::shared_ptr<std::vector<unsigned char>>& post_body,
-      const std::string& content_type,
-      const NetworkAsyncCallback& callback) const;
+  CancellationToken CallApi(const std::string& path, const std::string& method,
+                            const ParametersType& query_params,
+                            const ParametersType& header_params,
+                            const ParametersType& form_params,
+                            const RequestBodyType& post_body,
+                            const std::string& content_type,
+                            const NetworkAsyncCallback& callback) const;
 
   /**
    * @brief Executes the HTTP request through the network stack in a blocking
@@ -122,24 +125,20 @@ class CORE_API OlpClient {
    * @return The `HttpResponse` instance.
    */
   HttpResponse CallApi(std::string path, std::string method,
-                       std::multimap<std::string, std::string> query_params,
-                       std::multimap<std::string, std::string> header_params,
-                       std::multimap<std::string, std::string> form_params,
-                       std::shared_ptr<std::vector<unsigned char>> post_body,
-                       std::string content_type,
+                       ParametersType query_params,
+                       ParametersType header_params, ParametersType form_params,
+                       RequestBodyType post_body, std::string content_type,
                        CancellationContext context) const;
 
  private:
   std::shared_ptr<http::NetworkRequest> CreateRequest(
       const std::string& path, const std::string& method,
-      const std::multimap<std::string, std::string>& query_params,
-      const std::multimap<std::string, std::string>& header_params,
-      const std::shared_ptr<std::vector<unsigned char>>& post_body,
-      const std::string& content_type) const;
+      const ParametersType& query_params, const ParametersType& header_params,
+      const RequestBodyType& post_body, const std::string& content_type) const;
 
  private:
   std::string base_url_;
-  std::multimap<std::string, std::string> default_headers_;
+  ParametersType default_headers_;
   OlpClientSettings settings_;
 };
 
