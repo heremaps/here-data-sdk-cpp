@@ -124,7 +124,7 @@ PartitionsResponse PartitionsRepository::GetPartitions(
 
   repository::PartitionsCacheRepository repository(catalog, settings.cache);
 
-  if (fetch_option != OnlineOnly) {
+  if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_partitions = repository.Get(request, layer);
     if (cached_partitions) {
       OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
@@ -173,12 +173,13 @@ PartitionsResponse PartitionsRepository::GetPartitions(
   // Save all partitions only when downloaded via metadata API
   const bool is_layer_metadata = partition_ids.empty();
 
-  if (response.IsSuccessful()) {
+  if (response.IsSuccessful() && fetch_option != OnlineOnly) {
     OLP_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",
                        request.CreateKey(layer).c_str());
     repository.Put(request, response.GetResult(), layer, expiry,
                    is_layer_metadata);
-  } else {
+  }
+  if (!response.IsSuccessful()) {
     const auto& error = response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
       OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
@@ -211,7 +212,7 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
 
   auto fetch_option = data_request.GetFetchOption();
 
-  if (fetch_option != OnlineOnly) {
+  if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_partitions =
         repository.Get(partition_request, partitions, layer);
     if (cached_partitions.GetPartitions().size() == partitions.size()) {
@@ -240,12 +241,13 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
       client, layer, partitions, version, {}, data_request.GetBillingTag(),
       cancellation_context);
 
-  if (query_response.IsSuccessful()) {
+  if (query_response.IsSuccessful() && fetch_option != OnlineOnly) {
     OLP_SDK_LOG_INFO_F(kLogTag, "put '%s' to cache",
                        data_request.CreateKey(layer).c_str());
     repository.Put(partition_request, query_response.GetResult(), layer,
                    boost::none /* TODO: expiration */);
-  } else {
+  }
+  if (!query_response.IsSuccessful()) {
     const auto& error = query_response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
       OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
@@ -353,7 +355,7 @@ PartitionsResponse PartitionsRepository::QueryPartitionForVersionedTile(
     }
   }
 
-  if (fetch_option != OnlineOnly) {
+  if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     // add partitions to cache
     repository::PartitionsCacheRepository repository(catalog, settings.cache);
     repository.Put(PartitionsRequest().WithVersion(version), partitions,

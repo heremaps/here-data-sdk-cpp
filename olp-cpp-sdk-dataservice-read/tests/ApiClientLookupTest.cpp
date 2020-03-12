@@ -98,7 +98,7 @@ TEST(ApiClientLookupTest, LookupApi) {
                                          olp::http::HttpStatusCode::OK),
                                      OLP_SDK_HTTP_RESPONSE_LOOKUP_CONFIG));
     EXPECT_CALL(*cache, Put(cache_key, _, _, _))
-        .Times(1)
+        .Times(0)
         .WillOnce(Return(true));
 
     client::CancellationContext context;

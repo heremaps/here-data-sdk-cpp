@@ -54,7 +54,7 @@ CatalogResponse CatalogRepository::GetCatalog(
 
   repository::CatalogCacheRepository repository{catalog, settings.cache};
 
-  if (fetch_options != OnlineOnly) {
+  if (fetch_options != OnlineOnly && fetch_options != CacheWithUpdate) {
     auto cached = repository.Get();
     if (cached) {
       OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' found!",
@@ -79,9 +79,10 @@ CatalogResponse CatalogRepository::GetCatalog(
   auto catalog_response =
       ConfigApi::GetCatalog(client, catalog.ToCatalogHRNString(),
                             request.GetBillingTag(), cancellation_context);
-  if (catalog_response.IsSuccessful()) {
+  if (catalog_response.IsSuccessful() && fetch_options != OnlineOnly) {
     repository.Put(catalog_response.GetResult());
-  } else {
+  }
+  if (!catalog_response.IsSuccessful()) {
     const auto& error = catalog_response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
       repository.Clear();
@@ -99,7 +100,7 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
   repository::CatalogCacheRepository repository(catalog, settings.cache);
 
   auto fetch_option = request.GetFetchOption();
-  if (fetch_option != OnlineOnly) {
+  if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_version = repository.GetVersion();
     if (cached_version) {
       OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' found!",
@@ -127,9 +128,10 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
   auto version_response = MetadataApi::GetLatestCatalogVersion(
       client, -1, request.GetBillingTag(), cancellation_context);
 
-  if (version_response.IsSuccessful()) {
+  if (version_response.IsSuccessful() && fetch_option != OnlineOnly) {
     repository.PutVersion(version_response.GetResult());
-  } else {
+  }
+  if (!version_response.IsSuccessful()) {
     const auto& error = version_response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
       repository.Clear();

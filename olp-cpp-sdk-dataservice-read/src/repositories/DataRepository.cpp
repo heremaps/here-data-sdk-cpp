@@ -141,7 +141,7 @@ DataResponse DataRepository::GetBlobData(
 
   repository::DataCacheRepository repository(catalog, settings.cache);
 
-  if (fetch_option != OnlineOnly) {
+  if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_data = repository.Get(layer, data_handle.value());
     if (cached_data) {
       OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
@@ -174,9 +174,11 @@ DataResponse DataRepository::GetBlobData(
         data_request.GetBillingTag(), cancellation_context);
   }
 
-  if (blob_response.IsSuccessful()) {
+  if (blob_response.IsSuccessful() && fetch_option != OnlineOnly) {
     repository.Put(blob_response.GetResult(), layer, data_handle.value());
-  } else {
+  }
+
+  if (!blob_response.IsSuccessful()) {
     const auto& error = blob_response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
       OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",

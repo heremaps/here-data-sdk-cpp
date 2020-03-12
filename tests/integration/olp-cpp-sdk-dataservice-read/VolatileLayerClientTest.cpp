@@ -177,7 +177,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsVersionIsIgnored) {
         "Online request with version in request. Version should be ignored.");
     auto request = olp::dataservice::read::PartitionsRequest();
     request.WithVersion(4);
-    request.WithFetchOption(FetchOptions::OnlineOnly);
+    request.WithFetchOption(FetchOptions::OnlineIfNotFound);
 
     PartitionsResponse partitions_response;
     olp::client::Condition condition;
