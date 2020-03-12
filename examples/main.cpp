@@ -21,6 +21,7 @@
 #include "ProtectedCacheExample.h"
 #include "ReadExample.h"
 #include "WriteExample.h"
+#include "StreamLayerReadExample.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -35,12 +36,13 @@ enum Examples : int {
   read_example = 0b1,
   write_example = 0b10,
   cache_example = 0b100,
-  all_examples = read_example | write_example | cache_example
+  stream_layer_example = 0b1000,
+  all_examples = read_example | write_example | cache_example | stream_layer_example
 };
 
 constexpr auto usage =
     "usuage is \n -a [--all] : run all examples \n -e [--example] : run "
-    "example [read, write, cache] \n -i [--key_id] here.access.key.id \n -s "
+    "example [read, write, cache, stream_layer_read] \n -i [--key_id] here.access.key.id \n -s "
     "[--key_secret] here.access.key.secret \n"
     " -c [--catalog] catalog HRN (HERE Resource Name). \n"
     " -v [--catalog_version] The version of the catalog from which you wan to"
@@ -97,9 +99,12 @@ int ParseArguments(const int argc, char** argv, AccessKey& access_key,
         examples_to_run = Examples::write_example;
       } else if (*it == "cache") {
         examples_to_run = Examples::cache_example;
-      } else {
+
+      }else if (*it == "stream_layer_read") {
+              examples_to_run = Examples::stream_layer_example;
+            } else {
         std::cout
-            << "Example was not found. Please use values:read, write, cache"
+            << "Example was not found. Please use values:read, write, cache, stream_layer_read"
             << std::endl;
         return 0;
       }
@@ -167,6 +172,14 @@ int RunExamples(const AccessKey& access_key, int examples_to_run,
       return -1;
     }
   }
+
+  if (examples_to_run & Examples::stream_layer_example) {
+    std::cout << "Stream layer read example" << std::endl;
+    if (RunStreamLayerExampleRead(access_key, catalog, layer_id)) {
+      std::cout << "Stream layer read example failed" << std::endl;
+      return -1;
+    }
+  }
   return 0;
 }
 
@@ -195,8 +208,10 @@ int main(int argc, char** argv) {
               << std::endl;
   }
 
-  if ((examples_to_run & Examples::write_example) && layer_id.empty()) {
-    std::cout << "Please specify layer_id for write example. For "
+  if (((examples_to_run & Examples::write_example) ||
+      (examples_to_run & Examples::stream_layer_example)) && (layer_id.empty())) {
+    std::cout << "Please specify layer_id for write or read stream layer "
+                 "example. For "
                  "more information use -h [--help]"
               << std::endl;
   }
