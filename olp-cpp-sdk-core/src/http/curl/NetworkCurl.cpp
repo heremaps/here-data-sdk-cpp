@@ -236,8 +236,11 @@ NetworkCurl::NetworkCurl(size_t max_requests_count)
 NetworkCurl::~NetworkCurl() {
   OLP_SDK_LOG_TRACE(kLogTag, "Destroyed NetworkCurl object, this=" << this);
     Deinitialize();
-  if (stderr_) {
-    fclose(stderr_);
+    if (curl_initialized_) {
+      curl_global_cleanup();
+    }
+    if (stderr_) {
+      fclose(stderr_);
   }
 }
 
@@ -304,7 +307,7 @@ bool NetworkCurl::Initialize() {
 }
 
 void NetworkCurl::Deinitialize() {
-  std::lock_guard<std::mutex> initLock(init_mutex_);
+  std::lock_guard<std::mutex> init_lock(init_mutex_);
   // Stop worker thread
   if (!IsStarted()) {
     OLP_SDK_LOG_DEBUG(kLogTag, "Already deinitialized, this=" << this);
@@ -805,46 +808,6 @@ size_t NetworkCurl::HeaderFunction(char* ptr, size_t size, size_t nitems,
   if (handle->header_callback) {
     handle->header_callback(key, value);
   }
-
-  std::locale loc;
-  std::transform(key.begin(), key.end(), key.begin(),
-                 [&loc](const char c) { return std::tolower(c, loc); });
-
-  if (key == "date") {
-    handle->date = value;
-  } else if (key == "cache-control") {
-    std::size_t index = NetworkUtils::CaseInsensitiveFind(str, "max-age=", 8);
-    if (index != std::string::npos) {
-      handle->max_age = std::stoi(str.substr(index + 8));
-    }
-  } else if (key == "expires") {
-    if (value == "0") {
-      handle->expires = 0;
-    } else if (value == "-1") {
-      handle->expires = -1;
-    } else {
-      handle->expires = curl_getdate(value.c_str(), nullptr);
-    }
-  } else if (key == "etag") {
-    handle->etag = value;
-  } else if (key == "content-type") {
-    handle->content_type = value;
-  } else if (key == "content-range") {
-    if (strncmp(&str[15], "bytes", 5) == 0) {
-      if ((str[21] == '*') && (str[22] == '/')) {
-        // We have requested range over end of the file
-        handle->range_out = true;
-      } else if ((str[21] >= '0') && (str[21] <= '9')) {
-        handle->offset = std::stoll(str.substr(21));
-      } else {
-        OLP_SDK_LOG_WARNING(kLogTag, "Invalid Content-Range header for id="
-                                         << handle->id << " : " << str);
-      }
-    } else {
-      OLP_SDK_LOG_WARNING(kLogTag, "Invalid Content-Range header for id="
-                                       << handle->id << " : " << str);
-    }
-  }
   return len;
 }
 
@@ -854,10 +817,6 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
   if (index >= 0 && index < static_cast<int>(handles_.size())) {
     RequestHandle& rhandle = handles_[index];
 
-    std::vector<std::pair<std::string, std::string> > statistics;
-    if (rhandle.get_statistics) {
-      statistics = GetStatistics(rhandle.handle, rhandle.retry_count);
-    }
     if (rhandle.cancelled) {
       auto callback = rhandle.callback;
       auto response =
@@ -887,8 +846,9 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
       long http_status = 0;
       curl_easy_getinfo(rhandle.handle, CURLINFO_RESPONSE_CODE, &http_status);
       status = static_cast<int>(http_status);
-      if ((rhandle.offset == 0) && (status == 206))
+      if ((rhandle.offset == 0) && (status == 206)) {
         status = 200;
+      }
       // for local file there is no server response so status is 0
       if ((status == 0) && (result == CURLE_OK)) status = 200;
       error = HttpErrorToString(status);
@@ -999,8 +959,7 @@ void NetworkCurl::Run() {
           }
           case EventInfo::Type::CANCEL_EVENT:
             if (event.handle->in_use) {
-              CURLMcode code =
-                  curl_multi_remove_handle(curl_, event.handle->handle);
+              auto code = curl_multi_remove_handle(curl_, event.handle->handle);
               if (code != CURLM_OK) {
                 OLP_SDK_LOG_ERROR(
                     kLogTag,
@@ -1091,7 +1050,7 @@ void NetworkCurl::Run() {
       waitfd[0].fd = pipe_[0];
       waitfd[0].events = CURL_WAIT_POLLIN;
       waitfd[0].revents = 0;
-      CURLMcode mc = curl_multi_wait(curl_, waitfd, 1, 1000, &numfds);
+      auto mc = curl_multi_wait(curl_, waitfd, 1, 1000, &numfds);
       // read pipe data if it is signaled
       if (mc == CURLM_OK && numfds != 0 && waitfd[0].revents != 0) {
         char tmp;
@@ -1101,7 +1060,7 @@ void NetworkCurl::Run() {
 #else
       // Without pipe limit wait time to 100ms
       // so that network events can be handled in a reasonable time
-      CURLMcode mc = curl_multi_wait(curl_, nullptr, 0, 100, &numfds);
+      auto mc = curl_multi_wait(curl_, nullptr, 0, 100, &numfds);
 #endif
       if (mc != CURLM_OK) {
         OLP_SDK_LOG_INFO(kLogTag, __PRETTY_FUNCTION__
@@ -1114,7 +1073,7 @@ void NetworkCurl::Run() {
       if (numfds == 0) {
         std::unique_lock<std::mutex> lock(event_mutex_);
 
-        bool inUseHandles = std::any_of(
+        bool in_use_handles = std::any_of(
             handles_.begin(), handles_.end(),
             [](const RequestHandle& handle) { return handle.in_use; });
 
@@ -1122,12 +1081,12 @@ void NetworkCurl::Run() {
           continue;
         }
 
-        if (!inUseHandles) {
+        if (!in_use_handles) {
           // Enter wait only when all handles are free
           event_condition_.wait_for(lock, std::chrono::seconds(2));
         } else {
-          const int WAIT_MSEC = 100;
-          event_condition_.wait_for(lock, std::chrono::milliseconds(WAIT_MSEC));
+          constexpr int kWaitMsec = 100;
+          event_condition_.wait_for(lock, std::chrono::milliseconds(kWaitMsec));
         }
       }
     }
