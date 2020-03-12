@@ -170,7 +170,7 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyNotFound) {
   EXPECT_FALSE(response.IsSuccessful());
 }
 
-TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyFoundAndCacheWritten) {
+TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyFound) {
   olp::client::CancellationContext context;
 
   auto request = CatalogVersionRequest();
@@ -339,7 +339,7 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionTimeouted) {
             response.GetError().GetErrorCode());
 }
 
-TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyFoundAndCacheWritten) {
+TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyFound) {
   olp::client::CancellationContext context;
 
   auto request = CatalogRequest();
