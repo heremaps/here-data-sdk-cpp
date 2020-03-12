@@ -48,36 +48,61 @@ struct Expectation {
     std::string base64_string;
   };
 
+  struct ResponseTimes {
+    int64_t remaining_times = 1;
+    bool unlimited = false;
+  };
+
   RequestMatcher request;
   boost::optional<ResponseAction> action = boost::none;
+  boost::optional<ResponseTimes> times = boost::none;
 };
 
 void to_json(const Expectation& x, rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
+             rapidjson::Document::AllocatorType& allocator);
+void to_json(const Expectation::RequestMatcher& x, rapidjson::Value& value,
+             rapidjson::Document::AllocatorType& allocator);
+void to_json(const Expectation::BinaryResponse& x, rapidjson::Value& value,
+             rapidjson::Document::AllocatorType& allocator);
+void to_json(const Expectation::ResponseAction& x, rapidjson::Value& value,
+             rapidjson::Document::AllocatorType& allocator);
+void to_json(const Expectation::ResponseTimes& x, rapidjson::Value& value,
+             rapidjson::Document::AllocatorType& allocator);
+
+std::string serialize(const Expectation& object);
+
+inline void to_json(const Expectation& x, rapidjson::Value& value,
+                    rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   olp::serializer::serialize("httpRequest", x.request, value, allocator);
 
   if (x.action != boost::none) {
     olp::serializer::serialize("httpResponse", x.action, value, allocator);
   }
+  if (x.times != boost::none) {
+    olp::serializer::serialize("times", x.times, value, allocator);
+  }
 }
 
-void to_json(const Expectation::RequestMatcher& x, rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
+inline void to_json(const Expectation::RequestMatcher& x,
+                    rapidjson::Value& value,
+                    rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   olp::serializer::serialize("path", x.path, value, allocator);
   olp::serializer::serialize("method", x.method, value, allocator);
 }
 
-void to_json(const Expectation::BinaryResponse& x, rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
+inline void to_json(const Expectation::BinaryResponse& x,
+                    rapidjson::Value& value,
+                    rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   olp::serializer::serialize("type", x.type, value, allocator);
   olp::serializer::serialize("base64Bytes", x.base64_string, value, allocator);
 }
 
-void to_json(const Expectation::ResponseAction& x, rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
+inline void to_json(const Expectation::ResponseAction& x,
+                    rapidjson::Value& value,
+                    rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   olp::serializer::serialize("statusCode", x.status_code, value, allocator);
 
@@ -89,6 +114,15 @@ void to_json(const Expectation::ResponseAction& x, rapidjson::Value& value,
         "body", boost::any_cast<Expectation::BinaryResponse>(x.body), value,
         allocator);
   }
+}
+
+inline void to_json(const Expectation::ResponseTimes& x,
+                    rapidjson::Value& value,
+                    rapidjson::Document::AllocatorType& allocator) {
+  value.SetObject();
+  olp::serializer::serialize("remainingTimes", x.remaining_times, value,
+                             allocator);
+  olp::serializer::serialize("unlimited", x.unlimited, value, allocator);
 }
 
 inline std::string serialize(const Expectation& object) {

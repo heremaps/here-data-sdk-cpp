@@ -32,9 +32,10 @@ struct Status {
   Ports ports;
 };
 
-void from_json(const rapidjson::Value& value, Status& x){
+void from_json(const rapidjson::Value& value, Status& x);
+
+inline void from_json(const rapidjson::Value& value, Status& x) {
   x.ports = olp::parser::parse<Status::Ports>(value, "ports");
 }
-
 
 }  // namespace mockserver
