@@ -17,28 +17,22 @@
  * License-Filename: LICENSE
  */
 
-#include <olp/authentication/TokenEndpoint.h>
+#include "olp/authentication/TokenEndpoint.h"
 
-#include <olp/authentication/TokenResult.h>
 #include "olp/authentication/AuthenticationClient.h"
 #include "olp/authentication/AuthenticationCredentials.h"
 #include "olp/authentication/AutoRefreshingToken.h"
 #include "olp/authentication/ErrorResponse.h"
-#include "olp/authentication/Settings.h"
 #include "olp/authentication/SignInResult.h"
-#include "olp/authentication/TokenRequest.h"
 #include "olp/core/logging/Log.h"
-#include "olp/core/porting/warning_disable.h"
-
-namespace {
-const std::string kOauth2TokenEndpoint = "/oauth2/token";
-constexpr auto kLogTag = "here::account::oauth2::TokenEndpoint";
-}  // namespace
 
 namespace olp {
 namespace authentication {
 
 namespace {
+static const std::string kOauth2TokenEndpoint = "/oauth2/token";
+static constexpr auto kLogTag = "TokenEndpoint";
+
 AuthenticationSettings ConvertSettings(Settings settings) {
   AuthenticationSettings auth_settings;
   auth_settings.network_proxy_settings = settings.network_proxy_settings;
@@ -47,50 +41,56 @@ AuthenticationSettings ConvertSettings(Settings settings) {
   auth_settings.token_endpoint_url = settings.token_endpoint_url;
   return auth_settings;
 }
-
 }  // namespace
 
-struct TokenEndpoint::Impl {
-  explicit Impl(Settings settings)
-      : auth_client_(ConvertSettings(settings)),
-        auth_credentials_(std::move(settings.credentials)) {}
+class TokenEndpoint::Impl {
+ public:
+  explicit Impl(Settings settings);
 
   client::CancellationToken RequestToken(const TokenRequest& token_request,
-                                         const RequestTokenCallback& callback) {
-    AuthenticationClient::SignInProperties properties;
-    properties.expires_in = token_request.GetExpiresIn();
-    return auth_client_.SignInClient(
-        auth_credentials_, properties,
-        [callback](
-            const AuthenticationClient::SignInClientResponse& signInResponse) {
-          if (signInResponse.IsSuccessful()) {
-            TokenResult result(signInResponse.GetResult().GetAccessToken(),
-                               signInResponse.GetResult().GetExpiresIn(),
-                               signInResponse.GetResult().GetStatus(),
-                               signInResponse.GetResult().GetErrorResponse());
-            callback(TokenResponse(result));
-          } else {
-            callback(signInResponse.GetError());
-          }
-        });
-  }
+                                         const RequestTokenCallback& callback);
 
   std::future<TokenResponse> RequestToken(
       client::CancellationToken& cancellation_token,
       const TokenRequest& token_request);
 
-  olp::authentication::AuthenticationClient auth_client_;
-  olp::authentication::AuthenticationCredentials auth_credentials_;
-};  // namespace authentication
+ private:
+  AuthenticationClient auth_client_;
+  AuthenticationCredentials auth_credentials_;
+};
+
+TokenEndpoint::Impl::Impl(Settings settings)
+    : auth_client_(ConvertSettings(settings)),
+      auth_credentials_(std::move(settings.credentials)) {}
+
+client::CancellationToken TokenEndpoint::Impl::RequestToken(
+    const TokenRequest& token_request, const RequestTokenCallback& callback) {
+  AuthenticationClient::SignInProperties properties;
+  properties.expires_in = token_request.GetExpiresIn();
+  return auth_client_.SignInClient(
+      auth_credentials_, properties,
+      [callback](
+          const AuthenticationClient::SignInClientResponse& signInResponse) {
+        if (signInResponse.IsSuccessful()) {
+          TokenResult result(signInResponse.GetResult().GetAccessToken(),
+                             signInResponse.GetResult().GetExpiresIn(),
+                             signInResponse.GetResult().GetStatus(),
+                             signInResponse.GetResult().GetErrorResponse());
+          callback(TokenResponse(result));
+        } else {
+          callback(signInResponse.GetError());
+        }
+      });
+}
 
 std::future<TokenEndpoint::TokenResponse> TokenEndpoint::Impl::RequestToken(
-    client::CancellationToken& cancellation_token,
+    client::CancellationToken& cancel_token,
     const TokenRequest& token_request) {
-  auto p = std::make_shared<std::promise<TokenResponse> >();
-  cancellation_token = RequestToken(
-      token_request,
-      [p](TokenResponse tokenResponse) { p->set_value(tokenResponse); });
-  return p->get_future();
+  auto promise = std::make_shared<std::promise<TokenResponse>>();
+  cancel_token = RequestToken(token_request, [promise](TokenResponse response) {
+    promise->set_value(std::move(response));
+  });
+  return promise->get_future();
 }
 
 TokenEndpoint::TokenEndpoint(Settings settings) {
@@ -104,9 +104,8 @@ TokenEndpoint::TokenEndpoint(Settings settings) {
   } else {
     OLP_SDK_LOG_ERROR(
         kLogTag,
-        "Expected '/oauth2/token' endpoint in the tokenEndpointUrl. Only "
-        "standard "
-        "OAuth2 token endpoint URLs are supported.");
+        "Expected '/oauth2/token' endpoint in the token_endpoint_url. Only "
+        "standard OAuth2 token endpoint URLs are supported.");
   }
 
   impl_ = std::make_shared<TokenEndpoint::Impl>(std::move(settings));
@@ -126,8 +125,8 @@ std::future<TokenEndpoint::TokenResponse> TokenEndpoint::RequestToken(
 
 std::future<TokenEndpoint::TokenResponse> TokenEndpoint::RequestToken(
     const TokenRequest& token_request) const {
-  client::CancellationToken cancellationToken;
-  return impl_->RequestToken(cancellationToken, token_request);
+  client::CancellationToken cancellation_token;
+  return impl_->RequestToken(cancellation_token, token_request);
 }
 
 AutoRefreshingToken TokenEndpoint::RequestAutoRefreshingToken(
