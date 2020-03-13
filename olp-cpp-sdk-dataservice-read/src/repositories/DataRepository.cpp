@@ -37,6 +37,11 @@
 #include "olp/dataservice/read/PartitionsRequest.h"
 #include "olp/dataservice/read/TileRequest.h"
 
+// Needed to avoid endless warnings from GetVersion/WithVersion
+#include <olp/core/porting/warning_disable.h>
+PORTING_PUSH_WARNINGS()
+PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
+
 namespace olp {
 namespace dataservice {
 namespace read {
@@ -226,6 +231,7 @@ DataResponse DataRepository::GetVolatileData(
       catalog, layer_id, kVolatileBlobService, request, context, settings);
 }
 
+PORTING_POP_WARNINGS()
 }  // namespace repository
 }  // namespace read
 }  // namespace dataservice

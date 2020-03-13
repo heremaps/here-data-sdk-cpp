@@ -31,6 +31,11 @@
 #include "PartitionsRepository.h"
 #include "generated/api/QueryApi.h"
 
+// Needed to avoid endless warnings from GetVersion/WithVersion
+#include <olp/core/porting/warning_disable.h>
+PORTING_PUSH_WARNINGS()
+PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
+
 namespace olp {
 namespace dataservice {
 namespace read {
@@ -244,7 +249,8 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
 
     // add to bulk partitions for cacheing
     partitions.GetMutablePartitions().emplace_back(
-        PartitionsRepository::PartitionFromSubQuad(*subquad, subtile.ToHereTile()));
+        PartitionsRepository::PartitionFromSubQuad(*subquad,
+                                                   subtile.ToHereTile()));
   }
 
   // add to cache
@@ -255,6 +261,7 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
   return result;
 }
 
+PORTING_POP_WARNINGS()
 }  // namespace repository
 }  // namespace read
 }  // namespace dataservice

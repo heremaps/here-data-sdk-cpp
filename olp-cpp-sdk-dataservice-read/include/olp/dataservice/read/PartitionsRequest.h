@@ -220,8 +220,8 @@ class DATASERVICE_READ_API PartitionsRequest final {
   std::string CreateKey(const std::string& layer_id) const {
     std::stringstream out;
     out << layer_id;
-    if (GetVersion()) {
-      out << "@" << GetVersion().get();
+    if (catalog_version_) {
+      out << "@" << catalog_version_.get();
     }
     if (GetBillingTag()) {
       out << "$" << GetBillingTag().get();

@@ -245,8 +245,8 @@ class DATASERVICE_READ_API DataRequest final {
       out << GetDataHandle().get();
     }
     out << "]";
-    if (GetVersion()) {
-      out << "@" << GetVersion().get();
+    if (catalog_version_) {
+      out << "@" << catalog_version_.get();
     }
     if (GetBillingTag()) {
       out << "$" << GetBillingTag().get();

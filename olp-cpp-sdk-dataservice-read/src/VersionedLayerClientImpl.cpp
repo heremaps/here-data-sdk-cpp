@@ -33,6 +33,11 @@
 #include "repositories/PartitionsRepository.h"
 #include "repositories/PrefetchTilesRepository.h"
 
+// Needed to avoid endless warnings from GetVersion/WithVersion
+#include <olp/core/porting/warning_disable.h>
+PORTING_PUSH_WARNINGS()
+PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
+
 namespace olp {
 namespace dataservice {
 namespace read {
@@ -366,7 +371,6 @@ VersionedLayerClientImpl::PrefetchTiles(PrefetchTilesRequest request) {
                                                           promise);
 }
 
-
 CatalogVersionResponse VersionedLayerClientImpl::GetVersion(
     boost::optional<std::string> billing_tag, const FetchOptions& fetch_options,
     const client::CancellationContext& context) {
@@ -446,9 +450,9 @@ client::CancellableFuture<DataResponse> VersionedLayerClientImpl::GetData(
       });
   return client::CancellableFuture<DataResponse>(std::move(cancel_token),
                                                  std::move(promise));
-
 }
 
+PORTING_POP_WARNINGS()
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

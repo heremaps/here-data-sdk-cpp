@@ -37,9 +37,6 @@ namespace olp {
 namespace authentication {
 class AutoRefreshingToken;
 
-PORTING_PUSH_WARNINGS()
-PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
-
 /**
  * @brief Corresponds to the token endpoint as specified in the OAuth2.0
  * specification.
@@ -47,6 +44,10 @@ PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 04.2020")
     TokenEndpoint {
  public:
+  // Needed to avoid endless warnings from TokenRequest/TokenResult
+  PORTING_PUSH_WARNINGS()
+  PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
+
   /// Defines the signature used to return the response to the client.
   using TokenResponse = Response<TokenResult>;
   /// Defines the callback that is invoked when the response on
@@ -114,6 +115,8 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 04.2020")
   AutoRefreshingToken RequestAutoRefreshingToken(
       const TokenRequest& token_request = TokenRequest());
 
+  PORTING_POP_WARNINGS()
+
   /**
    * @brief Creates the `TokenEndpoint` instance with the given `settings`
    * parameter.
@@ -128,6 +131,5 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 04.2020")
   std::shared_ptr<Impl> impl_;
 };
 
-PORTING_POP_WARNINGS()
 }  // namespace authentication
 }  // namespace olp

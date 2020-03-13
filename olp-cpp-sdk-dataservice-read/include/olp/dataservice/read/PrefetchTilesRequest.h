@@ -123,7 +123,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    * version is specified, the latest version is retrieved.
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
-   * 
+   *
    * @deprecated The version is now a part of the VersionedLayerClient
    * constructor.
    */
@@ -202,8 +202,8 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
     std::stringstream out;
     out << layer_id << "[" << GetMinLevel() << "/" << GetMaxLevel() << "]"
         << "(" << GetTileKeys().size() << ")";
-    if (GetVersion()) {
-      out << "@" << GetVersion().get();
+    if (catalog_version_) {
+      out << "@" << catalog_version_.get();
     }
     if (GetBillingTag()) {
       out << "$" << GetBillingTag().get();
