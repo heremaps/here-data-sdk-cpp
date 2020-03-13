@@ -187,6 +187,24 @@ TEST_F(VolatileLayerClientTest, GetPartitionsDifferentFetchOptions) {
     EXPECT_TRUE(partitions_response.IsSuccessful());
   }
   {
+    SCOPED_TRACE("Get Partitions Online if not found");
+
+    VolatileLayerClient client(hrn, GetTestLayer(), settings_);
+
+    olp::client::Condition condition;
+    PartitionsResponse partitions_response;
+
+    auto callback = [&](PartitionsResponse response) {
+      partitions_response = std::move(response);
+      condition.Notify();
+    };
+    client.GetPartitions(
+        PartitionsRequest().WithFetchOption(FetchOptions::OnlineIfNotFound),
+        std::move(callback));
+    ASSERT_TRUE(condition.Wait(kTimeout));
+    EXPECT_TRUE(partitions_response.IsSuccessful());
+  }
+  {
     SCOPED_TRACE("Get Partitions Cache Only");
 
     VolatileLayerClient client(hrn, GetTestLayer(), settings_);
