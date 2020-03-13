@@ -1567,41 +1567,21 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
 
   {
     SCOPED_TRACE("Read cached data from pre-fetched sub-partition #1");
-    auto promise = std::make_shared<std::promise<DataResponse>>();
-    std::future<DataResponse> future = promise->get_future();
-    auto token = client->GetData(olp::dataservice::read::DataRequest()
-                                     .WithPartitionId("23618365")
-                                     .WithFetchOption(CacheOnly),
-                                 [promise](DataResponse response) {
-                                   promise->set_value(std::move(response));
-                                 });
+    auto promise = std::make_shared<std::promise<PartitionsResponse>>();
+    std::future<PartitionsResponse> future = promise->get_future();
+    auto token =
+        client->GetPartitions(olp::dataservice::read::PartitionsRequest()
+                                  .WithPartitionIds({"23618365", "1476147"})
+                                  .WithFetchOption(CacheOnly),
+                              [promise](PartitionsResponse response) {
+                                promise->set_value(std::move(response));
+                              });
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
 
     auto response = future.get();
     ASSERT_TRUE(response.IsSuccessful())
         << ApiErrorToString(response.GetError());
-    ASSERT_TRUE(response.GetResult() != nullptr);
-    ASSERT_NE(response.GetResult()->size(), 0u);
-  }
-
-  {
-    SCOPED_TRACE("Read cached data from pre-fetched sub-partition #2");
-    auto promise = std::make_shared<std::promise<DataResponse>>();
-    std::future<DataResponse> future = promise->get_future();
-
-    auto token = client->GetData(olp::dataservice::read::DataRequest()
-                                     .WithPartitionId("1476147")
-                                     .WithFetchOption(CacheOnly),
-                                 [promise](DataResponse response) {
-                                   promise->set_value(std::move(response));
-                                 });
-    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
-
-    auto response = future.get();
-    ASSERT_TRUE(response.IsSuccessful())
-        << ApiErrorToString(response.GetError());
-    ASSERT_TRUE(response.GetResult() != nullptr);
-    ASSERT_NE(response.GetResult()->size(), 0u);
+    ASSERT_EQ(response.GetResult().GetPartitions().size(), 2u);
   }
 }
 

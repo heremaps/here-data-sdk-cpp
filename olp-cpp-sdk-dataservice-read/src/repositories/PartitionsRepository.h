@@ -66,16 +66,16 @@ class PartitionsRepository {
       client::CancellationContext context,
       const client::OlpClientSettings& settings);
 
+  static model::Partitions GetTileFromCache(
+      const client::HRN& catalog, const std::string& layer_id,
+      const TileRequest& request, int64_t version,
+      const client::OlpClientSettings& settings);
+
  protected:
   static PartitionsResponse QueryPartitionForVersionedTile(
       const client::HRN& catalog, const std::string& layer_id,
       const TileRequest& request, int64_t version,
       client::CancellationContext context, client::OlpClientSettings settings);
-
-  static model::Partitions GetTileFromCache(
-      const client::HRN& catalog, const std::string& layer_id,
-      const TileRequest& request, int64_t version,
-      const client::OlpClientSettings& settings);
 
  private:
   static PartitionsResponse GetPartitions(

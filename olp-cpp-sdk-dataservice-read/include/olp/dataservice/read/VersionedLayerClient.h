@@ -278,10 +278,13 @@ class DATASERVICE_READ_API VersionedLayerClient final {
   /**
    * @brief Prefetches a set of tiles asynchronously.
    *
-   * This method recursively downloads all tile keys from the `minLevel`
-   * parameter to the `maxLevel` parameter of the \c PrefetchTilesRequest
-   * object. It helps to reduce the network load by using the prefetched tiles
-   * data from the cache.
+   * This method requests data for tile keys in parameter of the \c
+   * PrefetchTilesRequest. Also requested and cached methadata for tile keys
+   * from the `minLevel` parameter to the `maxLevel` parameter of the \c
+   * PrefetchTilesRequest object, min/max levels should be not wider range
+   * than 4. If range exceeds 4, used max value 4, levels are calculated based
+   * on current levels of requested tiles. It helps to reduce the network load
+   * by using the prefetched tiles data from the cache.
    *
    * @note This method does not guarantee that all tiles are available offline
    * as the cache might overflow, and data might be evicted at any point.
@@ -300,13 +303,17 @@ class DATASERVICE_READ_API VersionedLayerClient final {
   /**
    * @brief Prefetches a set of tiles asynchronously.
    *
-   * This method recursively downloads all tile keys from the `minLevel`
-   * parameter to the `maxLevel` parameter of the \c PrefetchTilesRequest
-   * object. It helps to reduce the network load by using the prefetched tiles
-   * data from the cache.
+   * This method requests data for tile keys in parameter of the \c
+   * PrefetchTilesRequest. Also requested and cached methadata for tile keys
+   * from the `minLevel` parameter to the `maxLevel` parameter of the \c
+   * PrefetchTilesRequest object, min/max levels should be not wider range
+   * than 4. If range exceeds 4, used max value 4, levels are calculated based
+   * on current levels of requested tiles. It helps to reduce the network load
+   * by using the prefetched tiles data from the cache.
    *
-   * @note This method does not guarantee that all tiles are available offline
-   * as the cache might overflow, and data might be evicted at any point.
+   * @note This method does not guarantee that all tiles methadata are available
+   * offline as the cache might overflow, and data might be evicted at any
+   * point.
    *
    * @param request The `PrefetchTilesRequest` instance that contains
    * a complete set of request parameters.

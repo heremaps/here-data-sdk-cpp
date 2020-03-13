@@ -220,14 +220,20 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
 
         const auto key = request.CreateKey(layer_id);
         OLP_SDK_LOG_INFO_F(kLogTag, "PrefetchTiles: using key=%s", key.c_str());
+        // check if some of the requested tiles are alredy in cache
+        // split requested tiles to tiles found in cache and tiles for which we
+        // need request methadata
+
+        auto tiles = repository::PrefetchTilesRepository::GetSubQuadsFromCache(
+            catalog, layer_id, request, context,
+            response.GetResult().GetVersion(), settings);
 
         // Calculate the minimal set of Tile keys and depth to
         // cover tree.
         auto sub_quads = repository::PrefetchTilesRepository::EffectiveTileKeys(
-            request.GetTileKeys(), request.GetMinLevel(),
-            request.GetMaxLevel());
+            tiles.tile_keys, request.GetMinLevel(), request.GetMaxLevel());
 
-        if (sub_quads.empty()) {
+        if (sub_quads.empty() && tiles.found_tiles.empty()) {
           OLP_SDK_LOG_WARNING_F(kLogTag,
                                 "PrefetchTiles: tile/level mismatch, key=%s",
                                 key.c_str());
@@ -246,7 +252,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
         }
 
         const auto& tiles_result = sub_tiles.GetResult();
-        if (tiles_result.empty()) {
+        if (tiles_result.empty() && tiles.found_tiles.empty()) {
           OLP_SDK_LOG_WARNING_F(
               kLogTag, "PrefetchTiles: subtiles empty, key=%s", key.c_str());
           return {{ErrorCode::InvalidArgument, "Subquads retrieval failed"}};
@@ -262,15 +268,38 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
         auto futures = std::make_shared<std::vector<PrefetchResultFuture>>();
         std::vector<CancellationContext> contexts;
         contexts.reserve(tiles_result.size() + 1u);
-        auto it = tiles_result.begin();
 
-        while (!context.IsCancelled() && it != tiles_result.end()) {
+        for (const auto& requested_tile : request.GetTileKeys()) {
+          // try to find in cached tiles
+          auto it_found_cached = tiles.found_tiles.find(requested_tile);
+          auto it_found_requested = tiles_result.end();
+          // this tile was not requested
+          if (it_found_cached == tiles.found_tiles.end()) {
+            it_found_requested = tiles_result.find(requested_tile);
+            if (it_found_requested == tiles_result.end()) {
+              // something goes wrong tile was not found
+              OLP_SDK_LOG_WARNING_F(
+                  kLogTag, "PrefetchTiles, tile key was not found key=%s ",
+                  requested_tile.ToHereTile().c_str());
+              continue;
+            }
+          }
+          auto tile = (it_found_cached != tiles.found_tiles.end())
+                          ? it_found_cached->first
+                          : it_found_requested->first;
+          auto handle = (it_found_cached != tiles.found_tiles.end())
+                            ? it_found_cached->second
+                            : it_found_requested->second;
+
+          if (context.IsCancelled()) {
+            break;
+          }
+
           auto promise = std::make_shared<PrefetchResultPromise>();
           auto flag = std::make_shared<std::atomic_bool>(false);
           futures->emplace_back(promise->get_future());
 
-          auto tile = it->first;
-          auto handle = it->second;
+
           auto context_it = contexts.emplace(contexts.end());
 
           AddTask(settings.task_scheduler, pending_requests,
@@ -303,7 +332,6 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
                     }
                   },
                   *context_it);
-          it++;
         }
 
         // Task to wait for previously triggered data download to collect

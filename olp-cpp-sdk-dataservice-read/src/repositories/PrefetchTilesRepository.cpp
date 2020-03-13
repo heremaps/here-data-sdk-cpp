@@ -27,6 +27,7 @@
 #include <olp/core/logging/Log.h>
 #include <olp/core/thread/Atomic.h>
 #include <olp/core/thread/TaskScheduler.h>
+#include <olp/dataservice/read/TileRequest.h>
 #include "ApiClientLookup.h"
 #include "PartitionsRepository.h"
 #include "generated/api/QueryApi.h"
@@ -51,6 +52,7 @@ SubQuadsRequest PrefetchTilesRepository::EffectiveTileKeys(
     auto child_tiles = EffectiveTileKeys(tile_key, min_level, max_level, true);
     for (auto tile : child_tiles) {
       // check if child already exist, if so, use the greater depth
+        //some tiles could be requested twice, as they can be childrens with depth less than 4
       auto old_child = ret.find(tile.first);
       if (old_child != ret.end()) {
         ret[tile.first] = std::max((*old_child).second, tile.second);
@@ -69,66 +71,57 @@ SubQuadsRequest PrefetchTilesRepository::EffectiveTileKeys(
   SubQuadsRequest ret;
   auto current_level = tile_key.Level();
 
-  // min/max values was not set. Use default wide range.
-  if (max_level == 0 && min_level == 0) {
+  auto FindParentAtLevel = [&](unsigned int steps,
+                               unsigned int depth_after_current)
+      -> std::pair<std::string, TileKeyAndDepth> {
+    auto tile{tile_key};
+    unsigned int steps_left = steps;
+    while (steps_left > 0 && tile.IsValid()) {
+      tile = tile.Parent();
+      --steps_left;
+    }
+    return std::make_pair(
+        tile.ToHereTile(),
+        std::make_pair(tile,
+                       std::min(kMaxQuadTreeIndexDepth,
+                                steps - steps_left + depth_after_current)));
+  };
+
+  // min/max values was not set, or wrong. Use default wide range.
+  if ((max_level == 0 && min_level == 0) || (min_level > max_level) ||
+      (max_level >= geo::TileKey().Level())) {
+    min_level = 1;
     max_level = geo::TileKey().Level();
   }
-
-  auto AddParents = [&]() {
-    auto tile{tile_key.Parent()};
-    while (tile.Level() >= min_level && tile.IsValid()) {
-      if (tile.Level() <= max_level)
-        ret[tile.ToHereTile()] = std::make_pair(tile, 0);
-      tile = tile.Parent();
-    }
-  };
-
-  auto AddChildren = [&](const geo::TileKey& tile, unsigned int min,
-                         unsigned int max) {
-    auto child_tiles = EffectiveTileKeys(tile, min, max, false);
-    for (auto tile : child_tiles) {
-      // check if child already exist, if so, use the greater depth
-      auto old_child = ret.find(tile.first);
-      if (old_child != ret.end())
-        ret[tile.first] = std::max((*old_child).second, tile.second);
-      else
-        ret[tile.first] = tile.second;
-    }
-  };
+  // ignore some tiles from min/max range, if range of min/max wider than 4. Use
+  // parrent tile which will include requested tile
 
   if (current_level > max_level) {
-    // if this tile is greater than max, find the parent of this and push the
-    // ones between min and max
-    AddParents();
-  } else if (current_level < min_level) {
-    // if this tile is less than min, find the children that are min and start
-    // from there
-    auto children = GetChildAtLevel(tile_key, min_level);
-    for (auto child : children) {
-      AddChildren(child, min_level, max_level);
-    }
-  } else {
-    // tile is within min and max
-    if (add_ancestors) {
-      AddParents();
-    }
+    // if this tile is greater than max, find the parent of this(go only for
+    // depth 4) and push it
+    ret.emplace(FindParentAtLevel(
+        std::min(kMaxQuadTreeIndexDepth, current_level - min_level), 0));
 
-    auto tile_key_str = tile_key.ToHereTile();
-    if (max_level - current_level <= kMaxQuadTreeIndexDepth) {
-      ret[tile_key_str] = std::make_pair(tile_key, max_level - current_level);
+  } else if (current_level < min_level) {
+    // if this tile is less than min, just add this tile with depth 4
+    ret.emplace(std::make_pair(
+        tile_key.ToHereTile(),
+        std::make_pair(tile_key, std::min(kMaxQuadTreeIndexDepth,
+                                          max_level - current_level))));
+  } else {
+    // if min/max range less than 4
+    if (max_level - min_level <= kMaxQuadTreeIndexDepth) {
+      // just add parent with depth
+      ret.emplace(FindParentAtLevel(current_level - min_level,
+                                    max_level - current_level));
     } else {
-      // Backend only takes kMaxQuadTreeIndexDepth at a time, so we have to
-      // manually calculate all the tiles that should included
-      ret[tile_key_str] = std::make_pair(tile_key, kMaxQuadTreeIndexDepth);
-      auto children =
-          GetChildAtLevel(tile_key, current_level + kMaxQuadTreeIndexDepth + 1);
-      for (auto child : children) {
-        AddChildren(child, current_level,
-                    current_level + kMaxQuadTreeIndexDepth);
-      }
+      // if min/max range greter than 4, just go up till min if possible, or go 4 levels up, and add tile with
+      // depth 4
+      ret.emplace(FindParentAtLevel(
+          std::min(kMaxQuadTreeIndexDepth, current_level - min_level),
+          geo::TileKey().Level()));  // to add max depth use 32
     }
   }
-
   return ret;
 }
 
@@ -150,7 +143,7 @@ std::vector<geo::TileKey> PrefetchTilesRepository::GetChildAtLevel(
   return ret;
 }
 
-SubTilesResponse PrefetchTilesRepository::GetSubTiles(
+SubQuadsResponse PrefetchTilesRepository::GetSubTiles(
     const client::HRN& catalog, const std::string& layer_id,
     const PrefetchTilesRequest& request, const SubQuadsRequest& sub_quads,
     CancellationContext context, const client::OlpClientSettings& settings) {
@@ -161,7 +154,7 @@ SubTilesResponse PrefetchTilesRepository::GetSubTiles(
                           request.CreateKey(layer_id).c_str());
     return ApiError{ErrorCode::InvalidArgument, "Catalog version invalid"};
   }
-  SubTilesResult result;
+  SubQuadsResult result;
   OLP_SDK_LOG_INFO_F(kLogTag, "GetSubTiles: hrn=%s, layer=%s, quads=%zu",
                      catalog.ToString().c_str(), layer_id.c_str(),
                      sub_quads.size());
@@ -184,12 +177,34 @@ SubTilesResponse PrefetchTilesRepository::GetSubTiles(
         return error;
       }
     }
+
     auto subtiles = response.MoveResult();
-    result.reserve(result.size() + subtiles.size());
-    result.insert(result.end(), std::make_move_iterator(subtiles.begin()),
+    result.insert(std::make_move_iterator(subtiles.begin()),
                   std::make_move_iterator(subtiles.end()));
   }
 
+  return result;
+}
+
+TilesResult PrefetchTilesRepository::GetSubQuadsFromCache(
+    const client::HRN& catalog, const std::string& layer_id,
+    const PrefetchTilesRequest& request, client::CancellationContext context,
+    int64_t version, const client::OlpClientSettings& settings) {
+  TilesResult result;
+  if (!context.IsCancelled()) {
+    for (const auto& tile : request.GetTileKeys()) {
+      model::Partitions rez = PartitionsRepository::GetTileFromCache(
+          catalog, layer_id,
+          TileRequest().WithTileKey(tile).WithBillingTag(
+              request.GetBillingTag()),
+          version, settings);
+      if (rez.GetPartitions().empty()) {
+        result.tile_keys.push_back(tile);
+      } else {
+        result.found_tiles[tile] = rez.GetPartitions().front().GetDataHandle();
+      }
+    }
+  }
   return result;
 }
 
@@ -233,14 +248,13 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
   model::Partitions partitions;
 
   const auto& subquads = quad_tree.GetResult().GetSubQuads();
-  result.reserve(subquads.size());
   partitions.GetMutablePartitions().reserve(subquads.size());
 
   for (const auto& subquad : subquads) {
     auto subtile = tile.AddedSubHereTile(subquad->GetSubQuadKey());
 
     // Add to result
-    result.emplace_back(subtile, subquad->GetDataHandle());
+    result.emplace(subtile, subquad->GetDataHandle());
 
     // add to bulk partitions for cacheing
     partitions.GetMutablePartitions().emplace_back(

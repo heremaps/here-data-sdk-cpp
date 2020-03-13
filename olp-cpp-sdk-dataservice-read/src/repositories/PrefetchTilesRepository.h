@@ -40,10 +40,12 @@ namespace repository {
 
 using TileKeyAndDepth = std::pair<geo::TileKey, int32_t>;
 using SubQuadsRequest = std::map<std::string, TileKeyAndDepth>;
-using SubQuadsResult = std::vector<std::pair<geo::TileKey, std::string>>;
+using SubQuadsResult = std::map<geo::TileKey, std::string>;
 using SubQuadsResponse = client::ApiResponse<SubQuadsResult, client::ApiError>;
-using SubTilesResult = SubQuadsResult;
-using SubTilesResponse = client::ApiResponse<SubTilesResult, client::ApiError>;
+struct TilesResult {
+  std::map<geo::TileKey, std::string> found_tiles;
+  std::vector<geo::TileKey> tile_keys;
+};
 
 class PrefetchTilesRepository final {
  public:
@@ -61,7 +63,7 @@ class PrefetchTilesRepository final {
       const std::vector<geo::TileKey>& tile_keys, unsigned int min_level,
       unsigned int max_level);
 
-  static SubTilesResponse GetSubTiles(
+  static SubQuadsResponse GetSubTiles(
       const client::HRN& catalog, const std::string& layer_id,
       const PrefetchTilesRequest& request, const SubQuadsRequest& sub_quads,
       client::CancellationContext context,
@@ -73,6 +75,10 @@ class PrefetchTilesRepository final {
                                       geo::TileKey tile, int32_t depth,
                                       const client::OlpClientSettings& settings,
                                       client::CancellationContext context);
+  static TilesResult GetSubQuadsFromCache(
+      const client::HRN& catalog, const std::string& layer_id,
+      const PrefetchTilesRequest& request, client::CancellationContext context,
+      int64_t version, const client::OlpClientSettings& settings);
 
  private:
   static SubQuadsRequest EffectiveTileKeys(const geo::TileKey& tile_key,
