@@ -48,11 +48,12 @@
 #ifdef NETWORK_USE_TIMEPROVIDER
 #include "timeprovider/TimeProvider.h"
 #endif
-#include "olp/core/http/NetworkUtils.h"
-#include "olp/core/logging/Log.h"
-#include "olp/core/porting/make_unique.h"
-#include "olp/core/porting/platform.h"
-#include "olp/core/utils/Dir.h"
+#include <olp/core/http/NetworkUtils.h>
+#include <olp/core/http/NetworkConstants.h>
+#include <olp/core/logging/Log.h>
+#include <olp/core/porting/make_unique.h>
+#include <olp/core/porting/platform.h>
+#include <olp/core/utils/Dir.h>
 
 namespace olp {
 namespace http {
@@ -217,6 +218,39 @@ static curl_code SslctxFunction(CURL* curl, void* sslctx, void*) {
 }
 #endif
 #endif
+
+struct curl_slist* GenerateRequestHeaders(const Headers& default_headers,
+                                          const Headers& request_headers,
+                                          const std::string& user_agent) {
+  struct curl_slist* headers = nullptr;
+
+  std::ostringstream sstrm;
+
+  for (const auto& header : default_headers) {
+    sstrm.str("");
+    sstrm << header.first;
+    sstrm << ": ";
+    sstrm << header.second;
+    headers = curl_slist_append(headers, sstrm.str().c_str());
+  }
+
+  for (const auto& header : request_headers) {
+    sstrm.str("");
+    sstrm << header.first;
+    sstrm << ": ";
+    sstrm << header.second;
+
+    // In case user set user agent, merge it with request headers
+    if (!user_agent.empty() &&
+        NetworkUtils::CaseInsensitiveCompare(header.first, kUserAgentHeader)) {
+      sstrm << " " << user_agent;
+    }
+
+    headers = curl_slist_append(headers, sstrm.str().c_str());
+  }
+
+  return headers;
+}
 
 }  // anonymous namespace
 
@@ -495,14 +529,9 @@ ErrorCode NetworkCurl::SendImplementation(
   handle->get_statistics = false;  // request.GetStatistics();
   handle->skip_content = false;    // config->SkipContentWhenError();
 
-  for (const auto& header : request.GetHeaders()) {
-    std::ostringstream sstrm;
-    sstrm << header.first;
-    sstrm << ": ";
-    sstrm << header.second;
-    handle->chunk = curl_slist_append(handle->chunk, sstrm.str().c_str());
-  }
+  handle->chunk = GenerateRequestHeaders(default_headers_, request.GetHeaders(), user_agent_);
 
+  
   if (verbose_) {
     curl_easy_setopt(handle->handle, CURLOPT_VERBOSE, 1L);
     if (stderr_ != nullptr) {
@@ -656,6 +685,11 @@ void NetworkCurl::Cancel(RequestId id) {
     }
   }
   OLP_SDK_LOG_WARNING(kLogTag, "Cancel non-existing request with id=" << id);
+}
+
+void NetworkCurl::SetDefaultHeaders(Headers headers) {
+  default_headers_ = std::move(headers);
+  user_agent_ = NetworkUtils::ExtractUserAgent(default_headers_);
 }
 
 void NetworkCurl::AddEvent(EventInfo::Type type, RequestHandle* handle) {

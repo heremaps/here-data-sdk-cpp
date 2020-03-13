@@ -88,6 +88,11 @@ class NetworkCurl : public olp::http::Network,
    */
   void Cancel(RequestId id) override;
 
+  /**
+   * @brief Implementation of SetDefaultHeaders method from Network abstract class.
+   */
+  void SetDefaultHeaders(Headers headers) override;
+
  private:
   /**
    * @brief Context of each individual network request.
@@ -336,6 +341,9 @@ class NetworkCurl : public olp::http::Network,
 
   /// Stores value if `curl_global_init()` was successful on construction.
   bool curl_initialized_;
+
+  Headers default_headers_;
+  std::string user_agent_;
 };
 
 }  // namespace http

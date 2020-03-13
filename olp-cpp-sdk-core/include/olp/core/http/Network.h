@@ -81,6 +81,11 @@ class CORE_API Network {
    * @param[in] id The unique RequestId of the request to be cancelled.
    */
   virtual void Cancel(RequestId id) = 0;
+
+  /**
+   * @brief Set default headers.
+   */
+  virtual void SetDefaultHeaders(Headers headers);
 };
 
 /**

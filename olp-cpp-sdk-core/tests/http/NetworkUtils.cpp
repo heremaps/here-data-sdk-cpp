@@ -79,6 +79,30 @@ TEST(NetworkUtilsTest, CaseInsensitiveFind) {
   EXPECT_EQ(std::string::npos, NetworkUtils::CaseInsensitiveFind("", ""));
 }
 
+TEST(NetworkUtilsTest, ExtractUserAgentTest) {
+  {
+    SCOPED_TRACE("User agent is present and extracted");
+    Headers headers;
+    headers.emplace_back(Header("user-Agent", "agent smith"));
+    headers.emplace_back(Header("other-header", "header"));
+    std::string user_agent = NetworkUtils::ExtractUserAgent(headers);
+    EXPECT_EQ(user_agent, "agent smith");
+    EXPECT_EQ(headers.size(), 1);
+    EXPECT_EQ(headers[0].first, "other-header");
+    EXPECT_EQ(headers[0].second, "header");
+  }
+  {
+    SCOPED_TRACE("User agent is missing and nothing happens");
+    Headers headers;
+    headers.emplace_back(Header("other-header", "header"));
+    std::string user_agent = NetworkUtils::ExtractUserAgent(headers);
+    EXPECT_EQ(user_agent, "");
+    EXPECT_EQ(headers.size(), 1);
+    EXPECT_EQ(headers[0].first, "other-header");
+    EXPECT_EQ(headers[0].second, "header");
+  }
+}
+
 TEST(NetworkUtilsTest, HttpErrorToString) {
   EXPECT_EQ("Unknown Error", HttpErrorToString(1));
   EXPECT_EQ("Continue", HttpErrorToString(100));

@@ -21,6 +21,8 @@
 
 #include <string>
 
+#include <olp/core/http/NetworkTypes.h>
+
 namespace olp {
 namespace http {
 /**
@@ -37,6 +39,8 @@ class NetworkUtils {
                                         size_t offset = 0);
   static size_t CaseInsensitiveFind(const std::string& str1,
                                     const std::string& str2, size_t offset = 0);
+
+  static std::string ExtractUserAgent(Headers& headers);
 
 };  // class NetworkUtils
 

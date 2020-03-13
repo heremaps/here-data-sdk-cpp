@@ -34,6 +34,8 @@
 namespace olp {
 namespace http {
 
+void Network::SetDefaultHeaders(Headers) {}
+
 CORE_API std::shared_ptr<Network> CreateDefaultNetwork(
     size_t max_requests_count) {
   CORE_UNUSED(max_requests_count);

@@ -19,7 +19,9 @@
 
 #include "olp/core/http/NetworkUtils.h"
 
-#include <string>
+#include <algorithm>
+
+#include "olp/core/http/NetworkConstants.h"
 
 namespace olp {
 namespace http {
@@ -69,6 +71,24 @@ size_t NetworkUtils::CaseInsensitiveFind(const std::string& str1,
     }
   }
   return std::string::npos;
+}
+
+std::string NetworkUtils::ExtractUserAgent(Headers& headers) {
+  std::string user_agent;
+
+  auto user_agent_it =
+      std::find_if(headers.begin(), headers.end(),
+                   [](const Header& header_pair) {
+                     return NetworkUtils::CaseInsensitiveCompare(
+                         header_pair.first, kUserAgentHeader);
+                   });
+
+  if (user_agent_it != headers.end()) {
+    user_agent = std::move((*user_agent_it).second);
+    headers.erase(user_agent_it);
+  }
+
+  return user_agent;  
 }
 
 std::string HttpErrorToString(int error) {
