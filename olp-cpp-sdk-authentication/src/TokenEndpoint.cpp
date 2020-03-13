@@ -19,6 +19,9 @@
 
 #include "olp/authentication/TokenEndpoint.h"
 
+PORTING_PUSH_WARNINGS()
+PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
+
 #include "olp/authentication/AuthenticationClient.h"
 #include "olp/authentication/AuthenticationCredentials.h"
 #include "olp/authentication/AutoRefreshingToken.h"
@@ -134,5 +137,6 @@ AutoRefreshingToken TokenEndpoint::RequestAutoRefreshingToken(
   return AutoRefreshingToken(*this, token_request);
 }
 
+PORTING_POP_WARNINGS()
 }  // namespace authentication
 }  // namespace olp
