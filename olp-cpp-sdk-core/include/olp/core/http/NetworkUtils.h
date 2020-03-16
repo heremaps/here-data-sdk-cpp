@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@
 
 #include <string>
 
+#include <olp/core/http/NetworkTypes.h>
+
 namespace olp {
 namespace http {
 /**
@@ -38,6 +40,16 @@ class NetworkUtils {
   static size_t CaseInsensitiveFind(const std::string& str1,
                                     const std::string& str2, size_t offset = 0);
 
+  /**
+   * @brief Extract the user agent from the headers.
+   *
+   * User agent is removed from the headers.
+   *
+   * @param headers The input headers.
+   *
+   * @return The user agent or an empty string if there is no user agent.
+   */
+  static std::string ExtractUserAgent(Headers& headers);
 };  // class NetworkUtils
 
 std::string HttpErrorToString(int error);

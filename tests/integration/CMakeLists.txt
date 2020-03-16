@@ -1,4 +1,4 @@
-# Copyright (C) 2019 HERE Europe B.V.
+# Copyright (C) 2019-2020 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ set(OLP_SDK_INTEGRATIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-dataservice-write/StreamLayerClientCacheTest.cpp
     ./olp-cpp-sdk-dataservice-write/StreamLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-write/VolatileLayerClientTest.cpp
+    ./olp-cpp-sdk-core/DefaultNetworkTest.cpp
 )
 
 if (ANDROID OR IOS)
@@ -63,6 +64,11 @@ if (ANDROID OR IOS)
 
     endif()
 
+    target_include_directories(${OLP_SDK_INTEGRATION_TESTS_LIB}
+        PRIVATE
+            ${CMAKE_SOURCE_DIR}/../../olp-cpp-sdk-core/src
+    )
+
 else()
     add_executable(olp-cpp-sdk-integration-tests ${OLP_SDK_INTEGRATIONAL_TESTS_SOURCES})
     target_link_libraries(olp-cpp-sdk-integration-tests
@@ -74,5 +80,10 @@ else()
             olp-cpp-sdk-dataservice-read
             olp-cpp-sdk-dataservice-write
             olp-cpp-sdk-tests-common
+    )
+
+    target_include_directories(olp-cpp-sdk-integration-tests
+        PRIVATE
+            ${CMAKE_SOURCE_DIR}/../../olp-cpp-sdk-core/src
     )
 endif()

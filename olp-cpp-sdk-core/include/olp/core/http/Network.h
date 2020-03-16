@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,12 +81,23 @@ class CORE_API Network {
    * @param[in] id The unique RequestId of the request to be cancelled.
    */
   virtual void Cancel(RequestId id) = 0;
+
+  /**
+   * @brief Sets default network headers.
+   *
+   * Default headers are applied to each request passed to the `Send` method.
+   * User agents are concatenated.
+   *
+   * @param headers The default headers.
+   */
+  virtual void SetDefaultHeaders(Headers headers) {}
 };
 
 /**
  * @brief Create default Network implementation.
  */
-CORE_API std::shared_ptr<Network> CreateDefaultNetwork(size_t max_requests_count);
+CORE_API std::shared_ptr<Network> CreateDefaultNetwork(
+    size_t max_requests_count);
 
 }  // namespace http
 }  // namespace olp

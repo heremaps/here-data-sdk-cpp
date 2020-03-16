@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,13 +55,20 @@ class CORE_API NetworkRequest final {
   explicit NetworkRequest(std::string url);
 
   /**
-   * @brief Get all HTTP headers.
-   * @return vector of HTTP headers.
+   * @brief Gets all HTTP headers.
+   * @return The vector of the HTTP headers.
    */
   const Headers& GetHeaders() const;
+  
+  /**
+   * @brief Gets the mutable reference to the HTTP headers.
+   *
+   * @return The mutable reference to vector of HTTP headers.
+   */
+  Headers& GetMutableHeaders();
 
   /**
-   * @brief Add extra HTTP header.
+   * @brief Adds an extra HTTP header.
    * @param[in] name Header name.
    * @param[in] value Header value.
    * @return reference to *this.
