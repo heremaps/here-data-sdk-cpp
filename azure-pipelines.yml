@@ -13,6 +13,12 @@ variables:
   BUILD_TYPE: "RelWithDebInfo"
 
 jobs:
+- job: Commit_checker
+  pool:
+    vmImage: 'ubuntu-18.04'
+  steps:
+    - bash: scripts/misc/commit_checker.sh
+      displayName: 'Commit checker script'
 - job: Windows_build
   pool:
     vmImage: 'vs2017-win2016'
