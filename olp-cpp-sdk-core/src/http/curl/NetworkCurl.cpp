@@ -60,8 +60,6 @@ namespace http {
 namespace {
 
 const char* kLogTag = "CURL";
-constexpr std::chrono::seconds kHandleLostTimeout(30);
-constexpr std::chrono::seconds kHandleReuseTimeout(120);
 
 std::vector<std::pair<std::string, std::string> > GetStatistics(
     CURL* handle, std::size_t retryCount) {
@@ -237,15 +235,12 @@ NetworkCurl::NetworkCurl(size_t max_requests_count)
 
 NetworkCurl::~NetworkCurl() {
   OLP_SDK_LOG_TRACE(kLogTag, "Destroyed NetworkCurl object, this=" << this);
-
-  if (state_ == WorkerState::STARTED) {
     Deinitialize();
-  }
-  if (curl_initialized_) {
-    curl_global_cleanup();
-  }
-  if (stderr_) {
-    fclose(stderr_);
+    if (curl_initialized_) {
+      curl_global_cleanup();
+    }
+    if (stderr_) {
+      fclose(stderr_);
   }
 }
 
@@ -271,31 +266,19 @@ bool NetworkCurl::Initialize() {
     OLP_SDK_LOG_ERROR(kLogTag, "pipe failed, this=" << this);
     return false;
   }
-  // Set pipes non blocking
-  int flags;
-  if (-1 == (flags = fcntl(pipe_[0], F_GETFL, 0))) {
-    flags = 0;
+  // Set read and write pipes non blocking
+  for (size_t i = 0; i < 2; ++i) {
+    int flags = fcntl(pipe_[i], F_GETFL);
+    if (flags == -1) {
+      flags = 0;
+    }
+    if (fcntl(pipe_[i], F_SETFL, flags | O_NONBLOCK)) {
+      OLP_SDK_LOG_ERROR(kLogTag, __PRETTY_FUNCTION__ << ". fcntl for pipe[" << i
+                                                     << "] failed. Error "
+                                                     << errno);
+      return false;
+    }
   }
-  if (fcntl(pipe_[0], F_SETFL, flags | O_NONBLOCK)) {
-    OLP_SDK_LOG_ERROR(kLogTag, "fcntl for pipe failed, this=" << this);
-    return false;
-  }
-  if (-1 == (flags = fcntl(pipe_[1], F_GETFL, 0))) {
-    flags = 0;
-  }
-  if (fcntl(pipe_[1], F_SETFL, flags | O_NONBLOCK)) {
-    OLP_SDK_LOG_ERROR(kLogTag, "fcntl for pipe failed, this=" << this);
-    return false;
-  }
-#endif
-
-#ifdef OLP_SDK_NETWORK_HAS_OPENSSL
-  // OpenSSL setup
-  ssl_mutexes_ = std::make_unique<std::mutex[]>(CRYPTO_num_locks());
-  gSslMutexes = ssl_mutexes_.get();
-
-  CRYPTO_set_id_callback(SslIdFunction);
-  CRYPTO_set_locking_callback(SslLockingFunction);
 #endif
 
   // cURL setup
@@ -307,30 +290,26 @@ bool NetworkCurl::Initialize() {
 
   // handles setup
   std::shared_ptr<NetworkCurl> that = shared_from_this();
-  for (size_t i = 0; i < handles_.size(); ++i) {
-    if (i < static_handle_count_) {
-      handles_[i].handle = curl_easy_init();
-      curl_easy_setopt(handles_[i].handle, CURLOPT_NOSIGNAL, 1);
-    } else {
-      handles_[i].handle = nullptr;
-    }
-    handles_[i].index = i;
-    handles_[i].in_use = false;
-    handles_[i].self = that;
+  for (auto& handle : handles_) {
+    handle.handle = nullptr;
+    handle.in_use = false;
+    handle.self = that;
   }
 
+  std::unique_lock<std::mutex> lock(event_mutex_);
   // start worker thread
   thread_ = std::thread(&NetworkCurl::Run, this);
 
-  std::unique_lock<std::mutex> lock(event_mutex_);
   event_condition_.wait(lock,
                         [this] { return state_ == WorkerState::STARTED; });
+
   return true;
 }
 
 void NetworkCurl::Deinitialize() {
+  std::lock_guard<std::mutex> init_lock(init_mutex_);
   // Stop worker thread
-  if (state_ != WorkerState::STARTED) {
+  if (!IsStarted()) {
     OLP_SDK_LOG_DEBUG(kLogTag, "Already deinitialized, this=" << this);
     return;
   }
@@ -340,32 +319,36 @@ void NetworkCurl::Deinitialize() {
   {
     std::lock_guard<std::mutex> lock(event_mutex_);
     state_ = WorkerState::STOPPING;
-    event_condition_.notify_one();
   }
 
-  std::lock_guard<std::mutex> init_lock(init_mutex_);
   // We should not destroy this thread from itself
   if (thread_.get_id() != std::this_thread::get_id()) {
     event_condition_.notify_all();
+#if defined(OLP_SDK_NETWORK_HAS_PIPE) || defined(OLP_SDK_NETWORK_HAS_PIPE2)
+    char tmp = 1;
+    if (write(pipe_[1], &tmp, 1) < 0) {
+      OLP_SDK_LOG_INFO(kLogTag, __PRETTY_FUNCTION__
+                                    << ". Failed to write pipe. Error "
+                                    << errno);
+    }
+#endif
     thread_.join();
+  } else {
+    // We are trying to stop the very thread we are in. This is not recommended,
+    // but we try to handle it gracefully. This could happen by calling from one
+    // of the static functions (rxFunction or headerFunction) that was passed to
+    // the cURL as callbacks.
+    thread_.detach();
   }
 }
 
 void NetworkCurl::Teardown() {
-#if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
-  char tmp = 1;
-  if (write(pipe_[1], &tmp, 1) < 0) {
-    OLP_SDK_LOG_INFO(kLogTag, "Deinitialize, failed to write pipe, err="
-                                  << errno << ", this=" << this);
-  }
-#endif
-
-  // handles teardown
   std::vector<std::pair<RequestId, Network::Callback> > completed_messages;
   {
     std::lock_guard<std::mutex> lock(event_mutex_);
     events_.clear();
 
+    // handles teardown
     for (auto& handle : handles_) {
       if (handle.handle) {
         if (handle.in_use) {
@@ -374,27 +357,19 @@ void NetworkCurl::Teardown() {
         }
         curl_easy_cleanup(handle.handle);
         handle.handle = nullptr;
-        handle.self.reset();
       }
+      handle.self.reset();
     }
-  }
 
   // cURL teardown
   curl_multi_cleanup(curl_);
   curl_ = nullptr;
 
-#ifdef OLP_SDK_NETWORK_HAS_OPENSSL
-  // OpenSSL teardown
-  CRYPTO_set_id_callback(nullptr);
-  CRYPTO_set_locking_callback(nullptr);
-  gSslMutexes = nullptr;
-  ssl_mutexes_.reset();
-#endif
-
 #if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
   close(pipe_[0]);
   close(pipe_[1]);
 #endif
+  }
 
   // Handle completed messages
   if (!completed_messages.empty()) {
@@ -821,109 +796,66 @@ size_t NetworkCurl::HeaderFunction(char* ptr, size_t size, size_t nitems,
   }
   std::string str(ptr, count);
   std::size_t pos = str.find(':');
-  if (pos == std::string::npos || pos + 2 >= str.size()) {
+  if (pos == std::string::npos) {
     return len;
   }
-  if (handle->header_callback) {
-    std::string key = str.substr(0, pos);
-    std::string value = str.substr(pos + 2);
-    handle->header_callback(key, value);
+  std::string key = str.substr(0, pos);
+  std::string value;
+  if (pos + 2 < str.size()) {
+    value = str.substr(pos + 2);
   }
 
-  if (NetworkUtils::CaseInsensitiveStartsWith(str, "Date:")) {
-    handle->date = str.substr(6);
-  } else if (NetworkUtils::CaseInsensitiveStartsWith(str, "Cache-Control:")) {
-    std::size_t index = NetworkUtils::CaseInsensitiveFind(str, "max-age=", 8);
-    if (index != std::string::npos) {
-      handle->max_age = std::stoi(str.substr(index + 8));
-    }
-  } else if (NetworkUtils::CaseInsensitiveStartsWith(str, "Expires:")) {
-    std::string date_string = str.substr(9);
-    if (date_string == "0") {
-      handle->expires = 0;
-    } else if (date_string == "-1") {
-      handle->expires = -1;
-    } else {
-      handle->expires = curl_getdate(date_string.c_str(), nullptr);
-    }
-  } else if (NetworkUtils::CaseInsensitiveStartsWith(str, "ETag:")) {
-    handle->etag = str.substr(6);
-  } else if (NetworkUtils::CaseInsensitiveStartsWith(str, "Content-Type:")) {
-    handle->content_type = str.substr(14);
-  } else if (NetworkUtils::CaseInsensitiveStartsWith(str, "Content-Range:")) {
-    if (NetworkUtils::CaseInsensitiveStartsWith(str, "bytes ", 15)) {
-      if ((str[21] == '*') && (str[22] == '/')) {
-        // We have requested range over end of the file
-        handle->range_out = true;
-      } else if ((str[21] >= '0') && (str[21] <= '9')) {
-        handle->offset = std::stoll(str.substr(21));
-      } else {
-        OLP_SDK_LOG_WARNING(kLogTag, "Invalid Content-Range header for id="
-                                         << handle->id << " : " << str);
-      }
-    } else {
-      OLP_SDK_LOG_WARNING(kLogTag, "Invalid Content-Range header for id="
-                                       << handle->id << " : " << str);
-    }
+  if (handle->header_callback) {
+    handle->header_callback(key, value);
   }
   return len;
 }
 
 void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
   std::unique_lock<std::mutex> lock(event_mutex_);
-  size_t index = 0;
-  for (; index < handles_.size(); ++index) {
-    if (handles_[index].in_use && (handles_[index].handle == handle)) {
-      break;
-    }
-  }
+  int index = GetHandleIndex(handle);
+  if (index >= 0 && index < static_cast<int>(handles_.size())) {
+    RequestHandle& rhandle = handles_[index];
 
-  std::vector<std::pair<std::string, std::string> > statistics;
-  if (index < handles_.size()) {
-    if (handles_[index].get_statistics) {
-      statistics =
-          GetStatistics(handles_[index].handle, handles_[index].retry_count);
-    }
-    if (handles_[index].cancelled) {
-      auto callback = handles_[index].callback;
+    if (rhandle.cancelled) {
+      auto callback = rhandle.callback;
       auto response =
           NetworkResponse()
-              .WithRequestId(handles_[index].id)
+              .WithRequestId(rhandle.id)
               .WithStatus(static_cast<int>(ErrorCode::CANCELLED_ERROR))
               .WithError("Cancelled");
-      ReleaseHandleUnlocked(&handles_[index]);
+      ReleaseHandleUnlocked(&rhandle);
 
       lock.unlock();
       callback(response);
       return;
     }
 
-    auto callback = handles_[index].callback;
-    std::string etag = handles_[index].etag;
-    std::string contentType = handles_[index].content_type;
+    auto callback = rhandle.callback;
     if (!callback) {
-      OLP_SDK_LOG_DEBUG(kLogTag, "Request completed - no callback, id="
-                                     << handles_[index].id);
-      ReleaseHandleUnlocked(&handles_[index]);
+      OLP_SDK_LOG_WARNING(
+          kLogTag,
+          __PRETTY_FUNCTION__ << ". Complete to request without callback");
+      ReleaseHandleUnlocked(&rhandle);
       return;
     }
 
-    lock.unlock();
     std::string error("Success");
     int status;
     if ((result == CURLE_OK) || (result == CURLE_HTTP_RETURNED_ERROR)) {
       long http_status = 0;
-      curl_easy_getinfo(handles_[index].handle, CURLINFO_RESPONSE_CODE,
-                        &http_status);
+      curl_easy_getinfo(rhandle.handle, CURLINFO_RESPONSE_CODE, &http_status);
       status = static_cast<int>(http_status);
-      if ((handles_[index].offset == 0) && (status == 206)) status = 200;
+      if ((rhandle.offset == 0) && (status == 206)) {
+        status = 200;
+      }
       // for local file there is no server response so status is 0
       if ((status == 0) && (result == CURLE_OK)) status = 200;
       error = HttpErrorToString(status);
     } else {
-      handles_[index].error_text[CURL_ERROR_SIZE - 1] = '\0';
-      if (std::strlen(handles_[index].error_text) > 0) {
-        error = handles_[index].error_text;
+      rhandle.error_text[CURL_ERROR_SIZE - 1] = '\0';
+      if (std::strlen(rhandle.error_text) > 0) {
+        error = rhandle.error_text;
       } else {
         error = curl_easy_strerror(result);
       }
@@ -935,10 +867,10 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
       // code would be able to retry immediately
       if (result == CURLE_PARTIAL_FILE) {
         double time = 0;
-        CURLcode code = curl_easy_getinfo(handles_[index].handle,
-                                          CURLINFO_TOTAL_TIME, &time);
+        CURLcode code =
+            curl_easy_getinfo(rhandle.handle, CURLINFO_TOTAL_TIME, &time);
         if (code == CURLE_OK &&
-            time >= static_cast<double>(handles_[index].transfer_timeout)) {
+            time >= static_cast<double>(rhandle.transfer_timeout)) {
           status =
               static_cast<int>(ErrorCode::TIMEOUT_ERROR);  // Network::TimedOut;
         }
@@ -946,17 +878,15 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
     }
 
     const char* url;
-    curl_easy_getinfo(handles_[index].handle, CURLINFO_EFFECTIVE_URL, &url);
+    curl_easy_getinfo(rhandle.handle, CURLINFO_EFFECTIVE_URL, &url);
 
     if ((status > 0) && ((status < 200) || (status >= 500))) {
-      if (!handles_[index].cancelled &&
-          (handles_[index].retry_count++ < handles_[index].max_retries)) {
+      if (!rhandle.cancelled && (rhandle.retry_count++ < rhandle.max_retries)) {
         OLP_SDK_LOG_DEBUG(kLogTag, "Retrying request with id="
-                                       << handles_[index].id << ", url=" << url
+                                       << rhandle.id << ", url=" << url
                                        << " err=(" << status << ") " << error);
-        handles_[index].count = 0;
-        lock.lock();
-        events_.emplace_back(EventInfo::Type::SEND_EVENT, &handles_[index]);
+        rhandle.count = 0;
+        AddEvent(EventInfo::Type::SEND_EVENT, &rhandle);
         return;
       }
     }
@@ -968,7 +898,8 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
                         .WithRequestId(handles_[index].id)
                         .WithStatus(status)
                         .WithError(error);
-    ReleaseHandle(&handles_[index]);
+    ReleaseHandleUnlocked(&rhandle);
+    lock.unlock();
     callback(response);
   } else {
     OLP_SDK_LOG_WARNING(kLogTag, "Complete message to unknown request");
@@ -994,7 +925,7 @@ void NetworkCurl::Run() {
   while (IsStarted()) {
     std::vector<CURL*> msgs;
     {
-      std::lock_guard<std::mutex> lock(event_mutex_);
+      std::unique_lock<std::mutex> lock(event_mutex_);
       while (!events_.empty() && IsStarted()) {
         EventInfo event = events_.front();
         events_.pop_front();
@@ -1008,17 +939,37 @@ void NetworkCurl::Run() {
                     kLogTag, "Send failed for id="
                                  << event.handle->id << " with result=" << res
                                  << ", error=" << curl_multi_strerror(res));
-                msgs.push_back(event.handle->handle);
+                if (res == CURLM_ADDED_ALREADY) {
+                  // something wrong happened, we tried to add an easy handle
+                  // already existed in the multi handle
+                  OLP_SDK_LOG_ERROR(kLogTag,
+                                    " Handle already in use. Handle="
+                                        << event.handle->handle
+                                        << ", id=" << event.handle->id);
+                }
+                // do not add the handle to msgs vector as it will be reset in
+                // CompleteMessage handler, and curl will crash in the next call
+                // of curl_multi_perform function.
+                else {
+                  msgs.push_back(event.handle->handle);
+                }
               }
             }
             break;
           }
           case EventInfo::Type::CANCEL_EVENT:
             if (event.handle->in_use) {
-              curl_multi_remove_handle(curl_, event.handle->handle);
-              event_mutex_.unlock();
+              auto code = curl_multi_remove_handle(curl_, event.handle->handle);
+              if (code != CURLM_OK) {
+                OLP_SDK_LOG_ERROR(
+                    kLogTag,
+                    __PRETTY_FUNCTION__
+                        << ". curl_multi_remove_handle has failed. Code="
+                        << code << ", " << curl_multi_strerror(code));
+              }
+              lock.unlock();
               CompleteMessage(event.handle->handle, CURLE_OPERATION_TIMEDOUT);
-              event_mutex_.lock();
+              lock.lock();
             }
             break;
         }
@@ -1042,22 +993,22 @@ void NetworkCurl::Run() {
                curl_multi_perform(curl_, &running) == CURLM_CALL_MULTI_PERFORM);
     }
 
-    // Handle completed messages
-    int left;
-    bool completed = false;
-    CURLMsg* msg(nullptr);
-    {
+    {  // lock block
+      // Handle completed messages
+      int msgs_in_queue = 0;
+      CURLMsg* msg(nullptr);
       std::unique_lock<std::mutex> lock(event_mutex_);
-      while (IsStarted() && (msg = curl_multi_info_read(curl_, &left))) {
+      while (IsStarted() &&
+             (msg = curl_multi_info_read(curl_, &msgs_in_queue))) {
         CURL* handle = msg->easy_handle;
         if (msg->msg == CURLMSG_DONE) {
-          completed = true;
           CURLcode result = msg->data.result;
-          curl_multi_remove_handle(curl_, msg->easy_handle);
+          curl_multi_remove_handle(curl_, handle);
           lock.unlock();
           CompleteMessage(handle, result);
           lock.lock();
         } else {
+          // actually this part should never be executed.
           OLP_SDK_LOG_ERROR(kLogTag, "Message complete with unknown state "
                                          << msg->msg);
           int handle_index = GetHandleIndex(handle);
@@ -1078,6 +1029,7 @@ void NetworkCurl::Run() {
               lock.lock();
             }
             curl_multi_remove_handle(curl_, handles_[handle_index].handle);
+            ReleaseHandleUnlocked(&handles_[handle_index]);
           } else {
             OLP_SDK_LOG_ERROR(
                 kLogTag,
@@ -1087,184 +1039,63 @@ void NetworkCurl::Run() {
       }
     }
 
-    if (!IsStarted() || completed) {
+    if (!IsStarted()) {
       continue;
     }
-    // The QNX curl_multi_fdset implementation often returns -1 in max_fd
-    // even when outstanding operations are in progress. According to the
-    // docs: "When libcurl returns -1 in max_fd, it is because libcurl
-    // currently does something that isn't possible for your application to
-    // monitor with a socket and unfortunately you can then not know exactly
-    // when the current action is completed using select(). You then need to
-    // wait a while before you proceed and call curl_multi_perform anyway.
-    // How long to wait? We suggest 100 milliseconds at least, but you may
-    // want to test it out in your own particular conditions to find a
-    // suitable value."
-    constexpr long WAIT_MSEC = 100;
 
-    int maxfd = 0;
-    fd_set rfds;
-    FD_ZERO(&rfds);
-#if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
-    FD_SET(pipe_[0], &rfds);
+    {
+      int numfds = 0;
+#if defined(OLP_SDK_NETWORK_HAS_PIPE) || defined(OLP_SDK_NETWORK_HAS_PIPE2)
+      curl_waitfd waitfd[1];
+      waitfd[0].fd = pipe_[0];
+      waitfd[0].events = CURL_WAIT_POLLIN;
+      waitfd[0].revents = 0;
+      auto mc = curl_multi_wait(curl_, waitfd, 1, 1000, &numfds);
+      // read pipe data if it is signaled
+      if (mc == CURLM_OK && numfds != 0 && waitfd[0].revents != 0) {
+        char tmp;
+        while (read(waitfd[0].fd, &tmp, 1) > 0)
+          ;
+      }
+#else
+      // Without pipe limit wait time to 100ms
+      // so that network events can be handled in a reasonable time
+      auto mc = curl_multi_wait(curl_, nullptr, 0, 100, &numfds);
 #endif
-    fd_set wfds;
-    FD_ZERO(&wfds);
-    fd_set excfds;
-    FD_ZERO(&excfds);
-
-    if (curl_multi_fdset(curl_, &rfds, &wfds, &excfds, &maxfd) != CURLM_OK) {
-      continue;
-    }
-    bool missing_descriptors = maxfd == -1;
-
-#if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
-    if (maxfd < pipe_[0]) {
-      maxfd = pipe_[0];
-    }
-#endif
-
-    long timeout;
-    // Curl should be thread safe, but we sometimes get crash here
-    if (maxfd != -1) {
-      if (curl_multi_timeout(curl_, &timeout) != CURLM_OK) {
+      if (mc != CURLM_OK) {
+        OLP_SDK_LOG_INFO(kLogTag, __PRETTY_FUNCTION__
+                                      << ". curl_multi_wait: Failed. error="
+                                      << mc);
         continue;
       }
-    } else {
-      timeout = -1;
-    }
+      // 'numfds' being zero means either a timeout or no file descriptors to
+      // wait for.
+      if (numfds == 0) {
+        std::unique_lock<std::mutex> lock(event_mutex_);
 
-    if (IsStarted() && ((timeout < 0) || missing_descriptors)) {
-      // If curl_multi_timeout returns a -1 timeout, it just means that
-      // libcurl currently has no stored timeout value. You must not wait
-      // too long (more than a few seconds perhaps) before you call
-      // curl_multi_perform() again.
-      std::vector<CURL*> lostHandles;
+        bool in_use_handles = std::any_of(
+            handles_.begin(), handles_.end(),
+            [](const RequestHandle& handle) { return handle.in_use; });
 
-      {
-        auto now = std::chrono::steady_clock::now();
-        std::lock_guard<std::mutex> lock(event_mutex_);
-        for (auto& handle : handles_) {
-          if (handle.in_use) {
-            double total;
-            curl_easy_getinfo(handle.handle, CURLINFO_TOTAL_TIME, &total);
-            // if this handle was added at least 30 seconds ago but curl
-            // total time is still 0 then something wrong has happened
-            if ((now - handle.send_time > kHandleLostTimeout) &&
-                (total == 0.0)) {
-              lostHandles.push_back(handle.handle);
-            }
-          }
+        if (!IsStarted()) {
+          continue;
         }
-      }
-      if (!lostHandles.empty() && IsStarted()) {
-        // release all lost handles
-        for (CURL* handle : lostHandles) {
-          char const* url;
-          curl_easy_getinfo(handle, CURLINFO_EFFECTIVE_URL, &url);
 
-          const auto remove_handle_status =
-              curl_multi_remove_handle(curl_, handle);
-
-          if (remove_handle_status == CURLM_OK) {
-            OLP_SDK_LOG_WARNING(kLogTag,
-                                "Releasing lost handle for url=" << url);
-            CompleteMessage(handle, CURLE_OPERATION_TIMEDOUT);
-          } else {
-            OLP_SDK_LOG_ERROR(kLogTag,
-                              "Lost handle curl_multi_remove_handle error="
-                                  << std::to_string(remove_handle_status)
-                                  << ", url=" << url);
-
-            int handle_index = GetHandleIndex(handle);
-            if (handle_index >= 0) {
-              if (!handles_[handle_index].callback) {
-                OLP_SDK_LOG_DEBUG(kLogTag,
-                                  "Request completed - no callback, id="
-                                      << handles_[handle_index].id);
-              } else {
-                auto response =
-                    NetworkResponse()
-                        .WithRequestId(handles_[handle_index].id)
-                        .WithStatus(static_cast<int>(ErrorCode::IO_ERROR))
-                        .WithError("CURL error");
-                handles_[handle_index].callback(response);
-              }
-
-              ReleaseHandle(&handles_[handle_index]);
-            }
-          }
-        }
-      }
-      if (!IsStarted()) {
-        continue;
-      }
-      bool in_use_handles = false;
-
-      std::unique_lock<std::mutex> lock(event_mutex_);
-      for (const auto& handle : handles_) {
-        if (handle.in_use) {
-          in_use_handles = true;
-          break;
-        }
-      }
-
-      // TODO: examine this section in details. Not clear what we are waiting
-      // for.
-      if (timeout < 0) {
         if (!in_use_handles) {
           // Enter wait only when all handles are free
           event_condition_.wait_for(lock, std::chrono::seconds(2));
         } else {
-          event_condition_.wait_for(lock, std::chrono::milliseconds(WAIT_MSEC));
-        }
-      } else if (in_use_handles) {
-        timeout = WAIT_MSEC;
-      }
-    }
-
-    if (IsStarted() && (timeout > 0)) {
-      // Limit wait time to 1s so that network can be stopped in reasonable
-      // time
-      if (timeout > 1000) {
-        timeout = 1000;
-      }
-      timeval interval;
-      interval.tv_sec = timeout / 1000;
-      interval.tv_usec = (timeout % 1000) * 1000;
-      ::select(maxfd + 1, &rfds, &wfds, &excfds, &interval);
-#if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
-      if (FD_ISSET(pipe_[0], &rfds)) {
-        char tmp;
-        while (read(pipe_[0], &tmp, 1) > 0) {
+          constexpr int kWaitMsec = 100;
+          event_condition_.wait_for(lock, std::chrono::milliseconds(kWaitMsec));
         }
       }
-#endif
+    }
     }
 
-    auto now = std::chrono::steady_clock::now();
-    long usable_handles = static_handle_count_;
-    std::lock_guard<std::mutex> lock(event_mutex_);
-    for (size_t i = static_handle_count_; i < handles_.size(); ++i) {
-      auto& handle = handles_[i];
-      if (handle.handle && !handle.in_use &&
-          handle.send_time + kHandleReuseTimeout < now) {
-        curl_easy_cleanup(handle.handle);
-        handle.handle = nullptr;
-      }
-      if (handle.handle) {
-        ++usable_handles;
-      }
-    }
-    // Make CURL close only those idle connections that we no longer plan to
-    // reuse
-    curl_multi_setopt(curl_, CURLMOPT_MAXCONNECTS, usable_handles);
-  }  // end of the main loop
   Teardown();
   {
     std::lock_guard<std::mutex> lock(event_mutex_);
     state_ = WorkerState::STOPPED;
-    event_condition_.notify_one();
   }
   OLP_SDK_LOG_DEBUG(kLogTag, "Thread exit, this=" << this);
 }
