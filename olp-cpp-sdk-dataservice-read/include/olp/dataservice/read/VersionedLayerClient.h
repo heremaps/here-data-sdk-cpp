@@ -318,6 +318,15 @@ class DATASERVICE_READ_API VersionedLayerClient final {
   client::CancellableFuture<PrefetchTilesResponse> PrefetchTiles(
       PrefetchTilesRequest request);
 
+  /**
+   * @brief Removes the partition from the mutable disk cache.
+   *
+   * @param partition_id The partition ID that should be removed.
+   *
+   * @return True if partition data is removed successfully; false otherwise.
+   */
+  bool RemoveFromCache(const std::string& partition_id);
+
  private:
   std::unique_ptr<VersionedLayerClientImpl> impl_;
 };

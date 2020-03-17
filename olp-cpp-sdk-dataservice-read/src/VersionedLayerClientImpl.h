@@ -81,6 +81,8 @@ class VersionedLayerClientImpl {
   virtual client::CancellableFuture<PrefetchTilesResponse> PrefetchTiles(
       PrefetchTilesRequest request);
 
+  virtual bool RemoveFromCache(const std::string& partition_id);
+
  private:
   CatalogVersionResponse GetVersion(boost::optional<std::string> billing_tag,
                                     const FetchOptions& fetch_options,

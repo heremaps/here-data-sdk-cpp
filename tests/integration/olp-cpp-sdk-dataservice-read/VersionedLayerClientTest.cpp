@@ -344,8 +344,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionAsync) {
   std::future<DataResponse> future = promise->get_future();
   auto partition = GetArgument("dataservice_read_test_partition");
   auto token = client->GetData(
-      olp::dataservice::read::DataRequest()
-          .WithPartitionId(partition),
+      olp::dataservice::read::DataRequest().WithPartitionId(partition),
       [promise](DataResponse response) { promise->set_value(response); });
 
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
@@ -380,8 +379,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       catalog, layer, version, *settings_);
 
   auto partition = GetArgument("dataservice_read_test_partition");
-  auto data_request = olp::dataservice::read::DataRequest()
-                          .WithPartitionId(partition);
+  auto data_request =
+      olp::dataservice::read::DataRequest().WithPartitionId(partition);
   auto cancellable_future = client->GetData(std::move(data_request));
 
   auto raw_future = cancellable_future.GetFuture();
@@ -423,8 +422,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionSync) {
 
   auto partition = GetArgument("dataservice_read_test_partition");
   auto token = client->GetData(
-      olp::dataservice::read::DataRequest()
-          .WithPartitionId(partition),
+      olp::dataservice::read::DataRequest().WithPartitionId(partition),
       [&response](DataResponse resp) { response = std::move(resp); });
   ASSERT_TRUE(response.IsSuccessful());
   ASSERT_TRUE(response.GetResult() != nullptr);
@@ -459,8 +457,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   ASSERT_TRUE(client);
 
   auto partition = GetArgument("dataservice_read_test_partition");
-  auto data_request = olp::dataservice::read::DataRequest()
-                          .WithPartitionId(partition);
+  auto data_request =
+      olp::dataservice::read::DataRequest().WithPartitionId(partition);
   auto cancellable_future = client->GetData(std::move(data_request));
 
   auto raw_future = cancellable_future.GetFuture();
@@ -621,8 +619,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataEmptyPartitionsSync) {
 
   auto partition = GetArgument("dataservice_read_test_partition");
   auto token = client->GetData(
-      olp::dataservice::read::DataRequest()
-          .WithPartitionId(partition),
+      olp::dataservice::read::DataRequest().WithPartitionId(partition),
       [&response](DataResponse resp) { response = std::move(resp); });
   ASSERT_FALSE(response.IsSuccessful());
   ASSERT_FALSE(response.GetResult() != nullptr);
@@ -2673,40 +2670,39 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileTwoSequentialCalls) {
   auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", 4, *settings_);
 
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kHttpResponseLookupApiQuery));
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponseLookupApiQuery));
 
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(kHttpQueryTreeIndex), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kHttpSubQuads));
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(kHttpQueryTreeIndex), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpSubQuads));
 
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kHttpResponseLookupBlob));
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponseLookupBlob));
 
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(kHttpResponseBlobData_5904591), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     "someData"));
-    {
-      SCOPED_TRACE("Request data using TileRequest");
-      auto request = olp::dataservice::read::TileRequest().WithTileKey(
-          olp::geo::TileKey::FromHereTile("5904591"));
-      auto data_response = client->GetData(request).GetFuture().get();
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(kHttpResponseBlobData_5904591), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   "someData"));
+  {
+    SCOPED_TRACE("Request data using TileRequest");
+    auto request = olp::dataservice::read::TileRequest().WithTileKey(
+        olp::geo::TileKey::FromHereTile("5904591"));
+    auto data_response = client->GetData(request).GetFuture().get();
 
-      ASSERT_TRUE(data_response.IsSuccessful())
-          << ApiErrorToString(data_response.GetError());
-      ASSERT_LT(0, data_response.GetResult()->size());
-      std::string data_string(data_response.GetResult()->begin(),
-                              data_response.GetResult()->end());
-      ASSERT_EQ("someData", data_string);
+    ASSERT_TRUE(data_response.IsSuccessful())
+        << ApiErrorToString(data_response.GetError());
+    ASSERT_LT(0, data_response.GetResult()->size());
+    std::string data_string(data_response.GetResult()->begin(),
+                            data_response.GetResult()->end());
+    ASSERT_EQ("someData", data_string);
   }
   {
     SCOPED_TRACE("Neighboring tile, same subquad, check metadata cached");
@@ -2738,6 +2734,64 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileTwoSequentialCalls) {
                             data_response.GetResult()->end());
     ASSERT_EQ("someOtherData", data_string);
   }
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, RemoveFromCache) {
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponseLookupQuery))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponsePartition_269))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponseLookupBlob))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponseBlobData_269));
+
+  auto catalog = olp::client::HRN::FromString(
+      GetArgument("dataservice_read_test_catalog"));
+  auto layer = GetArgument("dataservice_read_test_layer");
+  auto version = std::stoi(GetArgument("dataservice_read_test_layer_version"));
+
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      catalog, layer, version, *settings_);
+  ASSERT_TRUE(client);
+
+  // load and cache some data
+  auto promise = std::make_shared<std::promise<DataResponse>>();
+  auto future = promise->get_future();
+  auto partition = GetArgument("dataservice_read_test_partition");
+  auto data_request =
+      olp::dataservice::read::DataRequest().WithPartitionId(partition);
+  auto token = client->GetData(data_request, [promise](DataResponse response) {
+    promise->set_value(response);
+  });
+
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  DataResponse response = future.get();
+
+  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_NE(response.GetResult(), nullptr);
+  ASSERT_NE(response.GetResult()->size(), 0u);
+
+  // remove the data from cache
+  ASSERT_TRUE(client->RemoveFromCache(partition));
+
+  // check the data is not available in cache
+  promise = std::make_shared<std::promise<DataResponse>>();
+  future = promise->get_future();
+  data_request.WithFetchOption(CacheOnly);
+  token = client->GetData(data_request, [promise](DataResponse response) {
+    promise->set_value(response);
+  });
+
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  response = future.get();
+
+  ASSERT_FALSE(response.IsSuccessful());
 }
 
 }  // namespace

@@ -21,6 +21,9 @@
 #include <mocks/CacheMock.h>
 #include <mocks/NetworkMock.h>
 
+#include <olp/core/cache/CacheSettings.h>
+#include <olp/core/cache/KeyValueCache.h>
+#include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 
 namespace {
@@ -33,6 +36,7 @@ const std::string kCatalog =
 const std::string kLayerId = "testlayer";
 const auto kHrn = olp::client::HRN::FromString(kCatalog);
 const auto kPartitionId = "269";
+const auto kCatalogVersion = 108;
 const auto kTimeout = std::chrono::seconds(5);
 
 constexpr auto kBlobDataHandle = R"(4eed6ed1-0d32-43b9-ae79-043cb4256432)";
@@ -69,6 +73,68 @@ TEST(VersionedLayerClientTest, GetData) {
     ASSERT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
               olp::client::ErrorCode::PreconditionFailed);
+  }
+}
+
+TEST(VersionedLayerClientTest, RemoveFromCache) {
+  olp::client::OlpClientSettings settings;
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
+  settings.cache = cache_mock;
+
+  // successfull mock cache calls
+  auto found_cache_response = [](const std::string& key,
+                                 const olp::cache::Decoder& encoder) {
+    auto partition = model::Partition();
+    partition.SetPartition(kPartitionId);
+    partition.SetDataHandle(kBlobDataHandle);
+    return partition;
+  };
+  auto partition_cache_remove = [&](const std::string& prefix) {
+    std::string expected_prefix =
+        kHrn.ToCatalogHRNString() + "::" + kLayerId + "::" + kPartitionId +
+        "::" + std::to_string(kCatalogVersion) + "::partition";
+    EXPECT_EQ(prefix, expected_prefix);
+    return true;
+  };
+  auto data_cache_remove = [&](const std::string& prefix) {
+    std::string expected_prefix = kHrn.ToCatalogHRNString() + "::" + kLayerId +
+                                  "::" + kBlobDataHandle + "::Data";
+    EXPECT_EQ(prefix, expected_prefix);
+    return true;
+  };
+
+  VersionedLayerClient client(kHrn, kLayerId, kCatalogVersion, settings);
+  {
+    SCOPED_TRACE("Successfull remove partition from cache");
+
+    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
+        .WillOnce(partition_cache_remove)
+        .WillOnce(data_cache_remove);
+    ASSERT_TRUE(client.RemoveFromCache(kPartitionId));
+  }
+  {
+    SCOPED_TRACE("Remove not existing partition from cache");
+    EXPECT_CALL(*cache_mock, Get(_, _))
+        .WillOnce([](const std::string&, const olp::cache::Decoder&) {
+          return boost::any();
+        });
+    ASSERT_TRUE(client.RemoveFromCache(kPartitionId));
+  }
+  {
+    SCOPED_TRACE("Partition cache failure");
+    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
+        .WillOnce([](const std::string&) { return false; });
+    ASSERT_FALSE(client.RemoveFromCache(kPartitionId));
+  }
+  {
+    SCOPED_TRACE("Data cache failure");
+    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
+        .WillOnce(partition_cache_remove)
+        .WillOnce([](const std::string&) { return false; });
+    ASSERT_FALSE(client.RemoveFromCache(kPartitionId));
   }
 }
 

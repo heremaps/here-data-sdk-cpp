@@ -206,6 +206,25 @@ void PartitionsCacheRepository::ClearPartitions(
   }
 }
 
+bool PartitionsCacheRepository::ClearPartitionMetadata(
+    int64_t catalog_version, const std::string& partition_id,
+    const std::string& layer_id,
+    boost::optional<model::Partition>& out_partition) {
+  std::string hrn(hrn_.ToCatalogHRNString());
+  auto key = CreateKey(hrn, layer_id, partition_id, catalog_version);
+  OLP_SDK_LOG_INFO_F(kLogTag, "ClearPartitionMetadata '%s'", key.c_str());
+  auto cached_partition =
+      cache_->Get(key, [](const std::string& serialized_object) {
+        return parser::parse<model::Partition>(serialized_object);
+      });
+  if (cached_partition.empty()) {
+    return true;
+  }
+
+  out_partition = boost::any_cast<model::Partition>(cached_partition);
+  return cache_->RemoveKeysWithPrefix(key);
+}
+
 PORTING_POP_WARNINGS()
 }  // namespace repository
 }  // namespace read
