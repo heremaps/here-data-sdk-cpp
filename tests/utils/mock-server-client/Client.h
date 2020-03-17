@@ -33,11 +33,14 @@
 
 namespace mockserver {
 
+namespace {
 const auto kBaseUrl = "https://localhost:1080";
 const auto kExpectationPath = "/mockserver/expectation";
 const auto kStatusPath = "/mockserver/status";
 const auto kResetPath = "/mockserver/reset";
+const auto kClearPath = "/mockserver/clear";
 const auto kTimeout = std::chrono::seconds{10};
+}  // namespace
 
 class Client {
  public:
@@ -54,6 +57,9 @@ class Client {
   Status::Ports Ports() const;
 
   void Reset();
+
+  void RemoveMockResponse(const std::string& method_matcher,
+                          const std::string& path_matcher);
 
  private:
   void CreateExpectation(const Expectation& expectation);
@@ -127,8 +133,28 @@ inline Status::Ports Client::Ports() const {
 inline void Client::Reset() {
   auto response = http_client_->CallApi(kResetPath, "PUT", {}, {}, {}, nullptr,
                                         "", olp::client::CancellationContext{});
+}
 
-  return;
+inline void Client::RemoveMockResponse(const std::string& method_matcher,
+                                       const std::string& path_matcher) {
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+
+  writer.StartObject();
+  writer.Key("method");
+  writer.String(method_matcher.c_str());
+  writer.Key("path");
+  writer.String(path_matcher.c_str());
+  writer.EndObject();
+
+  const auto data = std::string{buffer.GetString()};
+
+  const auto request_body =
+      std::make_shared<std::vector<unsigned char>>(data.begin(), data.end());
+
+  auto response =
+      http_client_->CallApi(kClearPath, "PUT", {}, {}, {}, request_body, "",
+                            olp::client::CancellationContext{});
 }
 
 inline void Client::CreateExpectation(const Expectation& expectation) {
@@ -139,8 +165,6 @@ inline void Client::CreateExpectation(const Expectation& expectation) {
   auto response =
       http_client_->CallApi(kExpectationPath, "PUT", {}, {}, {}, request_body,
                             "", olp::client::CancellationContext{});
-
-  return;
 }
 
 }  // namespace mockserver
