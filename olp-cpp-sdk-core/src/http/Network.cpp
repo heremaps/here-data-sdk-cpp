@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 #include "olp/core/http/Network.h"
 
+#include "http/DefaultNetwork.h"
 #include "olp/core/utils/WarningWorkarounds.h"
 
 #ifdef OLP_SDK_NETWORK_HAS_CURL
@@ -34,8 +35,8 @@
 namespace olp {
 namespace http {
 
-CORE_API std::shared_ptr<Network> CreateDefaultNetwork(
-    size_t max_requests_count) {
+namespace {
+std::shared_ptr<Network> CreateDefaultNetworkImpl(size_t max_requests_count) {
   CORE_UNUSED(max_requests_count);
 #ifdef OLP_SDK_NETWORK_HAS_CURL
   return std::make_shared<NetworkCurl>(max_requests_count);
@@ -48,6 +49,16 @@ CORE_API std::shared_ptr<Network> CreateDefaultNetwork(
 #else
   static_assert(false, "No default network implementation provided");
 #endif
+}
+}  // namespace
+
+CORE_API std::shared_ptr<Network> CreateDefaultNetwork(
+    size_t max_requests_count) {
+  auto network = CreateDefaultNetworkImpl(max_requests_count);
+  if (network) {
+    return std::make_shared<DefaultNetwork>(network);
+  }
+  return nullptr;
 }
 
 }  // namespace http

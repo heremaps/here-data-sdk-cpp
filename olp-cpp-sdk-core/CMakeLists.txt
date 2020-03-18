@@ -218,6 +218,8 @@ set(OLP_SDK_CLIENT_SOURCES
 )
 
 set(OLP_SDK_HTTP_SOURCES
+    ./src/http/DefaultNetwork.cpp
+    ./src/http/DefaultNetwork.h
     ./src/http/Network.cpp
     ./src/http/NetworkProxySettings.cpp
     ./src/http/NetworkRequest.cpp
