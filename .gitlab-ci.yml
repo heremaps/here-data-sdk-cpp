@@ -15,6 +15,9 @@ wv_security_job:
   tags:
   - docker-prod
   image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_SECURITY}:${DOCKER_IMAGE_SECURITY_VERSION}
+  variables:
+    LD_PRELOAD: "/lib64/libSegFault.so"
+    SEGFAULT_SIGNALS: "all"
   script:
   - $CI_PROJECT_DIR/scripts/linux/weekly/build_centos_debug_wv.sh --centos
   - $CI_PROJECT_DIR/scripts/linux/weekly/security_scanner_upload_wv.sh build/binaries.tar.gz OLP_EDGE_CI@here.com

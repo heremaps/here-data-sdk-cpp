@@ -46,7 +46,7 @@ tar -tvf build/binaries.tar.gz
 
 echo "Packed file: $1. Uploading it..."
 
-curl -f -v -k -H"X-spc-${SECURITY_SCANNER}-username:${SECURITY_API_USER}" -H"X-spc-${SECURITY_SCANNER}-password:${SECURITY_API_PWD}" \
+/usr/local/bin/curl -f -v -k -H"X-spc-${SECURITY_SCANNER}-username:${SECURITY_API_USER}" -H"X-spc-${SECURITY_SCANNER}-password:${SECURITY_API_PWD}" \
 -H"X-spc-${SECURITY_SCANNER}-email:$2" -F"file=@$1" https://${SECURITY_API_URL}/${SECURITY_SCANNER}-ws/analysis/start/454830/version/edge-sdk-cpp-${LATEST_HASH}
 
 echo "File $1 was uploaded to Security Scanner via API"
