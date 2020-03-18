@@ -228,11 +228,19 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
 
         // Calculate the minimal set of Tile keys and depth to
         // cover tree.
+        bool request_only_input_tiles =
+            !(request.GetMinLevel() > 0 &&
+              request.GetMinLevel() < request.GetMaxLevel() &&
+              request.GetMaxLevel() < geo::TileKey().Level() &&
+              request.GetMinLevel() < geo::TileKey().Level());
+        unsigned int min_level =
+            (request_only_input_tiles ? 0 : request.GetMinLevel());
+        unsigned int max_level =
+            (request_only_input_tiles ? 0 : request.GetMaxLevel());
 
         auto sliced_tiles =
             repository::PrefetchTilesRepository::GetSlicedTilesForRequest(
-                request.GetTileKeys(), request.GetMinLevel(),
-                request.GetMaxLevel());
+                request.GetTileKeys(), min_level, max_level);
 
         if (sliced_tiles.empty()) {
           OLP_SDK_LOG_WARNING_F(kLogTag,
@@ -269,9 +277,6 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
         std::vector<CancellationContext> contexts;
         contexts.reserve(tiles_result.size() + 1u);
         auto it = tiles_result.begin();
-        bool request_only_input_tiles =
-            (request.GetMinLevel() == request.GetMaxLevel());
-
         while (!context.IsCancelled() && it != tiles_result.end()) {
           auto tile = it->first;
           auto handle = it->second;
@@ -282,6 +287,11 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
               it++;
               continue;
             }
+          } else if (tile.Level() < request.GetMinLevel() ||
+                     tile.Level() > request.GetMaxLevel()) {
+            // tile within min/max segment, skip this tile
+            it++;
+            continue;
           }
 
           auto promise = std::make_shared<PrefetchResultPromise>();

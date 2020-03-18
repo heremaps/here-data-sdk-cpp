@@ -212,7 +212,7 @@
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/23618364/depths/0)"
 
 #define URL_QUADKEYS_1476147 \
-  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/1476147/depths/0)"
+  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/1476147/depths/2)"
 
 #define URL_QUADKEYS_5904591 \
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/5904591/depths/1)"

@@ -1542,7 +1542,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
 
     auto request = olp::dataservice::read::PrefetchTilesRequest()
                        .WithTileKeys(tile_keys)
-                       .WithMinLevel(10)
+                       .WithMinLevel(11)
                        .WithMaxLevel(12);
 
     auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
@@ -1590,7 +1590,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
     std::future<DataResponse> future = promise->get_future();
 
     auto token = client->GetData(olp::dataservice::read::DataRequest()
-                                     .WithPartitionId("1476147")
+                                     .WithPartitionId("23618366")
                                      .WithFetchOption(CacheOnly),
                                  [promise](DataResponse response) {
                                    promise->set_value(std::move(response));
@@ -1671,7 +1671,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       olp::geo::TileKey::FromHereTile(kParitionId)};
   auto request = olp::dataservice::read::PrefetchTilesRequest()
                      .WithTileKeys(tile_keys)
-                     .WithMinLevel(10)
+                     .WithMinLevel(11)
                      .WithMaxLevel(12);
 
   auto token = client->PrefetchTiles(

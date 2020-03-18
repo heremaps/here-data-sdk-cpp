@@ -136,11 +136,6 @@ void PrefetchTilesRepository::SplitSubtree(
 RootTilesForRequest PrefetchTilesRepository::GetSlicedTilesForRequest(
     const std::vector<geo::TileKey>& tile_keys, unsigned int min,
     unsigned int max) {
-  // adjust min/max values.
-  if (min > max || max >= geo::TileKey().Level()) {
-    // min/max levels are wrong. Reset to dafault case, which is 0/0
-    min = max = 0;
-  }
 
   RootTilesForRequest root_tiles_depth;
   // adjust root tiles to min level
@@ -268,8 +263,10 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
 
   for (const auto& subquad : subquads) {
     auto subtile = tile.AddedSubHereTile(subquad->GetSubQuadKey());
-    OLP_SDK_LOG_INFO_F(kLogTag, "GetSubQuad key(%s, %" PRId64 ", %" PRId32 ")",
-                       subtile.ToHereTile().c_str(), version, depth);
+    OLP_SDK_LOG_TRACE_F(kLogTag,
+                        "GetSubQuad key(%s, %s | %" PRId64 ", %" PRId32 ")",
+                        subtile.ToHereTile().c_str(),
+                        subquad->GetDataHandle().c_str(), version, depth);
     // Add to result
     result.emplace(subtile, subquad->GetDataHandle());
 
