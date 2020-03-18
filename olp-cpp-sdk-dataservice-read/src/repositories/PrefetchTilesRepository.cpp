@@ -48,117 +48,146 @@ constexpr std::uint32_t kMaxQuadTreeIndexDepth = 4u;
 
 using namespace olp::client;
 
-SubQuadsRequest PrefetchTilesRepository::EffectiveTileKeys(
-    const std::vector<geo::TileKey>& tile_keys, unsigned int min_level,
-    unsigned int max_level) {
-  SubQuadsRequest ret;
-  for (auto tile_key : tile_keys) {
-    auto child_tiles = EffectiveTileKeys(tile_key, min_level, max_level, true);
-    for (auto tile : child_tiles) {
-      // check if child already exist, if so, use the greater depth
-      auto old_child = ret.find(tile.first);
-      if (old_child != ret.end()) {
-        ret[tile.first] = std::max((*old_child).second, tile.second);
-      } else {
-        ret[tile.first] = tile.second;
-      }
-    }
-  }
-
-  return ret;
-}
-
-SubQuadsRequest PrefetchTilesRepository::EffectiveTileKeys(
-    const geo::TileKey& tile_key, unsigned int min_level,
-    unsigned int max_level, bool add_ancestors) {
-  SubQuadsRequest ret;
-  auto current_level = tile_key.Level();
-
-  // min/max values was not set. Use default wide range.
-  if (max_level == 0 && min_level == 0) {
-    max_level = geo::TileKey().Level();
-  }
-
-  auto AddParents = [&]() {
-    auto tile{tile_key.Parent()};
-    while (tile.Level() >= min_level && tile.IsValid()) {
-      if (tile.Level() <= max_level)
-        ret[tile.ToHereTile()] = std::make_pair(tile, 0);
-      tile = tile.Parent();
-    }
-  };
-
-  auto AddChildren = [&](const geo::TileKey& tile, unsigned int min,
-                         unsigned int max) {
-    auto child_tiles = EffectiveTileKeys(tile, min, max, false);
-    for (auto tile : child_tiles) {
-      // check if child already exist, if so, use the greater depth
-      auto old_child = ret.find(tile.first);
-      if (old_child != ret.end())
-        ret[tile.first] = std::max((*old_child).second, tile.second);
-      else
-        ret[tile.first] = tile.second;
-    }
-  };
-
-  if (current_level > max_level) {
-    // if this tile is greater than max, find the parent of this and push the
-    // ones between min and max
-    AddParents();
-  } else if (current_level < min_level) {
-    // if this tile is less than min, find the children that are min and start
-    // from there
-    auto children = GetChildAtLevel(tile_key, min_level);
-    for (auto child : children) {
-      AddChildren(child, min_level, max_level);
-    }
-  } else {
-    // tile is within min and max
-    if (add_ancestors) {
-      AddParents();
-    }
-
-    auto tile_key_str = tile_key.ToHereTile();
-    if (max_level - current_level <= kMaxQuadTreeIndexDepth) {
-      ret[tile_key_str] = std::make_pair(tile_key, max_level - current_level);
-    } else {
-      // Backend only takes kMaxQuadTreeIndexDepth at a time, so we have to
-      // manually calculate all the tiles that should included
-      ret[tile_key_str] = std::make_pair(tile_key, kMaxQuadTreeIndexDepth);
-      auto children =
-          GetChildAtLevel(tile_key, current_level + kMaxQuadTreeIndexDepth + 1);
-      for (auto child : children) {
-        AddChildren(child, current_level,
-                    current_level + kMaxQuadTreeIndexDepth);
-      }
-    }
-  }
-
-  return ret;
-}
-
-std::vector<geo::TileKey> PrefetchTilesRepository::GetChildAtLevel(
-    const geo::TileKey& tile_key, unsigned int min_level) {
+std::vector<geo::TileKey> PrefetchTilesRepository::GetChilds(
+    const geo::TileKey& tile_key) {
   if (!tile_key.IsValid()) {
     return {};
   }
-  if (tile_key.Level() >= min_level) {
-    return {tile_key};
-  }
-
   std::vector<geo::TileKey> ret;
   for (std::uint8_t index = 0; index < kMaxQuadTreeIndexDepth; ++index) {
-    auto child = GetChildAtLevel(tile_key.GetChild(index), min_level);
-    ret.insert(ret.end(), child.begin(), child.end());
+    auto tile = tile_key.GetChild(index);
+    if (tile_key.IsValid()) {
+      ret.emplace_back(std::move(tile));
+    }
+  }
+  return ret;
+}
+
+std::vector<geo::TileKey> PrefetchTilesRepository::GetChildsAt4LevelsDown(
+    const geo::TileKey& tile_key) {
+  int levels = kMaxQuadTreeIndexDepth + 1;
+  std::vector<geo::TileKey> childrens;
+  std::vector<geo::TileKey> tiles{tile_key};
+  childrens.reserve(std::pow(4, 4));
+  tiles.reserve(std::pow(4, 4));
+
+  while (levels-- > 0) {
+    for (const auto& child : tiles) {
+      auto tile_childrens = GetChilds(child);
+      childrens.insert(childrens.end(),
+                       std::make_move_iterator(tile_childrens.begin()),
+                       std::make_move_iterator(tile_childrens.end()));
+    }
+    if (childrens.empty()) {
+      break;
+    }
+    tiles = childrens;
+    childrens.clear();
+  }
+  return tiles;
+}
+
+void PrefetchTilesRepository::SplitSubtree(
+    RootTilesForRequest& root_tiles_depth,
+    RootTilesForRequest::iterator subtree_to_split) {
+  unsigned int depth = subtree_to_split->second;
+  if (depth <= kMaxQuadTreeIndexDepth) {
+    return;
   }
 
-  return ret;
+  std::vector<geo::TileKey>
+      childrens_to_process;  // total child tiles to process
+  childrens_to_process.reserve(std::pow(4, depth));
+  std::vector<geo::TileKey> sliced_children;
+  std::vector<geo::TileKey> next_slice = GetChildsAt4LevelsDown(
+      subtree_to_split->first);  // first slice of children
+
+  while (depth > kMaxQuadTreeIndexDepth) {
+    sliced_children.swap(next_slice);
+    next_slice.clear();
+    // get all childrens 4 levels down for each slice
+    for (const auto& tile : sliced_children) {
+      auto children = GetChildsAt4LevelsDown(tile);
+      // add all children's of given tile to next slice
+      next_slice.insert(next_slice.end(),
+                        std::make_move_iterator(children.begin()),
+                        std::make_move_iterator(children.end()));
+    }
+    // add slice to childrens to process
+    childrens_to_process.insert(
+        childrens_to_process.end(),
+        std::make_move_iterator(sliced_children.begin()),
+        std::make_move_iterator(sliced_children.end()));
+
+    depth -= (kMaxQuadTreeIndexDepth +
+              1);  // max depth is 4, but root child is on depth 0
+  }
+
+  for (const auto& tile : childrens_to_process) {
+    auto it = root_tiles_depth.insert({tile, 4});
+    // element already exist, update depth with max value(should never hapen)
+    if (it.second == false) {
+      it.first->second = 4;
+    }
+  }
+
+}
+
+RootTilesForRequest PrefetchTilesRepository::GetSlicedTilesForRequest(
+    const std::vector<geo::TileKey>& tile_keys, unsigned int min,
+    unsigned int max) {
+  // adjust min/max values.
+  if (min > max || max >= geo::TileKey().Level()) {
+    // min/max levels are wrong. Reset to dafault case, which is 0/0
+    min = max = 0;
+  }
+
+  RootTilesForRequest root_tiles_depth;
+  // adjust root tiles to min level
+  for (auto tile_key : tile_keys) {
+    unsigned int min_level = min;
+    unsigned int max_level = max;
+
+    if (max_level == min_level) {
+      if (max_level == 0) {  // special case, adjust levels to input tile level
+        max_level = tile_key.Level();
+        min_level =
+            (max_level > kMaxQuadTreeIndexDepth) ? (max_level - 4) : (1);
+      } else {
+        // min max values are the same
+        // to reduce methadata requests, go 4 levels up
+        min_level =
+            (min_level > kMaxQuadTreeIndexDepth) ? (min_level - 4) : (1);
+      }
+    }
+
+    // go up till min level is reached
+    while (tile_key.Level() >= min_level && tile_key.IsValid()) {
+      auto parent = tile_key.Parent();
+      if (tile_key.Level() == min_level || !parent.IsValid()) {
+        auto it = root_tiles_depth.insert({tile_key, max_level - min_level});
+        // element already exist, update depth with max value
+        if (it.second == false) {
+          it.first->second = std::max(it.first->second, max_level - min_level);
+        }
+        // if depth is greater than kMaxQuadTreeIndexDepth, need to split
+        if (it.first->second > kMaxQuadTreeIndexDepth) {
+          // split subtree on chunks with depth kMaxQuadTreeIndexDepth
+          SplitSubtree(root_tiles_depth, it.first);
+          it.first->second = kMaxQuadTreeIndexDepth;
+        }
+      }
+      tile_key = parent;
+    }
+  }
+  return root_tiles_depth;
 }
 
 SubTilesResponse PrefetchTilesRepository::GetSubTiles(
     const client::HRN& catalog, const std::string& layer_id,
-    const PrefetchTilesRequest& request, const SubQuadsRequest& sub_quads,
-    CancellationContext context, const client::OlpClientSettings& settings) {
+    const PrefetchTilesRequest& request, const RootTilesForRequest& root_tiles,
+    client::CancellationContext context,
+    const client::OlpClientSettings& settings) {
   // Version needs to be set, else we cannot move forward
   if (!request.GetVersion()) {
     OLP_SDK_LOG_WARNING_F(kLogTag,
@@ -169,19 +198,17 @@ SubTilesResponse PrefetchTilesRepository::GetSubTiles(
   SubTilesResult result;
   OLP_SDK_LOG_INFO_F(kLogTag, "GetSubTiles: hrn=%s, layer=%s, quads=%zu",
                      catalog.ToString().c_str(), layer_id.c_str(),
-                     sub_quads.size());
+                     root_tiles.size());
 
-  for (const auto& quad : sub_quads) {
+  for (const auto& quad : root_tiles) {
     if (context.IsCancelled()) {
       return client::ApiError{ErrorCode::Cancelled, "Cancelled", true};
     }
 
-    auto& tile = quad.second.first;
-    auto& depth = quad.second.second;
-
+    auto& tile = quad.first;
+    auto& depth = quad.second;
     auto response =
         GetSubQuads(catalog, layer_id, request, tile, depth, settings, context);
-
     if (!response.IsSuccessful()) {
       // Just abort if something else then 404 Not Found is returned
       auto& error = response.GetError();
@@ -190,11 +217,9 @@ SubTilesResponse PrefetchTilesRepository::GetSubTiles(
       }
     }
     auto subtiles = response.MoveResult();
-    result.reserve(result.size() + subtiles.size());
-    result.insert(result.end(), std::make_move_iterator(subtiles.begin()),
+    result.insert(std::make_move_iterator(subtiles.begin()),
                   std::make_move_iterator(subtiles.end()));
   }
-
   return result;
 }
 
@@ -238,14 +263,15 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
   model::Partitions partitions;
 
   const auto& subquads = quad_tree.GetResult().GetSubQuads();
-  result.reserve(subquads.size());
+  // result.reserve(subquads.size());
   partitions.GetMutablePartitions().reserve(subquads.size());
 
   for (const auto& subquad : subquads) {
     auto subtile = tile.AddedSubHereTile(subquad->GetSubQuadKey());
-
+    OLP_SDK_LOG_INFO_F(kLogTag, "GetSubQuad key(%s, %" PRId64 ", %" PRId32 ")",
+                       subtile.ToHereTile().c_str(), version, depth);
     // Add to result
-    result.emplace_back(subtile, subquad->GetDataHandle());
+    result.emplace(subtile, subquad->GetDataHandle());
 
     // add to bulk partitions for cacheing
     partitions.GetMutablePartitions().emplace_back(

@@ -280,8 +280,8 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    *
    * This method recursively downloads all tile keys from the `minLevel`
    * parameter to the `maxLevel` parameter of the \c PrefetchTilesRequest
-   * object. It helps to reduce the network load by using the prefetched tiles
-   * data from the cache.
+   * object for the given root tiles. It helps to reduce the network load by
+   * using the prefetched tiles data from the cache.
    *
    * @note This method does not guarantee that all tiles are available offline
    * as the cache might overflow, and data might be evicted at any point.
@@ -302,8 +302,8 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    *
    * This method recursively downloads all tile keys from the `minLevel`
    * parameter to the `maxLevel` parameter of the \c PrefetchTilesRequest
-   * object. It helps to reduce the network load by using the prefetched tiles
-   * data from the cache.
+   * object for the given root tiles. It helps to reduce the network load by
+   * using the prefetched tiles data from the cache.
    *
    * @note This method does not guarantee that all tiles are available offline
    * as the cache might overflow, and data might be evicted at any point.
