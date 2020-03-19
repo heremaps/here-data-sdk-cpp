@@ -1,3 +1,28 @@
+## v1.4.0 (23/03/2020)
+
+**Common**
+
+* **Breaking Change** Removed the deprecated `disk_path` property. Use the `disk_path_mutable` property instead.
+* The `DefaultCache` constructor is now explicit and takes `CacheSettings` by value.
+* Fixed data that was not validated during reading from LevelDB when the `olp::cache::OpenOptions::CheckCrc` property was provided.
+* Various improvements in `olp::http::NetworkCurl` implementation. Some legacy features were removed.
+* Added the `SetDefaultHeaders` method to `olp::http::Network`. Now, you can set default HTTP headers for each request made by `Network`. User agents set with default headers and user agents passed with network requests are concatenated into one header.
+* Reduced compiler warnings about deprecated methods and classes.
+
+**olp-cpp-sdk-authentication**
+
+* Removed the deprecated `AuthenticationClient::SignInClient` method.
+
+**olp-cpp-sdk-dataservice-read**
+
+* Added the `RemoveFromCache` method to `VersionedLayerClient`. Now, you can remove specific partitions or tiles from the mutable cache.
+* `VersionedLayerClient` now triggers an error when the request is passed with `FetchOption::CacheWithUpdate`. It makes no sense to update data when it is available in a cache for `VersionedLayerClient` since the version is locked.
+* Now, when you pass a request to `VersionedLayerClient` or `VolatileLayerClient` with `FetchOption::OnlineOnly`, data is not stored in a cache. It is designed for a use case when you are not interested in storing data in a cache.
+
+**olp-cpp-sdk-dataservice-write**
+
+* Deprecated the  `olp::dataservice::write::StreamLayerClient::CreateDefaultCache` method. It will be removed by 06.2020.
+
 ## v1.3.0 (04/03/2020)
 
 **Common**
