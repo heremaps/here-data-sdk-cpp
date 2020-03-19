@@ -1605,6 +1605,65 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
   }
 }
 
+
+TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchSibilingTilesDefaultLevels) {
+  olp::client::HRN catalog(GetTestCatalog());
+  constexpr auto kLayerId = "hype-test-prefetch";
+
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      catalog, kLayerId, *settings_);
+  ASSERT_TRUE(client);
+
+  {
+    SCOPED_TRACE("Prefetch tiles online, ");
+    std::vector<olp::geo::TileKey> tile_keys = {
+        olp::geo::TileKey::FromHereTile("23618366"), olp::geo::TileKey::FromHereTile("23618365")};
+
+    EXPECT_CALL(*network_mock_,
+            Send(IsGetRequest(URL_QUADKEYS_92259), _, _, _, _))
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               HTTP_RESPONSE_QUADKEYS_92259));
+    EXPECT_CALL(*network_mock_,
+            Send(IsGetRequest(URL_QUADKEYS_23618364), _, _, _, _))
+        .Times(0);
+    EXPECT_CALL(*network_mock_,
+            Send(IsGetRequest(URL_QUADKEYS_1476147), _, _, _, _))
+        .Times(0);
+    EXPECT_CALL(*network_mock_,
+            Send(IsGetRequest(URL_QUADKEYS_5904591), _, _, _, _))
+        .Times(0);
+    EXPECT_CALL(*network_mock_,
+            Send(IsGetRequest(URL_QUADKEYS_369036), _, _, _, _))
+        .Times(0);
+
+    auto request = olp::dataservice::read::PrefetchTilesRequest()
+                       .WithTileKeys(tile_keys)
+                       .WithMinLevel(0)
+                       .WithMaxLevel(0);
+
+    auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
+    std::future<PrefetchTilesResponse> future = promise->get_future();
+    auto token = client->PrefetchTiles(
+        request, [promise](PrefetchTilesResponse response) {
+          promise->set_value(std::move(response));
+        });
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_FALSE(response.GetResult().empty());
+
+    const auto& result = response.GetResult();
+
+    for (auto tile_result : result) {
+      ASSERT_TRUE(tile_result->IsSuccessful());
+      ASSERT_TRUE(tile_result->tile_key_.IsValid());
+    }
+  }
+}
+
 TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWrongLevels) {
   olp::client::HRN catalog(GetTestCatalog());
   constexpr auto kLayerId = "hype-test-prefetch";
