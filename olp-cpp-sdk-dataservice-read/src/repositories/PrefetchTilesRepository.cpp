@@ -67,10 +67,11 @@ void PrefetchTilesRepository::SplitSubtree(
     const std::uint64_t endTileKey = beginTileKey + childCount;
 
     for (std::uint64_t key = beginTileKey; key < endTileKey; ++key) {
-      auto it = root_tiles_depth.insert({geo::TileKey::FromQuadKey64(key), 4});
+      auto it = root_tiles_depth.insert(
+          {geo::TileKey::FromQuadKey64(key), kMaxQuadTreeIndexDepth});
       // element already exist, update depth with max value(should never hapen)
       if (it.second == false) {
-        it.first->second = 4;
+        it.first->second = kMaxQuadTreeIndexDepth;
       }
     }
     depth -= (kMaxQuadTreeIndexDepth + 1);
@@ -90,13 +91,15 @@ RootTilesForRequest PrefetchTilesRepository::GetSlicedTiles(
     if (max_level == min_level) {
       if (max_level == 0) {  // special case, adjust levels to input tile level
         max_level = tile_key.Level();
-        min_level =
-            (max_level > kMaxQuadTreeIndexDepth) ? (max_level - 4) : (1);
+        min_level = (max_level > kMaxQuadTreeIndexDepth)
+                        ? (max_level - kMaxQuadTreeIndexDepth)
+                        : (1);
       } else {
         // min max values are the same
         // to reduce methadata requests, go 4 levels up
-        min_level =
-            (min_level > kMaxQuadTreeIndexDepth) ? (min_level - 4) : (1);
+        min_level = (min_level > kMaxQuadTreeIndexDepth)
+                        ? (min_level - kMaxQuadTreeIndexDepth)
+                        : (1);
       }
     }
 
@@ -201,7 +204,6 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
   model::Partitions partitions;
 
   const auto& subquads = quad_tree.GetResult().GetSubQuads();
-  // result.reserve(subquads.size());
   partitions.GetMutablePartitions().reserve(subquads.size());
 
   for (const auto& subquad : subquads) {

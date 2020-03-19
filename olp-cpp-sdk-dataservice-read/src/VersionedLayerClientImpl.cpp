@@ -306,9 +306,8 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
 
           AddTask(settings.task_scheduler, pending_requests,
                   [=](CancellationContext inner_context) {
-                    // Get blob data
-                    // need to be changed to check if data in cache, if not,
-                    // only than load it
+                    // TODO: Get blob data need to be changed to check if data
+                    // in cache, if not, only than load it
                     auto data = repository::DataRepository::GetVersionedData(
                         catalog, layer_id,
                         DataRequest().WithDataHandle(handle).WithBillingTag(
