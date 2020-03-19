@@ -48,95 +48,39 @@ constexpr std::uint32_t kMaxQuadTreeIndexDepth = 4u;
 
 using namespace olp::client;
 
-std::vector<geo::TileKey> PrefetchTilesRepository::GetChilds(
-    const geo::TileKey& tile_key) {
-  if (!tile_key.IsValid()) {
-    return {};
-  }
-  std::vector<geo::TileKey> ret;
-  for (std::uint8_t index = 0; index < kMaxQuadTreeIndexDepth; ++index) {
-    auto tile = tile_key.GetChild(index);
-    if (tile_key.IsValid()) {
-      ret.emplace_back(std::move(tile));
-    }
-  }
-  return ret;
-}
-
-std::vector<geo::TileKey> PrefetchTilesRepository::GetChildsAt4LevelsDown(
-    const geo::TileKey& tile_key) {
-  int levels = kMaxQuadTreeIndexDepth + 1;
-  std::vector<geo::TileKey> childrens;
-  std::vector<geo::TileKey> tiles{tile_key};
-  childrens.reserve(std::pow(4, 4));
-  tiles.reserve(std::pow(4, 4));
-
-  while (levels-- > 0) {
-    for (const auto& child : tiles) {
-      auto tile_childrens = GetChilds(child);
-      childrens.insert(childrens.end(),
-                       std::make_move_iterator(tile_childrens.begin()),
-                       std::make_move_iterator(tile_childrens.end()));
-    }
-    if (childrens.empty()) {
-      break;
-    }
-    tiles = childrens;
-    childrens.clear();
-  }
-  return tiles;
-}
-
 void PrefetchTilesRepository::SplitSubtree(
     RootTilesForRequest& root_tiles_depth,
     RootTilesForRequest::iterator subtree_to_split) {
   unsigned int depth = subtree_to_split->second;
+  auto tileKey = subtree_to_split->first;
   if (depth <= kMaxQuadTreeIndexDepth) {
     return;
   }
-
-  std::vector<geo::TileKey>
-      childrens_to_process;  // total child tiles to process
-  childrens_to_process.reserve(std::pow(4, depth));
-  std::vector<geo::TileKey> sliced_children;
-  std::vector<geo::TileKey> next_slice = GetChildsAt4LevelsDown(
-      subtree_to_split->first);  // first slice of children
-
   while (depth > kMaxQuadTreeIndexDepth) {
-    sliced_children.swap(next_slice);
-    next_slice.clear();
-    // get all childrens 4 levels down for each slice
-    for (const auto& tile : sliced_children) {
-      auto children = GetChildsAt4LevelsDown(tile);
-      // add all children's of given tile to next slice
-      next_slice.insert(next_slice.end(),
-                        std::make_move_iterator(children.begin()),
-                        std::make_move_iterator(children.end()));
+    unsigned int level = depth - kMaxQuadTreeIndexDepth;
+    int childCount = geo::QuadKey64Helper::ChildrenAtLevel(level);
+
+    const geo::TileKey firstChild =
+        tileKey.ChangedLevelTo(tileKey.Level() + level);
+    const std::uint64_t beginTileKey = firstChild.ToQuadKey64();
+
+    const std::uint64_t endTileKey = beginTileKey + childCount;
+
+    for (std::uint64_t key = beginTileKey; key < endTileKey; ++key) {
+      auto it = root_tiles_depth.insert({geo::TileKey::FromQuadKey64(key), 4});
+      // element already exist, update depth with max value(should never hapen)
+      if (it.second == false) {
+        it.first->second = 4;
+      }
     }
-    // add slice to childrens to process
-    childrens_to_process.insert(
-        childrens_to_process.end(),
-        std::make_move_iterator(sliced_children.begin()),
-        std::make_move_iterator(sliced_children.end()));
-
-    depth -= (kMaxQuadTreeIndexDepth +
-              1);  // max depth is 4, but root child is on depth 0
+    depth -= (kMaxQuadTreeIndexDepth + 1);
   }
-
-  for (const auto& tile : childrens_to_process) {
-    auto it = root_tiles_depth.insert({tile, 4});
-    // element already exist, update depth with max value(should never hapen)
-    if (it.second == false) {
-      it.first->second = 4;
-    }
-  }
-
+  subtree_to_split->second = depth;
 }
 
-RootTilesForRequest PrefetchTilesRepository::GetSlicedTilesForRequest(
+RootTilesForRequest PrefetchTilesRepository::GetSlicedTiles(
     const std::vector<geo::TileKey>& tile_keys, unsigned int min,
     unsigned int max) {
-
   RootTilesForRequest root_tiles_depth;
   // adjust root tiles to min level
   for (auto tile_key : tile_keys) {
@@ -169,7 +113,6 @@ RootTilesForRequest PrefetchTilesRepository::GetSlicedTilesForRequest(
         if (it.first->second > kMaxQuadTreeIndexDepth) {
           // split subtree on chunks with depth kMaxQuadTreeIndexDepth
           SplitSubtree(root_tiles_depth, it.first);
-          it.first->second = kMaxQuadTreeIndexDepth;
         }
       }
       tile_key = parent;

@@ -45,8 +45,7 @@ namespace read {
 class DATASERVICE_READ_API PrefetchTilesRequest final {
  public:
   /**
-   * @brief Gets a vector with the tile keys, which is root tiles for min/max
-   * level to prefetch.
+   * @brief Get the vector of the root tile keys.
    *
    * @return The vector with the tile keys.
    */
@@ -55,10 +54,9 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   }
 
   /**
-   * @brief Sets the tile keys for the request.
+   * @brief Sets the vector of the root tile keys for the request.
    *
-   * @param tile_keys The vector with the root tile keys for min/max level to
-   * prefetch.
+   * @param tile_keys The vector with the root tile keys of the prefetch.
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
@@ -71,8 +69,8 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   /**
    * @brief Sets the tile keys for the request.
    *
-   * @param tile_keys The rvalue reference to the vector with the tile keys,
-   * which is root tiles for min/max level to prefetch.
+   * @param tile_keys The rvalue reference to the vector with the root tile keys
+   * of the prefetch.
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
@@ -100,6 +98,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
     min_level_ = min_level;
     return *this;
   }
+
   /**
    * @brief Gets the maximum tiles level to prefetch.
    *

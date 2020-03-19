@@ -238,9 +238,8 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
         unsigned int max_level =
             (request_only_input_tiles ? 0 : request.GetMaxLevel());
 
-        auto sliced_tiles =
-            repository::PrefetchTilesRepository::GetSlicedTilesForRequest(
-                request.GetTileKeys(), min_level, max_level);
+        auto sliced_tiles = repository::PrefetchTilesRepository::GetSlicedTiles(
+            request.GetTileKeys(), min_level, max_level);
 
         if (sliced_tiles.empty()) {
           OLP_SDK_LOG_WARNING_F(kLogTag,
@@ -277,19 +276,25 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
         std::vector<CancellationContext> contexts;
         contexts.reserve(tiles_result.size() + 1u);
         auto it = tiles_result.begin();
-        while (!context.IsCancelled() && it != tiles_result.end()) {
-          auto tile = it->first;
-          auto handle = it->second;
+        auto skip_tile = [&](const geo::TileKey& tile_key) {
           if (request_only_input_tiles) {
             if (std::find(request.GetTileKeys().begin(),
                           request.GetTileKeys().end(),
-                          tile) == request.GetTileKeys().end()) {
-              it++;
-              continue;
+                          tile_key) == request.GetTileKeys().end()) {
+              return true;
             }
-          } else if (tile.Level() < request.GetMinLevel() ||
-                     tile.Level() > request.GetMaxLevel()) {
-            // tile within min/max segment, skip this tile
+          } else if (tile_key.Level() < request.GetMinLevel() ||
+                     tile_key.Level() > request.GetMaxLevel()) {
+            // tile outside min/max segment, skip this tile
+            return true;
+          }
+          return false;
+        };
+
+        while (!context.IsCancelled() && it != tiles_result.end()) {
+          auto tile = it->first;
+          auto handle = it->second;
+          if (skip_tile(tile)) {
             it++;
             continue;
           }
