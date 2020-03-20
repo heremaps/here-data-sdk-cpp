@@ -93,13 +93,13 @@ RootTilesForRequest PrefetchTilesRepository::GetSlicedTiles(
         max_level = tile_key.Level();
         min_level = (max_level > kMaxQuadTreeIndexDepth)
                         ? (max_level - kMaxQuadTreeIndexDepth)
-                        : (1);
+                        : (1u);
       } else {
         // min max values are the same
         // to reduce methadata requests, go 4 levels up
         min_level = (min_level > kMaxQuadTreeIndexDepth)
                         ? (min_level - kMaxQuadTreeIndexDepth)
-                        : (1);
+                        : (1u);
       }
     }
 
@@ -208,7 +208,7 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
 
   for (const auto& subquad : subquads) {
     auto subtile = tile.AddedSubHereTile(subquad->GetSubQuadKey());
-    OLP_SDK_LOG_TRACE_F(kLogTag,
+    OLP_SDK_LOG_DEBUG_F(kLogTag,
                         "GetSubQuad key(%s, %s | %" PRId64 ", %" PRId32 ")",
                         subtile.ToHereTile().c_str(),
                         subquad->GetDataHandle().c_str(), version, depth);
