@@ -212,13 +212,16 @@
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/23618364/depths/0)"
 
 #define URL_QUADKEYS_1476147 \
-  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/1476147/depths/0)"
+  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/1476147/depths/2)"
 
 #define URL_QUADKEYS_5904591 \
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/5904591/depths/1)"
 
 #define URL_QUADKEYS_369036 \
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/369036/depths/0)"
+
+#define URL_QUADKEYS_92259 \
+  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/92259/depths/4)"
 
 #define URL_QUERY_PARTITION_23618365 \
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/)"+GetTestCatalog()+R"(/layers/hype-test-prefetch/partitions?partition=23618365&version=4)"
@@ -267,6 +270,9 @@
 
 #define HTTP_RESPONSE_QUADKEYS_369036 \
   R"jsonString({"subQuads": [{"version":4,"subQuadKey":"1","dataHandle":"data:Embedded Data for 369036"}],"parentQuads": []})jsonString"
+
+#define HTTP_RESPONSE_QUADKEYS_92259 \
+R"jsonString({"subQuads": [{"subQuadKey":"19","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"311","version":4,"dataHandle":"2d696e1f-4145-4bc9-b2b0-7420d1bc78c2"},{"subQuadKey":"316","version":4,"dataHandle":"f9a9fd8e-eb1b-48e5-bfdb-4392b3826443"},{"subQuadKey":"317","version":4,"dataHandle":"e119d20e-c7c6-4563-ae88-8aa5c6ca75c3"},{"subQuadKey":"318","version":4,"dataHandle":"a7a1afdf-db7e-4833-9627-d38bee6e2f81"},{"subQuadKey":"319","version":4,"dataHandle":"9d515348-afce-44e8-bc6f-3693cfbed104"},{"subQuadKey":"79","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString"
 
 #define HTTP_RESPONSE_BLOB_DATA_PREFETCH_1 \
   R"(--644ff000-704a-4f45-9988-c628602b7064)"

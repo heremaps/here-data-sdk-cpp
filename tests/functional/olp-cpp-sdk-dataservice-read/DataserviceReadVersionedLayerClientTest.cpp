@@ -216,7 +216,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
       ASSERT_TRUE(tile_result->tile_key_.IsValid());
     }
 
-    ASSERT_EQ(6u, result.size());
+    ASSERT_EQ(7u, result.size());
   }
 
   {
@@ -304,7 +304,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWrongLevels) {
         ASSERT_TRUE(tile_result->tile_key_.IsValid());
       }
 
-      ASSERT_EQ(10u, result.size());
+      ASSERT_EQ(tile_keys.size(), result.size());
     }
 
     {
@@ -323,11 +323,18 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWrongLevels) {
 
       ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
       PrefetchTilesResponse response = future.get();
-      EXPECT_FALSE(response.IsSuccessful());
-      ASSERT_TRUE(response.GetResult().empty());
+      EXPECT_TRUE(response.IsSuccessful());
+      const auto& result = response.GetResult();
+
+      for (auto tile_result : result) {
+        EXPECT_SUCCESS(*tile_result);
+        ASSERT_TRUE(tile_result->tile_key_.IsValid());
+      }
+
+      ASSERT_EQ(tile_keys.size(), result.size());
     }
     {
-      SCOPED_TRACE(" min/max levels are very wide range");
+      SCOPED_TRACE(" min/max levels invalid, but not equal");
       auto request = olp::dataservice::read::PrefetchTilesRequest()
                          .WithTileKeys(tile_keys)
                          .WithMinLevel(0)
@@ -350,7 +357,33 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWrongLevels) {
         ASSERT_TRUE(tile_result->tile_key_.IsValid());
       }
 
-      ASSERT_EQ(10u, result.size());
+      ASSERT_EQ(tile_keys.size(), result.size());
+    }
+    {
+      SCOPED_TRACE(" min level is zero");
+      auto request = olp::dataservice::read::PrefetchTilesRequest()
+                         .WithTileKeys(tile_keys)
+                         .WithMinLevel(0)
+                         .WithMaxLevel(3);
+
+      std::promise<PrefetchTilesResponse> promise;
+      std::future<PrefetchTilesResponse> future = promise.get_future();
+      auto token = client->PrefetchTiles(
+          request, [&promise](PrefetchTilesResponse response) {
+            promise.set_value(std::move(response));
+          });
+
+      ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+      PrefetchTilesResponse response = future.get();
+      EXPECT_SUCCESS(response);
+      const auto& result = response.GetResult();
+
+      for (auto tile_result : result) {
+        EXPECT_SUCCESS(*tile_result);
+        ASSERT_TRUE(tile_result->tile_key_.IsValid());
+      }
+
+      ASSERT_EQ(tile_keys.size(), result.size());
     }
   }
 }
@@ -389,7 +422,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWithCancellableFuture) {
     ASSERT_TRUE(tile_result->tile_key_.IsValid());
   }
 
-  ASSERT_EQ(6u, result.size());
+  ASSERT_EQ(7u, result.size());
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsWithInvalidHrn) {

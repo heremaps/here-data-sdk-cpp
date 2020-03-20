@@ -45,7 +45,7 @@ namespace read {
 class DATASERVICE_READ_API PrefetchTilesRequest final {
  public:
   /**
-   * @brief Gets a vector with the tile keys.
+   * @brief Get the vector of the root tile keys.
    *
    * @return The vector with the tile keys.
    */
@@ -54,9 +54,9 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   }
 
   /**
-   * @brief Sets the tile keys for the request.
+   * @brief Sets the vector of the root tile keys for the request.
    *
-   * @param tile_keys The vector with the tile keys.
+   * @param tile_keys The vector with the root tile keys of the prefetch.
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
@@ -67,9 +67,10 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   }
 
   /**
-   * @brief Sets the tile keys for the request.
+   * @brief Sets the vector of the root tile keys for the request.
    *
-   * @param tile_keys The rvalue reference to the vector with the tile keys.
+   * @param tile_keys The rvalue reference to the vector with the root tile keys
+   * of the prefetch.
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
@@ -80,16 +81,16 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   }
 
   /**
-   * @brief Gets the minimum tile level.
+   * @brief Gets the minimum tiles level to prefetch.
    *
    * @return The minimum tile level.
    */
   inline unsigned int GetMinLevel() const { return min_level_; }
 
   /**
-   * @brief Sets the minimum tile level for the request.
+   * @brief Sets the minimum tiles level for the request.
    *
-   * @param min_level The minimum tile level.
+   * @param min_level The minimum tiles level to prefetch.
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
@@ -97,8 +98,9 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
     min_level_ = min_level;
     return *this;
   }
+
   /**
-   * @brief Gets the maximum tile level.
+   * @brief Gets the maximum tiles level to prefetch.
    *
    * @return The maximum tile level.
    */
@@ -107,7 +109,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   /**
    * @brief Sets the maximum tile level for the request.
    *
-   * @param max_level The maximum tile level.
+   * @param max_level The maximum tile level to prefetch.
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */

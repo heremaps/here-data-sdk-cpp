@@ -229,11 +229,20 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
 
         // Calculate the minimal set of Tile keys and depth to
         // cover tree.
-        auto sub_quads = repository::PrefetchTilesRepository::EffectiveTileKeys(
-            request.GetTileKeys(), request.GetMinLevel(),
-            request.GetMaxLevel());
+        bool request_only_input_tiles =
+            !(request.GetMinLevel() > 0 &&
+              request.GetMinLevel() < request.GetMaxLevel() &&
+              request.GetMaxLevel() < geo::TileKey().Level() &&
+              request.GetMinLevel() < geo::TileKey().Level());
+        unsigned int min_level =
+            (request_only_input_tiles ? 0 : request.GetMinLevel());
+        unsigned int max_level =
+            (request_only_input_tiles ? 0 : request.GetMaxLevel());
 
-        if (sub_quads.empty()) {
+        auto sliced_tiles = repository::PrefetchTilesRepository::GetSlicedTiles(
+            request.GetTileKeys(), min_level, max_level);
+
+        if (sliced_tiles.empty()) {
           OLP_SDK_LOG_WARNING_F(kLogTag,
                                 "PrefetchTiles: tile/level mismatch, key=%s",
                                 key.c_str());
@@ -241,11 +250,10 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
         }
 
         OLP_SDK_LOG_DEBUG_F(kLogTag, "PrefetchTiles, subquads=%zu, key=%s",
-                            sub_quads.size(), key.c_str());
+                            sliced_tiles.size(), key.c_str());
 
-        // Now get metadata for subtiles using QueryApi::QuadTreeIndex
         auto sub_tiles = repository::PrefetchTilesRepository::GetSubTiles(
-            catalog, layer_id, request, sub_quads, context, settings);
+            catalog, layer_id, request, sliced_tiles, context, settings);
 
         if (!sub_tiles.IsSuccessful()) {
           return sub_tiles.GetError();
@@ -269,19 +277,38 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
         std::vector<CancellationContext> contexts;
         contexts.reserve(tiles_result.size() + 1u);
         auto it = tiles_result.begin();
+        auto skip_tile = [&](const geo::TileKey& tile_key) {
+          if (request_only_input_tiles) {
+            if (std::find(request.GetTileKeys().begin(),
+                          request.GetTileKeys().end(),
+                          tile_key) == request.GetTileKeys().end()) {
+              return true;
+            }
+          } else if (tile_key.Level() < request.GetMinLevel() ||
+                     tile_key.Level() > request.GetMaxLevel()) {
+            // tile outside min/max segment, skip this tile
+            return true;
+          }
+          return false;
+        };
 
         while (!context.IsCancelled() && it != tiles_result.end()) {
+          auto tile = it->first;
+          auto handle = it->second;
+          if (skip_tile(tile)) {
+            it++;
+            continue;
+          }
+
           auto promise = std::make_shared<PrefetchResultPromise>();
           auto flag = std::make_shared<std::atomic_bool>(false);
           futures->emplace_back(promise->get_future());
-
-          auto tile = it->first;
-          auto handle = it->second;
           auto context_it = contexts.emplace(contexts.end());
 
           AddTask(settings.task_scheduler, pending_requests,
                   [=](CancellationContext inner_context) {
-                    // Get blob data
+                    // TODO: Get blob data need to be changed to check if data
+                    // in cache, if not, only than load it
                     auto data = repository::DataRepository::GetVersionedData(
                         catalog, layer_id,
                         DataRequest().WithDataHandle(handle).WithBillingTag(

@@ -278,10 +278,12 @@ class DATASERVICE_READ_API VersionedLayerClient final {
   /**
    * @brief Prefetches a set of tiles asynchronously.
    *
-   * This method recursively downloads all tile keys from the `minLevel`
-   * parameter to the `maxLevel` parameter of the \c PrefetchTilesRequest
-   * object. It helps to reduce the network load by using the prefetched tiles
-   * data from the cache.
+   * This method recursively downloads all tile keys from the `min_level`
+   * parameter to the `max_level` parameter of the \c PrefetchTilesRequest
+   * object for the given root tiles. If min_level/max_level are the same or
+   * default, only tiles listed in \c PrefetchTilesRequest will be downloaded.
+   * Only tiles will be downloaded which are not already present in the cache,
+   * this helps reduce the network load.
    *
    * @note This method does not guarantee that all tiles are available offline
    * as the cache might overflow, and data might be evicted at any point.
@@ -300,10 +302,12 @@ class DATASERVICE_READ_API VersionedLayerClient final {
   /**
    * @brief Prefetches a set of tiles asynchronously.
    *
-   * This method recursively downloads all tile keys from the `minLevel`
-   * parameter to the `maxLevel` parameter of the \c PrefetchTilesRequest
-   * object. It helps to reduce the network load by using the prefetched tiles
-   * data from the cache.
+   * This method recursively downloads all tile keys from the `min_level`
+   * parameter to the `max_level` parameter of the \c PrefetchTilesRequest
+   * object for the given root tiles. If min_level/max_level are the same or
+   * default, only tiles listed in \c PrefetchTilesRequest will be downloaded.
+   * Only tiles will be downloaded which are not already present in the cache,
+   * this helps reduce the network load.
    *
    * @note This method does not guarantee that all tiles are available offline
    * as the cache might overflow, and data might be evicted at any point.
