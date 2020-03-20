@@ -46,7 +46,7 @@ class DataCacheRepository final {
   boost::optional<model::Data> Get(const std::string& layer_id,
                                    const std::string& data_handle);
 
-  void Clear(const std::string& layer_id, const std::string& data_handle);
+  bool Clear(const std::string& layer_id, const std::string& data_handle);
 
  private:
   client::HRN hrn_;

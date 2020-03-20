@@ -94,6 +94,10 @@ client::CancellableFuture<DataResponse> VersionedLayerClient::GetData(
   return impl_->GetData(std::move(request));
 }
 
+bool VersionedLayerClient::RemoveFromCache(const std::string& partition_id) {
+  return impl_->RemoveFromCache(partition_id);
+}
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

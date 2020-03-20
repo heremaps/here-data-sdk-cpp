@@ -29,6 +29,7 @@
 #include <olp/dataservice/read/CatalogVersionRequest.h>
 #include "Common.h"
 #include "repositories/CatalogRepository.h"
+#include "repositories/DataCacheRepository.h"
 #include "repositories/DataRepository.h"
 #include "repositories/PartitionsRepository.h"
 #include "repositories/PrefetchTilesRepository.h"
@@ -450,6 +451,24 @@ client::CancellableFuture<DataResponse> VersionedLayerClientImpl::GetData(
       });
   return client::CancellableFuture<DataResponse>(std::move(cancel_token),
                                                  std::move(promise));
+}
+
+bool VersionedLayerClientImpl::RemoveFromCache(
+    const std::string& partition_id) {
+  repository::PartitionsCacheRepository cache_repository(catalog_,
+                                                         settings_.cache);
+  boost::optional<model::Partition> partition;
+  if (!cache_repository.ClearPartitionMetadata(
+          catalog_version_.load(), partition_id, layer_id_, partition)) {
+    return false;
+  }
+
+  if (!partition) {
+    return true;
+  }
+
+  repository::DataCacheRepository data_repository(catalog_, settings_.cache);
+  return data_repository.Clear(layer_id_, partition.get().GetDataHandle());
 }
 
 PORTING_POP_WARNINGS()

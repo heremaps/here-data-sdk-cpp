@@ -62,12 +62,12 @@ boost::optional<model::Data> DataCacheRepository::Get(
   return std::move(cachedData);
 }
 
-void DataCacheRepository::Clear(const std::string& layer_id,
+bool DataCacheRepository::Clear(const std::string& layer_id,
                                 const std::string& data_handle) {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn, layer_id, data_handle);
-  OLP_SDK_LOG_TRACE_F(kLogTag, "Clear '%s'", key.c_str());
-  cache_->RemoveKeysWithPrefix(key);
+  OLP_SDK_LOG_INFO_F(kLogTag, "Clear '%s'", key.c_str());
+  return cache_->RemoveKeysWithPrefix(key);
 }
 
 }  // namespace repository
