@@ -331,6 +331,15 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    */
   bool RemoveFromCache(const std::string& partition_id);
 
+  /**
+   * @brief Removes the tile from the mutable disk cache.
+   *
+   * @param tile The tile key that should be removed.
+   *
+   * @return True if tile data is removed successfully; false otherwise.
+   */
+  bool RemoveFromCache(const geo::TileKey& tile);
+
  private:
   std::unique_ptr<VersionedLayerClientImpl> impl_;
 };
