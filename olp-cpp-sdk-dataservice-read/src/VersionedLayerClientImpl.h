@@ -83,6 +83,8 @@ class VersionedLayerClientImpl {
 
   virtual bool RemoveFromCache(const std::string& partition_id);
 
+  virtual bool RemoveFromCache(const geo::TileKey& tile);
+
  private:
   CatalogVersionResponse GetVersion(boost::optional<std::string> billing_tag,
                                     const FetchOptions& fetch_options,

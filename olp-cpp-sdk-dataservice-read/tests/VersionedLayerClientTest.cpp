@@ -76,7 +76,7 @@ TEST(VersionedLayerClientTest, GetData) {
   }
 }
 
-TEST(VersionedLayerClientTest, RemoveFromCache) {
+TEST(VersionedLayerClientTest, RemoveFromCachePartition) {
   olp::client::OlpClientSettings settings;
   std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
   settings.cache = cache_mock;
@@ -135,6 +135,69 @@ TEST(VersionedLayerClientTest, RemoveFromCache) {
         .WillOnce(partition_cache_remove)
         .WillOnce([](const std::string&) { return false; });
     ASSERT_FALSE(client.RemoveFromCache(kPartitionId));
+  }
+}
+
+TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
+  olp::client::OlpClientSettings settings;
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
+  settings.cache = cache_mock;
+
+  // successfull mock cache calls
+  auto found_cache_response = [](const std::string& key,
+                                 const olp::cache::Decoder& encoder) {
+    auto partition = model::Partition();
+    partition.SetPartition(kPartitionId);
+    partition.SetDataHandle(kBlobDataHandle);
+    return partition;
+  };
+  auto partition_cache_remove = [&](const std::string& prefix) {
+    std::string expected_prefix =
+        kHrn.ToCatalogHRNString() + "::" + kLayerId + "::" + kPartitionId +
+        "::" + std::to_string(kCatalogVersion) + "::partition";
+    EXPECT_EQ(prefix, expected_prefix);
+    return true;
+  };
+  auto data_cache_remove = [&](const std::string& prefix) {
+    std::string expected_prefix = kHrn.ToCatalogHRNString() + "::" + kLayerId +
+                                  "::" + kBlobDataHandle + "::Data";
+    EXPECT_EQ(prefix, expected_prefix);
+    return true;
+  };
+
+  auto tile_key = olp::geo::TileKey::FromHereTile(kPartitionId);
+  VersionedLayerClient client(kHrn, kLayerId, kCatalogVersion, settings);
+  {
+    SCOPED_TRACE("Successfull remove tile from cache");
+
+    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
+        .WillOnce(partition_cache_remove)
+        .WillOnce(data_cache_remove);
+    ASSERT_TRUE(client.RemoveFromCache(tile_key));
+  }
+  {
+    SCOPED_TRACE("Remove not existing tile from cache");
+    EXPECT_CALL(*cache_mock, Get(_, _))
+        .WillOnce([](const std::string&, const olp::cache::Decoder&) {
+          return boost::any();
+        });
+    ASSERT_TRUE(client.RemoveFromCache(tile_key));
+  }
+  {
+    SCOPED_TRACE("Partition cache failure");
+    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
+        .WillOnce([](const std::string&) { return false; });
+    ASSERT_FALSE(client.RemoveFromCache(tile_key));
+  }
+  {
+    SCOPED_TRACE("Data cache failure");
+    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
+        .WillOnce(partition_cache_remove)
+        .WillOnce([](const std::string&) { return false; });
+    ASSERT_FALSE(client.RemoveFromCache(tile_key));
   }
 }
 

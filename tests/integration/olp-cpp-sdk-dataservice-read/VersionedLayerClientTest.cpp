@@ -2795,7 +2795,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileTwoSequentialCalls) {
   }
 }
 
-TEST_F(DataserviceReadVersionedLayerClientTest, RemoveFromCache) {
+TEST_F(DataserviceReadVersionedLayerClientTest, RemoveFromCachePartition) {
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
@@ -2838,6 +2838,65 @@ TEST_F(DataserviceReadVersionedLayerClientTest, RemoveFromCache) {
 
   // remove the data from cache
   ASSERT_TRUE(client->RemoveFromCache(partition));
+
+  // check the data is not available in cache
+  promise = std::make_shared<std::promise<DataResponse>>();
+  future = promise->get_future();
+  data_request.WithFetchOption(CacheOnly);
+  token = client->GetData(data_request, [promise](DataResponse response) {
+    promise->set_value(response);
+  });
+
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  response = future.get();
+
+  ASSERT_FALSE(response.IsSuccessful());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, RemoveFromCacheTileKey) {
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponseLookupQuery))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponsePartition_269))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponseLookupBlob))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponseBlobData_269));
+
+  auto catalog = olp::client::HRN::FromString(
+      GetArgument("dataservice_read_test_catalog"));
+  auto layer = GetArgument("dataservice_read_test_layer");
+  auto version = std::stoi(GetArgument("dataservice_read_test_layer_version"));
+
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      catalog, layer, version, *settings_);
+  ASSERT_TRUE(client);
+
+  // load and cache some data
+  auto promise = std::make_shared<std::promise<DataResponse>>();
+  auto future = promise->get_future();
+  auto partition = GetArgument("dataservice_read_test_partition");
+  auto data_request =
+      olp::dataservice::read::DataRequest().WithPartitionId(partition);
+  auto token = client->GetData(data_request, [promise](DataResponse response) {
+    promise->set_value(response);
+  });
+
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  DataResponse response = future.get();
+
+  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_NE(response.GetResult(), nullptr);
+  ASSERT_NE(response.GetResult()->size(), 0u);
+
+  // remove the data from cache
+  auto tile_key = olp::geo::TileKey::FromHereTile(partition);
+  ASSERT_TRUE(client->RemoveFromCache(tile_key));
 
   // check the data is not available in cache
   promise = std::make_shared<std::promise<DataResponse>>();

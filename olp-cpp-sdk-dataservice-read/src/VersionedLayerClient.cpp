@@ -98,6 +98,11 @@ bool VersionedLayerClient::RemoveFromCache(const std::string& partition_id) {
   return impl_->RemoveFromCache(partition_id);
 }
 
+bool VersionedLayerClient::RemoveFromCache(const geo::TileKey& tile) {
+  return impl_->RemoveFromCache(tile);
+}
+
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

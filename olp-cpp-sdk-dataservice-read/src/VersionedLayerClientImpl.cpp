@@ -498,6 +498,11 @@ bool VersionedLayerClientImpl::RemoveFromCache(
   return data_repository.Clear(layer_id_, partition.get().GetDataHandle());
 }
 
+bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
+  auto partition_id = tile.ToHereTile();
+  return RemoveFromCache(partition_id);
+}
+
 PORTING_POP_WARNINGS()
 }  // namespace read
 }  // namespace dataservice
