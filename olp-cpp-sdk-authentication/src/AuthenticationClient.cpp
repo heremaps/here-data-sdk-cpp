@@ -615,7 +615,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInFederated(
     AuthenticationClient::SignInUserCallback callback) {
   auto payload =
       std::make_shared<std::vector<unsigned char>>(request_body.size());
-  std::memcpy(payload->data(), request_body.data(), request_body.size());
+  std::memcpy(payload->data(), request_body.data(), payload->size());
   return HandleUserRequest(credentials, kOauthEndpoint, payload, callback);
 }
 
