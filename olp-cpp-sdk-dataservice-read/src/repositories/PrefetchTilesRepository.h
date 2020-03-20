@@ -44,7 +44,7 @@ using SubQuadsResponse = client::ApiResponse<SubQuadsResult, client::ApiError>;
 using SubTilesResult = SubQuadsResult;
 using SubTilesResponse = client::ApiResponse<SubTilesResult, client::ApiError>;
 
-class PrefetchTilesRepository final {
+class PrefetchTilesRepository {
  public:
   /**
    * @brief Given tile keys, return all related tile keys that are between
@@ -67,7 +67,7 @@ class PrefetchTilesRepository final {
       client::CancellationContext context,
       const client::OlpClientSettings& settings);
 
- private:
+ protected:
   static SubQuadsResponse GetSubQuads(const client::HRN& catalog,
                                       const std::string& layer_id,
                                       const PrefetchTilesRequest& request,
