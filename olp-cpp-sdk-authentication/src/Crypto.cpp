@@ -123,7 +123,7 @@ std::vector<unsigned char> Crypto::sha256(
 
   // For security reasons restrict size to be less than size_t / 8 
   // because of calculaitons later
-  if ( src.size() > kMaxSize )
+  if (src.size() > kMaxSize)
   {
       return std::vector<unsigned char>();
   }
