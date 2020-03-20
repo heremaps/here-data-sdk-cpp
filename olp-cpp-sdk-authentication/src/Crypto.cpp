@@ -63,6 +63,9 @@ static uint32_t SHA256_K[SHA256_CONSTANTS_LENGTH] = {
 
 namespace olp {
 namespace authentication {
+
+auto constexpr kMaxSize = std::numeric_limits<size_t>::max() / 8;
+
 std::vector<uint8_t> Crypto::hmac_sha256(const std::string& key,
                                          const std::string& message) {
   std::vector<unsigned char> k0;
@@ -117,6 +120,13 @@ std::vector<unsigned char> Crypto::sha256(
     const std::vector<unsigned char>& src) {
   auto hashValue = sha256Init();
   std::vector<std::vector<unsigned char> > chucksToProcess;
+
+  // For security reasons restrict size to be less than size_t / 8 
+  // because of calculaitons later
+  if ( src.size() > kMaxSize )
+  {
+      return std::vector<unsigned char>();
+  }
 
   auto length = src.size();
   auto chunksCount = length / SHA256_LAST_CHUNK_LENGTH;
