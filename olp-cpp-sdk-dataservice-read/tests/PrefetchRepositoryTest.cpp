@@ -24,93 +24,96 @@
 namespace {
 using namespace olp::dataservice::read;
 
-class PrefetchRepositoryTest : public ::testing::Test,
-                               protected repository::PrefetchTilesRepository {};
+class PrefetchRepositoryTestable
+    : protected repository::PrefetchTilesRepository {
+ public:
+  using repository::PrefetchTilesRepository::GetSlicedTiles;
+  using repository::PrefetchTilesRepository::SplitSubtree;
+};
 
-TEST_F(PrefetchRepositoryTest, SplitTreeLevel5) {
+TEST(PrefetchRepositoryTest, SplitTreeLevel5) {
   repository::RootTilesForRequest root_tiles_depth;
   auto it =
       root_tiles_depth.emplace(olp::geo::TileKey::FromHereTile("5904591"), 5);
 
-  repository::PrefetchTilesRepository::SplitSubtree(root_tiles_depth, it.first);
+  PrefetchRepositoryTestable::SplitSubtree(root_tiles_depth, it.first);
   ASSERT_EQ(it.first->second, 0);
   ASSERT_EQ(root_tiles_depth.size(), 1 + pow(4, 1));
 }
 
-TEST_F(PrefetchRepositoryTest, SplitTreeLevel8) {
+TEST(PrefetchRepositoryTest, SplitTreeLevel8) {
   repository::RootTilesForRequest root_tiles_depth;
   auto it =
       root_tiles_depth.emplace(olp::geo::TileKey::FromHereTile("5904591"), 8);
 
-  repository::PrefetchTilesRepository::SplitSubtree(root_tiles_depth, it.first);
+  PrefetchRepositoryTestable::SplitSubtree(root_tiles_depth, it.first);
   ASSERT_EQ(it.first->second, 3);
   ASSERT_EQ(root_tiles_depth.size(), 1 + pow(4, 4));
 }
 
-TEST_F(PrefetchRepositoryTest, SplitTreeLevel9) {
+TEST(PrefetchRepositoryTest, SplitTreeLevel9) {
   repository::RootTilesForRequest root_tiles_depth;
   auto it =
       root_tiles_depth.emplace(olp::geo::TileKey::FromHereTile("5904591"), 9);
 
-  repository::PrefetchTilesRepository::SplitSubtree(root_tiles_depth, it.first);
+  PrefetchRepositoryTestable::SplitSubtree(root_tiles_depth, it.first);
   ASSERT_EQ(it.first->second, 4);
   ASSERT_EQ(root_tiles_depth.size(), 1 + pow(4, 5));
 }
 
-TEST_F(PrefetchRepositoryTest, SplitTreeLevel10) {
+TEST(PrefetchRepositoryTest, SplitTreeLevel10) {
   repository::RootTilesForRequest root_tiles_depth;
   auto it =
       root_tiles_depth.emplace(olp::geo::TileKey::FromHereTile("5904591"), 10);
 
-  repository::PrefetchTilesRepository::SplitSubtree(root_tiles_depth, it.first);
+  PrefetchRepositoryTestable::SplitSubtree(root_tiles_depth, it.first);
   ASSERT_EQ(it.first->second, 0);
   ASSERT_EQ(root_tiles_depth.size(), 1 + pow(4, 1) + pow(4, 6));
 }
 
-TEST_F(PrefetchRepositoryTest, GetSlicedTiles) {
+TEST(PrefetchRepositoryTest, GetSlicedTiles) {
   auto tile = olp::geo::TileKey::FromHereTile("5904591");
   auto root_tiles_depth =
-      repository::PrefetchTilesRepository::GetSlicedTiles({tile}, 0, 0);
+      PrefetchRepositoryTestable::GetSlicedTiles({tile}, 0, 0);
   ASSERT_EQ(root_tiles_depth.size(), 1);
   auto parent = tile.ChangedLevelBy(-4);
   ASSERT_EQ(root_tiles_depth.begin()->first, parent);
   ASSERT_EQ(root_tiles_depth.begin()->second, 4);
 }
 
-TEST_F(PrefetchRepositoryTest, GetSlicedTilesWithLevelsSpecified) {
+TEST(PrefetchRepositoryTest, GetSlicedTilesWithLevelsSpecified) {
   auto tile = olp::geo::TileKey::FromHereTile("5904591");
   auto root_tiles_depth =
-      repository::PrefetchTilesRepository::GetSlicedTiles({tile}, 11, 13);
+      PrefetchRepositoryTestable::GetSlicedTiles({tile}, 11, 13);
   ASSERT_EQ(root_tiles_depth.begin()->first, tile);
   ASSERT_EQ(root_tiles_depth.begin()->second, 2);
 }
 
-TEST_F(PrefetchRepositoryTest, GetSlicedTilesWithLevelsSpecified2) {
+TEST(PrefetchRepositoryTest, GetSlicedTilesWithLevelsSpecified2) {
   auto tile = olp::geo::TileKey::FromHereTile("5904591");  // level 11
   auto root_tiles_depth =
-      repository::PrefetchTilesRepository::GetSlicedTiles({tile}, 1, 13);
+      PrefetchRepositoryTestable::GetSlicedTiles({tile}, 1, 13);
   auto parent = tile.ChangedLevelBy(-10);
   ASSERT_EQ(root_tiles_depth.find(parent)->second, 2);
   ASSERT_EQ(root_tiles_depth.size(), 1 + pow(4, 3) + pow(4, 8));
 }
 
-TEST_F(PrefetchRepositoryTest,
-       GetSlicedTilesDifferentLevelsButLevelsSpecified) {
+TEST(PrefetchRepositoryTest, GetSlicedTilesDifferentLevelsButLevelsSpecified) {
   auto tile1 = olp::geo::TileKey::FromHereTile("5904591");  // level 11
   auto tile2 = olp::geo::TileKey::FromHereTile(
       "23618365");  // level 12, this tile will be in the same subtree
-  auto root_tiles_depth = repository::PrefetchTilesRepository::GetSlicedTiles(
-      {tile1, tile2}, 1, 13);
+  auto root_tiles_depth =
+      PrefetchRepositoryTestable::GetSlicedTiles({tile1, tile2}, 1, 13);
   auto parent = tile1.ChangedLevelBy(-10);
   ASSERT_EQ(root_tiles_depth.find(parent)->second, 2);
   ASSERT_EQ(root_tiles_depth.size(), 1 + pow(4, 3) + pow(4, 8));
 }
 
-TEST_F(PrefetchRepositoryTest, GetSlicedTilesSibilings) {
+TEST(PrefetchRepositoryTest, GetSlicedTilesSibilings) {
   auto tile1 = olp::geo::TileKey::FromHereTile("23618366");
   auto tile2 = olp::geo::TileKey::FromHereTile("23618365");
   auto root_tiles_depth =
-      repository::PrefetchTilesRepository::GetSlicedTiles({tile1, tile2}, 0, 0);
+      PrefetchRepositoryTestable::GetSlicedTiles({tile1, tile2}, 0, 0);
   ASSERT_EQ(root_tiles_depth.size(), 1);
   auto parent1 = tile1.ChangedLevelBy(-4);
   auto parent2 = tile1.ChangedLevelBy(-4);
@@ -119,11 +122,11 @@ TEST_F(PrefetchRepositoryTest, GetSlicedTilesSibilings) {
   ASSERT_EQ(root_tiles_depth.begin()->second, 4);
 }
 
-TEST_F(PrefetchRepositoryTest, GetSlicedTilesSibilingsWithLevelsSpecified) {
+TEST(PrefetchRepositoryTest, GetSlicedTilesSibilingsWithLevelsSpecified) {
   auto tile1 = olp::geo::TileKey::FromHereTile("23618366");
   auto tile2 = olp::geo::TileKey::FromHereTile("23618365");
-  auto root_tiles_depth = repository::PrefetchTilesRepository::GetSlicedTiles(
-      {tile1, tile2}, 11, 12);
+  auto root_tiles_depth =
+      PrefetchRepositoryTestable::GetSlicedTiles({tile1, tile2}, 11, 12);
   ASSERT_EQ(root_tiles_depth.size(), 1);
   auto parent1 = tile1.ChangedLevelBy(-1);
   auto parent2 = tile1.ChangedLevelBy(-1);
@@ -131,5 +134,4 @@ TEST_F(PrefetchRepositoryTest, GetSlicedTilesSibilingsWithLevelsSpecified) {
   ASSERT_EQ(root_tiles_depth.begin()->first, parent1);
   ASSERT_EQ(root_tiles_depth.begin()->second, 1);
 }
-
 }  // namespace
