@@ -22,6 +22,7 @@ set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     DataRepositoryTest.cpp
     ParserTest.cpp
     PartitionsRepositoryTest.cpp
+    PrefetchRepositoryTest.cpp
     SerializerTest.cpp
     StreamApiTest.cpp
     StreamLayerClientImplTest.cpp
