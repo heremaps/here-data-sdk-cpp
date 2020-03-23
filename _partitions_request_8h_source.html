@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.3.0</span>
+   &#160;<span id="projectnumber">1.4.0</span>
    </div>
   </td>
  </tr>
@@ -172,8 +172,8 @@ $(function() {
 <div class="line"><a name="l00220"></a><span class="lineno"><a class="line" href="classolp_1_1dataservice_1_1read_1_1_partitions_request.html#a24865bbd8d42952efeb5857026babc05">  220</a></span>&#160;  std::string <a class="code" href="classolp_1_1dataservice_1_1read_1_1_partitions_request.html#a24865bbd8d42952efeb5857026babc05">CreateKey</a>(<span class="keyword">const</span> std::string&amp; layer_id)<span class="keyword"> const </span>{</div>
 <div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;    std::stringstream out;</div>
 <div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;    out &lt;&lt; layer_id;</div>
-<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;    <span class="keywordflow">if</span> (GetVersion()) {</div>
-<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;      out &lt;&lt; <span class="stringliteral">&quot;@&quot;</span> &lt;&lt; GetVersion().get();</div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;    <span class="keywordflow">if</span> (catalog_version_) {</div>
+<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;      out &lt;&lt; <span class="stringliteral">&quot;@&quot;</span> &lt;&lt; catalog_version_.get();</div>
 <div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;    }</div>
 <div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;    <span class="keywordflow">if</span> (GetBillingTag()) {</div>
 <div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;      out &lt;&lt; <span class="stringliteral">&quot;$&quot;</span> &lt;&lt; GetBillingTag().get();</div>

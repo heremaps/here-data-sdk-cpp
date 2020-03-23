@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.3.0</span>
+   &#160;<span id="projectnumber">1.4.0</span>
    </div>
   </td>
  </tr>
@@ -121,6 +121,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ace0d54b6dcb1bf55c0d9409f519de87c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellable_future.html">client::CancellableFuture</a>&lt; <a class="el" href="classolp_1_1client_1_1_api_response.html">PrefetchTilesResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#ace0d54b6dcb1bf55c0d9409f519de87c">PrefetchTiles</a> (<a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html">PrefetchTilesRequest</a> request)</td></tr>
 <tr class="memdesc:ace0d54b6dcb1bf55c0d9409f519de87c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prefetches a set of tiles asynchronously.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#ace0d54b6dcb1bf55c0d9409f519de87c">More...</a><br /></td></tr>
 <tr class="separator:ace0d54b6dcb1bf55c0d9409f519de87c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6bf4555cb6dd84d9dfd9cfd27379d220"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#a6bf4555cb6dd84d9dfd9cfd27379d220">RemoveFromCache</a> (const std::string &amp;partition_id)</td></tr>
+<tr class="memdesc:a6bf4555cb6dd84d9dfd9cfd27379d220"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the partition from the mutable disk cache.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#a6bf4555cb6dd84d9dfd9cfd27379d220">More...</a><br /></td></tr>
+<tr class="separator:a6bf4555cb6dd84d9dfd9cfd27379d220"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f82d4b1e3b1e3ada308c21b4396f60d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#a7f82d4b1e3b1e3ada308c21b4396f60d">RemoveFromCache</a> (const <a class="el" href="classolp_1_1geo_1_1_tile_key.html">geo::TileKey</a> &amp;tile)</td></tr>
+<tr class="memdesc:a7f82d4b1e3b1e3ada308c21b4396f60d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the tile from the mutable disk cache.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#a7f82d4b1e3b1e3ada308c21b4396f60d">More...</a><br /></td></tr>
+<tr class="separator:a7f82d4b1e3b1e3ada308c21b4396f60d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Gets data from a versioned layer of the Open Location Platform (OLP). </p>
@@ -409,7 +415,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Prefetches a set of tiles asynchronously. </p>
-<p>This method recursively downloads all tile keys from the <code>minLevel</code> parameter to the <code>maxLevel</code> parameter of the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html" title="Encapsulates the fields required to prefetch the specified layers, tiles, and levels.">PrefetchTilesRequest</a></code> object. It helps to reduce the network load by using the prefetched tiles data from the cache.</p>
+<p>This method recursively downloads all tile keys from the <code>min_level</code> parameter to the <code>max_level</code> parameter of the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html" title="Encapsulates the fields required to prefetch the specified layers, tiles, and levels.">PrefetchTilesRequest</a></code> object for the given root tiles. If min_level/max_level are the same or default, only tiles listed in <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html" title="Encapsulates the fields required to prefetch the specified layers, tiles, and levels.">PrefetchTilesRequest</a></code> will be downloaded. Only tiles will be downloaded which are not already present in the cache, this helps reduce the network load.</p>
 <dl class="section note"><dt>Note</dt><dd>This method does not guarantee that all tiles are available offline as the cache might overflow, and data might be evicted at any point.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -448,7 +454,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Prefetches a set of tiles asynchronously. </p>
-<p>This method recursively downloads all tile keys from the <code>minLevel</code> parameter to the <code>maxLevel</code> parameter of the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html" title="Encapsulates the fields required to prefetch the specified layers, tiles, and levels.">PrefetchTilesRequest</a></code> object. It helps to reduce the network load by using the prefetched tiles data from the cache.</p>
+<p>This method recursively downloads all tile keys from the <code>min_level</code> parameter to the <code>max_level</code> parameter of the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html" title="Encapsulates the fields required to prefetch the specified layers, tiles, and levels.">PrefetchTilesRequest</a></code> object for the given root tiles. If min_level/max_level are the same or default, only tiles listed in <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html" title="Encapsulates the fields required to prefetch the specified layers, tiles, and levels.">PrefetchTilesRequest</a></code> will be downloaded. Only tiles will be downloaded which are not already present in the cache, this helps reduce the network load.</p>
 <dl class="section note"><dt>Note</dt><dd>This method does not guarantee that all tiles are available offline as the cache might overflow, and data might be evicted at any point.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -461,18 +467,72 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a7f82d4b1e3b1e3ada308c21b4396f60d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7f82d4b1e3b1e3ada308c21b4396f60d">&#9670;&nbsp;</a></span>RemoveFromCache() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool olp::dataservice::read::VersionedLayerClient::RemoveFromCache </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1geo_1_1_tile_key.html">geo::TileKey</a> &amp;&#160;</td>
+          <td class="paramname"><em>tile</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Removes the tile from the mutable disk cache. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">tile</td><td>The tile key that should be removed.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>True if tile data is removed successfully; false otherwise. </dd></dl>
+
+</div>
+</div>
+<a id="a6bf4555cb6dd84d9dfd9cfd27379d220"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6bf4555cb6dd84d9dfd9cfd27379d220">&#9670;&nbsp;</a></span>RemoveFromCache() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool olp::dataservice::read::VersionedLayerClient::RemoveFromCache </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>partition_id</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Removes the partition from the mutable disk cache. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">partition_id</td><td>The partition ID that should be removed.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>True if partition data is removed successfully; false otherwise. </dd></dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>olp-cpp-sdk-dataservice-read/include/olp/dataservice/read/<a class="el" href="olp-cpp-sdk-dataservice-read_2include_2olp_2dataservice_2read_2_versioned_layer_client_8h_source.html">VersionedLayerClient.h</a></li>
 </ul>
 </div><!-- contents -->
 <div class="ttc" id="anamespaceolp_1_1authentication_html_add9e77c777aa9984099a62d7ca94ba5c"><div class="ttname"><a href="namespaceolp_1_1authentication.html#add9e77c777aa9984099a62d7ca94ba5c">olp::authentication::TokenProviderDefault</a></div><div class="ttdeci">TokenProvider&lt; kDefaultMinimumValidity &gt; TokenProviderDefault</div><div class="ttdoc">Provides the authentication tokens using the default minimum token validity.</div><div class="ttdef"><b>Definition:</b> TokenProvider.h:128</div></div>
-<div class="ttc" id="astructolp_1_1client_1_1_authentication_settings_html"><div class="ttname"><a href="structolp_1_1client_1_1_authentication_settings.html">olp::client::AuthenticationSettings</a></div><div class="ttdoc">A set of settings that manages the TokenProviderCallback and TokenProviderCancelCallback functions.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:82</div></div>
+<div class="ttc" id="astructolp_1_1client_1_1_authentication_settings_html"><div class="ttname"><a href="structolp_1_1client_1_1_authentication_settings.html">olp::client::AuthenticationSettings</a></div><div class="ttdoc">A set of settings that manages the TokenProviderCallback and TokenProviderCancelCallback functions.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:81</div></div>
 <div class="ttc" id="aclassolp_1_1client_1_1_olp_client_settings_factory_html_a2d7121fa1c55ec4c339f3378f7078dd2"><div class="ttname"><a href="classolp_1_1client_1_1_olp_client_settings_factory.html#a2d7121fa1c55ec4c339f3378f7078dd2">olp::client::OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler</a></div><div class="ttdeci">static std::shared_ptr&lt; http::Network &gt; CreateDefaultNetworkRequestHandler(size_t max_requests_count=30u)</div><div class="ttdoc">Creates the Network instance used for all the non-local requests.</div></div>
 <div class="ttc" id="aclassolp_1_1client_1_1_olp_client_settings_factory_html_a67f547a761b34910c5b60f8b6e1233c1"><div class="ttname"><a href="classolp_1_1client_1_1_olp_client_settings_factory.html#a67f547a761b34910c5b60f8b6e1233c1">olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler</a></div><div class="ttdeci">static std::unique_ptr&lt; thread::TaskScheduler &gt; CreateDefaultTaskScheduler(size_t thread_count=1u)</div><div class="ttdoc">Creates the TaskScheduler instance used for all the delayed operations.</div></div>
 <div class="ttc" id="aclassolp_1_1client_1_1_api_response_html"><div class="ttname"><a href="classolp_1_1client_1_1_api_response.html">olp::client::ApiResponse</a></div><div class="ttdoc">Represents a request outcome.</div><div class="ttdef"><b>Definition:</b> ApiResponse.h:40</div></div>
-<div class="ttc" id="astructolp_1_1client_1_1_authentication_settings_html_a8a4240addea5ddd967ed14f0b9858dac"><div class="ttname"><a href="structolp_1_1client_1_1_authentication_settings.html#a8a4240addea5ddd967ed14f0b9858dac">olp::client::AuthenticationSettings::provider</a></div><div class="ttdeci">TokenProviderCallback provider</div><div class="ttdoc">The user-provided function that returns the OAuth2 bearer access token.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:124</div></div>
+<div class="ttc" id="astructolp_1_1client_1_1_authentication_settings_html_a8a4240addea5ddd967ed14f0b9858dac"><div class="ttname"><a href="structolp_1_1client_1_1_authentication_settings.html#a8a4240addea5ddd967ed14f0b9858dac">olp::client::AuthenticationSettings::provider</a></div><div class="ttdeci">TokenProviderCallback provider</div><div class="ttdoc">The user-provided function that returns the OAuth2 bearer access token.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:123</div></div>
 <div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1_versioned_layer_client_html_a381243e4a532261e6292b672eb492841"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#a381243e4a532261e6292b672eb492841">olp::dataservice::read::VersionedLayerClient::VersionedLayerClient</a></div><div class="ttdeci">VersionedLayerClient(const VersionedLayerClient &amp;other)=delete</div><div class="ttdoc">Movable, non-copyable.</div></div>
-<div class="ttc" id="astructolp_1_1client_1_1_olp_client_settings_html"><div class="ttname"><a href="structolp_1_1client_1_1_olp_client_settings.html">olp::client::OlpClientSettings</a></div><div class="ttdoc">Configures the behavior of the OlpClient class.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:220</div></div>
+<div class="ttc" id="astructolp_1_1client_1_1_olp_client_settings_html"><div class="ttname"><a href="structolp_1_1client_1_1_olp_client_settings.html">olp::client::OlpClientSettings</a></div><div class="ttdoc">Configures the behavior of the OlpClient class.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:219</div></div>
 <div class="ttc" id="astructolp_1_1authentication_1_1_settings_html"><div class="ttname"><a href="structolp_1_1authentication_1_1_settings.html">olp::authentication::Settings</a></div><div class="ttdoc">Configures the TokenEndpoint instance.</div><div class="ttdef"><b>Definition:</b> Settings.h:49</div></div>
 <div class="ttc" id="astructolp_1_1authentication_1_1_settings_html_a613b8ae683f2288b6b03b3692f1485a7"><div class="ttname"><a href="structolp_1_1authentication_1_1_settings.html#a613b8ae683f2288b6b03b3692f1485a7">olp::authentication::Settings::task_scheduler</a></div><div class="ttdeci">std::shared_ptr&lt; thread::TaskScheduler &gt; task_scheduler</div><div class="ttdoc">(Optional) The TaskScheduler class that is used to manage the callbacks enqueue.</div><div class="ttdef"><b>Definition:</b> Settings.h:76</div></div>
 <!-- start footer part -->

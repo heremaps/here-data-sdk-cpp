@@ -7,7 +7,7 @@ var searchData=
   ['debugappender_113',['DebugAppender',['../classolp_1_1logging_1_1_debug_appender.html',1,'olp::logging']]],
   ['decode_114',['Decode',['../classolp_1_1utils_1_1_url.html#a9e5417833719fef4d554de4766e2f053',1,'olp::utils::Url']]],
   ['defaultbackdownpolicy_115',['DefaultBackdownPolicy',['../namespaceolp_1_1client.html#a3ba192d0d5a5655f1ae280112379b7a0',1,'olp::client']]],
-  ['defaultcache_116',['DefaultCache',['../classolp_1_1cache_1_1_default_cache.html',1,'olp::cache::DefaultCache'],['../classolp_1_1cache_1_1_default_cache.html#a2c1dda61b9b7ec80cf9b9dc2f6c88622',1,'olp::cache::DefaultCache::DefaultCache()']]],
+  ['defaultcache_116',['DefaultCache',['../classolp_1_1cache_1_1_default_cache.html',1,'olp::cache::DefaultCache'],['../classolp_1_1cache_1_1_default_cache.html#a586956baf8a9b2072409bc81b70bd6e9',1,'olp::cache::DefaultCache::DefaultCache()']]],
   ['defaultlevelnamemap_117',['defaultLevelNameMap',['../classolp_1_1logging_1_1_message_formatter.html#a5d23312ba0c8e7b0456ac2e7bf0de0d7',1,'olp::logging::MessageFormatter']]],
   ['defaultretrycondition_118',['DefaultRetryCondition',['../namespaceolp_1_1client.html#ab80697f6a09bd5a74834e744957fc840',1,'olp::client']]],
   ['degreetype_119',['DegreeType',['../structolp_1_1geo_1_1_degree_type.html',1,'olp::geo']]],

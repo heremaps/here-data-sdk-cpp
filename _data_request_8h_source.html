@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.3.0</span>
+   &#160;<span id="projectnumber">1.4.0</span>
    </div>
   </td>
  </tr>
@@ -175,8 +175,8 @@ $(function() {
 <div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;      out &lt;&lt; GetDataHandle().get();</div>
 <div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;    }</div>
 <div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;    out &lt;&lt; <span class="stringliteral">&quot;]&quot;</span>;</div>
-<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;    <span class="keywordflow">if</span> (GetVersion()) {</div>
-<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;      out &lt;&lt; <span class="stringliteral">&quot;@&quot;</span> &lt;&lt; GetVersion().get();</div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;    <span class="keywordflow">if</span> (catalog_version_) {</div>
+<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;      out &lt;&lt; <span class="stringliteral">&quot;@&quot;</span> &lt;&lt; catalog_version_.get();</div>
 <div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;    }</div>
 <div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;    <span class="keywordflow">if</span> (GetBillingTag()) {</div>
 <div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;      out &lt;&lt; <span class="stringliteral">&quot;$&quot;</span> &lt;&lt; GetBillingTag().get();</div>

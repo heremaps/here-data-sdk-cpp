@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.3.0</span>
+   &#160;<span id="projectnumber">1.4.0</span>
    </div>
   </td>
  </tr>
@@ -146,6 +146,9 @@ Public Member Functions</h2></td></tr>
 virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#af0cb4e349fd8ebd510d4e162ee873da9">~AuthenticationClient</a> ()</td></tr>
 <tr class="memdesc:af0cb4e349fd8ebd510d4e162ee873da9"><td class="mdescLeft">&#160;</td><td class="mdescRight">A default destructor. <br /></td></tr>
 <tr class="separator:af0cb4e349fd8ebd510d4e162ee873da9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae3dc5d77286e8c8d081513599863a9f3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#ae3dc5d77286e8c8d081513599863a9f3">SignInClient</a> (<a class="el" href="classolp_1_1authentication_1_1_authentication_credentials.html">AuthenticationCredentials</a> credentials, <a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_sign_in_properties.html">SignInProperties</a> properties, <a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#ac68865e58d4d7847679f9a0311d73240">SignInClientCallback</a> callback)</td></tr>
+<tr class="memdesc:ae3dc5d77286e8c8d081513599863a9f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signs in with your HERE Account client credentials and reuests the client access token.  <a href="classolp_1_1authentication_1_1_authentication_client.html#ae3dc5d77286e8c8d081513599863a9f3">More...</a><br /></td></tr>
+<tr class="separator:ae3dc5d77286e8c8d081513599863a9f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a84d362cf2a799d1b83f92ca7eaf13086"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#a84d362cf2a799d1b83f92ca7eaf13086">SignInHereUser</a> (const <a class="el" href="classolp_1_1authentication_1_1_authentication_credentials.html">AuthenticationCredentials</a> &amp;credentials, const <a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_user_properties.html">UserProperties</a> &amp;properties, const <a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a> &amp;callback)</td></tr>
 <tr class="memdesc:a84d362cf2a799d1b83f92ca7eaf13086"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signs in with the email and password that you used for registration via the sign-up API and requests your user access token.  <a href="classolp_1_1authentication_1_1_authentication_client.html#a84d362cf2a799d1b83f92ca7eaf13086">More...</a><br /></td></tr>
 <tr class="separator:a84d362cf2a799d1b83f92ca7eaf13086"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -431,6 +434,52 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
     <tr><td class="paramname">credentials</td><td>The <code><a class="el" href="classolp_1_1authentication_1_1_authentication_credentials.html" title="The access key ID and access key secret that you got from the HERE Account as a part of the onboardin...">AuthenticationCredentials</a></code> instance. </td></tr>
     <tr><td class="paramname">properties</td><td>The <code><a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_federated_properties.html" title="The federated (Facebook, Google, ArcGIS) sign-in properties structure.">FederatedProperties</a></code> structure. </td></tr>
     <tr><td class="paramname">callback</td><td>The <code>SignInUserCallback</code> method that is called when the user sign-in request is completed. If successful, the returned HTTP status is 200. If a new account is created as a part of the sign-in request and terms must be accepted, the returned HTTP status is 201. Otherwise, check the response error.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The <code>CancellationToken</code> instance that can be used to cancel the request. </dd></dl>
+
+</div>
+</div>
+<a id="ae3dc5d77286e8c8d081513599863a9f3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae3dc5d77286e8c8d081513599863a9f3">&#9670;&nbsp;</a></span>SignInClient()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a> olp::authentication::AuthenticationClient::SignInClient </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1authentication_1_1_authentication_credentials.html">AuthenticationCredentials</a>&#160;</td>
+          <td class="paramname"><em>credentials</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_sign_in_properties.html">SignInProperties</a>&#160;</td>
+          <td class="paramname"><em>properties</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classolp_1_1authentication_1_1_authentication_client.html#ac68865e58d4d7847679f9a0311d73240">SignInClientCallback</a>&#160;</td>
+          <td class="paramname"><em>callback</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Signs in with your HERE Account client credentials and reuests the client access token. </p>
+<p>The client access tokens cannot be refreshed. Instead request a new client access token using your client credentials.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">credentials</td><td>The <code><a class="el" href="classolp_1_1authentication_1_1_authentication_credentials.html" title="The access key ID and access key secret that you got from the HERE Account as a part of the onboardin...">AuthenticationCredentials</a></code> instance. </td></tr>
+    <tr><td class="paramname">properties</td><td>The <code><a class="el" href="structolp_1_1authentication_1_1_authentication_client_1_1_sign_in_properties.html" title="General properties used to sign in with client credentials.">SignInProperties</a></code> structure that has the scope and expiration time. </td></tr>
+    <tr><td class="paramname">callback</td><td>The<code>SignInClientCallback</code> method that is called when the client sign-in request is completed. If successful, the returned HTTP status is 200. Otherwise, check the response error.</td></tr>
   </table>
   </dd>
 </dl>

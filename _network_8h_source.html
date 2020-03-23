@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.3.0</span>
+   &#160;<span id="projectnumber">1.4.0</span>
    </div>
   </td>
  </tr>
@@ -71,7 +71,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">/*</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019 HERE Europe B.V.</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019-2020 HERE Europe B.V.</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment"> * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment"> * you may not use this file except in compliance with the License.</span></div>
@@ -123,23 +123,28 @@ $(function() {
 <div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;                           <a class="code" href="classolp_1_1http_1_1_network.html#a14536b1fbbf2772bc43e3cce43005416">DataCallback</a> data_callback = <span class="keyword">nullptr</span>) = 0;</div>
 <div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160; </div>
 <div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;  <span class="keyword">virtual</span> <span class="keywordtype">void</span> Cancel(<a class="code" href="namespaceolp_1_1http.html#ab4ebd4de6206da6920482383a686e7b4">RequestId</a> <span class="keywordtype">id</span>) = 0;</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;};</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160; </div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;CORE_API std::shared_ptr&lt;Network&gt; <a class="code" href="namespaceolp_1_1http.html#a4bd6ade1097956b382987fa9c173827f">CreateDefaultNetwork</a>(<span class="keywordtype">size_t</span> max_requests_count);</div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160; </div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;}  <span class="comment">// namespace http</span></div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160; </div>
+<div class="line"><a name="l00093"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1_network.html#a3551e727f9965e6da62cc1dd06e30ab9">   93</a></span>&#160;  <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classolp_1_1http_1_1_network.html#a3551e727f9965e6da62cc1dd06e30ab9">SetDefaultHeaders</a>(<a class="code" href="namespaceolp_1_1http.html#ae2f7d2a838ca66559b0abdac68a7514c">Headers</a> headers) {}</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;};</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160; </div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;CORE_API std::shared_ptr&lt;Network&gt; <a class="code" href="namespaceolp_1_1http.html#a4bd6ade1097956b382987fa9c173827f">CreateDefaultNetwork</a>(</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    <span class="keywordtype">size_t</span> max_requests_count);</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160; </div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;}  <span class="comment">// namespace http</span></div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;}  <span class="comment">// namespace olp</span></div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="aclassolp_1_1http_1_1_network_response_html"><div class="ttname"><a href="classolp_1_1http_1_1_network_response.html">olp::http::NetworkResponse</a></div><div class="ttdoc">This class represents network response abstraction for an HTTP request.</div><div class="ttdef"><b>Definition:</b> NetworkResponse.h:33</div></div>
 <div class="ttc" id="aclassolp_1_1http_1_1_network_html_aaccedcd2fbd0930c108c853469b073a2"><div class="ttname"><a href="classolp_1_1http_1_1_network.html#aaccedcd2fbd0930c108c853469b073a2">olp::http::Network::HeaderCallback</a></div><div class="ttdeci">std::function&lt; void(std::string key, std::string value)&gt; HeaderCallback</div><div class="ttdoc">Callback to be called when a header has been received.</div><div class="ttdef"><b>Definition:</b> Network.h:45</div></div>
 <div class="ttc" id="aclassolp_1_1http_1_1_network_html_a2d55d803454a41277d8200f25d4e2714"><div class="ttname"><a href="classolp_1_1http_1_1_network.html#a2d55d803454a41277d8200f25d4e2714">olp::http::Network::Payload</a></div><div class="ttdeci">std::shared_ptr&lt; std::ostream &gt; Payload</div><div class="ttdoc">Represents the request and response payload type.</div><div class="ttdef"><b>Definition:</b> Network.h:52</div></div>
 <div class="ttc" id="aclassolp_1_1http_1_1_network_html_af0a5a2c85909ff38ad56d356c557b748"><div class="ttname"><a href="classolp_1_1http_1_1_network.html#af0a5a2c85909ff38ad56d356c557b748">olp::http::Network::Callback</a></div><div class="ttdeci">std::function&lt; void(NetworkResponse response)&gt; Callback</div><div class="ttdoc">Callback to be called when the request has been processed or cancelled.</div><div class="ttdef"><b>Definition:</b> Network.h:41</div></div>
+<div class="ttc" id="anamespaceolp_1_1http_html_ae2f7d2a838ca66559b0abdac68a7514c"><div class="ttname"><a href="namespaceolp_1_1http.html#ae2f7d2a838ca66559b0abdac68a7514c">olp::http::Headers</a></div><div class="ttdeci">std::vector&lt; Header &gt; Headers</div><div class="ttdoc">Type alias for vector of HTTP headers.</div><div class="ttdef"><b>Definition:</b> NetworkTypes.h:140</div></div>
 <div class="ttc" id="anamespaceolp_1_1http_html_a4bd6ade1097956b382987fa9c173827f"><div class="ttname"><a href="namespaceolp_1_1http.html#a4bd6ade1097956b382987fa9c173827f">olp::http::CreateDefaultNetwork</a></div><div class="ttdeci">CORE_API std::shared_ptr&lt; Network &gt; CreateDefaultNetwork(size_t max_requests_count)</div><div class="ttdoc">Create default Network implementation.</div></div>
 <div class="ttc" id="aclassolp_1_1http_1_1_network_html"><div class="ttname"><a href="classolp_1_1http_1_1_network.html">olp::http::Network</a></div><div class="ttdoc">The Network class represents HTTP client abstraction.</div><div class="ttdef"><b>Definition:</b> Network.h:38</div></div>
 <div class="ttc" id="aclassolp_1_1http_1_1_network_html_a14536b1fbbf2772bc43e3cce43005416"><div class="ttname"><a href="classolp_1_1http_1_1_network.html#a14536b1fbbf2772bc43e3cce43005416">olp::http::Network::DataCallback</a></div><div class="ttdeci">std::function&lt; void(const std::uint8_t *data, std::uint64_t offset, std::size_t length)&gt; DataCallback</div><div class="ttdoc">Callback to be called when a chunk of data has been received.</div><div class="ttdef"><b>Definition:</b> Network.h:49</div></div>
 <div class="ttc" id="aclassolp_1_1http_1_1_send_outcome_html"><div class="ttname"><a href="classolp_1_1http_1_1_send_outcome.html">olp::http::SendOutcome</a></div><div class="ttdoc">Helper class representing the outcome of making a network request. It will contain either a valid Req...</div><div class="ttdef"><b>Definition:</b> NetworkTypes.h:77</div></div>
 <div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">The olp namespace.</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:45</div></div>
 <div class="ttc" id="aclassolp_1_1http_1_1_network_request_html"><div class="ttname"><a href="classolp_1_1http_1_1_network_request.html">olp::http::NetworkRequest</a></div><div class="ttdoc">This class represents network request abstraction for an HTTP request.</div><div class="ttdef"><b>Definition:</b> NetworkRequest.h:36</div></div>
+<div class="ttc" id="aclassolp_1_1http_1_1_network_html_a3551e727f9965e6da62cc1dd06e30ab9"><div class="ttname"><a href="classolp_1_1http_1_1_network.html#a3551e727f9965e6da62cc1dd06e30ab9">olp::http::Network::SetDefaultHeaders</a></div><div class="ttdeci">virtual void SetDefaultHeaders(Headers headers)</div><div class="ttdoc">Sets default network headers.</div><div class="ttdef"><b>Definition:</b> Network.h:93</div></div>
 <div class="ttc" id="anamespaceolp_1_1http_html_ab4ebd4de6206da6920482383a686e7b4"><div class="ttname"><a href="namespaceolp_1_1http.html#ab4ebd4de6206da6920482383a686e7b4">olp::http::RequestId</a></div><div class="ttdeci">std::uint64_t RequestId</div><div class="ttdoc">Represents a unique request id. Values of this type mark a unique request all the way until completio...</div><div class="ttdef"><b>Definition:</b> NetworkTypes.h:39</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

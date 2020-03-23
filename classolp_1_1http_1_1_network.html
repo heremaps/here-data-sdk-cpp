@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.3.0</span>
+   &#160;<span id="projectnumber">1.4.0</span>
    </div>
   </td>
  </tr>
@@ -107,6 +107,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a22cbb26cc175c8e28d5d4693e9cf147f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1_network.html#a22cbb26cc175c8e28d5d4693e9cf147f">Cancel</a> (<a class="el" href="namespaceolp_1_1http.html#ab4ebd4de6206da6920482383a686e7b4">RequestId</a> id)=0</td></tr>
 <tr class="memdesc:a22cbb26cc175c8e28d5d4693e9cf147f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancel request by RequestId. Once the request was cancelled the user will receive a final Callback with an appropriate <a class="el" href="classolp_1_1http_1_1_network_response.html" title="This class represents network response abstraction for an HTTP request.">NetworkResponse</a> marked as cancelled.  <a href="classolp_1_1http_1_1_network.html#a22cbb26cc175c8e28d5d4693e9cf147f">More...</a><br /></td></tr>
 <tr class="separator:a22cbb26cc175c8e28d5d4693e9cf147f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3551e727f9965e6da62cc1dd06e30ab9"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1_network.html#a3551e727f9965e6da62cc1dd06e30ab9">SetDefaultHeaders</a> (<a class="el" href="namespaceolp_1_1http.html#ae2f7d2a838ca66559b0abdac68a7514c">Headers</a> headers)</td></tr>
+<tr class="memdesc:a3551e727f9965e6da62cc1dd06e30ab9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets default network headers.  <a href="classolp_1_1http_1_1_network.html#a3551e727f9965e6da62cc1dd06e30ab9">More...</a><br /></td></tr>
+<tr class="separator:a3551e727f9965e6da62cc1dd06e30ab9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The <a class="el" href="classolp_1_1http_1_1_network.html" title="The Network class represents HTTP client abstraction.">Network</a> class represents HTTP client abstraction. </p>
@@ -209,6 +212,41 @@ Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><a class="el" href="classolp_1_1http_1_1_send_outcome.html" title="Helper class representing the outcome of making a network request. It will contain either a valid Req...">SendOutcome</a> which represent either a valid <code>RequestId</code> as the unique request identifier or a <code>ErrorCode</code> in case of failure. In case of failure no callbacks will be triggered. </dd></dl>
+
+</div>
+</div>
+<a id="a3551e727f9965e6da62cc1dd06e30ab9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3551e727f9965e6da62cc1dd06e30ab9">&#9670;&nbsp;</a></span>SetDefaultHeaders()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void olp::http::Network::SetDefaultHeaders </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceolp_1_1http.html#ae2f7d2a838ca66559b0abdac68a7514c">Headers</a>&#160;</td>
+          <td class="paramname"><em>headers</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Sets default network headers. </p>
+<p>Default headers are applied to each request passed to the <code>Send</code> method. User agents are concatenated.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">headers</td><td>The default headers. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

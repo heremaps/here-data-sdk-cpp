@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.3.0</span>
+   &#160;<span id="projectnumber">1.4.0</span>
    </div>
   </td>
  </tr>
@@ -67,6 +67,7 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="classolp_1_1client_1_1_olp_client-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -74,37 +75,47 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Executes HTTP requests.  
+<p>Executes HTTP requests by using the base url and the provided parameters and body.  
  <a href="classolp_1_1client_1_1_olp_client.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_olp_client_8h_source.html">OlpClient.h</a>&gt;</code></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:ae4e8583352532039a6d3561eb7990247"><td class="memItemLeft" align="right" valign="top"><a id="ae4e8583352532039a6d3561eb7990247"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> = std::multimap&lt; std::string, std::string &gt;</td></tr>
+<tr class="memdesc:ae4e8583352532039a6d3561eb7990247"><td class="mdescLeft">&#160;</td><td class="mdescRight">Alias for the parameters and headers type. <br /></td></tr>
+<tr class="separator:ae4e8583352532039a6d3561eb7990247"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a859cddf8f5ccf4c47ae7cd20e12ab876"><td class="memItemLeft" align="right" valign="top"><a id="a859cddf8f5ccf4c47ae7cd20e12ab876"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>RequestBodyType</b> = std::shared_ptr&lt; std::vector&lt; std::uint8_t &gt; &gt;</td></tr>
+<tr class="separator:a859cddf8f5ccf4c47ae7cd20e12ab876"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a2d6ab297e079d064e003cd2d772db28c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client.html#a2d6ab297e079d064e003cd2d772db28c">SetBaseUrl</a> (const std::string &amp;baseUrl)</td></tr>
-<tr class="memdesc:a2d6ab297e079d064e003cd2d772db28c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the base URL used for all requests.  <a href="classolp_1_1client_1_1_olp_client.html#a2d6ab297e079d064e003cd2d772db28c">More...</a><br /></td></tr>
-<tr class="separator:a2d6ab297e079d064e003cd2d772db28c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a39c229bcbd6a4a7b7b0bacb7da2d10dc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client.html#a39c229bcbd6a4a7b7b0bacb7da2d10dc">SetBaseUrl</a> (const std::string &amp;base_url)</td></tr>
+<tr class="memdesc:a39c229bcbd6a4a7b7b0bacb7da2d10dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the base URL used for all requests.  <a href="classolp_1_1client_1_1_olp_client.html#a39c229bcbd6a4a7b7b0bacb7da2d10dc">More...</a><br /></td></tr>
+<tr class="separator:a39c229bcbd6a4a7b7b0bacb7da2d10dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a806b9c5b6f4d29c4a13c95e13e787309"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client.html#a806b9c5b6f4d29c4a13c95e13e787309">GetBaseUrl</a> () const</td></tr>
 <tr class="memdesc:a806b9c5b6f4d29c4a13c95e13e787309"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the base URL.  <a href="classolp_1_1client_1_1_olp_client.html#a806b9c5b6f4d29c4a13c95e13e787309">More...</a><br /></td></tr>
 <tr class="separator:a806b9c5b6f4d29c4a13c95e13e787309"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a89c11f0eb38bea5a3f1a4397aed01746"><td class="memItemLeft" align="right" valign="top">std::multimap&lt; std::string, std::string &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client.html#a89c11f0eb38bea5a3f1a4397aed01746">GetMutableDefaultHeaders</a> ()</td></tr>
-<tr class="memdesc:a89c11f0eb38bea5a3f1a4397aed01746"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the default headers that are added to each request.  <a href="classolp_1_1client_1_1_olp_client.html#a89c11f0eb38bea5a3f1a4397aed01746">More...</a><br /></td></tr>
-<tr class="separator:a89c11f0eb38bea5a3f1a4397aed01746"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a05421cde7911a8bc0a9eaaf2036873ae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_olp_client.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client.html#a05421cde7911a8bc0a9eaaf2036873ae">GetMutableDefaultHeaders</a> ()</td></tr>
+<tr class="memdesc:a05421cde7911a8bc0a9eaaf2036873ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the default headers that are added to each request.  <a href="classolp_1_1client_1_1_olp_client.html#a05421cde7911a8bc0a9eaaf2036873ae">More...</a><br /></td></tr>
+<tr class="separator:a05421cde7911a8bc0a9eaaf2036873ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6957f92bcad5cfc30e5d857eb228b293"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client.html#a6957f92bcad5cfc30e5d857eb228b293">SetSettings</a> (const <a class="el" href="structolp_1_1client_1_1_olp_client_settings.html">OlpClientSettings</a> &amp;settings)</td></tr>
 <tr class="memdesc:a6957f92bcad5cfc30e5d857eb228b293"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the client settings.  <a href="classolp_1_1client_1_1_olp_client.html#a6957f92bcad5cfc30e5d857eb228b293">More...</a><br /></td></tr>
 <tr class="separator:a6957f92bcad5cfc30e5d857eb228b293"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2bdfb6ec79cfad8583ea5af5ccf3ad85"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client.html#a2bdfb6ec79cfad8583ea5af5ccf3ad85">CallApi</a> (const std::string &amp;path, const std::string &amp;method, const std::multimap&lt; std::string, std::string &gt; &amp;query_params, const std::multimap&lt; std::string, std::string &gt; &amp;header_params, const std::multimap&lt; std::string, std::string &gt; &amp;form_params, const std::shared_ptr&lt; std::vector&lt; unsigned char &gt;&gt; &amp;post_body, const std::string &amp;content_type, const <a class="el" href="namespaceolp_1_1client.html#ada2eeb2b0e0ac4d50d42d51df6bc9e2b">NetworkAsyncCallback</a> &amp;callback) const</td></tr>
-<tr class="memdesc:a2bdfb6ec79cfad8583ea5af5ccf3ad85"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes the HTTP request through the network stack.  <a href="classolp_1_1client_1_1_olp_client.html#a2bdfb6ec79cfad8583ea5af5ccf3ad85">More...</a><br /></td></tr>
-<tr class="separator:a2bdfb6ec79cfad8583ea5af5ccf3ad85"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a212733268b355d59834a6cb0a37ccd33"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_http_response.html">HttpResponse</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client.html#a212733268b355d59834a6cb0a37ccd33">CallApi</a> (std::string path, std::string method, std::multimap&lt; std::string, std::string &gt; query_params, std::multimap&lt; std::string, std::string &gt; header_params, std::multimap&lt; std::string, std::string &gt; form_params, std::shared_ptr&lt; std::vector&lt; unsigned char &gt;&gt; post_body, std::string content_type, <a class="el" href="classolp_1_1client_1_1_cancellation_context.html">CancellationContext</a> context) const</td></tr>
-<tr class="memdesc:a212733268b355d59834a6cb0a37ccd33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes the HTTP request through the network stack in a blocking way.  <a href="classolp_1_1client_1_1_olp_client.html#a212733268b355d59834a6cb0a37ccd33">More...</a><br /></td></tr>
-<tr class="separator:a212733268b355d59834a6cb0a37ccd33"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a42bbea769f7a27f9727ce271102b4473"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client.html#a42bbea769f7a27f9727ce271102b4473">CallApi</a> (const std::string &amp;path, const std::string &amp;method, const <a class="el" href="classolp_1_1client_1_1_olp_client.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> &amp;query_params, const <a class="el" href="classolp_1_1client_1_1_olp_client.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> &amp;header_params, const <a class="el" href="classolp_1_1client_1_1_olp_client.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> &amp;form_params, const RequestBodyType &amp;post_body, const std::string &amp;content_type, const <a class="el" href="namespaceolp_1_1client.html#ada2eeb2b0e0ac4d50d42d51df6bc9e2b">NetworkAsyncCallback</a> &amp;callback) const</td></tr>
+<tr class="memdesc:a42bbea769f7a27f9727ce271102b4473"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes the HTTP request through the network stack.  <a href="classolp_1_1client_1_1_olp_client.html#a42bbea769f7a27f9727ce271102b4473">More...</a><br /></td></tr>
+<tr class="separator:a42bbea769f7a27f9727ce271102b4473"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c186e74a78b16761f3f153f59b0c46b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_http_response.html">HttpResponse</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client.html#a1c186e74a78b16761f3f153f59b0c46b">CallApi</a> (std::string path, std::string method, <a class="el" href="classolp_1_1client_1_1_olp_client.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> query_params, <a class="el" href="classolp_1_1client_1_1_olp_client.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> header_params, <a class="el" href="classolp_1_1client_1_1_olp_client.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> form_params, RequestBodyType post_body, std::string content_type, <a class="el" href="classolp_1_1client_1_1_cancellation_context.html">CancellationContext</a> context) const</td></tr>
+<tr class="memdesc:a1c186e74a78b16761f3f153f59b0c46b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes the HTTP request through the network stack in a blocking way.  <a href="classolp_1_1client_1_1_olp_client.html#a1c186e74a78b16761f3f153f59b0c46b">More...</a><br /></td></tr>
+<tr class="separator:a1c186e74a78b16761f3f153f59b0c46b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Executes HTTP requests. </p>
+<div class="textblock"><p>Executes HTTP requests by using the base url and the provided parameters and body. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="a2bdfb6ec79cfad8583ea5af5ccf3ad85"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2bdfb6ec79cfad8583ea5af5ccf3ad85">&#9670;&nbsp;</a></span>CallApi() <span class="overload">[1/2]</span></h2>
+<a id="a42bbea769f7a27f9727ce271102b4473"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a42bbea769f7a27f9727ce271102b4473">&#9670;&nbsp;</a></span>CallApi() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -124,25 +135,25 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::multimap&lt; std::string, std::string &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1client_1_1_olp_client.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> &amp;&#160;</td>
           <td class="paramname"><em>query_params</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::multimap&lt; std::string, std::string &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1client_1_1_olp_client.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> &amp;&#160;</td>
           <td class="paramname"><em>header_params</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::multimap&lt; std::string, std::string &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1client_1_1_olp_client.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> &amp;&#160;</td>
           <td class="paramname"><em>form_params</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::shared_ptr&lt; std::vector&lt; unsigned char &gt;&gt; &amp;&#160;</td>
+          <td class="paramtype">const RequestBodyType &amp;&#160;</td>
           <td class="paramname"><em>post_body</em>, </td>
         </tr>
         <tr>
@@ -183,8 +194,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a212733268b355d59834a6cb0a37ccd33"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a212733268b355d59834a6cb0a37ccd33">&#9670;&nbsp;</a></span>CallApi() <span class="overload">[2/2]</span></h2>
+<a id="a1c186e74a78b16761f3f153f59b0c46b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1c186e74a78b16761f3f153f59b0c46b">&#9670;&nbsp;</a></span>CallApi() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -204,25 +215,25 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::multimap&lt; std::string, std::string &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1client_1_1_olp_client.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a>&#160;</td>
           <td class="paramname"><em>query_params</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::multimap&lt; std::string, std::string &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1client_1_1_olp_client.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a>&#160;</td>
           <td class="paramname"><em>header_params</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::multimap&lt; std::string, std::string &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1client_1_1_olp_client.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a>&#160;</td>
           <td class="paramname"><em>form_params</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::shared_ptr&lt; std::vector&lt; unsigned char &gt;&gt;&#160;</td>
+          <td class="paramtype">RequestBodyType&#160;</td>
           <td class="paramname"><em>post_body</em>, </td>
         </tr>
         <tr>
@@ -283,14 +294,14 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a89c11f0eb38bea5a3f1a4397aed01746"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a89c11f0eb38bea5a3f1a4397aed01746">&#9670;&nbsp;</a></span>GetMutableDefaultHeaders()</h2>
+<a id="a05421cde7911a8bc0a9eaaf2036873ae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a05421cde7911a8bc0a9eaaf2036873ae">&#9670;&nbsp;</a></span>GetMutableDefaultHeaders()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::multimap&lt;std::string, std::string&gt;&amp; olp::client::OlpClient::GetMutableDefaultHeaders </td>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1_olp_client.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a>&amp; olp::client::OlpClient::GetMutableDefaultHeaders </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -303,8 +314,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a2d6ab297e079d064e003cd2d772db28c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2d6ab297e079d064e003cd2d772db28c">&#9670;&nbsp;</a></span>SetBaseUrl()</h2>
+<a id="a39c229bcbd6a4a7b7b0bacb7da2d10dc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a39c229bcbd6a4a7b7b0bacb7da2d10dc">&#9670;&nbsp;</a></span>SetBaseUrl()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -313,7 +324,7 @@ Public Member Functions</h2></td></tr>
           <td class="memname">void olp::client::OlpClient::SetBaseUrl </td>
           <td>(</td>
           <td class="paramtype">const std::string &amp;&#160;</td>
-          <td class="paramname"><em>baseUrl</em></td><td>)</td>
+          <td class="paramname"><em>base_url</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -322,7 +333,7 @@ Public Member Functions</h2></td></tr>
 <p>Sets the base URL used for all requests. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">baseUrl</td><td>The base URL. </td></tr>
+    <tr><td class="paramname">base_url</td><td>The base URL. </td></tr>
   </table>
   </dd>
 </dl>

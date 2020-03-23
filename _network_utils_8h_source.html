@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.3.0</span>
+   &#160;<span id="projectnumber">1.4.0</span>
    </div>
   </td>
  </tr>
@@ -71,7 +71,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">/*</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019 HERE Europe B.V.</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019-2020 HERE Europe B.V.</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment"> * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment"> * you may not use this file except in compliance with the License.</span></div>
@@ -93,28 +93,33 @@ $(function() {
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160; </div>
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
 <div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160; </div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespaceolp.html">olp</a> {</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="keyword">namespace </span>http {</div>
-<div class="line"><a name="l00029"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1_network_utils.html">   29</a></span>&#160;<span class="keyword">class </span><a class="code" href="classolp_1_1http_1_1_network_utils.html">NetworkUtils</a> {</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;  <span class="keyword">static</span> <span class="keywordtype">char</span> SimpleToUpper(<span class="keywordtype">char</span> c);</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;  <span class="keyword">static</span> <span class="keywordtype">bool</span> CaseInsensitiveCompare(<span class="keyword">const</span> std::string&amp; str1,</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;                                     <span class="keyword">const</span> std::string&amp; str2,</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;                                     <span class="keywordtype">size_t</span> offset = 0);</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;  <span class="keyword">static</span> <span class="keywordtype">bool</span> CaseInsensitiveStartsWith(<span class="keyword">const</span> std::string&amp; str1,</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;                                        <span class="keyword">const</span> std::string&amp; str2,</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;                                        <span class="keywordtype">size_t</span> offset = 0);</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;  <span class="keyword">static</span> <span class="keywordtype">size_t</span> CaseInsensitiveFind(<span class="keyword">const</span> std::string&amp; str1,</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;                                    <span class="keyword">const</span> std::string&amp; str2, <span class="keywordtype">size_t</span> offset = 0);</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160; </div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;};  <span class="comment">// class NetworkUtils</span></div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="preprocessor">#include &lt;olp/core/http/NetworkTypes.h&gt;</span></div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160; </div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespaceolp.html">olp</a> {</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="keyword">namespace </span>http {</div>
+<div class="line"><a name="l00031"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1_network_utils.html">   31</a></span>&#160;<span class="keyword">class </span><a class="code" href="classolp_1_1http_1_1_network_utils.html">NetworkUtils</a> {</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;  <span class="keyword">static</span> <span class="keywordtype">char</span> SimpleToUpper(<span class="keywordtype">char</span> c);</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;  <span class="keyword">static</span> <span class="keywordtype">bool</span> CaseInsensitiveCompare(<span class="keyword">const</span> std::string&amp; str1,</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;                                     <span class="keyword">const</span> std::string&amp; str2,</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;                                     <span class="keywordtype">size_t</span> offset = 0);</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;  <span class="keyword">static</span> <span class="keywordtype">bool</span> CaseInsensitiveStartsWith(<span class="keyword">const</span> std::string&amp; str1,</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;                                        <span class="keyword">const</span> std::string&amp; str2,</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;                                        <span class="keywordtype">size_t</span> offset = 0);</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  <span class="keyword">static</span> <span class="keywordtype">size_t</span> CaseInsensitiveFind(<span class="keyword">const</span> std::string&amp; str1,</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;                                    <span class="keyword">const</span> std::string&amp; str2, <span class="keywordtype">size_t</span> offset = 0);</div>
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160; </div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;std::string HttpErrorToString(<span class="keywordtype">int</span> error);</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160; </div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;}  <span class="comment">// namespace http</span></div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;  <span class="keyword">static</span> std::string <a class="code" href="classolp_1_1http_1_1_network_utils.html#aad12c99eabbde979bc4c4cac2a78290d">ExtractUserAgent</a>(<a class="code" href="namespaceolp_1_1http.html#ae2f7d2a838ca66559b0abdac68a7514c">Headers</a>&amp; headers);</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;};  <span class="comment">// class NetworkUtils</span></div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160; </div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;std::string HttpErrorToString(<span class="keywordtype">int</span> error);</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160; </div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;}  <span class="comment">// namespace http</span></div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;}  <span class="comment">// namespace olp</span></div>
 </div><!-- fragment --></div><!-- contents -->
-<div class="ttc" id="aclassolp_1_1http_1_1_network_utils_html"><div class="ttname"><a href="classolp_1_1http_1_1_network_utils.html">olp::http::NetworkUtils</a></div><div class="ttdoc">Network internal utilities.</div><div class="ttdef"><b>Definition:</b> NetworkUtils.h:29</div></div>
+<div class="ttc" id="aclassolp_1_1http_1_1_network_utils_html_aad12c99eabbde979bc4c4cac2a78290d"><div class="ttname"><a href="classolp_1_1http_1_1_network_utils.html#aad12c99eabbde979bc4c4cac2a78290d">olp::http::NetworkUtils::ExtractUserAgent</a></div><div class="ttdeci">static std::string ExtractUserAgent(Headers &amp;headers)</div><div class="ttdoc">Extract the user agent from the headers.</div></div>
+<div class="ttc" id="anamespaceolp_1_1http_html_ae2f7d2a838ca66559b0abdac68a7514c"><div class="ttname"><a href="namespaceolp_1_1http.html#ae2f7d2a838ca66559b0abdac68a7514c">olp::http::Headers</a></div><div class="ttdeci">std::vector&lt; Header &gt; Headers</div><div class="ttdoc">Type alias for vector of HTTP headers.</div><div class="ttdef"><b>Definition:</b> NetworkTypes.h:140</div></div>
+<div class="ttc" id="aclassolp_1_1http_1_1_network_utils_html"><div class="ttname"><a href="classolp_1_1http_1_1_network_utils.html">olp::http::NetworkUtils</a></div><div class="ttdoc">Network internal utilities.</div><div class="ttdef"><b>Definition:</b> NetworkUtils.h:31</div></div>
 <div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">The olp namespace.</div><div class="ttdef"><b>Definition:</b> AuthenticationClient.h:45</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
