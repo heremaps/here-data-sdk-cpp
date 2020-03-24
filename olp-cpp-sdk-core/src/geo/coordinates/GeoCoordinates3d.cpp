@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,14 @@
  * License-Filename: LICENSE
  */
 
-#include <olp/core/geo/coordinates/GeoCoordinates3d.h>
-#include <olp/core/math/Math.h>
+#include "olp/core/geo/coordinates/GeoCoordinates3d.h"
+
+#include "olp/core/math/Math.h"
 
 namespace olp {
 namespace geo {
+
+const double GeoCoordinates3d::kNaN_ = std::numeric_limits<double>::quiet_NaN();
 
 GeoCoordinates3d::GeoCoordinates3d() : geo_coordinates_(), altitude_(kNaN_) {}
 
@@ -31,29 +34,30 @@ GeoCoordinates3d::GeoCoordinates3d(double latitude_radians,
     : geo_coordinates_(latitude_radians, longitude_radians),
       altitude_(altitude_meters) {}
 
-GeoCoordinates3d::GeoCoordinates3d(double latitudeDegrees,
-                                   double longitudeDegrees,
+GeoCoordinates3d::GeoCoordinates3d(double latitude_degrees,
+                                   double longitude_degrees,
                                    double altitude_meters, DegreeType degrees)
-    : geo_coordinates_(latitudeDegrees, longitudeDegrees, degrees),
+    : geo_coordinates_(latitude_degrees, longitude_degrees, degrees),
       altitude_(altitude_meters) {}
 
-GeoCoordinates3d::GeoCoordinates3d(const GeoCoordinates& geoCoords)
-    : geo_coordinates_(geoCoords), altitude_(kNaN_) {}
+GeoCoordinates3d::GeoCoordinates3d(const GeoCoordinates& coordinates)
+    : geo_coordinates_(coordinates), altitude_(kNaN_) {}
 
-GeoCoordinates3d::GeoCoordinates3d(const GeoCoordinates& geoCoordinates,
+GeoCoordinates3d::GeoCoordinates3d(const GeoCoordinates& coordinates,
                                    double altitude_meters)
-    : geo_coordinates_(geoCoordinates), altitude_(altitude_meters) {}
+    : geo_coordinates_(coordinates), altitude_(altitude_meters) {}
 
-GeoCoordinates3d GeoCoordinates3d::FromDegrees(double lat,
-                                               double lon,
-                                               double alt) {
-  return GeoCoordinates3d(math::Radians(lat), math::Radians(lon), alt);
+GeoCoordinates3d GeoCoordinates3d::FromDegrees(double latitude,
+                                               double longitude,
+                                               double altitude) {
+  return GeoCoordinates3d(math::Radians(latitude), math::Radians(longitude),
+                          altitude);
 }
 
-GeoCoordinates3d GeoCoordinates3d::FromRadians(double lat,
-                                               double lon,
-                                               double alt) {
-  return GeoCoordinates3d(lat, lon, alt);
+GeoCoordinates3d GeoCoordinates3d::FromRadians(double latitude,
+                                               double longitude,
+                                               double altitude) {
+  return GeoCoordinates3d(latitude, longitude, altitude);
 }
 
 const GeoCoordinates& GeoCoordinates3d::GetGeoCoordinates() const {
@@ -114,11 +118,9 @@ bool operator!=(const GeoCoordinates3d& lhs, const GeoCoordinates3d& rhs) {
   return !(lhs == rhs);
 }
 
-const double GeoCoordinates3d::kNaN_ = std::numeric_limits<double>::quiet_NaN();
-
 bool GeoCoordinates3d::IsValid() const {
   return !math::isnan(altitude_) && geo_coordinates_.IsValid();
 }
-}  // namespace geo
 
+}  // namespace geo
 }  // namespace olp

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,32 +17,32 @@
  * License-Filename: LICENSE
  */
 
-#include <olp/core/geo/coordinates/GeoCoordinates.h>
-#include <olp/core/math/Math.h>
+#include "olp/core/geo/coordinates/GeoCoordinates.h"
+
+#include "olp/core/math/Math.h"
 
 namespace olp {
-
-using namespace math;
-
 namespace geo {
 const double GeoCoordinates::kNaN_ = std::nan("");
 
+namespace {
+constexpr auto kMaxUInt32 = std::numeric_limits<std::uint32_t>::max();
+}  // namespace
+
 GeoCoordinates GeoCoordinates::FromGeoPoint(const GeoPoint& geo_point) {
-  constexpr std::uint32_t maxUInt32 = std::numeric_limits<std::uint32_t>::max();
-  const double uInt32ToRadFactor = math::two_pi / maxUInt32;
-  return GeoCoordinates{geo_point.y * uInt32ToRadFactor - math::half_pi,
-                        geo_point.x * uInt32ToRadFactor - math::pi};
+  const double int_to_rad_factor = math::two_pi / kMaxUInt32;
+  return GeoCoordinates{geo_point.y * int_to_rad_factor - math::half_pi,
+                        geo_point.x * int_to_rad_factor - math::pi};
 }
 
 GeoPoint GeoCoordinates::ToGeoPoint() const {
-  const GeoCoordinates norm = Normalized();
-  constexpr std::uint32_t maxUInt32 = std::numeric_limits<std::uint32_t>::max();
-  const double radToUInt32Factor = maxUInt32 * math::one_over_two_pi;
+  const auto norm = Normalized();
+  const double rad_to_int_factor = kMaxUInt32 * math::one_over_two_pi;
 
   const auto x = static_cast<std::uint32_t>(
-      std::round((norm.longitude_ + pi) * radToUInt32Factor));
+      std::round((norm.longitude_ + math::pi) * rad_to_int_factor));
   const auto y = static_cast<std::uint32_t>(
-      std::round((norm.latitude_ + half_pi) * radToUInt32Factor));
+      std::round((norm.latitude_ + math::half_pi) * rad_to_int_factor));
 
   return {x, y};
 }
@@ -91,8 +91,8 @@ double GeoCoordinates::GetLatitudeDegrees() const {
   return math::Degrees(latitude_);
 }
 
-void GeoCoordinates::SetLatitudeDegrees(double latitudeDegrees) {
-  latitude_ = math::Radians(latitudeDegrees);
+void GeoCoordinates::SetLatitudeDegrees(double latitude_degrees) {
+  latitude_ = math::Radians(latitude_degrees);
 }
 
 double GeoCoordinates::GetLongitudeDegrees() const {
@@ -111,7 +111,6 @@ GeoCoordinates GeoCoordinates::Normalized() const {
   GeoCoordinates norm{*this};
   norm.latitude_ = math::Clamp(norm.latitude_, -math::half_pi, +math::half_pi);
   norm.longitude_ = math::Wrap(norm.longitude_, -math::pi, +math::pi);
-
   return norm;
 }
 

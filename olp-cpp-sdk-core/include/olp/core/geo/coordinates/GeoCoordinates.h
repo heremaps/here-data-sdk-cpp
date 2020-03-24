@@ -25,6 +25,7 @@
 
 namespace olp {
 namespace geo {
+
 /**
  * @brief A geographic location using WGS84 coordinates.
  *
@@ -37,12 +38,13 @@ namespace geo {
 class CORE_API GeoCoordinates {
  public:
   /**
-   * @brief Construct default geo coordinates
+   * @brief Construct default invalid geo coordinates.
    */
   GeoCoordinates();
 
   /**
-   * @brief Construct geo coordinates form latitude and longitude
+   * @brief Construct geo coordinates form latitude and longitude.
+   *
    * @param latitude_radians WGS84 latitude in radians. Valid values are in
    * [-Pi/2, Pi/2] range.
    * @param longitude_radians WGS84 longitude in radians. Valid values are in
@@ -51,7 +53,8 @@ class CORE_API GeoCoordinates {
   GeoCoordinates(double latitude_radians, double longitude_radians);
 
   /**
-   * @brief Construct geo coordinates form latitude and longitude in degrees
+   * @brief Construct geo coordinates form latitude and longitude in degrees.
+   *
    * @param latitude_degrees WGS84 latitude in degrees. Valid values are in
    * [-90, 90] range.
    * @param longitude_degrees WGS84 longitude in degrees. Valid values are in
@@ -63,10 +66,12 @@ class CORE_API GeoCoordinates {
 
   /**
    * @brief Create GeoCoordinates from latitude and longitude in degrees.
+   *
    * @param latitude_degrees WGS84 latitude in degrees. Valid value is in [-90,
    * 90] range.
    * @param longitude_degrees WGS84 longitude in degrees. Valid value is in
    * [-180, 180) range.
+   *
    * @return GeoCoordinate based on specified input.
    * Use normalized() to put values in a valid range.
    */
@@ -75,33 +80,42 @@ class CORE_API GeoCoordinates {
 
   /**
    * @brief Create GeoCoordinates from GeoPoint.
+   *
    * @param geo_point Geo point to convert to.
+   *
    * @return GeoCoordinate based on specified geoPoint.
    */
   static GeoCoordinates FromGeoPoint(const GeoPoint& geo_point);
 
   /**
    * @brief Return geo coordinate as GeoPoint.
+   *
    * @return current coordinate as a GeoPoint.
    */
   GeoPoint ToGeoPoint() const;
 
   /**
    * @brief Return WGS84 latitude in radians.
+   *
    * @return WGS84 latitude in radians.
    */
   double GetLatitude() const;
+
   /**
    * @brief Set latitude in radians.
+   *
    * @param latitude_radians WGS84 latitude in radians. Valid values are in
    * [-Pi/2, Pi/2] range.
    */
   void SetLatitude(double latitude_radians);
+
   /**
    * @brief Return WGS84 longitude in radians.
+   *
    * @return WGS84 longitude in radians.
    */
   double GetLongitude() const;
+
   /**
    * @brief Set longitude in radians.
    * @param longitude_radians WGS84 longitude in radians. Valid values are in
@@ -111,23 +125,29 @@ class CORE_API GeoCoordinates {
 
   /**
    * @brief Return WGS84 latitude in degrees.
+   *
    * @return WGS84 latitude in degrees.
    */
   double GetLatitudeDegrees() const;
 
   /**
    * @brief Set latitude in degrees.
+   *
    * @param latitude_degrees WGS84 latitude in degrees. Valid values are in
    * [-90, 90] range.
    */
   void SetLatitudeDegrees(double latitude_degrees);
+
   /**
    * @brief Return WGS84 longitude in degrees.
+   *
    * @return WGS84 longitude in degrees.
    */
   double GetLongitudeDegrees() const;
+
   /**
    * @brief Set longitude in degrees.
+   *
    * @param longitude_degrees WGS84 longitude in degrees. Valid values are in
    * [-180, 180) range.
    */
@@ -135,30 +155,48 @@ class CORE_API GeoCoordinates {
 
   /**
    * @brief Normalize the latitude and longitude to [-Pi/2, Pi/2], [-Pi, Pi)
-   * range. To that end, longitude wraps around at +/- Pi and latitude is
-   * clamped at +/- Pi/2
+   * range.
+   *
+   * To that end, longitude wraps around at +/- Pi and latitude is clamped at
+   * +/- Pi/2.
    */
   GeoCoordinates Normalized() const;
+
   /**
-   * @brief Overload the bool operator. Return true if the coordinates are valid.
+   * @brief Overload the bool operator.
+   *
+   * Returns true if the coordinates are valid.
+   *
    * @see IsValid
    */
   explicit operator bool() const;
+
   /**
    * @brief Check if the radian values of latitude and longitude are valid
-   * double numbers. The check happens with the help of math::isnan.
+   * double numbers.
+   *
+   * The check happens with the help of math::isnan.
+   *
    * @return true if the result of the check is positive,
    * false if it is negative.
    */
   bool IsValid() const;
 
  private:
-  double latitude_;   ///< Latitude in radians.
-  double longitude_;  ///< Longitude in radians.
+  /// Latitude in radians.
+  double latitude_;
+  /// Longitude in radians.
+  double longitude_;
+  /// Const used to signalize an invalid value latitude or longitude.
   static const double kNaN_;
 };
 
-bool operator==(const GeoCoordinates& lhs, const GeoCoordinates& rhs);
+/**
+ * @brief Compare operator for comparing two coordinates with each other.
+ *
+ * @return true if the two GeoCoordinates are equal, false otherwise.
+ */
+CORE_API bool operator==(const GeoCoordinates& lhs, const GeoCoordinates& rhs);
 
 }  // namespace geo
 }  // namespace olp
