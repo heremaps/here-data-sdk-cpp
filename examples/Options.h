@@ -25,8 +25,8 @@ struct Option {
 
 const Option kHelpOption{"-h", "--help", "Print the help message and exit."};
 
-const Option kExampleOption{"-e", "--example",
-                            "Run example [read, write, cache]."};
+const Option kExampleOption{
+    "-e", "--example", "Run example [read, write, cache, stream_layer_read]."};
 
 const Option kKeyIdOption{"-i", "--key_id", "Here key ID to access OLP."};
 
@@ -44,6 +44,11 @@ const Option kCatalogVersionOption{
 const Option kLayerIdOption{"-l", "--layer_id",
                             "The layer ID inside the catalog where you want to "
                             "publish data to(required for write example)."};
+
+const Option kSubscriptionTypeOption{
+    "-t", "--type_of_subscription",
+    "Optional parameter type of subscription [serial, parallel] (used for "
+    "stream_layer_read test). If not set, used serial subscription."};
 
 const Option kAllOption{"-a", "--all", "Run all examples."};
 

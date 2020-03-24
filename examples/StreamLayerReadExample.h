@@ -21,8 +21,23 @@
 
 #include "Examples.h"
 
+#include <olp/dataservice/read/SubscribeRequest.h>
 #include <boost/optional.hpp>
 
-int RunStreamLayerExampleRead(const AccessKey& access_key,
-                              const std::string& catalog,
-                              const std::string& layer_id);
+/**
+ * @brief Dataservice read from stream layer example. Authenticate client using
+ * access key id and secret. If used parallel mode create threads, if serial use
+ * current thread.  Create subscription. Poll data and then unsubscribe.
+ * @param access_key here.access.key.id and here.access.key.secret.
+ * @param catalog The HERE Resource Name (HRN) of the catalog from which you
+ * want to read data.
+ * @param layer_id The layer ID of the catalog.
+ * @param subscription_mode The type of client subscription.
+ * @return result of publish data(0 - if succeed)
+ */
+int RunStreamLayerExampleRead(
+    const AccessKey& access_key, const std::string& catalog,
+    const std::string& layer_id,
+    const boost::optional<
+        olp::dataservice::read::SubscribeRequest::SubscriptionMode>&
+        subscription_mode);

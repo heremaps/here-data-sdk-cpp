@@ -32,42 +32,10 @@
 
 namespace {
 constexpr auto kLogTag = "read-stream-layer-example";
-}  // namespace
-
-int RunStreamLayerExampleRead(const AccessKey& access_key,
-                              const std::string& catalog,
-                              const std::string& layer_id) {
-  // Create a task scheduler instance
-  std::shared_ptr<olp::thread::TaskScheduler> task_scheduler =
-      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
-  // Create a network client
-  std::shared_ptr<olp::http::Network> http_client = olp::client::
-      OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
-
-  // Initialize authentication settings
-  olp::authentication::Settings settings({access_key.id, access_key.secret});
-  settings.task_scheduler = std::move(task_scheduler);
-  settings.network_request_handler = http_client;
-  // Setup AuthenticationSettings with a default token provider that will
-  // retrieve an OAuth 2.0 token from OLP.
-  olp::client::AuthenticationSettings auth_settings;
-  auth_settings.provider =
-      olp::authentication::TokenProviderDefault(std::move(settings));
-
-  // Setup OlpClientSettings and provide it to the StreamLayerClient.
-  olp::client::OlpClientSettings client_settings;
-  client_settings.authentication_settings = auth_settings;
-  client_settings.network_request_handler = std::move(http_client);
-
-  // Create stream layer client with settings and catalog, layer specified
-  olp::dataservice::read::StreamLayerClient client(olp::client::HRN{catalog},
-                                                   layer_id, client_settings);
-
-  // Create subscription, used kSerial subscription mode, for reading smaller
-  // volumes of data with a single subscription
-  olp::dataservice::read::SubscribeRequest subscribe_request;
-  subscribe_request.WithSubscriptionMode(
-      olp::dataservice::read::SubscribeRequest::SubscriptionMode::kSerial);
+auto kNumberOfThreads = 2u;
+int CreateSubscription(
+    olp::dataservice::read::StreamLayerClient& client,
+    olp::dataservice::read::SubscribeRequest subscribe_request) {
   auto subscribe_future = client.Subscribe(subscribe_request);
   auto subscribe_response = subscribe_future.GetFuture().get();
   if (!subscribe_response.IsSuccessful()) {
@@ -77,6 +45,10 @@ int RunStreamLayerExampleRead(const AccessKey& access_key,
         subscribe_response.GetError().GetMessage().c_str());
     return -1;
   }
+  return 0;
+}
+
+int RunPoll(olp::dataservice::read::StreamLayerClient& client) {
   unsigned int messages_size = 0;
   // Get the messages, and commit offsets till all data is consumed
   do {
@@ -129,4 +101,96 @@ int RunStreamLayerExampleRead(const AccessKey& access_key,
     }
   } while (messages_size > 0);
   return 0;
+}
+
+int DeleteSubscription(olp::dataservice::read::StreamLayerClient& client) {
+  auto unsubscribe_future = client.Unsubscribe();
+  auto unsubscribe_response = unsubscribe_future.GetFuture().get();
+  if (!unsubscribe_response.IsSuccessful()) {
+    OLP_SDK_LOG_ERROR_F(kLogTag,
+                        "Failed to unsubscribe - HTTP Status: %d Message: %s",
+                        unsubscribe_response.GetError().GetHttpStatusCode(),
+                        unsubscribe_response.GetError().GetMessage().c_str());
+    return -1;
+  }
+  return 0;
+}
+}  // namespace
+
+int RunStreamLayerExampleRead(
+    const AccessKey& access_key, const std::string& catalog,
+    const std::string& layer_id,
+    const boost::optional<
+        olp::dataservice::read::SubscribeRequest::SubscriptionMode>&
+        subscription_mode) {
+  // Create a task scheduler instance
+  std::shared_ptr<olp::thread::TaskScheduler> task_scheduler =
+      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
+  // Create a network client
+  std::shared_ptr<olp::http::Network> http_client = olp::client::
+      OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
+
+  // Initialize authentication settings
+  olp::authentication::Settings settings({access_key.id, access_key.secret});
+  settings.task_scheduler = std::move(task_scheduler);
+  settings.network_request_handler = http_client;
+  // Setup AuthenticationSettings with a default token provider that will
+  // retrieve an OAuth 2.0 token from OLP.
+  olp::client::AuthenticationSettings auth_settings;
+  auth_settings.provider =
+      olp::authentication::TokenProviderDefault(std::move(settings));
+
+  // Setup OlpClientSettings and provide it to the StreamLayerClient.
+  olp::client::OlpClientSettings client_settings;
+  client_settings.authentication_settings = auth_settings;
+  client_settings.network_request_handler = std::move(http_client);
+
+  // Create subscription, used kSerial or kParallel subscription mode
+  olp::dataservice::read::SubscribeRequest subscribe_request;
+  if (subscription_mode) {
+    subscribe_request.WithSubscriptionMode(subscription_mode.get());
+  }
+
+  auto read_from_stream_layer = [&]() -> int {
+    // Create stream layer client with settings and catalog, layer specified
+    olp::dataservice::read::StreamLayerClient client(olp::client::HRN{catalog},
+                                                     layer_id, client_settings);
+    int res = 0;
+    if (CreateSubscription(client, subscribe_request) != 0 ||
+        RunPoll(client) != 0) {
+      res = -1;
+    }
+    if (DeleteSubscription(client) != 0) {
+      res = -1;
+    }
+    return res;
+  };
+
+  int result = 0;
+  if (subscription_mode && subscription_mode.get() ==
+                               olp::dataservice::read::SubscribeRequest::
+                                   SubscriptionMode::kParallel) {
+    // if subscription_mode is kParallel we can read data in a parallel manner
+    OLP_SDK_LOG_INFO_F(kLogTag, "Run Poll in parallel, threads count = %u",
+                       kNumberOfThreads);
+    std::atomic<int> value(0);
+    std::thread threads[kNumberOfThreads];
+    for (auto& thread : threads) {
+      thread = std::thread([&]() {
+        if (read_from_stream_layer() != 0) {
+          // acumulate result from all threads
+          value.store(-1);
+        }
+      });
+    }
+    for (auto& thread : threads) {
+      thread.join();
+    }
+    result = value.load();
+  } else {
+    // if subscription_mode is kSerial we can read  smaller volumes of data with
+    // a single subscription
+    result = read_from_stream_layer();
+  }
+  return result;
 }
