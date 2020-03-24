@@ -90,7 +90,7 @@ class CORE_API Network {
    *
    * @param headers The default headers.
    */
-  virtual void SetDefaultHeaders(Headers headers) {}
+  virtual void SetDefaultHeaders(Headers) {}
 };
 
 /**
