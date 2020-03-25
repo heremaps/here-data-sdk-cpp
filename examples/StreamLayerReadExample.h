@@ -22,7 +22,6 @@
 #include "Examples.h"
 
 #include <olp/dataservice/read/SubscribeRequest.h>
-#include <boost/optional.hpp>
 
 /**
  * @brief Dataservice read from stream layer example. Authenticate client using
@@ -38,6 +37,6 @@
 int RunStreamLayerExampleRead(
     const AccessKey& access_key, const std::string& catalog,
     const std::string& layer_id,
-    const boost::optional<
-        olp::dataservice::read::SubscribeRequest::SubscriptionMode>&
-        subscription_mode);
+    olp::dataservice::read::SubscribeRequest::SubscriptionMode
+        subscription_mode = olp::dataservice::read::SubscribeRequest::
+            SubscriptionMode::kSerial);

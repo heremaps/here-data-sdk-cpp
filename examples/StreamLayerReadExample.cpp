@@ -19,6 +19,9 @@
 
 #include "StreamLayerReadExample.h"
 
+#include <future>
+#include <iostream>
+
 #include <olp/authentication/TokenProvider.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
@@ -27,13 +30,11 @@
 #include <olp/core/utils/Base64.h>
 #include <olp/dataservice/read/StreamLayerClient.h>
 
-#include <future>
-#include <iostream>
-
 namespace {
 constexpr auto kLogTag = "read-stream-layer-example";
-auto kNumberOfThreads = 2u;
-int CreateSubscription(
+constexpr auto kNumberOfThreads = 2u;
+
+bool CreateSubscription(
     olp::dataservice::read::StreamLayerClient& client,
     olp::dataservice::read::SubscribeRequest subscribe_request) {
   auto subscribe_future = client.Subscribe(subscribe_request);
@@ -43,67 +44,83 @@ int CreateSubscription(
         kLogTag, "Failed to create subscription - HTTP Status: %d Message: %s",
         subscribe_response.GetError().GetHttpStatusCode(),
         subscribe_response.GetError().GetMessage().c_str());
-    return -1;
+    return false;
   }
-  return 0;
+  return true;
 }
 
-int RunPoll(olp::dataservice::read::StreamLayerClient& client) {
-  unsigned int messages_size = 0;
-  // Get the messages, and commit offsets till all data is consumed
-  do {
+int GetDataFromMessages(olp::dataservice::read::StreamLayerClient& client,
+                        const olp::dataservice::read::model::Messages& result) {
+  const auto& messages = result.GetMessages();
+  for (const auto& message : messages) {
+    // If data is greater than 1 MB, the data handle is present. The data handle
+    // is a unique identifier that is used to identify content and retrieve the
+    // content using GetData.
+    auto handle = message.GetMetaData().GetDataHandle();
+    if (handle) {
+      OLP_SDK_LOG_INFO_F(kLogTag, "Message data: handle - %s, size - %lu",
+                         handle.get().c_str(),
+                         message.GetMetaData().GetDataSize().get());
+      // use GetData(const model::Message& message) with message instance to
+      // request actual data with data handle.
+      auto message_future = client.GetData(message);
+      auto message_result = message_future.GetFuture().get();
+      if (!message_result.IsSuccessful()) {
+        OLP_SDK_LOG_WARNING_F(kLogTag,
+                              "Failed to get data for data handle %s - HTTP "
+                              "Status: %d Message: %s",
+                              handle.get().c_str(),
+                              message_result.GetError().GetHttpStatusCode(),
+                              message_result.GetError().GetMessage().c_str());
+        continue;
+      }
+      auto message_data = message_result.MoveResult();
+      OLP_SDK_LOG_INFO_F(kLogTag, "GetData for %s successful: size - %lu",
+                         handle.get().c_str(), message_data->size());
+    } else {
+      // If data is less than 1 MB, the data  content published directly in the
+      // metadata and encoded in Base64.
+      OLP_SDK_LOG_INFO_F(kLogTag, "Message data: size - %lu",
+                         message.GetData()->size());
+    }
+  }
+  return messages.size();
+}
+
+void RunPoll(olp::dataservice::read::StreamLayerClient& client) {
+  unsigned int total_messages_size = 0;
+  // Get the messages, and commit offsets till all data is consumed, or max
+  // times 5
+  unsigned int max_times_to_poll = 5;
+  while (max_times_to_poll-- > 0) {
     auto poll_future = client.Poll();
     auto poll_response = poll_future.GetFuture().get();
     if (!poll_response.IsSuccessful()) {
-      OLP_SDK_LOG_ERROR_F(kLogTag,
-                          "Failed to poll data - HTTP Status: %d Message: %s",
-                          poll_response.GetError().GetHttpStatusCode(),
-                          poll_response.GetError().GetMessage().c_str());
-      return -1;
+      OLP_SDK_LOG_WARNING_F(kLogTag,
+                            "Failed to poll data - HTTP Status: %d Message: %s",
+                            poll_response.GetError().GetHttpStatusCode(),
+                            poll_response.GetError().GetMessage().c_str());
+      continue;
     }
 
     auto result = poll_response.MoveResult();
-    const auto& messages = result.GetMessages();
-    messages_size = messages.size();
-    if (messages_size > 0) {
-      OLP_SDK_LOG_INFO_F(kLogTag, "Poll data - Success, messages size - %lu",
-                         messages.size());
-      for (const auto& msg : messages) {
-        auto handle = msg.GetMetaData().GetDataHandle();
-        if (handle) {
-          OLP_SDK_LOG_INFO_F(kLogTag, "Message data: handle - %s, size - %lu",
-                             handle.get().c_str(),
-                             msg.GetMetaData().GetDataSize().get());
-          // use GetData(const model::Message& message) with message instance to
-          // request actual data
-          auto message_future = client.GetData(msg);
-          auto message_result = message_future.GetFuture().get();
-          if (!message_result.IsSuccessful()) {
-            OLP_SDK_LOG_ERROR_F(kLogTag,
-                                "Failed to get data for data handle %s - HTTP "
-                                "Status: %d Message: %s",
-                                handle.get().c_str(),
-                                message_result.GetError().GetHttpStatusCode(),
-                                message_result.GetError().GetMessage().c_str());
-            return -1;
-          } else {
-            auto message_data = message_result.MoveResult();
-            OLP_SDK_LOG_INFO_F(kLogTag, "GetData for %s successful: size - %lu",
-                               handle.get().c_str(), message_data->size());
-          }
-        } else {
-          OLP_SDK_LOG_INFO_F(kLogTag, "Message data: size - %lu",
-                             msg.GetData()->size());
-        }
-      }
-    } else {
+    auto messages_size = GetDataFromMessages(client, result);
+    total_messages_size += messages_size;
+    if (!messages_size) {
       OLP_SDK_LOG_INFO(kLogTag, "No new messages is received");
+      break;
     }
-  } while (messages_size > 0);
-  return 0;
+  }
+
+  if (total_messages_size > 0) {
+    OLP_SDK_LOG_INFO_F(kLogTag, "Poll data - Success, messages size - %u",
+                       total_messages_size);
+  } else {
+    OLP_SDK_LOG_INFO(kLogTag, "No messages is received");
+  }
 }
 
-int DeleteSubscription(olp::dataservice::read::StreamLayerClient& client) {
+bool DeleteSubscription(olp::dataservice::read::StreamLayerClient& client) {
   auto unsubscribe_future = client.Unsubscribe();
   auto unsubscribe_response = unsubscribe_future.GetFuture().get();
   if (!unsubscribe_response.IsSuccessful()) {
@@ -111,24 +128,23 @@ int DeleteSubscription(olp::dataservice::read::StreamLayerClient& client) {
                         "Failed to unsubscribe - HTTP Status: %d Message: %s",
                         unsubscribe_response.GetError().GetHttpStatusCode(),
                         unsubscribe_response.GetError().GetMessage().c_str());
-    return -1;
+    return false;
   }
-  return 0;
+  return true;
 }
 }  // namespace
 
 int RunStreamLayerExampleRead(
     const AccessKey& access_key, const std::string& catalog,
     const std::string& layer_id,
-    const boost::optional<
-        olp::dataservice::read::SubscribeRequest::SubscriptionMode>&
+    olp::dataservice::read::SubscribeRequest::SubscriptionMode
         subscription_mode) {
   // Create a task scheduler instance
-  std::shared_ptr<olp::thread::TaskScheduler> task_scheduler =
+  auto task_scheduler =
       olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
   // Create a network client
-  std::shared_ptr<olp::http::Network> http_client = olp::client::
-      OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
+  auto http_client = olp::client::OlpClientSettingsFactory::
+      CreateDefaultNetworkRequestHandler();
 
   // Initialize authentication settings
   olp::authentication::Settings settings({access_key.id, access_key.secret});
@@ -147,37 +163,56 @@ int RunStreamLayerExampleRead(
 
   // Create subscription, used kSerial or kParallel subscription mode
   olp::dataservice::read::SubscribeRequest subscribe_request;
-  if (subscription_mode) {
-    subscribe_request.WithSubscriptionMode(subscription_mode.get());
-  }
+  subscribe_request.WithSubscriptionMode(subscription_mode);
 
-  auto read_from_stream_layer = [&]() -> int {
+  // set options, default values described here:
+  // https://developer.here.com/olp/documentation/data-api/api-reference-stream.html
+  olp::dataservice::read::ConsumerOptions expected_options = {
+      olp::dataservice::read::ConsumerOption("auto.commit.interval.ms",
+                                             int32_t{5000}),
+      olp::dataservice::read::ConsumerOption("auto.offset.reset", "earliest"),
+      olp::dataservice::read::ConsumerOption("enable.auto.commit", "false"),
+      olp::dataservice::read::ConsumerOption("fetch.max.bytes",
+                                             int32_t{52428800}),
+      olp::dataservice::read::ConsumerOption("fetch.max.wait.ms", int32_t{500}),
+      olp::dataservice::read::ConsumerOption("fetch.min.bytes", int32_t{1}),
+      olp::dataservice::read::ConsumerOption("group.id", "group_id_1"),
+      olp::dataservice::read::ConsumerOption("max.partition.fetch.bytes",
+                                             int32_t{1048576}),
+      olp::dataservice::read::ConsumerOption("max.poll.records", int32_t{500})};
+  subscribe_request.WithConsumerProperties(
+      olp::dataservice::read::ConsumerProperties(expected_options));
+
+  auto read_from_stream_layer = [&]() {
     // Create stream layer client with settings and catalog, layer specified
     olp::dataservice::read::StreamLayerClient client(olp::client::HRN{catalog},
                                                      layer_id, client_settings);
-    int res = 0;
-    if (CreateSubscription(client, subscribe_request) != 0 ||
-        RunPoll(client) != 0) {
-      res = -1;
+    if (!CreateSubscription(client, subscribe_request)) {
+      return false;
     }
-    if (DeleteSubscription(client) != 0) {
-      res = -1;
+    RunPoll(client);
+    if (!DeleteSubscription(client)) {
+      return false;
     }
-    return res;
+    return true;
   };
 
   int result = 0;
-  if (subscription_mode && subscription_mode.get() ==
-                               olp::dataservice::read::SubscribeRequest::
-                                   SubscriptionMode::kParallel) {
-    // if subscription_mode is kParallel we can read data in a parallel manner
+  if (subscription_mode ==
+      olp::dataservice::read::SubscribeRequest::SubscriptionMode::kParallel) {
+    // With parallel subscription you can read large volumes of data in a
+    // parallel manner. The subscription and message reading workflow is similar
+    // to serial subscription except that you are allowed to create multiple
+    // subscriptions for the same aid, catalog, layer, group.id combination
+    // using multiple processes/threads. This allows you to read and commit
+    // messages for each subscription in parallel.
     OLP_SDK_LOG_INFO_F(kLogTag, "Run Poll in parallel, threads count = %u",
                        kNumberOfThreads);
     std::atomic<int> value(0);
     std::thread threads[kNumberOfThreads];
     for (auto& thread : threads) {
       thread = std::thread([&]() {
-        if (read_from_stream_layer() != 0) {
+        if (!read_from_stream_layer()) {
           // acumulate result from all threads
           value.store(-1);
         }
@@ -188,9 +223,9 @@ int RunStreamLayerExampleRead(
     }
     result = value.load();
   } else {
-    // if subscription_mode is kSerial we can read  smaller volumes of data with
-    // a single subscription
-    result = read_from_stream_layer();
+    // With serial subscription you can read  smaller volumes of data with a
+    // single subscription.
+    result = read_from_stream_layer() ? 0 : -1;
   }
   return result;
 }

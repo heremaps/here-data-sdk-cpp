@@ -36,25 +36,25 @@ enum Examples : int {
   read_example = 0b1,
   write_example = 0b10,
   cache_example = 0b100,
-  stream_layer_example = 0b1000,
-  all_examples = read_example | write_example | cache_example | stream_layer_example
+  read_stream_example = 0b1000,
+  all_examples =
+      read_example | write_example | cache_example | read_stream_example
 };
 
 constexpr auto usage =
-    "usuage is \n -a [--all] : run all examples \n -e [--example] : run "
-    "example [read, write, cache, stream_layer_read] \n -i [--key_id] "
-    "here.access.key.id \n -s "
-    "[--key_secret] here.access.key.secret \n"
-    " -c [--catalog] catalog HRN (HERE Resource Name). \n"
-    " -v [--catalog_version] The version of the catalog from which you wan to"
+    "usuage is \n -a,--all : run all examples \n "
+    "-e,--example[=read|read_stream|write|cache]  \n\tRun "
+    "example\n -i,--key-id \n\there.access.key.id \n -s, --key-secret "
+    "\n\there.access.key.secret \n"
+    " -c, --catalog \n\tCatalog HRN (HERE Resource Name). \n"
+    " -v,--catalog-version \n\tThe version of the catalog from which you wan to"
     "get data(used in read example, optional). \n"
-    " -l [--layer_id] the layer ID inside the catalog where you want to "
+    " -l, --layer-id \n\tThe layer ID inside the catalog where you want to "
     "publish data to(required for write example). \n"
-    " -t [--type_of_subscription] Optional parameter type of subscription "
-    "[serial, parallel] (used for stream_layer_read test). If not set, used "
-    "serial subscription. \n"
-    " -h [--help]: show usage \n For "
-    "instructions on how to get the access key ID and access key secret, see "
+    " -t,--type-of-subscription[=serial|parallel] \n\tType of subscription  "
+    "(used for read_stream test). If not set, used serial subscription. \n"
+    " -h,--help \n\tShow usage \nFor instructions on how to get the access key "
+    "ID and access key secret, see "
     "the [Get "
     "Credentials](https://developer.here.com/olp/documentation/access-control/"
     "user-guide/topics/get-credentials.html) section in the Terms and "
@@ -65,11 +65,12 @@ int RequiredArgumentError(const tools::Option& arg) {
             << " [" << arg.long_name << "] " << arg.description << std::endl;
   return 0;
 }
-int ParseArguments(
-    const int argc, char** argv, AccessKey& access_key, std::string& catalog,
-    boost::optional<int64_t>& catalog_version, std::string& layer_id,
-    boost::optional<olp::dataservice::read::SubscribeRequest::SubscriptionMode>&
-        subscription_mode) {
+int ParseArguments(const int argc, char** argv, AccessKey& access_key,
+                   std::string& catalog,
+                   boost::optional<int64_t>& catalog_version,
+                   std::string& layer_id,
+                   olp::dataservice::read::SubscribeRequest::SubscriptionMode&
+                       subscription_mode) {
   int examples_to_run = 0;
 
   const std::vector<std::string> arguments(argv + 1, argv + argc);
@@ -104,13 +105,13 @@ int ParseArguments(
         examples_to_run = Examples::write_example;
       } else if (*it == "cache") {
         examples_to_run = Examples::cache_example;
-      }else if (*it == "stream_layer_read") {
-              examples_to_run = Examples::stream_layer_example;
+      } else if (*it == "read_stream") {
+        examples_to_run = Examples::read_stream_example;
             } else {
-        std::cout
-            << "Example was not found. Please use values:read, write, cache, stream_layer_read"
-            << std::endl;
-        return 0;
+              std::cout << "Example was not found. Please use values:read, "
+                           "write, cache, read_stream"
+                        << std::endl;
+              return 0;
       }
 
     } else if (IsMatch(*it, tools::kCatalogOption)) {
@@ -135,9 +136,8 @@ int ParseArguments(
       layer_id = *it;
     } else if (IsMatch(*it, tools::kSubscriptionTypeOption)) {
       if (++it == arguments.end()) {
-        return RequiredArgumentError(tools::kLayerIdOption);
+        return RequiredArgumentError(tools::kSubscriptionTypeOption);
       }
-
       if (*it == "serial") {
         subscription_mode =
             olp::dataservice::read::SubscribeRequest::SubscriptionMode::kSerial;
@@ -169,8 +169,7 @@ int RunExamples(const AccessKey& access_key, int examples_to_run,
                 const std::string& catalog,
                 const boost::optional<int64_t>& catalog_version,
                 const std::string& layer_id,
-                const boost::optional<
-                    olp::dataservice::read::SubscribeRequest::SubscriptionMode>&
+                olp::dataservice::read::SubscribeRequest::SubscriptionMode
                     subscription_mode) {
   if (examples_to_run & Examples::read_example) {
     std::cout << "Read Example" << std::endl;
@@ -196,7 +195,7 @@ int RunExamples(const AccessKey& access_key, int examples_to_run,
     }
   }
 
-  if (examples_to_run & Examples::stream_layer_example) {
+  if (examples_to_run & Examples::read_stream_example) {
     std::cout << "Stream layer read example" << std::endl;
     if (RunStreamLayerExampleRead(access_key, catalog, layer_id,
                                   subscription_mode)) {
@@ -214,8 +213,9 @@ int main(int argc, char** argv) {
   std::string layer_id;    // the of the layer inside the catalog to which you
                            // want to publish data
   boost::optional<int64_t> catalog_version;  // version of the catalog.
-  boost::optional<olp::dataservice::read::SubscribeRequest::SubscriptionMode>
-      subscription_mode;  // subscription mode for read stream layer example
+  auto subscription_mode =
+      olp::dataservice::read::SubscribeRequest::SubscriptionMode::
+          kSerial;  // subscription mode for read stream layer example
   int examples_to_run =
       ParseArguments(argc, argv, access_key, catalog, catalog_version, layer_id,
                      subscription_mode);
@@ -235,7 +235,8 @@ int main(int argc, char** argv) {
   }
 
   if (((examples_to_run & Examples::write_example) ||
-      (examples_to_run & Examples::stream_layer_example)) && (layer_id.empty())) {
+       (examples_to_run & Examples::read_stream_example)) &&
+      (layer_id.empty())) {
     std::cout << "Please specify layer_id for write or read stream layer "
                  "example. For "
                  "more information use -h [--help]"
