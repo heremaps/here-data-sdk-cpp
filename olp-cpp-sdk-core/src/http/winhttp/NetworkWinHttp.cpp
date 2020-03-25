@@ -158,7 +158,7 @@ bool ConvertMultiByteToWideChar(const std::string& in, std::wstring& out) {
   const auto conversion_result =
       MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, in.c_str(),
                           -1,  // denotes null-terminated string
-                          &out.front(), out.size());
+                          &out.front(), static_cast<int>(out.size()));
 
   // Should not happen as 1st call have succeeded.
   return conversion_result != 0;
@@ -450,18 +450,20 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
 
       if (username_res && password_res) {
         LPCWSTR proxy_lpcwstr_username = proxy_username.c_str();
-        if (!WinHttpSetOption(http_request, WINHTTP_OPTION_PROXY_USERNAME,
-                              const_cast<LPWSTR>(proxy_lpcwstr_username),
-                              wcslen(proxy_lpcwstr_username))) {
+        if (!WinHttpSetOption(
+                http_request, WINHTTP_OPTION_PROXY_USERNAME,
+                const_cast<LPWSTR>(proxy_lpcwstr_username),
+                static_cast<DWORD>(wcslen(proxy_lpcwstr_username)))) {
           OLP_SDK_LOG_WARNING(
               kLogTag, "WinHttpSetOption(proxy username) failed, url="
                            << request.GetUrl() << ", error=" << GetLastError());
         }
 
         LPCWSTR proxy_lpcwstr_password = proxy_password.c_str();
-        if (!WinHttpSetOption(http_request, WINHTTP_OPTION_PROXY_PASSWORD,
-                              const_cast<LPWSTR>(proxy_lpcwstr_password),
-                              wcslen(proxy_lpcwstr_password))) {
+        if (!WinHttpSetOption(
+                http_request, WINHTTP_OPTION_PROXY_PASSWORD,
+                const_cast<LPWSTR>(proxy_lpcwstr_password),
+                static_cast<DWORD>(wcslen(proxy_lpcwstr_password)))) {
           OLP_SDK_LOG_WARNING(
               kLogTag, "WinHttpSetOption(proxy password) failed, url="
                            << request.GetUrl() << ", error=" << GetLastError());
@@ -604,7 +606,7 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
           auto buffer = std::make_unique<char[]>(len);
           const int convertResult = WideCharToMultiByte(
               CP_ACP, 0, wide_buffer.get(), len, buffer.get(), len, 0, nullptr);
-          assert(convertResult == len);
+          assert(convertResult == static_cast<int>(len));
 
           DWORD start = 0, index = 0;
           while (index < len) {

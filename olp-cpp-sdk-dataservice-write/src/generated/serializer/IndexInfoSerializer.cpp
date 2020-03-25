@@ -28,38 +28,29 @@ void to_json(const dataservice::write::model::Index &x, rapidjson::Value &value,
   jsonValue.AddMember("id", rapidjson::StringRef(x.GetId().c_str()), allocator);
 
   rapidjson::Value indexFields(rapidjson::kObjectType);
-  for (auto &field : x.GetIndexFields()) {
-    auto value = field.second;
-    const auto key = rapidjson::StringRef(field.first.c_str());
-    if (value->getIndexType() == dataservice::write::model::IndexType::String) {
-      auto s =
-          std::static_pointer_cast<dataservice::write::model::StringIndexValue>(
-              value);
+  for (auto &field_pair : x.GetIndexFields()) {
+    using namespace dataservice::write::model;
+    const auto &field = field_pair.second;
+    const auto key = rapidjson::StringRef(field_pair.first.c_str());
+    auto index_type = field->getIndexType();
+    if (index_type == IndexType::String) {
+      auto s = std::static_pointer_cast<StringIndexValue>(field);
       rapidjson::Value str_val;
-      str_val.SetString(s->GetValue().c_str(), (int)s->GetValue().size(),
-                        allocator);
+      const auto &str = s->GetValue();
+      str_val.SetString(
+          str.c_str(), static_cast<rapidjson::SizeType>(str.size()), allocator);
       indexFields.AddMember(key, str_val, allocator);
-
-    } else if (value->getIndexType() ==
-               dataservice::write::model::IndexType::Int) {
-      auto s =
-          std::static_pointer_cast<dataservice::write::model::IntIndexValue>(
-              value);
+    } else if (index_type == IndexType::Int) {
+      auto s = std::static_pointer_cast<IntIndexValue>(field);
       indexFields.AddMember(key, s->GetValue(), allocator);
-    } else if (value->getIndexType() ==
-               dataservice::write::model::IndexType::Bool) {
-      auto s = std::static_pointer_cast<
-          dataservice::write::model::BooleanIndexValue>(value);
+    } else if (index_type == IndexType::Bool) {
+      auto s = std::static_pointer_cast<BooleanIndexValue>(field);
       indexFields.AddMember(key, s->GetValue(), allocator);
-    } else if (value->getIndexType() ==
-               dataservice::write::model::IndexType::Heretile) {
-      auto s = std::static_pointer_cast<
-          dataservice::write::model::HereTileIndexValue>(value);
+    } else if (index_type == IndexType::Heretile) {
+      auto s = std::static_pointer_cast<HereTileIndexValue>(field);
       indexFields.AddMember(key, s->GetValue(), allocator);
-    } else if (value->getIndexType() ==
-               dataservice::write::model::IndexType::TimeWindow) {
-      auto s = std::static_pointer_cast<
-          dataservice::write::model::TimeWindowIndexValue>(value);
+    } else if (index_type == IndexType::TimeWindow) {
+      auto s = std::static_pointer_cast<TimeWindowIndexValue>(field);
       indexFields.AddMember(key, s->GetValue(), allocator);
     }
   }
@@ -69,10 +60,12 @@ void to_json(const dataservice::write::model::Index &x, rapidjson::Value &value,
   if (x.GetMetadata()) {
     rapidjson::Value metadatas(rapidjson::kObjectType);
     for (auto metadata : x.GetMetadata().get()) {
-      auto value = metadata.second;
-      auto key = metadata.first.c_str();
-      indexFields.AddMember(rapidjson::StringRef(key),
-                            rapidjson::StringRef(value.c_str()), allocator);
+      auto metadata_value = metadata.second;
+      auto metadata_key = metadata.first.c_str();
+      indexFields.AddMember(
+          rapidjson::StringRef(metadata_key),
+          rapidjson::StringRef(metadata_value.c_str(), metadata_value.size()),
+          allocator);
     }
   }
 
