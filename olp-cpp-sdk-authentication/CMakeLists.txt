@@ -37,6 +37,11 @@ target_link_libraries(${PROJECT_NAME}
         ${PROJECT_LIBS}
 )
 
+# On MINGW boost uses bcrypt library
+if (MINGW)
+    target_link_libraries(${PROJECT_NAME} PRIVATE bcrypt )
+endif()
+
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE AUTHENTICATION_LIBRARY)
 if(BUILD_SHARED_LIBS)
