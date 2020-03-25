@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,37 +17,35 @@
  * License-Filename: LICENSE
  */
 
-#include <olp/core/geo/projection/EquirectangularProjection.h>
+#include "olp/core/geo/projection/EquirectangularProjection.h"
 
-#include <olp/core/geo/coordinates/GeoCoordinates3d.h>
-#include <olp/core/geo/coordinates/GeoRectangle.h>
-#include <olp/core/geo/projection/EarthConstants.h>
-#include <olp/core/math/AlignedBox.h>
-#include <olp/core/math/Math.h>
+#include "olp/core/geo/Types.h"
+#include "olp/core/geo/coordinates/GeoCoordinates3d.h"
+#include "olp/core/geo/coordinates/GeoRectangle.h"
+#include "olp/core/geo/projection/EarthConstants.h"
+#include "olp/core/math/AlignedBox.h"
+#include "olp/core/math/Math.h"
 
 namespace olp {
-
-using namespace math;
-
 namespace geo {
 namespace {
-constexpr double WORLD_TO_GEO_SCALE = two_pi;
-constexpr double GEO_TO_WORLD_SCALE = 1.0 / WORLD_TO_GEO_SCALE;
+constexpr double kWorldToGeoScale = math::two_pi;
+constexpr double kGeoToWorldScale = 1.0 / kWorldToGeoScale;
 
-Vector3d toWorld(const GeoCoordinates3d& geo_coords) {
-  return {(geo_coords.GetLongitude() + pi) * GEO_TO_WORLD_SCALE,
-          (geo_coords.GetLatitude() + half_pi) * GEO_TO_WORLD_SCALE,
-          geo_coords.GetAltitude()};
+WorldCoordinates ToWorldCoordinates(const GeoCoordinates3d& geo_coordinates) {
+  return {(geo_coordinates.GetLongitude() + math::pi) * kGeoToWorldScale,
+          (geo_coordinates.GetLatitude() + math::half_pi) * kGeoToWorldScale,
+          geo_coordinates.GetAltitude()};
 }
 
-GeoCoordinates3d toGeodetic(const Vector3d& point) {
-  return {point.y * WORLD_TO_GEO_SCALE - half_pi,
-          point.x * WORLD_TO_GEO_SCALE - pi, point.z};
+GeoCoordinates3d ToGeoCoordinates(const WorldCoordinates& point) {
+  return {point.y * kWorldToGeoScale - math::half_pi,
+          point.x * kWorldToGeoScale - math::pi, point.z};
 }
 }  // namespace
 
 GeoRectangle EquirectangularProjection::GetGeoBounds() const {
-  return {{-half_pi, -pi}, {+half_pi, +pi}};
+  return {{-math::half_pi, -math::pi}, {+math::half_pi, +math::pi}};
 }
 
 WorldAlignedBox EquirectangularProjection::WorldExtent(
@@ -58,13 +56,13 @@ WorldAlignedBox EquirectangularProjection::WorldExtent(
 
 bool EquirectangularProjection::Project(const GeoCoordinates3d& geo_point,
                                         WorldCoordinates& world_point) const {
-  world_point = toWorld(geo_point);
+  world_point = ToWorldCoordinates(geo_point);
   return true;
 }
 
 bool EquirectangularProjection::Unproject(const WorldCoordinates& world_point,
                                           GeoCoordinates3d& geo_point) const {
-  geo_point = toGeodetic(world_point);
+  geo_point = ToGeoCoordinates(world_point);
   return true;
 }
 

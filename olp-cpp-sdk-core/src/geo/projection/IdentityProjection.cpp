@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,50 +17,48 @@
  * License-Filename: LICENSE
  */
 
-#include <olp/core/geo/projection/IdentityProjection.h>
+#include "olp/core/geo/projection/IdentityProjection.h"
 
-#include <olp/core/geo/coordinates/GeoCoordinates.h>
-#include <olp/core/geo/coordinates/GeoCoordinates3d.h>
-#include <olp/core/geo/coordinates/GeoRectangle.h>
-#include <olp/core/math/AlignedBox.h>
-#include <olp/core/math/Math.h>
+#include "olp/core/geo/Types.h"
+#include "olp/core/geo/coordinates/GeoCoordinates.h"
+#include "olp/core/geo/coordinates/GeoCoordinates3d.h"
+#include "olp/core/geo/coordinates/GeoRectangle.h"
+#include "olp/core/math/AlignedBox.h"
+#include "olp/core/math/Math.h"
 
 namespace olp {
-
-using namespace math;
-
 namespace geo {
 namespace {
 
-Vector3d toWorld(const GeoCoordinates3d& geo_coords) {
-  return {geo_coords.GetLongitude(), geo_coords.GetLatitude(),
-          geo_coords.GetAltitude()};
+WorldCoordinates ToWorldCoordinates(const GeoCoordinates3d& geo_coordinates) {
+  return {geo_coordinates.GetLongitude(), geo_coordinates.GetLatitude(),
+          geo_coordinates.GetAltitude()};
 }
-GeoCoordinates3d toGeodetic(const Vector3d& point) {
+GeoCoordinates3d ToGeoCoordinates(const WorldCoordinates& point) {
   return {point.y, point.x, point.z};
 }
 }  // namespace
 
 GeoRectangle IdentityProjection::GetGeoBounds() const {
-  return {{-half_pi, -pi}, {+half_pi, +pi}};
+  return {{-math::half_pi, -math::pi}, {+math::half_pi, +math::pi}};
 }
 
 WorldAlignedBox IdentityProjection::WorldExtent(double minimum_altitude,
                                                 double maximum_altitude) const {
-  WorldCoordinates min(-pi, -half_pi, minimum_altitude);
-  WorldCoordinates max(pi, half_pi, maximum_altitude);
+  WorldCoordinates min(-math::pi, -math::half_pi, minimum_altitude);
+  WorldCoordinates max(math::pi, math::half_pi, maximum_altitude);
   return WorldAlignedBox(min, max);
 }
 
 bool IdentityProjection::Project(const GeoCoordinates3d& geo_point,
                                  WorldCoordinates& world_point) const {
-  world_point = toWorld(geo_point);
+  world_point = ToWorldCoordinates(geo_point);
   return true;
 }
 
 bool IdentityProjection::Unproject(const WorldCoordinates& world_point,
                                    GeoCoordinates3d& geo_point) const {
-  geo_point = toGeodetic(world_point);
+  geo_point = ToGeoCoordinates(world_point);
   return true;
 }
 

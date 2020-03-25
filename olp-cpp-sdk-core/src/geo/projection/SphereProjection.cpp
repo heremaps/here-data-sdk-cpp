@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,46 +17,43 @@
  * License-Filename: LICENSE
  */
 
-#include <olp/core/geo/projection/SphereProjection.h>
+#include "olp/core/geo/projection/SphereProjection.h"
 
-#include <olp/core/geo/coordinates/GeoCoordinates.h>
-#include <olp/core/geo/coordinates/GeoCoordinates3d.h>
-#include <olp/core/geo/coordinates/GeoRectangle.h>
-#include <olp/core/geo/projection/EarthConstants.h>
-#include <olp/core/math/AlignedBox.h>
-#include <olp/core/math/Math.h>
+#include "olp/core/geo/Types.h"
+#include "olp/core/geo/coordinates/GeoCoordinates.h"
+#include "olp/core/geo/coordinates/GeoCoordinates3d.h"
+#include "olp/core/geo/coordinates/GeoRectangle.h"
+#include "olp/core/geo/projection/EarthConstants.h"
+#include "olp/core/math/AlignedBox.h"
+#include "olp/core/math/Math.h"
 
 namespace olp {
-
-using namespace math;
-
 namespace geo {
 namespace {
-
-static Vector3d worldNormal(const GeoCoordinates& geo_point) {
-  const double cosLatitude = cos(geo_point.GetLatitude());
-  return Vector3d(cos(geo_point.GetLongitude()) * cosLatitude,
-                  sin(geo_point.GetLongitude()) * cosLatitude,
-                  sin(geo_point.GetLatitude()));
+static WorldCoordinates WorldNormal(const GeoCoordinates& geo_coordinates) {
+  const double cos_latitude = cos(geo_coordinates.GetLatitude());
+  return {cos(geo_coordinates.GetLongitude()) * cos_latitude,
+          sin(geo_coordinates.GetLongitude()) * cos_latitude,
+          sin(geo_coordinates.GetLatitude())};
 }
 
-Vector3d toWorld(const GeoCoordinates3d& geo_coords) {
+WorldCoordinates ToWorldCoordinates(const GeoCoordinates3d& geo_coordinates) {
   const double radius =
-      EarthConstants::EquatorialRadius() + geo_coords.GetAltitude();
-  return worldNormal(geo_coords.GetGeoCoordinates()) * radius;
+      EarthConstants::EquatorialRadius() + geo_coordinates.GetAltitude();
+  return WorldNormal(geo_coordinates.GetGeoCoordinates()) * radius;
 }
 
-GeoCoordinates3d toGeodetic(const Vector3d& point) {
-  const double parallelRadiusSq = point.x * point.x + point.y * point.y;
-  const double parallelRadius = sqrt(parallelRadiusSq);
+GeoCoordinates3d ToGeoCoordinates(const WorldCoordinates& point) {
+  const double parallel_radius_square = point.x * point.x + point.y * point.y;
+  const double parallel_radius = sqrt(parallel_radius_square);
 
   // World-space origin maps to any lat, lng
-  const double v = point.z / parallelRadius;
-  if (isnan(v)) {
+  const double v = point.z / parallel_radius;
+  if (math::isnan(v)) {
     return {0, 0, -EarthConstants::EquatorialRadius()};
   }
 
-  const double radius = sqrt(parallelRadiusSq + point.z * point.z);
+  const double radius = sqrt(parallel_radius_square + point.z * point.z);
 
   return {atan(v), atan2(point.y, point.x),
           radius - EarthConstants::EquatorialRadius()};
@@ -65,25 +62,25 @@ GeoCoordinates3d toGeodetic(const Vector3d& point) {
 }  // namespace
 
 GeoRectangle SphereProjection::GetGeoBounds() const {
-  return {{-half_pi, -pi}, {+half_pi, +pi}};
+  return {{-math::half_pi, -math::pi}, {+math::half_pi, +math::pi}};
 }
 
-WorldAlignedBox SphereProjection::WorldExtent(double /*minimum_altitude*/,
+WorldAlignedBox SphereProjection::WorldExtent(double,
                                               double maximum_altitude) const {
-  auto radius = Vector3d(1, 1, 1) *
+  auto radius = WorldCoordinates(1, 1, 1) *
                 (EarthConstants::EquatorialRadius() + maximum_altitude);
   return WorldAlignedBox(-radius, radius);
 }
 
 bool SphereProjection::Project(const GeoCoordinates3d& geo_point,
                                WorldCoordinates& world_point) const {
-  world_point = toWorld(geo_point);
+  world_point = ToWorldCoordinates(geo_point);
   return true;
 }
 
 bool SphereProjection::Unproject(const WorldCoordinates& world_point,
                                  GeoCoordinates3d& geo_point) const {
-  geo_point = toGeodetic(world_point);
+  geo_point = ToGeoCoordinates(world_point);
   return true;
 }
 
