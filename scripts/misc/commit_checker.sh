@@ -23,7 +23,15 @@
 # Requirements can be find in scripts/misc/commit_message_recom.txt
 
 # Saving whole commit message into file for reading below
-echo "`git log --pretty=format:'%B' -2 | sed '1d' | sed '1d' `" >> commit.log
+set -x
+branch_name="$(git symbolic-ref HEAD 2>/dev/null)" || branch_name="branch"     # detached HEAD
+branch_name=${branch_name##refs/heads/}
+if [ "$branch_name" = "master" ]; then
+    echo "`git log --pretty=format:'%B' -1`" >> commit.log
+else
+    echo "`git log --pretty=format:'%B' -2 | sed '1d' | sed '1d' `" >> commit.log
+fi
+set +x
 
 # Counting number of lines in file
 num_lines=`wc -l commit.log| cut -d'c' -f1` 
@@ -45,7 +53,7 @@ do
         exit 1
     fi
     if [ ${current_line_len} -gt 72 ] ; then
-        echo "ERROR: ${current_line_len} chars in ${line}-th line is too long. This line must be less than 80 chars"
+        echo "ERROR: ${current_line_len} chars in ${line}-th line is too long. This line must be less than 72 chars"
         exit 1
     fi
     echo " ${line}-th line is ${current_line_len} chars length"
