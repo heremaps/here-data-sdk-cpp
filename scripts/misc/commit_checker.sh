@@ -25,11 +25,11 @@
 # Saving whole commit message into file for reading below
 set -x
 git branch
-branch_name="$(git branch | grep \* | cut -d ' ' -f2)" || branch_name="master"
-if [ "$branch_name" = "master" ]; then
-    echo "`git log --pretty=format:'%B' -1`" >> commit.log
-else
+branch_name="$(git branch | grep \* | cut -d ' ' -f5| cut -d ')' -f1)"
+if [[ "$branch_name" =~ "pull" ]] ; then
     echo "`git log --pretty=format:'%B' -2 | sed '1d' | sed '1d' `" >> commit.log
+else
+    echo "`git log --pretty=format:'%B' -1`" >> commit.log
 fi
 set +x
 
