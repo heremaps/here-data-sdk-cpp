@@ -24,8 +24,8 @@
 
 # Saving whole commit message into file for reading below
 set -x
-branch_name="$(git symbolic-ref HEAD 2>/dev/null)" || branch_name="branch"     # detached HEAD
-branch_name=${branch_name##refs/heads/}
+git branch
+branch_name="$(git branch | grep \* | cut -d ' ' -f2)" || branch_name="master"
 if [ "$branch_name" = "master" ]; then
     echo "`git log --pretty=format:'%B' -1`" >> commit.log
 else
