@@ -43,16 +43,13 @@ constexpr auto kLogTag = "ThreadPoolTaskScheduler";
 
 void SetCurrentThreadName(const std::string& thread_name) {
   // Currently only supported for pthread users
+  CORE_UNUSED(thread_name);
 
 #if defined(PORTING_PLATFORM_MAC)
   // Note that in Mac based systems the pthread_setname_np takes 1 argument
   // only.
   pthread_setname_np(thread_name.c_str());
-#elif defined(PORTING_PLATFORM_WINDOWS) || defined(PORTING_PLATFORM_EMSCRIPTEN)
-  // Unused
-  CORE_UNUSED(thread_name);
-#else  // Linux, Android, QNX
-#if defined(OLP_SDK_HAVE_PTHREAD_SETNAME_NP)
+#elif defined(OLP_SDK_HAVE_PTHREAD_SETNAME_NP) // Linux, Android, QNX
   // QNX allows 100 but Linux only 16 so select min value and apply for both.
   // If maximum length is exceeded on some systems, e.g. Linux, the name is not
   // set at all. So better truncate it to have at least the minimum set.
@@ -60,7 +57,6 @@ void SetCurrentThreadName(const std::string& thread_name) {
   std::string truncated_name = thread_name.substr(0, kMaxThreadNameLength - 1);
   pthread_setname_np(pthread_self(), truncated_name.c_str());
 #endif  // OLP_SDK_HAVE_PTHREAD_SETNAME_NP
-#endif  // PORTING_PLATFORM_MAC
 }
 
 }  // namespace

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -326,7 +326,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
                     flag->exchange(true);
                     return EmptyResponse(PrefetchTileNoError());
                   },
-                  [=](EmptyResponse result) {
+                  [=](EmptyResponse /*result*/) {
                     if (!flag->load()) {
                       // If above task was cancelled we might need to set
                       // promise else below task will wait forever

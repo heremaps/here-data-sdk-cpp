@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -171,14 +171,15 @@ TEST_P(OlpClientTest, NumberOfAttempts) {
   client_settings_.network_request_handler = network;
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .Times(6)
-      .WillRepeatedly([&](olp::http::NetworkRequest request,
-                          olp::http::Network::Payload payload,
-                          olp::http::Network::Callback callback,
-                          olp::http::Network::HeaderCallback header_callback,
-                          olp::http::Network::DataCallback data_callback) {
-        callback(olp::http::NetworkResponse().WithStatus(429));
-        return olp::http::SendOutcome(olp::http::RequestId(5));
-      });
+      .WillRepeatedly(
+          [&](olp::http::NetworkRequest /*request*/,
+              olp::http::Network::Payload /*payload*/,
+              olp::http::Network::Callback callback,
+              olp::http::Network::HeaderCallback /*header_callback*/,
+              olp::http::Network::DataCallback /*data_callback*/) {
+            callback(olp::http::NetworkResponse().WithStatus(429));
+            return olp::http::SendOutcome(olp::http::RequestId(5));
+          });
 
   client_.SetSettings(client_settings_);
 
@@ -198,11 +199,11 @@ TEST_P(OlpClientTest, ZeroAttempts) {
   auto network = std::make_shared<NetworkMock>();
   client_settings_.network_request_handler = network;
   EXPECT_CALL(*network, Send(_, _, _, _, _))
-      .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         callback(olp::http::NetworkResponse().WithStatus(429));
 
         return olp::http::SendOutcome(olp::http::RequestId(5));
@@ -227,23 +228,25 @@ TEST_P(OlpClientTest, DefaultRetryCondition) {
   auto attempt_statuses = std::queue<int>{{500, 503, 200}};
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .Times(static_cast<int>(attempt_statuses.size()))
-      .WillRepeatedly([&attempt_statuses](
-                          olp::http::NetworkRequest request,
-                          olp::http::Network::Payload payload,
-                          olp::http::Network::Callback callback,
-                          olp::http::Network::HeaderCallback header_callback,
-                          olp::http::Network::DataCallback data_callback) {
-        if (attempt_statuses.empty()) {
-          ADD_FAILURE_AT(__FILE__, __LINE__) << "Unexpected retry attempt";
-          return olp::http::SendOutcome(olp::http::ErrorCode::UNKNOWN_ERROR);
-        }
+      .WillRepeatedly(
+          [&attempt_statuses](
+              olp::http::NetworkRequest /*request*/,
+              olp::http::Network::Payload /*payload*/,
+              olp::http::Network::Callback callback,
+              olp::http::Network::HeaderCallback /*header_callback*/,
+              olp::http::Network::DataCallback /*data_callback*/) {
+            if (attempt_statuses.empty()) {
+              ADD_FAILURE_AT(__FILE__, __LINE__) << "Unexpected retry attempt";
+              return olp::http::SendOutcome(
+                  olp::http::ErrorCode::UNKNOWN_ERROR);
+            }
 
-        auto status = attempt_statuses.front();
-        attempt_statuses.pop();
-        callback(olp::http::NetworkResponse().WithStatus(status));
+            auto status = attempt_statuses.front();
+            attempt_statuses.pop();
+            callback(olp::http::NetworkResponse().WithStatus(status));
 
-        return olp::http::SendOutcome(olp::http::RequestId(5));
-      });
+            return olp::http::SendOutcome(olp::http::RequestId(5));
+          });
 
   client_.SetSettings(client_settings_);
 
@@ -269,19 +272,20 @@ TEST_P(OlpClientTest, RetryCondition) {
   client_settings_.network_request_handler = network;
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .Times(goodAttempt)
-      .WillRepeatedly([&](olp::http::NetworkRequest request,
-                          olp::http::Network::Payload payload,
-                          olp::http::Network::Callback callback,
-                          olp::http::Network::HeaderCallback header_callback,
-                          olp::http::Network::DataCallback data_callback) {
-        current_attempt++;
-        if (current_attempt == goodAttempt) {
-          callback(olp::http::NetworkResponse().WithStatus(200));
-        } else {
-          callback(olp::http::NetworkResponse().WithStatus(429));
-        }
-        return olp::http::SendOutcome(olp::http::RequestId(5));
-      });
+      .WillRepeatedly(
+          [&](olp::http::NetworkRequest /*request*/,
+              olp::http::Network::Payload /*payload*/,
+              olp::http::Network::Callback callback,
+              olp::http::Network::HeaderCallback /*header_callback*/,
+              olp::http::Network::DataCallback /*data_callback*/) {
+            current_attempt++;
+            if (current_attempt == goodAttempt) {
+              callback(olp::http::NetworkResponse().WithStatus(200));
+            } else {
+              callback(olp::http::NetworkResponse().WithStatus(429));
+            }
+            return olp::http::SendOutcome(olp::http::RequestId(5));
+          });
 
   client_.SetSettings(client_settings_);
 
@@ -304,15 +308,16 @@ TEST_P(OlpClientTest, RetryTimeLinear) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .Times(4)
-      .WillRepeatedly([&](olp::http::NetworkRequest request,
-                          olp::http::Network::Payload payload,
-                          olp::http::Network::Callback callback,
-                          olp::http::Network::HeaderCallback header_callback,
-                          olp::http::Network::DataCallback data_callback) {
-        timestamps.push_back(std::chrono::system_clock::now());
-        callback(olp::http::NetworkResponse().WithStatus(429));
-        return olp::http::SendOutcome(olp::http::RequestId(5));
-      });
+      .WillRepeatedly(
+          [&](olp::http::NetworkRequest /*request*/,
+              olp::http::Network::Payload /*payload*/,
+              olp::http::Network::Callback callback,
+              olp::http::Network::HeaderCallback /*header_callback*/,
+              olp::http::Network::DataCallback /*data_callback*/) {
+            timestamps.push_back(std::chrono::system_clock::now());
+            callback(olp::http::NetworkResponse().WithStatus(429));
+            return olp::http::SendOutcome(olp::http::RequestId(5));
+          });
 
   auto response = call_wrapper_->CallApi(
       std::string(), "GET", std::multimap<std::string, std::string>(),
@@ -343,15 +348,16 @@ TEST_P(OlpClientTest, RetryTimeExponential) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .Times(4)
-      .WillRepeatedly([&](olp::http::NetworkRequest request,
-                          olp::http::Network::Payload payload,
-                          olp::http::Network::Callback callback,
-                          olp::http::Network::HeaderCallback header_callback,
-                          olp::http::Network::DataCallback data_callback) {
-        timestamps.push_back(std::chrono::system_clock::now());
-        callback(olp::http::NetworkResponse().WithStatus(429));
-        return olp::http::SendOutcome(olp::http::RequestId(5));
-      });
+      .WillRepeatedly(
+          [&](olp::http::NetworkRequest /*request*/,
+              olp::http::Network::Payload /*payload*/,
+              olp::http::Network::Callback callback,
+              olp::http::Network::HeaderCallback /*header_callback*/,
+              olp::http::Network::DataCallback /*data_callback*/) {
+            timestamps.push_back(std::chrono::system_clock::now());
+            callback(olp::http::NetworkResponse().WithStatus(429));
+            return olp::http::SendOutcome(olp::http::RequestId(5));
+          });
 
   auto response = call_wrapper_->CallApi(
       std::string(), "GET", std::multimap<std::string, std::string>(),
@@ -408,16 +414,17 @@ TEST_P(OlpClientTest, RetryWithExponentialBackdownStrategy) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .Times(requests_count)
-      .WillRepeatedly([&](olp::http::NetworkRequest request,
-                          olp::http::Network::Payload payload,
-                          olp::http::Network::Callback callback,
-                          olp::http::Network::HeaderCallback header_callback,
-                          olp::http::Network::DataCallback data_callback) {
-        timestamps.push_back(std::chrono::system_clock::now());
-        callback(olp::http::NetworkResponse().WithStatus(
-            olp::http::HttpStatusCode::TOO_MANY_REQUESTS));
-        return olp::http::SendOutcome(olp::http::RequestId(5));
-      });
+      .WillRepeatedly(
+          [&](olp::http::NetworkRequest /*request*/,
+              olp::http::Network::Payload /*payload*/,
+              olp::http::Network::Callback callback,
+              olp::http::Network::HeaderCallback /*header_callback*/,
+              olp::http::Network::DataCallback /*data_callback*/) {
+            timestamps.push_back(std::chrono::system_clock::now());
+            callback(olp::http::NetworkResponse().WithStatus(
+                olp::http::HttpStatusCode::TOO_MANY_REQUESTS));
+            return olp::http::SendOutcome(olp::http::RequestId(5));
+          });
 
   client_settings_.network_request_handler = network;
   client_.SetSettings(client_settings_);
@@ -451,25 +458,26 @@ TEST_P(OlpClientTest, RetryTimeout) {
   auto network = std::make_shared<NetworkMock>();
   client_settings_.network_request_handler = network;
   EXPECT_CALL(*network, Send(_, _, _, _, _))
-      .WillRepeatedly([&](olp::http::NetworkRequest request,
-                          olp::http::Network::Payload payload,
-                          olp::http::Network::Callback callback,
-                          olp::http::Network::HeaderCallback header_callback,
-                          olp::http::Network::DataCallback data_callback) {
-        current_attempt++;
-        // the test shouldn't reach the last retry due to timeout
-        // restrictions in retry settings
-        if (current_attempt == kSuccessfulAttempt) {
-          ADD_FAILURE();
+      .WillRepeatedly(
+          [&](olp::http::NetworkRequest /*request*/,
+              olp::http::Network::Payload /*payload*/,
+              olp::http::Network::Callback callback,
+              olp::http::Network::HeaderCallback /*header_callback*/,
+              olp::http::Network::DataCallback /*data_callback*/) {
+            current_attempt++;
+            // the test shouldn't reach the last retry due to timeout
+            // restrictions in retry settings
+            if (current_attempt == kSuccessfulAttempt) {
+              ADD_FAILURE();
 
-          callback(olp::http::NetworkResponse().WithStatus(
-              olp::http::HttpStatusCode::OK));
-        } else {
-          callback(olp::http::NetworkResponse().WithStatus(
-              olp::http::HttpStatusCode::TOO_MANY_REQUESTS));
-        }
-        return olp::http::SendOutcome(olp::http::RequestId(5));
-      });
+              callback(olp::http::NetworkResponse().WithStatus(
+                  olp::http::HttpStatusCode::OK));
+            } else {
+              callback(olp::http::NetworkResponse().WithStatus(
+                  olp::http::HttpStatusCode::TOO_MANY_REQUESTS));
+            }
+            return olp::http::SendOutcome(olp::http::RequestId(5));
+          });
 
   client_settings_.network_request_handler = network;
   client_.SetSettings(client_settings_);
@@ -491,15 +499,16 @@ TEST_P(OlpClientTest, SetInitialBackdownPeriod) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .Times(4)
-      .WillRepeatedly([&](olp::http::NetworkRequest request,
-                          olp::http::Network::Payload payload,
-                          olp::http::Network::Callback callback,
-                          olp::http::Network::HeaderCallback header_callback,
-                          olp::http::Network::DataCallback data_callback) {
-        timestamps.push_back(std::chrono::system_clock::now());
-        callback(olp::http::NetworkResponse().WithStatus(429));
-        return olp::http::SendOutcome(olp::http::RequestId(5));
-      });
+      .WillRepeatedly(
+          [&](olp::http::NetworkRequest /*request*/,
+              olp::http::Network::Payload /*payload*/,
+              olp::http::Network::Callback callback,
+              olp::http::Network::HeaderCallback /*header_callback*/,
+              olp::http::Network::DataCallback /*data_callback*/) {
+            timestamps.push_back(std::chrono::system_clock::now());
+            callback(olp::http::NetworkResponse().WithStatus(429));
+            return olp::http::SendOutcome(olp::http::RequestId(5));
+          });
   auto response = call_wrapper_->CallApi(
       std::string(), "GET", std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(),
@@ -524,10 +533,10 @@ TEST_P(OlpClientTest, Timeout) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         timeout = request.GetSettings().GetConnectionTimeout();
         callback(olp::http::NetworkResponse().WithStatus(429));
         return olp::http::SendOutcome(olp::http::RequestId(5));
@@ -568,10 +577,10 @@ TEST_P(OlpClientTest, Proxy) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         resultSettings = request.GetSettings().GetProxySettings();
         callback(olp::http::NetworkResponse().WithStatus(200));
         return olp::http::SendOutcome(olp::http::RequestId(5));
@@ -614,10 +623,10 @@ TEST_P(OlpClientTest, EmptyProxy) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         resultSettings = request.GetSettings().GetProxySettings();
         callback(olp::http::NetworkResponse().WithStatus(200));
         return olp::http::SendOutcome(olp::http::RequestId(5));
@@ -638,11 +647,11 @@ TEST_P(OlpClientTest, HttpResponse) {
   client_.SetSettings(client_settings_);
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
-      .WillOnce([&](olp::http::NetworkRequest request,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload payload,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         *payload << "content";
         callback(olp::http::NetworkResponse().WithStatus(200));
         return olp::http::SendOutcome(olp::http::RequestId(5));
@@ -665,10 +674,10 @@ TEST_P(OlpClientTest, Paths) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         url = request.GetUrl();
         callback(olp::http::NetworkResponse().WithStatus(200));
         return olp::http::SendOutcome(olp::http::RequestId(5));
@@ -690,10 +699,10 @@ TEST_P(OlpClientTest, MethodGET) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         verb = request.GetVerb();
         callback(olp::http::NetworkResponse().WithStatus(200));
         return olp::http::SendOutcome(olp::http::RequestId(5));
@@ -714,10 +723,10 @@ TEST_P(OlpClientTest, MethodPOST) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         verb = request.GetVerb();
         callback(olp::http::NetworkResponse().WithStatus(200));
         return olp::http::SendOutcome(olp::http::RequestId(5));
@@ -738,10 +747,10 @@ TEST_P(OlpClientTest, MethodPUT) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         verb = request.GetVerb();
         callback(olp::http::NetworkResponse().WithStatus(200));
         return olp::http::SendOutcome(olp::http::RequestId(5));
@@ -768,10 +777,10 @@ TEST_P(OlpClientTest, MethodDELETE) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         verb = request.GetVerb();
         callback(olp::http::NetworkResponse().WithStatus(200));
         return olp::http::SendOutcome(olp::http::RequestId(5));
@@ -792,10 +801,10 @@ TEST_P(OlpClientTest, QueryParam) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         url = request.GetUrl();
         callback(olp::http::NetworkResponse().WithStatus(200));
         return olp::http::SendOutcome(olp::http::RequestId(5));
@@ -823,10 +832,10 @@ TEST_P(OlpClientTest, HeaderParams) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         result_headers = request.GetHeaders();
         callback(olp::http::NetworkResponse().WithStatus(200));
         return olp::http::SendOutcome(olp::http::RequestId(5));
@@ -857,10 +866,10 @@ TEST_P(OlpClientTest, DefaultHeaderParams) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         result_headers = request.GetHeaders();
         callback(olp::http::NetworkResponse().WithStatus(200));
         return olp::http::SendOutcome(olp::http::RequestId(5));
@@ -893,10 +902,10 @@ TEST_P(OlpClientTest, CombineHeaderParams) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         result_headers = request.GetHeaders();
         callback(olp::http::NetworkResponse().WithStatus(200));
         return olp::http::SendOutcome(olp::http::RequestId(5));
@@ -935,10 +944,10 @@ TEST_P(OlpClientTest, Content) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         result_headers = request.GetHeaders();
         resultContent = request.GetBody();
         callback(olp::http::NetworkResponse().WithStatus(200));
@@ -980,11 +989,11 @@ TEST_P(OlpClientTest, CancelBeforeResponse) {
   client_.SetSettings(client_settings_);
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
-      .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         std::thread handler_thread(
             [wait_for_reach_network, wait_for_cancel, callback]() {
               wait_for_reach_network->set_value(true);
@@ -997,8 +1006,9 @@ TEST_P(OlpClientTest, CancelBeforeResponse) {
       });
 
   EXPECT_CALL(*network, Cancel(5))
-      .WillOnce(
-          [=](olp::http::RequestId request_id) { was_cancelled->store(true); });
+      .WillOnce([=](olp::http::RequestId /*request_id*/) {
+        was_cancelled->store(true);
+      });
 
   olp::client::CancellationContext context;
 
@@ -1032,11 +1042,11 @@ TEST_P(OlpClientTest, CancelBeforeResponseAndCallHeadersCb) {
   olp::http::Network::HeaderCallback headers_cb;
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
-      .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
                     olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::DataCallback /*data_callback*/) {
         std::thread handler_thread([wait_for_reach_network, wait_for_cancel,
                                     callback, header_callback, &headers_cb]() {
           headers_cb = std::move(header_callback);
@@ -1050,8 +1060,9 @@ TEST_P(OlpClientTest, CancelBeforeResponseAndCallHeadersCb) {
       });
 
   EXPECT_CALL(*network, Cancel(5))
-      .WillOnce(
-          [=](olp::http::RequestId request_id) { was_cancelled->store(true); });
+      .WillOnce([=](olp::http::RequestId /*request_id*/) {
+        was_cancelled->store(true);
+      });
 
   olp::client::CancellationContext context;
 
@@ -1103,18 +1114,19 @@ TEST_P(OlpClientTest, CancelAfterCompletion) {
   client_.SetSettings(client_settings_);
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
-      .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         callback(olp::http::NetworkResponse().WithStatus(200));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
 
   EXPECT_CALL(*network, Cancel(5))
-      .WillOnce(
-          [=](olp::http::RequestId request_id) { was_cancelled->store(true); });
+      .WillOnce([=](olp::http::RequestId /*request_id*/) {
+        was_cancelled->store(true);
+      });
 
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
@@ -1146,11 +1158,11 @@ TEST_P(OlpClientTest, CancelDuplicate) {
   client_.SetSettings(client_settings_);
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
-      .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         std::thread handler_thread([wait_for_cancel, callback]() {
           wait_for_cancel->get_future().get();
           callback(olp::http::NetworkResponse().WithStatus(200));
@@ -1161,8 +1173,9 @@ TEST_P(OlpClientTest, CancelDuplicate) {
       });
 
   EXPECT_CALL(*network, Cancel(5))
-      .WillOnce(
-          [=](olp::http::RequestId request_id) { was_cancelled->store(true); });
+      .WillOnce([=](olp::http::RequestId /*request_id*/) {
+        was_cancelled->store(true);
+      });
 
   std::promise<olp::client::HttpResponse> promise;
   olp::client::NetworkAsyncCallback callback =
@@ -1204,11 +1217,11 @@ TEST_P(OlpClientTest, CancelRetry) {
   client_.SetSettings(client_settings_);
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
-      .WillRepeatedly([&](olp::http::NetworkRequest request,
-                          olp::http::Network::Payload payload,
+      .WillRepeatedly([&](olp::http::NetworkRequest /*request*/,
+                          olp::http::Network::Payload /*payload*/,
                           olp::http::Network::Callback callback,
-                          olp::http::Network::HeaderCallback header_callback,
-                          olp::http::Network::DataCallback data_callback) {
+                          olp::http::Network::HeaderCallback /*header_callback*/,
+                          olp::http::Network::DataCallback /*data_callback*/) {
         auto tries = ++(*number_of_tries);
         std::thread handler_thread(
             [continue_network, wait_for_cancel, callback, tries, cancelled]() {
@@ -1254,10 +1267,10 @@ TEST_P(OlpClientTest, QueryMultiParams) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         uri = request.GetUrl();
         headers = request.GetHeaders();
         callback(olp::http::NetworkResponse().WithStatus(200));

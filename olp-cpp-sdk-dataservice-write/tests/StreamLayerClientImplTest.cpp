@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -731,7 +731,7 @@ TEST_F(StreamLayerClientImplTest, QueueAndFlush) {
   ON_CALL(*client, PublishDataTask(_, _))
       .WillByDefault(
           [](model::PublishDataRequest request,
-             client::CancellationContext context) -> PublishDataResponse {
+             client::CancellationContext /*context*/) -> PublishDataResponse {
             PublishDataResult result;
             result.SetTraceID(request.GetTraceId().get());
             return PublishDataResponse{result};

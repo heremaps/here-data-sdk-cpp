@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,29 +27,29 @@
  */
 class NullCache : public olp::cache::KeyValueCache {
  public:
-  bool Put(const std::string& key, const boost::any& value,
-           const olp::cache::Encoder& encoder,
-           time_t expiry = (std::numeric_limits<time_t>::max)()) override {
+  bool Put(const std::string& /*key*/, const boost::any& /*value*/,
+           const olp::cache::Encoder& /*encoder*/,
+           time_t /*expiry*/) override {
     return false;
   }
 
-  bool Put(const std::string& key,
-           const std::shared_ptr<std::vector<unsigned char>> value,
-           time_t expiry = (std::numeric_limits<time_t>::max)()) override {
+  bool Put(const std::string& /*key*/,
+           const std::shared_ptr<std::vector<unsigned char>> /*value*/,
+           time_t /*expiry*/) override {
     return false;
   }
 
-  boost::any Get(const std::string& key,
-                 const olp::cache::Decoder& encoder) override {
+  boost::any Get(const std::string& /*key*/,
+                 const olp::cache::Decoder& /*encoder*/) override {
     return {};
   }
 
   std::shared_ptr<std::vector<unsigned char>> Get(
-      const std::string& key) override {
+      const std::string& /*key*/) override {
     return nullptr;
   }
 
-  bool Remove(const std::string& key) override { return true; }
+  bool Remove(const std::string& /*key*/) override { return true; }
 
-  bool RemoveKeysWithPrefix(const std::string& prefix) override { return true; }
+  bool RemoveKeysWithPrefix(const std::string& /*prefix*/) override { return true; }
 };

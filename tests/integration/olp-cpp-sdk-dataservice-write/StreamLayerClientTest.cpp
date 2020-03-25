@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -160,11 +160,11 @@ class StreamLayerClientTest : public ::testing::Test {
     ON_CALL(network, Send(_, _, _, _, _))
         .WillByDefault(testing::DoAll(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(-1), ""),
-            [](olp::http::NetworkRequest request,
-               olp::http::Network::Payload payload,
-               olp::http::Network::Callback callback,
-               olp::http::Network::HeaderCallback header_callback,
-               olp::http::Network::DataCallback data_callback) {
+            [](olp::http::NetworkRequest /*request*/,
+               olp::http::Network::Payload /*payload*/,
+               olp::http::Network::Callback /*callback*/,
+               olp::http::Network::HeaderCallback /*header_callback*/,
+               olp::http::Network::DataCallback /*data_callback*/) {
               auto fail_helper = []() { FAIL(); };
               fail_helper();
               return olp::http::SendOutcome(5);

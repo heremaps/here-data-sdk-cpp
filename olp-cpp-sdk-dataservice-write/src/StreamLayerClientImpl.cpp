@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -269,7 +269,7 @@ olp::client::CancellationToken StreamLayerClientImpl::Flush(
         callback(responses);
         return EmptyFlushApiResponse{};
       },
-      [=](EmptyFlushApiResponse response) {
+      [=](EmptyFlushApiResponse /*response*/) {
         // we don't need to notify user 2 times, cause we already invoke a
         // callback in the execution function:
         if (!exec_started->load()) {

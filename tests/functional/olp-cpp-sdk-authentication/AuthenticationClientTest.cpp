@@ -181,7 +181,6 @@ class AuthenticationClientTest : public AuthenticationCommonTestFixture {
 
   IntrospectAppResponse IntrospectApp(const std::string& access_token,
                                       std::time_t& now,
-                                      unsigned int expires_in = kLimitExpiry,
                                       bool do_cancel = false) {
     std::shared_ptr<IntrospectAppResponse> response;
     unsigned int retry = 0u;
@@ -673,7 +672,7 @@ TEST_F(AuthenticationClientTest, IntrospectApp) {
   EXPECT_EQ(olp::http::HttpStatusCode::OK, result.GetStatus());
 
   auto token = result.GetAccessToken();
-  auto introspect_response = IntrospectApp(token, now, kExpiryTime);
+  auto introspect_response = IntrospectApp(token, now);
   auto introspect_result = introspect_response.GetResult();
 
   EXPECT_TRUE(introspect_response.IsSuccessful());
@@ -692,7 +691,7 @@ TEST_F(AuthenticationClientTest, IntrospectAppInvalidAccessToken) {
   AuthenticationCredentials credentials(id_, secret_);
 
   std::time_t now;
-  auto response = IntrospectApp(kAccessToken, now, kExpiryTime);
+  auto response = IntrospectApp(kAccessToken, now);
   auto result = response.GetResult();
 
   EXPECT_FALSE(response.IsSuccessful());

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,7 +122,6 @@ class DATASERVICE_WRITE_API IntIndexValue final : public IndexValue {
   int64_t intValue_{0};
 
  public:
-  IntIndexValue() = default;
   virtual ~IntIndexValue() = default;
   IntIndexValue(int64_t intValue, IndexType type) : IndexValue(type) {
     intValue_ = std::move(intValue);
@@ -140,7 +139,6 @@ class DATASERVICE_WRITE_API StringIndexValue final : public IndexValue {
   std::string stringValue_;
 
  public:
-  StringIndexValue() = default;
   virtual ~StringIndexValue() = default;
   StringIndexValue(std::string stringValue, IndexType type) : IndexValue(type) {
     stringValue_ = std::move(stringValue);
@@ -158,7 +156,6 @@ class DATASERVICE_WRITE_API TimeWindowIndexValue final : public IndexValue {
   int64_t timeWindowValue_{0};
 
  public:
-  TimeWindowIndexValue() = default;
   virtual ~TimeWindowIndexValue() = default;
   TimeWindowIndexValue(int64_t timeWindowValue, IndexType type)
       : IndexValue(type) {
@@ -177,7 +174,6 @@ class DATASERVICE_WRITE_API HereTileIndexValue final : public IndexValue {
   int64_t hereTileValue_{0};
 
  public:
-  HereTileIndexValue() = default;
   HereTileIndexValue(int64_t hereTileValue, IndexType type) : IndexValue(type) {
     hereTileValue_ = std::move(hereTileValue);
   }

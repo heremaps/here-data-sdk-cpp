@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
        post_signal, callback_placeholder](
           NetworkRequest request, Network::Payload payload,
           Network::Callback callback, Network::HeaderCallback header_callback,
-          Network::DataCallback data_callback) -> olp::http::SendOutcome {
+          Network::DataCallback /*data_callback*/) -> olp::http::SendOutcome {
     *callback_placeholder = callback;
 
     auto mocked_network_block = [request, pre_signal, wait_for_signal,
@@ -89,7 +89,7 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
   };
 
   auto mocked_cancel = [completed,
-                        callback_placeholder](olp::http::RequestId id) {
+                        callback_placeholder](olp::http::RequestId /*id*/) {
     if (!completed->exchange(true)) {
       auto cancel_code = static_cast<int>(ErrorCode::CANCELLED_ERROR);
       (*callback_placeholder)(
@@ -108,11 +108,11 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
 NetworkCallback ReturnHttpResponse(olp::http::NetworkResponse response,
                                    const std::string& response_body,
                                    const http::Headers& headers) {
-  return [=](olp::http::NetworkRequest request,
+  return [=](olp::http::NetworkRequest /*request*/,
              olp::http::Network::Payload payload,
              olp::http::Network::Callback callback,
              olp::http::Network::HeaderCallback header_callback,
-             olp::http::Network::DataCallback data_callback)
+             olp::http::Network::DataCallback /*data_callback*/)
              -> olp::http::SendOutcome {
     std::thread([=]() {
       for (const auto& header : headers) {

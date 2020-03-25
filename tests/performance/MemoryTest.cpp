@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -207,7 +207,7 @@ TEST_P(MemoryTest, ReadLatestVersionCatalogClient) {
   const auto& parameter = GetParam();
   auto settings = CreateCatalogClientSettings();
 
-  StartThreads([=](uint8_t thread_id) {
+  StartThreads([=](uint8_t /*thread_id*/) {
     olp::dataservice::read::CatalogClient service_client(kCatalog, settings);
 
     const auto end_timestamp =
@@ -243,7 +243,7 @@ TEST_P(MemoryTest, ReadMetadataCatalogClient) {
   const auto& parameter = GetParam();
   auto settings = CreateCatalogClientSettings();
 
-  StartThreads([=](uint8_t thread_id) {
+  StartThreads([=](uint8_t /*thread_id*/) {
     olp::dataservice::read::CatalogClient service_client(kCatalog, settings);
 
     const auto end_timestamp =
@@ -289,7 +289,7 @@ TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
 
   auto settings = CreateCatalogClientSettings();
 
-  StartThreads([=](uint8_t thread_id) {
+  StartThreads([=](uint8_t /*thread_id*/) {
     olp::dataservice::read::VersionedLayerClient service_client(
         kCatalog, kVersionedLayerId, settings);
 
@@ -325,7 +325,7 @@ TEST_P(MemoryTest, PrefetchPartitionsFromVersionedLayer) {
 
   auto settings = CreateCatalogClientSettings();
 
-  StartThreads([=](uint8_t thread_id) {
+  StartThreads([=](uint8_t /*thread_id*/) {
     olp::dataservice::read::VersionedLayerClient service_client(
         kCatalog, kVersionedLayerId, settings);
 

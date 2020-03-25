@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -231,11 +231,11 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
     EXPECT_CALL(*network_,
                 Send(IsGetRequest(GetLookupApiRequestUrl()), _, _, _, _))
         .Times(1)
-        .WillOnce([=](olp::http::NetworkRequest request,
-                      olp::http::Network::Payload payload,
-                      olp::http::Network::Callback callback,
-                      olp::http::Network::HeaderCallback header_callback,
-                      olp::http::Network::DataCallback data_callback)
+        .WillOnce([=](olp::http::NetworkRequest /*request*/,
+                      olp::http::Network::Payload /*payload*/,
+                      olp::http::Network::Callback /*callback*/,
+                      olp::http::Network::HeaderCallback /*header_callback*/,
+                      olp::http::Network::DataCallback /*data_callback*/)
                       -> olp::http::SendOutcome {
           // note no network_ response thread spawns
           constexpr auto kUnusedRequestId = 42;
@@ -257,11 +257,11 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
     EXPECT_CALL(*network_,
                 Send(IsGetRequest(GetLookupApiRequestUrl()), _, _, _, _))
         .Times(1)
-        .WillOnce([=](olp::http::NetworkRequest request,
-                      olp::http::Network::Payload payload,
-                      olp::http::Network::Callback callback,
-                      olp::http::Network::HeaderCallback header_callback,
-                      olp::http::Network::DataCallback data_callback)
+        .WillOnce([=](olp::http::NetworkRequest /*request*/,
+                      olp::http::Network::Payload /*payload*/,
+                      olp::http::Network::Callback /*callback*/,
+                      olp::http::Network::HeaderCallback /*header_callback*/,
+                      olp::http::Network::DataCallback /*data_callback*/)
                       -> olp::http::SendOutcome {
           return olp::http::SendOutcome(olp::http::ErrorCode::CANCELLED_ERROR);
         });
@@ -281,14 +281,15 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
     EXPECT_CALL(*network_,
                 Send(IsGetRequest(GetLookupApiRequestUrl()), _, _, _, _))
         .Times(1)
-        .WillOnce([=](olp::http::NetworkRequest request,
-                      olp::http::Network::Payload payload,
-                      olp::http::Network::Callback callback,
-                      olp::http::Network::HeaderCallback header_callback,
-                      olp::http::Network::DataCallback data_callback) mutable
+        .WillOnce([=](olp::http::NetworkRequest /*request*/,
+                      olp::http::Network::Payload /*payload*/,
+                      olp::http::Network::Callback /*callback*/,
+                      olp::http::Network::HeaderCallback /*header_callback*/,
+                      olp::http::Network::DataCallback /*data_callback*/) mutable
                   -> olp::http::SendOutcome {
-          std::thread([context]() mutable { context.CancelOperation(); })
-              .detach();
+          std::thread([context]() mutable {
+            context.CancelOperation();
+          }).detach();
           constexpr auto kUnusedRequestId = 42;
           return olp::http::SendOutcome(kUnusedRequestId);
         });
