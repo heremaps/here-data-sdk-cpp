@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,15 +25,11 @@
 
 namespace {
 
-std::string ErrorMessage(const olp::client::ApiError& error) {
-  std::ostringstream result_stream;
-  result_stream << "ERROR: code: " << static_cast<int>(error.GetErrorCode())
-                << ", status: " << error.GetHttpStatusCode()
-                << ", message: " << error.GetMessage();
-  return result_stream.str();
-}
-
-#define EXPECT_SUCCESS(response) \
-  EXPECT_TRUE((response).IsSuccessful()) << ErrorMessage((response).GetError());
+#define EXPECT_SUCCESS(response)                                   \
+  EXPECT_TRUE((response).IsSuccessful())                           \
+      << "ERROR: code: "                                           \
+      << static_cast<int>((response).GetError().GetErrorCode())    \
+      << ", status: " << (response).GetError().GetHttpStatusCode() \
+      << ", message: " << (response).GetError().GetMessage();
 
 }  // namespace

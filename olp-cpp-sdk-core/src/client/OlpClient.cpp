@@ -328,7 +328,7 @@ CancellationToken OlpClient::CallApi(
     const std::string& path, const std::string& method,
     const OlpClient::ParametersType& query_params,
     const OlpClient::ParametersType& header_params,
-    const OlpClient::ParametersType& form_params,
+    const OlpClient::ParametersType& /*form_params*/,
     const OlpClient::RequestBodyType& post_body,
     const std::string& content_type,
     const NetworkAsyncCallback& callback) const {
@@ -368,7 +368,7 @@ CancellationToken OlpClient::CallApi(
 HttpResponse OlpClient::CallApi(std::string path, std::string method,
                                 OlpClient::ParametersType query_params,
                                 OlpClient::ParametersType header_params,
-                                OlpClient::ParametersType forms_params,
+                                OlpClient::ParametersType /*forms_params*/,
                                 OlpClient::RequestBodyType post_body,
                                 std::string content_type,
                                 CancellationContext context) const {

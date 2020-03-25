@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 #
-# Copyright (C) 2019 HERE Europe B.V.
+# Copyright (C) 2019-2020 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ ulimit -c unlimited
 mkdir -p build
 cd build
 cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-    -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror -Wno-deprecated-declarations -Wno-unused-parameter -Wno-unused-function -Wno-attributes" \
+    -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror -Wno-deprecated-declarations" \
     -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
     -DOLP_SDK_BUILD_EXAMPLES=ON \
     -DBUILD_SHARED_LIBS=ON \

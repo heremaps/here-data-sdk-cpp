@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,28 +60,6 @@ namespace http {
 namespace {
 
 const char* kLogTag = "CURL";
-
-std::vector<std::pair<std::string, std::string> > GetStatistics(
-    CURL* handle, std::size_t retryCount) {
-  std::vector<std::pair<std::string, std::string> > statistics;
-  double time;
-  curl_easy_getinfo(handle, CURLINFO_TOTAL_TIME, &time);
-  statistics.emplace_back("TotalTime", std::to_string(time));
-  curl_easy_getinfo(handle, CURLINFO_NAMELOOKUP_TIME, &time);
-  statistics.emplace_back("NameLookupTime", std::to_string(time));
-  curl_easy_getinfo(handle, CURLINFO_CONNECT_TIME, &time);
-  statistics.emplace_back("ConnectTime", std::to_string(time));
-  curl_easy_getinfo(handle, CURLINFO_APPCONNECT_TIME, &time);
-  statistics.emplace_back("AppConnectTime", std::to_string(time));
-  curl_easy_getinfo(handle, CURLINFO_PRETRANSFER_TIME, &time);
-  statistics.emplace_back("PreTransferTime", std::to_string(time));
-  curl_easy_getinfo(handle, CURLINFO_STARTTRANSFER_TIME, &time);
-  statistics.emplace_back("StartTransferTime", std::to_string(time));
-  curl_easy_getinfo(handle, CURLINFO_REDIRECT_TIME, &time);
-  statistics.emplace_back("RedirectTime", std::to_string(time));
-  statistics.emplace_back("Retries", std::to_string(retryCount));
-  return statistics;
-}
 
 #ifdef OLP_SDK_NETWORK_HAS_OPENSSL
 
@@ -179,24 +157,6 @@ int ConvertErrorCode(CURLcode curl_code) {
 }
 
 #ifdef OLP_SDK_NETWORK_HAS_OPENSSL
-// Lifetime of the mutex table is managed by NetworkCurl object.
-static std::mutex* gSslMutexes;
-
-void SslLockingFunction(int mode, int n, const char* file, int line) {
-  if (gSslMutexes) {
-    if (mode & CRYPTO_LOCK) {
-      gSslMutexes[n].lock();
-    } else {
-      gSslMutexes[n].unlock();
-    }
-  }
-}
-
-unsigned long SslIdFunction(void) {
-  std::hash<std::thread::id> hasher;
-  return static_cast<unsigned long>(hasher(std::this_thread::get_id()));
-}
-
 #ifdef NETWORK_USE_TIMEPROVIDER
 static curl_code SslctxFunction(CURL* curl, void* sslctx, void*) {
   // get the current time in seconds since epoch
@@ -467,7 +427,6 @@ ErrorCode NetworkCurl::SendImplementation(
   handle->transfer_timeout = config.GetTransferTimeout();
   handle->max_retries = config.GetRetries();
   handle->ignore_offset = false;   // request.IgnoreOffset();
-  handle->get_statistics = false;  // request.GetStatistics();
   handle->skip_content = false;    // config->SkipContentWhenError();
 
   for (const auto& header : request.GetHeaders()) {
@@ -691,7 +650,6 @@ NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
       handle.body = std::move(body);
       handle.send_time = std::chrono::steady_clock::now();
       handle.error_text[0] = 0;
-      handle.get_statistics = false;
       handle.skip_content = false;
 
       return &handle;

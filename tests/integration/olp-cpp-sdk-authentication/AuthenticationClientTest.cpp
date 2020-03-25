@@ -176,25 +176,26 @@ class AuthenticationClientTest : public ::testing::Test {
 
     EXPECT_CALL(*network_, Send(_, _, _, _, _))
         .Times(2)  // First is GetTimeFromServer(). Second is actual SignIn.
-        .WillRepeatedly([&](olp::http::NetworkRequest request,
-                            olp::http::Network::Payload payload,
-                            olp::http::Network::Callback callback,
-                            olp::http::Network::HeaderCallback header_callback,
-                            olp::http::Network::DataCallback data_callback) {
-          olp::http::RequestId request_id(5);
-          if (payload) {
-            *payload << data;
-          }
-          callback(olp::http::NetworkResponse()
-                       .WithRequestId(request_id)
-                       .WithStatus(http));
-          if (data_callback) {
-            auto raw = const_cast<char*>(data.c_str());
-            data_callback(reinterpret_cast<uint8_t*>(raw), 0, data.size());
-          }
+        .WillRepeatedly(
+            [&](olp::http::NetworkRequest /*request*/,
+                olp::http::Network::Payload payload,
+                olp::http::Network::Callback callback,
+                olp::http::Network::HeaderCallback /*header_callback*/,
+                olp::http::Network::DataCallback data_callback) {
+              olp::http::RequestId request_id(5);
+              if (payload) {
+                *payload << data;
+              }
+              callback(olp::http::NetworkResponse()
+                           .WithRequestId(request_id)
+                           .WithStatus(http));
+              if (data_callback) {
+                auto raw = const_cast<char*>(data.c_str());
+                data_callback(reinterpret_cast<uint8_t*>(raw), 0, data.size());
+              }
 
-          return olp::http::SendOutcome(request_id);
-        });
+              return olp::http::SendOutcome(request_id);
+            });
 
     client_->SignInClient(
         credentials, {},
@@ -226,10 +227,10 @@ TEST_F(AuthenticationClientTest, SignInClientScope) {
   std::promise<AuthenticationClient::SignInClientResponse> request;
   auto request_future = request.get_future();
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
-      .WillOnce([&](olp::http::NetworkRequest request,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload payload,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback data_callback) {
         olp::http::RequestId request_id(5);
         if (payload) {
@@ -248,10 +249,10 @@ TEST_F(AuthenticationClientTest, SignInClientScope) {
       });
 
   EXPECT_CALL(*network_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
-      .WillOnce([&](olp::http::NetworkRequest request,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload payload,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback data_callback) {
         olp::http::RequestId request_id(5);
         if (payload) {
@@ -297,10 +298,10 @@ TEST_F(AuthenticationClientTest, SignInClientData) {
 
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
       .Times(2)
-      .WillOnce([&](olp::http::NetworkRequest request,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload payload,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback data_callback) {
         olp::http::RequestId request_id(5);
         if (payload) {
@@ -317,11 +318,11 @@ TEST_F(AuthenticationClientTest, SignInClientData) {
 
         return olp::http::SendOutcome(request_id);
       })
-      .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload payload,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
+                    olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         olp::http::RequestId request_id(6);
         callback(olp::http::NetworkResponse()
                      .WithRequestId(request_id)
@@ -332,26 +333,27 @@ TEST_F(AuthenticationClientTest, SignInClientData) {
       });
   EXPECT_CALL(*network_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
       .Times(2)
-      .WillRepeatedly([&](olp::http::NetworkRequest request,
-                          olp::http::Network::Payload payload,
-                          olp::http::Network::Callback callback,
-                          olp::http::Network::HeaderCallback header_callback,
-                          olp::http::Network::DataCallback data_callback) {
-        olp::http::RequestId request_id(5);
-        if (payload) {
-          *payload << kResponseTime;
-        }
-        callback(olp::http::NetworkResponse()
-                     .WithRequestId(request_id)
-                     .WithStatus(olp::http::HttpStatusCode::OK));
-        if (data_callback) {
-          auto raw = const_cast<char*>(kResponseTime.c_str());
-          data_callback(reinterpret_cast<uint8_t*>(raw), 0,
-                        kResponseTime.size());
-        }
+      .WillRepeatedly(
+          [&](olp::http::NetworkRequest /*request*/,
+              olp::http::Network::Payload payload,
+              olp::http::Network::Callback callback,
+              olp::http::Network::HeaderCallback /*header_callback*/,
+              olp::http::Network::DataCallback data_callback) {
+            olp::http::RequestId request_id(5);
+            if (payload) {
+              *payload << kResponseTime;
+            }
+            callback(olp::http::NetworkResponse()
+                         .WithRequestId(request_id)
+                         .WithStatus(olp::http::HttpStatusCode::OK));
+            if (data_callback) {
+              auto raw = const_cast<char*>(kResponseTime.c_str());
+              data_callback(reinterpret_cast<uint8_t*>(raw), 0,
+                            kResponseTime.size());
+            }
 
-        return olp::http::SendOutcome(request_id);
-      });
+            return olp::http::SendOutcome(request_id);
+          });
 
   std::time_t now = std::time(nullptr);
   client_->SignInClient(
@@ -396,10 +398,10 @@ TEST_F(AuthenticationClientTest, SignInClientData) {
 TEST_F(AuthenticationClientTest, SignUpHereUserData) {
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
       .Times(1)
-      .WillOnce([&](olp::http::NetworkRequest request,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload payload,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback data_callback) {
         olp::http::RequestId request_id(5);
         if (payload) {
@@ -435,10 +437,10 @@ TEST_F(AuthenticationClientTest, SignInUserDataFirstTime) {
 
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
       .Times(1)
-      .WillOnce([&](olp::http::NetworkRequest request,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload payload,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback data_callback) {
         olp::http::RequestId request_id(5);
         if (payload) {
@@ -489,10 +491,10 @@ TEST_F(AuthenticationClientTest, AcceptTermsData) {
 
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
       .Times(1)
-      .WillOnce([&](olp::http::NetworkRequest request,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload payload,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback data_callback) {
         olp::http::RequestId request_id(5);
         if (payload) {
@@ -541,10 +543,10 @@ TEST_F(AuthenticationClientTest, SignInHereUser) {
 
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
       .Times(1)
-      .WillOnce([&](olp::http::NetworkRequest request,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload payload,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback data_callback) {
         olp::http::RequestId request_id(5);
         if (payload) {
@@ -592,10 +594,10 @@ TEST_F(AuthenticationClientTest, SignOutUser) {
 
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
       .Times(1)
-      .WillOnce([&](olp::http::NetworkRequest request,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload payload,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback data_callback) {
         olp::http::RequestId request_id(5);
         if (payload) {
@@ -659,11 +661,11 @@ TEST_F(AuthenticationClientTest, SignInFederated) {
 
   EXPECT_CALL(*network_, Send(request_matcher, _, _, _, _))
       .Times(1)
-      .WillOnce([&](olp::http::NetworkRequest request,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload payload,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback /*data_callback*/) {
         olp::http::RequestId request_id(5);
         if (payload) {
           *payload << kUserSigninResponse;
@@ -701,10 +703,10 @@ TEST_F(AuthenticationClientTest, SignInFacebookData) {
 
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
       .Times(1)
-      .WillOnce([&](olp::http::NetworkRequest request,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload payload,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback data_callback) {
         olp::http::RequestId request_id(5);
         if (payload) {
@@ -759,10 +761,10 @@ TEST_F(AuthenticationClientTest, SignInGoogleData) {
 
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
       .Times(1)
-      .WillOnce([&](olp::http::NetworkRequest request,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload payload,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback data_callback) {
         olp::http::RequestId request_id(5);
         if (payload) {
@@ -809,10 +811,10 @@ TEST_F(AuthenticationClientTest, SignInArcGisData) {
 
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
       .Times(1)
-      .WillOnce([&](olp::http::NetworkRequest request,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload payload,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback data_callback) {
         olp::http::RequestId request_id(5);
         if (payload) {
@@ -867,10 +869,10 @@ TEST_F(AuthenticationClientTest, SignInRefreshData) {
 
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
       .Times(1)
-      .WillOnce([&](olp::http::NetworkRequest request,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload payload,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback data_callback) {
         olp::http::RequestId request_id(5);
         if (payload) {
@@ -918,27 +920,28 @@ TEST_F(AuthenticationClientTest, ErrorFieldsData) {
 
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
       .Times(3)
-      .WillRepeatedly([&](olp::http::NetworkRequest request,
-                          olp::http::Network::Payload payload,
-                          olp::http::Network::Callback callback,
-                          olp::http::Network::HeaderCallback header_callback,
-                          olp::http::Network::DataCallback data_callback) {
-        olp::http::RequestId request_id(5);
-        if (payload) {
-          *payload << kResponseErrorFields;
-        }
-        callback(olp::http::NetworkResponse()
-                     .WithRequestId(request_id)
-                     .WithStatus(olp::http::HttpStatusCode::BAD_REQUEST)
-                     .WithError(kErrorFieldsMessage));
-        if (data_callback) {
-          auto raw = const_cast<char*>(kResponseErrorFields.c_str());
-          data_callback(reinterpret_cast<uint8_t*>(raw), 0,
-                        kResponseErrorFields.size());
-        }
+      .WillRepeatedly(
+          [&](olp::http::NetworkRequest /*request*/,
+              olp::http::Network::Payload payload,
+              olp::http::Network::Callback callback,
+              olp::http::Network::HeaderCallback /*header_callback*/,
+              olp::http::Network::DataCallback data_callback) {
+            olp::http::RequestId request_id(5);
+            if (payload) {
+              *payload << kResponseErrorFields;
+            }
+            callback(olp::http::NetworkResponse()
+                         .WithRequestId(request_id)
+                         .WithStatus(olp::http::HttpStatusCode::BAD_REQUEST)
+                         .WithError(kErrorFieldsMessage));
+            if (data_callback) {
+              auto raw = const_cast<char*>(kResponseErrorFields.c_str());
+              data_callback(reinterpret_cast<uint8_t*>(raw), 0,
+                            kResponseErrorFields.size());
+            }
 
-        return olp::http::SendOutcome(request_id);
-      });
+            return olp::http::SendOutcome(request_id);
+          });
 
   AuthenticationClient::UserProperties properties;
   client_->SignInHereUser(
@@ -1106,11 +1109,11 @@ TEST_F(AuthenticationClientTest, IntrospectApp) {
   {
     SCOPED_TRACE("Successful request");
     EXPECT_CALL(*network_, Send(IsGetRequest(kIntrospectUrl), _, _, _, _))
-        .WillOnce([&](olp::http::NetworkRequest request,
+        .WillOnce([&](olp::http::NetworkRequest /*request*/,
                       olp::http::Network::Payload payload,
                       olp::http::Network::Callback callback,
-                      olp::http::Network::HeaderCallback header_callback,
-                      olp::http::Network::DataCallback data_callback) {
+                      olp::http::Network::HeaderCallback /*header_callback*/,
+                      olp::http::Network::DataCallback /*data_callback*/) {
           olp::http::RequestId request_id(3);
           if (payload) {
             *payload << kIntrospectAppResponse;
@@ -1155,11 +1158,11 @@ TEST_F(AuthenticationClientTest, IntrospectApp) {
   {
     SCOPED_TRACE("Invalid access token");
     EXPECT_CALL(*network_, Send(IsGetRequest(kIntrospectUrl), _, _, _, _))
-        .WillOnce([&](olp::http::NetworkRequest request,
+        .WillOnce([&](olp::http::NetworkRequest /*request*/,
                       olp::http::Network::Payload payload,
                       olp::http::Network::Callback callback,
-                      olp::http::Network::HeaderCallback header_callback,
-                      olp::http::Network::DataCallback data_callback) {
+                      olp::http::Network::HeaderCallback /*header_callback*/,
+                      olp::http::Network::DataCallback /*data_callback*/) {
           olp::http::RequestId request_id(3);
           if (payload) {
             *payload << kInvalidAccessTokenResponse;

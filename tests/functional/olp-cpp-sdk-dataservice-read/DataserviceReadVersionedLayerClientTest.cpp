@@ -475,8 +475,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsForInvalidLayer) {
         return future.GetFuture().get();
       });
 
-  ASSERT_FALSE(partitions_response.IsSuccessful())
-      << ErrorMessage(partitions_response.GetError());
+  ASSERT_FALSE(partitions_response.IsSuccessful());
   ASSERT_EQ(olp::client::ErrorCode::BadRequest,
             partitions_response.GetError().GetErrorCode());
 }

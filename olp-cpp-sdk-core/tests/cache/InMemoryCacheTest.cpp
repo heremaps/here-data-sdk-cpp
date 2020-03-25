@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -335,10 +335,10 @@ TEST(InMemoryCacheTest, CustomCost) {
   auto oversized_model = "value: " + oversized;
 
   struct MyCacheCost {
-    std::size_t operator()(const ItemTuple& s) const { return 2; }
+    std::size_t operator()(const ItemTuple&) const { return 2; }
   };
 
-  auto cost_func = [](const ItemTuple& tuple) { return 2; };
+  auto cost_func = [](const ItemTuple&) { return 2; };
 
   olp::cache::InMemoryCache cache(1, MyCacheCost());
 

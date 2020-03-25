@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,8 +82,8 @@ TEST(VersionedLayerClientTest, RemoveFromCachePartition) {
   settings.cache = cache_mock;
 
   // successfull mock cache calls
-  auto found_cache_response = [](const std::string& key,
-                                 const olp::cache::Decoder& encoder) {
+  auto found_cache_response = [](const std::string& /*key*/,
+                                 const olp::cache::Decoder& /*encoder*/) {
     auto partition = model::Partition();
     partition.SetPartition(kPartitionId);
     partition.SetDataHandle(kBlobDataHandle);
@@ -144,8 +144,8 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
   settings.cache = cache_mock;
 
   // successfull mock cache calls
-  auto found_cache_response = [](const std::string& key,
-                                 const olp::cache::Decoder& encoder) {
+  auto found_cache_response = [](const std::string& /*key*/,
+                                 const olp::cache::Decoder& /*encoder*/) {
     auto partition = model::Partition();
     partition.SetPartition(kPartitionId);
     partition.SetDataHandle(kBlobDataHandle);

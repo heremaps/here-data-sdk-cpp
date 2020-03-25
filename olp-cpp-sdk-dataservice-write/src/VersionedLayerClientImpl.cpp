@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -692,7 +692,7 @@ std::string VersionedLayerClientImpl::FindContentTypeForLayerId(
 }
 
 void VersionedLayerClientImpl::UploadBlob(
-    std::string publication_id,
+    std::string /*publication_id*/,
     std::shared_ptr<model::PublishPartition> partition, std::string data_handle,
     std::string layer_id,
     std::shared_ptr<client::CancellationContext> cancel_context,
