@@ -24,10 +24,13 @@
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/NetworkMock.h>
 #include <olp/authentication/Settings.h>
+#include <olp/core/cache/CacheSettings.h>
+#include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/porting/make_unique.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
+#include <olp/dataservice/read/model/Partitions.h>
 
 #include "HttpResponses.h"
 
@@ -2910,6 +2913,95 @@ TEST_F(DataserviceReadVersionedLayerClientTest, RemoveFromCacheTileKey) {
   response = future.get();
 
   ASSERT_FALSE(response.IsSuccessful());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, CheckCacheExpirationLookupApi) {
+  olp::client::HRN hrn(GetTestCatalog());
+  // reset network mock
+  network_mock_ = std::make_shared<NetworkMock>();
+  settings_->network_request_handler = network_mock_;
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponseBlobData_269));
+
+  // initialize cache
+  if (!settings_->cache) {
+    settings_->cache =
+        olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+  }
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      hrn, "testlayer", 4, *settings_);
+
+  // write to cache, but change expiration time
+  time_t expirationTime = 2;
+  const std::string serviceUrl(
+      "https://metadata.data.api.platform.here.com/metadata/v1/catalogs/"
+      "hereos-internal-test-v2");
+  settings_->cache->Put(
+      "hrn:here:data::olp-here-test:here-optimized-map-for-visualization-2::"
+      "metadata::v1::api",
+      serviceUrl, [serviceUrl]() { return serviceUrl; }, expirationTime);
+
+  const std::string serviceUrl2(
+      "https://query.data.api.platform.here.com/query/v1/catalogs/"
+      "hereos-internal-test-v2");
+  settings_->cache->Put(
+      "hrn:here:data::olp-here-test:here-optimized-map-for-visualization-2::"
+      "query::v1::api",
+      serviceUrl2, [serviceUrl2]() { return serviceUrl2; }, expirationTime);
+
+  const std::string serviceUrl3(
+      "https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/"
+      "hereos-internal-test-v2");
+  settings_->cache->Put(
+      "hrn:here:data::olp-here-test:here-optimized-map-for-visualization-2::"
+      "blob::v1::api",
+      serviceUrl3, [serviceUrl3]() { return serviceUrl3; }, expirationTime);
+
+  olp::dataservice::read::model::Partition partition;
+  partition.SetPartition("269");
+  partition.SetDataHandle("4eed6ed1-0d32-43b9-ae79-043cb4256432");
+  partition.SetVersion(4);
+  settings_->cache->Put(
+      "hrn:here:data::olp-here-test:here-optimized-map-for-visualization-2::"
+      "testlayer::269::4::partition",
+      partition,
+      [=]() {
+        return R"jsonString({"dataHandle":"4eed6ed1-0d32-43b9-ae79-043cb4256432","partition":"269","version":4})jsonString";
+      },
+      std::numeric_limits<time_t>::max());
+
+  auto request = olp::dataservice::read::DataRequest();
+  request.WithPartitionId("269").WithFetchOption(
+      OnlineIfNotFound);  // CacheOnly OnlineIfNotFound
+  auto future = client->GetData(request);
+
+  auto data_response = future.GetFuture().get();
+
+  ASSERT_TRUE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+  ASSERT_LT(0, data_response.GetResult()->size());
+  std::string data_string(data_response.GetResult()->begin(),
+                          data_response.GetResult()->end());
+  ASSERT_EQ("DT_2_0031", data_string);
+
+  // remove cached data for partition
+  settings_->cache->Remove(
+      "hrn:here:data::olp-here-test:here-optimized-map-for-visualization-2::"
+      "testlayer::4eed6ed1-0d32-43b9-ae79-043cb4256432::Data");
+
+  // as data expired, second call will send request to lookup api
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
+                                   "Server busy at the moment."));
+
+  std::this_thread::sleep_for(std::chrono::seconds(4));
+  future = client->GetData(request);
+  data_response = future.GetFuture().get();
+  // second call should fail, becouse data expired in cache
+  ASSERT_FALSE(data_response.IsSuccessful());
 }
 
 }  // namespace
