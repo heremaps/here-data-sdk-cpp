@@ -339,4 +339,31 @@ TEST_F(ApiTest, QuadTreeIndex) {
       << ApiErrorToString(index_response.GetError());
 }
 
+TEST_F(ApiTest, QuadTreeIndexVolatile) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto client_response = olp::dataservice::read::ApiClientLookup::LookupApi(
+      hrn, {}, "query", "v1",
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound, *settings_);
+
+  ASSERT_TRUE(client_response.IsSuccessful())
+      << ApiErrorToString(client_response.GetError());
+  auto query_client = client_response.MoveResult();
+
+  std::string layer_id("test-volatile-layer");
+  std::string quad_key("5904591");
+  int32_t depth = 2;
+
+  auto start_time = std::chrono::high_resolution_clock::now();
+  auto index_response = olp::dataservice::read::QueryApi::QuadTreeIndexVolatile(
+      query_client, layer_id, quad_key, depth, boost::none,
+      boost::none, olp::client::CancellationContext{});
+  auto end = std::chrono::high_resolution_clock::now();
+
+  std::chrono::duration<double> time = end - start_time;
+  std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
+  ASSERT_TRUE(index_response.IsSuccessful())
+      << ApiErrorToString(index_response.GetError());
+}
+
 }  // namespace
