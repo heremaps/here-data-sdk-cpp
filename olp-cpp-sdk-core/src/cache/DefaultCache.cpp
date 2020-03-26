@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,330 +21,44 @@
 
 #include "olp/core/cache/DefaultCache.h"
 
-#include "DiskCache.h"
-#include "InMemoryCache.h"
-#include "olp/core/logging/Log.h"
-#include "olp/core/porting/make_unique.h"
-
-namespace {
-
-constexpr auto kLogTag = "DefaultCache";
-
-std::string CreateExpiryKey(const std::string& key) { return key + "::expiry"; }
-
-time_t GetRemainingExpiryTime(const std::string& key,
-                              olp::cache::DiskCache& disk_cache) {
-  auto expiry_key = CreateExpiryKey(key);
-  auto expiry = olp::cache::KeyValueCache::kDefaultExpiry;
-  auto expiry_value = disk_cache.Get(expiry_key);
-  if (expiry_value) {
-    expiry = std::stol(*expiry_value);
-    expiry -= olp::cache::InMemoryCache::DefaultTimeProvider()();
-  }
-
-  return expiry;
-}
-
-void PurgeDiskItem(const std::string& key, olp::cache::DiskCache& disk_cache) {
-  auto expiry_key = CreateExpiryKey(key);
-  disk_cache.Remove(key);
-  disk_cache.Remove(expiry_key);
-}
-
-bool StoreExpiry(const std::string& key, olp::cache::DiskCache& disk_cache,
-                 time_t expiry) {
-  auto expiry_key = CreateExpiryKey(key);
-  return disk_cache.Put(
-      expiry_key,
-      std::to_string(expiry +
-                     olp::cache::InMemoryCache::DefaultTimeProvider()()));
-}
-
-}  // namespace
+#include "DefaultCacheImpl.h"
 
 namespace olp {
 namespace cache {
 
 DefaultCache::DefaultCache(CacheSettings settings)
-    : settings_(std::move(settings)),
-      is_open_(false),
-      memory_cache_(nullptr),
-      mutable_cache_(nullptr),
-      protected_cache_(nullptr) {}
+    : impl_(std::make_shared<DefaultCacheImpl>(std::move(settings))) {}
 
 DefaultCache::~DefaultCache() = default;
 
-DefaultCache::StorageOpenResult DefaultCache::Open() {
-  std::lock_guard<std::mutex> lock(cache_lock_);
-  is_open_ = true;
-  return SetupStorage();
-}
+DefaultCache::StorageOpenResult DefaultCache::Open() { return impl_->Open(); }
 
-void DefaultCache::Close() {
-  std::lock_guard<std::mutex> lock(cache_lock_);
-  if (!is_open_) {
-    return;
-  }
+void DefaultCache::Close() { impl_->Close(); }
 
-  memory_cache_.reset();
-  mutable_cache_.reset();
-  protected_cache_.reset();
-  is_open_ = false;
-}
-
-bool DefaultCache::Clear() {
-  std::lock_guard<std::mutex> lock(cache_lock_);
-  if (!is_open_) {
-    return false;
-  }
-
-  if (memory_cache_) {
-    memory_cache_->Clear();
-  }
-
-  if (mutable_cache_) {
-    if (!mutable_cache_->Clear()) {
-      return false;
-    }
-  }
-
-  return SetupStorage() == DefaultCache::StorageOpenResult::Success;
-}
+bool DefaultCache::Clear() { return impl_->Clear(); }
 
 bool DefaultCache::Put(const std::string& key, const boost::any& value,
                        const Encoder& encoder, time_t expiry) {
-  std::lock_guard<std::mutex> lock(cache_lock_);
-  if (!is_open_) {
-    return false;
-  }
-
-  auto encoded_item = encoder();
-  if (memory_cache_) {
-    const auto size = encoded_item.size();
-    const bool result = memory_cache_->Put(key, value, expiry, size);
-    if (!result && size > settings_.max_memory_cache_size) {
-      OLP_SDK_LOG_WARNING_F(kLogTag,
-                            "Failed to store value in memory cache %s, size %d",
-                            key.c_str(), static_cast<int>(size));
-    }
-  }
-
-  if (mutable_cache_) {
-    if (expiry < KeyValueCache::kDefaultExpiry) {
-      if (!StoreExpiry(key, *mutable_cache_, expiry)) {
-        return false;
-      }
-    }
-
-    if (!mutable_cache_->Put(key, encoded_item)) {
-      return false;
-    }
-  }
-
-  return true;
+  return impl_->Put(key, value, encoder, expiry);
 }
 
 bool DefaultCache::Put(const std::string& key,
                        const KeyValueCache::ValueTypePtr value, time_t expiry) {
-  std::lock_guard<std::mutex> lock(cache_lock_);
-  if (!is_open_) {
-    return false;
-  }
-
-  if (memory_cache_) {
-    const auto size = value->size();
-    const bool result = memory_cache_->Put(key, value, expiry, size);
-    if (!result && size > settings_.max_memory_cache_size) {
-      OLP_SDK_LOG_WARNING_F(kLogTag,
-                            "Failed to store value in memory cache %s, size %d",
-                            key.c_str(), static_cast<int>(size));
-    }
-  }
-
-  if (mutable_cache_) {
-    if (expiry < KeyValueCache::kDefaultExpiry) {
-      if (!StoreExpiry(key, *mutable_cache_, expiry)) {
-        return false;
-      }
-    }
-
-    leveldb::Slice slice(reinterpret_cast<const char*>(value->data()),
-                         value->size());
-    if (!mutable_cache_->Put(key, slice)) {
-      return false;
-    }
-  }
-
-  return true;
+  return impl_->Put(key, value, expiry);
 }
 
 boost::any DefaultCache::Get(const std::string& key, const Decoder& decoder) {
-  std::lock_guard<std::mutex> lock(cache_lock_);
-  if (!is_open_) {
-    return boost::any();
-  }
-
-  if (memory_cache_) {
-    auto value = memory_cache_->Get(key);
-    if (!value.empty()) {
-      return value;
-    }
-  }
-
-  auto disc_cache = GetFromDiscCache(key);
-
-  if (disc_cache) {
-    auto decoded_item = decoder(disc_cache->first);
-    if (memory_cache_) {
-      memory_cache_->Put(key, decoded_item, disc_cache->second,
-                         disc_cache->first.size());
-    }
-    return decoded_item;
-  }
-
-  return boost::any();
+  return impl_->Get(key, decoder);
 }
 
 KeyValueCache::ValueTypePtr DefaultCache::Get(const std::string& key) {
-  std::lock_guard<std::mutex> lock(cache_lock_);
-  if (!is_open_) {
-    return nullptr;
-  }
-
-  if (memory_cache_) {
-    auto value = memory_cache_->Get(key);
-
-    if (!value.empty()) {
-      return boost::any_cast<KeyValueCache::ValueTypePtr>(value);
-    }
-  }
-
-  auto disc_cache = GetFromDiscCache(key);
-  if (disc_cache) {
-    const std::string& cached_data = disc_cache->first;
-    auto data = std::make_shared<KeyValueCache::ValueType>(cached_data.size());
-
-    std::memcpy(&data->front(), cached_data.data(), cached_data.size());
-
-    if (memory_cache_) {
-      memory_cache_->Put(key, data, disc_cache->second, data->size());
-    }
-    return data;
-  }
-
-  return nullptr;
+  return impl_->Get(key);
 }
 
-bool DefaultCache::Remove(const std::string& key) {
-  std::lock_guard<std::mutex> lock(cache_lock_);
-  if (!is_open_) {
-    return false;
-  }
-
-  if (memory_cache_) {
-    memory_cache_->Remove(key);
-  }
-
-  if (mutable_cache_) {
-    if (!mutable_cache_->Remove(key)) {
-      return false;
-    }
-  }
-
-  return true;
-}
+bool DefaultCache::Remove(const std::string& key) { return impl_->Remove(key); }
 
 bool DefaultCache::RemoveKeysWithPrefix(const std::string& key) {
-  std::lock_guard<std::mutex> lock(cache_lock_);
-  if (!is_open_) {
-    return false;
-  }
-
-  if (memory_cache_) {
-    memory_cache_->RemoveKeysWithPrefix(key);
-  }
-
-  if (mutable_cache_) {
-    return mutable_cache_->RemoveKeysWithPrefix(key);
-  }
-  return true;
-}
-
-DefaultCache::StorageOpenResult DefaultCache::SetupStorage() {
-  auto result = Success;
-
-  memory_cache_.reset();
-  mutable_cache_.reset();
-  protected_cache_.reset();
-
-  if (settings_.max_memory_cache_size > 0) {
-    memory_cache_.reset(new InMemoryCache(settings_.max_memory_cache_size));
-  }
-
-  if (settings_.disk_path_mutable) {
-    StorageSettings storage_settings;
-    storage_settings.max_disk_storage = settings_.max_disk_storage;
-    storage_settings.max_chunk_size = settings_.max_chunk_size;
-    storage_settings.enforce_immediate_flush =
-        settings_.enforce_immediate_flush;
-    storage_settings.max_file_size = settings_.max_file_size;
-
-    mutable_cache_ = std::make_unique<DiskCache>();
-    auto status = mutable_cache_->Open(settings_.disk_path_mutable.get(),
-                                       settings_.disk_path_mutable.get(),
-                                       storage_settings, OpenOptions::Default);
-    if (status == OpenResult::Fail) {
-      OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to open the mutable cache %s",
-                          settings_.disk_path_mutable.get().c_str());
-
-      mutable_cache_.reset();
-      settings_.disk_path_mutable = boost::none;
-      result = OpenDiskPathFailure;
-    }
-  }
-
-  if (settings_.disk_path_protected) {
-    protected_cache_ = std::make_unique<DiskCache>();
-    auto status =
-        protected_cache_->Open(settings_.disk_path_protected.get(),
-                               settings_.disk_path_protected.get(),
-                               StorageSettings{}, OpenOptions::ReadOnly);
-    if (status == OpenResult::Fail) {
-      OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to reopen protected cache %s",
-                          settings_.disk_path_protected.get().c_str());
-
-      protected_cache_.reset();
-      settings_.disk_path_protected = boost::none;
-      result = OpenDiskPathFailure;
-    }
-  }
-
-  return result;
-}
-
-boost::optional<std::pair<std::string, time_t>> DefaultCache::GetFromDiscCache(
-    const std::string& key) {
-  if (protected_cache_) {
-    auto result = protected_cache_->Get(key);
-    if (result) {
-      auto default_expiry = KeyValueCache::kDefaultExpiry;
-      return std::make_pair(std::move(result.value()), default_expiry);
-    }
-  }
-
-  if (mutable_cache_) {
-    auto expiry = GetRemainingExpiryTime(key, *mutable_cache_);
-    if (expiry <= 0) {
-      PurgeDiskItem(key, *mutable_cache_);
-    } else {
-      auto result = mutable_cache_->Get(key);
-
-      if (result) {
-        return std::make_pair(std::move(result.value()), expiry);
-      }
-    }
-  }
-  return boost::none;
+  return impl_->RemoveKeysWithPrefix(key);
 }
 
 }  // namespace cache
