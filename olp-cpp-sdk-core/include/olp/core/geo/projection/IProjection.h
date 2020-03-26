@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,17 +23,21 @@
 
 namespace olp {
 namespace geo {
+
 class CORE_API IProjection {
  public:
   virtual ~IProjection() = default;
 
   /**
-   * Get geodetic bounds representable by projection
+   * @brief Get geodetic bounds representable by projection.
+   *
    * @return Geodetic rectangle
    */
   virtual GeoRectangle GetGeoBounds() const = 0;
 
-  /** Extent of world coordinates */
+  /**
+   * @brief Extent of world coordinates.
+   */
   virtual WorldAlignedBox WorldExtent(double minimum_altitude,
                                       double maximum_altitude) const = 0;
 

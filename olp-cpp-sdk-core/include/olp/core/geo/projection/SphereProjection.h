@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 
 namespace olp {
 namespace geo {
+
 /**
  * @brief Projection of geo coordinates onto a sphere using earth radius.
  *
@@ -40,6 +41,7 @@ namespace geo {
 class CORE_API SphereProjection final : public IProjection {
  public:
   SphereProjection() = default;
+  ~SphereProjection() override = default;
 
   GeoRectangle GetGeoBounds() const override;
 
@@ -48,6 +50,7 @@ class CORE_API SphereProjection final : public IProjection {
 
   bool Project(const GeoCoordinates3d& geo_point,
                WorldCoordinates& world_point) const override;
+
   bool Unproject(const WorldCoordinates& world_point,
                  GeoCoordinates3d& geo_point) const override;
 };

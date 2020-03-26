@@ -46,7 +46,7 @@ class WebMercatorProjection;
 using WorldAlignedBox = math::AlignedBox3d;
 using WorldCoordinates = math::Vector3d;
 
-struct DegreeType {};
+struct CORE_API DegreeType {};
 
 }  // namespace geo
 }  // namespace olp

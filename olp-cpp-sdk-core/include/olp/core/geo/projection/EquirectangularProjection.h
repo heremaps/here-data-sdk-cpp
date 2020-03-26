@@ -38,6 +38,7 @@ namespace geo {
 class CORE_API EquirectangularProjection final : public IProjection {
  public:
   EquirectangularProjection() = default;
+  ~EquirectangularProjection() override = default;
 
   GeoRectangle GetGeoBounds() const override;
 
@@ -46,6 +47,7 @@ class CORE_API EquirectangularProjection final : public IProjection {
 
   bool Project(const GeoCoordinates3d& geo_point,
                WorldCoordinates& world_point) const override;
+
   bool Unproject(const WorldCoordinates& world_point,
                  GeoCoordinates3d& geo_point) const override;
 };
