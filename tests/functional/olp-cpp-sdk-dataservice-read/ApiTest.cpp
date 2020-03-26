@@ -340,7 +340,8 @@ TEST_F(ApiTest, QuadTreeIndex) {
 }
 
 TEST_F(ApiTest, QuadTreeIndexVolatile) {
-  olp::client::HRN hrn(GetTestCatalog());
+  olp::client::HRN hrn(
+      CustomParameters::getArgument("dataservice_read_volatile_test_catalog"));
 
   auto client_response = olp::dataservice::read::ApiClientLookup::LookupApi(
       hrn, {}, "query", "v1",
