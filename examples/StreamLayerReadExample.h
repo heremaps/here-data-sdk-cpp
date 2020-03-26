@@ -26,13 +26,13 @@
 /**
  * @brief Dataservice read from stream layer example. Authenticate client using
  * access key id and secret. If used parallel mode create threads, if serial use
- * current thread.  Create subscription. Poll data and then unsubscribe.
+ * current thread. Create a subscription. Poll data and then unsubscribe.
  * @param access_key here.access.key.id and here.access.key.secret.
  * @param catalog The HERE Resource Name (HRN) of the catalog from which you
  * want to read data.
  * @param layer_id The layer ID of the catalog.
  * @param subscription_mode The type of client subscription.
- * @return result of publish data(0 - if succeed)
+ * @return 0 on success, -1 otherwise.
  */
 int RunStreamLayerExampleRead(
     const AccessKey& access_key, const std::string& catalog,

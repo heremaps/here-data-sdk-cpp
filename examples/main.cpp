@@ -43,16 +43,17 @@ enum Examples : int {
 
 constexpr auto usage =
     "usuage is \n -a,--all : run all examples \n "
-    "-e,--example[=read|read_stream|write|cache]  \n\tRun "
+    "-e, --example[=read|read_stream|write|cache]  \n\tRun "
     "example\n -i,--key-id \n\there.access.key.id \n -s, --key-secret "
     "\n\there.access.key.secret \n"
     " -c, --catalog \n\tCatalog HRN (HERE Resource Name). \n"
-    " -v,--catalog-version \n\tThe version of the catalog from which you wan to"
+    " -v,--catalog-version \n\tThe version of the catalog from which you want "
+    "to"
     "get data(used in read example, optional). \n"
     " -l, --layer-id \n\tThe layer ID inside the catalog where you want to "
     "publish data to(required for write example). \n"
     " -t,--type-of-subscription[=serial|parallel] \n\tType of subscription  "
-    "(used for read_stream test). If not set, used serial subscription. \n"
+    "(used for read_stream test). The default option is serial. \n"
     " -h,--help \n\tShow usage \nFor instructions on how to get the access key "
     "ID and access key secret, see "
     "the [Get "
@@ -107,11 +108,11 @@ int ParseArguments(const int argc, char** argv, AccessKey& access_key,
         examples_to_run = Examples::cache_example;
       } else if (*it == "read_stream") {
         examples_to_run = Examples::read_stream_example;
-            } else {
-              std::cout << "Example was not found. Please use values:read, "
-                           "write, cache, read_stream"
-                        << std::endl;
-              return 0;
+      } else {
+        std::cout << "Example was not found. Please use values:read, "
+                     "write, cache, read_stream"
+                  << std::endl;
+        return 0;
       }
 
     } else if (IsMatch(*it, tools::kCatalogOption)) {

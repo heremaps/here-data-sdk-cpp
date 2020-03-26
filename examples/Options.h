@@ -48,7 +48,7 @@ const Option kLayerIdOption{"-l", "--layer-id",
 const Option kSubscriptionTypeOption{
     "-t", "--type-of-subscription",
     "[Optional] Type of subscription [=serial|parallel] (used for read_stream "
-    "test). If not set, used serial subscription."};
+    "example). The default option is serial."};
 
 const Option kAllOption{"-a", "--all", "Run all examples."};
 
