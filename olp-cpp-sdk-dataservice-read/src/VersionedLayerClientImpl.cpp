@@ -421,9 +421,9 @@ CatalogVersionResponse VersionedLayerClientImpl::GetVersion(
 
   if (!catalog_version_.compare_exchange_weak(
           version, response.GetResult().GetVersion())) {
-    model::VersionResponse response;
-    response.SetVersion(version);
-    return response;
+    model::VersionResponse version_response;
+    version_response.SetVersion(version);
+    return version_response;
   }
 
   return response;

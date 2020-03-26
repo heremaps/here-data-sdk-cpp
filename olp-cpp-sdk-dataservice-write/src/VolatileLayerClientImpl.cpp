@@ -729,8 +729,6 @@ olp::client::CancellationToken VolatileLayerClientImpl::PublishToBatch(
         *self->apiclient_publish_, std::move(publish_partitions),
         publication_id, first_layer_id, first_layer_billing_tag,
         upload_partitions_callback);
-
-    return {};
   };
 
   cancel_context->ExecuteOrCancelled(

@@ -57,7 +57,8 @@ inline void to_json(bool x, rapidjson::Value& value,
 inline void to_json(const std::shared_ptr<std::vector<unsigned char>>& x,
                     rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
-  value.SetString(reinterpret_cast<char*>(x->data()), x->size(), allocator);
+  value.SetString(reinterpret_cast<char*>(x->data()),
+                  static_cast<rapidjson::SizeType>(x->size()), allocator);
 }
 
 template <typename T>

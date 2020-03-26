@@ -71,11 +71,11 @@ BaseResult::BaseResult(int status, std::string error,
     for (SizeType i = 0; i < fields.Size(); i++) {
       const Value& field = fields[i];
       if (field.HasMember(ERROR_MESSAGE)) {
-        ErrorField error;
-        error.name = field[FIELD_NAME].GetString();
-        error.code = field[ERROR_CODE].GetUint();
-        error.message = field[ERROR_MESSAGE].GetString();
-        error_fields_.emplace_back(error);
+        ErrorField error_field;
+        error_field.name = field[FIELD_NAME].GetString();
+        error_field.code = field[ERROR_CODE].GetUint();
+        error_field.message = field[ERROR_MESSAGE].GetString();
+        error_fields_.emplace_back(error_field);
       }
     }
   }
