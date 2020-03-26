@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,19 +24,23 @@
 
 namespace olp {
 namespace geo {
+
 /**
  * Geodetic coordinates with longitude, latitude and altitude.
  */
 class CORE_API GeoCoordinates3d {
  public:
   /**
-   * Construct invalid geodetic coordinates.
+   * @brief Construct invalid geodetic coordinates.
+   *
    * @post Latitude, longitude and altitude are undefined (NaN).
    */
   GeoCoordinates3d();
 
   /**
-   * Construct geodetic coordinates from latitude, longitude and altitude.
+   * @brief Construct geodetic coordinates from latitude, longitude and
+   * altitude.
+   *
    * @param[in] latitude_radians Latitude in radians.
    * @param[in] longitude_radians Longitude in radians.
    * @param[in] altitude_meters Altitude in meters.
@@ -45,24 +49,29 @@ class CORE_API GeoCoordinates3d {
                    double altitude_meters);
 
   /**
-   * Construct geodetic coordinates from latitude, longitude and altitude.
+   * @brief Construct geodetic coordinates from latitude, longitude and
+   * altitude.
+   *
    * @param[in] latitudeDegrees Latitude in degrees.
    * @param[in] longitudeDegrees Longitude in degrees.
    * @param[in] altitude_meters Altitude in meters.
    * @param[in] degrees Degree tag.
    */
-  GeoCoordinates3d(double latitudeDegrees, double longitudeDegrees,
+  GeoCoordinates3d(double latitude_degrees, double longitude_degrees,
                    double altitude_meters, DegreeType degrees);
 
   /**
-   * Construct geodetic coordinates from 2D coordinates with undefined altitude.
+   * @brief Construct geodetic coordinates from 2D coordinates with undefined
+   * altitude.
+   *
    * @param[in] geo_coordinates 2D geodetic coordinates.
    * @post Altitude is undefined (NaN).
    */
   explicit GeoCoordinates3d(const GeoCoordinates& geo_coordinates);
 
   /**
-   * Construct geodetic coordinates from 2D coordinates and an altitude.
+   * @brief Construct geodetic coordinates from 2D coordinates and an altitude.
+   *
    * @param[in] geo_coordinates 2D geodetic coordinates.
    * @param[in] altitude_meters Altitude in meters.
    */
@@ -70,108 +79,121 @@ class CORE_API GeoCoordinates3d {
                    double altitude_meters);
 
   /**
-   * Create geodetic coordinates from latitude and longitude in degrees.
+   * @brief Create geodetic coordinates from latitude and longitude in degrees.
+   *
    * @param[in] latitude Latitude in degrees.
    * @param[in] longitude Longitude in degrees.
    * @param[in] altitude Altitude in meters.
    * @return Geodetic coordinates.
    */
-  static GeoCoordinates3d FromDegrees(double latitude,
-                                      double longitude,
+  static GeoCoordinates3d FromDegrees(double latitude, double longitude,
                                       double altitude = 0.0);
 
   /**
-   * Create geodetic coordinates from latitude and longitude in radians.
+   * @brief Create geodetic coordinates from latitude and longitude in radians.
+   *
    * @param[in] latitude Latitude in radians.
    * @param[in] longitude Longitude in radians.
    * @param[in] altitude Altitude in meters.
    * @return Geodetic coordinates.
    */
-  static GeoCoordinates3d FromRadians(double latitude,
-                                      double longitude,
+  static GeoCoordinates3d FromRadians(double latitude, double longitude,
                                       double altitude = 0.0);
 
   /**
    * @brief Get latitude and longitude as 2D geodetic coordinates.
+   *
    * @return 2D geodetic coordinates.
    */
   const GeoCoordinates& GetGeoCoordinates() const;
 
   /**
    * @brief Set latitude and longitude from 2D geodetic coordinates.
+   *
    * @param[in] geo_coordinates 2D geodetic coordinates.
    */
   void SetGeoCoordinates(const GeoCoordinates& geo_coordinates);
 
   /**
    * @brief Get latitude.
+   *
    * @return Latitude in radians.
    */
   double GetLatitude() const;
 
   /**
-   * Set latitude.
+   * @brief Set latitude.
+   *
    * @param[in] latitude_radians Latitude in radians.
    */
   void SetLatitude(double latitude_radians);
 
   /**
-   * Get longitude.
+   * @brief Get longitude.
+   *
    * @return Longitude in radians.
    */
   double GetLongitude() const;
 
   /**
-   * Set longitude.
+   * @brief Set longitude.
+   *
    * @param[in] longitude_radians Longitude in radians.
    */
   void SetLongitude(double longitude_radians);
 
   /**
-   * Get latitude in degrees.
+   * @brief Get latitude in degrees.
+   *
    * @return Latitude in degrees.
    */
   double GetLatitudeDegrees() const;
 
   /**
-   * Set latitude in degrees.
+   * @brief Set latitude in degrees.
+   *
    * @param[in] latitude_degrees Latitude in degrees.
    */
   void setLatitudeDegrees(double latitude_degrees);
 
   /**
-   * Get longitude in degrees.
+   * @brief Get longitude in degrees.
    * @return Longitude in degrees.
    */
   double GetLongitudeDegrees() const;
 
   /**
-   * Set longitude in degrees.
+   * @brief Set longitude in degrees.
+   *
    * @param[in] longitude_degrees Longitude in degrees.
    */
   void SetLongitudeDegrees(double longitude_degrees);
 
   /**
-   * Get altitude.
+   * @brief Get altitude.
+   *
    * @return Altitude in meters.
    */
   double GetAltitude() const;
 
   /**
-   * Set altitude.
+   * @brief Set altitude.
+   *
    * @param[in] altitude_meters Altitude in meters.
    */
   void SetAltitude(double altitude_meters);
 
   /**
-   * Check whether coordinates and altitude are valid.
+   * @brief Check whether coordinates and altitude are valid.
+   *
    * @return True if all valid, false if latitude, longitude or altitude is
    * undefined.
    */
   explicit operator bool() const;
 
   /**
-   * Check whether coordinates and altitude are valid.
+   * @brief Check whether coordinates and altitude are valid.
+   *
    * @return True if all valid, false if latitude, longitude or altitude is
    * undefined.
    */

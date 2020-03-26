@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 
 namespace olp {
 namespace geo {
+
 /**
  * @brief A geographic location that uses WGS84 coordinates encoded in
  * a 32-bit unsigned integer.
@@ -57,7 +58,7 @@ class CORE_API GeoPoint {
    * @param[in] yy The Y-coordinate value of the location latitude represented
    * as a 32-bit unsigned integer.
    */
-  GeoPoint(std::uint32_t xx, std::uint32_t yy);
+  GeoPoint(uint32_t xx, uint32_t yy);
 
   /**
    * @brief An absolute world X-coordinate value.
@@ -68,6 +69,7 @@ class CORE_API GeoPoint {
    * `x = (x rad + Pi) * max(uint32_t) / 2*Pi`
    */
   std::uint32_t x;
+
   /**
    * @brief An absolute world Y-coordinate value.
    *
@@ -116,7 +118,7 @@ class CORE_API GeoPoint {
 
 inline GeoPoint::GeoPoint() : x(0), y(0) {}
 
-inline GeoPoint::GeoPoint(std::uint32_t xx, std::uint32_t yy) : x(xx), y(yy) {}
+inline GeoPoint::GeoPoint(uint32_t xx, uint32_t yy) : x(xx), y(yy) {}
 
 inline bool GeoPoint::operator==(const GeoPoint& other) const {
   return x == other.x && y == other.y;
