@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,7 @@
 namespace olp {
 namespace cache {
 
-class InMemoryCache;
-class DiskCache;
+class DefaultCacheImpl;
 
 /**
  * @brief A default cache that provides an in-memory LRU cache and persistence
@@ -151,17 +150,7 @@ class CORE_API DefaultCache : public KeyValueCache {
   bool RemoveKeysWithPrefix(const std::string& prefix) override;
 
  private:
-  StorageOpenResult SetupStorage();
-  boost::optional<std::pair<std::string, time_t>> GetFromDiscCache(
-      const std::string& key);
-
- private:
-  CacheSettings settings_;
-  bool is_open_;
-  std::unique_ptr<InMemoryCache> memory_cache_;
-  std::unique_ptr<DiskCache> mutable_cache_;
-  std::unique_ptr<DiskCache> protected_cache_;
-  std::mutex cache_lock_;
+  std::shared_ptr<DefaultCacheImpl> impl_;
 };
 
 }  // namespace cache

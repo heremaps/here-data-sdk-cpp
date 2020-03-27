@@ -196,6 +196,8 @@ set(OLP_SDK_GEO_SOURCES
 
 set(OLP_SDK_CACHE_SOURCES
     ./src/cache/DefaultCache.cpp
+    ./src/cache/DefaultCacheImpl.cpp
+    ./src/cache/DefaultCacheImpl.h
     ./src/cache/DiskCache.cpp
     ./src/cache/DiskCache.h
     ./src/cache/DiskCacheSizeLimitEnv.cpp
