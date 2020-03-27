@@ -2923,11 +2923,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CheckLookupApiCacheExpiration) {
   auto cache = std::make_shared<testing::StrictMock<CacheMock>>();
   settings_->cache = cache;
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = olp::dataservice::read::VersionedLayerClient(
       hrn, "testlayer", 4, *settings_);
 
   // check if expiration time is 1 hour(3600 sec)
-  time_t expirationTime = 3600;
+  time_t expiration_time = 3600;
   EXPECT_CALL(*cache, Get("hrn:here:data::olp-here-test:here-optimized-map-for-"
                           "visualization-2::query::v1::api",
                           _))
@@ -2935,7 +2935,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CheckLookupApiCacheExpiration) {
       .WillOnce(Return(boost::any()));
   EXPECT_CALL(*cache, Put("hrn:here:data::olp-here-test:here-optimized-map-for-"
                           "visualization-2::query::v1::api",
-                          _, _, expirationTime))
+                          _, _, expiration_time))
       .Times(1)
       .WillOnce(Return(true));
   EXPECT_CALL(*cache, Get("hrn:here:data::olp-here-test:here-optimized-map-for-"
@@ -2945,7 +2945,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CheckLookupApiCacheExpiration) {
       .WillOnce(Return(boost::any()));
   EXPECT_CALL(*cache, Put("hrn:here:data::olp-here-test:here-optimized-map-for-"
                           "visualization-2::blob::v1::api",
-                          _, _, expirationTime))
+                          _, _, expiration_time))
       .Times(1)
       .WillOnce(Return(true));
 
@@ -2974,9 +2974,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CheckLookupApiCacheExpiration) {
       .Times(1)
       .WillOnce(Return(true));
 
-  auto request = olp::dataservice::read::DataRequest();
-  request.WithPartitionId("269").WithFetchOption(OnlineIfNotFound);
-  auto future = client->GetData(request);
+  auto request = olp::dataservice::read::DataRequest().WithPartitionId("269").WithFetchOption(OnlineIfNotFound);
+  auto future = client.GetData(request);
 
   auto data_response = future.GetFuture().get();
 

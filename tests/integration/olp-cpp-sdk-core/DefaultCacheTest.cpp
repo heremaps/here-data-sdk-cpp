@@ -25,7 +25,7 @@
 namespace {
 using namespace olp::cache;
 
-TEST(CacheTest, DataExpiration) {
+TEST(DefaultCacheTest, DataExpiration) {
   const std::string content_key = "test_key";
   CacheSettings settings;
   settings.max_memory_cache_size = 5;  // bytes
