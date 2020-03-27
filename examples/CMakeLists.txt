@@ -24,14 +24,14 @@ set(OLP_SDK_DATASERVICE_READ_STREAM_LAYER_EXAMPLE_TARGET dataservice-read-stream
 set(OLP_SDK_EXAMPLE_SUCCESS_STRING "Example has finished successfully")
 set(OLP_SDK_EXAMPLE_FAILURE_STRING "Example failed!")
 if (IOS)
-    include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_ios_example.cmake.in)
+    include(./cmake/gen_ios_example.cmake.in)
 
 
     gen_ios_example_application(${OLP_SDK_DATASERVICE_EXAMPLE_TARGET}
                                 ${OLP_SDK_EXAMPLE_SUCCESS_STRING}
                                 ${OLP_SDK_EXAMPLE_FAILURE_STRING})
 elseif(ANDROID)
-    include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_android_example.cmake.in)
+    include(./cmake/gen_android_example.cmake.in)
 
     set(OLP_SDK_EXAMPLE_PACKAGE_NAME "dataservice_example")
     set(OLP_SDK_EXAMPLE_PACKAGE_JNI_NAME "dataservice_example")
@@ -45,45 +45,45 @@ else()
     project(${OLP_SDK_DATASERVICE_EXAMPLE_TARGET} VERSION 1.3.0)
 
     add_library(${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET}
-        ${CMAKE_CURRENT_SOURCE_DIR}/ReadExample.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Examples.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/ReadExample.h)
+        ./ReadExample.cpp
+        ./Examples.h
+        ./ReadExample.h)
 
     target_link_libraries(${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET}
         olp-cpp-sdk-authentication
         olp-cpp-sdk-dataservice-read)
         
     add_library(${OLP_SDK_DATASERVICE_READ_STREAM_LAYER_EXAMPLE_TARGET}
-        ${CMAKE_CURRENT_SOURCE_DIR}/StreamLayerReadExample.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Examples.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/StreamLayerReadExample.h)
+        ./StreamLayerReadExample.cpp
+        ./Examples.h
+        ./StreamLayerReadExample.h)
 
     target_link_libraries(${OLP_SDK_DATASERVICE_READ_STREAM_LAYER_EXAMPLE_TARGET}
         olp-cpp-sdk-authentication
         olp-cpp-sdk-dataservice-read)
 
     add_library(${OLP_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET}
-        ${CMAKE_CURRENT_SOURCE_DIR}/WriteExample.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Examples.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/WriteExample.h)
+        ./WriteExample.cpp
+        ./Examples.h
+        ./WriteExample.h)
 
     target_link_libraries(${OLP_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET}
         olp-cpp-sdk-authentication
         olp-cpp-sdk-dataservice-write)
 
     add_library(${OLP_SDK_DATASERVICE_CACHE_EXAMPLE_TARGET}
-        ${CMAKE_CURRENT_SOURCE_DIR}/ProtectedCacheExample.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Examples.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/ProtectedCacheExample.h)
+        ./ProtectedCacheExample.cpp
+        ./Examples.h
+        ./ProtectedCacheExample.h)
 
     target_link_libraries(${OLP_SDK_DATASERVICE_CACHE_EXAMPLE_TARGET}
         olp-cpp-sdk-authentication
         olp-cpp-sdk-dataservice-read)
 
     add_executable(${OLP_SDK_DATASERVICE_EXAMPLE_TARGET}
-        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Examples.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/Options.h)
+        ./main.cpp
+        ./Examples.h
+        ./Options.h)
 
     target_link_libraries(${OLP_SDK_DATASERVICE_EXAMPLE_TARGET}
        ${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET}
