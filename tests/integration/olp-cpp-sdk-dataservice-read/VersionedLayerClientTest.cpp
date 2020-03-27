@@ -22,12 +22,16 @@
 #include <string>
 
 #include <matchers/NetworkUrlMatchers.h>
+#include <mocks/CacheMock.h>
 #include <mocks/NetworkMock.h>
 #include <olp/authentication/Settings.h>
+#include <olp/core/cache/CacheSettings.h>
+#include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/porting/make_unique.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
+#include <olp/dataservice/read/model/Partitions.h>
 
 #include "HttpResponses.h"
 
@@ -2910,6 +2914,78 @@ TEST_F(DataserviceReadVersionedLayerClientTest, RemoveFromCacheTileKey) {
   response = future.get();
 
   ASSERT_FALSE(response.IsSuccessful());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, CheckLookupApiCacheExpiration) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  // initialize mock cache
+  auto cache = std::make_shared<testing::StrictMock<CacheMock>>();
+  settings_->cache = cache;
+
+  auto client = olp::dataservice::read::VersionedLayerClient(
+      hrn, "testlayer", 4, *settings_);
+
+  // check if expiration time is 1 hour(3600 sec)
+  time_t expiration_time = 3600;
+  EXPECT_CALL(*cache, Get("hrn:here:data::olp-here-test:here-optimized-map-for-"
+                          "visualization-2::query::v1::api",
+                          _))
+      .Times(1)
+      .WillOnce(Return(boost::any()));
+  EXPECT_CALL(*cache, Put("hrn:here:data::olp-here-test:here-optimized-map-for-"
+                          "visualization-2::query::v1::api",
+                          _, _, expiration_time))
+      .Times(1)
+      .WillOnce(Return(true));
+  EXPECT_CALL(*cache, Get("hrn:here:data::olp-here-test:here-optimized-map-for-"
+                          "visualization-2::blob::v1::api",
+                          _))
+      .Times(1)
+      .WillOnce(Return(boost::any()));
+  EXPECT_CALL(*cache, Put("hrn:here:data::olp-here-test:here-optimized-map-for-"
+                          "visualization-2::blob::v1::api",
+                          _, _, expiration_time))
+      .Times(1)
+      .WillOnce(Return(true));
+
+  EXPECT_CALL(*cache, Get("hrn:here:data::olp-here-test:here-optimized-map-for-"
+                          "visualization-2::testlayer::269::4::partition",
+                          _))
+      .Times(1)
+      .WillOnce(Return(boost::any()));
+  EXPECT_CALL(*cache, Put("hrn:here:data::olp-here-test:here-optimized-map-for-"
+                          "visualization-2::testlayer::269::4::partition",
+                          _, _, _))
+      .Times(1)
+      .WillOnce(Return(true));
+
+  EXPECT_CALL(
+      *cache,
+      Get("hrn:here:data::olp-here-test:here-optimized-map-for-visualization-2:"
+          ":testlayer::4eed6ed1-0d32-43b9-ae79-043cb4256432::Data"))
+      .Times(1)
+      .WillOnce(Return(nullptr));
+  EXPECT_CALL(
+      *cache,
+      Put("hrn:here:data::olp-here-test:here-optimized-map-for-visualization-2:"
+          ":testlayer::4eed6ed1-0d32-43b9-ae79-043cb4256432::Data",
+          _, _))
+      .Times(1)
+      .WillOnce(Return(true));
+
+  auto request = olp::dataservice::read::DataRequest().WithPartitionId("269").WithFetchOption(OnlineIfNotFound);
+  auto future = client.GetData(request);
+
+  auto data_response = future.GetFuture().get();
+
+  ASSERT_TRUE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+  ASSERT_LT(0, data_response.GetResult()->size());
+  std::string data_string(data_response.GetResult()->begin(),
+                          data_response.GetResult()->end());
+  ASSERT_EQ("DT_2_0031", data_string);
+
 }
 
 }  // namespace
