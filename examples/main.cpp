@@ -42,21 +42,21 @@ enum Examples : int {
 };
 
 constexpr auto usage =
-    "usuage is \n -a,--all : run all examples \n "
+    "usuage is \n -a, --all : run all examples \n "
     "-e, --example[=read|read_stream|write|cache]  \n\tRun "
-    "example\n -i,--key-id \n\there.access.key.id \n -s, --key-secret "
+    "example\n -i, --key-id \n\there.access.key.id \n -s, --key-secret "
     "\n\there.access.key.secret \n"
     " -c, --catalog \n\tCatalog HRN (HERE Resource Name). \n"
-    " -v,--catalog-version \n\tThe version of the catalog from which you want "
+    " -v, --catalog-version \n\tThe version of the catalog from which you want "
     "to"
     "get data(used in read example, optional). \n"
     " -l, --layer-id \n\tThe layer ID inside the catalog where you want to "
     "publish data to(required for write example). \n"
-    " -t,--type-of-subscription[=serial|parallel] \n\tType of subscription  "
+    " -t, --type-of-subscription[=serial|parallel] \n\tType of subscription  "
     "(used for read_stream test). The default option is serial. \n"
-    " -h,--help \n\tShow usage \nFor instructions on how to get the access key "
-    "ID and access key secret, see "
-    "the [Get "
+    " -h, --help \n\tShow usage \nFor instructions on how to get the access "
+    "key "
+    "ID and access key secret, see the [Get "
     "Credentials](https://developer.here.com/olp/documentation/access-control/"
     "user-guide/topics/get-credentials.html) section in the Terms and "
     "Permissions User Guide.";

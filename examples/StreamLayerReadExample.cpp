@@ -183,7 +183,9 @@ int RunStreamLayerExampleRead(
     if (!CreateSubscription(client, subscribe_request)) {
       value.store(-1);
     }
+
     RunPoll(client);
+
     if (!DeleteSubscription(client)) {
       value.store(-1);
     }
