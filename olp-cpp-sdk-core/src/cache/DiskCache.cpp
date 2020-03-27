@@ -132,9 +132,27 @@ void RemoveOtherDB(const std::string& data_path,
   }
 }
 
+client::ApiError GetApiError(const leveldb::Status& status) {
+  client::ErrorCode code = client::ErrorCode::Unknown;
+  if (status.IsNotFound()) {
+    code = client::ErrorCode::NotFound;
+  }
+  if (status.IsInvalidArgument()) {
+    code = client::ErrorCode::InvalidArgument;
+  }
+  if (status.IsCorruption() || status.IsIOError()) {
+    code = client::ErrorCode::InternalFailure;
+  }
+  if (status.IsNotSupportedError()) {
+    code = client::ErrorCode::BadRequest;
+  }
+  return client::ApiError(code, status.ToString());
+}
+
 }  // anonymous namespace
 
 DiskCache::DiskCache() = default;
+
 DiskCache::~DiskCache() { Close(); }
 
 void DiskCache::LevelDBLogger::Logv(const char* format, va_list ap) {
@@ -210,35 +228,21 @@ OpenResult DiskCache::Open(const std::string& data_path,
   }
 
   if (!status.ok()) {
-    SetOpenError(status);
+    error_ = GetApiError(status);
+    OLP_SDK_LOG_ERROR(kLogTag,
+                      "Open: failed, error=" << error_.GetError().GetMessage());
     return OpenResult::Fail;
+  } else {
+    error_ = NoError{};
   }
 
   database_.reset(db);
   return OpenResult::Success;
 }
 
-void DiskCache::SetOpenError(const leveldb::Status& status) {
-  client::ErrorCode code = client::ErrorCode::Unknown;
-  if (status.IsNotFound()) {
-    code = client::ErrorCode::NotFound;
-  }
-  if (status.IsInvalidArgument()) {
-    code = client::ErrorCode::InvalidArgument;
-  }
-  if (status.IsCorruption() || status.IsIOError()) {
-    code = client::ErrorCode::InternalFailure;
-  }
-  if (status.IsNotSupportedError()) {
-    code = client::ErrorCode::BadRequest;
-  }
-  std::string error_message = status.ToString();
-  OLP_SDK_LOG_ERROR(kLogTag, "Open: failed, error=" << error_message);
-  error_ = client::ApiError(code, std::move(error_message));
-}
-
 bool DiskCache::Put(const std::string& key, leveldb::Slice slice) {
   if (!database_) {
+    OLP_SDK_LOG_ERROR(kLogTag, "Put: Database is uninitialized");
     return false;
   }
 
@@ -257,22 +261,60 @@ bool DiskCache::Put(const std::string& key, leveldb::Slice slice) {
 }
 
 boost::optional<std::string> DiskCache::Get(const std::string& key) {
+  if (!database_) {
+    OLP_SDK_LOG_ERROR(kLogTag, "Get: Database is uninitialized");
+    return boost::none;
+  }
+
   std::string res;
   leveldb::ReadOptions options;
   options.verify_checksums = check_crc_;
-  return database_ && database_->Get(options, ToLeveldbSlice(key), &res).ok()
+  return database_->Get(options, ToLeveldbSlice(key), &res).ok()
              ? boost::optional<std::string>(std::move(res))
              : boost::none;
 }
 
 bool DiskCache::Remove(const std::string& key) {
-  if (!database_ || !database_->Delete(leveldb::WriteOptions(), key).ok())
+  if (!database_) {
+    OLP_SDK_LOG_ERROR(kLogTag, "Remove: Database is uninitialized");
     return false;
-  return true;
+  }
+  return database_->Delete(leveldb::WriteOptions(), key).ok();
+}
+
+std::unique_ptr<leveldb::Iterator> DiskCache::NewIterator(
+    leveldb::ReadOptions options) {
+  if (!database_) {
+    OLP_SDK_LOG_ERROR(kLogTag, "NewIterator: Database is uninitialized");
+    return nullptr;
+  }
+  return std::unique_ptr<leveldb::Iterator>(database_->NewIterator(options));
+}
+
+DiskCache::OperationOutcome DiskCache::ApplyBatch(
+    std::unique_ptr<leveldb::WriteBatch> batch) {
+  if (!database_) {
+    OLP_SDK_LOG_ERROR(kLogTag, "ApplyBatch: Database is uninitialized");
+    return client::ApiError(client::ErrorCode::PreconditionFailed,
+                            "Database is not initialized");
+  }
+  if (!batch) {
+    OLP_SDK_LOG_ERROR(kLogTag, "ApplyBatch: failed, batch is null");
+    return client::ApiError(client::ErrorCode::PreconditionFailed,
+                            "Batch can't be null");
+  }
+  const auto status = database_->Write(leveldb::WriteOptions(), batch.get());
+  if (!status.ok()) {
+    OLP_SDK_LOG_ERROR(kLogTag,
+                      "ApplyBatch: failed, status=" << status.ToString());
+    return GetApiError(status);
+  }
+  return NoError{};
 }
 
 bool DiskCache::RemoveKeysWithPrefix(const std::string& prefix) {
   if (!database_) {
+    OLP_SDK_LOG_ERROR(kLogTag, "RemoveKeysWithPrefix: Database is uninitialized");
     return false;
   }
 
@@ -281,8 +323,7 @@ bool DiskCache::RemoveKeysWithPrefix(const std::string& prefix) {
   leveldb::ReadOptions opts;
   opts.verify_checksums = check_crc_;
   opts.fill_cache = true;
-  std::unique_ptr<leveldb::Iterator> iterator;
-  iterator.reset(database_->NewIterator(opts));
+  auto iterator = NewIterator(opts);
 
   if (prefix.empty()) {
     for (iterator->SeekToFirst(); iterator->Valid(); iterator->Next()) {
@@ -296,13 +337,9 @@ bool DiskCache::RemoveKeysWithPrefix(const std::string& prefix) {
     }
   }
 
-  const auto status = database_->Write(leveldb::WriteOptions(), batch.get());
-  if (!status.ok()) {
-    OLP_SDK_LOG_ERROR(
-        kLogTag, "RemoveKeysWithPrefix: failed, status=" << status.ToString());
-    return false;
-  }
-  return true;
+  auto result = ApplyBatch(std::move(batch));
+
+  return result.IsSuccessful();
 }
 
 }  // namespace cache

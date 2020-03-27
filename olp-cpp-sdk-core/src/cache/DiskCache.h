@@ -29,9 +29,12 @@
 #include <vector>
 
 #include <leveldb/env.h>
+#include <leveldb/iterator.h>
+#include <leveldb/options.h>
 #include <leveldb/write_batch.h>
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/client/ApiError.h>
+#include <olp/core/client/ApiResponse.h>
 
 namespace leveldb {
 class DB;
@@ -76,6 +79,12 @@ class DiskCache {
  public:
   static constexpr uint64_t kSizeMax = std::numeric_limits<uint64_t>::max();
 
+  /// No error type
+  struct NoError {};
+
+  /// Operation result type
+  using OperationOutcome = client::ApiResponse<NoError, client::ApiError>;
+
   /// Logger that forwards leveldb log messages to our logging framework.
   class LevelDBLogger : public leveldb::Logger {
     void Logv(const char* format, va_list ap) override;
@@ -89,7 +98,8 @@ class DiskCache {
 
   void Close();
   bool Clear();
-  client::ApiError OpenError() const { return error_; }
+
+  OperationOutcome OpenError() const { return error_; }
 
   bool Put(const std::string& key, leveldb::Slice slice);
 
@@ -97,11 +107,17 @@ class DiskCache {
 
   /// Remove single key/value from DB.
   bool Remove(const std::string& key);
+
+  /// Get a new leveldb cache iterator. Use options.fill_cache = false for bulk
+  /// scans.
+  std::unique_ptr<leveldb::Iterator> NewIterator(leveldb::ReadOptions options);
+
+  /// Allow batch writting so that we can delete and write multiple values at
+  /// the same time.
+  OperationOutcome ApplyBatch(std::unique_ptr<leveldb::WriteBatch> batch);
+
   /// Empty prefix deleted everything from DB.
   bool RemoveKeysWithPrefix(const std::string& prefix);
-
- private:
-  void SetOpenError(const leveldb::Status& status);
 
  private:
   std::string disk_cache_path_;
@@ -110,7 +126,7 @@ class DiskCache {
   std::unique_ptr<LevelDBLogger> leveldb_logger_;
   uint64_t max_size_{kSizeMax};
   bool check_crc_{false};
-  client::ApiError error_;
+  OperationOutcome error_;
 };
 
 }  // namespace cache
