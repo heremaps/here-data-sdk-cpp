@@ -197,7 +197,7 @@ TEST(SyncQueueTest, ConcurrentUsage) {
                1000u;
   };
 
-  while (!sync_queue.Empty() && check_condition()) {
+  while (check_condition()) {
     std::this_thread::sleep_for(kSleep / 3);
   }
 
