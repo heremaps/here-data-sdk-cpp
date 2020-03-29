@@ -144,6 +144,11 @@ bool VolatileLayerClientImpl::RemoveFromCache(const std::string& partition_id) {
   return data_repository.Clear(layer_id_, partition.get().GetDataHandle());
 }
 
+bool VolatileLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
+  auto partition_id = tile.ToHereTile();
+  return RemoveFromCache(partition_id);
+}
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

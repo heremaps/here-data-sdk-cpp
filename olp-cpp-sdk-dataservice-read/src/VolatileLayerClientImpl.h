@@ -22,6 +22,7 @@
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
+#include <olp/core/geo/tiling/TileKey.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/Types.h>
@@ -60,6 +61,8 @@ class VolatileLayerClientImpl {
   virtual client::CancellableFuture<DataResponse> GetData(DataRequest request);
 
   virtual bool RemoveFromCache(const std::string& partition_id);
+
+  virtual bool RemoveFromCache(const geo::TileKey& tile);
 
  private:
   client::HRN catalog_;
