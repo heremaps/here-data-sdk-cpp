@@ -63,7 +63,7 @@ class PartitionsCacheRepository final {
                        const std::vector<std::string>& partitionIds,
                        const std::string& layer_id);
 
-  bool ClearPartitionMetadata(int64_t catalog_version,
+  bool ClearPartitionMetadata(const boost::optional<int64_t>& catalog_version,
                               const std::string& partition_id,
                               const std::string& layer_id,
                               boost::optional<model::Partition>& out_partition);

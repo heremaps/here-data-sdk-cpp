@@ -63,6 +63,10 @@ olp::client::CancellableFuture<DataResponse> VolatileLayerClient::GetData(
     DataRequest request) {
   return impl_->GetData(std::move(request));
 }
+
+bool VolatileLayerClient::RemoveFromCache(const std::string& partition_id) {
+  return impl_->RemoveFromCache(partition_id);
+}
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

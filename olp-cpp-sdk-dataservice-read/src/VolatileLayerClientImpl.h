@@ -59,6 +59,8 @@ class VolatileLayerClientImpl {
 
   virtual client::CancellableFuture<DataResponse> GetData(DataRequest request);
 
+  virtual bool RemoveFromCache(const std::string& partition_id);
+
  private:
   client::HRN catalog_;
   std::string layer_id_;

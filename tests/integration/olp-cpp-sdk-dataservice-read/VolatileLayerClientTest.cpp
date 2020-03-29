@@ -827,4 +827,51 @@ TEST_F(DataserviceReadVolatileLayerClientTest,
             data_response.GetError().GetErrorCode());
 }
 
+TEST_F(DataserviceReadVolatileLayerClientTest, RemoveFromCachePartition) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto partition_id = "269";
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
+      .Times(0);
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_QUERY_VOLATILE_PARTITION_269), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_PARTITIONS_V2));
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_VOLATILE_BLOB_DATA), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   "someData"));
+
+  auto client = std::make_unique<olp::dataservice::read::VolatileLayerClient>(
+      hrn, "testlayer_volatile", settings_);
+
+  auto request = olp::dataservice::read::DataRequest();
+  request.WithPartitionId(partition_id);
+
+  auto future = client->GetData(request);
+
+  auto data_response = future.GetFuture().get();
+
+  ASSERT_TRUE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+  ASSERT_LT(0, data_response.GetResult()->size());
+  std::string data_string(data_response.GetResult()->begin(),
+                          data_response.GetResult()->end());
+  ASSERT_EQ("someData", data_string);
+
+  // remove the data from cache
+  ASSERT_TRUE(client->RemoveFromCache(partition_id));
+
+  // check the data is not available in cache
+  request.WithFetchOption(CacheOnly);
+  future = client->GetData(request);
+  data_response = future.GetFuture().get();
+  ASSERT_FALSE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+}
 }  // namespace

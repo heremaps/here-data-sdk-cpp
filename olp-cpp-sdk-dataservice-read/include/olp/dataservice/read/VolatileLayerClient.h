@@ -174,6 +174,14 @@ class DATASERVICE_READ_API VolatileLayerClient final {
    * request.
    */
   olp::client::CancellableFuture<DataResponse> GetData(DataRequest request);
+  /**
+   * @brief Removes the partition from the mutable disk cache.
+   *
+   * @param partition_id The partition ID that should be removed.
+   *
+   * @return True if partition data is removed successfully; false otherwise.
+   */
+  bool RemoveFromCache(const std::string& partition_id);
 
  private:
   std::unique_ptr<VolatileLayerClientImpl> impl_;
