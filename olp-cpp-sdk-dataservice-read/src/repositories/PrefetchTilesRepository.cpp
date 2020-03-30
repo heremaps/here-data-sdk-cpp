@@ -126,16 +126,9 @@ RootTilesForRequest PrefetchTilesRepository::GetSlicedTiles(
 
 SubTilesResponse PrefetchTilesRepository::GetSubTiles(
     const client::HRN& catalog, const std::string& layer_id,
-    const PrefetchTilesRequest& request, const RootTilesForRequest& root_tiles,
-    client::CancellationContext context,
+    const PrefetchTilesRequest& request, boost::optional<std::int64_t> version,
+    const RootTilesForRequest& root_tiles, client::CancellationContext context,
     const client::OlpClientSettings& settings) {
-  // Version needs to be set, else we cannot move forward
-  if (!request.GetVersion()) {
-    OLP_SDK_LOG_WARNING_F(kLogTag,
-                          "GetSubTiles: catalog version missing, key=%s",
-                          request.CreateKey(layer_id).c_str());
-    return ApiError{ErrorCode::InvalidArgument, "Catalog version invalid"};
-  }
   SubTilesResult result;
   OLP_SDK_LOG_INFO_F(kLogTag, "GetSubTiles: hrn=%s, layer=%s, quads=%zu",
                      catalog.ToString().c_str(), layer_id.c_str(),
@@ -148,8 +141,11 @@ SubTilesResponse PrefetchTilesRepository::GetSubTiles(
 
     auto& tile = quad.first;
     auto& depth = quad.second;
-    auto response =
-        GetSubQuads(catalog, layer_id, request, tile, depth, settings, context);
+    auto response = version
+                        ? GetSubQuads(catalog, layer_id, request, version.get(),
+                                      tile, depth, settings, context)
+                        : GetVolatileSubQuads(catalog, layer_id, request, tile,
+                                              depth, settings, context);
     if (!response.IsSuccessful()) {
       // Just abort if something else then 404 Not Found is returned
       auto& error = response.GetError();
@@ -166,11 +162,11 @@ SubTilesResponse PrefetchTilesRepository::GetSubTiles(
 
 SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
     const HRN& catalog, const std::string& layer_id,
-    const PrefetchTilesRequest& request, geo::TileKey tile, int32_t depth,
-    const OlpClientSettings& settings, CancellationContext context) {
+    const PrefetchTilesRequest& request, std::int64_t version,
+    geo::TileKey tile, int32_t depth, const OlpClientSettings& settings,
+    CancellationContext context) {
   OLP_SDK_LOG_TRACE_F(kLogTag, "GetSubQuads(%s, %" PRId64 ", %" PRId32 ")",
-                      tile.ToHereTile().c_str(), request.GetVersion().get(),
-                      depth);
+                      tile.ToHereTile().c_str(), version, depth);
 
   auto query_api =
       ApiClientLookup::LookupApi(catalog, context, "query", "v1",
@@ -184,7 +180,6 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
   using QuadTreeIndexPromise = std::promise<QuadTreeIndexResponse>;
   auto promise = std::make_shared<QuadTreeIndexPromise>();
   auto tile_key = tile.ToHereTile();
-  auto version = request.GetVersion().get();
 
   OLP_SDK_LOG_INFO_F(kLogTag,
                      "GetSubQuads execute(%s, %" PRId64 ", %" PRId32 ")",
@@ -225,6 +220,65 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
   repository::PartitionsCacheRepository cache(catalog, settings.cache);
   cache.Put(PartitionsRequest().WithVersion(version), partitions, layer_id,
             boost::none, false);
+
+  return result;
+}
+
+SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
+    const HRN& catalog, const std::string& layer_id,
+    const PrefetchTilesRequest& request, geo::TileKey tile, int32_t depth,
+    const OlpClientSettings& settings, CancellationContext context) {
+  OLP_SDK_LOG_TRACE_F(kLogTag, "GetSubQuadsVolatile(%s, %" PRId32 ")",
+                      tile.ToHereTile().c_str(), depth);
+
+  auto query_api =
+      ApiClientLookup::LookupApi(catalog, context, "query", "v1",
+                                 FetchOptions::OnlineIfNotFound, settings);
+
+  if (!query_api.IsSuccessful()) {
+    return query_api.GetError();
+  }
+
+  using QuadTreeIndexResponse = QueryApi::QuadTreeIndexResponse;
+  using QuadTreeIndexPromise = std::promise<QuadTreeIndexResponse>;
+  auto promise = std::make_shared<QuadTreeIndexPromise>();
+  auto tile_key = tile.ToHereTile();
+
+  OLP_SDK_LOG_INFO_F(kLogTag, "GetSubQuadsVolatile execute(%s, %" PRId32 ")",
+                     tile_key.c_str(), depth);
+  auto quad_tree = QueryApi::QuadTreeIndexVolatile(
+      query_api.GetResult(), layer_id, tile_key, depth, boost::none,
+      request.GetBillingTag(), context);
+
+  if (!quad_tree.IsSuccessful()) {
+    OLP_SDK_LOG_INFO_F(kLogTag, "GetSubQuadsVolatile failed(%s, %" PRId32 ")",
+                       tile_key.c_str(), depth);
+    return quad_tree.GetError();
+  }
+
+  SubQuadsResult result;
+  model::Partitions partitions;
+
+  const auto& subquads = quad_tree.GetResult().GetSubQuads();
+  partitions.GetMutablePartitions().reserve(subquads.size());
+
+  for (const auto& subquad : subquads) {
+    auto subtile = tile.AddedSubHereTile(subquad->GetSubQuadKey());
+    OLP_SDK_LOG_DEBUG_F(
+        kLogTag, "GetSubQuadsVolatile key(%s, %s | %" PRId32 ")",
+        subtile.ToHereTile().c_str(), subquad->GetDataHandle().c_str(), depth);
+    // Add to result
+    result.emplace(subtile, subquad->GetDataHandle());
+
+    // add to bulk partitions for cacheing
+    partitions.GetMutablePartitions().emplace_back(
+        PartitionsRepository::PartitionFromSubQuad(*subquad,
+                                                   subtile.ToHereTile()));
+  }
+
+  // add to cache
+  repository::PartitionsCacheRepository cache(catalog, settings.cache);
+  cache.Put({}, partitions, layer_id, boost::none, false);
 
   return result;
 }

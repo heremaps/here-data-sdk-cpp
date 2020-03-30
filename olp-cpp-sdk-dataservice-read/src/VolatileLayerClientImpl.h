@@ -25,6 +25,7 @@
 #include <olp/core/geo/tiling/TileKey.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
+#include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/Types.h>
 
 namespace olp {
@@ -63,6 +64,12 @@ class VolatileLayerClientImpl {
   virtual bool RemoveFromCache(const std::string& partition_id);
 
   virtual bool RemoveFromCache(const geo::TileKey& tile);
+
+  virtual client::CancellationToken PrefetchTiles(
+      PrefetchTilesRequest request, PrefetchTilesResponseCallback callback);
+
+  virtual client::CancellableFuture<PrefetchTilesResponse> PrefetchTiles(
+      PrefetchTilesRequest request);
 
  private:
   client::HRN catalog_;
