@@ -22,11 +22,14 @@
 #include "olp/core/cache/CacheSettings.h"
 #include "olp/core/cache/DefaultCache.h"
 #include "olp/core/http/Network.h"
+#include "olp/core/logging/Log.h"
 #include "olp/core/porting/make_unique.h"
 #include "olp/core/thread/ThreadPoolTaskScheduler.h"
 
 namespace olp {
 namespace client {
+
+auto constexpr kLogTag = "OlpClientSettingsFactory";
 
 std::unique_ptr<thread::TaskScheduler>
 OlpClientSettingsFactory::CreateDefaultTaskScheduler(size_t thread_count) {
@@ -42,7 +45,16 @@ OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler(
 std::unique_ptr<cache::KeyValueCache>
 OlpClientSettingsFactory::CreateDefaultCache(cache::CacheSettings settings) {
   auto cache = std::make_unique<cache::DefaultCache>(std::move(settings));
-  cache->Open();
+  auto error = cache->Open();
+  if (error == cache::DefaultCache::StorageOpenResult::OpenDiskPathFailure) {
+    OLP_SDK_LOG_FATAL_F(
+        kLogTag,
+        "Error opening disk cache, disk_path_mutable=%s, "
+        "disk_path_protected=%s",
+        settings.disk_path_mutable.get_value_or("(empty)").c_str(),
+        settings.disk_path_protected.get_value_or("(empty)").c_str());
+    return nullptr;
+  }
   return std::move(cache);
 }
 
