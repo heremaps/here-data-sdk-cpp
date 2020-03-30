@@ -30,6 +30,7 @@ jobs:
   pool:
     vmImage: 'macOS-10.14'
   steps:
+  - script: brew install boost
   - bash: scripts/macos/psv/azure_macos_build_psv.sh
     displayName: 'MacOS Build'
 

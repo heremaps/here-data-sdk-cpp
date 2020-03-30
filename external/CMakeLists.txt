@@ -1,4 +1,4 @@
-# Copyright (C) 2019 HERE Europe B.V.
+# Copyright (C) 2019-2020 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -58,7 +58,8 @@ set(OLP_SDK_CPP_LEVELDB_TAG "1.21")
 set(OLP_SDK_CPP_RAPIDJSON_URL "https://github.com/Tencent/rapidjson.git")
 set(OLP_SDK_CPP_RAPIDJSON_TAG "master")
 
-set(OLP_SDK_CPP_BOOST_URL "https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz")
+set(OLP_SDK_CPP_BOOST_URL "https://github.com/boostorg/boost.git")
+set(OLP_SDK_CPP_BOOST_TAG "boost-1.72.0")
 
 # Add external projects
 find_package(GTest QUIET)
