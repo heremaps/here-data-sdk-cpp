@@ -1,4 +1,4 @@
-# Copyright (C) 2019 HERE Europe B.V.
+# Copyright (C) 2019-2020 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,20 @@
 # Boost
 # Download and unpack boost at configure time
 
-configure_file(CMakeLists.txt.boost.in download/CMakeLists.txt)
+if (WIN32)
+    set(BOOTSTRAP_CMD bootstrap.bat)
+    set(B2_CMD b2.exe)
+elseif (APPLE)
+    # Reset the CXX (path to compiler) before running bootstrap.
+    # Else we need to specify the -sysroot argument with CXXFLAGS.
+    set(BOOTSTRAP_CMD unset CXX && ./bootstrap.sh)
+    set(B2_CMD ./b2)
+else()
+    set(BOOTSTRAP_CMD ./bootstrap.sh)
+    set(B2_CMD ./b2)
+endif()
+
+configure_file(CMakeLists.txt.boost.in download/CMakeLists.txt @ONLY)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
