@@ -717,7 +717,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetVolatileDataHandle) {
 
   ASSERT_TRUE(data_response.IsSuccessful())
       << ApiErrorToString(data_response.GetError());
-  ASSERT_LT(0, data_response.GetResult()->size());
+  ASSERT_FALSE(data_response.GetResult()->empty());
   std::string data_string(data_response.GetResult()->begin(),
                           data_response.GetResult()->end());
   ASSERT_EQ("someData", data_string);
@@ -754,7 +754,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetVolatileDataByPartitionId) {
 
   ASSERT_TRUE(data_response.IsSuccessful())
       << ApiErrorToString(data_response.GetError());
-  ASSERT_LT(0, data_response.GetResult()->size());
+  ASSERT_FALSE(data_response.GetResult()->empty());
   std::string data_string(data_response.GetResult()->begin(),
                           data_response.GetResult()->end());
   ASSERT_EQ("someData", data_string);
@@ -859,7 +859,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, RemoveFromCachePartition) {
 
   ASSERT_TRUE(data_response.IsSuccessful())
       << ApiErrorToString(data_response.GetError());
-  ASSERT_LT(0, data_response.GetResult()->size());
+  ASSERT_FALSE(data_response.GetResult()->empty());
   std::string data_string(data_response.GetResult()->begin(),
                           data_response.GetResult()->end());
   ASSERT_EQ("someData", data_string);
@@ -898,8 +898,8 @@ TEST_F(DataserviceReadVolatileLayerClientTest, RemoveFromCacheTileKey) {
   olp::dataservice::read::VolatileLayerClient client(hrn, "testlayer_volatile",
                                                      settings_);
 
-  auto request = olp::dataservice::read::DataRequest();
-  request.WithPartitionId(partition_id);
+  auto request =
+      olp::dataservice::read::DataRequest().WithPartitionId(partition_id);
 
   auto future = client.GetData(request);
 
@@ -907,7 +907,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, RemoveFromCacheTileKey) {
 
   ASSERT_TRUE(data_response.IsSuccessful())
       << ApiErrorToString(data_response.GetError());
-  ASSERT_LT(0, data_response.GetResult()->size());
+  ASSERT_FALSE(data_response.GetResult()->empty());
   std::string data_string(data_response.GetResult()->begin(),
                           data_response.GetResult()->end());
   ASSERT_EQ("someData", data_string);

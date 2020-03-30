@@ -342,12 +342,14 @@ TEST(VolatileLayerClientImplTest, RemoveFromCachePartition) {
     partition.SetDataHandle(kBlobDataHandle);
     return partition;
   };
+
   auto partition_cache_remove = [&](const std::string& prefix) {
     std::string expected_prefix = kHrn.ToCatalogHRNString() + "::" + kLayerId +
                                   "::" + kPartitionId + "::partition";
     EXPECT_EQ(prefix, expected_prefix);
     return true;
   };
+
   auto data_cache_remove = [&](const std::string& prefix) {
     std::string expected_prefix = kHrn.ToCatalogHRNString() + "::" + kLayerId +
                                   "::" + kBlobDataHandle + "::Data";
@@ -358,7 +360,6 @@ TEST(VolatileLayerClientImplTest, RemoveFromCachePartition) {
   VolatileLayerClientImpl client(kHrn, kLayerId, settings);
   {
     SCOPED_TRACE("Successfull remove partition from cache");
-
     EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
         .WillOnce(partition_cache_remove)
@@ -403,12 +404,14 @@ TEST(VolatileLayerClientImplTest, RemoveFromCacheTileKey) {
     partition.SetDataHandle(kBlobDataHandle);
     return partition;
   };
+
   auto partition_cache_remove = [&](const std::string& prefix) {
     std::string expected_prefix = kHrn.ToCatalogHRNString() + "::" + kLayerId +
                                   "::" + kPartitionId + "::partition";
     EXPECT_EQ(prefix, expected_prefix);
     return true;
   };
+
   auto data_cache_remove = [&](const std::string& prefix) {
     std::string expected_prefix = kHrn.ToCatalogHRNString() + "::" + kLayerId +
                                   "::" + kBlobDataHandle + "::Data";
@@ -420,7 +423,6 @@ TEST(VolatileLayerClientImplTest, RemoveFromCacheTileKey) {
   VolatileLayerClientImpl client(kHrn, kLayerId, settings);
   {
     SCOPED_TRACE("Successfull remove partition from cache");
-
     EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
         .WillOnce(partition_cache_remove)
