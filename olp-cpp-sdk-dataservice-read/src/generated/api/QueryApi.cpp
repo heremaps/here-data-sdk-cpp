@@ -38,6 +38,9 @@ constexpr auto kLogTag = "read::QueryApi";
 
 std::string ConcatStringArray(const std::vector<std::string>& strings,
                               const std::string& delimiter) {
+  if (strings.empty()) {
+    return {};
+  }
   if (strings.size() == 1) {
     return strings.front();
   }
@@ -122,7 +125,41 @@ QueryApi::QuadTreeIndexResponse QueryApi::QuadTreeIndex(
       metadata_uri, "GET", std::move(query_params), std::move(header_params),
       {}, nullptr, std::string{}, std::move(context));
 
-  OLP_SDK_LOG_TRACE_F(kLogTag, "QuadTreeIndex, uri=%s, status=%d",
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "QuadTreeIndex, uri=%s, status=%d",
+                      metadata_uri.c_str(), response.status);
+  if (response.status != olp::http::HttpStatusCode::OK) {
+    return client::ApiError(response.status, response.response.str());
+  }
+
+  return olp::parser::parse<model::Index>(response.response);
+}
+
+QueryApi::QuadTreeIndexResponse QueryApi::QuadTreeIndexVolatile(
+    const client::OlpClient& client, const std::string& layer_id,
+    const std::string& quad_key, int32_t depth,
+    boost::optional<std::vector<std::string>> additional_fields,
+    boost::optional<std::string> billing_tag,
+    client::CancellationContext context) {
+  std::multimap<std::string, std::string> header_params;
+  header_params.insert(std::make_pair("Accept", "application/json"));
+
+  std::multimap<std::string, std::string> query_params;
+  if (additional_fields) {
+    query_params.insert(std::make_pair(
+        "additionalFields", ConcatStringArray(*additional_fields, ",")));
+  }
+  if (billing_tag) {
+    query_params.insert(std::make_pair("billingTag", *billing_tag));
+  }
+
+  std::string metadata_uri = "/layers/" + layer_id + "/quadkeys/" + quad_key +
+                             "/depths/" + std::to_string(depth);
+
+  client::HttpResponse response = client.CallApi(
+      metadata_uri, "GET", std::move(query_params), std::move(header_params),
+      {}, nullptr, std::string{}, std::move(context));
+
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "QuadTreeIndex, uri=%s, status=%d",
                       metadata_uri.c_str(), response.status);
   if (response.status != olp::http::HttpStatusCode::OK) {
     return client::ApiError(response.status, response.response.str());

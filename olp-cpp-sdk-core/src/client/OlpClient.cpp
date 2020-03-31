@@ -27,6 +27,7 @@
 
 #include "olp/core/client/Condition.h"
 #include "olp/core/client/ErrorCode.h"
+#include "olp/core/http/HttpStatusCode.h"
 #include "olp/core/http/NetworkConstants.h"
 #include "olp/core/logging/Log.h"
 #include "olp/core/utils/Url.h"
@@ -372,6 +373,11 @@ HttpResponse OlpClient::CallApi(std::string path, std::string method,
                                 OlpClient::RequestBodyType post_body,
                                 std::string content_type,
                                 CancellationContext context) const {
+  if (!settings_.network_request_handler) {
+    return HttpResponse(static_cast<int>(olp::http::ErrorCode::OFFLINE_ERROR),
+                        "Network request handler is empty.");
+  }
+
   const auto& retry_settings = settings_.retry_settings;
   auto network_settings =
       http::NetworkSettings()
