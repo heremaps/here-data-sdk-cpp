@@ -21,13 +21,10 @@
 if (WIN32)
     set(BOOTSTRAP_CMD bootstrap.bat)
     set(B2_CMD b2.exe)
-elseif (APPLE)
-    # Reset the CXX (path to compiler) before running bootstrap.
+else()
+    # Reset the CXX (path to compiler) before running bootstrap since we can cross compile.
     # Else we need to specify the -sysroot argument with CXXFLAGS.
     set(BOOTSTRAP_CMD unset CXX && ./bootstrap.sh)
-    set(B2_CMD ./b2)
-else()
-    set(BOOTSTRAP_CMD ./bootstrap.sh)
     set(B2_CMD ./b2)
 endif()
 
