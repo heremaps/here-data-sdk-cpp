@@ -46,7 +46,9 @@ bool CreateSubscription(StreamLayerClient& client,
         subscribe_response.GetError().GetMessage().c_str());
     return false;
   }
-  OLP_SDK_LOG_INFO(kLogTag, "Client subscribe successfuly");
+  OLP_SDK_LOG_INFO_F(kLogTag,
+                     "Client subscribe successfuly (subscription_id=%s)",
+                     subscribe_response.GetResult().c_str());
   return true;
 }
 
@@ -143,8 +145,8 @@ int RunStreamLayerExampleRead(
       kLogTag, "Starting stream layer read, catalog=%s, layer=%s, mode=%s",
       catalog.c_str(), layer_id.c_str(),
       (subscription_mode == SubscribeRequest::SubscriptionMode::kParallel)
-          ? "Parallel"
-          : "Serial");
+          ? "parallel"
+          : "serial");
   // Create a task scheduler instance
   std::shared_ptr<olp::thread::TaskScheduler> task_scheduler =
       olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
