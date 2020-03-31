@@ -112,6 +112,41 @@ class QueryApi {
       boost::optional<std::vector<std::string>> additional_fields,
       boost::optional<std::string> billing_tag,
       client::CancellationContext context);
+
+  /**
+   * @brief Gets index metadata
+   * Gets metadata synchronously for the requested index. Only available for
+   * layers where the partitioning scheme is &#x60;heretile&#x60;.
+   *
+   * @param layer_id The ID of the layer specified in the request.
+   * Content of this parameter must refer to a valid layer already configured
+   * in the catalog configuration. Exactly one layer ID must be
+   * provided.
+   * @param quad_key The geometric area specified by an index in the request,
+   * represented as a HERE tile
+   * @param depth The recursion depth
+   * of the response. If set to 0, the response includes only data for the
+   * quad_key specified in the request. In this way, depth describes the maximum
+   * length of the subQuadKeys in the response. The maximum allowed value for
+   * the depth parameter is 4.
+   * @param additional_fields Additional fields - &#x60;dataSize&#x60;,
+   * &#x60;checksum&#x60;, &#x60;compressedDataSize&#x60;
+   * @param billing_tag Billing Tag is an optional free-form tag used to
+   * group billing records together. If supplied, it must be between 4 - 16
+   * characters and  contain only alphanumeric ASCII characters  [A-Za-z0-9].
+   * Grouping billing records by billing tag will be available in a future
+   * release.
+   * @param context A CancellationContext instance which can be used to cancel
+   * call of this method.
+   * @param The result of this operation as a client::ApiResponse object with \c
+   * model::Index as a result
+   **/
+  static QuadTreeIndexResponse QuadTreeIndexVolatile(
+      const client::OlpClient& client, const std::string& layer_id,
+      const std::string& quad_key, int32_t depth,
+      boost::optional<std::vector<std::string>> additional_fields,
+      boost::optional<std::string> billing_tag,
+      client::CancellationContext context);
 };
 
 }  // namespace read
