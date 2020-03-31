@@ -28,8 +28,10 @@
 
 #include "Common.h"
 #include "repositories/CatalogRepository.h"
+#include "repositories/DataCacheRepository.h"
 #include "repositories/DataRepository.h"
 #include "repositories/ExecuteOrSchedule.inl"
+#include "repositories/PartitionsCacheRepository.h"
 #include "repositories/PartitionsRepository.h"
 
 namespace olp {
@@ -122,6 +124,29 @@ client::CancellableFuture<DataResponse> VolatileLayerClientImpl::GetData(
   };
   auto token = GetData(std::move(request), std::move(callback));
   return olp::client::CancellableFuture<DataResponse>(token, promise);
+}
+
+bool VolatileLayerClientImpl::RemoveFromCache(const std::string& partition_id) {
+  repository::PartitionsCacheRepository cache_repository(catalog_,
+                                                         settings_.cache);
+  boost::optional<model::Partition> partition;
+  if (!cache_repository.ClearPartitionMetadata(boost::none, partition_id,
+                                               layer_id_, partition)) {
+    return false;
+  }
+
+  if (!partition) {
+    // partition are not stored in cache
+    return true;
+  }
+
+  repository::DataCacheRepository data_repository(catalog_, settings_.cache);
+  return data_repository.Clear(layer_id_, partition.get().GetDataHandle());
+}
+
+bool VolatileLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
+  auto partition_id = tile.ToHereTile();
+  return RemoveFromCache(partition_id);
 }
 
 }  // namespace read
