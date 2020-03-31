@@ -1,4 +1,4 @@
-# Copyright (C) 2019 HERE Europe B.V.
+# Copyright (C) 2019-2020 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,12 +20,45 @@ cmake_minimum_required(VERSION 3.9)
 project(boost-download NONE)
 
 include(ExternalProject)
-ExternalProject_Add(Boost
-  URL               @OLP_SDK_CPP_BOOST_URL@
-  DOWNLOAD_DIR      "${CMAKE_CURRENT_BINARY_DIR}/download"
-  SOURCE_DIR        "${CMAKE_CURRENT_BINARY_DIR}/external_boost"
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND     ""
-  INSTALL_COMMAND   ""
-  TEST_COMMAND      ""
+
+ExternalProject_Add(boost-download
+    GIT_REPOSITORY      @OLP_SDK_CPP_BOOST_URL@
+    GIT_TAG             @OLP_SDK_CPP_BOOST_TAG@ 
+    GIT_SUBMODULES      libs/any
+                        libs/assert
+                        libs/config
+                        libs/container_hash
+                        libs/core
+                        libs/detail
+                        libs/format
+                        libs/function_types
+                        libs/headers
+                        libs/integer
+                        libs/io
+                        libs/iterator
+                        libs/move
+                        libs/mpl
+                        libs/numeric/conversion
+                        libs/optional
+                        libs/predef
+                        libs/preprocessor
+                        libs/random
+                        libs/serialization
+                        libs/smart_ptr
+                        libs/static_assert
+                        libs/throw_exception
+                        libs/tti
+                        libs/type_index
+                        libs/type_traits
+                        libs/utility
+                        libs/uuid
+                        libs/winapi
+                        tools/build
+                        tools/boost_install
+    SOURCE_DIR          @CMAKE_CURRENT_BINARY_DIR@/external_boost
+    UPDATE_COMMAND      ""
+    CONFIGURE_COMMAND   cd @CMAKE_CURRENT_BINARY_DIR@/external_boost && @BOOTSTRAP_CMD@
+    BUILD_COMMAND       cd @CMAKE_CURRENT_BINARY_DIR@/external_boost && @B2_CMD@ headers
+    INSTALL_COMMAND     ""
+    TEST_COMMAND        ""
 )
