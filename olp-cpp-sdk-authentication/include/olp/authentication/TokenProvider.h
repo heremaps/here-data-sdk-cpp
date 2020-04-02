@@ -28,6 +28,10 @@
 #include "TokenEndpoint.h"
 #include "TokenResult.h"
 
+// Needed to avoid endless warnings from TokenEndpoint/TokenResponse
+PORTING_PUSH_WARNINGS()
+PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
+
 namespace olp {
 namespace authentication {
 /** @file TokenProvider.h */
@@ -127,5 +131,6 @@ class TokenProvider {
  */
 using TokenProviderDefault = TokenProvider<kDefaultMinimumValidity>;
 
+PORTING_POP_WARNINGS()
 }  // namespace authentication
 }  // namespace olp
