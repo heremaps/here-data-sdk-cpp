@@ -221,8 +221,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
               request.CreateKey(layer_id).c_str());
           return response.GetError();
         }
-
-        request.WithVersion(response.GetResult().GetVersion());
+        auto version = response.GetResult().GetVersion();
 
         const auto key = request.CreateKey(layer_id);
         OLP_SDK_LOG_INFO_F(kLogTag, "PrefetchTiles: using key=%s", key.c_str());
@@ -253,7 +252,8 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
                             sliced_tiles.size(), key.c_str());
 
         auto sub_tiles = repository::PrefetchTilesRepository::GetSubTiles(
-            catalog, layer_id, request, sliced_tiles, context, settings);
+            catalog, layer_id, request, version, sliced_tiles, context,
+            settings);
 
         if (!sub_tiles.IsSuccessful()) {
           return sub_tiles.GetError();

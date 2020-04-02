@@ -22,8 +22,10 @@
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/CacheMock.h>
 #include <mocks/NetworkMock.h>
+#include <olp/core/cache/CacheSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/dataservice/read/CatalogClient.h>
+#include <olp/dataservice/read/PrefetchTileResult.h>
 #include "VolatileLayerClientImpl.h"
 
 namespace {
@@ -43,6 +45,12 @@ constexpr auto kUrlLookupQuery =
 constexpr auto kUrlQueryPartition269 =
     R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?partition=269)";
 
+constexpr auto kUrlQuadTreeIndexVolatile =
+    R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/quadkeys/5904591/depths/1)";
+
+constexpr auto kUrlQuadTreeIndexVolatile2 =
+    R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/quadkeys/23064/depths/4)";
+
 constexpr auto kHttpResponseLookupVolatileBlob =
     R"jsonString([{"api":"volatile-blob","version":"v1","baseURL":"https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString";
 
@@ -55,13 +63,25 @@ constexpr auto kHttpResponsePartition269 =
 constexpr auto kHttpResponseNoPartition =
     R"jsonString({ "partitions": []})jsonString";
 
+constexpr auto kHttpResponseQuadTreeIndexVolatile =
+    R"jsonString( {"subQuads": [{"version":4,"subQuadKey":"1","dataHandle":"f9a9fd8e-eb1b-48e5-bfdb-4392b3826443"}, {"version":4,"subQuadKey":"2","dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": [{"version":4,"partition":"1476147","dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"}]})jsonString";
+
 constexpr auto kBlobDataHandle = R"(4eed6ed1-0d32-43b9-ae79-043cb4256432)";
+
+constexpr auto kUrlPrefetchBlobData1 =
+    R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/f9a9fd8e-eb1b-48e5-bfdb-4392b3826443)";
+
+constexpr auto kUrlPrefetchBlobData2 =
+    R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1)";
 
 const std::string kCatalog =
     "hrn:here:data::olp-here-test:hereos-internal-test-v2";
 const std::string kLayerId = "testlayer";
 const auto kHrn = olp::client::HRN::FromString(kCatalog);
 const auto kPartitionId = "269";
+const auto kTileId = "5904591";
+const auto kData1 = "SomeData1";
+const auto kData2 = "SomeData2";
 const auto kTimeout = std::chrono::seconds(5);
 
 template <class T>
@@ -71,6 +91,8 @@ void SetupNetworkExpectation(NetworkMock& network_mock, T url, T response,
       .WillOnce(ReturnHttpResponse(
           olp::http::NetworkResponse().WithStatus(status), response));
 }
+
+MATCHER_P(IsKey, key, "") { return key == arg; }
 
 TEST(VolatileLayerClientImplTest, GetData) {
   std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
@@ -454,4 +476,428 @@ TEST(VolatileLayerClientImplTest, RemoveFromCacheTileKey) {
   }
 }
 
+TEST(VolatileLayerClientImplTest, PrefetchTiles) {
+  std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
+
+  olp::client::OlpClientSettings settings;
+  settings.network_request_handler = network_mock;
+  settings.cache = cache_mock;
+  olp::client::HRN catalog(kCatalog);
+  olp::dataservice::read::VolatileLayerClientImpl client(catalog, kLayerId,
+                                                         settings);
+  {
+    SCOPED_TRACE("Prefetch tiles and store them in memory cache");
+    SetupNetworkExpectation(*network_mock, kUrlLookupQuery,
+                            kHttpResponseLookupQuery,
+                            olp::http::HttpStatusCode::OK);
+    SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile,
+                            kHttpResponseQuadTreeIndexVolatile,
+                            olp::http::HttpStatusCode::OK);
+    SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData1, kData1,
+                            olp::http::HttpStatusCode::OK);
+    SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData2, kData2,
+                            olp::http::HttpStatusCode::OK);
+
+    EXPECT_CALL(*network_mock,
+                Send(IsGetRequest(kUrlLookupVolatileBlob), _, _, _, _))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookupVolatileBlob));
+
+    std::vector<olp::geo::TileKey> tile_keys = {
+        olp::geo::TileKey::FromHereTile(kTileId)};
+
+    auto request = olp::dataservice::read::PrefetchTilesRequest()
+                       .WithTileKeys(tile_keys)
+                       .WithMinLevel(11)
+                       .WithMaxLevel(12);
+
+    auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
+    std::future<PrefetchTilesResponse> future = promise->get_future();
+    auto token = client.PrefetchTiles(
+        request, [promise](PrefetchTilesResponse response) {
+          promise->set_value(std::move(response));
+        });
+
+    ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    const auto& result = response.GetResult();
+    ASSERT_FALSE(result.empty());
+    for (auto tile_result : result) {
+      std::string str = tile_result->tile_key_.ToHereTile();
+      ASSERT_TRUE(tile_result->IsSuccessful());
+      ASSERT_TRUE(tile_result->tile_key_.IsValid());
+    }
+  }
+  {
+    SCOPED_TRACE("Prefetch tiles with levels(0, 0).");
+    SetupNetworkExpectation(*network_mock, kUrlLookupQuery,
+                            kHttpResponseLookupQuery,
+                            olp::http::HttpStatusCode::OK);
+    SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile2,
+                            kHttpResponseQuadTreeIndexVolatile,
+                            olp::http::HttpStatusCode::OK);
+
+    EXPECT_CALL(*network_mock,
+                Send(IsGetRequest(kUrlLookupVolatileBlob), _, _, _, _))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookupVolatileBlob));
+
+    std::vector<olp::geo::TileKey> tile_keys = {
+        olp::geo::TileKey::FromHereTile(kTileId)};
+
+    auto request = olp::dataservice::read::PrefetchTilesRequest()
+                       .WithTileKeys(tile_keys)
+                       .WithMinLevel(0)
+                       .WithMaxLevel(0);
+
+    auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
+    std::future<PrefetchTilesResponse> future = promise->get_future();
+    auto token = client.PrefetchTiles(
+        request, [promise](PrefetchTilesResponse response) {
+          promise->set_value(std::move(response));
+        });
+
+    ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_TRUE(response.GetResult().empty());
+  }
+  {
+    SCOPED_TRACE("Levels not specified.");
+    SetupNetworkExpectation(*network_mock, kUrlLookupQuery,
+                            kHttpResponseLookupQuery,
+                            olp::http::HttpStatusCode::OK);
+    SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile2,
+                            kHttpResponseQuadTreeIndexVolatile,
+                            olp::http::HttpStatusCode::OK);
+
+    EXPECT_CALL(*network_mock,
+                Send(IsGetRequest(kUrlLookupVolatileBlob), _, _, _, _))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookupVolatileBlob));
+
+    std::vector<olp::geo::TileKey> tile_keys = {
+        olp::geo::TileKey::FromHereTile(kTileId)};
+
+    auto request =
+        olp::dataservice::read::PrefetchTilesRequest().WithTileKeys(tile_keys);
+
+    auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
+    std::future<PrefetchTilesResponse> future = promise->get_future();
+    auto token = client.PrefetchTiles(
+        request, [promise](PrefetchTilesResponse response) {
+          promise->set_value(std::move(response));
+        });
+
+    ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_TRUE(response.GetResult().empty());
+  }
+  // negative tests
+  {
+    SCOPED_TRACE("No tiles in the request");
+
+    auto request = olp::dataservice::read::PrefetchTilesRequest()
+                       .WithMinLevel(11)
+                       .WithMaxLevel(12);
+
+    auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
+    std::future<PrefetchTilesResponse> future = promise->get_future();
+    auto token = client.PrefetchTiles(
+        request, [promise](PrefetchTilesResponse response) {
+          promise->set_value(std::move(response));
+        });
+
+    ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+    const auto& error = response.GetError();
+
+    ASSERT_EQ(olp::client::ErrorCode::InvalidArgument, error.GetErrorCode());
+  }
+  {
+    SCOPED_TRACE("Max level < min level.");
+
+    auto request = olp::dataservice::read::PrefetchTilesRequest()
+                       .WithMinLevel(12)
+                       .WithMaxLevel(11);
+
+    auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
+    std::future<PrefetchTilesResponse> future = promise->get_future();
+    auto token = client.PrefetchTiles(
+        request, [promise](PrefetchTilesResponse response) {
+          promise->set_value(std::move(response));
+        });
+
+    ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+    const auto& error = response.GetError();
+
+    ASSERT_EQ(olp::client::ErrorCode::InvalidArgument, error.GetErrorCode());
+  }
+  {
+    SCOPED_TRACE("Invalid levels.");
+
+    auto request = olp::dataservice::read::PrefetchTilesRequest()
+                       .WithMinLevel(-1)
+                       .WithMaxLevel(-1);
+
+    auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
+    std::future<PrefetchTilesResponse> future = promise->get_future();
+    auto token = client.PrefetchTiles(
+        request, [promise](PrefetchTilesResponse response) {
+          promise->set_value(std::move(response));
+        });
+
+    ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+    const auto& error = response.GetError();
+
+    ASSERT_EQ(olp::client::ErrorCode::InvalidArgument, error.GetErrorCode());
+  }
+}
+
+TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
+  std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
+
+  olp::client::OlpClientSettings settings;
+  settings.network_request_handler = network_mock;
+  settings.cache = cache_mock;
+  olp::client::HRN catalog(kCatalog);
+  olp::dataservice::read::VolatileLayerClientImpl client(catalog, kLayerId,
+                                                         settings);
+  {
+    SCOPED_TRACE("Prefetch tiles and store them in memory cache");
+    SetupNetworkExpectation(*network_mock, kUrlLookupQuery,
+                            kHttpResponseLookupQuery,
+                            olp::http::HttpStatusCode::OK);
+    SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile,
+                            kHttpResponseQuadTreeIndexVolatile,
+                            olp::http::HttpStatusCode::OK);
+    SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData1, kData1,
+                            olp::http::HttpStatusCode::OK);
+    SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData2, kData2,
+                            olp::http::HttpStatusCode::OK);
+
+    EXPECT_CALL(*network_mock,
+                Send(IsGetRequest(kUrlLookupVolatileBlob), _, _, _, _))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookupVolatileBlob));
+
+    std::vector<olp::geo::TileKey> tile_keys = {
+        olp::geo::TileKey::FromHereTile(kTileId)};
+
+    auto request = olp::dataservice::read::PrefetchTilesRequest()
+                       .WithTileKeys(tile_keys)
+                       .WithMinLevel(11)
+                       .WithMaxLevel(12);
+
+    auto cancellable = client.PrefetchTiles(request);
+    auto future = cancellable.GetFuture();
+    ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    const auto& result = response.GetResult();
+    ASSERT_FALSE(result.empty());
+    for (auto tile_result : result) {
+      std::string str = tile_result->tile_key_.ToHereTile();
+      ASSERT_TRUE(tile_result->IsSuccessful());
+      ASSERT_TRUE(tile_result->tile_key_.IsValid());
+    }
+  }
+  {
+    SCOPED_TRACE("Prefetch tiles with levels(0, 0).");
+    SetupNetworkExpectation(*network_mock, kUrlLookupQuery,
+                            kHttpResponseLookupQuery,
+                            olp::http::HttpStatusCode::OK);
+    SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile2,
+                            kHttpResponseQuadTreeIndexVolatile,
+                            olp::http::HttpStatusCode::OK);
+
+    EXPECT_CALL(*network_mock,
+                Send(IsGetRequest(kUrlLookupVolatileBlob), _, _, _, _))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookupVolatileBlob));
+
+    std::vector<olp::geo::TileKey> tile_keys = {
+        olp::geo::TileKey::FromHereTile(kTileId)};
+
+    auto request = olp::dataservice::read::PrefetchTilesRequest()
+                       .WithTileKeys(tile_keys)
+                       .WithMinLevel(0)
+                       .WithMaxLevel(0);
+
+    auto cancellable = client.PrefetchTiles(request);
+    auto future = cancellable.GetFuture();
+
+    ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_TRUE(response.GetResult().empty());
+  }
+  {
+    SCOPED_TRACE("Levels not specified.");
+    SetupNetworkExpectation(*network_mock, kUrlLookupQuery,
+                            kHttpResponseLookupQuery,
+                            olp::http::HttpStatusCode::OK);
+    SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile2,
+                            kHttpResponseQuadTreeIndexVolatile,
+                            olp::http::HttpStatusCode::OK);
+
+    EXPECT_CALL(*network_mock,
+                Send(IsGetRequest(kUrlLookupVolatileBlob), _, _, _, _))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookupVolatileBlob));
+
+    std::vector<olp::geo::TileKey> tile_keys = {
+        olp::geo::TileKey::FromHereTile(kTileId)};
+
+    auto request =
+        olp::dataservice::read::PrefetchTilesRequest().WithTileKeys(tile_keys);
+
+    auto cancellable = client.PrefetchTiles(request);
+    auto future = cancellable.GetFuture();
+
+    ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_TRUE(response.GetResult().empty());
+  }
+  // negative tests
+  {
+    SCOPED_TRACE("No tiles in the request");
+
+    auto request = olp::dataservice::read::PrefetchTilesRequest()
+                       .WithMinLevel(11)
+                       .WithMaxLevel(12);
+
+    auto cancellable = client.PrefetchTiles(request);
+    auto future = cancellable.GetFuture();
+
+    ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+    const auto& error = response.GetError();
+
+    ASSERT_EQ(olp::client::ErrorCode::InvalidArgument, error.GetErrorCode());
+  }
+  {
+    SCOPED_TRACE("Max level < min level.");
+
+    auto request = olp::dataservice::read::PrefetchTilesRequest()
+                       .WithMinLevel(12)
+                       .WithMaxLevel(11);
+
+    auto cancellable = client.PrefetchTiles(request);
+    auto future = cancellable.GetFuture();
+
+    ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+    const auto& error = response.GetError();
+
+    ASSERT_EQ(olp::client::ErrorCode::InvalidArgument, error.GetErrorCode());
+  }
+  {
+    SCOPED_TRACE("Invalid levels.");
+
+    auto request = olp::dataservice::read::PrefetchTilesRequest()
+                       .WithMinLevel(-1)
+                       .WithMaxLevel(-1);
+
+    auto cancellable = client.PrefetchTiles(request);
+    auto future = cancellable.GetFuture();
+
+    ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+    const auto& error = response.GetError();
+
+    ASSERT_EQ(olp::client::ErrorCode::InvalidArgument, error.GetErrorCode());
+  }
+}
+
+TEST(VolatileLayerClientImplTest, PrefetchTilesCancelOnClientDestroy) {
+  std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
+  olp::client::OlpClientSettings settings;
+  settings.network_request_handler = network_mock;
+  settings.cache = cache_mock;
+  settings.task_scheduler =
+      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
+
+  {
+    // Simulate a loaded queue
+    settings.task_scheduler->ScheduleTask(
+        []() { std::this_thread::sleep_for(std::chrono::seconds(1)); });
+
+    PrefetchTilesResponse response;
+    {
+      // Client owns the task scheduler
+      auto caller_thread_id = std::this_thread::get_id();
+      VolatileLayerClientImpl client(kHrn, kLayerId, std::move(settings));
+      std::vector<olp::geo::TileKey> tile_keys = {
+          olp::geo::TileKey::FromHereTile(kTileId)};
+      auto request = olp::dataservice::read::PrefetchTilesRequest()
+                         .WithTileKeys(tile_keys)
+                         .WithMinLevel(11)
+                         .WithMaxLevel(12);
+
+      client.PrefetchTiles(
+          request, [&](PrefetchTilesResponse prefetch_response) {
+            response = std::move(prefetch_response);
+            EXPECT_NE(caller_thread_id, std::this_thread::get_id());
+          });
+    }
+
+    // Callback must be called during client destructor.
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::Cancelled);
+  }
+}
+
+TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFutureCancel) {
+  std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
+  olp::client::OlpClientSettings settings;
+  settings.network_request_handler = network_mock;
+  settings.cache = cache_mock;
+  settings.task_scheduler =
+      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
+  VolatileLayerClientImpl client(kHrn, kLayerId, std::move(settings));
+  std::vector<olp::geo::TileKey> tile_keys = {
+      olp::geo::TileKey::FromHereTile(kTileId)};
+  auto cancellable =
+      client.PrefetchTiles(PrefetchTilesRequest().WithTileKeys(tile_keys));
+
+  auto data_future = cancellable.GetFuture();
+  cancellable.GetCancellationToken().Cancel();
+  ASSERT_EQ(data_future.wait_for(kTimeout), std::future_status::ready);
+
+  auto data_response = data_future.get();
+
+  // Callback must be called during client destructor.
+  EXPECT_FALSE(data_response.IsSuccessful());
+  EXPECT_EQ(data_response.GetError().GetErrorCode(),
+            olp::client::ErrorCode::Cancelled);
+}
 }  // namespace
