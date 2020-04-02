@@ -19,12 +19,11 @@
 
 #pragma once
 
-#include <cassert>
 #include <cstddef>
 #include <functional>
 #include <map>
 
-#include <olp/core/porting/try_emplace.h>
+#include <olp/core/utils/UnorderedMap.h>
 
 namespace olp {
 namespace utils {
@@ -40,217 +39,303 @@ template <typename T>
 struct CacheCost {
   std::size_t operator()(const T&) const { return 1; }
 };
-
+/** An eviction callback that does nothing. */
+struct NullEvictionCallback {
+  template <class Key, class Value>
+  void operator()(const Key&, Value&&) const {}
+};
 /**
  * @brief Generic key-value LRU cache
  *
- * This cache stores up to maxSize elements in a map. The cache eviction
- * follows the LRU principle, the element that has been accessed last will
- * be evicted last.
+ * This cache stores elements in a map. If the maximum size of the cache is
+ * exceeded, the least recently used element will be evicted until the size is
+ * less or equal to the maximum size.
+ *
+ * Implementation: The cache is implemented using UnorderedMap and an intrusive
+ * doubly-linked list, exploiting the fact that the order of the entries in the
+ * UnorderedMap is stable under most operations (excluding erase).
+ *
+ * @param Key Type of the key used to access a cached element.
+ * @param Value Type of the value stored for a cached element.
+ * @param CacheCostFunc Functor that maps a value to its cost.
+ * The cost of a value must never change while the value is stored in the cache.
+ *
+ * @param HashFunc Functor that maps a key to a hash value.
+ * @param Index Index type used internally in the underlying hash map.
+ *  Make sure that it supports the amount of elements you want to insert
  */
-template <typename Key, typename Value,
-          typename CacheCostFunc = CacheCost<Value>,
-          typename Compare = std::less<Key>,
+template <typename Key, typename Value, class CacheCostFunc = CacheCost<Value>,
+          class HashFunc = std::hash<Key>, typename Index = uint32_t,
+          template <typename, typename> class Cont = std::vector,
           template <typename> class Alloc = std::allocator>
 class LruCache {
-  struct Bucket;
-  using MapType =
-      std::map<Key, Bucket, Compare, Alloc<std::pair<const Key, Bucket> > >;
+ private:
+  static constexpr Index kHeadIndex = 0;
 
- public:
-  /// typedef for eviction function
-  using EvictionFunction = std::function<void(const Key&, Value&&)>;
-
-  /// Typedef for the key comparison function.
-  using CompareType = typename MapType::key_compare;
-
-  /// Typedef for cache allocator type.
-  using AllocType = typename MapType::allocator_type;
-
-  class ValueType {
-   public:
-    inline const Key& key() const;
-    inline const Value& value() const;
-
-   protected:
-    typename MapType::const_iterator m_it;
+  struct ListEntry {
+    Index prev_ = kHeadIndex;
+    Index next_ = kHeadIndex;
   };
 
-  class const_iterator : public ValueType {
+  struct EntryWithData : public ListEntry {
+    template <typename T>
+    explicit EntryWithData(T&& value) : value_(std::forward<T>(value)) {}
+
+    Value value_;
+  };
+
+  using MapType =
+      UnorderedMap<Key, EntryWithData, Index, HashFunc, Cont, Alloc>;
+  using AllocType = const Alloc<typename MapType::Entry>;
+
+ public:
+  using EvictionFunction = std::function<void(const Key&, Value&&)>;
+  /**
+   * @brief Bidirectional iterator over the cache content.
+   *
+   * Iteration is in eviction order from most recently used to least recently
+   * used.
+   */
+  class const_iterator {
    public:
-    typedef std::bidirectional_iterator_tag iterator_category;
-    typedef std::ptrdiff_t difference_type;
-    typedef ValueType value_type;
-    typedef const value_type& reference;
-    typedef const value_type* pointer;
+    using iterator_category = std::bidirectional_iterator_tag;
+    using value_type = const_iterator;
 
-    const_iterator() = default;
-    const_iterator(const const_iterator&) = default;
-    const_iterator& operator=(const const_iterator&) = default;
+    bool operator==(const const_iterator& other) const {
+      return idx_ == other.idx_;
+    }
 
-    inline bool operator==(const const_iterator& other) const;
-    inline bool operator!=(const const_iterator& other) const {
+    bool operator!=(const const_iterator& other) const {
       return !operator==(other);
     }
 
-    inline const_iterator& operator++();
-    inline const_iterator operator++(int);
-
-    inline const_iterator& operator--();
-    inline const_iterator operator--(int);
-
-    reference operator*() const { return *this; }
-    pointer operator->() const { return this; }
-
-   private:
-    template <typename, typename, typename, typename, template <typename> class>
-    friend class LruCache;
-
-    const_iterator(const typename MapType::const_iterator& it) {
-      this->m_it = it;
+    const_iterator& operator++() {
+      idx_ = cache_->ListGet(idx_).next_;
+      return *this;
     }
 
-    const_iterator(const typename MapType::iterator& it) { this->m_it = it; }
+    const_iterator operator++(int) {
+      const_iterator old_it = *this;
+      operator++();
+      return old_it;
+    }
+
+    const_iterator& operator--() {
+      idx_ = cache_->ListGet(idx_).prev_;
+      return *this;
+    }
+
+    const_iterator operator--(int) {
+      const_iterator old_it = *this;
+      operator--();
+      return old_it;
+    }
+
+    const value_type& operator*() const { return *this; }
+
+    const value_type* operator->() const { return this; }
+
+    const Key& key() const { return (cache_->map_.begin() + idx_ - 1)->key(); }
+
+    const Value& value() const {
+      return (cache_->map_.begin() + idx_ - 1)->data().value_;
+    }
+
+   private:
+    friend class LruCache;
+
+    const_iterator(const Index idx, const LruCache& cache)
+        : idx_(idx), cache_(&cache) {}
+
+   private:
+    Index idx_;
+    const LruCache* cache_;
   };
 
   /**
-   * @brief LruCache default constructor
-   * Constructs an invalid LruCache with maxSize 0 that caches nothing
-   * @param alloc Allocator for the cache
-   */
-  explicit LruCache(const AllocType& alloc = AllocType())
-      : map_(alloc),
-        first_(map_.end()),
-        last_(map_.end()),
-        max_size_(0),
-        size_(0) {}
-
-  /**
-   * @brief LruCache constructor
-   * @param maxSize the maximum size of values this cache will keep
+   * @brief Creates an empty cache.
+   * @param maxSize The maximum size of the cache.
    * @param cacheCostFunc the function this cache uses to compute the
    *        caching cost of each cached value
-   * @param compare Function object for comparing keys
-   * @param alloc Allocator for the cache
+   * @param alloc The allocator used to allocate memory for the elements.
    */
-  LruCache(std::size_t maxSize, CacheCostFunc cacheCostFunc = CacheCostFunc(),
-           const CompareType& compare = CompareType(),
-           const AllocType& alloc = AllocType())
-      : cache_cost_func_(std::move(cacheCostFunc)),
-        map_(compare, alloc),
-        first_(map_.end()),
-        last_(map_.end()),
+  explicit LruCache(size_t maxSize,
+                    CacheCostFunc cacheCostFunc = CacheCostFunc(),
+                    const AllocType& alloc = AllocType())
+      : map_(0, alloc),
+        head_(),
         max_size_(maxSize),
-        size_(0) {}
+        size_(0),
+        cache_cost_func_(std::move(cacheCostFunc)),
+        eviction_func_(NullEvictionCallback()) {}
+
+  ~LruCache() = default;
 
   /// deleted copy constructor
   LruCache(const LruCache&) = delete;
 
   /// default move constructor
-  LruCache(LruCache&& other) noexcept
-      : eviction_callback_(std::move(other.eviction_callback_)),
-        cache_cost_func_(std::move(other.cache_cost_func_)),
-        map_(std::move(other.map_)),
-        first_(other.first_ != map_.end() ? map_.find(other.first_->first)
-                                          : map_.end()),
-        last_(other.last_ != map_.end() ? map_.find(other.last_->first)
-                                        : map_.end()),
+  LruCache(LruCache&& other)
+      : map_(std::move(other.map_)),
+        head_(other.head_),
         max_size_(other.max_size_),
-        size_(other.size_) {}
+        size_(other.size_),
+        cache_cost_func_(std::move(other.cache_cost_func_)),
+        eviction_func_(std::move(other.eviction_func_)) {
+    other.map_.Clear();
+    other.head_ = ListEntry();
+    other.size_ = 0;
+  }
 
   /// deleted assignment operator
   LruCache& operator=(const LruCache&) = delete;
 
   /// default move assignment operator
-  LruCache& operator=(LruCache&& other) noexcept {
-    eviction_callback_ = std::move(other.eviction_callback_);
-    cache_cost_func_ = std::move(other.cache_cost_func_);
+  LruCache& operator=(LruCache&& other) {
     map_ = std::move(other.map_);
-    first_ = other.first_ != map_.end() ? map_.find(other.first_->first)
-                                        : map_.end();
-    last_ =
-        other.last_ != map_.end() ? map_.find(other.last_->first) : map_.end();
-    std::swap(max_size_, other.max_size_);
-    std::swap(size_, other.size_);
+    head_ = other.head_;
+    max_size_ = other.max_size_;
+    size_ = other.size_;
+    eviction_func_ = std::move(other.eviction_func_);
+
+    other.map_.Clear();
+    other.head_ = ListEntry();
+    other.size_ = 0;
 
     return *this;
   }
 
   /**
-   * @brief insert a key/value to the cache
+   * @brief Inserts a key/value to the cache.
    *
-   * Note - if the key already exists in the cache, it will be promoted in the
-   * LRU, but its value and cost will not be updated. Use insertOrAssign instead
-   * to update/insert existing values.
+   * If the key already exists, the key is promoted to the front of the LRU
+   * list, but its value is not updated. If the cost of the value exceeds the
+   * max size, this operation does nothing.
    *
-   * If key or value are rvalue references, they will be moved, otherwise,
-   * copied.
-   *
-   * Note - this function behaves analoguous to std::map. Even if insertion
-   * fails, key and value might already be moved, do not access them further.
-   *
-   * @param key the key to add
-   * @param value the value to add
-   * @return a pair of bool and iterator, analoguous to std::map::insert().
-   *         If the bool is true, the item was inserted and the iterator points
-   * to the newly inserted item. If the bool is false and the iterator points to
-   * end(), the item couldn't be inserted. Otherwise, the bool will be false and
-   * the iterator will point to the item that prevented the insertion.
+   * @param Key The key to be inserted.
+   * @param Value The value to be assigned to the key.
+   * @return A pair consisting of an iterator to the inserted element (or to the
+   * element that prevented the insertion) and a bool indicating if the
+   * insertion took place. If the cost of the value exceeded the max size of
+   * the cache, a pair of end( ) and false is returned.
    */
-  template <typename _Key, typename _Value>
-  std::pair<const_iterator, bool> Insert(_Key&& key, _Value&& value);
+  template <typename KeyArg, typename T>
+  std::pair<const_iterator, bool> Insert(KeyArg&& key, T&& value) {
+    const size_t cost = cache_cost_func_(value);
+    if (cost > max_size_) {
+      return std::make_pair(end(), false);
+    }
 
-  /**
-   * @brief insert a key/value to the cache or update an existing key/value pair
-   *
-   * Note - if the key already exists in the cache, its value and cost will be
-   * updated, use insert() instead to not update existing key/value pairs.
-   *
-   * @param key the key to add
-   * @param value the value to add
-   * @return a pair of bool and iterator, analoguous to
-   * std::map::insert_or_assign(). If the bool is true, the item was inserted
-   * and the iterator points to the newly inserted item. If the bool is false
-   * and the iterator points to end(), the item couldn't be inserted. Otherwise,
-   * the bool will be false and the iterator will point to the item that was
-   * assigned.
-   */
-  template <typename _Value>
-  std::pair<const_iterator, bool> InsertOrAssign(Key key, _Value&& value);
-
-  /**
-   * @brief erase - removes an item from the cache
-   * @param key the key to erase
-   * @return true if the key existed and was removed from the cache, false
-   * otherwise.
-   */
-  bool Erase(const Key& key) {
-    auto it = map_.find(key);
-    if (it == map_.end()) return false;
-
-    Erase(it, false);
-    return true;
+    typename MapType::iterator iter;
+    bool inserted;
+    std::tie(iter, inserted) =
+        map_.tryEmplace(std::forward<KeyArg>(key), std::forward<T>(value));
+    Index index = GetIndex(iter);
+    if (!inserted) {
+      ListUnlink(iter);
+      ListPushFront(iter);
+      return std::make_pair(const_iterator(index, *this), false);
+    }
+    if (cache_cost_func_(iter->data().value_) == cost) {
+      ListPushFront(iter);
+      size_ += cost;
+      Prune(index);
+      return std::make_pair(const_iterator(index, *this), true);
+    } else {
+      return std::make_pair(end(), false);
+    }
   }
 
-  const_iterator Erase(const_iterator& it) {
-    auto prev = it++;
+  /**
+   * @brief Inserts a key/value to the cache or updates an existing key/value
+   * pair.
+   *
+   * If the key already exists it is updated with the new value and the key is
+   * promoted to the front of the LRU list. If the cost of the value exceeds
+   * the max size, this operation does nothing.
+   *
+   * In the case of an assignment the eviction callback is called for the old
+   * key/value.
+   *
+   * @param Key The key to be inserted or updated.
+   * @param Value The value to be assigned to the key.
+   * @return A pair consisting of an iterator to the inserted or updated element
+   * and a bool which is true if the insertion took place and false if the
+   * assignment took place or the elements cost exceeded the max size of the
+   * cache. If the cost of the value exceeded the max size of the cache, a
+   * pair of end( ) and false is returned.
+   */
+  template <typename KeyArg, typename T>
+  std::pair<const_iterator, bool> InsertOrAssign(KeyArg&& key, T&& value) {
+    const size_t cost = cache_cost_func_(value);
+    if (cost > max_size_) {
+      return std::make_pair(end(), false);
+    }
 
-    Erase(prev->key());
+    typename MapType::iterator iter;
+    bool inserted;
+    std::tie(iter, inserted) =
+        map_.TryEmplace(std::forward<KeyArg>(key), std::forward<T>(value));
+    Index index = GetIndex(iter);
+    if (!inserted) {
+      const size_t old_cost = cache_cost_func_(iter->data().value_);
+      eviction_func_(iter->key(), std::move(iter->data().value_));
+      ListUnlink(iter);
+      size_ -= old_cost;
+      iter->data().value_ = std::forward<T>(value);
+    }
+    if (cache_cost_func_(iter->data().value_) == cost) {
+      ListPushFront(iter);
+      size_ += cost;
+      Prune(index);
+      return std::make_pair(const_iterator(index, *this), inserted);
+    } else {
+      return std::make_pair(end(), false);
+    }
+  }
 
-    return it;
+  /**
+   * @brief Force eviction of a specific element.
+   *
+   * @param key Key of the iterator to be evicted.
+   * @return true if an element with the given key existed and was evicted.
+   */
+  bool Erase(const Key& key) {
+    auto iter = map_.Find(key);
+    if (iter != map_.end()) {
+      Index index = kHeadIndex;
+      EraseInternal(iter, index);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * @brief Forces eviction of a specific element.
+   *
+   * @param iter Iterator to the element to be evicted.
+   * @return An iterator pointing to the element after the evicted element in
+   * LRU order.
+   */
+  const_iterator Erase(const_iterator iter) {
+    const auto map_iter = map_.begin() + iter.idx_ - 1;
+    Index index = map_iter->data().next_;
+    EraseInternal(map_iter, index);
+    return const_iterator(index, *this);
   }
 
   /**
    * @brief size the current size of the cache
    * @return the size
    */
-  std::size_t Size() const { return size_; }
+  size_t Size() const { return size_; }
 
   /**
    * @brief size the maximum size of the cache
    * @return the maximum size
    */
-  std::size_t GetMaxSize() const { return max_size_; }
+  size_t GetMaxSize() const { return max_size_; }
 
   /**
    * @brief resize sets a new maximum size of the cache.
@@ -262,22 +347,28 @@ class LruCache {
    */
   void Resize(size_t maxSize) {
     max_size_ = maxSize;
-    evict();
+    Index index = kHeadIndex;
+    Prune(index);
   }
 
   /**
-   * @brief find an value in the cache
+   * @brief Finds a key in the cache.
    *
-   * Note - this function will promote the item pointed to by key if found
+   * The element is promoted to the front of the cache.
    *
-   * @param key the key to find
-   * @return an iterator to the value if found, otherwise, an iterator pointing
-   * to end()
+   * @param key The key of the element to be found.
+   * @return An iterator to the element or end( ) if the key is not in the
+   * cache.
    */
   const_iterator Find(const Key& key) {
-    auto it = map_.find(key);
-    if (it != map_.end()) Promote(it);
-    return const_iterator{it};
+    auto iter = map_.Find(key);
+    if (iter != map_.end()) {
+      ListUnlink(iter);
+      ListPushFront(iter);
+      return const_iterator(GetIndex(iter), *this);
+    } else {
+      return end();
+    }
   }
 
   /**
@@ -290,48 +381,54 @@ class LruCache {
    * to end()
    */
   const_iterator FindNoPromote(const Key& key) const {
-    auto it = map_.find(key);
-    return const_iterator{it};
+    auto iter = map_.Find(key);
+    if (iter != map_.end()) {
+      return const_iterator(GetIndex(iter), *this);
+    } else {
+      return end();
+    }
   }
 
   /**
-   * @brief find an value in the cache
+   * @brief Finds a key in the cache.
    *
-   * Note - this function will promote the item pointed to by key if found
+   * The element is promoted to the front of the cache.
+   * If the key is not in the map, the provided default value is returned.
    *
-   * @param key the key to find
-   * @param nullValue the value to return if the key/value pair is not in the
-   * cache
-   * @return a const reference to the value, or nullValue if not found
+   * @param key The key of the element to be found.
+   * @param default_value The value to be returned if the key was not found in
+   * the cache.
+   * @return The value assigned to the key or the provided default if the key is
+   * not in the cache.
    */
-  const Value& Find(const Key& key, const Value& nullValue) {
+  const Value& Find(const Key& key, const Value& default_value) {
     auto it = Find(key);
-    return it == end() ? nullValue : it.value();
+    return it != end() ? it->value() : default_value;
   }
 
-  /// returns the begin iterator.
-  const_iterator begin() const { return const_iterator{first_}; }
-
-  /// returns the end iterator
-  const_iterator end() const { return const_iterator{map_.end()}; }
-
-  /// reverse begin iterator
-  const_iterator rbegin() const { return const_iterator{last_}; }
-
-  /// reverse end iterator
-  const_iterator rend() const { return const_iterator{map_.end()}; }
+  /**
+   * @return An iterator to the beginning of the cache, pointing to the most
+   * recently used cache element.
+   */
+  const_iterator begin() const { return const_iterator(head_.next_, *this); }
 
   /**
-   * @brief clear removes all items from cache
-   * Removes all content, but does not reset the eviction callback or maximum
-   * size
+   * @return An iterator to the end of the cache, pointing after the last
+   * recently used cache element.
+   */
+  const_iterator end() const { return const_iterator(kHeadIndex, *this); }
+
+  /**
+   * @brief Evicts all elements from the cache.
    */
   void Clear() {
-    map_.clear();
-    first_ = last_ = map_.end();
-    size_ = 0u;
+    for (auto& entry : map_) {
+      eviction_func_(entry.key(), std::move(entry.data().value_));
+    }
+    map_.Clear();
+    head_ = ListEntry();
+    size_ = 0;
   }
-
   /**
    * @brief setEvictionCallback set a function that is invoked when a value is
    * evicted from the cache Note - the function must not modify the cache in the
@@ -343,268 +440,86 @@ class LruCache {
    * @param func the function to be called on eviction
    */
   void SetEvictionCallback(EvictionFunction func) {
-    eviction_callback_ = std::move(func);
+    if (func) {
+      eviction_func_ = std::move(func);
+    }
+  }
+
+  /// Returns 1 if an element with key exists, 0 otherwise.
+  Index Count(const Key& key) const { return map_.Count(key); }
+
+  /// Returns true if the cache is empty, false otherwise.
+  bool Empty() const { return map_.Empty(); }
+
+  /// Returns the amount of memory allocated by the cache in bytes.
+  size_t SizeInBytes() const { return map_.SizeInBytes(); }
+
+  /// Returns the number of entries in the cache.
+  size_t ItemsCount() const { return map_.Size(); }
+
+ private:
+  void Prune(Index& tracked_index) {
+    while (size_ > max_size_) {
+      auto least_recently_used = map_.begin() + head_.prev_ - 1;
+      EraseInternal(least_recently_used, tracked_index);
+    }
+  }
+
+  void EraseInternal(typename MapType::iterator iter, Index& tracked_index) {
+    const size_t cost = cache_cost_func_(iter->data().value_);
+    eviction_func_(iter->key(), std::move(iter->data().value_));
+    ListUnlink(iter);
+    size_ -= cost;
+    map_.Erase(iter->key(), [&](Index moved_item, Index deleted_item) {
+      auto deleted_iter = map_.begin() + deleted_item;
+
+      // If the entry on the tracked index is moved, we replace it with the new
+      // index
+      if (tracked_index == moved_item + 1) {
+        tracked_index = deleted_item + 1;
+      }
+
+      ListGet(deleted_iter->data().next_).prev_ = deleted_item + 1;
+      ListGet(deleted_iter->data().prev_).next_ = deleted_item + 1;
+    });
+  }
+
+  Index GetIndex(typename MapType::iterator iter) {
+    return static_cast<Index>(iter - map_.begin() + 1);
+  }
+
+  ListEntry& ListGet(Index idx) {
+    return idx == kHeadIndex ? head_ : (map_.begin() + idx - 1)->data();
+  }
+
+  const ListEntry& ListGet(Index idx) const {
+    return idx == kHeadIndex ? head_ : (map_.begin() + idx - 1)->data();
+  }
+
+  void ListPushFront(typename MapType::iterator iter) {
+    EntryWithData& entry = iter->data();
+    const Index idx = GetIndex(iter);
+
+    entry.next_ = head_.next_;
+    ListGet(head_.next_).prev_ = idx;
+    head_.next_ = idx;
+    entry.prev_ = 0;
+  }
+
+  void ListUnlink(typename MapType::const_iterator iter) {
+    const EntryWithData& entry = iter->data();
+    ListGet(entry.prev_).next_ = entry.next_;
+    ListGet(entry.next_).prev_ = entry.prev_;
   }
 
  private:
-  friend struct CacheLruChecker;  // for unit-tests
-
-  EvictionFunction eviction_callback_;
-  CacheCostFunc cache_cost_func_;
   MapType map_;
-  typename MapType::iterator first_;
-  typename MapType::iterator last_;
-  std::size_t max_size_;
-  std::size_t size_;
-
-  // helper, figuring out if two keys are equal using only the comparison
-  // operator
-  inline bool IsEqual(const Key& key1, const Key& key2) {
-    auto comp = map_.key_comp();
-    return !comp(key1, key2) && !comp(key2, key1);
-  }
-
-  // Bucket contains the value and the pointer to previous and next items in the
-  // LRU chain
-  struct Bucket {
-    using Iterator = typename MapType::iterator;
-
-    // note - these constructors are only here because MSVC2013 doesn't
-    // auto-generate them as the standard mandates
-#if defined(_MSC_VER) && _MSC_VER < 1900
-    inline Bucket(Iterator next, Iterator previous, Value&& value)
-        : next_(std::move(next)),
-          previous_(std::move(previous)),
-          value_(std::move(value)) {}
-    inline Bucket(Iterator next, Iterator previous, const Value& value)
-        : next_(std::move(next)),
-          previous_(std::move(previous)),
-          value_(value) {}
-    inline Bucket(const Bucket&) = delete;
-    inline Bucket(Bucket&& other)
-        : next_(std::move(other.next_)),
-          previous_(std::move(other.previous_)),
-          value_(std::move(other.value_)) {}
-#endif
-
-    Iterator next_;
-    Iterator previous_;
-    Value value_;
-
-    inline void setNext(Iterator it) { next_ = std::move(it); }
-
-    inline void setPrevious(Iterator it) { previous_ = std::move(it); }
-  };
-
-  void Erase(typename MapType::iterator it, bool);
-  void AddInternal(const typename MapType::iterator& it, std::size_t cost,
-                   std::size_t* oldCost = nullptr);
-  void Promote(const typename MapType::iterator& it);
-  void PopLast();
-  void evict() {
-    while (size_ > max_size_) PopLast();
-  }
+  ListEntry head_;
+  size_t max_size_;
+  size_t size_;
+  CacheCostFunc cache_cost_func_;
+  EvictionFunction eviction_func_;
 };
-
-template <typename Key, typename Value, typename CacheCostFunc,
-          typename Compare, template <typename> class Alloc>
-template <typename _Key, typename _Value>
-auto LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::Insert(_Key&& key,
-                                                                 _Value&& value)
-    -> std::pair<const_iterator, bool> {
-  Bucket bucket{map_.end(), map_.end(), std::forward<_Value>(value)};
-
-  // item too large, do not insert
-  std::size_t valueCost = cache_cost_func_(bucket.value_);
-  if (valueCost > max_size_)
-    return std::make_pair(const_iterator{end()}, false);
-
-  auto it =
-      porting::try_emplace(map_, std::forward<_Key>(key), std::move(bucket));
-
-  if (it.second) {
-    AddInternal(it.first, valueCost);
-    return std::make_pair(const_iterator{it.first}, true);
-  }
-  Promote(it.first);
-  return std::make_pair(const_iterator{it.first}, false);
-}
-
-template <typename Key, typename Value, typename CacheCostFunc,
-          typename Compare, template <typename> class Alloc>
-template <typename _Value>
-auto LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::InsertOrAssign(
-    Key key, _Value&& value) -> std::pair<const_iterator, bool> {
-  // as we need "key" with the right type a couple of times, create a temp
-  // copy to prevent implicit conversions below
-  auto it = map_.lower_bound(key);
-  if (it != map_.end() && IsEqual(key, it->first)) {
-    // element already exists, update it
-    std::size_t oldCost = cache_cost_func_(it->second.value_);
-    it->second.value_ = std::forward<_Value>(value);
-    std::size_t newCost = cache_cost_func_(it->second.value_);
-    AddInternal(it, newCost, &oldCost);
-    return std::make_pair(const_iterator{it}, false);
-  } else {
-    // element doesn't exist, insert it
-    Bucket bucket{map_.end(), map_.end(), std::forward<_Value>(value)};
-    std::size_t newCost = cache_cost_func_(bucket.value_);
-    if (newCost > max_size_)
-      return std::make_pair(const_iterator{end()}, false);
-
-    auto new_it =
-        map_.insert(it, std::make_pair(std::move(key), std::move(bucket)));
-    AddInternal(new_it, newCost);
-    return std::make_pair(const_iterator{new_it}, true);
-  }
-}
-
-template <typename Key, typename Value, typename CacheCostFunc,
-          typename Compare, template <typename> class Alloc>
-void LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::Promote(
-    const typename MapType::iterator& it) {
-  if (it == first_) return;  // nothing to do
-
-  // re-link previous and next buckets together
-  it->second.previous_->second.setNext(it->second.next_);
-  if (it->second.next_ != map_.end())
-    it->second.next_->second.setPrevious(it->second.previous_);
-  else
-    last_ = it->second.previous_;
-
-  // re-link our bucket
-  it->second.setPrevious(map_.end());
-  it->second.setNext(first_);
-
-  // update current head to ourselves
-  first_->second.setPrevious(it);
-  first_ = it;
-}
-
-template <typename Key, typename Value, typename CacheCostFunc,
-          typename Compare, template <typename> class Alloc>
-void LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::AddInternal(
-    const typename MapType::iterator& it, std::size_t cost,
-    std::size_t* oldCost) {
-  if (!oldCost) {
-    // new bucket added
-    if (map_.size() == 1) {
-      // we're the first and only one.
-      assert(last_ == map_.end() && first_ == map_.end());
-      last_ = first_ = it;
-    } else {
-      // relink first bucket
-      it->second.setNext(first_);
-      first_->second.setPrevious(it);
-      first_ = it;
-    }
-    size_ += cost;
-  } else {
-    // key already in map - only promote
-    size_ += cost - *oldCost;
-    Promote(it);
-  }
-
-  evict();
-}
-
-template <typename Key, typename Value, typename CacheCostFunc,
-          typename Compare, template <typename> class Alloc>
-void LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::Erase(
-    typename MapType::iterator it, bool doEvictionCallback) {
-  std::size_t cost = cache_cost_func_(it->second.value_);
-
-  if (it->second.next_ == map_.end())
-    last_ = it->second.previous_;
-  else
-    it->second.next_->second.setPrevious(it->second.previous_);
-
-  if (it->second.previous_ == map_.end())
-    first_ = it->second.next_;
-  else
-    it->second.previous_->second.setNext(it->second.next_);
-
-  if (doEvictionCallback && eviction_callback_)
-    eviction_callback_(it->first, std::move(it->second.value_));
-
-  map_.erase(it);
-  size_ -= cost;
-}
-
-template <typename Key, typename Value, typename CacheCostFunc,
-          typename Compare, template <typename> class Alloc>
-void LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::PopLast() {
-  // assert if the cache is empty
-  assert(last_ != map_.end());
-  // assert that our item's 'next' is pointing indeed to the end of the cache
-  assert(last_->second.next_ == map_.end());
-
-  Erase(last_, true);
-}
-
-template <typename Key, typename Value, typename CacheCostFunc,
-          typename Compare, template <typename> class Alloc>
-inline const Key&
-LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::ValueType::key() const {
-  return m_it->first;
-}
-
-template <typename Key, typename Value, typename CacheCostFunc,
-          typename Compare, template <typename> class Alloc>
-inline const Value&
-LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::ValueType::value() const {
-  return m_it->second.value_;
-}
-
-template <typename Key, typename Value, typename CacheCostFunc,
-          typename Compare, template <typename> class Alloc>
-inline bool
-LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::const_iterator::operator==(
-    const const_iterator& other) const {
-  return this->m_it == other.m_it;
-}
-
-template <typename Key, typename Value, typename CacheCostFunc,
-          typename Compare, template <typename> class Alloc>
-inline typename LruCache<Key, Value, CacheCostFunc, Compare,
-                         Alloc>::const_iterator&
-LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::const_iterator::
-operator++() {
-  this->m_it = this->m_it->second.next_;
-  return *this;
-}
-
-template <typename Key, typename Value, typename CacheCostFunc,
-          typename Compare, template <typename> class Alloc>
-inline
-    typename LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::const_iterator
-    LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::const_iterator::
-    operator++(int) {
-  typename MapType::const_iterator old_value = this->m_it;
-  this->m_it = this->m_it->second.next_;
-  return const_iterator{old_value};
-}
-
-template <typename Key, typename Value, typename CacheCostFunc,
-          typename Compare, template <typename> class Alloc>
-inline typename LruCache<Key, Value, CacheCostFunc, Compare,
-                         Alloc>::const_iterator&
-LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::const_iterator::
-operator--() {
-  this->m_it = this->m_it->second.m_previous;
-  return *this;
-}
-
-template <typename Key, typename Value, typename CacheCostFunc,
-          typename Compare, template <typename> class Alloc>
-inline
-    typename LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::const_iterator
-    LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::const_iterator::
-    operator--(int) {
-  typename MapType::const_iterator old_value = this->m_it;
-  this->m_it = this->m_it->second.m_previous;
-  return const_iterator{old_value};
-}
 
 }  // namespace utils
 }  // namespace olp
