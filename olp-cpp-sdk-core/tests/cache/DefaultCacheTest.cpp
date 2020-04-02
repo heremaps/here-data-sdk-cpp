@@ -28,6 +28,164 @@
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/utils/Dir.h>
 
+void BasicCacheTestWithSettings(const olp::cache::CacheSettings& settings) {
+  {
+    SCOPED_TRACE("Put/Get decode");
+
+    std::string data_string{"this is key's data"};
+    olp::cache::DefaultCache cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+
+    bool put_result = cache.Put(
+        "key", data_string, [=]() { return data_string; },
+        (std::numeric_limits<time_t>::max)());
+    ASSERT_TRUE(put_result);
+
+    auto data_read =
+        cache.Get("key", [](const std::string& data) { return data; });
+
+    EXPECT_FALSE(data_read.empty());
+    EXPECT_EQ(data_string, boost::any_cast<std::string>(data_read));
+  }
+
+  {
+    SCOPED_TRACE("Put/Get binary");
+
+    std::vector<unsigned char> binary_data = {1, 2, 3};
+    olp::cache::DefaultCache cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+
+    bool put_result = cache.Put(
+        "key", std::make_shared<std::vector<unsigned char>>(binary_data),
+        (std::numeric_limits<time_t>::max)());
+    ASSERT_TRUE(put_result);
+
+    auto data_read = cache.Get("key");
+
+    ASSERT_TRUE(data_read);
+    EXPECT_EQ(*data_read, binary_data);
+  }
+
+  {
+    SCOPED_TRACE("Remove from cache");
+
+    std::vector<unsigned char> binary_data = {1, 2, 3};
+    olp::cache::DefaultCache cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+
+    bool put_result = cache.Put(
+        "key", std::make_shared<std::vector<unsigned char>>(binary_data),
+        (std::numeric_limits<time_t>::max)());
+    ASSERT_TRUE(put_result);
+
+    auto data_read = cache.Get("key");
+
+    ASSERT_TRUE(data_read);
+    EXPECT_EQ(*data_read, binary_data);
+
+    // check removing missing key is not an error.
+    EXPECT_TRUE(cache.Remove("invalid_key"));
+    EXPECT_TRUE(cache.Remove("key"));
+
+    data_read = cache.Get("key");
+
+    EXPECT_FALSE(data_read);
+  }
+
+  {
+    SCOPED_TRACE("RemoveWithPrefix");
+
+    std::vector<unsigned char> binary_data = {1, 2, 3};
+    std::string data_string{"this is key1's data"};
+    olp::cache::DefaultCache cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+
+    cache.Put(
+        "key1", data_string, [=]() { return data_string; },
+        (std::numeric_limits<time_t>::max)());
+    cache.Put("somekey1",
+              std::make_shared<std::vector<unsigned char>>(binary_data),
+              (std::numeric_limits<time_t>::max)());
+    cache.Put("somekey2",
+              std::make_shared<std::vector<unsigned char>>(binary_data),
+              (std::numeric_limits<time_t>::max)());
+
+    ASSERT_FALSE(cache.Get("key1", [](const std::string& data) { return data; })
+                     .empty());
+    ASSERT_TRUE(cache.Get("somekey1"));
+    ASSERT_TRUE(cache.Get("somekey2"));
+
+    auto result = cache.RemoveKeysWithPrefix("invalid_prefix");
+
+    ASSERT_TRUE(result);
+    ASSERT_FALSE(cache.Get("key1", [](const std::string& data) { return data; })
+                     .empty());
+    ASSERT_TRUE(cache.Get("somekey1"));
+    ASSERT_TRUE(cache.Get("somekey2"));
+
+    result = cache.RemoveKeysWithPrefix("key");
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(cache.Get("key1", [](const std::string& data) { return data; })
+                    .empty());
+    ASSERT_TRUE(cache.Get("somekey1"));
+    ASSERT_TRUE(cache.Get("somekey2"));
+
+    result = cache.RemoveKeysWithPrefix("somekey");
+
+    ASSERT_TRUE(result);
+    ASSERT_FALSE(cache.Get("somekey1"));
+    ASSERT_FALSE(cache.Get("somekey2"));
+  }
+
+  {
+    SCOPED_TRACE("Clear");
+
+    std::vector<unsigned char> binary_data = {1, 2, 3};
+    olp::cache::DefaultCache cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+
+    bool put_result = cache.Put(
+        "key", std::make_shared<std::vector<unsigned char>>(binary_data),
+        (std::numeric_limits<time_t>::max)());
+
+    ASSERT_TRUE(put_result);
+
+    auto result = cache.Clear();
+    auto data_read = cache.Get("key");
+
+    ASSERT_TRUE(result);
+    ASSERT_FALSE(data_read);
+  }
+
+  {
+    SCOPED_TRACE("Load disk cache");
+
+    std::vector<unsigned char> binary_data = {1, 2, 3};
+    olp::cache::DefaultCache cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+
+    bool put_result = cache.Put(
+        "key", std::make_shared<std::vector<unsigned char>>(binary_data),
+        (std::numeric_limits<time_t>::max)());
+    ASSERT_TRUE(put_result);
+
+    cache.Close();
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+
+    auto data_read = cache.Get("key");
+
+    ASSERT_TRUE(data_read);
+    ASSERT_EQ(*data_read, binary_data);
+  }
+}
+
 TEST(DefaultCacheTest, BasicTest) {
   olp::cache::CacheSettings settings;
   settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
@@ -369,4 +527,16 @@ TEST(DefaultCacheTest, ValueGreaterThanMemCacheLimit) {
                          content.begin()));
 
   cache.Close();
+}
+
+TEST(DefaultCacheTest, EvictionPolicy) {
+  olp::cache::CacheSettings settings;
+  settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
+  settings.max_memory_cache_size = 0;
+
+  settings.eviction_policy = olp::cache::EvictionPolicy::kNone;
+  BasicCacheTestWithSettings(settings);
+
+  settings.eviction_policy = olp::cache::EvictionPolicy::kLeastRecentlyUsed;
+  BasicCacheTestWithSettings(settings);
 }

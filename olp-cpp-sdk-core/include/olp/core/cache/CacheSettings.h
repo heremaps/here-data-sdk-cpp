@@ -37,6 +37,14 @@ enum OpenOptions : unsigned char {
 };
 
 /**
+ * @brief Options for mutable cache eviction policy.
+ */
+enum class EvictionPolicy : unsigned char {
+  kNone,             /*!< Disables eviction. */
+  kLeastRecentlyUsed /*!< Evict least recently used key/value. */
+};
+
+/**
  * @brief Settings for in-memory and on-disk caching.
  */
 struct CacheSettings {
@@ -93,6 +101,16 @@ struct CacheSettings {
    * @brief Sets the disk cache open options.
    */
   OpenOptions openOptions = OpenOptions::Default;
+
+  /*
+   * @brief This flag sets the eviction policy for the key/value cache created
+   * based on the disk_path_mutable path.
+   *
+   * This flag will not have any effect in case the disk_path_mutable is not
+   * specified and in case max_disk_storage is set to -1. The default value
+   * is EvictionPolicy::kLeastRecentlyUsed.
+   */
+  EvictionPolicy eviction_policy = EvictionPolicy::kLeastRecentlyUsed;
 
   /**
    * @brief The path to the protected (read-only) cache.

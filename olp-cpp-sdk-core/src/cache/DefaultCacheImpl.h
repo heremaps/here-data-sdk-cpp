@@ -49,7 +49,26 @@ class DefaultCacheImpl {
 
   bool RemoveKeysWithPrefix(const std::string& key);
 
+ protected:
+  /// The LRU cache definition using the leveldb keys as key and the value size
+  /// as value.
+  using DiskLruCache = utils::LruCache<std::string, size_t>;
+
+  /// return LRU mutable cache, used for tests.
+  const std::unique_ptr<DiskLruCache>& GetMutableCacheLru() const {
+    return mutable_cache_lru_;
+  };
+
  private:
+  /// Initializes LRU mutable cache if possible.
+  void InitializeLru();
+
+  /// Removes all keys with specified prefix from LRU mutable cache.
+  void RemoveKeysWithPrefixLru(const std::string& key);
+
+  /// Returns true if key is found in the LRU cache, false - otherwise.
+  bool PromoteKeyLru(const std::string& key);
+
   DefaultCache::StorageOpenResult SetupStorage();
 
   boost::optional<std::pair<std::string, time_t>> GetFromDiscCache(
@@ -59,6 +78,7 @@ class DefaultCacheImpl {
   bool is_open_;
   std::unique_ptr<InMemoryCache> memory_cache_;
   std::unique_ptr<DiskCache> mutable_cache_;
+  std::unique_ptr<DiskLruCache> mutable_cache_lru_;
   std::unique_ptr<DiskCache> protected_cache_;
   std::mutex cache_lock_;
 };
