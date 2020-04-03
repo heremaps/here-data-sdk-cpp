@@ -19,7 +19,9 @@
 
 #pragma once
 
+#include <atomic>
 #include <mutex>
+#include <unordered_map>
 
 #include <olp/core/CoreApi.h>
 #include <olp/core/http/Network.h>
@@ -55,14 +57,28 @@ class DefaultNetwork final : public Network {
   /// Implements the `SetDefaultHeaders` method of the `Network` class.
   void SetDefaultHeaders(Headers headers) override;
 
+  /// Implements the `SetCurrentBucket` method of the `Network` class.
+  void SetCurrentBucket(uint8_t bucket_id) override;
+
+  /// Implements the `GetStatistics` method of the `Network` class.
+  Statistics GetStatistics(uint8_t bucket_id) override;
+
  private:
   void AppendUserAgent(Headers& request_headers) const;
   void AppendDefaultHeaders(Headers& request_headers) const;
 
-  std::shared_ptr<Network> network_;
+  void LockStatistics(uint8_t bucket_id,
+                      std::function<void(Statistics&)>&& callback);
+
+  std::mutex buckets_mutex_;
+  std::atomic_uint8_t current_statistics_bucket_;
+  std::unordered_map<uint8_t, Statistics> buckets_;
+
   std::mutex default_headers_mutex_;
   Headers default_headers_;
   std::string user_agent_;
+
+  std::shared_ptr<Network> network_;
 };
 
 }  // namespace http
