@@ -51,6 +51,21 @@ class CORE_API Network {
   /// Represents the request and response payload type
   using Payload = std::shared_ptr<std::ostream>;
 
+  /**
+   * @brief The Statistics structure represents the network statistics for a
+   * specific bucket.
+   */
+  struct Statistics {
+    /// The total bytes downloaded including size of headers and payload.
+    uint64_t bytes_downloaded{0ull};
+    /// The total bytes uploaded including size of headers and payload.
+    uint64_t bytes_uploaded{0ull};
+    /// The total number of requests made by network.
+    uint32_t total_requests{0u};
+    /// The total number of requests failed.
+    uint32_t total_failed{0u};
+  };
+
   virtual ~Network() = default;
 
   /**
@@ -90,7 +105,25 @@ class CORE_API Network {
    *
    * @param headers The default headers.
    */
-  virtual void SetDefaultHeaders(Headers) {}
+  virtual void SetDefaultHeaders(Headers headers);
+
+  /**
+   * @brief Set the current statistics bucket.
+   *
+   * @param[in] bucked_id The bucket ID.
+   */
+  virtual void SetCurrentBucket(uint8_t bucket_id);
+
+  /**
+   * @brief Get the statistics for a bucket.
+   *
+   * By default, this returns the statistics for the default bucket, with the ID 0.
+   *
+   * @param[in] bucked_id The bucket ID.
+   *
+   * @return Statistics which contains the statistic for the requested bucket.
+   */
+  virtual Statistics GetStatistics(uint8_t bucket_id = 0);
 };
 
 /**
