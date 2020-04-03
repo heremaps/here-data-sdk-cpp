@@ -181,7 +181,10 @@ static curl_code SslctxFunction(CURL* curl, void* sslctx, void*) {
 NetworkCurl::NetworkCurl(size_t max_requests_count)
     : handles_(max_requests_count),
       static_handle_count_(
-          std::max(static_cast<size_t>(1u), max_requests_count / 4)) {
+          std::max(static_cast<size_t>(1u), max_requests_count / 4)),
+      statistic_(),
+      //default backet is 0
+      current_statistic_(statistic_[0]){
   OLP_SDK_LOG_TRACE(kLogTag, "Created NetworkCurl with address="
                                  << this
                                  << ", handles_count=" << max_requests_count);
@@ -571,6 +574,13 @@ ErrorCode NetworkCurl::SendImplementation(
     std::lock_guard<std::mutex> lock(event_mutex_);
     AddEvent(EventInfo::Type::SEND_EVENT, handle);
   }
+  {
+    std::lock_guard<std::mutex> lock(statistic_mutex_);
+    ++current_statistic_.total_requests;
+    OLP_SDK_LOG_DEBUG(kLogTag,
+                      "total_requests " << current_statistic_.total_requests);
+  }
+
   return ErrorCode::SUCCESS;  // NetworkProtocol::ErrorNone;
 }
 
@@ -684,7 +694,7 @@ size_t NetworkCurl::RxFunction(void* ptr, size_t size, size_t nmemb,
                                RequestHandle* handle) {
   const size_t len = size * nmemb;
 
-  OLP_SDK_LOG_TRACE(kLogTag, "Received " << len
+  OLP_SDK_LOG_DEBUG(kLogTag, "Received " << len
                                          << " bytes for id=" << handle->id);
 
   std::shared_ptr<NetworkCurl> that = handle->self.lock();
@@ -858,6 +868,7 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
                         .WithError(error);
     ReleaseHandleUnlocked(&rhandle);
     lock.unlock();
+
     callback(response);
   } else {
     OLP_SDK_LOG_WARNING(kLogTag, "Complete message to unknown request");
@@ -890,6 +901,15 @@ void NetworkCurl::Run() {
         switch (event.type) {
           case EventInfo::Type::SEND_EVENT: {
             if (event.handle->in_use) {
+
+              curl_easy_perform(event.handle->handle);
+              double lengthUpload;
+              if(curl_easy_getinfo(event.handle->handle, CURLINFO_SIZE_UPLOAD, &lengthUpload)== CURLE_OK){
+                std::lock_guard<std::mutex> lock(statistic_mutex_);
+                current_statistic_.bytes_uploaded += lengthUpload;
+                OLP_SDK_LOG_DEBUG(kLogTag,
+                                  "lengthUpload " << lengthUpload);
+                }
               CURLMcode res =
                   curl_multi_add_handle(curl_, event.handle->handle);
               if ((res != CURLM_OK) && (res != CURLM_CALL_MULTI_PERFORM)) {
@@ -961,8 +981,18 @@ void NetworkCurl::Run() {
         CURL* handle = msg->easy_handle;
         if (msg->msg == CURLMSG_DONE) {
           CURLcode result = msg->data.result;
+
           curl_multi_remove_handle(curl_, handle);
           lock.unlock();
+
+          double lengthDownloaded;
+          if(curl_easy_getinfo(handle, CURLINFO_SIZE_DOWNLOAD, &lengthDownloaded)== CURLE_OK){
+            std::lock_guard<std::mutex> lock(statistic_mutex_);
+            current_statistic_.bytes_downloaded += lengthDownloaded;
+            OLP_SDK_LOG_DEBUG(kLogTag,
+                              "lengthDownloaded " << lengthDownloaded);
+            }
+
           CompleteMessage(handle, result);
           lock.lock();
         } else {
@@ -1056,6 +1086,18 @@ void NetworkCurl::Run() {
     state_ = WorkerState::STOPPED;
   }
   OLP_SDK_LOG_DEBUG(kLogTag, "Thread exit, this=" << this);
+}
+
+void NetworkCurl::SetDefaultHeaders(Headers headers) {}
+
+void NetworkCurl::SetCurrentBucket(uint8_t bucket_id) {
+  std::lock_guard<std::mutex> lock(statistic_mutex_);
+  current_statistic_ = statistic_[bucket_id];
+}
+
+Network::Statistics NetworkCurl::GetStatistics(uint8_t bucket_id ) {
+  std::lock_guard<std::mutex> lock(statistic_mutex_);
+  return statistic_[bucket_id];
 }
 
 }  // namespace http

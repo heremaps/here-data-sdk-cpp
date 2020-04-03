@@ -54,6 +54,12 @@ void DefaultNetwork::SetDefaultHeaders(Headers headers) {
   default_headers_ = std::move(headers);
   user_agent_ = NetworkUtils::ExtractUserAgent(default_headers_);
 }
+void DefaultNetwork::SetCurrentBucket(uint8_t bucket_id) {
+  network_->SetCurrentBucket(bucket_id);
+}
+Network::Statistics DefaultNetwork::GetStatistics(uint8_t bucket_id) {
+  return network_->GetStatistics(bucket_id);
+}
 
 void DefaultNetwork::AppendUserAgent(Headers& request_headers) const {
   if (user_agent_.empty()) {

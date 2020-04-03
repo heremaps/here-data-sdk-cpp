@@ -33,6 +33,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #ifdef OLP_SDK_NETWORK_HAS_OPENSSL
 #include <openssl/crypto.h>
 #endif
@@ -89,6 +90,9 @@ class NetworkCurl : public olp::http::Network,
   void Cancel(RequestId id) override;
 
  private:
+    void SetDefaultHeaders(Headers headers) override;
+    void SetCurrentBucket(uint8_t bucket_id) override;
+    Statistics GetStatistics(uint8_t bucket_id = 0) override;
   /**
    * @brief Context of each individual network request.
    */
@@ -335,6 +339,9 @@ class NetworkCurl : public olp::http::Network,
 
   /// Stores value if `curl_global_init()` was successful on construction.
   bool curl_initialized_;
+  std::unordered_map<uint8_t, Network::Statistics> statistic_;
+  Network::Statistics &current_statistic_;
+  std::mutex statistic_mutex_;
 };
 
 }  // namespace http

@@ -57,6 +57,10 @@ class Http2HttpNetworkWrapper : public olp::http::Network {
    */
   void WithErrors(bool with_errors) { with_errors_ = with_errors; }
 
+  Network::Statistics GetStatistics(uint8_t bucket_id = 0) {
+    return network_->GetStatistics(bucket_id);
+  }
+
  private:
   static void ReplaceHttps2Http(olp::http::NetworkRequest &request) {
     auto url = request.GetUrl();

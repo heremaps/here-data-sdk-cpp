@@ -45,7 +45,7 @@ struct TestConfiguration {
   std::uint16_t requests_per_second = 3;
   std::uint8_t calling_thread_count = 5;
   std::uint8_t task_scheduler_capacity = 5;
-  std::chrono::seconds runtime = std::chrono::minutes(5);
+  std::chrono::seconds runtime = std::chrono::seconds(5);
   CacheFactory cache_factory;
   bool with_errors = false;
   bool with_timeouts = false;
@@ -97,7 +97,7 @@ class MemoryTest : public ::testing::TestWithParam<TestConfiguration> {
   std::atomic_size_t total_requests_{0};
   std::atomic_size_t success_responses_{0};
   std::atomic_size_t failed_responses_{0};
-
+  olp::http::Network::Statistics stat;
   std::mutex errors_mutex_;
   std::map<int, int> errors_;
 };
@@ -155,7 +155,12 @@ void MemoryTest::TearDown() {
     thread.join();
   }
   client_threads_.clear();
-
+  OLP_SDK_LOG_CRITICAL_INFO_F(kLogTag,
+                              "STATISTICS: "
+                              "bytes_downloaded %zu, bytes_uploaded %zu, "
+                              "total_requests %zu, total_failed %zu",
+                              stat.bytes_downloaded, stat.bytes_uploaded,
+                              stat.total_requests, stat.total_failed);
   OLP_SDK_LOG_CRITICAL_INFO_F(kLogTag,
                               "Test finished, total requests %zu, succeed "
                               "responses %zu, failed responses %zu",
@@ -288,6 +293,7 @@ TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
   const auto& parameter = GetParam();
 
   auto settings = CreateCatalogClientSettings();
+  auto network_request_handler = settings.network_request_handler;
 
   StartThreads([=](uint8_t /*thread_id*/) {
     olp::dataservice::read::VersionedLayerClient service_client(
@@ -317,6 +323,7 @@ TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
       std::this_thread::sleep_for(
           GetSleepPeriod(parameter.requests_per_second));
     }
+    stat = network_request_handler->GetStatistics();
   });
 }
 

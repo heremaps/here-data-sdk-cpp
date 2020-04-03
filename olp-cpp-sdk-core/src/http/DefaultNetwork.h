@@ -54,6 +54,8 @@ class DefaultNetwork final : public Network {
 
   /// Implements the `SetDefaultHeaders` method of the `Network` class.
   void SetDefaultHeaders(Headers headers) override;
+  void SetCurrentBucket(uint8_t bucket_id) override;
+  Statistics GetStatistics(uint8_t bucket_id = 0) override;
 
  private:
   void AppendUserAgent(Headers& request_headers) const;
