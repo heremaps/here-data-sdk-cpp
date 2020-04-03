@@ -60,53 +60,54 @@ class NetworkWinHttp : public Network {
 
  private:
   struct ResultData {
-    ResultData(RequestId id, Network::Callback callback,
+    ResultData(RequestId id, Callback callback,
                std::shared_ptr<std::ostream> payload);
 
-    std::string etag;
-    std::string content_type;
-    Network::Callback user_callback;
+    Callback user_callback;
     std::shared_ptr<std::ostream> payload;
     std::uint64_t size;
     std::uint64_t count;
     std::uint64_t offset;
     RequestId request_id;
     int status;
-    int max_age;
-    time_t expires;
     bool completed;
     bool cancelled;
   };
 
   struct ConnectionData {
-    explicit ConnectionData(NetworkWinHttp* owner);
+    ConnectionData(HINTERNET http_connection);
+    ConnectionData(const ConnectionData&) = delete;
+    ConnectionData(ConnectionData&&) noexcept = delete;
+    ConnectionData& operator=(const ConnectionData&) = delete;
+    ConnectionData& operator=(ConnectionData&&) noexcept = delete;
     ~ConnectionData();
-    NetworkWinHttp* self;
-    HINTERNET http_connection;
-    ULONGLONG last_used;
+
+    HINTERNET http_connection{NULL};
+    ULONGLONG last_used{0ull};
   };
 
   struct RequestData {
     RequestData();
-    RequestData(RequestId id, std::shared_ptr<ConnectionData> connection,
-                Network::Callback callback,
-                Network::HeaderCallback header_callback,
-                Network::DataCallback data_callback,
+    RequestData(NetworkWinHttp* self, RequestId id,
+                std::shared_ptr<ConnectionData> connection, Callback callback,
+                HeaderCallback header_callback, DataCallback data_callback,
                 std::shared_ptr<std::ostream> payload,
                 const NetworkRequest& request);
     ~RequestData();
     void Complete();
     void FreeHandle();
-    std::wstring date;
+
+    NetworkWinHttp* self;
+
     std::shared_ptr<ConnectionData> connection_data;
     std::shared_ptr<ResultData> result_data;
-    std::shared_ptr<std::ostream> payload;
+
     NetworkRequest::RequestBodyType body;
-    Network::HeaderCallback header_callback;
-    Network::DataCallback data_callback;
+    HeaderCallback header_callback;
+    DataCallback data_callback;
+
     HINTERNET http_request;
     RequestId request_id;
-    bool resumed;
     bool ignore_data;
     bool no_compression;
     bool uncompress;
@@ -118,12 +119,10 @@ class NetworkWinHttp : public Network {
 
   RequestData* GetHandle(RequestId id,
                          std::shared_ptr<ConnectionData> connection,
-                         Network::Callback callback,
-                         Network::HeaderCallback header_callback,
-                         Network::DataCallback data_callback,
+                         Callback callback, HeaderCallback header_callback,
+                         DataCallback data_callback,
                          std::shared_ptr<std::ostream> payload,
                          const NetworkRequest& request);
-  void FreeHandle(RequestData* handle);
   void FreeHandle(RequestId id);
   RequestData* FindHandle(RequestId id);
 
