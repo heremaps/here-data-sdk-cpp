@@ -27,6 +27,7 @@
 
 namespace olp {
 namespace utils {
+
 /**
  * @brief Cost operator for LruCache
  *
@@ -39,11 +40,18 @@ template <typename T>
 struct CacheCost {
   std::size_t operator()(const T&) const { return 1; }
 };
-/** An eviction callback that does nothing. */
+
+/**
+ * @brief An eviction callback that does nothing
+ *
+ * @param Key key used to access a cached element.
+ * @param Value value stored for a cached element.
+ */
 struct NullEvictionCallback {
   template <class Key, class Value>
   void operator()(const Key&, Value&&) const {}
 };
+
 /**
  * @brief Generic key-value LRU cache
  *
@@ -55,13 +63,13 @@ struct NullEvictionCallback {
  * doubly-linked list, exploiting the fact that the order of the entries in the
  * UnorderedMap is stable under most operations (excluding erase).
  *
- * @param Key Type of the key used to access a cached element.
- * @param Value Type of the value stored for a cached element.
- * @param CacheCostFunc Functor that maps a value to its cost.
+ * @tparam Key Type of the key used to access a cached element.
+ * @tparam Value Type of the value stored for a cached element.
+ * @tparam CacheCostFunc Functor that maps a value to its cost.
  * The cost of a value must never change while the value is stored in the cache.
  *
- * @param HashFunc Functor that maps a key to a hash value.
- * @param Index Index type used internally in the underlying hash map.
+ * @tparam HashFunc Functor that maps a key to a hash value.
+ * @tparam Index Index type used internally in the underlying hash map.
  *  Make sure that it supports the amount of elements you want to insert
  */
 template <typename Key, typename Value, class CacheCostFunc = CacheCost<Value>,

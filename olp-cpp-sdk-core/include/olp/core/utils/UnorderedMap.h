@@ -54,12 +54,11 @@ struct NoData {
  * For advanced use cases: Indices in the begin/end list are stable unless erase
  * is called Erase has also a version that allows the user to be informed about
  * index changes
- * @param Key_ Key used to access the hash map
- * @param Index_ Index type used internally in the hash map.
- *               Make sure that it supports the amount of elements you want to
- * insert
- * @param Data_ Additional Data associated with each entry
- * @param Hash_ Hash function used to map Key_ to uint32_t
+ * @tparam Key_ Key used to access the hash map
+ * @tparam Index_ Index type used internally in the hash map. Make sure that it
+ * supports the amount of elements you want to insert
+ * @tparam Data_ Additional Data associated with each entry
+ * @tparam Hash_ Hash function used to map Key_ to uint32_t
  */
 template <typename Key_, typename Data_ = NoData, typename Index_ = uint32_t,
           class Hash_ = std::hash<Key_>,

@@ -46,9 +46,7 @@ struct EmptyBaseClassOptimizer<
   template <typename... Args>
   explicit EmptyBaseClassOptimizer(Args&&... args)
       : T(std::forward<Args>(args)...) {}
-
   T& data() { return *this; }
-
   const T& data() const { return *this; }
 };
 
@@ -56,11 +54,8 @@ template <typename T>
 struct EmptyBaseClassOptimizer<
     T, typename std::enable_if<!std::is_class<T>::value, void>::type> {
   EmptyBaseClassOptimizer() : data_() {}
-
   explicit EmptyBaseClassOptimizer(T data) : data_(data) {}
-
   T& data() { return data_; }
-
   const T& data() const { return data_; }
 
  private:
