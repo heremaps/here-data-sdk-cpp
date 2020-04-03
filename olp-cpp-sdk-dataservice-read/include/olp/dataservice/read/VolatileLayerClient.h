@@ -29,6 +29,7 @@
 #include <olp/core/geo/tiling/TileKey.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
+#include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/Types.h>
 
 namespace olp {
@@ -193,6 +194,53 @@ class DATASERVICE_READ_API VolatileLayerClient final {
    * @return True if tile data is removed successfully; false otherwise.
    */
   bool RemoveFromCache(const geo::TileKey& tile);
+
+  /**
+   * @brief Prefetches a set of tiles asynchronously.
+   *
+   * This method recursively downloads all tile keys from the `min_level`
+   * parameter to the `max_level` parameter of the \c PrefetchTilesRequest
+   * object for the given root tiles. If min_level/max_level are the same or
+   * default, only tiles listed in \c PrefetchTilesRequest will be downloaded.
+   * Only tiles will be downloaded which are not already present in the cache,
+   * this helps reduce the network load.
+   *
+   * @note This method does not guarantee that all tiles are available offline
+   * as the cache might overflow, and data might be evicted at any point.
+   *
+   * @param request The `PrefetchTilesRequest` instance that contains
+   * a complete set of request parameters.
+   * @param callback The `PrefetchTilesResponseCallback` object that is invoked
+   * if the `PrefetchTilesResult` instance is available or an error is
+   * encountered.
+   *
+   * @return A token that can be used to cancel this request.
+   */
+  client::CancellationToken PrefetchTiles(
+      PrefetchTilesRequest request, PrefetchTilesResponseCallback callback);
+
+  /**
+   * @brief Prefetches a set of tiles asynchronously.
+   *
+   * This method recursively downloads all tile keys from the `min_level`
+   * parameter to the `max_level` parameter of the \c PrefetchTilesRequest
+   * object for the given root tiles. If min_level/max_level are the same or
+   * default, only tiles listed in \c PrefetchTilesRequest will be downloaded.
+   * Only tiles will be downloaded which are not already present in the cache,
+   * this helps reduce the network load.
+   *
+   * @note This method does not guarantee that all tiles are available offline
+   * as the cache might overflow, and data might be evicted at any point.
+   *
+   * @param request The `PrefetchTilesRequest` instance that contains
+   * a complete set of request parameters.
+   *
+   * @return `CancellableFuture` that contains the `PrefetchTilesResponse`
+   * instance with data or an error. You can also use `CancellableFuture` to
+   * cancel this request.
+   */
+  client::CancellableFuture<PrefetchTilesResponse> PrefetchTiles(
+      PrefetchTilesRequest request);
 
  private:
   std::unique_ptr<VolatileLayerClientImpl> impl_;
