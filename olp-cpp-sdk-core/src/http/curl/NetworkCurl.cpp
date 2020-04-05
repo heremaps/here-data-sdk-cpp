@@ -901,15 +901,6 @@ void NetworkCurl::Run() {
         switch (event.type) {
           case EventInfo::Type::SEND_EVENT: {
             if (event.handle->in_use) {
-
-              curl_easy_perform(event.handle->handle);
-              double lengthUpload;
-              if(curl_easy_getinfo(event.handle->handle, CURLINFO_SIZE_UPLOAD, &lengthUpload)== CURLE_OK){
-                std::lock_guard<std::mutex> lock(statistic_mutex_);
-                current_statistic_.bytes_uploaded += lengthUpload;
-                OLP_SDK_LOG_DEBUG(kLogTag,
-                                  "lengthUpload " << lengthUpload);
-                }
               CURLMcode res =
                   curl_multi_add_handle(curl_, event.handle->handle);
               if ((res != CURLM_OK) && (res != CURLM_CALL_MULTI_PERFORM)) {
@@ -979,6 +970,21 @@ void NetworkCurl::Run() {
       while (IsStarted() &&
              (msg = curl_multi_info_read(curl_, &msgs_in_queue))) {
         CURL* handle = msg->easy_handle;
+
+        long headers_size;
+        if(curl_easy_getinfo(handle, CURLINFO_HEADER_SIZE, &headers_size)== CURLE_OK){
+          OLP_SDK_LOG_DEBUG(kLogTag,
+                            "headers_size " << headers_size);
+          }
+
+        long lengthUpload;
+        if(curl_easy_getinfo(handle, CURLINFO_REQUEST_SIZE, &lengthUpload)== CURLE_OK){
+          std::lock_guard<std::mutex> lock(statistic_mutex_);
+          current_statistic_.bytes_uploaded += lengthUpload;
+          OLP_SDK_LOG_DEBUG(kLogTag,
+                            "lengthUpload " << lengthUpload);
+          }
+
         if (msg->msg == CURLMSG_DONE) {
           CURLcode result = msg->data.result;
 
