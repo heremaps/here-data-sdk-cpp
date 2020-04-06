@@ -774,6 +774,9 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
   int index = GetHandleIndex(handle);
   if (index >= 0 && index < static_cast<int>(handles_.size())) {
     RequestHandle& rhandle = handles_[index];
+    uint64_t uploadBytes = 0;
+    uint64_t downloadBytes = 0;
+    GetTraficData(rhandle.handle, uploadBytes, downloadBytes);
 
     if (rhandle.cancelled) {
       auto callback = rhandle.callback;
@@ -781,7 +784,9 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
           NetworkResponse()
               .WithRequestId(rhandle.id)
               .WithStatus(static_cast<int>(ErrorCode::CANCELLED_ERROR))
-              .WithError("Cancelled");
+              .WithError("Cancelled")
+              .WithBytesDownloaded(downloadBytes)
+              .WithBytesUploaded(uploadBytes);
       ReleaseHandleUnlocked(&rhandle);
 
       lock.unlock();
@@ -855,7 +860,9 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
     auto response = NetworkResponse()
                         .WithRequestId(handles_[index].id)
                         .WithStatus(status)
-                        .WithError(error);
+                        .WithError(error)
+                        .WithBytesDownloaded(downloadBytes)
+                        .WithBytesUploaded(uploadBytes);
     ReleaseHandleUnlocked(&rhandle);
     lock.unlock();
     callback(response);
@@ -959,6 +966,10 @@ void NetworkCurl::Run() {
       while (IsStarted() &&
              (msg = curl_multi_info_read(curl_, &msgs_in_queue))) {
         CURL* handle = msg->easy_handle;
+        uint64_t uploadBytes = 0;
+        uint64_t downloadBytes = 0;
+        GetTraficData(handle, uploadBytes, downloadBytes);
+
         if (msg->msg == CURLMSG_DONE) {
           CURLcode result = msg->data.result;
           curl_multi_remove_handle(curl_, handle);
@@ -982,7 +993,9 @@ void NetworkCurl::Run() {
                   NetworkResponse()
                       .WithRequestId(handles_[handle_index].id)
                       .WithStatus(static_cast<int>(ErrorCode::IO_ERROR))
-                      .WithError("CURL error");
+                      .WithError("CURL error")
+                      .WithBytesDownloaded(downloadBytes)
+                      .WithBytesUploaded(uploadBytes);
               handles_[handle_index].callback(response);
               lock.lock();
             }
@@ -1056,6 +1069,26 @@ void NetworkCurl::Run() {
     state_ = WorkerState::STOPPED;
   }
   OLP_SDK_LOG_DEBUG(kLogTag, "Thread exit, this=" << this);
+}
+
+void NetworkCurl::GetTraficData(CURL* handle, uint64_t& uploadBytes,
+                                uint64_t& downloadBytes) {
+  long headersSize;
+  double lengthDownloaded;
+  if (curl_easy_getinfo(handle, CURLINFO_HEADER_SIZE, &headersSize) ==
+          CURLE_OK &&
+      curl_easy_getinfo(handle, CURLINFO_SIZE_DOWNLOAD, &lengthDownloaded) ==
+          CURLE_OK) {
+    downloadBytes = lengthDownloaded + headersSize;
+    OLP_SDK_LOG_DEBUG(kLogTag, "downloaded bytes " << downloadBytes);
+  }
+
+  long lengthUpload;
+  if (curl_easy_getinfo(handle, CURLINFO_REQUEST_SIZE, &lengthUpload) ==
+      CURLE_OK) {
+    uploadBytes = lengthUpload;
+    OLP_SDK_LOG_DEBUG(kLogTag, "uploaded bytes " << uploadBytes);
+  }
 }
 
 }  // namespace http
