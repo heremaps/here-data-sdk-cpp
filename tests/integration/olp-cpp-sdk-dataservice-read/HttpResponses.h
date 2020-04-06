@@ -223,6 +223,21 @@
 #define URL_QUADKEYS_92259 \
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/92259/depths/4)"
 
+#define URL_QUADKEYS_VOLATILE_23618364 \
+  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/quadkeys/23618364/depths/0)"
+
+#define URL_QUADKEYS_VOLATILE_1476147 \
+  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/quadkeys/1476147/depths/2)"
+
+#define URL_QUADKEYS_VOLATILE_5904591 \
+  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/quadkeys/5904591/depths/1)"
+
+#define URL_QUADKEYS_VOLATILE_369036 \
+  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/quadkeys/369036/depths/0)"
+
+#define URL_QUADKEYS_VOLATILE_92259 \
+  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/quadkeys/92259/depths/4)"
+
 #define URL_QUERY_PARTITION_23618365 \
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/)"+GetTestCatalog()+R"(/layers/hype-test-prefetch/partitions?partition=23618365&version=4)"
 
@@ -252,6 +267,27 @@
 
 #define URL_BLOB_DATA_PREFETCH_7 \
   R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/data/95c5c703-e00e-4c38-841e-e419367474f1)"
+
+#define URL_BLOB_DATA_VOLATILE_PREFETCH_1 \
+  R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/data/a7a1afdf-db7e-4833-9627-d38bee6e2f81)"
+
+#define URL_BLOB_DATA_VOLATILE_PREFETCH_2 \
+  R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/data/e119d20e-c7c6-4563-ae88-8aa5c6ca75c3)"
+
+#define URL_BLOB_DATA_VOLATILE_PREFETCH_3 \
+  R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/data/f9a9fd8e-eb1b-48e5-bfdb-4392b3826443)"
+
+#define URL_BLOB_DATA_VOLATILE_PREFETCH_4 \
+  R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/data/9d515348-afce-44e8-bc6f-3693cfbed104)"
+
+#define URL_BLOB_DATA_VOLATILE_PREFETCH_5 \
+  R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/data/f9a9fd8e-eb1b-48e5-bfdb-4392b3826443)"
+
+#define URL_BLOB_DATA_VOLATILE_PREFETCH_6 \
+  R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/data/e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1)"
+
+#define URL_BLOB_DATA_VOLATILE_PREFETCH_7 \
+  R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/data/95c5c703-e00e-4c38-841e-e419367474f1)"
 
 #define URL_VOLATILE_BLOB_DATA \
   R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer_volatile/data/4eed6ed1-0d32-43b9-ae79-043cb4256410)"
