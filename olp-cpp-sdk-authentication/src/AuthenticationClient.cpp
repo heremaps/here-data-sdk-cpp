@@ -329,6 +329,7 @@ class AuthenticationClient::Impl final {
   using TimeResponse = client::ApiResponse<time_t, client::ApiError>;
   using TimeCallback = std::function<void(TimeResponse)>;
 
+  client::CancellationToken GetTime(TimeCallback callback);
   client::CancellationToken GetTimeFromServer(TimeCallback callback);
   static TimeResponse ParseTimeResponse(std::stringstream& payload);
 
@@ -530,7 +531,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
   };
 
   context.ExecuteOrCancelled(
-      [&]() { return GetTimeFromServer(std::move(time_callback)); }, []() {});
+      [&]() { return GetTime(std::move(time_callback)); });
   return client::CancellationToken(
       [context]() mutable { context.CancelOperation(); });
 }
@@ -554,6 +555,15 @@ AuthenticationClient::Impl::ParseTimeResponse(std::stringstream& payload) {
   }
 
   return timestamp_it->value.GetUint();
+}
+
+client::CancellationToken AuthenticationClient::Impl::GetTime(TimeCallback callback) {
+  if (settings_.use_system_time) {
+    callback(
+        std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
+    return client::CancellationToken();
+  }
+  return GetTimeFromServer(std::move(callback));
 }
 
 client::CancellationToken AuthenticationClient::Impl::GetTimeFromServer(
