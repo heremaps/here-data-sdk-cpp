@@ -26,6 +26,7 @@
 #include <thread>
 #include <vector>
 
+#include "olp/core/http/HttpStatusCode.h"
 #include "olp/core/http/NetworkUtils.h"
 #include "olp/core/logging/Log.h"
 #include "olp/core/porting/make_unique.h"
@@ -116,7 +117,9 @@ QueryHeadervalue(HINTERNET request, DWORD header) {
     return NULL;
   }
   LPWSTR buffer = (LPWSTR)LocalAlloc(LPTR, len);
-  if (!buffer) return NULL;
+  if (!buffer) {
+    return NULL;
+  }
   index = WINHTTP_NO_HEADER_INDEX;
   if (!WinHttpQueryHeaders(request, header, WINHTTP_HEADER_NAME_BY_INDEX,
                            buffer, &len, &index)) {
@@ -264,7 +267,9 @@ NetworkWinHttp::~NetworkWinHttp() {
     http_session_ = NULL;
   }
 
-  if (event_ != INVALID_HANDLE_VALUE) SetEvent(event_);
+  if (event_ != INVALID_HANDLE_VALUE) {
+    SetEvent(event_);
+  }
   if (thread_ != INVALID_HANDLE_VALUE) {
     if (GetCurrentThreadId() != GetThreadId(thread_)) {
       WaitForSingleObject(thread_, INFINITE);
@@ -332,7 +337,6 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
                                            url_components.lpszScheme));
     auto& connection = http_connections_[server];
     if (!connection) {
-      connection = std::make_shared<ConnectionData>(this);
       INTERNET_PORT port = url_components.nPort;
       if (port == 0) {
         port = (url_components.nScheme == INTERNET_SCHEME_HTTPS)
@@ -341,14 +345,15 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
       }
       std::wstring host_name(url_components.lpszHostName,
                              url_components.dwHostNameLength);
-      connection->http_connection =
+      HINTERNET http_connection =
           WinHttpConnect(http_session_, host_name.data(), port, 0);
-      if (!connection->http_connection) {
+      if (!http_connection) {
         OLP_SDK_LOG_ERROR(kLogTag, "WinHttpConnect failed, url="
                                        << request.GetUrl()
                                        << ", error=" << GetLastError());
         return SendOutcome(ErrorCode::OFFLINE_ERROR);
       }
+      connection = std::make_shared<ConnectionData>(http_connection);
     }
 
     connection->last_used = GetTickCount64();
@@ -556,20 +561,24 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
     return;
   }
 
+  NetworkWinHttp* network = handle->self;
+
+  ResultData& request_result = *handle->result_data;
+
   handle->connection_data->last_used = GetTickCount64();
 
   if (status == WINHTTP_CALLBACK_STATUS_REQUEST_ERROR) {
     // Error has occurred
     WINHTTP_ASYNC_RESULT* result =
         reinterpret_cast<WINHTTP_ASYNC_RESULT*>(status_info);
-    handle->result_data->status = result->dwError;
+    request_result.status = result->dwError;
 
     if (result->dwError == ERROR_WINHTTP_OPERATION_CANCELLED) {
-      handle->result_data->cancelled = true;
+      request_result.cancelled = true;
     }
 
     OLP_SDK_LOG_DEBUG(kLogTag, "RequestCallback - request error, status="
-                                   << handle->result_data->status
+                                   << request_result.status
                                    << ", id=" << handle->request_id);
 
     handle->Complete();
@@ -582,11 +591,12 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
       handle->Complete();
     }
   } else if (status == WINHTTP_CALLBACK_STATUS_HEADERS_AVAILABLE) {
-    Network::HeaderCallback callback = nullptr;
+    HeaderCallback callback = nullptr;
     {
-      std::unique_lock<std::recursive_mutex> lock(
-          handle->connection_data->self->mutex_);
-      if (handle->header_callback) callback = handle->header_callback;
+      std::unique_lock<std::recursive_mutex> lock(network->mutex_);
+      if (handle->header_callback) {
+        callback = handle->header_callback;
+      }
     }
 
     if (callback && handle->http_request) {
@@ -631,50 +641,16 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
     }
 
     {
-      std::unique_lock<std::recursive_mutex> lock(
-          handle->connection_data->self->mutex_);
+      std::unique_lock<std::recursive_mutex> lock(network->mutex_);
       if (handle->http_request) {
         LPWSTR code =
             QueryHeadervalue(handle->http_request, WINHTTP_QUERY_STATUS_CODE);
         if (code) {
           std::wstring code_str(code);
-          handle->result_data->status = std::stoi(code_str);
+          request_result.status = std::stoi(code_str);
           LocalFree(code);
         } else {
-          handle->result_data->status = -1;
-        }
-
-        LPWSTR cache =
-            QueryHeadervalue(handle->http_request, WINHTTP_QUERY_CACHE_CONTROL);
-        if (cache) {
-          std::wstring cache_str(cache);
-          const std::size_t index = cache_str.find(L"max-age=");
-          if (index != std::wstring::npos) {
-            handle->result_data->max_age =
-                std::stoi(cache_str.substr(index + 8));
-          }
-          LocalFree(cache);
-        } else {
-          handle->result_data->max_age = -1;
-        }
-
-        LPWSTR etag =
-            QueryHeadervalue(handle->http_request, WINHTTP_QUERY_ETAG);
-        if (etag) {
-          std::wstring etag_str(etag);
-          handle->result_data->etag.assign(etag_str.begin(), etag_str.end());
-          LocalFree(etag);
-        } else {
-          handle->result_data->etag.clear();
-        }
-
-        LPWSTR date =
-            QueryHeadervalue(handle->http_request, WINHTTP_QUERY_DATE);
-        if (date) {
-          handle->date = date;
-          LocalFree(date);
-        } else {
-          handle->date.clear();
+          request_result.status = -1;
         }
 
         LPWSTR range =
@@ -687,39 +663,22 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
             if (range_str[6] == L'*' && range_str[7] == L'/') {
               offset = 8;
             }
-            if (handle->resumed) {
-              handle->result_data->count =
-                  std::stoull(range_str.substr(index + offset)) -
-                  handle->result_data->offset;
-            } else {
-              handle->result_data->offset =
-                  std::stoull(range_str.substr(index + offset));
-            }
+            request_result.offset =
+                std::stoull(range_str.substr(index + offset));
           }
           LocalFree(range);
         } else {
-          handle->result_data->count = 0;
-        }
-
-        LPWSTR type =
-            QueryHeadervalue(handle->http_request, WINHTTP_QUERY_CONTENT_TYPE);
-        if (type) {
-          std::wstring type_str(type);
-          handle->result_data->content_type.assign(type_str.begin(),
-                                                   type_str.end());
-          LocalFree(type);
-        } else {
-          handle->result_data->content_type.clear();
+          request_result.count = 0;
         }
 
         LPWSTR length = QueryHeadervalue(handle->http_request,
                                          WINHTTP_QUERY_CONTENT_LENGTH);
         if (length) {
           const std::wstring length_str(length);
-          handle->result_data->size = std::stoull(length_str);
+          request_result.size = std::stoull(length_str);
           LocalFree(length);
         } else {
-          handle->result_data->size = 0;
+          request_result.size = 0;
         }
 
         if (handle->no_compression) {
@@ -761,14 +720,15 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
   } else if (status == WINHTTP_CALLBACK_STATUS_DATA_AVAILABLE) {
     assert(status_info_length == sizeof(DWORD));
     DWORD size = *reinterpret_cast<DWORD*>(status_info);
-    if (size > 0 && 416 != handle->result_data->status) {
+    if (size > 0 && request_result.status !=
+                        HttpStatusCode::REQUESTED_RANGE_NOT_SATISFIABLE) {
       // Data is available read it
       LPVOID buffer = (LPVOID)LocalAlloc(LPTR, size);
       if (!buffer) {
         OLP_SDK_LOG_ERROR(kLogTag, "Out of memory reeceiving "
                                        << size
                                        << " bytes, id=" << handle->request_id);
-        handle->result_data->status = ERROR_NOT_ENOUGH_MEMORY;
+        request_result.status = ERROR_NOT_ENOUGH_MEMORY;
         handle->Complete();
         return;
       }
@@ -780,19 +740,20 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
       }
     } else {
       // Request is complete
-      if (handle->result_data->status != 416) {
+      if (request_result.status !=
+          HttpStatusCode::REQUESTED_RANGE_NOT_SATISFIABLE) {
         // Skip size check if manually decompressing, since it's known to not
         // match.
         if (!handle->ignore_data && !handle->uncompress &&
-            handle->result_data->size != 0 &&
-            handle->result_data->size != handle->result_data->count) {
-          handle->result_data->status = -1;
+            request_result.size != 0 &&
+            request_result.size != request_result.count) {
+          request_result.status = -1;
         }
       }
-      handle->result_data->completed = true;
-      OLP_SDK_LOG_DEBUG(
-          kLogTag, "Completed request, id=" << handle->request_id << ", status="
-                                            << handle->result_data->status);
+      request_result.completed = true;
+      OLP_SDK_LOG_DEBUG(kLogTag, "Completed request, id="
+                                     << handle->request_id
+                                     << ", status=" << request_result.status);
       handle->Complete();
     }
   } else if (status == WINHTTP_CALLBACK_STATUS_READ_COMPLETE) {
@@ -822,13 +783,15 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
                 kLogTag, "Uncompression failed, id=" << handle->request_id);
             LocalFree((HLOCAL)compressed);
             LocalFree((HLOCAL)data_buffer);
-            handle->result_data->status = ERROR_INVALID_BLOCK;
+            request_result.status = ERROR_INVALID_BLOCK;
             handle->Complete();
             return;
           }
 
           data_len += available_size - handle->strm.avail_out;
-          if (r == Z_STREAM_END) break;
+          if (r == Z_STREAM_END) {
+            break;
+          }
 
           if (data_len == alloc_size) {
             // We ran out of space in uncompression buffer, expand the buffer
@@ -849,27 +812,27 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
       if (data_len) {
         std::uint64_t total_offset = 0;
 
-        if (handle->data_callback)
+        if (handle->data_callback) {
           handle->data_callback((const uint8_t*)data_buffer, total_offset,
                                 data_len);
+        }
 
         {
-          std::unique_lock<std::recursive_mutex> lock(
-              handle->connection_data->self->mutex_);
-          if (handle->payload) {
-            if (handle->payload->tellp() !=
-                std::streampos(handle->result_data->count)) {
-              handle->payload->seekp(handle->result_data->count);
-              if (handle->payload->fail()) {
+          std::unique_lock<std::recursive_mutex> lock(network->mutex_);
+          auto& payload = request_result.payload;
+          if (payload) {
+            if (payload->tellp() != std::streampos(request_result.count)) {
+              payload->seekp(request_result.count);
+              if (payload->fail()) {
                 OLP_SDK_LOG_WARNING(kLogTag, "Payload seekp() failed, id="
                                                  << handle->request_id);
-                handle->payload->clear();
+                payload->clear();
               }
             }
 
-            handle->payload->write(data_buffer, data_len);
+            payload->write(data_buffer, data_len);
           }
-          handle->result_data->count += data_len;
+          request_result.count += data_len;
         }
       }
       LocalFree((HLOCAL)data_buffer);
@@ -908,7 +871,9 @@ void NetworkWinHttp::CompletionThread() {
         WaitForSingleObject(event_, 30000);  // Wait max 30 seconds
         ResetEvent(event_);
       }
-      if (!http_session_) continue;
+      if (!http_session_) {
+        continue;
+      }
 
       std::unique_lock<std::recursive_mutex> lock(mutex_);
       if (!results_.empty()) {
@@ -920,8 +885,10 @@ void NetworkWinHttp::CompletionThread() {
     if (http_session_ && result) {
       std::string str;
       int status;
-      if ((result->offset == 0) && (result->status == 206))
-        result->status = 200;
+      if (result->offset == 0 &&
+          result->status == HttpStatusCode::PARTIAL_CONTENT) {
+        result->status = HttpStatusCode::OK;
+      }
 
       if (result->completed) {
         str = HttpErrorToString(result->status);
@@ -936,7 +903,7 @@ void NetworkWinHttp::CompletionThread() {
       }
 
       if (result->user_callback) {
-        Network::Callback callback = nullptr;
+        Callback callback = nullptr;
         {
           std::lock_guard<std::recursive_mutex> lock(mutex_);
           // protect against multiple calls
@@ -978,29 +945,21 @@ void NetworkWinHttp::CompletionThread() {
 }
 
 NetworkWinHttp::RequestData* NetworkWinHttp::GetHandle(
-    RequestId id, std::shared_ptr<ConnectionData> connection,
-    Network::Callback callback, Network::HeaderCallback header_callback,
-    Network::DataCallback data_callback, std::shared_ptr<std::ostream> payload,
-    const NetworkRequest& request) {
+    RequestId id, std::shared_ptr<ConnectionData> connection, Callback callback,
+    HeaderCallback header_callback, DataCallback data_callback,
+    std::shared_ptr<std::ostream> payload, const NetworkRequest& request) {
   std::unique_lock<std::recursive_mutex> lock_guard(mutex_);
 
   auto it =
       std::find_if(http_requests_.begin(), http_requests_.end(),
                    [&](const RequestData& request) { return !request.in_use; });
   if (it != http_requests_.end()) {
-    *it = std::move(RequestData(id, connection, callback, header_callback,
+    *it = std::move(RequestData(this, id, connection, callback, header_callback,
                                 data_callback, payload, request));
     it->in_use = true;
     return &(*it);
   }
   return nullptr;
-}
-
-void NetworkWinHttp::FreeHandle(RequestData* request) {
-  std::unique_lock<std::recursive_mutex> lock_guard(mutex_);
-  if (request && request->in_use) {
-    *request = RequestData();
-  }
 }
 
 void NetworkWinHttp::FreeHandle(RequestId id) {
@@ -1023,7 +982,7 @@ NetworkWinHttp::RequestData* NetworkWinHttp::FindHandle(RequestId id) {
   return nullptr;
 }
 
-NetworkWinHttp::ResultData::ResultData(RequestId id, Network::Callback callback,
+NetworkWinHttp::ResultData::ResultData(RequestId id, Callback callback,
                                        std::shared_ptr<std::ostream> payload)
     : user_callback(std::move(callback)),
       payload(std::move(payload)),
@@ -1032,13 +991,11 @@ NetworkWinHttp::ResultData::ResultData(RequestId id, Network::Callback callback,
       offset(0),
       request_id(id),
       status(-1),
-      max_age(-1),
-      expires(-1),
       completed(false),
       cancelled(false) {}
 
-NetworkWinHttp::ConnectionData::ConnectionData(NetworkWinHttp* owner)
-    : self(owner), http_connection(NULL) {}
+NetworkWinHttp::ConnectionData::ConnectionData(HINTERNET http_connection)
+    : http_connection(http_connection) {}
 
 NetworkWinHttp::ConnectionData::~ConnectionData() {
   if (http_connection) {
@@ -1048,19 +1005,18 @@ NetworkWinHttp::ConnectionData::~ConnectionData() {
 }
 
 NetworkWinHttp::RequestData::RequestData(
-    RequestId id, std::shared_ptr<ConnectionData> connection,
-    Network::Callback callback, Network::HeaderCallback header_callback,
-    Network::DataCallback data_callback, std::shared_ptr<std::ostream> payload,
-    const NetworkRequest& request)
-    : connection_data(std::move(connection)),
-      result_data(new ResultData(id, callback, payload)),
-      payload(payload),
+    NetworkWinHttp* self, RequestId id,
+    std::shared_ptr<ConnectionData> connection, Callback callback,
+    HeaderCallback header_callback, DataCallback data_callback,
+    std::shared_ptr<std::ostream> payload, const NetworkRequest& request)
+    : self(self),
+      connection_data(std::move(connection)),
+      result_data(new ResultData(id, callback, std::move(payload))),
       body(request.GetBody()),
       header_callback(std::move(header_callback)),
       data_callback(std::move(data_callback)),
       http_request(NULL),
       request_id(id),
-      resumed(false),
       ignore_data(request.GetVerb() == NetworkRequest::HttpVerb::HEAD),
       no_compression(false),
       uncompress(false),
@@ -1069,7 +1025,6 @@ NetworkWinHttp::RequestData::RequestData(
 NetworkWinHttp::RequestData::RequestData()
     : http_request(NULL),
       request_id(static_cast<RequestId>(RequestIdConstants::RequestIdInvalid)),
-      resumed(false),
       ignore_data(),
       no_compression(false),
       uncompress(false),
@@ -1083,18 +1038,14 @@ NetworkWinHttp::RequestData::~RequestData() {
 }
 
 void NetworkWinHttp::RequestData::Complete() {
-  auto that = connection_data->self;
   {
-    std::unique_lock<std::recursive_mutex> lock(that->mutex_);
-    that->results_.push(result_data);
+    std::unique_lock<std::recursive_mutex> lock(self->mutex_);
+    self->results_.push(result_data);
   }
-  SetEvent(that->event_);
+  SetEvent(self->event_);
 }
 
-void NetworkWinHttp::RequestData::FreeHandle() {
-  auto that = connection_data->self;
-  that->FreeHandle(request_id);
-}
+void NetworkWinHttp::RequestData::FreeHandle() { self->FreeHandle(request_id); }
 
 }  // namespace http
 }  // namespace olp
