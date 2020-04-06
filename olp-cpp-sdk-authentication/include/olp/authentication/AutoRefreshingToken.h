@@ -47,6 +47,10 @@ static constexpr auto kForceRefresh = std::chrono::seconds(0);
  */
 class AUTHENTICATION_API AutoRefreshingToken {
  public:
+  // Needed to avoid endless warnings from TokenRequest/TokenResult
+  PORTING_PUSH_WARNINGS()
+  PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
+
   /**
    * @brief Specifies the callback signature that is required
    * when the get token request is completed.
@@ -130,9 +134,8 @@ class AUTHENTICATION_API AutoRefreshingToken {
    * refreshed.
    * @param token_request The token request that is sent to the token endpoint.
    */
-  PORTING_PUSH_WARNINGS()
-  PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
   AutoRefreshingToken(TokenEndpoint token_endpoint, TokenRequest token_request);
+
   PORTING_POP_WARNINGS()
 
  private:
