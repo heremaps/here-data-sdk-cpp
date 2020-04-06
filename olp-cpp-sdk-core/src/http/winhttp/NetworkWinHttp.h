@@ -65,13 +65,16 @@ class NetworkWinHttp : public Network {
 
     Callback user_callback;
     std::shared_ptr<std::ostream> payload;
-    std::uint64_t size;
+    std::uint64_t content_length;
     std::uint64_t count;
     std::uint64_t offset;
     RequestId request_id;
     int status;
     bool completed;
     bool cancelled;
+
+    std::uint64_t bytes_uploaded;
+    std::uint64_t bytes_downloaded;
   };
 
   struct ConnectionData {

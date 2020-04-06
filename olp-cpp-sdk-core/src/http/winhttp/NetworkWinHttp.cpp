@@ -199,6 +199,37 @@ std::wstring ProxyString(const olp::http::NetworkProxySettings& proxy) {
   return proxy_string_stream.str();
 }
 
+DWORD QueryHeadersSize(HINTERNET handle) {
+  DWORD wide_len = 0;
+  WinHttpQueryHeaders(handle, WINHTTP_QUERY_RAW_HEADERS,
+                      WINHTTP_HEADER_NAME_BY_INDEX, WINHTTP_NO_OUTPUT_BUFFER,
+                      &wide_len, WINHTTP_NO_HEADER_INDEX);
+  if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+    return 0;
+  }
+  return wide_len / sizeof(WCHAR);
+}
+
+std::string QueryHeaders(HINTERNET handle) {
+  std::string headers;
+  DWORD len = QueryHeadersSize(handle);
+  DWORD wide_len = len * sizeof(WCHAR);
+
+  auto wide_buffer = std::make_unique<WCHAR[]>(len);
+  if (WinHttpQueryHeaders(handle, WINHTTP_QUERY_RAW_HEADERS,
+                          WINHTTP_HEADER_NAME_BY_INDEX, wide_buffer.get(),
+                          &wide_len, WINHTTP_NO_HEADER_INDEX)) {
+    // Text should be converted back from the wchar to properly handle UTF-8.
+    headers.resize(len);
+    const int convertResult =
+        WideCharToMultiByte(CP_ACP, 0, wide_buffer.get(), len, &headers.front(),
+                            headers.size(), 0, nullptr);
+    assert(convertResult == static_cast<int>(len));
+  }
+
+  return headers;
+}
+
 }  // namespace
 
 namespace olp {
@@ -295,7 +326,9 @@ NetworkWinHttp::~NetworkWinHttp() {
           NetworkResponse()
               .WithRequestId(result->request_id)
               .WithStatus(static_cast<int>(ErrorCode::OFFLINE_ERROR))
-              .WithError("Offline: network is deinitialized"));
+              .WithError("Offline: network is deinitialized")
+              .WithBytesDownloaded(result->bytes_downloaded)
+              .WithBytesUploaded(result->bytes_uploaded));
       result->user_callback = nullptr;
     }
   }
@@ -510,8 +543,10 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
 
   _free_locale(loc);
 
-  if (!WinHttpAddRequestHeaders(http_request, header_stream.str().c_str(),
-                                DWORD(-1), WINHTTP_ADDREQ_FLAG_ADD)) {
+  std::wstring headers = header_stream.str();
+
+  if (!WinHttpAddRequestHeaders(http_request, headers.c_str(), DWORD(-1),
+                                WINHTTP_ADDREQ_FLAG_ADD)) {
     OLP_SDK_LOG_WARNING(kLogTag, "WinHttpAddRequestHeaders failed, url="
                                      << request.GetUrl()
                                      << ", error=" << GetLastError());
@@ -529,6 +564,8 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
     return SendOutcome(ErrorCode::IO_ERROR);
   }
   handle->http_request = http_request;
+
+  handle->result_data->bytes_uploaded += content_length + headers.size();
 
   OLP_SDK_LOG_DEBUG(kLogTag,
                     "Send request, url=" << request.GetUrl() << ", id=" << id);
@@ -599,46 +636,36 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
       }
     }
 
-    if (callback && handle->http_request) {
-      DWORD wide_len;
-      WinHttpQueryHeaders(handle->http_request, WINHTTP_QUERY_RAW_HEADERS,
-                          WINHTTP_HEADER_NAME_BY_INDEX,
-                          WINHTTP_NO_OUTPUT_BUFFER, &wide_len,
-                          WINHTTP_NO_HEADER_INDEX);
-      if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
-        DWORD len = wide_len / sizeof(WCHAR);
-        auto wide_buffer = std::make_unique<WCHAR[]>(len);
-        if (WinHttpQueryHeaders(handle->http_request, WINHTTP_QUERY_RAW_HEADERS,
-                                WINHTTP_HEADER_NAME_BY_INDEX, wide_buffer.get(),
-                                &wide_len, WINHTTP_NO_HEADER_INDEX)) {
-          // Text should be converted back from the wide char to properly handle
-          // UTF-8.
-          auto buffer = std::make_unique<char[]>(len);
-          const int convertResult = WideCharToMultiByte(
-              CP_ACP, 0, wide_buffer.get(), len, buffer.get(), len, 0, nullptr);
-          assert(convertResult == static_cast<int>(len));
+    DWORD headers_size = 0;
 
-          DWORD start = 0, index = 0;
-          while (index < len) {
-            if (buffer[index] == 0) {
-              if (start != index) {
-                std::string entry(&buffer[start], index - start);
-                size_t pos = entry.find(':');
-                if (pos != std::string::npos && pos + 2 < entry.size()) {
-                  std::string key(entry.begin(), entry.begin() + pos);
-                  std::string value(entry.begin() + pos + 2, entry.end());
-                  callback(key, value);
-                }
+    if (handle->http_request) {
+      if (callback) {
+        auto headers = QueryHeaders(handle->http_request);
+        DWORD start = 0, index = 0;
+        while (index < headers.size()) {
+          if (headers[index] == 0) {
+            if (start != index) {
+              std::string entry(&headers[start], index - start);
+              size_t pos = entry.find(':');
+              if (pos != std::string::npos && pos + 2 < entry.size()) {
+                std::string key(entry.begin(), entry.begin() + pos);
+                std::string value(entry.begin() + pos + 2, entry.end());
+                callback(key, value);
               }
-              index++;
-              start = index;
-            } else {
-              index++;
             }
+            index++;
+            start = index;
+          } else {
+            index++;
           }
         }
+        headers_size += headers.size();
+      } else {
+        headers_size += QueryHeadersSize(handle->http_request);
       }
     }
+
+    request_result.bytes_downloaded += headers_size;
 
     {
       std::unique_lock<std::recursive_mutex> lock(network->mutex_);
@@ -675,10 +702,10 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
                                          WINHTTP_QUERY_CONTENT_LENGTH);
         if (length) {
           const std::wstring length_str(length);
-          request_result.size = std::stoull(length_str);
+          request_result.content_length = std::stoull(length_str);
           LocalFree(length);
         } else {
-          request_result.size = 0;
+          request_result.content_length = 0;
         }
 
         if (handle->no_compression) {
@@ -725,7 +752,7 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
       // Data is available read it
       LPVOID buffer = (LPVOID)LocalAlloc(LPTR, size);
       if (!buffer) {
-        OLP_SDK_LOG_ERROR(kLogTag, "Out of memory reeceiving "
+        OLP_SDK_LOG_ERROR(kLogTag, "Out of memory receiving "
                                        << size
                                        << " bytes, id=" << handle->request_id);
         request_result.status = ERROR_NOT_ENOUGH_MEMORY;
@@ -745,8 +772,8 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
         // Skip size check if manually decompressing, since it's known to not
         // match.
         if (!handle->ignore_data && !handle->uncompress &&
-            request_result.size != 0 &&
-            request_result.size != request_result.count) {
+            request_result.content_length != 0 &&
+            request_result.content_length != request_result.count) {
           request_result.status = -1;
         }
       }
@@ -890,6 +917,14 @@ void NetworkWinHttp::CompletionThread() {
         result->status = HttpStatusCode::OK;
       }
 
+      // Apply content length if present, else use number of bytes received with
+      // chunks.
+      if (result->content_length > 0) {
+        result->bytes_downloaded += result->content_length;
+      } else {
+        result->bytes_downloaded += result->count;
+      }
+
       if (result->completed) {
         str = HttpErrorToString(result->status);
       } else {
@@ -913,7 +948,9 @@ void NetworkWinHttp::CompletionThread() {
         callback(NetworkResponse()
                      .WithError(str)
                      .WithRequestId(result->request_id)
-                     .WithStatus(status));
+                     .WithStatus(status)
+                     .WithBytesDownloaded(result->bytes_downloaded)
+                     .WithBytesUploaded(result->bytes_uploaded));
       }
 
       if (result->completed) {
@@ -986,13 +1023,15 @@ NetworkWinHttp::ResultData::ResultData(RequestId id, Callback callback,
                                        std::shared_ptr<std::ostream> payload)
     : user_callback(std::move(callback)),
       payload(std::move(payload)),
-      size(0),
+      content_length(0),
       count(0),
       offset(0),
       request_id(id),
       status(-1),
       completed(false),
-      cancelled(false) {}
+      cancelled(false),
+      bytes_uploaded(0),
+      bytes_downloaded(0) {}
 
 NetworkWinHttp::ConnectionData::ConnectionData(HINTERNET http_connection)
     : http_connection(http_connection) {}
