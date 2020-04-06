@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,23 @@ RequestId NetworkResponse::GetRequestId() const { return request_id_; }
 
 NetworkResponse& NetworkResponse::WithRequestId(RequestId id) {
   request_id_ = id;
+  return *this;
+}
+
+uint64_t NetworkResponse::GetBytesUploaded() const { return bytes_uploaded_; }
+
+NetworkResponse& NetworkResponse::WithBytesUploaded(uint64_t bytes_uploaded) {
+  bytes_uploaded_ = bytes_uploaded;
+  return *this;
+}
+
+uint64_t NetworkResponse::GetBytesDownloaded() const {
+  return bytes_downloaded_;
+}
+
+NetworkResponse& NetworkResponse::WithBytesDownloaded(
+    uint64_t bytes_downloaded) {
+  bytes_downloaded_ = bytes_downloaded;
   return *this;
 }
 
