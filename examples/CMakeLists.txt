@@ -42,7 +42,7 @@ elseif(ANDROID)
                                     ${OLP_SDK_EXAMPLE_FAILURE_STRING})
 
 else()
-    project(${OLP_SDK_DATASERVICE_EXAMPLE_TARGET} VERSION 1.4.0)
+    project(${OLP_SDK_DATASERVICE_EXAMPLE_TARGET})
 
     add_library(${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET}
         ./ReadExample.cpp
