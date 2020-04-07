@@ -31,12 +31,17 @@
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
+#include <olp/dataservice/write/VolatileLayerClient.h>
+#include <olp/dataservice/write/model/PublishPartitionDataRequest.h>
+#include <olp/dataservice/write/model/StartBatchRequest.h>
 #include <testutils/CustomParameters.hpp>
 
 #include "olp/dataservice/read/PartitionsRequest.h"
+#include "olp/dataservice/read/PrefetchTileResult.h"
 #include "olp/dataservice/read/VolatileLayerClient.h"
 
 using namespace olp::dataservice::read;
+using namespace olp::dataservice::write::model;
 using namespace testing;
 
 namespace {
@@ -46,6 +51,19 @@ const auto kAppSecretEnvName = "dataservice_read_volatile_test_secret";
 const auto kCatalogEnvName = "dataservice_read_volatile_test_catalog";
 const auto kLayerEnvName = "dataservice_read_volatile_layer";
 
+const auto kPrefetchAppId = "dataservice_read_volatile_test_prefetch_appid";
+const auto kPrefetchAppSecret =
+    "dataservice_read_volatile_test_prefetch_secret";
+const auto kPrefetchCatalog = "dataservice_read_volatile_test_prefetch_catalog";
+const auto kPrefetchLayer = "dataservice_read_volatile_prefetch_layer";
+const auto kPrefetchTile = "23618401";
+const auto kPrefetchSubTile1 = "23618410";
+const auto kPrefetchSubTile2 = "23618406";
+const auto kPrefetchEndpoint = "endpoint";
+
+// The limit for 100 retries is 10 minutes. Therefore, the wait time between
+// retries is 6 seconds.
+const auto kWaitBeforeRetry = std::chrono::seconds(6);
 const auto kTimeout = std::chrono::seconds(5);
 
 class VolatileLayerClientTest : public ::testing::Test {
@@ -69,6 +87,27 @@ class VolatileLayerClientTest : public ::testing::Test {
     olp::cache::CacheSettings cache_settings;
     settings_.cache = olp::client::OlpClientSettingsFactory::CreateDefaultCache(
         cache_settings);
+
+    // prefetch setup
+    auto prefetch_app_id = CustomParameters::getArgument(kPrefetchAppId);
+    auto prefetch_secret = CustomParameters::getArgument(kPrefetchAppSecret);
+    prefetch_catalog_ = CustomParameters::getArgument(kPrefetchCatalog);
+    prefetch_layer_ = CustomParameters::getArgument(kPrefetchLayer);
+
+    olp::authentication::Settings prefetch_auth_settings(
+        {prefetch_app_id, prefetch_secret});
+    prefetch_auth_settings.token_endpoint_url =
+        CustomParameters::getArgument(kPrefetchEndpoint);
+    prefetch_auth_settings.network_request_handler = network;
+
+    olp::client::AuthenticationSettings prefetch_auth_client_settings;
+    prefetch_auth_client_settings.provider =
+        olp::authentication::TokenProviderDefault(prefetch_auth_settings);
+
+    prefetch_settings_.authentication_settings = prefetch_auth_client_settings;
+    prefetch_settings_.network_request_handler = network;
+    prefetch_settings_.task_scheduler =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
   }
 
   void TearDown() override {
@@ -77,6 +116,7 @@ class VolatileLayerClientTest : public ::testing::Test {
     // anywhere. Also network is still used in authentication settings and in
     // TokenProvider internally so it needs to be cleared.
     settings_ = olp::client::OlpClientSettings();
+    prefetch_settings_ = olp::client::OlpClientSettings();
     EXPECT_EQ(network.use_count(), 1);
   }
 
@@ -88,8 +128,79 @@ class VolatileLayerClientTest : public ::testing::Test {
     return CustomParameters::getArgument(kLayerEnvName);
   }
 
+  void WritePrefetchTilesData() {
+    auto hrn = olp::client::HRN{prefetch_catalog_};
+    // write desired partitions into the layer
+    olp::dataservice::write::VolatileLayerClient write_client(
+        hrn, prefetch_settings_);
+
+    {
+      auto batch_request = StartBatchRequest().WithLayers({prefetch_layer_});
+
+      auto response = write_client.StartBatch(batch_request).GetFuture().get();
+
+      EXPECT_TRUE(response.IsSuccessful());
+      ASSERT_TRUE(response.GetResult().GetId());
+      ASSERT_NE("", response.GetResult().GetId().value());
+
+      std::vector<PublishPartitionDataRequest> partition_requests;
+      PublishPartitionDataRequest partition_request;
+      partition_requests.push_back(
+          partition_request.WithLayerId(prefetch_layer_)
+              .WithPartitionId(kPrefetchTile));
+      partition_requests.push_back(
+          partition_request.WithPartitionId(kPrefetchSubTile1));
+      partition_requests.push_back(
+          partition_request.WithPartitionId(kPrefetchSubTile2));
+
+      auto publish_to_batch_response =
+          write_client.PublishToBatch(response.GetResult(), partition_requests)
+              .GetFuture()
+              .get();
+      EXPECT_TRUE(publish_to_batch_response.IsSuccessful());
+
+      // publish data blobs
+      std::vector<unsigned char> data = {1, 2, 3};
+      auto data_ptr = std::make_shared<std::vector<unsigned char>>(data);
+      for (auto& partition : partition_requests) {
+        partition.WithData(data_ptr);
+        auto publish_data_response =
+            write_client.PublishPartitionData(partition).GetFuture().get();
+        EXPECT_TRUE(publish_data_response.IsSuccessful());
+      }
+
+      auto complete_batch_response =
+          write_client.CompleteBatch(response.GetResult()).GetFuture().get();
+      EXPECT_TRUE(complete_batch_response.IsSuccessful());
+
+      olp::dataservice::write::GetBatchResponse get_batch_response;
+      for (int i = 0; i < 100; ++i) {
+        get_batch_response =
+            write_client.GetBatch(response.GetResult()).GetFuture().get();
+
+        EXPECT_TRUE(get_batch_response.IsSuccessful());
+        ASSERT_EQ(response.GetResult().GetId().value(),
+                  get_batch_response.GetResult().GetId().value());
+        if (get_batch_response.GetResult().GetDetails()->GetState() !=
+            "succeeded") {
+          ASSERT_EQ("submitted",
+                    get_batch_response.GetResult().GetDetails()->GetState());
+          std::this_thread::sleep_for(kWaitBeforeRetry);
+        } else {
+          break;
+        }
+      }
+
+      ASSERT_EQ("succeeded",
+                get_batch_response.GetResult().GetDetails()->GetState());
+    }
+  }
+
  protected:
   olp::client::OlpClientSettings settings_;
+  olp::client::OlpClientSettings prefetch_settings_;
+  std::string prefetch_catalog_;
+  std::string prefetch_layer_;
 };
 
 TEST_F(VolatileLayerClientTest, GetPartitions) {
@@ -221,6 +332,102 @@ TEST_F(VolatileLayerClientTest, GetPartitionsDifferentFetchOptions) {
         std::move(callback));
     ASSERT_TRUE(condition.Wait(kTimeout));
     EXPECT_TRUE(partitions_response.IsSuccessful());
+  }
+}
+
+TEST_F(VolatileLayerClientTest, Prefetch) {
+  WritePrefetchTilesData();
+
+  olp::client::HRN hrn(prefetch_catalog_);
+  VolatileLayerClient client(hrn, prefetch_layer_, prefetch_settings_);
+  {
+    SCOPED_TRACE("Prefetch tiles online and store them in memory cache");
+    std::vector<olp::geo::TileKey> tile_keys = {
+        olp::geo::TileKey::FromHereTile(kPrefetchTile)};
+    std::vector<olp::geo::TileKey> expected_tile_keys = {
+        olp::geo::TileKey::FromHereTile(kPrefetchTile),
+        olp::geo::TileKey::FromHereTile(kPrefetchSubTile1),
+        olp::geo::TileKey::FromHereTile(kPrefetchSubTile2)};
+
+    auto request = olp::dataservice::read::PrefetchTilesRequest()
+                       .WithTileKeys(tile_keys)
+                       .WithMinLevel(10)
+                       .WithMaxLevel(12);
+
+    auto future = client.PrefetchTiles(request).GetFuture();
+
+    ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    EXPECT_TRUE(response.IsSuccessful());
+    ASSERT_FALSE(response.GetResult().empty());
+
+    const auto& result = response.GetResult();
+
+    for (auto tile_result : result) {
+      EXPECT_TRUE(tile_result->IsSuccessful());
+      ASSERT_TRUE(tile_result->tile_key_.IsValid());
+      auto it = std::find(expected_tile_keys.begin(), expected_tile_keys.end(),
+                          tile_result->tile_key_);
+      ASSERT_NE(it, expected_tile_keys.end());
+    }
+
+    ASSERT_EQ(expected_tile_keys.size(), result.size());
+  }
+
+  {
+    SCOPED_TRACE("min/max levels are 0");
+
+    std::vector<olp::geo::TileKey> tile_keys = {
+        olp::geo::TileKey::FromHereTile(kPrefetchTile)};
+    auto request = olp::dataservice::read::PrefetchTilesRequest()
+                       .WithTileKeys(tile_keys)
+                       .WithMinLevel(0)
+                       .WithMaxLevel(0);
+
+    auto future = client.PrefetchTiles(request).GetFuture();
+
+    ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    EXPECT_TRUE(response.IsSuccessful());
+    const auto& result = response.GetResult();
+
+    for (auto tile_result : result) {
+      EXPECT_TRUE(tile_result->IsSuccessful());
+      ASSERT_TRUE(tile_result->tile_key_.IsValid());
+      auto it =
+          std::find(tile_keys.begin(), tile_keys.end(), tile_result->tile_key_);
+      ASSERT_NE(it, tile_keys.end());
+    }
+
+    ASSERT_EQ(tile_keys.size(), result.size());
+  }
+
+  {
+    SCOPED_TRACE("min/max levels are equal");
+
+    std::vector<olp::geo::TileKey> tile_keys = {
+        olp::geo::TileKey::FromHereTile(kPrefetchTile)};
+    auto request = olp::dataservice::read::PrefetchTilesRequest()
+                       .WithTileKeys(tile_keys)
+                       .WithMinLevel(12)
+                       .WithMaxLevel(12);
+
+    auto future = client.PrefetchTiles(request).GetFuture();
+
+    ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    EXPECT_TRUE(response.IsSuccessful());
+    const auto& result = response.GetResult();
+
+    for (auto tile_result : result) {
+      EXPECT_TRUE(tile_result->IsSuccessful());
+      ASSERT_TRUE(tile_result->tile_key_.IsValid());
+      auto it =
+          std::find(tile_keys.begin(), tile_keys.end(), tile_result->tile_key_);
+      ASSERT_NE(it, tile_keys.end());
+    }
+
+    ASSERT_EQ(tile_keys.size(), result.size());
   }
 }
 

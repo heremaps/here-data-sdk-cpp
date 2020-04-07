@@ -22,3 +22,8 @@ export dataservice_read_volatile_test_appid="${dataservice_read_volatile_test_ap
 export dataservice_read_volatile_test_secret="${dataservice_read_volatile_test_secret}"
 export dataservice_read_volatile_layer="test-volatile-layer"
 export dataservice_read_volatile_test_catalog="hrn:here:data::olp-here-test:here-olp-sdk-cpp"
+
+export dataservice_read_volatile_test_prefetch_appid="${dataservice_read_volatile_test_prefetch_appid}"
+export dataservice_read_volatile_test_prefetch_secret="${dataservice_read_volatile_test_prefetch_secret}"
+export dataservice_read_volatile_test_prefetch_catalog="hrn:here:data::olp-here-test:test-volatile-prefetch"
+export dataservice_read_volatile_prefetch_layer="volatile_prefetch_layer"
