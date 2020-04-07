@@ -77,6 +77,12 @@ struct AUTHENTICATION_API AuthenticationSettings {
    * in-memory cache.
    */
   size_t token_cache_limit{100u};
+
+  /**
+   * @brief Uses system system time in authentication requests rather than
+   * requesting time from authentication server.
+   */
+  bool use_system_time{false};
 };
 
 }  // namespace authentication
