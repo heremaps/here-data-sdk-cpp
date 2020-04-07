@@ -1,3 +1,23 @@
+## v1.5.0 (07/04/2020)
+
+**Common**
+
+* Moved the `DefaultCache` implementation to pimpl.
+* Fixed various compiler warnings.
+* CMake now uses the official Boost Github repository instead of downloading and unpacking the archive.
+* Method `OlpClientSettingsFactory::CreateDefaultCache` now returns `nullptr` if it failes to open one of the user-defined disk caches.
+* **Work In Progress** Added API to retrieve network statistics. It is not fully implemented yet, and users should not use it.
+
+**olp-cpp-sdk-authentication**
+
+* Added a new `use_system_time` flag to `olp::authentication::AuthenticationSettings`. You can use it to tell the authentication module to work with system time instead of server time when retrieving tokens.
+
+**olp-cpp-sdk-dataservice-read**
+
+* Added a stream layer read example. For more information, see our [documentation](https://github.com/heremaps/here-olp-sdk-cpp/blob/master/docs/dataservice-read-from-stream-layer-example.md).
+* Added the `RemoveFromCache` method to `VolatileLayerClient`. Now, you can remove specific partitions or tiles from the mutable cache.
+* Added a new `PrefetchTiles` method to `VolatileLayerClient`. Now, you can prefetch volatile tiles in the same way as versioned tiles.
+
 ## v1.4.0 (23/03/2020)
 
 **Common**
