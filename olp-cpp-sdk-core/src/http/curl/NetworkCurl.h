@@ -277,14 +277,6 @@ class NetworkCurl : public olp::http::Network,
    * @return @c true if the thread is started, @c false otherwise.
    */
   inline bool IsStarted() const;
-  /**
-   * @brief CURL get upload/download data.
-   * @param[in] handle CURL easy handle.
-   * @param[out] uploadBytes uploaded bytes(headers+data).
-   * @param[out] downloadBytes downloaded bytes(headers+data).
-   */
-  static void GetTraficData(CURL* handle, uint64_t& uploadBytes,
-                            uint64_t& downloadBytes);
 
   /// Contexts for every network request.
   std::vector<RequestHandle> handles_;
