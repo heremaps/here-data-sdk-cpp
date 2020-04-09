@@ -22,6 +22,8 @@
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/NetworkMock.h>
 
+#include "olp/core/http/HttpStatusCode.h"
+
 #include "http/DefaultNetwork.h"
 
 namespace {
@@ -31,6 +33,24 @@ using namespace olp::http;
 using namespace olp::tests::common;
 
 const char* kTestUrl = "test_url";
+
+Network::Statistics Statistics(uint64_t downloaded, uint64_t uploaded,
+                               uint32_t total_requests, uint32_t failed) {
+  Network::Statistics s;
+  s.bytes_downloaded = downloaded;
+  s.bytes_uploaded = uploaded;
+  s.total_requests = total_requests;
+  s.total_failed = failed;
+  return s;
+}
+
+bool CompareStatistics(const Network::Statistics& l,
+                       const Network::Statistics& r) {
+  return l.bytes_downloaded == r.bytes_downloaded &&
+         l.bytes_uploaded == r.bytes_uploaded &&
+         l.total_failed == r.total_failed &&
+         l.total_requests == r.total_requests;
+}
 
 TEST(DefaultNetworkTest, Send) {
   auto network_mock = std::make_shared<NetworkMock>();
@@ -132,6 +152,145 @@ TEST(DefaultNetworkTest, Send) {
 
     Mock::VerifyAndClearExpectations(network_mock.get());
   }
+}
+
+TEST(DefaultNetworkTest, DefaultBucket) {
+  SCOPED_TRACE("Default bucket used");
+
+  auto network_mock = std::make_shared<NetworkMock>();
+  std::shared_ptr<Network> default_network_adapter =
+      std::make_shared<DefaultNetwork>(network_mock);
+
+  auto request =
+      NetworkRequest(kTestUrl).WithVerb(NetworkRequest::HttpVerb::GET);
+
+  Network::Callback network_callback;
+
+  EXPECT_CALL(*network_mock, Send(IsGetRequest(kTestUrl), _, _, _, _))
+      .WillOnce(DoAll(SaveArg<2>(&network_callback), Return(SendOutcome(1))));
+
+  NetworkResponse network_response;
+  auto callback = [&network_response](NetworkResponse response) {
+    network_response = std::move(response);
+  };
+
+  auto outcome = default_network_adapter->Send(request, nullptr, callback);
+
+  EXPECT_EQ(outcome.GetRequestId(), 1ull);
+  ASSERT_TRUE(network_callback);
+
+  network_callback(NetworkResponse()
+                       .WithBytesDownloaded(100ull)
+                       .WithBytesUploaded(50ull)
+                       .WithStatus(olp::http::HttpStatusCode::OK));
+
+  EXPECT_EQ(network_response.GetBytesDownloaded(), 100ull);
+  EXPECT_EQ(network_response.GetBytesUploaded(), 50ull);
+
+  auto stats = default_network_adapter->GetStatistics();
+  EXPECT_TRUE(CompareStatistics(stats, Statistics(100ull, 50ull, 1u, 0u)));
+}
+
+TEST(DefaultNetworkTest, BucketSelection) {
+  SCOPED_TRACE("Active bucket used");
+
+  auto network_mock = std::make_shared<NetworkMock>();
+  std::shared_ptr<Network> default_network_adapter =
+      std::make_shared<DefaultNetwork>(network_mock);
+
+  auto request =
+      NetworkRequest(kTestUrl).WithVerb(NetworkRequest::HttpVerb::GET);
+
+  Network::Callback network_callback;
+
+  EXPECT_CALL(*network_mock, Send(IsGetRequest(kTestUrl), _, _, _, _))
+      .WillOnce(DoAll(SaveArg<2>(&network_callback), Return(SendOutcome(1))));
+
+  NetworkResponse network_response;
+  auto callback = [&network_response](NetworkResponse response) {
+    network_response = std::move(response);
+  };
+
+  default_network_adapter->SetCurrentBucket(1);
+
+  auto outcome = default_network_adapter->Send(request, nullptr, callback);
+
+  default_network_adapter->SetCurrentBucket(2);
+
+  EXPECT_EQ(outcome.GetRequestId(), 1ull);
+  ASSERT_TRUE(network_callback);
+
+  network_callback(NetworkResponse()
+                       .WithBytesDownloaded(100ull)
+                       .WithBytesUploaded(50ull)
+                       .WithStatus(olp::http::HttpStatusCode::OK));
+
+  EXPECT_EQ(network_response.GetBytesDownloaded(), 100ull);
+  EXPECT_EQ(network_response.GetBytesUploaded(), 50ull);
+
+  auto stats_1 = default_network_adapter->GetStatistics(1);
+  EXPECT_TRUE(CompareStatistics(stats_1, Statistics(100ull, 50ull, 1u, 0u)));
+
+  auto stats_2 = default_network_adapter->GetStatistics(2);
+  EXPECT_TRUE(CompareStatistics(stats_2, Network::Statistics{}));
+}
+
+TEST(DefaultNetworkTest, FailedPrecondition) {
+  SCOPED_TRACE("Failed request precondition do not affect statistics");
+
+  auto network_mock = std::make_shared<NetworkMock>();
+  std::shared_ptr<Network> default_network_adapter =
+      std::make_shared<DefaultNetwork>(network_mock);
+
+  auto request =
+      NetworkRequest(kTestUrl).WithVerb(NetworkRequest::HttpVerb::GET);
+
+  EXPECT_CALL(*network_mock, Send(IsGetRequest(kTestUrl), _, _, _, _))
+      .WillOnce(Return(SendOutcome(olp::http::ErrorCode::INVALID_URL_ERROR)));
+
+  auto outcome = default_network_adapter->Send(request, nullptr, nullptr);
+  EXPECT_EQ(outcome.GetErrorCode(), olp::http::ErrorCode::INVALID_URL_ERROR);
+
+  auto stats = default_network_adapter->GetStatistics();
+  EXPECT_TRUE(CompareStatistics(stats, Network::Statistics{}));
+}
+
+TEST(DefaultNetworkTest, FailedResponse) {
+  SCOPED_TRACE("Failed response increments total_failed");
+
+  auto network_mock = std::make_shared<NetworkMock>();
+  std::shared_ptr<Network> default_network_adapter =
+      std::make_shared<DefaultNetwork>(network_mock);
+
+  auto request =
+      NetworkRequest(kTestUrl).WithVerb(NetworkRequest::HttpVerb::GET);
+
+  Network::Callback network_callback;
+
+  EXPECT_CALL(*network_mock, Send(IsGetRequest(kTestUrl), _, _, _, _))
+      .WillOnce(DoAll(SaveArg<2>(&network_callback), Return(SendOutcome(1))));
+
+  NetworkResponse network_response;
+  auto callback = [&network_response](NetworkResponse response) {
+    network_response = std::move(response);
+  };
+
+  auto outcome = default_network_adapter->Send(request, nullptr, callback);
+
+  EXPECT_EQ(outcome.GetRequestId(), 1ull);
+  ASSERT_TRUE(network_callback);
+
+  network_callback(
+      NetworkResponse()
+          .WithBytesDownloaded(150ull)
+          .WithBytesUploaded(250ull)
+          .WithStatus(olp::http::HttpStatusCode::SERVICE_UNAVAILABLE));
+
+  EXPECT_EQ(network_response.GetBytesDownloaded(), 150ull);
+  EXPECT_EQ(network_response.GetBytesUploaded(), 250ull);
+
+  auto stats = default_network_adapter->GetStatistics();
+  EXPECT_TRUE(CompareStatistics(stats, Statistics(150ull, 250ull, 1u, 1u)));
 }
 
 }  // namespace
