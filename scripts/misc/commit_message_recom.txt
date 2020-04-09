@@ -1,5 +1,5 @@
-#################################################
-#################################################
+#######################################################################
+#######################################################################
 Summarize changes in around 50 characters or less.
 
 More detailed explanatory text. Wrap it to about 72
@@ -22,13 +22,13 @@ Further paragraphs come after blank lines.
   by a single space, with blank lines in between, but conventions
   vary here.
 
-All commits need to reference a ticket, again separated by a blank
-line from the commit message summary above:
+All commits need to reference a ticket (ABC-333) or Github issue (#123),
+again separated by a blank line from the commit message summary above:
 
 Resolves: ABC-111, #123
 Relates-To: ABC-333, #321
 See also: ABC-432, #456, #789
 
-Signed-off-by: FirstName LastName <firstname.lastname@here.com>
-#################################################
-#################################################
+Signed-off-by: FirstName LastName <firstname.lastname@company.com>
+#######################################################################
+#######################################################################
