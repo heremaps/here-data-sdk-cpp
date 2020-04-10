@@ -40,6 +40,8 @@ import java.net.SocketTimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.SSLException;
 
@@ -219,6 +221,9 @@ public class HttpClient {
     protected Void doInBackground(Request... requests) {
       for (Request request : requests) {
         HttpURLConnection httpConn = null;
+        int uploadedContentSize = 0;
+        int downloadContentSize = 0;
+        boolean downloadContentSizePresent = false;
 
         try {
           int retryCount = 0;
@@ -290,7 +295,6 @@ public class HttpClient {
             conn.setUseCaches(false);
             conn.setConnectTimeout(request.connectTimeout() * 1000);
             conn.setReadTimeout(request.requestTimeout() * 1000);
-
             if (request.verb() != HttpVerb.HEAD && httpConn != null) {
               if (request.postData() != null) {
                 httpConn.setFixedLengthStreamingMode(request.postData().length);
@@ -298,7 +302,6 @@ public class HttpClient {
                 httpConn.setChunkedStreamingMode(8 * 1024);
               }
             }
-
             // Android Issue 24672: workaround
             if (android.os.Build.VERSION.SDK_INT < 21) {
               if (request.verb() == HttpVerb.HEAD || useEtag)
@@ -315,12 +318,17 @@ public class HttpClient {
                 conn.setRequestProperty("Connection", "Close");
             }
 
+            Log.d(LOGTAG, "Printing Request Headers...\n");
+            uploadedContentSize += calculateHeadersSize(conn.getRequestProperties());
+
             conn.setDoInput(true);
 
             // Do POST if needed
             if (request.postData() != null) {
               conn.setDoOutput(true);
               conn.getOutputStream().write(request.postData());
+              Log.d(LOGTAG, "Uploaded data length:" + request.postData().length);
+              uploadedContentSize += request.postData().length;
             } else {
               conn.setDoOutput(false);
             }
@@ -377,6 +385,15 @@ public class HttpClient {
               }
             }
 
+            Log.d(LOGTAG, "Printing Response Headers...\n");
+            downloadContentSize += calculateHeadersSize(conn.getHeaderFields());
+
+            int contentSize = conn.getContentLength();
+            if(contentSize > 0){
+                downloadContentSize += contentSize;
+                downloadContentSizePresent = true;
+            }
+
             // Get all the headers of the response
             int headersCount = 0;
             while (conn.getHeaderFieldKey(headersCount) != null) {
@@ -413,6 +430,9 @@ public class HttpClient {
               while ((len = in.read(buffer)) >= 0) {
                 checkCancelled();
                 dataCallback(request.requestId(), buffer, len);
+                if(!downloadContentSizePresent){
+                    downloadContentSize += len;
+                }
               }
             }
             // Error handling:
@@ -440,25 +460,27 @@ public class HttpClient {
             // The request is completed, not cancelled or retried
             // Notifies the native (C++) side that request was completed
             isDone = true;
-            completeRequest(request.requestId(), status, error, contentType);
+            completeRequest(request.requestId(), status, uploadedContentSize, downloadContentSize, error, contentType);
           } while (!isDone);
         } catch (SSLException e) {
-          completeRequest(request.requestId(), AUTHORIZATION_ERROR, "SSL connection failed.", "");
+          completeRequest(request.requestId(), AUTHORIZATION_ERROR, uploadedContentSize, downloadContentSize, "SSL connection failed.", "");
         } catch (MalformedURLException e) {
           completeRequest(
-              request.requestId(), INVALID_URL_ERROR, "The provided URL is not valid.", "");
+              request.requestId(), INVALID_URL_ERROR, uploadedContentSize, downloadContentSize, "The provided URL is not valid.", "");
         } catch (OperationCanceledException e) {
-          completeRequest(request.requestId(), CANCELLED_ERROR, "Cancelled", "");
+          completeRequest(request.requestId(), CANCELLED_ERROR, uploadedContentSize, downloadContentSize, "Cancelled", "");
         } catch (SocketTimeoutException e) {
-          completeRequest(request.requestId(), TIMEOUT_ERROR, "Timed out", "");
+          completeRequest(request.requestId(), TIMEOUT_ERROR, uploadedContentSize, downloadContentSize, "Timed out", "");
         } catch (java.net.UnknownHostException e) {
           completeRequest(
-              request.requestId(), OFFLINE_ERROR, "The device has no internet connectivity", "");
+              request.requestId(), OFFLINE_ERROR, uploadedContentSize, downloadContentSize, "The device has no internet connectivity", "");
         } catch (Exception e) {
           Log.e(LOGTAG, "HttpClient::HttpTask::run exception: " + e);
           e.printStackTrace();
-          completeRequest(request.requestId(), IO_ERROR, e.toString(), "");
+          completeRequest(request.requestId(), IO_ERROR, uploadedContentSize, downloadContentSize, e.toString(), "");
         } finally {
+          uploadedContentSize = 0;
+          downloadContentSize = 0;
           cleanup(httpConn);
         }
       }
@@ -532,6 +554,24 @@ public class HttpClient {
         // clear stream
       }
     }
+
+    private final int calculateHeadersSize(Map<String, List<String>> headers) throws IOException {
+      int size = 0;
+      for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+        String header = entry.getKey();
+        List<String> values = entry.getValue();
+        Log.d(LOGTAG, header + ":" + values);
+        if(header != null) {
+          size += header.length();
+        }
+        for (String value : values) {
+          if(value != null) {
+          size += value.length();
+          }
+        }
+      }
+      return size;
+    }
   };
 
   private ExecutorService executor;
@@ -585,7 +625,7 @@ public class HttpClient {
   // Synchronization is required in order to provide thread-safe access to `nativePtr`
   // Callback for completed request
   private synchronized native void completeRequest(
-      long requestId, int status, String error, String contentType);
+      long requestId, int status, int uploadedBytes, int downloadedBytes, String error, String contentType);
   // Callback for data received
   private synchronized native void dataCallback(long requestId, byte[] data, int len);
   // Callback set date and offset

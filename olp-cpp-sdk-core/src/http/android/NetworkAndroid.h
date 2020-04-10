@@ -91,6 +91,8 @@ class NetworkAndroid : public Network {
    * @brief Complete the given message
    * @param env - JNI environment for this thread
    * @param id - Unique Id of the message
+   * @param uploaded_bytes - uploaded bytes associated with request
+   * @param downloaded_bytes - downloaded bytes associated with request
    * @param status - HTTP status code of the completion
    * @param error - Error string
    * @param max_age - Maximum age of the data, from HTTP header
@@ -99,7 +101,8 @@ class NetworkAndroid : public Network {
    * @param content_type - Content-Type from HTTP header
    */
   void CompleteRequest(JNIEnv* env, RequestId request_id, int status,
-                       jstring error, jstring content_type);
+                       int uploaded_bytes, int downloaded_bytes, jstring error,
+                       jstring content_type);
 
   /**
    * @brief Reset the given message if retry attempt invoked
@@ -150,8 +153,9 @@ class NetworkAndroid : public Network {
   struct ResponseData {
     ResponseData() = default;
     ResponseData(RequestId id, Network::Callback callback, int status,
-                 const char* error, const char* content_type, jlong count,
-                 jlong offset, std::shared_ptr<std::ostream> payload);
+                 int uploaded_bytes, int downloaded_bytes, const char* error,
+                 const char* content_type, jlong count, jlong offset,
+                 std::shared_ptr<std::ostream> payload);
     bool IsValid() const { return (callback != nullptr); }
 
     RequestId id = static_cast<RequestId>(RequestIdConstants::RequestIdInvalid);
@@ -160,6 +164,8 @@ class NetworkAndroid : public Network {
     std::string error;
     std::string content_type;
     int status = 0;
+    int uploaded_bytes = 0;
+    int downloaded_bytes = 0;
     jlong count = 0;
     jlong offset = 0;
   };
