@@ -223,7 +223,6 @@ public class HttpClient {
         HttpURLConnection httpConn = null;
         int uploadedContentSize = 0;
         int downloadContentSize = 0;
-        boolean uploadContentSizePresent = false;
         boolean downloadContentSizePresent = false;
 
         try {
@@ -322,23 +321,14 @@ public class HttpClient {
             Log.d(LOGTAG, "Printing Request Headers...\n");
             uploadedContentSize += calculateHeadersSize(conn.getRequestProperties());
 
-            //check if Content-Length header present
-            String contentLength = conn.getRequestProperty("Content-Length");
-            if (contentLength != null) {
-              uploadedContentSize += Integer.parseInt(contentLength);
-              uploadContentSizePresent = true;
-            }
-
             conn.setDoInput(true);
 
             // Do POST if needed
             if (request.postData() != null) {
               conn.setDoOutput(true);
               conn.getOutputStream().write(request.postData());
-              if(!uploadContentSizePresent) {
-                Log.d(LOGTAG, "Uploaded data length:" + request.postData().length);
-                uploadedContentSize += request.postData().length;
-              }
+              Log.d(LOGTAG, "Uploaded data length:" + request.postData().length);
+              uploadedContentSize += request.postData().length;
             } else {
               conn.setDoOutput(false);
             }
