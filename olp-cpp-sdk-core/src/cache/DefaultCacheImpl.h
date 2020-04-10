@@ -54,20 +54,43 @@ class DefaultCacheImpl {
   /// as value.
   using DiskLruCache = utils::LruCache<std::string, size_t>;
 
-  /// return LRU mutable cache, used for tests.
+  /// Returns LRU mutable cache, used for tests.
   const std::unique_ptr<DiskLruCache>& GetMutableCacheLru() const {
     return mutable_cache_lru_;
   };
 
+  /// Returns mutable cache, used for tests.
+  const std::unique_ptr<DiskCache>& GetMutableCache() const {
+    return mutable_cache_;
+  };
+
+  /// Returns memory cache, used for tests.
+  const std::unique_ptr<InMemoryCache>& GetMemoryCache() const {
+    return memory_cache_;
+  };
+
+  /// Returns mutable cache size, used for tests.
+  uint64_t GetMutableCacheSize() const { return mutable_cache_data_size_; }
+
+  /// Gets expiry key, used for tests.
+  std::string GetExpiryKey(const std::string& key) const;
+
  private:
   /// Initializes LRU mutable cache if possible.
   void InitializeLru();
+
+  /// Removes key from the mutable lru cache;
+  void RemoveKeyLru(const std::string& key);
 
   /// Removes all keys with specified prefix from LRU mutable cache.
   void RemoveKeysWithPrefixLru(const std::string& key);
 
   /// Returns true if key is found in the LRU cache, false - otherwise.
   bool PromoteKeyLru(const std::string& key);
+
+  /// Puts data into the mutable cache
+  bool PutMutableCache(const std::string& key, const leveldb::Slice& value,
+                       time_t expiry);
 
   DefaultCache::StorageOpenResult SetupStorage();
 
@@ -80,6 +103,7 @@ class DefaultCacheImpl {
   std::unique_ptr<DiskCache> mutable_cache_;
   std::unique_ptr<DiskLruCache> mutable_cache_lru_;
   std::unique_ptr<DiskCache> protected_cache_;
+  uint64_t mutable_cache_data_size_;
   std::mutex cache_lock_;
 };
 
