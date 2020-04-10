@@ -258,7 +258,7 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
     };
 
     // setup handler for NSURLSessionDataTask::didCompleteWithError callback
-    task.completionHandler = ^(NSError* error) {
+    task.completionHandler = ^(NSError* error, uint64_t bytesDownloaded, uint64_t bytesUploaded) {
       if (!weak_task) {
         OLP_SDK_LOG_WARNING_F(
             kLogTag,
@@ -299,7 +299,9 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
         callback(olp::http::NetworkResponse()
                      .WithRequestId(strong_task.requestId)
                      .WithStatus(status)
-                     .WithError(error_str));
+                     .WithError(error_str)
+                     .WithBytesDownloaded(bytesDownloaded)
+                     .WithBytesUploaded(bytesUploaded));
       }
 
     };

@@ -55,6 +55,9 @@ constexpr auto kLogTag = "OLPHttpTask";
 @implementation OLPHttpTask {
   __weak NSURLSession* _urlSession;
   __weak OLPHttpClient* _httpClient;
+  uint64_t _headersSizeReceived;
+  uint64_t _headersSizeSent;
+  uint64_t _contentLength;
 }
 
 - (instancetype)initWithHttpClient:(OLPHttpClient*)client
@@ -66,6 +69,9 @@ constexpr auto kLogTag = "OLPHttpTask";
     _HTTPMethod = OLPHttpMethodGet;
     _urlSession = session;
     _requestId = identifier;
+    _headersSizeReceived = 0;
+    _headersSizeSent = 0;
+    _contentLength = 0;
   }
   return self;
 }
@@ -85,6 +91,7 @@ constexpr auto kLogTag = "OLPHttpTask";
 
   for (NSString* key in self.headers.allKeys) {
     NSString* value = self.headers[key];
+    _headersSizeSent += key.length + value.length;
     [request setValue:value forHTTPHeaderField:key];
   }
 
@@ -149,7 +156,9 @@ constexpr auto kLogTag = "OLPHttpTask";
   }
 
   if (completionHandler) {
-    completionHandler(error);
+    completionHandler(error,
+                      _headersSizeReceived + (_contentLength ? _contentLength : _dataTask.countOfBytesReceived),
+                      _headersSizeSent + _dataTask.countOfBytesSent);
   }
 
   @synchronized(self) {
@@ -175,6 +184,17 @@ constexpr auto kLogTag = "OLPHttpTask";
   }
 
   if (responseHandler) {
+    auto headers = ((NSHTTPURLResponse*)response).allHeaderFields;
+    for (NSString* key in headers)
+    {
+      NSString* value = headers[key];
+      if ([key isEqualToString:@"Content-Length"])
+      {
+        auto longLongValue = [value longLongValue];
+        _contentLength = longLongValue < 0 ? 0 : longLongValue;
+      }
+      _headersSizeReceived += key.length + value.length;
+    }
     responseHandler((NSHTTPURLResponse*)response);
   }
 }
