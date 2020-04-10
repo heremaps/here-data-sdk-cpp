@@ -36,6 +36,14 @@ This SDK lets you:
 
 Additionally, the SDK includes classes for work with geospatial tiling schemes that are used by most OLP catalog layers.
 
+## Backward Compatibility
+
+We try to develop and maintain our API in a way that preserves its compatibility with the existing applications. Changes in OLP SDK for C++ are greatly influenced by the Data API development. Data API introduces breaking changes 6 months in advance. Therefore, you may need to migrate to a new version of OLP SDK for C++ every half a year.
+
+For more information on Data API, see its [Developer Guide](https://developer.here.com/olp/documentation/data-api/data_dev_guide/index.html) and [API Reference](https://developer.here.com/olp/documentation/data-api/api-reference.html).
+
+When new API is introduced in OLP SDK for C++, the old one is not deleted straight away. The standard deprecation time is 6 months. It gives you time to switch to new code. All of the deprecated methods, functions, and parameters are documented in the OLP SDK for C++ [API Reference](https://developer.here.com/olp/documentation/sdk-cpp/api_reference/index.html) and [changelog](CHANGELOG.md).
+
 ## Supported Platforms
 
 The table below lists the platforms on which the OLP SDK for C++ has been tested.
