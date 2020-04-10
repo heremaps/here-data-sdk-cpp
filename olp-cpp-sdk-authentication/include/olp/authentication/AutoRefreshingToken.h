@@ -45,7 +45,8 @@ static constexpr auto kForceRefresh = std::chrono::seconds(0);
  * Requests a new token from the token endpoint and automatically refreshes it
  * when the token is about to expire.
  */
-class AUTHENTICATION_API AutoRefreshingToken {
+class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed by 10.2020.")
+    AutoRefreshingToken {
  public:
   // Needed to avoid endless warnings from TokenRequest/TokenResult
   PORTING_PUSH_WARNINGS()
