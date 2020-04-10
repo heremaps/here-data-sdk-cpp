@@ -130,10 +130,10 @@ Java_com_here_olp_network_HttpClient_dataCallback(JNIEnv* env, jobject obj,
  * Callback to be called when a request is completed
  */
 extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
-Java_com_here_olp_network_HttpClient_completeRequest(JNIEnv* env, jobject obj,
-                                                     jlong request_id,
-                                                     jint status, jstring error,
-                                                     jstring content_type) {
+Java_com_here_olp_network_HttpClient_completeRequest(
+    JNIEnv* env, jobject obj, jlong request_id, jint status,
+    jint uploaded_bytes, jint downloaded_bytes, jstring error,
+    jstring content_type) {
   auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
   if (!network) {
     OLP_SDK_LOG_WARNING(
@@ -141,7 +141,8 @@ Java_com_here_olp_network_HttpClient_completeRequest(JNIEnv* env, jobject obj,
                      << request_id);
     return;
   }
-  network->CompleteRequest(env, request_id, status, error, content_type);
+  network->CompleteRequest(env, request_id, status, uploaded_bytes,
+                           downloaded_bytes, error, content_type);
 }
 
 /*
@@ -387,7 +388,7 @@ bool NetworkAndroid::Initialize() {
          (void*)&Java_com_here_olp_network_HttpClient_dateAndOffsetCallback},
         {"dataCallback", "(J[BI)V",
          (void*)&Java_com_here_olp_network_HttpClient_dataCallback},
-        {"completeRequest", "(JILjava/lang/String;Ljava/lang/String;)V",
+        {"completeRequest", "(JIIILjava/lang/String;Ljava/lang/String;)V",
          (void*)&Java_com_here_olp_network_HttpClient_completeRequest},
         {"resetRequest", "(J)V",
          (void*)&Java_com_here_olp_network_HttpClient_resetRequest}};
@@ -656,7 +657,8 @@ void NetworkAndroid::DataReceived(JNIEnv* env, RequestId request_id,
 }
 
 void NetworkAndroid::CompleteRequest(JNIEnv* env, RequestId request_id,
-                                     int status, jstring error,
+                                     int status, int uploaded_bytes,
+                                     int downloaded_bytes, jstring error,
                                      jstring jcontent_type) {
   std::unique_lock<std::mutex> lock(requests_mutex_);
   auto iter_request = requests_.find(request_id);
@@ -668,10 +670,11 @@ void NetworkAndroid::CompleteRequest(JNIEnv* env, RequestId request_id,
   }
 
   auto request_data = iter_request->second;
-
-  OLP_SDK_LOG_DEBUG(kLogTag, "CompleteRequest, request_id="
-                                 << request_id << ", url=" << request_data->url
-                                 << ", status=" << status);
+  OLP_SDK_LOG_DEBUG(
+      kLogTag, "CompleteRequest, request_id="
+                   << request_id << ",  uploaded_bytes=" << uploaded_bytes
+                   << ",  downloaded_bytes=" << downloaded_bytes
+                   << ", url=" << request_data->url << ", status=" << status);
   // We don't need the object anymore
   env->DeleteGlobalRef(request_data->obj);
   request_data->obj = nullptr;
@@ -696,7 +699,8 @@ void NetworkAndroid::CompleteRequest(JNIEnv* env, RequestId request_id,
   const char* content_type_data = env->GetStringUTFChars(jcontent_type, NULL);
   // Create a response data
   ResponseData response_data(request_id, request_data->callback, status,
-                             error_data, content_type_data, request_data->count,
+                             uploaded_bytes, downloaded_bytes, error_data,
+                             content_type_data, request_data->count,
                              request_data->offset, request_data->payload);
 
   env->ReleaseStringUTFChars(error, error_data);
@@ -853,7 +857,9 @@ void NetworkAndroid::SelfRun() {
         callback(NetworkResponse()
                      .WithRequestId(response_data.id)
                      .WithStatus(response_data.status)
-                     .WithError(response_data.error));
+                     .WithError(response_data.error)
+                     .WithBytesUploaded(response_data.uploaded_bytes)
+                     .WithBytesDownloaded(response_data.downloaded_bytes));
       }
     }
   }
@@ -1051,9 +1057,9 @@ NetworkAndroid::RequestData::RequestData(
       obj(nullptr) {}
 
 NetworkAndroid::ResponseData::ResponseData(
-    RequestId id, Network::Callback callback, int status, const char* error,
-    const char* content_type, jlong count, jlong offset,
-    std::shared_ptr<std::ostream> payload)
+    RequestId id, Network::Callback callback, int status, int uploaded_bytes,
+    int downloaded_bytes, const char* error, const char* content_type,
+    jlong count, jlong offset, std::shared_ptr<std::ostream> payload)
     : id(id),
       callback(callback),
       payload(payload),
@@ -1061,6 +1067,8 @@ NetworkAndroid::ResponseData::ResponseData(
       content_type(content_type),
       status(status),
       count(count),
+      uploaded_bytes(uploaded_bytes),
+      downloaded_bytes(downloaded_bytes),
       offset(offset) {}
 
 }  // namespace http
