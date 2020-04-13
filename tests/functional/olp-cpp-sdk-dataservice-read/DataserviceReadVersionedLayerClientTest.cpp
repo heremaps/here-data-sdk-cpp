@@ -108,8 +108,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionAsync) {
   auto partition = CustomParameters::getArgument(
       "dataservice_read_test_versioned_partition");
   auto token = catalog_client->GetData(
-      olp::dataservice::read::DataRequest()
-          .WithPartitionId(partition),
+      olp::dataservice::read::DataRequest().WithPartitionId(partition),
       [&promise](DataResponse response) { promise.set_value(response); });
 
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
@@ -132,7 +131,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          catalog, layer, *settings_);
+          catalog, layer, boost::none, *settings_);
   ASSERT_TRUE(catalog_client);
 
   std::promise<DataResponse> promise;
@@ -156,7 +155,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionSync) {
       CustomParameters::getArgument("dataservice_read_test_versioned_catalog"));
   auto layer =
       CustomParameters::getArgument("dataservice_read_test_versioned_layer");
-  auto version = 0;
+  auto version = std::stoi(CustomParameters::getArgument(
+      "dataservice_read_test_versioned_layer_version"));
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
@@ -167,8 +167,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionSync) {
   auto partition = CustomParameters::getArgument(
       "dataservice_read_test_versioned_partition");
   auto token = catalog_client->GetData(
-      olp::dataservice::read::DataRequest()
-          .WithPartitionId(partition),
+      olp::dataservice::read::DataRequest().WithPartitionId(partition),
       [&response](DataResponse resp) { response = std::move(resp); });
   EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult() != nullptr);
@@ -185,7 +184,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
       "dataservice_read_test_versioned_prefetch_tile");
 
   auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-      catalog, kLayerId, *settings_);
+      catalog, kLayerId, boost::none, *settings_);
 
   {
     SCOPED_TRACE("Prefetch tiles online and store them in memory cache");
@@ -273,7 +272,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWrongLevels) {
       "dataservice_read_test_versioned_prefetch_tile");
 
   auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-      catalog, kLayerId, *settings_);
+      catalog, kLayerId, boost::none, *settings_);
 
   {
     SCOPED_TRACE("Prefetch tiles online and store them in memory cache");
@@ -398,7 +397,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWithCancellableFuture) {
       "dataservice_read_test_versioned_prefetch_tile");
 
   auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-      catalog, kLayerId, *settings_);
+      catalog, kLayerId, boost::none, *settings_);
 
   std::vector<olp::geo::TileKey> tile_keys = {
       olp::geo::TileKey::FromHereTile(kTileId)};
@@ -430,7 +429,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsWithInvalidHrn) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", *settings_);
+          hrn, "testlayer", boost::none, *settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   auto partitions_response =
@@ -448,7 +447,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitions) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", *settings_);
+          hrn, "testlayer", boost::none, *settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   auto partitions_response =
@@ -466,7 +465,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsForInvalidLayer) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "invalidLayer", *settings_);
+          hrn, "invalidLayer", boost::none, *settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   auto partitions_response =
@@ -485,7 +484,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithInvalidHrn) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", *settings_);
+          hrn, "testlayer", boost::none, *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithDataHandle("d5d73b64-7365-41c3-8faf-aa6ad5bab135");
@@ -504,7 +503,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithHandle) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", *settings_);
+          hrn, "testlayer", boost::none, *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithDataHandle("d5d73b64-7365-41c3-8faf-aa6ad5bab135");
@@ -527,7 +526,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithInvalidDataHandle) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", *settings_);
+          hrn, "testlayer", boost::none, *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithDataHandle("invalidDataHandle");
@@ -546,7 +545,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataHandleWithInvalidLayer) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "invalidLayer", *settings_);
+          hrn, "invalidLayer", boost::none, *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithDataHandle("invalidDataHandle");
@@ -566,7 +565,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithPartitionId) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", *settings_);
+          hrn, "testlayer", boost::none, *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithPartitionId("269");
@@ -628,17 +627,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   ASSERT_EQ(olp::client::ErrorCode::BadRequest,
             data_response.GetError().GetErrorCode());
   ASSERT_EQ(400, data_response.GetError().GetHttpStatusCode());
-
-  request.WithVersion(-1);
-  data_response = GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-    auto future = catalog_client->GetData(request);
-    return future.GetFuture().get();
-  });
-
-  ASSERT_FALSE(data_response.IsSuccessful());
-  ASSERT_EQ(olp::client::ErrorCode::BadRequest,
-            data_response.GetError().GetErrorCode());
-  ASSERT_EQ(400, data_response.GetError().GetHttpStatusCode());
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsVersion2) {
@@ -649,7 +637,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsVersion2) {
           hrn, "testlayer", 2, *settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
-  request.WithVersion(2);
   auto partitions_response =
       GetExecutionTime<olp::dataservice::read::PartitionsResponse>([&] {
         auto future = catalog_client->GetPartitions(request);
@@ -807,7 +794,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTile) {
       "dataservice_read_test_versioned_prefetch_tile");
 
   auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-      catalog, kLayerId, *settings_);
+      catalog, kLayerId, boost::none, *settings_);
 
   auto request = olp::dataservice::read::TileRequest().WithTileKey(
       olp::geo::TileKey::FromHereTile(kTileId));
@@ -831,7 +818,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileWithInvalidLayerId) {
       "dataservice_read_test_versioned_prefetch_tile");
 
   auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-      catalog, "invalidLayer", *settings_);
+      catalog, "invalidLayer", boost::none, *settings_);
 
   auto request = olp::dataservice::read::TileRequest().WithTileKey(
       olp::geo::TileKey::FromHereTile(kTileId));
@@ -855,7 +842,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileEmptyField) {
       "dataservice_read_test_versioned_prefetch_layer");
 
   auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-      catalog, kLayerId, *settings_);
+      catalog, kLayerId, boost::none, *settings_);
 
   auto request = olp::dataservice::read::TileRequest().WithTileKey(
       olp::geo::TileKey::FromHereTile(""));
