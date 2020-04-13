@@ -31,8 +31,8 @@ export BUILD_DIR="$WORKSPACE/$BUILD_DIR_NAME"
 export ARCHIVE_FILE_NAME="binaries.tar.gz"      # artifact name is defined by CI so please do not rename it
 export BUILD_ZIP=1                              # always build artifacts
 
-export CMAKE_CXX_FLAGS="-march=x86-64 -gdwarf-2 -g3 -O0 -fno-builtin -Wall -Wextra -Werror -Wno-deprecated-declarations"
-export CMAKE_C_FLAGS="-march=x86-64 -gdwarf-2 -g3 -O0 -fno-builtin -Wall -Wextra -Werror -Wno-deprecated-declarations"
+export CMAKE_CXX_FLAGS="-march=x86-64 -gdwarf-2 -g3 -O0 -fno-builtin -Wall -Wextra -Werror"
+export CMAKE_C_FLAGS="-march=x86-64 -gdwarf-2 -g3 -O0 -fno-builtin -Wall -Wextra -Werror"
 
 # Add more parameters into CMAKE_PARAM below when needed
 export FLAVOR="Debug"

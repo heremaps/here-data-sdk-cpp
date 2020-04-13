@@ -23,6 +23,7 @@
 
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
+#include <olp/core/porting/warning_disable.h>
 #include <testutils/CustomParameters.hpp>
 #include "AuthenticationTestUtils.h"
 #include "TestConstants.h"
@@ -613,6 +614,9 @@ TEST_F(AuthenticationClientTest, SignOutUser) {
   EXPECT_STREQ(kErrorNoContent.c_str(), response4.error.c_str());
 }
 
+PORTING_PUSH_WARNINGS()
+PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
+
 TEST_F(AuthenticationClientTest, NetworkProxySettings) {
   AuthenticationCredentials credentials(id_, secret_);
 
@@ -631,6 +635,8 @@ TEST_F(AuthenticationClientTest, NetworkProxySettings) {
               olp::client::ErrorCode::ServiceUnavailable);
   EXPECT_STRNE(response.GetError().GetMessage().c_str(), kErrorOk.c_str());
 }
+
+PORTING_POP_WARNINGS()
 
 TEST_F(AuthenticationClientTest, ErrorFields) {
   static const std::string PASSWORD = "password";

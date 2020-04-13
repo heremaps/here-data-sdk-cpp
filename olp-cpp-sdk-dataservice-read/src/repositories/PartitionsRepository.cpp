@@ -296,7 +296,7 @@ PartitionsResponse PartitionsRepository::GetPartitionForVersionedTile(
                            partition.GetDataHandle().c_str());
         model::Partitions result;
         result.SetPartitions({partition});
-        return std::move(result);
+        return result;
       }
     }
   } else if (request.GetFetchOption() == CacheOnly) {
@@ -371,7 +371,7 @@ PartitionsResponse PartitionsRepository::QueryPartitionForVersionedTile(
     return ApiError(ErrorCode::NotFound,
                     "Partition for requested TileKey was not found.");
   }
-  return std::move(result);
+  return result;
 }
 
 model::Partitions PartitionsRepository::GetTileFromCache(

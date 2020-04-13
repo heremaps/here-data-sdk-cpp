@@ -25,8 +25,13 @@
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/porting/make_unique.h>
+#include <olp/core/porting/warning_disable.h>
 
 #include "AuthenticationMockedResponses.h"
+
+//  OLPEDGE-1797
+PORTING_PUSH_WARNINGS()
+PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 
 using namespace olp::authentication;
 using namespace olp::tests::common;
@@ -108,14 +113,16 @@ class HereAccountOauth2Test : public ::testing::Test {
  public:
   HereAccountOauth2Test() : key_("key"), secret_("secret") {}
   void SetUp() {
-    client_ = std::make_unique<AuthenticationClient>(
-        "https://authentication.server.url");
-
     network_ = std::make_shared<NetworkMock>();
     task_scheduler_ =
         olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
-    client_->SetNetwork(network_);
-    client_->SetTaskScheduler(task_scheduler_);
+
+    AuthenticationSettings settings;
+    settings.network_request_handler = network_;
+    settings.task_scheduler = task_scheduler_;
+    settings.token_endpoint_url = "https://authentication.server.url";
+
+    client_ = std::make_unique<AuthenticationClient>(settings);
   }
 
   void TearDown() {
@@ -313,3 +320,5 @@ TEST_F(HereAccountOauth2Test, AutoRefreshingTokenCancelAsync) {
             .MoveResult();
       });
 }
+
+PORTING_POP_WARNINGS()

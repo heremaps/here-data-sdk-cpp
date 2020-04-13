@@ -37,6 +37,11 @@
 #include <olp/core/generated/parser/JsonParser.h>
 // clang-format on
 
+// Remove after OLPEDGE-1794
+#include <olp/core/porting/warning_disable.h>
+PORTING_PUSH_WARNINGS()
+PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
+
 namespace {
 using namespace olp;
 using namespace client;
@@ -928,3 +933,5 @@ TEST_F(PartitionsRepositoryTest, GetPartitionForVersionedTile) {
   }
 }
 }  // namespace
+
+PORTING_POP_WARNINGS()

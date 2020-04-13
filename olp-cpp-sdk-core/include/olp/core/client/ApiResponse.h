@@ -67,15 +67,6 @@ class ApiResponse {
   ApiResponse(const ErrorType& error) : error_(error), success_(false) {}
 
   /**
-   * @brief Creates the `ApiResponse` instance that is a copy of the `r`
-   * parameter.
-   *
-   * @param r The `ApiResponse` instance from which the response is copied.
-   */
-  ApiResponse(const ApiResponse& r)
-      : result_(r.result_), error_(r.error_), success_(r.success_) {}
-
-  /**
    * @brief Checks the status of the request attempt.
    *
    * @return True if the request is successfully completed; false otherwise.

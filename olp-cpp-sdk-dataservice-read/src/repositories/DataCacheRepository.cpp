@@ -59,7 +59,7 @@ boost::optional<model::Data> DataCacheRepository::Get(
     return boost::none;
   }
 
-  return std::move(cachedData);
+  return cachedData;
 }
 
 bool DataCacheRepository::Clear(const std::string& layer_id,

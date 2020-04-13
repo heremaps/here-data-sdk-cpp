@@ -291,7 +291,7 @@ TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
 
   StartThreads([=](uint8_t /*thread_id*/) {
     olp::dataservice::read::VersionedLayerClient service_client(
-        kCatalog, kVersionedLayerId, settings);
+        kCatalog, kVersionedLayerId, boost::none, settings);
 
     const auto end_timestamp =
         std::chrono::steady_clock::now() + parameter.runtime;
@@ -327,7 +327,7 @@ TEST_P(MemoryTest, PrefetchPartitionsFromVersionedLayer) {
 
   StartThreads([=](uint8_t /*thread_id*/) {
     olp::dataservice::read::VersionedLayerClient service_client(
-        kCatalog, kVersionedLayerId, settings);
+        kCatalog, kVersionedLayerId, boost::none, settings);
 
     const auto end_timestamp =
         std::chrono::steady_clock::now() + parameter.runtime;
@@ -343,7 +343,6 @@ TEST_P(MemoryTest, PrefetchPartitionsFromVersionedLayer) {
       auto request = olp::dataservice::read::PrefetchTilesRequest()
                          .WithMaxLevel(level + 2)
                          .WithMinLevel(level)
-                         .WithVersion(17)
                          .WithTileKeys(tile_keys);
       total_requests_.fetch_add(1);
       auto token = service_client.PrefetchTiles(

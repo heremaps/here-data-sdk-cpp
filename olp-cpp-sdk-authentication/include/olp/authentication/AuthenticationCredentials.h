@@ -96,15 +96,6 @@ class AUTHENTICATION_API AuthenticationCredentials {
   AuthenticationCredentials(std::string key, std::string secret);
 
   /**
-   * @brief Creates the `AuthenticationCredentials` instance that is a copy
-   * of the `other` parameter that contains the access credentials.
-   *
-   * @param other The `AuthenticationCredentials` instance from which the access
-   * key ID and access key secret are copied.
-   */
-  AuthenticationCredentials(const AuthenticationCredentials& other);
-
-  /**
    * @brief Gets the access key ID from the `AuthenticationCredentials`
    * instance.
    *

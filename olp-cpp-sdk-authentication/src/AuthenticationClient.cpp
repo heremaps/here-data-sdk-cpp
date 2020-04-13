@@ -919,9 +919,8 @@ client::CancellationToken AuthenticationClient::Impl::IntrospectApp(
   auto introspect_app_task =
       [=](client::CancellationContext context) -> ResponseType {
     if (!settings_.network_request_handler) {
-      client::ApiError result({static_cast<int>(http::ErrorCode::IO_ERROR),
+      return client::ApiError({static_cast<int>(http::ErrorCode::IO_ERROR),
                                "Cannot introspect app while offline"});
-      return std::move(result);
     }
 
     client::AuthenticationSettings auth_settings;
@@ -949,12 +948,10 @@ client::CancellationToken AuthenticationClient::Impl::IntrospectApp(
       if (!document.HasParseError() && document.HasMember(Constants::MESSAGE)) {
         msg = document[Constants::MESSAGE].GetString();
       }
-      client::ApiError error({http_result.status, msg});
-      return std::move(error);
+      return client::ApiError({http_result.status, msg});
     }
 
-    IntrospectAppResult response_result = GetIntrospectAppResult(document);
-    return std::move(response_result);
+    return GetIntrospectAppResult(document);
   };
 
   // wrap_callback needed to convert client::ApiError into AuthenticationError.

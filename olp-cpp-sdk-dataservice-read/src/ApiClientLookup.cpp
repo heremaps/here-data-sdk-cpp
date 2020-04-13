@@ -65,7 +65,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
       client::OlpClient client;
       client.SetSettings(std::move(settings));
       client.SetBaseUrl(*url);
-      return std::move(client);
+      return client;
     } else if (options == CacheOnly) {
       return client::ApiError(
           client::ErrorCode::NotFound,
@@ -117,7 +117,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
   client::OlpClient service_client;
   service_client.SetBaseUrl(service_url);
   service_client.SetSettings(settings);
-  return std::move(service_client);
+  return service_client;
 }
 
 }  // namespace read

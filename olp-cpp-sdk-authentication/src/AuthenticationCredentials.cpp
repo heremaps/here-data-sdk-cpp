@@ -95,10 +95,6 @@ AuthenticationCredentials::AuthenticationCredentials(std::string key,
                                                      std::string secret)
     : key_(std::move(key)), secret_(std::move(secret)) {}
 
-AuthenticationCredentials::AuthenticationCredentials(
-    const AuthenticationCredentials& other)
-    : key_(other.key_), secret_(other.secret_) {}
-
 const std::string& AuthenticationCredentials::GetKey() const { return key_; }
 
 const std::string& AuthenticationCredentials::GetSecret() const {

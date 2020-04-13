@@ -118,13 +118,15 @@ class AuthenticationClientTest : public ::testing::Test {
   AuthenticationClientTest()
       : key_("key"), secret_("secret"), scope_("scope") {}
   void SetUp() {
-    client_ = std::make_unique<AuthenticationClient>(kTokenEndpointUrl);
-
     network_ = std::make_shared<NetworkMock>();
     task_scheduler_ =
         olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
-    client_->SetNetwork(network_);
-    client_->SetTaskScheduler(task_scheduler_);
+
+    AuthenticationSettings settings;
+    settings.network_request_handler = network_;
+    settings.task_scheduler = task_scheduler_;
+    settings.token_endpoint_url = kTokenEndpointUrl;
+    client_ = std::make_unique<AuthenticationClient>(settings);
   }
 
   void TearDown() {}

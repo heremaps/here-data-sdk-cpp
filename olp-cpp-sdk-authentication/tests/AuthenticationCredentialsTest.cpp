@@ -90,3 +90,12 @@ TEST(AuthenticationCredentialsTest, ReadFromFile) {
     EXPECT_FALSE(credentials);
   }
 }
+
+
+TEST(AuthenticationCredentialsTest, CanBeCopied) {
+  AuthenticationCredentials credentials("test_key", "test_secred");
+  AuthenticationCredentials copy = credentials;
+  EXPECT_EQ(credentials.GetKey(), copy.GetKey());
+  EXPECT_EQ(credentials.GetSecret(), copy.GetSecret());
+}
+

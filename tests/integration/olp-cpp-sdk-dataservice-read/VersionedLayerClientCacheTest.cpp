@@ -110,7 +110,7 @@ TEST_P(VersionedLayerClientCacheTest, GetDataWithPartitionId) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", settings_);
+          hrn, "testlayer", boost::none, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithPartitionId("269");
@@ -158,7 +158,7 @@ TEST_P(VersionedLayerClientCacheTest, GetPartitionsLayerVersions) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", settings_);
+          hrn, "testlayer", boost::none, settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   auto future = catalog_client->GetPartitions(request);
@@ -185,7 +185,7 @@ TEST_P(VersionedLayerClientCacheTest, GetPartitions) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", settings_);
+          hrn, "testlayer", boost::none, settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   auto future = catalog_client->GetPartitions(request);

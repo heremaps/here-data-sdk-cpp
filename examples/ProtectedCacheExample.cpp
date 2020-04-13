@@ -105,7 +105,7 @@ int RunExampleReadWithCache(const AccessKey& access_key,
 
   // Create appropriate layer client with HRN, layer name and settings.
   olp::dataservice::read::VersionedLayerClient layer_client(
-      olp::client::HRN(catalog), first_layer_id, client_settings);
+      olp::client::HRN(catalog), first_layer_id, boost::none, client_settings);
 
   // Retrieve the partition data
   // Create a DataRequest with appropriate LayerId and PartitionId

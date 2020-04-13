@@ -44,10 +44,12 @@ class AuthenticationProductionTest : public ::testing::Test {
 
   void SetUp() override {
     // Use production HERE Account server
-    client_ = std::make_unique<AuthenticationClient>();
-    client_->SetTaskScheduler(
-        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler());
-    client_->SetNetwork(s_network_);
+    AuthenticationSettings settings;
+    settings.network_request_handler = s_network_;
+    settings.task_scheduler =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
+
+    client_ = std::make_unique<AuthenticationClient>(settings);
   }
 
   void TearDown() override { client_.reset(); }
