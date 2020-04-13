@@ -1062,7 +1062,8 @@ NetworkWinHttp::RequestData::RequestData(
       in_use(false) {}
 
 NetworkWinHttp::RequestData::RequestData()
-    : http_request(NULL),
+    : self(nullptr),
+      http_request(NULL),
       request_id(static_cast<RequestId>(RequestIdConstants::RequestIdInvalid)),
       ignore_data(),
       no_compression(false),
