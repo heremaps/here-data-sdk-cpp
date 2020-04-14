@@ -130,9 +130,9 @@ SubTilesResponse PrefetchTilesRepository::GetSubTiles(
     const RootTilesForRequest& root_tiles, client::CancellationContext context,
     const client::OlpClientSettings& settings) {
   SubTilesResult result;
-  OLP_SDK_LOG_INFO_F(kLogTag, "GetSubTiles: hrn=%s, layer=%s, quads=%zu",
-                     catalog.ToString().c_str(), layer_id.c_str(),
-                     root_tiles.size());
+  OLP_SDK_LOG_INFO_F(
+      kLogTag, "GetSubTiles: hrn=%s, layer=%s, root tiles size=%zu",
+      catalog.ToString().c_str(), layer_id.c_str(), root_tiles.size());
 
   for (const auto& quad : root_tiles) {
     if (context.IsCancelled()) {
@@ -201,12 +201,15 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
   const auto& subquads = quad_tree.GetResult().GetSubQuads();
   partitions.GetMutablePartitions().reserve(subquads.size());
 
+  OLP_SDK_LOG_DEBUG_F(
+      kLogTag,
+      "GetSubQuad results for key=%s, size=%zu,  version=%" PRId64
+      ", depth=%" PRId32 ")",
+      tile_key.c_str(), subquads.size(), version, depth);
+
   for (const auto& subquad : subquads) {
     auto subtile = tile.AddedSubHereTile(subquad->GetSubQuadKey());
-    OLP_SDK_LOG_DEBUG_F(kLogTag,
-                        "GetSubQuad key(%s, %s | %" PRId64 ", %" PRId32 ")",
-                        subtile.ToHereTile().c_str(),
-                        subquad->GetDataHandle().c_str(), version, depth);
+
     // Add to result
     result.emplace(subtile, subquad->GetDataHandle());
 
@@ -262,11 +265,13 @@ SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
   const auto& subquads = quad_tree.GetResult().GetSubQuads();
   partitions.GetMutablePartitions().reserve(subquads.size());
 
+  OLP_SDK_LOG_DEBUG_F(
+      kLogTag, "GetSubQuad results for key=%s, size=%zu, depth=%" PRId32 ")",
+      tile_key.c_str(), subquads.size(), depth);
+
   for (const auto& subquad : subquads) {
     auto subtile = tile.AddedSubHereTile(subquad->GetSubQuadKey());
-    OLP_SDK_LOG_DEBUG_F(
-        kLogTag, "GetSubQuadsVolatile key(%s, %s | %" PRId32 ")",
-        subtile.ToHereTile().c_str(), subquad->GetDataHandle().c_str(), depth);
+
     // Add to result
     result.emplace(subtile, subquad->GetDataHandle());
 
