@@ -1606,8 +1606,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
   }
 }
 
-
-TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchSibilingTilesDefaultLevels) {
+TEST_F(DataserviceReadVersionedLayerClientTest,
+       PrefetchSibilingTilesDefaultLevels) {
   olp::client::HRN catalog(GetTestCatalog());
   constexpr auto kLayerId = "hype-test-prefetch";
 
@@ -1618,25 +1618,25 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchSibilingTilesDefaultLeve
   {
     SCOPED_TRACE("Prefetch tiles online, ");
     std::vector<olp::geo::TileKey> tile_keys = {
-        olp::geo::TileKey::FromHereTile("23618366"), olp::geo::TileKey::FromHereTile("23618365")};
+        olp::geo::TileKey::FromHereTile("23618366"),
+        olp::geo::TileKey::FromHereTile("23618365")};
 
     EXPECT_CALL(*network_mock_,
-            Send(IsGetRequest(URL_QUADKEYS_92259), _, _, _, _))
-        .WillOnce(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               HTTP_RESPONSE_QUADKEYS_92259));
+                Send(IsGetRequest(URL_QUADKEYS_92259), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     HTTP_RESPONSE_QUADKEYS_92259));
     EXPECT_CALL(*network_mock_,
-            Send(IsGetRequest(URL_QUADKEYS_23618364), _, _, _, _))
+                Send(IsGetRequest(URL_QUADKEYS_23618364), _, _, _, _))
         .Times(0);
     EXPECT_CALL(*network_mock_,
-            Send(IsGetRequest(URL_QUADKEYS_1476147), _, _, _, _))
+                Send(IsGetRequest(URL_QUADKEYS_1476147), _, _, _, _))
         .Times(0);
     EXPECT_CALL(*network_mock_,
-            Send(IsGetRequest(URL_QUADKEYS_5904591), _, _, _, _))
+                Send(IsGetRequest(URL_QUADKEYS_5904591), _, _, _, _))
         .Times(0);
     EXPECT_CALL(*network_mock_,
-            Send(IsGetRequest(URL_QUADKEYS_369036), _, _, _, _))
+                Send(IsGetRequest(URL_QUADKEYS_369036), _, _, _, _))
         .Times(0);
 
     auto request = olp::dataservice::read::PrefetchTilesRequest()
@@ -2923,8 +2923,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CheckLookupApiCacheExpiration) {
   auto cache = std::make_shared<testing::StrictMock<CacheMock>>();
   settings_->cache = cache;
 
-  auto client = olp::dataservice::read::VersionedLayerClient(
-      hrn, "testlayer", 4, *settings_);
+  auto client = olp::dataservice::read::VersionedLayerClient(hrn, "testlayer",
+                                                             4, *settings_);
 
   // check if expiration time is 1 hour(3600 sec)
   time_t expiration_time = 3600;
@@ -2974,7 +2974,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CheckLookupApiCacheExpiration) {
       .Times(1)
       .WillOnce(Return(true));
 
-  auto request = olp::dataservice::read::DataRequest().WithPartitionId("269").WithFetchOption(OnlineIfNotFound);
+  auto request = olp::dataservice::read::DataRequest()
+                     .WithPartitionId("269")
+                     .WithFetchOption(OnlineIfNotFound);
   auto future = client.GetData(request);
 
   auto data_response = future.GetFuture().get();
@@ -2985,7 +2987,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CheckLookupApiCacheExpiration) {
   std::string data_string(data_response.GetResult()->begin(),
                           data_response.GetResult()->end());
   ASSERT_EQ("DT_2_0031", data_string);
-
 }
 
 }  // namespace

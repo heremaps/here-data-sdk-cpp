@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,27 +20,28 @@
 #pragma once
 
 #include <chrono>
+#include <memory>
 #include <string>
 
-#include "AuthenticationCredentials.h"
-#include "AutoRefreshingToken.h"
-#include "Settings.h"
-#include "TokenEndpoint.h"
-#include "TokenResult.h"
-
-// Needed to avoid endless warnings from TokenEndpoint/TokenResponse
-PORTING_PUSH_WARNINGS()
-PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
+#include <olp/authentication/AuthenticationCredentials.h>
+#include <olp/authentication/AutoRefreshingToken.h>
+#include <olp/authentication/Settings.h>
+#include <olp/authentication/TokenEndpoint.h>
+#include <olp/authentication/TokenResult.h>
+#include <olp/core/http/HttpStatusCode.h>
 
 namespace olp {
 namespace authentication {
-/** @file TokenProvider.h */
+
+// Needed to avoid endless warnings from TokenRequest/TokenResult
+PORTING_PUSH_WARNINGS()
+PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 
 /**
  * @brief Provides the authentication tokens if the HERE Open Location Platform
  * (OLP) user credentials are valid.
  *
- * @param MinimumValidity The minimum token validity time (in seconds).
+ * @tparam MinimumValidity The minimum token validity time (in seconds).
  * To use the default `MinimumValidity` value, use the `TokenProviderDefault`
  * typedef.
  *
@@ -56,8 +57,14 @@ class TokenProvider {
    * the `TokenEndpoint` instance.
    */
   explicit TokenProvider(Settings settings)
-      : token_(
-            TokenEndpoint(std::move(settings)).RequestAutoRefreshingToken()) {}
+      : impl_(std::make_shared<TokenProviderImpl>(
+            std::move(settings), std::chrono::seconds(MinimumValidity))) {}
+
+  // Default copyable, default movable.
+  TokenProvider(const TokenProvider& other) = default;
+  TokenProvider(TokenProvider&& other) noexcept = default;
+  TokenProvider& operator=(const TokenProvider& other) = default;
+  TokenProvider& operator=(TokenProvider&& other) noexcept = default;
 
   /**
    * @brief Casts the `TokenProvider` instance to the `bool` type.
@@ -67,7 +74,7 @@ class TokenProvider {
    * @returns True if the previous token request was successful; false
    * otherwise.
    */
-  operator bool() const { return IsTokenResponseOK(GetResponse()); }
+  operator bool() const { return impl_->IsTokenResponseOK(); }
 
   /**
    * @brief Casts the `TokenProvider` instance to the `std::string` type.
@@ -78,11 +85,7 @@ class TokenProvider {
    * @returns The access token string if the response is successful; an empty
    * string otherwise.
    */
-  std::string operator()() const {
-    return GetResponse().IsSuccessful()
-               ? GetResponse().GetResult().GetAccessToken()
-               : "";
-  }
+  std::string operator()() const { return impl_->operator()(); }
 
   /**
    * @brief Allows the `olp::client::ApiError` object associated
@@ -90,11 +93,7 @@ class TokenProvider {
    *
    * @returns An error if the last token request failed.
    */
-  ErrorResponse GetErrorResponse() const {
-    return GetResponse().IsSuccessful()
-               ? GetResponse().GetResult().GetErrorResponse()
-               : ErrorResponse{};
-  }
+  ErrorResponse GetErrorResponse() const { return impl_->GetErrorResponse(); }
 
   /**
    * @brief Gets the HTTP status code of the last request.
@@ -102,33 +101,67 @@ class TokenProvider {
    * @returns The HTTP code of the last token request if it was successful.
    * Otherwise, returns the HTTP 503 Service Unavailable server error.
    */
-  int GetHttpStatusCode() const {
-    return GetResponse().IsSuccessful()
-               ? GetResponse().GetResult().GetHttpStatus()
-               : 503;  // ServiceUnavailable
-  }
+  int GetHttpStatusCode() const { return impl_->GetHttpStatusCode(); }
 
  private:
-  TokenEndpoint::TokenResponse GetResponse() const {
-    TokenEndpoint::TokenResponse resp =
-        token_.GetToken(std::chrono::seconds{MinimumValidity});
-    return resp;
-  }
+  class TokenProviderImpl {
+   public:
+    static constexpr auto kValidTokenResponseCode = 0ul;
+    using TokenResponse = TokenEndpoint::TokenResponse;
 
-  bool IsTokenResponseOK(const TokenEndpoint::TokenResponse& resp) const {
-    return resp.IsSuccessful() &&
-           resp.GetResult().GetErrorResponse().code == 0ul;
-  }
+    explicit TokenProviderImpl(Settings settings,
+                               std::chrono::seconds minimum_validity)
+        : minimum_validity_{minimum_validity},
+          token_(
+              TokenEndpoint(std::move(settings)).RequestAutoRefreshingToken()) {
+    }
 
-  AutoRefreshingToken token_;
+    /// @copydoc TokenProvider::operator()()
+    std::string operator()() const {
+      return GetResponse().IsSuccessful()
+                 ? GetResponse().GetResult().GetAccessToken()
+                 : "";
+    }
+
+    /// @copydoc TokenProvider::GetErrorResponse()
+    ErrorResponse GetErrorResponse() const {
+      auto response = GetResponse();
+      return !response.IsSuccessful() ? response.GetResult().GetErrorResponse()
+                                      : ErrorResponse{};
+    }
+
+    /// @copydoc TokenProvider::GetHttpStatusCode()
+    int GetHttpStatusCode() const {
+      auto response = GetResponse();
+      return response.IsSuccessful()
+                 ? response.GetResult().GetHttpStatus()
+                 : http::HttpStatusCode::SERVICE_UNAVAILABLE;
+    }
+
+    /// Get the token response from AutoRefreshingToken or request a new token
+    /// if expired or not present.
+    TokenResponse GetResponse() const {
+      return token_.GetToken(minimum_validity_);
+    }
+
+    /// Check if the available token response is valid, i.e. error code is 0.
+    bool IsTokenResponseOK() const {
+      const auto response = GetResponse();
+      return response.IsSuccessful() &&
+             response.GetResult().GetErrorResponse().code ==
+                 kValidTokenResponseCode;
+    }
+
+   private:
+    std::chrono::seconds minimum_validity_{kDefaultMinimumValidity};
+    AutoRefreshingToken token_;
+  };
+
+  std::shared_ptr<TokenProviderImpl> impl_;
 };
 
-/**
- * @brief Provides the authentication tokens using the default minimum token
- * validity.
- *
- * The HERE OLP user credentials should be valid.
- */
+/// Provides the authentication tokens using the default minimum token
+/// validity.
 using TokenProviderDefault = TokenProvider<kDefaultMinimumValidity>;
 
 PORTING_POP_WARNINGS()

@@ -100,7 +100,7 @@ TokenEndpoint::TokenEndpoint(Settings settings) {
   // The underlying auth library expects a base URL and appends /oauth2/token
   // endpoint to it. Therefore if /oauth2/token is found it is stripped from the
   // endpoint URL provided. The underlying auth library should be updated to
-  // supoprt an arbitrary token endpoint URL.
+  // support an arbitrary token endpoint URL.
   auto pos = settings.token_endpoint_url.find(kOauth2TokenEndpoint);
   if (pos != std::string::npos) {
     settings.token_endpoint_url.erase(pos, kOauth2TokenEndpoint.size());
