@@ -45,9 +45,12 @@ void AuthenticationCommonTestFixture::SetUp() {
   task_scheduler_ =
       olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
 
-  client_ = std::make_unique<AuthenticationClient>(kHereAccountStagingURL);
-  client_->SetNetwork(network_);
-  client_->SetTaskScheduler(task_scheduler_);
+  AuthenticationSettings settings;
+  settings.network_request_handler = network_;
+  settings.task_scheduler = task_scheduler_;
+  settings.token_endpoint_url = kHereAccountStagingURL;
+
+  client_ = std::make_unique<AuthenticationClient>(settings);
 }
 
 void AuthenticationCommonTestFixture::TearDown() {

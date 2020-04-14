@@ -359,7 +359,7 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, CancelAllRequests) {
   auto future = volatile_client->GetBaseVersion().GetFuture();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  volatile_client->CancelAll();
+  volatile_client->CancelPendingRequests();
 
   auto response = future.get();
   ASSERT_FALSE(response.IsSuccessful());

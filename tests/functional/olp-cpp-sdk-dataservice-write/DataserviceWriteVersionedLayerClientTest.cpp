@@ -250,7 +250,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, CancelAllBatch) {
           .GetFuture();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  versioned_client->CancelAll();
+  versioned_client->CancelPendingRequests();
 
   auto response = response_future.get();
   ASSERT_FALSE(response.IsSuccessful());
@@ -511,7 +511,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchCancel) {
                   .WithPartitionId("1111"))
           .GetFuture();
 
-  versioned_client->CancelAll();
+  versioned_client->CancelPendingRequests();
 
   auto publish_to_batch_response = publish_to_batch_future.get();
   ASSERT_FALSE(publish_to_batch_response.IsSuccessful());

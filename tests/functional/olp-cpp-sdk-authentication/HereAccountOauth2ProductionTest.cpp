@@ -28,11 +28,16 @@
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/http/NetworkProxySettings.h>
+#include <olp/core/porting/warning_disable.h>
 #include <testutils/CustomParameters.hpp>
 
 #include "Utils.h"
 
 using namespace ::olp::authentication;
+
+//  OLPEDGE-1797
+PORTING_PUSH_WARNINGS()
+PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 
 namespace {
 constexpr auto kTestMaxExecutionTime = std::chrono::seconds(30);
@@ -653,3 +658,6 @@ TEST_F(HereAccountOuauth2ProductionTest, AutoRefreshingTokenMultiThread) {
 }
 
 }  // namespace
+
+
+PORTING_POP_WARNINGS()

@@ -27,6 +27,7 @@
 #include <olp/core/http/Network.h>
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
+#include <olp/core/porting/warning_disable.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/PrefetchTileResult.h>
 #include <olp/dataservice/read/VolatileLayerClient.h>
@@ -211,6 +212,9 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitions) {
   ASSERT_EQ(4u, partitions_response.GetResult().GetPartitions().size());
 }
 
+PORTING_PUSH_WARNINGS()
+PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
+
 TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsVersionIsIgnored) {
   olp::client::HRN hrn(GetTestCatalog());
 
@@ -260,6 +264,8 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsVersionIsIgnored) {
     ASSERT_EQ(4u, partitions_response.GetResult().GetPartitions().size());
   }
 }
+
+PORTING_POP_WARNINGS()
 
 TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsCancellableFuture) {
   olp::client::HRN hrn(GetTestCatalog());

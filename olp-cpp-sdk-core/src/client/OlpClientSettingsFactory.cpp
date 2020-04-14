@@ -55,7 +55,7 @@ OlpClientSettingsFactory::CreateDefaultCache(cache::CacheSettings settings) {
         settings.disk_path_protected.get_value_or("(empty)").c_str());
     return nullptr;
   }
-  return std::move(cache);
+  return cache;
 }
 
 }  // namespace client

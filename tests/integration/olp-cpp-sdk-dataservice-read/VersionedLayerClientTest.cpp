@@ -29,7 +29,7 @@
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
-#include <olp/core/porting/make_unique.h>
+#include <olp/core/porting/warning_disable.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include <olp/dataservice/read/model/Partitions.h>
 
@@ -39,6 +39,9 @@ using namespace olp::dataservice::read;
 using namespace olp::tests::common;
 using namespace testing;
 
+// OLPEDGE-1799
+PORTING_PUSH_WARNINGS()
+PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 namespace {
 
 std::string GetArgument(const std::string& name) {
@@ -340,7 +343,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionAsync) {
   auto layer = GetArgument("dataservice_read_test_layer");
   auto version = std::stoi(GetArgument("dataservice_read_test_layer_version"));
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, version, *settings_);
   ASSERT_TRUE(client);
 
@@ -379,7 +382,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       GetArgument("dataservice_read_test_catalog"));
   auto layer = GetArgument("dataservice_read_test_layer");
   auto version = std::stoi(GetArgument("dataservice_read_test_layer_version"));
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, version, *settings_);
 
   auto partition = GetArgument("dataservice_read_test_partition");
@@ -418,7 +421,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionSync) {
 
   auto sync_settings = *settings_;
   sync_settings.task_scheduler.reset();
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, version, sync_settings);
   ASSERT_TRUE(client);
 
@@ -456,7 +459,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   auto sync_settings = *settings_;
   sync_settings.task_scheduler.reset();
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, version, sync_settings);
   ASSERT_TRUE(client);
 
@@ -502,7 +505,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   auto sync_settings = *settings_;
   sync_settings.task_scheduler.reset();
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, sync_settings);
   ASSERT_TRUE(client);
 
@@ -535,7 +538,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   auto sync_settings = *settings_;
   sync_settings.task_scheduler.reset();
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, sync_settings);
   ASSERT_TRUE(client);
 
@@ -574,7 +577,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   auto sync_settings = *settings_;
   sync_settings.task_scheduler.reset();
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, 269, sync_settings);
   ASSERT_TRUE(client);
 
@@ -615,7 +618,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataEmptyPartitionsSync) {
 
   auto sync_settings = *settings_;
   sync_settings.task_scheduler.reset();
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, version, sync_settings);
   ASSERT_TRUE(client);
 
@@ -652,7 +655,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   auto layer = GetArgument("dataservice_read_test_layer");
   auto version = std::stoi(GetArgument("dataservice_read_test_layer_version"));
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
   ASSERT_TRUE(client);
 
@@ -699,7 +702,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   auto layer = GetArgument("dataservice_read_test_layer");
   auto version = std::stoi(GetArgument("dataservice_read_test_layer_version"));
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
   ASSERT_TRUE(client);
 
@@ -748,7 +751,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   auto layer = GetArgument("dataservice_read_test_layer");
   auto version = std::stoi(GetArgument("dataservice_read_test_layer_version"));
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
   ASSERT_TRUE(client);
 
@@ -801,7 +804,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   auto layer = GetArgument("dataservice_read_test_layer");
   auto version = std::stoi(GetArgument("dataservice_read_test_layer_version"));
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
   ASSERT_TRUE(client);
 
@@ -857,7 +860,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   auto layer = GetArgument("dataservice_read_test_layer");
   auto version = std::stoi(GetArgument("dataservice_read_test_layer_version"));
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
   ASSERT_TRUE(client);
 
@@ -887,7 +890,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsNoError) {
       GetArgument("dataservice_read_test_catalog"));
   auto layer = GetArgument("dataservice_read_test_layer");
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
@@ -909,7 +912,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       GetArgument("dataservice_read_test_catalog"));
   auto layer = GetArgument("dataservice_read_test_layer");
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
@@ -931,7 +934,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   settings_->task_scheduler->ScheduleTask(
       []() { std::this_thread::sleep_for(std::chrono::seconds(1)); });
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
@@ -958,7 +961,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetEmptyPartitions) {
                                        olp::http::HttpStatusCode::OK),
                                    HTTP_RESPONSE_EMPTY_PARTITIONS));
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
@@ -999,7 +1002,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitions429Error) {
         return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == response.status;
       };
   settings_->retry_settings = retry_settings;
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
@@ -1042,7 +1045,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, ApiLookup429) {
         return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == response.status;
       };
   settings_->retry_settings = retry_settings;
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
@@ -1063,7 +1066,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsForInvalidLayer) {
       GetArgument("dataservice_read_test_catalog"));
   auto layer = "somewhat_not_okay";
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
@@ -1084,7 +1087,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsCacheWithUpdate) {
   auto catalog = olp::client::HRN::FromString(
       GetArgument("dataservice_read_test_catalog"));
   auto layer = GetArgument("dataservice_read_test_layer");
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
 
   // Request 1
@@ -1123,7 +1126,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitions403CacheClear) {
       GetArgument("dataservice_read_test_catalog"));
   auto layer = GetArgument("dataservice_read_test_layer");
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
   {
     testing::InSequence s;
@@ -1189,7 +1192,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsGarbageResponse) {
       GetArgument("dataservice_read_test_catalog"));
   auto layer = GetArgument("dataservice_read_test_layer");
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
 
   EXPECT_CALL(*network_mock_,
@@ -1218,7 +1221,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       GetArgument("dataservice_read_test_catalog"));
   auto layer = GetArgument("dataservice_read_test_layer");
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
 
   // Setup the expected calls :
@@ -1274,7 +1277,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       GetArgument("dataservice_read_test_catalog"));
   auto layer = GetArgument("dataservice_read_test_layer");
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
 
   // Setup the expected calls :
@@ -1330,7 +1333,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       GetArgument("dataservice_read_test_catalog"));
   auto layer = GetArgument("dataservice_read_test_layer");
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
 
   // Setup the expected calls :
@@ -1383,7 +1386,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsVersion2) {
       GetArgument("dataservice_read_test_catalog"));
   auto layer = GetArgument("dataservice_read_test_layer");
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, 2, *settings_);
 
   EXPECT_CALL(*network_mock_,
@@ -1410,7 +1413,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsInvalidVersion) {
       GetArgument("dataservice_read_test_catalog"));
   auto layer = GetArgument("dataservice_read_test_layer");
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, 10, *settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
@@ -1455,7 +1458,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsCacheOnly) {
       GetArgument("dataservice_read_test_catalog"));
   auto layer = GetArgument("dataservice_read_test_layer");
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
@@ -1479,7 +1482,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsOnlineOnly) {
       GetArgument("dataservice_read_test_catalog"));
   auto layer = GetArgument("dataservice_read_test_layer");
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
 
   {
@@ -1532,7 +1535,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
   olp::client::HRN catalog(GetTestCatalog());
   constexpr auto kLayerId = "hype-test-prefetch";
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, kLayerId, *settings_);
   ASSERT_TRUE(client);
 
@@ -1611,7 +1614,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   olp::client::HRN catalog(GetTestCatalog());
   constexpr auto kLayerId = "hype-test-prefetch";
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, kLayerId, *settings_);
   ASSERT_TRUE(client);
 
@@ -1683,7 +1686,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWrongLevels) {
                      .WithMinLevel(0)
                      .WithMaxLevel(0);
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, kLayerId, 4, *settings_);
   ASSERT_TRUE(client);
 
@@ -1723,7 +1726,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   constexpr auto kLayerId = "prefetch-catalog";
   constexpr auto kParitionId = "prefetch-partition";
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, kLayerId, *settings_);
   ASSERT_TRUE(client);
 
@@ -1774,7 +1777,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesCancelOnLookup) {
   constexpr auto kLayerId = "prefetch-catalog";
   constexpr auto kParitionId = "prefetch-partition";
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, kLayerId, *settings_);
   ASSERT_TRUE(client);
 
@@ -1814,7 +1817,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
                      .WithMinLevel(10)
                      .WithMaxLevel(12);
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, kLayerId, *settings_);
   ASSERT_TRUE(client);
 
@@ -1847,7 +1850,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
                      .WithMinLevel(10)
                      .WithMaxLevel(12);
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, kLayerId, *settings_);
   ASSERT_TRUE(client);
 
@@ -1892,7 +1895,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetData404Error) {
                                        olp::http::HttpStatusCode::NOT_FOUND),
                                    "Resource not found."));
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
@@ -1931,7 +1934,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetData429Error) {
         return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == response.status;
       };
   settings_->retry_settings = retry_settings;
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
@@ -1964,7 +1967,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetData403CacheClear) {
   }
 
   auto client =
-      std::make_unique<VersionedLayerClient>(hrn, "testlayer", *settings_);
+      std::make_shared<VersionedLayerClient>(hrn, "testlayer", *settings_);
   auto request = DataRequest();
   request.WithPartitionId("269");
   // Populate cache
@@ -1989,7 +1992,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataCacheWithUpdate) {
   olp::client::HRN hrn(GetTestCatalog());
 
   auto client =
-      std::make_unique<VersionedLayerClient>(hrn, "testlayer", *settings_);
+      std::make_shared<VersionedLayerClient>(hrn, "testlayer", *settings_);
   auto request = DataRequest();
   request.WithPartitionId("269").WithFetchOption(CacheWithUpdate);
   // Request 1
@@ -2012,7 +2015,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   olp::client::HRN hrn(GetTestCatalog());
 
   auto client =
-      std::make_unique<VersionedLayerClient>(hrn, "testlayer", *settings_);
+      std::make_shared<VersionedLayerClient>(hrn, "testlayer", *settings_);
   auto partitions_request = PartitionsRequest().WithFetchOption(OnlineOnly);
   auto data_request =
       DataRequest().WithPartitionId("269").WithFetchOption(OnlineOnly);
@@ -2070,7 +2073,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CancelPendingRequestsPrefetch) {
   olp::client::HRN hrn(GetTestCatalog());
 
   auto client =
-      std::make_unique<VersionedLayerClient>(hrn, "testlayer", *settings_);
+      std::make_shared<VersionedLayerClient>(hrn, "testlayer", *settings_);
   auto prefetch_request = PrefetchTilesRequest();
   auto data_request =
       DataRequest().WithPartitionId("269").WithFetchOption(OnlineOnly);
@@ -2155,7 +2158,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
               Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(0);
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
@@ -2212,7 +2215,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
       .Times(0);
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
@@ -2269,7 +2272,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
               Send(IsGetRequest(URL_QUERY_PARTITION_269), _, _, _, _))
       .Times(0);
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
@@ -2326,7 +2329,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
       .Times(0);
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
@@ -2382,7 +2385,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(0);
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
@@ -2435,7 +2438,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   EXPECT_CALL(*network_mock_, Cancel(request_id))
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
@@ -2469,7 +2472,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
        GetDataWithPartitionIdVersion2) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", 2, *settings_);
 
   EXPECT_CALL(*network_mock_,
@@ -2496,7 +2499,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
        GetDataWithPartitionIdInvalidVersion) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", 10, *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
@@ -2522,7 +2525,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataCacheOnly) {
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(0);
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
@@ -2550,7 +2553,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataOnlineOnly) {
                                "Server busy at the moment."));
   }
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", *settings_);
 
   auto request = olp::dataservice::read::DataRequest();
@@ -2574,7 +2577,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataOnlineOnly) {
 TEST_F(DataserviceReadVersionedLayerClientTest, GetTile) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", 4, *settings_);
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
@@ -2616,7 +2619,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileCacheOnly) {
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(0);
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", 4, *settings_);
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
@@ -2644,7 +2647,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileCacheOnly) {
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetTileOnlineOnly) {
   olp::client::HRN hrn(GetTestCatalog());
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", 4, *settings_);
   {
     EXPECT_CALL(*network_mock_,
@@ -2705,7 +2708,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileOnlineOnly) {
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetTileCacheWithUpdate) {
   olp::client::HRN hrn(GetTestCatalog());
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", 4, *settings_);
 
   auto request = olp::dataservice::read::TileRequest()
@@ -2730,7 +2733,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileCacheWithUpdate) {
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetTileTwoSequentialCalls) {
   olp::client::HRN hrn(GetTestCatalog());
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", 4, *settings_);
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
@@ -2819,7 +2822,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, RemoveFromCachePartition) {
   auto layer = GetArgument("dataservice_read_test_layer");
   auto version = std::stoi(GetArgument("dataservice_read_test_layer_version"));
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, version, *settings_);
   ASSERT_TRUE(client);
 
@@ -2877,7 +2880,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, RemoveFromCacheTileKey) {
   auto layer = GetArgument("dataservice_read_test_layer");
   auto version = std::stoi(GetArgument("dataservice_read_test_layer_version"));
 
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, version, *settings_);
   ASSERT_TRUE(client);
 
@@ -2990,3 +2993,5 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CheckLookupApiCacheExpiration) {
 }
 
 }  // namespace
+
+PORTING_POP_WARNINGS()

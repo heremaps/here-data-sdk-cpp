@@ -42,9 +42,9 @@ const auto kTimeout = std::chrono::seconds(5);
 constexpr auto kBlobDataHandle = R"(4eed6ed1-0d32-43b9-ae79-043cb4256432)";
 
 TEST(VersionedLayerClientTest, CanBeMoved) {
-  VersionedLayerClient client_a(olp::client::HRN(), "", {});
+  VersionedLayerClient client_a(olp::client::HRN(), "", boost::none, {});
   VersionedLayerClient client_b(std::move(client_a));
-  VersionedLayerClient client_c(olp::client::HRN(), "", {});
+  VersionedLayerClient client_c(olp::client::HRN(), "", boost::none, {});
   client_c = std::move(client_b);
 }
 
@@ -55,7 +55,7 @@ TEST(VersionedLayerClientTest, GetData) {
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;
 
-  VersionedLayerClient client(kHrn, kLayerId, settings);
+  VersionedLayerClient client(kHrn, kLayerId, boost::none, settings);
   {
     SCOPED_TRACE("Get Data with PartitionId and DataHandle");
     std::promise<DataResponse> promise;
