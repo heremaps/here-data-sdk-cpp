@@ -18,6 +18,7 @@
 set(OLP_SDK_INTEGRATIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-authentication/AuthenticationClientTest.cpp
     ./olp-cpp-sdk-authentication/HereAccountOauth2Test.cpp
+    ./olp-cpp-sdk-authentication/TokenProviderTest.cpp
     ./olp-cpp-sdk-dataservice-read/CatalogClientCacheTest.cpp
     ./olp-cpp-sdk-dataservice-read/VolatileLayerClientCacheTest.cpp
     ./olp-cpp-sdk-dataservice-read/VersionedLayerClientCacheTest.cpp
