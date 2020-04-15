@@ -93,7 +93,7 @@ class TokenProviderTest : public ::testing::Test {
       : token_provider_settings_({"fake.key.id", "fake.key.secret"}) {}
 
   void SetUp() override {
-    network_mock_ = std::make_shared<StrictMock<NetworkMock>>();
+    network_mock_ = std::make_shared<NetworkMock>();
 
     settings_.network_request_handler = network_mock_;
     settings_.task_scheduler =
@@ -124,7 +124,7 @@ class TokenProviderTest : public ::testing::Test {
 
   olp::client::OlpClientSettings settings_;
   olp::authentication::Settings token_provider_settings_;
-  std::shared_ptr<StrictMock<NetworkMock>> network_mock_;
+  std::shared_ptr<NetworkMock> network_mock_;
 };
 
 TEST_F(TokenProviderTest, SingleTokenMultipleUsers) {
@@ -156,6 +156,11 @@ TEST_F(TokenProviderTest, SingleTokenMultipleUsers) {
 
     // Create test layer clients, all using the same token provider
     for (size_t index = 0; index < kCount; ++index) {
+      EXPECT_CALL(*network_mock_, Send(AnyOf(IsGetRequest(kTimestampUrl),
+                                             IsGetRequest(kOAuthTokenUrl)),
+                                       _, _, _, _))
+          .Times(0);
+
       EXPECT_CALL(*network_mock_, Send(Not(AnyOf(IsGetRequest(kTimestampUrl),
                                                  IsGetRequest(kOAuthTokenUrl))),
                                        _, _, _, _))
