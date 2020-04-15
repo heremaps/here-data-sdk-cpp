@@ -44,7 +44,7 @@ constexpr auto kWaitTimeout = std::chrono::seconds(3);
 
 // Request defines
 static const std::string kTimestampUrl =
-    R"( https://account.api.here.com/timestamp)";
+    R"(https://account.api.here.com/timestamp)";
 
 static const std::string kOAuthTokenUrl =
     R"(https://account.api.here.com/oauth2/token)";
@@ -89,19 +89,13 @@ http::NetworkResponse GetResponse(int status) {
 
 class TokenProviderTest : public ::testing::Test {
  public:
-  TokenProviderTest()
-      : token_provider_settings_({"fake.key.id", "fake.key.secret"}) {}
+  TokenProviderTest() = default;
 
   void SetUp() override {
     network_mock_ = std::make_shared<NetworkMock>();
-
     settings_.network_request_handler = network_mock_;
     settings_.task_scheduler =
         olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
-
-    token_provider_settings_.task_scheduler = settings_.task_scheduler;
-    token_provider_settings_.network_request_handler =
-        settings_.network_request_handler;
   }
 
   void TearDown() override {
@@ -111,11 +105,17 @@ class TokenProviderTest : public ::testing::Test {
   }
 
   template <long long MinimumValidity>
-  client::OlpClientSettings GetSettings() const {
+  client::OlpClientSettings GetSettings(bool use_system_time = false) const {
     olp::client::AuthenticationSettings auth_settings;
+    olp::authentication::Settings token_provider_settings(
+        {"fake.key.id", "fake.key.secret"});
+    token_provider_settings.task_scheduler = settings_.task_scheduler;
+    token_provider_settings.network_request_handler =
+        settings_.network_request_handler;
+    token_provider_settings.use_system_time = use_system_time;
     auth_settings.provider =
         olp::authentication::TokenProvider<MinimumValidity>(
-            token_provider_settings_);
+            token_provider_settings);
 
     olp::client::OlpClientSettings settings = settings_;
     settings.authentication_settings = auth_settings;
@@ -123,7 +123,6 @@ class TokenProviderTest : public ::testing::Test {
   }
 
   olp::client::OlpClientSettings settings_;
-  olp::authentication::Settings token_provider_settings_;
   std::shared_ptr<NetworkMock> network_mock_;
 };
 
@@ -156,13 +155,14 @@ TEST_F(TokenProviderTest, SingleTokenMultipleUsers) {
 
     // Create test layer clients, all using the same token provider
     for (size_t index = 0; index < kCount; ++index) {
+
       EXPECT_CALL(*network_mock_, Send(AnyOf(IsGetRequest(kTimestampUrl),
-                                             IsGetRequest(kOAuthTokenUrl)),
+                                             IsPostRequest(kOAuthTokenUrl)),
                                        _, _, _, _))
           .Times(0);
 
       EXPECT_CALL(*network_mock_, Send(Not(AnyOf(IsGetRequest(kTimestampUrl),
-                                                 IsGetRequest(kOAuthTokenUrl))),
+                                                 IsPostRequest(kOAuthTokenUrl))),
                                        _, _, _, _))
           .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                        kHttpResponseLookupQuery))
@@ -193,6 +193,45 @@ TEST_F(TokenProviderTest, SingleTokenMultipleUsers) {
     }
   }
 
+  testing::Mock::VerifyAndClearExpectations(network_mock_.get());
+}
+
+TEST_F(TokenProviderTest, UseLocalAndServerTime) {
+  {
+    SCOPED_TRACE("Request token, use system time");
+
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
+        .Times(0);
+
+    EXPECT_CALL(*network_mock_, Send(IsPostRequest(kOAuthTokenUrl), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     kResponseValidJson));
+    auto settings = GetSettings<authentication::kDefaultMinimumValidity>(true);
+    ASSERT_TRUE(settings.authentication_settings);
+    ASSERT_TRUE(settings.authentication_settings->provider);
+
+    auto token = settings.authentication_settings->provider();
+    EXPECT_EQ(token, kResponseToken);
+    testing::Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+
+  {
+    SCOPED_TRACE("Request token, use server time");
+
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     kResponseTime));
+
+    EXPECT_CALL(*network_mock_, Send(IsPostRequest(kOAuthTokenUrl), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     kResponseValidJson));
+    auto settings = GetSettings<authentication::kDefaultMinimumValidity>(false);
+    ASSERT_TRUE(settings.authentication_settings);
+    ASSERT_TRUE(settings.authentication_settings->provider);
+
+    auto token = settings.authentication_settings->provider();
+    EXPECT_EQ(token, kResponseToken);
+  }
   testing::Mock::VerifyAndClearExpectations(network_mock_.get());
 }
 
