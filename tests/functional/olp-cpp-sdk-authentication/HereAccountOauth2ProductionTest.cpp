@@ -302,7 +302,7 @@ TEST_F(HereAccountOuauth2ProductionTest, TokenProviderValidCredentialsInvalid) {
 }
 
 TEST_F(HereAccountOuauth2ProductionTest, RequestTokenValidCredentials) {
-  auto barrier = std::make_shared<std::promise<void> >();
+  auto barrier = std::make_shared<std::promise<void>>();
   token_endpoint_.RequestToken(
       TokenRequest{}, [barrier](TokenEndpoint::TokenResponse token_response) {
 #if OAUTH2_TEST_DEBUG_OUTPUT
@@ -349,7 +349,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenBadAccessKey) {
                                      "integration_production_service_secret")};
   auto bad_token_endpoint = TokenEndpoint(settings);
 
-  auto barrier = std::make_shared<std::promise<void> >();
+  auto barrier = std::make_shared<std::promise<void>>();
   bad_token_endpoint.RequestToken(
       TokenRequest{}, [barrier](TokenEndpoint::TokenResponse token_response) {
         EXPECT_TRUE(token_response.IsSuccessful());
@@ -368,7 +368,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenBadAccessSecret) {
       "BAD"};
   auto bad_token_endpoint = TokenEndpoint(settings);
 
-  auto barrier = std::make_shared<std::promise<void> >();
+  auto barrier = std::make_shared<std::promise<void>>();
   bad_token_endpoint.RequestToken(
       TokenRequest{}, [barrier](TokenEndpoint::TokenResponse token_response) {
         EXPECT_TRUE(token_response.IsSuccessful());
@@ -388,7 +388,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenBadTokenUrl) {
   badSettings.network_request_handler = settings_.network_request_handler;
   auto bad_token_endpoint = TokenEndpoint(badSettings);
 
-  auto barrier = std::make_shared<std::promise<void> >();
+  auto barrier = std::make_shared<std::promise<void>>();
   bad_token_endpoint.RequestToken(
       TokenRequest{}, [barrier](TokenEndpoint::TokenResponse token_response) {
         EXPECT_FALSE(token_response.IsSuccessful());
@@ -399,7 +399,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenBadTokenUrl) {
 }
 
 TEST_F(HereAccountOuauth2ProductionTest, RequestTokenValidExpiry) {
-  auto barrier = std::make_shared<std::promise<void> >();
+  auto barrier = std::make_shared<std::promise<void>>();
   token_endpoint_.RequestToken(
       TokenRequest{std::chrono::minutes(1)},
       [barrier](TokenEndpoint::TokenResponse token_response) {
@@ -421,7 +421,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenConcurrent) {
   auto start_total_time = std::chrono::high_resolution_clock::now();
   for (int i = 0; i < 5; i++) {
     threads[i] = std::thread([&]() {
-      auto barrier = std::make_shared<std::promise<void> >();
+      auto barrier = std::make_shared<std::promise<void>>();
       auto start = std::chrono::high_resolution_clock::now();
       token_endpoint_.RequestToken(
           TokenRequest{},
@@ -509,7 +509,7 @@ TEST_F(HereAccountOuauth2ProductionTest, NetworkProxySettings) {
 
   auto bad_token_endpoint = TokenEndpoint(settings);
 
-  auto barrier = std::make_shared<std::promise<void> >();
+  auto barrier = std::make_shared<std::promise<void>>();
   bad_token_endpoint.RequestToken(
       TokenRequest{}, [barrier](TokenEndpoint::TokenResponse token_response) {
         // Bad proxy error code and message varies by platform
