@@ -126,8 +126,8 @@ class TokenProvider {
     /// @copydoc TokenProvider::GetErrorResponse()
     ErrorResponse GetErrorResponse() const {
       auto response = GetResponse();
-      return !response.IsSuccessful() ? response.GetResult().GetErrorResponse()
-                                      : ErrorResponse{};
+      return response.IsSuccessful() ? response.GetResult().GetErrorResponse()
+                                     : ErrorResponse{};
     }
 
     /// @copydoc TokenProvider::GetHttpStatusCode()
