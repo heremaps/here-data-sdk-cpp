@@ -23,6 +23,7 @@ wv_security_job:
   - $CI_PROJECT_DIR/scripts/linux/weekly/security_scanner_upload_wv.sh build/binaries.tar.gz OLP_EDGE_CI@here.com
   only:
     refs:
+      - branches
       - master
       - schedules
     variables:
@@ -42,10 +43,11 @@ build_linux_armhf_fv:
   - $CI_PROJECT_DIR/scripts/linux-armhf/fv/gitlab_build_armhf_fv.sh
   only:
     refs:
+      - branches
       - master
       - schedules
     variables:
-      - $FULLY
+      - $FV
 
 build_test_linux_fv:
   stage: build
@@ -56,10 +58,11 @@ build_test_linux_fv:
   - $CI_PROJECT_DIR/scripts/linux/fv/gitlab_test_fv.sh
   only:
     refs:
+      - branches
       - master
       - schedules
     variables:
-      - $FULLY
+      - $FV
   artifacts:
     reports:
       junit:
@@ -78,10 +81,11 @@ build_test_nv:
   - $CI_PROJECT_DIR/scripts/linux/nv/gitlab_test_valgrind.sh
   only:
     refs:
+      - branches
       - master
       - schedules
     variables:
-      - $NIGHTLY
+      - $NV
   artifacts:
     when: always
     paths:
@@ -98,10 +102,11 @@ test_performance_nv:
   - $CI_PROJECT_DIR/scripts/linux/nv/gitlab_test_performance.sh
   only:
     refs:
+      - branches
       - master
       - schedules
     variables:
-      - $NIGHTLY
+      - $NV
   artifacts:
     when: always
     paths:
@@ -121,10 +126,11 @@ upload_sonar_nv:
   - $CI_PROJECT_DIR/scripts/linux/nv/gitlab_cppcheck_and_upload_sonar.sh
   only:
     refs:
+      - branches
       - master
       - schedules
     variables:
-      - $NIGHTLY
+      - $NV
 
 translate_report:
   stage: translate_report
@@ -138,7 +144,7 @@ translate_report:
     # - python -m junit2htmlreport --merge olp-merged-report.xml reports/*.xml
     # - python -m junit2htmlreport olp-merged-report.xml
     - python -m junit2htmlreport --report-matrix reports/index.html reports/*.xml
-    - if [ "$NIGHTLY" == "1" ]; then cat heaptrack_report.html >> reports/index.html; fi
+    - if [ "$NV" == "1" ]; then cat heaptrack_report.html >> reports/index.html; fi
     - mkdir -p .public
     - cp reports/*.html .public/
   artifacts:
@@ -146,11 +152,12 @@ translate_report:
       - .public
   only:
     refs:
+      - branches
       - master
       - schedules
     variables:
-      - $FULLY
-      - $NIGHTLY
+      - $FV
+      - $NV
 
 pages:
   stage: deploy
@@ -164,8 +171,9 @@ pages:
     expire_in: 1 year
   only:
     refs:
+      - branches
       - master
       - schedules
     variables:
-      - $FULLY
-      - $NIGHTLY
+      - $FV
+      - $NV
