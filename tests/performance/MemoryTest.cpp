@@ -21,34 +21,23 @@
 #include <memory>
 
 #include <gtest/gtest.h>
-#include <olp/core/cache/CacheSettings.h>
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/HRN.h>
-#include <olp/core/client/OlpClientSettings.h>
-#include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
-#include <olp/core/utils/Dir.h>
 #include <olp/dataservice/read/CatalogClient.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
-#include <testutils/CustomParameters.hpp>
-#include "NetworkWrapper.h"
-#include "NullCache.h"
+
+#include "MemoryTestBase.h"
 
 namespace {
-using KeyValueCachePtr = std::shared_ptr<olp::cache::KeyValueCache>;
-using CacheFactory = std::function<KeyValueCachePtr()>;
 using TestFunction = std::function<void(uint8_t thread_id)>;
 
-struct TestConfiguration {
+struct TestConfiguration : public TestBaseConfiguration {
   std::string configuration_name;
   std::uint16_t requests_per_second = 3;
   std::uint8_t calling_thread_count = 5;
-  std::uint8_t task_scheduler_capacity = 5;
   std::chrono::seconds runtime = std::chrono::minutes(5);
-  CacheFactory cache_factory;
-  bool with_errors = false;
-  bool with_timeouts = false;
   float cancelation_chance = 0.f;
 };
 
@@ -77,11 +66,8 @@ constexpr auto kLogTag = "MemoryTest";
 const olp::client::HRN kCatalog("hrn:here:data::olp-here-test:testhrn");
 const std::string kVersionedLayerId("versioned_test_layer");
 
-class MemoryTest : public ::testing::TestWithParam<TestConfiguration> {
+class MemoryTest : public MemoryTestBase<TestConfiguration> {
  public:
-  olp::http::NetworkProxySettings GetLocalhostProxySettings();
-  olp::client::OlpClientSettings CreateCatalogClientSettings();
-
   void SetUp() override;
   void TearDown() override;
 
@@ -101,44 +87,6 @@ class MemoryTest : public ::testing::TestWithParam<TestConfiguration> {
   std::mutex errors_mutex_;
   std::map<int, int> errors_;
 };
-
-olp::http::NetworkProxySettings MemoryTest::GetLocalhostProxySettings() {
-  return olp::http::NetworkProxySettings()
-      .WithHostname("localhost")
-      .WithPort(3000)
-      .WithUsername("test_user")
-      .WithPassword("test_password")
-      .WithType(olp::http::NetworkProxySettings::Type::HTTP);
-}
-
-olp::client::OlpClientSettings MemoryTest::CreateCatalogClientSettings() {
-  const auto& parameter = GetParam();
-
-  std::shared_ptr<olp::thread::TaskScheduler> task_scheduler = nullptr;
-  if (parameter.task_scheduler_capacity != 0) {
-    task_scheduler =
-        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(
-            parameter.task_scheduler_capacity);
-  }
-
-  auto network = std::make_shared<Http2HttpNetworkWrapper>();
-  network->WithErrors(parameter.with_errors);
-  network->WithTimeouts(parameter.with_timeouts);
-
-  olp::client::AuthenticationSettings auth_settings;
-  auth_settings.provider = []() { return "invalid"; };
-
-  olp::client::OlpClientSettings client_settings;
-  client_settings.authentication_settings = auth_settings;
-  client_settings.task_scheduler = task_scheduler;
-  client_settings.network_request_handler = std::move(network);
-  client_settings.proxy_settings = GetLocalhostProxySettings();
-  client_settings.cache =
-      parameter.cache_factory ? parameter.cache_factory() : nullptr;
-  client_settings.retry_settings.timeout = 1;
-
-  return client_settings;
-}
 
 void MemoryTest::SetUp() {
   using namespace olp;
@@ -197,77 +145,6 @@ void MemoryTest::RandomlyCancel(olp::client::CancellationToken token) {
     std::this_thread::sleep_for(std::chrono::microseconds(rand() % 3000));
     token.Cancel();
   }
-}
-
-///
-/// CatalogClient
-///
-
-TEST_P(MemoryTest, ReadLatestVersionCatalogClient) {
-  const auto& parameter = GetParam();
-  auto settings = CreateCatalogClientSettings();
-
-  StartThreads([=](uint8_t /*thread_id*/) {
-    olp::dataservice::read::CatalogClient service_client(kCatalog, settings);
-
-    const auto end_timestamp =
-        std::chrono::steady_clock::now() + parameter.runtime;
-
-    while (end_timestamp > std::chrono::steady_clock::now()) {
-      int64_t start_version = rand() % (100 + 1);
-
-      auto request =
-          olp::dataservice::read::CatalogVersionRequest().WithStartVersion(
-              start_version);
-      total_requests_.fetch_add(1);
-      auto token = service_client.GetLatestVersion(
-          request,
-          [&](olp::dataservice::read::CatalogVersionResponse response) {
-            if (response.IsSuccessful()) {
-              success_responses_.fetch_add(1);
-            } else {
-              failed_responses_.fetch_add(1);
-              ReportError(response.GetError());
-            }
-          });
-
-      RandomlyCancel(std::move(token));
-
-      std::this_thread::sleep_for(
-          GetSleepPeriod(parameter.requests_per_second));
-    }
-  });
-}
-
-TEST_P(MemoryTest, ReadMetadataCatalogClient) {
-  const auto& parameter = GetParam();
-  auto settings = CreateCatalogClientSettings();
-
-  StartThreads([=](uint8_t /*thread_id*/) {
-    olp::dataservice::read::CatalogClient service_client(kCatalog, settings);
-
-    const auto end_timestamp =
-        std::chrono::steady_clock::now() + parameter.runtime;
-
-    while (end_timestamp > std::chrono::steady_clock::now()) {
-      auto request = olp::dataservice::read::CatalogRequest();
-      total_requests_.fetch_add(1);
-      auto token = service_client.GetCatalog(
-          request, [&](olp::dataservice::read::CatalogResponse response) {
-            if (response.IsSuccessful()) {
-              success_responses_.fetch_add(1);
-            } else {
-              failed_responses_.fetch_add(1);
-              ReportError(response.GetError());
-            }
-          });
-
-      RandomlyCancel(std::move(token));
-
-      std::this_thread::sleep_for(
-          GetSleepPeriod(parameter.requests_per_second));
-    }
-  });
 }
 
 ///
@@ -369,9 +246,9 @@ TEST_P(MemoryTest, PrefetchPartitionsFromVersionedLayer) {
  */
 TestConfiguration LongRunningTest() {
   TestConfiguration configuration;
+  SetErrorFlags(configuration);
+  SetDiskCacheConfiguration(configuration);
   configuration.configuration_name = "10h_test";
-  configuration.with_errors = true;
-  configuration.with_timeouts = true;
   configuration.runtime = std::chrono::hours(10);
   configuration.cancelation_chance = 0.25f;
   return configuration;
@@ -382,8 +259,8 @@ TestConfiguration LongRunningTest() {
  */
 TestConfiguration ShortRunningTestWithNullCache() {
   TestConfiguration configuration;
+  SetNullCacheConfiguration(configuration);
   configuration.configuration_name = "short_test_null_cache";
-  configuration.cache_factory = []() { return std::make_shared<NullCache>(); };
   return configuration;
 }
 
@@ -391,12 +268,9 @@ TestConfiguration ShortRunningTestWithNullCache() {
  * Short 5 minutes test to collect SDK allocations with in memory cache.
  */
 TestConfiguration ShortRunningTestWithMemoryCache() {
-  using namespace olp;
   TestConfiguration configuration;
+  SetDefaultCacheConfiguration(configuration);
   configuration.configuration_name = "short_test_memory_cache";
-  configuration.cache_factory = []() {
-    return client::OlpClientSettingsFactory::CreateDefaultCache({});
-  };
   return configuration;
 }
 
@@ -405,20 +279,9 @@ TestConfiguration ShortRunningTestWithMemoryCache() {
  * and disk cache.
  */
 TestConfiguration ShortRunningTestWithMutableCache() {
-  using namespace olp;
-
-  cache::CacheSettings settings;
-  auto location = CustomParameters::getArgument("cache_location");
-  if (location.empty()) {
-    location = utils::Dir::TempDirectory() + "/performance_test";
-  }
-  settings.disk_path_mutable = location;
-
   TestConfiguration configuration;
+  SetDiskCacheConfiguration(configuration);
   configuration.configuration_name = "short_test_disk_cache";
-  configuration.cache_factory = [settings]() {
-    return client::OlpClientSettingsFactory::CreateDefaultCache(settings);
-  };
   return configuration;
 }
 
@@ -435,10 +298,6 @@ std::string TestName(const testing::TestParamInfo<TestConfiguration>& info) {
   return info.param.configuration_name;
 }
 
-//  std::uint16_t requests_per_second;
-//  std::uint8_t calling_thread_count;
-//  std::uint8_t task_scheduler_capacity;
-//  std::chrono::seconds runtime;
 INSTANTIATE_TEST_SUITE_P(MemoryUsage, MemoryTest,
                          ::testing::ValuesIn(Configurations()), TestName);
 }  // namespace
