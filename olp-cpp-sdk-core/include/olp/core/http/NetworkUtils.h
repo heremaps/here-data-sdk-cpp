@@ -28,7 +28,7 @@ namespace http {
 /**
  * @brief Network internal utilities
  */
-class NetworkUtils {
+class CORE_API NetworkUtils {
  public:
   static char SimpleToUpper(char c);
   static bool CaseInsensitiveCompare(const std::string& str1,

@@ -78,7 +78,7 @@ CORE_API bool DefaultRetryCondition(const olp::client::HttpResponse& response);
  * request. Both functions are user-provided.
  * The struct is used internally by the `OlpClient` class.
  */
-struct AuthenticationSettings {
+struct CORE_API AuthenticationSettings {
   /**
    * @brief Implemented by the client that should return the OAuth2 bearer
    * access token.
@@ -143,7 +143,7 @@ struct AuthenticationSettings {
  * You can customize all of these settings. The settings are used internally by
  * the `OlpClient` class.
  */
-struct RetrySettings {
+struct CORE_API RetrySettings {
   /**
    * @brief Takes the current timeout (in milliseconds) and
    * returns what should be used for the next timeout.
@@ -216,7 +216,7 @@ struct RetrySettings {
 /**
  * @brief Configures the behavior of the `OlpClient` class.
  */
-struct OlpClientSettings {
+struct CORE_API OlpClientSettings {
   /**
    * @brief The retry settings.
    */

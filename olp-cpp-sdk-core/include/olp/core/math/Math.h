@@ -35,19 +35,19 @@ constexpr double pi = 3.14159265358979323846264338327950288;
 constexpr double two_pi = 6.28318530717958647692528676655900576;
 constexpr double epsilon = std::numeric_limits<double>::epsilon();
 
-inline double Degrees(double radians) {
+CORE_API inline double Degrees(double radians) {
   return radians * 57.295779513082320876798154814105;
 }
 
-inline double Radians(double degrees) {
+CORE_API inline double Radians(double degrees) {
   return degrees * 0.01745329251994329576923690768489;
 }
 
-inline bool EpsilonEqual(double const& x, double const& y) {
+CORE_API inline bool EpsilonEqual(double const& x, double const& y) {
   return std::abs(x - y) < epsilon;
 }
 
-inline double Clamp(double const& x, double const& minVal,
+CORE_API inline double Clamp(double const& x, double const& minVal,
                     double const& maxVal) {
   return min(max(x, minVal), maxVal);
 }
@@ -55,7 +55,7 @@ inline double Clamp(double const& x, double const& minVal,
 //
 // Provide integeral type modulus computation.
 
-inline double Wrap(double value, double lower, double upper) {
+CORE_API inline double Wrap(double value, double lower, double upper) {
   // Return lower bound if the range is singular
   if (EpsilonEqual(lower, upper)) {
     return lower;

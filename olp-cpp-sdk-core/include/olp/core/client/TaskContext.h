@@ -312,7 +312,7 @@ class CORE_API TaskContext {
 /**
  * @brief A helper for unordered containers.
  */
-struct TaskContextHash {
+struct CORE_API TaskContextHash {
   /**
    * @brief The hash function for the `TaskContext` instance.
    *

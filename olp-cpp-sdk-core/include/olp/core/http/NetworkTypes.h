@@ -74,7 +74,7 @@ enum class ErrorCode {
  * trigger failed.  The caller must check whether the outcome of the request was
  * a success before attempting to access the result or the error.
  */
-class SendOutcome final {
+class CORE_API SendOutcome final {
  public:
   /// Invalid RequestId alias.
   static constexpr RequestId kInvalidRequestId =
