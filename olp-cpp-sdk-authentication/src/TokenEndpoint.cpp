@@ -42,6 +42,7 @@ AuthenticationSettings ConvertSettings(Settings settings) {
   auth_settings.task_scheduler = settings.task_scheduler;
   auth_settings.network_request_handler = settings.network_request_handler;
   auth_settings.token_endpoint_url = settings.token_endpoint_url;
+  auth_settings.use_system_time = settings.use_system_time;
   return auth_settings;
 }
 }  // namespace

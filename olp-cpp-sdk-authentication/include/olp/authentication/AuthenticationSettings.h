@@ -81,6 +81,10 @@ struct AUTHENTICATION_API AuthenticationSettings {
   /**
    * @brief Uses system system time in authentication requests rather than
    * requesting time from authentication server.
+   *
+   * @note Please make sure that the system time does not deviate from the
+   * official UTC time as it might result in error responses from the
+   * authentication server.
    */
   bool use_system_time{false};
 };
