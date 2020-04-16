@@ -30,7 +30,7 @@ namespace http {
  * For more information see
  * https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
  */
-class HttpStatusCode {
+class CORE_API HttpStatusCode {
  public:
   enum : int {
     CONTINUE = 100,

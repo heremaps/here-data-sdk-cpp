@@ -21,6 +21,7 @@
 
 #include <string>
 
+#include <olp/core/CoreApi.h>
 #include <olp/core/porting/deprecated.h>
 #include <boost/optional.hpp>
 
@@ -47,7 +48,7 @@ enum class EvictionPolicy : unsigned char {
 /**
  * @brief Settings for in-memory and on-disk caching.
  */
-struct CacheSettings {
+struct CORE_API CacheSettings {
   /**
    * @brief The path to the mutable (read-write) on-disk cache where
    * the SDK caches and lookups the content.

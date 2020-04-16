@@ -30,7 +30,7 @@ namespace logging {
  * Subclasses should derive from Appender instead of IAppender in order for the
  * type to be automatically registered.
  */
-class IAppender {
+class CORE_API IAppender {
  public:
   virtual ~IAppender() = default;
 

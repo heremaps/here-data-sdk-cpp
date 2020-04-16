@@ -32,7 +32,7 @@ namespace client {
  * @brief A helper class that allows one thread to call and wait for a
  * notification in the other thread.
  */
-class Condition final {
+class CORE_API Condition final {
  public:
   Condition() = default;
 

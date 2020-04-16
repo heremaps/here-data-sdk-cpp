@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <olp/core/CoreApi.h>
 #include <olp/core/logging/Level.h>
 #include <chrono>
 
@@ -27,7 +28,7 @@ namespace logging {
 /**
  * @brief Structure holding the data used for a log message.
  */
-struct LogMessage {
+struct CORE_API LogMessage {
   Level level{Level::Off};
   const char* tag{nullptr};
   const char* message{nullptr};
