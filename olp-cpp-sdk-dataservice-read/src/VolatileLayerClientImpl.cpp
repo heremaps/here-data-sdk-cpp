@@ -245,6 +245,12 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
                   tile_key.Level() > request.GetMaxLevel());
         };
 
+        // Settings structure consumes a 536 bytes of heap memory when captured
+        // in lambda, shared pointer (16 bytes) saves 520 bytes of heap memory.
+        // When users prefetch few hundreds tiles it could save few mb.
+        auto shared_settings =
+            std::make_shared<client::OlpClientSettings>(settings);
+
         while (!context.IsCancelled() && it != tiles_result.end()) {
           auto const& tile = it->first;
           if (skip_tile(tile)) {
@@ -266,7 +272,7 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
                     catalog, layer_id,
                     DataRequest().WithDataHandle(handle).WithBillingTag(
                         biling_tag),
-                    inner_context, settings);
+                    inner_context, *shared_settings);
 
                 if (!data.IsSuccessful()) {
                   promise->set_value(std::make_shared<PrefetchTileResult>(
