@@ -30,6 +30,7 @@ set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     VersionedLayerClientTest.cpp
     VolatileLayerClientImplTest.cpp
     VolatileLayerClientTest.cpp
+    DecisionApiClientTest.cpp
 )
 
 if (ANDROID OR IOS)

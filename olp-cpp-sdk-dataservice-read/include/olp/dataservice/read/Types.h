@@ -24,6 +24,7 @@
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
 
+#include <olp/dataservice/read/model/AuthorizeResult.h>
 #include <olp/dataservice/read/model/Catalog.h>
 #include <olp/dataservice/read/model/Data.h>
 #include <olp/dataservice/read/model/Messages.h>
@@ -107,6 +108,9 @@ using SeekResult = int;
 using SeekResponse = Response<SeekResult>;
 /// The seek completion callback type of the stream layer client.
 using SeekResponseCallback = Callback<SeekResult>;
+
+/// The decision api response alias.
+using AuthorizeResponse = Response<model::AuthorizeResult>;
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp
