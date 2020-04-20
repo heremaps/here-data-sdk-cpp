@@ -17,18 +17,19 @@
  * License-Filename: LICENSE
  */
 
-#include <olp/core/geo/tiling/QuadTreeSubdivisionScheme.h>
+#include "olp/core/geo/tiling/QuadTreeSubdivisionScheme.h"
 
 namespace olp {
 namespace geo {
+
 bool QuadTreeSubdivisionScheme::IsEqualTo(
     const ISubdivisionScheme& other) const {
   return GetName() == other.GetName();
 }
 
 const std::string& QuadTreeSubdivisionScheme::GetName() const {
-  static const std::string name{"QuadTreeSubdivisionScheme"};
-  return name;
+  static const std::string kName{"QuadTreeSubdivisionScheme"};
+  return kName;
 }
 
 math::Size2u QuadTreeSubdivisionScheme::GetSubdivisionAt(

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,41 +26,48 @@
 
 namespace olp {
 namespace geo {
-/**
- * Abstract subdivision scheme
- */
 
+/**
+ * Abstract tiling subdivision scheme.
+ */
 class CORE_API ISubdivisionScheme {
  public:
   virtual ~ISubdivisionScheme() = default;
 
   /**
-   * Check whether two schemes are equal
-   * @param[in] other Other scheme
-   * @return True if equal, false otherwise
+   * Check whether two schemes are equal.
+   *
+   * @param[in] other Other scheme.
+   *
+   * @return True if equal, false otherwise.
    */
   virtual bool IsEqualTo(const ISubdivisionScheme& other) const = 0;
 
   /**
-   * Get unique scheme name
-   * @return Scheme name
+   * Get unique scheme name.
+   *
+   * @return Scheme name.
    */
   virtual const std::string& GetName() const = 0;
 
   /**
-   * Get number of subtiles a tile splits into at given level
-   * @param[in] level Subdivision level
-   * @return Horizontal and vertical number of subtiles (e.g. 2x2)
+   * Get number of subtiles a tile splits into at given level.
+   *
+   * @param[in] level Subdivision level.
+   *
+   * @return Horizontal and vertical number of subtiles (e.g. 2x2).
    */
   virtual math::Size2u GetSubdivisionAt(unsigned level) const = 0;
 
   /**
-   * Get size of a given level
-   * @param[in] level Subdivision level
-   * @return Horizontal and vertical number of tiles (e.g. 2^level x 2^level)
+   * Get size of a given level.
+   *
+   * @param[in] level Subdivision level.
+   *
+   * @return Horizontal and vertical number of tiles (e.g. 2^level x 2^level).
    */
   virtual math::Size2u GetLevelSize(unsigned level) const = 0;
 };
-}  // namespace geo
 
+}  // namespace geo
 }  // namespace olp

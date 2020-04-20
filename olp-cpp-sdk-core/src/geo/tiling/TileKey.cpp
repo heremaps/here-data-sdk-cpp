@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-#include <olp/core/geo/tiling/TileKey.h>
+#include "olp/core/geo/tiling/TileKey.h"
 
 #include <cassert>
 #include <cmath>
@@ -29,30 +29,47 @@
 
 namespace olp {
 namespace geo {
+
 std::string TileKey::ToQuadKey() const {
-  if (!IsValid()) return std::string();
-  if (level_ == 0) return "-";
+  if (!IsValid()) {
+    return {};
+  }
+  if (level_ == 0) {
+    return "-";
+  }
+
   std::string key;
   key.resize(level_);
-  const std::uint64_t morton_key = ToQuadKey64();
-  for (std::uint32_t i = 0; i < level_; ++i)
+  const auto morton_key = ToQuadKey64();
+
+  for (std::uint32_t index = 0; index < level_; ++index) {
     // (morton_key / 4**i % 4) is the two bit group in base 4
-    key[level_ - i - 1] = (morton_key / (1ull << (i << 1))) % 4 + '0';
+    key[level_ - index - 1] = (morton_key / (1ull << (index << 1))) % 4 + '0';
+  }
+
   return key;
 }
 
-TileKey TileKey::FromQuadKey(const std::string& quadKey) {
-  if (quadKey.empty()) return TileKey();
+TileKey TileKey::FromQuadKey(const std::string& quad_key) {
+  if (quad_key.empty()) {
+    return TileKey();
+  }
 
   TileKey result{TileKey::FromRowColumnLevel(0, 0, 0)};
-  if (quadKey == "-") return result;
+  if (quad_key == "-") {
+    return result;
+  }
 
-  result.level_ = std::uint32_t(quadKey.size());
-  for (size_t i = 0; i < quadKey.size(); ++i) {
-    const int mask = 1 << i;
-    int d = quadKey[result.level_ - i - 1] - '0';
-    if (d & 0x1) result.column_ |= mask;
-    if (d & 0x2) result.row_ |= mask;
+  result.level_ = std::uint32_t(quad_key.size());
+  for (size_t index = 0; index < quad_key.size(); ++index) {
+    const int mask = 1 << index;
+    int d = quad_key[result.level_ - index - 1] - '0';
+    if (d & 0x1) {
+      result.column_ |= mask;
+    }
+    if (d & 0x2) {
+      result.row_ |= mask;
+    }
   }
   return result;
 }
@@ -64,7 +81,9 @@ std::string TileKey::ToHereTile() const {
 }
 
 TileKey TileKey::FromHereTile(const std::string& key) {
-  if (key.empty()) return TileKey();
+  if (key.empty()) {
+    return {};
+  }
 
   char* ptr;
   return FromQuadKey64(strtoull(key.data(), &ptr, 10));
@@ -72,7 +91,7 @@ TileKey TileKey::FromHereTile(const std::string& key) {
 
 std::uint64_t TileKey::ToQuadKey64() const {
   // This table interleaves the bits ex: 11 -> 1010
-  static const std::uint64_t MortonTable256[256] = {
+  static const std::uint64_t kMortonTable256[256] = {
       0x0000, 0x0001, 0x0004, 0x0005, 0x0010, 0x0011, 0x0014, 0x0015, 0x0040,
       0x0041, 0x0044, 0x0045, 0x0050, 0x0051, 0x0054, 0x0055, 0x0100, 0x0101,
       0x0104, 0x0105, 0x0110, 0x0111, 0x0114, 0x0115, 0x0140, 0x0141, 0x0144,
@@ -104,27 +123,33 @@ std::uint64_t TileKey::ToQuadKey64() const {
       0x5550, 0x5551, 0x5554, 0x5555};
 
   // the bits of x and y are alternated, y_n-1 x_n-1 .... y_0 x_0
-  return 1ull << (2 * level_) | MortonTable256[(row_ >> 24) & 0xFF] << 49 |
-         MortonTable256[(row_ >> 16) & 0xFF] << 33 |
-         MortonTable256[(row_ >> 8) & 0xFF] << 17 |
-         MortonTable256[row_ & 0xFF] << 1 |
-         MortonTable256[(column_ >> 24) & 0xFF] << 48 |
-         MortonTable256[(column_ >> 16) & 0xFF] << 32 |
-         MortonTable256[(column_ >> 8) & 0xFF] << 16 |
-         MortonTable256[column_ & 0xFF];
+  return 1ull << (2 * level_) | kMortonTable256[(row_ >> 24) & 0xFF] << 49 |
+         kMortonTable256[(row_ >> 16) & 0xFF] << 33 |
+         kMortonTable256[(row_ >> 8) & 0xFF] << 17 |
+         kMortonTable256[row_ & 0xFF] << 1 |
+         kMortonTable256[(column_ >> 24) & 0xFF] << 48 |
+         kMortonTable256[(column_ >> 16) & 0xFF] << 32 |
+         kMortonTable256[(column_ >> 8) & 0xFF] << 16 |
+         kMortonTable256[column_ & 0xFF];
 }
 
 TileKey TileKey::FromQuadKey64(std::uint64_t quad_key) {
-  TileKey result{TileKey::FromRowColumnLevel(0, 0, 0)};
+  auto result = TileKey::FromRowColumnLevel(0, 0, 0);
+
   while (quad_key > 1) {
     const int mask = 1 << result.level_;
 
-    if (quad_key & 0x1) result.column_ |= mask;
-    if (quad_key & 0x2) result.row_ |= mask;
+    if (quad_key & 0x1) {
+      result.column_ |= mask;
+    }
+    if (quad_key & 0x2) {
+      result.row_ |= mask;
+    }
 
     result.level_++;
     quad_key >>= 2;
   }
+
   return result;
 }
 
@@ -138,16 +163,20 @@ TileKey TileKey::FromRowColumnLevel(std::uint32_t row, std::uint32_t column,
 }
 
 TileKey TileKey::Parent() const {
-  if (level_ > 0)
+  if (level_ > 0) {
     return FromRowColumnLevel(row_ >> 1, column_ >> 1, level_ - 1);
-  return TileKey();
+  }
+
+  return {};
 }
 
 bool TileKey::IsChildOf(const TileKey& tile_key) const {
-  if (level_ <= tile_key.Level()) return false;
+  if (level_ <= tile_key.Level()) {
+    return false;
+  }
 
-  const auto childAncestor = ChangedLevelTo(tile_key.Level());
-  return childAncestor == tile_key;
+  const auto child_ancestor = ChangedLevelTo(tile_key.Level());
+  return child_ancestor == tile_key;
 }
 
 bool TileKey::IsParentOf(const TileKey& tile_key) const {
@@ -155,11 +184,15 @@ bool TileKey::IsParentOf(const TileKey& tile_key) const {
 }
 
 TileKey TileKey::ChangedLevelBy(int delta) const {
-  if (delta == 0) return *this;
+  if (delta == 0) {
+    return *this;
+  }
 
   TileKey result = *this;
   int level = (level_ + delta);
-  if (level < 0) level = 0;
+  if (level < 0) {
+    level = 0;
+  }
 
   result.level_ = level;
 
@@ -170,6 +203,7 @@ TileKey TileKey::ChangedLevelBy(int delta) const {
     result.row_ >>= -delta;
     result.column_ >>= -delta;
   }
+
   return result;
 }
 
@@ -181,26 +215,26 @@ std::uint64_t TileKey::GetSubkey64(int delta) const {
   return QuadKey64Helper{ToQuadKey64()}.GetSubkey(delta).key;
 }
 
-TileKey TileKey::AddedSubkey64(std::uint64_t sub_quad_Key) const {
+TileKey TileKey::AddedSubkey64(std::uint64_t sub_quad_key) const {
   return TileKey::FromQuadKey64(QuadKey64Helper{ToQuadKey64()}
-                                    .AddedSubkey(QuadKey64Helper{sub_quad_Key})
+                                    .AddedSubkey(QuadKey64Helper{sub_quad_key})
                                     .key);
 }
 
-TileKey TileKey::AddedSubkey(const std::string& sub_quad_Key) const {
-  const TileKey& subQuad =
-      TileKey::FromQuadKey(sub_quad_Key.empty() ? "-" : sub_quad_Key);
-  const TileKey& child = ChangedLevelBy(subQuad.Level());
-  return TileKey::FromRowColumnLevel(child.Row() + subQuad.Row(),
-                                     child.Column() + subQuad.Column(),
+TileKey TileKey::AddedSubkey(const std::string& sub_quad_key) const {
+  const TileKey& sub_quad =
+      TileKey::FromQuadKey(sub_quad_key.empty() ? "-" : sub_quad_key);
+  const TileKey& child = ChangedLevelBy(sub_quad.Level());
+  return TileKey::FromRowColumnLevel(child.Row() + sub_quad.Row(),
+                                     child.Column() + sub_quad.Column(),
                                      child.Level());
 }
 
 TileKey TileKey::AddedSubHereTile(const std::string& sub_here_tile) const {
-  const TileKey& subQuad = TileKey::FromHereTile(sub_here_tile);
-  const TileKey& child = ChangedLevelBy(subQuad.Level());
-  return TileKey::FromRowColumnLevel(child.Row() + subQuad.Row(),
-                                     child.Column() + subQuad.Column(),
+  const TileKey& sub_quad = TileKey::FromHereTile(sub_here_tile);
+  const TileKey& child = ChangedLevelBy(sub_quad.Level());
+  return TileKey::FromRowColumnLevel(child.Row() + sub_quad.Row(),
+                                     child.Column() + sub_quad.Column(),
                                      child.Level());
 }
 
@@ -256,56 +290,63 @@ TileKey TileKey::GetChild(TileKeyQuadrant direction) const {
 }
 
 TileKey::TileKeyQuadrant TileKey::RelationshipToParent() const {
-  if (level_ == 0) return TileKey::TileKeyQuadrant::Invalid;
-  const TileKey swTile = Parent().GetChild(0);
-  return static_cast<TileKey::TileKeyQuadrant>((Row() - swTile.Row()) * 2 +
-                                               Column() - swTile.Column());
+  if (level_ == 0) {
+    return TileKey::TileKeyQuadrant::Invalid;
+  }
+  const TileKey sw_tile = Parent().GetChild(0);
+  return static_cast<TileKey::TileKeyQuadrant>((Row() - sw_tile.Row()) * 2 +
+                                               Column() - sw_tile.Column());
 }
 
 boost::optional<std::uint32_t> GetMinTileKeyLevel(const TileKeyLevels& levels) {
-  if (levels.none()) return boost::none;
+  if (levels.none()) {
+    return boost::none;
+  }
 
-  const auto levelBits = levels.to_ulong();
+  const auto level_bits = levels.to_ulong();
 
   // See http://supertech.csail.mit.edu/papers/debruijn.pdf to dive into the
   // magic
-
-  static const std::uint32_t lookup_table[32] = {
+  static const std::uint32_t kLookupTable[32] = {
       0,  1,  28, 2,  29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4,  8,
       31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6,  11, 5,  10, 9};
 
   PORTING_PUSH_WARNINGS();
   PORTING_MSVC_DISABLE_WARNINGS(4146);
 
-  return lookup_table[std::uint32_t((levelBits & -levelBits) * 0x077CB531U) >>
+  return kLookupTable[std::uint32_t((level_bits & -level_bits) * 0x077CB531U) >>
                       27];
 
   PORTING_POP_WARNINGS();
 }
 
 boost::optional<std::uint32_t> GetMaxTileKeyLevel(const TileKeyLevels& levels) {
-  if (levels.none()) return boost::none;
+  if (levels.none()) {
+    return boost::none;
+  }
 
   return static_cast<std::uint32_t>(std::log2(levels.to_ulong()));
 }
 
 boost::optional<std::uint32_t> GetNearestAvailableTileKeyLevel(
-    const TileKeyLevels& levels, const std::uint32_t referenceLevel) {
-  const auto minLevel = geo::GetMinTileKeyLevel(levels);
-  const auto maxLevel = geo::GetMaxTileKeyLevel(levels);
-  if (!minLevel || !maxLevel) return boost::none;
+    const TileKeyLevels& levels, const std::uint32_t reference_level) {
+  const auto min_level = geo::GetMinTileKeyLevel(levels);
+  const auto max_level = geo::GetMaxTileKeyLevel(levels);
+  if (!min_level || !max_level) {
+    return boost::none;
+  }
 
-  int level = std::max(std::min(referenceLevel, *maxLevel), *minLevel);
-  const int maxDist = std::max(abs(static_cast<int>(level - *minLevel)),
-                               abs(static_cast<int>(level - *maxLevel)));
-  const int storageLevelsSize = static_cast<int>(levels.size());
-  for (int dist = 0; dist <= maxDist; dist++) {
-    if ((level + dist) < storageLevelsSize && levels[level + dist]) {
-      level += dist;
+  int level = std::max(std::min(reference_level, *max_level), *min_level);
+  const int max_distance = std::max(abs(static_cast<int>(level - *min_level)),
+                                    abs(static_cast<int>(level - *max_level)));
+  const int storage_levels_size = static_cast<int>(levels.size());
+  for (int distance = 0; distance <= max_distance; distance++) {
+    if ((level + distance) < storage_levels_size && levels[level + distance]) {
+      level += distance;
       break;
     }
-    if ((level >= dist) && levels[level - dist]) {
-      level -= dist;
+    if ((level >= distance) && levels[level - distance]) {
+      level -= distance;
       break;
     }
   }
