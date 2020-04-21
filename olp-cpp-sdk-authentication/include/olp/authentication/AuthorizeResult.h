@@ -40,8 +40,6 @@ enum class DecisionType { kAllow, kDeny };
  */
 class AUTHENTICATION_API ActionResult {
  public:
-  ActionResult() = default;
-  ~ActionResult() = default;
   /**
    * @brief Represents permition pair with action and policy decision.
    */
@@ -101,15 +99,6 @@ class AUTHENTICATION_API ActionResult {
  */
 class AUTHENTICATION_API AuthorizeResult {
  public:
-  AuthorizeResult() = default;
-  ~AuthorizeResult() = default;
-
- private:
-  DecisionType policy_decision_{DecisionType::kDeny};
-  std::string client_id_;
-  std::vector<ActionResult> actions_results_;
-
- public:
   /**
    * @brief Gets the overall policy decision.
    *
@@ -155,6 +144,11 @@ class AUTHENTICATION_API AuthorizeResult {
   void SetActionResults(std::vector<ActionResult> actions) {
     actions_results_ = std::move(actions);
   }
+
+ private:
+  DecisionType policy_decision_{DecisionType::kDeny};
+  std::string client_id_;
+  std::vector<ActionResult> actions_results_;
 };
 
 }  // namespace authentication
