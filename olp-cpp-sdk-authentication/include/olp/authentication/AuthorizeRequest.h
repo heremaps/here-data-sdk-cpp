@@ -30,45 +30,51 @@ namespace authentication {
 
 /**
  * @brief Encapsulates the fields required to make a policy decision for a given
- * request context against a HERE Service.
+ * request context against the HERE Service.
  *
- * Collect all permissions associated with the authenticated user or
- * application, requested serviceId, and requested contractId For each
- * action/resource pair in the request, determine an individual policy decision
- * for that action: DENY, ALLOW.
+ * Collects all permissions associated with the authenticated user or
+ * application, requested service ID, and requested contract ID. For each
+ * action-resource pair in the request, this class determines an individual
+ * policy decision: DENY or ALLOW.
  *
- * @note: If a contractId is not provided in the request, the system will
- * automatically determine the contractId if the user only has permissions for a
- * single contractId associated with the requested serviceId. If the user has
- * permissions for multiple contractId's, a 'Contract Required' error will be
- * returned.
+ * * @note: If the contract ID is not provided in the request, one of the
+ * following happens:
+ * * If you have permissions for a single contract ID associated with the
+ * requested service ID, the system automatically determines the contract ID.
+ * * If you have permissions for multiple contract IDs, the 'Contract Required'
+ * error is returned.
  */
 class AUTHENTICATION_API AuthorizeRequest final {
  public:
   /**
-   * @brief Type alias for action pair. First is type of action, second is
-   * recource, optional parameter.
-   * @note For each action/resource pair in the request, individual policy
-   * decision for that action will be determined.
+   * @brief The type alias for the action pair.
+   *
+   * The first parameter is the type of action.
+   * The second one is optional and represents the resource.
+   *
+   * @note Each action-resource pair in the request has an individual policy
+   * decision.
    */
   using Action = std::pair<std::string, boost::optional<std::string>>;
 
   /**
-   * @brief Type alias for vector of actions.
+   * @brief The type alias for the vector of actions.
    */
   using Actions = std::vector<Action>;
 
   /**
-   * @brief Determins the overall policy decision based on individual decisions
+   * @brief Determines the overall policy decision based on individual decisions
    * for each action.
    *
-   * @note If operator is 'and' or missing(defaults to 'and') the next algorithm
-   * applied. If ANY actions have an individual policy decision of DENY, the
-   * overall policy decision returned in the response is DENY If ALL actions
-   * have an individual policy decision of ALLOW, the overall policy decision
-   * returned in the response is ALLOW If operator is operator is 'or' the next
-   * algorithm applied. If ANY actions have an individual policy decision of
-   * ALLOW, the overall policy decision returned in the response is ALLOW
+   * @note If the operator is 'or' and ANY actions have an individual policy
+   * decision of ALLOW, the overall policy decision returned
+   * in the response is ALLOW.
+   * If the operator is 'and' or missing (defaults to 'and'),
+   * one of the following algorithms is applied:
+   * * If ANY actions have an individual policy decision of DENY,
+   *  the overall policy decision returned in the response is DENY.
+   * * If ALL actions have an individual policy decision of ALLOW,
+   * the overall policy decision returned in the response is ALLOW.
    */
   enum class DecisionApiOperatorType { kAnd, kOr };
 
@@ -92,26 +98,27 @@ class AUTHENTICATION_API AuthorizeRequest final {
   }
 
   /**
-   * @brief Get the contract id.
+   * @brief Gets the contract ID.
    *
-   * @note If a contractId is not provided in the request, the system will
-   * automatically determine the contractId if the user only has permissions for
-   * a single contractId associated with the requested serviceId. If the user
-   *  has permissions for multiple contractId's, a 'Contract Required' error
-   * will be returned.
+   * @note: If the contract ID is not provided in the request, one of the
+   * following happens:
+   * * If you have permissions for a single contract ID associated with the
+   * requested service ID, the system automatically determines the contract ID.
+   * * If you have permissions for multiple contract IDs, the 'Contract
+   * Required' error is returned.
    *
-   * @return The contract id.
+   * @return The contract ID or an error.
    */
   inline const boost::optional<std::string>& GetContractId() const {
     return contract_id_;
   }
 
   /**
-   * @brief Sets the contract id.
+   * @brief Sets the contract ID.
    *
-   * @see `GetContractId` for information on the contract id.
+   * @see `GetContractId` for information on the contract ID.
    *
-   * @param contract_id The contract id of the user.
+   * @param contract_id Your contract ID.
    *
    * @return A reference to the updated `DecisionRequest` instance.
    */
@@ -122,11 +129,11 @@ class AUTHENTICATION_API AuthorizeRequest final {
   }
 
   /**
-   * @brief Sets the contract id.
+   * @brief Sets the contract ID.
    *
-   * @see `GetContractId` for information on the contract id.
+   * @see `GetContractId` for information on the contract ID.
    *
-   * @param contract_id The contract id of the user.
+   * @param contract_id Your contract ID.
    *
    * @return A reference to the updated `DecisionRequest` instance.
    */
@@ -138,16 +145,17 @@ class AUTHENTICATION_API AuthorizeRequest final {
   /**
    * @brief Gets all actions.
    *
-   * @return The vector of the actions(action/resorce pairs).
+   * @return The vector of the actions (action-resorce pairs).
    */
   inline const Actions& GetActions() const { return actions_; }
 
   /**
-   * @brief Adds an action/resource pair.
+   * @brief Adds the action-resource pair.
    *
-   * @param[in] action onv which need to determine an individual policy decision
-   * for that action.
-   * @param[in] resource on which will be requested decision for the action.
+   * @param[in] action The action that is used to determine an individual policy
+   * decision.
+   * @param[in] resource The resource that is used to request the decision for
+   * the action.
    *
    * @return A reference to the updated `DecisionRequest` instance.
    */
@@ -160,7 +168,8 @@ class AUTHENTICATION_API AuthorizeRequest final {
   /**
    * @brief Gets the operator type.
    *
-   * If operator type not set, type 'and' will be used in request
+   * If the operator type is not set, the 'and' type is used in the request.
+
    * @see `DecisionApiOperatorType` for more information.
    *
    * @return The operator type.
@@ -186,17 +195,17 @@ class AUTHENTICATION_API AuthorizeRequest final {
   }
 
   /**
-   * @brief Gets diagnostics flag.
+   * @brief Gets the diagnostics flag.
    *
-   * @return diagnostics flag.
+   * @return The diagnostics flag.
    */
   inline bool GetDiagnostics() const { return diagnostics_; }
 
   /**
    * @brief Sets the diagnostics flag for the request.
    *
-   * @param diagnostics The flag to turn on or off diagnostic information in
-   * responce.
+   * @param diagnostics The flag used to turn on or off the diagnostic
+   * information in the response.
    *
    * @return A reference to the updated `DecisionRequest` instance.
    */

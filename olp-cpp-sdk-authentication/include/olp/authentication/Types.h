@@ -44,7 +44,7 @@ using IntrospectAppResponse = Response<IntrospectAppResult>;
 /// Called when the user introspect app request is completed.
 using IntrospectAppCallback = Callback<IntrospectAppResult>;
 
-/// The decision api response alias.
+/// The decision API response alias.
 using AuthorizeResponse = Response<AuthorizeResult>;
 }  // namespace authentication
 }  // namespace olp

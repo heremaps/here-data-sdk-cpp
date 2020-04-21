@@ -28,56 +28,60 @@ namespace olp {
 namespace authentication {
 
 /**
- * @brief Represents policy decision deny or allow.
+ * @brief Represents a policy decision: DENY or ALLOW.
  */
 enum class DecisionType { kAllow, kDeny };
 
 /**
- * @brief Represents each action/resource pair responce with individual policy
- * decision for that action DENY or ALLOW.
+ * @brief Represents each action-resource pair response with an individual
+ * policy decision for that action: DENY or ALLOW.
  *
- * @note Data present only if diagnostics flag is true for the DecisionRequest.
+ * @note The data is present only if the diagnostics flag is true for
+ * `DecisionRequest`.
  */
 class AUTHENTICATION_API ActionResult {
  public:
   /**
-   * @brief Represents permition pair with action and policy decision.
+   * @brief Represents the permission pair with the action and policy decision.
    */
   using Permisions = std::pair<std::string, DecisionType>;
+
   /**
    * @brief Gets the overall policy decision.
    *
    * @see `DecisionApiOperatorType` for more information.
    *
-   * @return The decision based on operator type.
+   * @return The decision based on the operator type.
    */
   const DecisionType& GetDecision() const { return decision_; }
+
   /**
    * @brief Sets the policy decision.
    *
-   * @param The decision.
+   * @param The policy decision.
    */
   void SetDecision(DecisionType decision) { decision_ = decision; }
+
   /**
-   * @brief Gets the list of permitions, which are used to evaluate against the
+   * @brief Gets the list of permitions that are evaluated against the
    action and resource.
    *
    * @note Algorithm of evaluating each permission in the set against the action
    and resource.
-   * If the action matches the action in the permission and the resource
-   matches* the resource in the permission, consider the permission
-   * If ANY considered permission for the action has an effect of DENY, the
-   individual policy decision for the action is DENY
-   * If ALL considered permissions for the action have an effect of ALLOW, the
-   individual policy decision for the action is ALLOW
-
-   * @return The list permitions.
+   * If the action matches the action in the permission, and the resource
+   matches the resource in the permission, consider the permission.
+   * If ANY considered permission for the action has results in DENY, the
+   individual policy decision for the action is DENY.
+   * If ALL considered permissions for the action results in ALLOW, the
+   individual policy decision for the action is ALLOW.
+   * @return The list of permitions.
    */
   const std::vector<Permisions>& GetPermitions() const { return permisions_; }
+
   /**
    * @brief Sets the list of permitions.
    *
-   * @param permitions vector of pair action/decision.
+   * @param permitions The vector of the action-decision pair.
    */
   void SetPermitions(std::vector<Permisions> permisions) {
     permisions_ = std::move(permisions);
@@ -89,13 +93,13 @@ class AUTHENTICATION_API ActionResult {
 };
 
 /**
- * @brief A model used to represent policy decision for a given request context
- * against a HERE Service.
+ * @brief Represents the policy decision for a given request context
+ * against the HERE Service.
  *
- * Collected permissions associated with the authenticated user or application,
- * requested serviceId, and requested contractId For each action/resource pair
- * in the request returned individual policy decision for that action DENY or
- * ALLOW.
+ * Collects all permissions associated with the authenticated user or
+ * application, requested service ID, and requested contract ID. For each
+ * action-resource pair in the request, this class determines an individual
+ * policy decision: DENY or ALLOW.
  */
 class AUTHENTICATION_API AuthorizeResult {
  public:
@@ -104,42 +108,47 @@ class AUTHENTICATION_API AuthorizeResult {
    *
    * @see `DecisionApiOperatorType` for more information.
    *
-   * @return The decision based on operator type.
+   * @return The decision based on the operator type.
    */
   const DecisionType& GetDecision() const { return policy_decision_; }
+
   /**
    * @brief Sets the overall policy decision.
    *
-   * @param The decision.
+   * @param decision The policy decision.
    */
   void SetDecision(DecisionType decision) { policy_decision_ = decision; }
+
   /**
-   * @brief Gets the client id.
+   * @brief Gets the client ID.
    *
-   * @return The client id.
+   * @return The client ID.
    */
   const std::string& GetClientId() const { return client_id_; }
+
   /**
-   * @brief Sets the client id.
+   * @brief Sets the client ID.
    *
-   * @param The client id.
+   * @param The client ID.
    */
   void SetClientId(std::string client_id) { client_id_ = std::move(client_id); }
+
   /**
-   * @brief Gets the list results for each action.
+   * @brief Gets the list of results for each action.
    *
-   * @note Data present only if diagnostics flag is true for the
-   * DecisionRequest.
+   * @note The data is present only if the diagnostics flag is true for
+   * `DecisionRequest`.
    *
    * @return The list of action results.
    */
   const std::vector<ActionResult>& GetActionResults() const {
     return actions_results_;
   }
+
   /**
-   * @brief Sets the list results for each action.
+   * @brief Sets the list of results for each action.
    *
-   * @param actions vector of ActionResult.
+   * @param actions The vector of `ActionResult`.
    */
   void SetActionResults(std::vector<ActionResult> actions) {
     actions_results_ = std::move(actions);
