@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@
 
 namespace olp {
 namespace geo {
+
 /**
  * @brief The TileKey instances used to address a tile in a quad tree.
  *
@@ -67,9 +68,16 @@ class CORE_API TileKey {
   enum { MaxLevel = LevelCount - 1 };
 
   /**
+   * @brief Cardinal direction, used to find child node by such direction or for
+   * the relationship to the parent, corresponds directly to the index in the
+   * function GetChild.
+   */
+  enum class TileKeyQuadrant : uint8_t { SW, SE, NW, NE, Invalid };
+
+  /**
    * @brief Creates an invalid tile key.
    */
-  constexpr TileKey() : row_(), column_(), level_(LevelCount) {}
+  constexpr TileKey() : row_(0), column_(0), level_(LevelCount) {}
 
   /**
    * @brief Default copy constructor.
@@ -90,8 +98,9 @@ class CORE_API TileKey {
   }
 
   /**
-   * Operator ==.
-   * \param other TileKey to be compared to this.
+   * @brief Equality operator.
+   *
+   * @param other TileKey to be compared to this.
    */
   constexpr bool operator==(const TileKey& other) const {
     return level_ == other.level_ && row_ == other.row_ &&
@@ -99,7 +108,8 @@ class CORE_API TileKey {
   }
 
   /**
-   * Operator !=.
+   * @brief Inequality operator.
+   *
    * \param other TileKey to be compared to this.
    */
   constexpr bool operator!=(const TileKey& other) const {
@@ -107,7 +117,7 @@ class CORE_API TileKey {
   }
 
   /**
-   * Implements an order on tile keys, so they can be used in maps:
+   * @brief Implements an order on tile keys, so they can be used in maps:
    * first level, then row, then column.
    *
    * If you need more locality, you should use the 64bit morton encoding
@@ -223,7 +233,9 @@ class CORE_API TileKey {
 
   /**
    * @brief Checks the current tile is a child of another tile.
+   *
    * @param[in] tile_key tile key of a possible parent.
+   *
    * @return a value indicating whether the current tile is a child of the
    * specified tile.
    */
@@ -231,14 +243,15 @@ class CORE_API TileKey {
 
   /**
    * @brief Checks the current tile is a parent of another tile.
+   *
    * @param[in] tile_key tile key of a possible child.
+   *
    * @return a value indicating whether the current tile is a parent of the
    * specified tile.
    */
   bool IsParentOf(const TileKey& tile_key) const;
 
   /**
-   *
    * @brief Returns a new tile key at a level that differs from this tile's
    * level by delta.
    *
@@ -260,35 +273,27 @@ class CORE_API TileKey {
    * If the requested level equals this tile's level, then the tile key itself
    * is returned.
    *
-   * @param level the requested level
+   * @param level The requested level.
    */
   TileKey ChangedLevelTo(std::uint32_t level) const;
 
   /**
-   * @brief see QuadKey64Helper::GetSubkey()
-   * @param delta see Quad64::GetSubkey()
-   * @return The subquad key
+   * @copydoc QuadKey64Helper::GetSubkey()
    */
   std::uint64_t GetSubkey64(int delta) const;
 
   /**
-   * @brief see QuadKey64Helper::AddedSubkey()
-   * @param sub_quad_key the sub quad key to apply
-   * @return The resulting quad
+   * @copydoc QuadKey64Helper::AddedSubkey()
    */
   TileKey AddedSubkey64(std::uint64_t sub_quad_key) const;
 
   /**
-   * @brief see QuadKey64Helper::AddedSubkey()
-   * @param sub_quad_key the sub quad key to apply
-   * @return The resulting tile key
+   * @copydoc QuadKey64Helper::AddedSubkey()
    */
   TileKey AddedSubkey(const std::string& sub_quad_key) const;
 
   /**
-   * @brief see QuadKey64Helper::AddedSubkey()
-   * @param sub_here_tile the sub quad here tile key to apply
-   * @return The resulting tile key
+   * @copydoc QuadKey64Helper::AddedSubkey()
    */
   TileKey AddedSubHereTile(const std::string& sub_here_tile) const;
 
@@ -342,26 +347,21 @@ class CORE_API TileKey {
 
   /**
    * @brief Returns n-th child of the current tile.
-   * @param index the child index from [0, 3] range
+   *
+   * @param index the child index from [0, 3] range.
    */
   TileKey GetChild(std::uint8_t index) const;
 
   /**
-   * Cardinal direction, used to find child node by such direction or for the
-   * relationship to the parent, corresponds directly to the idx in the function
-   * GetChild.
-   */
-  enum class TileKeyQuadrant : uint8_t { SW, SE, NW, NE, Invalid };
-
-  /**
    * @brief Returns child of the current tile by direction.
-   * @param direction which child to return
+   *
+   * @param direction which child to return.
    */
   TileKey GetChild(TileKeyQuadrant direction) const;
 
   /**
-   * Computes the direction in relationship to the parent, returns Invalid if
-   * the TileKey represents the root
+   * @brief Computes the direction in relationship to the parent, returns
+   * Invalid if the TileKey represents the root.
    */
   TileKeyQuadrant RelationshipToParent() const;
 
@@ -380,19 +380,14 @@ class CORE_API TileKey {
  */
 struct CORE_API QuadKey64Helper {
   /**
-   * @brief value/default constructor
+   * @brief Value/default constructor.
    */
-  explicit constexpr QuadKey64Helper(std::uint64_t key)
-    : key(key) {}
+  explicit constexpr QuadKey64Helper(std::uint64_t key) : key(key) {}
 
   /**
-   * @brief key the representation of this quad key
-   */
-  std::uint64_t key{0};
-
-  /**
-   * @brief returns the quad key representing this quad key's parent
-   * @return the parent
+   * @brief Returns the quad key representing this quad key's parent.
+   *
+   * @return The parent quad key.
    */
   constexpr QuadKey64Helper Parent() const { return QuadKey64Helper{key >> 2}; }
 
@@ -417,48 +412,61 @@ struct CORE_API QuadKey64Helper {
    *
    * @param delta the amount of levels relative to its parent quad key. Must be
    *              greater or equal to 0 and smaller than 32.
-   * @return the quad key relative to its parent that is delta levels up the
-   * tree
+   *
+   * @return The quad key relative to its parent that is delta levels up the
+   * tree.
    */
   QuadKey64Helper GetSubkey(int delta) const;
 
   /**
-   * @brief Returns a quad key that is constructed from its subkey
+   * @brief Returns a quad key that is constructed from its sub quad key.
    *
    * This function is the reverse of GetSubkey(). It returns the absolute quad
-   * key in the tree based on a subKey.
+   * key in the tree based on a sub quad key.
    *
-   * @param sub_key the subKey that was generated with ToSubQuadKey()
-   * @return the absolute quad key in the quad tree
+   * @param sub_key The sub quad key that was generated with ToSubQuadKey().
+   *
+   * @return the absolute quad key in the quad tree.
    */
   QuadKey64Helper AddedSubkey(QuadKey64Helper sub_key) const;
 
-  /** @brief Returns the rows at a given level
+  /**
+   * @brief Returns the rows at a given level.
+   *
    * This is 2 to the power of the level.
    *
-   * @param level the level
-   * @return Amount of rows on the level
+   * @param level The requested level.
+   *
+   * @return Amount of rows on the level.
    */
   static inline constexpr std::uint32_t RowsAtLevel(std::uint32_t level) {
     return 1u << level;
   }
 
-  /** @brief Returns the amount of children at the given level
+  /**
+   * @brief Returns the amount of children at the given level.
+   *
    * This is 4 to the power of the level.
    *
-   * @param level the level
-   * @return Amount of children on the level
+   * @param level The requested level.
+   *
+   * @return Amount of children on the level.
    */
   static inline constexpr std::uint32_t ChildrenAtLevel(std::uint32_t level) {
     return 1u << (level << 1u);
   }
+
+  /// The representation of this quad key
+  std::uint64_t key{0};
 };
 
 using TileKeyLevels = std::bitset<TileKey::LevelCount>;
 
 /**
  * @brief Return the minimum level in the given level set.
- * @param levels
+ *
+ * @param levels The levels set to be considered.
+ *
  * @return The minimum level or core::None if the set is empty.
  */
 CORE_API boost::optional<std::uint32_t> GetMinTileKeyLevel(
@@ -466,7 +474,9 @@ CORE_API boost::optional<std::uint32_t> GetMinTileKeyLevel(
 
 /**
  * @brief Return the maximum level in the given level set.
- * @param levels
+ *
+ * @param levels The levels set to be considered.
+ *
  * @return The maximum level or core::None if the set is empty.
  */
 CORE_API boost::optional<std::uint32_t> GetMaxTileKeyLevel(
@@ -474,13 +484,19 @@ CORE_API boost::optional<std::uint32_t> GetMaxTileKeyLevel(
 
 /**
  * @brief Return the tile level of the given level set that is nearest to a
- * given reference level. If distance is equal to the next upper and lower
+ * given reference level.
+ *
+ * If distance is equal to the next upper and lower
  * level, then the upper level is returned.
+ *
  * @return The nearest level or core::None if the set is empty.
  */
 CORE_API boost::optional<std::uint32_t> GetNearestAvailableTileKeyLevel(
     const TileKeyLevels& levels, const std::uint32_t reference_level);
 
+/**
+ * @brief The stream operator to print or serialize the given TileKey.
+ */
 CORE_API std::ostream& operator<<(std::ostream& out,
                                   const geo::TileKey& tile_key);
 
@@ -488,14 +504,14 @@ CORE_API std::ostream& operator<<(std::ostream& out,
 }  // namespace olp
 
 namespace std {
-/**
- * @brief specialization of std::hash
- */
 
+/**
+ * @brief Specialization of std::hash.
+ */
 template <>
 struct hash<olp::geo::TileKey> {
   /**
-   * Hash function for tile keys, uses the 64-bit morton code
+   * @brief Hash function for tile keys, uses the 64-bit morton code
    * (TileKey::ToQuadKey64()).
    */
   std::size_t operator()(const olp::geo::TileKey& tile_key) const {

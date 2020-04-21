@@ -23,33 +23,28 @@
 
 namespace olp {
 namespace geo {
+
 template <class TSubdivisionScheme, class TProjection>
 class TilingScheme : public ITilingScheme {
  public:
   using SubdivisionScheme = TSubdivisionScheme;
   using Projection = TProjection;
 
-  TilingScheme() {}
+  TilingScheme() = default;
+  ~TilingScheme() override = default;
 
-  // ITilingScheme
-  const ISubdivisionScheme& GetSubdivisionScheme() const override;
-  const IProjection& GetProjection() const override;
+  /// @copydoc ITilingScheme::GetSubdivisionScheme()
+  const ISubdivisionScheme& GetSubdivisionScheme() const override {
+    return subdivision_scheme_;
+  }
+
+  /// @copydoc ITilingScheme::GetProjection()
+  const IProjection& GetProjection() const override { return projection_; }
 
  private:
-  SubdivisionScheme sub_division_scheme_{};
+  SubdivisionScheme subdivision_scheme_{};
   Projection projection_{};
 };
-
-template <class S, class P>
-inline const ISubdivisionScheme& TilingScheme<S, P>::GetSubdivisionScheme()
-    const {
-  return sub_division_scheme_;
-}
-
-template <class S, class P>
-inline const IProjection& TilingScheme<S, P>::GetProjection() const {
-  return projection_;
-}
 
 }  // namespace geo
 }  // namespace olp

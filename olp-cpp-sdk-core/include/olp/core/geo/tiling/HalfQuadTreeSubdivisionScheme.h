@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,16 +23,17 @@
 
 namespace olp {
 namespace geo {
+
 /**
- * Half-quadtree subdivision scheme
+ * @brief Half-quadtree subdivision scheme.
  *
  * Subdivides 0-th level tile into left and right parts; on other levels same as
  * quadtree.
  */
-
 class CORE_API HalfQuadTreeSubdivisionScheme final : public ISubdivisionScheme {
  public:
   HalfQuadTreeSubdivisionScheme() = default;
+  ~HalfQuadTreeSubdivisionScheme() override = default;
 
   bool IsEqualTo(const ISubdivisionScheme& other) const override;
 

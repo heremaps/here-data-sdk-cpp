@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@
 
 namespace olp {
 namespace geo {
+
 class CORE_API SubTiles {
   friend class Iterator;
 
@@ -35,12 +36,8 @@ class CORE_API SubTiles {
     friend class SubTiles;
 
    public:
-    typedef TileKey ValueType;
+    using ValueType = TileKey;
 
-   private:
-    Iterator(const SubTiles& parent, std::uint32_t index = 0);
-
-   public:
     ValueType operator*() const;
 
     Iterator& operator++();
@@ -50,14 +47,15 @@ class CORE_API SubTiles {
     bool operator!=(Iterator& other) const;
 
    private:
+    Iterator(const SubTiles& parent, std::uint32_t index = 0);
+
     const SubTiles& parent_;
     std::uint32_t index_{0};
   };
 
-  typedef Iterator ConstIterator;
+  using ConstIterator = Iterator;
 
- public:
-  SubTiles(const TileKey& tileKey, std::uint32_t level = 1,
+  SubTiles(const TileKey& tile_key, std::uint32_t level = 1,
            std::uint16_t mask = ~0);
 
   size_t Size() const;
@@ -74,7 +72,6 @@ class CORE_API SubTiles {
  private:
   void Skip(std::uint32_t& index) const;
 
- private:
   const TileKey tile_key_;
   const std::uint32_t level_{0};
   const std::uint32_t count_{0};
@@ -89,13 +86,13 @@ inline SubTiles::Iterator::Iterator(const SubTiles& parent, std::uint32_t index)
 }
 
 inline SubTiles::Iterator::ValueType SubTiles::Iterator::operator*() const {
-  const TileKey& parentKey = parent_.tile_key_;
-  const std::uint32_t subLevel = parent_.level_;
+  const TileKey& parent_key = parent_.tile_key_;
+  const std::uint32_t sub_level = parent_.level_;
 
   return TileKey::FromRowColumnLevel(
-      (parentKey.Row() << subLevel) | (index_ >> subLevel),
-      (parentKey.Column() << subLevel) | (index_ & ((1 << subLevel) - 1)),
-      parentKey.Level() + subLevel);
+      (parent_key.Row() << sub_level) | (index_ >> sub_level),
+      (parent_key.Column() << sub_level) | (index_ & ((1 << sub_level) - 1)),
+      parent_key.Level() + sub_level);
 }
 
 inline SubTiles::Iterator& SubTiles::Iterator::operator++() {
@@ -110,7 +107,6 @@ inline SubTiles::Iterator SubTiles::Iterator::operator++(int) {
 }
 
 inline bool SubTiles::Iterator::operator==(Iterator& other) const {
-  // or compare pointer to parent_?
   return parent_.tile_key_ == other.parent_.tile_key_ && index_ == other.index_;
 }
 
@@ -118,9 +114,9 @@ inline bool SubTiles::Iterator::operator!=(Iterator& other) const {
   return !(*this == other);
 }
 
-inline SubTiles::SubTiles(const TileKey& tileKey, std::uint32_t level,
+inline SubTiles::SubTiles(const TileKey& tile_key, std::uint32_t level,
                           std::uint16_t mask)
-    : tile_key_(tileKey),
+    : tile_key_(tile_key),
       level_(level),
       count_(1 << (level_ << 1)),
       mask_(mask),
@@ -149,9 +145,11 @@ inline SubTiles::ConstIterator SubTiles::cend() const {
 }
 
 inline void SubTiles::Skip(std::uint32_t& index) const {
-  if (mask_ == static_cast<std::uint16_t>(-1)) return;
+  if (mask_ == static_cast<std::uint16_t>(-1))
+    return;
 
-  while (index < count_ && (mask_ & (1 << (index >> shift_))) == 0) ++index;
+  while (index < count_ && (mask_ & (1 << (index >> shift_))) == 0)
+    ++index;
 }
 
 }  // namespace geo

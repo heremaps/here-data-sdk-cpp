@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,58 +17,56 @@
  * License-Filename: LICENSE
  */
 
-#include <olp/core/geo/tiling/TileKeyUtils.h>
+#include "olp/core/geo/tiling/TileKeyUtils.h"
 
 #include <vector>
 
-#include <olp/core/geo/coordinates/GeoCoordinates.h>
-#include <olp/core/geo/coordinates/GeoCoordinates3d.h>
-#include <olp/core/geo/coordinates/GeoRectangle.h>
-#include <olp/core/geo/projection/IProjection.h>
-#include <olp/core/geo/tiling/ISubdivisionScheme.h>
-#include <olp/core/geo/tiling/ITilingScheme.h>
-#include <olp/core/geo/tiling/TileKey.h>
-#include <olp/core/math/AlignedBox.h>
-#include <olp/core/math/Math.h>
+#include "olp/core/geo/coordinates/GeoCoordinates.h"
+#include "olp/core/geo/coordinates/GeoCoordinates3d.h"
+#include "olp/core/geo/coordinates/GeoRectangle.h"
+#include "olp/core/geo/projection/IProjection.h"
+#include "olp/core/geo/tiling/ISubdivisionScheme.h"
+#include "olp/core/geo/tiling/ITilingScheme.h"
+#include "olp/core/geo/tiling/TileKey.h"
+#include "olp/core/math/AlignedBox.h"
+#include "olp/core/math/Math.h"
 
 namespace olp {
-
-using namespace math;
-
 namespace geo {
+
 TileKey TileKeyUtils::GeoCoordinatesToTileKey(
     const ITilingScheme& tiling_scheme, const GeoCoordinates& geo_point,
     const std::uint32_t level) {
-  WorldCoordinates worldPoint;
+  WorldCoordinates world_point;
   const IProjection& projection = tiling_scheme.GetProjection();
-  if (!projection.Project(GeoCoordinates3d(geo_point, 0), worldPoint))
+  if (!projection.Project(GeoCoordinates3d(geo_point, 0), world_point))
     return TileKey();
 
-  const ISubdivisionScheme& subdivisionScheme =
+  const ISubdivisionScheme& subdivision_scheme =
       tiling_scheme.GetSubdivisionScheme();
-  const auto& levelSize = subdivisionScheme.GetLevelSize(level);
-  const std::uint32_t cx = levelSize.Width();
-  const std::uint32_t cy = levelSize.Height();
+  const auto& level_size = subdivision_scheme.GetLevelSize(level);
+  const std::uint32_t cx = level_size.Width();
+  const std::uint32_t cy = level_size.Height();
 
-  const WorldAlignedBox worldBBox =
+  const WorldAlignedBox world_box =
       tiling_scheme.GetProjection().WorldExtent(0, 0);
-  const auto& worldSize = worldBBox.Size();
+  const auto& world_size = world_box.Size();
 
-  const math::Vector3d& worldBBoxMin = worldBBox.Minimum();
-  const math::Vector3d& worldBBoxMax = worldBBox.Maximum();
-  if (worldPoint.x < worldBBoxMin.x || worldPoint.x > worldBBoxMax.x)
+  const math::Vector3d& world_box_min = world_box.Minimum();
+  const math::Vector3d& world_box_max = world_box.Maximum();
+
+  if (world_point.x < world_box_min.x || world_point.x > world_box_max.x ||
+      world_point.y < world_box_min.y || world_point.y > world_box_max.y) {
     return TileKey();
+  }
 
-  if (worldPoint.y < worldBBoxMin.y || worldPoint.y > worldBBoxMax.y)
-    return TileKey();
+  const std::uint32_t column = std::min(
+      cx - 1, static_cast<std::uint32_t>(
+                  cx * (world_point.x - world_box_min.x) / world_size.x));
 
-  const std::uint32_t column =
-      std::min(cx - 1, static_cast<std::uint32_t>(
-                           cx * (worldPoint.x - worldBBoxMin.x) / worldSize.x));
-
-  const std::uint32_t row =
-      std::min(cy - 1, static_cast<std::uint32_t>(
-                           cy * (worldPoint.y - worldBBoxMin.y) / worldSize.y));
+  const std::uint32_t row = std::min(
+      cy - 1, static_cast<std::uint32_t>(
+                  cy * (world_point.y - world_box_min.y) / world_size.y));
 
   return TileKey::FromRowColumnLevel(row, column, level);
 }
@@ -76,82 +74,89 @@ TileKey TileKeyUtils::GeoCoordinatesToTileKey(
 std::vector<TileKey> TileKeyUtils::GeoRectangleToTileKeys(
     const ITilingScheme& tiling_scheme, const GeoRectangle& geo_rectangle,
     const std::uint32_t level) {
-  if (geo_rectangle.IsEmpty()) return std::vector<TileKey>();
+  if (geo_rectangle.IsEmpty()) {
+    return std::vector<TileKey>();
+  }
 
-  GeoCoordinates southWest = geo_rectangle.SouthWest();
-  GeoCoordinates northEast = geo_rectangle.NorthEast();
+  GeoCoordinates south_west = geo_rectangle.SouthWest();
+  GeoCoordinates north_east = geo_rectangle.NorthEast();
 
   // Clamp at the poles and wrap around the international date line.
-  southWest.SetLongitude(
-      math::Wrap(southWest.GetLongitude(), -math::pi, math::pi));
-  southWest.SetLatitude(
-      math::Clamp(southWest.GetLatitude(), -math::half_pi, math::half_pi));
+  south_west.SetLongitude(
+      math::Wrap(south_west.GetLongitude(), -math::pi, math::pi));
+  south_west.SetLatitude(
+      math::Clamp(south_west.GetLatitude(), -math::half_pi, math::half_pi));
 
-  northEast.SetLongitude(
-      math::Wrap(northEast.GetLongitude(), -math::pi, math::pi));
-  northEast.SetLatitude(
-      math::Clamp(northEast.GetLatitude(), -math::half_pi, math::half_pi));
+  north_east.SetLongitude(
+      math::Wrap(north_east.GetLongitude(), -math::pi, math::pi));
+  north_east.SetLatitude(
+      math::Clamp(north_east.GetLatitude(), -math::half_pi, math::half_pi));
 
-  const TileKey minTileKey =
-      GeoCoordinatesToTileKey(tiling_scheme, southWest, level);
-  const TileKey maxTileKey =
-      GeoCoordinatesToTileKey(tiling_scheme, northEast, level);
+  const TileKey min_tile_key =
+      GeoCoordinatesToTileKey(tiling_scheme, south_west, level);
+  const TileKey max_tile_key =
+      GeoCoordinatesToTileKey(tiling_scheme, north_east, level);
 
-  const uint32_t columnCount =
+  const uint32_t column_count =
       tiling_scheme.GetSubdivisionScheme().GetLevelSize(level).Width();
 
-  const uint32_t minColumn = minTileKey.Column();
-  uint32_t maxColumn = maxTileKey.Column();
+  const uint32_t min_column = min_tile_key.Column();
+  uint32_t max_column = max_tile_key.Column();
 
   // wrap around case
-  if (southWest.GetLongitude() > northEast.GetLongitude()) {
-    if (maxColumn != minColumn)
-      maxColumn += columnCount;
-    else  // do not duplicate
-      maxColumn += columnCount - 1;
+  if (south_west.GetLongitude() > north_east.GetLongitude()) {
+    if (max_column != min_column) {
+      max_column += column_count;
+    } else {
+      max_column += column_count - 1;
+    }
   }
 
   std::vector<TileKey> keys;
-  for (uint32_t row = minTileKey.Row(); row <= maxTileKey.Row(); ++row)
-    for (uint32_t column = minColumn; column <= maxColumn; ++column)
+  for (uint32_t row = min_tile_key.Row(); row <= max_tile_key.Row(); ++row) {
+    for (uint32_t column = min_column; column <= max_column; ++column) {
       keys.push_back(
-          TileKey::FromRowColumnLevel(row, column % columnCount, level));
+          TileKey::FromRowColumnLevel(row, column % column_count, level));
+    }
+  }
 
   return keys;
 }
 
 geo::TileKey TileKeyUtils::GetRelativeSubTileKey(const geo::TileKey& key,
                                                  std::uint32_t parent_level) {
-  auto originKey = key.ChangedLevelTo(parent_level).ChangedLevelTo(key.Level());
-  return geo::TileKey::FromRowColumnLevel(key.Row() - originKey.Row(),
-                                          key.Column() - originKey.Column(),
+  auto origin_key =
+      key.ChangedLevelTo(parent_level).ChangedLevelTo(key.Level());
+  return geo::TileKey::FromRowColumnLevel(key.Row() - origin_key.Row(),
+                                          key.Column() - origin_key.Column(),
                                           key.Level() - parent_level);
 }
 
 TileKey TileKeyUtils::GetAbsoluteSubTileKey(const TileKey& parent,
                                             const TileKey& sub_tile) {
-  const TileKey absSubTileKey =
+  const TileKey abs_sub_tile =
       parent.ChangedLevelBy(static_cast<int>(sub_tile.Level()));
-  return TileKey::FromRowColumnLevel(absSubTileKey.Row() + sub_tile.Row(),
-                                     absSubTileKey.Column() + sub_tile.Column(),
-                                     absSubTileKey.Level());
+  return TileKey::FromRowColumnLevel(abs_sub_tile.Row() + sub_tile.Row(),
+                                     abs_sub_tile.Column() + sub_tile.Column(),
+                                     abs_sub_tile.Level());
 }
 
-AlignedBox3d calculateTileBox(const ITilingScheme& tiling_scheme,
-                              const TileKey& tile_key) {
-  static const double ZERO_ALT = 0;
-  const auto& subdivScheme = tiling_scheme.GetSubdivisionScheme();
+math::AlignedBox3d CalculateTileBox(const ITilingScheme& tiling_scheme,
+                                    const TileKey& tile_key) {
+  static constexpr double kZeroAlt = 0;
+  const auto& subdiv_scheme = tiling_scheme.GetSubdivisionScheme();
   const auto& projection = tiling_scheme.GetProjection();
 
-  const auto worldBounds = projection.WorldExtent(ZERO_ALT, ZERO_ALT);
-  const auto levelSize = subdivScheme.GetLevelSize(tile_key.Level());
+  const auto world_bounds = projection.WorldExtent(kZeroAlt, kZeroAlt);
+  const auto level_size = subdiv_scheme.GetLevelSize(tile_key.Level());
 
-  const double dx = worldBounds.Size().x / levelSize.Width();
-  const double dy = worldBounds.Size().y / levelSize.Height();
+  const double dx = world_bounds.Size().x / level_size.Width();
+  const double dy = world_bounds.Size().y / level_size.Height();
 
-  const auto min = worldBounds.Minimum() +
-                   Vector3d{tile_key.Column() * dx, tile_key.Row() * dy, 0};
-  const auto max = min + Vector3d{dx, dy, 0};
+  const auto min =
+      world_bounds.Minimum() +
+      WorldCoordinates{tile_key.Column() * dx, tile_key.Row() * dy, 0};
+  const auto max = min + WorldCoordinates{dx, dy, 0};
 
   return {min, max};
 }
