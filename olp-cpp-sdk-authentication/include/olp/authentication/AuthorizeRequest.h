@@ -19,17 +19,14 @@
 
 #pragma once
 
-#include <sstream>
+#include <boost/optional.hpp>
 #include <string>
 #include <vector>
 
-#include <boost/optional.hpp>
-
-#include <olp/dataservice/read/DataServiceReadApi.h>
+#include <olp/authentication/AuthenticationApi.h>
 
 namespace olp {
-namespace dataservice {
-namespace read {
+namespace authentication {
 
 /**
  * @brief Encapsulates the fields required to make a policy decision for a given
@@ -46,7 +43,7 @@ namespace read {
  * permissions for multiple contractId's, a 'Contract Required' error will be
  * returned.
  */
-class DATASERVICE_READ_API AuthorizeRequest final {
+class AUTHENTICATION_API AuthorizeRequest final {
  public:
   /**
    * @brief Type alias for action pair. First is type of action, second is
@@ -73,7 +70,7 @@ class DATASERVICE_READ_API AuthorizeRequest final {
    * algorithm applied. If ANY actions have an individual policy decision of
    * ALLOW, the overall policy decision returned in the response is ALLOW
    */
-  enum class DecisionApiOperatorType { AND, OR };
+  enum class DecisionApiOperatorType { kAnd, kOr };
 
   /**
    * @brief Gets the ID of the requested service.
@@ -161,14 +158,14 @@ class DATASERVICE_READ_API AuthorizeRequest final {
   }
 
   /**
-   * @brief Gets the operator tipe.
+   * @brief Gets the operator type.
    *
    * If operator type not set, type 'and' will be used in request
    * @see `DecisionApiOperatorType` for more information.
    *
-   * @return The operator type if set, or boost::none.
+   * @return The operator type.
    */
-  inline const boost::optional<DecisionApiOperatorType>& GetOperatorType()
+  inline DecisionApiOperatorType GetOperatorType()
       const {
     return operator_type_;
   }
@@ -213,37 +210,15 @@ class DATASERVICE_READ_API AuthorizeRequest final {
    *
    * @return A string representation of the request.
    */
-  inline std::string CreateKey() const {
-    std::stringstream out;
-    out << service_id_;
-    if (GetContractId()) {
-      out << "[" << GetContractId().get() << "]";
-    }
-    out << "{";
-    for (const auto& actions : actions_) {
-      out << " (" << actions.first;
-      if (actions.second) {
-        out << ", " << actions.second.get();
-      }
-      out << ")";
-    }
-    out << "}";
-    if (GetOperatorType()) {
-      out << "^"
-          << (GetOperatorType().get() == DecisionApiOperatorType::AND ? "AND"
-                                                                      : "OR");
-    }
-    return out.str();
-  }
+  std::string CreateKey() const;
 
  private:
   std::string service_id_;
   boost::optional<std::string> contract_id_;
   Actions actions_;
-  boost::optional<DecisionApiOperatorType> operator_type_;
+  DecisionApiOperatorType operator_type_{DecisionApiOperatorType::kAnd};
   bool diagnostics_{false};
 };
 
-}  // namespace read
-}  // namespace dataservice
+}  // namespace authentication
 }  // namespace olp

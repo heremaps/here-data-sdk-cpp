@@ -18,11 +18,11 @@
  */
 
 #include <gtest/gtest.h>
-#include <olp/dataservice/read/AuthorizeRequest.h>
-#include <olp/dataservice/read/model/AuthorizeResult.h>
+#include <olp/authentication/AuthorizeRequest.h>
+#include <olp/authentication/AuthorizeResult.h>
 
 namespace {
-using namespace olp::dataservice::read;
+using namespace olp::authentication;
 
 TEST(DecisionApiClientTest, AuthorizeRequestTest) {
   EXPECT_EQ(AuthorizeRequest().WithServiceId("ServiceId").GetServiceId(),
@@ -41,25 +41,26 @@ TEST(DecisionApiClientTest, AuthorizeRequestTest) {
   ++actions_it;
   EXPECT_EQ(actions_it->first, "action2");
   EXPECT_EQ(actions_it->second.get(), "hrn::test");
-  EXPECT_EQ(request.GetOperatorType(), boost::none);
-  request.WithOperatorType(AuthorizeRequest::DecisionApiOperatorType::OR);
-  EXPECT_EQ(request.GetOperatorType().get(),
-            AuthorizeRequest::DecisionApiOperatorType::OR);
+  EXPECT_EQ(request.GetOperatorType(), AuthorizeRequest::DecisionApiOperatorType::kAnd);
+  request.WithOperatorType(AuthorizeRequest::DecisionApiOperatorType::kOr);
+  EXPECT_EQ(request.GetOperatorType(),
+            AuthorizeRequest::DecisionApiOperatorType::kOr);
+  EXPECT_EQ(request.CreateKey(),"{ (action1) (action2, hrn::test)}^OR");
 }
 
 TEST(DecisionApiClientTest, AuthorizeResponceTest) {
-  EXPECT_EQ(model::AuthorizeResult().GetDecision(), model::DecisionType::DENY);
-  EXPECT_EQ(model::ActionResult().GetDecision(), model::DecisionType::DENY);
-  EXPECT_EQ(model::AuthorizeResult().GetClientId(), "");
-  model::ActionResult action;
-  action.SetDecision(model::DecisionType::ALLOW);
-  action.SetPermitions({{"read", model::DecisionType::ALLOW}});
-  model::AuthorizeResult decision;
+  EXPECT_EQ(AuthorizeResult().GetDecision(), DecisionType::kDeny);
+  EXPECT_EQ(ActionResult().GetDecision(), DecisionType::kDeny);
+  EXPECT_EQ(AuthorizeResult().GetClientId(), "");
+  ActionResult action;
+  action.SetDecision(DecisionType::kAllow);
+  action.SetPermitions({{"read", DecisionType::kAllow}});
+  AuthorizeResult decision;
   decision.SetActionResults({action});
   EXPECT_EQ(decision.GetActionResults().front().GetPermitions().front().first,
             "read");
   EXPECT_EQ(decision.GetActionResults().front().GetPermitions().front().second,
-            model::DecisionType::ALLOW);
+            DecisionType::kAllow);
 }
 
 }  // namespace

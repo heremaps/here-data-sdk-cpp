@@ -17,6 +17,7 @@
 
 set(OLP_AUTHENTICATION_TEST_SOURCES
     AuthenticationCredentialsTest.cpp
+    DecisionApiClientTest.cpp
 )
 
 if (ANDROID OR IOS)

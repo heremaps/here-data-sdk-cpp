@@ -22,17 +22,15 @@
 #include <memory>
 #include <vector>
 
-#include <olp/dataservice/read/DataServiceReadApi.h>
+#include <olp/authentication/AuthenticationApi.h>
 
 namespace olp {
-namespace dataservice {
-namespace read {
-namespace model {
+namespace authentication {
 
 /**
  * @brief Represents policy decision deny or allow.
  */
-enum class DecisionType { ALLOW, DENY };
+enum class DecisionType { kAllow, kDeny };
 
 /**
  * @brief Represents each action/resource pair responce with individual policy
@@ -40,7 +38,7 @@ enum class DecisionType { ALLOW, DENY };
  *
  * @note Data present only if diagnostics flag is true for the DecisionRequest.
  */
-class DATASERVICE_READ_API ActionResult {
+class AUTHENTICATION_API ActionResult {
  public:
   ActionResult() = default;
   ~ActionResult() = default;
@@ -88,7 +86,7 @@ class DATASERVICE_READ_API ActionResult {
   }
 
  private:
-  DecisionType decision_{DecisionType::DENY};
+  DecisionType decision_{DecisionType::kDeny};
   std::vector<Permisions> permisions_;
 };
 
@@ -101,13 +99,13 @@ class DATASERVICE_READ_API ActionResult {
  * in the request returned individual policy decision for that action DENY or
  * ALLOW.
  */
-class DATASERVICE_READ_API AuthorizeResult {
+class AUTHENTICATION_API AuthorizeResult {
  public:
   AuthorizeResult() = default;
   ~AuthorizeResult() = default;
 
  private:
-  DecisionType policy_decision_{DecisionType::DENY};
+  DecisionType policy_decision_{DecisionType::kDeny};
   std::string client_id_;
   std::vector<ActionResult> actions_results_;
 
@@ -159,7 +157,5 @@ class DATASERVICE_READ_API AuthorizeResult {
   }
 };
 
-}  // namespace model
-}  // namespace read
-}  // namespace dataservice
+}  // namespace authentication
 }  // namespace olp
