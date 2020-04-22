@@ -37,15 +37,19 @@ TEST(DecisionApiClientTest, AuthorizeRequestTest) {
   EXPECT_EQ(request.GetActions().size(), 2);
   auto actions_it = request.GetActions().begin();
   EXPECT_EQ(actions_it->first, "action1");
-  EXPECT_EQ(actions_it->second, boost::none);
+  EXPECT_EQ(actions_it->second, "");
   ++actions_it;
   EXPECT_EQ(actions_it->first, "action2");
-  EXPECT_EQ(actions_it->second.get(), "hrn::test");
-  EXPECT_EQ(request.GetOperatorType(), AuthorizeRequest::DecisionApiOperatorType::kAnd);
-  request.WithOperatorType(AuthorizeRequest::DecisionApiOperatorType::kOr);
+  EXPECT_EQ(actions_it->second, "hrn::test");
   EXPECT_EQ(request.GetOperatorType(),
-            AuthorizeRequest::DecisionApiOperatorType::kOr);
-  EXPECT_EQ(request.CreateKey(),"{ (action1) (action2, hrn::test)}^OR");
+            AuthorizeRequest::DecisionOperatorType::kAnd);
+  request.WithOperatorType(AuthorizeRequest::DecisionOperatorType::kOr);
+  EXPECT_EQ(request.GetOperatorType(),
+            AuthorizeRequest::DecisionOperatorType::kOr);
+  request.WithServiceId("service");
+  EXPECT_EQ(request.CreateKey(), "service");
+  request.WithContractId("contract");
+  EXPECT_EQ(request.CreateKey(), "service[contract]");
 }
 
 TEST(DecisionApiClientTest, AuthorizeResponceTest) {

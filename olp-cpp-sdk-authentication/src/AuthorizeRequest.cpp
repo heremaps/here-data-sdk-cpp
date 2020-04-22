@@ -30,18 +30,6 @@ std::string AuthorizeRequest::CreateKey() const {
   if (GetContractId()) {
     out << "[" << GetContractId().get() << "]";
   }
-  out << "{";
-  for (const auto& actions : actions_) {
-    out << " (" << actions.first;
-    if (actions.second) {
-      out << ", " << actions.second.get();
-    }
-    out << ")";
-  }
-  out << "}";
-  out << "^"
-        << (GetOperatorType() == DecisionApiOperatorType::kAnd ? "AND"
-                                                              : "OR");
   return out.str();
 }
 

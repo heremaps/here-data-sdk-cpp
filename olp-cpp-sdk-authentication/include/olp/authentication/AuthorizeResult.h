@@ -49,7 +49,7 @@ class AUTHENTICATION_API ActionResult {
   /**
    * @brief Gets the overall policy decision.
    *
-   * @see `DecisionApiOperatorType` for more information.
+   * @see `DecisionOperatorType` for more information.
    *
    * @return The decision based on the operator type.
    */
@@ -107,7 +107,7 @@ class AUTHENTICATION_API AuthorizeResult {
   /**
    * @brief Gets the overall policy decision.
    *
-   * @see `DecisionApiOperatorType` for more information.
+   * @see `DecisionOperatorType` for more information.
    *
    * @return The decision based on the operator type.
    */

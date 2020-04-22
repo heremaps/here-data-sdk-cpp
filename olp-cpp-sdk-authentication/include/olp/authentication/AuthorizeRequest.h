@@ -55,7 +55,7 @@ class AUTHENTICATION_API AuthorizeRequest final {
    * @note Each action-resource pair in the request has an individual policy
    * decision.
    */
-  using Action = std::pair<std::string, boost::optional<std::string>>;
+  using Action = std::pair<std::string, std::string>;
 
   /**
    * @brief The type alias for the vector of actions.
@@ -76,7 +76,7 @@ class AUTHENTICATION_API AuthorizeRequest final {
    * * If ALL actions have an individual policy decision of ALLOW,
    * the overall policy decision returned in the response is ALLOW.
    */
-  enum class DecisionApiOperatorType { kAnd, kOr };
+  enum class DecisionOperatorType { kAnd, kOr };
 
   /**
    * @brief Gets the ID of the requested service.
@@ -159,8 +159,8 @@ class AUTHENTICATION_API AuthorizeRequest final {
    *
    * @return A reference to the updated `DecisionRequest` instance.
    */
-  inline AuthorizeRequest& WithAction(
-      std::string action, boost::optional<std::string> resource = boost::none) {
+  inline AuthorizeRequest& WithAction(std::string action,
+                                      std::string resource = "") {
     actions_.emplace_back(std::move(action), std::move(resource));
     return *this;
   }
@@ -174,10 +174,7 @@ class AUTHENTICATION_API AuthorizeRequest final {
    *
    * @return The operator type.
    */
-  inline DecisionApiOperatorType GetOperatorType()
-      const {
-    return operator_type_;
-  }
+  inline DecisionOperatorType GetOperatorType() const { return operator_type_; }
 
   /**
    * @brief Sets the operator type for the request.
@@ -189,7 +186,7 @@ class AUTHENTICATION_API AuthorizeRequest final {
    * @return A reference to the updated `DecisionRequest` instance.
    */
   inline AuthorizeRequest& WithOperatorType(
-      DecisionApiOperatorType operator_type) {
+      DecisionOperatorType operator_type) {
     operator_type_ = operator_type;
     return *this;
   }
@@ -225,7 +222,7 @@ class AUTHENTICATION_API AuthorizeRequest final {
   std::string service_id_;
   boost::optional<std::string> contract_id_;
   Actions actions_;
-  DecisionApiOperatorType operator_type_{DecisionApiOperatorType::kAnd};
+  DecisionOperatorType operator_type_{DecisionOperatorType::kAnd};
   bool diagnostics_{false};
 };
 
