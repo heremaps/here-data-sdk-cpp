@@ -67,11 +67,14 @@ jobs:
   - bash: |
         sudo apt-get install libcurl4-openssl-dev clang-7 ccache -y --no-install-recommends
         echo "##vso[task.prependpath]/usr/lib/ccache"
+        echo week_$(date +%W) > week_number.txt
     displayName: 'Install dependencies'
   - task: Cache@2
     inputs:
-        key: 'ccache | "$(Agent.OS)"'
+        key: 'ccache | "$(Agent.OS)" | ./week_number.txt '
         path: $(CCACHE_DIR)
+        restoreKeys: |
+            ccache | "$(Agent.OS)"
     displayName: ccache
   - bash: scripts/linux/psv/build_psv.sh
     displayName: 'Linux Clang Build'
