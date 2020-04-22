@@ -31,112 +31,129 @@ namespace olp {
 namespace http {
 
 /**
- * @brief This class represents network request abstraction for an HTTP request.
+ * @brief A network request abstraction for an HTTP request.
  */
 class CORE_API NetworkRequest final {
  public:
-  /// Short type alias for HTTP request body.
+  /// The short type alias for the HTTP request body.
   using RequestBodyType = std::shared_ptr<const std::vector<std::uint8_t>>;
 
-  /// HTTP method as in https://tools.ietf.org/html/rfc2616.
+  /// The HTTP method, as specified at https://tools.ietf.org/html/rfc2616.
   enum class HttpVerb {
-    GET = 0,    ///< GET Method. RFC2616 section-9.3.
-    POST = 1,   ///< POST Method. RFC2616 section-9.5.
-    HEAD = 2,   ///< HEAD Method. RFC2616 section-9.4.
-    PUT = 3,    ///< PUT Method. RFC2616 section-9.6.
-    DEL = 4,    ///< DELETE Method. RFC2616 section-9.7.
-    PATCH = 5,  ///< PATCH Method. RFC2068 section-19.6.1.1.
+    GET = 0,    ///< The GET method (RFC2616, section-9.3).
+    POST = 1,   ///< The POST method (RFC2616, section-9.5).
+    HEAD = 2,   ///< The HEAD method (RFC2616 section-9.4).
+    PUT = 3,    ///< The PUT method (RFC2616 section-9.6).
+    DEL = 4,    ///< The DELETE method (RFC2616 section-9.7).
+    PATCH = 5,  ///< The PATCH method (RFC2068 section-19.6.1.1).
   };
 
   /**
-   * @brief NetworkRequest constructor.
-   * @param[in] url HTTP request URL.
+   * @brief Creates the `NetworkRequest` instance.
+   *
+   * @param[in] url The URL of the HTTP request.
    */
   explicit NetworkRequest(std::string url);
 
   /**
    * @brief Gets all HTTP headers.
+   *
    * @return The vector of the HTTP headers.
    */
   const Headers& GetHeaders() const;
-  
+
   /**
    * @brief Gets the mutable reference to the HTTP headers.
    *
-   * @return The mutable reference to vector of HTTP headers.
+   * @return The mutable reference to vector of the HTTP headers.
    */
   Headers& GetMutableHeaders();
 
   /**
    * @brief Adds an extra HTTP header.
-   * @param[in] name Header name.
-   * @param[in] value Header value.
-   * @return reference to *this.
+   *
+   * @param[in] name The header name.
+   * @param[in] value The header value.
+   *
+   * @return A reference to *this.
    */
   NetworkRequest& WithHeader(std::string name, std::string value);
 
   /**
-   * @brief Get request URL.
-   * @return request URL.
+   * @brief Gets the request URL.
+   *
+   * @return The request URL.
    */
   const std::string& GetUrl() const;
 
   /**
-   * @brief Set request URL.
-   * @param[in] url Request URL.
-   * @return reference to *this.
+   * @brief Sets the request URL.
+   *
+   * @param[in] url The request URL.
+   *
+   * @return A reference to *this.
    */
   NetworkRequest& WithUrl(std::string url);
 
   /**
-   * @brief Get HTTP method.
-   * @return HTTP method.
+   * @brief Gets the HTTP method.
+   *
+   * @return The HTTP method.
    */
   HttpVerb GetVerb() const;
 
   /**
-   * @brief Set HTTP method.
-   * @param[in] verb HTTP method.
-   * @return reference to *this.
+   * @brief Sets the HTTP method.
+   *
+   * @param[in] verb The HTTP method.
+   *
+   * @return A reference to *this.
    */
   NetworkRequest& WithVerb(HttpVerb verb);
 
   /**
-   * @brief Get request body.
-   * @return shared pointer to vector that contains request body.
+   * @brief Gets the request body.
+   *
+   * @return The shared pointer to the vector that contains the request body.
    */
   RequestBodyType GetBody() const;
 
   /**
-   * @brief Set request body.
-   * @param[in] body Shared pointer to vector that contains request body.
-   * @return reference to *this.
+   * @brief Sets the request body.
+   *
+   * @param[in] body The shared pointer to the vector that contains the request
+   * body.
+   *
+   * @return A reference to *this.
    */
   NetworkRequest& WithBody(RequestBodyType body);
 
   /**
-   * @brief Get network settings for this request.
-   * @return NetworkSettings object.
+   * @brief Gets the network settings for this request.
+   *
+   * @return The `NetworkSettings` object.
    */
   const NetworkSettings& GetSettings() const;
 
   /**
-   * @brief Set network settings for this request.
-   * @param[in] settings Instance of NetworkRequest.
-   * @return reference to *this.
+   * @brief Sets network settings for this request.
+   *
+   * @param[in] settings The `NetworkRequest` instance.
+   *
+   * @return A reference to *this.
    */
   NetworkRequest& WithSettings(NetworkSettings settings);
 
  private:
-  /// HTTP request method.
+  /// The HTTP request method.
   HttpVerb verb_{HttpVerb::GET};
-  /// Request URL.
+  /// The request URL.
   std::string url_;
-  /// HTTP headers.
+  /// The HTTP headers.
   Headers headers_;
-  /// Body of HTTP request.
+  /// The body of the HTTP request.
   RequestBodyType body_;
-  /// Network settings for this request.
+  /// The network settings for this request.
   NetworkSettings settings_;
 };
 

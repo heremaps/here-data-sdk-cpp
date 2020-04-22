@@ -26,9 +26,10 @@ namespace olp {
 namespace http {
 
 /**
- * @brief HTTP status codes as specified by RFC7231.
- * For more information see
- * https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
+ * @brief HTTP status codes, as specified in RFC7231.
+ *
+ * For more information, see the [Hypertext Transfer Protocol (HTTP) Status Code
+ * Registry](https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml).
  */
 class CORE_API HttpStatusCode {
  public:
@@ -110,14 +111,18 @@ class CORE_API HttpStatusCode {
   };
 
   /**
-   * @brief Check if the given error code is temporary error.
-   * Some errors are sever or due to wrong user data an thus cannot be repeated,
-   * respectively will always result in the same error.
-   * @param[in] http_code A HTTP status code or a \c olp::http::ErrorCode.
-   * @return \c true in case request can be repeated, \c false otherwise.
+   * @brief Checks if the given error code is a temporary error.
+   *
+   * Some errors are sever errors or caused by wrong user data.
+   * These errors cannot be repeated and always result in the same error.
+   *
+   * @param[in] http_code The HTTP status code or `olp::http::ErrorCode`.
+   *
+   * @return True if the request can be repeated; false otherwise.
    */
   static bool IsRetryable(int http_code) {
-    if (http_code < 0) return false;
+    if (http_code < 0)
+      return false;
 
     switch (http_code) {
       case HttpStatusCode::INTERNAL_SERVER_ERROR:
@@ -137,10 +142,12 @@ class CORE_API HttpStatusCode {
   }
 
   /**
-   * @brief Maps \c olp::http::ErrorCode or HTTP status code to a
-   * \c olp::client::ErrorCode.
-   * @param[in] http_code A HTTP status code or a \c olp::http::ErrorCode.
-   * @return The coresponding \c olp::client::ErrorCode.
+   * @brief Maps an HTTP status code or `olp::http::ErrorCode` to
+   * `olp::client::ErrorCode`.
+   *
+   * @param[in] http_code The HTTP status code or `olp::http::ErrorCode`.
+   *
+   * @return The corresponding `olp::client::ErrorCode`.
    */
   static olp::client::ErrorCode GetErrorCode(int http_code) {
     // ErrorCode (negative numbers)
@@ -166,7 +173,7 @@ class CORE_API HttpStatusCode {
       }
     }
 
-    // HttpStatusCode
+    // `HttpStatusCode`
     switch (http_code) {
       case HttpStatusCode::BAD_REQUEST:
         return olp::client::ErrorCode::BadRequest;

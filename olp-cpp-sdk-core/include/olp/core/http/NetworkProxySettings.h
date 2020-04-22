@@ -28,96 +28,111 @@ namespace olp {
 namespace http {
 
 /**
- * @brief This class contains proxy configuration for the network interface to
- * be applied per request.
+ * @brief Contains a proxy configuration for the network interface that
+ * is applied per request.
  */
 class CORE_API NetworkProxySettings final {
  public:
   /// The proxy type.
   enum class Type {
-    NONE,     ///< Don't use proxy.
-    HTTP,     ///< HTTP proxy as in https://www.ietf.org/rfc/rfc2068.txt.
-    SOCKS4,   ///< SOCKS4 proxy.
-    SOCKS4A,  ///< SOCKS4a Proxy. Proxy resolves URL hostname.
-    SOCKS5,   ///< SOCKS5 proxy.
-    SOCKS5_HOSTNAME,  ///< SOCKS5 Proxy. Proxy resolves URL hostname.
+    NONE,             ///< Don't use the proxy.
+    HTTP,             ///< HTTP proxy as in https://www.ietf.org/rfc/rfc2068.txt
+    SOCKS4,           ///< SOCKS4 proxy.
+    SOCKS4A,          ///< SOCKS4a proxy. Proxy resolves the URL hostname.
+    SOCKS5,           ///< SOCKS5 proxy.
+    SOCKS5_HOSTNAME,  ///< SOCKS5 Proxy. Proxy resolves the URL hostname.
   };
 
   /**
-   * @brief Get proxy type.
-   * @return proxy type.
+   * @brief Gets the proxy type.
+   *
+   * @return The proxy type.
    */
   Type GetType() const;
 
   /**
-   * @brief Set proxy type.
-   * @param[in] type Proxy type.
-   * @return reference to *this.
+   * @brief Sets the proxy type.
+   *
+   * @param[in] type The proxy type.
+   *
+   * @return A reference to *this.
    */
   NetworkProxySettings& WithType(Type type);
 
   /**
-   * @brief Get proxy hostname.
-   * @return proxy hostname.
+   * @brief Gets the proxy hostname.
+   *
+   * @return The proxy hostname.
    */
   const std::string& GetHostname() const;
 
   /**
-   * Set proxy hostname.
-   * @param[in] hostname Proxy hostname.
-   * @return reference to *this.
+   * @brief Sets the proxy hostname.
+   *
+   * @param[in] hostname The proxy hostname.
+   *
+   * @return A reference to *this.
    */
   NetworkProxySettings& WithHostname(std::string hostname);
 
   /**
-   * @brief Get proxy port.
-   * @return proxy port.
+   * @brief Gets the proxy port.
+   *
+   * @return The proxy port.
    */
   std::uint16_t GetPort() const;
 
   /**
-   * @brief Set proxy port.
-   * @param[in] port Proxy port.
-   * @return reference to *this.
+   * @brief Sets the proxy port.
+   *
+   * @param[in] port The proxy port.
+   *
+   * @return A reference to *this.
    */
   NetworkProxySettings& WithPort(std::uint16_t port);
 
   /**
-   * @brief Get username.
-   * @return username.
+   * @brief Gets the username.
+   *
+   * @return The username.
    */
   const std::string& GetUsername() const;
 
   /**
-   * @brief Set username.
-   * @param[in] username
-   * @return reference to *this.
+   * @brief Sets the username.
+   *
+   * @param[in] username The username.
+   *
+   * @return A reference to *this.
    */
   NetworkProxySettings& WithUsername(std::string username);
 
   /**
-   * @brief Get password.
-   * @return password.
+   * @brief Gets the password.
+   *
+   * @return The password.
    */
   const std::string& GetPassword() const;
 
   /**
-   * @brief Set password.
-   * @param[in] password
-   * @return reference to *this.
+   * @brief Sets the password.
+   *
+   * @param[in] password The password.
+   *
+   * @return A reference to *this.
    */
   NetworkProxySettings& WithPassword(std::string password);
 
  private:
-  /// The type of the proxy.
+  /// The proxy type.
   Type type_{Type::NONE};
-  /// The port of the proxy.
+  /// The proxy port.
   std::uint16_t port_{0};
-  /// The hostname of the proxy.
+  /// The proxy hostname.
   std::string hostname_;
-  /// The username for the proxy.
+  /// The proxy username.
   std::string username_;
-  /// The password for the proxy.
+  /// The proxy password.
   std::string password_;
 };
 

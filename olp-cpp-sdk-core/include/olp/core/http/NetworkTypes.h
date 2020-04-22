@@ -30,28 +30,29 @@ namespace olp {
 namespace http {
 
 /**
- * @brief Represents a unique request id.
- * Values of this type mark a unique request all the way until completion.
- * This value is returned by Network::Send, used by
- * Network::Cancel and NetworkResponse so that the user can track a request all
- * the way.
+ * @brief A unique request ID.
+ *
+ * Values of this type mark a unique request all the way until the request
+ * completion. This value is returned by `Network::Send` and used by
+ * `Network::Cancel` and `NetworkResponse` so that the user can track
+ * the request until its completion.
  */
 using RequestId = std::uint64_t;
 
 /**
- * @brief List of special values for NetworkRequestId.
+ * @brief The list of special values for `NetworkRequestId`.
  */
 enum class RequestIdConstants : RequestId {
-  /// Value that indicates invalid request id.
+  /// The value that indicates the invalid request ID.
   RequestIdInvalid = std::numeric_limits<RequestId>::min(),
-  /// Minimal value of valid request id.
+  /// The minimum value of the valid request ID.
   RequestIdMin = std::numeric_limits<RequestId>::min() + 1,
-  /// Maximal value of valid request id.
+  /// The maximum value of the valid request ID.
   RequestIdMax = std::numeric_limits<RequestId>::max(),
 };
 
 /**
- * @brief Common Network error codes.
+ * @brief The common `Network` error codes.
  */
 enum class ErrorCode {
   SUCCESS = 0,
@@ -65,37 +66,40 @@ enum class ErrorCode {
                                 before request was completed. */
   NETWORK_OVERLOAD_ERROR = -8, /*!< Reached maximum limit of active requests
                                 that network can process. */
-  UNKNOWN_ERROR = -9,          ///< Internal error, that can't be interpreted
+  UNKNOWN_ERROR = -9,          ///< Internal error that can't be interpreted.
 };
 
 /**
- * @brief Helper class representing the outcome of making a network request.
- * It will contain either a valid RequestId or the error code in case request
- * trigger failed.  The caller must check whether the outcome of the request was
- * a success before attempting to access the result or the error.
+ * @brief Rrepresents the outcome of a network request.
+ *
+ * It contains either a valid request ID or error code if the request
+ * trigger failed. The caller must check whether the outcome of the request was
+ * a success before attempting to access the result or error.
  */
 class CORE_API SendOutcome final {
  public:
-  /// Invalid RequestId alias.
+  /// The invalid request ID alias.
   static constexpr RequestId kInvalidRequestId =
       static_cast<RequestId>(RequestIdConstants::RequestIdInvalid);
 
   /**
-   * @brief Specialized constructor for setting and successfull request ourcome.
-   * @param request_id The valid unique RequestId.
+   * @brief Sets a successful request outcome.
+   *
+   * @param request_id The valid unique request ID.
    */
   explicit SendOutcome(RequestId request_id) : request_id_(request_id) {}
 
   /**
-   * @brief Specialized constructor for setting an unsuccessfull request
-   * outcome.
-   * @param error_code The error code specifying why the request failed.
+   * @brief Sets an unsuccessful request outcome.
+   *
+   * @param error_code The error code that specifies why the request failed.
    */
   explicit SendOutcome(ErrorCode error_code) : error_code_(error_code) {}
 
   /**
-   * @brief Check if network request push was successful.
-   * @return \c true in case there is no error and a valid RequestId, \c false
+   * @brief Checks if the network request push was successful.
+   *
+   * @return True if there is no error and the request ID is valid; false
    * otherwise.
    */
   bool IsSuccessful() const {
@@ -104,38 +108,41 @@ class CORE_API SendOutcome final {
   }
 
   /**
-   * @brief Get request id.
-   * @return A valid RequestId in case request was successfull, \c
-   * RequestIdConstants::RequestIdInvalid otherwise.
+   * @brief Gets the request ID.
+   *
+   * @return The valid request ID if the request was successful;
+   * `RequestIdConstants::RequestIdInvalid` otherwise.
    */
   RequestId GetRequestId() const { return request_id_; }
 
   /**
-   * @brief Get error code.
-   * @return \c ErrorCode::SUCCESS in case request was successfull, any other
-   * ErrorCode otherwise.
+   * @brief Gets the error code.
+   *
+   * @return `ErrorCode::SUCCESS` if the request was successful; any other
+   * `ErrorCode` otherwise.
    */
   ErrorCode GetErrorCode() const { return error_code_; }
 
  private:
-  /// Request ID.
+  /// The request ID.
   RequestId request_id_{kInvalidRequestId};
-  /// Error code.
+  /// The error code.
   ErrorCode error_code_{ErrorCode::SUCCESS};
 };
 
 /**
- * @brief Helper function used to convert error code to human readable string.
+ * @brief The helper function that converts an error code to a human readable
+ * string.
  */
 CORE_API std::string ErrorCodeToString(ErrorCode code);
 
 /**
- * @brief Type alias for HTTP header.
+ * @brief The type alias for the HTTP header.
  */
 using Header = std::pair<std::string, std::string>;
 
 /**
- * @brief Type alias for vector of HTTP headers.
+ * @brief The type alias for a vector of HTTP headers.
  */
 using Headers = std::vector<Header>;
 

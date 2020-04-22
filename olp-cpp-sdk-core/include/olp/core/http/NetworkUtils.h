@@ -26,31 +26,77 @@
 namespace olp {
 namespace http {
 /**
- * @brief Network internal utilities
+ * @brief Network internal utilities.
  */
 class CORE_API NetworkUtils {
  public:
+  /**
+   * @brief Changes the specified character to uppercase.
+   *
+   * If the character is already uppercase or non-alphabetical, it is
+   * not changed.
+   *
+   * @param c The character that should be changed.
+   *
+   * @return The uppercase character.
+   */
   static char SimpleToUpper(char c);
+  /**
+   * @brief Checks whether the source string matches the specified string
+   * disregarding the case.
+   *
+   * @param str1 The source string.
+   * @param str2 The string to which the source string is compared.
+   * @param offset The offset for the source string from which the comparison
+   * should start. Defaults to 0.
+   *
+   * @return True if the source string matches the specified string;
+   * false otherwise.
+   */
   static bool CaseInsensitiveCompare(const std::string& str1,
                                      const std::string& str2,
                                      size_t offset = 0);
+  /**
+   * @brief Checks whether the source string begins with the characters of
+   * the specified string ignoring the case.
+   *
+   * @param str1 The source string.
+   * @param str2 The string to which the source string is compared.
+   * @param offset The offset for the source string from which the comparison
+   * should start. Defaults to 0.
+   *
+   * @return True if the source string starts with the specified value; false
+   * otherwise.
+   */
   static bool CaseInsensitiveStartsWith(const std::string& str1,
                                         const std::string& str2,
                                         size_t offset = 0);
+  /**
+   * @brief Checks whether the source string contains characters of
+   * the specified string ignoring the case.
+   *
+   * @param str1 The source string.
+   * @param str2 The string to which the source string is compared.
+   * @param offset The offset for the source string from which the comparison
+   * should start. Defaults to 0.
+   *
+   * @return True if the source string contains characters of
+   * the specified string ignoring the case; false otherwise.
+   */
   static size_t CaseInsensitiveFind(const std::string& str1,
                                     const std::string& str2, size_t offset = 0);
 
   /**
-   * @brief Extract the user agent from the headers.
+   * @brief Extracts the user agent from the headers.
    *
-   * User agent is removed from the headers.
+   * The user agent is removed from the headers.
    *
    * @param headers The input headers.
    *
    * @return The user agent or an empty string if there is no user agent.
    */
   static std::string ExtractUserAgent(Headers& headers);
-};  // class NetworkUtils
+};  // The `NetworkUtils` class.
 
 std::string HttpErrorToString(int error);
 
