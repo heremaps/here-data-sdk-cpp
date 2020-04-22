@@ -66,14 +66,15 @@ class AUTHENTICATION_API ActionResult {
    * @brief Gets the list of permitions that are evaluated against the
    action and resource.
    *
-   * @note Algorithm of evaluating each permission in the set against the action
-   and resource.
-   * If the action matches the action in the permission, and the resource
-   matches the resource in the permission, consider the permission.
-   * If ANY considered permission for the action has results in DENY, the
-   individual policy decision for the action is DENY.
-   * If ALL considered permissions for the action results in ALLOW, the
-   individual policy decision for the action is ALLOW.
+   * @note The algorithm of evaluating each permission in the set against the
+   * action and resource:
+   * * If the action matches the action in the permission, and the resource
+   * matches the resource in the permission, consider the permission.
+   * * If ANY considered permission for the action results in DENY, the
+   * individual policy decision for the action is DENY.
+   * * If ALL considered permissions for the action result in ALLOW, the
+   * individual policy decision for the action is ALLOW.
+   *
    * @return The list of permitions.
    */
   const std::vector<Permisions>& GetPermitions() const { return permisions_; }
