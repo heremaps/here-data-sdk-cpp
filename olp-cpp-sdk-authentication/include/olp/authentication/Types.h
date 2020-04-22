@@ -22,6 +22,7 @@
 #include <memory>
 
 #include <olp/authentication/AuthenticationError.h>
+#include <olp/authentication/AuthorizeResult.h>
 #include <olp/authentication/IntrospectAppResult.h>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
@@ -43,5 +44,10 @@ using IntrospectAppResponse = Response<IntrospectAppResult>;
 /// Called when the user introspect app request is completed.
 using IntrospectAppCallback = Callback<IntrospectAppResult>;
 
+/// The decision API response alias.
+using AuthorizeResponse = Response<AuthorizeResult>;
+
+/// Called when the user decision request is completed.
+using AuthorizeCallback = Callback<AuthorizeResult>;
 }  // namespace authentication
 }  // namespace olp
