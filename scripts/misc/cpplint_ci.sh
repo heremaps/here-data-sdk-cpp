@@ -47,13 +47,17 @@ printf "Installing cpplint using pip\n\n"
 
 pip install --user cpplint
 
-printf "Running cpplint\n\n"
+printf "\n\nRunning cpplint\n\n"
 
 # Exclude warning about <future> <mutex> includes
 CPPLINT_FILTER="--filter=-build/c++11"
 
 # Run the cpplint tool
-cpplint $CPPLINT_FILTER "$FILES"
+cpplint $CPPLINT_FILTER $FILES 2> warnigns.txt
+
+printf "\n\nComplete cpplint\n\n"
+
+cat warnigns.txt
 
 # Despite the error found exit without errors.
 # Remove this exit to make the script blocking on CI.

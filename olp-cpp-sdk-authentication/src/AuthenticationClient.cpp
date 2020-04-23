@@ -19,14 +19,14 @@
 
 #include "olp/authentication/AuthenticationClient.h"
 
-#include <chrono>
-#include <sstream>
-
-#include <olp/core/client/PendingRequests.h>
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+
+#include <chrono>
+#include <sstream>
+
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -42,6 +42,7 @@
 #include "olp/core/client/CancellationToken.h"
 #include "olp/core/client/ErrorCode.h"
 #include "olp/core/client/OlpClient.h"
+#include "olp/core/client/PendingRequests.h"
 #include "olp/core/http/HttpStatusCode.h"
 #include "olp/core/http/Network.h"
 #include "olp/core/http/NetworkConstants.h"
@@ -53,9 +54,6 @@
 #include "olp/core/utils/Base64.h"
 #include "olp/core/utils/LruCache.h"
 #include "olp/core/utils/Url.h"
-
-using namespace olp::thread;
-using namespace olp::utils;
 
 namespace {
 using namespace olp::authentication;
@@ -111,7 +109,7 @@ constexpr auto kVersion = "1.0";
 constexpr auto kHmac = "HMAC-SHA256";
 
 void ExecuteOrSchedule(
-    std::shared_ptr<olp::thread::TaskScheduler>& task_scheduler,
+    const std::shared_ptr<olp::thread::TaskScheduler>& task_scheduler,
     olp::thread::TaskScheduler::CallFuncType&& func) {
   if (!task_scheduler) {
     // User didn't specify a TaskScheduler, execute sync
@@ -137,7 +135,7 @@ void ExecuteOrSchedule(
  */
 template <typename Function, typename Callback, typename... Args>
 inline olp::client::CancellationToken AddTask(
-    std::shared_ptr<olp::thread::TaskScheduler>& task_scheduler,
+    const std::shared_ptr<olp::thread::TaskScheduler>& task_scheduler,
     const std::shared_ptr<olp::client::PendingRequests>& pending_requests,
     Function task, Callback callback, Args&&... args) {
   auto context = olp::client::TaskContext::Create(
@@ -247,11 +245,12 @@ enum class FederatedSignInType { FacebookSignIn, GoogleSignIn, ArcgisSignIn };
 class AuthenticationClient::Impl final {
  public:
   /// The sign in cache alias type
-  using SignInCacheType = Atomic<utils::LruCache<std::string, SignInResult>>;
+  using SignInCacheType =
+      thread::Atomic<utils::LruCache<std::string, SignInResult>>;
 
   /// The sign in user cache alias type
   using SignInUserCacheType =
-      Atomic<utils::LruCache<std::string, SignInUserResult>>;
+      thread::Atomic<utils::LruCache<std::string, SignInUserResult>>;
 
   /**
    * @brief Constructor
@@ -264,7 +263,7 @@ class AuthenticationClient::Impl final {
    * @param settings The authentication settings that can be used to configure
    * the `Impl`  instance.
    */
-  Impl(AuthenticationSettings settings);
+  explicit Impl(AuthenticationSettings settings);
 
   /**
    * @brief Destructor
@@ -318,13 +317,6 @@ class AuthenticationClient::Impl final {
   client::CancellationToken IntrospectApp(std::string access_token,
                                           IntrospectAppCallback callback);
 
-  void SetNetworkProxySettings(
-      const http::NetworkProxySettings& proxy_settings);
-
-  void SetNetwork(std::shared_ptr<http::Network> network);
-
-  void SetTaskScheduler(std::shared_ptr<TaskScheduler> task_scheduler);
-
  private:
   using TimeResponse = client::ApiResponse<time_t, client::ApiError>;
   using TimeCallback = std::function<void(TimeResponse)>;
@@ -368,25 +360,6 @@ class AuthenticationClient::Impl final {
   std::shared_ptr<client::PendingRequests> pending_requests_;
   mutable std::mutex token_mutex_;
 };
-
-void AuthenticationClient::Impl::SetNetworkProxySettings(
-    const http::NetworkProxySettings& proxy_settings) {
-  settings_.network_proxy_settings = proxy_settings;
-}
-
-void AuthenticationClient::Impl::SetNetwork(
-    std::shared_ptr<http::Network> network) {
-  if (settings_.network_request_handler != network) {
-    settings_.network_request_handler = std::move(network);
-  }
-}
-
-void AuthenticationClient::Impl::SetTaskScheduler(
-    std::shared_ptr<TaskScheduler> task_scheduler) {
-  if (settings_.task_scheduler != task_scheduler) {
-    settings_.task_scheduler = std::move(task_scheduler);
-  }
-}
 
 AuthenticationClient::Impl::Impl(const std::string& authentication_server_url,
                                  size_t token_cache_limit)
@@ -557,7 +530,8 @@ AuthenticationClient::Impl::ParseTimeResponse(std::stringstream& payload) {
   return timestamp_it->value.GetUint();
 }
 
-client::CancellationToken AuthenticationClient::Impl::GetTime(TimeCallback callback) {
+client::CancellationToken AuthenticationClient::Impl::GetTime(
+    TimeCallback callback) {
   if (settings_.use_system_time) {
     callback(
         std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
@@ -985,8 +959,8 @@ std::string AuthenticationClient::Impl::generateHeader(
     const time_t& timestamp) {
   std::string uid = generateUid();
   const std::string currentTime = std::to_string(timestamp);
-  const std::string encodedUri = Url::Encode(url);
-  const std::string encodedQuery = Url::Encode(
+  const std::string encodedUri = utils::Url::Encode(url);
+  const std::string encodedQuery = utils::Url::Encode(
       kOauthConsumerKey + kParamEquals + credentials.GetKey() + kParamAdd +
       kOauthNonce + kParamEquals + uid + kParamAdd + kOauthSignatureMethod +
       kParamEquals + kHmac + kParamAdd + kOauthTimestamp + kParamEquals +
@@ -998,14 +972,14 @@ std::string AuthenticationClient::Impl::generateHeader(
   auto signature = base64Encode(hmacResult);
   std::string authorization =
       "OAuth " + kOauthConsumerKey + kParamEquals + kParamQuote +
-      Url::Encode(credentials.GetKey()) + kParamQuote + kParamComma +
-      kOauthNonce + kParamEquals + kParamQuote + Url::Encode(uid) +
+      utils::Url::Encode(credentials.GetKey()) + kParamQuote + kParamComma +
+      kOauthNonce + kParamEquals + kParamQuote + utils::Url::Encode(uid) +
       kParamQuote + kParamComma + kOauthSignatureMethod + kParamEquals +
       kParamQuote + kHmac + kParamQuote + kParamComma + kOauthTimestamp +
-      kParamEquals + kParamQuote + Url::Encode(currentTime) + kParamQuote +
-      kParamComma + kOauthVersion + kParamEquals + kParamQuote + kVersion +
-      kParamQuote + kParamComma + kOauthSignature + kParamEquals + kParamQuote +
-      Url::Encode(signature) + kParamQuote;
+      kParamEquals + kParamQuote + utils::Url::Encode(currentTime) +
+      kParamQuote + kParamComma + kOauthVersion + kParamEquals + kParamQuote +
+      kVersion + kParamQuote + kParamComma + kOauthSignature + kParamEquals +
+      kParamQuote + utils::Url::Encode(signature) + kParamQuote;
 
   return authorization;
 }
@@ -1230,10 +1204,6 @@ std::string AuthenticationClient::Impl::generateUid() {
   }
 }
 
-AuthenticationClient::AuthenticationClient(
-    const std::string& authenticationServerUrl, size_t tokenCacheLimit)
-    : impl_(std::make_unique<Impl>(authenticationServerUrl, tokenCacheLimit)) {}
-
 AuthenticationClient::AuthenticationClient(AuthenticationSettings settings)
     : impl_(std::make_unique<Impl>(std::move(settings))) {}
 
@@ -1307,20 +1277,6 @@ client::CancellationToken AuthenticationClient::SignOut(
 client::CancellationToken AuthenticationClient::IntrospectApp(
     std::string access_token, IntrospectAppCallback callback) {
   return impl_->IntrospectApp(std::move(access_token), std::move(callback));
-}
-
-void AuthenticationClient::SetNetworkProxySettings(
-    const http::NetworkProxySettings& proxy_settings) {
-  impl_->SetNetworkProxySettings(proxy_settings);
-}
-
-void AuthenticationClient::SetNetwork(std::shared_ptr<http::Network> network) {
-  impl_->SetNetwork(network);
-}
-
-void AuthenticationClient::SetTaskScheduler(
-    std::shared_ptr<TaskScheduler> task_scheduler) {
-  impl_->SetTaskScheduler(task_scheduler);
 }
 
 }  // namespace authentication
