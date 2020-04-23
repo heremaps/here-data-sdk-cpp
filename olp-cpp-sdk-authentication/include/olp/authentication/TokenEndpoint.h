@@ -41,7 +41,7 @@ class AutoRefreshingToken;
  * @brief Corresponds to the token endpoint as specified in the OAuth2.0
  * specification.
  */
-class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 04.2020")
+class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 10.2020")
     TokenEndpoint {
  public:
   // Needed to avoid endless warnings from TokenRequest/TokenResult

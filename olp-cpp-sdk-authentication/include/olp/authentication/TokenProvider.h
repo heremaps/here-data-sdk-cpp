@@ -22,6 +22,7 @@
 #include <chrono>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include <olp/authentication/AuthenticationCredentials.h>
 #include <olp/authentication/AutoRefreshingToken.h>
@@ -47,7 +48,7 @@ PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
  *
  * @see `TokenProviderDefault`
  */
-template <long long MinimumValidity>
+template <uint64_t MinimumValidity>
 class TokenProvider {
  public:
   /**
