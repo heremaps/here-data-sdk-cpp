@@ -25,6 +25,7 @@ set(OLP_SDK_PERFORMANCE_TESTS_SOURCES
     ./MemoryTestBase.h
     ./NullCache.h
     ./NetworkWrapper.h
+    ./PrefetchTest.cpp
 )
 
 add_executable(olp-cpp-sdk-performance-tests ${OLP_SDK_PERFORMANCE_TESTS_SOURCES})
