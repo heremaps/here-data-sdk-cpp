@@ -31,7 +31,7 @@ namespace authentication {
  * @brief Holds the parameters of the OAuth2.0 Authorization
  * Grant request.
  */
-class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 04.2020")
+class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 10.2020")
     TokenRequest {
  public:
   /**
