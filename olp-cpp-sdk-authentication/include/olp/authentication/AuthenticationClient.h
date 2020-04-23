@@ -260,18 +260,6 @@ class AUTHENTICATION_API AuthenticationClient {
   /**
    * @brief Creates the `AuthenticationClient` instance.
    *
-   * @param authentication_server_url The URL of the HERE Account server.
-   * @example "https://account.api.here.com
-   * @param token_cache_limit The maximum number of tokens that can be cached.
-   */
-  OLP_SDK_DEPRECATED("Deprecated. Will be removed in 04.2020")
-  AuthenticationClient(
-      const std::string& authentication_server_url = kHereAccountProductionUrl,
-      size_t token_cache_limit = 100u);
-
-  /**
-   * @brief Creates the `AuthenticationClient` instance.
-   *
    * @param settings The authentication settings that can be used to configure
    * the `AuthenticationClient` instance.
    */
@@ -575,39 +563,6 @@ class AUTHENTICATION_API AuthenticationClient {
    */
   client::CancellationToken IntrospectApp(std::string access_token,
                                           IntrospectAppCallback callback);
-
-  /**
-   * @brief Sets the `NetworkProxySettings` instance used by the underlying
-   * network layer to make requests.
-   *
-   * It is recommended to call this function before you
-   * make any requests using the `AuthenticationClient` instance.
-   *
-   * @param proxy_settings The proxy settings used by the network layer to make
-   * requests.
-   */
-  OLP_SDK_DEPRECATED("Deprecated. Will be removed in 04.2020")
-  void SetNetworkProxySettings(
-      const http::NetworkProxySettings& proxy_settings);
-
-  /**
-   * @brief Sets the `Network` class handler used to make requests.
-   *
-   * @param network The shared `Network` instance used to trigger requests.
-   * Should not be `nullptr`; otherwise, any access to the class method calls
-   * would render `http::ErrorCode::IO_ERROR`.
-   */
-  OLP_SDK_DEPRECATED("Deprecated. Will be removed in 04.2020")
-  void SetNetwork(std::shared_ptr<http::Network> network);
-
-  /**
-   * @brief Sets the `TaskScheduler` class.
-   *
-   * @param task_scheduler The shared `TaskScheduler` instance used for requests
-   * outcomes. If set to `nullptr`, callbacks are sent synchronously.
-   */
-  OLP_SDK_DEPRECATED("Deprecated. Will be removed in 04.2020")
-  void SetTaskScheduler(std::shared_ptr<thread::TaskScheduler> task_scheduler);
 
  private:
   class Impl;

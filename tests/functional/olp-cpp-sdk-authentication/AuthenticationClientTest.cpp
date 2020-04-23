@@ -614,19 +614,22 @@ TEST_F(AuthenticationClientTest, SignOutUser) {
   EXPECT_STREQ(kErrorNoContent.c_str(), response4.error.c_str());
 }
 
-PORTING_PUSH_WARNINGS()
-PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
-
 TEST_F(AuthenticationClientTest, NetworkProxySettings) {
   AuthenticationCredentials credentials(id_, secret_);
 
+  AuthenticationSettings settings;
+  settings.network_request_handler = network_;
+  settings.task_scheduler = task_scheduler_;
+  settings.token_endpoint_url = kHereAccountStagingURL;
+
   auto proxy_settings = olp::http::NetworkProxySettings();
-  client_->SetNetworkProxySettings(proxy_settings);
   proxy_settings.WithHostname("$.?");
   proxy_settings.WithPort(42);
   proxy_settings.WithType(olp::http::NetworkProxySettings::Type::SOCKS4);
+  settings.network_proxy_settings = proxy_settings;
 
-  client_->SetNetworkProxySettings(proxy_settings);
+  auto client = std::make_unique<AuthenticationClient>(settings);
+
   std::time_t now;
   auto response = SignInClient(credentials, now, kExpiryTime);
   // Bad proxy error code and message varies by platform
@@ -635,8 +638,6 @@ TEST_F(AuthenticationClientTest, NetworkProxySettings) {
               olp::client::ErrorCode::ServiceUnavailable);
   EXPECT_STRNE(response.GetError().GetMessage().c_str(), kErrorOk.c_str());
 }
-
-PORTING_POP_WARNINGS()
 
 TEST_F(AuthenticationClientTest, ErrorFields) {
   static const std::string PASSWORD = "password";
