@@ -54,5 +54,11 @@ const char* Constants::TIER = "tier";
 const char* Constants::HRN = "hrn";
 const char* Constants::MESSAGE = "message";
 
+const char* Constants::IDENTITY = "identity";
+const char* Constants::DECISION = "decision";
+const char* Constants::ACTION = "action";
+const char* Constants::PERMITIONS = "permissions";
+const char* Constants::DIAGNOSTICS = "diagnostics";
+
 }  // namespace authentication
 }  // namespace olp

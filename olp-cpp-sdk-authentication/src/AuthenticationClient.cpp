@@ -31,6 +31,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#include "Common.h"
 #include "Constants.h"
 #include "Crypto.h"
 #include "SignInResultImpl.h"
@@ -107,48 +108,6 @@ constexpr auto kRefreshGrantType = "refresh_token";
 // Values
 constexpr auto kVersion = "1.0";
 constexpr auto kHmac = "HMAC-SHA256";
-
-void ExecuteOrSchedule(
-    const std::shared_ptr<olp::thread::TaskScheduler>& task_scheduler,
-    olp::thread::TaskScheduler::CallFuncType&& func) {
-  if (!task_scheduler) {
-    // User didn't specify a TaskScheduler, execute sync
-    func();
-    return;
-  }
-
-  // Schedule for async execution
-  task_scheduler->ScheduleTask(std::move(func));
-}
-
-/*
- * @brief Common function used to wrap a lambda function and a callback that
- * consumes the function result with a TaskContext class and schedule this to a
- * task scheduler.
- * @param task_scheduler Task scheduler instance.
- * @param pending_requests PendingRequests instance that tracks current
- * requests.
- * @param task Function that will be executed.
- * @param callback Function that will consume task output.
- * @param args Additional agrs to pass to TaskContext.
- * @return CancellationToken used to cancel the operation.
- */
-template <typename Function, typename Callback, typename... Args>
-inline olp::client::CancellationToken AddTask(
-    const std::shared_ptr<olp::thread::TaskScheduler>& task_scheduler,
-    const std::shared_ptr<olp::client::PendingRequests>& pending_requests,
-    Function task, Callback callback, Args&&... args) {
-  auto context = olp::client::TaskContext::Create(
-      std::move(task), std::move(callback), std::forward<Args>(args)...);
-  pending_requests->Insert(context);
-
-  ExecuteOrSchedule(task_scheduler, [=] {
-    context.Execute();
-    pending_requests->Remove(context);
-  });
-
-  return context.CancelToken();
-}
 
 IntrospectAppResult GetIntrospectAppResult(const rapidjson::Document& doc) {
   IntrospectAppResult result;
