@@ -111,10 +111,10 @@ const std::string kInvalidAccessTokenResponse = R"JSON(
     {"errorId":"ERROR-cf976ca6-bf6e-44f7-a9e6-e271766c61fe","httpStatus":401,"errorCode":400601,"message":"Invalid accessToken.","error":"invalid_request","error_description":"errorCode: '400601'. Invalid accessToken."}
     )JSON";
 const std::string kAuthorizeResponseValid = R"JSON(
-    {"identity":{"userId":"HERE-9e87d665-62ad-455e-aeac-7fcbbc133228","countryCode":"USA","emailVerified":false,"realm":"HERE"},"decision":"allow","diagnostics":[{"decision":"allow","permissions":[{"effect":"allow","action":"read","resource":"hrn:here:cda:us-east-1::*"}]}]}
+    {"identity":{"userId":"some_id","countryCode":"USA","emailVerified":false,"realm":"HERE"},"decision":"allow","diagnostics":[{"decision":"allow","permissions":[{"effect":"allow","action":"read","resource":"some_resource"}]}]}
     )JSON";
 const std::string kAuthorizeResponseError = R"JSON(
-    {"contracts":[{"contractId":"CONTRACT-1398a519-7479-404c-96ca-4b4605a13bad","customerId":"CUST-ad1d939f-37cf-4d23-8281-ff326b90ec98","customerName":"Initech"}],"errorCode":409400}
+    {"contracts":[{"contractId":"some_contract_id","customerId":"some_id","customerName":"some_name"}],"errorCode":409400}
     )JSON";
 const std::string kAuthorizeResponseErrorField = R"JSON(
     {"errorId":"ERROR-9d862c5a-4cfd-4780-8be4-2728b42849e1","httpStatus":401,"errorCode":401300,"message":"Invalid client credentials.","errorFields":[{"name":"Received invalid data.See json element'errorFields'for more information.","errorCode":400201,"message":"This field is required."}]}

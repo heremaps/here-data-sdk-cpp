@@ -1333,8 +1333,7 @@ TEST_F(AuthenticationClientTest, Authorize) {
     AuthorizeResponse response = future.get();
     EXPECT_TRUE(response.IsSuccessful());
     auto result = response.GetResult();
-    EXPECT_EQ(result.GetClientId(),
-              "HERE-9e87d665-62ad-455e-aeac-7fcbbc133228");
+    EXPECT_EQ(result.GetClientId(), "some_id");
     ASSERT_EQ(result.GetDecision(), olp::authentication::DecisionType::kAllow);
 
     auto it = result.GetActionResults().begin();
