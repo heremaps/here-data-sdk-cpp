@@ -53,8 +53,9 @@ const char* Constants::RESPONSE_TYPES = "responseTypes";
 const char* Constants::TIER = "tier";
 const char* Constants::HRN = "hrn";
 const char* Constants::MESSAGE = "message";
-
+const char* Constants::ERROR_CODE = "errorCode";
 const char* Constants::IDENTITY = "identity";
+const char* Constants::USER_ID = "userId";
 const char* Constants::DECISION = "decision";
 const char* Constants::ACTION = "action";
 const char* Constants::PERMITIONS = "permissions";

@@ -1247,6 +1247,37 @@ TEST_F(AuthenticationClientTest, IntrospectApp) {
 
     testing::Mock::VerifyAndClearExpectations(network_.get());
   }
+  {
+    SCOPED_TRACE("Invalid response");
+    EXPECT_CALL(*network_, Send(IsGetRequest(kIntrospectUrl), _, _, _, _))
+        .WillOnce([&](olp::http::NetworkRequest /*request*/,
+                      olp::http::Network::Payload payload,
+                      olp::http::Network::Callback callback,
+                      olp::http::Network::HeaderCallback /*header_callback*/,
+                      olp::http::Network::DataCallback /*data_callback*/) {
+          olp::http::RequestId request_id(3);
+          if (payload) {
+            *payload << "Invalid responce";
+          }
+
+          callback(olp::http::NetworkResponse()
+                       .WithRequestId(request_id)
+                       .WithStatus(olp::http::HttpStatusCode::OK));
+          return olp::http::SendOutcome(request_id);
+        });
+    std::promise<IntrospectAppResponse> request;
+    auto future = request.get_future();
+    client_->IntrospectApp(kResponseToken,
+                           [&](const IntrospectAppResponse& response) {
+                             request.set_value(response);
+                           });
+    IntrospectAppResponse response = future.get();
+    EXPECT_FALSE(response.IsSuccessful());
+    auto error = response.GetError();
+    EXPECT_EQ(error.GetErrorCode(), olp::client::ErrorCode::Unknown);
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
 }
 
 TEST_F(AuthenticationClientTest, IntrospectAppCancel) {
@@ -1270,4 +1301,145 @@ TEST_F(AuthenticationClientTest, IntrospectAppCancel) {
             olp::client::ErrorCode::Cancelled);
 
   testing::Mock::VerifyAndClearExpectations(network_.get());
+}
+
+TEST_F(AuthenticationClientTest, Authorize) {
+  {
+    SCOPED_TRACE("Successful request");
+    EXPECT_CALL(*network_, Send(_, _, _, _, _))
+        .WillOnce([&](olp::http::NetworkRequest /*request*/,
+                      olp::http::Network::Payload payload,
+                      olp::http::Network::Callback callback,
+                      olp::http::Network::HeaderCallback /*header_callback*/,
+                      olp::http::Network::DataCallback /*data_callback*/) {
+          olp::http::RequestId request_id(3);
+          if (payload) {
+            *payload << kAuthorizeResponseValid;
+          }
+
+          callback(olp::http::NetworkResponse()
+                       .WithRequestId(request_id)
+                       .WithStatus(olp::http::HttpStatusCode::OK));
+          return olp::http::SendOutcome(request_id);
+        });
+
+    AuthorizeRequest authorize_request;
+    std::promise<AuthorizeResponse> request;
+    auto future = request.get_future();
+    client_->Authorize(kResponseToken, authorize_request,
+                       [&](const AuthorizeResponse& response) {
+                         request.set_value(response);
+                       });
+    AuthorizeResponse response = future.get();
+    EXPECT_TRUE(response.IsSuccessful());
+    auto result = response.GetResult();
+    EXPECT_EQ(result.GetClientId(),
+              "HERE-9e87d665-62ad-455e-aeac-7fcbbc133228");
+    ASSERT_EQ(result.GetDecision(), olp::authentication::DecisionType::kAllow);
+
+    auto it = result.GetActionResults().begin();
+    ASSERT_EQ(it->GetDecision(), olp::authentication::DecisionType::kAllow);
+    ASSERT_EQ(it->GetPermitions().front().first, "read");
+    ASSERT_EQ(it->GetPermitions().front().second,
+              olp::authentication::DecisionType::kAllow);
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
+  {
+    SCOPED_TRACE("Failed request");
+    EXPECT_CALL(*network_, Send(_, _, _, _, _))
+        .WillOnce([&](olp::http::NetworkRequest /*request*/,
+                      olp::http::Network::Payload payload,
+                      olp::http::Network::Callback callback,
+                      olp::http::Network::HeaderCallback /*header_callback*/,
+                      olp::http::Network::DataCallback /*data_callback*/) {
+          olp::http::RequestId request_id(3);
+          if (payload) {
+            *payload << kAuthorizeResponseError;
+          }
+
+          callback(olp::http::NetworkResponse()
+                       .WithRequestId(request_id)
+                       .WithStatus(olp::http::HttpStatusCode::OK));
+          return olp::http::SendOutcome(request_id);
+        });
+
+    AuthorizeRequest authorize_request;
+    std::promise<AuthorizeResponse> request;
+    auto future = request.get_future();
+    client_->Authorize(kResponseToken, authorize_request,
+                       [&](const AuthorizeResponse& response) {
+                         request.set_value(response);
+                       });
+    AuthorizeResponse response = future.get();
+    EXPECT_FALSE(response.IsSuccessful());
+    auto error = response.GetError();
+    EXPECT_EQ(error.GetErrorCode(), olp::client::ErrorCode::Unknown);
+    EXPECT_EQ(error.GetMessage(), "Error code:409400");
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
+  {
+    SCOPED_TRACE("Failed request error");
+    EXPECT_CALL(*network_, Send(_, _, _, _, _))
+        .WillOnce([&](olp::http::NetworkRequest /*request*/,
+                      olp::http::Network::Payload payload,
+                      olp::http::Network::Callback callback,
+                      olp::http::Network::HeaderCallback /*header_callback*/,
+                      olp::http::Network::DataCallback /*data_callback*/) {
+          olp::http::RequestId request_id(3);
+          if (payload) {
+            *payload << kAuthorizeResponseErrorField;
+          }
+
+          callback(olp::http::NetworkResponse()
+                       .WithRequestId(request_id)
+                       .WithStatus(olp::http::HttpStatusCode::UNAUTHORIZED));
+          return olp::http::SendOutcome(request_id);
+        });
+
+    AuthorizeRequest authorize_request;
+    std::promise<AuthorizeResponse> request;
+    auto future = request.get_future();
+    client_->Authorize(kResponseToken, authorize_request,
+                       [&](const AuthorizeResponse& response) {
+                         request.set_value(response);
+                       });
+    AuthorizeResponse response = future.get();
+    EXPECT_FALSE(response.IsSuccessful());
+    auto error = response.GetError();
+    EXPECT_EQ(error.GetErrorCode(), olp::client::ErrorCode::AccessDenied);
+    EXPECT_EQ(error.GetMessage(), "Invalid client credentials.");
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
+  {
+    SCOPED_TRACE("Failed corrupted responce");
+    EXPECT_CALL(*network_, Send(_, _, _, _, _))
+        .WillOnce([&](olp::http::NetworkRequest /*request*/,
+                      olp::http::Network::Payload payload,
+                      olp::http::Network::Callback callback,
+                      olp::http::Network::HeaderCallback /*header_callback*/,
+                      olp::http::Network::DataCallback /*data_callback*/) {
+          olp::http::RequestId request_id(3);
+          if (payload) {
+            *payload << "some_invalid_string";
+          }
+
+          callback(olp::http::NetworkResponse()
+                       .WithRequestId(request_id)
+                       .WithStatus(olp::http::HttpStatusCode::OK));
+          return olp::http::SendOutcome(request_id);
+        });
+
+    AuthorizeRequest authorize_request;
+    std::promise<AuthorizeResponse> request;
+    auto future = request.get_future();
+    client_->Authorize(kResponseToken, authorize_request,
+                       [&](const AuthorizeResponse& response) {
+                         request.set_value(response);
+                       });
+    AuthorizeResponse response = future.get();
+    EXPECT_FALSE(response.IsSuccessful());
+    auto error = response.GetError();
+    EXPECT_EQ(error.GetErrorCode(), olp::client::ErrorCode::Unknown);
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
 }

@@ -735,26 +735,4 @@ TEST_F(AuthenticationClientTest, IntrospectAppInvalidAccessToken) {
   EXPECT_FALSE(response.IsSuccessful());
 }
 
-TEST_F(AuthenticationClientTest, GetDecisionAllow) {
-  AuthenticationCredentials credentials(
-      CustomParameters::getArgument("datecision_api_test_appid"),
-      CustomParameters::getArgument("datecision_api_test_secret"));
-
-  std::time_t now;
-  auto resp = SignInClient(credentials, now, kExpiryTime);
-  auto res = resp.GetResult();
-  EXPECT_TRUE(resp.IsSuccessful());
-  EXPECT_EQ(olp::http::HttpStatusCode::OK, res.GetStatus());
-
-  auto token = res.GetAccessToken();
-  auto request = olp::authentication::AuthorizeRequest().WithServiceId(
-      "SERVICE-fc0561eb-7098-449d-8cbe-12f08e5474e0");
-  request.WithAction("getTileCore");
-  auto response = Authorize(token, std::move(request), now);
-  auto result = response.GetResult();
-
-  EXPECT_TRUE(response.IsSuccessful());
-  ASSERT_EQ(result.GetClientId(), "7arVmscc5e4I6Fj53nVu");
-  ASSERT_EQ(result.GetDecision(), olp::authentication::DecisionType::kAllow);
-}
 }  // namespace

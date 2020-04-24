@@ -258,6 +258,8 @@ AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc) {
 
     if (uris.HasMember(Constants::CLIENT_ID)) {
       result.SetClientId(uris[Constants::CLIENT_ID].GetString());
+    } else if (uris.HasMember(Constants::USER_ID)) {
+      result.SetClientId(uris[Constants::USER_ID].GetString());
     }
   }
 
@@ -1000,6 +1002,11 @@ client::CancellationToken AuthenticationClient::Impl::IntrospectApp(
       return client::ApiError({http_result.status, msg});
     }
 
+    if (document.HasParseError()) {
+      return client::ApiError({static_cast<int>(http::ErrorCode::UNKNOWN_ERROR),
+                               "Failed to parse response."});
+    }
+
     return GetIntrospectAppResult(document);
   };
 
@@ -1055,7 +1062,21 @@ client::CancellationToken AuthenticationClient::Impl::Authorize(
         msg = document[Constants::MESSAGE].GetString();
       }
       return client::ApiError({http_result.status, msg});
+    } else if (!document.HasParseError() &&
+               document.HasMember(Constants::ERROR_CODE) &&
+               document[Constants::ERROR_CODE].IsInt()) {
+      std::string msg =
+          "Error code:" +
+          std::to_string(document[Constants::ERROR_CODE].GetInt());
+      return client::ApiError(
+          {static_cast<int>(http::ErrorCode::UNKNOWN_ERROR), msg});
     }
+
+    if (document.HasParseError()) {
+      return client::ApiError({static_cast<int>(http::ErrorCode::UNKNOWN_ERROR),
+                               "Failed to parse response."});
+    }
+
     return GetAuthorizeResult(document);
   };
 

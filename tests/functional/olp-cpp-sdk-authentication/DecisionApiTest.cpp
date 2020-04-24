@@ -58,7 +58,7 @@ class AuthenticationClientTestAuthorize : public ::testing::Test {
 
     client_ = std::make_unique<AuthenticationClient>(settings);
   }
-  void TearDown() {
+  void TearDown() override {
     client_.reset();
     network_.reset();
   }
