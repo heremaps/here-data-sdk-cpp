@@ -254,12 +254,6 @@ class AuthenticationClient::Impl final {
 
   /**
    * @brief Constructor
-   * @param token_cache_limit Maximum number of tokens that will be cached.
-   */
-  Impl(const std::string& authentication_server_url, size_t token_cache_limit);
-
-  /**
-   * @brief Constructor
    * @param settings The authentication settings that can be used to configure
    * the `Impl`  instance.
    */
@@ -360,16 +354,6 @@ class AuthenticationClient::Impl final {
   std::shared_ptr<client::PendingRequests> pending_requests_;
   mutable std::mutex token_mutex_;
 };
-
-AuthenticationClient::Impl::Impl(const std::string& authentication_server_url,
-                                 size_t token_cache_limit)
-    : client_token_cache_(std::make_shared<SignInCacheType>(token_cache_limit)),
-      user_token_cache_(
-          std::make_shared<SignInUserCacheType>(token_cache_limit)),
-      pending_requests_(std::make_shared<client::PendingRequests>()) {
-  settings_.token_endpoint_url = authentication_server_url;
-  settings_.token_cache_limit = token_cache_limit;
-}
 
 AuthenticationClient::Impl::Impl(AuthenticationSettings settings)
     : client_token_cache_(
