@@ -31,7 +31,6 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-#include "Common.h"
 #include "Constants.h"
 #include "Crypto.h"
 #include "SignInResultImpl.h"
@@ -39,6 +38,7 @@
 #include "SignOutResultImpl.h"
 #include "SignUpResultImpl.h"
 #include "olp/authentication/AuthenticationError.h"
+#include "olp/authentication/AuthorizeRequest.h"
 #include "olp/core/client/ApiError.h"
 #include "olp/core/client/CancellationToken.h"
 #include "olp/core/client/ErrorCode.h"
@@ -67,7 +67,7 @@ constexpr auto kParamQuote = "\"";
 constexpr auto kLineFeed = '\n';
 
 // Tags
-const std::string kApplicationJson = "application/json";
+constexpr auto kApplicationJson = "application/json";
 const std::string kOauthPost = "POST";
 const std::string kOauthConsumerKey = "oauth_consumer_key";
 const std::string kOauthNonce = "oauth_nonce";
@@ -79,8 +79,9 @@ const std::string kOauthEndpoint = "/oauth2/token";
 const std::string kSignoutEndpoint = "/logout";
 const std::string kTermsEndpoint = "/terms";
 const std::string kUserEndpoint = "/user";
-const std::string kTimestampEndpoint = "/timestamp";
-const std::string kIntrospectAppEndpoint = "/app/me";
+constexpr auto kTimestampEndpoint = "/timestamp";
+constexpr auto kIntrospectAppEndpoint = "/app/me";
+constexpr auto kDecisionEndpoint = "/decision/authorize";
 
 // JSON fields
 constexpr auto kCountryCode = "countryCode";
@@ -105,9 +106,57 @@ constexpr auto kGoogleGrantType = "google";
 constexpr auto kArcgisGrantType = "arcgis";
 constexpr auto kRefreshGrantType = "refresh_token";
 
+constexpr auto kServiceId = "serviceId";
+constexpr auto kActions = "actions";
+constexpr auto kAction = "action";
+constexpr auto kResource = "resource";
+constexpr auto kDiagnostics = "diagnostics";
+constexpr auto kOperator = "operator";
 // Values
 constexpr auto kVersion = "1.0";
 constexpr auto kHmac = "HMAC-SHA256";
+
+void ExecuteOrSchedule(
+    const std::shared_ptr<olp::thread::TaskScheduler>& task_scheduler,
+    olp::thread::TaskScheduler::CallFuncType&& func) {
+  if (!task_scheduler) {
+    // User didn't specify a TaskScheduler, execute sync
+    func();
+    return;
+  }
+
+  // Schedule for async execution
+  task_scheduler->ScheduleTask(std::move(func));
+}
+
+/*
+ * @brief Common function used to wrap a lambda function and a callback that
+ * consumes the function result with a TaskContext class and schedule this to a
+ * task scheduler.
+ * @param task_scheduler Task scheduler instance.
+ * @param pending_requests PendingRequests instance that tracks current
+ * requests.
+ * @param task Function that will be executed.
+ * @param callback Function that will consume task output.
+ * @param args Additional agrs to pass to TaskContext.
+ * @return CancellationToken used to cancel the operation.
+ */
+template <typename Function, typename Callback, typename... Args>
+inline olp::client::CancellationToken AddTask(
+    const std::shared_ptr<olp::thread::TaskScheduler>& task_scheduler,
+    const std::shared_ptr<olp::client::PendingRequests>& pending_requests,
+    Function task, Callback callback, Args&&... args) {
+  auto context = olp::client::TaskContext::Create(
+      std::move(task), std::move(callback), std::forward<Args>(args)...);
+  pending_requests->Insert(context);
+
+  ExecuteOrSchedule(task_scheduler, [=] {
+    context.Execute();
+    pending_requests->Remove(context);
+  });
+
+  return context.CancelToken();
+}
 
 IntrospectAppResult GetIntrospectAppResult(const rapidjson::Document& doc) {
   IntrospectAppResult result;
@@ -194,6 +243,67 @@ IntrospectAppResult GetIntrospectAppResult(const rapidjson::Document& doc) {
   return result;
 }
 
+AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc) {
+  AuthorizeResult result;
+
+  auto getPermition = [](const char* str) -> DecisionType {
+    if (strcmp(str, "allow") == 0) {
+      return DecisionType::kAllow;
+    }
+    return DecisionType::kDeny;
+  };
+
+  if (doc.HasMember(Constants::IDENTITY)) {
+    auto uris = doc[Constants::IDENTITY].GetObject();
+
+    if (uris.HasMember(Constants::CLIENT_ID)) {
+      result.SetClientId(uris[Constants::CLIENT_ID].GetString());
+    }
+  }
+
+  if (doc.HasMember(Constants::DECISION)) {
+    result.SetDecision(getPermition(doc[Constants::DECISION].GetString()));
+  }
+
+  // get diagnostics if avialible
+  std::vector<ActionResult> results;
+  if (doc.HasMember(Constants::DIAGNOSTICS) &&
+      doc[Constants::DIAGNOSTICS].IsArray()) {
+    const auto& array = doc[Constants::DIAGNOSTICS].GetArray();
+    for (auto& element : array) {
+      ActionResult action;
+      if (element.HasMember(Constants::DECISION)) {
+        action.SetDecision(
+            getPermition(element[Constants::DECISION].GetString()));
+        // get permisions if avialible
+        if (element.HasMember(Constants::PERMITIONS) &&
+            element[Constants::PERMITIONS].IsArray()) {
+          std::vector<ActionResult::Permisions> permitions;
+          const auto& permitionsArray =
+              element[Constants::PERMITIONS].GetArray();
+          for (auto& permitionElement : permitionsArray) {
+            ActionResult::Permisions permition;
+            if (permitionElement.HasMember(Constants::ACTION)) {
+              permition.first = permitionElement[Constants::ACTION].GetString();
+            }
+            if (permitionElement.HasMember(Constants::DECISION)) {
+              permition.second = getPermition(
+                  permitionElement[Constants::DECISION].GetString());
+            }
+            permitions.push_back(std::move(permition));
+          }
+
+          action.SetPermitions(std::move(permitions));
+        }
+      }
+      results.push_back(std::move(action));
+    }
+
+    result.SetActionResults(std::move(results));
+  }
+  return result;
+}
+
 }  // namespace
 
 namespace olp {
@@ -276,6 +386,10 @@ class AuthenticationClient::Impl final {
   client::CancellationToken IntrospectApp(std::string access_token,
                                           IntrospectAppCallback callback);
 
+  client::CancellationToken Authorize(std::string access_token,
+                                      AuthorizeRequest request,
+                                      AuthorizeCallback callback);
+
  private:
   using TimeResponse = client::ApiResponse<time_t, client::ApiError>;
   using TimeCallback = std::function<void(TimeResponse)>;
@@ -304,6 +418,8 @@ class AuthenticationClient::Impl final {
       const SignUpProperties& properties);
   http::NetworkRequest::RequestBodyType generateAcceptTermBody(
       const std::string& reacceptance_token);
+  client::OlpClient::RequestBodyType generateAuthorizeBody(
+      AuthorizeRequest properties);
 
   std::string generateUid();
 
@@ -902,6 +1018,62 @@ client::CancellationToken AuthenticationClient::Impl::IntrospectApp(
                  std::move(introspect_app_task), std::move(wrap_callback));
 }
 
+client::CancellationToken AuthenticationClient::Impl::Authorize(
+    std::string access_token, AuthorizeRequest request,
+    AuthorizeCallback callback) {
+  using ResponseType = client::ApiResponse<AuthorizeResult, client::ApiError>;
+
+  auto task = [=](client::CancellationContext context) -> ResponseType {
+    if (!settings_.network_request_handler) {
+      return client::ApiError({static_cast<int>(http::ErrorCode::IO_ERROR),
+                               "Can not send request while offline"});
+    }
+    client::AuthenticationSettings auth_settings;
+    auth_settings.provider = [&access_token]() { return access_token; };
+
+    client::OlpClientSettings settings;
+    settings.network_request_handler = settings_.network_request_handler;
+    settings.task_scheduler = settings_.task_scheduler;
+    settings.proxy_settings = settings_.network_proxy_settings;
+    settings.authentication_settings = auth_settings;
+
+    client::OlpClient client;
+    client.SetBaseUrl(settings_.token_endpoint_url);
+    client.SetSettings(settings);
+
+    auto http_result = client.CallApi(kDecisionEndpoint, "POST", {}, {}, {},
+                                      generateAuthorizeBody(request),
+                                      kApplicationJson, context);
+
+    rapidjson::Document document;
+    rapidjson::IStreamWrapper stream(http_result.response);
+    document.ParseStream(stream);
+    if (http_result.status != http::HttpStatusCode::OK) {
+      // HttpResult response can be error message or valid json with it.
+      std::string msg = http_result.response.str();
+      if (!document.HasParseError() && document.HasMember(Constants::MESSAGE)) {
+        msg = document[Constants::MESSAGE].GetString();
+      }
+      return client::ApiError({http_result.status, msg});
+    }
+    return GetAuthorizeResult(document);
+  };
+
+  // wrap_callback needed to convert client::ApiError into AuthenticationError.
+  auto wrap_callback = [callback](ResponseType response) {
+    if (!response.IsSuccessful()) {
+      const auto& error = response.GetError();
+      callback({{error.GetHttpStatusCode(), error.GetMessage()}});
+      return;
+    }
+
+    callback(response.MoveResult());
+  };
+
+  return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
+                 std::move(wrap_callback));
+}
+
 std::string AuthenticationClient::Impl::base64Encode(
     const std::vector<uint8_t>& vector) {
   std::string ret = olp::utils::Base64Encode(vector);
@@ -1154,6 +1326,42 @@ AuthenticationClient::Impl::generateAcceptTermBody(
                                                       content + data.GetSize());
 }
 
+client::OlpClient::RequestBodyType
+AuthenticationClient::Impl::generateAuthorizeBody(AuthorizeRequest properties) {
+  rapidjson::StringBuffer data;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(data);
+  writer.StartObject();
+  writer.Key(kServiceId);
+  writer.String(properties.GetServiceId().c_str());
+  writer.Key(kActions);
+  writer.StartArray();
+  for (const auto& action : properties.GetActions()) {
+    writer.StartObject();
+    writer.Key(kAction);
+    writer.String(action.first.c_str());
+    if (!action.second.empty()) {
+      writer.Key(kResource);
+      writer.String(action.second.c_str());
+    }
+    writer.EndObject();
+  }
+
+  writer.EndArray();
+  writer.Key(kDiagnostics);
+  writer.Bool(properties.GetDiagnostics());
+  // default value is 'and', ignore parameter if operator type is 'and'
+  if (properties.GetOperatorType() ==
+      AuthorizeRequest::DecisionOperatorType::kOr) {
+    writer.Key(kOperator);
+    writer.String("or");
+  }
+
+  writer.EndObject();
+  auto content = data.GetString();
+  return std::make_shared<std::vector<unsigned char>>(content,
+                                                      content + data.GetSize());
+}
+
 std::string AuthenticationClient::Impl::generateUid() {
   std::lock_guard<std::mutex> lock(token_mutex_);
   {
@@ -1238,5 +1446,11 @@ client::CancellationToken AuthenticationClient::IntrospectApp(
   return impl_->IntrospectApp(std::move(access_token), std::move(callback));
 }
 
+client::CancellationToken AuthenticationClient::Authorize(
+    std::string access_token, AuthorizeRequest request,
+    AuthorizeCallback callback) {
+  return impl_->Authorize(std::move(access_token), std::move(request),
+                          std::move(callback));
+}
 }  // namespace authentication
 }  // namespace olp

@@ -26,6 +26,7 @@
 #include <string>
 
 #include <olp/authentication/AuthenticationSettings.h>
+#include <olp/authentication/AuthorizeRequest.h>
 #include <olp/authentication/Types.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationToken.h>
@@ -563,6 +564,10 @@ class AUTHENTICATION_API AuthenticationClient {
    */
   client::CancellationToken IntrospectApp(std::string access_token,
                                           IntrospectAppCallback callback);
+
+  client::CancellationToken Authorize(std::string access_token,
+                                      AuthorizeRequest request,
+                                      AuthorizeCallback callback);
 
  private:
   class Impl;

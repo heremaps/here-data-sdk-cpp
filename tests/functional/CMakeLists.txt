@@ -36,7 +36,7 @@ set(OLP_SDK_FUNCTIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-authentication/GoogleAuthenticationTest.cpp
     ./olp-cpp-sdk-authentication/FederatedAuthenticationTest.cpp
     ./olp-cpp-sdk-authentication/HereAccountOauth2ProductionTest.cpp
-    ./olp-cpp-sdk-authentication/DecisionClientTest.cpp
+    ./olp-cpp-sdk-authentication/DecisionApiTest.cpp
 )
 
 set(OLP_SDK_FUNCTIONAL_TESTS_HEADERS
