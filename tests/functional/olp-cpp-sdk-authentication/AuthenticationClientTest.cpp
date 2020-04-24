@@ -628,7 +628,8 @@ TEST_F(AuthenticationClientTest, NetworkProxySettings) {
   proxy_settings.WithType(olp::http::NetworkProxySettings::Type::SOCKS4);
   settings.network_proxy_settings = proxy_settings;
 
-  auto client = std::make_unique<AuthenticationClient>(settings);
+  // Override the default client with a new one with proxy.
+  client_ = std::make_unique<AuthenticationClient>(settings);
 
   std::time_t now;
   auto response = SignInClient(credentials, now, kExpiryTime);
