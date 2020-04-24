@@ -34,6 +34,18 @@ MATCHER_P(IsGetRequest, url, "") {
          url == arg.GetUrl() && (!arg.GetBody() || arg.GetBody()->empty());
 }
 
+MATCHER_P(IsGetRequestPrefix, url, "") {
+  if (olp::http::NetworkRequest::HttpVerb::GET != arg.GetVerb()) {
+    return false;
+  }
+
+  std::string url_string(url);
+  auto res =
+      std::mismatch(url_string.begin(), url_string.end(), arg.GetUrl().begin());
+
+  return (res.first == url_string.end());
+}
+
 MATCHER_P(IsPutRequest, url, "") {
   return olp::http::NetworkRequest::HttpVerb::PUT == arg.GetVerb() &&
          url == arg.GetUrl();

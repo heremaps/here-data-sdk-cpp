@@ -30,6 +30,7 @@
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/porting/warning_disable.h>
+#include <olp/core/utils/Dir.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include <olp/dataservice/read/model/Partitions.h>
 
@@ -105,6 +106,12 @@ constexpr char kHttpSubQuads[] =
 
 constexpr char kUrlBlobData_23618364[] =
     R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/here-optimized-map-for-visualization-2/layers/testlayer/data/f9a9fd8e-eb1b-48e5-bfdb-4392b3826443)";
+
+constexpr auto kUrlPartitionsPrefix =
+    R"(https://query.data.api.platform.here.com/query/v1/catalogs/here-optimized-map-for-visualization-2/layers/testlayer/partitions)";
+
+constexpr auto kUrlBlobstorePrefix =
+    R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/here-optimized-map-for-visualization-2/layers/)";
 
 constexpr auto kWaitTimeout = std::chrono::seconds(3);
 
@@ -2990,6 +2997,102 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CheckLookupApiCacheExpiration) {
   std::string data_string(data_response.GetResult()->begin(),
                           data_response.GetResult()->end());
   ASSERT_EQ("DT_2_0031", data_string);
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, Eviction) {
+  const auto catalog = olp::client::HRN::FromString(
+      GetArgument("dataservice_read_test_catalog"));
+  const auto layer = GetArgument("dataservice_read_test_layer");
+  const auto version =
+      std::stoi(GetArgument("dataservice_read_test_layer_version"));
+
+  constexpr auto data_handle_prefix = "e119d20e-";
+  const auto data_size = 64u * 1024u;
+  const std::string blob_data(data_size, 0);
+  const std::string cache_path =
+      olp::utils::Dir::TempDirectory() + "/integration_test";
+
+  olp::cache::CacheSettings cache_settings;
+  cache_settings.disk_path_mutable = cache_path;
+  cache_settings.max_memory_cache_size = 0u;
+  cache_settings.eviction_policy =
+      olp::cache::EvictionPolicy::kLeastRecentlyUsed;
+  cache_settings.max_disk_storage = 10u * 1024u * 1024u;
+  settings_->cache =
+      olp::client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
+  settings_->cache->RemoveKeysWithPrefix({});
+
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
+      catalog, layer, version, *settings_);
+  ASSERT_TRUE(client);
+
+  auto create_partition_response = [](const std::string& partition,
+                                      const std::string& data_handle) {
+    constexpr auto begin =
+        R"jsonString({ "partitions": [{"version":4,"partition":")jsonString";
+    constexpr auto middle =
+        R"jsonString(","layer":"testlayer","dataHandle":")jsonString";
+    constexpr auto end = R"jsonString("}]})jsonString";
+    return begin + partition + middle + data_handle + end;
+  };
+
+  auto is_in_cache = [&client](const std::string& key) {
+    const auto request = olp::dataservice::read::DataRequest()
+                             .WithPartitionId(key)
+                             .WithFetchOption(FetchOptions::CacheOnly);
+    auto future = client->GetData(request).GetFuture();
+    return future.get().IsSuccessful();
+  };
+
+  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                            olp::http::HttpStatusCode::OK),
+                                        kHttpResponseLookupQuery));
+  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                            olp::http::HttpStatusCode::OK),
+                                        kHttpResponseLookupBlob));
+
+  const auto promote_key = std::to_string(0);
+  const auto evicted_key = std::to_string(1);
+
+  // overflow the mutable cache
+  auto count = 0u;
+  auto partition = std::to_string(count);
+  const auto max_count = cache_settings.max_disk_storage / data_size;
+  for (; count < max_count; ++count) {
+    partition = std::to_string(count);
+    const auto data_handle = data_handle_prefix + partition;
+    const auto partition_response =
+        create_partition_response(partition, data_handle);
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequestPrefix(kUrlPartitionsPrefix), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     partition_response));
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequestPrefix(kUrlBlobstorePrefix), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     blob_data));
+
+    const auto request =
+        olp::dataservice::read::DataRequest().WithPartitionId(partition);
+    auto future = client->GetData(request).GetFuture();
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    ASSERT_TRUE(future.get().IsSuccessful());
+
+    // promote the key so its not evicted.
+    ASSERT_TRUE(is_in_cache(promote_key));
+  }
+
+  // maximum is reached.
+  ASSERT_TRUE(count == max_count);
+  EXPECT_TRUE(is_in_cache(promote_key));
+  EXPECT_TRUE(is_in_cache(partition));
+  EXPECT_FALSE(is_in_cache(evicted_key));
 }
 
 }  // namespace
