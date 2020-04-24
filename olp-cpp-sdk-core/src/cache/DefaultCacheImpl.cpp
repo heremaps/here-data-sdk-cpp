@@ -20,6 +20,7 @@
 #include "DefaultCacheImpl.h"
 
 #include <algorithm>
+#include <chrono>
 
 #include "olp/core/logging/Log.h"
 #include "olp/core/porting/make_unique.h"
@@ -30,6 +31,10 @@ constexpr auto kLogTag = "DefaultCache";
 constexpr auto kExpirySuffix = "::expiry";
 constexpr auto kMaxDiskSize = std::uint64_t(-1);
 
+// current epoch time contains 10 digits.
+constexpr auto kExpiryValueSize = 10;
+const auto kExpirySuffixLength = strlen(kExpirySuffix);
+
 std::string CreateExpiryKey(const std::string& key) {
   return key + kExpirySuffix;
 }
@@ -37,6 +42,10 @@ std::string CreateExpiryKey(const std::string& key) {
 bool IsExpiryKey(const std::string& key) {
   auto pos = key.rfind(kExpirySuffix);
   return pos == 0;
+}
+
+bool IsExpiryValid(time_t expiry) {
+  return expiry < olp::cache::KeyValueCache::kDefaultExpiry;
 }
 
 time_t GetRemainingExpiryTime(const std::string& key,
@@ -52,19 +61,28 @@ time_t GetRemainingExpiryTime(const std::string& key,
   return expiry;
 }
 
-void PurgeDiskItem(const std::string& key, olp::cache::DiskCache& disk_cache) {
+void PurgeDiskItem(const std::string& key, olp::cache::DiskCache& disk_cache,
+                   uint64_t& removed_data_size) {
   auto expiry_key = CreateExpiryKey(key);
-  disk_cache.Remove(key);
-  disk_cache.Remove(expiry_key);
+  uint64_t data_size = 0u;
+
+  disk_cache.Remove(key, data_size);
+  removed_data_size += data_size;
+
+  disk_cache.Remove(expiry_key, data_size);
+  removed_data_size += data_size;
 }
 
-bool StoreExpiry(const std::string& key, olp::cache::DiskCache& disk_cache,
-                 time_t expiry) {
+size_t StoreExpiry(const std::string& key, olp::cache::DiskCache& disk_cache,
+                   time_t expiry) {
   auto expiry_key = CreateExpiryKey(key);
-  return disk_cache.Put(
-      expiry_key,
-      std::to_string(expiry +
-                     olp::cache::InMemoryCache::DefaultTimeProvider()()));
+  auto time_str = std::to_string(
+      expiry + olp::cache::InMemoryCache::DefaultTimeProvider()());
+  if (!disk_cache.Put(expiry_key, time_str)) {
+    return 0;
+  }
+
+  return expiry_key.size() + time_str.size();
 }
 
 }  // namespace
@@ -78,7 +96,8 @@ DefaultCacheImpl::DefaultCacheImpl(CacheSettings settings)
       memory_cache_(nullptr),
       mutable_cache_(nullptr),
       mutable_cache_lru_(nullptr),
-      protected_cache_(nullptr) {}
+      protected_cache_(nullptr),
+      mutable_cache_data_size_(0) {}
 
 DefaultCache::StorageOpenResult DefaultCacheImpl::Open() {
   std::lock_guard<std::mutex> lock(cache_lock_);
@@ -96,6 +115,7 @@ void DefaultCacheImpl::Close() {
   mutable_cache_.reset();
   mutable_cache_lru_.reset();
   protected_cache_.reset();
+  mutable_cache_data_size_ = 0;
   is_open_ = false;
 }
 
@@ -114,6 +134,7 @@ bool DefaultCacheImpl::Clear() {
   }
 
   if (mutable_cache_) {
+    mutable_cache_data_size_ = 0;
     if (!mutable_cache_->Clear()) {
       return false;
     }
@@ -140,30 +161,7 @@ bool DefaultCacheImpl::Put(const std::string& key, const boost::any& value,
     }
   }
 
-  if (mutable_cache_) {
-    if (expiry < KeyValueCache::kDefaultExpiry) {
-      if (!StoreExpiry(key, *mutable_cache_, expiry)) {
-        return false;
-      }
-    }
-
-    if (!mutable_cache_->Put(key, encoded_item)) {
-      return false;
-    }
-
-    if (mutable_cache_lru_) {
-      const auto value = encoded_item.size();
-      auto result = mutable_cache_lru_->InsertOrAssign(key, value);
-      if (result.first == mutable_cache_lru_->end() && !result.second) {
-        OLP_SDK_LOG_WARNING_F(
-            kLogTag, "Failed to store value in mutable LRU cache, key %s",
-            key.c_str());
-        return false;
-      }
-    }
-  }
-
-  return true;
+  return PutMutableCache(key, encoded_item, expiry);
 }
 
 bool DefaultCacheImpl::Put(const std::string& key,
@@ -184,31 +182,9 @@ bool DefaultCacheImpl::Put(const std::string& key,
     }
   }
 
-  if (mutable_cache_) {
-    if (expiry < KeyValueCache::kDefaultExpiry) {
-      if (!StoreExpiry(key, *mutable_cache_, expiry)) {
-        return false;
-      }
-    }
-
-    leveldb::Slice slice(reinterpret_cast<const char*>(value->data()),
-                         value->size());
-    if (!mutable_cache_->Put(key, slice)) {
-      return false;
-    }
-
-    if (mutable_cache_lru_) {
-      auto result = mutable_cache_lru_->InsertOrAssign(key, value->size());
-      if (result.first == mutable_cache_lru_->end() && !result.second) {
-        OLP_SDK_LOG_WARNING_F(
-            kLogTag, "Failed to store value inmutable LRU cache, key %s",
-            key.c_str());
-        return false;
-      }
-    }
-  }
-
-  return true;
+  leveldb::Slice slice(reinterpret_cast<const char*>(value->data()),
+                       value->size());
+  return PutMutableCache(key, slice, expiry);
 }
 
 boost::any DefaultCacheImpl::Get(const std::string& key,
@@ -218,11 +194,10 @@ boost::any DefaultCacheImpl::Get(const std::string& key,
     return boost::any();
   }
 
-  PromoteKeyLru(key);
-
   if (memory_cache_) {
     auto value = memory_cache_->Get(key);
     if (!value.empty()) {
+      PromoteKeyLru(key);
       return value;
     }
   }
@@ -247,12 +222,11 @@ KeyValueCache::ValueTypePtr DefaultCacheImpl::Get(const std::string& key) {
     return nullptr;
   }
 
-  PromoteKeyLru(key);
-
   if (memory_cache_) {
     auto value = memory_cache_->Get(key);
 
     if (!value.empty()) {
+      PromoteKeyLru(key);
       return boost::any_cast<KeyValueCache::ValueTypePtr>(value);
     }
   }
@@ -283,14 +257,15 @@ bool DefaultCacheImpl::Remove(const std::string& key) {
     memory_cache_->Remove(key);
   }
 
-  if (mutable_cache_lru_) {
-    mutable_cache_lru_->Erase(key);
-  }
+  RemoveKeyLru(key);
 
   if (mutable_cache_) {
-    if (!mutable_cache_->Remove(key)) {
+    uint64_t removed_data_size = 0;
+    if (!mutable_cache_->Remove(key, removed_data_size)) {
       return false;
     }
+
+    mutable_cache_data_size_ -= removed_data_size;
   }
 
   return true;
@@ -309,30 +284,63 @@ bool DefaultCacheImpl::RemoveKeysWithPrefix(const std::string& key) {
   RemoveKeysWithPrefixLru(key);
 
   if (mutable_cache_) {
-    return mutable_cache_->RemoveKeysWithPrefix(key);
+    uint64_t removed_data_size = 0;
+    auto result = mutable_cache_->RemoveKeysWithPrefix(key, removed_data_size);
+    mutable_cache_data_size_ -= removed_data_size;
+    return result;
   }
   return true;
 }
 
 void DefaultCacheImpl::InitializeLru() {
-  if (!mutable_cache_ || settings_.max_disk_storage == kMaxDiskSize ||
-      settings_.eviction_policy == EvictionPolicy::kNone) {
+  if (!mutable_cache_) {
     return;
   }
 
-  mutable_cache_lru_ =
-      std::make_unique<DiskLruCache>(settings_.max_disk_storage);
+  if (mutable_cache_ && settings_.max_disk_storage != kMaxDiskSize &&
+      settings_.eviction_policy == EvictionPolicy::kLeastRecentlyUsed) {
+    mutable_cache_lru_ =
+        std::make_unique<DiskLruCache>(settings_.max_disk_storage);
+  }
+
+  if (mutable_cache_lru_) {
+    OLP_SDK_LOG_INFO_F(kLogTag, "Initializing mutable lru cache.");
+  }
+
+  const auto start = std::chrono::steady_clock::now();
+  auto count = 0u;
   auto it = mutable_cache_->NewIterator(leveldb::ReadOptions());
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
     const auto key = it->key().ToString();
     const auto& value = it->value();
+    mutable_cache_data_size_ += key.size() + value.size();
 
-    // Skip expiry keys
-    if (IsExpiryKey(key)) {
-      continue;
+    if (mutable_cache_lru_) {
+      // Skip expiry keys
+      if (IsExpiryKey(key)) {
+        continue;
+      }
+
+      ++count;
+      mutable_cache_lru_->Insert(key, value.size());
     }
+  }
 
-    mutable_cache_lru_->Insert(key, value.size());
+  if (mutable_cache_lru_) {
+    const int64_t elapsed =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now() - start)
+            .count();
+    OLP_SDK_LOG_INFO_F(kLogTag,
+                       "Mutable lru cache initialized: items=%" PRIu32
+                       ", time=%" PRId64 " ms",
+                       count, elapsed);
+  }
+}
+
+void DefaultCacheImpl::RemoveKeyLru(const std::string& key) {
+  if (mutable_cache_lru_) {
+    mutable_cache_lru_->Erase(key);
   }
 }
 
@@ -363,6 +371,50 @@ bool DefaultCacheImpl::PromoteKeyLru(const std::string& key) {
   return true;
 }
 
+bool DefaultCacheImpl::PutMutableCache(const std::string& key,
+                                       const leveldb::Slice& value,
+                                       time_t expiry) {
+  if (!mutable_cache_) {
+    return true;
+  }
+
+  // can't put new item if cache is full and eviction disabled
+  const auto item_size = value.size();
+  const auto expected_size = mutable_cache_data_size_ + item_size + key.size() +
+                             key.size() + kExpirySuffixLength +
+                             kExpiryValueSize;
+  if (!mutable_cache_lru_ && expected_size > settings_.max_disk_storage) {
+    return false;
+  }
+
+  uint64_t data_size_change = 0u;
+  if (IsExpiryValid(expiry)) {
+    auto expiry_data_size = StoreExpiry(key, *mutable_cache_, expiry);
+    if (expiry_data_size == 0) {
+      return false;
+    }
+    data_size_change += expiry_data_size;
+  }
+  data_size_change += key.size() + item_size;
+
+  if (!mutable_cache_->Put(key, value)) {
+    return false;
+  }
+  mutable_cache_data_size_ += data_size_change;
+
+  if (mutable_cache_lru_) {
+    const auto result = mutable_cache_lru_->InsertOrAssign(key, item_size);
+    if (result.first == mutable_cache_lru_->end() && !result.second) {
+      OLP_SDK_LOG_WARNING_F(
+          kLogTag, "Failed to store value in mutable LRU cache, key %s",
+          key.c_str());
+      return false;
+    }
+  }
+
+  return true;
+}
+
 DefaultCache::StorageOpenResult DefaultCacheImpl::SetupStorage() {
   auto result = DefaultCache::Success;
 
@@ -370,6 +422,7 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupStorage() {
   mutable_cache_.reset();
   mutable_cache_lru_.reset();
   protected_cache_.reset();
+  mutable_cache_data_size_ = 0;
 
   if (settings_.max_memory_cache_size > 0) {
     memory_cache_.reset(new InMemoryCache(settings_.max_memory_cache_size));
@@ -431,13 +484,16 @@ DefaultCacheImpl::GetFromDiscCache(const std::string& key) {
   if (mutable_cache_) {
     auto expiry = GetRemainingExpiryTime(key, *mutable_cache_);
     if (expiry <= 0) {
-      PurgeDiskItem(key, *mutable_cache_);
-      if (mutable_cache_lru_) {
-        mutable_cache_lru_->Erase(key);
-      }
+      uint64_t removed_data_size = 0u;
+      PurgeDiskItem(key, *mutable_cache_, removed_data_size);
+      mutable_cache_data_size_ -= removed_data_size;
+
+      RemoveKeyLru(key);
     } else {
       if (!PromoteKeyLru(key)) {
         // If not found in LRU no need to look in disk cache either.
+        OLP_SDK_LOG_DEBUG_F(
+            kLogTag, "Key is not found LRU mutable cache: key %s", key.c_str());
         return boost::none;
       }
 
@@ -448,6 +504,10 @@ DefaultCacheImpl::GetFromDiscCache(const std::string& key) {
     }
   }
   return boost::none;
+}
+
+std::string DefaultCacheImpl::GetExpiryKey(const std::string& key) const {
+  return CreateExpiryKey(key);
 }
 
 }  // namespace cache

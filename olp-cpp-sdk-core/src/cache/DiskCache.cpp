@@ -160,6 +160,7 @@ void DiskCache::LevelDBLogger::Logv(const char* format, va_list ap) {
 }
 
 void DiskCache::Close() { database_.reset(); }
+
 bool DiskCache::Clear() {
   database_.reset();
   if (!disk_cache_path_.empty()) {
@@ -246,11 +247,6 @@ bool DiskCache::Put(const std::string& key, leveldb::Slice slice) {
     return false;
   }
 
-  if (environment_ && (max_size_ != kSizeMax) &&
-      (environment_->Size() >= max_size_)) {
-    return false;
-  }
-
   const auto status =
       database_->Put(leveldb::WriteOptions(), ToLeveldbSlice(key), slice);
   if (!status.ok()) {
@@ -274,12 +270,27 @@ boost::optional<std::string> DiskCache::Get(const std::string& key) {
              : boost::none;
 }
 
-bool DiskCache::Remove(const std::string& key) {
+bool DiskCache::Remove(const std::string& key, uint64_t& removed_data_size) {
   if (!database_) {
+    removed_data_size = 0;
+
     OLP_SDK_LOG_ERROR(kLogTag, "Remove: Database is uninitialized");
     return false;
   }
-  return database_->Delete(leveldb::WriteOptions(), key).ok();
+
+  uint64_t data_size = 0u;
+  auto it = NewIterator({});
+  it->Seek(key);
+  if (it->Valid() && it->key() == key) {
+    data_size = key.size() + it->value().size();
+  }
+
+  auto result = database_->Delete(leveldb::WriteOptions(), key).ok();
+  if (result) {
+    removed_data_size = data_size;
+  }
+
+  return result;
 }
 
 std::unique_ptr<leveldb::Iterator> DiskCache::NewIterator(
@@ -312,9 +323,13 @@ DiskCache::OperationOutcome DiskCache::ApplyBatch(
   return NoError{};
 }
 
-bool DiskCache::RemoveKeysWithPrefix(const std::string& prefix) {
+bool DiskCache::RemoveKeysWithPrefix(const std::string& prefix,
+                                     uint64_t& removed_data_size) {
+  uint64_t data_size = 0u;
   if (!database_) {
-    OLP_SDK_LOG_ERROR(kLogTag, "RemoveKeysWithPrefix: Database is uninitialized");
+    removed_data_size = 0u;
+    OLP_SDK_LOG_ERROR(kLogTag,
+                      "RemoveKeysWithPrefix: Database is uninitialized");
     return false;
   }
 
@@ -328,17 +343,23 @@ bool DiskCache::RemoveKeysWithPrefix(const std::string& prefix) {
   if (prefix.empty()) {
     for (iterator->SeekToFirst(); iterator->Valid(); iterator->Next()) {
       batch->Delete(iterator->key());
+      data_size += iterator->value().size() + iterator->key().size();
     }
   } else {
     for (iterator->Seek(prefix);
          iterator->Valid() && iterator->key().starts_with(prefix);
          iterator->Next()) {
       batch->Delete(iterator->key());
+      data_size += iterator->value().size() + iterator->key().size();
     }
   }
 
   auto result = ApplyBatch(std::move(batch));
+  if (!result.IsSuccessful()) {
+    data_size = 0u;
+  }
 
+  removed_data_size = data_size;
   return result.IsSuccessful();
 }
 

@@ -106,7 +106,7 @@ class DiskCache {
   boost::optional<std::string> Get(const std::string& key);
 
   /// Remove single key/value from DB.
-  bool Remove(const std::string& key);
+  bool Remove(const std::string& key, uint64_t& removed_data_size);
 
   /// Get a new leveldb cache iterator. Use options.fill_cache = false for bulk
   /// scans.
@@ -116,8 +116,9 @@ class DiskCache {
   /// the same time.
   OperationOutcome ApplyBatch(std::unique_ptr<leveldb::WriteBatch> batch);
 
-  /// Empty prefix deleted everything from DB.
-  bool RemoveKeysWithPrefix(const std::string& prefix);
+  /// Empty prefix deleted everything from DB. Returns size of removed data.
+  bool RemoveKeysWithPrefix(const std::string& prefix,
+                            uint64_t& removed_data_size);
 
  private:
   std::string disk_cache_path_;
