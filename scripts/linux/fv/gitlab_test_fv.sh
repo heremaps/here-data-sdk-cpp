@@ -44,6 +44,7 @@ ulimit -c unlimited
 # Test failure must return code 1 only. Other return code are not handled in retry.
 # Allowing tests failures (exit codes not 0) for online tests is done by set command below. Process is controlled by retry mechanism below.
 # Stop after 2nd retry.
+source ${FV_HOME}/olp-cpp-sdk-functional-test.variables
 set +e
 for RETRY_COUNT in 1 2
 do
@@ -65,14 +66,21 @@ done
 set -e
 # End of retry part. This part can be removed any time later or after all online tests are stable.
 
-
 # Run integration tests
+source ${FV_HOME}/olp-cpp-sdk-integration-test.variables
 ${FV_HOME}/gitlab-olp-cpp-sdk-integration-test.sh || TEST_FAILURE=1
 
 # Run unit tests
+source ${FV_HOME}/olp-cpp-sdk-authentication-test.variables
 ${FV_HOME}/gitlab-olp-cpp-sdk-authentication-test.sh || TEST_FAILURE=1
+
+source ${FV_HOME}/olp-cpp-sdk-core-test.variables
 ${FV_HOME}/gitlab-olp-cpp-sdk-core-test.sh || TEST_FAILURE=1
+
+source ${FV_HOME}/olp-cpp-sdk-dataservice-read-test.variables
 ${FV_HOME}/gitlab-olp-cpp-sdk-dataservice-read-test.sh || TEST_FAILURE=1
+
+source ${FV_HOME}/olp-cpp-sdk-dataservice-write-test.variables
 ${FV_HOME}/gitlab-olp-cpp-sdk-dataservice-write-test.sh || TEST_FAILURE=1
 
 
