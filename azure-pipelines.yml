@@ -73,8 +73,6 @@ jobs:
     inputs:
         key: 'ccache | "$(Agent.OS)" | ./week_number.txt '
         path: $(CCACHE_DIR)
-        restoreKeys: |
-            ccache | "$(Agent.OS)"
     displayName: ccache
   - bash: scripts/linux/psv/build_psv.sh
     displayName: 'Linux Clang Build'
