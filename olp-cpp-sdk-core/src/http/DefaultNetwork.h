@@ -71,7 +71,7 @@ class DefaultNetwork final : public Network {
   void LockStatistics(uint8_t bucket_id,
                       std::function<void(Statistics&)> callback);
 
-  std::atomic_uint8_t current_statistics_bucket_;
+  std::atomic<uint8_t> current_statistics_bucket_;
 
   using BucketsContainer = std::unordered_map<uint8_t, Statistics>;
   thread::Atomic<BucketsContainer> buckets_;

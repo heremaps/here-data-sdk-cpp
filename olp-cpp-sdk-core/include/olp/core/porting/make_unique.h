@@ -19,9 +19,11 @@
 
 #pragma once
 
-#include <olp/core/porting/porting_config.h>
-
 #include <memory>
+
+#if ((__cplusplus >= 201304L) || (defined(_MSC_VER) && _MSC_VER >= 1800))
+#define HAVE_STD_MAKE_UNIQUE
+#endif
 
 #if !defined(HAVE_STD_MAKE_UNIQUE)
 
