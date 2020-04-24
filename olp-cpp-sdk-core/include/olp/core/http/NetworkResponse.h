@@ -27,71 +27,70 @@
 namespace olp {
 namespace http {
 /**
- * @brief This class represents network response abstraction for an HTTP
- * request.
+ * @brief A network response abstraction for the HTTP request.
  */
 class CORE_API NetworkResponse final {
  public:
   /**
-   * @brief Check if associated request was cancelled.
+   * @brief Checks if the associated request was canceled.
    *
-   * @return true if associated request was cancelled.
+   * @return True if the associated request was canceled; false otherwise.
    */
   bool IsCancelled() const;
 
   /**
-   * @brief Get HTTP response code.
+   * @brief Gets the HTTP response code.
    *
-   * @return HTTP response code.
+   * @return The HTTP response code.
    */
   int GetStatus() const;
 
   /**
-   * @brief Set HTTP response code.
+   * @brief Sets the HTTP response code.
    *
-   * @param[in] status HTTP response code.
+   * @param[in] status The HTTP response code.
    *
-   * @return reference to *this.
+   * @return A reference to *this.
    */
   NetworkResponse& WithStatus(int status);
 
   /**
-   * @brief Get human-readable error message in case of failed associated
-   * request.
+   * @brief Gets the human-readable error message if the associated
+   * request failed.
    *
-   * @return human-readable error message in case of failed associated request.
+   * @return The human-readable error message if the associated request failed.
    */
   const std::string& GetError() const;
 
   /**
-   * @brief Set human-readable error message in case of failed associated
-   * request.
+   * @brief Sets the human-readable error message if the associated
+   * request failed.
    *
-   * @param[in] error Human-readable error message in case of failed
-   * associated request.
+   * @param[in] error The human-readable error message if the associated request
+   * failed.
    *
-   * @return reference to *this.
+   * @return A reference to *this.
    */
   NetworkResponse& WithError(std::string error);
 
   /**
-   * @brief Get id of associated network request.
+   * @brief Gets the ID of the associated network request.
    *
-   * @return id of associated network request.
+   * @return The ID of the associated network request.
    */
   RequestId GetRequestId() const;
 
   /**
-   * @brief Set id of associated network request.
+   * @brief Sets the ID of the associated network request.
    *
-   * @param[in] id Id of associated network request.
+   * @param[in] id The ID of the associated network request.
    *
-   * @return reference to *this.
+   * @return A reference to *this.
    */
   NetworkResponse& WithRequestId(RequestId id);
 
   /**
-   * @brief Get the number of bytes uploaded during the associated network
+   * @brief Gets the number of bytes uploaded during the associated network
    * request.
    *
    * @return The number of bytes uploaded during the associated network request.
@@ -99,17 +98,17 @@ class CORE_API NetworkResponse final {
   uint64_t GetBytesUploaded() const;
 
   /**
-   * @brief Set the number of bytes uploaded during the associated network
+   * @brief Sets the number of bytes uploaded during the associated network
    * request.
    *
-   * @param[in] bytes_uploaded Number of uploaded bytes.
+   * @param[in] bytes_uploaded The number of uploaded bytes.
    *
-   * @return reference to *this.
+   * @return A reference to *this.
    */
   NetworkResponse& WithBytesUploaded(uint64_t bytes_uploaded);
 
   /**
-   * @brief Get the number of bytes downloaded during the associated network
+   * @brief Gets the number of bytes downloaded during the associated network
    * request.
    *
    * @return The number of bytes downloaded during the associated network
@@ -118,25 +117,25 @@ class CORE_API NetworkResponse final {
   uint64_t GetBytesDownloaded() const;
 
   /**
-   * @brief Set the number of bytes downloaded during the associated network
+   * @brief Sets the number of bytes downloaded during the associated network
    * request.
    *
-   * @param[in] bytes_downloaded Number of downloaded bytes.
+   * @param[in] bytes_downloaded The number of downloaded bytes.
    *
-   * @return reference to *this.
+   * @return A reference to *this.
    */
   NetworkResponse& WithBytesDownloaded(uint64_t bytes_downloaded);
 
  private:
-  /// Associated request id.
+  /// The associated request ID.
   RequestId request_id_{0};
-  /// HTTP response code.
+  /// The HTTP response code.
   int status_{0};
-  /// Human-readable error message in case of failed associated request.
+  /// The human-readable error message if the associated request failed.
   std::string error_;
-  /// Number of bytes uploaded during network request.
+  /// The number of bytes uploaded during the network request.
   uint64_t bytes_uploaded_;
-  /// Number of bytes downloaded during network request.
+  /// The number of bytes downloaded during the network request.
   uint64_t bytes_downloaded_;
 };
 

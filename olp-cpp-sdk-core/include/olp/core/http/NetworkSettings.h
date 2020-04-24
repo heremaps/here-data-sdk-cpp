@@ -30,70 +30,82 @@ namespace olp {
 namespace http {
 
 /**
- * @brief This class contains configuration for the network.
+ * @brief Contains a configuration for the network.
  */
 class CORE_API NetworkSettings final {
  public:
   /**
-   * @brief Get maximum number of retries for HTTP request.
-   * @return maximum number of retries for HTTP request.
+   * @brief Gets the maximum number of retries for the HTTP request.
+   *
+   * @return The maximum number of retries for the HTTP request.
    */
   std::size_t GetRetries() const;
 
   /**
-   * @brief Set maximum number of retries for HTTP request.
-   * @param[in] retries Maximum number of retries for HTTP request.
-   * @return reference to *this.
+   * @brief Sets the maximum number of retries for the HTTP request.
+   *
+   * @param[in] retries The maximum number of retries for HTTP request.
+   *
+   * @return A reference to *this.
    */
   NetworkSettings& WithRetries(std::size_t retries);
 
   /**
-   * @brief Get connection timeout in seconds.
-   * @return connection timeout in seconds.
+   * @brief Gets the connection timeout in seconds.
+   *
+   * @return The connection timeout in seconds.
    */
   int GetConnectionTimeout() const;
 
   /**
-   * @brief Set connection timeout in seconds.
-   * @param[in] timeout Connection timeout in seconds.
-   * @return reference to *this.
+   * @brief Sets the connection timeout in seconds.
+   *
+   * @param[in] timeout The connection timeout in seconds.
+   *
+   * @return A reference to *this.
    */
   NetworkSettings& WithConnectionTimeout(int timeout);
 
   /**
-   * @brief Get transfer timeout in seconds.
-   * @return transfer timeout in seconds.
+   * @brief Gets the transfer timeout in seconds.
+   *
+   * @return The transfer timeout in seconds.
    */
   int GetTransferTimeout() const;
 
   /**
-   * @brief Set transfer timeout in seconds.
-   * @param[in] timeout Transfer timeout in seconds.
-   * @return reference to *this.
+   * @brief Sets the transfer timeout in seconds.
+   *
+   * @param[in] timeout The transfer timeout in seconds.
+   *
+   * @return A reference to *this.
    */
   NetworkSettings& WithTransferTimeout(int timeout);
 
   /**
-   * @brief Get proxy settings.
-   * @return proxy settings.
+   * @brief Gets the proxy settings.
+   *
+   * @return The proxy settings.
    */
   const NetworkProxySettings& GetProxySettings() const;
 
   /**
-   * @brief Set proxy settings.
-   * @param[in] settings Proxy settings.
-   * @return reference to *this.
+   * @brief Sets the proxy settings.
+   *
+   * @param[in] settings The proxy settings.
+   *
+   * @return A reference to *this.
    */
   NetworkSettings& WithProxySettings(NetworkProxySettings settings);
 
  private:
-  /// Maximum number of retries for HTTP request.
+  /// The maximum number of retries for the HTTP request.
   std::size_t retries_{3};
-  /// Connection timeout in seconds.
+  /// The connection timeout in seconds.
   int connection_timeout_{60};
-  /// Transfer timeout in seconds.
+  /// The transfer timeout in seconds.
   int transfer_timeout_{30};
-  /// Network proxy settings.
+  /// The network proxy settings.
   NetworkProxySettings proxy_settings_;
 };
 

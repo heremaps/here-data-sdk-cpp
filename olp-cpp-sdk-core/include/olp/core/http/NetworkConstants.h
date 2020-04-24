@@ -26,14 +26,14 @@ namespace olp {
 namespace http {
 
 /**
- * HTTP Headers
+ * @brief The HTTP headers.
  */
 static constexpr auto kAuthorizationHeader = "Authorization";
 static constexpr auto kContentTypeHeader = "Content-Type";
 static constexpr auto kUserAgentHeader = "User-Agent";
 
 /**
- * Custom constants
+ * @brief The custom constants.
  */
 static constexpr auto kBearer = "Bearer";
 static constexpr auto kOlpSdkUserAgent =
