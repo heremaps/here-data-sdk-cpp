@@ -149,7 +149,7 @@ TEST_F(AuthenticationClientTestAuthorize, AuthorizeAllow) {
   auto result = response.GetResult();
 
   EXPECT_TRUE(response.IsSuccessful());
-  ASSERT_EQ(result.GetClientId(), "9PBigz3zyXks0OlAQv13");
+  EXPECT_FALSE(response.GetResult().GetClientId().empty());
   ASSERT_EQ(result.GetDecision(), olp::authentication::DecisionType::kAllow);
 }
 
@@ -168,7 +168,7 @@ TEST_F(AuthenticationClientTestAuthorize, AuthorizeDeny) {
   auto response = Authorize(token, std::move(request));
 
   EXPECT_TRUE(response.IsSuccessful());
-  ASSERT_EQ(response.GetResult().GetClientId(), "9PBigz3zyXks0OlAQv13");
+  EXPECT_FALSE(response.GetResult().GetClientId().empty());
   ASSERT_EQ(response.GetResult().GetDecision(),
             olp::authentication::DecisionType::kDeny);
 }
@@ -193,7 +193,7 @@ TEST_F(AuthenticationClientTestAuthorize, AuthorizeWithTwoActions) {
   auto response = Authorize(token, std::move(request));
 
   EXPECT_TRUE(response.IsSuccessful());
-  ASSERT_EQ(response.GetResult().GetClientId(), "9PBigz3zyXks0OlAQv13");
+  EXPECT_FALSE(response.GetResult().GetClientId().empty());
   ASSERT_EQ(response.GetResult().GetDecision(),
             olp::authentication::DecisionType::kAllow);
   auto it = response.GetResult().GetActionResults().begin();
