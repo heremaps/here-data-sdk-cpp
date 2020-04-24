@@ -98,9 +98,13 @@ set(OLP_SDK_PLATFORM_HEADERS
     ./include/olp/core/context/Context.h
 )
 
-file(GLOB PORTING_HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/olp/core/porting/*.h"
-    "${CMAKE_CURRENT_BINARY_DIR}/include/olp/core/porting/*.h"
+set(OLP_SDK_PORTING_HEADERS
+    ./include/olp/core/porting/deprecated.h
+    ./include/olp/core/porting/export.h
+    ./include/olp/core/porting/make_unique.h
+    ./include/olp/core/porting/platform.h
+    ./include/olp/core/porting/try_emplace.h
+    ./include/olp/core/porting/warning_disable.h
 )
 
 set(OLP_SDK_UTILS_HEADERS
@@ -296,7 +300,7 @@ set(OLP_SDK_CORE_HEADERS
     ${OLP_SDK_GENERATED_HEADERS}
     ${OLP_SDK_HTTP_HEADERS}
     ${OLP_SDK_PLATFORM_HEADERS}
-    ${PORTING_HEADERS}
+    ${OLP_SDK_PORTING_HEADERS}
     ${OLP_SDK_UTILS_HEADERS}
     ${OLP_SDK_LOGGING_HEADERS}
     ${OLP_SDK_THREAD_HEADERS}
@@ -421,7 +425,7 @@ endif()
 # install component
 install (FILES ${OLP_SDK_HTTP_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/http)
 install (FILES ${OLP_SDK_PLATFORM_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/platform)
-install (FILES ${PORTING_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/porting)
+install (FILES ${OLP_SDK_PORTING_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/porting)
 install (FILES ${OLP_SDK_UTILS_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/utils)
 install (FILES ${OLP_SDK_THREAD_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/thread)
 install (FILES ${OLP_SDK_CACHE_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/cache)
