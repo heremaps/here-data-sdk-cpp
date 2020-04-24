@@ -95,12 +95,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionAsync) {
       CustomParameters::getArgument("dataservice_read_test_versioned_catalog"));
   auto layer =
       CustomParameters::getArgument("dataservice_read_test_versioned_layer");
-  auto version = std::stoi(CustomParameters::getArgument(
-      "dataservice_read_test_versioned_layer_version"));
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          catalog, layer, version, *settings_);
+          catalog, layer, boost::none, *settings_);
   ASSERT_TRUE(catalog_client);
 
   std::promise<DataResponse> promise;
@@ -155,12 +153,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionSync) {
       CustomParameters::getArgument("dataservice_read_test_versioned_catalog"));
   auto layer =
       CustomParameters::getArgument("dataservice_read_test_versioned_layer");
-  auto version = std::stoi(CustomParameters::getArgument(
-      "dataservice_read_test_versioned_layer_version"));
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          catalog, layer, version, *settings_);
+          catalog, layer, boost::none, *settings_);
   ASSERT_TRUE(catalog_client);
 
   DataResponse response;
