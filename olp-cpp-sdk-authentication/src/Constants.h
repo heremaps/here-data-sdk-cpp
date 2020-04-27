@@ -57,6 +57,7 @@ class Constants {
   static const char* TIER;
   static const char* HRN;
   static const char* MESSAGE;
+
   // decision api strings
   static const char* ERROR_CODE;
   static const char* IDENTITY;

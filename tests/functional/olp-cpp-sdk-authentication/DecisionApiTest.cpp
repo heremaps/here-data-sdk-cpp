@@ -30,6 +30,9 @@
 #include "TestConstants.h"
 
 namespace {
+
+constexpr auto kLogTag = "AuthenticationClientTestAuthorize";
+
 using namespace ::olp::authentication;
 
 class AuthenticationClientTestAuthorize : public ::testing::Test {
@@ -54,7 +57,6 @@ class AuthenticationClientTestAuthorize : public ::testing::Test {
     AuthenticationSettings settings;
     settings.network_request_handler = network_;
     settings.task_scheduler = task_scheduler_;
-    // settings.token_endpoint_url = kHereAccountStagingURL;
 
     client_ = std::make_unique<AuthenticationClient>(settings);
   }
@@ -70,7 +72,7 @@ class AuthenticationClientTestAuthorize : public ::testing::Test {
     unsigned int retry = 0u;
     do {
       if (retry > 0u) {
-        OLP_SDK_LOG_WARNING(__func__,
+        OLP_SDK_LOG_WARNING(kLogTag,
                             "Request retry attempted (" << retry << ")");
         std::this_thread::sleep_for(
             std::chrono::seconds(retry * kRetryDelayInSecs));
@@ -103,10 +105,10 @@ class AuthenticationClientTestAuthorize : public ::testing::Test {
                               AuthorizeRequest request,
                               bool do_cancel = false) {
     std::shared_ptr<AuthorizeResponse> response;
-    unsigned int retry = 0u;
+    auto retry = 0u;
     do {
       if (retry > 0u) {
-        OLP_SDK_LOG_WARNING(__func__,
+        OLP_SDK_LOG_WARNING(kLogTag,
                             "Request retry attempted (" << retry << ")");
         std::this_thread::sleep_for(
             std::chrono::seconds(retry * kRetryDelayInSecs));

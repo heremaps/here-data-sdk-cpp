@@ -564,7 +564,22 @@ class AUTHENTICATION_API AuthenticationClient {
    */
   client::CancellationToken IntrospectApp(std::string access_token,
                                           IntrospectAppCallback callback);
-
+  /**
+   * @brief Retrieves policy decision for a given request context against the
+   * HERE Service.
+   *
+   * Collects all permissions associated with the authenticated user or
+   * application, requested service ID, and requested contract ID.
+   *
+   * @param access_token A valid access token that is associated with the
+   * service.
+   * @param request Context of the Authorize request.
+   * @param callback The`AuthorizeCallback` method that is called when
+   * the Authorize request is completed.
+   *
+   * @return The `CancellationToken` instance that can be used to cancel
+   * the request.
+   */
   client::CancellationToken Authorize(std::string access_token,
                                       AuthorizeRequest request,
                                       AuthorizeCallback callback);

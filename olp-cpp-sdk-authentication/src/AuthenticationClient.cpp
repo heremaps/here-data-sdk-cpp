@@ -243,11 +243,48 @@ IntrospectAppResult GetIntrospectAppResult(const rapidjson::Document& doc) {
   return result;
 }
 
+std::vector<ActionResult> GetDiagnostics(
+    rapidjson::Document& doc,
+    const std::function<DecisionType(std::string)>& get_permition) {
+  std::vector<ActionResult> results;
+    const auto& array = doc[Constants::DIAGNOSTICS].GetArray();
+    for (auto& element : array) {
+      ActionResult action;
+      if (element.HasMember(Constants::DECISION)) {
+        action.SetDecision(
+            get_permition(element[Constants::DECISION].GetString()));
+        // get permisions if avialible
+        if (element.HasMember(Constants::PERMITIONS) &&
+            element[Constants::PERMITIONS].IsArray()) {
+          std::vector<ActionResult::Permisions> permitions;
+          const auto& permitions_array =
+              element[Constants::PERMITIONS].GetArray();
+          for (auto& permition_element : permitions_array) {
+            ActionResult::Permisions permition;
+            if (permition_element.HasMember(Constants::ACTION)) {
+              permition.first =
+                  permition_element[Constants::ACTION].GetString();
+            }
+            if (permition_element.HasMember(Constants::DECISION)) {
+              permition.second = get_permition(
+                  permition_element[Constants::DECISION].GetString());
+            }
+            permitions.push_back(std::move(permition));
+          }
+
+          action.SetPermitions(std::move(permitions));
+        }
+      }
+      results.push_back(std::move(action));
+    }
+    return results;
+}
+
 AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc) {
   AuthorizeResult result;
 
-  auto getPermition = [](const char* str) -> DecisionType {
-    if (strcmp(str, "allow") == 0) {
+  auto get_permition = [](std::string str) -> DecisionType {
+    if (str.compare("allow") == 0) {
       return DecisionType::kAllow;
     }
     return DecisionType::kDeny;
@@ -264,44 +301,13 @@ AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc) {
   }
 
   if (doc.HasMember(Constants::DECISION)) {
-    result.SetDecision(getPermition(doc[Constants::DECISION].GetString()));
+    result.SetDecision(get_permition(doc[Constants::DECISION].GetString()));
   }
 
-  // get diagnostics if avialible
-  std::vector<ActionResult> results;
+  // get diagnostics if available
   if (doc.HasMember(Constants::DIAGNOSTICS) &&
       doc[Constants::DIAGNOSTICS].IsArray()) {
-    const auto& array = doc[Constants::DIAGNOSTICS].GetArray();
-    for (auto& element : array) {
-      ActionResult action;
-      if (element.HasMember(Constants::DECISION)) {
-        action.SetDecision(
-            getPermition(element[Constants::DECISION].GetString()));
-        // get permisions if avialible
-        if (element.HasMember(Constants::PERMITIONS) &&
-            element[Constants::PERMITIONS].IsArray()) {
-          std::vector<ActionResult::Permisions> permitions;
-          const auto& permitionsArray =
-              element[Constants::PERMITIONS].GetArray();
-          for (auto& permitionElement : permitionsArray) {
-            ActionResult::Permisions permition;
-            if (permitionElement.HasMember(Constants::ACTION)) {
-              permition.first = permitionElement[Constants::ACTION].GetString();
-            }
-            if (permitionElement.HasMember(Constants::DECISION)) {
-              permition.second = getPermition(
-                  permitionElement[Constants::DECISION].GetString());
-            }
-            permitions.push_back(std::move(permition));
-          }
-
-          action.SetPermitions(std::move(permitions));
-        }
-      }
-      results.push_back(std::move(action));
-    }
-
-    result.SetActionResults(std::move(results));
+    result.SetActionResults(GetDiagnostics(doc, get_permition));
   }
   return result;
 }
@@ -400,30 +406,30 @@ class AuthenticationClient::Impl final {
   client::CancellationToken GetTimeFromServer(TimeCallback callback);
   static TimeResponse ParseTimeResponse(std::stringstream& payload);
 
-  std::string base64Encode(const std::vector<uint8_t>& vector);
+  std::string Base64Encode(const std::vector<uint8_t>& vector);
 
-  std::string generateHeader(const AuthenticationCredentials& credentials,
+  std::string GenerateHeader(const AuthenticationCredentials& credentials,
                              const std::string& url,
                              const time_t& timestamp = std::time(nullptr));
-  std::string generateBearerHeader(const std::string& bearer_token);
+  std::string GenerateBearerHeader(const std::string& bearer_token);
 
-  http::NetworkRequest::RequestBodyType generateClientBody(
+  http::NetworkRequest::RequestBodyType GenerateClientBody(
       const SignInProperties& properties);
-  http::NetworkRequest::RequestBodyType generateUserBody(
+  http::NetworkRequest::RequestBodyType GenerateUserBody(
       const AuthenticationClient::UserProperties& properties);
-  http::NetworkRequest::RequestBodyType generateFederatedBody(
+  http::NetworkRequest::RequestBodyType GenerateFederatedBody(
       const FederatedSignInType,
       const AuthenticationClient::FederatedProperties& properties);
-  http::NetworkRequest::RequestBodyType generateRefreshBody(
+  http::NetworkRequest::RequestBodyType GenerateRefreshBody(
       const AuthenticationClient::RefreshProperties& properties);
-  http::NetworkRequest::RequestBodyType generateSignUpBody(
+  http::NetworkRequest::RequestBodyType GenerateSignUpBody(
       const SignUpProperties& properties);
-  http::NetworkRequest::RequestBodyType generateAcceptTermBody(
+  http::NetworkRequest::RequestBodyType GenerateAcceptTermBody(
       const std::string& reacceptance_token);
-  client::OlpClient::RequestBodyType generateAuthorizeBody(
+  client::OlpClient::RequestBodyType GenerateAuthorizeBody(
       AuthorizeRequest properties);
 
-  std::string generateUid();
+  std::string GenerateUid();
 
   client::CancellationToken HandleUserRequest(
       const AuthenticationCredentials& credentials, const std::string& endpoint,
@@ -490,14 +496,14 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
     http::NetworkRequest request(url);
     request.WithVerb(http::NetworkRequest::HttpVerb::POST);
     request.WithHeader(http::kAuthorizationHeader,
-                       generateHeader(credentials, url, timestamp));
+                       GenerateHeader(credentials, url, timestamp));
     request.WithHeader(http::kContentTypeHeader, kApplicationJson);
     request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
     request.WithSettings(std::move(network_settings));
 
     std::shared_ptr<std::stringstream> payload =
         std::make_shared<std::stringstream>();
-    request.WithBody(generateClientBody(properties));
+    request.WithBody(GenerateClientBody(properties));
 
     auto network_callback = [callback, payload, credentials, cache](
                                 const http::NetworkResponse& network_response) {
@@ -668,7 +674,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInHereUser(
     const UserProperties& properties,
     const AuthenticationClient::SignInUserCallback& callback) {
   return HandleUserRequest(credentials, kOauthEndpoint,
-                           generateUserBody(properties), callback);
+                           GenerateUserBody(properties), callback);
 }
 
 client::CancellationToken AuthenticationClient::Impl::SignInFederated(
@@ -684,7 +690,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInRefresh(
     const AuthenticationCredentials& credentials,
     const RefreshProperties& properties, const SignInUserCallback& callback) {
   return HandleUserRequest(credentials, kOauthEndpoint,
-                           generateRefreshBody(properties), callback);
+                           GenerateRefreshBody(properties), callback);
 }
 
 client::CancellationToken AuthenticationClient::Impl::SignInFederated(
@@ -692,14 +698,14 @@ client::CancellationToken AuthenticationClient::Impl::SignInFederated(
     const FederatedSignInType& type, const FederatedProperties& properties,
     const AuthenticationClient::SignInUserCallback& callback) {
   return HandleUserRequest(credentials, kOauthEndpoint,
-                           generateFederatedBody(type, properties), callback);
+                           GenerateFederatedBody(type, properties), callback);
 }
 
 client::CancellationToken AuthenticationClient::Impl::AcceptTerms(
     const AuthenticationCredentials& credentials,
     const std::string& reacceptanceToken, const SignInUserCallback& callback) {
   return HandleUserRequest(credentials, kTermsEndpoint,
-                           generateAcceptTermBody(reacceptanceToken), callback);
+                           GenerateAcceptTermBody(reacceptanceToken), callback);
 }
 
 client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
@@ -724,7 +730,7 @@ client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
   }
   request.WithVerb(http::NetworkRequest::HttpVerb::POST);
   request.WithHeader(http::kAuthorizationHeader,
-                     generateHeader(credentials, url));
+                     GenerateHeader(credentials, url));
   request.WithHeader(http::kContentTypeHeader, kApplicationJson);
   request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
   request.WithSettings(std::move(network_settings));
@@ -835,14 +841,14 @@ client::CancellationToken AuthenticationClient::Impl::SignUpHereUser(
   }
   request.WithVerb(http::NetworkRequest::HttpVerb::POST);
   request.WithHeader(http::kAuthorizationHeader,
-                     generateHeader(credentials, url));
+                     GenerateHeader(credentials, url));
   request.WithHeader(http::kContentTypeHeader, kApplicationJson);
   request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
   request.WithSettings(std::move(network_settings));
 
   std::shared_ptr<std::stringstream> payload =
       std::make_shared<std::stringstream>();
-  request.WithBody(generateSignUpBody(properties));
+  request.WithBody(GenerateSignUpBody(properties));
   auto send_outcome = settings_.network_request_handler->Send(
       request, payload,
       [callback, payload,
@@ -910,7 +916,7 @@ client::CancellationToken AuthenticationClient::Impl::SignOut(
   }
   request.WithVerb(http::NetworkRequest::HttpVerb::POST);
   request.WithHeader(http::kAuthorizationHeader,
-                     generateBearerHeader(userAccessToken));
+                     GenerateBearerHeader(userAccessToken));
   request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
   request.WithSettings(std::move(network_settings));
 
@@ -1004,7 +1010,7 @@ client::CancellationToken AuthenticationClient::Impl::IntrospectApp(
 
     if (document.HasParseError()) {
       return client::ApiError({static_cast<int>(http::ErrorCode::UNKNOWN_ERROR),
-                               "Failed to parse response."});
+                               "Failed to parse response"});
     }
 
     return GetIntrospectAppResult(document);
@@ -1049,7 +1055,7 @@ client::CancellationToken AuthenticationClient::Impl::Authorize(
     client.SetSettings(settings);
 
     auto http_result = client.CallApi(kDecisionEndpoint, "POST", {}, {}, {},
-                                      generateAuthorizeBody(request),
+                                      GenerateAuthorizeBody(request),
                                       kApplicationJson, context);
 
     rapidjson::Document document;
@@ -1066,15 +1072,21 @@ client::CancellationToken AuthenticationClient::Impl::Authorize(
                document.HasMember(Constants::ERROR_CODE) &&
                document[Constants::ERROR_CODE].IsInt()) {
       std::string msg =
-          "Error code:" +
+          "Error code: " +
           std::to_string(document[Constants::ERROR_CODE].GetInt());
+      if (document.HasMember(Constants::MESSAGE)) {
+        msg.append(" (");
+        msg.append(document[Constants::MESSAGE].GetString());
+        msg.append(")");
+      }
+
       return client::ApiError(
           {static_cast<int>(http::ErrorCode::UNKNOWN_ERROR), msg});
     }
 
     if (document.HasParseError()) {
       return client::ApiError({static_cast<int>(http::ErrorCode::UNKNOWN_ERROR),
-                               "Failed to parse response."});
+                               "Failed to parse response"});
     }
 
     return GetAuthorizeResult(document);
@@ -1095,7 +1107,7 @@ client::CancellationToken AuthenticationClient::Impl::Authorize(
                  std::move(wrap_callback));
 }
 
-std::string AuthenticationClient::Impl::base64Encode(
+std::string AuthenticationClient::Impl::Base64Encode(
     const std::vector<uint8_t>& vector) {
   std::string ret = olp::utils::Base64Encode(vector);
   // Base64 encode sometimes return multiline with garbage at the end
@@ -1106,10 +1118,10 @@ std::string AuthenticationClient::Impl::base64Encode(
   return ret;
 }
 
-std::string AuthenticationClient::Impl::generateHeader(
+std::string AuthenticationClient::Impl::GenerateHeader(
     const AuthenticationCredentials& credentials, const std::string& url,
     const time_t& timestamp) {
-  std::string uid = generateUid();
+  std::string uid = GenerateUid();
   const std::string currentTime = std::to_string(timestamp);
   const std::string encodedUri = utils::Url::Encode(url);
   const std::string encodedQuery = utils::Url::Encode(
@@ -1121,7 +1133,7 @@ std::string AuthenticationClient::Impl::generateHeader(
       kOauthPost + kParamAdd + encodedUri + kParamAdd + encodedQuery;
   const std::string encodeKey = credentials.GetSecret() + kParamAdd;
   auto hmacResult = Crypto::hmac_sha256(encodeKey, signatureBase);
-  auto signature = base64Encode(hmacResult);
+  auto signature = Base64Encode(hmacResult);
   std::string authorization =
       "OAuth " + kOauthConsumerKey + kParamEquals + kParamQuote +
       utils::Url::Encode(credentials.GetKey()) + kParamQuote + kParamComma +
@@ -1136,7 +1148,7 @@ std::string AuthenticationClient::Impl::generateHeader(
   return authorization;
 }
 
-std::string AuthenticationClient::Impl::generateBearerHeader(
+std::string AuthenticationClient::Impl::GenerateBearerHeader(
     const std::string& bearer_token) {
   std::string authorization = http::kBearer + std::string(" ");
   authorization += bearer_token;
@@ -1144,7 +1156,7 @@ std::string AuthenticationClient::Impl::generateBearerHeader(
 }
 
 http::NetworkRequest::RequestBodyType
-AuthenticationClient::Impl::generateClientBody(
+AuthenticationClient::Impl::GenerateClientBody(
     const SignInProperties& properties) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
@@ -1170,7 +1182,7 @@ AuthenticationClient::Impl::generateClientBody(
 }
 
 http::NetworkRequest::RequestBodyType
-AuthenticationClient::Impl::generateUserBody(const UserProperties& properties) {
+AuthenticationClient::Impl::GenerateUserBody(const UserProperties& properties) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
   writer.StartObject();
@@ -1197,7 +1209,7 @@ AuthenticationClient::Impl::generateUserBody(const UserProperties& properties) {
 }
 
 http::NetworkRequest::RequestBodyType
-AuthenticationClient::Impl::generateFederatedBody(
+AuthenticationClient::Impl::GenerateFederatedBody(
     const FederatedSignInType type, const FederatedProperties& properties) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
@@ -1246,7 +1258,7 @@ AuthenticationClient::Impl::generateFederatedBody(
 }
 
 http::NetworkRequest::RequestBodyType
-AuthenticationClient::Impl::generateRefreshBody(
+AuthenticationClient::Impl::GenerateRefreshBody(
     const RefreshProperties& properties) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
@@ -1274,7 +1286,7 @@ AuthenticationClient::Impl::generateRefreshBody(
 }
 
 http::NetworkRequest::RequestBodyType
-AuthenticationClient::Impl::generateSignUpBody(
+AuthenticationClient::Impl::GenerateSignUpBody(
     const SignUpProperties& properties) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
@@ -1332,7 +1344,7 @@ AuthenticationClient::Impl::generateSignUpBody(
 }
 
 http::NetworkRequest::RequestBodyType
-AuthenticationClient::Impl::generateAcceptTermBody(
+AuthenticationClient::Impl::GenerateAcceptTermBody(
     const std::string& reacceptance_token) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
@@ -1348,7 +1360,7 @@ AuthenticationClient::Impl::generateAcceptTermBody(
 }
 
 client::OlpClient::RequestBodyType
-AuthenticationClient::Impl::generateAuthorizeBody(AuthorizeRequest properties) {
+AuthenticationClient::Impl::GenerateAuthorizeBody(AuthorizeRequest properties) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
   writer.StartObject();
@@ -1383,7 +1395,7 @@ AuthenticationClient::Impl::generateAuthorizeBody(AuthorizeRequest properties) {
                                                       content + data.GetSize());
 }
 
-std::string AuthenticationClient::Impl::generateUid() {
+std::string AuthenticationClient::Impl::GenerateUid() {
   std::lock_guard<std::mutex> lock(token_mutex_);
   {
     static boost::uuids::random_generator gen;
