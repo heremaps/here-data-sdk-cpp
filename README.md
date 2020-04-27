@@ -42,7 +42,9 @@ We try to develop and maintain our API in a way that preserves its compatibility
 
 For more information on Data API, see its <a href="https://developer.here.com/olp/documentation/data-api/data_dev_guide/index.html" target="_blank">Developer Guide</a> and <a href="https://developer.here.com/olp/documentation/data-api/api-reference.html" target="_blank">API Reference</a>.
 
-When new API is introduced in OLP SDK for C++, the old one is not deleted straight away. The standard deprecation time is 6 months. It gives you time to switch to new code. All of the deprecated methods, functions, and parameters are documented in the OLP SDK for C++ <a href="https://developer.here.com/olp/documentation/sdk-cpp/api_reference/index.html" target="_blank">API Reference</a> and <a href="https://github.com/heremaps/here-olp-sdk-cpp/blob/master/CHANGELOG.md" target="_blank">changelog</a>.
+When new API is introduced in OLP SDK for C++, the old one is not deleted straight away. The standard API deprecation time is 6 months. It gives you time to switch to new code. However, we do not provide ABI backward compatibility.
+
+All of the deprecated methods, functions, and parameters are documented in the OLP SDK for C++ <a href="https://developer.here.com/olp/documentation/sdk-cpp/api_reference/index.html" target="_blank">API Reference</a> and <a href="https://github.com/heremaps/here-olp-sdk-cpp/blob/master/CHANGELOG.md" target="_blank">changelog</a>.
 
 ## Supported Platforms
 
