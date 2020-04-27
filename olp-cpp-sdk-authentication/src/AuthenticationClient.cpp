@@ -250,37 +250,37 @@ DecisionType GetPermission(const std::string& str) {
 
 std::vector<ActionResult> GetDiagnostics(rapidjson::Document& doc) {
   std::vector<ActionResult> results;
-    const auto& array = doc[Constants::DIAGNOSTICS].GetArray();
-    for (auto& element : array) {
-      ActionResult action;
-      if (element.HasMember(Constants::DECISION)) {
-        action.SetDecision(
-            GetPermission(element[Constants::DECISION].GetString()));
-        // get permissions if avialible
-        if (element.HasMember(Constants::PERMISSIONS) &&
-            element[Constants::PERMISSIONS].IsArray()) {
-          std::vector<ActionResult::Permissions> permissions;
-          const auto& permissions_array =
-              element[Constants::PERMISSIONS].GetArray();
-          for (auto& permission_element : permissions_array) {
-            ActionResult::Permissions permission;
-            if (permission_element.HasMember(Constants::ACTION)) {
-              permission.first =
-                  permission_element[Constants::ACTION].GetString();
-            }
-            if (permission_element.HasMember(Constants::DECISION)) {
-              permission.second = GetPermission(
-                  permission_element[Constants::DECISION].GetString());
-            }
-            permissions.push_back(std::move(permission));
+  const auto& array = doc[Constants::DIAGNOSTICS].GetArray();
+  for (auto& element : array) {
+    ActionResult action;
+    if (element.HasMember(Constants::DECISION)) {
+      action.SetDecision(
+          GetPermission(element[Constants::DECISION].GetString()));
+      // get permissions if avialible
+      if (element.HasMember(Constants::PERMISSIONS) &&
+          element[Constants::PERMISSIONS].IsArray()) {
+        std::vector<ActionResult::Permissions> permissions;
+        const auto& permissions_array =
+            element[Constants::PERMISSIONS].GetArray();
+        for (auto& permission_element : permissions_array) {
+          ActionResult::Permissions permission;
+          if (permission_element.HasMember(Constants::ACTION)) {
+            permission.first =
+                permission_element[Constants::ACTION].GetString();
           }
-
-          action.SetPermissions(std::move(permissions));
+          if (permission_element.HasMember(Constants::DECISION)) {
+            permission.second = GetPermission(
+                permission_element[Constants::DECISION].GetString());
+          }
+          permissions.push_back(std::move(permission));
         }
+
+        action.SetPermissions(std::move(permissions));
       }
-      results.push_back(std::move(action));
     }
-    return results;
+    results.push_back(std::move(action));
+  }
+  return results;
 }
 
 AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc) {
