@@ -90,7 +90,7 @@ const requestHandler = async (request, response) => {
   }
 
   // For debug purpose
-  console.log(url)
+  //console.log(url)
 
   processor = handleRequest
 

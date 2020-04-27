@@ -112,7 +112,6 @@ test_performance_nv:
     paths:
       - ./*.gz
       - ./*.html
-      - cache
       - heaptrack
       - reports
     expire_in: 1 year

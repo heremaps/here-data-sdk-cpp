@@ -159,6 +159,9 @@ void MemoryTest::RandomlyCancel(olp::client::CancellationToken token) {
  * Valgrind, heaptrack, other tools are used to collect the output.
  */
 TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
+  // Enable only errors to have a short output.
+  olp::logging::Log::setLevel(olp::logging::Level::Warning);
+
   const auto& parameter = GetParam();
 
   auto settings = CreateCatalogClientSettings();
@@ -195,6 +198,9 @@ TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
 }
 
 TEST_P(MemoryTest, PrefetchPartitionsFromVersionedLayer) {
+  // Enable only errors to have a short output.
+  olp::logging::Log::setLevel(olp::logging::Level::Warning);
+
   const auto& parameter = GetParam();
 
   auto settings = CreateCatalogClientSettings();
