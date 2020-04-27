@@ -86,7 +86,7 @@ class MemoryTestBase : public ::testing::TestWithParam<Param> {
 /*
  * Set error flags to test configuration.
  */
-void SetErrorFlags(TestBaseConfiguration& configuration) {
+inline void SetErrorFlags(TestBaseConfiguration& configuration) {
   configuration.with_http_errors = true;
   configuration.with_network_timeouts = true;
 }
@@ -94,7 +94,7 @@ void SetErrorFlags(TestBaseConfiguration& configuration) {
 /*
  * Set null cache configuration. Cache does not perform any operations.
  */
-void SetNullCacheConfiguration(TestBaseConfiguration& configuration) {
+inline void SetNullCacheConfiguration(TestBaseConfiguration& configuration) {
   configuration.cache_factory = []() { return std::make_shared<NullCache>(); };
 }
 
@@ -102,7 +102,7 @@ void SetNullCacheConfiguration(TestBaseConfiguration& configuration) {
  * Set default cache configuration. A simple default cache with default
  * settings.
  */
-void SetDefaultCacheConfiguration(TestBaseConfiguration& configuration) {
+inline void SetDefaultCacheConfiguration(TestBaseConfiguration& configuration) {
   configuration.cache_factory = []() {
     return olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
   };
@@ -112,8 +112,8 @@ void SetDefaultCacheConfiguration(TestBaseConfiguration& configuration) {
  * Set a disk cache. Disk cache path is computed as `cache_location` env.
  * variable and /memory_test appended. Default cache settings.
  */
-void SetDiskCacheConfiguration(TestBaseConfiguration& configuration) {
-  olp::cache::CacheSettings settings;
+inline void SetDiskCacheConfiguration(TestBaseConfiguration& configuration,
+                                      olp::cache::CacheSettings settings = {}) {
   auto location = CustomParameters::getArgument("cache_location");
   if (location.empty()) {
     location = olp::utils::Dir::TempDirectory() + "/memory_test";
