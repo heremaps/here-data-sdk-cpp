@@ -564,6 +564,7 @@ class AUTHENTICATION_API AuthenticationClient {
    */
   client::CancellationToken IntrospectApp(std::string access_token,
                                           IntrospectAppCallback callback);
+
   /**
    * @brief Retrieves policy decision for a given request context against the
    * HERE Service.
