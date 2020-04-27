@@ -1061,7 +1061,6 @@ client::CancellationToken AuthenticationClient::Impl::Authorize(
       return;
     }
     if (response.GetResult().HasError()) {
-      const auto& resp = response.GetResult().GetErrorResponse();
       callback({AuthenticationError(
           response.GetResult().GetStatus(),
           response.GetResult().GetErrorResponse().message)});
