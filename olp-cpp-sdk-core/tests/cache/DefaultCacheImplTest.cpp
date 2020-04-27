@@ -400,6 +400,24 @@ TEST(DefaultCacheImplTest, MutableCacheSize) {
   }
 
   {
+    SCOPED_TRACE("Remove from cache with expiry");
+
+    DefaultCacheImplHelper cache(settings);
+    cache.Open();
+    cache.Clear();
+
+    cache.Put(key1, data_ptr, expiry);
+    cache.Put(
+        key2, data_string, [=]() { return data_string; }, expiry);
+
+    cache.Remove(key1);
+    cache.Remove(key2);
+    cache.Remove(invalid_key);
+
+    EXPECT_EQ(0u, cache.Size());
+  }
+
+  {
     SCOPED_TRACE("RemoveWithPrefix");
 
     DefaultCacheImplHelper cache(settings);
@@ -561,6 +579,72 @@ TEST(DefaultCacheImplTest, LruCacheEviction) {
       EXPECT_TRUE(cache.ContainsMutableCache(key));
       EXPECT_TRUE(cache.ContainsMemoryCache(key));
     }
+    cache.Clear();
+  }
+
+  {
+    SCOPED_TRACE("kLeastRecentlyUsed eviction");
+
+    const auto prefix{"somekey"};
+    const auto data_size = 1024u;
+    std::vector<unsigned char> binary_data(data_size);
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = cache_path;
+    settings.eviction_policy = EvictionPolicy::kLeastRecentlyUsed;
+    settings.max_disk_storage = 2u * 1024u * 1024u;
+    DefaultCacheImplHelper cache(settings);
+
+    cache.Open();
+    cache.Clear();
+
+    const auto promote_key = prefix + std::to_string(0);
+    const auto evicted_key = prefix + std::to_string(1);
+    cache.Put(promote_key,
+              std::make_shared<std::vector<unsigned char>>(binary_data),
+              (std::numeric_limits<time_t>::max)());
+
+    // overflow the mutable cache
+    auto count = 0u;
+    std::string key;
+    const auto max_count = settings.max_disk_storage / data_size;
+    for (; count < max_count; ++count) {
+      key = prefix + std::to_string(count);
+      const auto result = cache.Put(
+          key, std::make_shared<std::vector<unsigned char>>(binary_data),
+          (std::numeric_limits<time_t>::max)());
+
+      ASSERT_TRUE(result);
+
+      // promote the key so its not evicted.
+      cache.Get(promote_key);
+
+      EXPECT_TRUE(cache.ContainsMutableCache(key));
+      EXPECT_TRUE(cache.ContainsMemoryCache(key));
+      EXPECT_TRUE(cache.ContainsLru(key));
+      EXPECT_TRUE(cache.ContainsMutableCache(promote_key));
+      EXPECT_TRUE(cache.ContainsMemoryCache(promote_key));
+      EXPECT_TRUE(cache.ContainsLru(promote_key));
+    }
+    const auto promote_value = cache.Get(promote_key);
+    const auto value = cache.Get(key);
+
+    // maximum is reached.
+    ASSERT_TRUE(count == max_count);
+    EXPECT_TRUE(cache.HasLruCache());
+    EXPECT_TRUE(value.get() != nullptr);
+    EXPECT_TRUE(promote_value.get() != nullptr);
+
+    EXPECT_TRUE(cache.ContainsMutableCache(promote_key));
+    EXPECT_TRUE(cache.ContainsMemoryCache(promote_key));
+    EXPECT_TRUE(cache.ContainsLru(promote_key));
+    EXPECT_TRUE(cache.ContainsMutableCache(key));
+    EXPECT_TRUE(cache.ContainsMemoryCache(key));
+    EXPECT_TRUE(cache.ContainsLru(key));
+
+    // some items are removed, because eviction starts before the cache is full
+    EXPECT_FALSE(cache.ContainsMutableCache(evicted_key));
+    EXPECT_FALSE(cache.ContainsMemoryCache(evicted_key));
+    EXPECT_FALSE(cache.ContainsLru(evicted_key));
     cache.Clear();
   }
 }

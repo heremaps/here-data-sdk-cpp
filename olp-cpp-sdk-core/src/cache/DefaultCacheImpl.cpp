@@ -30,6 +30,8 @@ namespace {
 constexpr auto kLogTag = "DefaultCache";
 constexpr auto kExpirySuffix = "::expiry";
 constexpr auto kMaxDiskSize = std::uint64_t(-1);
+constexpr auto kMinDiskUsedThreshold = 0.85f;
+constexpr auto kMaxDiskUsedThreshold = 0.9f;
 
 // current epoch time contains 10 digits.
 constexpr auto kExpiryValueSize = 10;
@@ -73,14 +75,12 @@ void PurgeDiskItem(const std::string& key, olp::cache::DiskCache& disk_cache,
   removed_data_size += data_size;
 }
 
-size_t StoreExpiry(const std::string& key, olp::cache::DiskCache& disk_cache,
+size_t StoreExpiry(const std::string& key, leveldb::WriteBatch& batch,
                    time_t expiry) {
   auto expiry_key = CreateExpiryKey(key);
   auto time_str = std::to_string(
       expiry + olp::cache::InMemoryCache::DefaultTimeProvider()());
-  if (!disk_cache.Put(expiry_key, time_str)) {
-    return 0;
-  }
+  batch.Put(expiry_key, time_str);
 
   return expiry_key.size() + time_str.size();
 }
@@ -261,9 +261,7 @@ bool DefaultCacheImpl::Remove(const std::string& key) {
 
   if (mutable_cache_) {
     uint64_t removed_data_size = 0;
-    if (!mutable_cache_->Remove(key, removed_data_size)) {
-      return false;
-    }
+    PurgeDiskItem(key, *mutable_cache_, removed_data_size);
 
     mutable_cache_data_size_ -= removed_data_size;
   }
@@ -301,9 +299,6 @@ void DefaultCacheImpl::InitializeLru() {
       settings_.eviction_policy == EvictionPolicy::kLeastRecentlyUsed) {
     mutable_cache_lru_ =
         std::make_unique<DiskLruCache>(settings_.max_disk_storage);
-  }
-
-  if (mutable_cache_lru_) {
     OLP_SDK_LOG_INFO_F(kLogTag, "Initializing mutable lru cache.");
   }
 
@@ -315,27 +310,18 @@ void DefaultCacheImpl::InitializeLru() {
     const auto& value = it->value();
     mutable_cache_data_size_ += key.size() + value.size();
 
-    if (mutable_cache_lru_) {
-      // Skip expiry keys
-      if (IsExpiryKey(key)) {
-        continue;
-      }
-
+    if (mutable_cache_lru_ && !IsExpiryKey(key)) {
       ++count;
       mutable_cache_lru_->Insert(key, value.size());
     }
   }
 
-  if (mutable_cache_lru_) {
-    const int64_t elapsed =
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now() - start)
-            .count();
-    OLP_SDK_LOG_INFO_F(kLogTag,
-                       "Mutable lru cache initialized: items=%" PRIu32
-                       ", time=%" PRId64 " ms",
-                       count, elapsed);
-  }
+  const int64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                              std::chrono::steady_clock::now() - start)
+                              .count();
+  OLP_SDK_LOG_INFO_F(
+      kLogTag, "Cache initialized, items=%" PRIu32 ", time=%" PRId64 " ms",
+      count, elapsed);
 }
 
 void DefaultCacheImpl::RemoveKeyLru(const std::string& key) {
@@ -371,6 +357,53 @@ bool DefaultCacheImpl::PromoteKeyLru(const std::string& key) {
   return true;
 }
 
+uint64_t DefaultCacheImpl::MaybeEvictData(leveldb::WriteBatch& batch) {
+  if (!mutable_cache_ || !mutable_cache_lru_) {
+    return 0;
+  }
+
+  const auto max_size = kMaxDiskUsedThreshold * settings_.max_disk_storage;
+  if (mutable_cache_data_size_ < max_size) {
+    return 0;
+  }
+
+  const auto start = std::chrono::steady_clock::now();
+  int64_t evicted = 0u;
+  auto count = 0u;
+  const auto min_size = kMinDiskUsedThreshold * settings_.max_disk_storage;
+  for (auto it = mutable_cache_lru_->rbegin();
+       it != mutable_cache_lru_->rend() &&
+       mutable_cache_data_size_ - evicted > min_size;) {
+    const auto& key = it->key();
+    const auto expiry_key = CreateExpiryKey(key);
+    auto expiry_value = mutable_cache_->Get(expiry_key);
+    if (expiry_value) {
+      evicted += expiry_key.size() + kExpiryValueSize;
+      batch.Delete(expiry_key);
+    }
+    evicted += key.size() + it->value();
+    ++count;
+
+    if (memory_cache_) {
+      memory_cache_->Remove(it->key());
+    }
+
+    batch.Delete(key);
+    mutable_cache_lru_->Erase(it);
+    it = mutable_cache_lru_->rbegin();
+  }
+
+  int64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::steady_clock::now() - start)
+                        .count();
+  OLP_SDK_LOG_INFO_F(kLogTag,
+                     "Evicted from mutable cache, items=%" PRId32
+                     ", time=%" PRId64 " ms, size=%" PRIu64,
+                     count, elapsed, evicted);
+
+  return evicted;
+}
+
 bool DefaultCacheImpl::PutMutableCache(const std::string& key,
                                        const leveldb::Slice& value,
                                        time_t expiry) {
@@ -387,20 +420,23 @@ bool DefaultCacheImpl::PutMutableCache(const std::string& key,
     return false;
   }
 
-  uint64_t data_size_change = 0u;
-  if (IsExpiryValid(expiry)) {
-    auto expiry_data_size = StoreExpiry(key, *mutable_cache_, expiry);
-    if (expiry_data_size == 0) {
-      return false;
-    }
-    data_size_change += expiry_data_size;
-  }
-  data_size_change += key.size() + item_size;
+  uint64_t added_data_size = 0u;
+  auto batch = std::make_unique<leveldb::WriteBatch>();
+  batch->Put(key, value);
+  added_data_size += key.size() + item_size;
 
-  if (!mutable_cache_->Put(key, value)) {
+  if (IsExpiryValid(expiry)) {
+    added_data_size += StoreExpiry(key, *batch, expiry);
+  }
+
+  auto removed_data_size = MaybeEvictData(*batch);
+
+  auto result = mutable_cache_->ApplyBatch(std::move(batch));
+  if (!result.IsSuccessful()) {
     return false;
   }
-  mutable_cache_data_size_ += data_size_change;
+  mutable_cache_data_size_ += added_data_size;
+  mutable_cache_data_size_ -= removed_data_size;
 
   if (mutable_cache_lru_) {
     const auto result = mutable_cache_lru_->InsertOrAssign(key, item_size);

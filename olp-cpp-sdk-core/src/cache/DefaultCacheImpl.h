@@ -88,6 +88,9 @@ class DefaultCacheImpl {
   /// Returns true if key is found in the LRU cache, false - otherwise.
   bool PromoteKeyLru(const std::string& key);
 
+  /// Returns evicted data size.
+  uint64_t MaybeEvictData(leveldb::WriteBatch& batch);
+
   /// Puts data into the mutable cache
   bool PutMutableCache(const std::string& key, const leveldb::Slice& value,
                        time_t expiry);
