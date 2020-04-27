@@ -25,7 +25,7 @@
 
 #include <rapidjson/document.h>
 
-#include "BaseResult.h"
+#include "olp/authentication/BaseResult.h"
 
 namespace olp {
 namespace authentication {

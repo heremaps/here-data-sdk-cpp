@@ -23,6 +23,7 @@
 #include <vector>
 
 #include <olp/authentication/AuthenticationApi.h>
+#include <olp/authentication/BaseResult.h>
 
 namespace olp {
 namespace authentication {
@@ -102,8 +103,12 @@ class AUTHENTICATION_API ActionResult {
  * action-resource pair in the request, this class determines an individual
  * policy decision: DENY or ALLOW.
  */
-class AUTHENTICATION_API AuthorizeResult {
+class AUTHENTICATION_API AuthorizeResult : public BaseResult {
  public:
+  AuthorizeResult() : BaseResult(0, ""){};
+  AuthorizeResult(int status, std::string error,
+                  std::shared_ptr<rapidjson::Document> json_document = nullptr)
+      : BaseResult(status, std::move(error), json_document){};
   /**
    * @brief Gets the overall policy decision.
    *

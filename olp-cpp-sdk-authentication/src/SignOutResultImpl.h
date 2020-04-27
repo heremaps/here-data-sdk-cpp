@@ -23,7 +23,7 @@
 #include <memory>
 #include <string>
 
-#include "BaseResult.h"
+#include "olp/authentication/BaseResult.h"
 
 namespace olp {
 namespace authentication {

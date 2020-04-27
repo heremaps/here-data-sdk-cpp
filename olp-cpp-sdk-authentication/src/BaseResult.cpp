@@ -17,13 +17,13 @@
  * License-Filename: LICENSE
  */
 
-#include "BaseResult.h"
+#include "olp/authentication/BaseResult.h"
 
 #include <rapidjson/document.h>
 
+#include <iostream>
 #include "Constants.h"
 #include "olp/core/http/HttpStatusCode.h"
-
 using namespace rapidjson;
 
 namespace olp {
@@ -44,8 +44,8 @@ BaseResult::BaseResult(int status, std::string error,
   error_.message = std::move(error);
   is_valid_ = (json_document && !json_document->HasParseError());
 
-  // If HTTP error, try to get error details
-  if (!HasError() || !is_valid_ || !json_document->HasMember(ERROR_CODE)) {
+  if (!is_valid_) {
+    status_ = http::HttpStatusCode::PARTIAL_CONTENT;
     return;
   }
 
@@ -54,7 +54,9 @@ BaseResult::BaseResult(int status, std::string error,
   }
 
   // Enhance error message with network response error details
-  error_.code = (*json_document)[ERROR_CODE].GetUint();
+  if (json_document->HasMember(ERROR_CODE)) {
+    error_.code = (*json_document)[ERROR_CODE].GetUint();
+  }
 
   if (!json_document->HasMember(ERROR_MESSAGE)) {
     return;
@@ -90,7 +92,7 @@ const ErrorResponse& BaseResult::GetErrorResponse() const { return error_; }
 const ErrorFields& BaseResult::GetErrorFields() const { return error_fields_; }
 
 bool BaseResult::HasError() const {
-  return status_ != http::HttpStatusCode::OK;
+  return (status_ != http::HttpStatusCode::OK);
 }
 
 bool BaseResult::IsValid() const { return is_valid_; }

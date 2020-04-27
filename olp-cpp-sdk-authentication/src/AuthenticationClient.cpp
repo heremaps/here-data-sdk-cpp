@@ -248,7 +248,7 @@ DecisionType GetPermission(const std::string& str) {
                                      : DecisionType::kDeny;
 }
 
-std::vector<ActionResult> GetDiagnostics(rapidjson::Document& doc) {
+std::vector<ActionResult> GetDiagnostics(const rapidjson::Document& doc) {
   std::vector<ActionResult> results;
   const auto& array = doc[Constants::DIAGNOSTICS].GetArray();
   for (auto& element : array) {
@@ -283,9 +283,15 @@ std::vector<ActionResult> GetDiagnostics(rapidjson::Document& doc) {
   return results;
 }
 
-AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc) {
-  AuthorizeResult result;
+AuthorizeResult GetAuthorizeResult(
+    int status, std::string error,
+    std::shared_ptr<rapidjson::Document> json_doc) {
+  AuthorizeResult result(status, error, json_doc);
+  if (!result.IsValid() || result.HasError()) {
+    return result;
+  }
 
+  const rapidjson::Document& doc = *json_doc;
   if (doc.HasMember(Constants::IDENTITY)) {
     auto uris = doc[Constants::IDENTITY].GetObject();
 
@@ -1018,8 +1024,8 @@ client::CancellationToken AuthenticationClient::Impl::Authorize(
 
   auto task = [=](client::CancellationContext context) -> ResponseType {
     if (!settings_.network_request_handler) {
-      return client::ApiError({static_cast<int>(http::ErrorCode::IO_ERROR),
-                               "Can not send request while offline"});
+      return AuthorizeResult(static_cast<int>(http::ErrorCode::IO_ERROR),
+                             "Can not send request while offline");
     }
     client::AuthenticationSettings auth_settings;
     auth_settings.provider = [&access_token]() { return access_token; };
@@ -1038,45 +1044,27 @@ client::CancellationToken AuthenticationClient::Impl::Authorize(
                                       GenerateAuthorizeBody(request),
                                       kApplicationJson, context);
 
-    rapidjson::Document document;
+    auto document = std::make_shared<rapidjson::Document>();
+
     rapidjson::IStreamWrapper stream(http_result.response);
-    document.ParseStream(stream);
-    if (http_result.status != http::HttpStatusCode::OK) {
-      // HttpResult response can be error message or valid json with it.
-      std::string msg = http_result.response.str();
-      if (!document.HasParseError() && document.HasMember(Constants::MESSAGE)) {
-        msg = document[Constants::MESSAGE].GetString();
-      }
-      return client::ApiError({http_result.status, msg});
-    } else if (!document.HasParseError() &&
-               document.HasMember(Constants::ERROR_CODE) &&
-               document[Constants::ERROR_CODE].IsInt()) {
-      std::string msg =
-          "Error code: " +
-          std::to_string(document[Constants::ERROR_CODE].GetInt());
-      if (document.HasMember(Constants::MESSAGE)) {
-        msg.append(" (");
-        msg.append(document[Constants::MESSAGE].GetString());
-        msg.append(")");
-      }
-
-      return client::ApiError(
-          {static_cast<int>(http::ErrorCode::UNKNOWN_ERROR), msg});
-    }
-
-    if (document.HasParseError()) {
-      return client::ApiError({static_cast<int>(http::ErrorCode::UNKNOWN_ERROR),
-                               "Failed to parse response"});
-    }
-
-    return GetAuthorizeResult(document);
+    document->ParseStream(stream);
+    return GetAuthorizeResult(http_result.status, http_result.response.str(),
+                              document);
   };
 
   // wrap_callback needed to convert client::ApiError into AuthenticationError.
   auto wrap_callback = [callback](ResponseType response) {
     if (!response.IsSuccessful()) {
       const auto& error = response.GetError();
-      callback({{error.GetHttpStatusCode(), error.GetMessage()}});
+      callback(
+          {AuthenticationError(error.GetHttpStatusCode(), error.GetMessage())});
+      return;
+    }
+    if (response.GetResult().HasError()) {
+      const auto& resp = response.GetResult().GetErrorResponse();
+      callback({AuthenticationError(
+          response.GetResult().GetStatus(),
+          response.GetResult().GetErrorResponse().message)});
       return;
     }
 
