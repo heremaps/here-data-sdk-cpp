@@ -200,10 +200,10 @@ TEST_F(AuthenticationClientTestAuthorize, AuthorizeWithTwoActions) {
             olp::authentication::DecisionType::kAllow);
   auto it = response.GetResult().GetActionResults().begin();
   ASSERT_EQ(it->GetDecision(), olp::authentication::DecisionType::kAllow);
-  ASSERT_EQ(it->GetPermitions().front().first, "getTileCore");
-  ASSERT_EQ(it->GetPermitions().front().second,
+  ASSERT_EQ(it->GetPermissions().front().first, "getTileCore");
+  ASSERT_EQ(it->GetPermissions().front().second,
             olp::authentication::DecisionType::kAllow);
   ASSERT_EQ((++it)->GetDecision(), olp::authentication::DecisionType::kDeny);
-  EXPECT_TRUE(it->GetPermitions().empty());
+  EXPECT_TRUE(it->GetPermissions().empty());
 }
 }  // namespace

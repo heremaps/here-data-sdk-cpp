@@ -58,12 +58,12 @@ TEST(DecisionApiClientTest, AuthorizeResponceTest) {
   EXPECT_EQ(AuthorizeResult().GetClientId(), "");
   ActionResult action;
   action.SetDecision(DecisionType::kAllow);
-  action.SetPermitions({{"read", DecisionType::kAllow}});
+  action.SetPermissions({{"read", DecisionType::kAllow}});
   AuthorizeResult decision;
   decision.SetActionResults({action});
-  EXPECT_EQ(decision.GetActionResults().front().GetPermitions().front().first,
+  EXPECT_EQ(decision.GetActionResults().front().GetPermissions().front().first,
             "read");
-  EXPECT_EQ(decision.GetActionResults().front().GetPermitions().front().second,
+  EXPECT_EQ(decision.GetActionResults().front().GetPermissions().front().second,
             DecisionType::kAllow);
 }
 
