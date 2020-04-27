@@ -145,7 +145,7 @@ class AUTHENTICATION_API AuthorizeRequest final {
   /**
    * @brief Gets all actions.
    *
-   * @return The vector of the actions (action-resorce pairs).
+   * @return The vector of the actions (action-resource pairs).
    */
   inline const Actions& GetActions() const { return actions_; }
 

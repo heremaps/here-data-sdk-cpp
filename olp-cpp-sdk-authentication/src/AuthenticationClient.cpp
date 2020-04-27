@@ -38,6 +38,7 @@
 #include "SignOutResultImpl.h"
 #include "SignUpResultImpl.h"
 #include "olp/authentication/AuthenticationError.h"
+#include "olp/authentication/AuthorizeRequest.h"
 #include "olp/core/client/ApiError.h"
 #include "olp/core/client/CancellationToken.h"
 #include "olp/core/client/ErrorCode.h"
@@ -66,7 +67,7 @@ constexpr auto kParamQuote = "\"";
 constexpr auto kLineFeed = '\n';
 
 // Tags
-const std::string kApplicationJson = "application/json";
+constexpr auto kApplicationJson = "application/json";
 const std::string kOauthPost = "POST";
 const std::string kOauthConsumerKey = "oauth_consumer_key";
 const std::string kOauthNonce = "oauth_nonce";
@@ -78,8 +79,9 @@ const std::string kOauthEndpoint = "/oauth2/token";
 const std::string kSignoutEndpoint = "/logout";
 const std::string kTermsEndpoint = "/terms";
 const std::string kUserEndpoint = "/user";
-const std::string kTimestampEndpoint = "/timestamp";
-const std::string kIntrospectAppEndpoint = "/app/me";
+constexpr auto kTimestampEndpoint = "/timestamp";
+constexpr auto kIntrospectAppEndpoint = "/app/me";
+constexpr auto kDecisionEndpoint = "/decision/authorize";
 
 // JSON fields
 constexpr auto kCountryCode = "countryCode";
@@ -104,6 +106,12 @@ constexpr auto kGoogleGrantType = "google";
 constexpr auto kArcgisGrantType = "arcgis";
 constexpr auto kRefreshGrantType = "refresh_token";
 
+constexpr auto kServiceId = "serviceId";
+constexpr auto kActions = "actions";
+constexpr auto kAction = "action";
+constexpr auto kResource = "resource";
+constexpr auto kDiagnostics = "diagnostics";
+constexpr auto kOperator = "operator";
 // Values
 constexpr auto kVersion = "1.0";
 constexpr auto kHmac = "HMAC-SHA256";
@@ -235,6 +243,71 @@ IntrospectAppResult GetIntrospectAppResult(const rapidjson::Document& doc) {
   return result;
 }
 
+DecisionType GetPermission(const std::string& str) {
+  return (str.compare("allow") == 0) ? DecisionType::kAllow
+                                     : DecisionType::kDeny;
+}
+
+std::vector<ActionResult> GetDiagnostics(rapidjson::Document& doc) {
+  std::vector<ActionResult> results;
+  const auto& array = doc[Constants::DIAGNOSTICS].GetArray();
+  for (auto& element : array) {
+    ActionResult action;
+    if (element.HasMember(Constants::DECISION)) {
+      action.SetDecision(
+          GetPermission(element[Constants::DECISION].GetString()));
+      // get permissions if avialible
+      if (element.HasMember(Constants::PERMISSIONS) &&
+          element[Constants::PERMISSIONS].IsArray()) {
+        std::vector<ActionResult::Permissions> permissions;
+        const auto& permissions_array =
+            element[Constants::PERMISSIONS].GetArray();
+        for (auto& permission_element : permissions_array) {
+          ActionResult::Permissions permission;
+          if (permission_element.HasMember(Constants::ACTION)) {
+            permission.first =
+                permission_element[Constants::ACTION].GetString();
+          }
+          if (permission_element.HasMember(Constants::DECISION)) {
+            permission.second = GetPermission(
+                permission_element[Constants::DECISION].GetString());
+          }
+          permissions.push_back(std::move(permission));
+        }
+
+        action.SetPermissions(std::move(permissions));
+      }
+    }
+    results.push_back(std::move(action));
+  }
+  return results;
+}
+
+AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc) {
+  AuthorizeResult result;
+
+  if (doc.HasMember(Constants::IDENTITY)) {
+    auto uris = doc[Constants::IDENTITY].GetObject();
+
+    if (uris.HasMember(Constants::CLIENT_ID)) {
+      result.SetClientId(uris[Constants::CLIENT_ID].GetString());
+    } else if (uris.HasMember(Constants::USER_ID)) {
+      result.SetClientId(uris[Constants::USER_ID].GetString());
+    }
+  }
+
+  if (doc.HasMember(Constants::DECISION)) {
+    result.SetDecision(GetPermission(doc[Constants::DECISION].GetString()));
+  }
+
+  // get diagnostics if available
+  if (doc.HasMember(Constants::DIAGNOSTICS) &&
+      doc[Constants::DIAGNOSTICS].IsArray()) {
+    result.SetActionResults(GetDiagnostics(doc));
+  }
+  return result;
+}
+
 }  // namespace
 
 namespace olp {
@@ -311,6 +384,10 @@ class AuthenticationClient::Impl final {
   client::CancellationToken IntrospectApp(std::string access_token,
                                           IntrospectAppCallback callback);
 
+  client::CancellationToken Authorize(std::string access_token,
+                                      AuthorizeRequest request,
+                                      AuthorizeCallback callback);
+
  private:
   using TimeResponse = client::ApiResponse<time_t, client::ApiError>;
   using TimeCallback = std::function<void(TimeResponse)>;
@@ -319,28 +396,30 @@ class AuthenticationClient::Impl final {
   client::CancellationToken GetTimeFromServer(TimeCallback callback);
   static TimeResponse ParseTimeResponse(std::stringstream& payload);
 
-  std::string base64Encode(const std::vector<uint8_t>& vector);
+  std::string Base64Encode(const std::vector<uint8_t>& vector);
 
-  std::string generateHeader(const AuthenticationCredentials& credentials,
+  std::string GenerateHeader(const AuthenticationCredentials& credentials,
                              const std::string& url,
                              const time_t& timestamp = std::time(nullptr));
-  std::string generateBearerHeader(const std::string& bearer_token);
+  std::string GenerateBearerHeader(const std::string& bearer_token);
 
-  http::NetworkRequest::RequestBodyType generateClientBody(
+  http::NetworkRequest::RequestBodyType GenerateClientBody(
       const SignInProperties& properties);
-  http::NetworkRequest::RequestBodyType generateUserBody(
+  http::NetworkRequest::RequestBodyType GenerateUserBody(
       const AuthenticationClient::UserProperties& properties);
-  http::NetworkRequest::RequestBodyType generateFederatedBody(
+  http::NetworkRequest::RequestBodyType GenerateFederatedBody(
       const FederatedSignInType,
       const AuthenticationClient::FederatedProperties& properties);
-  http::NetworkRequest::RequestBodyType generateRefreshBody(
+  http::NetworkRequest::RequestBodyType GenerateRefreshBody(
       const AuthenticationClient::RefreshProperties& properties);
-  http::NetworkRequest::RequestBodyType generateSignUpBody(
+  http::NetworkRequest::RequestBodyType GenerateSignUpBody(
       const SignUpProperties& properties);
-  http::NetworkRequest::RequestBodyType generateAcceptTermBody(
+  http::NetworkRequest::RequestBodyType GenerateAcceptTermBody(
       const std::string& reacceptance_token);
+  client::OlpClient::RequestBodyType GenerateAuthorizeBody(
+      AuthorizeRequest properties);
 
-  std::string generateUid();
+  std::string GenerateUid();
 
   client::CancellationToken HandleUserRequest(
       const AuthenticationCredentials& credentials, const std::string& endpoint,
@@ -397,14 +476,14 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
     http::NetworkRequest request(url);
     request.WithVerb(http::NetworkRequest::HttpVerb::POST);
     request.WithHeader(http::kAuthorizationHeader,
-                       generateHeader(credentials, url, timestamp));
+                       GenerateHeader(credentials, url, timestamp));
     request.WithHeader(http::kContentTypeHeader, kApplicationJson);
     request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
     request.WithSettings(std::move(network_settings));
 
     std::shared_ptr<std::stringstream> payload =
         std::make_shared<std::stringstream>();
-    request.WithBody(generateClientBody(properties));
+    request.WithBody(GenerateClientBody(properties));
 
     auto network_callback = [callback, payload, credentials, cache](
                                 const http::NetworkResponse& network_response) {
@@ -575,7 +654,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInHereUser(
     const UserProperties& properties,
     const AuthenticationClient::SignInUserCallback& callback) {
   return HandleUserRequest(credentials, kOauthEndpoint,
-                           generateUserBody(properties), callback);
+                           GenerateUserBody(properties), callback);
 }
 
 client::CancellationToken AuthenticationClient::Impl::SignInFederated(
@@ -591,7 +670,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInRefresh(
     const AuthenticationCredentials& credentials,
     const RefreshProperties& properties, const SignInUserCallback& callback) {
   return HandleUserRequest(credentials, kOauthEndpoint,
-                           generateRefreshBody(properties), callback);
+                           GenerateRefreshBody(properties), callback);
 }
 
 client::CancellationToken AuthenticationClient::Impl::SignInFederated(
@@ -599,14 +678,14 @@ client::CancellationToken AuthenticationClient::Impl::SignInFederated(
     const FederatedSignInType& type, const FederatedProperties& properties,
     const AuthenticationClient::SignInUserCallback& callback) {
   return HandleUserRequest(credentials, kOauthEndpoint,
-                           generateFederatedBody(type, properties), callback);
+                           GenerateFederatedBody(type, properties), callback);
 }
 
 client::CancellationToken AuthenticationClient::Impl::AcceptTerms(
     const AuthenticationCredentials& credentials,
     const std::string& reacceptanceToken, const SignInUserCallback& callback) {
   return HandleUserRequest(credentials, kTermsEndpoint,
-                           generateAcceptTermBody(reacceptanceToken), callback);
+                           GenerateAcceptTermBody(reacceptanceToken), callback);
 }
 
 client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
@@ -631,7 +710,7 @@ client::CancellationToken AuthenticationClient::Impl::HandleUserRequest(
   }
   request.WithVerb(http::NetworkRequest::HttpVerb::POST);
   request.WithHeader(http::kAuthorizationHeader,
-                     generateHeader(credentials, url));
+                     GenerateHeader(credentials, url));
   request.WithHeader(http::kContentTypeHeader, kApplicationJson);
   request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
   request.WithSettings(std::move(network_settings));
@@ -742,14 +821,14 @@ client::CancellationToken AuthenticationClient::Impl::SignUpHereUser(
   }
   request.WithVerb(http::NetworkRequest::HttpVerb::POST);
   request.WithHeader(http::kAuthorizationHeader,
-                     generateHeader(credentials, url));
+                     GenerateHeader(credentials, url));
   request.WithHeader(http::kContentTypeHeader, kApplicationJson);
   request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
   request.WithSettings(std::move(network_settings));
 
   std::shared_ptr<std::stringstream> payload =
       std::make_shared<std::stringstream>();
-  request.WithBody(generateSignUpBody(properties));
+  request.WithBody(GenerateSignUpBody(properties));
   auto send_outcome = settings_.network_request_handler->Send(
       request, payload,
       [callback, payload,
@@ -817,7 +896,7 @@ client::CancellationToken AuthenticationClient::Impl::SignOut(
   }
   request.WithVerb(http::NetworkRequest::HttpVerb::POST);
   request.WithHeader(http::kAuthorizationHeader,
-                     generateBearerHeader(userAccessToken));
+                     GenerateBearerHeader(userAccessToken));
   request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
   request.WithSettings(std::move(network_settings));
 
@@ -909,6 +988,11 @@ client::CancellationToken AuthenticationClient::Impl::IntrospectApp(
       return client::ApiError({http_result.status, msg});
     }
 
+    if (document.HasParseError()) {
+      return client::ApiError({static_cast<int>(http::ErrorCode::UNKNOWN_ERROR),
+                               "Failed to parse response"});
+    }
+
     return GetIntrospectAppResult(document);
   };
 
@@ -927,7 +1011,83 @@ client::CancellationToken AuthenticationClient::Impl::IntrospectApp(
                  std::move(introspect_app_task), std::move(wrap_callback));
 }
 
-std::string AuthenticationClient::Impl::base64Encode(
+client::CancellationToken AuthenticationClient::Impl::Authorize(
+    std::string access_token, AuthorizeRequest request,
+    AuthorizeCallback callback) {
+  using ResponseType = client::ApiResponse<AuthorizeResult, client::ApiError>;
+
+  auto task = [=](client::CancellationContext context) -> ResponseType {
+    if (!settings_.network_request_handler) {
+      return client::ApiError({static_cast<int>(http::ErrorCode::IO_ERROR),
+                               "Can not send request while offline"});
+    }
+    client::AuthenticationSettings auth_settings;
+    auth_settings.provider = [&access_token]() { return access_token; };
+
+    client::OlpClientSettings settings;
+    settings.network_request_handler = settings_.network_request_handler;
+    settings.task_scheduler = settings_.task_scheduler;
+    settings.proxy_settings = settings_.network_proxy_settings;
+    settings.authentication_settings = auth_settings;
+
+    client::OlpClient client;
+    client.SetBaseUrl(settings_.token_endpoint_url);
+    client.SetSettings(settings);
+
+    auto http_result = client.CallApi(kDecisionEndpoint, "POST", {}, {}, {},
+                                      GenerateAuthorizeBody(request),
+                                      kApplicationJson, context);
+
+    rapidjson::Document document;
+    rapidjson::IStreamWrapper stream(http_result.response);
+    document.ParseStream(stream);
+    if (http_result.status != http::HttpStatusCode::OK) {
+      // HttpResult response can be error message or valid json with it.
+      std::string msg = http_result.response.str();
+      if (!document.HasParseError() && document.HasMember(Constants::MESSAGE)) {
+        msg = document[Constants::MESSAGE].GetString();
+      }
+      return client::ApiError({http_result.status, msg});
+    } else if (!document.HasParseError() &&
+               document.HasMember(Constants::ERROR_CODE) &&
+               document[Constants::ERROR_CODE].IsInt()) {
+      std::string msg =
+          "Error code: " +
+          std::to_string(document[Constants::ERROR_CODE].GetInt());
+      if (document.HasMember(Constants::MESSAGE)) {
+        msg.append(" (");
+        msg.append(document[Constants::MESSAGE].GetString());
+        msg.append(")");
+      }
+
+      return client::ApiError(
+          {static_cast<int>(http::ErrorCode::UNKNOWN_ERROR), msg});
+    }
+
+    if (document.HasParseError()) {
+      return client::ApiError({static_cast<int>(http::ErrorCode::UNKNOWN_ERROR),
+                               "Failed to parse response"});
+    }
+
+    return GetAuthorizeResult(document);
+  };
+
+  // wrap_callback needed to convert client::ApiError into AuthenticationError.
+  auto wrap_callback = [callback](ResponseType response) {
+    if (!response.IsSuccessful()) {
+      const auto& error = response.GetError();
+      callback({{error.GetHttpStatusCode(), error.GetMessage()}});
+      return;
+    }
+
+    callback(response.MoveResult());
+  };
+
+  return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
+                 std::move(wrap_callback));
+}
+
+std::string AuthenticationClient::Impl::Base64Encode(
     const std::vector<uint8_t>& vector) {
   std::string ret = olp::utils::Base64Encode(vector);
   // Base64 encode sometimes return multiline with garbage at the end
@@ -938,10 +1098,10 @@ std::string AuthenticationClient::Impl::base64Encode(
   return ret;
 }
 
-std::string AuthenticationClient::Impl::generateHeader(
+std::string AuthenticationClient::Impl::GenerateHeader(
     const AuthenticationCredentials& credentials, const std::string& url,
     const time_t& timestamp) {
-  std::string uid = generateUid();
+  std::string uid = GenerateUid();
   const std::string currentTime = std::to_string(timestamp);
   const std::string encodedUri = utils::Url::Encode(url);
   const std::string encodedQuery = utils::Url::Encode(
@@ -953,7 +1113,7 @@ std::string AuthenticationClient::Impl::generateHeader(
       kOauthPost + kParamAdd + encodedUri + kParamAdd + encodedQuery;
   const std::string encodeKey = credentials.GetSecret() + kParamAdd;
   auto hmacResult = Crypto::hmac_sha256(encodeKey, signatureBase);
-  auto signature = base64Encode(hmacResult);
+  auto signature = Base64Encode(hmacResult);
   std::string authorization =
       "OAuth " + kOauthConsumerKey + kParamEquals + kParamQuote +
       utils::Url::Encode(credentials.GetKey()) + kParamQuote + kParamComma +
@@ -968,7 +1128,7 @@ std::string AuthenticationClient::Impl::generateHeader(
   return authorization;
 }
 
-std::string AuthenticationClient::Impl::generateBearerHeader(
+std::string AuthenticationClient::Impl::GenerateBearerHeader(
     const std::string& bearer_token) {
   std::string authorization = http::kBearer + std::string(" ");
   authorization += bearer_token;
@@ -976,7 +1136,7 @@ std::string AuthenticationClient::Impl::generateBearerHeader(
 }
 
 http::NetworkRequest::RequestBodyType
-AuthenticationClient::Impl::generateClientBody(
+AuthenticationClient::Impl::GenerateClientBody(
     const SignInProperties& properties) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
@@ -1002,7 +1162,7 @@ AuthenticationClient::Impl::generateClientBody(
 }
 
 http::NetworkRequest::RequestBodyType
-AuthenticationClient::Impl::generateUserBody(const UserProperties& properties) {
+AuthenticationClient::Impl::GenerateUserBody(const UserProperties& properties) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
   writer.StartObject();
@@ -1029,7 +1189,7 @@ AuthenticationClient::Impl::generateUserBody(const UserProperties& properties) {
 }
 
 http::NetworkRequest::RequestBodyType
-AuthenticationClient::Impl::generateFederatedBody(
+AuthenticationClient::Impl::GenerateFederatedBody(
     const FederatedSignInType type, const FederatedProperties& properties) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
@@ -1078,7 +1238,7 @@ AuthenticationClient::Impl::generateFederatedBody(
 }
 
 http::NetworkRequest::RequestBodyType
-AuthenticationClient::Impl::generateRefreshBody(
+AuthenticationClient::Impl::GenerateRefreshBody(
     const RefreshProperties& properties) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
@@ -1106,7 +1266,7 @@ AuthenticationClient::Impl::generateRefreshBody(
 }
 
 http::NetworkRequest::RequestBodyType
-AuthenticationClient::Impl::generateSignUpBody(
+AuthenticationClient::Impl::GenerateSignUpBody(
     const SignUpProperties& properties) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
@@ -1164,7 +1324,7 @@ AuthenticationClient::Impl::generateSignUpBody(
 }
 
 http::NetworkRequest::RequestBodyType
-AuthenticationClient::Impl::generateAcceptTermBody(
+AuthenticationClient::Impl::GenerateAcceptTermBody(
     const std::string& reacceptance_token) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
@@ -1179,7 +1339,43 @@ AuthenticationClient::Impl::generateAcceptTermBody(
                                                       content + data.GetSize());
 }
 
-std::string AuthenticationClient::Impl::generateUid() {
+client::OlpClient::RequestBodyType
+AuthenticationClient::Impl::GenerateAuthorizeBody(AuthorizeRequest properties) {
+  rapidjson::StringBuffer data;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(data);
+  writer.StartObject();
+  writer.Key(kServiceId);
+  writer.String(properties.GetServiceId().c_str());
+  writer.Key(kActions);
+  writer.StartArray();
+  for (const auto& action : properties.GetActions()) {
+    writer.StartObject();
+    writer.Key(kAction);
+    writer.String(action.first.c_str());
+    if (!action.second.empty()) {
+      writer.Key(kResource);
+      writer.String(action.second.c_str());
+    }
+    writer.EndObject();
+  }
+
+  writer.EndArray();
+  writer.Key(kDiagnostics);
+  writer.Bool(properties.GetDiagnostics());
+  // default value is 'and', ignore parameter if operator type is 'and'
+  if (properties.GetOperatorType() ==
+      AuthorizeRequest::DecisionOperatorType::kOr) {
+    writer.Key(kOperator);
+    writer.String("or");
+  }
+
+  writer.EndObject();
+  auto content = data.GetString();
+  return std::make_shared<std::vector<unsigned char>>(content,
+                                                      content + data.GetSize());
+}
+
+std::string AuthenticationClient::Impl::GenerateUid() {
   std::lock_guard<std::mutex> lock(token_mutex_);
   {
     static boost::uuids::random_generator gen;
@@ -1263,5 +1459,11 @@ client::CancellationToken AuthenticationClient::IntrospectApp(
   return impl_->IntrospectApp(std::move(access_token), std::move(callback));
 }
 
+client::CancellationToken AuthenticationClient::Authorize(
+    std::string access_token, AuthorizeRequest request,
+    AuthorizeCallback callback) {
+  return impl_->Authorize(std::move(access_token), std::move(request),
+                          std::move(callback));
+}
 }  // namespace authentication
 }  // namespace olp

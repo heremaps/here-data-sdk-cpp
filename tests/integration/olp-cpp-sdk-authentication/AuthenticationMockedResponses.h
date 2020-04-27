@@ -110,3 +110,14 @@ const std::string kIntrospectAppResponse = R"JSON(
 const std::string kInvalidAccessTokenResponse = R"JSON(
     {"errorId":"ERROR-cf976ca6-bf6e-44f7-a9e6-e271766c61fe","httpStatus":401,"errorCode":400601,"message":"Invalid accessToken.","error":"invalid_request","error_description":"errorCode: '400601'. Invalid accessToken."}
     )JSON";
+const std::string kAuthorizeResponseValid = R"JSON(
+    {"identity":{"userId":"some_id","countryCode":"USA","emailVerified":false,"realm":"HERE"},"decision":"allow","diagnostics":[{"decision":"allow","permissions":[{"effect":"allow","action":"read","resource":"some_resource"}]}]}
+    )JSON";
+const std::string kAuthorizeResponseError = R"JSON(
+    {"contracts":[{"contractId":"some_contract_id","customerId":"some_id","customerName":"some_name"}],"errorCode":409400}
+    )JSON";
+const std::string kAuthorizeResponseErrorField = R"JSON(
+    {"errorId":"ERROR-9d862c5a-4cfd-4780-8be4-2728b42849e1","httpStatus":401,"errorCode":401300,"message":"Invalid client credentials.","errorFields":[{"name":"Received invalid data.See json element'errorFields'for more information.","errorCode":400201,"message":"This field is required."}]}
+    )JSON";
+const std::string kAuthorizeResponseErrorInvalidRequest = R"JSON(
+    {"errorId": "ERROR-dc127765-7f03-4cd3-9497-2dd04c3849e7","httpStatus": 400, "errorCode": 400002, "message": "Received invalid request. Invalid Json: Unexpected character ('[' (code 91)): was expecting double-quote to start field name\n at [Source: (akka.util.ByteIterator$ByteArrayIterator$$anon$1); line: 1, column: 3]"})JSON";

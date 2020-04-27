@@ -57,6 +57,15 @@ class Constants {
   static const char* TIER;
   static const char* HRN;
   static const char* MESSAGE;
+
+  // decision api strings
+  static const char* ERROR_CODE;
+  static const char* IDENTITY;
+  static const char* USER_ID;
+  static const char* DECISION;
+  static const char* ACTION;
+  static const char* PERMISSIONS;
+  static const char* DIAGNOSTICS;
 };
 
 }  // namespace authentication

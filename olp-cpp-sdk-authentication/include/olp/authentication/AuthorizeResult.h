@@ -44,7 +44,7 @@ class AUTHENTICATION_API ActionResult {
   /**
    * @brief Represents the permission pair with the action and policy decision.
    */
-  using Permisions = std::pair<std::string, DecisionType>;
+  using Permissions = std::pair<std::string, DecisionType>;
 
   /**
    * @brief Gets the overall policy decision.
@@ -63,7 +63,7 @@ class AUTHENTICATION_API ActionResult {
   void SetDecision(DecisionType decision) { decision_ = decision; }
 
   /**
-   * @brief Gets the list of permitions that are evaluated against the
+   * @brief Gets the list of permissions that are evaluated against the
    action and resource.
    *
    * @note The algorithm of evaluating each permission in the set against the
@@ -75,22 +75,22 @@ class AUTHENTICATION_API ActionResult {
    * * If ALL considered permissions for the action result in ALLOW, the
    * individual policy decision for the action is ALLOW.
    *
-   * @return The list of permitions.
+   * @return The list of permissions.
    */
-  const std::vector<Permisions>& GetPermitions() const { return permisions_; }
+  const std::vector<Permissions>& GetPermissions() const { return permissions_; }
 
   /**
-   * @brief Sets the list of permitions.
+   * @brief Sets the list of permissions.
    *
-   * @param permitions The vector of the action-decision pair.
+   * @param permissions The vector of the action-decision pair.
    */
-  void SetPermitions(std::vector<Permisions> permisions) {
-    permisions_ = std::move(permisions);
+  void SetPermissions(std::vector<Permissions> permissions) {
+    permissions_ = std::move(permissions);
   }
 
  private:
   DecisionType decision_{DecisionType::kDeny};
-  std::vector<Permisions> permisions_;
+  std::vector<Permissions> permissions_;
 };
 
 /**
