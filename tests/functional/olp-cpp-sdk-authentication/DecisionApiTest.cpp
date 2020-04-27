@@ -139,20 +139,19 @@ class AuthenticationClientTestAuthorize : public ::testing::Test {
 
 TEST_F(AuthenticationClientTestAuthorize, AuthorizeAllow) {
   AuthenticationCredentials credentials(id_, secret_);
-  auto resp = SignInClient(credentials, kExpiryTime);
-  auto res = resp.GetResult();
-  EXPECT_TRUE(resp.IsSuccessful());
-  EXPECT_EQ(olp::http::HttpStatusCode::OK, res.GetStatus());
+  auto singin_responce = SignInClient(credentials, kExpiryTime);
 
-  auto token = res.GetAccessToken();
+  EXPECT_TRUE(singin_responce.IsSuccessful());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, singin_responce.GetResult().GetStatus());
+
+  const auto& token = singin_responce.GetResult().GetAccessToken();
   auto request = olp::authentication::AuthorizeRequest().WithServiceId(service_id_);
   request.WithAction("getTileCore");
   auto response = Authorize(token, std::move(request));
-  auto result = response.GetResult();
 
   EXPECT_TRUE(response.IsSuccessful());
   EXPECT_FALSE(response.GetResult().GetClientId().empty());
-  ASSERT_EQ(result.GetDecision(), olp::authentication::DecisionType::kAllow);
+  ASSERT_EQ(response.GetResult().GetDecision(), olp::authentication::DecisionType::kAllow);
 }
 
 TEST_F(AuthenticationClientTestAuthorize, AuthorizeDeny) {
@@ -161,12 +160,11 @@ TEST_F(AuthenticationClientTestAuthorize, AuthorizeDeny) {
   request.WithAction("getTileCore");
 
   AuthenticationCredentials credentials(id_, secret_);
-  auto resp = SignInClient(credentials, kExpiryTime);
-  auto res = resp.GetResult();
-  EXPECT_TRUE(resp.IsSuccessful());
-  EXPECT_EQ(olp::http::HttpStatusCode::OK, res.GetStatus());
+  auto singin_responce = SignInClient(credentials, kExpiryTime);
+  EXPECT_TRUE(singin_responce.IsSuccessful());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, singin_responce.GetResult().GetStatus());
 
-  auto token = res.GetAccessToken();
+  const auto& token = singin_responce.GetResult().GetAccessToken();
   auto response = Authorize(token, std::move(request));
 
   EXPECT_TRUE(response.IsSuccessful());
@@ -186,12 +184,12 @@ TEST_F(AuthenticationClientTestAuthorize, AuthorizeWithTwoActions) {
           .WithDiagnostics(true);
 
   AuthenticationCredentials credentials(id_, secret_);
-  auto resp = SignInClient(credentials, kExpiryTime);
-  auto res = resp.GetResult();
-  EXPECT_TRUE(resp.IsSuccessful());
-  EXPECT_EQ(olp::http::HttpStatusCode::OK, res.GetStatus());
+  auto singin_responce = SignInClient(credentials, kExpiryTime);
 
-  auto token = res.GetAccessToken();
+  EXPECT_TRUE(singin_responce.IsSuccessful());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, singin_responce.GetResult().GetStatus());
+
+  const auto& token = singin_responce.GetResult().GetAccessToken();
   auto response = Authorize(token, std::move(request));
 
   EXPECT_TRUE(response.IsSuccessful());
