@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,20 +62,6 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    */
   inline PrefetchTilesRequest& WithTileKeys(
       std::vector<geo::TileKey> tile_keys) {
-    tile_keys_ = std::move(tile_keys);
-    return *this;
-  }
-
-  /**
-   * @brief Sets the vector of the root tile keys for the request.
-   *
-   * @param tile_keys The rvalue reference to the vector with the root tile keys
-   * of the prefetch.
-   *
-   * @return A reference to the updated `PrefetchTilesRequest` instance.
-   */
-  inline PrefetchTilesRequest& WithTileKeys(
-      std::vector<geo::TileKey>&& tile_keys) {
     tile_keys_ = std::move(tile_keys);
     return *this;
   }
