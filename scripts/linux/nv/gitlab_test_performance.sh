@@ -40,23 +40,36 @@ echo ">>> Local Server started for further performance test ... >>>"
 export cache_location="cache"
 
 echo ">>> Start performance tests ... >>>"
-heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*ReadNPartitionsFromVersionedLayer/short_test_null_cache" 2>> errors.txt || TEST_FAILURE=1
+heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*MemoryTest.ReadNPartitionsFromVersionedLayer/short_test_null_cache" 2>> errors.txt || TEST_FAILURE=1
 mv heaptrack.olp-cpp-sdk-performance-tests.*.gz heaptrack.ReadNPartitionsFromVersionedLayer.short_test_null_cache.gz
 
-heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*ReadNPartitionsFromVersionedLayer/short_test_memory_cache" 2>> errors.txt || TEST_FAILURE=1
+heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*MemoryTest.ReadNPartitionsFromVersionedLayer/short_test_memory_cache" 2>> errors.txt || TEST_FAILURE=1
 mv heaptrack.olp-cpp-sdk-performance-tests.*.gz heaptrack.ReadNPartitionsFromVersionedLayer.short_test_memory_cache.gz
 
-heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*ReadNPartitionsFromVersionedLayer/short_test_disk_cache" 2>> errors.txt || TEST_FAILURE=1
+heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*MemoryTest.ReadNPartitionsFromVersionedLayer/short_test_disk_cache" 2>> errors.txt || TEST_FAILURE=1
 mv heaptrack.olp-cpp-sdk-performance-tests.*.gz heaptrack.ReadNPartitionsFromVersionedLayer.short_test_disk_cache.gz
+rm -rf $cache_location  # Remove cache folder after disk cache test
 
-heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*PrefetchPartitionsFromVersionedLayer/short_test_null_cache" 2>> errors.txt || TEST_FAILURE=1
+heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*MemoryTest.PrefetchPartitionsFromVersionedLayer/short_test_null_cache" 2>> errors.txt || TEST_FAILURE=1
+mv heaptrack.olp-cpp-sdk-performance-tests.*.gz heaptrack.PrefetchPartitionsFromVersionedLayerOld.short_test_null_cache.gz
+
+heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*MemoryTest.PrefetchPartitionsFromVersionedLayer/short_test_memory_cache" 2>> errors.txt || TEST_FAILURE=1
+mv heaptrack.olp-cpp-sdk-performance-tests.*.gz heaptrack.PrefetchPartitionsFromVersionedLayerOld.short_test_memory_cache.gz
+
+heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*MemoryTest.PrefetchPartitionsFromVersionedLayer/short_test_disk_cache" 2>> errors.txt || TEST_FAILURE=1
+mv heaptrack.olp-cpp-sdk-performance-tests.*.gz heaptrack.PrefetchPartitionsFromVersionedLayerOld.short_test_disk_cache.gz
+rm -rf $cache_location  # Remove cache folder after disk cache test
+
+heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*PrefetchTest.PrefetchPartitionsFromVersionedLayer/short_test_null_cache" 2>> errors.txt || TEST_FAILURE=1
 mv heaptrack.olp-cpp-sdk-performance-tests.*.gz heaptrack.PrefetchPartitionsFromVersionedLayer.short_test_null_cache.gz
 
-heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*PrefetchPartitionsFromVersionedLayer/short_test_memory_cache" 2>> errors.txt || TEST_FAILURE=1
+heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*PrefetchTest.PrefetchPartitionsFromVersionedLayer/short_test_memory_cache" 2>> errors.txt || TEST_FAILURE=1
 mv heaptrack.olp-cpp-sdk-performance-tests.*.gz heaptrack.PrefetchPartitionsFromVersionedLayer.short_test_memory_cache.gz
 
-heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*PrefetchPartitionsFromVersionedLayer/short_test_disk_cache" 2>> errors.txt || TEST_FAILURE=1
+heaptrack ./build/tests/performance/olp-cpp-sdk-performance-tests --gtest_filter="*PrefetchTest.PrefetchPartitionsFromVersionedLayer/short_test_disk_cache" 2>> errors.txt || TEST_FAILURE=1
 mv heaptrack.olp-cpp-sdk-performance-tests.*.gz heaptrack.PrefetchPartitionsFromVersionedLayer.short_test_disk_cache.gz
+rm -rf $cache_location  # Remove cache folder after disk cache test
+
 echo ">>> Finished performance tests . >>>"
 
 if [[ ${TEST_FAILURE} == 1 ]]; then

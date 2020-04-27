@@ -32,8 +32,12 @@ using TestFunction = std::function<void(uint8_t thread_id)>;
 
 struct TestConfiguration : public TestBaseConfiguration {
   std::string configuration_name;
+
+  // One prefetch request for one tile with depth of four results in 341 tiles
+  // to download. (1 + 4 + 16 + 64 + 256).
+  // Five parallel prefetch requests for 2 tiles completes in ~95 sec.
   std::uint8_t calling_thread_count = 5;
-  std::uint16_t number_of_tiles = 100;
+  std::uint16_t number_of_tiles = 2;
 };
 
 std::ostream& operator<<(std::ostream& os, const TestConfiguration& config) {
@@ -123,6 +127,9 @@ void PrefetchTest::ReportError(const olp::client::ApiError& error) {
 /// VersionedLayerClient
 ///
 TEST_P(PrefetchTest, PrefetchPartitionsFromVersionedLayer) {
+  // Enable only errors to have a short output.
+  olp::logging::Log::setLevel(olp::logging::Level::Error);
+
   const auto& parameter = GetParam();
 
   auto settings = CreateCatalogClientSettings();
@@ -165,6 +172,8 @@ TEST_P(PrefetchTest, PrefetchPartitionsFromVersionedLayer) {
 TestConfiguration ShortRunningTestWithNullCache() {
   TestConfiguration configuration;
   SetNullCacheConfiguration(configuration);
+  configuration.task_scheduler_capacity =
+      configuration.calling_thread_count * 3;
   configuration.configuration_name = "short_test_null_cache";
   return configuration;
 }
@@ -175,6 +184,8 @@ TestConfiguration ShortRunningTestWithNullCache() {
 TestConfiguration ShortRunningTestWithMemoryCache() {
   TestConfiguration configuration;
   SetDefaultCacheConfiguration(configuration);
+  configuration.task_scheduler_capacity =
+      configuration.calling_thread_count * 3;
   configuration.configuration_name = "short_test_memory_cache";
   return configuration;
 }
@@ -185,6 +196,8 @@ TestConfiguration ShortRunningTestWithMemoryCache() {
 TestConfiguration ShortRunningTestWithMutableCache() {
   TestConfiguration configuration;
   SetDiskCacheConfiguration(configuration);
+  configuration.task_scheduler_capacity =
+      configuration.calling_thread_count * 3;
   configuration.configuration_name = "short_test_disk_cache";
   return configuration;
 }
