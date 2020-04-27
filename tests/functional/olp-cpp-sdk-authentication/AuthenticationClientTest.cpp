@@ -211,37 +211,6 @@ class AuthenticationClientTest : public AuthenticationCommonTestFixture {
     return *response;
   }
 
-  AuthorizeResponse Authorize(const std::string& access_token,
-                              AuthorizeRequest request, std::time_t& now,
-                              bool do_cancel = false) {
-    std::shared_ptr<AuthorizeResponse> response;
-    unsigned int retry = 0u;
-    do {
-      if (retry > 0u) {
-        OLP_SDK_LOG_WARNING(__func__,
-                            "Request retry attempted (" << retry << ")");
-        std::this_thread::sleep_for(
-            std::chrono::seconds(retry * kRetryDelayInSecs));
-      }
-
-      std::promise<AuthorizeResponse> resp;
-      auto request_future = resp.get_future();
-
-      now = std::time(nullptr);
-      auto cancel_token = client_->Authorize(
-          access_token, std::move(request),
-          [&](const AuthorizeResponse& responce) { resp.set_value(responce); });
-
-      if (do_cancel) {
-        cancel_token.Cancel();
-      }
-      response = std::make_shared<AuthorizeResponse>(request_future.get());
-    } while ((!response->IsSuccessful()) && (++retry < kMaxRetryCount) &&
-             !do_cancel);
-
-    return *response;
-  }
-
   std::string GetErrorId(
       const AuthenticationClient::SignInUserResponse& response) const {
     return response.GetResult().GetErrorResponse().error_id;
@@ -734,5 +703,4 @@ TEST_F(AuthenticationClientTest, IntrospectAppInvalidAccessToken) {
 
   EXPECT_FALSE(response.IsSuccessful());
 }
-
 }  // namespace
