@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-#include <olp/core/utils/Url.h>
+#include "olp/core/utils/Url.h"
 
 #include <stdint.h>
 #include <algorithm>
@@ -29,29 +29,20 @@
 
 namespace olp {
 namespace utils {
-// -------------------------------------------------------------------------------------------------
 
 namespace {
-const std::string space_type_chars = " \t\r\v\f\n";
-const std::string path_separator = "/";
 
-bool is_hex_digit(char c) {
-  return std::isxdigit(static_cast<unsigned char>(c));
-}
+bool IsHexDigit(char c) { return std::isxdigit(static_cast<unsigned char>(c)); }
 
-// -------------------------------------------------------------------------------------------------
-
-unsigned int hex_to_uint(const char* hexStr) {
-  unsigned int c;
+unsigned int HexToInt(const char* hex) {
+  unsigned int out;
   std::stringstream ss;
-  ss << std::hex << hexStr;
-  ss >> c;
-  return c;
+  ss << std::hex << hex;
+  ss >> out;
+  return out;
 }
 
-}  // Anonymous namespace
-
-// -------------------------------------------------------------------------------------------------
+}  // namespace
 
 std::string Url::Decode(const std::string& in) {
   unsigned int read_idx = 0;
@@ -62,14 +53,14 @@ std::string Url::Decode(const std::string& in) {
   while (read_idx < in.size()) {
     // unescape character
     if ((read_idx < in.size() - 2) && (in[read_idx] == '%') &&
-        is_hex_digit(in[read_idx + 1]) && is_hex_digit(in[read_idx + 2])) {
+        IsHexDigit(in[read_idx + 1]) && IsHexDigit(in[read_idx + 2])) {
       // convert character
       char hex_str[3];
       hex_str[0] = in[++read_idx];
       hex_str[1] = in[++read_idx];
       hex_str[2] = '\0';
 
-      out.push_back(static_cast<char>(hex_to_uint(hex_str)));
+      out.push_back(static_cast<char>(HexToInt(hex_str)));
     } else if (in[read_idx] == '+') {
       // replace + with space (application/x-www-form-urlencoded)
       out.push_back(' ');
@@ -78,22 +69,19 @@ std::string Url::Decode(const std::string& in) {
     }
     read_idx++;
   }
+
   return out;
 }
 
-// -------------------------------------------------------------------------------------------------
-
-/**
- * See http://en.wikipedia.org/wiki/Percent-encoding for explanation
- */
-
 std::string Url::Encode(const std::string& in) {
+  // See http://en.wikipedia.org/wiki/Percent-encoding for explanation
+
   // Clear output before appending it
   std::string out;
   out.reserve(in.size() * 3);
 
-  const size_t HEX_BUF_SIZE = 20;
-  char hex_str[HEX_BUF_SIZE] = {};
+  constexpr size_t kHexBufSize = 20;
+  char hex_str[kHexBufSize] = {};
 
   for (size_t i = 0; i < in.size(); ++i) {
     char current_char = static_cast<char>(in[i]);
@@ -101,7 +89,7 @@ std::string Url::Encode(const std::string& in) {
         (current_char < 'A' || current_char > 'Z') &&
         (current_char < '0' || current_char > '9') && current_char != '.' &&
         current_char != '-' && current_char != '~' && current_char != '_') {
-      snprintf(hex_str, HEX_BUF_SIZE, "%%%.2X",
+      snprintf(hex_str, kHexBufSize, "%%%.2X",
                static_cast<unsigned char>(current_char));
       out += hex_str;
     } else {
@@ -111,13 +99,13 @@ std::string Url::Encode(const std::string& in) {
 
   return out;
 }
-// -------------------------------------------------------------------------------------------------
 
 std::string Url::Construct(
     const std::string& base, const std::string& path,
     const std::multimap<std::string, std::string>& query_params) {
   std::ostringstream url_ss;
   url_ss << base << path;
+
   bool first_param = true;
   for (const auto& query_param : query_params) {
     if (first_param) {
@@ -126,6 +114,7 @@ std::string Url::Construct(
     } else {
       url_ss << "&";
     }
+
     const auto& key = query_param.first;
     const auto& value = query_param.second;
     url_ss << olp::utils::Url::Encode(key) << "="

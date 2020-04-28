@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,64 +17,62 @@
  * License-Filename: LICENSE
  */
 
-#include <olp/core/utils/Base64.h>
-
-#include <boost/throw_exception.hpp>
-#include <boost/archive/iterators/base64_from_binary.hpp>
-#include <boost/archive/iterators/binary_from_base64.hpp>
-#include <boost/archive/iterators/transform_width.hpp>
+#include "olp/core/utils/Base64.h"
 
 #include <algorithm>
 
+#include <boost/archive/iterators/base64_from_binary.hpp>
+#include <boost/archive/iterators/binary_from_base64.hpp>
+#include <boost/archive/iterators/transform_width.hpp>
+#include <boost/throw_exception.hpp>
+
 namespace olp {
 namespace utils {
+
 namespace {
-bool notBase64Symbol(char c) {
+bool NotBase64Symbol(char c) {
   return !((c >= '/' && c <= '9') || (c >= 'A' && c <= 'Z') ||
            (c >= 'a' && c <= 'z') || c == '+');
 }
 
-bool isValidBase64(const std::string& s) {
-  const size_t len = s.size();
-
-  if (len == 0) {
+bool IsValidBase64(const std::string& string) {
+  const size_t length = string.size();
+  if (length == 0) {
     // empty string is a valid base64
     return true;
   }
 
-  if (len % 4 != 0) {
+  if (length % 4 != 0) {
     return false;
   }
 
   // check for padding (only last two characters)
-  std::string::const_iterator endNoPadding = s.end();
-  if (s[len - 1] == '=') {
-    endNoPadding = std::prev(endNoPadding);
-    if (s[len - 2] == '=') {
-      endNoPadding = std::prev(endNoPadding);
+  auto end_no_padding = string.end();
+  if (string[length - 1] == '=') {
+    end_no_padding = std::prev(end_no_padding);
+    if (string[length - 2] == '=') {
+      end_no_padding = std::prev(end_no_padding);
     }
   }
 
-  std::string::const_iterator notBase64 =
-      std::find_if(s.begin(), endNoPadding, notBase64Symbol);
-
-  return notBase64 == endNoPadding;
+  return std::find_if(string.begin(), end_no_padding, NotBase64Symbol) ==
+         end_no_padding;
 }
-
 }  // anonymous namespace
 
 std::string Base64Encode(const void* data, size_t size) {
+  using namespace boost::archive::iterators;
+  using It = base64_from_binary<transform_width<const uint8_t*, 6, 8> >;
+
   if (size == 0 || !data) {
-    return std::string();
+    return {};
   }
 
   const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
+  auto return_string = std::string(It(bytes), It(bytes + size));
+  return_string.append((3 - size % 3) % 3, '=');
 
-  using namespace boost::archive::iterators;
-  using It = base64_from_binary<transform_width<const uint8_t*, 6, 8> >;
-  auto tmp = std::string(It(bytes), It(bytes + size));
-  tmp.append((3 - size % 3) % 3, '=');
-  return tmp;
+  return return_string;
 }
 
 std::string Base64Encode(const std::vector<uint8_t>& bytes) {
@@ -87,39 +85,40 @@ std::string Base64Encode(const std::string& bytes) {
                       bytes.size());
 }
 
-bool Base64Decode(const std::string& s, std::vector<std::uint8_t>& bytes,
+bool Base64Decode(const std::string& string, std::vector<std::uint8_t>& bytes,
                   bool write_null_bytes) {
-  if (s.empty()) {
+  using namespace boost::archive::iterators;
+  using It =
+      transform_width<binary_from_base64<std::string::const_iterator>, 8, 6>;
+
+  if (string.empty()) {
     bytes.clear();
     return true;
   }
 
   // check for validity of the input as boost will throw an exception
-  if (!isValidBase64(s)) {
+  if (!IsValidBase64(string)) {
     return false;
   }
 
-  using namespace boost::archive::iterators;
-  using It =
-      transform_width<binary_from_base64<std::string::const_iterator>, 8, 6>;
-
-  const size_t len = s.size();
+  const size_t length = string.size();
   // check for padding (only last two characters)
-  // we have checked s.empty() and isValidBase64(), that means len > 0 && len %
-  // 4 == 0 s has at least 4 bytes
-  std::string::const_iterator endNoPadding = s.end();
-  if (s[len - 1] == '=') {
-    endNoPadding = std::prev(endNoPadding);
-    if (s[len - 2] == '=') {
-      endNoPadding = std::prev(endNoPadding);
+  // we have checked string.empty() and IsValidBase64(), that means string has
+  // at least 4 bytes
+  std::string::const_iterator end_no_padding = string.end();
+  if (string[length - 1] == '=') {
+    end_no_padding = std::prev(end_no_padding);
+    if (string[length - 2] == '=') {
+      end_no_padding = std::prev(end_no_padding);
     }
   }
 
-  bytes.resize(len / 4 * 3);
-  auto it = write_null_bytes
-                ? std::copy(It(std::begin(s)), It(endNoPadding), bytes.begin())
-                : std::copy_if(It(std::begin(s)), It(endNoPadding),
-                               bytes.begin(), [](char c) { return c != '\0'; });
+  bytes.resize(length / 4 * 3);
+  auto it =
+      write_null_bytes
+          ? std::copy(It(std::begin(string)), It(end_no_padding), bytes.begin())
+          : std::copy_if(It(std::begin(string)), It(end_no_padding),
+                         bytes.begin(), [](char c) { return c != '\0'; });
   bytes.resize(std::distance(bytes.begin(), it));
 
   return true;
