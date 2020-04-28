@@ -264,6 +264,7 @@ bool DefaultCacheImpl::Remove(const std::string& key) {
     PurgeDiskItem(key, *mutable_cache_, removed_data_size);
 
     mutable_cache_data_size_ -= removed_data_size;
+    statistics_.bytes_removed += removed_data_size;
   }
 
   return true;
@@ -284,10 +285,19 @@ bool DefaultCacheImpl::RemoveKeysWithPrefix(const std::string& key) {
   if (mutable_cache_) {
     uint64_t removed_data_size = 0;
     auto result = mutable_cache_->RemoveKeysWithPrefix(key, removed_data_size);
+
     mutable_cache_data_size_ -= removed_data_size;
+    statistics_.bytes_removed += removed_data_size;
+
     return result;
   }
   return true;
+}
+
+KeyValueCache::Statistics DefaultCacheImpl::GetStatistics() {
+  std::lock_guard<std::mutex> lock(cache_lock_);
+  statistics_.data_size = mutable_cache_data_size_;
+  return statistics_;
 }
 
 void DefaultCacheImpl::InitializeLru() {
@@ -438,6 +448,9 @@ bool DefaultCacheImpl::PutMutableCache(const std::string& key,
   mutable_cache_data_size_ += added_data_size;
   mutable_cache_data_size_ -= removed_data_size;
 
+  statistics_.bytes_written += added_data_size;
+  statistics_.bytes_evicted += removed_data_size;
+
   if (mutable_cache_lru_) {
     const auto result = mutable_cache_lru_->InsertOrAssign(key, item_size);
     if (result.first == mutable_cache_lru_->end() && !result.second) {
@@ -522,7 +535,9 @@ DefaultCacheImpl::GetFromDiscCache(const std::string& key) {
     if (expiry <= 0) {
       uint64_t removed_data_size = 0u;
       PurgeDiskItem(key, *mutable_cache_, removed_data_size);
+
       mutable_cache_data_size_ -= removed_data_size;
+      statistics_.bytes_evicted += removed_data_size;
 
       RemoveKeyLru(key);
     } else {
@@ -535,6 +550,8 @@ DefaultCacheImpl::GetFromDiscCache(const std::string& key) {
 
       auto result = mutable_cache_->Get(key);
       if (result) {
+        statistics_.bytes_read += result->size();
+
         return std::make_pair(std::move(result.value()), expiry);
       }
     }

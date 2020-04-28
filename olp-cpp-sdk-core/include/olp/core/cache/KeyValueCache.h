@@ -57,6 +57,22 @@ class CORE_API KeyValueCache {
    */
   using ValueTypePtr = std::shared_ptr<ValueType>;
 
+  /**
+   * @brief The accumulated statistics for the cache.
+   */
+  struct Statistics {
+    /// The number of bytes written to disk cache with Put methods.
+    uint64_t bytes_written;
+    /// The number of bytes read from disk cache with Get methods.
+    uint64_t bytes_read;
+    /// The number of bytes removed from disk cache with Remove method.
+    uint64_t bytes_removed;
+    /// The number of bytes evicted from disk cache.
+    uint64_t bytes_evicted;
+    /// The size of content stored in mutable disk cache.
+    uint64_t data_size;
+  };
+
   virtual ~KeyValueCache() = default;
 
   /**
@@ -121,6 +137,13 @@ class CORE_API KeyValueCache {
    * @return True if the values are removed; false otherwise.
    */
   virtual bool RemoveKeysWithPrefix(const std::string& prefix) = 0;
+
+  /**
+   * @brief Retrieve the accumulated statistics of the cache instance.
+   *
+   * @return Statistics structure.
+   */
+  virtual Statistics GetStatistics() const { return Statistics{}; }
 };
 
 }  // namespace cache
