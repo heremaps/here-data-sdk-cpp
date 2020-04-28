@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,36 +29,79 @@ namespace utils {
 class CORE_API Dir {
  public:
   /**
-   * @brief exists checks if directory exists
-   * @param path path of the directory
-   * @return true if directory exists, false otherwise.
+   * @brief Checks if directory exists.
+   *
+   * @param path Path of the directory.
+   *
+   * @return \c true if directory exists, \c false otherwise.
+   *
+   * @deprecated Will be removed by 10.2020. Please use Exists() instead.
    */
   static bool exists(const std::string& path);
 
   /**
-   * @brief remove removes the directory, deleting all subfolders and files.
-   * @param path path of the directory
+   * @brief Checks if directory exists.
+   *
+   * @param path Path of the directory.
+   *
+   * @return true if directory exists, false otherwise.
+   */
+  static bool Exists(const std::string& path);
+
+  /**
+   * @brief Removes the directory, deleting all subfolders and files.
+   *
+   * @param path Path of the directory.
+   *
    * @return true if operation is successfull, false otherwise.
+   *
+   *  @deprecated Will be removed by 10.2020. Please use Remove() instead.
    */
   static bool remove(const std::string& path);
 
   /**
-   * @brief create creates the directory including all required directories on
+   * @brief Removes the directory, deleting all subfolders and files.
+   *
+   * @param path Path of the directory.
+   *
+   * @return \c true if operation is successfull, \c false otherwise.
+   */
+  static bool Remove(const std::string& path);
+
+  /**
+   * @brief Creates the directory including all required directories on
    * the path.
-   * @param path path of the directory
-   * @return true if operation is successfull, false otherwise.
+   *
+   * @param path Path of the directory.
+   *
+   * @return \c true if operation is successfull, \c false otherwise.
+   *
+   * @deprecated Will be removed by 10.2020. Please use Create() instead.
    */
   static bool create(const std::string& path);
 
   /**
-   * @brief TempDirectory returns the platform-specific temporary path.
-   * @return temporary directory path
+   * @brief Creates the directory including all required directories on
+   * the path.
+   *
+   * @param path Path of the directory.
+   *
+   * @return \c true if operation is successfull, \c false otherwise.
+   */
+  static bool Create(const std::string& path);
+
+  /**
+   * @brief Returns the platform-specific temporary path.
+   *
+   * @return The platform specific temporary directory path.
    */
   static std::string TempDirectory();
 
   /**
-   * @brief Check whether file exists.
-   * @param[in] file_path Path to the file.
+   * @brief Check whether the provided file exists.
+   *
+   * @param file_path Path to the file.
+   *
    * @return \c true if any file with the given path exists, \c false otherwise.
    */
   static bool FileExists(const std::string& file_path);
