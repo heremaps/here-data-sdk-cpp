@@ -108,11 +108,7 @@ done
 for test_name in "${TEST_TARGET_NAMES[@]}"
 do
 {
-    if [[ ${test_name} == "olp-cpp-sdk-core-test" ]] ; then
-        EXCEPTION="--gtest_filter="-DefaultCacheTest.BadPathMutable""
-    else
-        EXCEPTION=""
-    fi
+    EXCEPTION=""
     FLAKY_CHECK=""
     source ${FV_HOME}/${test_name}.variables
     test_command="$REPO_HOME/build/${test_name%?????}/tests/${test_name}s \
