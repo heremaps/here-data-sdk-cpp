@@ -21,10 +21,14 @@
 
 #include <algorithm>
 
+// clang-format off
+// Do not change this order as throw_exception.hpp defines
+// boost::throw_exception needed by all other boost classes
+#include <boost/throw_exception.hpp>
 #include <boost/archive/iterators/base64_from_binary.hpp>
 #include <boost/archive/iterators/binary_from_base64.hpp>
 #include <boost/archive/iterators/transform_width.hpp>
-#include <boost/throw_exception.hpp>
+// clang-format on
 
 namespace olp {
 namespace utils {
