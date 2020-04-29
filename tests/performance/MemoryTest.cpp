@@ -154,9 +154,9 @@ void MemoryTest::RandomlyCancel(olp::client::CancellationToken token) {
  *
  * total_count = requests_per_second * calling_thread_count
  *
- * By default, SDK initialized in-memory cache with 1 MB capacity.
+ * By default, the SDK initializes a memory cache with 1 MB capacity.
  * To run the test, you need to start a local OLP mock server first.
- * Valgrind, heaptrack, other tools are used to collect the output.
+ * Valgrind, heaptrack, and other tools are used to collect the output.
  */
 TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
   // Enable only errors to have a short output.

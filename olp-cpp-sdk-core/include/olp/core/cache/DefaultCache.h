@@ -31,7 +31,7 @@ namespace cache {
 class DefaultCacheImpl;
 
 /**
- * @brief A default cache that provides an in-memory LRU cache and persistence
+ * @brief A default cache that provides a memory LRU cache and persistence
  * of cached key-value pairs.
  *
  * @note By default, the downloaded data is cached only in memory.
@@ -47,7 +47,7 @@ class DefaultCacheImpl;
  * limitation, the default cache can be accessed only by one process
  * exclusively.
  *
- * By default, the maximum size of the in-memory cache is 1MB. To change it,
+ * By default, the maximum size of the memory cache is 1MB. To change it,
  * set `olp::cache::CacheSettings::max_memory_cache_size` to the desired value.
  */
 class CORE_API DefaultCache : public KeyValueCache {

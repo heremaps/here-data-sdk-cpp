@@ -109,7 +109,7 @@ To create the `OlpClientSettings` object:
 
 3. [Authenticate](#authenticate-to-here-olp-using-client-credentials) to OLP.
 
-4. Set up the `OlpClientSettings` object with the path to the needed cache settings properties (disk space, the limit of runtime memory, maximum file size, in-memory data cache size, options, paths).
+4. Set up the `OlpClientSettings` object with the path to the needed cache settings properties (the limit of runtime memory, disk space, maximum file size, memory data cache size, options, and paths).
   For instructions on how to get the path to the cache settings, see the [Build and Run on Linux](#build) section.
   > **Note:** Perform the first call with the valid mutable cache path, and the second call – with the protected cache path.
 

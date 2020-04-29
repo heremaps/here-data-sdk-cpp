@@ -76,7 +76,7 @@ class CORE_API OlpClientSettingsFactory final {
 
   /**
    * @brief Creates the `KeyValueCache` instance that includes both a small
-   * in-memory LRU cache and a larger persistent database cache.
+   * memory LRU cache and a larger persistent database cache.
    *
    * The returned cache instance is initialized, opened, and ready to be used.
    *

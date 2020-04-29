@@ -208,7 +208,7 @@ TEST_P(VersionedLayerClientCacheTest, GetDataWithPartitionIdDifferentVersions) {
 
   // Test with this parameter is not relevant anymore for cache type none since
   // we cannot query 2 versions from one instance of versioned layer client and
-  // we cannot share default in-memory created cache between 2 instances.
+  // we cannot share default memory created cache between 2 instances.
   if (GetParam() == CacheType::NONE) {
     return;
   }

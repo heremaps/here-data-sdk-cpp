@@ -46,17 +46,17 @@ enum class EvictionPolicy : unsigned char {
 };
 
 /**
- * @brief Settings for in-memory and on-disk caching.
+ * @brief Settings for memory and disk caching.
  */
 struct CORE_API CacheSettings {
   /**
-   * @brief The path to the mutable (read-write) on-disk cache where
+   * @brief The path to the mutable (read-write) disk cache where
    * the SDK caches and lookups the content.
    *
    * You should have write permissions.
    *
    * If this parameter is not set, the downloaded data is stored
-   * only in the in-memory cache that is limited by `#max_memory_cache_size`.
+   * only in the memory cache that is limited by `#max_memory_cache_size`.
    */
   boost::optional<std::string> disk_path_mutable = boost::none;
 
@@ -92,9 +92,9 @@ struct CORE_API CacheSettings {
   size_t max_file_size = 1024u * 1024u * 2u;
 
   /**
-   * @brief Sets the upper limit of the in-memory data cache size (in bytes).
+   * @brief Sets the upper limit of the memory data cache size (in bytes).
    *
-   * If set to `0`, the in-memory cache is not used. The default value is 1 MB.
+   * If set to `0`, the memory cache is not used. The default value is 1 MB.
    */
   size_t max_memory_cache_size = 1024u * 1024u;
 

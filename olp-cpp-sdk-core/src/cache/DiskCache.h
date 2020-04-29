@@ -73,7 +73,7 @@ struct StorageSettings {
 };
 
 /**
- * @brief Class which abstracts the on-disk database engine.
+ * @brief Abstracts the disk database engine.
  */
 class DiskCache {
  public:
