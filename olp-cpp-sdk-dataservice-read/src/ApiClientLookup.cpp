@@ -79,12 +79,10 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
   client.SetSettings(settings);
   PlatformApi::ApisResponse api_response;
   if (service == "config") {
-    api_response = PlatformApi::GetApis(client, service, service_version,
-                                        cancellation_context);
+    api_response = PlatformApi::GetApis(client, cancellation_context);
   } else {
-    api_response =
-        ResourcesApi::GetApis(client, catalog.ToCatalogHRNString(), service,
-                              service_version, cancellation_context);
+    api_response = ResourcesApi::GetApis(client, catalog.ToCatalogHRNString(),
+                                         cancellation_context);
   }
 
   if (!api_response.IsSuccessful()) {
@@ -96,8 +94,20 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
   }
 
   const auto& api_result = api_response.GetResult();
+  if (options != OnlineOnly && options != CacheWithUpdate) {
+    for (const auto& service_api : api_result) {
+      repository.Put(service_api.GetApi(), service_api.GetVersion(),
+                     service_api.GetBaseUrl());
+    }
+  }
 
-  if (api_result.size() < 1) {
+  auto it =
+      std::find_if(api_result.begin(), api_result.end(),
+                   [&](const olp::dataservice::read::model::Api& obj) -> bool {
+                     return (obj.GetApi().compare(service) == 0 &&
+                             obj.GetVersion().compare(service_version) == 0);
+                   });
+  if (it == api_result.end()) {
     OLP_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s - service not available",
                        service.c_str(), service_version.c_str(),
                        catalog.partition.c_str());
@@ -106,10 +116,8 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
                             "Service/Version not available for given HRN");
   }
 
-  const auto& service_url = api_result.at(0).GetBaseUrl();
-  if (options != OnlineOnly && options != CacheWithUpdate) {
-    repository.Put(service, service_version, service_url);
-  }
+  const auto& service_url = it->GetBaseUrl();
+
   OLP_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s - OK, service_url=%s",
                      service.c_str(), service_version.c_str(),
                      catalog.partition.c_str(), service_url.c_str());
