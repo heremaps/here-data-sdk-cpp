@@ -87,7 +87,7 @@ constexpr char kHttpResponseBlobData_5904591[] =
 
 
 constexpr char kHttpQueryTreeIndex_23064[] =
-    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/23064/depths/4)";
+    R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/23064/depths/4)";
 
 constexpr char kHttpSubQuads_23064[] =
     R"jsonString({"subQuads": [{"subQuadKey":"115","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString";

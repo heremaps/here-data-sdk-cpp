@@ -95,12 +95,6 @@ TEST_P(VersionedLayerClientCacheTest, GetDataWithPartitionId) {
               Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(1);
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
-      .Times(1);
-
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
-      .Times(1);
-
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_QUERY_PARTITION_269), _, _, _, _))
       .Times(1);
@@ -219,12 +213,6 @@ TEST_P(VersionedLayerClientCacheTest, GetDataWithPartitionIdDifferentVersions) {
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
-      .Times(1);
-
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
-      .Times(1);
-
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1);
 
   EXPECT_CALL(*network_mock_,
