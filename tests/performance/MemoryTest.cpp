@@ -20,12 +20,51 @@
 #include <chrono>
 #include <memory>
 
+#include <boost/uuid/detail/sha1.hpp>
+#include <boost/algorithm/hex.hpp>
+
 #include <gtest/gtest.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/logging/Log.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 
 #include "MemoryTestBase.h"
+
+std::string ComputeSha1(const char* buffer, size_t length) {
+  using boost::uuids::detail::sha1;
+  sha1 hash;
+  sha1::digest_type digest;
+  sha1::digest_type digest_rotated;
+
+  hash.process_bytes(buffer, length);
+  hash.get_digest(digest);
+
+  // rotate bytes
+  for (int i = 0; i < 5; ++i)
+	{
+		const char* tmp = reinterpret_cast<char*>(&digest);
+    char* res = reinterpret_cast<char*>(&digest_rotated);
+		res[i*4] = tmp[i*4+3];
+		res[i*4+1] = tmp[i*4+2];
+		res[i*4+2] = tmp[i*4+1];
+		res[i*4+3] = tmp[i*4];
+	}
+
+  const auto charDigest = reinterpret_cast<const char*>(&digest_rotated);
+  std::string result;
+  boost::algorithm::hex(charDigest, charDigest + sizeof(sha1::digest_type),
+                        std::back_inserter(result));
+  return result;
+}
+
+bool Validate(const std::vector<unsigned char>& buffer) {
+  // 40 first bytes is a string representation of hash
+  const char* bytes = reinterpret_cast<const char*>( buffer.data() );
+  std::string hash(bytes, bytes + 40);
+  std::string computed_hash = ComputeSha1(bytes + 40, buffer.size() - 40);
+  OLP_SDK_LOG_CRITICAL_INFO_F("HASH", "HASHES: %s %s", hash.c_str(), computed_hash.c_str());
+  return hash == computed_hash;
+}
 
 namespace {
 using TestFunction = std::function<void(uint8_t thread_id)>;
@@ -183,53 +222,9 @@ TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
           request, [&](olp::dataservice::read::DataResponse response) {
             if (response.IsSuccessful()) {
               success_responses_.fetch_add(1);
-            } else {
-              failed_responses_.fetch_add(1);
-              ReportError(response.GetError());
-            }
-          });
-
-      RandomlyCancel(std::move(token));
-
-      std::this_thread::sleep_for(
-          GetSleepPeriod(parameter.requests_per_second));
-    }
-  });
-}
-
-TEST_P(MemoryTest, PrefetchPartitionsFromVersionedLayer) {
-  // Enable only errors to have a short output.
-  olp::logging::Log::setLevel(olp::logging::Level::Warning);
-
-  const auto& parameter = GetParam();
-
-  auto settings = CreateCatalogClientSettings();
-
-  StartThreads([=](uint8_t /*thread_id*/) {
-    olp::dataservice::read::VersionedLayerClient service_client(
-        kCatalog, kVersionedLayerId, boost::none, settings);
-
-    const auto end_timestamp =
-        std::chrono::steady_clock::now() + parameter.runtime;
-
-    while (end_timestamp > std::chrono::steady_clock::now()) {
-      const auto level = 10;
-      const auto tile_count = 1 << level;
-
-      std::vector<olp::geo::TileKey> tile_keys = {
-          olp::geo::TileKey::FromRowColumnLevel(rand() % tile_count,
-                                                rand() % tile_count, level)};
-
-      auto request = olp::dataservice::read::PrefetchTilesRequest()
-                         .WithMaxLevel(level + 2)
-                         .WithMinLevel(level)
-                         .WithTileKeys(tile_keys);
-      total_requests_.fetch_add(1);
-      auto token = service_client.PrefetchTiles(
-          std::move(request),
-          [&](olp::dataservice::read::PrefetchTilesResponse response) {
-            if (response.IsSuccessful()) {
-              success_responses_.fetch_add(1);
+              if (!Validate(*response.GetResult())) {
+                abort();
+              }
             } else {
               failed_responses_.fetch_add(1);
               ReportError(response.GetError());

@@ -24,12 +24,14 @@ include(ExternalProject)
 ExternalProject_Add(boost-download
     GIT_REPOSITORY      @OLP_SDK_CPP_BOOST_URL@
     GIT_TAG             @OLP_SDK_CPP_BOOST_TAG@ 
-    GIT_SUBMODULES      libs/any
+    GIT_SUBMODULES      libs/algorithm
+                        libs/any
                         libs/assert
                         libs/config
                         libs/container_hash
                         libs/core
                         libs/detail
+                        libs/exception
                         libs/format
                         libs/function_types
                         libs/headers
@@ -43,6 +45,7 @@ ExternalProject_Add(boost-download
                         libs/predef
                         libs/preprocessor
                         libs/random
+                        libs/range
                         libs/serialization
                         libs/smart_ptr
                         libs/static_assert
