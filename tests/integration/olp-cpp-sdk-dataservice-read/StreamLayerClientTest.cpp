@@ -96,10 +96,10 @@ void ReadStreamLayerClientTest::TearDown() {
 }
 
 void ReadStreamLayerClientTest::SetUpCommonNetworkMockCalls() {
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                             olp::http::HttpStatusCode::OK),
-                                        HTTP_RESPONSE_LOOKUP_STREAM));
+                                        HTTP_RESPONSE_LOOKUP));
 
   ON_CALL(*network_mock_,
           Send(IsPostRequest(URL_STREAM_SUBSCRIBE_SERIAL), _, _, _, _))
@@ -148,10 +148,10 @@ void ReadStreamLayerClientTest::SetUpCommonNetworkMockCalls() {
                                             olp::http::HttpStatusCode::OK),
                                         HTTP_RESPONSE_EMPTY));
 
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .WillByDefault(
           ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_LOOKUP_BLOB));
+                             HTTP_RESPONSE_LOOKUP));
 
   ON_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .WillByDefault(
@@ -169,7 +169,7 @@ TEST_F(ReadStreamLayerClientTest, Subscribe) {
     SCOPED_TRACE("Subscribe succeeds, serial");
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
 
     EXPECT_CALL(*network_mock_,
@@ -197,7 +197,7 @@ TEST_F(ReadStreamLayerClientTest, Subscribe) {
     SCOPED_TRACE("Subscribe succeeds, parallel");
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
 
     EXPECT_CALL(*network_mock_,
@@ -228,7 +228,7 @@ TEST_F(ReadStreamLayerClientTest, Subscribe) {
     SCOPED_TRACE("Subscribe succeeds, with subscriptionID");
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
 
     EXPECT_CALL(
@@ -259,7 +259,7 @@ TEST_F(ReadStreamLayerClientTest, Subscribe) {
     SCOPED_TRACE("Subscribe succeeds, with consumerID");
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
 
     EXPECT_CALL(
@@ -290,7 +290,7 @@ TEST_F(ReadStreamLayerClientTest, Subscribe) {
     SCOPED_TRACE("Subscribe succeeds, multiple query parameters");
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
 
     EXPECT_CALL(
@@ -325,7 +325,7 @@ TEST_F(ReadStreamLayerClientTest, Subscribe) {
     SCOPED_TRACE("Subscribe fails, incorrect request");
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
 
     EXPECT_CALL(*network_mock_,
@@ -353,7 +353,7 @@ TEST_F(ReadStreamLayerClientTest, Subscribe) {
     SCOPED_TRACE("Subscribe fails, incorrect hrn");
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::FORBIDDEN),
                                      HTTP_RESPONSE_403));
@@ -377,7 +377,7 @@ TEST_F(ReadStreamLayerClientTest, Subscribe) {
     SCOPED_TRACE("Subscribe fails, incorrect layer");
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
 
     EXPECT_CALL(*network_mock_,
@@ -406,7 +406,7 @@ TEST_F(ReadStreamLayerClientTest, Subscribe) {
 TEST_F(ReadStreamLayerClientTest, SubscribeCancellableFuture) {
   HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1);
 
   EXPECT_CALL(*network_mock_,
@@ -431,7 +431,7 @@ TEST_F(ReadStreamLayerClientTest, SubscribeApiLookup429) {
     InSequence s;
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(2)
         .WillRepeatedly(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(
@@ -439,7 +439,7 @@ TEST_F(ReadStreamLayerClientTest, SubscribeApiLookup429) {
             "Server busy at the moment."));
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
   }
 
@@ -482,7 +482,7 @@ TEST_F(ReadStreamLayerClientTest, SubscribeCancelFuture) {
                                     HTTP_RESPONSE_STREAM_LAYER_SUBSCRIPTION});
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1)
         .WillOnce(Invoke(std::move(send_mock)));
 
@@ -514,7 +514,7 @@ TEST_F(ReadStreamLayerClientTest, Unsubscribe) {
     SCOPED_TRACE("Unsubscribe succeeds, serial subscription");
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
 
     EXPECT_CALL(*network_mock_,
@@ -550,7 +550,7 @@ TEST_F(ReadStreamLayerClientTest, Unsubscribe) {
     SCOPED_TRACE("Unsubscribe succeeds, parallel subscription");
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
 
     EXPECT_CALL(*network_mock_,
@@ -592,7 +592,7 @@ TEST_F(ReadStreamLayerClientTest, Unsubscribe) {
         "and SubscriptionID");
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
 
     EXPECT_CALL(
@@ -655,7 +655,7 @@ TEST_F(ReadStreamLayerClientTest, Unsubscribe) {
     SCOPED_TRACE("Unsubscribe fails, server error");
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
 
     EXPECT_CALL(*network_mock_,
@@ -695,7 +695,7 @@ TEST_F(ReadStreamLayerClientTest, Unsubscribe) {
 TEST_F(ReadStreamLayerClientTest, UnsubscribeCancellableFuture) {
   HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1);
 
   EXPECT_CALL(*network_mock_,
@@ -739,7 +739,7 @@ TEST_F(ReadStreamLayerClientTest, UnsubscribeCancelFuture) {
         {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_EMPTY});
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_STREAM), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
 
     EXPECT_CALL(*network_mock_,
@@ -784,7 +784,7 @@ TEST_F(ReadStreamLayerClientTest, GetData) {
   {
     SCOPED_TRACE("GetData success");
 
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
 
     EXPECT_CALL(*network_mock_,
@@ -838,7 +838,7 @@ TEST_F(ReadStreamLayerClientTest, GetData) {
   {
     SCOPED_TRACE("GetData fails, lookup server error");
 
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .WillOnce(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(
                 olp::http::HttpStatusCode::AUTHENTICATION_TIMEOUT),
@@ -869,7 +869,7 @@ TEST_F(ReadStreamLayerClientTest, GetData) {
   {
     SCOPED_TRACE("GetData fails, blob server error");
 
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
 
     EXPECT_CALL(*network_mock_,
@@ -905,7 +905,7 @@ TEST_F(ReadStreamLayerClientTest, GetData) {
 TEST_F(ReadStreamLayerClientTest, GetDataCancellableFuture) {
   HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1);
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
@@ -944,9 +944,9 @@ TEST_F(ReadStreamLayerClientTest, GetDataCancel) {
 
     std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
         request_started, continue_request,
-        {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_BLOB});
+        {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1)
         .WillOnce(Invoke(std::move(send_mock)));
 
