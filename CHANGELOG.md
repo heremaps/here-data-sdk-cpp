@@ -1,3 +1,30 @@
+## v1.6.0 (05/01/2020)
+
+**Common**
+
+* Added the LRU functionality to the mutable disk cache. LRU is enabled by default. You can disable it using `eviction_policy` in `CacheSettings`.
+* Completed the network statistics implementation. It's available in `Network::GetStatistics`. Now, you can get accumulated statistics on how many bytes are processed during each operation.
+* Added the missing `CORE_API` export macros.
+* Updated various classes according to the Google coding style.
+* Added information on backward compatibility.
+* Fixed various compiler warnings.
+* Minor documentation changes.
+* Fixed the Android bug that made network responses incomplete.
+
+**olp-cpp-sdk-authentication**
+
+* Added the `use_system_time` flag to `olp::authentication::Settings`. You can use it when retrieving tokens to tell `olp::authentication::TokenProvider` to work with the system time instead of the server time.
+* Added the `olp::authentication::AuthenticationClient::Authorize` method. You can use it to collect all permissions associated with the authenticated user or application.
+* `olp::authentication::TokenProvider` now uses the pimpl idiom. Now, when you copy an instance of this class, it does not create a new request.
+* Deprecated the `olp::authentication:AutoRefreshingToken` class. It will be removed by 10.2020.
+* **Breaking Change** Removed the deprecated constructor of the `AuthenticationClient` class and the following deprecated methods: `SetNetworkProxySettings`, `SetNetwork`, and `SetTaskScheduler`.
+* The deprecation of the `olp::authentication::TokenEndpoint` and `olp::authentication::TokenRequest` classes is extended until 10.2020.
+
+**olp-cpp-sdk-dataservice-read**
+
+* Optimized memory overhead for prefetch. 
+* Removed the ambiguous `PrefetchTilesRequest::WithTileKeys` method that takes an rvalue reference.
+
 ## v1.5.0 (07/04/2020)
 
 **Common**
