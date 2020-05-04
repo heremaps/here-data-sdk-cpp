@@ -41,8 +41,8 @@
 #define URL_BLOB_DATA_5904591 \
   R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1)"
 
-#define URL_BLOB_DATA_23618364 \
-  R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/f9a9fd8e-eb1b-48e5-bfdb-4392b3826443)"
+#define URL_BLOB_DATA_1476147 \
+  R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/95c5c703-e00e-4c38-841e-e419367474f1)"
 
 #define HTTP_RESPONSE_LOOKUP_BLOB \
   R"jsonString([{"api":"blob","version":"v1","baseURL":"https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString"
@@ -52,10 +52,6 @@
 
 #define BLOB_DATA_HANDLE R"(4eed6ed1-0d32-43b9-ae79-043cb4256432)"
 
-#define BLOB_DATA_HANDLE_23618364 R"(f9a9fd8e-eb1b-48e5-bfdb-4392b3826443)"
-
-#define BLOB_DATA_HANDLE_5904591 R"(e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1)"
-
 #define URL_LOOKUP_QUERY \
   R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis/query/v1)"
 
@@ -63,16 +59,10 @@
   R"jsonString([{"api":"query","version":"v1","baseURL":"https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2","parameters":{}}])jsonString"
 
 #define QUERY_TREE_INDEX \
-  R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/5904591/depths/4)"
+  R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/23064/depths/4)"
 
 #define SUB_QUADS \
-  R"jsonString({"subQuads": [{"subQuadKey":"4","version":4,"dataHandle":"f9a9fd8e-eb1b-48e5-bfdb-4392b3826443"},{"subQuadKey":"5","version":4,"dataHandle":"e119d20e-c7c6-4563-ae88-8aa5c6ca75c3"},{"subQuadKey":"6","version":4,"dataHandle":"a7a1afdf-db7e-4833-9627-d38bee6e2f81"},{"subQuadKey":"7","version":4,"dataHandle":"9d515348-afce-44e8-bc6f-3693cfbed104"},{"subQuadKey":"1","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": [{"partition":"1476147","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"}]})jsonString"
-
-#define QUERY_PARTITION_23618364 \
-  R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/partitions?partition=23618364&version=4)"
-
-#define RESPONSE_PARTITION_23618364 \
-  R"jsonString({ "partitions": [{"version":4,"partition":"23618364","layer":"testlayer","dataHandle":"f9a9fd8e-eb1b-48e5-bfdb-4392b3826443"}]})jsonString"
+  R"jsonString({"subQuads": [{"subQuadKey":"115","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString"
 
 namespace {
 
@@ -328,13 +318,13 @@ TEST_F(DataRepositoryTest, GetVersionedDataTile) {
                                HTTP_RESPONSE_LOOKUP_BLOB));
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_BLOB_DATA_23618364), _, _, _, _))
+                Send(IsGetRequest(URL_BLOB_DATA_1476147), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
                                      "someData"));
 
     auto request = olp::dataservice::read::TileRequest().WithTileKey(
-        olp::geo::TileKey::FromHereTile("23618364"));
+        olp::geo::TileKey::FromHereTile("1476147"));
     olp::client::CancellationContext context;
     auto response =
         olp::dataservice::read::repository::DataRepository::GetVersionedTile(

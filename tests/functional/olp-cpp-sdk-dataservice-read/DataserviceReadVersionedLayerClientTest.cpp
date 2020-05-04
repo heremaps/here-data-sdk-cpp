@@ -850,7 +850,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileEmptyField) {
       });
 
   EXPECT_FALSE(data_response_compressed.IsSuccessful());
-  ASSERT_EQ(olp::client::ErrorCode::NotFound,
+  ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
             data_response_compressed.GetError().GetErrorCode());
 }
 

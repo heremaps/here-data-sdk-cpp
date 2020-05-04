@@ -316,7 +316,10 @@ PartitionsResponse PartitionsRepository::QueryPartitionForVersionedTile(
     client::CancellationContext context, client::OlpClientSettings settings) {
   auto fetch_option = request.GetFetchOption();
   const auto& tile_key = request.GetTileKey();
-  auto tile = tile_key.ToHereTile();
+  const auto& parent_tile_key =
+      tile_key.ChangedLevelBy(-kMaxQuadTreeIndexDepth);
+  auto parent_tile = parent_tile_key.ToHereTile();
+
   auto query_api = ApiClientLookup::LookupApi(
       catalog, context, "query", "v1", request.GetFetchOption(), settings);
 
@@ -327,13 +330,13 @@ PartitionsResponse PartitionsRepository::QueryPartitionForVersionedTile(
   }
 
   auto quad_tree = QueryApi::QuadTreeIndex(
-      query_api.GetResult(), layer_id, version, tile, kMaxQuadTreeIndexDepth,
-      boost::none, request.GetBillingTag(), context);
+      query_api.GetResult(), layer_id, version, parent_tile,
+      kMaxQuadTreeIndexDepth, boost::none, request.GetBillingTag(), context);
 
   if (!quad_tree.IsSuccessful()) {
     OLP_SDK_LOG_ERROR_F(kLogTag,
                         "QuadTreeIndex failed (%s, %" PRId64 ", %" PRId32 ")",
-                        tile.c_str(), version, kMaxQuadTreeIndexDepth);
+                        parent_tile.c_str(), version, kMaxQuadTreeIndexDepth);
     return quad_tree.GetError();
   }
   model::Partitions result;
@@ -346,8 +349,7 @@ PartitionsResponse PartitionsRepository::QueryPartitionForVersionedTile(
                       subquads.size());
 
   for (const auto& subquad : subquads) {
-    auto subtile =
-        request.GetTileKey().AddedSubHereTile(subquad->GetSubQuadKey());
+    auto subtile = parent_tile_key.AddedSubHereTile(subquad->GetSubQuadKey());
     // add partitions for caching
     partitions_vector.emplace_back(
         PartitionFromSubQuad(*subquad, subtile.ToHereTile()));

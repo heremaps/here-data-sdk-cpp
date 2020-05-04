@@ -447,6 +447,14 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
                    std::move(callback));
   }
 
+  if (!request.GetTileKey().IsValid()) {
+    auto task = [](client::CancellationContext) -> DataResponse {
+      return {{client::ErrorCode::InvalidArgument, "Tile key is invalid"}};
+    };
+    return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
+                   std::move(callback));
+  }
+
   auto schedule_get_data = [&](TileRequest request,
                                DataResponseCallback callback) {
     auto catalog = catalog_;
