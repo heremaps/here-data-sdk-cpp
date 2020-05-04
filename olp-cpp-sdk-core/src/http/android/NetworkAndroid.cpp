@@ -408,13 +408,15 @@ bool NetworkAndroid::Initialize() {
   }
 
   run_thread_ = std::make_unique<std::thread>(NetworkAndroid::Run, this);
+
+  initialized_ = true;
+
   {
     if (!started_) {
       run_thread_ready_cv_.wait(lock);
     }
   }
 
-  initialized_ = true;
   return true;
 }
 
@@ -1048,18 +1050,20 @@ RequestId NetworkAndroid::GenerateNextRequestId() {
 NetworkAndroid::RequestData::RequestData(
     Network::Callback callback, Network::HeaderCallback header_callback,
     Network::DataCallback data_callback, const std::string& url,
-    const std::shared_ptr<std::ostream>& payload)
+    Network::Payload payload)
     : callback(callback),
       header_callback(header_callback),
       data_callback(data_callback),
       url(url),
       payload(payload),
-      obj(nullptr) {}
+      obj(nullptr),
+      count(0),
+      offset(0) {}
 
 NetworkAndroid::ResponseData::ResponseData(
     RequestId id, Network::Callback callback, int status, int uploaded_bytes,
     int downloaded_bytes, const char* error, const char* content_type,
-    jlong count, jlong offset, std::shared_ptr<std::ostream> payload)
+    jlong count, jlong offset, Network::Payload payload)
     : id(id),
       callback(callback),
       payload(payload),

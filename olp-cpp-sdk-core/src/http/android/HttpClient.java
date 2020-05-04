@@ -113,15 +113,15 @@ public class HttpClient {
       this.proxyPort = proxyPort;
 
       switch (proxyType) {
-        case 0:
+        case 1:
           this.proxyType = Proxy.Type.HTTP;
           break;
-        case 4:
+        case 2:
           this.proxyType = Proxy.Type.SOCKS;
           break;
+        case 3:
+        case 4:
         case 5:
-        case 6:
-        case 7:
           this.proxyType = Proxy.Type.SOCKS;
           Log.w(
               LOGTAG,
@@ -318,7 +318,6 @@ public class HttpClient {
                 conn.setRequestProperty("Connection", "Close");
             }
 
-            Log.d(LOGTAG, "Printing Request Headers...\n");
             uploadedContentSize += calculateHeadersSize(conn.getRequestProperties());
 
             conn.setDoInput(true);
@@ -327,7 +326,6 @@ public class HttpClient {
             if (request.postData() != null) {
               conn.setDoOutput(true);
               conn.getOutputStream().write(request.postData());
-              Log.d(LOGTAG, "Uploaded data length:" + request.postData().length);
               uploadedContentSize += request.postData().length;
             } else {
               conn.setDoOutput(false);
@@ -385,7 +383,6 @@ public class HttpClient {
               }
             }
 
-            Log.d(LOGTAG, "Printing Response Headers...\n");
             downloadContentSize += calculateHeadersSize(conn.getHeaderFields());
 
             int contentSize = conn.getContentLength();
@@ -560,7 +557,6 @@ public class HttpClient {
       for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
         String header = entry.getKey();
         List<String> values = entry.getValue();
-        Log.d(LOGTAG, header + ":" + values);
         if(header != null) {
           size += header.length();
         }

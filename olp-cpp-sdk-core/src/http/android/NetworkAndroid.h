@@ -131,7 +131,7 @@ class NetworkAndroid : public Network {
     RequestData(Network::Callback callback,
                 Network::HeaderCallback header_callback,
                 Network::DataCallback data_callback, const std::string& url,
-                const std::shared_ptr<std::ostream>& payload);
+                Network::Payload payload);
 
     void Reinitialize() {
       obj = nullptr;
@@ -142,7 +142,7 @@ class NetworkAndroid : public Network {
     Network::HeaderCallback header_callback;
     Network::DataCallback data_callback;
     std::string url;
-    std::shared_ptr<std::ostream> payload;
+    Network::Payload payload;
     jobject obj;
     jlong count;
     jlong offset;
@@ -155,12 +155,12 @@ class NetworkAndroid : public Network {
     ResponseData(RequestId id, Network::Callback callback, int status,
                  int uploaded_bytes, int downloaded_bytes, const char* error,
                  const char* content_type, jlong count, jlong offset,
-                 std::shared_ptr<std::ostream> payload);
+                 Network::Payload payload);
     bool IsValid() const { return (callback != nullptr); }
 
     RequestId id = static_cast<RequestId>(RequestIdConstants::RequestIdInvalid);
     Network::Callback callback;
-    std::shared_ptr<std::ostream> payload;
+    Network::Payload payload;
     std::string error;
     std::string content_type;
     int status = 0;
