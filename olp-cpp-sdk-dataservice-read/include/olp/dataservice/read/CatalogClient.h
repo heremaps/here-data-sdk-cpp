@@ -57,7 +57,7 @@ class CatalogClientImpl;
  *     You can set the default implementation
  *     (`olp::client::OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler`)
  *     or pass a custom network implementation to the `CatalogClient` object.
- *   * The on-disk cache.
+ *   * The disk cache.
  *     By default, the `CatalogClient` object uses the default implementation
  *     of `olp::cache::DefaultCache`.
  */

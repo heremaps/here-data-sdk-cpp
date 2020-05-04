@@ -74,7 +74,7 @@ struct AUTHENTICATION_API AuthenticationSettings {
 
   /**
    * @brief The maximum number of tokens that can be stored in LRU
-   * in-memory cache.
+   * memory cache.
    */
   size_t token_cache_limit{100u};
 

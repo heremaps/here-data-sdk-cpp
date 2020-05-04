@@ -26,7 +26,7 @@ The following diagram shows an overview of the SDK components and their relation
 
 The core module offers the following platform-independent functionality:
 
-* **cache** - on-disk and in-memory cache
+* **cache** - disk and memory cache
 * **client** - generic HTTP client that performs communication with the HERE Open Location Platform (OLP)
 * **geo** - geo utilities
 * **logging** - logging to file, console or any customer-defined logger

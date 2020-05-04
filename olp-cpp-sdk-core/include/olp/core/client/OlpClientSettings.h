@@ -255,7 +255,7 @@ struct CORE_API OlpClientSettings {
    * results such as metadata, partition data, URLs from the API Lookup Service,
    * and others.
    *
-   * To only use the in-memory LRU cache with limited size, set to `nullptr`.
+   * To only use the memory LRU cache with limited size, set to `nullptr`.
    */
   std::shared_ptr<cache::KeyValueCache> cache = nullptr;
 };
