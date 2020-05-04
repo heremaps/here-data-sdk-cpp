@@ -98,14 +98,14 @@ constexpr char kHttpLookupQuery[] =
 constexpr char kHttpResponseLookupApiQuery[] =
     R"jsonString([{"api":"query","version":"v1","baseURL":"https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:here-optimized-map-for-visualization-2","parameters":{}}])jsonString";
 
-constexpr char kHttpQueryTreeIndex[] =
-    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:here-optimized-map-for-visualization-2/layers/testlayer/versions/4/quadkeys/5904591/depths/4)";
+constexpr char kHttpQueryTreeIndex_23064[] =
+    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:here-optimized-map-for-visualization-2/layers/testlayer/versions/4/quadkeys/23064/depths/4)";
 
-constexpr char kHttpSubQuads[] =
-    R"jsonString({"subQuads": [{"subQuadKey":"4","version":4,"dataHandle":"f9a9fd8e-eb1b-48e5-bfdb-4392b3826443"},{"subQuadKey":"5","version":4,"dataHandle":"e119d20e-c7c6-4563-ae88-8aa5c6ca75c3"},{"subQuadKey":"6","version":4,"dataHandle":"a7a1afdf-db7e-4833-9627-d38bee6e2f81"},{"subQuadKey":"7","version":4,"dataHandle":"9d515348-afce-44e8-bc6f-3693cfbed104"},{"subQuadKey":"1","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": [{"partition":"1476147","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"}]})jsonString";
+constexpr char kHttpSubQuads_23064[] =
+    R"jsonString({"subQuads": [{"subQuadKey":"115","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString";
 
-constexpr char kUrlBlobData_23618364[] =
-    R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/here-optimized-map-for-visualization-2/layers/testlayer/data/f9a9fd8e-eb1b-48e5-bfdb-4392b3826443)";
+constexpr char kUrlBlobData_1476147[] =
+    R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/here-optimized-map-for-visualization-2/layers/testlayer/data/95c5c703-e00e-4c38-841e-e419367474f1)";
 
 constexpr auto kUrlPartitionsPrefix =
     R"(https://query.data.api.platform.here.com/query/v1/catalogs/here-optimized-map-for-visualization-2/layers/testlayer/partitions)";
@@ -2593,10 +2593,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTile) {
                                    kHttpResponseLookupApiQuery));
 
   EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(kHttpQueryTreeIndex), _, _, _, _))
+              Send(IsGetRequest(kHttpQueryTreeIndex_23064), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
-                                   kHttpSubQuads));
+                                   kHttpSubQuads_23064));
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
@@ -2633,7 +2633,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileCacheOnly) {
       .Times(0);
 
   EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(kHttpQueryTreeIndex), _, _, _, _))
+              Send(IsGetRequest(kHttpQueryTreeIndex_23064), _, _, _, _))
       .Times(0);
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
@@ -2664,10 +2664,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileOnlineOnly) {
                                      kHttpResponseLookupApiQuery));
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(kHttpQueryTreeIndex), _, _, _, _))
+                Send(IsGetRequest(kHttpQueryTreeIndex_23064), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
-                                     kHttpSubQuads));
+                                     kHttpSubQuads_23064));
 
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
@@ -2749,10 +2749,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileTwoSequentialCalls) {
                                    kHttpResponseLookupApiQuery));
 
   EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(kHttpQueryTreeIndex), _, _, _, _))
+              Send(IsGetRequest(kHttpQueryTreeIndex_23064), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
-                                   kHttpSubQuads));
+                                   kHttpSubQuads_23064));
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
@@ -2784,20 +2784,20 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileTwoSequentialCalls) {
         .Times(0);
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(kHttpQueryTreeIndex), _, _, _, _))
+                Send(IsGetRequest(kHttpQueryTreeIndex_23064), _, _, _, _))
         .Times(0);
 
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
         .Times(0);
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(kUrlBlobData_23618364), _, _, _, _))
+                Send(IsGetRequest(kUrlBlobData_1476147), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
                                      "someOtherData"));
 
     auto request = olp::dataservice::read::TileRequest().WithTileKey(
-        olp::geo::TileKey::FromHereTile("23618364"));
+        olp::geo::TileKey::FromHereTile("1476147"));
     auto future = client->GetData(request);
     auto data_response = future.GetFuture().get();
     ASSERT_TRUE(data_response.IsSuccessful())

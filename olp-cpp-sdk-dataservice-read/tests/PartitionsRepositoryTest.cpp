@@ -107,6 +107,7 @@ const std::string
 
 const std::string kOlpSdkUrlLookupMetadata2 =
     R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis/metadata/v1)";
+
 const std::string kOlpSdkHttpResponseLookupMetadata2 =
     R"jsonString([{"api":"metadata","version":"v1","baseURL":"https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString";
 
@@ -128,13 +129,13 @@ const std::string kHttpResponceLookupQuery =
     R"jsonString([{"api":"query","version":"v1","baseURL":"https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2","parameters":{}}])jsonString";
 
 const std::string kQueryTreeIndex =
-    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/5904591/depths/4)";
+    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/23064/depths/4)";
 
 const std::string kSubQuads =
-    R"jsonString({"subQuads": [{"subQuadKey":"4","version":4,"dataHandle":"f9a9fd8e-eb1b-48e5-bfdb-4392b3826443"},{"subQuadKey":"5","version":4,"dataHandle":"e119d20e-c7c6-4563-ae88-8aa5c6ca75c3"},{"subQuadKey":"6","version":4,"dataHandle":"a7a1afdf-db7e-4833-9627-d38bee6e2f81"},{"subQuadKey":"7","version":4,"dataHandle":"9d515348-afce-44e8-bc6f-3693cfbed104"},{"subQuadKey":"1","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": [{"partition":"1476147","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"}]})jsonString";
+    R"jsonString({"subQuads": [{"subQuadKey":"115","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString";
 
-const std::string kBlobDataHandle23618364 =
-    R"(f9a9fd8e-eb1b-48e5-bfdb-4392b3826443)";
+const std::string kBlobDataHandle1476147 =
+    R"(95c5c703-e00e-4c38-841e-e419367474f1)";
 
 class PartitionsRepositoryTest : public ::testing::Test,
                                  protected repository::PartitionsRepository {};
@@ -866,13 +867,13 @@ TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
     SCOPED_TRACE(
         "Check if all partitions stored in cache, request another tile");
     auto request = olp::dataservice::read::TileRequest().WithTileKey(
-        olp::geo::TileKey::FromHereTile("23618364"));
+        olp::geo::TileKey::FromHereTile("1476147"));
     auto partitions = GetTileFromCache(hrn, layer, request, version, settings);
 
     // check if partition was stored to cache
     ASSERT_FALSE(partitions.GetPartitions().size() == 0);
     ASSERT_EQ(partitions.GetPartitions().front().GetDataHandle(),
-              kBlobDataHandle23618364);
+              kBlobDataHandle1476147);
   }
 }
 
@@ -920,7 +921,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionForVersionedTile) {
         .Times(0);
 
     auto request = olp::dataservice::read::TileRequest().WithTileKey(
-        olp::geo::TileKey::FromHereTile("23618364"));
+        olp::geo::TileKey::FromHereTile("1476147"));
     olp::client::CancellationContext context;
     auto response = PartitionsRepository::GetPartitionForVersionedTile(
         hrn, layer, request, version, context, settings);
@@ -929,7 +930,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionForVersionedTile) {
     ASSERT_TRUE(response.IsSuccessful());
     ASSERT_TRUE(response.GetResult().GetPartitions().size() == 1);
     ASSERT_EQ(response.GetResult().GetPartitions().front().GetDataHandle(),
-              kBlobDataHandle23618364);
+              kBlobDataHandle1476147);
   }
 }
 }  // namespace
