@@ -209,21 +209,37 @@ TEST_F(DataserviceWriteIndexLayerClientTest, PublishDataAsync) {
 }
 
 TEST_F(DataserviceWriteIndexLayerClientTest, UpdateIndex) {
-  Index index = GetTestIndex();
-  index.SetId("2f269191-5ef7-42a4-a445-fdfe53f95d92");
+  const auto id = "2f269191-5ef7-42a4-a445-fdfe53f95d92";
 
-  auto response =
-      client_
-          ->UpdateIndex(
-              UpdateIndexRequest()
-                  .WithIndexAdditions({index})
-                  .WithIndexRemovals({"2f269191-5ef7-42a4-a445-fdfe53f95d92"})
-                  .WithLayerId(GetTestLayer()))
-          .GetFuture()
-          .get();
+  {
+    SCOPED_TRACE("Add index");
+    Index index = GetTestIndex();
+    index.SetId(id);
 
-  EXPECT_SUCCESS(response);
-  EXPECT_EQ("", response.GetError().GetMessage());
+    auto response_addition =
+        client_
+            ->UpdateIndex(
+                UpdateIndexRequest().WithIndexAdditions({index}).WithLayerId(
+                    GetTestLayer()))
+            .GetFuture()
+            .get();
+
+    EXPECT_SUCCESS(response_addition);
+    EXPECT_EQ("", response_addition.GetError().GetMessage());
+  }
+  {
+    SCOPED_TRACE("Remove index");
+    auto response_removal =
+        client_
+            ->UpdateIndex(
+                UpdateIndexRequest().WithIndexRemovals({id}).WithLayerId(
+                    GetTestLayer()))
+            .GetFuture()
+            .get();
+
+    EXPECT_SUCCESS(response_removal);
+    EXPECT_EQ("", response_removal.GetError().GetMessage());
+  }
 }
 
 TEST_F(DataserviceWriteIndexLayerClientTest, PublishNoData) {
