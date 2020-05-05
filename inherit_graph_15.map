@@ -1,3 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classolp_1_1authentication_1_1SignUpResult.html" title="A response to the sign&#45;up operation with your HERE Account user ID." alt="" coords="5,5,149,47"/>
+<area shape="rect" id="node1" href="$classolp_1_1authentication_1_1SignInResult.html" title="A response to a client or user sign&#45;in operation." alt="" coords="5,5,149,47"/>
+<area shape="rect" id="node2" href="$classolp_1_1authentication_1_1SignInUserResult.html" title="A response to your sign&#45;in operation." alt="" coords="197,5,341,47"/>
 </map>

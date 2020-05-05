@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.5.0</span>
+   &#160;<span id="projectnumber">1.6.0</span>
    </div>
   </td>
  </tr>
@@ -80,6 +80,9 @@ $(function() {
 <li>SendOutcome()
 : <a class="el" href="classolp_1_1http_1_1SendOutcome.html#a799fbdb0012883c1ff98a93abaf9ceb1">olp::http::SendOutcome</a>
 </li>
+<li>SetActionResults()
+: <a class="el" href="classolp_1_1authentication_1_1AuthorizeResult.html#a1834c8bf355a15ff9d927ed2cd0e9dbb">olp::authentication::AuthorizeResult</a>
+</li>
 <li>SetAdminAreas()
 : <a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1Coverage.html#afada95b3b9bc385f37b068ddabfa98d5">olp::dataservice::read::model::Coverage</a>
 </li>
@@ -107,7 +110,8 @@ $(function() {
 , <a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1Partition.html#aa5857fd60c1eb71f0e7d6bd988390896">olp::dataservice::read::model::Partition</a>
 </li>
 <li>SetClientId()
-: <a class="el" href="classolp_1_1authentication_1_1IntrospectAppResult.html#a84e03549695c599e301b3056ee710652">olp::authentication::IntrospectAppResult</a>
+: <a class="el" href="classolp_1_1authentication_1_1AuthorizeResult.html#ab15fc7fb850f7398dc48812bb24bdc86">olp::authentication::AuthorizeResult</a>
+, <a class="el" href="classolp_1_1authentication_1_1IntrospectAppResult.html#a84e03549695c599e301b3056ee710652">olp::authentication::IntrospectAppResult</a>
 </li>
 <li>SetCompressedDataSize()
 : <a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1Metadata.html#a4737cc5e4e3788259f36105265605269">olp::dataservice::read::model::Metadata</a>
@@ -154,6 +158,10 @@ $(function() {
 <li>SetDataSize()
 : <a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1Metadata.html#a026fac54e7b20242f6747efe60d24e25">olp::dataservice::read::model::Metadata</a>
 , <a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1Partition.html#a7820137a17429b15b0f1e9be05f0e7a0">olp::dataservice::read::model::Partition</a>
+</li>
+<li>SetDecision()
+: <a class="el" href="classolp_1_1authentication_1_1ActionResult.html#a795ae20d91937e7f1c43081e4d80beec">olp::authentication::ActionResult</a>
+, <a class="el" href="classolp_1_1authentication_1_1AuthorizeResult.html#ade0d6b1254cf6680dda7ff8997f59745">olp::authentication::AuthorizeResult</a>
 </li>
 <li>SetDefaultHeaders()
 : <a class="el" href="classolp_1_1http_1_1Network.html#a3551e727f9965e6da62cc1dd06e30ab9">olp::http::Network</a>
@@ -256,12 +264,6 @@ $(function() {
 , <a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1IndexDefinition.html#ad5b8e6818043041baac87332ca1bdc9d">olp::dataservice::read::model::IndexDefinition</a>
 , <a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1Layer.html#ac28d61d18bdb4289075cbd252f61d7da">olp::dataservice::read::model::Layer</a>
 </li>
-<li>SetNetwork()
-: <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a87c7cf2a79602022f311a07b908ec075">olp::authentication::AuthenticationClient</a>
-</li>
-<li>SetNetworkProxySettings()
-: <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#abafb4e786e0c4be82b401b2d1b2c7777">olp::authentication::AuthenticationClient</a>
-</li>
 <li>SetNotifications()
 : <a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1Catalog.html#a358f980ce3fe53ce6dfe176227a3163d">olp::dataservice::read::model::Catalog</a>
 </li>
@@ -292,6 +294,9 @@ $(function() {
 </li>
 <li>SetPartitions()
 : <a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1Partitions.html#a4df41ac545701b444e73690e4b07c68f">olp::dataservice::read::model::Partitions</a>
+</li>
+<li>SetPermissions()
+: <a class="el" href="classolp_1_1authentication_1_1ActionResult.html#a67ae1a3871a013e4d56e4d2bfe3da435">olp::authentication::ActionResult</a>
 </li>
 <li>SetRealm()
 : <a class="el" href="classolp_1_1authentication_1_1IntrospectAppResult.html#aa1c6dabc2e7762f80eb21352238e8370">olp::authentication::IntrospectAppResult</a>
@@ -327,9 +332,6 @@ $(function() {
 <li>SetTags()
 : <a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1Catalog.html#adeb75e5dacb6ccefa546487de09caac9">olp::dataservice::read::model::Catalog</a>
 , <a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1Layer.html#aa2995fa761a6793e211214263c0b97f9">olp::dataservice::read::model::Layer</a>
-</li>
-<li>SetTaskScheduler()
-: <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a8d3fb16bcd9909f5bd120a44d78d7d17">olp::authentication::AuthenticationClient</a>
 </li>
 <li>SetTier()
 : <a class="el" href="classolp_1_1authentication_1_1IntrospectAppResult.html#a82f91744405436a061dcac3d3806758d">olp::authentication::IntrospectAppResult</a>
@@ -424,16 +426,19 @@ $(function() {
 <li>SignUpResult()
 : <a class="el" href="classolp_1_1authentication_1_1SignUpResult.html#a33c5d6063f36a87efab6a28919ea80e7">olp::authentication::SignUpResult</a>
 </li>
+<li>SimpleToUpper()
+: <a class="el" href="classolp_1_1http_1_1NetworkUtils.html#a8282f25a163674a3ee304c8a03349428">olp::http::NetworkUtils</a>
+</li>
 <li>Size()
 : <a class="el" href="classolp_1_1math_1_1AlignedBox.html#a9e7b037f3fc25271f408c90cfd266d34">olp::math::AlignedBox&lt; T, N &gt;</a>
 , <a class="el" href="classolp_1_1utils_1_1LruCache.html#a0ae333c08a9cd563ecb40fddc7fda0a4">olp::utils::LruCache&lt; Key, Value, CacheCostFunc, Compare, Alloc &gt;</a>
 </li>
 <li>Size2()
-: <a class="el" href="classolp_1_1math_1_1Size2.html#aedacd87f7b6b8230920129373c5a5a3f">olp::math::Size2&lt; T &gt;</a>
+: <a class="el" href="classolp_1_1math_1_1Size2.html#aefe0d8df4c35d058c52bd4a9ddfcd79c">olp::math::Size2&lt; T &gt;</a>
 </li>
 <li>StartBatch()
 : <a class="el" href="classolp_1_1dataservice_1_1write_1_1VersionedLayerClient.html#ac4dda4e9dbbaa51e6d72739c0a1d453d">olp::dataservice::write::VersionedLayerClient</a>
-, <a class="el" href="classolp_1_1dataservice_1_1write_1_1VolatileLayerClient.html#ad0b7ba52cd830f7a4b604cb4d2bde377">olp::dataservice::write::VolatileLayerClient</a>
+, <a class="el" href="classolp_1_1dataservice_1_1write_1_1VolatileLayerClient.html#a5e749651bb9dec643269356c042897cb">olp::dataservice::write::VolatileLayerClient</a>
 </li>
 <li>StreamLayerClient()
 : <a class="el" href="classolp_1_1dataservice_1_1read_1_1StreamLayerClient.html#a54b1fe66c38bbb80800a8964ad7417a7">olp::dataservice::read::StreamLayerClient</a>
@@ -446,7 +451,7 @@ $(function() {
 : <a class="el" href="classolp_1_1dataservice_1_1read_1_1StreamLayerClient.html#a72b3b4ed9596fc7ac7702579904d4c55">olp::dataservice::read::StreamLayerClient</a>
 </li>
 <li>SyncQueue()
-: <a class="el" href="classolp_1_1thread_1_1SyncQueue.html#abd415fea201cf8b12d7410e5393a3fb8">olp::thread::SyncQueue&lt; T, Container &gt;</a>
+: <a class="el" href="classolp_1_1thread_1_1SyncQueue.html#ad11cc581abc0b6ca8b055b9db1fc540f">olp::thread::SyncQueue&lt; T, Container &gt;</a>
 </li>
 </ul>
 </div><!-- contents -->

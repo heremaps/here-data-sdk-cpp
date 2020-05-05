@@ -11,6 +11,6 @@ var searchData=
   ['errorcodetostring',['ErrorCodeToString',['../namespaceolp_1_1http.html#aa8aa1b3eaa94d47031f24abc93255e80',1,'olp::http']]],
   ['execute',['Execute',['../classolp_1_1client_1_1TaskContext.html#a8822dbffe28a487d7aed647c36f3cc9a',1,'olp::client::TaskContext::Execute()'],['../classolp_1_1client_1_1TaskContext_1_1Impl.html#a98fe22cb69077638c27fd714d7edf576',1,'olp::client::TaskContext::Impl::Execute()'],['../classolp_1_1client_1_1TaskContext_1_1TaskContextImpl.html#a3fc7ed73ae4758bf9ce2817d74f4a5be',1,'olp::client::TaskContext::TaskContextImpl::Execute()']]],
   ['executeorcancelled',['ExecuteOrCancelled',['../classolp_1_1client_1_1CancellationContext.html#abbe5f588ea888b0f90b219ef3e6c280a',1,'olp::client::CancellationContext']]],
-  ['exists',['exists',['../classolp_1_1utils_1_1Dir.html#ad1cb55b4729a39aff844c37aa2f36089',1,'olp::utils::Dir']]],
+  ['exists',['exists',['../classolp_1_1utils_1_1Dir.html#ad1cb55b4729a39aff844c37aa2f36089',1,'olp::utils::Dir::exists(const std::string &amp;path)'],['../classolp_1_1utils_1_1Dir.html#a75640af28cf6cd8cfd570420cead2c3b',1,'olp::utils::Dir::Exists(const std::string &amp;path)']]],
   ['extractuseragent',['ExtractUserAgent',['../classolp_1_1http_1_1NetworkUtils.html#aad12c99eabbde979bc4c4cac2a78290d',1,'olp::http::NetworkUtils']]]
 ];

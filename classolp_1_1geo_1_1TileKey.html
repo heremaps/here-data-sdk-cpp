@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.5.0</span>
+   &#160;<span id="projectnumber">1.6.0</span>
    </div>
   </td>
  </tr>
@@ -89,7 +89,7 @@ Public Types</h2></td></tr>
 <tr class="memitem:ad458fc05954bc3d01e4e1da1701cf7ec"><td class="memItemLeft" align="right" valign="top"><a id="ad458fc05954bc3d01e4e1da1701cf7ec"></a>enum &#160;</td><td class="memItemRight" valign="bottom">{ <b>MaxLevel</b> = LevelCount - 1
  }</td></tr>
 <tr class="separator:ad458fc05954bc3d01e4e1da1701cf7ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af659d79d5825d152002848ad5e735d37"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileKey.html#af659d79d5825d152002848ad5e735d37">TileKeyQuadrant</a> : uint8_t { <br />
+<tr class="memitem:af659d79d5825d152002848ad5e735d37"><td class="memItemLeft" align="right" valign="top"><a id="af659d79d5825d152002848ad5e735d37"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileKey.html#af659d79d5825d152002848ad5e735d37">TileKeyQuadrant</a> : uint8_t { <br />
 &#160;&#160;<b>SW</b>, 
 <b>SE</b>, 
 <b>NW</b>, 
@@ -98,6 +98,7 @@ Public Types</h2></td></tr>
 &#160;&#160;<b>Invalid</b>
 <br />
  }</td></tr>
+<tr class="memdesc:af659d79d5825d152002848ad5e735d37"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cardinal direction, used to find child node by such direction or for the relationship to the parent, corresponds directly to the index in the function GetChild. <br /></td></tr>
 <tr class="separator:af659d79d5825d152002848ad5e735d37"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -119,10 +120,13 @@ constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" 
 <tr class="memdesc:a761c9465d10014fa67a973d0cc3c8589"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check whether the tile key is valid. <br /></td></tr>
 <tr class="separator:a761c9465d10014fa67a973d0cc3c8589"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a60e50d4ad583b25dcb8f3d9cd51be43c"><td class="memItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileKey.html#a60e50d4ad583b25dcb8f3d9cd51be43c">operator==</a> (const <a class="el" href="classolp_1_1geo_1_1TileKey.html">TileKey</a> &amp;other) const</td></tr>
+<tr class="memdesc:a60e50d4ad583b25dcb8f3d9cd51be43c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Equality operator.  <a href="#a60e50d4ad583b25dcb8f3d9cd51be43c">More...</a><br /></td></tr>
 <tr class="separator:a60e50d4ad583b25dcb8f3d9cd51be43c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6db560ae794b74bc94485c9ff04715bd"><td class="memItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileKey.html#a6db560ae794b74bc94485c9ff04715bd">operator!=</a> (const <a class="el" href="classolp_1_1geo_1_1TileKey.html">TileKey</a> &amp;other) const</td></tr>
+<tr class="memdesc:a6db560ae794b74bc94485c9ff04715bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inequality operator.  <a href="#a6db560ae794b74bc94485c9ff04715bd">More...</a><br /></td></tr>
 <tr class="separator:a6db560ae794b74bc94485c9ff04715bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aac08d41a7d3cbdb4ba664b5e07cda944"><td class="memItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileKey.html#aac08d41a7d3cbdb4ba664b5e07cda944">operator&lt;</a> (const <a class="el" href="classolp_1_1geo_1_1TileKey.html">TileKey</a> &amp;other) const</td></tr>
+<tr class="memdesc:aac08d41a7d3cbdb4ba664b5e07cda944"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implements an order on tile keys, so they can be used in maps: first level, then row, then column.  <a href="#aac08d41a7d3cbdb4ba664b5e07cda944">More...</a><br /></td></tr>
 <tr class="separator:aac08d41a7d3cbdb4ba664b5e07cda944"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a33cfb874bf53928a2e01d6abbd7ec76b"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileKey.html#a33cfb874bf53928a2e01d6abbd7ec76b">ToQuadKey</a> () const</td></tr>
 <tr class="memdesc:a33cfb874bf53928a2e01d6abbd7ec76b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the tile key into a string for using in REST API calls.  <a href="#a33cfb874bf53928a2e01d6abbd7ec76b">More...</a><br /></td></tr>
@@ -167,16 +171,16 @@ constexpr std::uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a cl
 <tr class="memdesc:a4c4cc02707e3c4abc8680bdc66f465ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a new tile key at the requested level.  <a href="#a4c4cc02707e3c4abc8680bdc66f465ff">More...</a><br /></td></tr>
 <tr class="separator:a4c4cc02707e3c4abc8680bdc66f465ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a84a837a95a8677b07b0c849d500bbb2b"><td class="memItemLeft" align="right" valign="top">std::uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileKey.html#a84a837a95a8677b07b0c849d500bbb2b">GetSubkey64</a> (int delta) const</td></tr>
-<tr class="memdesc:a84a837a95a8677b07b0c849d500bbb2b"><td class="mdescLeft">&#160;</td><td class="mdescRight">see <a class="el" href="structolp_1_1geo_1_1QuadKey64Helper.html#a4c65c4f089eed4c3ce3cad5359d3c4ef" title="Returns a sub quad key that is relative to its parent.">QuadKey64Helper::GetSubkey()</a>  <a href="#a84a837a95a8677b07b0c849d500bbb2b">More...</a><br /></td></tr>
+<tr class="memdesc:a84a837a95a8677b07b0c849d500bbb2b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a sub quad key that is relative to its parent.  <a href="#a84a837a95a8677b07b0c849d500bbb2b">More...</a><br /></td></tr>
 <tr class="separator:a84a837a95a8677b07b0c849d500bbb2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aef29f32c7896284209e89a0183016397"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1geo_1_1TileKey.html">TileKey</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileKey.html#aef29f32c7896284209e89a0183016397">AddedSubkey64</a> (std::uint64_t sub_quad_key) const</td></tr>
-<tr class="memdesc:aef29f32c7896284209e89a0183016397"><td class="mdescLeft">&#160;</td><td class="mdescRight">see <a class="el" href="structolp_1_1geo_1_1QuadKey64Helper.html#a3ca9c6b936ec92233099119934b1d55e" title="Returns a quad key that is constructed from its subkey.">QuadKey64Helper::AddedSubkey()</a>  <a href="#aef29f32c7896284209e89a0183016397">More...</a><br /></td></tr>
+<tr class="memdesc:aef29f32c7896284209e89a0183016397"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a quad key that is constructed from its sub quad key.  <a href="#aef29f32c7896284209e89a0183016397">More...</a><br /></td></tr>
 <tr class="separator:aef29f32c7896284209e89a0183016397"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad9f1ecbac85e58c76b9fc6570ac39237"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1geo_1_1TileKey.html">TileKey</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileKey.html#ad9f1ecbac85e58c76b9fc6570ac39237">AddedSubkey</a> (const std::string &amp;sub_quad_key) const</td></tr>
-<tr class="memdesc:ad9f1ecbac85e58c76b9fc6570ac39237"><td class="mdescLeft">&#160;</td><td class="mdescRight">see <a class="el" href="structolp_1_1geo_1_1QuadKey64Helper.html#a3ca9c6b936ec92233099119934b1d55e" title="Returns a quad key that is constructed from its subkey.">QuadKey64Helper::AddedSubkey()</a>  <a href="#ad9f1ecbac85e58c76b9fc6570ac39237">More...</a><br /></td></tr>
+<tr class="memdesc:ad9f1ecbac85e58c76b9fc6570ac39237"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a quad key that is constructed from its sub quad key.  <a href="#ad9f1ecbac85e58c76b9fc6570ac39237">More...</a><br /></td></tr>
 <tr class="separator:ad9f1ecbac85e58c76b9fc6570ac39237"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3eaa82c4b56ff5cf258e33cd70646d84"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1geo_1_1TileKey.html">TileKey</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileKey.html#a3eaa82c4b56ff5cf258e33cd70646d84">AddedSubHereTile</a> (const std::string &amp;sub_here_tile) const</td></tr>
-<tr class="memdesc:a3eaa82c4b56ff5cf258e33cd70646d84"><td class="mdescLeft">&#160;</td><td class="mdescRight">see <a class="el" href="structolp_1_1geo_1_1QuadKey64Helper.html#a3ca9c6b936ec92233099119934b1d55e" title="Returns a quad key that is constructed from its subkey.">QuadKey64Helper::AddedSubkey()</a>  <a href="#a3eaa82c4b56ff5cf258e33cd70646d84">More...</a><br /></td></tr>
+<tr class="memdesc:a3eaa82c4b56ff5cf258e33cd70646d84"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a quad key that is constructed from its sub quad key.  <a href="#a3eaa82c4b56ff5cf258e33cd70646d84">More...</a><br /></td></tr>
 <tr class="separator:a3eaa82c4b56ff5cf258e33cd70646d84"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7521f6fb847dc51605140c39d54d68bb"><td class="memItemLeft" align="right" valign="top"><a id="a7521f6fb847dc51605140c39d54d68bb"></a>
 constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileKey.html#a7521f6fb847dc51605140c39d54d68bb">HasNextRow</a> () const</td></tr>
@@ -216,7 +220,9 @@ constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" 
 <tr class="memitem:a9bc02e5560d239b81afa4ffa1ac95fa6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1geo_1_1TileKey.html">TileKey</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileKey.html#a9bc02e5560d239b81afa4ffa1ac95fa6">GetChild</a> (<a class="el" href="classolp_1_1geo_1_1TileKey.html#af659d79d5825d152002848ad5e735d37">TileKeyQuadrant</a> direction) const</td></tr>
 <tr class="memdesc:a9bc02e5560d239b81afa4ffa1ac95fa6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns child of the current tile by direction.  <a href="#a9bc02e5560d239b81afa4ffa1ac95fa6">More...</a><br /></td></tr>
 <tr class="separator:a9bc02e5560d239b81afa4ffa1ac95fa6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af4b1741b8f654e4e5f5658d68f36b960"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1geo_1_1TileKey.html#af659d79d5825d152002848ad5e735d37">TileKeyQuadrant</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileKey.html#af4b1741b8f654e4e5f5658d68f36b960">RelationshipToParent</a> () const</td></tr>
+<tr class="memitem:af4b1741b8f654e4e5f5658d68f36b960"><td class="memItemLeft" align="right" valign="top"><a id="af4b1741b8f654e4e5f5658d68f36b960"></a>
+<a class="el" href="classolp_1_1geo_1_1TileKey.html#af659d79d5825d152002848ad5e735d37">TileKeyQuadrant</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileKey.html#af4b1741b8f654e4e5f5658d68f36b960">RelationshipToParent</a> () const</td></tr>
+<tr class="memdesc:af4b1741b8f654e4e5f5658d68f36b960"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes the direction in relationship to the parent, returns Invalid if the <a class="el" href="classolp_1_1geo_1_1TileKey.html" title="The TileKey instances used to address a tile in a quad tree.">TileKey</a> represents the root. <br /></td></tr>
 <tr class="separator:af4b1741b8f654e4e5f5658d68f36b960"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
@@ -246,31 +252,7 @@ Static Public Member Functions</h2></td></tr>
 <li><a class="el" href="classolp_1_1geo_1_1TileKey.html#aa1ac23a9f9ae1a2e625551472507703e" title="Converts the tile key into a string for using in REST API calls.">ToHereTile()</a> / <a class="el" href="classolp_1_1geo_1_1TileKey.html#ab08084be0e985c9c04afa150066f4734" title="Creates a tile key from a heretile codes string.">FromHereTile()</a> - string representation 10-based</li>
 <li><a class="el" href="classolp_1_1geo_1_1TileKey.html#adde8e23d4563d53d0c34ee958df4fb96" title="Converts the tile key to a 64-bit morton code representation.">ToQuadKey64()</a> / <a class="el" href="classolp_1_1geo_1_1TileKey.html#abe2a7c9a9f7dd762c46f573446e1a4a4" title="Creates a tile key from a 64-bit morton code representation.">FromQuadKey64()</a> - 64-bit morton code representation. </li>
 </ul>
-</div><h2 class="groupheader">Member Enumeration Documentation</h2>
-<a id="af659d79d5825d152002848ad5e735d37"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af659d79d5825d152002848ad5e735d37">&#9670;&nbsp;</a></span>TileKeyQuadrant</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="classolp_1_1geo_1_1TileKey.html#af659d79d5825d152002848ad5e735d37">olp::geo::TileKey::TileKeyQuadrant</a> : uint8_t</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Cardinal direction, used to find child node by such direction or for the relationship to the parent, corresponds directly to the idx in the function GetChild. </p>
-
-</div>
-</div>
-<h2 class="groupheader">Member Function Documentation</h2>
+</div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a3eaa82c4b56ff5cf258e33cd70646d84"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3eaa82c4b56ff5cf258e33cd70646d84">&#9670;&nbsp;</a></span>AddedSubHereTile()</h2>
 
@@ -287,14 +269,15 @@ Static Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>see <a class="el" href="structolp_1_1geo_1_1QuadKey64Helper.html#a3ca9c6b936ec92233099119934b1d55e" title="Returns a quad key that is constructed from its subkey.">QuadKey64Helper::AddedSubkey()</a> </p>
+<p>Returns a quad key that is constructed from its sub quad key. </p>
+<p>This function is the reverse of GetSubkey(). It returns the absolute quad key in the tree based on a sub quad key.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">sub_here_tile</td><td>the sub quad here tile key to apply </td></tr>
+    <tr><td class="paramname">sub_key</td><td>The sub quad key that was generated with ToSubQuadKey().</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The resulting tile key </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>the absolute quad key in the quad tree. </dd></dl>
 
 </div>
 </div>
@@ -314,14 +297,15 @@ Static Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>see <a class="el" href="structolp_1_1geo_1_1QuadKey64Helper.html#a3ca9c6b936ec92233099119934b1d55e" title="Returns a quad key that is constructed from its subkey.">QuadKey64Helper::AddedSubkey()</a> </p>
+<p>Returns a quad key that is constructed from its sub quad key. </p>
+<p>This function is the reverse of GetSubkey(). It returns the absolute quad key in the tree based on a sub quad key.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">sub_quad_key</td><td>the sub quad key to apply </td></tr>
+    <tr><td class="paramname">sub_key</td><td>The sub quad key that was generated with ToSubQuadKey().</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The resulting tile key </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>the absolute quad key in the quad tree. </dd></dl>
 
 </div>
 </div>
@@ -341,14 +325,15 @@ Static Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>see <a class="el" href="structolp_1_1geo_1_1QuadKey64Helper.html#a3ca9c6b936ec92233099119934b1d55e" title="Returns a quad key that is constructed from its subkey.">QuadKey64Helper::AddedSubkey()</a> </p>
+<p>Returns a quad key that is constructed from its sub quad key. </p>
+<p>This function is the reverse of GetSubkey(). It returns the absolute quad key in the tree based on a sub quad key.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">sub_quad_key</td><td>the sub quad key to apply </td></tr>
+    <tr><td class="paramname">sub_key</td><td>The sub quad key that was generated with ToSubQuadKey().</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The resulting quad </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>the absolute quad key in the quad tree. </dd></dl>
 
 </div>
 </div>
@@ -399,7 +384,7 @@ Static Public Member Functions</h2></td></tr>
 <p>If the requested level is smaller then the tile's level, then the key of an ancestor of this tile is returned. If the requested level is larger then the tile's level, then the key of first child or grandchild of this tile is returned, i.e. the child with the lowest row and column number. If the requested level equals this tile's level, then the tile key itself is returned.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">level</td><td>the requested level </td></tr>
+    <tr><td class="paramname">level</td><td>The requested level. </td></tr>
   </table>
   </dd>
 </dl>
@@ -592,7 +577,7 @@ Static Public Member Functions</h2></td></tr>
 <p>Returns n-th child of the current tile. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">index</td><td>the child index from [0, 3] range </td></tr>
+    <tr><td class="paramname">index</td><td>the child index from [0, 3] range. </td></tr>
   </table>
   </dd>
 </dl>
@@ -618,7 +603,7 @@ Static Public Member Functions</h2></td></tr>
 <p>Returns child of the current tile by direction. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">direction</td><td>which child to return </td></tr>
+    <tr><td class="paramname">direction</td><td>which child to return. </td></tr>
   </table>
   </dd>
 </dl>
@@ -641,14 +626,17 @@ Static Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>see <a class="el" href="structolp_1_1geo_1_1QuadKey64Helper.html#a4c65c4f089eed4c3ce3cad5359d3c4ef" title="Returns a sub quad key that is relative to its parent.">QuadKey64Helper::GetSubkey()</a> </p>
+<p>Returns a sub quad key that is relative to its parent. </p>
+<p>This function can be used to generate sub keys that are relative to a parent that is delta levels up in the sub tree.</p>
+<p>This function can be used to create shortened keys for quads on lower levels if the parent is known.</p>
+<p>Note - the sub quad keys fit in a 16 bit unsigned integer if the delta is smaller than 8. If delta is smaller than 16, the sub quad key fits into an unsigned 32 bit integer.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">delta</td><td>see Quad64::GetSubkey() </td></tr>
+    <tr><td class="paramname">delta</td><td>the amount of levels relative to its parent quad key. Must be greater or equal to 0 and smaller than 32.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The subquad key </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The quad key relative to its parent that is delta levels up the tree. </dd></dl>
 
 </div>
 </div>
@@ -671,7 +659,7 @@ Static Public Member Functions</h2></td></tr>
 <p>Checks the current tile is a child of another tile. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">tile_key</td><td>tile key of a possible parent. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">tile_key</td><td>tile key of a possible parent.</td></tr>
   </table>
   </dd>
 </dl>
@@ -698,7 +686,7 @@ Static Public Member Functions</h2></td></tr>
 <p>Checks the current tile is a parent of another tile. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">tile_key</td><td>tile key of a possible child. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">tile_key</td><td>tile key of a possible child.</td></tr>
   </table>
   </dd>
 </dl>
@@ -729,7 +717,9 @@ Static Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Operator !=. </p><dl class="params"><dt>Parameters</dt><dd>
+
+<p>Inequality operator. </p>
+<dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">other</td><td><a class="el" href="classolp_1_1geo_1_1TileKey.html" title="The TileKey instances used to address a tile in a quad tree.">TileKey</a> to be compared to this. </td></tr>
   </table>
@@ -761,7 +751,8 @@ Static Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Implements an order on tile keys, so they can be used in maps: first level, then row, then column.</p>
+
+<p>Implements an order on tile keys, so they can be used in maps: first level, then row, then column. </p>
 <p>If you need more locality, you should use the 64bit morton encoding instead (<a class="el" href="classolp_1_1geo_1_1TileKey.html#adde8e23d4563d53d0c34ee958df4fb96" title="Converts the tile key to a 64-bit morton code representation.">ToQuadKey64()</a>). </p>
 
 </div>
@@ -789,7 +780,9 @@ Static Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Operator ==. </p><dl class="params"><dt>Parameters</dt><dd>
+
+<p>Equality operator. </p>
+<dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">other</td><td><a class="el" href="classolp_1_1geo_1_1TileKey.html" title="The TileKey instances used to address a tile in a quad tree.">TileKey</a> to be compared to this. </td></tr>
   </table>
@@ -815,24 +808,6 @@ Static Public Member Functions</h2></td></tr>
 
 <p>Returns a tile key representing the paren of the tile addressed by this tile key. </p>
 <p>If the tile was the root tile, the invalid tile key is returned. </p>
-
-</div>
-</div>
-<a id="af4b1741b8f654e4e5f5658d68f36b960"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af4b1741b8f654e4e5f5658d68f36b960">&#9670;&nbsp;</a></span>RelationshipToParent()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classolp_1_1geo_1_1TileKey.html#af659d79d5825d152002848ad5e735d37">TileKeyQuadrant</a> olp::geo::TileKey::RelationshipToParent </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Computes the direction in relationship to the parent, returns Invalid if the <a class="el" href="classolp_1_1geo_1_1TileKey.html" title="The TileKey instances used to address a tile in a quad tree.">TileKey</a> represents the root </p>
 
 </div>
 </div>

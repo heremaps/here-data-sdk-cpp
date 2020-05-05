@@ -28,7 +28,6 @@ var searchData=
   ['token_5fcache_5flimit',['token_cache_limit',['../structolp_1_1authentication_1_1AuthenticationSettings.html#a29996f4e7d048e9577c99f593a8ab583',1,'olp::authentication::AuthenticationSettings']]],
   ['token_5fendpoint_5furl',['token_endpoint_url',['../structolp_1_1authentication_1_1AuthenticationSettings.html#a6f72430f0e2e75c59786ff8b8141b749',1,'olp::authentication::AuthenticationSettings::token_endpoint_url()'],['../structolp_1_1authentication_1_1Settings.html#ace5921a01f0918583220d141b59aa094',1,'olp::authentication::Settings::token_endpoint_url()']]],
   ['tokenprovider',['TokenProvider',['../classolp_1_1authentication_1_1TokenProvider.html',1,'olp::authentication::TokenProvider&lt; MinimumValidity &gt;'],['../classolp_1_1authentication_1_1TokenProvider.html#a93b2cab571de4a77f9ca33a0e4358efb',1,'olp::authentication::TokenProvider::TokenProvider()']]],
-  ['tokenprovider_2eh',['TokenProvider.h',['../TokenProvider_8h.html',1,'']]],
   ['tokenprovidercallback',['TokenProviderCallback',['../structolp_1_1client_1_1AuthenticationSettings.html#ab6073dcc4d615301cbc5770add5e91c2',1,'olp::client::AuthenticationSettings']]],
   ['tokenprovidercancelcallback',['TokenProviderCancelCallback',['../structolp_1_1client_1_1AuthenticationSettings.html#a2f09e92369bf14adf30b623810beba2c',1,'olp::client::AuthenticationSettings']]],
   ['tokenproviderdefault',['TokenProviderDefault',['../namespaceolp_1_1authentication.html#add9e77c777aa9984099a62d7ca94ba5c',1,'olp::authentication']]],

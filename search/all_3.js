@@ -5,6 +5,8 @@ var searchData=
   ['datarequest',['DataRequest',['../classolp_1_1dataservice_1_1read_1_1DataRequest.html',1,'olp::dataservice::read']]],
   ['date_5fof_5fbirth',['date_of_birth',['../structolp_1_1authentication_1_1AuthenticationClient_1_1SignUpProperties.html#ab8dbd41b1c0015306baa77bda771b6c7',1,'olp::authentication::AuthenticationClient::SignUpProperties']]],
   ['debugappender',['DebugAppender',['../classolp_1_1logging_1_1DebugAppender.html',1,'olp::logging']]],
+  ['decisionoperatortype',['DecisionOperatorType',['../classolp_1_1authentication_1_1AuthorizeRequest.html#af1f988e1ea8b039b4110e319936647c3',1,'olp::authentication::AuthorizeRequest']]],
+  ['decisiontype',['DecisionType',['../namespaceolp_1_1authentication.html#a1841dcf42eeb1ee355168da066fb4d44',1,'olp::authentication']]],
   ['decode',['Decode',['../classolp_1_1utils_1_1Url.html#a9e5417833719fef4d554de4766e2f053',1,'olp::utils::Url']]],
   ['defaultbackdownpolicy',['DefaultBackdownPolicy',['../namespaceolp_1_1client.html#a3ba192d0d5a5655f1ae280112379b7a0',1,'olp::client']]],
   ['defaultcache',['DefaultCache',['../classolp_1_1cache_1_1DefaultCache.html',1,'olp::cache::DefaultCache'],['../classolp_1_1cache_1_1DefaultCache.html#a586956baf8a9b2072409bc81b70bd6e9',1,'olp::cache::DefaultCache::DefaultCache()']]],

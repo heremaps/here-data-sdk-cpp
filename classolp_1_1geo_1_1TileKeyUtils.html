@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.5.0</span>
+   &#160;<span id="projectnumber">1.6.0</span>
    </div>
   </td>
  </tr>
@@ -86,6 +86,7 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memdesc:ac76e4a3a7079816dce5f177fa8f5de84"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the tile key relative to a given parent.  <a href="#ac76e4a3a7079816dce5f177fa8f5de84">More...</a><br /></td></tr>
 <tr class="separator:ac76e4a3a7079816dce5f177fa8f5de84"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeeca9b6a32caf61a945a1039b1cc0704"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classolp_1_1geo_1_1TileKey.html">TileKey</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileKeyUtils.html#aeeca9b6a32caf61a945a1039b1cc0704">GetAbsoluteSubTileKey</a> (const <a class="el" href="classolp_1_1geo_1_1TileKey.html">TileKey</a> &amp;parent, const <a class="el" href="classolp_1_1geo_1_1TileKey.html">TileKey</a> &amp;sub_tile)</td></tr>
+<tr class="memdesc:aeeca9b6a32caf61a945a1039b1cc0704"><td class="mdescLeft">&#160;</td><td class="mdescRight">Merges the given parent tile key and the sub tile key to an absolute tile key.  <a href="#aeeca9b6a32caf61a945a1039b1cc0704">More...</a><br /></td></tr>
 <tr class="separator:aeeca9b6a32caf61a945a1039b1cc0704"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
@@ -134,7 +135,7 @@ Static Public Member Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">tiling_scheme</td><td>Tiling scheme. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">geo_point</td><td>Geo coordinates to find container tile key for. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">level</td><td>Level of the tile key. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">level</td><td>Level of the tile key.</td></tr>
   </table>
   </dd>
 </dl>
@@ -187,7 +188,7 @@ Static Public Member Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">tiling_scheme</td><td>Tiling scheme. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">geo_rectangle</td><td>rectangle to find overlapping tile keys for. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">level</td><td>Level of the tile key. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">level</td><td>Level of the tile key.</td></tr>
   </table>
   </dd>
 </dl>
@@ -228,11 +229,12 @@ Static Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Merges the given parent tile key and the sub tile key to an absolute tile key.</p>
+
+<p>Merges the given parent tile key and the sub tile key to an absolute tile key. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">parent</td><td>The parent tile key </td></tr>
-    <tr><td class="paramname">sub_tile</td><td>The sub tile key </td></tr>
+    <tr><td class="paramname">parent</td><td>The parent tile key. </td></tr>
+    <tr><td class="paramname">sub_tile</td><td>The sub tile key.</td></tr>
   </table>
   </dd>
 </dl>
@@ -278,7 +280,7 @@ Static Public Member Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">key</td><td>The tile key to convert. </td></tr>
-    <tr><td class="paramname">parent_level</td><td>The parent level. Parent level is expected to be less or equal to key.Level(). </td></tr>
+    <tr><td class="paramname">parent_level</td><td>The parent level. Parent level is expected to be less or equal to key.Level().</td></tr>
   </table>
   </dd>
 </dl>

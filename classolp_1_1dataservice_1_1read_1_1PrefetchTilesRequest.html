@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.5.0</span>
+   &#160;<span id="projectnumber">1.6.0</span>
    </div>
   </td>
  </tr>
@@ -87,9 +87,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:afc36ed4ad48433a1b0e73e973f26d462"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1PrefetchTilesRequest.html">PrefetchTilesRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1PrefetchTilesRequest.html#afc36ed4ad48433a1b0e73e973f26d462">WithTileKeys</a> (std::vector&lt; <a class="el" href="classolp_1_1geo_1_1TileKey.html">geo::TileKey</a> &gt; tile_keys)</td></tr>
 <tr class="memdesc:afc36ed4ad48433a1b0e73e973f26d462"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the vector of the root tile keys for the request.  <a href="#afc36ed4ad48433a1b0e73e973f26d462">More...</a><br /></td></tr>
 <tr class="separator:afc36ed4ad48433a1b0e73e973f26d462"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a029e35795a04f9c2d38a096a14700a77"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1PrefetchTilesRequest.html">PrefetchTilesRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1PrefetchTilesRequest.html#a029e35795a04f9c2d38a096a14700a77">WithTileKeys</a> (std::vector&lt; <a class="el" href="classolp_1_1geo_1_1TileKey.html">geo::TileKey</a> &gt; &amp;&amp;tile_keys)</td></tr>
-<tr class="memdesc:a029e35795a04f9c2d38a096a14700a77"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the vector of the root tile keys for the request.  <a href="#a029e35795a04f9c2d38a096a14700a77">More...</a><br /></td></tr>
-<tr class="separator:a029e35795a04f9c2d38a096a14700a77"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4a922e6aa040fa52a4a049ecd219c4a7"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1PrefetchTilesRequest.html#a4a922e6aa040fa52a4a049ecd219c4a7">GetMinLevel</a> () const</td></tr>
 <tr class="memdesc:a4a922e6aa040fa52a4a049ecd219c4a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the minimum tiles level to prefetch.  <a href="#a4a922e6aa040fa52a4a049ecd219c4a7">More...</a><br /></td></tr>
 <tr class="separator:a4a922e6aa040fa52a4a049ecd219c4a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -298,7 +295,7 @@ Public Member Functions</h2></td></tr>
 
 <p>Gets the catalog version for the request. </p>
 <dl class="section return"><dt>Returns</dt><dd>The catalog version or <code>boost::none</code> if the catalog version is not set.</dd></dl>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000019">Deprecated:</a></b></dt><dd>The version is now a part of the <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html" title="Gets data from a versioned layer of the Open Location Platform (OLP).">VersionedLayerClient</a> constructor. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000022">Deprecated:</a></b></dt><dd>The version is now a part of the <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html" title="Gets data from a versioned layer of the Open Location Platform (OLP).">VersionedLayerClient</a> constructor. </dd></dl>
 
 </div>
 </div>
@@ -445,7 +442,7 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a id="afc36ed4ad48433a1b0e73e973f26d462"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afc36ed4ad48433a1b0e73e973f26d462">&#9670;&nbsp;</a></span>WithTileKeys() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#afc36ed4ad48433a1b0e73e973f26d462">&#9670;&nbsp;</a></span>WithTileKeys()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -472,41 +469,6 @@ Public Member Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">tile_keys</td><td>The vector with the root tile keys of the prefetch.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1PrefetchTilesRequest.html" title="Encapsulates the fields required to prefetch the specified layers, tiles, and levels.">PrefetchTilesRequest</a></code> instance. </dd></dl>
-
-</div>
-</div>
-<a id="a029e35795a04f9c2d38a096a14700a77"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a029e35795a04f9c2d38a096a14700a77">&#9670;&nbsp;</a></span>WithTileKeys() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classolp_1_1dataservice_1_1read_1_1PrefetchTilesRequest.html">PrefetchTilesRequest</a>&amp; olp::dataservice::read::PrefetchTilesRequest::WithTileKeys </td>
-          <td>(</td>
-          <td class="paramtype">std::vector&lt; <a class="el" href="classolp_1_1geo_1_1TileKey.html">geo::TileKey</a> &gt; &amp;&amp;&#160;</td>
-          <td class="paramname"><em>tile_keys</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Sets the vector of the root tile keys for the request. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">tile_keys</td><td>The rvalue reference to the vector with the root tile keys of the prefetch.</td></tr>
   </table>
   </dd>
 </dl>
@@ -546,7 +508,7 @@ Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1PrefetchTilesRequest.html" title="Encapsulates the fields required to prefetch the specified layers, tiles, and levels.">PrefetchTilesRequest</a></code> instance.</dd></dl>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000018">Deprecated:</a></b></dt><dd>The version is now a part of the <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html" title="Gets data from a versioned layer of the Open Location Platform (OLP).">VersionedLayerClient</a> constructor. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000021">Deprecated:</a></b></dt><dd>The version is now a part of the <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html" title="Gets data from a versioned layer of the Open Location Platform (OLP).">VersionedLayerClient</a> constructor. </dd></dl>
 
 </div>
 </div>

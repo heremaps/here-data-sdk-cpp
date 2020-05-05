@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.5.0</span>
+   &#160;<span id="projectnumber">1.6.0</span>
    </div>
   </td>
  </tr>
@@ -97,11 +97,10 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 <tr class="separator:a6f72430f0e2e75c59786ff8b8141b749"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a29996f4e7d048e9577c99f593a8ab583"><td class="memItemLeft" align="right" valign="top"><a id="a29996f4e7d048e9577c99f593a8ab583"></a>
 size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1AuthenticationSettings.html#a29996f4e7d048e9577c99f593a8ab583">token_cache_limit</a> {100u}</td></tr>
-<tr class="memdesc:a29996f4e7d048e9577c99f593a8ab583"><td class="mdescLeft">&#160;</td><td class="mdescRight">The maximum number of tokens that can be stored in LRU in-memory cache. <br /></td></tr>
+<tr class="memdesc:a29996f4e7d048e9577c99f593a8ab583"><td class="mdescLeft">&#160;</td><td class="mdescRight">The maximum number of tokens that can be stored in LRU memory cache. <br /></td></tr>
 <tr class="separator:a29996f4e7d048e9577c99f593a8ab583"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aad5d09bd8920bcc09efed78dcc1c64c5"><td class="memItemLeft" align="right" valign="top"><a id="aad5d09bd8920bcc09efed78dcc1c64c5"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1AuthenticationSettings.html#aad5d09bd8920bcc09efed78dcc1c64c5">use_system_time</a> {false}</td></tr>
-<tr class="memdesc:aad5d09bd8920bcc09efed78dcc1c64c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses system system time in authentication requests rather than requesting time from authentication server. <br /></td></tr>
+<tr class="memitem:aad5d09bd8920bcc09efed78dcc1c64c5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1AuthenticationSettings.html#aad5d09bd8920bcc09efed78dcc1c64c5">use_system_time</a> {false}</td></tr>
+<tr class="memdesc:aad5d09bd8920bcc09efed78dcc1c64c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses system system time in authentication requests rather than requesting time from authentication server.  <a href="#aad5d09bd8920bcc09efed78dcc1c64c5">More...</a><br /></td></tr>
 <tr class="separator:aad5d09bd8920bcc09efed78dcc1c64c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -139,6 +138,23 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stru
 
 <p>The <code>TaskScheduler</code> class that is used to manage the callbacks enqueue. </p>
 <p>If nullptr, all request calls are performed synchronously. </p>
+
+</div>
+</div>
+<a id="aad5d09bd8920bcc09efed78dcc1c64c5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aad5d09bd8920bcc09efed78dcc1c64c5">&#9670;&nbsp;</a></span>use_system_time</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool olp::authentication::AuthenticationSettings::use_system_time {false}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Uses system system time in authentication requests rather than requesting time from authentication server. </p>
+<dl class="section note"><dt>Note</dt><dd>Please make sure that the system time does not deviate from the official UTC time as it might result in error responses from the authentication server. </dd></dl>
 
 </div>
 </div>

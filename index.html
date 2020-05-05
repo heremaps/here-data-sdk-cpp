@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.5.0</span>
+   &#160;<span id="projectnumber">1.6.0</span>
    </div>
   </td>
  </tr>
@@ -111,6 +111,11 @@ $(function() {
 <li>Upload data to OLP</li>
 </ul>
 <p>Additionally, the SDK includes classes for work with geospatial tiling schemes that are used by most OLP catalog layers.</p>
+<h2>Backward Compatibility</h2>
+<p>We try to develop and maintain our API in a way that preserves its compatibility with the existing applications. Changes in OLP SDK for C++ are greatly influenced by the Data API development. Data API introduces breaking changes 6 months in advance. Therefore, you may need to migrate to a new version of OLP SDK for C++ every half a year.</p>
+<p>For more information on Data API, see its <a href="https://developer.here.com/olp/documentation/data-api/data_dev_guide/index.html" target="_blank">Developer Guide</a> and <a href="https://developer.here.com/olp/documentation/data-api/api-reference.html" target="_blank">API Reference</a>.</p>
+<p>When new API is introduced in OLP SDK for C++, the old one is not deleted straight away. The standard API deprecation time is 6 months. It gives you time to switch to new code. However, we do not provide ABI backward compatibility.</p>
+<p>All of the deprecated methods, functions, and parameters are documented in the OLP SDK for C++ <a href="https://developer.here.com/olp/documentation/sdk-cpp/api_reference/index.html" target="_blank">API Reference</a> and <a href="https://github.com/heremaps/here-olp-sdk-cpp/blob/master/CHANGELOG.md" target="_blank">changelog</a>.</p>
 <h2>Supported Platforms</h2>
 <p>The table below lists the platforms on which the OLP SDK for C++ has been tested.</p>
 <table class="markdownTable">

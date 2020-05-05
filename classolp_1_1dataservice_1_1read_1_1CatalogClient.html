@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.5.0</span>
+   &#160;<span id="projectnumber">1.6.0</span>
    </div>
   </td>
  </tr>
@@ -118,7 +118,7 @@ Public Member Functions</h2></td></tr>
 <p>You can overwrite the default implementation for the following items:</p><ul>
 <li>The task scheduler. By default, all request calls are performed synchronously.</li>
 <li>The network. You can set the default implementation (<code><a class="el" href="classolp_1_1client_1_1OlpClientSettingsFactory.html#a2d7121fa1c55ec4c339f3378f7078dd2" title="Creates the Network instance used for all the non-local requests.">olp::client::OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler</a></code>) or pass a custom network implementation to the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1CatalogClient.html" title="Provides a high-level interface to access data hosted on OLP using the HERE Open Location Platform (O...">CatalogClient</a></code> object.</li>
-<li>The on-disk cache. By default, the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1CatalogClient.html" title="Provides a high-level interface to access data hosted on OLP using the HERE Open Location Platform (O...">CatalogClient</a></code> object uses the default implementation of <code><a class="el" href="classolp_1_1cache_1_1DefaultCache.html" title="A default cache that provides an in-memory LRU cache and persistence of cached key-value pairs.">olp::cache::DefaultCache</a></code>. </li>
+<li>The disk cache. By default, the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1CatalogClient.html" title="Provides a high-level interface to access data hosted on OLP using the HERE Open Location Platform (O...">CatalogClient</a></code> object uses the default implementation of <code><a class="el" href="classolp_1_1cache_1_1DefaultCache.html" title="A default cache that provides a memory LRU cache and persistence of cached key-value pairs.">olp::cache::DefaultCache</a></code>. </li>
 </ul>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ad037e9572a0d8c76d6328c29c57ee809"></a>

@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.5.0</span>
+   &#160;<span id="projectnumber">1.6.0</span>
    </div>
   </td>
  </tr>
@@ -74,13 +74,16 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
+<p>Quadtree subdivision scheme.  
+ <a href="classolp_1_1geo_1_1QuadTreeSubdivisionScheme.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="QuadTreeSubdivisionScheme_8h_source.html">QuadTreeSubdivisionScheme.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for olp::geo::QuadTreeSubdivisionScheme:</div>
 <div class="dyncontent">
 <div class="center"><img src="classolp_1_1geo_1_1QuadTreeSubdivisionScheme__inherit__graph.png" border="0" usemap="#olp_1_1geo_1_1QuadTreeSubdivisionScheme_inherit__map" alt="Inheritance graph"/></div>
 <map name="olp_1_1geo_1_1QuadTreeSubdivisionScheme_inherit__map" id="olp_1_1geo_1_1QuadTreeSubdivisionScheme_inherit__map">
-<area shape="rect"  title=" " alt="" coords="5,80,224,121"/>
+<area shape="rect"  title="Quadtree subdivision scheme." alt="" coords="5,80,224,121"/>
 <area shape="rect"  href="classolp_1_1geo_1_1ISubdivisionScheme.html" title=" " alt="" coords="8,5,221,32"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
@@ -89,7 +92,7 @@ Collaboration diagram for olp::geo::QuadTreeSubdivisionScheme:</div>
 <div class="dyncontent">
 <div class="center"><img src="classolp_1_1geo_1_1QuadTreeSubdivisionScheme__coll__graph.png" border="0" usemap="#olp_1_1geo_1_1QuadTreeSubdivisionScheme_coll__map" alt="Collaboration graph"/></div>
 <map name="olp_1_1geo_1_1QuadTreeSubdivisionScheme_coll__map" id="olp_1_1geo_1_1QuadTreeSubdivisionScheme_coll__map">
-<area shape="rect"  title=" " alt="" coords="5,80,224,121"/>
+<area shape="rect"  title="Quadtree subdivision scheme." alt="" coords="5,80,224,121"/>
 <area shape="rect"  href="classolp_1_1geo_1_1ISubdivisionScheme.html" title=" " alt="" coords="8,5,221,32"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
@@ -106,8 +109,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a6526e8c3b81e9859149d3d4a1a30803c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Quadtree subdivision scheme</p>
-<p>Subdivides tiles on all levels into four equal-sized subtiles </p>
+<div class="textblock"><p>Quadtree subdivision scheme. </p>
+<p>Subdivides tiles on all levels into four equal-sized subtiles. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a6526e8c3b81e9859149d3d4a1a30803c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6526e8c3b81e9859149d3d4a1a30803c">&#9670;&nbsp;</a></span>GetLevelSize()</h2>
@@ -132,13 +135,14 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Get size of a given level </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Get size of a given level.</p>
+<dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">level</td><td>Subdivision level </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">level</td><td>Subdivision level.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Horizontal and vertical number of tiles (e.g. 2^level x 2^level) </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Horizontal and vertical number of tiles (e.g. 2^level x 2^level). </dd></dl>
 
 <p>Implements <a class="el" href="classolp_1_1geo_1_1ISubdivisionScheme.html#a058adf591d10557f24162e9bcc8149db">olp::geo::ISubdivisionScheme</a>.</p>
 
@@ -166,7 +170,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Get unique scheme name </p><dl class="section return"><dt>Returns</dt><dd>Scheme name </dd></dl>
+<p>Get unique scheme name.</p>
+<dl class="section return"><dt>Returns</dt><dd>Scheme name. </dd></dl>
 
 <p>Implements <a class="el" href="classolp_1_1geo_1_1ISubdivisionScheme.html#aaf021b2fb1c4e6f72df6b3e34a5d3b81">olp::geo::ISubdivisionScheme</a>.</p>
 
@@ -195,13 +200,14 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Get number of subtiles a tile splits into at given level </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Get number of subtiles a tile splits into at given level.</p>
+<dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">level</td><td>Subdivision level </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">level</td><td>Subdivision level.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Horizontal and vertical number of subtiles (e.g. 2x2) </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Horizontal and vertical number of subtiles (e.g. 2x2). </dd></dl>
 
 <p>Implements <a class="el" href="classolp_1_1geo_1_1ISubdivisionScheme.html#ab7590486f695e88f2781410d05f8f508">olp::geo::ISubdivisionScheme</a>.</p>
 
@@ -230,13 +236,14 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Check whether two schemes are equal </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Check whether two schemes are equal.</p>
+<dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">other</td><td>Other scheme </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">other</td><td>Other scheme.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>True if equal, false otherwise </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>True if equal, false otherwise. </dd></dl>
 
 <p>Implements <a class="el" href="classolp_1_1geo_1_1ISubdivisionScheme.html#a5e53be08e6f48d6daef36d146ef5cf89">olp::geo::ISubdivisionScheme</a>.</p>
 

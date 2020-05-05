@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.5.0</span>
+   &#160;<span id="projectnumber">1.6.0</span>
    </div>
   </td>
  </tr>
@@ -116,6 +116,9 @@ boost::optional&lt; <a class="el" href="classolp_1_1http_1_1NetworkProxySettings
 <tr class="memitem:ace5921a01f0918583220d141b59aa094"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1Settings.html#ace5921a01f0918583220d141b59aa094">token_endpoint_url</a> {kHereAccountProductionTokenUrl}</td></tr>
 <tr class="memdesc:ace5921a01f0918583220d141b59aa094"><td class="mdescLeft">&#160;</td><td class="mdescRight">(Optional) The server URL of the token endpoint.  <a href="#ace5921a01f0918583220d141b59aa094">More...</a><br /></td></tr>
 <tr class="separator:ace5921a01f0918583220d141b59aa094"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c84932b2de8aba35107522c643e5b83"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1authentication_1_1Settings.html#a8c84932b2de8aba35107522c643e5b83">use_system_time</a> {false}</td></tr>
+<tr class="memdesc:a8c84932b2de8aba35107522c643e5b83"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses system system time in authentication requests rather than requesting time from authentication server.  <a href="#a8c84932b2de8aba35107522c643e5b83">More...</a><br /></td></tr>
+<tr class="separator:a8c84932b2de8aba35107522c643e5b83"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Configures the <code>TokenEndpoint</code> instance. </p>
@@ -170,6 +173,23 @@ boost::optional&lt; <a class="el" href="classolp_1_1http_1_1NetworkProxySettings
 
 <p>(Optional) The server URL of the token endpoint. </p>
 <dl class="section note"><dt>Note</dt><dd>Only standard OAuth2 Token URLs (those ending in <code>oauth2/token</code>) are supported. </dd></dl>
+
+</div>
+</div>
+<a id="a8c84932b2de8aba35107522c643e5b83"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c84932b2de8aba35107522c643e5b83">&#9670;&nbsp;</a></span>use_system_time</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool olp::authentication::Settings::use_system_time {false}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Uses system system time in authentication requests rather than requesting time from authentication server. </p>
+<dl class="section note"><dt>Note</dt><dd>Please make sure that the system time does not deviate from the official UTC time as it might result in error responses from the authentication server. </dd></dl>
 
 </div>
 </div>

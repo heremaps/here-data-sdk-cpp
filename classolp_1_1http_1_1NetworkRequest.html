@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.5.0</span>
+   &#160;<span id="projectnumber">1.6.0</span>
    </div>
   </td>
  </tr>
@@ -75,7 +75,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>This class represents network request abstraction for an HTTP request.  
+<p>A network request abstraction for an HTTP request.  
  <a href="classolp_1_1http_1_1NetworkRequest.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="NetworkRequest_8h_source.html">NetworkRequest.h</a>&gt;</code></p>
@@ -92,17 +92,17 @@ Public Types</h2></td></tr>
 <a class="el" href="classolp_1_1http_1_1NetworkRequest.html#ac280dc7b10a02ce328cf1b6dcae42fd5a63bc9a3997d66d835d9f3ec29451407d">HttpVerb::PATCH</a> = 5
 <br />
  }</td></tr>
-<tr class="memdesc:ac280dc7b10a02ce328cf1b6dcae42fd5"><td class="mdescLeft">&#160;</td><td class="mdescRight">HTTP method as in <a href="https://tools.ietf.org/html/rfc2616">https://tools.ietf.org/html/rfc2616</a>.  <a href="classolp_1_1http_1_1NetworkRequest.html#ac280dc7b10a02ce328cf1b6dcae42fd5">More...</a><br /></td></tr>
+<tr class="memdesc:ac280dc7b10a02ce328cf1b6dcae42fd5"><td class="mdescLeft">&#160;</td><td class="mdescRight">The HTTP method, as specified at <a href="https://tools.ietf.org/html/rfc2616">https://tools.ietf.org/html/rfc2616</a>.  <a href="classolp_1_1http_1_1NetworkRequest.html#ac280dc7b10a02ce328cf1b6dcae42fd5">More...</a><br /></td></tr>
 <tr class="separator:ac280dc7b10a02ce328cf1b6dcae42fd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae13881b97baa0d2d3d9a416dde924c9"><td class="memItemLeft" align="right" valign="top"><a id="aae13881b97baa0d2d3d9a416dde924c9"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkRequest.html#aae13881b97baa0d2d3d9a416dde924c9">RequestBodyType</a> = std::shared_ptr&lt; const std::vector&lt; std::uint8_t &gt; &gt;</td></tr>
-<tr class="memdesc:aae13881b97baa0d2d3d9a416dde924c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Short type alias for HTTP request body. <br /></td></tr>
+<tr class="memdesc:aae13881b97baa0d2d3d9a416dde924c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">The short type alias for the HTTP request body. <br /></td></tr>
 <tr class="separator:aae13881b97baa0d2d3d9a416dde924c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ad3716e6eddd5e3cefa8a8e4ffc0e7d40"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkRequest.html#ad3716e6eddd5e3cefa8a8e4ffc0e7d40">NetworkRequest</a> (std::string url)</td></tr>
-<tr class="memdesc:ad3716e6eddd5e3cefa8a8e4ffc0e7d40"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classolp_1_1http_1_1NetworkRequest.html" title="This class represents network request abstraction for an HTTP request.">NetworkRequest</a> constructor.  <a href="#ad3716e6eddd5e3cefa8a8e4ffc0e7d40">More...</a><br /></td></tr>
+<tr class="memdesc:ad3716e6eddd5e3cefa8a8e4ffc0e7d40"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1http_1_1NetworkRequest.html" title="A network request abstraction for an HTTP request.">NetworkRequest</a></code> instance.  <a href="#ad3716e6eddd5e3cefa8a8e4ffc0e7d40">More...</a><br /></td></tr>
 <tr class="separator:ad3716e6eddd5e3cefa8a8e4ffc0e7d40"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8506e01019444b99872750ebc2db2b9e"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespaceolp_1_1http.html#ae2f7d2a838ca66559b0abdac68a7514c">Headers</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkRequest.html#a8506e01019444b99872750ebc2db2b9e">GetHeaders</a> () const</td></tr>
 <tr class="memdesc:a8506e01019444b99872750ebc2db2b9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets all HTTP headers.  <a href="#a8506e01019444b99872750ebc2db2b9e">More...</a><br /></td></tr>
@@ -114,32 +114,32 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a957bbba9d859e2fba3193ff0d3d6f0a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds an extra HTTP header.  <a href="#a957bbba9d859e2fba3193ff0d3d6f0a9">More...</a><br /></td></tr>
 <tr class="separator:a957bbba9d859e2fba3193ff0d3d6f0a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abcad85557629f1a64084ed212a8453a5"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkRequest.html#abcad85557629f1a64084ed212a8453a5">GetUrl</a> () const</td></tr>
-<tr class="memdesc:abcad85557629f1a64084ed212a8453a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get request URL.  <a href="#abcad85557629f1a64084ed212a8453a5">More...</a><br /></td></tr>
+<tr class="memdesc:abcad85557629f1a64084ed212a8453a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the request URL.  <a href="#abcad85557629f1a64084ed212a8453a5">More...</a><br /></td></tr>
 <tr class="separator:abcad85557629f1a64084ed212a8453a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af46d3f70bcda572ca0c2b6546da892c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1http_1_1NetworkRequest.html">NetworkRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkRequest.html#af46d3f70bcda572ca0c2b6546da892c3">WithUrl</a> (std::string url)</td></tr>
-<tr class="memdesc:af46d3f70bcda572ca0c2b6546da892c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set request URL.  <a href="#af46d3f70bcda572ca0c2b6546da892c3">More...</a><br /></td></tr>
+<tr class="memdesc:af46d3f70bcda572ca0c2b6546da892c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the request URL.  <a href="#af46d3f70bcda572ca0c2b6546da892c3">More...</a><br /></td></tr>
 <tr class="separator:af46d3f70bcda572ca0c2b6546da892c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a849998ad18858d20c8b5624ada0db841"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1http_1_1NetworkRequest.html#ac280dc7b10a02ce328cf1b6dcae42fd5">HttpVerb</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkRequest.html#a849998ad18858d20c8b5624ada0db841">GetVerb</a> () const</td></tr>
-<tr class="memdesc:a849998ad18858d20c8b5624ada0db841"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get HTTP method.  <a href="#a849998ad18858d20c8b5624ada0db841">More...</a><br /></td></tr>
+<tr class="memdesc:a849998ad18858d20c8b5624ada0db841"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the HTTP method.  <a href="#a849998ad18858d20c8b5624ada0db841">More...</a><br /></td></tr>
 <tr class="separator:a849998ad18858d20c8b5624ada0db841"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1d445c939fc11294297b6b7e2ed5d8a8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1http_1_1NetworkRequest.html">NetworkRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkRequest.html#a1d445c939fc11294297b6b7e2ed5d8a8">WithVerb</a> (<a class="el" href="classolp_1_1http_1_1NetworkRequest.html#ac280dc7b10a02ce328cf1b6dcae42fd5">HttpVerb</a> verb)</td></tr>
-<tr class="memdesc:a1d445c939fc11294297b6b7e2ed5d8a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set HTTP method.  <a href="#a1d445c939fc11294297b6b7e2ed5d8a8">More...</a><br /></td></tr>
+<tr class="memdesc:a1d445c939fc11294297b6b7e2ed5d8a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the HTTP method.  <a href="#a1d445c939fc11294297b6b7e2ed5d8a8">More...</a><br /></td></tr>
 <tr class="separator:a1d445c939fc11294297b6b7e2ed5d8a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeacf69da47897a552527a8ed217d8e34"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1http_1_1NetworkRequest.html#aae13881b97baa0d2d3d9a416dde924c9">RequestBodyType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkRequest.html#aeacf69da47897a552527a8ed217d8e34">GetBody</a> () const</td></tr>
-<tr class="memdesc:aeacf69da47897a552527a8ed217d8e34"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get request body.  <a href="#aeacf69da47897a552527a8ed217d8e34">More...</a><br /></td></tr>
+<tr class="memdesc:aeacf69da47897a552527a8ed217d8e34"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the request body.  <a href="#aeacf69da47897a552527a8ed217d8e34">More...</a><br /></td></tr>
 <tr class="separator:aeacf69da47897a552527a8ed217d8e34"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab19bc61256d21a0d70197db83dd8ff5c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1http_1_1NetworkRequest.html">NetworkRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkRequest.html#ab19bc61256d21a0d70197db83dd8ff5c">WithBody</a> (<a class="el" href="classolp_1_1http_1_1NetworkRequest.html#aae13881b97baa0d2d3d9a416dde924c9">RequestBodyType</a> body)</td></tr>
-<tr class="memdesc:ab19bc61256d21a0d70197db83dd8ff5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set request body.  <a href="#ab19bc61256d21a0d70197db83dd8ff5c">More...</a><br /></td></tr>
+<tr class="memdesc:ab19bc61256d21a0d70197db83dd8ff5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the request body.  <a href="#ab19bc61256d21a0d70197db83dd8ff5c">More...</a><br /></td></tr>
 <tr class="separator:ab19bc61256d21a0d70197db83dd8ff5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a00bbf289e39a5754fa99fd8c48ff69c2"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkRequest.html#a00bbf289e39a5754fa99fd8c48ff69c2">GetSettings</a> () const</td></tr>
-<tr class="memdesc:a00bbf289e39a5754fa99fd8c48ff69c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get network settings for this request.  <a href="#a00bbf289e39a5754fa99fd8c48ff69c2">More...</a><br /></td></tr>
+<tr class="memdesc:a00bbf289e39a5754fa99fd8c48ff69c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the network settings for this request.  <a href="#a00bbf289e39a5754fa99fd8c48ff69c2">More...</a><br /></td></tr>
 <tr class="separator:a00bbf289e39a5754fa99fd8c48ff69c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7ddd8ccb622d22b3bc545f422d59f755"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1http_1_1NetworkRequest.html">NetworkRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkRequest.html#a7ddd8ccb622d22b3bc545f422d59f755">WithSettings</a> (<a class="el" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a> settings)</td></tr>
-<tr class="memdesc:a7ddd8ccb622d22b3bc545f422d59f755"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set network settings for this request.  <a href="#a7ddd8ccb622d22b3bc545f422d59f755">More...</a><br /></td></tr>
+<tr class="memdesc:a7ddd8ccb622d22b3bc545f422d59f755"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets network settings for this request.  <a href="#a7ddd8ccb622d22b3bc545f422d59f755">More...</a><br /></td></tr>
 <tr class="separator:a7ddd8ccb622d22b3bc545f422d59f755"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>This class represents network request abstraction for an HTTP request. </p>
+<div class="textblock"><p>A network request abstraction for an HTTP request. </p>
 </div><h2 class="groupheader">Member Enumeration Documentation</h2>
 <a id="ac280dc7b10a02ce328cf1b6dcae42fd5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac280dc7b10a02ce328cf1b6dcae42fd5">&#9670;&nbsp;</a></span>HttpVerb</h2>
@@ -161,19 +161,19 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>HTTP method as in <a href="https://tools.ietf.org/html/rfc2616">https://tools.ietf.org/html/rfc2616</a>. </p>
+<p>The HTTP method, as specified at <a href="https://tools.ietf.org/html/rfc2616">https://tools.ietf.org/html/rfc2616</a>. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ac280dc7b10a02ce328cf1b6dcae42fd5a7528035a93ee69cedb1dbddb2f0bfcc8"></a>GET&#160;</td><td class="fielddoc"><p>GET Method. RFC2616 section-9.3. </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ac280dc7b10a02ce328cf1b6dcae42fd5a7528035a93ee69cedb1dbddb2f0bfcc8"></a>GET&#160;</td><td class="fielddoc"><p>The GET method (RFC2616, section-9.3). </p>
 </td></tr>
-<tr><td class="fieldname"><a id="ac280dc7b10a02ce328cf1b6dcae42fd5aa02439ec229d8be0e74b0c1602392310"></a>POST&#160;</td><td class="fielddoc"><p>POST Method. RFC2616 section-9.5. </p>
+<tr><td class="fieldname"><a id="ac280dc7b10a02ce328cf1b6dcae42fd5aa02439ec229d8be0e74b0c1602392310"></a>POST&#160;</td><td class="fielddoc"><p>The POST method (RFC2616, section-9.5). </p>
 </td></tr>
-<tr><td class="fieldname"><a id="ac280dc7b10a02ce328cf1b6dcae42fd5ae15e216fc1c639f787b1231ecdfa1bf8"></a>HEAD&#160;</td><td class="fielddoc"><p>HEAD Method. RFC2616 section-9.4. </p>
+<tr><td class="fieldname"><a id="ac280dc7b10a02ce328cf1b6dcae42fd5ae15e216fc1c639f787b1231ecdfa1bf8"></a>HEAD&#160;</td><td class="fielddoc"><p>The HEAD method (RFC2616 section-9.4). </p>
 </td></tr>
-<tr><td class="fieldname"><a id="ac280dc7b10a02ce328cf1b6dcae42fd5a3e75383a5992a6d15fb81e872e46e256"></a>PUT&#160;</td><td class="fielddoc"><p>PUT Method. RFC2616 section-9.6. </p>
+<tr><td class="fieldname"><a id="ac280dc7b10a02ce328cf1b6dcae42fd5a3e75383a5992a6d15fb81e872e46e256"></a>PUT&#160;</td><td class="fielddoc"><p>The PUT method (RFC2616 section-9.6). </p>
 </td></tr>
-<tr><td class="fieldname"><a id="ac280dc7b10a02ce328cf1b6dcae42fd5a2bbe23c0e8b3f638f0f5aed4b6864513"></a>DEL&#160;</td><td class="fielddoc"><p>DELETE Method. RFC2616 section-9.7. </p>
+<tr><td class="fieldname"><a id="ac280dc7b10a02ce328cf1b6dcae42fd5a2bbe23c0e8b3f638f0f5aed4b6864513"></a>DEL&#160;</td><td class="fielddoc"><p>The DELETE method (RFC2616 section-9.7). </p>
 </td></tr>
-<tr><td class="fieldname"><a id="ac280dc7b10a02ce328cf1b6dcae42fd5a63bc9a3997d66d835d9f3ec29451407d"></a>PATCH&#160;</td><td class="fielddoc"><p>PATCH Method. RFC2068 section-19.6.1.1. </p>
+<tr><td class="fieldname"><a id="ac280dc7b10a02ce328cf1b6dcae42fd5a63bc9a3997d66d835d9f3ec29451407d"></a>PATCH&#160;</td><td class="fielddoc"><p>The PATCH method (RFC2068 section-19.6.1.1). </p>
 </td></tr>
 </table>
 
@@ -204,10 +204,10 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p><a class="el" href="classolp_1_1http_1_1NetworkRequest.html" title="This class represents network request abstraction for an HTTP request.">NetworkRequest</a> constructor. </p>
+<p>Creates the <code><a class="el" href="classolp_1_1http_1_1NetworkRequest.html" title="A network request abstraction for an HTTP request.">NetworkRequest</a></code> instance. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">url</td><td>HTTP request URL. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">url</td><td>The URL of the HTTP request. </td></tr>
   </table>
   </dd>
 </dl>
@@ -230,8 +230,8 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Get request body. </p>
-<dl class="section return"><dt>Returns</dt><dd>shared pointer to vector that contains request body. </dd></dl>
+<p>Gets the request body. </p>
+<dl class="section return"><dt>Returns</dt><dd>The shared pointer to the vector that contains the request body. </dd></dl>
 
 </div>
 </div>
@@ -271,7 +271,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Gets the mutable reference to the HTTP headers. </p>
-<dl class="section return"><dt>Returns</dt><dd>The mutable reference to vector of HTTP headers. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The mutable reference to vector of the HTTP headers. </dd></dl>
 
 </div>
 </div>
@@ -290,8 +290,8 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Get network settings for this request. </p>
-<dl class="section return"><dt>Returns</dt><dd><a class="el" href="classolp_1_1http_1_1NetworkSettings.html" title="This class contains configuration for the network.">NetworkSettings</a> object. </dd></dl>
+<p>Gets the network settings for this request. </p>
+<dl class="section return"><dt>Returns</dt><dd>The <code><a class="el" href="classolp_1_1http_1_1NetworkSettings.html" title="Contains a configuration for the network.">NetworkSettings</a></code> object. </dd></dl>
 
 </div>
 </div>
@@ -310,8 +310,8 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Get request URL. </p>
-<dl class="section return"><dt>Returns</dt><dd>request URL. </dd></dl>
+<p>Gets the request URL. </p>
+<dl class="section return"><dt>Returns</dt><dd>The request URL. </dd></dl>
 
 </div>
 </div>
@@ -330,8 +330,8 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Get HTTP method. </p>
-<dl class="section return"><dt>Returns</dt><dd>HTTP method. </dd></dl>
+<p>Gets the HTTP method. </p>
+<dl class="section return"><dt>Returns</dt><dd>The HTTP method. </dd></dl>
 
 </div>
 </div>
@@ -351,14 +351,14 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Set request body. </p>
+<p>Sets the request body. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">body</td><td>Shared pointer to vector that contains request body. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">body</td><td>The shared pointer to the vector that contains the request body.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>reference to *this. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to *this. </dd></dl>
 
 </div>
 </div>
@@ -391,12 +391,12 @@ Public Member Functions</h2></td></tr>
 <p>Adds an extra HTTP header. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">name</td><td>Header name. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">value</td><td>Header value. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">name</td><td>The header name. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">value</td><td>The header value.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>reference to *this. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to *this. </dd></dl>
 
 </div>
 </div>
@@ -416,14 +416,14 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Set network settings for this request. </p>
+<p>Sets network settings for this request. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">settings</td><td>Instance of <a class="el" href="classolp_1_1http_1_1NetworkRequest.html" title="This class represents network request abstraction for an HTTP request.">NetworkRequest</a>. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">settings</td><td>The <code><a class="el" href="classolp_1_1http_1_1NetworkRequest.html" title="A network request abstraction for an HTTP request.">NetworkRequest</a></code> instance.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>reference to *this. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to *this. </dd></dl>
 
 </div>
 </div>
@@ -443,14 +443,14 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Set request URL. </p>
+<p>Sets the request URL. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">url</td><td>Request URL. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">url</td><td>The request URL.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>reference to *this. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to *this. </dd></dl>
 
 </div>
 </div>
@@ -470,14 +470,14 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Set HTTP method. </p>
+<p>Sets the HTTP method. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">verb</td><td>HTTP method. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">verb</td><td>The HTTP method.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>reference to *this. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to *this. </dd></dl>
 
 </div>
 </div>

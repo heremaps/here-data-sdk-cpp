@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.5.0</span>
+   &#160;<span id="projectnumber">1.6.0</span>
    </div>
   </td>
  </tr>
@@ -88,7 +88,7 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memdesc:a2d7121fa1c55ec4c339f3378f7078dd2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code>Network</code> instance used for all the non-local requests.  <a href="#a2d7121fa1c55ec4c339f3378f7078dd2">More...</a><br /></td></tr>
 <tr class="separator:a2d7121fa1c55ec4c339f3378f7078dd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a149f4816f59c87e56776b2614c6f2011"><td class="memItemLeft" align="right" valign="top">static std::unique_ptr&lt; <a class="el" href="classolp_1_1cache_1_1KeyValueCache.html">cache::KeyValueCache</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1OlpClientSettingsFactory.html#a149f4816f59c87e56776b2614c6f2011">CreateDefaultCache</a> (<a class="el" href="structolp_1_1cache_1_1CacheSettings.html">cache::CacheSettings</a> settings)</td></tr>
-<tr class="memdesc:a149f4816f59c87e56776b2614c6f2011"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code>KeyValueCache</code> instance that includes both a small in-memory LRU cache and a larger persistent database cache.  <a href="#a149f4816f59c87e56776b2614c6f2011">More...</a><br /></td></tr>
+<tr class="memdesc:a149f4816f59c87e56776b2614c6f2011"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code>KeyValueCache</code> instance that includes both a small memory LRU cache and a larger persistent database cache.  <a href="#a149f4816f59c87e56776b2614c6f2011">More...</a><br /></td></tr>
 <tr class="separator:a149f4816f59c87e56776b2614c6f2011"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -118,7 +118,7 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Creates the <code>KeyValueCache</code> instance that includes both a small in-memory LRU cache and a larger persistent database cache. </p>
+<p>Creates the <code>KeyValueCache</code> instance that includes both a small memory LRU cache and a larger persistent database cache. </p>
 <p>The returned cache instance is initialized, opened, and ready to be used.</p>
 <dl class="section note"><dt>Note</dt><dd>The database cache is only created if the provided <code>CacheSettings</code> instance includes a valid disk path with the corresponding write permissions set.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>

@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.5.0</span>
+   &#160;<span id="projectnumber">1.6.0</span>
    </div>
   </td>
  </tr>
@@ -136,9 +136,6 @@ using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cla
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a3e4eaa8ee8b2d2042330494dc3d31a6c"><td class="memItemLeft" align="right" valign="top"><a id="a3e4eaa8ee8b2d2042330494dc3d31a6c"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>AuthenticationClient</b> (const std::string &amp;authentication_server_url=kHereAccountProductionUrl, size_t token_cache_limit=100u)</td></tr>
-<tr class="separator:a3e4eaa8ee8b2d2042330494dc3d31a6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a170af465b4d8beb4b1f71c86877013ac"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a170af465b4d8beb4b1f71c86877013ac">AuthenticationClient</a> (<a class="el" href="structolp_1_1authentication_1_1AuthenticationSettings.html">AuthenticationSettings</a> settings)</td></tr>
 <tr class="memdesc:a170af465b4d8beb4b1f71c86877013ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html" title="An API class of the C++ client that provides programmatic access to the HERE Account authentication s...">AuthenticationClient</a></code> instance.  <a href="#a170af465b4d8beb4b1f71c86877013ac">More...</a><br /></td></tr>
 <tr class="separator:a170af465b4d8beb4b1f71c86877013ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -179,15 +176,9 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
 <tr class="memitem:aec9758309419641ee563eb7507f82942"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#aec9758309419641ee563eb7507f82942">IntrospectApp</a> (std::string access_token, <a class="el" href="namespaceolp_1_1authentication.html#a41d51d80040d6fecf9e3fa1f64203e53">IntrospectAppCallback</a> callback)</td></tr>
 <tr class="memdesc:aec9758309419641ee563eb7507f82942"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves the application associated with the client access token.  <a href="#aec9758309419641ee563eb7507f82942">More...</a><br /></td></tr>
 <tr class="separator:aec9758309419641ee563eb7507f82942"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abafb4e786e0c4be82b401b2d1b2c7777"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#abafb4e786e0c4be82b401b2d1b2c7777">SetNetworkProxySettings</a> (const <a class="el" href="classolp_1_1http_1_1NetworkProxySettings.html">http::NetworkProxySettings</a> &amp;proxy_settings)</td></tr>
-<tr class="memdesc:abafb4e786e0c4be82b401b2d1b2c7777"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the <code>NetworkProxySettings</code> instance used by the underlying network layer to make requests.  <a href="#abafb4e786e0c4be82b401b2d1b2c7777">More...</a><br /></td></tr>
-<tr class="separator:abafb4e786e0c4be82b401b2d1b2c7777"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a87c7cf2a79602022f311a07b908ec075"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a87c7cf2a79602022f311a07b908ec075">SetNetwork</a> (std::shared_ptr&lt; <a class="el" href="classolp_1_1http_1_1Network.html">http::Network</a> &gt; network)</td></tr>
-<tr class="memdesc:a87c7cf2a79602022f311a07b908ec075"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the <code>Network</code> class handler used to make requests.  <a href="#a87c7cf2a79602022f311a07b908ec075">More...</a><br /></td></tr>
-<tr class="separator:a87c7cf2a79602022f311a07b908ec075"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8d3fb16bcd9909f5bd120a44d78d7d17"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a8d3fb16bcd9909f5bd120a44d78d7d17">SetTaskScheduler</a> (std::shared_ptr&lt; <a class="el" href="classolp_1_1thread_1_1TaskScheduler.html">thread::TaskScheduler</a> &gt; task_scheduler)</td></tr>
-<tr class="memdesc:a8d3fb16bcd9909f5bd120a44d78d7d17"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the <code>TaskScheduler</code> class.  <a href="#a8d3fb16bcd9909f5bd120a44d78d7d17">More...</a><br /></td></tr>
-<tr class="separator:a8d3fb16bcd9909f5bd120a44d78d7d17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c068e0f75f078c7bc33d3fb8bcf0e05"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a0c068e0f75f078c7bc33d3fb8bcf0e05">Authorize</a> (std::string access_token, <a class="el" href="classolp_1_1authentication_1_1AuthorizeRequest.html">AuthorizeRequest</a> request, <a class="el" href="namespaceolp_1_1authentication.html#a304e4d17625e6c62c8a92072d4045da7">AuthorizeCallback</a> callback)</td></tr>
+<tr class="memdesc:a0c068e0f75f078c7bc33d3fb8bcf0e05"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves policy decision for a given request context against the HERE Service.  <a href="#a0c068e0f75f078c7bc33d3fb8bcf0e05">More...</a><br /></td></tr>
+<tr class="separator:a0c068e0f75f078c7bc33d3fb8bcf0e05"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>An API class of the C++ client that provides programmatic access to the HERE Account authentication service. </p>
@@ -277,6 +268,52 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
 
 </div>
 </div>
+<a id="a0c068e0f75f078c7bc33d3fb8bcf0e05"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c068e0f75f078c7bc33d3fb8bcf0e05">&#9670;&nbsp;</a></span>Authorize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a> olp::authentication::AuthenticationClient::Authorize </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>access_token</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classolp_1_1authentication_1_1AuthorizeRequest.html">AuthorizeRequest</a>&#160;</td>
+          <td class="paramname"><em>request</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceolp_1_1authentication.html#a304e4d17625e6c62c8a92072d4045da7">AuthorizeCallback</a>&#160;</td>
+          <td class="paramname"><em>callback</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Retrieves policy decision for a given request context against the HERE Service. </p>
+<p>Collects all permissions associated with the authenticated user or application, requested service ID, and requested contract ID.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">access_token</td><td>A valid access token that is associated with the service. </td></tr>
+    <tr><td class="paramname">request</td><td>Context of the Authorize request. </td></tr>
+    <tr><td class="paramname">callback</td><td>The<code>AuthorizeCallback</code> method that is called when the Authorize request is completed.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The <code>CancellationToken</code> instance that can be used to cancel the request. </dd></dl>
+
+</div>
+</div>
 <a id="aec9758309419641ee563eb7507f82942"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aec9758309419641ee563eb7507f82942">&#9670;&nbsp;</a></span>IntrospectApp()</h2>
 
@@ -313,85 +350,6 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The <code>CancellationToken</code> instance that can be used to cancel the request. </dd></dl>
-
-</div>
-</div>
-<a id="a87c7cf2a79602022f311a07b908ec075"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a87c7cf2a79602022f311a07b908ec075">&#9670;&nbsp;</a></span>SetNetwork()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void olp::authentication::AuthenticationClient::SetNetwork </td>
-          <td>(</td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="classolp_1_1http_1_1Network.html">http::Network</a> &gt;&#160;</td>
-          <td class="paramname"><em>network</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Sets the <code>Network</code> class handler used to make requests. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">network</td><td>The shared <code>Network</code> instance used to trigger requests. Should not be <code>nullptr</code>; otherwise, any access to the class method calls would render <code><a href="http::ErrorCode::IO_ERROR">http::ErrorCode::IO_ERROR</a></code>. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="abafb4e786e0c4be82b401b2d1b2c7777"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abafb4e786e0c4be82b401b2d1b2c7777">&#9670;&nbsp;</a></span>SetNetworkProxySettings()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void olp::authentication::AuthenticationClient::SetNetworkProxySettings </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classolp_1_1http_1_1NetworkProxySettings.html">http::NetworkProxySettings</a> &amp;&#160;</td>
-          <td class="paramname"><em>proxy_settings</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Sets the <code>NetworkProxySettings</code> instance used by the underlying network layer to make requests. </p>
-<p>It is recommended to call this function before you make any requests using the <code><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html" title="An API class of the C++ client that provides programmatic access to the HERE Account authentication s...">AuthenticationClient</a></code> instance.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">proxy_settings</td><td>The proxy settings used by the network layer to make requests. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a8d3fb16bcd9909f5bd120a44d78d7d17"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8d3fb16bcd9909f5bd120a44d78d7d17">&#9670;&nbsp;</a></span>SetTaskScheduler()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void olp::authentication::AuthenticationClient::SetTaskScheduler </td>
-          <td>(</td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="classolp_1_1thread_1_1TaskScheduler.html">thread::TaskScheduler</a> &gt;&#160;</td>
-          <td class="paramname"><em>task_scheduler</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Sets the <code>TaskScheduler</code> class. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">task_scheduler</td><td>The shared <code>TaskScheduler</code> instance used for requests outcomes. If set to <code>nullptr</code>, callbacks are sent synchronously. </td></tr>
-  </table>
-  </dd>
-</dl>
 
 </div>
 </div>
