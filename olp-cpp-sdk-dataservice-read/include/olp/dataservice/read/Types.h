@@ -20,6 +20,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <vector>
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>

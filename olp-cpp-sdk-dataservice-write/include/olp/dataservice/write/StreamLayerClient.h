@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <string>
+
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/ApiError.h>

@@ -20,6 +20,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>

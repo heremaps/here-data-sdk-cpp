@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <utility>
 #include <vector>
 
 #include <olp/dataservice/read/DataServiceReadApi.h>
@@ -55,7 +56,7 @@ class DATASERVICE_READ_API StreamOffset final {
    *
    * @return The offset in the stream layer partition.
    */
-  int64_t GetOffset() const { return offset_; };
+  int64_t GetOffset() const { return offset_; }
   /**
    * @brief Sets the offset for the request.
    *
@@ -85,7 +86,7 @@ class DATASERVICE_READ_API StreamOffsets final {
    *
    * @return The list of offsets.
    */
-  const std::vector<StreamOffset>& GetOffsets() const { return offsets_; };
+  const std::vector<StreamOffset>& GetOffsets() const { return offsets_; }
   /**
    * @brief Sets the list of offsets.
    *
@@ -93,7 +94,7 @@ class DATASERVICE_READ_API StreamOffsets final {
    */
   void SetOffsets(std::vector<StreamOffset> value) {
     offsets_ = std::move(value);
-  };
+  }
 
  private:
   std::vector<StreamOffset> offsets_;

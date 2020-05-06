@@ -93,7 +93,8 @@ class DATASERVICE_READ_API PrefetchTileResult
    * @param error The `ApiError` instance that contains information about
    * the error.
    */
-  PrefetchTileResult(const client::ApiError& error) : base_type(error) {}
+  explicit PrefetchTileResult(const client::ApiError& error)
+      : base_type(error) {}
 
  public:
   /**

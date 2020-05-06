@@ -53,12 +53,33 @@ printf "\n\nRunning cpplint\n\n"
 CPPLINT_FILTER="--filter=-build/c++11"
 
 # Run the cpplint tool
-cpplint $CPPLINT_FILTER $FILES 2> warnigns.txt
+cpplint $CPPLINT_FILTER $FILES 2> warnings.txt
 
 printf "\n\nComplete cpplint\n\n"
 
-cat warnigns.txt
+cat warnings.txt
 
-# Despite the error found exit without errors.
-# Remove this exit to make the script blocking on CI.
-exit 0
+# Check for public headers modified.
+# dataservice-read/include must have no new warnings.
+CRITICAL_PATHS=$(echo "$FILES" | grep "dataservice-read/include")
+
+if [ ! -z "$CRITICAL_PATHS" ]; then
+
+  printf "\n\nPublic headers modified, running in blocking mode\n\n"
+
+  CPPLINT_IGNORED_WARNINGS="--filter=-build/include_order"
+
+  cpplint $CPPLINT_IGNORED_WARNINGS $CRITICAL_PATHS 2> errors.txt
+
+  RESULT=$?
+
+  printf "\n\nComplete cpplint for protected paths\n\n"
+
+  cat errors.txt
+
+  exit $RESULT
+else
+  # Despite the error found exit without errors.
+  # Remove this exit to make the script blocking on CI.
+  exit 0
+fi
