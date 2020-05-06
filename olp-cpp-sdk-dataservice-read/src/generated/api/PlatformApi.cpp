@@ -37,30 +37,6 @@ namespace dataservice {
 namespace read {
 
 PlatformApi::ApisResponse PlatformApi::GetApis(
-    const client::OlpClient& client, const std::string& service,
-    const std::string& service_version,
-    const client::CancellationContext& context) {
-  std::multimap<std::string, std::string> header_params;
-  header_params.insert(std::make_pair("Accept", "application/json"));
-  std::multimap<std::string, std::string> query_params;
-  std::multimap<std::string, std::string> form_params;
-
-  std::string platform_url =
-      "/platform/apis/" + service + "/" + service_version;
-
-  auto response =
-      client.CallApi(platform_url, "GET", query_params, header_params,
-                     form_params, nullptr, "", context);
-  if (response.status != http::HttpStatusCode::OK) {
-    return ApisResponse(
-        client::ApiError(response.status, response.response.str()));
-  }
-
-  return ApisResponse(
-      parser::parse<olp::dataservice::read::model::Apis>(response.response));
-}
-
-PlatformApi::ApisResponse PlatformApi::GetApis(
     const client::OlpClient& client,
     const client::CancellationContext& context) {
   std::multimap<std::string, std::string> header_params;

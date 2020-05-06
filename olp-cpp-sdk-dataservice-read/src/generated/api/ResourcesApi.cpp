@@ -36,30 +36,6 @@ namespace read {
 
 ResourcesApi::ApisResponse ResourcesApi::GetApis(
     const client::OlpClient& client, const std::string& hrn,
-    const std::string& service, const std::string& service_version,
-    const client::CancellationContext& context) {
-  std::multimap<std::string, std::string> header_params;
-  header_params.emplace("Accept", "application/json");
-  std::multimap<std::string, std::string> query_params;
-  std::multimap<std::string, std::string> form_params;
-  // scan apis at resource endpoint
-  std::string resource_url =
-      "/resources/" + hrn + "/apis/" + service + "/" + service_version;
-  auto response =
-      client.CallApi(resource_url, "GET", query_params, header_params,
-                     form_params, nullptr, "", context);
-
-  if (response.status != http::HttpStatusCode::OK) {
-    return ApisResponse(
-        client::ApiError(response.status, response.response.str()));
-  }
-
-  return ApisResponse(
-      parser::parse<olp::dataservice::read::model::Apis>(response.response));
-}
-
-ResourcesApi::ApisResponse ResourcesApi::GetApis(
-    const client::OlpClient& client, const std::string& hrn,
     const client::CancellationContext& context) {
   std::multimap<std::string, std::string> header_params;
   header_params.emplace("Accept", "application/json");
