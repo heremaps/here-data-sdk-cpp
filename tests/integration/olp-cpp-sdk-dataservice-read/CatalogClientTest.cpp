@@ -217,7 +217,7 @@ TEST_P(CatalogClientTest, GetCatalogVersion) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1);
 
   EXPECT_CALL(*network_mock_,
@@ -247,10 +247,10 @@ TEST_P(CatalogClientTest, GetCatalogVersionCancel) {
   CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_METADATA});
+      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP});
 
   EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 

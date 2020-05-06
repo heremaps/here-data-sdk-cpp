@@ -33,14 +33,11 @@ using namespace olp::dataservice::read;
 using namespace ::testing;
 using namespace olp::tests::common;
 
-constexpr auto kUrlLookupVolatileBlob =
-    R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis/volatile-blob/v1)";
-
 constexpr auto kUrlVolatileBlobData =
     R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/4eed6ed1-0d32-43b9-ae79-043cb4256432)";
 
-constexpr auto kUrlLookupQuery =
-    R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis/query/v1)";
+constexpr auto kUrlLookup =
+    R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis)";
 
 constexpr auto kUrlQueryPartition269 =
     R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?partition=269)";
@@ -51,11 +48,9 @@ constexpr auto kUrlQuadTreeIndexVolatile =
 constexpr auto kUrlQuadTreeIndexVolatile2 =
     R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/quadkeys/23064/depths/4)";
 
-constexpr auto kHttpResponseLookupVolatileBlob =
-    R"jsonString([{"api":"volatile-blob","version":"v1","baseURL":"https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString";
-
-constexpr auto kHttpResponseLookupQuery =
-    R"jsonString([{"api":"query","version":"v1","baseURL":"https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString";
+constexpr auto kHttpResponseLookup =
+    R"jsonString([{"api":"query","version":"v1","baseURL":"https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2","parameters":{}},
+    {"api":"volatile-blob","version":"v1","baseURL":"https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString";
 
 constexpr auto kHttpResponsePartition269 =
     R"jsonString({ "partitions": [{"version":4,"partition":"269","layer":"testlayer","dataHandle":"4eed6ed1-0d32-43b9-ae79-043cb4256432"}]})jsonString";
@@ -100,15 +95,15 @@ TEST(VolatileLayerClientImplTest, GetData) {
   olp::client::OlpClientSettings settings;
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;
-
   VolatileLayerClientImpl client(kHrn, kLayerId, settings);
 
   {
     SCOPED_TRACE("Get Data with DataHandle");
-
-    SetupNetworkExpectation(*network_mock, kUrlLookupVolatileBlob,
-                            kHttpResponseLookupVolatileBlob,
-                            olp::http::HttpStatusCode::OK);
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookup));
 
     SetupNetworkExpectation(*network_mock, kUrlVolatileBlobData, "someData",
                             olp::http::HttpStatusCode::OK);
@@ -131,16 +126,13 @@ TEST(VolatileLayerClientImplTest, GetData) {
   {
     SCOPED_TRACE("Get Data with PartitionId");
 
-    SetupNetworkExpectation(*network_mock, kUrlLookupQuery,
-                            kHttpResponseLookupQuery,
-                            olp::http::HttpStatusCode::OK);
-
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookup));
     SetupNetworkExpectation(*network_mock, kUrlQueryPartition269,
                             kHttpResponsePartition269,
-                            olp::http::HttpStatusCode::OK);
-
-    SetupNetworkExpectation(*network_mock, kUrlLookupVolatileBlob,
-                            kHttpResponseLookupVolatileBlob,
                             olp::http::HttpStatusCode::OK);
 
     SetupNetworkExpectation(*network_mock, kUrlVolatileBlobData, "someData",
@@ -183,8 +175,7 @@ TEST(VolatileLayerClientImplTest, GetData) {
   {
     SCOPED_TRACE("Get Data from non existent partition");
 
-    SetupNetworkExpectation(*network_mock, kUrlLookupQuery,
-                            kHttpResponseLookupQuery,
+    SetupNetworkExpectation(*network_mock, kUrlLookup, kHttpResponseLookup,
                             olp::http::HttpStatusCode::OK);
 
     SetupNetworkExpectation(*network_mock, kUrlQueryPartition269,
@@ -221,9 +212,11 @@ TEST(VolatileLayerClientImplTest, GetDataCancellableFuture) {
   {
     SCOPED_TRACE("Get Data with DataHandle");
 
-    SetupNetworkExpectation(*network_mock, kUrlLookupVolatileBlob,
-                            kHttpResponseLookupVolatileBlob,
-                            olp::http::HttpStatusCode::OK);
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookup));
 
     SetupNetworkExpectation(*network_mock, kUrlVolatileBlobData, "someData",
                             olp::http::HttpStatusCode::OK);
@@ -242,16 +235,14 @@ TEST(VolatileLayerClientImplTest, GetDataCancellableFuture) {
   {
     SCOPED_TRACE("Get Data with PartitionId");
 
-    SetupNetworkExpectation(*network_mock, kUrlLookupQuery,
-                            kHttpResponseLookupQuery,
-                            olp::http::HttpStatusCode::OK);
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookup));
 
     SetupNetworkExpectation(*network_mock, kUrlQueryPartition269,
                             kHttpResponsePartition269,
-                            olp::http::HttpStatusCode::OK);
-
-    SetupNetworkExpectation(*network_mock, kUrlLookupVolatileBlob,
-                            kHttpResponseLookupVolatileBlob,
                             olp::http::HttpStatusCode::OK);
 
     SetupNetworkExpectation(*network_mock, kUrlVolatileBlobData, "someData",
@@ -271,9 +262,11 @@ TEST(VolatileLayerClientImplTest, GetDataCancellableFuture) {
   {
     SCOPED_TRACE("Get Data from non existent partition");
 
-    SetupNetworkExpectation(*network_mock, kUrlLookupQuery,
-                            kHttpResponseLookupQuery,
-                            olp::http::HttpStatusCode::OK);
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookup));
 
     SetupNetworkExpectation(*network_mock, kUrlQueryPartition269,
                             kHttpResponseNoPartition,
@@ -488,9 +481,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
                                                          settings);
   {
     SCOPED_TRACE("Prefetch tiles and store them in memory cache");
-    SetupNetworkExpectation(*network_mock, kUrlLookupQuery,
-                            kHttpResponseLookupQuery,
-                            olp::http::HttpStatusCode::OK);
+
     SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile,
                             kHttpResponseQuadTreeIndexVolatile,
                             olp::http::HttpStatusCode::OK);
@@ -499,12 +490,11 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
     SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData2, kData2,
                             olp::http::HttpStatusCode::OK);
 
-    EXPECT_CALL(*network_mock,
-                Send(IsGetRequest(kUrlLookupVolatileBlob), _, _, _, _))
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                    olp::http::HttpStatusCode::OK),
-                               kHttpResponseLookupVolatileBlob));
+                               kHttpResponseLookup));
 
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kTileId)};
@@ -534,19 +524,16 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
   }
   {
     SCOPED_TRACE("Prefetch tiles with levels(0, 0).");
-    SetupNetworkExpectation(*network_mock, kUrlLookupQuery,
-                            kHttpResponseLookupQuery,
-                            olp::http::HttpStatusCode::OK);
+
     SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile2,
                             kHttpResponseQuadTreeIndexVolatile,
                             olp::http::HttpStatusCode::OK);
 
-    EXPECT_CALL(*network_mock,
-                Send(IsGetRequest(kUrlLookupVolatileBlob), _, _, _, _))
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                    olp::http::HttpStatusCode::OK),
-                               kHttpResponseLookupVolatileBlob));
+                               kHttpResponseLookup));
 
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kTileId)};
@@ -570,19 +557,16 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
   }
   {
     SCOPED_TRACE("Levels not specified.");
-    SetupNetworkExpectation(*network_mock, kUrlLookupQuery,
-                            kHttpResponseLookupQuery,
-                            olp::http::HttpStatusCode::OK);
+
     SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile2,
                             kHttpResponseQuadTreeIndexVolatile,
                             olp::http::HttpStatusCode::OK);
 
-    EXPECT_CALL(*network_mock,
-                Send(IsGetRequest(kUrlLookupVolatileBlob), _, _, _, _))
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                    olp::http::HttpStatusCode::OK),
-                               kHttpResponseLookupVolatileBlob));
+                               kHttpResponseLookup));
 
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kTileId)};
@@ -680,9 +664,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
                                                          settings);
   {
     SCOPED_TRACE("Prefetch tiles and store them in memory cache");
-    SetupNetworkExpectation(*network_mock, kUrlLookupQuery,
-                            kHttpResponseLookupQuery,
-                            olp::http::HttpStatusCode::OK);
+
     SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile,
                             kHttpResponseQuadTreeIndexVolatile,
                             olp::http::HttpStatusCode::OK);
@@ -691,12 +673,11 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
     SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData2, kData2,
                             olp::http::HttpStatusCode::OK);
 
-    EXPECT_CALL(*network_mock,
-                Send(IsGetRequest(kUrlLookupVolatileBlob), _, _, _, _))
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                    olp::http::HttpStatusCode::OK),
-                               kHttpResponseLookupVolatileBlob));
+                               kHttpResponseLookup));
 
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kTileId)};
@@ -721,19 +702,15 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
   }
   {
     SCOPED_TRACE("Prefetch tiles with levels(0, 0).");
-    SetupNetworkExpectation(*network_mock, kUrlLookupQuery,
-                            kHttpResponseLookupQuery,
-                            olp::http::HttpStatusCode::OK);
     SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile2,
                             kHttpResponseQuadTreeIndexVolatile,
                             olp::http::HttpStatusCode::OK);
 
-    EXPECT_CALL(*network_mock,
-                Send(IsGetRequest(kUrlLookupVolatileBlob), _, _, _, _))
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                    olp::http::HttpStatusCode::OK),
-                               kHttpResponseLookupVolatileBlob));
+                               kHttpResponseLookup));
 
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kTileId)};
@@ -753,19 +730,15 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
   }
   {
     SCOPED_TRACE("Levels not specified.");
-    SetupNetworkExpectation(*network_mock, kUrlLookupQuery,
-                            kHttpResponseLookupQuery,
-                            olp::http::HttpStatusCode::OK);
     SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile2,
                             kHttpResponseQuadTreeIndexVolatile,
                             olp::http::HttpStatusCode::OK);
 
-    EXPECT_CALL(*network_mock,
-                Send(IsGetRequest(kUrlLookupVolatileBlob), _, _, _, _))
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                    olp::http::HttpStatusCode::OK),
-                               kHttpResponseLookupVolatileBlob));
+                               kHttpResponseLookup));
 
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kTileId)};

@@ -17,15 +17,10 @@
  * License-Filename: LICENSE
  */
 
-#define URL_LOOKUP_CONFIG \
-  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/platform/apis/config/v1)"
 
 #define URL_CONFIG                                                        \
   R"(https://config.data.api.platform.in.here.com/config/v1/catalogs/)" + \
       GetTestCatalog()
-
-#define URL_LOOKUP_METADATA \
-  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/)"+GetTestCatalog()+R"(/apis/metadata/v1)"
 
 #define URL_LATEST_CATALOG_VERSION \
   R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/versions/latest?startVersion=-1)"
@@ -63,9 +58,6 @@
 #define URL_PARTITIONS_VOLATILE_INVALID_LAYER \
   R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/layers/somewhat_not_okay/partitions)"
 
-#define URL_LOOKUP_QUERY \
-  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/)"+GetTestCatalog()+R"(/apis/query/v1)"
-
 #define URL_QUERY_PARTITION_269 \
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?partition=269&version=4)"
 
@@ -77,9 +69,6 @@
 
 #define URL_QUERY_PARTITION_269_VN1 \
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?partition=269&version=-1)"
-
-#define URL_LOOKUP_BLOB \
-  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/)"+GetTestCatalog()+R"(/apis/blob/v1)"
 
 #define URL_BLOB_DATA_269 \
   R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/4eed6ed1-0d32-43b9-ae79-043cb4256432)"
@@ -111,11 +100,11 @@
 #define URL_STREAM_UNSUBSCRIBE_PARALLEL \
   R"(https://some.stream.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/subscribe?mode=parallel&subscriptionId=subscribe_id_12345)"
 
-#define URL_LOOKUP_VOLATILE_BLOB \
-  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/)"+GetTestCatalog()+R"(/apis/volatile-blob/v1)"
+#define URL_LOOKUP_CONFIG \
+  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/platform/apis)"
 
-#define URL_LOOKUP_STREAM \
-  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/)"+GetTestCatalog()+R"(/apis/stream/v2)"
+#define URL_LOOKUP_API \
+  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/)"+GetTestCatalog()+R"(/apis)"
 
 #define URL_SEEK_STREAM \
   R"(https://some.stream.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/seek?mode=serial&subscriptionId=subscribe_id_12345)"
@@ -126,20 +115,8 @@
   R"jsonString([{"api":"config","version":"v1","baseURL":")jsonString" CONFIG_BASE_URL \
   R"jsonString(","parameters":{}},{"api":"pipelines","version":"v1","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}},{"api":"pipelines","version":"v2","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}}])jsonString"
 
-#define HTTP_RESPONSE_LOOKUP_METADATA \
-  R"jsonString([{"api":"metadata","version":"v1","baseURL":"https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString"
-
-#define HTTP_RESPONSE_LOOKUP_QUERY \
-  R"jsonString([{"api":"query","version":"v1","baseURL":"https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString"
-
-#define HTTP_RESPONSE_LOOKUP_BLOB \
-  R"jsonString([{"api":"blob","version":"v1","baseURL":"https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString"
-
-#define HTTP_RESPONSE_LOOKUP_STREAM \
-  R"jsonString([{"api":"stream","version":"v1","baseURL":"https://stream-ireland.data.api.platform.here.com/stream/v2/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString"
-
-#define HTTP_RESPONSE_LOOKUP_VOLATILE_BLOB \
-  R"jsonString([{"api":"volatile-blob","version":"v1","baseURL":"https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString"
+#define HTTP_RESPONSE_LOOKUP \
+  R"jsonString([{"api":"metadata","version":"v1","baseURL":"https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2","parameters":{}}, {"api":"query","version":"v1","baseURL":"https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2","parameters":{}}, {"api":"blob","version":"v1","baseURL":"https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}},{"api":"volatile-blob","version":"v1","baseURL":"https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}},{"api":"stream","version":"v2","baseURL":"https://stream-ireland.data.api.platform.here.com/stream/v2/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString"
 
 #define HTTP_RESPONSE_CONFIG \
   R"jsonString({"id":"hereos-internal-test","hrn":"hrn:here-dev:data:::hereos-internal-test","name":"hereos-internal-test","summary":"Internal test for hereos","description":"Used for internal testing on the staging olp.","contacts":{},"owner":{"creator":{"id":"HERE-88c95a7e-4123-4dcd-ae0e-4682aa5c3db4"},"organisation":{"id":"olp-here"}},"tags":[],"billingTags":[],"created":"2018-07-13T20:50:08.425Z","layers":[{"id":"hype-test-prefetch","hrn":"hrn:here-dev:data:::hereos-internal-test:hype-test-prefetch","name":"Hype Test Prefetch","summary":"hype prefetch testing","description":"Layer for hype prefetch testing","coverage":{"adminAreas":[]},"owner":{"creator":{"id":"HERE-88c95a7e-4123-4dcd-ae0e-4682aa5c3db4"},"organisation":{"id":"olp-here"}},"partitioningScheme":"heretile","partitioning":{"tileLevels":[],"scheme":"heretile"},"contentType":"application/x-protobuf","volume":{"volumeType":"durable"},"tags":[],"billingTags":[],"created":"2018-07-13T20:56:19.181Z","layerType":"versioned"},{"id":"testlayer_res","hrn":"hrn:here-dev:data:::hereos-internal-test:testlayer_res","name":"Resource Test Layer","summary":"testlayer_res","description":"testlayer_res","coverage":{"adminAreas":[]},"owner":{"creator":{"id":"HERE-88c95a7e-4123-4dcd-ae0e-4682aa5c3db4"},"organisation":{"id":"olp-here"}},"partitioningScheme":"generic","partitioning":{"scheme":"generic"},"contentType":"application/x-protobuf","volume":{"volumeType":"durable"},"tags":["TEST"],"billingTags":[],"created":"2018-07-13T20:56:19.181Z","layerType":"versioned"},{"id":"testlayer","hrn":"hrn:here-dev:data:::hereos-internal-test:testlayer","name":"Test Layer","summary":"A test layer","description":"A simple test layer","coverage":{"adminAreas":[]},"owner":{"creator":{"id":"HERE-88c95a7e-4123-4dcd-ae0e-4682aa5c3db4"},"organisation":{"id":"olp-here"}},"partitioningScheme":"generic","partitioning":{"scheme":"generic"},"contentType":"application/x-protobuf","volume":{"volumeType":"durable"},"tags":["TEST"],"billingTags":[],"created":"2018-07-13T20:56:19.181Z","layerType":"versioned"},{"id":"testlayer_volatile","ttl":30000,"hrn":"hrn:here-dev:data:::hereos-internal-test:testlayer","name":"Test Layer","summary":"A test layer","description":"A simple test layer","coverage":{"adminAreas":[]},"owner":{"creator":{"id":"HERE-88c95a7e-4123-4dcd-ae0e-4682aa5c3db4"},"organisation":{"id":"olp-here"}},"partitioningScheme":"generic","partitioning":{"scheme":"generic"},"contentType":"application/x-protobuf","volume":{"volumeType":"durable"},"tags":["TEST"],"billingTags":[],"created":"2018-07-13T20:56:19.181Z","layerType":"volatile"},{"id":"testlayer_stream","hrn":"hrn:here-dev:data:::hereos-internal-test:testlayer","name":"Test Layer","summary":"A test layer","description":"A simple test layer","coverage":{"adminAreas":[]},"owner":{"creator":{"id":"HERE-88c95a7e-4123-4dcd-ae0e-4682aa5c3db4"},"organisation":{"id":"olp-here"}},"partitioningScheme":"generic","partitioning":{"scheme":"generic"},"contentType":"application/x-protobuf","volume":{"volumeType":"durable"},"tags":["TEST"],"billingTags":[],"created":"2018-07-13T20:56:19.181Z","layerType":"stream"},{"id":"multilevel_testlayer","hrn":"hrn:here-dev:data:::hereos-internal-test:multilevel_testlayer","name":"Multi Level Test Layer","summary":"Multi Level Test Layer","description":"A multi level test layer just for testing","coverage":{"adminAreas":[]},"owner":{"creator":{"id":"HERE-88c95a7e-4123-4dcd-ae0e-4682aa5c3db4"},"organisation":{"id":"olp-here"}},"partitioningScheme":"generic","partitioning":{"scheme":"generic"},"contentType":"application/x-protobuf","volume":{"volumeType":"durable"},"tags":["TEST"],"billingTags":[],"created":"2018-07-13T20:56:19.181Z","layerType":"versioned"},{"id":"hype-test-prefetch-2","hrn":"hrn:here-dev:data:::hereos-internal-test:hype-test-prefetch-2","name":"Hype Test Prefetch2","summary":"Layer for testing hype2 prefetching","description":"Layer for testing hype2 prefetching","coverage":{"adminAreas":[]},"owner":{"creator":{"id":"HERE-88c95a7e-4123-4dcd-ae0e-4682aa5c3db4"},"organisation":{"id":"olp-here"}},"partitioningScheme":"heretile","partitioning":{"tileLevels":[],"scheme":"heretile"},"contentType":"application/x-protobuf","volume":{"volumeType":"durable"},"tags":["TEST"],"billingTags":[],"created":"2018-07-24T17:52:23.818Z","layerType":"versioned"}],"version":3})jsonString"

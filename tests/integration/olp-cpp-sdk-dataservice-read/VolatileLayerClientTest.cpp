@@ -108,10 +108,10 @@ void DataserviceReadVolatileLayerClientTest::SetUpCommonNetworkMockCalls() {
                                             olp::http::HttpStatusCode::OK),
                                         HTTP_RESPONSE_CONFIG));
 
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                             olp::http::HttpStatusCode::OK),
-                                        HTTP_RESPONSE_LOOKUP_METADATA));
+                                        HTTP_RESPONSE_LOOKUP));
 
   ON_CALL(*network_mock_,
           Send(IsGetRequest(URL_PARTITIONS_VOLATILE), _, _, _, _))
@@ -127,20 +127,20 @@ void DataserviceReadVolatileLayerClientTest::SetUpCommonNetworkMockCalls() {
                              HTTP_RESPONSE_INVALID_VERSION_VN1));
 
   ON_CALL(*network_mock_,
-          Send(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
+          Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                             olp::http::HttpStatusCode::OK),
-                                        HTTP_RESPONSE_LOOKUP_VOLATILE_BLOB));
+                                        HTTP_RESPONSE_LOOKUP));
 
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                             olp::http::HttpStatusCode::OK),
-                                        HTTP_RESPONSE_LOOKUP_QUERY));
+                                        HTTP_RESPONSE_LOOKUP));
 
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                             olp::http::HttpStatusCode::OK),
-                                        HTTP_RESPONSE_LOOKUP_BLOB));
+                                        HTTP_RESPONSE_LOOKUP));
 
   ON_CALL(*network_mock_,
           Send(IsGetRequest(URL_QUADKEYS_VOLATILE_1476147), _, _, _, _))
@@ -424,7 +424,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, ApiLookup429) {
     testing::InSequence s;
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(2)
         .WillRepeatedly(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(
@@ -432,7 +432,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, ApiLookup429) {
             "Server busy at the moment."));
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
   }
 
@@ -486,7 +486,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsGarbageResponse) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    R"jsonString(kd3sdf\)jsonString"));
@@ -523,10 +523,10 @@ TEST_F(DataserviceReadVolatileLayerClientTest,
 
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel,
-      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_METADATA});
+      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
   EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
@@ -1142,7 +1142,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest,
   CancelCallback cancel_mock;
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel,
-      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_QUERY});
+      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(testing::Invoke(std::move(send_mock)));
@@ -1191,7 +1191,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, PrefetchTilesCancelOnLookup) {
   CancelCallback cancel_mock;
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel,
-      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_QUERY});
+      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(testing::Invoke(std::move(send_mock)));
@@ -1271,7 +1271,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest,
   CancelCallback cancel_mock;
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel,
-      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_QUERY});
+      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(testing::Invoke(std::move(send_mock)));

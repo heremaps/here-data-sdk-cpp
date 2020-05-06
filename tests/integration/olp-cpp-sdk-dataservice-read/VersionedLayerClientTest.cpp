@@ -47,8 +47,7 @@ namespace {
 
 std::string GetArgument(const std::string& name) {
   if (name == "dataservice_read_test_catalog") {
-    return "hrn:here:data::olp-here-test:here-optimized-map-for-visualization-"
-           "2";
+    return "hrn:here:data::olp-here-test:hereos-internal-test-v2";
   } else if (name == "dataservice_read_test_layer") {
     return "testlayer";
   } else if (name == "dataservice_read_test_partition") {
@@ -72,17 +71,11 @@ std::string ApiErrorToString(const olp::client::ApiError& error) {
   return result_stream.str();
 }
 
-constexpr char kHttpResponseLookupQuery[] =
-    R"jsonString([{"api":"query","version":"v1","baseURL":"https://query.data.api.platform.here.com/query/v1/catalogs/here-optimized-map-for-visualization-2","parameters":{}}])jsonString";
-
 constexpr char kHttpResponsePartition_269[] =
     R"jsonString({ "partitions": [{"version":4,"partition":"269","layer":"testlayer","dataHandle":"4eed6ed1-0d32-43b9-ae79-043cb4256432"}]})jsonString";
 
 constexpr char kHttpResponsePartitionsEmpty[] =
     R"jsonString({ "partitions": []})jsonString";
-
-constexpr char kHttpResponseLookupBlob[] =
-    R"jsonString([{"api":"blob","version":"v1","baseURL":"https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/here-optimized-map-for-visualization-2","parameters":{}}])jsonString";
 
 constexpr char kHttpResponseBlobData_269[] = R"jsonString(DT_2_0031)jsonString";
 
@@ -90,28 +83,23 @@ constexpr char kHttpResponseLatestCatalogVersion[] =
     R"jsonString({"version":4})jsonString";
 
 constexpr char kHttpResponseBlobData_5904591[] =
-    R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/here-optimized-map-for-visualization-2/layers/testlayer/data/e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1)";
+    R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1)";
 
-constexpr char kHttpLookupQuery[] =
-    R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:here-optimized-map-for-visualization-2/apis/query/v1)";
-
-constexpr char kHttpResponseLookupApiQuery[] =
-    R"jsonString([{"api":"query","version":"v1","baseURL":"https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:here-optimized-map-for-visualization-2","parameters":{}}])jsonString";
 
 constexpr char kHttpQueryTreeIndex_23064[] =
-    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:here-optimized-map-for-visualization-2/layers/testlayer/versions/4/quadkeys/23064/depths/4)";
+    R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/23064/depths/4)";
 
 constexpr char kHttpSubQuads_23064[] =
     R"jsonString({"subQuads": [{"subQuadKey":"115","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString";
 
 constexpr char kUrlBlobData_1476147[] =
-    R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/here-optimized-map-for-visualization-2/layers/testlayer/data/95c5c703-e00e-4c38-841e-e419367474f1)";
+    R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/95c5c703-e00e-4c38-841e-e419367474f1)";
 
 constexpr auto kUrlPartitionsPrefix =
-    R"(https://query.data.api.platform.here.com/query/v1/catalogs/here-optimized-map-for-visualization-2/layers/testlayer/partitions)";
+    R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions)";
 
 constexpr auto kUrlBlobstorePrefix =
-    R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/here-optimized-map-for-visualization-2/layers/)";
+    R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/)";
 
 constexpr auto kWaitTimeout = std::chrono::seconds(3);
 
@@ -148,11 +136,11 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
                                    olp::http::HttpStatusCode::OK),
                                HTTP_RESPONSE_CONFIG));
 
-    ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+    ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .WillByDefault(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                    olp::http::HttpStatusCode::OK),
-                               HTTP_RESPONSE_LOOKUP_METADATA));
+                               HTTP_RESPONSE_LOOKUP));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
@@ -173,17 +161,11 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
                                    olp::http::HttpStatusCode::OK),
                                HTTP_RESPONSE_PARTITIONS));
 
-    ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+    ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .WillByDefault(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                    olp::http::HttpStatusCode::OK),
-                               HTTP_RESPONSE_LOOKUP_QUERY));
-
-    ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               HTTP_RESPONSE_LOOKUP_BLOB));
+                               HTTP_RESPONSE_LOOKUP));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_LAYER_VERSIONS_V2), _, _, _, _))
@@ -334,13 +316,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionAsync) {
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupQuery))
+                                   HTTP_RESPONSE_LOOKUP))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponsePartition_269))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupBlob))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponseBlobData_269));
@@ -374,13 +353,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupQuery))
+                                   HTTP_RESPONSE_LOOKUP))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponsePartition_269))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupBlob))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponseBlobData_269));
@@ -410,13 +386,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionSync) {
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupQuery))
+                                   HTTP_RESPONSE_LOOKUP))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponsePartition_269))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupBlob))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponseBlobData_269));
@@ -448,13 +421,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupQuery))
+                                   HTTP_RESPONSE_LOOKUP))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponsePartition_269))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupBlob))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponseBlobData_269));
@@ -489,19 +459,13 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupQuery))
+                                   HTTP_RESPONSE_LOOKUP))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponseLatestCatalogVersion))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupQuery))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
                                    kHttpResponsePartition_269))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupBlob))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponseBlobData_269));
@@ -534,7 +498,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupQuery))
+                                   HTTP_RESPONSE_LOOKUP))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::FORBIDDEN),
                                    kHttpResponseLatestCatalogVersion));
@@ -566,13 +530,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupQuery))
+                                   HTTP_RESPONSE_LOOKUP))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponsePartition_269))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupBlob))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponseBlobData_269));
@@ -613,7 +574,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataEmptyPartitionsSync) {
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupQuery))
+                                   HTTP_RESPONSE_LOOKUP))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponsePartitionsEmpty));
@@ -649,7 +610,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   CancelCallback cancel_mock;
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel,
-      {olp::http::HttpStatusCode::OK, kHttpResponseLookupQuery});
+      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(testing::Invoke(std::move(send_mock)));
@@ -696,7 +657,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   CancelCallback cancel_mock;
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel,
-      {olp::http::HttpStatusCode::OK, kHttpResponseLookupQuery});
+      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(testing::Invoke(std::move(send_mock)));
@@ -747,7 +708,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupQuery))
+                                   HTTP_RESPONSE_LOOKUP))
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
   EXPECT_CALL(*network_mock_, Cancel(_))
@@ -792,12 +753,12 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   CancelCallback cancel_mock;
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel,
-      {olp::http::HttpStatusCode::OK, kHttpResponseLookupBlob});
+      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupQuery))
+                                   HTTP_RESPONSE_LOOKUP))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponsePartition_269))
@@ -850,13 +811,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupQuery))
+                                   HTTP_RESPONSE_LOOKUP))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponsePartition_269))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupBlob))
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
   EXPECT_CALL(*network_mock_, Cancel(_))
@@ -1034,7 +992,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, ApiLookup429) {
     testing::InSequence s;
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(2)
         .WillRepeatedly(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(
@@ -1042,7 +1000,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, ApiLookup429) {
             "Server busy at the moment."));
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
   }
 
@@ -1203,7 +1161,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsGarbageResponse) {
       catalog, layer, *settings_);
 
   EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    R"jsonString(kd3sdf\)jsonString"));
@@ -1241,10 +1199,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel,
-      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_METADATA});
+      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
   EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
@@ -1496,11 +1454,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsOnlineOnly) {
     testing::InSequence s;
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .WillOnce(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(
                 olp::http::HttpStatusCode::TOO_MANY_REQUESTS),
@@ -1718,7 +1676,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   CancelCallback cancel_mock;
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel,
-      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_QUERY});
+      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(testing::Invoke(std::move(send_mock)));
@@ -1769,7 +1727,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesCancelOnLookup) {
   CancelCallback cancel_mock;
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel,
-      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_QUERY});
+      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(testing::Invoke(std::move(send_mock)));
@@ -1869,7 +1827,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   CancelCallback cancel_mock;
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel,
-      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_QUERY});
+      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
@@ -2151,10 +2109,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel,
-      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_METADATA});
+      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
   EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
@@ -2219,7 +2177,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   EXPECT_CALL(*network_mock_, Cancel(request_id))
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(0);
 
   auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
@@ -2266,9 +2224,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel,
-      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_QUERY});
+      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
@@ -2333,9 +2291,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   EXPECT_CALL(*network_mock_, Cancel(request_id))
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-      .Times(0);
-
   auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", *settings_);
 
@@ -2380,9 +2335,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
       wait_for_cancel, pause_for_cancel,
-      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_BLOB});
+      {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
@@ -2587,21 +2542,16 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTile) {
   auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", 4, *settings_);
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupApiQuery));
+                                   HTTP_RESPONSE_LOOKUP));
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(kHttpQueryTreeIndex_23064), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpSubQuads_23064));
-
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupBlob));
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(kHttpResponseBlobData_5904591), _, _, _, _))
@@ -2629,14 +2579,14 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileCacheOnly) {
   auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", 4, *settings_);
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(0);
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(kHttpQueryTreeIndex_23064), _, _, _, _))
       .Times(0);
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(0);
 
   EXPECT_CALL(*network_mock_,
@@ -2658,21 +2608,16 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileOnlineOnly) {
       hrn, "testlayer", 4, *settings_);
   {
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
-                                     kHttpResponseLookupApiQuery));
+                                     HTTP_RESPONSE_LOOKUP));
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(kHttpQueryTreeIndex_23064), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
                                      kHttpSubQuads_23064));
-
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kHttpResponseLookupBlob));
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(kHttpResponseBlobData_5904591), _, _, _, _))
@@ -2703,7 +2648,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileOnlineOnly) {
   {
     SCOPED_TRACE("Check OnlineOnly request");
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .WillOnce(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
                                "Server busy at the moment."));
@@ -2743,21 +2688,16 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileTwoSequentialCalls) {
   auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", 4, *settings_);
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupApiQuery));
+                                   HTTP_RESPONSE_LOOKUP));
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(kHttpQueryTreeIndex_23064), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpSubQuads_23064));
-
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupBlob));
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(kHttpResponseBlobData_5904591), _, _, _, _))
@@ -2780,14 +2720,14 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileTwoSequentialCalls) {
   {
     SCOPED_TRACE("Neighboring tile, same subquad, check metadata cached");
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(kHttpLookupQuery), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(0);
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(kHttpQueryTreeIndex_23064), _, _, _, _))
         .Times(0);
 
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(0);
 
     EXPECT_CALL(*network_mock_,
@@ -2813,13 +2753,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, RemoveFromCachePartition) {
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupQuery))
+                                   HTTP_RESPONSE_LOOKUP))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponsePartition_269))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupBlob))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponseBlobData_269));
@@ -2871,13 +2808,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, RemoveFromCacheTileKey) {
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupQuery))
+                                   HTTP_RESPONSE_LOOKUP))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponsePartition_269))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   kHttpResponseLookupBlob))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponseBlobData_269));
@@ -2938,47 +2872,69 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CheckLookupApiCacheExpiration) {
 
   // check if expiration time is 1 hour(3600 sec)
   time_t expiration_time = 3600;
-  EXPECT_CALL(*cache, Get("hrn:here:data::olp-here-test:here-optimized-map-for-"
-                          "visualization-2::query::v1::api",
+  EXPECT_CALL(*cache, Get("hrn:here:data::olp-here-test:hereos-internal-test-v2::query::v1::api",
                           _))
       .Times(1)
       .WillOnce(Return(boost::any()));
-  EXPECT_CALL(*cache, Put("hrn:here:data::olp-here-test:here-optimized-map-for-"
-                          "visualization-2::query::v1::api",
-                          _, _, expiration_time))
-      .Times(1)
-      .WillOnce(Return(true));
-  EXPECT_CALL(*cache, Get("hrn:here:data::olp-here-test:here-optimized-map-for-"
-                          "visualization-2::blob::v1::api",
-                          _))
-      .Times(1)
-      .WillOnce(Return(boost::any()));
-  EXPECT_CALL(*cache, Put("hrn:here:data::olp-here-test:here-optimized-map-for-"
-                          "visualization-2::blob::v1::api",
+  EXPECT_CALL(*cache, Put("hrn:here:data::olp-here-test:hereos-internal-test-"
+                          "v2::query::v1::api",
                           _, _, expiration_time))
       .Times(1)
       .WillOnce(Return(true));
 
-  EXPECT_CALL(*cache, Get("hrn:here:data::olp-here-test:here-optimized-map-for-"
-                          "visualization-2::testlayer::269::4::partition",
+  EXPECT_CALL(
+      *cache,
+      Get("hrn:here:data::olp-here-test:hereos-internal-test-v2::blob::v1::api",
+          _))
+      .Times(1)
+      .WillOnce(
+          Return(std::string("https://blob-ireland.data.api.platform.here.com/"
+                             "blobstore/v1/catalogs/hereos-internal-test-v2")));
+
+  EXPECT_CALL(
+      *cache,
+      Put("hrn:here:data::olp-here-test:hereos-internal-test-v2::blob::v1::api",
+          _, _, expiration_time))
+      .Times(1)
+      .WillOnce(Return(true));
+
+  EXPECT_CALL(*cache, Put("hrn:here:data::olp-here-test:hereos-internal-test-"
+                          "v2::metadata::v1::api",
+                          _, _, expiration_time))
+      .Times(1)
+      .WillOnce(Return(true));
+
+  EXPECT_CALL(*cache, Put("hrn:here:data::olp-here-test:hereos-internal-test-"
+                          "v2::volatile-blob::v1::api",
+                          _, _, expiration_time))
+      .Times(1)
+      .WillOnce(Return(true));
+
+  EXPECT_CALL(*cache, Put("hrn:here:data::olp-here-test:hereos-internal-test-"
+                          "v2::stream::v2::api",
+                          _, _, expiration_time))
+      .Times(1)
+      .WillOnce(Return(true));
+
+  EXPECT_CALL(*cache, Get("hrn:here:data::olp-here-test:hereos-internal-test-v2::testlayer::269::4::partition",
                           _))
       .Times(1)
       .WillOnce(Return(boost::any()));
-  EXPECT_CALL(*cache, Put("hrn:here:data::olp-here-test:here-optimized-map-for-"
-                          "visualization-2::testlayer::269::4::partition",
+  EXPECT_CALL(*cache, Put("hrn:here:data::olp-here-test:hereos-internal-test-v2::testlayer::269::4::partition",
                           _, _, _))
       .Times(1)
       .WillOnce(Return(true));
 
   EXPECT_CALL(
       *cache,
-      Get("hrn:here:data::olp-here-test:here-optimized-map-for-visualization-2:"
+      Get("hrn:here:data::olp-here-test:hereos-internal-test-v2:"
           ":testlayer::4eed6ed1-0d32-43b9-ae79-043cb4256432::Data"))
       .Times(1)
       .WillOnce(Return(nullptr));
+
   EXPECT_CALL(
       *cache,
-      Put("hrn:here:data::olp-here-test:here-optimized-map-for-visualization-2:"
+      Put("hrn:here:data::olp-here-test:hereos-internal-test-v2:"
           ":testlayer::4eed6ed1-0d32-43b9-ae79-043cb4256432::Data",
           _, _))
       .Times(1)
@@ -3044,14 +3000,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Eviction) {
     return future.get().IsSuccessful();
   };
 
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                             olp::http::HttpStatusCode::OK),
-                                        kHttpResponseLookupQuery));
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                            olp::http::HttpStatusCode::OK),
-                                        kHttpResponseLookupBlob));
+                                        HTTP_RESPONSE_LOOKUP));
 
   const auto promote_key = std::to_string(0);
   const auto evicted_key = std::to_string(1);

@@ -31,11 +31,8 @@ using namespace olp::client;
 using namespace olp::dataservice::read;
 using namespace olp::tests::common;
 
-constexpr auto kUrlLookupStream =
-    R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis/stream/v2)";
-
-constexpr auto kUrlLookupBlob =
-    R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis/blob/v1)";
+constexpr auto kUrlLookup =
+    R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis)";
 
 constexpr auto kUrlStreamSubscribe =
     R"(https://some.stream.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/subscribe?mode=serial)";
@@ -66,11 +63,9 @@ constexpr auto kHttpRequestBodyWithStreamOffsets =
 
 constexpr auto kHttpResponseEmpty = R"jsonString()jsonString";
 
-constexpr auto kHttpResponseLookupStream =
-    R"jsonString([{"api":"stream","version":"v2","baseURL":"https://some.stream.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2","parameters":{}}])jsonString";
-
-constexpr auto kHttpResponseLookupBlob =
-    R"jsonString([{"api":"blob","version":"v1","baseURL":"https://some.blob.url/blobstore/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2","parameters":{}}])jsonString";
+constexpr auto kHttpResponseLookup =
+    R"jsonString([{"api":"stream","version":"v2","baseURL":"https://some.stream.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2","parameters":{}},
+    {"api":"blob","version":"v1","baseURL":"https://some.blob.url/blobstore/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2","parameters":{}}])jsonString";
 
 constexpr auto kHttpResponseSubscribe =
     R"jsonString({"nodeBaseURL":"https://stream.node.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2","subscriptionId":"12345"})jsonString";
@@ -180,7 +175,7 @@ void StreamLayerClientImplTest::SetUp() {
 
 void StreamLayerClientImplTest::SimulateSubscription(
     StreamLayerClientImpl& client) {
-  SetupNetworkExpectation(kUrlLookupStream, kHttpResponseLookupStream,
+  SetupNetworkExpectation(kUrlLookup, kHttpResponseLookup,
                           http::HttpStatusCode::OK);
 
   SetupNetworkExpectation(kUrlStreamSubscribe, kHttpResponseSubscribe,
@@ -231,7 +226,7 @@ TEST_F(StreamLayerClientImplTest, Subscribe) {
 
     StreamLayerClientImpl client(kHrn, kLayerId, settings_);
 
-    SetupNetworkExpectation(kUrlLookupStream, kHttpResponseLookupStream,
+    SetupNetworkExpectation(kUrlLookup, kHttpResponseLookup,
                             http::HttpStatusCode::OK);
 
     SetupNetworkExpectation(kUrlStreamSubscribe, kHttpResponseSubscribe,
@@ -258,7 +253,7 @@ TEST_F(StreamLayerClientImplTest, Subscribe) {
 
     StreamLayerClientImpl client(kHrn, kLayerId, settings_);
 
-    SetupNetworkExpectation(kUrlLookupStream, kHttpResponseLookupStream,
+    SetupNetworkExpectation(kUrlLookup, kHttpResponseLookup,
                             http::HttpStatusCode::OK);
 
     SetupNetworkExpectation(
@@ -287,7 +282,7 @@ TEST_F(StreamLayerClientImplTest, SubscribeCancellableFuture) {
 
     StreamLayerClientImpl client(kHrn, kLayerId, settings_);
 
-    SetupNetworkExpectation(kUrlLookupStream, kHttpResponseLookupStream,
+    SetupNetworkExpectation(kUrlLookup, kHttpResponseLookup,
                             http::HttpStatusCode::OK);
 
     SetupNetworkExpectation(kUrlStreamSubscribe, kHttpResponseSubscribe,
@@ -309,7 +304,7 @@ TEST_F(StreamLayerClientImplTest, SubscribeCancellableFuture) {
 
     StreamLayerClientImpl client(kHrn, kLayerId, settings_);
 
-    SetupNetworkExpectation(kUrlLookupStream, kHttpResponseLookupStream,
+    SetupNetworkExpectation(kUrlLookup, kHttpResponseLookup,
                             http::HttpStatusCode::OK);
 
     SetupNetworkExpectation(kUrlStreamSubscribe, kHttpResponseSubscribe,
@@ -512,7 +507,7 @@ TEST_F(StreamLayerClientImplTest, GetData) {
   {
     SCOPED_TRACE("GetData success");
 
-    SetupNetworkExpectation(kUrlLookupBlob, kHttpResponseLookupBlob,
+    SetupNetworkExpectation(kUrlLookup, kHttpResponseLookup,
                             http::HttpStatusCode::OK);
 
     SetupNetworkExpectation(kUrlBlobGetBlob, kBlobData.c_str(),
@@ -566,7 +561,7 @@ TEST_F(StreamLayerClientImplTest, GetData) {
   {
     SCOPED_TRACE("GetData fails, lookup server error");
 
-    SetupNetworkExpectation(kUrlLookupBlob, kHttpResponseEmpty,
+    SetupNetworkExpectation(kUrlLookup, kHttpResponseEmpty,
                             http::HttpStatusCode::AUTHENTICATION_TIMEOUT);
 
     StreamLayerClientImpl client(kHrn, kLayerId, settings_);
@@ -594,7 +589,7 @@ TEST_F(StreamLayerClientImplTest, GetData) {
   {
     SCOPED_TRACE("GetData fails, blob server error");
 
-    SetupNetworkExpectation(kUrlLookupBlob, kHttpResponseLookupBlob,
+    SetupNetworkExpectation(kUrlLookup, kHttpResponseLookup,
                             http::HttpStatusCode::OK);
 
     SetupNetworkExpectation(kUrlBlobGetBlob, kHttpResponseEmpty,
@@ -625,7 +620,7 @@ TEST_F(StreamLayerClientImplTest, GetData) {
 }
 
 TEST_F(StreamLayerClientImplTest, GetDataCancellableFuture) {
-  SetupNetworkExpectation(kUrlLookupBlob, kHttpResponseLookupBlob,
+  SetupNetworkExpectation(kUrlLookup, kHttpResponseLookup,
                           http::HttpStatusCode::OK);
 
   SetupNetworkExpectation(kUrlBlobGetBlob, kBlobData.c_str(),

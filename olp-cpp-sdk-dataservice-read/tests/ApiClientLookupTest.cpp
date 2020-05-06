@@ -31,8 +31,8 @@ using namespace olp::tests::common;
 #define OLP_SDK_CONFIG_BASE_URL \
   "https://config.data.api.platform.in.here.com/config/v1"
 
-#define OLP_SDK_HTTP_RESPONSE_LOOKUP_CONFIG                                                    \
-  R"jsonString([{"api":"config","version":"v1","baseURL":")jsonString" OLP_SDK_CONFIG_BASE_URL \
+#define OLP_SDK_HTTP_RESPONSE_LOOKUP_CONFIG                                                            \
+  R"jsonString([{"api":"random_service","version":"v8","baseURL":")jsonString" OLP_SDK_CONFIG_BASE_URL \
   R"jsonString(","parameters":{}},{"api":"pipelines","version":"v1","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}},{"api":"pipelines","version":"v2","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}}])jsonString"
 
 TEST(ApiClientLookupTest, LookupApi) {
@@ -58,7 +58,7 @@ TEST(ApiClientLookupTest, LookupApi) {
       catalog + "::" + service_name + "::" + service_version + "::api";
   const std::string lookup_url =
       "https://api-lookup.data.api.platform.here.com/lookup/v1/resources/" +
-      catalog + "/apis/" + service_name + "/" + service_version;
+      catalog + "/apis";
 
   {
     SCOPED_TRACE("Fetch from cache [CacheOnly] positive");

@@ -93,10 +93,10 @@ void CatalogClientTestBase::SetUpCommonNetworkMockCalls() {
       .WillByDefault(ReturnHttpResponse(
           olp::http::NetworkResponse().WithStatus(200), HTTP_RESPONSE_CONFIG));
 
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .WillByDefault(
           ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_LOOKUP_METADATA));
+                             HTTP_RESPONSE_LOOKUP));
 
   ON_CALL(*network_mock_,
           Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
@@ -114,10 +114,10 @@ void CatalogClientTestBase::SetUpCommonNetworkMockCalls() {
           ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                              HTTP_RESPONSE_PARTITIONS));
 
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .WillByDefault(
           ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_LOOKUP_QUERY));
+                             HTTP_RESPONSE_LOOKUP));
 
   ON_CALL(*network_mock_,
           Send(IsGetRequest(URL_QUERY_PARTITION_269), _, _, _, _))
@@ -125,10 +125,10 @@ void CatalogClientTestBase::SetUpCommonNetworkMockCalls() {
           ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
                              HTTP_RESPONSE_PARTITION_269));
 
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .WillByDefault(
           ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_LOOKUP_BLOB));
+                             HTTP_RESPONSE_LOOKUP));
 
   ON_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .WillByDefault(
@@ -141,10 +141,10 @@ void CatalogClientTestBase::SetUpCommonNetworkMockCalls() {
                              HTTP_RESPONSE_PARTITION_3));
 
   ON_CALL(*network_mock_,
-          Send(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
+          Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .WillByDefault(
           ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                             HTTP_RESPONSE_LOOKUP_VOLATILE_BLOB));
+                             HTTP_RESPONSE_LOOKUP));
 
   ON_CALL(*network_mock_, Send(IsGetRequest(URL_LAYER_VERSIONS_V2), _, _, _, _))
       .WillByDefault(

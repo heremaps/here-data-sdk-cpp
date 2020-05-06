@@ -19,8 +19,10 @@
 
 #include "PlatformApi.h"
 
+#include <map>
 #include <memory>
 #include <sstream>
+#include <utility>
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/HttpResponse.h>
@@ -36,7 +38,8 @@ namespace read {
 
 PlatformApi::ApisResponse PlatformApi::GetApis(
     const client::OlpClient& client, const std::string& service,
-    const std::string& service_version, const client::CancellationContext& context) {
+    const std::string& service_version,
+    const client::CancellationContext& context) {
   std::multimap<std::string, std::string> header_params;
   header_params.insert(std::make_pair("Accept", "application/json"));
   std::multimap<std::string, std::string> query_params;
@@ -44,6 +47,28 @@ PlatformApi::ApisResponse PlatformApi::GetApis(
 
   std::string platform_url =
       "/platform/apis/" + service + "/" + service_version;
+
+  auto response =
+      client.CallApi(platform_url, "GET", query_params, header_params,
+                     form_params, nullptr, "", context);
+  if (response.status != http::HttpStatusCode::OK) {
+    return ApisResponse(
+        client::ApiError(response.status, response.response.str()));
+  }
+
+  return ApisResponse(
+      parser::parse<olp::dataservice::read::model::Apis>(response.response));
+}
+
+PlatformApi::ApisResponse PlatformApi::GetApis(
+    const client::OlpClient& client,
+    const client::CancellationContext& context) {
+  std::multimap<std::string, std::string> header_params;
+  header_params.insert(std::make_pair("Accept", "application/json"));
+  std::multimap<std::string, std::string> query_params;
+  std::multimap<std::string, std::string> form_params;
+
+  const std::string platform_url = "/platform/apis";
 
   auto response =
       client.CallApi(platform_url, "GET", query_params, header_params,
