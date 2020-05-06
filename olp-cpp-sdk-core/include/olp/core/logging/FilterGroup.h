@@ -19,15 +19,16 @@
 
 #pragma once
 
-#include <olp/core/CoreApi.h>
-#include <olp/core/logging/Level.h>
+#include <istream>
+#include <string>
+#include <unordered_map>
+#include <utility>
 
 #include <boost/none.hpp>
 #include <boost/optional.hpp>
 
-#include <istream>
-#include <string>
-#include <unordered_map>
+#include <olp/core/CoreApi.h>
+#include <olp/core/logging/Level.h>
 
 namespace olp {
 namespace logging {

@@ -28,7 +28,7 @@ class CORE_API TileTreeTraverse {
   using Node = TileKey;
   using NodeContainer = SubTiles;
 
-  TileTreeTraverse(const ISubdivisionScheme& sub_division_scheme);
+  explicit TileTreeTraverse(const ISubdivisionScheme& sub_division_scheme);
 
   NodeContainer SubNodes(const Node& node) const;
 

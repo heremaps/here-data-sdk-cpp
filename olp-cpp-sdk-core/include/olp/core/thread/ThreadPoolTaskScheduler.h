@@ -40,7 +40,7 @@ class CORE_API ThreadPoolTaskScheduler final : public TaskScheduler {
    *
    * @param thread_count The number of threads initialized in the thread pool.
    */
-  ThreadPoolTaskScheduler(size_t thread_count = 1u);
+  explicit ThreadPoolTaskScheduler(size_t thread_count = 1u);
 
   /**
    * @brief Closes the `SyncQueue` instance and joins threads.

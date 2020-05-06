@@ -20,13 +20,11 @@
 #pragma once
 
 #include <bitset>
-#include <cstdint>
-#include <functional>
-#include <ostream>
 #include <string>
 
-#include <olp/core/CoreApi.h>
 #include <boost/optional.hpp>
+
+#include <olp/core/CoreApi.h>
 
 namespace olp {
 namespace geo {

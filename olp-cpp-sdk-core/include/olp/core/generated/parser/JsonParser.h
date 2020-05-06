@@ -20,6 +20,7 @@
 #pragma once
 
 #include <sstream>
+#include <string>
 
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>

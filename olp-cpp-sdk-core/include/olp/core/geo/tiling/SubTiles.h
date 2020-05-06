@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 #include <iterator>
 
@@ -47,7 +48,7 @@ class CORE_API SubTiles {
     bool operator!=(Iterator& other) const;
 
    private:
-    Iterator(const SubTiles& parent, std::uint32_t index = 0);
+    explicit Iterator(const SubTiles& parent, std::uint32_t index = 0);
 
     const SubTiles& parent_;
     std::uint32_t index_{0};

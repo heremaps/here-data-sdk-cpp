@@ -21,6 +21,7 @@
 
 #include <functional>
 #include <mutex>
+#include <utility>
 
 namespace olp {
 namespace thread {
@@ -56,7 +57,7 @@ class Atomic {
    * @param am The rvalue reference of the `SomeType` instance.
    */
   template <class SomeType>
-  Atomic(SomeType&& am) : m(std::forward<SomeType>(am)) {}
+  explicit Atomic(SomeType&& am) : m(std::forward<SomeType>(am)) {}
 
   /**
    * @brief Creates the `Atomic` instance.

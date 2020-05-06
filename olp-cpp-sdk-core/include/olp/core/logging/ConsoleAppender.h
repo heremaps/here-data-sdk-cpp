@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <utility>
+
 #include <olp/core/CoreApi.h>
 #include <olp/core/logging/Appender.h>
 #include <olp/core/logging/MessageFormatter.h>
@@ -62,7 +64,8 @@ inline const MessageFormatter& ConsoleAppender::getMessageFormatter() const {
   return m_formatter;
 }
 
-inline ConsoleAppender& ConsoleAppender::setMessageFormatter(MessageFormatter formatter) {
+inline ConsoleAppender& ConsoleAppender::setMessageFormatter(
+    MessageFormatter formatter) {
   m_formatter = std::move(formatter);
   return *this;
 }

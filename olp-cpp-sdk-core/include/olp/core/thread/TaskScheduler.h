@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <utility>
+
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationContext.h>
 
