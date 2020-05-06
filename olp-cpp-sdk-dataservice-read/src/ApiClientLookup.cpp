@@ -19,6 +19,9 @@
 
 #include "ApiClientLookup.h"
 
+#include <map>
+#include <utility>
+
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/Condition.h>

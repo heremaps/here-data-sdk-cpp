@@ -20,6 +20,7 @@
 #include "ResourcesApi.h"
 
 #include <memory>
+#include <map>
 #include <sstream>
 
 #include <olp/core/client/HttpResponse.h>
@@ -65,7 +66,7 @@ ResourcesApi::ApisResponse ResourcesApi::GetApis(
   std::multimap<std::string, std::string> query_params;
   std::multimap<std::string, std::string> form_params;
   // scan apis at resource endpoint
-  std::string resource_url = "/resources/" + hrn + "/apis";
+  const std::string resource_url = "/resources/" + hrn + "/apis";
   auto response =
       client.CallApi(resource_url, "GET", query_params, header_params,
                      form_params, nullptr, "", context);
