@@ -44,22 +44,6 @@ class ResourcesApi {
   /**
    * @brief Call to resources service base urls.
    * @param client Instance of OlpClient used to make REST request.
-   * @param service Name of the service.
-   * @param service_version Version of the service.
-   * @param hrn Full catalog name.
-   * @param context A CancellationContext, which can be used to cancel any pending request.
-   *
-   * @return The Apis response.
-   */
-  static ApisResponse GetApis(const client::OlpClient& client,
-                              const std::string& hrn,
-                              const std::string& service,
-                              const std::string& service_version,
-                              const client::CancellationContext& context);
-
-  /**
-   * @brief Call to resources service base urls.
-   * @param client Instance of OlpClient used to make REST request.
    * @param hrn Full catalog name.
    * @param context A CancellationContext, which can be used to cancel any
    * pending request.

@@ -22,18 +22,17 @@
 #include <mocks/CacheMock.h>
 #include <mocks/NetworkMock.h>
 #include "../src/ApiClientLookup.h"
-
+namespace {
 using namespace olp;
 using namespace client;
 using namespace dataservice::read;
 using namespace olp::tests::common;
 
-#define OLP_SDK_CONFIG_BASE_URL \
-  "https://config.data.api.platform.in.here.com/config/v1"
+const auto kConfigBaseUrl =
+    "https://config.data.api.platform.in.here.com/config/v1";
 
-#define OLP_SDK_HTTP_RESPONSE_LOOKUP_CONFIG                                                            \
-  R"jsonString([{"api":"random_service","version":"v8","baseURL":")jsonString" OLP_SDK_CONFIG_BASE_URL \
-  R"jsonString(","parameters":{}},{"api":"pipelines","version":"v1","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}},{"api":"pipelines","version":"v2","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}}])jsonString"
+const auto kResponseLookupConfig =
+    R"jsonString([{"api":"random_service","version":"v8","baseURL":"https://config.data.api.platform.in.here.com/config/v1","parameters":{}},{"api":"pipelines","version":"v1","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}},{"api":"pipelines","version":"v2","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}}])jsonString";
 
 TEST(ApiClientLookupTest, LookupApi) {
   using namespace testing;
@@ -96,7 +95,7 @@ TEST(ApiClientLookupTest, LookupApi) {
         .Times(1)
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
-                                     OLP_SDK_HTTP_RESPONSE_LOOKUP_CONFIG));
+                                     kResponseLookupConfig));
     EXPECT_CALL(*cache, Put(cache_key, _, _, _))
         .Times(0)
         .WillOnce(Return(true));
@@ -107,7 +106,7 @@ TEST(ApiClientLookupTest, LookupApi) {
         FetchOptions::OnlineOnly, settings);
 
     EXPECT_TRUE(response.IsSuccessful());
-    EXPECT_EQ(response.GetResult().GetBaseUrl(), OLP_SDK_CONFIG_BASE_URL);
+    EXPECT_EQ(response.GetResult().GetBaseUrl(), kConfigBaseUrl);
     Mock::VerifyAndClearExpectations(network.get());
   }
   {
@@ -224,3 +223,4 @@ TEST(ApiClientLookupTest, LookupApi) {
     Mock::VerifyAndClearExpectations(network.get());
   }
 }
+}  // namespace

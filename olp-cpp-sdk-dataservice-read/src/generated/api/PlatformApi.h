@@ -44,20 +44,6 @@ class PlatformApi {
   /**
    * @brief Call to lookup platform base urls.
    * @param client Instance of OlpClient used to make REST request.
-   * @param service Name of the service.
-   * @param service_version Version of the service.
-   * @param context A CancellationContext, which can be used to cancel any pending request.
-   *
-   * @return The Apis response.
-   */
-  static ApisResponse GetApis(const client::OlpClient& client,
-                              const std::string& service,
-                              const std::string& service_version,
-                              const client::CancellationContext& context);
-
-  /**
-   * @brief Call to lookup platform base urls.
-   * @param client Instance of OlpClient used to make REST request.
    * @param context A CancellationContext, which can be used to cancel any
    * pending request.
    *
