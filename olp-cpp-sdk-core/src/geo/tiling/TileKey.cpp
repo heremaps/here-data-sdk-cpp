@@ -19,6 +19,7 @@
 
 #include "olp/core/geo/tiling/TileKey.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
