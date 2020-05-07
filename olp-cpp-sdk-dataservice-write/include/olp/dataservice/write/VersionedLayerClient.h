@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiNoResult.h>
 #include <olp/core/client/ApiResponse.h>

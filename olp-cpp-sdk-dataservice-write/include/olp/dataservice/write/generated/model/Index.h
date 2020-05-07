@@ -22,6 +22,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include <boost/optional.hpp>
 
@@ -95,8 +96,7 @@ class DATASERVICE_WRITE_API IndexValue {
  */
 class DATASERVICE_WRITE_API UnsupportedIndexValue final : public IndexValue {
  public:
-  virtual ~UnsupportedIndexValue() = default;
-  UnsupportedIndexValue(IndexType type) : IndexValue(type) {}
+  explicit UnsupportedIndexValue(IndexType type) : IndexValue(type) {}
 };
 
 /**
@@ -125,7 +125,7 @@ class DATASERVICE_WRITE_API IntIndexValue final : public IndexValue {
   virtual ~IntIndexValue() = default;
   IntIndexValue(int64_t intValue, IndexType type) : IndexValue(type) {
     intValue_ = std::move(intValue);
-  };
+  }
 
   const int64_t& GetValue() const { return intValue_; }
   int64_t& GetMutableValue() { return intValue_; }
@@ -188,7 +188,7 @@ class DATASERVICE_WRITE_API HereTileIndexValue final : public IndexValue {
  */
 class DATASERVICE_WRITE_API EmptyIndexValue final : public IndexValue {
  public:
-  EmptyIndexValue(IndexType type) : IndexValue(type) {}
+  explicit EmptyIndexValue(IndexType type) : IndexValue(type) {}
 };
 
 class DATASERVICE_WRITE_API Index final {
