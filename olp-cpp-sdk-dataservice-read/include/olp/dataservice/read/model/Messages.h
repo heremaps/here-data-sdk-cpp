@@ -21,11 +21,13 @@
 
 #include <string>
 #include <vector>
+#include <utility>
+
+#include <boost/optional.hpp>
 
 #include <olp/dataservice/read/DataServiceReadApi.h>
 #include <olp/dataservice/read/model/Data.h>
 #include <olp/dataservice/read/model/StreamOffsets.h>
-#include <boost/optional.hpp>
 
 namespace olp {
 namespace dataservice {
@@ -204,26 +206,26 @@ class DATASERVICE_READ_API Message final {
    *
    * @return The \ref `Metadata` instance.
    */
-  const Metadata& GetMetaData() const { return meta_data_; };
+  const Metadata& GetMetaData() const { return meta_data_; }
   /**
    * @brief Sets the \ref `Metadata` instance of this message.
    *
    * @param value The \ref `Metadata` instance.
    */
-  void SetMetaData(Metadata value) { meta_data_ = std::move(value); };
+  void SetMetaData(Metadata value) { meta_data_ = std::move(value); }
 
   /**
    * @brief Gets the offset in a specific partition of the stream layer.
    *
    * @return The \ref `StreamOffset` instance.
    */
-  const StreamOffset& GetOffset() const { return offset_; };
+  const StreamOffset& GetOffset() const { return offset_; }
   /**
    * @brief Sets the \ref `StreamOffset` instance of this message.
    *
    * @param value The \ref `StreamOffset` instance.
    */
-  void SetOffset(StreamOffset value) { offset_ = std::move(value); };
+  void SetOffset(StreamOffset value) { offset_ = std::move(value); }
 
   /**
    * @brief Gets the actual content of this message.
@@ -247,15 +249,13 @@ class DATASERVICE_READ_API Messages final {
    *
    * @return The vector of messages consumed from \ref `StreamLayerClient`.
    */
-  const std::vector<Message>& GetMessages() const { return messages_; };
+  const std::vector<Message>& GetMessages() const { return messages_; }
   /**
    * @brief Sets the vector of messages.
    *
    * @param value The vector of messages consumed from \ref `StreamLayerClient`.
    */
-  void SetMessages(std::vector<Message> value) {
-    messages_ = std::move(value);
-  };
+  void SetMessages(std::vector<Message> value) { messages_ = std::move(value); }
 
  private:
   std::vector<Message> messages_;

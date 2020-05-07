@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <vector>
+#include <string>
 
 #include <boost/optional.hpp>
 #include <olp/core/client/ApiError.h>

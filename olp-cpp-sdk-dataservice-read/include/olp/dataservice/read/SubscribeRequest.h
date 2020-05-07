@@ -20,6 +20,7 @@
 #pragma once
 
 #include <string>
+#include <utility>
 
 #include <olp/dataservice/read/ConsumerProperties.h>
 #include <olp/dataservice/read/Types.h>

@@ -22,6 +22,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <utility>
 
 #include <olp/core/porting/deprecated.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>

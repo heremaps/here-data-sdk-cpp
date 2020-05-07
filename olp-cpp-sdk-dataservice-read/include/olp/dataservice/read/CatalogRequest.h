@@ -21,6 +21,7 @@
 
 #include <sstream>
 #include <string>
+#include <utility>
 
 #include <olp/dataservice/read/DataServiceReadApi.h>
 #include <olp/dataservice/read/FetchOptions.h>

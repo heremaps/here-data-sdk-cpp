@@ -21,6 +21,7 @@
 
 #include <sstream>
 #include <string>
+#include <utility>
 
 #include <olp/core/geo/tiling/TileKey.h>
 #include <olp/dataservice/read/FetchOptions.h>

@@ -22,8 +22,8 @@
 namespace olp {
 namespace dataservice {
 namespace read {
-enum FetchOptions {
 
+enum FetchOptions {
   /**
    * A default option. Queries the network if the requested resource is not
    * found in the cache.

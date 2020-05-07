@@ -19,14 +19,14 @@
 
 #pragma once
 
-#include "FetchOptions.h"
-
 #include <sstream>
 #include <string>
+#include <utility>
 
 #include <boost/optional.hpp>
 
 #include "DataServiceReadApi.h"
+#include "FetchOptions.h"
 
 namespace olp {
 namespace dataservice {

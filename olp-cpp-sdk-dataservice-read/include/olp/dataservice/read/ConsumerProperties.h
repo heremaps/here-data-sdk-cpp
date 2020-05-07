@@ -21,10 +21,11 @@
 
 #include <initializer_list>
 #include <string>
+#include <utility>
 #include <vector>
 
-#include <boost/optional.hpp>
 #include <olp/dataservice/read/DataServiceReadApi.h>
+#include <boost/optional.hpp>
 
 namespace olp {
 namespace dataservice {
@@ -78,13 +79,13 @@ class DATASERVICE_READ_API ConsumerOption final {
    *
    * @return The key of the consumer configuration entry.
    */
-  const std::string& GetKey() const { return key_; };
+  const std::string& GetKey() const { return key_; }
   /**
    * @brief Gets the value of the consumer configuration entry.
    *
    * @return The value of the consumer configuration entry.
    */
-  const std::string& GetValue() const { return value_; };
+  const std::string& GetValue() const { return value_; }
 
  private:
   std::string key_;
@@ -104,7 +105,7 @@ class DATASERVICE_READ_API ConsumerProperties final {
    *
    * @param properties The `ConsumerOptions` instances.
    */
-  ConsumerProperties(ConsumerOptions properties)
+  explicit ConsumerProperties(ConsumerOptions properties)
       : properties_{std::move(properties)} {}
 
   /**
@@ -120,9 +121,7 @@ class DATASERVICE_READ_API ConsumerProperties final {
    *
    * @return The `ConsumerProperties` instance.
    */
-  const ConsumerOptions& GetProperties() const {
-    return properties_;
-  };
+  const ConsumerOptions& GetProperties() const { return properties_; }
 
  private:
   ConsumerOptions properties_;
