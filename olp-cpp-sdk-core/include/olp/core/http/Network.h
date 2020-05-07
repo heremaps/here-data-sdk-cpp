@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <string>
 
 #include <olp/core/CoreApi.h>
 #include <olp/core/http/NetworkRequest.h>

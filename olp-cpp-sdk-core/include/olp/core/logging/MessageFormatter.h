@@ -19,14 +19,16 @@
 
 #pragma once
 
+#include <array>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include <olp/core/CoreApi.h>
 
 #include <olp/core/logging/Format.h>
 #include <olp/core/logging/Level.h>
 #include <olp/core/logging/LogMessage.h>
-#include <array>
-#include <string>
-#include <vector>
 
 namespace olp {
 namespace logging {

@@ -23,6 +23,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <utility>
 
 #include <boost/optional.hpp>
 #include <rapidjson/document.h>

@@ -19,11 +19,13 @@
 
 #pragma once
 
+#include <memory>
+#include <utility>
+#include <vector>
+
 #include <olp/core/CoreApi.h>
 #include <olp/core/logging/Appender.h>
 #include <olp/core/logging/MessageFormatter.h>
-#include <memory>
-#include <vector>
 
 namespace olp {
 namespace logging {

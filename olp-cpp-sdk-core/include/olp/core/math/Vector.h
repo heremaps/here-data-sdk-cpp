@@ -59,7 +59,7 @@ struct Vector3 {
     y = b;
     z = c;
   }
-  Vector3(T const& s) : x(s), y(s), z(s) {}
+  explicit Vector3(T const& s) : x(s), y(s), z(s) {}
 
   Vector3<T> operator*(T const& s) const {
     return Vector3<T>(x * s, y * s, z * s);

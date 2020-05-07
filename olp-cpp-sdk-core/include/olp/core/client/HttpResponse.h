@@ -20,6 +20,8 @@
 #pragma once
 
 #include <sstream>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include <olp/core/CoreApi.h>
@@ -33,7 +35,6 @@ namespace client {
  */
 class CORE_API HttpResponse {
  public:
-
   HttpResponse() = default;
   /**
    * @brief Creates the `HttpResponse` instance.
@@ -41,7 +42,7 @@ class CORE_API HttpResponse {
    * @param status The HTTP status.
    * @param response The response body.
    */
-  HttpResponse(int status, std::string response = std::string())
+  HttpResponse(int status, std::string response = std::string())  // NOLINT
       : status(status), response(std::move(response)) {}
   /**
    * @brief Creates the `HttpResponse` instance.

@@ -19,11 +19,13 @@
 
 #pragma once
 
+#include <fstream>
+#include <string>
+#include <utility>
+
 #include <olp/core/CoreApi.h>
 #include <olp/core/logging/Appender.h>
 #include <olp/core/logging/MessageFormatter.h>
-#include <fstream>
-#include <string>
 
 namespace olp {
 namespace logging {
@@ -95,7 +97,8 @@ inline const MessageFormatter& FileAppender::getMessageFormatter() const {
   return m_formatter;
 }
 
-inline FileAppender& FileAppender::setMessageFormatter(MessageFormatter formatter) {
+inline FileAppender& FileAppender::setMessageFormatter(
+    MessageFormatter formatter) {
   m_formatter = std::move(formatter);
   return *this;
 }

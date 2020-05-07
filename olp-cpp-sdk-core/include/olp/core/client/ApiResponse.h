@@ -20,7 +20,9 @@
 #pragma once
 
 #include <future>
+#include <memory>
 #include <string>
+#include <utility>
 
 #include "CancellationToken.h"
 
@@ -57,14 +59,16 @@ class ApiResponse {
    *
    * @param result The `ResultType` instance.
    */
-  ApiResponse(ResultType result) : result_(std::move(result)), success_(true) {}
+  ApiResponse(ResultType result)  // NOLINT
+      : result_(std::move(result)), success_(true) {}
 
   /**
    * @brief Creates the `ApiResponse` instance if the request is not successful.
    *
    * @param error The `ErrorType` instance.
    */
-  ApiResponse(const ErrorType& error) : error_(error), success_(false) {}
+  ApiResponse(const ErrorType& error)  // NOLINT
+      : error_(error), success_(false) {}
 
   /**
    * @brief Checks the status of the request attempt.

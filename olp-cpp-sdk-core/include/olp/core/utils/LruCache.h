@@ -23,6 +23,7 @@
 #include <cstddef>
 #include <functional>
 #include <map>
+#include <utility>
 
 #include <olp/core/porting/try_emplace.h>
 
@@ -106,11 +107,13 @@ class LruCache {
     template <typename, typename, typename, typename, template <typename> class>
     friend class LruCache;
 
-    const_iterator(const typename MapType::const_iterator& it) {
+    explicit const_iterator(const typename MapType::const_iterator& it) {
       this->m_it = it;
     }
 
-    const_iterator(const typename MapType::iterator& it) { this->m_it = it; }
+    explicit const_iterator(const typename MapType::iterator& it) {
+      this->m_it = it;
+    }
   };
 
   /**
@@ -226,7 +229,8 @@ class LruCache {
    */
   bool Erase(const Key& key) {
     auto it = map_.find(key);
-    if (it == map_.end()) return false;
+    if (it == map_.end())
+      return false;
 
     Erase(it, false);
     return true;
@@ -276,7 +280,8 @@ class LruCache {
    */
   const_iterator Find(const Key& key) {
     auto it = map_.find(key);
-    if (it != map_.end()) Promote(it);
+    if (it != map_.end())
+      Promote(it);
     return const_iterator{it};
   }
 
@@ -402,7 +407,8 @@ class LruCache {
   void Promote(const typename MapType::iterator& it);
   void PopLast();
   void evict() {
-    while (size_ > max_size_) PopLast();
+    while (size_ > max_size_)
+      PopLast();
   }
 };
 
@@ -463,7 +469,8 @@ template <typename Key, typename Value, typename CacheCostFunc,
           typename Compare, template <typename> class Alloc>
 void LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::Promote(
     const typename MapType::iterator& it) {
-  if (it == first_) return;  // nothing to do
+  if (it == first_)
+    return;  // nothing to do
 
   // re-link previous and next buckets together
   it->second.previous_->second.setNext(it->second.next_);

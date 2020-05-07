@@ -20,7 +20,9 @@
 #pragma once
 
 #include <atomic>
+#include <memory>
 #include <mutex>
+#include <utility>
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>

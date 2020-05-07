@@ -20,6 +20,7 @@
 #pragma once
 
 #include <string>
+#include <utility>
 
 #include "ErrorCode.h"
 
@@ -69,7 +70,7 @@ class CORE_API ApiError {
    * @param http_status_code The HTTP status code returned by the server.
    * @param message The text message of the error.
    */
-  ApiError(int http_status_code, std::string message = "")
+  ApiError(int http_status_code, std::string message = "") // NOLINT
       : error_code_(http::HttpStatusCode::GetErrorCode(http_status_code)),
         http_status_code_(http_status_code),
         message_(std::move(message)),

@@ -45,7 +45,7 @@ class CORE_API CancellationToken {
    * @param func The operation that should be used to cancel the ongoing
    * operation.
    */
-  CancellationToken(CancelFuncType func);
+  explicit CancellationToken(CancelFuncType func);
 
   /**
    * @brief Cancels the current operation and calls the `func_` instance.
