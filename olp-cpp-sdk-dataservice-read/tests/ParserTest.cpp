@@ -608,5 +608,4 @@ TEST(ParserTest, SubscribeResponse) {
     EXPECT_TRUE(response.GetSubscriptionId().empty());
   }
 }
-
 }  // namespace

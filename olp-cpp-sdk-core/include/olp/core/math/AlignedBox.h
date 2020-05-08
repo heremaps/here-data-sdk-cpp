@@ -88,7 +88,6 @@ struct OverflowTrait<T, 32, false> {
  */
 template <typename T, unsigned int N>
 class AlignedBox {
- private:
  public:
   static const unsigned int numCorners =
       1 << N; /*!< Number of corners for the box. */

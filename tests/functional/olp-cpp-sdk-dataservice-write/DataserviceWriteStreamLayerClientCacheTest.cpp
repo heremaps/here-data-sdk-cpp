@@ -92,12 +92,12 @@ void PublishFailureAssertions(
 
 class DataserviceWriteStreamLayerClientCacheTest : public ::testing::Test {
  protected:
-  virtual void SetUp() override {
+  void SetUp() override {
     ASSERT_NO_FATAL_FAILURE(client_ = CreateStreamLayerClient());
     data_ = GenerateData();
   }
 
-  virtual void TearDown() override {
+  void TearDown() override {
     data_.reset();
     client_.reset();
     if (disk_cache_) {

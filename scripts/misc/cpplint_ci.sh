@@ -72,7 +72,6 @@ CPPLINT_BLOCKING_FILTER="\
      -build/c++11,\
      -readability/multiline_string,\
      -readability/casting,\
-     -readability/inheritance,\
      -readability/todo,\
      -readability/alt_tokens,\
      -readability/braces,\
@@ -82,11 +81,7 @@ CPPLINT_BLOCKING_FILTER="\
      -whitespace/parens,\
      -whitespace/braces,\
      -whitespace/line_length,\
-     -whitespace/end_of_line,\
-     -whitespace/comments,\
-     -whitespace/blank_line,\
-     -whitespace/semicolon,\
-     -whitespace/operators"
+     -whitespace/comments"
 
 cpplint --filter="$CPPLINT_BLOCKING_FILTER" $FILES 2> errors.txt
 RESULT=$?

@@ -208,7 +208,7 @@ int RunExamples(const AccessKey& access_key, int examples_to_run,
 }
 
 int main(int argc, char** argv) {
-  AccessKey access_key{};  // You can specify your here.access.key.id 
+  AccessKey access_key{};  // You can specify your here.access.key.id
                            // and here.access.key.secret
   std::string catalog;     // the HRN of the catalog to which you to publish data
   std::string layer_id;    // the of the layer inside the catalog to which you

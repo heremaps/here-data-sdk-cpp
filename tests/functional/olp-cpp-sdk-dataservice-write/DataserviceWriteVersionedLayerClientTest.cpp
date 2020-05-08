@@ -54,9 +54,9 @@ class DataserviceWriteVersionedLayerClientTest : public ::testing::Test {
         CreateDefaultNetworkRequestHandler();
   }
 
-  virtual void SetUp() override { client_ = CreateVersionedLayerClient(); }
+  void SetUp() override { client_ = CreateVersionedLayerClient(); }
 
-  virtual void TearDown() override { client_ = nullptr; }
+  void TearDown() override { client_ = nullptr; }
 
   std::shared_ptr<VersionedLayerClient> CreateVersionedLayerClient() {
     auto network = s_network;

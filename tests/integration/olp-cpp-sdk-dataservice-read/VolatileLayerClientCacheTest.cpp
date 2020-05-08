@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,7 +131,7 @@ TEST_P(VolatileLayerClientCacheTest, GetVolatilePartitionsExpiry) {
   ASSERT_TRUE(partitions_response.IsSuccessful())
       << ApiErrorToString(partitions_response.GetError());
   ASSERT_EQ(1u, partitions_response.GetResult().GetPartitions().size());
-  
+
   // hit the cache only, should be still be there
   request.WithFetchOption(olp::dataservice::read::CacheOnly);
   future = catalog_client->GetPartitions(request);

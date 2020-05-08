@@ -57,12 +57,11 @@ time_t SignInResult::GetExpiryTime() const { return impl_->GetExpiryTime(); }
 const std::string& SignInResult::GetUserIdentifier() const {
   return impl_->GetUserIdentifier();
 }
-  
-std::chrono::seconds SignInResult::GetExpiresIn() const
-{
-    return impl_->GetExpiresIn();
+
+std::chrono::seconds SignInResult::GetExpiresIn() const {
+  return impl_->GetExpiresIn();
 }
-  
+
 const std::string& SignInResult::GetScope() const { return impl_->GetScope(); }
 
 SignInResult::SignInResult(std::shared_ptr<SignInResultImpl> impl)

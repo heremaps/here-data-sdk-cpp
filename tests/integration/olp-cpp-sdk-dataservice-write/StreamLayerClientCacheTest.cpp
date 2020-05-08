@@ -91,12 +91,12 @@ class StreamLayerClientCacheTest : public ::testing::Test {
 
   ~StreamLayerClientCacheTest() = default;
 
-  virtual void SetUp() override {
+  void SetUp() override {
     ASSERT_NO_FATAL_FAILURE(client_ = CreateStreamLayerClient());
     data_ = GenerateData();
   }
 
-  virtual void TearDown() override {
+  void TearDown() override {
     if (disk_cache_) {
       disk_cache_->Close();
     }

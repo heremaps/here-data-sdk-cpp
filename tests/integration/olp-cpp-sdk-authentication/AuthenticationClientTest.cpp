@@ -449,7 +449,7 @@ TEST_F(AuthenticationClientTest, SignInClientData) {
       request_future_2.get();
   EXPECT_TRUE(response_2.IsSuccessful());
   EXPECT_EQ(kResponseToken, response_2.GetResult().GetAccessToken());
-  ;
+
   EXPECT_GE(now_2 + kMaxExpiryTime, response_2.GetResult().GetExpiryTime());
   EXPECT_LT(now_2 + kMinExpiryTime, response_2.GetResult().GetExpiryTime());
   EXPECT_EQ("bearer", response_2.GetResult().GetTokenType());
