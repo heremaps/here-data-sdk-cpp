@@ -30,7 +30,7 @@ namespace read {
 namespace model {
 
 class ParentQuad {
-public:
+ public:
   ParentQuad() = default;
   virtual ~ParentQuad() = default;
 

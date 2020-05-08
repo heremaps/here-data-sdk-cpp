@@ -117,7 +117,7 @@ static bool mkdir_all(const char* dirname, int mode) {
 #endif  // ifndef _WIN32
 
 #ifdef _WIN32
-void static Tokenize(const std::string& path, const std::string& delimiters,
+static void Tokenize(const std::string& path, const std::string& delimiters,
                      std::vector<std::string>& result) {
   std::string sub_path = path;
   while (1) {

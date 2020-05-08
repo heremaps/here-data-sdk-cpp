@@ -337,31 +337,31 @@ client::CancellationToken StreamLayerClientImpl::Poll(
                       const model::StreamOffset& rhs) const {
         return lhs.GetPartition() < rhs.GetPartition();
       }
-      };
+    };
 
-      std::set<model::StreamOffset, Compare> stream_offsets;
+    std::set<model::StreamOffset, Compare> stream_offsets;
 
-      std::transform(messages.rbegin(), messages.rend(),
-                     std::inserter(stream_offsets, stream_offsets.end()),
-                     [](const model::Message& msg) { return msg.GetOffset(); });
+    std::transform(messages.rbegin(), messages.rend(),
+                   std::inserter(stream_offsets, stream_offsets.end()),
+                   [](const model::Message& msg) { return msg.GetOffset(); });
 
-      // Commit offsets
-      model::StreamOffsets offsets_request;
-      offsets_request.SetOffsets(std::vector<model::StreamOffset>(
-          stream_offsets.begin(), stream_offsets.end()));
-      auto commit_res = StreamApi::CommitOffsets(
-          *client, layer_id_, offsets_request, subscription_id,
-          subscription_mode, context, x_correlation_id);
+    // Commit offsets
+    model::StreamOffsets offsets_request;
+    offsets_request.SetOffsets(std::vector<model::StreamOffset>(
+        stream_offsets.begin(), stream_offsets.end()));
+    auto commit_res = StreamApi::CommitOffsets(
+        *client, layer_id_, offsets_request, subscription_id, subscription_mode,
+        context, x_correlation_id);
 
-      if (!commit_res.IsSuccessful()) {
-        OLP_SDK_LOG_WARNING_F(kLogTag, "Poll: commit offsets unsuccessful, error=%s",
-                              commit_res.GetError().GetMessage().c_str());
-        return commit_res.GetError();
-      }
-      OLP_SDK_LOG_INFO_F(kLogTag, "Poll: done, response is successful.");
+    if (!commit_res.IsSuccessful()) {
+      OLP_SDK_LOG_WARNING_F(kLogTag,
+                            "Poll: commit offsets unsuccessful, error=%s",
+                            commit_res.GetError().GetMessage().c_str());
+      return commit_res.GetError();
+    }
+    OLP_SDK_LOG_INFO_F(kLogTag, "Poll: done, response is successful.");
 
-      return res;
-
+    return res;
   };
 
   return AddTask(settings_.task_scheduler, pending_requests_,

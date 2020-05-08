@@ -25,7 +25,6 @@
 #include <android/log.h>
 #include <algorithm>
 #include <cmath>
-#include <string>
 #else
 #include <iostream>
 #endif

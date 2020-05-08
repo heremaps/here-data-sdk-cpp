@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+#pragma once
 
 #define URL_CONFIG                                                        \
   R"(https://config.data.api.platform.in.here.com/config/v1/catalogs/)" + \

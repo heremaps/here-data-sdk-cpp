@@ -939,11 +939,10 @@ void NetworkCurl::Run() {
                                     " Handle already in use. Handle="
                                         << event.handle->handle
                                         << ", id=" << event.handle->id);
-                }
-                // do not add the handle to msgs vector as it will be reset in
-                // CompleteMessage handler, and curl will crash in the next call
-                // of curl_multi_perform function.
-                else {
+                } else {
+                  // do not add the handle to msgs vector as it will be reset in
+                  // CompleteMessage handler, and curl will crash in the next
+                  // call of curl_multi_perform function.
                   msgs.push_back(event.handle->handle);
                 }
               }

@@ -66,10 +66,10 @@ CPPLINT_BLOCKING_FILTER="\
      -runtime/arrays,\
      -runtime/threadsafe_fn,\
      -build/namespaces,\
-     -build/include,\
+     -build/include_subdir,\
+     -build/include_order,\
+     -build/include_what_you_use,\
      -build/c++11,\
-     -build/header_guard,\
-     -build/storage_class,\
      -readability/multiline_string,\
      -readability/casting,\
      -readability/inheritance,\
@@ -83,14 +83,10 @@ CPPLINT_BLOCKING_FILTER="\
      -whitespace/braces,\
      -whitespace/line_length,\
      -whitespace/end_of_line,\
-     -whitespace/ending_newline,\
      -whitespace/comments,\
      -whitespace/blank_line,\
-     -whitespace/indent,\
      -whitespace/semicolon,\
-     -whitespace/operators,\
-     -whitespace/newline,\
-     -legal/copyright"
+     -whitespace/operators"
 
 cpplint --filter="$CPPLINT_BLOCKING_FILTER" $FILES 2> errors.txt
 RESULT=$?

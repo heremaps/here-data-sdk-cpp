@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+#pragma once
+
 #include <string>
 
 /// Class that provides access to global variables that are used during tests.

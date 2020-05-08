@@ -269,8 +269,8 @@ TEST(MessageFormatterTest, Format) {
 }
 
 TEST(MessageFormatterTest, ThreadId) {
-  const static unsigned long kThreadId1 = 1;
-  const static unsigned long kThreadId2 = 2;
+  static const unsigned long kThreadId1 = 1;
+  static const unsigned long kThreadId2 = 2;
 
   MessageFormatter formatter(
       {MessageFormatter::Element(MessageFormatter::ElementType::ThreadId)});

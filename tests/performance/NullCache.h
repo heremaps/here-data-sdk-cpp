@@ -28,8 +28,7 @@
 class NullCache : public olp::cache::KeyValueCache {
  public:
   bool Put(const std::string& /*key*/, const boost::any& /*value*/,
-           const olp::cache::Encoder& /*encoder*/,
-           time_t /*expiry*/) override {
+           const olp::cache::Encoder& /*encoder*/, time_t /*expiry*/) override {
     return false;
   }
 
@@ -51,5 +50,7 @@ class NullCache : public olp::cache::KeyValueCache {
 
   bool Remove(const std::string& /*key*/) override { return true; }
 
-  bool RemoveKeysWithPrefix(const std::string& /*prefix*/) override { return true; }
+  bool RemoveKeysWithPrefix(const std::string& /*prefix*/) override {
+    return true;
+  }
 };

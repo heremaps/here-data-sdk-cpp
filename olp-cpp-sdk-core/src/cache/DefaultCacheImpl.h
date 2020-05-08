@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+#pragma once
+
 #include "olp/core/cache/DefaultCache.h"
 
 #include "DiskCache.h"
