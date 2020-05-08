@@ -49,15 +49,57 @@ pip install --user cpplint
 
 printf "\n\nRunning cpplint\n\n"
 
-# Exclude warning about <future> <mutex> includes
-CPPLINT_FILTER="--filter=-build/c++11"
-
-# Run the cpplint tool
-cpplint $CPPLINT_FILTER $FILES 2> warnings.txt
+# Run the cpplint tool and collect all warnings
+cpplint $FILES 2> warnings.txt
 
 printf "\n\nComplete cpplint\n\n"
 
 cat warnings.txt
+
+printf "\n\nRunning cpplint again and check no new warnings found\n\n"
+
+CPPLINT_BLOCKING_FILTER="\
+     -runtime/references,\
+     -runtime/string,\
+     -runtime/int,\
+     -runtime/explicit,\
+     -runtime/arrays,\
+     -runtime/threadsafe_fn,\
+     -build/namespaces,\
+     -build/include,\
+     -build/c++11,\
+     -build/header_guard,\
+     -build/storage_class,\
+     -readability/multiline_string,\
+     -readability/casting,\
+     -readability/inheritance,\
+     -readability/todo,\
+     -readability/alt_tokens,\
+     -readability/braces,\
+     -readability/check,\
+     -readability/multiline_comment,\
+     -whitespace/comma,\
+     -whitespace/parens,\
+     -whitespace/braces,\
+     -whitespace/line_length,\
+     -whitespace/end_of_line,\
+     -whitespace/ending_newline,\
+     -whitespace/comments,\
+     -whitespace/blank_line,\
+     -whitespace/indent,\
+     -whitespace/semicolon,\
+     -whitespace/operators,\
+     -whitespace/newline,\
+     -legal/copyright"
+
+cpplint --filter="$CPPLINT_BLOCKING_FILTER" $FILES 2> errors.txt
+RESULT=$?
+
+if [ "$RESULT" -ne "0" ]; then
+  printf "\n\nNew errors found, please check them:\n\n"
+  cat errors.txt
+  exit $RESULT
+fi
 
 # Check for public headers modified, must have no new warnings:
 # dataservice-read/include
@@ -66,7 +108,7 @@ CRITICAL_PATHS=$(echo "$FILES" | grep "read/include\|write/include")
 
 if [ ! -z "$CRITICAL_PATHS" ]; then
 
-  printf "\n\nPublic headers modified, running in blocking mode\n\n"
+  printf "\n\nPublic headers modified, running full check on them\n\n"
 
   CPPLINT_IGNORED_WARNINGS="--filter=-build/include_order"
 
