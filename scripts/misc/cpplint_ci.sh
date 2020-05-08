@@ -59,9 +59,10 @@ printf "\n\nComplete cpplint\n\n"
 
 cat warnings.txt
 
-# Check for public headers modified.
-# dataservice-read/include must have no new warnings.
-CRITICAL_PATHS=$(echo "$FILES" | grep "dataservice-read/include")
+# Check for public headers modified, must have no new warnings:
+# dataservice-read/include
+# dataservice-write/include
+CRITICAL_PATHS=$(echo "$FILES" | grep "read/include\|write/include")
 
 if [ ! -z "$CRITICAL_PATHS" ]; then
 

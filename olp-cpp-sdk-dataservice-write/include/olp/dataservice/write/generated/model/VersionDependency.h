@@ -20,6 +20,7 @@
 #pragma once
 
 #include <string>
+#include <utility>
 
 #include <olp/dataservice/write/DataServiceWriteApi.h>
 

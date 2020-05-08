@@ -20,6 +20,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <olp/dataservice/write/DataServiceWriteApi.h>

@@ -41,8 +41,6 @@ class DATASERVICE_WRITE_API Details {
   int64_t expires_{0};
 
  public:
-  // TODO: This is specified as an enum in Open API spec. Update to enum class,
-  // code generator should support this case.
   const std::string& GetState() const { return state_; }
   std::string& GetMutableState() { return state_; }
   void SetState(const std::string& value) { this->state_ = value; }
