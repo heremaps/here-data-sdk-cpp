@@ -27,16 +27,37 @@ function serviceBaseUrl(service) {
     return url
 }
 
+function generateServiceApiUrl(service) {
+    const url = "http://" + serviceBaseUrl(service)
+    return {
+        "api" : service,
+        "version" : "v1",
+        "baseURL" : url,
+        "parameters" : {}
+    }
+}
+
+function generateResourceApiUrl(service, hrn) {
+    const url = "http://" + serviceBaseUrl(service) + "/v1/catalogs/" + hrn
+    return {
+        "api" : service,
+        "version" : "v1",
+        "baseURL" : url,
+        "parameters" : {}
+    }
+}
+
 function generatePlatformApiResponse(request) {
     const service = request[1]
     const version = request[2]
-    const api = {
-        "api" : service,
-        "version" : "v1",
-        "baseURL" : "http://" + serviceBaseUrl(service),
-        "parameters" : {}
-    }
-    return [api]
+    return [generateServiceApiUrl(service)]
+}
+
+function generatePlatformApisResponse() {
+    return [
+        generateServiceApiUrl("config"),
+        generateServiceApiUrl("lookup")
+    ]
 }
 
 function generateResourceApiResponse(request) {
@@ -52,15 +73,32 @@ function generateResourceApiResponse(request) {
     return [api]
 }
 
+function generateResourceApisResponse(request) {
+    const hrn = request[1]
+    return [
+        generateResourceApiUrl("blob", hrn),
+        generateResourceApiUrl("metadata", hrn),
+        generateResourceApiUrl("query", hrn)
+    ]
+}
+
 const methods = [
 {
     regex: /lookup\/v1\/platform\/apis\/(.+)\/(.+)$/,
     handler: generatePlatformApiResponse
 },
 {
+    regex: /lookup\/v1\/platform\/apis$/,
+    handler: generatePlatformApisResponse
+},
+{
     regex: /lookup\/v1\/resources\/(.+)\/apis\/(.+)\/(.+)$/,
     handler: generateResourceApiResponse
-}    
+},
+{
+    regex: /lookup\/v1\/resources\/(.+)\/apis$/,
+    handler: generateResourceApisResponse
+}
 ]
 
 function lookup_handler(pathname, query) {
