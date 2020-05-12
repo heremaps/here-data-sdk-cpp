@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+#pragma once
+
 #import <Foundation/Foundation.h>
 
 FOUNDATION_EXPORT NSString* const OLPHttpMethodGet;

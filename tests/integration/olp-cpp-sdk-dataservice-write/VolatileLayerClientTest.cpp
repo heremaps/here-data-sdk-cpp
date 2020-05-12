@@ -47,12 +47,12 @@ void PublishDataSuccessAssertions(
 
 class VolatileLayerClientTest : public ::testing::Test {
  protected:
-  virtual void SetUp() override {
+  void SetUp() override {
     client_ = CreateVolatileLayerClient();
     data_ = GenerateData();
   }
 
-  virtual void TearDown() override {
+  void TearDown() override {
     data_.reset();
     client_.reset();
     testing::Mock::VerifyAndClearExpectations(network_.get());

@@ -43,7 +43,7 @@ class CORE_API FileAppender : public IAppender {
   explicit FileAppender(
       const std::string& fileName, bool append = false,
       MessageFormatter formatter = MessageFormatter::createDefault());
-  virtual ~FileAppender() override;
+  ~FileAppender() override;
 
   /**
    * @brief Returns whether or not the stream is opened and can be written to.

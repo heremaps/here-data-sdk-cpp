@@ -58,7 +58,7 @@ void PublishCancelledAssertions(
 
 class IndexLayerClientTest : public ::testing::Test {
  protected:
-  virtual void SetUp() override {
+  void SetUp() override {
     client_ = CreateIndexLayerClient();
     data_ = GenerateData();
   }

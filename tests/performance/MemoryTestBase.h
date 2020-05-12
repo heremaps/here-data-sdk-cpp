@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+#pragma once
+
 #include <gtest/gtest.h>
 
 #include <olp/core/cache/CacheSettings.h>

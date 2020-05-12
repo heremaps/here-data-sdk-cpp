@@ -51,11 +51,11 @@ static const std::string kTestUserName = "HA-UnitTestUser-Edge";
 static const std::string kTestAppKeyId = "Ha-Integration-Test-App";
 static const std::string kTestAppKeySecret = "ha-test-secret-1";
 
-const static std::string kAccessToken = "access_token";
+static const std::string kAccessToken = "access_token";
 
-const static std::string kQuestionParam = "?";
-const static std::string kEqualsParam = "=";
-const static std::string kAndParam = "&";
+static const std::string kQuestionParam = "?";
+static const std::string kEqualsParam = "=";
+static const std::string kAndParam = "&";
 
 // HTTP errors codes
 constexpr auto kErrorAccountNotFoundCode = 401600;

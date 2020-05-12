@@ -105,7 +105,7 @@ std::string StreamLayerClientImpl::FindContentTypeForLayerId(
 }
 
 std::string StreamLayerClientImpl::GetUuidListKey() const {
-  const static std::string kStreamCachePostfix = "-stream-queue-cache";
+  static const std::string kStreamCachePostfix = "-stream-queue-cache";
   const std::string uuid_list_key =
       catalog_.ToCatalogHRNString() + kStreamCachePostfix;
   return uuid_list_key;

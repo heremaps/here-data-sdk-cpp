@@ -1217,7 +1217,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, PrefetchTilesCancelOnLookup) {
         promise.set_value(response);
       });
 
-  wait_for_cancel->get_future().get();  
+  wait_for_cancel->get_future().get();
   token.Cancel();
   pause_for_cancel->set_value();
 
@@ -1234,7 +1234,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest,
   constexpr auto kLayerId = "hype-test-prefetch";
   olp::dataservice::read::VolatileLayerClient client(catalog, kLayerId,
                                                      settings_);
-  
+
   std::vector<olp::geo::TileKey> tile_keys = {
       olp::geo::TileKey::FromHereTile("5904591")};
   auto request = olp::dataservice::read::PrefetchTilesRequest()

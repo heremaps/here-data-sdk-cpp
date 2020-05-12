@@ -115,7 +115,7 @@ class AUTHENTICATION_API IntrospectAppResult {
    * @param scopes The list of strings representing the scopes.
    */
   void SetAllowedScopes(std::vector<std::string> scopes) {
-    allowed_scopes_= std::move(scopes);
+    allowed_scopes_ = std::move(scopes);
   }
 
   /**
@@ -151,7 +151,7 @@ class AUTHENTICATION_API IntrospectAppResult {
    * @param reason The token endpoint authentication reason.
    */
   void SetTokenEndpointAuthMethodReason(std::string reason) {
-    token_endpoint_auth_method_reason_= std::move(reason);
+    token_endpoint_auth_method_reason_ = std::move(reason);
   }
 
   /**
@@ -327,6 +327,7 @@ class AUTHENTICATION_API IntrospectAppResult {
    * @param hrn The application HRN.
    */
   void SetHrn(std::string hrn) { hrn_ = std::move(hrn); }
+
  private:
   std::string client_id_;
   std::string name_;

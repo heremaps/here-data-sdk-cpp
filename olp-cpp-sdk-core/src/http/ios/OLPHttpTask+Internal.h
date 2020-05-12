@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+#pragma once
+
 #import "OLPHttpTask.h"
 
 #import <Foundation/Foundation.h>

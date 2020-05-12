@@ -180,7 +180,7 @@ void LogImpl::appendLogItem(const LogItem& log_item) {
       appender_with_log_level.appender->append(log_item);
   }
 }
-//-implementation of public static Log API
+// implementation of public static Log API
 //--------------------------------------------------------
 
 bool Log::configure(Configuration configuration) {

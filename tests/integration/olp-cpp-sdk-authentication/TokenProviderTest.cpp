@@ -155,7 +155,6 @@ TEST_F(TokenProviderTest, SingleTokenMultipleUsers) {
 
     // Create test layer clients, all using the same token provider
     for (size_t index = 0; index < kCount; ++index) {
-
       EXPECT_CALL(*network_mock_, Send(AnyOf(IsGetRequest(kTimestampUrl),
                                              IsPostRequest(kOAuthTokenUrl)),
                                        _, _, _, _))

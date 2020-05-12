@@ -93,7 +93,7 @@ class SignInResultImpl : public BaseResult {
   std::string token_type_;
   time_t expiry_time_;
   std::chrono::seconds expires_in_;
-  
+
   std::string refresh_token_;
   std::string user_identifier_;
   std::string scope_;

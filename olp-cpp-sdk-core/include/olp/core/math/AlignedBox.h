@@ -88,7 +88,6 @@ struct OverflowTrait<T, 32, false> {
  */
 template <typename T, unsigned int N>
 class AlignedBox {
- private:
  public:
   static const unsigned int numCorners =
       1 << N; /*!< Number of corners for the box. */
@@ -294,9 +293,11 @@ class AlignedBox {
 };
 
 #ifndef NDEBUG
-#define CHECK_INT_ADD_OPERATION_OVERFLOWS(a, b, Type)                      \
-  (((a > 0) && (b > 0) && (a > (std::numeric_limits<Type>::max() - b))) || \
-   ((a < 0) && (b < 0) && (a < (std::numeric_limits<Type>::min() - b))))
+template <typename T>
+bool CheckAddOperationOverflow(T a, T b) {
+  return ((a > 0) && (b > 0) && (a > (std::numeric_limits<T>::max() - b))) ||
+         ((a < 0) && (b < 0) && (a < (std::numeric_limits<T>::min() - b)));
+}
 #endif
 
 using AlignedBox3d =
@@ -335,8 +336,8 @@ typename AlignedBox<T, N>::VectorType AlignedBox<T, N>::Center() const {
   if (std::numeric_limits<OverflowType>::is_integer &&
       sizeof(OverflowType) * 8 == 64) {
     for (unsigned dim = 0; dim < dimensions; ++dim) {
-      if (CHECK_INT_ADD_OPERATION_OVERFLOWS(maximum_[dim], minimum_[dim],
-                                            OverflowType)) {
+      if (CheckAddOperationOverflow<OverflowType>(maximum_[dim],
+                                                  minimum_[dim])) {
         // DEBUG_ASSERT( false );
         return VectorType(0);
       }

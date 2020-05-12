@@ -87,7 +87,7 @@ class DataserviceWriteIndexLayerClientTest : public ::testing::Test {
         olp::client::HRN{GetTestCatalog()}, settings);
   }
 
-  virtual void SetUp() override {
+  void SetUp() override {
     client_ = CreateIndexLayerClient();
     data_ = GenerateData();
   }

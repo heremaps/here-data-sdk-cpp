@@ -186,21 +186,24 @@ void GetTraficData(CURL* handle, uint64_t& upload_bytes,
                    uint64_t& download_bytes) {
   upload_bytes = 0;
   download_bytes = 0;
-  long headers_size ;
+  long headers_size;
   double length_downloaded;
   if (curl_easy_getinfo(handle, CURLINFO_HEADER_SIZE, &headers_size) ==
-          CURLE_OK &&  headers_size >0) {
-    download_bytes +=  headers_size;
+          CURLE_OK &&
+      headers_size > 0) {
+    download_bytes += headers_size;
   }
   if (curl_easy_getinfo(handle, CURLINFO_SIZE_DOWNLOAD, &length_downloaded) ==
-          CURLE_OK && length_downloaded > 0.0) {
+          CURLE_OK &&
+      length_downloaded > 0.0) {
     download_bytes += length_downloaded;
   }
 
   long length_upload;
   if (curl_easy_getinfo(handle, CURLINFO_REQUEST_SIZE, &length_upload) ==
-      CURLE_OK && length_upload > 0) {
-          upload_bytes = length_upload;
+          CURLE_OK &&
+      length_upload > 0) {
+    upload_bytes = length_upload;
   }
 }
 
@@ -939,11 +942,10 @@ void NetworkCurl::Run() {
                                     " Handle already in use. Handle="
                                         << event.handle->handle
                                         << ", id=" << event.handle->id);
-                }
-                // do not add the handle to msgs vector as it will be reset in
-                // CompleteMessage handler, and curl will crash in the next call
-                // of curl_multi_perform function.
-                else {
+                } else {
+                  // do not add the handle to msgs vector as it will be reset in
+                  // CompleteMessage handler, and curl will crash in the next
+                  // call of curl_multi_perform function.
                   msgs.push_back(event.handle->handle);
                 }
               }
@@ -1053,8 +1055,8 @@ void NetworkCurl::Run() {
       // read pipe data if it is signaled
       if (mc == CURLM_OK && numfds != 0 && waitfd[0].revents != 0) {
         char tmp;
-        while (read(waitfd[0].fd, &tmp, 1) > 0)
-          ;
+        while (read(waitfd[0].fd, &tmp, 1) > 0) {
+        }
       }
 #else
       // Without pipe limit wait time to 100ms
