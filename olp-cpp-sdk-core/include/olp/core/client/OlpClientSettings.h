@@ -258,6 +258,20 @@ struct CORE_API OlpClientSettings {
    * To only use the memory LRU cache with limited size, set to `nullptr`.
    */
   std::shared_ptr<cache::KeyValueCache> cache = nullptr;
+
+  /**
+   * @brief Set default expiration for any cache entry made by the according
+   * layer or catalog client.
+   *
+   * This setting only applies to the mutable cache and to the in-memory cache,
+   * but should not affect the protected cache as no entries are added to the
+   * protected cache in read-only mode. Set to std::chrono::seconds::max() to
+   * disable expiration. By default expiration is disabled.
+   *
+   * @note This only makes sense for data that has an expiration limit, e.g.
+   * volatile or versioned, and which is stored in cache.
+   */
+  std::chrono::seconds default_cache_expiration = std::chrono::seconds::max();
 };
 
 }  // namespace client
