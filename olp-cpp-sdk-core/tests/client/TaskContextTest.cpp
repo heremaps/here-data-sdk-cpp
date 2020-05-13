@@ -216,4 +216,42 @@ TEST(TaskContextTest, CancelToken) {
   EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Cancelled);
 }
 
+TEST(TaskContextTest, OLPSUP_10456) {
+  // Cancel should not be triggered from the inside of Execute function.
+  // This happens when the execution function is keeping the last owning
+  // reference to the object that cancels the task in the destructor.
+  struct TaskWrapper {
+    ~TaskWrapper() { context->BlockingCancel(std::chrono::milliseconds(0)); }
+    std::shared_ptr<TaskContext> context;
+  };
+
+  auto wrapper = std::make_shared<TaskWrapper>();
+
+  bool cancel_triggered = false;
+  auto cancel_function = [&]() { cancel_triggered = true; };
+
+  ExecuteFunc execute_func = [&, wrapper](CancellationContext c) -> Response {
+    c.ExecuteOrCancelled([&]() { return CancellationToken(cancel_function); });
+    return std::string("Success");
+  };
+
+  Response response;
+  Callback callback = [&](Response r) { response = std::move(r); };
+
+  // Initialize the task context
+  wrapper->context = std::make_shared<TaskContext>(
+      TaskContext::Create(std::move(execute_func), std::move(callback)));
+
+  TaskContext task_context = *(wrapper->context).get();
+
+  // Now execute_func is the only owner of task context via TaskWrapper.
+  wrapper.reset();
+
+  // Execute the execute_func,
+  task_context.Execute();
+
+  EXPECT_EQ(response.GetResult(), "Success");
+  EXPECT_FALSE(cancel_triggered);
+}
+
 }  // namespace
