@@ -119,7 +119,7 @@ Before you integrate the HERE OLP SDK for C++ libraries in the iOS example proje
 
 1. To set up the iOS development environment, install the `XCode` and command-line tools.
 2. Install external dependencies.
-   For information on dependencies and installation instructions, see the [related section](https://github.com/heremaps/here-olp-sdk-cpp#dependencies) in the README.md file.
+   For information on dependencies and installation instructions, see the [related section](https://github.com/heremaps/here-data-sdk-cpp#dependencies) in the README.md file.
 3. In `examples/ios/ViewController.mm`, replace the placeholders with your application access key ID, access key secret, and catalog HRN and specify that the example should run `RunExampleRead`.
    For instructions on how to get the access key ID and access key secret, see the [Get Credentials](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html) section in the Terms and Permissions User Guide.
 
