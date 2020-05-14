@@ -8,18 +8,18 @@ The HERE OLP SDK for C++ is a C++ client for the <a href="https://platform.here.
 
 | Platform | Status                                                                                                                                                                                                                                                                                |
 | :------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Linux GCC   | <a href="https://travis-ci.com/heremaps/here-olp-sdk-cpp" target="_blank"><img src="https://travis-ci.com/heremaps/here-olp-sdk-cpp.svg?branch=master" alt="Linux build status"/></a> |
-| Linux Clang | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=Linux_build_clang" alt="Android build status"/></a> |
-| MacOS    | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=MacOS_build" alt="macOS build status"/></a>   |
-| iOS      | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=iOS_build" alt="iOS build status"/></a>       |
-| Windows  | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=Windows_build" alt="Windows build status"/></a>     |
-| Android  | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=Android_build" alt="Android build status"/></a> |
+| Linux GCC   | <a href="https://travis-ci.com/heremaps/here-data-sdk-cpp" target="_blank"><img src="https://travis-ci.com/heremaps/here-data-sdk-cpp.svg?branch=master" alt="Linux build status"/></a> |
+| Linux Clang | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=3&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=Linux_build_clang" alt="Android build status"/></a> |
+| MacOS    | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=3&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=MacOS_build" alt="macOS build status"/></a>   |
+| iOS      | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=3&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=iOS_build" alt="iOS build status"/></a>       |
+| Windows  | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=3&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=Windows_build" alt="Windows build status"/></a>     |
+| Android  | <a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=3&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=Android_build" alt="Android build status"/></a> |
 
 ### Test Coverage
 
 | Platform | Status                                                                                                                                                                                              |
 | :------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Linux    | <a href="https://codecov.io/gh/heremaps/here-olp-sdk-cpp/" target="_blank"><img src="https://codecov.io/gh/heremaps/here-olp-sdk-cpp/branch/master/graph/badge.svg" alt="Linux code coverage"/></a> |
+| Linux    | <a href="https://codecov.io/gh/heremaps/here-data-sdk-cpp/" target="_blank"><img src="https://codecov.io/gh/heremaps/here-data-sdk-cpp/branch/master/graph/badge.svg" alt="Linux code coverage"/></a> |
 
 ## Why Use
 
@@ -44,7 +44,7 @@ For more information on Data API, see its <a href="https://developer.here.com/ol
 
 When new API is introduced in OLP SDK for C++, the old one is not deleted straight away. The standard API deprecation time is 6 months. It gives you time to switch to new code. However, we do not provide ABI backward compatibility.
 
-All of the deprecated methods, functions, and parameters are documented in the OLP SDK for C++ <a href="https://developer.here.com/olp/documentation/sdk-cpp/api_reference/index.html" target="_blank">API Reference</a> and <a href="https://github.com/heremaps/here-olp-sdk-cpp/blob/master/CHANGELOG.md" target="_blank">changelog</a>.
+All of the deprecated methods, functions, and parameters are documented in the OLP SDK for C++ <a href="https://developer.here.com/olp/documentation/sdk-cpp/api_reference/index.html" target="_blank">API Reference</a> and <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/CHANGELOG.md" target="_blank">changelog</a>.
 
 ## Supported Platforms
 
@@ -132,7 +132,7 @@ If you cannot build the SDK on Windows using this instruction, see [Build on Win
 
 ### Build on Windows
 
-<a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=2&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-olp-sdk-cpp?branchName=master&jobName=Windows_build" alt="Windows build status"/></a>
+<a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=3&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/github/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=Windows_build" alt="Windows build status"/></a>
 
 We assume that you have installed CMake, Microsoft Visual Studio 2017, and the Visual C++ tools for CMake component.
 
@@ -176,16 +176,16 @@ cmake --build . --target docs
 
 ## SDK Usage
 
-To learn how to use the HERE OLP SDK for C++, see the <a href="https://github.com/heremaps/here-olp-sdk-cpp/blob/master/docs/GettingStartedGuide.md" target="_blank">Getting Started Guide</a>.
+To learn how to use the HERE OLP SDK for C++, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/GettingStartedGuide.md" target="_blank">Getting Started Guide</a>.
 
 ## Contribution
 
-For details, see the <a href="https://github.com/heremaps/here-olp-sdk-cpp/blob/master/CONTRIBUTING.md" target="_blank">HERE OLP SDK C++ Contributors Guide</a>.
+For details, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/CONTRIBUTING.md" target="_blank">HERE OLP SDK C++ Contributors Guide</a>.
 
 ## LICENSE
 
 Copyright (C) 2019–2020 HERE Europe B.V.
 
-For license details, see the <a href="https://github.com/heremaps/here-olp-sdk-cpp/blob/master/LICENSE" target="_blank">LICENSE</a> file in the root of this project.
+For license details, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/LICENSE" target="_blank">LICENSE</a> file in the root of this project.
 
-> **Note:** This project has Open Source Software dependencies that are downloaded and installed upon execution of the abovementioned installation commands. For further details, see the CMake configuration files included in the <a href="https://github.com/heremaps/here-olp-sdk-cpp/tree/master/external" target="_blank">external</a> directory.
+> **Note:** This project has Open Source Software dependencies that are downloaded and installed upon execution of the abovementioned installation commands. For further details, see the CMake configuration files included in the <a href="https://github.com/heremaps/here-data-sdk-cpp/tree/master/external" target="_blank">external</a> directory.
