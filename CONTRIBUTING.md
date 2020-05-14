@@ -2,7 +2,7 @@
 
 ## Contributing to HERE OLP SDK for C++
 
-First off, thanks for taking the time to contribute! The team behind the [HERE OLP SDK for C++](https://github.com/heremaps/here-olp-sdk-cpp) gratefully accepts contributions via [pull requests](https://help.github.com/articles/about-pull-requests/) filed against the [GitHub project](https://github.com/heremaps/here-olp-sdk-cpp/pulls). As part of filing a pull request, we ask you to sign off the [Developer Certificate of Origin](https://developercertificate.org/) (DCO).
+First off, thanks for taking the time to contribute! The team behind the [HERE OLP SDK for C++](https://github.com/heremaps/here-data-sdk-cpp) gratefully accepts contributions via [pull requests](https://help.github.com/articles/about-pull-requests/) filed against the [GitHub project](https://github.com/heremaps/here-data-sdk-cpp/pulls). As part of filing a pull request, we ask you to sign off the [Developer Certificate of Origin](https://developercertificate.org/) (DCO).
 
 ## Development
 
