@@ -21,7 +21,6 @@
 
 #include <memory>
 
-#include <boost/optional.hpp>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
@@ -33,6 +32,8 @@
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/TileRequest.h>
 #include <olp/dataservice/read/Types.h>
+#include <boost/optional.hpp>
+#include "RequestBroker.h"
 #include "repositories/ExecuteOrSchedule.inl"
 
 namespace olp {
@@ -93,6 +94,7 @@ class VersionedLayerClientImpl {
   client::HRN catalog_;
   std::string layer_id_;
   client::OlpClientSettings settings_;
+  RequestBroker broker_;
   std::shared_ptr<client::PendingRequests> pending_requests_;
   std::atomic<int64_t> catalog_version_;
 };

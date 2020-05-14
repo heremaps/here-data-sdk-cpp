@@ -152,24 +152,37 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
     auto layer_id = layer_id_;
     auto settings = settings_;
 
-    auto data_task =
-        [=](client::CancellationContext context) mutable -> DataResponse {
-      if (!request.GetDataHandle()) {
-        auto version_response = GetVersion(request.GetBillingTag(),
-                                           request.GetFetchOption(), context);
-        if (!version_response.IsSuccessful()) {
-          return version_response.GetError();
+    auto request_id = request.CreateKey(layer_id);
+
+    auto result =
+        broker_.CreateOrAssociateRequest(request_id, std::move(callback));
+
+    if (result.just_created) {
+      // We just created a task, so trigger a real one and consume the
+      // CancellationContext provided.
+      auto data_task =
+          [=](client::CancellationContext context) mutable -> DataResponse {
+        if (!request.GetDataHandle()) {
+          auto version_response = GetVersion(request.GetBillingTag(),
+                                             request.GetFetchOption(), context);
+          if (!version_response.IsSuccessful()) {
+            return version_response.GetError();
+          }
+          request.WithVersion(version_response.GetResult().GetVersion());
         }
-        request.WithVersion(version_response.GetResult().GetVersion());
-      }
 
-      return repository::DataRepository::GetVersionedData(
-          std::move(catalog), std::move(layer_id), std::move(request), context,
-          std::move(settings));
-    };
+        return repository::DataRepository::GetVersionedData(
+            std::move(catalog), std::move(layer_id), std::move(request),
+            context, std::move(settings));
+      };
 
-    return AddTask(settings.task_scheduler, pending_requests_,
-                   std::move(data_task), std::move(callback));
+      // We don't care about result here since we are passing the context
+      // outside.
+      AddTask(settings.task_scheduler, pending_requests_, std::move(data_task),
+              broker_.ResponseHandler(request_id), result.context);
+    }
+
+    return result.caller_cancelation_token;
   };
 
   return ScheduleFetch(std::move(schedule_get_data), std::move(request),
