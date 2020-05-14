@@ -39,6 +39,8 @@ const auto kExpectationPath = "/mockserver/expectation";
 const auto kStatusPath = "/mockserver/status";
 const auto kResetPath = "/mockserver/reset";
 const auto kClearPath = "/mockserver/clear";
+const auto kVerifySequence = "/mockserver/verifySequence";
+
 const auto kTimeout = std::chrono::seconds{10};
 }  // namespace
 
@@ -48,7 +50,7 @@ class Client {
 
   void MockResponse(const std::string& method_matcher,
                     const std::string& path_matcher,
-                    const std::string& response_body);
+                    const std::string& response_body, bool unlimited = false);
 
   void MockBinaryResponse(const std::string& method_matcher,
                           const std::string& path_matcher,
@@ -58,8 +60,10 @@ class Client {
 
   void Reset();
 
-  void RemoveMockResponse(const std::string& method_matcher,
+  bool RemoveMockResponse(const std::string& method_matcher,
                           const std::string& path_matcher);
+
+  bool VerifySequence(const std::vector<std::string>& pathes) const;
 
  private:
   void CreateExpectation(const Expectation& expectation);
@@ -75,7 +79,8 @@ inline Client::Client(olp::client::OlpClientSettings settings) {
 
 inline void Client::MockResponse(const std::string& method_matcher,
                                  const std::string& path_matcher,
-                                 const std::string& response_body) {
+                                 const std::string& response_body,
+                                 bool unlimited) {
   auto expectation = Expectation{};
   expectation.request.path = path_matcher;
   expectation.request.method = method_matcher;
@@ -88,7 +93,7 @@ inline void Client::MockResponse(const std::string& method_matcher,
   boost::optional<Expectation::ResponseTimes> times =
       Expectation::ResponseTimes{};
   times->remaining_times = 1;
-  times->unlimited = false;
+  times->unlimited = unlimited;
   expectation.times = times;
 
   CreateExpectation(expectation);
@@ -135,7 +140,7 @@ inline void Client::Reset() {
                                         "", olp::client::CancellationContext{});
 }
 
-inline void Client::RemoveMockResponse(const std::string& method_matcher,
+inline bool Client::RemoveMockResponse(const std::string& method_matcher,
                                        const std::string& path_matcher) {
   rapidjson::StringBuffer buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
@@ -155,6 +160,11 @@ inline void Client::RemoveMockResponse(const std::string& method_matcher,
   auto response =
       http_client_->CallApi(kClearPath, "PUT", {}, {}, {}, request_body, "",
                             olp::client::CancellationContext{});
+  if (response.status != olp::http::HttpStatusCode::OK) {
+    return false;
+  }
+
+  return true;
 }
 
 inline void Client::CreateExpectation(const Expectation& expectation) {
@@ -165,6 +175,36 @@ inline void Client::CreateExpectation(const Expectation& expectation) {
   auto response =
       http_client_->CallApi(kExpectationPath, "PUT", {}, {}, {}, request_body,
                             "", olp::client::CancellationContext{});
+}
+
+inline bool Client::VerifySequence(
+    const std::vector<std::string>& pathes) const {
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+
+  writer.StartObject();
+  writer.Key("httpRequests");
+  writer.StartArray();
+  for (const auto& str : pathes) {
+    writer.StartObject();
+    writer.Key("path");
+    writer.String(str.c_str());
+    writer.EndObject();
+  }
+  writer.EndArray();
+  writer.EndObject();
+  const auto data = std::string{buffer.GetString()};
+
+  const auto request_body =
+      std::make_shared<std::vector<unsigned char>>(data.begin(), data.end());
+
+  auto response =
+      http_client_->CallApi(kVerifySequence, "PUT", {}, {}, {}, request_body,
+                            "", olp::client::CancellationContext{});
+  if (response.status != olp::http::HttpStatusCode::ACCEPTED) {
+    return false;
+  }
+  return true;
 }
 
 }  // namespace mockserver

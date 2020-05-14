@@ -20,6 +20,7 @@ set(OLP_SDK_FUNCTIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-core/OlpClientDefaultAsyncHttpTest.cpp
     ./olp-cpp-sdk-dataservice-read/ApiTest.cpp
     ./olp-cpp-sdk-dataservice-read/CatalogClientTest.cpp
+    ./olp-cpp-sdk-dataservice-read/VersionedLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-read/DataserviceReadVersionedLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-read/DataserviceReadVolatileLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-write/DataserviceWriteIndexLayerClientTest.cpp
@@ -37,12 +38,15 @@ set(OLP_SDK_FUNCTIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-authentication/FederatedAuthenticationTest.cpp
     ./olp-cpp-sdk-authentication/HereAccountOauth2ProductionTest.cpp
     ./olp-cpp-sdk-authentication/DecisionApiTest.cpp
+    ./utils/MockServerHelper.cpp
 )
 
 set(OLP_SDK_FUNCTIONAL_TESTS_HEADERS
     ./olp-cpp-sdk-authentication/AuthenticationCommonTestFixture.h
     ./olp-cpp-sdk-authentication/AuthenticationTestUtils.h
     ./olp-cpp-sdk-authentication/TestConstants.h
+    ./utils/DefaultResponses.h
+    ./utils/MockServerHelper.h
     ./utils/Utils.h
 )
 
@@ -55,6 +59,7 @@ if (ANDROID OR IOS)
     target_include_directories(${OLP_SDK_FUNCTIONAL_TESTS_LIB}
         PRIVATE
             ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-dataservice-read/src
+            ${PROJECT_SOURCE_DIR}/tests/utils/mock-server-client/
             utils
     )
     target_link_libraries(${OLP_SDK_FUNCTIONAL_TESTS_LIB}
@@ -89,6 +94,7 @@ else()
     target_include_directories(olp-cpp-sdk-functional-tests
     PRIVATE
         ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-dataservice-read/src
+        ${PROJECT_SOURCE_DIR}/tests/utils/mock-server-client/
         utils
     )
     target_link_libraries(olp-cpp-sdk-functional-tests
