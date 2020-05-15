@@ -53,6 +53,7 @@ build_test_linux_fv:
   stage: build
   tags:
   - docker-prod
+  image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_PERFORMANCE}:${DOCKER_IMAGE_PERFORMANCE_VERSION}
   script:
   - $CI_PROJECT_DIR/scripts/linux/fv/gitlab_build_fv.sh
   - $CI_PROJECT_DIR/scripts/linux/fv/gitlab_test_fv.sh
