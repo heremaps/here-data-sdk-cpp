@@ -3,6 +3,7 @@ image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION}
 variables:
   LD_PRELOAD: "/lib/x86_64-linux-gnu/libSegFault.so"
   SEGFAULT_SIGNALS: "all"
+  ADB_INSTALL_TIMEOUT: "8"
 
 stages:
   - build
@@ -177,3 +178,26 @@ pages:
     variables:
       - $FV
       - $NV
+
+build_test_android_fv:
+  stage: build
+  tags:
+  - docker-prod
+  image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_ANDROID}:${DOCKER_IMAGE_ANDROID_VERSION}
+  script:
+  - $CI_PROJECT_DIR/scripts/android/build-test-emulator.sh
+  only:
+    refs:
+      - branches
+      - master
+      - schedules
+    variables:
+      - $FV_ANDROID
+  artifacts:
+    reports:
+      junit:
+      - reports/*.xml
+    when: always
+    paths:
+      - reports
+    expire_in: 1 year
