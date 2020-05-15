@@ -30,7 +30,7 @@ fi
 
 TEST_FAILURE=0
 RETRY_COUNT=0
-EXPECTED_REPORT_COUNT=6                         # expected that we generate 6 reports
+EXPECTED_REPORT_COUNT=7                         # expected that we generate 7 reports
 
 #for core dump backtrace
 ulimit -c unlimited
@@ -65,6 +65,9 @@ do
 done
 set -e
 # End of retry part. This part can be removed any time later or after all online tests are stable.
+
+# Run functional tests with Mock Server
+${FV_HOME}/gitlab-olp-cpp-sdk-functional-test-mock.sh || TEST_FAILURE=1
 
 # Run integration tests
 source ${FV_HOME}/olp-cpp-sdk-integration-test.variables
