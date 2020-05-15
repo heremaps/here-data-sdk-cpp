@@ -51,6 +51,8 @@ class DefaultCacheImpl {
 
   bool RemoveKeysWithPrefix(const std::string& key);
 
+  KeyValueCache::Statistics GetStatistics();
+
  protected:
   /// The LRU cache definition using the leveldb keys as key and the value size
   /// as value.
@@ -110,6 +112,8 @@ class DefaultCacheImpl {
   std::unique_ptr<DiskCache> protected_cache_;
   uint64_t mutable_cache_data_size_;
   std::mutex cache_lock_;
+
+  KeyValueCache::Statistics statistics_;
 };
 
 }  // namespace cache

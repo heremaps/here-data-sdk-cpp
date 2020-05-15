@@ -150,6 +150,9 @@ class CORE_API DefaultCache : public KeyValueCache {
    */
   bool RemoveKeysWithPrefix(const std::string& prefix) override;
 
+  /// Implements GetStatistics method of KeyValueCache.
+  Statistics GetStatistics() const override;
+
  private:
   std::shared_ptr<DefaultCacheImpl> impl_;
 };

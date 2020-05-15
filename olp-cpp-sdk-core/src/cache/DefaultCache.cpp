@@ -61,5 +61,9 @@ bool DefaultCache::RemoveKeysWithPrefix(const std::string& key) {
   return impl_->RemoveKeysWithPrefix(key);
 }
 
+DefaultCache::Statistics DefaultCache::GetStatistics() const {
+  return impl_->GetStatistics();
+}
+
 }  // namespace cache
 }  // namespace olp
