@@ -17,6 +17,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
+# This script is for running functional tests against Mock Server
+# https://www.mock-server.com/
+
 # For core dump backtrace
 ulimit -c unlimited
 
