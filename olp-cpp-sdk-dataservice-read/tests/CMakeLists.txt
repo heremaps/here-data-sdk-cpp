@@ -21,6 +21,7 @@ set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     CatalogRepositoryTest.cpp
     DataRepositoryTest.cpp
     ParserTest.cpp
+    PartitionsCacheRepositoryTest.cpp
     PartitionsRepositoryTest.cpp
     PrefetchRepositoryTest.cpp
     PrefetchTilesRequestTest.cpp

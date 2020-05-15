@@ -127,7 +127,8 @@ PartitionsResponse PartitionsRepository::GetPartitions(
     const client::OlpClientSettings& settings, boost::optional<time_t> expiry) {
   auto fetch_option = request.GetFetchOption();
 
-  repository::PartitionsCacheRepository repository(catalog, settings.cache);
+  repository::PartitionsCacheRepository repository(
+      catalog, settings.cache, settings.default_cache_expiration);
 
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_partitions = repository.Get(request, layer);
@@ -208,7 +209,8 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
   const auto& version = data_request.GetVersion();
 
   std::chrono::seconds timeout{settings.retry_settings.timeout};
-  repository::PartitionsCacheRepository repository(catalog, settings.cache);
+  repository::PartitionsCacheRepository repository(
+      catalog, settings.cache, settings.default_cache_expiration);
 
   const std::vector<std::string> partitions{partition_id.value()};
   PartitionsRequest partition_request;
@@ -364,7 +366,8 @@ PartitionsResponse PartitionsRepository::QueryPartitionForVersionedTile(
 
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     // add partitions to cache
-    repository::PartitionsCacheRepository repository(catalog, settings.cache);
+    repository::PartitionsCacheRepository repository(
+        catalog, settings.cache, settings.default_cache_expiration);
     repository.Put(PartitionsRequest().WithVersion(version), partitions,
                    layer_id, boost::none);
   }
@@ -381,7 +384,8 @@ model::Partitions PartitionsRepository::GetTileFromCache(
     const TileRequest& request, int64_t version,
     const client::OlpClientSettings& settings) {
   if (request.GetFetchOption() != OnlineOnly) {
-    repository::PartitionsCacheRepository repository(catalog, settings.cache);
+    repository::PartitionsCacheRepository repository(
+        catalog, settings.cache, settings.default_cache_expiration);
 
     auto partition_request = PartitionsRequest()
                                  .WithBillingTag(request.GetBillingTag())
