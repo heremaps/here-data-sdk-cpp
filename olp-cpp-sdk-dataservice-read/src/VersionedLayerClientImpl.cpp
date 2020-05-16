@@ -34,6 +34,8 @@
 #include "repositories/PartitionsRepository.h"
 #include "repositories/PrefetchTilesRepository.h"
 
+#include <algorithm>
+
 // Needed to avoid endless warnings from GetVersion/WithVersion
 #include <olp/core/porting/warning_disable.h>
 PORTING_PUSH_WARNINGS()
