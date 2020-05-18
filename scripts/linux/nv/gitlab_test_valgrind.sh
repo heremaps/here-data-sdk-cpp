@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 #
-# Copyright (C) 2019 HERE Europe B.V.
+# Copyright (C) 2019-2020 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-
-# This script executes NightlyVerification tests by running FullVerification tests with Valgrind
-# Some tests are skipped due to flakiness, find then in EXCEPTION variable below.
+# This script executes NightlyVerification tests by running FullVerification tests with Valgrind.
+# Functional tests are skipped at all.
+# Some tests might be skipped due to flakiness, find then in EXCEPTION variable below.
 
 export REPO_HOME=$PWD
 export FV_HOME=${REPO_HOME}/scripts/linux/fv
@@ -40,22 +40,20 @@ ulimit -c unlimited # for core dump backtrace
 
 cd build
 
-### Running two auto-test groups
-for test_group_name in integration functional
+###
+### Running test groups
+###
+
+for test_group_name in integration
 do
 {
-    if [[ ${test_group_name} == "functional" ]] ; then
-        EXCEPTION="--gtest_filter=-ArcGisAuthenticationTest.SignInArcGis:FacebookAuthenticationTest.SignInFacebook:DataserviceReadVersionedLayerClientTest.Prefetch:DataserviceReadVersionedLayerClientTest.PrefetchWithCancellableFuture"
-    elif [[ ${test_group_name} == "integration" ]] ; then
-        EXCEPTION="--gtest_filter=-DataserviceReadVersionedLayerClientTest.PrefetchTilesBusy:DataserviceReadVersionedLayerClientTest.PrefetchTilesWithCancellableFuture:DataserviceReadVersionedLayerClientTest.PrefetchTilesWithCache:DataserviceReadVersionedLayerClientTest.Prefetch"
-    else
-        EXCEPTION=""
-        FLAKY_CHECK=""
-    fi
-
+    EXCEPTION=""
+    FLAKY_CHECK=""
     source ${FV_HOME}/olp-cpp-sdk-${test_group_name}-test.variables
+
     test_command="$REPO_HOME/build/tests/${test_group_name}/olp-cpp-sdk-${test_group_name}-tests --gtest_output=xml:${REPO_HOME}/reports/olp-cpp-sdk-${test_group_name}-test-report.xml ${EXCEPTION} ${FLAKY_CHECK}"
     valgrind_command="valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all --xml=yes"
+
     if [[ ! -z "$misc_folder_path" ]]; then
         valgrind_result_file_path="${REPO_HOME}/${misc_folder_path}/${test_group_name}_memcheck.xml"
         valgrind_command="${valgrind_command} --xml-file=${valgrind_result_file_path}"
@@ -67,50 +65,20 @@ do
     result=$?
     echo "-----> Finished ${test_group_name} - Result=${result}"
 
-    # Add retry to functional/online tests. Some online tests are flaky due to third party reason
-    # Test failure must return code 1 only. Other return code are not handled in retry.
-    RETRY_COUNT=0
-    while true
-    do
-        if [[ ${test_group_name} == "functional" ]]; then
-            # Stop after 3 retry
-            if [[ ${RETRY_COUNT} -eq 3 ]]; then
-                echo "Reach limit (${RETRY_COUNT}) of retries ..."
-                break
-            fi
-            RETRY_COUNT=$((RETRY_COUNT+1))
-            echo "This is ${RETRY_COUNT} time retry ..."
-
-            if [[ ${result} -eq 1 ]]; then
-                # Run functional tests if it failed above
-                echo "-----> Calling \"${test_command}\" for ${test_group_name} : "
-                eval "${test_command}"
-                result=$?
-                echo "-----> Finished ${test_group_name} - Result=${result}"
-            fi
-            if [[ ${result} -eq 1 ]]; then
-                # Return to next loop and do retry
-                TEST_FAILURE=1
-                continue
-            else
-                # Return to success and exit from loop
-                TEST_FAILURE=0
-                break
-            fi
-        fi
-        break
-    done
-    # End of retry part. This part can be removed anytime when online tests are stable.
-}
+    }
 done
 
-### Running all unit groups
+###
+### Running all unittest groups
+###
+
 for test_name in "${TEST_TARGET_NAMES[@]}"
 do
 {
     EXCEPTION=""
     FLAKY_CHECK=""
     source ${FV_HOME}/${test_name}.variables
+
     test_command="$REPO_HOME/build/${test_name%?????}/tests/${test_name}s \
     --gtest_output="xml:${REPO_HOME}/reports/${test_name}-report.xml" $EXCEPTION $FLAKY_CHECK "
 
@@ -127,7 +95,6 @@ do
     echo "-----> Finished $test_name - Result=$result"
 }
 done
-
 
 cd ..
 
@@ -150,7 +117,7 @@ do
     echo -e "$(basename ${report}): \t $(cat ${report} | sed -n 2p | sed -e "s/timestamp=.*//" | sed -e "s/\<testsuites//" )"
 done
 
-echo "Artifacts download URL: ${CI_PROJECT_URL}-/jobs/${CI_JOB_ID}/artifacts/download"
+echo "Artifacts download URL: ${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/download"
 
 if [[ ${result} -ne 0 ]]; then
     exit ${result}
