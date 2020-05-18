@@ -56,7 +56,7 @@ jobs:
 
 - job: Android_Emulator
   pool:
-    vmImage: 'ubuntu-16.04'
+    vmImage: 'macOS-10.14'
   variables:
     ANDROID_NDK_HOME: $(ANDROID_HOME)/ndk-bundle
   steps:
