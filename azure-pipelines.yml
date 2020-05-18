@@ -54,6 +54,17 @@ jobs:
     - bash: ANDROID_NDK_HOME=$(ANDROID_NDK_HOME) && scripts/android/build.sh
       displayName: 'Android build and Examples'
 
+- job: Android_Emulator
+  pool:
+    vmImage: 'ubuntu-16.04'
+  variables:
+    ANDROID_NDK_HOME: $(ANDROID_HOME)/ndk-bundle
+  steps:
+    - bash: ls -la $(ANDROID_NDK_HOME)/build/cmake/android.toolchain.cmake
+      displayName: 'Verification of cmake script'
+    - bash: ANDROID_NDK_HOME=$(ANDROID_NDK_HOME) && scripts/android/build-test-emulator.sh
+      displayName: 'Android Test'
+
 - job: Linux_build_clang
   pool:
     vmImage: 'ubuntu-18.04'
