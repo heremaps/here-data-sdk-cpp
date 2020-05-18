@@ -39,10 +39,16 @@ constexpr auto kLogTag = "CatalogCacheRepository";
 // Currently, we expire the catalog version after 5 minutes. Later we plan to
 // give the user the control when to expire it.
 constexpr auto kCatalogVersionExpireTime = 5 * 60;
+constexpr auto kChronoSecondsMax = std::chrono::seconds::max();
+constexpr auto kTimetMax = std::numeric_limits<time_t>::max();
 
 std::string CreateKey(const std::string& hrn) { return hrn + "::catalog"; }
 std::string VersionKey(const std::string& hrn) {
   return hrn + "::latestVersion";
+}
+
+time_t ConvertTime(std::chrono::seconds time) {
+  return time == kChronoSecondsMax ? kTimetMax : time.count();
 }
 }  // namespace
 
@@ -52,15 +58,17 @@ namespace read {
 namespace repository {
 using namespace olp::client;
 CatalogCacheRepository::CatalogCacheRepository(
-    const HRN& hrn, std::shared_ptr<cache::KeyValueCache> cache)
-    : hrn_(hrn), cache_(cache) {}
+    const HRN& hrn, std::shared_ptr<cache::KeyValueCache> cache,
+    std::chrono::seconds default_expiry)
+    : hrn_(hrn), cache_(cache), default_expiry_(ConvertTime(default_expiry)) {}
 
 void CatalogCacheRepository::Put(const model::Catalog& catalog) {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn);
   OLP_SDK_LOG_TRACE_F(kLogTag, "Put '%s'", key.c_str());
   cache_->Put(key, catalog,
-              [catalog]() { return olp::serializer::serialize(catalog); });
+              [catalog]() { return olp::serializer::serialize(catalog); },
+              default_expiry_);
 }
 
 boost::optional<model::Catalog> CatalogCacheRepository::Get() {
