@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <memory>
 
 #include <olp/core/client/HRN.h>
@@ -35,8 +36,9 @@ namespace repository {
 
 class DataCacheRepository final {
  public:
-  DataCacheRepository(const client::HRN& hrn,
-                         std::shared_ptr<cache::KeyValueCache> cache);
+  DataCacheRepository(
+      const client::HRN& hrn, std::shared_ptr<cache::KeyValueCache> cache,
+      std::chrono::seconds default_expiry = std::chrono::seconds::max());
 
   ~DataCacheRepository() = default;
 
@@ -51,6 +53,7 @@ class DataCacheRepository final {
  private:
   client::HRN hrn_;
   std::shared_ptr<cache::KeyValueCache> cache_;
+  time_t default_expiry_;
 };
 }  // namespace repository
 }  // namespace read

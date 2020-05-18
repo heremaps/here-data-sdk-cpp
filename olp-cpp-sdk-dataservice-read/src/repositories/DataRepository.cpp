@@ -144,7 +144,8 @@ DataResponse DataRepository::GetBlobData(
     return ApiError(ErrorCode::PreconditionFailed, "Data handle is missing");
   }
 
-  repository::DataCacheRepository repository(catalog, settings.cache);
+  repository::DataCacheRepository repository(catalog, settings.cache,
+                                             settings.default_cache_expiration);
 
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_data = repository.Get(layer, data_handle.value());
