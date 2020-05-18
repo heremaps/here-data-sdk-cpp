@@ -24,6 +24,7 @@
 
 namespace {
 constexpr auto kLogTag = "ApiCacheRepository";
+constexpr time_t kLookupApiExpiryTime = 3600;
 
 std::string CreateKey(const std::string& hrn, const std::string& service,
                       const std::string& serviceVersion) {
@@ -35,26 +36,26 @@ namespace olp {
 namespace dataservice {
 namespace read {
 namespace repository {
-using namespace olp::client;
 ApiCacheRepository::ApiCacheRepository(
-    const HRN& hrn, std::shared_ptr<cache::KeyValueCache> cache)
+    const client::HRN& hrn, std::shared_ptr<cache::KeyValueCache> cache)
     : hrn_(hrn), cache_(cache) {}
 
 void ApiCacheRepository::Put(const std::string& service,
-                             const std::string& serviceVersion,
-                             const std::string& serviceUrl) {
+                             const std::string& version,
+                             const std::string& url) {
   std::string hrn(hrn_.ToCatalogHRNString());
-  auto key = CreateKey(hrn, service, serviceVersion);
-  OLP_SDK_LOG_TRACE_F(kLogTag, "Put '%s'", key.c_str());
-  cache_->Put(CreateKey(hrn, service, serviceVersion), serviceUrl,
-              [serviceUrl]() { return serviceUrl; }, 3600);
+  auto key = CreateKey(hrn, service, version);
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
+
+  cache_->Put(key, url, [&]() { return url; }, kLookupApiExpiryTime);
 }
 
 boost::optional<std::string> ApiCacheRepository::Get(
-    const std::string& service, const std::string& serviceVersion) {
+    const std::string& service, const std::string& version) {
   std::string hrn(hrn_.ToCatalogHRNString());
-  auto key = CreateKey(hrn, service, serviceVersion);
-  OLP_SDK_LOG_TRACE_F(kLogTag, "Get '%s'", key.c_str());
+  auto key = CreateKey(hrn, service, version);
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "Get -> '%s'", key.c_str());
+
   auto url = cache_->Get(key, [](const std::string& value) { return value; });
   if (url.empty()) {
     return boost::none;

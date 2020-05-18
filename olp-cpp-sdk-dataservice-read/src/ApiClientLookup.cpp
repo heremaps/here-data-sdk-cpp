@@ -59,39 +59,45 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
     std::string service_version, FetchOptions options,
     client::OlpClientSettings settings) {
   repository::ApiCacheRepository repository(catalog, settings.cache);
+  const auto hrn = catalog.ToCatalogHRNString();
 
   if (options != OnlineOnly && options != CacheWithUpdate) {
     auto url = repository.Get(service, service_version);
     if (url) {
-      OLP_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s, %s) -> from cache",
-                         service.c_str(), service_version.c_str());
+      OLP_SDK_LOG_DEBUG_F(kLogTag, "LookupApi(%s/%s) found in cache, hrn='%s'",
+                          service.c_str(), service_version.c_str(),
+                          hrn.c_str());
       client::OlpClient client;
       client.SetSettings(std::move(settings));
       client.SetBaseUrl(*url);
       return client;
     } else if (options == CacheOnly) {
-      return client::ApiError(
-          client::ErrorCode::NotFound,
-          "Cache only resource not found in cache (loopup api).");
+      return {{client::ErrorCode::NotFound,
+               "CacheOnly: resource not found in cache"}};
     }
   }
+
+  OLP_SDK_LOG_INFO_F(kLogTag,
+                     "LookupApi(%s/%s) cache miss, requesting, hrn='%s'",
+                     service.c_str(), service_version.c_str(), hrn.c_str());
 
   const auto& base_url = GetDatastoreServerUrl(catalog.partition);
   client::OlpClient client;
   client.SetBaseUrl(base_url);
+  // Do not move settings, we still need them later on!
   client.SetSettings(settings);
   PlatformApi::ApisResponse api_response;
+
   if (service == "config") {
     api_response = PlatformApi::GetApis(client, cancellation_context);
   } else {
-    api_response = ResourcesApi::GetApis(client, catalog.ToCatalogHRNString(),
-                                         cancellation_context);
+    api_response = ResourcesApi::GetApis(client, hrn, cancellation_context);
   }
 
   if (!api_response.IsSuccessful()) {
-    OLP_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s - unsuccessful: %s",
-                       service.c_str(), service_version.c_str(),
-                       catalog.partition.c_str(),
+    OLP_SDK_LOG_INFO_F(kLogTag,
+                       "LookupApi(%s/%s) unsuccessful, hrn='%s', error='%s'",
+                       service.c_str(), service_version.c_str(), hrn.c_str(),
                        api_response.GetError().GetMessage().c_str());
     return api_response.GetError();
   }
@@ -106,24 +112,25 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
 
   auto it =
       std::find_if(api_result.begin(), api_result.end(),
-                   [&](const olp::dataservice::read::model::Api& obj) -> bool {
+                   [&](const dataservice::read::model::Api& obj) -> bool {
                      return (obj.GetApi().compare(service) == 0 &&
                              obj.GetVersion().compare(service_version) == 0);
                    });
   if (it == api_result.end()) {
-    OLP_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s - service not available",
-                       service.c_str(), service_version.c_str(),
-                       catalog.partition.c_str());
+    OLP_SDK_LOG_WARNING_F(
+        kLogTag, "LookupApi(%s/%s) service not found, hrn='%s'",
+        service.c_str(), service_version.c_str(), hrn.c_str());
 
-    return client::ApiError(client::ErrorCode::ServiceUnavailable,
-                            "Service/Version not available for given HRN");
+    return {{client::ErrorCode::ServiceUnavailable,
+             "Service/Version not available for given HRN"}};
   }
 
   const auto& service_url = it->GetBaseUrl();
 
-  OLP_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s - OK, service_url=%s",
-                     service.c_str(), service_version.c_str(),
-                     catalog.partition.c_str(), service_url.c_str());
+  OLP_SDK_LOG_DEBUG_F(kLogTag,
+                      "LookupApi(%s/%s) found, hrn='%s', service_url='%s'",
+                      service.c_str(), service_version.c_str(), hrn.c_str(),
+                      service_url.c_str());
 
   client::OlpClient service_client;
   service_client.SetBaseUrl(service_url);

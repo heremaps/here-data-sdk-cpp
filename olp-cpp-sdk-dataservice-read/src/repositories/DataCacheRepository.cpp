@@ -19,6 +19,9 @@
 
 #include "DataCacheRepository.h"
 
+#include <limits>
+#include <string>
+
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/logging/Log.h>
 
@@ -41,9 +44,8 @@ namespace olp {
 namespace dataservice {
 namespace read {
 namespace repository {
-using namespace olp::client;
 DataCacheRepository::DataCacheRepository(
-    const HRN& hrn, std::shared_ptr<cache::KeyValueCache> cache,
+    const client::HRN& hrn, std::shared_ptr<cache::KeyValueCache> cache,
     std::chrono::seconds default_expiry)
     : hrn_(hrn), cache_(cache), default_expiry_(ConvertTime(default_expiry)) {}
 
@@ -52,7 +54,8 @@ void DataCacheRepository::Put(const model::Data& data,
                               const std::string& data_handle) {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn, layer_id, data_handle);
-  OLP_SDK_LOG_TRACE_F(kLogTag, "Put '%s'", key.c_str());
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
+
   cache_->Put(key, data, default_expiry_);
 }
 
@@ -60,20 +63,22 @@ boost::optional<model::Data> DataCacheRepository::Get(
     const std::string& layer_id, const std::string& data_handle) {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn, layer_id, data_handle);
-  OLP_SDK_LOG_TRACE_F(kLogTag, "Get '%s'", key.c_str());
-  auto cachedData = cache_->Get(key);
-  if (!cachedData) {
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "Get '%s'", key.c_str());
+
+  auto cached_data = cache_->Get(key);
+  if (!cached_data) {
     return boost::none;
   }
 
-  return cachedData;
+  return cached_data;
 }
 
 bool DataCacheRepository::Clear(const std::string& layer_id,
                                 const std::string& data_handle) {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn, layer_id, data_handle);
-  OLP_SDK_LOG_INFO_F(kLogTag, "Clear '%s'", key.c_str());
+  OLP_SDK_LOG_INFO_F(kLogTag, "Clear -> '%s'", key.c_str());
+
   return cache_->RemoveKeysWithPrefix(key);
 }
 

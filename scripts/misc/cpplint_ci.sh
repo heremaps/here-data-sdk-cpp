@@ -65,7 +65,6 @@ CPPLINT_BLOCKING_FILTER="\
      -runtime/explicit,\
      -runtime/arrays,\
      -runtime/threadsafe_fn,\
-     -build/namespaces,\
      -build/include_subdir,\
      -build/include_order,\
      -build/include_what_you_use,\

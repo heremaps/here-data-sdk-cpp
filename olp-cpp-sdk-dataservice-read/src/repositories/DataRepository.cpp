@@ -21,6 +21,8 @@
 
 #include <algorithm>
 #include <sstream>
+#include <string>
+#include <utility>
 
 #include <olp/core/client/Condition.h>
 #include <olp/core/logging/Log.h>
@@ -46,7 +48,6 @@ namespace olp {
 namespace dataservice {
 namespace read {
 namespace repository {
-using namespace olp::client;
 
 namespace {
 constexpr auto kLogTag = "DataRepository";
@@ -63,17 +64,21 @@ DataResponse DataRepository::GetVersionedTile(
       catalog, layer_id, request, version, context, settings);
 
   if (!response.IsSuccessful()) {
-    OLP_SDK_LOG_ERROR(kLogTag,
-                      "GetVersionedDataTile: request prtition for tile failed");
+    OLP_SDK_LOG_WARNING_F(
+        kLogTag,
+        "GetVersionedDataTile partition request failed, hrn='%s', key='%s'",
+        catalog.ToCatalogHRNString().c_str(),
+        request.CreateKey(layer_id).c_str());
     return response.GetError();
   }
-  const auto& partition = response.GetResult().GetPartitions().front();
 
-  auto data_request = DataRequest()
-                          .WithDataHandle(partition.GetDataHandle())
-                          .WithVersion(version)
-                          .WithFetchOption(request.GetFetchOption());
-  // get the data using a data handle for reqested tile
+  // Get the data using a data handle for requested tile
+  const auto& partition = response.GetResult().GetPartitions().front();
+  const auto data_request = DataRequest()
+                                .WithDataHandle(partition.GetDataHandle())
+                                .WithVersion(version)
+                                .WithFetchOption(request.GetFetchOption());
+
   return repository::DataRepository::GetBlobData(
       catalog, layer_id, kBlobService, data_request, context, settings);
 }
@@ -83,13 +88,13 @@ DataResponse DataRepository::GetVersionedData(
     DataRequest request, client::CancellationContext context,
     const client::OlpClientSettings& settings) {
   if (request.GetDataHandle() && request.GetPartitionId()) {
-    return ApiError(ErrorCode::PreconditionFailed,
-                    "Both data handle and partition id specified");
+    return {{client::ErrorCode::PreconditionFailed,
+             "Both data handle and partition id specified"}};
   }
 
   if (!request.GetDataHandle()) {
     if (!request.GetVersion()) {
-      // get latest version of the layer if it wasn't set by the user
+      // Get latest version of the layer if it wasn't set by the user
       CatalogVersionRequest version_request;
       version_request.WithFetchOption(request.GetFetchOption())
           .WithBillingTag(request.GetBillingTag());
@@ -113,13 +118,15 @@ DataResponse DataRepository::GetVersionedData(
 
     const auto& partitions = partitions_response.GetResult().GetPartitions();
     if (partitions.empty()) {
-      OLP_SDK_LOG_INFO_F(kLogTag, "Partition %s not found",
-                         request.GetPartitionId()
-                             ? request.GetPartitionId().get().c_str()
-                             : "<none>");
+      OLP_SDK_LOG_INFO_F(
+          kLogTag,
+          "GetVersionedData partition %s not found, hrn='%s', key='%s'",
+          request.GetPartitionId() ? request.GetPartitionId().get().c_str()
+                                   : "<none>",
+          catalog.ToCatalogHRNString().c_str(),
+          request.CreateKey(layer_id).c_str());
 
-      return client::ApiError(client::ErrorCode::NotFound,
-                              "Partition not found");
+      return {{client::ErrorCode::NotFound, "Partition not found"}};
     }
 
     request.WithDataHandle(partitions.front().GetDataHandle());
@@ -135,13 +142,11 @@ DataResponse DataRepository::GetBlobData(
     const std::string& service, const DataRequest& data_request,
     client::CancellationContext cancellation_context,
     const client::OlpClientSettings& settings) {
-  using namespace client;
-
   auto fetch_option = data_request.GetFetchOption();
   const auto& data_handle = data_request.GetDataHandle();
 
   if (!data_handle) {
-    return ApiError(ErrorCode::PreconditionFailed, "Data handle is missing");
+    return {{client::ErrorCode::PreconditionFailed, "Data handle is missing"}};
   }
 
   repository::DataCacheRepository repository(catalog, settings.cache,
@@ -150,14 +155,18 @@ DataResponse DataRepository::GetBlobData(
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_data = repository.Get(layer, data_handle.value());
     if (cached_data) {
-      OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' found!",
-                         data_request.CreateKey(layer).c_str());
+      OLP_SDK_LOG_DEBUG_F(kLogTag,
+                          "GetBlobData found in cache, hrn='%s', key='%s'",
+                          catalog.ToCatalogHRNString().c_str(),
+                          data_request.CreateKey(layer).c_str());
       return cached_data.value();
     } else if (fetch_option == CacheOnly) {
-      OLP_SDK_LOG_INFO_F(kLogTag, "cache data '%s' not found!",
+      OLP_SDK_LOG_INFO_F(kLogTag,
+                         "GetBlobData not found in cache, hrn='%s', key='%s'",
+                         catalog.ToCatalogHRNString().c_str(),
                          data_request.CreateKey(layer).c_str());
-      return ApiError(ErrorCode::NotFound,
-                      "Cache only resource not found in cache (data).");
+      return {{client::ErrorCode::NotFound,
+               "CacheOnly: resource not found in cache"}};
     }
   }
 
@@ -187,8 +196,11 @@ DataResponse DataRepository::GetBlobData(
   if (!blob_response.IsSuccessful()) {
     const auto& error = blob_response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
-      OLP_SDK_LOG_INFO_F(kLogTag, "clear '%s' cache",
-                         data_request.CreateKey(layer).c_str());
+      OLP_SDK_LOG_WARNING_F(
+          kLogTag,
+          "GetBlobData 403 received, remove from cache, hrn='%s', key='%s'",
+          catalog.ToCatalogHRNString().c_str(),
+          data_request.CreateKey(layer).c_str());
       repository.Clear(layer, data_handle.value());
     }
   }
@@ -201,8 +213,8 @@ DataResponse DataRepository::GetVolatileData(
     DataRequest request, client::CancellationContext context,
     const client::OlpClientSettings& settings) {
   if (request.GetDataHandle() && request.GetPartitionId()) {
-    return ApiError(ErrorCode::PreconditionFailed,
-                    "Both data handle and partition id specified");
+    return {{client::ErrorCode::PreconditionFailed,
+             "Both data handle and partition id specified"}};
   }
 
   if (!request.GetDataHandle()) {
@@ -216,13 +228,14 @@ DataResponse DataRepository::GetVolatileData(
 
     const auto& partitions = partitions_response.GetResult().GetPartitions();
     if (partitions.empty()) {
-      OLP_SDK_LOG_INFO_F(kLogTag, "Partition %s not found",
-                         request.GetPartitionId()
-                             ? request.GetPartitionId().get().c_str()
-                             : "<none>");
+      OLP_SDK_LOG_INFO_F(
+          kLogTag, "GetVolatileData partition %s not found, hrn='%s', key='%s'",
+          request.GetPartitionId() ? request.GetPartitionId().get().c_str()
+                                   : "<none>",
+          catalog.ToCatalogHRNString().c_str(),
+          request.CreateKey(layer_id).c_str());
 
-      return client::ApiError(client::ErrorCode::NotFound,
-                              "Partition not found");
+      return {{client::ErrorCode::NotFound, "Partition not found"}};
     }
 
     request.WithDataHandle(partitions.front().GetDataHandle());
