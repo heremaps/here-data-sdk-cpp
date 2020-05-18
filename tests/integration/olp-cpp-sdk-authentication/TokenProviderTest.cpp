@@ -234,4 +234,32 @@ TEST_F(TokenProviderTest, UseLocalAndServerTime) {
   testing::Mock::VerifyAndClearExpectations(network_mock_.get());
 }
 
+TEST_F(TokenProviderTest, ConcurrentRequests) {
+  EXPECT_CALL(*network_mock_, Send(IsPostRequest(kOAuthTokenUrl), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   kResponseValidJson));
+  auto settings = GetSettings<authentication::kDefaultMinimumValidity>(true);
+  ASSERT_TRUE(settings.authentication_settings);
+  ASSERT_TRUE(settings.authentication_settings->provider);
+
+  const auto kRequestCount = 5;
+  std::vector<std::thread> threads;
+  std::vector<std::future<std::string>> futures;
+  for (auto i = 0; i < kRequestCount; ++i) {
+    auto promise = std::make_shared<std::promise<std::string>>();
+    threads.emplace_back([promise, settings]() {
+      promise->set_value(settings.authentication_settings->provider());
+    });
+    futures.emplace_back(promise->get_future());
+  }
+
+  for (auto i = 0; i < kRequestCount; ++i) {
+    threads[i].join();
+    auto token = futures[i].get();
+    EXPECT_EQ(token, kResponseToken);
+  }
+
+  testing::Mock::VerifyAndClearExpectations(network_mock_.get());
+}
+
 }  // namespace

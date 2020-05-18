@@ -142,6 +142,10 @@ class TokenProvider {
     /// Get the token response from AutoRefreshingToken or request a new token
     /// if expired or not present.
     TokenResponse GetResponse() const {
+      /// Mutex is needed to prevent multiple authorization requests, that could
+      /// happen when the token is not yet available, and multiple consumers
+      /// requested it.
+      std::lock_guard<std::mutex> lock(request_mutex_);
       return token_.GetToken(minimum_validity_);
     }
 
@@ -156,6 +160,7 @@ class TokenProvider {
    private:
     std::chrono::seconds minimum_validity_{kDefaultMinimumValidity};
     AutoRefreshingToken token_;
+    mutable std::mutex request_mutex_;
   };
 
   std::shared_ptr<TokenProviderImpl> impl_;
