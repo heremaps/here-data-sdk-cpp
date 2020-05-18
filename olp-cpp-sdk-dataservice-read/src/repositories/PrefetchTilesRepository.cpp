@@ -220,7 +220,8 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
   }
 
   // add to cache
-  repository::PartitionsCacheRepository cache(catalog, settings.cache);
+  repository::PartitionsCacheRepository cache(
+      catalog, settings.cache, settings.default_cache_expiration);
   cache.Put(PartitionsRequest().WithVersion(version), partitions, layer_id,
             boost::none, false);
 
@@ -282,7 +283,8 @@ SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
   }
 
   // add to cache
-  repository::PartitionsCacheRepository cache(catalog, settings.cache);
+  repository::PartitionsCacheRepository cache(
+      catalog, settings.cache, settings.default_cache_expiration);
   cache.Put({}, partitions, layer_id, boost::none, false);
 
   return result;

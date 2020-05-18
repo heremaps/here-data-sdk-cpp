@@ -40,6 +40,8 @@ PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 
 namespace {
 constexpr auto kLogTag = "PartitionsCacheRepository";
+constexpr auto kChronoSecondsMax = std::chrono::seconds::max();
+constexpr auto kTimetMax = std::numeric_limits<time_t>::max();
 
 std::string CreateKey(const std::string& hrn, const std::string& layer_id,
                       const std::string& partitionId,
@@ -55,6 +57,10 @@ std::string CreateKey(const std::string& hrn, const std::string& layer_id,
 std::string CreateKey(const std::string& hrn, const int64_t catalogVersion) {
   return hrn + "::" + std::to_string(catalogVersion) + "::layerVersions";
 }
+
+time_t ConvertTime(std::chrono::seconds time) {
+  return time == kChronoSecondsMax ? kTimetMax : time.count();
+}
 }  // namespace
 
 namespace olp {
@@ -63,8 +69,9 @@ namespace read {
 namespace repository {
 using namespace olp::client;
 PartitionsCacheRepository::PartitionsCacheRepository(
-    const HRN& hrn, std::shared_ptr<cache::KeyValueCache> cache)
-    : hrn_(hrn), cache_(cache) {}
+    const HRN& hrn, std::shared_ptr<cache::KeyValueCache> cache,
+    std::chrono::seconds default_expiry)
+    : hrn_(hrn), cache_(cache), default_expiry_(ConvertTime(default_expiry)) {}
 
 void PartitionsCacheRepository::Put(const PartitionsRequest& request,
                                     const model::Partitions& partitions,
@@ -78,7 +85,6 @@ void PartitionsCacheRepository::Put(const PartitionsRequest& request,
 
   std::vector<std::string> partition_ids;
   partition_ids.reserve(partitions_list.size());
-  time_t no_expiry = std::numeric_limits<time_t>::max();
 
   for (const auto& partition : partitions_list) {
     auto key = CreateKey(hrn, layer_id, partition.GetPartition(),
@@ -86,7 +92,7 @@ void PartitionsCacheRepository::Put(const PartitionsRequest& request,
     OLP_SDK_LOG_INFO_F(kLogTag, "Put '%s'", key.c_str());
     cache_->Put(key, partition,
                 [=]() { return olp::serializer::serialize(partition); },
-                expiry.get_value_or(no_expiry));
+                expiry.get_value_or(default_expiry_));
     if (layer_metadata) {
       partition_ids.push_back(partition.GetPartition());
     }
@@ -96,7 +102,7 @@ void PartitionsCacheRepository::Put(const PartitionsRequest& request,
     OLP_SDK_LOG_INFO_F(kLogTag, "Put '%s'", key.c_str());
     cache_->Put(key, partition_ids,
                 [=]() { return olp::serializer::serialize(partition_ids); },
-                expiry.get_value_or(no_expiry));
+                expiry.get_value_or(default_expiry_));
   }
 }
 
@@ -166,7 +172,8 @@ void PartitionsCacheRepository::Put(int64_t catalogVersion,
   std::string hrn(hrn_.ToCatalogHRNString());
   OLP_SDK_LOG_INFO_F(kLogTag, "Put '%s'", hrn.c_str());
   cache_->Put(CreateKey(hrn, catalogVersion), layerVersions,
-              [=]() { return olp::serializer::serialize(layerVersions); });
+              [=]() { return olp::serializer::serialize(layerVersions); },
+              default_expiry_);
 }
 
 boost::optional<model::LayerVersions> PartitionsCacheRepository::Get(
