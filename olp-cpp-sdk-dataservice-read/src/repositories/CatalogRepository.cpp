@@ -52,7 +52,8 @@ CatalogResponse CatalogRepository::GetCatalog(
 
   OLP_SDK_LOG_TRACE_F(kLogTag, "getCatalog '%s'", request_key.c_str());
 
-  repository::CatalogCacheRepository repository{catalog, settings.cache};
+  repository::CatalogCacheRepository repository{
+      catalog, settings.cache, settings.default_cache_expiration};
 
   if (fetch_options != OnlineOnly && fetch_options != CacheWithUpdate) {
     auto cached = repository.Get();
