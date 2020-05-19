@@ -164,15 +164,16 @@ cmake --build . --target docs
 
 ### CMake Flags
 
-| Flag                                                | Description                                                                                                                                                                                                                               |
-| :-------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `BUILD_SHARED_LIBS`                                 | Defaults to `OFF`. If enabled, all libraries are built as shared.                                                                                                                                                                         |
-| `OLP_SDK_BUILD_DOC`                                 | Defaults to `OFF`. If enabled, the API reference is generated in your build directory.<br> **Note:** Before you download the API reference, install <a href="http://www.doxygen.nl/" target="_blank">Doxygen</a>.                         |
-| `OLP_SDK_ENABLE_TESTING`                            | Defaults to `ON`. If enabled, unit tests are built for each library.                                                                                                                                                                      |
-| `OLP_SDK_BUILD_EXTERNAL_DEPS`                       | Defaults to `ON`. If enabled, CMake downloads and compiles dependencies.                                                                                                                                                                  |
-| `OLP_SDK_NO_EXCEPTION`                              | Defaults to `OFF`. If enabled, all libraries are built without exceptions.                                                                                                                                                                |
-| `OLP_SDK_BOOST_THROW_EXCEPTION_EXTERNAL`            | Defaults to `OFF`. When `OLP_SDK_NO_EXCEPTION` is `ON`, `boost` requires `boost::throw_exception()` to be defined. If enabled, the external definition of `boost::throw_exception()` is used. Otherwise, the library uses own definition. |
-| `OLP_SDK_MSVC_PARALLEL_BUILD_ENABLE` (Windows Only) | Defaults to `ON`. If enabled, the `/MP` compilation flag is added to build the SDK using multiple cores.                                                                                                                                  |
+| Flag | Description |
+| :- | :- |
+| `BUILD_SHARED_LIBS` | Defaults to `OFF`. If enabled, all libraries are built as shared. |
+| `OLP_SDK_BUILD_DOC` | Defaults to `OFF`. If enabled, the API reference is generated in your build directory.<br> **Note:** Before you download the API reference, install <a href="http://www.doxygen.nl/" target="_blank">Doxygen</a>. |
+| `OLP_SDK_ENABLE_TESTING` | Defaults to `ON`. If enabled, unit tests are built for each library. |
+| `OLP_SDK_BUILD_EXTERNAL_DEPS` | Defaults to `ON`. If enabled, CMake downloads and compiles dependencies. |
+| `OLP_SDK_NO_EXCEPTION` | Defaults to `OFF`. If enabled, all libraries are built without exceptions. |
+| `OLP_SDK_BOOST_THROW_EXCEPTION_EXTERNAL` | Defaults to `OFF`. When `OLP_SDK_NO_EXCEPTION` is `ON`, `boost` requires `boost::throw_exception()` to be defined. If enabled, the external definition of `boost::throw_exception()` is used. Otherwise, the library uses own definition. |
+| `OLP_SDK_MSVC_PARALLEL_BUILD_ENABLE` (Windows Only) | Defaults to `ON`. If enabled, the `/MP` compilation flag is added to build the SDK using multiple cores. |
+| `OLP_SDK_DISABLE_DEBUG_LOGGING`| Defaults to `OFF`. If enabled, The debug and trace level log messages will not be printed. |
 
 ## SDK Usage
 
