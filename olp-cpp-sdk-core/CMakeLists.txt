@@ -328,6 +328,12 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 add_library(${PROJECT_NAME} ${OLP_SDK_CORE_SOURCES} ${OLP_SDK_CORE_HEADERS})
 
+
+if (OLP_SDK_DISABLE_DEBUG_LOGGING)
+    target_compile_definitions(${PROJECT_NAME} 
+        PUBLIC LOGGING_DISABLE_DEBUG_LEVEL)
+endif()
+
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE ${OLP_SDK_DEFAULT_NETWORK_DEFINITION})
 
