@@ -154,7 +154,7 @@ class CORE_API NetworkRequest final {
   /// The body of the HTTP request.
   RequestBodyType body_;
   /// The network settings for this request.
-  NetworkSettings settings_;
+  NetworkSettings settings_{};
 };
 
 }  // namespace http
