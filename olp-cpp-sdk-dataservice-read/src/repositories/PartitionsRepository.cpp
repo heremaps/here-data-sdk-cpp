@@ -33,6 +33,8 @@
 #include "olp/dataservice/read/PartitionsRequest.h"
 #include "olp/dataservice/read/TileRequest.h"
 
+#include "NamedLock.h"
+
 // Needed to avoid endless warnings from GetVersion/WithVersion
 #include <olp/core/porting/warning_disable.h>
 PORTING_PUSH_WARNINGS()
@@ -201,6 +203,9 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
     const client::HRN& catalog, const std::string& layer,
     client::CancellationContext cancellation_context,
     const DataRequest& data_request, client::OlpClientSettings settings) {
+  static NamedLock gLock;
+  auto lock = gLock.AquireLock(data_request.CreateKey(layer));
+
   const auto& partition_id = data_request.GetPartitionId();
   if (!partition_id) {
     return ApiError(ErrorCode::PreconditionFailed, "Partition Id is missing");
@@ -284,6 +289,9 @@ PartitionsResponse PartitionsRepository::GetPartitionForVersionedTile(
     const TileRequest& request, int64_t version,
     client::CancellationContext context,
     const client::OlpClientSettings& settings) {
+  static NamedLock gLock;
+  auto lock = gLock.AquireLock(request.CreateKey(layer_id));
+
   auto tile = request.GetTileKey().ToHereTile();
   auto cached_partitions =
       GetTileFromCache(catalog, layer_id, request, version, settings);

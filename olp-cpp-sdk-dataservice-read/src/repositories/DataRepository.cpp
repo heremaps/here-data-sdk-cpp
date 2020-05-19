@@ -37,6 +37,8 @@
 #include "olp/dataservice/read/PartitionsRequest.h"
 #include "olp/dataservice/read/TileRequest.h"
 
+#include "NamedLock.h"
+
 // Needed to avoid endless warnings from GetVersion/WithVersion
 #include <olp/core/porting/warning_disable.h>
 PORTING_PUSH_WARNINGS()
@@ -136,6 +138,9 @@ DataResponse DataRepository::GetBlobData(
     client::CancellationContext cancellation_context,
     const client::OlpClientSettings& settings) {
   using namespace client;
+  
+  static NamedLock gLock;
+  auto lock = gLock.AquireLock(data_request.CreateKey(layer));
 
   auto fetch_option = data_request.GetFetchOption();
   const auto& data_handle = data_request.GetDataHandle();

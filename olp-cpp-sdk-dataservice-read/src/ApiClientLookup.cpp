@@ -32,6 +32,8 @@
 #include "generated/api/ResourcesApi.h"
 #include "repositories/ApiCacheRepository.h"
 
+#include "repositories/NamedLock.h"
+
 namespace olp {
 namespace dataservice {
 namespace read {
@@ -58,6 +60,9 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
     client::CancellationContext cancellation_context, std::string service,
     std::string service_version, FetchOptions options,
     client::OlpClientSettings settings) {
+  static repository::NamedLock gLock;
+  auto lock = gLock.AquireLock(catalog.ToString());
+
   repository::ApiCacheRepository repository(catalog, settings.cache);
 
   if (options != OnlineOnly && options != CacheWithUpdate) {
