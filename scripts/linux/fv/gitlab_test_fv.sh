@@ -118,6 +118,6 @@ do
     echo -e "$(basename ${report}): \t $(cat ${report} | sed -n 2p | sed -e "s/timestamp=.*//" | sed -e "s/\<testsuites//" )"
 done
 
-echo "Artifacts download URL: ${CI_PROJECT_URL}-/jobs/${CI_JOB_ID}/artifacts/download"
+echo "Artifacts download URL: ${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/download"
 
 exit ${TEST_FAILURE}
