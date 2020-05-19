@@ -32,6 +32,8 @@
 #include "generated/api/ResourcesApi.h"
 #include "repositories/ApiCacheRepository.h"
 
+#include "repositories/NamedMutex.h"
+
 namespace olp {
 namespace dataservice {
 namespace read {
@@ -58,6 +60,16 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
     client::CancellationContext cancellation_context, std::string service,
     std::string service_version, FetchOptions options,
     client::OlpClientSettings settings) {
+
+  // This mutex is required to avoid concurrent requests to online.
+  repository::NamedMutex mutex(catalog.ToString());
+  std::unique_lock<repository::NamedMutex> lock(mutex, std::adopt_lock);
+
+  // If we are not planning to go online or access the cache, release the lock.
+  if (options != CacheOnly || options != OnlineOnly) {
+    mutex.lock();
+  }
+
   repository::ApiCacheRepository repository(catalog, settings.cache);
 
   if (options != OnlineOnly && options != CacheWithUpdate) {
@@ -130,7 +142,6 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
   service_client.SetSettings(settings);
   return service_client;
 }
-
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

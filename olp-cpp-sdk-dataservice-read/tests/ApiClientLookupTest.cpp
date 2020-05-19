@@ -46,7 +46,8 @@ TEST(ApiClientLookupTest, LookupApi) {
   settings.network_request_handler = network;
   settings.retry_settings.timeout = 1;
 
-  const std::string catalog = "hrn:here:data::olp-here-test:hereos-internal-test-v2";
+  const std::string catalog =
+      "hrn:here:data::olp-here-test:hereos-internal-test-v2";
   const auto catalog_hrn = HRN::FromString(catalog);
   const std::string service_name = "random_service";
   const std::string service_url = "http://random_service.com";
@@ -223,4 +224,66 @@ TEST(ApiClientLookupTest, LookupApi) {
     Mock::VerifyAndClearExpectations(network.get());
   }
 }
+
+TEST(ApiClientLookupTest, LookupApiConcurrent) {
+  using namespace testing;
+  using testing::Return;
+
+  auto cache = std::make_shared<testing::StrictMock<CacheMock>>();
+  auto network = std::make_shared<testing::StrictMock<NetworkMock>>();
+
+  OlpClientSettings settings;
+  settings.cache = cache;
+  settings.network_request_handler = network;
+  settings.retry_settings.timeout = 1;
+
+  const std::string catalog =
+      "hrn:here:data::olp-here-test:hereos-internal-test-v2";
+  const auto catalog_hrn = HRN::FromString(catalog);
+  const std::string service_name = "random_service";
+  const std::string service_url = "http://random_service.com";
+  const std::string service_version = "v8";
+  const std::string config_url =
+      "https://config.data.api.platform.in.here.com/config/v1";
+  const std::string cache_key =
+      catalog + "::" + service_name + "::" + service_version + "::api";
+  const std::string lookup_url =
+      "https://api-lookup.data.api.platform.here.com/lookup/v1/resources/" +
+      catalog + "/apis";
+
+  InSequence s;
+
+  EXPECT_CALL(*cache, Get(cache_key, _)).WillOnce(Return(boost::any()));
+  EXPECT_CALL(*network, Send(IsGetRequest(lookup_url), _, _, _, _))
+      .Times(1)
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kResponseLookupConfig));
+  EXPECT_CALL(*cache, Put(cache_key, _, _, _)).WillOnce(Return(true));
+  // Also expect: pipelines v1, pipelines v2
+  EXPECT_CALL(*cache, Put(_, _, _, _)).Times(2).WillRepeatedly(Return(true));
+  EXPECT_CALL(*cache, Get(cache_key, _))
+      .Times(4)
+      .WillRepeatedly(Return(service_url));
+
+  const auto threads_count = 5;
+  std::vector<std::thread> threads;
+
+  for (auto i = 0; i < threads_count; i++) {
+    threads.emplace_back([=]() {
+      client::CancellationContext context;
+      auto response = ApiClientLookup::LookupApi(
+          catalog_hrn, context, service_name, service_version,
+          FetchOptions::OnlineIfNotFound, settings);
+    });
+  }
+
+  for (auto i = 0; i < threads_count; i++) {
+    threads[i].join();
+  }
+
+  Mock::VerifyAndClearExpectations(network.get());
+  Mock::VerifyAndClearExpectations(cache.get());
+}
+
 }  // namespace
