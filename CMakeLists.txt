@@ -41,6 +41,7 @@ option(OLP_SDK_BOOST_THROW_EXCEPTION_EXTERNAL "The boost::throw_exception() is d
 option(OLP_SDK_BUILD_EXTERNAL_DEPS "Download and build external dependencies" ON)
 option(OLP_SDK_BUILD_EXAMPLES "Enable examples targets" OFF)
 option(OLP_SDK_MSVC_PARALLEL_BUILD_ENABLE "Enable parallel build on MSVC" ON)
+option(OLP_SDK_DISABLE_DEBUG_LOGGING "Disable debug and trace level logging" OFF)
 
 # C++ standard version. Minimum supported version is 11.
 set(CMAKE_CXX_STANDARD 11)
@@ -68,7 +69,7 @@ include(common)
 # Include code coverage variables
 include(coverage)
 
-if(OLP_SDK_BUILD_EXTERNAL_DEPS)
+if (OLP_SDK_BUILD_EXTERNAL_DEPS)
     # Add third-party dependencies
     set(EXTERNAL_BINARY_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/install)
     add_subdirectory(external)
