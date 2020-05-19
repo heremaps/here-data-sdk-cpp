@@ -24,10 +24,16 @@
 
 namespace {
 constexpr auto kLogTag = "DataCacheRepository";
+constexpr auto kChronoSecondsMax = std::chrono::seconds::max();
+constexpr auto kTimetMax = std::numeric_limits<time_t>::max();
 
 std::string CreateKey(const std::string& hrn, const std::string& layer_id,
                       const std::string& datahandle) {
   return hrn + "::" + layer_id + "::" + datahandle + "::Data";
+}
+
+time_t ConvertTime(std::chrono::seconds time) {
+  return time == kChronoSecondsMax ? kTimetMax : time.count();
 }
 }  // namespace
 
@@ -37,8 +43,9 @@ namespace read {
 namespace repository {
 using namespace olp::client;
 DataCacheRepository::DataCacheRepository(
-    const HRN& hrn, std::shared_ptr<cache::KeyValueCache> cache)
-    : hrn_(hrn), cache_(cache) {}
+    const HRN& hrn, std::shared_ptr<cache::KeyValueCache> cache,
+    std::chrono::seconds default_expiry)
+    : hrn_(hrn), cache_(cache), default_expiry_(ConvertTime(default_expiry)) {}
 
 void DataCacheRepository::Put(const model::Data& data,
                               const std::string& layer_id,
@@ -46,7 +53,7 @@ void DataCacheRepository::Put(const model::Data& data,
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn, layer_id, data_handle);
   OLP_SDK_LOG_TRACE_F(kLogTag, "Put '%s'", key.c_str());
-  cache_->Put(key, data);
+  cache_->Put(key, data, default_expiry_);
 }
 
 boost::optional<model::Data> DataCacheRepository::Get(
