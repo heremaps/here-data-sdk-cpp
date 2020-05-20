@@ -94,22 +94,22 @@ void QuadTreeIndex::CreateBlob(olp::geo::TileKey root, int depth,
             });
 
   // count data size(for now it is header version and data handle)
-  size_t additionalDataSize = 0;
+  size_t additional_data_size = 0;
   for (const IndexData& data : subs) {
-    additionalDataSize += data.data_handle_.size() +
-                          sizeof(AdditionalDataCompacted::data_header_) +
-                          sizeof(AdditionalDataCompacted::version_);
+    additional_data_size += data.data_handle_.size() +
+                            sizeof(AdditionalDataCompacted::data_header_) +
+                            sizeof(AdditionalDataCompacted::version_);
   }
   for (const IndexData& data : parents) {
-    additionalDataSize += data.data_handle_.size() +
-                          sizeof(AdditionalDataCompacted::data_header_) +
-                          sizeof(AdditionalDataCompacted::version_);
+    additional_data_size += data.data_handle_.size() +
+                            sizeof(AdditionalDataCompacted::data_header_) +
+                            sizeof(AdditionalDataCompacted::version_);
   }
 
   // calculate and allocate size
   size_ = sizeof(DataHeader) - sizeof(SubEntry) +
           (subs.size() * sizeof(SubEntry)) +
-          (parents.size() * sizeof(ParentEntry)) + additionalDataSize;
+          (parents.size() * sizeof(ParentEntry)) + additional_data_size;
 
   raw_data_ = std::make_shared<std::vector<unsigned char>>(
       std::vector<unsigned char>(size_));
@@ -121,45 +121,45 @@ void QuadTreeIndex::CreateBlob(olp::geo::TileKey root, int depth,
   data_->parent_count_ = uint8_t(parents.size());
 
   // write SubEntry tiles
-  SubEntry* entryPtr = data_->entries_;
-  char* dataPtr = const_cast<char*>(DataBegin());
-  std::uint16_t dataOffset = 0u;
+  SubEntry* entry_ptr = data_->entries_;
+  char* data_ptr = const_cast<char*>(DataBegin());
+  std::uint16_t data_offset = 0u;
 
   auto rootQuadLevel = root.Level();
 
   uint8_t header = BitSetFlags::kVersion | BitSetFlags::kDataHandle;
 
   for (const IndexData& data : subs) {
-    *entryPtr++ = {
+    *entry_ptr++ = {
         std::uint16_t(olp::geo::QuadKey64Helper{data.tileKey_.ToQuadKey64()}
                           .GetSubkey(data.tileKey_.Level() - rootQuadLevel)
                           .key),
-        dataOffset};
+        data_offset};
     // write additional data
 
     AdditionalDataCompacted* additional_data =
-        reinterpret_cast<AdditionalDataCompacted*>(dataPtr + dataOffset);
+        reinterpret_cast<AdditionalDataCompacted*>(data_ptr + data_offset);
     additional_data->data_header_ = header;     // write header
     additional_data->version_ = data.version_;  // write version
     memcpy(additional_data->data_handle_, data.data_handle_.data(),
            data.data_handle_.size());  // data_handle
-    dataOffset += uint16_t(sizeof(*additional_data) -
+    data_offset += uint16_t(sizeof(*additional_data) -
                            sizeof(additional_data->data_handle_) +
                            data.data_handle_.size());
   }
 
-  ParentEntry* parentPtr = reinterpret_cast<ParentEntry*>(entryPtr);
+  ParentEntry* parentPtr = reinterpret_cast<ParentEntry*>(entry_ptr);
   for (const IndexData& data : parents) {
-    *parentPtr++ = {data.tileKey_.ToQuadKey64(), dataOffset};
+    *parentPtr++ = {data.tileKey_.ToQuadKey64(), data_offset};
 
     // write additional data
     AdditionalDataCompacted* additional_data =
-        reinterpret_cast<AdditionalDataCompacted*>(dataPtr + dataOffset);
+        reinterpret_cast<AdditionalDataCompacted*>(data_ptr + data_offset);
     additional_data->data_header_ = header;     // write header
     additional_data->version_ = data.version_;  // write version
     memcpy(additional_data->data_handle_, data.data_handle_.data(),
            data.data_handle_.size());  // data_handle
-    dataOffset += uint16_t(sizeof(*additional_data) -
+    data_offset += uint16_t(sizeof(*additional_data) -
                            sizeof(additional_data->data_handle_) +
                            data.data_handle_.size());
   }
@@ -217,23 +217,23 @@ QuadTreeIndex::AdditionalData QuadTreeIndex::TileData(
 QuadTreeIndex::AdditionalData QuadTreeIndex::TileData(
     const ParentEntry* entry) const {
   const ParentEntry* end = ParentEntryEnd();
-  const char* tagBegin = DataBegin() + entry->tag_offset_;
-  const char* tagEnd =
+  const char* tag_begin = DataBegin() + entry->tag_offset_;
+  const char* tag_end =
       entry + 1 == end
           ? DataEnd()
-          : tagBegin + ((entry + 1)->tag_offset_ - entry->tag_offset_);
-  return TileData(tagBegin, tagEnd);
+          : tag_begin + ((entry + 1)->tag_offset_ - entry->tag_offset_);
+  return TileData(tag_begin, tag_end);
 }
 
 QuadTreeIndex::AdditionalData QuadTreeIndex::TileData(
-    const char* tagBegin, const char* tagEnd) const {
+    const char* tag_begin, const char* tag_end) const {
   const AdditionalDataCompacted* additional_data =
-      reinterpret_cast<const AdditionalDataCompacted*>(tagBegin);
+      reinterpret_cast<const AdditionalDataCompacted*>(tag_begin);
   // here we could check flags if in future will be multiple versions of
   // packaging additional data
   auto handle =
       std::string((const char*)(additional_data->data_handle_),
-                  tagEnd - (const char*)(additional_data->data_handle_));
+                   tag_end - (const char*)(additional_data->data_handle_));
   return {additional_data->version_, std::move(handle)};
 }
 

@@ -134,7 +134,7 @@ class QuadTreeIndex {
 
   AdditionalData TileData(const SubEntry* entry) const;
   AdditionalData TileData(const ParentEntry* entry) const;
-  AdditionalData TileData(const char* tagBegin, const char* tagEnd) const;
+  AdditionalData TileData(const char* tag_begin, const char* tag_end) const;
 
   DataHeader* data_ = nullptr;
   BlobDataPtr raw_data_ = BlobDataPtr();
