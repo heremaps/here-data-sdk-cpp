@@ -27,28 +27,35 @@ using namespace olp;
 using namespace dataservice::read;
 using namespace olp::tests::common;
 
-constexpr auto HTTP_RESPONSE_QUADKEYS_5904591 =
-    R"jsonString({"subQuads": [{"version":4,"subQuadKey":"4","dataHandle":"f9a9fd8e-eb1b-48e5-bfdb-4392b3826443"},{"version":4,"subQuadKey":"5","dataHandle":"e119d20e-c7c6-4563-ae88-8aa5c6ca75c3"},{"version":4,"subQuadKey":"6","dataHandle":"a7a1afdf-db7e-4833-9627-d38bee6e2f81"},{"version":4,"subQuadKey":"7","dataHandle":"9d515348-afce-44e8-bc6f-3693cfbed104"},{"version":4,"subQuadKey":"1","dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": [{"version":4,"partition":"1476147","dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"}]})jsonString";
+constexpr auto HTTP_RESPONSE_QUADKEYS =
+    R"jsonString({"subQuads": [{"subQuadKey": "4","version":282,"dataHandle":"7636348E50215979A39B5F3A429EDDB4.282","dataSize":277},{"subQuadKey":"5","version":282,"dataHandle":"8C9B3E08E294ADB2CD07EBC8412062FE.282","dataSize":271},{"subQuadKey": "6","version":282,"dataHandle":"9772F5E1822DFF25F48F150294B1ECF5.282","dataSize":289},{"subQuadKey":"7","version":282,"dataHandle":"BF84D8EC8124B96DBE5C4DB68B05918F.282","dataSize":283},{"subQuadKey":"1","version":48,"dataHandle":"BD53A6D60A34C20DC42ACAB2650FE361.48","dataSize":89}],"parentQuads":[{"partition":"23","version":282,"dataHandle":"F8F4C3CB09FBA61B927256CBCB8441D1.282","dataSize":52438},{"partition":"5","version":282,"dataHandle":"13E2C624E0136C3357D092EE7F231E87.282","dataSize":99151},{"partition":"95","version":253,"dataHandle":"B6F7614316BB8B81478ED7AE370B22A6.253","dataSize":6765}]})jsonString";
 
 TEST(QuadTreeIndexTest, ParseBlob) {
   using testing::Return;
   {
     SCOPED_TRACE("Parse json and store to blob");
-    QuadTreeIndex index;
-    auto tile_key = olp::geo::TileKey::FromHereTile("5904591");
-    index.FromLayerIndex(
-        index.FromJson(tile_key, 4, HTTP_RESPONSE_QUADKEYS_5904591));
-    auto data = index.find(tile_key);
-    EXPECT_EQ(data.data_handle_, "e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1");
+    auto tile_key = olp::geo::TileKey::FromHereTile("381");
+    QuadTreeIndex index(tile_key, 1, HTTP_RESPONSE_QUADKEYS);
 
-    auto data2 = index.find(olp::geo::TileKey::FromHereTile("21395"));
-    EXPECT_EQ(data2.data_handle_, "95c5c703-e00e-4c38-841e-e419367474f1");
+    auto data = index.Find(tile_key);
+    EXPECT_EQ(data.data_handle_, "BD53A6D60A34C20DC42ACAB2650FE361.48");
+    EXPECT_EQ(data.tileKey_, olp::geo::TileKey::FromHereTile("381"));
+    EXPECT_EQ(data.version_, 48);
 
-    // 23618364  23618365 23618366 23618367
-    auto data4 = index.find(olp::geo::TileKey::FromHereTile("23618364"));
-    EXPECT_EQ(data4.data_handle_, "f9a9fd8e-eb1b-48e5-bfdb-4392b3826443");
-    auto data5 = index.find(olp::geo::TileKey::FromHereTile("23618367"));
-    EXPECT_EQ(data5.data_handle_, "9d515348-afce-44e8-bc6f-3693cfbed104");
+    auto data2 = index.Find(olp::geo::TileKey::FromHereTile("95"));
+    EXPECT_EQ(data2.data_handle_, "B6F7614316BB8B81478ED7AE370B22A6.253");
+    EXPECT_EQ(data2.tileKey_, olp::geo::TileKey::FromHereTile("95"));
+    EXPECT_EQ(data2.version_, 253);
+
+    auto data3 = index.Find(tile_key.AddedSubHereTile("2"));
+    EXPECT_EQ(data3.data_handle_, "9772F5E1822DFF25F48F150294B1ECF5.282");
+    EXPECT_EQ(data3.tileKey_, olp::geo::TileKey::FromHereTile("1526"));
+    EXPECT_EQ(data3.version_, 282);
+
+    auto data4 = index.Find(tile_key.AddedSubHereTile("4"));
+    EXPECT_EQ(data4.data_handle_, "7636348E50215979A39B5F3A429EDDB4.282");
+    EXPECT_EQ(data4.tileKey_, olp::geo::TileKey::FromHereTile("1524"));
+    EXPECT_EQ(data4.version_, 282);
   }
 }
 }  // namespace

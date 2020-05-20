@@ -19,58 +19,46 @@
 
 #pragma once
 
-#include <olp/core/geo/tiling/TileKey.h>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include <olp/core/geo/tiling/TileKey.h>
 
 namespace olp {
 namespace dataservice {
 namespace read {
 
 using BlobData = std::vector<unsigned char>;
-using BlobDataPtr = std::shared_ptr<std::vector<unsigned char>>;
+using BlobDataPtr = std::shared_ptr<BlobData>;
 
 class QuadTreeIndex {
  public:
-  struct LayerIndex {
-    struct IndexData {
-      olp::geo::TileKey tileKey_;  ///< tile key in the layer tree
-      std::string
-          data_handle_;   ///< tile path can be used in MapEngine::getData
-      uint64_t version_;  ///< catalog version this tile was last changed at
-      bool operator<(const IndexData& other) const {
-        return tileKey_ < other.tileKey_;
-      }
-    };
-
-    LayerIndex(const olp::geo::TileKey& root, int depth,
-               std::vector<IndexData>&& parents, std::vector<IndexData>&& subs)
-        : root_(root),
-          depth_(depth),
-          parents_(std::move(parents)),
-          subs_(std::move(subs)) {}
-
-    olp::geo::TileKey root_;
-    int depth_;
-    std::vector<IndexData> parents_;
-    std::vector<IndexData> subs_;
+  struct IndexData {
+    /// tile key in the layer tree
+    olp::geo::TileKey tileKey_;
+    /// tile path can be used in MapEngine::getData
+    std::string data_handle_;
+    /// catalog version this tile was last changed at
+    uint64_t version_;
+    bool operator<(const IndexData& other) const {
+      return tileKey_ < other.tileKey_;
+    }
   };
 
-  QuadTreeIndex() : data_{nullptr}, raw_data_(nullptr), size_{0} {}
-  explicit QuadTreeIndex(BlobDataPtr data)
-      : data_{reinterpret_cast<DataHeader*>(&(data->front()))},
-        raw_data_(data),
-        size_{0} {}
+  QuadTreeIndex();
+  explicit QuadTreeIndex(BlobDataPtr data);
+  QuadTreeIndex(const olp::geo::TileKey& root, int depth,
+                const std::string json);
+
+  QuadTreeIndex(const QuadTreeIndex& other) = delete;
+  QuadTreeIndex& operator=(const QuadTreeIndex& other) = delete;
   ~QuadTreeIndex();
 
   inline bool IsNull() const { return data_ == nullptr; }
 
-  void FromLayerIndex(const LayerIndex& index);
-  QuadTreeIndex::LayerIndex FromJson(const olp::geo::TileKey& root, int depth,
-                                     const std::string& json);
-  LayerIndex::IndexData find(const olp::geo::TileKey& tileKey) const;
+  IndexData Find(const olp::geo::TileKey& tileKey) const;
 
  private:
   struct SubEntry {
@@ -119,8 +107,11 @@ class QuadTreeIndex {
   struct AdditionalData {
     //  uint8_t data_header;
     uint64_t version_;
-    std::string data_handle_;  //
+    std::string data_handle_;
   };
+
+  void CreateBlob(olp::geo::TileKey root, int depth,
+                  std::vector<IndexData> parents, std::vector<IndexData> subs);
 
   const SubEntry* SubEntryBegin() const { return data_->entries_; }
   const SubEntry* SubEntryEnd() const {
@@ -145,12 +136,9 @@ class QuadTreeIndex {
   AdditionalData TileData(const ParentEntry* entry) const;
   AdditionalData TileData(const char* tagBegin, const char* tagEnd) const;
 
-  DataHeader* data_;
-  BlobDataPtr raw_data_;
-  size_t size_;
-
-  QuadTreeIndex(const QuadTreeIndex& other) = delete;
-  QuadTreeIndex& operator=(const QuadTreeIndex& other) = delete;
+  DataHeader* data_ = nullptr;
+  BlobDataPtr raw_data_ = BlobDataPtr();
+  size_t size_ = 0;
 };
 
 }  // namespace read

@@ -19,77 +19,88 @@
 
 #include "QuadTreeIndex.h"
 
-#include <rapidjson/document.h>
 #include <algorithm>
 #include <bitset>
 #include <iostream>
-#include "generated/model/Index.h"
-// clang-format off
-#include "generated/parser/IndexParser.h"
-#include "generated/parser/PartitionsParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
-// clang-format on
+
+#include <rapidjson/document.h>
 
 namespace olp {
 namespace dataservice {
 namespace read {
 
-QuadTreeIndex::LayerIndex QuadTreeIndex::FromJson(const olp::geo::TileKey& root,
-                                                  int depth,
-                                                  const std::string& json) {
-  std::vector<LayerIndex::IndexData> subs;
-  std::vector<LayerIndex::IndexData> parents;
+constexpr auto kParentQuadsKey = "parentQuads";
+constexpr auto kSubQuadsKey = "subQuads";
+constexpr auto kDataHandleKey = "dataHandle";
+constexpr auto kVersionKey = "version";
+constexpr auto kSubQuadKeyKey = "subQuadKey";
+constexpr auto kPartitionKey = "partition";
 
-  model::Index idx = olp::parser::parse<model::Index>(json);
-  // TODO reduce copying from index
-  for (const auto& subQuad : idx.GetSubQuads()) {
-    LayerIndex::IndexData record;
-    record.tileKey_ = root.AddedSubHereTile(subQuad->GetSubQuadKey());
-    record.data_handle_ = subQuad->GetDataHandle();
-    record.version_ = subQuad->GetVersion();
-    subs.push_back(std::move(record));
+QuadTreeIndex::QuadTreeIndex() {}
+
+QuadTreeIndex::QuadTreeIndex(BlobDataPtr data) {
+  if (data == nullptr || data->empty()) {
+    return;
   }
-
-  std::sort(subs.begin(), subs.end());
-
-  for (auto& parentQuad : idx.GetParentQuads()) {
-    LayerIndex::IndexData record;
-    record.tileKey_ = root.FromQuadKey(parentQuad->GetPartition());
-    record.data_handle_ = parentQuad->GetDataHandle();
-    record.version_ = parentQuad->GetVersion();
-    parents.push_back(std::move(record));
-  }
-
-  std::sort(parents.begin(), parents.end());
-
-  return LayerIndex(root, depth, std::move(parents), std::move(subs));
+  data_ = reinterpret_cast<DataHeader*>(data->data());
+  size_ = data->size();
 }
 
-void QuadTreeIndex::FromLayerIndex(const QuadTreeIndex::LayerIndex& index) {
-  std::vector<LayerIndex::IndexData> subs = index.subs_;
-  std::vector<LayerIndex::IndexData> parents = index.parents_;
+QuadTreeIndex::QuadTreeIndex(const olp::geo::TileKey& root, int depth,
+                             const std::string json) {
+  std::vector<IndexData> subs;
+  std::vector<IndexData> parents;
 
+  rapidjson::Document doc;
+  doc.Parse(json.c_str());
+
+  auto parentQuadsValue = doc.FindMember(kParentQuadsKey);
+  auto subQuadsValue = doc.FindMember(kSubQuadsKey);
+
+  for (auto& value : parentQuadsValue->value.GetArray()) {
+    auto& obj = value.GetObject();
+
+    IndexData data;
+    data.data_handle_ = obj[kDataHandleKey].GetString();
+    data.version_ = obj[kVersionKey].GetUint64();
+    data.tileKey_ = root.FromHereTile(obj[kPartitionKey].GetString());
+    parents.push_back(data);
+  }
+
+  for (auto& value : subQuadsValue->value.GetArray()) {
+    auto& obj = value.GetObject();
+
+    IndexData data;
+    data.data_handle_ = obj[kDataHandleKey].GetString();
+    data.version_ = obj[kVersionKey].GetUint64();
+    data.tileKey_ = root.AddedSubHereTile(obj[kSubQuadKeyKey].GetString());
+    subs.push_back(data);
+  }
+  CreateBlob(root, depth, std::move(parents), std::move(subs));
+}
+
+void QuadTreeIndex::CreateBlob(olp::geo::TileKey root, int depth,
+                               std::vector<IndexData> parents,
+                               std::vector<IndexData> subs) {
   // quads must be sorted by their sub quad key, not by Quad::operator<
-  std::sort(
-      subs.begin(), subs.end(),
-      [](const LayerIndex::IndexData& q1, const LayerIndex::IndexData& q2) {
-        return q1.tileKey_.ToQuadKey64() < q2.tileKey_.ToQuadKey64();
-      });
+  std::sort(subs.begin(), subs.end(),
+            [](const IndexData& lhs, const IndexData& rhs) {
+              return lhs.tileKey_.ToQuadKey64() < rhs.tileKey_.ToQuadKey64();
+            });
 
-  std::sort(
-      parents.begin(), parents.end(),
-      [](const LayerIndex::IndexData& q1, const LayerIndex::IndexData& q2) {
-        return q1.tileKey_.ToQuadKey64() < q2.tileKey_.ToQuadKey64();
-      });
+  std::sort(parents.begin(), parents.end(),
+            [](const IndexData& lhs, const IndexData& rhs) {
+              return lhs.tileKey_.ToQuadKey64() < rhs.tileKey_.ToQuadKey64();
+            });
 
   // count data size(for now it is header version and data handle)
   size_t additionalDataSize = 0;
-  for (const LayerIndex::IndexData& data : subs) {
+  for (const IndexData& data : subs) {
     additionalDataSize += data.data_handle_.size() +
                           sizeof(AdditionalDataCompacted::data_header_) +
                           sizeof(AdditionalDataCompacted::version_);
   }
-  for (const LayerIndex::IndexData& data : parents) {
+  for (const IndexData& data : parents) {
     additionalDataSize += data.data_handle_.size() +
                           sizeof(AdditionalDataCompacted::data_header_) +
                           sizeof(AdditionalDataCompacted::version_);
@@ -104,8 +115,8 @@ void QuadTreeIndex::FromLayerIndex(const QuadTreeIndex::LayerIndex& index) {
       std::vector<unsigned char>(size_));
   data_ = reinterpret_cast<DataHeader*>(&(raw_data_->front()));
 
-  data_->root_tilekey_ = index.root_.ToQuadKey64();
-  data_->depth_ = uint8_t(index.depth_);
+  data_->root_tilekey_ = root.ToQuadKey64();
+  data_->depth_ = uint8_t(depth);
   data_->subkey_count_ = uint16_t(subs.size());
   data_->parent_count_ = uint8_t(parents.size());
 
@@ -114,11 +125,11 @@ void QuadTreeIndex::FromLayerIndex(const QuadTreeIndex::LayerIndex& index) {
   char* dataPtr = const_cast<char*>(DataBegin());
   std::uint16_t dataOffset = 0u;
 
-  auto rootQuadLevel = index.root_.Level();
+  auto rootQuadLevel = root.Level();
 
   uint8_t header = BitSetFlags::kVersion | BitSetFlags::kDataHandle;
 
-  for (const LayerIndex::IndexData& data : subs) {
+  for (const IndexData& data : subs) {
     *entryPtr++ = {
         std::uint16_t(olp::geo::QuadKey64Helper{data.tileKey_.ToQuadKey64()}
                           .GetSubkey(data.tileKey_.Level() - rootQuadLevel)
@@ -138,7 +149,7 @@ void QuadTreeIndex::FromLayerIndex(const QuadTreeIndex::LayerIndex& index) {
   }
 
   ParentEntry* parentPtr = reinterpret_cast<ParentEntry*>(entryPtr);
-  for (const LayerIndex::IndexData& data : parents) {
+  for (const IndexData& data : parents) {
     *parentPtr++ = {data.tileKey_.ToQuadKey64(), dataOffset};
 
     // write additional data
@@ -154,7 +165,7 @@ void QuadTreeIndex::FromLayerIndex(const QuadTreeIndex::LayerIndex& index) {
   }
 }
 
-QuadTreeIndex::LayerIndex::IndexData QuadTreeIndex::find(
+QuadTreeIndex::IndexData QuadTreeIndex::Find(
     const olp::geo::TileKey& tileKey) const {
   if (IsNull())
     return {};
@@ -170,10 +181,10 @@ QuadTreeIndex::LayerIndex::IndexData QuadTreeIndex::find(
     const SubEntry* entry =
         std::lower_bound(SubEntryBegin(), end, SubEntry{sub, 0});
     if (entry == end || entry->sub_quadkey_ != sub)
-      return LayerIndex::IndexData{tileKey, std::string(), 0};
+      return IndexData{tileKey, std::string(), 0};
     QuadTreeIndex::AdditionalData tile_data = TileData(entry);
-    return LayerIndex::IndexData{tileKey, std::move(tile_data.data_handle_),
-                                 tile_data.version_};
+    return IndexData{tileKey, std::move(tile_data.data_handle_),
+                     tile_data.version_};
   } else {
     std::uint64_t key = tileKey.ToQuadKey64();
 
@@ -181,10 +192,10 @@ QuadTreeIndex::LayerIndex::IndexData QuadTreeIndex::find(
     const ParentEntry* entry =
         std::lower_bound(ParentEntryBegin(), end, ParentEntry{key, 0});
     if (entry == end || entry->key_ != key)
-      return LayerIndex::IndexData{tileKey, std::string(), 0};
+      return IndexData{tileKey, std::string(), 0};
     QuadTreeIndex::AdditionalData tile_data = TileData(entry);
-    return LayerIndex::IndexData{tileKey, std::move(tile_data.data_handle_),
-                                 tile_data.version_};
+    return IndexData{tileKey, std::move(tile_data.data_handle_),
+                     tile_data.version_};
   }
 }
 
