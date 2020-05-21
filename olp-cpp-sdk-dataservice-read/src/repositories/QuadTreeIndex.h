@@ -41,7 +41,7 @@ class QuadTreeIndex {
     /// tile path can be used in MapEngine::getData
     std::string data_handle_;
     /// catalog version this tile was last changed at
-    uint64_t version_ = 0;
+    uint64_t version_;
     bool operator<(const IndexData& other) const {
       return tileKey_ < other.tileKey_;
     }

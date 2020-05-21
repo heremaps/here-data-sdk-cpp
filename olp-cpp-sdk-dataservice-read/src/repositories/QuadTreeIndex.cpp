@@ -78,6 +78,8 @@ QuadTreeIndex::QuadTreeIndex(const olp::geo::TileKey& root, int depth,
 
       if (obj.HasMember(kVersionKey) && obj[kVersionKey].IsUint64()) {
         data.version_ = obj[kVersionKey].GetUint64();
+      } else {
+        data.version_ = 0;
       }
 
       parents.push_back(data);
@@ -99,6 +101,8 @@ QuadTreeIndex::QuadTreeIndex(const olp::geo::TileKey& root, int depth,
 
       if (obj.HasMember(kVersionKey) && obj[kVersionKey].IsUint64()) {
         data.version_ = obj[kVersionKey].GetUint64();
+      } else {
+        data.version_ = 0;
       }
       subs.push_back(data);
     }
