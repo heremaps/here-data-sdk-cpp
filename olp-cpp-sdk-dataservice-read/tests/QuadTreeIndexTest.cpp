@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+#include <sstream>
+
 #include <gmock/gmock.h>
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/CacheMock.h>
@@ -35,7 +37,7 @@ TEST(QuadTreeIndexTest, ParseBlob) {
   {
     SCOPED_TRACE("Parse json and store to blob");
     auto tile_key = olp::geo::TileKey::FromHereTile("381");
-    QuadTreeIndex index(tile_key, 1, HTTP_RESPONSE_QUADKEYS);
+    QuadTreeIndex index(tile_key, 1, std::stringstream(HTTP_RESPONSE_QUADKEYS));
 
     auto data = index.Find(tile_key);
     EXPECT_EQ(data.data_handle_, "BD53A6D60A34C20DC42ACAB2650FE361.48");

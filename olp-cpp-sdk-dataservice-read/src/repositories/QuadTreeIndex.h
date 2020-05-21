@@ -20,7 +20,7 @@
 #pragma once
 
 #include <memory>
-#include <string>
+#include <sstream>
 #include <utility>
 #include <vector>
 
@@ -41,7 +41,7 @@ class QuadTreeIndex {
     /// tile path can be used in MapEngine::getData
     std::string data_handle_;
     /// catalog version this tile was last changed at
-    uint64_t version_;
+    uint64_t version_ = 0;
     bool operator<(const IndexData& other) const {
       return tileKey_ < other.tileKey_;
     }
@@ -50,7 +50,7 @@ class QuadTreeIndex {
   QuadTreeIndex();
   explicit QuadTreeIndex(BlobDataPtr data);
   QuadTreeIndex(const olp::geo::TileKey& root, int depth,
-                const std::string json);
+                std::stringstream& json);
 
   QuadTreeIndex(const QuadTreeIndex& other) = delete;
   QuadTreeIndex& operator=(const QuadTreeIndex& other) = delete;

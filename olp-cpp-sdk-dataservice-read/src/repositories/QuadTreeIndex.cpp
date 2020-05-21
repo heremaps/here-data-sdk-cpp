@@ -24,6 +24,7 @@
 #include <iostream>
 
 #include <rapidjson/document.h>
+#include <rapidjson/istreamwrapper.h>
 
 namespace olp {
 namespace dataservice {
@@ -47,35 +48,62 @@ QuadTreeIndex::QuadTreeIndex(BlobDataPtr data) {
 }
 
 QuadTreeIndex::QuadTreeIndex(const olp::geo::TileKey& root, int depth,
-                             const std::string json) {
+                             std::stringstream& json_stream) {
   std::vector<IndexData> subs;
   std::vector<IndexData> parents;
 
   rapidjson::Document doc;
-  doc.Parse(json.c_str());
+  rapidjson::IStreamWrapper stream(json_stream);
+  doc.ParseStream(stream);
 
   auto parentQuadsValue = doc.FindMember(kParentQuadsKey);
   auto subQuadsValue = doc.FindMember(kSubQuadsKey);
 
-  for (auto& value : parentQuadsValue->value.GetArray()) {
-    auto obj = value.GetObject();
-
-    IndexData data;
-    data.data_handle_ = obj[kDataHandleKey].GetString();
-    data.version_ = obj[kVersionKey].GetUint64();
-    data.tileKey_ = root.FromHereTile(obj[kPartitionKey].GetString());
-    parents.push_back(data);
+  if (parentQuadsValue == doc.MemberEnd() && subQuadsValue == doc.MemberEnd()) {
+    return;
   }
 
-  for (auto& value : subQuadsValue->value.GetArray()) {
-    auto obj = value.GetObject();
+  if (parentQuadsValue->value.IsArray()) {
+    for (auto& value : parentQuadsValue->value.GetArray()) {
+      auto obj = value.GetObject();
 
-    IndexData data;
-    data.data_handle_ = obj[kDataHandleKey].GetString();
-    data.version_ = obj[kVersionKey].GetUint64();
-    data.tileKey_ = root.AddedSubHereTile(obj[kSubQuadKeyKey].GetString());
-    subs.push_back(data);
+      if (!obj.HasMember(kDataHandleKey) || !obj[kDataHandleKey].IsString() ||
+          !obj.HasMember(kPartitionKey) || !obj[kPartitionKey].IsString()) {
+        continue;
+      }
+
+      IndexData data;
+      data.data_handle_ = obj[kDataHandleKey].GetString();
+      data.tileKey_ = root.FromHereTile(obj[kPartitionKey].GetString());
+
+      if (obj.HasMember(kVersionKey) && obj[kVersionKey].IsUint64()) {
+        data.version_ = obj[kVersionKey].GetUint64();
+      }
+
+      parents.push_back(data);
+    }
   }
+
+  if (subQuadsValue->value.IsArray()) {
+    for (auto& value : subQuadsValue->value.GetArray()) {
+      auto obj = value.GetObject();
+
+      if (!obj.HasMember(kDataHandleKey) || !obj[kDataHandleKey].IsString() ||
+          !obj.HasMember(kSubQuadKeyKey) || !obj[kSubQuadKeyKey].IsString()) {
+        continue;
+      }
+
+      IndexData data;
+      data.data_handle_ = obj[kDataHandleKey].GetString();
+      data.tileKey_ = root.AddedSubHereTile(obj[kSubQuadKeyKey].GetString());
+
+      if (obj.HasMember(kVersionKey) && obj[kVersionKey].IsUint64()) {
+        data.version_ = obj[kVersionKey].GetUint64();
+      }
+      subs.push_back(data);
+    }
+  }
+
   CreateBlob(root, depth, std::move(parents), std::move(subs));
 }
 
@@ -144,8 +172,8 @@ void QuadTreeIndex::CreateBlob(olp::geo::TileKey root, int depth,
     memcpy(additional_data->data_handle_, data.data_handle_.data(),
            data.data_handle_.size());  // data_handle
     data_offset += uint16_t(sizeof(*additional_data) -
-                           sizeof(additional_data->data_handle_) +
-                           data.data_handle_.size());
+                            sizeof(additional_data->data_handle_) +
+                            data.data_handle_.size());
   }
 
   ParentEntry* parentPtr = reinterpret_cast<ParentEntry*>(entry_ptr);
@@ -160,8 +188,8 @@ void QuadTreeIndex::CreateBlob(olp::geo::TileKey root, int depth,
     memcpy(additional_data->data_handle_, data.data_handle_.data(),
            data.data_handle_.size());  // data_handle
     data_offset += uint16_t(sizeof(*additional_data) -
-                           sizeof(additional_data->data_handle_) +
-                           data.data_handle_.size());
+                            sizeof(additional_data->data_handle_) +
+                            data.data_handle_.size());
   }
 }
 
@@ -233,7 +261,7 @@ QuadTreeIndex::AdditionalData QuadTreeIndex::TileData(
   // packaging additional data
   auto handle =
       std::string((const char*)(additional_data->data_handle_),
-                   tag_end - (const char*)(additional_data->data_handle_));
+                  tag_end - (const char*)(additional_data->data_handle_));
   return {additional_data->version_, std::move(handle)};
 }
 
