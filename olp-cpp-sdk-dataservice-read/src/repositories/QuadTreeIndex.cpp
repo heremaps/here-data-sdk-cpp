@@ -58,7 +58,7 @@ QuadTreeIndex::QuadTreeIndex(const olp::geo::TileKey& root, int depth,
   auto subQuadsValue = doc.FindMember(kSubQuadsKey);
 
   for (auto& value : parentQuadsValue->value.GetArray()) {
-    auto& obj = value.GetObject();
+    auto obj = value.GetObject();
 
     IndexData data;
     data.data_handle_ = obj[kDataHandleKey].GetString();
@@ -68,7 +68,7 @@ QuadTreeIndex::QuadTreeIndex(const olp::geo::TileKey& root, int depth,
   }
 
   for (auto& value : subQuadsValue->value.GetArray()) {
-    auto& obj = value.GetObject();
+    auto obj = value.GetObject();
 
     IndexData data;
     data.data_handle_ = obj[kDataHandleKey].GetString();
