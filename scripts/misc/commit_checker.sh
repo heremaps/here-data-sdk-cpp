@@ -80,7 +80,7 @@ resolves=$(cat commit.log | grep 'Resolves: ') || true
 see=$(cat commit.log | grep 'See also: ') || true
 
 # This is verification that we have any of these possible issue references.
-if [ -n "${relates_to}" ] || [ -n "${resolves}"] || [ -n "${see}" ] ; then
+if [[ -n "${relates_to}" ]] || [[ -n "${resolves}" ]] || [[ -n "${see}" ]] ; then
     # This verification is needed for correct Jira linking in Gitlab.
     if [[ "$(echo ${relates_to}| cut -d":" -f2)" =~ [a-z] ]] || [[ "$(echo ${resolves}| cut -d":" -f2)" =~ [a-z] ]] || [[ "$(echo ${see}| cut -d":" -f2)" =~ [a-z] ]] ; then
         echo ""
