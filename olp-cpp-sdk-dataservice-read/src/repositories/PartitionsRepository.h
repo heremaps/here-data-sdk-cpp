@@ -30,6 +30,7 @@
 #include "olp/dataservice/read/DataRequest.h"
 #include "olp/dataservice/read/PartitionsRequest.h"
 #include "olp/dataservice/read/Types.h"
+#include "QuadTreeIndex.h"
 
 namespace olp {
 namespace dataservice {
@@ -60,6 +61,13 @@ class PartitionsRepository {
   static model::Partition PartitionFromSubQuad(
       const model::SubQuad& sub_quad, const std::string& partition);
 
+  static PartitionsResponse GetAggregatedPartitionForVersionedTile(
+      client::HRN catalog, std::string layer,
+      client::CancellationContext cancellation_context,
+      const TileRequest& request,
+      int64_t version,
+      const client::OlpClientSettings& settings);
+
   static PartitionsResponse GetPartitionForVersionedTile(
       const client::HRN& catalog, const std::string& layer_id,
       const TileRequest& request, int64_t version,
@@ -84,6 +92,10 @@ class PartitionsRepository {
       read::PartitionsRequest request,
       const client::OlpClientSettings& settings,
       boost::optional<time_t> expiry = boost::none);
+
+  static PartitionsResponse GetAggregatedPartition(
+      const QuadTreeIndex& quad_tree, const geo::TileKey& root_tile_key,
+      const TileRequest& request);
 };
 }  // namespace repository
 }  // namespace read

@@ -231,7 +231,7 @@ class Index {
    * Result of the index resource call. For each parent tile, one element with
    * the respective parent-quad data is contained in the array.
    **/
-  std::vector<std::shared_ptr<ParentQuad>>& GetParentQuads() {
+  const std::vector<std::shared_ptr<ParentQuad>>& GetParentQuads() const {
     return parent_quads_;
   }
   void SetParentQuads(std::vector<std::shared_ptr<ParentQuad>> value) {

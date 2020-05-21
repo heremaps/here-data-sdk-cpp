@@ -60,7 +60,8 @@ class QuadTreeIndex {
 
   boost::optional<IndexData> Find(const olp::geo::TileKey& tileKey) const;
 
- private:
+  BlobDataPtr GetData() const { return raw_data_; }
+
   struct SubEntry {
     std::uint16_t sub_quadkey;
     std::uint16_t tag_offset;
@@ -136,6 +137,7 @@ class QuadTreeIndex {
   AdditionalData TileData(const ParentEntry* entry) const;
   AdditionalData TileData(const char* tag_begin, const char* tag_end) const;
 
+  private:
   DataHeader* data_ = nullptr;
   BlobDataPtr raw_data_ = BlobDataPtr();
   size_t size_ = 0;

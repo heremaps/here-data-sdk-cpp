@@ -57,6 +57,14 @@ std::string CreateKey(const std::string& hrn, const std::string& layer_id,
 std::string CreateKey(const std::string& hrn, const int64_t catalogVersion) {
   return hrn + "::" + std::to_string(catalogVersion) + "::layerVersions";
 }
+std::string CreateKey(const std::string& hrn,
+                      const std::string& layer, olp::geo::TileKey key, int32_t depth,
+                      const boost::optional<int64_t>& version) {
+  return hrn + "::" + key.ToHereTile() + "::" + layer +
+         "::" + (version ? std::to_string(*version) + "::" : "") +
+         std::to_string(depth) + "::quadtree";
+}
+;
 
 time_t ConvertTime(std::chrono::seconds time) {
   return time == kChronoSecondsMax ? kTimetMax : time.count();
@@ -189,6 +197,35 @@ boost::optional<model::LayerVersions> PartitionsCacheRepository::Get(
     return boost::none;
   }
   return boost::any_cast<model::LayerVersions>(cachedLayerVersions);
+}
+
+void PartitionsCacheRepository::Put(const std::string& layer, geo::TileKey key,
+                                    int32_t depth,
+                                    const QuadTreeIndex& quad_tree,
+                                    const boost::optional<int64_t>& version) {
+  if (quad_tree.IsNull()) {
+    return;
+  }
+
+  std::string hrn(hrn_.ToCatalogHRNString());
+  OLP_SDK_LOG_INFO_F(kLogTag, "Put '%s'", hrn.c_str());
+  cache_->Put(CreateKey(hrn, layer, key, depth, version), quad_tree.GetData(),
+              default_expiry_);
+}
+
+boost::optional<BlobDataPtr> PartitionsCacheRepository::Get(
+    const std::string& layer, geo::TileKey key, int32_t depth,
+    const boost::optional<int64_t>& version) {
+  std::string hrn(hrn_.ToCatalogHRNString());
+  auto cache_key = CreateKey(hrn, layer, key, depth, version);
+  OLP_SDK_LOG_INFO_F(kLogTag, "Get '%s'", cache_key.c_str());
+  auto raw_data =
+      cache_->Get(cache_key);
+  if (!raw_data) {
+    return boost::none;
+  }
+
+  return boost::any_cast<BlobDataPtr>(raw_data);
 }
 
 void PartitionsCacheRepository::Clear(const std::string& layer_id) {

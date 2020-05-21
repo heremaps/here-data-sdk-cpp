@@ -129,7 +129,7 @@ const std::string kHttpResponceLookupQuery =
     R"jsonString([{"api":"query","version":"v1","baseURL":"https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2","parameters":{}}])jsonString";
 
 const std::string kQueryTreeIndex =
-    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/23064/depths/4)";
+    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/90/depths/4)";
 
 const std::string kSubQuads =
     R"jsonString({"subQuads": [{"subQuadKey":"115","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString";
@@ -933,6 +933,88 @@ TEST_F(PartitionsRepositoryTest, GetPartitionForVersionedTile) {
               kBlobDataHandle1476147);
   }
 }
+
+TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
+  using namespace testing;
+  auto mock_network = std::make_shared<NetworkMock>();
+  std::shared_ptr<cache::KeyValueCache> default_cache =
+      olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+  OlpClientSettings settings;
+  settings.cache = default_cache;
+  settings.network_request_handler = mock_network;
+  settings.retry_settings.timeout = 1;
+
+  constexpr auto version = 4u;
+  constexpr auto layer = "testlayer";
+
+  const auto hrn = HRN::FromString(kCatalog);
+
+  {
+    SCOPED_TRACE("Same tile");
+    EXPECT_CALL(*mock_network, Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kHttpResponceLookupQuery));
+    EXPECT_CALL(*mock_network, Send(IsGetRequest(kQueryTreeIndex), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kSubQuads));
+
+    const auto tile_key = olp::geo::TileKey::FromHereTile("23247");
+    const auto request =
+        olp::dataservice::read::TileRequest().WithTileKey(tile_key);
+    olp::client::CancellationContext context;
+    auto response =
+        PartitionsRepository::GetAggregatedPartitionForVersionedTile(
+            hrn, layer, context, request, version, settings);
+    const auto& result = response.GetResult();
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_EQ(result.GetPartitions().size(), 1);
+    ASSERT_EQ(result.GetPartitions()[0].GetPartition(), tile_key.ToHereTile());
+  }
+
+  {
+    SCOPED_TRACE("Everything is cached");
+
+    const auto tile_key = olp::geo::TileKey::FromHereTile("23064");
+    const auto request =
+        olp::dataservice::read::TileRequest().WithTileKey(tile_key).WithFetchOption(CacheOnly);
+    olp::client::CancellationContext context;
+    auto response =
+        PartitionsRepository::GetAggregatedPartitionForVersionedTile(
+            hrn, layer, context, request, version, settings);
+    const auto& result = response.GetResult();
+    ASSERT_FALSE(response.IsSuccessful());
+  }
+
+  { 
+    SCOPED_TRACE("No tiles found");
+    
+    EXPECT_CALL(*mock_network,
+                    Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
+            .WillOnce(
+                ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponceLookupQuery));
+    EXPECT_CALL(*mock_network, Send(IsGetRequest(kQueryTreeIndex), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kSubQuads));
+
+    // clear cache
+    default_cache->RemoveKeysWithPrefix("");
+    const auto tile_key = olp::geo::TileKey::FromHereTile("23064");
+    const auto request =
+        olp::dataservice::read::TileRequest().WithTileKey(tile_key);
+    olp::client::CancellationContext context;
+    auto response =
+        PartitionsRepository::GetAggregatedPartitionForVersionedTile(
+            hrn, layer, context, request, version, settings);
+    const auto& result = response.GetResult();
+    ASSERT_FALSE(response.IsSuccessful());
+  }
+}
+
 }  // namespace
 
 PORTING_POP_WARNINGS()

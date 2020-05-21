@@ -102,6 +102,15 @@ bool VersionedLayerClient::RemoveFromCache(const geo::TileKey& tile) {
   return impl_->RemoveFromCache(tile);
 }
 
+client::CancellationToken VersionedLayerClient::GetAggregatedData(
+    TileRequest request, AggregatedDataResponseCallback callback) {
+  return impl_->GetAggregatedData(std::move(request), std::move(callback));
+}
+
+client::CancellableFuture<AggregatedDataResponse>
+VersionedLayerClient::GetAggregatedData(TileRequest request) {
+  return impl_->GetAggregatedData(std::move(request));
+}
 
 }  // namespace read
 }  // namespace dataservice
