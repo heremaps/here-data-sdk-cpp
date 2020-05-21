@@ -26,6 +26,7 @@
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
 
+#include <olp/dataservice/read/AggregatedDataResult.h>
 #include <olp/dataservice/read/model/Catalog.h>
 #include <olp/dataservice/read/model/Data.h>
 #include <olp/dataservice/read/model/Messages.h>
@@ -109,6 +110,11 @@ using SeekResult = int;
 using SeekResponse = Response<SeekResult>;
 /// The seek completion callback type of the stream layer client.
 using SeekResponseCallback = Callback<SeekResult>;
+
+/// The aggregated data response alias.
+using AggregatedDataResponse = Response<AggregatedDataResult>;
+/// The callback type of the aggregated data response.
+using AggregatedDataResponseCallback = Callback<AggregatedDataResult>;
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

@@ -341,6 +341,35 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    */
   bool RemoveFromCache(const geo::TileKey& tile);
 
+  /**
+   * @brief Fetches data of a tile or its closest ancestor.
+   *
+   * @param request The `TileRequest` instance that contains a complete set
+   * of request parameters.
+   * @note CacheWithUpdate fetch option is not suported.
+   * @param callback The `AggregatedDataResponseCallback` object that is invoked
+   * if the `AggregatedDataResult` object is available or an error is
+   * encountered.
+   *
+   * @return A token that can be used to cancel this request.
+   */
+  client::CancellationToken GetAggregatedData(
+      TileRequest request, AggregatedDataResponseCallback callback);
+
+  /**
+   * @brief Fetches data of a tile or its closest ancestor.
+   *
+   * @param request The `TileRequest` instance that contains a complete set
+   * of request parameters.
+   * @note CacheWithUpdate fetch option is not suported.
+   *
+   * @return `CancellableFuture` that contains the `AggregatedDataResponse`
+   * instance or an error. You can also use `CancellableFuture` to cancel this
+   * request.
+   */
+  client::CancellableFuture<AggregatedDataResponse> GetAggregatedData(
+      TileRequest request);
+
  private:
   std::unique_ptr<VersionedLayerClientImpl> impl_;
 };

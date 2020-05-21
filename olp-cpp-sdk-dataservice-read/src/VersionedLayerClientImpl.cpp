@@ -27,7 +27,9 @@
 #include <olp/core/logging/Log.h>
 #include <olp/core/thread/TaskScheduler.h>
 #include <olp/dataservice/read/CatalogVersionRequest.h>
+#include "ApiClientLookup.h"
 #include "Common.h"
+#include "generated/api/QueryApi.h"
 #include "repositories/CatalogRepository.h"
 #include "repositories/DataCacheRepository.h"
 #include "repositories/DataRepository.h"
@@ -46,6 +48,7 @@ namespace read {
 namespace {
 constexpr auto kLogTag = "VersionedLayerClientImpl";
 constexpr int64_t kInvalidVersion = -1;
+constexpr auto kAggregateQuadTreeDepth = 4;
 }  // namespace
 
 VersionedLayerClientImpl::VersionedLayerClientImpl(
@@ -517,6 +520,148 @@ bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
   return RemoveFromCache(partition_id);
 }
 
+client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
+    TileRequest request, AggregatedDataResponseCallback callback) {
+  if (request.GetFetchOption() == CacheWithUpdate) {
+    auto task = [](client::CancellationContext) -> AggregatedDataResponse {
+      return {{client::ErrorCode::InvalidArgument,
+               "CacheWithUpdate option can not be used for versioned "
+               "layer"}};
+    };
+    return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
+                   std::move(callback));
+  }
+
+  if (!request.GetTileKey().IsValid()) {
+    auto task = [](client::CancellationContext) -> AggregatedDataResponse {
+      return {{client::ErrorCode::InvalidArgument, "Tile key is invalid"}};
+    };
+    return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
+                   std::move(callback));
+  }
+
+  auto schedule_task = [&](TileRequest request,
+                           AggregatedDataResponseCallback callback) {
+    auto catalog = catalog_;
+    auto layer_id = layer_id_;
+    auto settings = settings_;
+    auto pending_requests = pending_requests_;
+
+    auto data_task =
+        [=](client::CancellationContext context) -> AggregatedDataResponse {
+      auto version_response = GetVersion(request.GetBillingTag(),
+                                         request.GetFetchOption(), context);
+      if (!version_response.IsSuccessful()) {
+        return version_response.GetError();
+      }
+
+      auto version = version_response.GetResult().GetVersion();
+
+      // 1. Download quad tree index depth 4
+      // TODO: load from cache
+      auto fetch_option = request.GetFetchOption();
+      const auto& tile_key = request.GetTileKey();
+      const auto& root_tile_key =
+          tile_key.ChangedLevelBy(-kAggregateQuadTreeDepth);
+      auto root_tile = root_tile_key.ToHereTile();
+
+      auto query_api = ApiClientLookup::LookupApi(
+          catalog, context, "query", "v1", request.GetFetchOption(), settings);
+
+      if (!query_api.IsSuccessful()) {
+        OLP_SDK_LOG_ERROR(kLogTag,
+                          "QueryPartitionForVersionedTile: LookupApi failed.");
+        return query_api.GetError();
+      }
+
+      auto quad_tree_response = QueryApi::QuadTreeIndex(
+          query_api.GetResult(), layer_id, version, root_tile,
+          kAggregateQuadTreeDepth, boost::none, request.GetBillingTag(),
+          context);
+
+      if (!quad_tree_response.IsSuccessful()) {
+        OLP_SDK_LOG_ERROR_F(
+            kLogTag, "QuadTreeIndex failed (%s, %" PRId64 ", %" PRId32 ")",
+            root_tile.c_str(), version, kAggregateQuadTreeDepth);
+        return quad_tree_response.GetError();
+      }
+
+      const auto& quad_tree = quad_tree_response.GetResult();
+      const auto& subquads = quad_tree.GetSubQuads();
+
+      if (subquads.empty()) {
+        OLP_SDK_LOG_ERROR_F(
+            kLogTag, "QuadTreeIndex is empty (%s, %" PRId64 ", %" PRId32 ")",
+            root_tile.c_str(), version, kAggregateQuadTreeDepth);
+        return {{client::ErrorCode::NotFound, "Quad tree is empty."}};
+      }
+
+      // 2. Now we can look for requested tile in the quad tree or its closest
+      // ancestor
+      auto fetch_tile_key = geo::TileKey();
+      std::shared_ptr<model::SubQuad> fetch_subquad = nullptr;
+      for (const auto& sub : subquads) {
+        const auto key =
+            root_tile_key.AddedSubHereTile(sub->GetSubQuadKey());
+
+        const auto is_requested_tile = (key == tile_key);
+        const auto is_nearest_parent =
+            tile_key.IsChildOf(key) && key.Level() <= fetch_tile_key.Level();
+
+        if (is_nearest_parent || is_requested_tile) {
+          fetch_tile_key = key;
+          fetch_subquad = sub;
+        }
+
+        if (is_requested_tile) {
+          break;
+        }
+      }
+
+      if (!fetch_subquad) {
+        OLP_SDK_LOG_ERROR_F(kLogTag,
+                            "Tile (%s) and its ancestors not present in "
+                            "QuadTreeIndex (%s, %" PRId64 ", %" PRId32 ")",
+                            tile_key.ToHereTile().c_str(), root_tile.c_str(),
+                            version, kAggregateQuadTreeDepth);
+        return {
+            {client::ErrorCode::NotFound, "Tile and its ancestors not found."}};
+      }
+
+      auto data_request = DataRequest()
+                              .WithDataHandle(fetch_subquad->GetDataHandle())
+                              .WithFetchOption(fetch_option);
+      const auto data_response = repository::DataRepository::GetVersionedData(
+          std::move(catalog), std::move(layer_id), data_request, context,
+          std::move(settings));
+
+      if (!data_response.IsSuccessful()) {
+        OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to load data (%s)",
+                            fetch_subquad->GetDataHandle().c_str());
+        return data_response.GetError();
+      }
+
+      return {{fetch_tile_key, data_response.GetResult()}};
+    };
+
+    return AddTask(settings.task_scheduler, pending_requests,
+                   std::move(data_task), std::move(callback));
+  };
+
+  return ScheduleFetch(std::move(schedule_task), std::move(request),
+                       std::move(callback));
+}
+
+client::CancellableFuture<AggregatedDataResponse>
+VersionedLayerClientImpl::GetAggregatedData(TileRequest request) {
+  auto promise = std::make_shared<std::promise<AggregatedDataResponse>>();
+  auto cancel_token = GetAggregatedData(
+      std::move(request), [promise](AggregatedDataResponse response) {
+        promise->set_value(std::move(response));
+      });
+  return client::CancellableFuture<AggregatedDataResponse>(
+      std::move(cancel_token), std::move(promise));
+}
 PORTING_POP_WARNINGS()
 }  // namespace read
 }  // namespace dataservice

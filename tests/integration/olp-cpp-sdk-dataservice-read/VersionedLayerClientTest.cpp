@@ -85,7 +85,6 @@ constexpr char kHttpResponseLatestCatalogVersion[] =
 constexpr char kHttpResponseBlobData_5904591[] =
     R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1)";
 
-
 constexpr char kHttpQueryTreeIndex_23064[] =
     R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/23064/depths/4)";
 
@@ -991,16 +990,14 @@ TEST_F(DataserviceReadVersionedLayerClientTest, ApiLookup429) {
   {
     testing::InSequence s;
 
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(2)
         .WillRepeatedly(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(
                 olp::http::HttpStatusCode::TOO_MANY_REQUESTS),
             "Server busy at the moment."));
 
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
   }
 
@@ -1160,8 +1157,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsGarbageResponse) {
   auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       catalog, layer, *settings_);
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    R"jsonString(kd3sdf\)jsonString"));
@@ -1201,8 +1197,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       wait_for_cancel, pause_for_cancel,
       {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
@@ -1453,12 +1448,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsOnlineOnly) {
   {
     testing::InSequence s;
 
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(1);
 
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .WillOnce(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(
                 olp::http::HttpStatusCode::TOO_MANY_REQUESTS),
@@ -2111,8 +2104,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       wait_for_cancel, pause_for_cancel,
       {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
@@ -2607,8 +2599,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileOnlineOnly) {
   auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
       hrn, "testlayer", 4, *settings_);
   {
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
                                      HTTP_RESPONSE_LOOKUP));
@@ -2647,8 +2638,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileOnlineOnly) {
   }
   {
     SCOPED_TRACE("Check OnlineOnly request");
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .WillOnce(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
                                "Server busy at the moment."));
@@ -2719,8 +2709,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileTwoSequentialCalls) {
   }
   {
     SCOPED_TRACE("Neighboring tile, same subquad, check metadata cached");
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
         .Times(0);
 
     EXPECT_CALL(*network_mock_,
@@ -2872,7 +2861,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CheckLookupApiCacheExpiration) {
 
   // check if expiration time is 1 hour(3600 sec)
   time_t expiration_time = 3600;
-  EXPECT_CALL(*cache, Get("hrn:here:data::olp-here-test:hereos-internal-test-v2::query::v1::api",
+  EXPECT_CALL(*cache, Get("hrn:here:data::olp-here-test:hereos-internal-test-"
+                          "v2::query::v1::api",
                           _))
       .Times(1)
       .WillOnce(Return(boost::any()));
@@ -2916,27 +2906,27 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CheckLookupApiCacheExpiration) {
       .Times(1)
       .WillOnce(Return(true));
 
-  EXPECT_CALL(*cache, Get("hrn:here:data::olp-here-test:hereos-internal-test-v2::testlayer::269::4::partition",
+  EXPECT_CALL(*cache, Get("hrn:here:data::olp-here-test:hereos-internal-test-"
+                          "v2::testlayer::269::4::partition",
                           _))
       .Times(1)
       .WillOnce(Return(boost::any()));
-  EXPECT_CALL(*cache, Put("hrn:here:data::olp-here-test:hereos-internal-test-v2::testlayer::269::4::partition",
+  EXPECT_CALL(*cache, Put("hrn:here:data::olp-here-test:hereos-internal-test-"
+                          "v2::testlayer::269::4::partition",
                           _, _, _))
       .Times(1)
       .WillOnce(Return(true));
 
-  EXPECT_CALL(
-      *cache,
-      Get("hrn:here:data::olp-here-test:hereos-internal-test-v2:"
-          ":testlayer::4eed6ed1-0d32-43b9-ae79-043cb4256432::Data"))
+  EXPECT_CALL(*cache,
+              Get("hrn:here:data::olp-here-test:hereos-internal-test-v2:"
+                  ":testlayer::4eed6ed1-0d32-43b9-ae79-043cb4256432::Data"))
       .Times(1)
       .WillOnce(Return(nullptr));
 
-  EXPECT_CALL(
-      *cache,
-      Put("hrn:here:data::olp-here-test:hereos-internal-test-v2:"
-          ":testlayer::4eed6ed1-0d32-43b9-ae79-043cb4256432::Data",
-          _, _))
+  EXPECT_CALL(*cache,
+              Put("hrn:here:data::olp-here-test:hereos-internal-test-v2:"
+                  ":testlayer::4eed6ed1-0d32-43b9-ae79-043cb4256432::Data",
+                  _, _))
       .Times(1)
       .WillOnce(Return(true));
 
@@ -3047,6 +3037,246 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Eviction) {
   EXPECT_FALSE(is_in_cache(evicted_key));
 }
 
+TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedData) {
+  auto catalog = olp::client::HRN::FromString(
+      GetArgument("dataservice_read_test_catalog"));
+  auto layer = GetArgument("dataservice_read_test_layer");
+  auto version = std::stoi(GetArgument("dataservice_read_test_layer_version"));
+  const auto tile_key = olp::geo::TileKey::FromHereTile("23618364");
+
+  {
+    SCOPED_TRACE("Same tile");
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     HTTP_RESPONSE_LOOKUP));
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_QUADKEYS_AGGREGATE_92259), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     HTTP_RESPONSE_QUADKEYS_92259));
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     "some_data"));
+
+    auto client =
+        std::make_shared<olp::dataservice::read::VersionedLayerClient>(
+            catalog, layer, version, *settings_);
+    ASSERT_TRUE(client);
+
+    auto future =
+        client
+            ->GetAggregatedData(
+                olp::dataservice::read::TileRequest().WithTileKey(tile_key))
+            .GetFuture();
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    const auto response = future.get();
+    const auto& result = response.GetResult();
+
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_TRUE(result.data);
+    ASSERT_EQ(result.tile_key, tile_key);
+  }
+
+  {
+    SCOPED_TRACE("Root ancestor tile");
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     HTTP_RESPONSE_LOOKUP));
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_QUADKEYS_AGGREGATE_92259), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     HTTP_RESPONSE_QUADKEYS_92259_ROOT_ONLY));
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     "some_data"));
+
+    auto client =
+        std::make_shared<olp::dataservice::read::VersionedLayerClient>(
+            catalog, layer, version, *settings_);
+    ASSERT_TRUE(client);
+    const auto expected_tile = tile_key.ChangedLevelBy(-4);
+
+    auto future =
+        client
+            ->GetAggregatedData(
+                olp::dataservice::read::TileRequest().WithTileKey(tile_key))
+            .GetFuture();
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    const auto response = future.get();
+    const auto& result = response.GetResult();
+
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_TRUE(result.data);
+    ASSERT_EQ(result.tile_key, expected_tile);
+  }
+
+  {
+    SCOPED_TRACE("No ancestors");
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     HTTP_RESPONSE_LOOKUP));
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_QUADKEYS_AGGREGATE_92259), _, _, _, _))
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               HTTP_RESPONSE_QUADKEYS_92259_NO_ANCESTORS));
+
+    auto client =
+        std::make_shared<olp::dataservice::read::VersionedLayerClient>(
+            catalog, layer, version, *settings_);
+    ASSERT_TRUE(client);
+
+    auto future =
+        client
+            ->GetAggregatedData(
+                olp::dataservice::read::TileRequest().WithTileKey(tile_key))
+            .GetFuture();
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    const auto response = future.get();
+    const auto& error = response.GetError();
+
+    ASSERT_FALSE(response.IsSuccessful());
+    ASSERT_EQ(error.GetErrorCode(), olp::client::ErrorCode::NotFound);
+  }
+
+  {
+    SCOPED_TRACE("Empty quad tree");
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     HTTP_RESPONSE_LOOKUP));
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_QUADKEYS_AGGREGATE_92259), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     HTTP_RESPONSE_EMPTY));
+
+    auto client =
+        std::make_shared<olp::dataservice::read::VersionedLayerClient>(
+            catalog, layer, version, *settings_);
+    ASSERT_TRUE(client);
+
+    auto future =
+        client
+            ->GetAggregatedData(
+                olp::dataservice::read::TileRequest().WithTileKey(tile_key))
+            .GetFuture();
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    const auto response = future.get();
+    const auto& error = response.GetError();
+
+    ASSERT_FALSE(response.IsSuccessful());
+    ASSERT_EQ(error.GetErrorCode(), olp::client::ErrorCode::NotFound);
+  }
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedDataAsync) {
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP));
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_QUADKEYS_AGGREGATE_92259), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_QUADKEYS_92259));
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   "some_data"));
+
+  auto catalog = olp::client::HRN::FromString(
+      GetArgument("dataservice_read_test_catalog"));
+  auto layer = GetArgument("dataservice_read_test_layer");
+  auto version = std::stoi(GetArgument("dataservice_read_test_layer_version"));
+
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
+      catalog, layer, version, *settings_);
+  ASSERT_TRUE(client);
+
+  auto promise = std::make_shared<std::promise<AggregatedDataResponse>>();
+  std::future<AggregatedDataResponse> future = promise->get_future();
+  const auto tile_key = olp::geo::TileKey::FromHereTile("23618364");
+  auto token = client->GetAggregatedData(
+      olp::dataservice::read::TileRequest().WithTileKey(tile_key),
+      [promise](AggregatedDataResponse response) {
+        promise->set_value(response);
+      });
+
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  auto response = future.get();
+
+  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_TRUE(response.GetResult().data);
+  ASSERT_EQ(response.GetResult().tile_key, tile_key);
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedDataErrors) {
+  auto catalog = olp::client::HRN::FromString(
+      GetArgument("dataservice_read_test_catalog"));
+  auto layer = GetArgument("dataservice_read_test_layer");
+  auto version = std::stoi(GetArgument("dataservice_read_test_layer_version"));
+  const auto tile_key = olp::geo::TileKey::FromHereTile("23618364");
+
+  {
+    SCOPED_TRACE("CacheWithUpdate");
+
+    auto client =
+        std::make_shared<olp::dataservice::read::VersionedLayerClient>(
+            catalog, layer, version, *settings_);
+    ASSERT_TRUE(client);
+
+    auto future = client
+                      ->GetAggregatedData(olp::dataservice::read::TileRequest()
+                                              .WithTileKey(tile_key)
+                                              .WithFetchOption(CacheWithUpdate))
+                      .GetFuture();
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    const auto response = future.get();
+    const auto& error = response.GetError();
+
+    ASSERT_FALSE(response.IsSuccessful());
+    ASSERT_EQ(error.GetErrorCode(), olp::client::ErrorCode::InvalidArgument);
+  }
+
+  {
+    SCOPED_TRACE("Request without tile key");
+
+    auto client =
+        std::make_shared<olp::dataservice::read::VersionedLayerClient>(
+            catalog, layer, version, *settings_);
+    ASSERT_TRUE(client);
+
+    auto future =
+        client->GetAggregatedData(olp::dataservice::read::TileRequest())
+            .GetFuture();
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    const auto response = future.get();
+    const auto& error = response.GetError();
+
+    ASSERT_FALSE(response.IsSuccessful());
+    ASSERT_EQ(error.GetErrorCode(), olp::client::ErrorCode::InvalidArgument);
+  }
+}
 }  // namespace
 
 PORTING_POP_WARNINGS()
