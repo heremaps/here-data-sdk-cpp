@@ -45,7 +45,7 @@ class CatalogClientImpl;
 
 /**
  * @brief Provides a high-level interface to access data hosted on `OLP` using
- * the HERE Open Location Platform (OLP) Data API.
+ * the Data API.
  *
  * The behavior of the `CatalogClient` object can be defined via
  * `OlpClientSettings`.

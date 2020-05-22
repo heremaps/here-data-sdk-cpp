@@ -33,7 +33,7 @@ namespace dataservice {
 namespace write {
 namespace model {
 /**
- * @brief PublishDataRequest used to publish data into an OLP Stream Layer.
+ * @brief PublishDataRequest used to publish data into a HERE platform stream layer.
  */
 class DATASERVICE_WRITE_API PublishDataRequest {
  public:
@@ -47,7 +47,7 @@ class DATASERVICE_WRITE_API PublishDataRequest {
   }
 
   /**
-   * @param data Content to be uploaded to OLP.
+   * @param data Content to be uploaded to the HERE platform.
    * @note Required.
    */
   inline PublishDataRequest& WithData(
@@ -57,7 +57,7 @@ class DATASERVICE_WRITE_API PublishDataRequest {
   }
 
   /**
-   * @param data Content to be uploaded to OLP.
+   * @param data Content to be uploaded to the HERE platform.
    * @note Required.
    */
   inline PublishDataRequest& WithData(

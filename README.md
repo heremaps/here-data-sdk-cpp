@@ -1,6 +1,6 @@
-# HERE OLP SDK for C++
+# HERE Data SDK for C++
 
-The HERE OLP SDK for C++ is a C++ client for the <a href="https://platform.here.com" target="_blank">HERE Open Location Platform</a>.
+The HERE Data SDK for C++ is a C++ client for the <a href="https://platform.here.com" target="_blank">HERE platform</a>.
 
 ## Health Сheck
 
@@ -23,32 +23,33 @@ The HERE OLP SDK for C++ is a C++ client for the <a href="https://platform.here.
 
 ## Why Use
 
-The Open Location Platform (OLP) SDK for C++ provides support for the core HERE OLP use cases through a set of native C++ interfaces. The SDK is intended to save your time and effort on using OLP REST APIs. It provides a set of stable APIs that simplify complex OLP operations and keeps up to date with the latest OLP REST API changes.
+The HERE Data SDK for C++ provides support for the core HERE platform use cases through a set of native C++ interfaces. The SDK is intended to save your time and effort on using HERE REST APIs. It provides a set of stable APIs that simplify complex platform operations and keeps up to date with the latest HERE REST API changes.
 
-The OLP SDK for C++ is a modern (C++11), lightweight, and modular SDK with minimal dependencies targeted towards a wide range of hardware platforms from embedded devices to desktops.
+The Data SDK for C++ is a modern (C++11), lightweight, and modular SDK with minimal dependencies targeted towards a wide range of hardware platforms from embedded devices to desktops.
 
 This SDK lets you:
 
-- Authenticate to HERE OLP using client credentials
+- Authenticate to HERE platform using client credentials
 - Read catalog and partition metadata
-- Retrieve data from versioned and volatile layers of OLP catalogs
-- Upload data to OLP
+- Retrieve data from versioned, volatile, and stream layers of the platform catalogs
+- Upload data to the platform
 
-Additionally, the SDK includes classes for work with geospatial tiling schemes that are used by most OLP catalog layers.
+Additionally, the SDK includes classes for work with geospatial tiling schemes that are used by most platform catalog layers.
 
 ## Backward Compatibility
 
-We try to develop and maintain our API in a way that preserves its compatibility with the existing applications. Changes in OLP SDK for C++ are greatly influenced by the Data API development. Data API introduces breaking changes 6 months in advance. Therefore, you may need to migrate to a new version of OLP SDK for C++ every half a year.
+We try to develop and maintain our API in a way that preserves its compatibility with the existing applications. Changes in the Data SDK for C++ are greatly influenced by the Data API development. Data API introduces breaking changes 6 months in advance. Therefore, you may need to migrate to a new version of the Data SDK for C++ every half a year.
 
 For more information on Data API, see its <a href="https://developer.here.com/olp/documentation/data-api/data_dev_guide/index.html" target="_blank">Developer Guide</a> and <a href="https://developer.here.com/olp/documentation/data-api/api-reference.html" target="_blank">API Reference</a>.
 
-When new API is introduced in OLP SDK for C++, the old one is not deleted straight away. The standard API deprecation time is 6 months. It gives you time to switch to new code. However, we do not provide ABI backward compatibility.
+When new API is introduced in the Data SDK for C++, the old one is not deleted straight away. The standard API deprecation time is 6 months. It gives you time to switch to new code. However, we do not provide ABI backward compatibility.
 
-All of the deprecated methods, functions, and parameters are documented in the OLP SDK for C++ <a href="https://developer.here.com/olp/documentation/sdk-cpp/api_reference/index.html" target="_blank">API Reference</a> and <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/CHANGELOG.md" target="_blank">changelog</a>.
+
+All of the deprecated methods, functions, and parameters are documented in the Data SDK for C++ <a href="https://developer.here.com/olp/documentation/sdk-cpp/api_reference/index.html" target="_blank">API Reference</a> and <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/CHANGELOG.md" target="_blank">changelog</a>.
 
 ## Supported Platforms
 
-The table below lists the platforms on which the OLP SDK for C++ has been tested.
+The table below lists the platforms on which the HERE Data SDK for C++ has been tested.
 
 | Platform                   | Minimum requirement     |
 | :------------------------- | :---------------------- |
@@ -63,7 +64,7 @@ The table below lists the platforms on which the OLP SDK for C++ has been tested
 
 ## Dependencies
 
-The table below lists the dependencies of the HERE OLP SDK for C++.
+The table below lists the dependencies of the HERE Data SDK for C++.
 
 | Library              | Minimum version |
 | :------------------- | :-------------- |
@@ -77,7 +78,7 @@ The table below lists the dependencies of the HERE OLP SDK for C++.
 
 ### Additional Linux Dependencies
 
-To build the HERE OLP SDK for C++ on Linux, additionally to the dependencies listed in the previous section, you also need to have <a href="https://curl.haxx.se/download.html" target="_blank">libcurl</a> 7.47.0 or later.
+To build the HERE Data SDK for C++ on Linux, additionally to the dependencies listed in the previous section, you also need to have <a href="https://curl.haxx.se/download.html" target="_blank">libcurl</a> 7.47.0 or later.
 
 To install the dependencies on Linux, run the following command:
 
@@ -87,9 +88,9 @@ sudo apt-get update && sudo apt-get --yes install git g++ make cmake libssl-dev 
 
 ## Install the SDK
 
-By default, the HERE OLP SDK for C++ downloads and compiles its dependencies. The versions of the downloaded dependencies may conflict with the versions that are already installed on your system. Therefore, the downloaded dependencies are not added to the install targets.
+By default, the HERE Data SDK for C++ downloads and compiles its dependencies. The versions of the downloaded dependencies may conflict with the versions that are already installed on your system. Therefore, the downloaded dependencies are not added to the install targets.
 
-You can use the HERE OLP SDK for C++ in your CMake project or install it on your system.
+You can use the HERE Data SDK for C++ in your CMake project or install it on your system.
 
 Тo use the SDK directly in your CMake project, add the SDK via `add_subdirectory()`.
 
@@ -103,7 +104,7 @@ To install the SDK on your system:
 
 **Example**
 
-The following command builds and installs the HERE OLP SDK for C++:
+The following command builds and installs the HERE Data SDK for C++:
 
 ```bash
 cmake --build . --target install
@@ -115,7 +116,7 @@ cmake --build . --target install
 
 CMake downloads <a href="https://github.com/google/leveldb" target="_blank">LevelDB</a>, <a href="https://github.com/google/snappy" target="_blank">Snappy</a>, <a href="https://github.com/Tencent/rapidjson" target="_blank">RapidJSON</a>, and <a href="https://www.boost.org/" target="_blank">Boost</a>. To disable downloading, set `OLP_SDK_BUILD_EXTERNAL_DEPS` to `OFF`. For details on CMake flags, see the [CMake Flags](#cmake-flags) section.
 
-To build the HERE OLP SDK for C++:
+To build the HERE Data SDK for C++:
 
 1. Clone the repository folder.
 2. In the root of the repository folder, run the following commands:
@@ -136,7 +137,7 @@ If you cannot build the SDK on Windows using this instruction, see [Build on Win
 
 We assume that you have installed CMake, Microsoft Visual Studio 2017, and the Visual C++ tools for CMake component.
 
-To build the HERE OLP SDK for C++ on Windows:
+To build the HERE Data SDK for C++ on Windows:
 
 1. Launch Microsoft Visual Studio as administrator.
 
@@ -177,11 +178,11 @@ cmake --build . --target docs
 
 ## SDK Usage
 
-To learn how to use the HERE OLP SDK for C++, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/GettingStartedGuide.md" target="_blank">Getting Started Guide</a>.
+To learn how to use the HERE Data SDK for C++, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/GettingStartedGuide.md" target="_blank">Getting Started Guide</a>.
 
 ## Contribution
 
-For details, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/CONTRIBUTING.md" target="_blank">HERE OLP SDK C++ Contributors Guide</a>.
+For details, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/CONTRIBUTING.md" target="_blank">HERE Data SDK C++ Contributors Guide</a>.
 
 ## LICENSE
 

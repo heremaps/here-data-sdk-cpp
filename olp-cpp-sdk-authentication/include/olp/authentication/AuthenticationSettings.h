@@ -54,8 +54,8 @@ struct AUTHENTICATION_API AuthenticationSettings {
   boost::optional<http::NetworkProxySettings> network_proxy_settings{};
 
   /**
-   * @brief The network instance that is used to internally operate with the OLP
-   * services.
+   * @brief The network instance that is used to internally operate with the HERE platform
+   * Services.
    */
   std::shared_ptr<http::Network> network_request_handler{nullptr};
 

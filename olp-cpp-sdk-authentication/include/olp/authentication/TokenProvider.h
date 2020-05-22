@@ -39,8 +39,8 @@ PORTING_PUSH_WARNINGS()
 PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 
 /**
- * @brief Provides the authentication tokens if the HERE Open Location Platform
- * (OLP) user credentials are valid.
+ * @brief Provides the authentication tokens if the HERE platform
+ * user credentials are valid.
  *
  * @tparam MinimumValidity The minimum token validity time (in seconds).
  * To use the default `MinimumValidity` value, use the `TokenProviderDefault`

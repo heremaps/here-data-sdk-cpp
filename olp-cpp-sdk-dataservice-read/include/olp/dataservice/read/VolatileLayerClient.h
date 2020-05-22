@@ -40,7 +40,7 @@ class VolatileLayerClientImpl;
 
 // clang-format off
 /**
- * @brief Gets data from a volatile layer of the Open Location Platform (OLP).
+ * @brief Gets data from a volatile layer of the HERE platform.
  *
  * The volatile layer is a key/value store. Values for a given key can change,
  * and only the latest value is retrievable. Therefore, you can only get

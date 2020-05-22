@@ -33,8 +33,8 @@ namespace dataservice {
 namespace write {
 namespace model {
 /**
- * @brief PublishPartitionRequest used to publish data into an OLP
- * Versioned/Volatile Layer.
+ * @brief PublishPartitionRequest used to publish data into
+ * a HERE platform versioned/volatile layer.
  */
 class DATASERVICE_WRITE_API PublishPartitionDataRequest {
  public:
@@ -48,7 +48,7 @@ class DATASERVICE_WRITE_API PublishPartitionDataRequest {
   }
 
   /**
-   * @param data Content to be uploaded to OLP.
+   * @param data Content to be uploaded to the HERE platform.
    * @note Required.
    */
   inline PublishPartitionDataRequest& WithData(
@@ -58,7 +58,7 @@ class DATASERVICE_WRITE_API PublishPartitionDataRequest {
   }
 
   /**
-   * @param data Content to be uploaded to OLP.
+   * @param data Content to be uploaded to the HERE platform.
    * @note Required.
    */
   inline PublishPartitionDataRequest& WithData(

@@ -67,7 +67,7 @@ class DATASERVICE_READ_API StreamOffset final {
  private:
   /// The partition of the stream layer for which this offset applies. It is not
   /// the same as [Partitions
-  /// object](https://developer.here.com/olp/documentation/data-api/data_dev_guide/rest/layers/partitions.html).
+  /// object](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/partitions.html).
   int32_t partition_;
 
   /// The offset in the partition of the stream layer.

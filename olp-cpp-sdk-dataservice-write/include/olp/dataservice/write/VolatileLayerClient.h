@@ -79,13 +79,13 @@ using CompleteBatchCallback =
     std::function<void(CompleteBatchResponse response)>;
 
 /**
- * @brief Client responsible for writing data into an OLP Volatile Layer.
+ * @brief Client responsible for writing data into a HERE platform volatile layer.
  */
 class DATASERVICE_WRITE_API VolatileLayerClient {
  public:
   /**
    * @brief VolatileLayerClient Constructor.
-   * @param catalog OLP HRN specifying the catalog this client will write to.
+   * @param catalog The HRN specifying the catalog this client will write to.
    * @param settings Client settings used to control behaviour of the client
    * instance. Volatile.
    */
@@ -109,9 +109,9 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
   void CancelPendingRequests();
 
   /**
-   * @brief Call to publish data into an OLP Volatile Layer.
+   * @brief Call to publish data into a volatile layer.
    * @note Content-type for this request will be set implicitly based on the
-   * Layer metadata for the target Layer on OLP.
+   * layer metadata for the target layer on the HERE platform.
    * @param request PublishPartitionDataRequest object representing the
    * parameters for this publishData call.
    *
@@ -121,9 +121,9 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
   PublishPartitionData(model::PublishPartitionDataRequest request);
 
   /**
-   * @brief Call to publish data into an OLP Volatile Layer.
+   * @brief Call to publish data into a volatile layer.
    * @note Content-type for this request will be set implicitly based on the
-   * Layer metadata for the target Layer on OLP.
+   * layer metadata for the target layer on the HERE platform.
    * @param request PublishPartitionDataRequest object representing the
    * parameters for this publishData call.
    * @param callback PublishPartitionDataCallback which will be called with the
@@ -185,7 +185,7 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
                                           GetBatchCallback callback);
 
   /**
-   * Publish meta data to OLP.
+   * Publish meta data to the HERE platform.
    *
    * A volatile layer publishing task consists 2 steps:
    * <list type = "number">
@@ -212,7 +212,7 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
       const std::vector<model::PublishPartitionDataRequest>& partitions);
 
   /**
-   * Publish meta data to OLP.
+   * Publish meta data to the HERE platform.
    *
    * A volatile layer publishing task consists 2 steps:
    * <list type = "number">
@@ -240,7 +240,7 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
       PublishToBatchCallback callback);
 
   /**
-   * @brief Complete the given batch operation and commit to OLP.
+   * @brief Complete the given batch operation and commit to the HERE platform.
    * @param pub the publication to complete
    * @return future containing the batch response
    */
@@ -248,7 +248,7 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
       const model::Publication& pub);
 
   /**
-   * @brief Complete the given batch operation and commit to OLP.
+   * @brief Complete the given batch operation and commit to the HERE platform.
    * @param pub the publication to complete
    * @param callback called when the operation completes.
    * @return cancellation token

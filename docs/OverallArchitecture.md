@@ -1,12 +1,12 @@
-# Overall Architecture of HERE OLP SDK for C++
+# Overall Architecture of HERE Data SDK for C++
 
 ## Outline
 
-This document describes the overall architecture of the HERE OLP SDK for C++ (here also referred to as SDK). For an overview of the scope and the features of the SDK, see [README.md](../README.md#why-use).
+This document describes the overall architecture of the HERE Data SDK for C++ (here also referred to as SDK). For an overview of the scope and the features of the SDK, see [README.md](../README.md#why-use).
 
 ## Component Overview
 
-The HERE OLP SDK for C++ consists of three main independent modules:
+The HERE Data SDK for C++ consists of three main independent modules:
 
 * **olp-cpp-sdk-authentication**
 * **olp-cpp-sdk-dataservice-read**
@@ -20,14 +20,14 @@ In the following sections, you find description of each of these modules.
 
 The following diagram shows an overview of the SDK components and their relationship with the HERE Cloud.
 
-![component_overview](diagrams/sdk-module-overview.png "HERE OLP SDK for C++ Component Overview")
+![component_overview](diagrams/sdk-module-overview.png "HERE Data SDK for C++ Component Overview")
 
 #### olp-cpp-sdk-core
 
 The core module offers the following platform-independent functionality:
 
 * **cache** - disk and memory cache
-* **client** - generic HTTP client that performs communication with the HERE Open Location Platform (OLP)
+* **client** - generic HTTP client that performs communication with the HERE platform
 * **geo** - geo utilities
 * **logging** - logging to file, console or any customer-defined logger
 * **math** - geo math utilities
@@ -38,13 +38,13 @@ The core module offers the following platform-independent functionality:
 For more information on how to use cache, see the [cache example](dataservice-cache-example.md).
 #### olp-cpp-sdk-authentication
 
-The authentication module wraps the HERE Authentication and Authorization REST API. It's an OAuth 2.0 compliant REST API that lets you obtain short-lived access tokens that are used to authenticate requests to HERE services. Tokens expire after 24 hours.
+The authentication module wraps the HERE Authentication and Authorization REST API. It's an OAuth 2.0 compliant REST API that lets you obtain short-lived access tokens that are used to authenticate requests to the HERE platform Services. Tokens expire after 24 hours.
 
 For more information on how to use this module, see the [read and write examples](../docs).
 
 #### olp-cpp-sdk-dataservice-read
 
-The dataservice-read module wraps a subset of the HERE Open Location Platform Data REST API related to reading data from OLP catalogs. It allows reading of data from the following layer types and with the listed Data APIs:
+The dataservice-read module wraps a subset of the Data REST API related to reading data from platform catalogs. It allows reading of data from the following layer types and with the listed Data APIs:
 
 * Versioned layer. Used Data APIs:
   * [Config API](https://developer.here.com/olp/documentation/data-store/api-reference-config.html)
@@ -59,7 +59,7 @@ The dataservice-read module wraps a subset of the HERE Open Location Platform Da
 * Index layer (not supported yet). Used Data APIs:
   * [Index API](https://developer.here.com/olp/documentation/data-store/api-reference-index.html)
   * [Blob API](https://developer.here.com/olp/documentation/data-store/api-reference-blob.html)
-* Stream layer (not supported yet). Used Data APIs:
+* Stream layer. Used Data APIs:
   * [Stream API](https://developer.here.com/olp/documentation/data-store/api-reference-stream.html)
   * [Blob API](https://developer.here.com/olp/documentation/data-store/api-reference-blob.html)
 
@@ -67,7 +67,7 @@ For more information on how to use this module, see the [read example](dataservi
 
 #### olp-cpp-sdk-dataservice-write
 
-The dataservice-write module wraps a subset of the HERE Open Location Platform Data REST API related to writing data to OLP catalogs. It allows writing of data to the following layer types and with the listed Data APIs:
+The dataservice-write module wraps a subset of the Data REST API related to writing data to platform catalogs. It allows writing of data to the following layer types and with the listed Data APIs:
 
 * Versioned layer. Used Data APIs:
   * [Publish API](https://developer.here.com/olp/documentation/data-store/api-reference-publish.html)
@@ -114,13 +114,13 @@ Feature                          |  Status
 ---------------------------------|--------------
 Reading from versioned layer     | Implemented
 Reading from volatile layer      | Implemented
-Reading from stream layer        | Planned
+Reading from stream layer        | Implemented
 Reading from indexed layer       | Planned
 API Lookup Service               | Implemented
 Get catalog and layer configuration | Implemented
 Get partition metadata for all partitions | Implemented
-Get partition metadata for a subset of partitions | Planned
-OLP Statistics Service  | Planned
+Get partition metadata for a subset of partitions | Implemented
+Statistics Service  | Planned
 
 #### Dataservice-Write
 
@@ -146,4 +146,4 @@ The nonfunctional requirements are being finalized. After that this section is t
 
 ## Security Model
 
-The user of the HERE OLP SDK for C++ is responsible to take care of any security and privacy requirements of the target system.
+The user of the HERE Data SDK for C++ is responsible to take care of any security and privacy requirements of the target system.

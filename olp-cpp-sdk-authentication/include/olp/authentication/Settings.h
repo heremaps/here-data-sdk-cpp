@@ -50,8 +50,7 @@ struct AUTHENTICATION_API Settings {
   /**
    * @brief Creates the `Settings` instance.
    *
-   * @param credentials Your access credentials to the Open Location Platform
-   * (OLP).
+   * @param credentials Your access credentials to the HERE platform.
    */
   Settings(AuthenticationCredentials credentials)
       : credentials(std::move(credentials)) {}
@@ -64,8 +63,8 @@ struct AUTHENTICATION_API Settings {
   AuthenticationCredentials credentials;
 
   /**
-   * @brief The network instance that is used to internally operate with the OLP
-   * services.
+   * @brief The network instance that is used to internally operate with
+   * the HERE platform Services.
    */
   std::shared_ptr<http::Network> network_request_handler;
 

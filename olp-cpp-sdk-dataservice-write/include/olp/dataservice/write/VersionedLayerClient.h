@@ -141,7 +141,7 @@ class DATASERVICE_WRITE_API VersionedLayerClient {
                                           GetBatchCallback callback);
 
   /**
-   * @brief Complete the given batch operation and commit to OLP.
+   * @brief Complete the given batch operation and commit to the HERE platform.
    * @param pub the publication to complete
    * @return future containing the batch response
    */
@@ -149,7 +149,7 @@ class DATASERVICE_WRITE_API VersionedLayerClient {
       const model::Publication& pub);
 
   /**
-   * @brief Complete the given batch operation and commit to OLP.
+   * @brief Complete the given batch operation and commit to the HERE platform.
    * @param pub the publication to complete
    * @param callback called when the operation completes.
    * @return cancellation token
@@ -195,9 +195,9 @@ class DATASERVICE_WRITE_API VersionedLayerClient {
   void CancelPendingRequests();
 
   /**
-   * @brief Call to publish data into an OLP Versioned Layer.
+   * @brief Call to publish data into a versioned layer.
    * @note Content-type for this request will be set implicitly based on the
-   * Layer metadata for the target Layer on OLP.
+   * layer metadata for the target layer on the HERE platform.
    * @param request PublishPartitionDataRequest object representing the
    * parameters for this publishData call.
    *
@@ -208,9 +208,9 @@ class DATASERVICE_WRITE_API VersionedLayerClient {
       model::PublishPartitionDataRequest request);
 
   /**
-   * @brief Call to publish data into an OLP Versioned Layer.
+   * @brief Call to publish data into a versioned layer.
    * @note Content-type for this request will be set implicitly based on the
-   * Layer metadata for the target Layer on OLP.
+   * layer metadata for the target layer on the HERE platform.
    * @param request PublishPartitionDataRequest object representing the
    * parameters for this publishData call.
    * @param callback PublishPartitionDataCallback which will be called with the

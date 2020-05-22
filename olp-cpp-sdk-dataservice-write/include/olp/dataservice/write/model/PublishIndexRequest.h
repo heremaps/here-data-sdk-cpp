@@ -34,8 +34,8 @@ namespace dataservice {
 namespace write {
 namespace model {
 /**
- * @brief PublishIndexRequest used to publish data into an OLP
- * Index Layer.
+ * @brief PublishIndexRequest used to publish data into
+ * a HERE platform index layer.
  */
 class DATASERVICE_WRITE_API PublishIndexRequest {
  public:
@@ -49,7 +49,7 @@ class DATASERVICE_WRITE_API PublishIndexRequest {
   }
 
   /**
-   * @param data Content to be uploaded to OLP.
+   * @param data Content to be uploaded to the HERE platform.
    * @note Required.
    */
   inline PublishIndexRequest& WithData(
@@ -59,7 +59,7 @@ class DATASERVICE_WRITE_API PublishIndexRequest {
   }
 
   /**
-   * @param data Content to be uploaded to OLP.
+   * @param data Content to be uploaded to the HERE platform.
    * @note Required.
    */
   inline PublishIndexRequest& WithData(

@@ -56,12 +56,16 @@ using UpdateIndexResponse =
     client::ApiResponse<client::ApiNoResult, client::ApiError>;
 using UpdateIndexCallback = std::function<void(UpdateIndexResponse response)>;
 
-/// @brief Client that is responsible for writing data to an OLP index layer.
+/**
+ * @brief Client that is responsible for writing data to
+ * a HERE platform index layer.
+ * 
+ */
 class DATASERVICE_WRITE_API IndexLayerClient {
  public:
   /**
-   * @brief IndexLayerClient Constructor.
-   * @param catalog OLP HRN that specifies the catalog to which this client
+   * @brief Creates the `IndexLayerClient` instance.
+   * @param catalog The HRN that specifies the catalog to which this client
    * writes.
    * @param settings Client settings used to control the behavior of the client
    * instance.
@@ -84,9 +88,9 @@ class DATASERVICE_WRITE_API IndexLayerClient {
   void CancelPendingRequests();
 
   /**
-   * @brief Publishes an index to an OLP index layer.
+   * @brief Publishes an index to an index layer.
    * @note Content-Type for this request is set implicitly based on the
-   * layer metadata for the target layer on OLP.
+   * layer metadata for the target layer on the HERE platform.
    * @param request PublishIndexRequest object that represents the
    * parameters for this PublishIndex call.
    * @return CancellableFuture that contains the PublishIndexResponse.
@@ -95,9 +99,9 @@ class DATASERVICE_WRITE_API IndexLayerClient {
       model::PublishIndexRequest request);
 
   /**
-   * @brief Publishes an index to an OLP index layer.
+   * @brief Publishes an index to an index layer.
    * @note Content-Type for this request is set implicitly based on the
-   * layer metadata for the target layer on OLP.
+   * layer metadata for the target layer on the HERE platform.
    * @param request PublishIndexRequest object that represents the
    * parameters for this PublishIndex call.
    * @param callback PublishIndexCallback that is called with the
@@ -132,7 +136,7 @@ class DATASERVICE_WRITE_API IndexLayerClient {
       model::DeleteIndexDataRequest request);
 
   /**
-   * @brief Updates index information to an OLP index layer.
+   * @brief Updates index information to an index layer.
    * @param request UpdateIndexRequest object that represents the
    * parameters for this UpdateIndex call.
    * @return CancellableFuture that contains the PublishIndexResponse.
@@ -141,7 +145,7 @@ class DATASERVICE_WRITE_API IndexLayerClient {
       model::UpdateIndexRequest request);
 
   /**
-   * @brief Updates index information to an OLP index layer
+   * @brief Updates index information to an index layer
    * @param request PublishIndexRequest object that represents the
    * parameters for this PublishIndex call.
    * @param callback PublishIndexCallback that is called with the

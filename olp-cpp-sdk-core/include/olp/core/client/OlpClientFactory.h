@@ -44,7 +44,7 @@ class CORE_API OlpClientFactory {
    *
    * @param settings The `OlpClientSettings` instance.
    *
-   * @return The OlpClient instance.
+   * @return The `OlpClient` instance.
    */
   static std::shared_ptr<OlpClient> Create(const OlpClientSettings& settings);
 };

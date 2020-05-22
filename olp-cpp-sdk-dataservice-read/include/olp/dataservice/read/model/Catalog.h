@@ -359,9 +359,9 @@ class DATASERVICE_READ_API Partitioning {
    * The partitioning scheme can be generic or HERE tile.
    *
    * @see [Generic
-   * Partitioninc](https://developer.here.com/olp/documentation/get-started/dev_guide/shared_content/topics/olp/concepts/partitions.html#generic-partitioning)
+   * Partitioninc](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/partitions.html#generic-partitioning)
    * and [HERE Tile
-   * Partitioning](https://developer.here.com/olp/documentation/get-started/dev_guide/shared_content/topics/olp/concepts/partitions.html#here-tile-partitioning)
+   * Partitioning](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/partitions.html#here-tile-partitioning)
    * sections in the Get Started guide.
    *
    * @return The name of the catalog partitioning scheme.
@@ -740,8 +740,8 @@ class DATASERVICE_READ_API Layer {
   /**
    * @brief Gets the one-sentence summary of the layer.
    *
-   * You can see this summary when you browse a list of layers on the platform
-   * portal.
+   * You can see this summary when you browse a list of layers on
+   * the HERE platform Portal.
    *
    * @return The one-sentence summary of the layer.
    */
@@ -766,8 +766,8 @@ class DATASERVICE_READ_API Layer {
   /**
    * @brief Gets the detailed description of the layer.
    *
-   * This information appears on the **Overview** tab when you open a layer in
-   * the platform portal.
+   * This information appears on the **Overview** tab when you open a layer on
+   * the HERE platform Portal.
    *
    * @return The detailed description of the layer.
    */
@@ -932,7 +932,7 @@ class DATASERVICE_READ_API Layer {
    * version, were calculated using this algorithm.
    *
    * @note It is the responsibility of the data publisher to use this algorithm
-   * to calculate partition checksums. The Open Location Platform (OLP) does not
+   * to calculate partition checksums. The HERE platform does not
    * verify that the specified algorithm was actually used.
    *
    * @return The digest algorithm used to calculate the checksum for the
@@ -961,15 +961,15 @@ class DATASERVICE_READ_API Layer {
   void SetDigest(const std::string& value) { this->digest_ = value; }
 
   /**
-   * @brief Gets the keywords that help to find the layer on the platform
-   * portal.
+   * @brief Gets the keywords that help to find the layer on
+   * the HERE platform Portal.
    *
    * @return The keywords that help to find the layer.
    */
   const std::vector<std::string>& GetTags() const { return tags_; }
   /**
    * @brief Gets a mutable reference to the keywords that help to find the layer
-   * on the platform portal.
+   * on the HERE platform Portal.
    *
    * @return The mutable reference to the keywords that help to find the layer.
    */
@@ -977,8 +977,8 @@ class DATASERVICE_READ_API Layer {
   /**
    * @brief Sets the keywords that help to find the layer.
    *
-   * @param value The keywords that help to find the layer on the platform
-   * portal.
+   * @param value The keywords that help to find the layer on
+   * the HERE platform Portal.
    */
   void SetTags(const std::vector<std::string>& value) { this->tags_ = value; }
 
@@ -1177,8 +1177,8 @@ class DATASERVICE_READ_API Catalog {
    * @brief Gets the ID that is used to refer to this catalog
    * programmatically.
    *
-   * All catalog IDs must be unique across all catalogs in the Open Location
-   * Platform(OLP). Do not put private information in the catalog ID.
+   * All catalog IDs must be unique across all catalogs in the HERE platform.
+   * Do not put private information in the catalog ID.
    * The catalog ID forms a portion of the catalog HERE Resource Name (HRN), and
    * HRNs are visible to other users.
    *
@@ -1244,8 +1244,8 @@ class DATASERVICE_READ_API Catalog {
   /**
    * @brief Gets the one-sentence summary of the catalog.
    *
-   * You can see this summary when you browse a list of catalogs on the platform
-   * portal.
+   * You can see this summary when you browse a list of catalogs on
+   * the HERE platform Portal.
    *
    * @return The one-sentence summary of the catalog.
    */
@@ -1266,8 +1266,8 @@ class DATASERVICE_READ_API Catalog {
   /**
    * @brief Gets the detailed description of the catalog.
    *
-   * This description appears on the **Overview** tab when you open a catalog in
-   * the platform portal.
+   * This description appears on the **Overview** tab when you open a catalog on
+   * the HERE platform Portal.
    *
    * @return The detailed description of the catalog.
    */
@@ -1330,15 +1330,15 @@ class DATASERVICE_READ_API Catalog {
   void SetOwner(const Owner& value) { this->owner_ = value; }
 
   /**
-   * @brief Gets the keywords that help to find the catalog on the platform
-   * portal.
+   * @brief Gets the keywords that help to find the catalog on
+   * the HERE platform Portal.
    *
    * @return The keywords that help to find the catalog.
    */
   const std::vector<std::string>& GetTags() const { return tags_; }
   /**
    * @brief Gets a mutable reference to the keywords that help to find
-   * the catalog on the platform portal.
+   * the catalog on the HERE platform Portal.
    *
    * @return The mutable reference to the keywords that help to find
    * the catalog.
@@ -1347,8 +1347,8 @@ class DATASERVICE_READ_API Catalog {
   /**
    * @brief Sets the keywords that help to find the catalog.
    *
-   * @param value The keywords that help to find the catalog on the platform
-   * portal.
+   * @param value The keywords that help to find the catalog on
+   * the HERE platform Portal.
    */
   void SetTags(const std::vector<std::string>& value) { this->tags_ = value; }
 
