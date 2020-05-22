@@ -37,13 +37,13 @@ class QuadTreeIndex {
  public:
   struct IndexData {
     /// tile key in the layer tree
-    olp::geo::TileKey tileKey;
+    olp::geo::TileKey tile_key;
     /// tile path can be used in MapEngine::getData
     std::string data_handle;
     /// catalog version this tile was last changed at
     uint64_t version;
     bool operator<(const IndexData& other) const {
-      return tileKey < other.tileKey;
+      return tile_key < other.tile_key;
     }
   };
 
@@ -58,7 +58,7 @@ class QuadTreeIndex {
 
   inline bool IsNull() const { return data_ == nullptr; }
 
-  IndexData Find(const olp::geo::TileKey& tileKey) const;
+  boost::optional<IndexData> Find(const olp::geo::TileKey& tileKey) const;
 
  private:
   struct SubEntry {

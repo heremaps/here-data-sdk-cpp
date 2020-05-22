@@ -56,6 +56,10 @@ QuadTreeIndex::QuadTreeIndex(const olp::geo::TileKey& root, int depth,
   rapidjson::IStreamWrapper stream(json_stream);
   doc.ParseStream(stream);
 
+  if (!doc.IsObject()) {
+    return;
+  }
+
   auto parentQuadsValue = doc.FindMember(kParentQuadsKey);
   auto subQuadsValue = doc.FindMember(kSubQuadsKey);
 
@@ -63,7 +67,8 @@ QuadTreeIndex::QuadTreeIndex(const olp::geo::TileKey& root, int depth,
     return;
   }
 
-  if (parentQuadsValue->value.IsArray()) {
+  if (parentQuadsValue != doc.MemberEnd() &&
+      parentQuadsValue->value.IsArray()) {
     for (auto& value : parentQuadsValue->value.GetArray()) {
       auto obj = value.GetObject();
 
@@ -74,7 +79,7 @@ QuadTreeIndex::QuadTreeIndex(const olp::geo::TileKey& root, int depth,
 
       IndexData data;
       data.data_handle = obj[kDataHandleKey].GetString();
-      data.tileKey = root.FromHereTile(obj[kPartitionKey].GetString());
+      data.tile_key = root.FromHereTile(obj[kPartitionKey].GetString());
 
       if (obj.HasMember(kVersionKey) && obj[kVersionKey].IsUint64()) {
         data.version = obj[kVersionKey].GetUint64();
@@ -86,7 +91,7 @@ QuadTreeIndex::QuadTreeIndex(const olp::geo::TileKey& root, int depth,
     }
   }
 
-  if (subQuadsValue->value.IsArray()) {
+  if (subQuadsValue != doc.MemberEnd() && subQuadsValue->value.IsArray()) {
     for (auto& value : subQuadsValue->value.GetArray()) {
       auto obj = value.GetObject();
 
@@ -97,7 +102,7 @@ QuadTreeIndex::QuadTreeIndex(const olp::geo::TileKey& root, int depth,
 
       IndexData data;
       data.data_handle = obj[kDataHandleKey].GetString();
-      data.tileKey = root.AddedSubHereTile(obj[kSubQuadKeyKey].GetString());
+      data.tile_key = root.AddedSubHereTile(obj[kSubQuadKeyKey].GetString());
 
       if (obj.HasMember(kVersionKey) && obj[kVersionKey].IsUint64()) {
         data.version = obj[kVersionKey].GetUint64();
@@ -117,12 +122,12 @@ void QuadTreeIndex::CreateBlob(olp::geo::TileKey root, int depth,
   // quads must be sorted by their sub quad key, not by Quad::operator<
   std::sort(subs.begin(), subs.end(),
             [](const IndexData& lhs, const IndexData& rhs) {
-              return lhs.tileKey.ToQuadKey64() < rhs.tileKey.ToQuadKey64();
+              return lhs.tile_key.ToQuadKey64() < rhs.tile_key.ToQuadKey64();
             });
 
   std::sort(parents.begin(), parents.end(),
             [](const IndexData& lhs, const IndexData& rhs) {
-              return lhs.tileKey.ToQuadKey64() < rhs.tileKey.ToQuadKey64();
+              return lhs.tile_key.ToQuadKey64() < rhs.tile_key.ToQuadKey64();
             });
 
   // count data size(for now it is header version and data handle)
@@ -163,8 +168,8 @@ void QuadTreeIndex::CreateBlob(olp::geo::TileKey root, int depth,
 
   for (const IndexData& data : subs) {
     *entry_ptr++ = {
-        std::uint16_t(olp::geo::QuadKey64Helper{data.tileKey.ToQuadKey64()}
-                          .GetSubkey(data.tileKey.Level() - rootQuadLevel)
+        std::uint16_t(olp::geo::QuadKey64Helper{data.tile_key.ToQuadKey64()}
+                          .GetSubkey(data.tile_key.Level() - rootQuadLevel)
                           .key),
         data_offset};
     // write additional data
@@ -182,7 +187,7 @@ void QuadTreeIndex::CreateBlob(olp::geo::TileKey root, int depth,
 
   ParentEntry* parentPtr = reinterpret_cast<ParentEntry*>(entry_ptr);
   for (const IndexData& data : parents) {
-    *parentPtr++ = {data.tileKey.ToQuadKey64(), data_offset};
+    *parentPtr++ = {data.tile_key.ToQuadKey64(), data_offset};
 
     // write additional data
     AdditionalDataCompacted* additional_data =
@@ -197,36 +202,36 @@ void QuadTreeIndex::CreateBlob(olp::geo::TileKey root, int depth,
   }
 }
 
-QuadTreeIndex::IndexData QuadTreeIndex::Find(
-    const olp::geo::TileKey& tileKey) const {
+boost::optional<QuadTreeIndex::IndexData> QuadTreeIndex::Find(
+    const olp::geo::TileKey& tile_key) const {
   if (IsNull())
-    return {};
+    return boost::none;
 
-  const olp::geo::TileKey& rootTileKey =
+  const olp::geo::TileKey& root_tile_key =
       olp::geo::TileKey::FromQuadKey64(data_->root_tilekey);
 
-  if (tileKey.Level() >= rootTileKey.Level()) {
+  if (tile_key.Level() >= root_tile_key.Level()) {
     std::uint16_t sub = std::uint16_t(
-        tileKey.GetSubkey64(tileKey.Level() - rootTileKey.Level()));
+        tile_key.GetSubkey64(tile_key.Level() - root_tile_key.Level()));
 
     const SubEntry* end = SubEntryEnd();
     const SubEntry* entry =
         std::lower_bound(SubEntryBegin(), end, SubEntry{sub, 0});
     if (entry == end || entry->sub_quadkey != sub)
-      return IndexData{tileKey, std::string(), 0};
+      return boost::none;
     QuadTreeIndex::AdditionalData tile_data = TileData(entry);
-    return IndexData{tileKey, std::move(tile_data.data_handle),
+    return IndexData{tile_key, std::move(tile_data.data_handle),
                      tile_data.version};
   } else {
-    std::uint64_t key = tileKey.ToQuadKey64();
+    std::uint64_t key = tile_key.ToQuadKey64();
 
     const ParentEntry* end = ParentEntryEnd();
     const ParentEntry* entry =
         std::lower_bound(ParentEntryBegin(), end, ParentEntry{key, 0});
     if (entry == end || entry->key != key)
-      return IndexData{tileKey, std::string(), 0};
+      return boost::none;
     QuadTreeIndex::AdditionalData tile_data = TileData(entry);
-    return IndexData{tileKey, std::move(tile_data.data_handle),
+    return IndexData{tile_key, std::move(tile_data.data_handle),
                      tile_data.version};
   }
 }
