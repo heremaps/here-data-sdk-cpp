@@ -183,8 +183,10 @@ OpenResult DiskCache::Open(const std::string& data_path,
   max_size_ = settings.max_disk_storage;
 
   leveldb::Options open_options;
+  open_options.compression = settings.compression;
   open_options.info_log = leveldb_logger_.get();
   open_options.write_buffer_size = settings.max_chunk_size;
+  open_options.filter_policy = leveldb::NewBloomFilterPolicy(10);
   if (settings.max_file_size != 0) {
     open_options.max_file_size = settings.max_file_size;
   }

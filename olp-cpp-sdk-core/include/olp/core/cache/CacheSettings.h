@@ -46,6 +46,15 @@ enum class EvictionPolicy : unsigned char {
 };
 
 /**
+ * @brief Options for database compression.
+ */
+enum class CompressionType {
+  kNoCompression,     /*!< No compression applied on the data before storing. */
+  kDefaultCompression /*!< Default compression will be applied to data before
+                        storing. */
+};
+
+/**
  * @brief Settings for memory and disk caching.
  */
 struct CORE_API CacheSettings {
@@ -112,6 +121,20 @@ struct CORE_API CacheSettings {
    * is EvictionPolicy::kLeastRecentlyUsed.
    */
   EvictionPolicy eviction_policy = EvictionPolicy::kLeastRecentlyUsed;
+
+  /**
+   * @brief This flag sets the compression policy to be applied on the database.
+   *
+   * In some cases though, when all the data to be inserted is already
+   * compressed by any means, e.g. protobuf or other serialization protocols, it
+   * might not be worth to enable any compression at all as it will eat up some
+   * CPU to compress and decompress the metadata without major gain. This
+   * parameter is dynamic and can be changed between runs. If changed only new
+   * values which are added will be using the new compression policy all
+   * existing entries will remain unchanged. The default value is
+   * CompressionType::kDefaultCompression.
+   */
+  CompressionType compression = CompressionType::kDefaultCompression;
 
   /**
    * @brief The path to the protected (read-only) cache.

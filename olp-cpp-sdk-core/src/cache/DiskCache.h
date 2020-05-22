@@ -60,16 +60,23 @@ enum class OpenResult {
 struct StorageSettings {
   /// The maximum allowed size of storage on disk in bytes.
   uint64_t max_disk_storage = 0u;
+
   /// The maximum size of data in memory before it gets flushed to disk.
   /// Data is kept in memory until its size reaches this value and then data is
   /// flushed to disk. A maximum write buffer of 32 MB is most optimal even for
   /// batch imports.
   uint64_t max_chunk_size = 32 * 1024u * 1024u;
+
   /// Flag to enable double-writes to disk to avoid data losses between ignition
   /// cycles.
   bool enforce_immediate_flush = true;
+
   /// Maximum size of one file in storage, default 2MBytes.
   size_t max_file_size = 2 * 1024u * 1024u;
+
+  /// Compression type to be applied on the data before storing it.
+  leveldb::CompressionType compression =
+      leveldb::CompressionType::kSnappyCompression;
 };
 
 /**
