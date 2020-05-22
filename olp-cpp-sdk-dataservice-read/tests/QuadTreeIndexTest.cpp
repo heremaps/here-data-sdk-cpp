@@ -37,27 +37,28 @@ TEST(QuadTreeIndexTest, ParseBlob) {
   {
     SCOPED_TRACE("Parse json and store to blob");
     auto tile_key = olp::geo::TileKey::FromHereTile("381");
-    QuadTreeIndex index(tile_key, 1, std::stringstream(HTTP_RESPONSE_QUADKEYS));
+    auto stream = std::stringstream(HTTP_RESPONSE_QUADKEYS);
+    QuadTreeIndex index(tile_key, 1, stream);
 
     auto data = index.Find(tile_key);
-    EXPECT_EQ(data.data_handle_, "BD53A6D60A34C20DC42ACAB2650FE361.48");
-    EXPECT_EQ(data.tileKey_, olp::geo::TileKey::FromHereTile("381"));
-    EXPECT_EQ(data.version_, 48);
+    EXPECT_EQ(data.data_handle, "BD53A6D60A34C20DC42ACAB2650FE361.48");
+    EXPECT_EQ(data.tileKey, olp::geo::TileKey::FromHereTile("381"));
+    EXPECT_EQ(data.version, 48);
 
     auto data2 = index.Find(olp::geo::TileKey::FromHereTile("95"));
-    EXPECT_EQ(data2.data_handle_, "B6F7614316BB8B81478ED7AE370B22A6.253");
-    EXPECT_EQ(data2.tileKey_, olp::geo::TileKey::FromHereTile("95"));
-    EXPECT_EQ(data2.version_, 253);
+    EXPECT_EQ(data2.data_handle, "B6F7614316BB8B81478ED7AE370B22A6.253");
+    EXPECT_EQ(data2.tileKey, olp::geo::TileKey::FromHereTile("95"));
+    EXPECT_EQ(data2.version, 253);
 
     auto data3 = index.Find(tile_key.AddedSubHereTile("2"));
-    EXPECT_EQ(data3.data_handle_, "9772F5E1822DFF25F48F150294B1ECF5.282");
-    EXPECT_EQ(data3.tileKey_, olp::geo::TileKey::FromHereTile("1526"));
-    EXPECT_EQ(data3.version_, 282);
+    EXPECT_EQ(data3.data_handle, "9772F5E1822DFF25F48F150294B1ECF5.282");
+    EXPECT_EQ(data3.tileKey, olp::geo::TileKey::FromHereTile("1526"));
+    EXPECT_EQ(data3.version, 282);
 
     auto data4 = index.Find(tile_key.AddedSubHereTile("4"));
-    EXPECT_EQ(data4.data_handle_, "7636348E50215979A39B5F3A429EDDB4.282");
-    EXPECT_EQ(data4.tileKey_, olp::geo::TileKey::FromHereTile("1524"));
-    EXPECT_EQ(data4.version_, 282);
+    EXPECT_EQ(data4.data_handle, "7636348E50215979A39B5F3A429EDDB4.282");
+    EXPECT_EQ(data4.tileKey, olp::geo::TileKey::FromHereTile("1524"));
+    EXPECT_EQ(data4.version, 282);
   }
 }
 }  // namespace

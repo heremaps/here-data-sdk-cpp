@@ -37,13 +37,13 @@ class QuadTreeIndex {
  public:
   struct IndexData {
     /// tile key in the layer tree
-    olp::geo::TileKey tileKey_;
+    olp::geo::TileKey tileKey;
     /// tile path can be used in MapEngine::getData
-    std::string data_handle_;
+    std::string data_handle;
     /// catalog version this tile was last changed at
-    uint64_t version_;
+    uint64_t version;
     bool operator<(const IndexData& other) const {
-      return tileKey_ < other.tileKey_;
+      return tileKey < other.tileKey;
     }
   };
 
@@ -62,26 +62,26 @@ class QuadTreeIndex {
 
  private:
   struct SubEntry {
-    std::uint16_t sub_quadkey_;
-    std::uint16_t tag_offset_;
+    std::uint16_t sub_quadkey;
+    std::uint16_t tag_offset;
     bool operator<(const SubEntry& other) const {
-      return sub_quadkey_ < other.sub_quadkey_;
+      return sub_quadkey < other.sub_quadkey;
     }
   };
 
   // not aligned tagOffset could be 64
   struct ParentEntry {
-    std::uint64_t key_;
-    std::uint32_t tag_offset_;
-    bool operator<(const ParentEntry& other) const { return key_ < other.key_; }
+    std::uint64_t key;
+    std::uint32_t tag_offset;
+    bool operator<(const ParentEntry& other) const { return key < other.key; }
   };
 
   struct DataHeader {
-    std::uint64_t root_tilekey_;
-    std::uint8_t depth_;
-    std::uint8_t parent_count_;
-    std::uint16_t subkey_count_;
-    SubEntry entries_[1];
+    std::uint64_t root_tilekey;
+    std::uint8_t depth;
+    std::uint8_t parent_count;
+    std::uint16_t subkey_count;
+    SubEntry entries[1];
   };
 
   // data storage flags
@@ -97,32 +97,32 @@ class QuadTreeIndex {
 #pragma pack(1)    /* set alignment to 1 byte boundary */
 
   struct AdditionalDataCompacted {
-    uint8_t data_header_;
-    uint64_t version_;
-    char data_handle_[1];
+    uint8_t data_header;
+    uint64_t version;
+    char data_handle[1];
   };
 
 #pragma pack(pop) /* restore original alignment from stack */
 
   struct AdditionalData {
     //  uint8_t data_header;
-    uint64_t version_;
-    std::string data_handle_;
+    uint64_t version;
+    std::string data_handle;
   };
 
   void CreateBlob(olp::geo::TileKey root, int depth,
                   std::vector<IndexData> parents, std::vector<IndexData> subs);
 
-  const SubEntry* SubEntryBegin() const { return data_->entries_; }
+  const SubEntry* SubEntryBegin() const { return data_->entries; }
   const SubEntry* SubEntryEnd() const {
-    return SubEntryBegin() + data_->subkey_count_;
+    return SubEntryBegin() + data_->subkey_count;
   }
 
   const ParentEntry* ParentEntryBegin() const {
     return reinterpret_cast<const ParentEntry*>(SubEntryEnd());
   }
   const ParentEntry* ParentEntryEnd() const {
-    return ParentEntryBegin() + data_->parent_count_;
+    return ParentEntryBegin() + data_->parent_count;
   }
 
   const char* DataBegin() const {
