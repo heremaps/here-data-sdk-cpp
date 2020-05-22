@@ -18,7 +18,9 @@
  */
 
 #include "CatalogRepository.h"
+
 #include <iostream>
+#include <utility>
 
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/Condition.h>
@@ -32,25 +34,20 @@
 #include "olp/dataservice/read/CatalogRequest.h"
 #include "olp/dataservice/read/CatalogVersionRequest.h"
 
+namespace {
+constexpr auto kLogTag = "CatalogRepository";
+}  // namespace
+
 namespace olp {
 namespace dataservice {
 namespace read {
 namespace repository {
 
-namespace {
-constexpr auto kLogTag = "CatalogRepository";
-
-}  // namespace
-
 CatalogResponse CatalogRepository::GetCatalog(
     client::HRN catalog, client::CancellationContext cancellation_context,
     CatalogRequest request, client::OlpClientSettings settings) {
-  using namespace client;
-
   const auto request_key = request.CreateKey();
   const auto fetch_options = request.GetFetchOption();
-
-  OLP_SDK_LOG_TRACE_F(kLogTag, "getCatalog '%s'", request_key.c_str());
 
   repository::CatalogCacheRepository repository{
       catalog, settings.cache, settings.default_cache_expiration};
@@ -58,14 +55,17 @@ CatalogResponse CatalogRepository::GetCatalog(
   if (fetch_options != OnlineOnly && fetch_options != CacheWithUpdate) {
     auto cached = repository.Get();
     if (cached) {
-      OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' found!",
-                         request_key.c_str());
+      OLP_SDK_LOG_DEBUG_F(
+          kLogTag, "GetCatalog found in cache, hrn='%s', key='%s'",
+          catalog.ToCatalogHRNString().c_str(), request_key.c_str());
+
       return *cached;
     } else if (fetch_options == CacheOnly) {
-      OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' not found!",
-                         request_key.c_str());
-      return ApiError(ErrorCode::NotFound,
-                      "Cache only resource not found in cache (catalog).");
+      OLP_SDK_LOG_INFO_F(
+          kLogTag, "GetCatalog not found in cache, hrn='%s', key='%s'",
+          catalog.ToCatalogHRNString().c_str(), request_key.c_str());
+      return {{client::ErrorCode::NotFound,
+               "CacheOnly: resource not found in cache"}};
     }
   }
 
@@ -76,7 +76,7 @@ CatalogResponse CatalogRepository::GetCatalog(
     return config_api.GetError();
   }
 
-  const OlpClient& client = config_api.GetResult();
+  const client::OlpClient& client = config_api.GetResult();
   auto catalog_response =
       ConfigApi::GetCatalog(client, catalog.ToCatalogHRNString(),
                             request.GetBillingTag(), cancellation_context);
@@ -86,6 +86,11 @@ CatalogResponse CatalogRepository::GetCatalog(
   if (!catalog_response.IsSuccessful()) {
     const auto& error = catalog_response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
+      OLP_SDK_LOG_WARNING_F(kLogTag,
+                            "GetCatalog 403 received, remove from cache, "
+                            "hrn='%s', key='%s'",
+                            catalog.ToCatalogHRNString().c_str(),
+                            request_key.c_str());
       repository.Clear();
     }
   }
@@ -96,23 +101,22 @@ CatalogResponse CatalogRepository::GetCatalog(
 CatalogVersionResponse CatalogRepository::GetLatestVersion(
     client::HRN catalog, client::CancellationContext cancellation_context,
     CatalogVersionRequest request, client::OlpClientSettings settings) {
-  using namespace client;
-
   repository::CatalogCacheRepository repository(catalog, settings.cache);
 
   auto fetch_option = request.GetFetchOption();
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_version = repository.GetVersion();
     if (cached_version) {
-      OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' found!",
-                         request.CreateKey().c_str());
+      OLP_SDK_LOG_DEBUG_F(
+          kLogTag, "GetLatestVersion found in cache, hrn='%s', key='%s'",
+          catalog.ToCatalogHRNString().c_str(), request.CreateKey().c_str());
       return cached_version.value();
     } else if (fetch_option == CacheOnly) {
-      OLP_SDK_LOG_INFO_F(kLogTag, "cache catalog '%s' not found!",
-                         request.CreateKey().c_str());
-      return ApiError(
-          ErrorCode::NotFound,
-          "Cache only resource not found in cache (catalog version).");
+      OLP_SDK_LOG_INFO_F(
+          kLogTag, "GetLatestVersion not found in cache, hrn='%s', key='%s'",
+          catalog.ToCatalogHRNString().c_str(), request.CreateKey().c_str());
+      return {{client::ErrorCode::NotFound,
+               "CacheOnly: resource not found in cache"}};
     }
   }
 
@@ -132,9 +136,15 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
   if (version_response.IsSuccessful() && fetch_option != OnlineOnly) {
     repository.PutVersion(version_response.GetResult());
   }
+
   if (!version_response.IsSuccessful()) {
     const auto& error = version_response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
+      OLP_SDK_LOG_WARNING_F(kLogTag,
+                            "GetLatestVersion 403 received, remove from cache, "
+                            "hrn='%s', key='%s'",
+                            catalog.ToCatalogHRNString().c_str(),
+                            request.CreateKey().c_str());
       repository.Clear();
     }
   }

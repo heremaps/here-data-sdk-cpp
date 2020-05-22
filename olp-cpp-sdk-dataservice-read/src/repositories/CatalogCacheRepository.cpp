@@ -38,7 +38,7 @@ constexpr auto kLogTag = "CatalogCacheRepository";
 
 // Currently, we expire the catalog version after 5 minutes. Later we plan to
 // give the user the control when to expire it.
-constexpr auto kCatalogVersionExpireTime = 5 * 60;
+constexpr auto kCatalogVersionExpiryTime = 5 * 60;
 constexpr auto kChronoSecondsMax = std::chrono::seconds::max();
 constexpr auto kTimetMax = std::numeric_limits<time_t>::max();
 
@@ -56,61 +56,65 @@ namespace olp {
 namespace dataservice {
 namespace read {
 namespace repository {
-using namespace olp::client;
 CatalogCacheRepository::CatalogCacheRepository(
-    const HRN& hrn, std::shared_ptr<cache::KeyValueCache> cache,
+    const client::HRN& hrn, std::shared_ptr<cache::KeyValueCache> cache,
     std::chrono::seconds default_expiry)
     : hrn_(hrn), cache_(cache), default_expiry_(ConvertTime(default_expiry)) {}
 
 void CatalogCacheRepository::Put(const model::Catalog& catalog) {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn);
-  OLP_SDK_LOG_TRACE_F(kLogTag, "Put '%s'", key.c_str());
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
+
   cache_->Put(key, catalog,
-              [catalog]() { return olp::serializer::serialize(catalog); },
+              [&]() { return olp::serializer::serialize(catalog); },
               default_expiry_);
 }
 
 boost::optional<model::Catalog> CatalogCacheRepository::Get() {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn);
-  OLP_SDK_LOG_TRACE_F(kLogTag, "Get '%s'", key.c_str());
-  auto cachedCatalog =
-      cache_->Get(key, [](const std::string& serializedObject) {
-        return parser::parse<model::Catalog>(serializedObject);
-      });
-  if (cachedCatalog.empty()) {
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "Get -> '%s'", key.c_str());
+
+  auto cached_catalog = cache_->Get(key, [](const std::string& value) {
+    return parser::parse<model::Catalog>(value);
+  });
+
+  if (cached_catalog.empty()) {
     return boost::none;
   }
 
-  return boost::any_cast<model::Catalog>(cachedCatalog);
+  return boost::any_cast<model::Catalog>(cached_catalog);
 }
 
 void CatalogCacheRepository::PutVersion(const model::VersionResponse& version) {
   std::string hrn(hrn_.ToCatalogHRNString());
-  OLP_SDK_LOG_TRACE_F(kLogTag, "PutVersion '%s'", hrn.c_str());
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "PutVersion -> '%s'", hrn.c_str());
+
   cache_->Put(VersionKey(hrn), version,
-              [version]() { return olp::serializer::serialize(version); },
-              kCatalogVersionExpireTime);
+              [&]() { return olp::serializer::serialize(version); },
+              kCatalogVersionExpiryTime);
 }
 
 boost::optional<model::VersionResponse> CatalogCacheRepository::GetVersion() {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = VersionKey(hrn);
-  OLP_SDK_LOG_TRACE_F(kLogTag, "GetVersion '%s'", key.c_str());
-  auto cachedVersion =
-      cache_->Get(key, [](const std::string& serializedObject) {
-        return parser::parse<model::VersionResponse>(serializedObject);
-      });
-  if (cachedVersion.empty()) {
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "GetVersion -> '%s'", key.c_str());
+
+  auto cached_version = cache_->Get(key, [](const std::string& value) {
+    return parser::parse<model::VersionResponse>(value);
+  });
+
+  if (cached_version.empty()) {
     return boost::none;
   }
-  return boost::any_cast<model::VersionResponse>(cachedVersion);
+  return boost::any_cast<model::VersionResponse>(cached_version);
 }
 
 void CatalogCacheRepository::Clear() {
   std::string hrn(hrn_.ToCatalogHRNString());
-  OLP_SDK_LOG_TRACE_F(kLogTag, "Clear '%s'", CreateKey(hrn).c_str());
+  OLP_SDK_LOG_INFO_F(kLogTag, "Clear -> '%s'", CreateKey(hrn).c_str());
+
   cache_->RemoveKeysWithPrefix(hrn);
 }
 
