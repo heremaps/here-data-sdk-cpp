@@ -85,6 +85,13 @@ size_t StoreExpiry(const std::string& key, leveldb::WriteBatch& batch,
   return expiry_key.size() + time_str.size();
 }
 
+leveldb::CompressionType GetCompression(
+    olp::cache::CompressionType compression) {
+  return (compression == olp::cache::CompressionType::kNoCompression)
+             ? leveldb::kNoCompression
+             : leveldb::kSnappyCompression;
+}
+
 }  // namespace
 
 namespace olp {
@@ -471,6 +478,7 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupStorage() {
     storage_settings.enforce_immediate_flush =
         settings_.enforce_immediate_flush;
     storage_settings.max_file_size = settings_.max_file_size;
+    storage_settings.compression = GetCompression(settings_.compression);
 
     mutable_cache_ = std::make_unique<DiskCache>();
     auto status = mutable_cache_->Open(settings_.disk_path_mutable.get(),
