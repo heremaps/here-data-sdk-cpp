@@ -17,18 +17,25 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
+#
+# API and ABI are hardcoded there
+#
 # Android Only Variables
-export ANDROID_ABI="arm64-v8a"
-export ANDROID_API=25
+export ANDROID_ABI="x86"
+export ANDROID_API=28:
+export NDK_ROOT=$ANDROID_HOME/ndk-bundle    # This var is not exist on Azure MacOS image, step can be skipped on GitLab
+echo "NDK_ROOT is ${NDK_ROOT} "             # as we already set this var inside docker image.
+ls -la $ANDROID_HOME
+export PATH=$PATH:$ANDROID_HOME/tools/bin/
 
 mkdir -p build && cd build
 
 echo ""
 echo ""
 echo "*************** $VARIANT Build SDK for C++ ********** Start ***************"
-CMAKE_COMMAND="cmake .. -G Ninja -DCMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake \
+CMAKE_COMMAND="cmake .. -DCMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake \
 -DANDROID_PLATFORM=android-$ANDROID_API -DANDROID_STL=c++_static -DANDROID_ABI=$ANDROID_ABI"
-NINJA_COMMAND="ninja -j4"
+BUILD_COMMAND="cmake --build . -- -j4"
 
 echo ""
 echo " ---- Calling $CMAKE_COMMAND"
@@ -39,12 +46,10 @@ ${CMAKE_COMMAND}
 # -- We link Edge SDK as shared libraries in order to use shadowing for unit tests.
 # -- We build the examples.
 echo ""
-echo " ---- Calling ${NINJA_COMMAND}"
-${NINJA_COMMAND}
+echo " ---- Calling ${BUILD_COMMAND}"
+${BUILD_COMMAND}
 cd -
 
-ls -la $ANDROID_HOME
-export PATH=$PATH:$ANDROID_HOME/tools/bin/
 sdkmanager --list
 
 # Install AVD files
@@ -63,10 +68,10 @@ nohup $ANDROID_HOME/emulator/emulator -avd android_emulator -no-snapshot -noaudi
 
 # Below are special commands for wait until emulator actually loads and boot completed
 $ANDROID_HOME/platform-tools/adb wait-for-device
-A=$($ANDROID_HOME/platform-tools/adb shell getprop sys.boot_completed | tr -d '\r')
+A=$($ANDROID_HOME/platform-tools/adb shell getprop sys.boot_completed | tr -d r)
 while [ "$A" != "1" ]; do
-        sleep 2
-        A=$($ANDROID_HOME/platform-tools/adb shell getprop sys.boot_completed | tr -d '\r')
+        sleep 5
+        A=$($ANDROID_HOME/platform-tools/adb shell getprop sys.boot_completed | tr -d r)
 done
 
 # At this moment we assume that Android Virtual Device is started in emulation, ready for our commands.
