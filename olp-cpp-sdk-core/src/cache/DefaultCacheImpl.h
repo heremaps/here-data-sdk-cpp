@@ -56,9 +56,15 @@ class DefaultCacheImpl {
   bool RemoveKeysWithPrefix(const std::string& key);
 
  protected:
-  /// Alias for the LRU cache using the leveldb keys as key and the value size
+  /// The LRU value property.
+  struct ValueProperties {
+    size_t size{0ull};
+    time_t expiry{KeyValueCache::kDefaultExpiry};
+  };
+
+  /// The LRU cache definition using the leveldb keys as key and the value size
   /// as value.
-  using DiskLruCache = utils::LruCache<std::string, size_t>;
+  using DiskLruCache = utils::LruCache<std::string, ValueProperties>;
 
   /// Returns LRU mutable cache, used for tests.
   const std::unique_ptr<DiskLruCache>& GetMutableCacheLru() const {
