@@ -28,7 +28,7 @@ echo ""
 echo "*************** $VARIANT Build SDK for C++ ********** Start ***************"
 CMAKE_COMMAND="cmake .. -G Ninja -DCMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake \
 -DANDROID_PLATFORM=android-$ANDROID_API -DANDROID_STL=c++_static -DANDROID_ABI=$ANDROID_ABI"
-NINJA_COMMAND="ninja -j$(nproc)"
+NINJA_COMMAND="ninja -j4"
 
 echo ""
 echo " ---- Calling $CMAKE_COMMAND"
@@ -61,19 +61,19 @@ nohup $ANDROID_HOME/emulator/emulator -avd android_emulator -no-snapshot -noaudi
 -no-boot-anim -gpu off -no-accel -no-window -camera-back none -camera-front none -selinux permissive \
 -qemu -m 2048 > /dev/null 2>&1 &
 
-
+# Below are special commands for wait until emulator actually loads and boot completed
 $ANDROID_HOME/platform-tools/adb wait-for-device
-
 A=$($ANDROID_HOME/platform-tools/adb shell getprop sys.boot_completed | tr -d '\r')
 while [ "$A" != "1" ]; do
         sleep 2
         A=$($ANDROID_HOME/platform-tools/adb shell getprop sys.boot_completed | tr -d '\r')
 done
 
+# At this moment we assume that Android Virtual Device is started in emulation, ready for our commands.
 # Running some trivial command like pressing Menu button.
 $ANDROID_HOME/platform-tools/adb shell input keyevent 82
 
-#Showing list of devices connected to host
+# Showing list of devices connected to host
 $ANDROID_HOME/platform-tools/adb devices
 
 ### In this place, we plan to run .apk as test application inside emulator.
