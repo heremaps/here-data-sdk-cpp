@@ -88,7 +88,7 @@ struct CORE_API AuthenticationSettings {
    * the authentication functionality for any service.
    *
    * The provided token should be authorized to access the resources
-   * provided by the Open Location Platform (OLP) Data Services you are trying
+   * provided by the HERE platform Services you are trying
    * to request. Also, the token should not be expired by the time the service
    * request is sent to the server. Otherwise, a service-specific authorization
    * error is returned when calls are made.
@@ -134,10 +134,10 @@ struct CORE_API AuthenticationSettings {
 
 /**
  * @brief A collection of settings that controls how failed requests should be
- * treated by the OLP SDK.
+ * treated by the Data SDK.
  *
  * For example, it specifies whether the failed request should be retried, how
- * long OLP SDK needs to wait for the next retry attempt, the number of maximum
+ * long Data SDK needs to wait for the next retry attempt, the number of maximum
  * retries, and so on.
  *
  * You can customize all of these settings. The settings are used internally by
@@ -246,7 +246,7 @@ struct CORE_API OlpClientSettings {
   /**
    * @brief The `Network` instance.
    *
-   * Used to internally operate with the OLP services.
+   * Used to internally operate with the HERE platform Services.
    */
   std::shared_ptr<http::Network> network_request_handler = nullptr;
 

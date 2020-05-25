@@ -360,9 +360,9 @@ class AUTHENTICATION_API AuthenticationClient {
   /**
    * @brief Signs in with a custom request body.
    *
-   * This method provides the mechanism to authenticate with the HERE Platform
+   * This method provides the mechanism to authenticate with the HERE platform
    * using a custom request body. You should use this method when the HERE
-   * Platform authentication backend offers you individual parameters or
+   * platform authentication backend offers you individual parameters or
    * endpoint.
    *
    * @param credentials The `AuthenticationCredentials` instance.
@@ -482,7 +482,7 @@ class AUTHENTICATION_API AuthenticationClient {
    * for using your email and password that are the login credentials.
    *
    * The HERE user is uniquely identified by the user ID that is consistent
-   * across the other HERE services, regardless of the authentication method
+   * across the other HERE platform Services, regardless of the authentication method
    * used.
    *
    * @param credentials The `AuthenticationCredentials` instance.

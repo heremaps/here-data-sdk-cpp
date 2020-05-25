@@ -1,8 +1,8 @@
 # Cache Example
 
-On this page, find instructions on how to build and run the example project, get partition data, and work with a mutable and protected cache using the HERE Open Location Platform (OLP) SDK for C++.
+On this page, find instructions on how to build and run the example project, get partition data, and work with a mutable and protected cache using the HERE Data SDK for C++.
 
-Before you run the example project, authorize to HERE OLP:
+Before you run the example project, authorize to the HERE platform:
 
 1. On the [Apps & keys](https://platform.here.com/admin/apps) page, copy your application access key ID and access key secret.
    For instructions on how to get the access key ID and access key secret, see the [Get Credentials](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html) section in the Terms and Permissions User Guide.
@@ -57,25 +57,27 @@ After building and running the example project, you see the following informatio
 
 ## How it works
 
-### <a name="authenticate-to-here-olp-using-client-credentials"></a>Authenticate to HERE OLP Using Client Credentials
+### <a name="authenticate-to-here-olp-using-client-credentials"></a>Authenticate to the HERE Platform Using Client Credentials
 
-To authenticate with the Open Location Platform (OLP), you must get platform credentials that contain the access key ID and access key secret.
+To authenticate with the HERE platform, you must get platform credentials that contain the access key ID and access key secret.
 
-To authenticate using client credentials:
+**To authenticate using client credentials:**
 
-1. Get your platform credentials. For instructions, see the [Get Credentials](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html) section in the Terms and Permissions User Guide.
+1. Get your platform credentials.
+
+   For instructions, see the [Get Credentials](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html) section in the Terms and Permissions User Guide.
 
    You get the `credentials.properties` file.
 
-2. Initialize the authentification settings using the **here.access.key.іd** and **here.access.key.secret** from the `credentials.properties` file as `access_key.id` and `access_key.secret` respectively.
+2. Initialize the authentification settings using the **here.access.key.іd** and **here.access.key.secret** from the `credentials.properties` file as `kKeyId` and `kKeySecret` respectively.
 
    ```cpp
-   olp::authentication::Settings  settings({access_key.id, access_key.secret});
+   olp::authentication::Settings settings({kKeyId, kKeySecret});
    settings.task_scheduler = task_scheduler;
    settings.network_request_handler = http_client;
    ```
 
-3. To get the OAuth 2.0 token from OLP, set up the `AuthenticationSettings` object with a default token provider.
+3. To get the OAuth 2.0 token from the HERE platform, set up the `AuthenticationSettings` object with a default token provider.
 
    ```cpp
    olp::client::AuthenticationSettings auth_settings;
@@ -87,9 +89,9 @@ You can use the `TokenProvider` object to create the `OlpClientSettings` object.
 
 ### <a name="create-olpclientsettings"></a>Create `OlpClientSettings`
 
-You need to create the `OlpClientSettings` object to get catalog and partition metadata and retrieve versioned and volatile layer data from OLP.
+You need to create the `OlpClientSettings` object to get catalog and partition metadata, retrieve versioned, volatile, and stream layer data, and publish data to the HERE platform.
 
-To create the `OlpClientSettings` object:
+**To create `OlpClientSettings` object:**
 
 1. To perform requests asynchronously, create the `TaskScheduler` object.
 
@@ -98,7 +100,7 @@ To create the `OlpClientSettings` object:
          olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
    ```
 
-2. To internally operate with the OLP services, create the `Network` client.
+2. To internally operate with the HERE platform Services, create the `Network` client.
 
    ```cpp
    std::shared_ptr<olp::http::Network> http_client = olp::client::
@@ -107,7 +109,7 @@ To create the `OlpClientSettings` object:
 
    > **Note:** The `Network` client is designed and intended to be shared.
 
-3. [Authenticate](#authenticate-to-here-olp-using-client-credentials) to OLP.
+3. [Authenticate](#authenticate-to-here-olp-using-client-credentials) to the HERE platform.
 
 4. Set up the `OlpClientSettings` object with the path to the needed cache settings properties (the limit of runtime memory, disk space, maximum file size, memory data cache size, options, and paths).
   For instructions on how to get the path to the cache settings, see the [Build and Run on Linux](#build) section.
@@ -122,13 +124,17 @@ To create the `OlpClientSettings` object:
 
 You can request any data version from a [versioned layer](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/layers.html#versioned-layers). When you request a particular version of data from the versioned layer, the partition you receive in the response may have a lower version number than you requested. The version of a layer or partition represents the catalog version in which the layer or partition was last updated.
 
-To get data from the versioned layer with mutable cache:
+**To get data from the versioned layer with mutable cache:**
 
-1. Get an access key ID and access key secret. For instructions, see [Authenticate to HERE OLP Using Client Credentials](#authenticate-to-here-olp-using-client-credentials).
+1. Get an access key ID and access key secret.
 
-2. Create the `OlpClientSettings` object with the path to the mutable cache settings. For instructions, see [Create OLP Client Settings](#create-olpclientsettings).
+   For instructions, see [Authenticate to the HERE Platform Using Client Credentials](#authenticate-to-here-olp-using-client-credentials).
 
-3. Create the `VersionedLayerClient` object with the HERE Resource Name (HRN) of the catalog that contains the layer, the layer ID, and the OLP client settings from step 2.
+2. Create the `OlpClientSettings` object with the path to the mutable cache settings.
+
+   For instructions, see [Create `OlpClientSettings`](#create-olpclientsettings).
+
+3. Create the `VersionedLayerClient` object with the HERE Resource Name (HRN) of the catalog that contains the layer, the layer ID, and the platform client settings from step 2.
 
    ```cpp
    olp::dataservice::read::VersionedLayerClient layer_client(
@@ -179,8 +185,14 @@ The received data is stored in the cache. You can find the path to the cache in 
    ```
 ### Get Partition Data from a Versioned Layer with a Protected Cache
 
-1. Get an access key ID and access key secret. For instructions, see [Authenticate to HERE OLP Using Client Credentials](#authenticate-to-here-olp-using-client-credentials).
-2. Create the `OlpClientSettings` object with the path to the protected cache settings. For instructions, see [Create OLP Client Settings](#create-olpclientsettings).
+1. Get an access key ID and access key secret.
+
+   For instructions, see [Authenticate to the HERE Platform Using Client Credentials](#authenticate-to-here-olp-using-client-credentials).
+
+2. Create the `OlpClientSettings` object with the path to the protected cache settings.
+
+   For instructions, see [Create `OlpClientSettings`](#create-olpclientsettings).
+
 3. Do steps 3–6 of the instruction on how to [get partition data from a versioned layer with a mutable cache](#get-partition-data-mutable).
 The received data is stored in the protected cache. You can find the path to the cache in the log message.
     ```bash

@@ -1,8 +1,8 @@
 # Write Example
 
-On this page, find instructions on how to build and run the example project on different platforms and publish data to a stream layer using the HERE Open Location Platform (OLP) SDK for C++.
+On this page, find instructions on how to build and run the example project on different platforms and publish data to a stream layer using the HERE Data SDK for C++.
 
-Before you run the example project, authorize to HERE OLP:
+Before you run the example project, authorize to the HERE platform:
 
 1. On the [Apps & keys](https://platform.here.com/admin/apps) page, copy your application access key ID and access key secret.
    For instructions on how to get the access key ID and access key secret, see the [Get Credentials](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html) section in the Terms and Permissions User Guide.
@@ -47,23 +47,23 @@ After building and running the example project, the following message displays a
 
 ## Build and Run on Android
 
-To integrate the HERE OLP SDK for C++ libraries in the Android example project:
+To integrate the HERE Data SDK for C++ libraries in the Android example project:
 
 - [Set up prerequisites](#prerequisites-android)
-- [Build the HERE OLP SDK for C++](#build-sdk-android)
+- [Build the HERE Data SDK for C++](#build-sdk-android)
 - [Build and Run the APK](#build-and-run-android)
 
 ### <a name="prerequisites-android"></a>Prerequisites
 
-Before you integrate the HERE OLP SDK for C++ libraries in the Android example project:
+Before you integrate the HERE Data SDK for C++ libraries in the Android example project:
 
 1. Set up the Android environment.
 2. In `examples/android/app/src/main/cpp/MainActivityNative.cpp.in`, replace the placeholders with your application access key ID, access key secret, catalog HRN, and layer name and specify that the example should run 'RunExampleWrite'.
    For instructions on how to get the access key ID and access key secret, see the [Get Credentials](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html) section in the Terms and Permissions User Guide.
 
-### <a name="build-sdk-android"></a>Build HERE OLP SDK for C++
+### <a name="build-sdk-android"></a>Build HERE Data SDK for C++
 
-To build the HERE OLP SDK for C++ on Android:
+To build the HERE Data SDK for C++ on Android:
 
 1. Set `OLP_SDK_BUILD_EXAMPLES` to `ON`.
 2. Specify the path to the Android NDK toolchain file using the `CMAKE_TOOLCHAIN_FILE` variable.
@@ -77,7 +77,7 @@ To build the HERE OLP SDK for C++ on Android:
 
    The `CMake` command generates a `Gradle` project in the `build/examples/android` folder.
 
-4. Install the HERE OLP SDK for C++ libraries into the **sysroot** directory.
+4. Install the HERE Data SDK for C++ libraries into the **sysroot** directory.
 
    ```bash
    # If necessary, execute as sudo.
@@ -96,15 +96,15 @@ The main screen displays the following message: "Example has finished successful
 
 ## Build and run on iOS
 
-To integrate the HERE OLP SDK for C++ libraries in the iOS example application written in the Objective-C language:
+To integrate the HERE Data SDK for C++ libraries in the iOS example application written in the Objective-C language:
 
 - [Set up prerequisites](#prerequisites-ios)
-- [Build the HERE OLP SDK for C++](#build-sdk-ios)
+- [Build the HERE Data SDK for C++](#build-sdk-ios)
 - [Build and Run the Application](#build-and-run-ios)
 
 ### <a name="prerequisites-ios"></a>Prerequisites
 
-Before you integrate the HERE OLP SDK for C++ libraries in the iOS example project:
+Before you integrate the HERE Data SDK for C++ libraries in the iOS example project:
 
 1. To set up the iOS development environment, install the `XCode` and command-line tools.
 2. Install external dependencies.
@@ -117,11 +117,11 @@ mkdir build && cd build
 cmake .. -GXcode  -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/iOS.cmake -DPLATFORM=iphoneos -DOLP_SDK_BUILD_EXAMPLES=ON -DOLP_SDK_ENABLE_TESTING=OFF
 ```
 
-To configure the HERE OLP SDK for C++ for a simulator, set the `SIMULATOR` variable to `ON`.
+To configure the HERE Data SDK for C++ for a simulator, set the `SIMULATOR` variable to `ON`.
 
-### <a name="build-sdk-ios"></a>Build the HERE OLP SDK for C++
+### <a name="build-sdk-ios"></a>Build the HERE Data SDK for C++
 
-To build the HERE OLP SDK for C++ on iOS:
+To build the HERE Data SDK for C++ on iOS:
 
 1. Set `OLP_SDK_BUILD_EXAMPLES` to `ON`.
 2. (Optional) To disable tests, set `OLP_SDK_ENABLE_TESTING` to `OFF`.
@@ -155,25 +155,27 @@ If you encounter an error message, for a detailed error description, check the d
 
 ## How it works
 
-### <a name="authenticate-to-here-olp-using-client-credentials"></a>Authenticate to HERE OLP Using Client Credentials
+### <a name="authenticate-to-here-olp-using-client-credentials"></a>Authenticate to the HERE Platform Using Client Credentials
 
-To authenticate with the Open Location Platform (OLP), you must get platform credentials that contain the access key ID and access key secret.
+To authenticate with the HERE platform, you must get platform credentials that contain the access key ID and access key secret.
 
-To authenticate using client credentials:
+**To authenticate using client credentials:**
 
-1. Get your platform credentials. For instructions, see the [Get Credentials](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html) section in the Terms and Permissions User Guide.
+1. Get your platform credentials.
+
+   For instructions, see the [Get Credentials](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html) section in the Terms and Permissions User Guide.
 
    You get the `credentials.properties` file.
 
-2. Initialize the authentification settings using the **here.access.key.іd** and **here.access.key.secret** from the `credentials.properties` file as `access_key.id` and `access_key.secret` respectively.
+2. Initialize the authentification settings using the **here.access.key.іd** and **here.access.key.secret** from the `credentials.properties` file as `kKeyId` and `kKeySecret` respectively.
 
    ```cpp
-   olp::authentication::Settings  settings({access_key.id, access_key.secret});
+   olp::authentication::Settings settings({kKeyId, kKeySecret});
    settings.task_scheduler = task_scheduler;
    settings.network_request_handler = http_client;
    ```
 
-3. To get the OAuth 2.0 token from OLP, set up the `AuthenticationSettings` object with a default token provider.
+3. To get the OAuth 2.0 token from the HERE platform, set up the `AuthenticationSettings` object with a default token provider.
 
    ```cpp
    olp::client::AuthenticationSettings auth_settings;
@@ -185,9 +187,9 @@ You can use the `TokenProvider` object to create the `OlpClientSettings` object.
 
 ### <a name="create-olpclientsettings"></a>Create `OlpClientSettings`
 
-You need to create the `OlpClientSettings` object to get catalog and partition metadata and retrieve versioned and volatile layer data from OLP.
+You need to create the `OlpClientSettings` object to get catalog and partition metadata, retrieve versioned, volatile, and stream layer data, and publish data to the HERE platform.
 
-To create the `OlpClientSettings` object:
+**To create `OlpClientSettings` object:**
 
 1. To perform requests asynchronously, create the `TaskScheduler` object.
 
@@ -196,16 +198,17 @@ To create the `OlpClientSettings` object:
          olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
    ```
 
-2. To internally operate with the OLP services, create the `Network` client.
+2. To internally operate with the HERE platform Services, create the `Network` client.
 
    ```cpp
    std::shared_ptr<olp::http::Network> http_client = olp::client::
         OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
    ```
 
-   > **Note:** The `Network` client is designed and intended to be shared.
+   > Note: The `Network` client is designed and intended to be shared.
 
-3. [Authenticate](#authenticate-to-here-olp-using-client-credentials) to OLP.
+
+3. [Authenticate](#authenticate-to-here-olp-using-client-credentials) to the HERE platform.
 
 4. Set up the `OlpClientSettings` object.
 
@@ -229,11 +232,15 @@ The `OlpClientSettings` class pulls together all the settings for customization 
 
 You can create a queue that streams data to data consumers in real time using a [stream layer](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/layers.html#stream-layers).
 
-To publish data to the stream layer:
+**To publish data to the stream layer:**
 
-1. Get an access key ID and access key secret. For instructions, see [Authenticate to HERE OLP Using Client Credentials](#authenticate-to-here-olp-using-client-credentials).
+1. Get an access key ID and access key secret.
 
-2. Create the `OlpClientSettings` object. For instructions, see [Create OLP Client Settings](#create-olpclientsettings).
+   For instructions, see [Authenticate to the HERE Platform Using Client Credentials](#authenticate-to-here-olp-using-client-credentials).
+
+2. Create the `OlpClientSettings` object.
+
+   For instructions, see [Create `OlpClientSettings`](#create-olpclientsettings).
 
 3. Create the `StreamLayerClientSettings` object.
 
@@ -241,11 +248,11 @@ To publish data to the stream layer:
    auto stream_client_settings = olp::dataservice::write::StreamLayerClientSettings{};
    ```
 
-4. Create the `StreamLayerClient` object with the HRN of the catalog that contains the layer, the stream layer client settings from step 3, and the OLP client settings from step 2.
+4. Create the `StreamLayerClient` object with the HERE Resource Name (HRN) of the catalog that contains the layer, the stream layer client settings from step 3, and the platform client settings from step 2.
 
    ```cpp
    auto client = olp::dataservice::write::StreamLayerClient(
-   olp::client::HRN{catalog}, stream_client_settings, client_settings);
+   olp::client::HRN{kCatalogHRN}, stream_client_settings, client_settings);
    ```
 
 5. Create the `PublishDataRequest` object with the data that you want to publish and layer ID.

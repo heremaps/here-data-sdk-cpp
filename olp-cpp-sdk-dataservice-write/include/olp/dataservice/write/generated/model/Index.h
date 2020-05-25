@@ -73,7 +73,7 @@ enum class DATASERVICE_WRITE_API IndexType {
 };
 
 /**
- @brief IndexValue that is supported by OLP index layer
+ @brief Supported by a HERE platform index layer.
  */
 
 class DATASERVICE_WRITE_API IndexValue {
@@ -92,7 +92,7 @@ class DATASERVICE_WRITE_API IndexValue {
 };
 
 /**
- @brief UnsupportedIndexValue that is not supported by OLP index layer
+ @brief UnsupportedIndexValue that is not supported by an index layer
  */
 class DATASERVICE_WRITE_API UnsupportedIndexValue final : public IndexValue {
  public:
@@ -100,7 +100,7 @@ class DATASERVICE_WRITE_API UnsupportedIndexValue final : public IndexValue {
 };
 
 /**
- @brief BooleanIndexValue that is supported by OLP index layer indexField
+ @brief BooleanIndexValue that is supported by an index layer indexField
  */
 class DATASERVICE_WRITE_API BooleanIndexValue final : public IndexValue {
   bool booleanValue_{false};
@@ -116,7 +116,7 @@ class DATASERVICE_WRITE_API BooleanIndexValue final : public IndexValue {
 };
 
 /**
- @brief IntIndexValue that is supported by OLP index layer indexField
+ @brief IntIndexValue that is supported by an index layer indexField
  */
 class DATASERVICE_WRITE_API IntIndexValue final : public IndexValue {
   int64_t intValue_{0};
@@ -133,7 +133,7 @@ class DATASERVICE_WRITE_API IntIndexValue final : public IndexValue {
 };
 
 /**
- @brief IntIndexValue that is supported by OLP index layer indexField
+ @brief IntIndexValue that is supported by an index layer indexField
  */
 class DATASERVICE_WRITE_API StringIndexValue final : public IndexValue {
   std::string stringValue_;
@@ -150,7 +150,7 @@ class DATASERVICE_WRITE_API StringIndexValue final : public IndexValue {
 };
 
 /**
- @brief TimeWindowIndexValue that is supported by OLP index layer indexField
+ @brief TimeWindowIndexValue that is supported by an index layer indexField
  */
 class DATASERVICE_WRITE_API TimeWindowIndexValue final : public IndexValue {
   int64_t timeWindowValue_{0};
@@ -168,7 +168,7 @@ class DATASERVICE_WRITE_API TimeWindowIndexValue final : public IndexValue {
 };
 
 /**
- @brief HereTileIndexValue that is supported by OLP index layer indexField
+ @brief HereTileIndexValue that is supported by an index layer indexField
  */
 class DATASERVICE_WRITE_API HereTileIndexValue final : public IndexValue {
   int64_t hereTileValue_{0};
@@ -184,7 +184,7 @@ class DATASERVICE_WRITE_API HereTileIndexValue final : public IndexValue {
 };
 
 /**
- @brief EmptyIndexValue that is passed to by OLP index layer indexField
+ @brief EmptyIndexValue that is passed to by an index layer indexField
  */
 class DATASERVICE_WRITE_API EmptyIndexValue final : public IndexValue {
  public:

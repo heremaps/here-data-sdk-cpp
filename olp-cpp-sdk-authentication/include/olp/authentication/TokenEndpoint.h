@@ -58,7 +58,7 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 10.2020")
    * @brief Executes the POST request method to the token endpoint.
    *
    * The request gets the HERE Access token that is used to access the HERE
-   * OLP Services. Returns the token that is used as the `Authorization:
+   * platform Services. Returns the token that is used as the `Authorization:
    * Bearer` token value.
    *
    * @param token_request The `TokenRequest` instance.
@@ -75,7 +75,7 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 10.2020")
   /**
    * @brief Executes the POST request method to the token endpoint.
    *
-   * The request gets the HERE Access token that is used to access the HERE OLP
+   * The request gets the HERE Access token that is used to access the HERE platform
    * Services. Returns the token that is used as the `Authorization: Bearer`
    * token value.
    *
@@ -92,7 +92,7 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 10.2020")
   /**
    * Executes the POST request method to the token endpoint.
    *
-   * The request gets the HERE Access token that is used to access the HERE OLP
+   * The request gets the HERE Access token that is used to access the HERE platform
    * Services. Returns the token that is used as the `Authorization: Bearer`
    * token value.
    *

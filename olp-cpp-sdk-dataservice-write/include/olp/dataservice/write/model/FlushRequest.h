@@ -26,7 +26,7 @@ namespace dataservice {
 namespace write {
 namespace model {
 /**
- * @brief FlushRequest used to flush requests into an OLP Stream Layer.
+ * @brief Flushes requests into a HERE platform stream layer.
  */
 class DATASERVICE_WRITE_API FlushRequest {
  public:

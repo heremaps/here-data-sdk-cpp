@@ -35,11 +35,11 @@ namespace model {
 /**
  * @brief PublishSdiiRequest used to send a list of SDII messages to a stream
  * layer. SDII message data must be in SDII MessageList protobuf format. For
- * more information please see the OLP Sensor Data Ingestion Interface
+ * more information please see the HERE platform Sensor Data Ingestion Interface
  * documentation and schemas.
  * @note the Content-Type for this request is always "application/x-protobuf".
  * @note SDII MessageList data must be encoded in protobuf format according to
- * the OLP SDII Message List schema. The maximum size is 20 MB.
+ * the HERE platform SDII Message List schema. The maximum size is 20 MB.
  */
 class DATASERVICE_WRITE_API PublishSdiiRequest {
  public:
@@ -55,7 +55,7 @@ class DATASERVICE_WRITE_API PublishSdiiRequest {
 
   /**
    * @param sdii_message_list SDII MessageList data encoded in protobuf format
-   * according to the OLP SDII Message List schema. The maximum size is 20 MB.
+   * according to the HERE platform SDII Message List schema. The maximum size is 20 MB.
    * @note Required.
    */
   inline PublishSdiiRequest& WithSdiiMessageList(
@@ -66,7 +66,7 @@ class DATASERVICE_WRITE_API PublishSdiiRequest {
 
   /**
    * @param sdii_message_list SDII MessageList data encoded in protobuf format
-   * according to the OLP SDII Message List schema. The maximum size is 20 MB.
+   * according to the HERE platform SDII Message List schema. The maximum size is 20 MB.
    * @note Required.
    */
   inline PublishSdiiRequest& WithSdiiMessageList(

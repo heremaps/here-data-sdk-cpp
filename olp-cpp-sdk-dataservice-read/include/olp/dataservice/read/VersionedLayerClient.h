@@ -44,7 +44,7 @@ class VersionedLayerClientImpl;
 
 // clang-format off
 /**
- * @brief Gets data from a versioned layer of the Open Location Platform (OLP).
+ * @brief Gets data from a versioned layer of the HERE platform.
  *
  * The versioned layer stores slowly-changing data that must remain logically
  * consistent with other layers in a catalog. You can request any data version
@@ -160,7 +160,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * result and an error). If a partition ID or data handle is not set in
    * the request, the callback is invoked with the following error:
    * `ErrorCode::InvalidRequest`. If the version is not specified, an additional
-   * request to OLP is created to retrieve the latest available partition
+   * request to the HERE platform is created to retrieve the latest available partition
    * version.
    *
    * @param data_request The `DataRequest` instance that contains a complete set

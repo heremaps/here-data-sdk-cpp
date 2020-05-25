@@ -70,7 +70,7 @@ using PublishSdiiResponse =
     client::ApiResponse<PublishSdiiResult, client::ApiError>;
 using PublishSdiiCallback = std::function<void(PublishSdiiResponse response)>;
 
-/// @brief Client responsible for writing data to an OLP stream layer.
+/// @brief Client responsible for writing data to a HERE platform stream layer.
 class DATASERVICE_WRITE_API StreamLayerClient {
  public:
   using FlushResponse = std::vector<PublishDataResponse>;
@@ -78,7 +78,7 @@ class DATASERVICE_WRITE_API StreamLayerClient {
 
   /**
    * @brief StreamLayerClient Constructor.
-   * @param catalog OLP HRN that specifies the catalog to which this client
+   * @param catalog The HRN that specifies the catalog to which this client
    * writes.
    * @param client_settings \c StreamLayerClient settings used to control
    * the behaviour of flush mechanism and other StreamLayerClient specific
@@ -102,9 +102,9 @@ class DATASERVICE_WRITE_API StreamLayerClient {
   void CancelPendingRequests();
 
   /**
-   * @brief Publishes data to an OLP stream layer.
+   * @brief Publishes data to a stream layer.
    * @note Content-Type for this request is implicitly based on the
-   * layer metadata for the target layer on OLP.
+   * layer metadata for the target layer on the HERE platform.
    * @param request PublishDataRequest object that represents the parameters for
    * this PublishData call.
    * @return CancellableFuture that contains the PublishDataResponse.
@@ -113,9 +113,9 @@ class DATASERVICE_WRITE_API StreamLayerClient {
       model::PublishDataRequest request);
 
   /**
-   * @brief Publishes data to an OLP stream layer.
+   * @brief Publishes data to a stream layer.
    * @note Content-Type for this request is set implicitly based on the
-   * layer metadata for the target layer on OLP.
+   * layer metadata for the target layer on the HERE platform.
    * @param request PublishDataRequest object that represents the parameters for
    * this PublishData call.
    * @param callback PublishDataCallback that is called with the
@@ -159,9 +159,9 @@ class DATASERVICE_WRITE_API StreamLayerClient {
                                        FlushCallback callback);
 
   /**
-   * @brief Sends a list of SDII messages to an OLP stream layer.
+   * @brief Sends a list of SDII messages to a stream layer.
    * The SDII message data must be in the SDII MessageList protobuf format. For
-   * more information, please see the OLP Sensor Data Ingestion Interface
+   * more information, please see the HERE platform Sensor Data Ingestion Interface
    * documentation and schemas.
    * @param request PublishSdiiRequest object that represents the parameters for
    * this PublishSdii call.
@@ -171,9 +171,9 @@ class DATASERVICE_WRITE_API StreamLayerClient {
       model::PublishSdiiRequest request);
 
   /**
-   * @brief Sends a list of SDII messages to an OLP stream layer.
+   * @brief Sends a list of SDII messages to a stream layer.
    * The SDII message data must be in the SDII MessageList protobuf format. For
-   * more information, please see the OLP Sensor Data Ingestion Interface
+   * more information, please see the HERE platform Sensor Data Ingestion Interface
    * documentation and schemas.
    * @param request PublishSdiiRequest object that represents the parameters for
    * this PublishSdii call.

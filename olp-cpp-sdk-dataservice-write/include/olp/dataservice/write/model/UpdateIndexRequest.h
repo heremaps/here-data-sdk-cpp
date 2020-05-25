@@ -34,8 +34,8 @@ namespace dataservice {
 namespace write {
 namespace model {
 /**
- * @brief UpdateIndexRequest used to update index to an OLP
- * Index Layer.
+ * @brief UpdateIndexRequest used to update index to
+ * a HERE platform index layer.
  */
 class DATASERVICE_WRITE_API UpdateIndexRequest {
  public:

@@ -62,8 +62,7 @@ class AUTHENTICATION_API AuthenticationCredentials {
       std::istream& stream);
 
   /**
-   * @brief Parses the **credentials.properties** file downloaded from the [Open
-   * Location Platform (OLP)](https://platform.here.com/)
+   * @brief Parses the **credentials.properties** file downloaded from the [HERE platform](https://platform.here.com/)
    * website and retrieves a value with your credentials.
    *
    * The file must contain the following lines:
