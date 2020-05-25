@@ -312,16 +312,28 @@ TEST(DefaultCacheTest, ExpiredDiskTest) {
   std::string key1DataString{"this is key1's data"};
   // expired in the past, can't get it again
   cache.Put("key1", key1DataString, [=]() { return key1DataString; }, -1);
+
+  cache.Close();
+  ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+
   auto key1DataRead =
       cache.Get("key1", [](const std::string& data) { return data; });
   ASSERT_TRUE(key1DataRead.empty());
 
   // valid now, for 2 more seconds
   cache.Put("key1", key1DataString, [=]() { return key1DataString; }, 2);
+
+  cache.Close();
+  ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+
   key1DataRead =
       cache.Get("key1", [](const std::string& data) { return data; });
   ASSERT_FALSE(key1DataRead.empty());
+
+  cache.Close();
   std::this_thread::sleep_for(std::chrono::seconds(3));
+  ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+
   // should be invalid
   key1DataRead =
       cache.Get("key1", [](const std::string& data) { return data; });
@@ -470,8 +482,6 @@ TEST(DefaultCacheTest, AlreadyInUsePath) {
 }
 
 TEST(DefaultCacheTest, ValueGreaterThanMemCacheLimit) {
-  using namespace olp::cache;
-
   const std::string content_key = "test_key";
   const std::string content =
       "a very long string that does not fit into the in memory cache";
@@ -480,8 +490,8 @@ TEST(DefaultCacheTest, ValueGreaterThanMemCacheLimit) {
   settings.max_memory_cache_size = 10;
   settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/mutable";
 
-  DefaultCache cache(settings);
-  EXPECT_EQ(cache.Open(), DefaultCache::StorageOpenResult::Success);
+  olp::cache::DefaultCache cache(settings);
+  EXPECT_EQ(cache.Open(), olp::cache::DefaultCache::StorageOpenResult::Success);
 
   auto input_buffer = std::make_shared<std::vector<unsigned char>>(
       std::begin(content), std::end(content));
