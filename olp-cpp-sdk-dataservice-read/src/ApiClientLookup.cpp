@@ -41,17 +41,21 @@ namespace read {
 namespace {
 constexpr auto kLogTag = "ApiClientLookupRead";
 
-std::string GetDatastoreServerUrl(const std::string& partition) {
-  static const std::map<std::string, std::string> kDatastoreServerUrl = {
+const char* GetDatastoreServerUrl(const std::string& partition) {
+  constexpr struct {
+    const char* partition;
+    const char* url;
+  } kDatastoreServerUrls[] = {
       {"here", "data.api.platform.here.com"},
       {"here-dev", "data.api.platform.in.here.com"},
       {"here-cn", "data.api.platform.hereolp.cn"},
       {"here-cn-dev", "data.api.platform.in.hereolp.cn"}};
 
-  const auto& server_url = kDatastoreServerUrl.find(partition);
-  return (server_url != kDatastoreServerUrl.end())
-             ? "https://api-lookup." + server_url->second + "/lookup/v1"
-             : "";
+  for (const auto& server : kDatastoreServerUrls) {
+    if (server.partition == partition)
+      return server.url;
+  }
+  return "";
 }
 }  // namespace
 
