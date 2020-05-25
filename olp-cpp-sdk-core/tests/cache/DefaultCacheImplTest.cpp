@@ -22,13 +22,13 @@
 #include <cache/DefaultCacheImpl.h>
 #include <olp/core/utils/Dir.h>
 
-using namespace olp::cache;
+namespace cache = olp::cache;
 
 namespace {
-class DefaultCacheImplHelper : public DefaultCacheImpl {
+class DefaultCacheImplHelper : public cache::DefaultCacheImpl {
  public:
-  DefaultCacheImplHelper(const CacheSettings& settings)
-      : DefaultCacheImpl(settings){};
+  explicit DefaultCacheImplHelper(const cache::CacheSettings& settings)
+      : DefaultCacheImpl(settings) {}
 
   bool HasLruCache() const { return GetMutableCacheLru().get() != nullptr; }
 
@@ -114,7 +114,7 @@ TEST(DefaultCacheImplTest, LruCache) {
 
     olp::cache::CacheSettings settings;
     settings.disk_path_mutable = cache_path;
-    settings.eviction_policy = EvictionPolicy::kLeastRecentlyUsed;
+    settings.eviction_policy = cache::EvictionPolicy::kLeastRecentlyUsed;
     DefaultCacheImplHelper cache(settings);
     cache.Open();
 
@@ -170,7 +170,7 @@ TEST(DefaultCacheImplTest, LruCache) {
 
     olp::cache::CacheSettings settings;
     settings.disk_path_mutable = cache_path;
-    settings.eviction_policy = EvictionPolicy::kNone;
+    settings.eviction_policy = cache::EvictionPolicy::kNone;
     DefaultCacheImplHelper cache(settings);
     cache.Open();
 
@@ -340,20 +340,18 @@ TEST(DefaultCacheImplTest, MutableCacheSize) {
   {
     SCOPED_TRACE("Put decode");
 
-    settings.eviction_policy = EvictionPolicy::kNone;
+    settings.eviction_policy = cache::EvictionPolicy::kNone;
     DefaultCacheImplHelper cache(settings);
     cache.Open();
     cache.Clear();
 
-    cache.Put(
-        key1, data_string, [=]() { return data_string; },
-        (std::numeric_limits<time_t>::max)());
+    cache.Put(key1, data_string, [=]() { return data_string; },
+              (std::numeric_limits<time_t>::max)());
     auto data_size = key1.size() + data_string.size();
 
     EXPECT_EQ(data_size, cache.Size());
 
-    cache.Put(
-        key2, data_string, [=]() { return data_string; }, expiry);
+    cache.Put(key2, data_string, [=]() { return data_string; }, expiry);
     data_size +=
         key2.size() + data_string.size() + cache.CalculateExpirySize(key2);
 
@@ -363,7 +361,7 @@ TEST(DefaultCacheImplTest, MutableCacheSize) {
   {
     SCOPED_TRACE("Put binary");
 
-    settings.eviction_policy = EvictionPolicy::kNone;
+    settings.eviction_policy = cache::EvictionPolicy::kNone;
     DefaultCacheImplHelper cache(settings);
     cache.Open();
     cache.Clear();
@@ -388,9 +386,8 @@ TEST(DefaultCacheImplTest, MutableCacheSize) {
     cache.Clear();
 
     cache.Put(key1, data_ptr, (std::numeric_limits<time_t>::max)());
-    cache.Put(
-        key2, data_string, [=]() { return data_string; },
-        (std::numeric_limits<time_t>::max)());
+    cache.Put(key2, data_string, [=]() { return data_string; },
+              (std::numeric_limits<time_t>::max)());
 
     cache.Remove(key1);
     cache.Remove(key2);
@@ -407,8 +404,7 @@ TEST(DefaultCacheImplTest, MutableCacheSize) {
     cache.Clear();
 
     cache.Put(key1, data_ptr, expiry);
-    cache.Put(
-        key2, data_string, [=]() { return data_string; }, expiry);
+    cache.Put(key2, data_string, [=]() { return data_string; }, expiry);
 
     cache.Remove(key1);
     cache.Remove(key2);
@@ -426,8 +422,7 @@ TEST(DefaultCacheImplTest, MutableCacheSize) {
 
     cache.Put(key1, data_ptr, (std::numeric_limits<time_t>::max)());
     cache.Put(key2, data_ptr, expiry);
-    cache.Put(
-        key3, data_string, [=]() { return data_string; }, expiry);
+    cache.Put(key3, data_string, [=]() { return data_string; }, expiry);
     const auto data_size =
         key3.size() + data_string.size() + cache.CalculateExpirySize(key3);
 
@@ -445,8 +440,7 @@ TEST(DefaultCacheImplTest, MutableCacheSize) {
     cache.Clear();
 
     cache.Put(key1, data_ptr, -1);
-    cache.Put(
-        key2, data_string, [=]() { return data_string; }, -1);
+    cache.Put(key2, data_string, [=]() { return data_string; }, -1);
 
     cache.Get(key1);
     cache.Get(key2, [](const std::string& value) { return value; });
@@ -459,15 +453,14 @@ TEST(DefaultCacheImplTest, MutableCacheSize) {
     const std::string data_string{"this is key's data"};
     const std::string key{"somekey"};
 
-    settings.eviction_policy = EvictionPolicy::kNone;
+    settings.eviction_policy = cache::EvictionPolicy::kNone;
     DefaultCacheImplHelper cache(settings);
 
     cache.Open();
     cache.Clear();
 
-    cache.Put(
-        key, data_string, [=]() { return data_string; },
-        (std::numeric_limits<time_t>::max)());
+    cache.Put(key, data_string, [=]() { return data_string; },
+              (std::numeric_limits<time_t>::max)());
     const auto data_size = key.size() + data_string.size();
     cache.Close();
     EXPECT_EQ(0u, cache.Size());
@@ -487,7 +480,7 @@ TEST(DefaultCacheImplTest, MutableCacheSize) {
     std::vector<unsigned char> binary_data(data_size);
     olp::cache::CacheSettings settings;
     settings.disk_path_mutable = cache_path;
-    settings.eviction_policy = EvictionPolicy::kNone;
+    settings.eviction_policy = cache::EvictionPolicy::kNone;
     settings.max_disk_storage = 2u * 1024u * 1024u;
     DefaultCacheImplHelper cache(settings);
 
@@ -543,7 +536,7 @@ TEST(DefaultCacheImplTest, LruCacheEviction) {
     std::vector<unsigned char> binary_data(data_size);
     olp::cache::CacheSettings settings;
     settings.disk_path_mutable = cache_path;
-    settings.eviction_policy = EvictionPolicy::kNone;
+    settings.eviction_policy = cache::EvictionPolicy::kNone;
     settings.max_disk_storage = 2u * 1024u * 1024u;
     DefaultCacheImplHelper cache(settings);
 
@@ -590,7 +583,7 @@ TEST(DefaultCacheImplTest, LruCacheEviction) {
     std::vector<unsigned char> binary_data(data_size);
     olp::cache::CacheSettings settings;
     settings.disk_path_mutable = cache_path;
-    settings.eviction_policy = EvictionPolicy::kLeastRecentlyUsed;
+    settings.eviction_policy = cache::EvictionPolicy::kLeastRecentlyUsed;
     settings.max_disk_storage = 2u * 1024u * 1024u;
     DefaultCacheImplHelper cache(settings);
 

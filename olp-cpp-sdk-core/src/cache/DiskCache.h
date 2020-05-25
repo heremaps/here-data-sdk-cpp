@@ -21,6 +21,7 @@
 
 #include <time.h>
 #include <functional>
+#include <limits>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -33,6 +34,7 @@
 #include <leveldb/options.h>
 #include <leveldb/write_batch.h>
 #include <olp/core/cache/CacheSettings.h>
+#include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
 
@@ -110,7 +112,11 @@ class DiskCache {
 
   bool Put(const std::string& key, leveldb::Slice slice);
 
+  /// @deprecated Please use Get(const std::string&,
+  /// KeyValueCache::ValueTypePtr&) instead.
   boost::optional<std::string> Get(const std::string& key);
+
+  bool Get(const std::string& key, KeyValueCache::ValueTypePtr& value);
 
   /// Remove single key/value from DB.
   bool Remove(const std::string& key, uint64_t& removed_data_size);

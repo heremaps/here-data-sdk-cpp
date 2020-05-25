@@ -21,6 +21,9 @@
 
 #include <algorithm>
 #include <chrono>
+#include <memory>
+#include <string>
+#include <utility>
 
 #include "olp/core/logging/Log.h"
 #include "olp/core/porting/make_unique.h"
@@ -231,24 +234,22 @@ KeyValueCache::ValueTypePtr DefaultCacheImpl::Get(const std::string& key) {
 
   if (memory_cache_) {
     auto value = memory_cache_->Get(key);
-
     if (!value.empty()) {
       PromoteKeyLru(key);
       return boost::any_cast<KeyValueCache::ValueTypePtr>(value);
     }
   }
 
-  auto disc_cache = GetFromDiscCache(key);
-  if (disc_cache) {
-    const std::string& cached_data = disc_cache->first;
-    auto data = std::make_shared<KeyValueCache::ValueType>(cached_data.size());
+  KeyValueCache::ValueTypePtr value = nullptr;
+  time_t expiry = KeyValueCache::kDefaultExpiry;
 
-    std::memcpy(&data->front(), cached_data.data(), cached_data.size());
-
+  auto result = GetFromDiskCache(key, value, expiry);
+  if (result && value) {
     if (memory_cache_) {
-      memory_cache_->Put(key, data, disc_cache->second, data->size());
+      memory_cache_->Put(key, value, expiry, value->size());
     }
-    return data;
+
+    return value;
   }
 
   return nullptr;
@@ -515,38 +516,54 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupStorage() {
   return result;
 }
 
-boost::optional<std::pair<std::string, time_t>>
-DefaultCacheImpl::GetFromDiscCache(const std::string& key) {
+bool DefaultCacheImpl::GetFromDiskCache(const std::string& key,
+                                        KeyValueCache::ValueTypePtr& value,
+                                        time_t& expiry) {
+  // Make sure we do not get a dirty entry
+  value = nullptr;
+  expiry = KeyValueCache::kDefaultExpiry;
+
   if (protected_cache_) {
-    auto result = protected_cache_->Get(key);
-    if (result) {
-      auto default_expiry = KeyValueCache::kDefaultExpiry;
-      return std::make_pair(std::move(result.value()), default_expiry);
+    auto result = protected_cache_->Get(key, value);
+    if (result && value && !value->empty()) {
+      return true;
     }
   }
 
   if (mutable_cache_) {
     auto expiry = GetRemainingExpiryTime(key, *mutable_cache_);
-    if (expiry <= 0) {
-      uint64_t removed_data_size = 0u;
-      PurgeDiskItem(key, *mutable_cache_, removed_data_size);
-      mutable_cache_data_size_ -= removed_data_size;
-
-      RemoveKeyLru(key);
-    } else {
+    if (expiry > 0) {
+      // Entry didn't expire yet, we can still use it
       if (!PromoteKeyLru(key)) {
         // If not found in LRU no need to look in disk cache either.
-        OLP_SDK_LOG_DEBUG_F(
-            kLogTag, "Key is not found LRU mutable cache: key %s", key.c_str());
-        return boost::none;
+        OLP_SDK_LOG_DEBUG_F(kLogTag, "Key not found in LRU, key='%s'",
+                            key.c_str());
+        return false;
       }
 
-      auto result = mutable_cache_->Get(key);
-      if (result) {
-        return std::make_pair(std::move(result.value()), expiry);
-      }
+      auto result = mutable_cache_->Get(key, value);
+      return result && value;
     }
+
+    // Data expired in cache -> remove
+    uint64_t removed_data_size = 0u;
+    PurgeDiskItem(key, *mutable_cache_, removed_data_size);
+    mutable_cache_data_size_ -= removed_data_size;
+    RemoveKeyLru(key);
   }
+
+  return false;
+}
+
+boost::optional<std::pair<std::string, time_t>>
+DefaultCacheImpl::GetFromDiscCache(const std::string& key) {
+  KeyValueCache::ValueTypePtr value = nullptr;
+  time_t expiry = KeyValueCache::kDefaultExpiry;
+  auto result = GetFromDiskCache(key, value, expiry);
+  if (result && value) {
+    return std::make_pair(std::string(value->begin(), value->end()), expiry);
+  }
+
   return boost::none;
 }
 

@@ -24,6 +24,7 @@
 #include <memory>
 #include <regex>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <leveldb/db.h>
@@ -270,6 +271,30 @@ boost::optional<std::string> DiskCache::Get(const std::string& key) {
   return database_->Get(options, ToLeveldbSlice(key), &res).ok()
              ? boost::optional<std::string>(std::move(res))
              : boost::none;
+}
+
+bool DiskCache::Get(const std::string& key,
+                    KeyValueCache::ValueTypePtr& value) {
+  if (!database_) {
+    OLP_SDK_LOG_ERROR(kLogTag, "Get: Database not initialized");
+    return false;
+  }
+
+  value = nullptr;
+  leveldb::ReadOptions options;
+  options.verify_checksums = check_crc_;
+  auto iterator = NewIterator(options);
+
+  iterator->Seek(key);
+  if (iterator->Valid() && iterator->key() == key) {
+    auto slice_value = iterator->value();
+    if (!slice_value.empty()) {
+      value = std::make_shared<KeyValueCache::ValueType>(
+          slice_value.data(), slice_value.data() + slice_value.size());
+    }
+  }
+
+  return true;
 }
 
 bool DiskCache::Remove(const std::string& key, uint64_t& removed_data_size) {

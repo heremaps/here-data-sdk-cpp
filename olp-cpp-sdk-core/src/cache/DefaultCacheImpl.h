@@ -21,6 +21,10 @@
 
 #include "olp/core/cache/DefaultCache.h"
 
+#include <memory>
+#include <string>
+#include <utility>
+
 #include "DiskCache.h"
 #include "InMemoryCache.h"
 
@@ -52,24 +56,24 @@ class DefaultCacheImpl {
   bool RemoveKeysWithPrefix(const std::string& key);
 
  protected:
-  /// The LRU cache definition using the leveldb keys as key and the value size
+  /// Alias for the LRU cache using the leveldb keys as key and the value size
   /// as value.
   using DiskLruCache = utils::LruCache<std::string, size_t>;
 
   /// Returns LRU mutable cache, used for tests.
   const std::unique_ptr<DiskLruCache>& GetMutableCacheLru() const {
     return mutable_cache_lru_;
-  };
+  }
 
   /// Returns mutable cache, used for tests.
   const std::unique_ptr<DiskCache>& GetMutableCache() const {
     return mutable_cache_;
-  };
+  }
 
   /// Returns memory cache, used for tests.
   const std::unique_ptr<InMemoryCache>& GetMemoryCache() const {
     return memory_cache_;
-  };
+  }
 
   /// Returns mutable cache size, used for tests.
   uint64_t GetMutableCacheSize() const { return mutable_cache_data_size_; }
@@ -98,6 +102,9 @@ class DefaultCacheImpl {
                        time_t expiry);
 
   DefaultCache::StorageOpenResult SetupStorage();
+
+  bool GetFromDiskCache(const std::string& key,
+                        KeyValueCache::ValueTypePtr& value, time_t& expiry);
 
   boost::optional<std::pair<std::string, time_t>> GetFromDiscCache(
       const std::string& key);
