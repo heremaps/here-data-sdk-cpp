@@ -66,7 +66,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
   std::unique_lock<repository::NamedMutex> lock(mutex, std::adopt_lock);
 
   // If we are not planning to go online or access the cache, release the lock.
-  if (options != CacheOnly || options != OnlineOnly) {
+  if (options != CacheOnly && options != OnlineOnly) {
     mutex.lock();
   }
 
