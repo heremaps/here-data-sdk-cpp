@@ -526,12 +526,13 @@ bool DefaultCacheImpl::GetFromDiskCache(const std::string& key,
   if (protected_cache_) {
     auto result = protected_cache_->Get(key, value);
     if (result && value && !value->empty()) {
-      return true;
+      expiry = GetRemainingExpiryTime(key, *protected_cache_);
+      return expiry > 0;
     }
   }
 
   if (mutable_cache_) {
-    auto expiry = GetRemainingExpiryTime(key, *mutable_cache_);
+    expiry = GetRemainingExpiryTime(key, *mutable_cache_);
     if (expiry > 0) {
       // Entry didn't expire yet, we can still use it
       if (!PromoteKeyLru(key)) {
@@ -542,7 +543,7 @@ bool DefaultCacheImpl::GetFromDiskCache(const std::string& key,
       }
 
       auto result = mutable_cache_->Get(key, value);
-      return result && value;
+      return result && value && expiry > 0;
     }
 
     // Data expired in cache -> remove

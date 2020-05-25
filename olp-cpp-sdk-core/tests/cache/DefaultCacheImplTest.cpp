@@ -18,17 +18,27 @@
  */
 
 #include <gtest/gtest.h>
+#include <chrono>
 
 #include <cache/DefaultCacheImpl.h>
 #include <olp/core/utils/Dir.h>
 
-namespace cache = olp::cache;
-
 namespace {
-class DefaultCacheImplHelper : public cache::DefaultCacheImpl {
+namespace cache = olp::cache;
+class DefaultCacheImplTest : public ::testing::Test {
+ protected:
+  void SetUp() override{};
+  void TearDown() override { olp::utils::Dir::Remove(cache_path_); };
+
+ protected:
+  const std::string cache_path_ =
+      olp::utils::Dir::TempDirectory() + "/unittest";
+};
+
+class DefaultCacheImplHelper : public olp::cache::DefaultCacheImpl {
  public:
-  explicit DefaultCacheImplHelper(const cache::CacheSettings& settings)
-      : DefaultCacheImpl(settings) {}
+  DefaultCacheImplHelper(const olp::cache::CacheSettings& settings)
+      : olp::cache::DefaultCacheImpl(settings){};
 
   bool HasLruCache() const { return GetMutableCacheLru().get() != nullptr; }
 
@@ -95,14 +105,12 @@ class DefaultCacheImplHelper : public cache::DefaultCacheImpl {
   }
 };
 
-TEST(DefaultCacheImplTest, LruCache) {
-  std::string cache_path = olp::utils::Dir::TempDirectory() + "/unittest";
-
+TEST_F(DefaultCacheImplTest, LruCache) {
   {
     SCOPED_TRACE("Successful creation");
 
     olp::cache::CacheSettings settings;
-    settings.disk_path_mutable = cache_path;
+    settings.disk_path_mutable = cache_path_;
     DefaultCacheImplHelper cache(settings);
     cache.Open();
 
@@ -113,7 +121,7 @@ TEST(DefaultCacheImplTest, LruCache) {
     SCOPED_TRACE("kLeastRecentlyUsed eviction policy");
 
     olp::cache::CacheSettings settings;
-    settings.disk_path_mutable = cache_path;
+    settings.disk_path_mutable = cache_path_;
     settings.eviction_policy = cache::EvictionPolicy::kLeastRecentlyUsed;
     DefaultCacheImplHelper cache(settings);
     cache.Open();
@@ -125,7 +133,7 @@ TEST(DefaultCacheImplTest, LruCache) {
     SCOPED_TRACE("Close");
 
     olp::cache::CacheSettings settings;
-    settings.disk_path_mutable = cache_path;
+    settings.disk_path_mutable = cache_path_;
     DefaultCacheImplHelper cache(settings);
     cache.Open();
     cache.Close();
@@ -137,7 +145,7 @@ TEST(DefaultCacheImplTest, LruCache) {
     SCOPED_TRACE("No Open() call");
 
     olp::cache::CacheSettings settings;
-    settings.disk_path_mutable = cache_path;
+    settings.disk_path_mutable = cache_path_;
     DefaultCacheImplHelper cache(settings);
 
     EXPECT_FALSE(cache.HasLruCache());
@@ -157,7 +165,7 @@ TEST(DefaultCacheImplTest, LruCache) {
     SCOPED_TRACE("No disk cache size limit");
 
     olp::cache::CacheSettings settings;
-    settings.disk_path_mutable = cache_path;
+    settings.disk_path_mutable = cache_path_;
     settings.max_disk_storage = std::uint64_t(-1);
     DefaultCacheImplHelper cache(settings);
     cache.Open();
@@ -169,7 +177,7 @@ TEST(DefaultCacheImplTest, LruCache) {
     SCOPED_TRACE("kNone eviction policy");
 
     olp::cache::CacheSettings settings;
-    settings.disk_path_mutable = cache_path;
+    settings.disk_path_mutable = cache_path_;
     settings.eviction_policy = cache::EvictionPolicy::kNone;
     DefaultCacheImplHelper cache(settings);
     cache.Open();
@@ -178,7 +186,7 @@ TEST(DefaultCacheImplTest, LruCache) {
   }
 }
 
-TEST(DefaultCacheImplTest, LruCachePut) {
+TEST_F(DefaultCacheImplTest, LruCachePut) {
   olp::cache::CacheSettings settings;
   settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
 
@@ -213,7 +221,7 @@ TEST(DefaultCacheImplTest, LruCachePut) {
   }
 }
 
-TEST(DefaultCacheImplTest, LruCacheGetPromote) {
+TEST_F(DefaultCacheImplTest, LruCacheGetPromote) {
   olp::cache::CacheSettings settings;
   settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
   constexpr auto key1{"somekey1"};
@@ -249,7 +257,7 @@ TEST(DefaultCacheImplTest, LruCacheGetPromote) {
   }
 }
 
-TEST(DefaultCacheImplTest, LruCacheRemove) {
+TEST_F(DefaultCacheImplTest, LruCacheRemove) {
   olp::cache::CacheSettings settings;
   settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
   constexpr auto key1{"somekey1"};
@@ -322,7 +330,48 @@ TEST(DefaultCacheImplTest, LruCacheRemove) {
   }
 }
 
-TEST(DefaultCacheImplTest, MutableCacheSize) {
+TEST_F(DefaultCacheImplTest, ProtectedCacheExpired) {
+  SCOPED_TRACE("Expiry protected cache");
+  const std::string key1{"somekey1"};
+  const std::string key2{"somekey2"};
+  const std::string data_string{"this is key's data"};
+  constexpr auto expiry = 1;
+  std::vector<unsigned char> binary_data = {1, 2, 3};
+  const auto data_ptr =
+      std::make_shared<std::vector<unsigned char>>(binary_data);
+
+  olp::cache::CacheSettings settings1;
+  settings1.disk_path_mutable = cache_path_;
+  DefaultCacheImplHelper cache1(settings1);
+  cache1.Open();
+  cache1.Clear();
+
+  cache1.Put(key1, data_ptr, expiry);
+  cache1.Put(key2, data_string, [=]() { return data_string; }, expiry);
+  cache1.Close();
+
+  olp::cache::CacheSettings settings2;
+  settings2.disk_path_protected = cache_path_;
+  DefaultCacheImplHelper cache2(settings2);
+  cache2.Open();
+
+  const auto value = cache2.Get(key1);
+  const auto value2 =
+      cache2.Get(key2, [](const std::string& value) { return value; });
+
+  EXPECT_FALSE(value.get() == nullptr);
+  EXPECT_EQ(value2.type(), typeid(std::string));
+  auto str = boost::any_cast<std::string>(value2);
+  EXPECT_EQ(str, data_string);
+
+  std::this_thread::sleep_for(std::chrono::seconds(2));
+
+  EXPECT_TRUE(cache2.Get(key1).get() == nullptr);
+  EXPECT_TRUE(
+      cache2.Get(key2, [](const std::string& value) { return value; }).empty());
+}
+
+TEST_F(DefaultCacheImplTest, MutableCacheSize) {
   const std::string key1{"somekey1"};
   const std::string key2{"somekey2"};
   const std::string key3{"anotherkey1"};
@@ -333,9 +382,8 @@ TEST(DefaultCacheImplTest, MutableCacheSize) {
   const auto data_ptr =
       std::make_shared<std::vector<unsigned char>>(binary_data);
 
-  std::string cache_path = olp::utils::Dir::TempDirectory() + "/unittest";
   olp::cache::CacheSettings settings;
-  settings.disk_path_mutable = cache_path;
+  settings.disk_path_mutable = cache_path_;
 
   {
     SCOPED_TRACE("Put decode");
@@ -479,7 +527,7 @@ TEST(DefaultCacheImplTest, MutableCacheSize) {
     const auto data_size = 1024u;
     std::vector<unsigned char> binary_data(data_size);
     olp::cache::CacheSettings settings;
-    settings.disk_path_mutable = cache_path;
+    settings.disk_path_mutable = cache_path_;
     settings.eviction_policy = cache::EvictionPolicy::kNone;
     settings.max_disk_storage = 2u * 1024u * 1024u;
     DefaultCacheImplHelper cache(settings);
@@ -525,9 +573,7 @@ TEST(DefaultCacheImplTest, MutableCacheSize) {
   }
 }
 
-TEST(DefaultCacheImplTest, LruCacheEviction) {
-  std::string cache_path = olp::utils::Dir::TempDirectory() + "/unittest";
-
+TEST_F(DefaultCacheImplTest, LruCacheEviction) {
   {
     SCOPED_TRACE("kNone evicts nothing");
 
@@ -535,7 +581,7 @@ TEST(DefaultCacheImplTest, LruCacheEviction) {
     const auto data_size = 1024u;
     std::vector<unsigned char> binary_data(data_size);
     olp::cache::CacheSettings settings;
-    settings.disk_path_mutable = cache_path;
+    settings.disk_path_mutable = cache_path_;
     settings.eviction_policy = cache::EvictionPolicy::kNone;
     settings.max_disk_storage = 2u * 1024u * 1024u;
     DefaultCacheImplHelper cache(settings);
@@ -582,7 +628,7 @@ TEST(DefaultCacheImplTest, LruCacheEviction) {
     const auto data_size = 1024u;
     std::vector<unsigned char> binary_data(data_size);
     olp::cache::CacheSettings settings;
-    settings.disk_path_mutable = cache_path;
+    settings.disk_path_mutable = cache_path_;
     settings.eviction_policy = cache::EvictionPolicy::kLeastRecentlyUsed;
     settings.max_disk_storage = 2u * 1024u * 1024u;
     DefaultCacheImplHelper cache(settings);
