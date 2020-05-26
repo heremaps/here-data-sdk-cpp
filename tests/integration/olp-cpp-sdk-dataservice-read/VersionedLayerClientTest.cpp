@@ -348,6 +348,170 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionAsync) {
   ASSERT_NE(response.GetResult()->size(), 0u);
 }
 
+TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionMergeRequestsPositive) {
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponsePartition_269))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponseBlobData_269));
+
+  auto catalog = olp::client::HRN::FromString(
+      GetArgument("dataservice_read_test_catalog"));
+  auto layer = GetArgument("dataservice_read_test_layer");
+  auto version = std::stoi(GetArgument("dataservice_read_test_layer_version"));
+
+  std::mutex mutex;
+  std::condition_variable cv;
+
+  settings_->task_scheduler->ScheduleTask([&]() {
+    std::unique_lock<std::mutex> lock(mutex);
+    cv.wait(lock);
+  });
+
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
+      catalog, layer, version, *settings_);
+  ASSERT_TRUE(client);
+
+  auto promise1 = std::make_shared<std::promise<DataResponse>>();
+  auto promise2 = std::make_shared<std::promise<DataResponse>>();
+  std::future<DataResponse> future1 = promise1->get_future();
+  std::future<DataResponse> future2 = promise2->get_future();
+  auto partition = GetArgument("dataservice_read_test_partition");
+  auto token1 = client->GetData(
+      olp::dataservice::read::DataRequest().WithPartitionId(partition),
+      [promise1](DataResponse response) { promise1->set_value(response); });
+
+  auto token2 = client->GetData(
+      olp::dataservice::read::DataRequest().WithPartitionId(partition),
+      [promise2](DataResponse response) { promise2->set_value(response); });
+
+  cv.notify_one();
+
+  ASSERT_NE(future1.wait_for(kWaitTimeout), std::future_status::timeout);
+  ASSERT_NE(future2.wait_for(kWaitTimeout), std::future_status::timeout);
+  DataResponse response1 = future1.get();
+  DataResponse response2 = future2.get();
+
+  ASSERT_TRUE(response1.IsSuccessful()) << response1.GetError().GetMessage();
+  ASSERT_NE(response1.GetResult(), nullptr);
+  ASSERT_EQ(response1.GetResult(), response2.GetResult());
+  ASSERT_NE(response1.GetResult()->size(), 0u);
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionMergeRequestsCancelOne) {
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponsePartition_269))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpResponseBlobData_269));
+
+  auto catalog = olp::client::HRN::FromString(
+      GetArgument("dataservice_read_test_catalog"));
+  auto layer = GetArgument("dataservice_read_test_layer");
+  auto version = std::stoi(GetArgument("dataservice_read_test_layer_version"));
+
+  std::mutex mutex;
+  std::condition_variable cv;
+
+  settings_->task_scheduler->ScheduleTask([&]() {
+    std::unique_lock<std::mutex> lock(mutex);
+    cv.wait(lock);
+  });
+
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
+      catalog, layer, version, *settings_);
+  ASSERT_TRUE(client);
+
+  auto promise1 = std::make_shared<std::promise<DataResponse>>();
+  auto promise2 = std::make_shared<std::promise<DataResponse>>();
+  std::future<DataResponse> future1 = promise1->get_future();
+  std::future<DataResponse> future2 = promise2->get_future();
+  auto partition = GetArgument("dataservice_read_test_partition");
+  auto token1 = client->GetData(
+      olp::dataservice::read::DataRequest().WithPartitionId(partition),
+      [promise1](DataResponse response) { promise1->set_value(response); });
+
+  auto token2 = client->GetData(
+      olp::dataservice::read::DataRequest().WithPartitionId(partition),
+      [promise2](DataResponse response) { promise2->set_value(response); });
+
+  token1.Cancel();
+
+  cv.notify_one();
+
+  ASSERT_NE(future1.wait_for(kWaitTimeout), std::future_status::timeout);
+  ASSERT_NE(future2.wait_for(kWaitTimeout), std::future_status::timeout);
+  DataResponse response1 = future1.get();
+  DataResponse response2 = future2.get();
+
+  ASSERT_FALSE(response1.IsSuccessful());
+  EXPECT_EQ(response1.GetError().GetErrorCode(),
+            olp::client::ErrorCode::Cancelled);
+  ASSERT_TRUE(response2.IsSuccessful()) << response1.GetError().GetMessage();
+  ASSERT_NE(response2.GetResult(), nullptr);
+  ASSERT_NE(response2.GetResult()->size(), 0u);
+}
+
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionMergeRequestsCancelBoth) {
+  auto catalog = olp::client::HRN::FromString(
+      GetArgument("dataservice_read_test_catalog"));
+  auto layer = GetArgument("dataservice_read_test_layer");
+  auto version = std::stoi(GetArgument("dataservice_read_test_layer_version"));
+
+  std::mutex mutex;
+  std::condition_variable cv;
+
+  settings_->task_scheduler->ScheduleTask([&]() {
+    std::unique_lock<std::mutex> lock(mutex);
+    cv.wait(lock);
+  });
+
+  auto client = std::make_shared<olp::dataservice::read::VersionedLayerClient>(
+      catalog, layer, version, *settings_);
+  ASSERT_TRUE(client);
+
+  auto promise1 = std::make_shared<std::promise<DataResponse>>();
+  auto promise2 = std::make_shared<std::promise<DataResponse>>();
+  std::future<DataResponse> future1 = promise1->get_future();
+  std::future<DataResponse> future2 = promise2->get_future();
+  auto partition = GetArgument("dataservice_read_test_partition");
+  auto token1 = client->GetData(
+      olp::dataservice::read::DataRequest().WithPartitionId(partition),
+      [promise1](DataResponse response) { promise1->set_value(response); });
+
+  auto token2 = client->GetData(
+      olp::dataservice::read::DataRequest().WithPartitionId(partition),
+      [promise2](DataResponse response) { promise2->set_value(response); });
+
+  token1.Cancel();
+  token2.Cancel();
+
+  cv.notify_one();
+
+  ASSERT_NE(future1.wait_for(kWaitTimeout), std::future_status::timeout);
+  ASSERT_NE(future2.wait_for(kWaitTimeout), std::future_status::timeout);
+  DataResponse response1 = future1.get();
+  DataResponse response2 = future2.get();
+
+  ASSERT_FALSE(response1.IsSuccessful());
+  ASSERT_FALSE(response2.IsSuccessful());
+  EXPECT_EQ(response1.GetError().GetErrorCode(),
+            olp::client::ErrorCode::Cancelled);
+  EXPECT_EQ(response2.GetError().GetErrorCode(),
+            olp::client::ErrorCode::Cancelled);
+}
+
 TEST_F(DataserviceReadVersionedLayerClientTest,
        GetDataFromPartitionAsyncWithCancellableFuture) {
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
