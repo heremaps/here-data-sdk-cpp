@@ -25,3 +25,4 @@ NSString* const OLPHttpMethodHead = @"HEAD";
 NSString* const OLPHttpMethodPut = @"PUT";
 NSString* const OLPHttpMethodDelete = @"DELETE";
 NSString* const OLPHttpMethodPatch = @"PATCH";
+NSString* const OLPHttpMethodOptions = @"OPTIONS";

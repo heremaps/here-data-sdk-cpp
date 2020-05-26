@@ -27,3 +27,4 @@ FOUNDATION_EXPORT NSString* const OLPHttpMethodHead;
 FOUNDATION_EXPORT NSString* const OLPHttpMethodPut;
 FOUNDATION_EXPORT NSString* const OLPHttpMethodDelete;
 FOUNDATION_EXPORT NSString* const OLPHttpMethodPatch;
+FOUNDATION_EXPORT NSString* const OLPHttpMethodOptions;
