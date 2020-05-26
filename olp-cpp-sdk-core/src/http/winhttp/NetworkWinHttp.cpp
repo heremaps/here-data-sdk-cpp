@@ -168,23 +168,22 @@ bool ConvertMultiByteToWideChar(const std::string& in, std::wstring& out) {
 }
 
 std::wstring ProxyString(const olp::http::NetworkProxySettings& proxy) {
-  using namespace olp::http;
   std::wostringstream proxy_string_stream;
 
   switch (proxy.GetType()) {
-    case NetworkProxySettings::Type::NONE:
+    case olp::http::NetworkProxySettings::Type::NONE:
       proxy_string_stream << "http://";
       break;
-    case NetworkProxySettings::Type::SOCKS4:
+    case olp::http::NetworkProxySettings::Type::SOCKS4:
       proxy_string_stream << "socks4://";
       break;
-    case NetworkProxySettings::Type::SOCKS5:
+    case olp::http::NetworkProxySettings::Type::SOCKS5:
       proxy_string_stream << "socks5://";
       break;
-    case NetworkProxySettings::Type::SOCKS4A:
+    case olp::http::NetworkProxySettings::Type::SOCKS4A:
       proxy_string_stream << "socks4a://";
       break;
-    case NetworkProxySettings::Type::SOCKS5_HOSTNAME:
+    case olp::http::NetworkProxySettings::Type::SOCKS5_HOSTNAME:
       proxy_string_stream << "socks5h://";
       break;
     default:
@@ -416,6 +415,8 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
     http_verb = L"DELETE";
   } else if (request_verb == NetworkRequest::HttpVerb::PATCH) {
     http_verb = L"PATCH";
+  } else if (request_verb == NetworkRequest::HttpVerb::OPTIONS) {
+    http_verb = L"OPTIONS";
   }
 
   LPCSTR content = WINHTTP_NO_REQUEST_DATA;

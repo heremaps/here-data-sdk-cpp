@@ -66,7 +66,8 @@ public class HttpClient {
     HEAD,
     PUT,
     DELETE,
-    PATCH
+    PATCH,
+    OPTIONS
   };
 
   public static HttpVerb toHttpVerb(int verb) {
@@ -83,6 +84,8 @@ public class HttpClient {
         return HttpVerb.DELETE;
       case 5:
         return HttpVerb.PATCH;
+      case 6:
+        return HttpVerb.OPTIONS;
       default:
         return HttpVerb.GET;
     }
@@ -270,6 +273,9 @@ public class HttpClient {
                   break;
                 case PATCH:
                   httpConn.setRequestMethod("PATCH");
+                  break;
+                case OPTIONS:
+                  httpConn.setRequestMethod("OPTIONS");
                   break;
                 default:
                   httpConn.setRequestMethod("GET");
