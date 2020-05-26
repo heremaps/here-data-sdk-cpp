@@ -133,6 +133,8 @@ http::NetworkRequest::HttpVerb GetHttpVerb(const std::string& verb) {
     return http::NetworkRequest::HttpVerb::POST;
   } else if (verb.compare("DELETE") == 0) {
     return http::NetworkRequest::HttpVerb::DEL;
+  } else if (verb.compare("OPTIONS") == 0) {
+    return http::NetworkRequest::HttpVerb::OPTIONS;
   }
 
   return http::NetworkRequest::HttpVerb::GET;

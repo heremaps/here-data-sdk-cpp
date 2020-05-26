@@ -493,6 +493,8 @@ ErrorCode NetworkCurl::SendImplementation(
     }
   } else if (verb == NetworkRequest::HttpVerb::DEL) {
     curl_easy_setopt(handle->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
+  } else if (verb == NetworkRequest::HttpVerb::OPTIONS) {
+    curl_easy_setopt(handle->handle, CURLOPT_CUSTOMREQUEST, "OPTIONS");
   } else {  // GET or HEAD
     curl_easy_setopt(handle->handle, CURLOPT_POST, 0L);
 

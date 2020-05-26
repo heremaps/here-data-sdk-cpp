@@ -82,6 +82,8 @@ NSString* ParseHttpMethodFromRequest(const olp::http::NetworkRequest& request) {
       return OLPHttpMethodPatch;
     case NetworkRequest::HttpVerb::HEAD:
       return OLPHttpMethodHead;
+    case NetworkRequest::HttpVerb::OPTIONS:
+      return OLPHttpMethodOptions;
     default:
       return nil;
   }
