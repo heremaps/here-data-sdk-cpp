@@ -21,12 +21,13 @@
 # API and ABI are hardcoded there
 #
 # Android Only Variables
-export ANDROID_ABI="x86"
-export ANDROID_API=28:
-export NDK_ROOT=$ANDROID_HOME/ndk-bundle    # This var is not exist on Azure MacOS image, step can be skipped on GitLab
-echo "NDK_ROOT is ${NDK_ROOT} "             # as we already set this var inside docker image.
+export ANDROID_ABI="x86_64"
+export ANDROID_API=21
+
+export NDK_ROOT=$ANDROID_HOME/ndk-bundle                            # This var is not exist on Azure MacOS image, step can be skipped on GitLab
+echo "NDK_ROOT is ${NDK_ROOT} , ANDROID_HOME is ${ANDROID_HOME} "   # as we already set this var inside docker image.
 ls -la $ANDROID_HOME
-export PATH=$PATH:$ANDROID_HOME/tools/bin/
+export PATH=$PATH:$ANDROID_HOME/tools/bin/:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools
 
 mkdir -p build && cd build
 
@@ -52,34 +53,42 @@ cd -
 
 sdkmanager --list
 
+# Add emulator if not already added. Needed for docker.
+echo "y" | sdkmanager "emulator" "platforms;android-$ANDROID_API"
+
 # Install AVD files
 echo "y" | sdkmanager --install "system-images;android-$ANDROID_API;google_apis;$ANDROID_ABI"
 
 # Create emulator
 echo "no" | avdmanager create avd -n android_emulator -k "system-images;android-$ANDROID_API;google_apis;$ANDROID_ABI" --force
 echo "AVD created"
-$ANDROID_HOME/emulator/emulator -list-avds
+emulator -list-avds
 
+cd $ANDROID_HOME/emulator
 echo "Starting emulator in background"
-# Start emulator
-nohup $ANDROID_HOME/emulator/emulator -avd android_emulator -no-snapshot -noaudio \
+nohup emulator -avd android_emulator -no-snapshot -noaudio \
 -no-boot-anim -gpu off -no-accel -no-window -camera-back none -camera-front none -selinux permissive \
--qemu -m 2048 > /dev/null 2>&1 &
+-qemu -m 2048 &
 
 # Below are special commands for wait until emulator actually loads and boot completed
-$ANDROID_HOME/platform-tools/adb wait-for-device
-A=$($ANDROID_HOME/platform-tools/adb shell getprop sys.boot_completed | tr -d r)
-while [ "$A" != "1" ]; do
-        sleep 5
-        A=$($ANDROID_HOME/platform-tools/adb shell getprop sys.boot_completed | tr -d r)
-done
+adb wait-for-device
+A=$(adb shell getprop init.svc.adbd | tr -d '\r' )
+while [ "$A" != "running" ]; do  sleep 3; A=$(adb shell getprop init.svc.adbd | tr -d '\r' );  done
+
+# Showing list of devices connected to host
+adb devices
 
 # At this moment we assume that Android Virtual Device is started in emulation, ready for our commands.
 # Running some trivial command like pressing Menu button.
-$ANDROID_HOME/platform-tools/adb shell input keyevent 82
+adb shell input keyevent 82
+
+# example of network usage check:
+# to find network usage for the app 'com.example.myapp', run the following commands:
+# adb shell dumpsys package com.example.myapp | grep userId
+# adb shell dumpsys connectivity
 
 # Showing list of devices connected to host
-$ANDROID_HOME/platform-tools/adb devices
+adb devices
 
 ### In this place, we plan to run .apk as test application inside emulator.
 echo "Emulator started"
