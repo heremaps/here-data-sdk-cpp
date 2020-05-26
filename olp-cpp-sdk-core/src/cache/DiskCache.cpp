@@ -160,10 +160,14 @@ void DiskCache::LevelDBLogger::Logv(const char* format, va_list ap) {
   OLP_SDK_LOG_DEBUG_F("Storage.LevelDB.leveldb", format, ap);
 }
 
-void DiskCache::Close() { database_.reset(); }
+void DiskCache::Close() {
+  database_.reset();
+  filter_policy_.reset();
+}
 
 bool DiskCache::Clear() {
   database_.reset();
+  filter_policy_.reset();
   if (!disk_cache_path_.empty()) {
     return olp::utils::Dir::remove(disk_cache_path_);
   }
@@ -188,6 +192,7 @@ OpenResult DiskCache::Open(const std::string& data_path,
   open_options.info_log = leveldb_logger_.get();
   open_options.write_buffer_size = settings.max_chunk_size;
   open_options.filter_policy = leveldb::NewBloomFilterPolicy(10);
+  filter_policy_.reset(open_options.filter_policy);
   if (settings.max_file_size != 0) {
     open_options.max_file_size = settings.max_file_size;
   }
