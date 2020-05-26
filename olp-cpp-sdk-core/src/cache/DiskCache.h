@@ -136,6 +136,7 @@ class DiskCache {
  private:
   std::string disk_cache_path_;
   std::unique_ptr<leveldb::DB> database_;
+  std::unique_ptr<const leveldb::FilterPolicy> filter_policy_;
   std::unique_ptr<DiskCacheSizeLimitEnv> environment_;
   std::unique_ptr<LevelDBLogger> leveldb_logger_;
   uint64_t max_size_{kSizeMax};
