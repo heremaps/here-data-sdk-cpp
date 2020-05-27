@@ -53,7 +53,9 @@ class DefaultCacheImpl;
  */
 class CORE_API DefaultCache : public KeyValueCache {
  public:
-  /*! The storage open result type */
+  /**
+   * @brief The storage open result type
+   */
   enum StorageOpenResult {
     Success,            /*!< The operation succeeded. */
     OpenDiskPathFailure /*!< The disk cache failure. */
@@ -86,6 +88,23 @@ class CORE_API DefaultCache : public KeyValueCache {
    * @return True if the operation is successful; false otherwise.
    */
   bool Clear();
+
+  /**
+   * @brief Compacts the underlying mutable cache storage.
+   *
+   * In particular, deleted and overwritten versions are discarded, and the data
+   * is rearranged to reduce the cost of operations needed to access the data.
+   * In some cases this operation might take a very long time, so use with care.
+   * You generally don't have to call this, but it can be useful to optimize
+   * preloaded databases or compact before you shut down the system to ensure
+   * quick startup time.
+   *
+   * @note This operation is blocking and under mutex lock blocking any other
+   * operation in parallel for the time of the compacting operation. Be aware
+   * that automatic asynchronous compacting operation is triggered internally
+   * once the database size exceeds the CacheSettings::max_disk_storage size.
+   */
+  void Compact();
 
   /**
    * @brief Stores the key-value pair in the cache.

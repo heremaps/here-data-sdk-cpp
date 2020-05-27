@@ -17,11 +17,9 @@
  * License-Filename: LICENSE
  */
 
-#include "olp/core/porting/warning_disable.h"
-
 #include "olp/core/cache/DefaultCache.h"
-
 #include "DefaultCacheImpl.h"
+#include "olp/core/porting/warning_disable.h"
 
 namespace olp {
 namespace cache {
@@ -36,6 +34,8 @@ DefaultCache::StorageOpenResult DefaultCache::Open() { return impl_->Open(); }
 void DefaultCache::Close() { impl_->Close(); }
 
 bool DefaultCache::Clear() { return impl_->Clear(); }
+
+void DefaultCache::Compact() { return impl_->Compact(); }
 
 bool DefaultCache::Put(const std::string& key, const boost::any& value,
                        const Encoder& encoder, time_t expiry) {
