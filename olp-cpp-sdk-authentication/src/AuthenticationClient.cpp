@@ -25,6 +25,7 @@
 #include <rapidjson/writer.h>
 
 #include <chrono>
+#include <iomanip>
 #include <sstream>
 
 #include <boost/uuid/uuid.hpp>
@@ -119,6 +120,19 @@ constexpr auto kOperator = "operator";
 // Values
 constexpr auto kVersion = "1.0";
 constexpr auto kHmac = "HMAC-SHA256";
+constexpr auto kDate = "date";
+constexpr auto kErrorWrongTimestamp = 401204;
+
+std::time_t ParseTime(const std::string& value) {
+  std::tm tm = {};
+  std::istringstream ss(value);
+  ss >> std::get_time(&tm, "%a, %d %b %Y %H:%M:%S %z");
+#ifdef _WIN32
+  return _mkgmtime(&tm);
+#else
+  return timegm(&tm);
+#endif
+}
 
 void ExecuteOrSchedule(
     const std::shared_ptr<olp::thread::TaskScheduler>& task_scheduler,
@@ -477,66 +491,99 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
     }
 
     client::OlpClient client = CreateOlpClient(settings_, boost::none);
+    using ProcessReturnHeaders = std::function<void(const olp::http::Headers&)>;
 
-    std::time_t timestamp =
-        std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    auto call_sign_in_request = [&](std::time_t& in_timestamp,
+                                    ProcessReturnHeaders get_timestamp =
+                                        nullptr) -> SignInClientResponse {
+      const auto url = settings_.token_endpoint_url + kOauthEndpoint;
+
+      client::OlpClient::ParametersType headers = {
+          {http::kAuthorizationHeader,
+           GenerateHeader(credentials, url, in_timestamp)}};
+
+      auto auth_response = client.CallApi(
+          kOauthEndpoint, "POST", {}, std::move(headers), {},
+          GenerateClientBody(properties), kApplicationJson, context);
+
+      if (get_timestamp) {
+        get_timestamp(auth_response.headers);
+      }
+      const auto status = auth_response.status;
+
+      if (status < 0) {
+        auto error_message = auth_response.response.str();
+
+        if (status == static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR)) {
+          return {{status, error_message}};
+        }
+
+        auto cached_response = client_token_cache_->locked(
+            [&](utils::LruCache<std::string, SignInResult>& c)
+                -> boost::optional<SignInResult> {
+              auto it = c.Find(credentials.GetKey());
+              return it != c.end() ? boost::make_optional(it->value())
+                                   : boost::none;
+            });
+
+        if (!cached_response) {
+          return {{status, error_message}};
+        }
+
+        return *cached_response;
+      }
+
+      auto document = std::make_shared<rapidjson::Document>();
+      rapidjson::IStreamWrapper stream(auth_response.response);
+      document->ParseStream(stream);
+      auto resp_impl = std::make_shared<SignInResultImpl>(
+          status, olp::http::HttpErrorToString(status), document);
+      SignInResult response(resp_impl);
+
+      if (status == http::HttpStatusCode::OK) {
+        // Cache the response
+        client_token_cache_->locked(
+            [&](utils::LruCache<std::string, SignInResult>& c) {
+              return c.InsertOrAssign(credentials.GetKey(), response);
+            });
+      }
+
+      return response;
+    };
+    std::time_t timestamp = 0;
+    std::time_t timestamp_from_header = 0;
+    ProcessReturnHeaders get_timestamp_from_headers = nullptr;
 
     if (!settings_.use_system_time) {
       auto server_time = GetTimeFromServer(context, client);
       if (server_time.IsSuccessful()) {
         timestamp = server_time.GetResult();
       }
+    } else {
+      timestamp = std::chrono::system_clock::to_time_t(
+          std::chrono::system_clock::now());
+      get_timestamp_from_headers = [&](const olp::http::Headers& headers) {
+        auto it =
+            std::find_if(begin(headers), end(headers),
+                         [](const std::pair<std::string, std::string>& obg) {
+                           if (obg.first.compare(kDate) == 0) return true;
+                           return false;
+                         });
+        if (it != end(headers)) {
+          timestamp_from_header = ParseTime(it->second);
+        }
+      };
     }
 
-    const auto url = settings_.token_endpoint_url + kOauthEndpoint;
-
-    client::OlpClient::ParametersType headers = {
-        {http::kAuthorizationHeader,
-         GenerateHeader(credentials, url, timestamp)}};
-
-    auto auth_response = client.CallApi(
-        kOauthEndpoint, "POST", {}, std::move(headers), {},
-        GenerateClientBody(properties), kApplicationJson, context);
-
-    const auto status = auth_response.status;
-
-    if (status < 0) {
-      auto error_message = auth_response.response.str();
-
-      if (status == static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR)) {
-        return {{status, error_message}};
-      }
-
-      auto cached_response = client_token_cache_->locked(
-          [&](utils::LruCache<std::string, SignInResult>& c)
-              -> boost::optional<SignInResult> {
-            auto it = c.Find(credentials.GetKey());
-            return it != c.end() ? boost::make_optional(it->value())
-                                 : boost::none;
-          });
-
-      if (!cached_response) {
-        return {{status, error_message}};
-      }
-
-      return *cached_response;
+    auto response =
+        call_sign_in_request(timestamp, std::move(get_timestamp_from_headers));
+    if (settings_.use_system_time &&
+        response.GetResult().GetStatus() ==
+            http::HttpStatusCode::UNAUTHORIZED &&
+        response.GetResult().GetErrorResponse().code == kErrorWrongTimestamp &&
+        timestamp_from_header != 0) {
+      response = call_sign_in_request(timestamp_from_header);
     }
-
-    auto document = std::make_shared<rapidjson::Document>();
-    rapidjson::IStreamWrapper stream(auth_response.response);
-    document->ParseStream(stream);
-    auto resp_impl = std::make_shared<SignInResultImpl>(
-        status, olp::http::HttpErrorToString(status), document);
-    SignInResult response(resp_impl);
-
-    if (status == http::HttpStatusCode::OK) {
-      // Cache the response
-      client_token_cache_->locked(
-          [&](utils::LruCache<std::string, SignInResult>& c) {
-            return c.InsertOrAssign(credentials.GetKey(), response);
-          });
-    }
-
     return response;
   };
 
