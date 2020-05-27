@@ -289,6 +289,88 @@ TEST_F(AuthenticationClientTest, SignInClientUseLocalTime) {
   EXPECT_EQ(response.GetResult().GetScope(), scope_);
 }
 
+TEST_F(AuthenticationClientTest, SignInClientUseWrongLocalTime) {
+  AuthenticationSettings settings;
+  settings.network_request_handler = network_;
+  settings.use_system_time = true;
+  settings.token_endpoint_url = kTokenEndpointUrl;
+
+  auto client = std::make_unique<AuthenticationClient>(std::move(settings));
+
+  AuthenticationCredentials credentials(key_, secret_);
+  std::promise<AuthenticationClient::SignInClientResponse> request;
+  auto request_future = request.get_future();
+
+  EXPECT_CALL(*network_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
+      .Times(0);
+
+  EXPECT_CALL(
+      *network_,
+      Send(IsPostRequest("https://authentication.server.url/oauth2/token"), _,
+           _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << kResponseWrongTimestamp;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::http::HttpStatusCode::UNAUTHORIZED));
+        if (data_callback) {
+          auto raw = const_cast<char*>(kResponseWrongTimestamp.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0,
+                        kResponseWrongTimestamp.size());
+        }
+
+        return olp::http::SendOutcome(request_id);
+      })
+      .WillOnce([&](olp::http::NetworkRequest request,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << kResponseWithScope;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::http::HttpStatusCode::OK));
+        if (data_callback) {
+          auto raw = const_cast<char*>(kResponseWithScope.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0,
+                        kResponseWithScope.size());
+        }
+
+        return olp::http::SendOutcome(request_id);
+      });
+
+  AuthenticationClient::SignInProperties properties;
+  properties.scope = scope_;
+  std::time_t now = std::time(nullptr);
+  client->SignInClient(
+      credentials, properties,
+      [&](const AuthenticationClient::SignInClientResponse& response) {
+        request.set_value(response);
+      });
+  request_future.wait();
+
+  AuthenticationClient::SignInClientResponse response = request_future.get();
+  EXPECT_TRUE(response.IsSuccessful());
+  EXPECT_FALSE(response.GetResult().GetAccessToken().empty());
+  EXPECT_EQ(kResponseToken, response.GetResult().GetAccessToken());
+  EXPECT_GE(now + kMaxExpiryTime, response.GetResult().GetExpiryTime());
+  EXPECT_LT(now + kMinExpiryTime, response.GetResult().GetExpiryTime());
+  EXPECT_EQ("bearer", response.GetResult().GetTokenType());
+  EXPECT_TRUE(response.GetResult().GetRefreshToken().empty());
+  EXPECT_TRUE(response.GetResult().GetUserIdentifier().empty());
+  EXPECT_EQ(response.GetResult().GetScope(), scope_);
+}
+
 TEST_F(AuthenticationClientTest, SignInClientScope) {
   auth::AuthenticationCredentials credentials(key_, secret_);
   std::promise<auth::AuthenticationClient::SignInClientResponse> request;

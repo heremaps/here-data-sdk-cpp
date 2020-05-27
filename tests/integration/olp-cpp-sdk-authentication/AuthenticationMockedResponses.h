@@ -45,6 +45,10 @@ const std::string kResponseToken =
     "dcYqkJcZh195ojzeAcvDGI6HqS2zUMTdpYUhlwwfpkxGwrFmlAxgx58xKSeVt0sPvtabZBAW8u"
     "h2NGg";
 
+const std::string kResponseWrongTimestamp = R"JSON(
+    {"errorCode":401204, "message":"Time stamp is outside the valid period."}
+    )JSON";
+
 const std::string kResponseInvalidJson = R"JSON({x\})JSON";
 const std::string kResponseNoToken = R"JSON(
    {"tokenType":"bearer","expiresIn":3599}
