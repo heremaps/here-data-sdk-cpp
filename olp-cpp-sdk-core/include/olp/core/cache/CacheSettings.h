@@ -82,7 +82,11 @@ struct CORE_API CacheSettings {
    * @brief Sets the upper limit of the runtime memory (in bytes) before it is
    * written to the disk.
    *
-   * The default value is 32 MB.
+   * Larger values increase performance, especially during bulk loads.
+   * Up to two write buffers may be held in memory at the same time,
+   * so you may wish to adjust this parameter to control memory usage.
+   * Also, a larger write buffer will result in a longer recovery time
+   * the next time the database is opened. The default value is 32 MB.
    */
   size_t max_chunk_size = 1024u * 1024u * 32u;
 

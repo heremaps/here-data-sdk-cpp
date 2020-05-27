@@ -41,6 +41,8 @@ class DefaultCacheImpl {
 
   bool Clear();
 
+  void Compact();
+
   bool Put(const std::string& key, const KeyValueCache::ValueTypePtr value,
            time_t expiry);
 

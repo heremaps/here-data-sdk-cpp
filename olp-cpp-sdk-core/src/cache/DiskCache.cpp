@@ -41,7 +41,7 @@ namespace olp {
 namespace cache {
 
 namespace {
-constexpr auto kLogTag = "Storage.LevelDB";
+constexpr auto kLogTag = "DiskCache";
 
 leveldb::Slice ToLeveldbSlice(const std::string& slice) {
   return leveldb::Slice(slice);
@@ -153,7 +153,6 @@ client::ApiError GetApiError(const leveldb::Status& status) {
 }  // anonymous namespace
 
 DiskCache::DiskCache() = default;
-
 DiskCache::~DiskCache() { Close(); }
 
 void DiskCache::LevelDBLogger::Logv(const char* format, va_list ap) {
@@ -161,17 +160,33 @@ void DiskCache::LevelDBLogger::Logv(const char* format, va_list ap) {
 }
 
 void DiskCache::Close() {
+  if (compaction_thread_.joinable()) {
+    compaction_thread_.join();
+  }
+
   database_.reset();
   filter_policy_.reset();
 }
 
 bool DiskCache::Clear() {
-  database_.reset();
-  filter_policy_.reset();
+  Close();
+
   if (!disk_cache_path_.empty()) {
     return olp::utils::Dir::remove(disk_cache_path_);
   }
+
   return true;
+}
+
+void DiskCache::Compact() {
+  // Lets make sure that the parallel thread which is running the compact is not
+  // doing it already. We don't need two at the same time.
+  if (!compacting_.exchange(true)) {
+    OLP_SDK_LOG_INFO(kLogTag, "Compact: Compacting database started");
+    database_->CompactRange(nullptr, nullptr);
+    compacting_ = false;
+    OLP_SDK_LOG_INFO(kLogTag, "Compact: Compacting database finished");
+  }
 }
 
 OpenResult DiskCache::Open(const std::string& data_path,
@@ -251,7 +266,7 @@ OpenResult DiskCache::Open(const std::string& data_path,
 
 bool DiskCache::Put(const std::string& key, leveldb::Slice slice) {
   if (!database_) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Put: Database is uninitialized");
+    OLP_SDK_LOG_ERROR(kLogTag, "Put: Database is not initialized");
     return false;
   }
 
@@ -266,7 +281,7 @@ bool DiskCache::Put(const std::string& key, leveldb::Slice slice) {
 
 boost::optional<std::string> DiskCache::Get(const std::string& key) {
   if (!database_) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Get: Database is uninitialized");
+    OLP_SDK_LOG_ERROR(kLogTag, "Get: Database is not initialized");
     return boost::none;
   }
 
@@ -281,7 +296,7 @@ boost::optional<std::string> DiskCache::Get(const std::string& key) {
 bool DiskCache::Get(const std::string& key,
                     KeyValueCache::ValueTypePtr& value) {
   if (!database_) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Get: Database not initialized");
+    OLP_SDK_LOG_ERROR(kLogTag, "Get: Database is not initialized");
     return false;
   }
 
@@ -304,9 +319,8 @@ bool DiskCache::Get(const std::string& key,
 
 bool DiskCache::Remove(const std::string& key, uint64_t& removed_data_size) {
   if (!database_) {
+    OLP_SDK_LOG_ERROR(kLogTag, "Remove: Database is not initialized");
     removed_data_size = 0;
-
-    OLP_SDK_LOG_ERROR(kLogTag, "Remove: Database is uninitialized");
     return false;
   }
 
@@ -328,7 +342,7 @@ bool DiskCache::Remove(const std::string& key, uint64_t& removed_data_size) {
 std::unique_ptr<leveldb::Iterator> DiskCache::NewIterator(
     leveldb::ReadOptions options) {
   if (!database_) {
-    OLP_SDK_LOG_ERROR(kLogTag, "NewIterator: Database is uninitialized");
+    OLP_SDK_LOG_ERROR(kLogTag, "NewIterator: Database is not initialized");
     return nullptr;
   }
   return std::unique_ptr<leveldb::Iterator>(database_->NewIterator(options));
@@ -337,19 +351,37 @@ std::unique_ptr<leveldb::Iterator> DiskCache::NewIterator(
 DiskCache::OperationOutcome DiskCache::ApplyBatch(
     std::unique_ptr<leveldb::WriteBatch> batch) {
   if (!database_) {
-    OLP_SDK_LOG_ERROR(kLogTag, "ApplyBatch: Database is uninitialized");
+    OLP_SDK_LOG_ERROR(kLogTag, "ApplyBatch: Database is not initialized");
     return client::ApiError(client::ErrorCode::PreconditionFailed,
                             "Database is not initialized");
   }
+
   if (!batch) {
-    OLP_SDK_LOG_ERROR(kLogTag, "ApplyBatch: failed, batch is null");
+    OLP_SDK_LOG_WARNING(kLogTag, "ApplyBatch: Batch is null");
     return client::ApiError(client::ErrorCode::PreconditionFailed,
                             "Batch can't be null");
   }
+
+  if (max_size_ != kSizeMax && environment_ &&
+      environment_->Size() >= max_size_) {
+    if (!compacting_.exchange(true)) {
+      if (compaction_thread_.joinable()) {
+        compaction_thread_.join();
+      }
+
+      compaction_thread_ = std::thread([this]() {
+        OLP_SDK_LOG_INFO(kLogTag, "Compacting database started");
+        database_->CompactRange(nullptr, nullptr);
+        compacting_ = false;
+        OLP_SDK_LOG_INFO(kLogTag, "Compacting database finished");
+      });
+    }
+  }
+
   const auto status = database_->Write(leveldb::WriteOptions(), batch.get());
   if (!status.ok()) {
-    OLP_SDK_LOG_ERROR(kLogTag,
-                      "ApplyBatch: failed, status=" << status.ToString());
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "ApplyBatch: failed, status=" << status.ToString());
     return GetApiError(status);
   }
   return NoError{};

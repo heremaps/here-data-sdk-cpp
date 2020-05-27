@@ -151,6 +151,13 @@ bool DefaultCacheImpl::Clear() {
   return SetupStorage() == DefaultCache::StorageOpenResult::Success;
 }
 
+void DefaultCacheImpl::Compact() {
+  std::lock_guard<std::mutex> lock(cache_lock_);
+  if (mutable_cache_) {
+    mutable_cache_->Compact();
+  }
+}
+
 bool DefaultCacheImpl::Put(const std::string& key, const boost::any& value,
                            const Encoder& encoder, time_t expiry) {
   std::lock_guard<std::mutex> lock(cache_lock_);
@@ -311,6 +318,7 @@ void DefaultCacheImpl::InitializeLru() {
   const auto start = std::chrono::steady_clock::now();
   auto count = 0u;
   auto it = mutable_cache_->NewIterator(leveldb::ReadOptions());
+
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
     auto key = it->key().ToString();
     const auto& value = it->value();
@@ -466,7 +474,7 @@ uint64_t DefaultCacheImpl::MaybeEvictData(leveldb::WriteBatch& batch) {
                         .count();
   OLP_SDK_LOG_INFO_F(kLogTag,
                      "Evicted from mutable cache, items=%" PRId32
-                     ", time=%" PRId64 " ms, size=%" PRIu64,
+                     ", time=%" PRId64 "ms, size=%" PRIu64,
                      count, elapsed, evicted);
 
   return evicted;

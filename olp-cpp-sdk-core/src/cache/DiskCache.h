@@ -26,6 +26,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <thread>
 #include <tuple>
 #include <vector>
 
@@ -108,6 +109,13 @@ class DiskCache {
   void Close();
   bool Clear();
 
+  /// This method is blocking and calls the underlying leveldb CompactRange()
+  /// method which compacts the storage. In particular, deleted and overwritten
+  /// versions are discarded, and the data is rearranged to reduce the cost of
+  /// operations needed to access the data. In some cases this operation might
+  /// take a very long time, so use with care.
+  void Compact();
+
   OperationOutcome OpenError() const { return error_; }
 
   bool Put(const std::string& key, leveldb::Slice slice);
@@ -141,6 +149,10 @@ class DiskCache {
   std::unique_ptr<LevelDBLogger> leveldb_logger_;
   uint64_t max_size_{kSizeMax};
   bool check_crc_{false};
+  /// Used to sync database_->CompactRange() calls.
+  std::atomic<bool> compacting_{false};
+  /// Used to asynchronously call database_->CompactRange().
+  std::thread compaction_thread_;
   OperationOutcome error_;
 };
 
