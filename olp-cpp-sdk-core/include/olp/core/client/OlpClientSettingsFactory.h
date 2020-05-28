@@ -19,10 +19,10 @@
 
 #pragma once
 
+#include <memory>
+
 #include <olp/core/CoreApi.h>
 #include <olp/core/thread/TaskScheduler.h>
-
-#include <memory>
 
 namespace olp {
 namespace cache {
@@ -35,6 +35,8 @@ class Network;
 }  // namespace http
 
 namespace client {
+struct OlpClientSettings;
+
 /**
  * @brief Fills in the `OlpClientSettings` structure with
  * default handlers.
@@ -90,6 +92,21 @@ class CORE_API OlpClientSettingsFactory final {
    */
   static std::unique_ptr<cache::KeyValueCache> CreateDefaultCache(
       cache::CacheSettings settings);
+
+  /**
+   * @brief This function helps you prewarm the connection to the
+   * provided host.
+   *
+   * Prewarming includes DNS prefetch and TLS preconnect issued with the
+   * OPTIONS http call without any data up or download and is performed
+   * asynchronously.
+   *
+   * @note This only makes sense on platforms which actually keep TCP
+   * sockets and connections alive for some time and only if you have
+   * max_request_count set to something greater then 1 to allow reusing.
+   */
+  static void PrewarmConnection(const OlpClientSettings& settings,
+                                const std::string& url);
 };
 
 }  // namespace client
