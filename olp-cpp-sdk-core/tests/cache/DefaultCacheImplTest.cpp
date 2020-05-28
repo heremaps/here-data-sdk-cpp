@@ -662,7 +662,7 @@ TEST_F(DefaultCacheImplTest, LruCacheEviction) {
   }
 
   {
-    SCOPED_TRACE("kLeastRecentlyUsed eviction");
+    SCOPED_TRACE("kLeastRecentlyUsed eviction, default expiry");
 
     const auto prefix{"somekey"};
     const auto data_size = 1024u;
@@ -724,6 +724,51 @@ TEST_F(DefaultCacheImplTest, LruCacheEviction) {
     EXPECT_FALSE(cache.ContainsMutableCache(evicted_key));
     EXPECT_FALSE(cache.ContainsMemoryCache(evicted_key));
     EXPECT_FALSE(cache.ContainsLru(evicted_key));
+    cache.Clear();
+  }
+  {
+    SCOPED_TRACE("kLeastRecentlyUsed eviction, expired removed first");
+
+    const auto prefix{"somekey"};
+    const auto data_size = 1024u;
+    std::vector<unsigned char> binary_data(data_size);
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = cache_path_;
+    settings.eviction_policy = cache::EvictionPolicy::kLeastRecentlyUsed;
+    settings.max_disk_storage = 2u * 1024u * 1024u;
+    DefaultCacheImplHelper cache(settings);
+
+    cache.Open();
+    cache.Clear();
+
+    EXPECT_TRUE(cache.HasLruCache());
+
+    const auto not_expired_key = prefix + std::to_string(0);
+
+    // Put data that expires after 10 sec and never promoted.
+    cache.Put(not_expired_key,
+              std::make_shared<std::vector<unsigned char>>(binary_data), 10);
+
+    // overflow the mutable cache
+    auto count = 1u;
+    std::string key;
+    const auto max_count = settings.max_disk_storage / data_size;
+    for (; count < max_count; ++count) {
+      key = prefix + std::to_string(count);
+
+      // Put data that is already expired.
+      const auto result = cache.Put(
+          key, std::make_shared<std::vector<unsigned char>>(binary_data), -1);
+
+      ASSERT_TRUE(result);
+
+      // Expect that not yet expired key is always present
+      EXPECT_TRUE(cache.ContainsMutableCache(not_expired_key));
+      EXPECT_TRUE(cache.ContainsLru(not_expired_key));
+    }
+    const auto not_expired_value = cache.Get(not_expired_key);
+    EXPECT_TRUE(not_expired_value.get() != nullptr);
+
     cache.Clear();
   }
 }

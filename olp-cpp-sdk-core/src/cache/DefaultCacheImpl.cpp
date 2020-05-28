@@ -45,8 +45,7 @@ std::string CreateExpiryKey(const std::string& key) {
 }
 
 bool IsExpiryKey(const std::string& key) {
-  auto pos = key.rfind(kExpirySuffix);
-  return pos == 0;
+  return key.rfind(kExpirySuffix) != std::string::npos;
 }
 
 bool IsExpiryValid(time_t expiry) {
@@ -81,8 +80,7 @@ void PurgeDiskItem(const std::string& key, olp::cache::DiskCache& disk_cache,
 size_t StoreExpiry(const std::string& key, leveldb::WriteBatch& batch,
                    time_t expiry) {
   auto expiry_key = CreateExpiryKey(key);
-  auto time_str = std::to_string(
-      expiry + olp::cache::InMemoryCache::DefaultTimeProvider()());
+  auto time_str = std::to_string(expiry);
   batch.Put(expiry_key, time_str);
 
   return expiry_key.size() + time_str.size();
@@ -151,6 +149,13 @@ bool DefaultCacheImpl::Clear() {
   }
 
   return SetupStorage() == DefaultCache::StorageOpenResult::Success;
+}
+
+void DefaultCacheImpl::Compact() {
+  std::lock_guard<std::mutex> lock(cache_lock_);
+  if (mutable_cache_) {
+    mutable_cache_->Compact();
+  }
 }
 
 bool DefaultCacheImpl::Put(const std::string& key, const boost::any& value,
@@ -313,14 +318,38 @@ void DefaultCacheImpl::InitializeLru() {
   const auto start = std::chrono::steady_clock::now();
   auto count = 0u;
   auto it = mutable_cache_->NewIterator(leveldb::ReadOptions());
+
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    const auto key = it->key().ToString();
+    auto key = it->key().ToString();
     const auto& value = it->value();
+
+    // Here we count both expiry keys and regular keys
     mutable_cache_data_size_ += key.size() + value.size();
 
-    if (mutable_cache_lru_ && !IsExpiryKey(key)) {
-      ++count;
-      mutable_cache_lru_->Insert(key, value.size());
+    if (mutable_cache_lru_) {
+      // remove the prefix to restore original key
+      const bool expiration_key = IsExpiryKey(key);
+      if (expiration_key) {
+        key.resize(key.size() - kExpirySuffixLength);
+      }
+
+      ValueProperties props;
+
+      auto iterator = mutable_cache_lru_->FindNoPromote(key);
+      if (iterator != mutable_cache_lru_->end()) {
+        props = iterator->value();
+      }
+
+      if (expiration_key) {
+        props.expiry = std::stol(value.data());
+      } else {
+        props.size = value.size();
+      }
+
+      auto result = mutable_cache_lru_->InsertOrAssign(key, props);
+      if (result.second) {
+        ++count;
+      }
     }
   }
 
@@ -379,24 +408,63 @@ uint64_t DefaultCacheImpl::MaybeEvictData(leveldb::WriteBatch& batch) {
   int64_t evicted = 0u;
   auto count = 0u;
   const auto min_size = kMinDiskUsedThreshold * settings_.max_disk_storage;
+
+  const auto current_time = olp::cache::InMemoryCache::DefaultTimeProvider()();
+
+  // Remove the expired elements first
+  for (auto it = mutable_cache_lru_->begin();
+       it != mutable_cache_lru_->end() &&
+       mutable_cache_data_size_ - evicted > min_size;) {
+    const auto& key = it->key();
+    const auto& properties = it->value();
+
+    const bool expired = (properties.expiry - current_time) <= 0;
+
+    if (!expired) {
+      ++it;
+      continue;
+    }
+
+    // Remove the key
+    batch.Delete(key);
+    evicted += key.size() + properties.size;
+
+    // Remove the key's expiry
+    auto expiry_key = CreateExpiryKey(key);
+    batch.Delete(expiry_key);
+    evicted += expiry_key.size() + kExpiryValueSize;
+
+    ++count;
+
+    if (memory_cache_) {
+      memory_cache_->Remove(key);
+    }
+
+    it = mutable_cache_lru_->Erase(it);
+  }
+
+  // Remove the other elements if needed
   for (auto it = mutable_cache_lru_->rbegin();
        it != mutable_cache_lru_->rend() &&
        mutable_cache_data_size_ - evicted > min_size;) {
     const auto& key = it->key();
-    const auto expiry_key = CreateExpiryKey(key);
-    auto expiry_value = mutable_cache_->Get(expiry_key);
-    if (expiry_value) {
+    const auto& properties = it->value();
+
+    evicted += key.size() + properties.size;
+    batch.Delete(key);
+
+    if (IsExpiryValid(properties.expiry)) {
+      const auto expiry_key = CreateExpiryKey(key);
       evicted += expiry_key.size() + kExpiryValueSize;
       batch.Delete(expiry_key);
     }
-    evicted += key.size() + it->value();
+
     ++count;
 
     if (memory_cache_) {
       memory_cache_->Remove(it->key());
     }
 
-    batch.Delete(key);
     mutable_cache_lru_->Erase(it);
     it = mutable_cache_lru_->rbegin();
   }
@@ -406,7 +474,7 @@ uint64_t DefaultCacheImpl::MaybeEvictData(leveldb::WriteBatch& batch) {
                         .count();
   OLP_SDK_LOG_INFO_F(kLogTag,
                      "Evicted from mutable cache, items=%" PRId32
-                     ", time=%" PRId64 " ms, size=%" PRIu64,
+                     ", time=%" PRId64 "ms, size=%" PRIu64,
                      count, elapsed, evicted);
 
   return evicted;
@@ -434,6 +502,7 @@ bool DefaultCacheImpl::PutMutableCache(const std::string& key,
   added_data_size += key.size() + item_size;
 
   if (IsExpiryValid(expiry)) {
+    expiry += olp::cache::InMemoryCache::DefaultTimeProvider()();
     added_data_size += StoreExpiry(key, *batch, expiry);
   }
 
@@ -447,7 +516,10 @@ bool DefaultCacheImpl::PutMutableCache(const std::string& key,
   mutable_cache_data_size_ -= removed_data_size;
 
   if (mutable_cache_lru_) {
-    const auto result = mutable_cache_lru_->InsertOrAssign(key, item_size);
+    ValueProperties props;
+    props.size = item_size;
+    props.expiry = expiry;
+    const auto result = mutable_cache_lru_->InsertOrAssign(key, props);
     if (result.first == mutable_cache_lru_->end() && !result.second) {
       OLP_SDK_LOG_WARNING_F(
           kLogTag, "Failed to store value in mutable LRU cache, key %s",
@@ -527,7 +599,10 @@ bool DefaultCacheImpl::GetFromDiskCache(const std::string& key,
     auto result = protected_cache_->Get(key, value);
     if (result && value && !value->empty()) {
       expiry = GetRemainingExpiryTime(key, *protected_cache_);
-      return expiry > 0;
+      if (expiry > 0) {
+        return true;
+      }
+      value = nullptr;
     }
   }
 
@@ -543,7 +618,7 @@ bool DefaultCacheImpl::GetFromDiskCache(const std::string& key,
       }
 
       auto result = mutable_cache_->Get(key, value);
-      return result && value && expiry > 0;
+      return result && value;
     }
 
     // Data expired in cache -> remove
