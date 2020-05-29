@@ -118,7 +118,7 @@ constexpr auto kVersion = "1.0";
 constexpr auto kHmac = "HMAC-SHA256";
 constexpr auto kDate = "date";
 
-std::time_t ParseTimezoneAndSetEnv(const std::string& value) {
+std::time_t ParseTime(const std::string& value) {
   std::tm tm = {};
   std::istringstream ss(value);
   ss >> std::get_time(&tm, "%a, %d %b %Y %H:%M:%S %z");
@@ -484,7 +484,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
   std::time_t time_for_cb;
   auto header_callback = [&](std::string key, std::string value) {
     if (key.compare(kDate) == 0) {
-      time_for_cb = ParseTimezoneAndSetEnv(value);
+      time_for_cb = ParseTime(value);
     }
   };
   auto callback_wrapper = [callback, time_callback,
