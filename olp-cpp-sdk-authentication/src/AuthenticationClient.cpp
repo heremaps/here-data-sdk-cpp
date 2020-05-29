@@ -26,6 +26,7 @@
 
 #include <chrono>
 #include <sstream>
+#include <iomanip>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -119,29 +120,15 @@ constexpr auto kVersion = "1.0";
 constexpr auto kHmac = "HMAC-SHA256";
 constexpr auto kDate = "date";
 
-const std::map<std::string, int> kTimezones = {
-    {"EST", -5}, {"EDT", -4}, {"CST", -6}, {"CDT", -5},
-    {"MST", -7}, {"MDT", -6}, {"PST", -8}, {"PDT", -7},
-    {"A", -1},   {"M", -12},  {"N", 1},    {"Y", 12}};
-
 static std::time_t ParseTimezoneAndSetEnv(const std::string& value) {
   std::tm tm = {};
-  strptime(value.c_str(), "%a, %d %b %Y %H:%M:%S %z", &tm);
-  auto t = time(NULL);
-  auto local = localtime(&t);
-  // find offset from gmt
-  auto gmt_diff =
-      (local == nullptr ? 0 : local->tm_gmtoff - local->tm_isdst * 60 * 60);
-
-  const auto pos = value.find_last_of(" ");  // locate the last white space
-  if (pos != std::string::npos) {
-    std::string timezone = value.substr(pos + 1);
-    auto it = kTimezones.find(timezone);
-    if (it != kTimezones.end()) {
-      tm.tm_hour += it->second;
-    }
-  }
-  return mktime(&tm) + gmt_diff;
+  std::istringstream ss(value);
+  ss >> std::get_time(&tm, "%a, %d %b %Y %H:%M:%S %z");
+  #ifdef _WIN32
+  return _mkgmtime(&tm);
+  #else 
+  return timegm(&tm);
+  #endif
 }
 
 void ExecuteOrSchedule(
