@@ -179,6 +179,8 @@ pages:
       - $FV
       - $NV
 
+# TO DO: add Android network test into script $CI_PROJECT_DIR/scripts/android/build-test-emulator.sh
+# Currently job below just build HERE Data SDK for Android and start AVD by Android SDK emulator.
 test_android_emulator:
   stage: test
   tags:
@@ -190,11 +192,3 @@ test_android_emulator:
   only:
     - master
     - branches
-  artifacts:
-    reports:
-      junit:
-      - reports/*.xml
-    when: always
-    paths:
-      - reports
-    expire_in: 1 year
