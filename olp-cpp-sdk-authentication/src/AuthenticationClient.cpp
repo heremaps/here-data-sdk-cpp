@@ -57,7 +57,9 @@
 #include "olp/core/utils/Url.h"
 
 namespace {
-using namespace olp::authentication;
+namespace auth = olp::authentication;
+
+using olp::authentication::Constants;
 
 // Helper characters
 constexpr auto kParamAdd = "&";
@@ -158,8 +160,9 @@ inline olp::client::CancellationToken AddTask(
   return context.CancelToken();
 }
 
-IntrospectAppResult GetIntrospectAppResult(const rapidjson::Document& doc) {
-  IntrospectAppResult result;
+auth::IntrospectAppResult GetIntrospectAppResult(
+    const rapidjson::Document& doc) {
+  auth::IntrospectAppResult result;
   if (doc.HasMember(Constants::CLIENT_ID)) {
     result.SetClientId(doc[Constants::CLIENT_ID].GetString());
   }
@@ -243,27 +246,27 @@ IntrospectAppResult GetIntrospectAppResult(const rapidjson::Document& doc) {
   return result;
 }
 
-DecisionType GetPermission(const std::string& str) {
-  return (str.compare("allow") == 0) ? DecisionType::kAllow
-                                     : DecisionType::kDeny;
+auth::DecisionType GetPermission(const std::string& str) {
+  return (str.compare("allow") == 0) ? auth::DecisionType::kAllow
+                                     : auth::DecisionType::kDeny;
 }
 
-std::vector<ActionResult> GetDiagnostics(rapidjson::Document& doc) {
-  std::vector<ActionResult> results;
+std::vector<auth::ActionResult> GetDiagnostics(rapidjson::Document& doc) {
+  std::vector<auth::ActionResult> results;
   const auto& array = doc[Constants::DIAGNOSTICS].GetArray();
   for (auto& element : array) {
-    ActionResult action;
+    auth::ActionResult action;
     if (element.HasMember(Constants::DECISION)) {
       action.SetDecision(
           GetPermission(element[Constants::DECISION].GetString()));
       // get permissions if avialible
       if (element.HasMember(Constants::PERMISSIONS) &&
           element[Constants::PERMISSIONS].IsArray()) {
-        std::vector<ActionResult::Permissions> permissions;
+        std::vector<auth::ActionResult::Permissions> permissions;
         const auto& permissions_array =
             element[Constants::PERMISSIONS].GetArray();
         for (auto& permission_element : permissions_array) {
-          ActionResult::Permissions permission;
+          auth::ActionResult::Permissions permission;
           if (permission_element.HasMember(Constants::ACTION)) {
             permission.first =
                 permission_element[Constants::ACTION].GetString();
@@ -283,8 +286,8 @@ std::vector<ActionResult> GetDiagnostics(rapidjson::Document& doc) {
   return results;
 }
 
-AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc) {
-  AuthorizeResult result;
+auth::AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc) {
+  auth::AuthorizeResult result;
 
   if (doc.HasMember(Constants::IDENTITY)) {
     auto uris = doc[Constants::IDENTITY].GetObject();
@@ -968,6 +971,8 @@ client::CancellationToken AuthenticationClient::Impl::IntrospectApp(
     settings.task_scheduler = settings_.task_scheduler;
     settings.proxy_settings = settings_.network_proxy_settings;
     settings.authentication_settings = auth_settings;
+    settings.retry_settings.backdown_strategy =
+        olp::client::ExponentialBackdownStrategy();
 
     client::OlpClient client;
     client.SetBaseUrl(settings_.token_endpoint_url);
@@ -1029,6 +1034,8 @@ client::CancellationToken AuthenticationClient::Impl::Authorize(
     settings.task_scheduler = settings_.task_scheduler;
     settings.proxy_settings = settings_.network_proxy_settings;
     settings.authentication_settings = auth_settings;
+    settings.retry_settings.backdown_strategy =
+        olp::client::ExponentialBackdownStrategy();
 
     client::OlpClient client;
     client.SetBaseUrl(settings_.token_endpoint_url);
