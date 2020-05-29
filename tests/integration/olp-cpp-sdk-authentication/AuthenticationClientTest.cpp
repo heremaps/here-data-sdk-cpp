@@ -33,10 +33,8 @@
 #include "AuthenticationMockedResponses.h"
 #include "olp/core/client/OlpClientSettingsFactory.h"
 
-namespace auth = olp::authentication;
-namespace client = olp::client;
 namespace common = olp::tests::common;
-using testing::_;
+namespace auth = olp::authentication;
 
 namespace {
 const std::string kTimestampUrl =
@@ -177,6 +175,7 @@ class AuthenticationClientTest : public ::testing::Test {
   void ExecuteSigninRequest(int http, int http_result,
                             const std::string& error_message,
                             const std::string& data = "", int error_code = 0) {
+    using testing::_;
     auth::AuthenticationCredentials credentials(key_, secret_);
     std::promise<auth::AuthenticationClient::SignInClientResponse> request;
     auto request_future = request.get_future();
@@ -237,6 +236,7 @@ class AuthenticationClientTest : public ::testing::Test {
 };
 
 TEST_F(AuthenticationClientTest, SignInClientUseLocalTime) {
+  using testing::_;
   auth::AuthenticationSettings settings;
   settings.network_request_handler = network_;
   settings.use_system_time = true;
@@ -298,24 +298,26 @@ TEST_F(AuthenticationClientTest, SignInClientUseLocalTime) {
 }
 
 TEST_F(AuthenticationClientTest, SignInClientUseWrongLocalTime) {
-  AuthenticationSettings settings;
+  using testing::_;
+  auth::AuthenticationSettings settings;
   settings.network_request_handler = network_;
   settings.use_system_time = true;
   settings.token_endpoint_url = kTokenEndpointUrl;
 
-  auto client = std::make_unique<AuthenticationClient>(std::move(settings));
+  auto client =
+      std::make_unique<auth::AuthenticationClient>(std::move(settings));
 
-  AuthenticationCredentials credentials(key_, secret_);
-  std::promise<AuthenticationClient::SignInClientResponse> request;
+  auth::AuthenticationCredentials credentials(key_, secret_);
+  std::promise<auth::AuthenticationClient::SignInClientResponse> request;
   auto request_future = request.get_future();
 
-  EXPECT_CALL(*network_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
+  EXPECT_CALL(*network_, Send(common::IsGetRequest(kTimestampUrl), _, _, _, _))
       .Times(0);
 
-  EXPECT_CALL(
-      *network_,
-      Send(IsPostRequest("https://authentication.server.url/oauth2/token"), _,
-           _, _, _))
+  EXPECT_CALL(*network_,
+              Send(common::IsPostRequest(
+                       "https://authentication.server.url/oauth2/token"),
+                   _, _, _, _))
       .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload payload,
                     olp::http::Network::Callback callback,
@@ -357,17 +359,18 @@ TEST_F(AuthenticationClientTest, SignInClientUseWrongLocalTime) {
         return olp::http::SendOutcome(request_id);
       });
 
-  AuthenticationClient::SignInProperties properties;
+  auth::AuthenticationClient::SignInProperties properties;
   properties.scope = scope_;
   std::time_t now = std::time(nullptr);
   client->SignInClient(
       credentials, properties,
-      [&](const AuthenticationClient::SignInClientResponse& response) {
+      [&](const auth::AuthenticationClient::SignInClientResponse& response) {
         request.set_value(response);
       });
   request_future.wait();
 
-  AuthenticationClient::SignInClientResponse response = request_future.get();
+  auth::AuthenticationClient::SignInClientResponse response =
+      request_future.get();
   EXPECT_TRUE(response.IsSuccessful());
   EXPECT_FALSE(response.GetResult().GetAccessToken().empty());
   EXPECT_EQ(kResponseToken, response.GetResult().GetAccessToken());
@@ -380,6 +383,7 @@ TEST_F(AuthenticationClientTest, SignInClientUseWrongLocalTime) {
 }
 
 TEST_F(AuthenticationClientTest, SignInClientScope) {
+  using testing::_;
   auth::AuthenticationCredentials credentials(key_, secret_);
   std::promise<auth::AuthenticationClient::SignInClientResponse> request;
   auto request_future = request.get_future();
@@ -450,6 +454,7 @@ TEST_F(AuthenticationClientTest, SignInClientScope) {
 }
 
 TEST_F(AuthenticationClientTest, SignInClientData) {
+  using testing::_;
   auth::AuthenticationCredentials credentials("key_", secret_);
   std::promise<auth::AuthenticationClient::SignInClientResponse> request;
   auto request_future = request.get_future();
@@ -555,6 +560,7 @@ TEST_F(AuthenticationClientTest, SignInClientData) {
 }
 
 TEST_F(AuthenticationClientTest, SignUpHereUserData) {
+  using testing::_;
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
       .Times(1)
       .WillOnce([&](olp::http::NetworkRequest /*request*/,
@@ -590,6 +596,7 @@ TEST_F(AuthenticationClientTest, SignUpHereUserData) {
 }
 
 TEST_F(AuthenticationClientTest, SignInUserDataFirstTime) {
+  using testing::_;
   auth::AuthenticationCredentials credentials(key_, secret_);
   std::promise<auth::AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
@@ -645,6 +652,7 @@ TEST_F(AuthenticationClientTest, SignInUserDataFirstTime) {
 }
 
 TEST_F(AuthenticationClientTest, AcceptTermsData) {
+  using testing::_;
   auth::AuthenticationCredentials credentials(key_, secret_);
   std::promise<auth::AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
@@ -698,6 +706,7 @@ TEST_F(AuthenticationClientTest, AcceptTermsData) {
 }
 
 TEST_F(AuthenticationClientTest, SignInHereUser) {
+  using testing::_;
   auth::AuthenticationCredentials credentials(key_, secret_);
   std::promise<auth::AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
@@ -750,6 +759,7 @@ TEST_F(AuthenticationClientTest, SignInHereUser) {
 }
 
 TEST_F(AuthenticationClientTest, SignOutUser) {
+  using testing::_;
   auth::AuthenticationCredentials credentials(key_, secret_);
   std::promise<auth::AuthenticationClient::SignOutUserResponse> request;
   auto request_future = request.get_future();
@@ -811,6 +821,7 @@ TEST_F(AuthenticationClientTest, SignOutUser) {
 }
 
 TEST_F(AuthenticationClientTest, SignInFederated) {
+  using testing::_;
   auth::AuthenticationCredentials credentials(key_, secret_);
   std::promise<auth::AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
@@ -859,6 +870,7 @@ TEST_F(AuthenticationClientTest, SignInFederated) {
 }
 
 TEST_F(AuthenticationClientTest, SignInFacebookData) {
+  using testing::_;
   auth::AuthenticationCredentials credentials(key_, secret_);
   std::promise<auth::AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
@@ -918,6 +930,7 @@ TEST_F(AuthenticationClientTest, SignInFacebookData) {
 }
 
 TEST_F(AuthenticationClientTest, SignInGoogleData) {
+  using testing::_;
   auth::AuthenticationCredentials credentials(key_, secret_);
   std::promise<auth::AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
@@ -969,6 +982,7 @@ TEST_F(AuthenticationClientTest, SignInGoogleData) {
 }
 
 TEST_F(AuthenticationClientTest, SignInArcGisData) {
+  using testing::_;
   auth::AuthenticationCredentials credentials(key_, secret_);
   std::promise<auth::AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
@@ -1028,6 +1042,7 @@ TEST_F(AuthenticationClientTest, SignInArcGisData) {
 }
 
 TEST_F(AuthenticationClientTest, SignInRefreshData) {
+  using testing::_;
   auth::AuthenticationCredentials credentials(key_, secret_);
   std::promise<auth::AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
@@ -1080,6 +1095,7 @@ TEST_F(AuthenticationClientTest, SignInRefreshData) {
 }
 
 TEST_F(AuthenticationClientTest, ErrorFieldsData) {
+  using testing::_;
   auth::AuthenticationCredentials credentials(key_, secret_);
   std::promise<auth::AuthenticationClient::SignInUserResponse> request;
   auto request_future = request.get_future();
@@ -1254,6 +1270,7 @@ TEST_F(AuthenticationClientTest, TestHttpRequestErrorCodes) {
 }
 
 TEST_F(AuthenticationClientTest, IntrospectApp) {
+  using testing::_;
   {
     SCOPED_TRACE("Successful request");
     EXPECT_CALL(*network_,
@@ -1424,6 +1441,7 @@ TEST_F(AuthenticationClientTest, IntrospectAppCancel) {
 }
 
 TEST_F(AuthenticationClientTest, Authorize) {
+  using testing::_;
   {
     SCOPED_TRACE("Successful request");
     EXPECT_CALL(*network_, Send(_, _, _, _, _))
