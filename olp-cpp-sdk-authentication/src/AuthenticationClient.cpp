@@ -25,8 +25,8 @@
 #include <rapidjson/writer.h>
 
 #include <chrono>
-#include <sstream>
 #include <iomanip>
+#include <sstream>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -59,8 +59,6 @@
 
 namespace {
 namespace auth = olp::authentication;
-
-using olp::authentication::Constants;
 
 // Helper characters
 constexpr auto kParamAdd = "&";
@@ -124,11 +122,11 @@ static std::time_t ParseTimezoneAndSetEnv(const std::string& value) {
   std::tm tm = {};
   std::istringstream ss(value);
   ss >> std::get_time(&tm, "%a, %d %b %Y %H:%M:%S %z");
-  #ifdef _WIN32
+#ifdef _WIN32
   return _mkgmtime(&tm);
-  #else 
+#else
   return timegm(&tm);
-  #endif
+#endif
 }
 
 void ExecuteOrSchedule(
@@ -176,17 +174,17 @@ inline olp::client::CancellationToken AddTask(
 auth::IntrospectAppResult GetIntrospectAppResult(
     const rapidjson::Document& doc) {
   auth::IntrospectAppResult result;
-  if (doc.HasMember(Constants::CLIENT_ID)) {
-    result.SetClientId(doc[Constants::CLIENT_ID].GetString());
+  if (doc.HasMember(auth::Constants::CLIENT_ID)) {
+    result.SetClientId(doc[auth::Constants::CLIENT_ID].GetString());
   }
-  if (doc.HasMember(Constants::NAME)) {
-    result.SetName(doc[Constants::NAME].GetString());
+  if (doc.HasMember(auth::Constants::NAME)) {
+    result.SetName(doc[auth::Constants::NAME].GetString());
   }
-  if (doc.HasMember(Constants::DESCRIPTION)) {
-    result.SetDescription(doc[Constants::DESCRIPTION].GetString());
+  if (doc.HasMember(auth::Constants::DESCRIPTION)) {
+    result.SetDescription(doc[auth::Constants::DESCRIPTION].GetString());
   }
-  if (doc.HasMember(Constants::REDIRECT_URIS)) {
-    auto uris = doc[Constants::REDIRECT_URIS].GetArray();
+  if (doc.HasMember(auth::Constants::REDIRECT_URIS)) {
+    auto uris = doc[auth::Constants::REDIRECT_URIS].GetArray();
     std::vector<std::string> value_array;
     value_array.reserve(uris.Size());
     for (auto& value : uris) {
@@ -194,8 +192,8 @@ auth::IntrospectAppResult GetIntrospectAppResult(
     }
     result.SetReditectUris(std::move(value_array));
   }
-  if (doc.HasMember(Constants::ALLOWED_SCOPES)) {
-    auto scopes = doc[Constants::ALLOWED_SCOPES].GetArray();
+  if (doc.HasMember(auth::Constants::ALLOWED_SCOPES)) {
+    auto scopes = doc[auth::Constants::ALLOWED_SCOPES].GetArray();
     std::vector<std::string> value_array;
     value_array.reserve(scopes.Size());
     for (auto& value : scopes) {
@@ -203,22 +201,22 @@ auth::IntrospectAppResult GetIntrospectAppResult(
     }
     result.SetAllowedScopes(std::move(value_array));
   }
-  if (doc.HasMember(Constants::TOKEN_ENDPOINT_AUTH_METHOD)) {
+  if (doc.HasMember(auth::Constants::TOKEN_ENDPOINT_AUTH_METHOD)) {
     result.SetTokenEndpointAuthMethod(
-        doc[Constants::TOKEN_ENDPOINT_AUTH_METHOD].GetString());
+        doc[auth::Constants::TOKEN_ENDPOINT_AUTH_METHOD].GetString());
   }
-  if (doc.HasMember(Constants::TOKEN_ENDPOINT_AUTH_METHOD_REASON)) {
+  if (doc.HasMember(auth::Constants::TOKEN_ENDPOINT_AUTH_METHOD_REASON)) {
     result.SetTokenEndpointAuthMethodReason(
-        doc[Constants::TOKEN_ENDPOINT_AUTH_METHOD_REASON].GetString());
+        doc[auth::Constants::TOKEN_ENDPOINT_AUTH_METHOD_REASON].GetString());
   }
-  if (doc.HasMember(Constants::DOB_REQUIRED)) {
-    result.SetDobRequired(doc[Constants::DOB_REQUIRED].GetBool());
+  if (doc.HasMember(auth::Constants::DOB_REQUIRED)) {
+    result.SetDobRequired(doc[auth::Constants::DOB_REQUIRED].GetBool());
   }
-  if (doc.HasMember(Constants::TOKEN_DURATION)) {
-    result.SetTokenDuration(doc[Constants::TOKEN_DURATION].GetInt());
+  if (doc.HasMember(auth::Constants::TOKEN_DURATION)) {
+    result.SetTokenDuration(doc[auth::Constants::TOKEN_DURATION].GetInt());
   }
-  if (doc.HasMember(Constants::REFERRERS)) {
-    auto uris = doc[Constants::REFERRERS].GetArray();
+  if (doc.HasMember(auth::Constants::REFERRERS)) {
+    auto uris = doc[auth::Constants::REFERRERS].GetArray();
     std::vector<std::string> value_array;
     value_array.reserve(uris.Size());
     for (auto& value : uris) {
@@ -226,23 +224,23 @@ auth::IntrospectAppResult GetIntrospectAppResult(
     }
     result.SetReferrers(std::move(value_array));
   }
-  if (doc.HasMember(Constants::STATUS)) {
-    result.SetStatus(doc[Constants::STATUS].GetString());
+  if (doc.HasMember(auth::Constants::STATUS)) {
+    result.SetStatus(doc[auth::Constants::STATUS].GetString());
   }
-  if (doc.HasMember(Constants::APP_CODE_ENABLED)) {
-    result.SetAppCodeEnabled(doc[Constants::APP_CODE_ENABLED].GetBool());
+  if (doc.HasMember(auth::Constants::APP_CODE_ENABLED)) {
+    result.SetAppCodeEnabled(doc[auth::Constants::APP_CODE_ENABLED].GetBool());
   }
-  if (doc.HasMember(Constants::CREATED_TIME)) {
-    result.SetCreatedTime(doc[Constants::CREATED_TIME].GetInt64());
+  if (doc.HasMember(auth::Constants::CREATED_TIME)) {
+    result.SetCreatedTime(doc[auth::Constants::CREATED_TIME].GetInt64());
   }
-  if (doc.HasMember(Constants::REALM)) {
-    result.SetRealm(doc[Constants::REALM].GetString());
+  if (doc.HasMember(auth::Constants::REALM)) {
+    result.SetRealm(doc[auth::Constants::REALM].GetString());
   }
-  if (doc.HasMember(Constants::TYPE)) {
-    result.SetType(doc[Constants::TYPE].GetString());
+  if (doc.HasMember(auth::Constants::TYPE)) {
+    result.SetType(doc[auth::Constants::TYPE].GetString());
   }
-  if (doc.HasMember(Constants::RESPONSE_TYPES)) {
-    auto types = doc[Constants::RESPONSE_TYPES].GetArray();
+  if (doc.HasMember(auth::Constants::RESPONSE_TYPES)) {
+    auto types = doc[auth::Constants::RESPONSE_TYPES].GetArray();
     std::vector<std::string> value_array;
     value_array.reserve(types.Size());
     for (auto& value : types) {
@@ -250,11 +248,11 @@ auth::IntrospectAppResult GetIntrospectAppResult(
     }
     result.SetResponseTypes(std::move(value_array));
   }
-  if (doc.HasMember(Constants::TIER)) {
-    result.SetTier(doc[Constants::TIER].GetString());
+  if (doc.HasMember(auth::Constants::TIER)) {
+    result.SetTier(doc[auth::Constants::TIER].GetString());
   }
-  if (doc.HasMember(Constants::HRN)) {
-    result.SetHrn(doc[Constants::HRN].GetString());
+  if (doc.HasMember(auth::Constants::HRN)) {
+    result.SetHrn(doc[auth::Constants::HRN].GetString());
   }
   return result;
 }
@@ -266,27 +264,27 @@ auth::DecisionType GetPermission(const std::string& str) {
 
 std::vector<auth::ActionResult> GetDiagnostics(rapidjson::Document& doc) {
   std::vector<auth::ActionResult> results;
-  const auto& array = doc[Constants::DIAGNOSTICS].GetArray();
+  const auto& array = doc[auth::Constants::DIAGNOSTICS].GetArray();
   for (auto& element : array) {
     auth::ActionResult action;
-    if (element.HasMember(Constants::DECISION)) {
+    if (element.HasMember(auth::Constants::DECISION)) {
       action.SetDecision(
-          GetPermission(element[Constants::DECISION].GetString()));
+          GetPermission(element[auth::Constants::DECISION].GetString()));
       // get permissions if avialible
-      if (element.HasMember(Constants::PERMISSIONS) &&
-          element[Constants::PERMISSIONS].IsArray()) {
+      if (element.HasMember(auth::Constants::PERMISSIONS) &&
+          element[auth::Constants::PERMISSIONS].IsArray()) {
         std::vector<auth::ActionResult::Permissions> permissions;
         const auto& permissions_array =
-            element[Constants::PERMISSIONS].GetArray();
+            element[auth::Constants::PERMISSIONS].GetArray();
         for (auto& permission_element : permissions_array) {
           auth::ActionResult::Permissions permission;
-          if (permission_element.HasMember(Constants::ACTION)) {
+          if (permission_element.HasMember(auth::Constants::ACTION)) {
             permission.first =
-                permission_element[Constants::ACTION].GetString();
+                permission_element[auth::Constants::ACTION].GetString();
           }
-          if (permission_element.HasMember(Constants::DECISION)) {
+          if (permission_element.HasMember(auth::Constants::DECISION)) {
             permission.second = GetPermission(
-                permission_element[Constants::DECISION].GetString());
+                permission_element[auth::Constants::DECISION].GetString());
           }
           permissions.push_back(std::move(permission));
         }
@@ -302,23 +300,24 @@ std::vector<auth::ActionResult> GetDiagnostics(rapidjson::Document& doc) {
 auth::AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc) {
   auth::AuthorizeResult result;
 
-  if (doc.HasMember(Constants::IDENTITY)) {
-    auto uris = doc[Constants::IDENTITY].GetObject();
+  if (doc.HasMember(auth::Constants::IDENTITY)) {
+    auto uris = doc[auth::Constants::IDENTITY].GetObject();
 
-    if (uris.HasMember(Constants::CLIENT_ID)) {
-      result.SetClientId(uris[Constants::CLIENT_ID].GetString());
-    } else if (uris.HasMember(Constants::USER_ID)) {
-      result.SetClientId(uris[Constants::USER_ID].GetString());
+    if (uris.HasMember(auth::Constants::CLIENT_ID)) {
+      result.SetClientId(uris[auth::Constants::CLIENT_ID].GetString());
+    } else if (uris.HasMember(auth::Constants::USER_ID)) {
+      result.SetClientId(uris[auth::Constants::USER_ID].GetString());
     }
   }
 
-  if (doc.HasMember(Constants::DECISION)) {
-    result.SetDecision(GetPermission(doc[Constants::DECISION].GetString()));
+  if (doc.HasMember(auth::Constants::DECISION)) {
+    result.SetDecision(
+        GetPermission(doc[auth::Constants::DECISION].GetString()));
   }
 
   // get diagnostics if available
-  if (doc.HasMember(Constants::DIAGNOSTICS) &&
-      doc[Constants::DIAGNOSTICS].IsArray()) {
+  if (doc.HasMember(auth::Constants::DIAGNOSTICS) &&
+      doc[auth::Constants::DIAGNOSTICS].IsArray()) {
     result.SetActionResults(GetDiagnostics(doc));
   }
   return result;
