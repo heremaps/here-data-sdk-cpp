@@ -37,6 +37,8 @@
 #include "repositories/PartitionsRepository.h"
 #include "repositories/PrefetchTilesRepository.h"
 
+#include <algorithm>
+
 namespace olp {
 namespace dataservice {
 namespace read {

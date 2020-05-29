@@ -19,6 +19,7 @@
 
 #include "StreamApi.h"
 
+#include <algorithm>
 #include <map>
 
 #include <olp/core/client/CancellationContext.h>
