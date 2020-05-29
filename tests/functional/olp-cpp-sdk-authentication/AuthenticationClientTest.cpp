@@ -422,10 +422,10 @@ TEST_F(AuthenticationClientTest, SignUpInUser) {
 
   AuthenticationClient::SignInUserResponse response5 = SignInUser(email);
   // According to the AAA team, we should expect one of 401 or 404 status.
-  using namespace testing;
-  EXPECT_THAT(response5.GetResult().GetStatus(),
-              AnyOf(Eq(olp::http::HttpStatusCode::UNAUTHORIZED),
-                    Eq(olp::http::HttpStatusCode::NOT_FOUND)))
+  EXPECT_THAT(
+      response5.GetResult().GetStatus(),
+      testing::AnyOf(testing::Eq(olp::http::HttpStatusCode::UNAUTHORIZED),
+                     testing::Eq(olp::http::HttpStatusCode::NOT_FOUND)))
       << GetErrorId(response5);
   EXPECT_EQ(kErrorAccountNotFoundCode,
             response5.GetResult().GetErrorResponse().code)
@@ -574,10 +574,10 @@ TEST_F(AuthenticationClientTest, SignInRefresh) {
 
   AuthenticationClient::SignInUserResponse response7 = SignInUser(email);
   // According to the AAA team, we should expect one of 401 or 404 status.
-  using namespace testing;
-  EXPECT_THAT(response7.GetResult().GetStatus(),
-              AnyOf(Eq(olp::http::HttpStatusCode::UNAUTHORIZED),
-                    Eq(olp::http::HttpStatusCode::NOT_FOUND)))
+  EXPECT_THAT(
+      response7.GetResult().GetStatus(),
+      testing::AnyOf(testing::Eq(olp::http::HttpStatusCode::UNAUTHORIZED),
+                     testing::Eq(olp::http::HttpStatusCode::NOT_FOUND)))
       << GetErrorId(response7);
   EXPECT_EQ(kErrorAccountNotFoundCode,
             response7.GetResult().GetErrorResponse().code)
