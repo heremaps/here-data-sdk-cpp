@@ -19,23 +19,24 @@
 
 #pragma once
 
-#include <curl/curl.h>
-#include <olp/core/http/Network.h>
-#include <olp/core/http/NetworkRequest.h>
-
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
-#include <cstddef>
-#include <cstdint>
 #include <deque>
-#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
+#include <vector>
+
+#include <curl/curl.h>
+
 #ifdef OLP_SDK_NETWORK_HAS_OPENSSL
 #include <openssl/crypto.h>
 #endif
+
+#include <olp/core/http/Network.h>
+#include <olp/core/http/NetworkRequest.h>
+
 
 namespace olp {
 namespace http {
@@ -93,9 +94,6 @@ class NetworkCurl : public olp::http::Network,
    * @brief Context of each individual network request.
    */
   struct RequestHandle {
-    std::string etag{};
-    std::string content_type{};
-    std::string date{};
     std::chrono::steady_clock::time_point send_time{};
     NetworkRequest::RequestBodyType body{};
     Network::Payload payload{};
@@ -108,15 +106,10 @@ class NetworkCurl : public olp::http::Network,
     CURL* handle{nullptr};
     struct curl_slist* chunk{nullptr};
     std::uint32_t transfer_timeout{};
-    size_t retry_count{};
-    size_t max_retries{};
     int index{};
-    int max_age{};
-    time_t expires{};
     RequestId id{};
     bool ignore_offset{};
     bool in_use{};
-    bool range_out{};
     bool cancelled{};
     bool skip_content{};
     char error_text[CURL_ERROR_SIZE]{};
