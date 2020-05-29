@@ -308,7 +308,7 @@ TEST_F(AuthenticationClientTest, SignInClientUseWrongLocalTime) {
       *network_,
       Send(IsPostRequest("https://authentication.server.url/oauth2/token"), _,
            _, _, _))
-      .WillOnce([&](olp::http::NetworkRequest request,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload payload,
                     olp::http::Network::Callback callback,
                     olp::http::Network::HeaderCallback /*header_callback*/,
@@ -328,7 +328,7 @@ TEST_F(AuthenticationClientTest, SignInClientUseWrongLocalTime) {
 
         return olp::http::SendOutcome(request_id);
       })
-      .WillOnce([&](olp::http::NetworkRequest request,
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload payload,
                     olp::http::Network::Callback callback,
                     olp::http::Network::HeaderCallback /*header_callback*/,
