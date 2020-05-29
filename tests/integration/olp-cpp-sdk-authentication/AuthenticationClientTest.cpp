@@ -33,6 +33,7 @@
 
 namespace common = olp::tests::common;
 namespace auth = olp::authentication;
+namespace client = olp::client;
 
 namespace {
 const std::string kTimestampUrl =
