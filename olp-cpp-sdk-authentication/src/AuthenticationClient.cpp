@@ -118,7 +118,7 @@ constexpr auto kVersion = "1.0";
 constexpr auto kHmac = "HMAC-SHA256";
 constexpr auto kDate = "date";
 
-static std::time_t ParseTimezoneAndSetEnv(const std::string& value) {
+std::time_t ParseTimezoneAndSetEnv(const std::string& value) {
   std::tm tm = {};
   std::istringstream ss(value);
   ss >> std::get_time(&tm, "%a, %d %b %Y %H:%M:%S %z");
