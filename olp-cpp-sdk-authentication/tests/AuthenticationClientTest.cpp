@@ -22,6 +22,8 @@
 
 #include <gtest/gtest.h>
 
+#include "../src/AuthenticationClientUtils.h"
+
 namespace {
 constexpr auto kTime = "Fri, 29 May 2020 11:07:45 GMT";
 }  // namespace
@@ -29,16 +31,6 @@ constexpr auto kTime = "Fri, 29 May 2020 11:07:45 GMT";
 TEST(AuthenticationClientTest, TimeParsing) {
   {
     SCOPED_TRACE("Parse time");
-
-    std::tm tm = {};
-    std::istringstream ss(kTime);
-    ss >> std::get_time(&tm, "%a, %d %b %Y %H:%M:%S %z");
-#ifdef _WIN32
-    auto t = _mkgmtime(&tm);
-#else
-    auto t = timegm(&tm);
-#endif
-
-    EXPECT_EQ(t, 1590750465);
+    EXPECT_EQ(olp::authentication::ParseTime(kTime), 1590750465);
   }
 }
