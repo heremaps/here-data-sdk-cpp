@@ -30,6 +30,9 @@
 #include "generated/serializer/VersionResponseSerializer.h"
 #include "generated/serializer/JsonSerializer.h"
 // clang-format on
+#include "olp/core/geo/tiling/TileKey.h"
+#include "olp/dataservice/read/model/Partitions.h"
+#include "olp/dataservice/read/model/VersionResponse.h"
 
 namespace mockserver {
 /**
@@ -86,6 +89,30 @@ class MockServerHelper {
    * @param Apis to be returned by server.
    */
   void MockLookupPlatformApiResponse(olp::dataservice::read::model::Apis data);
+
+  /**
+   * @brief Mock get blob data request.
+   *
+   * @note keep order of mocks for future use of Verify function.
+   *
+   * @param layer blob corresponds to.
+   * @param data_handle of the blob.
+   * @param data of the blob.
+   */
+  void MockGetResponse(const std::string& layer, const std::string& data_handle,
+                       const std::string& data);
+
+  /**
+   * @brief Mock get quad tree index request.
+   *
+   * @note keep order of mocks for future use of Verify function.
+   *
+   * @param layer quad tree corresponds to.
+   * @param tile root of the tree.
+   * @param tree json  response.
+   */
+  void MockGetResponse(const std::string& layer, olp::geo::TileKey tile,
+                       int64_t version, const std::string& tree);
 
   /**
    * @brief Verify if all calls were called on server and its order.

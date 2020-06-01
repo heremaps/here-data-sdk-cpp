@@ -19,9 +19,15 @@
 
 #pragma once
 
+#include <random>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include <olp/core/generated/serializer/SerializerWrapper.h>
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 
 #include "generated/model/Api.h"
 #include "olp/dataservice/read/model/Partitions.h"
@@ -98,6 +104,20 @@ class DefaultResponses {
     olp::dataservice::read::model::Partitions partitions;
     partitions.SetPartitions(partitions_vect);
     return partitions;
+  }
+
+  static std::string GenerateDataHandle(const std::string& partition) {
+    return partition + "-data-handle";
+  }
+
+  static std::string GenerateData() {
+    std::string result =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    std::random_device device;
+    std::mt19937 generator(device());
+    std::shuffle(result.begin(), result.end(), generator);
+
+    return result;
   }
 };
 

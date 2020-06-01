@@ -20,7 +20,7 @@
 echo ">>> Functional Test ... >>>"
 $REPO_HOME/build/tests/functional/olp-cpp-sdk-functional-tests \
     --gtest_output="xml:$REPO_HOME/reports/olp-functional-test-report.xml" \
-    --gtest_filter="-ArcGisAuthenticationTest.SignInArcGis":"FacebookAuthenticationTest.SignInFacebook":"VersionedLayerClientTest.GetPartitions":"CatalogClientTest.*" 
+    --gtest_filter="-ArcGisAuthenticationTest.SignInArcGis":"FacebookAuthenticationTest.SignInFacebook":"VersionedLayerClientTest.GetPartitions":"VersionedLayerClientTest.GetAggregatedData":"CatalogClientTest.*" 
     #The test VersionedLayerClientTest.GetPartitions uses mock server and it will be started in separate script. (OLPEDGE-732)
 result=$?
 echo "Functional test finished with status: ${result}"
