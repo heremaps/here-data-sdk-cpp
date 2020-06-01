@@ -118,7 +118,7 @@ constexpr auto kOperator = "operator";
 constexpr auto kVersion = "1.0";
 constexpr auto kHmac = "HMAC-SHA256";
 constexpr auto kDate = "date";
-
+constexpr auto kErrorWrongTimestamp = 401204;
 }  // namespace
 
 namespace olp {
@@ -277,18 +277,18 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
   auto time_callback =
       GetTimeSignInCallback(context, credentials, properties, callback);
 
-  std::time_t time_for_cb;
-  auto header_callback = [&](std::string key, std::string value) {
+  auto time_for_cb = std::make_shared<std::time_t>();
+  auto header_callback = [time_for_cb](std::string key, std::string value) {
     if (key.compare(kDate) == 0) {
-      time_for_cb = ParseTime(value);
+      (*time_for_cb) = ParseTime(value);
     }
   };
   auto callback_wrapper = [callback, time_callback,
-                           &time_for_cb](const SignInClientResponse& response) {
+                           time_for_cb](const SignInClientResponse& response) {
     if (response.GetResult().GetStatus() ==
             http::HttpStatusCode::UNAUTHORIZED &&
-        response.GetResult().GetErrorResponse().code == 401204) {
-      time_callback(time_for_cb);
+        response.GetResult().GetErrorResponse().code == kErrorWrongTimestamp) {
+      time_callback(*time_for_cb);
     } else {
       callback(response);
     }

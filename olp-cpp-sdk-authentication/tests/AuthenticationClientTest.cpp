@@ -31,6 +31,7 @@ constexpr auto kTime = "Fri, 29 May 2020 11:07:45 GMT";
 TEST(AuthenticationClientTest, TimeParsing) {
   {
     SCOPED_TRACE("Parse time");
+
     EXPECT_EQ(olp::authentication::ParseTime(kTime), 1590750465);
   }
 }

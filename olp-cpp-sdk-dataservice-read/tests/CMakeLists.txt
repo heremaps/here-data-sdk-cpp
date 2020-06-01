@@ -27,6 +27,7 @@ set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     PartitionsRepositoryTest.cpp
     PrefetchRepositoryTest.cpp
     PrefetchTilesRequestTest.cpp
+    QuadTreeIndexTest.cpp
     QueryApiTest.cpp
     SerializerTest.cpp
     StreamApiTest.cpp
