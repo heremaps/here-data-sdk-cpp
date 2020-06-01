@@ -144,10 +144,20 @@ translate_report:
   script:
     # - python -m junit2htmlreport --merge olp-merged-report.xml reports/*.xml
     # - python -m junit2htmlreport olp-merged-report.xml
+    - python -m junit2htmlreport --report-matrix reports/functional-index.html reports/olp-functional*.xml
+    - python -m junit2htmlreport --report-matrix reports/unit-index.html reports/olp-dataservice-write-test-report.xml reports/olp-dataservice-read-test-report.xml reports/olp-core-test-report.xml reports/olp-authentication-test-report.xml
+    - python -m junit2htmlreport --report-matrix reports/integration-index.html reports/olp-integration*.xml
     - python -m junit2htmlreport --report-matrix reports/index.html reports/*.xml
+    - sed -i -e 's/Reports\ Matrix/Unit\ Test\ Report/g' reports/unit-index.html
+    - sed -i -e 's/Reports\ Matrix/Integration\ Test\ Report/g' reports/integration-index.html
+    - sed -i -e 's/Reports\ Matrix/Functional\ Test\ Report/g' reports/functional-index.html
+    - sed -i -e 's/Reports\ Matrix/Full\ Test\ Report/g' reports/index.html
+    - cat reports/unit-index.html >> reports/index.html
+    - cat reports/integration-index.html >> reports/index.html
+    - cat reports/functional-index.html >> reports/index.html
     - if [ "$NV" == "1" ]; then cat heaptrack_report.html >> reports/index.html; fi
     - mkdir -p .public
-    - cp reports/*.html .public/
+    - cp reports/*ndex.html .public/
   artifacts:
     paths:
       - .public
