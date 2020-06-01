@@ -455,7 +455,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
       [=](client::CancellationContext context) -> SignInClientResponse {
     if (!settings_.network_request_handler) {
       return {{static_cast<int>(http::ErrorCode::IO_ERROR),
-               "Cannot introspect app while offline"}};
+               "Cannot sign in while offline"}};
     }
 
     client::OlpClientSettings settings;
