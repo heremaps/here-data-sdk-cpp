@@ -81,6 +81,7 @@ QuadTreeIndex::QuadTreeIndex(cache::KeyValueCache::ValueTypePtr data) {
     return;
   }
   data_ = reinterpret_cast<DataHeader*>(data->data());
+  raw_data_ = data;
   size_ = data->size();
 }
 

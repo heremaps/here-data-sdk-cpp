@@ -65,7 +65,9 @@ class QuadTreeIndex {
   boost::optional<IndexData> Find(const olp::geo::TileKey& tileKey,
                                   bool aggregated) const;
 
-  inline cache::KeyValueCache::ValueTypePtr GetRawData() { return raw_data_; }
+  inline const cache::KeyValueCache::ValueTypePtr GetRawData() const {
+    return raw_data_;
+  }
 
  private:
   struct SubEntry {

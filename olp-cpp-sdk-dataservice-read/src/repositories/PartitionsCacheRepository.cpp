@@ -60,6 +60,13 @@ std::string CreateKey(const std::string& hrn, const std::string& layer_id,
 std::string CreateKey(const std::string& hrn, const int64_t catalogVersion) {
   return hrn + "::" + std::to_string(catalogVersion) + "::layerVersions";
 }
+std::string CreateKey(const std::string& hrn, const std::string& layer,
+                      olp::geo::TileKey key, int32_t depth,
+                      const boost::optional<int64_t>& version) {
+  return hrn + "::" + layer + "::" + key.ToHereTile() +
+         "::" + (version ? std::to_string(*version) + "::" : "") +
+         std::to_string(depth) + "::quadtree";
+};
 
 time_t ConvertTime(std::chrono::seconds time) {
   return time == kChronoSecondsMax ? kTimetMax : time.count();
@@ -198,6 +205,33 @@ boost::optional<model::LayerVersions> PartitionsCacheRepository::Get(
   }
 
   return boost::any_cast<model::LayerVersions>(cached_layer_versions);
+}
+
+void PartitionsCacheRepository::Put(const std::string& layer,
+                                    geo::TileKey tile_key, int32_t depth,
+                                    const QuadTreeIndex& quad_tree,
+                                    const boost::optional<int64_t>& version) {
+  std::string hrn(hrn_.ToCatalogHRNString());
+  const auto key = CreateKey(hrn, layer, tile_key, depth, version);
+
+  if (quad_tree.IsNull()) {
+    OLP_SDK_LOG_WARNING_F(kLogTag, "Put: invalid QuadTreeIndex -> '%s'",
+                          key.c_str());
+    return;
+  }
+
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
+  cache_->Put(key, quad_tree.GetRawData(), default_expiry_);
+}
+
+QuadTreeIndex PartitionsCacheRepository::Get(
+    const std::string& layer, geo::TileKey tile_key, int32_t depth,
+    const boost::optional<int64_t>& version) {
+  std::string hrn(hrn_.ToCatalogHRNString());
+  auto key = CreateKey(hrn, layer, tile_key, depth, version);
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "Get -> '%s'", key.c_str());
+  auto data = cache_->Get(key);
+  return QuadTreeIndex(data);
 }
 
 void PartitionsCacheRepository::Clear(const std::string& layer_id) {
