@@ -21,6 +21,7 @@
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/NetworkMock.h>
 #include <olp/authentication/AuthenticationClient.h>
+#include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/http/NetworkConstants.h>
 #include <olp/core/porting/make_unique.h>
@@ -179,8 +180,14 @@ class AuthenticationClientTest : public ::testing::Test {
     std::promise<auth::AuthenticationClient::SignInClientResponse> request;
     auto request_future = request.get_future();
 
+    const bool is_retriable = olp::client::DefaultRetryCondition({http});
+
+    // First is GetTimeFromServer(). Second is actual SignIn.
+    // When the request is retriable, 3 more requests are fired.
+    const auto expected_number_of_calls = is_retriable ? 8 : 2;
+
     EXPECT_CALL(*network_, Send(_, _, _, _, _))
-        .Times(2)  // First is GetTimeFromServer(). Second is actual SignIn.
+        .Times(expected_number_of_calls)
         .WillRepeatedly(
             [&](olp::http::NetworkRequest /*request*/,
                 olp::http::Network::Payload payload,
