@@ -60,8 +60,7 @@ Network::Statistics Network::GetStatistics(uint8_t /*bucket_id*/) {
   return Network::Statistics{};
 }
 
-CORE_API std::shared_ptr<Network> CreateDefaultNetwork(
-    size_t max_requests_count) {
+std::shared_ptr<Network> CreateDefaultNetwork(size_t max_requests_count) {
   auto network = CreateDefaultNetworkImpl(max_requests_count);
   if (network) {
     return std::make_shared<DefaultNetwork>(network);

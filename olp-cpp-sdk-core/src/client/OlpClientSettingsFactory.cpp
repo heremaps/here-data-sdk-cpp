@@ -21,15 +21,19 @@
 
 #include "olp/core/cache/CacheSettings.h"
 #include "olp/core/cache/DefaultCache.h"
+#include "olp/core/client/OlpClientSettings.h"
 #include "olp/core/http/Network.h"
+#include "olp/core/http/NetworkConstants.h"
 #include "olp/core/logging/Log.h"
 #include "olp/core/porting/make_unique.h"
 #include "olp/core/thread/ThreadPoolTaskScheduler.h"
 
+namespace {
+auto constexpr kLogTag = "OlpClientSettingsFactory";
+}
+
 namespace olp {
 namespace client {
-
-auto constexpr kLogTag = "OlpClientSettingsFactory";
 
 std::unique_ptr<thread::TaskScheduler>
 OlpClientSettingsFactory::CreateDefaultTaskScheduler(size_t thread_count) {
@@ -56,6 +60,45 @@ OlpClientSettingsFactory::CreateDefaultCache(cache::CacheSettings settings) {
     return nullptr;
   }
   return cache;
+}
+
+void OlpClientSettingsFactory::PrewarmConnection(
+    const OlpClientSettings& settings, const std::string& url) {
+  if (url.empty() || !settings.network_request_handler) {
+    OLP_SDK_LOG_WARNING_F(kLogTag, "PrewarmConnection: invalid input, url='%s'",
+                          url.c_str());
+    return;
+  }
+
+  const auto& retry_settings = settings.retry_settings;
+  auto request_settings =
+      http::NetworkSettings()
+          .WithTransferTimeout(retry_settings.timeout)
+          .WithConnectionTimeout(retry_settings.timeout)
+          .WithProxySettings(
+              settings.proxy_settings.value_or(http::NetworkProxySettings()));
+
+  auto request =
+      http::NetworkRequest(url)
+          .WithVerb(http::NetworkRequest::HttpVerb::OPTIONS)
+          .WithBody(nullptr)
+          .WithSettings(std::move(request_settings))
+          .WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
+
+  auto outcome = settings.network_request_handler->Send(
+      request, nullptr, [url](http::NetworkResponse response) {
+        OLP_SDK_LOG_INFO_F(
+            kLogTag,
+            "PrewarmConnection: completed for url='%s', status='%d %s'",
+            url.c_str(), response.GetStatus(), response.GetError().c_str());
+      });
+
+  if (!outcome.IsSuccessful()) {
+    OLP_SDK_LOG_WARNING_F(
+        kLogTag,
+        "PrewarmConnection: sending OPTIONS failed, url='%s', error='%s'",
+        url.c_str(), ErrorCodeToString(outcome.GetErrorCode()).c_str());
+  }
 }
 
 }  // namespace client
