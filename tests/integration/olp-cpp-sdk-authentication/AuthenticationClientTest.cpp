@@ -322,7 +322,7 @@ TEST_F(AuthenticationClientTest, SignInClientUseWrongLocalTime) {
       .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload payload,
                     olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback /*header_callback*/,
+                    olp::http::Network::HeaderCallback header_callback,
                     olp::http::Network::DataCallback data_callback) {
         olp::http::RequestId request_id(5);
         if (payload) {
@@ -335,6 +335,9 @@ TEST_F(AuthenticationClientTest, SignInClientUseWrongLocalTime) {
           auto raw = const_cast<char*>(kResponseWrongTimestamp.c_str());
           data_callback(reinterpret_cast<uint8_t*>(raw), 0,
                         kResponseWrongTimestamp.size());
+        }
+        if (header_callback) {
+          header_callback("date", "Fri, 29 May 2020 11:07:45 GMT");
         }
 
         return olp::http::SendOutcome(request_id);
