@@ -19,20 +19,13 @@
 
 #include "NetworkCurl.h"
 
+#include <algorithm>
+#include <cstring>
+
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
-#include <cstring>
-#include <locale>
-#include <memory>
-#include <sstream>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include <curl/curl.h>
 
 #if defined(HAVE_SIGNAL_H)
 #include <signal.h>
@@ -50,7 +43,6 @@
 #endif
 #include "olp/core/http/NetworkUtils.h"
 #include "olp/core/logging/Log.h"
-#include "olp/core/porting/make_unique.h"
 #include "olp/core/porting/platform.h"
 #include "olp/core/utils/Dir.h"
 
@@ -226,12 +218,12 @@ NetworkCurl::NetworkCurl(size_t max_requests_count)
 
 NetworkCurl::~NetworkCurl() {
   OLP_SDK_LOG_TRACE(kLogTag, "Destroyed NetworkCurl object, this=" << this);
-    Deinitialize();
-    if (curl_initialized_) {
-      curl_global_cleanup();
-    }
-    if (stderr_) {
-      fclose(stderr_);
+  Deinitialize();
+  if (curl_initialized_) {
+    curl_global_cleanup();
+  }
+  if (stderr_) {
+    fclose(stderr_);
   }
 }
 
@@ -352,13 +344,13 @@ void NetworkCurl::Teardown() {
       handle.self.reset();
     }
 
-  // cURL teardown
-  curl_multi_cleanup(curl_);
-  curl_ = nullptr;
+    // cURL teardown
+    curl_multi_cleanup(curl_);
+    curl_ = nullptr;
 
 #if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
-  close(pipe_[0]);
-  close(pipe_[1]);
+    close(pipe_[0]);
+    close(pipe_[1]);
 #endif
   }
 
@@ -452,13 +444,12 @@ ErrorCode NetworkCurl::SendImplementation(
     return ErrorCode::NETWORK_OVERLOAD_ERROR;
   }
 
-  OLP_SDK_LOG_DEBUG(kLogTag, "Send request with url=" << request.GetUrl()
-                                                      << ", id=" << id);
+  OLP_SDK_LOG_DEBUG(
+      kLogTag, "Send request with url=" << request.GetUrl() << ", id=" << id);
 
   handle->transfer_timeout = config.GetTransferTimeout();
-  handle->max_retries = config.GetRetries();
-  handle->ignore_offset = false;   // request.IgnoreOffset();
-  handle->skip_content = false;    // config->SkipContentWhenError();
+  handle->ignore_offset = false;  // request.IgnoreOffset();
+  handle->skip_content = false;   // config->SkipContentWhenError();
 
   for (const auto& header : request.GetHeaders()) {
     std::ostringstream sstrm;
@@ -635,8 +626,8 @@ void NetworkCurl::AddEvent(EventInfo::Type type, RequestHandle* handle) {
                                                           << ", err=" << errno);
   }
 #else
-  OLP_SDK_LOG_WARNING(kLogTag, "AddEvent for id=" << handle->id
-                                                  << " - no pipe");
+  OLP_SDK_LOG_WARNING(kLogTag,
+                      "AddEvent for id=" << handle->id << " - no pipe");
 #endif
 }
 
@@ -666,19 +657,12 @@ NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
       handle.callback = callback;
       handle.header_callback = header_callback;
       handle.data_callback = data_callback;
-      handle.max_age = -1;
-      handle.expires = -1;
       handle.id = id;
       handle.count = 0;
       handle.offset = 0;
       handle.chunk = nullptr;
-      handle.range_out = false;
       handle.cancelled = false;
       handle.transfer_timeout = 30;
-      handle.retry_count = 0;
-      handle.etag.clear();
-      handle.content_type.clear();
-      handle.date.clear();
       handle.payload = std::move(payload);
       handle.body = std::move(body);
       handle.send_time = std::chrono::steady_clock::now();
@@ -717,8 +701,8 @@ size_t NetworkCurl::RxFunction(void* ptr, size_t size, size_t nmemb,
                                RequestHandle* handle) {
   const size_t len = size * nmemb;
 
-  OLP_SDK_LOG_TRACE(kLogTag, "Received " << len
-                                         << " bytes for id=" << handle->id);
+  OLP_SDK_LOG_TRACE(kLogTag,
+                    "Received " << len << " bytes for id=" << handle->id);
 
   std::shared_ptr<NetworkCurl> that = handle->self.lock();
   if (!that) {
@@ -731,7 +715,7 @@ size_t NetworkCurl::RxFunction(void* ptr, size_t size, size_t nmemb,
     return len;
   }
 
-  if (that->IsStarted() && !handle->range_out && !handle->cancelled) {
+  if (that->IsStarted() && !handle->cancelled) {
     if (handle->data_callback) {
       handle->data_callback(reinterpret_cast<uint8_t*>(ptr),
                             handle->offset + handle->count, len);
@@ -846,7 +830,8 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
         status = 200;
       }
       // for local file there is no server response so status is 0
-      if ((status == 0) && (result == CURLE_OK)) status = 200;
+      if ((status == 0) && (result == CURLE_OK))
+        status = 200;
       error = HttpErrorToString(status);
     } else {
       rhandle.error_text[CURL_ERROR_SIZE - 1] = '\0';
@@ -856,36 +841,11 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
         error = curl_easy_strerror(result);
       }
       status = ConvertErrorCode(result);
-      // it happens sporadically that some requests fail with errors
-      // "transfer closed with .... bytes remaining to read", after ~60
-      // seconds This might be a server or lower network layer terminating
-      // connection by timeout. Indicate such cases as timeouts, thus client
-      // code would be able to retry immediately
-      if (result == CURLE_PARTIAL_FILE) {
-        double time = 0;
-        CURLcode code =
-            curl_easy_getinfo(rhandle.handle, CURLINFO_TOTAL_TIME, &time);
-        if (code == CURLE_OK &&
-            time >= static_cast<double>(rhandle.transfer_timeout)) {
-          status =
-              static_cast<int>(ErrorCode::TIMEOUT_ERROR);  // Network::TimedOut;
-        }
-      }
     }
 
     const char* url;
     curl_easy_getinfo(rhandle.handle, CURLINFO_EFFECTIVE_URL, &url);
 
-    if ((status > 0) && ((status < 200) || (status >= 500))) {
-      if (!rhandle.cancelled && (rhandle.retry_count++ < rhandle.max_retries)) {
-        OLP_SDK_LOG_DEBUG(kLogTag, "Retrying request with id="
-                                       << rhandle.id << ", url=" << url
-                                       << " err=(" << status << ") " << error);
-        rhandle.count = 0;
-        AddEvent(EventInfo::Type::SEND_EVENT, &rhandle);
-        return;
-      }
-    }
     OLP_SDK_LOG_DEBUG(kLogTag, "Completed message id="
                                    << handles_[index].id << ", url=" << url
                                    << ", status=(" << status << ") " << error);
@@ -1010,8 +970,8 @@ void NetworkCurl::Run() {
           lock.lock();
         } else {
           // actually this part should never be executed.
-          OLP_SDK_LOG_ERROR(kLogTag, "Message complete with unknown state "
-                                         << msg->msg);
+          OLP_SDK_LOG_ERROR(kLogTag,
+                            "Message complete with unknown state " << msg->msg);
           int handle_index = GetHandleIndex(handle);
           if (handle_index >= 0) {
             if (!handles_[handle_index].callback) {
@@ -1093,7 +1053,7 @@ void NetworkCurl::Run() {
         }
       }
     }
-    }
+  }
 
   Teardown();
   {
