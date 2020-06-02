@@ -24,6 +24,7 @@
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/http/NetworkConstants.h>
+#include <olp/core/http/NetworkUtils.h>
 #include <olp/core/porting/make_unique.h>
 
 #include <future>
@@ -1083,111 +1084,98 @@ TEST_F(AuthenticationClientTest, TestInvalidResponses) {
 }
 
 TEST_F(AuthenticationClientTest, TestHttpRequestErrorCodes) {
-  ExecuteSigninRequest(olp::http::HttpStatusCode::ACCEPTED,
-                       olp::http::HttpStatusCode::ACCEPTED, kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::CREATED,
-                       olp::http::HttpStatusCode::CREATED, kErrorUndefined,
+  auto status = olp::http::HttpStatusCode::ACCEPTED;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::CREATED;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status),
                        kResponseCreated);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::NON_AUTHORITATIVE_INFORMATION,
-                       olp::http::HttpStatusCode::NON_AUTHORITATIVE_INFORMATION,
-                       kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::NO_CONTENT,
-                       olp::http::HttpStatusCode::NO_CONTENT, kErrorUndefined,
+  status = olp::http::HttpStatusCode::NON_AUTHORITATIVE_INFORMATION;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::NO_CONTENT;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status),
                        kResponseNoContent);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::RESET_CONTENT,
-                       olp::http::HttpStatusCode::RESET_CONTENT,
-                       kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::PARTIAL_CONTENT,
-                       olp::http::HttpStatusCode::PARTIAL_CONTENT,
-                       kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::MULTIPLE_CHOICES,
-                       olp::http::HttpStatusCode::MULTIPLE_CHOICES,
-                       kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::MOVED_PERMANENTLY,
-                       olp::http::HttpStatusCode::MOVED_PERMANENTLY,
-                       kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::FOUND,
-                       olp::http::HttpStatusCode::FOUND, kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::SEE_OTHER,
-                       olp::http::HttpStatusCode::SEE_OTHER, kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::NOT_MODIFIED,
-                       olp::http::HttpStatusCode::NOT_MODIFIED,
-                       kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::USE_PROXY,
-                       olp::http::HttpStatusCode::USE_PROXY, kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::BAD_REQUEST,
-                       olp::http::HttpStatusCode::BAD_REQUEST,
-                       kErrorBadRequestMessage, kResponseBadRequest,
+  status = olp::http::HttpStatusCode::RESET_CONTENT;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::PARTIAL_CONTENT;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::MULTIPLE_CHOICES;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::MOVED_PERMANENTLY;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::FOUND;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::SEE_OTHER;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::NOT_MODIFIED;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::USE_PROXY;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::BAD_REQUEST;
+  ExecuteSigninRequest(status, status, "Invalid JSON.", kResponseBadRequest,
                        kErrorBadRequestCode);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::UNAUTHORIZED,
-                       olp::http::HttpStatusCode::UNAUTHORIZED,
-                       kErrorUnathorizedMessage, kResponseUnauthorized,
-                       kErrorUnauthorizedCode);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::PAYMENT_REQUIRED,
-                       olp::http::HttpStatusCode::PAYMENT_REQUIRED,
-                       kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::NOT_FOUND,
-                       olp::http::HttpStatusCode::NOT_FOUND, kErrorUserNotFound,
+  status = olp::http::HttpStatusCode::UNAUTHORIZED;
+  ExecuteSigninRequest(status, status,
+                       "Signature mismatch. Authorization signature or client "
+                       "credential is wrong.",
+                       kResponseUnauthorized, kErrorUnauthorizedCode);
+  status = olp::http::HttpStatusCode::PAYMENT_REQUIRED;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::NOT_FOUND;
+  ExecuteSigninRequest(status, status,
+                       "User for the given access token cannot be found.",
                        kResponseNotFound, kErrorNotFoundCode);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::METHOD_NOT_ALLOWED,
-                       olp::http::HttpStatusCode::METHOD_NOT_ALLOWED,
-                       kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::FORBIDDEN,
-                       olp::http::HttpStatusCode::FORBIDDEN, kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::NOT_ACCEPTABLE,
-                       olp::http::HttpStatusCode::NOT_ACCEPTABLE,
-                       kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::PROXY_AUTHENTICATION_REQUIRED,
-                       olp::http::HttpStatusCode::PROXY_AUTHENTICATION_REQUIRED,
-                       kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::REQUEST_TIMEOUT,
-                       olp::http::HttpStatusCode::REQUEST_TIMEOUT,
-                       kErrorUndefined);
+  status = olp::http::HttpStatusCode::METHOD_NOT_ALLOWED;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::FORBIDDEN;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::NOT_ACCEPTABLE;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::PROXY_AUTHENTICATION_REQUIRED;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::REQUEST_TIMEOUT;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::CONFLICT;
   ExecuteSigninRequest(
-      olp::http::HttpStatusCode::CONFLICT, olp::http::HttpStatusCode::CONFLICT,
-      kErrorConfliceMessage, kResponseConflict, kErrorConfliceCode);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::GONE,
-                       olp::http::HttpStatusCode::GONE, kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::LENGTH_REQUIRED,
-                       olp::http::HttpStatusCode::LENGTH_REQUIRED,
-                       kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::PRECONDITION_FAILED,
-                       olp::http::HttpStatusCode::PRECONDITION_FAILED,
-                       kErrorPreconditionFailedMessage,
+      status, status,
+      "A password account with the specified email address already exists.",
+      kResponseConflict, kErrorConfliceCode);
+
+  status = olp::http::HttpStatusCode::GONE;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::LENGTH_REQUIRED;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::PRECONDITION_FAILED;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status),
                        kResponsePreconditionFailed);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::REQUEST_ENTITY_TOO_LARGE,
-                       olp::http::HttpStatusCode::REQUEST_ENTITY_TOO_LARGE,
-                       kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::REQUEST_URI_TOO_LONG,
-                       olp::http::HttpStatusCode::REQUEST_URI_TOO_LONG,
-                       kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::UNSUPPORTED_MEDIA_TYPE,
-                       olp::http::HttpStatusCode::UNSUPPORTED_MEDIA_TYPE,
-                       kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::TOO_MANY_REQUESTS,
-                       olp::http::HttpStatusCode::TOO_MANY_REQUESTS,
-                       kErrorTooManyRequestsMessage, kResponseTooManyRequests,
-                       kErrorTooManyRequestsCode);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::INTERNAL_SERVER_ERROR,
-                       olp::http::HttpStatusCode::INTERNAL_SERVER_ERROR,
-                       kErrorInternvalServerMessage,
+  status = olp::http::HttpStatusCode::REQUEST_ENTITY_TOO_LARGE;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::REQUEST_URI_TOO_LONG;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::UNSUPPORTED_MEDIA_TYPE;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::TOO_MANY_REQUESTS;
+  ExecuteSigninRequest(status, status,
+                       "Request blocked because too many requests were made. "
+                       "Please wait for a while before making a new request.",
+                       kResponseTooManyRequests, kErrorTooManyRequestsCode);
+  status = olp::http::HttpStatusCode::INTERNAL_SERVER_ERROR;
+  ExecuteSigninRequest(status, status, "Missing Thing Encrypted Secret.",
                        kResponseInternalServerError, kErrorInternalServerCode);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::NOT_IMPLEMENTED,
-                       olp::http::HttpStatusCode::NOT_IMPLEMENTED,
-                       kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::BAD_GATEWAY,
-                       olp::http::HttpStatusCode::BAD_GATEWAY, kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::SERVICE_UNAVAILABLE,
-                       olp::http::HttpStatusCode::SERVICE_UNAVAILABLE,
-                       kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::GATEWAY_TIMEOUT,
-                       olp::http::HttpStatusCode::GATEWAY_TIMEOUT,
-                       kErrorUndefined);
-  ExecuteSigninRequest(olp::http::HttpStatusCode::VERSION_NOT_SUPPORTED,
-                       olp::http::HttpStatusCode::VERSION_NOT_SUPPORTED,
-                       kErrorUndefined);
-  ExecuteSigninRequest(100000, 100000, kErrorUndefined);
-  ExecuteSigninRequest(-100000, -100000, kErrorUndefined);
+
+  status = olp::http::HttpStatusCode::NOT_IMPLEMENTED;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::BAD_GATEWAY;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::SERVICE_UNAVAILABLE;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::GATEWAY_TIMEOUT;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  status = olp::http::HttpStatusCode::VERSION_NOT_SUPPORTED;
+  ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
+  auto st = 100000;
+  ExecuteSigninRequest(st, st, olp::http::HttpErrorToString(st));
+  st = -100000;
+  ExecuteSigninRequest(st, st, olp::http::HttpErrorToString(st));
 }
 
 TEST_F(AuthenticationClientTest, IntrospectApp) {
