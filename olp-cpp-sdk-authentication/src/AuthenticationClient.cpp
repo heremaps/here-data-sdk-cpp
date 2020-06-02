@@ -452,6 +452,20 @@ AuthenticationClient::Impl::~Impl() { pending_requests_->CancelAllAndWait(); }
 client::CancellationToken AuthenticationClient::Impl::SignInClient(
     AuthenticationCredentials credentials, SignInProperties properties,
     AuthenticationClient::SignInClientCallback callback) {
+  auto create_olp_client =
+      [](const AuthenticationSettings& auth_settings) -> client::OlpClient {
+    client::OlpClientSettings settings;
+    settings.network_request_handler = auth_settings.network_request_handler;
+    settings.proxy_settings = auth_settings.network_proxy_settings;
+    settings.retry_settings.backdown_strategy =
+        olp::client::ExponentialBackdownStrategy();
+
+    client::OlpClient client;
+    client.SetBaseUrl(auth_settings.token_endpoint_url);
+    client.SetSettings(std::move(settings));
+    return client;
+  };
+
   auto sign_in_task =
       [=](client::CancellationContext context) -> SignInClientResponse {
     if (!settings_.network_request_handler) {
@@ -459,15 +473,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
                "Cannot sign in while offline"}};
     }
 
-    client::OlpClientSettings settings;
-    settings.network_request_handler = settings_.network_request_handler;
-    settings.proxy_settings = settings_.network_proxy_settings;
-    settings.retry_settings.backdown_strategy =
-        olp::client::ExponentialBackdownStrategy();
-
-    client::OlpClient client;
-    client.SetBaseUrl(settings_.token_endpoint_url);
-    client.SetSettings(std::move(settings));
+    client::OlpClient client = create_olp_client(settings_);
 
     std::time_t timestamp =
         std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
