@@ -49,6 +49,7 @@
 #include "olp/core/http/NetworkConstants.h"
 #include "olp/core/http/NetworkRequest.h"
 #include "olp/core/http/NetworkResponse.h"
+#include "olp/core/http/NetworkUtils.h"
 #include "olp/core/porting/make_unique.h"
 #include "olp/core/thread/Atomic.h"
 #include "olp/core/thread/TaskScheduler.h"
@@ -498,7 +499,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
       }
 
       auto cached_response = client_token_cache_->locked(
-          [credentials](utils::LruCache<std::string, SignInResult>& c)
+          [&](utils::LruCache<std::string, SignInResult>& c)
               -> boost::optional<SignInResult> {
             auto it = c.Find(credentials.GetKey());
             return it != c.end() ? boost::make_optional(it->value())
@@ -515,16 +516,14 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
     auto document = std::make_shared<rapidjson::Document>();
     rapidjson::IStreamWrapper stream(auth_response.response);
     document->ParseStream(stream);
-
-    std::shared_ptr<SignInResultImpl> resp_impl =
-        std::make_shared<SignInResultImpl>(status, "", document);
+    auto resp_impl = std::make_shared<SignInResultImpl>(
+        status, olp::http::HttpErrorToString(status), document);
     SignInResult response(resp_impl);
 
     if (status == http::HttpStatusCode::OK) {
       // Cache the response
       client_token_cache_->locked(
-          [credentials,
-           &response](utils::LruCache<std::string, SignInResult>& c) {
+          [&](utils::LruCache<std::string, SignInResult>& c) {
             return c.InsertOrAssign(credentials.GetKey(), response);
           });
     }

@@ -223,6 +223,8 @@ TEST_F(AuthenticationClientTest, SignInClient) {
   AuthenticationClient::SignInClientResponse response =
       SignInClient(credentials, now, kExpiryTime);
   EXPECT_EQ(olp::http::HttpStatusCode::OK, response.GetResult().GetStatus());
+  EXPECT_STREQ(kErrorOk.c_str(),
+               response.GetResult().GetErrorResponse().message.c_str());
   EXPECT_FALSE(response.GetResult().GetAccessToken().empty());
   EXPECT_GE(now + kMaxExpiry, response.GetResult().GetExpiryTime());
   EXPECT_LT(now + kMinExpiry, response.GetResult().GetExpiryTime());
@@ -261,6 +263,8 @@ TEST_F(AuthenticationClientTest, SignInClientMaxExpiration) {
   AuthenticationClient::SignInClientResponse response =
       SignInClient(credentials, now);
   EXPECT_EQ(olp::http::HttpStatusCode::OK, response.GetResult().GetStatus());
+  EXPECT_STREQ(kErrorOk.c_str(),
+               response.GetResult().GetErrorResponse().message.c_str());
   EXPECT_FALSE(response.GetResult().GetAccessToken().empty());
   EXPECT_GE(now + kMaxLimitExpiry, response.GetResult().GetExpiryTime());
   EXPECT_LT(now + kMinLimitExpiry, response.GetResult().GetExpiryTime());
@@ -351,6 +355,8 @@ TEST_F(AuthenticationClientTest, SignUpInUser) {
 
   AuthenticationClient::SignInUserResponse response3 = SignInUser(email);
   EXPECT_EQ(olp::http::HttpStatusCode::OK, response3.GetResult().GetStatus());
+  EXPECT_STREQ(kErrorOk.c_str(),
+               response3.GetResult().GetErrorResponse().message.c_str());
   EXPECT_FALSE(response3.GetResult().GetAccessToken().empty());
   EXPECT_FALSE(response3.GetResult().GetTokenType().empty());
   EXPECT_FALSE(response3.GetResult().GetRefreshToken().empty());
@@ -631,6 +637,7 @@ TEST_F(AuthenticationClientTest, NetworkProxySettings) {
   EXPECT_FALSE(response.IsSuccessful());
   EXPECT_TRUE(response.GetError().GetErrorCode() ==
               olp::client::ErrorCode::ServiceUnavailable);
+  EXPECT_STRNE(response.GetError().GetMessage().c_str(), kErrorOk.c_str());
 }
 
 TEST_F(AuthenticationClientTest, ErrorFields) {
