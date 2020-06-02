@@ -49,6 +49,7 @@
 #include "olp/core/http/NetworkConstants.h"
 #include "olp/core/http/NetworkRequest.h"
 #include "olp/core/http/NetworkResponse.h"
+#include "olp/core/http/NetworkUtils.h"
 #include "olp/core/porting/make_unique.h"
 #include "olp/core/thread/Atomic.h"
 #include "olp/core/thread/TaskScheduler.h"
@@ -311,6 +312,20 @@ auth::AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc) {
   return result;
 }
 
+olp::client::OlpClient CreateOlpClient(
+    const auth::AuthenticationSettings& auth_settings) {
+  olp::client::OlpClientSettings settings;
+  settings.network_request_handler = auth_settings.network_request_handler;
+  settings.proxy_settings = auth_settings.network_proxy_settings;
+  settings.retry_settings.backdown_strategy =
+      olp::client::ExponentialBackdownStrategy();
+
+  olp::client::OlpClient client;
+  client.SetBaseUrl(auth_settings.token_endpoint_url);
+  client.SetSettings(std::move(settings));
+  return client;
+}
+
 }  // namespace
 
 namespace olp {
@@ -392,7 +407,7 @@ class AuthenticationClient::Impl final {
                                       AuthorizeCallback callback);
 
  private:
-  using TimeResponse = client::ApiResponse<time_t, AuthenticationError>;
+  using TimeResponse = client::ApiResponse<time_t, client::ApiError>;
   using TimeCallback = std::function<void(TimeResponse)>;
 
   TimeResponse GetTimeFromServer(client::CancellationContext context,
@@ -458,16 +473,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
                "Cannot sign in while offline"}};
     }
 
-    client::OlpClientSettings settings;
-    settings.network_request_handler = settings_.network_request_handler;
-    settings.proxy_settings = settings_.network_proxy_settings;
-    settings.retry_settings.backdown_strategy =
-        olp::client::ExponentialBackdownStrategy();
-
-    client::OlpClient client;
-    client.SetBaseUrl(settings_.token_endpoint_url);
-    client.SetSettings(std::move(settings));
-
+    client::OlpClient client = CreateOlpClient(settings_);
     using ProcessReturnHeaders = std::function<void(const olp::http::Headers&)>;
 
     auto call_sign_in_request = [&](std::time_t& in_timestamp,
@@ -486,7 +492,6 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
       if (get_timestamp) {
         get_timestamp(auth_response.headers);
       }
-
       const auto status = auth_response.status;
 
       if (status < 0) {
@@ -497,7 +502,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
         }
 
         auto cached_response = client_token_cache_->locked(
-            [credentials](utils::LruCache<std::string, SignInResult>& c)
+            [&](utils::LruCache<std::string, SignInResult>& c)
                 -> boost::optional<SignInResult> {
               auto it = c.Find(credentials.GetKey());
               return it != c.end() ? boost::make_optional(it->value())
@@ -514,23 +519,20 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
       auto document = std::make_shared<rapidjson::Document>();
       rapidjson::IStreamWrapper stream(auth_response.response);
       document->ParseStream(stream);
-
-      std::shared_ptr<SignInResultImpl> resp_impl =
-          std::make_shared<SignInResultImpl>(status, "", document);
+      auto resp_impl = std::make_shared<SignInResultImpl>(
+          status, olp::http::HttpErrorToString(status), document);
       SignInResult response(resp_impl);
 
       if (status == http::HttpStatusCode::OK) {
         // Cache the response
         client_token_cache_->locked(
-            [credentials,
-             &response](utils::LruCache<std::string, SignInResult>& c) {
+            [&](utils::LruCache<std::string, SignInResult>& c) {
               return c.InsertOrAssign(credentials.GetKey(), response);
             });
       }
 
       return response;
     };
-
     std::time_t timestamp = 0;
     std::time_t timestamp_from_header = 0;
     ProcessReturnHeaders get_timestamp_from_headers = nullptr;

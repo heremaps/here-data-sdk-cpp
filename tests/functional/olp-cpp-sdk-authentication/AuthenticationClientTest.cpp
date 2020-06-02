@@ -58,6 +58,7 @@ class AuthenticationClientTest : public AuthenticationCommonTestFixture {
       now = std::time(nullptr);
 
       AuthenticationClient::SignInProperties props;
+
       props.expires_in = std::chrono::seconds(expires_in);
 
       auto cancel_token = client_->SignInClient(
@@ -253,6 +254,52 @@ TEST_F(AuthenticationClientTest, SignInClient) {
   EXPECT_TRUE(response_3.GetResult().GetUserIdentifier().empty());
 }
 
+TEST_F(AuthenticationClientTest, SignInClientLocalTime) {
+  AuthenticationCredentials credentials(id_, secret_);
+  std::time_t now;
+
+  // Override the default client with new settings.
+  AuthenticationSettings settings;
+  settings.network_request_handler = network_;
+  settings.task_scheduler = task_scheduler_;
+  settings.token_endpoint_url = kHereAccountStagingURL;
+  settings.use_system_time = true;
+  client_ = std::make_unique<AuthenticationClient>(settings);
+
+  AuthenticationClient::SignInClientResponse response =
+      SignInClient(credentials, now, kExpiryTime);
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response.GetResult().GetStatus());
+  EXPECT_STREQ(kErrorOk.c_str(),
+               response.GetResult().GetErrorResponse().message.c_str());
+  EXPECT_FALSE(response.GetResult().GetAccessToken().empty());
+  EXPECT_GE(now + kMaxExpiry, response.GetResult().GetExpiryTime());
+  EXPECT_LT(now + kMinExpiry, response.GetResult().GetExpiryTime());
+  EXPECT_FALSE(response.GetResult().GetTokenType().empty());
+  EXPECT_TRUE(response.GetResult().GetRefreshToken().empty());
+  EXPECT_TRUE(response.GetResult().GetUserIdentifier().empty());
+  now = std::time(nullptr);
+  AuthenticationClient::SignInClientResponse response_2 =
+      SignInClient(credentials, now, kExtendedExpiryTime);
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response_2.GetResult().GetStatus());
+  EXPECT_FALSE(response_2.GetResult().GetAccessToken().empty());
+  EXPECT_GE(now + kMaxExtendedExpiry, response_2.GetResult().GetExpiryTime());
+  EXPECT_LT(now + kMinExtendedExpiry, response_2.GetResult().GetExpiryTime());
+  EXPECT_FALSE(response_2.GetResult().GetTokenType().empty());
+  EXPECT_TRUE(response_2.GetResult().GetRefreshToken().empty());
+  EXPECT_TRUE(response_2.GetResult().GetUserIdentifier().empty());
+
+  now = std::time(nullptr);
+  AuthenticationClient::SignInClientResponse response_3 =
+      SignInClient(credentials, now, kCustomExpiryTime);
+  EXPECT_EQ(olp::http::HttpStatusCode::OK, response_3.GetResult().GetStatus());
+  EXPECT_FALSE(response_3.GetResult().GetAccessToken().empty());
+  EXPECT_GE(now + kMaxCustomExpiry, response_3.GetResult().GetExpiryTime());
+  EXPECT_LT(now + kMinCustomExpiry, response_3.GetResult().GetExpiryTime());
+  EXPECT_FALSE(response_3.GetResult().GetTokenType().empty());
+  EXPECT_TRUE(response_3.GetResult().GetRefreshToken().empty());
+  EXPECT_TRUE(response_3.GetResult().GetUserIdentifier().empty());
+}
+
 TEST_F(AuthenticationClientTest, SignInClientMaxExpiration) {
   // Test maximum token expiration 24 h
   AuthenticationCredentials credentials(id_, secret_);
@@ -261,6 +308,8 @@ TEST_F(AuthenticationClientTest, SignInClientMaxExpiration) {
   AuthenticationClient::SignInClientResponse response =
       SignInClient(credentials, now);
   EXPECT_EQ(olp::http::HttpStatusCode::OK, response.GetResult().GetStatus());
+  EXPECT_STREQ(kErrorOk.c_str(),
+               response.GetResult().GetErrorResponse().message.c_str());
   EXPECT_FALSE(response.GetResult().GetAccessToken().empty());
   EXPECT_GE(now + kMaxLimitExpiry, response.GetResult().GetExpiryTime());
   EXPECT_LT(now + kMinLimitExpiry, response.GetResult().GetExpiryTime());
@@ -368,10 +417,10 @@ TEST_F(AuthenticationClientTest, SignUpInUser) {
 
   AuthenticationClient::SignInUserResponse response5 = SignInUser(email);
   // According to the AAA team, we should expect one of 401 or 404 status.
-  using namespace testing;
-  EXPECT_THAT(response5.GetResult().GetStatus(),
-              AnyOf(Eq(olp::http::HttpStatusCode::UNAUTHORIZED),
-                    Eq(olp::http::HttpStatusCode::NOT_FOUND)))
+  EXPECT_THAT(
+      response5.GetResult().GetStatus(),
+      testing::AnyOf(testing::Eq(olp::http::HttpStatusCode::UNAUTHORIZED),
+                     testing::Eq(olp::http::HttpStatusCode::NOT_FOUND)))
       << GetErrorId(response5);
   EXPECT_EQ(kErrorAccountNotFoundCode,
             response5.GetResult().GetErrorResponse().code)
@@ -520,10 +569,10 @@ TEST_F(AuthenticationClientTest, SignInRefresh) {
 
   AuthenticationClient::SignInUserResponse response7 = SignInUser(email);
   // According to the AAA team, we should expect one of 401 or 404 status.
-  using namespace testing;
-  EXPECT_THAT(response7.GetResult().GetStatus(),
-              AnyOf(Eq(olp::http::HttpStatusCode::UNAUTHORIZED),
-                    Eq(olp::http::HttpStatusCode::NOT_FOUND)))
+  EXPECT_THAT(
+      response7.GetResult().GetStatus(),
+      testing::AnyOf(testing::Eq(olp::http::HttpStatusCode::UNAUTHORIZED),
+                     testing::Eq(olp::http::HttpStatusCode::NOT_FOUND)))
       << GetErrorId(response7);
   EXPECT_EQ(kErrorAccountNotFoundCode,
             response7.GetResult().GetErrorResponse().code)
