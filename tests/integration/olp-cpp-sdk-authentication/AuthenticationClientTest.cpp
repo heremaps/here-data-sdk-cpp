@@ -1111,19 +1111,16 @@ TEST_F(AuthenticationClientTest, TestHttpRequestErrorCodes) {
   status = olp::http::HttpStatusCode::USE_PROXY;
   ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
   status = olp::http::HttpStatusCode::BAD_REQUEST;
-  ExecuteSigninRequest(status, status, "Invalid JSON.", kResponseBadRequest,
-                       kErrorBadRequestCode);
+  ExecuteSigninRequest(status, status, kErrorBadRequestMessage,
+                       kResponseBadRequest, kErrorBadRequestCode);
   status = olp::http::HttpStatusCode::UNAUTHORIZED;
-  ExecuteSigninRequest(status, status,
-                       "Signature mismatch. Authorization signature or client "
-                       "credential is wrong.",
+  ExecuteSigninRequest(status, status, kErrorUnathorizedMessage,
                        kResponseUnauthorized, kErrorUnauthorizedCode);
   status = olp::http::HttpStatusCode::PAYMENT_REQUIRED;
   ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
   status = olp::http::HttpStatusCode::NOT_FOUND;
-  ExecuteSigninRequest(status, status,
-                       "User for the given access token cannot be found.",
-                       kResponseNotFound, kErrorNotFoundCode);
+  ExecuteSigninRequest(status, status, kErrorUserNotFound, kResponseNotFound,
+                       kErrorNotFoundCode);
   status = olp::http::HttpStatusCode::METHOD_NOT_ALLOWED;
   ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
   status = olp::http::HttpStatusCode::FORBIDDEN;
@@ -1135,10 +1132,8 @@ TEST_F(AuthenticationClientTest, TestHttpRequestErrorCodes) {
   status = olp::http::HttpStatusCode::REQUEST_TIMEOUT;
   ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
   status = olp::http::HttpStatusCode::CONFLICT;
-  ExecuteSigninRequest(
-      status, status,
-      "A password account with the specified email address already exists.",
-      kResponseConflict, kErrorConfliceCode);
+  ExecuteSigninRequest(status, status, kErrorConfliceMessage, kResponseConflict,
+                       kErrorConfliceCode);
 
   status = olp::http::HttpStatusCode::GONE;
   ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
@@ -1154,12 +1149,10 @@ TEST_F(AuthenticationClientTest, TestHttpRequestErrorCodes) {
   status = olp::http::HttpStatusCode::UNSUPPORTED_MEDIA_TYPE;
   ExecuteSigninRequest(status, status, olp::http::HttpErrorToString(status));
   status = olp::http::HttpStatusCode::TOO_MANY_REQUESTS;
-  ExecuteSigninRequest(status, status,
-                       "Request blocked because too many requests were made. "
-                       "Please wait for a while before making a new request.",
+  ExecuteSigninRequest(status, status, kErrorTooManyRequestsMessage,
                        kResponseTooManyRequests, kErrorTooManyRequestsCode);
   status = olp::http::HttpStatusCode::INTERNAL_SERVER_ERROR;
-  ExecuteSigninRequest(status, status, "Missing Thing Encrypted Secret.",
+  ExecuteSigninRequest(status, status, kErrorInternvalServerMessage,
                        kResponseInternalServerError, kErrorInternalServerCode);
 
   status = olp::http::HttpStatusCode::NOT_IMPLEMENTED;
