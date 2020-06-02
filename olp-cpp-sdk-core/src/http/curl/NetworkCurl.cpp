@@ -509,8 +509,6 @@ ErrorCode NetworkCurl::SendImplementation(
     }
   }
 
-  bool sys_dont_verify_certificate = true;
-
   const auto& proxy = config.GetProxySettings();
   if (proxy.GetType() != NetworkProxySettings::Type::NONE) {
     curl_easy_setopt(handle->handle, CURLOPT_PROXY,
@@ -551,16 +549,11 @@ ErrorCode NetworkCurl::SendImplementation(
   }
 #endif
 
-  if (sys_dont_verify_certificate) {
-    curl_easy_setopt(handle->handle, CURLOPT_SSL_VERIFYPEER, 0L);
-    curl_easy_setopt(handle->handle, CURLOPT_SSL_VERIFYHOST, 0L);
-  } else {
-    curl_easy_setopt(handle->handle, CURLOPT_SSL_VERIFYPEER, 1L);
-    curl_easy_setopt(handle->handle, CURLOPT_SSL_VERIFYHOST, 2L);
+  curl_easy_setopt(handle->handle, CURLOPT_SSL_VERIFYPEER, 1L);
+  curl_easy_setopt(handle->handle, CURLOPT_SSL_VERIFYHOST, 2L);
 #ifdef NETWORK_USE_TIMEPROVIDER
-    curl_easy_setopt(handle->handle, CURLOPT_SSL_CTX_FUNCTION, SslctxFunction);
+  curl_easy_setopt(handle->handle, CURLOPT_SSL_CTX_FUNCTION, SslctxFunction);
 #endif
-  }
 
   curl_easy_setopt(handle->handle, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt(handle->handle, CURLOPT_CONNECTTIMEOUT,
