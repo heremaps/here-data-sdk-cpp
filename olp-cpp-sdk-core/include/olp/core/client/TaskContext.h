@@ -122,8 +122,7 @@ class CORE_API TaskContext {
    */
   void SetExecutors(Exec execute_func, Callback callback,
                     client::CancellationContext context) {
-    impl_ = std::make_shared<TaskContextImpl<typename ExecResult::ResultType,
-                                             typename ExecResult::ErrorType>>(
+    impl_ = std::make_shared<TaskContextImpl<typename ExecResult::ResultType>>(
         std::move(execute_func), std::move(callback), std::move(context));
   }
 
@@ -168,11 +167,11 @@ class CORE_API TaskContext {
    *
    * @tparam T The result type.
    */
-  template <typename T, typename ErrorType = client::ApiError>
+  template <typename T>
   class TaskContextImpl : public Impl {
    public:
     /// Wraps the `T` typename in the API response.
-    using Response = client::ApiResponse<T, ErrorType>;
+    using Response = client::ApiResponse<T, client::ApiError>;
     /// The task that produces the `Response` instance.
     using ExecuteFunc = std::function<Response(client::CancellationContext)>;
     /// Consumes the `Response` instance.
@@ -218,7 +217,7 @@ class CORE_API TaskContext {
       }
 
       Response user_response =
-          ErrorType(client::ErrorCode::Cancelled, "Cancelled");
+          client::ApiError(client::ErrorCode::Cancelled, "Cancelled");
 
       if (function && !context_.IsCancelled()) {
         auto response = function(context_);

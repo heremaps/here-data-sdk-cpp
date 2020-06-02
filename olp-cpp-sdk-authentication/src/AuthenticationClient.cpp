@@ -392,7 +392,7 @@ class AuthenticationClient::Impl final {
                                       AuthorizeCallback callback);
 
  private:
-  using TimeResponse = client::ApiResponse<time_t, AuthenticationError>;
+  using TimeResponse = client::ApiResponse<time_t, client::ApiError>;
   using TimeCallback = std::function<void(TimeResponse)>;
 
   TimeResponse GetTimeFromServer(client::CancellationContext context,
