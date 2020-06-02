@@ -277,6 +277,7 @@ TEST_F(AuthenticationClientTest, SignInClientLocalTime) {
   EXPECT_FALSE(response.GetResult().GetTokenType().empty());
   EXPECT_TRUE(response.GetResult().GetRefreshToken().empty());
   EXPECT_TRUE(response.GetResult().GetUserIdentifier().empty());
+
   now = std::time(nullptr);
   AuthenticationClient::SignInClientResponse response_2 =
       SignInClient(credentials, now, kExtendedExpiryTime);
@@ -400,6 +401,8 @@ TEST_F(AuthenticationClientTest, SignUpInUser) {
 
   AuthenticationClient::SignInUserResponse response3 = SignInUser(email);
   EXPECT_EQ(olp::http::HttpStatusCode::OK, response3.GetResult().GetStatus());
+  EXPECT_STREQ(kErrorOk.c_str(),
+               response3.GetResult().GetErrorResponse().message.c_str());
   EXPECT_FALSE(response3.GetResult().GetAccessToken().empty());
   EXPECT_FALSE(response3.GetResult().GetTokenType().empty());
   EXPECT_FALSE(response3.GetResult().GetRefreshToken().empty());
@@ -680,6 +683,7 @@ TEST_F(AuthenticationClientTest, NetworkProxySettings) {
   EXPECT_FALSE(response.IsSuccessful());
   EXPECT_TRUE(response.GetError().GetErrorCode() ==
               olp::client::ErrorCode::ServiceUnavailable);
+  EXPECT_STRNE(response.GetError().GetMessage().c_str(), kErrorOk.c_str());
 }
 
 TEST_F(AuthenticationClientTest, ErrorFields) {
