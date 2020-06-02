@@ -25,6 +25,7 @@
 #include <rapidjson/writer.h>
 
 #include <chrono>
+#include <iomanip>
 #include <sstream>
 
 #include <boost/uuid/uuid.hpp>
@@ -118,6 +119,19 @@ constexpr auto kOperator = "operator";
 // Values
 constexpr auto kVersion = "1.0";
 constexpr auto kHmac = "HMAC-SHA256";
+constexpr auto kDate = "date";
+constexpr auto kErrorWrongTimestamp = 401204;
+
+std::time_t ParseTime(const std::string& value) {
+  std::tm tm = {};
+  std::istringstream ss(value);
+  ss >> std::get_time(&tm, "%a, %d %b %Y %H:%M:%S %z");
+#ifdef _WIN32
+  return _mkgmtime(&tm);
+#else
+  return timegm(&tm);
+#endif
+}
 
 void ExecuteOrSchedule(
     const std::shared_ptr<olp::thread::TaskScheduler>& task_scheduler,
