@@ -26,6 +26,7 @@
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/model/Partitions.h>
 #include <boost/optional.hpp>
+#include "QuadTreeIndex.h"
 #include "generated/model/LayerVersions.h"
 
 namespace olp {
@@ -58,6 +59,13 @@ class PartitionsCacheRepository final {
   void Put(int64_t catalogVersion, const model::LayerVersions& layerVersions);
 
   boost::optional<model::LayerVersions> Get(int64_t catalogVersion);
+
+  void Put(const std::string& layer, geo::TileKey key, int32_t depth,
+           const QuadTreeIndex& quad_tree,
+           const boost::optional<int64_t>& version);
+
+  QuadTreeIndex Get(const std::string& layer, geo::TileKey key, int32_t depth,
+                    const boost::optional<int64_t>& version);
 
   void Clear(const std::string& layer_id);
 
