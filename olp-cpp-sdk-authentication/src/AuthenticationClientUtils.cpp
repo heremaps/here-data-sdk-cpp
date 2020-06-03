@@ -193,7 +193,7 @@ IntrospectAppResult GetIntrospectAppResult(const rapidjson::Document& doc) {
   return result;
 }
 
-DecisionType GetPermission(const std::string& str) {
+DecisionType GetDecision(const std::string& str) {
   return (str.compare("allow") == 0) ? DecisionType::kAllow
                                      : DecisionType::kDeny;
 }
@@ -205,22 +205,26 @@ std::vector<ActionResult> GetDiagnostics(rapidjson::Document& doc) {
     ActionResult action;
     if (element.HasMember(Constants::DECISION)) {
       action.SetDecision(
-          GetPermission(element[Constants::DECISION].GetString()));
+          GetDecision(element[Constants::DECISION].GetString()));
       // get permissions if avialible
       if (element.HasMember(Constants::PERMISSIONS) &&
           element[Constants::PERMISSIONS].IsArray()) {
-        std::vector<ActionResult::Permissions> permissions;
+        std::vector<Permission> permissions;
         const auto& permissions_array =
             element[Constants::PERMISSIONS].GetArray();
         for (auto& permission_element : permissions_array) {
-          ActionResult::Permissions permission;
+          Permission permission;
           if (permission_element.HasMember(Constants::ACTION)) {
-            permission.first =
-                permission_element[Constants::ACTION].GetString();
+            permission.SetAction(
+                permission_element[Constants::ACTION].GetString());
           }
           if (permission_element.HasMember(Constants::DECISION)) {
-            permission.second = GetPermission(
-                permission_element[Constants::DECISION].GetString());
+            permission.SetDecision(GetDecision(
+                permission_element[Constants::DECISION].GetString()));
+          }
+          if (permission_element.HasMember(Constants::RESOURCE)) {
+            permission.SetResource(
+                permission_element[Constants::RESOURCE].GetString());
           }
           permissions.push_back(std::move(permission));
         }
@@ -247,7 +251,7 @@ AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc) {
   }
 
   if (doc.HasMember(Constants::DECISION)) {
-    result.SetDecision(GetPermission(doc[Constants::DECISION].GetString()));
+    result.SetDecision(GetDecision(doc[Constants::DECISION].GetString()));
   }
 
   // get diagnostics if available

@@ -33,7 +33,7 @@ namespace {
 
 constexpr auto kLogTag = "AuthenticationClientTestAuthorize";
 
-using namespace ::olp::authentication;
+namespace auth = ::olp::authentication;
 
 class AuthenticationClientTestAuthorize : public ::testing::Test {
  protected:
@@ -54,104 +54,111 @@ class AuthenticationClientTestAuthorize : public ::testing::Test {
     task_scheduler_ =
         olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
 
-    AuthenticationSettings settings;
+    auth::AuthenticationSettings settings;
     settings.network_request_handler = network_;
     settings.task_scheduler = task_scheduler_;
 
-    client_ = std::make_unique<AuthenticationClient>(settings);
+    client_ = std::make_unique<auth::AuthenticationClient>(settings);
   }
   void TearDown() override {
     client_.reset();
     network_.reset();
   }
 
-  AuthenticationClient::SignInClientResponse SignInClient(
-      const AuthenticationCredentials& credentials,
-      unsigned int expires_in = kLimitExpiry, bool do_cancel = false) {
-    std::shared_ptr<AuthenticationClient::SignInClientResponse> response;
+  auth::AuthenticationClient::SignInClientResponse SignInClient(
+      const auth::AuthenticationCredentials& credentials,
+      unsigned int expires_in = auth::kLimitExpiry, bool do_cancel = false) {
+    std::shared_ptr<auth::AuthenticationClient::SignInClientResponse> response;
     unsigned int retry = 0u;
     do {
       if (retry > 0u) {
         OLP_SDK_LOG_WARNING(kLogTag,
                             "Request retry attempted (" << retry << ")");
         std::this_thread::sleep_for(
-            std::chrono::seconds(retry * kRetryDelayInSecs));
+            std::chrono::seconds(retry * auth::kRetryDelayInSecs));
       }
 
-      std::promise<AuthenticationClient::SignInClientResponse> request;
+      std::promise<auth::AuthenticationClient::SignInClientResponse> request;
       auto request_future = request.get_future();
 
-      AuthenticationClient::SignInProperties props;
+      auth::AuthenticationClient::SignInProperties props;
       props.expires_in = std::chrono::seconds(expires_in);
 
       auto cancel_token = client_->SignInClient(
           credentials, props,
-          [&](const AuthenticationClient::SignInClientResponse& resp) {
+          [&](const auth::AuthenticationClient::SignInClientResponse& resp) {
             request.set_value(resp);
           });
 
       if (do_cancel) {
         cancel_token.Cancel();
       }
-      response = std::make_shared<AuthenticationClient::SignInClientResponse>(
-          request_future.get());
-    } while ((!response->IsSuccessful()) && (++retry < kMaxRetryCount) &&
+      response =
+          std::make_shared<auth::AuthenticationClient::SignInClientResponse>(
+              request_future.get());
+    } while ((!response->IsSuccessful()) && (++retry < auth::kMaxRetryCount) &&
              !do_cancel);
 
     return *response;
   }
 
-  AuthorizeResponse Authorize(const std::string& access_token,
-                              AuthorizeRequest request,
-                              bool do_cancel = false) {
-    std::shared_ptr<AuthorizeResponse> response;
+  auth::AuthorizeResponse Authorize(const std::string& access_token,
+                                    auth::AuthorizeRequest request,
+                                    bool do_cancel = false) {
+    std::shared_ptr<auth::AuthorizeResponse> response;
     auto retry = 0u;
     do {
       if (retry > 0u) {
         OLP_SDK_LOG_WARNING(kLogTag,
                             "Request retry attempted (" << retry << ")");
         std::this_thread::sleep_for(
-            std::chrono::seconds(retry * kRetryDelayInSecs));
+            std::chrono::seconds(retry * auth::kRetryDelayInSecs));
       }
 
-      std::promise<AuthorizeResponse> resp;
+      std::promise<auth::AuthorizeResponse> resp;
       auto request_future = resp.get_future();
 
-      auto cancel_token = client_->Authorize(
-          access_token, std::move(request),
-          [&](const AuthorizeResponse& responce) { resp.set_value(responce); });
+      auto cancel_token =
+          client_->Authorize(access_token, std::move(request),
+                             [&](const auth::AuthorizeResponse& responce) {
+                               resp.set_value(responce);
+                             });
 
       if (do_cancel) {
         cancel_token.Cancel();
       }
-      response = std::make_shared<AuthorizeResponse>(request_future.get());
-    } while ((!response->IsSuccessful()) && (++retry < kMaxRetryCount) &&
+      response =
+          std::make_shared<auth::AuthorizeResponse>(request_future.get());
+    } while ((!response->IsSuccessful()) && (++retry < auth::kMaxRetryCount) &&
              !do_cancel);
 
     return *response;
   }
 
   std::string GetErrorId(
-      const AuthenticationClient::SignInUserResponse& response) const {
+      const auth::AuthenticationClient::SignInUserResponse& response) const {
     return response.GetResult().GetErrorResponse().error_id;
   }
 };
 
 TEST_F(AuthenticationClientTestAuthorize, AuthorizeAllow) {
-  AuthenticationCredentials credentials(id_, secret_);
-  auto singin_responce = SignInClient(credentials, kExpiryTime);
+  auth::AuthenticationCredentials credentials(id_, secret_);
+  auto singin_responce = SignInClient(credentials, auth::kExpiryTime);
 
   EXPECT_TRUE(singin_responce.IsSuccessful());
-  EXPECT_EQ(olp::http::HttpStatusCode::OK, singin_responce.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK,
+            singin_responce.GetResult().GetStatus());
 
   const auto& token = singin_responce.GetResult().GetAccessToken();
-  auto request = olp::authentication::AuthorizeRequest().WithServiceId(service_id_);
+  auto request =
+      olp::authentication::AuthorizeRequest().WithServiceId(service_id_);
   request.WithAction("getTileCore");
   auto response = Authorize(token, std::move(request));
 
   EXPECT_TRUE(response.IsSuccessful());
   EXPECT_FALSE(response.GetResult().GetClientId().empty());
-  ASSERT_EQ(response.GetResult().GetDecision(), olp::authentication::DecisionType::kAllow);
+  ASSERT_EQ(response.GetResult().GetDecision(),
+            olp::authentication::DecisionType::kAllow);
 }
 
 TEST_F(AuthenticationClientTestAuthorize, AuthorizeDeny) {
@@ -159,10 +166,11 @@ TEST_F(AuthenticationClientTestAuthorize, AuthorizeDeny) {
       olp::authentication::AuthorizeRequest().WithServiceId("Wrong_service");
   request.WithAction("getTileCore");
 
-  AuthenticationCredentials credentials(id_, secret_);
-  auto singin_responce = SignInClient(credentials, kExpiryTime);
+  auth::AuthenticationCredentials credentials(id_, secret_);
+  auto singin_responce = SignInClient(credentials, auth::kExpiryTime);
   EXPECT_TRUE(singin_responce.IsSuccessful());
-  EXPECT_EQ(olp::http::HttpStatusCode::OK, singin_responce.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK,
+            singin_responce.GetResult().GetStatus());
 
   const auto& token = singin_responce.GetResult().GetAccessToken();
   auto response = Authorize(token, std::move(request));
@@ -183,11 +191,12 @@ TEST_F(AuthenticationClientTestAuthorize, AuthorizeWithTwoActions) {
               olp::authentication::AuthorizeRequest::DecisionOperatorType::kOr)
           .WithDiagnostics(true);
 
-  AuthenticationCredentials credentials(id_, secret_);
-  auto singin_responce = SignInClient(credentials, kExpiryTime);
+  auth::AuthenticationCredentials credentials(id_, secret_);
+  auto singin_responce = SignInClient(credentials, auth::kExpiryTime);
 
   EXPECT_TRUE(singin_responce.IsSuccessful());
-  EXPECT_EQ(olp::http::HttpStatusCode::OK, singin_responce.GetResult().GetStatus());
+  EXPECT_EQ(olp::http::HttpStatusCode::OK,
+            singin_responce.GetResult().GetStatus());
 
   const auto& token = singin_responce.GetResult().GetAccessToken();
   auto response = Authorize(token, std::move(request));
@@ -198,8 +207,8 @@ TEST_F(AuthenticationClientTestAuthorize, AuthorizeWithTwoActions) {
             olp::authentication::DecisionType::kAllow);
   auto it = response.GetResult().GetActionResults().begin();
   ASSERT_EQ(it->GetDecision(), olp::authentication::DecisionType::kAllow);
-  ASSERT_EQ(it->GetPermissions().front().first, "getTileCore");
-  ASSERT_EQ(it->GetPermissions().front().second,
+  ASSERT_EQ(it->GetPermissions().front().GetAction(), "getTileCore");
+  ASSERT_EQ(it->GetPermissions().front().GetDecision(),
             olp::authentication::DecisionType::kAllow);
   ASSERT_EQ((++it)->GetDecision(), olp::authentication::DecisionType::kDeny);
   EXPECT_TRUE(it->GetPermissions().empty());

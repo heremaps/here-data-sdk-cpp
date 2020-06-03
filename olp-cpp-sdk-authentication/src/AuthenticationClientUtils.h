@@ -95,7 +95,7 @@ IntrospectAppResult GetIntrospectAppResult(const rapidjson::Document& doc);
  * @param str string representation of decision.
  * @return result DecisionType.
  */
-DecisionType GetPermission(const std::string& str);
+DecisionType GetDecision(const std::string& str);
 
 /*
  * @brief Parse json document to vector of ActionResults.
