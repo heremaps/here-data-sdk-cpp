@@ -134,6 +134,34 @@ QueryApi::QuadTreeIndexResponse QueryApi::QuadTreeIndex(
   return olp::parser::parse<model::Index>(response.response);
 }
 
+olp::client::HttpResponse QueryApi::QuadTreeIndex(
+    const client::OlpClient& client, const std::string& layer_id,
+    const std::string& quad_key, boost::optional<int64_t> version,
+    int32_t depth, boost::optional<std::vector<std::string>> additional_fields,
+    boost::optional<std::string> billing_tag,
+    client::CancellationContext context) {
+  std::multimap<std::string, std::string> header_params;
+  header_params.emplace("Accept", "application/json");
+
+  std::multimap<std::string, std::string> query_params;
+  if (additional_fields) {
+    query_params.emplace("additionalFields",
+                         ConcatStringArray(*additional_fields, ","));
+  }
+  if (billing_tag) {
+    query_params.emplace("billingTag", *billing_tag);
+  }
+
+  std::string metadata_uri =
+      "/layers/" + layer_id +
+      (version ? "/versions/" + std::to_string(version.get()) : "") +
+      "/quadkeys/" + quad_key + "/depths/" + std::to_string(depth);
+
+  return client.CallApi(metadata_uri, "GET", std::move(query_params),
+                        std::move(header_params), {}, nullptr, std::string{},
+                        std::move(context));
+}
+
 QueryApi::QuadTreeIndexResponse QueryApi::QuadTreeIndexVolatile(
     const client::OlpClient& client, const std::string& layer_id,
     const std::string& quad_key, int32_t depth,

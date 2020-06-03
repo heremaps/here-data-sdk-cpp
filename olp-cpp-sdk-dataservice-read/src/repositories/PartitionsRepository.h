@@ -26,6 +26,7 @@
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
+#include "QuadTreeIndex.h"
 #include "generated/model/Index.h"
 #include "olp/dataservice/read/DataRequest.h"
 #include "olp/dataservice/read/PartitionsRequest.h"
@@ -39,6 +40,9 @@ namespace repository {
 class ApiRepository;
 class CatalogRepository;
 class PartitionsCacheRepository;
+
+/// The partition metadata response type.
+using PartitionResponse = Response<model::Partition>;
 
 class PartitionsRepository {
  public:
@@ -59,6 +63,12 @@ class PartitionsRepository {
 
   static model::Partition PartitionFromSubQuad(
       const model::SubQuad& sub_quad, const std::string& partition);
+
+  static PartitionResponse GetAggregatedTile(
+      const client::HRN& catalog, const std::string& layer,
+      client::CancellationContext cancellation_context,
+      const TileRequest& request, boost::optional<int64_t> version,
+      const client::OlpClientSettings& settings);
 
   static PartitionsResponse GetPartitionForVersionedTile(
       const client::HRN& catalog, const std::string& layer_id,
