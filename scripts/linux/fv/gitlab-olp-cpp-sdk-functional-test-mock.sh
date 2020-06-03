@@ -41,8 +41,12 @@ do
         sleep 0.3
         set -e
 done
-echo ">>> Mock Server started for further tests ... >>>"
 
+echo ">>> Installing mock server SSL certificate into OS... >>>"
+curl https://raw.githubusercontent.com/mock-server/mockserver/master/mockserver-core/src/main/resources/org/mockserver/socket/CertificateAuthorityCertificate.pem --output mock-server-cert.pem
+mv mock-server-cert.pem /usr/share/ca-certificates/
+echo "mock-server-cert.pem" >> /etc/ca-certificates.conf
+update-ca-certificates
 
 echo ">>> Starting Functional Test against Mock Server... >>>"
 $REPO_HOME/build/tests/functional/olp-cpp-sdk-functional-tests \
