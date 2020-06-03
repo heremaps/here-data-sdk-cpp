@@ -133,7 +133,7 @@ upload_sonar_nv:
     variables:
       - $NV
 
-translate_report:
+translate_report_fv:
   stage: translate_report
   tags:
   - docker-prod
@@ -142,8 +142,6 @@ translate_report:
   before_script:
     - pip install junit2html
   script:
-    # - python -m junit2htmlreport --merge olp-merged-report.xml reports/*.xml
-    # - python -m junit2htmlreport olp-merged-report.xml
     - python -m junit2htmlreport --report-matrix reports/functional-index.html reports/olp-functional*.xml
     - python -m junit2htmlreport --report-matrix reports/unit-index.html reports/olp-dataservice-write-test-report.xml reports/olp-dataservice-read-test-report.xml reports/olp-core-test-report.xml reports/olp-authentication-test-report.xml
     - python -m junit2htmlreport --report-matrix reports/integration-index.html reports/olp-integration*.xml
@@ -155,7 +153,6 @@ translate_report:
     - cat reports/unit-index.html >> reports/index.html
     - cat reports/integration-index.html >> reports/index.html
     - cat reports/functional-index.html >> reports/index.html
-    - if [ "$NV" == "1" ]; then cat heaptrack_report.html >> reports/index.html; fi
     - mkdir -p .public
     - cp reports/*ndex.html .public/
   artifacts:
@@ -168,6 +165,29 @@ translate_report:
       - schedules
     variables:
       - $FV
+
+translate_report_nv:
+  stage: translate_report
+  tags:
+  - docker-prod
+  image: python:3.6
+  when: always
+  before_script:
+    - pip install junit2html
+  script:
+    - python -m junit2htmlreport --report-matrix reports/index.html reports/*.xml
+    - cat heaptrack_report.html >> reports/index.html
+    - mkdir -p .public
+    - cp reports/*ndex.html .public/
+  artifacts:
+    paths:
+      - .public
+  only:
+    refs:
+      - branches
+      - master
+      - schedules
+    variables:
       - $NV
 
 pages:
