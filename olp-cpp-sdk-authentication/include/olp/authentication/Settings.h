@@ -91,11 +91,13 @@ struct AUTHENTICATION_API Settings {
    * @brief Uses system system time in authentication requests rather than
    * requesting time from authentication server.
    *
+   * Default is true, which means system time is used.
+   *
    * @note Please make sure that the system time does not deviate from the
    * official UTC time as it might result in error responses from the
    * authentication server.
    */
-  bool use_system_time{false};
+  bool use_system_time{true};
 };
 
 }  // namespace authentication

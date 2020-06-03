@@ -22,9 +22,9 @@
 #include <memory>
 #include <string>
 
-#include <boost/optional.hpp>
-#include <olp/core/http/NetworkProxySettings.h>
 #include <olp/authentication/AuthenticationApi.h>
+#include <olp/core/http/NetworkProxySettings.h>
+#include <boost/optional.hpp>
 
 namespace olp {
 namespace http {
@@ -54,8 +54,8 @@ struct AUTHENTICATION_API AuthenticationSettings {
   boost::optional<http::NetworkProxySettings> network_proxy_settings{};
 
   /**
-   * @brief The network instance that is used to internally operate with the HERE platform
-   * Services.
+   * @brief The network instance that is used to internally operate with the
+   * HERE platform Services.
    */
   std::shared_ptr<http::Network> network_request_handler{nullptr};
 
@@ -82,11 +82,13 @@ struct AUTHENTICATION_API AuthenticationSettings {
    * @brief Uses system system time in authentication requests rather than
    * requesting time from authentication server.
    *
+   * Default is true, which means that system time is used.
+   *
    * @note Please make sure that the system time does not deviate from the
    * official UTC time as it might result in error responses from the
    * authentication server.
    */
-  bool use_system_time{false};
+  bool use_system_time{true};
 };
 
 }  // namespace authentication
