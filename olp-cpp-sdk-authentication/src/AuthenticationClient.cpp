@@ -59,6 +59,7 @@
 
 namespace {
 namespace auth = olp::authentication;
+namespace client = olp::client;
 
 using olp::authentication::Constants;
 
@@ -145,11 +146,11 @@ void ExecuteOrSchedule(
  * @return CancellationToken used to cancel the operation.
  */
 template <typename Function, typename Callback, typename... Args>
-inline olp::client::CancellationToken AddTask(
+inline client::CancellationToken AddTask(
     const std::shared_ptr<olp::thread::TaskScheduler>& task_scheduler,
-    const std::shared_ptr<olp::client::PendingRequests>& pending_requests,
+    const std::shared_ptr<client::PendingRequests>& pending_requests,
     Function task, Callback callback, Args&&... args) {
-  auto context = olp::client::TaskContext::Create(
+  auto context = client::TaskContext::Create(
       std::move(task), std::move(callback), std::forward<Args>(args)...);
   pending_requests->Insert(context);
 
@@ -312,15 +313,17 @@ auth::AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc) {
   return result;
 }
 
-olp::client::OlpClient CreateOlpClient(
-    const auth::AuthenticationSettings& auth_settings) {
-  olp::client::OlpClientSettings settings;
+client::OlpClient CreateOlpClient(
+    const auth::AuthenticationSettings& auth_settings,
+    boost::optional<client::AuthenticationSettings> authentication_settings) {
+  client::OlpClientSettings settings;
   settings.network_request_handler = auth_settings.network_request_handler;
+  settings.authentication_settings = authentication_settings;
   settings.proxy_settings = auth_settings.network_proxy_settings;
   settings.retry_settings.backdown_strategy =
-      olp::client::ExponentialBackdownStrategy();
+      client::ExponentialBackdownStrategy();
 
-  olp::client::OlpClient client;
+  client::OlpClient client;
   client.SetBaseUrl(auth_settings.token_endpoint_url);
   client.SetSettings(std::move(settings));
   return client;
@@ -473,7 +476,7 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
                "Cannot sign in while offline"}};
     }
 
-    client::OlpClient client = CreateOlpClient(settings_);
+    client::OlpClient client = CreateOlpClient(settings_, boost::none);
 
     std::time_t timestamp =
         std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
@@ -548,15 +551,14 @@ AuthenticationClient::Impl::ParseTimeResponse(std::stringstream& payload) {
   document.ParseStream(stream);
 
   if (!document.IsObject()) {
-    return AuthenticationError(
-        static_cast<int>(client::ErrorCode::InternalFailure),
-        "JSON document root is not an Object type");
+    return AuthenticationError(client::ErrorCode::InternalFailure,
+                               "JSON document root is not an Object type");
   }
 
   const auto timestamp_it = document.FindMember("timestamp");
   if (timestamp_it == document.MemberEnd() || !timestamp_it->value.IsUint()) {
     return AuthenticationError(
-        static_cast<int>(client::ErrorCode::InternalFailure),
+        client::ErrorCode::InternalFailure,
         "JSON document must contain timestamp integer field");
   }
 
@@ -890,17 +892,7 @@ client::CancellationToken AuthenticationClient::Impl::IntrospectApp(
     client::AuthenticationSettings auth_settings;
     auth_settings.provider = [&access_token]() { return access_token; };
 
-    client::OlpClientSettings settings;
-    settings.network_request_handler = settings_.network_request_handler;
-    settings.task_scheduler = settings_.task_scheduler;
-    settings.proxy_settings = settings_.network_proxy_settings;
-    settings.authentication_settings = auth_settings;
-    settings.retry_settings.backdown_strategy =
-        olp::client::ExponentialBackdownStrategy();
-
-    client::OlpClient client;
-    client.SetBaseUrl(settings_.token_endpoint_url);
-    client.SetSettings(settings);
+    client::OlpClient client = CreateOlpClient(settings_, auth_settings);
 
     auto http_result = client.CallApi(kIntrospectAppEndpoint, "GET", {}, {}, {},
                                       nullptr, {}, context);
@@ -925,19 +917,8 @@ client::CancellationToken AuthenticationClient::Impl::IntrospectApp(
     return GetIntrospectAppResult(document);
   };
 
-  // wrap_callback needed to convert client::ApiError into AuthenticationError.
-  auto wrap_callback = [callback](ResponseType response) {
-    if (!response.IsSuccessful()) {
-      const auto& error = response.GetError();
-      callback({{error.GetHttpStatusCode(), error.GetMessage()}});
-      return;
-    }
-
-    callback(response.MoveResult());
-  };
-
   return AddTask(settings_.task_scheduler, pending_requests_,
-                 std::move(introspect_app_task), std::move(wrap_callback));
+                 std::move(introspect_app_task), std::move(callback));
 }
 
 client::CancellationToken AuthenticationClient::Impl::Authorize(
@@ -950,20 +931,11 @@ client::CancellationToken AuthenticationClient::Impl::Authorize(
       return client::ApiError({static_cast<int>(http::ErrorCode::IO_ERROR),
                                "Can not send request while offline"});
     }
+
     client::AuthenticationSettings auth_settings;
     auth_settings.provider = [&access_token]() { return access_token; };
 
-    client::OlpClientSettings settings;
-    settings.network_request_handler = settings_.network_request_handler;
-    settings.task_scheduler = settings_.task_scheduler;
-    settings.proxy_settings = settings_.network_proxy_settings;
-    settings.authentication_settings = auth_settings;
-    settings.retry_settings.backdown_strategy =
-        olp::client::ExponentialBackdownStrategy();
-
-    client::OlpClient client;
-    client.SetBaseUrl(settings_.token_endpoint_url);
-    client.SetSettings(settings);
+    client::OlpClient client = CreateOlpClient(settings_, auth_settings);
 
     auto http_result = client.CallApi(kDecisionEndpoint, "POST", {}, {}, {},
                                       GenerateAuthorizeBody(request),
@@ -1003,19 +975,8 @@ client::CancellationToken AuthenticationClient::Impl::Authorize(
     return GetAuthorizeResult(document);
   };
 
-  // wrap_callback needed to convert client::ApiError into AuthenticationError.
-  auto wrap_callback = [callback](ResponseType response) {
-    if (!response.IsSuccessful()) {
-      const auto& error = response.GetError();
-      callback({{error.GetHttpStatusCode(), error.GetMessage()}});
-      return;
-    }
-
-    callback(response.MoveResult());
-  };
-
   return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
-                 std::move(wrap_callback));
+                 std::move(callback));
 }
 
 std::string AuthenticationClient::Impl::Base64Encode(
