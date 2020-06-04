@@ -131,7 +131,7 @@ class DATASERVICE_READ_API VersionsRequest final {
    *
    * @return A reference to the updated `VersionsRequest` instance.
    */
-  inline VersionsRequest& WithBillingTag(std::string&& tag) {
+  inline VersionsRequest& WithBillingTag(std::string tag) {
     billing_tag_ = std::move(tag);
     return *this;
   }

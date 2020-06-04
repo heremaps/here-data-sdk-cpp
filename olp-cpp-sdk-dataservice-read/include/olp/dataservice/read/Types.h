@@ -27,10 +27,10 @@
 #include <olp/core/client/ApiResponse.h>
 
 #include <olp/dataservice/read/model/Catalog.h>
-#include <olp/dataservice/read/model/CatalogVersions.h>
 #include <olp/dataservice/read/model/Data.h>
 #include <olp/dataservice/read/model/Messages.h>
 #include <olp/dataservice/read/model/Partitions.h>
+#include <olp/dataservice/read/model/VersionInfos.h>
 #include <olp/dataservice/read/model/VersionResponse.h>
 
 namespace olp {
@@ -112,7 +112,7 @@ using SeekResponse = Response<SeekResult>;
 using SeekResponseCallback = Callback<SeekResult>;
 
 /// The alias type of the versions result.
-using VersionsResult = model::VersionsList;
+using VersionsResult = model::VersionInfos;
 /// The versions list of metadata response type for versioned client.
 using VersionsResponse = Response<VersionsResult>;
 /// The versions list of metadata callback type for versioned client.

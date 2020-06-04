@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,14 @@
 
 #pragma once
 
+#include <map>
+#include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <olp/dataservice/read/DataServiceReadApi.h>
+#include <olp/dataservice/read/model/VersionInfo.h>
 
 namespace olp {
 namespace dataservice {
@@ -30,56 +34,28 @@ namespace read {
 namespace model {
 
 /**
- * @brief Represents a catalog version dependency
+ * @brief A container for list of version infos.
  */
-class DATASERVICE_READ_API VersionDependency final {
+class DATASERVICE_READ_API VersionInfos final {
  public:
   /**
-   * @brief Gets the direct status.
+   * @brief Sets the vector of version infos.
    *
-   * @return The direct status.
+   * @param value The vector of version infos .
    */
-  bool GetDirect() const { return direct_; }
+  void SetVersionInfos(std::vector<VersionInfo> value) {
+    versions_ = std::move(value);
+  }
 
   /**
-   * @brief Sets the direct status.
+   * @brief Gets the vector of version infos.
    *
-   * @param direct status.
+   * @return The vector of version infos.
    */
-  void SetDirect(bool direct) { direct_ = direct; }
-
-  /**
-   * @brief Gets the hrn.
-   *
-   * @return The hrn.
-   */
-  const std::string& GetHrn() const { return hrn_; }
-
-  /**
-   * @brief Sets the hrn.
-   *
-   * @param hrn.
-   */
-  void SetHrn(std::string hrn) { hrn_ = std::move(hrn); }
-
-  /**
-   * @brief Gets the version.
-   *
-   * @return The version.
-   */
-  int64_t GetVersion() const { return version_; }
-
-  /**
-   * @brief Sets the version.
-   *
-   * @param version.
-   */
-  void SetVersion(int64_t version) { version_ = version; }
+  const std::vector<VersionInfo>& GetVersionInfos() const { return versions_; }
 
  private:
-  bool direct_{false};
-  std::string hrn_;
-  int64_t version_{0};
+  std::vector<VersionInfo> versions_;
 };
 
 }  // namespace model

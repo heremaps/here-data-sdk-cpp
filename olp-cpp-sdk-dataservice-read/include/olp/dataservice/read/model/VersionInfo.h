@@ -34,14 +34,14 @@ namespace read {
 namespace model {
 
 /**
- * @brief Represents a catalog version
+ * @brief Represents a version info.
  */
-class DATASERVICE_READ_API CatalogVersion final {
+class DATASERVICE_READ_API VersionInfo final {
  public:
   /**
-   * @brief Sets the vector of catalog version dependencies.
+   * @brief Sets the vector of version dependencies.
    *
-   * @param vector of catalog version dependencies.
+   * @param vector of version dependencies.
    */
   void SetVersionDependencies(std::vector<VersionDependency> dependencies) {
     dependencies_ = std::move(dependencies);
@@ -71,11 +71,11 @@ class DATASERVICE_READ_API CatalogVersion final {
   void SetTimestamp(int64_t timestamp) { timestamp_ = timestamp; }
 
   /**
-   * @brief Gets the vector of catalog version dependencies.
+   * @brief Gets the vector of version dependencies.
    *
-   * @return The vector of catalog version dependencies.
+   * @return The vector of version dependencies.
    */
-  const std::vector<VersionDependency>& GetCatalogVersionDependencies() const {
+  const std::vector<VersionDependency>& GetVersionDependencies() const {
     return dependencies_;
   }
 
@@ -107,33 +107,6 @@ class DATASERVICE_READ_API CatalogVersion final {
   int64_t timestamp_;
   std::vector<VersionDependency> dependencies_;
   std::map<std::string, int64_t> partition_counts_;
-};
-
-/**
- * @brief A container for list of versions.
- */
-class DATASERVICE_READ_API VersionsList final {
- public:
-  /**
-   * @brief Sets the vector of versions.
-   *
-   * @param value The vector of catalog versions .
-   */
-  void SetCatalogVersion(std::vector<CatalogVersion> value) {
-    versions_ = std::move(value);
-  }
-
-  /**
-   * @brief Gets the vector of catalog versions.
-   *
-   * @return The vector of catalog versions.
-   */
-  const std::vector<CatalogVersion>& GetCatalogVersions() const {
-    return versions_;
-  }
-
- private:
-  std::vector<CatalogVersion> versions_;
 };
 
 }  // namespace model
