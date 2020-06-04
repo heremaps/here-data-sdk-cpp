@@ -51,7 +51,7 @@ class DATASERVICE_READ_API VersionsRequest final {
    * @return A reference to the updated `VersionsRequest` instance.
    *
    */
-  inline VersionsRequest& WithStartVersion(int64_t version) {
+  inline VersionsRequest& WithStartVersion(std::int64_t version) {
     start_version_ = version;
     return *this;
   }
@@ -79,7 +79,7 @@ class DATASERVICE_READ_API VersionsRequest final {
    * @return A reference to the updated `VersionsRequest` instance.
    *
    */
-  inline VersionsRequest& WithEndVersion(int64_t version) {
+  inline VersionsRequest& WithEndVersion(std::int64_t version) {
     end_version_ = version;
     return *this;
   }
@@ -181,8 +181,8 @@ class DATASERVICE_READ_API VersionsRequest final {
   }
 
  private:
-  int64_t start_version_;
-  int64_t end_version_;
+  std::int64_t start_version_;
+  std::int64_t end_version_;
   boost::optional<std::string> billing_tag_;
   FetchOptions fetch_option_{OnlineIfNotFound};
 };

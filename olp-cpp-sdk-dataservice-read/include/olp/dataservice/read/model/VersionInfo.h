@@ -52,7 +52,8 @@ class DATASERVICE_READ_API VersionInfo final {
    *
    * @param map of partition counts.
    */
-  void SetPartitionCounts(std::map<std::string, int64_t> partition_counts) {
+  void SetPartitionCounts(
+      std::map<std::string, std::int64_t> partition_counts) {
     partition_counts_ = std::move(partition_counts);
   }
 
@@ -61,14 +62,14 @@ class DATASERVICE_READ_API VersionInfo final {
    *
    * @param catalog version.
    */
-  void SetVersion(int64_t version) { version_ = version; }
+  void SetVersion(std::int64_t version) { version_ = version; }
 
   /**
    * @brief Sets the timestamp of catalog version.
    *
    * @param timestamp of catalog version.
    */
-  void SetTimestamp(int64_t timestamp) { timestamp_ = timestamp; }
+  void SetTimestamp(std::int64_t timestamp) { timestamp_ = timestamp; }
 
   /**
    * @brief Gets the vector of version dependencies.
@@ -84,7 +85,7 @@ class DATASERVICE_READ_API VersionInfo final {
    *
    * @return The map of partition counts.
    */
-  const std::map<std::string, int64_t>& GetPartitionCounts() const {
+  const std::map<std::string, std::int64_t>& GetPartitionCounts() const {
     return partition_counts_;
   }
 
@@ -93,20 +94,20 @@ class DATASERVICE_READ_API VersionInfo final {
    *
    * @return The catalog version.
    */
-  int64_t GetVersion() const { return version_; }
+  std::int64_t GetVersion() const { return version_; }
 
   /**
    * @brief Gets the timestamp of catalog version.
    *
    * @return The timestamp of catalog version.
    */
-  int64_t GetTimestamp() const { return timestamp_; }
+  std::int64_t GetTimestamp() const { return timestamp_; }
 
  private:
-  int64_t version_;
-  int64_t timestamp_;
+  std::int64_t version_;
+  std::int64_t timestamp_;
   std::vector<VersionDependency> dependencies_;
-  std::map<std::string, int64_t> partition_counts_;
+  std::map<std::string, std::int64_t> partition_counts_;
 };
 
 }  // namespace model

@@ -67,19 +67,19 @@ class DATASERVICE_READ_API VersionDependency final {
    *
    * @return The version.
    */
-  int64_t GetVersion() const { return version_; }
+  std::int64_t GetVersion() const { return version_; }
 
   /**
    * @brief Sets the version.
    *
    * @param version.
    */
-  void SetVersion(int64_t version) { version_ = version; }
+  void SetVersion(std::int64_t version) { version_ = version; }
 
  private:
   bool direct_{false};
   std::string hrn_;
-  int64_t version_{0};
+  std::int64_t version_{0};
 };
 
 }  // namespace model
