@@ -63,11 +63,11 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
 
   // This mutex is required to avoid concurrent requests to online.
   repository::NamedMutex mutex(catalog.ToString());
-  std::unique_lock<repository::NamedMutex> lock(mutex, std::adopt_lock);
+  std::unique_lock<repository::NamedMutex> lock(mutex, std::defer_lock);
 
-  // If we are not planning to go online or access the cache, release the lock.
+  // If we are not planning to go online or access the cache, do not lock.
   if (options != CacheOnly && options != OnlineOnly) {
-    mutex.lock();
+    lock.lock();
   }
 
   repository::ApiCacheRepository repository(catalog, settings.cache);
