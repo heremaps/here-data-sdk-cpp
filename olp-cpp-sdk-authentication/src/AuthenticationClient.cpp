@@ -137,10 +137,12 @@ std::time_t ParseTime(const std::string& value) {
 }
 
 std::time_t GetTimestampFromHeaders(const olp::http::Headers& headers) {
-  auto it = std::find_if(begin(headers), end(headers),
-                         [](const std::pair<std::string, std::string>& obg) {
-                           return (obg.first.compare(kDate) == 0);
-                         });
+  auto it =
+      std::find_if(begin(headers), end(headers),
+                   [](const std::pair<std::string, std::string>& obg) {
+                     return olp::http::NetworkUtils::CaseInsensitiveCompare(
+                         obg.first, kDate);
+                   });
   if (it != end(headers)) {
     return ParseTime(it->second);
   }

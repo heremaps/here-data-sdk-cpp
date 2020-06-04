@@ -60,8 +60,6 @@ constexpr auto kErrorNoContent = "No Content";
 constexpr auto kErrorFieldsMessage = "Received invalid data.";
 constexpr auto kErrorPreconditionFailedMessage = "Precondition Failed";
 
-constexpr auto kErrorUndefined = "";
-
 constexpr auto kErrorBadRequestMessage = "Invalid JSON.";
 
 constexpr auto kErrorUnathorizedMessage =
