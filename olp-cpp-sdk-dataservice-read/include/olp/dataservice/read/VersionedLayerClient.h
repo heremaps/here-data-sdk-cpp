@@ -160,12 +160,12 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * result and an error). If a partition ID or data handle is not set in
    * the request, the callback is invoked with the following error:
    * `ErrorCode::InvalidRequest`. If the version is not specified, an additional
-   * request to the HERE platform is created to retrieve the latest available partition
-   * version.
+   * request to the HERE platform is created to retrieve the latest available
+   * partition version.
    *
    * @param data_request The `DataRequest` instance that contains a complete set
    * of request parameters.
-   * @note CacheWithUpdate fetch option is not suported.
+   * @note CacheWithUpdate fetch option is not supported.
    * @param callback The `DataResponseCallback` object that is invoked if
    * the `DataResult` object is available or an error is encountered.
    *
@@ -185,7 +185,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    *
    * @param data_request The `DataRequest` instance that contains a complete set
    * of request parameters.
-   * @note CacheWithUpdate fetch option is not suported.
+   * @note CacheWithUpdate fetch option is not supported.
    *
    * @return `CancellableFuture` that contains the `DataResponse` instance
    * or an error. You can also use `CancellableFuture` to cancel this request.
@@ -208,7 +208,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    *
    * @param request The `TileRequest` instance that contains a complete set
    * of request parameters.
-   * @note CacheWithUpdate fetch option is not suported.
+   * @note CacheWithUpdate fetch option is not supported.
    * @param callback The `DataResponseCallback` object that is invoked if
    * the `DataResult` object is available or an error is encountered.
    *
@@ -232,12 +232,42 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    *
    * @param request The `TileRequest` instance that contains a complete set
    * of request parameters.
-   * @note CacheWithUpdate fetch option is not suported.
+   * @note CacheWithUpdate fetch option is not supported.
    *
    * @return `CancellableFuture` that contains the `DataResponse` instance
    * or an error. You can also use `CancellableFuture` to cancel this request.
    */
   client::CancellableFuture<DataResponse> GetData(TileRequest request);
+
+  /**
+   * @brief Fetches data of a tile or its closest ancestor.
+   *
+   * @param request The `TileRequest` instance that contains a complete set
+   * of request parameters.
+   * @note CacheWithUpdate fetch option is not supported.
+   * @param callback The `AggregatedDataResponseCallback` object that is invoked
+   * if the `AggregatedDataResult` object is available or an error is
+   * encountered.
+   *
+   * @return A token that can be used to cancel this request.
+   */
+  client::CancellationToken GetAggregatedData(
+      TileRequest request, AggregatedDataResponseCallback callback);
+
+  /**
+   * @brief Fetches data of a tile or its closest ancestor.
+   *
+   * @param request The `TileRequest` instance that contains a complete set
+   * of request parameters.
+   * @note CacheWithUpdate fetch option is not supported.
+   *
+   * @return `CancellableFuture` that contains the `AggregatedDataResponse`
+   * instance or an error. You can also use `CancellableFuture` to cancel this
+   * request.
+   */
+  client::CancellableFuture<AggregatedDataResponse> GetAggregatedData(
+      TileRequest request);
+
   /**
    * @brief Fetches a list of partitions of the given generic layer
    * asynchronously.
@@ -248,7 +278,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    *
    * @param partitions_request The `PartitionsRequest` instance that contains
    * a complete set of request parameters.
-   * @note CacheWithUpdate fetch option is not suported.
+   * @note CacheWithUpdate fetch option is not supported.
    * @param callback The `PartitionsResponseCallback` object that is invoked if
    * the list of partitions is available or an error is encountered.
    *
@@ -267,7 +297,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    *
    * @param partitions_request The `PartitionsRequest` instance that contains
    * a complete set of request parameters.
-   * @note CacheWithUpdate fetch option is not suported.
+   * @note CacheWithUpdate fetch option is not supported.
    *
    * @return `CancellableFuture` that contains the `PartitionsResponse` instance
    * with data or an error. You can also use `CancellableFuture` to cancel this
