@@ -472,9 +472,9 @@ class AuthenticationClient::Impl final {
       const AuthenticationCredentials& credentials,
       const SignInProperties& properties, std::time_t timestamp);
   SignInResult ParseAuthResponse(int status, std::stringstream& auth_response);
-  AuthenticationClient::SignInClientResponse FindSingInResponceInCache(
+  AuthenticationClient::SignInClientResponse FindSingInResponseInCache(
       int status, const std::string& error_message,
-      AuthenticationCredentials credentials);
+      const AuthenticationCredentials& credentials);
 
   std::string GenerateUid();
 
@@ -512,7 +512,7 @@ olp::client::HttpResponse AuthenticationClient::Impl::CallAuth(
        GenerateHeader(credentials, url, timestamp)}};
   if (context.IsCancelled()) {
     return {static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            "Sign was cancelled"};
+            "Cancelled"};
   }
   auto auth_response =
       client.CallApi(kOauthEndpoint, "POST", {}, std::move(headers), {},
@@ -533,9 +533,9 @@ SignInResult AuthenticationClient::Impl::ParseAuthResponse(
 }
 
 AuthenticationClient::SignInClientResponse
-AuthenticationClient::Impl::FindSingInResponceInCache(
+AuthenticationClient::Impl::FindSingInResponseInCache(
     int status, const std::string& error_message,
-    AuthenticationCredentials credentials) {
+    const AuthenticationCredentials& credentials) {
   if (status == static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR)) {
     return {{status, error_message}};
   }
@@ -566,8 +566,8 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
       }
 
       if (context.IsCancelled()) {
-        return {{static_cast<int>(http::ErrorCode::CANCELLED_ERROR),
-                 "Sign was cancelled"}};
+        return {
+            {static_cast<int>(http::ErrorCode::CANCELLED_ERROR), "Cancelled"}};
       }
 
       client::OlpClient client = CreateOlpClient(settings_, boost::none);
@@ -591,11 +591,16 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
       auto status = auth_response.status;
 
       if (status < 0) {
-        return FindSingInResponceInCache(status, auth_response.response.str(),
+        return FindSingInResponseInCache(status, auth_response.response.str(),
                                          credentials);
       }
 
-      SignInResult response = ParseAuthResponse(status, auth_response.response);
+      if (context.IsCancelled()) {
+        return {{static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+                 "Cancelled"}};
+      }
+
+      auto response = ParseAuthResponse(status, auth_response.response);
 
       if (settings_.use_system_time &&
           status == http::HttpStatusCode::UNAUTHORIZED &&
@@ -606,9 +611,10 @@ client::CancellationToken AuthenticationClient::Impl::SignInClient(
               CallAuth(client, context, credentials, properties, timestamp);
           status = auth_response.status;
           if (status < 0) {
-            return FindSingInResponceInCache(
+            return FindSingInResponseInCache(
                 status, auth_response.response.str(), credentials);
           }
+
           response = ParseAuthResponse(status, auth_response.response);
         }
       }
