@@ -40,9 +40,13 @@
 #include <testutils/CustomParameters.hpp>
 #include "Utils.h"
 
-using namespace olp::dataservice::write;
-using namespace olp::dataservice::write::model;
-using namespace testing;
+namespace model = olp::dataservice::write::model;
+using olp::dataservice::write::PublishDataResponse;
+using olp::dataservice::write::PublishSdiiResponse;
+using olp::dataservice::write::StreamLayerClient;
+using olp::dataservice::write::StreamLayerClientSettings;
+using olp::dataservice::write::model::PublishDataRequest;
+using olp::dataservice::write::model::PublishSdiiRequest;
 
 const std::string kEndpoint = "endpoint";
 const std::string kAppid = "dataservice_write_test_appid";
@@ -96,14 +100,15 @@ std::string GenerateRandomUUID() {
 }
 
 void PublishDataSuccessAssertions(
-    const olp::client::ApiResponse<ResponseOkSingle, olp::client::ApiError>&
-        result) {
+    const olp::client::ApiResponse<model::ResponseOkSingle,
+                                   olp::client::ApiError>& result) {
   EXPECT_SUCCESS(result);
   EXPECT_FALSE(result.GetResult().GetTraceID().empty());
 }
 
 void PublishSdiiSuccessAssertions(
-    const olp::client::ApiResponse<ResponseOk, olp::client::ApiError>& result) {
+    const olp::client::ApiResponse<model::ResponseOk, olp::client::ApiError>&
+        result) {
   EXPECT_SUCCESS(result);
   EXPECT_FALSE(result.GetResult().GetTraceID().GetParentID().empty());
   ASSERT_FALSE(result.GetResult().GetTraceID().GetGeneratedIDs().empty());
@@ -126,7 +131,12 @@ class DataserviceWriteStreamLayerClientTest : public ::testing::Test {
   }
 
   void SetUp() override {
-    ASSERT_NO_FATAL_FAILURE(client_ = CreateStreamLayerClient());
+    network_ = olp::client::OlpClientSettingsFactory::
+        CreateDefaultNetworkRequestHandler();
+    task_scheduler_ =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
+    ASSERT_NO_FATAL_FAILURE(
+        client_ = CreateStreamLayerClient(network_, task_scheduler_));
     data_ = GenerateData();
   }
 
@@ -166,19 +176,16 @@ class DataserviceWriteStreamLayerClientTest : public ::testing::Test {
     }
   }
 
-  virtual std::shared_ptr<StreamLayerClient> CreateStreamLayerClient() {
-    network_ = olp::client::OlpClientSettingsFactory::
-        CreateDefaultNetworkRequestHandler();
-    task_scheduler_ =
-        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
-
+  virtual std::shared_ptr<StreamLayerClient> CreateStreamLayerClient(
+      std::shared_ptr<olp::http::Network> network,
+      std::shared_ptr<olp::thread::TaskScheduler> task_scheduler) {
     const auto app_id = CustomParameters::getArgument(kAppid);
     const auto secret = CustomParameters::getArgument(kSecret);
 
     olp::authentication::Settings authentication_settings({app_id, secret});
     authentication_settings.token_endpoint_url =
         CustomParameters::getArgument(kEndpoint);
-    authentication_settings.network_request_handler = network_;
+    authentication_settings.network_request_handler = network;
 
     olp::authentication::TokenProviderDefault provider(authentication_settings);
 
@@ -187,8 +194,8 @@ class DataserviceWriteStreamLayerClientTest : public ::testing::Test {
 
     olp::client::OlpClientSettings settings;
     settings.authentication_settings = auth_client_settings;
-    settings.network_request_handler = network_;
-    settings.task_scheduler = task_scheduler_;
+    settings.network_request_handler = network;
+    settings.task_scheduler = task_scheduler;
 
     return std::make_shared<StreamLayerClient>(
         olp::client::HRN{GetTestCatalog()}, StreamLayerClientSettings{},
@@ -509,7 +516,12 @@ TEST_F(DataserviceWriteStreamLayerClientTest, ConcurrentPublishSameIngestApi) {
 TEST_F(DataserviceWriteStreamLayerClientTest,
        ConcurrentPublishDifferentIngestApi) {
   auto publishData = [&]() {
-    auto client = CreateStreamLayerClient();
+    auto network = olp::client::OlpClientSettingsFactory::
+        CreateDefaultNetworkRequestHandler();
+    auto task_scheduler =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
+    auto client =
+        CreateStreamLayerClient(std::move(network), std::move(task_scheduler));
 
     auto response =
         client
