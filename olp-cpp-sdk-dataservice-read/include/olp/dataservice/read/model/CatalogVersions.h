@@ -26,64 +26,12 @@
 #include <vector>
 
 #include <olp/dataservice/read/DataServiceReadApi.h>
+#include <olp/dataservice/read/model/VersionDependency.h>
 
 namespace olp {
 namespace dataservice {
 namespace read {
 namespace model {
-
-/**
- * @brief Represents a catalog version dependencies
- */
-class DATASERVICE_READ_API CatalogVersionDependencies final {
- public:
-  /**
-   * @brief Sets the hrn.
-   *
-   * @param hrn.
-   */
-  void SetHrn(std::string hrn) { hrn_ = std::move(hrn); }
-
-  /**
-   * @brief Sets the version.
-   *
-   * @param version.
-   */
-  void SetVersion(int64_t version) { version_ = version; }
-
-  /**
-   * @brief Sets the direct status.
-   *
-   * @param direct status.
-   */
-  void SetDirect(bool direct) { direct_ = direct; }
-
-  /**
-   * @brief Gets the hrn.
-   *
-   * @return The hrn.
-   */
-  const std::string& GetHrn() const { return hrn_; }
-
-  /**
-   * @brief Gets the version.
-   *
-   * @return The version.
-   */
-  int64_t GetVersion() const { return version_; }
-
-  /**
-   * @brief Gets the direct status.
-   *
-   * @return The direct status.
-   */
-  bool IsDirect() const { return direct_; }
-
- private:
-  std::string hrn_;
-  int64_t version_;
-  bool direct_;
-};
 
 /**
  * @brief Represents a catalog version
@@ -95,8 +43,7 @@ class DATASERVICE_READ_API CatalogVersion final {
    *
    * @param vector of catalog version dependencies.
    */
-  void SetCatalogVersionDependencies(
-      std::vector<CatalogVersionDependencies> dependencies) {
+  void SetVersionDependencies(std::vector<VersionDependency> dependencies) {
     dependencies_ = std::move(dependencies);
   }
 
@@ -128,8 +75,7 @@ class DATASERVICE_READ_API CatalogVersion final {
    *
    * @return The vector of catalog version dependencies.
    */
-  const std::vector<CatalogVersionDependencies>& GetCatalogVersionDependencies()
-      const {
+  const std::vector<VersionDependency>& GetCatalogVersionDependencies() const {
     return dependencies_;
   }
 
@@ -159,13 +105,14 @@ class DATASERVICE_READ_API CatalogVersion final {
  private:
   int64_t version_;
   int64_t timestamp_;
-  std::vector<CatalogVersionDependencies> dependencies_;
+  std::vector<VersionDependency> dependencies_;
   std::map<std::string, int64_t> partition_counts_;
 };
+
 /**
  * @brief A container for list of versions.
  */
-class DATASERVICE_READ_API Versions final {
+class DATASERVICE_READ_API VersionsList final {
  public:
   /**
    * @brief Sets the vector of versions.

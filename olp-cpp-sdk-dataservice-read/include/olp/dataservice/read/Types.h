@@ -27,11 +27,11 @@
 #include <olp/core/client/ApiResponse.h>
 
 #include <olp/dataservice/read/model/Catalog.h>
+#include <olp/dataservice/read/model/CatalogVersions.h>
 #include <olp/dataservice/read/model/Data.h>
 #include <olp/dataservice/read/model/Messages.h>
 #include <olp/dataservice/read/model/Partitions.h>
 #include <olp/dataservice/read/model/VersionResponse.h>
-#include <olp/dataservice/read/model/Versions.h>
 
 namespace olp {
 namespace dataservice {
@@ -110,8 +110,9 @@ using SeekResult = int;
 using SeekResponse = Response<SeekResult>;
 /// The seek completion callback type of the stream layer client.
 using SeekResponseCallback = Callback<SeekResult>;
+
 /// The alias type of the versions result.
-using VersionsResult = model::Versions;
+using VersionsResult = model::VersionsList;
 /// The versions list of metadata response type for versioned client.
 using VersionsResponse = Response<VersionsResult>;
 /// The versions list of metadata callback type for versioned client.

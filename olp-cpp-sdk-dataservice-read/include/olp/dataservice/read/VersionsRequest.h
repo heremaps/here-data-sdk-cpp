@@ -63,8 +63,8 @@ class DATASERVICE_READ_API VersionsRequest final {
    * @return The catalog metadata start version.
    *
    */
-
   inline std::int64_t GetStartVersion() const { return start_version_; }
+
   /**
    * @brief Sets the catalog metadata end version.
    *
