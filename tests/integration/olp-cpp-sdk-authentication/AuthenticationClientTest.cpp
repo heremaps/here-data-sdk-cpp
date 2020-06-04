@@ -33,16 +33,16 @@
 #include "AuthenticationMockedResponses.h"
 #include "olp/core/client/OlpClientSettingsFactory.h"
 
+namespace common = olp::tests::common;
 namespace auth = olp::authentication;
 namespace client = olp::client;
-namespace common = olp::tests::common;
 using testing::_;
 
 namespace {
-const std::string kTimestampUrl =
+constexpr auto kTimestampUrl =
     R"(https://authentication.server.url/timestamp)";
 
-const std::string kIntrospectUrl =
+constexpr auto kIntrospectUrl =
     R"(https://authentication.server.url/app/me)";
 
 constexpr auto kTokenEndpointUrl = "https://authentication.server.url";
@@ -52,37 +52,37 @@ constexpr unsigned int kMaxExpiryTime = kExpirtyTime + 30;
 constexpr unsigned int kMinExpiryTime = kExpirtyTime - 10;
 
 // HTTP errors
-const std::string kErrorOk = "OK";
-const std::string kErrorSignupCreated = "Created";
-const std::string kErrorServiceUnavailable = "Service unavailable";
+constexpr auto kErrorOk = "OK";
+constexpr auto kErrorSignupCreated = "Created";
+constexpr auto kErrorServiceUnavailable = "Service unavailable";
 
-const std::string kErrorNoContent = "No Content";
-const std::string kErrorFieldsMessage = "Received invalid data.";
-const std::string kErrorPreconditionFailedMessage = "Precondition Failed";
+constexpr auto kErrorNoContent = "No Content";
+constexpr auto kErrorFieldsMessage = "Received invalid data.";
+constexpr auto kErrorPreconditionFailedMessage = "Precondition Failed";
 
-const std::string kErrorUndefined = "";
+constexpr auto kErrorBadRequestMessage = "Invalid JSON.";
 
-const std::string kErrorBadRequestMessage = "Invalid JSON.";
-
-const std::string kErrorUnathorizedMessage =
+constexpr auto kErrorUnathorizedMessage =
     "Signature mismatch. Authorization signature or client credential is "
     "wrong.";
 
-const std::string kErrorUserNotFound =
+constexpr auto kErrorUserNotFound =
     "User for the given access token cannot be found.";
 
-const std::string kErrorConfliceMessage =
+constexpr auto kErrorConfliceMessage =
     "A password account with the specified email address already exists.";
 
-const std::string kErrorTooManyRequestsMessage =
+constexpr auto kErrorTooManyRequestsMessage =
     "Request blocked because too many requests were made. Please wait for a "
     "while before making a new request.";
 
-const std::string kErrorInternvalServerMessage =
-    "Missing Thing Encrypted Secret.";
+constexpr auto kErrorInternvalServerMessage = "Missing Thing Encrypted Secret.";
 
-const std::string kErrorIllegalLastName = "Illegal last name.";
-const std::string kErrorBlacklistedPassword = "Black listed password.";
+constexpr auto kErrorIllegalLastName = "Illegal last name.";
+constexpr auto kErrorBlacklistedPassword = "Black listed password.";
+constexpr auto kDateHeader = "Fri, 29 May 2020 11:07:45 GMT";
+constexpr auto kRequestAuth = "https://authentication.server.url/oauth2/token";
+constexpr auto kDate = "date";
 
 constexpr auto kErrorFieldsCode = 400200;
 constexpr auto kErrorBadRequestCode = 400002;
@@ -315,6 +315,72 @@ TEST_F(AuthenticationClientTest, SignInClientUseLocalTime) {
   EXPECT_EQ(response.GetResult().GetScope(), scope_);
 
   ::testing::Mock::VerifyAndClearExpectations(network_.get());
+}
+
+TEST_F(AuthenticationClientTest, SignInClientUseWrongLocalTime) {
+  auth::AuthenticationSettings settings;
+  settings.network_request_handler = network_;
+  settings.use_system_time = true;
+  settings.token_endpoint_url = kTokenEndpointUrl;
+
+  auto client =
+      std::make_unique<auth::AuthenticationClient>(std::move(settings));
+
+  auth::AuthenticationCredentials credentials(key_, secret_);
+  std::promise<auth::AuthenticationClient::SignInClientResponse> request;
+  auto request_future = request.get_future();
+
+  EXPECT_CALL(*network_, Send(common::IsGetRequest(kTimestampUrl), _, _, _, _))
+      .Times(0);
+
+  EXPECT_CALL(*network_, Send(common::IsPostRequest(kRequestAuth), _, _, _, _))
+      .WillOnce([&](olp::http::NetworkRequest /*request*/,
+                    olp::http::Network::Payload payload,
+                    olp::http::Network::Callback callback,
+                    olp::http::Network::HeaderCallback header_callback,
+                    olp::http::Network::DataCallback data_callback) {
+        olp::http::RequestId request_id(5);
+        if (payload) {
+          *payload << kResponseWrongTimestamp;
+        }
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::http::HttpStatusCode::UNAUTHORIZED));
+        if (data_callback) {
+          auto raw = const_cast<char*>(kResponseWrongTimestamp.c_str());
+          data_callback(reinterpret_cast<uint8_t*>(raw), 0,
+                        kResponseWrongTimestamp.size());
+        }
+        if (header_callback) {
+          header_callback(kDate, kDateHeader);
+        }
+
+        return olp::http::SendOutcome(request_id);
+      })
+      .WillOnce(common::ReturnHttpResponse(
+          GetResponse(olp::http::HttpStatusCode::OK), kResponseWithScope));
+
+  auth::AuthenticationClient::SignInProperties properties;
+  properties.scope = scope_;
+  std::time_t now = std::time(nullptr);
+  client->SignInClient(
+      credentials, properties,
+      [&](const auth::AuthenticationClient::SignInClientResponse& response) {
+        request.set_value(response);
+      });
+  request_future.wait();
+
+  auth::AuthenticationClient::SignInClientResponse response =
+      request_future.get();
+  EXPECT_TRUE(response.IsSuccessful());
+  EXPECT_FALSE(response.GetResult().GetAccessToken().empty());
+  EXPECT_EQ(kResponseToken, response.GetResult().GetAccessToken());
+  EXPECT_GE(now + kMaxExpiryTime, response.GetResult().GetExpiryTime());
+  EXPECT_LT(now + kMinExpiryTime, response.GetResult().GetExpiryTime());
+  EXPECT_EQ("bearer", response.GetResult().GetTokenType());
+  EXPECT_TRUE(response.GetResult().GetRefreshToken().empty());
+  EXPECT_TRUE(response.GetResult().GetUserIdentifier().empty());
+  EXPECT_EQ(response.GetResult().GetScope(), scope_);
 }
 
 TEST_F(AuthenticationClientTest, SignInClientScope) {
