@@ -30,6 +30,7 @@
 #include "generated/parser/LayerVersionsParser.h"
 #include "generated/parser/PartitionsParser.h"
 #include "generated/parser/VersionResponseParser.h"
+#include "generated/parser/VersionInfosParser.h"
 #include <olp/core/generated/parser/JsonParser.h>
 // clang-format on
 
@@ -53,10 +54,9 @@ std::string concatStringArray(const std::vector<std::string>& strings,
 namespace olp {
 namespace dataservice {
 namespace read {
-using namespace olp::client;
 
 MetadataApi::LayerVersionsResponse MetadataApi::GetLayerVersions(
-    const OlpClient& client, int64_t version,
+    const client::OlpClient& client, std::int64_t version,
     boost::optional<std::string> billing_tag,
     const client::CancellationContext& context) {
   std::multimap<std::string, std::string> header_params;
@@ -74,7 +74,7 @@ MetadataApi::LayerVersionsResponse MetadataApi::GetLayerVersions(
                                      header_params, {}, nullptr, "", context);
 
   if (api_response.status != http::HttpStatusCode::OK) {
-    return ApiError(api_response.status, api_response.response.str());
+    return client::ApiError(api_response.status, api_response.response.str());
   }
 
   return LayerVersionsResponse(
@@ -82,8 +82,8 @@ MetadataApi::LayerVersionsResponse MetadataApi::GetLayerVersions(
 }
 
 MetadataApi::PartitionsResponse MetadataApi::GetPartitions(
-    const OlpClient& client, const std::string& layer_id,
-    boost::optional<int64_t> version,
+    const client::OlpClient& client, const std::string& layer_id,
+    boost::optional<std::int64_t> version,
     const std::vector<std::string>& additional_fields,
     boost::optional<std::string> range,
     boost::optional<std::string> billing_tag,
@@ -112,7 +112,7 @@ MetadataApi::PartitionsResponse MetadataApi::GetPartitions(
                                      header_params, {}, nullptr, "", context);
 
   if (api_response.status != http::HttpStatusCode::OK) {
-    return ApiError(api_response.status, api_response.response.str());
+    return {{api_response.status, api_response.response.str()}};
   }
 
   return PartitionsResponse(
@@ -120,7 +120,7 @@ MetadataApi::PartitionsResponse MetadataApi::GetPartitions(
 }
 
 MetadataApi::CatalogVersionResponse MetadataApi::GetLatestCatalogVersion(
-    const OlpClient& client, int64_t startVersion,
+    const client::OlpClient& client, std::int64_t startVersion,
     boost::optional<std::string> billing_tag,
     const client::CancellationContext& context) {
   std::multimap<std::string, std::string> header_params;
@@ -138,10 +138,36 @@ MetadataApi::CatalogVersionResponse MetadataApi::GetLatestCatalogVersion(
                                      header_params, {}, nullptr, "", context);
 
   if (api_response.status != http::HttpStatusCode::OK) {
-    return ApiError(api_response.status, api_response.response.str());
+    return {{api_response.status, api_response.response.str()}};
   }
   return CatalogVersionResponse(
       olp::parser::parse<model::VersionResponse>(api_response.response));
+}
+
+MetadataApi::VersionsResponse MetadataApi::ListVersions(
+    const client::OlpClient& client, std::int64_t start_version,
+    std::int64_t end_version, boost::optional<std::string> billing_tag,
+    const client::CancellationContext& context) {
+  std::multimap<std::string, std::string> header_params;
+  header_params.emplace("Accept", "application/json");
+
+  std::multimap<std::string, std::string> query_params;
+  query_params.emplace("startVersion", std::to_string(start_version));
+  query_params.emplace("endVersion", std::to_string(end_version));
+  if (billing_tag) {
+    query_params.emplace("billingTag", *billing_tag);
+  }
+
+  std::string metadata_uri = "/versions";
+
+  auto api_response = client.CallApi(metadata_uri, "GET", query_params,
+                                     header_params, {}, nullptr, "", context);
+
+  if (api_response.status != http::HttpStatusCode::OK) {
+    return {{api_response.status, api_response.response.str()}};
+  }
+  return VersionsResponse(
+      olp::parser::parse<model::VersionInfos>(api_response.response));
 }
 
 }  // namespace read
