@@ -30,6 +30,7 @@
 #include <olp/dataservice/read/model/Data.h>
 #include <olp/dataservice/read/model/Messages.h>
 #include <olp/dataservice/read/model/Partitions.h>
+#include <olp/dataservice/read/model/VersionInfos.h>
 #include <olp/dataservice/read/model/VersionResponse.h>
 
 namespace olp {
@@ -109,6 +110,13 @@ using SeekResult = int;
 using SeekResponse = Response<SeekResult>;
 /// The seek completion callback type of the stream layer client.
 using SeekResponseCallback = Callback<SeekResult>;
+
+/// The alias type of version result.
+using VersionsResult = model::VersionInfos;
+/// The versions list of metadata response type for the versioned client.
+using VersionsResponse = Response<VersionsResult>;
+/// The versions list of metadata callback type for the versioned client.
+using VersionsResponseCallback = Callback<VersionsResult>;
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp
