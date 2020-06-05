@@ -43,8 +43,8 @@ class DATASERVICE_READ_API VersionInfos final {
    *
    * @param value The vector of version infos .
    */
-  void SetVersionInfos(std::vector<VersionInfo> value) {
-    versions_ = std::move(value);
+  void SetVersions(std::vector<VersionInfo> versions) {
+    versions_ = std::move(versions);
   }
 
   /**
@@ -52,7 +52,7 @@ class DATASERVICE_READ_API VersionInfos final {
    *
    * @return The vector of version infos.
    */
-  const std::vector<VersionInfo>& GetVersionInfos() const { return versions_; }
+  const std::vector<VersionInfo>& GetVersions() const { return versions_; }
 
  private:
   std::vector<VersionInfo> versions_;

@@ -43,7 +43,7 @@ class DATASERVICE_READ_API VersionInfo final {
    *
    * @param The vector of version dependencies.
    */
-  void SetVersionDependencies(std::vector<VersionDependency> dependencies) {
+  void SetDependencies(std::vector<VersionDependency> dependencies) {
     dependencies_ = std::move(dependencies);
   }
 
@@ -76,7 +76,7 @@ class DATASERVICE_READ_API VersionInfo final {
    *
    * @return The vector of version dependencies.
    */
-  const std::vector<VersionDependency>& GetVersionDependencies() const {
+  const std::vector<VersionDependency>& GetDependencies() const {
     return dependencies_;
   }
 
