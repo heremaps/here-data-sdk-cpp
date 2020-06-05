@@ -30,7 +30,7 @@ namespace read {
 namespace model {
 
 /**
- * @brief Represents a catalog version dependency
+ * @brief Represents a catalog version dependency.
  */
 class DATASERVICE_READ_API VersionDependency final {
  public:
@@ -49,30 +49,30 @@ class DATASERVICE_READ_API VersionDependency final {
   void SetDirect(bool direct) { direct_ = direct; }
 
   /**
-   * @brief Gets the hrn.
+   * @brief Gets the HRN.
    *
-   * @return The hrn.
+   * @return The HRN.
    */
   const std::string& GetHrn() const { return hrn_; }
 
   /**
-   * @brief Sets the hrn.
+   * @brief Sets the HRN.
    *
-   * @param hrn.
+   * @param The HRN that you want to set.
    */
   void SetHrn(std::string hrn) { hrn_ = std::move(hrn); }
 
   /**
-   * @brief Gets the version.
+   * @brief Gets the catalog version.
    *
-   * @return The version.
+   * @return The catalog version.
    */
   std::int64_t GetVersion() const { return version_; }
 
   /**
-   * @brief Sets the version.
+   * @brief Sets the catalog version.
    *
-   * @param version.
+   * @param The catalog version.
    */
   void SetVersion(std::int64_t version) { version_ = version; }
 

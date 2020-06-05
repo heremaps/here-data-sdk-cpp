@@ -111,11 +111,11 @@ using SeekResponse = Response<SeekResult>;
 /// The seek completion callback type of the stream layer client.
 using SeekResponseCallback = Callback<SeekResult>;
 
-/// The alias type of the versions result.
+/// The alias type of version result.
 using VersionsResult = model::VersionInfos;
-/// The versions list of metadata response type for versioned client.
+/// The versions list of metadata response type for the versioned client.
 using VersionsResponse = Response<VersionsResult>;
-/// The versions list of metadata callback type for versioned client.
+/// The versions list of metadata callback type for the versioned client.
 using VersionsResponseCallback = Callback<VersionsResult>;
 }  // namespace read
 }  // namespace dataservice

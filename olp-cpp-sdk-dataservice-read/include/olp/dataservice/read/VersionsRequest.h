@@ -33,16 +33,16 @@ namespace dataservice {
 namespace read {
 
 /**
- * @brief Encapsulates the fields required to request versions list for the
- * given catalog.
+ * @brief Encapsulates the fields required to request a list of versions for
+ * the given catalog.
  */
 class DATASERVICE_READ_API VersionsRequest final {
  public:
   /**
    * @brief Sets the catalog metadata start version.
    *
-   * @note The beginning of the range of versions you want to get
-   * (exclusive). By convention -1 indicates the initial version before the
+   * @note The beginning of the range of versions that you want to get
+   * (exclusive). By convention, -1 indicates the initial version before the
    * first publication. After the first publication, the catalog version is 0.
    *
    * @param version The catalog metadata start version of the requested
@@ -68,10 +68,10 @@ class DATASERVICE_READ_API VersionsRequest final {
   /**
    * @brief Sets the catalog metadata end version.
    *
-   * @note The end of the range of versions you want to get (inclusive). This
-   * must be a valid catalog version greater than the startVersion. The maximum
-   * value for this parameter is returned from the /versions/latest endpoint. If
-   * this version does not exist, 400 Bad Request is returned.
+   * @note The end of the range of versions that you want to get (inclusive). It
+   * must be a valid catalog version greater than the `startVersion`. The
+   * maximum value for this parameter is returned from the `/versions/latest`
+   * endpoint. If this version does not exist, 400 Bad Request is returned.
    *
    * @param version The catalog metadata end version of the requested
    * versions list.

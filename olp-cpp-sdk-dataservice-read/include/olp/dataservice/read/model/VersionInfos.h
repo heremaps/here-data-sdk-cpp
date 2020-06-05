@@ -34,7 +34,7 @@ namespace read {
 namespace model {
 
 /**
- * @brief A container for list of version infos.
+ * @brief A container for a list of version infos.
  */
 class DATASERVICE_READ_API VersionInfos final {
  public:
