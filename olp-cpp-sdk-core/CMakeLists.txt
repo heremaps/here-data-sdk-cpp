@@ -92,6 +92,7 @@ set(OLP_SDK_HTTP_HEADERS
     ./include/olp/core/http/NetworkResponse.h
     ./include/olp/core/http/NetworkSettings.h
     ./include/olp/core/http/NetworkTypes.h
+    ./include/olp/core/http/NetworkUtils.h
 )
 
 set(OLP_SDK_PLATFORM_HEADERS
