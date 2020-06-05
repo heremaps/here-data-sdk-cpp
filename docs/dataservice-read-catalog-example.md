@@ -215,7 +215,17 @@ You need to create the `OlpClientSettings` object to get catalog and partition m
 
 3. [Authenticate](#authenticate-to-here-olp-using-client-credentials) to the HERE platform.
 
-4. Set up the `OlpClientSettings` object.
+4. (Optional) For data that is stored in the cache, to add expiration limit, set the `default_cache_expiration` to the needed expiration time.
+
+   By default, expiration is disabled.
+
+   > Note: You can only disable expiration for the mutable and in-memory cache. This setting does not affect the protected cache as no entries are added to the protected cache in the read-only mode.
+
+   ```cpp
+   std::chrono::seconds default_cache_expiration = std::chrono::seconds(200);
+   ```
+
+5. Set up the `OlpClientSettings` object.
 
    ```cpp
    olp::client::OlpClientSettings client_settings;
@@ -224,6 +234,7 @@ You need to create the `OlpClientSettings` object to get catalog and partition m
    client_settings.network_request_handler = std::move(http_client);
    client_settings.cache =
        olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+   client_settings.default_cache_expiration = std::chrono::seconds(200);
    ```
 
 The `OlpClientSettings` class pulls together all the settings for customization of the client library behavior:
