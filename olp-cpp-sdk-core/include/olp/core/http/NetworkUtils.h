@@ -98,7 +98,14 @@ class CORE_API NetworkUtils {
   static std::string ExtractUserAgent(Headers& headers);
 };  // The `NetworkUtils` class.
 
-std::string HttpErrorToString(int error);
+/**
+ * @brief Converts the HTTP error status code to string.
+ *
+ * @param http_status The HTTP status.
+ *
+ * @return The readable string representation of http code.
+ */
+CORE_API std::string HttpErrorToString(int http_status);
 
 }  // namespace http
 }  // namespace olp

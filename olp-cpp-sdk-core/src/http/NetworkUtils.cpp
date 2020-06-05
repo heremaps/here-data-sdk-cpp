@@ -90,8 +90,8 @@ std::string NetworkUtils::ExtractUserAgent(Headers& headers) {
   return user_agent;
 }
 
-std::string HttpErrorToString(int error) {
-  switch (error) {
+std::string HttpErrorToString(int http_status) {
+  switch (http_status) {
     case 100:
       return "Continue";
     case 101:
