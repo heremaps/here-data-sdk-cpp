@@ -32,7 +32,6 @@
 #include <boost/uuid/uuid_io.hpp>
 #include "AuthenticationClientUtils.h"
 #include "Constants.h"
-#include "Crypto.h"
 #include "SignInResultImpl.h"
 #include "SignInUserResultImpl.h"
 #include "SignOutResultImpl.h"
@@ -43,31 +42,14 @@
 #include "olp/core/http/NetworkUtils.h"
 #include "olp/core/logging/Log.h"
 #include "olp/core/thread/TaskScheduler.h"
-#include "olp/core/utils/Base64.h"
-#include "olp/core/utils/Url.h"
 
 namespace {
-namespace auth = olp::authentication;
 namespace client = olp::client;
 
 using olp::authentication::Constants;
 
-// Helper characters
-constexpr auto kParamAdd = "&";
-constexpr auto kParamComma = ",";
-constexpr auto kParamEquals = "=";
-constexpr auto kParamQuote = "\"";
-constexpr auto kLineFeed = '\n';
-
 // Tags
 constexpr auto kApplicationJson = "application/json";
-const std::string kOauthPost = "POST";
-const std::string kOauthConsumerKey = "oauth_consumer_key";
-const std::string kOauthNonce = "oauth_nonce";
-const std::string kOauthSignature = "oauth_signature";
-const std::string kOauthTimestamp = "oauth_timestamp";
-const std::string kOauthVersion = "oauth_version";
-const std::string kOauthSignatureMethod = "oauth_signature_method";
 const std::string kOauthEndpoint = "/oauth2/token";
 const std::string kSignoutEndpoint = "/logout";
 const std::string kTermsEndpoint = "/terms";
@@ -106,8 +88,6 @@ constexpr auto kResource = "resource";
 constexpr auto kDiagnostics = "diagnostics";
 constexpr auto kOperator = "operator";
 // Values
-constexpr auto kVersion = "1.0";
-constexpr auto kHmac = "HMAC-SHA256";
 constexpr auto kErrorWrongTimestamp = 401204;
 constexpr auto kLogTag = "AuthenticationClient";
 
@@ -135,9 +115,11 @@ olp::client::HttpResponse AuthenticationClientImpl::CallAuth(
     const SignInProperties& properties, std::time_t timestamp) {
   const auto url = settings_.token_endpoint_url + kOauthEndpoint;
 
+  auto auth_header =
+      GenerateAuthorizationHeader(credentials, url, timestamp, GenerateUid());
+
   client::OlpClient::ParametersType headers = {
-      {http::kAuthorizationHeader,
-       GenerateHeader(credentials, url, timestamp)}};
+      {http::kAuthorizationHeader, std::move(auth_header)}};
   if (context.IsCancelled()) {
     return {static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
             "Cancelled"};
@@ -354,8 +336,11 @@ client::CancellationToken AuthenticationClientImpl::HandleUserRequest(
     network_settings.WithProxySettings(settings_.network_proxy_settings.get());
   }
   request.WithVerb(http::NetworkRequest::HttpVerb::POST);
-  request.WithHeader(http::kAuthorizationHeader,
-                     GenerateHeader(credentials, url));
+
+  auto auth_header = GenerateAuthorizationHeader(
+      credentials, url, std::time(nullptr), GenerateUid());
+
+  request.WithHeader(http::kAuthorizationHeader, std::move(auth_header));
   request.WithHeader(http::kContentTypeHeader, kApplicationJson);
   request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
   request.WithSettings(std::move(network_settings));
@@ -465,8 +450,11 @@ client::CancellationToken AuthenticationClientImpl::SignUpHereUser(
     network_settings.WithProxySettings(settings_.network_proxy_settings.get());
   }
   request.WithVerb(http::NetworkRequest::HttpVerb::POST);
-  request.WithHeader(http::kAuthorizationHeader,
-                     GenerateHeader(credentials, url));
+
+  auto auth_header = GenerateAuthorizationHeader(
+      credentials, url, std::time(nullptr), GenerateUid());
+
+  request.WithHeader(http::kAuthorizationHeader, std::move(auth_header));
   request.WithHeader(http::kContentTypeHeader, kApplicationJson);
   request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
   request.WithSettings(std::move(network_settings));
@@ -693,47 +681,6 @@ client::CancellationToken AuthenticationClientImpl::Authorize(
 
   return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
                  std::move(callback));
-}
-
-std::string AuthenticationClientImpl::Base64Encode(
-    const std::vector<uint8_t>& vector) {
-  std::string ret = olp::utils::Base64Encode(vector);
-  // Base64 encode sometimes return multiline with garbage at the end
-  if (!ret.empty()) {
-    auto loc = ret.find(kLineFeed);
-    if (loc != std::string::npos) ret = ret.substr(0, loc);
-  }
-  return ret;
-}
-
-std::string AuthenticationClientImpl::GenerateHeader(
-    const AuthenticationCredentials& credentials, const std::string& url,
-    const time_t& timestamp) {
-  std::string uid = GenerateUid();
-  const std::string currentTime = std::to_string(timestamp);
-  const std::string encodedUri = utils::Url::Encode(url);
-  const std::string encodedQuery = utils::Url::Encode(
-      kOauthConsumerKey + kParamEquals + credentials.GetKey() + kParamAdd +
-      kOauthNonce + kParamEquals + uid + kParamAdd + kOauthSignatureMethod +
-      kParamEquals + kHmac + kParamAdd + kOauthTimestamp + kParamEquals +
-      currentTime + kParamAdd + kOauthVersion + kParamEquals + kVersion);
-  const std::string signatureBase =
-      kOauthPost + kParamAdd + encodedUri + kParamAdd + encodedQuery;
-  const std::string encodeKey = credentials.GetSecret() + kParamAdd;
-  auto hmacResult = Crypto::hmac_sha256(encodeKey, signatureBase);
-  auto signature = Base64Encode(hmacResult);
-  std::string authorization =
-      "OAuth " + kOauthConsumerKey + kParamEquals + kParamQuote +
-      utils::Url::Encode(credentials.GetKey()) + kParamQuote + kParamComma +
-      kOauthNonce + kParamEquals + kParamQuote + utils::Url::Encode(uid) +
-      kParamQuote + kParamComma + kOauthSignatureMethod + kParamEquals +
-      kParamQuote + kHmac + kParamQuote + kParamComma + kOauthTimestamp +
-      kParamEquals + kParamQuote + utils::Url::Encode(currentTime) +
-      kParamQuote + kParamComma + kOauthVersion + kParamEquals + kParamQuote +
-      kVersion + kParamQuote + kParamComma + kOauthSignature + kParamEquals +
-      kParamQuote + utils::Url::Encode(signature) + kParamQuote;
-
-  return authorization;
 }
 
 std::string AuthenticationClientImpl::GenerateBearerHeader(

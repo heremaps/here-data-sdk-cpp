@@ -19,21 +19,54 @@
 
 #include "AuthenticationClientUtils.h"
 
+#include <chrono>
+#include <iomanip>
+#include <sstream>
+
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 
-#include <chrono>
-#include <iomanip>
-#include <sstream>
-
 #include "Constants.h"
+#include "Crypto.h"
 #include "olp/core/http/NetworkUtils.h"
+#include "olp/core/utils/Base64.h"
+#include "olp/core/utils/Url.h"
 
 namespace olp {
 namespace authentication {
-namespace auth = olp::authentication;
+
+namespace {
+// Helper characters
+constexpr auto kParamAdd = "&";
+constexpr auto kParamComma = ",";
+constexpr auto kParamEquals = "=";
+constexpr auto kParamQuote = "\"";
+constexpr auto kLineFeed = '\n';
+
+constexpr auto kOauthPost = "POST";
+constexpr auto kOauthVersion = "oauth_version";
+constexpr auto kOauthConsumerKey = "oauth_consumer_key";
+constexpr auto kOauthNonce = "oauth_nonce";
+constexpr auto kOauthSignature = "oauth_signature";
+constexpr auto kOauthTimestamp = "oauth_timestamp";
+constexpr auto kOauthSignatureMethod = "oauth_signature_method";
+constexpr auto kVersion = "1.0";
+constexpr auto kHmac = "HMAC-SHA256";
+
+std::string Base64Encode(const std::vector<uint8_t>& vector) {
+  std::string ret = olp::utils::Base64Encode(vector);
+  // Base64 encode sometimes return multiline with garbage at the end
+  if (!ret.empty()) {
+    auto loc = ret.find(kLineFeed);
+    if (loc != std::string::npos) ret = ret.substr(0, loc);
+  }
+  return ret;
+}
+
+}  // namespace
+
 namespace client = olp::client;
 
 constexpr auto kDate = "date";
@@ -75,9 +108,8 @@ void ExecuteOrSchedule(
   task_scheduler->ScheduleTask(std::move(func));
 }
 
-auth::IntrospectAppResult GetIntrospectAppResult(
-    const rapidjson::Document& doc) {
-  auth::IntrospectAppResult result;
+IntrospectAppResult GetIntrospectAppResult(const rapidjson::Document& doc) {
+  IntrospectAppResult result;
   if (doc.HasMember(Constants::CLIENT_ID)) {
     result.SetClientId(doc[Constants::CLIENT_ID].GetString());
   }
@@ -161,27 +193,27 @@ auth::IntrospectAppResult GetIntrospectAppResult(
   return result;
 }
 
-auth::DecisionType GetPermission(const std::string& str) {
-  return (str.compare("allow") == 0) ? auth::DecisionType::kAllow
-                                     : auth::DecisionType::kDeny;
+DecisionType GetPermission(const std::string& str) {
+  return (str.compare("allow") == 0) ? DecisionType::kAllow
+                                     : DecisionType::kDeny;
 }
 
-std::vector<auth::ActionResult> GetDiagnostics(rapidjson::Document& doc) {
-  std::vector<auth::ActionResult> results;
+std::vector<ActionResult> GetDiagnostics(rapidjson::Document& doc) {
+  std::vector<ActionResult> results;
   const auto& array = doc[Constants::DIAGNOSTICS].GetArray();
   for (auto& element : array) {
-    auth::ActionResult action;
+    ActionResult action;
     if (element.HasMember(Constants::DECISION)) {
       action.SetDecision(
           GetPermission(element[Constants::DECISION].GetString()));
       // get permissions if avialible
       if (element.HasMember(Constants::PERMISSIONS) &&
           element[Constants::PERMISSIONS].IsArray()) {
-        std::vector<auth::ActionResult::Permissions> permissions;
+        std::vector<ActionResult::Permissions> permissions;
         const auto& permissions_array =
             element[Constants::PERMISSIONS].GetArray();
         for (auto& permission_element : permissions_array) {
-          auth::ActionResult::Permissions permission;
+          ActionResult::Permissions permission;
           if (permission_element.HasMember(Constants::ACTION)) {
             permission.first =
                 permission_element[Constants::ACTION].GetString();
@@ -201,8 +233,8 @@ std::vector<auth::ActionResult> GetDiagnostics(rapidjson::Document& doc) {
   return results;
 }
 
-auth::AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc) {
-  auth::AuthorizeResult result;
+AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc) {
+  AuthorizeResult result;
 
   if (doc.HasMember(Constants::IDENTITY)) {
     auto uris = doc[Constants::IDENTITY].GetObject();
@@ -227,7 +259,7 @@ auth::AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc) {
 }
 
 client::OlpClient CreateOlpClient(
-    const auth::AuthenticationSettings& auth_settings,
+    const AuthenticationSettings& auth_settings,
     boost::optional<client::AuthenticationSettings> authentication_settings) {
   client::OlpClientSettings settings;
   settings.network_request_handler = auth_settings.network_request_handler;
@@ -240,6 +272,49 @@ client::OlpClient CreateOlpClient(
   client.SetBaseUrl(auth_settings.token_endpoint_url);
   client.SetSettings(std::move(settings));
   return client;
+}
+
+std::string GenerateAuthorizationHeader(
+    const AuthenticationCredentials& credentials, const std::string& url,
+    time_t timestamp, std::string nonce) {
+  const std::string timestamp_str = std::to_string(timestamp);
+
+  std::stringstream stream;
+
+  stream << kOauthConsumerKey << kParamEquals << credentials.GetKey()
+         << kParamAdd << kOauthNonce << kParamEquals << nonce << kParamAdd
+         << kOauthSignatureMethod << kParamEquals << kHmac << kParamAdd
+         << kOauthTimestamp << kParamEquals << timestamp_str << kParamAdd
+         << kOauthVersion << kParamEquals << kVersion;
+
+  const auto encoded_query = utils::Url::Encode(stream.str());
+
+  stream.clear();
+
+  stream << kOauthPost << kParamAdd << utils::Url::Encode(url) << kParamAdd
+         << encoded_query;
+
+  const auto signature_base = stream.str();
+
+  stream.clear();
+
+  const std::string encode_key = credentials.GetSecret() + kParamAdd;
+  auto hmac_result = Crypto::hmac_sha256(encode_key, signature_base);
+  auto signature = Base64Encode(hmac_result);
+
+  stream << "OAuth " << kOauthConsumerKey << kParamEquals << kParamQuote
+         << utils::Url::Encode(credentials.GetKey()) << kParamQuote
+         << kParamComma << kOauthNonce << kParamEquals << kParamQuote
+         << utils::Url::Encode(nonce) << kParamQuote << kParamComma
+         << kOauthSignatureMethod << kParamEquals << kParamQuote << kHmac
+         << kParamQuote << kParamComma << kOauthTimestamp << kParamEquals
+         << kParamQuote << utils::Url::Encode(timestamp_str) << kParamQuote
+         << kParamComma << kOauthVersion << kParamEquals << kParamQuote
+         << kVersion << kParamQuote << kParamComma << kOauthSignature
+         << kParamEquals << kParamQuote << utils::Url::Encode(signature)
+         << kParamQuote;
+
+  return stream.str();
 }
 
 }  // namespace authentication

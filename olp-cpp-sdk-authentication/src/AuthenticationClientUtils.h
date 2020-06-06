@@ -25,6 +25,7 @@
 
 #include <rapidjson/document.h>
 
+#include "olp/authentication/AuthenticationCredentials.h"
 #include "olp/authentication/AuthenticationSettings.h"
 #include "olp/authentication/AuthorizeResult.h"
 #include "olp/authentication/ErrorResponse.h"
@@ -128,6 +129,20 @@ std::time_t ParseTime(const std::string& value);
 client::OlpClient CreateOlpClient(
     const AuthenticationSettings& auth_settings,
     boost::optional<client::AuthenticationSettings> authentication_settings);
+
+/*
+ * @brief Generate authorization header.
+ *
+ * @param credentials Client credentials.
+ * @param url Authorization endpoint URL.
+ * @param timestamp Current time.
+ * @param nonce A unique value, must be used once. (Refer to OAuth docs).
+ *
+ * @return The authorization header string.
+ */
+std::string GenerateAuthorizationHeader(
+    const AuthenticationCredentials& credentials, const std::string& url,
+    time_t timestamp, std::string nonce);
 
 }  // namespace authentication
 }  // namespace olp

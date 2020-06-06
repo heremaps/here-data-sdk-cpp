@@ -126,12 +126,6 @@ class AuthenticationClientImpl final {
 
   static TimeResponse ParseTimeResponse(std::stringstream& payload);
 
-  std::string Base64Encode(const std::vector<uint8_t>& vector);
-
-  std::string GenerateHeader(const AuthenticationCredentials& credentials,
-                             const std::string& url,
-                             const time_t& timestamp = std::time(nullptr));
-
   std::string GenerateBearerHeader(const std::string& bearer_token);
 
   client::OlpClient::RequestBodyType GenerateClientBody(
