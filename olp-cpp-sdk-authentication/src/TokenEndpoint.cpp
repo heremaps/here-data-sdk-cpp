@@ -39,7 +39,9 @@ static constexpr auto kLogTag = "TokenEndpoint";
 AuthenticationSettings ConvertSettings(Settings settings) {
   AuthenticationSettings auth_settings;
   auth_settings.network_proxy_settings = settings.network_proxy_settings;
-  auth_settings.task_scheduler = settings.task_scheduler;
+  // Ignore task scheduler. It can cause a dealock on the sign in when used from
+  // another task within `TaskScheduler` with 1 thread.
+  //auth_settings.task_scheduler = settings.task_scheduler;
   auth_settings.network_request_handler = settings.network_request_handler;
   auth_settings.token_endpoint_url = settings.token_endpoint_url;
   auth_settings.use_system_time = settings.use_system_time;
