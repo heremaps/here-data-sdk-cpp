@@ -20,6 +20,7 @@
 #include "AuthenticationClientImpl.h"
 
 #include <chrono>
+#include <iomanip>
 #include <sstream>
 
 #include <rapidjson/document.h>
@@ -29,6 +30,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include "AuthenticationClientUtils.h"
 #include "Constants.h"
 #include "Crypto.h"
 #include "SignInResultImpl.h"
@@ -39,6 +41,7 @@
 #include "olp/core/http/NetworkConstants.h"
 #include "olp/core/http/NetworkResponse.h"
 #include "olp/core/http/NetworkUtils.h"
+#include "olp/core/logging/Log.h"
 #include "olp/core/thread/TaskScheduler.h"
 #include "olp/core/utils/Base64.h"
 #include "olp/core/utils/Url.h"
@@ -105,210 +108,13 @@ constexpr auto kOperator = "operator";
 // Values
 constexpr auto kVersion = "1.0";
 constexpr auto kHmac = "HMAC-SHA256";
-
-void ExecuteOrSchedule(
-    const std::shared_ptr<olp::thread::TaskScheduler>& task_scheduler,
-    olp::thread::TaskScheduler::CallFuncType&& func) {
-  if (!task_scheduler) {
-    // User didn't specify a TaskScheduler, execute sync
-    func();
-    return;
-  }
-
-  // Schedule for async execution
-  task_scheduler->ScheduleTask(std::move(func));
-}
-
-template <typename Function, typename Callback, typename... Args>
-inline client::CancellationToken AddTask(
-    const std::shared_ptr<olp::thread::TaskScheduler>& task_scheduler,
-    const std::shared_ptr<client::PendingRequests>& pending_requests,
-    Function task, Callback callback, Args&&... args) {
-  auto context = client::TaskContext::Create(
-      std::move(task), std::move(callback), std::forward<Args>(args)...);
-  pending_requests->Insert(context);
-
-  ExecuteOrSchedule(task_scheduler, [=] {
-    context.Execute();
-    pending_requests->Remove(context);
-  });
-
-  return context.CancelToken();
-}
-
-auth::IntrospectAppResult GetIntrospectAppResult(
-    const rapidjson::Document& doc) {
-  auth::IntrospectAppResult result;
-  if (doc.HasMember(Constants::CLIENT_ID)) {
-    result.SetClientId(doc[Constants::CLIENT_ID].GetString());
-  }
-  if (doc.HasMember(Constants::NAME)) {
-    result.SetName(doc[Constants::NAME].GetString());
-  }
-  if (doc.HasMember(Constants::DESCRIPTION)) {
-    result.SetDescription(doc[Constants::DESCRIPTION].GetString());
-  }
-  if (doc.HasMember(Constants::REDIRECT_URIS)) {
-    auto uris = doc[Constants::REDIRECT_URIS].GetArray();
-    std::vector<std::string> value_array;
-    value_array.reserve(uris.Size());
-    for (auto& value : uris) {
-      value_array.push_back(value.GetString());
-    }
-    result.SetReditectUris(std::move(value_array));
-  }
-  if (doc.HasMember(Constants::ALLOWED_SCOPES)) {
-    auto scopes = doc[Constants::ALLOWED_SCOPES].GetArray();
-    std::vector<std::string> value_array;
-    value_array.reserve(scopes.Size());
-    for (auto& value : scopes) {
-      value_array.push_back(value.GetString());
-    }
-    result.SetAllowedScopes(std::move(value_array));
-  }
-  if (doc.HasMember(Constants::TOKEN_ENDPOINT_AUTH_METHOD)) {
-    result.SetTokenEndpointAuthMethod(
-        doc[Constants::TOKEN_ENDPOINT_AUTH_METHOD].GetString());
-  }
-  if (doc.HasMember(Constants::TOKEN_ENDPOINT_AUTH_METHOD_REASON)) {
-    result.SetTokenEndpointAuthMethodReason(
-        doc[Constants::TOKEN_ENDPOINT_AUTH_METHOD_REASON].GetString());
-  }
-  if (doc.HasMember(Constants::DOB_REQUIRED)) {
-    result.SetDobRequired(doc[Constants::DOB_REQUIRED].GetBool());
-  }
-  if (doc.HasMember(Constants::TOKEN_DURATION)) {
-    result.SetTokenDuration(doc[Constants::TOKEN_DURATION].GetInt());
-  }
-  if (doc.HasMember(Constants::REFERRERS)) {
-    auto uris = doc[Constants::REFERRERS].GetArray();
-    std::vector<std::string> value_array;
-    value_array.reserve(uris.Size());
-    for (auto& value : uris) {
-      value_array.push_back(value.GetString());
-    }
-    result.SetReferrers(std::move(value_array));
-  }
-  if (doc.HasMember(Constants::STATUS)) {
-    result.SetStatus(doc[Constants::STATUS].GetString());
-  }
-  if (doc.HasMember(Constants::APP_CODE_ENABLED)) {
-    result.SetAppCodeEnabled(doc[Constants::APP_CODE_ENABLED].GetBool());
-  }
-  if (doc.HasMember(Constants::CREATED_TIME)) {
-    result.SetCreatedTime(doc[Constants::CREATED_TIME].GetInt64());
-  }
-  if (doc.HasMember(Constants::REALM)) {
-    result.SetRealm(doc[Constants::REALM].GetString());
-  }
-  if (doc.HasMember(Constants::TYPE)) {
-    result.SetType(doc[Constants::TYPE].GetString());
-  }
-  if (doc.HasMember(Constants::RESPONSE_TYPES)) {
-    auto types = doc[Constants::RESPONSE_TYPES].GetArray();
-    std::vector<std::string> value_array;
-    value_array.reserve(types.Size());
-    for (auto& value : types) {
-      value_array.push_back(value.GetString());
-    }
-    result.SetResponseTypes(std::move(value_array));
-  }
-  if (doc.HasMember(Constants::TIER)) {
-    result.SetTier(doc[Constants::TIER].GetString());
-  }
-  if (doc.HasMember(Constants::HRN)) {
-    result.SetHrn(doc[Constants::HRN].GetString());
-  }
-  return result;
-}
-
-auth::DecisionType GetPermission(const std::string& str) {
-  return (str.compare("allow") == 0) ? auth::DecisionType::kAllow
-                                     : auth::DecisionType::kDeny;
-}
-
-std::vector<auth::ActionResult> GetDiagnostics(rapidjson::Document& doc) {
-  std::vector<auth::ActionResult> results;
-  const auto& array = doc[Constants::DIAGNOSTICS].GetArray();
-  for (auto& element : array) {
-    auth::ActionResult action;
-    if (element.HasMember(Constants::DECISION)) {
-      action.SetDecision(
-          GetPermission(element[Constants::DECISION].GetString()));
-      // get permissions if avialible
-      if (element.HasMember(Constants::PERMISSIONS) &&
-          element[Constants::PERMISSIONS].IsArray()) {
-        std::vector<auth::ActionResult::Permissions> permissions;
-        const auto& permissions_array =
-            element[Constants::PERMISSIONS].GetArray();
-        for (auto& permission_element : permissions_array) {
-          auth::ActionResult::Permissions permission;
-          if (permission_element.HasMember(Constants::ACTION)) {
-            permission.first =
-                permission_element[Constants::ACTION].GetString();
-          }
-          if (permission_element.HasMember(Constants::DECISION)) {
-            permission.second = GetPermission(
-                permission_element[Constants::DECISION].GetString());
-          }
-          permissions.push_back(std::move(permission));
-        }
-
-        action.SetPermissions(std::move(permissions));
-      }
-    }
-    results.push_back(std::move(action));
-  }
-  return results;
-}
-
-auth::AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc) {
-  auth::AuthorizeResult result;
-
-  if (doc.HasMember(Constants::IDENTITY)) {
-    auto uris = doc[Constants::IDENTITY].GetObject();
-
-    if (uris.HasMember(Constants::CLIENT_ID)) {
-      result.SetClientId(uris[Constants::CLIENT_ID].GetString());
-    } else if (uris.HasMember(Constants::USER_ID)) {
-      result.SetClientId(uris[Constants::USER_ID].GetString());
-    }
-  }
-
-  if (doc.HasMember(Constants::DECISION)) {
-    result.SetDecision(GetPermission(doc[Constants::DECISION].GetString()));
-  }
-
-  // get diagnostics if available
-  if (doc.HasMember(Constants::DIAGNOSTICS) &&
-      doc[Constants::DIAGNOSTICS].IsArray()) {
-    result.SetActionResults(GetDiagnostics(doc));
-  }
-  return result;
-}
-
-client::OlpClient CreateOlpClient(
-    const auth::AuthenticationSettings& auth_settings,
-    boost::optional<client::AuthenticationSettings> authentication_settings) {
-  client::OlpClientSettings settings;
-  settings.network_request_handler = auth_settings.network_request_handler;
-  settings.authentication_settings = authentication_settings;
-  settings.proxy_settings = auth_settings.network_proxy_settings;
-  settings.retry_settings.backdown_strategy =
-      client::ExponentialBackdownStrategy();
-
-  client::OlpClient client;
-  client.SetBaseUrl(auth_settings.token_endpoint_url);
-  client.SetSettings(std::move(settings));
-  return client;
-}
+constexpr auto kErrorWrongTimestamp = 401204;
+constexpr auto kLogTag = "AuthenticationClient";
 
 }  // namespace
 
 namespace olp {
 namespace authentication {
-
-using SignInClientResponse = AuthenticationClient::SignInClientResponse;
 
 AuthenticationClientImpl::AuthenticationClientImpl(
     AuthenticationSettings settings)
@@ -323,78 +129,132 @@ AuthenticationClientImpl::~AuthenticationClientImpl() {
   pending_requests_->CancelAllAndWait();
 }
 
+olp::client::HttpResponse AuthenticationClientImpl::CallAuth(
+    const client::OlpClient& client, client::CancellationContext context,
+    const AuthenticationCredentials& credentials,
+    const SignInProperties& properties, std::time_t timestamp) {
+  const auto url = settings_.token_endpoint_url + kOauthEndpoint;
+
+  client::OlpClient::ParametersType headers = {
+      {http::kAuthorizationHeader,
+       GenerateHeader(credentials, url, timestamp)}};
+  if (context.IsCancelled()) {
+    return {static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            "Cancelled"};
+  }
+  auto auth_response =
+      client.CallApi(kOauthEndpoint, "POST", {}, std::move(headers), {},
+                     GenerateClientBody(properties), kApplicationJson, context);
+  return auth_response;
+}
+
+SignInResult AuthenticationClientImpl::ParseAuthResponse(
+    int status, std::stringstream& auth_response) {
+  auto document = std::make_shared<rapidjson::Document>();
+  rapidjson::IStreamWrapper stream(auth_response);
+  document->ParseStream(stream);
+  auto resp_impl = std::make_shared<SignInResultImpl>(
+      status, olp::http::HttpErrorToString(status), document);
+  SignInResult response(resp_impl);
+
+  return response;
+}
+
+SignInClientResponse AuthenticationClientImpl::FindSingInResponseInCache(
+    int status, const std::string& error_message,
+    const AuthenticationCredentials& credentials) {
+  if (status == static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR)) {
+    return {{status, error_message}};
+  }
+
+  auto cached_response = client_token_cache_->locked(
+      [&](utils::LruCache<std::string, SignInResult>& c)
+          -> boost::optional<SignInResult> {
+        auto it = c.Find(credentials.GetKey());
+        return it != c.end() ? boost::make_optional(it->value()) : boost::none;
+      });
+
+  if (!cached_response) {
+    return {{status, error_message}};
+  }
+
+  return *cached_response;
+}
+
 client::CancellationToken AuthenticationClientImpl::SignInClient(
     AuthenticationCredentials credentials, SignInProperties properties,
-    AuthenticationClient::SignInClientCallback callback) {
+    SignInClientCallback callback) {
   auto sign_in_task =
       [=](client::CancellationContext context) -> SignInClientResponse {
-    if (!settings_.network_request_handler) {
-      return {{static_cast<int>(http::ErrorCode::IO_ERROR),
-               "Cannot sign in while offline"}};
-    }
-
-    client::OlpClient client = CreateOlpClient(settings_, boost::none);
-
-    std::time_t timestamp =
-        std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-
-    if (!settings_.use_system_time) {
-      auto server_time = GetTimeFromServer(context, client);
-      if (server_time.IsSuccessful()) {
-        timestamp = server_time.GetResult();
-      }
-    }
-
-    const auto url = settings_.token_endpoint_url + kOauthEndpoint;
-
-    client::OlpClient::ParametersType headers = {
-        {http::kAuthorizationHeader,
-         GenerateHeader(credentials, url, timestamp)}};
-
-    auto auth_response = client.CallApi(
-        kOauthEndpoint, "POST", {}, std::move(headers), {},
-        GenerateClientBody(properties), kApplicationJson, context);
-
-    const auto status = auth_response.status;
-
-    if (status < 0) {
-      auto error_message = auth_response.response.str();
-
-      if (status == static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR)) {
-        return {{status, error_message}};
+    {
+      if (!settings_.network_request_handler) {
+        return {{static_cast<int>(http::ErrorCode::IO_ERROR),
+                 "Cannot sign in while offline"}};
       }
 
-      auto cached_response = client_token_cache_->locked(
-          [&](utils::LruCache<std::string, SignInResult>& c)
-              -> boost::optional<SignInResult> {
-            auto it = c.Find(credentials.GetKey());
-            return it != c.end() ? boost::make_optional(it->value())
-                                 : boost::none;
-          });
-
-      if (!cached_response) {
-        return {{status, error_message}};
+      if (context.IsCancelled()) {
+        return {
+            {static_cast<int>(http::ErrorCode::CANCELLED_ERROR), "Cancelled"}};
       }
 
-      return *cached_response;
+      client::OlpClient client = CreateOlpClient(settings_, boost::none);
+      std::time_t timestamp = std::chrono::system_clock::to_time_t(
+          std::chrono::system_clock::now());
+
+      if (!settings_.use_system_time) {
+        auto server_time = GetTimeFromServer(context, client);
+        if (server_time.IsSuccessful()) {
+          timestamp = server_time.GetResult();
+        } else {
+          OLP_SDK_LOG_WARNING(
+              kLogTag,
+              "Failed to get time from server, system time will be used");
+        }
+      }
+
+      auto auth_response =
+          CallAuth(client, context, credentials, properties, timestamp);
+
+      auto status = auth_response.status;
+
+      if (status < 0) {
+        return FindSingInResponseInCache(status, auth_response.response.str(),
+                                         credentials);
+      }
+
+      if (context.IsCancelled()) {
+        return {{static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+                 "Cancelled"}};
+      }
+
+      auto response = ParseAuthResponse(status, auth_response.response);
+
+      if (settings_.use_system_time &&
+          status == http::HttpStatusCode::UNAUTHORIZED &&
+          response.GetErrorResponse().code == kErrorWrongTimestamp) {
+        timestamp = GetTimestampFromHeaders(auth_response.headers);
+        if (timestamp != 0) {
+          auth_response =
+              CallAuth(client, context, credentials, properties, timestamp);
+          status = auth_response.status;
+          if (status < 0) {
+            return FindSingInResponseInCache(
+                status, auth_response.response.str(), credentials);
+          }
+
+          response = ParseAuthResponse(status, auth_response.response);
+        }
+      }
+
+      if (status == http::HttpStatusCode::OK) {
+        // Cache the response
+        client_token_cache_->locked(
+            [&](utils::LruCache<std::string, SignInResult>& c) {
+              return c.InsertOrAssign(credentials.GetKey(), response);
+            });
+      }
+      return response;
     }
-
-    auto document = std::make_shared<rapidjson::Document>();
-    rapidjson::IStreamWrapper stream(auth_response.response);
-    document->ParseStream(stream);
-    auto resp_impl = std::make_shared<SignInResultImpl>(
-        status, olp::http::HttpErrorToString(status), document);
-    SignInResult response(resp_impl);
-
-    if (status == http::HttpStatusCode::OK) {
-      // Cache the response
-      client_token_cache_->locked(
-          [&](utils::LruCache<std::string, SignInResult>& c) {
-            return c.InsertOrAssign(credentials.GetKey(), response);
-          });
-    }
-
-    return response;
   };
 
   return AddTask(settings_.task_scheduler, pending_requests_,
@@ -408,14 +268,15 @@ TimeResponse AuthenticationClientImpl::ParseTimeResponse(
   document.ParseStream(stream);
 
   if (!document.IsObject()) {
-    return {{client::ErrorCode::InternalFailure,
-             "JSON document root is not an Object type"}};
+    return AuthenticationError(client::ErrorCode::InternalFailure,
+                               "JSON document root is not an Object type");
   }
 
   const auto timestamp_it = document.FindMember("timestamp");
   if (timestamp_it == document.MemberEnd() || !timestamp_it->value.IsUint()) {
-    return {{client::ErrorCode::InternalFailure,
-             "JSON document must contain timestamp integer field"}};
+    return AuthenticationError(
+        client::ErrorCode::InternalFailure,
+        "JSON document must contain timestamp integer field");
   }
 
   return timestamp_it->value.GetUint();
@@ -427,7 +288,7 @@ TimeResponse AuthenticationClientImpl::GetTimeFromServer(
                                     nullptr, {}, context);
 
   if (http_result.status != http::HttpStatusCode::OK) {
-    return {{http_result.status, http_result.response.str()}};
+    return AuthenticationError(http_result.status, http_result.response.str());
   }
 
   return ParseTimeResponse(http_result.response);
@@ -1122,10 +983,10 @@ AuthenticationClientImpl::GenerateAuthorizeBody(AuthorizeRequest properties) {
 }
 
 std::string AuthenticationClientImpl::GenerateUid() {
-  static boost::uuids::random_generator gen;
-
+  std::lock_guard<std::mutex> lock(token_mutex_);
   {
-    std::lock_guard<std::mutex> lock(token_mutex_);
+    static boost::uuids::random_generator gen;
+
     return boost::uuids::to_string(gen());
   }
 }

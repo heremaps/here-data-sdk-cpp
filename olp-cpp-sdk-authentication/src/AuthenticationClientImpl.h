@@ -51,6 +51,7 @@ using SignInClientCallback = AuthenticationClient::SignInClientCallback;
 using SignInUserCallback = AuthenticationClient::SignInUserCallback;
 using SignUpCallback = AuthenticationClient::SignUpCallback;
 using SignOutUserCallback = AuthenticationClient::SignOutUserCallback;
+using SignInClientResponse = AuthenticationClient::SignInClientResponse;
 
 using TimeResponse = Response<time_t>;
 using TimeCallback = Callback<time_t>;
@@ -147,6 +148,15 @@ class AuthenticationClientImpl final {
       const std::string& reacceptance_token);
   client::OlpClient::RequestBodyType GenerateAuthorizeBody(
       AuthorizeRequest properties);
+
+  olp::client::HttpResponse CallAuth(
+      const client::OlpClient& client, client::CancellationContext context,
+      const AuthenticationCredentials& credentials,
+      const SignInProperties& properties, std::time_t timestamp);
+  SignInResult ParseAuthResponse(int status, std::stringstream& auth_response);
+  SignInClientResponse FindSingInResponseInCache(
+      int status, const std::string& error_message,
+      const AuthenticationCredentials& credentials);
 
   std::string GenerateUid();
 
