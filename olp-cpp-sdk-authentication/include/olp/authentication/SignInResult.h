@@ -125,7 +125,7 @@ class AUTHENTICATION_API SignInResult {
 
  private:
   friend class SignInUserResult;
-  friend class AuthenticationClient;
+  friend class AuthenticationClientImpl;
 
   SignInResult(std::shared_ptr<SignInResultImpl> impl);
 

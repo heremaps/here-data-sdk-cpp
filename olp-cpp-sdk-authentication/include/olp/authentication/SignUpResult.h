@@ -35,7 +35,7 @@ class SignUpResultImpl;
  *
  * Contains the following results of your sign-up request:
  * status ( \ref GetStatus ), user ID ( \ref GetUserIdentifier ),
- * and, in case of an unsuccessful sign-out operation, 
+ * and, in case of an unsuccessful sign-out operation,
  * the error description ( \ref GetErrorResponse ) and
  * input fields errors ( \ref GetErrorFields ).
  */
@@ -82,7 +82,7 @@ class AUTHENTICATION_API SignUpResult {
   const std::string& GetUserIdentifier() const;
 
  private:
-  friend class AuthenticationClient;
+  friend class AuthenticationClientImpl;
 
   SignUpResult(std::shared_ptr<SignUpResultImpl> impl);
 
