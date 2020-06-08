@@ -341,7 +341,11 @@ void DefaultCacheImpl::InitializeLru() {
       }
 
       if (expiration_key) {
-        props.expiry = std::stol(value.data());
+        // value.data() could point to a value without null character at the
+        // end, this could cause exception in std::stol. This is fixed by
+        // constructing a string, (We rely on small string optimization here).
+        std::string timestamp(value.data(), value.size());
+        props.expiry = std::stol(timestamp.c_str());
       } else {
         props.size = value.size();
       }
