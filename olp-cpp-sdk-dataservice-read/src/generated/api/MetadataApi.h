@@ -26,14 +26,15 @@
 #include <olp/core/client/ApiResponse.h>
 #include <boost/optional.hpp>
 #include "generated/model/LayerVersions.h"
-#include "olp/dataservice/read/model/VersionResponse.h"
 #include "olp/dataservice/read/model/Partitions.h"
+#include "olp/dataservice/read/model/VersionInfos.h"
+#include "olp/dataservice/read/model/VersionResponse.h"
 
 namespace olp {
 namespace client {
 class OlpClient;
 class CancellationContext;
-}
+}  // namespace client
 
 namespace dataservice {
 namespace read {
@@ -42,6 +43,8 @@ namespace read {
  */
 class MetadataApi {
  public:
+  using VersionsResponse =
+      client::ApiResponse<model::VersionInfos, client::ApiError>;
   using PartitionsResponse =
       client::ApiResponse<model::Partitions, client::ApiError>;
 
@@ -115,6 +118,11 @@ class MetadataApi {
   static CatalogVersionResponse GetLatestCatalogVersion(
       const client::OlpClient& client, int64_t start_version,
       boost::optional<std::string> billing_tag,
+      const client::CancellationContext& context);
+
+  static VersionsResponse ListVersions(
+      const client::OlpClient& client, int64_t start_version,
+      int64_t end_version, boost::optional<std::string> billing_tag,
       const client::CancellationContext& context);
 };
 
