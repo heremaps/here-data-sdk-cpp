@@ -111,9 +111,21 @@ You need to create the `OlpClientSettings` object to get catalog and partition m
 
 3. [Authenticate](#authenticate-to-here-olp-using-client-credentials) to the HERE platform.
 
-4. Set up the `OlpClientSettings` object with the path to the needed cache settings properties (the limit of runtime memory, disk space, maximum file size, memory data cache size, options, and paths).
-  For instructions on how to get the path to the cache settings, see the [Build and Run on Linux](#build) section.
-  > **Note:** Perform the first call with the valid mutable cache path, and the second call – with the protected cache path.
+4. (Optional) For data that is stored in the cache, to add expiration limit, set the `default_cache_expiration` to the needed expiration time.
+
+   By default, expiration is disabled.
+
+   > Note: You can only disable expiration for the mutable and in-memory cache. This setting does not affect the protected cache as no entries are added to the protected cache in the read-only mode.
+
+   ```cpp
+   std::chrono::seconds default_cache_expiration = std::chrono::seconds(200);
+   ```
+
+5. Set up the `OlpClientSettings` object with the path to the needed cache settings properties (the limit of runtime memory, disk space, maximum file size, memory data cache size, options, and paths).
+
+   For instructions on how to get the path to the cache settings, see the [Build and Run on Linux](#build) section.
+
+   > **Note:** Perform the first call with the valid mutable cache path, and the second call – with the protected cache path.
 
    ```cpp
    client_settings.cache =
