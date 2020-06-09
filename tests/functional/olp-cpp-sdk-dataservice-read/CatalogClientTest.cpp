@@ -49,9 +49,6 @@
 #include <olp/dataservice/read/model/Catalog.h>
 #include "Utils.h"
 
-using namespace olp::dataservice::read;
-using namespace testing;
-
 namespace {
 
 enum class CacheType { IN_MEMORY, DISK, BOTH };
@@ -140,6 +137,72 @@ TEST_P(CatalogClientTest, GetCatalog) {
       });
 
   EXPECT_SUCCESS(catalog_response);
+}
+
+TEST_F(CatalogClientTest, GetVersionsList) {
+  const auto catalog =
+      olp::client::HRN::FromString(CustomParameters::getArgument(
+          "dataservice_read_test_versioned_prefetch_catalog"));
+
+  auto client = std::make_unique<olp::dataservice::read::CatalogClient>(
+      catalog, settings_);
+  {
+    SCOPED_TRACE("Get versions list online");
+    auto request = olp::dataservice::read::VersionsRequest()
+                       .WithStartVersion(3)
+                       .WithEndVersion(4);
+
+    auto response_compressed =
+        GetExecutionTime<olp::dataservice::read::VersionsResponse>([&] {
+          auto future = client->ListVersions(request);
+          return future.GetFuture().get();
+        });
+
+    EXPECT_SUCCESS(response_compressed);
+    ASSERT_EQ(1u, response_compressed.GetResult().GetVersions().size());
+    ASSERT_EQ(
+        4, response_compressed.GetResult().GetVersions().front().GetVersion());
+    ASSERT_EQ(2u, response_compressed.GetResult()
+                      .GetVersions()
+                      .front()
+                      .GetDependencies()
+                      .size());
+    ASSERT_EQ(6u, response_compressed.GetResult()
+                      .GetVersions()
+                      .front()
+                      .GetPartitionCounts()
+                      .size());
+  }
+  {
+    SCOPED_TRACE("Get versions list from cache");
+
+    auto request =
+        olp::dataservice::read::VersionsRequest()
+            .WithStartVersion(3)
+            .WithEndVersion(4)
+            .WithFetchOption(olp::dataservice::read::FetchOptions::CacheOnly);
+
+    auto response_compressed =
+        GetExecutionTime<olp::dataservice::read::VersionsResponse>([&] {
+          auto future = client->ListVersions(request);
+          return future.GetFuture().get();
+        });
+
+    EXPECT_SUCCESS(response_compressed);
+    ASSERT_EQ(1u, response_compressed.GetResult().GetVersions().size());
+    ASSERT_EQ(
+        4, response_compressed.GetResult().GetVersions().front().GetVersion());
+    ASSERT_EQ(2u, response_compressed.GetResult()
+                      .GetVersions()
+                      .front()
+                      .GetDependencies()
+                      .size());
+    ASSERT_EQ(6u, response_compressed.GetResult()
+                      .GetVersions()
+                      .front()
+                      .GetPartitionCounts()
+                      .size());
+  }
 }
 
 INSTANTIATE_TEST_SUITE_P(, CatalogClientTest,

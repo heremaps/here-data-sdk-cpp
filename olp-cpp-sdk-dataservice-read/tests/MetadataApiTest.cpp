@@ -101,12 +101,12 @@ TEST_F(MetadataApiTest, GetListVersions) {
             http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             kHttpResponse));
 
-    auto index_response = olp::dataservice::read::MetadataApi::ListVersions(
+    auto response = olp::dataservice::read::MetadataApi::ListVersions(
         *client_, kStartVersion, kEndVersion, billing_tag,
         olp::client::CancellationContext{});
 
-    ASSERT_TRUE(index_response.IsSuccessful());
-    auto result = index_response.GetResult();
+    ASSERT_TRUE(response.IsSuccessful());
+    auto result = response.GetResult();
 
     ASSERT_EQ(1u, result.GetVersions().size());
     ASSERT_EQ(4, result.GetVersions().front().GetVersion());
