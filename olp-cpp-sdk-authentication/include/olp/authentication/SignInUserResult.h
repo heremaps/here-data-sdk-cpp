@@ -95,7 +95,7 @@ class AUTHENTICATION_API SignInUserResult : public SignInResult {
   const std::string& GetPrivatePolicyUrlJson() const;
 
  private:
-  friend class AuthenticationClient;
+  friend class AuthenticationClientImpl;
 
   SignInUserResult(std::shared_ptr<SignInUserResultImpl> impl);
 

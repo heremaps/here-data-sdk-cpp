@@ -73,7 +73,7 @@ class AUTHENTICATION_API SignOutResult {
   const ErrorFields& GetErrorFields() const;
 
  private:
-  friend class AuthenticationClient;
+  friend class AuthenticationClientImpl;
 
   SignOutResult(std::shared_ptr<SignOutResultImpl> impl);
 

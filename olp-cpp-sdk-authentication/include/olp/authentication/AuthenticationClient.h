@@ -19,44 +19,35 @@
 
 #pragma once
 
-#include <boost/optional.hpp>
 #include <chrono>
 #include <functional>
 #include <memory>
 #include <string>
 
+#include <olp/authentication/AuthenticationApi.h>
+#include <olp/authentication/AuthenticationCredentials.h>
+#include <olp/authentication/AuthenticationError.h>
 #include <olp/authentication/AuthenticationSettings.h>
 #include <olp/authentication/AuthorizeRequest.h>
+#include <olp/authentication/SignInResult.h>
+#include <olp/authentication/SignInUserResult.h>
+#include <olp/authentication/SignOutResult.h>
+#include <olp/authentication/SignUpResult.h>
 #include <olp/authentication/Types.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationToken.h>
-#include <olp/core/http/NetworkProxySettings.h>
-
-#include "AuthenticationApi.h"
-#include "AuthenticationCredentials.h"
-#include "AuthenticationError.h"
-#include "SignInResult.h"
-#include "SignInUserResult.h"
-#include "SignOutResult.h"
-#include "SignUpResult.h"
+#include <boost/optional.hpp>
 
 /**
- * @brief The olp namespace
+ * @brief The olp namespace is the namespace to rule them all.
  */
 namespace olp {
 
-namespace http {
-class Network;
-}
-
-namespace thread {
-class TaskScheduler;
-}
-
 /**
- * @brief The authentication namespace
+ * @brief The authentication namespace holds all authentication related classes.
  */
 namespace authentication {
+class AuthenticationClientImpl;
 
 /**
  * @brief An API class of the C++ client that provides
@@ -107,7 +98,7 @@ class AUTHENTICATION_API AuthenticationClient {
      * It must be equal to or more than zero. Ignored if it is zero or greater
      * than the default expiration time of the application.
      */
-    unsigned int expires_in = 0;
+    unsigned int expires_in{0};
   };
 
   /**
@@ -151,7 +142,7 @@ class AUTHENTICATION_API AuthenticationClient {
      * zero or greater than the default expiration time supported by
      * the application.
      */
-    unsigned int expires_in = 0;
+    unsigned int expires_in{0};
   };
 
   /**
@@ -199,7 +190,7 @@ class AUTHENTICATION_API AuthenticationClient {
     /**
      * @brief (Optional) Indicates if the user has opted in to marketing.
      */
-    bool marketing_enabled = false;
+    bool marketing_enabled{false};
 
     /**
      * @brief (Optional) Your valid phone number.
@@ -255,8 +246,32 @@ class AUTHENTICATION_API AuthenticationClient {
      * zero or greater than the default expiration time supported by
      * the application.
      */
-    unsigned int expires_in = 0;
+    unsigned int expires_in{0};
   };
+
+  /// The client sign-in response type.
+  using SignInClientResponse = Response<SignInResult>;
+
+  /// The callback type of the client sign-in response.
+  using SignInClientCallback = Callback<SignInResult>;
+
+  /// The user sign-in response type.
+  using SignInUserResponse = Response<SignInUserResult>;
+
+  /// The callback type of the user sign-in response.
+  using SignInUserCallback = Callback<SignInUserResult>;
+
+  /// The client sign-up response type.
+  using SignUpResponse = Response<SignUpResult>;
+
+  /// The callback type of the user sign-up response.
+  using SignUpCallback = Callback<SignUpResult>;
+
+  /// The client sign-out response type.
+  using SignOutUserResponse = Response<SignOutResult>;
+
+  /// The callback type of the user sign-out response.
+  using SignOutUserCallback = Callback<SignOutResult>;
 
   /**
    * @brief Creates the `AuthenticationClient` instance.
@@ -265,71 +280,27 @@ class AUTHENTICATION_API AuthenticationClient {
    * the `AuthenticationClient` instance.
    */
   explicit AuthenticationClient(AuthenticationSettings settings);
-
-  /**
-   * @brief A default destructor.
-   */
   virtual ~AuthenticationClient();
 
-  /**
-   * @brief Defines the callback signature when the client sign-in request is
-   * completed.
-   */
-  using SignInClientResponse =
-      client::ApiResponse<SignInResult, AuthenticationError>;
-  /**
-   * @brief Called when the client sign-in request is completed.
-   */
-  using SignInClientCallback =
-      std::function<void(const SignInClientResponse& response)>;
+  // Non-copyable but movable
+  AuthenticationClient(const AuthenticationClient&) = delete;
+  AuthenticationClient& operator=(const AuthenticationClient&) = delete;
+  AuthenticationClient(AuthenticationClient&&) noexcept = default;
+  AuthenticationClient& operator=(AuthenticationClient&&) noexcept = default;
 
   /**
-   * @brief Defines the callback signature when the user sign-in request is
-   * completed.
-   */
-  using SignInUserResponse =
-      client::ApiResponse<SignInUserResult, AuthenticationError>;
-  /**
-   * @brief Called when the user sign-in request is completed.
-   */
-  using SignInUserCallback =
-      std::function<void(const SignInUserResponse& response)>;
-
-  /**
-   * @brief Defines the callback signature when the user sign-up request is
-   * completed.
-   */
-  using SignUpResponse = client::ApiResponse<SignUpResult, AuthenticationError>;
-  /**
-   * @brief Called when the user sign-up request is completed.
-   */
-  using SignUpCallback = std::function<void(const SignUpResponse& response)>;
-
-  /**
-   * @brief Defines the callback signature when the user sign-out request is
-   * completed.
-   */
-  using SignOutUserResponse =
-      client::ApiResponse<SignOutResult, AuthenticationError>;
-  /**
-   * @brief Called when the user sign-out request is completed.
-   */
-  using SignOutUserCallback =
-      std::function<void(const SignOutUserResponse& response)>;
-
-  /**
-   * @brief Signs in with your HERE Account client credentials and reuests
+   * @brief Signs in with your HERE Account client credentials and requests
    * the client access token.
    *
    * The client access tokens cannot be refreshed. Instead
    * request a new client access token using your client credentials.
    *
    * @param credentials The `AuthenticationCredentials` instance.
-   * @param properties The `SignInProperties` structure that has the scope and
-   * expiration time.
+   * @param properties The `SignInProperties` structure that has the scope
+   * and expiration time.
    * @param callback The`SignInClientCallback` method that is called when
-   * the client sign-in request is completed. If successful, the returned HTTP
-   * status is 200. Otherwise, check the response error.
+   * the client sign-in request is completed. If successful, the returned
+   * HTTP status is 200. Otherwise, check the response error.
    *
    * @return The `CancellationToken` instance that can be used to cancel
    * the request.
@@ -405,6 +376,7 @@ class AUTHENTICATION_API AuthenticationClient {
       const AuthenticationCredentials& credentials,
       const FederatedProperties& properties,
       const SignInUserCallback& callback);
+
   /**
    * @brief Signs in with your valid Google token and requests your user access
    * token.
@@ -428,6 +400,7 @@ class AUTHENTICATION_API AuthenticationClient {
       const AuthenticationCredentials& credentials,
       const FederatedProperties& properties,
       const SignInUserCallback& callback);
+
   /**
    * @brief Signs in with your valid ArcGIS token and requests your user access
    * token.
@@ -451,6 +424,7 @@ class AUTHENTICATION_API AuthenticationClient {
       const AuthenticationCredentials& credentials,
       const FederatedProperties& properties,
       const SignInUserCallback& callback);
+
   /**
    * @brief Signs in with the refresh token.
    *
@@ -482,8 +456,8 @@ class AUTHENTICATION_API AuthenticationClient {
    * for using your email and password that are the login credentials.
    *
    * The HERE user is uniquely identified by the user ID that is consistent
-   * across the other HERE platform Services, regardless of the authentication method
-   * used.
+   * across the other HERE platform Services, regardless of the authentication
+   * method used.
    *
    * @param credentials The `AuthenticationCredentials` instance.
    * @param properties The `SignUpProperties` structure.
@@ -497,6 +471,7 @@ class AUTHENTICATION_API AuthenticationClient {
   client::CancellationToken SignUpHereUser(
       const AuthenticationCredentials& credentials,
       const SignUpProperties& properties, const SignUpCallback& callback);
+
   /**
    * @brief Accepts the terms and conditions.
    *
@@ -586,8 +561,7 @@ class AUTHENTICATION_API AuthenticationClient {
                                       AuthorizeCallback callback);
 
  private:
-  class Impl;
-  std::unique_ptr<Impl> impl_;
+  std::unique_ptr<AuthenticationClientImpl> impl_;
 };
 
 }  // namespace authentication
