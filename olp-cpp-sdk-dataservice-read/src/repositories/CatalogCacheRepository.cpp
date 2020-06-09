@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,12 @@
 
 // clang-format off
 #include "generated/parser/CatalogParser.h"
+#include "generated/parser/VersionInfosParser.h"
 #include "generated/parser/VersionResponseParser.h"
 #include <olp/core/generated/parser/JsonParser.h>
 #include "generated/serializer/CatalogSerializer.h"
 #include "generated/serializer/VersionResponseSerializer.h"
+#include "generated/serializer/VersionInfosSerializer.h"
 #include "generated/serializer/JsonSerializer.h"
 // clang-format on
 
@@ -45,6 +47,11 @@ constexpr auto kTimetMax = std::numeric_limits<time_t>::max();
 std::string CreateKey(const std::string& hrn) { return hrn + "::catalog"; }
 std::string VersionKey(const std::string& hrn) {
   return hrn + "::latestVersion";
+}
+std::string VersionInfosKey(const std::string& hrn, std::int16_t start,
+                            std::int16_t end) {
+  return hrn + "::" + std::to_string(start) + "::" + std::to_string(end) +
+         "::versionInfos";
 }
 
 time_t ConvertTime(std::chrono::seconds time) {
@@ -109,6 +116,31 @@ boost::optional<model::VersionResponse> CatalogCacheRepository::GetVersion() {
     return boost::none;
   }
   return boost::any_cast<model::VersionResponse>(cached_version);
+}
+
+void CatalogCacheRepository::PutVersionInfos(
+    std::int64_t start, std::int64_t end, const model::VersionInfos& versions) {
+  std::string hrn(hrn_.ToCatalogHRNString());
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "PutVersionInfos -> '%s'", hrn.c_str());
+
+  cache_->Put(VersionInfosKey(hrn, start, end), versions,
+              [&]() { return olp::serializer::serialize(versions); },
+              kCatalogVersionExpiryTime);
+}
+boost::optional<model::VersionInfos> CatalogCacheRepository::GetVersionInfos(
+    std::int64_t start, std::int64_t end) {
+  std::string hrn(hrn_.ToCatalogHRNString());
+  auto key = VersionInfosKey(hrn, start, end);
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "GetVersionInfos -> '%s'", key.c_str());
+
+  auto cached_versions = cache_->Get(key, [](const std::string& value) {
+    return parser::parse<model::VersionInfos>(value);
+  });
+
+  if (cached_versions.empty()) {
+    return boost::none;
+  }
+  return boost::any_cast<model::VersionInfos>(cached_versions);
 }
 
 void CatalogCacheRepository::Clear() {

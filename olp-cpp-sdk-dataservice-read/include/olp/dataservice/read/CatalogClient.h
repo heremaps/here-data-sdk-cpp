@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@
 #include <olp/dataservice/read/DataServiceReadApi.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/Types.h>
+#include <olp/dataservice/read/VersionsRequest.h>
 
 namespace olp {
 
@@ -136,6 +137,32 @@ class DATASERVICE_READ_API CatalogClient final {
    */
   client::CancellableFuture<CatalogVersionResponse> GetLatestVersion(
       CatalogVersionRequest request);
+
+  /**
+   * @brief Gets the catalog versions list.
+   *
+   * @param request The `VersionsRequest` instance that contains
+   * a complete set of request parameters.
+   * @param callback The `VersionsResponseCallback` object that is invoked if
+   * the list of versions is available or an error is encountered.
+   *
+   * @return A token that can be used to cancel this request.
+   */
+  client::CancellationToken ListVersions(VersionsRequest request,
+                                         VersionsResponseCallback callback);
+
+  /**
+   * @brief Gets the catalog versions list.
+   *
+   * @param request The `VersionsRequest` instance that contains
+   * a complete set of request parameters.
+   *
+   * @return CancellableFuture` that contains the `VersionsResponse`
+   * instance with the list of versions or an error. You can also
+   * use `CancellableFuture` to cancel this request.
+   */
+  client::CancellableFuture<VersionsResponse> ListVersions(
+      VersionsRequest request);
 
  private:
   std::unique_ptr<CatalogClientImpl> impl_;
