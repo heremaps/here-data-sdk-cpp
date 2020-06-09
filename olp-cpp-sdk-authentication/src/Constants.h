@@ -64,6 +64,7 @@ class Constants {
   static const char* USER_ID;
   static const char* DECISION;
   static const char* ACTION;
+  static const char* RESOURCE;
   static const char* PERMISSIONS;
   static const char* DIAGNOSTICS;
 };

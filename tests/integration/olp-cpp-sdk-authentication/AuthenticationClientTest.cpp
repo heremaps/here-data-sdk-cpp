@@ -1405,8 +1405,9 @@ TEST_F(AuthenticationClientTest, Authorize) {
 
     auto it = result.GetActionResults().begin();
     ASSERT_EQ(it->GetDecision(), olp::authentication::DecisionType::kAllow);
-    ASSERT_EQ(it->GetPermissions().front().first, "read");
-    ASSERT_EQ(it->GetPermissions().front().second,
+    ASSERT_EQ(it->GetPermissions().front().GetAction(), "read");
+    ASSERT_EQ(it->GetPermissions().front().GetResource(), "some_resource");
+    ASSERT_EQ(it->GetPermissions().front().GetDecision(),
               olp::authentication::DecisionType::kAllow);
 
     testing::Mock::VerifyAndClearExpectations(network_.get());

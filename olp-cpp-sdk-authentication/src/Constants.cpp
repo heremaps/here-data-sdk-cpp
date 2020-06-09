@@ -58,6 +58,7 @@ const char* Constants::IDENTITY = "identity";
 const char* Constants::USER_ID = "userId";
 const char* Constants::DECISION = "decision";
 const char* Constants::ACTION = "action";
+const char* Constants::RESOURCE = "resource";
 const char* Constants::PERMISSIONS = "permissions";
 const char* Constants::DIAGNOSTICS = "diagnostics";
 

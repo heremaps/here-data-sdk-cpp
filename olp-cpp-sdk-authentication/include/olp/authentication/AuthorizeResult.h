@@ -33,6 +33,60 @@ namespace authentication {
 enum class DecisionType { kAllow, kDeny };
 
 /**
+ * @brief Represents the permission with the action, policy decision, and
+ * associated resource.
+ */
+class AUTHENTICATION_API Permission {
+ public:
+  /**
+   * @brief Sets the action associated with the resource.
+   *
+   * @param The action to associate with.
+   */
+  void SetAction(std::string action) { action_ = std::move(action); }
+
+  /**
+   * @brief Gets the action that is associated with the resource.
+   *
+   * @return A string that represents the action.
+   */
+  const std::string& GetAction() const { return action_; }
+
+  /**
+   * @brief Sets the resource with which the action and decision are associated.
+   *
+   * @param The resource to associate with the decision and action.
+   */
+  void SetResource(std::string resource) { resource_ = std::move(resource); }
+
+  /**
+   * @brief Gets the resource with which the action and decision are associated.
+   *
+   * @return The resource name.
+   */
+  const std::string& GetResource() const { return resource_; }
+
+  /**
+   * @brief Sets the decision associated with the resource.
+   *
+   * @param The decision to associate with the resource.
+   */
+  void SetDecision(DecisionType decision) { decision_ = decision; }
+
+  /**
+   * @brief Gets the decision associated with the resource.
+   *
+   * @return The decision for the associated resource.
+   */
+  DecisionType GetDecision() const { return decision_; }
+
+ private:
+  std::string action_;
+  std::string resource_;
+  DecisionType decision_;
+};
+
+/**
  * @brief Represents each action-resource pair response with an individual
  * policy decision for that action: DENY or ALLOW.
  *
@@ -41,11 +95,6 @@ enum class DecisionType { kAllow, kDeny };
  */
 class AUTHENTICATION_API ActionResult {
  public:
-  /**
-   * @brief Represents the permission pair with the action and policy decision.
-   */
-  using Permissions = std::pair<std::string, DecisionType>;
-
   /**
    * @brief Gets the overall policy decision.
    *
@@ -77,20 +126,20 @@ class AUTHENTICATION_API ActionResult {
    *
    * @return The list of permissions.
    */
-  const std::vector<Permissions>& GetPermissions() const { return permissions_; }
+  const std::vector<Permission>& GetPermissions() const { return permissions_; }
 
   /**
    * @brief Sets the list of permissions.
    *
    * @param permissions The vector of the action-decision pair.
    */
-  void SetPermissions(std::vector<Permissions> permissions) {
+  void SetPermissions(std::vector<Permission> permissions) {
     permissions_ = std::move(permissions);
   }
 
  private:
   DecisionType decision_{DecisionType::kDeny};
-  std::vector<Permissions> permissions_;
+  std::vector<Permission> permissions_;
 };
 
 /**

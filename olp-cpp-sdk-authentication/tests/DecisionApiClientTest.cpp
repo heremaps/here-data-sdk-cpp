@@ -22,18 +22,21 @@
 #include <olp/authentication/AuthorizeResult.h>
 
 namespace {
-using namespace olp::authentication;
+namespace auth = olp::authentication;
 
 TEST(DecisionApiClientTest, AuthorizeRequestTest) {
-  EXPECT_EQ(AuthorizeRequest().WithServiceId("ServiceId").GetServiceId(),
+  EXPECT_EQ(auth::AuthorizeRequest().WithServiceId("ServiceId").GetServiceId(),
             "ServiceId");
-  EXPECT_EQ(
-      AuthorizeRequest().WithContractId("ContractId").GetContractId().get(),
-      "ContractId");
-  auto request = AuthorizeRequest().WithAction("action1").WithAction(
+  EXPECT_EQ(auth::AuthorizeRequest()
+                .WithContractId("ContractId")
+                .GetContractId()
+                .get(),
+            "ContractId");
+  auto request = auth::AuthorizeRequest().WithAction("action1").WithAction(
       "action2", std::string("hrn::test"));
-  EXPECT_EQ(AuthorizeRequest().GetDiagnostics(), false);
-  EXPECT_EQ(AuthorizeRequest().WithDiagnostics(true).GetDiagnostics(), true);
+  EXPECT_EQ(auth::AuthorizeRequest().GetDiagnostics(), false);
+  EXPECT_EQ(auth::AuthorizeRequest().WithDiagnostics(true).GetDiagnostics(),
+            true);
   EXPECT_EQ(request.GetActions().size(), 2);
   auto actions_it = request.GetActions().begin();
   EXPECT_EQ(actions_it->first, "action1");
@@ -42,10 +45,10 @@ TEST(DecisionApiClientTest, AuthorizeRequestTest) {
   EXPECT_EQ(actions_it->first, "action2");
   EXPECT_EQ(actions_it->second, "hrn::test");
   EXPECT_EQ(request.GetOperatorType(),
-            AuthorizeRequest::DecisionOperatorType::kAnd);
-  request.WithOperatorType(AuthorizeRequest::DecisionOperatorType::kOr);
+            auth::AuthorizeRequest::DecisionOperatorType::kAnd);
+  request.WithOperatorType(auth::AuthorizeRequest::DecisionOperatorType::kOr);
   EXPECT_EQ(request.GetOperatorType(),
-            AuthorizeRequest::DecisionOperatorType::kOr);
+            auth::AuthorizeRequest::DecisionOperatorType::kOr);
   request.WithServiceId("service");
   EXPECT_EQ(request.CreateKey(), "service");
   request.WithContractId("contract");
@@ -53,18 +56,33 @@ TEST(DecisionApiClientTest, AuthorizeRequestTest) {
 }
 
 TEST(DecisionApiClientTest, AuthorizeResponceTest) {
-  EXPECT_EQ(AuthorizeResult().GetDecision(), DecisionType::kDeny);
-  EXPECT_EQ(ActionResult().GetDecision(), DecisionType::kDeny);
-  EXPECT_EQ(AuthorizeResult().GetClientId(), "");
-  ActionResult action;
-  action.SetDecision(DecisionType::kAllow);
-  action.SetPermissions({{"read", DecisionType::kAllow}});
-  AuthorizeResult decision;
+  EXPECT_EQ(auth::AuthorizeResult().GetDecision(), auth::DecisionType::kDeny);
+  EXPECT_EQ(auth::ActionResult().GetDecision(), auth::DecisionType::kDeny);
+  EXPECT_EQ(auth::AuthorizeResult().GetClientId(), "");
+  auth::ActionResult action;
+  action.SetDecision(auth::DecisionType::kAllow);
+  auth::Permission permission;
+  permission.SetAction("read");
+  permission.SetResource("hrn:test");
+  permission.SetDecision(auth::DecisionType::kAllow);
+  action.SetPermissions({permission});
+  auth::AuthorizeResult decision;
   decision.SetActionResults({action});
-  EXPECT_EQ(decision.GetActionResults().front().GetPermissions().front().first,
-            "read");
-  EXPECT_EQ(decision.GetActionResults().front().GetPermissions().front().second,
-            DecisionType::kAllow);
+  EXPECT_EQ(
+      decision.GetActionResults().front().GetPermissions().front().GetAction(),
+      "read");
+  EXPECT_EQ(decision.GetActionResults()
+                .front()
+                .GetPermissions()
+                .front()
+                .GetDecision(),
+            auth::DecisionType::kAllow);
+  EXPECT_EQ(decision.GetActionResults()
+                .front()
+                .GetPermissions()
+                .front()
+                .GetResource(),
+            "hrn:test");
 }
 
 }  // namespace
