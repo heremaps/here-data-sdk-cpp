@@ -27,7 +27,9 @@
 #include <olp/core/logging/Log.h>
 #include <olp/core/thread/TaskScheduler.h>
 #include <olp/dataservice/read/CatalogVersionRequest.h>
+#include "ApiClientLookup.h"
 #include "Common.h"
+#include "generated/api/QueryApi.h"
 #include "repositories/CatalogRepository.h"
 #include "repositories/DataCacheRepository.h"
 #include "repositories/DataRepository.h"
@@ -517,6 +519,80 @@ bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
   return RemoveFromCache(partition_id);
 }
 
+client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
+    TileRequest request, AggregatedDataResponseCallback callback) {
+  auto catalog = catalog_;
+  auto layer_id = layer_id_;
+  auto settings = settings_;
+  auto pending_requests = pending_requests_;
+
+  auto data_task =
+      [=](client::CancellationContext context) -> AggregatedDataResponse {
+    if (request.GetFetchOption() == CacheWithUpdate) {
+      return {{client::ErrorCode::InvalidArgument,
+               "CacheWithUpdate option can not be used for versioned "
+               "layer"}};
+    }
+
+    if (!request.GetTileKey().IsValid()) {
+      return {{client::ErrorCode::InvalidArgument, "Tile key is invalid"}};
+    }
+
+    auto version_response =
+        GetVersion(request.GetBillingTag(), request.GetFetchOption(), context);
+    if (!version_response.IsSuccessful()) {
+      return version_response.GetError();
+    }
+
+    auto version = version_response.GetResult().GetVersion();
+    auto partition_response =
+        repository::PartitionsRepository::GetAggregatedTile(
+            catalog, layer_id, context, request, version, settings);
+    if (!partition_response.IsSuccessful()) {
+      return partition_response.GetError();
+    }
+
+    const auto& fetch_partition = partition_response.GetResult();
+    const auto fetch_tile_key =
+        geo::TileKey::FromHereTile(fetch_partition.GetPartition());
+
+    auto data_request = DataRequest()
+                            .WithDataHandle(fetch_partition.GetDataHandle())
+                            .WithFetchOption(request.GetFetchOption());
+    auto data_response = repository::DataRepository::GetVersionedData(
+        std::move(catalog), std::move(layer_id), data_request, context,
+        std::move(settings));
+
+    if (!data_response.IsSuccessful()) {
+      OLP_SDK_LOG_WARNING_F(
+          kLogTag,
+          "GetAggregatedData: failed to load data, key=%s, data_hanndle=%s",
+          fetch_tile_key.ToHereTile().c_str(),
+          fetch_partition.GetDataHandle().c_str());
+      return data_response.GetError();
+    }
+
+    AggregatedDataResult result;
+    result.SetTile(fetch_tile_key);
+    result.SetData(data_response.MoveResult());
+
+    return std::move(result);
+  };
+
+  return AddTask(settings.task_scheduler, pending_requests,
+                 std::move(data_task), std::move(callback));
+}
+
+client::CancellableFuture<AggregatedDataResponse>
+VersionedLayerClientImpl::GetAggregatedData(TileRequest request) {
+  auto promise = std::make_shared<std::promise<AggregatedDataResponse>>();
+  auto cancel_token = GetAggregatedData(
+      std::move(request), [promise](AggregatedDataResponse response) {
+        promise->set_value(std::move(response));
+      });
+  return client::CancellableFuture<AggregatedDataResponse>(
+      std::move(cancel_token), std::move(promise));
+}
 PORTING_POP_WARNINGS()
 }  // namespace read
 }  // namespace dataservice

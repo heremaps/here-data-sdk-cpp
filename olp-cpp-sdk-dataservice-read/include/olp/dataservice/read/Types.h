@@ -26,6 +26,7 @@
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
 
+#include <olp/dataservice/read/AggregatedDataResult.h>
 #include <olp/dataservice/read/model/Catalog.h>
 #include <olp/dataservice/read/model/Data.h>
 #include <olp/dataservice/read/model/Messages.h>
@@ -74,6 +75,11 @@ using DataResult = model::Data;
 using DataResponse = Response<DataResult>;
 /// The callback type of the data response.
 using DataResponseCallback = Callback<DataResult>;
+
+/// The aggregated data response alias.
+using AggregatedDataResponse = Response<AggregatedDataResult>;
+/// The callback type of the aggregated data response.
+using AggregatedDataResponseCallback = Callback<AggregatedDataResult>;
 
 /// The alias of the prefetch tiles result.
 using PrefetchTilesResult = std::vector<std::shared_ptr<PrefetchTileResult>>;

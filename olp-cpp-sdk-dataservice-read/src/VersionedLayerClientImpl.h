@@ -85,6 +85,12 @@ class VersionedLayerClientImpl {
 
   virtual bool RemoveFromCache(const geo::TileKey& tile);
 
+  virtual client::CancellationToken GetAggregatedData(
+      TileRequest request, AggregatedDataResponseCallback callback);
+
+  virtual client::CancellableFuture<AggregatedDataResponse> GetAggregatedData(
+      TileRequest request);
+
  private:
   CatalogVersionResponse GetVersion(boost::optional<std::string> billing_tag,
                                     const FetchOptions& fetch_options,
