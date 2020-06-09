@@ -139,7 +139,7 @@ TEST_P(CatalogClientTest, GetCatalog) {
   EXPECT_SUCCESS(catalog_response);
 }
 
-TEST_F(CatalogClientTest, GetVersionsList) {
+TEST_P(CatalogClientTest, GetVersionsList) {
   const auto catalog =
       olp::client::HRN::FromString(CustomParameters::getArgument(
           "dataservice_read_test_versioned_prefetch_catalog"));
