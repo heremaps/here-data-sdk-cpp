@@ -97,6 +97,10 @@ NetworkCallback ReturnHttpResponse(olp::http::NetworkResponse response,
                                    const std::string& response_body,
                                    const http::Headers& headers = {});
 
+inline olp::http::NetworkResponse GetResponse(int status) {
+  return olp::http::NetworkResponse().WithStatus(status);
+}
+
 }  // namespace common
 }  // namespace tests
 }  // namespace olp
