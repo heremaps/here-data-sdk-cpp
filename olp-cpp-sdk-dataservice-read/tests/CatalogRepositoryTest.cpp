@@ -25,10 +25,6 @@
 #include <mocks/NetworkMock.h>
 #include <olp/core/client/OlpClientFactory.h>
 #include "ApiClientLookup.h"
-// clang-format off
-#include "generated/serializer/VersionInfosSerializer.h"
-#include "generated/serializer/JsonSerializer.h"
-// clang-format on
 #include "olp/dataservice/read/CatalogRequest.h"
 #include "olp/dataservice/read/CatalogVersionRequest.h"
 #include "olp/dataservice/read/DataRequest.h"
