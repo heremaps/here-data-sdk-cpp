@@ -30,6 +30,7 @@
 #include "generated/parser/CatalogParser.h"
 #include "generated/parser/VersionInfosParser.h"
 #include "generated/parser/VersionResponseParser.h"
+#include "generated/parser/JsonParserCacheValue.h"
 #include <olp/core/generated/parser/JsonParser.h>
 #include "generated/serializer/CatalogSerializer.h"
 #include "generated/serializer/VersionResponseSerializer.h"
@@ -127,9 +128,9 @@ void CatalogCacheRepository::PutVersionInfos(
   OLP_SDK_LOG_DEBUG_F(kLogTag, "PutVersionInfos -> '%s'", key.c_str());
   auto list_versions = olp::serializer::serialize(versions);
 
-  auto versions_data = std::make_shared<std::vector<unsigned char>>(
-      std::begin(list_versions), std::end(list_versions));
-
+  // include null terminated symbol
+  auto versions_data = std::make_shared<cache::KeyValueCache::ValueType>(
+      list_versions.data(), list_versions.data() + list_versions.size() + 1);
   cache_->Put(VersionInfosKey(hrn, start, end), versions_data, default_expiry_);
 }
 
@@ -144,8 +145,7 @@ boost::optional<model::VersionInfos> CatalogCacheRepository::GetVersionInfos(
     return boost::none;
   }
 
-  auto list_versions = std::string(value->begin(), value->end());
-  return parser::parse<model::VersionInfos>(list_versions);
+  return parser::parse<model::VersionInfos>(*value);
 }
 
 void CatalogCacheRepository::Clear() {
