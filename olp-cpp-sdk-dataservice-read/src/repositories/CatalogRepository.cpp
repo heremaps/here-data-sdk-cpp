@@ -159,22 +159,12 @@ VersionsResponse CatalogRepository::GetVersionsList(
     const VersionsRequest& request, const client::OlpClientSettings& settings) {
   auto fetch_option = request.GetFetchOption();
   repository::CatalogCacheRepository repository(catalog, settings.cache);
-
-  if (fetch_option != OnlineOnly) {
-    auto cached_version = repository.GetVersionInfos(request.GetStartVersion(),
-                                                     request.GetEndVersion());
-    if (cached_version) {
-      OLP_SDK_LOG_DEBUG_F(
-          kLogTag, "GetVersionsList found in cache, hrn='%s', key='%s'",
-          catalog.ToCatalogHRNString().c_str(), request.CreateKey().c_str());
-      return cached_version.value();
-    } else if (fetch_option == CacheOnly) {
-      OLP_SDK_LOG_INFO_F(
-          kLogTag, "GetVersionsList not found in cache, hrn='%s', key='%s'",
-          catalog.ToCatalogHRNString().c_str(), request.CreateKey().c_str());
-      return {{client::ErrorCode::NotFound,
-               "CacheOnly: resource not found in cache"}};
-    }
+  if (fetch_option == CacheOnly) {
+    OLP_SDK_LOG_INFO_F(
+        kLogTag,
+        "GetVersionsList not supporting CacheOnly option, hrn='%s', key='%s'",
+        catalog.ToCatalogHRNString().c_str(), request.CreateKey().c_str());
+    return {{client::ErrorCode::InvalidArgument, "CacheOnly not supported"}};
   }
 
   auto metadata_api = ApiClientLookup::LookupApi(
@@ -187,34 +177,9 @@ VersionsResponse CatalogRepository::GetVersionsList(
 
   const client::OlpClient& client = metadata_api.GetResult();
 
-  auto response = MetadataApi::ListVersions(
+  return MetadataApi::ListVersions(
       client, request.GetStartVersion(), request.GetEndVersion(),
       request.GetBillingTag(), cancellation_context);
-
-  if (response.IsSuccessful() && fetch_option != OnlineOnly) {
-    // Responce versions will be cached with (start,end] interval returned. If
-    // end version does not exist, it should be handled by server and
-    // 400 Bad Request is returned.
-    if (!response.GetResult().GetVersions().empty()) {
-      repository.PutVersionInfos(
-          response.GetResult().GetVersions().front().GetVersion() - 1,
-          request.GetEndVersion(), response.GetResult());
-    }
-  }
-
-  if (!response.IsSuccessful()) {
-    const auto& error = response.GetError();
-    if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
-      OLP_SDK_LOG_WARNING_F(kLogTag,
-                            "GetVersionsList 403 received, remove from cache, "
-                            "hrn='%s', key='%s'",
-                            catalog.ToCatalogHRNString().c_str(),
-                            request.CreateKey().c_str());
-      repository.Clear();
-    }
-  }
-
-  return response;
 }
 
 }  // namespace repository

@@ -62,8 +62,6 @@ constexpr auto kStartVersion = 3;
 constexpr auto kEndVersion = 4;
 constexpr auto kUrlVersionsList =
     R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/versions?endVersion=4&startVersion=3)";
-constexpr auto kUrlVersionsListStartMinus =
-    R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/versions?endVersion=4&startVersion=-1)";
 
 constexpr auto kHttpResponse =
     R"jsonString({"versions":[{"version":4,"timestamp":1547159598712,"partitionCounts":{"testlayer":5,"testlayer_res":1,"multilevel_testlayer":33, "hype-test-prefetch-2":7,"testlayer_gzip":1,"hype-test-prefetch":7},"dependencies":[ { "hrn":"hrn:here:data::olp-here-test:hereos-internal-test-v2","version":0,"direct":false},{"hrn":"hrn:here:data:::hereos-internal-test-v2","version":0,"direct":false }]}]})jsonString";
@@ -637,43 +635,13 @@ TEST_F(CatalogRepositoryTest, GetVersionsList) {
                        .WithEndVersion(kEndVersion)
                        .WithFetchOption(read::CacheOnly);
 
-    olp::dataservice::read::model::VersionInfos versions;
-    versions.SetVersions(
-        std::vector<olp::dataservice::read::model::VersionInfo>(1));
-    auto cached_versions = olp::serializer::serialize(versions);
-    auto versions_data = std::make_shared<olp::cache::KeyValueCache::ValueType>(
-        cached_versions.data(),
-        cached_versions.data() + cached_versions.size() + 1);
-    EXPECT_CALL(*cache_, Get(kVersionInfosCacheKey))
-        .Times(1)
-        .WillOnce(testing::Return(versions_data));
-
-    auto response = repository::CatalogRepository::GetVersionsList(
-        kHrn, context, request, settings_);
-
-    ASSERT_TRUE(response.IsSuccessful());
-    auto result = response.GetResult();
-
-    ASSERT_EQ(1u, result.GetVersions().size());
-  }
-  {
-    SCOPED_TRACE("Get versions list cache only not found");
-
-    olp::client::CancellationContext context;
-    auto request = read::VersionsRequest()
-                       .WithStartVersion(kStartVersion)
-                       .WithEndVersion(kEndVersion)
-                       .WithFetchOption(read::CacheOnly);
-
-    EXPECT_CALL(*cache_, Get(kVersionInfosCacheKey))
-        .Times(1)
-        .WillOnce(testing::Return(nullptr));
+    EXPECT_CALL(*cache_, Get(kVersionInfosCacheKey)).Times(0);
 
     auto response = repository::CatalogRepository::GetVersionsList(
         kHrn, context, request, settings_);
 
     ASSERT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(olp::client::ErrorCode::NotFound,
+    EXPECT_EQ(olp::client::ErrorCode::InvalidArgument,
               response.GetError().GetErrorCode());
   }
   {
@@ -696,54 +664,12 @@ TEST_F(CatalogRepositoryTest, GetVersionsList) {
                 olp::http::HttpStatusCode::FORBIDDEN),
             "Forbidden"));
 
-    EXPECT_CALL(*cache_, Get(kVersionInfosCacheKey))
-        .Times(1)
-        .WillOnce(testing::Return(nullptr));
-
-    EXPECT_CALL(*cache_, RemoveKeysWithPrefix(kCatalog)).Times(1);
-
     auto response = repository::CatalogRepository::GetVersionsList(
         kHrn, context, request, settings_);
 
     ASSERT_FALSE(response.IsSuccessful());
     EXPECT_EQ(olp::client::ErrorCode::AccessDenied,
               response.GetError().GetErrorCode());
-  }
-  {
-    SCOPED_TRACE(
-        "Start/end interval doesn't match response, check cache put keys");
-
-    olp::client::CancellationContext context;
-    auto request = read::VersionsRequest().WithStartVersion(-1).WithEndVersion(
-        kEndVersion);
-
-    ON_CALL(*network_,
-            Send(common::IsGetRequest(kUrlVersionsListStartMinus), _, _, _, _))
-        .WillByDefault(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           olp::http::HttpStatusCode::OK),
-                                       kHttpResponse));
-
-    EXPECT_CALL(*cache_, Get(kVersionInfosMinCacheKey))
-        .Times(1)
-        .WillOnce(testing::Return(nullptr));
-
-    EXPECT_CALL(*cache_, Put(kVersionInfosCacheKey, _, _))
-        .Times(1)
-        .WillOnce(testing::Return(true));
-
-    EXPECT_CALL(*cache_, Put(kVersionInfosMinCacheKey, _, _)).Times(0);
-
-    auto response = repository::CatalogRepository::GetVersionsList(
-        kHrn, context, request, settings_);
-
-    ASSERT_TRUE(response.IsSuccessful());
-    auto result = response.GetResult();
-
-    ASSERT_EQ(1u, result.GetVersions().size());
-    ASSERT_EQ(4, result.GetVersions().front().GetVersion());
-    ASSERT_EQ(2u, result.GetVersions().front().GetDependencies().size());
-    ASSERT_EQ(6u, result.GetVersions().front().GetPartitionCounts().size());
   }
 }
 }  // namespace
