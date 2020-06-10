@@ -164,13 +164,11 @@ class DATASERVICE_READ_API VersionsRequest final {
   /**
    * @brief Creates a readable format for the request.
    *
-   * @param layer_id The ID of the layer that is used for the request.
-   *
    * @return A string representation of the request.
    */
-  inline std::string CreateKey(const std::string& layer_id) const {
+  inline std::string CreateKey() const {
     std::stringstream out;
-    out << layer_id << "[";
+    out << "[";
     out << GetStartVersion() << ", " << GetEndVersion();
     out << "]";
     if (GetBillingTag()) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@
 #include "generated/api/MetadataApi.h"
 #include "olp/dataservice/read/CatalogRequest.h"
 #include "olp/dataservice/read/CatalogVersionRequest.h"
+#include "olp/dataservice/read/VersionsRequest.h"
 
 namespace {
 constexpr auto kLogTag = "CatalogRepository";
@@ -150,6 +151,70 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
   }
 
   return version_response;
+}
+
+VersionsResponse CatalogRepository::GetVersionsList(
+    const client::HRN& catalog,
+    client::CancellationContext cancellation_context,
+    const VersionsRequest& request, const client::OlpClientSettings& settings) {
+  auto fetch_option = request.GetFetchOption();
+  repository::CatalogCacheRepository repository(catalog, settings.cache);
+
+  if (fetch_option != OnlineOnly) {
+    auto cached_version = repository.GetVersionInfos(request.GetStartVersion(),
+                                                     request.GetEndVersion());
+    if (cached_version) {
+      OLP_SDK_LOG_DEBUG_F(
+          kLogTag, "GetVersionsList found in cache, hrn='%s', key='%s'",
+          catalog.ToCatalogHRNString().c_str(), request.CreateKey().c_str());
+      return cached_version.value();
+    } else if (fetch_option == CacheOnly) {
+      OLP_SDK_LOG_INFO_F(
+          kLogTag, "GetVersionsList not found in cache, hrn='%s', key='%s'",
+          catalog.ToCatalogHRNString().c_str(), request.CreateKey().c_str());
+      return {{client::ErrorCode::NotFound,
+               "CacheOnly: resource not found in cache"}};
+    }
+  }
+
+  auto metadata_api = ApiClientLookup::LookupApi(
+      std::move(catalog), cancellation_context, "metadata", "v1", fetch_option,
+      std::move(settings));
+
+  if (!metadata_api.IsSuccessful()) {
+    return metadata_api.GetError();
+  }
+
+  const client::OlpClient& client = metadata_api.GetResult();
+
+  auto response = MetadataApi::ListVersions(
+      client, request.GetStartVersion(), request.GetEndVersion(),
+      request.GetBillingTag(), cancellation_context);
+
+  if (response.IsSuccessful() && fetch_option != OnlineOnly) {
+    // Responce versions will be cached with (start,end] interval returned. If
+    // end version does not exist, it should be handled by server and
+    // 400 Bad Request is returned.
+    if (!response.GetResult().GetVersions().empty()) {
+      repository.PutVersionInfos(
+          response.GetResult().GetVersions().front().GetVersion() - 1,
+          request.GetEndVersion(), response.GetResult());
+    }
+  }
+
+  if (!response.IsSuccessful()) {
+    const auto& error = response.GetError();
+    if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
+      OLP_SDK_LOG_WARNING_F(kLogTag,
+                            "GetVersionsList 403 received, remove from cache, "
+                            "hrn='%s', key='%s'",
+                            catalog.ToCatalogHRNString().c_str(),
+                            request.CreateKey().c_str());
+      repository.Clear();
+    }
+  }
+
+  return response;
 }
 
 }  // namespace repository
