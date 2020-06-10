@@ -283,42 +283,40 @@ std::string GenerateAuthorizationHeader(
     time_t timestamp, std::string nonce) {
   const std::string timestamp_str = std::to_string(timestamp);
 
-  std::stringstream stream;
+  std::stringstream query;
 
-  stream << kOauthConsumerKey << kParamEquals << credentials.GetKey()
+  query << kOauthConsumerKey << kParamEquals << credentials.GetKey()
          << kParamAdd << kOauthNonce << kParamEquals << nonce << kParamAdd
          << kOauthSignatureMethod << kParamEquals << kHmac << kParamAdd
          << kOauthTimestamp << kParamEquals << timestamp_str << kParamAdd
          << kOauthVersion << kParamEquals << kVersion;
 
-  const auto encoded_query = utils::Url::Encode(stream.str());
+  const auto encoded_query = utils::Url::Encode(query.str());
 
-  stream.clear();
+  std::stringstream signature_base;
 
-  stream << kOauthPost << kParamAdd << utils::Url::Encode(url) << kParamAdd
+  signature_base << kOauthPost << kParamAdd << utils::Url::Encode(url) << kParamAdd
          << encoded_query;
 
-  const auto signature_base = stream.str();
-
-  stream.clear();
-
   const std::string encode_key = credentials.GetSecret() + kParamAdd;
-  auto hmac_result = Crypto::hmac_sha256(encode_key, signature_base);
+  auto hmac_result = Crypto::hmac_sha256(encode_key, signature_base.str());
   auto signature = Base64Encode(hmac_result);
 
-  stream << "OAuth " << kOauthConsumerKey << kParamEquals << kParamQuote
-         << utils::Url::Encode(credentials.GetKey()) << kParamQuote
-         << kParamComma << kOauthNonce << kParamEquals << kParamQuote
-         << utils::Url::Encode(nonce) << kParamQuote << kParamComma
-         << kOauthSignatureMethod << kParamEquals << kParamQuote << kHmac
-         << kParamQuote << kParamComma << kOauthTimestamp << kParamEquals
-         << kParamQuote << utils::Url::Encode(timestamp_str) << kParamQuote
-         << kParamComma << kOauthVersion << kParamEquals << kParamQuote
-         << kVersion << kParamQuote << kParamComma << kOauthSignature
-         << kParamEquals << kParamQuote << utils::Url::Encode(signature)
-         << kParamQuote;
+  std::stringstream authorization;
 
-  return stream.str();
+  authorization << "OAuth " << kOauthConsumerKey << kParamEquals << kParamQuote
+                << utils::Url::Encode(credentials.GetKey()) << kParamQuote
+                << kParamComma << kOauthNonce << kParamEquals << kParamQuote
+                << utils::Url::Encode(nonce) << kParamQuote << kParamComma
+                << kOauthSignatureMethod << kParamEquals << kParamQuote << kHmac
+                << kParamQuote << kParamComma << kOauthTimestamp << kParamEquals
+                << kParamQuote << utils::Url::Encode(timestamp_str)
+                << kParamQuote << kParamComma << kOauthVersion << kParamEquals
+                << kParamQuote << kVersion << kParamQuote << kParamComma
+                << kOauthSignature << kParamEquals << kParamQuote
+                << utils::Url::Encode(signature) << kParamQuote;
+
+  return authorization.str();
 }
 
 }  // namespace authentication
