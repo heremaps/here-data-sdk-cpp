@@ -28,8 +28,9 @@ template <typename T>
 inline T parse(const cache::KeyValueCache::ValueType& cached_json) {
   rapidjson::Document doc;
   T result{};
-  if (!cached_json.empty() && cached_json.back() == '\0') {
-    doc.Parse(reinterpret_cast<const char*>(cached_json.data()));
+  if (!cached_json.empty()) {
+    auto* data = static_cast<const void*>(cached_json.data());
+    doc.Parse(static_cast<const char*>(data), cached_json.size());
     if (doc.IsObject() || doc.IsArray()) {
       from_json(doc, result);
     }

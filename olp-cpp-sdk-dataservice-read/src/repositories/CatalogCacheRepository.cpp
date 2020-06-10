@@ -128,9 +128,8 @@ void CatalogCacheRepository::PutVersionInfos(
   OLP_SDK_LOG_DEBUG_F(kLogTag, "PutVersionInfos -> '%s'", key.c_str());
   auto list_versions = olp::serializer::serialize(versions);
 
-  // include null terminated symbol
   auto versions_data = std::make_shared<cache::KeyValueCache::ValueType>(
-      list_versions.data(), list_versions.data() + list_versions.size() + 1);
+      list_versions.data(), list_versions.data() + list_versions.size());
   cache_->Put(VersionInfosKey(hrn, start, end), versions_data, default_expiry_);
 }
 
