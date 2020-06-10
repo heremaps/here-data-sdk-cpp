@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 
 #include <olp/core/client/HRN.h>
 #include <olp/dataservice/read/model/Catalog.h>
+#include <olp/dataservice/read/model/VersionInfos.h>
 #include <olp/dataservice/read/model/VersionResponse.h>
 #include <boost/optional.hpp>
 
@@ -50,6 +51,12 @@ class CatalogCacheRepository final {
   void PutVersion(const model::VersionResponse& version);
 
   boost::optional<model::VersionResponse> GetVersion();
+
+  void PutVersionInfos(std::int64_t start, std::int64_t end,
+                       const model::VersionInfos& versions);
+
+  boost::optional<model::VersionInfos> GetVersionInfos(std::int64_t start,
+                                                       std::int64_t end);
 
   void Clear();
 
