@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@
 #include "generated/api/MetadataApi.h"
 #include "olp/dataservice/read/CatalogRequest.h"
 #include "olp/dataservice/read/CatalogVersionRequest.h"
+#include "olp/dataservice/read/VersionsRequest.h"
 
 namespace {
 constexpr auto kLogTag = "CatalogRepository";
@@ -150,6 +151,35 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
   }
 
   return version_response;
+}
+
+VersionsResponse CatalogRepository::GetVersionsList(
+    const client::HRN& catalog,
+    client::CancellationContext cancellation_context,
+    const VersionsRequest& request, const client::OlpClientSettings& settings) {
+  auto fetch_option = request.GetFetchOption();
+  repository::CatalogCacheRepository repository(catalog, settings.cache);
+  if (fetch_option == CacheOnly) {
+    OLP_SDK_LOG_INFO_F(
+        kLogTag,
+        "GetVersionsList not supporting CacheOnly option, hrn='%s', key='%s'",
+        catalog.ToCatalogHRNString().c_str(), request.CreateKey().c_str());
+    return {{client::ErrorCode::InvalidArgument, "CacheOnly not supported"}};
+  }
+
+  auto metadata_api = ApiClientLookup::LookupApi(
+      std::move(catalog), cancellation_context, "metadata", "v1", fetch_option,
+      std::move(settings));
+
+  if (!metadata_api.IsSuccessful()) {
+    return metadata_api.GetError();
+  }
+
+  const client::OlpClient& client = metadata_api.GetResult();
+
+  return MetadataApi::ListVersions(
+      client, request.GetStartVersion(), request.GetEndVersion(),
+      request.GetBillingTag(), cancellation_context);
 }
 
 }  // namespace repository

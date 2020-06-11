@@ -27,20 +27,19 @@
 #include "generated/api/MetadataApi.h"
 
 namespace {
-
-constexpr auto kStartVersion = 299;
-constexpr auto kEndVersion = 300;
+constexpr auto kStartVersion = 3;
+constexpr auto kEndVersion = 4;
 constexpr auto kNodeBaseUrl =
     "https://some.node.base.url/metadata/v1/catalogs/"
     "hrn:here:data::olp-here-test:hereos-internal-test-v2";
 
 constexpr auto kUrlVersionsList =
-    R"(https://some.node.base.url/metadata/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/versions?endVersion=300&startVersion=299)";
+    R"(https://some.node.base.url/metadata/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/versions?endVersion=4&startVersion=3)";
 
 constexpr auto kUrlVersionsListBillingTag =
-    R"(https://some.node.base.url/metadata/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/versions?billingTag=OlpCppSdkTest&endVersion=300&startVersion=299)";
+    R"(https://some.node.base.url/metadata/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/versions?billingTag=OlpCppSdkTest&endVersion=4&startVersion=3)";
 
-constexpr auto kHttpResponse =
+constexpr auto kHttpVersionsListResponse =
     R"jsonString({"versions":[{"version":4,"timestamp":1547159598712,"partitionCounts":{"testlayer":5,"testlayer_res":1,"multilevel_testlayer":33, "hype-test-prefetch-2":7,"testlayer_gzip":1,"hype-test-prefetch":7},"dependencies":[ { "hrn":"hrn:here:data::olp-here-test:hereos-internal-test-v2","version":0,"direct":false},{"hrn":"hrn:here:data:::hereos-internal-test-v2","version":0,"direct":false }]}]})jsonString";
 
 using ::testing::_;
@@ -75,7 +74,7 @@ TEST_F(MetadataApiTest, GetListVersions) {
                      _, _, _))
         .WillOnce(common::ReturnHttpResponse(
             http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
-            kHttpResponse));
+            kHttpVersionsListResponse));
 
     auto index_response = olp::dataservice::read::MetadataApi::ListVersions(
         *client_, kStartVersion, kEndVersion, boost::none,
@@ -99,14 +98,14 @@ TEST_F(MetadataApiTest, GetListVersions) {
              _, _, _, _))
         .WillOnce(common::ReturnHttpResponse(
             http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
-            kHttpResponse));
+            kHttpVersionsListResponse));
 
-    auto index_response = olp::dataservice::read::MetadataApi::ListVersions(
+    auto response = olp::dataservice::read::MetadataApi::ListVersions(
         *client_, kStartVersion, kEndVersion, billing_tag,
         olp::client::CancellationContext{});
 
-    ASSERT_TRUE(index_response.IsSuccessful());
-    auto result = index_response.GetResult();
+    ASSERT_TRUE(response.IsSuccessful());
+    auto result = response.GetResult();
 
     ASSERT_EQ(1u, result.GetVersions().size());
     ASSERT_EQ(4, result.GetVersions().front().GetVersion());
