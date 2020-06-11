@@ -22,8 +22,11 @@
 #include <vector>
 
 #include "generated/serializer/ApiSerializer.h"
+#include "generated/serializer/CatalogSerializer.h"
 #include "generated/serializer/PartitionsSerializer.h"
+#include "generated/serializer/VersionInfosSerializer.h"
 #include "generated/serializer/VersionResponseSerializer.h"
+
 #include "generated/serializer/JsonSerializer.h"
 
 namespace mockserver {
@@ -43,6 +46,18 @@ template <>
 std::string
 MockServerHelper::GetPathMatcher<olp::dataservice::read::model::Api>() {
   return "/lookup/v1/resources/" + catalog_ + "/apis";
+}
+
+template <>
+std::string MockServerHelper::GetPathMatcher<
+    olp::dataservice::read::model::VersionInfos>() {
+  return "/metadata/v1/catalogs/" + catalog_ + "/versions";
+}
+
+template <>
+std::string
+MockServerHelper::GetPathMatcher<olp::dataservice::read::model::Catalog>() {
+  return "/config/v1/catalogs/" + catalog_;
 }
 
 template <class T>
@@ -95,9 +110,32 @@ void MockServerHelper::MockGetResponse(
   MockGetResponse<olp::dataservice::read::model::Api>(std::move(data));
 }
 
+void MockServerHelper::MockGetPlatformApiResponse(
+    olp::dataservice::read::model::Apis data) {
+  std::string str = "[";
+  for (const auto& el : data) {
+    str.append(olp::serializer::serialize(el));
+    str.append(",");
+  }
+  str[str.length() - 1] = ']';
+  auto path = "/lookup/v1/platform/apis";
+  paths_.push_back(path);
+  mock_server_client_.MockResponse("GET", path, str);
+}
+
 void MockServerHelper::MockGetResponse(
     olp::dataservice::read::model::Partitions data) {
   MockGetResponse<olp::dataservice::read::model::Partitions>(std::move(data));
+}
+
+void MockServerHelper::MockGetResponse(
+    olp::dataservice::read::model::VersionInfos data) {
+  MockGetResponse<olp::dataservice::read::model::VersionInfos>(std::move(data));
+}
+
+void MockServerHelper::MockGetResponse(
+    olp::dataservice::read::model::Catalog data) {
+  MockGetResponse<olp::dataservice::read::model::Catalog>(std::move(data));
 }
 
 bool MockServerHelper::Verify() {

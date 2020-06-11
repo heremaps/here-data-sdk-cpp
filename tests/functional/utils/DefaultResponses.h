@@ -24,7 +24,9 @@
 #include <vector>
 
 #include "generated/model/Api.h"
+#include "olp/dataservice/read/model/Catalog.h"
 #include "olp/dataservice/read/model/Partitions.h"
+#include "olp/dataservice/read/model/VersionInfos.h"
 #include "olp/dataservice/read/model/VersionResponse.h"
 
 namespace mockserver {
@@ -38,31 +40,49 @@ class DefaultResponses {
     return version_responce;
   }
 
-  static olp::dataservice::read::model::Apis GenerateApisResponse(
+  static olp::dataservice::read::model::Apis GenerateResourceApisResponse(
       std::string catalog) {
-    return GenerateApisResponse(catalog, {{"blob", "v1"},
-                                          {"index", "v1"},
-                                          {"ingest", "v1"},
-                                          {"metadata", "v1"},
-                                          {"notification", "v2"},
-                                          {"publish", "v2"},
-                                          {"query", "v1"},
-                                          {"statistics", "v1"},
-                                          {"stream", "v2"},
-                                          {"volatile-blob", "v1"}});
+    return GenerateApisResponse({{"blob", "v1"},
+                                 {"index", "v1"},
+                                 {"ingest", "v1"},
+                                 {"metadata", "v1"},
+                                 {"notification", "v2"},
+                                 {"publish", "v2"},
+                                 {"query", "v1"},
+                                 {"statistics", "v1"},
+                                 {"stream", "v2"},
+                                 {"volatile-blob", "v1"}},
+                                catalog);
+  }
+
+  static olp::dataservice::read::model::Apis GeneratePlatformApisResponse() {
+    return GenerateApisResponse({{"account", "v1"},
+                                 {"artifact", "v1"},
+                                 {"authentication", "v1"},
+                                 {"authorization", "v1"},
+                                 {"config", "v1"},
+                                 {"consent", "v1"},
+                                 {"location-service-registry", "v1"},
+                                 {"lookup", "v1"},
+                                 {"marketplace", "v2"},
+                                 {"pipelines", "v2"}});
   }
 
   static olp::dataservice::read::model::Apis GenerateApisResponse(
-      std::string catalog,
-      std::vector<std::pair<std::string, std::string>> api_types) {
+
+      std::vector<std::pair<std::string, std::string>> api_types,
+      std::string catalog = "") {
     olp::dataservice::read::model::Apis apis(api_types.size());
     std::string version = "v1";
+    if (!catalog.empty()) {
+      catalog.insert(0, "/catalogs/");
+    }
     for (size_t i = 0; i < apis.size(); i++) {
       apis[i].SetApi(api_types.at(i).first);
       apis[i].SetBaseUrl("https://tmp." + api_types.at(i).first +
                          ".data.api.platform.here.com/" +
                          api_types.at(i).first + "/" + api_types.at(i).second +
-                         "/catalogs/" + catalog);
+                         catalog);
       apis[i].SetVersion(api_types.at(i).second);
     }
     return apis;
@@ -80,6 +100,35 @@ class DefaultResponses {
     olp::dataservice::read::model::Partitions partitions;
     partitions.SetPartitions(partitions_vect);
     return partitions;
+  }
+
+  static olp::dataservice::read::model::VersionInfos
+  GenerateVersionInfosResponse(std::int64_t start, std::int64_t end) {
+    olp::dataservice::read::model::VersionInfos infos;
+    auto size = end - start;
+    if (size <= 0) {
+      return infos;
+    }
+    std::vector<olp::dataservice::read::model::VersionInfo> versions_vect(size);
+    for (size_t i = 0; i < versions_vect.size(); i++) {
+      versions_vect[i].SetVersion(++start);
+      versions_vect[i].SetTimestamp(1000 * start);
+      std::vector<olp::dataservice::read::model::VersionDependency>
+          dependencyes(1);
+      dependencyes.front().SetHrn("hrn::some-value");
+      versions_vect[i].SetDependencies(std::move(dependencyes));
+      versions_vect[i].SetPartitionCounts({{"partition", 1}});
+    }
+
+    infos.SetVersions(versions_vect);
+    return infos;
+  }
+
+  static olp::dataservice::read::model::Catalog GenerateCatalogResponse() {
+    olp::dataservice::read::model::Catalog catalog;
+    catalog.SetHrn("hrn::some-value");
+    catalog.SetVersion(1);
+    return catalog;
   }
 };
 

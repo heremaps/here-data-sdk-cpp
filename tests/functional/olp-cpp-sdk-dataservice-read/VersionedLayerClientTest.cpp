@@ -98,7 +98,7 @@ TEST_F(VersionedLayerClientTest, GetPartitions) {
     mock_server_client_->MockAuth();
     mock_server_client_->MockTimestamp();
     mock_server_client_->MockGetResponse(
-        mockserver::DefaultResponses::GenerateApisResponse(kTestHrn));
+        mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
     mock_server_client_->MockGetResponse(
         mockserver::DefaultResponses::GenerateVersionResponse(44));
     mock_server_client_->MockGetResponse(

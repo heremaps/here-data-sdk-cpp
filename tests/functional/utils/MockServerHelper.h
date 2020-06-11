@@ -24,7 +24,9 @@
 #include <vector>
 
 #include "generated/model/Api.h"
+#include "olp/dataservice/read/model/Catalog.h"
 #include "olp/dataservice/read/model/Partitions.h"
+#include "olp/dataservice/read/model/VersionInfos.h"
 #include "olp/dataservice/read/model/VersionResponse.h"
 
 namespace mockserver {
@@ -74,6 +76,15 @@ class MockServerHelper {
   void MockGetResponse(olp::dataservice::read::model::Apis data);
 
   /**
+   * @brief Mock get platform apis request.
+   *
+   * @note keep order of mocks for future use of Verify function.
+   *
+   * @param data apis to be returned by server.
+   */
+  void MockGetPlatformApiResponse(olp::dataservice::read::model::Apis data);
+
+  /**
    * @brief Mock get partitions request.
    *
    * @note keep order of mocks for future use of Verify function.
@@ -81,6 +92,24 @@ class MockServerHelper {
    * @param data partitions to be returned by server.
    */
   void MockGetResponse(olp::dataservice::read::model::Partitions data);
+
+  /**
+   * @brief Mock get list versions request.
+   *
+   * @note keep order of mocks for future use of Verify function.
+   *
+   * @param data VersionInfos to be returned by server.
+   */
+  void MockGetResponse(olp::dataservice::read::model::VersionInfos data);
+
+  /**
+   * @brief Mock get catalog request.
+   *
+   * @note keep order of mocks for future use of Verify function.
+   *
+   * @param data Catalog to be returned by server.
+   */
+  void MockGetResponse(olp::dataservice::read::model::Catalog data);
 
   /**
    * @brief Verify if all calls were called on server and its order.
