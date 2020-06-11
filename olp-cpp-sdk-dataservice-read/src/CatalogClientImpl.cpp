@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@
 
 #include "CatalogClientImpl.h"
 
+#include <utility>
+
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/client/PendingRequests.h>
@@ -31,14 +33,13 @@
 namespace olp {
 namespace dataservice {
 namespace read {
-using namespace repository;
-using namespace olp::client;
 
 namespace {
 constexpr auto kLogTag = "CatalogClientImpl";
 }
 
-CatalogClientImpl::CatalogClientImpl(HRN catalog, OlpClientSettings settings)
+CatalogClientImpl::CatalogClientImpl(client::HRN catalog,
+                                     client::OlpClientSettings settings)
     : catalog_(std::move(catalog)), settings_(std::move(settings)) {
   if (!settings_.cache) {
     settings_.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
@@ -60,7 +61,7 @@ bool CatalogClientImpl::CancelPendingRequests() {
   return pending_requests_->CancelAll();
 }
 
-CancellationToken CatalogClientImpl::GetCatalog(
+client::CancellationToken CatalogClientImpl::GetCatalog(
     CatalogRequest request, CatalogResponseCallback callback) {
   auto schedule_get_catalog = [&](CatalogRequest request,
                                   CatalogResponseCallback callback) {
@@ -81,7 +82,7 @@ CancellationToken CatalogClientImpl::GetCatalog(
                        std::move(callback));
 }
 
-CancellableFuture<CatalogResponse> CatalogClientImpl::GetCatalog(
+client::CancellableFuture<CatalogResponse> CatalogClientImpl::GetCatalog(
     CatalogRequest request) {
   auto promise = std::make_shared<std::promise<CatalogResponse>>();
   auto cancel_token =
@@ -92,7 +93,7 @@ CancellableFuture<CatalogResponse> CatalogClientImpl::GetCatalog(
                                                     std::move(promise));
 }
 
-CancellationToken CatalogClientImpl::GetLatestVersion(
+client::CancellationToken CatalogClientImpl::GetLatestVersion(
     CatalogVersionRequest request, CatalogVersionCallback callback) {
   OLP_SDK_LOG_TRACE_F(kLogTag, "GetCatalog '%s'", request.CreateKey().c_str());
   auto schedule_get_latest_version = [&](CatalogVersionRequest request,
@@ -114,8 +115,8 @@ CancellationToken CatalogClientImpl::GetLatestVersion(
                        std::move(request), std::move(callback));
 }
 
-CancellableFuture<CatalogVersionResponse> CatalogClientImpl::GetLatestVersion(
-    CatalogVersionRequest request) {
+client::CancellableFuture<CatalogVersionResponse>
+CatalogClientImpl::GetLatestVersion(CatalogVersionRequest request) {
   auto promise = std::make_shared<std::promise<CatalogVersionResponse>>();
   auto cancel_token = GetLatestVersion(
       std::move(request), [promise](CatalogVersionResponse response) {
@@ -123,6 +124,33 @@ CancellableFuture<CatalogVersionResponse> CatalogClientImpl::GetLatestVersion(
       });
   return client::CancellableFuture<CatalogVersionResponse>(
       std::move(cancel_token), std::move(promise));
+}
+
+client::CancellationToken CatalogClientImpl::ListVersions(
+    VersionsRequest request, VersionsResponseCallback callback) {
+  auto versions_list_task =
+      [=](client::CancellationContext context) -> VersionsResponse {
+    if (request.GetFetchOption() == CacheWithUpdate) {
+      return {{client::ErrorCode::InvalidArgument,
+               "CacheWithUpdate option can not be used for versioned catalog"}};
+    }
+    return repository::CatalogRepository::GetVersionsList(catalog_, context,
+                                                          request, settings_);
+  };
+
+  return AddTask(task_scheduler_, pending_requests_,
+                 std::move(versions_list_task), std::move(callback));
+}
+
+client::CancellableFuture<VersionsResponse> CatalogClientImpl::ListVersions(
+    VersionsRequest request) {
+  auto promise = std::make_shared<std::promise<VersionsResponse>>();
+  auto cancel_token =
+      ListVersions(std::move(request), [promise](VersionsResponse response) {
+        promise->set_value(std::move(response));
+      });
+  return client::CancellableFuture<VersionsResponse>(std::move(cancel_token),
+                                                     std::move(promise));
 }
 }  // namespace read
 }  // namespace dataservice

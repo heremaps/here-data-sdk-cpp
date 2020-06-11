@@ -31,23 +31,32 @@
 #include "HttpResponses.h"
 
 namespace {
+constexpr auto kStartVersion = 3;
+constexpr auto kEndVersion = 4;
+constexpr auto kUrlVersionsList =
+    R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/versions?endVersion=4&startVersion=3)";
+constexpr auto kUrlVersionsListStartMinus =
+    R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/versions?endVersion=4&startVersion=-1)";
+constexpr auto kHttpVersionsListResponse =
+    R"jsonString({"versions":[{"version":4,"timestamp":1547159598712,"partitionCounts":{"testlayer":5,"testlayer_res":1,"multilevel_testlayer":33, "hype-test-prefetch-2":7,"testlayer_gzip":1,"hype-test-prefetch":7},"dependencies":[ { "hrn":"hrn:here:data::olp-here-test:hereos-internal-test-v2","version":0,"direct":false},{"hrn":"hrn:here:data:::hereos-internal-test-v2","version":0,"direct":false }]}]})jsonString";
 
-using namespace olp::dataservice::read;
-using namespace testing;
-using namespace olp::tests::common;
-using namespace olp::tests::integration;
+using testing::_;
+namespace common = olp::tests::common;
+namespace read = olp::dataservice::read;
 
-class CatalogClientTest : public CatalogClientTestBase {};
+class CatalogClientTest
+    : public olp::tests::integration::CatalogClientTestBase {};
 
 TEST_P(CatalogClientTest, GetCatalog) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1);
-  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
-  auto request = CatalogRequest();
+  auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
+  auto request = read::CatalogRequest();
   auto future = catalog_client->GetCatalog(request);
-  CatalogResponse catalog_response = future.GetFuture().get();
+  read::CatalogResponse catalog_response = future.GetFuture().get();
 
   ASSERT_TRUE(catalog_response.IsSuccessful())
       << ApiErrorToString(catalog_response.GetError());
@@ -56,19 +65,21 @@ TEST_P(CatalogClientTest, GetCatalog) {
 TEST_P(CatalogClientTest, GetCatalogCallback) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1);
 
-  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
 
-  auto request = CatalogRequest();
+  auto request = read::CatalogRequest();
 
-  std::promise<CatalogResponse> promise;
-  CatalogResponseCallback callback = [&promise](CatalogResponse response) {
-    promise.set_value(response);
-  };
+  std::promise<read::CatalogResponse> promise;
+  read::CatalogResponseCallback callback =
+      [&promise](read::CatalogResponse response) {
+        promise.set_value(response);
+      };
   catalog_client->GetCatalog(request, callback);
-  CatalogResponse catalog_response = promise.get_future().get();
+  read::CatalogResponse catalog_response = promise.get_future().get();
   ASSERT_TRUE(catalog_response.IsSuccessful())
       << ApiErrorToString(catalog_response.GetError());
 }
@@ -76,14 +87,15 @@ TEST_P(CatalogClientTest, GetCatalogCallback) {
 TEST_P(CatalogClientTest, GetCatalog403) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(403),
-                                   HTTP_RESPONSE_403));
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
+      .WillOnce(common::ReturnHttpResponse(
+          olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
 
-  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
-  auto request = CatalogRequest();
+  auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
+  auto request = read::CatalogRequest();
   auto future = catalog_client->GetCatalog(request);
-  CatalogResponse catalog_response = future.GetFuture().get();
+  read::CatalogResponse catalog_response = future.GetFuture().get();
 
   ASSERT_FALSE(catalog_response.IsSuccessful())
       << ApiErrorToString(catalog_response.GetError());
@@ -97,38 +109,42 @@ TEST_P(CatalogClientTest, GetCatalogCancelApiLookup) {
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
-  NetworkCallback send_mock;
-  CancelCallback cancel_mock;
+  common::NetworkCallback send_mock;
+  common::CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
+  std::tie(request_id, send_mock, cancel_mock) =
+      common::GenerateNetworkMockActions(wait_for_cancel, pause_for_cancel,
+                                         {200, HTTP_RESPONSE_LOOKUP_CONFIG});
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
   EXPECT_CALL(*network_mock_, Cancel(request_id))
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(0);
 
   // Run it!
-  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
 
-  auto request = CatalogRequest();
+  auto request = read::CatalogRequest();
 
-  std::promise<CatalogResponse> promise;
-  CatalogResponseCallback callback = [&promise](CatalogResponse response) {
-    promise.set_value(response);
-  };
+  std::promise<read::CatalogResponse> promise;
+  read::CatalogResponseCallback callback =
+      [&promise](read::CatalogResponse response) {
+        promise.set_value(response);
+      };
   olp::client::CancellationToken cancel_token =
       catalog_client->GetCatalog(request, callback);
 
   wait_for_cancel->get_future().get();
   cancel_token.Cancel();
   pause_for_cancel->set_value();
-  CatalogResponse catalog_response = promise.get_future().get();
+  read::CatalogResponse catalog_response = promise.get_future().get();
 
   ASSERT_FALSE(catalog_response.IsSuccessful())
       << ApiErrorToString(catalog_response.GetError());
@@ -146,14 +162,16 @@ TEST_P(CatalogClientTest, GetCatalogCancelConfig) {
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
-  NetworkCallback send_mock;
-  CancelCallback cancel_mock;
+  common::NetworkCallback send_mock;
+  common::CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_CONFIG});
+  std::tie(request_id, send_mock, cancel_mock) =
+      common::GenerateNetworkMockActions(wait_for_cancel, pause_for_cancel,
+                                         {200, HTTP_RESPONSE_CONFIG});
 
   // Setup the expected calls :
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
@@ -161,14 +179,15 @@ TEST_P(CatalogClientTest, GetCatalogCancelConfig) {
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   // Run it!
-  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
 
-  auto request = CatalogRequest();
+  auto request = read::CatalogRequest();
 
-  std::promise<CatalogResponse> promise;
-  CatalogResponseCallback callback = [&promise](CatalogResponse response) {
-    promise.set_value(response);
-  };
+  std::promise<read::CatalogResponse> promise;
+  read::CatalogResponseCallback callback =
+      [&promise](read::CatalogResponse response) {
+        promise.set_value(response);
+      };
   olp::client::CancellationToken cancel_token =
       catalog_client->GetCatalog(request, callback);
 
@@ -178,7 +197,7 @@ TEST_P(CatalogClientTest, GetCatalogCancelConfig) {
   std::cout << "Cancelled, unblocking response" << std::endl;
   pause_for_cancel->set_value();
   std::cout << "Post Cancel, get response" << std::endl;
-  CatalogResponse catalog_response = promise.get_future().get();
+  read::CatalogResponse catalog_response = promise.get_future().get();
 
   ASSERT_FALSE(catalog_response.IsSuccessful())
       << ApiErrorToString(catalog_response.GetError());
@@ -194,18 +213,19 @@ TEST_P(CatalogClientTest, GetCatalogCancelAfterCompletion) {
   olp::client::HRN hrn(GetTestCatalog());
 
   // Run it!
-  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
 
-  auto request = CatalogRequest();
+  auto request = read::CatalogRequest();
 
-  std::promise<CatalogResponse> promise;
-  CatalogResponseCallback callback = [&promise](CatalogResponse response) {
-    promise.set_value(response);
-  };
+  std::promise<read::CatalogResponse> promise;
+  read::CatalogResponseCallback callback =
+      [&promise](read::CatalogResponse response) {
+        promise.set_value(response);
+      };
   olp::client::CancellationToken cancel_token =
       catalog_client->GetCatalog(request, callback);
 
-  CatalogResponse catalog_response = promise.get_future().get();
+  read::CatalogResponse catalog_response = promise.get_future().get();
 
   ASSERT_TRUE(catalog_response.IsSuccessful())
       << ApiErrorToString(catalog_response.GetError());
@@ -217,16 +237,17 @@ TEST_P(CatalogClientTest, GetCatalogVersion) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+              Send(common::IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1);
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
+  EXPECT_CALL(
+      *network_mock_,
+      Send(common::IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(1);
 
-  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
 
-  auto request = CatalogVersionRequest().WithStartVersion(-1);
+  auto request = read::CatalogVersionRequest().WithStartVersion(-1);
 
   auto future = catalog_client->GetLatestVersion(request);
   auto catalog_version_response = future.GetFuture().get();
@@ -243,32 +264,34 @@ TEST_P(CatalogClientTest, GetCatalogVersionCancel) {
 
   // Setup the expected calls :
   olp::http::RequestId request_id;
-  NetworkCallback send_mock;
-  CancelCallback cancel_mock;
+  common::NetworkCallback send_mock;
+  common::CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP});
+  std::tie(request_id, send_mock, cancel_mock) =
+      common::GenerateNetworkMockActions(wait_for_cancel, pause_for_cancel,
+                                         {200, HTTP_RESPONSE_LOOKUP});
 
   EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+              Send(common::IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
   EXPECT_CALL(*network_mock_, Cancel(request_id))
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
+  EXPECT_CALL(
+      *network_mock_,
+      Send(common::IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(0);
 
   // Run it!
-  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
 
-  auto request = CatalogVersionRequest().WithStartVersion(-1);
+  auto request = read::CatalogVersionRequest().WithStartVersion(-1);
 
-  std::promise<CatalogVersionResponse> promise;
-  CatalogVersionCallback callback =
-      [&promise](CatalogVersionResponse response) {
+  std::promise<read::CatalogVersionResponse> promise;
+  read::CatalogVersionCallback callback =
+      [&promise](read::CatalogVersionResponse response) {
         promise.set_value(response);
       };
   olp::client::CancellationToken cancel_token =
@@ -277,7 +300,7 @@ TEST_P(CatalogClientTest, GetCatalogVersionCancel) {
   wait_for_cancel->get_future().get();
   cancel_token.Cancel();
   pause_for_cancel->set_value();
-  CatalogVersionResponse version_response = promise.get_future().get();
+  read::CatalogVersionResponse version_response = promise.get_future().get();
 
   ASSERT_FALSE(version_response.IsSuccessful())
       << ApiErrorToString(version_response.GetError());
@@ -291,14 +314,15 @@ TEST_P(CatalogClientTest, GetCatalogVersionCancel) {
 TEST_P(CatalogClientTest, GetCatalogCacheOnly) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(0);
 
-  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
-  auto request = CatalogRequest();
-  request.WithFetchOption(CacheOnly);
+  auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
+  auto request = read::CatalogRequest();
+  request.WithFetchOption(read::CacheOnly);
   auto future = catalog_client->GetCatalog(request);
-  CatalogResponse catalog_response = future.GetFuture().get();
+  read::CatalogResponse catalog_response = future.GetFuture().get();
   ASSERT_FALSE(catalog_response.IsSuccessful())
       << ApiErrorToString(catalog_response.GetError());
 }
@@ -309,20 +333,22 @@ TEST_P(CatalogClientTest, GetCatalogOnlineOnly) {
   {
     testing::InSequence s;
 
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
+    EXPECT_CALL(*network_mock_,
+                Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
         .Times(1);
 
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-        .WillOnce(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(429),
-                               "Server busy at the moment."));
+    EXPECT_CALL(*network_mock_,
+                Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
+        .WillOnce(common::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(429),
+            "Server busy at the moment."));
   }
 
-  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
-  auto request = CatalogRequest();
-  request.WithFetchOption(OnlineOnly);
+  auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
+  auto request = read::CatalogRequest();
+  request.WithFetchOption(read::OnlineOnly);
   auto future = catalog_client->GetCatalog(request);
-  CatalogResponse catalog_response = future.GetFuture().get();
+  read::CatalogResponse catalog_response = future.GetFuture().get();
   ASSERT_TRUE(catalog_response.IsSuccessful())
       << ApiErrorToString(catalog_response.GetError());
   future = catalog_client->GetCatalog(request);
@@ -342,26 +368,28 @@ TEST_P(CatalogClientTest, GetCatalogCacheWithUpdate) {
   auto wait_for_end = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
-  NetworkCallback send_mock;
-  CancelCallback cancel_mock;
+  common::NetworkCallback send_mock;
+  common::CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) =
-      GenerateNetworkMockActions(wait_to_start_signal, pre_callback_wait,
-                                 {200, HTTP_RESPONSE_CONFIG}, wait_for_end);
+      common::GenerateNetworkMockActions(
+          wait_to_start_signal, pre_callback_wait, {200, HTTP_RESPONSE_CONFIG},
+          wait_for_end);
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
-  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
-  auto request = CatalogRequest();
-  request.WithFetchOption(CacheWithUpdate);
+  auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
+  auto request = read::CatalogRequest();
+  request.WithFetchOption(read::CacheWithUpdate);
   // Request 1
   SCOPED_TRACE("Request Catalog, CacheWithUpdate");
   auto future = catalog_client->GetCatalog(request);
 
   SCOPED_TRACE("get CatalogResponse1");
-  CatalogResponse catalog_response = future.GetFuture().get();
+  read::CatalogResponse catalog_response = future.GetFuture().get();
 
   // Request 1 return. Cached value (nothing)
   ASSERT_FALSE(catalog_response.IsSuccessful())
@@ -372,7 +400,7 @@ TEST_P(CatalogClientTest, GetCatalogCacheWithUpdate) {
 
   // Request 2 to check there is a cached value.
   SCOPED_TRACE("Request Catalog, CacheOnly");
-  request.WithFetchOption(CacheOnly);
+  request.WithFetchOption(read::CacheOnly);
   future = catalog_client->GetCatalog(request);
   SCOPED_TRACE("get CatalogResponse2");
   catalog_response = future.GetFuture().get();
@@ -386,27 +414,29 @@ TEST_P(CatalogClientTest, GetCatalog403CacheClear) {
   {
     testing::InSequence s;
 
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
+    EXPECT_CALL(*network_mock_,
+                Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
         .Times(1);
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(
+    EXPECT_CALL(*network_mock_,
+                Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
+        .WillOnce(common::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
   }
 
-  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
-  auto request = CatalogRequest();
+  auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
+  auto request = read::CatalogRequest();
   // Populate cache
   auto future = catalog_client->GetCatalog(request);
-  CatalogResponse catalog_response = future.GetFuture().get();
+  read::CatalogResponse catalog_response = future.GetFuture().get();
   ASSERT_TRUE(catalog_response.IsSuccessful());
   // Receive 403
-  request.WithFetchOption(OnlineOnly);
+  request.WithFetchOption(read::OnlineOnly);
   future = catalog_client->GetCatalog(request);
   catalog_response = future.GetFuture().get();
   ASSERT_FALSE(catalog_response.IsSuccessful());
   ASSERT_EQ(403, catalog_response.GetError().GetHttpStatusCode());
   // Check for cached response
-  request.WithFetchOption(CacheOnly);
+  request.WithFetchOption(read::CacheOnly);
   future = catalog_client->GetCatalog(request);
   catalog_response = future.GetFuture().get();
   ASSERT_FALSE(catalog_response.IsSuccessful());
@@ -417,9 +447,11 @@ TEST_P(CatalogClientTest, CancelPendingRequestsCatalog) {
   testing::InSequence s;
   std::vector<std::shared_ptr<std::promise<void>>> pauses;
 
-  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
-  auto catalog_request = CatalogRequest().WithFetchOption(OnlineOnly);
-  auto version_request = CatalogVersionRequest().WithFetchOption(OnlineOnly);
+  auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
+  auto catalog_request =
+      read::CatalogRequest().WithFetchOption(read::OnlineOnly);
+  auto version_request =
+      read::CatalogVersionRequest().WithFetchOption(read::OnlineOnly);
 
   // Make a few requests
   auto wait_for_cancel = std::make_shared<std::promise<void>>();
@@ -427,14 +459,15 @@ TEST_P(CatalogClientTest, CancelPendingRequestsCatalog) {
 
   {
     olp::http::RequestId request_id;
-    NetworkCallback send_mock;
-    CancelCallback cancel_mock;
+    common::NetworkCallback send_mock;
+    common::CancelCallback cancel_mock;
 
-    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-        wait_for_cancel, pause_for_cancel, {200, HTTP_RESPONSE_LOOKUP_CONFIG});
+    std::tie(request_id, send_mock, cancel_mock) =
+        common::GenerateNetworkMockActions(wait_for_cancel, pause_for_cancel,
+                                           {200, HTTP_RESPONSE_LOOKUP_CONFIG});
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+                Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
         .Times(1)
         .WillOnce(testing::Invoke(std::move(send_mock)));
 
@@ -454,7 +487,7 @@ TEST_P(CatalogClientTest, CancelPendingRequestsCatalog) {
   pause_for_cancel->set_value();
 
   // Verify they are all cancelled
-  CatalogResponse catalog_response = catalog_future.GetFuture().get();
+  read::CatalogResponse catalog_response = catalog_future.GetFuture().get();
   ASSERT_FALSE(catalog_response.IsSuccessful())
       << ApiErrorToString(catalog_response.GetError());
 
@@ -463,7 +496,8 @@ TEST_P(CatalogClientTest, CancelPendingRequestsCatalog) {
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             catalog_response.GetError().GetErrorCode());
 
-  CatalogVersionResponse version_response = version_future.GetFuture().get();
+  read::CatalogVersionResponse version_response =
+      version_future.GetFuture().get();
 
   ASSERT_FALSE(version_response.IsSuccessful())
       << ApiErrorToString(version_response.GetError());
@@ -474,7 +508,219 @@ TEST_P(CatalogClientTest, CancelPendingRequestsCatalog) {
             version_response.GetError().GetErrorCode());
 }
 
-INSTANTIATE_TEST_SUITE_P(, CatalogClientTest,
-                         ::testing::Values(CacheType::BOTH));
+TEST_F(CatalogClientTest, GetVersionsList) {
+  olp::client::HRN catalog(GetTestCatalog());
+
+  auto client = olp::dataservice::read::CatalogClient(catalog, settings_);
+  {
+    SCOPED_TRACE("Get versions list online");
+
+    EXPECT_CALL(*network_mock_,
+                Send(common::IsGetRequest(kUrlVersionsList), _, _, _, _))
+        .WillOnce(
+            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                           olp::http::HttpStatusCode::OK),
+                                       kHttpVersionsListResponse));
+
+    auto request = olp::dataservice::read::VersionsRequest()
+                       .WithStartVersion(kStartVersion)
+                       .WithEndVersion(kEndVersion);
+
+    auto future = client.ListVersions(request);
+    auto response = future.GetFuture().get();
+
+    EXPECT_TRUE(response.IsSuccessful());
+    ASSERT_EQ(1u, response.GetResult().GetVersions().size());
+    ASSERT_EQ(4, response.GetResult().GetVersions().front().GetVersion());
+    ASSERT_EQ(
+        2u,
+        response.GetResult().GetVersions().front().GetDependencies().size());
+    ASSERT_EQ(
+        6u,
+        response.GetResult().GetVersions().front().GetPartitionCounts().size());
+  }
+  {
+    SCOPED_TRACE("Get versions list start version -1");
+
+    EXPECT_CALL(
+        *network_mock_,
+        Send(common::IsGetRequest(kUrlVersionsListStartMinus), _, _, _, _))
+        .WillOnce(
+            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                           olp::http::HttpStatusCode::OK),
+                                       kHttpVersionsListResponse));
+
+    auto request = olp::dataservice::read::VersionsRequest()
+                       .WithStartVersion(-1)
+                       .WithEndVersion(kEndVersion);
+
+    auto future = client.ListVersions(request);
+    auto response = future.GetFuture().get();
+
+    EXPECT_TRUE(response.IsSuccessful());
+    ASSERT_EQ(1u, response.GetResult().GetVersions().size());
+    ASSERT_EQ(4, response.GetResult().GetVersions().front().GetVersion());
+    ASSERT_EQ(
+        2u,
+        response.GetResult().GetVersions().front().GetDependencies().size());
+    ASSERT_EQ(
+        6u,
+        response.GetResult().GetVersions().front().GetPartitionCounts().size());
+  }
+  {
+    SCOPED_TRACE("Get versions list from cache");
+
+    auto request =
+        olp::dataservice::read::VersionsRequest()
+            .WithStartVersion(kStartVersion)
+            .WithEndVersion(kEndVersion)
+            .WithFetchOption(olp::dataservice::read::FetchOptions::CacheOnly);
+
+    auto future = client.ListVersions(request);
+    auto response = future.GetFuture().get();
+
+    ASSERT_FALSE(response.IsSuccessful());
+
+    ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
+              response.GetError().GetErrorCode());
+  }
+  {
+    SCOPED_TRACE("Get versions list error");
+
+    auto request =
+        olp::dataservice::read::VersionsRequest()
+            .WithStartVersion(kStartVersion)
+            .WithEndVersion(kEndVersion)
+            .WithFetchOption(olp::dataservice::read::FetchOptions::OnlineOnly);
+
+    EXPECT_CALL(*network_mock_,
+                Send(common::IsGetRequest(kUrlVersionsList), _, _, _, _))
+        .WillOnce(common::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(
+                olp::http::HttpStatusCode::TOO_MANY_REQUESTS),
+            "Server busy at the moment."));
+
+    auto future = client.ListVersions(request);
+    auto response = future.GetFuture().get();
+
+    ASSERT_FALSE(response.IsSuccessful())
+        << ApiErrorToString(response.GetError());
+
+    ASSERT_EQ(static_cast<int>(olp::http::HttpStatusCode::TOO_MANY_REQUESTS),
+              response.GetError().GetHttpStatusCode());
+  }
+  {
+    SCOPED_TRACE("Get versions list cache with update");
+
+    auto request =
+        olp::dataservice::read::VersionsRequest()
+            .WithStartVersion(kStartVersion)
+            .WithEndVersion(kEndVersion)
+            .WithFetchOption(olp::dataservice::read::CacheWithUpdate);
+
+    auto future = client.ListVersions(request);
+    auto response = future.GetFuture().get();
+
+    ASSERT_FALSE(response.IsSuccessful())
+        << ApiErrorToString(response.GetError());
+
+    ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
+              response.GetError().GetErrorCode());
+  }
+}
+
+TEST_F(CatalogClientTest, GetVersionsListCancel) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto wait_for_cancel = std::make_shared<std::promise<void>>();
+  auto pause_for_cancel = std::make_shared<std::promise<void>>();
+
+  olp::http::RequestId request_id;
+  common::NetworkCallback send_mock;
+  common::CancelCallback cancel_mock;
+
+  std::tie(request_id, send_mock, cancel_mock) =
+      common::GenerateNetworkMockActions(wait_for_cancel, pause_for_cancel,
+                                         {200, HTTP_RESPONSE_LOOKUP});
+
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+      .Times(1)
+      .WillOnce(testing::Invoke(std::move(send_mock)));
+
+  EXPECT_CALL(*network_mock_, Cancel(request_id))
+      .WillOnce(testing::Invoke(std::move(cancel_mock)));
+
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlVersionsList), _, _, _, _))
+      .Times(0);
+
+  auto catalog_client = read::CatalogClient(hrn, settings_);
+
+  auto request = read::VersionsRequest()
+                     .WithStartVersion(kStartVersion)
+                     .WithEndVersion(kEndVersion);
+
+  std::promise<read::VersionsResponse> promise;
+  read::VersionsResponseCallback callback =
+      [&promise](read::VersionsResponse response) {
+        promise.set_value(response);
+      };
+
+  auto cancel_token = catalog_client.ListVersions(request, callback);
+
+  wait_for_cancel->get_future().get();
+  cancel_token.Cancel();
+  pause_for_cancel->set_value();
+  auto versions_response = promise.get_future().get();
+
+  ASSERT_FALSE(versions_response.IsSuccessful())
+      << ApiErrorToString(versions_response.GetError());
+
+  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+            versions_response.GetError().GetHttpStatusCode());
+  ASSERT_EQ(olp::client::ErrorCode::Cancelled,
+            versions_response.GetError().GetErrorCode());
+}
+
+TEST_F(CatalogClientTest, GetVersionsListCallback) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlVersionsList), _, _, _, _))
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kHttpVersionsListResponse));
+
+  auto catalog_client = read::CatalogClient(hrn, settings_);
+
+  auto request = read::VersionsRequest()
+                     .WithStartVersion(kStartVersion)
+                     .WithEndVersion(kEndVersion);
+
+  std::promise<read::VersionsResponse> promise;
+  read::VersionsResponseCallback callback =
+      [&promise](read::VersionsResponse response) {
+        promise.set_value(response);
+      };
+
+  auto cancel_token = catalog_client.ListVersions(request, callback);
+
+  auto response = promise.get_future().get();
+
+  EXPECT_TRUE(response.IsSuccessful());
+  ASSERT_EQ(1u, response.GetResult().GetVersions().size());
+  ASSERT_EQ(4, response.GetResult().GetVersions().front().GetVersion());
+  ASSERT_EQ(
+      2u, response.GetResult().GetVersions().front().GetDependencies().size());
+  ASSERT_EQ(
+      6u,
+      response.GetResult().GetVersions().front().GetPartitionCounts().size());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    , CatalogClientTest,
+    ::testing::Values(olp::tests::integration::CacheType::BOTH));
 
 }  // namespace
