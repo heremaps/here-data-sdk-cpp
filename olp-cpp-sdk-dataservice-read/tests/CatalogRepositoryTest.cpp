@@ -34,31 +34,24 @@ constexpr auto kLookupMetadata =
     R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis)";
 constexpr auto kResponseLookupMetadata =
     R"jsonString([{"api":"metadata","version":"v1","baseURL":"https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString";
-
 constexpr auto kLatestCatalogVersion =
     R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/versions/latest?startVersion=-1)";
-
 constexpr auto kResponseLatestCatalogVersion =
     R"jsonString({"version":4})jsonString";
-
 constexpr auto kUrlConfig =
     R"(https://config.data.api.platform.in.here.com/config/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2)";
-
-constexpr auto
-    kResponseConfig =
+constexpr auto kResponseConfig =
         R"jsonString({"id":"hereos-internal-test","hrn":"hrn:here-dev:data:::hereos-internal-test","name":"hereos-internal-test","summary":"Internal test for hereos","description":"Used for internal testing on the staging olp.","contacts":{},"owner":{"creator":{"id":"HERE-88c95a7e-4123-4dcd-ae0e-4682aa5c3db4"},"organisation":{"id":"olp-here"}},"tags":[],"billingTags":[],"created":"2018-07-13T20:50:08.425Z","layers":[{"id":"hype-test-prefetch","hrn":"hrn:here-dev:data:::hereos-internal-test:hype-test-prefetch","name":"Hype Test Prefetch","summary":"hype prefetch testing","description":"Layer for hype prefetch testing","coverage":{"adminAreas":[]},"owner":{"creator":{"id":"HERE-88c95a7e-4123-4dcd-ae0e-4682aa5c3db4"},"organisation":{"id":"olp-here"}},"partitioningScheme":"heretile","partitioning":{"tileLevels":[],"scheme":"heretile"},"contentType":"application/x-protobuf","volume":{"volumeType":"durable"},"tags":[],"billingTags":[],"created":"2018-07-13T20:56:19.181Z","layerType":"versioned"},{"id":"testlayer_res","hrn":"hrn:here-dev:data:::hereos-internal-test:testlayer_res","name":"Resource Test Layer","summary":"testlayer_res","description":"testlayer_res","coverage":{"adminAreas":[]},"owner":{"creator":{"id":"HERE-88c95a7e-4123-4dcd-ae0e-4682aa5c3db4"},"organisation":{"id":"olp-here"}},"partitioningScheme":"generic","partitioning":{"scheme":"generic"},"contentType":"application/x-protobuf","volume":{"volumeType":"durable"},"tags":["TEST"],"billingTags":[],"created":"2018-07-13T20:56:19.181Z","layerType":"versioned"},{"id":"testlayer","hrn":"hrn:here-dev:data:::hereos-internal-test:testlayer","name":"Test Layer","summary":"A test layer","description":"A simple test layer","coverage":{"adminAreas":[]},"owner":{"creator":{"id":"HERE-88c95a7e-4123-4dcd-ae0e-4682aa5c3db4"},"organisation":{"id":"olp-here"}},"partitioningScheme":"generic","partitioning":{"scheme":"generic"},"contentType":"application/x-protobuf","volume":{"volumeType":"durable"},"tags":["TEST"],"billingTags":[],"created":"2018-07-13T20:56:19.181Z","layerType":"versioned"},{"id":"testlayer_volatile","ttl":1000,"hrn":"hrn:here-dev:data:::hereos-internal-test:testlayer","name":"Test Layer","summary":"A test layer","description":"A simple test layer","coverage":{"adminAreas":[]},"owner":{"creator":{"id":"HERE-88c95a7e-4123-4dcd-ae0e-4682aa5c3db4"},"organisation":{"id":"olp-here"}},"partitioningScheme":"generic","partitioning":{"scheme":"generic"},"contentType":"application/x-protobuf","volume":{"volumeType":"durable"},"tags":["TEST"],"billingTags":[],"created":"2018-07-13T20:56:19.181Z","layerType":"volatile"},{"id":"testlayer_stream","hrn":"hrn:here-dev:data:::hereos-internal-test:testlayer","name":"Test Layer","summary":"A test layer","description":"A simple test layer","coverage":{"adminAreas":[]},"owner":{"creator":{"id":"HERE-88c95a7e-4123-4dcd-ae0e-4682aa5c3db4"},"organisation":{"id":"olp-here"}},"partitioningScheme":"generic","partitioning":{"scheme":"generic"},"contentType":"application/x-protobuf","volume":{"volumeType":"durable"},"tags":["TEST"],"billingTags":[],"created":"2018-07-13T20:56:19.181Z","layerType":"stream"},{"id":"multilevel_testlayer","hrn":"hrn:here-dev:data:::hereos-internal-test:multilevel_testlayer","name":"Multi Level Test Layer","summary":"Multi Level Test Layer","description":"A multi level test layer just for testing","coverage":{"adminAreas":[]},"owner":{"creator":{"id":"HERE-88c95a7e-4123-4dcd-ae0e-4682aa5c3db4"},"organisation":{"id":"olp-here"}},"partitioningScheme":"generic","partitioning":{"scheme":"generic"},"contentType":"application/x-protobuf","volume":{"volumeType":"durable"},"tags":["TEST"],"billingTags":[],"created":"2018-07-13T20:56:19.181Z","layerType":"versioned"},{"id":"hype-test-prefetch-2","hrn":"hrn:here-dev:data:::hereos-internal-test:hype-test-prefetch-2","name":"Hype Test Prefetch2","summary":"Layer for testing hype2 prefetching","description":"Layer for testing hype2 prefetching","coverage":{"adminAreas":[]},"owner":{"creator":{"id":"HERE-88c95a7e-4123-4dcd-ae0e-4682aa5c3db4"},"organisation":{"id":"olp-here"}},"partitioningScheme":"heretile","partitioning":{"tileLevels":[],"scheme":"heretile"},"contentType":"application/x-protobuf","volume":{"volumeType":"durable"},"tags":["TEST"],"billingTags":[],"created":"2018-07-24T17:52:23.818Z","layerType":"versioned"}],"version":3})jsonString";
-
 constexpr auto kUrlLookupConfig =
     R"(https://api-lookup.data.api.platform.here.com/lookup/v1/platform/apis)";
-
 constexpr auto kResponseLookupConfig =
     R"jsonString([{"api":"config","version":"v1","baseURL":"https://config.data.api.platform.in.here.com/config/v1","parameters":{}},{"api":"pipelines","version":"v1","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}},{"api":"pipelines","version":"v2","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}}])jsonString";
-
 constexpr auto kStartVersion = 3;
 constexpr auto kEndVersion = 4;
 constexpr auto kUrlVersionsList =
     R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/versions?endVersion=4&startVersion=3)";
-
+constexpr auto kUrlVersionsListStartMinus =
+    R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/versions?endVersion=4&startVersion=-1)";
 constexpr auto kHttpResponse =
     R"jsonString({"versions":[{"version":4,"timestamp":1547159598712,"partitionCounts":{"testlayer":5,"testlayer_res":1,"multilevel_testlayer":33, "hype-test-prefetch-2":7,"testlayer_gzip":1,"hype-test-prefetch":7},"dependencies":[ { "hrn":"hrn:here:data::olp-here-test:hereos-internal-test-v2","version":0,"direct":false},{"hrn":"hrn:here:data:::hereos-internal-test-v2","version":0,"direct":false }]}]})jsonString";
 
@@ -85,7 +78,6 @@ const std::string kLookupUrl =
     "https://api-lookup.data.api.platform.here.com/lookup/v1/resources/" +
     kCatalog + "/apis/" + kMetadataServiceName + "/" + kServiceVersion;
 const std::string kVersionInfosCacheKey = kCatalog + "::3::4::versionInfos";
-const std::string kVersionInfosMinCacheKey = kCatalog + "::-1::4::versionInfos";
 
 const auto kHrn = olp::client::HRN::FromString(kCatalog);
 
@@ -621,7 +613,37 @@ TEST_F(CatalogRepositoryTest, GetVersionsList) {
     ASSERT_EQ(2u, result.GetVersions().front().GetDependencies().size());
     ASSERT_EQ(6u, result.GetVersions().front().GetPartitionCounts().size());
   }
+  {
+    SCOPED_TRACE("Get versions list start version -1");
 
+    olp::client::CancellationContext context;
+    auto request = read::VersionsRequest().WithStartVersion(-1).WithEndVersion(
+        kEndVersion);
+
+    ON_CALL(*network_, Send(common::IsGetRequest(kLookupMetadata), _, _, _, _))
+        .WillByDefault(
+            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                           olp::http::HttpStatusCode::OK),
+                                       kResponseLookupMetadata));
+
+    ON_CALL(*network_,
+            Send(common::IsGetRequest(kUrlVersionsListStartMinus), _, _, _, _))
+        .WillByDefault(
+            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                           olp::http::HttpStatusCode::OK),
+                                       kHttpResponse));
+
+    auto response = repository::CatalogRepository::GetVersionsList(
+        kHrn, context, request, settings_);
+
+    ASSERT_TRUE(response.IsSuccessful());
+    auto result = response.GetResult();
+
+    ASSERT_EQ(1u, result.GetVersions().size());
+    ASSERT_EQ(4, result.GetVersions().front().GetVersion());
+    ASSERT_EQ(2u, result.GetVersions().front().GetDependencies().size());
+    ASSERT_EQ(6u, result.GetVersions().front().GetPartitionCounts().size());
+  }
   {
     SCOPED_TRACE("Get versions list cache only");
 
@@ -641,7 +663,7 @@ TEST_F(CatalogRepositoryTest, GetVersionsList) {
               response.GetError().GetErrorCode());
   }
   {
-    SCOPED_TRACE("Get versions list response forbiden and remove cache");
+    SCOPED_TRACE("Get versions list response forbiden");
 
     olp::client::CancellationContext context;
     auto request = read::VersionsRequest()
