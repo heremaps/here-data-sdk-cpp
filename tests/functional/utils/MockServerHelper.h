@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "generated/model/Api.h"
+#include "olp/dataservice/read/Types.h"
 #include "olp/dataservice/read/model/Catalog.h"
 #include "olp/dataservice/read/model/Partitions.h"
 #include "olp/dataservice/read/model/VersionInfos.h"
@@ -57,59 +58,24 @@ class MockServerHelper {
    */
   void MockAuth();
 
-  /**
-   * @brief Mock get version request.
-   *
-   * @note keep order of mocks for future use of Verify function.
-   *
-   * @param time to be returned by server.
-   */
-  void MockGetResponse(olp::dataservice::read::model::VersionResponse data);
-
-  /**
-   * @brief Mock get apis request.
-   *
-   * @note keep order of mocks for future use of Verify function.
-   *
-   * @param data apis to be returned by server.
-   */
-  void MockGetResponse(olp::dataservice::read::model::Apis data);
-
-  /**
-   * @brief Mock get platform apis request.
-   *
-   * @note keep order of mocks for future use of Verify function.
-   *
-   * @param data apis to be returned by server.
-   */
-  void MockGetPlatformApiResponse(olp::dataservice::read::model::Apis data);
-
-  /**
-   * @brief Mock get partitions request.
-   *
-   * @note keep order of mocks for future use of Verify function.
-   *
-   * @param data partitions to be returned by server.
-   */
-  void MockGetResponse(olp::dataservice::read::model::Partitions data);
-
-  /**
-   * @brief Mock get list versions request.
-   *
-   * @note keep order of mocks for future use of Verify function.
-   *
-   * @param data VersionInfos to be returned by server.
-   */
-  void MockGetResponse(olp::dataservice::read::model::VersionInfos data);
-
-  /**
-   * @brief Mock get catalog request.
-   *
-   * @note keep order of mocks for future use of Verify function.
-   *
-   * @param data Catalog to be returned by server.
-   */
-  void MockGetResponse(olp::dataservice::read::model::Catalog data);
+  void MockGetResponse(olp::dataservice::read::model::VersionResponse data,
+                       olp::client::ApiError error = {
+                           olp::http::HttpStatusCode::OK, ""});
+  void MockGetResponse(olp::dataservice::read::model::Apis data,
+                       olp::client::ApiError error = {
+                           olp::http::HttpStatusCode::OK, ""});
+  void MockGetPlatformApiResponse(olp::dataservice::read::model::Apis data,
+                                  olp::client::ApiError error = {
+                                      olp::http::HttpStatusCode::OK, ""});
+  void MockGetResponse(olp::dataservice::read::model::Partitions data,
+                       olp::client::ApiError error = {
+                           olp::http::HttpStatusCode::OK, ""});
+  void MockGetResponse(olp::dataservice::read::model::VersionInfos data,
+                       olp::client::ApiError error = {
+                           olp::http::HttpStatusCode::OK, ""});
+  void MockGetResponse(olp::dataservice::read::model::Catalog data,
+                       olp::client::ApiError error = {
+                           olp::http::HttpStatusCode::OK, ""});
 
   /**
    * @brief Verify if all calls were called on server and its order.
@@ -122,9 +88,9 @@ class MockServerHelper {
   template <class T>
   std::string GetPathMatcher();
   template <class T>
-  void MockGetResponse(T data);
+  void MockGetResponse(T data, olp::client::ApiError error);
   template <class T>
-  void MockGetResponse(std::vector<T> data);
+  void MockGetResponse(std::vector<T> data, olp::client::ApiError error);
 
  private:
   std::string catalog_;

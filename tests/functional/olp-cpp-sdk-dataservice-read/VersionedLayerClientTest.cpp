@@ -118,4 +118,31 @@ TEST_F(VersionedLayerClientTest, GetPartitions) {
   EXPECT_TRUE(mock_server_client_->Verify());
 }
 
+TEST_F(VersionedLayerClientTest, GetPartitionsError) {
+  olp::client::HRN hrn(kTestHrn);
+  {
+    mock_server_client_->MockAuth();
+    mock_server_client_->MockTimestamp();
+    mock_server_client_->MockGetResponse(
+        mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
+    mock_server_client_->MockGetResponse(
+        mockserver::DefaultResponses::GenerateVersionResponse(44));
+    mock_server_client_->MockGetResponse(
+        olp::dataservice::read::model::Partitions(),
+        {olp::http::HttpStatusCode::BAD_REQUEST, "Bad request"});
+  }
+
+  auto catalog_client =
+      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+          hrn, "testlayer", boost::none, *settings_);
+
+  auto request = olp::dataservice::read::PartitionsRequest();
+  auto future = catalog_client->GetPartitions(request);
+  auto partitions_response = future.GetFuture().get();
+  ASSERT_EQ(olp::client::ErrorCode::BadRequest,
+            partitions_response.GetError().GetErrorCode());
+  ASSERT_EQ("Bad request", partitions_response.GetError().GetMessage());
+  EXPECT_TRUE(mock_server_client_->Verify());
+}
+
 }  // namespace

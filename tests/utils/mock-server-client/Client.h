@@ -28,12 +28,11 @@
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/generated/parser/JsonParser.h>
 #include <olp/core/http/HttpStatusCode.h>
+#include <iostream>
 #include "Expectation.h"
 #include "Status.h"
-
 namespace mockserver {
 
-namespace {
 const auto kBaseUrl = "https://localhost:1080";
 const auto kExpectationPath = "/mockserver/expectation";
 const auto kStatusPath = "/mockserver/status";
@@ -42,7 +41,6 @@ const auto kClearPath = "/mockserver/clear";
 const auto kVerifySequence = "/mockserver/verifySequence";
 
 const auto kTimeout = std::chrono::seconds{10};
-}  // namespace
 
 class Client {
  public:
@@ -50,7 +48,8 @@ class Client {
 
   void MockResponse(const std::string& method_matcher,
                     const std::string& path_matcher,
-                    const std::string& response_body, bool unlimited = false);
+                    const std::string& response_body,
+                    uint16_t status_code = 200, bool unlimited = false);
 
   void MockBinaryResponse(const std::string& method_matcher,
                           const std::string& path_matcher,
@@ -80,7 +79,7 @@ inline Client::Client(olp::client::OlpClientSettings settings) {
 inline void Client::MockResponse(const std::string& method_matcher,
                                  const std::string& path_matcher,
                                  const std::string& response_body,
-                                 bool unlimited) {
+                                 uint16_t status_code, bool unlimited) {
   auto expectation = Expectation{};
   expectation.request.path = path_matcher;
   expectation.request.method = method_matcher;
@@ -88,6 +87,7 @@ inline void Client::MockResponse(const std::string& method_matcher,
   boost::optional<Expectation::ResponseAction> action =
       Expectation::ResponseAction{};
   action->body = response_body;
+  action->status_code = status_code;
   expectation.action = action;
 
   boost::optional<Expectation::ResponseTimes> times =
@@ -202,6 +202,7 @@ inline bool Client::VerifySequence(
       http_client_->CallApi(kVerifySequence, "PUT", {}, {}, {}, request_body,
                             "", olp::client::CancellationContext{});
   if (response.status != olp::http::HttpStatusCode::ACCEPTED) {
+    std::cout << response.response.str();
     return false;
   }
   return true;

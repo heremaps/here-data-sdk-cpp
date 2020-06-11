@@ -61,15 +61,20 @@ MockServerHelper::GetPathMatcher<olp::dataservice::read::model::Catalog>() {
 }
 
 template <class T>
-void MockServerHelper::MockGetResponse(T data) {
-  auto str = olp::serializer::serialize(data);
+void MockServerHelper::MockGetResponse(T data, olp::client::ApiError error) {
+  auto str = error.GetMessage();
+  if (error.GetHttpStatusCode() == olp::http::HttpStatusCode::OK) {
+    str = olp::serializer::serialize(data);
+  }
   auto path = GetPathMatcher<T>();
   paths_.push_back(path);
-  mock_server_client_.MockResponse("GET", path, str);
-}
+  mock_server_client_.MockResponse(
+      "GET", path, str, static_cast<uint16_t>(error.GetHttpStatusCode()));
+}  // namespace mockserver
 
 template <class T>
-void MockServerHelper::MockGetResponse(std::vector<T> data) {
+void MockServerHelper::MockGetResponse(std::vector<T> data,
+                                       olp::client::ApiError error) {
   std::string str = "[";
   for (const auto& el : data) {
     str.append(olp::serializer::serialize(el));
@@ -78,7 +83,8 @@ void MockServerHelper::MockGetResponse(std::vector<T> data) {
   str[str.length() - 1] = ']';
   auto path = GetPathMatcher<T>();
   paths_.push_back(path);
-  mock_server_client_.MockResponse("GET", path, str);
+  mock_server_client_.MockResponse("GET", path, str,
+                                   static_cast<uint16_t>(error.GetErrorCode()));
 }
 
 MockServerHelper::MockServerHelper(olp::client::OlpClientSettings settings,
@@ -100,42 +106,54 @@ void MockServerHelper::MockAuth() {
 }
 
 void MockServerHelper::MockGetResponse(
-    olp::dataservice::read::model::VersionResponse data) {
+    olp::dataservice::read::model::VersionResponse data,
+    olp::client::ApiError error) {
   MockGetResponse<olp::dataservice::read::model::VersionResponse>(
-      std::move(data));
+      std::move(data), std::move(error));
 }
 
-void MockServerHelper::MockGetResponse(
-    olp::dataservice::read::model::Apis data) {
-  MockGetResponse<olp::dataservice::read::model::Api>(std::move(data));
+void MockServerHelper::MockGetResponse(olp::dataservice::read::model::Apis data,
+                                       olp::client::ApiError error) {
+  MockGetResponse<olp::dataservice::read::model::Api>(std::move(data),
+                                                      std::move(error));
 }
 
 void MockServerHelper::MockGetPlatformApiResponse(
-    olp::dataservice::read::model::Apis data) {
-  std::string str = "[";
-  for (const auto& el : data) {
-    str.append(olp::serializer::serialize(el));
-    str.append(",");
+    olp::dataservice::read::model::Apis data, olp::client::ApiError error) {
+  auto str = error.GetMessage();
+  if (error.GetHttpStatusCode() == olp::http::HttpStatusCode::OK) {
+    str = "[";
+    for (const auto& el : data) {
+      str.append(olp::serializer::serialize(el));
+      str.append(",");
+    }
+    str[str.length() - 1] = ']';
   }
-  str[str.length() - 1] = ']';
+
   auto path = "/lookup/v1/platform/apis";
   paths_.push_back(path);
-  mock_server_client_.MockResponse("GET", path, str);
+  mock_server_client_.MockResponse("GET", path, str,
+                                   static_cast<uint16_t>(error.GetErrorCode()));
 }
 
 void MockServerHelper::MockGetResponse(
-    olp::dataservice::read::model::Partitions data) {
-  MockGetResponse<olp::dataservice::read::model::Partitions>(std::move(data));
+    olp::dataservice::read::model::Partitions data,
+    olp::client::ApiError error) {
+  MockGetResponse<olp::dataservice::read::model::Partitions>(std::move(data),
+                                                             std::move(error));
 }
 
 void MockServerHelper::MockGetResponse(
-    olp::dataservice::read::model::VersionInfos data) {
-  MockGetResponse<olp::dataservice::read::model::VersionInfos>(std::move(data));
+    olp::dataservice::read::model::VersionInfos data,
+    olp::client::ApiError error) {
+  MockGetResponse<olp::dataservice::read::model::VersionInfos>(
+      std::move(data), std::move(error));
 }
 
 void MockServerHelper::MockGetResponse(
-    olp::dataservice::read::model::Catalog data) {
-  MockGetResponse<olp::dataservice::read::model::Catalog>(std::move(data));
+    olp::dataservice::read::model::Catalog data, olp::client::ApiError error) {
+  MockGetResponse<olp::dataservice::read::model::Catalog>(std::move(data),
+                                                          std::move(error));
 }
 
 bool MockServerHelper::Verify() {

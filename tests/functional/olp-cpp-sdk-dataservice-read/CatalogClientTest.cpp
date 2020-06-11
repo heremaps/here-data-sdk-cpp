@@ -59,6 +59,8 @@ const auto kMockServerPort = 1080;
 const auto kAppId = "id";
 const auto kAppSecret = "secret";
 const auto kTestHrn = "hrn:here:data::olp-here-test:hereos-internal-test";
+const auto kErrorMinVersion =
+    R"jsonString({ "title": "Bad request", "status": 400,"detail": [{"name": "version", "error": "Invalid version: latest known version is 309"}]})jsonString";
 
 enum class CacheType { IN_MEMORY, DISK, BOTH };
 
@@ -110,7 +112,11 @@ class CatalogClientTest : public ::testing::TestWithParam<CacheType> {
     SetUpMockServer(network);
   }
 
-  void TearDown() override { mock_server_client_.reset(); }
+  void TearDown() override {
+    // very calls on mock server
+    EXPECT_TRUE(mock_server_client_->Verify());
+    mock_server_client_.reset();
+  }
 
   void SetUpMockServer(std::shared_ptr<olp::http::Network> network) {
     // create client to set mock server expectations
@@ -163,24 +169,23 @@ TEST_P(CatalogClientTest, GetCatalog) {
       });
 
   EXPECT_SUCCESS(catalog_response);
-  EXPECT_TRUE(mock_server_client_->Verify());
 }
 
-TEST_P(CatalogClientTest, GetVersionsList) {
+TEST_F(CatalogClientTest, GetVersionsList) {
   const auto catalog = olp::client::HRN::FromString(kTestHrn);
-  {
-    mock_server_client_->MockAuth();
-    mock_server_client_->MockTimestamp();
-    mock_server_client_->MockGetResponse(
-        mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
-    mock_server_client_->MockGetResponse(
-        mockserver::DefaultResponses::GenerateVersionInfosResponse(3, 4));
-  }
-
   auto client = std::make_unique<olp::dataservice::read::CatalogClient>(
       catalog, settings_);
   {
     SCOPED_TRACE("Get versions list online");
+    {
+      mock_server_client_->MockAuth();
+      mock_server_client_->MockTimestamp();
+      mock_server_client_->MockGetResponse(
+          mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
+      mock_server_client_->MockGetResponse(
+          mockserver::DefaultResponses::GenerateVersionInfosResponse(3, 4));
+    }
+
     auto request = olp::dataservice::read::VersionsRequest()
                        .WithStartVersion(3)
                        .WithEndVersion(4);
@@ -205,8 +210,6 @@ TEST_P(CatalogClientTest, GetVersionsList) {
                       .front()
                       .GetPartitionCounts()
                       .size());
-    // very calls on mock server
-    EXPECT_TRUE(mock_server_client_->Verify());
   }
   {
     SCOPED_TRACE("Get versions list from cache");
@@ -226,6 +229,30 @@ TEST_P(CatalogClientTest, GetVersionsList) {
 
     ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
               response_compressed.GetError().GetErrorCode());
+  }
+  {
+    SCOPED_TRACE("Get versions list error responce");
+    {
+      mock_server_client_->MockGetResponse(
+          olp::dataservice::read::model::VersionInfos(),
+          {olp::http::HttpStatusCode::BAD_REQUEST, kErrorMinVersion});
+    }
+
+    auto request = olp::dataservice::read::VersionsRequest()
+                       .WithStartVersion(3)
+                       .WithEndVersion(4);
+
+    auto response_compressed =
+        GetExecutionTime<olp::dataservice::read::VersionsResponse>([&] {
+          auto future = client->ListVersions(request);
+          return future.GetFuture().get();
+        });
+
+    EXPECT_FALSE(response_compressed.IsSuccessful());
+
+    ASSERT_EQ(olp::client::ErrorCode::BadRequest,
+              response_compressed.GetError().GetErrorCode());
+    ASSERT_EQ(kErrorMinVersion, response_compressed.GetError().GetMessage());
   }
 }
 
