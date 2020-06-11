@@ -88,7 +88,7 @@ class QuadTreeIndex {
   struct DataHeader {
     std::uint64_t root_tilekey;
     std::uint16_t blob_version;
-    std::uint8_t depth;
+    std::int8_t depth;
     std::uint8_t parent_count;
     std::uint16_t subkey_count;
     SubEntry entries[1];

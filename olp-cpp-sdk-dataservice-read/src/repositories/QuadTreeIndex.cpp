@@ -208,7 +208,7 @@ void QuadTreeIndex::CreateBlob(olp::geo::TileKey root, int depth,
 
   data_->root_tilekey = root.ToQuadKey64();
   data_->blob_version = 0;
-  data_->depth = static_cast<uint8_t>(depth);
+  data_->depth = static_cast<int8_t>(depth);
   data_->subkey_count = static_cast<uint16_t>(subs.size());
   data_->parent_count = static_cast<uint8_t>(parents.size());
 
