@@ -35,7 +35,8 @@ constexpr auto kStartVersion = 3;
 constexpr auto kEndVersion = 4;
 constexpr auto kUrlVersionsList =
     R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/versions?endVersion=4&startVersion=3)";
-
+constexpr auto kUrlVersionsListStartMinus =
+    R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/versions?endVersion=4&startVersion=-1)";
 constexpr auto kHttpVersionsListResponse =
     R"jsonString({"versions":[{"version":4,"timestamp":1547159598712,"partitionCounts":{"testlayer":5,"testlayer_res":1,"multilevel_testlayer":33, "hype-test-prefetch-2":7,"testlayer_gzip":1,"hype-test-prefetch":7},"dependencies":[ { "hrn":"hrn:here:data::olp-here-test:hereos-internal-test-v2","version":0,"direct":false},{"hrn":"hrn:here:data:::hereos-internal-test-v2","version":0,"direct":false }]}]})jsonString";
 
@@ -507,7 +508,7 @@ TEST_P(CatalogClientTest, CancelPendingRequestsCatalog) {
             version_response.GetError().GetErrorCode());
 }
 
-TEST_P(CatalogClientTest, GetVersionsList) {
+TEST_F(CatalogClientTest, GetVersionsList) {
   olp::client::HRN catalog(GetTestCatalog());
 
   auto client = olp::dataservice::read::CatalogClient(catalog, settings_);
@@ -523,6 +524,34 @@ TEST_P(CatalogClientTest, GetVersionsList) {
 
     auto request = olp::dataservice::read::VersionsRequest()
                        .WithStartVersion(kStartVersion)
+                       .WithEndVersion(kEndVersion);
+
+    auto future = client.ListVersions(request);
+    auto response = future.GetFuture().get();
+
+    EXPECT_TRUE(response.IsSuccessful());
+    ASSERT_EQ(1u, response.GetResult().GetVersions().size());
+    ASSERT_EQ(4, response.GetResult().GetVersions().front().GetVersion());
+    ASSERT_EQ(
+        2u,
+        response.GetResult().GetVersions().front().GetDependencies().size());
+    ASSERT_EQ(
+        6u,
+        response.GetResult().GetVersions().front().GetPartitionCounts().size());
+  }
+  {
+    SCOPED_TRACE("Get versions list start version -1");
+
+    EXPECT_CALL(
+        *network_mock_,
+        Send(common::IsGetRequest(kUrlVersionsListStartMinus), _, _, _, _))
+        .WillOnce(
+            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                           olp::http::HttpStatusCode::OK),
+                                       kHttpVersionsListResponse));
+
+    auto request = olp::dataservice::read::VersionsRequest()
+                       .WithStartVersion(-1)
                        .WithEndVersion(kEndVersion);
 
     auto future = client.ListVersions(request);
@@ -580,9 +609,27 @@ TEST_P(CatalogClientTest, GetVersionsList) {
     ASSERT_EQ(static_cast<int>(olp::http::HttpStatusCode::TOO_MANY_REQUESTS),
               response.GetError().GetHttpStatusCode());
   }
+  {
+    SCOPED_TRACE("Get versions list cache with update");
+
+    auto request =
+        olp::dataservice::read::VersionsRequest()
+            .WithStartVersion(kStartVersion)
+            .WithEndVersion(kEndVersion)
+            .WithFetchOption(olp::dataservice::read::CacheWithUpdate);
+
+    auto future = client.ListVersions(request);
+    auto response = future.GetFuture().get();
+
+    ASSERT_FALSE(response.IsSuccessful())
+        << ApiErrorToString(response.GetError());
+
+    ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
+              response.GetError().GetErrorCode());
+  }
 }
 
-TEST_P(CatalogClientTest, GetVersionsListCancel) {
+TEST_F(CatalogClientTest, GetVersionsListCancel) {
   olp::client::HRN hrn(GetTestCatalog());
 
   auto wait_for_cancel = std::make_shared<std::promise<void>>();
@@ -634,6 +681,42 @@ TEST_P(CatalogClientTest, GetVersionsListCancel) {
             versions_response.GetError().GetHttpStatusCode());
   ASSERT_EQ(olp::client::ErrorCode::Cancelled,
             versions_response.GetError().GetErrorCode());
+}
+
+TEST_F(CatalogClientTest, GetVersionsListCallback) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlVersionsList), _, _, _, _))
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kHttpVersionsListResponse));
+
+  auto catalog_client = read::CatalogClient(hrn, settings_);
+
+  auto request = read::VersionsRequest()
+                     .WithStartVersion(kStartVersion)
+                     .WithEndVersion(kEndVersion);
+
+  std::promise<read::VersionsResponse> promise;
+  read::VersionsResponseCallback callback =
+      [&promise](read::VersionsResponse response) {
+        promise.set_value(response);
+      };
+
+  auto cancel_token = catalog_client.ListVersions(request, callback);
+
+  auto response = promise.get_future().get();
+
+  EXPECT_TRUE(response.IsSuccessful());
+  ASSERT_EQ(1u, response.GetResult().GetVersions().size());
+  ASSERT_EQ(4, response.GetResult().GetVersions().front().GetVersion());
+  ASSERT_EQ(
+      2u, response.GetResult().GetVersions().front().GetDependencies().size());
+  ASSERT_EQ(
+      6u,
+      response.GetResult().GetVersions().front().GetPartitionCounts().size());
 }
 
 INSTANTIATE_TEST_SUITE_P(

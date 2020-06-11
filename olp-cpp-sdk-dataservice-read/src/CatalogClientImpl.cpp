@@ -128,32 +128,18 @@ CatalogClientImpl::GetLatestVersion(CatalogVersionRequest request) {
 
 client::CancellationToken CatalogClientImpl::ListVersions(
     VersionsRequest request, VersionsResponseCallback callback) {
-  if (request.GetFetchOption() == CacheWithUpdate) {
-    auto task = [](client::CancellationContext) -> VersionsResponse {
+  auto versions_list_task =
+      [=](client::CancellationContext context) -> VersionsResponse {
+    if (request.GetFetchOption() == CacheWithUpdate) {
       return {{client::ErrorCode::InvalidArgument,
                "CacheWithUpdate option can not be used for versioned catalog"}};
-    };
-    return AddTask(task_scheduler_, pending_requests_, std::move(task),
-                   std::move(callback));
-  }
-
-  auto schedule_get_versions_list = [&](VersionsRequest request,
-                                        VersionsResponseCallback callback) {
-    auto catalog = catalog_;
-    auto settings = settings_;
-
-    auto versions_list_task =
-        [=](client::CancellationContext context) -> VersionsResponse {
-      return repository::CatalogRepository::GetVersionsList(catalog, context,
-                                                            request, settings);
-    };
-
-    return AddTask(task_scheduler_, pending_requests_,
-                   std::move(versions_list_task), std::move(callback));
+    }
+    return repository::CatalogRepository::GetVersionsList(catalog_, context,
+                                                          request, settings_);
   };
 
-  return ScheduleFetch(std::move(schedule_get_versions_list),
-                       std::move(request), std::move(callback));
+  return AddTask(task_scheduler_, pending_requests_,
+                 std::move(versions_list_task), std::move(callback));
 }
 
 client::CancellableFuture<VersionsResponse> CatalogClientImpl::ListVersions(
