@@ -97,11 +97,11 @@ TEST_F(VersionedLayerClientTest, GetPartitions) {
   {
     mock_server_client_->MockAuth();
     mock_server_client_->MockTimestamp();
-    mock_server_client_->MockGetResponse(
+    mock_server_client_->MockLookupResourceApiResponse(
         mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
-    mock_server_client_->MockGetResponse(
+    mock_server_client_->MockGetVersionResponse(
         mockserver::DefaultResponses::GenerateVersionResponse(44));
-    mock_server_client_->MockGetResponse(
+    mock_server_client_->MockGetPartitionsResponse(
         mockserver::DefaultResponses::GeneratePartitionsResponse(4));
   }
 
@@ -123,12 +123,11 @@ TEST_F(VersionedLayerClientTest, GetPartitionsError) {
   {
     mock_server_client_->MockAuth();
     mock_server_client_->MockTimestamp();
-    mock_server_client_->MockGetResponse(
+    mock_server_client_->MockLookupResourceApiResponse(
         mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
-    mock_server_client_->MockGetResponse(
+    mock_server_client_->MockGetVersionResponse(
         mockserver::DefaultResponses::GenerateVersionResponse(44));
-    mock_server_client_->MockGetResponse(
-        olp::dataservice::read::model::Partitions(),
+    mock_server_client_->MockGetPartitionsError(
         {olp::http::HttpStatusCode::BAD_REQUEST, "Bad request"});
   }
 

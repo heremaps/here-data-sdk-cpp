@@ -58,24 +58,22 @@ class MockServerHelper {
    */
   void MockAuth();
 
-  void MockGetResponse(olp::dataservice::read::model::VersionResponse data,
-                       olp::client::ApiError error = {
-                           olp::http::HttpStatusCode::OK, ""});
-  void MockGetResponse(olp::dataservice::read::model::Apis data,
-                       olp::client::ApiError error = {
-                           olp::http::HttpStatusCode::OK, ""});
-  void MockGetPlatformApiResponse(olp::dataservice::read::model::Apis data,
-                                  olp::client::ApiError error = {
-                                      olp::http::HttpStatusCode::OK, ""});
-  void MockGetResponse(olp::dataservice::read::model::Partitions data,
-                       olp::client::ApiError error = {
-                           olp::http::HttpStatusCode::OK, ""});
-  void MockGetResponse(olp::dataservice::read::model::VersionInfos data,
-                       olp::client::ApiError error = {
-                           olp::http::HttpStatusCode::OK, ""});
-  void MockGetResponse(olp::dataservice::read::model::Catalog data,
-                       olp::client::ApiError error = {
-                           olp::http::HttpStatusCode::OK, ""});
+  void MockGetVersionResponse(
+      olp::dataservice::read::model::VersionResponse data);
+  void MockGetVersionError(olp::client::ApiError error);
+  void MockLookupResourceApiResponse(olp::dataservice::read::model::Apis data);
+  void MockLookupResourceApiError(olp::client::ApiError error);
+  void MockLookupPlatformApiResponse(olp::dataservice::read::model::Apis data);
+  void MockLookupPlatformApiError(olp::client::ApiError error);
+  void MockGetPartitionsResponse(
+      olp::dataservice::read::model::Partitions data);
+
+  void MockGetPartitionsError(olp::client::ApiError error);
+  void MockGetVersionInfosResponse(
+      olp::dataservice::read::model::VersionInfos data);
+  void MockGetVersionInfosError(olp::client::ApiError error);
+  void MockGetCatalogResponse(olp::dataservice::read::model::Catalog data);
+  void MockGetCatalogError(olp::client::ApiError error);
 
   /**
    * @brief Verify if all calls were called on server and its order.
@@ -88,9 +86,10 @@ class MockServerHelper {
   template <class T>
   std::string GetPathMatcher();
   template <class T>
-  void MockGetResponse(T data, olp::client::ApiError error);
+  void MockGetResponse(T data);
   template <class T>
-  void MockGetResponse(std::vector<T> data, olp::client::ApiError error);
+  void MockGetResponse(std::vector<T> data, const std::string &path = "");
+  void MockGetError(olp::client::ApiError error, const std::string &path);
 
  private:
   std::string catalog_;

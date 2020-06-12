@@ -61,30 +61,38 @@ MockServerHelper::GetPathMatcher<olp::dataservice::read::model::Catalog>() {
 }
 
 template <class T>
-void MockServerHelper::MockGetResponse(T data, olp::client::ApiError error) {
-  auto str = error.GetMessage();
-  if (error.GetHttpStatusCode() == olp::http::HttpStatusCode::OK) {
-    str = olp::serializer::serialize(data);
-  }
+void MockServerHelper::MockGetResponse(T data) {
+  auto str = olp::serializer::serialize(data);
   auto path = GetPathMatcher<T>();
   paths_.push_back(path);
   mock_server_client_.MockResponse(
+      "GET", path, str, static_cast<uint16_t>(olp::http::HttpStatusCode::OK));
+}
+
+void MockServerHelper::MockGetError(olp::client::ApiError error,
+                                    const std::string& path) {
+  auto str = error.GetMessage();
+  paths_.push_back(path);
+  mock_server_client_.MockResponse(
       "GET", path, str, static_cast<uint16_t>(error.GetHttpStatusCode()));
-}  // namespace mockserver
+}
 
 template <class T>
 void MockServerHelper::MockGetResponse(std::vector<T> data,
-                                       olp::client::ApiError error) {
+                                       const std::string& in_path) {
   std::string str = "[";
   for (const auto& el : data) {
     str.append(olp::serializer::serialize(el));
     str.append(",");
   }
   str[str.length() - 1] = ']';
-  auto path = GetPathMatcher<T>();
+  auto path = in_path;
+  if (in_path.empty()) {
+    path = GetPathMatcher<T>();
+  }
   paths_.push_back(path);
-  mock_server_client_.MockResponse("GET", path, str,
-                                   static_cast<uint16_t>(error.GetErrorCode()));
+  mock_server_client_.MockResponse(
+      "GET", path, str, static_cast<uint16_t>(olp::http::HttpStatusCode::OK));
 }
 
 MockServerHelper::MockServerHelper(olp::client::OlpClientSettings settings,
@@ -105,59 +113,69 @@ void MockServerHelper::MockAuth() {
       R"({"access_token": "token","token_type": "bearer"})", true);
 }
 
-void MockServerHelper::MockGetResponse(
-    olp::dataservice::read::model::VersionResponse data,
-    olp::client::ApiError error) {
+void MockServerHelper::MockGetVersionResponse(
+    olp::dataservice::read::model::VersionResponse data) {
   MockGetResponse<olp::dataservice::read::model::VersionResponse>(
-      std::move(data), std::move(error));
+      std::move(data));
 }
 
-void MockServerHelper::MockGetResponse(olp::dataservice::read::model::Apis data,
-                                       olp::client::ApiError error) {
-  MockGetResponse<olp::dataservice::read::model::Api>(std::move(data),
-                                                      std::move(error));
+void MockServerHelper::MockLookupResourceApiResponse(
+    olp::dataservice::read::model::Apis data) {
+  MockGetResponse<olp::dataservice::read::model::Api>(std::move(data));
 }
 
-void MockServerHelper::MockGetPlatformApiResponse(
-    olp::dataservice::read::model::Apis data, olp::client::ApiError error) {
-  auto str = error.GetMessage();
-  if (error.GetHttpStatusCode() == olp::http::HttpStatusCode::OK) {
-    str = "[";
-    for (const auto& el : data) {
-      str.append(olp::serializer::serialize(el));
-      str.append(",");
-    }
-    str[str.length() - 1] = ']';
-  }
-
-  auto path = "/lookup/v1/platform/apis";
-  paths_.push_back(path);
-  mock_server_client_.MockResponse("GET", path, str,
-                                   static_cast<uint16_t>(error.GetErrorCode()));
+void MockServerHelper::MockLookupPlatformApiResponse(
+    olp::dataservice::read::model::Apis data) {
+  MockGetResponse<olp::dataservice::read::model::Api>(
+      std::move(data), "/lookup/v1/platform/apis");
 }
 
-void MockServerHelper::MockGetResponse(
-    olp::dataservice::read::model::Partitions data,
-    olp::client::ApiError error) {
-  MockGetResponse<olp::dataservice::read::model::Partitions>(std::move(data),
-                                                             std::move(error));
+void MockServerHelper::MockGetPartitionsResponse(
+    olp::dataservice::read::model::Partitions data) {
+  MockGetResponse(std::move(data));
 }
 
-void MockServerHelper::MockGetResponse(
-    olp::dataservice::read::model::VersionInfos data,
-    olp::client::ApiError error) {
-  MockGetResponse<olp::dataservice::read::model::VersionInfos>(
-      std::move(data), std::move(error));
+void MockServerHelper::MockGetVersionInfosResponse(
+    olp::dataservice::read::model::VersionInfos data) {
+  MockGetResponse(std::move(data));
 }
 
-void MockServerHelper::MockGetResponse(
-    olp::dataservice::read::model::Catalog data, olp::client::ApiError error) {
-  MockGetResponse<olp::dataservice::read::model::Catalog>(std::move(data),
-                                                          std::move(error));
+void MockServerHelper::MockGetCatalogResponse(
+    olp::dataservice::read::model::Catalog data) {
+  MockGetResponse(std::move(data));
 }
 
 bool MockServerHelper::Verify() {
   return mock_server_client_.VerifySequence(paths_);
+}
+
+void MockServerHelper::MockGetVersionError(olp::client::ApiError error) {
+  MockGetError(
+      std::move(error),
+      GetPathMatcher<olp::dataservice::read::model::VersionResponse>());
+}
+void MockServerHelper::MockLookupResourceApiError(olp::client::ApiError error) {
+  MockGetError(std::move(error),
+               GetPathMatcher<olp::dataservice::read::model::Api>());
+}
+void MockServerHelper::MockLookupPlatformApiError(olp::client::ApiError error) {
+  MockGetError(std::move(error), "/lookup/v1/platform/apis");
+}
+
+void MockServerHelper::MockServerHelper::MockGetPartitionsError(
+    olp::client::ApiError error) {
+  MockGetError(std::move(error),
+               GetPathMatcher<olp::dataservice::read::model::Partitions>());
+}
+
+void MockServerHelper::MockGetVersionInfosError(olp::client::ApiError error) {
+  MockGetError(std::move(error),
+               GetPathMatcher<olp::dataservice::read::model::VersionInfos>());
+}
+
+void MockServerHelper::MockGetCatalogError(olp::client::ApiError error) {
+  MockGetError(std::move(error),
+               GetPathMatcher<olp::dataservice::read::model::Catalog>());
 }
 
 }  // namespace mockserver

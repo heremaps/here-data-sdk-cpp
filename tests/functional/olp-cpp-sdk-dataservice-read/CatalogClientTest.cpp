@@ -151,9 +151,9 @@ TEST_P(CatalogClientTest, GetCatalog) {
   {
     mock_server_client_->MockAuth();
     mock_server_client_->MockTimestamp();
-    mock_server_client_->MockGetPlatformApiResponse(
+    mock_server_client_->MockLookupPlatformApiResponse(
         mockserver::DefaultResponses::GeneratePlatformApisResponse());
-    mock_server_client_->MockGetResponse(
+    mock_server_client_->MockGetCatalogResponse(
         mockserver::DefaultResponses::GenerateCatalogResponse());
   }
 
@@ -180,9 +180,9 @@ TEST_F(CatalogClientTest, GetVersionsList) {
     {
       mock_server_client_->MockAuth();
       mock_server_client_->MockTimestamp();
-      mock_server_client_->MockGetResponse(
+      mock_server_client_->MockLookupResourceApiResponse(
           mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
-      mock_server_client_->MockGetResponse(
+      mock_server_client_->MockGetVersionInfosResponse(
           mockserver::DefaultResponses::GenerateVersionInfosResponse(3, 4));
     }
 
@@ -233,8 +233,7 @@ TEST_F(CatalogClientTest, GetVersionsList) {
   {
     SCOPED_TRACE("Get versions list error responce");
     {
-      mock_server_client_->MockGetResponse(
-          olp::dataservice::read::model::VersionInfos(),
+      mock_server_client_->MockGetVersionInfosError(
           {olp::http::HttpStatusCode::BAD_REQUEST, kErrorMinVersion});
     }
 
