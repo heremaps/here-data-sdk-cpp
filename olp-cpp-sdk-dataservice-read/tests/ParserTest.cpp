@@ -31,10 +31,11 @@
 #include "generated/parser/IndexParser.h"
 #include "generated/parser/MessagesParser.h"
 #include "generated/parser/SubscribeResponseParser.h"
+#include "generated/parser/VersionInfosParser.h"
 #include <olp/core/generated/parser/JsonParser.h>
+#include "generated/serializer/VersionInfosSerializer.h"
+#include "generated/serializer/JsonSerializer.h"
 // clang-format on
-
-namespace {
 
 TEST(ParserTest, Api) {
   std::string json_input =
@@ -608,4 +609,46 @@ TEST(ParserTest, SubscribeResponse) {
     EXPECT_TRUE(response.GetSubscriptionId().empty());
   }
 }
-}  // namespace
+
+TEST(ParserTest, VersionInfos) {
+  {
+    SCOPED_TRACE("Parse valid VersionInfosResponse");
+    olp::dataservice::read::model::VersionInfos infos;
+    auto size = 1;
+    auto start = 1;
+    std::vector<olp::dataservice::read::model::VersionInfo> versions_vect(size);
+    for (size_t i = 0; i < versions_vect.size(); i++) {
+      versions_vect[i].SetVersion(++start);
+      versions_vect[i].SetTimestamp(1000 * start);
+      std::vector<olp::dataservice::read::model::VersionDependency>
+          dependencyes(1);
+      dependencyes.front().SetHrn("hrn::some-value");
+      versions_vect[i].SetDependencies(std::move(dependencyes));
+      versions_vect[i].SetPartitionCounts({{"partition", 1}});
+    }
+
+    infos.SetVersions(versions_vect);
+    auto str = olp::serializer::serialize(infos);
+    auto version_infos_response =
+        "{\"versions\":[{\"dependencies\":[{\"hrn\":\"hrn::some-value\","
+        "\"version\":0,\"direct\":false}],\"timestamp\":2000,\"version\":2,"
+        "\"partitionCounts\":{\"partition\":1}}]}";
+    const auto response =
+        olp::parser::parse<olp::dataservice::read::model::VersionInfos>(
+            version_infos_response);
+
+    EXPECT_EQ(str.compare(version_infos_response), 0);
+  }
+
+  {
+    SCOPED_TRACE("Parse invalid VersionInfosResponse");
+    auto version_infos_response =
+        "{\"invalid_versions\":[{\"timestamp\":2000,\"version\":2,"
+        "\"partitionCounts\":{\"partition\":1}}]}";
+    const auto response =
+        olp::parser::parse<olp::dataservice::read::model::VersionInfos>(
+            version_infos_response);
+
+    EXPECT_TRUE(response.GetVersions().empty());
+  }
+}
