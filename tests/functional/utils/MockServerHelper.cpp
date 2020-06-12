@@ -35,16 +35,14 @@ template <class T>
 void MockServerHelper::MockGetResponse(T data, const std::string& path) {
   auto str = olp::serializer::serialize(data);
   paths_.push_back(path);
-  mock_server_client_.MockResponse(
-      "GET", path, str, static_cast<uint16_t>(olp::http::HttpStatusCode::OK));
+  mock_server_client_.MockResponse("GET", path, str);
 }
 
 void MockServerHelper::MockGetError(olp::client::ApiError error,
                                     const std::string& path) {
   auto str = error.GetMessage();
   paths_.push_back(path);
-  mock_server_client_.MockResponse(
-      "GET", path, str, static_cast<uint16_t>(error.GetHttpStatusCode()));
+  mock_server_client_.MockResponse("GET", path, str, error.GetHttpStatusCode());
 }
 
 template <class T>
@@ -57,8 +55,7 @@ void MockServerHelper::MockGetResponse(std::vector<T> data,
   }
   str[str.length() - 1] = ']';
   paths_.push_back(path);
-  mock_server_client_.MockResponse(
-      "GET", path, str, static_cast<uint16_t>(olp::http::HttpStatusCode::OK));
+  mock_server_client_.MockResponse("GET", path, str);
 }
 
 MockServerHelper::MockServerHelper(olp::client::OlpClientSettings settings,

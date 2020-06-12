@@ -49,7 +49,8 @@ class Client {
   void MockResponse(const std::string& method_matcher,
                     const std::string& path_matcher,
                     const std::string& response_body,
-                    uint16_t status_code = 200, bool unlimited = false);
+                    int https_status = olp::http::HttpStatusCode::OK,
+                    bool unlimited = false);
 
   void MockBinaryResponse(const std::string& method_matcher,
                           const std::string& path_matcher,
@@ -79,7 +80,7 @@ inline Client::Client(olp::client::OlpClientSettings settings) {
 inline void Client::MockResponse(const std::string& method_matcher,
                                  const std::string& path_matcher,
                                  const std::string& response_body,
-                                 uint16_t status_code, bool unlimited) {
+                                 int https_status, bool unlimited) {
   auto expectation = Expectation{};
   expectation.request.path = path_matcher;
   expectation.request.method = method_matcher;
@@ -87,7 +88,7 @@ inline void Client::MockResponse(const std::string& method_matcher,
   boost::optional<Expectation::ResponseAction> action =
       Expectation::ResponseAction{};
   action->body = response_body;
-  action->status_code = status_code;
+  action->status_code = static_cast<uint16_t>(https_status);
   expectation.action = action;
 
   boost::optional<Expectation::ResponseTimes> times =
