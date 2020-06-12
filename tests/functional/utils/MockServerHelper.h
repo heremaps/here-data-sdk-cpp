@@ -84,9 +84,7 @@ class MockServerHelper {
  private:
   // template specialization for type to get path matcher
   template <class T>
-  std::string GetPathMatcher();
-  template <class T>
-  void MockGetResponse(T data);
+  void MockGetResponse(T data, const std::string &path = "");
   template <class T>
   void MockGetResponse(std::vector<T> data, const std::string &path = "");
   void MockGetError(olp::client::ApiError error, const std::string &path);
