@@ -367,6 +367,18 @@ PartitionResponse PartitionsRepository::GetAggregatedTile(
     const client::OlpClientSettings& settings) {
   const auto fetch_option = request.GetFetchOption();
   const auto& tile_key = request.GetTileKey();
+
+  const auto& root_tile_key = tile_key.ChangedLevelBy(-kAggregateQuadTreeDepth);
+  const auto root_tile_here = root_tile_key.ToHereTile();
+
+  NamedMutex mutex(catalog.ToString() + layer + root_tile_here + "Index");
+  std::unique_lock<NamedMutex> lock(mutex, std::defer_lock);
+
+  // If we are not planning to go online or access the cache, do not lock.
+  if (fetch_option != CacheOnly && fetch_option != OnlineOnly) {
+    lock.lock();
+  }
+
   repository::PartitionsCacheRepository repository(
       catalog, settings.cache, settings.default_cache_expiration);
 
@@ -401,8 +413,6 @@ PartitionResponse PartitionsRepository::GetAggregatedTile(
     return query_api.GetError();
   }
 
-  const auto& root_tile_key = tile_key.ChangedLevelBy(-kAggregateQuadTreeDepth);
-  const auto root_tile_here = root_tile_key.ToHereTile();
   auto quadtree_response = QueryApi::QuadTreeIndex(
       query_api.GetResult(), layer, root_tile_here, version,
       kAggregateQuadTreeDepth, boost::none, request.GetBillingTag(), context);

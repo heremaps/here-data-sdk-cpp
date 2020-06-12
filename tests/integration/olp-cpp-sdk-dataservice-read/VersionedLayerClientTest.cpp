@@ -2816,8 +2816,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedData) {
                 Send(IsGetRequest(URL_QUADKEYS_AGGREGATE_92259), _, _, _, _))
         .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                      HTTP_RESPONSE_QUADKEYS_92259));
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA), _, _, _, _))
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA_23618364), _, _, _, _))
         .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                      "some_data"));
 
@@ -2847,8 +2848,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedData) {
                 Send(IsGetRequest(URL_QUADKEYS_AGGREGATE_92259), _, _, _, _))
         .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                      HTTP_RESPONSE_QUADKEYS_92259_ROOT_ONLY));
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA), _, _, _, _))
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA_23618364), _, _, _, _))
         .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                      "some_data"));
 
@@ -2906,8 +2908,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedData) {
                 Send(IsGetRequest(URL_QUADKEYS_AGGREGATE_92259), _, _, _, _))
         .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                      HTTP_RESPONSE_QUADKEYS_92259_PARENT));
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA), _, _, _, _))
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA_23618364), _, _, _, _))
         .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                      "some_data"));
 
@@ -2964,7 +2967,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                    HTTP_RESPONSE_QUADKEYS_92259));
   EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA), _, _, _, _))
+              Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA_23618364), _, _, _, _))
       .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                    "some_data"));
 
@@ -3016,7 +3019,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedDataAsync) {
       .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                    HTTP_RESPONSE_QUADKEYS_92259));
   EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA), _, _, _, _))
+              Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA_23618364), _, _, _, _))
       .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                    "some_data"));
 
@@ -3039,6 +3042,62 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedDataAsync) {
   ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
   ASSERT_TRUE(result.GetData());
   ASSERT_EQ(result.GetTile(), tile_key);
+  testing::Mock::VerifyAndClearExpectations(network_mock_.get());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest,
+       GetAggregatedDataAsyncConcurrent) {
+  const auto delay = std::chrono::milliseconds(100);
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP, {}, delay));
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_QUADKEYS_AGGREGATE_92259), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_QUADKEYS_92259, {}, delay));
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA_23618364), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   "some_data", {}, delay));
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA_23618363), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   "some_data", {}, delay));
+
+  const auto concurrent_calls = 5;
+
+  settings_.task_scheduler =
+      client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(
+          concurrent_calls);
+
+  std::vector<std::promise<read::AggregatedDataResponse>> promises(
+      concurrent_calls);
+
+  read::VersionedLayerClient client(kCatalog, kTestLayer, kTestVersion,
+                                    settings_);
+
+  auto index = 0;
+
+  const geo::TileKey tiles[] = {geo::TileKey::FromHereTile("23618364"),
+                                geo::TileKey::FromHereTile("23618363")};
+
+  // Request 2 neightbor tiles in parallel, make sure the tree and blobs are
+  // downloaded only once.
+  for (auto& promise : promises) {
+    const auto tile = tiles[index++ % 2];
+    client.GetAggregatedData(read::TileRequest().WithTileKey(tile),
+                             placeholder(promise));
+  }
+
+  for (auto& promise : promises) {
+    auto response = promise.get_future().get();
+    const auto& result = response.GetResult();
+
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_TRUE(result.GetData());
+  }
+
   testing::Mock::VerifyAndClearExpectations(network_mock_.get());
 }
 
@@ -3183,8 +3242,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
                 Send(IsGetRequest(URL_QUADKEYS_AGGREGATE_92259), _, _, _, _))
         .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                      HTTP_RESPONSE_QUADKEYS_92259));
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA), _, _, _, _))
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA_23618364), _, _, _, _))
         .WillOnce(testing::Invoke(std::move(send_mock)));
     EXPECT_CALL(*network_mock_, Cancel(_))
         .WillOnce(testing::Invoke(std::move(cancel_mock)));
