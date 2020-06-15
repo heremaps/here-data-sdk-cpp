@@ -100,10 +100,10 @@ static olp::dataservice::read::model::VersionInfos GenerateVersionInfosResponse(
   for (size_t i = 0; i < versions_vect.size(); i++) {
     versions_vect[i].SetVersion(++start);
     versions_vect[i].SetTimestamp(1000 * start);
-    std::vector<olp::dataservice::read::model::VersionDependency> dependencyes(
+    std::vector<olp::dataservice::read::model::VersionDependency> dependencies(
         1);
-    dependencyes.front().SetHrn("hrn::some-value");
-    versions_vect[i].SetDependencies(std::move(dependencyes));
+    dependencies.front().SetHrn("hrn::some-value");
+    versions_vect[i].SetDependencies(std::move(dependencies));
     versions_vect[i].SetPartitionCounts({{"partition", 1}});
   }
 
@@ -191,7 +191,6 @@ TEST_P(CatalogClientTest, GetCatalog) {
   olp::client::HRN hrn(kTestHrn);
   {
     mock_server_client_->MockAuth();
-    mock_server_client_->MockTimestamp();
     mock_server_client_->MockLookupPlatformApiResponse(
         mockserver::DefaultResponses::GeneratePlatformApisResponse());
     mock_server_client_->MockGetResponse(GenerateCatalogResponse(),
@@ -220,7 +219,6 @@ TEST_F(CatalogClientTest, GetVersionsList) {
     SCOPED_TRACE("Get versions list online");
     {
       mock_server_client_->MockAuth();
-      mock_server_client_->MockTimestamp();
       mock_server_client_->MockLookupResourceApiResponse(
           mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
       mock_server_client_->MockGetResponse(GenerateVersionInfosResponse(3, 4),

@@ -103,7 +103,6 @@ TEST_F(VersionedLayerClientTest, GetPartitions) {
   olp::client::HRN hrn(kTestHrn);
   {
     mock_server_client_->MockAuth();
-    mock_server_client_->MockTimestamp();
     mock_server_client_->MockLookupResourceApiResponse(
         mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
     mock_server_client_->MockGetVersionResponse(
