@@ -47,12 +47,32 @@
 #include <olp/core/utils/Dir.h>
 #include <olp/dataservice/read/CatalogClient.h>
 #include <olp/dataservice/read/model/Catalog.h>
+#include <olp/dataservice/read/model/VersionInfos.h>
+// clang-format off
+#include "generated/serializer/CatalogSerializer.h"
+#include "generated/serializer/VersionInfosSerializer.h"
+#include "generated/serializer/JsonSerializer.h"
+// clang-format on
+#include "DefaultResponses.h"
+#include "MockServerHelper.h"
 #include "Utils.h"
 
-using namespace olp::dataservice::read;
-using namespace testing;
-
 namespace {
+
+const auto kMockServerHost = "localhost";
+const auto kMockServerPort = 1080;
+
+const auto kAppId = "id";
+const auto kAppSecret = "secret";
+const auto kTestHrn = "hrn:here:data::olp-here-test:hereos-internal-test";
+const auto kErrorMinVersion =
+    R"jsonString({ "title": "Bad request", "status": 400,"detail": [{"name": "version", "error": "Invalid version: latest known version is 309"}]})jsonString";
+
+const auto kMockRequestVersionsPath =
+    "/metadata/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test/"
+    "versions";
+const auto kMockRequestCatalogPath =
+    "/config/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test";
 
 enum class CacheType { IN_MEMORY, DISK, BOTH };
 
@@ -69,45 +89,86 @@ std::ostream& operator<<(std::ostream& os, const CacheType cache_type) {
   }
 }
 
+static olp::dataservice::read::model::VersionInfos GenerateVersionInfosResponse(
+    std::int64_t start, std::int64_t end) {
+  olp::dataservice::read::model::VersionInfos infos;
+  auto size = end - start;
+  if (size <= 0) {
+    return infos;
+  }
+  std::vector<olp::dataservice::read::model::VersionInfo> versions_vect(size);
+  for (size_t i = 0; i < versions_vect.size(); i++) {
+    versions_vect[i].SetVersion(++start);
+    versions_vect[i].SetTimestamp(1000 * start);
+    std::vector<olp::dataservice::read::model::VersionDependency> dependencies(
+        1);
+    dependencies.front().SetHrn("hrn::some-value");
+    versions_vect[i].SetDependencies(std::move(dependencies));
+    versions_vect[i].SetPartitionCounts({{"partition", 1}});
+  }
+
+  infos.SetVersions(versions_vect);
+  return infos;
+}
+
+static olp::dataservice::read::model::Catalog GenerateCatalogResponse() {
+  olp::dataservice::read::model::Catalog catalog;
+  catalog.SetHrn("hrn::some-value");
+  catalog.SetVersion(1);
+  return catalog;
+}
+
 class CatalogClientTest : public ::testing::TestWithParam<CacheType> {
  public:
   void SetUp() override {
     auto network = olp::client::OlpClientSettingsFactory::
         CreateDefaultNetworkRequestHandler();
 
-    const auto key_id =
-        CustomParameters::getArgument("dataservice_read_test_appid");
-    const auto secret =
-        CustomParameters::getArgument("dataservice_read_test_secret");
+    olp::authentication::Settings auth_settings({kAppId, kAppSecret});
+    auth_settings.network_request_handler = network;
 
-    olp::authentication::Settings authentication_settings({key_id, secret});
-    authentication_settings.network_request_handler = network;
-
-    olp::authentication::TokenProviderDefault provider(authentication_settings);
+    // setup proxy
+    auth_settings.network_proxy_settings =
+        olp::http::NetworkProxySettings()
+            .WithHostname(kMockServerHost)
+            .WithPort(kMockServerPort)
+            .WithType(olp::http::NetworkProxySettings::Type::HTTP);
+    olp::authentication::TokenProviderDefault provider(auth_settings);
     olp::client::AuthenticationSettings auth_client_settings;
     auth_client_settings.provider = provider;
+
     settings_ = olp::client::OlpClientSettings();
     settings_.network_request_handler = network;
     settings_.authentication_settings = auth_client_settings;
     olp::cache::CacheSettings cache_settings;
     settings_.cache = olp::client::OlpClientSettingsFactory::CreateDefaultCache(
         cache_settings);
-    client_ = olp::client::OlpClientFactory::Create(settings_);
+
+    // setup proxy
+    settings_.proxy_settings =
+        olp::http::NetworkProxySettings()
+            .WithHostname(kMockServerHost)
+            .WithPort(kMockServerPort)
+            .WithType(olp::http::NetworkProxySettings::Type::HTTP);
+    SetUpMockServer(network);
   }
 
   void TearDown() override {
-    client_.reset();
-    auto network = std::move(settings_.network_request_handler);
-    settings_ = olp::client::OlpClientSettings();
-    // when test ends we must be sure that network pointer is not captured
-    // anywhere
-    EXPECT_EQ(network.use_count(), 1);
+    // very calls on mock server
+    EXPECT_TRUE(mock_server_client_->Verify());
+    mock_server_client_.reset();
+  }
+
+  void SetUpMockServer(std::shared_ptr<olp::http::Network> network) {
+    // create client to set mock server expectations
+    olp::client::OlpClientSettings olp_client_settings;
+    olp_client_settings.network_request_handler = network;
+    mock_server_client_ = std::make_shared<mockserver::MockServerHelper>(
+        olp_client_settings, kTestHrn);
   }
 
  protected:
-  std::string GetTestCatalog() {
-    return CustomParameters::getArgument("dataservice_read_test_catalog");
-  }
+  std::string GetTestCatalog() { return kTestHrn; }
 
   template <typename T>
   T GetExecutionTime(std::function<T()> func) {
@@ -123,10 +184,18 @@ class CatalogClientTest : public ::testing::TestWithParam<CacheType> {
  protected:
   olp::client::OlpClientSettings settings_;
   std::shared_ptr<olp::client::OlpClient> client_;
+  std::shared_ptr<mockserver::MockServerHelper> mock_server_client_;
 };
 
 TEST_P(CatalogClientTest, GetCatalog) {
-  olp::client::HRN hrn(GetTestCatalog());
+  olp::client::HRN hrn(kTestHrn);
+  {
+    mock_server_client_->MockAuth();
+    mock_server_client_->MockLookupPlatformApiResponse(
+        mockserver::DefaultResponses::GeneratePlatformApisResponse());
+    mock_server_client_->MockGetResponse(GenerateCatalogResponse(),
+                                         kMockRequestCatalogPath);
+  }
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::CatalogClient>(hrn, settings_);
@@ -140,6 +209,73 @@ TEST_P(CatalogClientTest, GetCatalog) {
       });
 
   EXPECT_SUCCESS(catalog_response);
+}
+
+TEST_F(CatalogClientTest, GetVersionsList) {
+  const auto catalog = olp::client::HRN::FromString(kTestHrn);
+  auto client = std::make_unique<olp::dataservice::read::CatalogClient>(
+      catalog, settings_);
+  {
+    SCOPED_TRACE("Get versions list online");
+    {
+      mock_server_client_->MockAuth();
+      mock_server_client_->MockLookupResourceApiResponse(
+          mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
+      mock_server_client_->MockGetResponse(GenerateVersionInfosResponse(3, 4),
+                                           kMockRequestVersionsPath);
+    }
+
+    auto request = olp::dataservice::read::VersionsRequest()
+                       .WithStartVersion(3)
+                       .WithEndVersion(4);
+
+    auto response_compressed =
+        GetExecutionTime<olp::dataservice::read::VersionsResponse>([&] {
+          auto future = client->ListVersions(request);
+          return future.GetFuture().get();
+        });
+
+    EXPECT_SUCCESS(response_compressed);
+    ASSERT_EQ(1u, response_compressed.GetResult().GetVersions().size());
+    ASSERT_EQ(
+        4, response_compressed.GetResult().GetVersions().front().GetVersion());
+    ASSERT_EQ(1u, response_compressed.GetResult()
+                      .GetVersions()
+                      .front()
+                      .GetDependencies()
+                      .size());
+    ASSERT_EQ(1u, response_compressed.GetResult()
+                      .GetVersions()
+                      .front()
+                      .GetPartitionCounts()
+                      .size());
+  }
+  {
+    SCOPED_TRACE("Get versions list error response");
+    {
+      mock_server_client_->MockLookupResourceApiResponse(
+          mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
+      mock_server_client_->MockGetError(
+          {olp::http::HttpStatusCode::BAD_REQUEST, kErrorMinVersion},
+          kMockRequestVersionsPath);
+    }
+
+    auto request = olp::dataservice::read::VersionsRequest()
+                       .WithStartVersion(3)
+                       .WithEndVersion(4);
+
+    auto response_compressed =
+        GetExecutionTime<olp::dataservice::read::VersionsResponse>([&] {
+          auto future = client->ListVersions(request);
+          return future.GetFuture().get();
+        });
+
+    EXPECT_FALSE(response_compressed.IsSuccessful());
+
+    ASSERT_EQ(olp::client::ErrorCode::BadRequest,
+              response_compressed.GetError().GetErrorCode());
+    ASSERT_EQ(kErrorMinVersion, response_compressed.GetError().GetMessage());
+  }
 }
 
 INSTANTIATE_TEST_SUITE_P(, CatalogClientTest,

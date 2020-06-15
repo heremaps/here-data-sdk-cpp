@@ -50,8 +50,9 @@ std::string concatStringArray(const std::vector<std::string>& strings,
 namespace olp {
 namespace dataservice {
 namespace write {
-using namespace olp::client;
-CancellationToken QueryApi::GetPartitionsById(
+namespace client = olp::client;
+
+client::CancellationToken QueryApi::GetPartitionsById(
     const client::OlpClient& client, const std::string& layerId,
     const std::vector<std::string>& partitionIds,
     boost::optional<int64_t> version,
@@ -79,15 +80,16 @@ CancellationToken QueryApi::GetPartitionsById(
 
   std::string queryUri = "/layers/" + layerId + "/partitions";
 
-  NetworkAsyncCallback callback = [partitionsCallback](
-                                      client::HttpResponse response) {
-    if (response.status != 200) {
-      partitionsCallback(ApiError(response.status, response.response.str()));
-    } else {
-      partitionsCallback(
-          olp::parser::parse<model::Partitions>(response.response));
-    }
-  };
+  client::NetworkAsyncCallback callback =
+      [partitionsCallback](client::HttpResponse response) {
+        if (response.status != 200) {
+          partitionsCallback(
+              client::ApiError(response.status, response.response.str()));
+        } else {
+          partitionsCallback(
+              olp::parser::parse<model::Partitions>(response.response));
+        }
+      };
 
   return client.CallApi(queryUri, "GET", queryParams, headerParams, formParams,
                         nullptr, "", callback);

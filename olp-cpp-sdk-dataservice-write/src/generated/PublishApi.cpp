@@ -33,7 +33,7 @@
 #include <generated/serializer/JsonSerializer.h>
 // clang-format on
 
-using namespace olp::client;
+namespace client = olp::client;
 
 namespace {
 const std::string kQueryParamBillingTag = "billingTag";
@@ -43,8 +43,8 @@ namespace olp {
 namespace dataservice {
 namespace write {
 
-CancellationToken PublishApi::InitPublication(
-    const OlpClient& client, const model::Publication& publication,
+client::CancellationToken PublishApi::InitPublication(
+    const client::OlpClient& client, const model::Publication& publication,
     const boost::optional<std::string>& billing_tag,
     InitPublicationCallback callback) {
   std::multimap<std::string, std::string> header_params;
@@ -68,8 +68,8 @@ CancellationToken PublishApi::InitPublication(
       init_publication_uri, "POST", query_params, header_params, form_params,
       data, "application/json", [callback](client::HttpResponse http_response) {
         if (http_response.status != 200) {
-          callback(InitPublicationResponse{
-              ApiError(http_response.status, http_response.response.str())});
+          callback(InitPublicationResponse{client::ApiError(
+              http_response.status, http_response.response.str())});
           return;
         }
 
@@ -81,7 +81,7 @@ CancellationToken PublishApi::InitPublication(
 }
 
 InitPublicationResponse PublishApi::InitPublication(
-    const OlpClient& client, const model::Publication& publication,
+    const client::OlpClient& client, const model::Publication& publication,
     const boost::optional<std::string>& billing_tag,
     client::CancellationContext cancellation_context) {
   std::multimap<std::string, std::string> header_params;
@@ -107,14 +107,15 @@ InitPublicationResponse PublishApi::InitPublication(
       "application/json", cancellation_context);
   if (http_response.status != olp::http::HttpStatusCode::OK) {
     return InitPublicationResponse(
-        ApiError(http_response.status, http_response.response.str()));
+        client::ApiError(http_response.status, http_response.response.str()));
   }
 
   return olp::parser::parse<model::Publication>(http_response.response);
 }
 
-CancellationToken PublishApi::UploadPartitions(
-    const OlpClient& client, const model::PublishPartitions& publish_partitions,
+client::CancellationToken PublishApi::UploadPartitions(
+    const client::OlpClient& client,
+    const model::PublishPartitions& publish_partitions,
     const std::string& publication_id, const std::string& layer_id,
     const boost::optional<std::string>& billing_tag,
     UploadPartitionsCallback callback) {
@@ -142,12 +143,12 @@ CancellationToken PublishApi::UploadPartitions(
       upload_partitions_uri, "POST", query_params, header_params, form_params,
       data, "application/json", [callback](client::HttpResponse http_response) {
         if (http_response.status != 204) {
-          callback(UploadPartitionsResponse{
-              ApiError(http_response.status, http_response.response.str())});
+          callback(UploadPartitionsResponse{client::ApiError(
+              http_response.status, http_response.response.str())});
           return;
         }
 
-        callback(UploadPartitionsResponse(ApiNoResult()));
+        callback(UploadPartitionsResponse(client::ApiNoResult()));
       });
 
   return cancel_token;
@@ -185,14 +186,14 @@ UploadPartitionsResponse PublishApi::UploadPartitions(
       "application/json", cancellation_context);
   if (http_response.status != olp::http::HttpStatusCode::NO_CONTENT) {
     return UploadPartitionsResponse(
-        ApiError(http_response.status, http_response.response.str()));
+        client::ApiError(http_response.status, http_response.response.str()));
   }
 
-  return UploadPartitionsResponse(ApiNoResult());
+  return UploadPartitionsResponse(client::ApiNoResult());
 }
 
-CancellationToken PublishApi::SubmitPublication(
-    const OlpClient& client, const std::string& publication_id,
+client::CancellationToken PublishApi::SubmitPublication(
+    const client::OlpClient& client, const std::string& publication_id,
     const boost::optional<std::string>& billing_tag,
     SubmitPublicationCallback callback) {
   std::multimap<std::string, std::string> header_params;
@@ -213,12 +214,12 @@ CancellationToken PublishApi::SubmitPublication(
       nullptr, "application/json",
       [callback](client::HttpResponse http_response) {
         if (http_response.status != 204) {
-          callback(SubmitPublicationResponse{
-              ApiError(http_response.status, http_response.response.str())});
+          callback(SubmitPublicationResponse{client::ApiError(
+              http_response.status, http_response.response.str())});
           return;
         }
 
-        callback(SubmitPublicationResponse(ApiNoResult()));
+        callback(SubmitPublicationResponse(client::ApiNoResult()));
       });
 
   return cancel_token;
@@ -247,14 +248,14 @@ SubmitPublicationResponse PublishApi::SubmitPublication(
 
   if (http_response.status != olp::http::HttpStatusCode::NO_CONTENT) {
     return SubmitPublicationResponse(
-        ApiError(http_response.status, http_response.response.str()));
+        client::ApiError(http_response.status, http_response.response.str()));
   }
 
-  return SubmitPublicationResponse(ApiNoResult());
+  return SubmitPublicationResponse(client::ApiNoResult());
 }
 
-CancellationToken PublishApi::GetPublication(
-    const OlpClient& client, const std::string& publication_id,
+client::CancellationToken PublishApi::GetPublication(
+    const client::OlpClient& client, const std::string& publication_id,
     const boost::optional<std::string>& billing_tag,
     GetPublicationCallback callback) {
   std::multimap<std::string, std::string> header_params;
@@ -275,8 +276,8 @@ CancellationToken PublishApi::GetPublication(
       nullptr, "application/json",
       [callback](client::HttpResponse http_response) {
         if (http_response.status != 200) {
-          callback(GetPublicationResponse{
-              ApiError(http_response.status, http_response.response.str())});
+          callback(GetPublicationResponse{client::ApiError(
+              http_response.status, http_response.response.str())});
           return;
         }
 
@@ -287,7 +288,7 @@ CancellationToken PublishApi::GetPublication(
   return cancel_token;
 }
 
-CancellationToken PublishApi::CancelPublication(
+client::CancellationToken PublishApi::CancelPublication(
     const client::OlpClient& client, const std::string& publication_id,
     const boost::optional<std::string>& billing_tag,
     CancelPublicationCallback callback) {
@@ -309,12 +310,12 @@ CancellationToken PublishApi::CancelPublication(
       form_params, nullptr, "application/json",
       [callback](client::HttpResponse http_response) {
         if (http_response.status != 204) {
-          callback(SubmitPublicationResponse{
-              ApiError(http_response.status, http_response.response.str())});
+          callback(SubmitPublicationResponse{client::ApiError(
+              http_response.status, http_response.response.str())});
           return;
         }
 
-        callback(SubmitPublicationResponse(ApiNoResult()));
+        callback(SubmitPublicationResponse(client::ApiNoResult()));
       });
 
   return cancel_token;

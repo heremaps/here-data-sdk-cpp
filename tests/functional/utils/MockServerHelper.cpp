@@ -21,49 +21,13 @@
 #include <utility>
 #include <vector>
 
-#include "generated/serializer/ApiSerializer.h"
-#include "generated/serializer/PartitionsSerializer.h"
-#include "generated/serializer/VersionResponseSerializer.h"
-#include "generated/serializer/JsonSerializer.h"
-
 namespace mockserver {
-template <>
-std::string
-MockServerHelper::GetPathMatcher<olp::dataservice::read::model::Partitions>() {
-  return "/metadata/v1/catalogs/" + catalog_ + "/layers/testlayer/partitions";
-}
 
-template <>
-std::string MockServerHelper::GetPathMatcher<
-    olp::dataservice::read::model::VersionResponse>() {
-  return "/metadata/v1/catalogs/" + catalog_ + "/versions/latest";
-}
-
-template <>
-std::string
-MockServerHelper::GetPathMatcher<olp::dataservice::read::model::Api>() {
-  return "/lookup/v1/resources/" + catalog_ + "/apis";
-}
-
-template <class T>
-void MockServerHelper::MockGetResponse(T data) {
-  auto str = olp::serializer::serialize(data);
-  auto path = GetPathMatcher<T>();
+void MockServerHelper::MockGetError(olp::client::ApiError error,
+                                    const std::string& path) {
+  auto str = error.GetMessage();
   paths_.push_back(path);
-  mock_server_client_.MockResponse("GET", path, str);
-}
-
-template <class T>
-void MockServerHelper::MockGetResponse(std::vector<T> data) {
-  std::string str = "[";
-  for (const auto& el : data) {
-    str.append(olp::serializer::serialize(el));
-    str.append(",");
-  }
-  str[str.length() - 1] = ']';
-  auto path = GetPathMatcher<T>();
-  paths_.push_back(path);
-  mock_server_client_.MockResponse("GET", path, str);
+  mock_server_client_.MockResponse("GET", path, str, error.GetHttpStatusCode());
 }
 
 MockServerHelper::MockServerHelper(olp::client::OlpClientSettings settings,
@@ -84,20 +48,22 @@ void MockServerHelper::MockAuth() {
       R"({"access_token": "token","token_type": "bearer"})", true);
 }
 
-void MockServerHelper::MockGetResponse(
+void MockServerHelper::MockGetVersionResponse(
     olp::dataservice::read::model::VersionResponse data) {
-  MockGetResponse<olp::dataservice::read::model::VersionResponse>(
-      std::move(data));
+  MockGetResponse(std::move(data),
+                  "/metadata/v1/catalogs/" + catalog_ + "/versions/latest");
 }
 
-void MockServerHelper::MockGetResponse(
+void MockServerHelper::MockLookupResourceApiResponse(
     olp::dataservice::read::model::Apis data) {
-  MockGetResponse<olp::dataservice::read::model::Api>(std::move(data));
+  MockGetResponse(std::move(data),
+                  "/lookup/v1/resources/" + catalog_ + "/apis");
 }
 
-void MockServerHelper::MockGetResponse(
-    olp::dataservice::read::model::Partitions data) {
-  MockGetResponse<olp::dataservice::read::model::Partitions>(std::move(data));
+void MockServerHelper::MockLookupPlatformApiResponse(
+    olp::dataservice::read::model::Apis data) {
+  MockGetResponse<olp::dataservice::read::model::Api>(
+      std::move(data), "/lookup/v1/platform/apis");
 }
 
 bool MockServerHelper::Verify() {

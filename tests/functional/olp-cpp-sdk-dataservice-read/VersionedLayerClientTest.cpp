@@ -29,6 +29,10 @@
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include <string>
 #include <testutils/CustomParameters.hpp>
+// clang-format off
+#include "generated/serializer/PartitionsSerializer.h"
+#include "generated/serializer/JsonSerializer.h"
+// clang-format on
 #include "DefaultResponses.h"
 #include "MockServerHelper.h"
 #include "Utils.h"
@@ -41,6 +45,9 @@ const auto kMockServerPort = 1080;
 const auto kAppId = "id";
 const auto kAppSecret = "secret";
 const auto kTestHrn = "hrn:here:data::olp-here-test:hereos-internal-test";
+const auto kPartitionsResponsePath =
+    "/metadata/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test/"
+    "layers/testlayer/partitions";
 
 class VersionedLayerClientTest : public ::testing::Test {
  protected:
@@ -96,13 +103,13 @@ TEST_F(VersionedLayerClientTest, GetPartitions) {
   olp::client::HRN hrn(kTestHrn);
   {
     mock_server_client_->MockAuth();
-    mock_server_client_->MockTimestamp();
-    mock_server_client_->MockGetResponse(
-        mockserver::DefaultResponses::GenerateApisResponse(kTestHrn));
-    mock_server_client_->MockGetResponse(
+    mock_server_client_->MockLookupResourceApiResponse(
+        mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
+    mock_server_client_->MockGetVersionResponse(
         mockserver::DefaultResponses::GenerateVersionResponse(44));
     mock_server_client_->MockGetResponse(
-        mockserver::DefaultResponses::GeneratePartitionsResponse(4));
+        mockserver::DefaultResponses::GeneratePartitionsResponse(4),
+        kPartitionsResponsePath);
   }
 
   auto catalog_client =
