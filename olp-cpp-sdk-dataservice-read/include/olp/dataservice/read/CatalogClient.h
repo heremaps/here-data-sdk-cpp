@@ -141,6 +141,8 @@ class DATASERVICE_READ_API CatalogClient final {
   /**
    * @brief Gets the catalog versions list.
    *
+   * @note Request of catalog versions list works only online.
+   *
    * @param request The `VersionsRequest` instance that contains
    * a complete set of request parameters.
    * @param callback The `VersionsResponseCallback` object that is invoked if
@@ -153,6 +155,8 @@ class DATASERVICE_READ_API CatalogClient final {
 
   /**
    * @brief Gets the catalog versions list.
+   *
+   * @note Request of catalog versions list works only online.
    *
    * @param request The `VersionsRequest` instance that contains
    * a complete set of request parameters.

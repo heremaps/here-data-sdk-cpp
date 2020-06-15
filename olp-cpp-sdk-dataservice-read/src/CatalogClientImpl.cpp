@@ -130,10 +130,6 @@ client::CancellationToken CatalogClientImpl::ListVersions(
     VersionsRequest request, VersionsResponseCallback callback) {
   auto versions_list_task =
       [=](client::CancellationContext context) -> VersionsResponse {
-    if (request.GetFetchOption() == CacheWithUpdate) {
-      return {{client::ErrorCode::InvalidArgument,
-               "CacheWithUpdate option can not be used for versioned catalog"}};
-    }
     return repository::CatalogRepository::GetVersionsList(catalog_, context,
                                                           request, settings_);
   };
