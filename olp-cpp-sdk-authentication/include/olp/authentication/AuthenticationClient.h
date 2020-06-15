@@ -285,8 +285,8 @@ class AUTHENTICATION_API AuthenticationClient {
   // Non-copyable but movable
   AuthenticationClient(const AuthenticationClient&) = delete;
   AuthenticationClient& operator=(const AuthenticationClient&) = delete;
-  AuthenticationClient(AuthenticationClient&&) noexcept = default;
-  AuthenticationClient& operator=(AuthenticationClient&&) noexcept = default;
+  AuthenticationClient(AuthenticationClient&&) noexcept;
+  AuthenticationClient& operator=(AuthenticationClient&&) noexcept;
 
   /**
    * @brief Signs in with your HERE Account client credentials and requests

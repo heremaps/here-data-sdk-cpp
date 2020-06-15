@@ -37,6 +37,11 @@ AuthenticationClient::AuthenticationClient(AuthenticationSettings settings)
 
 AuthenticationClient::~AuthenticationClient() = default;
 
+AuthenticationClient::AuthenticationClient(AuthenticationClient&&) noexcept =
+    default;
+AuthenticationClient& AuthenticationClient::operator=(
+    AuthenticationClient&&) noexcept = default;
+
 client::CancellationToken AuthenticationClient::SignInClient(
     AuthenticationCredentials credentials, SignInProperties properties,
     SignInClientCallback callback) {
