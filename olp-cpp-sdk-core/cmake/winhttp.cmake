@@ -14,7 +14,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
-if(WIN32)
+if(WIN32 AND NOT MINGW)
     set(OLP_SDK_HTTP_WIN_SOURCES
         "${CMAKE_CURRENT_LIST_DIR}/../src/http/winhttp/NetworkWinHttp.cpp"
         "${CMAKE_CURRENT_LIST_DIR}/../src/http/winhttp/NetworkWinHttp.h"

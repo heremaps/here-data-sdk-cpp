@@ -19,7 +19,7 @@
 
 #include "olp/core/utils/Dir.h"
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -35,7 +35,7 @@
 #include <unistd.h>
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 #define G_COUNTOF(array) (sizeof(array) / sizeof(array[0]))
 #endif
 
@@ -43,7 +43,8 @@ namespace olp {
 namespace utils {
 
 namespace {
-#if defined(_WIN32) && defined(_UNICODE)
+#if defined(_WIN32) && !defined(__MINGW32__)
+#ifdef _UNICODE
 std::wstring ConvertStringToWideString(const std::string& str) {
   int size_needed =
       MultiByteToWideChar(CP_ACP, 0, &str[0], str.size(), NULL, 0);
@@ -52,9 +53,10 @@ std::wstring ConvertStringToWideString(const std::string& str) {
                       size_needed);
   return wstr_path;
 }
-#endif  // _WIN32 && _UNICODE
+#endif // _UNICODE
+#endif // _WIN32 && _MINGW32
 
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 int remove_dir_callback(const char* file, const struct stat* /*stat*/, int flag,
                         struct FTW* /*buf*/) {
   int rc = 0;
@@ -100,7 +102,11 @@ static bool mkdir_all(const char* dirname, int mode) {
 
     std::string subdir(ptr, end - ptr);
 
+#if defined(__MINGW32__)
+    int rc = mkdir(subdir.c_str());
+#else
     int rc = mkdir(subdir.c_str(), mode);
+#endif
     if (rc != 0 && errno != EEXIST) {
       return false;
     }
@@ -116,8 +122,8 @@ static bool mkdir_all(const char* dirname, int mode) {
 }
 #endif  // ifndef _WIN32
 
-#ifdef _WIN32
-static void Tokenize(const std::string& path, const std::string& delimiters,
+#if defined(_WIN32) && !defined(__MINGW32__)
+void Tokenize(const std::string& path, const std::string& delimiters,
                      std::vector<std::string>& result) {
   std::string sub_path = path;
   while (1) {
@@ -208,8 +214,7 @@ bool DeleteDirectory(const TCHAR* utfdirPath) {
 }  // namespace
 
 bool Dir::Exists(const std::string& path) {
-#ifdef _WIN32
-
+#if defined(_WIN32) && !defined(MINGW32)
 #ifdef _UNICODE
   std::wstring wstr_path = ConvertStringToWideString(path);
   const TCHAR* syspath = wstr_path.c_str();
@@ -245,7 +250,7 @@ bool Dir::exists(const std::string& path) { return Dir::Exists(path); }
 
 bool Dir::Remove(const std::string& path) {
   bool ret = true;
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 #ifdef _UNICODE
   std::wstring wstrPath = ConvertStringToWideString(path);
   const TCHAR* n_path = wstrPath.c_str();
@@ -271,7 +276,7 @@ bool Dir::Create(const std::string& path) {
     return true;
   }
   bool ret = true;
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
   struct stat sbuf;
   if (stat(path.c_str(), &sbuf) != 0) {
     if (!mkdir_all(path.c_str(), 0777)) {
@@ -323,7 +328,7 @@ bool Dir::Create(const std::string& path) {
 bool Dir::create(const std::string& path) { return Dir::Create(path); }
 
 std::string Dir::TempDirectory() {
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(__MINGW32__)
   wchar_t path[MAX_PATH];
   ::GetTempPathW(MAX_PATH, path);
 
@@ -365,7 +370,7 @@ std::string Dir::TempDirectory() {
 }
 
 bool Dir::FileExists(const std::string& file_path) {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 #ifdef _UNICODE
   std::wstring wstrPath = ConvertStringToWideString(file_path);
   const TCHAR* syspath = wstrPath.c_str();
