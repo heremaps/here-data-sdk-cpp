@@ -34,10 +34,11 @@
 namespace olp {
 namespace dataservice {
 namespace write {
-using namespace olp::client;
 
-CancellationToken ConfigApi::GetCatalog(
-    std::shared_ptr<OlpClient> client, const std::string& catalog_hrn,
+namespace client = olp::client;
+
+client::CancellationToken ConfigApi::GetCatalog(
+    std::shared_ptr<client::OlpClient> client, const std::string& catalog_hrn,
     boost::optional<std::string> billing_tag,
     const CatalogCallback& catalogCallback) {
   std::multimap<std::string, std::string> headerParams;
@@ -50,7 +51,7 @@ CancellationToken ConfigApi::GetCatalog(
 
   std::string catalogUri = "/catalogs/" + catalog_hrn;
 
-  NetworkAsyncCallback callback =
+  client::NetworkAsyncCallback callback =
       [catalogCallback](client::HttpResponse response) {
         if (response.status != 200) {
           catalogCallback(CatalogResponse(
@@ -65,7 +66,7 @@ CancellationToken ConfigApi::GetCatalog(
                          formParams, nullptr, "", callback);
 }
 
-CatalogResponse ConfigApi::GetCatalog(const OlpClient& client,
+CatalogResponse ConfigApi::GetCatalog(const client::OlpClient& client,
                                       const std::string& catalog_hrn,
                                       boost::optional<std::string> billing_tag,
                                       client::CancellationContext context) {

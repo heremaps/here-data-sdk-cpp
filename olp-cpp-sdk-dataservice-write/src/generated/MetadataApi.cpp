@@ -53,10 +53,10 @@ std::string concatStringArray(const std::vector<std::string>& strings,
 namespace olp {
 namespace dataservice {
 namespace write {
-using namespace olp::client;
+namespace client = olp::client;
 
-CancellationToken MetadataApi::GetLayerVersions(
-    const OlpClient& client, int64_t version,
+client::CancellationToken MetadataApi::GetLayerVersions(
+    const client::OlpClient& client, int64_t version,
     boost::optional<std::string> billingTag,
     const LayerVersionsCallback& layerVersionsCallback) {
   std::multimap<std::string, std::string> headerParams;
@@ -72,22 +72,23 @@ CancellationToken MetadataApi::GetLayerVersions(
 
   std::string metadataUri = "/layerVersions";
 
-  NetworkAsyncCallback callback = [layerVersionsCallback](
-                                      client::HttpResponse response) {
-    if (response.status != 200) {
-      layerVersionsCallback(ApiError(response.status, response.response.str()));
-    } else {
-      layerVersionsCallback(
-          olp::parser::parse<model::LayerVersions>(response.response));
-    }
-  };
+  client::NetworkAsyncCallback callback =
+      [layerVersionsCallback](client::HttpResponse response) {
+        if (response.status != 200) {
+          layerVersionsCallback(
+              client::ApiError(response.status, response.response.str()));
+        } else {
+          layerVersionsCallback(
+              olp::parser::parse<model::LayerVersions>(response.response));
+        }
+      };
 
   return client.CallApi(metadataUri, "GET", queryParams, headerParams,
                         formParams, nullptr, "", callback);
 }
 
-CancellationToken MetadataApi::GetPartitions(
-    const OlpClient& client, const std::string& layerId,
+client::CancellationToken MetadataApi::GetPartitions(
+    const client::OlpClient& client, const std::string& layerId,
     boost::optional<int64_t> version,
     boost::optional<std::vector<std::string>> additionalFields,
     boost::optional<std::string> range, boost::optional<std::string> billingTag,
@@ -114,22 +115,23 @@ CancellationToken MetadataApi::GetPartitions(
 
   std::string metadataUri = "/layers/" + layerId + "/partitions";
 
-  NetworkAsyncCallback callback = [partitionsCallback](
-                                      client::HttpResponse response) {
-    if (response.status != 200) {
-      partitionsCallback(ApiError(response.status, response.response.str()));
-    } else {
-      partitionsCallback(
-          olp::parser::parse<model::Partitions>(response.response));
-    }
-  };
+  client::NetworkAsyncCallback callback =
+      [partitionsCallback](client::HttpResponse response) {
+        if (response.status != 200) {
+          partitionsCallback(
+              client::ApiError(response.status, response.response.str()));
+        } else {
+          partitionsCallback(
+              olp::parser::parse<model::Partitions>(response.response));
+        }
+      };
 
   return client.CallApi(metadataUri, "GET", queryParams, headerParams,
                         formParams, nullptr, "", callback);
 }
 
-CancellationToken MetadataApi::GetLatestCatalogVersion(
-    const OlpClient& client, int64_t startVersion,
+client::CancellationToken MetadataApi::GetLatestCatalogVersion(
+    const client::OlpClient& client, int64_t startVersion,
     boost::optional<std::string> billingTag,
     const CatalogVersionCallback& catalogVersionCallback) {
   std::multimap<std::string, std::string> headerParams;
@@ -146,11 +148,11 @@ CancellationToken MetadataApi::GetLatestCatalogVersion(
 
   std::string metadataUri = "/versions/latest";
 
-  NetworkAsyncCallback callback =
+  client::NetworkAsyncCallback callback =
       [catalogVersionCallback](client::HttpResponse response) {
         if (response.status != 200) {
           catalogVersionCallback(
-              ApiError(response.status, response.response.str()));
+              client::ApiError(response.status, response.response.str()));
         } else {
           catalogVersionCallback(
               olp::parser::parse<model::VersionResponse>(response.response));

@@ -24,7 +24,7 @@
 
 #include <olp/core/client/HttpResponse.h>
 
-using namespace olp::client;
+namespace client = olp::client;
 
 namespace {
 const std::string kQueryParamBillingTag = "billingTag";
@@ -34,8 +34,8 @@ namespace olp {
 namespace dataservice {
 namespace write {
 
-CancellationToken BlobApi::PutBlob(
-    const OlpClient& client, const std::string& layer_id,
+client::CancellationToken BlobApi::PutBlob(
+    const client::OlpClient& client, const std::string& layer_id,
     const std::string& content_type, const std::string& data_handle,
     const std::shared_ptr<std::vector<unsigned char>>& data,
     const boost::optional<std::string>& billing_tag, PutBlobCallback callback) {
@@ -56,19 +56,19 @@ CancellationToken BlobApi::PutBlob(
       put_blob_uri, "PUT", query_params, header_params, form_params, data,
       content_type, [callback](client::HttpResponse http_response) {
         if (http_response.status != 200 && http_response.status != 204) {
-          callback(PutBlobResponse(
-              ApiError(http_response.status, http_response.response.str())));
+          callback(PutBlobResponse(client::ApiError(
+              http_response.status, http_response.response.str())));
           return;
         }
 
-        callback(PutBlobResponse(ApiNoResult()));
+        callback(PutBlobResponse(client::ApiNoResult()));
       });
 
   return cancel_token;
 }
 
 PutBlobResponse BlobApi::PutBlob(
-    const OlpClient& client, const std::string& layer_id,
+    const client::OlpClient& client, const std::string& layer_id,
     const std::string& content_type, const std::string& data_handle,
     const std::shared_ptr<std::vector<unsigned char>>& data,
     const boost::optional<std::string>& billing_tag,
@@ -94,13 +94,13 @@ PutBlobResponse BlobApi::PutBlob(
   if (http_response.status != olp::http::HttpStatusCode::OK &&
       http_response.status != olp::http::HttpStatusCode::NO_CONTENT) {
     return PutBlobResponse(
-        ApiError(http_response.status, http_response.response.str()));
+        client::ApiError(http_response.status, http_response.response.str()));
   }
 
-  return PutBlobResponse(ApiNoResult());
+  return PutBlobResponse(client::ApiNoResult());
 }
 
-CancellationToken BlobApi::deleteBlob(
+client::CancellationToken BlobApi::deleteBlob(
     const client::OlpClient& client, const std::string& layer_id,
     const std::string& data_handle,
     const boost::optional<std::string>& billing_tag,
@@ -121,16 +121,16 @@ CancellationToken BlobApi::deleteBlob(
       delete_blob_uri, "DELETE", query_params, header_params, form_params,
       nullptr, "", [callback](client::HttpResponse http_response) {
         if (http_response.status != 200 && http_response.status != 202) {
-          callback(PutBlobResponse(
-              ApiError(http_response.status, http_response.response.str())));
+          callback(PutBlobResponse(client::ApiError(
+              http_response.status, http_response.response.str())));
           return;
         }
-        callback(DeleteBlobRespone(ApiNoResult()));
+        callback(DeleteBlobRespone(client::ApiNoResult()));
       });
   return cancel_token;
 }
 
-CancellationToken BlobApi::checkBlobExists(
+client::CancellationToken BlobApi::checkBlobExists(
     const client::OlpClient& client, const std::string& layer_id,
     const std::string& data_handle,
     const boost::optional<std::string>& billing_tag,
@@ -154,8 +154,8 @@ CancellationToken BlobApi::checkBlobExists(
           callback(CheckBlobRespone(http_response.status));
           return;
         } else {
-          callback(CheckBlobRespone(
-              ApiError(http_response.status, http_response.response.str())));
+          callback(CheckBlobRespone(client::ApiError(
+              http_response.status, http_response.response.str())));
         }
       });
   return cancel_token;

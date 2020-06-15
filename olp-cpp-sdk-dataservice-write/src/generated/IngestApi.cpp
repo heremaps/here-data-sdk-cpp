@@ -35,7 +35,7 @@
 #include <olp/core/generated/parser/JsonParser.h>
 // clang-format on
 
-using namespace olp::client;
+namespace client = olp::client;
 
 namespace {
 const std::string kHeaderParamChecksum = "X-HERE-Checksum";
@@ -164,7 +164,7 @@ IngestSdiiResponse IngestApi::IngestSdii(
 
   if (response.status != olp::http::HttpStatusCode::OK) {
     return IngestSdiiResponse(
-        ApiError(response.status, response.response.str()));
+        client::ApiError(response.status, response.response.str()));
   }
 
   return IngestSdiiResponse(
