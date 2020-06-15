@@ -270,8 +270,11 @@
 #define URL_BLOB_DATA_VOLATILE_PREFETCH_7 \
   R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/data/95c5c703-e00e-4c38-841e-e419367474f1)"
 
-#define URL_BLOB_AGGREGATE_DATA \
+#define URL_BLOB_AGGREGATE_DATA_23618364 \
   R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/f9a9fd8e-eb1b-48e5-bfdb-4392b3826443)"
+
+#define URL_BLOB_AGGREGATE_DATA_23618363 \
+  R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/95c5c703-e00e-4c38-841e-e419367474f1)"
 
 #define URL_VOLATILE_BLOB_DATA \
   R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer_volatile/data/4eed6ed1-0d32-43b9-ae79-043cb4256410)"

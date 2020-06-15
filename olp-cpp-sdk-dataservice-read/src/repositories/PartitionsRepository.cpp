@@ -28,6 +28,7 @@
 #include "PartitionsCacheRepository.h"
 #include "generated/api/MetadataApi.h"
 #include "generated/api/QueryApi.h"
+#include "NamedMutex.h"
 #include "olp/dataservice/read/CatalogRequest.h"
 #include "olp/dataservice/read/CatalogVersionRequest.h"
 #include "olp/dataservice/read/DataRequest.h"
@@ -272,11 +273,22 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
     return {{client::ErrorCode::PreconditionFailed, "Partition Id is missing"}};
   }
 
+  auto fetch_option = data_request.GetFetchOption();
+
+  const auto request_key = catalog.ToString() + data_request.CreateKey(layer);
+
+  NamedMutex mutex(request_key);
+  std::unique_lock<repository::NamedMutex> lock(mutex, std::defer_lock);
+
+  // If we are not planning to go online or access the cache, do not lock.
+  if (fetch_option != CacheOnly && fetch_option != OnlineOnly) {
+    lock.lock();
+  }
+
   const auto& version = data_request.GetVersion();
   std::chrono::seconds timeout{settings.retry_settings.timeout};
   repository::PartitionsCacheRepository repository(
       catalog, settings.cache, settings.default_cache_expiration);
-  auto fetch_option = data_request.GetFetchOption();
   const auto key = data_request.CreateKey(layer);
 
   const std::vector<std::string> partitions{partition_id.value()};
@@ -355,6 +367,18 @@ PartitionResponse PartitionsRepository::GetAggregatedTile(
     const client::OlpClientSettings& settings) {
   const auto fetch_option = request.GetFetchOption();
   const auto& tile_key = request.GetTileKey();
+
+  const auto& root_tile_key = tile_key.ChangedLevelBy(-kAggregateQuadTreeDepth);
+  const auto root_tile_here = root_tile_key.ToHereTile();
+
+  NamedMutex mutex(catalog.ToString() + layer + root_tile_here + "Index");
+  std::unique_lock<NamedMutex> lock(mutex, std::defer_lock);
+
+  // If we are not planning to go online or access the cache, do not lock.
+  if (fetch_option != CacheOnly && fetch_option != OnlineOnly) {
+    lock.lock();
+  }
+
   repository::PartitionsCacheRepository repository(
       catalog, settings.cache, settings.default_cache_expiration);
 
@@ -389,8 +413,6 @@ PartitionResponse PartitionsRepository::GetAggregatedTile(
     return query_api.GetError();
   }
 
-  const auto& root_tile_key = tile_key.ChangedLevelBy(-kAggregateQuadTreeDepth);
-  const auto root_tile_here = root_tile_key.ToHereTile();
   auto quadtree_response = QueryApi::QuadTreeIndex(
       query_api.GetResult(), layer, root_tile_here, version,
       kAggregateQuadTreeDepth, boost::none, request.GetBillingTag(), context);
@@ -429,6 +451,19 @@ PartitionsResponse PartitionsRepository::GetPartitionForVersionedTile(
     const TileRequest& request, int64_t version,
     client::CancellationContext context,
     const client::OlpClientSettings& settings) {
+  const auto fetch_option = request.GetFetchOption();
+
+  const auto request_key = catalog.ToString() + request.CreateKey(layer_id) +
+                           std::to_string(version);
+
+  NamedMutex mutex(request_key);
+  std::unique_lock<repository::NamedMutex> lock(mutex, std::defer_lock);
+
+  // If we are not planning to go online or access the cache, do not lock.
+  if (fetch_option != CacheOnly && fetch_option != OnlineOnly) {
+    lock.lock();
+  }
+
   auto tile = request.GetTileKey().ToHereTile();
   auto cached_partitions =
       GetTileFromCache(catalog, layer_id, request, version, settings);
@@ -451,7 +486,7 @@ PartitionsResponse PartitionsRepository::GetPartitionForVersionedTile(
         return result;
       }
     }
-  } else if (request.GetFetchOption() == CacheOnly) {
+  } else if (fetch_option == CacheOnly) {
     OLP_SDK_LOG_INFO_F(
         kLogTag,
         "GetPartitionForVersionedTile not found in cache, hrn='%s', key='%s'",

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,11 @@
  */
 
 #include <gmock/gmock.h>
+
+#include <algorithm>
 #include <chrono>
 #include <memory>
+#include <numeric>
 #include <string>
 
 #include <matchers/NetworkUrlMatchers.h>
@@ -299,6 +302,53 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionAsync) {
   ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
   ASSERT_NE(response.GetResult(), nullptr);
   ASSERT_NE(response.GetResult()->size(), 0u);
+}
+
+template <typename T>
+std::function<void(T)> placeholder(std::promise<T>& promise) {
+  return [&promise](T result) { promise.set_value(result); };
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetDataPartitionConcurrent) {
+  const std::chrono::milliseconds request_delay(100);
+
+  // Setup the network mock to expect necessary call exact once
+  {
+    EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     HTTP_RESPONSE_LOOKUP, {}, request_delay))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     kHttpResponsePartition_269, {},
+                                     request_delay))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     kHttpResponseBlobData_269, {},
+                                     request_delay));
+  }
+
+  const auto concurrent_calls = 5;
+
+  // Replace the default task_scheduler, since it uses only 1 thread
+  settings_.task_scheduler =
+      client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(
+          concurrent_calls);
+
+  read::VersionedLayerClient client(kCatalog, kTestLayer, kTestVersion,
+                                    settings_);
+
+  std::vector<std::promise<read::DataResponse>> promises(concurrent_calls);
+
+  for (auto& promise : promises) {
+    client.GetData(read::DataRequest().WithPartitionId(kTestPartition),
+                   placeholder(promise));
+  }
+
+  for (auto& promise : promises) {
+    auto response = promise.get_future().get();
+
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_NE(response.GetResult(), nullptr);
+    ASSERT_NE(response.GetResult()->size(), 0u);
+  }
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest,
@@ -2274,6 +2324,55 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTile) {
   ASSERT_EQ("someData", data_string);
 }
 
+TEST_F(DataserviceReadVersionedLayerClientTest, GetTileConcurrent) {
+  const std::chrono::milliseconds request_delay(100);
+
+  // Setup the network mock to expect necessary call exact once
+  {
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     HTTP_RESPONSE_LOOKUP, {}, request_delay));
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(kHttpQueryTreeIndex_23064), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     kHttpSubQuads_23064, {}, request_delay));
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(kHttpResponseBlobData_5904591), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     "someData", {}, request_delay));
+  }
+
+  const auto concurrent_calls = 5;
+
+  // Replace the default task_scheduler, since it uses only 1 thread
+  settings_.task_scheduler =
+      client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(
+          concurrent_calls);
+
+  read::VersionedLayerClient client(kCatalog, kTestLayer, 4, settings_);
+
+  std::vector<std::promise<read::DataResponse>> promises(concurrent_calls);
+
+  for (auto& promise : promises) {
+    client.GetData(
+        read::TileRequest().WithTileKey(geo::TileKey::FromHereTile("5904591")),
+        placeholder(promise));
+  }
+
+  for (auto& promise : promises) {
+    auto data_response = promise.get_future().get();
+
+    ASSERT_TRUE(data_response.IsSuccessful())
+        << ApiErrorToString(data_response.GetError());
+    ASSERT_LT(0, data_response.GetResult()->size());
+    std::string data_string(data_response.GetResult()->begin(),
+                            data_response.GetResult()->end());
+    ASSERT_EQ("someData", data_string);
+  }
+}
+
 TEST_F(DataserviceReadVersionedLayerClientTest, GetTileCacheOnly) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(0);
@@ -2551,19 +2650,17 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CheckLookupApiCacheExpiration) {
       .Times(1)
       .WillOnce(Return(true));
 
-  EXPECT_CALL(
-      *cache,
-      Get("hrn:here:data::olp-here-test:hereos-internal-test-v2::blob::v1::api",
-          _))
+  EXPECT_CALL(*cache, Get("hrn:here:data::olp-here-test:hereos-internal-test-"
+                          "v2::blob::v1::api",
+                          _))
       .Times(1)
       .WillOnce(
           Return(std::string("https://blob-ireland.data.api.platform.here.com/"
                              "blobstore/v1/catalogs/hereos-internal-test-v2")));
 
-  EXPECT_CALL(
-      *cache,
-      Put("hrn:here:data::olp-here-test:hereos-internal-test-v2::blob::v1::api",
-          _, _, expiration_time))
+  EXPECT_CALL(*cache, Put("hrn:here:data::olp-here-test:hereos-internal-test-"
+                          "v2::blob::v1::api",
+                          _, _, expiration_time))
       .Times(1)
       .WillOnce(Return(true));
 
@@ -2719,8 +2816,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedData) {
                 Send(IsGetRequest(URL_QUADKEYS_AGGREGATE_92259), _, _, _, _))
         .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                      HTTP_RESPONSE_QUADKEYS_92259));
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA), _, _, _, _))
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA_23618364), _, _, _, _))
         .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                      "some_data"));
 
@@ -2750,8 +2848,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedData) {
                 Send(IsGetRequest(URL_QUADKEYS_AGGREGATE_92259), _, _, _, _))
         .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                      HTTP_RESPONSE_QUADKEYS_92259_ROOT_ONLY));
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA), _, _, _, _))
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA_23618364), _, _, _, _))
         .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                      "some_data"));
 
@@ -2809,8 +2908,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedData) {
                 Send(IsGetRequest(URL_QUADKEYS_AGGREGATE_92259), _, _, _, _))
         .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                      HTTP_RESPONSE_QUADKEYS_92259_PARENT));
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA), _, _, _, _))
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA_23618364), _, _, _, _))
         .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                      "some_data"));
 
@@ -2867,7 +2967,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                    HTTP_RESPONSE_QUADKEYS_92259));
   EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA), _, _, _, _))
+              Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA_23618364), _, _, _, _))
       .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                    "some_data"));
 
@@ -2919,7 +3019,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedDataAsync) {
       .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                    HTTP_RESPONSE_QUADKEYS_92259));
   EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA), _, _, _, _))
+              Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA_23618364), _, _, _, _))
       .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                    "some_data"));
 
@@ -2942,6 +3042,62 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedDataAsync) {
   ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
   ASSERT_TRUE(result.GetData());
   ASSERT_EQ(result.GetTile(), tile_key);
+  testing::Mock::VerifyAndClearExpectations(network_mock_.get());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest,
+       GetAggregatedDataAsyncConcurrent) {
+  const auto delay = std::chrono::milliseconds(100);
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP, {}, delay));
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_QUADKEYS_AGGREGATE_92259), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_QUADKEYS_92259, {}, delay));
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA_23618364), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   "some_data", {}, delay));
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA_23618363), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   "some_data", {}, delay));
+
+  const auto concurrent_calls = 5;
+
+  settings_.task_scheduler =
+      client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(
+          concurrent_calls);
+
+  std::vector<std::promise<read::AggregatedDataResponse>> promises(
+      concurrent_calls);
+
+  read::VersionedLayerClient client(kCatalog, kTestLayer, kTestVersion,
+                                    settings_);
+
+  auto index = 0;
+
+  const geo::TileKey tiles[] = {geo::TileKey::FromHereTile("23618364"),
+                                geo::TileKey::FromHereTile("23618363")};
+
+  // Request 2 neightbor tiles in parallel, make sure the tree and blobs are
+  // downloaded only once.
+  for (auto& promise : promises) {
+    const auto tile = tiles[index++ % 2];
+    client.GetAggregatedData(read::TileRequest().WithTileKey(tile),
+                             placeholder(promise));
+  }
+
+  for (auto& promise : promises) {
+    auto response = promise.get_future().get();
+    const auto& result = response.GetResult();
+
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_TRUE(result.GetData());
+  }
+
   testing::Mock::VerifyAndClearExpectations(network_mock_.get());
 }
 
@@ -3086,8 +3242,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
                 Send(IsGetRequest(URL_QUADKEYS_AGGREGATE_92259), _, _, _, _))
         .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                      HTTP_RESPONSE_QUADKEYS_92259));
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA), _, _, _, _))
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA_23618364), _, _, _, _))
         .WillOnce(testing::Invoke(std::move(send_mock)));
     EXPECT_CALL(*network_mock_, Cancel(_))
         .WillOnce(testing::Invoke(std::move(cancel_mock)));
