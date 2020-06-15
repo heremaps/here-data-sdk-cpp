@@ -25,10 +25,11 @@
 
 #include "generated/model/Api.h"
 #include "olp/dataservice/read/Types.h"
-#include "olp/dataservice/read/model/Catalog.h"
-#include "olp/dataservice/read/model/Partitions.h"
-#include "olp/dataservice/read/model/VersionInfos.h"
-#include "olp/dataservice/read/model/VersionResponse.h"
+// clang-format off
+#include "generated/serializer/ApiSerializer.h"
+#include "generated/serializer/VersionResponseSerializer.h"
+#include "generated/serializer/JsonSerializer.h"
+// clang-format on
 
 namespace mockserver {
 /**
@@ -58,22 +59,33 @@ class MockServerHelper {
    */
   void MockAuth();
 
+  /**
+   * @brief Mock get latest version request.
+   *
+   * @note after mocking could be called only once.
+   *
+   * @param VersionResponse to be returned by server.
+   */
   void MockGetVersionResponse(
       olp::dataservice::read::model::VersionResponse data);
-  void MockGetVersionError(olp::client::ApiError error);
-  void MockLookupResourceApiResponse(olp::dataservice::read::model::Apis data);
-  void MockLookupResourceApiError(olp::client::ApiError error);
-  void MockLookupPlatformApiResponse(olp::dataservice::read::model::Apis data);
-  void MockLookupPlatformApiError(olp::client::ApiError error);
-  void MockGetPartitionsResponse(
-      olp::dataservice::read::model::Partitions data);
 
-  void MockGetPartitionsError(olp::client::ApiError error);
-  void MockGetVersionInfosResponse(
-      olp::dataservice::read::model::VersionInfos data);
-  void MockGetVersionInfosError(olp::client::ApiError error);
-  void MockGetCatalogResponse(olp::dataservice::read::model::Catalog data);
-  void MockGetCatalogError(olp::client::ApiError error);
+  /**
+   * @brief Mock get resource apis request.
+   *
+   * @note after mocking could be called only once.
+   *
+   * @param Apis to be returned by server.
+   */
+  void MockLookupResourceApiResponse(olp::dataservice::read::model::Apis data);
+
+  /**
+   * @brief Mock get platform apis request.
+   *
+   * @note after mocking could be called only once.
+   *
+   * @param Apis to be returned by server.
+   */
+  void MockLookupPlatformApiResponse(olp::dataservice::read::model::Apis data);
 
   /**
    * @brief Verify if all calls were called on server and its order.
@@ -81,12 +93,49 @@ class MockServerHelper {
    */
   bool Verify();
 
- private:
-  // template specialization for type to get path matcher
+  /**
+   * @brief Mock get request for some data.
+   *
+   * @note after mocking could be called only once.
+   *
+   * @param data to be returned by server.
+   * @param path request path for type T.
+   */
   template <class T>
-  void MockGetResponse(T data, const std::string &path = "");
+  void MockGetResponse(T data, const std::string &path) {
+    auto str = olp::serializer::serialize(data);
+    paths_.push_back(path);
+    mock_server_client_.MockResponse("GET", path, str);
+  }
+
+  /**
+   * @brief Mock get request for some vector of data.
+   *
+   * @note after mocking could be called only once.
+   *
+   * @param data to be returned by server.
+   * @param path request path for type T.
+   */
   template <class T>
-  void MockGetResponse(std::vector<T> data, const std::string &path = "");
+  void MockGetResponse(std::vector<T> data, const std::string &path) {
+    std::string str = "[";
+    for (const auto &el : data) {
+      str.append(olp::serializer::serialize(el));
+      str.append(",");
+    }
+    str[str.length() - 1] = ']';
+    paths_.push_back(path);
+    mock_server_client_.MockResponse("GET", path, str);
+  }
+
+  /**
+   * @brief Mock get request to return some error.
+   *
+   * @note after mocking could be called only once.
+   *
+   * @param error to be returned by server.
+   * @param path request path.
+   */
   void MockGetError(olp::client::ApiError error, const std::string &path);
 
  private:

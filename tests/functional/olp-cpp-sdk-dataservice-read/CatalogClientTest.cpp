@@ -47,6 +47,12 @@
 #include <olp/core/utils/Dir.h>
 #include <olp/dataservice/read/CatalogClient.h>
 #include <olp/dataservice/read/model/Catalog.h>
+#include <olp/dataservice/read/model/VersionInfos.h>
+// clang-format off
+#include "generated/serializer/CatalogSerializer.h"
+#include "generated/serializer/VersionInfosSerializer.h"
+#include "generated/serializer/JsonSerializer.h"
+// clang-format on
 #include "DefaultResponses.h"
 #include "MockServerHelper.h"
 #include "Utils.h"
@@ -62,6 +68,12 @@ const auto kTestHrn = "hrn:here:data::olp-here-test:hereos-internal-test";
 const auto kErrorMinVersion =
     R"jsonString({ "title": "Bad request", "status": 400,"detail": [{"name": "version", "error": "Invalid version: latest known version is 309"}]})jsonString";
 
+const auto kMockRequestVersionsPath =
+    "/metadata/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test/"
+    "versions";
+const auto kMockRequestCatalogPath =
+    "/config/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test";
+
 enum class CacheType { IN_MEMORY, DISK, BOTH };
 
 std::ostream& operator<<(std::ostream& os, const CacheType cache_type) {
@@ -75,6 +87,35 @@ std::ostream& operator<<(std::ostream& os, const CacheType cache_type) {
     default:
       return os << "Unknown cache type";
   }
+}
+
+static olp::dataservice::read::model::VersionInfos GenerateVersionInfosResponse(
+    std::int64_t start, std::int64_t end) {
+  olp::dataservice::read::model::VersionInfos infos;
+  auto size = end - start;
+  if (size <= 0) {
+    return infos;
+  }
+  std::vector<olp::dataservice::read::model::VersionInfo> versions_vect(size);
+  for (size_t i = 0; i < versions_vect.size(); i++) {
+    versions_vect[i].SetVersion(++start);
+    versions_vect[i].SetTimestamp(1000 * start);
+    std::vector<olp::dataservice::read::model::VersionDependency> dependencyes(
+        1);
+    dependencyes.front().SetHrn("hrn::some-value");
+    versions_vect[i].SetDependencies(std::move(dependencyes));
+    versions_vect[i].SetPartitionCounts({{"partition", 1}});
+  }
+
+  infos.SetVersions(versions_vect);
+  return infos;
+}
+
+static olp::dataservice::read::model::Catalog GenerateCatalogResponse() {
+  olp::dataservice::read::model::Catalog catalog;
+  catalog.SetHrn("hrn::some-value");
+  catalog.SetVersion(1);
+  return catalog;
 }
 
 class CatalogClientTest : public ::testing::TestWithParam<CacheType> {
@@ -153,8 +194,8 @@ TEST_P(CatalogClientTest, GetCatalog) {
     mock_server_client_->MockTimestamp();
     mock_server_client_->MockLookupPlatformApiResponse(
         mockserver::DefaultResponses::GeneratePlatformApisResponse());
-    mock_server_client_->MockGetCatalogResponse(
-        mockserver::DefaultResponses::GenerateCatalogResponse());
+    mock_server_client_->MockGetResponse(GenerateCatalogResponse(),
+                                         kMockRequestCatalogPath);
   }
 
   auto catalog_client =
@@ -182,8 +223,8 @@ TEST_F(CatalogClientTest, GetVersionsList) {
       mock_server_client_->MockTimestamp();
       mock_server_client_->MockLookupResourceApiResponse(
           mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
-      mock_server_client_->MockGetVersionInfosResponse(
-          mockserver::DefaultResponses::GenerateVersionInfosResponse(3, 4));
+      mock_server_client_->MockGetResponse(GenerateVersionInfosResponse(3, 4),
+                                           kMockRequestVersionsPath);
     }
 
     auto request = olp::dataservice::read::VersionsRequest()
@@ -212,29 +253,13 @@ TEST_F(CatalogClientTest, GetVersionsList) {
                       .size());
   }
   {
-    SCOPED_TRACE("Get versions list from cache");
-
-    auto request =
-        olp::dataservice::read::VersionsRequest()
-            .WithStartVersion(3)
-            .WithEndVersion(4)
-            .WithFetchOption(olp::dataservice::read::FetchOptions::CacheOnly);
-
-    auto response_compressed =
-        GetExecutionTime<olp::dataservice::read::VersionsResponse>([&] {
-          auto future = client->ListVersions(request);
-          return future.GetFuture().get();
-        });
-    ASSERT_FALSE(response_compressed.IsSuccessful());
-
-    ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
-              response_compressed.GetError().GetErrorCode());
-  }
-  {
-    SCOPED_TRACE("Get versions list error responce");
+    SCOPED_TRACE("Get versions list error response");
     {
-      mock_server_client_->MockGetVersionInfosError(
-          {olp::http::HttpStatusCode::BAD_REQUEST, kErrorMinVersion});
+      mock_server_client_->MockLookupResourceApiResponse(
+          mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
+      mock_server_client_->MockGetError(
+          {olp::http::HttpStatusCode::BAD_REQUEST, kErrorMinVersion},
+          kMockRequestVersionsPath);
     }
 
     auto request = olp::dataservice::read::VersionsRequest()

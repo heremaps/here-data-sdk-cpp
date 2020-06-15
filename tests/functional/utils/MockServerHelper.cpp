@@ -21,41 +21,13 @@
 #include <utility>
 #include <vector>
 
-#include "generated/serializer/ApiSerializer.h"
-#include "generated/serializer/CatalogSerializer.h"
-#include "generated/serializer/PartitionsSerializer.h"
-#include "generated/serializer/VersionInfosSerializer.h"
-#include "generated/serializer/VersionResponseSerializer.h"
-
-#include "generated/serializer/JsonSerializer.h"
-
 namespace mockserver {
-
-template <class T>
-void MockServerHelper::MockGetResponse(T data, const std::string& path) {
-  auto str = olp::serializer::serialize(data);
-  paths_.push_back(path);
-  mock_server_client_.MockResponse("GET", path, str);
-}
 
 void MockServerHelper::MockGetError(olp::client::ApiError error,
                                     const std::string& path) {
   auto str = error.GetMessage();
   paths_.push_back(path);
   mock_server_client_.MockResponse("GET", path, str, error.GetHttpStatusCode());
-}
-
-template <class T>
-void MockServerHelper::MockGetResponse(std::vector<T> data,
-                                       const std::string& path) {
-  std::string str = "[";
-  for (const auto& el : data) {
-    str.append(olp::serializer::serialize(el));
-    str.append(",");
-  }
-  str[str.length() - 1] = ']';
-  paths_.push_back(path);
-  mock_server_client_.MockResponse("GET", path, str);
 }
 
 MockServerHelper::MockServerHelper(olp::client::OlpClientSettings settings,
@@ -94,52 +66,8 @@ void MockServerHelper::MockLookupPlatformApiResponse(
       std::move(data), "/lookup/v1/platform/apis");
 }
 
-void MockServerHelper::MockGetPartitionsResponse(
-    olp::dataservice::read::model::Partitions data) {
-  MockGetResponse(std::move(data), "/metadata/v1/catalogs/" + catalog_ +
-                                       "/layers/testlayer/partitions");
-}
-
-void MockServerHelper::MockGetVersionInfosResponse(
-    olp::dataservice::read::model::VersionInfos data) {
-  MockGetResponse(std::move(data),
-                  "/metadata/v1/catalogs/" + catalog_ + "/versions");
-}
-
-void MockServerHelper::MockGetCatalogResponse(
-    olp::dataservice::read::model::Catalog data) {
-  MockGetResponse(std::move(data), "/config/v1/catalogs/" + catalog_);
-}
-
 bool MockServerHelper::Verify() {
   return mock_server_client_.VerifySequence(paths_);
-}
-
-void MockServerHelper::MockGetVersionError(olp::client::ApiError error) {
-  MockGetError(std::move(error),
-               "/metadata/v1/catalogs/" + catalog_ + "/versions/latest");
-}
-void MockServerHelper::MockLookupResourceApiError(olp::client::ApiError error) {
-  MockGetError(std::move(error), "/lookup/v1/resources/" + catalog_ + "/apis");
-}
-void MockServerHelper::MockLookupPlatformApiError(olp::client::ApiError error) {
-  MockGetError(std::move(error), "/lookup/v1/platform/apis");
-}
-
-void MockServerHelper::MockServerHelper::MockGetPartitionsError(
-    olp::client::ApiError error) {
-  MockGetError(std::move(error), "/metadata/v1/catalogs/" + catalog_ +
-                                     "/layers/testlayer/partitions");
-}
-
-void MockServerHelper::MockGetVersionInfosError(olp::client::ApiError error) {
-  MockGetError(std::move(error),
-               "/metadata/v1/catalogs/" + catalog_ + "/versions");
-}
-
-void MockServerHelper::MockGetCatalogError(olp::client::ApiError error) {
-  MockGetError(std::move(error),
-               std::string("/config/v1/catalogs/") + catalog_);
 }
 
 }  // namespace mockserver

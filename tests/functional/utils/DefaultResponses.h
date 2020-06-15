@@ -24,9 +24,7 @@
 #include <vector>
 
 #include "generated/model/Api.h"
-#include "olp/dataservice/read/model/Catalog.h"
 #include "olp/dataservice/read/model/Partitions.h"
-#include "olp/dataservice/read/model/VersionInfos.h"
 #include "olp/dataservice/read/model/VersionResponse.h"
 
 namespace mockserver {
@@ -100,35 +98,6 @@ class DefaultResponses {
     olp::dataservice::read::model::Partitions partitions;
     partitions.SetPartitions(partitions_vect);
     return partitions;
-  }
-
-  static olp::dataservice::read::model::VersionInfos
-  GenerateVersionInfosResponse(std::int64_t start, std::int64_t end) {
-    olp::dataservice::read::model::VersionInfos infos;
-    auto size = end - start;
-    if (size <= 0) {
-      return infos;
-    }
-    std::vector<olp::dataservice::read::model::VersionInfo> versions_vect(size);
-    for (size_t i = 0; i < versions_vect.size(); i++) {
-      versions_vect[i].SetVersion(++start);
-      versions_vect[i].SetTimestamp(1000 * start);
-      std::vector<olp::dataservice::read::model::VersionDependency>
-          dependencyes(1);
-      dependencyes.front().SetHrn("hrn::some-value");
-      versions_vect[i].SetDependencies(std::move(dependencyes));
-      versions_vect[i].SetPartitionCounts({{"partition", 1}});
-    }
-
-    infos.SetVersions(versions_vect);
-    return infos;
-  }
-
-  static olp::dataservice::read::model::Catalog GenerateCatalogResponse() {
-    olp::dataservice::read::model::Catalog catalog;
-    catalog.SetHrn("hrn::some-value");
-    catalog.SetVersion(1);
-    return catalog;
   }
 };
 

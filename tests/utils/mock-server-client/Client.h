@@ -28,7 +28,6 @@
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/generated/parser/JsonParser.h>
 #include <olp/core/http/HttpStatusCode.h>
-#include <iostream>
 #include "Expectation.h"
 #include "Status.h"
 namespace mockserver {
@@ -203,7 +202,6 @@ inline bool Client::VerifySequence(
       http_client_->CallApi(kVerifySequence, "PUT", {}, {}, {}, request_body,
                             "", olp::client::CancellationContext{});
   if (response.status != olp::http::HttpStatusCode::ACCEPTED) {
-    std::cout << response.response.str();
     return false;
   }
   return true;

@@ -29,6 +29,10 @@
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include <string>
 #include <testutils/CustomParameters.hpp>
+// clang-format off
+#include "generated/serializer/PartitionsSerializer.h"
+#include "generated/serializer/JsonSerializer.h"
+// clang-format on
 #include "DefaultResponses.h"
 #include "MockServerHelper.h"
 #include "Utils.h"
@@ -41,6 +45,9 @@ const auto kMockServerPort = 1080;
 const auto kAppId = "id";
 const auto kAppSecret = "secret";
 const auto kTestHrn = "hrn:here:data::olp-here-test:hereos-internal-test";
+const auto kPartitionsResponsePath =
+    "/metadata/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test/"
+    "layers/testlayer/partitions";
 
 class VersionedLayerClientTest : public ::testing::Test {
  protected:
@@ -101,8 +108,9 @@ TEST_F(VersionedLayerClientTest, GetPartitions) {
         mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
     mock_server_client_->MockGetVersionResponse(
         mockserver::DefaultResponses::GenerateVersionResponse(44));
-    mock_server_client_->MockGetPartitionsResponse(
-        mockserver::DefaultResponses::GeneratePartitionsResponse(4));
+    mock_server_client_->MockGetResponse(
+        mockserver::DefaultResponses::GeneratePartitionsResponse(4),
+        kPartitionsResponsePath);
   }
 
   auto catalog_client =
@@ -115,32 +123,6 @@ TEST_F(VersionedLayerClientTest, GetPartitions) {
 
   EXPECT_SUCCESS(partitions_response);
   ASSERT_EQ(4u, partitions_response.GetResult().GetPartitions().size());
-  EXPECT_TRUE(mock_server_client_->Verify());
-}
-
-TEST_F(VersionedLayerClientTest, GetPartitionsError) {
-  olp::client::HRN hrn(kTestHrn);
-  {
-    mock_server_client_->MockAuth();
-    mock_server_client_->MockTimestamp();
-    mock_server_client_->MockLookupResourceApiResponse(
-        mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
-    mock_server_client_->MockGetVersionResponse(
-        mockserver::DefaultResponses::GenerateVersionResponse(44));
-    mock_server_client_->MockGetPartitionsError(
-        {olp::http::HttpStatusCode::BAD_REQUEST, "Bad request"});
-  }
-
-  auto catalog_client =
-      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", boost::none, *settings_);
-
-  auto request = olp::dataservice::read::PartitionsRequest();
-  auto future = catalog_client->GetPartitions(request);
-  auto partitions_response = future.GetFuture().get();
-  ASSERT_EQ(olp::client::ErrorCode::BadRequest,
-            partitions_response.GetError().GetErrorCode());
-  ASSERT_EQ("Bad request", partitions_response.GetError().GetMessage());
   EXPECT_TRUE(mock_server_client_->Verify());
 }
 
