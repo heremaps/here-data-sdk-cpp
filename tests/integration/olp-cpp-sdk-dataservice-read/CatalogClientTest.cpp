@@ -568,30 +568,11 @@ TEST_F(CatalogClientTest, GetVersionsList) {
         response.GetResult().GetVersions().front().GetPartitionCounts().size());
   }
   {
-    SCOPED_TRACE("Get versions list from cache");
-
-    auto request =
-        olp::dataservice::read::VersionsRequest()
-            .WithStartVersion(kStartVersion)
-            .WithEndVersion(kEndVersion)
-            .WithFetchOption(olp::dataservice::read::FetchOptions::CacheOnly);
-
-    auto future = client.ListVersions(request);
-    auto response = future.GetFuture().get();
-
-    ASSERT_FALSE(response.IsSuccessful());
-
-    ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
-              response.GetError().GetErrorCode());
-  }
-  {
     SCOPED_TRACE("Get versions list error");
 
-    auto request =
-        olp::dataservice::read::VersionsRequest()
-            .WithStartVersion(kStartVersion)
-            .WithEndVersion(kEndVersion)
-            .WithFetchOption(olp::dataservice::read::FetchOptions::OnlineOnly);
+    auto request = olp::dataservice::read::VersionsRequest()
+                       .WithStartVersion(kStartVersion)
+                       .WithEndVersion(kEndVersion);
 
     EXPECT_CALL(*network_mock_,
                 Send(common::IsGetRequest(kUrlVersionsList), _, _, _, _))
@@ -608,24 +589,6 @@ TEST_F(CatalogClientTest, GetVersionsList) {
 
     ASSERT_EQ(static_cast<int>(olp::http::HttpStatusCode::TOO_MANY_REQUESTS),
               response.GetError().GetHttpStatusCode());
-  }
-  {
-    SCOPED_TRACE("Get versions list cache with update");
-
-    auto request =
-        olp::dataservice::read::VersionsRequest()
-            .WithStartVersion(kStartVersion)
-            .WithEndVersion(kEndVersion)
-            .WithFetchOption(olp::dataservice::read::CacheWithUpdate);
-
-    auto future = client.ListVersions(request);
-    auto response = future.GetFuture().get();
-
-    ASSERT_FALSE(response.IsSuccessful())
-        << ApiErrorToString(response.GetError());
-
-    ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
-              response.GetError().GetErrorCode());
   }
 }
 

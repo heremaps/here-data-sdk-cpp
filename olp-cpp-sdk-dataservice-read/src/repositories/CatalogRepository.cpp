@@ -157,18 +157,8 @@ VersionsResponse CatalogRepository::GetVersionsList(
     const client::HRN& catalog,
     client::CancellationContext cancellation_context,
     const VersionsRequest& request, const client::OlpClientSettings& settings) {
-  auto fetch_option = request.GetFetchOption();
-  repository::CatalogCacheRepository repository(catalog, settings.cache);
-  if (fetch_option == CacheOnly) {
-    OLP_SDK_LOG_INFO_F(
-        kLogTag,
-        "GetVersionsList not supporting CacheOnly option, hrn='%s', key='%s'",
-        catalog.ToCatalogHRNString().c_str(), request.CreateKey().c_str());
-    return {{client::ErrorCode::InvalidArgument, "CacheOnly not supported"}};
-  }
-
   auto metadata_api = ApiClientLookup::LookupApi(
-      std::move(catalog), cancellation_context, "metadata", "v1", fetch_option,
+      std::move(catalog), cancellation_context, "metadata", "v1", OnlineOnly,
       std::move(settings));
 
   if (!metadata_api.IsSuccessful()) {
