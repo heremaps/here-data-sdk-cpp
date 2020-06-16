@@ -1,0 +1,4 @@
+<map id="olp::logging::FileAppender" name="olp::logging::FileAppender">
+<area shape="rect" id="node1" title="Appender for printing to a file." alt="" coords="5,80,196,107"/>
+<area shape="rect" id="node2" href="$classolp_1_1logging_1_1IAppender.html" title="Abstract base class for an appender, which appends a message to the log." alt="" coords="15,5,187,32"/>
+</map>
