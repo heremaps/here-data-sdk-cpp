@@ -53,7 +53,7 @@ client::CancellationToken ConfigApi::GetCatalog(
 
   client::NetworkAsyncCallback callback =
       [catalogCallback](client::HttpResponse response) {
-        if (response.status != 200) {
+        if (response.status != http::HttpStatusCode::OK) {
           catalogCallback(CatalogResponse(
               client::ApiError(response.status, response.response.str())));
         } else {

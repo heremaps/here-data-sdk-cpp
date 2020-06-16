@@ -78,7 +78,7 @@ client::CancellationToken IngestApi::IngestData(
   auto cancel_token = client.CallApi(
       ingest_uri, "POST", query_params, header_params, form_params, data,
       content_type, [callback](client::HttpResponse http_response) {
-        if (http_response.status != 200) {
+        if (http_response.status != http::HttpStatusCode::OK) {
           callback(IngestDataResponse{client::ApiError(
               http_response.status, http_response.response.str())});
           return;

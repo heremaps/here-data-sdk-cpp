@@ -67,7 +67,7 @@ client::CancellationToken PublishApi::InitPublication(
   auto cancel_token = client.CallApi(
       init_publication_uri, "POST", query_params, header_params, form_params,
       data, "application/json", [callback](client::HttpResponse http_response) {
-        if (http_response.status != 200) {
+        if (http_response.status != http::HttpStatusCode::OK) {
           callback(InitPublicationResponse{client::ApiError(
               http_response.status, http_response.response.str())});
           return;
@@ -275,7 +275,7 @@ client::CancellationToken PublishApi::GetPublication(
       get_publication_uri, "GET", query_params, header_params, form_params,
       nullptr, "application/json",
       [callback](client::HttpResponse http_response) {
-        if (http_response.status != 200) {
+        if (http_response.status != http::HttpStatusCode::OK) {
           callback(GetPublicationResponse{client::ApiError(
               http_response.status, http_response.response.str())});
           return;
