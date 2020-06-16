@@ -80,8 +80,6 @@ olp::client::CancellationToken VersionedLayerClient::CancelBatch(
   return impl_->CancelBatch(pub, std::move(callback));
 }
 
-void VersionedLayerClient::CancelAll() { impl_->CancelAll(); }
-
 void VersionedLayerClient::CancelPendingRequests() {
   impl_->CancelPendingRequests();
 }

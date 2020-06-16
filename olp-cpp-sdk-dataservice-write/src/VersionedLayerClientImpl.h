@@ -89,8 +89,6 @@ class VersionedLayerClientImpl
   client::CancellationToken CancelBatch(const model::Publication& pub,
                                         CancelBatchCallback callback);
 
-  void CancelAll();
-
   void CancelPendingRequests();
 
   client::CancellableFuture<PublishPartitionDataResponse> PublishToBatch(

@@ -57,7 +57,7 @@ VersionedLayerClientImpl::VersionedLayerClientImpl(
       init_in_progress_(false) {}
 
 VersionedLayerClientImpl::~VersionedLayerClientImpl() {
-  CancelAll();
+  tokenList_.CancelAll();
   pending_requests_->CancelAllAndWait();
 }
 
@@ -497,9 +497,10 @@ olp::client::CancellationToken VersionedLayerClientImpl::CancelBatch(
   return token;
 }
 
-void VersionedLayerClientImpl::CancelAll() { tokenList_.CancelAll(); }
-
-void VersionedLayerClientImpl::CancelPendingRequests() { CancelAll(); }
+void VersionedLayerClientImpl::CancelPendingRequests() {
+  pending_requests_->CancelAll();
+  tokenList_.CancelAll();
+}
 
 olp::client::CancellableFuture<PublishPartitionDataResponse>
 VersionedLayerClientImpl::PublishToBatch(
