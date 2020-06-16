@@ -21,6 +21,7 @@
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/NetworkMock.h>
 #include <olp/core/client/HRN.h>
+#include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/http/Network.h>
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
@@ -43,6 +44,7 @@ constexpr auto kHttpVersionsListResponse =
 using testing::_;
 namespace common = olp::tests::common;
 namespace read = olp::dataservice::read;
+namespace http = olp::http;
 
 class CatalogClientTest
     : public olp::tests::integration::CatalogClientTestBase {};
@@ -113,8 +115,9 @@ TEST_P(CatalogClientTest, GetCatalogCancelApiLookup) {
   common::CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) =
-      common::GenerateNetworkMockActions(wait_for_cancel, pause_for_cancel,
-                                         {200, HTTP_RESPONSE_LOOKUP_CONFIG});
+      common::GenerateNetworkMockActions(
+          wait_for_cancel, pause_for_cancel,
+          {http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_CONFIG});
 
   EXPECT_CALL(*network_mock_,
               Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
@@ -166,8 +169,9 @@ TEST_P(CatalogClientTest, GetCatalogCancelConfig) {
   common::CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) =
-      common::GenerateNetworkMockActions(wait_for_cancel, pause_for_cancel,
-                                         {200, HTTP_RESPONSE_CONFIG});
+      common::GenerateNetworkMockActions(
+          wait_for_cancel, pause_for_cancel,
+          {http::HttpStatusCode::OK, HTTP_RESPONSE_CONFIG});
 
   // Setup the expected calls :
   EXPECT_CALL(*network_mock_,
@@ -268,8 +272,9 @@ TEST_P(CatalogClientTest, GetCatalogVersionCancel) {
   common::CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) =
-      common::GenerateNetworkMockActions(wait_for_cancel, pause_for_cancel,
-                                         {200, HTTP_RESPONSE_LOOKUP});
+      common::GenerateNetworkMockActions(
+          wait_for_cancel, pause_for_cancel,
+          {http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
   EXPECT_CALL(*network_mock_,
               Send(common::IsGetRequest(URL_LOOKUP_API), _, _, _, _))
@@ -373,8 +378,8 @@ TEST_P(CatalogClientTest, GetCatalogCacheWithUpdate) {
 
   std::tie(request_id, send_mock, cancel_mock) =
       common::GenerateNetworkMockActions(
-          wait_to_start_signal, pre_callback_wait, {200, HTTP_RESPONSE_CONFIG},
-          wait_for_end);
+          wait_to_start_signal, pre_callback_wait,
+          {http::HttpStatusCode::OK, HTTP_RESPONSE_CONFIG}, wait_for_end);
 
   EXPECT_CALL(*network_mock_,
               Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
@@ -463,8 +468,9 @@ TEST_P(CatalogClientTest, CancelPendingRequestsCatalog) {
     common::CancelCallback cancel_mock;
 
     std::tie(request_id, send_mock, cancel_mock) =
-        common::GenerateNetworkMockActions(wait_for_cancel, pause_for_cancel,
-                                           {200, HTTP_RESPONSE_LOOKUP_CONFIG});
+        common::GenerateNetworkMockActions(
+            wait_for_cancel, pause_for_cancel,
+            {http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_CONFIG});
 
     EXPECT_CALL(*network_mock_,
                 Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
@@ -603,8 +609,9 @@ TEST_F(CatalogClientTest, GetVersionsListCancel) {
   common::CancelCallback cancel_mock;
 
   std::tie(request_id, send_mock, cancel_mock) =
-      common::GenerateNetworkMockActions(wait_for_cancel, pause_for_cancel,
-                                         {200, HTTP_RESPONSE_LOOKUP});
+      common::GenerateNetworkMockActions(
+          wait_for_cancel, pause_for_cancel,
+          {http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
   EXPECT_CALL(*network_mock_,
               Send(common::IsGetRequest(URL_LOOKUP_API), _, _, _, _))
