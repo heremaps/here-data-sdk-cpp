@@ -1,3 +1,41 @@
+## v1.7.0 (06/16/2020)
+
+**Common**
+
+* Changed the product name from HERE OLP SDK for C++ to HERE Data SDK for C++.
+* Fixed formatting to be compliant with the coding style.
+* Fixed the issue with `olp::client::TaskContext`. Now, it does not trigger cancellation after a successful operation.
+* Added the `default_cache_expiration` to `olp::client::OlpClientSettings`. Now, you can control how long the downloaded data is considered valid. Once the data is expired, you cannot retrieve it, and it is gradually removed from the cache when new data is added.
+* Added the `OLP_SDK_DISABLE_DEBUG_LOGGING` CMake option. When enabled, the SDK does not print any `TRACE` or `DEBUG` level log messages.
+* Added the `compression` setting to `olp::cache::CacheSettings`. You can now pass the flag to the underlying database engine to enable or disable the data compression.
+* Added the `Compact` API to `olp::cache::DefaultCache`. It is used to optimize the underlying mutable cache storage. Compaction also starts automatically once the database size reaches the maximum in a separate thread.
+* Changed the `olp::cache::DefaultCache` read operation. As a result, the number of memory allocation decreased, and performance increased.
+* Added support for the HTTP `OPTIONS` request in `olp::http::Network`.
+* The LRU eviction now evicts expired elements first. The eviction time decreased.
+* Removed the retry code from `olp::http::NetworkCurl`. Now, retries are performed by `olp::client::OlpClient`.
+* Added a prewarm helper method to `olp::client::OlpClientSettingsFactory`. This method can be used to perform DNS prefetch and TLS preconnect for certain URLs that are widely used by the clients. For example, accounts and lookup.
+* Enabled certificate validation in `olp::http::NetworkCurl`.
+
+**olp-cpp-sdk-authentication**
+
+* The `olp::authentication::TokenProvider` class now handles the concurrent by blocking all requesters until the already triggered request completes. It verifies that only one token is requested at the same time.
+* The `IntrospectApp` and `Authorize` APIs now use `ExponentialBackdownStrategy` internally in case of a 5xx HTTP status code.
+* `olp::authentication::AuthenticationError` class is deprecated and will be replaced by `olp::client::ApiError`. It will be removed by 12.2020.
+* Switched the `SignInClient` method in the `olp::authentication::AuthenticationClient` functionality to `TaskContext`.
+* Added a fallback mechanism for `SignInClient`. Now, when the system time is wrong, the server time is used.
+* Changed the `olp::authentication::ActionResult` class. Permissions are now represented by the `olp::authentication::Permission` class.
+* The `use_system_time` flag in `olp::authentication::Settings` is now enabled by default. Now, system time is used for token requests by default.
+
+**olp-cpp-sdk-dataservice-read**
+
+* The module now resolves all service APIs for a specific HRN in a single request.
+* Reduced the number of logs produced by the component.
+* Merged the same concurrent Lookup API requests into a single HTTP request.
+* Merged the same concurrent `GetBlob` and `GetVolatileBlob` API requests into a single HTTP request.
+* Merged the same concurrent `QuadTreeIndex` API requests into a single HTTP request.
+* **Work In Progress** Added a new `ListVersions` API to `olp::dataservice::read::CatalogClient`. You can use it to get information on catalog versions.
+* **Work In Progress** Added a new `GetAggregatedData` API to `olp::dataservice::read::VersionedLayerClient`. You can use it to retrieve tile data (if it exists) or the nearest parent tile data. Use this API for tile-tree structures where children tile data is aggregated and stored in parent tiles.
+
 ## v1.6.0 (05/01/2020)
 
 **Common**
