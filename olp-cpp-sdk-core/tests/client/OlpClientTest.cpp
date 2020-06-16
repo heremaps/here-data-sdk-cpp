@@ -37,6 +37,8 @@ namespace {
 using olp::client::HttpResponse;
 using ::testing::_;
 
+namespace http = olp::http;
+
 class CallApiWrapper {
  public:
   virtual ~CallApiWrapper() = default;
@@ -255,7 +257,7 @@ TEST_P(OlpClientTest, DefaultRetryCondition) {
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
 
-  ASSERT_EQ(200, response.status);
+  ASSERT_EQ(http::HttpStatusCode::OK, response.status);
 }
 
 TEST_P(OlpClientTest, RetryCondition) {
@@ -280,7 +282,8 @@ TEST_P(OlpClientTest, RetryCondition) {
               olp::http::Network::DataCallback /*data_callback*/) {
             current_attempt++;
             if (current_attempt == goodAttempt) {
-              callback(olp::http::NetworkResponse().WithStatus(200));
+              callback(olp::http::NetworkResponse().WithStatus(
+                  http::HttpStatusCode::OK));
             } else {
               callback(olp::http::NetworkResponse().WithStatus(429));
             }
@@ -294,7 +297,7 @@ TEST_P(OlpClientTest, RetryCondition) {
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
 
-  ASSERT_EQ(200, response.status);
+  ASSERT_EQ(http::HttpStatusCode::OK, response.status);
 }
 
 TEST_P(OlpClientTest, RetryTimeLinear) {
@@ -582,7 +585,8 @@ TEST_P(OlpClientTest, Proxy) {
                     olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback /*data_callback*/) {
         resultSettings = request.GetSettings().GetProxySettings();
-        callback(olp::http::NetworkResponse().WithStatus(200));
+        callback(
+            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
 
@@ -628,7 +632,8 @@ TEST_P(OlpClientTest, EmptyProxy) {
                     olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback /*data_callback*/) {
         resultSettings = request.GetSettings().GetProxySettings();
-        callback(olp::http::NetworkResponse().WithStatus(200));
+        callback(
+            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
 
@@ -653,7 +658,8 @@ TEST_P(OlpClientTest, HttpResponse) {
                     olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback /*data_callback*/) {
         *payload << "content";
-        callback(olp::http::NetworkResponse().WithStatus(200));
+        callback(
+            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
 
@@ -662,7 +668,7 @@ TEST_P(OlpClientTest, HttpResponse) {
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
   ASSERT_EQ("content", response.response.str());
-  ASSERT_EQ(200, response.status);
+  ASSERT_EQ(http::HttpStatusCode::OK, response.status);
 }
 
 TEST_P(OlpClientTest, Paths) {
@@ -679,7 +685,8 @@ TEST_P(OlpClientTest, Paths) {
                     olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback /*data_callback*/) {
         url = request.GetUrl();
-        callback(olp::http::NetworkResponse().WithStatus(200));
+        callback(
+            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
 
@@ -704,7 +711,8 @@ TEST_P(OlpClientTest, MethodGET) {
                     olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback /*data_callback*/) {
         verb = request.GetVerb();
-        callback(olp::http::NetworkResponse().WithStatus(200));
+        callback(
+            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
 
@@ -728,7 +736,8 @@ TEST_P(OlpClientTest, MethodPOST) {
                     olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback /*data_callback*/) {
         verb = request.GetVerb();
-        callback(olp::http::NetworkResponse().WithStatus(200));
+        callback(
+            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
 
@@ -752,7 +761,8 @@ TEST_P(OlpClientTest, MethodPUT) {
                     olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback /*data_callback*/) {
         verb = request.GetVerb();
-        callback(olp::http::NetworkResponse().WithStatus(200));
+        callback(
+            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
 
@@ -782,7 +792,8 @@ TEST_P(OlpClientTest, MethodDELETE) {
                     olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback /*data_callback*/) {
         verb = request.GetVerb();
-        callback(olp::http::NetworkResponse().WithStatus(200));
+        callback(
+            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
 
@@ -806,7 +817,8 @@ TEST_P(OlpClientTest, QueryParam) {
                     olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback /*data_callback*/) {
         url = request.GetUrl();
-        callback(olp::http::NetworkResponse().WithStatus(200));
+        callback(
+            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
 
@@ -837,7 +849,8 @@ TEST_P(OlpClientTest, HeaderParams) {
                     olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback /*data_callback*/) {
         result_headers = request.GetHeaders();
-        callback(olp::http::NetworkResponse().WithStatus(200));
+        callback(
+            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
 
@@ -871,7 +884,8 @@ TEST_P(OlpClientTest, DefaultHeaderParams) {
                     olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback /*data_callback*/) {
         result_headers = request.GetHeaders();
-        callback(olp::http::NetworkResponse().WithStatus(200));
+        callback(
+            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
 
@@ -907,7 +921,8 @@ TEST_P(OlpClientTest, CombineHeaderParams) {
                     olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback /*data_callback*/) {
         result_headers = request.GetHeaders();
-        callback(olp::http::NetworkResponse().WithStatus(200));
+        callback(
+            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
 
@@ -950,7 +965,8 @@ TEST_P(OlpClientTest, Content) {
                     olp::http::Network::DataCallback /*data_callback*/) {
         result_headers = request.GetHeaders();
         resultContent = request.GetBody();
-        callback(olp::http::NetworkResponse().WithStatus(200));
+        callback(
+            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
   std::promise<olp::client::HttpResponse> promise;
@@ -998,7 +1014,8 @@ TEST_P(OlpClientTest, CancelBeforeResponse) {
             [wait_for_reach_network, wait_for_cancel, callback]() {
               wait_for_reach_network->set_value(true);
               wait_for_cancel->get_future().get();
-              callback(olp::http::NetworkResponse().WithStatus(200));
+              callback(olp::http::NetworkResponse().WithStatus(
+                  http::HttpStatusCode::OK));
             });
         handler_thread.detach();
 
@@ -1052,7 +1069,8 @@ TEST_P(OlpClientTest, CancelBeforeResponseAndCallHeadersCb) {
           headers_cb = std::move(header_callback);
           wait_for_reach_network->set_value(true);
           wait_for_cancel->get_future().get();
-          callback(olp::http::NetworkResponse().WithStatus(200));
+          callback(olp::http::NetworkResponse().WithStatus(
+              http::HttpStatusCode::OK));
         });
         handler_thread.detach();
 
@@ -1119,7 +1137,8 @@ TEST_P(OlpClientTest, CancelAfterCompletion) {
                     olp::http::Network::Callback callback,
                     olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback /*data_callback*/) {
-        callback(olp::http::NetworkResponse().WithStatus(200));
+        callback(
+            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
 
@@ -1165,7 +1184,8 @@ TEST_P(OlpClientTest, CancelDuplicate) {
                     olp::http::Network::DataCallback /*data_callback*/) {
         std::thread handler_thread([wait_for_cancel, callback]() {
           wait_for_cancel->get_future().get();
-          callback(olp::http::NetworkResponse().WithStatus(200));
+          callback(olp::http::NetworkResponse().WithStatus(
+              http::HttpStatusCode::OK));
         });
         handler_thread.detach();
 
@@ -1217,23 +1237,24 @@ TEST_P(OlpClientTest, CancelRetry) {
   client_.SetSettings(client_settings_);
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
-      .WillRepeatedly([&](olp::http::NetworkRequest /*request*/,
-                          olp::http::Network::Payload /*payload*/,
-                          olp::http::Network::Callback callback,
-                          olp::http::Network::HeaderCallback /*header_callback*/,
-                          olp::http::Network::DataCallback /*data_callback*/) {
-        auto tries = ++(*number_of_tries);
-        std::thread handler_thread(
-            [continue_network, wait_for_cancel, callback, tries, cancelled]() {
+      .WillRepeatedly(
+          [&](olp::http::NetworkRequest /*request*/,
+              olp::http::Network::Payload /*payload*/,
+              olp::http::Network::Callback callback,
+              olp::http::Network::HeaderCallback /*header_callback*/,
+              olp::http::Network::DataCallback /*data_callback*/) {
+            auto tries = ++(*number_of_tries);
+            std::thread handler_thread([continue_network, wait_for_cancel,
+                                        callback, tries, cancelled]() {
               if (tries == 1) {
                 wait_for_cancel->set_value();
                 continue_network->get_future().get();
               }
               callback(olp::http::NetworkResponse().WithStatus(429));
             });
-        handler_thread.detach();
-        return olp::http::SendOutcome(olp::http::RequestId(5));
-      });
+            handler_thread.detach();
+            return olp::http::SendOutcome(olp::http::RequestId(5));
+          });
 
   olp::client::CancellationContext context;
 
@@ -1273,7 +1294,8 @@ TEST_P(OlpClientTest, QueryMultiParams) {
                     olp::http::Network::DataCallback /*data_callback*/) {
         uri = request.GetUrl();
         headers = request.GetHeaders();
-        callback(olp::http::NetworkResponse().WithStatus(200));
+        callback(
+            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
 

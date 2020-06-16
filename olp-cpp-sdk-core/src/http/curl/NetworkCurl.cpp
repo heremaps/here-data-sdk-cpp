@@ -41,6 +41,7 @@
 #ifdef NETWORK_USE_TIMEPROVIDER
 #include "timeprovider/TimeProvider.h"
 #endif
+#include "olp/core/http/HttpStatusCode.h"
 #include "olp/core/http/NetworkUtils.h"
 #include "olp/core/logging/Log.h"
 #include "olp/core/porting/platform.h"
@@ -703,8 +704,9 @@ size_t NetworkCurl::RxFunction(void* ptr, size_t size, size_t nmemb,
   }
   long status = 0;
   curl_easy_getinfo(handle->handle, CURLINFO_RESPONSE_CODE, &status);
-  if (handle->skip_content && status != 200 && status != 206 && status != 201 &&
-      status != 0) {
+  if (handle->skip_content && status != http::HttpStatusCode::OK &&
+      status != http::HttpStatusCode::PARTIAL_CONTENT &&
+      status != http::HttpStatusCode::CREATED && status != 0) {
     return len;
   }
 
