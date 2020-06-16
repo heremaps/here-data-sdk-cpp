@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.6.0</span>
+   &#160;<span id="projectnumber">1.7.0</span>
    </div>
   </td>
  </tr>
@@ -190,10 +190,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a84478e4383f7886c8052f07ffc65cfce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the digest algorithm used to calculate the checksum for the partitions in this layer.  <a href="#a84478e4383f7886c8052f07ffc65cfce">More...</a><br /></td></tr>
 <tr class="separator:a84478e4383f7886c8052f07ffc65cfce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a115de2dadbece34289c13dd74e90f56d"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; std::string &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1Layer.html#a115de2dadbece34289c13dd74e90f56d">GetTags</a> () const</td></tr>
-<tr class="memdesc:a115de2dadbece34289c13dd74e90f56d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the keywords that help to find the layer on the platform portal.  <a href="#a115de2dadbece34289c13dd74e90f56d">More...</a><br /></td></tr>
+<tr class="memdesc:a115de2dadbece34289c13dd74e90f56d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the keywords that help to find the layer on the HERE platform Portal.  <a href="#a115de2dadbece34289c13dd74e90f56d">More...</a><br /></td></tr>
 <tr class="separator:a115de2dadbece34289c13dd74e90f56d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7e749360417794be7ec0d8fb1adfc670"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1Layer.html#a7e749360417794be7ec0d8fb1adfc670">GetMutableTags</a> ()</td></tr>
-<tr class="memdesc:a7e749360417794be7ec0d8fb1adfc670"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets a mutable reference to the keywords that help to find the layer on the platform portal.  <a href="#a7e749360417794be7ec0d8fb1adfc670">More...</a><br /></td></tr>
+<tr class="memdesc:a7e749360417794be7ec0d8fb1adfc670"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets a mutable reference to the keywords that help to find the layer on the HERE platform Portal.  <a href="#a7e749360417794be7ec0d8fb1adfc670">More...</a><br /></td></tr>
 <tr class="separator:a7e749360417794be7ec0d8fb1adfc670"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa2995fa761a6793e211214263c0b97f9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1Layer.html#aa2995fa761a6793e211214263c0b97f9">SetTags</a> (const std::vector&lt; std::string &gt; &amp;value)</td></tr>
 <tr class="memdesc:aa2995fa761a6793e211214263c0b97f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the keywords that help to find the layer.  <a href="#aa2995fa761a6793e211214263c0b97f9">More...</a><br /></td></tr>
@@ -384,7 +384,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Gets the detailed description of the layer. </p>
-<p>This information appears on the <b>Overview</b> tab when you open a layer in the platform portal.</p>
+<p>This information appears on the <b>Overview</b> tab when you open a layer on the HERE platform Portal.</p>
 <dl class="section return"><dt>Returns</dt><dd>The detailed description of the layer. </dd></dl>
 
 </div>
@@ -414,7 +414,7 @@ Public Member Functions</h2></td></tr>
 
 <p>Gets the digest algorithm used to calculate the checksum for the partitions in this layer. </p>
 <p>If specified, you can assume that all partitions in the layer, at every version, were calculated using this algorithm.</p>
-<dl class="section note"><dt>Note</dt><dd>It is the responsibility of the data publisher to use this algorithm to calculate partition checksums. The Open Location Platform (OLP) does not verify that the specified algorithm was actually used.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>It is the responsibility of the data publisher to use this algorithm to calculate partition checksums. The HERE platform does not verify that the specified algorithm was actually used.</dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>The digest algorithm used to calculate the checksum for the partitions in this layer. </dd></dl>
 
 </div>
@@ -949,7 +949,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Gets a mutable reference to the keywords that help to find the layer on the platform portal. </p>
+<p>Gets a mutable reference to the keywords that help to find the layer on the HERE platform Portal. </p>
 <dl class="section return"><dt>Returns</dt><dd>The mutable reference to the keywords that help to find the layer. </dd></dl>
 
 </div>
@@ -1175,7 +1175,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Gets the one-sentence summary of the layer. </p>
-<p>You can see this summary when you browse a list of layers on the platform portal.</p>
+<p>You can see this summary when you browse a list of layers on the HERE platform Portal.</p>
 <dl class="section return"><dt>Returns</dt><dd>The one-sentence summary of the layer. </dd></dl>
 
 </div>
@@ -1203,7 +1203,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Gets the keywords that help to find the layer on the platform portal. </p>
+<p>Gets the keywords that help to find the layer on the HERE platform Portal. </p>
 <dl class="section return"><dt>Returns</dt><dd>The keywords that help to find the layer. </dd></dl>
 
 </div>
@@ -1805,7 +1805,7 @@ Public Member Functions</h2></td></tr>
 <p>Sets the keywords that help to find the layer. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">value</td><td>The keywords that help to find the layer on the platform portal. </td></tr>
+    <tr><td class="paramname">value</td><td>The keywords that help to find the layer on the HERE platform Portal. </td></tr>
   </table>
   </dd>
 </dl>

@@ -1,6 +1,7 @@
 var searchData=
 [
   ['actionresult',['ActionResult',['../classolp_1_1authentication_1_1ActionResult.html',1,'olp::authentication']]],
+  ['aggregateddataresult',['AggregatedDataResult',['../classolp_1_1dataservice_1_1read_1_1AggregatedDataResult.html',1,'olp::dataservice::read']]],
   ['alignedbox',['AlignedBox',['../classolp_1_1math_1_1AlignedBox.html',1,'olp::math']]],
   ['apierror',['ApiError',['../classolp_1_1client_1_1ApiError.html',1,'olp::client']]],
   ['apinoresult',['ApiNoResult',['../classolp_1_1client_1_1ApiNoResult.html',1,'olp::client']]],
@@ -10,7 +11,6 @@ var searchData=
   ['atomic',['Atomic',['../classolp_1_1thread_1_1Atomic.html',1,'olp::thread']]],
   ['authenticationclient',['AuthenticationClient',['../classolp_1_1authentication_1_1AuthenticationClient.html',1,'olp::authentication']]],
   ['authenticationcredentials',['AuthenticationCredentials',['../classolp_1_1authentication_1_1AuthenticationCredentials.html',1,'olp::authentication']]],
-  ['authenticationerror',['AuthenticationError',['../classolp_1_1authentication_1_1AuthenticationError.html',1,'olp::authentication']]],
   ['authenticationsettings',['AuthenticationSettings',['../structolp_1_1authentication_1_1AuthenticationSettings.html',1,'olp::authentication::AuthenticationSettings'],['../structolp_1_1client_1_1AuthenticationSettings.html',1,'olp::client::AuthenticationSettings']]],
   ['authorizerequest',['AuthorizeRequest',['../classolp_1_1authentication_1_1AuthorizeRequest.html',1,'olp::authentication']]],
   ['authorizeresult',['AuthorizeResult',['../classolp_1_1authentication_1_1AuthorizeResult.html',1,'olp::authentication']]]

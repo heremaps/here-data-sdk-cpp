@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.6.0</span>
+   &#160;<span id="projectnumber">1.7.0</span>
    </div>
   </td>
  </tr>
@@ -156,9 +156,9 @@ CORE_API std::shared_ptr&lt; <a class="el" href="classolp_1_1http_1_1Network.htm
 CORE_API std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1http.html#aa8aa1b3eaa94d47031f24abc93255e80">ErrorCodeToString</a> (<a class="el" href="namespaceolp_1_1http.html#a61c765861938a212070d01911a6b6a17">ErrorCode</a> code)</td></tr>
 <tr class="memdesc:aa8aa1b3eaa94d47031f24abc93255e80"><td class="mdescLeft">&#160;</td><td class="mdescRight">The helper function that converts an error code to a human readable string. <br /></td></tr>
 <tr class="separator:aa8aa1b3eaa94d47031f24abc93255e80"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9540df2ff1a364feda8d6b818bb34ca0"><td class="memItemLeft" align="right" valign="top"><a id="a9540df2ff1a364feda8d6b818bb34ca0"></a>
-std::string&#160;</td><td class="memItemRight" valign="bottom"><b>HttpErrorToString</b> (int error)</td></tr>
-<tr class="separator:a9540df2ff1a364feda8d6b818bb34ca0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada1c2a710d730bcd6c220cba9ad9e280"><td class="memItemLeft" align="right" valign="top">CORE_API std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1http.html#ada1c2a710d730bcd6c220cba9ad9e280">HttpErrorToString</a> (int http_status)</td></tr>
+<tr class="memdesc:ada1c2a710d730bcd6c220cba9ad9e280"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the HTTP error status code to string.  <a href="#ada1c2a710d730bcd6c220cba9ad9e280">More...</a><br /></td></tr>
+<tr class="separator:ada1c2a710d730bcd6c220cba9ad9e280"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Provides a platform specific network abstraction layer. </p>
@@ -242,6 +242,34 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>HttpErrorToStr
 <tr><td class="fieldname"><a id="a35616292ce390a1ae1e7f1983db2fed2a47b86dbaea001f80fa51aa2b98c48cfa"></a>RequestIdMax&#160;</td><td class="fielddoc"><p>The maximum value of the valid request ID. </p>
 </td></tr>
 </table>
+
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="ada1c2a710d730bcd6c220cba9ad9e280"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ada1c2a710d730bcd6c220cba9ad9e280">&#9670;&nbsp;</a></span>HttpErrorToString()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">CORE_API std::string olp::http::HttpErrorToString </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>http_status</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Converts the HTTP error status code to string. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">http_status</td><td>The HTTP status.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The readable string representation of http code. </dd></dl>
 
 </div>
 </div>

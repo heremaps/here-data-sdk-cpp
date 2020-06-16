@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.6.0</span>
+   &#160;<span id="projectnumber">1.7.0</span>
    </div>
   </td>
  </tr>
@@ -101,76 +101,84 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a793327efeee563f4b06e4ddf5ee88862"><td class="memItemLeft" align="right" valign="top"><a id="a793327efeee563f4b06e4ddf5ee88862"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a793327efeee563f4b06e4ddf5ee88862">SignInClientResponse</a> = <a class="el" href="classolp_1_1client_1_1ApiResponse.html">client::ApiResponse</a>&lt; <a class="el" href="classolp_1_1authentication_1_1SignInResult.html">SignInResult</a>, <a class="el" href="classolp_1_1authentication_1_1AuthenticationError.html">AuthenticationError</a> &gt;</td></tr>
-<tr class="memdesc:a793327efeee563f4b06e4ddf5ee88862"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines the callback signature when the client sign-in request is completed. <br /></td></tr>
-<tr class="separator:a793327efeee563f4b06e4ddf5ee88862"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac68865e58d4d7847679f9a0311d73240"><td class="memItemLeft" align="right" valign="top"><a id="ac68865e58d4d7847679f9a0311d73240"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#ac68865e58d4d7847679f9a0311d73240">SignInClientCallback</a> = std::function&lt; void(const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a793327efeee563f4b06e4ddf5ee88862">SignInClientResponse</a> &amp;response)&gt;</td></tr>
-<tr class="memdesc:ac68865e58d4d7847679f9a0311d73240"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called when the client sign-in request is completed. <br /></td></tr>
-<tr class="separator:ac68865e58d4d7847679f9a0311d73240"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5b9b2173f67006839317046b55ddef4c"><td class="memItemLeft" align="right" valign="top"><a id="a5b9b2173f67006839317046b55ddef4c"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a5b9b2173f67006839317046b55ddef4c">SignInUserResponse</a> = <a class="el" href="classolp_1_1client_1_1ApiResponse.html">client::ApiResponse</a>&lt; <a class="el" href="classolp_1_1authentication_1_1SignInUserResult.html">SignInUserResult</a>, <a class="el" href="classolp_1_1authentication_1_1AuthenticationError.html">AuthenticationError</a> &gt;</td></tr>
-<tr class="memdesc:a5b9b2173f67006839317046b55ddef4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines the callback signature when the user sign-in request is completed. <br /></td></tr>
-<tr class="separator:a5b9b2173f67006839317046b55ddef4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5d9164c924faf4a531bcff50fd47880a"><td class="memItemLeft" align="right" valign="top"><a id="a5d9164c924faf4a531bcff50fd47880a"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a> = std::function&lt; void(const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a5b9b2173f67006839317046b55ddef4c">SignInUserResponse</a> &amp;response)&gt;</td></tr>
-<tr class="memdesc:a5d9164c924faf4a531bcff50fd47880a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called when the user sign-in request is completed. <br /></td></tr>
-<tr class="separator:a5d9164c924faf4a531bcff50fd47880a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8536ebbdd05bdf5561a6e921f8983df1"><td class="memItemLeft" align="right" valign="top"><a id="a8536ebbdd05bdf5561a6e921f8983df1"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a8536ebbdd05bdf5561a6e921f8983df1">SignUpResponse</a> = <a class="el" href="classolp_1_1client_1_1ApiResponse.html">client::ApiResponse</a>&lt; <a class="el" href="classolp_1_1authentication_1_1SignUpResult.html">SignUpResult</a>, <a class="el" href="classolp_1_1authentication_1_1AuthenticationError.html">AuthenticationError</a> &gt;</td></tr>
-<tr class="memdesc:a8536ebbdd05bdf5561a6e921f8983df1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines the callback signature when the user sign-up request is completed. <br /></td></tr>
-<tr class="separator:a8536ebbdd05bdf5561a6e921f8983df1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8f205e44dde5e496dc905617ceda3312"><td class="memItemLeft" align="right" valign="top"><a id="a8f205e44dde5e496dc905617ceda3312"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a8f205e44dde5e496dc905617ceda3312">SignUpCallback</a> = std::function&lt; void(const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a8536ebbdd05bdf5561a6e921f8983df1">SignUpResponse</a> &amp;response)&gt;</td></tr>
-<tr class="memdesc:a8f205e44dde5e496dc905617ceda3312"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called when the user sign-up request is completed. <br /></td></tr>
-<tr class="separator:a8f205e44dde5e496dc905617ceda3312"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7dde0c4bd0972c19df28f9e9dc55545c"><td class="memItemLeft" align="right" valign="top"><a id="a7dde0c4bd0972c19df28f9e9dc55545c"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a7dde0c4bd0972c19df28f9e9dc55545c">SignOutUserResponse</a> = <a class="el" href="classolp_1_1client_1_1ApiResponse.html">client::ApiResponse</a>&lt; <a class="el" href="classolp_1_1authentication_1_1SignOutResult.html">SignOutResult</a>, <a class="el" href="classolp_1_1authentication_1_1AuthenticationError.html">AuthenticationError</a> &gt;</td></tr>
-<tr class="memdesc:a7dde0c4bd0972c19df28f9e9dc55545c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines the callback signature when the user sign-out request is completed. <br /></td></tr>
-<tr class="separator:a7dde0c4bd0972c19df28f9e9dc55545c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aee305db79791c1892063f18ed3adf615"><td class="memItemLeft" align="right" valign="top"><a id="aee305db79791c1892063f18ed3adf615"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#aee305db79791c1892063f18ed3adf615">SignOutUserCallback</a> = std::function&lt; void(const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a7dde0c4bd0972c19df28f9e9dc55545c">SignOutUserResponse</a> &amp;response)&gt;</td></tr>
-<tr class="memdesc:aee305db79791c1892063f18ed3adf615"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called when the user sign-out request is completed. <br /></td></tr>
-<tr class="separator:aee305db79791c1892063f18ed3adf615"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76f9da2cf6767414ab9d7f4683c15887"><td class="memItemLeft" align="right" valign="top"><a id="a76f9da2cf6767414ab9d7f4683c15887"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a76f9da2cf6767414ab9d7f4683c15887">SignInClientResponse</a> = <a class="el" href="namespaceolp_1_1authentication.html#ace1e8c385111244d29539e15a9660b43">Response</a>&lt; <a class="el" href="classolp_1_1authentication_1_1SignInResult.html">SignInResult</a> &gt;</td></tr>
+<tr class="memdesc:a76f9da2cf6767414ab9d7f4683c15887"><td class="mdescLeft">&#160;</td><td class="mdescRight">The client sign-in response type. <br /></td></tr>
+<tr class="separator:a76f9da2cf6767414ab9d7f4683c15887"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac3b31b8dbd7b424622df144db8ca25b"><td class="memItemLeft" align="right" valign="top"><a id="aac3b31b8dbd7b424622df144db8ca25b"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#aac3b31b8dbd7b424622df144db8ca25b">SignInClientCallback</a> = <a class="el" href="namespaceolp_1_1authentication.html#a9b9db631a1ce64eb5ec3ed8756c1e65f">Callback</a>&lt; <a class="el" href="classolp_1_1authentication_1_1SignInResult.html">SignInResult</a> &gt;</td></tr>
+<tr class="memdesc:aac3b31b8dbd7b424622df144db8ca25b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The callback type of the client sign-in response. <br /></td></tr>
+<tr class="separator:aac3b31b8dbd7b424622df144db8ca25b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3216d2b1e64eca2b0724adf9ffa83185"><td class="memItemLeft" align="right" valign="top"><a id="a3216d2b1e64eca2b0724adf9ffa83185"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a3216d2b1e64eca2b0724adf9ffa83185">SignInUserResponse</a> = <a class="el" href="namespaceolp_1_1authentication.html#ace1e8c385111244d29539e15a9660b43">Response</a>&lt; <a class="el" href="classolp_1_1authentication_1_1SignInUserResult.html">SignInUserResult</a> &gt;</td></tr>
+<tr class="memdesc:a3216d2b1e64eca2b0724adf9ffa83185"><td class="mdescLeft">&#160;</td><td class="mdescRight">The user sign-in response type. <br /></td></tr>
+<tr class="separator:a3216d2b1e64eca2b0724adf9ffa83185"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92c94cdb324c080fb4c74918a5b7dc90"><td class="memItemLeft" align="right" valign="top"><a id="a92c94cdb324c080fb4c74918a5b7dc90"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a92c94cdb324c080fb4c74918a5b7dc90">SignInUserCallback</a> = <a class="el" href="namespaceolp_1_1authentication.html#a9b9db631a1ce64eb5ec3ed8756c1e65f">Callback</a>&lt; <a class="el" href="classolp_1_1authentication_1_1SignInUserResult.html">SignInUserResult</a> &gt;</td></tr>
+<tr class="memdesc:a92c94cdb324c080fb4c74918a5b7dc90"><td class="mdescLeft">&#160;</td><td class="mdescRight">The callback type of the user sign-in response. <br /></td></tr>
+<tr class="separator:a92c94cdb324c080fb4c74918a5b7dc90"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a42a06aaa923ec45d9f1240cc2af380d2"><td class="memItemLeft" align="right" valign="top"><a id="a42a06aaa923ec45d9f1240cc2af380d2"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a42a06aaa923ec45d9f1240cc2af380d2">SignUpResponse</a> = <a class="el" href="namespaceolp_1_1authentication.html#ace1e8c385111244d29539e15a9660b43">Response</a>&lt; <a class="el" href="classolp_1_1authentication_1_1SignUpResult.html">SignUpResult</a> &gt;</td></tr>
+<tr class="memdesc:a42a06aaa923ec45d9f1240cc2af380d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The client sign-up response type. <br /></td></tr>
+<tr class="separator:a42a06aaa923ec45d9f1240cc2af380d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3ee13c216810f43f0c7a826b2c939c9"><td class="memItemLeft" align="right" valign="top"><a id="af3ee13c216810f43f0c7a826b2c939c9"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#af3ee13c216810f43f0c7a826b2c939c9">SignUpCallback</a> = <a class="el" href="namespaceolp_1_1authentication.html#a9b9db631a1ce64eb5ec3ed8756c1e65f">Callback</a>&lt; <a class="el" href="classolp_1_1authentication_1_1SignUpResult.html">SignUpResult</a> &gt;</td></tr>
+<tr class="memdesc:af3ee13c216810f43f0c7a826b2c939c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">The callback type of the user sign-up response. <br /></td></tr>
+<tr class="separator:af3ee13c216810f43f0c7a826b2c939c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a75f7a2c8d4687dbb9d62afa3fd023f6c"><td class="memItemLeft" align="right" valign="top"><a id="a75f7a2c8d4687dbb9d62afa3fd023f6c"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a75f7a2c8d4687dbb9d62afa3fd023f6c">SignOutUserResponse</a> = <a class="el" href="namespaceolp_1_1authentication.html#ace1e8c385111244d29539e15a9660b43">Response</a>&lt; <a class="el" href="classolp_1_1authentication_1_1SignOutResult.html">SignOutResult</a> &gt;</td></tr>
+<tr class="memdesc:a75f7a2c8d4687dbb9d62afa3fd023f6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The client sign-out response type. <br /></td></tr>
+<tr class="separator:a75f7a2c8d4687dbb9d62afa3fd023f6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f2a67946b8234fbeea376b992362f21"><td class="memItemLeft" align="right" valign="top"><a id="a7f2a67946b8234fbeea376b992362f21"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a7f2a67946b8234fbeea376b992362f21">SignOutUserCallback</a> = <a class="el" href="namespaceolp_1_1authentication.html#a9b9db631a1ce64eb5ec3ed8756c1e65f">Callback</a>&lt; <a class="el" href="classolp_1_1authentication_1_1SignOutResult.html">SignOutResult</a> &gt;</td></tr>
+<tr class="memdesc:a7f2a67946b8234fbeea376b992362f21"><td class="mdescLeft">&#160;</td><td class="mdescRight">The callback type of the user sign-out response. <br /></td></tr>
+<tr class="separator:a7f2a67946b8234fbeea376b992362f21"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a170af465b4d8beb4b1f71c86877013ac"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a170af465b4d8beb4b1f71c86877013ac">AuthenticationClient</a> (<a class="el" href="structolp_1_1authentication_1_1AuthenticationSettings.html">AuthenticationSettings</a> settings)</td></tr>
 <tr class="memdesc:a170af465b4d8beb4b1f71c86877013ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html" title="An API class of the C++ client that provides programmatic access to the HERE Account authentication s...">AuthenticationClient</a></code> instance.  <a href="#a170af465b4d8beb4b1f71c86877013ac">More...</a><br /></td></tr>
 <tr class="separator:a170af465b4d8beb4b1f71c86877013ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af0cb4e349fd8ebd510d4e162ee873da9"><td class="memItemLeft" align="right" valign="top"><a id="af0cb4e349fd8ebd510d4e162ee873da9"></a>
-virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#af0cb4e349fd8ebd510d4e162ee873da9">~AuthenticationClient</a> ()</td></tr>
-<tr class="memdesc:af0cb4e349fd8ebd510d4e162ee873da9"><td class="mdescLeft">&#160;</td><td class="mdescRight">A default destructor. <br /></td></tr>
-<tr class="separator:af0cb4e349fd8ebd510d4e162ee873da9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae3dc5d77286e8c8d081513599863a9f3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#ae3dc5d77286e8c8d081513599863a9f3">SignInClient</a> (<a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> credentials, <a class="el" href="structolp_1_1authentication_1_1AuthenticationClient_1_1SignInProperties.html">SignInProperties</a> properties, <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#ac68865e58d4d7847679f9a0311d73240">SignInClientCallback</a> callback)</td></tr>
-<tr class="memdesc:ae3dc5d77286e8c8d081513599863a9f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signs in with your HERE Account client credentials and reuests the client access token.  <a href="#ae3dc5d77286e8c8d081513599863a9f3">More...</a><br /></td></tr>
+<tr class="memitem:aae4b1ad75236c20128197c8ec192bc36"><td class="memItemLeft" align="right" valign="top"><a id="aae4b1ad75236c20128197c8ec192bc36"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>AuthenticationClient</b> (const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html">AuthenticationClient</a> &amp;)=delete</td></tr>
+<tr class="separator:aae4b1ad75236c20128197c8ec192bc36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa347eac9d30e3a2335c01b371678c9d"><td class="memItemLeft" align="right" valign="top"><a id="aaa347eac9d30e3a2335c01b371678c9d"></a>
+<a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html">AuthenticationClient</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html">AuthenticationClient</a> &amp;)=delete</td></tr>
+<tr class="separator:aaa347eac9d30e3a2335c01b371678c9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac1a519eb9b7a1f4ec3a84732f3d718e6"><td class="memItemLeft" align="right" valign="top"><a id="ac1a519eb9b7a1f4ec3a84732f3d718e6"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>AuthenticationClient</b> (<a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html">AuthenticationClient</a> &amp;&amp;) noexcept</td></tr>
+<tr class="separator:ac1a519eb9b7a1f4ec3a84732f3d718e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4ecf60e2716e5c215fa3f58943347408"><td class="memItemLeft" align="right" valign="top"><a id="a4ecf60e2716e5c215fa3f58943347408"></a>
+<a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html">AuthenticationClient</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (<a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html">AuthenticationClient</a> &amp;&amp;) noexcept</td></tr>
+<tr class="separator:a4ecf60e2716e5c215fa3f58943347408"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae3dc5d77286e8c8d081513599863a9f3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#ae3dc5d77286e8c8d081513599863a9f3">SignInClient</a> (<a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> credentials, <a class="el" href="structolp_1_1authentication_1_1AuthenticationClient_1_1SignInProperties.html">SignInProperties</a> properties, <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#aac3b31b8dbd7b424622df144db8ca25b">SignInClientCallback</a> callback)</td></tr>
+<tr class="memdesc:ae3dc5d77286e8c8d081513599863a9f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signs in with your HERE Account client credentials and requests the client access token.  <a href="#ae3dc5d77286e8c8d081513599863a9f3">More...</a><br /></td></tr>
 <tr class="separator:ae3dc5d77286e8c8d081513599863a9f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a84d362cf2a799d1b83f92ca7eaf13086"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a84d362cf2a799d1b83f92ca7eaf13086">SignInHereUser</a> (const <a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> &amp;credentials, const <a class="el" href="structolp_1_1authentication_1_1AuthenticationClient_1_1UserProperties.html">UserProperties</a> &amp;properties, const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a> &amp;callback)</td></tr>
+<tr class="memitem:a84d362cf2a799d1b83f92ca7eaf13086"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a84d362cf2a799d1b83f92ca7eaf13086">SignInHereUser</a> (const <a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> &amp;credentials, const <a class="el" href="structolp_1_1authentication_1_1AuthenticationClient_1_1UserProperties.html">UserProperties</a> &amp;properties, const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a92c94cdb324c080fb4c74918a5b7dc90">SignInUserCallback</a> &amp;callback)</td></tr>
 <tr class="memdesc:a84d362cf2a799d1b83f92ca7eaf13086"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signs in with the email and password that you used for registration via the sign-up API and requests your user access token.  <a href="#a84d362cf2a799d1b83f92ca7eaf13086">More...</a><br /></td></tr>
 <tr class="separator:a84d362cf2a799d1b83f92ca7eaf13086"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7e9cc3c00d95a4185c7a461e20b7ecbd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a7e9cc3c00d95a4185c7a461e20b7ecbd">SignInFederated</a> (<a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> credentials, std::string request_body, <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a> callback)</td></tr>
+<tr class="memitem:a7e9cc3c00d95a4185c7a461e20b7ecbd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a7e9cc3c00d95a4185c7a461e20b7ecbd">SignInFederated</a> (<a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> credentials, std::string request_body, <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a92c94cdb324c080fb4c74918a5b7dc90">SignInUserCallback</a> callback)</td></tr>
 <tr class="memdesc:a7e9cc3c00d95a4185c7a461e20b7ecbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signs in with a custom request body.  <a href="#a7e9cc3c00d95a4185c7a461e20b7ecbd">More...</a><br /></td></tr>
 <tr class="separator:a7e9cc3c00d95a4185c7a461e20b7ecbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab069876acf2fd840de7c1485ccf34b65"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#ab069876acf2fd840de7c1485ccf34b65">SignInFacebook</a> (const <a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> &amp;credentials, const <a class="el" href="structolp_1_1authentication_1_1AuthenticationClient_1_1FederatedProperties.html">FederatedProperties</a> &amp;properties, const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a> &amp;callback)</td></tr>
+<tr class="memitem:ab069876acf2fd840de7c1485ccf34b65"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#ab069876acf2fd840de7c1485ccf34b65">SignInFacebook</a> (const <a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> &amp;credentials, const <a class="el" href="structolp_1_1authentication_1_1AuthenticationClient_1_1FederatedProperties.html">FederatedProperties</a> &amp;properties, const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a92c94cdb324c080fb4c74918a5b7dc90">SignInUserCallback</a> &amp;callback)</td></tr>
 <tr class="memdesc:ab069876acf2fd840de7c1485ccf34b65"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signs in with your valid Facebook token and requests your user access token.  <a href="#ab069876acf2fd840de7c1485ccf34b65">More...</a><br /></td></tr>
 <tr class="separator:ab069876acf2fd840de7c1485ccf34b65"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab46c395c7c10b5041f1322850639d07c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#ab46c395c7c10b5041f1322850639d07c">SignInGoogle</a> (const <a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> &amp;credentials, const <a class="el" href="structolp_1_1authentication_1_1AuthenticationClient_1_1FederatedProperties.html">FederatedProperties</a> &amp;properties, const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a> &amp;callback)</td></tr>
+<tr class="memitem:ab46c395c7c10b5041f1322850639d07c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#ab46c395c7c10b5041f1322850639d07c">SignInGoogle</a> (const <a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> &amp;credentials, const <a class="el" href="structolp_1_1authentication_1_1AuthenticationClient_1_1FederatedProperties.html">FederatedProperties</a> &amp;properties, const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a92c94cdb324c080fb4c74918a5b7dc90">SignInUserCallback</a> &amp;callback)</td></tr>
 <tr class="memdesc:ab46c395c7c10b5041f1322850639d07c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signs in with your valid Google token and requests your user access token.  <a href="#ab46c395c7c10b5041f1322850639d07c">More...</a><br /></td></tr>
 <tr class="separator:ab46c395c7c10b5041f1322850639d07c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa14a1af08c2020e050e7c86b14cfb22d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#aa14a1af08c2020e050e7c86b14cfb22d">SignInArcGis</a> (const <a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> &amp;credentials, const <a class="el" href="structolp_1_1authentication_1_1AuthenticationClient_1_1FederatedProperties.html">FederatedProperties</a> &amp;properties, const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a> &amp;callback)</td></tr>
+<tr class="memitem:aa14a1af08c2020e050e7c86b14cfb22d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#aa14a1af08c2020e050e7c86b14cfb22d">SignInArcGis</a> (const <a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> &amp;credentials, const <a class="el" href="structolp_1_1authentication_1_1AuthenticationClient_1_1FederatedProperties.html">FederatedProperties</a> &amp;properties, const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a92c94cdb324c080fb4c74918a5b7dc90">SignInUserCallback</a> &amp;callback)</td></tr>
 <tr class="memdesc:aa14a1af08c2020e050e7c86b14cfb22d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signs in with your valid ArcGIS token and requests your user access token.  <a href="#aa14a1af08c2020e050e7c86b14cfb22d">More...</a><br /></td></tr>
 <tr class="separator:aa14a1af08c2020e050e7c86b14cfb22d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af6d8e8f4b0a2243e7eed33e91b350ce8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#af6d8e8f4b0a2243e7eed33e91b350ce8">SignInRefresh</a> (const <a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> &amp;credentials, const <a class="el" href="structolp_1_1authentication_1_1AuthenticationClient_1_1RefreshProperties.html">RefreshProperties</a> &amp;properties, const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a> &amp;callback)</td></tr>
+<tr class="memitem:af6d8e8f4b0a2243e7eed33e91b350ce8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#af6d8e8f4b0a2243e7eed33e91b350ce8">SignInRefresh</a> (const <a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> &amp;credentials, const <a class="el" href="structolp_1_1authentication_1_1AuthenticationClient_1_1RefreshProperties.html">RefreshProperties</a> &amp;properties, const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a92c94cdb324c080fb4c74918a5b7dc90">SignInUserCallback</a> &amp;callback)</td></tr>
 <tr class="memdesc:af6d8e8f4b0a2243e7eed33e91b350ce8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signs in with the refresh token.  <a href="#af6d8e8f4b0a2243e7eed33e91b350ce8">More...</a><br /></td></tr>
 <tr class="separator:af6d8e8f4b0a2243e7eed33e91b350ce8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a368dc1667036de547abd7242244a1404"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a368dc1667036de547abd7242244a1404">SignUpHereUser</a> (const <a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> &amp;credentials, const <a class="el" href="structolp_1_1authentication_1_1AuthenticationClient_1_1SignUpProperties.html">SignUpProperties</a> &amp;properties, const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a8f205e44dde5e496dc905617ceda3312">SignUpCallback</a> &amp;callback)</td></tr>
+<tr class="memitem:a368dc1667036de547abd7242244a1404"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a368dc1667036de547abd7242244a1404">SignUpHereUser</a> (const <a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> &amp;credentials, const <a class="el" href="structolp_1_1authentication_1_1AuthenticationClient_1_1SignUpProperties.html">SignUpProperties</a> &amp;properties, const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#af3ee13c216810f43f0c7a826b2c939c9">SignUpCallback</a> &amp;callback)</td></tr>
 <tr class="memdesc:a368dc1667036de547abd7242244a1404"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signs up with your user properties and creates a new HERE Account for using your email and password that are the login credentials.  <a href="#a368dc1667036de547abd7242244a1404">More...</a><br /></td></tr>
 <tr class="separator:a368dc1667036de547abd7242244a1404"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a819df97c7a19a20e13eda44900f8f908"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a819df97c7a19a20e13eda44900f8f908">AcceptTerms</a> (const <a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> &amp;credentials, const std::string &amp;reacceptance_token, const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a> &amp;callback)</td></tr>
+<tr class="memitem:a819df97c7a19a20e13eda44900f8f908"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a819df97c7a19a20e13eda44900f8f908">AcceptTerms</a> (const <a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> &amp;credentials, const std::string &amp;reacceptance_token, const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a92c94cdb324c080fb4c74918a5b7dc90">SignInUserCallback</a> &amp;callback)</td></tr>
 <tr class="memdesc:a819df97c7a19a20e13eda44900f8f908"><td class="mdescLeft">&#160;</td><td class="mdescRight">Accepts the terms and conditions.  <a href="#a819df97c7a19a20e13eda44900f8f908">More...</a><br /></td></tr>
 <tr class="separator:a819df97c7a19a20e13eda44900f8f908"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a949a094935663b36c3a7e13957ab5084"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a949a094935663b36c3a7e13957ab5084">SignOut</a> (const <a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> &amp;credentials, const std::string &amp;user_access_token, const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#aee305db79791c1892063f18ed3adf615">SignOutUserCallback</a> &amp;callback)</td></tr>
+<tr class="memitem:a949a094935663b36c3a7e13957ab5084"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a949a094935663b36c3a7e13957ab5084">SignOut</a> (const <a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html">AuthenticationCredentials</a> &amp;credentials, const std::string &amp;user_access_token, const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a7f2a67946b8234fbeea376b992362f21">SignOutUserCallback</a> &amp;callback)</td></tr>
 <tr class="memdesc:a949a094935663b36c3a7e13957ab5084"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signs out the user.  <a href="#a949a094935663b36c3a7e13957ab5084">More...</a><br /></td></tr>
 <tr class="separator:a949a094935663b36c3a7e13957ab5084"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec9758309419641ee563eb7507f82942"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#aec9758309419641ee563eb7507f82942">IntrospectApp</a> (std::string access_token, <a class="el" href="namespaceolp_1_1authentication.html#a41d51d80040d6fecf9e3fa1f64203e53">IntrospectAppCallback</a> callback)</td></tr>
@@ -240,7 +248,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a92c94cdb324c080fb4c74918a5b7dc90">SignInUserCallback</a> &amp;&#160;</td>
           <td class="paramname"><em>callback</em>&#160;</td>
         </tr>
         <tr>
@@ -374,7 +382,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a92c94cdb324c080fb4c74918a5b7dc90">SignInUserCallback</a> &amp;&#160;</td>
           <td class="paramname"><em>callback</em>&#160;</td>
         </tr>
         <tr>
@@ -420,7 +428,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#ac68865e58d4d7847679f9a0311d73240">SignInClientCallback</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#aac3b31b8dbd7b424622df144db8ca25b">SignInClientCallback</a>&#160;</td>
           <td class="paramname"><em>callback</em>&#160;</td>
         </tr>
         <tr>
@@ -431,7 +439,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
       </table>
 </div><div class="memdoc">
 
-<p>Signs in with your HERE Account client credentials and reuests the client access token. </p>
+<p>Signs in with your HERE Account client credentials and requests the client access token. </p>
 <p>The client access tokens cannot be refreshed. Instead request a new client access token using your client credentials.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -466,7 +474,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a92c94cdb324c080fb4c74918a5b7dc90">SignInUserCallback</a> &amp;&#160;</td>
           <td class="paramname"><em>callback</em>&#160;</td>
         </tr>
         <tr>
@@ -512,7 +520,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a92c94cdb324c080fb4c74918a5b7dc90">SignInUserCallback</a>&#160;</td>
           <td class="paramname"><em>callback</em>&#160;</td>
         </tr>
         <tr>
@@ -524,7 +532,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
 </div><div class="memdoc">
 
 <p>Signs in with a custom request body. </p>
-<p>This method provides the mechanism to authenticate with the HERE Platform using a custom request body. You should use this method when the HERE Platform authentication backend offers you individual parameters or endpoint.</p>
+<p>This method provides the mechanism to authenticate with the HERE platform using a custom request body. You should use this method when the HERE platform authentication backend offers you individual parameters or endpoint.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">credentials</td><td>The <code><a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html" title="The access key ID and access key secret that you got from the HERE Account as a part of the onboardin...">AuthenticationCredentials</a></code> instance. </td></tr>
@@ -558,7 +566,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a92c94cdb324c080fb4c74918a5b7dc90">SignInUserCallback</a> &amp;&#160;</td>
           <td class="paramname"><em>callback</em>&#160;</td>
         </tr>
         <tr>
@@ -604,7 +612,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a92c94cdb324c080fb4c74918a5b7dc90">SignInUserCallback</a> &amp;&#160;</td>
           <td class="paramname"><em>callback</em>&#160;</td>
         </tr>
         <tr>
@@ -650,7 +658,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a5d9164c924faf4a531bcff50fd47880a">SignInUserCallback</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a92c94cdb324c080fb4c74918a5b7dc90">SignInUserCallback</a> &amp;&#160;</td>
           <td class="paramname"><em>callback</em>&#160;</td>
         </tr>
         <tr>
@@ -696,7 +704,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#aee305db79791c1892063f18ed3adf615">SignOutUserCallback</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a7f2a67946b8234fbeea376b992362f21">SignOutUserCallback</a> &amp;&#160;</td>
           <td class="paramname"><em>callback</em>&#160;</td>
         </tr>
         <tr>
@@ -742,7 +750,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#a8f205e44dde5e496dc905617ceda3312">SignUpCallback</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#af3ee13c216810f43f0c7a826b2c939c9">SignUpCallback</a> &amp;&#160;</td>
           <td class="paramname"><em>callback</em>&#160;</td>
         </tr>
         <tr>
@@ -754,7 +762,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
 </div><div class="memdoc">
 
 <p>Signs up with your user properties and creates a new HERE Account for using your email and password that are the login credentials. </p>
-<p>The HERE user is uniquely identified by the user ID that is consistent across the other HERE services, regardless of the authentication method used.</p>
+<p>The HERE user is uniquely identified by the user ID that is consistent across the other HERE platform Services, regardless of the authentication method used.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">credentials</td><td>The <code><a class="el" href="classolp_1_1authentication_1_1AuthenticationCredentials.html" title="The access key ID and access key secret that you got from the HERE Account as a part of the onboardin...">AuthenticationCredentials</a></code> instance. </td></tr>

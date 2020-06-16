@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['_7eauthenticationclient',['~AuthenticationClient',['../classolp_1_1authentication_1_1AuthenticationClient.html#af0cb4e349fd8ebd510d4e162ee873da9',1,'olp::authentication::AuthenticationClient']]],
   ['_7escope',['~Scope',['../classolp_1_1context_1_1Context_1_1Scope.html#a18206a5365b625bf5abf991fbcf51a1c',1,'olp::context::Context::Scope']]],
   ['_7esigninresult',['~SignInResult',['../classolp_1_1authentication_1_1SignInResult.html#a9144259a44ccfa0b214771f03d16f945',1,'olp::authentication::SignInResult']]],
   ['_7esigninuserresult',['~SignInUserResult',['../classolp_1_1authentication_1_1SignInUserResult.html#a6c9f025df8435ae5d6e0adc8eeb764f3',1,'olp::authentication::SignInUserResult']]],

@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.6.0</span>
+   &#160;<span id="projectnumber">1.7.0</span>
    </div>
   </td>
  </tr>
@@ -74,7 +74,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Gets data from a volatile layer of the Open Location Platform (OLP).  
+<p>Gets data from a volatile layer of the HERE platform.  
  <a href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="olp-cpp-sdk-dataservice-read_2include_2olp_2dataservice_2read_2VolatileLayerClient_8h_source.html">VolatileLayerClient.h</a>&gt;</code></p>
@@ -82,7 +82,7 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ab4e764c5b5ff4c5f156edc5b7efeabe7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html#ab4e764c5b5ff4c5f156edc5b7efeabe7">VolatileLayerClient</a> (<a class="el" href="classolp_1_1client_1_1HRN.html">client::HRN</a> catalog, std::string layer_id, <a class="el" href="structolp_1_1client_1_1OlpClientSettings.html">client::OlpClientSettings</a> settings)</td></tr>
-<tr class="memdesc:ab4e764c5b5ff4c5f156edc5b7efeabe7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html" title="Gets data from a volatile layer of the Open Location Platform (OLP).">VolatileLayerClient</a></code> instance.  <a href="#ab4e764c5b5ff4c5f156edc5b7efeabe7">More...</a><br /></td></tr>
+<tr class="memdesc:ab4e764c5b5ff4c5f156edc5b7efeabe7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html" title="Gets data from a volatile layer of the HERE platform.">VolatileLayerClient</a></code> instance.  <a href="#ab4e764c5b5ff4c5f156edc5b7efeabe7">More...</a><br /></td></tr>
 <tr class="separator:ab4e764c5b5ff4c5f156edc5b7efeabe7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8288d92d0260a904e22cdd490e803a5e"><td class="memItemLeft" align="right" valign="top"><a id="a8288d92d0260a904e22cdd490e803a5e"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html#a8288d92d0260a904e22cdd490e803a5e">VolatileLayerClient</a> (const <a class="el" href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html">VolatileLayerClient</a> &amp;other)=delete</td></tr>
@@ -126,7 +126,7 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:af198fd132d849208f11549ab980af930"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Gets data from a volatile layer of the Open Location Platform (OLP). </p>
+<div class="textblock"><p>Gets data from a volatile layer of the HERE platform. </p>
 <p>The volatile layer is a key/value store. Values for a given key can change, and only the latest value is retrievable. Therefore, you can only get the latest published data from the volatile layer.</p>
 <p>Example: </p><div class="fragment"><div class="line"><span class="keyword">auto</span> task_scheduler =</div><div class="line">   <a class="code" href="classolp_1_1client_1_1OlpClientSettingsFactory.html#a67f547a761b34910c5b60f8b6e1233c1">olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler</a>(1u);</div><div class="line"><span class="keyword">auto</span> http_client = <a class="code" href="classolp_1_1client_1_1OlpClientSettingsFactory.html#a2d7121fa1c55ec4c339f3378f7078dd2">olp::client::</a></div><div class="line"><a class="code" href="classolp_1_1client_1_1OlpClientSettingsFactory.html#a2d7121fa1c55ec4c339f3378f7078dd2">   OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler</a>();</div><div class="line"></div><div class="line"><a class="code" href="structolp_1_1authentication_1_1Settings.html">olp::authentication::Settings</a> settings{<span class="stringliteral">&quot;Your.Key.Id&quot;</span>, <span class="stringliteral">&quot;Your.Key.Secret&quot;</span>};</div><div class="line">settings.<a class="code" href="structolp_1_1authentication_1_1Settings.html#a613b8ae683f2288b6b03b3692f1485a7">task_scheduler</a> = task_scheduler;</div><div class="line">settings.network_request_handler = http_client;</div><div class="line"></div><div class="line"><a class="code" href="structolp_1_1client_1_1AuthenticationSettings.html">olp::client::AuthenticationSettings</a> auth_settings;</div><div class="line">auth_settings.<a class="code" href="structolp_1_1client_1_1AuthenticationSettings.html#a8a4240addea5ddd967ed14f0b9858dac">provider</a> =</div><div class="line">    <a class="code" href="namespaceolp_1_1authentication.html#add9e77c777aa9984099a62d7ca94ba5c">olp::authentication::TokenProviderDefault</a>(std::move(settings));</div><div class="line"></div><div class="line"><span class="keyword">auto</span> client_settings = <a class="code" href="structolp_1_1client_1_1OlpClientSettings.html">olp::client::OlpClientSettings</a>();</div><div class="line">client_settings.authentication_settings = auth_settings;</div><div class="line">client_settings.task_scheduler = std::move(task_scheduler);</div><div class="line">client_settings.network_request_handler = std::move(http_client);</div><div class="line"></div><div class="line"><a class="code" href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html#ab4e764c5b5ff4c5f156edc5b7efeabe7">VolatileLayerClient</a> client{<span class="stringliteral">&quot;hrn:here:data:::your-catalog-hrn&quot;</span>, <span class="stringliteral">&quot;your-layer-id&quot;</span>, client_settings};</div><div class="line"><span class="keyword">auto</span> callback = [](<a class="code" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse&lt;olp::model::Data, olp::client::ApiError&gt;</a> response) {};</div><div class="line"><span class="keyword">auto</span> request = DataRequest().WithPartitionId(<span class="stringliteral">&quot;269&quot;</span>);</div><div class="line"><span class="keyword">auto</span> token = client.GetData(request, callback);</div></div><!-- fragment --><dl class="section see"><dt>See also</dt><dd>The <a href="https://developer.here.com/olp/documentation/data-user-guide/portal/layers/layers.html#volatile-layers">volatile layer</a> section in the Data User Guide. </dd></dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
@@ -162,7 +162,7 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Creates the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html" title="Gets data from a volatile layer of the Open Location Platform (OLP).">VolatileLayerClient</a></code> instance. </p>
+<p>Creates the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html" title="Gets data from a volatile layer of the HERE platform.">VolatileLayerClient</a></code> instance. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">catalog</td><td>The HERE Resource Name (HRN) of the catalog that contains the volatile layer from which you want to get data. </td></tr>

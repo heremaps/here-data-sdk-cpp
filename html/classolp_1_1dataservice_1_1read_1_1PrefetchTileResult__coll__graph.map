@@ -1,5 +1,0 @@
-<map id="olp::dataservice::read::PrefetchTileResult" name="olp::dataservice::read::PrefetchTileResult">
-<area shape="rect" id="node1" title="Represents the result of a prefetch operation." alt="" coords="295,46,457,87"/>
-<area shape="rect" id="node2" href="$classolp_1_1client_1_1ApiResponse.html" title=" " alt="" coords="5,5,183,61"/>
-<area shape="rect" id="node3" href="$classolp_1_1geo_1_1TileKey.html" title="The TileKey instances used to address a tile in a quad tree." alt="" coords="29,85,159,112"/>
-</map>

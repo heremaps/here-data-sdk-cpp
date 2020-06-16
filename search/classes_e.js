@@ -5,6 +5,7 @@ var searchData=
   ['partitions',['Partitions',['../classolp_1_1dataservice_1_1read_1_1model_1_1Partitions.html',1,'olp::dataservice::read::model']]],
   ['partitionsrequest',['PartitionsRequest',['../classolp_1_1dataservice_1_1read_1_1PartitionsRequest.html',1,'olp::dataservice::read']]],
   ['pendingrequests',['PendingRequests',['../classolp_1_1client_1_1PendingRequests.html',1,'olp::client']]],
+  ['permission',['Permission',['../classolp_1_1authentication_1_1Permission.html',1,'olp::authentication']]],
   ['prefetchtilenoerror',['PrefetchTileNoError',['../classolp_1_1dataservice_1_1read_1_1PrefetchTileNoError.html',1,'olp::dataservice::read']]],
   ['prefetchtileresult',['PrefetchTileResult',['../classolp_1_1dataservice_1_1read_1_1PrefetchTileResult.html',1,'olp::dataservice::read']]],
   ['prefetchtilesrequest',['PrefetchTilesRequest',['../classolp_1_1dataservice_1_1read_1_1PrefetchTilesRequest.html',1,'olp::dataservice::read']]],

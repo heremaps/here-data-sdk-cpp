@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.6.0</span>
+   &#160;<span id="projectnumber">1.7.0</span>
    </div>
   </td>
  </tr>
@@ -75,7 +75,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Client responsible for writing data to an OLP stream layer.  
+<p>Client responsible for writing data to a HERE platform stream layer.  
  <a href="classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="olp-cpp-sdk-dataservice-write_2include_2olp_2dataservice_2write_2StreamLayerClient_8h_source.html">StreamLayerClient.h</a>&gt;</code></p>
@@ -92,16 +92,16 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>FlushCallback</b> = 
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:addcf7a2cc14548d28424be8fc264e9f6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html#addcf7a2cc14548d28424be8fc264e9f6">StreamLayerClient</a> (<a class="el" href="classolp_1_1client_1_1HRN.html">client::HRN</a> catalog, <a class="el" href="structolp_1_1dataservice_1_1write_1_1StreamLayerClientSettings.html">StreamLayerClientSettings</a> client_settings, <a class="el" href="structolp_1_1client_1_1OlpClientSettings.html">client::OlpClientSettings</a> settings)</td></tr>
-<tr class="memdesc:addcf7a2cc14548d28424be8fc264e9f6"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html" title="Client responsible for writing data to an OLP stream layer.">StreamLayerClient</a> Constructor.  <a href="#addcf7a2cc14548d28424be8fc264e9f6">More...</a><br /></td></tr>
+<tr class="memdesc:addcf7a2cc14548d28424be8fc264e9f6"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html" title="Client responsible for writing data to a HERE platform stream layer.">StreamLayerClient</a> Constructor.  <a href="#addcf7a2cc14548d28424be8fc264e9f6">More...</a><br /></td></tr>
 <tr class="separator:addcf7a2cc14548d28424be8fc264e9f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a529daa75598f61ace231f9ac5657ef8e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html#a529daa75598f61ace231f9ac5657ef8e">CancelPendingRequests</a> ()</td></tr>
 <tr class="memdesc:a529daa75598f61ace231f9ac5657ef8e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancels all the ongoing publish operations that this client started.  <a href="#a529daa75598f61ace231f9ac5657ef8e">More...</a><br /></td></tr>
 <tr class="separator:a529daa75598f61ace231f9ac5657ef8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1976f797156b3bb28e84fa1e45b3be37"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellableFuture.html">olp::client::CancellableFuture</a>&lt; <a class="el" href="classolp_1_1client_1_1ApiResponse.html">PublishDataResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html#a1976f797156b3bb28e84fa1e45b3be37">PublishData</a> (<a class="el" href="classolp_1_1dataservice_1_1write_1_1model_1_1PublishDataRequest.html">model::PublishDataRequest</a> request)</td></tr>
-<tr class="memdesc:a1976f797156b3bb28e84fa1e45b3be37"><td class="mdescLeft">&#160;</td><td class="mdescRight">Publishes data to an OLP stream layer.  <a href="#a1976f797156b3bb28e84fa1e45b3be37">More...</a><br /></td></tr>
+<tr class="memdesc:a1976f797156b3bb28e84fa1e45b3be37"><td class="mdescLeft">&#160;</td><td class="mdescRight">Publishes data to a stream layer.  <a href="#a1976f797156b3bb28e84fa1e45b3be37">More...</a><br /></td></tr>
 <tr class="separator:a1976f797156b3bb28e84fa1e45b3be37"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adcfbda31f0c8f9a3d2d2cd18e280383c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">olp::client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html#adcfbda31f0c8f9a3d2d2cd18e280383c">PublishData</a> (<a class="el" href="classolp_1_1dataservice_1_1write_1_1model_1_1PublishDataRequest.html">model::PublishDataRequest</a> request, PublishDataCallback callback)</td></tr>
-<tr class="memdesc:adcfbda31f0c8f9a3d2d2cd18e280383c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Publishes data to an OLP stream layer.  <a href="#adcfbda31f0c8f9a3d2d2cd18e280383c">More...</a><br /></td></tr>
+<tr class="memdesc:adcfbda31f0c8f9a3d2d2cd18e280383c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Publishes data to a stream layer.  <a href="#adcfbda31f0c8f9a3d2d2cd18e280383c">More...</a><br /></td></tr>
 <tr class="separator:adcfbda31f0c8f9a3d2d2cd18e280383c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a980058385b3fad16cc5793cae2e652b8"><td class="memItemLeft" align="right" valign="top">boost::optional&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html#a980058385b3fad16cc5793cae2e652b8">Queue</a> (<a class="el" href="classolp_1_1dataservice_1_1write_1_1model_1_1PublishDataRequest.html">model::PublishDataRequest</a> request)</td></tr>
 <tr class="memdesc:a980058385b3fad16cc5793cae2e652b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enqueues a PublishDataRequest that is sent over the wire.  <a href="#a980058385b3fad16cc5793cae2e652b8">More...</a><br /></td></tr>
@@ -113,14 +113,14 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a80d7502a2aafd8dcd67496cf33756984"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flush PublishDataRequests that were queued via the Queue API.  <a href="#a80d7502a2aafd8dcd67496cf33756984">More...</a><br /></td></tr>
 <tr class="separator:a80d7502a2aafd8dcd67496cf33756984"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a83cc7e5b4572dfcc15dd2b53e953adc2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellableFuture.html">olp::client::CancellableFuture</a>&lt; <a class="el" href="classolp_1_1client_1_1ApiResponse.html">PublishSdiiResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html#a83cc7e5b4572dfcc15dd2b53e953adc2">PublishSdii</a> (<a class="el" href="classolp_1_1dataservice_1_1write_1_1model_1_1PublishSdiiRequest.html">model::PublishSdiiRequest</a> request)</td></tr>
-<tr class="memdesc:a83cc7e5b4572dfcc15dd2b53e953adc2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends a list of SDII messages to an OLP stream layer. The SDII message data must be in the SDII MessageList protobuf format. For more information, please see the OLP Sensor Data Ingestion Interface documentation and schemas.  <a href="#a83cc7e5b4572dfcc15dd2b53e953adc2">More...</a><br /></td></tr>
+<tr class="memdesc:a83cc7e5b4572dfcc15dd2b53e953adc2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends a list of SDII messages to a stream layer. The SDII message data must be in the SDII MessageList protobuf format. For more information, please see the HERE platform Sensor Data Ingestion Interface documentation and schemas.  <a href="#a83cc7e5b4572dfcc15dd2b53e953adc2">More...</a><br /></td></tr>
 <tr class="separator:a83cc7e5b4572dfcc15dd2b53e953adc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a42604d549f36f18f3ebbc4b736672afd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">olp::client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html#a42604d549f36f18f3ebbc4b736672afd">PublishSdii</a> (<a class="el" href="classolp_1_1dataservice_1_1write_1_1model_1_1PublishSdiiRequest.html">model::PublishSdiiRequest</a> request, PublishSdiiCallback callback)</td></tr>
-<tr class="memdesc:a42604d549f36f18f3ebbc4b736672afd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends a list of SDII messages to an OLP stream layer. The SDII message data must be in the SDII MessageList protobuf format. For more information, please see the OLP Sensor Data Ingestion Interface documentation and schemas.  <a href="#a42604d549f36f18f3ebbc4b736672afd">More...</a><br /></td></tr>
+<tr class="memdesc:a42604d549f36f18f3ebbc4b736672afd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends a list of SDII messages to a stream layer. The SDII message data must be in the SDII MessageList protobuf format. For more information, please see the HERE platform Sensor Data Ingestion Interface documentation and schemas.  <a href="#a42604d549f36f18f3ebbc4b736672afd">More...</a><br /></td></tr>
 <tr class="separator:a42604d549f36f18f3ebbc4b736672afd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Client responsible for writing data to an OLP stream layer. </p>
+<div class="textblock"><p>Client responsible for writing data to a HERE platform stream layer. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="addcf7a2cc14548d28424be8fc264e9f6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#addcf7a2cc14548d28424be8fc264e9f6">&#9670;&nbsp;</a></span>StreamLayerClient()</h2>
@@ -154,12 +154,12 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p><a class="el" href="classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html" title="Client responsible for writing data to an OLP stream layer.">StreamLayerClient</a> Constructor. </p>
+<p><a class="el" href="classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html" title="Client responsible for writing data to a HERE platform stream layer.">StreamLayerClient</a> Constructor. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">catalog</td><td>OLP HRN that specifies the catalog to which this client writes. </td></tr>
-    <tr><td class="paramname">client_settings</td><td><code><a class="el" href="classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html" title="Client responsible for writing data to an OLP stream layer.">StreamLayerClient</a></code> settings used to control the behaviour of flush mechanism and other <a class="el" href="classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html" title="Client responsible for writing data to an OLP stream layer.">StreamLayerClient</a> specific properties. </td></tr>
-    <tr><td class="paramname">settings</td><td>Client settings used to control behaviour of this <a class="el" href="classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html" title="Client responsible for writing data to an OLP stream layer.">StreamLayerClient</a> instance. </td></tr>
+    <tr><td class="paramname">catalog</td><td>The HRN that specifies the catalog to which this client writes. </td></tr>
+    <tr><td class="paramname">client_settings</td><td><code><a class="el" href="classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html" title="Client responsible for writing data to a HERE platform stream layer.">StreamLayerClient</a></code> settings used to control the behaviour of flush mechanism and other <a class="el" href="classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html" title="Client responsible for writing data to a HERE platform stream layer.">StreamLayerClient</a> specific properties. </td></tr>
+    <tr><td class="paramname">settings</td><td>Client settings used to control behaviour of this <a class="el" href="classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html" title="Client responsible for writing data to a HERE platform stream layer.">StreamLayerClient</a> instance. </td></tr>
   </table>
   </dd>
 </dl>
@@ -268,8 +268,8 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Publishes data to an OLP stream layer. </p>
-<dl class="section note"><dt>Note</dt><dd>Content-Type for this request is implicitly based on the layer metadata for the target layer on OLP. </dd></dl>
+<p>Publishes data to a stream layer. </p>
+<dl class="section note"><dt>Note</dt><dd>Content-Type for this request is implicitly based on the layer metadata for the target layer on the HERE platform. </dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">request</td><td>PublishDataRequest object that represents the parameters for this PublishData call. </td></tr>
@@ -306,8 +306,8 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Publishes data to an OLP stream layer. </p>
-<dl class="section note"><dt>Note</dt><dd>Content-Type for this request is set implicitly based on the layer metadata for the target layer on OLP. </dd></dl>
+<p>Publishes data to a stream layer. </p>
+<dl class="section note"><dt>Note</dt><dd>Content-Type for this request is set implicitly based on the layer metadata for the target layer on the HERE platform. </dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">request</td><td>PublishDataRequest object that represents the parameters for this PublishData call. </td></tr>
@@ -335,7 +335,7 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Sends a list of SDII messages to an OLP stream layer. The SDII message data must be in the SDII MessageList protobuf format. For more information, please see the OLP Sensor Data Ingestion Interface documentation and schemas. </p>
+<p>Sends a list of SDII messages to a stream layer. The SDII message data must be in the SDII MessageList protobuf format. For more information, please see the HERE platform Sensor Data Ingestion Interface documentation and schemas. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">request</td><td>PublishSdiiRequest object that represents the parameters for this PublishSdii call. </td></tr>
@@ -372,7 +372,7 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Sends a list of SDII messages to an OLP stream layer. The SDII message data must be in the SDII MessageList protobuf format. For more information, please see the OLP Sensor Data Ingestion Interface documentation and schemas. </p>
+<p>Sends a list of SDII messages to a stream layer. The SDII message data must be in the SDII MessageList protobuf format. For more information, please see the HERE platform Sensor Data Ingestion Interface documentation and schemas. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">request</td><td>PublishSdiiRequest object that represents the parameters for this PublishSdii call. </td></tr>

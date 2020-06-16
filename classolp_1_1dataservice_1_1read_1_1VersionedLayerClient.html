@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.6.0</span>
+   &#160;<span id="projectnumber">1.7.0</span>
    </div>
   </td>
  </tr>
@@ -74,7 +74,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Gets data from a versioned layer of the Open Location Platform (OLP).  
+<p>Gets data from a versioned layer of the HERE platform.  
  <a href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="olp-cpp-sdk-dataservice-read_2include_2olp_2dataservice_2read_2VersionedLayerClient_8h_source.html">VersionedLayerClient.h</a>&gt;</code></p>
@@ -109,6 +109,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:adf666a44ee5b5c5661ef1c2e9a50931f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellableFuture.html">client::CancellableFuture</a>&lt; <a class="el" href="classolp_1_1client_1_1ApiResponse.html">DataResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html#adf666a44ee5b5c5661ef1c2e9a50931f">GetData</a> (<a class="el" href="classolp_1_1dataservice_1_1read_1_1TileRequest.html">TileRequest</a> request)</td></tr>
 <tr class="memdesc:adf666a44ee5b5c5661ef1c2e9a50931f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetches data asynchronously using a TileKey.  <a href="#adf666a44ee5b5c5661ef1c2e9a50931f">More...</a><br /></td></tr>
 <tr class="separator:adf666a44ee5b5c5661ef1c2e9a50931f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b21cb4383119c122decbb2c54d590f0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html#a2b21cb4383119c122decbb2c54d590f0">GetAggregatedData</a> (<a class="el" href="classolp_1_1dataservice_1_1read_1_1TileRequest.html">TileRequest</a> request, AggregatedDataResponseCallback callback)</td></tr>
+<tr class="memdesc:a2b21cb4383119c122decbb2c54d590f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetches data of a tile or its closest ancestor.  <a href="#a2b21cb4383119c122decbb2c54d590f0">More...</a><br /></td></tr>
+<tr class="separator:a2b21cb4383119c122decbb2c54d590f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3357d9b5fb86ef6b6b5c9964b8646e1c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellableFuture.html">client::CancellableFuture</a>&lt; <a class="el" href="classolp_1_1client_1_1ApiResponse.html">AggregatedDataResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html#a3357d9b5fb86ef6b6b5c9964b8646e1c">GetAggregatedData</a> (<a class="el" href="classolp_1_1dataservice_1_1read_1_1TileRequest.html">TileRequest</a> request)</td></tr>
+<tr class="memdesc:a3357d9b5fb86ef6b6b5c9964b8646e1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetches data of a tile or its closest ancestor.  <a href="#a3357d9b5fb86ef6b6b5c9964b8646e1c">More...</a><br /></td></tr>
+<tr class="separator:a3357d9b5fb86ef6b6b5c9964b8646e1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa03f42fc70e94e445121204898a38ade"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html#aa03f42fc70e94e445121204898a38ade">GetPartitions</a> (<a class="el" href="classolp_1_1dataservice_1_1read_1_1PartitionsRequest.html">PartitionsRequest</a> partitions_request, PartitionsResponseCallback callback)</td></tr>
 <tr class="memdesc:aa03f42fc70e94e445121204898a38ade"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetches a list of partitions of the given generic layer asynchronously.  <a href="#aa03f42fc70e94e445121204898a38ade">More...</a><br /></td></tr>
 <tr class="separator:aa03f42fc70e94e445121204898a38ade"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -129,7 +135,7 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a7f82d4b1e3b1e3ada308c21b4396f60d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Gets data from a versioned layer of the Open Location Platform (OLP). </p>
+<div class="textblock"><p>Gets data from a versioned layer of the HERE platform. </p>
 <p>The versioned layer stores slowly-changing data that must remain logically consistent with other layers in a catalog. You can request any data version from the versioned layer. When you request a particular version of data from the versioned layer, the partition you receive in the response may have a lower version number than you requested. The version of a layer or partition represents the catalog version in which the layer or partition was last updated.</p>
 <dl class="section note"><dt>Note</dt><dd>If the catalog version is not specified, the latest version is used.</dd></dl>
 <p>An example with the catalog version provided that saves one network request: </p><div class="fragment"><div class="line"><span class="keyword">auto</span> task_scheduler =</div><div class="line">   <a class="code" href="classolp_1_1client_1_1OlpClientSettingsFactory.html#a67f547a761b34910c5b60f8b6e1233c1">olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler</a>(1u);</div><div class="line"><span class="keyword">auto</span> http_client = <a class="code" href="classolp_1_1client_1_1OlpClientSettingsFactory.html#a2d7121fa1c55ec4c339f3378f7078dd2">olp::client::</a></div><div class="line"><a class="code" href="classolp_1_1client_1_1OlpClientSettingsFactory.html#a2d7121fa1c55ec4c339f3378f7078dd2">   OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler</a>();</div><div class="line"></div><div class="line"><a class="code" href="structolp_1_1authentication_1_1Settings.html">olp::authentication::Settings</a> settings{<span class="stringliteral">&quot;Your.Key.Id&quot;</span>, <span class="stringliteral">&quot;Your.Key.Secret&quot;</span>};</div><div class="line">settings.<a class="code" href="structolp_1_1authentication_1_1Settings.html#a613b8ae683f2288b6b03b3692f1485a7">task_scheduler</a> = task_scheduler;</div><div class="line">settings.network_request_handler = http_client;</div><div class="line"></div><div class="line"><a class="code" href="structolp_1_1client_1_1AuthenticationSettings.html">olp::client::AuthenticationSettings</a> auth_settings;</div><div class="line">auth_settings.<a class="code" href="structolp_1_1client_1_1AuthenticationSettings.html#a8a4240addea5ddd967ed14f0b9858dac">provider</a> =</div><div class="line">    <a class="code" href="namespaceolp_1_1authentication.html#add9e77c777aa9984099a62d7ca94ba5c">olp::authentication::TokenProviderDefault</a>(std::move(settings));</div><div class="line"></div><div class="line"><span class="keyword">auto</span> client_settings = <a class="code" href="structolp_1_1client_1_1OlpClientSettings.html">olp::client::OlpClientSettings</a>();</div><div class="line">client_settings.authentication_settings = auth_settings;</div><div class="line">client_settings.task_scheduler = std::move(task_scheduler);</div><div class="line">client_settings.network_request_handler = std::move(http_client);</div><div class="line"></div><div class="line"><a class="code" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html#a381243e4a532261e6292b672eb492841">VersionedLayerClient</a> client{<span class="stringliteral">&quot;hrn:here:data:::your-catalog-hrn&quot;</span>, <span class="stringliteral">&quot;your-layer-id&quot;</span>, <span class="stringliteral">&quot;catalog-version&quot;</span>, client_settings};</div><div class="line"><span class="keyword">auto</span> callback = [](<a class="code" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse&lt;olp::model::Data, olp::client::ApiError&gt;</a> response) {};</div><div class="line"><span class="keyword">auto</span> request = DataRequest().WithPartitionId(<span class="stringliteral">&quot;269&quot;</span>);</div><div class="line"><span class="keyword">auto</span> token = client.GetData(request, callback);</div></div><!-- fragment --><dl class="section see"><dt>See also</dt><dd>The <a href="https://developer.here.com/olp/documentation/data-user-guide/portal/layers/layers.html#versioned-layers">versioned layer</a> section in the Data User Guide. </dd></dl>
@@ -151,6 +157,78 @@ Public Member Functions</h2></td></tr>
 
 <p>Cancels all active and pending requests. </p>
 <dl class="section return"><dt>Returns</dt><dd>True if the request is successful; false otherwise. </dd></dl>
+
+</div>
+</div>
+<a id="a2b21cb4383119c122decbb2c54d590f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2b21cb4383119c122decbb2c54d590f0">&#9670;&nbsp;</a></span>GetAggregatedData() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a> olp::dataservice::read::VersionedLayerClient::GetAggregatedData </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1dataservice_1_1read_1_1TileRequest.html">TileRequest</a>&#160;</td>
+          <td class="paramname"><em>request</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">AggregatedDataResponseCallback&#160;</td>
+          <td class="paramname"><em>callback</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Fetches data of a tile or its closest ancestor. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">request</td><td>The <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1TileRequest.html" title="Encapsulates the fields required to request tile for the given key.">TileRequest</a></code> instance that contains a complete set of request parameters. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>Note</dt><dd>CacheWithUpdate fetch option is not supported. </dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">callback</td><td>The <code>AggregatedDataResponseCallback</code> object that is invoked if the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1AggregatedDataResult.html" title="Represents the result of a aggregated data operation.">AggregatedDataResult</a></code> object is available or an error is encountered.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A token that can be used to cancel this request. </dd></dl>
+
+</div>
+</div>
+<a id="a3357d9b5fb86ef6b6b5c9964b8646e1c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3357d9b5fb86ef6b6b5c9964b8646e1c">&#9670;&nbsp;</a></span>GetAggregatedData() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1CancellableFuture.html">client::CancellableFuture</a>&lt;<a class="el" href="classolp_1_1client_1_1ApiResponse.html">AggregatedDataResponse</a>&gt; olp::dataservice::read::VersionedLayerClient::GetAggregatedData </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1dataservice_1_1read_1_1TileRequest.html">TileRequest</a>&#160;</td>
+          <td class="paramname"><em>request</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Fetches data of a tile or its closest ancestor. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">request</td><td>The <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1TileRequest.html" title="Encapsulates the fields required to request tile for the given key.">TileRequest</a></code> instance that contains a complete set of request parameters. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>Note</dt><dd>CacheWithUpdate fetch option is not supported.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><code>CancellableFuture</code> that contains the <code>AggregatedDataResponse</code> instance or an error. You can also use <code>CancellableFuture</code> to cancel this request. </dd></dl>
 
 </div>
 </div>
@@ -181,14 +259,14 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Fetches data asynchronously using a partition ID or data handle. </p>
-<p>If the specified partition ID or data handle cannot be found in the layer, the callback is invoked with the empty <code>DataResponse</code> object (the <code>nullptr</code> result and an error). If a partition ID or data handle is not set in the request, the callback is invoked with the following error: <code>ErrorCode::InvalidRequest</code>. If the version is not specified, an additional request to OLP is created to retrieve the latest available partition version.</p>
+<p>If the specified partition ID or data handle cannot be found in the layer, the callback is invoked with the empty <code>DataResponse</code> object (the <code>nullptr</code> result and an error). If a partition ID or data handle is not set in the request, the callback is invoked with the following error: <code>ErrorCode::InvalidRequest</code>. If the version is not specified, an additional request to the HERE platform is created to retrieve the latest available partition version.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">data_request</td><td>The <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1DataRequest.html" title="Encapsulates the fields required to request data for the given catalog, layer, and partition.">DataRequest</a></code> instance that contains a complete set of request parameters. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>CacheWithUpdate fetch option is not suported. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>CacheWithUpdate fetch option is not supported. </dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">callback</td><td>The <code>DataResponseCallback</code> object that is invoked if the <code>DataResult</code> object is available or an error is encountered.</td></tr>
@@ -223,7 +301,7 @@ Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>CacheWithUpdate fetch option is not suported.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>CacheWithUpdate fetch option is not supported.</dd></dl>
 <dl class="section return"><dt>Returns</dt><dd><code>CancellableFuture</code> that contains the <code>DataResponse</code> instance or an error. You can also use <code>CancellableFuture</code> to cancel this request. </dd></dl>
 
 </div>
@@ -255,14 +333,14 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Fetches data asynchronously using a TileKey. </p>
-<p>If the specified TileKey cannot be found in the layer, the callback is invoked with the empty <code>DataResponse</code> object (the <code>nullptr</code> result and an error). Version for request used from <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html" title="Gets data from a versioned layer of the Open Location Platform (OLP).">VersionedLayerClient</a> constructor parameter. If no version is specified, the last available version is used instead. <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html#adf666a44ee5b5c5661ef1c2e9a50931f" title="Fetches data asynchronously using a TileKey.">GetData(TileRequest)</a> method optimizes the metadata query by requesting a QuadTree with depth 4 and store all subquads in cache. This way all further <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html#adf666a44ee5b5c5661ef1c2e9a50931f" title="Fetches data asynchronously using a TileKey.">GetData(TileRequest)</a> request that are contained within this QuadTree will profit from the already cached metadata. </p><dl class="section note"><dt>Note</dt><dd>Calling this method only makes sense if you have a persistent cache connected.</dd></dl>
+<p>If the specified TileKey cannot be found in the layer, the callback is invoked with the empty <code>DataResponse</code> object (the <code>nullptr</code> result and an error). Version for request used from <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html" title="Gets data from a versioned layer of the HERE platform.">VersionedLayerClient</a> constructor parameter. If no version is specified, the last available version is used instead. <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html#adf666a44ee5b5c5661ef1c2e9a50931f" title="Fetches data asynchronously using a TileKey.">GetData(TileRequest)</a> method optimizes the metadata query by requesting a QuadTree with depth 4 and store all subquads in cache. This way all further <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html#adf666a44ee5b5c5661ef1c2e9a50931f" title="Fetches data asynchronously using a TileKey.">GetData(TileRequest)</a> request that are contained within this QuadTree will profit from the already cached metadata. </p><dl class="section note"><dt>Note</dt><dd>Calling this method only makes sense if you have a persistent cache connected.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">request</td><td>The <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1TileRequest.html" title="Encapsulates the fields required to request tile for the given key.">TileRequest</a></code> instance that contains a complete set of request parameters. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>CacheWithUpdate fetch option is not suported. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>CacheWithUpdate fetch option is not supported. </dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">callback</td><td>The <code>DataResponseCallback</code> object that is invoked if the <code>DataResult</code> object is available or an error is encountered.</td></tr>
@@ -290,14 +368,14 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Fetches data asynchronously using a TileKey. </p>
-<p>If the specified TileKey cannot be found in the layer, the callback is invoked with the empty <code>DataResponse</code> object (the <code>nullptr</code> result and an error). Version for request used from <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html" title="Gets data from a versioned layer of the Open Location Platform (OLP).">VersionedLayerClient</a> constructor parameter. If no version is specified, the last available version is used instead.GetData(TileRequest) method optimizes the metadata query by requesting a QuadTree with depth 4 and store all subquads in cache. This way all further <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html#adf666a44ee5b5c5661ef1c2e9a50931f" title="Fetches data asynchronously using a TileKey.">GetData(TileRequest)</a> request that are contained within this QuadTree will profit from the already cached metadata. </p><dl class="section note"><dt>Note</dt><dd>Calling this method only makes sense if you have a persistent cache connected.</dd></dl>
+<p>If the specified TileKey cannot be found in the layer, the callback is invoked with the empty <code>DataResponse</code> object (the <code>nullptr</code> result and an error). Version for request used from <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html" title="Gets data from a versioned layer of the HERE platform.">VersionedLayerClient</a> constructor parameter. If no version is specified, the last available version is used instead.GetData(TileRequest) method optimizes the metadata query by requesting a QuadTree with depth 4 and store all subquads in cache. This way all further <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html#adf666a44ee5b5c5661ef1c2e9a50931f" title="Fetches data asynchronously using a TileKey.">GetData(TileRequest)</a> request that are contained within this QuadTree will profit from the already cached metadata. </p><dl class="section note"><dt>Note</dt><dd>Calling this method only makes sense if you have a persistent cache connected.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">request</td><td>The <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1TileRequest.html" title="Encapsulates the fields required to request tile for the given key.">TileRequest</a></code> instance that contains a complete set of request parameters. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>CacheWithUpdate fetch option is not suported.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>CacheWithUpdate fetch option is not supported.</dd></dl>
 <dl class="section return"><dt>Returns</dt><dd><code>CancellableFuture</code> that contains the <code>DataResponse</code> instance or an error. You can also use <code>CancellableFuture</code> to cancel this request. </dd></dl>
 
 </div>
@@ -336,7 +414,7 @@ Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>CacheWithUpdate fetch option is not suported. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>CacheWithUpdate fetch option is not supported. </dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">callback</td><td>The <code>PartitionsResponseCallback</code> object that is invoked if the list of partitions is available or an error is encountered.</td></tr>
@@ -371,7 +449,7 @@ Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>CacheWithUpdate fetch option is not suported.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>CacheWithUpdate fetch option is not supported.</dd></dl>
 <dl class="section return"><dt>Returns</dt><dd><code>CancellableFuture</code> that contains the <code>PartitionsResponse</code> instance with data or an error. You can also use <code>CancellableFuture</code> to cancel this request. </dd></dl>
 
 </div>

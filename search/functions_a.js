@@ -5,5 +5,6 @@ var searchData=
   ['messageformatter',['MessageFormatter',['../classolp_1_1logging_1_1MessageFormatter.html#adf447a6fac614b938f17d6164496aa5b',1,'olp::logging::MessageFormatter::MessageFormatter()'],['../classolp_1_1logging_1_1MessageFormatter.html#aa6ae7d0309f97c57d421767186d549b0',1,'olp::logging::MessageFormatter::MessageFormatter(std::vector&lt; Element &gt; elements, LevelNameMap levelNameMap=defaultLevelNameMap(), Timezone timezone=Timezone::Local)']]],
   ['minimum',['Minimum',['../classolp_1_1math_1_1AlignedBox.html#a77aaa40db853a153611c897763ca2efc',1,'olp::math::AlignedBox']]],
   ['minimumelevation',['MinimumElevation',['../classolp_1_1geo_1_1EarthConstants.html#ac634e6eb877a0df12b2487763f1c6635',1,'olp::geo::EarthConstants']]],
+  ['movedata',['MoveData',['../classolp_1_1dataservice_1_1read_1_1AggregatedDataResult.html#a87e92bd1060d0eefe0fc6a050254c886',1,'olp::dataservice::read::AggregatedDataResult']]],
   ['moveresult',['MoveResult',['../classolp_1_1client_1_1ApiResponse.html#aad8f906719cb325fc1eb61096771e416',1,'olp::client::ApiResponse']]]
 ];

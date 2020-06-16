@@ -14,8 +14,9 @@ var searchData=
   ['heretileindexvalue',['HereTileIndexValue',['../classolp_1_1dataservice_1_1write_1_1model_1_1HereTileIndexValue.html',1,'olp::dataservice::write::model']]],
   ['hrn',['HRN',['../classolp_1_1client_1_1HRN.html',1,'olp::client::HRN'],['../classolp_1_1client_1_1HRN.html#acb2015f1245f3a093e8e312c9508f388',1,'olp::client::HRN::HRN()']]],
   ['http',['HTTP',['../classolp_1_1http_1_1NetworkProxySettings.html#a14fdb8e380337a0d349f092bf9fa0cb2a293c9ea246ff9985dc6f62a650f78986',1,'olp::http::NetworkProxySettings']]],
+  ['httperrortostring',['HttpErrorToString',['../namespaceolp_1_1http.html#ada1c2a710d730bcd6c220cba9ad9e280',1,'olp::http']]],
   ['httpresponse',['HttpResponse',['../classolp_1_1client_1_1HttpResponse.html',1,'olp::client::HttpResponse'],['../classolp_1_1client_1_1HttpResponse.html#a7ecac17ef6b979e9d20664e95e5490b5',1,'olp::client::HttpResponse::HttpResponse(int status, std::string response=std::string())'],['../classolp_1_1client_1_1HttpResponse.html#a4be24b30e3013af25355e6b29001a56f',1,'olp::client::HttpResponse::HttpResponse(int status, std::stringstream &amp;&amp;response)'],['../classolp_1_1client_1_1HttpResponse.html#a402439323d1399ee31c7af6d5f7a6ca7',1,'olp::client::HttpResponse::HttpResponse(int status, std::stringstream &amp;&amp;response, http::Headers &amp;&amp;headers)']]],
   ['httpstatuscode',['HttpStatusCode',['../classolp_1_1http_1_1HttpStatusCode.html',1,'olp::http']]],
   ['httpverb',['HttpVerb',['../classolp_1_1http_1_1NetworkRequest.html#ac280dc7b10a02ce328cf1b6dcae42fd5',1,'olp::http::NetworkRequest']]],
-  ['here_20olp_20sdk_20for_20c_2b_2b',['HERE OLP SDK for C++',['../index.html',1,'']]]
+  ['here_20data_20sdk_20for_20c_2b_2b',['HERE Data SDK for C++',['../index.html',1,'']]]
 ];

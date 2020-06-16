@@ -38,5 +38,5 @@ var searchData=
   ['total_5ffailed',['total_failed',['../structolp_1_1http_1_1Network_1_1Statistics.html#a2325bc030e2353b1518ac1a140aba235',1,'olp::http::Network::Statistics']]],
   ['total_5frequests',['total_requests',['../structolp_1_1http_1_1Network_1_1Statistics.html#ab44ad785b43e447e6778a7d62b233115',1,'olp::http::Network::Statistics']]],
   ['traceid',['TraceID',['../classolp_1_1dataservice_1_1write_1_1model_1_1TraceID.html',1,'olp::dataservice::write::model']]],
-  ['type',['Type',['../classolp_1_1http_1_1NetworkProxySettings.html#a14fdb8e380337a0d349f092bf9fa0cb2',1,'olp::http::NetworkProxySettings::Type()'],['../structolp_1_1logging_1_1MessageFormatter_1_1Element.html#ae971d2ab5263dfa50b3e868a85139de5',1,'olp::logging::MessageFormatter::Element::type()']]]
+  ['type',['type',['../structolp_1_1logging_1_1MessageFormatter_1_1Element.html#ae971d2ab5263dfa50b3e868a85139de5',1,'olp::logging::MessageFormatter::Element::type()'],['../classolp_1_1http_1_1NetworkProxySettings.html#a14fdb8e380337a0d349f092bf9fa0cb2',1,'olp::http::NetworkProxySettings::Type()']]]
 ];

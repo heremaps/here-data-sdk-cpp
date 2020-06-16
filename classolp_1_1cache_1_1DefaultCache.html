@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.6.0</span>
+   &#160;<span id="projectnumber">1.7.0</span>
    </div>
   </td>
  </tr>
@@ -103,6 +103,7 @@ Public Types</h2></td></tr>
 <tr class="memitem:a4988be6ab65560dc9ceb8da6dbbb0341"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1cache_1_1DefaultCache.html#a4988be6ab65560dc9ceb8da6dbbb0341">StorageOpenResult</a> { <a class="el" href="classolp_1_1cache_1_1DefaultCache.html#a4988be6ab65560dc9ceb8da6dbbb0341a72d18168a53d3ce7ed0ff8eafff31edd">Success</a>, 
 <a class="el" href="classolp_1_1cache_1_1DefaultCache.html#a4988be6ab65560dc9ceb8da6dbbb0341a579665cceae447b9791c974dc1628607">OpenDiskPathFailure</a>
  }</td></tr>
+<tr class="memdesc:a4988be6ab65560dc9ceb8da6dbbb0341"><td class="mdescLeft">&#160;</td><td class="mdescRight">The storage open result type.  <a href="classolp_1_1cache_1_1DefaultCache.html#a4988be6ab65560dc9ceb8da6dbbb0341">More...</a><br /></td></tr>
 <tr class="separator:a4988be6ab65560dc9ceb8da6dbbb0341"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_types_classolp_1_1cache_1_1KeyValueCache"><td colspan="2" onclick="javascript:toggleInherit('pub_types_classolp_1_1cache_1_1KeyValueCache')"><img src="closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="classolp_1_1cache_1_1KeyValueCache.html">olp::cache::KeyValueCache</a></td></tr>
 <tr class="memitem:a063a1e95dc46e75bce711cb782d923b1 inherit pub_types_classolp_1_1cache_1_1KeyValueCache"><td class="memItemLeft" align="right" valign="top"><a id="a063a1e95dc46e75bce711cb782d923b1"></a>
@@ -129,6 +130,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memitem:aa84b3ecb139198c77a028282bd531b30"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1cache_1_1DefaultCache.html#aa84b3ecb139198c77a028282bd531b30">Clear</a> ()</td></tr>
 <tr class="memdesc:aa84b3ecb139198c77a028282bd531b30"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clears the cache content.  <a href="#aa84b3ecb139198c77a028282bd531b30">More...</a><br /></td></tr>
 <tr class="separator:aa84b3ecb139198c77a028282bd531b30"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac24ee216208ea553a33796c1ed1162f9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1cache_1_1DefaultCache.html#ac24ee216208ea553a33796c1ed1162f9">Compact</a> ()</td></tr>
+<tr class="memdesc:ac24ee216208ea553a33796c1ed1162f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compacts the underlying mutable cache storage.  <a href="#ac24ee216208ea553a33796c1ed1162f9">More...</a><br /></td></tr>
+<tr class="separator:ac24ee216208ea553a33796c1ed1162f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5692486699eab55b5607da6944e4d56a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1cache_1_1DefaultCache.html#a5692486699eab55b5607da6944e4d56a">Put</a> (const std::string &amp;key, const boost::any &amp;value, const Encoder &amp;encoder, time_t expiry) override</td></tr>
 <tr class="memdesc:a5692486699eab55b5607da6944e4d56a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stores the key-value pair in the cache.  <a href="#a5692486699eab55b5607da6944e4d56a">More...</a><br /></td></tr>
 <tr class="separator:a5692486699eab55b5607da6944e4d56a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -172,7 +176,8 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The storage open result type </p>
+
+<p>The storage open result type. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a4988be6ab65560dc9ceb8da6dbbb0341a72d18168a53d3ce7ed0ff8eafff31edd"></a>Success&#160;</td><td class="fielddoc"><p>The operation succeeded. </p>
 </td></tr>
@@ -235,6 +240,27 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Clears the cache content. </p>
 <dl class="section return"><dt>Returns</dt><dd>True if the operation is successful; false otherwise. </dd></dl>
+
+</div>
+</div>
+<a id="ac24ee216208ea553a33796c1ed1162f9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac24ee216208ea553a33796c1ed1162f9">&#9670;&nbsp;</a></span>Compact()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void olp::cache::DefaultCache::Compact </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compacts the underlying mutable cache storage. </p>
+<p>In particular, deleted and overwritten versions are discarded, and the data is rearranged to reduce the cost of operations needed to access the data. In some cases this operation might take a very long time, so use with care. You generally don't have to call this, but it can be useful to optimize preloaded databases or compact before you shut down the system to ensure quick startup time.</p>
+<dl class="section note"><dt>Note</dt><dd>This operation is blocking and under mutex lock blocking any other operation in parallel for the time of the compacting operation. Be aware that automatic asynchronous compacting operation is triggered internally once the database size exceeds the <a class="el" href="structolp_1_1cache_1_1CacheSettings.html#a51eaa0afe7a35dd968f1d765caa662e3" title="Sets the upper limit (in bytes) of the disk space that is used for persistent stores.">CacheSettings::max_disk_storage</a> size. </dd></dl>
 
 </div>
 </div>

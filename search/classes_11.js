@@ -15,7 +15,7 @@ var searchData=
   ['sphereprojection',['SphereProjection',['../classolp_1_1geo_1_1SphereProjection.html',1,'olp::geo']]],
   ['startbatchrequest',['StartBatchRequest',['../classolp_1_1dataservice_1_1write_1_1model_1_1StartBatchRequest.html',1,'olp::dataservice::write::model']]],
   ['statistics',['Statistics',['../structolp_1_1http_1_1Network_1_1Statistics.html',1,'olp::http::Network']]],
-  ['streamlayerclient',['StreamLayerClient',['../classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html',1,'olp::dataservice::write::StreamLayerClient'],['../classolp_1_1dataservice_1_1read_1_1StreamLayerClient.html',1,'olp::dataservice::read::StreamLayerClient']]],
+  ['streamlayerclient',['StreamLayerClient',['../classolp_1_1dataservice_1_1read_1_1StreamLayerClient.html',1,'olp::dataservice::read::StreamLayerClient'],['../classolp_1_1dataservice_1_1write_1_1StreamLayerClient.html',1,'olp::dataservice::write::StreamLayerClient']]],
   ['streamlayerclientsettings',['StreamLayerClientSettings',['../structolp_1_1dataservice_1_1write_1_1StreamLayerClientSettings.html',1,'olp::dataservice::write']]],
   ['streamoffset',['StreamOffset',['../classolp_1_1dataservice_1_1read_1_1model_1_1StreamOffset.html',1,'olp::dataservice::read::model']]],
   ['streamoffsets',['StreamOffsets',['../classolp_1_1dataservice_1_1read_1_1model_1_1StreamOffsets.html',1,'olp::dataservice::read::model']]],

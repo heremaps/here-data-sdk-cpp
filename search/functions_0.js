@@ -14,6 +14,5 @@ var searchData=
   ['atomic',['Atomic',['../classolp_1_1thread_1_1Atomic.html#a7da78ed7a01836a374445c91d56aabf8',1,'olp::thread::Atomic::Atomic(SomeType &amp;&amp;am)'],['../classolp_1_1thread_1_1Atomic.html#abda7f6cbe02ec2f3b669b23812b302e4',1,'olp::thread::Atomic::Atomic()']]],
   ['authenticationclient',['AuthenticationClient',['../classolp_1_1authentication_1_1AuthenticationClient.html#a170af465b4d8beb4b1f71c86877013ac',1,'olp::authentication::AuthenticationClient']]],
   ['authenticationcredentials',['AuthenticationCredentials',['../classolp_1_1authentication_1_1AuthenticationCredentials.html#aa0ef1f5beea44038191704d9b4d63f4e',1,'olp::authentication::AuthenticationCredentials']]],
-  ['authenticationerror',['AuthenticationError',['../classolp_1_1authentication_1_1AuthenticationError.html#a42bc45c1e7afe761956177aca076c90f',1,'olp::authentication::AuthenticationError::AuthenticationError()=default'],['../classolp_1_1authentication_1_1AuthenticationError.html#adf0426bacd11eafcec3d95b5ff00532e',1,'olp::authentication::AuthenticationError::AuthenticationError(int network_code, const std::string &amp;message)']]],
   ['authorize',['Authorize',['../classolp_1_1authentication_1_1AuthenticationClient.html#a0c068e0f75f078c7bc33d3fb8bcf0e05',1,'olp::authentication::AuthenticationClient']]]
 ];

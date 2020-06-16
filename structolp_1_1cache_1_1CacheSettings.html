@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.6.0</span>
+   &#160;<span id="projectnumber">1.7.0</span>
    </div>
   </td>
  </tr>
@@ -107,6 +107,9 @@ OpenOptions&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 <tr class="memitem:ad63162c076fbadbeca09c26fd766701a"><td class="memItemLeft" align="right" valign="top"><a id="ad63162c076fbadbeca09c26fd766701a"></a>
 EvictionPolicy&#160;</td><td class="memItemRight" valign="bottom"><b>eviction_policy</b> = EvictionPolicy::kLeastRecentlyUsed</td></tr>
 <tr class="separator:ad63162c076fbadbeca09c26fd766701a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2cac2763360a1eb06af36600058e9c36"><td class="memItemLeft" align="right" valign="top">CompressionType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1cache_1_1CacheSettings.html#a2cac2763360a1eb06af36600058e9c36">compression</a> = CompressionType::kDefaultCompression</td></tr>
+<tr class="memdesc:a2cac2763360a1eb06af36600058e9c36"><td class="mdescLeft">&#160;</td><td class="mdescRight">This flag sets the compression policy to be applied on the database.  <a href="#a2cac2763360a1eb06af36600058e9c36">More...</a><br /></td></tr>
+<tr class="separator:a2cac2763360a1eb06af36600058e9c36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a809adae6c0c6a2167bbbaf7b6c368c3e"><td class="memItemLeft" align="right" valign="top">boost::optional&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1cache_1_1CacheSettings.html#a809adae6c0c6a2167bbbaf7b6c368c3e">disk_path_protected</a> = boost::none</td></tr>
 <tr class="memdesc:a809adae6c0c6a2167bbbaf7b6c368c3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The path to the protected (read-only) cache.  <a href="#a809adae6c0c6a2167bbbaf7b6c368c3e">More...</a><br /></td></tr>
 <tr class="separator:a809adae6c0c6a2167bbbaf7b6c368c3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -114,6 +117,23 @@ EvictionPolicy&#160;</td><td class="memItemRight" valign="bottom"><b>eviction_po
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Settings for memory and disk caching. </p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
+<a id="a2cac2763360a1eb06af36600058e9c36"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2cac2763360a1eb06af36600058e9c36">&#9670;&nbsp;</a></span>compression</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">CompressionType olp::cache::CacheSettings::compression = CompressionType::kDefaultCompression</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This flag sets the compression policy to be applied on the database. </p>
+<p>In some cases though, when all the data to be inserted is already compressed by any means, e.g. protobuf or other serialization protocols, it might not be worth to enable any compression at all as it will eat up some CPU to compress and decompress the metadata without major gain. This parameter is dynamic and can be changed between runs. If changed only new values which are added will be using the new compression policy all existing entries will remain unchanged. The default value is CompressionType::kDefaultCompression. </p>
+
+</div>
+</div>
 <a id="af238bd848a32514aa5eb13a7c9cae32e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af238bd848a32514aa5eb13a7c9cae32e">&#9670;&nbsp;</a></span>disk_path_mutable</h2>
 
@@ -162,7 +182,7 @@ EvictionPolicy&#160;</td><td class="memItemRight" valign="bottom"><b>eviction_po
 </div><div class="memdoc">
 
 <p>Sets the upper limit of the runtime memory (in bytes) before it is written to the disk. </p>
-<p>The default value is 32 MB. </p>
+<p>Larger values increase performance, especially during bulk loads. Up to two write buffers may be held in memory at the same time, so you may wish to adjust this parameter to control memory usage. Also, a larger write buffer will result in a longer recovery time the next time the database is opened. The default value is 32 MB. </p>
 
 </div>
 </div>
