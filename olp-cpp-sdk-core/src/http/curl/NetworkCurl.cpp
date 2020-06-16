@@ -821,12 +821,13 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
       long http_status = 0;
       curl_easy_getinfo(rhandle.handle, CURLINFO_RESPONSE_CODE, &http_status);
       status = static_cast<int>(http_status);
-      if ((rhandle.offset == 0) && (status == 206)) {
-        status = 200;
+      if ((rhandle.offset == 0) &&
+          (status == HttpStatusCode::PARTIAL_CONTENT)) {
+        status = HttpStatusCode::OK;
       }
       // for local file there is no server response so status is 0
       if ((status == 0) && (result == CURLE_OK))
-        status = 200;
+        status = HttpStatusCode::OK;
       error = HttpErrorToString(status);
     } else {
       rhandle.error_text[CURL_ERROR_SIZE - 1] = '\0';

@@ -116,8 +116,7 @@ class IndexLayerClientTest : public ::testing::Test {
     // Catch unexpected calls and fail immediatley
     ON_CALL(network, Send(_, _, _, _, _))
         .WillByDefault(testing::DoAll(
-            common::ReturnHttpResponse(
-                olp::http::NetworkResponse().WithStatus(-1), ""),
+            common::ReturnHttpResponse(common::GetResponse(-1), ""),
             [](olp::http::NetworkRequest /*request*/,
                olp::http::Network::Payload /*payload*/,
                olp::http::Network::Callback /*callback*/,
@@ -129,45 +128,42 @@ class IndexLayerClientTest : public ::testing::Test {
             }));
     ON_CALL(network, Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
         .WillByDefault(common::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            common::GetResponse(http::HttpStatusCode::OK),
             HTTP_RESPONSE_LOOKUP_CONFIG));
 
     ON_CALL(network, Send(common::IsGetRequest(URL_LOOKUP_INDEX), _, _, _, _))
         .WillByDefault(common::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            common::GetResponse(http::HttpStatusCode::OK),
             HTTP_RESPONSE_LOOKUP_INDEX));
 
     ON_CALL(network, Send(common::IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
         .WillByDefault(common::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            common::GetResponse(http::HttpStatusCode::OK),
             HTTP_RESPONSE_LOOKUP_BLOB));
 
     ON_CALL(network, Send(common::IsGetRequest(URL_GET_CATALOG), _, _, _, _))
         .WillByDefault(common::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            common::GetResponse(http::HttpStatusCode::OK),
             HTTP_RESPONSE_GET_CATALOG));
 
     ON_CALL(network, Send(common::IsPutRequestPrefix(URL_PUT_BLOB_INDEX_PREFIX),
                           _, _, _, _))
         .WillByDefault(common::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
-            ""));
+            common::GetResponse(http::HttpStatusCode::OK), ""));
 
     ON_CALL(network, Send(common::IsPostRequest(URL_INSERT_INDEX), _, _, _, _))
         .WillByDefault(common::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(201), ""));
+            common::GetResponse(http::HttpStatusCode::CREATED), ""));
 
     ON_CALL(network,
             Send(common::IsDeleteRequestPrefix(URL_DELETE_BLOB_INDEX_PREFIX), _,
                  _, _, _))
         .WillByDefault(common::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
-            ""));
+            common::GetResponse(http::HttpStatusCode::OK), ""));
 
     ON_CALL(network, Send(common::IsPutRequest(URL_INSERT_INDEX), _, _, _, _))
         .WillByDefault(common::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
-            ""));
+            common::GetResponse(http::HttpStatusCode::OK), ""));
   }
 
  private:

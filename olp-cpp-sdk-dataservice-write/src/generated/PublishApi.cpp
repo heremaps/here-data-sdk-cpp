@@ -142,7 +142,7 @@ client::CancellationToken PublishApi::UploadPartitions(
   auto cancel_token = client.CallApi(
       upload_partitions_uri, "POST", query_params, header_params, form_params,
       data, "application/json", [callback](client::HttpResponse http_response) {
-        if (http_response.status != 204) {
+        if (http_response.status != olp::http::HttpStatusCode::NO_CONTENT) {
           callback(UploadPartitionsResponse{client::ApiError(
               http_response.status, http_response.response.str())});
           return;
@@ -213,7 +213,7 @@ client::CancellationToken PublishApi::SubmitPublication(
       submit_publication_uri, "PUT", query_params, header_params, form_params,
       nullptr, "application/json",
       [callback](client::HttpResponse http_response) {
-        if (http_response.status != 204) {
+        if (http_response.status != olp::http::HttpStatusCode::NO_CONTENT) {
           callback(SubmitPublicationResponse{client::ApiError(
               http_response.status, http_response.response.str())});
           return;
@@ -309,7 +309,7 @@ client::CancellationToken PublishApi::CancelPublication(
       submit_publication_uri, "DELETE", query_params, header_params,
       form_params, nullptr, "application/json",
       [callback](client::HttpResponse http_response) {
-        if (http_response.status != 204) {
+        if (http_response.status != olp::http::HttpStatusCode::NO_CONTENT) {
           callback(SubmitPublicationResponse{client::ApiError(
               http_response.status, http_response.response.str())});
           return;
