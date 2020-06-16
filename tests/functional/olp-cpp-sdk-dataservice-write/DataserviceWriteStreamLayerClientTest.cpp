@@ -34,6 +34,7 @@
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+#include <olp/core/http/HttpStatusCode.h>
 #include <olp/dataservice/write/StreamLayerClient.h>
 #include <olp/dataservice/write/model/PublishDataRequest.h>
 #include <olp/dataservice/write/model/PublishSdiiRequest.h>
@@ -41,6 +42,7 @@
 #include "Utils.h"
 
 namespace model = olp::dataservice::write::model;
+namespace http = olp::http;
 using olp::dataservice::write::PublishDataResponse;
 using olp::dataservice::write::PublishSdiiResponse;
 using olp::dataservice::write::StreamLayerClient;
@@ -119,7 +121,7 @@ template <typename T>
 void PublishFailureAssertions(
     const olp::client::ApiResponse<T, olp::client::ApiError>& result) {
   EXPECT_FALSE(result.IsSuccessful());
-  EXPECT_NE(result.GetError().GetHttpStatusCode(), 200);
+  EXPECT_NE(result.GetError().GetHttpStatusCode(), http::HttpStatusCode::OK);
   // EXPECT_FALSE(result.GetError().GetMessage().empty());
 }
 
@@ -274,9 +276,11 @@ TEST_F(DataserviceWriteStreamLayerClientTest, PublishDataCancel) {
       PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
 
   std::thread([cancel_future]() {
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(http::HttpStatusCode::OK));
     cancel_future.GetCancellationToken().Cancel();
-  }).detach();
+  })
+      .detach();
 
   auto response = cancel_future.GetFuture().get();
 
@@ -301,7 +305,8 @@ TEST_F(DataserviceWriteStreamLayerClientTest, PublishDataCancelLongDelay) {
   std::thread([cancel_future]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(1200));
     cancel_future.GetCancellationToken().Cancel();
-  }).detach();
+  })
+      .detach();
 
   auto response = cancel_future.GetFuture().get();
 
@@ -325,9 +330,11 @@ TEST_F(DataserviceWriteStreamLayerClientTest,
       PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
 
   std::thread([cancel_future]() {
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(http::HttpStatusCode::OK));
     cancel_future.GetCancellationToken().Cancel();
-  }).detach();
+  })
+      .detach();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(400));
   auto response = cancel_future.GetFuture().get();
@@ -357,7 +364,8 @@ TEST_F(DataserviceWriteStreamLayerClientTest,
   std::thread([cancel_future]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     cancel_future.GetCancellationToken().Cancel();
-  }).detach();
+  })
+      .detach();
 
   auto response = cancel_future.GetFuture().get();
 
@@ -587,9 +595,11 @@ TEST_F(DataserviceWriteStreamLayerClientTest, PublishSdiiCancel) {
                                .WithLayerId(GetTestLayerSdii()));
 
   std::thread([cancel_future]() {
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(http::HttpStatusCode::OK));
     cancel_future.GetCancellationToken().Cancel();
-  }).detach();
+  })
+      .detach();
 
   auto response = cancel_future.GetFuture().get();
 
@@ -616,7 +626,8 @@ TEST_F(DataserviceWriteStreamLayerClientTest, PublishSdiiCancelLongDelay) {
   std::thread([cancel_future]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(1200));
     cancel_future.GetCancellationToken().Cancel();
-  }).detach();
+  })
+      .detach();
 
   auto response = cancel_future.GetFuture().get();
 

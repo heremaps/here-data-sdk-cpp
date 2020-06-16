@@ -30,8 +30,8 @@
 
 namespace {
 
-using namespace olp::dataservice::write;
-using namespace olp::dataservice::write::model;
+namespace write = olp::dataservice::write;
+namespace model = olp::dataservice::write::model;
 
 const std::string kEndpoint = "endpoint";
 const std::string kAppid = "dataservice_write_test_appid";
@@ -52,7 +52,8 @@ template <typename T>
 void PublishFailureAssertions(
     const olp::client::ApiResponse<T, olp::client::ApiError>& result) {
   EXPECT_FALSE(result.IsSuccessful());
-  EXPECT_NE(result.GetError().GetHttpStatusCode(), 200);
+  EXPECT_NE(result.GetError().GetHttpStatusCode(),
+            olp::http::HttpStatusCode::OK);
   EXPECT_FALSE(result.GetError().GetMessage().empty());
 }
 
@@ -63,7 +64,7 @@ class DataserviceWriteIndexLayerClientTest : public ::testing::Test {
         CreateDefaultNetworkRequestHandler();
   }
 
-  std::shared_ptr<IndexLayerClient> CreateIndexLayerClient() {
+  std::shared_ptr<write::IndexLayerClient> CreateIndexLayerClient() {
     auto network = s_network;
 
     const auto key_id = CustomParameters::getArgument(kAppid);
@@ -83,7 +84,7 @@ class DataserviceWriteIndexLayerClientTest : public ::testing::Test {
     settings.authentication_settings = auth_client_settings;
     settings.network_request_handler = network;
 
-    return std::make_shared<IndexLayerClient>(
+    return std::make_shared<write::IndexLayerClient>(
         olp::client::HRN{GetTestCatalog()}, settings);
   }
 
@@ -105,19 +106,25 @@ class DataserviceWriteIndexLayerClientTest : public ::testing::Test {
     return CustomParameters::getArgument(kIndexLayer);
   }
 
-  const Index GetTestIndex() {
-    Index index;
-    std::map<IndexName, std::shared_ptr<IndexValue>> index_fields;
-    index_fields.insert(std::pair<IndexName, std::shared_ptr<IndexValue>>(
-        "Place",
-        std::make_shared<StringIndexValue>("New York", IndexType::String)));
-    index_fields.insert(std::pair<IndexName, std::shared_ptr<IndexValue>>(
-        "Temperature", std::make_shared<IntIndexValue>(10, IndexType::Int)));
-    index_fields.insert(std::pair<IndexName, std::shared_ptr<IndexValue>>(
-        "Rain", std::make_shared<BooleanIndexValue>(false, IndexType::Bool)));
-    index_fields.insert(std::pair<IndexName, std::shared_ptr<IndexValue>>(
-        "testIndexLayer",
-        std::make_shared<TimeWindowIndexValue>(123123, IndexType::TimeWindow)));
+  const model::Index GetTestIndex() {
+    model::Index index;
+    std::map<model::IndexName, std::shared_ptr<model::IndexValue>> index_fields;
+    index_fields.insert(
+        std::pair<model::IndexName, std::shared_ptr<model::IndexValue>>(
+            "Place", std::make_shared<model::StringIndexValue>(
+                         "New York", model::IndexType::String)));
+    index_fields.insert(
+        std::pair<model::IndexName, std::shared_ptr<model::IndexValue>>(
+            "Temperature",
+            std::make_shared<model::IntIndexValue>(10, model::IndexType::Int)));
+    index_fields.insert(
+        std::pair<model::IndexName, std::shared_ptr<model::IndexValue>>(
+            "Rain", std::make_shared<model::BooleanIndexValue>(
+                        false, model::IndexType::Bool)));
+    index_fields.insert(
+        std::pair<model::IndexName, std::shared_ptr<model::IndexValue>>(
+            "testIndexLayer", std::make_shared<model::TimeWindowIndexValue>(
+                                  123123, model::IndexType::TimeWindow)));
 
     index.SetIndexFields(index_fields);
     return index;
@@ -138,7 +145,7 @@ class DataserviceWriteIndexLayerClientTest : public ::testing::Test {
  protected:
   static std::shared_ptr<olp::http::Network> s_network;
 
-  std::shared_ptr<IndexLayerClient> client_;
+  std::shared_ptr<write::IndexLayerClient> client_;
   std::shared_ptr<std::vector<unsigned char>> data_;
 };
 
@@ -150,7 +157,7 @@ std::shared_ptr<olp::http::Network>
 
 TEST_F(DataserviceWriteIndexLayerClientTest, PublishData) {
   auto response = client_
-                      ->PublishIndex(PublishIndexRequest()
+                      ->PublishIndex(model::PublishIndexRequest()
                                          .WithIndex(GetTestIndex())
                                          .WithData(data_)
                                          .WithLayerId(GetTestLayer()))
@@ -162,7 +169,7 @@ TEST_F(DataserviceWriteIndexLayerClientTest, PublishData) {
 
 TEST_F(DataserviceWriteIndexLayerClientTest, DeleteData) {
   auto response = client_
-                      ->PublishIndex(PublishIndexRequest()
+                      ->PublishIndex(model::PublishIndexRequest()
                                          .WithIndex(GetTestIndex())
                                          .WithData(data_)
                                          .WithLayerId(GetTestLayer()))
@@ -175,7 +182,7 @@ TEST_F(DataserviceWriteIndexLayerClientTest, DeleteData) {
   auto delete_index_response =
       client_
           ->DeleteIndexData(
-              DeleteIndexDataRequest().WithIndexId(index_id).WithLayerId(
+              model::DeleteIndexDataRequest().WithIndexId(index_id).WithLayerId(
                   GetTestLayer()))
           .GetFuture()
           .get();
@@ -184,15 +191,15 @@ TEST_F(DataserviceWriteIndexLayerClientTest, DeleteData) {
 }
 
 TEST_F(DataserviceWriteIndexLayerClientTest, PublishDataAsync) {
-  std::promise<PublishIndexResponse> response_promise;
+  std::promise<write::PublishIndexResponse> response_promise;
   bool call_is_async = true;
 
   auto cancel_token =
-      client_->PublishIndex(PublishIndexRequest()
+      client_->PublishIndex(model::PublishIndexRequest()
                                 .WithIndex(GetTestIndex())
                                 .WithData(data_)
                                 .WithLayerId(GetTestLayer()),
-                            [&](const PublishIndexResponse& response) {
+                            [&](const write::PublishIndexResponse& response) {
                               call_is_async = false;
                               response_promise.set_value(response);
                             });
@@ -213,16 +220,15 @@ TEST_F(DataserviceWriteIndexLayerClientTest, UpdateIndex) {
 
   {
     SCOPED_TRACE("Add index");
-    Index index = GetTestIndex();
+    model::Index index = GetTestIndex();
     index.SetId(id);
 
-    auto response_addition =
-        client_
-            ->UpdateIndex(
-                UpdateIndexRequest().WithIndexAdditions({index}).WithLayerId(
-                    GetTestLayer()))
-            .GetFuture()
-            .get();
+    auto response_addition = client_
+                                 ->UpdateIndex(model::UpdateIndexRequest()
+                                                   .WithIndexAdditions({index})
+                                                   .WithLayerId(GetTestLayer()))
+                                 .GetFuture()
+                                 .get();
 
     EXPECT_SUCCESS(response_addition);
     EXPECT_EQ("", response_addition.GetError().GetMessage());
@@ -232,7 +238,7 @@ TEST_F(DataserviceWriteIndexLayerClientTest, UpdateIndex) {
     auto response_removal =
         client_
             ->UpdateIndex(
-                UpdateIndexRequest().WithIndexRemovals({id}).WithLayerId(
+                model::UpdateIndexRequest().WithIndexRemovals({id}).WithLayerId(
                     GetTestLayer()))
             .GetFuture()
             .get();
@@ -244,7 +250,7 @@ TEST_F(DataserviceWriteIndexLayerClientTest, UpdateIndex) {
 
 TEST_F(DataserviceWriteIndexLayerClientTest, PublishNoData) {
   auto response = client_
-                      ->PublishIndex(PublishIndexRequest()
+                      ->PublishIndex(model::PublishIndexRequest()
                                          .WithIndex(GetTestIndex())
                                          .WithLayerId(GetTestLayer()))
                       .GetFuture()
@@ -258,7 +264,7 @@ TEST_F(DataserviceWriteIndexLayerClientTest, PublishNoData) {
 
 TEST_F(DataserviceWriteIndexLayerClientTest, PublishNoLayer) {
   auto response = client_
-                      ->PublishIndex(PublishIndexRequest()
+                      ->PublishIndex(model::PublishIndexRequest()
                                          .WithIndex(GetTestIndex())
                                          .WithData(data_)
                                          .WithLayerId("invalid-layer"))

@@ -29,8 +29,8 @@
 
 namespace {
 
-using namespace olp::dataservice::write;
-using namespace olp::dataservice::write::model;
+namespace write = olp::dataservice::write;
+namespace model = olp::dataservice::write::model;
 
 const std::string kEndpoint = "endpoint";
 const std::string kAppid = "dataservice_write_test_appid";
@@ -58,7 +58,7 @@ class DataserviceWriteVersionedLayerClientTest : public ::testing::Test {
 
   void TearDown() override { client_ = nullptr; }
 
-  std::shared_ptr<VersionedLayerClient> CreateVersionedLayerClient() {
+  std::shared_ptr<write::VersionedLayerClient> CreateVersionedLayerClient() {
     auto network = s_network;
 
     const auto key_id = CustomParameters::getArgument(kAppid);
@@ -78,11 +78,11 @@ class DataserviceWriteVersionedLayerClientTest : public ::testing::Test {
     settings.authentication_settings = auth_client_settings;
     settings.network_request_handler = network;
 
-    return std::make_shared<VersionedLayerClient>(
+    return std::make_shared<write::VersionedLayerClient>(
         olp::client::HRN{CustomParameters::getArgument(kCatalog)}, settings);
   }
 
-  std::shared_ptr<VersionedLayerClient> client_;
+  std::shared_ptr<write::VersionedLayerClient> client_;
 };
 
 // Static network instance is necessary as it needs to outlive any created
@@ -93,8 +93,9 @@ std::shared_ptr<olp::http::Network>
 
 TEST_F(DataserviceWriteVersionedLayerClientTest, StartBatchInvalid) {
   auto versioned_client = CreateVersionedLayerClient();
-  auto response =
-      versioned_client->StartBatch(StartBatchRequest()).GetFuture().get();
+  auto response = versioned_client->StartBatch(model::StartBatchRequest())
+                      .GetFuture()
+                      .get();
 
   ASSERT_FALSE(response.IsSuccessful());
   ASSERT_FALSE(response.GetResult().GetId());
@@ -122,7 +123,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, StartBatchInvalid) {
 TEST_F(DataserviceWriteVersionedLayerClientTest, StartBatch) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response = versioned_client
-                      ->StartBatch(StartBatchRequest().WithLayers(
+                      ->StartBatch(model::StartBatchRequest().WithLayers(
                           {CustomParameters::getArgument(kVersionedLayer)}))
                       .GetFuture()
                       .get();
@@ -170,7 +171,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, StartBatch) {
 TEST_F(DataserviceWriteVersionedLayerClientTest, DeleteClient) {
   auto versioned_client = CreateVersionedLayerClient();
   auto fut = versioned_client
-                 ->StartBatch(StartBatchRequest().WithLayers(
+                 ->StartBatch(model::StartBatchRequest().WithLayers(
                      {CustomParameters::getArgument(kVersionedLayer)}))
                  .GetFuture();
   versioned_client = nullptr;
@@ -207,7 +208,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, GetBaseVersion) {
 TEST_F(DataserviceWriteVersionedLayerClientTest, CancelBatch) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response = versioned_client
-                      ->StartBatch(StartBatchRequest().WithLayers(
+                      ->StartBatch(model::StartBatchRequest().WithLayers(
                           {CustomParameters::getArgument(kVersionedLayer)}))
                       .GetFuture()
                       .get();
@@ -245,7 +246,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, CancelAllBatch) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response_future =
       versioned_client
-          ->StartBatch(StartBatchRequest().WithLayers(
+          ->StartBatch(model::StartBatchRequest().WithLayers(
               {CustomParameters::getArgument(kVersionedLayer)}))
           .GetFuture();
 
@@ -259,7 +260,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, CancelAllBatch) {
 TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatch) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response = versioned_client
-                      ->StartBatch(StartBatchRequest().WithLayers(
+                      ->StartBatch(model::StartBatchRequest().WithLayers(
                           {CustomParameters::getArgument(kVersionedLayer)}))
                       .GetFuture()
                       .get();
@@ -281,7 +282,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatch) {
       versioned_client
           ->PublishToBatch(
               response.GetResult(),
-              PublishPartitionDataRequest()
+              model::PublishPartitionDataRequest()
                   .WithData(
                       std::make_shared<std::vector<unsigned char>>(20, 0x30))
                   .WithLayerId(CustomParameters::getArgument(kVersionedLayer))
@@ -322,7 +323,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatch) {
 TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchDeleteClient) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response = versioned_client
-                      ->StartBatch(StartBatchRequest().WithLayers(
+                      ->StartBatch(model::StartBatchRequest().WithLayers(
                           {CustomParameters::getArgument(kVersionedLayer)}))
                       .GetFuture()
                       .get();
@@ -344,7 +345,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchDeleteClient) {
       versioned_client
           ->PublishToBatch(
               response.GetResult(),
-              PublishPartitionDataRequest()
+              model::PublishPartitionDataRequest()
                   .WithData(
                       std::make_shared<std::vector<unsigned char>>(20, 0x30))
                   .WithLayerId(CustomParameters::getArgument(kVersionedLayer))
@@ -355,7 +356,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchDeleteClient) {
       versioned_client
           ->PublishToBatch(
               response.GetResult(),
-              PublishPartitionDataRequest()
+              model::PublishPartitionDataRequest()
                   .WithData(
                       std::make_shared<std::vector<unsigned char>>(20, 0x31))
                   .WithLayerId(CustomParameters::getArgument(kVersionedLayer))
@@ -404,7 +405,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchDeleteClient) {
 TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchMulti) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response = versioned_client
-                      ->StartBatch(StartBatchRequest().WithLayers(
+                      ->StartBatch(model::StartBatchRequest().WithLayers(
                           {CustomParameters::getArgument(kVersionedLayer)}))
                       .GetFuture()
                       .get();
@@ -426,7 +427,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchMulti) {
       versioned_client
           ->PublishToBatch(
               response.GetResult(),
-              PublishPartitionDataRequest()
+              model::PublishPartitionDataRequest()
                   .WithData(
                       std::make_shared<std::vector<unsigned char>>(20, 0x30))
                   .WithLayerId(CustomParameters::getArgument(kVersionedLayer))
@@ -437,7 +438,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchMulti) {
       versioned_client
           ->PublishToBatch(
               response.GetResult(),
-              PublishPartitionDataRequest()
+              model::PublishPartitionDataRequest()
                   .WithData(
                       std::make_shared<std::vector<unsigned char>>(20, 0x31))
                   .WithLayerId(CustomParameters::getArgument(kVersionedLayer))
@@ -482,7 +483,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchMulti) {
 TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchCancel) {
   auto versioned_client = CreateVersionedLayerClient();
   auto response = versioned_client
-                      ->StartBatch(StartBatchRequest().WithLayers(
+                      ->StartBatch(model::StartBatchRequest().WithLayers(
                           {CustomParameters::getArgument(kVersionedLayer)}))
                       .GetFuture()
                       .get();
@@ -504,7 +505,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchCancel) {
       versioned_client
           ->PublishToBatch(
               response.GetResult(),
-              PublishPartitionDataRequest()
+              model::PublishPartitionDataRequest()
                   .WithData(
                       std::make_shared<std::vector<unsigned char>>(20, 0x30))
                   .WithLayerId(CustomParameters::getArgument(kVersionedLayer))
@@ -539,7 +540,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, CheckDataExists) {
   auto fut =
       versioned_client
           ->CheckDataExists(
-              CheckDataExistsRequest()
+              model::CheckDataExistsRequest()
                   .WithLayerId(CustomParameters::getArgument(kVersionedLayer))
                   .WithDataHandle("5d2082c3-9738-4de7-bde0-4a52527dab37"))
           .GetFuture();
@@ -548,7 +549,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, CheckDataExists) {
   auto response = fut.get();
 
   EXPECT_SUCCESS(response);
-  ASSERT_EQ(response.GetResult(), 200);
+  ASSERT_EQ(response.GetResult(), olp::http::HttpStatusCode::OK);
 }
 
 TEST_F(DataserviceWriteVersionedLayerClientTest, CheckDataNotExists) {
@@ -556,7 +557,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, CheckDataNotExists) {
   auto fut =
       versioned_client
           ->CheckDataExists(
-              CheckDataExistsRequest()
+              model::CheckDataExistsRequest()
                   .WithLayerId(CustomParameters::getArgument(kVersionedLayer))
                   .WithDataHandle("5d2082c3-9738-4de7-bde0-4a52527dab34"))
           .GetFuture();
