@@ -26,21 +26,21 @@
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/client/HRN.h>
+#include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/porting/make_unique.h>
 #include <olp/core/utils/Dir.h>
-#include <olp/dataservice/read/VolatileLayerClient.h>
 #include <olp/dataservice/read/CatalogRequest.h>
 #include <olp/dataservice/read/CatalogVersionRequest.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
+#include <olp/dataservice/read/VolatileLayerClient.h>
 #include "HttpResponses.h"
 
 namespace {
-
-using namespace olp::dataservice::read;
-using namespace testing;
-using namespace olp::tests::common;
-using namespace olp::tests::integration;
+using testing::_;
+namespace common = olp::tests::common;
+namespace integration = olp::tests::integration;
+namespace http = olp::http;
 
 #ifdef _WIN32
 constexpr auto kClientTestDir = "\\catalog_client_test";
@@ -50,30 +50,30 @@ constexpr auto kClientTestDir = "/catalog_client_test";
 constexpr auto kClientTestCacheDir = "/cata.log_client_test/cache";
 #endif
 
-class VolatileLayerClientCacheTest : public CatalogClientTestBase {
+class VolatileLayerClientCacheTest : public integration::CatalogClientTestBase {
  protected:
   void SetUp() override {
     CatalogClientTestBase::SetUp();
     olp::cache::CacheSettings settings;
     switch (GetParam()) {
-      case CacheType::IN_MEMORY: {
+      case integration::CacheType::IN_MEMORY: {
         // use the default value
         break;
       }
-      case CacheType::DISK: {
+      case integration::CacheType::DISK: {
         settings.max_memory_cache_size = 0;
         settings.disk_path_mutable =
             olp::utils::Dir::TempDirectory() + kClientTestCacheDir;
         ClearCache(settings.disk_path_mutable.get());
         break;
       }
-      case CacheType::BOTH: {
+      case integration::CacheType::BOTH: {
         settings.disk_path_mutable =
             olp::utils::Dir::TempDirectory() + kClientTestCacheDir;
         ClearCache(settings.disk_path_mutable.get());
         break;
       }
-      case CacheType::NONE: {
+      case integration::CacheType::NONE: {
         // We don't create a cache here
         settings_.cache = nullptr;
         return;
@@ -107,20 +107,21 @@ TEST_P(VolatileLayerClientCacheTest, GetVolatilePartitionsExpiry) {
   olp::client::HRN hrn(GetTestCatalog());
 
   {
-    EXPECT_CALL(
-        *network_mock_,
-        Send(IsGetRequest("https://metadata.data.api.platform.here.com/"
-                          "metadata/v1/catalogs/hereos-internal-test-v2/"
-                          "layers/testlayer_volatile/partitions"),
-             _, _, _, _))
+    EXPECT_CALL(*network_mock_,
+                Send(common::IsGetRequest(
+                         "https://metadata.data.api.platform.here.com/"
+                         "metadata/v1/catalogs/hereos-internal-test-v2/"
+                         "layers/testlayer_volatile/partitions"),
+                     _, _, _, _))
         .Times(1)
-        .WillRepeatedly(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(200),
-                               HTTP_RESPONSE_PARTITIONS_V2));
+        .WillRepeatedly(common::ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            HTTP_RESPONSE_PARTITIONS_V2));
   }
 
   auto catalog_client =
-      std::make_unique<olp::dataservice::read::VolatileLayerClient>(hrn, "testlayer_volatile", settings_);
+      std::make_unique<olp::dataservice::read::VolatileLayerClient>(
+          hrn, "testlayer_volatile", settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
 
@@ -159,7 +160,8 @@ TEST_P(VolatileLayerClientCacheTest, GetVolatilePartitionsExpiry) {
 }
 
 INSTANTIATE_TEST_SUITE_P(, VolatileLayerClientCacheTest,
-                         ::testing::Values(CacheType::IN_MEMORY,
-                                           CacheType::DISK, CacheType::BOTH,
-                                           CacheType::NONE));
+                         ::testing::Values(integration::CacheType::IN_MEMORY,
+                                           integration::CacheType::DISK,
+                                           integration::CacheType::BOTH,
+                                           integration::CacheType::NONE));
 }  // namespace
