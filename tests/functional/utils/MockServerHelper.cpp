@@ -66,6 +66,27 @@ void MockServerHelper::MockLookupPlatformApiResponse(
       std::move(data), "/lookup/v1/platform/apis");
 }
 
+void MockServerHelper::MockGetResponse(const std::string& layer,
+                                       const std::string& data_handle,
+                                       const std::string& data) {
+  mock_server_client_.MockResponse("GET",
+                                   "/blob/v1/catalogs/" + catalog_ +
+                                       "/layers/" + layer + "/data/" +
+                                       data_handle,
+                                   data);
+}
+
+void MockServerHelper::MockGetResponse(const std::string& layer,
+                                       olp::geo::TileKey tile, int64_t version,
+                                       const std::string& tree) {
+  mock_server_client_.MockResponse("GET",
+                                   "/query/v1/catalogs/" + catalog_ +
+                                       "/layers/" + layer + "/versions/" +
+                                       std::to_string(version) + "/quadkeys/" +
+                                       tile.ToHereTile() + "/depths/4",
+                                   tree);
+}
+
 bool MockServerHelper::Verify() {
   return mock_server_client_.VerifySequence(paths_);
 }
