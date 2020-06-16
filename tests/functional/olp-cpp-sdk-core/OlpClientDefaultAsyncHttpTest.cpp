@@ -24,8 +24,11 @@
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientFactory.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+#include <olp/core/http/HttpStatusCode.h>
 
 #include <olp/core/http/Network.h>
+
+namespace http = olp::http;
 
 class OlpClientDefaultAsyncHttpTest : public ::testing::Test {
  protected:
@@ -42,7 +45,9 @@ TEST_F(OlpClientDefaultAsyncHttpTest, GetGoogleWebsite) {
 
   std::promise<olp::client::HttpResponse> p;
   olp::client::NetworkAsyncCallback callback =
-      [&p](olp::client::HttpResponse response) { p.set_value(std::move(response)); };
+      [&p](olp::client::HttpResponse response) {
+        p.set_value(std::move(response));
+      };
 
   auto cancel_token = client_.CallApi(std::string(), std::string(),
                                       std::multimap<std::string, std::string>(),
@@ -51,7 +56,7 @@ TEST_F(OlpClientDefaultAsyncHttpTest, GetGoogleWebsite) {
                                       nullptr, std::string(), callback);
 
   auto response = p.get_future().get();
-  ASSERT_EQ(200, response.status);
+  ASSERT_EQ(http::HttpStatusCode::OK, response.status);
   ASSERT_LT(0u, response.response.str().size());
 }
 
@@ -60,7 +65,9 @@ TEST_F(OlpClientDefaultAsyncHttpTest, GetNonExistentWebsite) {
   client_.SetBaseUrl("https://example.test");
   std::promise<olp::client::HttpResponse> p;
   olp::client::NetworkAsyncCallback callback =
-      [&p](olp::client::HttpResponse response) { p.set_value(std::move(response)); };
+      [&p](olp::client::HttpResponse response) {
+        p.set_value(std::move(response));
+      };
 
   client_settings_.network_request_handler = olp::client::
       OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();

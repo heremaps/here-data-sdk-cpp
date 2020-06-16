@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "olp/core/context/Context.h"
+#include "olp/core/http/HttpStatusCode.h"
 #include "olp/core/logging/Log.h"
 #include "olp/core/porting/make_unique.h"
 
@@ -550,7 +551,9 @@ void NetworkAndroid::HeadersCallback(JNIEnv* env, RequestId request_id,
   Network::HeaderCallback header_callback;
   {
     std::unique_lock<std::mutex> lock(requests_mutex_);
-    if (!started_) return;
+    if (!started_) {
+      return;
+    }
 
     auto req = requests_.find(request_id);
     if (req == requests_.end()) {
@@ -604,7 +607,9 @@ void NetworkAndroid::HeadersCallback(JNIEnv* env, RequestId request_id,
 void NetworkAndroid::DateAndOffsetCallback(JNIEnv* env, RequestId request_id,
                                            jlong date, jlong offset) {
   std::unique_lock<std::mutex> lock(requests_mutex_);
-  if (!started_) return;
+  if (!started_) {
+    return;
+  }
 
   auto request = requests_.find(request_id);
   if (request == requests_.end()) {
@@ -621,7 +626,9 @@ void NetworkAndroid::DataReceived(JNIEnv* env, RequestId request_id,
 
   {
     std::unique_lock<std::mutex> lock(requests_mutex_);
-    if (!started_) return;
+    if (!started_) {
+      return;
+    }
 
     auto req = requests_.find(request_id);
     if (req == requests_.end()) {
@@ -691,8 +698,9 @@ void NetworkAndroid::CompleteRequest(JNIEnv* env, RequestId request_id,
   }
 
   // Partial response is OK if offset is 0
-  if ((request_data->offset == 0) && (status == 206)) {
-    status = 200;
+  if ((request_data->offset == 0) &&
+      (status == HttpStatusCode::PARTIAL_CONTENT)) {
+    status = HttpStatusCode::OK;
   }
 
   // Copy the error string
