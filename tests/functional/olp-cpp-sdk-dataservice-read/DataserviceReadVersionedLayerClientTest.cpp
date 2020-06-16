@@ -32,8 +32,8 @@
 #include <testutils/CustomParameters.hpp>
 #include "Utils.h"
 
-using namespace olp::dataservice::read;
-using namespace testing;
+namespace http = olp::http;
+namespace dataservice_read = olp::dataservice::read;
 
 namespace {
 
@@ -101,16 +101,18 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionAsync) {
           catalog, layer, boost::none, *settings_);
   ASSERT_TRUE(catalog_client);
 
-  std::promise<DataResponse> promise;
-  std::future<DataResponse> future = promise.get_future();
+  std::promise<dataservice_read::DataResponse> promise;
+  std::future<dataservice_read::DataResponse> future = promise.get_future();
   auto partition = CustomParameters::getArgument(
       "dataservice_read_test_versioned_partition");
   auto token = catalog_client->GetData(
       olp::dataservice::read::DataRequest().WithPartitionId(partition),
-      [&promise](DataResponse response) { promise.set_value(response); });
+      [&promise](dataservice_read::DataResponse response) {
+        promise.set_value(response);
+      });
 
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
-  DataResponse response = future.get();
+  dataservice_read::DataResponse response = future.get();
 
   EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult() != nullptr);
@@ -132,16 +134,18 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
           catalog, layer, boost::none, *settings_);
   ASSERT_TRUE(catalog_client);
 
-  std::promise<DataResponse> promise;
-  std::future<DataResponse> future = promise.get_future();
+  std::promise<dataservice_read::DataResponse> promise;
+  std::future<dataservice_read::DataResponse> future = promise.get_future();
   auto partition = CustomParameters::getArgument(
       "dataservice_read_test_versioned_partition");
   auto token = catalog_client->GetData(
       olp::dataservice::read::DataRequest().WithPartitionId(partition),
-      [&promise](DataResponse response) { promise.set_value(response); });
+      [&promise](dataservice_read::DataResponse response) {
+        promise.set_value(response);
+      });
 
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
-  DataResponse response = future.get();
+  dataservice_read::DataResponse response = future.get();
 
   EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult() != nullptr);
@@ -159,12 +163,14 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionSync) {
           catalog, layer, boost::none, *settings_);
   ASSERT_TRUE(catalog_client);
 
-  DataResponse response;
+  dataservice_read::DataResponse response;
   auto partition = CustomParameters::getArgument(
       "dataservice_read_test_versioned_partition");
   auto token = catalog_client->GetData(
       olp::dataservice::read::DataRequest().WithPartitionId(partition),
-      [&response](DataResponse resp) { response = std::move(resp); });
+      [&response](dataservice_read::DataResponse resp) {
+        response = std::move(resp);
+      });
   EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult() != nullptr);
   ASSERT_NE(response.GetResult()->size(), 0u);
@@ -192,15 +198,16 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
                        .WithMinLevel(10)
                        .WithMaxLevel(12);
 
-    std::promise<PrefetchTilesResponse> promise;
-    std::future<PrefetchTilesResponse> future = promise.get_future();
+    std::promise<dataservice_read::PrefetchTilesResponse> promise;
+    std::future<dataservice_read::PrefetchTilesResponse> future =
+        promise.get_future();
     auto token = client->PrefetchTiles(
-        request, [&promise](PrefetchTilesResponse response) {
+        request, [&promise](dataservice_read::PrefetchTilesResponse response) {
           promise.set_value(std::move(response));
         });
 
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
-    PrefetchTilesResponse response = future.get();
+    dataservice_read::PrefetchTilesResponse response = future.get();
     EXPECT_SUCCESS(response);
     ASSERT_FALSE(response.GetResult().empty());
 
@@ -216,12 +223,14 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
 
   {
     SCOPED_TRACE("Read cached data from the same partition");
-    DataResponse response;
-    auto token = client->GetData(
-        olp::dataservice::read::DataRequest()
-            .WithPartitionId(kTileId)
-            .WithFetchOption(CacheOnly),
-        [&response](DataResponse resp) { response = std::move(resp); });
+    dataservice_read::DataResponse response;
+    auto token =
+        client->GetData(olp::dataservice::read::DataRequest()
+                            .WithPartitionId(kTileId)
+                            .WithFetchOption(dataservice_read::CacheOnly),
+                        [&response](dataservice_read::DataResponse resp) {
+                          response = std::move(resp);
+                        });
     EXPECT_SUCCESS(response);
     ASSERT_TRUE(response.GetResult() != nullptr);
     ASSERT_NE(response.GetResult()->size(), 0u);
@@ -231,12 +240,14 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
     SCOPED_TRACE("Read cached data from pre-fetched sub-partition #1");
     const auto kSubPartitionId1 = CustomParameters::getArgument(
         "dataservice_read_test_versioned_prefetch_subpartition1");
-    DataResponse response;
-    auto token = client->GetData(
-        olp::dataservice::read::DataRequest()
-            .WithPartitionId(kSubPartitionId1)
-            .WithFetchOption(CacheOnly),
-        [&response](DataResponse resp) { response = std::move(resp); });
+    dataservice_read::DataResponse response;
+    auto token =
+        client->GetData(olp::dataservice::read::DataRequest()
+                            .WithPartitionId(kSubPartitionId1)
+                            .WithFetchOption(dataservice_read::CacheOnly),
+                        [&response](dataservice_read::DataResponse resp) {
+                          response = std::move(resp);
+                        });
     EXPECT_SUCCESS(response);
     ASSERT_TRUE(response.GetResult() != nullptr);
     ASSERT_NE(response.GetResult()->size(), 0u);
@@ -246,12 +257,14 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
     SCOPED_TRACE("Read cached data from pre-fetched sub-partition #2");
     const auto kSubPartitionId2 = CustomParameters::getArgument(
         "dataservice_read_test_versioned_prefetch_subpartition2");
-    DataResponse response;
-    auto token = client->GetData(
-        olp::dataservice::read::DataRequest()
-            .WithPartitionId(kSubPartitionId2)
-            .WithFetchOption(CacheOnly),
-        [&response](DataResponse resp) { response = std::move(resp); });
+    dataservice_read::DataResponse response;
+    auto token =
+        client->GetData(olp::dataservice::read::DataRequest()
+                            .WithPartitionId(kSubPartitionId2)
+                            .WithFetchOption(dataservice_read::CacheOnly),
+                        [&response](dataservice_read::DataResponse resp) {
+                          response = std::move(resp);
+                        });
     EXPECT_SUCCESS(response);
     ASSERT_TRUE(response.GetResult() != nullptr);
     ASSERT_NE(response.GetResult()->size(), 0u);
@@ -282,15 +295,17 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWrongLevels) {
                          .WithMinLevel(0)
                          .WithMaxLevel(0);
 
-      std::promise<PrefetchTilesResponse> promise;
-      std::future<PrefetchTilesResponse> future = promise.get_future();
+      std::promise<dataservice_read::PrefetchTilesResponse> promise;
+      std::future<dataservice_read::PrefetchTilesResponse> future =
+          promise.get_future();
       auto token = client->PrefetchTiles(
-          request, [&promise](PrefetchTilesResponse response) {
+          request,
+          [&promise](dataservice_read::PrefetchTilesResponse response) {
             promise.set_value(std::move(response));
           });
 
       ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
-      PrefetchTilesResponse response = future.get();
+      dataservice_read::PrefetchTilesResponse response = future.get();
       EXPECT_SUCCESS(response);
       const auto& result = response.GetResult();
 
@@ -309,15 +324,17 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWrongLevels) {
                          .WithMinLevel(-1)
                          .WithMaxLevel(0);
 
-      std::promise<PrefetchTilesResponse> promise;
-      std::future<PrefetchTilesResponse> future = promise.get_future();
+      std::promise<dataservice_read::PrefetchTilesResponse> promise;
+      std::future<dataservice_read::PrefetchTilesResponse> future =
+          promise.get_future();
       auto token = client->PrefetchTiles(
-          request, [&promise](PrefetchTilesResponse response) {
+          request,
+          [&promise](dataservice_read::PrefetchTilesResponse response) {
             promise.set_value(std::move(response));
           });
 
       ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
-      PrefetchTilesResponse response = future.get();
+      dataservice_read::PrefetchTilesResponse response = future.get();
       EXPECT_TRUE(response.IsSuccessful());
       const auto& result = response.GetResult();
 
@@ -335,15 +352,17 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWrongLevels) {
                          .WithMinLevel(0)
                          .WithMaxLevel(-1);
 
-      std::promise<PrefetchTilesResponse> promise;
-      std::future<PrefetchTilesResponse> future = promise.get_future();
+      std::promise<dataservice_read::PrefetchTilesResponse> promise;
+      std::future<dataservice_read::PrefetchTilesResponse> future =
+          promise.get_future();
       auto token = client->PrefetchTiles(
-          request, [&promise](PrefetchTilesResponse response) {
+          request,
+          [&promise](dataservice_read::PrefetchTilesResponse response) {
             promise.set_value(std::move(response));
           });
 
       ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
-      PrefetchTilesResponse response = future.get();
+      dataservice_read::PrefetchTilesResponse response = future.get();
       EXPECT_SUCCESS(response);
       const auto& result = response.GetResult();
 
@@ -361,15 +380,17 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWrongLevels) {
                          .WithMinLevel(0)
                          .WithMaxLevel(3);
 
-      std::promise<PrefetchTilesResponse> promise;
-      std::future<PrefetchTilesResponse> future = promise.get_future();
+      std::promise<dataservice_read::PrefetchTilesResponse> promise;
+      std::future<dataservice_read::PrefetchTilesResponse> future =
+          promise.get_future();
       auto token = client->PrefetchTiles(
-          request, [&promise](PrefetchTilesResponse response) {
+          request,
+          [&promise](dataservice_read::PrefetchTilesResponse response) {
             promise.set_value(std::move(response));
           });
 
       ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
-      PrefetchTilesResponse response = future.get();
+      dataservice_read::PrefetchTilesResponse response = future.get();
       EXPECT_SUCCESS(response);
       const auto& result = response.GetResult();
 
@@ -406,7 +427,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWithCancellableFuture) {
 
   auto raw_future = cancel_future.GetFuture();
   ASSERT_NE(raw_future.wait_for(kWaitTimeout), std::future_status::timeout);
-  PrefetchTilesResponse response = raw_future.get();
+  dataservice_read::PrefetchTilesResponse response = raw_future.get();
   EXPECT_SUCCESS(response);
   ASSERT_FALSE(response.GetResult().empty());
 
@@ -435,7 +456,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsWithInvalidHrn) {
       });
 
   ASSERT_FALSE(partitions_response.IsSuccessful());
-  ASSERT_EQ(403, partitions_response.GetError().GetHttpStatusCode());
+  ASSERT_EQ(http::HttpStatusCode::FORBIDDEN,
+            partitions_response.GetError().GetHttpStatusCode());
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitions) {
@@ -484,14 +506,14 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithInvalidHrn) {
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithDataHandle("d5d73b64-7365-41c3-8faf-aa6ad5bab135");
-  auto data_response =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalog_client->GetData(request);
-        return future.GetFuture().get();
-      });
+  auto data_response = GetExecutionTime<dataservice_read::DataResponse>([&] {
+    auto future = catalog_client->GetData(request);
+    return future.GetFuture().get();
+  });
 
   ASSERT_FALSE(data_response.IsSuccessful());
-  ASSERT_EQ(403, data_response.GetError().GetHttpStatusCode());
+  ASSERT_EQ(http::HttpStatusCode::FORBIDDEN,
+            data_response.GetError().GetHttpStatusCode());
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithHandle) {
@@ -503,11 +525,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithHandle) {
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithDataHandle("d5d73b64-7365-41c3-8faf-aa6ad5bab135");
-  auto data_response =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalog_client->GetData(request);
-        return future.GetFuture().get();
-      });
+  auto data_response = GetExecutionTime<dataservice_read::DataResponse>([&] {
+    auto future = catalog_client->GetData(request);
+    return future.GetFuture().get();
+  });
 
   EXPECT_SUCCESS(data_response);
   ASSERT_TRUE(data_response.GetResult() != nullptr);
@@ -526,14 +547,14 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithInvalidDataHandle) {
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithDataHandle("invalidDataHandle");
-  auto data_response =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalog_client->GetData(request);
-        return future.GetFuture().get();
-      });
+  auto data_response = GetExecutionTime<dataservice_read::DataResponse>([&] {
+    auto future = catalog_client->GetData(request);
+    return future.GetFuture().get();
+  });
 
   ASSERT_FALSE(data_response.IsSuccessful());
-  ASSERT_EQ(404, data_response.GetError().GetHttpStatusCode());
+  ASSERT_EQ(http::HttpStatusCode::NOT_FOUND,
+            data_response.GetError().GetHttpStatusCode());
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetDataHandleWithInvalidLayer) {
@@ -545,11 +566,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataHandleWithInvalidLayer) {
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithDataHandle("invalidDataHandle");
-  auto data_response =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalog_client->GetData(request);
-        return future.GetFuture().get();
-      });
+  auto data_response = GetExecutionTime<dataservice_read::DataResponse>([&] {
+    auto future = catalog_client->GetData(request);
+    return future.GetFuture().get();
+  });
 
   ASSERT_FALSE(data_response.IsSuccessful());
   ASSERT_EQ(olp::client::ErrorCode::NotFound,
@@ -565,11 +585,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithPartitionId) {
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithPartitionId("269");
-  auto data_response =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalog_client->GetData(request);
-        return future.GetFuture().get();
-      });
+  auto data_response = GetExecutionTime<dataservice_read::DataResponse>([&] {
+    auto future = catalog_client->GetData(request);
+    return future.GetFuture().get();
+  });
 
   EXPECT_SUCCESS(data_response);
   ASSERT_TRUE(data_response.GetResult() != nullptr);
@@ -589,11 +608,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithPartitionId("269");
-  auto data_response =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalog_client->GetData(request);
-        return future.GetFuture().get();
-      });
+  auto data_response = GetExecutionTime<dataservice_read::DataResponse>([&] {
+    auto future = catalog_client->GetData(request);
+    return future.GetFuture().get();
+  });
 
   EXPECT_SUCCESS(data_response);
   ASSERT_TRUE(data_response.GetResult() != nullptr);
@@ -613,16 +631,16 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithPartitionId("269");
-  auto data_response =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalog_client->GetData(request);
-        return future.GetFuture().get();
-      });
+  auto data_response = GetExecutionTime<dataservice_read::DataResponse>([&] {
+    auto future = catalog_client->GetData(request);
+    return future.GetFuture().get();
+  });
 
   ASSERT_FALSE(data_response.IsSuccessful());
   ASSERT_EQ(olp::client::ErrorCode::BadRequest,
             data_response.GetError().GetErrorCode());
-  ASSERT_EQ(400, data_response.GetError().GetHttpStatusCode());
+  ASSERT_EQ(http::HttpStatusCode::BAD_REQUEST,
+            data_response.GetError().GetHttpStatusCode());
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsVersion2) {
@@ -661,7 +679,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsInvalidVersion) {
     ASSERT_FALSE(partitions_response.IsSuccessful());
     ASSERT_EQ(olp::client::ErrorCode::BadRequest,
               partitions_response.GetError().GetErrorCode());
-    ASSERT_EQ(400, partitions_response.GetError().GetHttpStatusCode());
+    ASSERT_EQ(http::HttpStatusCode::BAD_REQUEST,
+              partitions_response.GetError().GetHttpStatusCode());
   }
 
   {
@@ -678,7 +697,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsInvalidVersion) {
     ASSERT_FALSE(partitions_response.IsSuccessful());
     ASSERT_EQ(olp::client::ErrorCode::BadRequest,
               partitions_response.GetError().GetErrorCode());
-    ASSERT_EQ(400, partitions_response.GetError().GetHttpStatusCode());
+    ASSERT_EQ(http::HttpStatusCode::BAD_REQUEST,
+              partitions_response.GetError().GetHttpStatusCode());
   }
 }
 
@@ -692,11 +712,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithPartitionId("noPartition");
-  auto data_response =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalog_client->GetData(request);
-        return future.GetFuture().get();
-      });
+  auto data_response = GetExecutionTime<dataservice_read::DataResponse>([&] {
+    auto future = catalog_client->GetData(request);
+    return future.GetFuture().get();
+  });
 
   EXPECT_FALSE(data_response.IsSuccessful());
   ASSERT_EQ(olp::client::ErrorCode::NotFound,
@@ -712,11 +731,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithInvalidLayerId) {
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithPartitionId("269");
-  auto data_response =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalog_client->GetData(request);
-        return future.GetFuture().get();
-      });
+  auto data_response = GetExecutionTime<dataservice_read::DataResponse>([&] {
+    auto future = catalog_client->GetData(request);
+    return future.GetFuture().get();
+  });
 
   ASSERT_FALSE(data_response.IsSuccessful());
   ASSERT_EQ(olp::client::ErrorCode::BadRequest,
@@ -732,11 +750,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithEmptyField) {
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithPartitionId("1");
-  auto data_response =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalog_client->GetData(request);
-        return future.GetFuture().get();
-      });
+  auto data_response = GetExecutionTime<dataservice_read::DataResponse>([&] {
+    auto future = catalog_client->GetData(request);
+    return future.GetFuture().get();
+  });
 
   EXPECT_FALSE(data_response.IsSuccessful());
   ASSERT_EQ(olp::client::ErrorCode::NotFound,
@@ -752,11 +769,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataCompressed) {
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithPartitionId("here_van_wc2018_pool");
-  auto data_response =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = catalog_client->GetData(request);
-        return future.GetFuture().get();
-      });
+  auto data_response = GetExecutionTime<dataservice_read::DataResponse>([&] {
+    auto future = catalog_client->GetData(request);
+    return future.GetFuture().get();
+  });
 
   EXPECT_SUCCESS(data_response);
   ASSERT_TRUE(data_response.GetResult() != nullptr);
@@ -768,7 +784,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataCompressed) {
   auto request_compressed = olp::dataservice::read::DataRequest();
   request_compressed.WithPartitionId("here_van_wc2018_pool");
   auto data_response_compressed =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+      GetExecutionTime<dataservice_read::DataResponse>([&] {
         auto future = catalog_client->GetData(request_compressed);
         return future.GetFuture().get();
       });
@@ -796,7 +812,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTile) {
       olp::geo::TileKey::FromHereTile(kTileId));
 
   auto data_response_compressed =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+      GetExecutionTime<dataservice_read::DataResponse>([&] {
         auto future = client->GetData(request);
         return future.GetFuture().get();
       });
@@ -819,11 +835,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileWithInvalidLayerId) {
   auto request = olp::dataservice::read::TileRequest().WithTileKey(
       olp::geo::TileKey::FromHereTile(kTileId));
 
-  auto data_response =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
-        auto future = client->GetData(request);
-        return future.GetFuture().get();
-      });
+  auto data_response = GetExecutionTime<dataservice_read::DataResponse>([&] {
+    auto future = client->GetData(request);
+    return future.GetFuture().get();
+  });
 
   ASSERT_FALSE(data_response.IsSuccessful());
   ASSERT_EQ(olp::client::ErrorCode::BadRequest,
@@ -844,7 +859,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileEmptyField) {
       olp::geo::TileKey::FromHereTile(""));
 
   auto data_response_compressed =
-      GetExecutionTime<olp::dataservice::read::DataResponse>([&] {
+      GetExecutionTime<dataservice_read::DataResponse>([&] {
         auto future = client->GetData(request);
         return future.GetFuture().get();
       });

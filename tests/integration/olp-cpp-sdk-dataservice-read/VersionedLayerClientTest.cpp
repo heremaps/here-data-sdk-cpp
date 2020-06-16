@@ -991,7 +991,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitions403CacheClear) {
     PartitionsResponse response = future.get();
 
     ASSERT_FALSE(response.IsSuccessful());
-    ASSERT_EQ(403, response.GetError().GetHttpStatusCode());
+    ASSERT_EQ(http::HttpStatusCode::FORBIDDEN,
+              response.GetError().GetHttpStatusCode());
   }
 
   // Check for cached response
@@ -2268,8 +2269,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataOnlineOnly) {
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-        .WillOnce(
-            ReturnHttpResponse(GetResponse(http::HttpStatusCode::TOO_MANY_REQUESTS), "Server busy at the moment."));
+        .WillOnce(ReturnHttpResponse(
+            GetResponse(http::HttpStatusCode::TOO_MANY_REQUESTS),
+            "Server busy at the moment."));
   }
 
   auto client = std::make_shared<read::VersionedLayerClient>(
@@ -2443,8 +2445,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileOnlineOnly) {
   {
     SCOPED_TRACE("Check OnlineOnly request");
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
-        .WillOnce(
-            ReturnHttpResponse(GetResponse(http::HttpStatusCode::TOO_MANY_REQUESTS), "Server busy at the moment."));
+        .WillOnce(ReturnHttpResponse(
+            GetResponse(http::HttpStatusCode::TOO_MANY_REQUESTS),
+            "Server busy at the moment."));
     auto future =
         client->GetData(request.WithFetchOption(FetchOptions::OnlineOnly));
     auto data_response = future.GetFuture().get();
