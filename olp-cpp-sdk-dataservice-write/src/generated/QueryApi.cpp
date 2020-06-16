@@ -82,7 +82,7 @@ client::CancellationToken QueryApi::GetPartitionsById(
 
   client::NetworkAsyncCallback callback =
       [partitionsCallback](client::HttpResponse response) {
-        if (response.status != 200) {
+        if (response.status != http::HttpStatusCode::OK) {
           partitionsCallback(
               client::ApiError(response.status, response.response.str()));
         } else {
