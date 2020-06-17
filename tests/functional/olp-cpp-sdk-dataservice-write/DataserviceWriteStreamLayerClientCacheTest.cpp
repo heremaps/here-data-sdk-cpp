@@ -40,10 +40,6 @@
 #include <testutils/CustomParameters.hpp>
 #include "Utils.h"
 
-using namespace olp::dataservice::write;
-using namespace olp::dataservice::write::model;
-using namespace testing;
-
 const std::string kEndpoint = "endpoint";
 const std::string kAppid = "dataservice_write_test_appid";
 const std::string kSecret = "dataservice_write_test_secret";
@@ -51,6 +47,9 @@ const std::string kCatalog = "dataservice_write_test_catalog";
 const std::string kLayer = "layer";
 
 namespace {
+
+namespace write = olp::dataservice::write;
+namespace model = olp::dataservice::write::model;
 
 const std::string kBillingTag = "OlpCppSdkTest";
 
@@ -76,8 +75,8 @@ std::string GenerateRandomUUID() {
 }
 
 void PublishDataSuccessAssertions(
-    const olp::client::ApiResponse<ResponseOkSingle, olp::client::ApiError>&
-        result) {
+    const olp::client::ApiResponse<model::ResponseOkSingle,
+                                   olp::client::ApiError>& result) {
   EXPECT_SUCCESS(result);
   EXPECT_FALSE(result.GetResult().GetTraceID().empty());
 }
@@ -86,8 +85,8 @@ template <typename T>
 void PublishFailureAssertions(
     const olp::client::ApiResponse<T, olp::client::ApiError>& result) {
   EXPECT_FALSE(result.IsSuccessful());
-  EXPECT_NE(result.GetError().GetHttpStatusCode(), 200);
-  // EXPECT_FALSE(result.GetError().GetMessage().empty());
+  EXPECT_NE(result.GetError().GetHttpStatusCode(),
+            olp::http::HttpStatusCode::OK);
 }
 
 class DataserviceWriteStreamLayerClientCacheTest : public ::testing::Test {
@@ -125,12 +124,13 @@ class DataserviceWriteStreamLayerClientCacheTest : public ::testing::Test {
       data_->push_back(' ');
       data_->push_back(i);
       auto error = client_->Queue(
-          PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
+          model::PublishDataRequest().WithData(data_).WithLayerId(
+              GetTestLayer()));
       ASSERT_FALSE(error) << error.get();
     }
   }
 
-  virtual std::shared_ptr<StreamLayerClient> CreateStreamLayerClient() {
+  virtual std::shared_ptr<write::StreamLayerClient> CreateStreamLayerClient() {
     network_ = olp::client::OlpClientSettingsFactory::
         CreateDefaultNetworkRequestHandler();
     task_scheduler_ =
@@ -159,7 +159,7 @@ class DataserviceWriteStreamLayerClientCacheTest : public ::testing::Test {
               olp::cache::DefaultCache::StorageOpenResult::Success);
     settings.cache = disk_cache_;
 
-    return std::make_shared<StreamLayerClient>(
+    return std::make_shared<write::StreamLayerClient>(
         olp::client::HRN{GetTestCatalog()}, stream_client_settings_, settings);
   }
 
@@ -176,24 +176,25 @@ class DataserviceWriteStreamLayerClientCacheTest : public ::testing::Test {
   }
 
  protected:
-  std::shared_ptr<StreamLayerClient> client_;
+  std::shared_ptr<write::StreamLayerClient> client_;
   std::shared_ptr<std::vector<unsigned char>> data_;
   std::shared_ptr<olp::http::Network> network_;
   std::shared_ptr<olp::thread::TaskScheduler> task_scheduler_;
   std::shared_ptr<olp::cache::DefaultCache> disk_cache_;
-  StreamLayerClientSettings stream_client_settings_;
+  write::StreamLayerClientSettings stream_client_settings_;
 };
 
 TEST_F(DataserviceWriteStreamLayerClientCacheTest, Queue) {
   auto error = client_->Queue(
-      PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
+      model::PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
 
   ASSERT_FALSE(error) << error.get();
 }
 
 TEST_F(DataserviceWriteStreamLayerClientCacheTest, QueueNullData) {
-  auto error = client_->Queue(
-      PublishDataRequest().WithData(nullptr).WithLayerId(GetTestLayer()));
+  auto error =
+      client_->Queue(model::PublishDataRequest().WithData(nullptr).WithLayerId(
+          GetTestLayer()));
 
   ASSERT_TRUE(error);
 }
@@ -201,7 +202,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, QueueNullData) {
 TEST_F(DataserviceWriteStreamLayerClientCacheTest, QueueExtraRequestParams) {
   const auto uuid = GenerateRandomUUID();
 
-  auto error = client_->Queue(PublishDataRequest()
+  auto error = client_->Queue(model::PublishDataRequest()
                                   .WithData(data_)
                                   .WithLayerId(GetTestLayer())
                                   .WithTraceId(uuid)
@@ -215,7 +216,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, QueueWithChecksum) {
   const std::string data_string(data_->begin(), data_->end());
   auto checksum = sha256(data_string);
 
-  auto error = client_->Queue(PublishDataRequest()
+  auto error = client_->Queue(model::PublishDataRequest()
                                   .WithData(data_)
                                   .WithLayerId(GetTestLayer())
                                   .WithChecksum(checksum));
@@ -226,7 +227,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, QueueWithChecksum) {
 
 TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataSingle) {
   auto error = client_->Queue(
-      PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
+      model::PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
 
   ASSERT_FALSE(error) << error.get();
 
@@ -249,17 +250,18 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataMultiple) {
 
 TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataSingleAsync) {
   auto error = client_->Queue(
-      PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
+      model::PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
 
   ASSERT_FALSE(error) << error.get();
 
-  std::promise<StreamLayerClient::FlushResponse> response_promise;
+  std::promise<write::StreamLayerClient::FlushResponse> response_promise;
   bool call_is_async = true;
-  auto cancel_token = client_->Flush(
-      model::FlushRequest(), [&](StreamLayerClient::FlushResponse response) {
-        call_is_async = false;
-        response_promise.set_value(response);
-      });
+  auto cancel_token =
+      client_->Flush(model::FlushRequest(),
+                     [&](write::StreamLayerClient::FlushResponse response) {
+                       call_is_async = false;
+                       response_promise.set_value(response);
+                     });
 
   EXPECT_TRUE(call_is_async);
   auto response_future = response_promise.get_future();
@@ -276,13 +278,14 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataSingleAsync) {
 TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataMultipleAsync) {
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(5));
 
-  std::promise<StreamLayerClient::FlushResponse> response_promise;
+  std::promise<write::StreamLayerClient::FlushResponse> response_promise;
   bool call_is_async = true;
-  auto cancel_token = client_->Flush(
-      model::FlushRequest(), [&](StreamLayerClient::FlushResponse response) {
-        call_is_async = false;
-        response_promise.set_value(response);
-      });
+  auto cancel_token =
+      client_->Flush(model::FlushRequest(),
+                     [&](write::StreamLayerClient::FlushResponse response) {
+                       call_is_async = false;
+                       response_promise.set_value(response);
+                     });
 
   EXPECT_TRUE(call_is_async);
   auto response_future = response_promise.get_future();
@@ -300,7 +303,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataMultipleAsync) {
 
 TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataCancel) {
   auto error = client_->Queue(
-      PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
+      model::PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
 
   ASSERT_FALSE(error) << error.get();
 
@@ -309,7 +312,8 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataCancel) {
   std::thread([cancel_future]() {
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     cancel_future.GetCancellationToken().Cancel();
-  }).detach();
+  })
+      .detach();
 
   auto response = cancel_future.GetFuture().get();
 

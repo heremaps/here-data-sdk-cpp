@@ -737,7 +737,7 @@ size_t NetworkCurl::RxFunction(void* ptr, size_t size, size_t nmemb,
   if (that->stderr_) {
     long http_status = 0;
     curl_easy_getinfo(handle->handle, CURLINFO_RESPONSE_CODE, &http_status);
-    if (http_status >= 400) {
+    if (http_status >= http::HttpStatusCode::BAD_REQUEST) {
       // Log the error content to help troubleshooting
       fprintf(that->stderr_, "\n---ERRORCONTENT BEGIN HANDLE=%p BLOCKSIZE=%u\n",
               handle, (uint32_t)(size * nmemb));
