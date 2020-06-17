@@ -30,8 +30,6 @@
 #include <generated/serializer/JsonSerializer.h>
 // clang-format on
 
-using namespace olp::client;
-
 namespace {
 const std::string kQueryParamBillingTag = "billingTag";
 }  // namespace
@@ -40,8 +38,8 @@ namespace olp {
 namespace dataservice {
 namespace write {
 
-CancellableFuture<InsertIndexesResponse> IndexApi::insertIndexes(
-    const OlpClient& client, const model::Index& indexes,
+client::CancellableFuture<InsertIndexesResponse> IndexApi::insertIndexes(
+    const client::OlpClient& client, const model::Index& indexes,
     const std::string& layer_id,
     const boost::optional<std::string>& billing_tag) {
   auto promise = std::make_shared<std::promise<InsertIndexesResponse>>();
@@ -49,11 +47,12 @@ CancellableFuture<InsertIndexesResponse> IndexApi::insertIndexes(
                                     [promise](InsertIndexesResponse response) {
                                       promise->set_value(std::move(response));
                                     });
-  return CancellableFuture<InsertIndexesResponse>(cancel_token, promise);
+  return client::CancellableFuture<InsertIndexesResponse>(cancel_token,
+                                                          promise);
 }
 
-CancellationToken IndexApi::insertIndexes(
-    const OlpClient& client, const model::Index& indexes,
+client::CancellationToken IndexApi::insertIndexes(
+    const client::OlpClient& client, const model::Index& indexes,
     const std::string& layer_id,
     const boost::optional<std::string>& billing_tag,
     InsertIndexesCallback callback) {
@@ -77,30 +76,31 @@ CancellationToken IndexApi::insertIndexes(
   auto cancel_token = client.CallApi(
       insert_indexes_uri, "POST", query_params, header_params, form_params,
       data, "application/json", [callback](client::HttpResponse http_response) {
-        if (http_response.status > 201) {
-          callback(InsertIndexesResponse(
-              ApiError(http_response.status, http_response.response.str())));
+        if (http_response.status > http::HttpStatusCode::CREATED) {
+          callback(InsertIndexesResponse(client::ApiError(
+              http_response.status, http_response.response.str())));
           return;
         }
 
-        callback(InsertIndexesResponse(ApiNoResult()));
+        callback(InsertIndexesResponse(client::ApiNoResult()));
       });
   return cancel_token;
 }
 
-CancellableFuture<UpdateIndexesResponse> IndexApi::performUpdate(
-    const OlpClient& client, const model::UpdateIndexRequest& request,
+client::CancellableFuture<UpdateIndexesResponse> IndexApi::performUpdate(
+    const client::OlpClient& client, const model::UpdateIndexRequest& request,
     const boost::optional<std::string>& billing_tag) {
   auto promise = std::make_shared<std::promise<UpdateIndexesResponse>>();
   auto cancel_token = performUpdate(client, request, billing_tag,
                                     [promise](InsertIndexesResponse response) {
                                       promise->set_value(std::move(response));
                                     });
-  return CancellableFuture<InsertIndexesResponse>(cancel_token, promise);
+  return client::CancellableFuture<InsertIndexesResponse>(cancel_token,
+                                                          promise);
 }
 
-CancellationToken IndexApi::performUpdate(
-    const OlpClient& client, const model::UpdateIndexRequest& request,
+client::CancellationToken IndexApi::performUpdate(
+    const client::OlpClient& client, const model::UpdateIndexRequest& request,
     const boost::optional<std::string>& billing_tag,
     InsertIndexesCallback callback) {
   std::multimap<std::string, std::string> header_params;
@@ -123,13 +123,13 @@ CancellationToken IndexApi::performUpdate(
   auto cancel_token = client.CallApi(
       update_indexes_uri, "PUT", query_params, header_params, form_params, data,
       "application/json", [callback](client::HttpResponse http_response) {
-        if (http_response.status > 201) {
-          callback(InsertIndexesResponse(
-              ApiError(http_response.status, http_response.response.str())));
+        if (http_response.status > http::HttpStatusCode::CREATED) {
+          callback(InsertIndexesResponse(client::ApiError(
+              http_response.status, http_response.response.str())));
           return;
         }
 
-        callback(InsertIndexesResponse(ApiNoResult()));
+        callback(InsertIndexesResponse(client::ApiNoResult()));
       });
   return cancel_token;
 }

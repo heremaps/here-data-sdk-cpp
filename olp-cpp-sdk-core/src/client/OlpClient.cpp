@@ -59,7 +59,9 @@ HttpResponse ToHttpResponse(const http::SendOutcome& outcome) {
           http::ErrorCodeToString(outcome.GetErrorCode())};
 }
 
-bool StatusSuccess(int status) { return status >= 0 && status < 400; }
+bool StatusSuccess(int status) {
+  return status >= 0 && status < http::HttpStatusCode::BAD_REQUEST;
+}
 
 bool CaseInsensitiveCompare(const std::string& str1, const std::string& str2) {
   return (str1.size() == str2.size()) &&
