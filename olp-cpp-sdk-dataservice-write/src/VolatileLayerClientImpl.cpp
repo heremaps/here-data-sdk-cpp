@@ -54,7 +54,7 @@ VolatileLayerClientImpl::~VolatileLayerClientImpl() {
   pending_requests_->CancelAllAndWait();
 }
 
-olp::client::CancellationToken VolatileLayerClientImpl::InitApiClients(
+client::CancellationToken VolatileLayerClientImpl::InitApiClients(
     std::shared_ptr<client::CancellationContext> cancel_context,
     InitApiClientsCallback callback) {
   auto self = shared_from_this();
@@ -95,7 +95,7 @@ olp::client::CancellationToken VolatileLayerClientImpl::InitApiClients(
     }
   };
 
-  auto publishApi_function = [=]() -> olp::client::CancellationToken {
+  auto publishApi_function = [=]() -> client::CancellationToken {
     return ApiClientLookup::LookupApi(self->apiclient_publish_, "publish", "v2",
                                       self->catalog_, publishApi_callback);
   };
@@ -113,7 +113,7 @@ olp::client::CancellationToken VolatileLayerClientImpl::InitApiClients(
     cancel_context->ExecuteOrCancelled(publishApi_function, cancel_function);
   };
 
-  auto queryApi_function = [=]() -> olp::client::CancellationToken {
+  auto queryApi_function = [=]() -> client::CancellationToken {
     return ApiClientLookup::LookupApi(self->apiclient_query_, "query", "v1",
                                       self->catalog_, queryApi_callback);
   };
@@ -132,7 +132,7 @@ olp::client::CancellationToken VolatileLayerClientImpl::InitApiClients(
     cancel_context->ExecuteOrCancelled(queryApi_function, cancel_function);
   };
 
-  auto blobApi_function = [=]() -> olp::client::CancellationToken {
+  auto blobApi_function = [=]() -> client::CancellationToken {
     return ApiClientLookup::LookupApi(self->apiclient_blob_, "volatile-blob",
                                       "v1", self->catalog_, blobApi_callback);
   };
@@ -150,7 +150,7 @@ olp::client::CancellationToken VolatileLayerClientImpl::InitApiClients(
     cancel_context->ExecuteOrCancelled(blobApi_function, cancel_function);
   };
 
-  auto metadataApi_function = [=]() -> olp::client::CancellationToken {
+  auto metadataApi_function = [=]() -> client::CancellationToken {
     return ApiClientLookup::LookupApi(self->apiclient_metadata_, "metadata",
                                       "v1", self->catalog_,
                                       metadataApi_callback);
@@ -218,17 +218,17 @@ std::string VolatileLayerClientImpl::FindContentTypeForLayerId(
   return content_type;
 }
 
-olp::client::CancellableFuture<GetBaseVersionResponse>
+client::CancellableFuture<GetBaseVersionResponse>
 VolatileLayerClientImpl::GetBaseVersion() {
   auto promise = std::make_shared<std::promise<GetBaseVersionResponse>>();
-  return olp::client::CancellableFuture<GetBaseVersionResponse>(
+  return client::CancellableFuture<GetBaseVersionResponse>(
       GetBaseVersion([promise](GetBaseVersionResponse response) {
         promise->set_value(response);
       }),
       promise);
 }
 
-olp::client::CancellationToken VolatileLayerClientImpl::GetBaseVersion(
+client::CancellationToken VolatileLayerClientImpl::GetBaseVersion(
     GetBaseVersionCallback callback) {
   auto cancel_context = std::make_shared<client::CancellationContext>();
   auto self = shared_from_this();
@@ -244,7 +244,8 @@ olp::client::CancellationToken VolatileLayerClientImpl::GetBaseVersion(
       [=](MetadataApi::CatalogVersionResponse response) {
         self->tokenList_.RemoveTask(id);
         if (!response.IsSuccessful()) {
-          if (response.GetError().GetHttpStatusCode() == 404 &&
+          if (response.GetError().GetHttpStatusCode() ==
+                  http::HttpStatusCode::NOT_FOUND &&
               response.GetError().GetMessage().find(
                   "Catalog has no versions") != std::string::npos) {
             callback(GetBaseVersionResult{});
@@ -285,7 +286,7 @@ olp::client::CancellationToken VolatileLayerClientImpl::GetBaseVersion(
 client::CancellableFuture<StartBatchResponse>
 VolatileLayerClientImpl::StartBatch(const model::StartBatchRequest& request) {
   auto promise = std::make_shared<std::promise<StartBatchResponse>>();
-  return olp::client::CancellableFuture<StartBatchResponse>(
+  return client::CancellableFuture<StartBatchResponse>(
       StartBatch(request,
                  [promise](StartBatchResponse response) {
                    promise->set_value(response);

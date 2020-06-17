@@ -102,7 +102,8 @@ TEST_P(CatalogClientTest, GetCatalog403) {
 
   ASSERT_FALSE(catalog_response.IsSuccessful())
       << ApiErrorToString(catalog_response.GetError());
-  ASSERT_EQ(403, catalog_response.GetError().GetHttpStatusCode());
+  ASSERT_EQ(http::HttpStatusCode::FORBIDDEN,
+            catalog_response.GetError().GetHttpStatusCode());
 }
 
 TEST_P(CatalogClientTest, GetCatalogCancelApiLookup) {
@@ -441,7 +442,8 @@ TEST_P(CatalogClientTest, GetCatalog403CacheClear) {
   future = catalog_client->GetCatalog(request);
   catalog_response = future.GetFuture().get();
   ASSERT_FALSE(catalog_response.IsSuccessful());
-  ASSERT_EQ(403, catalog_response.GetError().GetHttpStatusCode());
+  ASSERT_EQ(http::HttpStatusCode::FORBIDDEN,
+            catalog_response.GetError().GetHttpStatusCode());
   // Check for cached response
   request.WithFetchOption(read::CacheOnly);
   future = catalog_client->GetCatalog(request);

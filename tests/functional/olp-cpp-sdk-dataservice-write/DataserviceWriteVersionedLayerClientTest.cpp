@@ -22,6 +22,7 @@
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+#include <olp/core/http/HttpStatusCode.h>
 #include <olp/dataservice/write/VersionedLayerClient.h>
 #include <olp/dataservice/write/model/StartBatchRequest.h>
 #include <testutils/CustomParameters.hpp>
@@ -31,6 +32,7 @@ namespace {
 
 namespace write = olp::dataservice::write;
 namespace model = olp::dataservice::write::model;
+namespace http = olp::http;
 
 const std::string kEndpoint = "endpoint";
 const std::string kAppid = "dataservice_write_test_appid";
@@ -567,7 +569,7 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, CheckDataNotExists) {
 
   EXPECT_SUCCESS(response);
 
-  ASSERT_EQ(response.GetResult(), 404);
+  ASSERT_EQ(response.GetResult(), http::HttpStatusCode::NOT_FOUND);
 }
 
 }  // namespace

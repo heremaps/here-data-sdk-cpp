@@ -261,7 +261,8 @@ olp::client::CancellationToken VersionedLayerClientImpl::GetBaseVersion(
       [=](MetadataApi::CatalogVersionResponse response) {
         self->tokenList_.RemoveTask(id);
         if (!response.IsSuccessful()) {
-          if (response.GetError().GetHttpStatusCode() == 404 &&
+          if (response.GetError().GetHttpStatusCode() ==
+                  http::HttpStatusCode::NOT_FOUND &&
               response.GetError().GetMessage().find(
                   "Catalog has no versions") != std::string::npos) {
             callback(GetBaseVersionResult{});
