@@ -179,7 +179,8 @@ TEST_P(OlpClientTest, NumberOfAttempts) {
               olp::http::Network::Callback callback,
               olp::http::Network::HeaderCallback /*header_callback*/,
               olp::http::Network::DataCallback /*data_callback*/) {
-            callback(olp::http::NetworkResponse().WithStatus(429));
+            callback(olp::http::NetworkResponse().WithStatus(
+                http::HttpStatusCode::TOO_MANY_REQUESTS));
             return olp::http::SendOutcome(olp::http::RequestId(5));
           });
 
@@ -190,7 +191,7 @@ TEST_P(OlpClientTest, NumberOfAttempts) {
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
 
-  ASSERT_EQ(429, response.status);
+  ASSERT_EQ(http::HttpStatusCode::TOO_MANY_REQUESTS, response.status);
 }
 
 TEST_P(OlpClientTest, ZeroAttempts) {
@@ -206,7 +207,8 @@ TEST_P(OlpClientTest, ZeroAttempts) {
                     olp::http::Network::Callback callback,
                     olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback /*data_callback*/) {
-        callback(olp::http::NetworkResponse().WithStatus(429));
+        callback(olp::http::NetworkResponse().WithStatus(
+            http::HttpStatusCode::TOO_MANY_REQUESTS));
 
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
@@ -218,7 +220,7 @@ TEST_P(OlpClientTest, ZeroAttempts) {
       std::multimap<std::string, std::string>(),
       std::multimap<std::string, std::string>(), nullptr, std::string());
 
-  ASSERT_EQ(429, response.status);
+  ASSERT_EQ(http::HttpStatusCode::TOO_MANY_REQUESTS, response.status);
 }
 
 TEST_P(OlpClientTest, DefaultRetryCondition) {
@@ -264,7 +266,7 @@ TEST_P(OlpClientTest, RetryCondition) {
   client_settings_.retry_settings.max_attempts = 6;
   client_settings_.retry_settings.retry_condition =
       ([](const olp::client::HttpResponse& response) {
-        return response.status == 429;
+        return response.status == http::HttpStatusCode::TOO_MANY_REQUESTS;
       });
 
   int current_attempt = 0;
@@ -285,7 +287,8 @@ TEST_P(OlpClientTest, RetryCondition) {
               callback(olp::http::NetworkResponse().WithStatus(
                   http::HttpStatusCode::OK));
             } else {
-              callback(olp::http::NetworkResponse().WithStatus(429));
+              callback(olp::http::NetworkResponse().WithStatus(
+                  http::HttpStatusCode::TOO_MANY_REQUESTS));
             }
             return olp::http::SendOutcome(olp::http::RequestId(5));
           });
@@ -318,7 +321,8 @@ TEST_P(OlpClientTest, RetryTimeLinear) {
               olp::http::Network::HeaderCallback /*header_callback*/,
               olp::http::Network::DataCallback /*data_callback*/) {
             timestamps.push_back(std::chrono::system_clock::now());
-            callback(olp::http::NetworkResponse().WithStatus(429));
+            callback(olp::http::NetworkResponse().WithStatus(
+                http::HttpStatusCode::TOO_MANY_REQUESTS));
             return olp::http::SendOutcome(olp::http::RequestId(5));
           });
 
@@ -329,7 +333,7 @@ TEST_P(OlpClientTest, RetryTimeLinear) {
 
   ASSERT_EQ(1 + client_settings_.retry_settings.max_attempts,
             timestamps.size());
-  ASSERT_EQ(429, response.status);
+  ASSERT_EQ(http::HttpStatusCode::TOO_MANY_REQUESTS, response.status);
   for (size_t i = 1; i < timestamps.size(); ++i) {
     ASSERT_GE(timestamps.at(i) - timestamps.at(i - 1),
               std::chrono::milliseconds(
@@ -358,7 +362,8 @@ TEST_P(OlpClientTest, RetryTimeExponential) {
               olp::http::Network::HeaderCallback /*header_callback*/,
               olp::http::Network::DataCallback /*data_callback*/) {
             timestamps.push_back(std::chrono::system_clock::now());
-            callback(olp::http::NetworkResponse().WithStatus(429));
+            callback(olp::http::NetworkResponse().WithStatus(
+                http::HttpStatusCode::TOO_MANY_REQUESTS));
             return olp::http::SendOutcome(olp::http::RequestId(5));
           });
 
@@ -369,7 +374,7 @@ TEST_P(OlpClientTest, RetryTimeExponential) {
 
   ASSERT_EQ(1 + client_settings_.retry_settings.max_attempts,
             timestamps.size());
-  ASSERT_EQ(429, response.status);
+  ASSERT_EQ(http::HttpStatusCode::TOO_MANY_REQUESTS, response.status);
   auto backdownPeriod = client_settings_.retry_settings.initial_backdown_period;
   for (size_t i = 1; i < timestamps.size(); ++i) {
     ASSERT_GE(timestamps.at(i) - timestamps.at(i - 1),
@@ -509,7 +514,8 @@ TEST_P(OlpClientTest, SetInitialBackdownPeriod) {
               olp::http::Network::HeaderCallback /*header_callback*/,
               olp::http::Network::DataCallback /*data_callback*/) {
             timestamps.push_back(std::chrono::system_clock::now());
-            callback(olp::http::NetworkResponse().WithStatus(429));
+            callback(olp::http::NetworkResponse().WithStatus(
+                http::HttpStatusCode::TOO_MANY_REQUESTS));
             return olp::http::SendOutcome(olp::http::RequestId(5));
           });
   auto response = call_wrapper_->CallApi(
@@ -519,7 +525,7 @@ TEST_P(OlpClientTest, SetInitialBackdownPeriod) {
 
   ASSERT_EQ(1 + client_settings_.retry_settings.max_attempts,
             timestamps.size());
-  ASSERT_EQ(429, response.status);
+  ASSERT_EQ(http::HttpStatusCode::TOO_MANY_REQUESTS, response.status);
   for (size_t i = 1; i < timestamps.size(); ++i) {
     ASSERT_GE(timestamps.at(i) - timestamps.at(i - 1),
               std::chrono::milliseconds(
@@ -541,7 +547,8 @@ TEST_P(OlpClientTest, Timeout) {
                     olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback /*data_callback*/) {
         timeout = request.GetSettings().GetConnectionTimeout();
-        callback(olp::http::NetworkResponse().WithStatus(429));
+        callback(olp::http::NetworkResponse().WithStatus(
+            http::HttpStatusCode::TOO_MANY_REQUESTS));
         return olp::http::SendOutcome(olp::http::RequestId(5));
       });
 
@@ -551,7 +558,7 @@ TEST_P(OlpClientTest, Timeout) {
       std::multimap<std::string, std::string>(), nullptr, std::string());
 
   ASSERT_EQ(client_settings_.retry_settings.timeout, timeout);
-  ASSERT_EQ(429, response.status);
+  ASSERT_EQ(http::HttpStatusCode::TOO_MANY_REQUESTS, response.status);
 }
 
 TEST_P(OlpClientTest, Proxy) {
@@ -1224,7 +1231,7 @@ TEST_P(OlpClientTest, CancelRetry) {
   client_settings_.retry_settings.initial_backdown_period = 500;
   client_settings_.retry_settings.retry_condition =
       ([](const olp::client::HttpResponse& response) {
-        return response.status == 429;
+        return response.status == http::HttpStatusCode::TOO_MANY_REQUESTS;
       });
 
   auto wait_for_cancel = std::make_shared<std::promise<void>>();
@@ -1250,7 +1257,8 @@ TEST_P(OlpClientTest, CancelRetry) {
                 wait_for_cancel->set_value();
                 continue_network->get_future().get();
               }
-              callback(olp::http::NetworkResponse().WithStatus(429));
+              callback(olp::http::NetworkResponse().WithStatus(
+                  http::HttpStatusCode::TOO_MANY_REQUESTS));
             });
             handler_thread.detach();
             return olp::http::SendOutcome(olp::http::RequestId(5));

@@ -92,7 +92,8 @@ TEST_P(CatalogClientTest, GetCatalog403) {
   EXPECT_CALL(*network_mock_,
               Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
       .WillOnce(common::ReturnHttpResponse(
-          olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
+          common::GetResponse(http::HttpStatusCode::FORBIDDEN),
+          HTTP_RESPONSE_403));
 
   auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
   auto request = read::CatalogRequest();
@@ -345,7 +346,7 @@ TEST_P(CatalogClientTest, GetCatalogOnlineOnly) {
     EXPECT_CALL(*network_mock_,
                 Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
         .WillOnce(common::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(429),
+            common::GetResponse(http::HttpStatusCode::TOO_MANY_REQUESTS),
             "Server busy at the moment."));
   }
 
@@ -425,7 +426,8 @@ TEST_P(CatalogClientTest, GetCatalog403CacheClear) {
     EXPECT_CALL(*network_mock_,
                 Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
         .WillOnce(common::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(403), HTTP_RESPONSE_403));
+            common::GetResponse(http::HttpStatusCode::FORBIDDEN),
+            HTTP_RESPONSE_403));
   }
 
   auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
@@ -583,8 +585,7 @@ TEST_F(CatalogClientTest, GetVersionsList) {
     EXPECT_CALL(*network_mock_,
                 Send(common::IsGetRequest(kUrlVersionsList), _, _, _, _))
         .WillOnce(common::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(
-                olp::http::HttpStatusCode::TOO_MANY_REQUESTS),
+            common::GetResponse(http::HttpStatusCode::TOO_MANY_REQUESTS),
             "Server busy at the moment."));
 
     auto future = client.ListVersions(request);
