@@ -61,14 +61,14 @@ client::CancellationToken ApiClientLookup::LookupApi(
     const std::string& service_version, const client::HRN& hrn,
     const ApisCallback& callback) {
   OLP_SDK_LOG_TRACE_F(kLogTag, "LookupApi(%s/%s): %s", service.c_str(),
-                      service_version.c_str(), hrn.partition.c_str());
+                      service_version.c_str(), hrn.GetPartition().c_str());
 
   // compare the hrn
-  auto base_url = GetDatastoreServerUrl(hrn.partition);
+  auto base_url = GetDatastoreServerUrl(hrn.GetPartition());
   if (base_url.empty()) {
     OLP_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s Lookup URL not found",
                        service.c_str(), service_version.c_str(),
-                       hrn.partition.c_str());
+                       hrn.GetPartition().c_str());
     callback(
         client::ApiError(client::ErrorCode::NotFound, "Invalid or broken HRN"));
     return client::CancellationToken();
@@ -79,7 +79,7 @@ client::CancellationToken ApiClientLookup::LookupApi(
   if (service == "config") {
     OLP_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s - config service",
                        service.c_str(), service_version.c_str(),
-                       hrn.partition.c_str());
+                       hrn.GetPartition().c_str());
 
     // scan apis at platform apis
     return PlatformApi::GetApis(
@@ -89,7 +89,7 @@ client::CancellationToken ApiClientLookup::LookupApi(
 
   OLP_SDK_LOG_INFO_F(kLogTag, "LookupApi(%s/%s): %s - resource service",
                      service.c_str(), service_version.c_str(),
-                     hrn.partition.c_str());
+                     hrn.GetPartition().c_str());
 
   // scan apis at resource endpoint
   return ResourcesApi::GetApis(
@@ -102,21 +102,23 @@ client::CancellationToken ApiClientLookup::LookupApiClient(
     const std::string& service_version, const client::HRN& hrn,
     const ApiClientCallback& callback) {
   OLP_SDK_LOG_TRACE_F(kLogTag, "LookupApiClient(%s/%s): %s", service.c_str(),
-                      service_version.c_str(), hrn.partition.c_str());
+                      service_version.c_str(), hrn.GetPartition().c_str());
 
   return ApiClientLookup::LookupApi(
       client, service, service_version, hrn, [=](ApisResponse response) {
         if (!response.IsSuccessful()) {
-          OLP_SDK_LOG_INFO_F(
-              kLogTag, "LookupApiClient(%s/%s): %s - unsuccessful: %s",
-              service.c_str(), service_version.c_str(), hrn.partition.c_str(),
-              response.GetError().GetMessage().c_str());
+          OLP_SDK_LOG_INFO_F(kLogTag,
+                             "LookupApiClient(%s/%s): %s - unsuccessful: %s",
+                             service.c_str(), service_version.c_str(),
+                             hrn.GetPartition().c_str(),
+                             response.GetError().GetMessage().c_str());
 
           callback(response.GetError());
         } else if (response.GetResult().size() < 1) {
           OLP_SDK_LOG_INFO_F(
               kLogTag, "LookupApiClient(%s/%s): %s - service not available",
-              service.c_str(), service_version.c_str(), hrn.partition.c_str());
+              service.c_str(), service_version.c_str(),
+              hrn.GetPartition().c_str());
 
           // TODO use defined ErrorCode
           callback(
@@ -127,7 +129,7 @@ client::CancellationToken ApiClientLookup::LookupApiClient(
           OLP_SDK_LOG_INFO_F(kLogTag,
                              "LookupApiClient(%s/%s): %s - OK, base_url=%s",
                              service.c_str(), service_version.c_str(),
-                             hrn.partition.c_str(), base_url.c_str());
+                             hrn.GetPartition().c_str(), base_url.c_str());
 
           client->SetBaseUrl(base_url);
           callback(*client);
@@ -158,14 +160,15 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApiClient(
   }
 
   OLP_SDK_LOG_TRACE_F(kLogTag, "LookupApiClient(%s/%s): %s", service.c_str(),
-                      service_version.c_str(), catalog.partition.c_str());
+                      service_version.c_str(), catalog.GetPartition().c_str());
 
   // compare the hrn
-  const auto base_url = GetDatastoreServerUrl(catalog.partition);
+  const auto base_url = GetDatastoreServerUrl(catalog.GetPartition());
   if (base_url.empty()) {
-    OLP_SDK_LOG_INFO_F(
-        kLogTag, "LookupApiClient(%s/%s): %s Lookup URL not found",
-        service.c_str(), service_version.c_str(), catalog.partition.c_str());
+    OLP_SDK_LOG_INFO_F(kLogTag,
+                       "LookupApiClient(%s/%s): %s Lookup URL not found",
+                       service.c_str(), service_version.c_str(),
+                       catalog.GetPartition().c_str());
     return client::ApiError(client::ErrorCode::NotFound,
                             "Invalid or broken HRN");
   }
@@ -178,7 +181,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApiClient(
   if (service == "config") {
     OLP_SDK_LOG_INFO_F(kLogTag, "LookupApiClient(%s/%s): %s - config service",
                        service.c_str(), service_version.c_str(),
-                       catalog.partition.c_str());
+                       catalog.GetPartition().c_str());
 
     // scan apis at platform apis
     api_response = PlatformApi::GetApis(input_client, service, service_version,
@@ -186,7 +189,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApiClient(
   } else {
     OLP_SDK_LOG_INFO_F(kLogTag, "LookupApiClient(%s/%s): %s - resource service",
                        service.c_str(), service_version.c_str(),
-                       catalog.partition.c_str());
+                       catalog.GetPartition().c_str());
 
     // scan apis at resource endpoint
     api_response =
@@ -197,13 +200,14 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApiClient(
   if (!api_response.IsSuccessful()) {
     OLP_SDK_LOG_INFO_F(kLogTag, "LookupApiClient(%s/%s): %s - unsuccessful: %s",
                        service.c_str(), service_version.c_str(),
-                       catalog.partition.c_str(),
+                       catalog.GetPartition().c_str(),
                        api_response.GetError().GetMessage().c_str());
     return api_response.GetError();
   } else if (api_response.GetResult().empty()) {
-    OLP_SDK_LOG_INFO_F(
-        kLogTag, "LookupApiClient(%s/%s): %s - service not available",
-        service.c_str(), service_version.c_str(), catalog.partition.c_str());
+    OLP_SDK_LOG_INFO_F(kLogTag,
+                       "LookupApiClient(%s/%s): %s - service not available",
+                       service.c_str(), service_version.c_str(),
+                       catalog.GetPartition().c_str());
     return client::ApiError(client::ErrorCode::ServiceUnavailable,
                             "Service/Version not available for given HRN");
   }
@@ -212,7 +216,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApiClient(
   if (output_base_url.empty()) {
     OLP_SDK_LOG_WARNING_F(
         kLogTag, "LookupApiClient(%s/%s): %s - empty base URL", service.c_str(),
-        service_version.c_str(), catalog.partition.c_str());
+        service_version.c_str(), catalog.GetPartition().c_str());
   }
 
   client::OlpClient output_client;
@@ -220,10 +224,9 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApiClient(
 
   if (cache) {
     constexpr time_t kExpiryTimeInSecs = 3600;
-    if (cache->Put(
-            cache_key, output_base_url,
-            [output_base_url]() { return output_base_url; },
-            kExpiryTimeInSecs)) {
+    if (cache->Put(cache_key, output_base_url,
+                   [output_base_url]() { return output_base_url; },
+                   kExpiryTimeInSecs)) {
       OLP_SDK_LOG_TRACE_F(kLogTag, "Put '%s' to cache", cache_key.c_str());
     } else {
       OLP_SDK_LOG_WARNING_F(kLogTag, "Failed to put '%s' to cache",

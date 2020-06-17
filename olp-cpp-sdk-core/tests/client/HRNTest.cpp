@@ -160,31 +160,31 @@ TEST(HRNTest, Parsing) {
   {
     SCOPED_TRACE("Valid Catalog HRN");
     HRN hrn("hrn:here:data:EU:test:hereos-internal-test-v2");
-    EXPECT_EQ(hrn.partition, "here");
-    EXPECT_EQ(hrn.service, HRN::ServiceType::Data);
-    EXPECT_EQ(hrn.region, "EU");
-    EXPECT_EQ(hrn.account, "test");
-    EXPECT_EQ(hrn.catalogId, "hereos-internal-test-v2");
+    EXPECT_EQ(hrn.GetPartition(), "here");
+    EXPECT_EQ(hrn.GetService(), HRN::ServiceType::Data);
+    EXPECT_EQ(hrn.GetRegion(), "EU");
+    EXPECT_EQ(hrn.GetAccount(), "test");
+    EXPECT_EQ(hrn.GetCatalogId(), "hereos-internal-test-v2");
   }
   {
     SCOPED_TRACE("Valid Schema HRN");
     HRN hrn("hrn:here:schema:CH:test:group_id:artifact_id:version");
-    EXPECT_EQ(hrn.partition, "here");
-    EXPECT_EQ(hrn.service, HRN::ServiceType::Schema);
-    EXPECT_EQ(hrn.region, "CH");
-    EXPECT_EQ(hrn.account, "test");
-    EXPECT_EQ(hrn.groupId, "group_id");
-    EXPECT_EQ(hrn.schemaName, "artifact_id");
-    EXPECT_EQ(hrn.version, "version");
+    EXPECT_EQ(hrn.GetPartition(), "here");
+    EXPECT_EQ(hrn.GetService(), HRN::ServiceType::Schema);
+    EXPECT_EQ(hrn.GetRegion(), "CH");
+    EXPECT_EQ(hrn.GetAccount(), "test");
+    EXPECT_EQ(hrn.GetGroupId(), "group_id");
+    EXPECT_EQ(hrn.GetSchemaName(), "artifact_id");
+    EXPECT_EQ(hrn.GetVersion(), "version");
   }
   {
     SCOPED_TRACE("Valid Pipeline HRN");
     HRN hrn("hrn:here:pipeline:US:test:test_pipeline");
-    EXPECT_EQ(hrn.partition, "here");
-    EXPECT_EQ(hrn.service, HRN::ServiceType::Pipeline);
-    EXPECT_EQ(hrn.region, "US");
-    EXPECT_EQ(hrn.account, "test");
-    EXPECT_EQ(hrn.pipelineId, "test_pipeline");
+    EXPECT_EQ(hrn.GetPartition(), "here");
+    EXPECT_EQ(hrn.GetService(), HRN::ServiceType::Pipeline);
+    EXPECT_EQ(hrn.GetRegion(), "US");
+    EXPECT_EQ(hrn.GetAccount(), "test");
+    EXPECT_EQ(hrn.GetPipelineId(), "test_pipeline");
   }
 }
 

@@ -175,17 +175,6 @@ class DATASERVICE_WRITE_API VersionedLayerClient {
                                              CancelBatchCallback callback);
 
   /**
-   * @brief Cancel all pending operations started by this client. This will only
-   * cancel operations that have been started, so you will need to call
-   * CancelBatch after this if you have a batch operation in progress
-   * (StartBatch successfully completed).
-   * @deprecated Use \ref CancelPendingRequests intead.
-   */
-  OLP_SDK_DEPRECATED(
-      "Use CancelPendingRequests instead. Will be removed in 05.2020")
-  void CancelAll();
-
-  /**
    * @brief Cancels all the ongoing operations that this client started.
    *
    * Returns instantly and does not wait for the callbacks.

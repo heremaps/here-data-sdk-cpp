@@ -33,9 +33,6 @@
 #include "generated/PublishApi.h"
 #include "generated/QueryApi.h"
 
-using namespace olp::client;
-using namespace olp::dataservice::write::model;
-
 namespace {
 std::string GenerateUuid() {
   static boost::uuids::random_generator gen;
@@ -46,14 +43,14 @@ std::string GenerateUuid() {
 namespace olp {
 namespace dataservice {
 namespace write {
-VolatileLayerClientImpl::VolatileLayerClientImpl(HRN catalog,
-                                                 OlpClientSettings settings)
+VolatileLayerClientImpl::VolatileLayerClientImpl(
+    client::HRN catalog, client::OlpClientSettings settings)
     : catalog_(std::move(catalog)),
       settings_(std::move(settings)),
       pending_requests_(std::make_shared<client::PendingRequests>()) {}
 
 VolatileLayerClientImpl::~VolatileLayerClientImpl() {
-  CancelAll();
+  tokenList_.CancelAll();
   pending_requests_->CancelAllAndWait();
 }
 
@@ -178,16 +175,17 @@ olp::client::CancellationToken VolatileLayerClientImpl::InitApiClients(
                                     configApi_callback);
 }
 
-void VolatileLayerClientImpl::CancelAll() { tokenList_.CancelAll(); }
+void VolatileLayerClientImpl::CancelPendingRequests() {
+  tokenList_.CancelAll();
+  pending_requests_->CancelAll();
+}
 
-void VolatileLayerClientImpl::CancelPendingRequests() { CancelAll(); }
-
-CancellationToken VolatileLayerClientImpl::InitCatalogModel(
+client::CancellationToken VolatileLayerClientImpl::InitCatalogModel(
     const model::PublishPartitionDataRequest& /*request*/,
     const InitCatalogModelCallback& callback) {
   if (!catalog_model_.GetId().empty()) {
     callback(boost::none);
-    return CancellationToken();
+    return client::CancellationToken();
   }
 
   auto self = shared_from_this();
@@ -264,7 +262,7 @@ olp::client::CancellationToken VolatileLayerClientImpl::GetBaseVersion(
   };
 
   cancel_context->ExecuteOrCancelled(
-      [=]() -> CancellationToken {
+      [=]() -> client::CancellationToken {
         return self->InitApiClients(
             cancel_context, [=](boost::optional<client::ApiError> api_error) {
               if (api_error) {
@@ -350,7 +348,7 @@ client::CancellationToken VolatileLayerClientImpl::StartBatch(
   return token;
 }
 
-CancellableFuture<PublishPartitionDataResponse>
+client::CancellableFuture<PublishPartitionDataResponse>
 VolatileLayerClientImpl::PublishPartitionData(
     const model::PublishPartitionDataRequest& request) {
   auto promise = std::make_shared<std::promise<PublishPartitionDataResponse>>();
@@ -358,27 +356,28 @@ VolatileLayerClientImpl::PublishPartitionData(
       request, [promise](PublishPartitionDataResponse response) {
         promise->set_value(std::move(response));
       });
-  return CancellableFuture<PublishPartitionDataResponse>(cancel_token, promise);
+  return client::CancellableFuture<PublishPartitionDataResponse>(cancel_token,
+                                                                 promise);
 }
 
-CancellationToken VolatileLayerClientImpl::PublishPartitionData(
+client::CancellationToken VolatileLayerClientImpl::PublishPartitionData(
     const model::PublishPartitionDataRequest& request,
     PublishPartitionDataCallback callback) {
   if (!request.GetData() || !request.GetPartitionId()) {
     callback(PublishPartitionDataResponse(
-        ApiError(ErrorCode::InvalidArgument,
-                 "Request data or partition id is not defined.")));
-    return CancellationToken();
+        client::ApiError(client::ErrorCode::InvalidArgument,
+                         "Request data or partition id is not defined.")));
+    return client::CancellationToken();
   }
 
-  auto cancel_context = std::make_shared<CancellationContext>();
+  auto cancel_context = std::make_shared<client::CancellationContext>();
   auto self = shared_from_this();
   auto id = tokenList_.GetNextId();
 
   auto cancel_function = [=]() {
     self->tokenList_.RemoveTask(id);
-    callback(PublishPartitionDataResponse(
-        ApiError(ErrorCode::Cancelled, "Operation cancelled.", true)));
+    callback(PublishPartitionDataResponse(client::ApiError(
+        client::ErrorCode::Cancelled, "Operation cancelled.", true)));
   };
 
   const auto partition_id = request.GetPartitionId();
@@ -396,7 +395,7 @@ CancellationToken VolatileLayerClientImpl::PublishPartitionData(
   };
 
   auto putBlob_function =
-      [=](const std::string& data_handle) -> CancellationToken {
+      [=](const std::string& data_handle) -> client::CancellationToken {
     auto content_type = self->FindContentTypeForLayerId(request.GetLayerId());
     if (content_type.empty()) {
       self->tokenList_.RemoveTask(id);
@@ -407,8 +406,8 @@ CancellationToken VolatileLayerClientImpl::PublishPartitionData(
                         "this VolatileLayerClient instance.") %
                     request.GetLayerId();
       callback(PublishPartitionDataResponse(
-          ApiError(ErrorCode::InvalidArgument, errmsg.str())));
-      return CancellationToken();
+          client::ApiError(client::ErrorCode::InvalidArgument, errmsg.str())));
+      return client::CancellationToken();
     }
     return BlobApi::PutBlob(*self->apiclient_blob_, request.GetLayerId(),
                             content_type, data_handle, request.GetData(),
@@ -424,10 +423,10 @@ CancellationToken VolatileLayerClientImpl::PublishPartitionData(
 
     if (response.GetResult().empty()) {
       self->tokenList_.RemoveTask(id);
-      callback(PublishPartitionDataResponse(
-          ApiError(ErrorCode::InvalidArgument,
-                   "Unable to find requested partition,the partition "
-                   "metadata has to exist in OLP before invoking this API.")));
+      callback(PublishPartitionDataResponse(client::ApiError(
+          client::ErrorCode::InvalidArgument,
+          "Unable to find requested partition,the partition "
+          "metadata has to exist in OLP before invoking this API.")));
       return;
     }
 
@@ -438,7 +437,7 @@ CancellationToken VolatileLayerClientImpl::PublishPartitionData(
     }
   };
 
-  auto get_data_handle_function = [=]() -> CancellationToken {
+  auto get_data_handle_function = [=]() -> client::CancellationToken {
     return GetDataHandleMap(
         request.GetLayerId(),
         std::vector<std::string>{partition_id.value_or(std::string())},
@@ -446,7 +445,7 @@ CancellationToken VolatileLayerClientImpl::PublishPartitionData(
   };
 
   auto init_catalog_model_callback =
-      [=](boost::optional<ApiError> init_catalog_model_error) mutable {
+      [=](boost::optional<client::ApiError> init_catalog_model_error) mutable {
         if (init_catalog_model_error) {
           self->tokenList_.RemoveTask(id);
           callback(
@@ -458,12 +457,12 @@ CancellationToken VolatileLayerClientImpl::PublishPartitionData(
                                            cancel_function);
       };
 
-  auto init_catalog_model_function = [=]() -> CancellationToken {
+  auto init_catalog_model_function = [=]() -> client::CancellationToken {
     return InitCatalogModel(request, init_catalog_model_callback);
   };
 
   auto init_api_clients_callback =
-      [=](boost::optional<ApiError> init_api_error) {
+      [=](boost::optional<client::ApiError> init_api_error) {
         if (init_api_error) {
           self->tokenList_.RemoveTask(id);
           callback(PublishPartitionDataResponse(init_api_error.get()));
@@ -474,7 +473,7 @@ CancellationToken VolatileLayerClientImpl::PublishPartitionData(
                                            cancel_function);
       };
 
-  auto init_api_clients_function = [=]() -> CancellationToken {
+  auto init_api_clients_function = [=]() -> client::CancellationToken {
     return InitApiClients(cancel_context, init_api_clients_callback);
   };
 
@@ -487,10 +486,10 @@ CancellationToken VolatileLayerClientImpl::PublishPartitionData(
   return ret;
 }
 
-olp::client::CancellableFuture<GetBatchResponse>
-VolatileLayerClientImpl::GetBatch(const model::Publication& pub) {
+client::CancellableFuture<GetBatchResponse> VolatileLayerClientImpl::GetBatch(
+    const model::Publication& pub) {
   auto promise = std::make_shared<std::promise<GetBatchResponse>>();
-  return olp::client::CancellableFuture<GetBatchResponse>(
+  return client::CancellableFuture<GetBatchResponse>(
       GetBatch(pub,
                [promise](GetBatchResponse response) {
                  promise->set_value(response);
@@ -498,7 +497,7 @@ VolatileLayerClientImpl::GetBatch(const model::Publication& pub) {
       promise);
 }
 
-olp::client::CancellationToken VolatileLayerClientImpl::GetBatch(
+client::CancellationToken VolatileLayerClientImpl::GetBatch(
     const model::Publication& pub, GetBatchCallback callback) {
   std::string publicationId = pub.GetId().value_or("");
   if (publicationId.empty()) {
@@ -535,7 +534,8 @@ olp::client::CancellationToken VolatileLayerClientImpl::GetBatch(
   cancel_context->ExecuteOrCancelled(
       [=]() -> client::CancellationToken {
         return self->InitApiClients(
-            cancel_context, [=](boost::optional<ApiError> init_api_error) {
+            cancel_context,
+            [=](boost::optional<client::ApiError> init_api_error) {
               if (init_api_error) {
                 self->tokenList_.RemoveTask(id);
                 callback(GetPublicationResponse(init_api_error.get()));
@@ -553,7 +553,7 @@ olp::client::CancellationToken VolatileLayerClientImpl::GetBatch(
   return ret;
 }
 
-olp::client::CancellationToken VolatileLayerClientImpl::GetDataHandleMap(
+client::CancellationToken VolatileLayerClientImpl::GetDataHandleMap(
     const std::string& layerId, const std::vector<std::string>& partitionIds,
     boost::optional<int64_t> version,
     boost::optional<std::vector<std::string>> additionalFields,
@@ -607,7 +607,8 @@ olp::client::CancellationToken VolatileLayerClientImpl::GetDataHandleMap(
   cancel_context->ExecuteOrCancelled(
       [=]() -> client::CancellationToken {
         return self->InitApiClients(
-            cancel_context, [=](boost::optional<ApiError> init_api_error) {
+            cancel_context,
+            [=](boost::optional<client::ApiError> init_api_error) {
               if (init_api_error) {
                 self->tokenList_.RemoveTask(id);
                 callback(DataHandleMapResponse(init_api_error.get()));
@@ -626,12 +627,12 @@ olp::client::CancellationToken VolatileLayerClientImpl::GetDataHandleMap(
   return ret;
 }
 
-olp::client::CancellableFuture<PublishToBatchResponse>
+client::CancellableFuture<PublishToBatchResponse>
 VolatileLayerClientImpl::PublishToBatch(
     const model::Publication& pub,
     const std::vector<model::PublishPartitionDataRequest>& partitions) {
   auto promise = std::make_shared<std::promise<PublishToBatchResponse>>();
-  return olp::client::CancellableFuture<PublishToBatchResponse>(
+  return client::CancellableFuture<PublishToBatchResponse>(
       PublishToBatch(pub, partitions,
                      [promise](PublishToBatchResponse response) {
                        promise->set_value(response);
@@ -639,7 +640,7 @@ VolatileLayerClientImpl::PublishToBatch(
       promise);
 }
 
-olp::client::CancellationToken VolatileLayerClientImpl::PublishToBatch(
+client::CancellationToken VolatileLayerClientImpl::PublishToBatch(
     const model::Publication& pub,
     const std::vector<model::PublishPartitionDataRequest>& partitions,
     PublishToBatchCallback callback) {
@@ -752,10 +753,10 @@ olp::client::CancellationToken VolatileLayerClientImpl::PublishToBatch(
   return ret;
 }
 
-olp::client::CancellableFuture<CompleteBatchResponse>
+client::CancellableFuture<CompleteBatchResponse>
 VolatileLayerClientImpl::CompleteBatch(const model::Publication& pub) {
   auto promise = std::make_shared<std::promise<CompleteBatchResponse>>();
-  return olp::client::CancellableFuture<CompleteBatchResponse>(
+  return client::CancellableFuture<CompleteBatchResponse>(
       CompleteBatch(pub,
                     [promise](CompleteBatchResponse response) {
                       promise->set_value(response);
@@ -763,7 +764,7 @@ VolatileLayerClientImpl::CompleteBatch(const model::Publication& pub) {
       promise);
 }
 
-olp::client::CancellationToken VolatileLayerClientImpl::CompleteBatch(
+client::CancellationToken VolatileLayerClientImpl::CompleteBatch(
     const model::Publication& pub, CompleteBatchCallback callback) {
   std::string publicationId = pub.GetId().value_or("");
   if (publicationId.empty()) {

@@ -59,7 +59,7 @@ using UpdateIndexCallback = std::function<void(UpdateIndexResponse response)>;
 /**
  * @brief Client that is responsible for writing data to
  * a HERE platform index layer.
- * 
+ *
  */
 class DATASERVICE_WRITE_API IndexLayerClient {
  public:
@@ -71,12 +71,6 @@ class DATASERVICE_WRITE_API IndexLayerClient {
    * instance.
    */
   IndexLayerClient(client::HRN catalog, client::OlpClientSettings settings);
-
-  /// @brief Cancels all pending requests.
-  /// @deprecated Use \ref CancelPendingRequests intead.
-  OLP_SDK_DEPRECATED(
-      "Use CancelPendingRequests instead. Will be removed in 05.2020")
-  void CancelAll();
 
   /**
    * @brief Cancels all the ongoing operations that this client started.

@@ -60,7 +60,6 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
     client::CancellationContext cancellation_context, std::string service,
     std::string service_version, FetchOptions options,
     client::OlpClientSettings settings) {
-
   // This mutex is required to avoid concurrent requests to online.
   repository::NamedMutex mutex(catalog.ToString());
   std::unique_lock<repository::NamedMutex> lock(mutex, std::defer_lock);
@@ -93,7 +92,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
                      "LookupApi(%s/%s) cache miss, requesting, hrn='%s'",
                      service.c_str(), service_version.c_str(), hrn.c_str());
 
-  const auto& base_url = GetDatastoreServerUrl(catalog.partition);
+  const auto& base_url = GetDatastoreServerUrl(catalog.GetPartition());
   client::OlpClient client;
   client.SetBaseUrl(base_url);
   // Do not move settings, we still need them later on!

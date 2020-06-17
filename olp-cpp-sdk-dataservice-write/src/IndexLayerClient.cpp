@@ -28,8 +28,6 @@ IndexLayerClient::IndexLayerClient(client::HRN catalog,
                                    client::OlpClientSettings settings)
     : impl_(std::make_shared<IndexLayerClientImpl>(catalog, settings)) {}
 
-void IndexLayerClient::CancelAll() { impl_->CancelAll(); }
-
 void IndexLayerClient::CancelPendingRequests() {
   impl_->CancelPendingRequests();
 }

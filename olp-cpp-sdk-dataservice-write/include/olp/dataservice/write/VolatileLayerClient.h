@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiNoResult.h>
@@ -79,7 +79,8 @@ using CompleteBatchCallback =
     std::function<void(CompleteBatchResponse response)>;
 
 /**
- * @brief Client responsible for writing data into a HERE platform volatile layer.
+ * @brief Client responsible for writing data into a HERE platform volatile
+ * layer.
  */
 class DATASERVICE_WRITE_API VolatileLayerClient {
  public:
@@ -90,14 +91,6 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
    * instance. Volatile.
    */
   VolatileLayerClient(client::HRN catalog, client::OlpClientSettings settings);
-
-  /**
-   * @brief Cancel all pending requests.
-   * @deprecated Use \ref CancelPendingRequests intead.
-   */
-  OLP_SDK_DEPRECATED(
-      "Use CancelPendingRequests instead. Will be removed in 05.2020")
-  void CancelAll();
 
   /**
    * @brief Cancels all the ongoing operations that this client started.

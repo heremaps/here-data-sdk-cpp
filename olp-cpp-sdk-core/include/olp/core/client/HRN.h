@@ -49,15 +49,6 @@ class CORE_API HRN {
    * The passed string must start with `hrn:`.
    *
    * @param input The `HRN` string.
-   */
-  explicit HRN(const std::string& input);
-
-  /**
-   * @brief Creates the `HRN` instance from a string.
-   *
-   * The passed string must start with `hrn:`.
-   *
-   * @param input The `HRN` string.
    *
    * @return The `HRN` instance created from the string.
    */
@@ -74,7 +65,19 @@ class CORE_API HRN {
    */
   static std::unique_ptr<HRN> UniqueFromString(const std::string& input);
 
+  /**
+   * @brief Default constructor which creates an empty invalid HRN.
+   */
   HRN() = default;
+
+  /**
+   * @brief Creates the `HRN` instance from a string.
+   *
+   * The passed string must start with `hrn:`.
+   *
+   * @param input The `HRN` string.
+   */
+  explicit HRN(const std::string& input);
 
   /**
    * @brief Checks whether the values of the `HRN` parameter are
@@ -135,79 +138,116 @@ class CORE_API HRN {
   std::string ToCatalogHRNString() const;
 
   /**
-   * @brief The partition of the HRN.
+   * @brief Returns the partitions of this HRN.
    *
-   * Must be valid when `ServiceType == Data` or when `ServiceType == Pipeline`.
+   * @note Must be valid when `ServiceType == Data` or when `ServiceType ==
+   * Pipeline`.
    *
-   * @deprecated This field will be marked as private by 05.2020.
+   * @return The partition of this HRN.
    */
-  std::string partition;
-  /**
-   * @brief The service type of the HRN.
-   *
-   * @deprecated This field will be marked as private by 05.2020.
-   */
-  ServiceType service{ServiceType::Unknown};
-  /**
-   * @brief The region of the HRN.
-   *
-   * @deprecated This field will be marked as private by 05.2020.
-   */
-  std::string region;
-  /**
-   * @brief The account of the HRN.
-   *
-   * @deprecated This field will be marked as private by 05.2020.
-   */
-  std::string account;
-  /**
-   * @brief The catalog ID.
-   *
-   * Must be valid when `ServiceType == Data`.
-   *
-   * @deprecated This field will be marked as private by 05.2020.
-   */
-  std::string catalogId;
-  /**
-   * @brief (Optional) The layer ID.
-   *
-   * @deprecated This field will be marked as private by 05.2020.
-   */
-  std::string layerId;
+  const std::string& GetPartition() const { return partition_; }
 
   /**
-   * @brief The group ID.
+   * @brief Returns the service type of this HRN.
    *
-   * Must be valid if `ServiceType == Schema`.
-   *
-   * @deprecated This field will be marked as private by 05.2020.
+   * @return The service type enum.
    */
-  std::string groupId;
-  /**
-   * @brief The schema name.
-   *
-   * Must be valid if `ServiceType == Schema`.
-   *
-   * @deprecated This field will be marked as private by 05.2020.
-   */
-  std::string schemaName;
-  /**
-   * @brief The catalog version.
-   *
-   * Must be valid if `ServiceType == Schema`.
-   *
-   * @deprecated This field will be marked as private by 05.2020.
-   */
-  std::string version;
+  ServiceType GetService() const { return service_; }
 
   /**
-   * @brief The pipeline ID. Valid if `HRNServiceType == Pipeline`.
+   * @brief Returns the region of this HRN.
    *
-   * Must be valid if `ServiceType == Schema`.
-   *
-   * @deprecated This field will be marked as private by 05.2020.
+   * @return The region of this HRN.
    */
-  std::string pipelineId;
+  const std::string& GetRegion() const { return region_; }
+
+  /**
+   * @brief Returns the account of this HRN.
+   *
+   * @return The account associated with this HRN.
+   */
+  const std::string& GetAccount() const { return account_; }
+
+  /**
+   * @brief Returns the catalog ID.
+   *
+   * @note Must be valid in case `ServiceType == Data`.
+   *
+   * @return The catalog ID.
+   */
+  const std::string& GetCatalogId() const { return catalog_id_; }
+
+  /**
+   * @brief Returns the layer ID.
+   *
+   * @note This parameter is optional and not always used.
+   *
+   * @return The layer ID or a empty string if not set.
+   */
+  const std::string& GetLayerId() const { return layer_id_; }
+
+  /**
+   * @brief Returns the group ID.
+   *
+   * @return The group ID or a empty string in case `ServiceType != Schema`.
+   */
+  const std::string& GetGroupId() const { return group_id_; }
+
+  /**
+   * @brief Retruns the schema name.
+   *
+   * @return The schema name or a empty string in case `ServiceType != Schema`.
+   */
+  const std::string& GetSchemaName() const { return schema_name_; }
+
+  /**
+   * @brief Returns the catalog version.
+   *
+   * @return The catalog version or a empty string in case `ServiceType !=
+   * Schema`.
+   */
+  const std::string& GetVersion() const { return version_; }
+
+  /**
+   * @brief Returns the pipeline ID.
+   *
+   * @return The pipeline ID or and empty string in case `HRNServiceType !=
+   * Pipeline` and `ServiceType != Schema`.
+   */
+  const std::string& GetPipelineId() const { return pipeline_id_; }
+
+ private:
+  /// The partition of the HRN. Must be valid when `ServiceType == Data` or when
+  /// `ServiceType == Pipeline`.
+  std::string partition_;
+
+  /// The service type of the HRN.
+  ServiceType service_{ServiceType::Unknown};
+
+  /// The region of the HRN.
+  std::string region_;
+
+  /// The account of the HRN.
+  std::string account_;
+
+  /// The catalog ID. Must be valid when `ServiceType == Data`.
+  std::string catalog_id_;
+
+  /// (Optional) The layer ID.
+  std::string layer_id_;
+
+  /// The group ID. Must be valid if `ServiceType == Schema`.
+  std::string group_id_;
+
+  /// The schema name. Must be valid if `ServiceType == Schema`.
+  std::string schema_name_;
+
+  /// The catalog version. Must be valid if `ServiceType == Schema`.
+  std::string version_;
+
+  /// The pipeline ID. Valid if `HRNServiceType == Pipeline`. Must be valid if
+  /// `ServiceType == Schema`.
+  std::string pipeline_id_;
 };
 
 }  // namespace client

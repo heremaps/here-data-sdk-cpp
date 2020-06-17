@@ -33,9 +33,6 @@
 
 #include <atomic>
 
-using namespace olp::client;
-using namespace olp::dataservice::write::model;
-
 namespace {
 std::string GenerateUuid() {
   static boost::uuids::random_generator gen;
@@ -47,8 +44,8 @@ namespace olp {
 namespace dataservice {
 namespace write {
 
-IndexLayerClientImpl::IndexLayerClientImpl(HRN catalog,
-                                           OlpClientSettings settings)
+IndexLayerClientImpl::IndexLayerClientImpl(client::HRN catalog,
+                                           client::OlpClientSettings settings)
     : catalog_(std::move(catalog)),
       catalog_model_(),
       settings_(std::move(settings)),
@@ -59,7 +56,7 @@ IndexLayerClientImpl::IndexLayerClientImpl(HRN catalog,
       init_in_progress_(false) {}
 
 IndexLayerClientImpl::~IndexLayerClientImpl() {
-  CancelAll();
+  tokenList_.CancelAll();
   pending_requests_->CancelAllAndWait();
 }
 
@@ -145,16 +142,17 @@ olp::client::CancellationToken IndexLayerClientImpl::InitApiClients(
                                     configApi_callback);
 }
 
-void IndexLayerClientImpl::CancelAll() { tokenList_.CancelAll(); }
+void IndexLayerClientImpl::CancelPendingRequests() {
+  pending_requests_->CancelAll();
+  tokenList_.CancelAll();
+}
 
-void IndexLayerClientImpl::CancelPendingRequests() { CancelAll(); }
-
-CancellationToken IndexLayerClientImpl::InitCatalogModel(
+client::CancellationToken IndexLayerClientImpl::InitCatalogModel(
     const model::PublishIndexRequest& /*request*/,
     const InitCatalogModelCallback& callback) {
   if (!catalog_model_.GetId().empty()) {
     callback(boost::none);
-    return CancellationToken();
+    return client::CancellationToken();
   }
 
   auto self = shared_from_this();
@@ -187,37 +185,37 @@ std::string IndexLayerClientImpl::FindContentTypeForLayerId(
   return content_type;
 }
 
-CancellableFuture<PublishIndexResponse> IndexLayerClientImpl::PublishIndex(
-    const model::PublishIndexRequest& request) {
+client::CancellableFuture<PublishIndexResponse>
+IndexLayerClientImpl::PublishIndex(const model::PublishIndexRequest& request) {
   auto promise = std::make_shared<std::promise<PublishIndexResponse> >();
   auto cancel_token =
       PublishIndex(request, [promise](PublishIndexResponse response) {
         promise->set_value(std::move(response));
       });
-  return CancellableFuture<PublishIndexResponse>(cancel_token, promise);
+  return client::CancellableFuture<PublishIndexResponse>(cancel_token, promise);
 }
 
-CancellationToken IndexLayerClientImpl::PublishIndex(
+client::CancellationToken IndexLayerClientImpl::PublishIndex(
     model::PublishIndexRequest request, const PublishIndexCallback& callback) {
   if (!request.GetData()) {
-    callback(PublishIndexResponse(
-        ApiError(ErrorCode::InvalidArgument, "Request data empty.")));
-    return CancellationToken();
+    callback(PublishIndexResponse(client::ApiError(
+        client::ErrorCode::InvalidArgument, "Request data empty.")));
+    return client::CancellationToken();
   }
 
   if (request.GetLayerId().empty()) {
-    callback(PublishIndexResponse(
-        ApiError(ErrorCode::InvalidArgument, "Request layer Id empty.")));
-    return CancellationToken();
+    callback(PublishIndexResponse(client::ApiError(
+        client::ErrorCode::InvalidArgument, "Request layer Id empty.")));
+    return client::CancellationToken();
   }
 
   auto op_id = tokenList_.GetNextId();
-  auto cancel_context = std::make_shared<CancellationContext>();
+  auto cancel_context = std::make_shared<client::CancellationContext>();
   auto self = shared_from_this();
   auto cancel_function = [=]() {
     self->tokenList_.RemoveTask(op_id);
-    callback(PublishIndexResponse(
-        ApiError(ErrorCode::Cancelled, "Operation cancelled.", true)));
+    callback(PublishIndexResponse(client::ApiError(
+        client::ErrorCode::Cancelled, "Operation cancelled.", true)));
   };
 
   const auto data_handle = GenerateUuid();
@@ -234,7 +232,7 @@ CancellationToken IndexLayerClientImpl::PublishIndex(
         callback(PublishIndexResponse(std::move(res)));
       };
 
-  auto insert_indexes_function = [=]() -> CancellationToken {
+  auto insert_indexes_function = [=]() -> client::CancellationToken {
     auto index = request.GetIndex();
     index.SetId(data_handle);
     return IndexApi::insertIndexes(
@@ -253,14 +251,15 @@ CancellationToken IndexLayerClientImpl::PublishIndex(
                                        cancel_function);
   };
 
-  auto put_blob_function = [=](std::string content_type) -> CancellationToken {
+  auto put_blob_function =
+      [=](std::string content_type) -> client::CancellationToken {
     return BlobApi::PutBlob(*self->apiclient_blob_, request.GetLayerId(),
                             content_type, data_handle, request.GetData(),
                             request.GetBillingTag(), put_blob_callback);
   };
 
   auto init_catalog_model_callback =
-      [=](boost::optional<ApiError> init_catalog_model_error) {
+      [=](boost::optional<client::ApiError> init_catalog_model_error) {
         if (init_catalog_model_error) {
           self->tokenList_.RemoveTask(op_id);
           callback(PublishIndexResponse(init_catalog_model_error.get()));
@@ -275,8 +274,8 @@ CancellationToken IndexLayerClientImpl::PublishIndex(
                             "Catalog specified when creating "
                             "this IndexLayerClient instance.") %
                         request.GetLayerId();
-          callback(PublishIndexResponse(
-              ApiError(ErrorCode::InvalidArgument, errmsg.str())));
+          callback(PublishIndexResponse(client::ApiError(
+              client::ErrorCode::InvalidArgument, errmsg.str())));
           return;
         }
 
@@ -284,12 +283,12 @@ CancellationToken IndexLayerClientImpl::PublishIndex(
             std::bind(put_blob_function, content_type), cancel_function);
       };
 
-  auto init_catalog_model_function = [=]() -> CancellationToken {
+  auto init_catalog_model_function = [=]() -> client::CancellationToken {
     return self->InitCatalogModel(request, init_catalog_model_callback);
   };
 
   auto init_api_client_callback =
-      [=](boost::optional<ApiError> init_api_error) {
+      [=](boost::optional<client::ApiError> init_api_error) {
         if (init_api_error) {
           self->tokenList_.RemoveTask(op_id);
           callback(PublishIndexResponse(init_api_error.get()));
@@ -300,7 +299,7 @@ CancellationToken IndexLayerClientImpl::PublishIndex(
                                            cancel_function);
       };
 
-  auto init_api_client_function = [=]() -> CancellationToken {
+  auto init_api_client_function = [=]() -> client::CancellationToken {
     return self->InitApiClients(cancel_context, init_api_client_callback);
   };
 
@@ -312,7 +311,7 @@ CancellationToken IndexLayerClientImpl::PublishIndex(
   return token;
 }
 
-CancellableFuture<DeleteIndexDataResponse>
+client::CancellableFuture<DeleteIndexDataResponse>
 IndexLayerClientImpl::DeleteIndexData(
     const model::DeleteIndexDataRequest& request) {
   auto promise = std::make_shared<std::promise<DeleteIndexDataResponse> >();
@@ -320,30 +319,31 @@ IndexLayerClientImpl::DeleteIndexData(
       DeleteIndexData(request, [promise](DeleteIndexDataResponse response) {
         promise->set_value(std::move(response));
       });
-  return CancellableFuture<DeleteIndexDataResponse>(cancel_token, promise);
+  return client::CancellableFuture<DeleteIndexDataResponse>(cancel_token,
+                                                            promise);
 }
 
-CancellationToken IndexLayerClientImpl::DeleteIndexData(
+client::CancellationToken IndexLayerClientImpl::DeleteIndexData(
     const model::DeleteIndexDataRequest& request,
     const DeleteIndexDataCallback& callback) {
   if (request.GetLayerId().empty() || request.GetIndexId().empty()) {
     callback(DeleteIndexDataResponse(
-        ApiError(ErrorCode::InvalidArgument,
-                 "Request layer ID or Index Id is not defined.")));
-    return CancellationToken();
+        client::ApiError(client::ErrorCode::InvalidArgument,
+                         "Request layer ID or Index Id is not defined.")));
+    return client::CancellationToken();
   }
 
   auto layer_id = request.GetLayerId();
   auto index_id = request.GetIndexId();
 
   auto op_id = tokenList_.GetNextId();
-  auto cancel_context = std::make_shared<CancellationContext>();
+  auto cancel_context = std::make_shared<client::CancellationContext>();
   auto self = shared_from_this();
 
   auto cancel_function = [=]() {
     self->tokenList_.RemoveTask(op_id);
-    callback(DeleteIndexDataResponse(
-        ApiError(ErrorCode::Cancelled, "Operation cancelled.", true)));
+    callback(DeleteIndexDataResponse(client::ApiError(
+        client::ErrorCode::Cancelled, "Operation cancelled.", true)));
   };
 
   auto delete_index_data_function = [=]() -> client::CancellationToken {
@@ -355,12 +355,12 @@ CancellationToken IndexLayerClientImpl::DeleteIndexData(
             callback(DeleteBlobRespone(response.GetError()));
             return;
           }
-          callback(DeleteBlobRespone(ApiNoResult()));
+          callback(DeleteBlobRespone(client::ApiNoResult()));
         });
   };
 
   auto init_api_client_callback =
-      [=](boost::optional<ApiError> init_api_error) {
+      [=](boost::optional<client::ApiError> init_api_error) {
         if (init_api_error) {
           self->tokenList_.RemoveTask(op_id);
           callback(DeleteBlobRespone(init_api_error.get()));
@@ -371,7 +371,7 @@ CancellationToken IndexLayerClientImpl::DeleteIndexData(
                                            cancel_function);
       };
 
-  auto init_api_client_function = [=]() -> CancellationToken {
+  auto init_api_client_function = [=]() -> client::CancellationToken {
     return self->InitApiClients(cancel_context, init_api_client_callback);
   };
 
@@ -383,27 +383,27 @@ CancellationToken IndexLayerClientImpl::DeleteIndexData(
   return ret;
 }
 
-CancellableFuture<UpdateIndexResponse> IndexLayerClientImpl::UpdateIndex(
-    const model::UpdateIndexRequest& request) {
+client::CancellableFuture<UpdateIndexResponse>
+IndexLayerClientImpl::UpdateIndex(const model::UpdateIndexRequest& request) {
   auto promise = std::make_shared<std::promise<UpdateIndexResponse> >();
   auto cancel_token =
       UpdateIndex(request, [promise](UpdateIndexResponse response) {
         promise->set_value(std::move(response));
       });
-  return CancellableFuture<UpdateIndexResponse>(cancel_token, promise);
+  return client::CancellableFuture<UpdateIndexResponse>(cancel_token, promise);
 }
 
-CancellationToken IndexLayerClientImpl::UpdateIndex(
+client::CancellationToken IndexLayerClientImpl::UpdateIndex(
     const model::UpdateIndexRequest& request,
     const UpdateIndexCallback& callback) {
-  auto cancel_context = std::make_shared<CancellationContext>();
+  auto cancel_context = std::make_shared<client::CancellationContext>();
   auto self = shared_from_this();
 
   auto op_id = tokenList_.GetNextId();
   auto cancel_function = [=]() {
     self->tokenList_.RemoveTask(op_id);
-    callback(UpdateIndexResponse(
-        ApiError(ErrorCode::Cancelled, "Operation cancelled.", true)));
+    callback(UpdateIndexResponse(client::ApiError(
+        client::ErrorCode::Cancelled, "Operation cancelled.", true)));
   };
 
   auto updateIndex_callback = [=](UpdateIndexResponse update_index_response) {
@@ -412,7 +412,7 @@ CancellationToken IndexLayerClientImpl::UpdateIndex(
       callback(UpdateIndexResponse(update_index_response.GetError()));
       return;
     }
-    callback(UpdateIndexResponse(ApiNoResult()));
+    callback(UpdateIndexResponse(client::ApiNoResult()));
   };
 
   auto UpdateIndex_function = [=]() -> client::CancellationToken {
@@ -421,7 +421,7 @@ CancellationToken IndexLayerClientImpl::UpdateIndex(
   };
 
   cancel_context->ExecuteOrCancelled(
-      [=]() -> CancellationToken {
+      [=]() -> client::CancellationToken {
         return self->InitApiClients(
             cancel_context, [=](boost::optional<client::ApiError> api_error) {
               if (api_error) {
