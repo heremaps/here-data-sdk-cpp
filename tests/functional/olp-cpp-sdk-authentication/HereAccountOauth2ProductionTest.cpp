@@ -87,7 +87,8 @@ void TestAutoRefreshingTokenInvalidRequest(
   auto bad_token_endpoint = authentication::TokenEndpoint(settings);
   auto token_response = func(bad_token_endpoint.RequestAutoRefreshingToken());
   EXPECT_TRUE(token_response.IsSuccessful());
-  EXPECT_EQ(token_response.GetResult().GetHttpStatus(), 401);
+  EXPECT_EQ(token_response.GetResult().GetHttpStatus(),
+            olp::http::HttpStatusCode::UNAUTHORIZED);
   EXPECT_GT(token_response.GetResult().GetErrorResponse().code, 0u);
 }
 
@@ -297,7 +298,8 @@ TEST_F(HereAccountOuauth2ProductionTest, TokenProviderValidCredentialsInvalid) {
     ASSERT_FALSE(prov);
     ASSERT_EQ("", prov());
     ASSERT_EQ(401300, (int)prov.GetErrorResponse().code);
-    ASSERT_EQ(401, prov.GetHttpStatusCode());
+    ASSERT_EQ(olp::http::HttpStatusCode::UNAUTHORIZED,
+              prov.GetHttpStatusCode());
   };
 
   token_provider_test("BAD", CustomParameters::getArgument(

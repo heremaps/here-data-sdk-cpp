@@ -2233,7 +2233,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   ASSERT_FALSE(data_response.IsSuccessful());
   ASSERT_EQ(client::ErrorCode::BadRequest,
             data_response.GetError().GetErrorCode());
-  ASSERT_EQ(400, data_response.GetError().GetHttpStatusCode());
+  ASSERT_EQ(http::HttpStatusCode::BAD_REQUEST,
+            data_response.GetError().GetHttpStatusCode());
 
   request.WithVersion(-1);
   data_response = client->GetData(request).GetFuture().get();
@@ -2241,7 +2242,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   ASSERT_FALSE(data_response.IsSuccessful());
   ASSERT_EQ(client::ErrorCode::BadRequest,
             data_response.GetError().GetErrorCode());
-  ASSERT_EQ(400, data_response.GetError().GetHttpStatusCode());
+  ASSERT_EQ(http::HttpStatusCode::BAD_REQUEST,
+            data_response.GetError().GetHttpStatusCode());
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetDataCacheOnly) {
