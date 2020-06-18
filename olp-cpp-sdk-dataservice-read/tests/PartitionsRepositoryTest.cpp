@@ -878,8 +878,7 @@ TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
     auto request = olp::dataservice::read::TileRequest().WithTileKey(
         olp::geo::TileKey::FromHereTile("5904591"));
     olp::client::CancellationContext context;
-    auto response =
-        GetAggregatedTile(hrn, layer, context, request, version, settings);
+    auto response = GetTile(hrn, layer, context, request, version, settings);
 
     ASSERT_TRUE(response.IsSuccessful());
     ASSERT_EQ(response.GetResult().GetDataHandle(),
@@ -893,8 +892,7 @@ TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
     auto request = olp::dataservice::read::TileRequest()
                        .WithTileKey(olp::geo::TileKey::FromHereTile("1476147"))
                        .WithFetchOption(read::CacheOnly);
-    auto response =
-        GetAggregatedTile(hrn, layer, context, request, version, settings);
+    auto response = GetTile(hrn, layer, context, request, version, settings);
 
     // check if partition was stored to cache
     ASSERT_TRUE(response.IsSuccessful());

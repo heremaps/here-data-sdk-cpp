@@ -70,7 +70,19 @@ class PartitionsRepository {
       const TileRequest& request, boost::optional<int64_t> version,
       const client::OlpClientSettings& settings);
 
+  static PartitionResponse GetTile(
+      const client::HRN& catalog, const std::string& layer,
+      client::CancellationContext cancellation_context,
+      const TileRequest& request, boost::optional<int64_t> version,
+      const client::OlpClientSettings& settings);
+
  private:
+  static PartitionResponse QueryQuadTreeIndexAndGetTile(
+      const client::HRN& catalog, const std::string& layer,
+      client::CancellationContext cancellation_context,
+      const TileRequest& request, boost::optional<int64_t> version,
+      const client::OlpClientSettings& settings, bool aggregated);
+
   static PartitionsResponse GetPartitions(
       client::HRN catalog, std::string layer,
       client::CancellationContext cancellation_context,
