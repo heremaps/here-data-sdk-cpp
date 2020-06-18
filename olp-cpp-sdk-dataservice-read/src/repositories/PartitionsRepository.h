@@ -61,8 +61,8 @@ class PartitionsRepository {
       client::CancellationContext cancellation_context,
       const DataRequest& data_request, client::OlpClientSettings settings);
 
-  static model::Partition PartitionFromSubQuad(
-      const model::SubQuad& sub_quad, const std::string& partition);
+  static model::Partition PartitionFromSubQuad(const model::SubQuad& sub_quad,
+                                               const std::string& partition);
 
   static PartitionResponse GetAggregatedTile(
       const client::HRN& catalog, const std::string& layer,
@@ -70,18 +70,7 @@ class PartitionsRepository {
       const TileRequest& request, boost::optional<int64_t> version,
       const client::OlpClientSettings& settings);
 
-  static PartitionsResponse GetPartitionForVersionedTile(
-      const client::HRN& catalog, const std::string& layer_id,
-      const TileRequest& request, int64_t version,
-      client::CancellationContext context,
-      const client::OlpClientSettings& settings);
-
  protected:
-  static PartitionsResponse QueryPartitionForVersionedTile(
-      const client::HRN& catalog, const std::string& layer_id,
-      const TileRequest& request, int64_t version,
-      client::CancellationContext context, client::OlpClientSettings settings);
-
   static model::Partitions GetTileFromCache(
       const client::HRN& catalog, const std::string& layer_id,
       const TileRequest& request, int64_t version,

@@ -900,62 +900,6 @@ TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
   }
 }
 
-TEST_F(PartitionsRepositoryTest, GetPartitionForVersionedTile) {
-  std::shared_ptr<cache::KeyValueCache> default_cache =
-      olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
-  auto mock_network = std::make_shared<NetworkMock>();
-  OlpClientSettings settings;
-  settings.cache = default_cache;
-  settings.network_request_handler = mock_network;
-  settings.retry_settings.timeout = 1;
-
-  EXPECT_CALL(*mock_network, Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   kHttpResponceLookupQuery));
-
-  EXPECT_CALL(*mock_network, Send(IsGetRequest(kQueryTreeIndex), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   kSubQuads));
-
-  const auto hrn = HRN::FromString(kCatalog);
-  int64_t version = 4;
-  auto layer = "testlayer";
-
-  {
-    SCOPED_TRACE("query partitions and store to cache");
-    auto request = olp::dataservice::read::TileRequest().WithTileKey(
-        olp::geo::TileKey::FromHereTile("5904591"));
-    olp::client::CancellationContext context;
-    auto response = PartitionsRepository::GetPartitionForVersionedTile(
-        hrn, layer, request, version, context, settings);
-
-    ASSERT_TRUE(response.IsSuccessful());
-    ASSERT_EQ(response.GetResult().GetPartitions().front().GetDataHandle(),
-              "e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1");
-  }
-
-  {
-    SCOPED_TRACE(
-        "Check if all partitions stored in cache, request another tile");
-    EXPECT_CALL(*mock_network, Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
-        .Times(0);
-
-    auto request = olp::dataservice::read::TileRequest().WithTileKey(
-        olp::geo::TileKey::FromHereTile("1476147"));
-    olp::client::CancellationContext context;
-    auto response = PartitionsRepository::GetPartitionForVersionedTile(
-        hrn, layer, request, version, context, settings);
-
-    // check if partition was stored to cache
-    ASSERT_TRUE(response.IsSuccessful());
-    ASSERT_TRUE(response.GetResult().GetPartitions().size() == 1);
-    ASSERT_EQ(response.GetResult().GetPartitions().front().GetDataHandle(),
-              kBlobDataHandle1476147);
-  }
-}
-
 TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
   using olp::cache::KeyValueCache;
   using testing::_;
