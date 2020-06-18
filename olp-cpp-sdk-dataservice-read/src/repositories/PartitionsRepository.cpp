@@ -445,27 +445,6 @@ PartitionResponse PartitionsRepository::GetAggregatedTile(
   }
   return FindPartition(tree, request, true);
 }
-
-model::Partitions PartitionsRepository::GetTileFromCache(
-    const client::HRN& catalog, const std::string& layer_id,
-    const TileRequest& request, int64_t version,
-    const client::OlpClientSettings& settings) {
-  if (request.GetFetchOption() != OnlineOnly) {
-    repository::PartitionsCacheRepository repository(
-        catalog, settings.cache, settings.default_cache_expiration);
-
-    auto partition_request = PartitionsRequest()
-                                 .WithBillingTag(request.GetBillingTag())
-                                 .WithVersion(version);
-
-    const std::vector<std::string> partitions{
-        request.GetTileKey().ToHereTile()};
-    return repository.Get(partition_request, partitions, layer_id);
-  }
-
-  return {};
-}
-
 PORTING_POP_WARNINGS()
 }  // namespace repository
 }  // namespace read

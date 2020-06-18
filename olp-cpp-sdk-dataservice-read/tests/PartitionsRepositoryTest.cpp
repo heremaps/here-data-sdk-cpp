@@ -878,25 +878,27 @@ TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
     auto request = olp::dataservice::read::TileRequest().WithTileKey(
         olp::geo::TileKey::FromHereTile("5904591"));
     olp::client::CancellationContext context;
-    auto response = QueryPartitionForVersionedTile(hrn, layer, request, version,
-                                                   context, settings);
+    auto response =
+        GetAggregatedTile(hrn, layer, context, request, version, settings);
 
     ASSERT_TRUE(response.IsSuccessful());
-    ASSERT_EQ(response.GetResult().GetPartitions().front().GetDataHandle(),
+    ASSERT_EQ(response.GetResult().GetDataHandle(),
               "e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1");
   }
 
   {
     SCOPED_TRACE(
         "Check if all partitions stored in cache, request another tile");
-    auto request = olp::dataservice::read::TileRequest().WithTileKey(
-        olp::geo::TileKey::FromHereTile("1476147"));
-    auto partitions = GetTileFromCache(hrn, layer, request, version, settings);
+    olp::client::CancellationContext context;
+    auto request = olp::dataservice::read::TileRequest()
+                       .WithTileKey(olp::geo::TileKey::FromHereTile("1476147"))
+                       .WithFetchOption(read::CacheOnly);
+    auto response =
+        GetAggregatedTile(hrn, layer, context, request, version, settings);
 
     // check if partition was stored to cache
-    ASSERT_FALSE(partitions.GetPartitions().size() == 0);
-    ASSERT_EQ(partitions.GetPartitions().front().GetDataHandle(),
-              kBlobDataHandle1476147);
+    ASSERT_TRUE(response.IsSuccessful());
+    ASSERT_EQ(response.GetResult().GetDataHandle(), kBlobDataHandle1476147);
   }
 }
 

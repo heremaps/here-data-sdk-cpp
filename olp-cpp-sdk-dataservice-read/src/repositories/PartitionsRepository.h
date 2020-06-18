@@ -70,12 +70,6 @@ class PartitionsRepository {
       const TileRequest& request, boost::optional<int64_t> version,
       const client::OlpClientSettings& settings);
 
- protected:
-  static model::Partitions GetTileFromCache(
-      const client::HRN& catalog, const std::string& layer_id,
-      const TileRequest& request, int64_t version,
-      const client::OlpClientSettings& settings);
-
  private:
   static PartitionsResponse GetPartitions(
       client::HRN catalog, std::string layer,
