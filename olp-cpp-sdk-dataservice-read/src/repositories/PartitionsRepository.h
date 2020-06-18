@@ -77,7 +77,7 @@ class PartitionsRepository {
       const client::OlpClientSettings& settings);
 
  private:
-  static PartitionResponse QueryQuadTreeIndexAndGetTile(
+  static PartitionResponse GetTile(
       const client::HRN& catalog, const std::string& layer,
       client::CancellationContext cancellation_context,
       const TileRequest& request, boost::optional<int64_t> version,

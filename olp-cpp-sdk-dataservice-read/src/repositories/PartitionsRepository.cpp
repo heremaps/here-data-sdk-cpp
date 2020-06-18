@@ -359,7 +359,7 @@ model::Partition PartitionsRepository::PartitionFromSubQuad(
   ret.SetCompressedDataSize(sub_quad.GetCompressedDataSize());
   return ret;
 }
-PartitionResponse PartitionsRepository::QueryQuadTreeIndexAndGetTile(
+PartitionResponse PartitionsRepository::GetTile(
     const client::HRN& catalog, const std::string& layer,
     client::CancellationContext context, const TileRequest& request,
     boost::optional<int64_t> version, const client::OlpClientSettings& settings,
@@ -386,18 +386,20 @@ PartitionResponse PartitionsRepository::QueryQuadTreeIndexAndGetTile(
     const auto cached_tree = FindQuadTree(repository, layer, version, tile_key);
     if (!cached_tree.IsNull()) {
       OLP_SDK_LOG_DEBUG_F(kLogTag,
-                          "QueryQuadTreeIndexAndGetTile found in cache, "
+                          "GetTile found in cache, "
                           "tile='%s', depth='%" PRId32 "'",
                           tile_key.ToHereTile().c_str(),
                           kAggregateQuadTreeDepth);
 
       return FindPartition(cached_tree, request, aggregated);
     } else if (fetch_option == CacheOnly) {
-      OLP_SDK_LOG_INFO_F(
-          kLogTag, "QueryQuadTreeIndexAndGetTile not found in cache, tile='%s'",
-          tile_key.ToHereTile().c_str());
+      OLP_SDK_LOG_INFO_F(kLogTag,
+                         "GetTile not found in cache, "
+                         "aggregated=%s, tile='%s'",
+                         aggregated ? "true" : "false",
+                         tile_key.ToHereTile().c_str());
       return {{client::ErrorCode::NotFound,
-               "Cache only resource not found in cache (QuadTree)."}};
+               "CacheOnly: resource not found in cache"}};
     }
   }
 
@@ -407,8 +409,9 @@ PartitionResponse PartitionsRepository::QueryQuadTreeIndexAndGetTile(
 
   if (!query_api.IsSuccessful()) {
     OLP_SDK_LOG_WARNING_F(kLogTag,
-                          "QueryQuadTreeIndexAndGetTile LookupApi failed, "
+                          "GetTile LookupApi failed, aggregated=%s, "
                           "hrn='%s', service='query', version='v1'",
+                          aggregated ? "true" : "false",
                           catalog.ToString().c_str());
     return query_api.GetError();
   }
@@ -418,12 +421,14 @@ PartitionResponse PartitionsRepository::QueryQuadTreeIndexAndGetTile(
       kAggregateQuadTreeDepth, boost::none, request.GetBillingTag(), context);
 
   if (quadtree_response.status != olp::http::HttpStatusCode::OK) {
-    OLP_SDK_LOG_WARNING_F(
-        kLogTag,
-        "QueryQuadTreeIndexAndGetTile QuadTreeIndex failed, hrn='%s', "
-        "layer='%s', root='%s', version='%" PRId64 "', depth='%" PRId32 "'",
-        catalog.ToString().c_str(), layer.c_str(), root_tile_here.c_str(),
-        version.get_value_or(-1), kAggregateQuadTreeDepth);
+    OLP_SDK_LOG_WARNING_F(kLogTag,
+                          "GetTile QuadTreeIndex failed, aggregated=%s, "
+                          "hrn='%s', layer='%s', root='%s', version='%" PRId64
+                          "', depth='%" PRId32 "'",
+                          aggregated ? "true" : "false",
+                          catalog.ToString().c_str(), layer.c_str(),
+                          root_tile_here.c_str(), version.get_value_or(-1),
+                          kAggregateQuadTreeDepth);
     return {{quadtree_response.status, quadtree_response.response.str()}};
   }
 
@@ -432,7 +437,7 @@ PartitionResponse PartitionsRepository::QueryQuadTreeIndexAndGetTile(
   if (tree.IsNull()) {
     OLP_SDK_LOG_WARNING_F(
         kLogTag,
-        "QueryQuadTreeIndexAndGetTile QuadTreeIndex failed, hrn='%s', "
+        "GetTile QuadTreeIndex failed, hrn='%s', "
         "layer='%s', root='%s', version='%" PRId64 "', depth='%" PRId32 "'",
         catalog.ToString().c_str(), layer.c_str(), root_tile_here.c_str(),
         version.get_value_or(-1), kAggregateQuadTreeDepth);
@@ -451,8 +456,8 @@ PartitionResponse PartitionsRepository::GetAggregatedTile(
     client::CancellationContext cancellation_context,
     const TileRequest& request, boost::optional<int64_t> version,
     const client::OlpClientSettings& settings) {
-  return QueryQuadTreeIndexAndGetTile(catalog, layer, cancellation_context,
-                                      request, version, settings, true);
+  return GetTile(catalog, layer, cancellation_context, request, version,
+                 settings, true);
 }
 
 PartitionResponse PartitionsRepository::GetTile(
@@ -460,8 +465,8 @@ PartitionResponse PartitionsRepository::GetTile(
     client::CancellationContext cancellation_context,
     const TileRequest& request, boost::optional<int64_t> version,
     const client::OlpClientSettings& settings) {
-  return QueryQuadTreeIndexAndGetTile(catalog, layer, cancellation_context,
-                                      request, version, settings, false);
+  return GetTile(catalog, layer, cancellation_context, request, version,
+                 settings, false);
 }
 PORTING_POP_WARNINGS()
 }  // namespace repository
