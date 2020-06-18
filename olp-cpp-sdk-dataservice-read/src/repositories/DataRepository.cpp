@@ -61,8 +61,8 @@ DataResponse DataRepository::GetVersionedTile(
     const TileRequest& request, int64_t version,
     client::CancellationContext context,
     const client::OlpClientSettings& settings) {
-  auto response = PartitionsRepository::GetPartitionForVersionedTile(
-      catalog, layer_id, request, version, context, settings);
+  auto response = PartitionsRepository::GetAggregatedTile(
+      catalog, layer_id, context, request, version, settings);
 
   if (!response.IsSuccessful()) {
     OLP_SDK_LOG_WARNING_F(
@@ -74,7 +74,7 @@ DataResponse DataRepository::GetVersionedTile(
   }
 
   // Get the data using a data handle for requested tile
-  const auto& partition = response.GetResult().GetPartitions().front();
+  const auto& partition = response.GetResult();
   const auto data_request = DataRequest()
                                 .WithDataHandle(partition.GetDataHandle())
                                 .WithVersion(version)
