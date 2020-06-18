@@ -3356,6 +3356,63 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   testing::Mock::VerifyAndClearExpectations(network_mock_.get());
 }
 
+TEST_F(DataserviceReadVersionedLayerClientTest, GetTileAndAggregatedData) {
+  olp::cache::CacheSettings cache_settings;
+  auto client = read::VersionedLayerClient(kCatalog, kTestLayer, 4, settings_);
+
+  {
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     HTTP_RESPONSE_LOOKUP));
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(kHttpQueryTreeIndex_23064), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     kHttpSubQuads_23064));
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(kHttpResponseBlobData_5904591), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     "someData"));
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(kUrlBlobData_1476147), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     "someData"));
+
+    auto tiles = {geo::TileKey::FromHereTile("5904591"),
+                  geo::TileKey::FromHereTile("1476147")};
+    for (const auto& tile : tiles) {
+      auto request = read::TileRequest().WithTileKey(tile);
+      auto data_response = client.GetData(request).GetFuture().get();
+
+      ASSERT_TRUE(data_response.IsSuccessful())
+          << ApiErrorToString(data_response.GetError());
+      ASSERT_LT(0, data_response.GetResult()->size());
+      std::string data_string(data_response.GetResult()->begin(),
+                              data_response.GetResult()->end());
+      ASSERT_EQ("someData", data_string);
+    }
+  }
+  {
+    const auto tile_key = geo::TileKey::FromHereTile("1476147");
+
+    // try to load quadtree and get tile from cache
+    auto future =
+        client.GetAggregatedData(read::TileRequest().WithTileKey(tile_key)
+            .WithFetchOption(FetchOptions::CacheOnly))
+            .GetFuture();
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    const auto response = future.get();
+    const auto& result = response.GetResult();
+
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_TRUE(result.GetData());
+    ASSERT_EQ(result.GetTile(), tile_key);
+    testing::Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+}
+
 }  // namespace
 
 PORTING_POP_WARNINGS()

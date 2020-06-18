@@ -1226,6 +1226,53 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
   }
 }
 
+TEST_F(PartitionsRepositoryTest, GetTile) {
+  using olp::cache::KeyValueCache;
+  using testing::_;
+  using testing::Return;
+
+  constexpr auto version = 4u;
+  constexpr auto layer = "testlayer";
+
+  const auto hrn = HRN::FromString(kCatalog);
+
+  {
+    SCOPED_TRACE("Get tile not aggregated, if parent exist");
+
+    const auto tile_key = olp::geo::TileKey::FromHereTile("23064");
+    const auto parent_tile_key = tile_key.ChangedLevelBy(-6).ToHereTile();
+    const auto request =
+        olp::dataservice::read::TileRequest().WithTileKey(tile_key);
+    olp::client::CancellationContext context;
+
+    auto mock_network = std::make_shared<NetworkMock>();
+    auto mock_cache = std::make_shared<CacheMock>();
+
+    OlpClientSettings settings;
+    settings.cache = mock_cache;
+    settings.network_request_handler = mock_network;
+
+    EXPECT_CALL(*mock_network, Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kHttpResponceLookupQuery));
+    EXPECT_CALL(*mock_network,
+                Send(IsGetRequest(kQueryQuadTreeIndex), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kSubQuadsWithParent));
+    EXPECT_CALL(*mock_cache, Get(_, _)).WillOnce(Return(boost::any()));
+    EXPECT_CALL(*mock_cache, Put(_, _, _, _)).WillOnce(Return(true));
+    EXPECT_CALL(*mock_cache, Get(_))
+        .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
+    EXPECT_CALL(*mock_cache, Put(_, _, _)).WillOnce(Return(true));
+
+    auto response = PartitionsRepository::GetTile(hrn, layer, context, request,
+                                                  version, settings);
+    ASSERT_FALSE(response.IsSuccessful()) << response.GetError().GetMessage();
+  }
+}
+
 }  // namespace
 
 PORTING_POP_WARNINGS()
