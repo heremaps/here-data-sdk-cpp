@@ -32,36 +32,36 @@
 #include <repositories/PartitionsCacheRepository.h>
 #include <repositories/PartitionsRepository.h>
 
-#define URL_LOOKUP \
-  R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis)"
+constexpr auto kUrlLookup =
+    R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis)";
 
-#define URL_BLOB_DATA_269 \
-  R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/4eed6ed1-0d32-43b9-ae79-043cb4256432)"
+constexpr auto kUrlBlobData269 =
+    R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/4eed6ed1-0d32-43b9-ae79-043cb4256432)";
 
-#define URL_BLOB_DATA_5904591 \
-  R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1)"
+constexpr auto kUrlBlobData5904591 =
+    R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1)";
 
-#define URL_BLOB_DATA_1476147 \
-  R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/95c5c703-e00e-4c38-841e-e419367474f1)"
+constexpr auto kUrlBlobData1476147 =
+    R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/95c5c703-e00e-4c38-841e-e419367474f1)";
 
-#define HTTP_RESPONSE_LOOKUP \
-  R"jsonString([{"api":"query","version":"v1","baseURL":"https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2","parameters":{}},{"api":"blob","version":"v1","baseURL":"https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString"
+constexpr auto kUrlResponseLookup =
+    R"jsonString([{"api":"query","version":"v1","baseURL":"https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2","parameters":{}},{"api":"blob","version":"v1","baseURL":"https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString";
 
-#define HTTP_RESPONSE_403 \
-  R"jsonString("Forbidden - A catalog with the specified HRN doesn't exist or access to this catalog is forbidden)jsonString"
+constexpr auto kUrlResponse403 =
+    R"jsonString("Forbidden - A catalog with the specified HRN doesn't exist or access to this catalog is forbidden)jsonString";
 
-#define BLOB_DATA_HANDLE R"(4eed6ed1-0d32-43b9-ae79-043cb4256432)"
+constexpr auto kUrlBlobDataHandle = R"(4eed6ed1-0d32-43b9-ae79-043cb4256432)";
 
-#define QUERY_TREE_INDEX \
-  R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/23064/depths/4)"
+constexpr auto kUrlQueryTreeIndex =
+    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/23064/depths/4)";
 
-#define SUB_QUADS \
-  R"jsonString({"subQuads": [{"subQuadKey":"115","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString"
+constexpr auto kSubQuads =
+    R"jsonString({"subQuads": [{"subQuadKey":"115","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString";
 
 namespace {
 
 using testing::_;
-using namespace olp::tests::common;
+namespace common = olp::tests::common;
 
 const std::string kLayerId = "testlayer";
 const std::string kService = "blob";
@@ -74,11 +74,11 @@ class DataRepositoryTest : public ::testing::Test {
   std::string GetTestCatalog();
 
   std::shared_ptr<olp::client::OlpClientSettings> settings_;
-  std::shared_ptr<NetworkMock> network_mock_;
+  std::shared_ptr<common::NetworkMock> network_mock_;
 };
 
 void DataRepositoryTest::SetUp() {
-  network_mock_ = std::make_shared<NetworkMock>();
+  network_mock_ = std::make_shared<common::NetworkMock>();
   settings_ = std::make_shared<olp::client::OlpClientSettings>();
   settings_->cache =
       olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
@@ -95,20 +95,24 @@ std::string DataRepositoryTest::GetTestCatalog() {
 }
 
 TEST_F(DataRepositoryTest, GetBlobData) {
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   HTTP_RESPONSE_LOOKUP));
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kUrlResponseLookup));
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   "someData"));
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlBlobData269), _, _, _, _))
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     "someData"));
 
   olp::client::CancellationContext context;
 
   olp::dataservice::read::DataRequest request;
-  request.WithDataHandle(BLOB_DATA_HANDLE);
+  request.WithDataHandle(kUrlBlobDataHandle);
 
   olp::client::HRN hrn(GetTestCatalog());
 
@@ -120,15 +124,17 @@ TEST_F(DataRepositoryTest, GetBlobData) {
 }
 
 TEST_F(DataRepositoryTest, GetBlobDataApiLookupFailed403) {
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::FORBIDDEN),
-                                   HTTP_RESPONSE_403));
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::FORBIDDEN),
+                                     kUrlResponse403));
 
   olp::client::CancellationContext context;
 
   olp::dataservice::read::DataRequest request;
-  request.WithDataHandle(BLOB_DATA_HANDLE);
+  request.WithDataHandle(kUrlBlobDataHandle);
 
   olp::client::HRN hrn(GetTestCatalog());
 
@@ -150,20 +156,24 @@ TEST_F(DataRepositoryTest, GetBlobDataNoDataHandle) {
 }
 
 TEST_F(DataRepositoryTest, GetBlobDataFailedDataFetch403) {
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   HTTP_RESPONSE_LOOKUP));
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kUrlResponseLookup));
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::FORBIDDEN),
-                                   HTTP_RESPONSE_403));
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlBlobData269), _, _, _, _))
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::FORBIDDEN),
+                                     kUrlResponse403));
 
   olp::client::CancellationContext context;
 
   olp::dataservice::read::DataRequest request;
-  request.WithDataHandle(BLOB_DATA_HANDLE);
+  request.WithDataHandle(kUrlBlobDataHandle);
 
   olp::client::HRN hrn(GetTestCatalog());
 
@@ -175,20 +185,24 @@ TEST_F(DataRepositoryTest, GetBlobDataFailedDataFetch403) {
 }
 
 TEST_F(DataRepositoryTest, GetBlobDataCache) {
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   HTTP_RESPONSE_LOOKUP));
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kUrlResponseLookup));
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   "someData"));
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlBlobData269), _, _, _, _))
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     "someData"));
 
   olp::client::CancellationContext context;
 
   olp::dataservice::read::DataRequest request;
-  request.WithDataHandle(BLOB_DATA_HANDLE);
+  request.WithDataHandle(kUrlBlobDataHandle);
 
   olp::client::HRN hrn(GetTestCatalog());
 
@@ -208,20 +222,23 @@ TEST_F(DataRepositoryTest, GetBlobDataCache) {
 }
 
 TEST_F(DataRepositoryTest, GetBlobDataImmediateCancel) {
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP), _, _, _, _))
-      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                            olp::http::HttpStatusCode::OK),
-                                        HTTP_RESPONSE_LOOKUP));
+  ON_CALL(*network_mock_, Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+      .WillByDefault(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kUrlResponseLookup));
 
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                            olp::http::HttpStatusCode::OK),
-                                        "someData"));
+  ON_CALL(*network_mock_,
+          Send(common::IsGetRequest(kUrlBlobData269), _, _, _, _))
+      .WillByDefault(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     "someData"));
 
   olp::client::CancellationContext context;
 
   olp::dataservice::read::DataRequest request;
-  request.WithDataHandle(BLOB_DATA_HANDLE);
+  request.WithDataHandle(kUrlBlobDataHandle);
 
   olp::client::HRN hrn(GetTestCatalog());
 
@@ -236,14 +253,17 @@ TEST_F(DataRepositoryTest, GetBlobDataImmediateCancel) {
 }
 
 TEST_F(DataRepositoryTest, GetBlobDataInProgressCancel) {
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   HTTP_RESPONSE_LOOKUP));
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kUrlResponseLookup));
 
   olp::client::CancellationContext context;
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlBlobData269), _, _, _, _))
       .WillOnce(
           [&](olp::http::NetworkRequest, olp::http::Network::Payload,
               olp::http::Network::Callback, olp::http::Network::HeaderCallback,
@@ -255,7 +275,7 @@ TEST_F(DataRepositoryTest, GetBlobDataInProgressCancel) {
   EXPECT_CALL(*network_mock_, Cancel(_)).WillOnce(testing::Return());
 
   olp::dataservice::read::DataRequest request;
-  request.WithDataHandle(BLOB_DATA_HANDLE);
+  request.WithDataHandle(kUrlBlobDataHandle);
 
   olp::client::HRN hrn(GetTestCatalog());
 
@@ -267,21 +287,26 @@ TEST_F(DataRepositoryTest, GetBlobDataInProgressCancel) {
 }
 
 TEST_F(DataRepositoryTest, GetVersionedDataTile) {
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   HTTP_RESPONSE_LOOKUP));
-
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(QUERY_TREE_INDEX), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   SUB_QUADS));
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kUrlResponseLookup));
 
   EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_BLOB_DATA_5904591), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   "someData"));
+              Send(common::IsGetRequest(kUrlQueryTreeIndex), _, _, _, _))
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kSubQuads));
+
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlBlobData5904591), _, _, _, _))
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     "someData"));
 
   olp::client::HRN hrn(GetTestCatalog());
   int64_t version = 4;
@@ -300,17 +325,18 @@ TEST_F(DataRepositoryTest, GetVersionedDataTile) {
   // second request for another tile key, data handle should be found in cache,
   // no need to query online
   {
-    ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP), _, _, _, _))
+    ON_CALL(*network_mock_, Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
         .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               HTTP_RESPONSE_LOOKUP));
+            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                           olp::http::HttpStatusCode::OK),
+                                       kUrlResponseLookup));
 
     EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_BLOB_DATA_1476147), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     "someData"));
+                Send(common::IsGetRequest(kUrlBlobData1476147), _, _, _, _))
+        .WillOnce(
+            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                           olp::http::HttpStatusCode::OK),
+                                       "someData"));
 
     auto request = olp::dataservice::read::TileRequest().WithTileKey(
         olp::geo::TileKey::FromHereTile("1476147"));
@@ -323,26 +349,31 @@ TEST_F(DataRepositoryTest, GetVersionedDataTile) {
 }
 
 TEST_F(DataRepositoryTest, GetVersionedDataTileOnlineOnly) {
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP), _, _, _, _))
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
       .Times(2)
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   HTTP_RESPONSE_LOOKUP))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   HTTP_RESPONSE_LOOKUP));
-
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(QUERY_TREE_INDEX), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   SUB_QUADS));
-
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kUrlResponseLookup))
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kUrlResponseLookup));
 
   EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_BLOB_DATA_5904591), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   "someData"));
+              Send(common::IsGetRequest(kUrlQueryTreeIndex), _, _, _, _))
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kSubQuads));
+
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlBlobData5904591), _, _, _, _))
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     "someData"));
 
   olp::client::HRN hrn(GetTestCatalog());
   int64_t version = 4;
@@ -381,14 +412,17 @@ TEST_F(DataRepositoryTest, GetVersionedDataTileImmediateCancel) {
 }
 
 TEST_F(DataRepositoryTest, GetVersionedDataTileInProgressCancel) {
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   HTTP_RESPONSE_LOOKUP));
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kUrlResponseLookup));
 
   olp::client::CancellationContext context;
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(QUERY_TREE_INDEX), _, _, _, _))
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlQueryTreeIndex), _, _, _, _))
       .WillOnce(
           [&](olp::http::NetworkRequest, olp::http::Network::Payload,
               olp::http::Network::Callback, olp::http::Network::HeaderCallback,
@@ -415,15 +449,19 @@ TEST_F(DataRepositoryTest, GetVersionedDataTileInProgressCancel) {
 }
 
 TEST_F(DataRepositoryTest, GetVersionedDataTileReturnEmpty) {
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   HTTP_RESPONSE_LOOKUP));
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kUrlResponseLookup));
 
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(QUERY_TREE_INDEX), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   "no_data_handle_in_responce"));
+  EXPECT_CALL(*network_mock_,
+              Send(common::IsGetRequest(kUrlQueryTreeIndex), _, _, _, _))
+      .WillOnce(
+          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     "no_data_handle_in_responce"));
 
   olp::client::HRN hrn(GetTestCatalog());
   int64_t version = 4;
@@ -438,6 +476,8 @@ TEST_F(DataRepositoryTest, GetVersionedDataTileReturnEmpty) {
 
   ASSERT_FALSE(response.IsSuccessful());
   ASSERT_EQ(response.GetError().GetErrorCode(),
-            olp::client::ErrorCode::NotFound);
+            olp::client::ErrorCode::Unknown);
+  ASSERT_EQ(response.GetError().GetMessage(),
+            "Failed to parse QuadTreeIndex json");
 }
 }  // namespace

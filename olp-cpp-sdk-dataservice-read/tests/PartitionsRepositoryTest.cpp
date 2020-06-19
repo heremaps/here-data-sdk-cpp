@@ -878,81 +878,25 @@ TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
     auto request = olp::dataservice::read::TileRequest().WithTileKey(
         olp::geo::TileKey::FromHereTile("5904591"));
     olp::client::CancellationContext context;
-    auto response = QueryPartitionForVersionedTile(hrn, layer, request, version,
-                                                   context, settings);
+    auto response = GetTile(hrn, layer, context, request, version, settings);
 
     ASSERT_TRUE(response.IsSuccessful());
-    ASSERT_EQ(response.GetResult().GetPartitions().front().GetDataHandle(),
+    ASSERT_EQ(response.GetResult().GetDataHandle(),
               "e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1");
   }
 
   {
     SCOPED_TRACE(
         "Check if all partitions stored in cache, request another tile");
-    auto request = olp::dataservice::read::TileRequest().WithTileKey(
-        olp::geo::TileKey::FromHereTile("1476147"));
-    auto partitions = GetTileFromCache(hrn, layer, request, version, settings);
-
-    // check if partition was stored to cache
-    ASSERT_FALSE(partitions.GetPartitions().size() == 0);
-    ASSERT_EQ(partitions.GetPartitions().front().GetDataHandle(),
-              kBlobDataHandle1476147);
-  }
-}
-
-TEST_F(PartitionsRepositoryTest, GetPartitionForVersionedTile) {
-  std::shared_ptr<cache::KeyValueCache> default_cache =
-      olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
-  auto mock_network = std::make_shared<NetworkMock>();
-  OlpClientSettings settings;
-  settings.cache = default_cache;
-  settings.network_request_handler = mock_network;
-  settings.retry_settings.timeout = 1;
-
-  EXPECT_CALL(*mock_network, Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   kHttpResponceLookupQuery));
-
-  EXPECT_CALL(*mock_network, Send(IsGetRequest(kQueryTreeIndex), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   kSubQuads));
-
-  const auto hrn = HRN::FromString(kCatalog);
-  int64_t version = 4;
-  auto layer = "testlayer";
-
-  {
-    SCOPED_TRACE("query partitions and store to cache");
-    auto request = olp::dataservice::read::TileRequest().WithTileKey(
-        olp::geo::TileKey::FromHereTile("5904591"));
     olp::client::CancellationContext context;
-    auto response = PartitionsRepository::GetPartitionForVersionedTile(
-        hrn, layer, request, version, context, settings);
-
-    ASSERT_TRUE(response.IsSuccessful());
-    ASSERT_EQ(response.GetResult().GetPartitions().front().GetDataHandle(),
-              "e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1");
-  }
-
-  {
-    SCOPED_TRACE(
-        "Check if all partitions stored in cache, request another tile");
-    EXPECT_CALL(*mock_network, Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
-        .Times(0);
-
-    auto request = olp::dataservice::read::TileRequest().WithTileKey(
-        olp::geo::TileKey::FromHereTile("1476147"));
-    olp::client::CancellationContext context;
-    auto response = PartitionsRepository::GetPartitionForVersionedTile(
-        hrn, layer, request, version, context, settings);
+    auto request = olp::dataservice::read::TileRequest()
+                       .WithTileKey(olp::geo::TileKey::FromHereTile("1476147"))
+                       .WithFetchOption(read::CacheOnly);
+    auto response = GetTile(hrn, layer, context, request, version, settings);
 
     // check if partition was stored to cache
     ASSERT_TRUE(response.IsSuccessful());
-    ASSERT_TRUE(response.GetResult().GetPartitions().size() == 1);
-    ASSERT_EQ(response.GetResult().GetPartitions().front().GetDataHandle(),
-              kBlobDataHandle1476147);
+    ASSERT_EQ(response.GetResult().GetDataHandle(), kBlobDataHandle1476147);
   }
 }
 
@@ -1279,6 +1223,53 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
 
     ASSERT_FALSE(response.IsSuccessful());
     ASSERT_EQ(error.GetErrorCode(), ErrorCode::Unknown);
+  }
+}
+
+TEST_F(PartitionsRepositoryTest, GetTile) {
+  using olp::cache::KeyValueCache;
+  using testing::_;
+  using testing::Return;
+
+  constexpr auto version = 4u;
+  constexpr auto layer = "testlayer";
+
+  const auto hrn = HRN::FromString(kCatalog);
+
+  {
+    SCOPED_TRACE("Get tile not aggregated, if parent exist");
+
+    const auto tile_key = olp::geo::TileKey::FromHereTile("23064");
+    const auto parent_tile_key = tile_key.ChangedLevelBy(-6).ToHereTile();
+    const auto request =
+        olp::dataservice::read::TileRequest().WithTileKey(tile_key);
+    olp::client::CancellationContext context;
+
+    auto mock_network = std::make_shared<NetworkMock>();
+    auto mock_cache = std::make_shared<CacheMock>();
+
+    OlpClientSettings settings;
+    settings.cache = mock_cache;
+    settings.network_request_handler = mock_network;
+
+    EXPECT_CALL(*mock_network, Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kHttpResponceLookupQuery));
+    EXPECT_CALL(*mock_network,
+                Send(IsGetRequest(kQueryQuadTreeIndex), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kSubQuadsWithParent));
+    EXPECT_CALL(*mock_cache, Get(_, _)).WillOnce(Return(boost::any()));
+    EXPECT_CALL(*mock_cache, Put(_, _, _, _)).WillOnce(Return(true));
+    EXPECT_CALL(*mock_cache, Get(_))
+        .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
+    EXPECT_CALL(*mock_cache, Put(_, _, _)).WillOnce(Return(true));
+
+    auto response = PartitionsRepository::GetTile(hrn, layer, context, request,
+                                                  version, settings);
+    ASSERT_FALSE(response.IsSuccessful()) << response.GetError().GetMessage();
   }
 }
 
