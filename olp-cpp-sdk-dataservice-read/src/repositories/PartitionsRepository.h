@@ -43,6 +43,7 @@ class PartitionsCacheRepository;
 
 /// The partition metadata response type.
 using PartitionResponse = Response<model::Partition>;
+using QuadTreeIndexResponse = Response<QuadTreeIndex>;
 
 class PartitionsRepository {
  public:
@@ -77,11 +78,11 @@ class PartitionsRepository {
       const client::OlpClientSettings& settings);
 
  private:
-  static PartitionResponse GetTile(
+  static QuadTreeIndexResponse GetQuadTreeIndexForTile(
       const client::HRN& catalog, const std::string& layer,
       client::CancellationContext cancellation_context,
       const TileRequest& request, boost::optional<int64_t> version,
-      const client::OlpClientSettings& settings, bool aggregated);
+      const client::OlpClientSettings& settings);
 
   static PartitionsResponse GetPartitions(
       client::HRN catalog, std::string layer,

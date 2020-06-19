@@ -359,11 +359,11 @@ model::Partition PartitionsRepository::PartitionFromSubQuad(
   ret.SetCompressedDataSize(sub_quad.GetCompressedDataSize());
   return ret;
 }
-PartitionResponse PartitionsRepository::GetTile(
+QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
     const client::HRN& catalog, const std::string& layer,
     client::CancellationContext context, const TileRequest& request,
-    boost::optional<int64_t> version, const client::OlpClientSettings& settings,
-    bool aggregated) {
+    boost::optional<int64_t> version,
+    const client::OlpClientSettings& settings) {
   auto fetch_option = request.GetFetchOption();
   const auto& tile_key = request.GetTileKey();
 
@@ -383,21 +383,19 @@ PartitionResponse PartitionsRepository::GetTile(
 
   // Look for QuadTree covering the tile in the cache
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
-    const auto cached_tree = FindQuadTree(repository, layer, version, tile_key);
+    auto cached_tree = FindQuadTree(repository, layer, version, tile_key);
     if (!cached_tree.IsNull()) {
       OLP_SDK_LOG_DEBUG_F(kLogTag,
-                          "GetTile found in cache, "
+                          "GetQuadTreeIndexForTile found in cache, "
                           "tile='%s', depth='%" PRId32 "'",
                           tile_key.ToHereTile().c_str(),
                           kAggregateQuadTreeDepth);
 
-      return FindPartition(cached_tree, request, aggregated);
+      return {std::move(cached_tree)};
     } else if (fetch_option == CacheOnly) {
-      OLP_SDK_LOG_INFO_F(kLogTag,
-                         "GetTile not found in cache, "
-                         "aggregated=%s, tile='%s'",
-                         aggregated ? "true" : "false",
-                         tile_key.ToHereTile().c_str());
+      OLP_SDK_LOG_INFO_F(
+          kLogTag, "GetQuadTreeIndexForTile not found in cache, tile='%s'",
+          tile_key.ToHereTile().c_str());
       return {{client::ErrorCode::NotFound,
                "CacheOnly: resource not found in cache"}};
     }
@@ -409,9 +407,8 @@ PartitionResponse PartitionsRepository::GetTile(
 
   if (!query_api.IsSuccessful()) {
     OLP_SDK_LOG_WARNING_F(kLogTag,
-                          "GetTile LookupApi failed, aggregated=%s, "
+                          "GetQuadTreeIndexForTile LookupApi failed, "
                           "hrn='%s', service='query', version='v1'",
-                          aggregated ? "true" : "false",
                           catalog.ToString().c_str());
     return query_api.GetError();
   }
@@ -422,10 +419,9 @@ PartitionResponse PartitionsRepository::GetTile(
 
   if (quadtree_response.status != olp::http::HttpStatusCode::OK) {
     OLP_SDK_LOG_WARNING_F(kLogTag,
-                          "GetTile QuadTreeIndex failed, aggregated=%s, "
-                          "hrn='%s', layer='%s', root='%s', version='%" PRId64
-                          "', depth='%" PRId32 "'",
-                          aggregated ? "true" : "false",
+                          "GetQuadTreeIndexForTile QuadTreeIndex failed, "
+                          "hrn='%s', layer='%s', root='%s', "
+                          "version='%" PRId64 "', depth='%" PRId32 "'",
                           catalog.ToString().c_str(), layer.c_str(),
                           root_tile_here.c_str(), version.get_value_or(-1),
                           kAggregateQuadTreeDepth);
@@ -437,8 +433,8 @@ PartitionResponse PartitionsRepository::GetTile(
   if (tree.IsNull()) {
     OLP_SDK_LOG_WARNING_F(
         kLogTag,
-        "GetTile QuadTreeIndex failed, hrn='%s', "
-        "layer='%s', root='%s', version='%" PRId64 "', depth='%" PRId32 "'",
+        "GetQuadTreeIndexForTile QuadTreeIndex failed, hrn='%s', layer='%s', "
+        "root='%s', version='%" PRId64 "', depth='%" PRId32 "'",
         catalog.ToString().c_str(), layer.c_str(), root_tile_here.c_str(),
         version.get_value_or(-1), kAggregateQuadTreeDepth);
     return {{client::ErrorCode::Unknown, "Failed to parse QuadTreeIndex json"}};
@@ -448,7 +444,7 @@ PartitionResponse PartitionsRepository::GetTile(
     repository.Put(layer, root_tile_key, kAggregateQuadTreeDepth, tree,
                    version);
   }
-  return FindPartition(tree, request, aggregated);
+  return {std::move(tree)};
 }
 
 PartitionResponse PartitionsRepository::GetAggregatedTile(
@@ -456,8 +452,12 @@ PartitionResponse PartitionsRepository::GetAggregatedTile(
     client::CancellationContext cancellation_context,
     const TileRequest& request, boost::optional<int64_t> version,
     const client::OlpClientSettings& settings) {
-  return GetTile(catalog, layer, cancellation_context, request, version,
-                 settings, true);
+  auto quad_tree_response = GetQuadTreeIndexForTile(
+      catalog, layer, cancellation_context, request, version, settings);
+  if (!quad_tree_response.IsSuccessful()) {
+    return quad_tree_response.GetError();
+  }
+  return FindPartition(quad_tree_response.GetResult(), request, true);
 }
 
 PartitionResponse PartitionsRepository::GetTile(
@@ -465,8 +465,12 @@ PartitionResponse PartitionsRepository::GetTile(
     client::CancellationContext cancellation_context,
     const TileRequest& request, boost::optional<int64_t> version,
     const client::OlpClientSettings& settings) {
-  return GetTile(catalog, layer, cancellation_context, request, version,
-                 settings, false);
+  auto quad_tree_response = GetQuadTreeIndexForTile(
+      catalog, layer, cancellation_context, request, version, settings);
+  if (!quad_tree_response.IsSuccessful()) {
+    return quad_tree_response.GetError();
+  }
+  return FindPartition(quad_tree_response.GetResult(), request, false);
 }
 PORTING_POP_WARNINGS()
 }  // namespace repository
