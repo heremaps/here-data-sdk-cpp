@@ -101,6 +101,18 @@ TEST(QuadTreeIndexTest, ParseBlob) {
   }
 
   {
+    SCOPED_TRACE("Quad tree cycle test");
+    for (const auto& data : index) {
+      if (data->tile_key == olp::geo::TileKey::FromHereTile("23")) {
+        EXPECT_EQ(data->data_handle, "F8F4C3CB09FBA61B927256CBCB8441D1.282");
+      }
+      if (data->tile_key == olp::geo::TileKey::FromHereTile("1524")) {
+        EXPECT_EQ(data->data_handle, "7636348E50215979A39B5F3A429EDDB4.282");
+      }
+    }
+  }
+
+  {
     SCOPED_TRACE("Mailformed JSon response");
 
     auto tile_key = olp::geo::TileKey::FromHereTile("381");
@@ -108,6 +120,18 @@ TEST(QuadTreeIndexTest, ParseBlob) {
     read::QuadTreeIndex index(tile_key, 1, stream);
     auto data = index.Find(tile_key, false);
     EXPECT_TRUE(data == boost::none);
+  }
+
+  {
+    SCOPED_TRACE("Mailformed cycle");
+
+    auto tile_key = olp::geo::TileKey::FromHereTile("381");
+    auto stream = std::stringstream(HTTP_RESPONSE_MAILFORMED);
+    read::QuadTreeIndex index(tile_key, 1, stream);
+    for (const auto& data : index) {
+      (void)data;
+      EXPECT_EQ(true, false);
+    }
   }
 
   {

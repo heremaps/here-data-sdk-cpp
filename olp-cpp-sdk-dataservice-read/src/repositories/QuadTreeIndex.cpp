@@ -322,6 +322,62 @@ boost::optional<QuadTreeIndex::IndexData> QuadTreeIndex::FindNearestParent(
   return boost::none;
 }
 
+QuadTreeIndex::Iterator::Iterator(const QuadTreeIndex& quad_tree,
+                                  const SubEntry* ptr)
+    : quad_tree_(quad_tree), ptr_(nullptr), sub_ptr_(ptr) {}
+QuadTreeIndex::Iterator::Iterator(const QuadTreeIndex& quad_tree,
+                                  const ParentEntry* ptr)
+    : quad_tree_(quad_tree), ptr_(ptr), sub_ptr_(nullptr) {}
+QuadTreeIndex::Iterator& QuadTreeIndex::Iterator::operator++() {
+  if (sub_ptr_ && sub_ptr_ >= quad_tree_.SubEntryBegin() &&
+      sub_ptr_ < quad_tree_.SubEntryEnd()) {
+    ++sub_ptr_;
+    if (sub_ptr_ == quad_tree_.SubEntryEnd()) {
+      ptr_ = reinterpret_cast<const ParentEntry*>(sub_ptr_);
+      sub_ptr_ = nullptr;
+    }
+    return *this;
+  }
+
+  if (ptr_ && ptr_ >= quad_tree_.ParentEntryBegin() &&
+      ptr_ < quad_tree_.ParentEntryEnd()) {
+    ++ptr_;
+  }
+  return *this;
+}
+
+bool QuadTreeIndex::Iterator::operator!=(const Iterator& other) const {
+  return ptr_ != other.ptr_ || sub_ptr_ != other.sub_ptr_;
+}
+
+boost::optional<QuadTreeIndex::IndexData> QuadTreeIndex::Iterator::operator*()
+    const {
+  return ConvertToIndexData();
+}
+
+boost::optional<QuadTreeIndex::IndexData>
+QuadTreeIndex::Iterator::ConvertToIndexData() const {
+  QuadTreeIndex::IndexData data;
+  if (ptr_) {
+    data.tile_key = geo::TileKey::FromQuadKey64(ptr_->key);
+    if (!quad_tree_.ReadIndexData(data, ptr_->tag_offset)) {
+      return boost::none;
+    }
+    return data;
+  } else if (sub_ptr_) {
+    const olp::geo::TileKey& root_tile_key =
+        olp::geo::TileKey::FromQuadKey64(quad_tree_.data_->root_tilekey);
+    auto subtile =
+        root_tile_key.AddedSubkey64(std::uint64_t(sub_ptr_->sub_quadkey));
+    data.tile_key = subtile;
+    if (!quad_tree_.ReadIndexData(data, sub_ptr_->tag_offset)) {
+      return boost::none;
+    }
+    return data;
+  }
+  return boost::none;
+}
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

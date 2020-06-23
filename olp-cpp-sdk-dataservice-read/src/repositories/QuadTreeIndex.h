@@ -94,22 +94,43 @@ class QuadTreeIndex {
     SubEntry entries[1];
   };
 
+ public:
+  class Iterator {
+   public:
+    Iterator(const QuadTreeIndex& quad_tree, const SubEntry* ptr);
+    Iterator(const QuadTreeIndex& quad_tree, const ParentEntry* ptr);
+    Iterator& operator++();
+    bool operator!=(const Iterator& other) const;
+    boost::optional<IndexData> operator*() const;
+
+   private:
+    boost::optional<IndexData> ConvertToIndexData() const;
+    const QuadTreeIndex& quad_tree_;
+    const ParentEntry* ptr_;
+    const SubEntry* sub_ptr_;
+  };
+  Iterator begin() const { return Iterator(*this, SubEntryBegin()); }
+  Iterator end() const { return Iterator(*this, ParentEntryEnd()); }
+
+ private:
   void CreateBlob(geo::TileKey root, int depth, std::vector<IndexData> parents,
                   std::vector<IndexData> subs);
 
   boost::optional<QuadTreeIndex::IndexData> FindNearestParent(
       geo::TileKey tile_key) const;
 
-  const SubEntry* SubEntryBegin() const { return data_->entries; }
+  const SubEntry* SubEntryBegin() const {
+    return data_ ? data_->entries : nullptr;
+  }
   const SubEntry* SubEntryEnd() const {
-    return SubEntryBegin() + data_->subkey_count;
+    return data_ ? (SubEntryBegin() + data_->subkey_count) : nullptr;
   }
 
   const ParentEntry* ParentEntryBegin() const {
     return reinterpret_cast<const ParentEntry*>(SubEntryEnd());
   }
   const ParentEntry* ParentEntryEnd() const {
-    return ParentEntryBegin() + data_->parent_count;
+    return data_ ? (ParentEntryBegin() + data_->parent_count) : nullptr;
   }
 
   const uint8_t* DataBegin() const {
