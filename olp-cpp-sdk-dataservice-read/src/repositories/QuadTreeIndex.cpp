@@ -322,6 +322,31 @@ boost::optional<QuadTreeIndex::IndexData> QuadTreeIndex::FindNearestParent(
   return boost::none;
 }
 
+std::vector<QuadTreeIndex::IndexData> QuadTreeIndex::GetIndexData() const {
+  std::vector<QuadTreeIndex::IndexData> result;
+  if (IsNull()) {
+    return result;
+  }
+  for (auto it = ParentEntryEnd(); it-- != ParentEntryBegin();) {
+    QuadTreeIndex::IndexData data;
+    data.tile_key = geo::TileKey::FromQuadKey64(it->key);
+    if (ReadIndexData(data, it->tag_offset)) {
+      result.emplace_back(std::move(data));
+    }
+  }
+  for (auto it = SubEntryEnd(); it-- != SubEntryBegin();) {
+    QuadTreeIndex::IndexData data;
+    const olp::geo::TileKey& root_tile_key =
+        olp::geo::TileKey::FromQuadKey64(data_->root_tilekey);
+    auto subtile = root_tile_key.AddedSubkey64(std::uint64_t(it->sub_quadkey));
+    data.tile_key = subtile;
+    if (ReadIndexData(data, it->tag_offset)) {
+      result.emplace_back(std::move(data));
+    }
+  }
+  return result;
+}
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp
