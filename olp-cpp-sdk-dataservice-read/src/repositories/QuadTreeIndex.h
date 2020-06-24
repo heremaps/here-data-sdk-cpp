@@ -69,7 +69,7 @@ class QuadTreeIndex {
     return raw_data_;
   }
 
-  std::vector<QuadTreeIndex::IndexData> GetIndexData() const;
+  std::vector<QuadTreeIndex::IndexData> ConvertToIndexData() const;
 
  private:
   struct SubEntry {

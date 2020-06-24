@@ -322,7 +322,8 @@ boost::optional<QuadTreeIndex::IndexData> QuadTreeIndex::FindNearestParent(
   return boost::none;
 }
 
-std::vector<QuadTreeIndex::IndexData> QuadTreeIndex::GetIndexData() const {
+std::vector<QuadTreeIndex::IndexData> QuadTreeIndex::ConvertToIndexData()
+    const {
   std::vector<QuadTreeIndex::IndexData> result;
   if (IsNull()) {
     return result;

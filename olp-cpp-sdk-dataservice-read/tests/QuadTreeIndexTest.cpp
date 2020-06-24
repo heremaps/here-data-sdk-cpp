@@ -102,7 +102,7 @@ TEST(QuadTreeIndexTest, ParseBlob) {
 
   {
     SCOPED_TRACE("Quad tree ConvertToIndexData test");
-    for (const auto& data : index.GetIndexData()) {
+    for (const auto& data : index.ConvertToIndexData()) {
       if (data.tile_key == olp::geo::TileKey::FromHereTile("23")) {
         EXPECT_EQ(data.data_handle, "F8F4C3CB09FBA61B927256CBCB8441D1.282");
       }
@@ -128,7 +128,7 @@ TEST(QuadTreeIndexTest, ParseBlob) {
     auto tile_key = olp::geo::TileKey::FromHereTile("381");
     auto stream = std::stringstream(HTTP_RESPONSE_MAILFORMED);
     read::QuadTreeIndex index(tile_key, 1, stream);
-    for (const auto& data : index.GetIndexData()) {
+    for (const auto& data : index.ConvertToIndexData()) {
       (void)data;
       EXPECT_EQ(true, false);
     }
