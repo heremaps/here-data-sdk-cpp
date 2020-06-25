@@ -69,6 +69,8 @@ class QuadTreeIndex {
     return raw_data_;
   }
 
+  std::vector<QuadTreeIndex::IndexData> GetIndexData() const;
+
  private:
   struct SubEntry {
     std::uint16_t sub_quadkey;
