@@ -27,8 +27,9 @@
 #include <olp/dataservice/read/VersionedLayerClient.h>
 
 namespace {
-using namespace olp::dataservice::read;
-using namespace ::testing;
+namespace read = olp::dataservice::read;
+namespace model = olp::dataservice::read::model;
+using ::testing::_;
 
 const std::string kCatalog =
     "hrn:here:data::olp-here-test:hereos-internal-test-v2";
@@ -41,9 +42,9 @@ const auto kTimeout = std::chrono::seconds(5);
 constexpr auto kBlobDataHandle = R"(4eed6ed1-0d32-43b9-ae79-043cb4256432)";
 
 TEST(VersionedLayerClientTest, CanBeMoved) {
-  VersionedLayerClient client_a(olp::client::HRN(), "", boost::none, {});
-  VersionedLayerClient client_b(std::move(client_a));
-  VersionedLayerClient client_c(olp::client::HRN(), "", boost::none, {});
+  read::VersionedLayerClient client_a(olp::client::HRN(), "", boost::none, {});
+  read::VersionedLayerClient client_b(std::move(client_a));
+  read::VersionedLayerClient client_c(olp::client::HRN(), "", boost::none, {});
   client_c = std::move(client_b);
 }
 
@@ -54,17 +55,17 @@ TEST(VersionedLayerClientTest, GetData) {
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;
 
-  VersionedLayerClient client(kHrn, kLayerId, boost::none, settings);
+  read::VersionedLayerClient client(kHrn, kLayerId, boost::none, settings);
   {
     SCOPED_TRACE("Get Data with PartitionId and DataHandle");
-    std::promise<DataResponse> promise;
-    std::future<DataResponse> future = promise.get_future();
+    std::promise<read::DataResponse> promise;
+    std::future<read::DataResponse> future = promise.get_future();
 
     auto token = client.GetData(
-        DataRequest()
+        read::DataRequest()
             .WithPartitionId(kPartitionId)
             .WithDataHandle(kBlobDataHandle),
-        [&](DataResponse response) { promise.set_value(response); });
+        [&](read::DataResponse response) { promise.set_value(response); });
 
     EXPECT_EQ(future.wait_for(kTimeout), std::future_status::ready);
 
@@ -102,7 +103,7 @@ TEST(VersionedLayerClientTest, RemoveFromCachePartition) {
     return true;
   };
 
-  VersionedLayerClient client(kHrn, kLayerId, kCatalogVersion, settings);
+  read::VersionedLayerClient client(kHrn, kLayerId, kCatalogVersion, settings);
   {
     SCOPED_TRACE("Successfull remove partition from cache");
 
@@ -165,7 +166,7 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
   };
 
   auto tile_key = olp::geo::TileKey::FromHereTile(kPartitionId);
-  VersionedLayerClient client(kHrn, kLayerId, kCatalogVersion, settings);
+  read::VersionedLayerClient client(kHrn, kLayerId, kCatalogVersion, settings);
   {
     SCOPED_TRACE("Successfull remove tile from cache");
 

@@ -42,27 +42,28 @@ constexpr auto kHttpResponseEmpty = R"jsonString()jsonString";
 constexpr auto kHttpResponseQuadTreeIndexVolatile =
     R"jsonString({ "parentQuads": [ { "additionalMetadata": "string", "checksum": "string", "compressedDataSize": 0, "dataHandle": "675911FF6236B7C7604BF8B105F1BB58", "dataSize": 0, "crc": "c3f276d7", "partition": "73982", "version": 0 } ], "subQuads": [ { "additionalMetadata": "string", "checksum": "291f66029c232400e3403cd6e9cfd36e", "compressedDataSize": 200, "dataHandle": "1b2ca68f-d4a0-4379-8120-cd025640510c", "dataSize": 1024, "crc": "c3f276d7", "subQuadKey": "string", "version": 1 } ] })jsonString";
 
-using namespace ::testing;
-using namespace olp;
-using namespace olp::client;
-using namespace olp::dataservice::read;
+using ::testing::_;
+using ::testing::AllOf;
+namespace client = olp::client;
+namespace http = olp::http;
+namespace read = olp::dataservice::read;
 
-class QueryApiTest : public Test {
+class QueryApiTest : public testing::Test {
  protected:
   void SetUp() override {
     network_mock_ = std::make_shared<NetworkMock>();
 
-    settings_ = std::make_shared<OlpClientSettings>();
+    settings_ = std::make_shared<client::OlpClientSettings>();
     settings_->network_request_handler = network_mock_;
 
-    client_ = OlpClientFactory::Create(*settings_);
+    client_ = client::OlpClientFactory::Create(*settings_);
     client_->SetBaseUrl(kNodeBaseUrl);
   }
   void TearDown() override { network_mock_.reset(); }
 
  protected:
-  std::shared_ptr<OlpClientSettings> settings_;
-  std::shared_ptr<OlpClient> client_;
+  std::shared_ptr<client::OlpClientSettings> settings_;
+  std::shared_ptr<client::OlpClient> client_;
   std::shared_ptr<NetworkMock> network_mock_;
 };
 
@@ -132,7 +133,7 @@ TEST_F(QueryApiTest, QuadTreeIndexVolatile) {
   }
   {
     SCOPED_TRACE("Not configured olp client");
-    auto client = OlpClient();
+    auto client = client::OlpClient();
     int32_t depth = 2;
     auto index_response =
         olp::dataservice::read::QueryApi::QuadTreeIndexVolatile(

@@ -25,8 +25,10 @@
 
 namespace {
 
-using namespace testing;
-using namespace olp::dataservice::write;
+using testing::_;
+using testing::Mock;
+using testing::Return;
+namespace write = olp::dataservice::write;
 
 const std::string kCatalog = "hrn:here:data:::some_test_catalog";
 
@@ -153,7 +155,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
     auto settings_with_cache = settings_;
     settings_with_cache.cache = cache;
 
-    auto response = ApiClientLookup::LookupApiClient(
+    auto response = write::ApiClientLookup::LookupApiClient(
         kHrn, olp::client::CancellationContext{}, kServiceName, kServiceVersion,
         settings_with_cache);
     EXPECT_TRUE(response.IsSuccessful());
@@ -177,7 +179,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
                                          olp::http::HttpStatusCode::OK),
                                      GetLookupApiHttpResponse()));
 
-    auto response = ApiClientLookup::LookupApiClient(
+    auto response = write::ApiClientLookup::LookupApiClient(
         kHrn, olp::client::CancellationContext{}, kServiceName, kServiceVersion,
         settings_with_cache);
     EXPECT_TRUE(response.IsSuccessful());
@@ -194,7 +196,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
                                          olp::http::HttpStatusCode::OK),
                                      GetLookupApiHttpResponse()));
 
-    auto response = ApiClientLookup::LookupApiClient(
+    auto response = write::ApiClientLookup::LookupApiClient(
         kHrn, olp::client::CancellationContext{}, kServiceName, kServiceVersion,
         settings_);
     EXPECT_TRUE(response.IsSuccessful());
@@ -212,7 +214,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
                                    olp::http::HttpStatusCode::UNAUTHORIZED),
                                "Failed"));
 
-    auto response = ApiClientLookup::LookupApiClient(
+    auto response = write::ApiClientLookup::LookupApiClient(
         kHrn, olp::client::CancellationContext{}, kServiceName, kServiceVersion,
         settings_);
     EXPECT_FALSE(response.IsSuccessful());
@@ -238,7 +240,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
         });
     EXPECT_CALL(*network_, Cancel(_)).Times(1).WillOnce(Return());
 
-    auto response = ApiClientLookup::LookupApiClient(
+    auto response = write::ApiClientLookup::LookupApiClient(
         kHrn, olp::client::CancellationContext{}, kServiceName, kServiceVersion,
         settings_);
     EXPECT_FALSE(response.IsSuccessful());
@@ -261,7 +263,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
           return olp::http::SendOutcome(olp::http::ErrorCode::CANCELLED_ERROR);
         });
 
-    auto response = ApiClientLookup::LookupApiClient(
+    auto response = write::ApiClientLookup::LookupApiClient(
         kHrn, olp::client::CancellationContext{}, kServiceName, kServiceVersion,
         settings_);
     EXPECT_FALSE(response.IsSuccessful());
@@ -289,7 +291,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
               return olp::http::SendOutcome(kUnusedRequestId);
             });
     EXPECT_CALL(*network_, Cancel(_)).Times(1).WillOnce(Return());
-    auto response = ApiClientLookup::LookupApiClient(
+    auto response = write::ApiClientLookup::LookupApiClient(
         kHrn, context, kServiceName, kServiceVersion, settings_);
     EXPECT_FALSE(response.IsSuccessful());
     auto err_code = response.GetError().GetErrorCode();
@@ -301,7 +303,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
     SCOPED_TRACE("Network request cancelled before execution setup");
     olp::client::CancellationContext context;
     context.CancelOperation();
-    auto response = ApiClientLookup::LookupApiClient(
+    auto response = write::ApiClientLookup::LookupApiClient(
         kHrn, context, kServiceName, kServiceVersion, settings_);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -315,7 +317,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
 
     const auto kBadHrn = olp::client::HRN::FromString("hrn:wrong:data:catalog");
 
-    auto response = ApiClientLookup::LookupApiClient(
+    auto response = write::ApiClientLookup::LookupApiClient(
         kBadHrn, olp::client::CancellationContext{}, kServiceName,
         kServiceVersion, settings_);
 

@@ -28,8 +28,13 @@
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include "../olp-cpp-sdk-dataservice-read/HttpResponses.h"
 
-using namespace olp;
-using namespace testing;
+namespace http = olp::http;
+namespace client = olp::client;
+namespace authentication = olp::authentication;
+namespace dataservice = olp::dataservice;
+using testing::_;
+using testing::AnyOf;
+using testing::Not;
 
 namespace {
 

@@ -36,10 +36,9 @@
 #include "HttpResponses.h"
 
 namespace {
-
-using namespace olp::dataservice::read;
-using namespace testing;
-using namespace olp::tests::integration;
+using testing::_;
+namespace integration = olp::tests::integration;
+using integration::CacheType;
 
 #ifdef _WIN32
 constexpr auto kClientTestDir = "\\catalog_client_test";
@@ -49,7 +48,8 @@ constexpr auto kClientTestDir = "/catalog_client_test";
 constexpr auto kClientTestCacheDir = "/cata.log_client_test/cache";
 #endif
 
-class VersionedLayerClientCacheTest : public CatalogClientTestBase {
+class VersionedLayerClientCacheTest
+    : public integration::CatalogClientTestBase {
  protected:
   void SetUp() override {
     CatalogClientTestBase::SetUp();
