@@ -290,7 +290,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWideRange) {
 
     auto request = olp::dataservice::read::PrefetchTilesRequest()
                        .WithTileKeys(tile_keys)
-                       .WithMinLevel(10)
+                       .WithMinLevel(6)
                        .WithMaxLevel(12);
 
     std::promise<dataservice_read::PrefetchTilesResponse> promise;
