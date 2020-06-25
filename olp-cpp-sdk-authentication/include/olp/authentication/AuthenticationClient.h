@@ -395,7 +395,11 @@ class AUTHENTICATION_API AuthenticationClient {
    *
    * @return The `CancellationToken` instance that can be used to cancel
    * the request.
+   *
+   * @deprecated Will be removed by 12.2020.
    */
+  OLP_SDK_DEPRECATED(
+      "Sign in with Google token is deprecated and will be removed by 12.2020")
   client::CancellationToken SignInGoogle(
       const AuthenticationCredentials& credentials,
       const FederatedProperties& properties,

@@ -90,9 +90,6 @@ const std::string kUserSigninResponse = R"JSON(
 const std::string kFacebookSigninResponse = R"JSON(
     {"accessToken":"facebook_grant_token","tokenType":"bearer","expiresIn":3599,"refreshToken":"5j687leur4njgb4osomifn55p0","userId":"HERE-5fa10eda-39ff-4cbc-9b0c-5acba4685649"}
     )JSON";
-const std::string kGoogleSigninResponse = R"JSON(
-    {"accessToken":"google_grant_token","tokenType":"bearer","expiresIn":3599,"refreshToken":"5j687leur4njgb4osomifn55p0","userId":"HERE-5fa10eda-39ff-4cbc-9b0c-5acba4685649"}
-    )JSON";
 const std::string kArcgisSigninResponse = R"JSON(
     {"accessToken":"arcgis_grant_token","tokenType":"bearer","expiresIn":3599,"refreshToken":"5j687leur4njgb4osomifn55p0","userId":"HERE-5fa10eda-39ff-4cbc-9b0c-5acba4685649"}
     )JSON";
