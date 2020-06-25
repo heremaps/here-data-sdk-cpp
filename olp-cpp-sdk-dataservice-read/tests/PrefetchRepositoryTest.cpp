@@ -22,7 +22,7 @@
 #include <repositories/PrefetchTilesRepository.h>
 
 namespace {
-using namespace olp::dataservice::read;
+namespace repository = olp::dataservice::read::repository;
 
 class PrefetchRepositoryTestable
     : protected repository::PrefetchTilesRepository {
