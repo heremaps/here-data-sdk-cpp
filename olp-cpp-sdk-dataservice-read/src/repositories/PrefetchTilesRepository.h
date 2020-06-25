@@ -84,7 +84,8 @@ class PrefetchTilesRepository {
       client::CancellationContext context);
 
   static void SplitSubtree(RootTilesForRequest& root_tiles_depth,
-                           RootTilesForRequest::iterator subtree_to_split);
+                           RootTilesForRequest::iterator subtree_to_split,
+                           geo::TileKey tile_key);
 };
 
 }  // namespace repository

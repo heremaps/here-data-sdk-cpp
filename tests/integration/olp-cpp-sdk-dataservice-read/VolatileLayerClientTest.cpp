@@ -137,10 +137,10 @@ void DataserviceReadVolatileLayerClientTest::SetUpCommonNetworkMockCalls() {
                                         HTTP_RESPONSE_QUADKEYS_1476147));
 
   ON_CALL(*network_mock_,
-          Send(IsGetRequest(URL_QUADKEYS_VOLATILE_5904591), _, _, _, _))
+          Send(IsGetRequest(URL_QUADKEYS_VOLATILE_92259), _, _, _, _))
       .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                             olp::http::HttpStatusCode::OK),
-                                        HTTP_RESPONSE_QUADKEYS_5904591));
+                                        HTTP_RESPONSE_QUADKEYS_92259));
 
   ON_CALL(*network_mock_,
           Send(IsGetRequest(URL_BLOB_DATA_VOLATILE_PREFETCH_1), _, _, _, _))
@@ -1208,7 +1208,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest,
       olp::geo::TileKey::FromHereTile("5904591")};
   auto request = read::PrefetchTilesRequest()
                      .WithTileKeys(tile_keys)
-                     .WithMinLevel(10)
+                     .WithMinLevel(11)
                      .WithMaxLevel(12);
   auto cancel_future = client.PrefetchTiles(request);
   auto raw_future = cancel_future.GetFuture();
@@ -1251,7 +1251,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest,
       olp::geo::TileKey::FromHereTile("5904591")};
   auto request = read::PrefetchTilesRequest()
                      .WithTileKeys(tile_keys)
-                     .WithMinLevel(10)
+                     .WithMinLevel(11)
                      .WithMaxLevel(12);
   auto cancel_future = client.PrefetchTiles(request);
 
