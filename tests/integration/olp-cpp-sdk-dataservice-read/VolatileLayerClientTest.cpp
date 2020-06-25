@@ -448,11 +448,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, ApiLookup429) {
     testing::InSequence s;
 
     EXPECT_CALL(*network_mock_,
-<<<<<<< HEAD
-                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
-=======
                 Send(common::IsGetRequest(URL_LOOKUP_API), _, _, _, _))
->>>>>>> f854fad6... Implement Prefetch caching with QuadTreeIndex
         .Times(2)
         .WillRepeatedly(common::ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(
@@ -460,11 +456,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, ApiLookup429) {
             "Server busy at the moment."));
 
     EXPECT_CALL(*network_mock_,
-<<<<<<< HEAD
-                Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
-=======
                 Send(common::IsGetRequest(URL_LOOKUP_API), _, _, _, _))
->>>>>>> f854fad6... Implement Prefetch caching with QuadTreeIndex
         .Times(1);
   }
 
@@ -516,18 +508,11 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsGarbageResponse) {
   olp::client::HRN hrn(GetTestCatalog());
 
   EXPECT_CALL(*network_mock_,
-<<<<<<< HEAD
-              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   R"jsonString(kd3sdf\)jsonString"));
-=======
               Send(common::IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .WillOnce(
           common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
                                      R"jsonString(kd3sdf\)jsonString"));
->>>>>>> f854fad6... Implement Prefetch caching with QuadTreeIndex
 
   read::VolatileLayerClient client(hrn, "testlayer", settings_);
 
@@ -564,11 +549,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest,
           {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
   EXPECT_CALL(*network_mock_,
-<<<<<<< HEAD
-              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
-=======
               Send(common::IsGetRequest(URL_LOOKUP_API), _, _, _, _))
->>>>>>> f854fad6... Implement Prefetch caching with QuadTreeIndex
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
