@@ -224,13 +224,13 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
   {
     SCOPED_TRACE("Read cached data from the same partition");
     dataservice_read::DataResponse response;
-    auto token =
-        client->GetData(olp::dataservice::read::DataRequest()
-                            .WithPartitionId(kTileId)
-                            .WithFetchOption(dataservice_read::CacheOnly),
-                        [&response](dataservice_read::DataResponse resp) {
-                          response = std::move(resp);
-                        });
+    auto token = client->GetData(
+        olp::dataservice::read::TileRequest()
+            .WithTileKey(olp::geo::TileKey::FromHereTile(kTileId))
+            .WithFetchOption(dataservice_read::CacheOnly),
+        [&response](dataservice_read::DataResponse resp) {
+          response = std::move(resp);
+        });
     EXPECT_SUCCESS(response);
     ASSERT_TRUE(response.GetResult() != nullptr);
     ASSERT_NE(response.GetResult()->size(), 0u);
@@ -241,13 +241,13 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
     const auto kSubPartitionId1 = CustomParameters::getArgument(
         "dataservice_read_test_versioned_prefetch_subpartition1");
     dataservice_read::DataResponse response;
-    auto token =
-        client->GetData(olp::dataservice::read::DataRequest()
-                            .WithPartitionId(kSubPartitionId1)
-                            .WithFetchOption(dataservice_read::CacheOnly),
-                        [&response](dataservice_read::DataResponse resp) {
-                          response = std::move(resp);
-                        });
+    auto token = client->GetData(
+        olp::dataservice::read::TileRequest()
+            .WithTileKey(olp::geo::TileKey::FromHereTile(kSubPartitionId1))
+            .WithFetchOption(dataservice_read::CacheOnly),
+        [&response](dataservice_read::DataResponse resp) {
+          response = std::move(resp);
+        });
     EXPECT_SUCCESS(response);
     ASSERT_TRUE(response.GetResult() != nullptr);
     ASSERT_NE(response.GetResult()->size(), 0u);
@@ -258,13 +258,72 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
     const auto kSubPartitionId2 = CustomParameters::getArgument(
         "dataservice_read_test_versioned_prefetch_subpartition2");
     dataservice_read::DataResponse response;
-    auto token =
-        client->GetData(olp::dataservice::read::DataRequest()
-                            .WithPartitionId(kSubPartitionId2)
-                            .WithFetchOption(dataservice_read::CacheOnly),
-                        [&response](dataservice_read::DataResponse resp) {
-                          response = std::move(resp);
-                        });
+    auto token = client->GetData(
+        olp::dataservice::read::TileRequest()
+            .WithTileKey(olp::geo::TileKey::FromHereTile(kSubPartitionId2))
+            .WithFetchOption(dataservice_read::CacheOnly),
+        [&response](dataservice_read::DataResponse resp) {
+          response = std::move(resp);
+        });
+    EXPECT_SUCCESS(response);
+    ASSERT_TRUE(response.GetResult() != nullptr);
+    ASSERT_NE(response.GetResult()->size(), 0u);
+  }
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWideRange) {
+  const auto catalog =
+      olp::client::HRN::FromString(CustomParameters::getArgument(
+          "dataservice_read_test_versioned_prefetch_catalog"));
+  const auto kLayerId = CustomParameters::getArgument(
+      "dataservice_read_test_versioned_prefetch_layer");
+  const auto kTileId = CustomParameters::getArgument(
+      "dataservice_read_test_versioned_prefetch_tile");
+
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      catalog, kLayerId, boost::none, *settings_);
+
+  {
+    SCOPED_TRACE("Prefetch tiles online and store them in memory cache");
+    std::vector<olp::geo::TileKey> tile_keys = {
+        olp::geo::TileKey::FromHereTile(kTileId)};
+
+    auto request = olp::dataservice::read::PrefetchTilesRequest()
+                       .WithTileKeys(tile_keys)
+                       .WithMinLevel(10)
+                       .WithMaxLevel(12);
+
+    std::promise<dataservice_read::PrefetchTilesResponse> promise;
+    std::future<dataservice_read::PrefetchTilesResponse> future =
+        promise.get_future();
+    auto token = client->PrefetchTiles(
+        request, [&promise](dataservice_read::PrefetchTilesResponse response) {
+          promise.set_value(std::move(response));
+        });
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    dataservice_read::PrefetchTilesResponse response = future.get();
+    EXPECT_SUCCESS(response);
+    ASSERT_FALSE(response.GetResult().empty());
+
+    const auto& result = response.GetResult();
+
+    for (auto tile_result : result) {
+      EXPECT_SUCCESS(*tile_result);
+      ASSERT_TRUE(tile_result->tile_key_.IsValid());
+    }
+  }
+
+  {
+    SCOPED_TRACE("Read cached data from the same partition");
+    dataservice_read::DataResponse response;
+    auto token = client->GetData(
+        olp::dataservice::read::TileRequest()
+            .WithTileKey(olp::geo::TileKey::FromHereTile(kTileId))
+            .WithFetchOption(dataservice_read::CacheOnly),
+        [&response](dataservice_read::DataResponse resp) {
+          response = std::move(resp);
+        });
     EXPECT_SUCCESS(response);
     ASSERT_TRUE(response.GetResult() != nullptr);
     ASSERT_NE(response.GetResult()->size(), 0u);

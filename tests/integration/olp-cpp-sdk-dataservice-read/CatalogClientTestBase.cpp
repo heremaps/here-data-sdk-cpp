@@ -174,9 +174,9 @@ void CatalogClientTestBase::SetUpCommonNetworkMockCalls() {
       .WillByDefault(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                         HTTP_RESPONSE_QUADKEYS_1476147));
 
-  ON_CALL(*network_mock_, Send(IsGetRequest(URL_QUADKEYS_5904591), _, _, _, _))
+  ON_CALL(*network_mock_, Send(IsGetRequest(URL_QUADKEYS_92259), _, _, _, _))
       .WillByDefault(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
-                                        HTTP_RESPONSE_QUADKEYS_5904591));
+                                        HTTP_RESPONSE_QUADKEYS_92259));
 
   ON_CALL(*network_mock_, Send(IsGetRequest(URL_QUADKEYS_369036), _, _, _, _))
       .WillByDefault(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),

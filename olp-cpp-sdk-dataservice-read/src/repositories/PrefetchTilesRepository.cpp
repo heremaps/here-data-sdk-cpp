@@ -22,6 +22,7 @@
 #include <inttypes.h>
 #include <algorithm>
 #include <memory>
+#include <utility>
 #include <vector>
 
 #include <olp/core/client/OlpClientSettings.h>
@@ -31,6 +32,7 @@
 #include <olp/core/thread/TaskScheduler.h>
 #include "ApiClientLookup.h"
 #include "PartitionsRepository.h"
+#include "QuadTreeIndex.h"
 #include "generated/api/QueryApi.h"
 
 // Needed to avoid endless warnings from GetVersion/WithVersion
@@ -50,7 +52,7 @@ constexpr std::uint32_t kMaxQuadTreeIndexDepth = 4u;
 
 void PrefetchTilesRepository::SplitSubtree(
     RootTilesForRequest& root_tiles_depth,
-    RootTilesForRequest::iterator subtree_to_split) {
+    RootTilesForRequest::iterator subtree_to_split, geo::TileKey tile_key) {
   unsigned int depth = subtree_to_split->second;
   auto tileKey = subtree_to_split->first;
   if (depth <= kMaxQuadTreeIndexDepth) {
@@ -67,8 +69,14 @@ void PrefetchTilesRepository::SplitSubtree(
     const std::uint64_t endTileKey = beginTileKey + childCount;
 
     for (std::uint64_t key = beginTileKey; key < endTileKey; ++key) {
-      auto it = root_tiles_depth.insert(
-          {geo::TileKey::FromQuadKey64(key), kMaxQuadTreeIndexDepth});
+      auto child = geo::TileKey::FromQuadKey64(key);
+      // skip child, if it not parent, or a child of prefetched tile
+      if (!tile_key.IsParentOf(child) && !child.IsParentOf(tile_key) &&
+          child != tile_key) {
+        continue;
+      }
+
+      auto it = root_tiles_depth.insert({child, kMaxQuadTreeIndexDepth});
       // element already exist, update depth with max value(should never hapen)
       if (it.second == false) {
         it.first->second = kMaxQuadTreeIndexDepth;
@@ -103,22 +111,35 @@ RootTilesForRequest PrefetchTilesRepository::GetSlicedTiles(
       }
     }
 
-    // go up till min level is reached
-    while (tile_key.Level() >= min_level && tile_key.IsValid()) {
-      auto parent = tile_key.Parent();
-      if (tile_key.Level() == min_level || !parent.IsValid()) {
-        auto it = root_tiles_depth.insert({tile_key, max_level - min_level});
-        // element already exist, update depth with max value
-        if (it.second == false) {
-          it.first->second = std::max(it.first->second, max_level - min_level);
-        }
-        // if depth is greater than kMaxQuadTreeIndexDepth, need to split
-        if (it.first->second > kMaxQuadTreeIndexDepth) {
-          // split subtree on chunks with depth kMaxQuadTreeIndexDepth
-          SplitSubtree(root_tiles_depth, it.first);
-        }
+    // adjust min/max levels to depth 4
+    auto remein = (max_level + 1u - min_level) % (kMaxQuadTreeIndexDepth + 1);
+    if (remein != 0) {
+      auto levels_up = kMaxQuadTreeIndexDepth + 1 - remein;
+      if (min_level > levels_up) {
+        min_level = min_level - levels_up;
+      } else {
+        auto levels_down = levels_up - min_level + 1u;
+        min_level = 1u;
+        max_level = max_level + levels_down;
       }
-      tile_key = parent;
+    }
+
+    OLP_SDK_LOG_DEBUG_F(kLogTag, "GetSlicedTiles new min='%d', max='%d'",
+                        min_level, max_level);
+    auto root_tile = tile_key;
+
+    if (root_tile.Level() >= min_level) {
+      root_tile = root_tile.ChangedLevelBy(min_level - tile_key.Level());
+    }
+    auto it = root_tiles_depth.insert({root_tile, max_level - min_level});
+    // element already exist, update depth with max value
+    if (it.second == false) {
+      it.first->second = std::max(it.first->second, max_level - min_level);
+    }
+    // if depth is greater than kMaxQuadTreeIndexDepth, need to split
+    if (it.first->second > kMaxQuadTreeIndexDepth) {
+      // split subtree on chunks with depth kMaxQuadTreeIndexDepth
+      SplitSubtree(root_tiles_depth, it.first, tile_key);
     }
   }
   return root_tiles_depth;
@@ -169,6 +190,32 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
   OLP_SDK_LOG_TRACE_F(kLogTag, "GetSubQuads(%s, %" PRId64 ", %" PRId32 ")",
                       tile.ToHereTile().c_str(), version, depth);
 
+  repository::PartitionsCacheRepository repository(
+      catalog, settings.cache, settings.default_cache_expiration);
+
+  auto get_sub_quads = [](const QuadTreeIndex& tree) -> SubQuadsResult {
+    SubQuadsResult result;
+    auto index_data = tree.GetIndexData();
+    std::transform(
+        index_data.begin(), index_data.end(),
+        std::inserter(result, result.end()),
+        [](const QuadTreeIndex::IndexData& data) -> SubQuadsResult::value_type {
+          return {data.tile_key, data.data_handle};
+        });
+    return result;
+  };
+
+  // check if quad tree with requested tile and depth already in cache
+  auto cached_tree = repository.Get(layer_id, tile, depth, version);
+  if (!cached_tree.IsNull()) {
+    OLP_SDK_LOG_DEBUG_F(kLogTag,
+                        "GetSubQuads found in cache, tile='%s', "
+                        "depth='%" PRId32 "'",
+                        tile.ToHereTile().c_str(), depth);
+
+    return get_sub_quads(cached_tree);
+  }
+
   auto query_api =
       ApiClientLookup::LookupApi(catalog, context, "query", "v1",
                                  FetchOptions::OnlineIfNotFound, settings);
@@ -177,9 +224,6 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
     return query_api.GetError();
   }
 
-  using QuadTreeIndexResponse = QueryApi::QuadTreeIndexResponse;
-  using QuadTreeIndexPromise = std::promise<QuadTreeIndexResponse>;
-  auto promise = std::make_shared<QuadTreeIndexPromise>();
   auto tile_key = tile.ToHereTile();
 
   OLP_SDK_LOG_INFO_F(kLogTag,
@@ -187,47 +231,31 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
                      tile_key.c_str(), version, depth);
 
   auto quad_tree = QueryApi::QuadTreeIndex(
-      query_api.GetResult(), layer_id, version, tile_key, depth, boost::none,
+      query_api.GetResult(), layer_id, tile_key, version, depth, boost::none,
       request.GetBillingTag(), context);
 
-  if (!quad_tree.IsSuccessful()) {
+  if (quad_tree.status != olp::http::HttpStatusCode::OK) {
     OLP_SDK_LOG_WARNING_F(kLogTag,
                           "GetSubQuads failed(%s, %" PRId64 ", %" PRId32 ")",
                           tile_key.c_str(), version, depth);
-    return quad_tree.GetError();
+    return {{quad_tree.status, quad_tree.response.str()}};
   }
 
-  SubQuadsResult result;
-  model::Partitions partitions;
+  QuadTreeIndex tree(tile, depth, quad_tree.response);
 
-  const auto& subquads = quad_tree.GetResult().GetSubQuads();
-  partitions.GetMutablePartitions().reserve(subquads.size());
-
-  OLP_SDK_LOG_DEBUG_F(kLogTag,
-                      "GetSubQuad finished, key=%s, size=%zu,  version=%" PRId64
-                      ", depth=%" PRId32 ")",
-                      tile_key.c_str(), subquads.size(), version, depth);
-
-  for (const auto& subquad : subquads) {
-    auto subtile = tile.AddedSubHereTile(subquad->GetSubQuadKey());
-
-    // Add to result
-    result.emplace(subtile, subquad->GetDataHandle());
-
-    // add to bulk partitions for cacheing
-    partitions.GetMutablePartitions().emplace_back(
-        PartitionsRepository::PartitionFromSubQuad(*subquad,
-                                                   subtile.ToHereTile()));
+  if (tree.IsNull()) {
+    OLP_SDK_LOG_WARNING_F(kLogTag,
+                          "QuadTreeIndex failed, hrn='%s', "
+                          "layer='%s', root='%s', version='%" PRId64
+                          "', depth='%" PRId32 "'",
+                          catalog.ToString().c_str(), layer_id.c_str(),
+                          tile_key.c_str(), version, depth);
+    return {{client::ErrorCode::Unknown, "Failed to parse QuadTreeIndex json"}};
   }
-
   // add to cache
-  repository::PartitionsCacheRepository cache(
-      catalog, settings.cache, settings.default_cache_expiration);
-  cache.Put(PartitionsRequest().WithVersion(version), partitions, layer_id,
-            boost::none, false);
-
-  return result;
-}
+  repository.Put(layer_id, tile, depth, tree, version);
+  return get_sub_quads(tree);
+}  // namespace repository
 
 SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
     const client::HRN& catalog, const std::string& layer_id,
