@@ -322,12 +322,12 @@ boost::optional<QuadTreeIndex::IndexData> QuadTreeIndex::FindNearestParent(
   return boost::none;
 }
 
-std::vector<QuadTreeIndex::IndexData> QuadTreeIndex::ConvertToIndexData()
-    const {
+std::vector<QuadTreeIndex::IndexData> QuadTreeIndex::GetIndexData() const {
   std::vector<QuadTreeIndex::IndexData> result;
   if (IsNull()) {
     return result;
   }
+  result.reserve(data_->parent_count + data_->subkey_count);
   for (auto it = ParentEntryEnd(); it-- != ParentEntryBegin();) {
     QuadTreeIndex::IndexData data;
     data.tile_key = geo::TileKey::FromQuadKey64(it->key);

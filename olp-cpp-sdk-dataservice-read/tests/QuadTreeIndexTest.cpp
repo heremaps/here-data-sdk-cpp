@@ -101,8 +101,9 @@ TEST(QuadTreeIndexTest, ParseBlob) {
   }
 
   {
-    SCOPED_TRACE("Quad tree ConvertToIndexData test");
-    for (const auto& data : index.ConvertToIndexData()) {
+    SCOPED_TRACE("Quad tree GetIndexData test");
+
+    for (const auto& data : index.GetIndexData()) {
       if (data.tile_key == olp::geo::TileKey::FromHereTile("23")) {
         EXPECT_EQ(data.data_handle, "F8F4C3CB09FBA61B927256CBCB8441D1.282");
       }
@@ -113,7 +114,7 @@ TEST(QuadTreeIndexTest, ParseBlob) {
   }
 
   {
-    SCOPED_TRACE("Mailformed JSon response");
+    SCOPED_TRACE("Malformed JSon response");
 
     auto tile_key = olp::geo::TileKey::FromHereTile("381");
     auto stream = std::stringstream(HTTP_RESPONSE_MAILFORMED);
@@ -123,15 +124,12 @@ TEST(QuadTreeIndexTest, ParseBlob) {
   }
 
   {
-    SCOPED_TRACE("Mailformed QuadTreeIndex try to ConvertToIndexData ");
+    SCOPED_TRACE("Malformed QuadTreeIndex try to GetIndexData ");
 
     auto tile_key = olp::geo::TileKey::FromHereTile("381");
     auto stream = std::stringstream(HTTP_RESPONSE_MAILFORMED);
     read::QuadTreeIndex index(tile_key, 1, stream);
-    for (const auto& data : index.ConvertToIndexData()) {
-      (void)data;
-      EXPECT_EQ(true, false);
-    }
+    EXPECT_EQ(index.GetIndexData().size(), 0);
   }
 
   {
