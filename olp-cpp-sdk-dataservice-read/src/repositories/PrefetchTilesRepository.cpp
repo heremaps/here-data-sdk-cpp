@@ -21,6 +21,7 @@
 
 #include <inttypes.h>
 #include <algorithm>
+#include <iterator>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -70,7 +71,7 @@ void PrefetchTilesRepository::SplitSubtree(
 
     for (std::uint64_t key = beginTileKey; key < endTileKey; ++key) {
       auto child = geo::TileKey::FromQuadKey64(key);
-      // skip child, if it not parent, or a child of prefetched tile
+      // skip child, if it is not a parent, or a child of prefetched tile
       if (!tile_key.IsParentOf(child) && !child.IsParentOf(tile_key) &&
           child != tile_key) {
         continue;
@@ -255,7 +256,7 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
   // add to cache
   repository.Put(layer_id, tile, depth, tree, version);
   return get_sub_quads(tree);
-}  // namespace repository
+}
 
 SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
     const client::HRN& catalog, const std::string& layer_id,

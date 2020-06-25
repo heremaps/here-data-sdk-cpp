@@ -227,6 +227,10 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
             Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_6), _, _, _, _))
         .WillByDefault(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                           HTTP_RESPONSE_BLOB_DATA_PREFETCH_6));
+    ON_CALL(*network_mock_,
+            Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_7), _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                          HTTP_RESPONSE_BLOB_DATA_PREFETCH_7));
 
     ON_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
         .WillByDefault(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
@@ -1546,7 +1550,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesCancelOnLookup) {
       geo::TileKey::FromHereTile(kParitionId)};
   auto request = read::PrefetchTilesRequest()
                      .WithTileKeys(tile_keys)
-                     .WithMinLevel(11)
+                     .WithMinLevel(10)
                      .WithMaxLevel(12);
 
   auto token = client->PrefetchTiles(
@@ -1572,7 +1576,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   auto request = read::PrefetchTilesRequest()
                      .WithTileKeys(tile_keys)
-                     .WithMinLevel(11)
+                     .WithMinLevel(10)
                      .WithMaxLevel(12);
 
   auto client = std::make_shared<read::VersionedLayerClient>(kCatalog, kLayerId,
