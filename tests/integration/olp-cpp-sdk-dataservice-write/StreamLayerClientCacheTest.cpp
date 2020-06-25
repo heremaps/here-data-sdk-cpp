@@ -35,7 +35,6 @@
 namespace {
 namespace write = olp::dataservice::write;
 namespace model = olp::dataservice::write::model;
-namespace common = olp::tests::common;
 namespace http = olp::http;
 using testing::_;
 
@@ -140,7 +139,7 @@ class StreamLayerClientCacheTest : public ::testing::Test {
     EXPECT_EQ(disk_cache_->Open(),
               olp::cache::DefaultCache::StorageOpenResult::Success);
 
-    network_ = std::make_shared<common::NetworkMock>();
+    network_ = std::make_shared<NetworkMock>();
     client_settings.network_request_handler = network_;
     client_settings.cache = disk_cache_;
     SetUpCommonNetworkMockCalls(*network_);
@@ -150,12 +149,11 @@ class StreamLayerClientCacheTest : public ::testing::Test {
         client_settings);
   }
 
-  void SetUpCommonNetworkMockCalls(common::NetworkMock& network) {
+  void SetUpCommonNetworkMockCalls(NetworkMock& network) {
     // Catch unexpected calls and fail immediatley
     ON_CALL(network, Send(_, _, _, _, _))
         .WillByDefault(testing::DoAll(
-            common::ReturnHttpResponse(
-                olp::http::NetworkResponse().WithStatus(-1), ""),
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(-1), ""),
             [](olp::http::NetworkRequest /*request*/,
                olp::http::Network::Payload /*payload*/,
                olp::http::Network::Callback /*callback*/,
@@ -166,78 +164,70 @@ class StreamLayerClientCacheTest : public ::testing::Test {
               return olp::http::SendOutcome(5);
             }));
 
-    ON_CALL(network, Send(common::IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
-        .WillByDefault(common::ReturnHttpResponse(
+    ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             HTTP_RESPONSE_LOOKUP_INGEST));
 
-    ON_CALL(network, Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .WillByDefault(common::ReturnHttpResponse(
+    ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             HTTP_RESPONSE_LOOKUP_CONFIG));
 
-    ON_CALL(network,
-            Send(common::IsGetRequest(URL_LOOKUP_PUBLISH_V2), _, _, _, _))
-        .WillByDefault(common::ReturnHttpResponse(
+    ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_PUBLISH_V2), _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             HTTP_RESPONSE_LOOKUP_PUBLISH_V2));
 
-    ON_CALL(network, Send(common::IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-        .WillByDefault(common::ReturnHttpResponse(
+    ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             HTTP_RESPONSE_LOOKUP_BLOB));
 
-    ON_CALL(
-        network,
-        Send(testing::AnyOf(common::IsGetRequest(URL_GET_CATALOG),
-                            common::IsGetRequest(URL_GET_CATALOG_BILLING_TAG)),
-             _, _, _, _))
-        .WillByDefault(common::ReturnHttpResponse(
+    ON_CALL(network,
+            Send(testing::AnyOf(IsGetRequest(URL_GET_CATALOG),
+                                IsGetRequest(URL_GET_CATALOG_BILLING_TAG)),
+                 _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             HTTP_RESPONSE_GET_CATALOG));
 
-    ON_CALL(
-        network,
-        Send(testing::AnyOf(common::IsPostRequest(URL_INGEST_DATA),
-                            common::IsPostRequest(URL_INGEST_DATA_BILLING_TAG)),
-             _, _, _, _))
-        .WillByDefault(common::ReturnHttpResponse(
+    ON_CALL(network,
+            Send(testing::AnyOf(IsPostRequest(URL_INGEST_DATA),
+                                IsPostRequest(URL_INGEST_DATA_BILLING_TAG)),
+                 _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             HTTP_RESPONSE_INGEST_DATA));
 
-    ON_CALL(network,
-            Send(common::IsPostRequest(URL_INGEST_DATA_LAYER_2), _, _, _, _))
-        .WillByDefault(common::ReturnHttpResponse(
+    ON_CALL(network, Send(IsPostRequest(URL_INGEST_DATA_LAYER_2), _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             HTTP_RESPONSE_INGEST_DATA_LAYER_2));
 
-    ON_CALL(network,
-            Send(common::IsPostRequest(URL_INIT_PUBLICATION), _, _, _, _))
-        .WillByDefault(common::ReturnHttpResponse(
+    ON_CALL(network, Send(IsPostRequest(URL_INIT_PUBLICATION), _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             HTTP_RESPONSE_INIT_PUBLICATION));
 
-    ON_CALL(network,
-            Send(common::IsPutRequestPrefix(URL_PUT_BLOB_PREFIX), _, _, _, _))
-        .WillByDefault(common::ReturnHttpResponse(
+    ON_CALL(network, Send(IsPutRequestPrefix(URL_PUT_BLOB_PREFIX), _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             ""));
 
-    ON_CALL(network,
-            Send(testing::AnyOf(common::IsPostRequest(URL_UPLOAD_PARTITIONS),
-                                common::IsPutRequest(URL_SUBMIT_PUBLICATION)),
-                 _, _, _, _))
+    ON_CALL(network, Send(testing::AnyOf(IsPostRequest(URL_UPLOAD_PARTITIONS),
+                                         IsPutRequest(URL_SUBMIT_PUBLICATION)),
+                          _, _, _, _))
         .WillByDefault(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           http::HttpStatusCode::NO_CONTENT),
-                                       ""));
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   http::HttpStatusCode::NO_CONTENT),
+                               ""));
 
-    ON_CALL(
-        network,
-        Send(testing::AnyOf(common::IsPostRequest(URL_INGEST_SDII),
-                            common::IsPostRequest(URL_INGEST_SDII_BILLING_TAG)),
-             _, _, _, _))
-        .WillByDefault(common::ReturnHttpResponse(
+    ON_CALL(network,
+            Send(testing::AnyOf(IsPostRequest(URL_INGEST_SDII),
+                                IsPostRequest(URL_INGEST_SDII_BILLING_TAG)),
+                 _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             HTTP_RESPONSE_INGEST_SDII));
   }
@@ -311,7 +301,7 @@ class StreamLayerClientCacheTest : public ::testing::Test {
  protected:
   std::shared_ptr<olp::cache::DefaultCache> disk_cache_;
   write::StreamLayerClientSettings stream_client_settings_;
-  std::shared_ptr<common::NetworkMock> network_;
+  std::shared_ptr<NetworkMock> network_;
   std::shared_ptr<write::StreamLayerClient> client_;
   std::shared_ptr<std::vector<unsigned char>> data_;
   std::shared_ptr<std::vector<unsigned char>> sdii_data_;
@@ -321,17 +311,13 @@ TEST_F(StreamLayerClientCacheTest, FlushDataSingle) {
   {
     testing::InSequence dummy;
 
-    EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
         .Times(1);
-    EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
         .Times(1);
-    EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
         .Times(1);
-    EXPECT_CALL(*network_,
-                Send(common::IsPostRequest(URL_INGEST_DATA), _, _, _, _))
+    EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
         .Times(1);
   }
 
@@ -347,17 +333,13 @@ TEST_F(StreamLayerClientCacheTest, FlushDataSingle) {
 }
 
 TEST_F(StreamLayerClientCacheTest, FlushDataMultiple) {
-  EXPECT_CALL(*network_,
-              Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
       .Times(1);
-  EXPECT_CALL(*network_,
-              Send(common::IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
       .Times(5);
-  EXPECT_CALL(*network_,
-              Send(common::IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
       .Times(1);
-  EXPECT_CALL(*network_,
-              Send(common::IsPostRequest(URL_INGEST_DATA), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
       .Times(5);
 
   ASSERT_NO_FATAL_FAILURE(QueueMultipleEvents(5));
@@ -373,29 +355,25 @@ TEST_F(StreamLayerClientCacheTest, FlushDataMultiple) {
 TEST_F(StreamLayerClientCacheTest, FlushDataCancel) {
   using PromisePtr = std::shared_ptr<std::promise<void>>;
   auto setup_network_expectations_on_cancel =
-      [](std::shared_ptr<common::NetworkMock> network)
+      [](std::shared_ptr<NetworkMock> network)
       -> std::pair<PromisePtr, PromisePtr> {
     auto wait_for_cancel = std::make_shared<std::promise<void>>();
     auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
     olp::http::RequestId request_id;
-    common::NetworkCallback send_mock;
-    common::CancelCallback cancel_mock;
+    NetworkCallback send_mock;
+    CancelCallback cancel_mock;
 
-    std::tie(request_id, send_mock, cancel_mock) =
-        common::GenerateNetworkMockActions(
-            wait_for_cancel, pause_for_cancel,
-            {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_INGEST});
+    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+        wait_for_cancel, pause_for_cancel,
+        {olp::http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_INGEST});
 
     {
-      EXPECT_CALL(*network,
-                  Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+      EXPECT_CALL(*network, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
           .Times(1);
-      EXPECT_CALL(*network,
-                  Send(common::IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+      EXPECT_CALL(*network, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
           .Times(1);
-      EXPECT_CALL(*network,
-                  Send(common::IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+      EXPECT_CALL(*network, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
           .Times(1)
           .WillOnce(testing::Invoke(std::move(send_mock)));
       EXPECT_CALL(*network, Cancel(request_id))
@@ -405,7 +383,7 @@ TEST_F(StreamLayerClientCacheTest, FlushDataCancel) {
     return {wait_for_cancel, pause_for_cancel};
   };
 
-  auto network = std::make_shared<common::NetworkMock>();
+  auto network = std::make_shared<NetworkMock>();
   olp::client::OlpClientSettings client_settings;
   client_settings.network_request_handler = network;
   client_settings.task_scheduler =
@@ -471,18 +449,14 @@ TEST_F(StreamLayerClientCacheTest, FlushDataCancel) {
 }
 
 TEST_F(StreamLayerClientCacheTest, FlushDataMaxEventsDefaultSetting) {
-  EXPECT_CALL(*network_,
-              Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
       .Times(1);
-  EXPECT_CALL(*network_,
-              Send(common::IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
       .Times(5);
-  EXPECT_CALL(*network_,
-              Send(common::IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
       .Times(1);
 
-  EXPECT_CALL(*network_,
-              Send(common::IsPostRequest(URL_INGEST_DATA), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
       .Times(5);
 
   ASSERT_NO_FATAL_FAILURE(FlushDataOnSettingSuccessAssertions());
@@ -493,17 +467,13 @@ TEST_F(StreamLayerClientCacheTest, FlushDataMaxEventsValidCustomSetting) {
   disk_cache_->Close();
   client_ = CreateStreamLayerClient();
 
-  EXPECT_CALL(*network_,
-              Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
       .Times(1);
-  EXPECT_CALL(*network_,
-              Send(common::IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
       .Times(3);
-  EXPECT_CALL(*network_,
-              Send(common::IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
       .Times(1);
-  EXPECT_CALL(*network_,
-              Send(common::IsPostRequest(URL_INGEST_DATA), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
       .Times(3);
 
   ASSERT_NO_FATAL_FAILURE(
@@ -517,17 +487,13 @@ TEST_F(StreamLayerClientCacheTest, FlushDataMaxEventsInvalidCustomSetting) {
   {
     testing::InSequence dummy;
 
-    EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
         .Times(0);
-    EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
         .Times(0);
-    EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
         .Times(0);
-    EXPECT_CALL(*network_,
-                Send(common::IsPostRequest(URL_INGEST_DATA), _, _, _, _))
+    EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
         .Times(0);
   }
 
@@ -541,18 +507,14 @@ TEST_F(StreamLayerClientCacheTest, FlushSettingsMaximumRequests) {
   ASSERT_EQ(stream_client_settings_.maximum_requests, kMaxRequests);
   client_ = CreateStreamLayerClient();
 
-  EXPECT_CALL(*network_,
-              Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
       .Times(1);
-  EXPECT_CALL(*network_,
-              Send(common::IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
       .Times(15);
-  EXPECT_CALL(*network_,
-              Send(common::IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
       .Times(1);
 
-  EXPECT_CALL(*network_,
-              Send(common::IsPostRequest(URL_INGEST_DATA), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
       .Times(15);
 
   QueueMultipleEvents(15);

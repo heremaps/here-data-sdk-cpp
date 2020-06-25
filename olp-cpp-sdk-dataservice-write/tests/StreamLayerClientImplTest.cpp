@@ -30,7 +30,6 @@ namespace {
 using namespace testing;
 using namespace olp;
 using namespace olp::dataservice::write;
-using namespace olp::tests::common;
 
 const olp::client::HRN kHrn{"hrn:here:data:::catalog"};
 constexpr auto kLayerName = "layer";
@@ -366,9 +365,8 @@ TEST_F(StreamLayerClientImplTest, CancelPublishDataLessThanTwentyMib) {
                                          olp::http::Network::Callback,
                                          olp::http::Network::HeaderCallback,
                                          olp::http::Network::DataCallback) {
-    std::thread([cancel_context]() {
-      cancel_context->CancelOperation();
-    }).detach();
+    std::thread([cancel_context]() { cancel_context->CancelOperation(); })
+        .detach();
 
     constexpr auto unused_request_id = 5;
     return olp::http::SendOutcome(unused_request_id);

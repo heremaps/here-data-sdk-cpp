@@ -19,14 +19,6 @@
 
 #include "CacheMock.h"
 
-namespace olp {
-namespace tests {
-namespace common {
-
 CacheMock::CacheMock() = default;
 
 CacheMock::~CacheMock() = default;
-
-}  // namespace common
-}  // namespace tests
-}  // namespace olp

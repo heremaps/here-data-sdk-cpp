@@ -42,7 +42,6 @@ constexpr auto kHttpVersionsListResponse =
     R"jsonString({"versions":[{"version":4,"timestamp":1547159598712,"partitionCounts":{"testlayer":5,"testlayer_res":1,"multilevel_testlayer":33, "hype-test-prefetch-2":7,"testlayer_gzip":1,"hype-test-prefetch":7},"dependencies":[ { "hrn":"hrn:here:data::olp-here-test:hereos-internal-test-v2","version":0,"direct":false},{"hrn":"hrn:here:data:::hereos-internal-test-v2","version":0,"direct":false }]}]})jsonString";
 
 using testing::_;
-namespace common = olp::tests::common;
 namespace read = olp::dataservice::read;
 namespace http = olp::http;
 
@@ -52,8 +51,7 @@ class CatalogClientTest
 TEST_P(CatalogClientTest, GetCatalog) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_,
-              Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1);
   auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
   auto request = read::CatalogRequest();
@@ -67,8 +65,7 @@ TEST_P(CatalogClientTest, GetCatalog) {
 TEST_P(CatalogClientTest, GetCatalogCallback) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_,
-              Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1);
 
   auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
@@ -89,11 +86,9 @@ TEST_P(CatalogClientTest, GetCatalogCallback) {
 TEST_P(CatalogClientTest, GetCatalog403) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_,
-              Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
-      .WillOnce(common::ReturnHttpResponse(
-          common::GetResponse(http::HttpStatusCode::FORBIDDEN),
-          HTTP_RESPONSE_403));
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::FORBIDDEN),
+                                   HTTP_RESPONSE_403));
 
   auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
   auto request = read::CatalogRequest();
@@ -113,24 +108,21 @@ TEST_P(CatalogClientTest, GetCatalogCancelApiLookup) {
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
-  common::NetworkCallback send_mock;
-  common::CancelCallback cancel_mock;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) =
-      common::GenerateNetworkMockActions(
-          wait_for_cancel, pause_for_cancel,
-          {http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_CONFIG});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+      wait_for_cancel, pause_for_cancel,
+      {http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_CONFIG});
 
-  EXPECT_CALL(*network_mock_,
-              Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
   EXPECT_CALL(*network_mock_, Cancel(request_id))
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
-  EXPECT_CALL(*network_mock_,
-              Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(0);
 
   // Run it!
@@ -167,17 +159,15 @@ TEST_P(CatalogClientTest, GetCatalogCancelConfig) {
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
-  common::NetworkCallback send_mock;
-  common::CancelCallback cancel_mock;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) =
-      common::GenerateNetworkMockActions(
-          wait_for_cancel, pause_for_cancel,
-          {http::HttpStatusCode::OK, HTTP_RESPONSE_CONFIG});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+      wait_for_cancel, pause_for_cancel,
+      {http::HttpStatusCode::OK, HTTP_RESPONSE_CONFIG});
 
   // Setup the expected calls :
-  EXPECT_CALL(*network_mock_,
-              Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
@@ -242,13 +232,11 @@ TEST_P(CatalogClientTest, GetCatalogCancelAfterCompletion) {
 TEST_P(CatalogClientTest, GetCatalogVersion) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_,
-              Send(common::IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1);
 
-  EXPECT_CALL(
-      *network_mock_,
-      Send(common::IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(1);
 
   auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
@@ -270,25 +258,22 @@ TEST_P(CatalogClientTest, GetCatalogVersionCancel) {
 
   // Setup the expected calls :
   olp::http::RequestId request_id;
-  common::NetworkCallback send_mock;
-  common::CancelCallback cancel_mock;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) =
-      common::GenerateNetworkMockActions(
-          wait_for_cancel, pause_for_cancel,
-          {http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+      wait_for_cancel, pause_for_cancel,
+      {http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
-  EXPECT_CALL(*network_mock_,
-              Send(common::IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
   EXPECT_CALL(*network_mock_, Cancel(request_id))
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
-  EXPECT_CALL(
-      *network_mock_,
-      Send(common::IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(0);
 
   // Run it!
@@ -321,8 +306,7 @@ TEST_P(CatalogClientTest, GetCatalogVersionCancel) {
 TEST_P(CatalogClientTest, GetCatalogCacheOnly) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_,
-              Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(0);
 
   auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
@@ -340,14 +324,12 @@ TEST_P(CatalogClientTest, GetCatalogOnlineOnly) {
   {
     testing::InSequence s;
 
-    EXPECT_CALL(*network_mock_,
-                Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
         .Times(1);
 
-    EXPECT_CALL(*network_mock_,
-                Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
-        .WillOnce(common::ReturnHttpResponse(
-            common::GetResponse(http::HttpStatusCode::TOO_MANY_REQUESTS),
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            GetResponse(http::HttpStatusCode::TOO_MANY_REQUESTS),
             "Server busy at the moment."));
   }
 
@@ -375,16 +357,14 @@ TEST_P(CatalogClientTest, GetCatalogCacheWithUpdate) {
   auto wait_for_end = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
-  common::NetworkCallback send_mock;
-  common::CancelCallback cancel_mock;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) =
-      common::GenerateNetworkMockActions(
-          wait_to_start_signal, pre_callback_wait,
-          {http::HttpStatusCode::OK, HTTP_RESPONSE_CONFIG}, wait_for_end);
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+      wait_to_start_signal, pre_callback_wait,
+      {http::HttpStatusCode::OK, HTTP_RESPONSE_CONFIG}, wait_for_end);
 
-  EXPECT_CALL(*network_mock_,
-              Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
@@ -421,14 +401,11 @@ TEST_P(CatalogClientTest, GetCatalog403CacheClear) {
   {
     testing::InSequence s;
 
-    EXPECT_CALL(*network_mock_,
-                Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
         .Times(1);
-    EXPECT_CALL(*network_mock_,
-                Send(common::IsGetRequest(URL_CONFIG), _, _, _, _))
-        .WillOnce(common::ReturnHttpResponse(
-            common::GetResponse(http::HttpStatusCode::FORBIDDEN),
-            HTTP_RESPONSE_403));
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            GetResponse(http::HttpStatusCode::FORBIDDEN), HTTP_RESPONSE_403));
   }
 
   auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
@@ -468,16 +445,15 @@ TEST_P(CatalogClientTest, CancelPendingRequestsCatalog) {
 
   {
     olp::http::RequestId request_id;
-    common::NetworkCallback send_mock;
-    common::CancelCallback cancel_mock;
+    NetworkCallback send_mock;
+    CancelCallback cancel_mock;
 
-    std::tie(request_id, send_mock, cancel_mock) =
-        common::GenerateNetworkMockActions(
-            wait_for_cancel, pause_for_cancel,
-            {http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_CONFIG});
+    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+        wait_for_cancel, pause_for_cancel,
+        {http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_CONFIG});
 
     EXPECT_CALL(*network_mock_,
-                Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
         .Times(1)
         .WillOnce(testing::Invoke(std::move(send_mock)));
 
@@ -526,11 +502,10 @@ TEST_F(CatalogClientTest, GetVersionsList) {
     SCOPED_TRACE("Get versions list online");
 
     EXPECT_CALL(*network_mock_,
-                Send(common::IsGetRequest(kUrlVersionsList), _, _, _, _))
-        .WillOnce(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           olp::http::HttpStatusCode::OK),
-                                       kHttpVersionsListResponse));
+                Send(IsGetRequest(kUrlVersionsList), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kHttpVersionsListResponse));
 
     auto request = olp::dataservice::read::VersionsRequest()
                        .WithStartVersion(kStartVersion)
@@ -552,13 +527,11 @@ TEST_F(CatalogClientTest, GetVersionsList) {
   {
     SCOPED_TRACE("Get versions list start version -1");
 
-    EXPECT_CALL(
-        *network_mock_,
-        Send(common::IsGetRequest(kUrlVersionsListStartMinus), _, _, _, _))
-        .WillOnce(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           olp::http::HttpStatusCode::OK),
-                                       kHttpVersionsListResponse));
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(kUrlVersionsListStartMinus), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kHttpVersionsListResponse));
 
     auto request = olp::dataservice::read::VersionsRequest()
                        .WithStartVersion(-1)
@@ -585,9 +558,9 @@ TEST_F(CatalogClientTest, GetVersionsList) {
                        .WithEndVersion(kEndVersion);
 
     EXPECT_CALL(*network_mock_,
-                Send(common::IsGetRequest(kUrlVersionsList), _, _, _, _))
-        .WillOnce(common::ReturnHttpResponse(
-            common::GetResponse(http::HttpStatusCode::TOO_MANY_REQUESTS),
+                Send(IsGetRequest(kUrlVersionsList), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            GetResponse(http::HttpStatusCode::TOO_MANY_REQUESTS),
             "Server busy at the moment."));
 
     auto future = client.ListVersions(request);
@@ -608,24 +581,21 @@ TEST_F(CatalogClientTest, GetVersionsListCancel) {
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
-  common::NetworkCallback send_mock;
-  common::CancelCallback cancel_mock;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) =
-      common::GenerateNetworkMockActions(
-          wait_for_cancel, pause_for_cancel,
-          {http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+      wait_for_cancel, pause_for_cancel,
+      {http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
 
-  EXPECT_CALL(*network_mock_,
-              Send(common::IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1)
       .WillOnce(testing::Invoke(std::move(send_mock)));
 
   EXPECT_CALL(*network_mock_, Cancel(request_id))
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
-  EXPECT_CALL(*network_mock_,
-              Send(common::IsGetRequest(kUrlVersionsList), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlVersionsList), _, _, _, _))
       .Times(0);
 
   auto catalog_client = read::CatalogClient(hrn, settings_);
@@ -659,12 +629,10 @@ TEST_F(CatalogClientTest, GetVersionsListCancel) {
 TEST_F(CatalogClientTest, GetVersionsListCallback) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_,
-              Send(common::IsGetRequest(kUrlVersionsList), _, _, _, _))
-      .WillOnce(
-          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kHttpVersionsListResponse));
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlVersionsList), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kHttpVersionsListResponse));
 
   auto catalog_client = read::CatalogClient(hrn, settings_);
 

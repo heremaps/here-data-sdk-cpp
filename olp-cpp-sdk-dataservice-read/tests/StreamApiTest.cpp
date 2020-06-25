@@ -29,7 +29,6 @@ using namespace ::testing;
 using namespace olp;
 using namespace olp::client;
 using namespace olp::dataservice::read;
-using namespace olp::tests::common;
 
 std::string ApiErrorToString(const ApiError& error) {
   std::ostringstream result_stream;
@@ -83,7 +82,7 @@ const std::string kSerialMode{"serial"};
 const std::string kParallelMode{"parallel"};
 const std::string kCorrelationId{"test-correlation-id"};
 const olp::http::Header kCorrelationIdHeader{"X-Correlation-Id",
-                                                 kCorrelationId};
+                                             kCorrelationId};
 
 constexpr auto kUrlSubscribeNoQueryParams =
     R"(https://some.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/subscribe)";

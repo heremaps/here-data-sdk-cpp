@@ -29,7 +29,6 @@
 namespace {
 using namespace olp::dataservice::read;
 using namespace ::testing;
-using namespace olp::tests::common;
 
 const std::string kCatalog =
     "hrn:here:data::olp-here-test:hereos-internal-test-v2";

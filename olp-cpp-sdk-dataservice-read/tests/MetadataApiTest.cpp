@@ -45,12 +45,11 @@ constexpr auto kHttpVersionsListResponse =
 using ::testing::_;
 namespace http = olp::http;
 namespace client = olp::client;
-namespace common = olp::tests::common;
 
 class MetadataApiTest : public testing::Test {
  protected:
   void SetUp() override {
-    network_mock_ = std::make_shared<common::NetworkMock>();
+    network_mock_ = std::make_shared<NetworkMock>();
 
     settings_ = std::make_shared<client::OlpClientSettings>();
     settings_->network_request_handler = network_mock_;
@@ -63,16 +62,16 @@ class MetadataApiTest : public testing::Test {
  protected:
   std::shared_ptr<client::OlpClientSettings> settings_;
   std::shared_ptr<client::OlpClient> client_;
-  std::shared_ptr<common::NetworkMock> network_mock_;
+  std::shared_ptr<NetworkMock> network_mock_;
 };
 
 TEST_F(MetadataApiTest, GetListVersions) {
   {
     SCOPED_TRACE("Request metadata versions.");
-    EXPECT_CALL(*network_mock_,
-                Send(testing::AllOf(common::IsGetRequest(kUrlVersionsList)), _,
-                     _, _, _))
-        .WillOnce(common::ReturnHttpResponse(
+    EXPECT_CALL(
+        *network_mock_,
+        Send(testing::AllOf(IsGetRequest(kUrlVersionsList)), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
             http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             kHttpVersionsListResponse));
 
@@ -92,11 +91,10 @@ TEST_F(MetadataApiTest, GetListVersions) {
   {
     SCOPED_TRACE("Request with billing tag.");
     std::string billing_tag = "OlpCppSdkTest";
-    EXPECT_CALL(
-        *network_mock_,
-        Send(testing::AllOf(common::IsGetRequest(kUrlVersionsListBillingTag)),
-             _, _, _, _))
-        .WillOnce(common::ReturnHttpResponse(
+    EXPECT_CALL(*network_mock_,
+                Send(testing::AllOf(IsGetRequest(kUrlVersionsListBillingTag)),
+                     _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
             http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             kHttpVersionsListResponse));
 

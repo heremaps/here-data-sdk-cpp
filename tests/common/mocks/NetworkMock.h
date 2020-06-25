@@ -25,30 +25,28 @@
 #include <gmock/gmock.h>
 #include <olp/core/http/Network.h>
 
-namespace olp {
-namespace tests {
-namespace common {
+using NetworkCallback = std::function<olp::http::SendOutcome(
+    olp::http::NetworkRequest, olp::http::Network::Payload,
+    olp::http::Network::Callback, olp::http::Network::HeaderCallback,
+    olp::http::Network::DataCallback)>;
 
-using NetworkCallback = std::function<http::SendOutcome(
-    http::NetworkRequest, http::Network::Payload, http::Network::Callback,
-    http::Network::HeaderCallback, http::Network::DataCallback)>;
+using CancelCallback = std::function<void(olp::http::RequestId)>;
 
-using CancelCallback = std::function<void(http::RequestId)>;
-
-class NetworkMock : public http::Network {
+class NetworkMock : public olp::http::Network {
  public:
   NetworkMock();
 
   ~NetworkMock() override;
 
-  MOCK_METHOD(http::SendOutcome, Send,
-              (http::NetworkRequest request, http::Network::Payload payload,
-               http::Network::Callback callback,
-               http::Network::HeaderCallback header_callback,
-               http::Network::DataCallback data_callback),
+  MOCK_METHOD(olp::http::SendOutcome, Send,
+              (olp::http::NetworkRequest request,
+               olp::http::Network::Payload payload,
+               olp::http::Network::Callback callback,
+               olp::http::Network::HeaderCallback header_callback,
+               olp::http::Network::DataCallback data_callback),
               (override));
 
-  MOCK_METHOD(void, Cancel, (http::RequestId id), (override));
+  MOCK_METHOD(void, Cancel, (olp::http::RequestId id), (override));
 };
 
 /**
@@ -58,9 +56,9 @@ class NetworkMock : public http::Network {
 struct MockedResponseInformation {
   int status;        /// HTTP status code for response.
   const char* data;  /// Body of HTTP response.
-  http::Headers headers;
+  olp::http::Headers headers;
   MockedResponseInformation(int status, const char* data,
-                            http::Headers&& headers = {})
+                            olp::http::Headers&& headers = {})
       : status(status), data(data), headers(std::move(headers)) {}
 };
 
@@ -81,7 +79,7 @@ struct MockedResponseInformation {
  * @return Triple: RequestId; Action for method Send(); Action for method
  * Cancel();
  */
-std::tuple<http::RequestId, NetworkCallback, CancelCallback>
+std::tuple<olp::http::RequestId, NetworkCallback, CancelCallback>
 GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
                            std::shared_ptr<std::promise<void>> wait_for_signal,
                            MockedResponseInformation response_information,
@@ -105,14 +103,10 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
  * @return A function that mimics Network::Send method.
  */
 NetworkCallback ReturnHttpResponse(
-    http::NetworkResponse response, const std::string& response_body,
-    const http::Headers& headers = {},
+    olp::http::NetworkResponse response, const std::string& response_body,
+    const olp::http::Headers& headers = {},
     std::chrono::nanoseconds delay = std::chrono::nanoseconds(0));
 
-inline http::NetworkResponse GetResponse(int status) {
-  return http::NetworkResponse().WithStatus(status);
+inline olp::http::NetworkResponse GetResponse(int status) {
+  return olp::http::NetworkResponse().WithStatus(status);
 }
-
-}  // namespace common
-}  // namespace tests
-}  // namespace olp

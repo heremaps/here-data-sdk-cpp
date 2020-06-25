@@ -29,7 +29,6 @@ using namespace ::testing;
 using namespace olp;
 using namespace olp::client;
 using namespace olp::dataservice::read;
-using namespace olp::tests::common;
 
 constexpr auto kUrlLookup =
     R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis)";

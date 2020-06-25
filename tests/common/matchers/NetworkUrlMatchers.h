@@ -24,10 +24,6 @@
 #include <olp/core/http/NetworkConstants.h>
 #include <olp/core/http/NetworkRequest.h>
 
-namespace olp {
-namespace tests {
-namespace common {
-
 MATCHER_P(IsGetRequest, url, "") {
   // uri, verb, null body
   return olp::http::NetworkRequest::HttpVerb::GET == arg.GetVerb() &&
@@ -110,7 +106,3 @@ MATCHER(HeadersContainAuthorization, "") {
                       header.second.length() > strlen(olp::http::kBearer) + 2;
              }) != headers.end();
 }
-
-}  // namespace common
-}  // namespace tests
-}  // namespace olp

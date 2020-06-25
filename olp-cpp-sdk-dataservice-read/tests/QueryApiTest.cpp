@@ -46,7 +46,6 @@ using namespace ::testing;
 using namespace olp;
 using namespace olp::client;
 using namespace olp::dataservice::read;
-using namespace olp::tests::common;
 
 class QueryApiTest : public Test {
  protected:
@@ -142,7 +141,8 @@ TEST_F(QueryApiTest, QuadTreeIndexVolatile) {
 
     ASSERT_FALSE(index_response.IsSuccessful());
     auto error = index_response.GetError();
-    ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::OFFLINE_ERROR), error.GetHttpStatusCode());
+    ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::OFFLINE_ERROR),
+              error.GetHttpStatusCode());
   }
   {
     SCOPED_TRACE("Invalid layer id");

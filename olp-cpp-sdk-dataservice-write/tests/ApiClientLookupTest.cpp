@@ -27,7 +27,6 @@ namespace {
 
 using namespace testing;
 using namespace olp::dataservice::write;
-using namespace olp::tests::common;
 
 const std::string kCatalog = "hrn:here:data:::some_test_catalog";
 
@@ -68,8 +67,7 @@ enum LookupApiType {
 class ApiClientLookupTest : public ::testing::TestWithParam<LookupApiType> {
  protected:
   void SetUp() override {
-    network_ = std::make_shared<
-        testing::StrictMock<olp::tests::common::NetworkMock>>();
+    network_ = std::make_shared<testing::StrictMock<NetworkMock>>();
 
     settings_.network_request_handler = network_;
     settings_.retry_settings.timeout = 1;
@@ -134,8 +132,7 @@ class ApiClientLookupTest : public ::testing::TestWithParam<LookupApiType> {
 
  protected:
   olp::client::OlpClientSettings settings_;
-  std::shared_ptr<testing::StrictMock<olp::tests::common::NetworkMock>>
-      network_;
+  std::shared_ptr<testing::StrictMock<NetworkMock>> network_;
 };
 
 TEST_P(ApiClientLookupTest, LookupApiClientSync) {
@@ -149,8 +146,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
 
   {
     SCOPED_TRACE("Fetch from cache positive");
-    auto cache =
-        std::make_shared<testing::StrictMock<olp::tests::common::CacheMock>>();
+    auto cache = std::make_shared<testing::StrictMock<CacheMock>>();
     EXPECT_CALL(*cache, Get(kCacheKey, _))
         .Times(1)
         .WillOnce(Return(kServiceUrl));
@@ -166,8 +162,7 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
 
   {
     SCOPED_TRACE("Fetch from cache negative and fetch from network_");
-    auto cache =
-        std::make_shared<testing::StrictMock<olp::tests::common::CacheMock>>();
+    auto cache = std::make_shared<testing::StrictMock<CacheMock>>();
     EXPECT_CALL(*cache, Get(kCacheKey, _)).Times(1);
     EXPECT_CALL(*cache, Put(kCacheKey, _, _, _))
         .Times(1)
@@ -281,18 +276,18 @@ TEST_P(ApiClientLookupTest, LookupApiClientSync) {
     EXPECT_CALL(*network_,
                 Send(IsGetRequest(GetLookupApiRequestUrl()), _, _, _, _))
         .Times(1)
-        .WillOnce([=](olp::http::NetworkRequest /*request*/,
-                      olp::http::Network::Payload /*payload*/,
-                      olp::http::Network::Callback /*callback*/,
-                      olp::http::Network::HeaderCallback /*header_callback*/,
-                      olp::http::Network::DataCallback /*data_callback*/) mutable
-                  -> olp::http::SendOutcome {
-          std::thread([context]() mutable {
-            context.CancelOperation();
-          }).detach();
-          constexpr auto kUnusedRequestId = 42;
-          return olp::http::SendOutcome(kUnusedRequestId);
-        });
+        .WillOnce(
+            [=](olp::http::NetworkRequest /*request*/,
+                olp::http::Network::Payload /*payload*/,
+                olp::http::Network::Callback /*callback*/,
+                olp::http::Network::HeaderCallback /*header_callback*/,
+                olp::http::Network::DataCallback /*data_callback*/) mutable
+            -> olp::http::SendOutcome {
+              std::thread([context]() mutable { context.CancelOperation(); })
+                  .detach();
+              constexpr auto kUnusedRequestId = 42;
+              return olp::http::SendOutcome(kUnusedRequestId);
+            });
     EXPECT_CALL(*network_, Cancel(_)).Times(1).WillOnce(Return());
     auto response = ApiClientLookup::LookupApiClient(
         kHrn, context, kServiceName, kServiceVersion, settings_);

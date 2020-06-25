@@ -35,7 +35,6 @@ namespace {
 
 using namespace olp::dataservice::read;
 using namespace testing;
-using namespace olp::tests::common;
 using namespace olp::tests::integration;
 
 #ifdef _WIN32
@@ -102,8 +101,7 @@ class CatalogClientCacheTest : public CatalogClientTestBase {
 TEST_P(CatalogClientCacheTest, GetApi) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1);
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))

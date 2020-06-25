@@ -30,7 +30,6 @@ namespace {
 
 using namespace testing;
 using namespace olp::http;
-using namespace olp::tests::common;
 
 const char* kTestUrl = "test_url";
 

@@ -33,7 +33,6 @@ namespace {
 
 namespace write = olp::dataservice::write;
 namespace model = olp::dataservice::write::model;
-namespace common = olp::tests::common;
 namespace http = olp::http;
 
 using testing::_;
@@ -71,7 +70,7 @@ class VolatileLayerClientTest : public ::testing::Test {
   virtual std::shared_ptr<write::VolatileLayerClient>
   CreateVolatileLayerClient() {
     olp::client::OlpClientSettings client_settings;
-    network_ = std::make_shared<common::NetworkMock>();
+    network_ = std::make_shared<NetworkMock>();
     client_settings.network_request_handler = network_;
     SetUpCommonNetworkMockCalls(*network_);
 
@@ -79,12 +78,11 @@ class VolatileLayerClientTest : public ::testing::Test {
         olp::client::HRN{GetTestCatalog()}, client_settings);
   }
 
-  void SetUpCommonNetworkMockCalls(common::NetworkMock& network) {
+  void SetUpCommonNetworkMockCalls(NetworkMock& network) {
     // Catch unexpected calls and fail immediatley
     ON_CALL(network, Send(_, _, _, _, _))
         .WillByDefault(testing::DoAll(
-            common::ReturnHttpResponse(
-                olp::http::NetworkResponse().WithStatus(-1), ""),
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(-1), ""),
             [](olp::http::NetworkRequest /*request*/,
                olp::http::Network::Payload /*payload*/,
                olp::http::Network::Callback /*callback*/,
@@ -95,49 +93,44 @@ class VolatileLayerClientTest : public ::testing::Test {
               return olp::http::SendOutcome(5);
             }));
 
-    ON_CALL(network, Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .WillByDefault(common::ReturnHttpResponse(
+    ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             HTTP_RESPONSE_LOOKUP_CONFIG));
 
-    ON_CALL(network,
-            Send(common::IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
-        .WillByDefault(common::ReturnHttpResponse(
+    ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             HTTP_RESPONSE_LOOKUP_METADATA));
 
-    ON_CALL(network,
-            Send(common::IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
-        .WillByDefault(common::ReturnHttpResponse(
+    ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             HTTP_RESPONSE_LOOKUP_VOLATILE_BLOB));
 
-    ON_CALL(network, Send(common::IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
-        .WillByDefault(common::ReturnHttpResponse(
+    ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             HTTP_RESPONSE_LOOKUP_QUERY));
 
-    ON_CALL(network,
-            Send(common::IsGetRequest(URL_LOOKUP_PUBLISH_V2), _, _, _, _))
-        .WillByDefault(common::ReturnHttpResponse(
+    ON_CALL(network, Send(IsGetRequest(URL_LOOKUP_PUBLISH_V2), _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             HTTP_RESPONSE_LOOKUP_PUBLISH_V2));
 
-    ON_CALL(network, Send(common::IsGetRequest(URL_GET_CATALOG), _, _, _, _))
-        .WillByDefault(common::ReturnHttpResponse(
+    ON_CALL(network, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             HTTP_RESPONSE_GET_CATALOG));
 
-    ON_CALL(network,
-            Send(common::IsGetRequest(URL_QUERY_PARTITION_1111), _, _, _, _))
-        .WillByDefault(common::ReturnHttpResponse(
+    ON_CALL(network, Send(IsGetRequest(URL_QUERY_PARTITION_1111), _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             HTTP_RESPONSE_QUERY_DATA_HANDLE));
 
     ON_CALL(network,
-            Send(common::IsPutRequestPrefix(URL_PUT_VOLATILE_BLOB_PREFIX), _, _,
-                 _, _))
-        .WillByDefault(common::ReturnHttpResponse(
+            Send(IsPutRequestPrefix(URL_PUT_VOLATILE_BLOB_PREFIX), _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             ""));
   }
@@ -155,7 +148,7 @@ class VolatileLayerClientTest : public ::testing::Test {
   }
 
  protected:
-  std::shared_ptr<common::NetworkMock> network_;
+  std::shared_ptr<NetworkMock> network_;
   std::shared_ptr<write::VolatileLayerClient> client_;
   std::shared_ptr<std::vector<unsigned char>> data_;
 };
@@ -165,30 +158,26 @@ TEST_F(VolatileLayerClientTest, PublishData) {
   {
     testing::InSequence dummy;
 
-    EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
         .Times(1);
-    EXPECT_CALL(*network_, Send(common::IsGetRequest(URL_LOOKUP_VOLATILE_BLOB),
-                                _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_LOOKUP_PUBLISH_V2), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_PUBLISH_V2), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+                Send(IsGetRequest(URL_QUERY_PARTITION_1111), _, _, _, _))
         .Times(1);
-    EXPECT_CALL(*network_, Send(common::IsGetRequest(URL_QUERY_PARTITION_1111),
-                                _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_,
-                Send(common::IsPutRequestPrefix(URL_PUT_VOLATILE_BLOB_PREFIX),
-                     _, _, _, _))
+    EXPECT_CALL(
+        *network_,
+        Send(IsPutRequestPrefix(URL_PUT_VOLATILE_BLOB_PREFIX), _, _, _, _))
         .Times(1);
   }
   auto response =
@@ -208,28 +197,25 @@ TEST_F(VolatileLayerClientTest, PublishDataCancelConfig) {
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
-  common::NetworkCallback send_mock;
-  common::CancelCallback cancel_mock;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) =
-      common::GenerateNetworkMockActions(
-          wait_for_cancel, pause_for_cancel,
-          {http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_CONFIG});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+      wait_for_cancel, pause_for_cancel,
+      {http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_CONFIG});
 
   {
     testing::InSequence s;
 
-    EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
         .Times(1)
         .WillOnce(testing::Invoke(std::move(send_mock)));
     EXPECT_CALL(*network_, Cancel(request_id))
         .WillOnce(testing::Invoke(std::move(cancel_mock)));
-    EXPECT_CALL(*network_, Send(common::IsGetRequest(URL_LOOKUP_VOLATILE_BLOB),
-                                _, _, _, _))
-        .Times(0);
     EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
+        .Times(0);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
         .Times(0);
   }
   auto promise =
@@ -255,31 +241,27 @@ TEST_F(VolatileLayerClientTest, PublishDataCancelBlob) {
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
-  common::NetworkCallback send_mock;
-  common::CancelCallback cancel_mock;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) =
-      common::GenerateNetworkMockActions(
-          wait_for_cancel, pause_for_cancel,
-          {http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_VOLATILE_BLOB});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+      wait_for_cancel, pause_for_cancel,
+      {http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_VOLATILE_BLOB});
 
   {
     testing::InSequence s;
 
-    EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_, Send(common::IsGetRequest(URL_LOOKUP_VOLATILE_BLOB),
-                                _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
         .Times(1)
         .WillOnce(testing::Invoke(std::move(send_mock)));
     EXPECT_CALL(*network_, Cancel(request_id))
         .WillOnce(testing::Invoke(std::move(cancel_mock)));
-    EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
         .Times(0);
   }
 
@@ -306,34 +288,29 @@ TEST_F(VolatileLayerClientTest, PublishDataCancelCatalog) {
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
 
   olp::http::RequestId request_id;
-  common::NetworkCallback send_mock;
-  common::CancelCallback cancel_mock;
+  NetworkCallback send_mock;
+  CancelCallback cancel_mock;
 
-  std::tie(request_id, send_mock, cancel_mock) =
-      common::GenerateNetworkMockActions(
-          wait_for_cancel, pause_for_cancel,
-          {http::HttpStatusCode::OK, HTTP_RESPONSE_GET_CATALOG});
+  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+      wait_for_cancel, pause_for_cancel,
+      {http::HttpStatusCode::OK, HTTP_RESPONSE_GET_CATALOG});
 
   {
     testing::InSequence s;
 
-    EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
         .Times(1);
-    EXPECT_CALL(*network_, Send(common::IsGetRequest(URL_LOOKUP_VOLATILE_BLOB),
-                                _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_LOOKUP_PUBLISH_V2), _, _, _, _))
+                Send(IsGetRequest(URL_LOOKUP_PUBLISH_V2), _, _, _, _))
         .Times(1);
-    EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
         .Times(1)
         .WillOnce(testing::Invoke(std::move(send_mock)));
     EXPECT_CALL(*network_, Cancel(request_id))

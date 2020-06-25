@@ -21,9 +21,7 @@
 
 #include <thread>
 
-namespace olp {
-namespace tests {
-namespace common {
+namespace http = olp::http;
 
 NetworkMock::NetworkMock() = default;
 
@@ -129,7 +127,3 @@ NetworkCallback ReturnHttpResponse(http::NetworkResponse response,
         return http::SendOutcome(unused_request_id);
       };
 }
-
-}  // namespace common
-}  // namespace tests
-}  // namespace olp

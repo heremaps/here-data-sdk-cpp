@@ -39,7 +39,6 @@ namespace {
 
 using namespace olp::dataservice::read;
 using namespace testing;
-using namespace olp::tests::common;
 using namespace olp::tests::integration;
 
 #ifdef _WIN32
@@ -106,8 +105,7 @@ class VersionedLayerClientCacheTest : public CatalogClientTestBase {
 TEST_P(VersionedLayerClientCacheTest, GetDataWithPartitionId) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1);
 
   EXPECT_CALL(*network_mock_,
@@ -153,8 +151,7 @@ TEST_P(VersionedLayerClientCacheTest, GetDataWithPartitionId) {
 TEST_P(VersionedLayerClientCacheTest, GetPartitionsLayerVersions) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1);
 
   EXPECT_CALL(*network_mock_,
@@ -185,8 +182,7 @@ TEST_P(VersionedLayerClientCacheTest, GetPartitionsLayerVersions) {
 TEST_P(VersionedLayerClientCacheTest, GetPartitions) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1);
 
   EXPECT_CALL(*network_mock_,
@@ -226,8 +222,7 @@ TEST_P(VersionedLayerClientCacheTest, GetDataWithPartitionIdDifferentVersions) {
     return;
   }
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1);
 
   EXPECT_CALL(*network_mock_,

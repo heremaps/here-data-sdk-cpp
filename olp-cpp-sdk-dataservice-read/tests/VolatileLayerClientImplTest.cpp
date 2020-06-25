@@ -33,7 +33,6 @@ namespace read = olp::dataservice::read;
 namespace model = olp::dataservice::read::model;
 using ::testing::_;
 using ::testing::Mock;
-namespace common = olp::tests::common;
 
 constexpr auto kUrlVolatileBlobData =
     R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/4eed6ed1-0d32-43b9-ae79-043cb4256432)";
@@ -82,20 +81,18 @@ const auto kData2 = "SomeData2";
 const auto kTimeout = std::chrono::seconds(5);
 
 template <class T>
-void SetupNetworkExpectation(common::NetworkMock& network_mock, T url,
-                             T response, int status) {
-  EXPECT_CALL(network_mock, Send(common::IsGetRequest(url), _, _, _, _))
-      .WillOnce(common::ReturnHttpResponse(
+void SetupNetworkExpectation(NetworkMock& network_mock, T url, T response,
+                             int status) {
+  EXPECT_CALL(network_mock, Send(IsGetRequest(url), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(
           olp::http::NetworkResponse().WithStatus(status), response));
 }
 
 MATCHER_P(IsKey, key, "") { return key == arg; }
 
 TEST(VolatileLayerClientImplTest, GetData) {
-  std::shared_ptr<common::NetworkMock> network_mock =
-      std::make_shared<common::NetworkMock>();
-  std::shared_ptr<common::CacheMock> cache_mock =
-      std::make_shared<common::CacheMock>();
+  std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
   olp::client::OlpClientSettings settings;
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;
@@ -103,12 +100,11 @@ TEST(VolatileLayerClientImplTest, GetData) {
 
   {
     SCOPED_TRACE("Get Data with DataHandle");
-    EXPECT_CALL(*network_mock,
-                Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           olp::http::HttpStatusCode::OK),
-                                       kHttpResponseLookup));
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookup));
 
     SetupNetworkExpectation(*network_mock, kUrlVolatileBlobData, "someData",
                             olp::http::HttpStatusCode::OK);
@@ -131,12 +127,11 @@ TEST(VolatileLayerClientImplTest, GetData) {
   {
     SCOPED_TRACE("Get Data with PartitionId");
 
-    EXPECT_CALL(*network_mock,
-                Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           olp::http::HttpStatusCode::OK),
-                                       kHttpResponseLookup));
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookup));
     SetupNetworkExpectation(*network_mock, kUrlQueryPartition269,
                             kHttpResponsePartition269,
                             olp::http::HttpStatusCode::OK);
@@ -207,10 +202,8 @@ TEST(VolatileLayerClientImplTest, GetData) {
 }
 
 TEST(VolatileLayerClientImplTest, GetDataCancellableFuture) {
-  std::shared_ptr<common::NetworkMock> network_mock =
-      std::make_shared<common::NetworkMock>();
-  std::shared_ptr<common::CacheMock> cache_mock =
-      std::make_shared<common::CacheMock>();
+  std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
   olp::client::OlpClientSettings settings;
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;
@@ -220,12 +213,11 @@ TEST(VolatileLayerClientImplTest, GetDataCancellableFuture) {
   {
     SCOPED_TRACE("Get Data with DataHandle");
 
-    EXPECT_CALL(*network_mock,
-                Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           olp::http::HttpStatusCode::OK),
-                                       kHttpResponseLookup));
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookup));
 
     SetupNetworkExpectation(*network_mock, kUrlVolatileBlobData, "someData",
                             olp::http::HttpStatusCode::OK);
@@ -245,12 +237,11 @@ TEST(VolatileLayerClientImplTest, GetDataCancellableFuture) {
   {
     SCOPED_TRACE("Get Data with PartitionId");
 
-    EXPECT_CALL(*network_mock,
-                Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           olp::http::HttpStatusCode::OK),
-                                       kHttpResponseLookup));
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookup));
 
     SetupNetworkExpectation(*network_mock, kUrlQueryPartition269,
                             kHttpResponsePartition269,
@@ -274,12 +265,11 @@ TEST(VolatileLayerClientImplTest, GetDataCancellableFuture) {
   {
     SCOPED_TRACE("Get Data from non existent partition");
 
-    EXPECT_CALL(*network_mock,
-                Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           olp::http::HttpStatusCode::OK),
-                                       kHttpResponseLookup));
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookup));
 
     SetupNetworkExpectation(*network_mock, kUrlQueryPartition269,
                             kHttpResponseNoPartition,
@@ -301,10 +291,8 @@ TEST(VolatileLayerClientImplTest, GetDataCancellableFuture) {
 }
 
 TEST(VolatileLayerClientImplTest, GetDataCancelOnClientDestroy) {
-  std::shared_ptr<common::NetworkMock> network_mock =
-      std::make_shared<common::NetworkMock>();
-  std::shared_ptr<common::CacheMock> cache_mock =
-      std::make_shared<common::CacheMock>();
+  std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
   olp::client::OlpClientSettings settings;
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;
@@ -336,10 +324,8 @@ TEST(VolatileLayerClientImplTest, GetDataCancelOnClientDestroy) {
 }
 
 TEST(VolatileLayerClientImplTest, GetDataCancellableFutureCancel) {
-  std::shared_ptr<common::NetworkMock> network_mock =
-      std::make_shared<common::NetworkMock>();
-  std::shared_ptr<common::CacheMock> cache_mock =
-      std::make_shared<common::CacheMock>();
+  std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
   olp::client::OlpClientSettings settings;
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;
@@ -364,8 +350,7 @@ TEST(VolatileLayerClientImplTest, GetDataCancellableFutureCancel) {
 
 TEST(VolatileLayerClientImplTest, RemoveFromCachePartition) {
   olp::client::OlpClientSettings settings;
-  std::shared_ptr<common::CacheMock> cache_mock =
-      std::make_shared<common::CacheMock>();
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
   settings.cache = cache_mock;
 
   // successfull mock cache calls
@@ -427,8 +412,7 @@ TEST(VolatileLayerClientImplTest, RemoveFromCachePartition) {
 
 TEST(VolatileLayerClientImplTest, RemoveFromCacheTileKey) {
   olp::client::OlpClientSettings settings;
-  std::shared_ptr<common::CacheMock> cache_mock =
-      std::make_shared<common::CacheMock>();
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
   settings.cache = cache_mock;
 
   // successfull mock cache calls
@@ -490,10 +474,8 @@ TEST(VolatileLayerClientImplTest, RemoveFromCacheTileKey) {
 }
 
 TEST(VolatileLayerClientImplTest, PrefetchTiles) {
-  std::shared_ptr<common::NetworkMock> network_mock =
-      std::make_shared<common::NetworkMock>();
-  std::shared_ptr<common::CacheMock> cache_mock =
-      std::make_shared<common::CacheMock>();
+  std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
 
   olp::client::OlpClientSettings settings;
   settings.network_request_handler = network_mock;
@@ -511,12 +493,11 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
     SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData2, kData2,
                             olp::http::HttpStatusCode::OK);
 
-    EXPECT_CALL(*network_mock,
-                Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           olp::http::HttpStatusCode::OK),
-                                       kHttpResponseLookup));
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookup));
 
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kTileId)};
@@ -552,12 +533,11 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
                             kHttpResponseQuadTreeIndexVolatile,
                             olp::http::HttpStatusCode::OK);
 
-    EXPECT_CALL(*network_mock,
-                Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           olp::http::HttpStatusCode::OK),
-                                       kHttpResponseLookup));
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookup));
 
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kTileId)};
@@ -587,12 +567,11 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
                             kHttpResponseQuadTreeIndexVolatile,
                             olp::http::HttpStatusCode::OK);
 
-    EXPECT_CALL(*network_mock,
-                Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           olp::http::HttpStatusCode::OK),
-                                       kHttpResponseLookup));
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookup));
 
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kTileId)};
@@ -679,10 +658,8 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
 }
 
 TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
-  std::shared_ptr<common::NetworkMock> network_mock =
-      std::make_shared<common::NetworkMock>();
-  std::shared_ptr<common::CacheMock> cache_mock =
-      std::make_shared<common::CacheMock>();
+  std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
 
   olp::client::OlpClientSettings settings;
   settings.network_request_handler = network_mock;
@@ -700,12 +677,11 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
     SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData2, kData2,
                             olp::http::HttpStatusCode::OK);
 
-    EXPECT_CALL(*network_mock,
-                Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           olp::http::HttpStatusCode::OK),
-                                       kHttpResponseLookup));
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookup));
 
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kTileId)};
@@ -734,12 +710,11 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
                             kHttpResponseQuadTreeIndexVolatile,
                             olp::http::HttpStatusCode::OK);
 
-    EXPECT_CALL(*network_mock,
-                Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           olp::http::HttpStatusCode::OK),
-                                       kHttpResponseLookup));
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookup));
 
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kTileId)};
@@ -763,12 +738,11 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
                             kHttpResponseQuadTreeIndexVolatile,
                             olp::http::HttpStatusCode::OK);
 
-    EXPECT_CALL(*network_mock,
-                Send(common::IsGetRequest(kUrlLookup), _, _, _, _))
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           olp::http::HttpStatusCode::OK),
-                                       kHttpResponseLookup));
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponseLookup));
 
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kTileId)};
@@ -835,10 +809,8 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
 }
 
 TEST(VolatileLayerClientImplTest, PrefetchTilesCancelOnClientDestroy) {
-  std::shared_ptr<common::NetworkMock> network_mock =
-      std::make_shared<common::NetworkMock>();
-  std::shared_ptr<common::CacheMock> cache_mock =
-      std::make_shared<common::CacheMock>();
+  std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
   olp::client::OlpClientSettings settings;
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;
@@ -877,10 +849,8 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancelOnClientDestroy) {
 }
 
 TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFutureCancel) {
-  std::shared_ptr<common::NetworkMock> network_mock =
-      std::make_shared<common::NetworkMock>();
-  std::shared_ptr<common::CacheMock> cache_mock =
-      std::make_shared<common::CacheMock>();
+  std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
   olp::client::OlpClientSettings settings;
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;

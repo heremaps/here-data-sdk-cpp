@@ -31,7 +31,6 @@ namespace model = olp::dataservice::read::model;
 namespace repository = olp::dataservice::read::repository;
 using olp::cache::KeyValueCache;
 using olp::client::HRN;
-using olp::tests::common::CacheMock;
 
 constexpr auto kCatalog = "hrn:here:data::olp-here-test:catalog";
 constexpr auto kPartitionId = "1111";
