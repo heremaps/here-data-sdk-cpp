@@ -30,6 +30,7 @@
 #include <olp/core/porting/make_unique.h>
 #include <olp/dataservice/read/FetchOptions.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
+#include <numeric>
 #include <string>
 #include <testutils/CustomParameters.hpp>
 // clang-format off
