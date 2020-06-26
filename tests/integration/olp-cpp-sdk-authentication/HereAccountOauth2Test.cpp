@@ -34,7 +34,6 @@ PORTING_PUSH_WARNINGS()
 PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 
 namespace auth = olp::authentication;
-namespace common = olp::tests::common;
 using testing::_;
 
 namespace {
@@ -113,7 +112,7 @@ class HereAccountOauth2Test : public ::testing::Test {
  public:
   HereAccountOauth2Test() : key_("key"), secret_("secret") {}
   void SetUp() {
-    network_ = std::make_shared<common::NetworkMock>();
+    network_ = std::make_shared<NetworkMock>();
     task_scheduler_ =
         olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
 
@@ -132,7 +131,7 @@ class HereAccountOauth2Test : public ::testing::Test {
   }
 
  protected:
-  std::shared_ptr<common::NetworkMock> network_;
+  std::shared_ptr<NetworkMock> network_;
   std::unique_ptr<olp::authentication::AuthenticationClient> client_;
   std::shared_ptr<olp::thread::TaskScheduler> task_scheduler_;
   const std::string key_;

@@ -28,15 +28,18 @@
 
 namespace {
 
-using namespace testing;
-using namespace olp::http;
-using namespace olp::tests::common;
+using testing::_;
+using testing::AllOf;
+using testing::Mock;
+using testing::Return;
+using testing::SaveArg;
+namespace http = olp::http;
 
 const char* kTestUrl = "test_url";
 
-Network::Statistics Statistics(uint64_t downloaded, uint64_t uploaded,
-                               uint32_t total_requests, uint32_t failed) {
-  Network::Statistics s;
+http::Network::Statistics Statistics(uint64_t downloaded, uint64_t uploaded,
+                                     uint32_t total_requests, uint32_t failed) {
+  http::Network::Statistics s;
   s.bytes_downloaded = downloaded;
   s.bytes_uploaded = uploaded;
   s.total_requests = total_requests;
@@ -44,8 +47,8 @@ Network::Statistics Statistics(uint64_t downloaded, uint64_t uploaded,
   return s;
 }
 
-bool CompareStatistics(const Network::Statistics& l,
-                       const Network::Statistics& r) {
+bool CompareStatistics(const http::Network::Statistics& l,
+                       const http::Network::Statistics& r) {
   return l.bytes_downloaded == r.bytes_downloaded &&
          l.bytes_uploaded == r.bytes_uploaded &&
          l.total_failed == r.total_failed &&
@@ -54,16 +57,17 @@ bool CompareStatistics(const Network::Statistics& l,
 
 TEST(DefaultNetworkTest, Send) {
   auto network_mock = std::make_shared<NetworkMock>();
-  auto default_network_adapter = std::make_shared<DefaultNetwork>(network_mock);
+  auto default_network_adapter =
+      std::make_shared<http::DefaultNetwork>(network_mock);
 
   {
     SCOPED_TRACE("Direct Send call");
 
-    auto request =
-        NetworkRequest(kTestUrl).WithVerb(NetworkRequest::HttpVerb::GET);
+    auto request = http::NetworkRequest(kTestUrl).WithVerb(
+        http::NetworkRequest::HttpVerb::GET);
 
     EXPECT_CALL(*network_mock, Send(IsGetRequest(kTestUrl), _, _, _, _))
-        .WillOnce(Return(SendOutcome(1)));
+        .WillOnce(Return(http::SendOutcome(1)));
 
     default_network_adapter->Send(request, nullptr, nullptr);
 
@@ -73,17 +77,17 @@ TEST(DefaultNetworkTest, Send) {
   {
     SCOPED_TRACE("Default headers only");
 
-    auto request =
-        NetworkRequest(kTestUrl).WithVerb(NetworkRequest::HttpVerb::GET);
+    auto request = http::NetworkRequest(kTestUrl).WithVerb(
+        http::NetworkRequest::HttpVerb::GET);
 
-    Header default_header("default-header", "default-value");
-    Headers headers = {default_header};
+    http::Header default_header("default-header", "default-value");
+    http::Headers headers = {default_header};
 
     auto request_matcher =
         AllOf(IsGetRequest(kTestUrl), HeadersContain(default_header));
 
     EXPECT_CALL(*network_mock, Send(request_matcher, _, _, _, _))
-        .WillOnce(Return(SendOutcome(1)));
+        .WillOnce(Return(http::SendOutcome(1)));
 
     default_network_adapter->SetDefaultHeaders(headers);
 
@@ -95,24 +99,25 @@ TEST(DefaultNetworkTest, Send) {
   {
     SCOPED_TRACE("Default headers appended");
 
-    Header request_header("request-header", "request-value");
+    http::Header request_header("request-header", "request-value");
 
-    auto request = NetworkRequest(kTestUrl)
-                       .WithVerb(NetworkRequest::HttpVerb::GET)
+    auto request = http::NetworkRequest(kTestUrl)
+                       .WithVerb(http::NetworkRequest::HttpVerb::GET)
                        .WithHeader(request_header.first, request_header.second);
 
-    Header default_header("default-header", "default-value");
-    Header default_user_agent("user-agent", "default_user_agent");
-    Headers headers = {default_header, default_user_agent};
+    http::Header default_header("default-header", "default-value");
+    http::Header default_user_agent("user-agent", "default_user_agent");
+    http::Headers headers = {default_header, default_user_agent};
 
-    Header expected_user_agent(kUserAgentHeader, "default_user_agent");
+    http::Header expected_user_agent(http::kUserAgentHeader,
+                                     "default_user_agent");
 
     auto request_matcher = AllOf(
         IsGetRequest(kTestUrl), HeadersContain(request_header),
         HeadersContain(default_header), HeadersContain(expected_user_agent));
 
     EXPECT_CALL(*network_mock, Send(request_matcher, _, _, _, _))
-        .WillOnce(Return(SendOutcome(1)));
+        .WillOnce(Return(http::SendOutcome(1)));
 
     default_network_adapter->SetDefaultHeaders(headers);
 
@@ -123,28 +128,28 @@ TEST(DefaultNetworkTest, Send) {
   {
     SCOPED_TRACE("User agents concatenated");
 
-    Header request_header("request-header", "request-value");
-    Header request_user_agent("user-agent", "requested_user_agent");
+    http::Header request_header("request-header", "request-value");
+    http::Header request_user_agent("user-agent", "requested_user_agent");
 
     auto request =
-        NetworkRequest(kTestUrl)
-            .WithVerb(NetworkRequest::HttpVerb::GET)
+        http::NetworkRequest(kTestUrl)
+            .WithVerb(http::NetworkRequest::HttpVerb::GET)
             .WithHeader(request_header.first, request_header.second)
             .WithHeader(request_user_agent.first, request_user_agent.second);
 
-    Header default_header("default-header", "default-value");
-    Header default_user_agent("user-agent", "default_user_agent");
-    Headers headers = {default_header, default_user_agent};
+    http::Header default_header("default-header", "default-value");
+    http::Header default_user_agent("user-agent", "default_user_agent");
+    http::Headers headers = {default_header, default_user_agent};
 
-    Header expected_user_agent("user-agent",
-                               "requested_user_agent default_user_agent");
+    http::Header expected_user_agent("user-agent",
+                                     "requested_user_agent default_user_agent");
 
     auto request_matcher = AllOf(
         IsGetRequest(kTestUrl), HeadersContain(request_header),
         HeadersContain(default_header), HeadersContain(expected_user_agent));
 
     EXPECT_CALL(*network_mock, Send(request_matcher, _, _, _, _))
-        .WillOnce(Return(SendOutcome(1)));
+        .WillOnce(Return(http::SendOutcome(1)));
 
     default_network_adapter->SetDefaultHeaders(headers);
 
@@ -158,19 +163,20 @@ TEST(DefaultNetworkTest, DefaultBucket) {
   SCOPED_TRACE("Default bucket used");
 
   auto network_mock = std::make_shared<NetworkMock>();
-  std::shared_ptr<Network> default_network_adapter =
-      std::make_shared<DefaultNetwork>(network_mock);
+  std::shared_ptr<http::Network> default_network_adapter =
+      std::make_shared<http::DefaultNetwork>(network_mock);
 
-  auto request =
-      NetworkRequest(kTestUrl).WithVerb(NetworkRequest::HttpVerb::GET);
+  auto request = http::NetworkRequest(kTestUrl).WithVerb(
+      http::NetworkRequest::HttpVerb::GET);
 
-  Network::Callback network_callback;
+  http::Network::Callback network_callback;
 
   EXPECT_CALL(*network_mock, Send(IsGetRequest(kTestUrl), _, _, _, _))
-      .WillOnce(DoAll(SaveArg<2>(&network_callback), Return(SendOutcome(1))));
+      .WillOnce(
+          DoAll(SaveArg<2>(&network_callback), Return(http::SendOutcome(1))));
 
-  NetworkResponse network_response;
-  auto callback = [&network_response](NetworkResponse response) {
+  http::NetworkResponse network_response;
+  auto callback = [&network_response](http::NetworkResponse response) {
     network_response = std::move(response);
   };
 
@@ -179,7 +185,7 @@ TEST(DefaultNetworkTest, DefaultBucket) {
   EXPECT_EQ(outcome.GetRequestId(), 1ull);
   ASSERT_TRUE(network_callback);
 
-  network_callback(NetworkResponse()
+  network_callback(http::NetworkResponse()
                        .WithBytesDownloaded(100ull)
                        .WithBytesUploaded(50ull)
                        .WithStatus(olp::http::HttpStatusCode::OK));
@@ -195,19 +201,20 @@ TEST(DefaultNetworkTest, BucketSelection) {
   SCOPED_TRACE("Active bucket used");
 
   auto network_mock = std::make_shared<NetworkMock>();
-  std::shared_ptr<Network> default_network_adapter =
-      std::make_shared<DefaultNetwork>(network_mock);
+  std::shared_ptr<http::Network> default_network_adapter =
+      std::make_shared<http::DefaultNetwork>(network_mock);
 
-  auto request =
-      NetworkRequest(kTestUrl).WithVerb(NetworkRequest::HttpVerb::GET);
+  auto request = http::NetworkRequest(kTestUrl).WithVerb(
+      http::NetworkRequest::HttpVerb::GET);
 
-  Network::Callback network_callback;
+  http::Network::Callback network_callback;
 
   EXPECT_CALL(*network_mock, Send(IsGetRequest(kTestUrl), _, _, _, _))
-      .WillOnce(DoAll(SaveArg<2>(&network_callback), Return(SendOutcome(1))));
+      .WillOnce(
+          DoAll(SaveArg<2>(&network_callback), Return(http::SendOutcome(1))));
 
-  NetworkResponse network_response;
-  auto callback = [&network_response](NetworkResponse response) {
+  http::NetworkResponse network_response;
+  auto callback = [&network_response](http::NetworkResponse response) {
     network_response = std::move(response);
   };
 
@@ -220,7 +227,7 @@ TEST(DefaultNetworkTest, BucketSelection) {
   EXPECT_EQ(outcome.GetRequestId(), 1ull);
   ASSERT_TRUE(network_callback);
 
-  network_callback(NetworkResponse()
+  network_callback(http::NetworkResponse()
                        .WithBytesDownloaded(100ull)
                        .WithBytesUploaded(50ull)
                        .WithStatus(olp::http::HttpStatusCode::OK));
@@ -232,46 +239,48 @@ TEST(DefaultNetworkTest, BucketSelection) {
   EXPECT_TRUE(CompareStatistics(stats_1, Statistics(100ull, 50ull, 1u, 0u)));
 
   auto stats_2 = default_network_adapter->GetStatistics(2);
-  EXPECT_TRUE(CompareStatistics(stats_2, Network::Statistics{}));
+  EXPECT_TRUE(CompareStatistics(stats_2, http::Network::Statistics{}));
 }
 
 TEST(DefaultNetworkTest, FailedPrecondition) {
   SCOPED_TRACE("Failed request precondition do not affect statistics");
 
   auto network_mock = std::make_shared<NetworkMock>();
-  std::shared_ptr<Network> default_network_adapter =
-      std::make_shared<DefaultNetwork>(network_mock);
+  std::shared_ptr<http::Network> default_network_adapter =
+      std::make_shared<http::DefaultNetwork>(network_mock);
 
-  auto request =
-      NetworkRequest(kTestUrl).WithVerb(NetworkRequest::HttpVerb::GET);
+  auto request = http::NetworkRequest(kTestUrl).WithVerb(
+      http::NetworkRequest::HttpVerb::GET);
 
   EXPECT_CALL(*network_mock, Send(IsGetRequest(kTestUrl), _, _, _, _))
-      .WillOnce(Return(SendOutcome(olp::http::ErrorCode::INVALID_URL_ERROR)));
+      .WillOnce(
+          Return(http::SendOutcome(olp::http::ErrorCode::INVALID_URL_ERROR)));
 
   auto outcome = default_network_adapter->Send(request, nullptr, nullptr);
   EXPECT_EQ(outcome.GetErrorCode(), olp::http::ErrorCode::INVALID_URL_ERROR);
 
   auto stats = default_network_adapter->GetStatistics();
-  EXPECT_TRUE(CompareStatistics(stats, Network::Statistics{}));
+  EXPECT_TRUE(CompareStatistics(stats, http::Network::Statistics{}));
 }
 
 TEST(DefaultNetworkTest, FailedResponse) {
   SCOPED_TRACE("Failed response increments total_failed");
 
   auto network_mock = std::make_shared<NetworkMock>();
-  std::shared_ptr<Network> default_network_adapter =
-      std::make_shared<DefaultNetwork>(network_mock);
+  std::shared_ptr<http::Network> default_network_adapter =
+      std::make_shared<http::DefaultNetwork>(network_mock);
 
-  auto request =
-      NetworkRequest(kTestUrl).WithVerb(NetworkRequest::HttpVerb::GET);
+  auto request = http::NetworkRequest(kTestUrl).WithVerb(
+      http::NetworkRequest::HttpVerb::GET);
 
-  Network::Callback network_callback;
+  http::Network::Callback network_callback;
 
   EXPECT_CALL(*network_mock, Send(IsGetRequest(kTestUrl), _, _, _, _))
-      .WillOnce(DoAll(SaveArg<2>(&network_callback), Return(SendOutcome(1))));
+      .WillOnce(
+          DoAll(SaveArg<2>(&network_callback), Return(http::SendOutcome(1))));
 
-  NetworkResponse network_response;
-  auto callback = [&network_response](NetworkResponse response) {
+  http::NetworkResponse network_response;
+  auto callback = [&network_response](http::NetworkResponse response) {
     network_response = std::move(response);
   };
 
@@ -281,7 +290,7 @@ TEST(DefaultNetworkTest, FailedResponse) {
   ASSERT_TRUE(network_callback);
 
   network_callback(
-      NetworkResponse()
+      http::NetworkResponse()
           .WithBytesDownloaded(150ull)
           .WithBytesUploaded(250ull)
           .WithStatus(olp::http::HttpStatusCode::SERVICE_UNAVAILABLE));

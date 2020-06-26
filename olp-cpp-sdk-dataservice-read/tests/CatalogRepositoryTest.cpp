@@ -62,7 +62,6 @@ namespace read = olp::dataservice::read;
 namespace model = olp::dataservice::read::model;
 namespace repository = olp::dataservice::read::repository;
 using ::testing::_;
-namespace common = olp::tests::common;
 
 const std::string kCatalog =
     "hrn:here:data::olp-here-test:hereos-internal-test-v2";
@@ -85,8 +84,8 @@ const auto kHrn = olp::client::HRN::FromString(kCatalog);
 class CatalogRepositoryTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    cache_ = std::make_shared<testing::NiceMock<common::CacheMock>>();
-    network_ = std::make_shared<testing::NiceMock<common::NetworkMock>>();
+    cache_ = std::make_shared<testing::NiceMock<CacheMock>>();
+    network_ = std::make_shared<testing::NiceMock<NetworkMock>>();
 
     settings_.network_request_handler = network_;
     settings_.cache = cache_;
@@ -100,8 +99,8 @@ class CatalogRepositoryTest : public ::testing::Test {
     cache_.reset();
   }
 
-  std::shared_ptr<common::CacheMock> cache_;
-  std::shared_ptr<common::NetworkMock> network_;
+  std::shared_ptr<CacheMock> cache_;
+  std::shared_ptr<NetworkMock> network_;
   olp::client::OlpClientSettings settings_;
 };
 
@@ -166,13 +165,11 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyNotFound) {
         return boost::any{};
       });
 
-  EXPECT_CALL(*network_,
-              Send(common::IsGetRequest(kLookupMetadata), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
       .Times(1)
-      .WillOnce(
-          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::NOT_FOUND),
-                                     ""));
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::NOT_FOUND),
+                                   ""));
 
   auto response =
       olp::dataservice::read::repository::CatalogRepository::GetLatestVersion(
@@ -199,19 +196,15 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyFound) {
 
   EXPECT_CALL(*cache_, Put(testing::Eq(kMetadataCacheKey), _, _, _)).Times(0);
 
-  EXPECT_CALL(*network_,
-              Send(common::IsGetRequest(kLookupMetadata), _, _, _, _))
-      .WillOnce(
-          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseLookupMetadata));
+  EXPECT_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kResponseLookupMetadata));
 
-  EXPECT_CALL(*network_,
-              Send(common::IsGetRequest(kLatestCatalogVersion), _, _, _, _))
-      .WillOnce(
-          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseLatestCatalogVersion));
+  EXPECT_CALL(*network_, Send(IsGetRequest(kLatestCatalogVersion), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kResponseLatestCatalogVersion));
 
   auto response =
       olp::dataservice::read::repository::CatalogRepository::GetLatestVersion(
@@ -228,7 +221,7 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyUserCancelled1) {
 
   std::promise<bool> cancelled;
 
-  ON_CALL(*network_, Send(common::IsGetRequest(kLookupMetadata), _, _, _, _))
+  ON_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
       .WillByDefault([&context](olp::http::NetworkRequest,
                                 olp::http::Network::Payload,
                                 olp::http::Network::Callback,
@@ -240,8 +233,7 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyUserCancelled1) {
         return olp::http::SendOutcome(unused_request_id);
       });
 
-  ON_CALL(*network_,
-          Send(common::IsGetRequest(kLatestCatalogVersion), _, _, _, _))
+  ON_CALL(*network_, Send(IsGetRequest(kLatestCatalogVersion), _, _, _, _))
       .WillByDefault([](olp::http::NetworkRequest, olp::http::Network::Payload,
                         olp::http::Network::Callback,
                         olp::http::Network::HeaderCallback,
@@ -266,14 +258,12 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyUserCancelled2) {
 
   auto request = read::CatalogVersionRequest();
 
-  ON_CALL(*network_, Send(common::IsGetRequest(kLookupMetadata), _, _, _, _))
-      .WillByDefault(
-          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseLookupMetadata));
+  ON_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
+      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                            olp::http::HttpStatusCode::OK),
+                                        kResponseLookupMetadata));
 
-  ON_CALL(*network_,
-          Send(common::IsGetRequest(kLatestCatalogVersion), _, _, _, _))
+  ON_CALL(*network_, Send(IsGetRequest(kLatestCatalogVersion), _, _, _, _))
       .WillByDefault([&](olp::http::NetworkRequest, olp::http::Network::Payload,
                          olp::http::Network::Callback,
                          olp::http::Network::HeaderCallback,
@@ -324,14 +314,12 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionTimeouted) {
 
   auto request = read::CatalogVersionRequest();
 
-  ON_CALL(*network_, Send(common::IsGetRequest(kLookupMetadata), _, _, _, _))
-      .WillByDefault(
-          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseLookupMetadata));
+  ON_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
+      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                            olp::http::HttpStatusCode::OK),
+                                        kResponseLookupMetadata));
 
-  ON_CALL(*network_,
-          Send(common::IsGetRequest(kLatestCatalogVersion), _, _, _, _))
+  ON_CALL(*network_, Send(IsGetRequest(kLatestCatalogVersion), _, _, _, _))
       .WillByDefault([&](olp::http::NetworkRequest, olp::http::Network::Payload,
                          olp::http::Network::Callback,
                          olp::http::Network::HeaderCallback,
@@ -367,17 +355,15 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyFound) {
 
   EXPECT_CALL(*cache_, Put(testing::Eq(kConfigCacheKey), _, _, _)).Times(0);
 
-  ON_CALL(*network_, Send(common::IsGetRequest(kUrlLookupConfig), _, _, _, _))
-      .WillByDefault(
-          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseLookupConfig));
+  ON_CALL(*network_, Send(IsGetRequest(kUrlLookupConfig), _, _, _, _))
+      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                            olp::http::HttpStatusCode::OK),
+                                        kResponseLookupConfig));
 
-  ON_CALL(*network_, Send(common::IsGetRequest(kUrlConfig), _, _, _, _))
-      .WillByDefault(
-          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseConfig));
+  ON_CALL(*network_, Send(IsGetRequest(kUrlConfig), _, _, _, _))
+      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                            olp::http::HttpStatusCode::OK),
+                                        kResponseConfig));
 
   auto response = repository::CatalogRepository::GetCatalog(kHrn, context,
                                                             request, settings_);
@@ -446,13 +432,11 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyNotFound) {
         return boost::any{};
       });
 
-  EXPECT_CALL(*network_,
-              Send(common::IsGetRequest(kUrlLookupConfig), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsGetRequest(kUrlLookupConfig), _, _, _, _))
       .Times(1)
-      .WillOnce(
-          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::NOT_FOUND),
-                                     ""));
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::NOT_FOUND),
+                                   ""));
 
   auto response = repository::CatalogRepository::GetCatalog(kHrn, context,
                                                             request, settings_);
@@ -492,7 +476,7 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyUserCancelled1) {
 
   std::promise<bool> cancelled;
 
-  ON_CALL(*network_, Send(common::IsGetRequest(kUrlLookupConfig), _, _, _, _))
+  ON_CALL(*network_, Send(IsGetRequest(kUrlLookupConfig), _, _, _, _))
       .WillByDefault([&context](olp::http::NetworkRequest,
                                 olp::http::Network::Payload,
                                 olp::http::Network::Callback,
@@ -504,7 +488,7 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyUserCancelled1) {
         return olp::http::SendOutcome(unused_request_id);
       });
 
-  ON_CALL(*network_, Send(common::IsGetRequest(kUrlConfig), _, _, _, _))
+  ON_CALL(*network_, Send(IsGetRequest(kUrlConfig), _, _, _, _))
       .WillByDefault([](olp::http::NetworkRequest, olp::http::Network::Payload,
                         olp::http::Network::Callback,
                         olp::http::Network::HeaderCallback,
@@ -528,13 +512,12 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyUserCancelled2) {
 
   auto request = read::CatalogRequest();
 
-  ON_CALL(*network_, Send(common::IsGetRequest(kUrlLookupConfig), _, _, _, _))
-      .WillByDefault(
-          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseLookupConfig));
+  ON_CALL(*network_, Send(IsGetRequest(kUrlLookupConfig), _, _, _, _))
+      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                            olp::http::HttpStatusCode::OK),
+                                        kResponseLookupConfig));
 
-  ON_CALL(*network_, Send(common::IsGetRequest(kUrlConfig), _, _, _, _))
+  ON_CALL(*network_, Send(IsGetRequest(kUrlConfig), _, _, _, _))
       .WillByDefault([&](olp::http::NetworkRequest, olp::http::Network::Payload,
                          olp::http::Network::Callback,
                          olp::http::Network::HeaderCallback,
@@ -558,13 +541,12 @@ TEST_F(CatalogRepositoryTest, GetCatalogTimeout) {
 
   auto request = read::CatalogRequest();
 
-  ON_CALL(*network_, Send(common::IsGetRequest(kUrlLookupConfig), _, _, _, _))
-      .WillByDefault(
-          common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseLookupConfig));
+  ON_CALL(*network_, Send(IsGetRequest(kUrlLookupConfig), _, _, _, _))
+      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                            olp::http::HttpStatusCode::OK),
+                                        kResponseLookupConfig));
 
-  ON_CALL(*network_, Send(common::IsGetRequest(kUrlConfig), _, _, _, _))
+  ON_CALL(*network_, Send(IsGetRequest(kUrlConfig), _, _, _, _))
       .WillByDefault([&](olp::http::NetworkRequest, olp::http::Network::Payload,
                          olp::http::Network::Callback,
                          olp::http::Network::HeaderCallback,
@@ -591,17 +573,17 @@ TEST_F(CatalogRepositoryTest, GetVersionsList) {
                        .WithStartVersion(kStartVersion)
                        .WithEndVersion(kEndVersion);
 
-    ON_CALL(*network_, Send(common::IsGetRequest(kLookupMetadata), _, _, _, _))
+    ON_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
         .WillByDefault(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           olp::http::HttpStatusCode::OK),
-                                       kResponseLookupMetadata));
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kResponseLookupMetadata));
 
-    ON_CALL(*network_, Send(common::IsGetRequest(kUrlVersionsList), _, _, _, _))
+    ON_CALL(*network_, Send(IsGetRequest(kUrlVersionsList), _, _, _, _))
         .WillByDefault(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           olp::http::HttpStatusCode::OK),
-                                       kHttpResponse));
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponse));
 
     auto response = repository::CatalogRepository::GetVersionsList(
         kHrn, context, request, settings_);
@@ -621,18 +603,18 @@ TEST_F(CatalogRepositoryTest, GetVersionsList) {
     auto request = read::VersionsRequest().WithStartVersion(-1).WithEndVersion(
         kEndVersion);
 
-    ON_CALL(*network_, Send(common::IsGetRequest(kLookupMetadata), _, _, _, _))
+    ON_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
         .WillByDefault(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           olp::http::HttpStatusCode::OK),
-                                       kResponseLookupMetadata));
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kResponseLookupMetadata));
 
     ON_CALL(*network_,
-            Send(common::IsGetRequest(kUrlVersionsListStartMinus), _, _, _, _))
+            Send(IsGetRequest(kUrlVersionsListStartMinus), _, _, _, _))
         .WillByDefault(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           olp::http::HttpStatusCode::OK),
-                                       kHttpResponse));
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kHttpResponse));
 
     auto response = repository::CatalogRepository::GetVersionsList(
         kHrn, context, request, settings_);
@@ -653,17 +635,17 @@ TEST_F(CatalogRepositoryTest, GetVersionsList) {
                        .WithStartVersion(kStartVersion)
                        .WithEndVersion(kEndVersion);
 
-    ON_CALL(*network_, Send(common::IsGetRequest(kLookupMetadata), _, _, _, _))
+    ON_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
         .WillByDefault(
-            common::ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                           olp::http::HttpStatusCode::OK),
-                                       kResponseLookupMetadata));
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               kResponseLookupMetadata));
 
-    ON_CALL(*network_, Send(common::IsGetRequest(kUrlVersionsList), _, _, _, _))
-        .WillByDefault(common::ReturnHttpResponse(
-            olp::http::NetworkResponse().WithStatus(
-                olp::http::HttpStatusCode::FORBIDDEN),
-            "Forbidden"));
+    ON_CALL(*network_, Send(IsGetRequest(kUrlVersionsList), _, _, _, _))
+        .WillByDefault(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::FORBIDDEN),
+                               "Forbidden"));
 
     auto response = repository::CatalogRepository::GetVersionsList(
         kHrn, context, request, settings_);

@@ -27,10 +27,12 @@
 
 namespace {
 
-using namespace testing;
-using namespace olp;
-using namespace olp::dataservice::write;
-using namespace olp::tests::common;
+using testing::_;
+using testing::Mock;
+using testing::Return;
+namespace client = olp::client;
+namespace write = olp::dataservice::write;
+namespace model = olp::dataservice::write::model;
 
 const olp::client::HRN kHrn{"hrn:here:data:::catalog"};
 constexpr auto kLayerName = "layer";
@@ -103,18 +105,18 @@ const std::string kUploadPartitionRequestUrl = kPublishBaseUrl + "/layers/" +
 const std::string kSubmitPublicationRequestUrl =
     kPublishBaseUrl + "/publications/" + kPublicationId;
 
-class MockStreamLayerClientImpl : public StreamLayerClientImpl {
+class MockStreamLayerClientImpl : public write::StreamLayerClientImpl {
  public:
-  using StreamLayerClientImpl::PublishDataGreaterThanTwentyMib;
-  using StreamLayerClientImpl::PublishDataLessThanTwentyMib;
   using StreamLayerClientImpl::StreamLayerClientImpl;
+  using write::StreamLayerClientImpl::PublishDataGreaterThanTwentyMib;
+  using write::StreamLayerClientImpl::PublishDataLessThanTwentyMib;
 
-  MOCK_METHOD(PublishSdiiResponse, IngestSdii,
+  MOCK_METHOD(write::PublishSdiiResponse, IngestSdii,
               (model::PublishSdiiRequest request,
                client::CancellationContext context),
               (override));
 
-  MOCK_METHOD(PublishDataResponse, PublishDataTask,
+  MOCK_METHOD(write::PublishDataResponse, PublishDataTask,
               (model::PublishDataRequest request,
                client::CancellationContext context),
               (override));
@@ -156,7 +158,7 @@ TEST_F(StreamLayerClientImplTest, PublishSdii) {
   request.WithTraceId(trace_id);
 
   auto client = std::make_shared<MockStreamLayerClientImpl>(
-      kHrn, StreamLayerClientSettings{}, settings_);
+      kHrn, write::StreamLayerClientSettings{}, settings_);
 
   EXPECT_CALL(*client, IngestSdii).WillOnce(Return(model::ResponseOk{}));
 
@@ -194,7 +196,8 @@ TEST_F(StreamLayerClientImplTest, SuccessfullyPublishDataLessThanTwentyMib) {
   auto settings = settings_;
   settings.cache = nullptr;
 
-  MockStreamLayerClientImpl client{kHrn, StreamLayerClientSettings{}, settings};
+  MockStreamLayerClientImpl client{kHrn, write::StreamLayerClientSettings{},
+                                   settings};
 
   EXPECT_CALL(*network_, Send(IsGetRequest(kConfigRequestUrl), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
@@ -231,7 +234,8 @@ TEST_F(StreamLayerClientImplTest, FaliedPublishDataLessThanTwentyMib) {
   auto settings = settings_;
   settings.cache = nullptr;
 
-  MockStreamLayerClientImpl client{kHrn, StreamLayerClientSettings{}, settings};
+  MockStreamLayerClientImpl client{kHrn, write::StreamLayerClientSettings{},
+                                   settings};
 
   // Current expectations on NetworkMock will first return a failing response
   // and after each subsequent request with same URL will return correct
@@ -343,7 +347,8 @@ TEST_F(StreamLayerClientImplTest, CancelPublishDataLessThanTwentyMib) {
   auto settings = settings_;
   settings.cache = nullptr;
 
-  MockStreamLayerClientImpl client{kHrn, StreamLayerClientSettings{}, settings};
+  MockStreamLayerClientImpl client{kHrn, write::StreamLayerClientSettings{},
+                                   settings};
   {
     SCOPED_TRACE("Cancelled before publish call");
 
@@ -366,9 +371,8 @@ TEST_F(StreamLayerClientImplTest, CancelPublishDataLessThanTwentyMib) {
                                          olp::http::Network::Callback,
                                          olp::http::Network::HeaderCallback,
                                          olp::http::Network::DataCallback) {
-    std::thread([cancel_context]() {
-      cancel_context->CancelOperation();
-    }).detach();
+    std::thread([cancel_context]() { cancel_context->CancelOperation(); })
+        .detach();
 
     constexpr auto unused_request_id = 5;
     return olp::http::SendOutcome(unused_request_id);
@@ -465,7 +469,8 @@ TEST_F(StreamLayerClientImplTest, SuccessfullyPublishDataGreaterThanTwentyMib) {
   settings.cache = nullptr;
 
   const std::string kMockedPartitionId = "some-generated-partition-uuid";
-  MockStreamLayerClientImpl client{kHrn, StreamLayerClientSettings{}, settings};
+  MockStreamLayerClientImpl client{kHrn, write::StreamLayerClientSettings{},
+                                   settings};
 
   // Mock the generated UUIDs for the data handle and partition id
   EXPECT_CALL(client, GenerateUuid)
@@ -528,7 +533,8 @@ TEST_F(StreamLayerClientImplTest, FailedPublishDataGreaterThanTwentyMib) {
   settings.cache = nullptr;
 
   const std::string kMockedPartitionId = "some-generated-partition-uuid";
-  MockStreamLayerClientImpl client{kHrn, StreamLayerClientSettings{}, settings};
+  MockStreamLayerClientImpl client{kHrn, write::StreamLayerClientSettings{},
+                                   settings};
 
   {
     SCOPED_TRACE("Failed on getting a config API URL");
@@ -724,18 +730,18 @@ TEST_F(StreamLayerClientImplTest, QueueAndFlush) {
       olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
 
   auto client = std::make_shared<MockStreamLayerClientImpl>(
-      kHrn, StreamLayerClientSettings{}, settings_);
+      kHrn, write::StreamLayerClientSettings{}, settings_);
 
   size_t uuid_call_count = 1;
   // Forward trace ID from request to response
   ON_CALL(*client, PublishDataTask(_, _))
-      .WillByDefault(
-          [](model::PublishDataRequest request,
-             client::CancellationContext /*context*/) -> PublishDataResponse {
-            PublishDataResult result;
-            result.SetTraceID(request.GetTraceId().get());
-            return PublishDataResponse{result};
-          });
+      .WillByDefault([](model::PublishDataRequest request,
+                        client::CancellationContext /*context*/)
+                         -> write::PublishDataResponse {
+        write::PublishDataResult result;
+        result.SetTraceID(request.GetTraceId().get());
+        return write::PublishDataResponse{result};
+      });
   ON_CALL(*client, GenerateUuid)
       .WillByDefault([&uuid_call_count]() -> std::string {
         return std::to_string(uuid_call_count++);

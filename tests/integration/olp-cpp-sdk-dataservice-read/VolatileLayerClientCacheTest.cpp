@@ -38,7 +38,6 @@
 
 namespace {
 using testing::_;
-namespace common = olp::tests::common;
 namespace integration = olp::tests::integration;
 namespace http = olp::http;
 
@@ -107,14 +106,14 @@ TEST_P(VolatileLayerClientCacheTest, GetVolatilePartitionsExpiry) {
   olp::client::HRN hrn(GetTestCatalog());
 
   {
-    EXPECT_CALL(*network_mock_,
-                Send(common::IsGetRequest(
-                         "https://metadata.data.api.platform.here.com/"
-                         "metadata/v1/catalogs/hereos-internal-test-v2/"
-                         "layers/testlayer_volatile/partitions"),
-                     _, _, _, _))
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsGetRequest("https://metadata.data.api.platform.here.com/"
+                          "metadata/v1/catalogs/hereos-internal-test-v2/"
+                          "layers/testlayer_volatile/partitions"),
+             _, _, _, _))
         .Times(1)
-        .WillRepeatedly(common::ReturnHttpResponse(
+        .WillRepeatedly(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
             HTTP_RESPONSE_PARTITIONS_V2));
   }

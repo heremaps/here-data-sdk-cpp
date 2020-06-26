@@ -32,11 +32,9 @@
 #include "HttpResponses.h"
 
 namespace {
-
-using namespace olp::dataservice::read;
-using namespace testing;
-using namespace olp::tests::common;
-using namespace olp::tests::integration;
+using testing::_;
+namespace read = olp::dataservice::read;
+namespace integration = olp::tests::integration;
 
 #ifdef _WIN32
 constexpr auto kClientTestDir = "\\catalog_client_test";
@@ -46,30 +44,30 @@ constexpr auto kClientTestDir = "/catalog_client_test";
 constexpr auto kClientTestCacheDir = "/cata.log_client_test/cache";
 #endif
 
-class CatalogClientCacheTest : public CatalogClientTestBase {
+class CatalogClientCacheTest : public integration::CatalogClientTestBase {
  protected:
   void SetUp() override {
     CatalogClientTestBase::SetUp();
     olp::cache::CacheSettings settings;
     switch (GetParam()) {
-      case CacheType::IN_MEMORY: {
+      case integration::CacheType::IN_MEMORY: {
         // use the default value
         break;
       }
-      case CacheType::DISK: {
+      case integration::CacheType::DISK: {
         settings.max_memory_cache_size = 0;
         settings.disk_path_mutable =
             olp::utils::Dir::TempDirectory() + kClientTestCacheDir;
         ClearCache(settings.disk_path_mutable.get());
         break;
       }
-      case CacheType::BOTH: {
+      case integration::CacheType::BOTH: {
         settings.disk_path_mutable =
             olp::utils::Dir::TempDirectory() + kClientTestCacheDir;
         ClearCache(settings.disk_path_mutable.get());
         break;
       }
-      case CacheType::NONE: {
+      case integration::CacheType::NONE: {
         // We don't create a cache here
         settings_.cache = nullptr;
         return;
@@ -102,16 +100,15 @@ class CatalogClientCacheTest : public CatalogClientTestBase {
 TEST_P(CatalogClientCacheTest, GetApi) {
   olp::client::HRN hrn(GetTestCatalog());
 
-  EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .Times(1);
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
       .Times(1);
 
-  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
+  auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
 
-  auto request = CatalogVersionRequest().WithStartVersion(-1);
+  auto request = read::CatalogVersionRequest().WithStartVersion(-1);
 
   auto future = catalog_client->GetLatestVersion(request);
   auto catalog_version_response = future.GetFuture().get();
@@ -128,16 +125,16 @@ TEST_P(CatalogClientCacheTest, GetCatalog) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
       .Times(1);
 
-  auto catalog_client = std::make_unique<CatalogClient>(hrn, settings_);
-  auto request = CatalogRequest();
+  auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
+  auto request = read::CatalogRequest();
   auto future = catalog_client->GetCatalog(request);
-  CatalogResponse catalog_response = future.GetFuture().get();
+  read::CatalogResponse catalog_response = future.GetFuture().get();
 
   ASSERT_TRUE(catalog_response.IsSuccessful())
       << ApiErrorToString(catalog_response.GetError());
 
   future = catalog_client->GetCatalog(request);
-  CatalogResponse catalog_response2 = future.GetFuture().get();
+  read::CatalogResponse catalog_response2 = future.GetFuture().get();
 
   ASSERT_TRUE(catalog_response2.IsSuccessful())
       << ApiErrorToString(catalog_response2.GetError());
@@ -146,7 +143,8 @@ TEST_P(CatalogClientCacheTest, GetCatalog) {
 }
 
 INSTANTIATE_TEST_SUITE_P(, CatalogClientCacheTest,
-                         ::testing::Values(CacheType::IN_MEMORY,
-                                           CacheType::DISK, CacheType::BOTH,
-                                           CacheType::NONE));
+                         ::testing::Values(integration::CacheType::IN_MEMORY,
+                                           integration::CacheType::DISK,
+                                           integration::CacheType::BOTH,
+                                           integration::CacheType::NONE));
 }  // namespace

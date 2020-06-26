@@ -47,10 +47,6 @@ using olp::client::ErrorCode;
 using olp::client::HRN;
 using olp::client::OlpClientSettings;
 using olp::dataservice::read::DataRequest;
-using olp::tests::common::CacheMock;
-using olp::tests::common::IsGetRequest;
-using olp::tests::common::NetworkMock;
-using olp::tests::common::ReturnHttpResponse;
 using testing::_;
 
 namespace parser = olp::parser;

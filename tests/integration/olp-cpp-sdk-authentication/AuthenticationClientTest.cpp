@@ -33,7 +33,6 @@
 #include "AuthenticationMockedResponses.h"
 #include "olp/core/client/OlpClientSettingsFactory.h"
 
-namespace common = olp::tests::common;
 namespace auth = olp::authentication;
 namespace client = olp::client;
 using testing::_;
@@ -114,10 +113,6 @@ void TestCheckErrorFields(const auth::ErrorFields& errorFields) {
     EXPECT_EQ(code, error_it->code);
   }
 }
-
-olp::http::NetworkResponse GetResponse(int status) {
-  return olp::http::NetworkResponse().WithStatus(status);
-}
 }  // namespace
 
 class AuthenticationClientTest : public ::testing::Test {
@@ -125,7 +120,7 @@ class AuthenticationClientTest : public ::testing::Test {
   AuthenticationClientTest()
       : key_("key"), secret_("secret"), scope_("scope") {}
   void SetUp() {
-    network_ = std::make_shared<common::NetworkMock>();
+    network_ = std::make_shared<NetworkMock>();
     task_scheduler_ =
         client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
 
@@ -233,7 +228,7 @@ class AuthenticationClientTest : public ::testing::Test {
   }
 
  protected:
-  std::shared_ptr<common::NetworkMock> network_;
+  std::shared_ptr<NetworkMock> network_;
   std::unique_ptr<olp::authentication::AuthenticationClient> client_;
   std::shared_ptr<olp::thread::TaskScheduler> task_scheduler_;
   const std::string key_;
@@ -248,12 +243,12 @@ TEST_F(AuthenticationClientTest, DefaultTimeSource) {
   settings.token_endpoint_url = kTokenEndpointUrl;
   ASSERT_TRUE(settings.use_system_time);
 
-  EXPECT_CALL(*network_, Send(common::IsGetRequest(kTimestampUrl), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
       .Times(0);
 
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
-      .WillOnce(common::ReturnHttpResponse(
-          GetResponse(olp::http::HttpStatusCode::OK), kResponseWithScope));
+      .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
+                                   kResponseWithScope));
 
   std::promise<void> request;
   auth::AuthenticationClient::SignInClientResponse response;
@@ -283,12 +278,12 @@ TEST_F(AuthenticationClientTest, SignInClientUseLocalTime) {
   auto client =
       std::make_unique<auth::AuthenticationClient>(std::move(settings));
 
-  EXPECT_CALL(*network_, Send(common::IsGetRequest(kTimestampUrl), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
       .Times(0);
 
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
-      .WillOnce(common::ReturnHttpResponse(
-          GetResponse(olp::http::HttpStatusCode::OK), kResponseWithScope));
+      .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
+                                   kResponseWithScope));
 
   auth::AuthenticationClient::SignInProperties properties;
   properties.scope = scope_;
@@ -330,10 +325,10 @@ TEST_F(AuthenticationClientTest, SignInClientUseWrongLocalTime) {
   std::promise<auth::AuthenticationClient::SignInClientResponse> request;
   auto request_future = request.get_future();
 
-  EXPECT_CALL(*network_, Send(common::IsGetRequest(kTimestampUrl), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
       .Times(0);
 
-  EXPECT_CALL(*network_, Send(common::IsPostRequest(kRequestAuth), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsPostRequest(kRequestAuth), _, _, _, _))
       .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload payload,
                     olp::http::Network::Callback callback,
@@ -357,8 +352,8 @@ TEST_F(AuthenticationClientTest, SignInClientUseWrongLocalTime) {
 
         return olp::http::SendOutcome(request_id);
       })
-      .WillOnce(common::ReturnHttpResponse(
-          GetResponse(olp::http::HttpStatusCode::OK), kResponseWithScope));
+      .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
+                                   kResponseWithScope));
 
   auth::AuthenticationClient::SignInProperties properties;
   properties.scope = scope_;
@@ -384,14 +379,14 @@ TEST_F(AuthenticationClientTest, SignInClientUseWrongLocalTime) {
 }
 
 TEST_F(AuthenticationClientTest, SignInClientScope) {
-  EXPECT_CALL(*network_, Send(common::IsGetRequest(kTimestampUrl), _, _, _, _))
-      .WillOnce(common::ReturnHttpResponse(
-          GetResponse(olp::http::HttpStatusCode::OK), kResponseTime));
+  EXPECT_CALL(*network_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
+                                   kResponseTime));
 
-  EXPECT_CALL(*network_, Send(testing::Not(common::IsGetRequest(kTimestampUrl)),
-                              _, _, _, _))
-      .WillOnce(common::ReturnHttpResponse(
-          GetResponse(olp::http::HttpStatusCode::OK), kResponseWithScope));
+  EXPECT_CALL(*network_,
+              Send(testing::Not(IsGetRequest(kTimestampUrl)), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
+                                   kResponseWithScope));
 
   auth::AuthenticationClient::SignInProperties properties;
   properties.scope = scope_;
@@ -425,16 +420,16 @@ TEST_F(AuthenticationClientTest, SignInClientData) {
   auth::AuthenticationCredentials credentials("key_", secret_);
   std::time_t now = std::time(nullptr);
 
-  EXPECT_CALL(*network_, Send(common::IsGetRequest(kTimestampUrl), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
       .Times(2)
-      .WillRepeatedly(common::ReturnHttpResponse(
+      .WillRepeatedly(ReturnHttpResponse(
           GetResponse(olp::http::HttpStatusCode::OK), kResponseTime));
 
-  EXPECT_CALL(*network_, Send(testing::Not(common::IsGetRequest(kTimestampUrl)),
-                              _, _, _, _))
+  EXPECT_CALL(*network_,
+              Send(testing::Not(IsGetRequest(kTimestampUrl)), _, _, _, _))
       .Times(2)
-      .WillOnce(common::ReturnHttpResponse(
-          GetResponse(olp::http::HttpStatusCode::OK), kResponseValidJson))
+      .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
+                                   kResponseValidJson))
       .WillOnce([&](olp::http::NetworkRequest /*request*/,
                     olp::http::Network::Payload /*payload*/,
                     olp::http::Network::Callback callback,
@@ -538,7 +533,7 @@ TEST_F(AuthenticationClientTest, SignUpHereUserData) {
 
 TEST_F(AuthenticationClientTest, SignInUserDataFirstTime) {
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
-      .WillOnce(common::ReturnHttpResponse(
+      .WillOnce(ReturnHttpResponse(
           GetResponse(olp::http::HttpStatusCode::PRECONDITION_FAILED)
               .WithError(kErrorPreconditionFailedMessage),
           kSigninUserFirstTimeResponse));
@@ -575,10 +570,10 @@ TEST_F(AuthenticationClientTest, SignInUserDataFirstTime) {
 
 TEST_F(AuthenticationClientTest, AcceptTermsData) {
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
-      .WillOnce(common::ReturnHttpResponse(
-          GetResponse(olp::http::HttpStatusCode::NO_CONTENT)
-              .WithError(kErrorNoContent),
-          kResponseNoContent));
+      .WillOnce(
+          ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::NO_CONTENT)
+                                 .WithError(kErrorNoContent),
+                             kResponseNoContent));
 
   std::promise<auth::AuthenticationClient::SignInUserResponse> request;
 
@@ -610,7 +605,7 @@ TEST_F(AuthenticationClientTest, AcceptTermsData) {
 
 TEST_F(AuthenticationClientTest, SignInHereUser) {
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
-      .WillOnce(common::ReturnHttpResponse(
+      .WillOnce(ReturnHttpResponse(
           GetResponse(olp::http::HttpStatusCode::OK).WithError(kErrorOk),
           kUserSigninResponse));
 
@@ -643,10 +638,10 @@ TEST_F(AuthenticationClientTest, SignInHereUser) {
 
 TEST_F(AuthenticationClientTest, SignOutUser) {
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
-      .WillOnce(common::ReturnHttpResponse(
-          GetResponse(olp::http::HttpStatusCode::NO_CONTENT)
-              .WithError(kErrorNoContent),
-          kResponseNoContent));
+      .WillOnce(
+          ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::NO_CONTENT)
+                                 .WithError(kErrorNoContent),
+                             kResponseNoContent));
 
   std::promise<auth::AuthenticationClient::SignOutUserResponse> request;
 
@@ -692,10 +687,9 @@ TEST_F(AuthenticationClientTest, SignInFederated) {
       R"({ "grantType": "xyz", "token": "test_token", "realm": "my_realm" })";
 
   EXPECT_CALL(*network_,
-              Send(testing::AllOf(common::HeadersContainAuthorization(),
-                                  common::BodyEq(body)),
+              Send(testing::AllOf(HeadersContainAuthorization(), BodyEq(body)),
                    _, _, _, _))
-      .WillOnce(common::ReturnHttpResponse(
+      .WillOnce(ReturnHttpResponse(
           GetResponse(olp::http::HttpStatusCode::OK).WithError(kErrorOk),
           kUserSigninResponse));
 
@@ -725,7 +719,7 @@ TEST_F(AuthenticationClientTest, SignInFederated) {
 
 TEST_F(AuthenticationClientTest, SignInFacebookData) {
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
-      .WillOnce(common::ReturnHttpResponse(
+      .WillOnce(ReturnHttpResponse(
           GetResponse(olp::http::HttpStatusCode::OK).WithError(kErrorOk),
           kFacebookSigninResponse));
 
@@ -765,7 +759,7 @@ TEST_F(AuthenticationClientTest, SignInFacebookData) {
 
 TEST_F(AuthenticationClientTest, SignInGoogleData) {
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
-      .WillOnce(common::ReturnHttpResponse(
+      .WillOnce(ReturnHttpResponse(
           GetResponse(olp::http::HttpStatusCode::OK).WithError(kErrorOk),
           kGoogleSigninResponse));
 
@@ -797,7 +791,7 @@ TEST_F(AuthenticationClientTest, SignInGoogleData) {
 
 TEST_F(AuthenticationClientTest, SignInArcGisData) {
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
-      .WillOnce(common::ReturnHttpResponse(
+      .WillOnce(ReturnHttpResponse(
           GetResponse(olp::http::HttpStatusCode::OK).WithError(kErrorOk),
           kArcgisSigninResponse));
 
@@ -837,7 +831,7 @@ TEST_F(AuthenticationClientTest, SignInArcGisData) {
 
 TEST_F(AuthenticationClientTest, SignInRefreshData) {
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
-      .WillOnce(common::ReturnHttpResponse(
+      .WillOnce(ReturnHttpResponse(
           GetResponse(olp::http::HttpStatusCode::OK).WithError(kErrorOk),
           kRefreshSigninResponse));
 
@@ -1265,11 +1259,9 @@ TEST_F(AuthenticationClientTest, IntrospectApp) {
   {
     SCOPED_TRACE("Successful request");
 
-    EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(kIntrospectUrl), _, _, _, _))
-        .WillOnce(common::ReturnHttpResponse(
-            GetResponse(olp::http::HttpStatusCode::OK),
-            kIntrospectAppResponse));
+    EXPECT_CALL(*network_, Send(IsGetRequest(kIntrospectUrl), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
+                                     kIntrospectAppResponse));
 
     std::promise<auth::IntrospectAppResponse> request;
 
@@ -1308,9 +1300,8 @@ TEST_F(AuthenticationClientTest, IntrospectApp) {
   {
     SCOPED_TRACE("Invalid access token");
 
-    EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(kIntrospectUrl), _, _, _, _))
-        .WillOnce(common::ReturnHttpResponse(
+    EXPECT_CALL(*network_, Send(IsGetRequest(kIntrospectUrl), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
             GetResponse(olp::http::HttpStatusCode::UNAUTHORIZED),
             kInvalidAccessTokenResponse));
 
@@ -1333,10 +1324,9 @@ TEST_F(AuthenticationClientTest, IntrospectApp) {
   {
     SCOPED_TRACE("Invalid response");
 
-    EXPECT_CALL(*network_,
-                Send(common::IsGetRequest(kIntrospectUrl), _, _, _, _))
-        .WillOnce(common::ReturnHttpResponse(
-            GetResponse(olp::http::HttpStatusCode::OK), "Invalid responce"));
+    EXPECT_CALL(*network_, Send(IsGetRequest(kIntrospectUrl), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
+                                     "Invalid responce"));
 
     std::promise<auth::IntrospectAppResponse> request;
 
@@ -1383,9 +1373,8 @@ TEST_F(AuthenticationClientTest, Authorize) {
     SCOPED_TRACE("Successful request");
 
     EXPECT_CALL(*network_, Send(_, _, _, _, _))
-        .WillOnce(common::ReturnHttpResponse(
-            GetResponse(olp::http::HttpStatusCode::OK),
-            kAuthorizeResponseValid));
+        .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
+                                     kAuthorizeResponseValid));
 
     auth::AuthorizeRequest authorize_request;
     std::promise<auth::AuthorizeResponse> request;
@@ -1416,9 +1405,8 @@ TEST_F(AuthenticationClientTest, Authorize) {
     SCOPED_TRACE("Failed request");
 
     EXPECT_CALL(*network_, Send(_, _, _, _, _))
-        .WillOnce(common::ReturnHttpResponse(
-            GetResponse(olp::http::HttpStatusCode::OK),
-            kAuthorizeResponseError));
+        .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
+                                     kAuthorizeResponseError));
 
     auth::AuthorizeRequest authorize_request;
     std::promise<auth::AuthorizeResponse> request;
@@ -1439,7 +1427,7 @@ TEST_F(AuthenticationClientTest, Authorize) {
     SCOPED_TRACE("Failed request error");
 
     EXPECT_CALL(*network_, Send(_, _, _, _, _))
-        .WillOnce(common::ReturnHttpResponse(
+        .WillOnce(ReturnHttpResponse(
             GetResponse(olp::http::HttpStatusCode::UNAUTHORIZED),
             kAuthorizeResponseErrorField));
 
@@ -1497,8 +1485,8 @@ TEST_F(AuthenticationClientTest, Authorize) {
     SCOPED_TRACE("Failed corrupted responce");
 
     EXPECT_CALL(*network_, Send(_, _, _, _, _))
-        .WillOnce(common::ReturnHttpResponse(
-            GetResponse(olp::http::HttpStatusCode::OK), "some_invalid_string"));
+        .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
+                                     "some_invalid_string"));
 
     auth::AuthorizeRequest authorize_request;
     std::promise<auth::AuthorizeResponse> request;
@@ -1521,9 +1509,8 @@ TEST_F(AuthenticationClientTest, Authorize) {
     SCOPED_TRACE("Failed invalid request");
 
     EXPECT_CALL(*network_, Send(_, _, _, _, _))
-        .WillOnce(common::ReturnHttpResponse(
-            GetResponse(olp::http::HttpStatusCode::OK),
-            kAuthorizeResponseErrorInvalidRequest));
+        .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
+                                     kAuthorizeResponseErrorInvalidRequest));
 
     auth::AuthorizeRequest authorize_request;
     std::promise<auth::AuthorizeResponse> request;

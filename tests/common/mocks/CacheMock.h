@@ -22,10 +22,6 @@
 #include <gmock/gmock.h>
 #include <olp/core/cache/KeyValueCache.h>
 
-namespace olp {
-namespace tests {
-namespace common {
-
 class CacheMock : public olp::cache::KeyValueCache {
  public:
   CacheMock();
@@ -53,7 +49,3 @@ class CacheMock : public olp::cache::KeyValueCache {
 
   MOCK_METHOD(bool, RemoveKeysWithPrefix, (const std::string&), (override));
 };
-
-}  // namespace common
-}  // namespace tests
-}  // namespace olp

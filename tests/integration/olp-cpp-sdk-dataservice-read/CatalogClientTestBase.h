@@ -49,7 +49,7 @@ class CatalogClientTestBase : public ::testing::TestWithParam<CacheType> {
  protected:
   olp::client::OlpClientSettings settings_;
   std::shared_ptr<olp::client::OlpClient> client_;
-  std::shared_ptr<olp::tests::common::NetworkMock> network_mock_;
+  std::shared_ptr<NetworkMock> network_mock_;
 };
 
 }  // namespace integration

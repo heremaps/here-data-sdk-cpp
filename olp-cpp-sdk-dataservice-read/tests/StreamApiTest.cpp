@@ -25,13 +25,15 @@
 #include "generated/api/StreamApi.h"
 
 namespace {
-using namespace ::testing;
-using namespace olp;
-using namespace olp::client;
-using namespace olp::dataservice::read;
-using namespace olp::tests::common;
+using ::testing::_;
+using ::testing::AllOf;
+using ::testing::Mock;
+namespace http = olp::http;
+namespace client = olp::client;
+namespace read = olp::dataservice::read;
+namespace model = olp::dataservice::read::model;
 
-std::string ApiErrorToString(const ApiError& error) {
+std::string ApiErrorToString(const client::ApiError& error) {
   std::ostringstream result_stream;
   result_stream << "ERROR: code: " << static_cast<int>(error.GetErrorCode())
                 << ", status: " << error.GetHttpStatusCode()
@@ -51,22 +53,22 @@ model::StreamOffsets GetStreamOffsets() {
   return offsets;
 }
 
-class StreamApiTest : public Test {
+class StreamApiTest : public testing::Test {
  protected:
   void SetUp() override {
     network_mock_ = std::make_shared<NetworkMock>();
 
-    OlpClientSettings settings;
+    client::OlpClientSettings settings;
     settings.network_request_handler = network_mock_;
     settings.task_scheduler =
-        OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
+        client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
     olp_client_.SetSettings(std::move(settings));
   }
 
   void TearDown() override { network_mock_.reset(); }
 
  protected:
-  OlpClient olp_client_;
+  client::OlpClient olp_client_;
   std::shared_ptr<NetworkMock> network_mock_;
 };
 
@@ -83,7 +85,7 @@ const std::string kSerialMode{"serial"};
 const std::string kParallelMode{"parallel"};
 const std::string kCorrelationId{"test-correlation-id"};
 const olp::http::Header kCorrelationIdHeader{"X-Correlation-Id",
-                                                 kCorrelationId};
+                                             kCorrelationId};
 
 constexpr auto kUrlSubscribeNoQueryParams =
     R"(https://some.base.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/test-layer/subscribe)";
@@ -151,8 +153,8 @@ TEST_F(StreamApiTest, Subscribe) {
 
     olp_client_.SetBaseUrl(kBaseUrl);
     std::string x_correlation_id;
-    CancellationContext context;
-    const auto subscribe_response = StreamApi::Subscribe(
+    client::CancellationContext context;
+    const auto subscribe_response = read::StreamApi::Subscribe(
         olp_client_, kLayerId, boost::none, boost::none, boost::none,
         boost::none, context, x_correlation_id);
 
@@ -175,16 +177,16 @@ TEST_F(StreamApiTest, Subscribe) {
             http::NetworkResponse().WithStatus(http::HttpStatusCode::CREATED),
             kHttpResponseSubscribeSucceeds, {kCorrelationIdHeader}));
 
-    ConsumerProperties subscription_properties{
-        ConsumerOption("field_string", "abc"),
-        ConsumerOption("field_int", 456),
-        ConsumerOption("field_bool", true),
+    read::ConsumerProperties subscription_properties{
+        read::ConsumerOption("field_string", "abc"),
+        read::ConsumerOption("field_int", 456),
+        read::ConsumerOption("field_bool", true),
     };
 
     olp_client_.SetBaseUrl(kBaseUrl);
     std::string x_correlation_id;
-    CancellationContext context;
-    const auto subscribe_response = StreamApi::Subscribe(
+    client::CancellationContext context;
+    const auto subscribe_response = read::StreamApi::Subscribe(
         olp_client_, kLayerId, kSubscriptionId, kSerialMode, kConsumerId,
         subscription_properties, context, x_correlation_id);
 
@@ -208,8 +210,8 @@ TEST_F(StreamApiTest, Subscribe) {
 
     olp_client_.SetBaseUrl(kBaseUrl);
     std::string x_correlation_id;
-    CancellationContext context;
-    const auto subscribe_response = StreamApi::Subscribe(
+    client::CancellationContext context;
+    const auto subscribe_response = read::StreamApi::Subscribe(
         olp_client_, kLayerId, boost::none, boost::none, boost::none,
         boost::none, context, x_correlation_id);
 
@@ -237,10 +239,10 @@ TEST_F(StreamApiTest, ConsumeData) {
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
     std::string x_correlation_id = kCorrelationId;
-    CancellationContext context;
+    client::CancellationContext context;
     const auto consume_data_response =
-        StreamApi::ConsumeData(olp_client_, kLayerId, boost::none, boost::none,
-                               context, x_correlation_id);
+        read::StreamApi::ConsumeData(olp_client_, kLayerId, boost::none,
+                                     boost::none, context, x_correlation_id);
 
     EXPECT_TRUE(consume_data_response.IsSuccessful())
         << ApiErrorToString(consume_data_response.GetError());
@@ -262,10 +264,10 @@ TEST_F(StreamApiTest, ConsumeData) {
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
     std::string x_correlation_id = kCorrelationId;
-    CancellationContext context;
+    client::CancellationContext context;
     const auto consume_data_response =
-        StreamApi::ConsumeData(olp_client_, kLayerId, kSubscriptionId,
-                               kParallelMode, context, x_correlation_id);
+        read::StreamApi::ConsumeData(olp_client_, kLayerId, kSubscriptionId,
+                                     kParallelMode, context, x_correlation_id);
 
     EXPECT_TRUE(consume_data_response.IsSuccessful())
         << ApiErrorToString(consume_data_response.GetError());
@@ -287,10 +289,10 @@ TEST_F(StreamApiTest, ConsumeData) {
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
     std::string x_correlation_id = kCorrelationId;
-    CancellationContext context;
+    client::CancellationContext context;
     const auto consume_data_response =
-        StreamApi::ConsumeData(olp_client_, kLayerId, boost::none, boost::none,
-                               context, x_correlation_id);
+        read::StreamApi::ConsumeData(olp_client_, kLayerId, boost::none,
+                                     boost::none, context, x_correlation_id);
 
     EXPECT_FALSE(consume_data_response.IsSuccessful());
     EXPECT_EQ(consume_data_response.GetError().GetHttpStatusCode(),
@@ -321,8 +323,8 @@ TEST_F(StreamApiTest, CommitOffsets) {
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
     std::string x_correlation_id = kCorrelationId;
-    CancellationContext context;
-    const auto commit_offsets_response = StreamApi::CommitOffsets(
+    client::CancellationContext context;
+    const auto commit_offsets_response = read::StreamApi::CommitOffsets(
         olp_client_, kLayerId, stream_offsets, boost::none, boost::none,
         context, x_correlation_id);
 
@@ -347,8 +349,8 @@ TEST_F(StreamApiTest, CommitOffsets) {
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
     std::string x_correlation_id = kCorrelationId;
-    CancellationContext context;
-    const auto commit_offsets_response = StreamApi::CommitOffsets(
+    client::CancellationContext context;
+    const auto commit_offsets_response = read::StreamApi::CommitOffsets(
         olp_client_, kLayerId, stream_offsets, kSubscriptionId, kParallelMode,
         context, x_correlation_id);
 
@@ -373,8 +375,8 @@ TEST_F(StreamApiTest, CommitOffsets) {
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
     std::string x_correlation_id = kCorrelationId;
-    CancellationContext context;
-    const auto commit_offsets_response = StreamApi::CommitOffsets(
+    client::CancellationContext context;
+    const auto commit_offsets_response = read::StreamApi::CommitOffsets(
         olp_client_, kLayerId, stream_offsets, boost::none, boost::none,
         context, x_correlation_id);
 
@@ -406,8 +408,8 @@ TEST_F(StreamApiTest, SeekToOffset) {
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
     std::string x_correlation_id = kCorrelationId;
-    CancellationContext context;
-    const auto seek_to_offset_response = StreamApi::SeekToOffset(
+    client::CancellationContext context;
+    const auto seek_to_offset_response = read::StreamApi::SeekToOffset(
         olp_client_, kLayerId, stream_offsets, boost::none, boost::none,
         context, x_correlation_id);
 
@@ -432,8 +434,8 @@ TEST_F(StreamApiTest, SeekToOffset) {
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
     std::string x_correlation_id = kCorrelationId;
-    CancellationContext context;
-    const auto commit_offsets_response = StreamApi::SeekToOffset(
+    client::CancellationContext context;
+    const auto commit_offsets_response = read::StreamApi::SeekToOffset(
         olp_client_, kLayerId, stream_offsets, kSubscriptionId, kSerialMode,
         context, x_correlation_id);
 
@@ -459,8 +461,8 @@ TEST_F(StreamApiTest, SeekToOffset) {
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
     std::string x_correlation_id = kCorrelationId;
-    CancellationContext context;
-    const auto commit_offsets_response = StreamApi::SeekToOffset(
+    client::CancellationContext context;
+    const auto commit_offsets_response = read::StreamApi::SeekToOffset(
         olp_client_, kLayerId, stream_offsets, boost::none, boost::none,
         context, x_correlation_id);
 
@@ -486,10 +488,10 @@ TEST_F(StreamApiTest, DeleteSubscription) {
             http::NetworkResponse().WithStatus(http::HttpStatusCode::OK), ""));
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
-    CancellationContext context;
-    const auto unsubscribe_response =
-        StreamApi::DeleteSubscription(olp_client_, kLayerId, kSubscriptionId,
-                                      kParallelMode, kCorrelationId, context);
+    client::CancellationContext context;
+    const auto unsubscribe_response = read::StreamApi::DeleteSubscription(
+        olp_client_, kLayerId, kSubscriptionId, kParallelMode, kCorrelationId,
+        context);
 
     EXPECT_TRUE(unsubscribe_response.IsSuccessful())
         << ApiErrorToString(unsubscribe_response.GetError());
@@ -509,10 +511,10 @@ TEST_F(StreamApiTest, DeleteSubscription) {
                                      kHttpResponseUnsubscribeFails));
 
     olp_client_.SetBaseUrl(kNodeBaseUrl);
-    CancellationContext context;
-    const auto unsubscribe_response =
-        StreamApi::DeleteSubscription(olp_client_, kLayerId, kSubscriptionId,
-                                      kParallelMode, kCorrelationId, context);
+    client::CancellationContext context;
+    const auto unsubscribe_response = read::StreamApi::DeleteSubscription(
+        olp_client_, kLayerId, kSubscriptionId, kParallelMode, kCorrelationId,
+        context);
 
     EXPECT_FALSE(unsubscribe_response.IsSuccessful());
     EXPECT_EQ(unsubscribe_response.GetError().GetHttpStatusCode(),

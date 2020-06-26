@@ -47,14 +47,6 @@ using olp::dataservice::read::PartitionsRequest;
 using olp::dataservice::read::PartitionsResponse;
 using olp::dataservice::read::PrefetchTilesRequest;
 using olp::dataservice::read::PrefetchTilesResponse;
-using olp::tests::common::CacheMock;
-using olp::tests::common::CancelCallback;
-using olp::tests::common::GenerateNetworkMockActions;
-using olp::tests::common::GetResponse;
-using olp::tests::common::IsGetRequest;
-using olp::tests::common::NetworkCallback;
-using olp::tests::common::NetworkMock;
-using olp::tests::common::ReturnHttpResponse;
 using testing::_;
 
 // OLPEDGE-1799
@@ -2727,8 +2719,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CheckLookupApiCacheExpiration) {
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, Eviction) {
-  using olp::tests::common::IsGetRequestPrefix;
-
   constexpr auto data_handle_prefix = "e119d20e-";
   const auto data_size = 64u * 1024u;
   const std::string blob_data(data_size, 0);
@@ -3398,8 +3388,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileAndAggregatedData) {
 
     // try to load quadtree and get tile from cache
     auto future =
-        client.GetAggregatedData(read::TileRequest().WithTileKey(tile_key)
-            .WithFetchOption(FetchOptions::CacheOnly))
+        client
+            .GetAggregatedData(
+                read::TileRequest().WithTileKey(tile_key).WithFetchOption(
+                    FetchOptions::CacheOnly))
             .GetFuture();
 
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
