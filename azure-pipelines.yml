@@ -68,7 +68,7 @@ jobs:
 
 - job: Linux_build_clang
   pool:
-    vmImage: 'ubuntu-18.04'
+    vmImage: 'ubuntu-20.04'
   variables:
     LD_PRELOAD: "/lib/x86_64-linux-gnu/libSegFault.so"
     SEGFAULT_SIGNALS: "all"
