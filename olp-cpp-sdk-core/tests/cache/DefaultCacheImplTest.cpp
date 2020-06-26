@@ -332,7 +332,7 @@ TEST_F(DefaultCacheImplTest, MutableCacheExpired) {
   const std::string key1{"somekey1"};
   const std::string key2{"somekey2"};
   const std::string data_string{"this is key's data"};
-  constexpr auto expiry = 1;
+  constexpr auto expiry = 2;
   std::vector<unsigned char> binary_data = {1, 2, 3};
   const auto data_ptr =
       std::make_shared<std::vector<unsigned char>>(binary_data);
@@ -361,7 +361,7 @@ TEST_F(DefaultCacheImplTest, MutableCacheExpired) {
   auto str = boost::any_cast<std::string>(value2);
   EXPECT_EQ(str, data_string);
 
-  std::this_thread::sleep_for(std::chrono::seconds(2));
+  std::this_thread::sleep_for(std::chrono::seconds(3));
 
   EXPECT_TRUE(cache2.Get(key1).get() == nullptr);
   EXPECT_TRUE(
@@ -374,7 +374,7 @@ TEST_F(DefaultCacheImplTest, ProtectedCacheExpired) {
   const std::string key1{"somekey1"};
   const std::string key2{"somekey2"};
   const std::string data_string{"this is key's data"};
-  constexpr auto expiry = 1;
+  constexpr auto expiry = 2;
   std::vector<unsigned char> binary_data = {1, 2, 3};
   const auto data_ptr =
       std::make_shared<std::vector<unsigned char>>(binary_data);
@@ -403,7 +403,7 @@ TEST_F(DefaultCacheImplTest, ProtectedCacheExpired) {
   auto str = boost::any_cast<std::string>(value2);
   EXPECT_EQ(str, data_string);
 
-  std::this_thread::sleep_for(std::chrono::seconds(2));
+  std::this_thread::sleep_for(std::chrono::seconds(3));
 
   EXPECT_TRUE(cache2.Get(key1).get() == nullptr);
   EXPECT_TRUE(
