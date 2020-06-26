@@ -133,7 +133,7 @@ If you cannot build the SDK on Windows using this instruction, see [Build on Win
 
 ### Build on Windows
 
-<a href="https://dev.azure.com/heremaps/github/_build/latest?definitionId=3&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/here-data-sdk/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=Windows_build" alt="Windows build status"/></a>
+<a href="https://dev.azure.com/heremaps/here-data-sdk/_build/latest?definitionId=3&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/here-data-sdk/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=Windows_build" alt="Windows build status"/></a>
 
 We assume that you have installed CMake, Microsoft Visual Studio 2017, and the Visual C++ tools for CMake component.
 
