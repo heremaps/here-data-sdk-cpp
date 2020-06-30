@@ -78,7 +78,8 @@ void PrefetchTilesRepository::SplitSubtree(
       }
 
       auto it = root_tiles_depth.insert({child, kMaxQuadTreeIndexDepth});
-      // element already exist, update depth with max value(should never hapen)
+      // element already exist, update depth with max value(should never
+      // hapen)
       if (it.second == false) {
         it.first->second = kMaxQuadTreeIndexDepth;
       }
@@ -93,45 +94,43 @@ RootTilesForRequest PrefetchTilesRepository::GetSlicedTiles(
     unsigned int max) {
   RootTilesForRequest root_tiles_depth;
   // adjust root tiles to min level
-  for (auto tile_key : tile_keys) {
+  for (const auto& tile_key : tile_keys) {
+    // for each tile adjust its own min/max levels needed query quad tree index
     unsigned int min_level = min;
     unsigned int max_level = max;
 
-    if (max_level == min_level) {
-      if (max_level == 0) {  // special case, adjust levels to input tile level
-        max_level = tile_key.Level();
-        min_level = (max_level > kMaxQuadTreeIndexDepth)
-                        ? (max_level - kMaxQuadTreeIndexDepth)
-                        : (1u);
-      } else {
-        // min max values are the same
-        // to reduce methadata requests, go 4 levels up
-        min_level = (min_level > kMaxQuadTreeIndexDepth)
-                        ? (min_level - kMaxQuadTreeIndexDepth)
-                        : (1u);
-      }
+    // min level should always start from level of root tile for quad tree
+    // index, if requested tile is on upper level, adjust min_level up
+    if (tile_key.Level() < min_level || min_level == 0) {
+      min_level = tile_key.Level();
+      max_level = (max_level < min_level) ? min_level : max_level;
     }
 
-    // adjust min/max levels to depth 4
-    auto remein = (max_level + 1u - min_level) % (kMaxQuadTreeIndexDepth + 1);
-    if (remein != 0) {
-      auto levels_up = kMaxQuadTreeIndexDepth + 1 - remein;
+    // adjust min/max levels, if distance between min/max could not be splitted
+    // with depth 4
+    auto extra_levels =
+        (max_level + 1u - min_level) % (kMaxQuadTreeIndexDepth + 1);
+    if (extra_levels != 0) {
+      // calculate how many levels up we should change min level
+      auto levels_up = kMaxQuadTreeIndexDepth + 1 - extra_levels;
       if (min_level > levels_up) {
         min_level = min_level - levels_up;
       } else {
+        // if min_level is less than steps we need to go up, go some steps down
         auto levels_down = levels_up - min_level + 1u;
         min_level = 1u;
         max_level = max_level + levels_down;
       }
     }
 
-    OLP_SDK_LOG_DEBUG_F(kLogTag, "GetSlicedTiles new min='%d', max='%d'",
-                        min_level, max_level);
-    auto root_tile = tile_key;
+    OLP_SDK_LOG_DEBUG_F(
+        kLogTag, "GetSlicedTiles for tile %s use min='%d', max='%d' levels",
+        tile_key.ToHereTile().c_str(), min_level, max_level);
+    // while adjusting levels, min_level could be changed only up
+    // min_level is always less or equal to tile_key level
+    // change root_tile for quad tree requests to be on min_level
+    auto root_tile = tile_key.ChangedLevelTo(min_level);
 
-    if (root_tile.Level() >= min_level) {
-      root_tile = root_tile.ChangedLevelBy(min_level - tile_key.Level());
-    }
     auto it = root_tiles_depth.insert({root_tile, max_level - min_level});
     // element already exist, update depth with max value
     if (it.second == false) {
