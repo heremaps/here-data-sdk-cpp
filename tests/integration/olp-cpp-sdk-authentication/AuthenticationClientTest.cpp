@@ -757,38 +757,6 @@ TEST_F(AuthenticationClientTest, SignInFacebookData) {
   ::testing::Mock::VerifyAndClearExpectations(network_.get());
 }
 
-TEST_F(AuthenticationClientTest, SignInGoogleData) {
-  EXPECT_CALL(*network_, Send(_, _, _, _, _))
-      .WillOnce(ReturnHttpResponse(
-          GetResponse(olp::http::HttpStatusCode::OK).WithError(kErrorOk),
-          kGoogleSigninResponse));
-
-  auth::AuthenticationClient::FederatedProperties properties;
-  std::time_t now = std::time(nullptr);
-  std::promise<auth::AuthenticationClient::SignInUserResponse> request;
-
-  client_->SignInGoogle(
-      auth::AuthenticationCredentials(key_, secret_), properties,
-      [&](const auth::AuthenticationClient::SignInUserResponse& response) {
-        request.set_value(response);
-      });
-
-  auto request_future = request.get_future();
-  auto response = request_future.get();
-
-  EXPECT_TRUE(response.IsSuccessful());
-  EXPECT_EQ(olp::http::HttpStatusCode::OK, response.GetResult().GetStatus());
-  EXPECT_EQ(kErrorOk, response.GetResult().GetErrorResponse().message);
-  EXPECT_EQ("google_grant_token", response.GetResult().GetAccessToken());
-  EXPECT_GE(now + kMaxExpiryTime, response.GetResult().GetExpiryTime());
-  EXPECT_LT(now + kMinExpiryTime, response.GetResult().GetExpiryTime());
-  EXPECT_EQ("bearer", response.GetResult().GetTokenType());
-  EXPECT_FALSE(response.GetResult().GetRefreshToken().empty());
-  EXPECT_FALSE(response.GetResult().GetUserIdentifier().empty());
-
-  ::testing::Mock::VerifyAndClearExpectations(network_.get());
-}
-
 TEST_F(AuthenticationClientTest, SignInArcGisData) {
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
       .WillOnce(ReturnHttpResponse(
