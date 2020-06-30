@@ -53,7 +53,8 @@ constexpr std::uint32_t kMaxQuadTreeIndexDepth = 4u;
 
 void PrefetchTilesRepository::SplitSubtree(
     RootTilesForRequest& root_tiles_depth,
-    RootTilesForRequest::iterator subtree_to_split, geo::TileKey tile_key) {
+    RootTilesForRequest::iterator subtree_to_split,
+    const geo::TileKey& tile_key, unsigned int min) {
   unsigned int depth = subtree_to_split->second;
   auto tileKey = subtree_to_split->first;
   if (depth <= kMaxQuadTreeIndexDepth) {
@@ -72,21 +73,20 @@ void PrefetchTilesRepository::SplitSubtree(
     for (std::uint64_t key = beginTileKey; key < endTileKey; ++key) {
       auto child = geo::TileKey::FromQuadKey64(key);
       // skip child, if it is not a parent, or a child of prefetched tile
-      if (!tile_key.IsParentOf(child) && !child.IsParentOf(tile_key) &&
-          child != tile_key) {
+      if ((!tile_key.IsParentOf(child) && !child.IsParentOf(tile_key) &&
+           child != tile_key) ||
+          (child.Level() + kMaxQuadTreeIndexDepth < min)) {
         continue;
       }
-
-      auto it = root_tiles_depth.insert({child, kMaxQuadTreeIndexDepth});
-      // element already exist, update depth with max value(should never
-      // hapen)
-      if (it.second == false) {
-        it.first->second = kMaxQuadTreeIndexDepth;
-      }
+      root_tiles_depth.insert({child, kMaxQuadTreeIndexDepth});
     }
     depth -= (kMaxQuadTreeIndexDepth + 1);
   }
-  subtree_to_split->second = depth;
+  if (tileKey.Level() + depth < min) {
+    root_tiles_depth.erase(subtree_to_split);
+  } else {
+    subtree_to_split->second = depth;
+  }
 }
 
 RootTilesForRequest PrefetchTilesRepository::GetSlicedTiles(
@@ -139,7 +139,7 @@ RootTilesForRequest PrefetchTilesRepository::GetSlicedTiles(
     // if depth is greater than kMaxQuadTreeIndexDepth, need to split
     if (it.first->second > kMaxQuadTreeIndexDepth) {
       // split subtree on chunks with depth kMaxQuadTreeIndexDepth
-      SplitSubtree(root_tiles_depth, it.first, tile_key);
+      SplitSubtree(root_tiles_depth, it.first, tile_key, min);
     }
   }
   return root_tiles_depth;

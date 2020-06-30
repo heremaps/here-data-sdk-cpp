@@ -85,7 +85,7 @@ class PrefetchTilesRepository {
 
   static void SplitSubtree(RootTilesForRequest& root_tiles_depth,
                            RootTilesForRequest::iterator subtree_to_split,
-                           geo::TileKey tile_key);
+                           const geo::TileKey& tile_key, unsigned int min);
 };
 
 }  // namespace repository

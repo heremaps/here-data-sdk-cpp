@@ -329,14 +329,13 @@ TEST_F(ApiTest, QuadTreeIndex) {
 
   auto start_time = std::chrono::high_resolution_clock::now();
   auto index_response = olp::dataservice::read::QueryApi::QuadTreeIndex(
-      query_client, layer_id, version, quad_key, depth, boost::none,
+      query_client, layer_id, quad_key, version, depth, boost::none,
       boost::none, olp::client::CancellationContext{});
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;
   std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
-  ASSERT_TRUE(index_response.IsSuccessful())
-      << ApiErrorToString(index_response.GetError());
+  ASSERT_EQ(index_response.status, olp::http::HttpStatusCode::OK);
 }
 
 }  // namespace
