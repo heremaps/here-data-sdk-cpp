@@ -72,16 +72,10 @@ class PrefetchTilesRepository {
   static SubQuadsResponse GetSubQuads(const client::HRN& catalog,
                                       const std::string& layer_id,
                                       const PrefetchTilesRequest& request,
-                                      std::int64_t version, geo::TileKey tile,
-                                      int32_t depth,
+                                      boost::optional<std::int64_t> version,
+                                      geo::TileKey tile, int32_t depth,
                                       const client::OlpClientSettings& settings,
                                       client::CancellationContext context);
-
-  static SubQuadsResponse GetVolatileSubQuads(
-      const client::HRN& catalog, const std::string& layer_id,
-      const PrefetchTilesRequest& request, geo::TileKey tile, int32_t depth,
-      const client::OlpClientSettings& settings,
-      client::CancellationContext context);
 
   static void SplitSubtree(RootTilesForRequest& root_tiles_depth,
                            RootTilesForRequest::iterator subtree_to_split,

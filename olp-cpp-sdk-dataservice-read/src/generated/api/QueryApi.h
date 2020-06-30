@@ -140,10 +140,10 @@ class QueryApi {
    * release.
    * @param context A CancellationContext instance which can be used to cancel
    * call of this method.
-   * @param The result of this operation as a client::ApiResponse object with \c
+   * @param The result of this operation as a HttpResponse object with \c
    * model::Index as a result
    **/
-  static QuadTreeIndexResponse QuadTreeIndexVolatile(
+  static olp::client::HttpResponse QuadTreeIndexVolatile(
       const client::OlpClient& client, const std::string& layer_id,
       const std::string& quad_key, int32_t depth,
       boost::optional<std::vector<std::string>> additional_fields,
