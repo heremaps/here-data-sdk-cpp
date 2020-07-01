@@ -315,16 +315,19 @@ bool DefaultCacheImpl::Contains(const std::string& key) {
 
   // if lru exist check key there
   if (mutable_cache_lru_) {
-    if (mutable_cache_lru_->FindNoPromote(key) != mutable_cache_lru_->end()) {
-      return true;
+    auto it = mutable_cache_lru_->FindNoPromote(key);
+    if (it != mutable_cache_lru_->end()) {
+      ValueProperties props = it->value();
+      props.expiry -= olp::cache::InMemoryCache::DefaultTimeProvider()();
+      return (props.expiry > 0);
     }
     // check in mutable cache only if lru does not exist
   } else if (mutable_cache_ && mutable_cache_->Contains(key)) {
-    return true;
+    return (GetRemainingExpiryTime(key, *mutable_cache_) > 0);
   }
 
   if (protected_cache_ && protected_cache_->Contains(key)) {
-    return true;
+    return (GetRemainingExpiryTime(key, *protected_cache_) > 0);
   }
 
   return false;

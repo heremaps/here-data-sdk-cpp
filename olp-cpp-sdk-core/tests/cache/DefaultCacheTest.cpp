@@ -537,6 +537,20 @@ TEST(DefaultCacheTest, CheckIfKeyExist) {
     ASSERT_TRUE(cache.Clear());
   }
   {
+    SCOPED_TRACE("Check key exist cache with lru expired");
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
+    settings.max_memory_cache_size = 0;
+    olp::cache::DefaultCache cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; }, 2);
+    ASSERT_TRUE(cache.Contains(key1));
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    ASSERT_FALSE(cache.Contains(key1));
+    ASSERT_TRUE(cache.Clear());
+  }
+  {
     SCOPED_TRACE("Check key exist cache mutable");
     olp::cache::CacheSettings settings;
     settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
