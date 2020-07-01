@@ -44,7 +44,6 @@ set(OLP_SDK_FUNCTIONAL_TESTS_HEADERS
     ./olp-cpp-sdk-authentication/AuthenticationCommonTestFixture.h
     ./olp-cpp-sdk-authentication/AuthenticationTestUtils.h
     ./olp-cpp-sdk-authentication/TestConstants.h
-    ./utils/DefaultResponses.h
     ./utils/MockServerHelper.h
     ./utils/Utils.h
 )
