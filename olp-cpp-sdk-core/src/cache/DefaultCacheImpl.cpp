@@ -303,7 +303,20 @@ bool DefaultCacheImpl::RemoveKeysWithPrefix(const std::string& key) {
   return true;
 }
 
-bool DefaultCacheImpl::Exist(const std::string& key) { return false; }
+bool DefaultCacheImpl::Exist(const std::string& key) {
+  // if lru exist check key only there
+  if (mutable_cache_lru_) {
+    auto iterator = mutable_cache_lru_->FindNoPromote(key);
+    return (iterator != mutable_cache_lru_->end());
+  }
+  if (mutable_cache_ && mutable_cache_->Exist(key)) {
+    return true;
+  }
+  if (protected_cache_ && protected_cache_->Exist(key)) {
+    return true;
+  }
+  return false;
+}
 
 void DefaultCacheImpl::InitializeLru() {
   if (!mutable_cache_) {

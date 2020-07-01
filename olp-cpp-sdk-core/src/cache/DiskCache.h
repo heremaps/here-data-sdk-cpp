@@ -141,6 +141,8 @@ class DiskCache {
   bool RemoveKeysWithPrefix(const std::string& prefix,
                             uint64_t& removed_data_size);
 
+  bool Exist(const std::string& key);
+
  private:
   std::string disk_cache_path_;
   std::unique_ptr<leveldb::DB> database_;
