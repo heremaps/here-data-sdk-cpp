@@ -303,7 +303,7 @@ bool DefaultCacheImpl::RemoveKeysWithPrefix(const std::string& key) {
   return true;
 }
 
-bool DefaultCacheImpl::Contains(const std::string& key) {
+bool DefaultCacheImpl::Contains(const std::string& key) const {
   std::lock_guard<std::mutex> lock(cache_lock_);
   if (!is_open_) {
     return false;

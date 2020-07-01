@@ -105,17 +105,12 @@ void InMemoryCache::RemoveKeysWithPrefix(const std::string& key_prefix) {
   }
 }
 
-bool InMemoryCache::Contains(const std::string& key) {
+bool InMemoryCache::Contains(const std::string& key) const {
   std::lock_guard<std::mutex> lock{mutex_};
-  auto it = item_tuples_.Find(key);
+  auto it = item_tuples_.FindNoPromote(key);
   if (it != item_tuples_.end()) {
     auto expiry_time = std::get<1>(it.value());
-    if (expiry_time < time_provider_()) {
-      PurgeExpired(expiry_time);
-      return false;
-    }
-
-    return true;
+    return (expiry_time > time_provider_());
   }
 
   return false;

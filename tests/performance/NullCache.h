@@ -54,5 +54,5 @@ class NullCache : public olp::cache::KeyValueCache {
     return true;
   }
 
-  bool Contains(const std::string& /*prefix*/) override { return true; }
+  bool Contains(const std::string& /*prefix*/) const override { return true; }
 };

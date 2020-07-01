@@ -130,7 +130,7 @@ class CORE_API KeyValueCache {
    *
    * @return True if the key/value cached ; false otherwise.
    */
-  virtual bool Contains(const std::string& key) {
+  virtual bool Contains(const std::string& key) const {
     CORE_UNUSED(key);
     return false;
   }

@@ -176,7 +176,7 @@ class CORE_API DefaultCache : public KeyValueCache {
    *
    * @return True if the key/value cached ; false otherwise.
    */
-  bool Contains(const std::string& key) override;
+  bool Contains(const std::string& key) const override;
 
  private:
   std::shared_ptr<DefaultCacheImpl> impl_;
