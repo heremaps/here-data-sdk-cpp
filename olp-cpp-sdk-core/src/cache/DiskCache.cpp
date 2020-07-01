@@ -323,6 +323,7 @@ bool DiskCache::Exist(const std::string& key) {
     return false;
   }
   leveldb::ReadOptions options;
+  options.fill_cache = false;
   options.verify_checksums = check_crc_;
   auto iterator = NewIterator(options);
   iterator->Seek(key);

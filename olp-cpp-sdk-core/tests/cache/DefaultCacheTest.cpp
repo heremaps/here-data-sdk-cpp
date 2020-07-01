@@ -526,6 +526,7 @@ TEST(DefaultCacheTest, CheckIfKeyExist) {
     SCOPED_TRACE("Check key exist cache with lru");
     olp::cache::CacheSettings settings;
     settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
+    settings.max_memory_cache_size = 0;
     olp::cache::DefaultCache cache(settings);
     ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
     ASSERT_TRUE(cache.Clear());
@@ -540,6 +541,7 @@ TEST(DefaultCacheTest, CheckIfKeyExist) {
     olp::cache::CacheSettings settings;
     settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
     settings.eviction_policy = olp::cache::EvictionPolicy::kNone;
+    settings.max_memory_cache_size = 0;
     olp::cache::DefaultCache cache(settings);
     ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
     ASSERT_TRUE(cache.Clear());
@@ -572,6 +574,17 @@ TEST(DefaultCacheTest, CheckIfKeyExist) {
     ASSERT_TRUE(cache_protected.Exist(key1));
     ASSERT_FALSE(cache_protected.Exist(key2));
     ASSERT_TRUE(cache_protected.Clear());
+  }
+  {
+    SCOPED_TRACE("Check key exist in memory cache");
+    olp::cache::DefaultCache cache;
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; },
+              (std::numeric_limits<time_t>::max)());
+    ASSERT_TRUE(cache.Exist(key1));
+    ASSERT_FALSE(cache.Exist(key2));
+    ASSERT_TRUE(cache.Clear());
   }
   {
     SCOPED_TRACE("Check key exist closed cache");
