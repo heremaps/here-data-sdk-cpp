@@ -169,6 +169,15 @@ class CORE_API DefaultCache : public KeyValueCache {
    */
   bool RemoveKeysWithPrefix(const std::string& prefix) override;
 
+  /**
+   * @brief Check if key is in the cache.
+   *
+   * @param key The key for the value.
+   *
+   * @return True if the key/value cached ; false otherwise.
+   */
+  bool Exist(const std::string& key) override;
+
  private:
   std::shared_ptr<DefaultCacheImpl> impl_;
 };

@@ -121,6 +121,14 @@ class CORE_API KeyValueCache {
    * @return True if the values are removed; false otherwise.
    */
   virtual bool RemoveKeysWithPrefix(const std::string& prefix) = 0;
+  /**
+   * @brief Check if key is in the cache.
+   *
+   * @param key The key for the value.
+   *
+   * @return True if the key/value cached ; false otherwise.
+   */
+  virtual bool Exist(const std::string& key) = 0;
 };
 
 }  // namespace cache

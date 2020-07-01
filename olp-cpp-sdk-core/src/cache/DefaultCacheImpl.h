@@ -57,6 +57,8 @@ class DefaultCacheImpl {
 
   bool RemoveKeysWithPrefix(const std::string& key);
 
+  bool Exist(const std::string& key);
+
  protected:
   /// The LRU value property.
   struct ValueProperties {

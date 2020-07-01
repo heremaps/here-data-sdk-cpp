@@ -303,6 +303,8 @@ bool DefaultCacheImpl::RemoveKeysWithPrefix(const std::string& key) {
   return true;
 }
 
+bool DefaultCacheImpl::Exist(const std::string& key) { return false; }
+
 void DefaultCacheImpl::InitializeLru() {
   if (!mutable_cache_) {
     return;
