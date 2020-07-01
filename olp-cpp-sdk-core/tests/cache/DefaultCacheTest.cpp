@@ -532,8 +532,8 @@ TEST(DefaultCacheTest, CheckIfKeyExist) {
     ASSERT_TRUE(cache.Clear());
     cache.Put(key1, key1_data_string, [=]() { return key1_data_string; },
               (std::numeric_limits<time_t>::max)());
-    ASSERT_TRUE(cache.Exist(key1));
-    ASSERT_FALSE(cache.Exist(key2));
+    ASSERT_TRUE(cache.Contains(key1));
+    ASSERT_FALSE(cache.Contains(key2));
     ASSERT_TRUE(cache.Clear());
   }
   {
@@ -547,8 +547,8 @@ TEST(DefaultCacheTest, CheckIfKeyExist) {
     ASSERT_TRUE(cache.Clear());
     cache.Put(key1, key1_data_string, [=]() { return key1_data_string; },
               (std::numeric_limits<time_t>::max)());
-    ASSERT_TRUE(cache.Exist(key1));
-    ASSERT_FALSE(cache.Exist(key2));
+    ASSERT_TRUE(cache.Contains(key1));
+    ASSERT_FALSE(cache.Contains(key2));
     ASSERT_TRUE(cache.Clear());
   }
   {
@@ -571,8 +571,8 @@ TEST(DefaultCacheTest, CheckIfKeyExist) {
     settings.eviction_policy = olp::cache::EvictionPolicy::kNone;
     olp::cache::DefaultCache cache_protected(settings);
     ASSERT_EQ(olp::cache::DefaultCache::Success, cache_protected.Open());
-    ASSERT_TRUE(cache_protected.Exist(key1));
-    ASSERT_FALSE(cache_protected.Exist(key2));
+    ASSERT_TRUE(cache_protected.Contains(key1));
+    ASSERT_FALSE(cache_protected.Contains(key2));
     ASSERT_TRUE(cache_protected.Clear());
   }
   {
@@ -582,8 +582,19 @@ TEST(DefaultCacheTest, CheckIfKeyExist) {
     ASSERT_TRUE(cache.Clear());
     cache.Put(key1, key1_data_string, [=]() { return key1_data_string; },
               (std::numeric_limits<time_t>::max)());
-    ASSERT_TRUE(cache.Exist(key1));
-    ASSERT_FALSE(cache.Exist(key2));
+    ASSERT_TRUE(cache.Contains(key1));
+    ASSERT_FALSE(cache.Contains(key2));
+    ASSERT_TRUE(cache.Clear());
+  }
+  {
+    SCOPED_TRACE("Check key exist in memory cache after data expired");
+    olp::cache::DefaultCache cache;
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; }, 2);
+    ASSERT_TRUE(cache.Contains(key1));
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    ASSERT_FALSE(cache.Contains(key1));
     ASSERT_TRUE(cache.Clear());
   }
   {
@@ -591,6 +602,6 @@ TEST(DefaultCacheTest, CheckIfKeyExist) {
     olp::cache::CacheSettings settings;
     settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
     olp::cache::DefaultCache cache(settings);
-    ASSERT_FALSE(cache.Exist(key1));
+    ASSERT_FALSE(cache.Contains(key1));
   }
 }

@@ -61,7 +61,9 @@ bool DefaultCache::RemoveKeysWithPrefix(const std::string& key) {
   return impl_->RemoveKeysWithPrefix(key);
 }
 
-bool DefaultCache::Exist(const std::string& key) { return impl_->Exist(key); }
+bool DefaultCache::Contains(const std::string& key) {
+  return impl_->Contains(key);
+}
 
 }  // namespace cache
 }  // namespace olp

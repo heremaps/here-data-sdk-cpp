@@ -76,6 +76,7 @@ class InMemoryCache {
 
   bool Remove(const std::string& key);
   void RemoveKeysWithPrefix(const std::string& key_prefix);
+  bool Contains(const std::string& key);
 
  protected:
   bool PurgeExpired();

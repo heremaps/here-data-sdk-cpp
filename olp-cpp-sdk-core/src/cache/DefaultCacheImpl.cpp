@@ -303,24 +303,27 @@ bool DefaultCacheImpl::RemoveKeysWithPrefix(const std::string& key) {
   return true;
 }
 
-bool DefaultCacheImpl::Exist(const std::string& key) {
+bool DefaultCacheImpl::Contains(const std::string& key) {
   std::lock_guard<std::mutex> lock(cache_lock_);
   if (!is_open_) {
     return false;
   }
-  if (memory_cache_ && !(memory_cache_->Get(key).empty())) {
+
+  if (memory_cache_ && memory_cache_->Contains(key)) {
     return true;
   }
+
   // if lru exist check key there
   if (mutable_cache_lru_) {
     if (mutable_cache_lru_->FindNoPromote(key) != mutable_cache_lru_->end()) {
       return true;
     }
     // check in mutable cache only if lru does not exist
-  } else if (mutable_cache_ && mutable_cache_->Exist(key)) {
+  } else if (mutable_cache_ && mutable_cache_->Contains(key)) {
     return true;
   }
-  if (protected_cache_ && protected_cache_->Exist(key)) {
+
+  if (protected_cache_ && protected_cache_->Contains(key)) {
     return true;
   }
 

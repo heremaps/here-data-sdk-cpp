@@ -317,7 +317,7 @@ bool DiskCache::Get(const std::string& key,
   return true;
 }
 
-bool DiskCache::Exist(const std::string& key) {
+bool DiskCache::Contains(const std::string& key) {
   if (!database_) {
     OLP_SDK_LOG_ERROR(kLogTag, "Get: Database is not initialized");
     return false;
