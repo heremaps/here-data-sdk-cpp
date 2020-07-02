@@ -57,8 +57,8 @@ class PrefetchTilesRepository {
    * @param maxLevel Maximum level of the resultant tile keys.
    */
   static RootTilesForRequest GetSlicedTiles(
-      const std::vector<geo::TileKey>& tile_keys, unsigned int min,
-      unsigned int max);
+      const std::vector<geo::TileKey>& tile_keys, std::uint32_t min,
+      std::uint32_t max);
 
   static SubTilesResponse GetSubTiles(
       const client::HRN& catalog, const std::string& layer_id,
@@ -84,7 +84,8 @@ class PrefetchTilesRepository {
       client::CancellationContext context);
 
   static void SplitSubtree(RootTilesForRequest& root_tiles_depth,
-                           RootTilesForRequest::iterator subtree_to_split);
+                           RootTilesForRequest::iterator subtree_to_split,
+                           const geo::TileKey& tile_key, std::uint32_t min);
 };
 
 }  // namespace repository

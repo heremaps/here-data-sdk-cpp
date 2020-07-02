@@ -20,8 +20,8 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 #include <string>
+#include <vector>
 
 #include <boost/optional.hpp>
 #include <olp/core/client/ApiError.h>
@@ -318,6 +318,8 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    *
    * @note This method does not guarantee that all tiles are available offline
    * as the cache might overflow, and data might be evicted at any point.
+   * Use GetData(TileRequest) or GetAggregatedData(TileRequest) to retrieve
+   * tiles loaded by PrefetchTiles.
    *
    * @param request The `PrefetchTilesRequest` instance that contains
    * a complete set of request parameters.
@@ -342,6 +344,8 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    *
    * @note This method does not guarantee that all tiles are available offline
    * as the cache might overflow, and data might be evicted at any point.
+   * Use GetData(TileRequest) or GetAggregatedData(TileRequest) to retrieve
+   * tiles loaded by PrefetchTiles.
    *
    * @param request The `PrefetchTilesRequest` instance that contains
    * a complete set of request parameters.

@@ -86,10 +86,10 @@ class QueryApi {
    * Content of this parameter must refer to a valid layer already configured
    * in the catalog configuration. Exactly one layer ID must be
    * provided.
-   * @param version The version of the catalog against
-   * which to run the query. Must be a valid catalog version.
    * @param quad_key The geometric area specified by an index in the request,
    * represented as a HERE tile
+   * @param version The version of the catalog against
+   * which to run the query. Must be a valid catalog version.
    * @param depth The recursion depth
    * of the response. If set to 0, the response includes only data for the
    * quad_key specified in the request. In this way, depth describes the maximum
@@ -107,13 +107,6 @@ class QueryApi {
    * @param The result of this operation as a client::ApiResponse object with \c
    * model::Index as a result
    **/
-  static QuadTreeIndexResponse QuadTreeIndex(
-      const client::OlpClient& client, const std::string& layer_id,
-      int64_t version, const std::string& quad_key, int32_t depth,
-      boost::optional<std::vector<std::string>> additional_fields,
-      boost::optional<std::string> billing_tag,
-      client::CancellationContext context);
-
   static olp::client::HttpResponse QuadTreeIndex(
       const client::OlpClient& client, const std::string& layer_id,
       const std::string& quad_key, boost::optional<int64_t> version,

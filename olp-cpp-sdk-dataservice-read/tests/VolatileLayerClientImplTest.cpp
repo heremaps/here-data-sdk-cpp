@@ -44,7 +44,7 @@ constexpr auto kUrlQueryPartition269 =
     R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/partitions?partition=269)";
 
 constexpr auto kUrlQuadTreeIndexVolatile =
-    R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/quadkeys/5904591/depths/1)";
+    R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/quadkeys/92259/depths/4)";
 
 constexpr auto kUrlQuadTreeIndexVolatile2 =
     R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/quadkeys/23064/depths/4)";
@@ -504,7 +504,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
 
     auto request = read::PrefetchTilesRequest()
                        .WithTileKeys(tile_keys)
-                       .WithMinLevel(11)
+                       .WithMinLevel(8)
                        .WithMaxLevel(12);
 
     auto promise =
@@ -688,7 +688,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
 
     auto request = read::PrefetchTilesRequest()
                        .WithTileKeys(tile_keys)
-                       .WithMinLevel(11)
+                       .WithMinLevel(8)
                        .WithMaxLevel(12);
 
     auto cancellable = client.PrefetchTiles(request);

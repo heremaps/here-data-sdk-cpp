@@ -437,7 +437,7 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
         "root='%s', version='%" PRId64 "', depth='%" PRId32 "'",
         catalog.ToString().c_str(), layer.c_str(), root_tile_here.c_str(),
         version.get_value_or(-1), kAggregateQuadTreeDepth);
-    return {{client::ErrorCode::Unknown, "Failed to parse QuadTreeIndex json"}};
+    return {{client::ErrorCode::Unknown, "Failed to parse quad tree response"}};
   }
 
   if (fetch_option != OnlineOnly) {

@@ -199,10 +199,9 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
         .WillByDefault(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                           HTTP_RESPONSE_QUADKEYS_1476147));
 
-    ON_CALL(*network_mock_,
-            Send(IsGetRequest(URL_QUADKEYS_5904591), _, _, _, _))
+    ON_CALL(*network_mock_, Send(IsGetRequest(URL_QUADKEYS_92259), _, _, _, _))
         .WillByDefault(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
-                                          HTTP_RESPONSE_QUADKEYS_5904591));
+                                          HTTP_RESPONSE_QUADKEYS_92259));
 
     ON_CALL(*network_mock_,
             Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_1), _, _, _, _))
@@ -228,6 +227,10 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
             Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_6), _, _, _, _))
         .WillByDefault(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                           HTTP_RESPONSE_BLOB_DATA_PREFETCH_6));
+    ON_CALL(*network_mock_,
+            Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_7), _, _, _, _))
+        .WillByDefault(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                          HTTP_RESPONSE_BLOB_DATA_PREFETCH_7));
 
     ON_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
         .WillByDefault(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
@@ -1323,7 +1326,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
                        .WithMaxLevel(12);
 
     auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
-    std::future<PrefetchTilesResponse> future = promise->get_future();
+    auto future = promise->get_future();
     auto token = client->PrefetchTiles(
         request, [promise](PrefetchTilesResponse response) {
           promise->set_value(std::move(response));
@@ -1346,12 +1349,13 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
     SCOPED_TRACE("Read cached data from pre-fetched sub-partition #1");
     auto promise = std::make_shared<std::promise<DataResponse>>();
     std::future<DataResponse> future = promise->get_future();
-    auto token = client->GetData(read::DataRequest()
-                                     .WithPartitionId("23618365")
-                                     .WithFetchOption(FetchOptions::CacheOnly),
-                                 [promise](DataResponse response) {
-                                   promise->set_value(std::move(response));
-                                 });
+    auto token =
+        client->GetData(read::TileRequest()
+                            .WithTileKey(geo::TileKey::FromHereTile("23618365"))
+                            .WithFetchOption(FetchOptions::CacheOnly),
+                        [promise](DataResponse response) {
+                          promise->set_value(std::move(response));
+                        });
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
 
     auto response = future.get();
@@ -1366,12 +1370,13 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
     auto promise = std::make_shared<std::promise<DataResponse>>();
     std::future<DataResponse> future = promise->get_future();
 
-    auto token = client->GetData(read::DataRequest()
-                                     .WithPartitionId("23618366")
-                                     .WithFetchOption(FetchOptions::CacheOnly),
-                                 [promise](DataResponse response) {
-                                   promise->set_value(std::move(response));
-                                 });
+    auto token =
+        client->GetData(read::TileRequest()
+                            .WithTileKey(geo::TileKey::FromHereTile("23618366"))
+                            .WithFetchOption(FetchOptions::CacheOnly),
+                        [promise](DataResponse response) {
+                          promise->set_value(std::move(response));
+                        });
     ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
 
     auto response = future.get();
@@ -1418,7 +1423,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
                        .WithMaxLevel(0);
 
     auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
-    std::future<PrefetchTilesResponse> future = promise->get_future();
+    auto future = promise->get_future();
     auto token = client->PrefetchTiles(
         request, [promise](PrefetchTilesResponse response) {
           promise->set_value(std::move(response));
@@ -1485,7 +1490,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   std::promise<PrefetchTilesResponse> promise;
-  std::future<PrefetchTilesResponse> future = promise.get_future();
+  auto future = promise.get_future();
 
   constexpr auto kLayerId = "prefetch-catalog";
   constexpr auto kParitionId = "prefetch-partition";
@@ -1533,7 +1538,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesCancelOnLookup) {
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   std::promise<PrefetchTilesResponse> promise;
-  std::future<PrefetchTilesResponse> future = promise.get_future();
+  auto future = promise.get_future();
 
   constexpr auto kLayerId = "prefetch-catalog";
   constexpr auto kParitionId = "prefetch-partition";
@@ -1633,6 +1638,101 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   PrefetchTilesResponse response = raw_future.get();
   ASSERT_FALSE(response.IsSuccessful());
   ASSERT_TRUE(response.GetResult().empty());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesInvalidResponse) {
+  constexpr auto kLayerId = "hype-test-prefetch";
+
+  auto client = read::VersionedLayerClient(kCatalog, kLayerId, settings_);
+  std::vector<geo::TileKey> tile_keys = {geo::TileKey::FromHereTile("5904591")};
+
+  auto request = read::PrefetchTilesRequest()
+                     .WithTileKeys(tile_keys)
+                     .WithMinLevel(11)
+                     .WithMaxLevel(12);
+  {
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_QUADKEYS_92259), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     "some invalid json"));
+  }
+  auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
+  auto future = promise->get_future();
+  auto token =
+      client.PrefetchTiles(request, [promise](PrefetchTilesResponse response) {
+        promise->set_value(std::move(response));
+      });
+
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  PrefetchTilesResponse response = future.get();
+  ASSERT_FALSE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_TRUE(response.GetResult().empty());
+  ASSERT_EQ(client::ErrorCode::Unknown, response.GetError().GetErrorCode());
+  ASSERT_EQ("Failed to parse quad tree response",
+            response.GetError().GetMessage());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchSameTiles) {
+  constexpr auto kLayerId = "hype-test-prefetch";
+
+  auto client = read::VersionedLayerClient(kCatalog, kLayerId, settings_);
+  std::vector<geo::TileKey> tile_keys = {geo::TileKey::FromHereTile("5904591")};
+
+  auto request = read::PrefetchTilesRequest()
+                     .WithTileKeys(tile_keys)
+                     .WithMinLevel(11)
+                     .WithMaxLevel(12);
+  {
+    SCOPED_TRACE("Prefetch tiles online and store them in memory cache");
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_QUADKEYS_92259), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     HTTP_RESPONSE_QUADKEYS_92259));
+
+    auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
+    auto future = promise->get_future();
+    auto token = client.PrefetchTiles(
+        request, [promise](PrefetchTilesResponse response) {
+          promise->set_value(std::move(response));
+        });
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_FALSE(response.GetResult().empty());
+
+    const auto& result = response.GetResult();
+
+    for (auto tile_result : result) {
+      ASSERT_TRUE(tile_result->IsSuccessful());
+      ASSERT_TRUE(tile_result->tile_key_.IsValid());
+    }
+  }
+  {
+    SCOPED_TRACE("Prefetch same tiles second time");
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_QUADKEYS_92259), _, _, _, _))
+        .Times(0);
+
+    auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
+    auto future = promise->get_future();
+    auto token = client.PrefetchTiles(
+        request, [promise](PrefetchTilesResponse response) {
+          promise->set_value(std::move(response));
+        });
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_FALSE(response.GetResult().empty());
+
+    const auto& result = response.GetResult();
+
+    for (auto tile_result : result) {
+      ASSERT_TRUE(tile_result->IsSuccessful());
+      ASSERT_TRUE(tile_result->tile_key_.IsValid());
+    }
+  }
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetData404Error) {
@@ -3401,6 +3501,63 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileAndAggregatedData) {
     ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
     ASSERT_TRUE(result.GetData());
     ASSERT_EQ(result.GetTile(), tile_key);
+    testing::Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesAndGetAggregated) {
+  constexpr auto kLayerId = "hype-test-prefetch";
+
+  auto client = read::VersionedLayerClient(kCatalog, kLayerId, settings_);
+
+  {
+    SCOPED_TRACE("Prefetch tiles online and store them in memory cache");
+    std::vector<geo::TileKey> tile_keys = {
+        geo::TileKey::FromHereTile("5904591")};
+
+    auto request = read::PrefetchTilesRequest()
+                       .WithTileKeys(tile_keys)
+                       .WithMinLevel(11)
+                       .WithMaxLevel(12);
+
+    auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
+    auto future = promise->get_future();
+    auto token = client.PrefetchTiles(
+        request, [promise](PrefetchTilesResponse response) {
+          promise->set_value(std::move(response));
+        });
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_FALSE(response.GetResult().empty());
+
+    const auto& result = response.GetResult();
+
+    for (auto tile_result : result) {
+      ASSERT_TRUE(tile_result->IsSuccessful());
+      ASSERT_TRUE(tile_result->tile_key_.IsValid());
+    }
+  }
+  {
+    SCOPED_TRACE("Get aggregated tile");
+    const auto tile_key = geo::TileKey::FromHereTile("5904591");
+
+    // try to load quadtree and the tile from cache
+    auto future =
+        client
+            .GetAggregatedData(
+                read::TileRequest().WithTileKey(tile_key).WithFetchOption(
+                    FetchOptions::CacheOnly))
+            .GetFuture();
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    const auto cache_response = future.get();
+    const auto& cache_result = cache_response.GetResult();
+
+    ASSERT_TRUE(cache_response.IsSuccessful())
+        << cache_response.GetError().GetMessage();
+    ASSERT_EQ(cache_result.GetTile(), tile_key);
     testing::Mock::VerifyAndClearExpectations(network_mock_.get());
   }
 }

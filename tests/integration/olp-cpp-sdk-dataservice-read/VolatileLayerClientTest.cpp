@@ -137,10 +137,10 @@ void DataserviceReadVolatileLayerClientTest::SetUpCommonNetworkMockCalls() {
                                         HTTP_RESPONSE_QUADKEYS_1476147));
 
   ON_CALL(*network_mock_,
-          Send(IsGetRequest(URL_QUADKEYS_VOLATILE_5904591), _, _, _, _))
+          Send(IsGetRequest(URL_QUADKEYS_VOLATILE_92259), _, _, _, _))
       .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                             olp::http::HttpStatusCode::OK),
-                                        HTTP_RESPONSE_QUADKEYS_5904591));
+                                        HTTP_RESPONSE_QUADKEYS_92259));
 
   ON_CALL(*network_mock_,
           Send(IsGetRequest(URL_BLOB_DATA_VOLATILE_PREFETCH_1), _, _, _, _))
@@ -171,6 +171,11 @@ void DataserviceReadVolatileLayerClientTest::SetUpCommonNetworkMockCalls() {
       .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                             olp::http::HttpStatusCode::OK),
                                         HTTP_RESPONSE_BLOB_DATA_PREFETCH_6));
+  ON_CALL(*network_mock_,
+          Send(IsGetRequest(URL_BLOB_DATA_VOLATILE_PREFETCH_7), _, _, _, _))
+      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                            olp::http::HttpStatusCode::OK),
+                                        HTTP_RESPONSE_BLOB_DATA_PREFETCH_7));
 
   // Catch any non-interesting network calls that don't need to be verified
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _)).Times(testing::AtLeast(0));
@@ -958,7 +963,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, PrefetchTilesWithCache) {
         olp::geo::TileKey::FromHereTile("5904591")};
     auto request = read::PrefetchTilesRequest()
                        .WithTileKeys(tile_keys)
-                       .WithMinLevel(11)
+                       .WithMinLevel(8)
                        .WithMaxLevel(12);
     auto promise =
         std::make_shared<std::promise<read::PrefetchTilesResponse>>();

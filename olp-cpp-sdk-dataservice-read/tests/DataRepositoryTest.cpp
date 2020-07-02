@@ -442,6 +442,6 @@ TEST_F(DataRepositoryTest, GetVersionedDataTileReturnEmpty) {
   ASSERT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::Unknown);
   ASSERT_EQ(response.GetError().GetMessage(),
-            "Failed to parse QuadTreeIndex json");
+            "Failed to parse quad tree response");
 }
 }  // namespace
