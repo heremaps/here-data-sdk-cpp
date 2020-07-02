@@ -1326,7 +1326,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
                        .WithMaxLevel(12);
 
     auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
-    std::future<PrefetchTilesResponse> future = promise->get_future();
+    auto future = promise->get_future();
     auto token = client->PrefetchTiles(
         request, [promise](PrefetchTilesResponse response) {
           promise->set_value(std::move(response));
@@ -1423,7 +1423,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
                        .WithMaxLevel(0);
 
     auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
-    std::future<PrefetchTilesResponse> future = promise->get_future();
+    auto future = promise->get_future();
     auto token = client->PrefetchTiles(
         request, [promise](PrefetchTilesResponse response) {
           promise->set_value(std::move(response));
@@ -1490,7 +1490,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   std::promise<PrefetchTilesResponse> promise;
-  std::future<PrefetchTilesResponse> future = promise.get_future();
+  auto future = promise.get_future();
 
   constexpr auto kLayerId = "prefetch-catalog";
   constexpr auto kParitionId = "prefetch-partition";
@@ -1538,7 +1538,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesCancelOnLookup) {
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   std::promise<PrefetchTilesResponse> promise;
-  std::future<PrefetchTilesResponse> future = promise.get_future();
+  auto future = promise.get_future();
 
   constexpr auto kLayerId = "prefetch-catalog";
   constexpr auto kParitionId = "prefetch-partition";
@@ -1657,7 +1657,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesInvalidResponse) {
                                      "some invalid json"));
   }
   auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
-  std::future<PrefetchTilesResponse> future = promise->get_future();
+  auto future = promise->get_future();
   auto token =
       client.PrefetchTiles(request, [promise](PrefetchTilesResponse response) {
         promise->set_value(std::move(response));
@@ -1668,7 +1668,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesInvalidResponse) {
   ASSERT_FALSE(response.IsSuccessful()) << response.GetError().GetMessage();
   ASSERT_TRUE(response.GetResult().empty());
   ASSERT_EQ(client::ErrorCode::Unknown, response.GetError().GetErrorCode());
-  ASSERT_EQ("Failed to parse QuadTreeIndex json",
+  ASSERT_EQ("Failed to parse quad tree response",
             response.GetError().GetMessage());
 }
 
@@ -1690,7 +1690,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchSameTiles) {
                                      HTTP_RESPONSE_QUADKEYS_92259));
 
     auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
-    std::future<PrefetchTilesResponse> future = promise->get_future();
+    auto future = promise->get_future();
     auto token = client.PrefetchTiles(
         request, [promise](PrefetchTilesResponse response) {
           promise->set_value(std::move(response));
@@ -1715,7 +1715,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchSameTiles) {
         .Times(0);
 
     auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
-    std::future<PrefetchTilesResponse> future = promise->get_future();
+    auto future = promise->get_future();
     auto token = client.PrefetchTiles(
         request, [promise](PrefetchTilesResponse response) {
           promise->set_value(std::move(response));
@@ -3521,7 +3521,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesAndGetAggregated) {
                        .WithMaxLevel(12);
 
     auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
-    std::future<PrefetchTilesResponse> future = promise->get_future();
+    auto future = promise->get_future();
     auto token = client.PrefetchTiles(
         request, [promise](PrefetchTilesResponse response) {
           promise->set_value(std::move(response));

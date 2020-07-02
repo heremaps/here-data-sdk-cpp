@@ -54,7 +54,7 @@ constexpr std::uint32_t kMaxQuadTreeIndexDepth = 4u;
 void PrefetchTilesRepository::SplitSubtree(
     RootTilesForRequest& root_tiles_depth,
     RootTilesForRequest::iterator subtree_to_split,
-    const geo::TileKey& tile_key, unsigned int min) {
+    const geo::TileKey& tile_key, std::uint32_t min) {
   unsigned int depth = subtree_to_split->second;
   auto tileKey = subtree_to_split->first;
   if (depth <= kMaxQuadTreeIndexDepth) {
@@ -90,20 +90,20 @@ void PrefetchTilesRepository::SplitSubtree(
 }
 
 RootTilesForRequest PrefetchTilesRepository::GetSlicedTiles(
-    const std::vector<geo::TileKey>& tile_keys, unsigned int min,
-    unsigned int max) {
+    const std::vector<geo::TileKey>& tile_keys, std::uint32_t min,
+    std::uint32_t max) {
   RootTilesForRequest root_tiles_depth;
   // adjust root tiles to min level
   for (const auto& tile_key : tile_keys) {
     // for each tile adjust its own min/max levels needed query quad tree index
-    unsigned int min_level = min;
-    unsigned int max_level = max;
+    auto min_level = min;
+    auto max_level = max;
 
     // min level should always start from level of root tile for quad tree
     // index, if requested tile is on upper level, adjust min_level up
     if (tile_key.Level() < min_level || min_level == 0) {
       min_level = tile_key.Level();
-      max_level = (max_level < min_level) ? min_level : max_level;
+      max_level = std::max(max_level, min_level);
     }
 
     // adjust min/max levels, if distance between min/max could not be splitted
@@ -126,6 +126,7 @@ RootTilesForRequest PrefetchTilesRepository::GetSlicedTiles(
     OLP_SDK_LOG_DEBUG_F(
         kLogTag, "GetSlicedTiles for tile %s use min='%d', max='%d' levels",
         tile_key.ToHereTile().c_str(), min_level, max_level);
+
     // while adjusting levels, min_level could be changed only up
     // min_level is always less or equal to tile_key level
     // change root_tile for quad tree requests to be on min_level
@@ -250,7 +251,7 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
                           "', depth='%" PRId32 "'",
                           catalog.ToString().c_str(), layer_id.c_str(),
                           tile_key.c_str(), version, depth);
-    return {{client::ErrorCode::Unknown, "Failed to parse QuadTreeIndex json"}};
+    return {{client::ErrorCode::Unknown, "Failed to parse quad tree response"}};
   }
   // add to cache
   repository.Put(layer_id, tile, depth, tree, version);

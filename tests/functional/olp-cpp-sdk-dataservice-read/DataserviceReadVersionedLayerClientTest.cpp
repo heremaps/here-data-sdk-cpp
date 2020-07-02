@@ -199,8 +199,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Prefetch) {
                        .WithMaxLevel(12);
 
     std::promise<dataservice_read::PrefetchTilesResponse> promise;
-    std::future<dataservice_read::PrefetchTilesResponse> future =
-        promise.get_future();
+    auto future = promise.get_future();
     auto token = client->PrefetchTiles(
         request, [&promise](dataservice_read::PrefetchTilesResponse response) {
           promise.set_value(std::move(response));
@@ -294,8 +293,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWideRange) {
                        .WithMaxLevel(12);
 
     std::promise<dataservice_read::PrefetchTilesResponse> promise;
-    std::future<dataservice_read::PrefetchTilesResponse> future =
-        promise.get_future();
+    auto future = promise.get_future();
     auto token = client->PrefetchTiles(
         request, [&promise](dataservice_read::PrefetchTilesResponse response) {
           promise.set_value(std::move(response));
@@ -355,8 +353,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWrongLevels) {
                          .WithMaxLevel(0);
 
       std::promise<dataservice_read::PrefetchTilesResponse> promise;
-      std::future<dataservice_read::PrefetchTilesResponse> future =
-          promise.get_future();
+      auto future = promise.get_future();
       auto token = client->PrefetchTiles(
           request,
           [&promise](dataservice_read::PrefetchTilesResponse response) {
@@ -384,8 +381,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWrongLevels) {
                          .WithMaxLevel(0);
 
       std::promise<dataservice_read::PrefetchTilesResponse> promise;
-      std::future<dataservice_read::PrefetchTilesResponse> future =
-          promise.get_future();
+      auto future = promise.get_future();
       auto token = client->PrefetchTiles(
           request,
           [&promise](dataservice_read::PrefetchTilesResponse response) {
@@ -412,8 +408,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWrongLevels) {
                          .WithMaxLevel(-1);
 
       std::promise<dataservice_read::PrefetchTilesResponse> promise;
-      std::future<dataservice_read::PrefetchTilesResponse> future =
-          promise.get_future();
+      auto future = promise.get_future();
       auto token = client->PrefetchTiles(
           request,
           [&promise](dataservice_read::PrefetchTilesResponse response) {
@@ -440,8 +435,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWrongLevels) {
                          .WithMaxLevel(3);
 
       std::promise<dataservice_read::PrefetchTilesResponse> promise;
-      std::future<dataservice_read::PrefetchTilesResponse> future =
-          promise.get_future();
+      auto future = promise.get_future();
       auto token = client->PrefetchTiles(
           request,
           [&promise](dataservice_read::PrefetchTilesResponse response) {
