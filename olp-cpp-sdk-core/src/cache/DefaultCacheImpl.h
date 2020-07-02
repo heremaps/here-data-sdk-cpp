@@ -57,6 +57,8 @@ class DefaultCacheImpl {
 
   bool RemoveKeysWithPrefix(const std::string& key);
 
+  bool Contains(const std::string& key) const;
+
  protected:
   /// The LRU value property.
   struct ValueProperties {
@@ -124,7 +126,7 @@ class DefaultCacheImpl {
   std::unique_ptr<DiskLruCache> mutable_cache_lru_;
   std::unique_ptr<DiskCache> protected_cache_;
   uint64_t mutable_cache_data_size_;
-  std::mutex cache_lock_;
+  mutable std::mutex cache_lock_;
 };
 
 }  // namespace cache

@@ -17,8 +17,8 @@
  * License-Filename: LICENSE
  */
 
-#include "olp/core/cache/DefaultCache.h"
 #include "DefaultCacheImpl.h"
+#include "olp/core/cache/DefaultCache.h"
 #include "olp/core/porting/warning_disable.h"
 
 namespace olp {
@@ -59,6 +59,10 @@ bool DefaultCache::Remove(const std::string& key) { return impl_->Remove(key); }
 
 bool DefaultCache::RemoveKeysWithPrefix(const std::string& key) {
   return impl_->RemoveKeysWithPrefix(key);
+}
+
+bool DefaultCache::Contains(const std::string& key) const {
+  return impl_->Contains(key);
 }
 
 }  // namespace cache

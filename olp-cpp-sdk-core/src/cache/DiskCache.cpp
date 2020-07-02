@@ -317,6 +317,19 @@ bool DiskCache::Get(const std::string& key,
   return true;
 }
 
+bool DiskCache::Contains(const std::string& key) {
+  if (!database_) {
+    OLP_SDK_LOG_ERROR(kLogTag, "Get: Database is not initialized");
+    return false;
+  }
+  leveldb::ReadOptions options;
+  options.fill_cache = false;
+  options.verify_checksums = check_crc_;
+  auto iterator = NewIterator(options);
+  iterator->Seek(key);
+  return (iterator->Valid() && iterator->key() == key);
+}
+
 bool DiskCache::Remove(const std::string& key, uint64_t& removed_data_size) {
   if (!database_) {
     OLP_SDK_LOG_ERROR(kLogTag, "Remove: Database is not initialized");

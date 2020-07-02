@@ -303,6 +303,36 @@ bool DefaultCacheImpl::RemoveKeysWithPrefix(const std::string& key) {
   return true;
 }
 
+bool DefaultCacheImpl::Contains(const std::string& key) const {
+  std::lock_guard<std::mutex> lock(cache_lock_);
+  if (!is_open_) {
+    return false;
+  }
+
+  if (memory_cache_ && memory_cache_->Contains(key)) {
+    return true;
+  }
+
+  // if lru exist check key there
+  if (mutable_cache_lru_) {
+    auto it = mutable_cache_lru_->FindNoPromote(key);
+    if (it != mutable_cache_lru_->end()) {
+      ValueProperties props = it->value();
+      props.expiry -= olp::cache::InMemoryCache::DefaultTimeProvider()();
+      return (props.expiry > 0);
+    }
+    // check in mutable cache only if lru does not exist
+  } else if (mutable_cache_ && mutable_cache_->Contains(key)) {
+    return (GetRemainingExpiryTime(key, *mutable_cache_) > 0);
+  }
+
+  if (protected_cache_ && protected_cache_->Contains(key)) {
+    return (GetRemainingExpiryTime(key, *protected_cache_) > 0);
+  }
+
+  return false;
+}
+
 void DefaultCacheImpl::InitializeLru() {
   if (!mutable_cache_) {
     return;

@@ -27,6 +27,7 @@
 #include <vector>
 
 #include <olp/core/CoreApi.h>
+#include <olp/core/utils/WarningWorkarounds.h>
 #include <boost/any.hpp>
 
 namespace olp {
@@ -121,6 +122,18 @@ class CORE_API KeyValueCache {
    * @return True if the values are removed; false otherwise.
    */
   virtual bool RemoveKeysWithPrefix(const std::string& prefix) = 0;
+
+  /**
+   * @brief Check if key is in the cache.
+   *
+   * @param key The key for the value.
+   *
+   * @return True if the key/value cached ; false otherwise.
+   */
+  virtual bool Contains(const std::string& key) const {
+    CORE_UNUSED(key);
+    return false;
+  }
 };
 
 }  // namespace cache
