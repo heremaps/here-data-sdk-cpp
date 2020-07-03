@@ -619,3 +619,20 @@ TEST(DefaultCacheTest, CheckIfKeyExist) {
     ASSERT_FALSE(cache.Contains(key1));
   }
 }
+
+TEST(DefaultCacheTest, ProtectTest) {
+  olp::cache::CacheSettings settings;
+  settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
+  olp::cache::DefaultCache cache(settings);
+  ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+  ASSERT_TRUE(cache.Clear());
+  std::string key1DataString{"this is key1's data"};
+  cache.Put("key1", key1DataString, [=]() { return key1DataString; },
+            (std::numeric_limits<time_t>::max)());
+  auto key1DataRead =
+      cache.Get("key1", [](const std::string& data) { return data; });
+  ASSERT_FALSE(key1DataRead.empty());
+  ASSERT_EQ(key1DataString, boost::any_cast<std::string>(key1DataRead));
+  ASSERT_TRUE(cache.Protect({"key1"}));
+  ASSERT_TRUE(cache.Clear());
+}

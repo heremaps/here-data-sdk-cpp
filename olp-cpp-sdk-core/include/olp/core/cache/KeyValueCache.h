@@ -58,6 +58,11 @@ class CORE_API KeyValueCache {
    */
   using ValueTypePtr = std::shared_ptr<ValueType>;
 
+  /**
+   * @brief Alias for the list of keys to be protected or released.
+   */
+  using KeyListType = std::vector<std::string>;
+
   virtual ~KeyValueCache() = default;
 
   /**
@@ -132,6 +137,43 @@ class CORE_API KeyValueCache {
    */
   virtual bool Contains(const std::string& key) const {
     CORE_UNUSED(key);
+    return false;
+  }
+
+  /**
+   * @brief Protect a list of keys from eviction.
+   * You can pass in full keys or only prefixes so that you can protect entire
+   * catalogs, layers, version.
+   *
+   * @param keys list of keys and prefixes.
+   * @note E.g. "hrn:here:data:::clientmap-1-dev::rendering::1",
+   * rn:here:data:::clientmap-1-dev::rendering::1::8::4::quadtree,
+   * "hrn:here:data:::clientmap-1-dev::rendering::EEC1F23CD856733F1C9E046AA92AA74A.8::Data",
+   * "hrn:here:data:::clientmap-1-dev::rendering" or
+   * "hrn:here:data:::clientmap-1-dev".
+   * @note An empty list is invalid and should trigger no operation.
+   * @note Only works in case LRU eviction is enabled for the cache.
+   * @note Each call to Protected will result in a db write operation.
+   *
+   * @return True if the keys added to protected list; false otherwise.
+   */
+  virtual bool Protect(const KeyListType& keys) {
+    CORE_UNUSED(keys);
+    return false;
+  }
+
+  /**
+   * @brief Release a list of keys from protection. The provided keys can be
+   * full keys or prefixes only.
+   *
+   * @param keys list of keys and prefixes.
+   * @note examples of keys the same as for Protect.
+   * @note Each call to Release will result in a db write operation.
+   *
+   * @return True if the keys removed from protected list; false otherwise.
+   */
+  virtual bool Release(const KeyListType& keys) {
+    CORE_UNUSED(keys);
     return false;
   }
 };

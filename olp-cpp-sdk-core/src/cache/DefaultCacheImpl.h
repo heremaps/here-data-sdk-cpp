@@ -58,6 +58,8 @@ class DefaultCacheImpl {
   bool RemoveKeysWithPrefix(const std::string& key);
 
   bool Contains(const std::string& key) const;
+  bool Protect(const DefaultCache::KeyListType& keys);
+  bool Release(const DefaultCache::KeyListType& keys);
 
  protected:
   /// The LRU value property.

@@ -65,5 +65,13 @@ bool DefaultCache::Contains(const std::string& key) const {
   return impl_->Contains(key);
 }
 
+bool DefaultCache::Protect(const KeyListType& keys) {
+  return impl_->Protect(keys);
+}
+
+bool DefaultCache::Release(const KeyListType& keys) {
+  return impl_->Release(keys);
+}
+
 }  // namespace cache
 }  // namespace olp

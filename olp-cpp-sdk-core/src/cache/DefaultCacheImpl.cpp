@@ -681,5 +681,13 @@ std::string DefaultCacheImpl::GetExpiryKey(const std::string& key) const {
   return CreateExpiryKey(key);
 }
 
+bool DefaultCacheImpl::Protect(const DefaultCache::KeyListType& keys) {
+  return false;
+}
+
+bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
+  return false;
+}
+
 }  // namespace cache
 }  // namespace olp
