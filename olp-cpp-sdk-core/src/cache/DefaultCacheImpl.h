@@ -22,6 +22,7 @@
 #include "olp/core/cache/DefaultCache.h"
 
 #include <memory>
+#include <set>
 #include <string>
 #include <utility>
 
@@ -103,7 +104,8 @@ class DefaultCacheImpl {
   /// Removes all keys with specified prefix from LRU mutable cache.
   void RemoveKeysWithPrefixLru(const std::string& key);
 
-  /// Returns true if key is found in the LRU cache, false - otherwise.
+  /// Returns true if key is found in the LRU cache, or protected false -
+  /// otherwise.
   bool PromoteKeyLru(const std::string& key);
 
   /// Returns evicted data size.
@@ -115,11 +117,28 @@ class DefaultCacheImpl {
 
   DefaultCache::StorageOpenResult SetupStorage();
 
+  bool IsProtected(const std::string& key) const;
+
   bool GetFromDiskCache(const std::string& key,
                         KeyValueCache::ValueTypePtr& value, time_t& expiry);
 
   boost::optional<std::pair<std::string, time_t>> GetFromDiscCache(
       const std::string& key);
+
+  // custom comparator needed to reduce duplicates for keys, which are already
+  // protected by prefix
+  struct CustomCompare {
+    bool operator()(const std::string& lhs, const std::string& rhs) const {
+      if (rhs.length() < lhs.length()) {
+        if (lhs.substr(0, rhs.length()) == rhs)
+          return false;
+      } else if (lhs.length() < rhs.length()) {
+        if (rhs.substr(0, lhs.length()) == lhs)
+          return false;
+      }
+      return lhs < rhs;
+    }
+  };
 
   CacheSettings settings_;
   bool is_open_;
@@ -128,6 +147,7 @@ class DefaultCacheImpl {
   std::unique_ptr<DiskLruCache> mutable_cache_lru_;
   std::unique_ptr<DiskCache> protected_cache_;
   uint64_t mutable_cache_data_size_;
+  std::set<std::string, CustomCompare> protected_data_;
   mutable std::mutex cache_lock_;
 };
 

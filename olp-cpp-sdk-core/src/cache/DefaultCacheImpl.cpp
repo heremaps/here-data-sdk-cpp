@@ -168,6 +168,11 @@ bool DefaultCacheImpl::Put(const std::string& key, const boost::any& value,
   auto encoded_item = encoder();
   if (memory_cache_) {
     const auto size = encoded_item.size();
+    // reset expiry if key is protected only for memory cache, in mutable cache
+    // store expiry as usual
+    if (IsProtected(key)) {
+      expiry = olp::cache::KeyValueCache::kDefaultExpiry;
+    }
     const bool result = memory_cache_->Put(key, value, expiry, size);
     if (!result && size > settings_.max_memory_cache_size) {
       OLP_SDK_LOG_WARNING_F(kLogTag,
@@ -189,6 +194,11 @@ bool DefaultCacheImpl::Put(const std::string& key,
 
   if (memory_cache_) {
     const auto size = value->size();
+    // reset expiry if key is protected only for memory cache, in mutable cache
+    // store expiry as usual
+    if (IsProtected(key)) {
+      expiry = olp::cache::KeyValueCache::kDefaultExpiry;
+    }
     const bool result = memory_cache_->Put(key, value, expiry, size);
     if (!result && size > settings_.max_memory_cache_size) {
       OLP_SDK_LOG_WARNING_F(kLogTag,
@@ -222,8 +232,12 @@ boost::any DefaultCacheImpl::Get(const std::string& key,
   if (disc_cache) {
     auto decoded_item = decoder(disc_cache->first);
     if (memory_cache_) {
-      memory_cache_->Put(key, decoded_item, disc_cache->second,
-                         disc_cache->first.size());
+      auto expiry = disc_cache->second;
+      // reset expiry if key is protected only for memory cache
+      if (IsProtected(key)) {
+        expiry = olp::cache::KeyValueCache::kDefaultExpiry;
+      }
+      memory_cache_->Put(key, decoded_item, expiry, disc_cache->first.size());
     }
     return decoded_item;
   }
@@ -251,6 +265,10 @@ KeyValueCache::ValueTypePtr DefaultCacheImpl::Get(const std::string& key) {
   auto result = GetFromDiskCache(key, value, expiry);
   if (result && value) {
     if (memory_cache_) {
+      // reset expiry if key is protected only for memory cache
+      if (IsProtected(key)) {
+        expiry = olp::cache::KeyValueCache::kDefaultExpiry;
+      }
       memory_cache_->Put(key, value, expiry, value->size());
     }
 
@@ -265,7 +283,7 @@ bool DefaultCacheImpl::Remove(const std::string& key) {
   if (!is_open_) {
     return false;
   }
-
+  // protected data could be removed by user
   if (memory_cache_) {
     memory_cache_->Remove(key);
   }
@@ -320,10 +338,14 @@ bool DefaultCacheImpl::Contains(const std::string& key) const {
       ValueProperties props = it->value();
       props.expiry -= olp::cache::InMemoryCache::DefaultTimeProvider()();
       return (props.expiry > 0);
+    } else {
+      // lru exist, but key are not in lru
+      return IsProtected(key);
     }
     // check in mutable cache only if lru does not exist
   } else if (mutable_cache_ && mutable_cache_->Contains(key)) {
-    return (GetRemainingExpiryTime(key, *mutable_cache_) > 0);
+    return (GetRemainingExpiryTime(key, *mutable_cache_) > 0) ||
+           IsProtected(key);
   }
 
   if (protected_cache_ && protected_cache_->Contains(key)) {
@@ -356,7 +378,9 @@ void DefaultCacheImpl::InitializeLru() {
     // Here we count both expiry keys and regular keys
     mutable_cache_data_size_ += key.size() + value.size();
 
-    if (mutable_cache_lru_) {
+    // do not add protected keys to lru, this applyes to all keys with some
+    // protected prefix
+    if (mutable_cache_lru_ && !IsProtected(key)) {
       // remove the prefix to restore original key
       const bool expiration_key = IsExpiryKey(key);
       if (expiration_key) {
@@ -422,7 +446,7 @@ void DefaultCacheImpl::RemoveKeysWithPrefixLru(const std::string& key) {
 bool DefaultCacheImpl::PromoteKeyLru(const std::string& key) {
   if (mutable_cache_lru_) {
     auto it = mutable_cache_lru_->Find(key);
-    return it != mutable_cache_lru_->end();
+    return it != mutable_cache_lru_->end() || IsProtected(key);
   }
 
   return true;
@@ -446,6 +470,7 @@ uint64_t DefaultCacheImpl::MaybeEvictData(leveldb::WriteBatch& batch) {
   const auto current_time = olp::cache::InMemoryCache::DefaultTimeProvider()();
 
   // Remove the expired elements first
+  // protected elements are not stored in lru, so do not need to check
   for (auto it = mutable_cache_lru_->begin();
        it != mutable_cache_lru_->end() &&
        mutable_cache_data_size_ - evicted > min_size;) {
@@ -549,7 +574,8 @@ bool DefaultCacheImpl::PutMutableCache(const std::string& key,
   mutable_cache_data_size_ += added_data_size;
   mutable_cache_data_size_ -= removed_data_size;
 
-  if (mutable_cache_lru_) {
+  // do not add protected keys to lru
+  if (mutable_cache_lru_ && !IsProtected(key)) {
     ValueProperties props;
     props.size = item_size;
     props.expiry = expiry;
@@ -642,11 +668,14 @@ bool DefaultCacheImpl::GetFromDiskCache(const std::string& key,
 
   if (mutable_cache_) {
     expiry = GetRemainingExpiryTime(key, *mutable_cache_);
-    if (expiry > 0) {
+
+    if (expiry > 0 || IsProtected(key)) {
       // Entry didn't expire yet, we can still use it
       if (!PromoteKeyLru(key)) {
-        // If not found in LRU no need to look in disk cache either.
-        OLP_SDK_LOG_DEBUG_F(kLogTag, "Key not found in LRU, key='%s'",
+        // If not found in LRU or not protected no need to look in disk cache
+        // either.
+        OLP_SDK_LOG_DEBUG_F(kLogTag,
+                            "Key not found in LRU, and not protected, key='%s'",
                             key.c_str());
         return false;
       }
@@ -655,7 +684,7 @@ bool DefaultCacheImpl::GetFromDiskCache(const std::string& key,
       return result && value;
     }
 
-    // Data expired in cache -> remove
+    // Data expired in cache -> remove, but not protected keys
     uint64_t removed_data_size = 0u;
     PurgeDiskItem(key, *mutable_cache_, removed_data_size);
     mutable_cache_data_size_ -= removed_data_size;
@@ -682,10 +711,59 @@ std::string DefaultCacheImpl::GetExpiryKey(const std::string& key) const {
 }
 
 bool DefaultCacheImpl::Protect(const DefaultCache::KeyListType& keys) {
-  return false;
+  for (const auto& key : keys) {
+    // find key or prefix
+    auto hint = protected_data_.lower_bound(key);
+    if (hint != protected_data_.end()) {
+      // if hint is prefix for this key, ignore this key, it is allready
+      // protected
+      if ((*hint).length() < key.length() &&
+          key.substr(0, (*hint).length()) == (*hint)) {
+        continue;
+      }
+      // if key is prefix for hint key, remove hint and add prefix
+      if (key.length() < (*hint).length() &&
+          (*hint).substr(0, key.length()) == key) {
+        hint = protected_data_.erase(hint);
+      }
+    }
+    // remove keys from lru
+    RemoveKeysWithPrefixLru(key);
+    RemoveKeyLru(key);
+
+    // add protected key
+    protected_data_.insert(hint, key);
+    // update expiry keys in InMemoryCache
+    // expiration keys still will be stored on disk, if key will be Release, it
+    // than could be evicted as usual
+    if (memory_cache_) {
+      memory_cache_->Clear();
+    }
+  }
+  return true;
 }
 
 bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
+  return false;
+}
+
+bool DefaultCacheImpl::IsProtected(const std::string& key) const {
+  auto it = protected_data_.lower_bound(key);
+  if (it == protected_data_.end()) {
+    return false;
+  }
+  // need to check if keys equal, but only case when prefix stored, not
+  // othervise
+  if (key.length() < (*it).length()) {
+    return false;
+  }
+  // check if we store prefix
+  if ((*it).length() < key.length() && key.substr(0, (*it).length()) == *it) {
+    return true;
+  }
+  if (key.length() == (*it).length()) {
+    return (key.compare(*it) == 0);
+  }
   return false;
 }
 
