@@ -47,7 +47,7 @@ target_link_libraries(example_app
 
 ## Reference Documentation
 
-The API reference documentation for the HERE Data SDK for C++ is available on our [GitHub Pages](https://heremaps.github.io/here-olp-sdk-cpp/).
+The API reference documentation for the HERE Data SDK for C++ is available on our [GitHub Pages](https://heremaps.github.io/here-data-sdk-cpp/).
 
 ## Examples
 
