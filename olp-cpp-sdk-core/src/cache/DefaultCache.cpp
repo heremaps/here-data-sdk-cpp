@@ -27,7 +27,7 @@ namespace cache {
 DefaultCache::DefaultCache(CacheSettings settings)
     : impl_(std::make_shared<DefaultCacheImpl>(std::move(settings))) {}
 
-DefaultCache::~DefaultCache() = default;
+DefaultCache::~DefaultCache() { Close(); }
 
 DefaultCache::StorageOpenResult DefaultCache::Open() { return impl_->Open(); }
 

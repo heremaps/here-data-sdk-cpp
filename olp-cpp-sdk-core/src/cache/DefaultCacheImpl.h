@@ -34,7 +34,7 @@ namespace cache {
 
 class DefaultCacheImpl {
  public:
-  DefaultCacheImpl(CacheSettings settings);
+  explicit DefaultCacheImpl(CacheSettings settings);
 
   DefaultCache::StorageOpenResult Open();
 

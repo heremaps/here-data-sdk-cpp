@@ -24,6 +24,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "olp/core/logging/Log.h"
 #include "olp/core/porting/make_unique.h"
@@ -32,6 +33,7 @@ namespace {
 
 constexpr auto kLogTag = "DefaultCache";
 constexpr auto kExpirySuffix = "::expiry";
+constexpr auto kProtectedKeys = "protected_data";
 constexpr auto kMaxDiskSize = std::uint64_t(-1);
 constexpr auto kMinDiskUsedThreshold = 0.85f;
 constexpr auto kMaxDiskUsedThreshold = 0.9f;
@@ -118,6 +120,31 @@ void DefaultCacheImpl::Close() {
   if (!is_open_) {
     return;
   }
+  if (mutable_cache_) {
+    auto batch = std::make_unique<leveldb::WriteBatch>();
+    auto value = std::make_shared<std::vector<unsigned char>>();
+    auto size = 0;
+    for (const auto& key : protected_data_) {
+      size += key.length() + 1;
+    }
+    if (size > 0) {
+      value->reserve(size);
+
+      for (const auto& key : protected_data_) {
+        value->insert(value->end(), key.begin(), key.end());
+        if (key.back() != '\0') {
+          value->emplace_back('\0');
+        }
+      }
+
+      leveldb::Slice slice(reinterpret_cast<const char*>(value->data()),
+                           value->size());
+      batch->Put(kProtectedKeys, slice);
+      auto result = mutable_cache_->ApplyBatch(std::move(batch));
+      OLP_SDK_LOG_DEBUG_F(kLogTag, "Store list of protected keys result=%s",
+                          result.IsSuccessful() ? "true" : "false");
+    }
+  }
 
   memory_cache_.reset();
   mutable_cache_.reset();
@@ -170,10 +197,11 @@ bool DefaultCacheImpl::Put(const std::string& key, const boost::any& value,
     const auto size = encoded_item.size();
     // reset expiry if key is protected only for memory cache, in mutable cache
     // store expiry as usual
+    auto expiry_copy = expiry;
     if (IsProtected(key)) {
-      expiry = olp::cache::KeyValueCache::kDefaultExpiry;
+      expiry_copy = olp::cache::KeyValueCache::kDefaultExpiry;
     }
-    const bool result = memory_cache_->Put(key, value, expiry, size);
+    const bool result = memory_cache_->Put(key, value, expiry_copy, size);
     if (!result && size > settings_.max_memory_cache_size) {
       OLP_SDK_LOG_WARNING_F(kLogTag,
                             "Failed to store value in memory cache %s, size %d",
@@ -624,6 +652,21 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupStorage() {
       mutable_cache_.reset();
       settings_.disk_path_mutable = boost::none;
       result = DefaultCache::OpenDiskPathFailure;
+    } else {
+      // read protected keys
+      KeyValueCache::ValueTypePtr value = nullptr;
+      auto result = mutable_cache_->Get(kProtectedKeys, value);
+      if (result && value) {
+        std::string str;
+        for (const auto& el : *value) {
+          if (el == '\0' && !str.empty()) {
+            protected_data_.insert(str);
+            str.clear();
+          } else {
+            str += el;
+          }
+        }
+      }
     }
   }
 
@@ -734,8 +777,8 @@ bool DefaultCacheImpl::Protect(const DefaultCache::KeyListType& keys) {
     // add protected key
     protected_data_.insert(hint, key);
     // update expiry keys in InMemoryCache
-    // expiration keys still will be stored on disk, if key will be Release, it
-    // than could be evicted as usual
+    // expiration keys still will be stored on disk, if key will be released, it
+    // could be evicted later as usual
     if (memory_cache_) {
       memory_cache_->Clear();
     }
@@ -744,7 +787,70 @@ bool DefaultCacheImpl::Protect(const DefaultCache::KeyListType& keys) {
 }
 
 bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
-  return false;
+  auto need_reset = false;
+  auto result = true;
+  for (const auto& key : keys) {
+    // find key or prefix
+    auto hint = protected_data_.lower_bound(key);
+    if (hint != protected_data_.end()) {
+      // if hint is prefix for this key, it is allready protected, could not
+      // unprotect one key, return error
+      if ((*hint).length() < key.length() &&
+          key.substr(0, (*hint).length()) == (*hint)) {
+        OLP_SDK_LOG_WARNING_F(kLogTag,
+                              "Prefix is stored for key='%s', prefix='%s'",
+                              key.c_str(), (*hint).c_str());
+        result = false;
+        break;
+      }
+      // if key is prefix for hint key, remove hint, add key to lru, the same if
+      // keys equal
+      if ((key.length() < (*hint).length() &&
+           (*hint).substr(0, key.length()) == key) ||
+          (key.compare(*hint) == 0)) {
+        // read from mutable cache and add to lru
+        KeyValueCache::ValueTypePtr value = nullptr;
+        time_t expiry = KeyValueCache::kDefaultExpiry;
+
+        auto result = GetFromDiskCache(*hint, value, expiry);
+        if (!need_reset) {
+          if (result && value) {
+            if (memory_cache_) {
+              if (expiry > 0) {
+                memory_cache_->Put(*hint, value, expiry, value->size());
+              } else {
+                memory_cache_->Remove(*hint);
+              }
+            }
+            if (expiry > 0) {
+              ValueProperties props;
+              props.size = value->size();
+              props.expiry = expiry;
+              mutable_cache_lru_->InsertOrAssign(*hint, props);
+            }
+          } else {
+            // probably *hint is prefix, need to reset memory cache and lru
+            need_reset = true;
+          }
+        }
+
+        // key added to memory cache and lru, we can remove from protected list
+        protected_data_.erase(hint);
+      } else {
+        OLP_SDK_LOG_WARNING_F(
+            kLogTag, "Key was not found in list of protected keys key='%s'",
+            key.c_str());
+        protected_data_.erase(hint);
+        result = false;
+        break;
+      }
+    }
+  }
+  if (need_reset) {
+    Close();
+    Open();
+  }
+  return result;
 }
 
 bool DefaultCacheImpl::IsProtected(const std::string& key) const {
