@@ -37,7 +37,7 @@
 #include "generated/serializer/PartitionsSerializer.h"
 #include "generated/serializer/JsonSerializer.h"
 // clang-format on
-#include "DefaultResponses.h"
+#include "ReadDefaultResponses.h"
 #include "MockServerHelper.h"
 #include "Utils.h"
 
