@@ -115,6 +115,8 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::Open() {
   return SetupStorage();
 }
 
+DefaultCacheImpl::~DefaultCacheImpl() { Close(); }
+
 void DefaultCacheImpl::Close() {
   std::lock_guard<std::mutex> lock(cache_lock_);
   if (!is_open_) {

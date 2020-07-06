@@ -36,6 +36,8 @@ class DefaultCacheImpl {
  public:
   explicit DefaultCacheImpl(CacheSettings settings);
 
+  ~DefaultCacheImpl();
+
   DefaultCache::StorageOpenResult Open();
 
   void Close();

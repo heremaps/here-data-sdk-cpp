@@ -27,7 +27,7 @@ namespace cache {
 DefaultCache::DefaultCache(CacheSettings settings)
     : impl_(std::make_shared<DefaultCacheImpl>(std::move(settings))) {}
 
-DefaultCache::~DefaultCache() { Close(); }
+DefaultCache::~DefaultCache() = default;
 
 DefaultCache::StorageOpenResult DefaultCache::Open() { return impl_->Open(); }
 
@@ -63,14 +63,6 @@ bool DefaultCache::RemoveKeysWithPrefix(const std::string& key) {
 
 bool DefaultCache::Contains(const std::string& key) const {
   return impl_->Contains(key);
-}
-
-bool DefaultCache::Protect(const KeyListType& keys) {
-  return impl_->Protect(keys);
-}
-
-bool DefaultCache::Release(const KeyListType& keys) {
-  return impl_->Release(keys);
 }
 
 }  // namespace cache
