@@ -140,6 +140,8 @@ set(OLP_SDK_DATASERVICE_WRITE_SOURCES
     ./src/generated/parser/VersionResponseParser.cpp
     ./src/generated/parser/VersionResponseParser.h
 
+    ./src/generated/serializer/ApiSerializer.cpp
+    ./src/generated/serializer/ApiSerializer.h
     ./src/generated/serializer/IndexInfoSerializer.cpp
     ./src/generated/serializer/IndexInfoSerializer.h
     ./src/generated/serializer/JsonSerializer.h

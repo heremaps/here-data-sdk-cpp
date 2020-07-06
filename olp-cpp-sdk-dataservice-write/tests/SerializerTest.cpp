@@ -24,6 +24,7 @@
 
 // clang-format off
 // Ordering Required - Parser template specializations before JsonParser.h
+#include <generated/serializer/ApiSerializer.h>
 #include <generated/serializer/PublicationSerializer.h>
 #include <generated/serializer/PublishPartitionSerializer.h>
 #include <generated/serializer/PublishPartitionsSerializer.h>
@@ -33,18 +34,48 @@
 
 namespace {
 
-using namespace olp::dataservice::write::model;
+namespace model = olp::dataservice::write::model;
 
 void RemoveWhitespaceAndNewlines(std::string& s) {
   std::regex r("\\s+");
   s = std::regex_replace(s, r, "");
 }
 
+TEST(SerializerTest, Api) {
+  std::string expectedOutput =
+      "{\
+      \"api\": \"config\",\
+      \"version\": \"v1\",\
+      \"baseURL\": \"https://config.data.api.platform.here.com/config/v1\",\
+      \"parameters\": {\
+      \"additionalProp1\": \"string\",\
+      \"additionalProp2\": \"string\",\
+      \"additionalProp3\": \"string\"\
+      }\
+      }";
+
+  model::Api api;
+
+  api.SetApi("config");
+  api.SetVersion("v1");
+  api.SetBaseUrl("https://config.data.api.platform.here.com/config/v1");
+  std::map<std::string, std::string> params;
+  params["additionalProp1"] = "string";
+  params["additionalProp2"] = "string";
+  params["additionalProp3"] = "string";
+  api.SetParameters(params);
+
+  auto json = olp::serializer::serialize(api);
+  RemoveWhitespaceAndNewlines(expectedOutput);
+  RemoveWhitespaceAndNewlines(json);
+  ASSERT_EQ(expectedOutput, json);
+}
+
 TEST(SerializerTest, Publication) {
-  Publication publication;
+  model::Publication publication;
   publication.SetId("34bc2a16-0373-4157-8ccc-19ba08a6672b");
 
-  Details details;
+  model::Details details;
   details.SetState("initialized");
   details.SetMessage("Publication initialized");
   details.SetStarted(1523459129829);
@@ -53,14 +84,14 @@ TEST(SerializerTest, Publication) {
   publication.SetDetails(details);
   publication.SetLayerIds({"my-layer"});
 
-  VersionDependency version_dependency;
+  model::VersionDependency version_dependency;
   version_dependency.SetDirect(true);
   version_dependency.SetHrn("hrn:here:data::olp-here-test:my-catalog");
   version_dependency.SetVersion(1);
   publication.SetVersionDependencies({version_dependency});
   publication.SetCatalogVersion(1);
 
-  auto json = olp::serializer::serialize<Publication>(publication);
+  auto json = olp::serializer::serialize<model::Publication>(publication);
 
   std::string valid_json = R"(
       {
@@ -93,11 +124,11 @@ TEST(SerializerTest, Publication) {
 }
 
 TEST(SerializerTest, PublicationOnlyLayerIds) {
-  Publication publication;
+  model::Publication publication;
 
   publication.SetLayerIds({"my-layer"});
 
-  auto json = olp::serializer::serialize<Publication>(publication);
+  auto json = olp::serializer::serialize<model::Publication>(publication);
 
   std::string valid_json = R"(
       {
@@ -114,7 +145,7 @@ TEST(SerializerTest, PublicationOnlyLayerIds) {
 }
 
 TEST(SerializerTest, PublishPartition) {
-  PublishPartition publish_partition;
+  model::PublishPartition publish_partition;
 
   publish_partition.SetPartition("314010583");
   publish_partition.SetChecksum("ff7494d6f17da702862e550c907c0a91");
@@ -130,7 +161,8 @@ TEST(SerializerTest, PublishPartition) {
   publish_partition.SetDataHandle("1b2ca68f-d4a0-4379-8120-cd025640510c");
   publish_partition.SetTimestamp(1519219235);
 
-  auto json = olp::serializer::serialize<PublishPartition>(publish_partition);
+  auto json =
+      olp::serializer::serialize<model::PublishPartition>(publish_partition);
 
   std::string valid_json = R"(
       {
@@ -151,8 +183,8 @@ TEST(SerializerTest, PublishPartition) {
 }
 
 TEST(SerializerTest, PublishPartitions) {
-  PublishPartitions publish_partitions;
-  PublishPartition publish_partition;
+  model::PublishPartitions publish_partitions;
+  model::PublishPartition publish_partition;
 
   publish_partition.SetPartition("314010583");
   publish_partition.SetChecksum("ff7494d6f17da702862e550c907c0a91");
@@ -170,7 +202,8 @@ TEST(SerializerTest, PublishPartitions) {
 
   publish_partitions.SetPartitions({publish_partition});
 
-  auto json = olp::serializer::serialize<PublishPartitions>(publish_partitions);
+  auto json =
+      olp::serializer::serialize<model::PublishPartitions>(publish_partitions);
 
   std::string valid_json = R"(
     {
@@ -195,15 +228,16 @@ TEST(SerializerTest, PublishPartitions) {
 }
 
 TEST(SerializerTest, PublishPartitionsOnlyPartitionAndDatahandle) {
-  PublishPartitions publish_partitions;
-  PublishPartition publish_partition;
+  model::PublishPartitions publish_partitions;
+  model::PublishPartition publish_partition;
 
   publish_partition.SetPartition("314010583");
   publish_partition.SetDataHandle("1b2ca68f-d4a0-4379-8120-cd025640510c");
 
   publish_partitions.SetPartitions({publish_partition});
 
-  auto json = olp::serializer::serialize<PublishPartitions>(publish_partitions);
+  auto json =
+      olp::serializer::serialize<model::PublishPartitions>(publish_partitions);
 
   std::string valid_json = R"(
     {
@@ -223,7 +257,7 @@ TEST(SerializerTest, PublishPartitionsOnlyPartitionAndDatahandle) {
 }
 
 TEST(SerializerTest, PublishDataRequest) {
-  PublishDataRequest publish_data_request;
+  model::PublishDataRequest publish_data_request;
 
   std::string data_string = "payload";
   std::shared_ptr<std::vector<unsigned char>> data_ =
@@ -235,8 +269,8 @@ TEST(SerializerTest, PublishDataRequest) {
       .WithLayerId("olp-cpp-sdk-layer")
       .WithTraceId("04946af8-7f0e-4d41-b85a-e883c74ebba3");
 
-  auto json =
-      olp::serializer::serialize<PublishDataRequest>(publish_data_request);
+  auto json = olp::serializer::serialize<model::PublishDataRequest>(
+      publish_data_request);
 
   std::string valid_json = R"(
       {
