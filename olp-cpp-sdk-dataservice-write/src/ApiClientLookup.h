@@ -56,6 +56,11 @@ class ApiClientLookup {
       const client::HRN& catalog,
       client::CancellationContext cancellation_context, std::string service,
       std::string service_version, client::OlpClientSettings settings);
+
+  static ApiClientResponse LookupApisClient(
+      const client::HRN& catalog,
+      client::CancellationContext cancellation_context, std::string service,
+      std::string service_version, client::OlpClientSettings settings);
 };
 
 }  // namespace write

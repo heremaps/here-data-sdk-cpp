@@ -63,6 +63,12 @@ class PlatformApi {
                               const std::string& service,
                               const std::string& service_version,
                               client::CancellationContext context);
+
+  /**
+   * @brief Synchronous version of \c GetApis method but for all apis.
+   */
+  static ApisResponse GetApis(const client::OlpClient& client,
+                              client::CancellationContext context);
 };
 
 }  // namespace write

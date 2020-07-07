@@ -66,6 +66,13 @@ class ResourcesApi {
                               const std::string& service,
                               const std::string& service_version,
                               olp::client::CancellationContext cancel_context);
+
+  /**
+   * @brief Similar to synchronous GetApis method but requesting all apis.
+   */
+  static ApisResponse GetApis(const client::OlpClient& client,
+                              const std::string& hrn,
+                              olp::client::CancellationContext cancel_context);
 };
 
 }  // namespace write

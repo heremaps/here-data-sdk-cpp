@@ -82,6 +82,26 @@ ResourcesApi::ApisResponse ResourcesApi::GetApis(
   return ApisResponse(parser::parse<model::Apis>(http_response.response));
 }
 
+ResourcesApi::ApisResponse ResourcesApi::GetApis(
+    const client::OlpClient& client, const std::string& hrn,
+    olp::client::CancellationContext cancel_context) {
+  std::multimap<std::string, std::string> header_params;
+  header_params.insert(std::make_pair("Accept", "application/json"));
+  std::multimap<std::string, std::string> query_params;
+  std::multimap<std::string, std::string> form_params;
+
+  // scan apis at resource endpoint
+  std::string resource_url = "/resources/" + hrn + "/apis";
+  auto http_response =
+      client.CallApi(std::move(resource_url), "GET", std::move(query_params),
+                     std::move(header_params), std::move(form_params), nullptr,
+                     "", cancel_context);
+  if (http_response.status != olp::http::HttpStatusCode::OK) {
+    return {{http_response.status, http_response.response.str()}};
+  }
+  return parser::parse<model::Apis>(http_response.response);
+}
+
 }  // namespace write
 }  // namespace dataservice
 }  // namespace olp

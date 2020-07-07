@@ -83,6 +83,25 @@ PlatformApi::ApisResponse PlatformApi::GetApis(
   return ApisResponse(parser::parse<model::Apis>(http_response.response));
 }
 
+PlatformApi::ApisResponse PlatformApi::GetApis(
+    const client::OlpClient& client, client::CancellationContext context) {
+  std::multimap<std::string, std::string> header_params;
+  header_params.insert(std::make_pair("Accept", "application/json"));
+  std::multimap<std::string, std::string> query_params;
+  std::multimap<std::string, std::string> form_params;
+
+  std::string platform_url = "/platform/apis";
+
+  auto http_response = client.CallApi(
+      std::move(platform_url), "GET", std::move(query_params),
+      std::move(header_params), std::move(form_params), nullptr, "", context);
+  if (http_response.status != olp::http::HttpStatusCode::OK) {
+    return {{http_response.status, http_response.response.str()}};
+  }
+
+  return parser::parse<model::Apis>(http_response.response);
+}
+
 }  // namespace write
 }  // namespace dataservice
 }  // namespace olp
