@@ -209,6 +209,8 @@ set(OLP_SDK_CACHE_SOURCES
     ./src/cache/DiskCacheSizeLimitEnv.h
     ./src/cache/DiskCacheSizeLimitWritableFile.cpp
     ./src/cache/DiskCacheSizeLimitWritableFile.h
+    ./src/cache/ProtectedData.cpp
+    ./src/cache/ProtectedData.h
     ./src/cache/InMemoryCache.cpp
     ./src/cache/InMemoryCache.h
 )

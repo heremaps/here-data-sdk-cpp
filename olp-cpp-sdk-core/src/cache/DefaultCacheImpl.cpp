@@ -24,7 +24,6 @@
 #include <memory>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "olp/core/logging/Log.h"
 #include "olp/core/porting/make_unique.h"
@@ -124,21 +123,9 @@ void DefaultCacheImpl::Close() {
   }
   if (mutable_cache_) {
     auto batch = std::make_unique<leveldb::WriteBatch>();
-    auto value = std::make_shared<std::vector<unsigned char>>();
-    auto size = 0;
-    for (const auto& key : protected_data_) {
-      size += key.length() + 1;
-    }
-    if (size > 0) {
-      value->reserve(size);
 
-      for (const auto& key : protected_data_) {
-        value->insert(value->end(), key.begin(), key.end());
-        if (key.back() != '\0') {
-          value->emplace_back('\0');
-        }
-      }
-
+    auto value = protected_keys_.WriteListOfProtectedKeys();
+    if (value->size() > 0) {
       leveldb::Slice slice(reinterpret_cast<const char*>(value->data()),
                            value->size());
       batch->Put(kProtectedKeys, slice);
@@ -361,21 +348,23 @@ bool DefaultCacheImpl::Contains(const std::string& key) const {
     return true;
   }
 
-  // if lru exist check key there
+  // if lru exist check if key is there
   if (mutable_cache_lru_) {
     auto it = mutable_cache_lru_->FindNoPromote(key);
     if (it != mutable_cache_lru_->end()) {
       ValueProperties props = it->value();
       props.expiry -= olp::cache::InMemoryCache::DefaultTimeProvider()();
       return (props.expiry > 0);
-    } else {
-      // lru exist, but key are not in lru
-      return IsProtected(key);
+      // if lru exist, but key not found, this case possible only for protected
+      // keys
+    } else if (protected_keys_.IsProtected(key)) {
+      return mutable_cache_ && mutable_cache_->Contains(key);
     }
+
     // check in mutable cache only if lru does not exist
   } else if (mutable_cache_ && mutable_cache_->Contains(key)) {
     return (GetRemainingExpiryTime(key, *mutable_cache_) > 0) ||
-           IsProtected(key);
+           protected_keys_.IsProtected(key);
   }
 
   if (protected_cache_ && protected_cache_->Contains(key)) {
@@ -410,7 +399,7 @@ void DefaultCacheImpl::InitializeLru() {
 
     // do not add protected keys to lru, this applyes to all keys with some
     // protected prefix
-    if (mutable_cache_lru_ && !IsProtected(key)) {
+    if (mutable_cache_lru_ && !protected_keys_.IsProtected(key)) {
       // remove the prefix to restore original key
       const bool expiration_key = IsExpiryKey(key);
       if (expiration_key) {
@@ -476,7 +465,7 @@ void DefaultCacheImpl::RemoveKeysWithPrefixLru(const std::string& key) {
 bool DefaultCacheImpl::PromoteKeyLru(const std::string& key) {
   if (mutable_cache_lru_) {
     auto it = mutable_cache_lru_->Find(key);
-    return it != mutable_cache_lru_->end() || IsProtected(key);
+    return it != mutable_cache_lru_->end() || protected_keys_.IsProtected(key);
   }
 
   return true;
@@ -605,7 +594,7 @@ bool DefaultCacheImpl::PutMutableCache(const std::string& key,
   mutable_cache_data_size_ -= removed_data_size;
 
   // do not add protected keys to lru
-  if (mutable_cache_lru_ && !IsProtected(key)) {
+  if (mutable_cache_lru_ && !protected_keys_.IsProtected(key)) {
     ValueProperties props;
     props.size = item_size;
     props.expiry = expiry;
@@ -659,15 +648,7 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupStorage() {
       KeyValueCache::ValueTypePtr value = nullptr;
       auto result = mutable_cache_->Get(kProtectedKeys, value);
       if (result && value) {
-        std::string str;
-        for (const auto& el : *value) {
-          if (el == '\0' && !str.empty()) {
-            protected_data_.insert(str);
-            str.clear();
-          } else {
-            str += el;
-          }
-        }
+        protected_keys_.ReadListOfProtectedKeys(value);
       }
     }
   }
@@ -714,7 +695,7 @@ bool DefaultCacheImpl::GetFromDiskCache(const std::string& key,
   if (mutable_cache_) {
     expiry = GetRemainingExpiryTime(key, *mutable_cache_);
 
-    if (expiry > 0 || IsProtected(key)) {
+    if (expiry > 0 || protected_keys_.IsProtected(key)) {
       // Entry didn't expire yet, we can still use it
       if (!PromoteKeyLru(key)) {
         // If not found in LRU or not protected no need to look in disk cache
@@ -756,123 +737,59 @@ std::string DefaultCacheImpl::GetExpiryKey(const std::string& key) const {
 }
 
 bool DefaultCacheImpl::Protect(const DefaultCache::KeyListType& keys) {
-  for (const auto& key : keys) {
-    // find key or prefix
-    auto hint = protected_data_.lower_bound(key);
-    if (hint != protected_data_.end()) {
-      // if hint is prefix for this key, ignore this key, it is allready
-      // protected
-      if ((*hint).length() < key.length() &&
-          key.substr(0, (*hint).length()) == (*hint)) {
-        continue;
-      }
-      // if key is prefix for hint key, remove hint and add prefix
-      if (key.length() < (*hint).length() &&
-          (*hint).substr(0, key.length()) == key) {
-        hint = protected_data_.erase(hint);
-      }
-    }
-    // remove keys from lru
+  protected_keys_.Protect(keys, [&](const std::string& key) {
     RemoveKeysWithPrefixLru(key);
     RemoveKeyLru(key);
-
-    // add protected key
-    protected_data_.insert(hint, key);
-    // update expiry keys in InMemoryCache
-    // expiration keys still will be stored on disk, if key will be released, it
-    // could be evicted later as usual
-    if (memory_cache_) {
-      memory_cache_->Clear();
-    }
+  });
+  if (memory_cache_) {
+    memory_cache_->Clear();
   }
+
   return true;
 }
 
 bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
-  auto need_reset = false;
-  auto result = true;
-  for (const auto& key : keys) {
-    // find key or prefix
-    auto hint = protected_data_.lower_bound(key);
-    if (hint != protected_data_.end()) {
-      // if hint is prefix for this key, it is allready protected, could not
-      // unprotect one key, return error
-      if ((*hint).length() < key.length() &&
-          key.substr(0, (*hint).length()) == (*hint)) {
-        OLP_SDK_LOG_WARNING_F(kLogTag,
-                              "Prefix is stored for key='%s', prefix='%s'",
-                              key.c_str(), (*hint).c_str());
-        result = false;
-        break;
-      }
-      // if key is prefix for hint key, remove hint, add key to lru, the same if
-      // keys equal
-      if ((key.length() < (*hint).length() &&
-           (*hint).substr(0, key.length()) == key) ||
-          (key.compare(*hint) == 0)) {
-        // read from mutable cache and add to lru
-        KeyValueCache::ValueTypePtr value = nullptr;
-        time_t expiry = KeyValueCache::kDefaultExpiry;
+  bool need_reset = false;
+  auto result = protected_keys_.Release(keys, [&](const std::string& key) {
+    if (!need_reset) {
+      KeyValueCache::ValueTypePtr value = nullptr;
+      time_t expiry = KeyValueCache::kDefaultExpiry;
 
-        auto result = GetFromDiskCache(*hint, value, expiry);
-        if (!need_reset) {
-          if (result && value) {
-            if (memory_cache_) {
-              if (expiry > 0) {
-                memory_cache_->Put(*hint, value, expiry, value->size());
-              } else {
-                memory_cache_->Remove(*hint);
-              }
-            }
-            if (expiry > 0) {
-              ValueProperties props;
-              props.size = value->size();
-              props.expiry = expiry;
-              mutable_cache_lru_->InsertOrAssign(*hint, props);
-            }
+      auto result = GetFromDiskCache(key, value, expiry);
+      if (result && value) {
+        if (memory_cache_) {
+          if (expiry > 0) {
+            memory_cache_->Put(key, value, expiry, value->size());
           } else {
-            // probably *hint is prefix, need to reset memory cache and lru
-            need_reset = true;
+            memory_cache_->Remove(key);
           }
         }
-
-        // key added to memory cache and lru, we can remove from protected list
-        protected_data_.erase(hint);
+        if (expiry > 0) {
+          ValueProperties props;
+          props.size = value->size();
+          props.expiry = expiry;
+          mutable_cache_lru_->InsertOrAssign(key, props);
+        }
       } else {
-        OLP_SDK_LOG_WARNING_F(
-            kLogTag, "Key was not found in list of protected keys key='%s'",
-            key.c_str());
-        protected_data_.erase(hint);
-        result = false;
-        break;
+        // key is not in mutable_cache_lru_, key is prefix, need reload memory
+        // cache and lru to store all keys with prefix
+        need_reset = true;
       }
     }
-  }
+  });
+
   if (need_reset) {
-    Close();
-    Open();
+    if (memory_cache_) {
+      memory_cache_->Clear();
+    }
+    mutable_cache_lru_.reset();
+    InitializeLru();
   }
   return result;
 }
 
 bool DefaultCacheImpl::IsProtected(const std::string& key) const {
-  auto it = protected_data_.lower_bound(key);
-  if (it == protected_data_.end()) {
-    return false;
-  }
-  // need to check if keys equal, but only case when prefix stored, not
-  // othervise
-  if (key.length() < (*it).length()) {
-    return false;
-  }
-  // check if we store prefix
-  if ((*it).length() < key.length() && key.substr(0, (*it).length()) == *it) {
-    return true;
-  }
-  if (key.length() == (*it).length()) {
-    return (key.compare(*it) == 0);
-  }
-  return false;
+  return protected_keys_.IsProtected(key);
 }
 
 }  // namespace cache

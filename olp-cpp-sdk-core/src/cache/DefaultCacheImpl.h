@@ -22,12 +22,12 @@
 #include "olp/core/cache/DefaultCache.h"
 
 #include <memory>
-#include <set>
 #include <string>
 #include <utility>
 
 #include "DiskCache.h"
 #include "InMemoryCache.h"
+#include "ProtectedData.h"
 
 namespace olp {
 namespace cache {
@@ -127,21 +127,6 @@ class DefaultCacheImpl {
   boost::optional<std::pair<std::string, time_t>> GetFromDiscCache(
       const std::string& key);
 
-  // custom comparator needed to reduce duplicates for keys, which are already
-  // protected by prefix
-  struct CustomCompare {
-    bool operator()(const std::string& lhs, const std::string& rhs) const {
-      if (rhs.length() < lhs.length()) {
-        if (lhs.substr(0, rhs.length()) == rhs)
-          return false;
-      } else if (lhs.length() < rhs.length()) {
-        if (rhs.substr(0, lhs.length()) == lhs)
-          return false;
-      }
-      return lhs < rhs;
-    }
-  };
-
   CacheSettings settings_;
   bool is_open_;
   std::unique_ptr<InMemoryCache> memory_cache_;
@@ -149,7 +134,7 @@ class DefaultCacheImpl {
   std::unique_ptr<DiskLruCache> mutable_cache_lru_;
   std::unique_ptr<DiskCache> protected_cache_;
   uint64_t mutable_cache_data_size_;
-  std::set<std::string, CustomCompare> protected_data_;
+  ProtectedData protected_keys_;
   mutable std::mutex cache_lock_;
 };
 
