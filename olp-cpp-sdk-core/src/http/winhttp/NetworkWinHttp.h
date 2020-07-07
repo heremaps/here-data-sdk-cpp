@@ -42,7 +42,7 @@ namespace http {
  */
 class NetworkWinHttp : public Network {
  public:
-  NetworkWinHttp(size_t max_request_count);
+  explicit NetworkWinHttp(size_t max_request_count);
   ~NetworkWinHttp() override;
 
   // Non-copyable, non-movable
@@ -78,7 +78,7 @@ class NetworkWinHttp : public Network {
   };
 
   struct ConnectionData {
-    ConnectionData(HINTERNET http_connection);
+    explicit ConnectionData(HINTERNET http_connection);
     ConnectionData(const ConnectionData&) = delete;
     ConnectionData(ConnectionData&&) noexcept = delete;
     ConnectionData& operator=(const ConnectionData&) = delete;
@@ -150,3 +150,4 @@ class NetworkWinHttp : public Network {
 
 }  // namespace http
 }  // namespace olp
+
