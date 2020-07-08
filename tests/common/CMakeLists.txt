@@ -43,4 +43,5 @@ target_link_libraries(olp-cpp-sdk-tests-common
         gmock
         olp-cpp-sdk-core
         olp-cpp-sdk-dataservice-write
+        olp-cpp-sdk-dataservice-read
 )
