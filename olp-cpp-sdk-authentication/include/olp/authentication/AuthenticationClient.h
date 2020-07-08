@@ -39,22 +39,21 @@
 #include <boost/optional.hpp>
 
 /**
- * @brief The olp namespace is the namespace to rule them all.
+ * @brief Rules all the other namespaces.
  */
 namespace olp {
 
 /**
- * @brief The authentication namespace holds all authentication related classes.
+ * @brief Holds all authentication-related classes.
  */
 namespace authentication {
 class AuthenticationClientImpl;
 
 /**
- * @brief An API class of the C++ client that provides
- * programmatic access to the HERE Account authentication service.
+ * @brief Provides programmatic access to the HERE Account Authentication Service.
  *
  * The supported APIs mirror the REST APIs currently available for the HERE
- * Account authentication service.
+ * Account Authentication Service.
  */
 class AUTHENTICATION_API AuthenticationClient {
  public:
@@ -107,29 +106,33 @@ class AUTHENTICATION_API AuthenticationClient {
    */
   struct FederatedProperties {
     /**
-     * @brief (Required) A valid Facebook, Google, or ArcGis access token
-     * obtained from the Facebook, Google, or ArcGis token endpoint.
+     * @brief (Required) A valid Facebook, Google, or ArcGIS access token
+     * obtained from the Facebook, Google, or ArcGIS token endpoint.
      */
     std::string access_token;
 
     /**
-     * @brief Required for the first time sign-in; optional for
-     * the subsequent sign-ins.
+     * @brief The code of the country in which you live
+     * in the ISO 3166-1 alpha-3 format.
      *
-     * The country code should be in the ISO 3166-1 alpha-3 format.
+     * Required for the first time sign-in; optional for
+     * the subsequent sign-ins.
      */
     std::string country_code;
 
     /**
-     * @brief Required for the first time sign-in; optional for
-     * the ubsequent sign-ins.
+     * @brief The code of the language that you speak
+     * in the ISO 639-1 alpha-2 format.
      *
-     * The language code should be in the ISO 639-1 alpha-2 format.
+     * Required for the first time sign-in; optional for
+     * the subsequent sign-ins.
      */
     std::string language;
 
     /**
-     * @brief Required for the first time sign-in and if your access token
+     * @brief Your valid email address.
+     *
+     * Required for the first time sign-in and if your access token
      * doesn't have the email permission; optional for the subsequent sign-ins.
      */
     std::string email;
@@ -211,7 +214,7 @@ class AUTHENTICATION_API AuthenticationClient {
 
     /**
      * @brief (Optional) The valid Authorization Invite Token with a payload
-     * that matches user email and the requested realm. Required for
+     * that matches the user email and requested realm. Required for
      * the invite-only realms.
      */
     std::string invite_token;
@@ -292,7 +295,7 @@ class AUTHENTICATION_API AuthenticationClient {
    * @brief Signs in with your HERE Account client credentials and requests
    * the client access token.
    *
-   * The client access tokens cannot be refreshed. Instead
+   * The client access tokens cannot be refreshed. Instead,
    * request a new client access token using your client credentials.
    *
    * @param credentials The `AuthenticationCredentials` instance.
@@ -337,7 +340,7 @@ class AUTHENTICATION_API AuthenticationClient {
    * endpoint.
    *
    * @param credentials The `AuthenticationCredentials` instance.
-   * @param request_body The request body that will be passed to the oauth
+   * @param request_body The request body that will be passed to the OAuth
    * endpoint.
    * @param callback The `SignInUserCallback` method that is called when
    * the user sign-in request is completed. If successful, the returned HTTP
@@ -457,7 +460,7 @@ class AUTHENTICATION_API AuthenticationClient {
 
   /**
    * @brief Signs up with your user properties and creates a new HERE Account
-   * for using your email and password that are the login credentials.
+   * to use your login credentials: email and password.
    *
    * The HERE user is uniquely identified by the user ID that is consistent
    * across the other HERE platform Services, regardless of the authentication
@@ -481,9 +484,10 @@ class AUTHENTICATION_API AuthenticationClient {
    *
    * Requires the "terms re-acceptance required" response represented by
    * the following statuses:
-   * * HTTP 412 &ndash; received after you sign in with the existing user
+   * * HTTP 412 – received after you sign in with the existing user
    * account.
-   * * HTTP 201 &ndash; received after you create a new account.
+   * * HTTP 201 – received after you create a new account.
+   *
    * The terms and conditions are explicitly accepted by providing the terms
    * re-acceptance token back to this API.
    *
@@ -504,7 +508,7 @@ class AUTHENTICATION_API AuthenticationClient {
       const SignInUserCallback& callback);
 
   /**
-   * @brief Signs out the user.
+   * @brief Signs the user out.
    *
    * Calls the sign-out API and deletes any locally stored tokens.
    * The access token that is used to sign out is immediately invalidated for
@@ -553,9 +557,9 @@ class AUTHENTICATION_API AuthenticationClient {
    *
    * @param access_token A valid access token that is associated with the
    * service.
-   * @param request Context of the Authorize request.
+   * @param request Еру сontext of the `Authorize` request.
    * @param callback The`AuthorizeCallback` method that is called when
-   * the Authorize request is completed.
+   * the `Authorize` request is completed.
    *
    * @return The `CancellationToken` instance that can be used to cancel
    * the request.

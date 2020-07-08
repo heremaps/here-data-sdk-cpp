@@ -28,98 +28,98 @@
 namespace olp {
 namespace authentication {
 /**
- * @brief A response to a client or user introspect app operation.
+ * @brief A response to a client or user introspect application operation.
  */
 class AUTHENTICATION_API IntrospectAppResult {
  public:
   /**
-   * @brief Identifier for the client/application.
+   * @brief Gets the identifier for the client or application.
    *
-   * @return The string containing client identifier.
+   * @return The client identifier.
    */
   const std::string& GetClientId() const { return client_id_; }
 
   /**
-   * @brief Sets identifier for the client/application.
+   * @brief Sets the identifier for the client or application.
    *
-   * @param client_id The string containing client identifier.
+   * @param client_id The client identifier.
    */
   void SetClientId(std::string client_id) { client_id_ = std::move(client_id); }
 
   /**
-   * @brief Human readable name of the client.
+   * @brief Gets the human-readable name of the client.
    *
-   * @return The string containing client name.
+   * @return The client name.
    */
   const std::string& GetName() const { return name_; }
 
   /**
    * @brief Sets the name of the client.
    *
-   * @param name The string containing client name.
+   * @param name The client name.
    */
   void SetName(std::string name) { name_ = std::move(name); }
 
   /**
-   * @brief Prose description of the client.
+   * @brief Gets the prose description of the client.
    *
-   * @return The string containing client description.
+   * @return The client description.
    */
   const std::string& GetDescription() const { return description_; }
 
   /**
-   * @brief Sets prose description of the client.
+   * @brief Sets the prose description of the client.
    *
-   * @param description The string containing client description.
+   * @param description The client description.
    */
   void SetDescription(std::string description) {
     description_ = std::move(description);
   }
 
   /**
-   * @brief List of redirect uris.
+   * @brief Gets a list of redirect URIs.
    *
-   * Should be fully qualified HTTPS uris without any fragments (HTTP is
-   * only supported for localhost development). At least one redirect uri
-   * should be registered if the response types is non-empty.
+   * Should be fully qualified HTTPS URIs without any fragments (HTTP is
+   * only supported for the localhost development). At least one redirect URI
+   * should be registered if the response types are non-empty.
    *
-   * @return The list of redirect uris.
+   * @return The list of the redirect URIs.
    */
   const std::vector<std::string>& GetRedirectUris() const {
     return redirect_uris_;
   }
 
   /**
-   * @brief Sets the redirect uris.
+   * @brief Sets the redirect URIs.
    *
-   * @param uris The list of redirect uris.
+   * @param uris The list of the redirect URIs.
    */
   void SetReditectUris(std::vector<std::string> uris) {
     redirect_uris_ = std::move(uris);
   }
 
   /**
-   * @brief List of strings representing the scopes.
+   * @brief Gets a list of strings that represent scopes.
    *
-   * This field is required when the response types is non-empty.
+   * This field is required when the response types are non-empty.
    *
-   * @return The list of strings representing the scopes.
+   * @return The list of strings that represent the scopes.
    */
   const std::vector<std::string>& GetAllowedScopes() const {
     return allowed_scopes_;
   }
 
   /**
-   * @brief Sets list of the scopes.
+   * @brief Sets the list of the scopes.
    *
-   * @param scopes The list of strings representing the scopes.
+   * @param scopes The list of strings that represent the scopes.
    */
   void SetAllowedScopes(std::vector<std::string> scopes) {
     allowed_scopes_ = std::move(scopes);
   }
 
   /**
-   * @brief Token endpoint authentication method.
+   * @brief Gets the token endpoint authentication method.
    *
    * @return The token endpoint authentication method.
    */
@@ -128,7 +128,7 @@ class AUTHENTICATION_API IntrospectAppResult {
   }
 
   /**
-   * @brief Sets token endpoint authentication method.
+   * @brief Sets the token endpoint authentication method.
    *
    * @param method The token endpoint authentication method.
    */
@@ -137,9 +137,9 @@ class AUTHENTICATION_API IntrospectAppResult {
   }
 
   /**
-   * @brief Token endpoint authentication method reason.
+   * @brief Gets the token endpoint authentication method reason.
    *
-   * @return The token endpoint authentication reason.
+   * @return The token endpoint authentication method reason.
    */
   const std::string& GetTokenEndpointAuthMethodReason() const {
     return token_endpoint_auth_method_reason_;
@@ -148,106 +148,112 @@ class AUTHENTICATION_API IntrospectAppResult {
   /**
    * @brief Sets token endpoint authentication method reason.
    *
-   * @param reason The token endpoint authentication reason.
+   * @param reason The token endpoint authentication method reason.
    */
   void SetTokenEndpointAuthMethodReason(std::string reason) {
     token_endpoint_auth_method_reason_ = std::move(reason);
   }
 
   /**
-   * @brief Identifies DOB requirement.
+   * @brief Gets the DOB requirement.
    *
-   * @return True - the user must supply their DOB, false - the user
-   * can use self-service and indicate "yes I am over age X".
+   * @return If true, the user must provide their DOB; if false, the user
+   * can use self-service and specify "yes I am over age X".
    */
   bool GetDobRequired() const { return dob_required_; }
 
   /**
-   * @brief Sets DOB requirement.
+   * @brief Sets the DOB requirement.
    *
-   * @param is_required True - the user must supply their DOB, false - the user
-   * can use self-service and indicate "yes I am over age X".
+   * @param is_required If true, the user must provide their DOB; if false, the user
+   * can use self-service and specify "yes I am over age X".
    */
   void SetDobRequired(bool is_required) { dob_required_ = is_required; }
 
   /**
-   * @brief default duration in seconds for the token issued to this
+   * @brief Gets the default duration in seconds for the token issued to this
    * application.
    *
-   * It has be a non-zero value less than or equal to 72 hours (259200).
+   * It has to be a non-zero value less than or equal to 72 hours (259200).
    *
    * @return The token duration in seconds.
    */
   int GetTokenDuration() const { return token_duration_; }
 
   /**
-   * @brief Sets default duration in seconds for the token.
+   * @brief Sets the default duration in seconds for the token.
    *
    * @param duration The token duration in seconds.
    */
   void SetTokenDuration(int duration) { token_duration_ = duration; }
 
   /**
-   * @brief List referrer urls to register/registered with Application.
+   * @brief Gets a list of referrer URLs to register or
+   * that were registered with the application.
    *
-   * On create/update: if the parameter is not present, the current value(s)
-   * are unchanged. If empty list specified, current value(s) will be reset to
-   * empty list.
-   * Value has a min length of 1 char and max of 255 chars.
-   * Wildcards are NOT allowed. The only valid characters: alphanumerics, '-',
-   * '_', '.', '/' The protocol is NOT specified, i.e. no http:// or https://
-   * Some examples: here.com, localhost, 127.0.0.1,
-   * www.facebook.com/hello/world/.
+   * When creating or updating: if the parameter is not present, the current value(s)
+   * are unchanged. If an empty list is specified, the current value(s) will be reset to
+   * the empty list.
    *
-   * @return The list referrer urls to register/registered with Application.
+   * A value can contain 1-255 characters.
+   * Wildcards are NOT allowed. The only valid characters are alphanumerics, '-',
+   * '_', '.', '/'. The protocol is NOT specified,
+   * that is, `http://` or `https://` is not allowed.
+   *
+   * Examples: `here.com`, `localhost`, `127.0.0.1`,
+   * `www.facebook.com/hello/world/`.
+   *
+   * @return The list of referrer URLs to register or
+   * that were registered with the application.
    */
   const std::vector<std::string>& GetReferrers() const { return referrers_; }
 
   /**
-   * @brief Sets list referrer urls to register/registered with Application.
+   * @brief Sets the list of referrer URLs to register or
+   * that were registered with the application.
    *
-   * @param urls The list referrer urls.
+   * @param urls The llist of referrer URLs.
    */
   void SetReferrers(std::vector<std::string> urls) { referrers_ = std::move(urls); }
 
   /**
-   * @brief Status of the application.
+   * @brief Gets the status of the application.
    *
    * @return The status of the application.
    */
   const std::string& GetStatus() const { return status_; }
 
   /**
-   * @brief Sets status of the application.
+   * @brief Sets the status of the application.
    *
    * @param status The status of the application.
    */
   void SetStatus(std::string status) { status_ = std::move(status); }
 
   /**
-   * @brief Identifies if application codes are enabled.
+   * @brief Checks if the application codes are enabled.
    *
-   * @return True if application codes are enabled and false otherwise.
+   * @return True if the application codes are enabled; false otherwise.
    */
   bool GetAppCodeEnabled() const { return app_code_enabled_; }
 
   /**
-   * @brief Sets is application codes are enabled.
+   * @brief Sets the application codes if they are enabled.
    *
-   * @param is_enabled True if application codes are enabled and false otherwise.
+   * @param is_enabled True if the application codes are enabled; false otherwise.
    */
   void SetAppCodeEnabled(bool is_enabled) { app_code_enabled_ = is_enabled; }
 
   /**
-   * @brief Timestamp (milliseconds since the Unix epoch) of when
+   * @brief  Gets the timestamp (milliseconds since the Unix epoch) of when
    * the application was created.
    *
-   * @return Epoch time when the application was created.
+   * @return The epoch time when the application was created.
    */
   time_t GetCreatedTime() const { return created_time_; }
 
   /**
-   * @brief Sets timestamp (milliseconds since the Unix epoch) of when
+   * @brief Sets the timestamp (milliseconds since the Unix epoch) of when
    * the application was created.
    *
    * @param time The epoch time when the application was created.
@@ -255,35 +261,35 @@ class AUTHENTICATION_API IntrospectAppResult {
   void SetCreatedTime(time_t time) { created_time_ = time; }
 
   /**
-   * @brief Realm the application belongs to.
+   * @brief Gets the realm to which the application belongs.
    *
-   * @return The string containing application realm.
+   * @return The application realm.
    */
   const std::string& GetRealm() const { return realm_; }
 
   /**
-   * @brief Sets realm the application belongs to.
+   * @brief Sets the realm to which the application belongs.
    *
    * @param realm The application realm.
    */
   void SetRealm(std::string realm) { realm_ = std::move(realm); }
 
   /**
-   * @brief Type of the application.
+   * @brief Gets the application type.
    *
-   * @return The type of the application.
+   * @return The application type.
    */
   const std::string& GetType() const { return type_; }
 
   /**
-   * @brief Sets type of the application.
+   * @brief Sets the application type.
    *
-   * @param type The type of the application.
+   * @param type The application type.
    */
   void SetType(std::string type) { type_ = std::move(type); }
 
   /**
-   * @brief List of response types.
+   * @brief Gets a list of response types.
    *
    * @return The list of response types.
    */
@@ -292,7 +298,7 @@ class AUTHENTICATION_API IntrospectAppResult {
   }
 
   /**
-   * @brief Sets list of response types.
+   * @brief Sets the list of response types.
    *
    * @param types The list of response types.
    */
@@ -301,28 +307,28 @@ class AUTHENTICATION_API IntrospectAppResult {
   }
 
   /**
-   * @brief Rate limit tier to configure application for.
+   * @brief Gets a rate limit tier to configure the application.
    *
-   * @return The string containing application rate limit tier.
+   * @return The application rate limit tier.
    */
   const std::string& GetTier() const { return tier_; }
 
   /**
-   * @brief Sets rate limit tier to configure application for.
+   * @brief Sets the rate limit tier to configure the application.
    *
    * @param tier The application rate limit tier.
    */
   void SetTier(std::string tier) { tier_ = std::move(tier); }
 
   /**
-   * @brief HRN of the application.
+   * @brief Gets the HRN of the application.
    *
-   * @return The string with application HRN.
+   * @return The application HRN.
    */
   const std::string& GetHRN() const { return hrn_; }
 
   /**
-   * @brief Sets HRN of the application.
+   * @brief Sets the HRN of the application.
    *
    * @param hrn The application HRN.
    */
