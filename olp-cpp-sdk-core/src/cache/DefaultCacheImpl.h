@@ -113,6 +113,9 @@ class DefaultCacheImpl {
   /// Returns evicted data size.
   uint64_t MaybeEvictData(leveldb::WriteBatch& batch);
 
+  /// Returns changed data size.
+  int64_t MaybeUpdatedProtectedKeys(leveldb::WriteBatch& batch);
+
   /// Puts data into the mutable cache
   bool PutMutableCache(const std::string& key, const leveldb::Slice& value,
                        time_t expiry);

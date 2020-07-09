@@ -31,9 +31,9 @@ class ProtectedData {
  public:
   using ProtectedKeyChanged = std::function<void(const std::string&)>;
 
-  ProtectedData();
+  ProtectedData() = default;
 
-  ~ProtectedData();
+  ~ProtectedData() = default;
 
   bool Protect(const DefaultCache::KeyListType& keys,
                const ProtectedKeyChanged& change_key_to_protected);
@@ -41,11 +41,15 @@ class ProtectedData {
   bool Release(const DefaultCache::KeyListType& keys,
                const ProtectedKeyChanged& released_key_from_protected);
 
-  bool ReadListOfProtectedKeys(KeyValueCache::ValueTypePtr value);
+  bool Deserialize(KeyValueCache::ValueTypePtr value);
 
-  KeyValueCache::ValueTypePtr WriteListOfProtectedKeys();
+  KeyValueCache::ValueTypePtr Serialize();
 
   bool IsProtected(const std::string& key) const;
+
+  std::uint64_t GetWrittenListSize() const;
+
+  bool IsListDirty() const;
 
  private:
   bool IsPrefix(const std::string& prefix, const std::string& key) const;
@@ -68,6 +72,8 @@ class ProtectedData {
     }
   };
   std::set<std::string, CustomCompare> protected_data_;
+  std::uint64_t size_written_;
+  bool list_updated_;
 };
 
 }  // namespace cache

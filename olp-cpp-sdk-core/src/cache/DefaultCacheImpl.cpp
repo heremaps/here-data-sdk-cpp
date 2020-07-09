@@ -121,18 +121,12 @@ void DefaultCacheImpl::Close() {
   if (!is_open_) {
     return;
   }
-  if (mutable_cache_) {
+  if (mutable_cache_ && protected_keys_.IsListDirty()) {
     auto batch = std::make_unique<leveldb::WriteBatch>();
-
-    auto value = protected_keys_.WriteListOfProtectedKeys();
-    if (value->size() > 0) {
-      leveldb::Slice slice(reinterpret_cast<const char*>(value->data()),
-                           value->size());
-      batch->Put(kProtectedKeys, slice);
-      auto result = mutable_cache_->ApplyBatch(std::move(batch));
-      OLP_SDK_LOG_DEBUG_F(kLogTag, "Store list of protected keys result=%s",
-                          result.IsSuccessful() ? "true" : "false");
-    }
+    MaybeUpdatedProtectedKeys(*batch);
+    auto result = mutable_cache_->ApplyBatch(std::move(batch));
+    OLP_SDK_LOG_DEBUG_F(kLogTag, "Store list of protected keys result=%s",
+                        result.IsSuccessful() ? "true" : "false");
   }
 
   memory_cache_.reset();
@@ -544,6 +538,22 @@ uint64_t DefaultCacheImpl::MaybeEvictData(leveldb::WriteBatch& batch) {
   return evicted;
 }
 
+int64_t DefaultCacheImpl::MaybeUpdatedProtectedKeys(
+    leveldb::WriteBatch& batch) {
+  if (protected_keys_.IsListDirty()) {
+    auto prev_size = protected_keys_.GetWrittenListSize();
+    auto value = protected_keys_.Serialize();
+    if (value->size() > 0) {
+      leveldb::Slice slice(reinterpret_cast<const char*>(value->data()),
+                           value->size());
+      batch.Put(kProtectedKeys, slice);
+    }
+    return protected_keys_.GetWrittenListSize() - prev_size;
+  }
+
+  return 0;
+}
+
 bool DefaultCacheImpl::PutMutableCache(const std::string& key,
                                        const leveldb::Slice& value,
                                        time_t expiry) {
@@ -571,6 +581,7 @@ bool DefaultCacheImpl::PutMutableCache(const std::string& key,
   }
 
   auto removed_data_size = MaybeEvictData(*batch);
+  auto updated_data_size = MaybeUpdatedProtectedKeys(*batch);
 
   auto result = mutable_cache_->ApplyBatch(std::move(batch));
   if (!result.IsSuccessful()) {
@@ -578,6 +589,7 @@ bool DefaultCacheImpl::PutMutableCache(const std::string& key,
   }
   mutable_cache_data_size_ += added_data_size;
   mutable_cache_data_size_ -= removed_data_size;
+  mutable_cache_data_size_ += updated_data_size;
 
   // do not add protected keys to lru
   if (mutable_cache_lru_ && !protected_keys_.IsProtected(key)) {
@@ -634,7 +646,7 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupStorage() {
       KeyValueCache::ValueTypePtr value = nullptr;
       auto result = mutable_cache_->Get(kProtectedKeys, value);
       if (result && value) {
-        protected_keys_.ReadListOfProtectedKeys(value);
+        protected_keys_.Deserialize(value);
       }
     }
   }
@@ -723,6 +735,7 @@ std::string DefaultCacheImpl::GetExpiryKey(const std::string& key) const {
 }
 
 bool DefaultCacheImpl::Protect(const DefaultCache::KeyListType& keys) {
+  std::lock_guard<std::mutex> lock(cache_lock_);
   protected_keys_.Protect(keys, [&](const std::string& key) {
     RemoveKeysWithPrefixLru(key);
     RemoveKeyLru(key);
@@ -735,6 +748,7 @@ bool DefaultCacheImpl::Protect(const DefaultCache::KeyListType& keys) {
 }
 
 bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
+  std::lock_guard<std::mutex> lock(cache_lock_);
   bool need_reset = false;
   auto result = protected_keys_.Release(keys, [&](const std::string& key) {
     if (!need_reset) {
