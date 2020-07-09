@@ -104,10 +104,11 @@ TEST_F(VersionedLayerClientPrefetchTest, Prefetch) {
           kLayer, root_tile, kVersion,
           mockserver::ReadDefaultResponses::GenerateQuadTreeResponse(
               root_tile, kQuadTreeDepth, {12}));
-      const olp::geo::TileKey firstChild = root_tile.ChangedLevelBy(1);
-      const std::uint64_t beginTileKey = firstChild.ToQuadKey64();
+      const olp::geo::TileKey first_child = root_tile.ChangedLevelBy(1);
+      const std::uint64_t begin_tile_key = first_child.ToQuadKey64();
 
-      for (std::uint64_t key = beginTileKey; key < beginTileKey + 4; ++key) {
+      for (std::uint64_t key = begin_tile_key; key < begin_tile_key + 4;
+           ++key) {
         auto child = olp::geo::TileKey::FromQuadKey64(key);
         const auto data_handle =
             mockserver::ReadDefaultResponses::GenerateDataHandle(
@@ -136,10 +137,10 @@ TEST_F(VersionedLayerClientPrefetchTest, Prefetch) {
 
   {
     SCOPED_TRACE("Read cached data from pre-fetched partitions");
-    const olp::geo::TileKey firstChild = root_tile.ChangedLevelBy(1);
-    const std::uint64_t beginTileKey = firstChild.ToQuadKey64();
+    const olp::geo::TileKey first_child = root_tile.ChangedLevelBy(1);
+    const std::uint64_t begin_tile_key = first_child.ToQuadKey64();
     auto i = 0;
-    for (std::uint64_t key = beginTileKey; key < beginTileKey + 4; ++key) {
+    for (std::uint64_t key = begin_tile_key; key < begin_tile_key + 4; ++key) {
       auto child = olp::geo::TileKey::FromQuadKey64(key);
       auto future =
           client
