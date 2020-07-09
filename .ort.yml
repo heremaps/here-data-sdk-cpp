@@ -4,11 +4,6 @@ excludes:
     - pattern: ".*build\\.gradle"
       reason: "TEST_TOOL_OF"
       comment: "This project contains tests which are not distributed"
-curations:
-  license_findings:
-  - path: "tests/utils/mock-server/package.json"
-    start_lines: "6"
-    line_count: 1
-    detected_license: "NOASSERTION"
-    reason: "INCORRECT"
-    concluded_license: "Apache-2.0"
+    - pattern: "tests/utils/mock-server/**"
+      reason: "OPTIONAL_COMPONENT_OF"
+      comment: "The project is not distributed for Node.js."
