@@ -119,13 +119,13 @@ class DefaultCacheImpl {
 
   DefaultCache::StorageOpenResult SetupStorage();
 
-  bool IsProtected(const std::string& key) const;
-
   bool GetFromDiskCache(const std::string& key,
                         KeyValueCache::ValueTypePtr& value, time_t& expiry);
 
   boost::optional<std::pair<std::string, time_t>> GetFromDiscCache(
       const std::string& key);
+
+  time_t GetExpiryForMemoryCache(const std::string& key, const time_t& expiry);
 
   CacheSettings settings_;
   bool is_open_;

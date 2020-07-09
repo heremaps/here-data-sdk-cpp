@@ -184,13 +184,8 @@ bool DefaultCacheImpl::Put(const std::string& key, const boost::any& value,
   auto encoded_item = encoder();
   if (memory_cache_) {
     const auto size = encoded_item.size();
-    // reset expiry if key is protected only for memory cache, in mutable cache
-    // store expiry as usual
-    auto expiry_copy = expiry;
-    if (IsProtected(key)) {
-      expiry_copy = olp::cache::KeyValueCache::kDefaultExpiry;
-    }
-    const bool result = memory_cache_->Put(key, value, expiry_copy, size);
+    const bool result = memory_cache_->Put(
+        key, value, GetExpiryForMemoryCache(key, expiry), size);
     if (!result && size > settings_.max_memory_cache_size) {
       OLP_SDK_LOG_WARNING_F(kLogTag,
                             "Failed to store value in memory cache %s, size %d",
@@ -211,12 +206,8 @@ bool DefaultCacheImpl::Put(const std::string& key,
 
   if (memory_cache_) {
     const auto size = value->size();
-    // reset expiry if key is protected only for memory cache, in mutable cache
-    // store expiry as usual
-    if (IsProtected(key)) {
-      expiry = olp::cache::KeyValueCache::kDefaultExpiry;
-    }
-    const bool result = memory_cache_->Put(key, value, expiry, size);
+    const bool result = memory_cache_->Put(
+        key, value, GetExpiryForMemoryCache(key, expiry), size);
     if (!result && size > settings_.max_memory_cache_size) {
       OLP_SDK_LOG_WARNING_F(kLogTag,
                             "Failed to store value in memory cache %s, size %d",
@@ -250,11 +241,9 @@ boost::any DefaultCacheImpl::Get(const std::string& key,
     auto decoded_item = decoder(disc_cache->first);
     if (memory_cache_) {
       auto expiry = disc_cache->second;
-      // reset expiry if key is protected only for memory cache
-      if (IsProtected(key)) {
-        expiry = olp::cache::KeyValueCache::kDefaultExpiry;
-      }
-      memory_cache_->Put(key, decoded_item, expiry, disc_cache->first.size());
+      memory_cache_->Put(key, decoded_item,
+                         GetExpiryForMemoryCache(key, expiry),
+                         disc_cache->first.size());
     }
     return decoded_item;
   }
@@ -282,11 +271,8 @@ KeyValueCache::ValueTypePtr DefaultCacheImpl::Get(const std::string& key) {
   auto result = GetFromDiskCache(key, value, expiry);
   if (result && value) {
     if (memory_cache_) {
-      // reset expiry if key is protected only for memory cache
-      if (IsProtected(key)) {
-        expiry = olp::cache::KeyValueCache::kDefaultExpiry;
-      }
-      memory_cache_->Put(key, value, expiry, value->size());
+      memory_cache_->Put(key, value, GetExpiryForMemoryCache(key, expiry),
+                         value->size());
     }
 
     return value;
@@ -788,8 +774,13 @@ bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
   return result;
 }
 
-bool DefaultCacheImpl::IsProtected(const std::string& key) const {
-  return protected_keys_.IsProtected(key);
+time_t DefaultCacheImpl::GetExpiryForMemoryCache(const std::string& key,
+                                                 const time_t& expiry) {
+  // reset expiry if key is protected only for memory cache
+  if (protected_keys_.IsProtected(key)) {
+    return KeyValueCache::kDefaultExpiry;
+  }
+  return expiry;
 }
 
 }  // namespace cache
