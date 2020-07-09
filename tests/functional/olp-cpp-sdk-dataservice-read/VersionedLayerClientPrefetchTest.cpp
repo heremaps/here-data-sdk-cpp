@@ -89,9 +89,8 @@ TEST_F(VersionedLayerClientPrefetchTest, Prefetch) {
 
   {
     SCOPED_TRACE("Prefetch tiles");
-    const auto tile = root_tile.ChangedLevelTo(12);
     const auto request = olp::dataservice::read::PrefetchTilesRequest()
-                             .WithTileKeys({tile})
+                             .WithTileKeys({root_tile})
                              .WithMinLevel(12)
                              .WithMaxLevel(15);
     {
