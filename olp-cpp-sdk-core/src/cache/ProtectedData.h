@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "olp/core/cache/DefaultCache.h"
+#include <olp/core/cache/KeyValueCache.h>
 
 #include <set>
 #include <string>
@@ -27,18 +27,18 @@
 namespace olp {
 namespace cache {
 
-class ProtectedData {
+class ProtectedKeyList {
  public:
   using ProtectedKeyChanged = std::function<void(const std::string&)>;
 
-  ProtectedData() = default;
+  ProtectedKeyList() = default;
 
-  ~ProtectedData() = default;
+  ~ProtectedKeyList() = default;
 
-  bool Protect(const DefaultCache::KeyListType& keys,
+  bool Protect(const KeyValueCache::KeyListType& keys,
                const ProtectedKeyChanged& change_key_to_protected);
 
-  bool Release(const DefaultCache::KeyListType& keys,
+  bool Release(const KeyValueCache::KeyListType& keys,
                const ProtectedKeyChanged& released_key_from_protected);
 
   bool Deserialize(KeyValueCache::ValueTypePtr value);

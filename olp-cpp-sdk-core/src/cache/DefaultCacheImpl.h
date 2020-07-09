@@ -137,7 +137,7 @@ class DefaultCacheImpl {
   std::unique_ptr<DiskLruCache> mutable_cache_lru_;
   std::unique_ptr<DiskCache> protected_cache_;
   uint64_t mutable_cache_data_size_;
-  ProtectedData protected_keys_;
+  ProtectedKeyList protected_keys_;
   mutable std::mutex cache_lock_;
 };
 

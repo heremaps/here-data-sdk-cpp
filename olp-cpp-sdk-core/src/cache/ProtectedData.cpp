@@ -32,7 +32,7 @@ constexpr auto kLogTag = "ProtectedData";
 namespace olp {
 namespace cache {
 
-bool ProtectedData::Deserialize(KeyValueCache::ValueTypePtr value) {
+bool ProtectedKeyList::Deserialize(KeyValueCache::ValueTypePtr value) {
   auto result = true;
   std::string str;
   for (const auto& el : *value) {
@@ -48,7 +48,7 @@ bool ProtectedData::Deserialize(KeyValueCache::ValueTypePtr value) {
   return result;
 }
 
-KeyValueCache::ValueTypePtr ProtectedData::Serialize() {
+KeyValueCache::ValueTypePtr ProtectedKeyList::Serialize() {
   auto value = std::make_shared<std::vector<unsigned char>>();
   auto size = 0;
   for (const auto& key : protected_data_) {
@@ -69,8 +69,8 @@ KeyValueCache::ValueTypePtr ProtectedData::Serialize() {
   return value;
 }
 
-bool ProtectedData::Protect(
-    const DefaultCache::KeyListType& keys,
+bool ProtectedKeyList::Protect(
+    const KeyValueCache::KeyListType& keys,
     const ProtectedKeyChanged& change_key_to_protected) {
   list_updated_ = true;
   for (const auto& key : keys) {
@@ -88,7 +88,7 @@ bool ProtectedData::Protect(
       }
     }
 
-    // remove keys from lru and memory cache
+    // notify that key now is protected
     change_key_to_protected(key);
 
     // add protected key
@@ -97,8 +97,8 @@ bool ProtectedData::Protect(
   return true;
 }
 
-bool ProtectedData::Release(
-    const DefaultCache::KeyListType& keys,
+bool ProtectedKeyList::Release(
+    const KeyValueCache::KeyListType& keys,
     const ProtectedKeyChanged& released_key_from_protected) {
   list_updated_ = true;
   auto result = true;
@@ -115,8 +115,8 @@ bool ProtectedData::Release(
         result = false;
         break;
       }
-      // if key is equal of prefix for hint key, remove hint, add key to
-      // lru(need to release all keys for this prefix)
+      // if key is equal of prefix for hint key, remove hint, notify that key is
+      // not longer protected (need to notify for all keys for this prefix)
       while (hint != protected_data_.end() && IsEqualOrPrefix(key, *hint)) {
         released_key_from_protected(*hint);
         hint = protected_data_.erase(hint);
@@ -126,7 +126,7 @@ bool ProtectedData::Release(
   return result;
 }
 
-bool ProtectedData::IsProtected(const std::string& key) const {
+bool ProtectedKeyList::IsProtected(const std::string& key) const {
   auto it = protected_data_.lower_bound(key);
   if (it == protected_data_.end()) {
     return false;
@@ -143,23 +143,23 @@ bool ProtectedData::IsProtected(const std::string& key) const {
   return false;
 }
 
-bool ProtectedData::IsPrefix(const std::string& prefix,
-                             const std::string& key) const {
+bool ProtectedKeyList::IsPrefix(const std::string& prefix,
+                                const std::string& key) const {
   return (key.size() > prefix.size() &&
           std::equal(prefix.begin(), prefix.end(), key.begin()));
 }
 
-bool ProtectedData::IsEqualOrPrefix(const std::string& prefix,
-                                    const std::string& key) const {
+bool ProtectedKeyList::IsEqualOrPrefix(const std::string& prefix,
+                                       const std::string& key) const {
   return (key.size() >= prefix.size() &&
           std::equal(prefix.begin(), prefix.end(), key.begin()));
 }
 
-std::uint64_t ProtectedData::GetWrittenListSize() const {
+std::uint64_t ProtectedKeyList::GetWrittenListSize() const {
   return size_written_;
 }
 
-bool ProtectedData::IsListDirty() const { return list_updated_; }
+bool ProtectedKeyList::IsListDirty() const { return list_updated_; }
 
 }  // namespace cache
 }  // namespace olp
