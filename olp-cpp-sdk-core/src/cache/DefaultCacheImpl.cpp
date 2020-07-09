@@ -735,6 +735,7 @@ std::string DefaultCacheImpl::GetExpiryKey(const std::string& key) const {
 }
 
 bool DefaultCacheImpl::Protect(const DefaultCache::KeyListType& keys) {
+  auto start = std::chrono::steady_clock::now();
   std::lock_guard<std::mutex> lock(cache_lock_);
   protected_keys_.Protect(keys, [&](const std::string& key) {
     RemoveKeysWithPrefixLru(key);
@@ -743,12 +744,16 @@ bool DefaultCacheImpl::Protect(const DefaultCache::KeyListType& keys) {
   if (memory_cache_) {
     memory_cache_->Clear();
   }
-
+  const int64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                              std::chrono::steady_clock::now() - start)
+                              .count();
+  OLP_SDK_LOG_INFO_F(kLogTag, "Protect, time=%" PRId64 " ms", elapsed);
   return true;
 }
 
 bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
   std::lock_guard<std::mutex> lock(cache_lock_);
+  auto start = std::chrono::steady_clock::now();
   bool need_reset = false;
   auto result = protected_keys_.Release(keys, [&](const std::string& key) {
     if (!need_reset) {
@@ -785,12 +790,17 @@ bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
     mutable_cache_lru_.reset();
     InitializeLru();
   }
+
+  const int64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                              std::chrono::steady_clock::now() - start)
+                              .count();
+  OLP_SDK_LOG_INFO_F(kLogTag, "Release, time=%" PRId64 " ms", elapsed);
   return result;
 }
 
 time_t DefaultCacheImpl::GetExpiryForMemoryCache(const std::string& key,
                                                  const time_t& expiry) {
-  // reset expiry if key is protected only for memory cache
+  // reset expiry if key is protected for memory cache
   if (protected_keys_.IsProtected(key)) {
     return KeyValueCache::kDefaultExpiry;
   }

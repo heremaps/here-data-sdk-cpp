@@ -31,7 +31,7 @@ class ProtectedKeyList {
  public:
   using ProtectedKeyChanged = std::function<void(const std::string&)>;
 
-  ProtectedKeyList() = default;
+  ProtectedKeyList();
 
   ~ProtectedKeyList() = default;
 
@@ -73,7 +73,7 @@ class ProtectedKeyList {
   };
   std::set<std::string, CustomCompare> protected_data_;
   std::uint64_t size_written_;
-  bool list_updated_;
+  bool dirty_;
 };
 
 }  // namespace cache

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-#include "ProtectedData.h"
+#include "ProtectedKeyList.h"
 
 #include <algorithm>
 #include <string>
@@ -26,11 +26,14 @@
 #include "olp/core/logging/Log.h"
 
 namespace {
-constexpr auto kLogTag = "ProtectedData";
+constexpr auto kLogTag = "ProtectedKeyList";
 }  // namespace
 
 namespace olp {
 namespace cache {
+
+ProtectedKeyList::ProtectedKeyList()
+    : protected_data_(), size_written_(0), dirty_(false) {}
 
 bool ProtectedKeyList::Deserialize(KeyValueCache::ValueTypePtr value) {
   auto result = true;
@@ -43,7 +46,7 @@ bool ProtectedKeyList::Deserialize(KeyValueCache::ValueTypePtr value) {
       str += el;
     }
   }
-  list_updated_ = false;
+  dirty_ = false;
   size_written_ = value->size();
   return result;
 }
@@ -64,7 +67,7 @@ KeyValueCache::ValueTypePtr ProtectedKeyList::Serialize() {
       }
     }
   }
-  list_updated_ = false;
+  dirty_ = false;
   size_written_ = value->size();
   return value;
 }
@@ -72,7 +75,7 @@ KeyValueCache::ValueTypePtr ProtectedKeyList::Serialize() {
 bool ProtectedKeyList::Protect(
     const KeyValueCache::KeyListType& keys,
     const ProtectedKeyChanged& change_key_to_protected) {
-  list_updated_ = true;
+  dirty_ = true;
   for (const auto& key : keys) {
     // find key or prefix
     auto hint = protected_data_.lower_bound(key);
@@ -100,7 +103,7 @@ bool ProtectedKeyList::Protect(
 bool ProtectedKeyList::Release(
     const KeyValueCache::KeyListType& keys,
     const ProtectedKeyChanged& released_key_from_protected) {
-  list_updated_ = true;
+  dirty_ = true;
   auto result = true;
   for (const auto& key : keys) {
     // find key or prefix
@@ -159,7 +162,7 @@ std::uint64_t ProtectedKeyList::GetWrittenListSize() const {
   return size_written_;
 }
 
-bool ProtectedKeyList::IsListDirty() const { return list_updated_; }
+bool ProtectedKeyList::IsListDirty() const { return dirty_; }
 
 }  // namespace cache
 }  // namespace olp

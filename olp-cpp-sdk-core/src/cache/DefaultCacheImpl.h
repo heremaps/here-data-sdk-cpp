@@ -27,7 +27,7 @@
 
 #include "DiskCache.h"
 #include "InMemoryCache.h"
-#include "ProtectedData.h"
+#include "ProtectedKeyList.h"
 
 namespace olp {
 namespace cache {
