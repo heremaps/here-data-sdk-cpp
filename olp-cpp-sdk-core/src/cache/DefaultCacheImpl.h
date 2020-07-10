@@ -130,6 +130,8 @@ class DefaultCacheImpl {
 
   time_t GetExpiryForMemoryCache(const std::string& key, const time_t& expiry);
 
+  bool IsInternalKey(const std::string& key) const;
+
   CacheSettings settings_;
   bool is_open_;
   std::unique_ptr<InMemoryCache> memory_cache_;

@@ -1051,4 +1051,78 @@ TEST_F(DefaultCacheImplTest, ProtectTest) {
   }
 }
 
+TEST_F(DefaultCacheImplTest, LruCacheEvictionWithProtected) {
+  {
+    SCOPED_TRACE("Protect and release keys, which suppose to be evicted");
+
+    const auto prefix{"somekey"};
+    const auto internal_key{"internal::protected::protected_data"};
+    const auto data_size = 1024u;
+    std::vector<unsigned char> binary_data(data_size);
+    cache::CacheSettings settings;
+    settings.disk_path_mutable = cache_path_;
+    settings.eviction_policy = cache::EvictionPolicy::kLeastRecentlyUsed;
+    settings.max_disk_storage = 2u * 1024u * 1024u;
+    DefaultCacheImplHelper cache(settings);
+
+    cache.Open();
+    cache.Clear();
+    // protect all keys
+    cache.Protect({prefix});
+    cache.Close();
+    cache.Open();
+    // check if after Open internal key is not in lru
+    EXPECT_FALSE(cache.ContainsLru(internal_key));
+
+    const auto promote_key = prefix + std::to_string(0);
+    const auto evicted_key = prefix + std::to_string(1);
+    cache.Put(promote_key,
+              std::make_shared<std::vector<unsigned char>>(binary_data),
+              (std::numeric_limits<time_t>::max)());
+
+    // overflow the mutable cache
+    auto count = 0u;
+    std::string key;
+    const auto max_count = settings.max_disk_storage / data_size;
+    for (; count < max_count; ++count) {
+      key = prefix + std::to_string(count);
+      const auto result = cache.Put(
+          key, std::make_shared<std::vector<unsigned char>>(binary_data),
+          (std::numeric_limits<time_t>::max)());
+
+      ASSERT_TRUE(result);
+
+      EXPECT_TRUE(cache.ContainsMutableCache(key));
+      EXPECT_TRUE(cache.ContainsMemoryCache(key));
+    }
+
+    // maximum is reached.
+    ASSERT_TRUE(count == max_count);
+    EXPECT_TRUE(cache.HasLruCache());
+    EXPECT_TRUE(cache.ContainsMutableCache(internal_key));
+    EXPECT_FALSE(cache.ContainsLru(internal_key));
+
+    // no keys was evicted
+    EXPECT_TRUE(cache.ContainsMutableCache(evicted_key));
+    cache.Release({prefix});
+    cache.Get(promote_key);
+    cache.Put(promote_key,
+              std::make_shared<std::vector<unsigned char>>(binary_data),
+              (std::numeric_limits<time_t>::max)());
+    // mutable cache updated
+    EXPECT_FALSE(cache.ContainsMutableCache(evicted_key));
+    cache.Clear();
+
+    // try to write internal key
+    auto some_internal_key = "internal::somekey";
+    auto key1_data_string = "key1_data_string";
+    EXPECT_FALSE(
+        cache.Put(some_internal_key,
+                  std::make_shared<std::vector<unsigned char>>(binary_data),
+                  (std::numeric_limits<time_t>::max)()));
+    EXPECT_FALSE(cache.Put(some_internal_key, key1_data_string,
+                           [=]() { return key1_data_string; },
+                           (std::numeric_limits<time_t>::max)()));
+  }
+}
 }  // namespace

@@ -20,6 +20,8 @@
 #include "ProtectedKeyList.h"
 
 #include <algorithm>
+#include <iostream>
+#include <sstream>
 #include <string>
 #include <utility>
 
@@ -36,19 +38,20 @@ ProtectedKeyList::ProtectedKeyList()
     : protected_data_(), size_written_(0), dirty_(false) {}
 
 bool ProtectedKeyList::Deserialize(KeyValueCache::ValueTypePtr value) {
-  auto result = true;
-  std::string str;
-  for (const auto& el : *value) {
-    if (el == '\0' && !str.empty()) {
-      protected_data_.insert(str);
-      str.clear();
-    } else {
-      str += el;
-    }
+  if (!value) {
+    return false;
+  }
+  std::stringbuf string_buf;
+  string_buf.pubsetbuf(reinterpret_cast<char*>(value->data()), value->size());
+
+  std::istream stream(&string_buf);
+
+  for (std::string str; std::getline(stream, str, '\0');) {
+    protected_data_.insert(str);
   }
   dirty_ = false;
   size_written_ = value->size();
-  return result;
+  return true;
 }
 
 KeyValueCache::ValueTypePtr ProtectedKeyList::Serialize() {
