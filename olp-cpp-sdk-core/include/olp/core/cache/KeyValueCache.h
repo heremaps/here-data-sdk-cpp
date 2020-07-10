@@ -62,6 +62,8 @@ class CORE_API KeyValueCache {
    * @brief Alias for the list of keys to be protected or released.
    */
   using KeyListType = std::vector<std::string>;
+  virtual bool Protect(const KeyValueCache::KeyListType& keys) { return false; }
+  virtual bool Release(const KeyValueCache::KeyListType& keys) { return false; }
 
   virtual ~KeyValueCache() = default;
 

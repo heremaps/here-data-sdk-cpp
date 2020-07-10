@@ -107,10 +107,23 @@ TEST(DefaultCacheTest, ConcurrencyWithEviction) {
   // Start 3 threads all writing exactly kLoops times metadata and data.
   for (size_t index = 0; index < kThreadsCount; ++index) {
     threads.emplace_back(std::thread([=] {
+      olp::cache::KeyValueCache::KeyListType list;
+      olp::cache::KeyValueCache::KeyListType release_list;
+      list.reserve(1000);
+      release_list.reserve(1000);
       for (size_t loop = 0; loop < kLoops; ++loop) {
         const std::string key = "data::key::" + kKeySuffix +
                                 "::" + std::to_string(index) +
                                 "::" + std::to_string(loop);
+        list.push_back(key);
+        if (list.size() == 1000) {
+          EXPECT_TRUE(cache->Protect(list));
+          release_list.swap(list);
+        }
+        if (release_list.size() == 1000) {
+          EXPECT_TRUE(cache->Release(release_list));
+          release_list.clear();
+        }
         const std::string key_meta = key + "meta";
 
         SCOPED_TRACE(::testing::Message() << "Key=" << key);

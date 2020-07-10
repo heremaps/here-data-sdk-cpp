@@ -178,6 +178,9 @@ class CORE_API DefaultCache : public KeyValueCache {
    */
   bool Contains(const std::string& key) const override;
 
+  bool Protect(const DefaultCache::KeyListType& keys);
+  bool Release(const DefaultCache::KeyListType& keys);
+
  private:
   std::shared_ptr<DefaultCacheImpl> impl_;
 };
