@@ -115,15 +115,6 @@ TEST(DefaultCacheTest, ConcurrencyWithEviction) {
         const std::string key = "data::key::" + kKeySuffix +
                                 "::" + std::to_string(index) +
                                 "::" + std::to_string(loop);
-        list.push_back(key);
-        if (list.size() == 1000) {
-          EXPECT_TRUE(cache->Protect(list));
-          release_list.swap(list);
-        }
-        if (release_list.size() == 1000) {
-          EXPECT_TRUE(cache->Release(release_list));
-          release_list.clear();
-        }
         const std::string key_meta = key + "meta";
 
         SCOPED_TRACE(::testing::Message() << "Key=" << key);
@@ -142,6 +133,16 @@ TEST(DefaultCacheTest, ConcurrencyWithEviction) {
 
         auto get_meta = cache->Get(
             key_meta, [](const std::string& value) { return value; });
+
+        list.push_back(key);
+        if (list.size() == 1000) {
+          EXPECT_TRUE(cache->Protect(list));
+          release_list.swap(list);
+        }
+        if (release_list.size() == 1000) {
+          EXPECT_TRUE(cache->Release(release_list));
+          release_list.clear();
+        }
         EXPECT_FALSE(get_meta.empty());
 
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
