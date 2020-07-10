@@ -54,6 +54,7 @@
 #include "generated/serializer/JsonSerializer.h"
 // clang-format on
 #include "ReadDefaultResponses.h"
+#include "ApiDefaultResponses.h"
 #include "MockServerHelper.h"
 #include "Utils.h"
 
@@ -192,7 +193,7 @@ TEST_P(CatalogClientTest, GetCatalog) {
   {
     mock_server_client_->MockAuth();
     mock_server_client_->MockLookupPlatformApiResponse(
-        mockserver::DefaultResponses::GeneratePlatformApisResponse());
+        mockserver::ApiDefaultResponses::GeneratePlatformApisResponse());
     mock_server_client_->MockGetResponse(GenerateCatalogResponse(),
                                          kMockRequestCatalogPath);
   }
@@ -220,7 +221,8 @@ TEST_F(CatalogClientTest, GetVersionsList) {
     {
       mock_server_client_->MockAuth();
       mock_server_client_->MockLookupResourceApiResponse(
-          mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
+          mockserver::ApiDefaultResponses::GenerateResourceApisResponse(
+              kTestHrn));
       mock_server_client_->MockGetResponse(GenerateVersionInfosResponse(3, 4),
                                            kMockRequestVersionsPath);
     }
@@ -254,7 +256,8 @@ TEST_F(CatalogClientTest, GetVersionsList) {
     SCOPED_TRACE("Get versions list error response");
     {
       mock_server_client_->MockLookupResourceApiResponse(
-          mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
+          mockserver::ApiDefaultResponses::GenerateResourceApisResponse(
+              kTestHrn));
       mock_server_client_->MockGetError(
           {olp::http::HttpStatusCode::BAD_REQUEST, kErrorMinVersion},
           kMockRequestVersionsPath);

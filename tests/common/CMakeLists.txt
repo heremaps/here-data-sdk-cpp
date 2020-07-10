@@ -19,6 +19,7 @@ set(OLP_SDK_TESTS_COMMON_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/matchers/NetworkUrlMatchers.h
     ${CMAKE_CURRENT_SOURCE_DIR}/mocks/NetworkMock.h
     ${CMAKE_CURRENT_SOURCE_DIR}/mocks/CacheMock.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ApiDefaultResponses.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ReadDefaultResponses.h
     ${CMAKE_CURRENT_SOURCE_DIR}/WriteDefaultResponses.h
 )
@@ -26,6 +27,7 @@ set(OLP_SDK_TESTS_COMMON_HEADERS
 set(OLP_SDK_TESTS_COMMON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/mocks/CacheMock.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mocks/NetworkMock.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ReadDefaultResponses.cpp
 )
 
 add_library(olp-cpp-sdk-tests-common
@@ -41,4 +43,5 @@ target_link_libraries(olp-cpp-sdk-tests-common
         gmock
         olp-cpp-sdk-core
         olp-cpp-sdk-dataservice-write
+        olp-cpp-sdk-dataservice-read
 )

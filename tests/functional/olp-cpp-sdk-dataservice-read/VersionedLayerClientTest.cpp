@@ -38,6 +38,7 @@
 #include "generated/serializer/JsonSerializer.h"
 // clang-format on
 #include "ReadDefaultResponses.h"
+#include "ApiDefaultResponses.h"
 #include "MockServerHelper.h"
 #include "Utils.h"
 
@@ -52,94 +53,6 @@ const auto kTestHrn = "hrn:here:data::olp-here-test:hereos-internal-test";
 const auto kPartitionsResponsePath =
     "/metadata/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test/"
     "layers/testlayer/partitions";
-
-void WriteSubquadsToJson(rapidjson::Document& doc,
-                         const olp::geo::TileKey& root_tile,
-                         const std::vector<std::uint16_t>& sub_quads,
-                         rapidjson::Document::AllocatorType& allocator) {
-  rapidjson::Value sub_quads_value;
-  sub_quads_value.SetArray();
-  for (auto quad : sub_quads) {
-    const auto partition = root_tile.AddedSubkey64(quad).ToHereTile();
-    const auto data_handle =
-        mockserver::DefaultResponses::GenerateDataHandle(partition);
-
-    rapidjson::Value item_value;
-    item_value.SetObject();
-    olp::serializer::serialize("subQuadKey", std::to_string(quad), item_value,
-                               allocator);
-    olp::serializer::serialize("version", 0, item_value, allocator);
-    olp::serializer::serialize("dataHandle", data_handle, item_value,
-                               allocator);
-    olp::serializer::serialize("dataSize", 100, item_value, allocator);
-    sub_quads_value.PushBack(std::move(item_value), allocator);
-  }
-  doc.AddMember("subQuads", std::move(sub_quads_value), allocator);
-}
-
-void WriteParentquadsToJson(rapidjson::Document& doc,
-                            const std::vector<std::uint64_t>& parent_quads,
-                            rapidjson::Document::AllocatorType& allocator) {
-  rapidjson::Value parent_quads_value;
-  parent_quads_value.SetArray();
-  for (auto parent : parent_quads) {
-    const auto partition = std::to_string(parent);
-    const auto data_handle =
-        mockserver::DefaultResponses::GenerateDataHandle(partition);
-
-    rapidjson::Value item_value;
-    item_value.SetObject();
-    olp::serializer::serialize("partition", std::to_string(parent), item_value,
-                               allocator);
-    olp::serializer::serialize("version", 0, item_value, allocator);
-    olp::serializer::serialize("dataHandle", data_handle, item_value,
-                               allocator);
-    olp::serializer::serialize("dataSize", 100, item_value, allocator);
-    parent_quads_value.PushBack(std::move(item_value), allocator);
-  }
-  doc.AddMember("parentQuads", std::move(parent_quads_value), allocator);
-}
-
-std::string GenerateQuadTreeResponse(
-    olp::geo::TileKey root_tile, std::uint32_t depth,
-    const std::vector<std::uint32_t>& available_levels) {
-  std::vector<std::uint16_t> sub_quads;
-  std::vector<std::uint64_t> parent_quads;
-
-  // generate data
-  for (auto level : available_levels) {
-    if (level < root_tile.Level()) {
-      auto key = root_tile.ChangedLevelTo(level);
-      parent_quads.push_back(key.ToQuadKey64());
-    } else {
-      const auto level_depth = level - root_tile.Level();
-      if (level_depth > depth) {
-        continue;
-      }
-
-      const auto sub_tile =
-          olp::geo::TileKey::FromRowColumnLevel(0, 0, level_depth);
-      const auto start_level_id = sub_tile.ToQuadKey64();
-      const auto tiles_count =
-          olp::geo::QuadKey64Helper::ChildrenAtLevel(level_depth);
-
-      std::vector<std::uint64_t> layer_ids(tiles_count);
-      std::iota(layer_ids.begin(), layer_ids.end(), start_level_id);
-      sub_quads.insert(sub_quads.end(), layer_ids.begin(), layer_ids.end());
-    }
-  }
-
-  rapidjson::Document doc;
-  auto& allocator = doc.GetAllocator();
-  doc.SetObject();
-  WriteSubquadsToJson(doc, root_tile, sub_quads, allocator);
-  WriteParentquadsToJson(doc, parent_quads, allocator);
-
-  rapidjson::StringBuffer buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-  doc.Accept(writer);
-  return buffer.GetString();
-}
 
 class VersionedLayerClientTest : public ::testing::Test {
  protected:
@@ -196,11 +109,12 @@ TEST_F(VersionedLayerClientTest, GetPartitions) {
   {
     mock_server_client_->MockAuth();
     mock_server_client_->MockLookupResourceApiResponse(
-        mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
+        mockserver::ApiDefaultResponses::GenerateResourceApisResponse(
+            kTestHrn));
     mock_server_client_->MockGetVersionResponse(
-        mockserver::DefaultResponses::GenerateVersionResponse(44));
+        mockserver::ReadDefaultResponses::GenerateVersionResponse(44));
     mock_server_client_->MockGetResponse(
-        mockserver::DefaultResponses::GeneratePartitionsResponse(4),
+        mockserver::ReadDefaultResponses::GeneratePartitionsResponse(4),
         kPartitionsResponsePath);
   }
 
@@ -235,18 +149,19 @@ TEST_F(VersionedLayerClientTest, GetAggregatedData) {
   {
     SCOPED_TRACE("Requested tile");
     const auto data_handle =
-        mockserver::DefaultResponses::GenerateDataHandle(tile.ToHereTile());
-    const auto data = mockserver::DefaultResponses::GenerateData();
+        mockserver::ReadDefaultResponses::GenerateDataHandle(tile.ToHereTile());
+    const auto data = mockserver::ReadDefaultResponses::GenerateData();
 
     {
       mock_server_client_->MockLookupResourceApiResponse(
-          mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
+          mockserver::ApiDefaultResponses::GenerateResourceApisResponse(
+              kTestHrn));
       mock_server_client_->MockGetVersionResponse(
-          mockserver::DefaultResponses::GenerateVersionResponse(kVersion));
+          mockserver::ReadDefaultResponses::GenerateVersionResponse(kVersion));
       mock_server_client_->MockGetResponse(
           kLayer, root_tile, kVersion,
-          GenerateQuadTreeResponse(root_tile, kQuadTreeDepth,
-                                   {1, 3, 12, 13, 14, 15}));
+          mockserver::ReadDefaultResponses::GenerateQuadTreeResponse(
+              root_tile, kQuadTreeDepth, {1, 3, 12, 13, 14, 15}));
       mock_server_client_->MockGetResponse(kLayer, data_handle, data);
     }
 
@@ -271,20 +186,22 @@ TEST_F(VersionedLayerClientTest, GetAggregatedData) {
   {
     SCOPED_TRACE("Ancestor tile");
     const auto expect_tile = tile.ChangedLevelTo(14);
-    const auto data_handle = mockserver::DefaultResponses::GenerateDataHandle(
-        expect_tile.ToHereTile());
-    const auto data = mockserver::DefaultResponses::GenerateData();
+    const auto data_handle =
+        mockserver::ReadDefaultResponses::GenerateDataHandle(
+            expect_tile.ToHereTile());
+    const auto data = mockserver::ReadDefaultResponses::GenerateData();
 
     {
       SetUpMockServer(settings_->network_request_handler);
       mock_server_client_->MockLookupResourceApiResponse(
-          mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
+          mockserver::ApiDefaultResponses::GenerateResourceApisResponse(
+              kTestHrn));
       mock_server_client_->MockGetVersionResponse(
-          mockserver::DefaultResponses::GenerateVersionResponse(kVersion));
+          mockserver::ReadDefaultResponses::GenerateVersionResponse(kVersion));
       mock_server_client_->MockGetResponse(
           kLayer, root_tile, kVersion,
-          GenerateQuadTreeResponse(root_tile, kQuadTreeDepth,
-                                   {1, 3, 12, 13, 14}));
+          mockserver::ReadDefaultResponses::GenerateQuadTreeResponse(
+              root_tile, kQuadTreeDepth, {1, 3, 12, 13, 14}));
       mock_server_client_->MockGetResponse(kLayer, data_handle, data);
     }
 
@@ -309,19 +226,22 @@ TEST_F(VersionedLayerClientTest, GetAggregatedData) {
   {
     SCOPED_TRACE("Parent tile");
     const auto expect_tile = tile.ChangedLevelTo(3);
-    const auto data_handle = mockserver::DefaultResponses::GenerateDataHandle(
-        expect_tile.ToHereTile());
-    const auto data = mockserver::DefaultResponses::GenerateData();
+    const auto data_handle =
+        mockserver::ReadDefaultResponses::GenerateDataHandle(
+            expect_tile.ToHereTile());
+    const auto data = mockserver::ReadDefaultResponses::GenerateData();
 
     {
       SetUpMockServer(settings_->network_request_handler);
       mock_server_client_->MockLookupResourceApiResponse(
-          mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
+          mockserver::ApiDefaultResponses::GenerateResourceApisResponse(
+              kTestHrn));
       mock_server_client_->MockGetVersionResponse(
-          mockserver::DefaultResponses::GenerateVersionResponse(kVersion));
+          mockserver::ReadDefaultResponses::GenerateVersionResponse(kVersion));
       mock_server_client_->MockGetResponse(
           kLayer, root_tile, kVersion,
-          GenerateQuadTreeResponse(root_tile, kQuadTreeDepth, {1, 2, 3}));
+          mockserver::ReadDefaultResponses::GenerateQuadTreeResponse(
+              root_tile, kQuadTreeDepth, {1, 2, 3}));
       mock_server_client_->MockGetResponse(kLayer, data_handle, data);
     }
 
@@ -346,18 +266,20 @@ TEST_F(VersionedLayerClientTest, GetAggregatedData) {
   {
     SCOPED_TRACE("Check cache");
     const auto data_handle =
-        mockserver::DefaultResponses::GenerateDataHandle(tile.ToHereTile());
-    const auto data = mockserver::DefaultResponses::GenerateData();
+        mockserver::ReadDefaultResponses::GenerateDataHandle(tile.ToHereTile());
+    const auto data = mockserver::ReadDefaultResponses::GenerateData();
 
     {
       SetUpMockServer(settings_->network_request_handler);
       mock_server_client_->MockLookupResourceApiResponse(
-          mockserver::DefaultResponses::GenerateResourceApisResponse(kTestHrn));
+          mockserver::ApiDefaultResponses::GenerateResourceApisResponse(
+              kTestHrn));
       mock_server_client_->MockGetVersionResponse(
-          mockserver::DefaultResponses::GenerateVersionResponse(kVersion));
+          mockserver::ReadDefaultResponses::GenerateVersionResponse(kVersion));
       mock_server_client_->MockGetResponse(
           kLayer, root_tile, kVersion,
-          GenerateQuadTreeResponse(root_tile, kQuadTreeDepth, {15}));
+          mockserver::ReadDefaultResponses::GenerateQuadTreeResponse(
+              root_tile, kQuadTreeDepth, {15}));
       mock_server_client_->MockGetResponse(kLayer, data_handle, data);
     }
 
