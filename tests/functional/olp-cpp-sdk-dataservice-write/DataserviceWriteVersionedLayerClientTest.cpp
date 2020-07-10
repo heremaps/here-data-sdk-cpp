@@ -50,13 +50,18 @@ const auto kWaitBeforeRetry = std::chrono::seconds(6);
 class DataserviceWriteVersionedLayerClientTest : public ::testing::Test {
  protected:
   static std::shared_ptr<olp::http::Network> s_network;
+  std::shared_ptr<olp::thread::TaskScheduler> scheduler_;
 
   static void SetUpTestSuite() {
     s_network = olp::client::OlpClientSettingsFactory::
         CreateDefaultNetworkRequestHandler();
   }
 
-  void SetUp() override { client_ = CreateVersionedLayerClient(); }
+  void SetUp() override {
+    scheduler_ =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
+    client_ = CreateVersionedLayerClient();
+  }
 
   void TearDown() override { client_ = nullptr; }
 
@@ -79,6 +84,7 @@ class DataserviceWriteVersionedLayerClientTest : public ::testing::Test {
     olp::client::OlpClientSettings settings;
     settings.authentication_settings = auth_client_settings;
     settings.network_request_handler = network;
+    settings.task_scheduler = scheduler_;
 
     return std::make_shared<write::VersionedLayerClient>(
         olp::client::HRN{CustomParameters::getArgument(kCatalog)}, settings);
@@ -246,17 +252,25 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, CancelBatch) {
 
 TEST_F(DataserviceWriteVersionedLayerClientTest, CancelAllBatch) {
   auto versioned_client = CreateVersionedLayerClient();
+  ASSERT_TRUE(scheduler_);
+
+  // block scheduler queue to be sure StartBatch is not finished before cancel
+  std::promise<void> block_promise;
+  auto block_future = block_promise.get_future();
+  scheduler_->ScheduleTask([&block_future]() { block_future.get(); });
+
   auto response_future =
-      versioned_client
-          ->StartBatch(model::StartBatchRequest().WithLayers(
+      versioned_client->StartBatch(model::StartBatchRequest().WithLayers(
               {CustomParameters::getArgument(kVersionedLayer)}))
           .GetFuture();
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
   versioned_client->CancelPendingRequests();
+  block_promise.set_value();
 
   auto response = response_future.get();
+  const auto& error = response.GetError();
   ASSERT_FALSE(response.IsSuccessful());
+  ASSERT_EQ(error.GetErrorCode(), olp::client::ErrorCode::Cancelled);
 }
 
 TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatch) {
