@@ -22,6 +22,7 @@
 #include <olp/core/client/OlpClientFactory.h>
 
 #include "ApiClientLookup.h"
+#include "Common.h"
 #include "generated/BlobApi.h"
 #include "generated/ConfigApi.h"
 #include "generated/MetadataApi.h"
@@ -176,63 +177,34 @@ VersionedLayerClientImpl::StartBatch(const model::StartBatchRequest& request) {
 
 client::CancellationToken VersionedLayerClientImpl::StartBatch(
     const model::StartBatchRequest& request, StartBatchCallback callback) {
-  if (!request.GetLayers() || request.GetLayers()->empty()) {
-    callback(client::ApiError(client::ErrorCode::InvalidArgument,
-                              "Invalid layer", true));
-    return {};
-  }
+  const auto catalog = catalog_;
+  const auto settings = settings_;
 
-  auto self = shared_from_this();
-  auto cancel_context = std::make_shared<client::CancellationContext>();
-  auto id = tokenList_.GetNextId();
+  auto start_batch_task =
+      [=](client::CancellationContext context) -> StartBatchResponse {
+    if (!request.GetLayers() || request.GetLayers()->empty()) {
+      return {{client::ErrorCode::InvalidArgument, "Invalid layer", true}};
+    }
 
-  auto init_publication_callback =
-      [=](InitPublicationResponse init_pub_response) {
-        self->tokenList_.RemoveTask(id);
-        if (!init_pub_response.IsSuccessful() ||
-            !init_pub_response.GetResult().GetId()) {
-          callback(std::move(init_pub_response.GetError()));
-        } else {
-          callback(init_pub_response.MoveResult());
-        }
-      };
+    auto olp_client_response = ApiClientLookup::LookupApiClient(
+        catalog, context, "publish", "v2", settings);
 
-  auto init_publication_function = [=]() -> client::CancellationToken {
+    if (!olp_client_response.IsSuccessful()) {
+      return olp_client_response.GetError();
+    }
+
+    auto olp_client = olp_client_response.MoveResult();
     model::Publication pub;
     pub.SetLayerIds(request.GetLayers().value_or(std::vector<std::string>()));
     pub.SetVersionDependencies(request.GetVersionDependencies().value_or(
         std::vector<model::VersionDependency>()));
 
-    return PublishApi::InitPublication(*self->apiclient_publish_, pub,
-                                       request.GetBillingTag(),
-                                       init_publication_callback);
+    return PublishApi::InitPublication(olp_client, pub, request.GetBillingTag(),
+                                       context);
   };
 
-  auto cancel_function = [=]() {
-    self->tokenList_.RemoveTask(id);
-    callback(client::ApiError(client::ErrorCode::Cancelled,
-                              "Operation cancelled.", true));
-  };
-
-  cancel_context->ExecuteOrCancelled(
-      [=]() -> client::CancellationToken {
-        return self->InitApiClients(
-            cancel_context, [=](boost::optional<client::ApiError> err) {
-              if (err) {
-                self->tokenList_.RemoveTask(id);
-                callback(err.get());
-                return;
-              }
-              cancel_context->ExecuteOrCancelled(init_publication_function,
-                                                 cancel_function);
-            });
-      },
-      cancel_function);
-
-  auto token = client::CancellationToken(
-      [cancel_context]() { cancel_context->CancelOperation(); });
-  tokenList_.AddTask(id, token);
-  return token;
+  return AddTask(settings_.task_scheduler, pending_requests_,
+                 std::move(start_batch_task), std::move(callback));
 }
 
 olp::client::CancellableFuture<GetBaseVersionResponse>

@@ -23,6 +23,7 @@ set(OLP_SDK_DATASERVICE_WRITE_TEST_SOURCES
     StartBatchRequestTest.cpp
     StreamLayerClientImplTest.cpp
     TimeUtilsTest.cpp
+    VersionedLayerClientImplTest.cpp
     )
 
 

@@ -32,6 +32,7 @@ set(OLP_SDK_INTEGRATIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-dataservice-write/IndexLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-write/StreamLayerClientCacheTest.cpp
     ./olp-cpp-sdk-dataservice-write/StreamLayerClientTest.cpp
+    ./olp-cpp-sdk-dataservice-write/VersionedLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-write/VolatileLayerClientTest.cpp
     ./olp-cpp-sdk-core/DefaultNetworkTest.cpp
     ./olp-cpp-sdk-core/DefaultCacheTest.cpp
@@ -69,6 +70,7 @@ if (ANDROID OR IOS)
     target_include_directories(${OLP_SDK_INTEGRATION_TESTS_LIB}
         PRIVATE
             ${CMAKE_SOURCE_DIR}/../../olp-cpp-sdk-core/src
+			${PROJECT_SOURCE_DIR}/olp-cpp-sdk-dataservice-write/src
     )
 
 else()
@@ -87,5 +89,6 @@ else()
     target_include_directories(olp-cpp-sdk-integration-tests
         PRIVATE
             ${CMAKE_SOURCE_DIR}/../../olp-cpp-sdk-core/src
+			${PROJECT_SOURCE_DIR}/olp-cpp-sdk-dataservice-write/src
     )
 endif()
