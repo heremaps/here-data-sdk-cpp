@@ -432,10 +432,11 @@ void DefaultCacheImpl::InitializeLru() {
       count, GetElapsedTimeFromStart(start));
 }
 
-void DefaultCacheImpl::RemoveKeyLru(const std::string& key) {
+bool DefaultCacheImpl::RemoveKeyLru(const std::string& key) {
   if (mutable_cache_lru_) {
-    mutable_cache_lru_->Erase(key);
+    return mutable_cache_lru_->Erase(key);
   }
+  return false;
 }
 
 void DefaultCacheImpl::RemoveKeysWithPrefixLru(const std::string& key) {
@@ -747,11 +748,12 @@ std::string DefaultCacheImpl::GetExpiryKey(const std::string& key) const {
 }
 
 bool DefaultCacheImpl::Protect(const DefaultCache::KeyListType& keys) {
-  auto start = std::chrono::steady_clock::now();
   std::lock_guard<std::mutex> lock(cache_lock_);
+  auto start = std::chrono::steady_clock::now();
   protected_keys_.Protect(keys, [&](const std::string& key) {
-    RemoveKeysWithPrefixLru(key);
-    RemoveKeyLru(key);
+    if (!RemoveKeyLru(key)) {
+      RemoveKeysWithPrefixLru(key);
+    }
   });
   if (memory_cache_) {
     memory_cache_->Clear();
@@ -790,6 +792,8 @@ bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
         // key is not in mutable_cache_lru_, key is prefix, need reload memory
         // cache and lru to store all keys with prefix
         need_reset = true;
+        OLP_SDK_LOG_INFO(kLogTag,
+                         "Release, need to reset lru and memory cache");
       }
     }
   });
@@ -799,7 +803,6 @@ bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
       memory_cache_->Clear();
     }
     mutable_cache_lru_.reset();
-    mutable_cache_data_size_ = 0;
     InitializeLru();
   }
 

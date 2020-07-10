@@ -101,7 +101,7 @@ class DefaultCacheImpl {
   void InitializeLru();
 
   /// Removes key from the mutable lru cache;
-  void RemoveKeyLru(const std::string& key);
+  bool RemoveKeyLru(const std::string& key);
 
   /// Removes all keys with specified prefix from LRU mutable cache.
   void RemoveKeysWithPrefixLru(const std::string& key);
