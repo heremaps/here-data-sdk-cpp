@@ -30,11 +30,6 @@
 #include <olp/core/client/OlpClientSettings.h>
 
 namespace olp {
-namespace network {
-class NetworkRequest;
-class NetworkConfig;
-}  // namespace network
-
 namespace client {
 /**
  * @brief Executes HTTP requests by using the base url and the provided
@@ -48,6 +43,12 @@ class CORE_API OlpClient {
 
   OlpClient();
   virtual ~OlpClient();
+
+  // Movable and copyable
+  OlpClient(const OlpClient&);
+  OlpClient& operator=(const OlpClient&);
+  OlpClient(OlpClient&&) noexcept;
+  OlpClient& operator=(OlpClient&&) noexcept;
 
   /**
    * @brief Sets the base URL used for all requests.
@@ -131,15 +132,8 @@ class CORE_API OlpClient {
                        CancellationContext context) const;
 
  private:
-  std::shared_ptr<http::NetworkRequest> CreateRequest(
-      const std::string& path, const std::string& method,
-      const ParametersType& query_params, const ParametersType& header_params,
-      const RequestBodyType& post_body, const std::string& content_type) const;
-
- private:
-  std::string base_url_;
-  ParametersType default_headers_;
-  OlpClientSettings settings_;
+  class OlpClientImpl;
+  std::shared_ptr<OlpClientImpl> impl_;
 };
 
 }  // namespace client
