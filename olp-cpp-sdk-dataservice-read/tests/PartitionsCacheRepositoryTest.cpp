@@ -24,6 +24,7 @@
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+#include "repositories/DataCacheRepository.h"
 
 namespace {
 namespace read = olp::dataservice::read;
@@ -34,6 +35,9 @@ using olp::client::HRN;
 
 constexpr auto kCatalog = "hrn:here:data::olp-here-test:catalog";
 constexpr auto kPartitionId = "1111";
+constexpr auto kDataHandle = "7636348E50215979A39B5F3A429EDDB4.1111";
+constexpr auto kHereTile = "23618364";
+constexpr auto kTileDataHandle = "8C9B3E08E294ADB2CD07EBC8412062FE.236";
 constexpr auto kQuadkeyResponse =
     R"jsonString({"subQuads": [{"subQuadKey": "4","version":282,"dataHandle":"7636348E50215979A39B5F3A429EDDB4.282","dataSize":277},{"subQuadKey":"5","version":282,"dataHandle":"8C9B3E08E294ADB2CD07EBC8412062FE.282","dataSize":271},{"subQuadKey": "6","version":282,"dataHandle":"9772F5E1822DFF25F48F150294B1ECF5.282","dataSize":289},{"subQuadKey":"7","version":282,"dataHandle":"BF84D8EC8124B96DBE5C4DB68B05918F.282","dataSize":283},{"subQuadKey":"1","version":48,"dataHandle":"BD53A6D60A34C20DC42ACAB2650FE361.48","dataSize":89}],"parentQuads":[{"partition":"23","version":282,"dataHandle":"F8F4C3CB09FBA61B927256CBCB8441D1.282","dataSize":52438},{"partition":"5","version":282,"dataHandle":"13E2C624E0136C3357D092EE7F231E87.282","dataSize":99151},{"partition":"95","version":253,"dataHandle":"B6F7614316BB8B81478ED7AE370B22A6.253","dataSize":6765}]})jsonString";
 
@@ -182,6 +186,70 @@ TEST(PartitionsCacheRepositoryTest, QuadTree) {
     const auto result = repository.Get(layer, tile_key, depth, version);
 
     ASSERT_TRUE(result.IsNull());
+  }
+}
+
+TEST(PartitionsCacheRepositoryTest, IsPartitionCached) {
+  const auto hrn = HRN::FromString(kCatalog);
+  const auto layer = "layer";
+
+  model::Partition some_partition;
+  some_partition.SetPartition(kPartitionId);
+  some_partition.SetDataHandle(kDataHandle);
+  model::Partition some_tile_partition;
+  some_tile_partition.SetPartition(kHereTile);
+  some_tile_partition.SetDataHandle(kTileDataHandle);
+  model::Partitions partitions;
+  auto& partitions_vector = partitions.GetMutablePartitions();
+  partitions_vector.push_back(some_partition);
+  partitions_vector.push_back(some_tile_partition);
+
+  {
+    SCOPED_TRACE("Put/Check partition");
+
+    std::shared_ptr<KeyValueCache> cache =
+        olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+    repository::PartitionsCacheRepository repository(hrn, cache);
+
+    repository.Put({}, partitions, layer, boost::none, true);
+
+    EXPECT_FALSE(
+        repository.IsPartitionCached(boost::none, kPartitionId, layer));
+    repository::DataCacheRepository data_repository(hrn, cache);
+    std::string some_data("abc");
+    auto data = std::make_shared<std::vector<unsigned char>>(some_data.begin(),
+                                                             some_data.end());
+    data_repository.Put(data, layer, kDataHandle);
+    EXPECT_TRUE(repository.IsPartitionCached(boost::none, kPartitionId, layer));
+  }
+
+  {
+    SCOPED_TRACE("Check not existing partition");
+
+    std::shared_ptr<KeyValueCache> cache =
+        olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+    repository::PartitionsCacheRepository repository(hrn, cache);
+
+    EXPECT_FALSE(
+        repository.IsPartitionCached(boost::none, kPartitionId, layer));
+  }
+
+  {
+    SCOPED_TRACE("Put/Check tile");
+
+    std::shared_ptr<KeyValueCache> cache =
+        olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+    repository::PartitionsCacheRepository repository(hrn, cache);
+
+    repository.Put({}, partitions, layer, boost::none, true);
+    repository::DataCacheRepository data_repository(hrn, cache);
+    std::string some_data("abc");
+    auto data = std::make_shared<std::vector<unsigned char>>(some_data.begin(),
+                                                             some_data.end());
+    data_repository.Put(data, layer, kTileDataHandle);
+    EXPECT_FALSE(
+        repository.IsPartitionCached(boost::none, kPartitionId, layer));
+    EXPECT_TRUE(repository.IsPartitionCached(boost::none, kHereTile, layer));
   }
 }
 

@@ -45,7 +45,10 @@ namespace {
 constexpr auto kLogTag = "PartitionsCacheRepository";
 constexpr auto kChronoSecondsMax = std::chrono::seconds::max();
 constexpr auto kTimetMax = std::numeric_limits<time_t>::max();
-
+std::string CreateKey(const std::string& hrn, const std::string& layer_id,
+                      const std::string& datahandle) {
+  return hrn + "::" + layer_id + "::" + datahandle + "::Data";
+}
 std::string CreateKey(const std::string& hrn, const std::string& layer_id,
                       const std::string& partitionId,
                       const boost::optional<int64_t>& version) {
@@ -277,6 +280,29 @@ bool PartitionsCacheRepository::ClearPartitionMetadata(
 
   out_partition = boost::any_cast<model::Partition>(cached_partition);
   return cache_->RemoveKeysWithPrefix(key);
+}
+
+bool PartitionsCacheRepository::IsPartitionCached(
+    const boost::optional<int64_t>& catalog_version,
+    const std::string& partition_id, const std::string& layer_id) {
+  std::string hrn(hrn_.ToCatalogHRNString());
+  auto key = CreateKey(hrn, layer_id, partition_id, catalog_version);
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "IsPartitionCached -> '%s'", key.c_str());
+  if (cache_->Contains(key)) {
+    auto cached_partition =
+        cache_->Get(key, [](const std::string& serialized_object) {
+          return parser::parse<model::Partition>(serialized_object);
+        });
+
+    if (cached_partition.empty()) {
+      return false;
+    }
+    auto partition = boost::any_cast<model::Partition>(cached_partition);
+    auto data_key = CreateKey(hrn, layer_id, partition.GetDataHandle());
+    OLP_SDK_LOG_DEBUG_F(kLogTag, "IsPartitionCached data -> '%s'", key.c_str());
+    return cache_->Contains(data_key);
+  }
+  return false;
 }
 
 PORTING_POP_WARNINGS()

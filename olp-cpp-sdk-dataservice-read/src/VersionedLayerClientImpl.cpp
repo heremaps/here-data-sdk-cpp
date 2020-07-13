@@ -519,6 +519,18 @@ bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
   return RemoveFromCache(partition_id);
 }
 
+bool VersionedLayerClientImpl::IsCached(const std::string& partition_id) const {
+  repository::PartitionsCacheRepository cache_repository(catalog_,
+                                                         settings_.cache);
+  return cache_repository.IsPartitionCached(catalog_version_.load(),
+                                            partition_id, layer_id_);
+}
+
+bool VersionedLayerClientImpl::IsCached(const geo::TileKey& tile) const {
+  auto partition_id = tile.ToHereTile();
+  return IsCached(partition_id);
+}
+
 client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
     TileRequest request, AggregatedDataResponseCallback callback) {
   auto catalog = catalog_;

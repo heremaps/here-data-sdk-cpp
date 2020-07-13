@@ -78,6 +78,10 @@ class PartitionsCacheRepository final {
                               const std::string& layer_id,
                               boost::optional<model::Partition>& out_partition);
 
+  bool IsPartitionCached(const boost::optional<int64_t>& catalog_version,
+                         const std::string& partition_id,
+                         const std::string& layer_id);
+
  private:
   client::HRN hrn_;
   std::shared_ptr<cache::KeyValueCache> cache_;
