@@ -182,9 +182,9 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, DeleteClient) {
                  ->StartBatch(model::StartBatchRequest().WithLayers(
                      {CustomParameters::getArgument(kVersionedLayer)}))
                  .GetFuture();
-  versioned_client = nullptr;
 
   auto response = fut.get();
+  versioned_client.reset();
 
   EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult().GetId());
@@ -378,8 +378,6 @@ TEST_F(DataserviceWriteVersionedLayerClientTest, PublishToBatchDeleteClient) {
                   .WithLayerId(CustomParameters::getArgument(kVersionedLayer))
                   .WithPartitionId("1112"))
           .GetFuture();
-
-  versioned_client = nullptr;
 
   auto publish_to_batch_response = publish_to_batch_future.get();
   auto publish_to_batch_response2 = publish_to_batch_future2.get();
