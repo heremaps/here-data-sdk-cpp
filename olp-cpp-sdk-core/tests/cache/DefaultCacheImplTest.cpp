@@ -1112,17 +1112,6 @@ TEST_F(DefaultCacheImplTest, LruCacheEvictionWithProtected) {
     // mutable cache updated
     EXPECT_FALSE(cache.ContainsMutableCache(evicted_key));
     cache.Clear();
-
-    // try to write internal key
-    auto some_internal_key = "internal::somekey";
-    auto key1_data_string = "key1_data_string";
-    EXPECT_FALSE(
-        cache.Put(some_internal_key,
-                  std::make_shared<std::vector<unsigned char>>(binary_data),
-                  (std::numeric_limits<time_t>::max)()));
-    EXPECT_FALSE(cache.Put(some_internal_key, key1_data_string,
-                           [=]() { return key1_data_string; },
-                           (std::numeric_limits<time_t>::max)()));
   }
 }
 }  // namespace

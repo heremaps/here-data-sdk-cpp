@@ -161,11 +161,11 @@ bool ProtectedKeyList::IsEqualOrPrefix(const std::string& prefix,
           std::equal(prefix.begin(), prefix.end(), key.begin()));
 }
 
-std::uint64_t ProtectedKeyList::GetWrittenListSize() const {
-  return size_written_;
-}
+std::uint64_t ProtectedKeyList::Size() const { return size_written_; }
 
-bool ProtectedKeyList::IsListDirty() const { return dirty_; }
+bool ProtectedKeyList::IsDirty() const { return dirty_; }
+
+std::uint64_t ProtectedKeyList::Count() const { return protected_data_.size(); }
 
 }  // namespace cache
 }  // namespace olp
