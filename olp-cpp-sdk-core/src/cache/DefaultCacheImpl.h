@@ -106,7 +106,7 @@ class DefaultCacheImpl {
   /// Removes all keys with specified prefix from LRU mutable cache.
   void RemoveKeysWithPrefixLru(const std::string& key);
 
-  /// Returns true if key is found in the LRU cache, or protected false -
+  /// Returns true if key is found in the LRU or protected cache, false -
   /// otherwise.
   bool PromoteKeyLru(const std::string& key);
 
@@ -129,8 +129,6 @@ class DefaultCacheImpl {
       const std::string& key);
 
   time_t GetExpiryForMemoryCache(const std::string& key, const time_t& expiry);
-
-  bool IsInternalKey(const std::string& key) const;
 
   CacheSettings settings_;
   bool is_open_;

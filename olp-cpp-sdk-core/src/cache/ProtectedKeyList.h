@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include <olp/core/cache/KeyValueCache.h>
-
 #include <set>
 #include <string>
+
+#include <olp/core/cache/KeyValueCache.h>
 
 namespace olp {
 namespace cache {
@@ -47,14 +47,13 @@ class ProtectedKeyList {
 
   bool IsProtected(const std::string& key) const;
 
-  std::uint64_t GetWrittenListSize() const;
+  std::uint64_t Size() const;
 
-  bool IsListDirty() const;
+  bool IsDirty() const;
+
+  std::uint64_t Count() const;
 
  private:
-  bool IsPrefix(const std::string& prefix, const std::string& key) const;
-
-  bool IsEqualOrPrefix(const std::string& prefix, const std::string& key) const;
   // custom comparator needed to reduce duplicates for keys, which are already
   // protected by prefix
   struct CustomCompare {
@@ -71,6 +70,11 @@ class ProtectedKeyList {
       return lhs < rhs;
     }
   };
+
+  bool IsPrefix(const std::string& prefix, const std::string& key) const;
+
+  bool IsEqualOrPrefix(const std::string& prefix, const std::string& key) const;
+
   std::set<std::string, CustomCompare> protected_data_;
   std::uint64_t size_written_;
   bool dirty_;
