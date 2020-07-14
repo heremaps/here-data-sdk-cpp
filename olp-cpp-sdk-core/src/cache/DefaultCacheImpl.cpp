@@ -95,10 +95,14 @@ leveldb::CompressionType GetCompression(
              : leveldb::kSnappyCompression;
 }
 
-int64_t GetElapsedTimeFromStart(std::chrono::steady_clock::time_point start) {
+int64_t GetElapsedTime(std::chrono::steady_clock::time_point start) {
   return std::chrono::duration_cast<std::chrono::milliseconds>(
              std::chrono::steady_clock::now() - start)
       .count();
+}
+
+bool IsInternalKey(const std::string& key) {
+  return key.find(kInternalKeysPrefix) == 0u;
 }
 }  // namespace
 
@@ -127,12 +131,13 @@ void DefaultCacheImpl::Close() {
   if (!is_open_) {
     return;
   }
-  if (mutable_cache_ && protected_keys_.IsListDirty()) {
+  if (mutable_cache_ && protected_keys_.IsDirty()) {
     auto batch = std::make_unique<leveldb::WriteBatch>();
     MaybeUpdatedProtectedKeys(*batch);
     auto result = mutable_cache_->ApplyBatch(std::move(batch));
-    OLP_SDK_LOG_DEBUG_F(kLogTag, "Store list of protected keys result=%s",
-                        result.IsSuccessful() ? "true" : "false");
+    OLP_SDK_LOG_INFO_F(kLogTag,
+                       "Close(): store list of protected keys, result=%s",
+                       result.IsSuccessful() ? "true" : "false");
   }
 
   memory_cache_.reset();
@@ -180,11 +185,6 @@ bool DefaultCacheImpl::Put(const std::string& key, const boost::any& value,
   if (!is_open_) {
     return false;
   }
-  if (IsInternalKey(key)) {
-    OLP_SDK_LOG_WARNING_F(kLogTag, "Failed to write key with prefix %s",
-                          kInternalKeysPrefix);
-    return false;
-  }
 
   auto encoded_item = encoder();
   if (memory_cache_) {
@@ -206,11 +206,6 @@ bool DefaultCacheImpl::Put(const std::string& key,
                            time_t expiry) {
   std::lock_guard<std::mutex> lock(cache_lock_);
   if (!is_open_) {
-    return false;
-  }
-  if (IsInternalKey(key)) {
-    OLP_SDK_LOG_WARNING_F(kLogTag, "Failed to write key with prefix %s",
-                          kInternalKeysPrefix);
     return false;
   }
 
@@ -429,7 +424,7 @@ void DefaultCacheImpl::InitializeLru() {
 
   OLP_SDK_LOG_INFO_F(
       kLogTag, "Cache initialized, items=%" PRIu32 ", time=%" PRId64 " ms",
-      count, GetElapsedTimeFromStart(start));
+      count, GetElapsedTime(start));
 }
 
 bool DefaultCacheImpl::RemoveKeyLru(const std::string& key) {
@@ -545,15 +540,15 @@ uint64_t DefaultCacheImpl::MaybeEvictData(leveldb::WriteBatch& batch) {
   OLP_SDK_LOG_INFO_F(kLogTag,
                      "Evicted from mutable cache, items=%" PRId32
                      ", time=%" PRId64 "ms, size=%" PRIu64,
-                     count, GetElapsedTimeFromStart(start), evicted);
+                     count, GetElapsedTime(start), evicted);
 
   return evicted;
 }
 
 int64_t DefaultCacheImpl::MaybeUpdatedProtectedKeys(
     leveldb::WriteBatch& batch) {
-  if (protected_keys_.IsListDirty()) {
-    auto prev_size = protected_keys_.GetWrittenListSize();
+  if (protected_keys_.IsDirty()) {
+    auto prev_size = protected_keys_.Size();
     auto value = protected_keys_.Serialize();
     if (value->size() > 0) {
       leveldb::Slice slice(reinterpret_cast<const char*>(value->data()),
@@ -561,7 +556,7 @@ int64_t DefaultCacheImpl::MaybeUpdatedProtectedKeys(
       batch.Put(kProtectedKeys, slice);
     }  // add key size, as it is be written for the first time
     auto key_size = (prev_size > 0 ? 0 : strlen(kProtectedKeys));
-    return (key_size + protected_keys_.GetWrittenListSize() - prev_size);
+    return (key_size + protected_keys_.Size() - prev_size);
   }
 
   return 0;
@@ -659,7 +654,9 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupStorage() {
       KeyValueCache::ValueTypePtr value = nullptr;
       auto result = mutable_cache_->Get(kProtectedKeys, value);
       if (result && value) {
-        protected_keys_.Deserialize(value);
+        if (!protected_keys_.Deserialize(value)) {
+          OLP_SDK_LOG_WARNING(kLogTag, "Deserialize protected keys failed");
+        }
       }
     }
   }
@@ -759,8 +756,11 @@ bool DefaultCacheImpl::Protect(const DefaultCache::KeyListType& keys) {
     memory_cache_->Clear();
   }
 
-  OLP_SDK_LOG_INFO_F(kLogTag, "Protect, time=%" PRId64 " ms",
-                     GetElapsedTimeFromStart(start));
+  OLP_SDK_LOG_INFO_F(kLogTag,
+                     "Protect, time=%" PRId64 " ms, added keys size=%" PRId64
+                     ", total size=%" PRIu32,
+                     GetElapsedTime(start), keys.size(),
+                     protected_keys_.Count());
   return true;
 }
 
@@ -776,24 +776,19 @@ bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
       auto result = GetFromDiskCache(key, value, expiry);
       if (result && value) {
         if (memory_cache_) {
-          if (expiry > 0) {
-            memory_cache_->Put(key, value, expiry, value->size());
-          } else {
-            memory_cache_->Remove(key);
-          }
+          memory_cache_->Remove(key);
         }
-        if (expiry > 0) {
+        if (mutable_cache_lru_) {
           ValueProperties props;
           props.size = value->size();
-          props.expiry = expiry;
+          props.expiry =
+              expiry + olp::cache::InMemoryCache::DefaultTimeProvider()();
           mutable_cache_lru_->InsertOrAssign(key, props);
         }
       } else {
         // key is not in mutable_cache_lru_, key is prefix, need reload memory
         // cache and lru to store all keys with prefix
         need_reset = true;
-        OLP_SDK_LOG_INFO(kLogTag,
-                         "Release, need to reset lru and memory cache");
       }
     }
   });
@@ -806,8 +801,11 @@ bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
     InitializeLru();
   }
 
-  OLP_SDK_LOG_INFO_F(kLogTag, "Release, time=%" PRId64 " ms",
-                     GetElapsedTimeFromStart(start));
+  OLP_SDK_LOG_INFO_F(kLogTag,
+                     "Release, time=%" PRId64 " ms, added keys size=%" PRId64
+                     ", total size=%" PRIu32 ", need_reset flag is %s",
+                     GetElapsedTime(start), keys.size(),
+                     protected_keys_.Count(), need_reset ? "true" : "false");
   return result;
 }
 
@@ -819,10 +817,5 @@ time_t DefaultCacheImpl::GetExpiryForMemoryCache(const std::string& key,
   }
   return expiry;
 }
-
-bool DefaultCacheImpl::IsInternalKey(const std::string& key) const {
-  return key.find(kInternalKeysPrefix) == 0u;
-}
-
 }  // namespace cache
 }  // namespace olp
