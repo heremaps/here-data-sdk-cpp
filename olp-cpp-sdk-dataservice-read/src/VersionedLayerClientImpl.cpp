@@ -527,8 +527,10 @@ bool VersionedLayerClientImpl::IsCached(const std::string& partition_id) const {
 }
 
 bool VersionedLayerClientImpl::IsCached(const geo::TileKey& tile) const {
-  auto partition_id = tile.ToHereTile();
-  return IsCached(partition_id);
+  repository::PartitionsCacheRepository cache_repository(catalog_,
+                                                         settings_.cache);
+  return cache_repository.IsTileCached(catalog_version_.load(), tile,
+                                       layer_id_);
 }
 
 client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(

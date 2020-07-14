@@ -19,6 +19,7 @@
 
 #include "PartitionsCacheRepository.h"
 
+#include <algorithm>
 #include <limits>
 #include <string>
 #include <utility>
@@ -45,6 +46,7 @@ namespace {
 constexpr auto kLogTag = "PartitionsCacheRepository";
 constexpr auto kChronoSecondsMax = std::chrono::seconds::max();
 constexpr auto kTimetMax = std::numeric_limits<time_t>::max();
+constexpr auto kQuadTreeDepth = 4;
 std::string CreateKey(const std::string& hrn, const std::string& layer_id,
                       const std::string& datahandle) {
   return hrn + "::" + layer_id + "::" + datahandle + "::Data";
@@ -301,6 +303,33 @@ bool PartitionsCacheRepository::IsPartitionCached(
     auto data_key = CreateKey(hrn, layer_id, partition.GetDataHandle());
     OLP_SDK_LOG_DEBUG_F(kLogTag, "IsPartitionCached data -> '%s'", key.c_str());
     return cache_->Contains(data_key);
+  }
+  return false;
+}
+
+bool PartitionsCacheRepository::IsTileCached(
+    const boost::optional<int64_t>& catalog_version, geo::TileKey tile_key,
+    const std::string& layer) {
+  std::string hrn(hrn_.ToCatalogHRNString());
+  auto max_depth = std::min<std::uint32_t>(tile_key.Level(), kQuadTreeDepth);
+  for (int i = max_depth; i >= 0; --i) {
+    const auto& root_tile_key = tile_key.ChangedLevelBy(-i);
+    auto key =
+        CreateKey(hrn, layer, root_tile_key, kQuadTreeDepth, catalog_version);
+
+    if (cache_->Contains(key)) {
+      OLP_SDK_LOG_DEBUG_F(kLogTag, "Found -> '%s'", key.c_str());
+      auto data = cache_->Get(key);
+      auto tree = QuadTreeIndex(data);
+      auto result = tree.Find(tile_key, false);
+      if (result) {
+        auto data_key = CreateKey(hrn, layer, result->data_handle);
+        OLP_SDK_LOG_DEBUG_F(kLogTag, "IsTileCached data -> '%s'",
+                            data_key.c_str());
+        return cache_->Contains(data_key);
+      }
+      return false;
+    }
   }
   return false;
 }

@@ -82,6 +82,9 @@ class PartitionsCacheRepository final {
                          const std::string& partition_id,
                          const std::string& layer_id);
 
+  bool IsTileCached(const boost::optional<int64_t>& catalog_version,
+                    geo::TileKey key, const std::string& layer);
+
  private:
   client::HRN hrn_;
   std::shared_ptr<cache::KeyValueCache> cache_;
