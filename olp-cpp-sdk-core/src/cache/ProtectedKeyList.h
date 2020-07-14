@@ -38,8 +38,7 @@ class ProtectedKeyList {
   bool Protect(const KeyValueCache::KeyListType& keys,
                const ProtectedKeyChanged& change_key_to_protected);
 
-  bool Release(const KeyValueCache::KeyListType& keys,
-               const ProtectedKeyChanged& released_key_from_protected);
+  bool Release(const KeyValueCache::KeyListType& keys);
 
   bool Deserialize(KeyValueCache::ValueTypePtr value);
 

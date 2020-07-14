@@ -159,7 +159,7 @@ TEST(ProtectedKeyList, Release) {
 
     {
       SCOPED_TRACE("Release one key ");
-      EXPECT_TRUE(protected_keys.Release({"some_key:6"}, cb));
+      EXPECT_TRUE(protected_keys.Release({"some_key:6"}));
       EXPECT_TRUE(protected_keys.IsDirty());
       auto raw_data = protected_keys.Serialize();
       EXPECT_TRUE(raw_data.get());
@@ -173,8 +173,8 @@ TEST(ProtectedKeyList, Release) {
 
     {
       SCOPED_TRACE("Release multiple keys ");
-      EXPECT_TRUE(protected_keys.Release(
-          {"some_key:6", "some_key:5", "some_key:4"}, cb));
+      EXPECT_TRUE(
+          protected_keys.Release({"some_key:6", "some_key:5", "some_key:4"}));
       EXPECT_TRUE(protected_keys.IsDirty());
       auto raw_data = protected_keys.Serialize();
       EXPECT_TRUE(raw_data.get());
@@ -188,7 +188,7 @@ TEST(ProtectedKeyList, Release) {
 
     {
       SCOPED_TRACE("Release keys by prefix");
-      EXPECT_TRUE(protected_keys.Release({"some_key:"}, cb));
+      EXPECT_TRUE(protected_keys.Release({"some_key:"}));
       EXPECT_TRUE(protected_keys.IsDirty());
       auto raw_data = protected_keys.Serialize();
       EXPECT_TRUE(raw_data.get());
@@ -203,7 +203,7 @@ TEST(ProtectedKeyList, Release) {
 
     {
       SCOPED_TRACE("Try to release key protected by prefix");
-      EXPECT_FALSE(protected_keys.Release({"key:1"}, cb));
+      EXPECT_FALSE(protected_keys.Release({"key:1"}));
       EXPECT_TRUE(protected_keys.IsDirty());
       auto raw_data = protected_keys.Serialize();
       EXPECT_TRUE(raw_data.get());

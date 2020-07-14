@@ -103,9 +103,7 @@ bool ProtectedKeyList::Protect(
   return true;
 }
 
-bool ProtectedKeyList::Release(
-    const KeyValueCache::KeyListType& keys,
-    const ProtectedKeyChanged& released_key_from_protected) {
+bool ProtectedKeyList::Release(const KeyValueCache::KeyListType& keys) {
   dirty_ = true;
   auto result = true;
   for (const auto& key : keys) {
@@ -124,7 +122,6 @@ bool ProtectedKeyList::Release(
       // if key is equal of prefix for hint key, remove hint, notify that key is
       // not longer protected (need to notify for all keys for this prefix)
       while (hint != protected_data_.end() && IsEqualOrPrefix(key, *hint)) {
-        released_key_from_protected(*hint);
         hint = protected_data_.erase(hint);
       }
     }

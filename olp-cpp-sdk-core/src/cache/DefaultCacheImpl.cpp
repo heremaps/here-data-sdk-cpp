@@ -365,6 +365,41 @@ bool DefaultCacheImpl::Contains(const std::string& key) const {
   return false;
 }
 
+bool DefaultCacheImpl::AddKeyToLru(std::string key,
+                                   const leveldb::Slice& value) {
+  // do not add protected keys to lru, this applies to all keys with some
+  // protected prefix, do not add internal keys
+  if (mutable_cache_lru_ && !protected_keys_.IsProtected(key) &&
+      !IsInternalKey(key)) {
+    // remove the prefix to restore original key
+    const bool expiration_key = IsExpiryKey(key);
+    if (expiration_key) {
+      key.resize(key.size() - kExpirySuffixLength);
+    }
+
+    ValueProperties props;
+
+    auto iterator = mutable_cache_lru_->FindNoPromote(key);
+    if (iterator != mutable_cache_lru_->end()) {
+      props = iterator->value();
+    }
+
+    if (expiration_key) {
+      // value.data() could point to a value without null character at the
+      // end, this could cause exception in std::stol. This is fixed by
+      // constructing a string, (We rely on small string optimization here).
+      std::string timestamp(value.data(), value.size());
+      props.expiry = std::stol(timestamp.c_str());
+    } else {
+      props.size = value.size();
+    }
+
+    auto result = mutable_cache_lru_->InsertOrAssign(key, props);
+    return result.second;
+  }
+  return false;
+}
+
 void DefaultCacheImpl::InitializeLru() {
   if (!mutable_cache_) {
     return;
@@ -387,38 +422,8 @@ void DefaultCacheImpl::InitializeLru() {
 
     // Here we count both expiry keys and regular keys
     mutable_cache_data_size_ += key.size() + value.size();
-
-    // do not add protected keys to lru, this applies to all keys with some
-    // protected prefix, do not add internal keys
-    if (mutable_cache_lru_ && !protected_keys_.IsProtected(key) &&
-        !IsInternalKey(key)) {
-      // remove the prefix to restore original key
-      const bool expiration_key = IsExpiryKey(key);
-      if (expiration_key) {
-        key.resize(key.size() - kExpirySuffixLength);
-      }
-
-      ValueProperties props;
-
-      auto iterator = mutable_cache_lru_->FindNoPromote(key);
-      if (iterator != mutable_cache_lru_->end()) {
-        props = iterator->value();
-      }
-
-      if (expiration_key) {
-        // value.data() could point to a value without null character at the
-        // end, this could cause exception in std::stol. This is fixed by
-        // constructing a string, (We rely on small string optimization here).
-        std::string timestamp(value.data(), value.size());
-        props.expiry = std::stol(timestamp.c_str());
-      } else {
-        props.size = value.size();
-      }
-
-      auto result = mutable_cache_lru_->InsertOrAssign(key, props);
-      if (result.second) {
-        ++count;
-      }
+    if (AddKeyToLru(key, value)) {
+      ++count;
     }
   }
 
@@ -768,46 +773,25 @@ bool DefaultCacheImpl::Protect(const DefaultCache::KeyListType& keys) {
 bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
   std::lock_guard<std::mutex> lock(cache_lock_);
   auto start = std::chrono::steady_clock::now();
-  bool need_reset = false;
-  auto result = protected_keys_.Release(keys, [&](const std::string& key) {
-    if (!need_reset) {
-      KeyValueCache::ValueTypePtr value = nullptr;
-      time_t expiry = KeyValueCache::kDefaultExpiry;
+  auto result = protected_keys_.Release(keys);
 
-      auto result = GetFromDiskCache(key, value, expiry);
-      if (result && value) {
-        if (memory_cache_) {
-          memory_cache_->Remove(key);
-        }
-        if (mutable_cache_lru_) {
-          ValueProperties props;
-          props.size = value->size();
-          props.expiry =
-              expiry + olp::cache::InMemoryCache::DefaultTimeProvider()();
-          mutable_cache_lru_->InsertOrAssign(key, props);
-        }
-      } else {
-        // key is not in mutable_cache_lru_, key is prefix, need reload memory
-        // cache and lru to store all keys with prefix
-        need_reset = true;
-      }
-    }
-  });
+  if (memory_cache_) {
+    memory_cache_->Clear();
+  }
+  if (mutable_cache_) {
+    auto it = mutable_cache_->NewIterator(leveldb::ReadOptions());
 
-  if (need_reset) {
-    if (memory_cache_) {
-      memory_cache_->Clear();
+    for (it->SeekToFirst(); it->Valid(); it->Next()) {
+      AddKeyToLru(it->key().ToString(), it->value());
     }
-    mutable_cache_lru_.reset();
-    InitializeLru();
   }
 
   OLP_SDK_LOG_INFO_F(kLogTag,
                      "Release, time=%" PRId64 " ms, released keys size=%" PRIu64
-                     ", total size=%" PRIu64 ", need_reset flag is %s",
+                     ", total size=%" PRIu64,
                      GetElapsedTime(start),
                      static_cast<std::uint64_t>(keys.size()),
-                     protected_keys_.Count(), need_reset ? "true" : "false");
+                     protected_keys_.Count());
   return result;
 }
 

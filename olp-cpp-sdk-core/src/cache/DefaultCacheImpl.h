@@ -28,6 +28,9 @@
 #include "DiskCache.h"
 #include "InMemoryCache.h"
 #include "ProtectedKeyList.h"
+namespace leveldb {
+class Slice;
+}  // namespace leveldb
 
 namespace olp {
 namespace cache {
@@ -97,6 +100,8 @@ class DefaultCacheImpl {
   std::string GetExpiryKey(const std::string& key) const;
 
  private:
+  /// Add single key to LRU.
+  bool AddKeyToLru(std::string key, const leveldb::Slice& value);
   /// Initializes LRU mutable cache if possible.
   void InitializeLru();
 
