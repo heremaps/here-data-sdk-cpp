@@ -39,17 +39,14 @@ target_link_libraries(${PROJECT_NAME}
 
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE DATASERVICE_READ_LIBRARY)
+
 if(BUILD_SHARED_LIBS)
     target_compile_definitions(${PROJECT_NAME}
         PUBLIC DATASERVICE_READ_SHARED_LIBRARY)
 endif()
 
 # install component
-file(GLOB API_HEADERS "include/olp/dataservice/read/*.h")
-file(GLOB MODEL_HEADERS "include/olp/dataservice/read/model/*.h")
-
-install (FILES ${API_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/dataservice/read)
-install (FILES ${MODEL_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/dataservice/read/model)
+install (DIRECTORY include/olp DESTINATION ${INCLUDE_DIRECTORY})
 
 export_config()
 

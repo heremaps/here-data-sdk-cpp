@@ -168,6 +168,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE DATASERVICE_WRITE_LIBRARY)
+
 if(BUILD_SHARED_LIBS)
     target_compile_definitions(${PROJECT_NAME}
         PUBLIC DATASERVICE_WRITE_SHARED_LIBRARY)
@@ -182,9 +183,7 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 # install component
-install (FILES ${OLP_SDK_DATASERVICE_WRITE_API_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/dataservice/write)
-install (FILES ${OLP_SDK_DATASERVICE_WRITE_GENERATED_MODEL_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/dataservice/write/generated/model)
-install (FILES ${OLP_SDK_DATASERVICE_WRITE_MODEL_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/dataservice/write/model)
+install (DIRECTORY include/olp DESTINATION ${INCLUDE_DIRECTORY})
 
 export_config()
 
