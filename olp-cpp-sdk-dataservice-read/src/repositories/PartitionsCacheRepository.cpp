@@ -19,7 +19,6 @@
 
 #include "PartitionsCacheRepository.h"
 
-#include <algorithm>
 #include <limits>
 #include <string>
 #include <utility>
@@ -46,11 +45,7 @@ namespace {
 constexpr auto kLogTag = "PartitionsCacheRepository";
 constexpr auto kChronoSecondsMax = std::chrono::seconds::max();
 constexpr auto kTimetMax = std::numeric_limits<time_t>::max();
-constexpr auto kQuadTreeDepth = 4;
-std::string CreateKey(const std::string& hrn, const std::string& layer_id,
-                      const std::string& datahandle) {
-  return hrn + "::" + layer_id + "::" + datahandle + "::Data";
-}
+
 std::string CreateKey(const std::string& hrn, const std::string& layer_id,
                       const std::string& partitionId,
                       const boost::optional<int64_t>& version) {
@@ -229,14 +224,21 @@ void PartitionsCacheRepository::Put(const std::string& layer,
   cache_->Put(key, quad_tree.GetRawData(), default_expiry_);
 }
 
-QuadTreeIndex PartitionsCacheRepository::Get(
-    const std::string& layer, geo::TileKey tile_key, int32_t depth,
-    const boost::optional<int64_t>& version) {
+bool PartitionsCacheRepository::Get(const std::string& layer,
+                                    geo::TileKey tile_key, int32_t depth,
+                                    const boost::optional<int64_t>& version,
+                                    QuadTreeIndex& tree) {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn, layer, tile_key, depth, version);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Get -> '%s'", key.c_str());
-  auto data = cache_->Get(key);
-  return QuadTreeIndex(data);
+  if (cache_->Contains(key)) {
+    auto data = cache_->Get(key);
+    if (data) {
+      tree = QuadTreeIndex(data);
+      return true;
+    }
+  }
+  return false;
 }
 
 void PartitionsCacheRepository::Clear(const std::string& layer_id) {
@@ -284,9 +286,10 @@ bool PartitionsCacheRepository::ClearPartitionMetadata(
   return cache_->RemoveKeysWithPrefix(key);
 }
 
-bool PartitionsCacheRepository::IsPartitionCached(
+bool PartitionsCacheRepository::GetPartitionHandle(
     const boost::optional<int64_t>& catalog_version,
-    const std::string& partition_id, const std::string& layer_id) {
+    const std::string& partition_id, const std::string& layer_id,
+    std::string& data_handle) {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn, layer_id, partition_id, catalog_version);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "IsPartitionCached -> '%s'", key.c_str());
@@ -300,40 +303,11 @@ bool PartitionsCacheRepository::IsPartitionCached(
       return false;
     }
     auto partition = boost::any_cast<model::Partition>(cached_partition);
-    auto data_key = CreateKey(hrn, layer_id, partition.GetDataHandle());
-    OLP_SDK_LOG_DEBUG_F(kLogTag, "IsPartitionCached data -> '%s'", key.c_str());
-    return cache_->Contains(data_key);
+    data_handle = partition.GetDataHandle();
+    return true;
   }
   return false;
 }
-
-bool PartitionsCacheRepository::IsTileCached(
-    const boost::optional<int64_t>& catalog_version, geo::TileKey tile_key,
-    const std::string& layer) {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  auto max_depth = std::min<std::uint32_t>(tile_key.Level(), kQuadTreeDepth);
-  for (int i = max_depth; i >= 0; --i) {
-    const auto& root_tile_key = tile_key.ChangedLevelBy(-i);
-    auto key =
-        CreateKey(hrn, layer, root_tile_key, kQuadTreeDepth, catalog_version);
-
-    if (cache_->Contains(key)) {
-      OLP_SDK_LOG_DEBUG_F(kLogTag, "Found -> '%s'", key.c_str());
-      auto data = cache_->Get(key);
-      auto tree = QuadTreeIndex(data);
-      auto result = tree.Find(tile_key, false);
-      if (result) {
-        auto data_key = CreateKey(hrn, layer, result->data_handle);
-        OLP_SDK_LOG_DEBUG_F(kLogTag, "IsTileCached data -> '%s'",
-                            data_key.c_str());
-        return cache_->Contains(data_key);
-      }
-      return false;
-    }
-  }
-  return false;
-}
-
 PORTING_POP_WARNINGS()
 }  // namespace repository
 }  // namespace read
