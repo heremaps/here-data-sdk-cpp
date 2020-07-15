@@ -27,13 +27,16 @@
 
 #include "DiskCache.h"
 #include "InMemoryCache.h"
+#include "ProtectedKeyList.h"
 
 namespace olp {
 namespace cache {
 
 class DefaultCacheImpl {
  public:
-  DefaultCacheImpl(CacheSettings settings);
+  explicit DefaultCacheImpl(CacheSettings settings);
+
+  ~DefaultCacheImpl();
 
   DefaultCache::StorageOpenResult Open();
 
@@ -58,6 +61,8 @@ class DefaultCacheImpl {
   bool RemoveKeysWithPrefix(const std::string& key);
 
   bool Contains(const std::string& key) const;
+  bool Protect(const DefaultCache::KeyListType& keys);
+  bool Release(const DefaultCache::KeyListType& keys);
 
  protected:
   /// The LRU value property.
@@ -92,20 +97,26 @@ class DefaultCacheImpl {
   std::string GetExpiryKey(const std::string& key) const;
 
  private:
+  /// Add single key to LRU.
+  bool AddKeyLru(std::string key, const leveldb::Slice& value);
   /// Initializes LRU mutable cache if possible.
   void InitializeLru();
 
   /// Removes key from the mutable lru cache;
-  void RemoveKeyLru(const std::string& key);
+  bool RemoveKeyLru(const std::string& key);
 
   /// Removes all keys with specified prefix from LRU mutable cache.
   void RemoveKeysWithPrefixLru(const std::string& key);
 
-  /// Returns true if key is found in the LRU cache, false - otherwise.
+  /// Returns true if key is found in the LRU or protected cache, false -
+  /// otherwise.
   bool PromoteKeyLru(const std::string& key);
 
   /// Returns evicted data size.
   uint64_t MaybeEvictData(leveldb::WriteBatch& batch);
+
+  /// Returns changed data size.
+  int64_t MaybeUpdatedProtectedKeys(leveldb::WriteBatch& batch);
 
   /// Puts data into the mutable cache
   bool PutMutableCache(const std::string& key, const leveldb::Slice& value,
@@ -119,6 +130,8 @@ class DefaultCacheImpl {
   boost::optional<std::pair<std::string, time_t>> GetFromDiscCache(
       const std::string& key);
 
+  time_t GetExpiryForMemoryCache(const std::string& key, const time_t& expiry);
+
   CacheSettings settings_;
   bool is_open_;
   std::unique_ptr<InMemoryCache> memory_cache_;
@@ -126,6 +139,7 @@ class DefaultCacheImpl {
   std::unique_ptr<DiskLruCache> mutable_cache_lru_;
   std::unique_ptr<DiskCache> protected_cache_;
   uint64_t mutable_cache_data_size_;
+  ProtectedKeyList protected_keys_;
   mutable std::mutex cache_lock_;
 };
 

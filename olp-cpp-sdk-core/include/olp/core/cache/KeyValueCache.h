@@ -58,6 +58,11 @@ class CORE_API KeyValueCache {
    */
   using ValueTypePtr = std::shared_ptr<ValueType>;
 
+  /**
+   * @brief Alias for the list of keys to be protected or released.
+   */
+  using KeyListType = std::vector<std::string>;
+
   virtual ~KeyValueCache() = default;
 
   /**

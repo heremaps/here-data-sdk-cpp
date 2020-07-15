@@ -773,4 +773,345 @@ TEST_F(DefaultCacheImplTest, LruCacheEviction) {
   }
 }
 
+TEST_F(DefaultCacheImplTest, ProtectTest) {
+  const std::string key1_data_string = "this is key1's data";
+  const std::string key2_data_string = "this is key2's data";
+  const std::string key1 = "key1";
+  const std::string key2 = "key2";
+  {
+    SCOPED_TRACE("Check key exist cache with lru, store expired");
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
+    settings.max_memory_cache_size = 0;
+    DefaultCacheImplHelper cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; }, 2);
+    ASSERT_TRUE(cache.Contains(key1));
+    ASSERT_TRUE(cache.Protect({key1}));
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    ASSERT_TRUE(cache.Contains(key1));
+    // check if it is really in cache
+    auto key1_data_read =
+        cache.Get(key1, [](const std::string& data) { return data; });
+    ASSERT_FALSE(key1_data_read.empty());
+    ASSERT_EQ(key1_data_string, boost::any_cast<std::string>(key1_data_read));
+    ASSERT_TRUE(cache.Clear());
+  }
+  {
+    SCOPED_TRACE("Check key exist cache with memory cache, store expired");
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
+    DefaultCacheImplHelper cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; }, 2);
+    ASSERT_TRUE(cache.Contains(key1));
+    ASSERT_TRUE(cache.Protect({key1}));
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    ASSERT_TRUE(cache.Contains(key1));
+    // check if it is really in cache
+    auto key1_data_read =
+        cache.Get(key1, [](const std::string& data) { return data; });
+    ASSERT_FALSE(key1_data_read.empty());
+    ASSERT_EQ(key1_data_string, boost::any_cast<std::string>(key1_data_read));
+    ASSERT_TRUE(cache.Clear());
+  }
+  {
+    SCOPED_TRACE(
+        "Check key exist cache with memory cache, protect before store "
+        "expired");
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
+    DefaultCacheImplHelper cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+    ASSERT_TRUE(cache.Protect({key1}));
+    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; }, 2);
+    ASSERT_TRUE(cache.Contains(key1));
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    ASSERT_TRUE(cache.Contains(key1));
+    // check if it is really in cache
+    auto key1_data_read =
+        cache.Get(key1, [](const std::string& data) { return data; });
+    ASSERT_FALSE(key1_data_read.empty());
+    ASSERT_EQ(key1_data_string, boost::any_cast<std::string>(key1_data_read));
+    ASSERT_TRUE(cache.Clear());
+  }
+  {
+    SCOPED_TRACE("Check if key still protected exist after closing");
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
+    {
+      DefaultCacheImplHelper cache(settings);
+      ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+      ASSERT_TRUE(cache.Clear());
+      ASSERT_TRUE(cache.Protect({key1}));
+      cache.Put(key1, key1_data_string, [=]() { return key1_data_string; }, 2);
+    }
+    {
+      DefaultCacheImplHelper cache(settings);
+      ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+      cache.Put(key1, key1_data_string, [=]() { return key1_data_string; }, 2);
+      std::this_thread::sleep_for(std::chrono::seconds(3));
+      ASSERT_TRUE(cache.Contains(key1));
+      // check if it didn't expire
+      auto key1_data_read =
+          cache.Get(key1, [](const std::string& data) { return data; });
+      ASSERT_FALSE(key1_data_read.empty());
+      ASSERT_EQ(key1_data_string, boost::any_cast<std::string>(key1_data_read));
+      ASSERT_TRUE(cache.Clear());
+    }
+  }
+  {
+    SCOPED_TRACE(
+        "Check if key could be released, expiration finished before release");
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
+    DefaultCacheImplHelper cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; }, 2);
+    ASSERT_TRUE(cache.Contains(key1));
+    ASSERT_TRUE(cache.Protect({key1}));
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    ASSERT_TRUE(cache.Contains(key1));
+    // check if it is really in cache
+    auto key1_data_read =
+        cache.Get(key1, [](const std::string& data) { return data; });
+    ASSERT_FALSE(key1_data_read.empty());
+    ASSERT_EQ(key1_data_string, boost::any_cast<std::string>(key1_data_read));
+    // after release try to check again
+    ASSERT_TRUE(cache.Release({key1}));
+    ASSERT_FALSE(cache.Contains(key1));
+    auto released_key1_data_read =
+        cache.Get(key1, [](const std::string& data) { return data; });
+    ASSERT_TRUE(released_key1_data_read.empty());
+    ASSERT_TRUE(cache.Clear());
+  }
+  {
+    SCOPED_TRACE(
+        "Check if key could be released, expiration finished after release ");
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
+    DefaultCacheImplHelper cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; }, 2);
+    ASSERT_TRUE(cache.Contains(key1));
+    ASSERT_TRUE(cache.Protect({key1}));
+    // check if it is really in cache
+    auto key1_data_read =
+        cache.Get(key1, [](const std::string& data) { return data; });
+    ASSERT_FALSE(key1_data_read.empty());
+    ASSERT_EQ(key1_data_string, boost::any_cast<std::string>(key1_data_read));
+    // after release try to check again
+    ASSERT_TRUE(cache.Release({key1}));
+    ASSERT_TRUE(cache.Contains(key1));
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    ASSERT_FALSE(cache.Contains(key1));
+    auto released_key1_data_read =
+        cache.Get(key1, [](const std::string& data) { return data; });
+    ASSERT_TRUE(released_key1_data_read.empty());
+    ASSERT_TRUE(cache.Clear());
+  }
+  {
+    SCOPED_TRACE("Check if key could be released via prefix ");
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
+    DefaultCacheImplHelper cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; }, 2);
+    ASSERT_TRUE(cache.Contains(key1));
+    ASSERT_TRUE(cache.Protect({key1}));
+    // check if it is really in cache
+    auto key1_data_read =
+        cache.Get(key1, [](const std::string& data) { return data; });
+    ASSERT_FALSE(key1_data_read.empty());
+    ASSERT_EQ(key1_data_string, boost::any_cast<std::string>(key1_data_read));
+    // after release try to check again
+    ASSERT_TRUE(cache.Release({"k"}));
+    ASSERT_TRUE(cache.Contains(key1));
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    ASSERT_FALSE(cache.Contains(key1));
+    auto released_key1_data_read =
+        cache.Get(key1, [](const std::string& data) { return data; });
+    ASSERT_TRUE(released_key1_data_read.empty());
+    ASSERT_TRUE(cache.Clear());
+  }
+  {
+    SCOPED_TRACE("Check if key could be protected and released via prefix ");
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
+    DefaultCacheImplHelper cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; }, 2);
+    ASSERT_TRUE(cache.Contains(key1));
+    ASSERT_TRUE(cache.Protect({"k"}));
+    // check if it is really in cache
+    auto key1_data_read =
+        cache.Get(key1, [](const std::string& data) { return data; });
+    ASSERT_FALSE(key1_data_read.empty());
+    ASSERT_EQ(key1_data_string, boost::any_cast<std::string>(key1_data_read));
+    // after release try to check again
+    ASSERT_TRUE(cache.Release({"k"}));
+    ASSERT_TRUE(cache.Contains(key1));
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    ASSERT_FALSE(cache.Contains(key1));
+    auto released_key1_data_read =
+        cache.Get(key1, [](const std::string& data) { return data; });
+    ASSERT_TRUE(released_key1_data_read.empty());
+    ASSERT_TRUE(cache.Clear());
+  }
+  {
+    SCOPED_TRACE(
+        "Check if multiple keys could be protected and released via prefix ");
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
+    DefaultCacheImplHelper cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; }, 2);
+    ASSERT_TRUE(cache.Contains(key1));
+    cache.Put(key2, key2_data_string, [=]() { return key2_data_string; }, 2);
+    ASSERT_TRUE(cache.Contains(key2));
+    ASSERT_TRUE(cache.Protect({key1, key2, "key3", "key"}));
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    ASSERT_TRUE(cache.Contains(key1));
+    ASSERT_TRUE(cache.Contains(key2));
+
+    // check if it is in cache
+    auto key1_data_read =
+        cache.Get(key1, [](const std::string& data) { return data; });
+    ASSERT_FALSE(key1_data_read.empty());
+    ASSERT_EQ(key1_data_string, boost::any_cast<std::string>(key1_data_read));
+    // after release try to check again
+    ASSERT_TRUE(cache.Release({"k"}));
+    ASSERT_FALSE(cache.Contains(key1));
+    ASSERT_FALSE(cache.Contains(key2));
+    auto released_key1_data_read =
+        cache.Get(key1, [](const std::string& data) { return data; });
+    ASSERT_TRUE(released_key1_data_read.empty());
+    ASSERT_TRUE(cache.Clear());
+  }
+  {
+    SCOPED_TRACE("Try to protect key already protected by prefix");
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
+    DefaultCacheImplHelper cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; }, 2);
+    ASSERT_TRUE(cache.Contains(key1));
+    cache.Put(key2, key2_data_string, [=]() { return key2_data_string; }, 2);
+    ASSERT_TRUE(cache.Contains(key2));
+    ASSERT_TRUE(cache.Protect({"key"}));
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    ASSERT_TRUE(cache.Protect({key1, key2}));
+    ASSERT_TRUE(cache.Contains(key1));
+    ASSERT_TRUE(cache.Contains(key2));
+
+    // check if it is in cache
+    auto key1_data_read =
+        cache.Get(key1, [](const std::string& data) { return data; });
+    ASSERT_FALSE(key1_data_read.empty());
+    ASSERT_EQ(key1_data_string, boost::any_cast<std::string>(key1_data_read));
+    // after release key, which is protected by prefix
+    // we can not release one key, if it is protected by prefix
+    ASSERT_FALSE(cache.Release({key1}));
+    // release failed, keys still in cache
+    ASSERT_TRUE(cache.Contains(key1));
+    ASSERT_TRUE(cache.Contains(key2));
+    ASSERT_TRUE(cache.Clear());
+  }
+  {
+    SCOPED_TRACE("Try to protect keys, release one key prefix");
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
+    DefaultCacheImplHelper cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+    ASSERT_TRUE(cache.Protect({"key", "other_key1", "other_key2"}));
+    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; }, 2);
+    ASSERT_TRUE(cache.Contains(key1));
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    ASSERT_TRUE(cache.Contains(key1));
+
+    // check if it is in cache
+    auto key1_data_read =
+        cache.Get(key1, [](const std::string& data) { return data; });
+    ASSERT_FALSE(key1_data_read.empty());
+    ASSERT_EQ(key1_data_string, boost::any_cast<std::string>(key1_data_read));
+    // after release key prefix
+    ASSERT_TRUE(cache.Release({"key"}));
+    ASSERT_FALSE(cache.Contains(key1));
+    ASSERT_TRUE(cache.Clear());
+  }
+}
+
+TEST_F(DefaultCacheImplTest, LruCacheEvictionWithProtected) {
+  {
+    SCOPED_TRACE("Protect and release keys, which suppose to be evicted");
+
+    const auto prefix{"somekey"};
+    const auto internal_key{"internal::protected::protected_data"};
+    const auto data_size = 1024u;
+    std::vector<unsigned char> binary_data(data_size);
+    cache::CacheSettings settings;
+    settings.disk_path_mutable = cache_path_;
+    settings.eviction_policy = cache::EvictionPolicy::kLeastRecentlyUsed;
+    settings.max_disk_storage = 2u * 1024u * 1024u;
+    DefaultCacheImplHelper cache(settings);
+
+    cache.Open();
+    cache.Clear();
+    // protect all keys
+    cache.Protect({prefix});
+    cache.Close();
+    cache.Open();
+    // check if after Open internal key is not in lru
+    EXPECT_FALSE(cache.ContainsLru(internal_key));
+
+    const auto promote_key = prefix + std::to_string(0);
+    const auto evicted_key = prefix + std::to_string(1);
+    cache.Put(promote_key,
+              std::make_shared<std::vector<unsigned char>>(binary_data),
+              (std::numeric_limits<time_t>::max)());
+
+    // overflow the mutable cache
+    auto count = 0u;
+    std::string key;
+    const auto max_count = settings.max_disk_storage / data_size;
+    for (; count < max_count; ++count) {
+      key = prefix + std::to_string(count);
+      const auto result = cache.Put(
+          key, std::make_shared<std::vector<unsigned char>>(binary_data),
+          (std::numeric_limits<time_t>::max)());
+
+      ASSERT_TRUE(result);
+
+      EXPECT_TRUE(cache.ContainsMutableCache(key));
+      EXPECT_TRUE(cache.ContainsMemoryCache(key));
+    }
+
+    // maximum is reached.
+    ASSERT_TRUE(count == max_count);
+    EXPECT_TRUE(cache.HasLruCache());
+    EXPECT_TRUE(cache.ContainsMutableCache(internal_key));
+    EXPECT_FALSE(cache.ContainsLru(internal_key));
+
+    // no keys was evicted
+    EXPECT_TRUE(cache.ContainsMutableCache(evicted_key));
+    cache.Release({prefix});
+    cache.Get(promote_key);
+    cache.Put(promote_key,
+              std::make_shared<std::vector<unsigned char>>(binary_data),
+              (std::numeric_limits<time_t>::max)());
+    // mutable cache updated
+    EXPECT_FALSE(cache.ContainsMutableCache(evicted_key));
+    cache.Clear();
+  }
+}
 }  // namespace

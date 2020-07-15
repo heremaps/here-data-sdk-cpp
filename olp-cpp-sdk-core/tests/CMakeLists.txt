@@ -19,6 +19,7 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./cache/DefaultCacheImplTest.cpp
     ./cache/DefaultCacheTest.cpp
     ./cache/InMemoryCacheTest.cpp
+    ./cache/ProtectedKeyListTest.cpp
 
     ./client/CancellationContextTest.cpp
     ./client/ConditionTest.cpp
