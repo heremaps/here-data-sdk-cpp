@@ -28,9 +28,6 @@
 #include "DiskCache.h"
 #include "InMemoryCache.h"
 #include "ProtectedKeyList.h"
-namespace leveldb {
-class Slice;
-}  // namespace leveldb
 
 namespace olp {
 namespace cache {

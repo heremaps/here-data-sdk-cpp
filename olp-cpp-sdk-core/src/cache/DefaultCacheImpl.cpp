@@ -780,9 +780,16 @@ bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
   }
   if (mutable_cache_) {
     auto it = mutable_cache_->NewIterator(leveldb::ReadOptions());
-
     for (it->SeekToFirst(); it->Valid(); it->Next()) {
-      AddKeyToLru(it->key().ToString(), it->value());
+      const auto& key = it->key().ToString();
+      auto released_it = std::find_if(
+          keys.begin(), keys.end(), [&key](const std::string& el) -> bool {
+            return (key.size() >= el.size() &&
+                    std::equal(el.begin(), el.end(), key.begin()));
+          });
+      if (released_it != keys.end()) {
+        AddKeyToLru(key, it->value());
+      }
     }
   }
 
