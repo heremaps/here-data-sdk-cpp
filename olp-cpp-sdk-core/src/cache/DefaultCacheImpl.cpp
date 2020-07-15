@@ -365,8 +365,7 @@ bool DefaultCacheImpl::Contains(const std::string& key) const {
   return false;
 }
 
-bool DefaultCacheImpl::AddKeyToLru(std::string key,
-                                   const leveldb::Slice& value) {
+bool DefaultCacheImpl::AddKeyLru(std::string key, const leveldb::Slice& value) {
   // do not add protected keys to lru, this applies to all keys with some
   // protected prefix, do not add internal keys
   if (mutable_cache_lru_ && !protected_keys_.IsProtected(key) &&
@@ -422,7 +421,7 @@ void DefaultCacheImpl::InitializeLru() {
 
     // Here we count both expiry keys and regular keys
     mutable_cache_data_size_ += key.size() + value.size();
-    if (AddKeyToLru(key, value)) {
+    if (AddKeyLru(key, value)) {
       ++count;
     }
   }
@@ -775,20 +774,24 @@ bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
   auto start = std::chrono::steady_clock::now();
   auto result = protected_keys_.Release(keys);
 
-  if (memory_cache_) {
-    memory_cache_->Clear();
-  }
-  if (mutable_cache_) {
-    std::set<std::string> sorted_keys(keys.begin(), keys.end());
-    auto it = mutable_cache_->NewIterator(leveldb::ReadOptions());
-    for (it->SeekToFirst(); it->Valid(); it->Next()) {
-      const auto& key = it->key().ToString();
-      auto hint = sorted_keys.lower_bound(key);
-      if (hint != sorted_keys.end()) {
-        if (key.size() >= hint->size() &&
-            std::equal(hint->begin(), hint->end(), key.begin())) {
-          AddKeyToLru(key, it->value());
+  for (const auto& key : keys) {
+    if (memory_cache_) {
+      if (!memory_cache_->Remove(key)) {
+        memory_cache_->RemoveKeysWithPrefix(key);
+      }
+    }
+    if (mutable_cache_) {
+      auto it = mutable_cache_->NewIterator(leveldb::ReadOptions());
+      it->Seek(key);
+      while (it->Valid()) {
+        auto cached_key = it->key().ToString();
+        if (cached_key.size() >= key.size() &&
+            std::equal(key.begin(), key.end(), cached_key.begin())) {
+          AddKeyLru(cached_key, it->value());
+        } else {
+          break;
         }
+        it->Next();
       }
     }
   }

@@ -98,7 +98,7 @@ class DefaultCacheImpl {
 
  private:
   /// Add single key to LRU.
-  bool AddKeyToLru(std::string key, const leveldb::Slice& value);
+  bool AddKeyLru(std::string key, const leveldb::Slice& value);
   /// Initializes LRU mutable cache if possible.
   void InitializeLru();
 
