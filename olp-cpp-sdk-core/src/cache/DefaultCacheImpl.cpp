@@ -779,16 +779,16 @@ bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
     memory_cache_->Clear();
   }
   if (mutable_cache_) {
+    std::set<std::string> sorted_keys(keys.begin(), keys.end());
     auto it = mutable_cache_->NewIterator(leveldb::ReadOptions());
     for (it->SeekToFirst(); it->Valid(); it->Next()) {
       const auto& key = it->key().ToString();
-      auto released_it = std::find_if(
-          keys.begin(), keys.end(), [&key](const std::string& el) -> bool {
-            return (key.size() >= el.size() &&
-                    std::equal(el.begin(), el.end(), key.begin()));
-          });
-      if (released_it != keys.end()) {
-        AddKeyToLru(key, it->value());
+      auto hint = sorted_keys.lower_bound(key);
+      if (hint != sorted_keys.end()) {
+        if (key.size() >= hint->size() &&
+            std::equal(hint->begin(), hint->end(), key.begin())) {
+          AddKeyToLru(key, it->value());
+        }
       }
     }
   }
