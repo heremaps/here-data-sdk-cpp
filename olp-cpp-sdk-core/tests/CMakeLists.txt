@@ -23,6 +23,7 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
 
     ./client/CancellationContextTest.cpp
     ./client/ConditionTest.cpp
+    ./client/DefaultLookupEndpointProviderTest.cpp
     ./client/HRNTest.cpp
     ./client/OlpClientTest.cpp
     ./client/TaskContextTest.cpp

@@ -58,6 +58,7 @@ set(OLP_SDK_CACHE_HEADERS
 
 set(OLP_SDK_CLIENT_HEADERS
     ./include/olp/core/client/ApiError.h
+    ./include/olp/core/client/ApiLookupClient.h
     ./include/olp/core/client/ApiNoResult.h
     ./include/olp/core/client/ApiResponse.h
     ./include/olp/core/client/BackdownStrategy.h
