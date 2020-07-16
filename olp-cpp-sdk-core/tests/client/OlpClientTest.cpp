@@ -1364,6 +1364,44 @@ TEST_P(OlpClientTest, SlowDownError) {
   EXPECT_EQ(olp::client::ErrorCode::SlowDown, api_error.GetErrorCode());
 }
 
+TEST_P(OlpClientTest, ApiKey) {
+    std::string url;
+
+    auto authenticaion_settings = olp::client::AuthenticationSettings();
+    authenticaion_settings.api_key_provider = []() {
+        return std::string( "test-key" );
+    };
+    // Set OAuth2 provider to be sure that api key provider
+    // has more priority
+    authenticaion_settings.provider = []() {
+        return std::string( "secret" );
+    };
+
+    auto network = std::make_shared<NetworkMock>();
+    client_settings_.network_request_handler = network;
+    client_settings_.authentication_settings = authenticaion_settings;
+
+    EXPECT_CALL(*network, Send(_, _, _, _, _))
+        .WillOnce([&](olp::http::NetworkRequest request,
+                       olp::http::Network::Payload /*payload*/,
+                       olp::http::Network::Callback callback,
+                       olp::http::Network::HeaderCallback /*header_callback*/,
+                       olp::http::Network::DataCallback /*data_callback*/) {
+                           url = request.GetUrl();
+                           callback(
+                               olp::http::NetworkResponse().WithStatus(http::HttpStatusCode::OK));
+                           return olp::http::SendOutcome(olp::http::RequestId(5));
+                   });
+    client_.SetSettings(client_settings_);
+
+    auto response = call_wrapper_->CallApi(
+        "here.com", "GET", std::multimap<std::string, std::string>(),
+        std::multimap<std::string, std::string>(),
+        std::multimap<std::string, std::string>(), nullptr, std::string());
+
+    ASSERT_EQ(url, "here.com?apiKey=test-key");
+}
+
 INSTANTIATE_TEST_SUITE_P(, OlpClientTest,
                          ::testing::Values(CallApiType::ASYNC,
                                            CallApiType::SYNC));

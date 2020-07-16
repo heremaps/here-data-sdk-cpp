@@ -34,6 +34,7 @@
 
 namespace {
 constexpr auto kLogTag = "OlpClient";
+constexpr auto kApiKeyParam = "apiKey=";
 }  // namespace
 
 namespace olp {
@@ -70,15 +71,6 @@ bool CaseInsensitiveCompare(const std::string& str1, const std::string& str2) {
                       return (c1 == c2) ||
                              (std::tolower(c1) == std::tolower(c2));
                     });
-}
-
-void AddBearer(const boost::optional<AuthenticationSettings>& settings,
-               http::NetworkRequest& request) {
-  if (settings && settings.get().provider) {
-    std::string bearer =
-        http::kBearer + std::string(" ") + settings.get().provider();
-    request.WithHeader(http::kAuthorizationHeader, bearer);
-  }
 }
 
 CancellationToken ExecuteSingleRequest(
@@ -301,6 +293,8 @@ class OlpClient::OlpClientImpl {
       const ParametersType& query_params, const ParametersType& header_params,
       const RequestBodyType& post_body, const std::string& content_type) const;
 
+  void AddBearer(bool query_empty, http::NetworkRequest& request) const;
+
  private:
   std::string base_url_;
   ParametersType default_headers_;
@@ -324,6 +318,27 @@ void OlpClient::OlpClientImpl::SetSettings(const OlpClientSettings& settings) {
   settings_ = settings;
 }
 
+void OlpClient::OlpClientImpl::AddBearer(bool query_empty,
+                                         http::NetworkRequest& request) const {
+  const auto& settings = settings_.authentication_settings;
+  if (!settings) {
+    return;
+  }
+
+  if (settings->api_key_provider) {
+    const auto& api_key = settings->api_key_provider();
+    request.WithUrl(request.GetUrl() + (query_empty ? "?" : "&") +
+                    kApiKeyParam + api_key);
+    return;
+  }
+
+  if (settings->provider) {
+    std::string bearer =
+        http::kBearer + std::string(" ") + settings->provider();
+    request.WithHeader(http::kAuthorizationHeader, bearer);
+  }
+}
+
 std::shared_ptr<http::NetworkRequest> OlpClient::OlpClientImpl::CreateRequest(
     const std::string& path, const std::string& method,
     const OlpClient::ParametersType& query_params,
@@ -333,8 +348,6 @@ std::shared_ptr<http::NetworkRequest> OlpClient::OlpClientImpl::CreateRequest(
       utils::Url::Construct(base_url_, path, query_params));
 
   network_request->WithVerb(GetHttpVerb(method));
-
-  AddBearer(settings_.authentication_settings, *network_request);
 
   for (const auto& header : default_headers_) {
     network_request->WithHeader(header.first, header.second);
@@ -362,6 +375,9 @@ std::shared_ptr<http::NetworkRequest> OlpClient::OlpClientImpl::CreateRequest(
   }
 
   network_request->WithBody(post_body);
+
+  AddBearer(query_params.empty(), *network_request);
+
   return network_request;
 }
 
@@ -426,13 +442,12 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
           .WithProxySettings(
               settings_.proxy_settings.value_or(http::NetworkProxySettings()));
 
-  auto network_request =
-      http::NetworkRequest(utils::Url::Construct(base_url_, path, query_params))
-          .WithVerb(GetHttpVerb(method))
-          .WithBody(std::move(post_body))
-          .WithSettings(std::move(network_settings));
+  auto network_request = http::NetworkRequest(
+      utils::Url::Construct(base_url_, path, query_params));
 
-  AddBearer(settings_.authentication_settings, network_request);
+  network_request.WithVerb(GetHttpVerb(method))
+      .WithBody(std::move(post_body))
+      .WithSettings(std::move(network_settings));
 
   for (const auto& header : default_headers_) {
     network_request.WithHeader(header.first, header.second);
@@ -461,6 +476,8 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
 
   auto backdown_period =
       std::chrono::milliseconds(retry_settings.initial_backdown_period);
+
+  AddBearer(query_params.empty(), network_request);
 
   auto response =
       SendRequest(network_request, settings_, retry_settings, context);
