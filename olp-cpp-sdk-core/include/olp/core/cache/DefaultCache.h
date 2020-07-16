@@ -178,6 +178,30 @@ class CORE_API DefaultCache : public KeyValueCache {
    */
   bool Contains(const std::string& key) const override;
 
+  /**
+   * @brief Protects keys from eviction.
+   *
+   * You can use keys or prefixes to protect single keys or entire catalogs,
+   * layers, or version.
+   *
+   * @param keys The list of keys or prefixes.
+   *
+   * @return True if the keys are added to the protected list; false otherwise.
+   */
+  bool Protect(const KeyValueCache::KeyListType& keys) override;
+
+  /**
+   * @brief Removes a list of keys from protection.
+   *
+   * The provided keys can be full keys or prefixes only.
+   *
+   * @param keys The list of keys or prefixes.
+   *
+   * @return True if the keys are removed from the protected list; false
+   * otherwise.
+   */
+  bool Release(const KeyValueCache::KeyListType& keys) override;
+
  private:
   std::shared_ptr<DefaultCacheImpl> impl_;
 };
