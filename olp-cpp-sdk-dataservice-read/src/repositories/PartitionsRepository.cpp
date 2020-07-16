@@ -241,6 +241,7 @@ PartitionsResponse PartitionsRepository::GetPartitions(
 
 PartitionsResponse PartitionsRepository::GetPartitionById(
     const client::HRN& catalog, const std::string& layer,
+    boost::optional<int64_t> version,
     client::CancellationContext cancellation_context,
     const DataRequest& data_request, client::OlpClientSettings settings) {
   const auto& partition_id = data_request.GetPartitionId();
@@ -250,7 +251,8 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
 
   auto fetch_option = data_request.GetFetchOption();
 
-  const auto request_key = catalog.ToString() + data_request.CreateKey(layer);
+  const auto request_key =
+      catalog.ToString() + data_request.CreateKey(layer, version);
 
   NamedMutex mutex(request_key);
   std::unique_lock<repository::NamedMutex> lock(mutex, std::defer_lock);
@@ -260,16 +262,15 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
     lock.lock();
   }
 
-  const auto& version = data_request.GetVersion();
   std::chrono::seconds timeout{settings.retry_settings.timeout};
   repository::PartitionsCacheRepository repository(
       catalog, settings.cache, settings.default_cache_expiration);
-  const auto key = data_request.CreateKey(layer);
+  const auto key = data_request.CreateKey(layer, version);
 
   const std::vector<std::string> partitions{partition_id.value()};
-  auto partition_request = PartitionsRequest()
-                               .WithBillingTag(data_request.GetBillingTag())
-                               .WithVersion(version);
+  auto partition_request =
+      PartitionsRequest().WithVersion(version).WithBillingTag(
+          data_request.GetBillingTag());
 
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_partitions =

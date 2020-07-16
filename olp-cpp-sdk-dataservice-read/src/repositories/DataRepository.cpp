@@ -77,7 +77,6 @@ DataResponse DataRepository::GetVersionedTile(
   const auto& partition = response.GetResult();
   const auto data_request = DataRequest()
                                 .WithDataHandle(partition.GetDataHandle())
-                                .WithVersion(version)
                                 .WithFetchOption(request.GetFetchOption());
 
   return repository::DataRepository::GetBlobData(
@@ -85,7 +84,7 @@ DataResponse DataRepository::GetVersionedTile(
 }
 
 DataResponse DataRepository::GetVersionedData(
-    const client::HRN& catalog, const std::string& layer_id,
+    const client::HRN& catalog, const std::string& layer_id, int64_t version,
     DataRequest request, client::CancellationContext context,
     const client::OlpClientSettings& settings) {
   if (request.GetDataHandle() && request.GetPartitionId()) {
@@ -94,24 +93,10 @@ DataResponse DataRepository::GetVersionedData(
   }
 
   if (!request.GetDataHandle()) {
-    if (!request.GetVersion()) {
-      // Get latest version of the layer if it wasn't set by the user
-      CatalogVersionRequest version_request;
-      version_request.WithFetchOption(request.GetFetchOption())
-          .WithBillingTag(request.GetBillingTag());
-      auto latest_version_response =
-          repository::CatalogRepository::GetLatestVersion(
-              catalog, context, std::move(version_request), settings);
-      if (!latest_version_response.IsSuccessful()) {
-        return latest_version_response.GetError();
-      }
-      request.WithVersion(latest_version_response.GetResult().GetVersion());
-    }
-
     // get data handle for a partition to be queried
     auto partitions_response =
         repository::PartitionsRepository::GetPartitionById(
-            catalog, layer_id, context, request, settings);
+            catalog, layer_id, version, context, request, settings);
 
     if (!partitions_response.IsSuccessful()) {
       return partitions_response.GetError();
@@ -125,7 +110,7 @@ DataResponse DataRepository::GetVersionedData(
           request.GetPartitionId() ? request.GetPartitionId().get().c_str()
                                    : "<none>",
           catalog.ToCatalogHRNString().c_str(),
-          request.CreateKey(layer_id).c_str());
+          request.CreateKey(layer_id, version).c_str());
 
       return {{client::ErrorCode::NotFound, "Partition not found"}};
     }
@@ -164,16 +149,14 @@ DataResponse DataRepository::GetBlobData(
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_data = repository.Get(layer, data_handle.value());
     if (cached_data) {
-      OLP_SDK_LOG_DEBUG_F(kLogTag,
-                          "GetBlobData found in cache, hrn='%s', key='%s'",
-                          catalog.ToCatalogHRNString().c_str(),
-                          data_request.CreateKey(layer).c_str());
+      OLP_SDK_LOG_DEBUG_F(
+          kLogTag, "GetBlobData found in cache, hrn='%s', key='%s'",
+          catalog.ToCatalogHRNString().c_str(), data_handle->c_str());
       return cached_data.value();
     } else if (fetch_option == CacheOnly) {
-      OLP_SDK_LOG_INFO_F(kLogTag,
-                         "GetBlobData not found in cache, hrn='%s', key='%s'",
-                         catalog.ToCatalogHRNString().c_str(),
-                         data_request.CreateKey(layer).c_str());
+      OLP_SDK_LOG_INFO_F(
+          kLogTag, "GetBlobData not found in cache, hrn='%s', key='%s'",
+          catalog.ToCatalogHRNString().c_str(), data_handle->c_str());
       return {{client::ErrorCode::NotFound,
                "CacheOnly: resource not found in cache"}};
     }
@@ -208,8 +191,7 @@ DataResponse DataRepository::GetBlobData(
       OLP_SDK_LOG_WARNING_F(
           kLogTag,
           "GetBlobData 403 received, remove from cache, hrn='%s', key='%s'",
-          catalog.ToCatalogHRNString().c_str(),
-          data_request.CreateKey(layer).c_str());
+          catalog.ToCatalogHRNString().c_str(), data_handle->c_str());
       repository.Clear(layer, data_handle.value());
     }
   }
@@ -229,7 +211,7 @@ DataResponse DataRepository::GetVolatileData(
   if (!request.GetDataHandle()) {
     auto partitions_response =
         repository::PartitionsRepository::GetPartitionById(
-            catalog, layer_id, context, request, settings);
+            catalog, layer_id, boost::none, context, request, settings);
 
     if (!partitions_response.IsSuccessful()) {
       return partitions_response.GetError();
@@ -242,7 +224,7 @@ DataResponse DataRepository::GetVolatileData(
           request.GetPartitionId() ? request.GetPartitionId().get().c_str()
                                    : "<none>",
           catalog.ToCatalogHRNString().c_str(),
-          request.CreateKey(layer_id).c_str());
+          request.CreateKey(layer_id, boost::none).c_str());
 
       return {{client::ErrorCode::NotFound, "Partition not found"}};
     }

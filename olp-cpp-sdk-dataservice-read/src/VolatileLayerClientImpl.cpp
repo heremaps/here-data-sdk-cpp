@@ -97,7 +97,7 @@ client::CancellationToken VolatileLayerClientImpl::GetPartitions(
 
 client::CancellableFuture<PartitionsResponse>
 VolatileLayerClientImpl::GetPartitions(PartitionsRequest request) {
-  auto promise = std::make_shared<std::promise<PartitionsResponse> >();
+  auto promise = std::make_shared<std::promise<PartitionsResponse>>();
   auto callback = [=](PartitionsResponse resp) {
     promise->set_value(std::move(resp));
   };
@@ -128,7 +128,7 @@ client::CancellationToken VolatileLayerClientImpl::GetData(
 
 client::CancellableFuture<DataResponse> VolatileLayerClientImpl::GetData(
     DataRequest request) {
-  auto promise = std::make_shared<std::promise<DataResponse> >();
+  auto promise = std::make_shared<std::promise<DataResponse>>();
   auto callback = [=](DataResponse resp) {
     promise->set_value(std::move(resp));
   };

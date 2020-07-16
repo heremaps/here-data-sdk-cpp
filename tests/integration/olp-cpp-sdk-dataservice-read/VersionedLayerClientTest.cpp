@@ -442,9 +442,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   DataResponse response;
 
   auto token = client->GetData(
-      read::DataRequest()
-          .WithVersion(boost::none)
-          .WithPartitionId(kTestPartition),
+      read::DataRequest().WithPartitionId(kTestPartition),
       [&response](DataResponse resp) { response = std::move(resp); });
   ASSERT_TRUE(response.IsSuccessful());
   ASSERT_TRUE(response.GetResult() != nullptr);
@@ -467,9 +465,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   DataResponse response;
 
   auto token = client->GetData(
-      read::DataRequest()
-          .WithVersion(boost::none)
-          .WithPartitionId(kTestPartition),
+      read::DataRequest().WithPartitionId(kTestPartition),
       [&response](DataResponse resp) { response = std::move(resp); });
   ASSERT_FALSE(response.IsSuccessful());
   ASSERT_FALSE(response.GetResult() != nullptr);
@@ -501,7 +497,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   token = client->GetData(
       read::DataRequest()
-          .WithVersion(kTestVersion)
           .WithPartitionId(kTestPartition)
           .WithFetchOption(FetchOptions::CacheOnly),
       [&response](DataResponse resp) { response = std::move(resp); });
@@ -550,15 +545,13 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, settings_);
+      kCatalog, kTestLayer, kTestVersion, settings_);
 
   std::promise<DataResponse> promise;
   std::future<DataResponse> future = promise.get_future();
 
   auto token = client->GetData(
-      read::DataRequest()
-          .WithVersion(kTestVersion)
-          .WithPartitionId(kTestPartition),
+      read::DataRequest().WithPartitionId(kTestPartition),
       [&promise](DataResponse response) { promise.set_value(response); });
 
   wait_for_cancel->get_future().get();
@@ -591,11 +584,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, settings_);
+      kCatalog, kTestLayer, kTestVersion, settings_);
 
-  auto data_request = read::DataRequest()
-                          .WithVersion(kTestVersion)
-                          .WithPartitionId(kTestPartition);
+  auto data_request = read::DataRequest().WithPartitionId(kTestPartition);
 
   auto cancellable_future = client->GetData(std::move(data_request));
 
@@ -632,15 +623,13 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, settings_);
+      kCatalog, kTestLayer, kTestVersion, settings_);
 
   std::promise<DataResponse> promise;
   std::future<DataResponse> future = promise.get_future();
 
   auto token = client->GetData(
-      read::DataRequest()
-          .WithVersion(kTestVersion)
-          .WithPartitionId(kTestPartition),
+      read::DataRequest().WithPartitionId(kTestPartition),
       [&promise](DataResponse response) { promise.set_value(response); });
 
   wait_for_cancel->get_future().get();
@@ -677,15 +666,13 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, settings_);
+      kCatalog, kTestLayer, kTestVersion, settings_);
 
   std::promise<DataResponse> promise;
   std::future<DataResponse> future = promise.get_future();
 
   auto token = client->GetData(
-      read::DataRequest()
-          .WithVersion(kTestVersion)
-          .WithPartitionId(kTestPartition),
+      read::DataRequest().WithPartitionId(kTestPartition),
       [&promise](DataResponse response) { promise.set_value(response); });
 
   wait_for_cancel->get_future().get();
@@ -722,14 +709,13 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, settings_);
+      kCatalog, kTestLayer, kTestVersion, settings_);
 
   std::promise<DataResponse> promise;
   std::future<DataResponse> future = promise.get_future();
 
   auto token = client->GetData(
       read::DataRequest()
-          .WithVersion(kTestVersion)
           .WithPartitionId(kTestPartition)
           .WithFetchOption(FetchOptions::OnlineIfNotFound),
       [&promise](DataResponse response) { promise.set_value(response); });
@@ -2321,15 +2307,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   auto request = read::DataRequest();
   request.WithPartitionId(kTestPartition);
   auto data_response = client->GetData(request).GetFuture().get();
-
-  ASSERT_FALSE(data_response.IsSuccessful());
-  ASSERT_EQ(client::ErrorCode::BadRequest,
-            data_response.GetError().GetErrorCode());
-  ASSERT_EQ(http::HttpStatusCode::BAD_REQUEST,
-            data_response.GetError().GetHttpStatusCode());
-
-  request.WithVersion(-1);
-  data_response = client->GetData(request).GetFuture().get();
 
   ASSERT_FALSE(data_response.IsSuccessful());
   ASSERT_EQ(client::ErrorCode::BadRequest,

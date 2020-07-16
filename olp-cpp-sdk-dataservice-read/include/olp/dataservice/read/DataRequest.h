@@ -23,7 +23,6 @@
 #include <string>
 #include <utility>
 
-#include <olp/core/porting/deprecated.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
 #include <olp/dataservice/read/FetchOptions.h>
 #include <boost/optional.hpp>
@@ -42,37 +41,6 @@ namespace read {
  */
 class DATASERVICE_READ_API DataRequest final {
  public:
-  /**
-   * @brief Sets the catalog metadata version.
-   *
-   * @param catalog_version The catalog metadata version of the requested
-   * partitions. If the version is not specified, the latest version is
-   * retrieved.
-   *
-   * @return A reference to the updated `DataRequest` instance.
-   *
-   * @deprecated The version is now a part of the VersionedLayerClient
-   * constructor.
-   */
-  OLP_SDK_DEPRECATED("Deprecated, to be removed in 06.2020")
-  inline DataRequest& WithVersion(boost::optional<int64_t> catalog_version) {
-    catalog_version_ = catalog_version;
-    return *this;
-  }
-
-  /**
-   * @brief Gets the catalog metadata version of the requested partitions.
-   *
-   * @return The catalog metadata version.
-   *
-   * @deprecated The version is now a part of the VersionedLayerClient
-   * constructor.
-   */
-  OLP_SDK_DEPRECATED("Deprecated, to be removed in 06.2020")
-  inline const boost::optional<std::int64_t>& GetVersion() const {
-    return catalog_version_;
-  }
-
   /**
    * @brief Gets the ID of the requested partition.
    *
@@ -237,7 +205,8 @@ class DATASERVICE_READ_API DataRequest final {
    *
    * @return A string representation of the request.
    */
-  inline std::string CreateKey(const std::string& layer_id) const {
+  inline std::string CreateKey(const std::string& layer_id,
+                               boost::optional<int64_t> version) const {
     std::stringstream out;
     out << layer_id << "[";
     if (GetPartitionId()) {
@@ -246,8 +215,8 @@ class DATASERVICE_READ_API DataRequest final {
       out << GetDataHandle().get();
     }
     out << "]";
-    if (catalog_version_) {
-      out << "@" << catalog_version_.get();
+    if (version) {
+      out << "@" << version.get();
     }
     if (GetBillingTag()) {
       out << "$" << GetBillingTag().get();
