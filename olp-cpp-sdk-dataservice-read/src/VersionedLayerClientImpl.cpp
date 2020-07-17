@@ -524,7 +524,7 @@ bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
           cached_tree)) {
     auto data = cached_tree.Find(tile, false);
     if (!data) {
-      return false;
+      return true;
     }
     repository::DataCacheRepository cache_repository(catalog_, settings_.cache);
     auto result = cache_repository.Clear(layer_id_, data->data_handle);
