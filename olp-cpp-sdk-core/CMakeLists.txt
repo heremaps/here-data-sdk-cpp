@@ -67,6 +67,7 @@ set(OLP_SDK_CLIENT_HEADERS
     ./include/olp/core/client/CancellationToken.h
     ./include/olp/core/client/Condition.h
     ./include/olp/core/client/ErrorCode.h
+    ./include/olp/core/client/FetchOptions.h
     ./include/olp/core/client/HRN.h
     ./include/olp/core/client/HttpResponse.h
     ./include/olp/core/client/OlpClient.h
@@ -94,6 +95,10 @@ set(OLP_SDK_HTTP_HEADERS
     ./include/olp/core/http/NetworkSettings.h
     ./include/olp/core/http/NetworkTypes.h
     ./include/olp/core/http/NetworkUtils.h
+)
+
+set(OLP_SDK_MODEL_HEADERS
+    ./include/olp/core/client/model/Api.h
 )
 
 set(OLP_SDK_PLATFORM_HEADERS
@@ -227,6 +232,11 @@ set(OLP_SDK_CLIENT_SOURCES
     ./src/client/Tokenizer.h
 )
 
+set(OLP_SDK_PARSER_SOURCES
+    ./src/client/parser/ApiParser.cpp
+    ./src/client/parser/ApiParser.h
+)
+
 set(OLP_SDK_HTTP_SOURCES
     ./src/http/DefaultNetwork.cpp
     ./src/http/DefaultNetwork.h
@@ -307,6 +317,7 @@ set(OLP_SDK_CORE_HEADERS
     ${OLP_SDK_CLIENT_HEADERS}
     ${OLP_SDK_GENERATED_HEADERS}
     ${OLP_SDK_HTTP_HEADERS}
+    ${OLP_SDK_MODEL_HEADERS}
     ${OLP_SDK_PLATFORM_HEADERS}
     ${OLP_SDK_PORTING_HEADERS}
     ${OLP_SDK_UTILS_HEADERS}
@@ -325,6 +336,7 @@ set(OLP_SDK_CORE_SOURCES
     ${OLP_SDK_CLIENT_SOURCES}
     ${OLP_SDK_HTTP_SOURCES}
     ${OLP_SDK_PLATFORM_SOURCES}
+    ${OLP_SDK_PARSER_SOURCES}
     ${OLP_SDK_UTILS_SOURCES}
     ${OLP_SDK_LOGGING_SOURCES}
     ${OLP_SDK_THREAD_SOURCES}
@@ -438,6 +450,7 @@ endif()
 
 # install component
 install (FILES ${OLP_SDK_HTTP_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/http)
+install (FILES ${OLP_SDK_MODEL_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/model)
 install (FILES ${OLP_SDK_PLATFORM_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/platform)
 install (FILES ${OLP_SDK_PORTING_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/porting)
 install (FILES ${OLP_SDK_UTILS_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/utils)
