@@ -49,5 +49,5 @@ class CacheMock : public olp::cache::KeyValueCache {
 
   MOCK_METHOD(bool, RemoveKeysWithPrefix, (const std::string&), (override));
 
-  MOCK_METHOD(bool, Contains, (const std::string&), (const override));
+  MOCK_METHOD(bool, Contains, (const std::string&), (const, override));
 };

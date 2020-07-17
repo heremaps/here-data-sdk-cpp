@@ -21,12 +21,10 @@
 
 #include <string>
 
-#include <olp/core/generated/serializer/SerializerWrapper.h>
-#include <rapidjson/document.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
 #include <boost/any.hpp>
 #include <boost/optional.hpp>
+
+#include "JsonHelpers.h"
 
 namespace mockserver {
 
@@ -74,13 +72,13 @@ std::string serialize(const Expectation& object);
 inline void to_json(const Expectation& x, rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
-  olp::serializer::serialize("httpRequest", x.request, value, allocator);
+  serialize("httpRequest", x.request, value, allocator);
 
   if (x.action != boost::none) {
-    olp::serializer::serialize("httpResponse", x.action, value, allocator);
+    serialize("httpResponse", x.action, value, allocator);
   }
   if (x.times != boost::none) {
-    olp::serializer::serialize("times", x.times, value, allocator);
+    serialize("times", x.times, value, allocator);
   }
 }
 
@@ -88,31 +86,29 @@ inline void to_json(const Expectation::RequestMatcher& x,
                     rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
-  olp::serializer::serialize("path", x.path, value, allocator);
-  olp::serializer::serialize("method", x.method, value, allocator);
+  serialize("path", x.path, value, allocator);
+  serialize("method", x.method, value, allocator);
 }
 
 inline void to_json(const Expectation::BinaryResponse& x,
                     rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
-  olp::serializer::serialize("type", x.type, value, allocator);
-  olp::serializer::serialize("base64Bytes", x.base64_string, value, allocator);
+  serialize("type", x.type, value, allocator);
+  serialize("base64Bytes", x.base64_string, value, allocator);
 }
 
 inline void to_json(const Expectation::ResponseAction& x,
                     rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
-  olp::serializer::serialize("statusCode", x.status_code, value, allocator);
+  serialize("statusCode", x.status_code, value, allocator);
 
   if (x.body.type() == typeid(std::string)) {
-    olp::serializer::serialize("body", boost::any_cast<std::string>(x.body),
-                               value, allocator);
+    serialize("body", boost::any_cast<std::string>(x.body), value, allocator);
   } else if (x.body.type() == typeid(Expectation::BinaryResponse)) {
-    olp::serializer::serialize(
-        "body", boost::any_cast<Expectation::BinaryResponse>(x.body), value,
-        allocator);
+    serialize("body", boost::any_cast<Expectation::BinaryResponse>(x.body),
+              value, allocator);
   }
 }
 
@@ -120,9 +116,8 @@ inline void to_json(const Expectation::ResponseTimes& x,
                     rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
-  olp::serializer::serialize("remainingTimes", x.remaining_times, value,
-                             allocator);
-  olp::serializer::serialize("unlimited", x.unlimited, value, allocator);
+  serialize("remainingTimes", x.remaining_times, value, allocator);
+  serialize("unlimited", x.unlimited, value, allocator);
 }
 
 inline std::string serialize(const Expectation& object) {

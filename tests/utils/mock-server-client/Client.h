@@ -26,10 +26,10 @@
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientFactory.h>
 #include <olp/core/client/OlpClientSettings.h>
-#include <olp/core/generated/parser/JsonParser.h>
 #include <olp/core/http/HttpStatusCode.h>
 #include "Expectation.h"
 #include "Status.h"
+
 namespace mockserver {
 
 const auto kBaseUrl = "https://localhost:1080";
@@ -131,7 +131,7 @@ inline Status::Ports Client::Ports() const {
     return {};
   }
 
-  const auto status = olp::parser::parse<Status>(response.response);
+  const auto status = parse<Status>(response.response);
   return status.ports;
 }
 

@@ -19,6 +19,7 @@
 
 #include "ReadDefaultResponses.h"
 
+#include <numeric>
 #include <string>
 #include <utility>
 #include <vector>
