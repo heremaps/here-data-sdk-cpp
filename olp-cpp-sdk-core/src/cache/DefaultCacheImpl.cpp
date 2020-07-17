@@ -354,6 +354,8 @@ bool DefaultCacheImpl::Contains(const std::string& key) const {
 
     // check in mutable cache only if lru does not exist
   } else if (mutable_cache_ && mutable_cache_->Contains(key)) {
+    OLP_SDK_LOG_INFO_F(kLogTag, "GetMutableCacheSize %lu",
+                       GetMutableCacheSize());
     return (GetRemainingExpiryTime(key, *mutable_cache_) > 0) ||
            protected_keys_.IsProtected(key);
   }
