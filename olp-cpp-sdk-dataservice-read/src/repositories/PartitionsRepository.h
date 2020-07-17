@@ -77,6 +77,13 @@ class PartitionsRepository {
       const TileRequest& request, boost::optional<int64_t> version,
       const client::OlpClientSettings& settings);
 
+  static bool FindQuadTree(const client::HRN& catalog,
+                           const client::OlpClientSettings& settings,
+                           const std::string& layer,
+                           boost::optional<int64_t> version,
+                           const olp::geo::TileKey& tile_key,
+                           read::QuadTreeIndex& tree);
+
  private:
   static QuadTreeIndexResponse GetQuadTreeIndexForTile(
       const client::HRN& catalog, const std::string& layer,

@@ -207,8 +207,8 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
   };
 
   // check if quad tree with requested tile and depth already in cache
-  auto cached_tree = repository.Get(layer_id, tile, depth, version);
-  if (!cached_tree.IsNull()) {
+  QuadTreeIndex cached_tree;
+  if (repository.Get(layer_id, tile, depth, version, cached_tree)) {
     OLP_SDK_LOG_DEBUG_F(kLogTag,
                         "GetSubQuads found in cache, tile='%s', "
                         "depth='%" PRId32 "'",

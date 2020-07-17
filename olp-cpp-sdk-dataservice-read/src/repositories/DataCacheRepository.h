@@ -47,6 +47,8 @@ class DataCacheRepository final {
 
   boost::optional<model::Data> Get(const std::string& layer_id,
                                    const std::string& data_handle);
+  bool IsCached(const std::string& layer_id,
+                const std::string& data_handle) const;
 
   bool Clear(const std::string& layer_id, const std::string& data_handle);
 

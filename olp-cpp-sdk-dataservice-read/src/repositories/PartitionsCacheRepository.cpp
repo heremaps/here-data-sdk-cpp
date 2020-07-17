@@ -224,14 +224,20 @@ void PartitionsCacheRepository::Put(const std::string& layer,
   cache_->Put(key, quad_tree.GetRawData(), default_expiry_);
 }
 
-QuadTreeIndex PartitionsCacheRepository::Get(
-    const std::string& layer, geo::TileKey tile_key, int32_t depth,
-    const boost::optional<int64_t>& version) {
+bool PartitionsCacheRepository::Get(const std::string& layer,
+                                    geo::TileKey tile_key, int32_t depth,
+                                    const boost::optional<int64_t>& version,
+                                    QuadTreeIndex& tree) {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn, layer, tile_key, depth, version);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Get -> '%s'", key.c_str());
   auto data = cache_->Get(key);
-  return QuadTreeIndex(data);
+  if (data) {
+    tree = QuadTreeIndex(data);
+    return true;
+  }
+
+  return false;
 }
 
 void PartitionsCacheRepository::Clear(const std::string& layer_id) {
@@ -279,6 +285,25 @@ bool PartitionsCacheRepository::ClearPartitionMetadata(
   return cache_->RemoveKeysWithPrefix(key);
 }
 
+bool PartitionsCacheRepository::GetPartitionHandle(
+    const boost::optional<int64_t>& catalog_version,
+    const std::string& partition_id, const std::string& layer_id,
+    std::string& data_handle) {
+  std::string hrn(hrn_.ToCatalogHRNString());
+  auto key = CreateKey(hrn, layer_id, partition_id, catalog_version);
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "IsPartitionCached -> '%s'", key.c_str());
+  auto cached_partition =
+      cache_->Get(key, [](const std::string& serialized_object) {
+        return parser::parse<model::Partition>(serialized_object);
+      });
+
+  if (cached_partition.empty()) {
+    return false;
+  }
+  auto partition = boost::any_cast<model::Partition>(cached_partition);
+  data_handle = partition.GetDataHandle();
+  return true;
+}
 PORTING_POP_WARNINGS()
 }  // namespace repository
 }  // namespace read

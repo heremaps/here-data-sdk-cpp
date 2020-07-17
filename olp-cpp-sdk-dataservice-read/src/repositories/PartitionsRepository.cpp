@@ -99,31 +99,6 @@ repository::PartitionResponse FindPartition(
 
   return std::move(aggregated_partition);
 }
-
-read::QuadTreeIndex FindQuadTree(
-    repository::PartitionsCacheRepository& repository, const std::string& layer,
-    boost::optional<int64_t> version, const olp::geo::TileKey& tile_key) {
-  auto max_depth =
-      std::min<std::uint32_t>(tile_key.Level(), kMaxQuadTreeIndexDepth);
-  for (int i = max_depth; i >= 0; --i) {
-    const auto& root_tile_key = tile_key.ChangedLevelBy(-i);
-    auto cached_tree =
-        repository.Get(layer, root_tile_key, kAggregateQuadTreeDepth, version);
-    if (!cached_tree.IsNull()) {
-      OLP_SDK_LOG_DEBUG_F(kLogTag,
-                          "FindQuadTreeInCache found in cache, tile='%s', "
-                          "root='%s', depth='%" PRId32 "'",
-                          tile_key.ToHereTile().c_str(),
-                          root_tile_key.ToHereTile().c_str(),
-                          kAggregateQuadTreeDepth);
-
-      return cached_tree;
-    }
-  }
-
-  return read::QuadTreeIndex();
-}
-
 }  // namespace
 
 namespace olp {
@@ -378,13 +353,11 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
     lock.lock();
   }
 
-  repository::PartitionsCacheRepository repository(
-      catalog, settings.cache, settings.default_cache_expiration);
-
   // Look for QuadTree covering the tile in the cache
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
-    auto cached_tree = FindQuadTree(repository, layer, version, tile_key);
-    if (!cached_tree.IsNull()) {
+    read::QuadTreeIndex cached_tree;
+    if (FindQuadTree(catalog, settings, layer, version, tile_key,
+                     cached_tree)) {
       OLP_SDK_LOG_DEBUG_F(kLogTag,
                           "GetQuadTreeIndexForTile found in cache, "
                           "tile='%s', depth='%" PRId32 "'",
@@ -441,6 +414,8 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
   }
 
   if (fetch_option != OnlineOnly) {
+    repository::PartitionsCacheRepository repository(
+        catalog, settings.cache, settings.default_cache_expiration);
     repository.Put(layer, root_tile_key, kAggregateQuadTreeDepth, tree,
                    version);
   }
@@ -473,6 +448,34 @@ PartitionResponse PartitionsRepository::GetTile(
   return FindPartition(quad_tree_response.GetResult(), request, false);
 }
 PORTING_POP_WARNINGS()
+
+bool PartitionsRepository::FindQuadTree(
+    const client::HRN& catalog, const client::OlpClientSettings& settings,
+    const std::string& layer, boost::optional<int64_t> version,
+    const olp::geo::TileKey& tile_key, read::QuadTreeIndex& tree) {
+  repository::PartitionsCacheRepository repository(
+      catalog, settings.cache, settings.default_cache_expiration);
+  auto max_depth =
+      std::min<std::uint32_t>(tile_key.Level(), kMaxQuadTreeIndexDepth);
+  for (int i = max_depth; i >= 0; --i) {
+    const auto& root_tile_key = tile_key.ChangedLevelBy(-i);
+    QuadTreeIndex cached_tree;
+    if (repository.Get(layer, root_tile_key, kAggregateQuadTreeDepth, version,
+                       cached_tree)) {
+      OLP_SDK_LOG_DEBUG_F(kLogTag,
+                          "FindQuadTreeInCache found in cache, tile='%s', "
+                          "root='%s', depth='%" PRId32 "'",
+                          tile_key.ToHereTile().c_str(),
+                          root_tile_key.ToHereTile().c_str(),
+                          kAggregateQuadTreeDepth);
+      tree = std::move(cached_tree);
+
+      return true;
+    }
+  }
+
+  return false;
+}
 }  // namespace repository
 }  // namespace read
 }  // namespace dataservice

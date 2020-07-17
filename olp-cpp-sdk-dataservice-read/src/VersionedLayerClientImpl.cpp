@@ -19,6 +19,8 @@
 
 #include "VersionedLayerClientImpl.h"
 
+#include <string>
+
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/client/PendingRequests.h>
@@ -517,6 +519,33 @@ bool VersionedLayerClientImpl::RemoveFromCache(
 bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
   auto partition_id = tile.ToHereTile();
   return RemoveFromCache(partition_id);
+}
+
+bool VersionedLayerClientImpl::IsCached(const std::string& partition_id) const {
+  repository::PartitionsCacheRepository cache_repository(catalog_,
+                                                         settings_.cache);
+  std::string handle;
+  if (cache_repository.GetPartitionHandle(catalog_version_.load(), partition_id,
+                                          layer_id_, handle)) {
+    repository::DataCacheRepository cache_repository(catalog_, settings_.cache);
+    return cache_repository.IsCached(layer_id_, handle);
+  }
+  return false;
+}
+
+bool VersionedLayerClientImpl::IsCached(const geo::TileKey& tile) const {
+  read::QuadTreeIndex cached_tree;
+  if (repository::PartitionsRepository::FindQuadTree(
+          catalog_, settings_, layer_id_, catalog_version_.load(), tile,
+          cached_tree)) {
+    auto data = cached_tree.Find(tile, false);
+    if (!data) {
+      return false;
+    }
+    repository::DataCacheRepository cache_repository(catalog_, settings_.cache);
+    return cache_repository.IsCached(layer_id_, data->data_handle);
+  }
+  return false;
 }
 
 client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(

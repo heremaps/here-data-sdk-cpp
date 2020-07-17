@@ -64,8 +64,8 @@ class PartitionsCacheRepository final {
            const QuadTreeIndex& quad_tree,
            const boost::optional<int64_t>& version);
 
-  QuadTreeIndex Get(const std::string& layer, geo::TileKey key, int32_t depth,
-                    const boost::optional<int64_t>& version);
+  bool Get(const std::string& layer, geo::TileKey key, int32_t depth,
+           const boost::optional<int64_t>& version, QuadTreeIndex& tree);
 
   void Clear(const std::string& layer_id);
 
@@ -77,6 +77,11 @@ class PartitionsCacheRepository final {
                               const std::string& partition_id,
                               const std::string& layer_id,
                               boost::optional<model::Partition>& out_partition);
+
+  bool GetPartitionHandle(const boost::optional<int64_t>& catalog_version,
+                          const std::string& partition_id,
+                          const std::string& layer_id,
+                          std::string& data_handle);
 
  private:
   client::HRN hrn_;

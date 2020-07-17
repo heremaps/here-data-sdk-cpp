@@ -73,6 +73,14 @@ boost::optional<model::Data> DataCacheRepository::Get(
   return cached_data;
 }
 
+bool DataCacheRepository::IsCached(const std::string& layer_id,
+                                   const std::string& data_handle) const {
+  std::string hrn(hrn_.ToCatalogHRNString());
+  auto data_key = CreateKey(hrn, layer_id, data_handle);
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "IsCached key -> '%s'", data_key.c_str());
+  return cache_->Contains(data_key);
+}
+
 bool DataCacheRepository::Clear(const std::string& layer_id,
                                 const std::string& data_handle) {
   std::string hrn(hrn_.ToCatalogHRNString());

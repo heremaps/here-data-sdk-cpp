@@ -25,9 +25,10 @@
 #include <olp/core/client/OlpClientSettingsFactory.h>
 
 namespace {
-
-using namespace olp;
-using namespace olp::dataservice::read;
+namespace read = olp::dataservice::read;
+namespace repository = olp::dataservice::read::repository;
+namespace client = olp::client;
+namespace cache = olp::cache;
 
 constexpr auto kCatalog = "hrn:here:data::olp-here-test:catalog";
 constexpr auto kDataHandle = "4eed6ed1-0d32-43b9-ae79-043cb4256432";
@@ -63,6 +64,39 @@ TEST(PartitionsCacheRepositoryTest, DefaultExpiry) {
 
     repository.Put(model_data, layer, kDataHandle);
     const auto result = repository.Get(layer, kDataHandle);
+
+    EXPECT_FALSE(result);
+  }
+}
+
+TEST(PartitionsCacheRepositoryTest, IsCached) {
+  const auto hrn = client::HRN::FromString(kCatalog);
+  const auto layer = "layer";
+
+  const auto data = std::vector<unsigned char>{1, 2, 3};
+  const auto model_data = std::make_shared<std::vector<unsigned char>>(data);
+
+  {
+    SCOPED_TRACE("Is cached");
+
+    std::shared_ptr<cache::KeyValueCache> cache =
+        olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+    repository::DataCacheRepository repository(hrn, cache);
+
+    repository.Put(model_data, layer, kDataHandle);
+    const auto result = repository.IsCached(layer, kDataHandle);
+
+    EXPECT_TRUE(result);
+  }
+
+  {
+    SCOPED_TRACE("Is not cached");
+
+    std::shared_ptr<cache::KeyValueCache> cache =
+        olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+    repository::DataCacheRepository repository(hrn, cache);
+
+    const auto result = repository.IsCached(layer, kDataHandle);
 
     EXPECT_FALSE(result);
   }
