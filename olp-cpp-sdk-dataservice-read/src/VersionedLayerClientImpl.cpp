@@ -50,6 +50,7 @@ namespace read {
 namespace {
 constexpr auto kLogTag = "VersionedLayerClientImpl";
 constexpr int64_t kInvalidVersion = -1;
+constexpr auto kQuadTreeDepth = 4;
 }  // namespace
 
 VersionedLayerClientImpl::VersionedLayerClientImpl(
@@ -526,7 +527,26 @@ bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
       return false;
     }
     repository::DataCacheRepository cache_repository(catalog_, settings_.cache);
-    return cache_repository.Clear(layer_id_, data->data_handle);
+    auto result = cache_repository.Clear(layer_id_, data->data_handle);
+    if (result) {
+      auto need_remove = true;
+      auto index_data = cached_tree.GetIndexData();
+      for (const auto& ind : index_data) {
+        if (ind.tile_key != tile &&
+            cache_repository.IsCached(layer_id_, ind.data_handle)) {
+          need_remove = false;
+          break;
+        }
+      }
+      if (need_remove) {
+        repository::PartitionsCacheRepository cache_repository(catalog_,
+                                                               settings_.cache);
+        return cache_repository.ClearQuadTree(
+            layer_id_, cached_tree.GetRootTile(), kQuadTreeDepth,
+            catalog_version_.load());
+      }
+    }
+    return result;
   }
   return true;
 }

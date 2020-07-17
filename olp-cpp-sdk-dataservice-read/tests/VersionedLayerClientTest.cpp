@@ -181,6 +181,8 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
     EXPECT_CALL(*cache_mock, Get(_)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
         .WillOnce(data_cache_remove);
+    EXPECT_CALL(*cache_mock, Contains(_))
+        .WillRepeatedly([&](const std::string&) { return true; });
     ASSERT_TRUE(client.RemoveFromCache(tile_key));
   }
   {
@@ -213,6 +215,26 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
     EXPECT_CALL(*cache_mock, Get(_)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
         .WillOnce([](const std::string&) { return false; });
+    ASSERT_FALSE(client.RemoveFromCache(tile_key));
+  }
+  {
+    SCOPED_TRACE("Successfull remove tile and quad tree from cache");
+    EXPECT_CALL(*cache_mock, Get(_)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
+        .WillOnce(data_cache_remove)
+        .WillOnce([&](const std::string&) { return true; });
+    EXPECT_CALL(*cache_mock, Contains(_))
+        .WillRepeatedly([&](const std::string&) { return false; });
+    ASSERT_TRUE(client.RemoveFromCache(tile_key));
+  }
+  {
+    SCOPED_TRACE("Successfull remove tile but removing quad tree fails");
+    EXPECT_CALL(*cache_mock, Get(_)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
+        .WillOnce(data_cache_remove)
+        .WillOnce([&](const std::string&) { return false; });
+    EXPECT_CALL(*cache_mock, Contains(_))
+        .WillRepeatedly([&](const std::string&) { return false; });
     ASSERT_FALSE(client.RemoveFromCache(tile_key));
   }
 }
