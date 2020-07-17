@@ -524,27 +524,23 @@ bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
           cached_tree)) {
     auto data = cached_tree.Find(tile, false);
     if (!data) {
-      return false;
+      return true;
     }
     repository::DataCacheRepository cache_repository(catalog_, settings_.cache);
     auto result = cache_repository.Clear(layer_id_, data->data_handle);
     if (result) {
-      auto need_remove = true;
       auto index_data = cached_tree.GetIndexData();
       for (const auto& ind : index_data) {
         if (ind.tile_key != tile &&
             cache_repository.IsCached(layer_id_, ind.data_handle)) {
-          need_remove = false;
-          break;
+          return true;
         }
       }
-      if (need_remove) {
-        repository::PartitionsCacheRepository cache_repository(catalog_,
-                                                               settings_.cache);
-        return cache_repository.ClearQuadTree(
-            layer_id_, cached_tree.GetRootTile(), kQuadTreeDepth,
-            catalog_version_.load());
-      }
+      repository::PartitionsCacheRepository cache_repository(catalog_,
+                                                             settings_.cache);
+      return cache_repository.ClearQuadTree(
+          layer_id_, cached_tree.GetRootTile(), kQuadTreeDepth,
+          catalog_version_.load());
     }
     return result;
   }
