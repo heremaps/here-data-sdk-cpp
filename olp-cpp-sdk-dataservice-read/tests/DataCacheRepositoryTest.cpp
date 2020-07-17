@@ -67,6 +67,14 @@ TEST(PartitionsCacheRepositoryTest, DefaultExpiry) {
 
     EXPECT_FALSE(result);
   }
+}
+
+TEST(PartitionsCacheRepositoryTest, IsCached) {
+  const auto hrn = client::HRN::FromString(kCatalog);
+  const auto layer = "layer";
+
+  const auto data = std::vector<unsigned char>{1, 2, 3};
+  const auto model_data = std::make_shared<std::vector<unsigned char>>(data);
 
   {
     SCOPED_TRACE("Is cached");

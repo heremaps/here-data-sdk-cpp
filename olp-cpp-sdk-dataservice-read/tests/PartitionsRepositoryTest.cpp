@@ -930,10 +930,8 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
                                      kSubQuads));
-
     EXPECT_CALL(*mock_cache, Get(_, _)).WillOnce(Return(boost::any()));
     EXPECT_CALL(*mock_cache, Put(_, _, _, _)).WillOnce(Return(true));
-    EXPECT_CALL(*mock_cache, Contains(_)).WillRepeatedly(Return(true));
     EXPECT_CALL(*mock_cache, Get(_))
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
     EXPECT_CALL(*mock_cache, Put(_, _, _)).WillOnce(Return(true));
@@ -973,7 +971,6 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
                                      kSubQuadsWithParent));
     EXPECT_CALL(*mock_cache, Get(_, _)).WillOnce(Return(boost::any()));
     EXPECT_CALL(*mock_cache, Put(_, _, _, _)).WillOnce(Return(true));
-    EXPECT_CALL(*mock_cache, Contains(_)).WillRepeatedly(Return(true));
     EXPECT_CALL(*mock_cache, Get(_))
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
     EXPECT_CALL(*mock_cache, Put(_, _, _)).WillOnce(Return(true));
@@ -1005,7 +1002,6 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
     auto ss = std::stringstream(kSubQuads);
     read::QuadTreeIndex quad_tree(tile_key.ChangedLevelBy(-depth), depth, ss);
 
-    EXPECT_CALL(*mock_cache, Contains(_)).WillRepeatedly(Return(true));
     EXPECT_CALL(*mock_cache, Get(_)).WillOnce(Return(quad_tree.GetRawData()));
 
     auto response = PartitionsRepository::GetAggregatedTile(
@@ -1038,7 +1034,6 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
                                      kSubQuadsWithParent));
     EXPECT_CALL(*mock_cache, Get(_, _))
         .WillOnce(Return(boost::any(kUrlQueryApi)));
-    EXPECT_CALL(*mock_cache, Contains(_)).WillRepeatedly(Return(true));
     EXPECT_CALL(*mock_cache, Get(_))
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
     EXPECT_CALL(*mock_cache, Put(_, _, _)).WillOnce(Return(true));
@@ -1076,7 +1071,6 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
                                      kSubQuads));
     EXPECT_CALL(*mock_cache, Get(_, _)).WillOnce(Return(boost::any()));
     EXPECT_CALL(*mock_cache, Put(_, _, _, _)).WillOnce(Return(true));
-    EXPECT_CALL(*mock_cache, Contains(_)).WillRepeatedly(Return(true));
     EXPECT_CALL(*mock_cache, Get(_))
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
     EXPECT_CALL(*mock_cache, Put(_, _, _)).WillOnce(Return(true));
@@ -1105,7 +1099,6 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
     settings.cache = mock_cache;
     settings.network_request_handler = mock_network;
 
-    EXPECT_CALL(*mock_cache, Contains(_)).WillRepeatedly(Return(true));
     EXPECT_CALL(*mock_cache, Get(_))
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
 
@@ -1138,7 +1131,6 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
                                    olp::http::HttpStatusCode::BAD_REQUEST),
                                kErrorServiceUnavailable));
     EXPECT_CALL(*mock_cache, Get(_, _)).WillOnce(Return(boost::any()));
-    EXPECT_CALL(*mock_cache, Contains(_)).WillRepeatedly(Return(true));
     EXPECT_CALL(*mock_cache, Get(_))
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
 
@@ -1179,7 +1171,6 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
                                kErrorServiceUnavailable));
     EXPECT_CALL(*mock_cache, Get(_, _)).WillOnce(Return(boost::any()));
     EXPECT_CALL(*mock_cache, Put(_, _, _, _)).WillOnce(Return(true));
-    EXPECT_CALL(*mock_cache, Contains(_)).WillRepeatedly(Return(true));
     EXPECT_CALL(*mock_cache, Get(_))
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
 
@@ -1219,7 +1210,6 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
                                      kInvalidJson));
     EXPECT_CALL(*mock_cache, Get(_, _)).WillOnce(Return(boost::any()));
     EXPECT_CALL(*mock_cache, Put(_, _, _, _)).WillOnce(Return(true));
-    EXPECT_CALL(*mock_cache, Contains(_)).WillRepeatedly(Return(true));
     EXPECT_CALL(*mock_cache, Get(_))
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
 

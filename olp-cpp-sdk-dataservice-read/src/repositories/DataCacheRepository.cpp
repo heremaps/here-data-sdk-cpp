@@ -77,7 +77,7 @@ bool DataCacheRepository::IsCached(const std::string& layer_id,
                                    const std::string& data_handle) const {
   std::string hrn(hrn_.ToCatalogHRNString());
   auto data_key = CreateKey(hrn, layer_id, data_handle);
-  OLP_SDK_LOG_INFO_F(kLogTag, "IsCached key -> '%s'", data_key.c_str());
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "IsCached key -> '%s'", data_key.c_str());
   return cache_->Contains(data_key);
 }
 

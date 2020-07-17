@@ -231,13 +231,12 @@ bool PartitionsCacheRepository::Get(const std::string& layer,
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn, layer, tile_key, depth, version);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Get -> '%s'", key.c_str());
-  if (cache_->Contains(key)) {
-    auto data = cache_->Get(key);
-    if (data) {
-      tree = QuadTreeIndex(data);
-      return true;
-    }
+  auto data = cache_->Get(key);
+  if (data) {
+    tree = QuadTreeIndex(data);
+    return true;
   }
+
   return false;
 }
 
@@ -293,20 +292,17 @@ bool PartitionsCacheRepository::GetPartitionHandle(
   std::string hrn(hrn_.ToCatalogHRNString());
   auto key = CreateKey(hrn, layer_id, partition_id, catalog_version);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "IsPartitionCached -> '%s'", key.c_str());
-  if (cache_->Contains(key)) {
-    auto cached_partition =
-        cache_->Get(key, [](const std::string& serialized_object) {
-          return parser::parse<model::Partition>(serialized_object);
-        });
+  auto cached_partition =
+      cache_->Get(key, [](const std::string& serialized_object) {
+        return parser::parse<model::Partition>(serialized_object);
+      });
 
-    if (cached_partition.empty()) {
-      return false;
-    }
-    auto partition = boost::any_cast<model::Partition>(cached_partition);
-    data_handle = partition.GetDataHandle();
-    return true;
+  if (cached_partition.empty()) {
+    return false;
   }
-  return false;
+  auto partition = boost::any_cast<model::Partition>(cached_partition);
+  data_handle = partition.GetDataHandle();
+  return true;
 }
 PORTING_POP_WARNINGS()
 }  // namespace repository

@@ -164,7 +164,6 @@ TEST(PartitionsCacheRepositoryTest, QuadTree) {
         .WillOnce(DoAll(SaveArg<0>(&key), Return(true)));
     repository.Put(layer, tile_key, depth, quad_tree, version);
 
-    EXPECT_CALL(*cache, Contains(key)).WillOnce(Return(true));
     EXPECT_CALL(*cache, Get(key)).WillOnce(Return(quad_tree.GetRawData()));
     read::QuadTreeIndex tree;
     const auto result = repository.Get(layer, tile_key, depth, version, tree);
@@ -181,7 +180,6 @@ TEST(PartitionsCacheRepositoryTest, QuadTree) {
     auto cache = std::make_shared<CacheMock>();
     repository::PartitionsCacheRepository repository(hrn, cache);
 
-    EXPECT_CALL(*cache, Contains(_)).WillOnce(Return(true));
     EXPECT_CALL(*cache, Get(_)).WillOnce(Return(KeyValueCache::ValueTypePtr()));
 
     repository.Put(layer, tile_key, depth, quad_tree, version);
