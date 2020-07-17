@@ -108,6 +108,30 @@ inline void serialize(const std::string& key, const T& x,
   }
 }
 
+inline void from_json(const rapidjson::Value& value, int32_t& x) {
+  x = value.GetInt();
+}
+
+template <typename T>
+inline void from_json(const rapidjson::Value& value, std::vector<T>& results) {
+  for (rapidjson::Value::ConstValueIterator itr = value.Begin();
+       itr != value.End(); ++itr) {
+    T result;
+    from_json(*itr, result);
+    results.push_back(result);
+  }
+}
+
+template <typename T>
+inline T parse(const rapidjson::Value& value, const std::string& name) {
+  T result = T();
+  rapidjson::Value::ConstMemberIterator itr = value.FindMember(name.c_str());
+  if (itr != value.MemberEnd()) {
+    from_json(itr->value, result);
+  }
+  return result;
+}
+
 template <typename T>
 inline T parse(std::stringstream& json_stream) {
   rapidjson::Document doc;
