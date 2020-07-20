@@ -375,6 +375,24 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    */
   bool RemoveFromCache(const geo::TileKey& tile);
 
+  /**
+   * @brief Checks whether the partition is cached.
+   *
+   * @param partition_id The partition ID.
+   *
+   * @return True if the partition data is cached; false otherwise.
+   */
+  bool IsCached(const std::string& partition_id) const;
+
+  /**
+   * @brief Checks whether the tile is cached.
+   *
+   * @param tile The tile key.
+   *
+   * @return True if the tile data is cached; false otherwise.
+   */
+  bool IsCached(const geo::TileKey& tile) const;
+
  private:
   std::unique_ptr<VersionedLayerClientImpl> impl_;
 };

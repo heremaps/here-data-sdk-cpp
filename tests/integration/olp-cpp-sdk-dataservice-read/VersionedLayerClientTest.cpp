@@ -2724,6 +2724,80 @@ TEST_F(DataserviceReadVersionedLayerClientTest, RemoveFromCacheTileKey) {
   ASSERT_FALSE(response.IsSuccessful());
 }
 
+TEST_F(DataserviceReadVersionedLayerClientTest, CheckIfPartitionCached) {
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   kHttpResponsePartition_269))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   kHttpResponseBlobData_269));
+
+  auto client = std::make_shared<read::VersionedLayerClient>(
+      kCatalog, kTestLayer, kTestVersion, settings_);
+
+  // load and cache some data
+  auto promise = std::make_shared<std::promise<DataResponse>>();
+  auto future = promise->get_future();
+
+  auto data_request = read::DataRequest().WithPartitionId(kTestPartition);
+  auto token = client->GetData(data_request, [promise](DataResponse response) {
+    promise->set_value(response);
+  });
+
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  DataResponse response = future.get();
+
+  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_NE(response.GetResult(), nullptr);
+  ASSERT_NE(response.GetResult()->size(), 0u);
+
+  // check the data is available in cache
+  ASSERT_TRUE(client->IsCached(kTestPartition));
+
+  // remove the data from cache
+  ASSERT_TRUE(client->RemoveFromCache(kTestPartition));
+
+  ASSERT_FALSE(client->IsCached(kTestPartition));
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, CheckIfTileKeyCached) {
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_QUADKEYS_92259))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   kHttpResponseBlobData_269));
+
+  auto client = std::make_shared<read::VersionedLayerClient>(
+      kCatalog, kTestLayer, kTestVersion, settings_);
+
+  // load and cache some data
+  auto promise = std::make_shared<std::promise<DataResponse>>();
+  auto future = promise->get_future();
+  auto tile_key = geo::TileKey::FromHereTile("23618364");
+  auto data_request = read::TileRequest().WithTileKey(tile_key);
+  auto token = client->GetData(data_request, [promise](DataResponse response) {
+    promise->set_value(response);
+  });
+
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  DataResponse response = future.get();
+
+  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_NE(response.GetResult(), nullptr);
+  ASSERT_NE(response.GetResult()->size(), 0u);
+
+  // check the data is available in cache
+  ASSERT_TRUE(client->IsCached(tile_key));
+
+  // remove the data from cache
+  ASSERT_TRUE(client->RemoveFromCache(tile_key));
+
+  ASSERT_FALSE(client->IsCached(tile_key));
+}
+
 TEST_F(DataserviceReadVersionedLayerClientTest, CheckLookupApiCacheExpiration) {
   using testing::Return;
 

@@ -501,10 +501,10 @@ client::CancellableFuture<DataResponse> VersionedLayerClientImpl::GetData(
 
 bool VersionedLayerClientImpl::RemoveFromCache(
     const std::string& partition_id) {
-  repository::PartitionsCacheRepository cache_repository(catalog_,
-                                                         settings_.cache);
+  repository::PartitionsCacheRepository partitions_cache_repository(
+      catalog_, settings_.cache);
   boost::optional<model::Partition> partition;
-  if (!cache_repository.ClearPartitionMetadata(
+  if (!partitions_cache_repository.ClearPartitionMetadata(
           catalog_version_.load(), partition_id, layer_id_, partition)) {
     return false;
   }
@@ -513,8 +513,10 @@ bool VersionedLayerClientImpl::RemoveFromCache(
     return true;
   }
 
-  repository::DataCacheRepository data_repository(catalog_, settings_.cache);
-  return data_repository.Clear(layer_id_, partition.get().GetDataHandle());
+  repository::DataCacheRepository data_cache_repository(catalog_,
+                                                        settings_.cache);
+  return data_cache_repository.Clear(layer_id_,
+                                     partition.get().GetDataHandle());
 }
 
 bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
@@ -526,19 +528,20 @@ bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
     if (!data) {
       return true;
     }
-    repository::DataCacheRepository cache_repository(catalog_, settings_.cache);
-    auto result = cache_repository.Clear(layer_id_, data->data_handle);
+    repository::DataCacheRepository data_cache_repository(catalog_,
+                                                          settings_.cache);
+    auto result = data_cache_repository.Clear(layer_id_, data->data_handle);
     if (result) {
       auto index_data = cached_tree.GetIndexData();
       for (const auto& ind : index_data) {
         if (ind.tile_key != tile &&
-            cache_repository.IsCached(layer_id_, ind.data_handle)) {
+            data_cache_repository.IsCached(layer_id_, ind.data_handle)) {
           return true;
         }
       }
-      repository::PartitionsCacheRepository cache_repository(catalog_,
-                                                             settings_.cache);
-      return cache_repository.ClearQuadTree(
+      repository::PartitionsCacheRepository partitions_cache_repository(
+          catalog_, settings_.cache);
+      return partitions_cache_repository.ClearQuadTree(
           layer_id_, cached_tree.GetRootTile(), kQuadTreeDepth,
           catalog_version_.load());
     }
@@ -548,13 +551,14 @@ bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
 }
 
 bool VersionedLayerClientImpl::IsCached(const std::string& partition_id) const {
-  repository::PartitionsCacheRepository cache_repository(catalog_,
-                                                         settings_.cache);
+  repository::PartitionsCacheRepository partitions_cache_repository(
+      catalog_, settings_.cache);
   std::string handle;
-  if (cache_repository.GetPartitionHandle(catalog_version_.load(), partition_id,
-                                          layer_id_, handle)) {
-    repository::DataCacheRepository cache_repository(catalog_, settings_.cache);
-    return cache_repository.IsCached(layer_id_, handle);
+  if (partitions_cache_repository.GetPartitionHandle(
+          catalog_version_.load(), partition_id, layer_id_, handle)) {
+    repository::DataCacheRepository data_cache_repository(catalog_,
+                                                          settings_.cache);
+    return data_cache_repository.IsCached(layer_id_, handle);
   }
   return false;
 }
@@ -568,8 +572,9 @@ bool VersionedLayerClientImpl::IsCached(const geo::TileKey& tile) const {
     if (!data) {
       return false;
     }
-    repository::DataCacheRepository cache_repository(catalog_, settings_.cache);
-    return cache_repository.IsCached(layer_id_, data->data_handle);
+    repository::DataCacheRepository data_cache_repository(catalog_,
+                                                          settings_.cache);
+    return data_cache_repository.IsCached(layer_id_, data->data_handle);
   }
   return false;
 }
