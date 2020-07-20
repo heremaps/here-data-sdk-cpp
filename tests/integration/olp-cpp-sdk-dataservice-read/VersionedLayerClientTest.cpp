@@ -2684,7 +2684,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, RemoveFromCacheTileKey) {
       .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                    HTTP_RESPONSE_LOOKUP))
       .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
-                                   kHttpResponsePartition_269))
+                                   HTTP_RESPONSE_QUADKEYS_92259))
       .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                    kHttpResponseBlobData_269));
 
@@ -2694,8 +2694,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, RemoveFromCacheTileKey) {
   // load and cache some data
   auto promise = std::make_shared<std::promise<DataResponse>>();
   auto future = promise->get_future();
-
-  auto data_request = read::DataRequest().WithPartitionId(kTestPartition);
+  auto tile_key = geo::TileKey::FromHereTile("23618364");
+  auto data_request = read::TileRequest().WithTileKey(tile_key);
   auto token = client->GetData(data_request, [promise](DataResponse response) {
     promise->set_value(response);
   });
@@ -2708,7 +2708,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest, RemoveFromCacheTileKey) {
   ASSERT_NE(response.GetResult()->size(), 0u);
 
   // remove the data from cache
-  auto tile_key = geo::TileKey::FromHereTile(kTestPartition);
   ASSERT_TRUE(client->RemoveFromCache(tile_key));
 
   // check the data is not available in cache

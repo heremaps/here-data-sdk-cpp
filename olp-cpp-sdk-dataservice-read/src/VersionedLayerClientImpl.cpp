@@ -50,6 +50,7 @@ namespace read {
 namespace {
 constexpr auto kLogTag = "VersionedLayerClientImpl";
 constexpr int64_t kInvalidVersion = -1;
+constexpr auto kQuadTreeDepth = 4;
 }  // namespace
 
 VersionedLayerClientImpl::VersionedLayerClientImpl(
@@ -517,8 +518,33 @@ bool VersionedLayerClientImpl::RemoveFromCache(
 }
 
 bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
-  auto partition_id = tile.ToHereTile();
-  return RemoveFromCache(partition_id);
+  read::QuadTreeIndex cached_tree;
+  if (repository::PartitionsRepository::FindQuadTree(
+          catalog_, settings_, layer_id_, catalog_version_.load(), tile,
+          cached_tree)) {
+    auto data = cached_tree.Find(tile, false);
+    if (!data) {
+      return true;
+    }
+    repository::DataCacheRepository cache_repository(catalog_, settings_.cache);
+    auto result = cache_repository.Clear(layer_id_, data->data_handle);
+    if (result) {
+      auto index_data = cached_tree.GetIndexData();
+      for (const auto& ind : index_data) {
+        if (ind.tile_key != tile &&
+            cache_repository.IsCached(layer_id_, ind.data_handle)) {
+          return true;
+        }
+      }
+      repository::PartitionsCacheRepository cache_repository(catalog_,
+                                                             settings_.cache);
+      return cache_repository.ClearQuadTree(
+          layer_id_, cached_tree.GetRootTile(), kQuadTreeDepth,
+          catalog_version_.load());
+    }
+    return result;
+  }
+  return true;
 }
 
 bool VersionedLayerClientImpl::IsCached(const std::string& partition_id) const {

@@ -71,6 +71,11 @@ class QuadTreeIndex {
 
   std::vector<QuadTreeIndex::IndexData> GetIndexData() const;
 
+  olp::geo::TileKey GetRootTile() const {
+    return data_ ? olp::geo::TileKey::FromQuadKey64(data_->root_tilekey)
+                 : olp::geo::TileKey();
+  }
+
  private:
   struct SubEntry {
     std::uint16_t sub_quadkey;
