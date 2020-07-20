@@ -112,6 +112,14 @@ VersionedLayerClient::GetAggregatedData(TileRequest request) {
   return impl_->GetAggregatedData(std::move(request));
 }
 
+bool VersionedLayerClient::IsCached(const std::string& partition_id) const {
+  return impl_->IsCached(partition_id);
+}
+
+bool VersionedLayerClient::IsCached(const geo::TileKey& tile) const {
+  return impl_->IsCached(tile);
+}
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp
