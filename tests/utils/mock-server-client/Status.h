@@ -21,8 +21,7 @@
 
 #include <vector>
 
-#include <rapidjson/document.h>
-#include <olp/core/generated/parser/ParserWrapper.h>
+#include "JsonHelpers.h"
 
 namespace mockserver {
 
@@ -35,7 +34,7 @@ struct Status {
 void from_json(const rapidjson::Value& value, Status& x);
 
 inline void from_json(const rapidjson::Value& value, Status& x) {
-  x.ports = olp::parser::parse<Status::Ports>(value, "ports");
+  x.ports = parse<Status::Ports>(value, "ports");
 }
 
 }  // namespace mockserver
