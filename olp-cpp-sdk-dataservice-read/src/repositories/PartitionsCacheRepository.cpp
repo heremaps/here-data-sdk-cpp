@@ -264,15 +264,6 @@ void PartitionsCacheRepository::ClearPartitions(
   }
 }
 
-bool PartitionsCacheRepository::ClearQuadTree(
-    const std::string& layer, geo::TileKey tile_key, int32_t depth,
-    const boost::optional<int64_t>& version) {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  const auto key = CreateKey(hrn, layer, tile_key, depth, version);
-  OLP_SDK_LOG_INFO_F(kLogTag, "ClearQuadTree -> '%s'", key.c_str());
-  return cache_->RemoveKeysWithPrefix(key);
-}
-
 bool PartitionsCacheRepository::ClearPartitionMetadata(
     const boost::optional<int64_t>& catalog_version,
     const std::string& partition_id, const std::string& layer_id,

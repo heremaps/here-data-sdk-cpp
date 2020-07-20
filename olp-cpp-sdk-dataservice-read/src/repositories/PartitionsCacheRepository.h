@@ -73,9 +73,6 @@ class PartitionsCacheRepository final {
                        const std::vector<std::string>& partitionIds,
                        const std::string& layer_id);
 
-  bool ClearQuadTree(const std::string& layer, geo::TileKey key, int32_t depth,
-                     const boost::optional<int64_t>& version);
-
   bool ClearPartitionMetadata(const boost::optional<int64_t>& catalog_version,
                               const std::string& partition_id,
                               const std::string& layer_id,
