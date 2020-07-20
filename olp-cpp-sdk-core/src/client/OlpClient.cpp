@@ -220,66 +220,6 @@ std::chrono::milliseconds CalculateNextWaitTime(
   return std::chrono::milliseconds::zero();
 }
 
-}  // namespace
-
-OlpClient::OlpClient() = default;
-OlpClient::~OlpClient() = default;
-
-void OlpClient::SetBaseUrl(const std::string& base_url) {
-  base_url_ = base_url;
-}
-
-const std::string& OlpClient::GetBaseUrl() const { return base_url_; }
-
-OlpClient::ParametersType& OlpClient::GetMutableDefaultHeaders() {
-  return default_headers_;
-}
-
-void OlpClient::SetSettings(const OlpClientSettings& settings) {
-  settings_ = settings;
-}
-
-std::shared_ptr<http::NetworkRequest> OlpClient::CreateRequest(
-    const std::string& path, const std::string& method,
-    const OlpClient::ParametersType& query_params,
-    const OlpClient::ParametersType& header_params,
-    const RequestBodyType& post_body, const std::string& content_type) const {
-  auto network_request = std::make_shared<http::NetworkRequest>(
-      utils::Url::Construct(base_url_, path, query_params));
-
-  network_request->WithVerb(GetHttpVerb(method));
-
-  AddBearer(settings_.authentication_settings, *network_request);
-
-  for (const auto& header : default_headers_) {
-    network_request->WithHeader(header.first, header.second);
-  }
-
-  std::string custom_user_agent;
-  for (const auto& header : header_params) {
-    // Merge all User-Agent headers into one header.
-    // This is required for (at least) iOS network implementation,
-    // which uses headers dictionary without any duplicates.
-    // User agents entries are usually separated by a whitespace, e.g.
-    // Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Firefox/47.0
-    if (CaseInsensitiveCompare(header.first, http::kUserAgentHeader)) {
-      custom_user_agent += header.second + std::string(" ");
-    } else {
-      network_request->WithHeader(header.first, header.second);
-    }
-  }
-
-  custom_user_agent += http::kOlpSdkUserAgent;
-  network_request->WithHeader(http::kUserAgentHeader, custom_user_agent);
-
-  if (!content_type.empty()) {
-    network_request->WithHeader(http::kContentTypeHeader, content_type);
-  }
-
-  network_request->WithBody(post_body);
-  return network_request;
-}
-
 NetworkAsyncCallback GetRetryCallback(
     int current_try, std::chrono::milliseconds current_backdown_period,
     std::chrono::milliseconds accumulated_wait_time,
@@ -329,7 +269,103 @@ NetworkAsyncCallback GetRetryCallback(
   };
 }
 
-CancellationToken OlpClient::CallApi(
+}  // namespace
+
+class OlpClient::OlpClientImpl {
+ public:
+  OlpClientImpl() = default;
+  ~OlpClientImpl() = default;
+
+  void SetBaseUrl(const std::string& base_url);
+  const std::string& GetBaseUrl() const;
+
+  ParametersType& GetMutableDefaultHeaders();
+  void SetSettings(const OlpClientSettings& settings);
+
+  CancellationToken CallApi(const std::string& path, const std::string& method,
+                            const ParametersType& query_params,
+                            const ParametersType& header_params,
+                            const ParametersType& form_params,
+                            const RequestBodyType& post_body,
+                            const std::string& content_type,
+                            const NetworkAsyncCallback& callback) const;
+
+  HttpResponse CallApi(std::string path, std::string method,
+                       ParametersType query_params,
+                       ParametersType header_params, ParametersType form_params,
+                       RequestBodyType post_body, std::string content_type,
+                       CancellationContext context) const;
+
+  std::shared_ptr<http::NetworkRequest> CreateRequest(
+      const std::string& path, const std::string& method,
+      const ParametersType& query_params, const ParametersType& header_params,
+      const RequestBodyType& post_body, const std::string& content_type) const;
+
+ private:
+  std::string base_url_;
+  ParametersType default_headers_;
+  OlpClientSettings settings_;
+};
+
+void OlpClient::OlpClientImpl::SetBaseUrl(const std::string& base_url) {
+  base_url_ = base_url;
+}
+
+const std::string& OlpClient::OlpClientImpl::GetBaseUrl() const {
+  return base_url_;
+}
+
+OlpClient::ParametersType&
+OlpClient::OlpClientImpl::GetMutableDefaultHeaders() {
+  return default_headers_;
+}
+
+void OlpClient::OlpClientImpl::SetSettings(const OlpClientSettings& settings) {
+  settings_ = settings;
+}
+
+std::shared_ptr<http::NetworkRequest> OlpClient::OlpClientImpl::CreateRequest(
+    const std::string& path, const std::string& method,
+    const OlpClient::ParametersType& query_params,
+    const OlpClient::ParametersType& header_params,
+    const RequestBodyType& post_body, const std::string& content_type) const {
+  auto network_request = std::make_shared<http::NetworkRequest>(
+      utils::Url::Construct(base_url_, path, query_params));
+
+  network_request->WithVerb(GetHttpVerb(method));
+
+  AddBearer(settings_.authentication_settings, *network_request);
+
+  for (const auto& header : default_headers_) {
+    network_request->WithHeader(header.first, header.second);
+  }
+
+  std::string custom_user_agent;
+  for (const auto& header : header_params) {
+    // Merge all User-Agent headers into one header.
+    // This is required for (at least) iOS network implementation,
+    // which uses headers dictionary without any duplicates.
+    // User agents entries are usually separated by a whitespace, e.g.
+    // Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Firefox/47.0
+    if (CaseInsensitiveCompare(header.first, http::kUserAgentHeader)) {
+      custom_user_agent += header.second + std::string(" ");
+    } else {
+      network_request->WithHeader(header.first, header.second);
+    }
+  }
+
+  custom_user_agent += http::kOlpSdkUserAgent;
+  network_request->WithHeader(http::kUserAgentHeader, custom_user_agent);
+
+  if (!content_type.empty()) {
+    network_request->WithHeader(http::kContentTypeHeader, content_type);
+  }
+
+  network_request->WithBody(post_body);
+  return network_request;
+}
+
+CancellationToken OlpClient::OlpClientImpl::CallApi(
     const std::string& path, const std::string& method,
     const OlpClient::ParametersType& query_params,
     const OlpClient::ParametersType& header_params,
@@ -370,13 +406,13 @@ CancellationToken OlpClient::CallApi(
       [cancel_context]() { cancel_context->CancelOperation(); });
 }
 
-HttpResponse OlpClient::CallApi(std::string path, std::string method,
-                                OlpClient::ParametersType query_params,
-                                OlpClient::ParametersType header_params,
-                                OlpClient::ParametersType /*forms_params*/,
-                                OlpClient::RequestBodyType post_body,
-                                std::string content_type,
-                                CancellationContext context) const {
+HttpResponse OlpClient::OlpClientImpl::CallApi(
+    std::string path, std::string method,
+    OlpClient::ParametersType query_params,
+    OlpClient::ParametersType header_params,
+    OlpClient::ParametersType /*forms_params*/,
+    OlpClient::RequestBodyType post_body, std::string content_type,
+    CancellationContext context) const {
   if (!settings_.network_request_handler) {
     return HttpResponse(static_cast<int>(olp::http::ErrorCode::OFFLINE_ERROR),
                         "Network request handler is empty.");
@@ -462,6 +498,51 @@ HttpResponse OlpClient::CallApi(std::string path, std::string method,
   }
 
   return response;
+}
+
+OlpClient::OlpClient() : impl_(std::make_shared<OlpClientImpl>()){};
+OlpClient::~OlpClient() = default;
+
+OlpClient::OlpClient(const OlpClient&) = default;
+OlpClient& OlpClient::operator=(const OlpClient&) = default;
+OlpClient::OlpClient(OlpClient&&) noexcept = default;
+OlpClient& OlpClient::operator=(OlpClient&&) noexcept = default;
+
+void OlpClient::SetBaseUrl(const std::string& base_url) {
+  impl_->SetBaseUrl(base_url);
+}
+
+const std::string& OlpClient::GetBaseUrl() const { return impl_->GetBaseUrl(); }
+
+OlpClient::ParametersType& OlpClient::GetMutableDefaultHeaders() {
+  return impl_->GetMutableDefaultHeaders();
+}
+
+void OlpClient::SetSettings(const OlpClientSettings& settings) {
+  impl_->SetSettings(settings);
+}
+
+CancellationToken OlpClient::CallApi(
+    const std::string& path, const std::string& method,
+    const ParametersType& query_params, const ParametersType& header_params,
+    const ParametersType& form_params, const RequestBodyType& post_body,
+    const std::string& content_type,
+    const NetworkAsyncCallback& callback) const {
+  return impl_->CallApi(path, method, query_params, header_params, form_params,
+                        post_body, content_type, callback);
+}
+
+HttpResponse OlpClient::CallApi(std::string path, std::string method,
+                                ParametersType query_params,
+                                ParametersType header_params,
+                                ParametersType form_params,
+                                RequestBodyType post_body,
+                                std::string content_type,
+                                CancellationContext context) const {
+  return impl_->CallApi(std::move(path), std::move(method),
+                        std::move(query_params), std::move(header_params),
+                        std::move(form_params), std::move(post_body),
+                        std::move(content_type), std::move(context));
 }
 
 }  // namespace client
