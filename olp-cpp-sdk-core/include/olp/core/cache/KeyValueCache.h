@@ -139,6 +139,36 @@ class CORE_API KeyValueCache {
     CORE_UNUSED(key);
     return false;
   }
+
+  /**
+   * @brief Protects keys from eviction.
+   *
+   * You can use keys or prefixes to protect single keys or entire catalogs,
+   * layers, or version.
+   *
+   * @param keys The list of keys or prefixes.
+   *
+   * @return True if the keys are added to the protected list; false otherwise.
+   */
+  virtual bool Protect(const KeyListType& keys) {
+    CORE_UNUSED(keys);
+    return false;
+  }
+
+  /**
+   * @brief Removes a list of keys from protection.
+   *
+   * The provided keys can be full keys or prefixes only.
+   *
+   * @param keys The list of keys or prefixes.
+   *
+   * @return True if the keys are removed from the protected list; false
+   * otherwise.
+   */
+  virtual bool Release(const KeyListType& keys) {
+    CORE_UNUSED(keys);
+    return false;
+  }
 };
 
 }  // namespace cache
