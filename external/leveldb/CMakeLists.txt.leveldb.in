@@ -24,7 +24,12 @@ include(ExternalProject)
 ExternalProject_Add(snappy
   GIT_REPOSITORY    @OLP_SDK_CPP_SNAPPY_URL@
   GIT_TAG           @OLP_SDK_CPP_SNAPPY_TAG@
-  CMAKE_ARGS        ${CMAKE_ARGS} ${SNAPPY_CMAKE_ARGS} -DCMAKE_INSTALL_LIBDIR=lib
+  INSTALL_DIR       "@EXTERNAL_BINARY_INSTALL_DIR@"
+  CMAKE_ARGS        ${CMAKE_ARGS} 
+                    ${COMMON_CMAKE_ARGS} 
+                    -DCMAKE_INSTALL_LIBDIR=lib 
+                    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+                    -DSNAPPY_BUILD_TESTS=OFF
   BUILD_COMMAND     "${CMAKE_COMMAND}" --build . --config ${CMAKE_BUILD_TYPE} ${EXTERNAL_BUILD_FLAGS}
   TEST_COMMAND      ""
 )
@@ -32,9 +37,16 @@ ExternalProject_Add(snappy
 ExternalProject_Add(leveldb
   GIT_REPOSITORY    @OLP_SDK_CPP_LEVELDB_URL@
   GIT_TAG           @OLP_SDK_CPP_LEVELDB_TAG@
+  INSTALL_DIR       "@EXTERNAL_BINARY_INSTALL_DIR@"
   PATCH_COMMAND     "${CMAKE_COMMAND}" -E copy_directory "${CMAKE_CURRENT_BINARY_DIR}/config/leveldb" "${CMAKE_CURRENT_BINARY_DIR}/download/leveldb-prefix/src/leveldb/."
-  CMAKE_ARGS        ${CMAKE_ARGS} ${LEVELDB_CMAKE_ARGS}
-  BUILD_COMMAND     "${CMAKE_COMMAND}" --build . --config ${CMAKE_BUILD_TYPE} ${EXTERNAL_BUILD_FLAGS}
+  CMAKE_ARGS        ${CMAKE_ARGS} 
+                    ${COMMON_CMAKE_ARGS} 
+                    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> 
+                    -DCMAKE_SYSTEM_PREFIX_PATH=<INSTALL_DIR>
+                    -DHAVE_CRC32C=OFF
+                    -DHAVE_TCMALLOC=OFF
+                    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+  BUILD_COMMAND     "${CMAKE_COMMAND}" --build . --config ${CMAKE_BUILD_TYPE} ${EXTERNAL_BUILD_FLAGS} 
   TEST_COMMAND      ""
 )
 ExternalProject_Add_StepDependencies(leveldb build snappy)
