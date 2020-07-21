@@ -83,7 +83,7 @@ class AUTHENTICATION_API Permission {
  private:
   std::string action_;
   std::string resource_;
-  DecisionType decision_;
+  DecisionType decision_{DecisionType::kDeny};
 };
 
 /**
