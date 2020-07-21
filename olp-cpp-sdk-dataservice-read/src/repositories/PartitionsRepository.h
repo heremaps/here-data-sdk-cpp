@@ -59,6 +59,7 @@ class PartitionsRepository {
 
   static PartitionsResponse GetPartitionById(
       const client::HRN& catalog, const std::string& layer,
+      boost::optional<int64_t> version,
       client::CancellationContext cancellation_context,
       const DataRequest& data_request, client::OlpClientSettings settings);
 

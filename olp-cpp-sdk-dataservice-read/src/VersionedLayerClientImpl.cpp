@@ -135,12 +135,6 @@ VersionedLayerClientImpl::GetPartitions(PartitionsRequest partitions_request) {
 
 client::CancellationToken VersionedLayerClientImpl::GetData(
     DataRequest request, DataResponseCallback callback) {
-  if (request.GetVersion()) {
-    OLP_SDK_LOG_WARNING(kLogTag,
-                        "DataRequest::WithVersion() is deprecated. Use "
-                        "VersionedLayerClient constructor to specify version");
-  }
-
   if (request.GetFetchOption() == CacheWithUpdate) {
     auto task = [](client::CancellationContext) -> DataResponse {
       return {{client::ErrorCode::InvalidArgument,
@@ -159,18 +153,19 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
 
     auto data_task =
         [=](client::CancellationContext context) mutable -> DataResponse {
+      int64_t version = -1;
       if (!request.GetDataHandle()) {
         auto version_response = GetVersion(request.GetBillingTag(),
                                            request.GetFetchOption(), context);
         if (!version_response.IsSuccessful()) {
           return version_response.GetError();
         }
-        request.WithVersion(version_response.GetResult().GetVersion());
+        version = version_response.GetResult().GetVersion();
       }
 
       return repository::DataRepository::GetVersionedData(
-          std::move(catalog), std::move(layer_id), std::move(request), context,
-          std::move(settings));
+          std::move(catalog), std::move(layer_id), version, std::move(request),
+          context, std::move(settings));
     };
 
     return AddTask(settings.task_scheduler, pending_requests_,
@@ -316,37 +311,38 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
           futures->emplace_back(promise->get_future());
           auto context_it = contexts.emplace(contexts.end());
 
-          AddTask(settings.task_scheduler, pending_requests,
-                  [=](CancellationContext inner_context) {
-                    // TODO: Get blob data need to be changed to check if data
-                    // in cache, if not, only than load it
-                    auto data = repository::DataRepository::GetVersionedData(
-                        catalog, layer_id,
-                        DataRequest().WithDataHandle(handle).WithBillingTag(
-                            request.GetBillingTag()),
-                        inner_context, *shared_settings);
+          AddTask(
+              settings.task_scheduler, pending_requests,
+              [=](CancellationContext inner_context) {
+                // TODO: Get blob data need to be changed to check if data
+                // in cache, if not, only than load it
+                auto data = repository::DataRepository::GetVersionedData(
+                    catalog, layer_id, version,
+                    DataRequest().WithDataHandle(handle).WithBillingTag(
+                        request.GetBillingTag()),
+                    inner_context, *shared_settings);
 
-                    if (!data.IsSuccessful()) {
-                      promise->set_value(std::make_shared<PrefetchTileResult>(
-                          tile, data.GetError()));
-                    } else {
-                      promise->set_value(std::make_shared<PrefetchTileResult>(
-                          tile, PrefetchTileNoError()));
-                    }
+                if (!data.IsSuccessful()) {
+                  promise->set_value(std::make_shared<PrefetchTileResult>(
+                      tile, data.GetError()));
+                } else {
+                  promise->set_value(std::make_shared<PrefetchTileResult>(
+                      tile, PrefetchTileNoError()));
+                }
 
-                    flag->exchange(true);
-                    return EmptyResponse(PrefetchTileNoError());
-                  },
-                  [=](EmptyResponse /*result*/) {
-                    if (!flag->load()) {
-                      // If above task was cancelled we might need to set
-                      // promise else below task will wait forever
-                      promise->set_value(std::make_shared<PrefetchTileResult>(
-                          tile,
-                          client::ApiError(ErrorCode::Cancelled, "Cancelled")));
-                    }
-                  },
-                  *context_it);
+                flag->exchange(true);
+                return EmptyResponse(PrefetchTileNoError());
+              },
+              [=](EmptyResponse /*result*/) {
+                if (!flag->load()) {
+                  // If above task was cancelled we might need to set
+                  // promise else below task will wait forever
+                  promise->set_value(std::make_shared<PrefetchTileResult>(
+                      tile,
+                      client::ApiError(ErrorCode::Cancelled, "Cancelled")));
+                }
+              },
+              *context_it);
           it++;
         }
 
@@ -620,7 +616,7 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
                             .WithDataHandle(fetch_partition.GetDataHandle())
                             .WithFetchOption(request.GetFetchOption());
     auto data_response = repository::DataRepository::GetVersionedData(
-        std::move(catalog), std::move(layer_id), data_request, context,
+        std::move(catalog), std::move(layer_id), version, data_request, context,
         std::move(settings));
 
     if (!data_response.IsSuccessful()) {

@@ -177,8 +177,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
   settings.network_request_handler = network;
   settings.retry_settings.timeout = 1;
 
-  const DataRequest request{
-      DataRequest().WithPartitionId(kPartitionId).WithVersion(kVersion)};
+  const DataRequest request{DataRequest().WithPartitionId(kPartitionId)};
   const std::string part_cache_key =
       kCatalog + "::" + kVersionedLayerId + "::" + kPartitionId + "::";
 
@@ -216,7 +215,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kVersionedLayerId, context,
+        catalog_hrn, kVersionedLayerId, kVersion, context,
         DataRequest(request).WithFetchOption(read::CacheOnly), settings);
 
     ASSERT_TRUE(response.IsSuccessful());
@@ -239,7 +238,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kVersionedLayerId, context,
+        catalog_hrn, kVersionedLayerId, kVersion, context,
         DataRequest(request).WithFetchOption(read::CacheOnly), settings);
 
     ASSERT_FALSE(response.IsSuccessful());
@@ -253,7 +252,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kVersionedLayerId, context,
+        catalog_hrn, kVersionedLayerId, kVersion, context,
         DataRequest(request).WithPartitionId(boost::none), settings);
 
     ASSERT_FALSE(response.IsSuccessful());
@@ -278,7 +277,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     EXPECT_CALL(*cache, Put(Eq(cache_key), _, _, _)).Times(0);
 
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kVersionedLayerId, context,
+        catalog_hrn, kVersionedLayerId, kVersion, context,
         DataRequest(request).WithFetchOption(read::OnlineOnly), settings);
 
     ASSERT_TRUE(response.IsSuccessful());
@@ -306,11 +305,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     EXPECT_CALL(*cache, Put(Eq(cache_key_no_version), _, _, _)).Times(0);
 
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kVersionedLayerId, context,
-        DataRequest(request)
-            .WithFetchOption(read::OnlineOnly)
-            .WithVersion(boost::none),
-        settings);
+        catalog_hrn, kVersionedLayerId, boost::none, context,
+        DataRequest(request).WithFetchOption(read::OnlineOnly), settings);
 
     ASSERT_TRUE(response.IsSuccessful());
     const auto& partitions = response.GetResult().GetPartitions();
@@ -336,7 +332,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kVersionedLayerId, context,
+        catalog_hrn, kVersionedLayerId, kVersion, context,
         DataRequest(request).WithFetchOption(read::OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -358,7 +354,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kVersionedLayerId, context,
+        catalog_hrn, kVersionedLayerId, kVersion, context,
         DataRequest(request).WithFetchOption(read::OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -383,7 +379,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kVersionedLayerId, context,
+        catalog_hrn, kVersionedLayerId, kVersion, context,
         DataRequest(request).WithFetchOption(read::OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -410,7 +406,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
         });
 
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kVersionedLayerId, context,
+        catalog_hrn, kVersionedLayerId, kVersion, context,
         DataRequest(request).WithFetchOption(read::OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -438,7 +434,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
         });
 
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kVersionedLayerId, context,
+        catalog_hrn, kVersionedLayerId, kVersion, context,
         DataRequest(request).WithFetchOption(read::OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -467,7 +463,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     EXPECT_CALL(*network, Cancel(_)).Times(1).WillOnce(Return());
 
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kVersionedLayerId, context,
+        catalog_hrn, kVersionedLayerId, kVersion, context,
         DataRequest(request).WithFetchOption(read::OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -498,7 +494,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     EXPECT_CALL(*network, Cancel(_)).Times(1).WillOnce(Return());
 
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kVersionedLayerId, context,
+        catalog_hrn, kVersionedLayerId, kVersion, context,
         DataRequest(request).WithFetchOption(read::OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -532,7 +528,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     EXPECT_CALL(*network, Cancel(_)).Times(1).WillOnce(Return());
 
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kVersionedLayerId, context,
+        catalog_hrn, kVersionedLayerId, kVersion, context,
         DataRequest(request).WithFetchOption(read::OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -567,7 +563,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     EXPECT_CALL(*network, Cancel(_)).Times(1).WillOnce(Return());
 
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kVersionedLayerId, context,
+        catalog_hrn, kVersionedLayerId, kVersion, context,
         DataRequest(request).WithFetchOption(read::OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());
@@ -583,7 +579,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     client::CancellationContext context;
     context.CancelOperation();
     auto response = repository::PartitionsRepository::GetPartitionById(
-        catalog_hrn, kVersionedLayerId, context,
+        catalog_hrn, kVersionedLayerId, kVersion, context,
         DataRequest(request).WithFetchOption(read::OnlineOnly), settings);
 
     EXPECT_FALSE(response.IsSuccessful());

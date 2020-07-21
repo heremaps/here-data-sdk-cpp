@@ -41,7 +41,7 @@ class DataRepository final {
       const client::OlpClientSettings& settings);
 
   static DataResponse GetVersionedData(
-      const client::HRN& catalog, const std::string& layer_id,
+      const client::HRN& catalog, const std::string& layer_id, int64_t version,
       DataRequest data_request, client::CancellationContext context,
       const client::OlpClientSettings& settings);
 
