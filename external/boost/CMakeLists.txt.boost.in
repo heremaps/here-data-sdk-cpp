@@ -55,9 +55,9 @@ ExternalProject_Add(boost-download
                         libs/winapi
                         tools/build
                         tools/boost_install
-    SOURCE_DIR          @CMAKE_CURRENT_BINARY_DIR@/external_boost
+    SOURCE_DIR          "@CMAKE_CURRENT_BINARY_DIR@/external_boost"
     UPDATE_COMMAND      ""
-    CONFIGURE_COMMAND   cd @CMAKE_CURRENT_BINARY_DIR@/external_boost && @BOOTSTRAP_CMD@ && cd @CMAKE_CURRENT_BINARY_DIR@/external_boost && @B2_CMD@ headers
+    CONFIGURE_COMMAND   cd "@CMAKE_CURRENT_BINARY_DIR@/external_boost" && @BOOTSTRAP_CMD@ && cd "@CMAKE_CURRENT_BINARY_DIR@/external_boost" && @B2_CMD@ headers
     BUILD_COMMAND       ""
     INSTALL_COMMAND     ""
     TEST_COMMAND        ""
