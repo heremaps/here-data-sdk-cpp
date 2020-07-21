@@ -80,6 +80,11 @@ CORE_API bool DefaultRetryCondition(const olp::client::HttpResponse& response);
  */
 struct CORE_API AuthenticationSettings {
   /**
+   * @brief The alias for the `ApiKey` provider.
+   */
+  using ApiKeyProviderType = std::function<std::string()>;
+
+  /**
    * @brief Implemented by the client that should return the OAuth2 bearer
    * access token.
    *
@@ -121,6 +126,18 @@ struct CORE_API AuthenticationSettings {
    * @see `TokenProviderCallback` for more details.
    */
   TokenProviderCallback provider;
+
+  /**
+   * @brief The user-provided function that returns `ApiKey`.
+   *
+   * If this provider is set, it is used instead of the token provider.
+   * The returned value, if not empty, is added as a URL parameter
+   * to each request.
+   *
+   * @note This method must be synchronized and should not trigger any tasks on
+   * `TaskScheduler` as this might result in a deadlock.
+   */
+  ApiKeyProviderType api_key_provider = nullptr;
 
   /**
    * @brief (Optional) The user-provided function that is used to cancel
