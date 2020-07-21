@@ -288,6 +288,17 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
                      tile_key.Level() > request.GetMaxLevel()) {
             // tile outside min/max segment, skip this tile
             return true;
+          } else if (request.GetTileKeys().end() ==
+                     std::find_if(request.GetTileKeys().begin(),
+                                  request.GetTileKeys().end(),
+                                  [&tile_key](const geo::TileKey& root_key) {
+                                    return (root_key.IsParentOf(tile_key) ||
+                                            tile_key.IsParentOf(root_key) ||
+                                            root_key == tile_key);
+                                  })) {
+            // tile is not a parent or child for any of requested tiles, skip
+            // this tile
+            return true;
           }
           return false;
         };
@@ -311,38 +322,40 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
           futures->emplace_back(promise->get_future());
           auto context_it = contexts.emplace(contexts.end());
 
-          AddTask(
-              settings.task_scheduler, pending_requests,
-              [=](CancellationContext inner_context) {
-                // TODO: Get blob data need to be changed to check if data
-                // in cache, if not, only than load it
-                auto data = repository::DataRepository::GetVersionedData(
-                    catalog, layer_id, version,
-                    DataRequest().WithDataHandle(handle).WithBillingTag(
-                        request.GetBillingTag()),
-                    inner_context, *shared_settings);
+          AddTask(settings.task_scheduler, pending_requests,
+                  [=](CancellationContext inner_context) {
+                    repository::DataCacheRepository data_cache_repository(
+                        catalog, shared_settings->cache);
+                    auto response = std::make_shared<PrefetchTileResult>(
+                        tile, PrefetchTileNoError());
 
-                if (!data.IsSuccessful()) {
-                  promise->set_value(std::make_shared<PrefetchTileResult>(
-                      tile, data.GetError()));
-                } else {
-                  promise->set_value(std::make_shared<PrefetchTileResult>(
-                      tile, PrefetchTileNoError()));
-                }
+                    if (!data_cache_repository.IsCached(layer_id, handle)) {
+                      auto data = repository::DataRepository::GetVersionedData(
+                          catalog, layer_id, version,
+                          DataRequest().WithDataHandle(handle).WithBillingTag(
+                              request.GetBillingTag()),
+                          inner_context, *shared_settings);
 
-                flag->exchange(true);
-                return EmptyResponse(PrefetchTileNoError());
-              },
-              [=](EmptyResponse /*result*/) {
-                if (!flag->load()) {
-                  // If above task was cancelled we might need to set
-                  // promise else below task will wait forever
-                  promise->set_value(std::make_shared<PrefetchTileResult>(
-                      tile,
-                      client::ApiError(ErrorCode::Cancelled, "Cancelled")));
-                }
-              },
-              *context_it);
+                      if (!data.IsSuccessful()) {
+                        response = std::make_shared<PrefetchTileResult>(
+                            tile, data.GetError());
+                      }
+                    }
+
+                    promise->set_value(response);
+                    flag->exchange(true);
+                    return EmptyResponse(PrefetchTileNoError());
+                  },
+                  [=](EmptyResponse /*result*/) {
+                    if (!flag->load()) {
+                      // If above task was cancelled we might need to set
+                      // promise else below task will wait forever
+                      promise->set_value(std::make_shared<PrefetchTileResult>(
+                          tile,
+                          client::ApiError(ErrorCode::Cancelled, "Cancelled")));
+                    }
+                  },
+                  *context_it);
           it++;
         }
 
