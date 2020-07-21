@@ -22,6 +22,9 @@
 #include <string>
 
 #include <olp/core/CoreApi.h>
+#include <olp/core/client/ApiError.h>
+#include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/OlpClient.h>
 
 namespace olp {
 
@@ -54,6 +57,16 @@ struct CORE_API DefaultLookupEndpointProvider {
 
     return std::string();
   }
+};
+
+/**
+ * @brief Client to API lookup requests
+ */
+class CORE_API ApiLookupClient final {
+ public:
+  /// Alias for the parameters and responses.
+  using LookupApiResponse = ApiResponse<OlpClient, ApiError>;
+  using LookupApiCallback = std::function<void(LookupApiResponse)>;
 };
 
 }  // namespace client
