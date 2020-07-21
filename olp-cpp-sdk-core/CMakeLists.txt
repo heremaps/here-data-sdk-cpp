@@ -222,6 +222,14 @@ set(OLP_SDK_CACHE_SOURCES
 )
 
 set(OLP_SDK_CLIENT_SOURCES
+    ./src/client/api/PlatformApi.cpp
+    ./src/client/api/PlatformApi.h
+    ./src/client/api/ResourcesApi.cpp
+    ./src/client/api/ResourcesApi.h
+    ./src/client/parser/ApiParser.cpp
+    ./src/client/parser/ApiParser.h
+    ./src/client/repository/ApiCacheRepository.cpp
+    ./src/client/repository/ApiCacheRepository.h
     ./src/client/CancellationToken.cpp
     ./src/client/HRN.cpp
     ./src/client/OlpClient.cpp
@@ -230,11 +238,6 @@ set(OLP_SDK_CLIENT_SOURCES
     ./src/client/OlpClientSettingsFactory.cpp
     ./src/client/PendingRequests.cpp
     ./src/client/Tokenizer.h
-)
-
-set(OLP_SDK_PARSER_SOURCES
-    ./src/client/parser/ApiParser.cpp
-    ./src/client/parser/ApiParser.h
 )
 
 set(OLP_SDK_HTTP_SOURCES
@@ -336,7 +339,6 @@ set(OLP_SDK_CORE_SOURCES
     ${OLP_SDK_CLIENT_SOURCES}
     ${OLP_SDK_HTTP_SOURCES}
     ${OLP_SDK_PLATFORM_SOURCES}
-    ${OLP_SDK_PARSER_SOURCES}
     ${OLP_SDK_UTILS_SOURCES}
     ${OLP_SDK_LOGGING_SOURCES}
     ${OLP_SDK_THREAD_SOURCES}
