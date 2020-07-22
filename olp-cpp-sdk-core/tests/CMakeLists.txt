@@ -21,6 +21,7 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./cache/InMemoryCacheTest.cpp
     ./cache/ProtectedKeyListTest.cpp
 
+    ./client/ApiLookupClientImplTest.cpp
     ./client/CancellationContextTest.cpp
     ./client/ConditionTest.cpp
     ./client/DefaultLookupEndpointProviderTest.cpp
@@ -65,6 +66,7 @@ if (ANDROID OR IOS)
             gmock
             gtest
             olp-cpp-sdk-core
+            olp-cpp-sdk-tests-common
     )
 
     # Some tests include private headers of core. This should be fixed in tests,
@@ -97,6 +99,7 @@ else()
             gtest
             gtest_main
             olp-cpp-sdk-core
+            olp-cpp-sdk-tests-common
     )
     # Some tests include private headers of core. This should be fixed in tests,
     # only then here.
