@@ -396,8 +396,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWithCancellableFuture) {
     EXPECT_SUCCESS(*tile_result);
     ASSERT_TRUE(tile_result->tile_key_.IsValid());
   }
-
-  ASSERT_EQ(7u, result.size());
+  // one tile on level 10 and 11 and 4 on level 12
+  ASSERT_EQ(6u, result.size());
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsWithInvalidHrn) {
