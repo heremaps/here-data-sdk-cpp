@@ -61,6 +61,7 @@ namespace {
 namespace read = olp::dataservice::read;
 namespace model = olp::dataservice::read::model;
 namespace repository = olp::dataservice::read::repository;
+using olp::client::ApiLookupClient;
 using ::testing::_;
 
 const std::string kCatalog =
@@ -89,6 +90,9 @@ class CatalogRepositoryTest : public ::testing::Test {
 
     settings_.network_request_handler = network_;
     settings_.cache = cache_;
+
+    lookup_client_ =
+        std::make_shared<olp::client::ApiLookupClient>(kHrn, settings_);
   }
 
   void TearDown() override {
@@ -102,6 +106,7 @@ class CatalogRepositoryTest : public ::testing::Test {
   std::shared_ptr<CacheMock> cache_;
   std::shared_ptr<NetworkMock> network_;
   olp::client::OlpClientSettings settings_;
+  std::shared_ptr<olp::client::ApiLookupClient> lookup_client_;
 };
 
 TEST_F(CatalogRepositoryTest, GetLatestVersionCacheOnlyFound) {
@@ -118,7 +123,8 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionCacheOnlyFound) {
       .Times(1)
       .WillOnce(testing::Return(cached_version));
 
-  repository::CatalogRepository repository(kHrn, settings_);
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetLatestVersion(request, context);
 
   ASSERT_TRUE(response.IsSuccessful());
@@ -145,7 +151,8 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionCacheOnlyNotFound) {
         return olp::http::SendOutcome(olp::http::ErrorCode::UNKNOWN_ERROR);
       });
 
-  repository::CatalogRepository repository(kHrn, settings_);
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetLatestVersion(request, context);
 
   EXPECT_FALSE(response.IsSuccessful());
@@ -170,7 +177,8 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyNotFound) {
                                        olp::http::HttpStatusCode::NOT_FOUND),
                                    ""));
 
-  repository::CatalogRepository repository(kHrn, settings_);
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetLatestVersion(request, context);
 
   EXPECT_FALSE(response.IsSuccessful());
@@ -204,7 +212,8 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyFound) {
                                        olp::http::HttpStatusCode::OK),
                                    kResponseLatestCatalogVersion));
 
-  repository::CatalogRepository repository(kHrn, settings_);
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetLatestVersion(request, context);
 
   ASSERT_TRUE(response.IsSuccessful());
@@ -241,7 +250,8 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyUserCancelled1) {
         return olp::http::SendOutcome(unused_request_id);
       });
 
-  repository::CatalogRepository repository(kHrn, settings_);
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetLatestVersion(request, context);
 
   ASSERT_FALSE(response.IsSuccessful());
@@ -270,7 +280,8 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyUserCancelled2) {
         return olp::http::SendOutcome(unused_request_id);
       });
 
-  repository::CatalogRepository repository(kHrn, settings_);
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetLatestVersion(request, context);
 
   ASSERT_FALSE(response.IsSuccessful());
@@ -296,7 +307,8 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionCancelledBeforeExecution) {
 
   context.CancelOperation();
 
-  repository::CatalogRepository repository(kHrn, settings_);
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetLatestVersion(request, context);
 
   ASSERT_FALSE(response.IsSuccessful());
@@ -325,7 +337,8 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionTimeouted) {
 
   settings_.retry_settings.timeout = 0;
 
-  repository::CatalogRepository repository(kHrn, settings_);
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetLatestVersion(request, context);
 
   ASSERT_FALSE(response.IsSuccessful());
@@ -359,7 +372,8 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyFound) {
                                             olp::http::HttpStatusCode::OK),
                                         kResponseConfig));
 
-  repository::CatalogRepository repository(kHrn, settings_);
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetCatalog(request, context);
 
   ASSERT_TRUE(response.IsSuccessful());
@@ -379,7 +393,8 @@ TEST_F(CatalogRepositoryTest, GetCatalogCacheOnlyFound) {
       .Times(1)
       .WillOnce(testing::Return(cached_version));
 
-  repository::CatalogRepository repository(kHrn, settings_);
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetCatalog(request, context);
 
   ASSERT_TRUE(response.IsSuccessful());
@@ -406,7 +421,8 @@ TEST_F(CatalogRepositoryTest, GetCatalogCacheOnlyNotFound) {
         return olp::http::SendOutcome(olp::http::ErrorCode::UNKNOWN_ERROR);
       });
 
-  repository::CatalogRepository repository(kHrn, settings_);
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetLatestVersion(request, context);
 
   EXPECT_FALSE(response.IsSuccessful());
@@ -431,7 +447,8 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyNotFound) {
                                        olp::http::HttpStatusCode::NOT_FOUND),
                                    ""));
 
-  repository::CatalogRepository repository(kHrn, settings_);
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetCatalog(request, context);
 
   EXPECT_FALSE(response.IsSuccessful());
@@ -455,7 +472,8 @@ TEST_F(CatalogRepositoryTest, GetCatalogCancelledBeforeExecution) {
 
   context.CancelOperation();
 
-  repository::CatalogRepository repository(kHrn, settings_);
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetCatalog(request, context);
 
   ASSERT_FALSE(response.IsSuccessful());
@@ -493,7 +511,8 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyUserCancelled1) {
         return olp::http::SendOutcome(unused_request_id);
       });
 
-  repository::CatalogRepository repository(kHrn, settings_);
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetCatalog(request, context);
 
   ASSERT_FALSE(response.IsSuccessful());
@@ -522,7 +541,8 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyUserCancelled2) {
         return olp::http::SendOutcome(unused_request_id);
       });
 
-  repository::CatalogRepository repository(kHrn, settings_);
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetCatalog(request, context);
 
   ASSERT_FALSE(response.IsSuccessful());
@@ -550,7 +570,8 @@ TEST_F(CatalogRepositoryTest, GetCatalogTimeout) {
       });
   settings_.retry_settings.timeout = 0;
 
-  repository::CatalogRepository repository(kHrn, settings_);
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetCatalog(request, context);
 
   ASSERT_FALSE(response.IsSuccessful());
@@ -579,7 +600,8 @@ TEST_F(CatalogRepositoryTest, GetVersionsList) {
                                    olp::http::HttpStatusCode::OK),
                                kHttpResponse));
 
-    repository::CatalogRepository repository(kHrn, settings_);
+    ApiLookupClient lookup_client(kHrn, settings_);
+    repository::CatalogRepository repository(kHrn, settings_, lookup_client);
     auto response = repository.GetVersionsList(request, context);
 
     ASSERT_TRUE(response.IsSuccessful());
@@ -610,7 +632,8 @@ TEST_F(CatalogRepositoryTest, GetVersionsList) {
                                    olp::http::HttpStatusCode::OK),
                                kHttpResponse));
 
-    repository::CatalogRepository repository(kHrn, settings_);
+    ApiLookupClient lookup_client(kHrn, settings_);
+    repository::CatalogRepository repository(kHrn, settings_, lookup_client);
     auto response = repository.GetVersionsList(request, context);
 
     ASSERT_TRUE(response.IsSuccessful());
@@ -641,7 +664,8 @@ TEST_F(CatalogRepositoryTest, GetVersionsList) {
                                    olp::http::HttpStatusCode::FORBIDDEN),
                                "Forbidden"));
 
-    repository::CatalogRepository repository(kHrn, settings_);
+    ApiLookupClient lookup_client(kHrn, settings_);
+    repository::CatalogRepository repository(kHrn, settings_, lookup_client);
     auto response = repository.GetVersionsList(request, context);
 
     ASSERT_FALSE(response.IsSuccessful());

@@ -76,6 +76,7 @@ class CORE_API ApiLookupClient final {
 
   explicit ApiLookupClient(const HRN& catalog,
                            const OlpClientSettings& settings);
+
   ~ApiLookupClient();
 
   /**

@@ -20,6 +20,7 @@
 #pragma once
 
 #include <olp/core/cache/KeyValueCache.h>
+#include <olp/core/client/ApiLookupClient.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
@@ -38,7 +39,8 @@ namespace repository {
 
 class CatalogRepository final {
  public:
-  CatalogRepository(client::HRN catalog, client::OlpClientSettings settings);
+  CatalogRepository(client::HRN catalog, client::OlpClientSettings settings,
+                    client::ApiLookupClient client);
 
   CatalogResponse GetCatalog(const CatalogRequest& request,
                              client::CancellationContext context);
@@ -52,6 +54,7 @@ class CatalogRepository final {
  private:
   client::HRN catalog_;
   client::OlpClientSettings settings_;
+  client::ApiLookupClient lookup_client_;
 };
 
 }  // namespace repository

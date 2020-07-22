@@ -34,7 +34,9 @@ class PrefetchRepositoryTestable
   using repository::PrefetchTilesRepository::GetSlicedTiles;
   using repository::PrefetchTilesRepository::SplitSubtree;
 
-  PrefetchRepositoryTestable() : PrefetchTilesRepository(kCatalog, {}) {}
+  PrefetchRepositoryTestable()
+      : PrefetchTilesRepository(kCatalog, {},
+                                olp::client::ApiLookupClient(kCatalog, {})) {}
 };
 
 TEST(PrefetchRepositoryTest, SplitTreeLevels) {

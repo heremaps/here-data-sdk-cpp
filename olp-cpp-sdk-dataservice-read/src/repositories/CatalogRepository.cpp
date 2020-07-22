@@ -26,7 +26,6 @@
 #include <olp/core/client/Condition.h>
 #include <olp/core/logging/Log.h>
 
-#include "ApiClientLookup.h"
 #include "CatalogCacheRepository.h"
 #include "ExecuteOrSchedule.inl"
 #include "generated/api/ConfigApi.h"
@@ -45,8 +44,11 @@ namespace read {
 namespace repository {
 
 CatalogRepository::CatalogRepository(client::HRN catalog,
-                                     client::OlpClientSettings settings)
-    : catalog_(std::move(catalog)), settings_(std::move(settings)) {}
+                                     client::OlpClientSettings settings,
+                                     client::ApiLookupClient client)
+    : catalog_(std::move(catalog)),
+      settings_(std::move(settings)),
+      lookup_client_(std::move(client)) {}
 
 CatalogResponse CatalogRepository::GetCatalog(
     const CatalogRequest& request, client::CancellationContext context) {
@@ -74,16 +76,18 @@ CatalogResponse CatalogRepository::GetCatalog(
     }
   }
 
-  auto config_api = ApiClientLookup::LookupApi(catalog_, context, "config",
-                                               "v1", fetch_options, settings_);
+  auto config_api = lookup_client_.LookupApi(
+      "config", "v1", static_cast<client::FetchOptions>(fetch_options),
+      context);
 
   if (!config_api.IsSuccessful()) {
     return config_api.GetError();
   }
 
-  const client::OlpClient& client = config_api.GetResult();
+  const client::OlpClient& config_client = config_api.GetResult();
   auto catalog_response = ConfigApi::GetCatalog(
-      client, catalog_str, request.GetBillingTag(), context);
+      config_client, catalog_str, request.GetBillingTag(), context);
+
   if (catalog_response.IsSuccessful() && fetch_options != OnlineOnly) {
     repository.Put(catalog_response.GetResult());
   }
@@ -122,17 +126,18 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
     }
   }
 
-  auto metadata_api = ApiClientLookup::LookupApi(catalog_, context, "metadata",
-                                                 "v1", fetch_option, settings_);
+  auto metadata_api = lookup_client_.LookupApi(
+      "metadata", "v1", static_cast<client::FetchOptions>(fetch_option),
+      context);
 
   if (!metadata_api.IsSuccessful()) {
     return metadata_api.GetError();
   }
 
-  const client::OlpClient& client = metadata_api.GetResult();
+  const client::OlpClient& metadata_client = metadata_api.GetResult();
 
   auto version_response = MetadataApi::GetLatestCatalogVersion(
-      client, -1, request.GetBillingTag(), context);
+      metadata_client, -1, request.GetBillingTag(), context);
 
   if (version_response.IsSuccessful() && fetch_option != OnlineOnly) {
     repository.PutVersion(version_response.GetResult());
@@ -155,16 +160,16 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
 
 VersionsResponse CatalogRepository::GetVersionsList(
     const VersionsRequest& request, client::CancellationContext context) {
-  auto metadata_api = ApiClientLookup::LookupApi(catalog_, context, "metadata",
-                                                 "v1", OnlineOnly, settings_);
+  auto metadata_api =
+      lookup_client_.LookupApi("metadata", "v1", client::OnlineOnly, context);
 
   if (!metadata_api.IsSuccessful()) {
     return metadata_api.GetError();
   }
 
-  const client::OlpClient& client = metadata_api.GetResult();
+  const client::OlpClient& metadata_client = metadata_api.GetResult();
 
-  return MetadataApi::ListVersions(client, request.GetStartVersion(),
+  return MetadataApi::ListVersions(metadata_client, request.GetStartVersion(),
                                    request.GetEndVersion(),
                                    request.GetBillingTag(), context);
 }

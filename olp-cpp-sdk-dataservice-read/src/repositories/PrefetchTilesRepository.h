@@ -23,6 +23,7 @@
 #include <string>
 
 #include <olp/core/client/ApiError.h>
+#include <olp/core/client/ApiLookupClient.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/HRN.h>
@@ -47,7 +48,8 @@ using SubTilesResponse = client::ApiResponse<SubTilesResult, client::ApiError>;
 class PrefetchTilesRepository {
  public:
   PrefetchTilesRepository(client::HRN catalog,
-                          client::OlpClientSettings settings);
+                          client::OlpClientSettings settings,
+                          client::ApiLookupClient client);
 
   /**
    * @brief Given tile keys, return all related tile keys that are between
@@ -91,6 +93,7 @@ class PrefetchTilesRepository {
  private:
   client::HRN catalog_;
   client::OlpClientSettings settings_;
+  client::ApiLookupClient lookup_client_;
 };
 
 }  // namespace repository

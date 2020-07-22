@@ -40,7 +40,9 @@ constexpr auto kLogTag = "CatalogClientImpl";
 
 CatalogClientImpl::CatalogClientImpl(client::HRN catalog,
                                      client::OlpClientSettings settings)
-    : catalog_(std::move(catalog)), settings_(std::move(settings)) {
+    : catalog_(std::move(catalog)),
+      settings_(std::move(settings)),
+      lookup_client_(catalog_, settings_) {
   if (!settings_.cache) {
     settings_.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
   }
@@ -67,9 +69,11 @@ client::CancellationToken CatalogClientImpl::GetCatalog(
                                   CatalogResponseCallback callback) {
     auto catalog = catalog_;
     auto settings = settings_;
+    auto lookup_client = lookup_client_;
 
     auto get_catalog_task = [=](client::CancellationContext context) {
-      repository::CatalogRepository repository(catalog, settings);
+      repository::CatalogRepository repository(catalog, settings,
+                                               lookup_client);
       return repository.GetCatalog(request, std::move(context));
     };
 
@@ -99,9 +103,11 @@ client::CancellationToken CatalogClientImpl::GetLatestVersion(
                                          CatalogVersionCallback callback) {
     auto catalog = catalog_;
     auto settings = settings_;
+    auto lookup_client = lookup_client_;
 
     auto get_latest_version_task = [=](client::CancellationContext context) {
-      repository::CatalogRepository repository(catalog, settings);
+      repository::CatalogRepository repository(catalog, settings,
+                                               lookup_client);
       return repository.GetLatestVersion(request, std::move(context));
     };
 
@@ -128,10 +134,11 @@ client::CancellationToken CatalogClientImpl::ListVersions(
     VersionsRequest request, VersionsResponseCallback callback) {
   auto catalog = catalog_;
   auto settings = settings_;
+  auto lookup_client = lookup_client_;
 
   auto versions_list_task =
       [=](client::CancellationContext context) -> VersionsResponse {
-    repository::CatalogRepository repository(catalog, settings);
+    repository::CatalogRepository repository(catalog, settings, lookup_client);
     return repository.GetVersionsList(request, std::move(context));
   };
 

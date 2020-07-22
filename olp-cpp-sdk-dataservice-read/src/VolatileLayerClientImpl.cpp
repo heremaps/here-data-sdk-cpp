@@ -57,7 +57,8 @@ VolatileLayerClientImpl::VolatileLayerClientImpl(
     : catalog_(std::move(catalog)),
       layer_id_(std::move(layer_id)),
       settings_(std::move(settings)),
-      pending_requests_(std::make_shared<client::PendingRequests>()) {
+      pending_requests_(std::make_shared<client::PendingRequests>()),
+      lookup_client_(catalog_, settings_) {
   if (!settings_.cache) {
     settings_.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
   }
@@ -79,9 +80,11 @@ client::CancellationToken VolatileLayerClientImpl::GetPartitions(
     auto catalog = catalog_;
     auto layer_id = layer_id_;
     auto settings = settings_;
+    auto lookup_client = lookup_client_;
 
     auto data_task = [=](client::CancellationContext context) {
-      repository::PartitionsRepository repository(catalog, settings);
+      repository::PartitionsRepository repository(
+          std::move(catalog), std::move(settings), std::move(lookup_client));
       return repository.GetVolatilePartitions(std::move(layer_id), request,
                                               std::move(context));
     };
@@ -111,10 +114,11 @@ client::CancellationToken VolatileLayerClientImpl::GetData(
     auto catalog = catalog_;
     auto layer_id = layer_id_;
     auto settings = settings_;
+    auto lookup_client = lookup_client_;
 
     auto partitions_task = [=](client::CancellationContext context) {
-      repository::DataRepository repository(std::move(catalog),
-                                            std::move(settings));
+      repository::DataRepository repository(
+          std::move(catalog), std::move(settings), std::move(lookup_client));
       return repository.GetVolatileData(layer_id, request, context);
     };
 
@@ -173,6 +177,7 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
   auto layer_id = layer_id_;
   auto settings = settings_;
   auto pending_requests = pending_requests_;
+  auto lookup_client = lookup_client_;
 
   auto token = AddTask(
       settings.task_scheduler, pending_requests,
@@ -198,7 +203,8 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
             (request_only_input_tiles ? static_cast<unsigned int>(geo::TileKey::LevelCount)
                                       : request.GetMaxLevel());
 
-        repository::PrefetchTilesRepository repository(catalog, settings);
+        repository::PrefetchTilesRepository repository(catalog, settings,
+                                                       lookup_client);
         auto sliced_tiles =
             repository.GetSlicedTiles(tile_keys, min_level, max_level);
 
@@ -262,8 +268,8 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
                   // Return an empty success
                   return DataResponse(nullptr);
                 } else {
-                  repository::DataRepository repository(catalog,
-                                                        *shared_settings);
+                  repository::DataRepository repository(
+                      catalog, *shared_settings, lookup_client);
                   return repository.GetVolatileData(
                       layer_id,
                       DataRequest().WithDataHandle(handle).WithBillingTag(
