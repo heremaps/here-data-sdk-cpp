@@ -86,6 +86,10 @@ class PartitionsCacheRepository final {
                           const std::string& layer_id,
                           std::string& data_handle);
 
+  std::string CreateQuadKey(const std::string& layer, olp::geo::TileKey key,
+                            int32_t depth,
+                            const boost::optional<int64_t>& version) const;
+
  private:
   client::HRN hrn_;
   std::shared_ptr<cache::KeyValueCache> cache_;

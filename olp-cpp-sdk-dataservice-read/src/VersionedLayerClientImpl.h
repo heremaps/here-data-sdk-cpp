@@ -21,7 +21,6 @@
 
 #include <memory>
 
-#include <boost/optional.hpp>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
@@ -33,6 +32,7 @@
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/TileRequest.h>
 #include <olp/dataservice/read/Types.h>
+#include <boost/optional.hpp>
 #include "repositories/ExecuteOrSchedule.inl"
 
 namespace olp {
@@ -94,6 +94,8 @@ class VersionedLayerClientImpl {
 
   virtual client::CancellableFuture<AggregatedDataResponse> GetAggregatedData(
       TileRequest request);
+
+  virtual bool Protect(const TileKeys& tiles);
 
  private:
   CatalogVersionResponse GetVersion(boost::optional<std::string> billing_tag,

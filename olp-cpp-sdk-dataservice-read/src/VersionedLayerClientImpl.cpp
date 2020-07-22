@@ -20,6 +20,7 @@
 #include "VersionedLayerClientImpl.h"
 
 #include <string>
+#include <vector>
 
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
@@ -662,6 +663,57 @@ VersionedLayerClientImpl::GetAggregatedData(TileRequest request) {
   return client::CancellableFuture<AggregatedDataResponse>(
       std::move(cancel_token), std::move(promise));
 }
+
+bool VersionedLayerClientImpl::Protect(const TileKeys& tiles) {
+  // could protect keys, which is already in cache
+  // because we don't know quad tree which will contain tiles
+  auto version = catalog_version_.load();
+  repository::DataCacheRepository data_cache_repository(catalog_,
+                                                        settings_.cache);
+  repository::PartitionsCacheRepository partitions_cache_repository(
+      catalog_, settings_.cache);
+
+  cache::KeyValueCache::KeyListType keys_to_protect;
+  keys_to_protect.reserve(tiles.size() * 2);
+
+  std::vector<read::QuadTreeIndex> quad_trees;
+  quad_trees.reserve(tiles.size());
+  for (const auto& tile : tiles) {
+    auto it =
+        std::find_if(quad_trees.begin(), quad_trees.end(),
+                     [&tile](const read::QuadTreeIndex& quad) {
+                       auto root = quad.GetRootTile();
+                       return (tile.Level() >= root.Level() &&
+                               tile.Level() - root.Level() <= kQuadTreeDepth &&
+                               root.IsParentOf(tile));
+                     });
+    if (it == quad_trees.end()) {
+      quad_trees.emplace_back();
+      read::QuadTreeIndex& cached_tree = quad_trees.back();
+      it = (quad_trees.rbegin() + 1).base();
+      if (!repository::PartitionsRepository::FindQuadTree(
+              catalog_, settings_, layer_id_, version, tile, cached_tree)) {
+        return false;
+      }
+    }
+
+    auto data = it->Find(tile, false);
+    if (!data) {
+      return false;
+    }
+    // add data handle
+    keys_to_protect.emplace_back(
+        data_cache_repository.CreateKey(layer_id_, data->data_handle));
+  }
+
+  // need to protect all quad trees
+  for (const auto& quad_tree : quad_trees) {
+    keys_to_protect.emplace_back(partitions_cache_repository.CreateQuadKey(
+        layer_id_, quad_tree.GetRootTile(), kQuadTreeDepth, version));
+  }
+  return settings_.cache->Protect(keys_to_protect);
+}
+
 PORTING_POP_WARNINGS()
 }  // namespace read
 }  // namespace dataservice

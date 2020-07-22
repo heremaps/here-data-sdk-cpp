@@ -18,13 +18,17 @@
  */
 
 #include <gtest/gtest.h>
+#include <matchers/NetworkUrlMatchers.h>
 #include <mocks/CacheMock.h>
 #include <mocks/NetworkMock.h>
 
 #include <olp/core/cache/CacheSettings.h>
+#include <olp/core/cache/DefaultCache.h>
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+#include <olp/core/utils/Dir.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
+#include "VersionedLayerClientImpl.h"
 #include "repositories/QuadTreeIndex.h"
 
 namespace {
@@ -41,9 +45,24 @@ const auto kCatalogVersion = 108;
 const auto kTimeout = std::chrono::seconds(5);
 constexpr auto kBlobDataHandle = R"(4eed6ed1-0d32-43b9-ae79-043cb4256432)";
 constexpr auto kHereTile = "23618364";
-constexpr auto kHereTileDataHandle = "BD53A6D60A34C20DC42ACAB2650FE361.48";
-constexpr auto kQuadkeyResponse =
-    R"jsonString({"subQuads": [{"subQuadKey": "4","version":282,"dataHandle":"7636348E50215979A39B5F3A429EDDB4.282","dataSize":277},{"subQuadKey":"5","version":282,"dataHandle":"8C9B3E08E294ADB2CD07EBC8412062FE.282","dataSize":271},{"subQuadKey": "6","version":282,"dataHandle":"9772F5E1822DFF25F48F150294B1ECF5.282","dataSize":289},{"subQuadKey":"7","version":282,"dataHandle":"BF84D8EC8124B96DBE5C4DB68B05918F.282","dataSize":283},{"subQuadKey":"1","version":48,"dataHandle":"BD53A6D60A34C20DC42ACAB2650FE361.48","dataSize":89}],"parentQuads":[{"partition":"23","version":282,"dataHandle":"F8F4C3CB09FBA61B927256CBCB8441D1.282","dataSize":52438},{"partition":"5","version":282,"dataHandle":"13E2C624E0136C3357D092EE7F231E87.282","dataSize":99151},{"partition":"95","version":253,"dataHandle":"B6F7614316BB8B81478ED7AE370B22A6.253","dataSize":6765}]})jsonString";
+constexpr auto kOtherHereTile = "1476147";
+constexpr auto kHereTileDataHandle = "f9a9fd8e-eb1b-48e5-bfdb-4392b3826443";
+constexpr auto kUrlQuadRequest =
+    R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/92259/depths/4)";
+constexpr auto kHttpResponceQuadkey =
+    R"jsonString({"subQuads": [{"subQuadKey":"19","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"316","version":4,"dataHandle":"f9a9fd8e-eb1b-48e5-bfdb-4392b3826443"},{"subQuadKey":"317","version":4,"dataHandle":"e119d20e-c7c6-4563-ae88-8aa5c6ca75c3"},{"subQuadKey":"318","version":4,"dataHandle":"a7a1afdf-db7e-4833-9627-d38bee6e2f81"},{"subQuadKey":"319","version":4,"dataHandle":"9d515348-afce-44e8-bc6f-3693cfbed104"},{"subQuadKey":"79","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString";
+constexpr auto kUrlLookup =
+    R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis)";
+constexpr auto kHttpResponseLookup =
+    R"jsonString([{"api":"metadata","version":"v1","baseURL":"https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2","parameters":{}}, {"api":"query","version":"v1","baseURL":"https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2","parameters":{}}, {"api":"blob","version":"v1","baseURL":"https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}},{"api":"volatile-blob","version":"v1","baseURL":"https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}},{"api":"stream","version":"v2","baseURL":"https://stream-ireland.data.api.platform.here.com/stream/v2/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString";
+constexpr auto kUrlVersion =
+    R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/versions/latest?startVersion=-1)";
+constexpr auto kHttpResponseVersion =
+    R"jsonString({"version":4})jsonString";
+constexpr auto kDataRequestTile =
+    R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/f9a9fd8e-eb1b-48e5-bfdb-4392b3826443)";
+constexpr auto kDataRequestOtherTile =
+    R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/95c5c703-e00e-4c38-841e-e419367474f1)";
 
 TEST(VersionedLayerClientTest, CanBeMoved) {
   read::VersionedLayerClient client_a(olp::client::HRN(), "", boost::none, {});
@@ -149,11 +168,10 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
 
   auto depth = 4;
   auto tile_key = olp::geo::TileKey::FromHereTile(kHereTile);
-  auto stream = std::stringstream(kQuadkeyResponse);
-  read::QuadTreeIndex quad_tree(tile_key, depth, stream);
-  auto buffer = quad_tree.GetRawData();
-
   auto root = tile_key.ChangedLevelBy(-depth);
+  auto stream = std::stringstream(kHttpResponceQuadkey);
+  read::QuadTreeIndex quad_tree(root, depth, stream);
+  auto buffer = quad_tree.GetRawData();
 
   auto quad_cache_key = [&depth](const olp::geo::TileKey& key) {
     return kHrn.ToCatalogHRNString() + "::" + kLayerId +
@@ -237,6 +255,88 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
         .WillRepeatedly([&](const std::string&) { return false; });
     ASSERT_FALSE(client.RemoveFromCache(tile_key));
   }
+}
+
+TEST(VersionedLayerClientTest, Protect) {
+  std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
+  olp::cache::CacheSettings cache_settings;
+  cache_settings.disk_path_mutable =
+      olp::utils::Dir::TempDirectory() + "/unittest";
+  auto cache =
+      std::make_shared<olp::cache::DefaultCache>(std::move(cache_settings));
+  cache->Open();
+  cache->Clear();
+  olp::client::OlpClientSettings settings;
+  settings.cache = cache;
+  // olp::client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
+  settings.default_cache_expiration = std::chrono::seconds(2);
+  settings.network_request_handler = network_mock;
+
+  read::VersionedLayerClientImpl client(kHrn, kLayerId, boost::none, settings);
+  {
+    SCOPED_TRACE("Cache tile key");
+    auto tile_key = olp::geo::TileKey::FromHereTile(kHereTile);
+
+    auto stream = std::stringstream(kHttpResponceQuadkey);
+    std::promise<read::DataResponse> promise;
+    std::future<read::DataResponse> future = promise.get_future();
+
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kHttpResponseLookup));
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlVersion), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kHttpResponseVersion));
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlQuadRequest), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kHttpResponceQuadkey));
+
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kDataRequestTile), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     "data"));
+
+    auto token = client.GetData(
+        read::TileRequest().WithTileKey(tile_key),
+        [&](read::DataResponse response) { promise.set_value(response); });
+
+    const auto& response = future.get();
+    ASSERT_TRUE(response.IsSuccessful());
+  }
+  {
+    SCOPED_TRACE("Cache tile other key");
+    auto tile_key = olp::geo::TileKey::FromHereTile(kOtherHereTile);
+
+    auto stream = std::stringstream(kHttpResponceQuadkey);
+    std::promise<read::DataResponse> promise;
+    std::future<read::DataResponse> future = promise.get_future();
+
+    EXPECT_CALL(*network_mock,
+                Send(IsGetRequest(kDataRequestOtherTile), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     "data"));
+
+    auto token = client.GetData(
+        read::TileRequest().WithTileKey(tile_key),
+        [&](read::DataResponse response) { promise.set_value(response); });
+
+    const auto& response = future.get();
+    ASSERT_TRUE(response.IsSuccessful());
+  }
+  {
+    SCOPED_TRACE("Protect");
+    auto tile_key = olp::geo::TileKey::FromHereTile(kHereTile);
+    auto other_tile_key = olp::geo::TileKey::FromHereTile(kOtherHereTile);
+    ASSERT_TRUE(client.Protect({tile_key, other_tile_key}));
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    ASSERT_TRUE(client.IsCached(tile_key));
+    ASSERT_TRUE(client.IsCached(other_tile_key));
+  }
+  ASSERT_TRUE(cache->Clear());
 }
 
 }  // namespace
