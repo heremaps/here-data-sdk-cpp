@@ -125,6 +125,12 @@ using VersionsResponse = Response<VersionsResult>;
 using VersionsResponseCallback = Callback<VersionsResult>;
 /// The list of tile keys.
 using TileKeys = std::vector<geo::TileKey>;
+/// The alias of the protect result.
+using ProtectResult = bool;
+/// The alias of the protect response.
+using ProtectResponse = Response<ProtectResult>;
+/// The callback type of the protect completion.
+using ProtectCallback = Callback<ProtectResult>;
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

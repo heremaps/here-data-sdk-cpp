@@ -331,7 +331,16 @@ TEST(VersionedLayerClientTest, Protect) {
     SCOPED_TRACE("Protect");
     auto tile_key = olp::geo::TileKey::FromHereTile(kHereTile);
     auto other_tile_key = olp::geo::TileKey::FromHereTile(kOtherHereTile);
-    ASSERT_TRUE(client.Protect({tile_key, other_tile_key}));
+    std::promise<read::ProtectResponse> promise;
+    std::future<read::ProtectResponse> future = promise.get_future();
+
+    auto token = client.Protect(
+        {tile_key, other_tile_key},
+        [&](read::ProtectResponse response) { promise.set_value(response); });
+
+    const auto& response = future.get();
+    ASSERT_TRUE(response.IsSuccessful());
+    ASSERT_TRUE(response.GetResult());
     std::this_thread::sleep_for(std::chrono::seconds(3));
     ASSERT_TRUE(client.IsCached(tile_key));
     ASSERT_TRUE(client.IsCached(other_tile_key));
