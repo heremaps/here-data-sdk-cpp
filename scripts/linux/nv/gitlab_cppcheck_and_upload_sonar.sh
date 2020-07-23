@@ -17,6 +17,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
+# This is script for CPPcheck scan and SonarQube scan(including valgrind report from previous job)
 
 export REPO_HOME=$PWD
 export FV_HOME=${REPO_HOME}/scripts/linux/fv
@@ -26,7 +27,21 @@ export NV_HOME=${REPO_HOME}/scripts/linux/nv
 cppcheck_folder="${REPO_HOME}/reports/cppcheck"
 mkdir -p "$cppcheck_folder"
 
-cppcheck --xml --xml-version=2 --enable=all --inconclusive \
+echo "#############################"
+echo "Cppcheck run : "
+echo "#############################"
+
+cppcheck \
+    -v -j 4 --enable=all --xml --xml-version=2 --enable=all --inconclusive  \
+    -DHAVE_SIGNAL_H \
+    -DIGNORE_SIGPIPE \
+    -DOLP_SDK_NETWORK_HAS_CURL \
+    -DOLP_SDK_NETWORK_HAS_OPENSSL \
+    -DOLP_SDK_NETWORK_HAS_PIPE=1 \
+    -DOLP_SDK_NETWORK_HAS_UNISTD_H=1 \
+    -DOLP_SDK_PLATFORM_NAME=\"Linux\" \
+    -DTHREAD_LIBRARY \
+    -DTHREAD_LIBRARY_DYNAMIC \
     -I olp-cpp-sdk-core/include \
     -I olp-cpp-sdk-authentication/include \
     -I olp-cpp-sdk-dataservice-read/include \
@@ -36,6 +51,7 @@ cppcheck --xml --xml-version=2 --enable=all --inconclusive \
     olp-cpp-sdk-dataservice-read/src \
     olp-cpp-sdk-dataservice-write/src \
     2>cppcheck.xml
+cat cppcheck.xml
 mv cppcheck.xml "$cppcheck_folder/cppcheck.xml"
 
 # Set needed properties for Valgrind
