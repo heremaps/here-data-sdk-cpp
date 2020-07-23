@@ -32,14 +32,14 @@ configure_file(CMakeLists.txt.boost.in download/CMakeLists.txt @ONLY)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
   RESULT_VARIABLE result
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/download)
 if(result)
   message(FATAL_ERROR "CMake step for boost failed: ${result}")
 endif()
 
-execute_process(COMMAND ${CMAKE_COMMAND} --build .
+execute_process(COMMAND "${CMAKE_COMMAND}" --build .
   RESULT_VARIABLE result
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/download)
 if(result)
