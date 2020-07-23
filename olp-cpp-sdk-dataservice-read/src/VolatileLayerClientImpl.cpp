@@ -269,34 +269,34 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
 
           AddTask(
               settings.task_scheduler, pending_requests,
-                  [=](CancellationContext inner_context) {
-                    auto data = repository::DataRepository::GetVolatileData(
-                        catalog, layer_id,
-                        DataRequest().WithDataHandle(handle).WithBillingTag(
-                            biling_tag),
-                        inner_context, *shared_settings);
+              [=](CancellationContext inner_context) {
+                auto data = repository::DataRepository::GetVolatileData(
+                    catalog, layer_id,
+                    DataRequest().WithDataHandle(handle).WithBillingTag(
+                        biling_tag),
+                    inner_context, *shared_settings);
 
-                    if (!data.IsSuccessful()) {
-                      promise->set_value(std::make_shared<PrefetchTileResult>(
-                          tile, data.GetError()));
-                    } else {
-                      promise->set_value(std::make_shared<PrefetchTileResult>(
-                          tile, PrefetchTileNoError()));
-                    }
+                if (!data.IsSuccessful()) {
+                  promise->set_value(std::make_shared<PrefetchTileResult>(
+                      tile, data.GetError()));
+                } else {
+                  promise->set_value(std::make_shared<PrefetchTileResult>(
+                      tile, PrefetchTileNoError()));
+                }
 
-                    flag->exchange(true);
-                    return EmptyResponse(PrefetchTileNoError());
-                  },
-                  [=](EmptyResponse) {
-                    if (!flag->load()) {
-                      // If above task was cancelled we might need to set
-                      // promise else below task will wait forever
-                      promise->set_value(std::make_shared<PrefetchTileResult>(
-                          tile,
-                          client::ApiError(ErrorCode::Cancelled, "Cancelled")));
-                    }
-                  },
-                  *context_it);
+                flag->exchange(true);
+                return EmptyResponse(PrefetchTileNoError());
+              },
+              [=](EmptyResponse) {
+                if (!flag->load()) {
+                  // If above task was cancelled we might need to set
+                  // promise else below task will wait forever
+                  promise->set_value(std::make_shared<PrefetchTileResult>(
+                      tile,
+                      client::ApiError(ErrorCode::Cancelled, "Cancelled")));
+                }
+              },
+              *context_it);
           it++;
         }
 
