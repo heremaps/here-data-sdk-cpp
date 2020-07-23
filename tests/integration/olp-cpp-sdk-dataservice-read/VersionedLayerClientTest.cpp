@@ -1497,9 +1497,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
         .Times(0);
 
     auto request = read::PrefetchTilesRequest()
-                       .WithTileKeys(tile_keys)
-                       .WithMinLevel(0)
-                       .WithMaxLevel(0);
+                       .WithTileKeys(tile_keys);
 
     auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
     auto future = promise->get_future();
@@ -1532,9 +1530,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWrongLevels) {
           GetResponse(http::HttpStatusCode::FORBIDDEN), HTTP_RESPONSE_403));
 
   auto request = read::PrefetchTilesRequest()
-                     .WithTileKeys(tile_keys)
-                     .WithMinLevel(0)
-                     .WithMaxLevel(0);
+                     .WithTileKeys(tile_keys);
 
   auto client = std::make_shared<read::VersionedLayerClient>(kCatalog, kLayerId,
                                                              4, settings_);

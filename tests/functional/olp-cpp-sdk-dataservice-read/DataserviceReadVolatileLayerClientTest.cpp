@@ -375,14 +375,12 @@ TEST_F(VolatileLayerClientTest, Prefetch) {
   }
 
   {
-    SCOPED_TRACE("min/max levels are 0");
+    SCOPED_TRACE("min/max levels default");
 
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kPrefetchTile)};
-    auto request = olp::dataservice::read::PrefetchTilesRequest()
-                       .WithTileKeys(tile_keys)
-                       .WithMinLevel(0)
-                       .WithMaxLevel(0);
+    auto request =
+        olp::dataservice::read::PrefetchTilesRequest().WithTileKeys(tile_keys);
 
     auto future = client.PrefetchTiles(request).GetFuture();
 

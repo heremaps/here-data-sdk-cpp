@@ -45,8 +45,8 @@ namespace {
 constexpr auto kLogTag = "VolatileLayerClientImpl";
 
 bool IsOnlyInputTiles(const PrefetchTilesRequest& request) {
-  return !(request.GetMinLevel() > 0 &&
-           request.GetMinLevel() < request.GetMaxLevel() &&
+  return !(request.GetMinLevel() >= 0 &&
+           request.GetMinLevel() <= request.GetMaxLevel() &&
            request.GetMaxLevel() < geo::TileKey().Level() &&
            request.GetMinLevel() < geo::TileKey().Level());
 }
@@ -192,9 +192,11 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
         // cover tree.
         bool request_only_input_tiles = IsOnlyInputTiles(request);
         unsigned int min_level =
-            (request_only_input_tiles ? 0 : request.GetMinLevel());
+            (request_only_input_tiles ? geo::TileKey().Level()
+                                      : request.GetMinLevel());
         unsigned int max_level =
-            (request_only_input_tiles ? 0 : request.GetMaxLevel());
+            (request_only_input_tiles ? geo::TileKey().Level()
+                                      : request.GetMaxLevel());
 
         auto sliced_tiles = repository::PrefetchTilesRepository::GetSlicedTiles(
             tile_keys, min_level, max_level);
@@ -265,36 +267,35 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
           futures->emplace_back(promise->get_future());
           auto context_it = contexts.emplace(contexts.end());
 
-          AddTask(
-              settings.task_scheduler, pending_requests,
-              [=](CancellationContext inner_context) {
-                auto data = repository::DataRepository::GetVolatileData(
-                    catalog, layer_id,
-                    DataRequest().WithDataHandle(handle).WithBillingTag(
-                        biling_tag),
-                    inner_context, *shared_settings);
+          AddTask(settings.task_scheduler, pending_requests,
+                  [=](CancellationContext inner_context) {
+                    auto data = repository::DataRepository::GetVolatileData(
+                        catalog, layer_id,
+                        DataRequest().WithDataHandle(handle).WithBillingTag(
+                            biling_tag),
+                        inner_context, *shared_settings);
 
-                if (!data.IsSuccessful()) {
-                  promise->set_value(std::make_shared<PrefetchTileResult>(
-                      tile, data.GetError()));
-                } else {
-                  promise->set_value(std::make_shared<PrefetchTileResult>(
-                      tile, PrefetchTileNoError()));
-                }
+                    if (!data.IsSuccessful()) {
+                      promise->set_value(std::make_shared<PrefetchTileResult>(
+                          tile, data.GetError()));
+                    } else {
+                      promise->set_value(std::make_shared<PrefetchTileResult>(
+                          tile, PrefetchTileNoError()));
+                    }
 
-                flag->exchange(true);
-                return EmptyResponse(PrefetchTileNoError());
-              },
-              [=](EmptyResponse) {
-                if (!flag->load()) {
-                  // If above task was cancelled we might need to set
-                  // promise else below task will wait forever
-                  promise->set_value(std::make_shared<PrefetchTileResult>(
-                      tile,
-                      client::ApiError(ErrorCode::Cancelled, "Cancelled")));
-                }
-              },
-              *context_it);
+                    flag->exchange(true);
+                    return EmptyResponse(PrefetchTileNoError());
+                  },
+                  [=](EmptyResponse) {
+                    if (!flag->load()) {
+                      // If above task was cancelled we might need to set
+                      // promise else below task will wait forever
+                      promise->set_value(std::make_shared<PrefetchTileResult>(
+                          tile,
+                          client::ApiError(ErrorCode::Cancelled, "Cancelled")));
+                    }
+                  },
+                  *context_it);
           it++;
         }
 

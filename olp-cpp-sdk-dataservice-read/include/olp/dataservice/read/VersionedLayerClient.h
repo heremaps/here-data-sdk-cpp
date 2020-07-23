@@ -23,7 +23,6 @@
 #include <string>
 #include <vector>
 
-#include <boost/optional.hpp>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationToken.h>
@@ -36,6 +35,7 @@
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/TileRequest.h>
 #include <olp/dataservice/read/Types.h>
+#include <boost/optional.hpp>
 
 namespace olp {
 namespace dataservice {
@@ -311,10 +311,10 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    *
    * This method recursively downloads all tile keys from the `min_level`
    * parameter to the `max_level` parameter of the \c PrefetchTilesRequest
-   * object for the given root tiles. If min_level/max_level are the same or
-   * default, only tiles listed in \c PrefetchTilesRequest will be downloaded.
-   * Only tiles will be downloaded which are not already present in the cache,
-   * this helps reduce the network load.
+   * object for the given root tiles. If min_level/max_level are default, only
+   * tiles listed in \c PrefetchTilesRequest will be downloaded. Only tiles will
+   * be downloaded which are not already present in the cache, this helps reduce
+   * the network load.
    *
    * @note This method does not guarantee that all tiles are available offline
    * as the cache might overflow, and data might be evicted at any point.
@@ -337,10 +337,10 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    *
    * This method recursively downloads all tile keys from the `min_level`
    * parameter to the `max_level` parameter of the \c PrefetchTilesRequest
-   * object for the given root tiles. If min_level/max_level are the same or
-   * default, only tiles listed in \c PrefetchTilesRequest will be downloaded.
-   * Only tiles will be downloaded which are not already present in the cache,
-   * this helps reduce the network load.
+   * object for the given root tiles. If min_level/max_level are default, only
+   * tiles listed in \c PrefetchTilesRequest will be downloaded. Only tiles will
+   * be downloaded which are not already present in the cache, this helps reduce
+   * the network load.
    *
    * @note This method does not guarantee that all tiles are available offline
    * as the cache might overflow, and data might be evicted at any point.

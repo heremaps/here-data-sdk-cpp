@@ -203,8 +203,8 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
  private:
   std::string layer_id_;
   std::vector<geo::TileKey> tile_keys_;
-  unsigned int min_level_{0};
-  unsigned int max_level_{0};
+  unsigned int min_level_{geo::TileKey().Level()};
+  unsigned int max_level_{geo::TileKey().Level()};
   boost::optional<int64_t> catalog_version_;
   boost::optional<std::string> billing_tag_;
 };

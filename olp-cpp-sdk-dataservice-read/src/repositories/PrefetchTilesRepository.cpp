@@ -101,8 +101,12 @@ RootTilesForRequest PrefetchTilesRepository::GetSlicedTiles(
 
     // min level should always start from level of root tile for quad tree
     // index, if requested tile is on upper level, adjust min_level up
-    if (tile_key.Level() < min_level || min_level == 0) {
+    if (tile_key.Level() < min_level) {
       min_level = tile_key.Level();
+    }
+    if (max_level == geo::TileKey().Level()) {
+      max_level = min_level;
+    } else {
       max_level = std::max(max_level, min_level);
     }
 
@@ -117,8 +121,8 @@ RootTilesForRequest PrefetchTilesRepository::GetSlicedTiles(
         min_level = min_level - levels_up;
       } else {
         // if min_level is less than steps we need to go up, go some steps down
-        auto levels_down = levels_up - min_level + 1u;
-        min_level = 1u;
+        auto levels_down = levels_up - min_level;
+        min_level = 0u;
         max_level = max_level + levels_down;
       }
     }

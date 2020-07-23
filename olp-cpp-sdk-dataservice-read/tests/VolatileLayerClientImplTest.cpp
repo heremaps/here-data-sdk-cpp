@@ -527,7 +527,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
     }
   }
   {
-    SCOPED_TRACE("Prefetch tiles with levels(0, 0).");
+    SCOPED_TRACE("Prefetch tiles with default levels");
 
     SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile2,
                             kHttpResponseQuadTreeIndexVolatile,
@@ -542,10 +542,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kTileId)};
 
-    auto request = read::PrefetchTilesRequest()
-                       .WithTileKeys(tile_keys)
-                       .WithMinLevel(0)
-                       .WithMaxLevel(0);
+    auto request = read::PrefetchTilesRequest().WithTileKeys(tile_keys);
 
     auto promise =
         std::make_shared<std::promise<read::PrefetchTilesResponse>>();
@@ -705,7 +702,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
     }
   }
   {
-    SCOPED_TRACE("Prefetch tiles with levels(0, 0).");
+    SCOPED_TRACE("Prefetch tiles with default levels");
     SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile2,
                             kHttpResponseQuadTreeIndexVolatile,
                             olp::http::HttpStatusCode::OK);
@@ -719,10 +716,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kTileId)};
 
-    auto request = read::PrefetchTilesRequest()
-                       .WithTileKeys(tile_keys)
-                       .WithMinLevel(0)
-                       .WithMaxLevel(0);
+    auto request = read::PrefetchTilesRequest().WithTileKeys(tile_keys);
 
     auto cancellable = client.PrefetchTiles(request);
     auto future = cancellable.GetFuture();
