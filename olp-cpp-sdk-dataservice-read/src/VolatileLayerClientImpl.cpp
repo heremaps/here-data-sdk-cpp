@@ -267,7 +267,8 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
           futures->emplace_back(promise->get_future());
           auto context_it = contexts.emplace(contexts.end());
 
-          AddTask(settings.task_scheduler, pending_requests,
+          AddTask(
+              settings.task_scheduler, pending_requests,
                   [=](CancellationContext inner_context) {
                     auto data = repository::DataRepository::GetVolatileData(
                         catalog, layer_id,
