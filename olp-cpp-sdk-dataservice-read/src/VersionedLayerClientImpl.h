@@ -95,8 +95,7 @@ class VersionedLayerClientImpl {
   virtual client::CancellableFuture<AggregatedDataResponse> GetAggregatedData(
       TileRequest request);
 
-  virtual client::CancellationToken Protect(const TileKeys& tiles,
-                                            ProtectCallback callback);
+  virtual bool Protect(const TileKeys& tiles);
 
  private:
   CatalogVersionResponse GetVersion(boost::optional<std::string> billing_tag,

@@ -46,6 +46,7 @@ const auto kTimeout = std::chrono::seconds(5);
 constexpr auto kBlobDataHandle = R"(4eed6ed1-0d32-43b9-ae79-043cb4256432)";
 constexpr auto kHereTile = "23618364";
 constexpr auto kOtherHereTile = "1476147";
+constexpr auto kOtherHereTile2 = "5904591";
 constexpr auto kHereTileDataHandle = "f9a9fd8e-eb1b-48e5-bfdb-4392b3826443";
 constexpr auto kUrlQuadRequest =
     R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/92259/depths/4)";
@@ -63,7 +64,8 @@ constexpr auto kDataRequestTile =
     R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/f9a9fd8e-eb1b-48e5-bfdb-4392b3826443)";
 constexpr auto kDataRequestOtherTile =
     R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/95c5c703-e00e-4c38-841e-e419367474f1)";
-
+constexpr auto kDataRequestOtherTile2 =
+    R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1)";
 TEST(VersionedLayerClientTest, CanBeMoved) {
   read::VersionedLayerClient client_a(olp::client::HRN(), "", boost::none, {});
   read::VersionedLayerClient client_b(std::move(client_a));
@@ -268,7 +270,6 @@ TEST(VersionedLayerClientTest, Protect) {
   cache->Clear();
   olp::client::OlpClientSettings settings;
   settings.cache = cache;
-  // olp::client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
   settings.default_cache_expiration = std::chrono::seconds(2);
   settings.network_request_handler = network_mock;
 
@@ -277,7 +278,6 @@ TEST(VersionedLayerClientTest, Protect) {
     SCOPED_TRACE("Cache tile key");
     auto tile_key = olp::geo::TileKey::FromHereTile(kHereTile);
 
-    auto stream = std::stringstream(kHttpResponceQuadkey);
     std::promise<read::DataResponse> promise;
     std::future<read::DataResponse> future = promise.get_future();
 
@@ -309,8 +309,6 @@ TEST(VersionedLayerClientTest, Protect) {
   {
     SCOPED_TRACE("Cache tile other key");
     auto tile_key = olp::geo::TileKey::FromHereTile(kOtherHereTile);
-
-    auto stream = std::stringstream(kHttpResponceQuadkey);
     std::promise<read::DataResponse> promise;
     std::future<read::DataResponse> future = promise.get_future();
 
@@ -331,19 +329,41 @@ TEST(VersionedLayerClientTest, Protect) {
     SCOPED_TRACE("Protect");
     auto tile_key = olp::geo::TileKey::FromHereTile(kHereTile);
     auto other_tile_key = olp::geo::TileKey::FromHereTile(kOtherHereTile);
-    std::promise<read::ProtectResponse> promise;
-    std::future<read::ProtectResponse> future = promise.get_future();
-
-    auto token = client.Protect(
-        {tile_key, other_tile_key},
-        [&](read::ProtectResponse response) { promise.set_value(response); });
-
-    const auto& response = future.get();
-    ASSERT_TRUE(response.IsSuccessful());
-    ASSERT_TRUE(response.GetResult());
+    auto response = client.Protect({tile_key, other_tile_key});
+    ASSERT_TRUE(response);
     std::this_thread::sleep_for(std::chrono::seconds(3));
     ASSERT_TRUE(client.IsCached(tile_key));
     ASSERT_TRUE(client.IsCached(other_tile_key));
+  }
+  {
+    SCOPED_TRACE("Protect tile which not in cache but has known data handle");
+    auto tile_key = olp::geo::TileKey::FromHereTile(kOtherHereTile2);
+    auto response = client.Protect({tile_key});
+    ASSERT_TRUE(response);
+    ASSERT_FALSE(client.IsCached(tile_key));
+
+    // now get protected tile
+    EXPECT_CALL(*network_mock,
+                Send(IsGetRequest(kDataRequestOtherTile2), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     "data"));
+
+    auto data_future =
+        client.GetData(read::TileRequest().WithTileKey(tile_key)).GetFuture();
+
+    const auto& data_response = data_future.get();
+    ASSERT_TRUE(data_response.IsSuccessful());
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    // tile stays in cache, as it was protected before
+    ASSERT_TRUE(client.IsCached(tile_key));
+  }
+  {
+    SCOPED_TRACE("Protect tile which not in cache");
+    auto tile_key = olp::geo::TileKey::FromHereTile("5904592");
+
+    auto response = client.Protect({tile_key});
+    ASSERT_FALSE(response);
   }
   ASSERT_TRUE(cache->Clear());
 }
