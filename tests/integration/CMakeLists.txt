@@ -34,6 +34,7 @@ set(OLP_SDK_INTEGRATIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-dataservice-write/StreamLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-write/VersionedLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-write/VolatileLayerClientTest.cpp
+    ./olp-cpp-sdk-core/ApiLookupClientTest.cpp
     ./olp-cpp-sdk-core/DefaultNetworkTest.cpp
     ./olp-cpp-sdk-core/DefaultCacheTest.cpp
 )

@@ -230,6 +230,7 @@ set(OLP_SDK_CLIENT_SOURCES
     ./src/client/parser/ApiParser.h
     ./src/client/repository/ApiCacheRepository.cpp
     ./src/client/repository/ApiCacheRepository.h
+    ./src/client/ApiLookupClient.cpp
     ./src/client/ApiLookupClientImpl.cpp
     ./src/client/ApiLookupClientImpl.h
     ./src/client/CancellationToken.cpp
