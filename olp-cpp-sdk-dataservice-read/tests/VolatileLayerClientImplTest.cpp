@@ -856,19 +856,26 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFutureCancel) {
   settings.cache = cache_mock;
   settings.task_scheduler =
       olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
-  read::VolatileLayerClientImpl client(kHrn, kLayerId, std::move(settings));
+
+  std::promise<void> block_promise;
+  auto future = block_promise.get_future();
+  settings.task_scheduler->ScheduleTask([&future]() { future.get(); });
+
   std::vector<olp::geo::TileKey> tile_keys = {
       olp::geo::TileKey::FromHereTile(kTileId)};
+  read::VolatileLayerClientImpl client(kHrn, kLayerId, std::move(settings));
   auto cancellable = client.PrefetchTiles(
       read::PrefetchTilesRequest().WithTileKeys(tile_keys));
 
-  auto data_future = cancellable.GetFuture();
+  // cancel the request and unblock queue
   cancellable.GetCancellationToken().Cancel();
+  block_promise.set_value();
+  auto data_future = cancellable.GetFuture();
+
   ASSERT_EQ(data_future.wait_for(kTimeout), std::future_status::ready);
 
   auto data_response = data_future.get();
 
-  // Callback must be called during client destructor.
   EXPECT_FALSE(data_response.IsSuccessful());
   EXPECT_EQ(data_response.GetError().GetErrorCode(),
             olp::client::ErrorCode::Cancelled);
