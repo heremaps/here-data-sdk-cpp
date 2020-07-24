@@ -123,6 +123,9 @@ using VersionsResult = model::VersionInfos;
 using VersionsResponse = Response<VersionsResult>;
 /// The versions list of metadata callback type for the versioned client.
 using VersionsResponseCallback = Callback<VersionsResult>;
+
+/// The list of tile keys.
+using TileKeys = std::vector<geo::TileKey>;
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

@@ -60,13 +60,6 @@ std::string CreateKey(const std::string& hrn, const std::string& layer_id,
 std::string CreateKey(const std::string& hrn, const int64_t catalogVersion) {
   return hrn + "::" + std::to_string(catalogVersion) + "::layerVersions";
 }
-std::string CreateKey(const std::string& hrn, const std::string& layer,
-                      olp::geo::TileKey key, int32_t depth,
-                      const boost::optional<int64_t>& version) {
-  return hrn + "::" + layer + "::" + key.ToHereTile() +
-         "::" + (version ? std::to_string(*version) + "::" : "") +
-         std::to_string(depth) + "::quadtree";
-};
 
 time_t ConvertTime(std::chrono::seconds time) {
   return time == kChronoSecondsMax ? kTimetMax : time.count();
@@ -211,8 +204,7 @@ void PartitionsCacheRepository::Put(const std::string& layer,
                                     geo::TileKey tile_key, int32_t depth,
                                     const QuadTreeIndex& quad_tree,
                                     const boost::optional<int64_t>& version) {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  const auto key = CreateKey(hrn, layer, tile_key, depth, version);
+  const auto key = CreateQuadKey(layer, tile_key, depth, version);
 
   if (quad_tree.IsNull()) {
     OLP_SDK_LOG_WARNING_F(kLogTag, "Put: invalid QuadTreeIndex -> '%s'",
@@ -228,8 +220,7 @@ bool PartitionsCacheRepository::Get(const std::string& layer,
                                     geo::TileKey tile_key, int32_t depth,
                                     const boost::optional<int64_t>& version,
                                     QuadTreeIndex& tree) {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  auto key = CreateKey(hrn, layer, tile_key, depth, version);
+  auto key = CreateQuadKey(layer, tile_key, depth, version);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Get -> '%s'", key.c_str());
   auto data = cache_->Get(key);
   if (data) {
@@ -267,8 +258,7 @@ void PartitionsCacheRepository::ClearPartitions(
 bool PartitionsCacheRepository::ClearQuadTree(
     const std::string& layer, geo::TileKey tile_key, int32_t depth,
     const boost::optional<int64_t>& version) {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  const auto key = CreateKey(hrn, layer, tile_key, depth, version);
+  const auto key = CreateQuadKey(layer, tile_key, depth, version);
   OLP_SDK_LOG_INFO_F(kLogTag, "ClearQuadTree -> '%s'", key.c_str());
   return cache_->RemoveKeysWithPrefix(key);
 }
@@ -313,6 +303,16 @@ bool PartitionsCacheRepository::GetPartitionHandle(
   data_handle = partition.GetDataHandle();
   return true;
 }
+
+std::string PartitionsCacheRepository::CreateQuadKey(
+    const std::string& layer, olp::geo::TileKey key, int32_t depth,
+    const boost::optional<int64_t>& version) const {
+  std::string hrn(hrn_.ToCatalogHRNString());
+  return hrn + "::" + layer + "::" + key.ToHereTile() +
+         "::" + (version ? std::to_string(*version) + "::" : "") +
+         std::to_string(depth) + "::quadtree";
+}
+
 PORTING_POP_WARNINGS()
 }  // namespace repository
 }  // namespace read

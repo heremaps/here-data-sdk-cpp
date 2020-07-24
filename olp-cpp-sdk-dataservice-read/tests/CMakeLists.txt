@@ -33,7 +33,7 @@ set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     SerializerTest.cpp
     StreamApiTest.cpp
     StreamLayerClientImplTest.cpp
-    VersionedLayerClientTest.cpp
+    VersionedLayerClientImplTest.cpp
     VolatileLayerClientImplTest.cpp
     VolatileLayerClientTest.cpp
 )

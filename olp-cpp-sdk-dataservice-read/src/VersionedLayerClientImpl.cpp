@@ -20,6 +20,8 @@
 #include "VersionedLayerClientImpl.h"
 
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
@@ -662,6 +664,64 @@ VersionedLayerClientImpl::GetAggregatedData(TileRequest request) {
   return client::CancellableFuture<AggregatedDataResponse>(
       std::move(cancel_token), std::move(promise));
 }
+
+bool VersionedLayerClientImpl::Protect(const TileKeys& tiles) {
+  if (!settings_.cache) {
+    return false;
+  }
+  auto version = catalog_version_.load();
+  // could protect keys, which is already in cache
+  // because we don't know quad tree which will contain tiles
+  repository::DataCacheRepository data_cache_repository(catalog_,
+                                                        settings_.cache);
+  repository::PartitionsCacheRepository partitions_cache_repository(
+      catalog_, settings_.cache);
+
+  cache::KeyValueCache::KeyListType keys_to_protect;
+  keys_to_protect.reserve(tiles.size() * 2);
+  auto add_data_handle = [&](const geo::TileKey& tile,
+                             const read::QuadTreeIndex& quad_tree) {
+    auto data = quad_tree.Find(tile, false);
+    if (data) {
+      keys_to_protect.emplace_back(
+          data_cache_repository.CreateKey(layer_id_, data->data_handle));
+      return true;
+    }
+    return false;
+  };
+
+  std::vector<read::QuadTreeIndex> quad_trees;
+  quad_trees.reserve(tiles.size());
+  for (const auto& tile : tiles) {
+    auto it =
+        std::find_if(quad_trees.begin(), quad_trees.end(),
+                     [&tile](const read::QuadTreeIndex& quad) {
+                       auto root = quad.GetRootTile();
+                       return (tile.Level() >= root.Level() &&
+                               tile.Level() - root.Level() <= kQuadTreeDepth &&
+                               root.IsParentOf(tile));
+                     });
+
+    if (it != quad_trees.end()) {
+      add_data_handle(tile, *it);
+    } else {
+      read::QuadTreeIndex cached_tree;
+      if (repository::PartitionsRepository::FindQuadTree(
+              catalog_, settings_, layer_id_, version, tile, cached_tree) &&
+          add_data_handle(tile, cached_tree)) {
+        keys_to_protect.emplace_back(partitions_cache_repository.CreateQuadKey(
+            layer_id_, cached_tree.GetRootTile(), kQuadTreeDepth, version));
+        quad_trees.emplace_back(std::move(cached_tree));
+      }
+    }
+  }
+
+  if (keys_to_protect.empty()) {
+    return false;
+  }
+  return settings_.cache->Protect(keys_to_protect);
+}
+
 PORTING_POP_WARNINGS()
 }  // namespace read
 }  // namespace dataservice
