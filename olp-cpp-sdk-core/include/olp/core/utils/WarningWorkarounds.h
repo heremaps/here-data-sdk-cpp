@@ -27,7 +27,7 @@
 /**
  * Marks arbitrary many variables as unused to avoid compiler warnings.
  */
-#define CORE_UNUSED(...) olp::core::Unused(__VA_ARGS__)
+#define OLP_SDK_CORE_UNUSED(...) olp::core::Unused(__VA_ARGS__)
 
 namespace olp {
 namespace core {
@@ -41,9 +41,9 @@ void Unused(Args&&...) {}
  * warnings.
  */
 #ifdef _MSC_VER
-#define CORE_LOOP_ONCE()                                                  \
+#define OLP_SDK_CORE_LOOP_ONCE()                                                  \
   __pragma(warning(push)) __pragma(warning(disable : 4127)) while (false) \
       __pragma(warning(pop))
 #else
-#define CORE_LOOP_ONCE() while (false)
+#define OLP_SDK_CORE_LOOP_ONCE() while (false)
 #endif
