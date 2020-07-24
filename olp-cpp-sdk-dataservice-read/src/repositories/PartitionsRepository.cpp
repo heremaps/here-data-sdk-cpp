@@ -106,26 +106,25 @@ namespace dataservice {
 namespace read {
 namespace repository {
 
+PartitionsRepository::PartitionsRepository(client::HRN catalog,
+                                           client::OlpClientSettings settings)
+    : catalog_(std::move(catalog)), settings_(std::move(settings)) {}
+
 PartitionsResponse PartitionsRepository::GetVersionedPartitions(
-    client::HRN catalog, std::string layer, int64_t version,
-    client::CancellationContext cancellation_context, PartitionsRequest request,
-    client::OlpClientSettings settings) {
-  return GetPartitions(std::move(catalog), std::move(layer), version,
-                       std::move(cancellation_context), std::move(request),
-                       std::move(settings));
+    std::string layer, const PartitionsRequest& request, int64_t version,
+    client::CancellationContext context) {
+  return GetPartitions(std::move(layer), request, version, std::move(context));
 }
 
 PartitionsResponse PartitionsRepository::GetVolatilePartitions(
-    client::HRN catalog, std::string layer,
-    client::CancellationContext cancellation_context, PartitionsRequest request,
-    client::OlpClientSettings settings) {
+    std::string layer, const PartitionsRequest& request,
+    client::CancellationContext context) {
   auto catalog_request = CatalogRequest()
                              .WithBillingTag(request.GetBillingTag())
                              .WithFetchOption(request.GetFetchOption());
 
-  CatalogRepository repository(catalog, settings);
-  auto catalog_response =
-      repository.GetCatalog(catalog_request, cancellation_context);
+  CatalogRepository repository(catalog_, settings_);
+  auto catalog_response = repository.GetCatalog(catalog_request, context);
 
   if (!catalog_response.IsSuccessful()) {
     return catalog_response.GetError();
@@ -137,32 +136,31 @@ PartitionsResponse PartitionsRepository::GetVolatilePartitions(
     return expiry_response.GetError();
   }
 
-  return GetPartitions(std::move(catalog), std::move(layer), boost::none,
-                       cancellation_context, std::move(request),
-                       std::move(settings), expiry_response.MoveResult());
+  return GetPartitions(std::move(layer), request, boost::none, context,
+                       expiry_response.MoveResult());
 }
 
 PartitionsResponse PartitionsRepository::GetPartitions(
-    client::HRN catalog, std::string layer, boost::optional<int64_t> version,
-    client::CancellationContext cancellation_context, PartitionsRequest request,
-    const client::OlpClientSettings& settings, boost::optional<time_t> expiry) {
+    std::string layer, const PartitionsRequest& request,
+    boost::optional<std::int64_t> version, client::CancellationContext context,
+    boost::optional<time_t> expiry) {
   auto fetch_option = request.GetFetchOption();
-  const auto key = request.CreateKey(layer, version);
+  const auto key = request.CreateKey(layer);
 
   repository::PartitionsCacheRepository repository(
-      catalog, settings.cache, settings.default_cache_expiration);
+      catalog_, settings_.cache, settings_.default_cache_expiration);
 
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_partitions = repository.Get(request, layer, version);
     if (cached_partitions) {
       OLP_SDK_LOG_DEBUG_F(kLogTag,
                           "GetPartitions found in cache, hrn='%s', key='%s'",
-                          catalog.ToCatalogHRNString().c_str(), key.c_str());
+                          catalog_.ToCatalogHRNString().c_str(), key.c_str());
       return cached_partitions.get();
     } else if (fetch_option == CacheOnly) {
       OLP_SDK_LOG_INFO_F(kLogTag,
                          "GetPartitions not found in cache, hrn='%s', key='%s'",
-                         catalog.ToCatalogHRNString().c_str(), key.c_str());
+                         catalog_.ToCatalogHRNString().c_str(), key.c_str());
       return {{client::ErrorCode::NotFound,
                "CacheOnly: resource not found in cache"}};
     }
@@ -172,9 +170,8 @@ PartitionsResponse PartitionsRepository::GetPartitions(
   const auto& partition_ids = request.GetPartitionIds();
 
   if (partition_ids.empty()) {
-    auto metadata_api =
-        ApiClientLookup::LookupApi(catalog, cancellation_context, "metadata",
-                                   "v1", fetch_option, std::move(settings));
+    auto metadata_api = ApiClientLookup::LookupApi(
+        catalog_, context, "metadata", "v1", fetch_option, settings_);
 
     if (!metadata_api.IsSuccessful()) {
       return metadata_api.GetError();
@@ -182,11 +179,10 @@ PartitionsResponse PartitionsRepository::GetPartitions(
 
     response = MetadataApi::GetPartitions(
         metadata_api.GetResult(), layer, version, request.GetAdditionalFields(),
-        boost::none, request.GetBillingTag(), cancellation_context);
+        boost::none, request.GetBillingTag(), context);
   } else {
-    auto query_api =
-        ApiClientLookup::LookupApi(catalog, cancellation_context, "query", "v1",
-                                   fetch_option, std::move(settings));
+    auto query_api = ApiClientLookup::LookupApi(catalog_, context, "query",
+                                                "v1", fetch_option, settings_);
 
     if (!query_api.IsSuccessful()) {
       return query_api.GetError();
@@ -194,8 +190,7 @@ PartitionsResponse PartitionsRepository::GetPartitions(
 
     response = QueryApi::GetPartitionsbyId(
         query_api.GetResult(), layer, partition_ids, version,
-        request.GetAdditionalFields(), request.GetBillingTag(),
-        cancellation_context);
+        request.GetAdditionalFields(), request.GetBillingTag(), context);
   }
 
   // Save all partitions only when downloaded via metadata API
@@ -203,7 +198,7 @@ PartitionsResponse PartitionsRepository::GetPartitions(
   if (response.IsSuccessful() && fetch_option != OnlineOnly) {
     OLP_SDK_LOG_DEBUG_F(kLogTag,
                         "GetPartitions put to cache, hrn='%s', key='%s'",
-                        catalog.ToCatalogHRNString().c_str(), key.c_str());
+                        catalog_.ToCatalogHRNString().c_str(), key.c_str());
     repository.Put(response.GetResult(), layer, version, expiry,
                    is_layer_metadata);
   }
@@ -213,7 +208,7 @@ PartitionsResponse PartitionsRepository::GetPartitions(
       OLP_SDK_LOG_WARNING_F(
           kLogTag,
           "GetPartitions 403 received, remove from cache, hrn='%s', key='%s'",
-          catalog.ToCatalogHRNString().c_str(), key.c_str());
+          catalog_.ToCatalogHRNString().c_str(), key.c_str());
       repository.Clear(layer);
     }
   }
@@ -222,10 +217,8 @@ PartitionsResponse PartitionsRepository::GetPartitions(
 }
 
 PartitionsResponse PartitionsRepository::GetPartitionById(
-    const client::HRN& catalog, const std::string& layer,
-    boost::optional<int64_t> version,
-    client::CancellationContext cancellation_context,
-    const DataRequest& data_request, client::OlpClientSettings settings) {
+    const std::string& layer, boost::optional<int64_t> version,
+    const DataRequest& data_request, client::CancellationContext context) {
   const auto& partition_id = data_request.GetPartitionId();
   if (!partition_id) {
     return {{client::ErrorCode::PreconditionFailed, "Partition Id is missing"}};
@@ -234,7 +227,7 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
   auto fetch_option = data_request.GetFetchOption();
 
   const auto request_key =
-      catalog.ToString() + data_request.CreateKey(layer, version);
+      catalog_.ToString() + data_request.CreateKey(layer, version);
 
   NamedMutex mutex(request_key);
   std::unique_lock<repository::NamedMutex> lock(mutex, std::defer_lock);
@@ -244,9 +237,9 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
     lock.lock();
   }
 
-  std::chrono::seconds timeout{settings.retry_settings.timeout};
+  std::chrono::seconds timeout{settings_.retry_settings.timeout};
   repository::PartitionsCacheRepository repository(
-      catalog, settings.cache, settings.default_cache_expiration);
+      catalog_, settings_.cache, settings_.default_cache_expiration);
   const auto key = data_request.CreateKey(layer, version);
 
   const std::vector<std::string> partitions{partition_id.value()};
@@ -259,20 +252,19 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
     if (cached_partitions.GetPartitions().size() == partitions.size()) {
       OLP_SDK_LOG_DEBUG_F(kLogTag,
                           "GetPartitionById found in cache, hrn='%s', key='%s'",
-                          catalog.ToCatalogHRNString().c_str(), key.c_str());
+                          catalog_.ToCatalogHRNString().c_str(), key.c_str());
       return cached_partitions;
     } else if (fetch_option == CacheOnly) {
       OLP_SDK_LOG_INFO_F(
           kLogTag, "GetPartitionById not found in cache, hrn='%s', key='%s'",
-          catalog.ToCatalogHRNString().c_str(), key.c_str());
+          catalog_.ToCatalogHRNString().c_str(), key.c_str());
       return {{client::ErrorCode::NotFound,
                "CacheOnly: resource not found in cache"}};
     }
   }
 
-  auto query_api =
-      ApiClientLookup::LookupApi(catalog, cancellation_context, "query", "v1",
-                                 fetch_option, std::move(settings));
+  auto query_api = ApiClientLookup::LookupApi(catalog_, context, "query", "v1",
+                                              fetch_option, settings_);
 
   if (!query_api.IsSuccessful()) {
     return query_api.GetError();
@@ -280,14 +272,14 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
 
   const client::OlpClient& client = query_api.GetResult();
 
-  PartitionsResponse query_response = QueryApi::GetPartitionsbyId(
-      client, layer, partitions, version, {}, data_request.GetBillingTag(),
-      cancellation_context);
+  PartitionsResponse query_response =
+      QueryApi::GetPartitionsbyId(client, layer, partitions, version, {},
+                                  data_request.GetBillingTag(), context);
 
   if (query_response.IsSuccessful() && fetch_option != OnlineOnly) {
     OLP_SDK_LOG_DEBUG_F(kLogTag,
                         "GetPartitionById put to cache, hrn='%s', key='%s'",
-                        catalog.ToCatalogHRNString().c_str(), key.c_str());
+                        catalog_.ToCatalogHRNString().c_str(), key.c_str());
     repository.Put(query_response.GetResult(), layer, version, boost::none);
   } else if (!query_response.IsSuccessful()) {
     const auto& error = query_response.GetError();
@@ -295,7 +287,7 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
       OLP_SDK_LOG_WARNING_F(kLogTag,
                             "GetPartitionById 403 received, remove from cache, "
                             "hrn='%s', key='%s'",
-                            catalog.ToCatalogHRNString().c_str(), key.c_str());
+                            catalog_.ToCatalogHRNString().c_str(), key.c_str());
       // Delete partitions only but not the layer
       repository.ClearPartitions(partitions, layer, version);
     }
@@ -316,17 +308,15 @@ model::Partition PartitionsRepository::PartitionFromSubQuad(
   return ret;
 }
 QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
-    const client::HRN& catalog, const std::string& layer,
-    client::CancellationContext context, const TileRequest& request,
-    boost::optional<int64_t> version,
-    const client::OlpClientSettings& settings) {
+    const std::string& layer, const TileRequest& request,
+    boost::optional<int64_t> version, client::CancellationContext context) {
   auto fetch_option = request.GetFetchOption();
   const auto& tile_key = request.GetTileKey();
 
   const auto& root_tile_key = tile_key.ChangedLevelBy(-kAggregateQuadTreeDepth);
   const auto root_tile_here = root_tile_key.ToHereTile();
 
-  NamedMutex mutex(catalog.ToString() + layer + root_tile_here + "Index");
+  NamedMutex mutex(catalog_.ToString() + layer + root_tile_here + "Index");
   std::unique_lock<NamedMutex> lock(mutex, std::defer_lock);
 
   // If we are not planning to go online or access the cache, do not lock.
@@ -337,8 +327,7 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
   // Look for QuadTree covering the tile in the cache
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     read::QuadTreeIndex cached_tree;
-    if (FindQuadTree(catalog, settings, layer, version, tile_key,
-                     cached_tree)) {
+    if (FindQuadTree(layer, version, tile_key, cached_tree)) {
       OLP_SDK_LOG_DEBUG_F(kLogTag,
                           "GetQuadTreeIndexForTile found in cache, "
                           "tile='%s', depth='%" PRId32 "'",
@@ -357,13 +346,13 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
 
   // quad tree data not found in the cache
   auto query_api = ApiClientLookup::LookupApi(
-      catalog, context, "query", "v1", request.GetFetchOption(), settings);
+      catalog_, context, "query", "v1", request.GetFetchOption(), settings_);
 
   if (!query_api.IsSuccessful()) {
     OLP_SDK_LOG_WARNING_F(kLogTag,
                           "GetQuadTreeIndexForTile LookupApi failed, "
                           "hrn='%s', service='query', version='v1'",
-                          catalog.ToString().c_str());
+                          catalog_.ToString().c_str());
     return query_api.GetError();
   }
 
@@ -376,7 +365,7 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
                           "GetQuadTreeIndexForTile QuadTreeIndex failed, "
                           "hrn='%s', layer='%s', root='%s', "
                           "version='%" PRId64 "', depth='%" PRId32 "'",
-                          catalog.ToString().c_str(), layer.c_str(),
+                          catalog_.ToString().c_str(), layer.c_str(),
                           root_tile_here.c_str(), version.get_value_or(-1),
                           kAggregateQuadTreeDepth);
     return {{quadtree_response.status, quadtree_response.response.str()}};
@@ -389,14 +378,14 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
         kLogTag,
         "GetQuadTreeIndexForTile QuadTreeIndex failed, hrn='%s', layer='%s', "
         "root='%s', version='%" PRId64 "', depth='%" PRId32 "'",
-        catalog.ToString().c_str(), layer.c_str(), root_tile_here.c_str(),
+        catalog_.ToString().c_str(), layer.c_str(), root_tile_here.c_str(),
         version.get_value_or(-1), kAggregateQuadTreeDepth);
     return {{client::ErrorCode::Unknown, "Failed to parse quad tree response"}};
   }
 
   if (fetch_option != OnlineOnly) {
     repository::PartitionsCacheRepository repository(
-        catalog, settings.cache, settings.default_cache_expiration);
+        catalog_, settings_.cache, settings_.default_cache_expiration);
     repository.Put(layer, root_tile_key, kAggregateQuadTreeDepth, tree,
                    version);
   }
@@ -404,12 +393,10 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
 }
 
 PartitionResponse PartitionsRepository::GetAggregatedTile(
-    const client::HRN& catalog, const std::string& layer,
-    client::CancellationContext cancellation_context,
-    const TileRequest& request, boost::optional<int64_t> version,
-    const client::OlpClientSettings& settings) {
-  auto quad_tree_response = GetQuadTreeIndexForTile(
-      catalog, layer, cancellation_context, request, version, settings);
+    const std::string& layer, const TileRequest& request,
+    boost::optional<int64_t> version, client::CancellationContext context) {
+  auto quad_tree_response =
+      GetQuadTreeIndexForTile(layer, request, version, context);
   if (!quad_tree_response.IsSuccessful()) {
     return quad_tree_response.GetError();
   }
@@ -417,25 +404,23 @@ PartitionResponse PartitionsRepository::GetAggregatedTile(
 }
 
 PartitionResponse PartitionsRepository::GetTile(
-    const client::HRN& catalog, const std::string& layer,
-    client::CancellationContext cancellation_context,
-    const TileRequest& request, boost::optional<int64_t> version,
-    const client::OlpClientSettings& settings) {
-  auto quad_tree_response = GetQuadTreeIndexForTile(
-      catalog, layer, cancellation_context, request, version, settings);
+    const std::string& layer, const TileRequest& request,
+    boost::optional<int64_t> version, client::CancellationContext context) {
+  auto quad_tree_response =
+      GetQuadTreeIndexForTile(layer, request, version, context);
   if (!quad_tree_response.IsSuccessful()) {
     return quad_tree_response.GetError();
   }
+
   return FindPartition(quad_tree_response.GetResult(), request, false);
 }
 PORTING_POP_WARNINGS()
 
 bool PartitionsRepository::FindQuadTree(
-    const client::HRN& catalog, const client::OlpClientSettings& settings,
     const std::string& layer, boost::optional<int64_t> version,
     const olp::geo::TileKey& tile_key, read::QuadTreeIndex& tree) {
   repository::PartitionsCacheRepository repository(
-      catalog, settings.cache, settings.default_cache_expiration);
+      catalog_, settings_.cache, settings_.default_cache_expiration);
   auto max_depth =
       std::min<std::uint32_t>(tile_key.Level(), kMaxQuadTreeIndexDepth);
   for (int i = max_depth; i >= 0; --i) {

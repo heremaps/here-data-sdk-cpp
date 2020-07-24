@@ -310,9 +310,9 @@ SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
     result.emplace(subtile, subquad->GetDataHandle());
 
     // add to bulk partitions for cacheing
+    PartitionsRepository repository(catalog, settings);
     partitions.GetMutablePartitions().emplace_back(
-        PartitionsRepository::PartitionFromSubQuad(*subquad,
-                                                   subtile.ToHereTile()));
+        repository.PartitionFromSubQuad(*subquad, subtile.ToHereTile()));
   }
 
   // add to cache
