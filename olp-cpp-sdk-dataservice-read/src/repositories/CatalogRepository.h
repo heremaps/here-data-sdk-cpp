@@ -38,20 +38,20 @@ namespace repository {
 
 class CatalogRepository final {
  public:
-  static CatalogResponse GetCatalog(client::HRN catalog,
-                                    client::CancellationContext context,
-                                    CatalogRequest request,
-                                    client::OlpClientSettings settings);
+  CatalogRepository(client::HRN catalog, client::OlpClientSettings settings);
 
-  static CatalogVersionResponse GetLatestVersion(
-      client::HRN catalog, client::CancellationContext cancellation_context,
-      CatalogVersionRequest request, client::OlpClientSettings settings);
+  CatalogResponse GetCatalog(const CatalogRequest& request,
+                             client::CancellationContext context);
 
-  static VersionsResponse GetVersionsList(
-      const client::HRN& catalog,
-      client::CancellationContext cancellation_context,
-      const VersionsRequest& request,
-      const client::OlpClientSettings& settings);
+  CatalogVersionResponse GetLatestVersion(const CatalogVersionRequest& request,
+                                          client::CancellationContext context);
+
+  VersionsResponse GetVersionsList(const VersionsRequest& request,
+                                   client::CancellationContext context);
+
+ private:
+  client::HRN catalog_;
+  client::OlpClientSettings settings_;
 };
 
 }  // namespace repository

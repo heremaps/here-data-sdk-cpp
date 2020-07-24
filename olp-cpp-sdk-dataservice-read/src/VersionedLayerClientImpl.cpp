@@ -425,8 +425,9 @@ CatalogVersionResponse VersionedLayerClientImpl::GetVersion(
   CatalogVersionRequest request;
   request.WithBillingTag(billing_tag);
   request.WithFetchOption(fetch_options);
-  auto response = repository::CatalogRepository::GetLatestVersion(
-      catalog_, context, request, settings_);
+
+  repository::CatalogRepository repository(catalog_, settings_);
+  auto response = repository.GetLatestVersion(request, context);
 
   if (!response.IsSuccessful()) {
     return response;

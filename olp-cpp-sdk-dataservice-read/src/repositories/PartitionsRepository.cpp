@@ -112,13 +112,12 @@ PartitionsResponse PartitionsRepository::GetVersionedPartitions(
     client::OlpClientSettings settings) {
   if (!request.GetVersion()) {
     // get latest version of the layer if it wasn't set by the user
-    auto latest_version_response =
-        repository::CatalogRepository::GetLatestVersion(
-            catalog, cancellation_context,
-            CatalogVersionRequest()
-                .WithFetchOption(request.GetFetchOption())
-                .WithBillingTag(request.GetBillingTag()),
-            settings);
+    CatalogRepository repository(catalog, settings);
+    auto latest_version_response = repository.GetLatestVersion(
+        CatalogVersionRequest()
+            .WithFetchOption(request.GetFetchOption())
+            .WithBillingTag(request.GetBillingTag()),
+        cancellation_context);
 
     if (!latest_version_response.IsSuccessful()) {
       return latest_version_response.GetError();
@@ -141,8 +140,9 @@ PartitionsResponse PartitionsRepository::GetVolatilePartitions(
                              .WithBillingTag(request.GetBillingTag())
                              .WithFetchOption(request.GetFetchOption());
 
-  auto catalog_response = repository::CatalogRepository::GetCatalog(
-      catalog, cancellation_context, catalog_request, settings);
+  CatalogRepository repository(catalog, settings);
+  auto catalog_response =
+      repository.GetCatalog(catalog_request, cancellation_context);
 
   if (!catalog_response.IsSuccessful()) {
     return catalog_response.GetError();
