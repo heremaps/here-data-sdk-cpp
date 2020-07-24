@@ -45,8 +45,7 @@ namespace {
 constexpr auto kLogTag = "VolatileLayerClientImpl";
 
 bool IsOnlyInputTiles(const PrefetchTilesRequest& request) {
-  return !(request.GetMinLevel() >= 0 &&
-           request.GetMinLevel() <= request.GetMaxLevel() &&
+  return !(request.GetMinLevel() <= request.GetMaxLevel() &&
            request.GetMaxLevel() < geo::TileKey().Level() &&
            request.GetMinLevel() < geo::TileKey().Level());
 }

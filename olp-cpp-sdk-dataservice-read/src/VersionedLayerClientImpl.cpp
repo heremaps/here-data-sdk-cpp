@@ -229,8 +229,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
         // Calculate the minimal set of Tile keys and depth to
         // cover tree.
         bool request_only_input_tiles =
-            !(request.GetMinLevel() >= 0 &&
-              request.GetMinLevel() <= request.GetMaxLevel() &&
+            !(request.GetMinLevel() <= request.GetMaxLevel() &&
               request.GetMaxLevel() < geo::TileKey().Level() &&
               request.GetMinLevel() < geo::TileKey().Level());
         unsigned int min_level =
