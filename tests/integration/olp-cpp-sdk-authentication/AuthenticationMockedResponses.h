@@ -112,7 +112,7 @@ const std::string kInvalidAccessTokenResponse = R"JSON(
     {"errorId":"ERROR-cf976ca6-bf6e-44f7-a9e6-e271766c61fe","httpStatus":401,"errorCode":400601,"message":"Invalid accessToken.","error":"invalid_request","error_description":"errorCode: '400601'. Invalid accessToken."}
     )JSON";
 const std::string kAuthorizeResponseValid = R"JSON(
-    {"identity":{"userId":"some_id","countryCode":"USA","emailVerified":false,"realm":"HERE"},"decision":"allow","diagnostics":[{"decision":"allow","permissions":[{"effect":"allow","action":"read","resource":"some_resource"}]}]}
+    {"identity":{"userId":"some_id","countryCode":"USA","emailVerified":false,"realm":"HERE"},"decision":"allow","diagnostics":[{"decision":"allow","permissions":[{"decision":"allow","action":"read","resource":"some_resource"}]}]}
     )JSON";
 const std::string kAuthorizeResponseError = R"JSON(
     {"contracts":[{"contractId":"some_contract_id","customerId":"some_id","customerName":"some_name"}],"errorCode":409400}
