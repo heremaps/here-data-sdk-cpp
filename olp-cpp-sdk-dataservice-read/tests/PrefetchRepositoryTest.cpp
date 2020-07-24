@@ -154,6 +154,15 @@ TEST(PrefetchRepositoryTest, GetSlicedTilesMultipleRootTiles) {
     ASSERT_EQ(root_tiles_depth.size(), 3);
   }
   {
+    SCOPED_TRACE("Get sliced tiles with min/max levels is zero");
+    auto root_tiles_depth =
+        PrefetchRepositoryTestable::GetSlicedTiles({tile1, tile2}, 0, 0);
+    // sliced levels should be 0
+    auto parent = tile1.ChangedLevelTo(0);
+    ASSERT_EQ(root_tiles_depth.find(parent)->second, 4);
+    ASSERT_EQ(root_tiles_depth.size(), 1);
+  }
+  {
     SCOPED_TRACE(
         "Get sliced tiles with min level greter than first root tile level, "
         "but equal second");
