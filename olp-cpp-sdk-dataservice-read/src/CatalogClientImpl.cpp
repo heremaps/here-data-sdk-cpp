@@ -69,9 +69,8 @@ client::CancellationToken CatalogClientImpl::GetCatalog(
     auto settings = settings_;
 
     auto get_catalog_task = [=](client::CancellationContext context) {
-      return repository::CatalogRepository::GetCatalog(
-          std::move(catalog), std::move(context), std::move(request),
-          std::move(settings));
+      repository::CatalogRepository repository(catalog, settings);
+      return repository.GetCatalog(request, std::move(context));
     };
 
     return AddTask(task_scheduler_, pending_requests_,
@@ -102,9 +101,8 @@ client::CancellationToken CatalogClientImpl::GetLatestVersion(
     auto settings = settings_;
 
     auto get_latest_version_task = [=](client::CancellationContext context) {
-      return repository::CatalogRepository::GetLatestVersion(
-          std::move(catalog), std::move(context), std::move(request),
-          std::move(settings));
+      repository::CatalogRepository repository(catalog, settings);
+      return repository.GetLatestVersion(request, std::move(context));
     };
 
     return AddTask(task_scheduler_, pending_requests_,
@@ -128,10 +126,13 @@ CatalogClientImpl::GetLatestVersion(CatalogVersionRequest request) {
 
 client::CancellationToken CatalogClientImpl::ListVersions(
     VersionsRequest request, VersionsResponseCallback callback) {
+  auto catalog = catalog_;
+  auto settings = settings_;
+
   auto versions_list_task =
       [=](client::CancellationContext context) -> VersionsResponse {
-    return repository::CatalogRepository::GetVersionsList(catalog_, context,
-                                                          request, settings_);
+    repository::CatalogRepository repository(catalog, settings);
+    return repository.GetVersionsList(request, std::move(context));
   };
 
   return AddTask(task_scheduler_, pending_requests_,

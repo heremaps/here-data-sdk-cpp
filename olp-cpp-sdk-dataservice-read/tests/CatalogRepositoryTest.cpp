@@ -118,8 +118,8 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionCacheOnlyFound) {
       .Times(1)
       .WillOnce(testing::Return(cached_version));
 
-  auto response = repository::CatalogRepository::GetLatestVersion(
-      kHrn, context, request, settings_);
+  repository::CatalogRepository repository(kHrn, settings_);
+  auto response = repository.GetLatestVersion(request, context);
 
   ASSERT_TRUE(response.IsSuccessful());
   EXPECT_EQ(10, response.GetResult().GetVersion());
@@ -145,9 +145,8 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionCacheOnlyNotFound) {
         return olp::http::SendOutcome(olp::http::ErrorCode::UNKNOWN_ERROR);
       });
 
-  auto response =
-      olp::dataservice::read::repository::CatalogRepository::GetLatestVersion(
-          kHrn, context, request, settings_);
+  repository::CatalogRepository repository(kHrn, settings_);
+  auto response = repository.GetLatestVersion(request, context);
 
   EXPECT_FALSE(response.IsSuccessful());
 }
@@ -171,9 +170,8 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyNotFound) {
                                        olp::http::HttpStatusCode::NOT_FOUND),
                                    ""));
 
-  auto response =
-      olp::dataservice::read::repository::CatalogRepository::GetLatestVersion(
-          kHrn, context, request, settings_);
+  repository::CatalogRepository repository(kHrn, settings_);
+  auto response = repository.GetLatestVersion(request, context);
 
   EXPECT_FALSE(response.IsSuccessful());
 }
@@ -206,9 +204,8 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyFound) {
                                        olp::http::HttpStatusCode::OK),
                                    kResponseLatestCatalogVersion));
 
-  auto response =
-      olp::dataservice::read::repository::CatalogRepository::GetLatestVersion(
-          kHrn, context, request, settings_);
+  repository::CatalogRepository repository(kHrn, settings_);
+  auto response = repository.GetLatestVersion(request, context);
 
   ASSERT_TRUE(response.IsSuccessful());
   ASSERT_EQ(4, response.GetResult().GetVersion());
@@ -244,9 +241,8 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyUserCancelled1) {
         return olp::http::SendOutcome(unused_request_id);
       });
 
-  auto response =
-      olp::dataservice::read::repository::CatalogRepository::GetLatestVersion(
-          kHrn, context, request, settings_);
+  repository::CatalogRepository repository(kHrn, settings_);
+  auto response = repository.GetLatestVersion(request, context);
 
   ASSERT_FALSE(response.IsSuccessful());
   EXPECT_EQ(olp::client::ErrorCode::Cancelled,
@@ -274,9 +270,8 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyUserCancelled2) {
         return olp::http::SendOutcome(unused_request_id);
       });
 
-  auto response =
-      olp::dataservice::read::repository::CatalogRepository::GetLatestVersion(
-          kHrn, context, request, settings_);
+  repository::CatalogRepository repository(kHrn, settings_);
+  auto response = repository.GetLatestVersion(request, context);
 
   ASSERT_FALSE(response.IsSuccessful());
   EXPECT_EQ(olp::client::ErrorCode::Cancelled,
@@ -300,9 +295,9 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionCancelledBeforeExecution) {
       });
 
   context.CancelOperation();
-  auto response =
-      olp::dataservice::read::repository::CatalogRepository::GetLatestVersion(
-          kHrn, context, request, settings_);
+
+  repository::CatalogRepository repository(kHrn, settings_);
+  auto response = repository.GetLatestVersion(request, context);
 
   ASSERT_FALSE(response.IsSuccessful());
   EXPECT_EQ(olp::client::ErrorCode::Cancelled,
@@ -330,9 +325,8 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionTimeouted) {
 
   settings_.retry_settings.timeout = 0;
 
-  auto response =
-      olp::dataservice::read::repository::CatalogRepository::GetLatestVersion(
-          kHrn, context, request, settings_);
+  repository::CatalogRepository repository(kHrn, settings_);
+  auto response = repository.GetLatestVersion(request, context);
 
   ASSERT_FALSE(response.IsSuccessful());
   EXPECT_EQ(olp::client::ErrorCode::RequestTimeout,
@@ -365,8 +359,8 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyFound) {
                                             olp::http::HttpStatusCode::OK),
                                         kResponseConfig));
 
-  auto response = repository::CatalogRepository::GetCatalog(kHrn, context,
-                                                            request, settings_);
+  repository::CatalogRepository repository(kHrn, settings_);
+  auto response = repository.GetCatalog(request, context);
 
   ASSERT_TRUE(response.IsSuccessful());
 }
@@ -385,8 +379,8 @@ TEST_F(CatalogRepositoryTest, GetCatalogCacheOnlyFound) {
       .Times(1)
       .WillOnce(testing::Return(cached_version));
 
-  auto response = repository::CatalogRepository::GetCatalog(kHrn, context,
-                                                            request, settings_);
+  repository::CatalogRepository repository(kHrn, settings_);
+  auto response = repository.GetCatalog(request, context);
 
   ASSERT_TRUE(response.IsSuccessful());
   EXPECT_EQ(kCatalog, response.GetResult().GetHrn());
@@ -412,9 +406,8 @@ TEST_F(CatalogRepositoryTest, GetCatalogCacheOnlyNotFound) {
         return olp::http::SendOutcome(olp::http::ErrorCode::UNKNOWN_ERROR);
       });
 
-  auto response =
-      olp::dataservice::read::repository::CatalogRepository::GetLatestVersion(
-          kHrn, context, request, settings_);
+  repository::CatalogRepository repository(kHrn, settings_);
+  auto response = repository.GetLatestVersion(request, context);
 
   EXPECT_FALSE(response.IsSuccessful());
 }
@@ -438,8 +431,8 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyNotFound) {
                                        olp::http::HttpStatusCode::NOT_FOUND),
                                    ""));
 
-  auto response = repository::CatalogRepository::GetCatalog(kHrn, context,
-                                                            request, settings_);
+  repository::CatalogRepository repository(kHrn, settings_);
+  auto response = repository.GetCatalog(request, context);
 
   EXPECT_FALSE(response.IsSuccessful());
 }
@@ -461,8 +454,9 @@ TEST_F(CatalogRepositoryTest, GetCatalogCancelledBeforeExecution) {
       });
 
   context.CancelOperation();
-  auto response = repository::CatalogRepository::GetCatalog(kHrn, context,
-                                                            request, settings_);
+
+  repository::CatalogRepository repository(kHrn, settings_);
+  auto response = repository.GetCatalog(request, context);
 
   ASSERT_FALSE(response.IsSuccessful());
   EXPECT_EQ(olp::client::ErrorCode::Cancelled,
@@ -499,8 +493,8 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyUserCancelled1) {
         return olp::http::SendOutcome(unused_request_id);
       });
 
-  auto response = repository::CatalogRepository::GetCatalog(kHrn, context,
-                                                            request, settings_);
+  repository::CatalogRepository repository(kHrn, settings_);
+  auto response = repository.GetCatalog(request, context);
 
   ASSERT_FALSE(response.IsSuccessful());
   EXPECT_EQ(olp::client::ErrorCode::Cancelled,
@@ -528,8 +522,8 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyUserCancelled2) {
         return olp::http::SendOutcome(unused_request_id);
       });
 
-  auto response = repository::CatalogRepository::GetCatalog(kHrn, context,
-                                                            request, settings_);
+  repository::CatalogRepository repository(kHrn, settings_);
+  auto response = repository.GetCatalog(request, context);
 
   ASSERT_FALSE(response.IsSuccessful());
   EXPECT_EQ(olp::client::ErrorCode::Cancelled,
@@ -556,8 +550,8 @@ TEST_F(CatalogRepositoryTest, GetCatalogTimeout) {
       });
   settings_.retry_settings.timeout = 0;
 
-  auto response = repository::CatalogRepository::GetCatalog(kHrn, context,
-                                                            request, settings_);
+  repository::CatalogRepository repository(kHrn, settings_);
+  auto response = repository.GetCatalog(request, context);
 
   ASSERT_FALSE(response.IsSuccessful());
   EXPECT_EQ(olp::client::ErrorCode::RequestTimeout,
@@ -585,8 +579,8 @@ TEST_F(CatalogRepositoryTest, GetVersionsList) {
                                    olp::http::HttpStatusCode::OK),
                                kHttpResponse));
 
-    auto response = repository::CatalogRepository::GetVersionsList(
-        kHrn, context, request, settings_);
+    repository::CatalogRepository repository(kHrn, settings_);
+    auto response = repository.GetVersionsList(request, context);
 
     ASSERT_TRUE(response.IsSuccessful());
     auto result = response.GetResult();
@@ -616,8 +610,8 @@ TEST_F(CatalogRepositoryTest, GetVersionsList) {
                                    olp::http::HttpStatusCode::OK),
                                kHttpResponse));
 
-    auto response = repository::CatalogRepository::GetVersionsList(
-        kHrn, context, request, settings_);
+    repository::CatalogRepository repository(kHrn, settings_);
+    auto response = repository.GetVersionsList(request, context);
 
     ASSERT_TRUE(response.IsSuccessful());
     auto result = response.GetResult();
@@ -647,8 +641,8 @@ TEST_F(CatalogRepositoryTest, GetVersionsList) {
                                    olp::http::HttpStatusCode::FORBIDDEN),
                                "Forbidden"));
 
-    auto response = repository::CatalogRepository::GetVersionsList(
-        kHrn, context, request, settings_);
+    repository::CatalogRepository repository(kHrn, settings_);
+    auto response = repository.GetVersionsList(request, context);
 
     ASSERT_FALSE(response.IsSuccessful());
     EXPECT_EQ(olp::client::ErrorCode::AccessDenied,
