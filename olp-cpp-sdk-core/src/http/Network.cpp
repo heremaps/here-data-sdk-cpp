@@ -37,7 +37,7 @@ namespace http {
 
 namespace {
 std::shared_ptr<Network> CreateDefaultNetworkImpl(size_t max_requests_count) {
-  CORE_UNUSED(max_requests_count);
+  OLP_SDK_CORE_UNUSED(max_requests_count);
 #ifdef OLP_SDK_NETWORK_HAS_CURL
   return std::make_shared<NetworkCurl>(max_requests_count);
 #elif OLP_SDK_NETWORK_HAS_ANDROID

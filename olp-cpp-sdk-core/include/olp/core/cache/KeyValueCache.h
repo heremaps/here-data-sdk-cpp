@@ -136,7 +136,7 @@ class CORE_API KeyValueCache {
    * @return True if the key/value cached ; false otherwise.
    */
   virtual bool Contains(const std::string& key) const {
-    CORE_UNUSED(key);
+    OLP_SDK_CORE_UNUSED(key);
     return false;
   }
 
@@ -151,7 +151,7 @@ class CORE_API KeyValueCache {
    * @return True if the keys are added to the protected list; false otherwise.
    */
   virtual bool Protect(const KeyListType& keys) {
-    CORE_UNUSED(keys);
+    OLP_SDK_CORE_UNUSED(keys);
     return false;
   }
 
@@ -166,7 +166,7 @@ class CORE_API KeyValueCache {
    * otherwise.
    */
   virtual bool Release(const KeyListType& keys) {
-    CORE_UNUSED(keys);
+    OLP_SDK_CORE_UNUSED(keys);
     return false;
   }
 };

@@ -43,7 +43,7 @@ constexpr auto kLogTag = "ThreadPoolTaskScheduler";
 
 void SetCurrentThreadName(const std::string& thread_name) {
   // Currently only supported for pthread users
-  CORE_UNUSED(thread_name);
+  OLP_SDK_CORE_UNUSED(thread_name);
 
 #if defined(PORTING_PLATFORM_MAC)
   // Note that in Mac based systems the pthread_setname_np takes 1 argument

@@ -50,18 +50,6 @@
 #endif
 
 /**
- * @brief While statement for "do {} while (0)" used for macros that bypasses
- * compiler warnings.
- */
-#ifdef _MSC_VER
-#define OLP_SDK_CORE_LOOP_ONCE()                                          \
-  __pragma(warning(push)) __pragma(warning(disable : 4127)) while (false) \
-      __pragma(warning(pop))
-#else
-#define OLP_SDK_CORE_LOOP_ONCE() while (false)
-#endif
-
-/**
  * @brief Log a message using C++ style streams.
  *
  * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
@@ -269,7 +257,7 @@
   do {                                    \
     ::olp::logging::NullLogStream __strm; \
     __strm << message;                    \
-    CORE_UNUSED(tag, __strm);             \
+    OLP_SDK_CORE_UNUSED(tag, __strm);     \
   }                                       \
   OLP_SDK_CORE_LOOP_ONCE()
 
@@ -277,7 +265,7 @@
   do {                                    \
     ::olp::logging::NullLogStream __strm; \
     __strm << message;                    \
-    CORE_UNUSED(tag, __strm);             \
+    OLP_SDK_CORE_UNUSED(tag, __strm);     \
   }                                       \
   OLP_SDK_CORE_LOOP_ONCE()
 
@@ -346,8 +334,8 @@
 #endif  // OLP_SDK_LOGGING_DISABLED
 
 #ifdef LOGGING_DISABLE_DEBUG_LEVEL
-#define OLP_SDK_LOG_TRACE_F(tag, ...) CORE_UNUSED(tag, __VA_ARGS__)
-#define OLP_SDK_LOG_DEBUG_F(tag, ...) CORE_UNUSED(tag, __VA_ARGS__)
+#define OLP_SDK_LOG_TRACE_F(tag, ...) OLP_SDK_CORE_UNUSED(tag, __VA_ARGS__)
+#define OLP_SDK_LOG_DEBUG_F(tag, ...) OLP_SDK_CORE_UNUSED(tag, __VA_ARGS__)
 #else
 /**
  * @brief Log a trace message using printf style formatting.
