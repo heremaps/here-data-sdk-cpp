@@ -20,6 +20,7 @@
 #include "VersionedLayerClientImpl.h"
 
 #include <algorithm>
+#include <map>
 #include <string>
 #include <utility>
 #include <vector>
@@ -673,6 +674,106 @@ bool VersionedLayerClientImpl::Protect(const TileKeys& tiles) {
     return false;
   }
   return settings_.cache->Protect(keys_to_protect);
+}
+
+bool VersionedLayerClientImpl::Release(const TileKeys& tiles) {
+  if (!settings_.cache) {
+    return false;
+  }
+  auto version = catalog_version_.load();
+
+  repository::DataCacheRepository data_cache_repository(catalog_,
+                                                        settings_.cache);
+  repository::PartitionsCacheRepository partitions_cache_repository(
+      catalog_, settings_.cache);
+
+  // group quad trees and protected tiles. Check if for each quad tree we want
+  // to release all protected keys associated, if true add this quad tree to
+  // released keys
+
+  cache::KeyValueCache::KeyListType keys_to_release;
+
+  std::map<geo::TileKey, std::map<geo::TileKey, std::string>>
+      quad_trees_with_protected_tiles;
+
+  auto process_tile = [&](const geo::TileKey& tile_key_to_release) {
+    auto max_depth =
+        std::min<std::uint32_t>(tile_key_to_release.Level(), kQuadTreeDepth);
+    for (int i = max_depth; i >= 0; --i) {
+      const auto& possible_root_for_quad =
+          tile_key_to_release.ChangedLevelBy(-i);
+      auto it = quad_trees_with_protected_tiles.find(possible_root_for_quad);
+      if (it != quad_trees_with_protected_tiles.end()) {
+        // Quad tree for tile found. Get data handle for tile, create key
+        // string and add to list to release
+        auto tile_it = it->second.find(tile_key_to_release);
+        // if tile_key_to_release was not found, this means it is not
+        // protected
+        if (tile_it != it->second.end()) {
+          keys_to_release.emplace_back(tile_it->second);
+          // key added, we can remove this tile from map
+          it->second.erase(tile_it);
+          if (it->second.empty()) {
+            // no more protected tiles associated with this quad tree
+            // can add key for quad tree to be released and remove from map
+            keys_to_release.emplace_back(
+                partitions_cache_repository.CreateQuadKey(
+                    layer_id_, possible_root_for_quad, kQuadTreeDepth,
+                    version));
+            quad_trees_with_protected_tiles.erase(it);
+          }
+        }
+        return true;
+      }
+    }
+    // quad tree was not found, need to look in cache
+    return false;
+  };
+
+  for (const auto& tile : tiles) {
+    if (!process_tile(tile)) {
+      read::QuadTreeIndex cached_tree;
+      if (repository::PartitionsRepository::FindQuadTree(
+              catalog_, settings_, layer_id_, version, tile, cached_tree)) {
+        // check if quad tree has other protected keys, if not, add quad key to
+        // release from protected list, othervise add all protected keys left
+        // for this quad to map
+        auto index_data = cached_tree.GetIndexData();
+        std::map<geo::TileKey, std::string> protected_keys;
+        for (const auto& ind : index_data) {
+          auto tile_data_key =
+              data_cache_repository.CreateKey(layer_id_, ind.data_handle);
+          if (settings_.cache->IsProtected(tile_data_key)) {
+            if (ind.tile_key == tile) {
+              // add key to release list
+              keys_to_release.emplace_back(tile_data_key);
+            } else {
+              // add key to map for future searches of released tiles for this
+              // quad tree
+              protected_keys[ind.tile_key] = tile_data_key;
+            }
+          }
+        }
+        if (protected_keys.empty()) {
+          // no other tiles are protected, can add quad tree to release list
+          keys_to_release.emplace_back(
+              partitions_cache_repository.CreateQuadKey(
+                  layer_id_, cached_tree.GetRootTile(), kQuadTreeDepth,
+                  version));
+        } else {
+          // add quad key with other protected keys dependent on this quad to
+          // reduce future calls to cache
+          quad_trees_with_protected_tiles[cached_tree.GetRootTile()] =
+              std::move(protected_keys);
+        }
+      }
+    }
+  }
+
+  if (keys_to_release.empty()) {
+    return false;
+  }
+  return settings_.cache->Release(keys_to_release);
 }
 
 PORTING_POP_WARNINGS()

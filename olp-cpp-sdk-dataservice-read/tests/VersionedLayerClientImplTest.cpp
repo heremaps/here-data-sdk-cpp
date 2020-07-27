@@ -259,7 +259,7 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
   }
 }
 
-TEST(VersionedLayerClientTest, Protect) {
+TEST(VersionedLayerClientTest, ProtectThanRelease) {
   std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
   olp::cache::CacheSettings cache_settings;
   cache_settings.disk_path_mutable =
@@ -363,6 +363,34 @@ TEST(VersionedLayerClientTest, Protect) {
     auto tile_key = olp::geo::TileKey::FromHereTile("5904592");
 
     auto response = client.Protect({tile_key});
+    ASSERT_FALSE(response);
+  }
+  {
+    SCOPED_TRACE("Release tiles without releasing quad tree");
+    auto tile_key = olp::geo::TileKey::FromHereTile(kHereTile);
+    auto other_tile_key = olp::geo::TileKey::FromHereTile(kOtherHereTile);
+    auto other_tile_key2 = olp::geo::TileKey::FromHereTile(kOtherHereTile2);
+    auto response = client.Release({tile_key, other_tile_key2});
+    ASSERT_TRUE(response);
+    ASSERT_FALSE(client.IsCached(tile_key));
+    // other_tile_key is still protected, quad tree should ce in cache
+    ASSERT_TRUE(client.IsCached(other_tile_key));
+  }
+  {
+    SCOPED_TRACE("Release last protected tile with quad tree");
+    auto other_tile_key = olp::geo::TileKey::FromHereTile(kOtherHereTile);
+    // release last protected tile for quad
+    // 2 keys should be released(tile and quad)
+    auto response = client.Release({other_tile_key});
+    ASSERT_TRUE(response);
+    ASSERT_FALSE(client.IsCached(other_tile_key));
+  }
+  {
+    SCOPED_TRACE("Release not protected tile");
+    auto other_tile_key = olp::geo::TileKey::FromHereTile(kOtherHereTile);
+    // release last protected tile for quad
+    // 2 keys should be released(tile and quad)
+    auto response = client.Release({other_tile_key});
     ASSERT_FALSE(response);
   }
   ASSERT_TRUE(cache->Clear());

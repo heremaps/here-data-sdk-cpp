@@ -805,6 +805,11 @@ bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
   return result;
 }
 
+bool DefaultCacheImpl::IsProtected(const std::string& key) {
+    std::lock_guard<std::mutex> lock(cache_lock_);
+  return protected_keys_.IsProtected(key);
+}
+
 time_t DefaultCacheImpl::GetExpiryForMemoryCache(const std::string& key,
                                                  const time_t& expiry) {
   // reset expiry if key is protected for memory cache

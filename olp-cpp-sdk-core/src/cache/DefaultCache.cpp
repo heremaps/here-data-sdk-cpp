@@ -73,5 +73,9 @@ bool DefaultCache::Release(const KeyValueCache::KeyListType& keys) {
   return impl_->Release(keys);
 }
 
+bool DefaultCache::IsProtected(const std::string& key) {
+  return impl_->IsProtected(key);
+}
+
 }  // namespace cache
 }  // namespace olp

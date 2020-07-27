@@ -63,6 +63,7 @@ class DefaultCacheImpl {
   bool Contains(const std::string& key) const;
   bool Protect(const DefaultCache::KeyListType& keys);
   bool Release(const DefaultCache::KeyListType& keys);
+  bool IsProtected(const std::string& key);
 
  protected:
   /// The LRU value property.

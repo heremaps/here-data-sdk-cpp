@@ -169,6 +169,19 @@ class CORE_API KeyValueCache {
     OLP_SDK_CORE_UNUSED(keys);
     return false;
   }
+
+  /**
+   * @brief Checks if key is protected.
+   *
+   * @param key The key or prefix.
+   *
+   * @return True if the key are in the protected list; false
+   * otherwise.
+   */
+  virtual bool IsProtected(const std::string& key) {
+    OLP_SDK_CORE_UNUSED(key);
+    return false;
+  }
 };
 
 }  // namespace cache

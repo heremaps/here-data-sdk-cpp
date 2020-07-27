@@ -202,6 +202,16 @@ class CORE_API DefaultCache : public KeyValueCache {
    */
   bool Release(const KeyValueCache::KeyListType& keys) override;
 
+  /**
+   * @brief Checks if key is protected.
+   *
+   * @param key The key or prefix.
+   *
+   * @return True if the key are in the protected list; false
+   * otherwise.
+   */
+  bool IsProtected(const std::string& key) override;
+
  private:
   std::shared_ptr<DefaultCacheImpl> impl_;
 };
