@@ -113,8 +113,9 @@ client::CancellationToken VolatileLayerClientImpl::GetData(
     auto settings = settings_;
 
     auto partitions_task = [=](client::CancellationContext context) {
-      return repository::DataRepository::GetVolatileData(
-          catalog, layer_id, request, context, settings);
+      repository::DataRepository repository(std::move(catalog),
+                                            std::move(settings));
+      return repository.GetVolatileData(layer_id, request, context);
     };
 
     return AddTask(settings.task_scheduler, pending_requests_,
@@ -274,11 +275,13 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
                   // Return an empty success
                   return DataResponse(nullptr);
                 } else {
-                  return repository::DataRepository::GetVolatileData(
-                      catalog, layer_id,
+                  repository::DataRepository repository(catalog,
+                                                        *shared_settings);
+                  return repository.GetVolatileData(
+                      layer_id,
                       DataRequest().WithDataHandle(handle).WithBillingTag(
                           biling_tag),
-                      inner_context, *shared_settings);
+                      inner_context);
                 }
               },
               [=](DataResponse result) {

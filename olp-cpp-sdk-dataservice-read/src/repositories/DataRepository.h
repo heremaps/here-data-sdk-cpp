@@ -34,27 +34,28 @@ namespace repository {
 
 class DataRepository final {
  public:
-  static DataResponse GetVersionedTile(
-      const client::HRN& catalog, const std::string& layer_id,
-      const TileRequest& request, int64_t version,
-      client::CancellationContext context,
-      const client::OlpClientSettings& settings);
+  DataRepository(client::HRN catalog, client::OlpClientSettings settings);
 
-  static DataResponse GetVersionedData(
-      const client::HRN& catalog, const std::string& layer_id, int64_t version,
-      DataRequest data_request, client::CancellationContext context,
-      const client::OlpClientSettings& settings);
+  DataResponse GetVersionedTile(const std::string& layer_id,
+                                const TileRequest& request, int64_t version,
+                                client::CancellationContext context);
 
-  static DataResponse GetVolatileData(
-      const client::HRN& catalog, const std::string& layer_id,
-      DataRequest request, client::CancellationContext context,
-      const client::OlpClientSettings& settings);
+  DataResponse GetVersionedData(const std::string& layer_id,
+                                const DataRequest& data_request,
+                                int64_t version,
+                                client::CancellationContext context);
 
-  static DataResponse GetBlobData(
-      const client::HRN& catalog, const std::string& layer,
-      const std::string& service, const DataRequest& data_request,
-      client::CancellationContext cancellation_context,
-      const client::OlpClientSettings& settings);
+  DataResponse GetVolatileData(const std::string& layer_id,
+                               const DataRequest& request,
+                               client::CancellationContext context);
+
+  DataResponse GetBlobData(const std::string& layer, const std::string& service,
+                           const DataRequest& data_request,
+                           client::CancellationContext context);
+
+ private:
+  client::HRN catalog_;
+  client::OlpClientSettings settings_;
 };
 }  // namespace repository
 }  // namespace read

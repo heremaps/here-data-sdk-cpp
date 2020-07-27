@@ -162,9 +162,9 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
         version = version_response.GetResult().GetVersion();
       }
 
-      return repository::DataRepository::GetVersionedData(
-          std::move(catalog), std::move(layer_id), version, std::move(request),
-          context, std::move(settings));
+      repository::DataRepository repository(std::move(catalog),
+                                            std::move(settings));
+      return repository.GetVersionedData(layer_id, request, version, context);
     };
 
     return AddTask(settings.task_scheduler, pending_requests_,
@@ -297,11 +297,13 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
                       return DataResponse(nullptr);
                     } else {
                       // Fetch from online
-                      return repository::DataRepository::GetVersionedData(
-                          catalog, layer_id, version,
+                      repository::DataRepository repository(catalog,
+                                                            *shared_settings);
+                      return repository.GetVersionedData(
+                          layer_id,
                           DataRequest().WithDataHandle(handle).WithBillingTag(
                               biling_tag),
-                          inner_context, *shared_settings);
+                          version, inner_context);
                     }
                   },
                   [=](DataResponse result) {
@@ -412,10 +414,11 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
         return version_response.GetError();
       }
 
-      return repository::DataRepository::GetVersionedTile(
-          std::move(catalog), std::move(layer_id), std::move(request),
-          version_response.GetResult().GetVersion(), context,
-          std::move(settings));
+      repository::DataRepository repository(std::move(catalog),
+                                            std::move(settings));
+      return repository.GetVersionedTile(
+          layer_id, request, version_response.GetResult().GetVersion(),
+          context);
     };
 
     return AddTask(settings.task_scheduler, pending_requests,
@@ -557,9 +560,11 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
     auto data_request = DataRequest()
                             .WithDataHandle(fetch_partition.GetDataHandle())
                             .WithFetchOption(request.GetFetchOption());
-    auto data_response = repository::DataRepository::GetVersionedData(
-        std::move(catalog), std::move(layer_id), version, data_request, context,
-        std::move(settings));
+
+    repository::DataRepository data_repository(std::move(catalog),
+                                               std::move(settings));
+    auto data_response = data_repository.GetVersionedData(
+        layer_id, data_request, version, context);
 
     if (!data_response.IsSuccessful()) {
       OLP_SDK_LOG_WARNING_F(
