@@ -92,7 +92,7 @@ TEST(PrefetchRepositoryTest, SplitTreeLevelMinLevelSet) {
 TEST(PrefetchRepositoryTest, GetSlicedTilesNoLevels) {
   auto tile = olp::geo::TileKey::FromHereTile("5904591");
   auto root_tiles_depth = PrefetchRepositoryTestable::GetSlicedTiles(
-      {tile}, olp::geo::TileKey().Level(), olp::geo::TileKey().Level());
+      {tile}, olp::geo::TileKey::LevelCount, olp::geo::TileKey::LevelCount);
   ASSERT_EQ(root_tiles_depth.size(), 1);
   auto parent = tile.ChangedLevelBy(-4);
   ASSERT_EQ(root_tiles_depth.size(), 1);
@@ -195,7 +195,8 @@ TEST(PrefetchRepositoryTest, GetSlicedTilesSiblingsNoLevels) {
   auto tile1 = olp::geo::TileKey::FromHereTile("23618366");
   auto tile2 = olp::geo::TileKey::FromHereTile("23618365");
   auto root_tiles_depth = PrefetchRepositoryTestable::GetSlicedTiles(
-      {tile1, tile2}, olp::geo::TileKey().Level(), olp::geo::TileKey().Level());
+      {tile1, tile2}, olp::geo::TileKey::LevelCount,
+      olp::geo::TileKey::LevelCount);
   ASSERT_EQ(root_tiles_depth.size(), 1);
   auto parent1 = tile1.ChangedLevelBy(-4);
   auto parent2 = tile1.ChangedLevelBy(-4);

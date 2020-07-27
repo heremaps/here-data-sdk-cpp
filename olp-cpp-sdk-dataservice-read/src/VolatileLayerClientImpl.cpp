@@ -46,8 +46,8 @@ constexpr auto kLogTag = "VolatileLayerClientImpl";
 
 bool IsOnlyInputTiles(const PrefetchTilesRequest& request) {
   return !(request.GetMinLevel() <= request.GetMaxLevel() &&
-           request.GetMaxLevel() < geo::TileKey().Level() &&
-           request.GetMinLevel() < geo::TileKey().Level());
+           request.GetMaxLevel() < geo::TileKey::LevelCount &&
+           request.GetMinLevel() < geo::TileKey::LevelCount);
 }
 }  // namespace
 
@@ -191,10 +191,10 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
         // cover tree.
         bool request_only_input_tiles = IsOnlyInputTiles(request);
         unsigned int min_level =
-            (request_only_input_tiles ? geo::TileKey().Level()
+            (request_only_input_tiles ? static_cast<unsigned int>(geo::TileKey::LevelCount)
                                       : request.GetMinLevel());
         unsigned int max_level =
-            (request_only_input_tiles ? geo::TileKey().Level()
+            (request_only_input_tiles ? static_cast<unsigned int>(geo::TileKey::LevelCount)
                                       : request.GetMaxLevel());
 
         auto sliced_tiles = repository::PrefetchTilesRepository::GetSlicedTiles(

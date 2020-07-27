@@ -104,7 +104,7 @@ RootTilesForRequest PrefetchTilesRepository::GetSlicedTiles(
     if (tile_key.Level() < min_level) {
       min_level = tile_key.Level();
     }
-    if (max_level == geo::TileKey().Level()) {
+    if (max_level == geo::TileKey::LevelCount) {
       max_level = min_level;
     } else {
       max_level = std::max(max_level, min_level);
