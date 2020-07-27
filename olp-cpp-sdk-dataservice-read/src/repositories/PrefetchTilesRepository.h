@@ -68,6 +68,10 @@ class PrefetchTilesRepository {
       client::CancellationContext context,
       const client::OlpClientSettings& settings);
 
+  static SubQuadsResult FilterSkippedTiles(const PrefetchTilesRequest& request,
+                                           bool request_only_input_tiles,
+                                           SubQuadsResult sub_tiles);
+
  protected:
   static SubQuadsResponse GetSubQuads(const client::HRN& catalog,
                                       const std::string& layer_id,
