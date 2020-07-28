@@ -323,6 +323,40 @@ SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
   return result;
 }
 
+SubQuadsResult PrefetchTilesRepository::FilterSkippedTiles(
+    const PrefetchTilesRequest& request, bool request_only_input_tiles,
+    SubQuadsResult sub_tiles) {
+  auto skip_tile = [&](const geo::TileKey& tile_key) {
+    const auto& tile_keys = request.GetTileKeys();
+    if (request_only_input_tiles) {
+      return std::find(tile_keys.begin(), tile_keys.end(), tile_key) ==
+             tile_keys.end();
+    } else if (tile_key.Level() < request.GetMinLevel() ||
+               tile_key.Level() > request.GetMaxLevel()) {
+      // tile outside min/max segment, skip this tile
+      return true;
+    } else {
+      // tile is not a parent or child for any of requested tiles, skip
+      // this tile
+      return std::find_if(tile_keys.begin(), tile_keys.end(),
+                          [&tile_key](const geo::TileKey& root_key) {
+                            return (root_key.IsParentOf(tile_key) ||
+                                    tile_key.IsParentOf(root_key) ||
+                                    root_key == tile_key);
+                          }) == tile_keys.end();
+    }
+  };
+
+  for (auto sub_quad_it = sub_tiles.begin(); sub_quad_it != sub_tiles.end();) {
+    if (skip_tile(sub_quad_it->first)) {
+      sub_quad_it = sub_tiles.erase(sub_quad_it);
+    } else {
+      ++sub_quad_it;
+    }
+  }
+  return sub_tiles;
+}
+
 PORTING_POP_WARNINGS()
 }  // namespace repository
 }  // namespace read
