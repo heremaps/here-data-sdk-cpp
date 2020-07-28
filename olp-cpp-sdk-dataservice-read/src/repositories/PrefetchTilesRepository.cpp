@@ -318,7 +318,7 @@ SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
   // add to cache
   repository::PartitionsCacheRepository cache(
       catalog, settings.cache, settings.default_cache_expiration);
-  cache.Put({}, partitions, layer_id, boost::none, false);
+  cache.Put(partitions, layer_id, boost::none, boost::none, false);
 
   return result;
 }

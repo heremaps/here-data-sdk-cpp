@@ -81,12 +81,6 @@ bool VersionedLayerClientImpl::CancelPendingRequests() {
 
 client::CancellationToken VersionedLayerClientImpl::GetPartitions(
     PartitionsRequest request, PartitionsResponseCallback callback) {
-  if (request.GetVersion()) {
-    OLP_SDK_LOG_WARNING(kLogTag,
-                        "PartitionsRequest::WithVersion() is deprecated. Use "
-                        "VersionedLayerClient constructor to specify version");
-  }
-
   if (request.GetFetchOption() == CacheWithUpdate) {
     auto task = [](client::CancellationContext) -> PartitionsResponse {
       return {{client::ErrorCode::InvalidArgument,
@@ -110,10 +104,10 @@ client::CancellationToken VersionedLayerClientImpl::GetPartitions(
       if (!version_response.IsSuccessful()) {
         return version_response.GetError();
       }
-      request.WithVersion(version_response.GetResult().GetVersion());
 
       return repository::PartitionsRepository::GetVersionedPartitions(
-          catalog, layer_id, context, std::move(request), settings);
+          catalog, layer_id, version_response.GetResult().GetVersion(), context,
+          std::move(request), settings);
     };
 
     return AddTask(settings.task_scheduler, pending_requests_,

@@ -21,8 +21,8 @@
 
 #include <sstream>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include <olp/core/porting/deprecated.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
@@ -111,38 +111,6 @@ class DATASERVICE_READ_API PartitionsRequest final {
   }
 
   /**
-   * @brief Sets the catalog metadata version.
-   *
-   * @param catalog_version The catalog metadata version of the requested
-   * partitions. If the version is not specified, the latest version is
-   * retrieved.
-   *
-   * @return A reference to the updated `PartitionsRequest` instance.
-   *
-   * @deprecated The version is now a part of the VersionedLayerClient
-   * constructor.
-   */
-  OLP_SDK_DEPRECATED("Deprecated, to be removed in 06.2020")
-  inline PartitionsRequest& WithVersion(
-      boost::optional<int64_t> catalog_version) {
-    catalog_version_ = std::move(catalog_version);
-    return *this;
-  }
-
-  /**
-   * @brief Gets the catalog metadata version of the requested partitions.
-   *
-   * @return The catalog metadata version.
-   *
-   * @deprecated The version is now a part of the VersionedLayerClient
-   * constructor.
-   */
-  OLP_SDK_DEPRECATED("Deprecated, to be removed in 06.2020")
-  inline const boost::optional<std::int64_t>& GetVersion() const {
-    return catalog_version_;
-  }
-
-  /**
    * @brief Gets the billing tag to group billing records together.
    *
    * The billing tag is an optional free-form tag that is used for grouping
@@ -218,11 +186,12 @@ class DATASERVICE_READ_API PartitionsRequest final {
    *
    * @return A string representation of the request.
    */
-  std::string CreateKey(const std::string& layer_id) const {
+  std::string CreateKey(const std::string& layer_id,
+                        boost::optional<int64_t> version = boost::none) const {
     std::stringstream out;
     out << layer_id;
-    if (catalog_version_) {
-      out << "@" << catalog_version_.get();
+    if (version) {
+      out << "@" << version.get();
     }
     if (GetBillingTag()) {
       out << "$" << GetBillingTag().get();
@@ -234,7 +203,6 @@ class DATASERVICE_READ_API PartitionsRequest final {
  private:
   PartitionIds partition_ids_;
   AdditionalFields additional_fields_;
-  boost::optional<int64_t> catalog_version_;
   boost::optional<std::string> billing_tag_;
   FetchOptions fetch_option_{OnlineIfNotFound};
 };
