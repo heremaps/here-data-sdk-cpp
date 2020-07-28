@@ -1053,10 +1053,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest,
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile("23618366"),
         olp::geo::TileKey::FromHereTile("23618365")};
-    auto request = read::PrefetchTilesRequest()
-                       .WithTileKeys(tile_keys)
-                       .WithMinLevel(0)
-                       .WithMaxLevel(0);
+    auto request = read::PrefetchTilesRequest().WithTileKeys(tile_keys);
     auto promise =
         std::make_shared<std::promise<read::PrefetchTilesResponse>>();
     std::future<read::PrefetchTilesResponse> future = promise->get_future();
@@ -1092,10 +1089,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, PrefetchTilesWrongLevels) {
 
   read::VolatileLayerClient client(catalog, kLayerId, settings_);
 
-  auto request = read::PrefetchTilesRequest()
-                     .WithTileKeys(tile_keys)
-                     .WithMinLevel(0)
-                     .WithMaxLevel(0);
+  auto request = read::PrefetchTilesRequest().WithTileKeys(tile_keys);
   auto cancel_future = client.PrefetchTiles(request);
   auto raw_future = cancel_future.GetFuture();
 

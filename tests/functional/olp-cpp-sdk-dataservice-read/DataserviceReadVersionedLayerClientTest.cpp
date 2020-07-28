@@ -252,11 +252,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWrongLevels) {
         olp::geo::TileKey::FromHereTile(kTileId)};
 
     {
-      SCOPED_TRACE("min/max levels are 0");
-      auto request = olp::dataservice::read::PrefetchTilesRequest()
-                         .WithTileKeys(tile_keys)
-                         .WithMinLevel(0)
-                         .WithMaxLevel(0);
+      SCOPED_TRACE("min/max levels default");
+      auto request =
+          olp::dataservice::read::PrefetchTilesRequest().WithTileKeys(
+              tile_keys);
 
       std::promise<dataservice_read::PrefetchTilesResponse> promise;
       auto future = promise.get_future();
@@ -350,15 +349,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWrongLevels) {
 
       ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
       dataservice_read::PrefetchTilesResponse response = future.get();
-      EXPECT_SUCCESS(response);
-      const auto& result = response.GetResult();
-
-      for (auto tile_result : result) {
-        EXPECT_SUCCESS(*tile_result);
-        ASSERT_TRUE(tile_result->tile_key_.IsValid());
-      }
-
-      ASSERT_EQ(tile_keys.size(), result.size());
+      ASSERT_FALSE(response.IsSuccessful());
+      ASSERT_EQ(static_cast<int>(http::ErrorCode::UNKNOWN_ERROR),
+                response.GetError().GetHttpStatusCode());
     }
   }
 }

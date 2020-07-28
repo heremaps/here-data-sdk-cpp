@@ -224,14 +224,17 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
         // Calculate the minimal set of Tile keys and depth to
         // cover tree.
         bool request_only_input_tiles =
-            !(request.GetMinLevel() > 0 &&
-              request.GetMinLevel() < request.GetMaxLevel() &&
-              request.GetMaxLevel() < geo::TileKey().Level() &&
-              request.GetMinLevel() < geo::TileKey().Level());
+            !(request.GetMinLevel() <= request.GetMaxLevel() &&
+              request.GetMaxLevel() < geo::TileKey::LevelCount &&
+              request.GetMinLevel() < geo::TileKey::LevelCount);
         unsigned int min_level =
-            (request_only_input_tiles ? 0 : request.GetMinLevel());
+            (request_only_input_tiles
+                 ? static_cast<unsigned int>(geo::TileKey::LevelCount)
+                 : request.GetMinLevel());
         unsigned int max_level =
-            (request_only_input_tiles ? 0 : request.GetMaxLevel());
+            (request_only_input_tiles
+                 ? static_cast<unsigned int>(geo::TileKey::LevelCount)
+                 : request.GetMaxLevel());
 
         auto sliced_tiles = repository::PrefetchTilesRepository::GetSlicedTiles(
             request.GetTileKeys(), min_level, max_level);

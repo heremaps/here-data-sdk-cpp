@@ -21,8 +21,8 @@
 
 #include <sstream>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include <olp/core/geo/tiling/TileKey.h>
 #include <olp/core/porting/deprecated.h>
@@ -203,8 +203,8 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
  private:
   std::string layer_id_;
   std::vector<geo::TileKey> tile_keys_;
-  unsigned int min_level_{0};
-  unsigned int max_level_{0};
+  unsigned int min_level_{geo::TileKey::LevelCount};
+  unsigned int max_level_{geo::TileKey::LevelCount};
   boost::optional<int64_t> catalog_version_;
   boost::optional<std::string> billing_tag_;
 };

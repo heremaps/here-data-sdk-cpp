@@ -40,9 +40,8 @@
 #include "olp/dataservice/read/PrefetchTileResult.h"
 #include "olp/dataservice/read/VolatileLayerClient.h"
 
-using namespace olp::dataservice::read;
-using namespace olp::dataservice::write::model;
-using namespace testing;
+namespace rd = olp::dataservice::read;
+namespace model = olp::dataservice::write::model;
 
 namespace {
 
@@ -135,7 +134,8 @@ class VolatileLayerClientTest : public ::testing::Test {
         hrn, prefetch_settings_);
 
     {
-      auto batch_request = StartBatchRequest().WithLayers({prefetch_layer_});
+      auto batch_request =
+          model::StartBatchRequest().WithLayers({prefetch_layer_});
 
       auto response = write_client.StartBatch(batch_request).GetFuture().get();
 
@@ -143,8 +143,8 @@ class VolatileLayerClientTest : public ::testing::Test {
       ASSERT_TRUE(response.GetResult().GetId());
       ASSERT_NE("", response.GetResult().GetId().value());
 
-      std::vector<PublishPartitionDataRequest> partition_requests;
-      PublishPartitionDataRequest partition_request;
+      std::vector<model::PublishPartitionDataRequest> partition_requests;
+      model::PublishPartitionDataRequest partition_request;
       partition_requests.push_back(
           partition_request.WithLayerId(prefetch_layer_)
               .WithPartitionId(kPrefetchTile));
@@ -208,16 +208,16 @@ TEST_F(VolatileLayerClientTest, GetPartitions) {
   {
     SCOPED_TRACE("Get Partitions Test");
 
-    VolatileLayerClient client(hrn, GetTestLayer(), settings_);
+    rd::VolatileLayerClient client(hrn, GetTestLayer(), settings_);
 
     olp::client::Condition condition;
-    PartitionsResponse partitions_response;
+    rd::PartitionsResponse partitions_response;
 
-    auto callback = [&](PartitionsResponse response) {
+    auto callback = [&](rd::PartitionsResponse response) {
       partitions_response = std::move(response);
       condition.Notify();
     };
-    client.GetPartitions(PartitionsRequest(), std::move(callback));
+    client.GetPartitions(rd::PartitionsRequest(), std::move(callback));
     ASSERT_TRUE(condition.Wait(kTimeout));
     EXPECT_TRUE(partitions_response.IsSuccessful());
   }
@@ -225,18 +225,18 @@ TEST_F(VolatileLayerClientTest, GetPartitions) {
   {
     SCOPED_TRACE("Get Partitions Test With CacheAndUpdate option");
 
-    VolatileLayerClient client(hrn, GetTestLayer(), settings_);
+    rd::VolatileLayerClient client(hrn, GetTestLayer(), settings_);
 
     olp::client::Condition condition;
-    PartitionsResponse partitions_response;
+    rd::PartitionsResponse partitions_response;
 
-    auto callback = [&](PartitionsResponse response) {
+    auto callback = [&](rd::PartitionsResponse response) {
       partitions_response = std::move(response);
       condition.Notify();
     };
-    client.GetPartitions(
-        PartitionsRequest().WithFetchOption(FetchOptions::CacheWithUpdate),
-        std::move(callback));
+    client.GetPartitions(rd::PartitionsRequest().WithFetchOption(
+                             rd::FetchOptions::CacheWithUpdate),
+                         std::move(callback));
     ASSERT_TRUE(condition.Wait(kTimeout));
     EXPECT_TRUE(partitions_response.IsSuccessful());
   }
@@ -244,16 +244,16 @@ TEST_F(VolatileLayerClientTest, GetPartitions) {
   {
     SCOPED_TRACE("Get Partitions Invalid Layer Test");
 
-    VolatileLayerClient client(hrn, "InvalidLayer", settings_);
+    rd::VolatileLayerClient client(hrn, "InvalidLayer", settings_);
 
     olp::client::Condition condition;
-    PartitionsResponse partitions_response;
+    rd::PartitionsResponse partitions_response;
 
-    auto callback = [&](PartitionsResponse response) {
+    auto callback = [&](rd::PartitionsResponse response) {
       partitions_response = std::move(response);
       condition.Notify();
     };
-    client.GetPartitions(PartitionsRequest(), std::move(callback));
+    client.GetPartitions(rd::PartitionsRequest(), std::move(callback));
     ASSERT_TRUE(condition.Wait(kTimeout));
     EXPECT_FALSE(partitions_response.IsSuccessful());
   }
@@ -261,17 +261,17 @@ TEST_F(VolatileLayerClientTest, GetPartitions) {
   {
     SCOPED_TRACE("Get Partitions Invalid HRN Test");
 
-    VolatileLayerClient client(olp::client::HRN("Invalid"), GetTestLayer(),
-                               settings_);
+    rd::VolatileLayerClient client(olp::client::HRN("Invalid"), GetTestLayer(),
+                                   settings_);
 
     olp::client::Condition condition;
-    PartitionsResponse partitions_response;
+    rd::PartitionsResponse partitions_response;
 
-    auto callback = [&](PartitionsResponse response) {
+    auto callback = [&](rd::PartitionsResponse response) {
       partitions_response = std::move(response);
       condition.Notify();
     };
-    client.GetPartitions(PartitionsRequest(), std::move(callback));
+    client.GetPartitions(rd::PartitionsRequest(), std::move(callback));
     ASSERT_TRUE(condition.Wait(kTimeout));
     EXPECT_FALSE(partitions_response.IsSuccessful());
   }
@@ -282,17 +282,17 @@ TEST_F(VolatileLayerClientTest, GetPartitionsDifferentFetchOptions) {
   {
     SCOPED_TRACE("Get Partitions Online Only");
 
-    VolatileLayerClient client(hrn, GetTestLayer(), settings_);
+    rd::VolatileLayerClient client(hrn, GetTestLayer(), settings_);
 
     olp::client::Condition condition;
-    PartitionsResponse partitions_response;
+    rd::PartitionsResponse partitions_response;
 
-    auto callback = [&](PartitionsResponse response) {
+    auto callback = [&](rd::PartitionsResponse response) {
       partitions_response = std::move(response);
       condition.Notify();
     };
     client.GetPartitions(
-        PartitionsRequest().WithFetchOption(FetchOptions::OnlineOnly),
+        rd::PartitionsRequest().WithFetchOption(rd::FetchOptions::OnlineOnly),
         std::move(callback));
     ASSERT_TRUE(condition.Wait(kTimeout));
     EXPECT_TRUE(partitions_response.IsSuccessful());
@@ -300,35 +300,35 @@ TEST_F(VolatileLayerClientTest, GetPartitionsDifferentFetchOptions) {
   {
     SCOPED_TRACE("Get Partitions Online if not found");
 
-    VolatileLayerClient client(hrn, GetTestLayer(), settings_);
+    rd::VolatileLayerClient client(hrn, GetTestLayer(), settings_);
 
     olp::client::Condition condition;
-    PartitionsResponse partitions_response;
+    rd::PartitionsResponse partitions_response;
 
-    auto callback = [&](PartitionsResponse response) {
+    auto callback = [&](rd::PartitionsResponse response) {
       partitions_response = std::move(response);
       condition.Notify();
     };
-    client.GetPartitions(
-        PartitionsRequest().WithFetchOption(FetchOptions::OnlineIfNotFound),
-        std::move(callback));
+    client.GetPartitions(rd::PartitionsRequest().WithFetchOption(
+                             rd::FetchOptions::OnlineIfNotFound),
+                         std::move(callback));
     ASSERT_TRUE(condition.Wait(kTimeout));
     EXPECT_TRUE(partitions_response.IsSuccessful());
   }
   {
     SCOPED_TRACE("Get Partitions Cache Only");
 
-    VolatileLayerClient client(hrn, GetTestLayer(), settings_);
+    rd::VolatileLayerClient client(hrn, GetTestLayer(), settings_);
 
     olp::client::Condition condition;
-    PartitionsResponse partitions_response;
+    rd::PartitionsResponse partitions_response;
 
-    auto callback = [&](PartitionsResponse response) {
+    auto callback = [&](rd::PartitionsResponse response) {
       partitions_response = std::move(response);
       condition.Notify();
     };
     client.GetPartitions(
-        PartitionsRequest().WithFetchOption(FetchOptions::CacheOnly),
+        rd::PartitionsRequest().WithFetchOption(rd::FetchOptions::CacheOnly),
         std::move(callback));
     ASSERT_TRUE(condition.Wait(kTimeout));
     EXPECT_TRUE(partitions_response.IsSuccessful());
@@ -339,7 +339,7 @@ TEST_F(VolatileLayerClientTest, Prefetch) {
   WritePrefetchTilesData();
 
   olp::client::HRN hrn(prefetch_catalog_);
-  VolatileLayerClient client(hrn, prefetch_layer_, prefetch_settings_);
+  rd::VolatileLayerClient client(hrn, prefetch_layer_, prefetch_settings_);
   {
     SCOPED_TRACE("Prefetch tiles online and store them in memory cache");
     std::vector<olp::geo::TileKey> tile_keys = {
@@ -349,7 +349,7 @@ TEST_F(VolatileLayerClientTest, Prefetch) {
         olp::geo::TileKey::FromHereTile(kPrefetchSubTile1),
         olp::geo::TileKey::FromHereTile(kPrefetchSubTile2)};
 
-    auto request = olp::dataservice::read::PrefetchTilesRequest()
+    auto request = rd::PrefetchTilesRequest()
                        .WithTileKeys(tile_keys)
                        .WithMinLevel(10)
                        .WithMaxLevel(12);
@@ -357,7 +357,7 @@ TEST_F(VolatileLayerClientTest, Prefetch) {
     auto future = client.PrefetchTiles(request).GetFuture();
 
     ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
-    PrefetchTilesResponse response = future.get();
+    rd::PrefetchTilesResponse response = future.get();
     EXPECT_TRUE(response.IsSuccessful());
     ASSERT_FALSE(response.GetResult().empty());
 
@@ -375,19 +375,16 @@ TEST_F(VolatileLayerClientTest, Prefetch) {
   }
 
   {
-    SCOPED_TRACE("min/max levels are 0");
+    SCOPED_TRACE("min/max levels default");
 
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kPrefetchTile)};
-    auto request = olp::dataservice::read::PrefetchTilesRequest()
-                       .WithTileKeys(tile_keys)
-                       .WithMinLevel(0)
-                       .WithMaxLevel(0);
+    auto request = rd::PrefetchTilesRequest().WithTileKeys(tile_keys);
 
     auto future = client.PrefetchTiles(request).GetFuture();
 
     ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
-    PrefetchTilesResponse response = future.get();
+    rd::PrefetchTilesResponse response = future.get();
     EXPECT_TRUE(response.IsSuccessful());
     const auto& result = response.GetResult();
 
@@ -407,7 +404,7 @@ TEST_F(VolatileLayerClientTest, Prefetch) {
 
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kPrefetchTile)};
-    auto request = olp::dataservice::read::PrefetchTilesRequest()
+    auto request = rd::PrefetchTilesRequest()
                        .WithTileKeys(tile_keys)
                        .WithMinLevel(12)
                        .WithMaxLevel(12);
@@ -415,7 +412,7 @@ TEST_F(VolatileLayerClientTest, Prefetch) {
     auto future = client.PrefetchTiles(request).GetFuture();
 
     ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
-    PrefetchTilesResponse response = future.get();
+    rd::PrefetchTilesResponse response = future.get();
     EXPECT_TRUE(response.IsSuccessful());
     const auto& result = response.GetResult();
 

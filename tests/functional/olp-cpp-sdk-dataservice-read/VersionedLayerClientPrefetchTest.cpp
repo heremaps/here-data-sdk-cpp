@@ -158,5 +158,77 @@ TEST_F(VersionedLayerClientPrefetchTest, Prefetch) {
       ASSERT_EQ(tiles_data.at(i++), data_string);
     }
   }
+  {
+    const auto zero_level_tile = root_tile.ChangedLevelTo(0);
+    SCOPED_TRACE("Prefetch tiles min/max levels is 0");
+    const auto request = olp::dataservice::read::PrefetchTilesRequest()
+                             .WithTileKeys({zero_level_tile})
+                             .WithMinLevel(0)
+                             .WithMaxLevel(0);
+    {
+      mock_server_client_->MockGetResponse(
+          kLayer, zero_level_tile, kVersion,
+          mockserver::ReadDefaultResponses::GenerateQuadTreeResponse(
+              zero_level_tile, kQuadTreeDepth, {0, 1}));
+      const auto data_handle =
+          mockserver::ReadDefaultResponses::GenerateDataHandle(
+              zero_level_tile.ToHereTile());
+
+      mock_server_client_->MockGetResponse(
+          kLayer, data_handle,
+          mockserver::ReadDefaultResponses::GenerateData());
+    }
+
+    auto future = client->PrefetchTiles(request).GetFuture();
+    auto response = future.get();
+    ASSERT_TRUE(response.IsSuccessful())
+        << response.GetError().GetMessage().c_str();
+    const auto result = response.MoveResult();
+
+    EXPECT_EQ(result.size(), 1u);
+    for (auto tile_result : result) {
+      EXPECT_SUCCESS(*tile_result);
+      ASSERT_TRUE(tile_result->tile_key_.IsValid());
+    }
+    EXPECT_TRUE(mock_server_client_->Verify());
+  }
+  {
+    const auto zero_level_tile = root_tile.ChangedLevelTo(0);
+    SCOPED_TRACE("Prefetch tiles only min level is 0");
+    const auto request = olp::dataservice::read::PrefetchTilesRequest()
+                             .WithTileKeys({zero_level_tile})
+                             .WithMinLevel(0)
+                             .WithMaxLevel(1);
+    {
+      // Quad tree and data for tile 1 is in cache, do not need to add mock
+      // response
+      const olp::geo::TileKey first_child = zero_level_tile.ChangedLevelBy(1);
+      const std::uint64_t begin_tile_key = first_child.ToQuadKey64();
+
+      for (std::uint64_t key = begin_tile_key; key < begin_tile_key + 4;
+           ++key) {
+        auto child = olp::geo::TileKey::FromQuadKey64(key);
+        // add mock responce for children
+        mock_server_client_->MockGetResponse(
+            kLayer,
+            mockserver::ReadDefaultResponses::GenerateDataHandle(
+                child.ToHereTile()),
+            mockserver::ReadDefaultResponses::GenerateData());
+      }
+    }
+
+    auto future = client->PrefetchTiles(request).GetFuture();
+    auto response = future.get();
+    ASSERT_TRUE(response.IsSuccessful())
+        << response.GetError().GetMessage().c_str();
+    const auto result = response.MoveResult();
+
+    EXPECT_EQ(result.size(), 5u);
+    for (auto tile_result : result) {
+      EXPECT_SUCCESS(*tile_result);
+      ASSERT_TRUE(tile_result->tile_key_.IsValid());
+    }
+    EXPECT_TRUE(mock_server_client_->Verify());
+  }
 }
 }  // namespace

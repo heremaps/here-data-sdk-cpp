@@ -91,8 +91,8 @@ TEST(PrefetchRepositoryTest, SplitTreeLevelMinLevelSet) {
 
 TEST(PrefetchRepositoryTest, GetSlicedTilesNoLevels) {
   auto tile = olp::geo::TileKey::FromHereTile("5904591");
-  auto root_tiles_depth =
-      PrefetchRepositoryTestable::GetSlicedTiles({tile}, 0, 0);
+  auto root_tiles_depth = PrefetchRepositoryTestable::GetSlicedTiles(
+      {tile}, olp::geo::TileKey::LevelCount, olp::geo::TileKey::LevelCount);
   ASSERT_EQ(root_tiles_depth.size(), 1);
   auto parent = tile.ChangedLevelBy(-4);
   ASSERT_EQ(root_tiles_depth.size(), 1);
@@ -118,8 +118,8 @@ TEST(PrefetchRepositoryTest, GetSlicedTilesWithLevelsSpecified) {
         "level");
     auto root_tiles_depth =
         PrefetchRepositoryTestable::GetSlicedTiles({tile}, 1, 13);
-    auto parent = tile.ChangedLevelTo(1);
-    // sliced levels should be 1, 6, 11
+    auto parent = tile.ChangedLevelTo(5);
+    // sliced levels should be 0, 5, 10
     ASSERT_EQ(root_tiles_depth.find(parent)->second, 4);
     // 1 tile on each level
     ASSERT_EQ(root_tiles_depth.size(), 3);
@@ -148,10 +148,19 @@ TEST(PrefetchRepositoryTest, GetSlicedTilesMultipleRootTiles) {
         "levels");
     auto root_tiles_depth =
         PrefetchRepositoryTestable::GetSlicedTiles({tile1, tile2}, 1, 13);
-    // sliced levels should be 1, 6, 11
-    auto parent = tile1.ChangedLevelTo(1);
+    // sliced levels should be 0, 5, 10
+    auto parent = tile1.ChangedLevelTo(5);
     ASSERT_EQ(root_tiles_depth.find(parent)->second, 4);
     ASSERT_EQ(root_tiles_depth.size(), 3);
+  }
+  {
+    SCOPED_TRACE("Get sliced tiles with min/max levels is zero");
+    auto root_tiles_depth =
+        PrefetchRepositoryTestable::GetSlicedTiles({tile1, tile2}, 0, 0);
+    // sliced levels should be 0
+    auto parent = tile1.ChangedLevelTo(0);
+    ASSERT_EQ(root_tiles_depth.find(parent)->second, 4);
+    ASSERT_EQ(root_tiles_depth.size(), 1);
   }
   {
     SCOPED_TRACE(
@@ -185,8 +194,9 @@ TEST(PrefetchRepositoryTest, GetSlicedTilesMultipleRootTiles) {
 TEST(PrefetchRepositoryTest, GetSlicedTilesSiblingsNoLevels) {
   auto tile1 = olp::geo::TileKey::FromHereTile("23618366");
   auto tile2 = olp::geo::TileKey::FromHereTile("23618365");
-  auto root_tiles_depth =
-      PrefetchRepositoryTestable::GetSlicedTiles({tile1, tile2}, 0, 0);
+  auto root_tiles_depth = PrefetchRepositoryTestable::GetSlicedTiles(
+      {tile1, tile2}, olp::geo::TileKey::LevelCount,
+      olp::geo::TileKey::LevelCount);
   ASSERT_EQ(root_tiles_depth.size(), 1);
   auto parent1 = tile1.ChangedLevelBy(-4);
   auto parent2 = tile1.ChangedLevelBy(-4);
