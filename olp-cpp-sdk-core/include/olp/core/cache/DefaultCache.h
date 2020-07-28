@@ -210,7 +210,7 @@ class CORE_API DefaultCache : public KeyValueCache {
    * @return True if the key are in the protected list; false
    * otherwise.
    */
-  bool IsProtected(const std::string& key) override;
+  bool IsProtected(const std::string& key) const override;
 
  private:
   std::shared_ptr<DefaultCacheImpl> impl_;

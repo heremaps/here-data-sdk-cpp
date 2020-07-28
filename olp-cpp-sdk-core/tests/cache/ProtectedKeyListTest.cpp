@@ -60,6 +60,7 @@ TEST(ProtectedKeyList, Protect) {
       EXPECT_EQ(raw_data->size(), 6);
       EXPECT_FALSE(protected_keys.IsDirty());
       EXPECT_EQ(protected_keys.Size(), raw_data->size());
+      protected_keys.Clear();
     }
 
     {
@@ -72,11 +73,13 @@ TEST(ProtectedKeyList, Protect) {
       EXPECT_EQ(raw_data->size(), 5);
       EXPECT_FALSE(protected_keys.IsDirty());
       EXPECT_TRUE(protected_keys.IsProtected("key:1"));
+      protected_keys.Clear();
     }
 
     {
       SCOPED_TRACE("Protect new key with the its prefix already in cache");
-      EXPECT_TRUE(protected_keys.Protect({"key:2"}, cb));
+      EXPECT_TRUE(protected_keys.Protect({"key:"}, cb));
+      EXPECT_FALSE(protected_keys.Protect({"key:2"}, cb));
       EXPECT_TRUE(protected_keys.IsDirty());
       auto raw_data = protected_keys.Serialize();
       EXPECT_TRUE(raw_data.get());
@@ -84,10 +87,14 @@ TEST(ProtectedKeyList, Protect) {
       EXPECT_EQ(raw_data->size(), 5);
       EXPECT_FALSE(protected_keys.IsDirty());
       EXPECT_TRUE(protected_keys.IsProtected("key:1"));
+      protected_keys.Clear();
     }
 
     {
       SCOPED_TRACE("Protect new key with the other prefix");
+      // old prefix
+      EXPECT_TRUE(protected_keys.Protect({"key:"}, cb));
+      // new prefix
       EXPECT_TRUE(protected_keys.Protect({"some_key:1"}, cb));
       EXPECT_TRUE(protected_keys.IsDirty());
       auto raw_data = protected_keys.Serialize();
@@ -96,10 +103,14 @@ TEST(ProtectedKeyList, Protect) {
       EXPECT_EQ(raw_data->size(), 5 + 11);
       EXPECT_FALSE(protected_keys.IsDirty());
       EXPECT_TRUE(protected_keys.IsProtected("some_key:1"));
+      protected_keys.Clear();
     }
 
     {
       SCOPED_TRACE("Protect multiple keys ");
+      // old data
+      EXPECT_TRUE(protected_keys.Protect({"key:", "some_key:1"}, cb));
+      // new data
       EXPECT_TRUE(
           protected_keys.Protect({"some_key:2", "some_key:3", "some_key:4",
                                   "some_key:5", "some_key:6"},
@@ -112,11 +123,19 @@ TEST(ProtectedKeyList, Protect) {
       EXPECT_FALSE(protected_keys.IsDirty());
       EXPECT_TRUE(protected_keys.IsProtected("some_key:2"));
       EXPECT_FALSE(protected_keys.IsProtected("some_key:7"));
+      protected_keys.Clear();
     }
 
     {
       SCOPED_TRACE("Protect multiple keys, its prefix already in cache ");
-      EXPECT_TRUE(protected_keys.Protect(
+      // old data
+      EXPECT_TRUE(protected_keys.Protect({"key:", "some_key:1"}, cb));
+      EXPECT_TRUE(
+          protected_keys.Protect({"some_key:2", "some_key:3", "some_key:4",
+                                  "some_key:5", "some_key:6"},
+                                 cb));
+      // new data
+      EXPECT_FALSE(protected_keys.Protect(
           {"key:2", "key:3", "key:4", "key:5", "key:6"}, cb));
       EXPECT_TRUE(protected_keys.IsDirty());
       auto raw_data = protected_keys.Serialize();
@@ -127,6 +146,7 @@ TEST(ProtectedKeyList, Protect) {
       // this key is protected by prefix
       EXPECT_TRUE(protected_keys.IsProtected("key:7"));
       EXPECT_FALSE(protected_keys.IsProtected("some_key:7"));
+      protected_keys.Clear();
     }
   }
 }
@@ -204,7 +224,8 @@ TEST(ProtectedKeyList, Release) {
     {
       SCOPED_TRACE("Try to release key protected by prefix");
       EXPECT_FALSE(protected_keys.Release({"key:1"}));
-      EXPECT_TRUE(protected_keys.IsDirty());
+      // nothing changed
+      EXPECT_FALSE(protected_keys.IsDirty());
       auto raw_data = protected_keys.Serialize();
       EXPECT_TRUE(raw_data.get());
       // 5 keys and prefix

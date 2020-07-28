@@ -78,7 +78,7 @@ KeyValueCache::ValueTypePtr ProtectedKeyList::Serialize() {
 bool ProtectedKeyList::Protect(
     const KeyValueCache::KeyListType& keys,
     const ProtectedKeyChanged& change_key_to_protected) {
-  dirty_ = true;
+  auto was_updated = false;
   for (const auto& key : keys) {
     // find key or prefix
     auto hint = protected_data_.lower_bound(key);
@@ -93,19 +93,20 @@ bool ProtectedKeyList::Protect(
         hint = protected_data_.erase(hint);
       }
     }
-
-    // notify that key now is protected
-    change_key_to_protected(key);
-
     // add protected key
-    protected_data_.insert(hint, key);
+    auto res = protected_data_.insert(hint, key);
+    if (res != hint) {
+      dirty_ = true;
+      was_updated = true;
+      // notify that key now is protected
+      change_key_to_protected(key);
+    }
   }
-  return true;
+  return was_updated;
 }
 
 bool ProtectedKeyList::Release(const KeyValueCache::KeyListType& keys) {
-  dirty_ = true;
-  auto result = true;
+  auto result = false;
   for (const auto& key : keys) {
     // find key or prefix
     auto hint = protected_data_.lower_bound(key);
@@ -123,6 +124,8 @@ bool ProtectedKeyList::Release(const KeyValueCache::KeyListType& keys) {
       // not longer protected (need to notify for all keys for this prefix)
       while (hint != protected_data_.end() && IsEqualOrPrefix(key, *hint)) {
         hint = protected_data_.erase(hint);
+        dirty_ = true;
+        result = true;
       }
     }
   }
@@ -163,6 +166,8 @@ std::uint64_t ProtectedKeyList::Size() const { return size_written_; }
 bool ProtectedKeyList::IsDirty() const { return dirty_; }
 
 std::uint64_t ProtectedKeyList::Count() const { return protected_data_.size(); }
+
+void ProtectedKeyList::Clear() { protected_data_.clear(); }
 
 }  // namespace cache
 }  // namespace olp

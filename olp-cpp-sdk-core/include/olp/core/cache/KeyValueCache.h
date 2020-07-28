@@ -178,7 +178,7 @@ class CORE_API KeyValueCache {
    * @return True if the key are in the protected list; false
    * otherwise.
    */
-  virtual bool IsProtected(const std::string& key) {
+  virtual bool IsProtected(const std::string& key) const {
     OLP_SDK_CORE_UNUSED(key);
     return false;
   }

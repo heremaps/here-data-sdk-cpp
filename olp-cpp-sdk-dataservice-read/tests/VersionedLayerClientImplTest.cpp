@@ -278,9 +278,6 @@ TEST(VersionedLayerClientTest, ProtectThanRelease) {
     SCOPED_TRACE("Cache tile key");
     auto tile_key = olp::geo::TileKey::FromHereTile(kHereTile);
 
-    std::promise<read::DataResponse> promise;
-    std::future<read::DataResponse> future = promise.get_future();
-
     EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
@@ -299,9 +296,8 @@ TEST(VersionedLayerClientTest, ProtectThanRelease) {
                                          olp::http::HttpStatusCode::OK),
                                      "data"));
 
-    auto token = client.GetData(
-        read::TileRequest().WithTileKey(tile_key),
-        [&](read::DataResponse response) { promise.set_value(response); });
+    auto future =
+        client.GetData(read::TileRequest().WithTileKey(tile_key)).GetFuture();
 
     const auto& response = future.get();
     ASSERT_TRUE(response.IsSuccessful());
@@ -309,8 +305,6 @@ TEST(VersionedLayerClientTest, ProtectThanRelease) {
   {
     SCOPED_TRACE("Cache tile other key");
     auto tile_key = olp::geo::TileKey::FromHereTile(kOtherHereTile);
-    std::promise<read::DataResponse> promise;
-    std::future<read::DataResponse> future = promise.get_future();
 
     EXPECT_CALL(*network_mock,
                 Send(IsGetRequest(kDataRequestOtherTile), _, _, _, _))
@@ -318,9 +312,8 @@ TEST(VersionedLayerClientTest, ProtectThanRelease) {
                                          olp::http::HttpStatusCode::OK),
                                      "data"));
 
-    auto token = client.GetData(
-        read::TileRequest().WithTileKey(tile_key),
-        [&](read::DataResponse response) { promise.set_value(response); });
+    auto future =
+        client.GetData(read::TileRequest().WithTileKey(tile_key)).GetFuture();
 
     const auto& response = future.get();
     ASSERT_TRUE(response.IsSuccessful());
@@ -392,6 +385,45 @@ TEST(VersionedLayerClientTest, ProtectThanRelease) {
     // 2 keys should be released(tile and quad)
     auto response = client.Release({other_tile_key});
     ASSERT_FALSE(response);
+  }
+  {
+    SCOPED_TRACE("Protect and release keys within one quad");
+    auto tile_key = olp::geo::TileKey::FromHereTile(kHereTile);
+    auto other_tile_key = olp::geo::TileKey::FromHereTile(kOtherHereTile);
+
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlQuadRequest), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kHttpResponceQuadkey));
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kDataRequestTile), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     "data"));
+    EXPECT_CALL(*network_mock,
+                Send(IsGetRequest(kDataRequestOtherTile), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     "data"));
+    auto future =
+        client.GetData(read::TileRequest().WithTileKey(tile_key)).GetFuture();
+
+    const auto& response = future.get();
+    ASSERT_TRUE(response.IsSuccessful());
+    future = client.GetData(read::TileRequest().WithTileKey(other_tile_key))
+                 .GetFuture();
+    const auto& response_other = future.get();
+    ASSERT_TRUE(response_other.IsSuccessful());
+
+    auto protect_response = client.Protect({tile_key, other_tile_key});
+    ASSERT_TRUE(protect_response);
+    ASSERT_TRUE(client.IsCached(tile_key));
+    ASSERT_TRUE(client.IsCached(other_tile_key));
+
+    auto release_response = client.Release({tile_key, other_tile_key});
+    ASSERT_TRUE(release_response);
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    ASSERT_FALSE(client.IsCached(tile_key));
+    ASSERT_FALSE(client.IsCached(other_tile_key));
   }
   ASSERT_TRUE(cache->Clear());
 }

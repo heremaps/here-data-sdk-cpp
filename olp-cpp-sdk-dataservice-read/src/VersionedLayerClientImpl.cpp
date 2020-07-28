@@ -686,6 +686,7 @@ bool VersionedLayerClientImpl::Release(const TileKeys& tiles) {
                                                         settings_.cache);
   repository::PartitionsCacheRepository partitions_cache_repository(
       catalog_, settings_.cache);
+  repository::PartitionsRepository repository(catalog_, settings_);
 
   // group quad trees and protected tiles. Check if for each quad tree we want
   // to release all protected keys associated, if true add this quad tree to
@@ -733,8 +734,7 @@ bool VersionedLayerClientImpl::Release(const TileKeys& tiles) {
   for (const auto& tile : tiles) {
     if (!process_tile(tile)) {
       read::QuadTreeIndex cached_tree;
-      if (repository::PartitionsRepository::FindQuadTree(
-              catalog_, settings_, layer_id_, version, tile, cached_tree)) {
+      if (repository.FindQuadTree(layer_id_, version, tile, cached_tree)) {
         // check if quad tree has other protected keys, if not, add quad key to
         // release from protected list, othervise add all protected keys left
         // for this quad to map

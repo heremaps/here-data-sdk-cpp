@@ -73,7 +73,7 @@ bool DefaultCache::Release(const KeyValueCache::KeyListType& keys) {
   return impl_->Release(keys);
 }
 
-bool DefaultCache::IsProtected(const std::string& key) {
+bool DefaultCache::IsProtected(const std::string& key) const {
   return impl_->IsProtected(key);
 }
 

@@ -54,6 +54,8 @@ class ProtectedKeyList {
 
   std::uint64_t Count() const;
 
+  void Clear();
+
  private:
   // custom comparator needed to reduce duplicates for keys, which are already
   // protected by prefix
