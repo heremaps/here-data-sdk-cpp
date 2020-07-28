@@ -630,10 +630,9 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
     client::CancellationContext context;
     read::PartitionsRequest request;
     request.WithPartitionIds({kPartitionId, kInvalidPartitionId});
-    request.WithVersion(4);
     request.WithFetchOption(read::CacheOnly);
     auto response = repository::PartitionsRepository::GetVersionedPartitions(
-        catalog, kVersionedLayerId, context, request, settings);
+        catalog, kVersionedLayerId, kVersion, context, request, settings);
 
     ASSERT_FALSE(response.IsSuccessful());
     EXPECT_TRUE(response.GetResult().GetPartitions().empty());
@@ -661,9 +660,8 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
     client::CancellationContext context;
     read::PartitionsRequest request;
     request.WithPartitionIds({kPartitionId});
-    request.WithVersion(4);
     auto response = repository::PartitionsRepository::GetVersionedPartitions(
-        catalog, kVersionedLayerId, context, request, settings);
+        catalog, kVersionedLayerId, kVersion, context, request, settings);
 
     ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
     EXPECT_EQ(response.GetResult().GetPartitions().size(), 1);
@@ -690,16 +688,15 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
 
     client::CancellationContext context;
     read::PartitionsRequest request;
-    request.WithVersion(4);
     auto response = repository::PartitionsRepository::GetVersionedPartitions(
-        catalog, kVersionedLayerId, context, request, settings);
+        catalog, kVersionedLayerId, kVersion, context, request, settings);
 
     ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
     EXPECT_TRUE(response.GetResult().GetPartitions().empty());
 
     request.WithFetchOption(read::CacheOnly);
     response = repository::PartitionsRepository::GetVersionedPartitions(
-        catalog, kVersionedLayerId, context, request, settings);
+        catalog, kVersionedLayerId, kVersion, context, request, settings);
 
     ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
     EXPECT_TRUE(response.GetResult().GetPartitions().empty());
@@ -764,8 +761,7 @@ TEST_F(PartitionsRepositoryTest, GetVolatilePartitions) {
 
     client::CancellationContext context;
     read::PartitionsRequest request;
-    // Volatile layer must survive attempt to fetch versioned data
-    request.WithFetchOption(read::CacheOnly).WithVersion(10);
+    request.WithFetchOption(read::CacheOnly);
 
     auto cache_only_response =
         repository::PartitionsRepository::GetVolatilePartitions(
@@ -806,14 +802,13 @@ TEST_F(PartitionsRepositoryTest, AdditionalFields) {
   read::PartitionsRequest request;
 
   request.WithPartitionIds({kPartitionId});
-  request.WithVersion(4);
   request.WithAdditionalFields({read::PartitionsRequest::kChecksum,
                                 read::PartitionsRequest::kCompressedDataSize,
                                 read::PartitionsRequest::kCrc,
                                 read::PartitionsRequest::kDataSize});
 
   auto response = repository::PartitionsRepository::GetVersionedPartitions(
-      catalog, kVersionedLayerId, context, request, settings);
+      catalog, kVersionedLayerId, kVersion, context, request, settings);
 
   ASSERT_TRUE(response.IsSuccessful());
   auto result = response.GetResult();
@@ -827,7 +822,7 @@ TEST_F(PartitionsRepositoryTest, AdditionalFields) {
   request.WithFetchOption(read::CacheOnly);
 
   auto response_2 = repository::PartitionsRepository::GetVersionedPartitions(
-      catalog, kVersionedLayerId, context, request, settings);
+      catalog, kVersionedLayerId, kVersion, context, request, settings);
 
   ASSERT_TRUE(response_2.IsSuccessful());
 

@@ -217,9 +217,8 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsVersionIsIgnored) {
 
   {
     SCOPED_TRACE(
-        "Online request with version in request. Version should be ignored.");
+        "Online request.");
     auto request = read::PartitionsRequest();
-    request.WithVersion(4);
     request.WithFetchOption(read::FetchOptions::OnlineIfNotFound);
 
     read::PartitionsResponse partitions_response;

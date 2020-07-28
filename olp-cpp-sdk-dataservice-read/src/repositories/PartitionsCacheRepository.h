@@ -45,16 +45,17 @@ class PartitionsCacheRepository final {
 
   ~PartitionsCacheRepository() = default;
 
-  void Put(const PartitionsRequest& request,
-           const model::Partitions& partitions, const std::string& layer_id,
+  void Put(const model::Partitions& partitions, const std::string& layer_id,
+           const boost::optional<int64_t>& version,
            const boost::optional<time_t>& expiry, bool layer_metadata = false);
 
-  model::Partitions Get(const PartitionsRequest& request,
-                        const std::vector<std::string>& partition_ids,
-                        const std::string& layer_id);
+  model::Partitions Get(const std::vector<std::string>& partition_ids,
+                        const std::string& layer_id,
+                        const boost::optional<int64_t>& version);
 
-  boost::optional<model::Partitions> Get(const PartitionsRequest& request,
-                                         const std::string& layer_id);
+  boost::optional<model::Partitions> Get(
+      const PartitionsRequest& request, const std::string& layer_id,
+      const boost::optional<int64_t>& version);
 
   void Put(int64_t catalogVersion, const model::LayerVersions& layerVersions);
 
@@ -69,9 +70,9 @@ class PartitionsCacheRepository final {
 
   void Clear(const std::string& layer_id);
 
-  void ClearPartitions(const PartitionsRequest& request,
-                       const std::vector<std::string>& partitionIds,
-                       const std::string& layer_id);
+  void ClearPartitions(const std::vector<std::string>& partitionIds,
+                       const std::string& layer_id,
+                       const boost::optional<int64_t>& version);
 
   bool ClearQuadTree(const std::string& layer, geo::TileKey key, int32_t depth,
                      const boost::optional<int64_t>& version);

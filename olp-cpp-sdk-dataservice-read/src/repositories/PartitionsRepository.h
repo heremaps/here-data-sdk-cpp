@@ -48,7 +48,7 @@ using QuadTreeIndexResponse = Response<QuadTreeIndex>;
 class PartitionsRepository {
  public:
   static PartitionsResponse GetVersionedPartitions(
-      client::HRN catalog, std::string layer,
+      client::HRN catalog, std::string layer, int64_t version,
       client::CancellationContext cancellation_context,
       read::PartitionsRequest data_request, client::OlpClientSettings settings);
 
@@ -93,7 +93,7 @@ class PartitionsRepository {
       const client::OlpClientSettings& settings);
 
   static PartitionsResponse GetPartitions(
-      client::HRN catalog, std::string layer,
+      client::HRN catalog, std::string layer, boost::optional<int64_t> version,
       client::CancellationContext cancellation_context,
       read::PartitionsRequest request,
       const client::OlpClientSettings& settings,

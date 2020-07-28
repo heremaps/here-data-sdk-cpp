@@ -1210,7 +1210,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsInvalidVersion) {
   }
 
   {
-    request.WithVersion(-1);
     auto promise = std::make_shared<std::promise<PartitionsResponse>>();
     auto future = promise->get_future();
     auto token =

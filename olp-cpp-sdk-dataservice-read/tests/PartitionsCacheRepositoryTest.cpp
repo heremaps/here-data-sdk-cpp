@@ -67,11 +67,11 @@ TEST(PartitionsCacheRepositoryTest, DefaultExpiry) {
     repository::PartitionsCacheRepository repository(hrn, cache,
                                                      default_expiry);
 
-    repository.Put(request, partitions, layer, boost::none, true);
+    repository.Put(partitions, layer, boost::none, boost::none, true);
     repository.Put(catalog_version, versions);
     const auto partitions_result =
-        repository.Get(request, {kPartitionId}, layer);
-    const auto partitions_optional_result = repository.Get(request, layer);
+        repository.Get({kPartitionId}, layer, boost::none);
+    const auto partitions_optional_result = repository.Get(request, layer, boost::none);
     const auto versions_result = repository.Get(catalog_version);
 
     EXPECT_FALSE(partitions_result.GetPartitions().empty());
@@ -88,12 +88,12 @@ TEST(PartitionsCacheRepositoryTest, DefaultExpiry) {
     repository::PartitionsCacheRepository repository(hrn, cache,
                                                      default_expiry);
 
-    repository.Put(request, partitions, layer, boost::none, true);
+    repository.Put(partitions, layer, boost::none, boost::none, true);
     repository.Put(catalog_version, versions);
 
     const auto partitions_result =
-        repository.Get(request, {kPartitionId}, layer);
-    const auto partitions_optional_result = repository.Get(request, layer);
+        repository.Get({kPartitionId}, layer, boost::none);
+    const auto partitions_optional_result = repository.Get(request, layer, boost::none);
     const auto versions_result = repository.Get(catalog_version);
 
     EXPECT_TRUE(partitions_result.GetPartitions().empty());
@@ -111,10 +111,10 @@ TEST(PartitionsCacheRepositoryTest, DefaultExpiry) {
     repository::PartitionsCacheRepository repository(hrn, cache,
                                                      default_expiry);
 
-    repository.Put(request, partitions, layer, data_expiry, true);
+    repository.Put(partitions, layer, boost::none, data_expiry, true);
     const auto partitions_result =
-        repository.Get(request, {kPartitionId}, layer);
-    const auto optional_result = repository.Get(request, layer);
+        repository.Get({kPartitionId}, layer, boost::none);
+    const auto optional_result = repository.Get(request, layer, boost::none);
 
     EXPECT_FALSE(partitions_result.GetPartitions().empty());
     EXPECT_TRUE(optional_result);
@@ -130,10 +130,10 @@ TEST(PartitionsCacheRepositoryTest, DefaultExpiry) {
     repository::PartitionsCacheRepository repository(hrn, cache,
                                                      default_expiry);
 
-    repository.Put(request, partitions, layer, data_expiry, true);
+    repository.Put(partitions, layer, boost::none, data_expiry, true);
     const auto partitions_result =
-        repository.Get(request, {kPartitionId}, layer);
-    const auto optional_result = repository.Get(request, layer);
+        repository.Get({kPartitionId}, layer, boost::none);
+    const auto optional_result = repository.Get(request, layer, boost::none);
 
     EXPECT_TRUE(partitions_result.GetPartitions().empty());
     EXPECT_FALSE(optional_result);
@@ -209,7 +209,7 @@ TEST(PartitionsCacheRepositoryTest, GetPartitionHandle) {
         olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
     repository::PartitionsCacheRepository repository(hrn, cache);
     std::string handle;
-    repository.Put({}, partitions, layer, boost::none, true);
+    repository.Put(partitions, layer, boost::none, true);
     EXPECT_TRUE(repository.GetPartitionHandle(boost::none, kPartitionId, layer,
                                               handle));
   }

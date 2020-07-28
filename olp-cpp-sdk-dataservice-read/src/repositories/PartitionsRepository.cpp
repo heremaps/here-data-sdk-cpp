@@ -107,25 +107,10 @@ namespace read {
 namespace repository {
 
 PartitionsResponse PartitionsRepository::GetVersionedPartitions(
-    client::HRN catalog, std::string layer,
+    client::HRN catalog, std::string layer, int64_t version,
     client::CancellationContext cancellation_context, PartitionsRequest request,
     client::OlpClientSettings settings) {
-  if (!request.GetVersion()) {
-    // get latest version of the layer if it wasn't set by the user
-    CatalogRepository repository(catalog, settings);
-    auto latest_version_response = repository.GetLatestVersion(
-        CatalogVersionRequest()
-            .WithFetchOption(request.GetFetchOption())
-            .WithBillingTag(request.GetBillingTag()),
-        cancellation_context);
-
-    if (!latest_version_response.IsSuccessful()) {
-      return latest_version_response.GetError();
-    }
-    request.WithVersion(latest_version_response.GetResult().GetVersion());
-  }
-
-  return GetPartitions(std::move(catalog), std::move(layer),
+  return GetPartitions(std::move(catalog), std::move(layer), version,
                        std::move(cancellation_context), std::move(request),
                        std::move(settings));
 }
@@ -134,8 +119,6 @@ PartitionsResponse PartitionsRepository::GetVolatilePartitions(
     client::HRN catalog, std::string layer,
     client::CancellationContext cancellation_context, PartitionsRequest request,
     client::OlpClientSettings settings) {
-  request.WithVersion(boost::none);
-
   auto catalog_request = CatalogRequest()
                              .WithBillingTag(request.GetBillingTag())
                              .WithFetchOption(request.GetFetchOption());
@@ -154,23 +137,23 @@ PartitionsResponse PartitionsRepository::GetVolatilePartitions(
     return expiry_response.GetError();
   }
 
-  return GetPartitions(std::move(catalog), std::move(layer),
+  return GetPartitions(std::move(catalog), std::move(layer), boost::none,
                        cancellation_context, std::move(request),
                        std::move(settings), expiry_response.MoveResult());
 }
 
 PartitionsResponse PartitionsRepository::GetPartitions(
-    client::HRN catalog, std::string layer,
+    client::HRN catalog, std::string layer, boost::optional<int64_t> version,
     client::CancellationContext cancellation_context, PartitionsRequest request,
     const client::OlpClientSettings& settings, boost::optional<time_t> expiry) {
   auto fetch_option = request.GetFetchOption();
-  const auto key = request.CreateKey(layer);
+  const auto key = request.CreateKey(layer, version);
 
   repository::PartitionsCacheRepository repository(
       catalog, settings.cache, settings.default_cache_expiration);
 
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
-    auto cached_partitions = repository.Get(request, layer);
+    auto cached_partitions = repository.Get(request, layer, version);
     if (cached_partitions) {
       OLP_SDK_LOG_DEBUG_F(kLogTag,
                           "GetPartitions found in cache, hrn='%s', key='%s'",
@@ -198,9 +181,8 @@ PartitionsResponse PartitionsRepository::GetPartitions(
     }
 
     response = MetadataApi::GetPartitions(
-        metadata_api.GetResult(), layer, request.GetVersion(),
-        request.GetAdditionalFields(), boost::none, request.GetBillingTag(),
-        cancellation_context);
+        metadata_api.GetResult(), layer, version, request.GetAdditionalFields(),
+        boost::none, request.GetBillingTag(), cancellation_context);
   } else {
     auto query_api =
         ApiClientLookup::LookupApi(catalog, cancellation_context, "query", "v1",
@@ -211,7 +193,7 @@ PartitionsResponse PartitionsRepository::GetPartitions(
     }
 
     response = QueryApi::GetPartitionsbyId(
-        query_api.GetResult(), layer, partition_ids, request.GetVersion(),
+        query_api.GetResult(), layer, partition_ids, version,
         request.GetAdditionalFields(), request.GetBillingTag(),
         cancellation_context);
   }
@@ -222,7 +204,7 @@ PartitionsResponse PartitionsRepository::GetPartitions(
     OLP_SDK_LOG_DEBUG_F(kLogTag,
                         "GetPartitions put to cache, hrn='%s', key='%s'",
                         catalog.ToCatalogHRNString().c_str(), key.c_str());
-    repository.Put(request, response.GetResult(), layer, expiry,
+    repository.Put(response.GetResult(), layer, version, expiry,
                    is_layer_metadata);
   }
   if (!response.IsSuccessful()) {
@@ -269,12 +251,11 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
 
   const std::vector<std::string> partitions{partition_id.value()};
   auto partition_request =
-      PartitionsRequest().WithVersion(version).WithBillingTag(
-          data_request.GetBillingTag());
+      PartitionsRequest().WithBillingTag(data_request.GetBillingTag());
 
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_partitions =
-        repository.Get(partition_request, partitions, layer);
+        repository.Get(partitions, layer, version);
     if (cached_partitions.GetPartitions().size() == partitions.size()) {
       OLP_SDK_LOG_DEBUG_F(kLogTag,
                           "GetPartitionById found in cache, hrn='%s', key='%s'",
@@ -307,8 +288,7 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
     OLP_SDK_LOG_DEBUG_F(kLogTag,
                         "GetPartitionById put to cache, hrn='%s', key='%s'",
                         catalog.ToCatalogHRNString().c_str(), key.c_str());
-    repository.Put(partition_request, query_response.GetResult(), layer,
-                   boost::none);
+    repository.Put(query_response.GetResult(), layer, version, boost::none);
   } else if (!query_response.IsSuccessful()) {
     const auto& error = query_response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
@@ -317,7 +297,7 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
                             "hrn='%s', key='%s'",
                             catalog.ToCatalogHRNString().c_str(), key.c_str());
       // Delete partitions only but not the layer
-      repository.ClearPartitions(partition_request, partitions, layer);
+      repository.ClearPartitions(partitions, layer, version);
     }
   }
 
