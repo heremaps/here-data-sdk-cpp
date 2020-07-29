@@ -92,23 +92,6 @@ class VersionedLayerClientImpl;
 class DATASERVICE_READ_API VersionedLayerClient final {
  public:
   /**
-   * @brief Creates the `VersionedLayerClient` instance.
-   *
-   * @param catalog The HERE Resource Name (HRN) of the catalog that contains
-   * the versioned layer from which you want to get data.
-   * @param layer_id The layer ID of the versioned layer from which you want to
-   * get data.
-   * @param settings The `OlpClientSettings` instance.
-   *
-   * @deprecated Will be removed by 06.2020.
-   */
-  OLP_SDK_DEPRECATED(
-      "Use the ctor with the explicitly specified version. This ctor is "
-      "deprecated and will be removed "
-      "by 06.2020")
-  VersionedLayerClient(client::HRN catalog, std::string layer_id,
-                       client::OlpClientSettings settings);
-  /**
    * @brief Creates the `VersionedLayerClient` instance with the specified
    * catalog version.
    *
