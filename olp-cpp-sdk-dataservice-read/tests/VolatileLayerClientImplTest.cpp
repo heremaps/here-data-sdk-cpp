@@ -490,8 +490,6 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
                             olp::http::HttpStatusCode::OK);
     SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData1, kData1,
                             olp::http::HttpStatusCode::OK);
-    SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData2, kData2,
-                            olp::http::HttpStatusCode::OK);
 
     EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
@@ -554,8 +552,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
 
     ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
     read::PrefetchTilesResponse response = future.get();
-    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
-    ASSERT_TRUE(response.GetResult().empty());
+    ASSERT_FALSE(response.IsSuccessful()) << response.GetError().GetMessage();
   }
   {
     SCOPED_TRACE("Levels not specified.");
@@ -585,8 +582,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
 
     ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
     read::PrefetchTilesResponse response = future.get();
-    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
-    ASSERT_TRUE(response.GetResult().empty());
+    ASSERT_FALSE(response.IsSuccessful()) << response.GetError().GetMessage();
   }
   // negative tests
   {
@@ -671,8 +667,6 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
                             olp::http::HttpStatusCode::OK);
     SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData1, kData1,
                             olp::http::HttpStatusCode::OK);
-    SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData2, kData2,
-                            olp::http::HttpStatusCode::OK);
 
     EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
@@ -723,8 +717,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
 
     ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
     read::PrefetchTilesResponse response = future.get();
-    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
-    ASSERT_TRUE(response.GetResult().empty());
+    ASSERT_FALSE(response.IsSuccessful()) << response.GetError().GetMessage();
   }
   {
     SCOPED_TRACE("Levels not specified.");
@@ -748,8 +741,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
 
     ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
     read::PrefetchTilesResponse response = future.get();
-    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
-    ASSERT_TRUE(response.GetResult().empty());
+    ASSERT_FALSE(response.IsSuccessful()) << response.GetError().GetMessage();
   }
   // negative tests
   {
