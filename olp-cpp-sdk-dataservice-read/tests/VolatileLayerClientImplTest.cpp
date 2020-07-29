@@ -62,10 +62,16 @@ constexpr auto kHttpResponseNoPartition =
 constexpr auto kHttpResponseQuadTreeIndexVolatile =
     R"jsonString( {"subQuads": [{"version":4,"subQuadKey":"1","dataHandle":"f9a9fd8e-eb1b-48e5-bfdb-4392b3826443"}, {"version":4,"subQuadKey":"2","dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": [{"version":4,"partition":"1476147","dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"}]})jsonString";
 
+constexpr auto kHttpResponseQuadTreeIndexVolatile2 =
+    R"jsonString({"subQuads": [{"subQuadKey":"19","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"316","version":4,"dataHandle":"f9a9fd8e-eb1b-48e5-bfdb-4392b3826443"},{"subQuadKey":"317","version":4,"dataHandle":"e119d20e-c7c6-4563-ae88-8aa5c6ca75c3"},{"subQuadKey":"318","version":4,"dataHandle":"a7a1afdf-db7e-4833-9627-d38bee6e2f81"},{"subQuadKey":"319","version":4,"dataHandle":"9d515348-afce-44e8-bc6f-3693cfbed104"},{"subQuadKey":"79","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString";
+
 constexpr auto kBlobDataHandle = R"(4eed6ed1-0d32-43b9-ae79-043cb4256432)";
 
 constexpr auto kUrlPrefetchBlobData1 =
     R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/f9a9fd8e-eb1b-48e5-bfdb-4392b3826443)";
+
+constexpr auto kUrlPrefetchBlobData2 =
+    R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1)";
 
 const std::string kCatalog =
     "hrn:here:data::olp-here-test:hereos-internal-test-v2";
@@ -73,7 +79,9 @@ const std::string kLayerId = "testlayer";
 const auto kHrn = olp::client::HRN::FromString(kCatalog);
 const auto kPartitionId = "269";
 const auto kTileId = "5904591";
+const auto kRootTileId = "92259";
 const auto kData1 = "SomeData1";
+const auto kData2 = "SomeData2";
 const auto kTimeout = std::chrono::seconds(5);
 
 template <class T>
@@ -486,6 +494,8 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
                             olp::http::HttpStatusCode::OK);
     SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData1, kData1,
                             olp::http::HttpStatusCode::OK);
+    SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData2, kData2,
+                            olp::http::HttpStatusCode::OK);
 
     EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
@@ -494,7 +504,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
                                kHttpResponseLookup));
 
     std::vector<olp::geo::TileKey> tile_keys = {
-        olp::geo::TileKey::FromHereTile(kTileId)};
+        olp::geo::TileKey::FromHereTile(kRootTileId)};
 
     auto request = read::PrefetchTilesRequest()
                        .WithTileKeys(tile_keys)
@@ -523,8 +533,10 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
   {
     SCOPED_TRACE("Prefetch tiles with default levels");
 
-    SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile2,
-                            kHttpResponseQuadTreeIndexVolatile,
+    SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile,
+                            kHttpResponseQuadTreeIndexVolatile2,
+                            olp::http::HttpStatusCode::OK);
+    SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData1, kData1,
                             olp::http::HttpStatusCode::OK);
 
     EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
@@ -534,7 +546,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
                                kHttpResponseLookup));
 
     std::vector<olp::geo::TileKey> tile_keys = {
-        olp::geo::TileKey::FromHereTile(kTileId)};
+        olp::geo::TileKey::FromHereTile(kTileId).GetChild(0)};
 
     auto request = read::PrefetchTilesRequest()
                        .WithTileKeys(tile_keys)
@@ -551,13 +563,23 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
 
     ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
     read::PrefetchTilesResponse response = future.get();
-    ASSERT_FALSE(response.IsSuccessful());
+    ASSERT_TRUE(response.IsSuccessful());
+    const auto& result = response.GetResult();
+    ASSERT_FALSE(result.empty());
+    for (auto tile_result : result) {
+      std::string str = tile_result->tile_key_.ToHereTile();
+      ASSERT_TRUE(tile_result->IsSuccessful());
+      ASSERT_TRUE(tile_result->tile_key_.IsValid());
+    }
   }
+
   {
     SCOPED_TRACE("Levels not specified.");
 
-    SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile2,
-                            kHttpResponseQuadTreeIndexVolatile,
+    SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile,
+                            kHttpResponseQuadTreeIndexVolatile2,
+                            olp::http::HttpStatusCode::OK);
+    SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData1, kData1,
                             olp::http::HttpStatusCode::OK);
 
     EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
@@ -567,7 +589,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
                                kHttpResponseLookup));
 
     std::vector<olp::geo::TileKey> tile_keys = {
-        olp::geo::TileKey::FromHereTile(kTileId)};
+        olp::geo::TileKey::FromHereTile(kTileId).GetChild(0)};
 
     auto request = read::PrefetchTilesRequest().WithTileKeys(tile_keys);
 
@@ -581,7 +603,14 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
 
     ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
     read::PrefetchTilesResponse response = future.get();
-    ASSERT_FALSE(response.IsSuccessful());
+    ASSERT_TRUE(response.IsSuccessful());
+    const auto& result = response.GetResult();
+    ASSERT_FALSE(result.empty());
+    for (auto tile_result : result) {
+      std::string str = tile_result->tile_key_.ToHereTile();
+      ASSERT_TRUE(tile_result->IsSuccessful());
+      ASSERT_TRUE(tile_result->tile_key_.IsValid());
+    }
   }
   // negative tests
   {
