@@ -26,13 +26,6 @@ namespace olp {
 namespace dataservice {
 namespace read {
 
-VersionedLayerClient::VersionedLayerClient(client::HRN catalog,
-                                           std::string layer_id,
-                                           client::OlpClientSettings settings)
-    : impl_(std::make_unique<VersionedLayerClientImpl>(
-          std::move(catalog), std::move(layer_id), boost::none,
-          std::move(settings))) {}
-
 VersionedLayerClient::VersionedLayerClient(
     client::HRN catalog, std::string layer_id,
     boost::optional<int64_t> catalog_version,
