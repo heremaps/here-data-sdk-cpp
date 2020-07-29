@@ -1771,7 +1771,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesEmptyResponse) {
         promise->set_value(std::move(response));
       });
 
- // ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
   PrefetchTilesResponse response = future.get();
   ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
   ASSERT_TRUE(response.GetResult().empty());
