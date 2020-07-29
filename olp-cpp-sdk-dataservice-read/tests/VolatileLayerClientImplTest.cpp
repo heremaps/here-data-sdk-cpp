@@ -695,6 +695,8 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
                             olp::http::HttpStatusCode::OK);
     SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData1, kData1,
                             olp::http::HttpStatusCode::OK);
+    SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData2, kData2,
+                            olp::http::HttpStatusCode::OK);
 
     EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
@@ -703,7 +705,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
                                kHttpResponseLookup));
 
     std::vector<olp::geo::TileKey> tile_keys = {
-        olp::geo::TileKey::FromHereTile(kTileId)};
+        olp::geo::TileKey::FromHereTile(kRootTileId)};
 
     auto request = read::PrefetchTilesRequest()
                        .WithTileKeys(tile_keys)
@@ -725,8 +727,11 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
   }
   {
     SCOPED_TRACE("Prefetch tiles with default levels");
-    SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile2,
-                            kHttpResponseQuadTreeIndexVolatile,
+
+    SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile,
+                            kHttpResponseQuadTreeIndexVolatile2,
+                            olp::http::HttpStatusCode::OK);
+    SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData1, kData1,
                             olp::http::HttpStatusCode::OK);
 
     EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
@@ -736,7 +741,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
                                kHttpResponseLookup));
 
     std::vector<olp::geo::TileKey> tile_keys = {
-        olp::geo::TileKey::FromHereTile(kTileId)};
+        olp::geo::TileKey::FromHereTile(kTileId).GetChild(0)};
 
     auto request = read::PrefetchTilesRequest()
                        .WithTileKeys(tile_keys)
@@ -748,12 +753,21 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
 
     ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
     read::PrefetchTilesResponse response = future.get();
-    ASSERT_FALSE(response.IsSuccessful());
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    const auto& result = response.GetResult();
+    ASSERT_FALSE(result.empty());
+    for (auto tile_result : result) {
+      std::string str = tile_result->tile_key_.ToHereTile();
+      ASSERT_TRUE(tile_result->IsSuccessful());
+      ASSERT_TRUE(tile_result->tile_key_.IsValid());
+    }
   }
   {
     SCOPED_TRACE("Levels not specified.");
-    SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile2,
-                            kHttpResponseQuadTreeIndexVolatile,
+    SetupNetworkExpectation(*network_mock, kUrlQuadTreeIndexVolatile,
+                            kHttpResponseQuadTreeIndexVolatile2,
+                            olp::http::HttpStatusCode::OK);
+    SetupNetworkExpectation(*network_mock, kUrlPrefetchBlobData1, kData1,
                             olp::http::HttpStatusCode::OK);
 
     EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
@@ -763,7 +777,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
                                kHttpResponseLookup));
 
     std::vector<olp::geo::TileKey> tile_keys = {
-        olp::geo::TileKey::FromHereTile(kTileId)};
+        olp::geo::TileKey::FromHereTile(kTileId).GetChild(0)};
 
     auto request = read::PrefetchTilesRequest().WithTileKeys(tile_keys);
 
@@ -772,7 +786,14 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
 
     ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
     read::PrefetchTilesResponse response = future.get();
-    ASSERT_FALSE(response.IsSuccessful());
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    const auto& result = response.GetResult();
+    ASSERT_FALSE(result.empty());
+    for (auto tile_result : result) {
+      std::string str = tile_result->tile_key_.ToHereTile();
+      ASSERT_TRUE(tile_result->IsSuccessful());
+      ASSERT_TRUE(tile_result->tile_key_.IsValid());
+    }
   }
   // negative tests
   {
