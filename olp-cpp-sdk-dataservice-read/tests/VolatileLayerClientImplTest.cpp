@@ -74,7 +74,6 @@ const auto kHrn = olp::client::HRN::FromString(kCatalog);
 const auto kPartitionId = "269";
 const auto kTileId = "5904591";
 const auto kData1 = "SomeData1";
-const auto kData2 = "SomeData2";
 const auto kTimeout = std::chrono::seconds(5);
 
 template <class T>
