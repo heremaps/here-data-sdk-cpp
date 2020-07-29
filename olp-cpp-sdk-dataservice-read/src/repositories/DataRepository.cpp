@@ -61,8 +61,8 @@ DataResponse DataRepository::GetVersionedTile(
     const TileRequest& request, int64_t version,
     client::CancellationContext context,
     const client::OlpClientSettings& settings) {
-  auto response = PartitionsRepository::GetTile(catalog, layer_id, context,
-                                                request, version, settings);
+  PartitionsRepository repository(catalog, settings);
+  auto response = repository.GetTile(layer_id, request, version, context);
 
   if (!response.IsSuccessful()) {
     OLP_SDK_LOG_WARNING_F(
@@ -94,9 +94,9 @@ DataResponse DataRepository::GetVersionedData(
 
   if (!request.GetDataHandle()) {
     // get data handle for a partition to be queried
+    PartitionsRepository repository(catalog, settings);
     auto partitions_response =
-        repository::PartitionsRepository::GetPartitionById(
-            catalog, layer_id, version, context, request, settings);
+        repository.GetPartitionById(layer_id, version, request, context);
 
     if (!partitions_response.IsSuccessful()) {
       return partitions_response.GetError();
@@ -209,9 +209,9 @@ DataResponse DataRepository::GetVolatileData(
   }
 
   if (!request.GetDataHandle()) {
+    PartitionsRepository repository(catalog, settings);
     auto partitions_response =
-        repository::PartitionsRepository::GetPartitionById(
-            catalog, layer_id, boost::none, context, request, settings);
+        repository.GetPartitionById(layer_id, boost::none, request, context);
 
     if (!partitions_response.IsSuccessful()) {
       return partitions_response.GetError();

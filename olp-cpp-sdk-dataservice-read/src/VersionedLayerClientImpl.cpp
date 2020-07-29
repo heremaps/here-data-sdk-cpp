@@ -106,10 +106,11 @@ client::CancellationToken VersionedLayerClientImpl::GetPartitions(
       if (!version_response.IsSuccessful()) {
         return version_response.GetError();
       }
+      const auto version = version_response.GetResult().GetVersion();
 
-      return repository::PartitionsRepository::GetVersionedPartitions(
-          catalog, layer_id, version_response.GetResult().GetVersion(), context,
-          std::move(request), settings);
+      repository::PartitionsRepository repository(catalog, settings);
+      return repository.GetVersionedPartitions(layer_id, request, version,
+                                               context);
     };
 
     return AddTask(settings.task_scheduler, pending_requests_,
@@ -458,9 +459,9 @@ bool VersionedLayerClientImpl::RemoveFromCache(
 
 bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
   read::QuadTreeIndex cached_tree;
-  if (repository::PartitionsRepository::FindQuadTree(
-          catalog_, settings_, layer_id_, catalog_version_.load(), tile,
-          cached_tree)) {
+  repository::PartitionsRepository repository(catalog_, settings_);
+  if (repository.FindQuadTree(layer_id_, catalog_version_.load(), tile,
+                              cached_tree)) {
     auto data = cached_tree.Find(tile, false);
     if (!data) {
       return true;
@@ -502,9 +503,9 @@ bool VersionedLayerClientImpl::IsCached(const std::string& partition_id) const {
 
 bool VersionedLayerClientImpl::IsCached(const geo::TileKey& tile) const {
   read::QuadTreeIndex cached_tree;
-  if (repository::PartitionsRepository::FindQuadTree(
-          catalog_, settings_, layer_id_, catalog_version_.load(), tile,
-          cached_tree)) {
+  repository::PartitionsRepository repository(catalog_, settings_);
+  if (repository.FindQuadTree(layer_id_, catalog_version_.load(), tile,
+                              cached_tree)) {
     auto data = cached_tree.Find(tile, false);
     if (!data) {
       return false;
@@ -542,9 +543,9 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
     }
 
     auto version = version_response.GetResult().GetVersion();
+    repository::PartitionsRepository repository(catalog_, settings_);
     auto partition_response =
-        repository::PartitionsRepository::GetAggregatedTile(
-            catalog, layer_id, context, request, version, settings);
+        repository.GetAggregatedTile(layer_id, request, version, context);
     if (!partition_response.IsSuccessful()) {
       return partition_response.GetError();
     }
@@ -632,8 +633,8 @@ bool VersionedLayerClientImpl::Protect(const TileKeys& tiles) {
       add_data_handle(tile, *it);
     } else {
       read::QuadTreeIndex cached_tree;
-      if (repository::PartitionsRepository::FindQuadTree(
-              catalog_, settings_, layer_id_, version, tile, cached_tree) &&
+      repository::PartitionsRepository repository(catalog_, settings_);
+      if (repository.FindQuadTree(layer_id_, version, tile, cached_tree) &&
           add_data_handle(tile, cached_tree)) {
         keys_to_protect.emplace_back(partitions_cache_repository.CreateQuadKey(
             layer_id_, cached_tree.GetRootTile(), kQuadTreeDepth, version));

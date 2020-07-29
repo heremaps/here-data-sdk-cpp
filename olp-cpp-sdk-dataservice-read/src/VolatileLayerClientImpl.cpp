@@ -81,9 +81,9 @@ client::CancellationToken VolatileLayerClientImpl::GetPartitions(
     auto settings = settings_;
 
     auto data_task = [=](client::CancellationContext context) {
-      return repository::PartitionsRepository::GetVolatilePartitions(
-          std::move(catalog), std::move(layer_id), std::move(context),
-          std::move(request), std::move(settings));
+      repository::PartitionsRepository repository(catalog, settings);
+      return repository.GetVolatilePartitions(std::move(layer_id), request,
+                                              std::move(context));
     };
 
     return AddTask(settings.task_scheduler, pending_requests_,

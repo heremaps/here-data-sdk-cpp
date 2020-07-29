@@ -47,57 +47,51 @@ using QuadTreeIndexResponse = Response<QuadTreeIndex>;
 
 class PartitionsRepository {
  public:
-  static PartitionsResponse GetVersionedPartitions(
-      client::HRN catalog, std::string layer, int64_t version,
-      client::CancellationContext cancellation_context,
-      read::PartitionsRequest data_request, client::OlpClientSettings settings);
+  PartitionsRepository(client::HRN catalog, client::OlpClientSettings settings);
 
-  static PartitionsResponse GetVolatilePartitions(
-      client::HRN catalog, std::string layer,
-      client::CancellationContext cancellation_context,
-      read::PartitionsRequest data_request, client::OlpClientSettings settings);
+  PartitionsResponse GetVersionedPartitions(
+      std::string layer, const read::PartitionsRequest& request,
+      std::int64_t version, client::CancellationContext context);
 
-  static PartitionsResponse GetPartitionById(
-      const client::HRN& catalog, const std::string& layer,
-      boost::optional<int64_t> version,
-      client::CancellationContext cancellation_context,
-      const DataRequest& data_request, client::OlpClientSettings settings);
+  PartitionsResponse GetVolatilePartitions(
+      std::string layer, const read::PartitionsRequest& request,
+      client::CancellationContext context);
 
-  static model::Partition PartitionFromSubQuad(const model::SubQuad& sub_quad,
-                                               const std::string& partition);
+  PartitionsResponse GetPartitionById(const std::string& layer,
+                                      boost::optional<int64_t> version,
+                                      const DataRequest& request,
+                                      client::CancellationContext context);
 
-  static PartitionResponse GetAggregatedTile(
-      const client::HRN& catalog, const std::string& layer,
-      client::CancellationContext cancellation_context,
-      const TileRequest& request, boost::optional<int64_t> version,
-      const client::OlpClientSettings& settings);
+  model::Partition PartitionFromSubQuad(const model::SubQuad& sub_quad,
+                                        const std::string& partition);
 
-  static PartitionResponse GetTile(
-      const client::HRN& catalog, const std::string& layer,
-      client::CancellationContext cancellation_context,
-      const TileRequest& request, boost::optional<int64_t> version,
-      const client::OlpClientSettings& settings);
+  PartitionResponse GetAggregatedTile(const std::string& layer,
+                                      const TileRequest& request,
+                                      boost::optional<int64_t> version,
+                                      client::CancellationContext context);
 
-  static bool FindQuadTree(const client::HRN& catalog,
-                           const client::OlpClientSettings& settings,
-                           const std::string& layer,
-                           boost::optional<int64_t> version,
-                           const olp::geo::TileKey& tile_key,
-                           read::QuadTreeIndex& tree);
+  PartitionResponse GetTile(const std::string& layer,
+                            const TileRequest& request,
+                            boost::optional<int64_t> version,
+                            client::CancellationContext context);
+
+  bool FindQuadTree(const std::string& layer, boost::optional<int64_t> version,
+                    const olp::geo::TileKey& tile_key,
+                    read::QuadTreeIndex& tree);
 
  private:
-  static QuadTreeIndexResponse GetQuadTreeIndexForTile(
-      const client::HRN& catalog, const std::string& layer,
-      client::CancellationContext cancellation_context,
-      const TileRequest& request, boost::optional<int64_t> version,
-      const client::OlpClientSettings& settings);
+  QuadTreeIndexResponse GetQuadTreeIndexForTile(
+      const std::string& layer, const TileRequest& request,
+      boost::optional<int64_t> version, client::CancellationContext context);
 
-  static PartitionsResponse GetPartitions(
-      client::HRN catalog, std::string layer, boost::optional<int64_t> version,
-      client::CancellationContext cancellation_context,
-      read::PartitionsRequest request,
-      const client::OlpClientSettings& settings,
+  PartitionsResponse GetPartitions(
+      std::string layer, const read::PartitionsRequest& request,
+      boost::optional<std::int64_t> version,
+      client::CancellationContext context,
       boost::optional<time_t> expiry = boost::none);
+
+  client::HRN catalog_;
+  client::OlpClientSettings settings_;
 };
 }  // namespace repository
 }  // namespace read
