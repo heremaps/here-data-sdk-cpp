@@ -191,7 +191,6 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
         // cover tree.
         bool request_only_input_tiles = IsOnlyInputTiles(request);
         unsigned int min_level =
-            (request_only_input_tiles
             (request_only_input_tiles ? static_cast<unsigned int>(geo::TileKey::LevelCount)
                                       : request.GetMinLevel());
         unsigned int max_level =
