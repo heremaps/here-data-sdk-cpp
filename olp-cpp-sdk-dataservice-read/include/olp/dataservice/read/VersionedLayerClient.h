@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -309,11 +309,14 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * @param callback The `PrefetchTilesResponseCallback` object that is invoked
    * if the `PrefetchTilesResult` instance is available or an error is
    * encountered.
+   * @param status_callback The `PrefetchStatusCallback` object that is invoked
+   * every time a tile is fetched.
    *
    * @return A token that can be used to cancel this request.
    */
   client::CancellationToken PrefetchTiles(
-      PrefetchTilesRequest request, PrefetchTilesResponseCallback callback);
+      PrefetchTilesRequest request, PrefetchTilesResponseCallback callback,
+      PrefetchStatusCallback status_callback = nullptr);
 
   /**
    * @brief Prefetches a set of tiles asynchronously.
@@ -332,13 +335,16 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    *
    * @param request The `PrefetchTilesRequest` instance that contains
    * a complete set of request parameters.
+   * @param status_callback The `PrefetchStatusCallback` object that is invoked
+   * every time a tile is fetched.
    *
    * @return `CancellableFuture` that contains the `PrefetchTilesResponse`
    * instance with data or an error. You can also use `CancellableFuture` to
    * cancel this request.
    */
   client::CancellableFuture<PrefetchTilesResponse> PrefetchTiles(
-      PrefetchTilesRequest request);
+      PrefetchTilesRequest request,
+      PrefetchStatusCallback status_callback = nullptr);
 
   /**
    * @brief Removes the partition from the mutable disk cache.

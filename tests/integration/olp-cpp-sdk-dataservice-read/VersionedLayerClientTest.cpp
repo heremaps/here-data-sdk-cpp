@@ -1809,6 +1809,71 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchSameTiles) {
   }
 }
 
+TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithStatus) {
+  constexpr auto kLayerId = "hype-test-prefetch";
+
+  auto client =
+      read::VersionedLayerClient(kCatalog, kLayerId, boost::none, settings_);
+  std::vector<geo::TileKey> tile_keys = {geo::TileKey::FromHereTile("5904591")};
+
+  auto request = read::PrefetchTilesRequest()
+                     .WithTileKeys(tile_keys)
+                     .WithMinLevel(11)
+                     .WithMaxLevel(12);
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_QUADKEYS_92259), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_QUADKEYS_92259));
+
+  struct Status {
+    MOCK_METHOD(void, Op, (read::PrefetchStatus));
+  };
+
+  Status status_object;
+
+  {
+    using testing::InSequence;
+    using testing::Truly;
+
+    auto matches = [](uint32_t prefetched, uint32_t total) {
+      return [=](read::PrefetchStatus status) -> bool {
+        return status.prefetched_tiles == prefetched &&
+               status.total_tiles_to_prefetch == total;
+      };
+    };
+
+    InSequence sequence;
+    EXPECT_CALL(status_object, Op(Truly(matches(1, 5)))).Times(1);
+    EXPECT_CALL(status_object, Op(Truly(matches(2, 5)))).Times(1);
+    EXPECT_CALL(status_object, Op(Truly(matches(3, 5)))).Times(1);
+    EXPECT_CALL(status_object, Op(Truly(matches(4, 5)))).Times(1);
+    EXPECT_CALL(status_object, Op(Truly(matches(5, 5)))).Times(1);
+  }
+
+  auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
+  auto future = promise->get_future();
+  auto token = client.PrefetchTiles(
+      request,
+      [promise](PrefetchTilesResponse response) {
+        promise->set_value(std::move(response));
+      },
+      [&](read::PrefetchStatus status) { status_object.Op(status); });
+
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  PrefetchTilesResponse response = future.get();
+  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_FALSE(response.GetResult().empty());
+
+  const auto& result = response.GetResult();
+
+  for (auto tile_result : result) {
+    ASSERT_TRUE(tile_result->IsSuccessful());
+    ASSERT_TRUE(tile_result->tile_key_.IsValid());
+  }
+
+  testing::Mock::VerifyAndClearExpectations(&status_object);
+}
+
 TEST_F(DataserviceReadVersionedLayerClientTest, GetData404Error) {
   EXPECT_CALL(
       *network_mock_,

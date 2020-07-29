@@ -31,9 +31,12 @@ namespace dataservice {
 namespace read {
 
 PrefetchJob::PrefetchJob(PrefetchTilesResponseCallback user_callback,
+                         PrefetchStatusCallback status_callback,
                          uint32_t task_count)
     : user_callback_(std::move(user_callback)),
+      status_callback_(std::move(status_callback)),
       task_count_{task_count},
+      total_task_count_{task_count},
       canceled_{false} {
   tasks_contexts_.reserve(task_count_);
   prefetch_result_.reserve(task_count_);
@@ -69,6 +72,11 @@ void PrefetchJob::CancelOperation() {
 void PrefetchJob::CompleteTask(std::shared_ptr<PrefetchTileResult> result) {
   std::lock_guard<std::mutex> lock(mutex_);
   prefetch_result_.push_back(std::move(result));
+
+  if (status_callback_) {
+    status_callback_(
+        PrefetchStatus{prefetch_result_.size(), total_task_count_});
+  }
 
   if (!--task_count_) {
     OLP_SDK_LOG_INFO_F(kLogTag, "Prefetch done, tiles=%zu",
