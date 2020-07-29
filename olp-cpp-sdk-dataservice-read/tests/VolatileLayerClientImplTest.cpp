@@ -46,9 +46,6 @@ constexpr auto kUrlQueryPartition269 =
 constexpr auto kUrlQuadTreeIndexVolatile =
     R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/quadkeys/92259/depths/4)";
 
-constexpr auto kUrlQuadTreeIndexVolatile2 =
-    R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/quadkeys/23064/depths/4)";
-
 constexpr auto kHttpResponseLookup =
     R"jsonString([{"api":"query","version":"v1","baseURL":"https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2","parameters":{}},
     {"api":"volatile-blob","version":"v1","baseURL":"https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString";
