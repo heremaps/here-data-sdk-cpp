@@ -29,7 +29,8 @@ namespace read {
 
 class PrefetchJob {
  public:
-  PrefetchJob(PrefetchTilesResponseCallback user_callback, uint32_t task_count);
+  PrefetchJob(PrefetchTilesResponseCallback user_callback,
+              PrefetchStatusCallback status_callback, uint32_t task_count);
 
   PrefetchJob(const PrefetchJob&) = delete;
   PrefetchJob(PrefetchJob&&) = delete;
@@ -51,7 +52,9 @@ class PrefetchJob {
 
  private:
   PrefetchTilesResponseCallback user_callback_;
+  PrefetchStatusCallback status_callback_;
   uint32_t task_count_;
+  const uint32_t total_task_count_;
   bool canceled_;
 
   std::mutex mutex_;

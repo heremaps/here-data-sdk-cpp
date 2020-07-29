@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@
 
 #include <memory>
 
-#include <boost/optional.hpp>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
@@ -33,6 +32,7 @@
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/TileRequest.h>
 #include <olp/dataservice/read/Types.h>
+#include <boost/optional.hpp>
 #include "repositories/ExecuteOrSchedule.inl"
 
 namespace olp {
@@ -76,10 +76,11 @@ class VersionedLayerClientImpl {
       PartitionsRequest partitions_request);
 
   virtual client::CancellationToken PrefetchTiles(
-      PrefetchTilesRequest request, PrefetchTilesResponseCallback callback);
+      PrefetchTilesRequest request, PrefetchTilesResponseCallback callback,
+      PrefetchStatusCallback status_callback);
 
   virtual client::CancellableFuture<PrefetchTilesResponse> PrefetchTiles(
-      PrefetchTilesRequest request);
+      PrefetchTilesRequest request, PrefetchStatusCallback status_callback);
 
   virtual bool RemoveFromCache(const std::string& partition_id);
 

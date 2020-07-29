@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@
 #include <olp/core/client/ApiResponse.h>
 
 #include <olp/dataservice/read/AggregatedDataResult.h>
+#include <olp/dataservice/read/PrefetchStatus.h>
 #include <olp/dataservice/read/model/Catalog.h>
 #include <olp/dataservice/read/model/Data.h>
 #include <olp/dataservice/read/model/Messages.h>
@@ -87,6 +88,8 @@ using PrefetchTilesResult = std::vector<std::shared_ptr<PrefetchTileResult>>;
 using PrefetchTilesResponse = Response<PrefetchTilesResult>;
 /// The callback type of the prefetch completion.
 using PrefetchTilesResponseCallback = Callback<PrefetchTilesResult>;
+/// The callback type for the prefetch status update.
+using PrefetchStatusCallback = std::function<void(PrefetchStatus)>;
 
 /// The subscribe ID type of the stream layer client.
 using SubscriptionId = std::string;

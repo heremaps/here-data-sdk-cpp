@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,13 +68,16 @@ VersionedLayerClient::GetPartitions(PartitionsRequest partitions_request) {
 }
 
 client::CancellationToken VersionedLayerClient::PrefetchTiles(
-    PrefetchTilesRequest request, PrefetchTilesResponseCallback callback) {
-  return impl_->PrefetchTiles(std::move(request), std::move(callback));
+    PrefetchTilesRequest request, PrefetchTilesResponseCallback callback,
+    PrefetchStatusCallback status_callback) {
+  return impl_->PrefetchTiles(std::move(request), std::move(callback),
+                              std::move(status_callback));
 }
 
 client::CancellableFuture<PrefetchTilesResponse>
-VersionedLayerClient::PrefetchTiles(PrefetchTilesRequest request) {
-  return impl_->PrefetchTiles(std::move(request));
+VersionedLayerClient::PrefetchTiles(PrefetchTilesRequest request,
+                                    PrefetchStatusCallback status_callback) {
+  return impl_->PrefetchTiles(std::move(request), std::move(status_callback));
 }
 
 client::CancellationToken VersionedLayerClient::GetData(

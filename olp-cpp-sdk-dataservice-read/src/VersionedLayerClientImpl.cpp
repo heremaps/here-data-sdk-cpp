@@ -187,7 +187,8 @@ client::CancellableFuture<DataResponse> VersionedLayerClientImpl::GetData(
 }
 
 client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
-    PrefetchTilesRequest request, PrefetchTilesResponseCallback callback) {
+    PrefetchTilesRequest request, PrefetchTilesResponseCallback callback,
+    PrefetchStatusCallback status_callback) {
   // Used as empty response to be able to execute initial task
   using EmptyResponse = Response<PrefetchTileNoError>;
   using client::CancellationContext;
@@ -278,7 +279,8 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
             std::make_shared<client::OlpClientSettings>(settings);
 
         auto prefetch_job = std::make_shared<PrefetchJob>(
-            std::move(callback), tiles_result.size());
+            std::move(callback), std::move(status_callback),
+            tiles_result.size());
 
         std::for_each(
             tiles_result.begin(), tiles_result.end(),
@@ -337,12 +339,15 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
 }  // namespace read
 
 client::CancellableFuture<PrefetchTilesResponse>
-VersionedLayerClientImpl::PrefetchTiles(PrefetchTilesRequest request) {
+VersionedLayerClientImpl::PrefetchTiles(
+    PrefetchTilesRequest request, PrefetchStatusCallback status_callback) {
   auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
-  auto cancel_token = PrefetchTiles(std::move(request),
-                                    [promise](PrefetchTilesResponse response) {
-                                      promise->set_value(std::move(response));
-                                    });
+  auto cancel_token = PrefetchTiles(
+      std::move(request),
+      [promise](PrefetchTilesResponse response) {
+        promise->set_value(std::move(response));
+      },
+      std::move(status_callback));
   return client::CancellableFuture<PrefetchTilesResponse>(cancel_token,
                                                           promise);
 }
