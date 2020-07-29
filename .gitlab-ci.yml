@@ -222,3 +222,20 @@ test_android_emulator:
   only:
     - master
     - branches
+
+# Manual job to generate API/ABI Backward Compatibility Reports:
+# build current SDK and previous tagged SDK, then generate 4 html reports (for every lib)
+generate_api_compliance_job:
+  stage: test
+  tags:
+  - docker-prod
+  image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_API}:${DOCKER_IMAGE_API_VERSION}
+  script:
+  - $CI_PROJECT_DIR/scripts/misc/api_compliance.sh
+  when: manual
+  only:
+    - master
+    - branches
+  artifacts:
+    paths:
+    - ./*.html
