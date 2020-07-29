@@ -192,12 +192,11 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
         bool request_only_input_tiles = IsOnlyInputTiles(request);
         unsigned int min_level =
             (request_only_input_tiles
-                 ? static_cast<unsigned int>(geo::TileKey::LevelCount)
-                 : request.GetMinLevel());
+            (request_only_input_tiles ? static_cast<unsigned int>(geo::TileKey::LevelCount)
+                                      : request.GetMinLevel());
         unsigned int max_level =
-            (request_only_input_tiles
-                 ? static_cast<unsigned int>(geo::TileKey::LevelCount)
-                 : request.GetMaxLevel());
+            (request_only_input_tiles ? static_cast<unsigned int>(geo::TileKey::LevelCount)
+                                      : request.GetMaxLevel());
 
         auto sliced_tiles = repository::PrefetchTilesRepository::GetSlicedTiles(
             tile_keys, min_level, max_level);
