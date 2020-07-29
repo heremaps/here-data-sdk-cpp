@@ -217,8 +217,10 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
         if (!sub_tiles.IsSuccessful()) {
           return sub_tiles.GetError();
         }
+        auto tiles_result =
+            repository::PrefetchTilesRepository::FilterSkippedTiles(
+                request, request_only_input_tiles, sub_tiles.MoveResult());
 
-        const auto& tiles_result = sub_tiles.GetResult();
         if (tiles_result.empty()) {
           OLP_SDK_LOG_WARNING_F(
               kLogTag, "PrefetchTiles: subtiles empty, key=%s", key.c_str());
@@ -236,15 +238,6 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
         std::vector<CancellationContext> contexts;
         contexts.reserve(tiles_result.size() + 1u);
         auto it = tiles_result.begin();
-        auto skip_tile = [&](const geo::TileKey& tile_key) {
-          if (request_only_input_tiles) {
-            return (std::find(tile_keys.begin(), tile_keys.end(), tile_key) ==
-                    tile_keys.end());
-          }
-          // skip tiles outside min/max segment
-          return (tile_key.Level() < request.GetMinLevel() ||
-                  tile_key.Level() > request.GetMaxLevel());
-        };
 
         // Settings structure consumes a 536 bytes of heap memory when captured
         // in lambda, shared pointer (16 bytes) saves 520 bytes of heap memory.
@@ -254,11 +247,6 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
 
         while (!context.IsCancelled() && it != tiles_result.end()) {
           auto const& tile = it->first;
-          if (skip_tile(tile)) {
-            it++;
-            continue;
-          }
-
           auto const& handle = it->second;
           auto const& biling_tag = request.GetBillingTag();
           auto promise = std::make_shared<PrefetchResultPromise>();
