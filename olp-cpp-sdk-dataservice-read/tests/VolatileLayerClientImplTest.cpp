@@ -536,7 +536,10 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kTileId)};
 
-    auto request = read::PrefetchTilesRequest().WithTileKeys(tile_keys);
+    auto request = read::PrefetchTilesRequest()
+                       .WithTileKeys(tile_keys)
+                       .WithMinLevel(olp::geo::TileKey::LevelCount)
+                       .WithMaxLevel(olp::geo::TileKey::LevelCount);
 
     auto promise =
         std::make_shared<std::promise<read::PrefetchTilesResponse>>();
@@ -548,7 +551,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
 
     ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
     read::PrefetchTilesResponse response = future.get();
-    ASSERT_FALSE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_FALSE(response.IsSuccessful());
   }
   {
     SCOPED_TRACE("Levels not specified.");
@@ -578,7 +581,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
 
     ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
     read::PrefetchTilesResponse response = future.get();
-    ASSERT_FALSE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_FALSE(response.IsSuccessful());
   }
   // negative tests
   {
@@ -706,14 +709,17 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
     std::vector<olp::geo::TileKey> tile_keys = {
         olp::geo::TileKey::FromHereTile(kTileId)};
 
-    auto request = read::PrefetchTilesRequest().WithTileKeys(tile_keys);
+    auto request = read::PrefetchTilesRequest()
+                       .WithTileKeys(tile_keys)
+                       .WithMinLevel(olp::geo::TileKey::LevelCount)
+                       .WithMaxLevel(olp::geo::TileKey::LevelCount);
 
     auto cancellable = client.PrefetchTiles(request);
     auto future = cancellable.GetFuture();
 
     ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
     read::PrefetchTilesResponse response = future.get();
-    ASSERT_FALSE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_FALSE(response.IsSuccessful());
   }
   {
     SCOPED_TRACE("Levels not specified.");
@@ -737,7 +743,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
 
     ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
     read::PrefetchTilesResponse response = future.get();
-    ASSERT_FALSE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_FALSE(response.IsSuccessful());
   }
   // negative tests
   {
