@@ -342,8 +342,9 @@ TEST_F(VolatileLayerClientTest, Prefetch) {
   rd::VolatileLayerClient client(hrn, prefetch_layer_, prefetch_settings_);
   {
     SCOPED_TRACE("Prefetch tiles online and store them in memory cache");
-    std::vector<olp::geo::TileKey> tile_keys = {
-        olp::geo::TileKey::FromHereTile(kPrefetchTile)};
+    auto root_tile =
+        olp::geo::TileKey::FromHereTile(kPrefetchTile).ChangedLevelBy(-2);
+    std::vector<olp::geo::TileKey> tile_keys = {root_tile};
     std::vector<olp::geo::TileKey> expected_tile_keys = {
         olp::geo::TileKey::FromHereTile(kPrefetchTile),
         olp::geo::TileKey::FromHereTile(kPrefetchSubTile1),
