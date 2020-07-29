@@ -263,6 +263,11 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
             repository::PrefetchTilesRepository::FilterSkippedTiles(
                 request, request_only_input_tiles, sub_tiles.MoveResult());
 
+        if (tiles_result.empty()) {
+          return EmptyResponse(
+              {olp::client::ErrorCode::NotFound, "No tiles to prefetch"});
+        }
+
         OLP_SDK_LOG_INFO_F(kLogTag, "Prefetch start, key=%s, tiles=%zu",
                            key.c_str(), tiles_result.size());
 
@@ -329,9 +334,12 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
       [callback](EmptyResponse response) {
         // Inner task only generates successfull result
         if (!response.IsSuccessful()) {
-          callback(response.GetError());
-        } else {
-          callback(PrefetchTilesResult());
+          if (response.GetError().GetErrorCode() ==
+              olp::client::ErrorCode::NotFound) {
+            callback(PrefetchTilesResult());
+          } else {
+            callback(response.GetError());
+          }
         }
       });
 
