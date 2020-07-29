@@ -67,9 +67,6 @@ constexpr auto kBlobDataHandle = R"(4eed6ed1-0d32-43b9-ae79-043cb4256432)";
 constexpr auto kUrlPrefetchBlobData1 =
     R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/f9a9fd8e-eb1b-48e5-bfdb-4392b3826443)";
 
-constexpr auto kUrlPrefetchBlobData2 =
-    R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1)";
-
 const std::string kCatalog =
     "hrn:here:data::olp-here-test:hereos-internal-test-v2";
 const std::string kLayerId = "testlayer";
