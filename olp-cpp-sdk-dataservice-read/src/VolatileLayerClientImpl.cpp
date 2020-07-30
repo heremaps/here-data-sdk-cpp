@@ -221,12 +221,6 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
         auto tiles_result = repository.FilterSkippedTiles(
             request, request_only_input_tiles, sub_tiles.MoveResult());
 
-        if (tiles_result.empty()) {
-          OLP_SDK_LOG_WARNING_F(
-              kLogTag, "PrefetchTiles: subtiles empty, key=%s", key.c_str());
-          return {{ErrorCode::InvalidArgument, "Subquads retrieval failed"}};
-        }
-
         OLP_SDK_LOG_INFO_F(kLogTag, "Prefetch start, key=%s, tiles=%zu",
                            key.c_str(), tiles_result.size());
 
@@ -256,6 +250,10 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
           AddTask(
               settings.task_scheduler, pending_requests,
               [=](CancellationContext inner_context) {
+                if (handle.empty()) {
+                  return DataResponse{
+                      {olp::client::ErrorCode::NotFound, "Not found"}};
+                }
                 repository::DataCacheRepository data_cache_repository(
                     catalog, shared_settings->cache);
                 if (data_cache_repository.IsCached(layer_id, handle)) {

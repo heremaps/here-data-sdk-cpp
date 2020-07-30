@@ -263,9 +263,8 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
             request, request_only_input_tiles, sub_tiles.MoveResult());
 
         if (tiles_result.empty()) {
-          OLP_SDK_LOG_WARNING_F(
-              kLogTag, "PrefetchTiles: subtiles empty, key=%s", key.c_str());
-          return {{ErrorCode::InvalidArgument, "Subquads retrieval failed"}};
+          return EmptyResponse(
+              {olp::client::ErrorCode::NotFound, "No tiles to prefetch"});
         }
 
         OLP_SDK_LOG_INFO_F(kLogTag, "Prefetch start, key=%s, tiles=%zu",
@@ -291,6 +290,10 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
               AddTask(
                   settings.task_scheduler, pending_requests,
                   [=](CancellationContext inner_context) {
+                    if (handle.empty()) {
+                      return DataResponse{
+                          {olp::client::ErrorCode::NotFound, "Not found"}};
+                    }
                     repository::DataCacheRepository data_cache_repository(
                         catalog, shared_settings->cache);
                     if (data_cache_repository.IsCached(layer_id, handle)) {
@@ -332,23 +335,27 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
       [callback](EmptyResponse response) {
         // Inner task only generates successfull result
         if (!response.IsSuccessful()) {
-          callback(response.GetError());
+          if (response.GetError().GetErrorCode() ==
+              olp::client::ErrorCode::NotFound) {
+            callback(PrefetchTilesResult());
+          } else {
+            callback(response.GetError());
+          }
         }
       });
 
   return token;
-}  // namespace read
+}
 
 client::CancellableFuture<PrefetchTilesResponse>
 VersionedLayerClientImpl::PrefetchTiles(
     PrefetchTilesRequest request, PrefetchStatusCallback status_callback) {
   auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
-  auto cancel_token = PrefetchTiles(
-      std::move(request),
-      [promise](PrefetchTilesResponse response) {
-        promise->set_value(std::move(response));
-      },
-      std::move(status_callback));
+  auto cancel_token = PrefetchTiles(std::move(request),
+                                    [promise](PrefetchTilesResponse response) {
+                                      promise->set_value(std::move(response));
+                                    },
+                                    std::move(status_callback));
   return client::CancellableFuture<PrefetchTilesResponse>(cancel_token,
                                                           promise);
 }

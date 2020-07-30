@@ -330,8 +330,8 @@ SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
 SubQuadsResult PrefetchTilesRepository::FilterSkippedTiles(
     const PrefetchTilesRequest& request, bool request_only_input_tiles,
     SubQuadsResult sub_tiles) {
+  const auto& tile_keys = request.GetTileKeys();
   auto skip_tile = [&](const geo::TileKey& tile_key) {
-    const auto& tile_keys = request.GetTileKeys();
     if (request_only_input_tiles) {
       return std::find(tile_keys.begin(), tile_keys.end(), tile_key) ==
              tile_keys.end();
@@ -356,6 +356,13 @@ SubQuadsResult PrefetchTilesRepository::FilterSkippedTiles(
       sub_quad_it = sub_tiles.erase(sub_quad_it);
     } else {
       ++sub_quad_it;
+    }
+  }
+  if (request_only_input_tiles) {
+    for (const auto& tile : tile_keys) {
+      if (sub_tiles.find(tile) == sub_tiles.end()) {
+        sub_tiles[tile] = "";
+      }
     }
   }
   return sub_tiles;

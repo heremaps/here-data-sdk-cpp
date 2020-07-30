@@ -349,9 +349,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWrongLevels) {
 
       ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
       dataservice_read::PrefetchTilesResponse response = future.get();
-      ASSERT_FALSE(response.IsSuccessful());
-      ASSERT_EQ(static_cast<int>(http::ErrorCode::UNKNOWN_ERROR),
-                response.GetError().GetHttpStatusCode());
+      ASSERT_TRUE(response.IsSuccessful());
+      ASSERT_TRUE(response.GetResult().empty());
     }
   }
 }

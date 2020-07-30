@@ -1745,6 +1745,75 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesInvalidResponse) {
             response.GetError().GetMessage());
 }
 
+TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesEmptyResponse) {
+  constexpr auto kLayerId = "hype-test-prefetch";
+
+  auto client =
+      read::VersionedLayerClient(kCatalog, kLayerId, boost::none, settings_);
+  std::vector<geo::TileKey> tile_keys = {
+      geo::TileKey::FromHereTile("23618365")};
+
+  auto request = read::PrefetchTilesRequest()
+                     .WithTileKeys(tile_keys)
+                     .WithMinLevel(11)
+                     .WithMaxLevel(12);
+  {
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_QUADKEYS_92259), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            GetResponse(http::HttpStatusCode::OK),
+            R"jsonString({"subQuads": [],"parentQuads": []})jsonString"));
+  }
+  auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
+  auto future = promise->get_future();
+  auto token =
+      client.PrefetchTiles(request, [promise](PrefetchTilesResponse response) {
+        promise->set_value(std::move(response));
+      });
+
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  PrefetchTilesResponse response = future.get();
+  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_TRUE(response.GetResult().empty());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest,
+       PrefetchTilesEmptyResponseDefaultLevels) {
+  constexpr auto kLayerId = "hype-test-prefetch";
+
+  auto client =
+      read::VersionedLayerClient(kCatalog, kLayerId, boost::none, settings_);
+  std::vector<geo::TileKey> tile_keys = {
+      geo::TileKey::FromHereTile("23618365")};
+
+  auto request = read::PrefetchTilesRequest().WithTileKeys(tile_keys);
+  {
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_QUADKEYS_92259), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            GetResponse(http::HttpStatusCode::OK),
+            R"jsonString({"subQuads": [],"parentQuads": []})jsonString"));
+  }
+  auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
+  auto future = promise->get_future();
+  auto token =
+      client.PrefetchTiles(request, [promise](PrefetchTilesResponse response) {
+        promise->set_value(std::move(response));
+      });
+
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  PrefetchTilesResponse response = future.get();
+  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_FALSE(response.GetResult().empty());
+  for (auto tile_result : response.GetResult()) {
+    std::string str = tile_result->tile_key_.ToHereTile();
+    ASSERT_FALSE(tile_result->IsSuccessful());
+    ASSERT_EQ(olp::client::ErrorCode::NotFound,
+              tile_result->GetError().GetErrorCode());
+    ASSERT_TRUE(tile_result->tile_key_.IsValid());
+  }
+}
+
 TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchSameTiles) {
   constexpr auto kLayerId = "hype-test-prefetch";
 
