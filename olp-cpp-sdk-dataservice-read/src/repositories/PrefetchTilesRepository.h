@@ -46,6 +46,9 @@ using SubTilesResponse = client::ApiResponse<SubTilesResult, client::ApiError>;
 
 class PrefetchTilesRepository {
  public:
+  PrefetchTilesRepository(client::HRN catalog,
+                          client::OlpClientSettings settings);
+
   /**
    * @brief Given tile keys, return all related tile keys that are between
    * minLevel and maxLevel, and the depth. This tiles makes possible to cover
@@ -56,40 +59,38 @@ class PrefetchTilesRepository {
    * @param minLevel Minimum level of the resultant tile keys.
    * @param maxLevel Maximum level of the resultant tile keys.
    */
-  static RootTilesForRequest GetSlicedTiles(
-      const std::vector<geo::TileKey>& tile_keys, std::uint32_t min,
-      std::uint32_t max);
+  RootTilesForRequest GetSlicedTiles(const std::vector<geo::TileKey>& tile_keys,
+                                     std::uint32_t min, std::uint32_t max);
 
-  static SubTilesResponse GetSubTiles(
-      const client::HRN& catalog, const std::string& layer_id,
-      const PrefetchTilesRequest& request,
-      boost::optional<std::int64_t> version,
-      const RootTilesForRequest& root_tiles,
-      client::CancellationContext context,
-      const client::OlpClientSettings& settings);
+  SubTilesResponse GetSubTiles(const std::string& layer_id,
+                               const PrefetchTilesRequest& request,
+                               boost::optional<std::int64_t> version,
+                               const RootTilesForRequest& root_tiles,
+                               client::CancellationContext context);
 
-  static SubQuadsResult FilterSkippedTiles(const PrefetchTilesRequest& request,
-                                           bool request_only_input_tiles,
-                                           SubQuadsResult sub_tiles);
+  SubQuadsResult FilterSkippedTiles(const PrefetchTilesRequest& request,
+                                    bool request_only_input_tiles,
+                                    SubQuadsResult sub_tiles);
 
  protected:
-  static SubQuadsResponse GetSubQuads(const client::HRN& catalog,
-                                      const std::string& layer_id,
-                                      const PrefetchTilesRequest& request,
-                                      std::int64_t version, geo::TileKey tile,
-                                      int32_t depth,
-                                      const client::OlpClientSettings& settings,
-                                      client::CancellationContext context);
+  SubQuadsResponse GetSubQuads(const std::string& layer_id,
+                               const PrefetchTilesRequest& request,
+                               std::int64_t version, geo::TileKey tile,
+                               int32_t depth,
+                               client::CancellationContext context);
 
-  static SubQuadsResponse GetVolatileSubQuads(
-      const client::HRN& catalog, const std::string& layer_id,
-      const PrefetchTilesRequest& request, geo::TileKey tile, int32_t depth,
-      const client::OlpClientSettings& settings,
-      client::CancellationContext context);
+  SubQuadsResponse GetVolatileSubQuads(const std::string& layer_id,
+                                       const PrefetchTilesRequest& request,
+                                       geo::TileKey tile, int32_t depth,
+                                       client::CancellationContext context);
 
-  static void SplitSubtree(RootTilesForRequest& root_tiles_depth,
-                           RootTilesForRequest::iterator subtree_to_split,
-                           const geo::TileKey& tile_key, std::uint32_t min);
+  void SplitSubtree(RootTilesForRequest& root_tiles_depth,
+                    RootTilesForRequest::iterator subtree_to_split,
+                    const geo::TileKey& tile_key, std::uint32_t min);
+
+ private:
+  client::HRN catalog_;
+  client::OlpClientSettings settings_;
 };
 
 }  // namespace repository

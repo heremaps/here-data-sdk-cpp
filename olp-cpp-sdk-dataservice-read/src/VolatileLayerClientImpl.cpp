@@ -198,8 +198,9 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
             (request_only_input_tiles ? static_cast<unsigned int>(geo::TileKey::LevelCount)
                                       : request.GetMaxLevel());
 
-        auto sliced_tiles = repository::PrefetchTilesRepository::GetSlicedTiles(
-            tile_keys, min_level, max_level);
+        repository::PrefetchTilesRepository repository(catalog, settings);
+        auto sliced_tiles =
+            repository.GetSlicedTiles(tile_keys, min_level, max_level);
 
         if (sliced_tiles.empty()) {
           OLP_SDK_LOG_WARNING_F(kLogTag,
@@ -211,16 +212,14 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
         OLP_SDK_LOG_DEBUG_F(kLogTag, "PrefetchTiles, subquads=%zu, key=%s",
                             sliced_tiles.size(), key.c_str());
 
-        auto sub_tiles = repository::PrefetchTilesRepository::GetSubTiles(
-            catalog, layer_id, request, boost::none, sliced_tiles, context,
-            settings);
+        auto sub_tiles = repository.GetSubTiles(layer_id, request, boost::none,
+                                                sliced_tiles, context);
 
         if (!sub_tiles.IsSuccessful()) {
           return sub_tiles.GetError();
         }
-        auto tiles_result =
-            repository::PrefetchTilesRepository::FilterSkippedTiles(
-                request, request_only_input_tiles, sub_tiles.MoveResult());
+        auto tiles_result = repository.FilterSkippedTiles(
+            request, request_only_input_tiles, sub_tiles.MoveResult());
 
         if (tiles_result.empty()) {
           OLP_SDK_LOG_WARNING_F(
