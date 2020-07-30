@@ -699,11 +699,10 @@ bool VersionedLayerClientImpl::Release(const TileKeys& tiles) {
 
   auto process_tile = [&](const geo::TileKey& tile_key_to_release) {
     auto max_depth =
-        std::min<std::uint32_t>(tile_key_to_release.Level(), kQuadTreeDepth);
-    for (int i = max_depth; i >= 0; --i) {
-      const auto& possible_root_for_quad =
-          tile_key_to_release.ChangedLevelBy(-i);
-      auto it = quad_trees_with_protected_tiles.find(possible_root_for_quad);
+        std::min<std::int32_t>(tile_key_to_release.Level(), kQuadTreeDepth);
+    for (auto i = max_depth; i >= 0; --i) {
+      const auto& quad_root = tile_key_to_release.ChangedLevelBy(-i);
+      auto it = quad_trees_with_protected_tiles.find(quad_root);
       if (it != quad_trees_with_protected_tiles.end()) {
         // Quad tree for tile found. Get data handle for tile, create key
         // string and add to list to release
@@ -719,8 +718,7 @@ bool VersionedLayerClientImpl::Release(const TileKeys& tiles) {
             // can add key for quad tree to be released and remove from map
             keys_to_release.emplace_back(
                 partitions_cache_repository.CreateQuadKey(
-                    layer_id_, possible_root_for_quad, kQuadTreeDepth,
-                    version));
+                    layer_id_, quad_root, kQuadTreeDepth, version));
             quad_trees_with_protected_tiles.erase(it);
           }
         }

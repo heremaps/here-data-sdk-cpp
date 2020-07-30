@@ -19,6 +19,7 @@
 
 #include "PartitionsRepository.h"
 
+#include <algorithm>
 #include <utility>
 
 #include <olp/core/client/Condition.h>
@@ -251,8 +252,7 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
       PartitionsRequest().WithBillingTag(data_request.GetBillingTag());
 
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
-    auto cached_partitions =
-        repository.Get(partitions, layer, version);
+    auto cached_partitions = repository.Get(partitions, layer, version);
     if (cached_partitions.GetPartitions().size() == partitions.size()) {
       OLP_SDK_LOG_DEBUG_F(kLogTag,
                           "GetPartitionById found in cache, hrn='%s', key='%s'",
@@ -420,14 +420,15 @@ PartitionResponse PartitionsRepository::GetTile(
 }
 PORTING_POP_WARNINGS()
 
-bool PartitionsRepository::FindQuadTree(
-    const std::string& layer, boost::optional<int64_t> version,
-    const olp::geo::TileKey& tile_key, read::QuadTreeIndex& tree) {
+bool PartitionsRepository::FindQuadTree(const std::string& layer,
+                                        boost::optional<int64_t> version,
+                                        const olp::geo::TileKey& tile_key,
+                                        read::QuadTreeIndex& tree) {
   repository::PartitionsCacheRepository repository(
       catalog_, settings_.cache, settings_.default_cache_expiration);
   auto max_depth =
-      std::min<std::uint32_t>(tile_key.Level(), kMaxQuadTreeIndexDepth);
-  for (int i = max_depth; i >= 0; --i) {
+      std::min<std::int32_t>(tile_key.Level(), kMaxQuadTreeIndexDepth);
+  for (auto i = max_depth; i >= 0; --i) {
     const auto& root_tile_key = tile_key.ChangedLevelBy(-i);
     QuadTreeIndex cached_tree;
     if (repository.Get(layer, root_tile_key, kAggregateQuadTreeDepth, version,
