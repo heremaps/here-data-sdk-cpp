@@ -214,11 +214,14 @@ class DATASERVICE_READ_API VolatileLayerClient final {
    * @param callback The `PrefetchTilesResponseCallback` object that is invoked
    * if the `PrefetchTilesResult` instance is available or an error is
    * encountered.
+   * @param status_callback The `PrefetchStatusCallback` object that is invoked
+   * every time a tile is fetched.
    *
    * @return A token that can be used to cancel this request.
    */
   client::CancellationToken PrefetchTiles(
-      PrefetchTilesRequest request, PrefetchTilesResponseCallback callback);
+      PrefetchTilesRequest request, PrefetchTilesResponseCallback callback,
+      PrefetchStatusCallback status_callback = nullptr);
 
   /**
    * @brief Prefetches a set of tiles asynchronously.
@@ -235,13 +238,16 @@ class DATASERVICE_READ_API VolatileLayerClient final {
    *
    * @param request The `PrefetchTilesRequest` instance that contains
    * a complete set of request parameters.
+   * @param status_callback The `PrefetchStatusCallback` object that is invoked
+   * every time a tile is fetched.
    *
    * @return `CancellableFuture` that contains the `PrefetchTilesResponse`
    * instance with data or an error. You can also use `CancellableFuture` to
    * cancel this request.
    */
   client::CancellableFuture<PrefetchTilesResponse> PrefetchTiles(
-      PrefetchTilesRequest request);
+      PrefetchTilesRequest request,
+      PrefetchStatusCallback status_callback = nullptr);
 
  private:
   std::unique_ptr<VolatileLayerClientImpl> impl_;

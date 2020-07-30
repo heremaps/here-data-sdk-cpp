@@ -66,10 +66,12 @@ class VolatileLayerClientImpl {
   virtual bool RemoveFromCache(const geo::TileKey& tile);
 
   virtual client::CancellationToken PrefetchTiles(
-      PrefetchTilesRequest request, PrefetchTilesResponseCallback callback);
+      PrefetchTilesRequest request, PrefetchTilesResponseCallback callback,
+      PrefetchStatusCallback status_callback = nullptr);
 
   virtual client::CancellableFuture<PrefetchTilesResponse> PrefetchTiles(
-      PrefetchTilesRequest request);
+      PrefetchTilesRequest request,
+      PrefetchStatusCallback status_callback = nullptr);
 
  private:
   client::HRN catalog_;

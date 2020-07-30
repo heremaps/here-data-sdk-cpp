@@ -73,13 +73,16 @@ bool VolatileLayerClient::RemoveFromCache(const geo::TileKey& tile) {
 }
 
 client::CancellationToken VolatileLayerClient::PrefetchTiles(
-    PrefetchTilesRequest request, PrefetchTilesResponseCallback callback) {
-  return impl_->PrefetchTiles(std::move(request), std::move(callback));
+    PrefetchTilesRequest request, PrefetchTilesResponseCallback callback,
+    PrefetchStatusCallback status_callback) {
+  return impl_->PrefetchTiles(std::move(request), std::move(callback),
+                              std::move(status_callback));
 }
 
 client::CancellableFuture<PrefetchTilesResponse>
-VolatileLayerClient::PrefetchTiles(PrefetchTilesRequest request) {
-  return impl_->PrefetchTiles(std::move(request));
+VolatileLayerClient::PrefetchTiles(PrefetchTilesRequest request,
+                                   PrefetchStatusCallback status_callback) {
+  return impl_->PrefetchTiles(std::move(request), std::move(status_callback));
 }
 }  // namespace read
 }  // namespace dataservice
