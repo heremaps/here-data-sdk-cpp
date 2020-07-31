@@ -86,6 +86,8 @@ class VolatileLayerClientTest : public ::testing::Test {
     olp::cache::CacheSettings cache_settings;
     settings_.cache = olp::client::OlpClientSettingsFactory::CreateDefaultCache(
         cache_settings);
+    settings_.task_scheduler =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
 
     // prefetch setup
     auto prefetch_app_id = CustomParameters::getArgument(kPrefetchAppId);

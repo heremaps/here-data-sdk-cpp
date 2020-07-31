@@ -241,6 +241,8 @@ TEST_F(AuthenticationClientTest, DefaultTimeSource) {
   auth::AuthenticationSettings settings;
   settings.network_request_handler = network_;
   settings.token_endpoint_url = kTokenEndpointUrl;
+  settings.task_scheduler =
+      client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
   ASSERT_TRUE(settings.use_system_time);
 
   EXPECT_CALL(*network_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
@@ -274,6 +276,8 @@ TEST_F(AuthenticationClientTest, SignInClientUseLocalTime) {
   settings.network_request_handler = network_;
   settings.use_system_time = true;
   settings.token_endpoint_url = kTokenEndpointUrl;
+  settings.task_scheduler =
+      client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
 
   auto client =
       std::make_unique<auth::AuthenticationClient>(std::move(settings));
@@ -317,6 +321,8 @@ TEST_F(AuthenticationClientTest, SignInClientUseWrongLocalTime) {
   settings.network_request_handler = network_;
   settings.use_system_time = true;
   settings.token_endpoint_url = kTokenEndpointUrl;
+  settings.task_scheduler =
+      client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
 
   auto client =
       std::make_unique<auth::AuthenticationClient>(std::move(settings));

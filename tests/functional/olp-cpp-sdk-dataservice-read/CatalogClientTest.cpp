@@ -144,6 +144,8 @@ class CatalogClientTest : public ::testing::TestWithParam<CacheType> {
     olp::cache::CacheSettings cache_settings;
     settings_.cache = olp::client::OlpClientSettingsFactory::CreateDefaultCache(
         cache_settings);
+    settings_.task_scheduler =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
 
     // setup proxy
     settings_.proxy_settings =
