@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-#include "ReleasedCacheKeysForTiles.h"
+#include "ReleaseDependencyResolver.h"
 
 #include <algorithm>
 #include <map>
@@ -32,7 +32,17 @@ namespace olp {
 namespace dataservice {
 namespace read {
 
-ReleasedCacheKeysForTiles::ReleasedCacheKeysForTiles(
+cache::KeyValueCache::KeyListType
+ReleaseDependencyResolver::GenerateKeysToRelease(
+    const client::HRN& catalog, const std::string& layer_id,
+    const int64_t& version, const client::OlpClientSettings& settings,
+    const TileKeys& tiles) {
+  auto process_tiles =
+      ReleaseDependencyResolver(catalog, layer_id, version, settings);
+  return process_tiles.GenerateAndMoveKeysToRelease(tiles);
+}
+
+ReleaseDependencyResolver::ReleaseDependencyResolver(
     const client::HRN& catalog, const std::string& layer_id,
     const int64_t& version, const client::OlpClientSettings& settings)
     : layer_id_(layer_id),
@@ -44,17 +54,17 @@ ReleasedCacheKeysForTiles::ReleasedCacheKeysForTiles(
       quad_trees_with_protected_tiles_(),
       keys_to_release_() {}
 
-const cache::KeyValueCache::KeyListType&
-ReleasedCacheKeysForTiles::GenerateKeysToRelease(const TileKeys& tiles) {
+cache::KeyValueCache::KeyListType&&
+ReleaseDependencyResolver::GenerateAndMoveKeysToRelease(const TileKeys& tiles) {
   for (const auto& tile : tiles) {
     if (!ProcessTileKeyInMap(tile)) {
       ProcessTileKeyInCache(tile);
     }
   }
-  return keys_to_release_;
+  return std::move(keys_to_release_);
 }
 
-bool ReleasedCacheKeysForTiles::ProcessTileKeyInMap(
+bool ReleaseDependencyResolver::ProcessTileKeyInMap(
     const geo::TileKey& tile_key) {
   auto it = FindQuadInMap(tile_key);
   if (it != quad_trees_with_protected_tiles_.end()) {
@@ -81,8 +91,8 @@ bool ReleasedCacheKeysForTiles::ProcessTileKeyInMap(
   return false;
 }
 
-ReleasedCacheKeysForTiles::MapOfQuads::iterator
-ReleasedCacheKeysForTiles::FindQuadInMap(const geo::TileKey& tile_key) {
+ReleaseDependencyResolver::MapOfQuads::iterator
+ReleaseDependencyResolver::FindQuadInMap(const geo::TileKey& tile_key) {
   auto max_depth = std::min<std::int32_t>(tile_key.Level(), kQuadTreeDepth);
   for (auto i = max_depth; i >= 0; --i) {
     const auto& quad_root = tile_key.ChangedLevelBy(-i);
@@ -94,8 +104,8 @@ ReleasedCacheKeysForTiles::FindQuadInMap(const geo::TileKey& tile_key) {
   return quad_trees_with_protected_tiles_.end();
 }
 
-ReleasedCacheKeysForTiles::MapOfTileDataKeys
-ReleasedCacheKeysForTiles::ProcessQuad(const read::QuadTreeIndex& cached_tree,
+ReleaseDependencyResolver::MapOfTileDataKeys
+ReleaseDependencyResolver::ProcessQuad(const read::QuadTreeIndex& cached_tree,
                                        const geo::TileKey& tile) {
   // check if quad tree has other protected keys, if not, add quad key to
   // release from protected list, othervise add all protected keys left
@@ -119,7 +129,7 @@ ReleasedCacheKeysForTiles::ProcessQuad(const read::QuadTreeIndex& cached_tree,
   return protected_keys;
 }
 
-void ReleasedCacheKeysForTiles::ProcessTileKeyInCache(
+void ReleaseDependencyResolver::ProcessTileKeyInCache(
     const geo::TileKey& tile) {
   read::QuadTreeIndex cached_tree;
   if (repository_.FindQuadTree(layer_id_, version_, tile, cached_tree)) {

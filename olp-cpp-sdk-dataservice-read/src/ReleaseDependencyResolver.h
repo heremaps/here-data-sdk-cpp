@@ -23,6 +23,8 @@
 #include <memory>
 #include <string>
 
+#include <olp/core/cache/KeyValueCache.h>
+#include <olp/core/geo/Types.h>
 #include <olp/core/geo/tiling/TileKey.h>
 #include "repositories/DataCacheRepository.h"
 #include "repositories/DataRepository.h"
@@ -33,26 +35,34 @@ namespace olp {
 namespace dataservice {
 namespace read {
 
-class ReleasedCacheKeysForTiles {
+class ReleaseDependencyResolver {
  public:
   // group quad trees and protected tiles. Check if for each quad tree we want
   // to release all protected keys associated, if true add this quad tree to
   // released keys
-  using MapOfTileDataKeys = std::map<geo::TileKey, std::string>;
-  using MapOfQuads = std::map<geo::TileKey, MapOfTileDataKeys>;
-
-  ReleasedCacheKeysForTiles(const client::HRN& catalog,
-                            const std::string& layer_id, const int64_t& version,
-                            const client::OlpClientSettings& settings);
-
-  const cache::KeyValueCache::KeyListType& GenerateKeysToRelease(
+  static cache::KeyValueCache::KeyListType GenerateKeysToRelease(
+      const client::HRN& catalog, const std::string& layer_id,
+      const int64_t& version, const client::OlpClientSettings& settings,
       const TileKeys& tiles);
 
  private:
+  using MapOfTileDataKeys = std::map<geo::TileKey, std::string>;
+  using MapOfQuads = std::map<geo::TileKey, MapOfTileDataKeys>;
+
+  ReleaseDependencyResolver(const client::HRN& catalog,
+                            const std::string& layer_id, const int64_t& version,
+                            const client::OlpClientSettings& settings);
+
+  cache::KeyValueCache::KeyListType&& GenerateAndMoveKeysToRelease(
+      const TileKeys& tiles);
+
   bool ProcessTileKeyInMap(const geo::TileKey& tile_key);
+
   MapOfQuads::iterator FindQuadInMap(const geo::TileKey& tile_key);
+
   MapOfTileDataKeys ProcessQuad(const read::QuadTreeIndex& cached_tree,
                                 const geo::TileKey& tile);
+
   void ProcessTileKeyInCache(const geo::TileKey& tile);
 
  private:

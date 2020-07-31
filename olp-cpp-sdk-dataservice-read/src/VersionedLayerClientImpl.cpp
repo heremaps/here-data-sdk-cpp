@@ -34,7 +34,7 @@
 #include <olp/dataservice/read/CatalogVersionRequest.h>
 #include "Common.h"
 #include "PrefetchJob.h"
-#include "ReleasedCacheKeysForTiles.h"
+#include "ReleaseDependencyResolver.h"
 #include "generated/api/QueryApi.h"
 #include "repositories/CatalogRepository.h"
 #include "repositories/DataCacheRepository.h"
@@ -682,9 +682,8 @@ bool VersionedLayerClientImpl::Release(const TileKeys& tiles) {
   }
   auto version = catalog_version_.load();
 
-  auto process_tiles =
-      ReleasedCacheKeysForTiles(catalog_, layer_id_, version, settings_);
-  auto keys_to_release = process_tiles.GenerateKeysToRelease(tiles);
+  auto keys_to_release = ReleaseDependencyResolver::GenerateKeysToRelease(
+      catalog_, layer_id_, version, settings_, tiles);
 
   if (keys_to_release.empty()) {
     return false;
