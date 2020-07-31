@@ -60,7 +60,7 @@ TEST(ProtectedKeyList, Protect) {
       EXPECT_EQ(raw_data->size(), 6);
       EXPECT_FALSE(protected_keys.IsDirty());
       EXPECT_EQ(protected_keys.Size(), raw_data->size());
-      protected_keys.Clear();
+      protected_keys = cache::ProtectedKeyList();
     }
 
     {
@@ -73,7 +73,7 @@ TEST(ProtectedKeyList, Protect) {
       EXPECT_EQ(raw_data->size(), 5);
       EXPECT_FALSE(protected_keys.IsDirty());
       EXPECT_TRUE(protected_keys.IsProtected("key:1"));
-      protected_keys.Clear();
+      protected_keys = cache::ProtectedKeyList();
     }
 
     {
@@ -87,7 +87,7 @@ TEST(ProtectedKeyList, Protect) {
       EXPECT_EQ(raw_data->size(), 5);
       EXPECT_FALSE(protected_keys.IsDirty());
       EXPECT_TRUE(protected_keys.IsProtected("key:1"));
-      protected_keys.Clear();
+      protected_keys = cache::ProtectedKeyList();
     }
 
     {
@@ -103,7 +103,7 @@ TEST(ProtectedKeyList, Protect) {
       EXPECT_EQ(raw_data->size(), 5 + 11);
       EXPECT_FALSE(protected_keys.IsDirty());
       EXPECT_TRUE(protected_keys.IsProtected("some_key:1"));
-      protected_keys.Clear();
+      protected_keys = cache::ProtectedKeyList();
     }
 
     {
@@ -123,7 +123,7 @@ TEST(ProtectedKeyList, Protect) {
       EXPECT_FALSE(protected_keys.IsDirty());
       EXPECT_TRUE(protected_keys.IsProtected("some_key:2"));
       EXPECT_FALSE(protected_keys.IsProtected("some_key:7"));
-      protected_keys.Clear();
+      protected_keys = cache::ProtectedKeyList();
     }
 
     {
@@ -146,7 +146,7 @@ TEST(ProtectedKeyList, Protect) {
       // this key is protected by prefix
       EXPECT_TRUE(protected_keys.IsProtected("key:7"));
       EXPECT_FALSE(protected_keys.IsProtected("some_key:7"));
-      protected_keys.Clear();
+      protected_keys = cache::ProtectedKeyList();
     }
   }
 }

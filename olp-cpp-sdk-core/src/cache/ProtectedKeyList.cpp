@@ -167,7 +167,5 @@ bool ProtectedKeyList::IsDirty() const { return dirty_; }
 
 std::uint64_t ProtectedKeyList::Count() const { return protected_data_.size(); }
 
-void ProtectedKeyList::Clear() { protected_data_.clear(); }
-
 }  // namespace cache
 }  // namespace olp

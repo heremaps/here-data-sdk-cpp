@@ -144,7 +144,7 @@ void DefaultCacheImpl::Close() {
   mutable_cache_.reset();
   mutable_cache_lru_.reset();
   protected_cache_.reset();
-  protected_keys_.Clear();
+  protected_keys_ = ProtectedKeyList();
   mutable_cache_data_size_ = 0;
   is_open_ = false;
 }
@@ -628,7 +628,7 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupStorage() {
   mutable_cache_.reset();
   mutable_cache_lru_.reset();
   protected_cache_.reset();
-  protected_keys_.Clear();
+  protected_keys_ = ProtectedKeyList();
   mutable_cache_data_size_ = 0;
 
   if (settings_.max_memory_cache_size > 0) {
@@ -648,7 +648,6 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupStorage() {
     auto status = mutable_cache_->Open(settings_.disk_path_mutable.get(),
                                        settings_.disk_path_mutable.get(),
                                        storage_settings, OpenOptions::Default);
-    OLP_SDK_LOG_WARNING(kLogTag, settings_.disk_path_mutable.get().c_str());
     if (status == OpenResult::Fail) {
       OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to open the mutable cache %s",
                           settings_.disk_path_mutable.get().c_str());
