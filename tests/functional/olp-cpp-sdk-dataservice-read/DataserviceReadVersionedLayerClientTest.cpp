@@ -218,14 +218,17 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWideRange) {
 
   {
     SCOPED_TRACE("Read cached data from the same partition");
-    dataservice_read::DataResponse response;
-    auto token = client->GetData(
-        olp::dataservice::read::TileRequest()
-            .WithTileKey(olp::geo::TileKey::FromHereTile(kTileId))
-            .WithFetchOption(dataservice_read::CacheOnly),
-        [&response](dataservice_read::DataResponse resp) {
-          response = std::move(resp);
-        });
+    std::promise<dataservice_read::DataResponse> promise;
+    auto future = promise.get_future();
+    client->GetData(olp::dataservice::read::TileRequest()
+                        .WithTileKey(olp::geo::TileKey::FromHereTile(kTileId))
+                        .WithFetchOption(dataservice_read::CacheOnly),
+                    [&promise](dataservice_read::DataResponse resp) {
+                      promise.set_value(std::move(resp));
+                    });
+
+    auto response = future.get();
+
     EXPECT_SUCCESS(response);
     ASSERT_TRUE(response.GetResult() != nullptr);
     ASSERT_NE(response.GetResult()->size(), 0u);
