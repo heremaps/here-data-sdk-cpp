@@ -20,6 +20,7 @@
 #pragma once
 
 #include <olp/core/client/CancellationContext.h>
+#include <olp/core/client/HttpResponse.h>
 #include <olp/core/geo/tiling/TileKey.h>
 #include <olp/dataservice/read/Types.h>
 
@@ -45,10 +46,16 @@ class PrefetchJob {
 
   void CompleteTask(geo::TileKey tile, const client::ApiError& error);
 
+  void CompleteTask(geo::TileKey tile, client::NetworkStatistics statistics);
+
+  void CompleteTask(geo::TileKey tile, const client::ApiError& error,
+                    client::NetworkStatistics statistics);
+
   void CancelOperation();
 
  protected:
-  void CompleteTask(std::shared_ptr<PrefetchTileResult> result);
+  void CompleteTask(std::shared_ptr<PrefetchTileResult> result,
+                    client::NetworkStatistics statistics);
 
  private:
   PrefetchTilesResponseCallback user_callback_;
@@ -60,6 +67,8 @@ class PrefetchJob {
   std::mutex mutex_;
   std::vector<client::CancellationContext> tasks_contexts_;
   PrefetchTilesResult prefetch_result_;
+
+  client::NetworkStatistics accumulated_statistics_;
 };
 
 }  // namespace read

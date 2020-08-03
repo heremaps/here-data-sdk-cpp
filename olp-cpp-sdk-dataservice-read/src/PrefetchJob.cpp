@@ -51,13 +51,24 @@ client::CancellationContext PrefetchJob::AddTask() {
 }
 
 void PrefetchJob::CompleteTask(geo::TileKey tile) {
-  CompleteTask(
-      std::make_shared<PrefetchTileResult>(tile, PrefetchTileNoError()));
+  CompleteTask(tile, client::NetworkStatistics{});
 }
 
 void PrefetchJob::CompleteTask(geo::TileKey tile,
                                const client::ApiError& error) {
-  CompleteTask(std::make_shared<PrefetchTileResult>(tile, error));
+  CompleteTask(tile, error, {});
+}
+
+void PrefetchJob::CompleteTask(geo::TileKey tile,
+                               client::NetworkStatistics statistics) {
+  CompleteTask(
+      std::make_shared<PrefetchTileResult>(tile, PrefetchTileNoError()),
+      statistics);
+}
+
+void PrefetchJob::CompleteTask(geo::TileKey tile, const client::ApiError& error,
+                               client::NetworkStatistics statistics) {
+  CompleteTask(std::make_shared<PrefetchTileResult>(tile, error), statistics);
 }
 
 void PrefetchJob::CancelOperation() {
@@ -69,13 +80,19 @@ void PrefetchJob::CancelOperation() {
   }
 }
 
-void PrefetchJob::CompleteTask(std::shared_ptr<PrefetchTileResult> result) {
+void PrefetchJob::CompleteTask(std::shared_ptr<PrefetchTileResult> result,
+                               client::NetworkStatistics statistics) {
   std::lock_guard<std::mutex> lock(mutex_);
   prefetch_result_.push_back(std::move(result));
 
+  accumulated_statistics_ += statistics;
+
   if (status_callback_) {
-    status_callback_(
-        PrefetchStatus{prefetch_result_.size(), total_task_count_});
+    const auto bytes_transferred =
+        accumulated_statistics_.GetBytesDownloaded() +
+        accumulated_statistics_.GetBytesUploaded();
+    status_callback_(PrefetchStatus{prefetch_result_.size(), total_task_count_,
+                                    bytes_transferred});
   }
 
   if (!--task_count_) {

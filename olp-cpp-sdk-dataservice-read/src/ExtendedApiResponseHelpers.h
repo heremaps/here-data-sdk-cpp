@@ -19,23 +19,20 @@
 
 #pragma once
 
-#include <cstddef>
+#include "ExtendedApiResponse.h"
+
+#include <olp/core/client/HttpResponse.h>
 
 namespace olp {
 namespace dataservice {
 namespace read {
 
-/*
- * @brief PrefetchStatus structure represent the progress of prefetch operation.
- */
-struct PrefetchStatus {
-  /// Tiles available (prefetched).
-  size_t prefetched_tiles;
-  /// Total number of tiles to prefetch during prefetch operation.
-  size_t total_tiles_to_prefetch;
-  /// Total bytes tranferred during API calls.
-  size_t bytes_transferred;
-};
+template <typename Result, typename Error>
+inline const client::NetworkStatistics& GetNetworkStatistics(
+    const ExtendedApiResponse<Result, Error, client::NetworkStatistics>&
+        response) {
+  return response.GetPayload();
+}
 
 }  // namespace read
 }  // namespace dataservice

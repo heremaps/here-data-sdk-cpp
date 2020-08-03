@@ -23,7 +23,9 @@
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/HttpResponse.h>
 #include <boost/optional.hpp>
+#include "ExtendedApiResponse.h"
 #include "olp/dataservice/read/model/Data.h"
 
 namespace olp {
@@ -39,7 +41,8 @@ namespace read {
  */
 class BlobApi {
  public:
-  using DataResponse = client::ApiResponse<model::Data, client::ApiError>;
+  using DataResponse = ExtendedApiResponse<model::Data, client::ApiError,
+                                           client::NetworkStatistics>;
 
   /**
    * @brief Retrieves a data blob for specified handle.
@@ -56,7 +59,8 @@ class BlobApi {
    * only supports a single byte range. The range parameter can also be
    * specified as a query parameter, i.e. range=bytes=10-. For volatile layers
    * use the pagination links returned in the response body.
-   * @param context A CancellationContext, which can be used to cancel the pending request.
+   * @param context A CancellationContext, which can be used to cancel the
+   * pending request.
    *
    * @return Data response.
    */

@@ -33,6 +33,7 @@
 #include <olp/core/thread/TaskScheduler.h>
 #include <olp/dataservice/read/CatalogVersionRequest.h>
 #include "Common.h"
+#include "ExtendedApiResponseHelpers.h"
 #include "PrefetchJob.h"
 #include "ReleaseDependencyResolver.h"
 #include "generated/api/QueryApi.h"
@@ -292,37 +293,40 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
               const auto& handle = sub_quad.second;
               const auto& biling_tag = request.GetBillingTag();
 
-              AddTask(
-                  settings.task_scheduler, pending_requests,
-                  [=](CancellationContext inner_context) {
-                    if (handle.empty()) {
-                      return DataResponse{
-                          {olp::client::ErrorCode::NotFound, "Not found"}};
-                    }
-                    repository::DataCacheRepository data_cache_repository(
-                        catalog, shared_settings->cache);
-                    if (data_cache_repository.IsCached(layer_id, handle)) {
-                      // Cached, return an empty success
-                      return DataResponse(nullptr);
-                    } else {
-                      // Fetch from online
-                      repository::DataRepository repository(
-                          catalog, *shared_settings, lookup_client);
-                      return repository.GetVersionedData(
-                          layer_id,
-                          DataRequest().WithDataHandle(handle).WithBillingTag(
-                              biling_tag),
-                          version, inner_context);
-                    }
-                  },
-                  [=](DataResponse result) {
-                    if (result.IsSuccessful()) {
-                      prefetch_job->CompleteTask(tile);
-                    } else {
-                      prefetch_job->CompleteTask(tile, result.GetError());
-                    }
-                  },
-                  prefetch_job->AddTask());
+              AddTask(settings.task_scheduler, pending_requests,
+                      [=](CancellationContext inner_context) -> EmptyResponse {
+                        if (handle.empty()) {
+                          prefetch_job->CompleteTask(
+                              tile, {client::ErrorCode::NotFound, "Not found"});
+                          return PrefetchTileNoError{};
+                        }
+                        repository::DataCacheRepository data_cache_repository(
+                            catalog, shared_settings->cache);
+                        if (data_cache_repository.IsCached(layer_id, handle)) {
+                          prefetch_job->CompleteTask(tile);
+                          return PrefetchTileNoError{};
+                        }
+
+                        // Fetch from online
+                        repository::DataRepository repository(
+                            catalog, *shared_settings, lookup_client);
+                        auto result = repository.GetVersionedData(
+                            layer_id,
+                            DataRequest().WithDataHandle(handle).WithBillingTag(
+                                biling_tag),
+                            version, inner_context);
+
+                        if (result.IsSuccessful()) {
+                          prefetch_job->CompleteTask(
+                              tile, GetNetworkStatistics(result));
+                        } else {
+                          prefetch_job->CompleteTask(
+                              tile, result.GetError(),
+                              GetNetworkStatistics(result));
+                        }
+                        return PrefetchTileNoError{};
+                      },
+                      [=](EmptyResponse) {}, prefetch_job->AddTask());
             });
 
         context.ExecuteOrCancelled([&]() {

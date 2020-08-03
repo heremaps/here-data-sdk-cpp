@@ -27,6 +27,8 @@
 #include "olp/dataservice/read/DataRequest.h"
 #include "olp/dataservice/read/Types.h"
 
+#include "generated/api/BlobApi.h"
+
 namespace olp {
 namespace dataservice {
 namespace read {
@@ -42,18 +44,19 @@ class DataRepository final {
                                 const TileRequest& request, int64_t version,
                                 client::CancellationContext context);
 
-  DataResponse GetVersionedData(const std::string& layer_id,
-                                const DataRequest& data_request,
-                                int64_t version,
-                                client::CancellationContext context);
+  BlobApi::DataResponse GetVersionedData(const std::string& layer_id,
+                                         const DataRequest& data_request,
+                                         int64_t version,
+                                         client::CancellationContext context);
 
   DataResponse GetVolatileData(const std::string& layer_id,
                                const DataRequest& request,
                                client::CancellationContext context);
 
-  DataResponse GetBlobData(const std::string& layer, const std::string& service,
-                           const DataRequest& data_request,
-                           client::CancellationContext context);
+  BlobApi::DataResponse GetBlobData(const std::string& layer,
+                                    const std::string& service,
+                                    const DataRequest& data_request,
+                                    client::CancellationContext context);
 
  private:
   client::HRN catalog_;

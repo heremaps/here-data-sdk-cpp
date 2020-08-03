@@ -29,14 +29,14 @@
 namespace olp {
 namespace dataservice {
 namespace read {
-using namespace olp::client;
 
-BlobApi::DataResponse BlobApi::GetBlob(const client::OlpClient& client,
-                                       const std::string& layer_id,
-                                       const std::string& data_handle,
-                                       boost::optional<std::string> billing_tag,
-                                       boost::optional<std::string> range,
-                                       const client::CancellationContext& context) {
+namespace client = olp::client;
+
+BlobApi::DataResponse BlobApi::GetBlob(
+    const client::OlpClient& client, const std::string& layer_id,
+    const std::string& data_handle, boost::optional<std::string> billing_tag,
+    boost::optional<std::string> range,
+    const client::CancellationContext& context) {
   std::multimap<std::string, std::string> header_params;
   header_params.emplace("Accept", "application/json");
   if (range) {
@@ -49,17 +49,17 @@ BlobApi::DataResponse BlobApi::GetBlob(const client::OlpClient& client,
   }
 
   std::string metadata_uri = "/layers/" + layer_id + "/data/" + data_handle;
-  auto api_response =
-          client.CallApi(metadata_uri, "GET", query_params, header_params,
-  {}, nullptr, "", context);
+  auto api_response = client.CallApi(metadata_uri, "GET", query_params,
+                                     header_params, {}, nullptr, "", context);
 
   if (api_response.status != http::HttpStatusCode::OK) {
-    return ApiError(api_response.status, api_response.response.str());
+    return {{api_response.status, api_response.response.str()},
+            api_response.GetNetworkStatistics()};
   }
 
   auto result = std::make_shared<std::vector<unsigned char>>();
   api_response.GetResponse(*result);
-  return result;
+  return {result, api_response.GetNetworkStatistics()};
 }
 }  // namespace read
 }  // namespace dataservice
