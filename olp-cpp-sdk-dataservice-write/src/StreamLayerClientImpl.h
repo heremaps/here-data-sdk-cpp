@@ -21,6 +21,8 @@
 
 #include <mutex>
 
+#include <boost/optional.hpp>
+
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
 
@@ -84,8 +86,19 @@ class StreamLayerClientImpl {
   virtual std::string GenerateUuid() const;
 
  private:
-  std::string FindContentTypeForLayerId(const model::Catalog& catalog,
-                                        const std::string& layer_id);
+  using BillingTag = boost::optional<std::string>;
+
+  struct LayerSettings {
+    std::string content_type;
+    std::string content_encoding;
+  };
+
+  using LayerSettingsResult =
+      client::ApiResponse<LayerSettings, client::ApiError>;
+
+  LayerSettingsResult GetLayerSettings(client::CancellationContext context,
+                                       BillingTag billing_tag,
+                                       const std::string& layer_id);
 
   std::string GetUuidListKey() const;
 

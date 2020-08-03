@@ -336,7 +336,7 @@ TEST_F(StreamLayerClientCacheTest, FlushDataMultiple) {
   EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
       .Times(1);
   EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
-      .Times(5);
+      .Times(1);
   EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
       .Times(1);
   EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
@@ -452,7 +452,7 @@ TEST_F(StreamLayerClientCacheTest, FlushDataMaxEventsDefaultSetting) {
   EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
       .Times(1);
   EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
-      .Times(5);
+      .Times(1);
   EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
       .Times(1);
 
@@ -470,7 +470,7 @@ TEST_F(StreamLayerClientCacheTest, FlushDataMaxEventsValidCustomSetting) {
   EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
       .Times(1);
   EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
-      .Times(3);
+      .Times(1);
   EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
       .Times(1);
   EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
@@ -510,7 +510,7 @@ TEST_F(StreamLayerClientCacheTest, FlushSettingsMaximumRequests) {
   EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
       .Times(1);
   EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
-      .Times(15);
+      .Times(1);
   EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
       .Times(1);
 

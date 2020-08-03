@@ -142,6 +142,8 @@ set(OLP_SDK_DATASERVICE_WRITE_SOURCES
 
     ./src/generated/serializer/ApiSerializer.cpp
     ./src/generated/serializer/ApiSerializer.h
+    ./src/generated/serializer/CatalogSerializer.cpp
+    ./src/generated/serializer/CatalogSerializer.h
     ./src/generated/serializer/IndexInfoSerializer.cpp
     ./src/generated/serializer/IndexInfoSerializer.h
     ./src/generated/serializer/JsonSerializer.h

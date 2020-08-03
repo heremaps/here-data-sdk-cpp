@@ -38,17 +38,16 @@
 #include "generated/PublishApi.h"
 
 // clang-format off
+#include <generated/serializer/CatalogSerializer.h>
 #include <generated/serializer/PublishDataRequestSerializer.h>
 #include <generated/serializer/JsonSerializer.h>
 // clang-format on
 
 // clang-format off
+#include <generated/parser/CatalogParser.h>
 #include <generated/parser/PublishDataRequestParser.h>
 #include <olp/core/generated/parser/JsonParser.h>
 // clang-format on
-
-using namespace olp::client;
-using namespace olp::dataservice::write::model;
 
 namespace olp {
 namespace dataservice {
@@ -72,8 +71,8 @@ void ExecuteOrSchedule(const std::shared_ptr<thread::TaskScheduler>& scheduler,
 }  // namespace
 
 StreamLayerClientImpl::StreamLayerClientImpl(
-    HRN catalog, StreamLayerClientSettings client_settings,
-    OlpClientSettings settings)
+    client::HRN catalog, StreamLayerClientSettings client_settings,
+    client::OlpClientSettings settings)
     : catalog_(std::move(catalog)),
       settings_(std::move(settings)),
       cache_(settings_.cache),
@@ -91,17 +90,60 @@ bool StreamLayerClientImpl::CancelPendingRequests() {
   return pending_requests_->CancelAll();
 }
 
-std::string StreamLayerClientImpl::FindContentTypeForLayerId(
-    const model::Catalog& catalog, const std::string& layer_id) {
-  for (const auto& layer : catalog.GetLayers()) {
-    if (layer.GetId() == layer_id) {
-      // TODO optimization opportunity - cache
-      // content-type for layer when found for O(1)
-      // subsequent lookup.
-      return layer.GetContentType();
+StreamLayerClientImpl::LayerSettingsResult
+StreamLayerClientImpl::GetLayerSettings(client::CancellationContext context,
+                                        BillingTag billing_tag,
+                                        const std::string& layer_id) {
+  const auto catalog_settings_key = catalog_.ToString() + "::catalog";
+
+  if (!cache_->Contains(catalog_settings_key)) {
+    auto lookup_response = ApiClientLookup::LookupApiClient(
+        catalog_, context, "config", "v1", settings_);
+    if (!lookup_response.IsSuccessful()) {
+      return lookup_response.GetError();
     }
+
+    client::OlpClient client = lookup_response.GetResult();
+    auto catalog_response = ConfigApi::GetCatalog(client, catalog_.ToString(),
+                                                  billing_tag, context);
+
+    if (!catalog_response.IsSuccessful()) {
+      return catalog_response.GetError();
+    }
+
+    auto catalog_model = catalog_response.MoveResult();
+
+    cache_->Put(
+        catalog_settings_key, catalog_model,
+        [&]() { return serializer::serialize<model::Catalog>(catalog_model); },
+        settings_.default_cache_expiration.count());
   }
-  return {};
+
+  LayerSettings settings;
+
+  const auto& cached_catalog =
+      cache_->Get(catalog_settings_key, [](const std::string& model) {
+        return parser::parse<model::Catalog>(model);
+      });
+
+  if (cached_catalog.empty()) {
+    return settings;
+  }
+
+  const auto& catalog = boost::any_cast<const model::Catalog&>(cached_catalog);
+
+  const auto& layers = catalog.GetLayers();
+
+  auto layer_it = std::find_if(
+      layers.begin(), layers.end(),
+      [&](const model::Layer& layer) { return layer.GetId() == layer_id; });
+
+  if (layer_it != layers.end()) {
+    settings.content_type = layer_it->GetContentType();
+    settings.content_encoding = layer_it->GetContentEncoding();
+  }
+
+  return settings;
 }
 
 std::string StreamLayerClientImpl::GetUuidListKey() const {
@@ -152,7 +194,7 @@ boost::optional<std::string> StreamLayerClientImpl::Queue(
     std::lock_guard<std::mutex> lock(cache_mutex_);
     const auto publish_data_key = GenerateUuid();
     cache_->Put(publish_data_key, request, [=]() {
-      return olp::serializer::serialize<PublishDataRequest>(request);
+      return olp::serializer::serialize<model::PublishDataRequest>(request);
     });
 
     const auto uuid_list_any =
@@ -192,7 +234,7 @@ StreamLayerClientImpl::PopFromQueue() {
   const auto publish_data_key = uuid_list.substr(0, pos);
   auto publish_data_any =
       cache_->Get(publish_data_key, [](const std::string& s) {
-        return olp::parser::parse<PublishDataRequest>(s);
+        return olp::parser::parse<model::PublishDataRequest>(s);
       });
 
   cache_->Remove(publish_data_key);
@@ -206,7 +248,7 @@ StreamLayerClientImpl::PopFromQueue() {
     return boost::none;
   }
 
-  return boost::any_cast<PublishDataRequest>(publish_data_any);
+  return boost::any_cast<model::PublishDataRequest>(publish_data_any);
 }
 
 olp::client::CancellableFuture<StreamLayerClient::FlushResponse>
@@ -217,8 +259,8 @@ StreamLayerClientImpl::Flush(model::FlushRequest request) {
       std::move(request), [promise](StreamLayerClient::FlushResponse response) {
         promise->set_value(std::move(response));
       });
-  return CancellableFuture<StreamLayerClient::FlushResponse>(cancel_token,
-                                                             promise);
+  return client::CancellableFuture<StreamLayerClient::FlushResponse>(
+      cancel_token, promise);
 }
 
 olp::client::CancellationToken StreamLayerClientImpl::Flush(
@@ -234,8 +276,8 @@ olp::client::CancellationToken StreamLayerClientImpl::Flush(
   // invocation: one during execution phase and other when `Flush` is cancelled.
   auto exec_started = std::make_shared<std::atomic_bool>(false);
 
-  auto task_context = TaskContext::Create(
-      [=](CancellationContext context) -> EmptyFlushApiResponse {
+  auto task_context = client::TaskContext::Create(
+      [=](client::CancellationContext context) -> EmptyFlushApiResponse {
         exec_started->exchange(true);
 
         StreamLayerClient::FlushResponse responses;
@@ -289,25 +331,25 @@ olp::client::CancellationToken StreamLayerClientImpl::Flush(
 }
 
 olp::client::CancellableFuture<PublishDataResponse>
-StreamLayerClientImpl::PublishData(const model::PublishDataRequest request) {
+StreamLayerClientImpl::PublishData(model::PublishDataRequest request) {
   auto promise = std::make_shared<std::promise<PublishDataResponse>>();
   auto cancel_token =
       PublishData(std::move(request), [promise](PublishDataResponse response) {
         promise->set_value(std::move(response));
       });
-  return CancellableFuture<PublishDataResponse>(cancel_token, promise);
+  return client::CancellableFuture<PublishDataResponse>(cancel_token, promise);
 }
 
-CancellationToken StreamLayerClientImpl::PublishData(
+client::CancellationToken StreamLayerClientImpl::PublishData(
     model::PublishDataRequest request, PublishDataCallback callback) {
   if (!request.GetData()) {
-    callback(PublishDataResponse(
-        ApiError(ErrorCode::InvalidArgument, "Request's data is null.")));
-    return CancellationToken();
+    callback(PublishDataResponse(client::ApiError(
+        client::ErrorCode::InvalidArgument, "Request's data is null.")));
+    return client::CancellationToken();
   }
 
   using std::placeholders::_1;
-  TaskContext task_context = olp::client::TaskContext::Create(
+  client::TaskContext task_context = olp::client::TaskContext::Create(
       std::bind(&StreamLayerClientImpl::PublishDataTask, this, request, _1),
       callback);
 
@@ -339,28 +381,21 @@ PublishDataResponse StreamLayerClientImpl::PublishDataLessThanTwentyMib(
                       "Started publishing data less than 20 MB, size=%zu B",
                       request.GetData()->size());
 
-  auto response = ApiClientLookup::LookupApiClient(catalog_, context, "config",
-                                                   "v1", settings_);
-  if (!response.IsSuccessful()) {
-    return PublishDataResponse(response.GetError());
+  auto layer_settings_result =
+      GetLayerSettings(context, request.GetBillingTag(), request.GetLayerId());
+
+  if (!layer_settings_result.IsSuccessful()) {
+    return layer_settings_result.GetError();
   }
 
-  client::OlpClient client = response.GetResult();
-  auto catalog_response = ConfigApi::GetCatalog(
-      client, catalog_.ToString(), request.GetBillingTag(), context);
-  if (!catalog_response.IsSuccessful()) {
-    return PublishDataResponse(catalog_response.GetError());
-  }
+  const auto& layer_settings = layer_settings_result.GetResult();
 
-  auto catalog = catalog_response.GetResult();
-  auto content_type = FindContentTypeForLayerId(catalog, request.GetLayerId());
-  if (content_type.empty()) {
-    return PublishDataResponse(
-        ApiError(ErrorCode::InvalidArgument,
-                 "Unable to find the Layer ID=`" + request.GetLayerId() +
-                     "` provided in the PublishDataRequest in the "
-                     "Catalog=" +
-                     catalog_.ToString()));
+  if (layer_settings.content_type.empty()) {
+    return PublishDataResponse(client::ApiError(
+        client::ErrorCode::InvalidArgument,
+        "Unable to find the Layer ID=`" + request.GetLayerId() +
+            "` provided in the PublishDataRequest in the Catalog=" +
+            catalog_.ToString()));
   }
 
   auto ingest_api = ApiClientLookup::LookupApiClient(catalog_, context,
@@ -370,10 +405,12 @@ PublishDataResponse StreamLayerClientImpl::PublishDataLessThanTwentyMib(
   }
 
   auto ingest_api_client = ingest_api.GetResult();
+
   auto ingest_data_response = IngestApi::IngestData(
-      ingest_api_client, request.GetLayerId(), content_type, request.GetData(),
-      request.GetTraceId(), request.GetBillingTag(), request.GetChecksum(),
-      context);
+      ingest_api_client, request.GetLayerId(), layer_settings.content_type,
+      request.GetData(), request.GetTraceId(), request.GetBillingTag(),
+      request.GetChecksum(), context);
+
   if (!ingest_data_response.IsSuccessful()) {
     return ingest_data_response;
   }
@@ -393,28 +430,21 @@ PublishDataResponse StreamLayerClientImpl::PublishDataGreaterThanTwentyMib(
                       "Started publishing data greater than 20MB, size=%zu B",
                       request.GetData()->size());
 
-  auto config_response = ApiClientLookup::LookupApiClient(
-      catalog_, context, "config", "v1", settings_);
-  if (!config_response.IsSuccessful()) {
-    return PublishDataResponse(config_response.GetError());
+  auto layer_settings_result =
+      GetLayerSettings(context, request.GetBillingTag(), request.GetLayerId());
+
+  if (!layer_settings_result.IsSuccessful()) {
+    return layer_settings_result.GetError();
   }
 
-  client::OlpClient config_client = config_response.MoveResult();
-  auto catalog_response = ConfigApi::GetCatalog(
-      config_client, catalog_.ToString(), request.GetBillingTag(), context);
-  if (!catalog_response.IsSuccessful()) {
-    return PublishDataResponse(catalog_response.GetError());
-  }
+  const auto& layer_settings = layer_settings_result.GetResult();
 
-  auto catalog = catalog_response.MoveResult();
-  auto content_type = FindContentTypeForLayerId(catalog, request.GetLayerId());
-  if (content_type.empty()) {
-    return PublishDataResponse(
-        ApiError(ErrorCode::InvalidArgument,
-                 "Unable to find the Layer ID=`" + request.GetLayerId() +
-                     "` provided in the PublishDataRequest in the "
-                     "Catalog=" +
-                     catalog_.ToString()));
+  if (layer_settings.content_type.empty()) {
+    return PublishDataResponse(client::ApiError(
+        client::ErrorCode::InvalidArgument,
+        "Unable to find the Layer ID=`" + request.GetLayerId() +
+            "` provided in the PublishDataRequest in the Catalog=" +
+            catalog_.ToString()));
   }
 
   // Init api clients for publications:
@@ -433,7 +463,7 @@ PublishDataResponse StreamLayerClientImpl::PublishDataGreaterThanTwentyMib(
   client::OlpClient blob_client = blob_client_response.MoveResult();
 
   // 1. init publication:
-  Publication publication;
+  model::Publication publication;
   publication.SetLayerIds({request.GetLayerId()});
   auto init_publicaion_response = PublishApi::InitPublication(
       publish_client, publication, request.GetBillingTag(), context);
@@ -442,10 +472,10 @@ PublishDataResponse StreamLayerClientImpl::PublishDataGreaterThanTwentyMib(
   }
 
   if (!init_publicaion_response.GetResult().GetId()) {
-    return PublishDataResponse(ApiError(ErrorCode::InvalidArgument,
-                                        "Response from server on "
-                                        "InitPublication request doesn't "
-                                        "contain any publication"));
+    return PublishDataResponse(
+        client::ApiError(client::ErrorCode::InvalidArgument,
+                         "Response from server on InitPublication request "
+                         "doesn't contain any publication"));
   }
   const std::string publication_id =
       init_publicaion_response.GetResult().GetId().get();
@@ -453,18 +483,18 @@ PublishDataResponse StreamLayerClientImpl::PublishDataGreaterThanTwentyMib(
   // 2. Put blob API:
   const auto data_handle = GenerateUuid();
   auto put_blob_response = BlobApi::PutBlob(
-      blob_client, request.GetLayerId(), content_type, data_handle,
-      request.GetData(), request.GetBillingTag(), context);
+      blob_client, request.GetLayerId(), layer_settings.content_type,
+      data_handle, request.GetData(), request.GetBillingTag(), context);
   if (!put_blob_response.IsSuccessful()) {
     return PublishDataResponse(put_blob_response.GetError());
   }
 
   // 3. Upload partition:
   const auto partition_id = GenerateUuid();
-  PublishPartition publish_partition;
+  model::PublishPartition publish_partition;
   publish_partition.SetPartition(partition_id);
   publish_partition.SetDataHandle(data_handle);
-  PublishPartitions partitions;
+  model::PublishPartitions partitions;
   partitions.SetPartitions({publish_partition});
 
   auto upload_partitions_response = PublishApi::UploadPartitions(
@@ -492,17 +522,17 @@ PublishDataResponse StreamLayerClientImpl::PublishDataGreaterThanTwentyMib(
   return PublishDataResponse(response_ok_single);
 }
 
-CancellableFuture<PublishSdiiResponse> StreamLayerClientImpl::PublishSdii(
-    model::PublishSdiiRequest request) {
+client::CancellableFuture<PublishSdiiResponse>
+StreamLayerClientImpl::PublishSdii(model::PublishSdiiRequest request) {
   auto promise = std::make_shared<std::promise<PublishSdiiResponse>>();
   auto cancel_token =
       PublishSdii(std::move(request), [promise](PublishSdiiResponse response) {
         promise->set_value(std::move(response));
       });
-  return CancellableFuture<PublishSdiiResponse>(cancel_token, promise);
+  return client::CancellableFuture<PublishSdiiResponse>(cancel_token, promise);
 }
 
-CancellationToken StreamLayerClientImpl::PublishSdii(
+client::CancellationToken StreamLayerClientImpl::PublishSdii(
     model::PublishSdiiRequest request, PublishSdiiCallback callback) {
   using std::placeholders::_1;
   auto context = olp::client::TaskContext::Create(
@@ -525,11 +555,12 @@ PublishSdiiResponse StreamLayerClientImpl::PublishSdiiTask(
     model::PublishSdiiRequest request,
     olp::client::CancellationContext context) {
   if (!request.GetSdiiMessageList()) {
-    return {{ErrorCode::InvalidArgument, "Request sdii message list null."}};
+    return {{client::ErrorCode::InvalidArgument,
+             "Request sdii message list null."}};
   }
 
   if (request.GetLayerId().empty()) {
-    return {{ErrorCode::InvalidArgument, "Request layer id empty."}};
+    return {{client::ErrorCode::InvalidArgument, "Request layer id empty."}};
   }
 
   return IngestSdii(std::move(request), context);
