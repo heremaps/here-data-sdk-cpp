@@ -21,6 +21,7 @@
 
 #include <memory>
 
+#include <olp/core/client/ApiLookupClient.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
@@ -95,6 +96,7 @@ class StreamLayerClientImpl {
   std::shared_ptr<client::PendingRequests> pending_requests_;
   std::mutex mutex_;
   std::unique_ptr<StreamLayerClientContext> client_context_;
+  client::ApiLookupClient lookup_client_;
 };
 
 }  // namespace read
