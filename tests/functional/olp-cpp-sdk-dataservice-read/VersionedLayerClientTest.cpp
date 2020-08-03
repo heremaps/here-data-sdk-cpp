@@ -76,6 +76,8 @@ class VersionedLayerClientTest : public ::testing::Test {
     settings_ = std::make_shared<olp::client::OlpClientSettings>();
     settings_->network_request_handler = network;
     settings_->authentication_settings = auth_client_settings;
+    settings_->task_scheduler =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
 
     // setup proxy
     settings_->proxy_settings =

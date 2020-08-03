@@ -482,20 +482,23 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
                                    kHttpResponseBlobData_269));
 
   auto sync_settings = settings_;
-  sync_settings.task_scheduler.reset();
   auto client = std::make_shared<read::VersionedLayerClient>(
       kCatalog, kTestLayer, 269, sync_settings);
 
-  DataResponse response;
+  std::promise<DataResponse> promise;
 
-  auto token = client->GetData(
+  client->GetData(
       read::DataRequest()
           .WithPartitionId(kTestPartition)
           .WithFetchOption(FetchOptions::OnlineIfNotFound),
-      [&response](DataResponse resp) { response = std::move(resp); });
+      [&promise](DataResponse resp) { promise.set_value(std::move(resp)); });
+
+  auto future = promise.get_future();
+  auto response = future.get();
+
   ASSERT_TRUE(response.IsSuccessful());
 
-  token = client->GetData(
+  client->GetData(
       read::DataRequest()
           .WithPartitionId(kTestPartition)
           .WithFetchOption(FetchOptions::CacheOnly),

@@ -59,6 +59,8 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
     settings_ = std::make_shared<olp::client::OlpClientSettings>();
     settings_->network_request_handler = network;
     settings_->authentication_settings = auth_client_settings;
+    settings_->task_scheduler =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
   }
 
   void TearDown() override {
@@ -88,9 +90,6 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
 };
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionAsync) {
-  settings_->task_scheduler =
-      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
-
   auto catalog = olp::client::HRN::FromString(
       CustomParameters::getArgument("dataservice_read_test_versioned_catalog"));
   auto layer =
@@ -121,9 +120,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionAsync) {
 
 TEST_F(DataserviceReadVersionedLayerClientTest,
        GetDataFromPartitionLatestVersionAsync) {
-  settings_->task_scheduler =
-      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
-
   auto catalog = olp::client::HRN::FromString(
       CustomParameters::getArgument("dataservice_read_test_versioned_catalog"));
   auto layer =
@@ -153,6 +149,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionSync) {
+  settings_->task_scheduler.reset();
+
   auto catalog = olp::client::HRN::FromString(
       CustomParameters::getArgument("dataservice_read_test_versioned_catalog"));
   auto layer =
@@ -220,14 +218,17 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWideRange) {
 
   {
     SCOPED_TRACE("Read cached data from the same partition");
-    dataservice_read::DataResponse response;
-    auto token = client->GetData(
-        olp::dataservice::read::TileRequest()
-            .WithTileKey(olp::geo::TileKey::FromHereTile(kTileId))
-            .WithFetchOption(dataservice_read::CacheOnly),
-        [&response](dataservice_read::DataResponse resp) {
-          response = std::move(resp);
-        });
+    std::promise<dataservice_read::DataResponse> promise;
+    auto future = promise.get_future();
+    client->GetData(olp::dataservice::read::TileRequest()
+                        .WithTileKey(olp::geo::TileKey::FromHereTile(kTileId))
+                        .WithFetchOption(dataservice_read::CacheOnly),
+                    [&promise](dataservice_read::DataResponse resp) {
+                      promise.set_value(std::move(resp));
+                    });
+
+    auto response = future.get();
+
     EXPECT_SUCCESS(response);
     ASSERT_TRUE(response.GetResult() != nullptr);
     ASSERT_NE(response.GetResult()->size(), 0u);

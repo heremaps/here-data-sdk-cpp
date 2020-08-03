@@ -46,6 +46,8 @@ class VersionedLayerClientPrefetchTest : public ::testing::Test {
 
     settings_ = std::make_shared<olp::client::OlpClientSettings>();
     settings_->network_request_handler = network;
+    settings_->task_scheduler =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
     // setup proxy
     settings_->proxy_settings =
         olp::http::NetworkProxySettings()
