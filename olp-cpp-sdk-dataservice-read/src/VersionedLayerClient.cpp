@@ -116,6 +116,14 @@ bool VersionedLayerClient::IsCached(const geo::TileKey& tile) const {
   return impl_->IsCached(tile);
 }
 
+bool VersionedLayerClient::Protect(const TileKeys& tiles) {
+  return impl_->Protect(tiles);
+}
+
+bool VersionedLayerClient::Release(const TileKeys& tiles) {
+  return impl_->Release(tiles);
+}
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

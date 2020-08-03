@@ -382,6 +382,30 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    */
   bool IsCached(const geo::TileKey& tile) const;
 
+  /**
+   * @brief Protects tile keys from eviction.
+   * @note Only tiles which data handled are present in the cache at the time of
+   * the call can be protected
+   *
+   * @param tiles The list of tile keys.
+   *
+   * @return True if some keys were successfully added to the protected list;
+   * false otherwise.
+   */
+  bool Protect(const TileKeys& tiles);
+
+  /**
+   * @brief Removes a list of tiles from protection.
+   * @note Make sure that no Protect function could be called for the same
+   * catalog and layer during Release.
+   *
+   * @param tiles The list of tile keys.
+   *
+   * @return True if some keys were successfully removed from the protected
+   * list; false otherwise.
+   */
+  bool Release(const TileKeys& tiles);
+
  private:
   std::unique_ptr<VersionedLayerClientImpl> impl_;
 };
