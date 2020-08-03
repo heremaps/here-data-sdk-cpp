@@ -28,7 +28,6 @@
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
 #include <olp/core/thread/TaskScheduler.h>
-#include "ApiClientLookup.h"
 #include "Common.h"
 #include "generated/api/BlobApi.h"
 #include "generated/api/StreamApi.h"
@@ -61,7 +60,8 @@ StreamLayerClientImpl::StreamLayerClientImpl(client::HRN catalog,
     : catalog_(std::move(catalog)),
       layer_id_(std::move(layer_id)),
       settings_(std::move(settings)),
-      pending_requests_(std::make_shared<client::PendingRequests>()) {
+      pending_requests_(std::make_shared<client::PendingRequests>()),
+      lookup_client_(catalog_, settings_) {
   if (!settings_.cache) {
     settings_.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
   }
@@ -103,9 +103,8 @@ client::CancellationToken StreamLayerClientImpl::Subscribe(
         request.GetConsumerId().get_value_or("none").c_str(),
         subscription_mode.c_str());
 
-    auto stream_api = ApiClientLookup::LookupApi(
-        catalog_, context, kStreamService, kStreamVersion,
-        FetchOptions::OnlineIfNotFound, settings_);
+    auto stream_api = lookup_client_.LookupApi(
+        kStreamService, kStreamVersion, client::OnlineIfNotFound, context);
 
     if (!stream_api.IsSuccessful()) {
       OLP_SDK_LOG_WARNING_F(
@@ -248,9 +247,8 @@ client::CancellationToken StreamLayerClientImpl::GetData(
     OLP_SDK_LOG_INFO_F(kLogTag, "GetData: started, data_handle=%s",
                        data_handle.value().c_str());
 
-    auto blob_api = ApiClientLookup::LookupApi(
-        catalog_, context, kBlobService, kBlobVersion,
-        FetchOptions::OnlineIfNotFound, settings_);
+    auto blob_api = lookup_client_.LookupApi(kBlobService, kBlobVersion,
+                                             client::OnlineIfNotFound, context);
 
     if (!blob_api.IsSuccessful()) {
       return blob_api.GetError();
