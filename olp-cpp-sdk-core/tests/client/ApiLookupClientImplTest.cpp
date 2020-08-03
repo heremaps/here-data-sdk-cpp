@@ -352,6 +352,47 @@ TEST_F(ApiLookupClientImplTest, LookupApi) {
   }
 }
 
+TEST_F(ApiLookupClientImplTest, LookupApiCustomProvider) {
+  using testing::_;
+  using testing::Return;
+
+  const std::string catalog =
+      "hrn:here:data::olp-here-test:hereos-internal-test-v2";
+  const auto catalog_hrn = client::HRN::FromString(catalog);
+  const std::string service_name = "random_service";
+  const std::string service_url = "http://random_service.com";
+  const std::string service_version = "v8";
+  const std::string config_url =
+      "https://config.data.api.platform.in.here.com/config/v1";
+  const std::string lookup_url = "https://some-lookup-url.com/lookup/v1";
+  const std::string request_lookup_url =
+      lookup_url + "/resources/" + catalog + "/apis";
+
+  client::ApiLookupSettings lookup_settings;
+  lookup_settings.lookup_endpoint_provider = [&lookup_url](const std::string&) {
+    return lookup_url;
+  };
+
+  settings_.api_lookup_settings = lookup_settings;
+
+  EXPECT_CALL(*network_, Send(IsGetRequest(request_lookup_url), _, _, _, _))
+      .Times(1)
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kResponseLookupResource));
+  EXPECT_CALL(*cache_, Put(_, _, _, _)).Times(0);
+
+  client::CancellationContext context;
+  client::ApiLookupClientImpl client(catalog_hrn, settings_);
+  auto response = client.LookupApi(service_name, service_version,
+                                   client::OnlineOnly, context);
+
+  EXPECT_TRUE(response.IsSuccessful());
+  EXPECT_EQ(response.GetResult().GetBaseUrl(), kConfigBaseUrl);
+  testing::Mock::VerifyAndClearExpectations(network_.get());
+  testing::Mock::VerifyAndClearExpectations(cache_.get());
+}
+
 TEST_F(ApiLookupClientImplTest, LookupApiAsync) {
   using testing::_;
   using testing::Return;
@@ -624,6 +665,53 @@ TEST_F(ApiLookupClientImplTest, LookupApiAsync) {
     testing::Mock::VerifyAndClearExpectations(network_.get());
     testing::Mock::VerifyAndClearExpectations(cache_.get());
   }
+}
+
+TEST_F(ApiLookupClientImplTest, LookupApiCustomProviderAsync) {
+  using testing::_;
+  using testing::Return;
+
+  const std::string catalog =
+      "hrn:here:data::olp-here-test:hereos-internal-test-v2";
+  const auto catalog_hrn = client::HRN::FromString(catalog);
+  const std::string service_name = "random_service";
+  const std::string service_url = "http://random_service.com";
+  const std::string service_version = "v8";
+  const std::string config_url =
+      "https://config.data.api.platform.in.here.com/config/v1";
+  const std::string lookup_url = "https://some-lookup-url.com/lookup/v1";
+  const std::string request_lookup_url =
+      lookup_url + "/resources/" + catalog + "/apis";
+
+  client::ApiLookupSettings lookup_settings;
+  lookup_settings.lookup_endpoint_provider = [&lookup_url](const std::string&) {
+    return lookup_url;
+  };
+
+  settings_.api_lookup_settings = lookup_settings;
+
+  EXPECT_CALL(*network_, Send(IsGetRequest(request_lookup_url), _, _, _, _))
+      .Times(1)
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kResponseLookupResource));
+  EXPECT_CALL(*cache_, Put(_, _, _, _)).Times(0);
+
+  std::promise<client::ApiLookupClient::LookupApiResponse> promise;
+  auto future = promise.get_future();
+  client::ApiLookupClientImpl client(catalog_hrn, settings_);
+  client.LookupApi(
+      service_name, service_version, client::OnlineOnly,
+      [&promise](client::ApiLookupClient::LookupApiResponse response) {
+        promise.set_value(std::move(response));
+      });
+
+  auto response = future.get();
+
+  EXPECT_TRUE(response.IsSuccessful());
+  EXPECT_EQ(response.GetResult().GetBaseUrl(), kConfigBaseUrl);
+  testing::Mock::VerifyAndClearExpectations(network_.get());
+  testing::Mock::VerifyAndClearExpectations(cache_.get());
 }
 
 }  // namespace

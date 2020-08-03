@@ -66,6 +66,7 @@ set(OLP_SDK_CLIENT_HEADERS
     ./include/olp/core/client/CancellationContext.inl
     ./include/olp/core/client/CancellationToken.h
     ./include/olp/core/client/Condition.h
+    ./include/olp/core/client/DefaultLookupEndpointProvider.h
     ./include/olp/core/client/ErrorCode.h
     ./include/olp/core/client/FetchOptions.h
     ./include/olp/core/client/HRN.h

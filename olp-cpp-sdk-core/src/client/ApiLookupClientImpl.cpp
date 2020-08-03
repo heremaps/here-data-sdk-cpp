@@ -47,7 +47,7 @@ std::string FindApi(const Apis& apis, const std::string& service,
 ApiLookupClientImpl::ApiLookupClientImpl(const HRN& catalog,
                                          const OlpClientSettings& settings)
     : catalog_(catalog), settings_(settings) {
-  auto provider = DefaultLookupEndpointProvider();
+  auto provider = settings_.api_lookup_settings.lookup_endpoint_provider;
   const auto& base_url = provider(catalog_.GetPartition());
   lookup_client_.SetBaseUrl(base_url);
   lookup_client_.SetSettings(settings_);
