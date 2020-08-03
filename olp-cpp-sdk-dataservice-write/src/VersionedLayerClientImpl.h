@@ -80,7 +80,7 @@ class VersionedLayerClientImpl
   client::CancellableFuture<CompleteBatchResponse> CompleteBatch(
       const model::Publication& pub);
 
-  client::CancellationToken CompleteBatch(const model::Publication& pub,
+  client::CancellationToken CompleteBatch(const model::Publication& publication,
                                           CompleteBatchCallback callback);
 
   client::CancellableFuture<CancelBatchResponse> CancelBatch(

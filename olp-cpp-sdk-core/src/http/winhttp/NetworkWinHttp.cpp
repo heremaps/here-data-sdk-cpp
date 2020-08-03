@@ -237,10 +237,10 @@ namespace http {
 constexpr auto kLogTag = "WinHttp";
 
 NetworkWinHttp::NetworkWinHttp(size_t max_request_count)
-    : http_session_(NULL),
+    : http_requests_(max_request_count),
+      http_session_(NULL),
       thread_(INVALID_HANDLE_VALUE),
-      event_(INVALID_HANDLE_VALUE),
-      http_requests_(max_request_count) {
+      event_(INVALID_HANDLE_VALUE) {
   request_id_counter_.store(
       static_cast<RequestId>(RequestIdConstants::RequestIdMin));
 

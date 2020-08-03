@@ -35,7 +35,7 @@ class CORE_API IdentityProjection final : public IProjection {
 
   GeoRectangle GetGeoBounds() const override;
 
-  WorldAlignedBox WorldExtent(double mininum_altitude,
+  WorldAlignedBox WorldExtent(double minimum_altitude,
                               double maximum_altitude) const override;
 
   bool Project(const GeoCoordinates3d& geo_point,

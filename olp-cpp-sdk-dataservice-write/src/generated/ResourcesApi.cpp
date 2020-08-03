@@ -35,7 +35,7 @@ namespace write {
 client::CancellationToken ResourcesApi::GetApis(
     std::shared_ptr<client::OlpClient> client, const std::string& hrn,
     const std::string& service, const std::string& service_version,
-    const ApisCallback& apisCallback) {
+    const ApisCallback& callback) {
   std::multimap<std::string, std::string> header_params;
   header_params.insert(std::make_pair("Accept", "application/json"));
   std::multimap<std::string, std::string> query_params;
@@ -45,19 +45,19 @@ client::CancellationToken ResourcesApi::GetApis(
   std::string resource_url =
       "/resources/" + hrn + "/apis/" + service + "/" + service_version;
 
-  client::NetworkAsyncCallback callback = [apisCallback](
+  client::NetworkAsyncCallback client_callback = [callback](
                                               client::HttpResponse response) {
     if (response.status != olp::http::HttpStatusCode::OK) {
-      apisCallback(ApisResponse(
+        callback(ApisResponse(
           client::ApiError(response.status, response.response.str())));
     } else {
       // parse the services
       // TODO catch any exception and return as Error
-      apisCallback(ApisResponse(parser::parse<model::Apis>(response.response)));
+        callback(ApisResponse(parser::parse<model::Apis>(response.response)));
     }
   };
   return client->CallApi(resource_url, "GET", query_params, header_params,
-                         form_params, nullptr, "", callback);
+                         form_params, nullptr, "", client_callback);
 }
 
 ResourcesApi::ApisResponse ResourcesApi::GetApis(

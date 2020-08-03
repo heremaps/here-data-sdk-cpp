@@ -33,7 +33,7 @@ class SignInResultImpl : public BaseResult {
   SignInResultImpl() noexcept;
 
   SignInResultImpl(
-      int status, std::string GetErrorResponse,
+      int status, std::string error,
       std::shared_ptr<rapidjson::Document> json_document = nullptr) noexcept;
 
   ~SignInResultImpl() override;

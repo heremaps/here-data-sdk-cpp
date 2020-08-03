@@ -71,7 +71,7 @@ class QueryApi {
    */
   static PartitionsResponse GetPartitionsbyId(
       const client::OlpClient& client, const std::string& layer_id,
-      const std::vector<std::string>& partition,
+      const std::vector<std::string>& partitions,
       boost::optional<int64_t> version,
       const std::vector<std::string>& additional_fields,
       boost::optional<std::string> billing_tag,
