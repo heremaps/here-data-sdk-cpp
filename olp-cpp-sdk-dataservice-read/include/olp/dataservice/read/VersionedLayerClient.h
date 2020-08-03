@@ -384,6 +384,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
 
   /**
    * @brief Protects tile keys from eviction.
+   *
    * @note Only tiles which data handled are present in the cache at the time of
    * the call can be protected
    *
@@ -396,6 +397,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
 
   /**
    * @brief Removes a list of tiles from protection.
+   *
    * @note Make sure that no Protect function could be called for the same
    * catalog and layer during Release.
    *

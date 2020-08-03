@@ -555,12 +555,18 @@ int64_t DefaultCacheImpl::MaybeUpdatedProtectedKeys(
   if (protected_keys_.IsDirty()) {
     auto prev_size = protected_keys_.Size();
     auto value = protected_keys_.Serialize();
+    // calculate key size, as it is be written for the first time
+    auto key_size = (prev_size > 0 ? 0 : strlen(kProtectedKeys));
     if (value->size() > 0) {
       leveldb::Slice slice(reinterpret_cast<const char*>(value->data()),
                            value->size());
       batch.Put(kProtectedKeys, slice);
-    }  // add key size, as it is be written for the first time
-    auto key_size = (prev_size > 0 ? 0 : strlen(kProtectedKeys));
+    } else {
+      // delete key, as protected list is empty
+      batch.Delete(kProtectedKeys);
+      key_size -= strlen(kProtectedKeys);
+    }
+
     return (key_size + protected_keys_.Size() - prev_size);
   }
 
