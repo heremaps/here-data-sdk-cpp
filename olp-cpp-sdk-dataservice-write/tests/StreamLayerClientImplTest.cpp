@@ -194,7 +194,7 @@ TEST_F(StreamLayerClientImplTest, SuccessfullyPublishDataLessThanTwentyMib) {
       model::PublishDataRequest().WithData(data).WithLayerId(kLayerName);
 
   auto settings = settings_;
-  settings.cache = nullptr;
+  settings.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
 
   MockStreamLayerClientImpl client{kHrn, write::StreamLayerClientSettings{},
                                    settings};
@@ -232,7 +232,7 @@ TEST_F(StreamLayerClientImplTest, FaliedPublishDataLessThanTwentyMib) {
       model::PublishDataRequest().WithData(data).WithLayerId(kLayerName);
 
   auto settings = settings_;
-  settings.cache = nullptr;
+  settings.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
 
   MockStreamLayerClientImpl client{kHrn, write::StreamLayerClientSettings{},
                                    settings};
@@ -345,7 +345,7 @@ TEST_F(StreamLayerClientImplTest, CancelPublishDataLessThanTwentyMib) {
       model::PublishDataRequest().WithData(data).WithLayerId(kLayerName);
 
   auto settings = settings_;
-  settings.cache = nullptr;
+  settings.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
 
   MockStreamLayerClientImpl client{kHrn, write::StreamLayerClientSettings{},
                                    settings};
@@ -371,8 +371,9 @@ TEST_F(StreamLayerClientImplTest, CancelPublishDataLessThanTwentyMib) {
                                          olp::http::Network::Callback,
                                          olp::http::Network::HeaderCallback,
                                          olp::http::Network::DataCallback) {
-    std::thread([cancel_context]() { cancel_context->CancelOperation(); })
-        .detach();
+    std::thread([cancel_context]() {
+      cancel_context->CancelOperation();
+    }).detach();
 
     constexpr auto unused_request_id = 5;
     return olp::http::SendOutcome(unused_request_id);
@@ -466,7 +467,7 @@ TEST_F(StreamLayerClientImplTest, SuccessfullyPublishDataGreaterThanTwentyMib) {
       model::PublishDataRequest().WithData(data).WithLayerId(kLayerName);
 
   auto settings = settings_;
-  settings.cache = nullptr;
+  settings.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
 
   const std::string kMockedPartitionId = "some-generated-partition-uuid";
   MockStreamLayerClientImpl client{kHrn, write::StreamLayerClientSettings{},
@@ -530,7 +531,7 @@ TEST_F(StreamLayerClientImplTest, FailedPublishDataGreaterThanTwentyMib) {
       model::PublishDataRequest().WithData(data).WithLayerId(kLayerName);
 
   auto settings = settings_;
-  settings.cache = nullptr;
+  settings.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
 
   const std::string kMockedPartitionId = "some-generated-partition-uuid";
   MockStreamLayerClientImpl client{kHrn, write::StreamLayerClientSettings{},

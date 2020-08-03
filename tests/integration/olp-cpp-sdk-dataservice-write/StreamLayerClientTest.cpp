@@ -579,7 +579,7 @@ TEST_F(StreamLayerClientTest, ConcurrentPublishSameIngestApi) {
   EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
       .Times(1);
   EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
-      .Times(5);
+      .Times(1);
   EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
       .Times(1);
   EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
@@ -613,7 +613,7 @@ TEST_F(StreamLayerClientTest, SequentialPublishDifferentLayer) {
   EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
       .Times(1);
   EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
-      .Times(2);
+      .Times(1);
   EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INGEST), _, _, _, _))
       .Times(1);
   EXPECT_CALL(*network_, Send(IsPostRequest(URL_INGEST_DATA), _, _, _, _))
