@@ -26,7 +26,6 @@
 
 #include <olp/core/client/Condition.h>
 #include <olp/core/logging/Log.h>
-#include "ApiClientLookup.h"
 #include "CatalogRepository.h"
 #include "DataCacheRepository.h"
 #include "ExecuteOrSchedule.inl"
@@ -57,13 +56,16 @@ constexpr auto kVolatileBlobService = "volatile-blob";
 }  // namespace
 
 DataRepository::DataRepository(client::HRN catalog,
-                               client::OlpClientSettings settings)
-    : catalog_(std::move(catalog)), settings_(settings) {}
+                               client::OlpClientSettings settings,
+                               client::ApiLookupClient client)
+    : catalog_(std::move(catalog)),
+      settings_(settings),
+      lookup_client_(std::move(client)) {}
 
 DataResponse DataRepository::GetVersionedTile(
     const std::string& layer_id, const TileRequest& request, int64_t version,
     client::CancellationContext context) {
-  PartitionsRepository repository(catalog_, settings_);
+  PartitionsRepository repository(catalog_, settings_, lookup_client_);
   auto response = repository.GetTile(layer_id, request, version, context);
 
   if (!response.IsSuccessful()) {
@@ -81,8 +83,7 @@ DataResponse DataRepository::GetVersionedTile(
                                 .WithDataHandle(partition.GetDataHandle())
                                 .WithFetchOption(request.GetFetchOption());
 
-  return repository::DataRepository::GetBlobData(layer_id, kBlobService,
-                                                 data_request, context);
+  return GetBlobData(layer_id, kBlobService, data_request, context);
 }
 
 DataResponse DataRepository::GetVersionedData(
@@ -96,7 +97,7 @@ DataResponse DataRepository::GetVersionedData(
   auto blob_request = request;
   if (!request.GetDataHandle()) {
     // get data handle for a partition to be queried
-    PartitionsRepository repository(catalog_, settings_);
+    PartitionsRepository repository(catalog_, settings_, lookup_client_);
     auto partitions_response =
         repository.GetPartitionById(layer_id, version, request, context);
 
@@ -163,8 +164,8 @@ DataResponse DataRepository::GetBlobData(const std::string& layer,
     }
   }
 
-  auto blob_api = ApiClientLookup::LookupApi(catalog_, context, service, "v1",
-                                             fetch_option, settings_);
+  auto blob_api = lookup_client_.LookupApi(
+      service, "v1", static_cast<client::FetchOptions>(fetch_option), context);
 
   if (!blob_api.IsSuccessful()) {
     return blob_api.GetError();
@@ -210,7 +211,7 @@ DataResponse DataRepository::GetVolatileData(
 
   auto blob_request = request;
   if (!request.GetDataHandle()) {
-    PartitionsRepository repository(catalog_, settings_);
+    PartitionsRepository repository(catalog_, settings_, lookup_client_);
     auto partitions_response =
         repository.GetPartitionById(layer_id, boost::none, request, context);
 

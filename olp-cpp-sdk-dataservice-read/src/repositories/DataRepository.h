@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <olp/core/client/ApiLookupClient.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
@@ -34,7 +35,8 @@ namespace repository {
 
 class DataRepository final {
  public:
-  DataRepository(client::HRN catalog, client::OlpClientSettings settings);
+  DataRepository(client::HRN catalog, client::OlpClientSettings settings,
+                 client::ApiLookupClient client);
 
   DataResponse GetVersionedTile(const std::string& layer_id,
                                 const TileRequest& request, int64_t version,
@@ -56,7 +58,9 @@ class DataRepository final {
  private:
   client::HRN catalog_;
   client::OlpClientSettings settings_;
+  client::ApiLookupClient lookup_client_;
 };
+
 }  // namespace repository
 }  // namespace read
 }  // namespace dataservice

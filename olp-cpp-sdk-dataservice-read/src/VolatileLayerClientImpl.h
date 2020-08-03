@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <olp/core/client/ApiLookupClient.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
@@ -76,6 +77,7 @@ class VolatileLayerClientImpl {
   std::string layer_id_;
   client::OlpClientSettings settings_;
   std::shared_ptr<client::PendingRequests> pending_requests_;
+  client::ApiLookupClient lookup_client_;
 };
 
 }  // namespace read

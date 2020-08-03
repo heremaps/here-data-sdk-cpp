@@ -31,7 +31,6 @@
 #include <olp/core/logging/Log.h>
 #include <olp/core/thread/Atomic.h>
 #include <olp/core/thread/TaskScheduler.h>
-#include "ApiClientLookup.h"
 #include "PartitionsRepository.h"
 #include "QuadTreeIndex.h"
 #include "generated/api/QueryApi.h"
@@ -52,8 +51,11 @@ constexpr std::uint32_t kMaxQuadTreeIndexDepth = 4u;
 }  // namespace
 
 PrefetchTilesRepository::PrefetchTilesRepository(
-    client::HRN catalog, client::OlpClientSettings settings)
-    : catalog_(std::move(catalog)), settings_(std::move(settings)) {}
+    client::HRN catalog, client::OlpClientSettings settings,
+    client::ApiLookupClient client)
+    : catalog_(std::move(catalog)),
+      settings_(std::move(settings)),
+      lookup_client_(std::move(client)) {}
 
 void PrefetchTilesRepository::SplitSubtree(
     RootTilesForRequest& root_tiles_depth,
@@ -176,6 +178,7 @@ SubTilesResponse PrefetchTilesRepository::GetSubTiles(
         version ? GetSubQuads(layer_id, request, version.get(), tile, depth,
                               context)
                 : GetVolatileSubQuads(layer_id, request, tile, depth, context);
+
     if (!response.IsSuccessful()) {
       // Just abort if something else then 404 Not Found is returned
       auto& error = response.GetError();
@@ -193,6 +196,7 @@ SubTilesResponse PrefetchTilesRepository::GetSubTiles(
 SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
     const std::string& layer_id, const PrefetchTilesRequest& request,
     std::int64_t version, geo::TileKey tile, int32_t depth,
+
     client::CancellationContext context) {
   OLP_SDK_LOG_TRACE_F(kLogTag, "GetSubQuads(%s, %" PRId64 ", %" PRId32 ")",
                       tile.ToHereTile().c_str(), version, depth);
@@ -223,9 +227,8 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
     return get_sub_quads(cached_tree);
   }
 
-  auto query_api =
-      ApiClientLookup::LookupApi(catalog_, context, "query", "v1",
-                                 FetchOptions::OnlineIfNotFound, settings_);
+  auto query_api = lookup_client_.LookupApi("query", "v1",
+                                            client::OnlineIfNotFound, context);
 
   if (!query_api.IsSuccessful()) {
     return query_api.GetError();
@@ -270,9 +273,8 @@ SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
   OLP_SDK_LOG_TRACE_F(kLogTag, "GetSubQuadsVolatile(%s, %" PRId32 ")",
                       tile.ToHereTile().c_str(), depth);
 
-  auto query_api =
-      ApiClientLookup::LookupApi(catalog_, context, "query", "v1",
-                                 FetchOptions::OnlineIfNotFound, settings_);
+  auto query_api = lookup_client_.LookupApi("query", "v1",
+                                            client::OnlineIfNotFound, context);
 
   if (!query_api.IsSuccessful()) {
     return query_api.GetError();
@@ -314,7 +316,7 @@ SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
     result.emplace(subtile, subquad->GetDataHandle());
 
     // add to bulk partitions for cacheing
-    PartitionsRepository repository(catalog_, settings_);
+    PartitionsRepository repository(catalog_, settings_, lookup_client_);
     partitions.GetMutablePartitions().emplace_back(
         repository.PartitionFromSubQuad(*subquad, subtile.ToHereTile()));
   }

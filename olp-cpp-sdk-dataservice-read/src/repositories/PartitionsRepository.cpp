@@ -23,7 +23,6 @@
 
 #include <olp/core/client/Condition.h>
 #include <olp/core/logging/Log.h>
-#include "ApiClientLookup.h"
 #include "CatalogRepository.h"
 #include "NamedMutex.h"
 #include "PartitionsCacheRepository.h"
@@ -107,8 +106,11 @@ namespace read {
 namespace repository {
 
 PartitionsRepository::PartitionsRepository(client::HRN catalog,
-                                           client::OlpClientSettings settings)
-    : catalog_(std::move(catalog)), settings_(std::move(settings)) {}
+                                           client::OlpClientSettings settings,
+                                           client::ApiLookupClient client)
+    : catalog_(std::move(catalog)),
+      settings_(std::move(settings)),
+      lookup_client_(std::move(client)) {}
 
 PartitionsResponse PartitionsRepository::GetVersionedPartitions(
     std::string layer, const PartitionsRequest& request, int64_t version,
@@ -123,7 +125,7 @@ PartitionsResponse PartitionsRepository::GetVolatilePartitions(
                              .WithBillingTag(request.GetBillingTag())
                              .WithFetchOption(request.GetFetchOption());
 
-  CatalogRepository repository(catalog_, settings_);
+  CatalogRepository repository(catalog_, settings_, lookup_client_);
   auto catalog_response = repository.GetCatalog(catalog_request, context);
 
   if (!catalog_response.IsSuccessful()) {
@@ -170,8 +172,9 @@ PartitionsResponse PartitionsRepository::GetPartitions(
   const auto& partition_ids = request.GetPartitionIds();
 
   if (partition_ids.empty()) {
-    auto metadata_api = ApiClientLookup::LookupApi(
-        catalog_, context, "metadata", "v1", fetch_option, settings_);
+    auto metadata_api = lookup_client_.LookupApi(
+        "metadata", "v1", static_cast<client::FetchOptions>(fetch_option),
+        context);
 
     if (!metadata_api.IsSuccessful()) {
       return metadata_api.GetError();
@@ -181,8 +184,9 @@ PartitionsResponse PartitionsRepository::GetPartitions(
         metadata_api.GetResult(), layer, version, request.GetAdditionalFields(),
         boost::none, request.GetBillingTag(), context);
   } else {
-    auto query_api = ApiClientLookup::LookupApi(catalog_, context, "query",
-                                                "v1", fetch_option, settings_);
+    auto query_api = lookup_client_.LookupApi(
+        "query", "v1", static_cast<client::FetchOptions>(fetch_option),
+        context);
 
     if (!query_api.IsSuccessful()) {
       return query_api.GetError();
@@ -263,8 +267,8 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
     }
   }
 
-  auto query_api = ApiClientLookup::LookupApi(catalog_, context, "query", "v1",
-                                              fetch_option, settings_);
+  auto query_api = lookup_client_.LookupApi(
+      "query", "v1", static_cast<client::FetchOptions>(fetch_option), context);
 
   if (!query_api.IsSuccessful()) {
     return query_api.GetError();
@@ -345,8 +349,8 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
   }
 
   // quad tree data not found in the cache
-  auto query_api = ApiClientLookup::LookupApi(
-      catalog_, context, "query", "v1", request.GetFetchOption(), settings_);
+  auto query_api = lookup_client_.LookupApi(
+      "query", "v1", static_cast<client::FetchOptions>(fetch_option), context);
 
   if (!query_api.IsSuccessful()) {
     OLP_SDK_LOG_WARNING_F(kLogTag,

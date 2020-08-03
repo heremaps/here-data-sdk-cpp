@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include <olp/core/client/ApiLookupClient.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
@@ -47,7 +48,8 @@ using QuadTreeIndexResponse = Response<QuadTreeIndex>;
 
 class PartitionsRepository {
  public:
-  PartitionsRepository(client::HRN catalog, client::OlpClientSettings settings);
+  PartitionsRepository(client::HRN catalog, client::OlpClientSettings settings,
+                       client::ApiLookupClient client);
 
   PartitionsResponse GetVersionedPartitions(
       std::string layer, const read::PartitionsRequest& request,
@@ -92,6 +94,7 @@ class PartitionsRepository {
 
   client::HRN catalog_;
   client::OlpClientSettings settings_;
+  client::ApiLookupClient lookup_client_;
 };
 }  // namespace repository
 }  // namespace read

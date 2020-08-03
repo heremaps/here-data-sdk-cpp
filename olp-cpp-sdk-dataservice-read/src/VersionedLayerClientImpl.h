@@ -21,6 +21,7 @@
 
 #include <memory>
 
+#include <olp/core/client/ApiLookupClient.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
@@ -108,6 +109,7 @@ class VersionedLayerClientImpl {
   client::OlpClientSettings settings_;
   std::shared_ptr<client::PendingRequests> pending_requests_;
   std::atomic<int64_t> catalog_version_;
+  client::ApiLookupClient lookup_client_;
 };
 
 }  // namespace read

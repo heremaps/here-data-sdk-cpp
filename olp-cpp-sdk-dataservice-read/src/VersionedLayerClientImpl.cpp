@@ -32,7 +32,6 @@
 #include <olp/core/logging/Log.h>
 #include <olp/core/thread/TaskScheduler.h>
 #include <olp/dataservice/read/CatalogVersionRequest.h>
-#include "ApiClientLookup.h"
 #include "Common.h"
 #include "PrefetchJob.h"
 #include "generated/api/QueryApi.h"
@@ -66,7 +65,8 @@ VersionedLayerClientImpl::VersionedLayerClientImpl(
       settings_(std::move(settings)),
       pending_requests_(std::make_shared<client::PendingRequests>()),
       catalog_version_(catalog_version ? catalog_version.get()
-                                       : kInvalidVersion) {
+                                       : kInvalidVersion),
+      lookup_client_(catalog_, settings_) {
   if (!settings_.cache) {
     settings_.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
   }
@@ -98,6 +98,7 @@ client::CancellationToken VersionedLayerClientImpl::GetPartitions(
     auto catalog = catalog_;
     auto layer_id = layer_id_;
     auto settings = settings_;
+    auto lookup_client = lookup_client_;
 
     auto partitions_task =
         [=](client::CancellationContext context) mutable -> PartitionsResponse {
@@ -108,7 +109,8 @@ client::CancellationToken VersionedLayerClientImpl::GetPartitions(
       }
       const auto version = version_response.GetResult().GetVersion();
 
-      repository::PartitionsRepository repository(catalog, settings);
+      repository::PartitionsRepository repository(
+          std::move(catalog), std::move(settings), std::move(lookup_client));
       return repository.GetVersionedPartitions(layer_id, request, version,
                                                context);
     };
@@ -149,6 +151,7 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
     auto catalog = catalog_;
     auto layer_id = layer_id_;
     auto settings = settings_;
+    auto lookup_client = lookup_client_;
 
     auto data_task =
         [=](client::CancellationContext context) mutable -> DataResponse {
@@ -162,8 +165,8 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
         version = version_response.GetResult().GetVersion();
       }
 
-      repository::DataRepository repository(std::move(catalog),
-                                            std::move(settings));
+      repository::DataRepository repository(
+          std::move(catalog), std::move(settings), std::move(lookup_client));
       return repository.GetVersionedData(layer_id, request, version, context);
     };
 
@@ -198,6 +201,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
   auto layer_id = layer_id_;
   auto settings = settings_;
   auto pending_requests = pending_requests_;
+  auto lookup_client = lookup_client_;
 
   auto token = AddTask(
       settings.task_scheduler, pending_requests,
@@ -238,7 +242,8 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
                  ? static_cast<unsigned int>(geo::TileKey::LevelCount)
                  : request.GetMaxLevel());
 
-        repository::PrefetchTilesRepository repository(catalog, settings);
+        repository::PrefetchTilesRepository repository(catalog, settings,
+                                                       lookup_client);
         auto sliced_tiles = repository.GetSlicedTiles(request.GetTileKeys(),
                                                       min_level, max_level);
 
@@ -254,7 +259,6 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
 
         auto sub_tiles = repository.GetSubTiles(layer_id, request, version,
                                                 sliced_tiles, context);
-
         if (!sub_tiles.IsSuccessful()) {
           return sub_tiles.GetError();
         }
@@ -301,8 +305,8 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
                       return DataResponse(nullptr);
                     } else {
                       // Fetch from online
-                      repository::DataRepository repository(catalog,
-                                                            *shared_settings);
+                      repository::DataRepository repository(
+                          catalog, *shared_settings, lookup_client);
                       return repository.GetVersionedData(
                           layer_id,
                           DataRequest().WithDataHandle(handle).WithBillingTag(
@@ -374,7 +378,7 @@ CatalogVersionResponse VersionedLayerClientImpl::GetVersion(
   request.WithBillingTag(billing_tag);
   request.WithFetchOption(fetch_options);
 
-  repository::CatalogRepository repository(catalog_, settings_);
+  repository::CatalogRepository repository(catalog_, settings_, lookup_client_);
   auto response = repository.GetLatestVersion(request, context);
 
   if (!response.IsSuccessful()) {
@@ -417,6 +421,7 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
     auto layer_id = layer_id_;
     auto settings = settings_;
     auto pending_requests = pending_requests_;
+    auto lookup_client = lookup_client_;
 
     auto data_task = [=](client::CancellationContext context) -> DataResponse {
       auto version_response = GetVersion(request.GetBillingTag(),
@@ -425,8 +430,8 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
         return version_response.GetError();
       }
 
-      repository::DataRepository repository(std::move(catalog),
-                                            std::move(settings));
+      repository::DataRepository repository(
+          std::move(catalog), std::move(settings), std::move(lookup_client));
       return repository.GetVersionedTile(
           layer_id, request, version_response.GetResult().GetVersion(),
           context);
@@ -473,7 +478,8 @@ bool VersionedLayerClientImpl::RemoveFromCache(
 
 bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
   read::QuadTreeIndex cached_tree;
-  repository::PartitionsRepository repository(catalog_, settings_);
+  repository::PartitionsRepository repository(catalog_, settings_,
+                                              lookup_client_);
   if (repository.FindQuadTree(layer_id_, catalog_version_.load(), tile,
                               cached_tree)) {
     auto data = cached_tree.Find(tile, false);
@@ -517,7 +523,8 @@ bool VersionedLayerClientImpl::IsCached(const std::string& partition_id) const {
 
 bool VersionedLayerClientImpl::IsCached(const geo::TileKey& tile) const {
   read::QuadTreeIndex cached_tree;
-  repository::PartitionsRepository repository(catalog_, settings_);
+  repository::PartitionsRepository repository(catalog_, settings_,
+                                              lookup_client_);
   if (repository.FindQuadTree(layer_id_, catalog_version_.load(), tile,
                               cached_tree)) {
     auto data = cached_tree.Find(tile, false);
@@ -537,6 +544,7 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
   auto layer_id = layer_id_;
   auto settings = settings_;
   auto pending_requests = pending_requests_;
+  auto lookup_client = lookup_client_;
 
   auto data_task =
       [=](client::CancellationContext context) -> AggregatedDataResponse {
@@ -557,7 +565,8 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
     }
 
     auto version = version_response.GetResult().GetVersion();
-    repository::PartitionsRepository repository(catalog_, settings_);
+    repository::PartitionsRepository repository(catalog_, settings_,
+                                                lookup_client_);
     auto partition_response =
         repository.GetAggregatedTile(layer_id, request, version, context);
     if (!partition_response.IsSuccessful()) {
@@ -572,8 +581,8 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
                             .WithDataHandle(fetch_partition.GetDataHandle())
                             .WithFetchOption(request.GetFetchOption());
 
-    repository::DataRepository data_repository(std::move(catalog),
-                                               std::move(settings));
+    repository::DataRepository data_repository(
+        std::move(catalog), std::move(settings), std::move(lookup_client));
     auto data_response = data_repository.GetVersionedData(
         layer_id, data_request, version, context);
 
@@ -649,7 +658,8 @@ bool VersionedLayerClientImpl::Protect(const TileKeys& tiles) {
       add_data_handle(tile, *it);
     } else {
       read::QuadTreeIndex cached_tree;
-      repository::PartitionsRepository repository(catalog_, settings_);
+      repository::PartitionsRepository repository(catalog_, settings_,
+                                                  lookup_client_);
       if (repository.FindQuadTree(layer_id_, version, tile, cached_tree) &&
           add_data_handle(tile, cached_tree)) {
         keys_to_protect.emplace_back(partitions_cache_repository.CreateQuadKey(
