@@ -28,6 +28,7 @@
 
 #include <olp/core/client/BackdownStrategy.h>
 #include <olp/core/client/CancellationToken.h>
+#include <olp/core/client/DefaultLookupEndpointProvider.h>
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/http/Network.h>
 
@@ -231,6 +232,36 @@ struct CORE_API RetrySettings {
 };
 
 /**
+ * @brief Settings to provide URLs for API lookup requests.
+ */
+struct CORE_API ApiLookupSettings {
+  /**
+   * @brief The type alias of the lookup provider function.
+   *
+   * Users of this provider should always return full lookup API path, e.g.
+   * for "here" partition return
+   * "https://api-lookup.data.api.platform.here.com/lookup/v1"
+   *
+   * @note Return empty string in case of an invalid or unknown partition.
+   * @note This call should be synchronous without any tasks scheduled on the
+   * TaskScheduler as this might result in a dead-lock.
+   */
+  using LookupEndpointProvider = std::function<std::string(const std::string&)>;
+
+  /**
+   * @brief The provider of endpoint for API lookup requests.
+   *
+   * The lookup API endpoint provider will be called prior to every API lookup
+   * attempt to get the API Lookup URL which shall be asked for the catalog
+   * URLs.
+   *
+   * By default `DefaultLookupEndpointProvider` is being used.
+   */
+  LookupEndpointProvider lookup_endpoint_provider =
+      DefaultLookupEndpointProvider();
+};
+
+/**
  * @brief Configures the behavior of the `OlpClient` class.
  */
 struct CORE_API OlpClientSettings {
@@ -238,6 +269,11 @@ struct CORE_API OlpClientSettings {
    * @brief The retry settings.
    */
   RetrySettings retry_settings;
+
+  /**
+   * @brief API Lookup settings.
+   */
+  ApiLookupSettings api_lookup_settings;
 
   /**
    * @brief The network proxy settings.

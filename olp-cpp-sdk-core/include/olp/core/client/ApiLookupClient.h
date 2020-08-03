@@ -36,36 +36,6 @@ namespace client {
 class ApiLookupClientImpl;
 
 /**
- * @brief Default implementation of the lookup API endpoint provider.
- *
- * This is returning the default lookup API endpoint URLs based on the HRN
- * partition.
- */
-struct CORE_API DefaultLookupEndpointProvider {
- public:
-  std::string operator()(const std::string& partition) {
-    constexpr struct {
-      const char* partition;
-      const char* url;
-    } kDatastoreServerUrl[4] = {
-        {"here", "https://api-lookup.data.api.platform.here.com/lookup/v1"},
-        {"here-dev",
-         "https://api-lookup.data.api.platform.in.here.com/lookup/v1"},
-        {"here-cn",
-         "https://api-lookup.data.api.platform.hereolp.cn/lookup/v1"},
-        {"here-cn-dev",
-         "https://api-lookup.data.api.platform.in.hereolp.cn/lookup/v1"}};
-
-    for (const auto& it : kDatastoreServerUrl) {
-      if (partition == it.partition)
-        return it.url;
-    }
-
-    return std::string();
-  }
-};
-
-/**
  * @brief Client to API lookup requests
  */
 class CORE_API ApiLookupClient final {
