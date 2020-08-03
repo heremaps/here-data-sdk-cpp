@@ -479,10 +479,10 @@ bool VersionedLayerClientImpl::RemoveFromCache(
 
 bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
   read::QuadTreeIndex cached_tree;
-  repository::PartitionsRepository repository(catalog_, settings_,
-                                              lookup_client_);
-  if (repository.FindQuadTree(layer_id_, catalog_version_.load(), tile,
-                              cached_tree)) {
+  repository::PartitionsCacheRepository partitions_cache_repository(
+      catalog_, settings_.cache);
+  if (partitions_cache_repository.FindQuadTree(
+          layer_id_, catalog_version_.load(), tile, cached_tree)) {
     auto data = cached_tree.Find(tile, false);
     if (!data) {
       return true;
@@ -498,8 +498,6 @@ bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
           return true;
         }
       }
-      repository::PartitionsCacheRepository partitions_cache_repository(
-          catalog_, settings_.cache);
       return partitions_cache_repository.ClearQuadTree(
           layer_id_, cached_tree.GetRootTile(), kQuadTreeDepth,
           catalog_version_.load());
@@ -524,10 +522,11 @@ bool VersionedLayerClientImpl::IsCached(const std::string& partition_id) const {
 
 bool VersionedLayerClientImpl::IsCached(const geo::TileKey& tile) const {
   read::QuadTreeIndex cached_tree;
-  repository::PartitionsRepository repository(catalog_, settings_,
-                                              lookup_client_);
-  if (repository.FindQuadTree(layer_id_, catalog_version_.load(), tile,
-                              cached_tree)) {
+
+  repository::PartitionsCacheRepository partitions_cache_repository(
+      catalog_, settings_.cache);
+  if (partitions_cache_repository.FindQuadTree(
+          layer_id_, catalog_version_.load(), tile, cached_tree)) {
     auto data = cached_tree.Find(tile, false);
     if (!data) {
       return false;
@@ -659,9 +658,8 @@ bool VersionedLayerClientImpl::Protect(const TileKeys& tiles) {
       add_data_handle(tile, *it);
     } else {
       read::QuadTreeIndex cached_tree;
-      repository::PartitionsRepository repository(catalog_, settings_,
-                                                  lookup_client_);
-      if (repository.FindQuadTree(layer_id_, version, tile, cached_tree) &&
+      if (partitions_cache_repository.FindQuadTree(layer_id_, version, tile,
+                                                   cached_tree) &&
           add_data_handle(tile, cached_tree)) {
         keys_to_protect.emplace_back(partitions_cache_repository.CreateQuadKey(
             layer_id_, cached_tree.GetRootTile(), kQuadTreeDepth, version));
@@ -682,8 +680,8 @@ bool VersionedLayerClientImpl::Release(const TileKeys& tiles) {
   }
   auto version = catalog_version_.load();
 
-  auto tiles_dependency_resolver = ReleaseDependencyResolver(
-      catalog_, layer_id_, version, settings_, lookup_client_);
+  auto tiles_dependency_resolver =
+      ReleaseDependencyResolver(catalog_, layer_id_, version, settings_);
   const auto& keys_to_release =
       tiles_dependency_resolver.GetKeysToRelease(tiles);
 

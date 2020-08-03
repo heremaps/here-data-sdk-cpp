@@ -77,10 +77,6 @@ class PartitionsRepository {
                             boost::optional<int64_t> version,
                             client::CancellationContext context);
 
-  bool FindQuadTree(const std::string& layer, boost::optional<int64_t> version,
-                    const olp::geo::TileKey& tile_key,
-                    read::QuadTreeIndex& tree);
-
  private:
   QuadTreeIndexResponse GetQuadTreeIndexForTile(
       const std::string& layer, const TileRequest& request,

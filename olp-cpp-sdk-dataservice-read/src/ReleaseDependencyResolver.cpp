@@ -34,14 +34,12 @@ namespace read {
 
 ReleaseDependencyResolver::ReleaseDependencyResolver(
     const client::HRN& catalog, const std::string& layer_id,
-    const int64_t& version, const client::OlpClientSettings& settings,
-    const client::ApiLookupClient& lookup_client)
+    const int64_t& version, const client::OlpClientSettings& settings)
     : layer_id_(layer_id),
       version_(version),
       cache_(settings.cache),
       data_cache_repository_(catalog, settings.cache),
       partitions_cache_repository_(catalog, settings.cache),
-      repository_(catalog, settings, lookup_client),
       quad_trees_with_protected_tiles_(),
       keys_to_release_() {}
 
@@ -123,7 +121,8 @@ ReleaseDependencyResolver::ProcessQuad(const read::QuadTreeIndex& cached_tree,
 void ReleaseDependencyResolver::ProcessTileKeyInCache(
     const geo::TileKey& tile) {
   read::QuadTreeIndex cached_tree;
-  if (repository_.FindQuadTree(layer_id_, version_, tile, cached_tree)) {
+  if (partitions_cache_repository_.FindQuadTree(layer_id_, version_, tile,
+                                                cached_tree)) {
     TilesDataKeysType protected_keys = ProcessQuad(cached_tree, tile);
     if (protected_keys.empty()) {
       // no other tiles are protected, can add quad tree to release list

@@ -91,6 +91,10 @@ class PartitionsCacheRepository final {
                             int32_t depth,
                             const boost::optional<int64_t>& version) const;
 
+  bool FindQuadTree(const std::string& layer, boost::optional<int64_t> version,
+                    const olp::geo::TileKey& tile_key,
+                    read::QuadTreeIndex& tree);
+
  private:
   client::HRN hrn_;
   std::shared_ptr<cache::KeyValueCache> cache_;

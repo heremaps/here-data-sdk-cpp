@@ -46,7 +46,6 @@ namespace model = olp::dataservice::read::model;
 namespace repository = olp::dataservice::read::repository;
 
 constexpr auto kLogTag = "PartitionsRepository";
-constexpr uint32_t kMaxQuadTreeIndexDepth = 4u;
 constexpr auto kAggregateQuadTreeDepth = 4;
 
 using LayerVersionReponse =
@@ -331,7 +330,9 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
   // Look for QuadTree covering the tile in the cache
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     read::QuadTreeIndex cached_tree;
-    if (FindQuadTree(layer, version, tile_key, cached_tree)) {
+    repository::PartitionsCacheRepository repository(
+        catalog_, settings_.cache, settings_.default_cache_expiration);
+    if (repository.FindQuadTree(layer, version, tile_key, cached_tree)) {
       OLP_SDK_LOG_DEBUG_F(kLogTag,
                           "GetQuadTreeIndexForTile found in cache, "
                           "tile='%s', depth='%" PRId32 "'",
@@ -420,33 +421,6 @@ PartitionResponse PartitionsRepository::GetTile(
 }
 PORTING_POP_WARNINGS()
 
-bool PartitionsRepository::FindQuadTree(const std::string& layer,
-    boost::optional<int64_t> version,
-    const olp::geo::TileKey& tile_key,
-    read::QuadTreeIndex& tree) {
-  repository::PartitionsCacheRepository repository(
-      catalog_, settings_.cache, settings_.default_cache_expiration);
-  auto max_depth =
-      std::min<std::int32_t>(tile_key.Level(), kMaxQuadTreeIndexDepth);
-  for (auto i = max_depth; i >= 0; --i) {
-    const auto& root_tile_key = tile_key.ChangedLevelBy(-i);
-    QuadTreeIndex cached_tree;
-    if (repository.Get(layer, root_tile_key, kAggregateQuadTreeDepth, version,
-                       cached_tree)) {
-      OLP_SDK_LOG_DEBUG_F(kLogTag,
-                          "FindQuadTreeInCache found in cache, tile='%s', "
-                          "root='%s', depth='%" PRId32 "'",
-                          tile_key.ToHereTile().c_str(),
-                          root_tile_key.ToHereTile().c_str(),
-                          kAggregateQuadTreeDepth);
-      tree = std::move(cached_tree);
-
-      return true;
-    }
-  }
-
-  return false;
-}
 }  // namespace repository
 }  // namespace read
 }  // namespace dataservice

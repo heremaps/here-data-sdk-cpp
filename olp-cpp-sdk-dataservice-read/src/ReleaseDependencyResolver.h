@@ -42,8 +42,7 @@ class ReleaseDependencyResolver {
  public:
   ReleaseDependencyResolver(const client::HRN& catalog,
                             const std::string& layer_id, const int64_t& version,
-                            const client::OlpClientSettings& settings,
-                            const client::ApiLookupClient& lookup_client);
+                            const client::OlpClientSettings& settings);
 
   const cache::KeyValueCache::KeyListType& GetKeysToRelease(
       const TileKeys& tiles);
@@ -67,7 +66,6 @@ class ReleaseDependencyResolver {
   std::shared_ptr<cache::KeyValueCache> cache_;
   repository::DataCacheRepository data_cache_repository_;
   repository::PartitionsCacheRepository partitions_cache_repository_;
-  repository::PartitionsRepository repository_;
   QuadsType quad_trees_with_protected_tiles_;
   cache::KeyValueCache::KeyListType keys_to_release_;
 };

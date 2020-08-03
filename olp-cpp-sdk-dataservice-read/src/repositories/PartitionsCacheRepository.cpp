@@ -19,6 +19,7 @@
 
 #include "PartitionsCacheRepository.h"
 
+#include <algorithm>
 #include <limits>
 #include <string>
 #include <utility>
@@ -45,6 +46,7 @@ namespace {
 constexpr auto kLogTag = "PartitionsCacheRepository";
 constexpr auto kChronoSecondsMax = std::chrono::seconds::max();
 constexpr auto kTimetMax = std::numeric_limits<time_t>::max();
+constexpr uint32_t kMaxQuadTreeIndexDepth = 4u;
 
 std::string CreateKey(const std::string& hrn, const std::string& layer_id,
                       const std::string& partitionId,
@@ -89,9 +91,9 @@ void PartitionsCacheRepository::Put(const model::Partitions& partitions,
     auto key = CreateKey(hrn, layer_id, partition.GetPartition(), version);
     OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
-    cache_->Put(
-        key, partition, [&]() { return olp::serializer::serialize(partition); },
-        expiry.get_value_or(default_expiry_));
+    cache_->Put(key, partition,
+                [&]() { return olp::serializer::serialize(partition); },
+                expiry.get_value_or(default_expiry_));
 
     if (layer_metadata) {
       partition_ids.push_back(partition.GetPartition());
@@ -102,10 +104,9 @@ void PartitionsCacheRepository::Put(const model::Partitions& partitions,
     auto key = CreateKey(hrn, layer_id, version);
     OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
-    cache_->Put(
-        key, partition_ids,
-        [&]() { return olp::serializer::serialize(partition_ids); },
-        expiry.get_value_or(default_expiry_));
+    cache_->Put(key, partition_ids,
+                [&]() { return olp::serializer::serialize(partition_ids); },
+                expiry.get_value_or(default_expiry_));
   }
 }
 
@@ -176,10 +177,9 @@ void PartitionsCacheRepository::Put(
   const auto key = CreateKey(hrn, catalog_version);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
-  cache_->Put(
-      key, layer_versions,
-      [&]() { return olp::serializer::serialize(layer_versions); },
-      default_expiry_);
+  cache_->Put(key, layer_versions,
+              [&]() { return olp::serializer::serialize(layer_versions); },
+              default_expiry_);
 }
 
 boost::optional<model::LayerVersions> PartitionsCacheRepository::Get(
@@ -310,6 +310,32 @@ std::string PartitionsCacheRepository::CreateQuadKey(
   return hrn + "::" + layer + "::" + key.ToHereTile() +
          "::" + (version ? std::to_string(*version) + "::" : "") +
          std::to_string(depth) + "::quadtree";
+}
+
+bool PartitionsCacheRepository::FindQuadTree(const std::string& layer,
+                                             boost::optional<int64_t> version,
+                                             const olp::geo::TileKey& tile_key,
+                                             read::QuadTreeIndex& tree) {
+  auto max_depth =
+      std::min<std::int32_t>(tile_key.Level(), kMaxQuadTreeIndexDepth);
+  for (auto i = max_depth; i >= 0; --i) {
+    const auto& root_tile_key = tile_key.ChangedLevelBy(-i);
+    QuadTreeIndex cached_tree;
+    if (Get(layer, root_tile_key, kMaxQuadTreeIndexDepth, version,
+            cached_tree)) {
+      OLP_SDK_LOG_DEBUG_F(kLogTag,
+                          "FindQuadTree found in cache, tile='%s', "
+                          "root='%s', depth='%" PRId32 "'",
+                          tile_key.ToHereTile().c_str(),
+                          root_tile_key.ToHereTile().c_str(),
+                          kMaxQuadTreeIndexDepth);
+      tree = std::move(cached_tree);
+
+      return true;
+    }
+  }
+
+  return false;
 }
 
 PORTING_POP_WARNINGS()
