@@ -421,9 +421,9 @@ PartitionResponse PartitionsRepository::GetTile(
 PORTING_POP_WARNINGS()
 
 bool PartitionsRepository::FindQuadTree(const std::string& layer,
-                                        boost::optional<int64_t> version,
-                                        const olp::geo::TileKey& tile_key,
-                                        read::QuadTreeIndex& tree) {
+    boost::optional<int64_t> version,
+    const olp::geo::TileKey& tile_key,
+    read::QuadTreeIndex& tree) {
   repository::PartitionsCacheRepository repository(
       catalog_, settings_.cache, settings_.default_cache_expiration);
   auto max_depth =

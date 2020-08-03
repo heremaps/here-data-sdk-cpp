@@ -35,44 +35,40 @@ namespace olp {
 namespace dataservice {
 namespace read {
 
+/// group quad trees and protected tiles. Check if for each quad tree we want
+/// to release all protected keys associated, if true add this quad tree to
+/// released keys
 class ReleaseDependencyResolver {
  public:
-  // group quad trees and protected tiles. Check if for each quad tree we want
-  // to release all protected keys associated, if true add this quad tree to
-  // released keys
-  static cache::KeyValueCache::KeyListType GenerateKeysToRelease(
-      const client::HRN& catalog, const std::string& layer_id,
-      const int64_t& version, const client::OlpClientSettings& settings,
+  ReleaseDependencyResolver(const client::HRN& catalog,
+                            const std::string& layer_id, const int64_t& version,
+                            const client::OlpClientSettings& settings,
+                            const client::ApiLookupClient& lookup_client);
+
+  const cache::KeyValueCache::KeyListType& GetKeysToRelease(
       const TileKeys& tiles);
 
  private:
-  using MapOfTileDataKeys = std::map<geo::TileKey, std::string>;
-  using MapOfQuads = std::map<geo::TileKey, MapOfTileDataKeys>;
+  using TilesDataKeysType = std::map<geo::TileKey, std::string>;
+  using QuadsType = std::map<geo::TileKey, TilesDataKeysType>;
 
-  ReleaseDependencyResolver(const client::HRN& catalog,
-                            const std::string& layer_id, const int64_t& version,
-                            const client::OlpClientSettings& settings);
+  bool ProcessTileKey(const geo::TileKey& tile_key);
 
-  cache::KeyValueCache::KeyListType&& GenerateAndMoveKeysToRelease(
-      const TileKeys& tiles);
+  QuadsType::iterator FindQuad(const geo::TileKey& tile_key);
 
-  bool ProcessTileKeyInMap(const geo::TileKey& tile_key);
-
-  MapOfQuads::iterator FindQuadInMap(const geo::TileKey& tile_key);
-
-  MapOfTileDataKeys ProcessQuad(const read::QuadTreeIndex& cached_tree,
+  TilesDataKeysType ProcessQuad(const read::QuadTreeIndex& cached_tree,
                                 const geo::TileKey& tile);
 
   void ProcessTileKeyInCache(const geo::TileKey& tile);
 
  private:
-  std::string layer_id_;
-  int64_t version_;
+  const std::string& layer_id_;
+  const int64_t version_;
   std::shared_ptr<cache::KeyValueCache> cache_;
   repository::DataCacheRepository data_cache_repository_;
   repository::PartitionsCacheRepository partitions_cache_repository_;
   repository::PartitionsRepository repository_;
-  MapOfQuads quad_trees_with_protected_tiles_;
+  QuadsType quad_trees_with_protected_tiles_;
   cache::KeyValueCache::KeyListType keys_to_release_;
 };
 

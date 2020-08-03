@@ -682,8 +682,10 @@ bool VersionedLayerClientImpl::Release(const TileKeys& tiles) {
   }
   auto version = catalog_version_.load();
 
-  auto keys_to_release = ReleaseDependencyResolver::GenerateKeysToRelease(
-      catalog_, layer_id_, version, settings_, tiles);
+  auto tiles_dependency_resolver = ReleaseDependencyResolver(
+      catalog_, layer_id_, version, settings_, lookup_client_);
+  const auto& keys_to_release =
+      tiles_dependency_resolver.GetKeysToRelease(tiles);
 
   if (keys_to_release.empty()) {
     return false;

@@ -32,41 +32,32 @@ namespace olp {
 namespace dataservice {
 namespace read {
 
-cache::KeyValueCache::KeyListType
-ReleaseDependencyResolver::GenerateKeysToRelease(
-    const client::HRN& catalog, const std::string& layer_id,
-    const int64_t& version, const client::OlpClientSettings& settings,
-    const TileKeys& tiles) {
-  auto process_tiles =
-      ReleaseDependencyResolver(catalog, layer_id, version, settings);
-  return process_tiles.GenerateAndMoveKeysToRelease(tiles);
-}
-
 ReleaseDependencyResolver::ReleaseDependencyResolver(
     const client::HRN& catalog, const std::string& layer_id,
-    const int64_t& version, const client::OlpClientSettings& settings)
+    const int64_t& version, const client::OlpClientSettings& settings,
+    const client::ApiLookupClient& lookup_client)
     : layer_id_(layer_id),
       version_(version),
       cache_(settings.cache),
       data_cache_repository_(catalog, settings.cache),
       partitions_cache_repository_(catalog, settings.cache),
-      repository_(catalog, settings),
+      repository_(catalog, settings, lookup_client),
       quad_trees_with_protected_tiles_(),
       keys_to_release_() {}
 
-cache::KeyValueCache::KeyListType&&
-ReleaseDependencyResolver::GenerateAndMoveKeysToRelease(const TileKeys& tiles) {
+const cache::KeyValueCache::KeyListType&
+ReleaseDependencyResolver::GetKeysToRelease(const TileKeys& tiles) {
+  keys_to_release_.clear();
   for (const auto& tile : tiles) {
-    if (!ProcessTileKeyInMap(tile)) {
+    if (!ProcessTileKey(tile)) {
       ProcessTileKeyInCache(tile);
     }
   }
-  return std::move(keys_to_release_);
+  return keys_to_release_;
 }
 
-bool ReleaseDependencyResolver::ProcessTileKeyInMap(
-    const geo::TileKey& tile_key) {
-  auto it = FindQuadInMap(tile_key);
+bool ReleaseDependencyResolver::ProcessTileKey(const geo::TileKey& tile_key) {
+  auto it = FindQuad(tile_key);
   if (it != quad_trees_with_protected_tiles_.end()) {
     // Quad tree for tile found. Get data handle for tile and add to list to
     // release
@@ -91,8 +82,8 @@ bool ReleaseDependencyResolver::ProcessTileKeyInMap(
   return false;
 }
 
-ReleaseDependencyResolver::MapOfQuads::iterator
-ReleaseDependencyResolver::FindQuadInMap(const geo::TileKey& tile_key) {
+ReleaseDependencyResolver::QuadsType::iterator
+ReleaseDependencyResolver::FindQuad(const geo::TileKey& tile_key) {
   auto max_depth = std::min<std::int32_t>(tile_key.Level(), kQuadTreeDepth);
   for (auto i = max_depth; i >= 0; --i) {
     const auto& quad_root = tile_key.ChangedLevelBy(-i);
@@ -104,14 +95,14 @@ ReleaseDependencyResolver::FindQuadInMap(const geo::TileKey& tile_key) {
   return quad_trees_with_protected_tiles_.end();
 }
 
-ReleaseDependencyResolver::MapOfTileDataKeys
+ReleaseDependencyResolver::TilesDataKeysType
 ReleaseDependencyResolver::ProcessQuad(const read::QuadTreeIndex& cached_tree,
                                        const geo::TileKey& tile) {
   // check if quad tree has other protected keys, if not, add quad key to
   // release from protected list, othervise add all protected keys left
   // for this quad to map
   auto index_data = cached_tree.GetIndexData();
-  MapOfTileDataKeys protected_keys;
+  TilesDataKeysType protected_keys;
   for (const auto& ind : index_data) {
     auto tile_data_key =
         data_cache_repository_.CreateKey(layer_id_, ind.data_handle);
@@ -133,7 +124,7 @@ void ReleaseDependencyResolver::ProcessTileKeyInCache(
     const geo::TileKey& tile) {
   read::QuadTreeIndex cached_tree;
   if (repository_.FindQuadTree(layer_id_, version_, tile, cached_tree)) {
-    MapOfTileDataKeys protected_keys = ProcessQuad(cached_tree, tile);
+    TilesDataKeysType protected_keys = ProcessQuad(cached_tree, tile);
     if (protected_keys.empty()) {
       // no other tiles are protected, can add quad tree to release list
       keys_to_release_.emplace_back(partitions_cache_repository_.CreateQuadKey(
