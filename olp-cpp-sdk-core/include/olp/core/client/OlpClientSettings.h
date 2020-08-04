@@ -29,6 +29,7 @@
 #include <olp/core/client/BackdownStrategy.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/DefaultLookupEndpointProvider.h>
+#include <olp/core/client/HRN.h>
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/http/Network.h>
 
@@ -249,6 +250,21 @@ struct CORE_API ApiLookupSettings {
   using LookupEndpointProvider = std::function<std::string(const std::string&)>;
 
   /**
+   * @brief The type alias of the catalog endpoint provider function.
+   *
+   * Catalogs that have a static URL or can be accessed through
+   * a proxy service can input the URL provider here. This URL provider is taken
+   * by the `ApiLookupClient` and returned directly to the caller without any
+   * requests to the API Lookup Service.
+   *
+   * @note This call should be synchronous without any tasks scheduled in
+   * `TaskScheduler` as it might result in a dead-lock.
+   *
+   * @return An empty string if the catalog is invalid or unknown.
+   */
+  using CatalogEndpointProvider = std::function<std::string(const HRN&)>;
+
+  /**
    * @brief The provider of endpoint for API lookup requests.
    *
    * The lookup API endpoint provider will be called prior to every API lookup
@@ -259,6 +275,18 @@ struct CORE_API ApiLookupSettings {
    */
   LookupEndpointProvider lookup_endpoint_provider =
       DefaultLookupEndpointProvider();
+
+  /**
+   * @brief The endpoint provider for API requests.
+   *
+   * If some of the catalogs have fixed URLs and do not need the API Lookup
+   * Service, you can provide the static URL via `CatalogEndpointProvider`.
+   * Every request will receive this URL from `ApiLookupClient` without
+   * any HTTP requests to the API Lookup Service. `CatalogEndpointProvider` is
+   * called before `lookup_endpoint_provider`, and if the output is not empty,
+   * `lookup_endpoint_provider` is not called additionally.
+   */
+  CatalogEndpointProvider catalog_endpoint_provider = nullptr;
 };
 
 /**

@@ -4008,6 +4008,67 @@ TEST_F(DataserviceReadVersionedLayerClientTest, ProtectAndReleaseWithEviction) {
   olp::utils::Dir::remove(cache_path);
 }
 
+TEST_F(DataserviceReadVersionedLayerClientTest, CatalogEndpointProvider) {
+  {
+    SCOPED_TRACE("Static url catalog");
+
+    // lookup request shouldn't happen
+    EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     kHttpResponsePartition_269))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     kHttpResponseBlobData_269));
+
+    const std::string provider_url = "https://some-lookup-url.com/lookup/v1";
+    client::ApiLookupSettings lookup_settings;
+    lookup_settings.catalog_endpoint_provider =
+        [&provider_url](const client::HRN&) { return provider_url; };
+    settings_.api_lookup_settings = lookup_settings;
+
+    auto client = std::make_shared<read::VersionedLayerClient>(
+        kCatalog, kTestLayer, 0, settings_);
+    auto future =
+        client->GetData(read::DataRequest().WithPartitionId(kTestPartition))
+            .GetFuture();
+
+    auto response = future.get();
+
+    ASSERT_TRUE(response.IsSuccessful());
+    ASSERT_TRUE(response.GetResult() != nullptr);
+    ASSERT_NE(response.GetResult()->size(), 0u);
+  }
+
+  {
+    SCOPED_TRACE("Empty url");
+
+    EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     HTTP_RESPONSE_LOOKUP))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     kHttpResponsePartition_269))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     kHttpResponseBlobData_269));
+
+    client::ApiLookupSettings lookup_settings;
+    lookup_settings.catalog_endpoint_provider = [](const client::HRN&) {
+      return "";
+    };
+    settings_.api_lookup_settings = lookup_settings;
+
+    auto client = std::make_shared<read::VersionedLayerClient>(
+        kCatalog, kTestLayer, 0, settings_);
+    auto future =
+        client->GetData(read::DataRequest().WithPartitionId(kTestPartition))
+            .GetFuture();
+
+    auto response = future.get();
+
+    ASSERT_TRUE(response.IsSuccessful());
+    ASSERT_TRUE(response.GetResult() != nullptr);
+    ASSERT_NE(response.GetResult()->size(), 0u);
+  }
+}
+
 }  // namespace
 
 PORTING_POP_WARNINGS()

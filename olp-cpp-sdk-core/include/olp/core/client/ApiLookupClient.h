@@ -79,6 +79,12 @@ class CORE_API ApiLookupClient final {
    * @param callback The function callback used to receive the
    * `LookupApiResponse` instance.
    *
+   * @note If the catalog endpoint provider is set and provides a static URL
+   * for this catalog, the method does not trigger any asynchronous download and
+   * provides the synchronous result instead. This means that
+   * the user needs to take special care in case the callback is called within
+   * the same context and avoid locking any mutex twice.
+   *
    * @return The method used to call or to cancel the request.
    */
   CancellationToken LookupApi(const std::string& service,

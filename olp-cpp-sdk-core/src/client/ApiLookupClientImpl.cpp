@@ -42,6 +42,24 @@ std::string FindApi(const Apis& apis, const std::string& service,
   return it->GetBaseUrl();
 }
 
+olp::client::OlpClient GetStaticUrl(
+    const olp::client::HRN& catalog,
+    const olp::client::OlpClientSettings& settings) {
+  const auto& provider = settings.api_lookup_settings.catalog_endpoint_provider;
+  if (provider) {
+    auto url = provider(catalog);
+    if (!url.empty()) {
+      url += "/catalogs/" + catalog.ToCatalogHRNString();
+      OlpClient result_client;
+      result_client.SetBaseUrl(url);
+      result_client.SetSettings(settings);
+      return result_client;
+    }
+  }
+
+  return {};
+}
+
 }  // namespace
 
 ApiLookupClientImpl::ApiLookupClientImpl(const HRN& catalog,
@@ -56,6 +74,11 @@ ApiLookupClientImpl::ApiLookupClientImpl(const HRN& catalog,
 ApiLookupClient::LookupApiResponse ApiLookupClientImpl::LookupApi(
     const std::string& service, const std::string& service_version,
     FetchOptions options, CancellationContext context) {
+  auto result_client = GetStaticUrl(catalog_, settings_);
+  if (!result_client.GetBaseUrl().empty()) {
+    return result_client;
+  }
+
   repository::ApiCacheRepository repository(catalog_, settings_.cache);
   const auto hrn = catalog_.ToCatalogHRNString();
 
@@ -65,7 +88,6 @@ ApiLookupClient::LookupApiResponse ApiLookupClientImpl::LookupApi(
       OLP_SDK_LOG_DEBUG_F(kLogTag, "LookupApi(%s/%s) found in cache, hrn='%s'",
                           service.c_str(), service_version.c_str(),
                           hrn.c_str());
-      OlpClient result_client;
       result_client.SetBaseUrl(*url);
       result_client.SetSettings(settings_);
       return result_client;
@@ -116,7 +138,6 @@ ApiLookupClient::LookupApiResponse ApiLookupClientImpl::LookupApi(
       kLogTag, "LookupApi(%s/%s) found, hrn='%s', service_url='%s'",
       service.c_str(), service_version.c_str(), hrn.c_str(), url.c_str());
 
-  OlpClient result_client;
   result_client.SetBaseUrl(url);
   result_client.SetSettings(settings_);
   return result_client;
@@ -125,6 +146,12 @@ ApiLookupClient::LookupApiResponse ApiLookupClientImpl::LookupApi(
 CancellationToken ApiLookupClientImpl::LookupApi(
     const std::string& service, const std::string& service_version,
     FetchOptions options, ApiLookupClient::LookupApiCallback callback) {
+  auto result_client = GetStaticUrl(catalog_, settings_);
+  if (!result_client.GetBaseUrl().empty()) {
+    callback(result_client);
+    return CancellationToken();
+  }
+
   repository::ApiCacheRepository repository(catalog_, settings_.cache);
   const auto hrn = catalog_.ToCatalogHRNString();
 
@@ -134,7 +161,6 @@ CancellationToken ApiLookupClientImpl::LookupApi(
       OLP_SDK_LOG_DEBUG_F(kLogTag, "LookupApi(%s/%s) found in cache, hrn='%s'",
                           service.c_str(), service_version.c_str(),
                           hrn.c_str());
-      OlpClient result_client;
       result_client.SetBaseUrl(*url);
       result_client.SetSettings(settings_);
       callback(result_client);
