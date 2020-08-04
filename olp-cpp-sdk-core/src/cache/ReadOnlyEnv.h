@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,34 +19,29 @@
 
 #pragma once
 
-#include <atomic>
-#include <cstdint>
-#include <memory>
-
 #include "SizeCountingEnv.h"
 
 namespace olp {
 namespace cache {
 
-class DiskCacheSizeLimitEnv : public SizeCountingEnv {
+class ReadOnlyEnv : public SizeCountingEnv {
  public:
   // Initialize an EnvWrapper that delegates all calls to *t
-  DiskCacheSizeLimitEnv(leveldb::Env* env, const std::string& base_path,
-                        bool enforce_strict_data_save);
-  ~DiskCacheSizeLimitEnv() override = default;
+  explicit ReadOnlyEnv(leveldb::Env* env);
+  ~ReadOnlyEnv() override = default;
 
   leveldb::Status NewWritableFile(const std::string& f,
                                   leveldb::WritableFile** r) override;
 
-  leveldb::Status DeleteFile(const std::string& f) override;
+  leveldb::Status NewAppendableFile(const std::string& f,
+                                    leveldb::WritableFile** r) override;
 
-  void AddSize(size_t size);
+  leveldb::Status LockFile(const std::string& f,
+                           leveldb::FileLock** l) override;
+  leveldb::Status UnlockFile(leveldb::FileLock* l) override;
 
-  uint64_t Size() const override;
-
- private:
-  std::atomic<uint64_t> total_size_{0};
-  bool enforce_strict_data_save_{false};
+  leveldb::Status RenameFile(const std::string& s,
+                             const std::string& t) override;
 };
 
 }  // namespace cache
