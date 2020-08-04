@@ -144,6 +144,7 @@ void DefaultCacheImpl::Close() {
   mutable_cache_.reset();
   mutable_cache_lru_.reset();
   protected_cache_.reset();
+  protected_keys_ = ProtectedKeyList();
   mutable_cache_data_size_ = 0;
   is_open_ = false;
 }
@@ -627,6 +628,7 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupStorage() {
   mutable_cache_.reset();
   mutable_cache_lru_.reset();
   protected_cache_.reset();
+  protected_keys_ = ProtectedKeyList();
   mutable_cache_data_size_ = 0;
 
   if (settings_.max_memory_cache_size > 0) {
@@ -751,12 +753,12 @@ std::string DefaultCacheImpl::GetExpiryKey(const std::string& key) const {
 bool DefaultCacheImpl::Protect(const DefaultCache::KeyListType& keys) {
   std::lock_guard<std::mutex> lock(cache_lock_);
   auto start = std::chrono::steady_clock::now();
-  protected_keys_.Protect(keys, [&](const std::string& key) {
+  auto result = protected_keys_.Protect(keys, [&](const std::string& key) {
     if (!RemoveKeyLru(key)) {
       RemoveKeysWithPrefixLru(key);
     }
   });
-  if (memory_cache_) {
+  if (memory_cache_ && result) {
     memory_cache_->Clear();
   }
 
@@ -766,13 +768,17 @@ bool DefaultCacheImpl::Protect(const DefaultCache::KeyListType& keys) {
                      GetElapsedTime(start),
                      static_cast<std::uint64_t>(keys.size()),
                      protected_keys_.Count());
-  return true;
+  return result;
 }
 
 bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
   std::lock_guard<std::mutex> lock(cache_lock_);
   auto start = std::chrono::steady_clock::now();
   auto result = protected_keys_.Release(keys);
+
+  if (!result) {
+    return result;
+  }
 
   for (const auto& key : keys) {
     if (memory_cache_) {
@@ -803,6 +809,11 @@ bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
                      static_cast<std::uint64_t>(keys.size()),
                      protected_keys_.Count());
   return result;
+}
+
+bool DefaultCacheImpl::IsProtected(const std::string& key) const {
+  std::lock_guard<std::mutex> lock(cache_lock_);
+  return protected_keys_.IsProtected(key);
 }
 
 time_t DefaultCacheImpl::GetExpiryForMemoryCache(const std::string& key,

@@ -1009,7 +1009,7 @@ TEST_F(DefaultCacheImplTest, ProtectTest) {
     ASSERT_TRUE(cache.Contains(key2));
     ASSERT_TRUE(cache.Protect({"key"}));
     std::this_thread::sleep_for(std::chrono::seconds(3));
-    ASSERT_TRUE(cache.Protect({key1, key2}));
+    ASSERT_FALSE(cache.Protect({key1, key2}));
     ASSERT_TRUE(cache.Contains(key1));
     ASSERT_TRUE(cache.Contains(key2));
 
@@ -1047,6 +1047,20 @@ TEST_F(DefaultCacheImplTest, ProtectTest) {
     // after release key prefix
     ASSERT_TRUE(cache.Release({"key"}));
     ASSERT_FALSE(cache.Contains(key1));
+    ASSERT_TRUE(cache.Clear());
+  }
+  {
+    SCOPED_TRACE("Try to protect already protected key");
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
+    DefaultCacheImplHelper cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+    ASSERT_TRUE(cache.Protect({key1, key2}));
+    ASSERT_FALSE(cache.Protect({key1, key2}));
+    // after try to release key twice
+    ASSERT_TRUE(cache.Release({key1, key2}));
+    ASSERT_FALSE(cache.Release({key1, key2}));
     ASSERT_TRUE(cache.Clear());
   }
 }
