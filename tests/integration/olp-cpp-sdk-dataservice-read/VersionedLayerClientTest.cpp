@@ -3838,6 +3838,176 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesAndGetAggregated) {
   }
 }
 
+TEST_F(DataserviceReadVersionedLayerClientTest, ProtectAndReleaseTileKeys) {
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_QUADKEYS_92259))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   kHttpResponseBlobData_269));
+
+  olp::cache::CacheSettings cache_settings;
+  const std::string cache_path =
+      olp::utils::Dir::TempDirectory() + "/integration_test";
+  olp::utils::Dir::remove(cache_path);
+  cache_settings.disk_path_mutable = cache_path;
+  std::shared_ptr<olp::cache::KeyValueCache> cache =
+      olp::client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
+
+  auto settings = settings_;
+  settings.cache = cache;
+  settings.default_cache_expiration = std::chrono::seconds(2);
+
+  cache->RemoveKeysWithPrefix({});
+  auto client =
+      read::VersionedLayerClient(kCatalog, kTestLayer, kTestVersion, settings);
+
+  // load and cache some data
+  auto promise = std::make_shared<std::promise<DataResponse>>();
+  auto future = promise->get_future();
+  auto tile_key = geo::TileKey::FromHereTile("23618364");
+  auto data_request = read::TileRequest().WithTileKey(tile_key);
+  auto token = client.GetData(data_request, [promise](DataResponse response) {
+    promise->set_value(response);
+  });
+
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  DataResponse response = future.get();
+
+  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_NE(response.GetResult(), nullptr);
+  ASSERT_NE(response.GetResult()->size(), 0u);
+
+  // check the data is available in cache
+  ASSERT_TRUE(client.IsCached(tile_key));
+
+  // protect tile and check that it is not expire
+  ASSERT_TRUE(client.Protect({tile_key}));
+  std::this_thread::sleep_for(std::chrono::seconds(3));
+  ASSERT_TRUE(client.IsCached(tile_key));
+
+  // release and check that tile not longer cached
+  ASSERT_TRUE(client.Release({tile_key}));
+  ASSERT_FALSE(client.IsCached(tile_key));
+  // remove cache
+  olp::utils::Dir::remove(cache_path);
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, ProtectAndReleaseWithEviction) {
+  constexpr auto kLayerId = "hype-test-prefetch";
+  const auto data_size = 1024u;
+  const std::string blob_data(data_size, 0);
+  const std::string cache_path =
+      olp::utils::Dir::TempDirectory() + "/integration_test";
+  olp::utils::Dir::remove(cache_path);
+  olp::cache::CacheSettings cache_settings;
+  cache_settings.disk_path_mutable = cache_path;
+  cache_settings.max_memory_cache_size = 0u;
+  cache_settings.eviction_policy =
+      olp::cache::EvictionPolicy::kLeastRecentlyUsed;
+  cache_settings.max_disk_storage = 3u * 1024u;
+  settings_.cache =
+      client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
+
+  auto client = read::VersionedLayerClient(kCatalog, kLayerId, 4, settings_);
+
+  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+      .WillByDefault(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                        HTTP_RESPONSE_LOOKUP));
+  const auto protected_key = geo::TileKey::FromHereTile("23618364");
+  const auto evicted_key = geo::TileKey::FromHereTile("23618365");
+  const auto other_key = geo::TileKey::FromHereTile("23618366");
+
+  {
+    SCOPED_TRACE("Get protected_key and store in cache");
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     HTTP_RESPONSE_LOOKUP));
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_QUADKEYS_92259), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     HTTP_RESPONSE_QUADKEYS_92259));
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_3), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     blob_data));
+
+    const auto request = read::TileRequest().WithTileKey(protected_key);
+    auto future = client.GetData(request).GetFuture();
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    ASSERT_TRUE(future.get().IsSuccessful());
+
+    // protect key so its not evicted.
+    ASSERT_TRUE(client.Protect({protected_key}));
+  }
+  {
+    SCOPED_TRACE("Get evicted_key and store in cache");
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_2), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     blob_data));
+
+    const auto request = read::TileRequest().WithTileKey(evicted_key);
+    auto future = client.GetData(request).GetFuture();
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    ASSERT_TRUE(future.get().IsSuccessful());
+  }
+  {
+    SCOPED_TRACE("Get other_key and store in cache");
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_1), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     blob_data));
+
+    const auto request = read::TileRequest().WithTileKey(other_key);
+    auto future = client.GetData(request).GetFuture();
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    ASSERT_TRUE(future.get().IsSuccessful());
+  }
+
+  // maximum is reached, evicted_key is not longer in cache
+  ASSERT_TRUE(client.IsCached(protected_key));
+  ASSERT_FALSE(client.IsCached(evicted_key));
+  ASSERT_TRUE(client.IsCached(other_key));
+
+  // now release key
+  ASSERT_TRUE(client.Release({protected_key}));
+
+  {
+    SCOPED_TRACE("Promoute other_key");
+    const auto request = read::TileRequest().WithTileKey(other_key);
+    auto future = client.GetData(request).GetFuture();
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    ASSERT_TRUE(future.get().IsSuccessful());
+    ASSERT_TRUE(client.IsCached(other_key));
+  }
+
+  {
+    SCOPED_TRACE("Write evicted key again");
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_BLOB_DATA_PREFETCH_2), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     blob_data));
+
+    const auto request = read::TileRequest().WithTileKey(evicted_key);
+    auto future = client.GetData(request).GetFuture();
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    ASSERT_TRUE(future.get().IsSuccessful());
+  }
+  ASSERT_TRUE(client.IsCached(evicted_key));
+  ASSERT_TRUE(client.IsCached(other_key));
+  // after release key is evicted
+  ASSERT_FALSE(client.IsCached(protected_key));
+  // remove cache folder
+  olp::utils::Dir::remove(cache_path);
+}
+
 }  // namespace
 
 PORTING_POP_WARNINGS()

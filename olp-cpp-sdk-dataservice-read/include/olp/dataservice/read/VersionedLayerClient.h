@@ -382,6 +382,46 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    */
   bool IsCached(const geo::TileKey& tile) const;
 
+  /**
+   * @brief Protects tile keys from eviction.
+   *
+   * Protecting tile keys means that its data and corresponding quadtree
+   * keys are added to the protected list and stored in the cache. These keys
+   * are removed from the LRU cache, so they could not be evicted. Also, they do
+   * not expire. The quadtree stays protected if at least one tile key is
+   * protected.
+   *
+   * @note You can only protect tiles which data handles are present in the
+   * cache at the time of the call.
+   *
+   * @note Please do not call `Protect` while the `Release` call for the same
+   * catalog and layer is in progress.
+   *
+   * @param tiles The list of tile keys to be protected.
+   *
+   * @return True if some keys were successfully added to the protected list;
+   * false otherwise.
+   */
+  bool Protect(const TileKeys& tiles);
+
+  /**
+   * @brief Removes a list of tiles from protection.
+   *
+   * Releasing tile keys removes data and quadtree keys from the protected
+   * list. The keys are added to the LRU cache, so they could be evicted.
+   * Expiration value is restored, and keys can expire. The quadtree can be
+   * removed from the protected list if all tile keys are no longer protected.
+   *
+   * @note Please make sure that `Protect` will not be called for the same
+   * catalog and layer while the `Release` call is in progress.
+   *
+   * @param tiles The list of tile keys to be removed from protection.
+   *
+   * @return True if some keys were successfully removed from the protected
+   * list; false otherwise.
+   */
+  bool Release(const TileKeys& tiles);
+
  private:
   std::unique_ptr<VersionedLayerClientImpl> impl_;
 };
