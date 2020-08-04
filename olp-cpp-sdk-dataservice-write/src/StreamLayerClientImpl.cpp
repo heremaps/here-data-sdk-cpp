@@ -408,8 +408,8 @@ PublishDataResponse StreamLayerClientImpl::PublishDataLessThanTwentyMib(
 
   auto ingest_data_response = IngestApi::IngestData(
       ingest_api_client, request.GetLayerId(), layer_settings.content_type,
-      request.GetData(), request.GetTraceId(), request.GetBillingTag(),
-      request.GetChecksum(), context);
+      layer_settings.content_encoding, request.GetData(), request.GetTraceId(),
+      request.GetBillingTag(), request.GetChecksum(), context);
 
   if (!ingest_data_response.IsSuccessful()) {
     return ingest_data_response;

@@ -38,6 +38,7 @@
 namespace client = olp::client;
 
 namespace {
+const std::string kHeaderParamEncoding = "Content-Encoding";
 const std::string kHeaderParamChecksum = "X-HERE-Checksum";
 const std::string kHeaderParamTraceId = "X-HERE-TraceId";
 const std::string kQueryParamBillingTag = "billingTag";
@@ -93,7 +94,7 @@ client::CancellationToken IngestApi::IngestData(
 
 IngestDataResponse IngestApi::IngestData(
     const client::OlpClient& client, const std::string& layer_id,
-    const std::string& content_type,
+    const std::string& content_type, const std::string& content_encoding,
     const std::shared_ptr<std::vector<unsigned char>>& data,
     const boost::optional<std::string>& trace_id,
     const boost::optional<std::string>& billing_tag,
@@ -104,9 +105,16 @@ IngestDataResponse IngestApi::IngestData(
   std::multimap<std::string, std::string> header_params;
 
   header_params.insert(std::make_pair("Accept", "application/json"));
+
+  if (!content_encoding.empty()) {
+    header_params.insert(
+        std::make_pair(kHeaderParamEncoding, content_encoding));
+  }
+
   if (trace_id) {
     header_params.insert(std::make_pair(kHeaderParamTraceId, trace_id.get()));
   }
+
   if (checksum) {
     header_params.insert(std::make_pair(kHeaderParamChecksum, checksum.get()));
   }
