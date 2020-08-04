@@ -54,7 +54,7 @@ class PlatformApi {
    */
   static client::CancellationToken GetApis(
       std::shared_ptr<client::OlpClient> client, const std::string& service,
-      const std::string& serviceVersion, const ApisCallback& callback);
+      const std::string& service_version, const ApisCallback& callback);
 
   /**
    * @brief Synchronous version of \c GetApis method.
@@ -62,7 +62,7 @@ class PlatformApi {
   static ApisResponse GetApis(const client::OlpClient& client,
                               const std::string& service,
                               const std::string& service_version,
-                              client::CancellationContext context);
+                              client::CancellationContext cancel_context);
 };
 
 }  // namespace write

@@ -152,7 +152,7 @@ class AuthenticationClientImpl final {
       int status, const std::string& error_message,
       const AuthenticationCredentials& credentials);
 
-  std::string GenerateUid();
+  std::string GenerateUid() const;
 
   client::CancellationToken HandleUserRequest(
       const AuthenticationCredentials& credentials, const std::string& endpoint,

@@ -39,11 +39,11 @@ class ApiCacheRepository final {
 
   ~ApiCacheRepository() = default;
 
-  void Put(const std::string& service, const std::string& service_version,
-           const std::string& service_url, boost::optional<time_t> expiry);
+  void Put(const std::string& service, const std::string& version,
+           const std::string& url, boost::optional<time_t> expiry);
 
   boost::optional<std::string> Get(const std::string& service,
-                                   const std::string& service_version);
+                                   const std::string& version);
 
  private:
   std::string hrn_;

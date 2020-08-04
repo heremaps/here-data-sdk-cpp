@@ -40,7 +40,7 @@ class SignInUserResultImpl : public SignInResultImpl {
   SignInUserResultImpl() noexcept;
 
   SignInUserResultImpl(
-      int status, std::string GetErrorResponse,
+      int status, std::string error,
       std::shared_ptr<rapidjson::Document> json_document = nullptr) noexcept;
 
   ~SignInUserResultImpl() override;

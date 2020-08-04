@@ -280,9 +280,6 @@ SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
     return query_api.GetError();
   }
 
-  using QuadTreeIndexResponse = QueryApi::QuadTreeIndexResponse;
-  using QuadTreeIndexPromise = std::promise<QuadTreeIndexResponse>;
-  auto promise = std::make_shared<QuadTreeIndexPromise>();
   auto tile_key = tile.ToHereTile();
 
   OLP_SDK_LOG_INFO_F(kLogTag, "GetSubQuadsVolatile execute(%s, %" PRId32 ")",

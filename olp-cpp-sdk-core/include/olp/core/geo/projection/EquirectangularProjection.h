@@ -42,7 +42,7 @@ class CORE_API EquirectangularProjection final : public IProjection {
 
   GeoRectangle GetGeoBounds() const override;
 
-  WorldAlignedBox WorldExtent(double minimum_Altitude,
+  WorldAlignedBox WorldExtent(double minimum_altitude,
                               double maximum_altitude) const override;
 
   bool Project(const GeoCoordinates3d& geo_point,

@@ -57,7 +57,7 @@ class TokenEndpoint::Impl {
                                          const RequestTokenCallback& callback);
 
   std::future<TokenResponse> RequestToken(
-      client::CancellationToken& cancellation_token,
+      client::CancellationToken& cancel_token,
       const TokenRequest& token_request);
 
  private:

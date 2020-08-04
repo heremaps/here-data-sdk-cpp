@@ -57,21 +57,20 @@ class VersionedLayerClientImpl {
 
   virtual bool CancelPendingRequests();
 
-  virtual client::CancellationToken GetData(DataRequest data_request,
+  virtual client::CancellationToken GetData(DataRequest request,
                                             DataResponseCallback callback);
 
   virtual client::CancellableFuture<DataResponse> GetData(
       DataRequest data_request);
 
-  virtual client::CancellationToken GetData(TileRequest tile_request,
+  virtual client::CancellationToken GetData(TileRequest request,
                                             DataResponseCallback callback);
 
   virtual client::CancellableFuture<DataResponse> GetData(
-      TileRequest tile_request);
+      TileRequest request);
 
   virtual client::CancellationToken GetPartitions(
-      PartitionsRequest partitions_request,
-      PartitionsResponseCallback callback);
+      PartitionsRequest request, PartitionsResponseCallback callback);
 
   virtual client::CancellableFuture<PartitionsResponse> GetPartitions(
       PartitionsRequest partitions_request);

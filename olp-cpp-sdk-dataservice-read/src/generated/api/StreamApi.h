@@ -251,7 +251,7 @@ class StreamApi {
  private:
   static Response<int> HandleOffsets(
       const client::OlpClient& client, const std::string& layer_id,
-      const model::StreamOffsets& commit_offsets,
+      const model::StreamOffsets& offsets,
       const boost::optional<std::string>& subscription_id,
       const boost::optional<std::string>& mode,
       const client::CancellationContext& context, const std::string& endpoint,

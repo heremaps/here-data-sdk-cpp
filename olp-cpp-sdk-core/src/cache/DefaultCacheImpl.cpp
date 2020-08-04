@@ -817,7 +817,7 @@ bool DefaultCacheImpl::IsProtected(const std::string& key) const {
 }
 
 time_t DefaultCacheImpl::GetExpiryForMemoryCache(const std::string& key,
-                                                 const time_t& expiry) {
+                                                 const time_t& expiry) const {
   // reset expiry if key is protected for memory cache
   if (protected_keys_.IsProtected(key)) {
     return KeyValueCache::kDefaultExpiry;

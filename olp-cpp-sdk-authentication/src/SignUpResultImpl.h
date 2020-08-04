@@ -34,7 +34,7 @@ class SignUpResultImpl : public BaseResult {
   SignUpResultImpl() noexcept;
 
   SignUpResultImpl(
-      int status, std::string GetErrorResponse,
+      int status, std::string error,
       std::shared_ptr<rapidjson::Document> json_document = nullptr) noexcept;
 
   ~SignUpResultImpl() override;

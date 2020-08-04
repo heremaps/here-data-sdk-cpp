@@ -64,16 +64,17 @@ bool IsValidBase64(const std::string& string) {
 }
 }  // anonymous namespace
 
-std::string Base64Encode(const void* data, size_t size) {
-  using namespace boost::archive::iterators;
-  using It = base64_from_binary<transform_width<const uint8_t*, 6, 8> >;
+std::string Base64Encode(const void* bytes, size_t size) {
+  namespace iterators = boost::archive::iterators;
+  using It = iterators::base64_from_binary<
+      iterators::transform_width<const uint8_t*, 6, 8> >;
 
-  if (size == 0 || !data) {
+  if (size == 0 || !bytes) {
     return {};
   }
 
-  const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
-  auto return_string = std::string(It(bytes), It(bytes + size));
+  const uint8_t* data = reinterpret_cast<const uint8_t*>(bytes);
+  auto return_string = std::string(It(data), It(data + size));
   return_string.append((3 - size % 3) % 3, '=');
 
   return return_string;
@@ -91,9 +92,9 @@ std::string Base64Encode(const std::string& bytes) {
 
 bool Base64Decode(const std::string& string, std::vector<std::uint8_t>& bytes,
                   bool write_null_bytes) {
-  using namespace boost::archive::iterators;
-  using It =
-      transform_width<binary_from_base64<std::string::const_iterator>, 8, 6>;
+  namespace iterators = boost::archive::iterators;
+  using It = iterators::transform_width<
+      iterators::binary_from_base64<std::string::const_iterator>, 8, 6>;
 
   if (string.empty()) {
     bytes.clear();

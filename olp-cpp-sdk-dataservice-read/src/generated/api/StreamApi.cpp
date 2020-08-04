@@ -152,11 +152,11 @@ StreamApi::CommitOffsetsApiResponse StreamApi::CommitOffsets(
 
 StreamApi::SeekToOffsetApiResponse StreamApi::SeekToOffset(
     const client::OlpClient& client, const std::string& layer_id,
-    const model::StreamOffsets& commit_offsets,
+    const model::StreamOffsets& seek_offsets,
     const boost::optional<std::string>& subscription_id,
     const boost::optional<std::string>& mode,
     const client::CancellationContext& context, std::string& x_correlation_id) {
-  return HandleOffsets(client, layer_id, commit_offsets, subscription_id, mode,
+  return HandleOffsets(client, layer_id, seek_offsets, subscription_id, mode,
                        context, "seek", x_correlation_id);
 }
 

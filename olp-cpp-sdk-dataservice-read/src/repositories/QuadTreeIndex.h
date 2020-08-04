@@ -52,7 +52,7 @@ class QuadTreeIndex {
   QuadTreeIndex() = default;
   explicit QuadTreeIndex(cache::KeyValueCache::ValueTypePtr data);
   QuadTreeIndex(const olp::geo::TileKey& root, int depth,
-                std::stringstream& json);
+                std::stringstream& json_stream);
 
   QuadTreeIndex(const QuadTreeIndex& other) = delete;
   QuadTreeIndex(QuadTreeIndex&& other) noexcept = default;
@@ -62,7 +62,7 @@ class QuadTreeIndex {
 
   inline bool IsNull() const { return data_ == nullptr; }
 
-  boost::optional<IndexData> Find(const olp::geo::TileKey& tileKey,
+  boost::optional<IndexData> Find(const olp::geo::TileKey& tile_key,
                                   bool aggregated) const;
 
   inline const cache::KeyValueCache::ValueTypePtr GetRawData() const {

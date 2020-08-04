@@ -510,7 +510,7 @@ client::CancellationToken AuthenticationClientImpl::SignUpHereUser(
 
 client::CancellationToken AuthenticationClientImpl::SignOut(
     const AuthenticationCredentials& credentials,
-    const std::string& userAccessToken, const SignOutUserCallback& callback) {
+    const std::string& access_token, const SignOutUserCallback& callback) {
   if (!settings_.network_request_handler) {
     ExecuteOrSchedule(settings_.task_scheduler, [callback] {
       AuthenticationError result({static_cast<int>(http::ErrorCode::IO_ERROR),
@@ -529,7 +529,7 @@ client::CancellationToken AuthenticationClientImpl::SignOut(
   }
   request.WithVerb(http::NetworkRequest::HttpVerb::POST);
   request.WithHeader(http::kAuthorizationHeader,
-                     GenerateBearerHeader(userAccessToken));
+                     GenerateBearerHeader(access_token));
   request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
   request.WithSettings(std::move(network_settings));
 
@@ -929,7 +929,7 @@ AuthenticationClientImpl::GenerateAuthorizeBody(AuthorizeRequest properties) {
                                                       content + data.GetSize());
 }
 
-std::string AuthenticationClientImpl::GenerateUid() {
+std::string AuthenticationClientImpl::GenerateUid() const {
   std::lock_guard<std::mutex> lock(token_mutex_);
   {
     static boost::uuids::random_generator gen;

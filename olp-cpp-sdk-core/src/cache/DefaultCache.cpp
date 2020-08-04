@@ -57,8 +57,8 @@ KeyValueCache::ValueTypePtr DefaultCache::Get(const std::string& key) {
 
 bool DefaultCache::Remove(const std::string& key) { return impl_->Remove(key); }
 
-bool DefaultCache::RemoveKeysWithPrefix(const std::string& key) {
-  return impl_->RemoveKeysWithPrefix(key);
+bool DefaultCache::RemoveKeysWithPrefix(const std::string& prefix) {
+  return impl_->RemoveKeysWithPrefix(prefix);
 }
 
 bool DefaultCache::Contains(const std::string& key) const {

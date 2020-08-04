@@ -40,12 +40,12 @@ GeoCoordinates3d::GeoCoordinates3d(double latitude_degrees,
     : geo_coordinates_(latitude_degrees, longitude_degrees, degrees),
       altitude_(altitude_meters) {}
 
-GeoCoordinates3d::GeoCoordinates3d(const GeoCoordinates& coordinates)
-    : geo_coordinates_(coordinates), altitude_(kNaN_) {}
+GeoCoordinates3d::GeoCoordinates3d(const GeoCoordinates& geo_coordinates)
+    : geo_coordinates_(geo_coordinates), altitude_(kNaN_) {}
 
-GeoCoordinates3d::GeoCoordinates3d(const GeoCoordinates& coordinates,
+GeoCoordinates3d::GeoCoordinates3d(const GeoCoordinates& geo_coordinates,
                                    double altitude_meters)
-    : geo_coordinates_(coordinates), altitude_(altitude_meters) {}
+    : geo_coordinates_(geo_coordinates), altitude_(altitude_meters) {}
 
 GeoCoordinates3d GeoCoordinates3d::FromDegrees(double latitude,
                                                double longitude,

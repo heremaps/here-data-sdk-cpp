@@ -131,7 +131,7 @@ class DefaultCacheImpl {
   boost::optional<std::pair<std::string, time_t>> GetFromDiscCache(
       const std::string& key);
 
-  time_t GetExpiryForMemoryCache(const std::string& key, const time_t& expiry);
+  time_t GetExpiryForMemoryCache(const std::string& key, const time_t& expiry) const;
 
   CacheSettings settings_;
   bool is_open_;
