@@ -1261,7 +1261,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsOnlineOnly) {
         .Times(1);
 
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(
+        .Times(4)
+        .WillRepeatedly(ReturnHttpResponse(
             GetResponse(http::HttpStatusCode::TOO_MANY_REQUESTS),
             "Server busy at the moment."));
   }
@@ -2565,7 +2566,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataOnlineOnly) {
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(
+        .Times(4)
+        .WillRepeatedly(ReturnHttpResponse(
             GetResponse(http::HttpStatusCode::TOO_MANY_REQUESTS),
             "Server busy at the moment."));
   }
@@ -2741,7 +2743,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileOnlineOnly) {
   {
     SCOPED_TRACE("Check OnlineOnly request");
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(
+        .Times(4)
+        .WillRepeatedly(ReturnHttpResponse(
             GetResponse(http::HttpStatusCode::TOO_MANY_REQUESTS),
             "Server busy at the moment."));
     auto future =

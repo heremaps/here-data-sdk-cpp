@@ -31,13 +31,12 @@ unsigned int DefaultBackdownPolicy(unsigned int milliseconds) {
 }
 
 bool DefaultRetryCondition(const HttpResponse& response) {
-  switch (response.status) {
-    case http::HttpStatusCode::INTERNAL_SERVER_ERROR:
-    case http::HttpStatusCode::SERVICE_UNAVAILABLE:
-      return true;
-    default:
-      return false;
+  if ((response.status >= http::HttpStatusCode::INTERNAL_SERVER_ERROR &&
+       response.status <= http::HttpStatusCode::NETWORK_CONNECT_TIMEOUT) ||
+      response.status == http::HttpStatusCode::TOO_MANY_REQUESTS) {
+    return true;
   }
+  return false;
 }
 
 }  // namespace client

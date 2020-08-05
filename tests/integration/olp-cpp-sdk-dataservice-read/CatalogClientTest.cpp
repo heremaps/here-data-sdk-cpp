@@ -328,7 +328,8 @@ TEST_P(CatalogClientTest, GetCatalogOnlineOnly) {
         .Times(1);
 
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(
+        .Times(4)
+        .WillRepeatedly(ReturnHttpResponse(
             GetResponse(http::HttpStatusCode::TOO_MANY_REQUESTS),
             "Server busy at the moment."));
   }
@@ -559,7 +560,8 @@ TEST_F(CatalogClientTest, GetVersionsList) {
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(kUrlVersionsList), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(
+        .Times(4)
+        .WillRepeatedly(ReturnHttpResponse(
             GetResponse(http::HttpStatusCode::TOO_MANY_REQUESTS),
             "Server busy at the moment."));
 
