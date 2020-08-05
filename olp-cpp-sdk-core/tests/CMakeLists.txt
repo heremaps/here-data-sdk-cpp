@@ -18,6 +18,8 @@
 set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./cache/DefaultCacheImplTest.cpp
     ./cache/DefaultCacheTest.cpp
+    ./cache/Helpers.cpp
+    ./cache/Helpers.h
     ./cache/InMemoryCacheTest.cpp
     ./cache/ProtectedKeyListTest.cpp
 

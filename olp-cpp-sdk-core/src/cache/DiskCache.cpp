@@ -33,6 +33,7 @@
 #include <leveldb/options.h>
 #include <leveldb/write_batch.h>
 #include "DiskCacheSizeLimitEnv.h"
+#include "ReadOnlyEnv.h"
 #include "olp/core/logging/Log.h"
 #include "olp/core/porting/make_unique.h"
 #include "olp/core/utils/Dir.h"
@@ -229,6 +230,10 @@ OpenResult DiskCache::Open(const std::string& data_path,
           settings.enforce_immediate_flush);
       open_options.env = environment_.get();
     }
+  } else {
+    environment_ = std::make_unique<ReadOnlyEnv>(leveldb::Env::Default());
+    open_options.env = environment_.get();
+    open_options.reuse_logs = true;
   }
 
   leveldb::DB* db = nullptr;

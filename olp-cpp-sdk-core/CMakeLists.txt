@@ -220,6 +220,8 @@ set(OLP_SDK_CACHE_SOURCES
     ./src/cache/ProtectedKeyList.h
     ./src/cache/InMemoryCache.cpp
     ./src/cache/InMemoryCache.h
+    ./src/cache/ReadOnlyEnv.cpp
+    ./src/cache/ReadOnlyEnv.h
 )
 
 set(OLP_SDK_CLIENT_SOURCES
@@ -356,7 +358,7 @@ add_library(${PROJECT_NAME} ${OLP_SDK_CORE_SOURCES} ${OLP_SDK_CORE_HEADERS})
 
 
 if (OLP_SDK_DISABLE_DEBUG_LOGGING)
-    target_compile_definitions(${PROJECT_NAME} 
+    target_compile_definitions(${PROJECT_NAME}
         PUBLIC LOGGING_DISABLE_DEBUG_LEVEL)
 endif()
 

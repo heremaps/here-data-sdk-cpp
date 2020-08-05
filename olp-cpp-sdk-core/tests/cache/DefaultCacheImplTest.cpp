@@ -23,9 +23,16 @@
 #include <cache/DefaultCacheImpl.h>
 #include <olp/core/utils/Dir.h>
 
+#include "Helpers.h"
+
 namespace {
 namespace cache = olp::cache;
 class DefaultCacheImplTest : public ::testing::Test {
+  void SetUp() override {
+    // Restore permisions in case if cache_path_ is not writable
+    helpers::MakeDirectoryContentReadonly(cache_path_, false);
+  }
+
   void TearDown() override { olp::utils::Dir::Remove(cache_path_); }
 
  protected:
@@ -1127,5 +1134,36 @@ TEST_F(DefaultCacheImplTest, LruCacheEvictionWithProtected) {
     EXPECT_FALSE(cache.ContainsMutableCache(evicted_key));
     cache.Clear();
   }
+}
+
+TEST_F(DefaultCacheImplTest, ReadOnlyPartitionForProtectedCache) {
+  SCOPED_TRACE("Read only partition protected cache");
+  const std::string key{"somekey"};
+  const std::string data_string{"this is key's data"};
+
+  cache::CacheSettings settings1;
+  settings1.disk_path_mutable = cache_path_;
+  DefaultCacheImplHelper cache1(settings1);
+  ASSERT_EQ(olp::cache::DefaultCache::StorageOpenResult::Success,
+            cache1.Open());
+  cache1.Clear();
+
+  cache1.Put(key, data_string, [=]() { return data_string; },
+             std::numeric_limits<time_t>::max());
+  cache1.Close();
+
+  // Make readonly
+  ASSERT_TRUE(helpers::MakeDirectoryContentReadonly(cache_path_, true));
+
+  cache::CacheSettings settings2;
+  settings2.disk_path_protected = cache_path_;
+  DefaultCacheImplHelper cache2(settings2);
+  ASSERT_EQ(olp::cache::DefaultCache::StorageOpenResult::Success,
+            cache2.Open());
+
+  const auto value = cache2.Get(key);
+  EXPECT_NE(nullptr, value.get());
+  cache2.Close();
+  helpers::MakeDirectoryContentReadonly(cache_path_, false);
 }
 }  // namespace

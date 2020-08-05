@@ -45,7 +45,7 @@ char PathSeparator() {
 DiskCacheSizeLimitEnv::DiskCacheSizeLimitEnv(leveldb::Env* env,
                                              const std::string& base_path,
                                              bool enforce_strict_data_save)
-    : leveldb::EnvWrapper(env),
+    : SizeCountingEnv(env),
       enforce_strict_data_save_(enforce_strict_data_save) {
   std::vector<std::string> children;
   if (target()->GetChildren(base_path, &children).ok()) {
