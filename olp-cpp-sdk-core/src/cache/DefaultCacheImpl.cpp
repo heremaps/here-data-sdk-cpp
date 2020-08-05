@@ -758,6 +758,9 @@ std::string DefaultCacheImpl::GetExpiryKey(const std::string& key) const {
 
 bool DefaultCacheImpl::Protect(const DefaultCache::KeyListType& keys) {
   std::lock_guard<std::mutex> lock(cache_lock_);
+  if (!mutable_cache_) {
+    return false;
+  }
   auto start = std::chrono::steady_clock::now();
   auto result = protected_keys_.Protect(keys, [&](const std::string& key) {
     if (!RemoveKeyLru(key)) {
@@ -779,6 +782,9 @@ bool DefaultCacheImpl::Protect(const DefaultCache::KeyListType& keys) {
 
 bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
   std::lock_guard<std::mutex> lock(cache_lock_);
+  if (!mutable_cache_) {
+    return false;
+  }
   auto start = std::chrono::steady_clock::now();
   auto result = protected_keys_.Release(keys);
 

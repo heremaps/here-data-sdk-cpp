@@ -29,6 +29,12 @@
 
 namespace {
 constexpr auto kLogTag = "ProtectedKeyList";
+
+class ReadBuffer : public std::basic_streambuf<char> {
+ public:
+  ReadBuffer(char* p, size_t l) { setg(p, p, p + l); }
+};
+
 }  // namespace
 
 namespace olp {
@@ -41,10 +47,9 @@ bool ProtectedKeyList::Deserialize(KeyValueCache::ValueTypePtr value) {
   if (!value) {
     return false;
   }
-  std::stringbuf string_buf;
-  string_buf.pubsetbuf(reinterpret_cast<char*>(value->data()), value->size());
 
-  std::istream stream(&string_buf);
+  ReadBuffer buf(reinterpret_cast<char*>(value->data()), value->size());
+  std::istream stream(&buf);
 
   for (std::string str; std::getline(stream, str, '\0');) {
     protected_data_.insert(str);
