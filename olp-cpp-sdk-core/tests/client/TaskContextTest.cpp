@@ -20,14 +20,21 @@
 #include <olp/core/client/TaskContext.h>
 
 #include <gtest/gtest.h>
+#include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/Condition.h>
 
 namespace {
 
-using namespace olp::client;
+namespace client = olp::client;
+using client::ApiError;
+using client::CancellationContext;
+using client::CancellationToken;
+using client::Condition;
+using client::ErrorCode;
+using client::TaskContext;
 
 using ResponseType = std::string;
-using Response = ApiResponse<ResponseType, ApiError>;
+using Response = client::ApiResponse<ResponseType, client::ApiError>;
 using ExecuteFunc = std::function<Response(CancellationContext)>;
 using Callback = std::function<void(Response)>;
 
@@ -52,9 +59,8 @@ class TaskContextTestable : public TaskContext {
                 Exec(olp::client::CancellationContext)>::type>
   void SetExecutors(Exec execute_func, Callback callback,
                     CancellationContext context) {
-    auto impl =
-        std::make_shared<TaskContextImpl<typename ExecResult::ResultType>>(
-            std::move(execute_func), std::move(callback), std::move(context));
+    auto impl = std::make_shared<TaskContextImpl<ExecResult>>(
+        std::move(execute_func), std::move(callback), std::move(context));
     notify = [=]() { impl->condition_.Notify(); };
     impl_ = impl;
   }
