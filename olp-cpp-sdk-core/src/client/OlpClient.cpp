@@ -51,8 +51,15 @@ static const auto kTimeoutErrorResponse =
         .WithStatus(static_cast<int>(http::ErrorCode::TIMEOUT_ERROR))
         .WithError("Network request timed out.");
 
+NetworkStatistics GetStatistics(const http::NetworkResponse& response) {
+  return NetworkStatistics(response.GetBytesUploaded(),
+                           response.GetBytesDownloaded());
+}
+
 HttpResponse ToHttpResponse(const http::NetworkResponse& response) {
-  return {response.GetStatus(), response.GetError()};
+  HttpResponse http_response{response.GetStatus(), response.GetError()};
+  http_response.SetNetworkStatistics(GetStatistics(response));
+  return http_response;
 }
 
 HttpResponse ToHttpResponse(const http::SendOutcome& outcome) {
@@ -139,9 +146,9 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
                          const olp::client::RetrySettings& retry_settings,
                          client::CancellationContext context) {
   struct ResponseData {
-    Condition condition_;
-    http::NetworkResponse response_{kCancelledErrorResponse};
-    http::Headers headers_;
+    Condition condition;
+    http::NetworkResponse response{kCancelledErrorResponse};
+    http::Headers headers;
   };
 
   auto response_data = std::make_shared<ResponseData>();
@@ -154,12 +161,12 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
         outcome = settings.network_request_handler->Send(
             request, response_body,
             [response_data](http::NetworkResponse response) {
-              response_data->response_ = std::move(response);
-              response_data->condition_.Notify();
+              response_data->response = std::move(response);
+              response_data->condition.Notify();
             },
             [response_data](std::string key, std::string value) {
-              response_data->headers_.emplace_back(std::move(key),
-                                                   std::move(value));
+              response_data->headers.emplace_back(std::move(key),
+                                                  std::move(value));
             });
 
         if (!outcome.IsSuccessful()) {
@@ -174,16 +181,16 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
 
         return CancellationToken([=]() {
           request_handler->Cancel(request_id);
-          response_data->condition_.Notify();
+          response_data->condition.Notify();
         });
       },
-      [&]() { response_data->condition_.Notify(); });
+      [&]() { response_data->condition.Notify(); });
 
   if (!outcome.IsSuccessful()) {
     return ToHttpResponse(outcome);
   }
 
-  if (!response_data->condition_.Wait(timeout)) {
+  if (!response_data->condition.Wait(timeout)) {
     OLP_SDK_LOG_WARNING_F(kLogTag, "Request %" PRIu64 " timed out!",
                           outcome.GetRequestId());
     context.CancelOperation();
@@ -194,8 +201,13 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
     return ToHttpResponse(kCancelledErrorResponse);
   }
 
-  return {response_data->response_.GetStatus(), std::move(*response_body),
-          std::move(response_data->headers_)};
+  HttpResponse response{response_data->response.GetStatus(),
+                        std::move(*response_body),
+                        std::move(response_data->headers)};
+
+  response.SetNetworkStatistics(GetStatistics(response_data->response));
+
+  return response;
 }
 
 std::chrono::milliseconds CalculateNextWaitTime(
@@ -482,6 +494,8 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
   auto response =
       SendRequest(network_request, settings_, retry_settings, context);
 
+  NetworkStatistics accumulated_statistics = response.GetNetworkStatistics();
+
   // Make sure that we don't wait longer than `timeout` in retry settings
   auto accumulated_wait_time = backdown_period;
   const auto max_wait_time =
@@ -512,7 +526,12 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
 
     backdown_period = CalculateNextWaitTime(retry_settings, backdown_period, i);
     response = SendRequest(network_request, settings_, retry_settings, context);
+
+    // In case we retry, accumulate the stats
+    accumulated_statistics += response.GetNetworkStatistics();
   }
+
+  response.SetNetworkStatistics(accumulated_statistics);
 
   return response;
 }

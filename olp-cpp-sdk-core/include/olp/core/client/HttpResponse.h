@@ -30,6 +30,52 @@
 namespace olp {
 namespace client {
 
+/*
+ * @brief Network statistics
+ */
+class NetworkStatistics {
+ public:
+  NetworkStatistics() = default;
+
+  /**
+   * @brief Creates the `NetworkStatistics` instance.
+   *
+   * @param bytes_uploaded The number of bytes of outbound traffic during API
+   * call.
+   * @param bytes_downloaded The number of bytes of inbound traffic during API
+   * call.
+   */
+  NetworkStatistics(uint64_t bytes_uploaded, uint64_t bytes_downloaded)
+      : bytes_uploaded_{bytes_uploaded}, bytes_downloaded_{bytes_downloaded} {}
+
+  /**
+   * @brief Get the number of bytes of outbound traffic.
+   *
+   * @return Number of bytes.
+   */
+  uint64_t GetBytesUploaded() const { return bytes_uploaded_; }
+
+  /**
+   * @brief Get the number of bytes of inbound traffic.
+   *
+   * @return Number of bytes.
+   */
+  uint64_t GetBytesDownloaded() const { return bytes_downloaded_; }
+
+  /**
+   * @brief Overloaded addition operator for accumulating statistics.
+   */
+  NetworkStatistics& operator+=(const NetworkStatistics& other) {
+    bytes_uploaded_ += other.bytes_uploaded_;
+    bytes_downloaded_ += other.bytes_downloaded_;
+    return *this;
+  }
+
+ private:
+  uint64_t bytes_uploaded_{0};
+  uint64_t bytes_downloaded_{0};
+};
+
 /**
  * @brief An HTTP response.
  */
@@ -44,6 +90,7 @@ class CORE_API HttpResponse {
    */
   HttpResponse(int status, std::string response = std::string())  // NOLINT
       : status(status), response(std::move(response)) {}
+
   /**
    * @brief Creates the `HttpResponse` instance.
    *
@@ -52,6 +99,7 @@ class CORE_API HttpResponse {
    */
   HttpResponse(int status, std::stringstream&& response)
       : status(status), response(std::move(response)) {}
+
   /**
    * @brief Creates the `HttpResponse` instance.
    *
@@ -64,6 +112,7 @@ class CORE_API HttpResponse {
       : status(status),
         response(std::move(response)),
         headers(std::move(headers)) {}
+
   /**
    * @brief Copy `HttpResponse` content to a vector of unsigned chars.
    *
@@ -79,6 +128,24 @@ class CORE_API HttpResponse {
   void GetResponse(std::string& output);
 
   /**
+   * @brief Set `NetworkStatistics`.
+   *
+   * @param network_statistics Instance of `NetworkStatistics`.
+   */
+  void SetNetworkStatistics(NetworkStatistics network_statistics) {
+    network_statistics_ = network_statistics;
+  }
+
+  /**
+   * @brief Get the `NetworkStatistics`.
+   *
+   * @return Instance of `NetworkStatistics` previously set.
+   */
+  const NetworkStatistics& GetNetworkStatistics() const {
+    return network_statistics_;
+  }
+
+  /**
    * @brief The HTTP status.
    *
    * @see `ErrorCode` for information on negative status
@@ -90,12 +157,15 @@ class CORE_API HttpResponse {
   /**
    * @brief The HTTP response.
    */
-
   std::stringstream response;
+
   /**
    * @brief HTTP headers.
    */
   http::Headers headers;
+
+ private:
+  NetworkStatistics network_statistics_;
 };
 
 inline void HttpResponse::GetResponse(std::vector<unsigned char>& output) {

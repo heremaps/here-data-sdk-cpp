@@ -86,7 +86,7 @@ DataResponse DataRepository::GetVersionedTile(
   return GetBlobData(layer_id, kBlobService, data_request, context);
 }
 
-DataResponse DataRepository::GetVersionedData(
+BlobApi::DataResponse DataRepository::GetVersionedData(
     const std::string& layer_id, const DataRequest& request, int64_t version,
     client::CancellationContext context) {
   if (request.GetDataHandle() && request.GetPartitionId()) {
@@ -126,10 +126,9 @@ DataResponse DataRepository::GetVersionedData(
                                                  blob_request, context);
 }
 
-DataResponse DataRepository::GetBlobData(const std::string& layer,
-                                         const std::string& service,
-                                         const DataRequest& data_request,
-                                         client::CancellationContext context) {
+BlobApi::DataResponse DataRepository::GetBlobData(
+    const std::string& layer, const std::string& service,
+    const DataRequest& data_request, client::CancellationContext context) {
   auto fetch_option = data_request.GetFetchOption();
   const auto& data_handle = data_request.GetDataHandle();
 
@@ -164,31 +163,32 @@ DataResponse DataRepository::GetBlobData(const std::string& layer,
     }
   }
 
-  auto blob_api = lookup_client_.LookupApi(
+  auto storage_api_lookup = lookup_client_.LookupApi(
       service, "v1", static_cast<client::FetchOptions>(fetch_option), context);
 
-  if (!blob_api.IsSuccessful()) {
-    return blob_api.GetError();
+  if (!storage_api_lookup.IsSuccessful()) {
+    return storage_api_lookup.GetError();
   }
 
-  BlobApi::DataResponse blob_response;
+  BlobApi::DataResponse storage_response;
 
   if (service == kBlobService) {
-    blob_response =
-        BlobApi::GetBlob(blob_api.GetResult(), layer, data_handle.value(),
-                         data_request.GetBillingTag(), boost::none, context);
+    storage_response = BlobApi::GetBlob(
+        storage_api_lookup.GetResult(), layer, data_handle.value(),
+        data_request.GetBillingTag(), boost::none, context);
   } else {
-    blob_response = VolatileBlobApi::GetVolatileBlob(
-        blob_api.GetResult(), layer, data_handle.value(),
+    auto volatile_blob = VolatileBlobApi::GetVolatileBlob(
+        storage_api_lookup.GetResult(), layer, data_handle.value(),
         data_request.GetBillingTag(), context);
+    storage_response = BlobApi::DataResponse(volatile_blob.MoveResult());
   }
 
-  if (blob_response.IsSuccessful() && fetch_option != OnlineOnly) {
-    repository.Put(blob_response.GetResult(), layer, data_handle.value());
+  if (storage_response.IsSuccessful() && fetch_option != OnlineOnly) {
+    repository.Put(storage_response.GetResult(), layer, data_handle.value());
   }
 
-  if (!blob_response.IsSuccessful()) {
-    const auto& error = blob_response.GetError();
+  if (!storage_response.IsSuccessful()) {
+    const auto& error = storage_response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
       OLP_SDK_LOG_WARNING_F(
           kLogTag,
@@ -198,7 +198,7 @@ DataResponse DataRepository::GetBlobData(const std::string& layer,
     }
   }
 
-  return blob_response;
+  return storage_response;
 }
 
 DataResponse DataRepository::GetVolatileData(
