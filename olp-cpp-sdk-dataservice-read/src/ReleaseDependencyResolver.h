@@ -51,14 +51,14 @@ class ReleaseDependencyResolver {
   using TilesDataKeysType = std::map<geo::TileKey, std::string>;
   using QuadsType = std::map<geo::TileKey, TilesDataKeysType>;
 
-  bool ProcessTileKey(const geo::TileKey& tile_key);
+  void ProcessTileKey(const geo::TileKey& tile_key);
 
-  QuadsType::iterator FindQuad(const geo::TileKey& tile_key);
+  TilesDataKeysType CheckProtectedTilesInQuad(const read::QuadTreeIndex& cached_tree,
+                                const geo::TileKey& tile,
+                                bool& add_data_handle_key);
 
-  TilesDataKeysType ProcessQuad(const read::QuadTreeIndex& cached_tree,
-                                const geo::TileKey& tile);
-
-  void ProcessTileKeyInCache(const geo::TileKey& tile);
+  void ProcessQuadTreeCache(const geo::TileKey& root, const geo::TileKey& tile,
+                            bool& add_data_handle_key);
 
  private:
   const std::string& layer_id_;
