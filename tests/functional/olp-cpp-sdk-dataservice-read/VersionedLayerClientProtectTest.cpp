@@ -50,7 +50,7 @@ class VersionedLayerClientProtectTest : public ::testing::Test {
     cache_settings.eviction_policy =
         olp::cache::EvictionPolicy::kLeastRecentlyUsed;
     cache_settings.max_disk_storage =
-        820052u / 0.85;  // eviction trashold is (0.8500000238F)
+        46484u / 0.85;  // eviction trashold is (0.8500000238F)
     settings_->cache =
         olp::client::OlpClientSettingsFactory::CreateDefaultCache(
             cache_settings);
@@ -111,8 +111,8 @@ TEST_F(VersionedLayerClientProtectTest, ProtectAndReleaseWithEviction) {
 
   std::vector<olp::geo::TileKey> tiles_lover_levels;
   std::vector<olp::geo::TileKey> tiles_upper_levels;
-  tiles_lover_levels.reserve(3840);
-  tiles_upper_levels.reserve(240);
+  tiles_lover_levels.reserve(192);
+  tiles_upper_levels.reserve(48);
 
   {
     mock_server_client_->MockLookupResourceApiResponse(
@@ -130,11 +130,11 @@ TEST_F(VersionedLayerClientProtectTest, ProtectAndReleaseWithEviction) {
         mock_server_client_->MockGetResponse(
             kLayer, child, kVersion,
             mockserver::ReadDefaultResponses::GenerateQuadTreeResponse(
-                child, kQuadTreeDepth, {13, 14, 15, 16}));
+                child, kQuadTreeDepth, {13, 14}));
       }
 
       auto levels_changed = 2;
-      while (levels_changed < 6) {
+      while (levels_changed < 4) {
         const olp::geo::TileKey first_child =
             base_tile.ChangedLevelBy(levels_changed);
         const std::uint64_t begin_tile_key = first_child.ToQuadKey64();
@@ -146,7 +146,7 @@ TEST_F(VersionedLayerClientProtectTest, ProtectAndReleaseWithEviction) {
           const auto data_handle =
               mockserver::ReadDefaultResponses::GenerateDataHandle(
                   child.ToHereTile());
-          if (child.Level() < 15) {
+          if (child.Level() < 14) {
             tiles_upper_levels.emplace_back(std::move(child));
           } else {
             tiles_lover_levels.emplace_back(std::move(child));
@@ -161,10 +161,10 @@ TEST_F(VersionedLayerClientProtectTest, ProtectAndReleaseWithEviction) {
   }
 
   {
-    SCOPED_TRACE("Prefetch tiles for levels 15 and 16");
+    SCOPED_TRACE("Prefetch tiles for levels 14 and 16");
     const auto request = olp::dataservice::read::PrefetchTilesRequest()
                              .WithTileKeys(request_tiles)
-                             .WithMinLevel(15)
+                             .WithMinLevel(14)
                              .WithMaxLevel(16);
     auto future = client->PrefetchTiles(request).GetFuture();
     auto response = future.get();
@@ -172,7 +172,7 @@ TEST_F(VersionedLayerClientProtectTest, ProtectAndReleaseWithEviction) {
         << response.GetError().GetMessage().c_str();
     const auto result = response.MoveResult();
 
-    EXPECT_EQ(result.size(), 3840);
+    EXPECT_EQ(result.size(), 192);
     for (auto tile_result : result) {
       EXPECT_SUCCESS(*tile_result);
       ASSERT_TRUE(tile_result->tile_key_.IsValid());

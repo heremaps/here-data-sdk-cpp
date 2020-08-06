@@ -35,39 +35,35 @@ namespace olp {
 namespace dataservice {
 namespace read {
 
-/// group quad trees and protected tiles. Check if for each quad tree we want
-/// to release all protected keys associated, if true add this quad tree to
-/// released keys
-class ReleaseDependencyResolver {
+/// Find quad trees for protected tiles. Add quad tree to list for protection.
+/// Save downloaded quads for future searches for tiles to protect, if quad tree
+/// not found look it to the cache.
+class ProtectDependencyResolver {
  public:
-  ReleaseDependencyResolver(const client::HRN& catalog,
+  ProtectDependencyResolver(const client::HRN& catalog,
                             const std::string& layer_id, int64_t version,
                             const client::OlpClientSettings& settings);
 
-  const cache::KeyValueCache::KeyListType& GetKeysToRelease(
+  const cache::KeyValueCache::KeyListType& GetKeysToProtect(
       const TileKeys& tiles);
 
  private:
-  using TilesDataKeysType = std::map<geo::TileKey, std::string>;
-  using QuadsType = std::map<geo::TileKey, TilesDataKeysType>;
-
-  bool ProcessTileKey(const geo::TileKey& tile_key);
+  using QuadsType = std::map<geo::TileKey, read::QuadTreeIndex>;
 
   QuadsType::iterator FindQuad(const geo::TileKey& tile_key);
 
-  TilesDataKeysType ProcessQuad(const read::QuadTreeIndex& cached_tree,
-                                const geo::TileKey& tile);
+  bool AddDataHandle(const geo::TileKey& tile,
+                     const read::QuadTreeIndex& quad_tree);
 
-  void ProcessTileKeyInCache(const geo::TileKey& tile);
+  bool ProcessTileKeyInCache(const geo::TileKey& tile);
 
  private:
   const std::string& layer_id_;
   const int64_t version_;
-  std::shared_ptr<cache::KeyValueCache> cache_;
   repository::DataCacheRepository data_cache_repository_;
   repository::PartitionsCacheRepository partitions_cache_repository_;
-  QuadsType quad_trees_with_protected_tiles_;
-  cache::KeyValueCache::KeyListType keys_to_release_;
+  std::map<geo::TileKey, read::QuadTreeIndex> quad_trees_;
+  cache::KeyValueCache::KeyListType keys_to_protect_;
 };
 
 }  // namespace read

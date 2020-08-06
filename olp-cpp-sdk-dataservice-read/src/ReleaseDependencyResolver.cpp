@@ -33,8 +33,8 @@ namespace dataservice {
 namespace read {
 
 ReleaseDependencyResolver::ReleaseDependencyResolver(
-    const client::HRN& catalog, const std::string& layer_id,
-    const int64_t& version, const client::OlpClientSettings& settings)
+    const client::HRN& catalog, const std::string& layer_id, int64_t version,
+    const client::OlpClientSettings& settings)
     : layer_id_(layer_id),
       version_(version),
       cache_(settings.cache),

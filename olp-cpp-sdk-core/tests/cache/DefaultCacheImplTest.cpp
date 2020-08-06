@@ -1166,4 +1166,48 @@ TEST_F(DefaultCacheImplTest, ReadOnlyPartitionForProtectedCache) {
   cache2.Close();
   helpers::MakeDirectoryContentReadonly(cache_path_, false);
 }
+
+TEST_F(DefaultCacheImplTest, ProtectTestWithoutMutableCache) {
+  const std::string key1_data_string = "this is key1's data";
+  const std::string key1 = "key1";
+  {
+    SCOPED_TRACE("Protect key in memory cache");
+    DefaultCacheImplHelper cache({});
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; },
+              std::numeric_limits<time_t>::max());
+    ASSERT_TRUE(cache.Contains(key1));
+    ASSERT_FALSE(cache.Protect({key1}));
+
+    cache.Close();
+  }
+  {
+    SCOPED_TRACE("Write mutable cache");
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
+    settings.max_memory_cache_size = 0;
+    DefaultCacheImplHelper cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+    ASSERT_TRUE(cache.Put(key1, key1_data_string,
+                          [=]() { return key1_data_string; },
+                          std::numeric_limits<time_t>::max()));
+    ASSERT_TRUE(cache.Protect({key1}));
+    cache.Close();
+  }
+  {
+    SCOPED_TRACE("Protect key in protected cache");
+    olp::cache::CacheSettings settings;
+    settings.disk_path_protected =
+        olp::utils::Dir::TempDirectory() + "/unittest";
+    settings.max_memory_cache_size = 0;
+    DefaultCacheImplHelper cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_FALSE(cache.Release({key1}));
+    ASSERT_FALSE(cache.Protect({key1}));
+    cache.Close();
+    ASSERT_TRUE(olp::utils::Dir::Remove(settings.disk_path_protected.get()));
+  }
+}
 }  // namespace
