@@ -24,7 +24,16 @@
 
 namespace {
 constexpr auto kLogTag = "PrefetchJob";
+
+size_t GetAccumulatedBytes(const olp::client::NetworkStatistics& statistics) {
+  // This narrow cast is necessary to avoid narrowing compiler errors like
+  // -Wc++11-narrowing when building for 32bit targets.
+  const auto bytes_transferred =
+      statistics.GetBytesDownloaded() + statistics.GetBytesUploaded();
+  return static_cast<size_t>(bytes_transferred &
+                             std::numeric_limits<size_t>::max());
 }
+}  // namespace
 
 namespace olp {
 namespace dataservice {
@@ -88,11 +97,9 @@ void PrefetchJob::CompleteTask(std::shared_ptr<PrefetchTileResult> result,
   accumulated_statistics_ += statistics;
 
   if (status_callback_) {
-    const auto bytes_transferred =
-        accumulated_statistics_.GetBytesDownloaded() +
-        accumulated_statistics_.GetBytesUploaded();
-    status_callback_(PrefetchStatus{prefetch_result_.size(), total_task_count_,
-                                    bytes_transferred});
+    status_callback_(
+        PrefetchStatus{prefetch_result_.size(), total_task_count_,
+                       GetAccumulatedBytes(accumulated_statistics_)});
   }
 
   if (!--task_count_) {
