@@ -55,29 +55,29 @@ ReleaseDependencyResolver::GetKeysToRelease(const TileKeys& tiles) {
 void ReleaseDependencyResolver::ProcessTileKey(const geo::TileKey& tile_key) {
   bool add_key = true;
   auto process_tile = [&](const geo::TileKey& quad_root,
-                          const geo::TileKey& tile_key) {
+                          const geo::TileKey& tile) {
     auto it = quad_trees_with_protected_tiles_.find(quad_root);
     if (it != quad_trees_with_protected_tiles_.end()) {
       // Quad tree for tile found. Get data handle for tile and add to list
       // to release
-      auto tile_it = it->second.find(tile_key);
+      auto tile_it = it->second.find(tile);
       // if tile_key_to_release was not found, this means it is not
       // protected
-      if (tile_it != it->second.end()) {
-        if (add_key) {
-          keys_to_release_.emplace_back(tile_it->second);
-          add_key = false;
-        }
-        // key added, we can remove this tile from map
-        it->second.erase(tile_it);
-        if (it->second.empty()) {
-          // no more protected tiles associated with this quad tree
-          // can add key for quad tree to be released and remove from map
-          keys_to_release_.emplace_back(
-              partitions_cache_repository_.CreateQuadKey(
-                  layer_id_, it->first, kQuadTreeDepth, version_));
-          quad_trees_with_protected_tiles_.erase(it);
-        }
+      if (tile_it == it->second.end()) {
+        return true;
+      }
+      if (add_key) {
+        keys_to_release_.emplace_back(tile_it->second);
+        add_key = false;
+      }
+      // key added, we can remove this tile from map
+      it->second.erase(tile_it);
+      if (it->second.empty()) {
+        // no more protected tiles associated with this quad tree
+        // can add key for quad tree to be released and remove from map
+        keys_to_release_.emplace_back(
+            partitions_cache_repository_.CreateQuadKey(
+                layer_id_, it->first, kQuadTreeDepth, version_));
       }
       return true;
     }

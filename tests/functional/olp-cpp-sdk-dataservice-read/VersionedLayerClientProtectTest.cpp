@@ -43,9 +43,9 @@ class VersionedLayerClientProtectTest : public ::testing::Test {
 
     settings_ = std::make_shared<olp::client::OlpClientSettings>();
     olp::cache::CacheSettings cache_settings;
-    const std::string cache_path = olp::utils::Dir::TempDirectory() + "/test";
-    cache_settings.disk_path_mutable = cache_path;
-    olp::utils::Dir::remove(cache_path);
+    cache_path_ = olp::utils::Dir::TempDirectory() + "/test";
+    cache_settings.disk_path_mutable = cache_path_;
+    olp::utils::Dir::remove(cache_path_);
     cache_settings.max_memory_cache_size = 0u;
     cache_settings.eviction_policy =
         olp::cache::EvictionPolicy::kLeastRecentlyUsed;
@@ -68,6 +68,7 @@ class VersionedLayerClientProtectTest : public ::testing::Test {
     auto network = std::move(settings_->network_request_handler);
     settings_.reset();
     mock_server_client_.reset();
+    olp::utils::Dir::remove(cache_path_);
   }
 
   void SetUpMockServer(std::shared_ptr<olp::http::Network> network) {
@@ -80,6 +81,7 @@ class VersionedLayerClientProtectTest : public ::testing::Test {
 
   std::shared_ptr<olp::client::OlpClientSettings> settings_;
   std::shared_ptr<mockserver::MockServerHelper> mock_server_client_;
+  std::string cache_path_;
 };
 
 TEST_F(VersionedLayerClientProtectTest, ProtectAndReleaseWithEviction) {
@@ -253,4 +255,140 @@ TEST_F(VersionedLayerClientProtectTest, ProtectAndReleaseWithEviction) {
     ASSERT_FALSE(client->IsCached(tiles_lover_levels.front()));
   }
 }
+
+TEST_F(VersionedLayerClientProtectTest, OverlappedQuads) {
+  olp::client::HRN hrn(kTestHrn);
+
+  constexpr auto kTileId = "5901734";
+  constexpr auto kLayer = "testlayer";
+  constexpr auto kQuadTreeDepth = 4;
+  constexpr auto kVersion = 44;
+
+  const auto base_tile = olp::geo::TileKey::FromHereTile(kTileId);
+
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      hrn, kLayer, boost::none, *settings_);
+
+  auto check_if_quads_protected =
+      [&](const std::vector<olp::geo::TileKey>& tiles, bool expected_result) {
+        for (const auto& tile : tiles) {
+          auto key =
+              "hrn:here:data::olp-here-test:hereos-internal-test::testlayer::" +
+              tile.ToHereTile() + "::44::4::quadtree";
+          ASSERT_EQ(settings_->cache->IsProtected(key), expected_result);
+        }
+      };
+
+  std::vector<olp::geo::TileKey> tiles_prefetched;
+  std::vector<olp::geo::TileKey> tiles_to_protect;
+
+  {
+    mock_server_client_->MockLookupResourceApiResponse(
+        mockserver::ApiDefaultResponses::GenerateResourceApisResponse(
+            kTestHrn));
+    mock_server_client_->MockGetVersionResponse(
+        mockserver::ReadDefaultResponses::GenerateVersionResponse(kVersion));
+
+    // quad for 12 level
+    const std::uint64_t first_tile_key =
+        base_tile.ChangedLevelBy(1).ToQuadKey64();
+    for (std::uint64_t key = first_tile_key; key < first_tile_key + 4; ++key) {
+      auto child = olp::geo::TileKey::FromQuadKey64(key);
+      mock_server_client_->MockGetResponse(
+          kLayer, child, kVersion,
+          mockserver::ReadDefaultResponses::GenerateQuadTreeResponse(
+              child, kQuadTreeDepth, {12}));
+    }
+    // quad for 11 level
+    mock_server_client_->MockGetResponse(
+        kLayer, base_tile, kVersion,
+        mockserver::ReadDefaultResponses::GenerateQuadTreeResponse(
+            base_tile, kQuadTreeDepth, {12}));
+
+    auto levels_changed = 1;
+    const olp::geo::TileKey first_child =
+        base_tile.ChangedLevelBy(levels_changed);
+    const std::uint64_t begin_tile_key = first_child.ToQuadKey64();
+    int childCount = olp::geo::QuadKey64Helper::ChildrenAtLevel(levels_changed);
+    for (std::uint64_t key = begin_tile_key; key < begin_tile_key + childCount;
+         ++key) {
+      auto child = olp::geo::TileKey::FromQuadKey64(key);
+      const auto data_handle =
+          mockserver::ReadDefaultResponses::GenerateDataHandle(
+              child.ToHereTile());
+      if (tiles_prefetched.size() >= 2) {
+        tiles_to_protect.push_back(child);
+      }
+      tiles_prefetched.emplace_back(std::move(child));
+      mock_server_client_->MockGetResponse(
+          kLayer, data_handle,
+          mockserver::ReadDefaultResponses::GenerateData());
+    }
+  }
+
+  {
+    SCOPED_TRACE("Prefetch tiles for levels 12 and 16");
+    const auto request = olp::dataservice::read::PrefetchTilesRequest()
+                             .WithTileKeys({base_tile})
+                             .WithMinLevel(12)
+                             .WithMaxLevel(16);
+    auto future = client->PrefetchTiles(request).GetFuture();
+    auto response = future.get();
+    ASSERT_TRUE(response.IsSuccessful())
+        << response.GetError().GetMessage().c_str();
+    const auto result = response.MoveResult();
+
+    EXPECT_EQ(result.size(), 4);
+    for (auto tile_result : result) {
+      EXPECT_SUCCESS(*tile_result);
+      ASSERT_TRUE(tile_result->tile_key_.IsValid());
+    }
+  }
+  {
+    SCOPED_TRACE("Protect tiles, all on different quads");
+    ASSERT_TRUE(client->Protect(tiles_to_protect));
+  }
+  {
+    SCOPED_TRACE(
+        "Prefetch tiles for levels 11 and 15, so we have different quad");
+    const auto request = olp::dataservice::read::PrefetchTilesRequest()
+                             .WithTileKeys({base_tile})
+                             .WithMinLevel(11)
+                             .WithMaxLevel(15);
+    auto future = client->PrefetchTiles(request).GetFuture();
+    auto response = future.get();
+    ASSERT_TRUE(response.IsSuccessful())
+        << response.GetError().GetMessage().c_str();
+    const auto result = response.MoveResult();
+
+    EXPECT_EQ(result.size(), 4);
+    for (auto tile_result : result) {
+      EXPECT_SUCCESS(*tile_result);
+      ASSERT_TRUE(tile_result->tile_key_.IsValid());
+    }
+  }
+  check_if_quads_protected({base_tile}, false);
+  check_if_quads_protected(tiles_to_protect, true);
+
+  ASSERT_TRUE(
+      settings_->cache->Protect({"hrn:here:data::olp-here-test:hereos-internal-"
+                                 "test::testlayer::5901734::44::4::quadtree"}));
+  check_if_quads_protected({base_tile}, true);
+  {
+    SCOPED_TRACE("Release tiles");
+    auto tiles_to_release = std::vector<olp::geo::TileKey>(
+        tiles_prefetched.begin(), --tiles_prefetched.end());
+    auto last_tile = tiles_prefetched.back();
+
+    ASSERT_TRUE(client->Release(tiles_to_release));
+
+    check_if_quads_protected(tiles_to_release, false);
+    check_if_quads_protected({base_tile}, true);
+    check_if_quads_protected({last_tile}, true);
+    ASSERT_TRUE(client->Release({last_tile}));
+    check_if_quads_protected({base_tile}, false);
+    check_if_quads_protected({last_tile}, false);
+  }
+}
+
 }  // namespace

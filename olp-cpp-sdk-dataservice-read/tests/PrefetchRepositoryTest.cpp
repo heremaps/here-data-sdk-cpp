@@ -137,7 +137,6 @@ TEST(PrefetchRepositoryTest, GetSlicedTilesWithLevelsSpecified) {
     // 1 tile on each level
     ASSERT_EQ(root_tiles_depth.size(), 3);
   }
-  return;
   {
     SCOPED_TRACE(
         "Get sliced tiles with min level greater than requested root tile "
@@ -242,23 +241,21 @@ TEST(PrefetchRepositoryTest, GetSlicedTilesSiblings) {
 }
 
 TEST(PrefetchRepositoryTest, GetSlicedTilesLowLevels) {
-  auto tile1 = olp::geo::TileKey::FromHereTile("23618366");
+  auto tile = olp::geo::TileKey::FromHereTile("23618366");
   {
-    SCOPED_TRACE(
-        "Get sliced tiles with min/max levels less than requested tiles "
-        "levels");
-    auto root = tile1.ChangedLevelTo(0);
+    SCOPED_TRACE("Get sliced tiles with levels 1, 6, tile level 12");
+    auto root = tile.ChangedLevelTo(0);
 
     PrefetchRepositoryTestable repository;
-    auto root_tiles_depth = repository.GetSlicedTiles({tile1}, 1, 6);
+    auto root_tiles_depth = repository.GetSlicedTiles({tile}, 1, 6);
     ASSERT_EQ(root_tiles_depth.size(), 2);
     ASSERT_EQ(root_tiles_depth.begin()->first, root);
-    ASSERT_EQ((++root_tiles_depth.begin())->first, tile1.ChangedLevelTo(2));
+    ASSERT_EQ((++root_tiles_depth.begin())->first, tile.ChangedLevelTo(2));
     ASSERT_EQ(root_tiles_depth.begin()->second, 1);
   }
   {
     SCOPED_TRACE("Get sliced tiles with 1,6 levels");
-    auto root = tile1.ChangedLevelTo(0);
+    auto root = tile.ChangedLevelTo(0);
 
     PrefetchRepositoryTestable repository;
     auto root_tiles_depth = repository.GetSlicedTiles({root}, 1, 6);
@@ -271,7 +268,7 @@ TEST(PrefetchRepositoryTest, GetSlicedTilesLowLevels) {
   }
   {
     SCOPED_TRACE("Get sliced tiles with 0, 4 levels");
-    auto root = tile1.ChangedLevelTo(0);
+    auto root = tile.ChangedLevelTo(0);
 
     PrefetchRepositoryTestable repository;
     auto root_tiles_depth = repository.GetSlicedTiles({root}, 0, 4);
@@ -281,7 +278,7 @@ TEST(PrefetchRepositoryTest, GetSlicedTilesLowLevels) {
   }
   {
     SCOPED_TRACE("Get sliced tiles with 0, 5 levels");
-    auto root = tile1.ChangedLevelTo(0);
+    auto root = tile.ChangedLevelTo(0);
 
     PrefetchRepositoryTestable repository;
     auto root_tiles_depth = repository.GetSlicedTiles({root}, 0, 5);
