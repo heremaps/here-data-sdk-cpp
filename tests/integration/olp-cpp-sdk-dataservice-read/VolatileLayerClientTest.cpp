@@ -571,7 +571,8 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsOnlineOnly) {
         .Times(1);
 
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_CONFIG), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(
+        .Times(4)
+        .WillRepeatedly(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(
                 olp::http::HttpStatusCode::TOO_MANY_REQUESTS),
             "Server busy at the moment."));

@@ -224,12 +224,15 @@ TEST_P(OlpClientTest, ZeroAttempts) {
 }
 
 TEST_P(OlpClientTest, DefaultRetryCondition) {
-  client_settings_.retry_settings.max_attempts = 3;
-
   auto network = std::make_shared<NetworkMock>();
   client_settings_.network_request_handler = network;
 
-  auto attempt_statuses = std::queue<int>{{500, 503, 200}};
+  // retry for 429 and all 5xx status codes.
+  auto attempt_statuses =
+      std::queue<int>{{429, 500, 501, 502, 503, 504, 505, 506, 507, 508, 509,
+                       510, 511, 598, 599, 200}};
+  client_settings_.retry_settings.max_attempts = attempt_statuses.size();
+
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .Times(static_cast<int>(attempt_statuses.size()))
       .WillRepeatedly(
@@ -535,22 +538,24 @@ TEST_P(OlpClientTest, SetInitialBackdownPeriod) {
 
 TEST_P(OlpClientTest, Timeout) {
   client_settings_.retry_settings.timeout = 100;
+  client_settings_.retry_settings.max_attempts = 0;
   int timeout = 0;
   auto network = std::make_shared<NetworkMock>();
   client_settings_.network_request_handler = network;
   client_.SetSettings(client_settings_);
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
-      .WillOnce([&](olp::http::NetworkRequest request,
-                    olp::http::Network::Payload /*payload*/,
-                    olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback /*header_callback*/,
-                    olp::http::Network::DataCallback /*data_callback*/) {
-        timeout = request.GetSettings().GetConnectionTimeout();
-        callback(olp::http::NetworkResponse().WithStatus(
-            http::HttpStatusCode::TOO_MANY_REQUESTS));
-        return olp::http::SendOutcome(olp::http::RequestId(5));
-      });
+      .WillRepeatedly(
+          [&](olp::http::NetworkRequest request,
+              olp::http::Network::Payload /*payload*/,
+              olp::http::Network::Callback callback,
+              olp::http::Network::HeaderCallback /*header_callback*/,
+              olp::http::Network::DataCallback /*data_callback*/) {
+            timeout = request.GetSettings().GetConnectionTimeout();
+            callback(olp::http::NetworkResponse().WithStatus(
+                http::HttpStatusCode::TOO_MANY_REQUESTS));
+            return olp::http::SendOutcome(olp::http::RequestId(5));
+          });
 
   auto response = call_wrapper_->CallApi(
       std::string(), "GET", std::multimap<std::string, std::string>(),
