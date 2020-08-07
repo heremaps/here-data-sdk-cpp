@@ -23,6 +23,7 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
+#include <stdlib.h>
 #include <strsafe.h>
 #include <tchar.h>
 #include <windows.h>
@@ -49,17 +50,17 @@ bool MakeDirectoryContentReadonly(const TCHAR* utfdirPath, bool readonly) {
   TCHAR dirPath[MAX_PATH];
   TCHAR filename[MAX_PATH];
 
-  StringCchCopy(dirPath, G_COUNTOF(dirPath), utfdirPath);
-  StringCchCat(dirPath, G_COUNTOF(dirPath),
+  StringCchCopy(dirPath, _countof(dirPath), utfdirPath);
+  StringCchCat(dirPath, _countof(dirPath),
                TEXT("\\*"));  // searching all files
-  StringCchCopy(filename, G_COUNTOF(filename), utfdirPath);
-  StringCchCat(filename, G_COUNTOF(filename), TEXT("\\"));
+  StringCchCopy(filename, _countof(filename), utfdirPath);
+  StringCchCat(filename, _countof(filename), TEXT("\\"));
 
   bool bSearch = true;
 
   hFind = FindFirstFile(dirPath, &FindFileData);  // find the first file
   if (hFind != INVALID_HANDLE_VALUE) {
-    StringCchCopy(dirPath, G_COUNTOF(dirPath), filename);
+    StringCchCopy(dirPath, _countof(dirPath), filename);
 
     do {
       if ((lstrcmp(FindFileData.cFileName, TEXT(".")) == 0) ||
@@ -67,11 +68,11 @@ bool MakeDirectoryContentReadonly(const TCHAR* utfdirPath, bool readonly) {
         continue;
       }
 
-      StringCchCopy(filename, G_COUNTOF(filename), dirPath);
-      StringCchCat(filename, G_COUNTOF(filename), FindFileData.cFileName);
+      StringCchCopy(filename, _countof(filename), dirPath);
+      StringCchCat(filename, _countof(filename), FindFileData.cFileName);
       if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
         // we have found a directory, recurse
-        if (!WalkTree(filename, callback)) {
+        if (!MakeDirectoryContentReadonly(filename, readonly)) {
           bSearch = false;
           break;
         }
