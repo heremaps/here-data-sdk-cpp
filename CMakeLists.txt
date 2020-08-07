@@ -87,6 +87,7 @@ if(OLP_SDK_ENABLE_TESTING)
     # Add tests
     add_subdirectory(tests/common)
     add_subdirectory(tests/functional)
+    add_subdirectory(tests/functional/network)
     add_subdirectory(tests/integration)
     add_subdirectory(tests/performance)
 endif()
