@@ -294,29 +294,30 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
               const auto& handle = sub_quad.second;
               const auto& biling_tag = request.GetBillingTag();
 
+              using PrefetchDataResponse = BlobApi::DataResponse;
+
               AddTask(settings.task_scheduler, pending_requests,
-                      [=](CancellationContext inner_context) -> EmptyResponse {
+                      [=](CancellationContext inner_context)
+                          -> PrefetchDataResponse {
                         if (handle.empty()) {
-                          prefetch_job->CompleteTask(
-                              tile, {client::ErrorCode::NotFound, "Not found"});
-                          return PrefetchTileNoError{};
+                          return {{client::ErrorCode::NotFound, "Not found"}};
                         }
                         repository::DataCacheRepository data_cache_repository(
                             catalog, shared_settings->cache);
                         if (data_cache_repository.IsCached(layer_id, handle)) {
-                          prefetch_job->CompleteTask(tile);
-                          return PrefetchTileNoError{};
+                          return {nullptr};
                         }
 
                         // Fetch from online
                         repository::DataRepository repository(
                             catalog, *shared_settings, lookup_client);
-                        auto result = repository.GetVersionedData(
+                        return repository.GetVersionedData(
                             layer_id,
                             DataRequest().WithDataHandle(handle).WithBillingTag(
                                 biling_tag),
                             version, inner_context);
-
+                      },
+                      [=](PrefetchDataResponse result) {
                         if (result.IsSuccessful()) {
                           prefetch_job->CompleteTask(
                               tile, GetNetworkStatistics(result));
@@ -325,9 +326,8 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
                               tile, result.GetError(),
                               GetNetworkStatistics(result));
                         }
-                        return PrefetchTileNoError{};
                       },
-                      [=](EmptyResponse) {}, prefetch_job->AddTask());
+                      prefetch_job->AddTask());
             });
 
         context.ExecuteOrCancelled([&]() {

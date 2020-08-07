@@ -25,7 +25,6 @@
 #include <utility>
 
 #include <olp/core/client/ApiError.h>
-#include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/Condition.h>
@@ -122,7 +121,7 @@ class CORE_API TaskContext {
    */
   void SetExecutors(Exec execute_func, Callback callback,
                     client::CancellationContext context) {
-    impl_ = std::make_shared<TaskContextImpl<typename ExecResult::ResultType>>(
+    impl_ = std::make_shared<TaskContextImpl<ExecResult>>(
         std::move(execute_func), std::move(callback), std::move(context));
   }
 
@@ -167,11 +166,9 @@ class CORE_API TaskContext {
    *
    * @tparam T The result type.
    */
-  template <typename T>
+  template <typename Response>
   class TaskContextImpl : public Impl {
    public:
-    /// Wraps the `T` typename in the API response.
-    using Response = client::ApiResponse<T, client::ApiError>;
     /// The task that produces the `Response` instance.
     using ExecuteFunc = std::function<Response(client::CancellationContext)>;
     /// Consumes the `Response` instance.
