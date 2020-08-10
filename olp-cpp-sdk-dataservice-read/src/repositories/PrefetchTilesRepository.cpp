@@ -126,10 +126,10 @@ RootTilesForRequest PrefetchTilesRepository::GetSlicedTiles(
       if (min_level > levels_up) {
         min_level = min_level - levels_up;
       } else {
-        // if min_level is less than steps we need to go up, go some steps down
-        auto levels_down = levels_up - min_level;
+        // if min_level is less than steps we need to go up, set min level to
+        // zero. Some quads will overlap, but we will minimize quad tree
+        // requests
         min_level = 0u;
-        max_level = max_level + levels_down;
       }
     }
 
@@ -173,11 +173,11 @@ SubTilesResponse PrefetchTilesRepository::GetSubTiles(
     }
 
     auto& tile = quad.first;
-    auto& depth = quad.second;
-    auto response =
-        version ? GetSubQuads(layer_id, request, version.get(), tile, depth,
-                              context)
-                : GetVolatileSubQuads(layer_id, request, tile, depth, context);
+    auto response = version
+                        ? GetSubQuads(layer_id, request, version.get(), tile,
+                                      kMaxQuadTreeIndexDepth, context)
+                        : GetVolatileSubQuads(layer_id, request, tile,
+                                              kMaxQuadTreeIndexDepth, context);
 
     if (!response.IsSuccessful()) {
       // Just abort if something else then 404 Not Found is returned

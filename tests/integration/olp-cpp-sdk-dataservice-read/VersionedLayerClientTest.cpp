@@ -4003,7 +4003,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest, ProtectAndReleaseWithEviction) {
     ASSERT_TRUE(future.get().IsSuccessful());
     ASSERT_TRUE(client.IsCached(other_key));
   }
-
   {
     SCOPED_TRACE("Write evicted key again");
     EXPECT_CALL(*network_mock_,
@@ -4084,6 +4083,100 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CatalogEndpointProvider) {
     ASSERT_TRUE(response.GetResult() != nullptr);
     ASSERT_NE(response.GetResult()->size(), 0u);
   }
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, OverlappingQuads) {
+  const auto kLayerId = "hype-test-prefetch";
+  const auto cache_quad_key_23606936 =
+      "hrn:here:data::olp-here-test:hereos-internal-test-v2::hype-test-"
+      "prefetch::23606936::4::4::quadtree";
+  const auto cache_quad_key_5901734 =
+      "hrn:here:data::olp-here-test:hereos-internal-test-v2::hype-test-"
+      "prefetch::5901734::4::4::quadtree";
+  const auto data_size = 100u;
+  const std::string blob_data(data_size, 0);
+  const std::string cache_path =
+      olp::utils::Dir::TempDirectory() + "/integration_test";
+  olp::utils::Dir::remove(cache_path);
+  olp::cache::CacheSettings cache_settings;
+  cache_settings.disk_path_mutable = cache_path;
+  settings_.cache =
+      client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
+
+  auto client = read::VersionedLayerClient(kCatalog, kLayerId, 4, settings_);
+
+  ON_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+      .WillByDefault(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                        HTTP_RESPONSE_LOOKUP));
+  const auto tile_key = geo::TileKey::FromHereTile("23606936");
+
+  {
+    SCOPED_TRACE("Prefetch tile");
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     HTTP_RESPONSE_LOOKUP));
+    const auto quad_request =
+        R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/23606936/depths/4)";
+    const auto quad_responce =
+        R"jsonString({"subQuads":[{"subQuadKey":"1","version":0,"dataHandle":"23606936-data-handle","dataSize":100}],"parentQuads":[]})jsonString";
+    const auto data_request =
+        R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/data/23606936-data-handle)";
+
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(quad_request), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     quad_responce));
+
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(data_request), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     blob_data));
+
+    const auto request = read::PrefetchTilesRequest()
+                             .WithTileKeys({tile_key})
+                             .WithMinLevel(12)
+                             .WithMaxLevel(16);
+    auto future = client.PrefetchTiles(request).GetFuture();
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    ASSERT_TRUE(future.get().IsSuccessful());
+  }
+  {
+    SCOPED_TRACE("Protect tile");
+    ASSERT_TRUE(client.Protect({tile_key}));
+  }
+  {
+    SCOPED_TRACE("Prefetch another levels");
+    auto quad_request =
+        R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/5901734/depths/4)";
+    auto quad_responce =
+        R"jsonString({"subQuads":[{"subQuadKey":"4","version":0,"dataHandle":"23606936-data-handle","dataSize":100}],"parentQuads":[]})jsonString";
+
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(quad_request), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     quad_responce));
+
+    const auto request = read::PrefetchTilesRequest()
+                             .WithTileKeys({tile_key})
+                             .WithMinLevel(11)
+                             .WithMaxLevel(15);
+    auto future = client.PrefetchTiles(request).GetFuture();
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    ASSERT_TRUE(future.get().IsSuccessful());
+  }
+
+  {
+    SCOPED_TRACE("Release tiles, check if all quads released");
+    ASSERT_TRUE(settings_.cache->Protect({cache_quad_key_5901734}));
+    ASSERT_TRUE(settings_.cache->IsProtected(cache_quad_key_23606936));
+    ASSERT_TRUE(settings_.cache->IsProtected(cache_quad_key_5901734));
+    auto release_response = client.Release({tile_key});
+    ASSERT_TRUE(release_response);
+    ASSERT_FALSE(settings_.cache->IsProtected(cache_quad_key_23606936));
+    ASSERT_FALSE(settings_.cache->IsProtected(cache_quad_key_5901734));
+  }
+
+  // remove cache folder
+  olp::utils::Dir::remove(cache_path);
 }
 
 }  // namespace
