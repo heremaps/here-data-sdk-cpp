@@ -243,6 +243,8 @@ set(OLP_SDK_CLIENT_SOURCES
     ./src/client/OlpClientSettings.cpp
     ./src/client/OlpClientSettingsFactory.cpp
     ./src/client/PendingRequests.cpp
+    ./src/client/PendingUrlRequests.h
+    ./src/client/PendingUrlRequests.cpp
     ./src/client/Tokenizer.h
 )
 

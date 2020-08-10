@@ -29,6 +29,7 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./client/DefaultLookupEndpointProviderTest.cpp
     ./client/HRNTest.cpp
     ./client/OlpClientTest.cpp
+    ./client/PendingUrlRequestsTest.cpp
     ./client/TaskContextTest.cpp
 
     ./geo/coordinates/GeoCoordinates3dTest.cpp
@@ -76,6 +77,7 @@ if (ANDROID OR IOS)
     target_include_directories(${OLP_SDK_CORE_TESTS_LIB}
         PRIVATE
             ../src/cache
+            ../src/client
     )
     if (ANDROID)
         include(${CMAKE_SOURCE_DIR}/cmake/android/gen_android_test.cmake)

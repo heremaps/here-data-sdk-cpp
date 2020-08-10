@@ -64,8 +64,6 @@ class CORE_API CancellationContext {
    *
    * @return True if the execution is successful; false if the context was
    * cancelled.
-   *
-   * @deprecated Will be removed. Use `TaskScheduler` instead.
    */
   bool ExecuteOrCancelled(const ExecuteFuncType& execute_fn,
                           const CancelFuncType& cancel_fn = nullptr);
