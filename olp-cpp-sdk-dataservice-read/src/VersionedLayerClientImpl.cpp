@@ -285,7 +285,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
 
         auto prefetch_job = std::make_shared<PrefetchJob>(
             std::move(callback), std::move(status_callback),
-            tiles_result.size());
+            tiles_result.size(), GetNetworkStatistics(sub_tiles));
 
         std::for_each(
             tiles_result.begin(), tiles_result.end(),

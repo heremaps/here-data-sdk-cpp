@@ -41,12 +41,14 @@ namespace read {
 
 PrefetchJob::PrefetchJob(PrefetchTilesResponseCallback user_callback,
                          PrefetchStatusCallback status_callback,
-                         uint32_t task_count)
+                         uint32_t task_count,
+                         client::NetworkStatistics initial_network_statistics)
     : user_callback_(std::move(user_callback)),
       status_callback_(std::move(status_callback)),
       task_count_{task_count},
       total_task_count_{task_count},
-      canceled_{false} {
+      canceled_{false},
+      accumulated_statistics_{initial_network_statistics} {
   tasks_contexts_.reserve(task_count_);
   prefetch_result_.reserve(task_count_);
 }
