@@ -332,13 +332,20 @@ TEST(VolatileLayerClientImplTest, GetDataCancellableFutureCancel) {
   settings.cache = cache_mock;
   settings.task_scheduler =
       olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
-  read::VolatileLayerClientImpl client(kHrn, kLayerId, std::move(settings));
 
+  // block scheduler till data request is cancelled
+  std::promise<void> block_promise;
+  settings.task_scheduler->ScheduleTask(
+      [&block_promise]() { block_promise.get_future().get(); });
+
+  read::VolatileLayerClientImpl client(kHrn, kLayerId, std::move(settings));
   auto cancellable =
       client.GetData(read::DataRequest().WithPartitionId(kPartitionId));
 
   auto data_future = cancellable.GetFuture();
   cancellable.GetCancellationToken().Cancel();
+  block_promise.set_value();
+
   ASSERT_EQ(data_future.wait_for(kTimeout), std::future_status::ready);
 
   auto data_response = data_future.get();
