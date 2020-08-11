@@ -181,12 +181,6 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
            "::" + std::to_string(depth) + "::quadtree";
   };
 
-  // successfull mock cache calls
-  auto found_cache_response = [&buffer, &root,
-                               &quad_cache_key](const std::string& key) {
-    EXPECT_EQ(key, quad_cache_key(root));
-    return buffer;
-  };
   auto data_cache_remove = [&](const std::string& prefix) {
     std::string expected_prefix = kHrn.ToCatalogHRNString() + "::" + kLayerId +
                                   "::" + kHereTileDataHandle + "::Data";
@@ -198,26 +192,9 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
   {
     SCOPED_TRACE("Successfull remove tile from cache");
 
-    EXPECT_CALL(*cache_mock, Get(_)).WillOnce(found_cache_response);
-    EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
-        .WillOnce(data_cache_remove);
-    EXPECT_CALL(*cache_mock, Contains(_))
-        .WillRepeatedly([&](const std::string&) { return true; });
-    ASSERT_TRUE(client.RemoveFromCache(tile_key));
-  }
-  {
-    SCOPED_TRACE("Remove not existing tile from cache");
     EXPECT_CALL(*cache_mock, Get(_))
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
-          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
-          return nullptr;
-        })
-        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
-          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-3)));
-          return nullptr;
-        })
-        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
-          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-2)));
+          EXPECT_EQ(key, quad_cache_key(tile_key));
           return nullptr;
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
@@ -225,21 +202,102 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
           return nullptr;
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-2)));
+          return nullptr;
+        })
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-3)));
+          return nullptr;
+        })
+        .WillOnce(
+            [&tile_key, &quad_cache_key, &buffer](const std::string& key) {
+              EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
+              return buffer;
+            });
+    EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
+        .WillOnce(data_cache_remove);
+    EXPECT_CALL(*cache_mock, Contains(_))
+        .WillRepeatedly([&](const std::string&) { return true; });
+    ASSERT_TRUE(client.RemoveFromCache(tile_key));
+  }
+
+  {
+    SCOPED_TRACE("Remove not existing tile from cache");
+    EXPECT_CALL(*cache_mock, Get(_))
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key));
+          return nullptr;
+        })
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-1)));
+          return nullptr;
+        })
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-2)));
+          return nullptr;
+        })
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-3)));
+          return nullptr;
+        })
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
           return nullptr;
         });
     ASSERT_TRUE(client.RemoveFromCache(tile_key));
   }
   {
     SCOPED_TRACE("Data cache failure");
-    EXPECT_CALL(*cache_mock, Get(_)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Get(_))
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key));
+          return nullptr;
+        })
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-1)));
+          return nullptr;
+        })
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-2)));
+          return nullptr;
+        })
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-3)));
+          return nullptr;
+        })
+        .WillOnce(
+            [&tile_key, &quad_cache_key, &buffer](const std::string& key) {
+              EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
+              return buffer;
+            });
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
         .WillOnce([](const std::string&) { return false; });
     ASSERT_FALSE(client.RemoveFromCache(tile_key));
   }
   {
     SCOPED_TRACE("Successfull remove tile and quad tree from cache");
-    EXPECT_CALL(*cache_mock, Get(_)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Get(_))
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key));
+          return nullptr;
+        })
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-1)));
+          return nullptr;
+        })
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-2)));
+          return nullptr;
+        })
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-3)));
+          return nullptr;
+        })
+        .WillOnce(
+            [&tile_key, &quad_cache_key, &buffer](const std::string& key) {
+              EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
+              return buffer;
+            });
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
         .WillOnce(data_cache_remove)
         .WillOnce([&](const std::string&) { return true; });
@@ -249,7 +307,28 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
   }
   {
     SCOPED_TRACE("Successfull remove tile but removing quad tree fails");
-    EXPECT_CALL(*cache_mock, Get(_)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Get(_))
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key));
+          return nullptr;
+        })
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-1)));
+          return nullptr;
+        })
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-2)));
+          return nullptr;
+        })
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-3)));
+          return nullptr;
+        })
+        .WillOnce(
+            [&tile_key, &quad_cache_key, &buffer](const std::string& key) {
+              EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
+              return buffer;
+            });
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
         .WillOnce(data_cache_remove)
         .WillOnce([&](const std::string&) { return false; });

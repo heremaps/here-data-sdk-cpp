@@ -46,7 +46,7 @@ namespace {
 constexpr auto kLogTag = "PartitionsCacheRepository";
 constexpr auto kChronoSecondsMax = std::chrono::seconds::max();
 constexpr auto kTimetMax = std::numeric_limits<time_t>::max();
-constexpr uint32_t kMaxQuadTreeIndexDepth = 4u;
+constexpr auto kMaxQuadTreeIndexDepth = 4u;
 
 std::string CreateKey(const std::string& hrn, const std::string& layer_id,
                       const std::string& partitionId,
@@ -317,8 +317,8 @@ bool PartitionsCacheRepository::FindQuadTree(const std::string& layer,
                                              const olp::geo::TileKey& tile_key,
                                              read::QuadTreeIndex& tree) {
   auto max_depth =
-      std::min<std::int32_t>(tile_key.Level(), kMaxQuadTreeIndexDepth);
-  for (auto i = max_depth; i >= 0; --i) {
+      std::min<std::uint32_t>(tile_key.Level(), kMaxQuadTreeIndexDepth);
+  for (auto i = 0u; i <= max_depth; ++i) {
     const auto& root_tile_key = tile_key.ChangedLevelBy(-i);
     QuadTreeIndex cached_tree;
     if (Get(layer, root_tile_key, kMaxQuadTreeIndexDepth, version,
