@@ -31,6 +31,7 @@
 #include <olp/core/logging/Log.h>
 #include <olp/core/thread/Atomic.h>
 #include <olp/core/thread/TaskScheduler.h>
+#include "ExtendedApiResponseHelpers.h"
 #include "PartitionsRepository.h"
 #include "QuadTreeIndex.h"
 #include "generated/api/QueryApi.h"
@@ -167,6 +168,8 @@ SubTilesResponse PrefetchTilesRepository::GetSubTiles(
                      catalog_.ToCatalogHRNString().c_str(), layer_id.c_str(),
                      root_tiles.size());
 
+  client::NetworkStatistics accumulated_statistics;
+
   for (const auto& quad : root_tiles) {
     if (context.IsCancelled()) {
       return {{client::ErrorCode::Cancelled, "Cancelled", true}};
@@ -179,6 +182,8 @@ SubTilesResponse PrefetchTilesRepository::GetSubTiles(
                         : GetVolatileSubQuads(layer_id, request, tile,
                                               kMaxQuadTreeIndexDepth, context);
 
+    accumulated_statistics += GetNetworkStatistics(response);
+
     if (!response.IsSuccessful()) {
       // Just abort if something else then 404 Not Found is returned
       auto& error = response.GetError();
@@ -190,13 +195,13 @@ SubTilesResponse PrefetchTilesRepository::GetSubTiles(
     result.insert(std::make_move_iterator(subtiles.begin()),
                   std::make_move_iterator(subtiles.end()));
   }
-  return result;
+
+  return {std::move(result), accumulated_statistics};
 }
 
 SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
     const std::string& layer_id, const PrefetchTilesRequest& request,
     std::int64_t version, geo::TileKey tile, int32_t depth,
-
     client::CancellationContext context) {
   OLP_SDK_LOG_TRACE_F(kLogTag, "GetSubQuads(%s, %" PRId64 ", %" PRId32 ")",
                       tile.ToHereTile().c_str(), version, depth);
@@ -248,7 +253,8 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
     OLP_SDK_LOG_WARNING_F(kLogTag,
                           "GetSubQuads failed(%s, %" PRId64 ", %" PRId32 ")",
                           tile_key.c_str(), version, depth);
-    return {{quad_tree.status, quad_tree.response.str()}};
+    return {{quad_tree.status, quad_tree.response.str()},
+            quad_tree.GetNetworkStatistics()};
   }
 
   QuadTreeIndex tree(tile, depth, quad_tree.response);
@@ -260,11 +266,12 @@ SubQuadsResponse PrefetchTilesRepository::GetSubQuads(
                           "', depth='%" PRId32 "'",
                           catalog_.ToString().c_str(), layer_id.c_str(),
                           tile_key.c_str(), version, depth);
-    return {{client::ErrorCode::Unknown, "Failed to parse quad tree response"}};
+    return {{client::ErrorCode::Unknown, "Failed to parse quad tree response"},
+            quad_tree.GetNetworkStatistics()};
   }
   // add to cache
   repository.Put(layer_id, tile, depth, tree, version);
-  return get_sub_quads(tree);
+  return {get_sub_quads(tree), quad_tree.GetNetworkStatistics()};
 }
 
 SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(

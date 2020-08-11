@@ -1895,7 +1895,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithStatus) {
                      .WithMaxLevel(12);
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(URL_QUADKEYS_92259), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK)
+                                       .WithBytesDownloaded(200)
+                                       .WithBytesUploaded(50),
                                    HTTP_RESPONSE_QUADKEYS_92259));
 
   EXPECT_CALL(*network_mock_,
@@ -1956,7 +1958,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithStatus) {
     ASSERT_TRUE(tile_result->tile_key_.IsValid());
   }
 
-  EXPECT_GE(bytes_transferred, 150);
+  EXPECT_GE(bytes_transferred, 400);
 
   testing::Mock::VerifyAndClearExpectations(&status_object);
 }

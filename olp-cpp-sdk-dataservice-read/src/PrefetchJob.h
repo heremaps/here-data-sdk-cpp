@@ -31,7 +31,8 @@ namespace read {
 class PrefetchJob {
  public:
   PrefetchJob(PrefetchTilesResponseCallback user_callback,
-              PrefetchStatusCallback status_callback, uint32_t task_count);
+              PrefetchStatusCallback status_callback, uint32_t task_count,
+              client::NetworkStatistics initial_network_statistics);
 
   PrefetchJob(const PrefetchJob&) = delete;
   PrefetchJob(PrefetchJob&&) = delete;
