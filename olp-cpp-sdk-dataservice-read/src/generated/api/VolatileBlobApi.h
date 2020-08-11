@@ -26,6 +26,8 @@
 #include <boost/optional.hpp>
 #include "olp/dataservice/read/model/Data.h"
 
+#include "ExtendedApiResponse.h"
+
 namespace olp {
 namespace client {
 class OlpClient;
@@ -39,7 +41,8 @@ namespace read {
  */
 class VolatileBlobApi {
  public:
-  using DataResponse = client::ApiResponse<model::Data, client::ApiError>;
+  using DataResponse = ExtendedApiResponse<model::Data, client::ApiError,
+                                           client::NetworkStatistics>;
 
   /**
    * @brief Retrieves a volatile data blob for specified handle.

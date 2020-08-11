@@ -37,12 +37,15 @@
 #include "repositories/PartitionsRepository.h"
 #include "repositories/PrefetchTilesRepository.h"
 
+#include "PrefetchJob.h"
+
 namespace olp {
 namespace dataservice {
 namespace read {
 
 namespace {
 constexpr auto kLogTag = "VolatileLayerClientImpl";
+constexpr auto kQuadTreeDepth = 4;
 
 bool IsOnlyInputTiles(const PrefetchTilesRequest& request) {
   return !(request.GetMinLevel() <= request.GetMaxLevel() &&
@@ -167,9 +170,6 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
     PrefetchTilesRequest request, PrefetchTilesResponseCallback callback) {
   // Used as empty response to be able to execute initial task
   using EmptyResponse = Response<PrefetchTileNoError>;
-  using PrefetchResult = PrefetchTilesResult::value_type;
-  using PrefetchResultFuture = std::future<PrefetchResult>;
-  using PrefetchResultPromise = std::promise<PrefetchResult>;
   using client::CancellationContext;
   using client::ErrorCode;
 
@@ -197,14 +197,16 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
         // cover tree.
         bool request_only_input_tiles = IsOnlyInputTiles(request);
         unsigned int min_level =
-            (request_only_input_tiles ? static_cast<unsigned int>(geo::TileKey::LevelCount)
-                                      : request.GetMinLevel());
+            (request_only_input_tiles
+                 ? static_cast<unsigned int>(geo::TileKey::LevelCount)
+                 : request.GetMinLevel());
         unsigned int max_level =
-            (request_only_input_tiles ? static_cast<unsigned int>(geo::TileKey::LevelCount)
-                                      : request.GetMaxLevel());
+            (request_only_input_tiles
+                 ? static_cast<unsigned int>(geo::TileKey::LevelCount)
+                 : request.GetMaxLevel());
 
-        repository::PrefetchTilesRepository repository(catalog, settings,
-                                                       lookup_client);
+        repository::PrefetchTilesRepository repository(catalog, layer_id,
+                                                       settings, lookup_client);
         auto sliced_tiles =
             repository.GetSlicedTiles(tile_keys, min_level, max_level);
 
@@ -218,106 +220,57 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
         OLP_SDK_LOG_DEBUG_F(kLogTag, "PrefetchTiles, subquads=%zu, key=%s",
                             sliced_tiles.size(), key.c_str());
 
-        auto sub_tiles = repository.GetSubTiles(layer_id, request, boost::none,
-                                                sliced_tiles, context);
-
-        if (!sub_tiles.IsSuccessful()) {
-          return sub_tiles.GetError();
-        }
-        auto tiles_result = repository.FilterSkippedTiles(
-            request, request_only_input_tiles, sub_tiles.MoveResult());
-
-        OLP_SDK_LOG_INFO_F(kLogTag, "Prefetch start, key=%s, tiles=%zu",
-                           key.c_str(), tiles_result.size());
-
-        // Once we have the data create for each subtile a task and push it
-        // onto the TaskScheduler. One additional last task is added which
-        // waits for all previous tasks to finish so that it may call the user
-        // with the result.
-        auto futures = std::make_shared<std::vector<PrefetchResultFuture>>();
-        std::vector<CancellationContext> contexts;
-        contexts.reserve(tiles_result.size() + 1u);
-        auto it = tiles_result.begin();
-
-        // Settings structure consumes a 536 bytes of heap memory when captured
-        // in lambda, shared pointer (16 bytes) saves 520 bytes of heap memory.
-        // When users prefetch few hundreds tiles it could save few mb.
         auto shared_settings =
             std::make_shared<client::OlpClientSettings>(settings);
 
-        while (!context.IsCancelled() && it != tiles_result.end()) {
-          auto const& tile = it->first;
-          auto const& handle = it->second;
-          auto const& biling_tag = request.GetBillingTag();
-          auto promise = std::make_shared<PrefetchResultPromise>();
-          futures->emplace_back(promise->get_future());
-          auto context_it = contexts.emplace(contexts.end());
+        auto query = [=](geo::TileKey root,
+                         client::CancellationContext inner_context) mutable {
+          return repository.GetVolatileSubQuads(root, kQuadTreeDepth,
+                                                inner_context);
+        };
 
-          AddTask(
-              settings.task_scheduler, pending_requests,
-              [=](CancellationContext inner_context) {
-                if (handle.empty()) {
-                  return DataResponse{
-                      {olp::client::ErrorCode::NotFound, "Not found"}};
-                }
-                repository::DataCacheRepository data_cache_repository(
-                    catalog, shared_settings->cache);
-                if (data_cache_repository.IsCached(layer_id, handle)) {
-                  // Return an empty success
-                  return DataResponse(nullptr);
-                } else {
-                  repository::DataRepository repository(
-                      catalog, *shared_settings, lookup_client);
-                  return repository.GetVolatileData(
-                      layer_id,
-                      DataRequest().WithDataHandle(handle).WithBillingTag(
-                          biling_tag),
-                      inner_context);
-                }
-              },
-              [=](DataResponse result) {
-                if (result.IsSuccessful()) {
-                  promise->set_value(std::make_shared<PrefetchTileResult>(
-                      tile, PrefetchTileNoError()));
-                } else {
-                  promise->set_value(std::make_shared<PrefetchTileResult>(
-                      tile, result.GetError()));
-                }
-              },
-              *context_it);
-          it++;
-        }
+        auto filter = [=](QueryResult tiles) mutable {
+          return repository.FilterSkippedTiles(
+              request, request_only_input_tiles, std::move(tiles));
+        };
 
-        // Task to wait for previously triggered data download to collect
-        // responses and trigger user callback.
-        AddTask(
-            settings.task_scheduler, pending_requests,
-            [=](CancellationContext inner_context) -> PrefetchTilesResponse {
-              PrefetchTilesResult result;
-              result.reserve(futures->size());
+        auto billing_tag = request.GetBillingTag();
+        auto download = [=](std::string data_handle,
+                            client::CancellationContext inner_context) mutable {
+          if (data_handle.empty()) {
+            return BlobApi::DataResponse(
+                client::ApiError(client::ErrorCode::NotFound, "Not found"));
+          }
+          repository::DataCacheRepository data_cache_repository(
+              catalog, shared_settings->cache);
+          if (data_cache_repository.IsCached(layer_id, data_handle)) {
+            return BlobApi::DataResponse(nullptr);
+          }
 
-              for (auto& future : *futures) {
-                // Check if cancelled in between.
-                if (inner_context.IsCancelled()) {
-                  return {{ErrorCode::Cancelled, "Cancelled"}};
-                }
+          repository::DataRepository repository(catalog, *shared_settings,
+                                                lookup_client);
+          // Fetch from online
+          return repository.GetVolatileData(layer_id,
+                                            DataRequest()
+                                                .WithDataHandle(data_handle)
+                                                .WithBillingTag(billing_tag),
+                                            inner_context);
+        };
 
-                auto tile_result = future.get();
-                result.emplace_back(std::move(tile_result));
-              }
+        std::vector<geo::TileKey> roots;
+        roots.reserve(sliced_tiles.size());
 
-              OLP_SDK_LOG_INFO_F(kLogTag, "Prefetch done, key=%s, tiles=%zu",
-                                 key.c_str(), result.size());
-              return PrefetchTilesResponse(std::move(result));
-            },
-            callback, *contexts.emplace(contexts.end()));
+        std::transform(
+            sliced_tiles.begin(), sliced_tiles.end(), std::back_inserter(roots),
+            [](const repository::RootTilesForRequest::value_type& root) {
+              return root.first;
+            });
 
         context.ExecuteOrCancelled([&]() {
-          return client::CancellationToken([contexts]() {
-            for (auto context : contexts) {
-              context.CancelOperation();
-            }
-          });
+          return PrefetchHelper::Prefetch(
+              std::move(roots), std::move(query), std::move(filter),
+              std::move(download), std::move(callback), nullptr,
+              settings.task_scheduler, pending_requests);
         });
 
         return EmptyResponse(PrefetchTileNoError());

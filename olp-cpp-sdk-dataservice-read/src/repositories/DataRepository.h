@@ -49,9 +49,9 @@ class DataRepository final {
                                          int64_t version,
                                          client::CancellationContext context);
 
-  DataResponse GetVolatileData(const std::string& layer_id,
-                               const DataRequest& request,
-                               client::CancellationContext context);
+  BlobApi::DataResponse GetVolatileData(const std::string& layer_id,
+                                        const DataRequest& request,
+                                        client::CancellationContext context);
 
   BlobApi::DataResponse GetBlobData(const std::string& layer,
                                     const std::string& service,

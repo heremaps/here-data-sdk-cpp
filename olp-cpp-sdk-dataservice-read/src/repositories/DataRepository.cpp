@@ -201,7 +201,7 @@ BlobApi::DataResponse DataRepository::GetBlobData(
   return storage_response;
 }
 
-DataResponse DataRepository::GetVolatileData(
+BlobApi::DataResponse DataRepository::GetVolatileData(
     const std::string& layer_id, const DataRequest& request,
     client::CancellationContext context) {
   if (request.GetDataHandle() && request.GetPartitionId()) {

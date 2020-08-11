@@ -29,12 +29,12 @@
 namespace olp {
 namespace dataservice {
 namespace read {
-using namespace olp::client;
+namespace client = olp::client;
 
 VolatileBlobApi::DataResponse VolatileBlobApi::GetVolatileBlob(
-    const OlpClient& client, const std::string& layer_id,
+    const client::OlpClient& client, const std::string& layer_id,
     const std::string& data_handle, boost::optional<std::string> billing_tag,
-    const CancellationContext& context) {
+    const client::CancellationContext& context) {
   std::multimap<std::string, std::string> header_params;
   header_params.insert(std::make_pair("Accept", "application/json"));
   std::multimap<std::string, std::string> query_params;
@@ -49,12 +49,13 @@ VolatileBlobApi::DataResponse VolatileBlobApi::GetVolatileBlob(
                      form_params, nullptr, "", context);
 
   if (api_response.status != http::HttpStatusCode::OK) {
-    return ApiError(api_response.status, api_response.response.str());
+    return {{api_response.status, api_response.response.str()},
+            api_response.GetNetworkStatistics()};
   }
 
   auto result = std::make_shared<std::vector<unsigned char>>();
   api_response.GetResponse(*result);
-  return result;
+  return {result, api_response.GetNetworkStatistics()};
 }
 }  // namespace read
 }  // namespace dataservice
