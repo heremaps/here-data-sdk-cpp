@@ -301,43 +301,56 @@ TEST(DefaultCacheTest, BasicDiskTest) {
   ASSERT_TRUE(cache.Clear());
 }
 
-TEST(DefaultCacheTest, ExpiredDiskTest) {
+TEST(DefaultCacheTest, ExpiredTest) {
   olp::cache::CacheSettings settings;
   settings.max_memory_cache_size = 0;
   settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
-  olp::cache::DefaultCache cache(settings);
-  ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
-  ASSERT_TRUE(cache.Clear());
+  olp::cache::DefaultCache disk_cache(settings);
+  olp::cache::DefaultCache memory_cache;
+  ASSERT_EQ(olp::cache::DefaultCache::Success, disk_cache.Open());
+  ASSERT_EQ(olp::cache::DefaultCache::Success, memory_cache.Open());
+  ASSERT_TRUE(disk_cache.Clear());
+  ASSERT_TRUE(memory_cache.Clear());
   std::string key1DataString{"this is key1's data"};
   // expired in the past, can't get it again
-  cache.Put("key1", key1DataString, [=]() { return key1DataString; }, -1);
+  disk_cache.Put("key1", key1DataString, [=]() { return key1DataString; }, -1);
+  memory_cache.Put("key1", key1DataString, [=]() { return key1DataString; },
+                   -1);
+  auto memory_key1_read =
+      memory_cache.Get("key1", [](const std::string& data) { return data; });
+  ASSERT_TRUE(memory_key1_read.empty());
+  disk_cache.Close();
+  ASSERT_EQ(olp::cache::DefaultCache::Success, disk_cache.Open());
 
-  cache.Close();
-  ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
-
-  auto key1DataRead =
-      cache.Get("key1", [](const std::string& data) { return data; });
-  ASSERT_TRUE(key1DataRead.empty());
+  auto disk_key1_read =
+      disk_cache.Get("key1", [](const std::string& data) { return data; });
+  ASSERT_TRUE(disk_key1_read.empty());
 
   // valid now, for 2 more seconds
-  cache.Put("key1", key1DataString, [=]() { return key1DataString; }, 2);
+  disk_cache.Put("key1", key1DataString, [=]() { return key1DataString; }, 2);
+  memory_cache.Put("key1", key1DataString, [=]() { return key1DataString; }, 2);
+  memory_key1_read =
+      memory_cache.Get("key1", [](const std::string& data) { return data; });
+  ASSERT_FALSE(memory_key1_read.empty());
+  disk_cache.Close();
+  ASSERT_EQ(olp::cache::DefaultCache::Success, disk_cache.Open());
 
-  cache.Close();
-  ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+  disk_key1_read =
+      disk_cache.Get("key1", [](const std::string& data) { return data; });
+  ASSERT_FALSE(disk_key1_read.empty());
 
-  key1DataRead =
-      cache.Get("key1", [](const std::string& data) { return data; });
-  ASSERT_FALSE(key1DataRead.empty());
-
-  cache.Close();
+  disk_cache.Close();
   std::this_thread::sleep_for(std::chrono::seconds(3));
-  ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+  ASSERT_EQ(olp::cache::DefaultCache::Success, disk_cache.Open());
 
   // should be invalid
-  key1DataRead =
-      cache.Get("key1", [](const std::string& data) { return data; });
-  ASSERT_TRUE(key1DataRead.empty());
-  ASSERT_TRUE(cache.Clear());
+  disk_key1_read =
+      disk_cache.Get("key1", [](const std::string& data) { return data; });
+  ASSERT_TRUE(disk_key1_read.empty());
+  memory_key1_read =
+      memory_cache.Get("key1", [](const std::string& data) { return data; });
+  ASSERT_TRUE(memory_key1_read.empty());
+  ASSERT_TRUE(disk_cache.Clear());
 }
 
 TEST(DefaultCacheTest, ProtectedCacheTest) {
@@ -446,30 +459,6 @@ TEST(DefaultCacheTest, ProtectedCacheTest) {
   }
 }
 
-TEST(DefaultCacheTest, ExpiredMemTest) {
-  olp::cache::DefaultCache cache;
-  ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
-  ASSERT_TRUE(cache.Clear());
-  std::string key1DataString{"this is key1's data"};
-  // expired in the past, can't get it again
-  cache.Put("key1", key1DataString, [=]() { return key1DataString; }, -1);
-  auto key1DataRead =
-      cache.Get("key1", [](const std::string& data) { return data; });
-  ASSERT_TRUE(key1DataRead.empty());
-
-  // valid now, for 2 more seconds
-  cache.Put("key1", key1DataString, [=]() { return key1DataString; }, 2);
-  key1DataRead =
-      cache.Get("key1", [](const std::string& data) { return data; });
-  ASSERT_FALSE(key1DataRead.empty());
-  std::this_thread::sleep_for(std::chrono::seconds(3));
-  // should be invalid
-  key1DataRead =
-      cache.Get("key1", [](const std::string& data) { return data; });
-  ASSERT_TRUE(key1DataRead.empty());
-  ASSERT_TRUE(cache.Clear());
-}
-
 TEST(DefaultCacheTest, AlreadyInUsePath) {
   olp::cache::CacheSettings settings;
   settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
@@ -537,18 +526,29 @@ TEST(DefaultCacheTest, CheckIfKeyExist) {
     ASSERT_TRUE(cache.Clear());
   }
   {
-    SCOPED_TRACE("Check key exist cache with lru expired");
-    olp::cache::CacheSettings settings;
-    settings.disk_path_mutable = olp::utils::Dir::TempDirectory() + "/unittest";
-    settings.max_memory_cache_size = 0;
-    olp::cache::DefaultCache cache(settings);
-    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
-    ASSERT_TRUE(cache.Clear());
-    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; }, 2);
-    ASSERT_TRUE(cache.Contains(key1));
+    SCOPED_TRACE("Check key lru and memory expired");
+    olp::cache::CacheSettings settings_lru;
+    settings_lru.disk_path_mutable =
+        olp::utils::Dir::TempDirectory() + "/unittest";
+    settings_lru.max_memory_cache_size = 0;
+    olp::cache::DefaultCache cache_lru(settings_lru);
+    olp::cache::DefaultCache memory_cache;
+    // open caches
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache_lru.Open());
+    ASSERT_EQ(olp::cache::DefaultCache::Success, memory_cache.Open());
+
+    ASSERT_TRUE(cache_lru.Clear());
+    // write data
+    cache_lru.Put(key1, key1_data_string, [=]() { return key1_data_string; },
+                  2);
+    memory_cache.Put(key1, key1_data_string, [=]() { return key1_data_string; },
+                     2);
+    ASSERT_TRUE(cache_lru.Contains(key1));
+    ASSERT_TRUE(memory_cache.Contains(key1));
     std::this_thread::sleep_for(std::chrono::seconds(3));
-    ASSERT_FALSE(cache.Contains(key1));
-    ASSERT_TRUE(cache.Clear());
+    ASSERT_FALSE(cache_lru.Contains(key1));
+    ASSERT_FALSE(memory_cache.Contains(key1));
+    ASSERT_TRUE(cache_lru.Clear());
   }
   {
     SCOPED_TRACE("Check key exist cache mutable");
@@ -598,17 +598,6 @@ TEST(DefaultCacheTest, CheckIfKeyExist) {
               (std::numeric_limits<time_t>::max)());
     ASSERT_TRUE(cache.Contains(key1));
     ASSERT_FALSE(cache.Contains(key2));
-    ASSERT_TRUE(cache.Clear());
-  }
-  {
-    SCOPED_TRACE("Check key exist in memory cache after data expired");
-    olp::cache::DefaultCache cache;
-    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
-    ASSERT_TRUE(cache.Clear());
-    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; }, 2);
-    ASSERT_TRUE(cache.Contains(key1));
-    std::this_thread::sleep_for(std::chrono::seconds(3));
-    ASSERT_FALSE(cache.Contains(key1));
     ASSERT_TRUE(cache.Clear());
   }
   {
