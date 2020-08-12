@@ -25,7 +25,7 @@
 #include <utility>
 
 namespace {
-constexpr auto kQuadTreeDepth = 4;
+constexpr auto kQuadTreeDepth = 4u;
 }  // namespace
 
 namespace olp {
@@ -61,8 +61,8 @@ ProtectDependencyResolver::GetKeysToProtect(const TileKeys& tiles) {
 
 ProtectDependencyResolver::QuadsType::iterator
 ProtectDependencyResolver::FindQuad(const geo::TileKey& tile_key) {
-  auto max_depth = std::min<std::int32_t>(tile_key.Level(), kQuadTreeDepth);
-  for (auto i = max_depth; i >= 0; --i) {
+  auto max_depth = std::min<std::uint32_t>(tile_key.Level(), kQuadTreeDepth);
+  for (auto i = 0u; i <= max_depth; ++i) {
     const auto& quad_root = tile_key.ChangedLevelBy(-i);
     auto it = quad_trees_.find(quad_root);
     if (it != quad_trees_.end()) {

@@ -561,13 +561,12 @@ int64_t DefaultCacheImpl::MaybeUpdatedProtectedKeys(
       leveldb::Slice slice(reinterpret_cast<const char*>(value->data()),
                            value->size());
       batch.Put(kProtectedKeys, slice);
-    } else {
+      return (key_size + protected_keys_.Size() - prev_size);
+    } else if (prev_size > 0) {
       // delete key, as protected list is empty
       batch.Delete(kProtectedKeys);
-      key_size -= strlen(kProtectedKeys);
+      return -1 * (prev_size + strlen(kProtectedKeys));
     }
-
-    return (key_size + protected_keys_.Size() - prev_size);
   }
 
   return 0;
