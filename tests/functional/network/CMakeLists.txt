@@ -18,6 +18,7 @@
 
 set(OLP_SDK_NETWORK_TESTS_SOURCES
     ./NetworkTestBase.cpp
+    ./DestructionTest.cpp
 )
 
 set(OLP_SDK_NETWORK_TESTS_HEADERS
@@ -32,8 +33,9 @@ if (ANDROID OR IOS)
         ${OLP_SDK_NETWORK_TESTS_HEADERS})
     target_include_directories(${OLP_SDK_NETWORK_TESTS_LIB}
         PRIVATE
+            ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-dataservice-read/src
             ${PROJECT_SOURCE_DIR}/tests/utils/mock-server-client/
-            utils
+            ${PROJECT_SOURCE_DIR}/tests/functional/utils
     )
     target_link_libraries(${OLP_SDK_NETWORK_TESTS_LIB}
         PRIVATE
@@ -41,6 +43,7 @@ if (ANDROID OR IOS)
             gtest
             olp-cpp-sdk-tests-common
             olp-cpp-sdk-core
+            olp-cpp-sdk-dataservice-read
     )
     if (ANDROID)
         include(${CMAKE_SOURCE_DIR}/cmake/android/gen_android_test.cmake)
@@ -63,8 +66,9 @@ else()
         ${OLP_SDK_NETWORK_TESTS_HEADERS})
     target_include_directories(olp-cpp-sdk-functional-network-tests
     PRIVATE
+        ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-dataservice-read/src
         ${PROJECT_SOURCE_DIR}/tests/utils/mock-server-client/
-        utils
+        ${PROJECT_SOURCE_DIR}/tests/functional/utils
     )
     target_link_libraries(olp-cpp-sdk-functional-network-tests
         PRIVATE
@@ -72,5 +76,6 @@ else()
             gtest_main
             olp-cpp-sdk-tests-common
             olp-cpp-sdk-core
+            olp-cpp-sdk-dataservice-read
     )
 endif()

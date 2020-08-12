@@ -34,7 +34,13 @@ struct Expectation {
     boost::optional<std::string> method = boost::none;
   };
 
+  struct ResponseDelay {
+    int32_t value;
+    std::string time_unit;
+  };
+
   struct ResponseAction {
+    boost::optional<ResponseDelay> delay = boost::none;
     boost::optional<uint16_t> status_code = boost::none;
 
     /// Any of BinaryResponse, std::string, boost::any
@@ -61,6 +67,8 @@ void to_json(const Expectation& x, rapidjson::Value& value,
 void to_json(const Expectation::RequestMatcher& x, rapidjson::Value& value,
              rapidjson::Document::AllocatorType& allocator);
 void to_json(const Expectation::BinaryResponse& x, rapidjson::Value& value,
+             rapidjson::Document::AllocatorType& allocator);
+void to_json(const Expectation::ResponseDelay& x, rapidjson::Value& value,
              rapidjson::Document::AllocatorType& allocator);
 void to_json(const Expectation::ResponseAction& x, rapidjson::Value& value,
              rapidjson::Document::AllocatorType& allocator);
@@ -98,6 +106,14 @@ inline void to_json(const Expectation::BinaryResponse& x,
   serialize("base64Bytes", x.base64_string, value, allocator);
 }
 
+inline void to_json(const Expectation::ResponseDelay& x,
+                    rapidjson::Value& value,
+                    rapidjson::Document::AllocatorType& allocator) {
+  value.SetObject();
+  serialize("timeUnit", x.time_unit, value, allocator);
+  serialize("value", x.value, value, allocator);
+}
+
 inline void to_json(const Expectation::ResponseAction& x,
                     rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
@@ -109,6 +125,10 @@ inline void to_json(const Expectation::ResponseAction& x,
   } else if (x.body.type() == typeid(Expectation::BinaryResponse)) {
     serialize("body", boost::any_cast<Expectation::BinaryResponse>(x.body),
               value, allocator);
+  }
+
+  if (x.delay) {
+    serialize("delay", x.delay.get(), value, allocator);
   }
 }
 
