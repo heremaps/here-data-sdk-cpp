@@ -26,10 +26,13 @@
 #include <olp/core/http/Network.h>
 #include <olp/core/http/NetworkSettings.h>
 
+#include "Client.h"
+
 class NetworkTestBase : public ::testing::Test {
   void SetUp() override;
 
  protected:
   std::shared_ptr<olp::http::Network> network_;
   olp::http::NetworkSettings settings_;
+  std::shared_ptr<mockserver::Client> mock_server_client_;
 };

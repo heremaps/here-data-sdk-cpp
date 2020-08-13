@@ -37,4 +37,9 @@ void NetworkTestBase::SetUp() {
   settings_ = olp::http::NetworkSettings().WithProxySettings(proxy_settings);
   network_ = olp::client::OlpClientSettingsFactory::
       CreateDefaultNetworkRequestHandler();
+
+  olp::client::OlpClientSettings client_settings;
+  client_settings.network_request_handler = network_;
+  mock_server_client_ = std::make_shared<mockserver::Client>(client_settings);
+  mock_server_client_->Reset();
 }
