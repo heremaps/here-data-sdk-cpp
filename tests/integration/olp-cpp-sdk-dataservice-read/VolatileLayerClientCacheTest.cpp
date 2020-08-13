@@ -142,8 +142,8 @@ TEST_P(VolatileLayerClientCacheTest, GetVolatilePartitionsExpiry) {
 
   // wait for the layer to expire in cache
   bool expired = false;
-  // Expiriation time in that HTTP_RESPONSE_CONFIG + 5 seconds
-  const auto timeout = std::chrono::seconds(35);
+  // Expiriation time in that HTTP_RESPONSE_CONFIG + 2 seconds
+  const auto timeout = std::chrono::seconds(4);
   const auto end_time = std::chrono::steady_clock::now() + timeout;
   while (std::chrono::steady_clock::now() < end_time) {
     request.WithFetchOption(olp::dataservice::read::CacheOnly);
