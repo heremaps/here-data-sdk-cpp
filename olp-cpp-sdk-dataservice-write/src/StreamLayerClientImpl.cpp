@@ -23,6 +23,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/PendingRequests.h>

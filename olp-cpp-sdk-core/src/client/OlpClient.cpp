@@ -210,16 +210,12 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
   return response;
 }
 
-std::chrono::milliseconds CalculateNextWaitTime(
-    const RetrySettings& settings,
-    std::chrono::milliseconds current_backdown_period, size_t current_try) {
+std::chrono::milliseconds CalculateNextWaitTime(const RetrySettings& settings,
+                                                size_t current_try) {
   if (auto backdown_strategy = settings.backdown_strategy) {
     return backdown_strategy(
         std::chrono::milliseconds(settings.initial_backdown_period),
         current_try);
-  } else if (auto backdown_policy = settings.backdown_policy) {
-    return std::chrono::milliseconds(
-        backdown_policy(static_cast<int>(current_backdown_period.count())));
   }
   return std::chrono::milliseconds::zero();
 }
@@ -250,8 +246,7 @@ NetworkAsyncCallback GetRetryCallback(
         current_backdown_period, max_wait_time - accumulated_wait_time);
     std::this_thread::sleep_for(actual_wait_time);
 
-    const auto next_wait_time =
-        CalculateNextWaitTime(settings, current_backdown_period, current_try);
+    const auto next_wait_time = CalculateNextWaitTime(settings, current_try);
 
     auto cancel_context = weak_cancel_context.lock();
     if (cancel_context) {
@@ -524,7 +519,7 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
       duration_to_sleep -= sleep_ms;
     }
 
-    backdown_period = CalculateNextWaitTime(retry_settings, backdown_period, i);
+    backdown_period = CalculateNextWaitTime(retry_settings, i);
     response = SendRequest(network_request, settings_, retry_settings, context);
 
     // In case we retry, accumulate the stats

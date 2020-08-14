@@ -26,9 +26,6 @@
 
 namespace olp {
 namespace client {
-unsigned int DefaultBackdownPolicy(unsigned int milliseconds) {
-  return milliseconds;
-}
 
 bool DefaultRetryCondition(const HttpResponse& response) {
   if ((response.status >= http::HttpStatusCode::INTERNAL_SERVER_ERROR &&
