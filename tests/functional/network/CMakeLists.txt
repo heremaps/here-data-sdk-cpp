@@ -19,6 +19,7 @@
 set(OLP_SDK_NETWORK_TESTS_SOURCES
     ./NetworkTestBase.cpp
     ./DestructionTest.cpp
+    ./TimeoutTest.cpp
 )
 
 set(OLP_SDK_NETWORK_TESTS_HEADERS
