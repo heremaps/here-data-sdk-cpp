@@ -35,12 +35,8 @@
 #include "olp/dataservice/read/PartitionsRequest.h"
 #include "olp/dataservice/read/TileRequest.h"
 
-// Needed to avoid endless warnings from GetVersion/WithVersion
-#include <olp/core/porting/warning_disable.h>
-PORTING_PUSH_WARNINGS()
-PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
-
 namespace {
+namespace client = olp::client;
 namespace read = olp::dataservice::read;
 namespace model = olp::dataservice::read::model;
 namespace repository = olp::dataservice::read::repository;
@@ -48,25 +44,23 @@ namespace repository = olp::dataservice::read::repository;
 constexpr auto kLogTag = "PartitionsRepository";
 constexpr auto kAggregateQuadTreeDepth = 4;
 
-using LayerVersionReponse =
-    olp::client::ApiResponse<int64_t, olp::client::ApiError>;
+using LayerVersionReponse = client::ApiResponse<int64_t, client::ApiError>;
 using LayerVersionCallback = std::function<void(LayerVersionReponse)>;
 
-olp::client::ApiResponse<boost::optional<time_t>, olp::client::ApiError>
-TtlForLayer(const std::vector<olp::dataservice::read::model::Layer>& layers,
-            const std::string& layer_id) {
-  for (const auto& layer : layers) {
-    if (layer.GetId() == layer_id) {
-      boost::optional<time_t> expiry;
-      if (layer.GetTtl()) {
-        expiry = *layer.GetTtl() / 1000;
-      }
-      return expiry;
-    }
+client::ApiResponse<boost::optional<time_t>, client::ApiError> TtlForLayer(
+    const std::vector<model::Layer>& layers, const std::string& layer_id) {
+  auto layer_it = std::find_if(
+      std::begin(layers), std::end(layers),
+      [&](const model::Layer& layer) { return layer.GetId() == layer_id; });
+
+  if (layer_it == std::end(layers)) {
+    return client::ApiError(client::ErrorCode::NotFound,
+                            "Layer specified doesn't exist");
   }
 
-  return olp::client::ApiError(olp::client::ErrorCode::NotFound,
-                               "Layer specified doesn't exist");
+  auto ttl = layer_it->GetTtl();
+
+  return ttl ? boost::make_optional<time_t>(ttl.value() / 1000) : boost::none;
 }
 
 repository::PartitionResponse FindPartition(
@@ -84,7 +78,7 @@ repository::PartitionResponse FindPartition(
         "', aggregated='%s'",
         tile_key.ToHereTile().c_str(), kAggregateQuadTreeDepth,
         aggregated ? "true" : "false");
-    return {{olp::client::ErrorCode::NotFound,
+    return {{client::ErrorCode::NotFound,
              "Tile or its closest ancestors not found"}};
   }
 
@@ -419,7 +413,6 @@ PartitionResponse PartitionsRepository::GetTile(
 
   return FindPartition(quad_tree_response.GetResult(), request, false);
 }
-PORTING_POP_WARNINGS()
 
 }  // namespace repository
 }  // namespace read
