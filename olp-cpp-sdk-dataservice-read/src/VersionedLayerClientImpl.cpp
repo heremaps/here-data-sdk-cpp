@@ -240,8 +240,10 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
                  ? static_cast<unsigned int>(geo::TileKey::LevelCount)
                  : request.GetMaxLevel());
 
-        repository::PrefetchTilesRepository repository(catalog, settings,
-                                                       lookup_client);
+        repository::PrefetchTilesRepository repository(catalog, layer_id,
+                                                       settings, lookup_client,
+                                                       request.GetBillingTag());
+
         auto sliced_tiles = repository.GetSlicedTiles(request.GetTileKeys(),
                                                       min_level, max_level);
 
@@ -255,79 +257,61 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
         OLP_SDK_LOG_DEBUG_F(kLogTag, "PrefetchTiles, subquads=%zu, key=%s",
                             sliced_tiles.size(), key.c_str());
 
-        auto sub_tiles = repository.GetSubTiles(layer_id, request, version,
-                                                sliced_tiles, context);
-        if (!sub_tiles.IsSuccessful()) {
-          return sub_tiles.GetError();
-        }
-
-        auto tiles_result = repository.FilterSkippedTiles(
-            request, request_only_input_tiles, sub_tiles.MoveResult());
-
-        if (tiles_result.empty()) {
-          return EmptyResponse(
-              {olp::client::ErrorCode::NotFound, "No tiles to prefetch"});
-        }
-
-        OLP_SDK_LOG_INFO_F(kLogTag, "Prefetch start, key=%s, tiles=%zu",
-                           key.c_str(), tiles_result.size());
-
         // Settings structure consumes a 536 bytes of heap memory when captured
         // in lambda, shared pointer (16 bytes) saves 520 bytes of heap memory.
         // When users prefetch few hundreds tiles it could save few mb.
         auto shared_settings =
             std::make_shared<client::OlpClientSettings>(settings);
 
-        auto prefetch_job = std::make_shared<PrefetchJob>(
-            std::move(callback), std::move(status_callback),
-            tiles_result.size(), GetNetworkStatistics(sub_tiles));
+        auto query = [=](geo::TileKey root,
+                         client::CancellationContext inner_context) mutable {
+          return repository.GetVersionedSubQuads(root, kQuadTreeDepth, version,
+                                                 inner_context);
+        };
 
-        std::for_each(
-            tiles_result.begin(), tiles_result.end(),
-            [&](const repository::SubQuadsResult::value_type& sub_quad) {
-              const auto& tile = sub_quad.first;
-              const auto& handle = sub_quad.second;
-              const auto& biling_tag = request.GetBillingTag();
+        auto filter = [=](QueryResult tiles) mutable {
+          return repository.FilterSkippedTiles(
+              request, request_only_input_tiles, std::move(tiles));
+        };
 
-              using PrefetchDataResponse = BlobApi::DataResponse;
+        auto billing_tag = request.GetBillingTag();
+        auto download = [=](std::string data_handle,
+                            client::CancellationContext inner_context) mutable {
+          if (data_handle.empty()) {
+            return BlobApi::DataResponse(
+                client::ApiError(client::ErrorCode::NotFound, "Not found"));
+          }
+          repository::DataCacheRepository data_cache_repository(
+              catalog, shared_settings->cache);
+          if (data_cache_repository.IsCached(layer_id, data_handle)) {
+            return BlobApi::DataResponse(nullptr);
+          }
 
-              AddTask(settings.task_scheduler, pending_requests,
-                      [=](CancellationContext inner_context)
-                          -> PrefetchDataResponse {
-                        if (handle.empty()) {
-                          return {{client::ErrorCode::NotFound, "Not found"}};
-                        }
-                        repository::DataCacheRepository data_cache_repository(
-                            catalog, shared_settings->cache);
-                        if (data_cache_repository.IsCached(layer_id, handle)) {
-                          return {nullptr};
-                        }
+          repository::DataRepository repository(catalog, *shared_settings,
+                                                lookup_client);
+          // Fetch from online
+          return repository.GetVersionedData(layer_id,
+                                             DataRequest()
+                                                 .WithDataHandle(data_handle)
+                                                 .WithBillingTag(billing_tag),
+                                             version, inner_context);
+        };
 
-                        // Fetch from online
-                        repository::DataRepository repository(
-                            catalog, *shared_settings, lookup_client);
-                        return repository.GetVersionedData(
-                            layer_id,
-                            DataRequest().WithDataHandle(handle).WithBillingTag(
-                                biling_tag),
-                            version, inner_context);
-                      },
-                      [=](PrefetchDataResponse result) {
-                        if (result.IsSuccessful()) {
-                          prefetch_job->CompleteTask(
-                              tile, GetNetworkStatistics(result));
-                        } else {
-                          prefetch_job->CompleteTask(
-                              tile, result.GetError(),
-                              GetNetworkStatistics(result));
-                        }
-                      },
-                      prefetch_job->AddTask());
+        std::vector<geo::TileKey> roots;
+        roots.reserve(sliced_tiles.size());
+
+        std::transform(
+            sliced_tiles.begin(), sliced_tiles.end(), std::back_inserter(roots),
+            [](const repository::RootTilesForRequest::value_type& root) {
+              return root.first;
             });
 
         context.ExecuteOrCancelled([&]() {
-          return client::CancellationToken(
-              [=]() { prefetch_job->CancelOperation(); });
+          return PrefetchHelper::Prefetch(
+              std::move(roots), std::move(query), std::move(filter),
+              std::move(download), std::move(callback),
+              std::move(status_callback), settings.task_scheduler,
+              pending_requests);
         });
 
         return EmptyResponse(PrefetchTileNoError());
@@ -340,12 +324,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
       [callback](EmptyResponse response) {
         // Inner task only generates successfull result
         if (!response.IsSuccessful()) {
-          if (response.GetError().GetErrorCode() ==
-              olp::client::ErrorCode::NotFound) {
-            callback(PrefetchTilesResult());
-          } else {
-            callback(response.GetError());
-          }
+          callback(response.GetError());
         }
       });
 

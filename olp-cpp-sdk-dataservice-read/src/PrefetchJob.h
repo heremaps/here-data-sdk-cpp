@@ -21,55 +21,110 @@
 
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/HttpResponse.h>
+#include <olp/core/client/OlpClientSettings.h>
+#include <olp/core/client/PendingRequests.h>
 #include <olp/core/geo/tiling/TileKey.h>
 #include <olp/dataservice/read/Types.h>
+
+#include "ExtendedApiResponse.h"
 
 namespace olp {
 namespace dataservice {
 namespace read {
 
-class PrefetchJob {
+using Roots = std::vector<geo::TileKey>;
+using QueryResult = std::map<geo::TileKey, std::string>;
+
+using QueryResponse = ExtendedApiResponse<QueryResult, client::ApiError,
+                                          client::NetworkStatistics>;
+using ExtendedDataResponse = ExtendedApiResponse<model::Data, client::ApiError,
+                                                 client::NetworkStatistics>;
+
+// Prototype of function used to download quad tree.
+using QueryFunc =
+    std::function<QueryResponse(geo::TileKey, client::CancellationContext)>;
+// Prototype of function used to filter the tiles.
+using FilterFunc = std::function<QueryResult(QueryResult)>;
+// Prototype of function used to download a tile.
+using DownloadFunc = std::function<ExtendedDataResponse(
+    std::string, client::CancellationContext)>;
+
+class DownloadTilesJob {
  public:
-  PrefetchJob(PrefetchTilesResponseCallback user_callback,
-              PrefetchStatusCallback status_callback, uint32_t task_count,
-              client::NetworkStatistics initial_network_statistics);
+  DownloadTilesJob(DownloadFunc download,
+                   PrefetchTilesResponseCallback user_callback,
+                   PrefetchStatusCallback status_callback);
 
-  PrefetchJob(const PrefetchJob&) = delete;
-  PrefetchJob(PrefetchJob&&) = delete;
-  PrefetchJob& operator=(const PrefetchJob&) = delete;
-  PrefetchJob& operator=(PrefetchJob&&) = delete;
+  void Initialize(size_t tiles_count, client::NetworkStatistics statistics);
 
-  ~PrefetchJob();
+  ExtendedDataResponse Download(const std::string& data_handle,
+                                client::CancellationContext context);
 
-  client::CancellationContext AddTask();
+  void CompleteTile(geo::TileKey tile, ExtendedDataResponse response);
 
-  void CompleteTask(geo::TileKey tile);
-
-  void CompleteTask(geo::TileKey tile, const client::ApiError& error);
-
-  void CompleteTask(geo::TileKey tile, client::NetworkStatistics statistics);
-
-  void CompleteTask(geo::TileKey tile, const client::ApiError& error,
-                    client::NetworkStatistics statistics);
-
-  void CancelOperation();
-
- protected:
-  void CompleteTask(std::shared_ptr<PrefetchTileResult> result,
-                    client::NetworkStatistics statistics);
+  void OnPrefetchCompleted(PrefetchTilesResponse result);
 
  private:
+  DownloadFunc download_;
   PrefetchTilesResponseCallback user_callback_;
   PrefetchStatusCallback status_callback_;
-  uint32_t task_count_;
-  const uint32_t total_task_count_;
-  bool canceled_;
 
-  std::mutex mutex_;
-  std::vector<client::CancellationContext> tasks_contexts_;
-  PrefetchTilesResult prefetch_result_;
+  size_t download_task_count_{0};
+  size_t total_download_task_count_{0};
+
+  size_t requests_succeeded_{0};
+  size_t requests_failed_{0};
 
   client::NetworkStatistics accumulated_statistics_;
+
+  PrefetchTilesResult prefetch_result_;
+
+  std::mutex mutex_;
+};
+
+class QueryMetadataJob {
+ public:
+  QueryMetadataJob(QueryFunc query, FilterFunc filter,
+                   std::shared_ptr<DownloadTilesJob> download_job,
+                   std::shared_ptr<thread::TaskScheduler> task_scheduler,
+                   std::shared_ptr<client::PendingRequests> pending_requests,
+                   client::CancellationContext execution_context);
+
+  void Initialize(size_t query_count);
+
+  QueryResponse Query(geo::TileKey root, client::CancellationContext context);
+
+  void CompleteQuery(QueryResponse response);
+
+ private:
+  QueryFunc query_;
+  FilterFunc filter_;
+  size_t query_count_{0};
+
+  bool canceled_{false};
+
+  QueryResult query_result_;
+
+  client::NetworkStatistics accumulated_statistics_;
+
+  boost::optional<client::ApiError> query_error_;
+
+  std::shared_ptr<DownloadTilesJob> download_job_;
+  std::shared_ptr<thread::TaskScheduler> task_scheduler_;
+  std::shared_ptr<client::PendingRequests> pending_requests_;
+  client::CancellationContext execution_context_;
+
+  std::mutex mutex_;
+};
+
+class PrefetchHelper {
+ public:
+  static client::CancellationToken Prefetch(
+      const Roots& roots, QueryFunc query, FilterFunc filter,
+      DownloadFunc download, PrefetchTilesResponseCallback user_callback,
+      PrefetchStatusCallback status_callback,
+      std::shared_ptr<thread::TaskScheduler> task_scheduler,
+      std::shared_ptr<client::PendingRequests> pending_requests);
 };
 
 }  // namespace read
