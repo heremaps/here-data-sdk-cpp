@@ -560,7 +560,7 @@ ErrorCode NetworkCurl::SendImplementation(
   curl_easy_setopt(handle->handle, CURLOPT_CONNECTTIMEOUT,
                    config.GetConnectionTimeout());
   curl_easy_setopt(handle->handle, CURLOPT_TIMEOUT,
-                   config.GetConnectionTimeout() + config.GetTransferTimeout());
+                   config.GetTransferTimeout());
   curl_easy_setopt(handle->handle, CURLOPT_WRITEFUNCTION,
                    &NetworkCurl::RxFunction);
   curl_easy_setopt(handle->handle, CURLOPT_WRITEDATA, handle);
