@@ -37,11 +37,6 @@
 #include "generated/serializer/JsonSerializer.h"
 // clang-format on
 
-// Needed to avoid endless warnings from GetVersion/WithVersion
-#include <olp/core/porting/warning_disable.h>
-PORTING_PUSH_WARNINGS()
-PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
-
 namespace {
 constexpr auto kLogTag = "PartitionsCacheRepository";
 constexpr auto kChronoSecondsMax = std::chrono::seconds::max();
@@ -338,7 +333,6 @@ bool PartitionsCacheRepository::FindQuadTree(const std::string& layer,
   return false;
 }
 
-PORTING_POP_WARNINGS()
 }  // namespace repository
 }  // namespace read
 }  // namespace dataservice

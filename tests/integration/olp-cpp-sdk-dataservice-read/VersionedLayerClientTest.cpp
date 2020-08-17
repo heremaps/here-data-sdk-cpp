@@ -49,9 +49,6 @@ using olp::dataservice::read::PrefetchTilesRequest;
 using olp::dataservice::read::PrefetchTilesResponse;
 using testing::_;
 
-// OLPEDGE-1799
-PORTING_PUSH_WARNINGS()
-PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 namespace {
 
 namespace read = olp::dataservice::read;
@@ -4182,5 +4179,3 @@ TEST_F(DataserviceReadVersionedLayerClientTest, OverlappingQuads) {
 }
 
 }  // namespace
-
-PORTING_POP_WARNINGS()

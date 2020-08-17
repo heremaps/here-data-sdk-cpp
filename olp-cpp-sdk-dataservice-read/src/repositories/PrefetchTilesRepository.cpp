@@ -36,11 +36,6 @@
 #include "QuadTreeIndex.h"
 #include "generated/api/QueryApi.h"
 
-// Needed to avoid endless warnings from GetVersion/WithVersion
-#include <olp/core/porting/warning_disable.h>
-PORTING_PUSH_WARNINGS()
-PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
-
 namespace olp {
 namespace dataservice {
 namespace read {
@@ -374,7 +369,6 @@ SubQuadsResult PrefetchTilesRepository::FilterSkippedTiles(
   return sub_tiles;
 }
 
-PORTING_POP_WARNINGS()
 }  // namespace repository
 }  // namespace read
 }  // namespace dataservice

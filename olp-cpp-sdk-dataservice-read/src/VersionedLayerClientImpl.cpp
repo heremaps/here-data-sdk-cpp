@@ -44,11 +44,6 @@
 #include "repositories/PartitionsRepository.h"
 #include "repositories/PrefetchTilesRepository.h"
 
-// Needed to avoid endless warnings from GetVersion/WithVersion
-#include <olp/core/porting/warning_disable.h>
-PORTING_PUSH_WARNINGS()
-PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
-
 namespace olp {
 namespace dataservice {
 namespace read {
@@ -657,7 +652,6 @@ bool VersionedLayerClientImpl::Release(const TileKeys& tiles) {
   return settings_.cache->Release(keys_to_release);
 }
 
-PORTING_POP_WARNINGS()
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp
