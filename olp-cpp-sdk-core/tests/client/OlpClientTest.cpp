@@ -232,6 +232,10 @@ TEST_P(OlpClientTest, DefaultRetryCondition) {
       std::queue<int>{{429, 500, 501, 502, 503, 504, 505, 506, 507, 508, 509,
                        510, 511, 598, 599, 200}};
   client_settings_.retry_settings.max_attempts = attempt_statuses.size();
+  client_settings_.retry_settings.backdown_strategy =
+      [](std::chrono::milliseconds, size_t) {
+        return std::chrono::milliseconds(0);
+      };
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .Times(static_cast<int>(attempt_statuses.size()))
@@ -306,86 +310,6 @@ TEST_P(OlpClientTest, RetryCondition) {
   ASSERT_EQ(http::HttpStatusCode::OK, response.status);
 }
 
-TEST_P(OlpClientTest, RetryTimeLinear) {
-  client_settings_.retry_settings.retry_condition =
-      ([](const olp::client::HttpResponse&) { return true; });
-  std::vector<std::chrono::time_point<std::chrono::system_clock>> timestamps;
-
-  auto network = std::make_shared<NetworkMock>();
-  client_settings_.network_request_handler = network;
-  client_.SetSettings(client_settings_);
-
-  EXPECT_CALL(*network, Send(_, _, _, _, _))
-      .Times(4)
-      .WillRepeatedly(
-          [&](olp::http::NetworkRequest /*request*/,
-              olp::http::Network::Payload /*payload*/,
-              olp::http::Network::Callback callback,
-              olp::http::Network::HeaderCallback /*header_callback*/,
-              olp::http::Network::DataCallback /*data_callback*/) {
-            timestamps.push_back(std::chrono::system_clock::now());
-            callback(olp::http::NetworkResponse().WithStatus(
-                http::HttpStatusCode::TOO_MANY_REQUESTS));
-            return olp::http::SendOutcome(olp::http::RequestId(5));
-          });
-
-  auto response = call_wrapper_->CallApi(
-      std::string(), "GET", std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string());
-
-  ASSERT_EQ(1 + client_settings_.retry_settings.max_attempts,
-            timestamps.size());
-  ASSERT_EQ(http::HttpStatusCode::TOO_MANY_REQUESTS, response.status);
-  for (size_t i = 1; i < timestamps.size(); ++i) {
-    ASSERT_GE(timestamps.at(i) - timestamps.at(i - 1),
-              std::chrono::milliseconds(
-                  client_settings_.retry_settings.initial_backdown_period));
-  }
-}
-
-TEST_P(OlpClientTest, RetryTimeExponential) {
-  client_settings_.retry_settings.retry_condition =
-      ([](const olp::client::HttpResponse&) { return true; });
-  client_settings_.retry_settings.backdown_policy =
-      ([](unsigned int milliseconds) { return 2 * milliseconds; });
-  std::vector<std::chrono::time_point<std::chrono::system_clock>> timestamps;
-
-  auto network = std::make_shared<NetworkMock>();
-  client_settings_.network_request_handler = network;
-
-  client_.SetSettings(client_settings_);
-
-  EXPECT_CALL(*network, Send(_, _, _, _, _))
-      .Times(4)
-      .WillRepeatedly(
-          [&](olp::http::NetworkRequest /*request*/,
-              olp::http::Network::Payload /*payload*/,
-              olp::http::Network::Callback callback,
-              olp::http::Network::HeaderCallback /*header_callback*/,
-              olp::http::Network::DataCallback /*data_callback*/) {
-            timestamps.push_back(std::chrono::system_clock::now());
-            callback(olp::http::NetworkResponse().WithStatus(
-                http::HttpStatusCode::TOO_MANY_REQUESTS));
-            return olp::http::SendOutcome(olp::http::RequestId(5));
-          });
-
-  auto response = call_wrapper_->CallApi(
-      std::string(), "GET", std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string());
-
-  ASSERT_EQ(1 + client_settings_.retry_settings.max_attempts,
-            timestamps.size());
-  ASSERT_EQ(http::HttpStatusCode::TOO_MANY_REQUESTS, response.status);
-  auto backdownPeriod = client_settings_.retry_settings.initial_backdown_period;
-  for (size_t i = 1; i < timestamps.size(); ++i) {
-    ASSERT_GE(timestamps.at(i) - timestamps.at(i - 1),
-              std::chrono::milliseconds(backdownPeriod));
-    backdownPeriod *= 2;
-  }
-}
-
 TEST_P(OlpClientTest, RetryWithExponentialBackdownStrategy) {
   const std::chrono::milliseconds::rep kInitialBackdownPeriod = 100;
   size_t expected_retry_count = 0;
@@ -410,13 +334,6 @@ TEST_P(OlpClientTest, RetryWithExponentialBackdownStrategy) {
         std::chrono::milliseconds(kInitialBackdownPeriod), retry_count);
     wait_times.push_back(wait_time.count());
     return wait_time;
-  };
-
-  // previous version of backdown policy shouldn't be called,
-  // if the new backdown policy was specified
-  client_settings_.retry_settings.backdown_policy = [](int period) -> int {
-    ADD_FAILURE();
-    return period;
   };
 
   auto network = std::make_shared<NetworkMock>();
@@ -460,8 +377,12 @@ TEST_P(OlpClientTest, RetryTimeout) {
 
   client_settings_.retry_settings.retry_condition =
       ([](const olp::client::HttpResponse&) { return true; });
-  client_settings_.retry_settings.backdown_policy =
-      ([](int timeout) -> int { return 2 * timeout; });
+  client_settings_.retry_settings.backdown_strategy =
+      [](std::chrono::milliseconds initial_backdown_period,
+         size_t retry_count) -> std::chrono::milliseconds {
+    return initial_backdown_period *
+           static_cast<size_t>(std::pow(2, retry_count));
+  };
 
   size_t current_attempt = 0;
   const size_t kSuccessfulAttempt = kMaxRetries + 1;
@@ -495,45 +416,6 @@ TEST_P(OlpClientTest, RetryTimeout) {
   auto response = call_wrapper_->CallApi("", "GET", {}, {}, {}, nullptr, "");
 
   ASSERT_EQ(olp::http::HttpStatusCode::TOO_MANY_REQUESTS, response.status);
-}
-
-TEST_P(OlpClientTest, SetInitialBackdownPeriod) {
-  client_settings_.retry_settings.retry_condition =
-      ([](const olp::client::HttpResponse&) { return true; });
-  client_settings_.retry_settings.initial_backdown_period = 1000;
-  ASSERT_EQ(1000, client_settings_.retry_settings.initial_backdown_period);
-  std::vector<std::chrono::time_point<std::chrono::system_clock>> timestamps;
-
-  auto network = std::make_shared<NetworkMock>();
-  client_settings_.network_request_handler = network;
-  client_.SetSettings(client_settings_);
-
-  EXPECT_CALL(*network, Send(_, _, _, _, _))
-      .Times(4)
-      .WillRepeatedly(
-          [&](olp::http::NetworkRequest /*request*/,
-              olp::http::Network::Payload /*payload*/,
-              olp::http::Network::Callback callback,
-              olp::http::Network::HeaderCallback /*header_callback*/,
-              olp::http::Network::DataCallback /*data_callback*/) {
-            timestamps.push_back(std::chrono::system_clock::now());
-            callback(olp::http::NetworkResponse().WithStatus(
-                http::HttpStatusCode::TOO_MANY_REQUESTS));
-            return olp::http::SendOutcome(olp::http::RequestId(5));
-          });
-  auto response = call_wrapper_->CallApi(
-      std::string(), "GET", std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(),
-      std::multimap<std::string, std::string>(), nullptr, std::string());
-
-  ASSERT_EQ(1 + client_settings_.retry_settings.max_attempts,
-            timestamps.size());
-  ASSERT_EQ(http::HttpStatusCode::TOO_MANY_REQUESTS, response.status);
-  for (size_t i = 1; i < timestamps.size(); ++i) {
-    ASSERT_GE(timestamps.at(i) - timestamps.at(i - 1),
-              std::chrono::milliseconds(
-                  client_settings_.retry_settings.initial_backdown_period));
-  }
 }
 
 TEST_P(OlpClientTest, Timeout) {

@@ -21,6 +21,7 @@
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/CacheMock.h>
 #include <mocks/NetworkMock.h>
+#include <olp/core/cache/CacheSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <unordered_set>
 #include "StreamLayerClientImpl.h"

@@ -62,11 +62,6 @@ using NetworkAsyncCallback = std::function<void(HttpResponse)>;
 using NetworkAsyncCancel = std::function<void()>;
 
 /**
- * @brief The default backdown policy that returns the original wait time.
- */
-CORE_API unsigned int DefaultBackdownPolicy(unsigned int milliseconds);
-
-/**
  * @brief The default retry condition that disables retries.
  */
 CORE_API bool DefaultRetryCondition(const olp::client::HttpResponse& response);
@@ -164,14 +159,6 @@ struct CORE_API AuthenticationSettings {
  */
 struct CORE_API RetrySettings {
   /**
-   * @brief Takes the current timeout (in milliseconds) and
-   * returns what should be used for the next timeout.
-   *
-   * Allows an incremental backdown or other strategies to be configured.
-   */
-  using BackdownPolicy = std::function<int(int)>;
-
-  /**
    * @brief Calculates the number of retry timeouts based on
    * the initial backdown duration and retries count.
    */
@@ -204,27 +191,11 @@ struct CORE_API RetrySettings {
   int initial_backdown_period = 200;
 
   /**
-   * @brief The backdown policy that should be used for the retry attempts.
-   *
-   * @deprecated Use \ref backdown_strategy instead. Will be removed by
-   * 06.2020.
-   *
-   * @return The backdown policy.
-   */
-  BackdownPolicy backdown_policy = DefaultBackdownPolicy;
-
-  /**
    * @brief The backdown strategy.
    *
-   * Calculates the number of retry timeouts for failed requests. It is superior
-   * to \ref backdown_policy as it computes the wait time based on the retry
-   * count. By default, `backdown_strategy` is unset, and \ref backdown_policy
-   * is used.
-   *
-   * @note You can use the \ref `ExponentialBackdownStrategy` as the new
-   * backdown strategy.
+   * Calculates the number of retry timeouts for failed requests.
    */
-  BackdownStrategy backdown_strategy = nullptr;
+  BackdownStrategy backdown_strategy = ExponentialBackdownStrategy();
 
   /**
    * @brief Evaluates responses to determine if the retry should be attempted.

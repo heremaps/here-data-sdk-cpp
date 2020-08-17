@@ -106,37 +106,6 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   }
 
   /**
-   * @brief Sets the catalog version for the request.
-   *
-   * @param version The catalog version of the requested partitions. If no
-   * version is specified, the latest version is retrieved.
-   *
-   * @return A reference to the updated `PrefetchTilesRequest` instance.
-   *
-   * @deprecated The version is now a part of the VersionedLayerClient
-   * constructor.
-   */
-  OLP_SDK_DEPRECATED("Deprecated, to be removed in 06.2020")
-  inline PrefetchTilesRequest& WithVersion(boost::optional<int64_t> version) {
-    catalog_version_ = std::move(version);
-    return *this;
-  }
-
-  /**
-   * @brief Gets the catalog version for the request.
-   *
-   * @return The catalog version or `boost::none` if the catalog version is not
-   * set.
-   *
-   * @deprecated The version is now a part of the VersionedLayerClient
-   * constructor.
-   */
-  OLP_SDK_DEPRECATED("Deprecated, to be removed in 06.2020")
-  inline const boost::optional<std::int64_t>& GetVersion() const {
-    return catalog_version_;
-  }
-
-  /**
    * @brief Gets the billing tag to group billing records together.
    *
    * The billing tag is an optional free-form tag that is used for grouping

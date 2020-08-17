@@ -23,8 +23,6 @@
 #include <string>
 #include <vector>
 
-#include <olp/core/cache/CacheSettings.h>
-#include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/OlpClientSettings.h>
@@ -46,19 +44,6 @@ class HRN;
 namespace dataservice {
 namespace write {
 class StreamLayerClientImpl;
-
-/**
- * @brief Creates an instance of the default cache with the provided settings.
- * @param settings Cache settings.
- * @return DefaultCache instance.
- * @deprecated Use olp::client::OlpClientSettingsFactory::CreateDefaultCache()
- * instead. Will be remove by 06.2020.
- */
-OLP_SDK_DEPRECATED(
-    "Please use OlpClientSettingsFactory::CreateDefaultCache() instead. "
-    "Will be removed by 06.2020")
-std::shared_ptr<cache::KeyValueCache> CreateDefaultCache(
-    cache::CacheSettings settings = {});
 
 using PublishDataResult = olp::dataservice::write::model::ResponseOkSingle;
 using PublishDataResponse =

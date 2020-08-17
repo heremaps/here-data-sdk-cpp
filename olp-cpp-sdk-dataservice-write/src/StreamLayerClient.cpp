@@ -19,19 +19,14 @@
 
 #include "olp/dataservice/write/StreamLayerClient.h"
 
-#include <olp/core/cache/DefaultCache.h>
+#include <olp/core/cache/CacheSettings.h>
+#include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include "StreamLayerClientImpl.h"
 
 namespace olp {
 namespace dataservice {
 namespace write {
-
-std::shared_ptr<cache::KeyValueCache> CreateDefaultCache(
-    cache::CacheSettings settings) {
-  return client::OlpClientSettingsFactory::CreateDefaultCache(
-      std::move(settings));
-}
 
 StreamLayerClient::StreamLayerClient(client::HRN catalog,
                                      StreamLayerClientSettings client_settings,
