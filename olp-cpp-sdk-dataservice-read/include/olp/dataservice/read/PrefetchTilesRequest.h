@@ -150,6 +150,36 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   }
 
   /**
+   * @brief Changes the prefetch behavior when prefetching a list of tiles.
+   *
+   * In case a tile does not exist, the prefetch algorithm searches for the
+   * nearest parent and prefetches it.
+   *
+   * @param data_aggregation_enabled The boolean parameter that enables or
+   * disables the aggregation.
+   *
+   * @note Experimental. API may change.
+   * 
+   * @return A reference to the updated `PrefetchTilesRequest` instance.
+   */
+  inline PrefetchTilesRequest& WithDataAggregationEnabled(
+      bool data_aggregation_enabled) {
+    data_aggregation_enabled_ = data_aggregation_enabled;
+    return *this;
+  }
+
+  /**
+   * @brief Gets the data aggregation flag.
+   *
+   * @note Experimental. API may change.
+   *
+   * @return The data aggregation flag as a boolean value.
+   */
+  inline bool GetDataAggregationEnabled() const {
+    return data_aggregation_enabled_;
+  }
+
+  /**
    * @brief Creates a readable format for the request.
    *
    * @param layer_id The ID of the layer that is used for the request.
@@ -160,9 +190,6 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
     std::stringstream out;
     out << layer_id << "[" << GetMinLevel() << "/" << GetMaxLevel() << "]"
         << "(" << GetTileKeys().size() << ")";
-    if (catalog_version_) {
-      out << "@" << catalog_version_.get();
-    }
     if (GetBillingTag()) {
       out << "$" << GetBillingTag().get();
     }
@@ -174,8 +201,8 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   std::vector<geo::TileKey> tile_keys_;
   unsigned int min_level_{geo::TileKey::LevelCount};
   unsigned int max_level_{geo::TileKey::LevelCount};
-  boost::optional<int64_t> catalog_version_;
   boost::optional<std::string> billing_tag_;
+  bool data_aggregation_enabled_{false};
 };
 
 }  // namespace read
