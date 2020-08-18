@@ -58,6 +58,7 @@ build_test_linux_fv:
   script:
   - $CI_PROJECT_DIR/scripts/linux/fv/gitlab_build_fv.sh
   - $CI_PROJECT_DIR/scripts/linux/fv/gitlab_test_fv.sh
+  - $CI_PROJECT_DIR/scripts/linux/fv/gitlab-olp-cpp-sdk-functional-network-test.sh
   only:
     refs:
       - branches
@@ -146,6 +147,8 @@ translate_report_fv:
     - python -m junit2htmlreport --report-matrix reports/unit-index.html reports/olp-dataservice-write-test-report.xml reports/olp-dataservice-read-test-report.xml reports/olp-core-test-report.xml reports/olp-authentication-test-report.xml
     - python -m junit2htmlreport --report-matrix reports/integration-index.html reports/olp-integration*.xml
     - python -m junit2htmlreport --report-matrix reports/index.html reports/*.xml
+    - python -m junit2htmlreport --report-matrix reports/fun-network-index.html reports/olp-functional-network-test-report.xml
+    - sed -i -e 's/Reports\ Matrix/Functional\ Network\ Test\ Report/g' reports/fun-network-index.html
     - sed -i -e 's/Reports\ Matrix/Unit\ Test\ Report/g' reports/unit-index.html
     - sed -i -e 's/Reports\ Matrix/Integration\ Test\ Report/g' reports/integration-index.html
     - sed -i -e 's/Reports\ Matrix/Functional\ Test\ Report/g' reports/functional-index.html
@@ -153,6 +156,7 @@ translate_report_fv:
     - cat reports/unit-index.html >> reports/index.html
     - cat reports/integration-index.html >> reports/index.html
     - cat reports/functional-index.html >> reports/index.html
+    - cat reports/fun-network-index.html >> reports/index.html
     - mkdir -p .public
     - cp reports/*ndex.html .public/
   artifacts:

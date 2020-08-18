@@ -20,6 +20,11 @@
 # For core dump backtrace
 ulimit -c unlimited
 
+# Set workspace location
+if [[ ${CI_PROJECT_DIR} == "" ]]; then
+    export CI_PROJECT_DIR=`pwd`
+fi
+
 echo ">>> Starting Mock Server... >>>"
 pushd tests/utils/mock-server
 npm install
@@ -46,11 +51,14 @@ echo "mock-server-cert.pem" >> /etc/ca-certificates.conf
 update-ca-certificates
 
 echo ">>> Start network tests ... >>>"
-$REPO_HOME/build/tests/functional/network/olp-cpp-sdk-functional-network-tests  \
-    --gtest_output="xml:$REPO_HOME/reports/olp-functional-network-test-report.xml"
+$CI_PROJECT_DIR/build/tests/functional/network/olp-cpp-sdk-functional-network-tests  \
+    --gtest_output="xml:$CI_PROJECT_DIR/reports/olp-functional-network-test-report.xml"
+result=$?
 echo ">>> Finished network tests >>>"
 
 # Terminate the mock server
 kill -TERM $SERVER_PID
 
 wait
+
+exit ${result}
