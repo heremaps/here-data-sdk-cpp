@@ -45,7 +45,7 @@ class DataRepository final {
                                 client::CancellationContext context);
 
   BlobApi::DataResponse GetVersionedData(const std::string& layer_id,
-                                         const DataRequest& data_request,
+                                         const DataRequest& request,
                                          int64_t version,
                                          client::CancellationContext context);
 
@@ -55,7 +55,7 @@ class DataRepository final {
 
   BlobApi::DataResponse GetBlobData(const std::string& layer,
                                     const std::string& service,
-                                    const DataRequest& data_request,
+                                    const DataRequest& request,
                                     client::CancellationContext context);
 
  private:

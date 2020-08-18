@@ -126,12 +126,12 @@ ReleaseDependencyResolver::CheckProtectedTilesInQuad(
 
 void ReleaseDependencyResolver::ProcessQuadTreeCache(
     const geo::TileKey& root_quad_key, const geo::TileKey& tile,
-    bool& add_key) {
+    bool& add_data_handle_key) {
   QuadTreeIndex cached_tree;
   if (partitions_cache_repository_.Get(layer_id_, root_quad_key, kQuadTreeDepth,
                                        version_, cached_tree)) {
     TilesDataKeysType protected_keys =
-        CheckProtectedTilesInQuad(cached_tree, tile, add_key);
+        CheckProtectedTilesInQuad(cached_tree, tile, add_data_handle_key);
     if (protected_keys.empty()) {
       // no other tiles are protected, can add quad tree to release list
       keys_to_release_.emplace_back(partitions_cache_repository_.CreateQuadKey(

@@ -123,7 +123,7 @@ class PendingUrlRequests {
   bool CancelAll();
 
   /// Cancel pending requests and wait for all requests to finish, blocking.
-  bool CancelAllAndWait();
+  bool CancelAllAndWait() const;
 
   /// Get the existing pending request associated with the url or create a new
   /// one if not present yet.

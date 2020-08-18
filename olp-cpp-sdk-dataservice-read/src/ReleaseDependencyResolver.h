@@ -57,7 +57,7 @@ class ReleaseDependencyResolver {
                                 const geo::TileKey& tile,
                                 bool& add_data_handle_key);
 
-  void ProcessQuadTreeCache(const geo::TileKey& root, const geo::TileKey& tile,
+  void ProcessQuadTreeCache(const geo::TileKey& root_quad_key, const geo::TileKey& tile,
                             bool& add_data_handle_key);
 
  private:

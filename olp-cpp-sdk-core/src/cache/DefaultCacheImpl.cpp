@@ -565,7 +565,7 @@ int64_t DefaultCacheImpl::MaybeUpdatedProtectedKeys(
     } else if (prev_size > 0) {
       // delete key, as protected list is empty
       batch.Delete(kProtectedKeys);
-      return -1 * (prev_size + strlen(kProtectedKeys));
+      return -1 * static_cast<int64_t>((prev_size + strlen(kProtectedKeys)));
     }
   }
 

@@ -98,7 +98,7 @@ class VersionedLayerClientImpl {
 
   virtual bool Protect(const TileKeys& tiles);
 
-  virtual bool Release(const TileKeys& keys);
+  virtual bool Release(const TileKeys& tiles);
 
  private:
   CatalogVersionResponse GetVersion(boost::optional<std::string> billing_tag,

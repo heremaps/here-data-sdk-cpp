@@ -174,7 +174,7 @@ bool PendingUrlRequests::CancelAll() {
   return true;
 }
 
-bool PendingUrlRequests::CancelAllAndWait() {
+bool PendingUrlRequests::CancelAllAndWait() const {
   PendingRequestsType pending_requests;
   PendingRequestsType cancelled_requests;
 
