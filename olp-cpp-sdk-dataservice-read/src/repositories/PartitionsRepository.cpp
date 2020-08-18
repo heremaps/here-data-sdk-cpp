@@ -216,16 +216,16 @@ PartitionsResponse PartitionsRepository::GetPartitions(
 
 PartitionsResponse PartitionsRepository::GetPartitionById(
     const std::string& layer, boost::optional<int64_t> version,
-    const DataRequest& data_request, client::CancellationContext context) {
-  const auto& partition_id = data_request.GetPartitionId();
+    const DataRequest& request, client::CancellationContext context) {
+  const auto& partition_id = request.GetPartitionId();
   if (!partition_id) {
     return {{client::ErrorCode::PreconditionFailed, "Partition Id is missing"}};
   }
 
-  auto fetch_option = data_request.GetFetchOption();
+  auto fetch_option = request.GetFetchOption();
 
   const auto request_key =
-      catalog_.ToString() + data_request.CreateKey(layer, version);
+      catalog_.ToString() + request.CreateKey(layer, version);
 
   NamedMutex mutex(request_key);
   std::unique_lock<repository::NamedMutex> lock(mutex, std::defer_lock);
@@ -238,11 +238,9 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
   std::chrono::seconds timeout{settings_.retry_settings.timeout};
   repository::PartitionsCacheRepository repository(
       catalog_, settings_.cache, settings_.default_cache_expiration);
-  const auto key = data_request.CreateKey(layer, version);
+  const auto key = request.CreateKey(layer, version);
 
   const std::vector<std::string> partitions{partition_id.value()};
-  auto partition_request =
-      PartitionsRequest().WithBillingTag(data_request.GetBillingTag());
 
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_partitions = repository.Get(partitions, layer, version);
@@ -271,7 +269,7 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
 
   PartitionsResponse query_response =
       QueryApi::GetPartitionsbyId(client, layer, partitions, version, {},
-                                  data_request.GetBillingTag(), context);
+                                   request.GetBillingTag(), context);
 
   if (query_response.IsSuccessful() && fetch_option != OnlineOnly) {
     OLP_SDK_LOG_DEBUG_F(kLogTag,

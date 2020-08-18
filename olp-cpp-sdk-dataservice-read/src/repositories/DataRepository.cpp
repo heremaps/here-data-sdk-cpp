@@ -123,9 +123,9 @@ BlobApi::DataResponse DataRepository::GetVersionedData(
 
 BlobApi::DataResponse DataRepository::GetBlobData(
     const std::string& layer, const std::string& service,
-    const DataRequest& data_request, client::CancellationContext context) {
-  auto fetch_option = data_request.GetFetchOption();
-  const auto& data_handle = data_request.GetDataHandle();
+    const DataRequest& request, client::CancellationContext context) {
+  auto fetch_option = request.GetFetchOption();
+  const auto& data_handle = request.GetDataHandle();
 
   if (!data_handle) {
     return {{client::ErrorCode::PreconditionFailed, "Data handle is missing"}};
@@ -170,11 +170,11 @@ BlobApi::DataResponse DataRepository::GetBlobData(
   if (service == kBlobService) {
     storage_response = BlobApi::GetBlob(
         storage_api_lookup.GetResult(), layer, data_handle.value(),
-        data_request.GetBillingTag(), boost::none, context);
+        request.GetBillingTag(), boost::none, context);
   } else {
     auto volatile_blob = VolatileBlobApi::GetVolatileBlob(
         storage_api_lookup.GetResult(), layer, data_handle.value(),
-        data_request.GetBillingTag(), context);
+        request.GetBillingTag(), context);
     storage_response = BlobApi::DataResponse(volatile_blob.MoveResult());
   }
 

@@ -26,7 +26,7 @@ namespace cache {
 
 class SizeCountingEnv : public leveldb::EnvWrapper {
  public:
-  SizeCountingEnv(leveldb::Env* env) : leveldb::EnvWrapper(env) {}
+  explicit SizeCountingEnv(leveldb::Env* env) : leveldb::EnvWrapper(env) {}
 
   virtual uint64_t Size() const { return 0; }
 };
