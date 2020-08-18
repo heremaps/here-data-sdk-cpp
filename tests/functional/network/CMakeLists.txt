@@ -17,8 +17,9 @@
 
 
 set(OLP_SDK_NETWORK_TESTS_SOURCES
-    ./NetworkTestBase.cpp
+    ./ConcurrencyTest.cpp
     ./DestructionTest.cpp
+    ./NetworkTestBase.cpp
     ./TimeoutTest.cpp
 )
 
