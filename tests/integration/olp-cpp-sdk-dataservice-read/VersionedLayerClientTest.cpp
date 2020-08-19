@@ -1522,12 +1522,12 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchAggregatedTile) {
   constexpr auto kLayerId = "hype-test-prefetch";
 
-  auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kLayerId, boost::none, settings_);
+  const auto requested_tile = geo::TileKey::FromHereTile("23618365");
+
+  read::VersionedLayerClient client(kCatalog, kLayerId, boost::none, settings_);
 
   {
     SCOPED_TRACE("Prefetch aggregated tile");
-    const auto requested_tile = geo::TileKey::FromHereTile("23618365");
 
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_QUADKEYS_92259), _, _, _, _))
@@ -1540,7 +1540,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchAggregatedTile) {
 
     auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
     auto future = promise->get_future();
-    auto token = client->PrefetchTiles(
+    auto token = client.PrefetchTiles(
         request, [promise](PrefetchTilesResponse response) {
           promise->set_value(std::move(response));
         });
@@ -1556,6 +1556,18 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchAggregatedTile) {
     const auto& tile_response = result[0];
     ASSERT_TRUE(tile_response->IsSuccessful());
     ASSERT_TRUE(tile_response->tile_key_.IsParentOf(requested_tile));
+  }
+  {
+    SCOPED_TRACE("Check that the tile is available as aggregated");
+    EXPECT_TRUE(client.IsCached(requested_tile, true));
+    EXPECT_FALSE(client.IsCached(requested_tile));
+  }
+  {
+    SCOPED_TRACE("Check that the tile can be accesed with GetAggregatedData");
+    auto future = client.GetAggregatedData(
+        read::TileRequest().WithTileKey(requested_tile));
+    auto result = future.GetFuture().get();
+    EXPECT_TRUE(result.IsSuccessful());
   }
 }
 
@@ -2983,40 +2995,48 @@ TEST_F(DataserviceReadVersionedLayerClientTest, RemoveFromCacheTileKey) {
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, CheckIfPartitionCached) {
-  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
-      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
-                                   HTTP_RESPONSE_LOOKUP))
-      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
-                                   kHttpResponsePartition_269))
-      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
-                                   kHttpResponseBlobData_269));
+  settings_.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
+  {
+    SCOPED_TRACE("Download and check");
 
-  auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, kTestVersion, settings_);
+    EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     HTTP_RESPONSE_LOOKUP))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     kHttpResponsePartition_269))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     kHttpResponseBlobData_269));
 
-  // load and cache some data
-  auto promise = std::make_shared<std::promise<DataResponse>>();
-  auto future = promise->get_future();
+    read::VersionedLayerClient client(kCatalog, kTestLayer, kTestVersion,
+                                      settings_);
 
-  auto data_request = read::DataRequest().WithPartitionId(kTestPartition);
-  auto token = client->GetData(data_request, [promise](DataResponse response) {
-    promise->set_value(response);
-  });
+    auto data_request = read::DataRequest().WithPartitionId(kTestPartition);
+    auto future = client.GetData(data_request).GetFuture();
 
-  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
-  DataResponse response = future.get();
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    DataResponse response = future.get();
 
-  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
-  ASSERT_NE(response.GetResult(), nullptr);
-  ASSERT_NE(response.GetResult()->size(), 0u);
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_NE(response.GetResult(), nullptr);
+    ASSERT_NE(response.GetResult()->size(), 0u);
 
-  // check the data is available in cache
-  ASSERT_TRUE(client->IsCached(kTestPartition));
-
-  // remove the data from cache
-  ASSERT_TRUE(client->RemoveFromCache(kTestPartition));
-
-  ASSERT_FALSE(client->IsCached(kTestPartition));
+    // check the data is available in cache
+    ASSERT_TRUE(client.IsCached(kTestPartition));
+  }
+  {
+    SCOPED_TRACE("Client without version can't check");
+    read::VersionedLayerClient client(kCatalog, kTestLayer, boost::none,
+                                      settings_);
+    EXPECT_FALSE(client.IsCached(kTestPartition));
+  }
+  {
+    SCOPED_TRACE("IsCached after removal");
+    read::VersionedLayerClient client(kCatalog, kTestLayer, kTestVersion,
+                                      settings_);
+    ASSERT_TRUE(client.IsCached(kTestPartition));
+    ASSERT_TRUE(client.RemoveFromCache(kTestPartition));
+    ASSERT_FALSE(client.IsCached(kTestPartition));
+  }
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, CheckIfTileKeyCached) {
