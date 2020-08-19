@@ -15,11 +15,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-if (ANDROID OR IOS)
-    message(STATUS "Currently the performance test runner for mobile platforms is not supported")
-    return()
-endif()
-
 set(OLP_SDK_PERFORMANCE_TESTS_SOURCES
     ./MemoryTest.cpp
     ./MemoryTestBase.h
@@ -28,11 +23,37 @@ set(OLP_SDK_PERFORMANCE_TESTS_SOURCES
     ./PrefetchTest.cpp
 )
 
-add_executable(olp-cpp-sdk-performance-tests ${OLP_SDK_PERFORMANCE_TESTS_SOURCES})
-target_link_libraries(olp-cpp-sdk-performance-tests
-    PRIVATE
-        custom-params
-        gtest_main
-        olp-cpp-sdk-authentication
-        olp-cpp-sdk-dataservice-read
-)
+if (ANDROID OR IOS)
+    set(OLP_SDK_PERFORMANCE_TESTS_LIB olp-cpp-sdk-performance-tests-lib)
+
+    add_library(${OLP_SDK_PERFORMANCE_TESTS_LIB} ${OLP_SDK_PERFORMANCE_TESTS_SOURCES})
+    target_link_libraries(${OLP_SDK_PERFORMANCE_TESTS_LIB}
+        PRIVATE
+            custom-params
+            gtest
+            olp-cpp-sdk-authentication
+            olp-cpp-sdk-dataservice-read
+    )
+
+    if (ANDROID)
+        include(${CMAKE_SOURCE_DIR}/cmake/android/gen_android_test.cmake)
+        gen_android_test_runner(olp-cpp-sdk-performance-tests ${OLP_SDK_PERFORMANCE_TESTS_LIB})
+        add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/android ${CMAKE_CURRENT_BINARY_DIR}/android)
+    else()
+        include(${CMAKE_SOURCE_DIR}/cmake/ios/gen_ios_test.cmake)
+        gen_ios_test_runner(olp-cpp-sdk-performance-tests ${OLP_SDK_PERFORMANCE_TESTS_LIB})
+        add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/ios ${CMAKE_CURRENT_BINARY_DIR}/ios)
+    endif()
+
+else()
+
+    add_executable(olp-cpp-sdk-performance-tests ${OLP_SDK_PERFORMANCE_TESTS_SOURCES})
+    target_link_libraries(olp-cpp-sdk-performance-tests
+        PRIVATE
+            custom-params
+            gtest_main
+            olp-cpp-sdk-authentication
+            olp-cpp-sdk-dataservice-read
+    )
+
+endif()

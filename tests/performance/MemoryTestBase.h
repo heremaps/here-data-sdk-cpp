@@ -48,7 +48,11 @@ class MemoryTestBase : public ::testing::TestWithParam<Param> {
  protected:
   olp::http::NetworkProxySettings GetLocalhostProxySettings() {
     return olp::http::NetworkProxySettings()
+#if ANDROID
+        .WithHostname("10.0.2.2")
+#else
         .WithHostname("localhost")
+#endif
         .WithPort(3000)
         .WithUsername("test_user")
         .WithPassword("test_password")
@@ -80,6 +84,7 @@ class MemoryTestBase : public ::testing::TestWithParam<Param> {
     client_settings.cache =
         parameter.cache_factory ? parameter.cache_factory() : nullptr;
     client_settings.retry_settings.timeout = 1;
+    //client_settings.retry_settings.max_attempts = 0;
 
     return client_settings;
   }

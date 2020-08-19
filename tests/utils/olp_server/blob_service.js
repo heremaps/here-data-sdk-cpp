@@ -17,6 +17,12 @@
  * License-Filename: LICENSE
  */
 
+var crypto = require('crypto')
+
+function computeHash(data) {
+    return crypto.createHash('sha1').update(data).digest('hex').toUpperCase();
+}
+
 function generateGetBlobApiResponse(request) {
     const layer = request[1]
     const dataHandle = request[2] // ignored
@@ -30,7 +36,8 @@ function generateGetBlobApiResponse(request) {
         response += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     
-    return response;
+    //console.log(computeHash(response))
+    return computeHash(response) + response;
 }
 
 const methods = [
