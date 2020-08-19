@@ -69,10 +69,34 @@ class PrefetchTilesRepository {
   RootTilesForRequest GetSlicedTiles(const std::vector<geo::TileKey>& tile_keys,
                                      std::uint32_t min, std::uint32_t max);
 
+  /**
+   * @brief Filters the input tiles according to the request.
+   *
+   * Removes tiles that do not belong to the minimum and maximum levels.
+   * Removes tiles that are not a child or a parent of the requested tiles.
+   * 
+   * @param request Your request.
+   * @param tiles The input tiles.
+   *
+   * @returns The modified tiles.
+   */
+  SubQuadsResult FilterTilesByLevel(const PrefetchTilesRequest& request,
+                                    SubQuadsResult tiles);
 
-  SubQuadsResult FilterSkippedTiles(const PrefetchTilesRequest& request,
-                                    bool request_only_input_tiles,
-                                    SubQuadsResult sub_tiles);
+  /**
+   * @brief Filters the input tiles according to the request.
+   *
+   * Removes tiles that are not requested.
+   * Adds tiles that are missing (to notify you that they are not found).
+   * If you requested aggregated tiles, `FilterTilesByList` scans for parents.
+   * 
+   * @param request Your request.
+   * @param tiles The input tiles.
+   *
+   * @returns The modified tiles.
+   */
+  SubQuadsResult FilterTilesByList(const PrefetchTilesRequest& request,
+                                   SubQuadsResult tiles);
 
   SubQuadsResponse GetVersionedSubQuads(geo::TileKey tile, int32_t depth,
                                         std::int64_t version,

@@ -283,45 +283,89 @@ SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
   return result;
 }
 
-SubQuadsResult PrefetchTilesRepository::FilterSkippedTiles(
-    const PrefetchTilesRequest& request, bool request_only_input_tiles,
-    SubQuadsResult sub_tiles) {
+SubQuadsResult PrefetchTilesRepository::FilterTilesByLevel(
+    const PrefetchTilesRequest& request, SubQuadsResult tiles) {
   const auto& tile_keys = request.GetTileKeys();
+
   auto skip_tile = [&](const geo::TileKey& tile_key) {
-    if (request_only_input_tiles) {
-      return std::find(tile_keys.begin(), tile_keys.end(), tile_key) ==
-             tile_keys.end();
-    } else if (tile_key.Level() < request.GetMinLevel() ||
-               tile_key.Level() > request.GetMaxLevel()) {
-      // tile outside min/max segment, skip this tile
+    if (tile_key.Level() < request.GetMinLevel()) {
       return true;
-    } else {
-      // tile is not a parent or child for any of requested tiles, skip
-      // this tile
-      return std::find_if(tile_keys.begin(), tile_keys.end(),
-                          [&tile_key](const geo::TileKey& root_key) {
-                            return (root_key.IsParentOf(tile_key) ||
-                                    tile_key.IsParentOf(root_key) ||
-                                    root_key == tile_key);
-                          }) == tile_keys.end();
     }
+
+    if (tile_key.Level() > request.GetMaxLevel()) {
+      return true;
+    }
+
+    return std::find_if(tile_keys.begin(), tile_keys.end(),
+                        [&tile_key](const geo::TileKey& root_key) {
+                          return (root_key.IsParentOf(tile_key) ||
+                                  tile_key.IsParentOf(root_key) ||
+                                  root_key == tile_key);
+                        }) == tile_keys.end();
   };
 
-  for (auto sub_quad_it = sub_tiles.begin(); sub_quad_it != sub_tiles.end();) {
+  for (auto sub_quad_it = tiles.begin(); sub_quad_it != tiles.end();) {
     if (skip_tile(sub_quad_it->first)) {
-      sub_quad_it = sub_tiles.erase(sub_quad_it);
+      sub_quad_it = tiles.erase(sub_quad_it);
     } else {
       ++sub_quad_it;
     }
   }
-  if (request_only_input_tiles) {
-    for (const auto& tile : tile_keys) {
-      if (sub_tiles.find(tile) == sub_tiles.end()) {
-        sub_tiles[tile] = "";
+
+  return tiles;
+}
+
+SubQuadsResult PrefetchTilesRepository::FilterTilesByList(
+    const PrefetchTilesRequest& request, SubQuadsResult tiles) {
+  const bool aggregation_enabled = request.GetDataAggregationEnabled();
+
+  const auto& tile_keys = request.GetTileKeys();
+
+  if (!aggregation_enabled) {
+    for (auto it = tiles.begin(); it != tiles.end();) {
+      if (std::find(tile_keys.begin(), tile_keys.end(), it->first) ==
+          tile_keys.end()) {
+        it = tiles.erase(it);
+      } else {
+        ++it;
       }
     }
+
+    for (const auto& tile : tile_keys) {
+      if (tiles.find(tile) == tiles.end()) {
+        tiles[tile] = "";
+      }
+    }
+
+  } else {
+    SubQuadsResult result;
+
+    auto append_tile = [&](const geo::TileKey& key) {
+      auto tile_it = tiles.find(key);
+      if (tile_it != tiles.end()) {
+        result[tile_it->first] = tile_it->second;
+        return true;
+      } else {
+        return false;
+      }
+    };
+
+    for (const auto& tile : tile_keys) {
+      auto aggregated_tile = tile;
+
+      while (aggregated_tile.IsValid() && !append_tile(aggregated_tile)) {
+        aggregated_tile = aggregated_tile.Parent();
+      }
+
+      if (!aggregated_tile.IsValid()) {
+        result[tile] = "";  // To generate Not Found error
+      }
+    }
+
+    tiles.swap(result);
   }
-  return sub_tiles;
+
+  return tiles;
 }
 
 }  // namespace repository

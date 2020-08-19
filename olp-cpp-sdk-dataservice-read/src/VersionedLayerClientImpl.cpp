@@ -270,8 +270,11 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
         };
 
         auto filter = [=](QueryResult tiles) mutable {
-          return repository.FilterSkippedTiles(
-              request, request_only_input_tiles, std::move(tiles));
+          if (request_only_input_tiles) {
+            return repository.FilterTilesByList(request, std::move(tiles));
+          } else {
+            return repository.FilterTilesByLevel(request, std::move(tiles));
+          }
         };
 
         auto billing_tag = request.GetBillingTag();
