@@ -26,13 +26,13 @@
 #include <boost/optional.hpp>
 #include "olp/dataservice/read/model/Data.h"
 
-#include "ExtendedApiResponse.h"
+#include <olp/core/client/ExtendedApiResponse.h>
 
 namespace olp {
 namespace client {
 class OlpClient;
 class CancellationContext;
-}
+}  // namespace client
 
 namespace dataservice {
 namespace read {
@@ -41,8 +41,9 @@ namespace read {
  */
 class VolatileBlobApi {
  public:
-  using DataResponse = ExtendedApiResponse<model::Data, client::ApiError,
-                                           client::NetworkStatistics>;
+  using DataResponse =
+      client::ExtendedApiResponse<model::Data, client::ApiError,
+                                  client::NetworkStatistics>;
 
   /**
    * @brief Retrieves a volatile data blob for specified handle.
@@ -56,11 +57,10 @@ class VolatileBlobApi {
    *
    * @return Data response.
    */
-  static DataResponse GetVolatileBlob(const client::OlpClient& client,
-                                      const std::string& layer_id,
-                                      const std::string& data_handle,
-                                      boost::optional<std::string> billing_tag,
-                                      const client::CancellationContext& context);
+  static DataResponse GetVolatileBlob(
+      const client::OlpClient& client, const std::string& layer_id,
+      const std::string& data_handle, boost::optional<std::string> billing_tag,
+      const client::CancellationContext& context);
 };
 
 }  // namespace read

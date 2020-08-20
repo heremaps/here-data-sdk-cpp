@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "ExtendedApiResponse.h"
+#include <olp/core/client/ExtendedApiResponse.h>
 
 #include <olp/core/client/HttpResponse.h>
 
@@ -29,7 +29,7 @@ namespace read {
 
 template <typename Result, typename Error>
 inline const client::NetworkStatistics& GetNetworkStatistics(
-    const ExtendedApiResponse<Result, Error, client::NetworkStatistics>&
+    const client::ExtendedApiResponse<Result, Error, client::NetworkStatistics>&
         response) {
   return response.GetPayload();
 }

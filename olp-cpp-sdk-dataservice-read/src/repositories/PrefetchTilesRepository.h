@@ -34,7 +34,7 @@
 #include "PartitionsCacheRepository.h"
 #include "generated/model/Index.h"
 
-#include "ExtendedApiResponse.h"
+#include <olp/core/client/ExtendedApiResponse.h>
 
 namespace olp {
 namespace dataservice {
@@ -43,11 +43,13 @@ namespace repository {
 
 using RootTilesForRequest = std::map<geo::TileKey, uint32_t>;
 using SubQuadsResult = std::map<geo::TileKey, std::string>;
-using SubQuadsResponse = ExtendedApiResponse<SubQuadsResult, client::ApiError,
-                                             client::NetworkStatistics>;
+using SubQuadsResponse =
+    client::ExtendedApiResponse<SubQuadsResult, client::ApiError,
+                                client::NetworkStatistics>;
 using SubTilesResult = SubQuadsResult;
-using SubTilesResponse = ExtendedApiResponse<SubTilesResult, client::ApiError,
-                                             client::NetworkStatistics>;
+using SubTilesResponse =
+    client::ExtendedApiResponse<SubTilesResult, client::ApiError,
+                                client::NetworkStatistics>;
 
 class PrefetchTilesRepository {
  public:
@@ -74,7 +76,7 @@ class PrefetchTilesRepository {
    *
    * Removes tiles that do not belong to the minimum and maximum levels.
    * Removes tiles that are not a child or a parent of the requested tiles.
-   * 
+   *
    * @param request Your request.
    * @param tiles The input tiles.
    *
@@ -89,7 +91,7 @@ class PrefetchTilesRepository {
    * Removes tiles that are not requested.
    * Adds tiles that are missing (to notify you that they are not found).
    * If you requested aggregated tiles, `FilterTilesByList` scans for parents.
-   * 
+   *
    * @param request Your request.
    * @param tiles The input tiles.
    *

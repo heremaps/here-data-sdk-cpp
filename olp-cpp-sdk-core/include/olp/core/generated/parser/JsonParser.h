@@ -21,35 +21,67 @@
 
 #include <sstream>
 #include <string>
+#include <utility>
 
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
-
 #include "ParserWrapper.h"
 
 namespace olp {
 namespace parser {
 template <typename T>
-inline T parse(const std::string& json) {
+inline T parse(const std::string& json, bool& res) {
   rapidjson::Document doc;
+
   doc.Parse(json.c_str());
   T result{};
+  res = false;
   if (doc.IsObject() || doc.IsArray()) {
     from_json(doc, result);
+    res = true;
   }
   return result;
 }
 
 template <typename T>
-inline T parse(std::stringstream& json_stream) {
+inline T parse(const std::string& from_json) {
+  bool res = true;
+  return parse<T>(from_json, res);
+}
+
+template <typename T>
+inline T parse(std::stringstream& json_stream, bool& res) {
+  res = false;
   rapidjson::Document doc;
   rapidjson::IStreamWrapper stream(json_stream);
   doc.ParseStream(stream);
   T result{};
   if (doc.IsObject() || doc.IsArray()) {
     from_json(doc, result);
+    res = true;
   }
   return result;
+}
+
+template <typename T>
+inline T parse(std::stringstream& json_stream) {
+  bool res = true;
+  return parse<T>(json_stream, res);
+}
+
+template <typename OutputResult, typename ParsingType, typename ErrorType,
+          typename... AdditionalArgs>
+OutputResult parse_result(std::stringstream& json_stream,
+                          ErrorType error_if_fail,
+                          const AdditionalArgs&&... args) {
+  bool res = true;
+  auto obj = parse<ParsingType>(json_stream, res);
+
+  if (res) {
+    return OutputResult(std::move(obj), args...);
+  } else {
+    return {std::move(error_if_fail)};
+  }
 }
 
 }  // namespace parser

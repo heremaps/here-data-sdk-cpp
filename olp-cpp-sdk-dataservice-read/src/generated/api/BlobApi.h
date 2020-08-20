@@ -23,9 +23,9 @@
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/ExtendedApiResponse.h>
 #include <olp/core/client/HttpResponse.h>
 #include <boost/optional.hpp>
-#include "ExtendedApiResponse.h"
 #include "olp/dataservice/read/model/Data.h"
 
 namespace olp {
@@ -41,8 +41,9 @@ namespace read {
  */
 class BlobApi {
  public:
-  using DataResponse = ExtendedApiResponse<model::Data, client::ApiError,
-                                           client::NetworkStatistics>;
+  using DataResponse =
+      client::ExtendedApiResponse<model::Data, client::ApiError,
+                                  client::NetworkStatistics>;
 
   /**
    * @brief Retrieves a data blob for specified handle.

@@ -77,8 +77,9 @@ MetadataApi::LayerVersionsResponse MetadataApi::GetLayerVersions(
     return client::ApiError(api_response.status, api_response.response.str());
   }
 
-  return LayerVersionsResponse(
-      olp::parser::parse<model::LayerVersions>(api_response.response));
+  return olp::parser::parse_result<LayerVersionsResponse, model::LayerVersions>(
+      api_response.response,
+      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
 }
 
 MetadataApi::PartitionsResponse MetadataApi::GetPartitions(
@@ -140,8 +141,11 @@ MetadataApi::CatalogVersionResponse MetadataApi::GetLatestCatalogVersion(
   if (api_response.status != http::HttpStatusCode::OK) {
     return {{api_response.status, api_response.response.str()}};
   }
-  return CatalogVersionResponse(
-      olp::parser::parse<model::VersionResponse>(api_response.response));
+
+  return olp::parser::parse_result<CatalogVersionResponse,
+                                   model::VersionResponse>(
+      api_response.response,
+      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
 }
 
 MetadataApi::VersionsResponse MetadataApi::ListVersions(
