@@ -19,8 +19,8 @@
 
 #include "ResourcesApi.h"
 
-#include <memory>
 #include <map>
+#include <memory>
 #include <sstream>
 
 #include <olp/core/client/HttpResponse.h>
@@ -52,8 +52,9 @@ ResourcesApi::ApisResponse ResourcesApi::GetApis(
         client::ApiError(response.status, response.response.str()));
   }
 
-  return ApisResponse(
-      parser::parse<olp::dataservice::read::model::Apis>(response.response));
+  return olp::parser::parse_result<ApisResponse, model::Apis>(
+      response.response,
+      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
 }
 
 }  // namespace read

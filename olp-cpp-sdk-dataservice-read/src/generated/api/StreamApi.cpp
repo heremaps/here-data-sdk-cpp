@@ -102,15 +102,17 @@ StreamApi::SubscribeApiResponse StreamApi::Subscribe(
                       metadata_uri.c_str(), http_response.status);
 
   HandleCorrelationId(http_response.headers, x_correlation_id);
-  return parser::parse<model::SubscribeResponse>(http_response.response);
+  return olp::parser::parse_result<SubscribeApiResponse,
+                                   model::SubscribeResponse>(
+      http_response.response,
+      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
 }
 
 StreamApi::ConsumeDataApiResponse StreamApi::ConsumeData(
     const client::OlpClient& client, const std::string& layer_id,
     const boost::optional<std::string>& subscription_id,
     const boost::optional<std::string>& mode,
-    const client::CancellationContext& context,
-    std::string& x_correlation_id) {
+    const client::CancellationContext& context, std::string& x_correlation_id) {
   const std::string metadata_uri = "/layers/" + layer_id + "/partitions";
 
   std::multimap<std::string, std::string> query_params;
@@ -137,7 +139,9 @@ StreamApi::ConsumeDataApiResponse StreamApi::ConsumeData(
                       metadata_uri.c_str(), http_response.status);
 
   HandleCorrelationId(http_response.headers, x_correlation_id);
-  return parser::parse<model::Messages>(http_response.response);
+  return olp::parser::parse_result<ConsumeDataApiResponse, model::Messages>(
+      http_response.response,
+      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
 }
 
 StreamApi::CommitOffsetsApiResponse StreamApi::CommitOffsets(

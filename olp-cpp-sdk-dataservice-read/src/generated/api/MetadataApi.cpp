@@ -116,8 +116,9 @@ MetadataApi::PartitionsResponse MetadataApi::GetPartitions(
     return {{api_response.status, api_response.response.str()}};
   }
 
-  return PartitionsResponse(
-      olp::parser::parse<model::Partitions>(api_response.response));
+  return olp::parser::parse_result<PartitionsResponse, model::Partitions>(
+      api_response.response,
+      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
 }
 
 MetadataApi::CatalogVersionResponse MetadataApi::GetLatestCatalogVersion(
@@ -170,8 +171,9 @@ MetadataApi::VersionsResponse MetadataApi::ListVersions(
   if (api_response.status != http::HttpStatusCode::OK) {
     return {{api_response.status, api_response.response.str()}};
   }
-  return VersionsResponse(
-      olp::parser::parse<model::VersionInfos>(api_response.response));
+  return olp::parser::parse_result<VersionsResponse, model::VersionInfos>(
+      api_response.response,
+      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
 }
 
 }  // namespace read

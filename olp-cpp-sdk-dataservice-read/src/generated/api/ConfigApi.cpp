@@ -32,10 +32,9 @@
 namespace olp {
 namespace dataservice {
 namespace read {
-using namespace olp::client;
 
 ConfigApi::CatalogResponse ConfigApi::GetCatalog(
-    const OlpClient& client, const std::string& catalog_hrn,
+    const client::OlpClient& client, const std::string& catalog_hrn,
     boost::optional<std::string> billing_tag,
     client::CancellationContext context) {
   std::multimap<std::string, std::string> header_params;
@@ -52,7 +51,9 @@ ConfigApi::CatalogResponse ConfigApi::GetCatalog(
   if (response.status != olp::http::HttpStatusCode::OK) {
     return client::ApiError(response.status, response.response.str());
   }
-  return olp::parser::parse<model::Catalog>(response.response);
+  return olp::parser::parse_result<ConfigApi::CatalogResponse, model::Catalog>(
+      response.response,
+      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
 }
 
 }  // namespace read

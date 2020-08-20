@@ -57,8 +57,9 @@ client::CancellationToken ConfigApi::GetCatalog(
           catalogCallback(CatalogResponse(
               client::ApiError(response.status, response.response.str())));
         } else {
-          catalogCallback(CatalogResponse(
-              olp::parser::parse<model::Catalog>(response.response)));
+          catalogCallback(parser::parse_result<CatalogResponse, model::Catalog>(
+              response.response, client::ApiError(client::ErrorCode::Unknown,
+                                                  "Fail parsing responce.")));
         }
       };
 
@@ -84,7 +85,9 @@ CatalogResponse ConfigApi::GetCatalog(const client::OlpClient& client,
   if (response.status != olp::http::HttpStatusCode::OK) {
     return client::ApiError(response.status, response.response.str());
   }
-  return olp::parser::parse<model::Catalog>(response.response);
+  return parser::parse_result<CatalogResponse, model::Catalog>(
+      response.response,
+      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
 }
 
 }  // namespace write

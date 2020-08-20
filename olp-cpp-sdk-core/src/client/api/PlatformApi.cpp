@@ -92,8 +92,11 @@ CancellationToken PlatformApi::GetApis(const OlpClient& client,
     if (response.status != olp::http::HttpStatusCode::OK) {
       callback({{response.status, response.response.str()}});
     } else {
-      callback(ApisResponse{parser::parse<Apis>(response.response),
-                            GetExpiry(response.headers)});
+      callback(parser::parse_result<ApisResponse, Apis, client::ApiError,
+                                    boost::optional<time_t>>(
+          response.response,
+          client::ApiError(ErrorCode::Unknown, "Fail parsing responce."),
+          GetExpiry(response.headers)));
     }
   };
 

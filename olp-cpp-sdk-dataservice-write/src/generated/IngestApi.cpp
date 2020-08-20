@@ -85,8 +85,11 @@ client::CancellationToken IngestApi::IngestData(
           return;
         }
 
-        callback(IngestDataResponse(olp::parser::parse<model::ResponseOkSingle>(
-            http_response.response)));
+        callback(
+            parser::parse_result<IngestDataResponse, model::ResponseOkSingle>(
+                http_response.response,
+                client::ApiError(client::ErrorCode::Unknown,
+                                 "Fail parsing responce.")));
       });
 
   return cancel_token;
@@ -137,8 +140,9 @@ IngestDataResponse IngestApi::IngestData(
         client::ApiError(http_response.status, http_response.response.str())};
   }
 
-  return IngestDataResponse(
-      olp::parser::parse<model::ResponseOkSingle>(http_response.response));
+  return parser::parse_result<IngestDataResponse, model::ResponseOkSingle>(
+      http_response.response,
+      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
 }
 
 IngestSdiiResponse IngestApi::IngestSdii(
@@ -174,9 +178,9 @@ IngestSdiiResponse IngestApi::IngestSdii(
     return IngestSdiiResponse(
         client::ApiError(response.status, response.response.str()));
   }
-
-  return IngestSdiiResponse(
-      olp::parser::parse<model::ResponseOk>(response.response));
+  return parser::parse_result<IngestSdiiResponse, model::ResponseOk>(
+      response.response,
+      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
 }
 
 }  // namespace write

@@ -53,8 +53,9 @@ PlatformApi::ApisResponse PlatformApi::GetApis(
     return ApisResponse(
         client::ApiError(response.status, response.response.str()));
   }
-  return ApisResponse(
-      parser::parse<olp::dataservice::read::model::Apis>(response.response));
+  return olp::parser::parse_result<ApisResponse, model::Apis>(
+      response.response,
+      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
 }
 }  // namespace read
 }  // namespace dataservice

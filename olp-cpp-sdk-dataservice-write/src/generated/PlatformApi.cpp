@@ -44,17 +44,19 @@ client::CancellationToken PlatformApi::GetApis(
   std::string platform_url =
       "/platform/apis/" + service + "/" + service_version;
 
-  client::NetworkAsyncCallback client_callback = [callback](
-                                              client::HttpResponse response) {
-    if (response.status != olp::http::HttpStatusCode::OK) {
-        callback(ApisResponse(
-          client::ApiError(response.status, response.response.str())));
-    } else {
-      // parse the services
-      // TODO catch any exception and return as Error
-        callback(ApisResponse(parser::parse<model::Apis>(response.response)));
-    }
-  };
+  client::NetworkAsyncCallback client_callback =
+      [callback](client::HttpResponse response) {
+        if (response.status != olp::http::HttpStatusCode::OK) {
+          callback(ApisResponse(
+              client::ApiError(response.status, response.response.str())));
+        } else {
+          // parse the services
+          // TODO catch any exception and return as Error
+          callback(parser::parse_result<ApisResponse, model::Apis>(
+              response.response, client::ApiError(client::ErrorCode::Unknown,
+                                                  "Fail parsing responce.")));
+        }
+      };
 
   return client->CallApi(platform_url, "GET", query_params, header_params,
                          form_params, nullptr, "", client_callback);
@@ -80,7 +82,9 @@ PlatformApi::ApisResponse PlatformApi::GetApis(
     return client::ApiError(http_response.status, http_response.response.str());
   }
 
-  return ApisResponse(parser::parse<model::Apis>(http_response.response));
+  return parser::parse_result<ApisResponse, model::Apis>(
+      http_response.response,
+      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
 }
 
 }  // namespace write

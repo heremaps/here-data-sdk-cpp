@@ -96,7 +96,9 @@ QueryApi::PartitionsResponse QueryApi::GetPartitionsbyId(
   OLP_SDK_LOG_TRACE_F(kLogTag, "GetPartitionsbyId, uri=%s, status=%d",
                       metadata_uri.c_str(), response.status);
 
-  return olp::parser::parse<model::Partitions>(response.response);
+  return olp::parser::parse_result<PartitionsResponse, model::Partitions>(
+      response.response,
+      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
 }
 
 olp::client::HttpResponse QueryApi::QuadTreeIndex(
@@ -158,7 +160,9 @@ QueryApi::QuadTreeIndexResponse QueryApi::QuadTreeIndexVolatile(
     return client::ApiError(response.status, response.response.str());
   }
 
-  return olp::parser::parse<model::Index>(response.response);
+  return olp::parser::parse_result<QuadTreeIndexResponse, model::Index>(
+      response.response,
+      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
 }
 
 }  // namespace read

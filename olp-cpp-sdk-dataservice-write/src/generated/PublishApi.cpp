@@ -73,8 +73,11 @@ client::CancellationToken PublishApi::InitPublication(
           return;
         }
 
-        callback(InitPublicationResponse(
-            olp::parser::parse<model::Publication>(http_response.response)));
+        callback(
+            parser::parse_result<InitPublicationResponse, model::Publication>(
+                http_response.response,
+                client::ApiError(client::ErrorCode::Unknown,
+                                 "Fail parsing responce.")));
       });
 
   return cancel_token;
@@ -109,8 +112,9 @@ InitPublicationResponse PublishApi::InitPublication(
     return InitPublicationResponse(
         client::ApiError(http_response.status, http_response.response.str()));
   }
-
-  return olp::parser::parse<model::Publication>(http_response.response);
+  return parser::parse_result<InitPublicationResponse, model::Publication>(
+      http_response.response,
+      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
 }
 
 client::CancellationToken PublishApi::UploadPartitions(
@@ -281,8 +285,11 @@ client::CancellationToken PublishApi::GetPublication(
           return;
         }
 
-        callback(GetPublicationResponse(
-            olp::parser::parse<model::Publication>(http_response.response)));
+        callback(
+            parser::parse_result<GetPublicationResponse, model::Publication>(
+                http_response.response,
+                client::ApiError(client::ErrorCode::Unknown,
+                                 "Fail parsing responce.")));
       });
 
   return cancel_token;
