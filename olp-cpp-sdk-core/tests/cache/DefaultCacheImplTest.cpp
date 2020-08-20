@@ -335,7 +335,6 @@ TEST_F(DefaultCacheImplTest, LruCacheRemove) {
   }
 }
 TEST_F(DefaultCacheImplTest, MutableCacheExpired) {
-  SCOPED_TRACE("Expiry mutable cache");
   const std::string key1{"somekey1"};
   const std::string key2{"somekey2"};
   const std::string data_string{"this is key's data"};
@@ -363,8 +362,8 @@ TEST_F(DefaultCacheImplTest, MutableCacheExpired) {
   const auto value2 =
       cache2.Get(key2, [](const std::string& value) { return value; });
 
-  EXPECT_FALSE(value.get() == nullptr);
-  EXPECT_EQ(value2.type(), typeid(std::string));
+  ASSERT_NE(value.get(), nullptr);
+  ASSERT_EQ(value2.type(), typeid(std::string));
   auto str = boost::any_cast<std::string>(value2);
   EXPECT_EQ(str, data_string);
 
