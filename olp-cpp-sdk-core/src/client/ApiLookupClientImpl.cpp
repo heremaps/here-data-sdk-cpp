@@ -117,15 +117,14 @@ ApiLookupClient::LookupApiResponse ApiLookupClientImpl::LookupApi(
   }
 
   const auto& api_result = api_response.GetResult();
-  const auto& expiry = api_response.GetPayload();
   if (options != OnlineOnly && options != CacheWithUpdate) {
-    for (const auto& service_api : api_result) {
+    for (const auto& service_api : api_result.first) {
       repository.Put(service_api.GetApi(), service_api.GetVersion(),
-                     service_api.GetBaseUrl(), expiry);
+                     service_api.GetBaseUrl(), api_result.second);
     }
   }
 
-  auto url = FindApi(api_result, service, service_version);
+  auto url = FindApi(api_result.first, service, service_version);
   if (url.empty()) {
     OLP_SDK_LOG_WARNING_F(
         kLogTag, "LookupApi(%s/%s) service not found, hrn='%s'",
@@ -191,15 +190,14 @@ CancellationToken ApiLookupClientImpl::LookupApi(
     }
 
     const auto& api_result = response.GetResult();
-    const auto& expiry = response.GetPayload();
     if (options != OnlineOnly && options != CacheWithUpdate) {
-      for (const auto& service_api : api_result) {
+      for (const auto& service_api : api_result.first) {
         repository.Put(service_api.GetApi(), service_api.GetVersion(),
-                       service_api.GetBaseUrl(), expiry);
+                       service_api.GetBaseUrl(), api_result.second);
       }
     }
 
-    const auto url = FindApi(api_result, service, service_version);
+    const auto url = FindApi(api_result.first, service, service_version);
     if (url.empty()) {
       OLP_SDK_LOG_WARNING_F(
           kLogTag, "LookupApi(%s/%s) service not found, hrn='%s'",

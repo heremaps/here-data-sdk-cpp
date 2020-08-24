@@ -22,7 +22,8 @@
 #include <olp/core/client/ApiResponse.h>
 
 namespace olp {
-namespace client {
+namespace dataservice {
+namespace read {
 
 template <typename Result, typename Error, typename Payload>
 class ExtendedApiResponse : public client::ApiResponse<Result, Error> {
@@ -51,5 +52,6 @@ class ExtendedApiResponse : public client::ApiResponse<Result, Error> {
   Payload payload_;
 };
 
-}  // namespace client
+}  // namespace read
+}  // namespace dataservice
 }  // namespace olp

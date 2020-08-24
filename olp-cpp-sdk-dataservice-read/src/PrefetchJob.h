@@ -26,7 +26,7 @@
 #include <olp/core/geo/tiling/TileKey.h>
 #include <olp/dataservice/read/Types.h>
 
-#include <olp/core/client/ExtendedApiResponse.h>
+#include "ExtendedApiResponse.h"
 
 namespace olp {
 namespace dataservice {
@@ -35,11 +35,10 @@ namespace read {
 using Roots = std::vector<geo::TileKey>;
 using QueryResult = std::map<geo::TileKey, std::string>;
 
-using QueryResponse = client::ExtendedApiResponse<QueryResult, client::ApiError,
-                                                  client::NetworkStatistics>;
-using ExtendedDataResponse =
-    client::ExtendedApiResponse<model::Data, client::ApiError,
-                                client::NetworkStatistics>;
+using QueryResponse = ExtendedApiResponse<QueryResult, client::ApiError,
+                                          client::NetworkStatistics>;
+using ExtendedDataResponse = ExtendedApiResponse<model::Data, client::ApiError,
+                                                 client::NetworkStatistics>;
 
 // Prototype of function used to download quad tree.
 using QueryFunc =

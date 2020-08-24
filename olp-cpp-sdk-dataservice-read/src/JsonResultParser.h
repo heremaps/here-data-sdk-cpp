@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2019 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,19 +19,32 @@
 
 #pragma once
 
-#include "ExtendedApiResponse.h"
+#include <sstream>
+#include <string>
+#include <utility>
 
-#include <olp/core/client/HttpResponse.h>
+#include <olp/core/client/ApiError.h>
+#include <olp/core/generated/parser/JsonParser.h>
+#include <olp/core/logging/Log.h>
 
 namespace olp {
 namespace dataservice {
 namespace read {
 
-template <typename Result, typename Error>
-inline const client::NetworkStatistics& GetNetworkStatistics(
-    const ExtendedApiResponse<Result, Error, client::NetworkStatistics>&
-        response) {
-  return response.GetPayload();
+template <typename OutputResult, typename ParsingType,
+          typename... AdditionalArgs>
+OutputResult parse_result(std::stringstream& json_stream,
+                          const AdditionalArgs&&... args) {
+  bool res = true;
+  auto obj = parser::parse<ParsingType>(json_stream, res);
+
+  if (res) {
+    return OutputResult(std::move(obj), args...);
+  } else {
+    OLP_SDK_LOG_WARNING("ParseResult", "Fail parsing responce.");
+    return {
+        client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce.")};
+  }
 }
 
 }  // namespace read

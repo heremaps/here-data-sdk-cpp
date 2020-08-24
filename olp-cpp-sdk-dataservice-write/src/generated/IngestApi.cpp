@@ -29,10 +29,10 @@
 #include <olp/dataservice/write/generated/model/ResponseOk.h>
 #include <olp/dataservice/write/generated/model/ResponseOkSingle.h>
 // clang-format off
-// Ordering Required - Parser template specializations before JsonParser.h
+// Ordering Required - Parser template specializations before #include "JsonResultParser.h"
 #include "parser/ResponseOkParser.h"
 #include "parser/ResponseOkSingleParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
+#include "JsonResultParser.h"
 // clang-format on
 
 namespace client = olp::client;
@@ -85,11 +85,8 @@ client::CancellationToken IngestApi::IngestData(
           return;
         }
 
-        callback(
-            parser::parse_result<IngestDataResponse, model::ResponseOkSingle>(
-                http_response.response,
-                client::ApiError(client::ErrorCode::Unknown,
-                                 "Fail parsing responce.")));
+        callback(parse_result<IngestDataResponse, model::ResponseOkSingle>(
+            http_response.response));
       });
 
   return cancel_token;
@@ -140,9 +137,8 @@ IngestDataResponse IngestApi::IngestData(
         client::ApiError(http_response.status, http_response.response.str())};
   }
 
-  return parser::parse_result<IngestDataResponse, model::ResponseOkSingle>(
-      http_response.response,
-      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
+  return parse_result<IngestDataResponse, model::ResponseOkSingle>(
+      http_response.response);
 }
 
 IngestSdiiResponse IngestApi::IngestSdii(
@@ -178,9 +174,7 @@ IngestSdiiResponse IngestApi::IngestSdii(
     return IngestSdiiResponse(
         client::ApiError(response.status, response.response.str()));
   }
-  return parser::parse_result<IngestSdiiResponse, model::ResponseOk>(
-      response.response,
-      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
+  return parse_result<IngestSdiiResponse, model::ResponseOk>(response.response);
 }
 
 }  // namespace write

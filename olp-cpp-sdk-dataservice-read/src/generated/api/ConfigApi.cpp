@@ -26,7 +26,7 @@
 #include <olp/core/client/OlpClient.h>
 // clang-format off
 #include "generated/parser/CatalogParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
+#include "JsonResultParser.h"
 // clang-format on
 
 namespace olp {
@@ -51,9 +51,8 @@ ConfigApi::CatalogResponse ConfigApi::GetCatalog(
   if (response.status != olp::http::HttpStatusCode::OK) {
     return client::ApiError(response.status, response.response.str());
   }
-  return olp::parser::parse_result<ConfigApi::CatalogResponse, model::Catalog>(
-      response.response,
-      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
+  return parse_result<ConfigApi::CatalogResponse, model::Catalog>(
+      response.response);
 }
 
 }  // namespace read

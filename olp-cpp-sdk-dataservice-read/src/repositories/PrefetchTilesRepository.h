@@ -34,7 +34,7 @@
 #include "PartitionsCacheRepository.h"
 #include "generated/model/Index.h"
 
-#include <olp/core/client/ExtendedApiResponse.h>
+#include "ExtendedApiResponse.h"
 
 namespace olp {
 namespace dataservice {
@@ -43,13 +43,11 @@ namespace repository {
 
 using RootTilesForRequest = std::map<geo::TileKey, uint32_t>;
 using SubQuadsResult = std::map<geo::TileKey, std::string>;
-using SubQuadsResponse =
-    client::ExtendedApiResponse<SubQuadsResult, client::ApiError,
-                                client::NetworkStatistics>;
+using SubQuadsResponse = ExtendedApiResponse<SubQuadsResult, client::ApiError,
+                                             client::NetworkStatistics>;
 using SubTilesResult = SubQuadsResult;
-using SubTilesResponse =
-    client::ExtendedApiResponse<SubTilesResult, client::ApiError,
-                                client::NetworkStatistics>;
+using SubTilesResponse = ExtendedApiResponse<SubTilesResult, client::ApiError,
+                                             client::NetworkStatistics>;
 
 class PrefetchTilesRepository {
  public:

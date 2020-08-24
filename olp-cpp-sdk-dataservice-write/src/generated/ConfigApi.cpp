@@ -26,9 +26,9 @@
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
 // clang-format off
-// Ordering Required - Parser template specializations before JsonParser.h
+// Ordering Required - Parser template specializations before #include "JsonResultParser.h"
 #include "parser/CatalogParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
+#include "JsonResultParser.h"
 // clang-format on
 
 namespace olp {
@@ -57,9 +57,8 @@ client::CancellationToken ConfigApi::GetCatalog(
           catalogCallback(CatalogResponse(
               client::ApiError(response.status, response.response.str())));
         } else {
-          catalogCallback(parser::parse_result<CatalogResponse, model::Catalog>(
-              response.response, client::ApiError(client::ErrorCode::Unknown,
-                                                  "Fail parsing responce.")));
+          catalogCallback(
+              parse_result<CatalogResponse, model::Catalog>(response.response));
         }
       };
 
@@ -85,9 +84,7 @@ CatalogResponse ConfigApi::GetCatalog(const client::OlpClient& client,
   if (response.status != olp::http::HttpStatusCode::OK) {
     return client::ApiError(response.status, response.response.str());
   }
-  return parser::parse_result<CatalogResponse, model::Catalog>(
-      response.response,
-      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
+  return parse_result<CatalogResponse, model::Catalog>(response.response);
 }
 
 }  // namespace write

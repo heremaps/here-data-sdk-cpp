@@ -27,7 +27,7 @@
 #include <olp/core/client/OlpClient.h>
 // clang-format off
 #include "generated/parser/ApiParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
+#include "JsonResultParser.h"
 // clang-format on
 
 namespace olp {
@@ -52,9 +52,7 @@ client::CancellationToken PlatformApi::GetApis(
         } else {
           // parse the services
           // TODO catch any exception and return as Error
-          callback(parser::parse_result<ApisResponse, model::Apis>(
-              response.response, client::ApiError(client::ErrorCode::Unknown,
-                                                  "Fail parsing responce.")));
+          callback(parse_result<ApisResponse, model::Apis>(response.response));
         }
       };
 
@@ -82,9 +80,7 @@ PlatformApi::ApisResponse PlatformApi::GetApis(
     return client::ApiError(http_response.status, http_response.response.str());
   }
 
-  return parser::parse_result<ApisResponse, model::Apis>(
-      http_response.response,
-      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
+  return parse_result<ApisResponse, model::Apis>(http_response.response);
 }
 
 }  // namespace write

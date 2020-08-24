@@ -30,6 +30,7 @@
 // clang-format off
 #include "generated/parser/PartitionsParser.h"
 #include "generated/parser/LayerVersionsParser.h"
+#include "JsonResultParser.h"
 #include <olp/core/generated/parser/JsonParser.h>
 #include <olp/core/generated/serializer/SerializerWrapper.h>
 #include "generated/serializer/PartitionsSerializer.h"

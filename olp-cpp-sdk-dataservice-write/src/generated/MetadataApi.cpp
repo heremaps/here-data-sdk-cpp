@@ -30,7 +30,7 @@
 #include "generated/parser/LayerVersionsParser.h"
 #include "generated/parser/PartitionsParser.h"
 #include "generated/parser/VersionResponseParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
+#include "JsonResultParser.h"
 // clang-format on
 
 namespace {
@@ -72,18 +72,17 @@ client::CancellationToken MetadataApi::GetLayerVersions(
 
   std::string metadataUri = "/layerVersions";
 
-  client::NetworkAsyncCallback callback = [layerVersionsCallback](
-                                              client::HttpResponse response) {
-    if (response.status != http::HttpStatusCode::OK) {
-      layerVersionsCallback(
-          client::ApiError(response.status, response.response.str()));
-    } else {
-      layerVersionsCallback(
-          parser::parse_result<LayerVersionsResponse, model::LayerVersions>(
-              response.response, client::ApiError(client::ErrorCode::Unknown,
-                                                  "Fail parsing responce.")));
-    }
-  };
+  client::NetworkAsyncCallback callback =
+      [layerVersionsCallback](client::HttpResponse response) {
+        if (response.status != http::HttpStatusCode::OK) {
+          layerVersionsCallback(
+              client::ApiError(response.status, response.response.str()));
+        } else {
+          layerVersionsCallback(
+              parse_result<LayerVersionsResponse, model::LayerVersions>(
+                  response.response));
+        }
+      };
 
   return client.CallApi(metadataUri, "GET", queryParams, headerParams,
                         formParams, nullptr, "", callback);
@@ -123,10 +122,8 @@ client::CancellationToken MetadataApi::GetPartitions(
       partitionsCallback(
           client::ApiError(response.status, response.response.str()));
     } else {
-      partitionsCallback(
-          parser::parse_result<PartitionsResponse, model::Partitions>(
-              response.response, client::ApiError(client::ErrorCode::Unknown,
-                                                  "Fail parsing responce.")));
+      partitionsCallback(parse_result<PartitionsResponse, model::Partitions>(
+          response.response));
     }
   };
 
@@ -152,18 +149,17 @@ client::CancellationToken MetadataApi::GetLatestCatalogVersion(
 
   std::string metadataUri = "/versions/latest";
 
-  client::NetworkAsyncCallback callback = [catalogVersionCallback](
-                                              client::HttpResponse response) {
-    if (response.status != http::HttpStatusCode::OK) {
-      catalogVersionCallback(
-          client::ApiError(response.status, response.response.str()));
-    } else {
-      catalogVersionCallback(
-          parser::parse_result<CatalogVersionResponse, model::VersionResponse>(
-              response.response, client::ApiError(client::ErrorCode::Unknown,
-                                                  "Fail parsing responce.")));
-    }
-  };
+  client::NetworkAsyncCallback callback =
+      [catalogVersionCallback](client::HttpResponse response) {
+        if (response.status != http::HttpStatusCode::OK) {
+          catalogVersionCallback(
+              client::ApiError(response.status, response.response.str()));
+        } else {
+          catalogVersionCallback(
+              parse_result<CatalogVersionResponse, model::VersionResponse>(
+                  response.response));
+        }
+      };
 
   return client.CallApi(metadataUri, "GET", queryParams, headerParams,
                         formParams, nullptr, "", callback);

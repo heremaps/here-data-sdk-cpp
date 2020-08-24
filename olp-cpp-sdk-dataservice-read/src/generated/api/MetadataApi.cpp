@@ -31,7 +31,7 @@
 #include "generated/parser/PartitionsParser.h"
 #include "generated/parser/VersionResponseParser.h"
 #include "generated/parser/VersionInfosParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
+#include "JsonResultParser.h"
 // clang-format on
 
 namespace {
@@ -77,9 +77,8 @@ MetadataApi::LayerVersionsResponse MetadataApi::GetLayerVersions(
     return client::ApiError(api_response.status, api_response.response.str());
   }
 
-  return olp::parser::parse_result<LayerVersionsResponse, model::LayerVersions>(
-      api_response.response,
-      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
+  return parse_result<LayerVersionsResponse, model::LayerVersions>(
+      api_response.response);
 }
 
 MetadataApi::PartitionsResponse MetadataApi::GetPartitions(
@@ -116,9 +115,8 @@ MetadataApi::PartitionsResponse MetadataApi::GetPartitions(
     return {{api_response.status, api_response.response.str()}};
   }
 
-  return olp::parser::parse_result<PartitionsResponse, model::Partitions>(
-      api_response.response,
-      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
+  return parse_result<PartitionsResponse, model::Partitions>(
+      api_response.response);
 }
 
 MetadataApi::CatalogVersionResponse MetadataApi::GetLatestCatalogVersion(
@@ -143,10 +141,8 @@ MetadataApi::CatalogVersionResponse MetadataApi::GetLatestCatalogVersion(
     return {{api_response.status, api_response.response.str()}};
   }
 
-  return olp::parser::parse_result<CatalogVersionResponse,
-                                   model::VersionResponse>(
-      api_response.response,
-      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
+  return parse_result<CatalogVersionResponse, model::VersionResponse>(
+      api_response.response);
 }
 
 MetadataApi::VersionsResponse MetadataApi::ListVersions(
@@ -171,9 +167,8 @@ MetadataApi::VersionsResponse MetadataApi::ListVersions(
   if (api_response.status != http::HttpStatusCode::OK) {
     return {{api_response.status, api_response.response.str()}};
   }
-  return olp::parser::parse_result<VersionsResponse, model::VersionInfos>(
-      api_response.response,
-      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
+  return parse_result<VersionsResponse, model::VersionInfos>(
+      api_response.response);
 }
 
 }  // namespace read

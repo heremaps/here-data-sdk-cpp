@@ -30,7 +30,7 @@
 #include "generated/parser/MessagesParser.h"
 #include "generated/parser/StreamOffsetParser.h"
 #include "generated/parser/SubscribeResponseParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
+#include "JsonResultParser.h"
 #include "generated/serializer/ConsumerPropertiesSerializer.h"
 #include "generated/serializer/StreamOffsetsSerializer.h"
 #include "generated/serializer/JsonSerializer.h"
@@ -102,10 +102,8 @@ StreamApi::SubscribeApiResponse StreamApi::Subscribe(
                       metadata_uri.c_str(), http_response.status);
 
   HandleCorrelationId(http_response.headers, x_correlation_id);
-  return olp::parser::parse_result<SubscribeApiResponse,
-                                   model::SubscribeResponse>(
-      http_response.response,
-      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
+  return parse_result<SubscribeApiResponse, model::SubscribeResponse>(
+      http_response.response);
 }
 
 StreamApi::ConsumeDataApiResponse StreamApi::ConsumeData(
@@ -139,9 +137,8 @@ StreamApi::ConsumeDataApiResponse StreamApi::ConsumeData(
                       metadata_uri.c_str(), http_response.status);
 
   HandleCorrelationId(http_response.headers, x_correlation_id);
-  return olp::parser::parse_result<ConsumeDataApiResponse, model::Messages>(
-      http_response.response,
-      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
+  return parse_result<ConsumeDataApiResponse, model::Messages>(
+      http_response.response);
 }
 
 StreamApi::CommitOffsetsApiResponse StreamApi::CommitOffsets(

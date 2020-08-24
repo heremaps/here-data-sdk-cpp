@@ -24,10 +24,10 @@
 
 #include <olp/core/client/HttpResponse.h>
 // clang-format off
-// Ordering Required - Parser template specializations before JsonParser.h
+// Ordering Required - Parser template specializations before #include "JsonResultParser.h"
 #include <generated/parser/PublicationParser.h>
 #include <generated/parser/PublishPartitionsParser.h>
-#include <olp/core/generated/parser/JsonParser.h>
+#include "JsonResultParser.h"
 #include <generated/serializer/PublicationSerializer.h>
 #include <generated/serializer/PublishPartitionsSerializer.h>
 #include <generated/serializer/JsonSerializer.h>
@@ -73,11 +73,8 @@ client::CancellationToken PublishApi::InitPublication(
           return;
         }
 
-        callback(
-            parser::parse_result<InitPublicationResponse, model::Publication>(
-                http_response.response,
-                client::ApiError(client::ErrorCode::Unknown,
-                                 "Fail parsing responce.")));
+        callback(parse_result<InitPublicationResponse, model::Publication>(
+            http_response.response));
       });
 
   return cancel_token;
@@ -112,9 +109,8 @@ InitPublicationResponse PublishApi::InitPublication(
     return InitPublicationResponse(
         client::ApiError(http_response.status, http_response.response.str()));
   }
-  return parser::parse_result<InitPublicationResponse, model::Publication>(
-      http_response.response,
-      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
+  return parse_result<InitPublicationResponse, model::Publication>(
+      http_response.response);
 }
 
 client::CancellationToken PublishApi::UploadPartitions(
@@ -285,11 +281,8 @@ client::CancellationToken PublishApi::GetPublication(
           return;
         }
 
-        callback(
-            parser::parse_result<GetPublicationResponse, model::Publication>(
-                http_response.response,
-                client::ApiError(client::ErrorCode::Unknown,
-                                 "Fail parsing responce.")));
+        callback(parse_result<GetPublicationResponse, model::Publication>(
+            http_response.response));
       });
 
   return cancel_token;

@@ -1010,8 +1010,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsGarbageResponse) {
   PartitionsResponse response = future.get();
 
   ASSERT_FALSE(response.IsSuccessful());
-  ASSERT_EQ(client::ErrorCode::ServiceUnavailable,
-            response.GetError().GetErrorCode());
+  ASSERT_EQ(client::ErrorCode::Unknown, response.GetError().GetErrorCode());
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest,

@@ -29,7 +29,7 @@
 #include <olp/core/client/OlpClient.h>
 // clang-format off
 #include "generated/parser/ApiParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
+#include "JsonResultParser.h"
 // clang-format on
 
 namespace olp {
@@ -53,9 +53,7 @@ PlatformApi::ApisResponse PlatformApi::GetApis(
     return ApisResponse(
         client::ApiError(response.status, response.response.str()));
   }
-  return olp::parser::parse_result<ApisResponse, model::Apis>(
-      response.response,
-      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."));
+  return parse_result<ApisResponse, model::Apis>(response.response);
 }
 }  // namespace read
 }  // namespace dataservice

@@ -477,7 +477,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitionsGarbageResponse) {
   ASSERT_TRUE(condition.Wait(kTimeout));
 
   ASSERT_FALSE(partitions_response.IsSuccessful());
-  ASSERT_EQ(olp::client::ErrorCode::ServiceUnavailable,
+  ASSERT_EQ(olp::client::ErrorCode::Unknown,
             partitions_response.GetError().GetErrorCode());
 }
 

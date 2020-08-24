@@ -30,7 +30,7 @@
 #include <olp/core/http/NetworkUtils.h>
 // clang-format off
 #include "client/parser/ApiParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
+#include "JsonResultParser.h"
 // clang-format on
 
 namespace {
@@ -74,11 +74,9 @@ PlatformApi::ApisResponse PlatformApi::GetApis(
   if (response.status != http::HttpStatusCode::OK) {
     return {{response.status, response.response.str()}};
   }
-  return olp::parser::parse_result<ApisResponse, Apis, client::ApiError,
-                                   boost::optional<time_t>>(
-      response.response,
-      client::ApiError(ErrorCode::Unknown, "Fail parsing responce."),
-      GetExpiry(response.headers));
+
+  return parse_result<ApisResponse, Apis>(response.response,
+                                          GetExpiry(response.headers));
 }
 
 CancellationToken PlatformApi::GetApis(const OlpClient& client,
@@ -92,11 +90,8 @@ CancellationToken PlatformApi::GetApis(const OlpClient& client,
     if (response.status != olp::http::HttpStatusCode::OK) {
       callback({{response.status, response.response.str()}});
     } else {
-      callback(parser::parse_result<ApisResponse, Apis, client::ApiError,
-                                    boost::optional<time_t>>(
-          response.response,
-          client::ApiError(ErrorCode::Unknown, "Fail parsing responce."),
-          GetExpiry(response.headers)));
+      callback(parse_result<ApisResponse, Apis>(response.response,
+                                                GetExpiry(response.headers)));
     }
   };
 
