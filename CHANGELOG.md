@@ -1,3 +1,40 @@
+## v1.8.0 (08/25/2020)
+
+**Common**
+
+* **Work In Progress** Added the `ApiKey` support. Now, you can generate API keys on the platform and use them for reading.
+* Added the `ApiLookup` client. Now, you can specify a custom lookup server or provide a custom endpoint for the services (for example, a dedicated proxy).
+* Added the cache protection API. Now, you can mark keys as protected from eviction.
+* Adapted HRN members to the coding style, made all HRN class members private, and added getters to access them.
+* Added the `KeyValueCache::Contains` API that you can use to check if a key is in the cache.
+* Fixed the CMake scripts issue that occurred when a path contained whitespaces.
+* Fixed the `DefaultCache` behavior that occurred when it was opened in the read-only mode.
+* Modified the `DefaultRetryCondition`. It now retries after 429 errors.
+* Removed the deprecated `backdown_policy` parameter from `OlpClientSettings`.
+
+**olp-cpp-sdk-authentication**
+
+* Deprecated the `SignInGoogle` API. It will be removed by 12.2020.
+* Fixed the bug in `DecisionAPI` (`decision_` was uninitialized).
+
+**olp-cpp-sdk-dataservice-read**
+
+* Added the `IsCached` API for partition and tile keys.
+* Added the `Protect/Release` functionality. Now, you can protect specific partitions and tiles from eviction. For example, you may want a specific region to always be present in the cache.
+* **Breaking Change** Removed the deprecated `WithVersion` and `GetVersion` methods from `DataRequest`, `PrefetchTilesRequest`, and `PartitionsRequest`.
+* Enhanced prefetch. Now, you can request quadtrees in parallel.
+* **Breaking Change** Removed the deprecated constructor of the `VersionedLayerClient` class.
+* Added the prefetch status callback. You can use it to receive the following prefetch progress information: the number of tiles prefetched, the total number of tiles requested, and total bytes transferred.
+* Added an experimental option to the prefetch API that you can use to prefetch a list of tiles as aggregated.
+
+**olp-cpp-sdk-dataservice-write**
+
+* **Breaking Change** Removed the deprecated `CancelAll` methods from `dataservice::write::VersionedLayerClient`, `dataservice::write::VolatileLayerClient`, and `dataservice::write::IndexLayerClient`
+* **Breaking Change** Removed the deprecated `CreateDefaultCache` method from `StreamLayerClient.h`.
+* **Work In Progress** Enhanced `olp::dataservice::write::VersionedLayerClient`. The `StartBatch` and `CompleteBatch` methods now use `olp::thread::TaskScheduler` instead of network threads for asynchronous operations.
+* Fixed the duplicate requests used to configure the service in `StreamLayerClient`.
+* Fixed the upload issue in the stream layer that occurred when the layer compression was enabled on the platform at the same time as the ingest service was used.
+
 ## v1.7.0 (06/16/2020)
 
 **Common**
