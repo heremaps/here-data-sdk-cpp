@@ -68,7 +68,7 @@ jobs:
 
 - job: Linux_build_clang
   pool:
-    vmImage: 'ubuntu-20.04'
+    vmImage: 'ubuntu-latest'
   variables:
     LD_PRELOAD: "/lib/x86_64-linux-gnu/libSegFault.so"
     SEGFAULT_SIGNALS: "all"
@@ -77,7 +77,8 @@ jobs:
     CCACHE_DIR: $(Pipeline.Workspace)/ccache
   steps:
   - bash: |
-        sudo apt-get install libcurl4-openssl-dev clang-7 ccache -y --no-install-recommends
+        sudo apt-get update -y
+        sudo apt-get install clang-7 ccache libcurl4-openssl-dev -y --no-install-recommends --fix-missing
         echo "##vso[task.prependpath]/usr/lib/ccache"
         echo week_$(date +%W) > week_number.txt
     displayName: 'Install dependencies'
