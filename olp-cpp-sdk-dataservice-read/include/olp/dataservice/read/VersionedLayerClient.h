@@ -369,6 +369,9 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    *
    * @param partition_id The partition ID.
    *
+   * @note Before calling the API, specify a layer version. You can set it using
+   * the constructor or after the first online request.
+   *
    * @return True if the partition data is cached; false otherwise.
    */
   bool IsCached(const std::string& partition_id) const;
@@ -377,10 +380,15 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * @brief Checks whether the tile is cached.
    *
    * @param tile The tile key.
+   * @param aggregated The aggregated flag, used to specify whether the tile is
+   * aggregated or not.
+   *
+   * @note Before calling the API, specify a layer version. You can set it using
+   * the constructor or after the first online request.
    *
    * @return True if the tile data is cached; false otherwise.
    */
-  bool IsCached(const geo::TileKey& tile) const;
+  bool IsCached(const geo::TileKey& tile, bool aggregated = false) const;
 
   /**
    * @brief Protects tile keys from eviction.

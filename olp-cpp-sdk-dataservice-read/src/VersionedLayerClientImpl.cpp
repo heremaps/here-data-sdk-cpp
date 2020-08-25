@@ -489,33 +489,48 @@ bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
   return true;
 }
 
-bool VersionedLayerClientImpl::IsCached(const std::string& partition_id) const {
-  repository::PartitionsCacheRepository partitions_cache_repository(
-      catalog_, settings_.cache);
+bool VersionedLayerClientImpl::IsCached(const std::string& partition_id) {
+  auto version = catalog_version_.load();
+  if (version == kInvalidVersion) {
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "Method IsCached failed, version is not initialized");
+    return false;
+  }
+
+  auto cache = settings_.cache;
+
+  repository::PartitionsCacheRepository partitions_repo(catalog_, cache);
+
   std::string handle;
-  if (partitions_cache_repository.GetPartitionHandle(
-          catalog_version_.load(), partition_id, layer_id_, handle)) {
-    repository::DataCacheRepository data_cache_repository(catalog_,
-                                                          settings_.cache);
-    return data_cache_repository.IsCached(layer_id_, handle);
+  if (partitions_repo.GetPartitionHandle(version, partition_id, layer_id_,
+                                         handle)) {
+    repository::DataCacheRepository data_repo(catalog_, cache);
+    return data_repo.IsCached(layer_id_, handle);
   }
   return false;
 }
 
-bool VersionedLayerClientImpl::IsCached(const geo::TileKey& tile) const {
+bool VersionedLayerClientImpl::IsCached(const geo::TileKey& tile,
+                                        bool aggregated) {
+  auto version = catalog_version_.load();
+  if (version == kInvalidVersion) {
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "Method IsCached failed, version is not initialized");
+    return false;
+  }
+
   read::QuadTreeIndex cached_tree;
 
-  repository::PartitionsCacheRepository partitions_cache_repository(
-      catalog_, settings_.cache);
-  if (partitions_cache_repository.FindQuadTree(
-          layer_id_, catalog_version_.load(), tile, cached_tree)) {
-    auto data = cached_tree.Find(tile, false);
-    if (!data) {
-      return false;
+  auto cache = settings_.cache;
+
+  repository::PartitionsCacheRepository partitions_repo(catalog_, cache);
+
+  if (partitions_repo.FindQuadTree(layer_id_, version, tile, cached_tree)) {
+    auto data = cached_tree.Find(tile, aggregated);
+    if (data) {
+      repository::DataCacheRepository data_repo(catalog_, cache);
+      return data_repo.IsCached(layer_id_, data->data_handle);
     }
-    repository::DataCacheRepository data_cache_repository(catalog_,
-                                                          settings_.cache);
-    return data_cache_repository.IsCached(layer_id_, data->data_handle);
   }
   return false;
 }

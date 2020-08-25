@@ -66,8 +66,7 @@ class VersionedLayerClientImpl {
   virtual client::CancellationToken GetData(TileRequest request,
                                             DataResponseCallback callback);
 
-  virtual client::CancellableFuture<DataResponse> GetData(
-      TileRequest request);
+  virtual client::CancellableFuture<DataResponse> GetData(TileRequest request);
 
   virtual client::CancellationToken GetPartitions(
       PartitionsRequest request, PartitionsResponseCallback callback);
@@ -86,9 +85,9 @@ class VersionedLayerClientImpl {
 
   virtual bool RemoveFromCache(const geo::TileKey& tile);
 
-  virtual bool IsCached(const std::string& partition_id) const;
+  virtual bool IsCached(const std::string& partition_id);
 
-  virtual bool IsCached(const geo::TileKey& tile) const;
+  virtual bool IsCached(const geo::TileKey& tile, bool aggregated = false);
 
   virtual client::CancellationToken GetAggregatedData(
       TileRequest request, AggregatedDataResponseCallback callback);

@@ -112,8 +112,9 @@ bool VersionedLayerClient::IsCached(const std::string& partition_id) const {
   return impl_->IsCached(partition_id);
 }
 
-bool VersionedLayerClient::IsCached(const geo::TileKey& tile) const {
-  return impl_->IsCached(tile);
+bool VersionedLayerClient::IsCached(const geo::TileKey& tile,
+                                    bool aggregated) const {
+  return impl_->IsCached(tile, aggregated);
 }
 
 bool VersionedLayerClient::Protect(const TileKeys& tiles) {
