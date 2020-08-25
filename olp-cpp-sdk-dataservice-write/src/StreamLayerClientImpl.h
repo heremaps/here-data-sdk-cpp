@@ -27,6 +27,7 @@
 #include <olp/core/client/OlpClientSettings.h>
 
 #include <olp/dataservice/write/StreamLayerClient.h>
+#include "CatalogSettings.h"
 #include "generated/model/Catalog.h"
 
 namespace olp {
@@ -86,26 +87,13 @@ class StreamLayerClientImpl {
   virtual std::string GenerateUuid() const;
 
  private:
-  using BillingTag = boost::optional<std::string>;
-
-  struct LayerSettings {
-    std::string content_type;
-    std::string content_encoding;
-  };
-
-  using LayerSettingsResult =
-      client::ApiResponse<LayerSettings, client::ApiError>;
-
-  LayerSettingsResult GetLayerSettings(client::CancellationContext context,
-                                       BillingTag billing_tag,
-                                       const std::string& layer_id);
-
   std::string GetUuidListKey() const;
 
  private:
   client::HRN catalog_;
 
   client::OlpClientSettings settings_;
+  CatalogSettings catalog_settings_;
 
   std::shared_ptr<cache::KeyValueCache> cache_;
   mutable std::mutex cache_mutex_;

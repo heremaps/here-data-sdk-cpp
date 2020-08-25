@@ -74,8 +74,9 @@ void ExecuteOrSchedule(const std::shared_ptr<thread::TaskScheduler>& scheduler,
 StreamLayerClientImpl::StreamLayerClientImpl(
     client::HRN catalog, StreamLayerClientSettings client_settings,
     client::OlpClientSettings settings)
-    : catalog_(std::move(catalog)),
-      settings_(std::move(settings)),
+    : catalog_(catalog),
+      settings_(settings),
+      catalog_settings_(catalog, settings),
       cache_(settings_.cache),
       cache_mutex_(),
       stream_client_settings_(std::move(client_settings)),
@@ -89,62 +90,6 @@ StreamLayerClientImpl::~StreamLayerClientImpl() {
 bool StreamLayerClientImpl::CancelPendingRequests() {
   OLP_SDK_LOG_TRACE(kLogTag, "CancelPendingRequests");
   return pending_requests_->CancelAll();
-}
-
-StreamLayerClientImpl::LayerSettingsResult
-StreamLayerClientImpl::GetLayerSettings(client::CancellationContext context,
-                                        BillingTag billing_tag,
-                                        const std::string& layer_id) {
-  const auto catalog_settings_key = catalog_.ToString() + "::catalog";
-
-  if (!cache_->Contains(catalog_settings_key)) {
-    auto lookup_response = ApiClientLookup::LookupApiClient(
-        catalog_, context, "config", "v1", settings_);
-    if (!lookup_response.IsSuccessful()) {
-      return lookup_response.GetError();
-    }
-
-    client::OlpClient client = lookup_response.GetResult();
-    auto catalog_response = ConfigApi::GetCatalog(client, catalog_.ToString(),
-                                                  billing_tag, context);
-
-    if (!catalog_response.IsSuccessful()) {
-      return catalog_response.GetError();
-    }
-
-    auto catalog_model = catalog_response.MoveResult();
-
-    cache_->Put(
-        catalog_settings_key, catalog_model,
-        [&]() { return serializer::serialize<model::Catalog>(catalog_model); },
-        settings_.default_cache_expiration.count());
-  }
-
-  LayerSettings settings;
-
-  const auto& cached_catalog =
-      cache_->Get(catalog_settings_key, [](const std::string& model) {
-        return parser::parse<model::Catalog>(model);
-      });
-
-  if (cached_catalog.empty()) {
-    return settings;
-  }
-
-  const auto& catalog = boost::any_cast<const model::Catalog&>(cached_catalog);
-
-  const auto& layers = catalog.GetLayers();
-
-  auto layer_it = std::find_if(
-      layers.begin(), layers.end(),
-      [&](const model::Layer& layer) { return layer.GetId() == layer_id; });
-
-  if (layer_it != layers.end()) {
-    settings.content_type = layer_it->GetContentType();
-    settings.content_encoding = layer_it->GetContentEncoding();
-  }
-
-  return settings;
 }
 
 std::string StreamLayerClientImpl::GetUuidListKey() const {
@@ -382,8 +327,8 @@ PublishDataResponse StreamLayerClientImpl::PublishDataLessThanTwentyMib(
                       "Started publishing data less than 20 MB, size=%zu B",
                       request.GetData()->size());
 
-  auto layer_settings_result =
-      GetLayerSettings(context, request.GetBillingTag(), request.GetLayerId());
+  auto layer_settings_result = catalog_settings_.GetLayerSettings(
+      context, request.GetBillingTag(), request.GetLayerId());
 
   if (!layer_settings_result.IsSuccessful()) {
     return layer_settings_result.GetError();
@@ -431,8 +376,8 @@ PublishDataResponse StreamLayerClientImpl::PublishDataGreaterThanTwentyMib(
                       "Started publishing data greater than 20MB, size=%zu B",
                       request.GetData()->size());
 
-  auto layer_settings_result =
-      GetLayerSettings(context, request.GetBillingTag(), request.GetLayerId());
+  auto layer_settings_result = catalog_settings_.GetLayerSettings(
+      context, request.GetBillingTag(), request.GetLayerId());
 
   if (!layer_settings_result.IsSuccessful()) {
     return layer_settings_result.GetError();
@@ -485,7 +430,8 @@ PublishDataResponse StreamLayerClientImpl::PublishDataGreaterThanTwentyMib(
   const auto data_handle = GenerateUuid();
   auto put_blob_response = BlobApi::PutBlob(
       blob_client, request.GetLayerId(), layer_settings.content_type,
-      data_handle, request.GetData(), request.GetBillingTag(), context);
+      layer_settings.content_encoding, data_handle, request.GetData(),
+      request.GetBillingTag(), context);
   if (!put_blob_response.IsSuccessful()) {
     return PublishDataResponse(put_blob_response.GetError());
   }

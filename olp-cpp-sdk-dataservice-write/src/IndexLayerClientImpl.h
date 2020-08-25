@@ -32,6 +32,7 @@
 
 #include <olp/dataservice/write/IndexLayerClient.h>
 #include "generated/model/Catalog.h"
+#include "CatalogSettings.h"
 
 namespace olp {
 namespace dataservice {
@@ -42,8 +43,6 @@ class PublishDataRequest;
 }
 
 using InitApiClientsCallback =
-    std::function<void(boost::optional<client::ApiError>)>;
-using InitCatalogModelCallback =
     std::function<void(boost::optional<client::ApiError>)>;
 
 class IndexLayerClientImpl
@@ -82,15 +81,9 @@ class IndexLayerClientImpl
       std::shared_ptr<client::CancellationContext> cancel_context,
       InitApiClientsCallback callback);
 
-  client::CancellationToken InitCatalogModel(
-      const model::PublishIndexRequest& request,
-      const InitCatalogModelCallback& callback);
-
-  std::string FindContentTypeForLayerId(const std::string& layer_id);
-
  private:
   client::HRN catalog_;
-  model::Catalog catalog_model_;
+  CatalogSettings catalog_settings_;
 
   client::OlpClientSettings settings_;
 

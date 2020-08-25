@@ -47,8 +47,9 @@ namespace write {
 
 VersionedLayerClientImpl::VersionedLayerClientImpl(
     client::HRN catalog, client::OlpClientSettings settings)
-    : catalog_(std::move(catalog)),
-      settings_(std::move(settings)),
+    : catalog_(catalog),
+      settings_(settings),
+      catalog_settings_(catalog, settings),
       apiclient_blob_(nullptr),
       apiclient_config_(nullptr),
       apiclient_metadata_(nullptr),
@@ -520,40 +521,7 @@ olp::client::CancellationToken VersionedLayerClientImpl::PublishToBatch(
       self->tokenList_.RemoveTask(id);
       callback(std::move(*error));
     } else {
-      self->UploadBlob(publication_id, partition, data_handle, layer_id,
-                       cancel_context, uploadBlob_callback);
     }
-  };
-
-  InitCatalogModel(cancel_context, catalogModel_callback);
-
-  auto token = client::CancellationToken(
-      [cancel_context]() { cancel_context->CancelOperation(); });
-  tokenList_.AddTask(id, token);
-  return token;
-}
-
-void VersionedLayerClientImpl::InitCatalogModel(
-    std::shared_ptr<client::CancellationContext> cancel_context,
-    const InitCatalogModelCallback& callback) {
-  auto self = shared_from_this();
-  auto cancel_function = [callback]() {
-    callback(client::ApiError(client::ErrorCode::Cancelled,
-                              "Operation cancelled.", true));
-  };
-
-  auto initCatalog_callback = [=](CatalogResponse response) mutable {
-    if (!response.IsSuccessful()) {
-      callback(std::move(response.GetError()));
-    } else {
-      catalog_model_ = response.MoveResult();
-      callback(boost::none);
-    }
-  };
-
-  auto initCatalog_function = [=]() -> client::CancellationToken {
-    return ConfigApi::GetCatalog(self->apiclient_config_, catalog_.ToString(),
-                                 boost::none, initCatalog_callback);
   };
 
   cancel_context->ExecuteOrCancelled(
@@ -564,15 +532,38 @@ void VersionedLayerClientImpl::InitCatalogModel(
                 callback(err.get());
                 return;
               }
-              if (!self->catalog_model_.GetId().empty()) {
-                callback(boost::none);
-              } else {
-                cancel_context->ExecuteOrCancelled(initCatalog_function,
-                                                   cancel_function);
+
+              auto layer_settings_response = catalog_settings_.GetLayerSettings(
+                  *cancel_context, request.GetBillingTag(), layer_id);
+              if (!layer_settings_response.IsSuccessful()) {
+                callback(layer_settings_response.GetError());
+                return;
               }
+              auto layer_settings = layer_settings_response.GetResult();
+              if (layer_settings.content_type.empty()) {
+                auto errmsg = boost::format(
+                                  "Unable to find the Layer ID (%1%) "
+                                  "provided in the request in the "
+                                  "Catalog specified when creating "
+                                  "this VersionedLayerClient instance.") %
+                              layer_id;
+                callback(client::ApiError(client::ErrorCode::InvalidArgument,
+                                          errmsg.str()));
+                return;
+              }
+
+              self->UploadBlob(publication_id, partition, data_handle,
+                               layer_settings.content_type, layer_settings.content_encoding,
+                               layer_id, request.GetBillingTag(),
+                               cancel_context, uploadBlob_callback);
             });
       },
       cancel_function);
+
+  auto token = client::CancellationToken(
+      [cancel_context]() { cancel_context->CancelOperation(); });
+  tokenList_.AddTask(id, token);
+  return token;
 }
 
 void VersionedLayerClientImpl::UploadPartition(
@@ -622,25 +613,11 @@ void VersionedLayerClientImpl::UploadPartition(
       cancel_function);
 }
 
-std::string VersionedLayerClientImpl::FindContentTypeForLayerId(
-    const std::string& layer_id) {
-  std::string content_type;
-  for (auto layer : catalog_model_.GetLayers()) {
-    if (layer.GetId() == layer_id) {
-      // TODO optimization opportunity - cache
-      // content-type for layer when found for O(1)
-      // subsequent lookup.
-      content_type = layer.GetContentType();
-      break;
-    }
-  }
-  return content_type;
-}
-
 void VersionedLayerClientImpl::UploadBlob(
     std::string /*publication_id*/,
     std::shared_ptr<model::PublishPartition> partition, std::string data_handle,
-    std::string layer_id,
+    std::string content_type, std::string content_encoding,
+    std::string layer_id, BillingTag billing_tag,
     std::shared_ptr<client::CancellationContext> cancel_context,
     const UploadBlobCallback& callback) {
   auto self = shared_from_this();
@@ -657,23 +634,10 @@ void VersionedLayerClientImpl::UploadBlob(
     }
   };
 
-  auto content_type = FindContentTypeForLayerId(layer_id);
-  if (content_type.empty()) {
-    auto errmsg = boost::format(
-                      "Unable to find the Layer ID (%1%) "
-                      "provided in the request in the "
-                      "Catalog specified when creating "
-                      "this VersionedLayerClient instance.") %
-                  layer_id;
-    callback(UploadBlobResponse(
-        client::ApiError(client::ErrorCode::InvalidArgument, errmsg.str())));
-    return;
-  }
-
   auto uploadBlob_function = [=]() -> client::CancellationToken {
     return BlobApi::PutBlob(*self->apiclient_blob_, layer_id, content_type,
-                            data_handle, partition->GetData(), boost::none,
-                            uploadBlob_callback);
+                            content_encoding, data_handle, partition->GetData(),
+                            billing_tag, uploadBlob_callback);
   };
 
   cancel_context->ExecuteOrCancelled(
@@ -684,6 +648,7 @@ void VersionedLayerClientImpl::UploadBlob(
                                         callback(err.get());
                                         return;
                                       }
+
                                       cancel_context->ExecuteOrCancelled(
                                           uploadBlob_function, cancel_function);
                                     });
