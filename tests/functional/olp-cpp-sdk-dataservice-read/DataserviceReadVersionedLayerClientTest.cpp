@@ -89,35 +89,6 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
   std::shared_ptr<olp::client::OlpClientSettings> settings_;
 };
 
-TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionAsync) {
-  auto catalog = olp::client::HRN::FromString(
-      CustomParameters::getArgument("dataservice_read_test_versioned_catalog"));
-  auto layer =
-      CustomParameters::getArgument("dataservice_read_test_versioned_layer");
-
-  auto catalog_client =
-      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          catalog, layer, boost::none, *settings_);
-  ASSERT_TRUE(catalog_client);
-
-  std::promise<dataservice_read::DataResponse> promise;
-  std::future<dataservice_read::DataResponse> future = promise.get_future();
-  auto partition = CustomParameters::getArgument(
-      "dataservice_read_test_versioned_partition");
-  auto token = catalog_client->GetData(
-      olp::dataservice::read::DataRequest().WithPartitionId(partition),
-      [&promise](dataservice_read::DataResponse response) {
-        promise.set_value(response);
-      });
-
-  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
-  dataservice_read::DataResponse response = future.get();
-
-  EXPECT_SUCCESS(response);
-  ASSERT_TRUE(response.GetResult() != nullptr);
-  ASSERT_NE(response.GetResult()->size(), 0u);
-}
-
 TEST_F(DataserviceReadVersionedLayerClientTest,
        GetDataFromPartitionLatestVersionAsync) {
   auto catalog = olp::client::HRN::FromString(
@@ -143,32 +114,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
   dataservice_read::DataResponse response = future.get();
 
-  EXPECT_SUCCESS(response);
-  ASSERT_TRUE(response.GetResult() != nullptr);
-  ASSERT_NE(response.GetResult()->size(), 0u);
-}
-
-TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionSync) {
-  settings_->task_scheduler.reset();
-
-  auto catalog = olp::client::HRN::FromString(
-      CustomParameters::getArgument("dataservice_read_test_versioned_catalog"));
-  auto layer =
-      CustomParameters::getArgument("dataservice_read_test_versioned_layer");
-
-  auto catalog_client =
-      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          catalog, layer, boost::none, *settings_);
-  ASSERT_TRUE(catalog_client);
-
-  dataservice_read::DataResponse response;
-  auto partition = CustomParameters::getArgument(
-      "dataservice_read_test_versioned_partition");
-  auto token = catalog_client->GetData(
-      olp::dataservice::read::DataRequest().WithPartitionId(partition),
-      [&response](dataservice_read::DataResponse resp) {
-        response = std::move(resp);
-      });
   EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult() != nullptr);
   ASSERT_NE(response.GetResult()->size(), 0u);
