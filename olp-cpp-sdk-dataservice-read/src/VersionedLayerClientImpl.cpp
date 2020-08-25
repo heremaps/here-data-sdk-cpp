@@ -444,8 +444,15 @@ bool VersionedLayerClientImpl::RemoveFromCache(
   repository::PartitionsCacheRepository partitions_cache_repository(
       catalog_, settings_.cache);
   boost::optional<model::Partition> partition;
+  auto version = catalog_version_.load();
+  if (version == kInvalidVersion) {
+    OLP_SDK_LOG_WARNING(
+        kLogTag, "Method RemoveFromCache failed, version is not initialized");
+    return false;
+  }
+
   if (!partitions_cache_repository.ClearPartitionMetadata(
-          catalog_version_.load(), partition_id, layer_id_, partition)) {
+          version, partition_id, layer_id_, partition)) {
     return false;
   }
 
@@ -463,8 +470,15 @@ bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
   read::QuadTreeIndex cached_tree;
   repository::PartitionsCacheRepository partitions_cache_repository(
       catalog_, settings_.cache);
-  if (partitions_cache_repository.FindQuadTree(
-          layer_id_, catalog_version_.load(), tile, cached_tree)) {
+  auto version = catalog_version_.load();
+  if (version == kInvalidVersion) {
+    OLP_SDK_LOG_WARNING(
+        kLogTag, "Method RemoveFromCache failed, version is not initialized");
+    return false;
+  }
+
+  if (partitions_cache_repository.FindQuadTree(layer_id_, version, tile,
+                                               cached_tree)) {
     auto data = cached_tree.Find(tile, false);
     if (!data) {
       return true;
@@ -481,8 +495,7 @@ bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
         }
       }
       return partitions_cache_repository.ClearQuadTree(
-          layer_id_, cached_tree.GetRootTile(), kQuadTreeDepth,
-          catalog_version_.load());
+          layer_id_, cached_tree.GetRootTile(), kQuadTreeDepth, version);
     }
     return result;
   }
@@ -604,6 +617,11 @@ bool VersionedLayerClientImpl::Protect(const TileKeys& tiles) {
     return false;
   }
   auto version = catalog_version_.load();
+  if (version == kInvalidVersion) {
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "Method Protect failed, version is not initialized");
+    return false;
+  }
 
   auto tiles_dependency_resolver =
       ProtectDependencyResolver(catalog_, layer_id_, version, settings_);
@@ -621,6 +639,11 @@ bool VersionedLayerClientImpl::Release(const TileKeys& tiles) {
     return false;
   }
   auto version = catalog_version_.load();
+  if (version == kInvalidVersion) {
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "Method Release failed, version is not initialized");
+    return false;
+  }
 
   auto tiles_dependency_resolver =
       ReleaseDependencyResolver(catalog_, layer_id_, version, settings_);

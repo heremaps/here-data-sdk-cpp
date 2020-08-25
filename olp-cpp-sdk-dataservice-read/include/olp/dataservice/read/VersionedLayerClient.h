@@ -351,6 +351,9 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    *
    * @param partition_id The partition ID that should be removed.
    *
+   * @note Before calling the API, specify a layer version. You can set it using
+   * the constructor or after the first online request.
+   *
    * @return True if partition data is removed successfully; false otherwise.
    */
   bool RemoveFromCache(const std::string& partition_id);
@@ -359,6 +362,9 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * @brief Removes the tile from the mutable disk cache.
    *
    * @param tile The tile key that should be removed.
+   *
+   * @note Before calling the API, specify a layer version. You can set it using
+   * the constructor or after the first online request.
    *
    * @return True if tile data is removed successfully; false otherwise.
    */
@@ -397,6 +403,9 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * @note Please do not call `Protect` while the `Release` call for the same
    * catalog and layer is in progress.
    *
+   * @note Before calling the API, specify a layer version. You can set it using
+   * the constructor or after the first online request.
+   *
    * @param tiles The list of tile keys to be protected.
    *
    * @return True if some keys were successfully added to the protected list;
@@ -414,6 +423,9 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    *
    * @note Please make sure that `Protect` will not be called for the same
    * catalog and layer while the `Release` call is in progress.
+   *
+   * @note Before calling the API, specify a layer version. You can set it using
+   * the constructor or after the first online request.
    *
    * @param tiles The list of tile keys to be removed from protection.
    *
