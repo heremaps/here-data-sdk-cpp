@@ -37,15 +37,13 @@
 #include "generated/serializer/PartitionsSerializer.h"
 #include "generated/serializer/JsonSerializer.h"
 // clang-format on
+#include <testutils/CustomParameters.hpp>
 #include "ReadDefaultResponses.h"
 #include "ApiDefaultResponses.h"
 #include "MockServerHelper.h"
 #include "Utils.h"
 
 namespace {
-
-const auto kMockServerHost = "localhost";
-const auto kMockServerPort = 1080;
 
 const auto kAppId = "id";
 const auto kAppSecret = "secret";
@@ -57,6 +55,10 @@ const auto kPartitionsResponsePath =
 class VersionedLayerClientTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    const auto kMockServerHost =
+        CustomParameters::getArgument("mock_server_host");
+    const auto kMockServerPort =
+        std::stoi(CustomParameters::getArgument("mock_server_port"));
     auto network = olp::client::OlpClientSettingsFactory::
         CreateDefaultNetworkRequestHandler();
 

@@ -24,6 +24,7 @@
 #include <olp/core/porting/make_unique.h>
 #include <olp/core/utils/Dir.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
+#include <testutils/CustomParameters.hpp>
 #include "ApiDefaultResponses.h"
 #include "MockServerHelper.h"
 #include "ReadDefaultResponses.h"
@@ -31,13 +32,15 @@
 
 namespace {
 
-const auto kMockServerHost = "localhost";
-const auto kMockServerPort = 1080;
 const auto kTestHrn = "hrn:here:data::olp-here-test:hereos-internal-test";
 
 class VersionedLayerClientProtectTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    const auto kMockServerHost =
+        CustomParameters::getArgument("mock_server_host");
+    const auto kMockServerPort =
+        std::stoi(CustomParameters::getArgument("mock_server_port"));
     auto network = olp::client::OlpClientSettingsFactory::
         CreateDefaultNetworkRequestHandler();
 

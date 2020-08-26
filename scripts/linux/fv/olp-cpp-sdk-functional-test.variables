@@ -31,3 +31,6 @@ export dataservice_read_volatile_test_prefetch_appid="${dataservice_read_volatil
 export dataservice_read_volatile_test_prefetch_secret="${dataservice_read_volatile_test_prefetch_secret}"
 export dataservice_read_volatile_test_prefetch_catalog="hrn:here:data::olp-here-test:test-volatile-prefetch"
 export dataservice_read_volatile_prefetch_layer="volatile_prefetch_layer"
+
+export mock_server_host="localhost"
+export mock_server_port="1080"

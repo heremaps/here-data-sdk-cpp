@@ -25,6 +25,7 @@
 #include "generated/serializer/PartitionsSerializer.h"
 #include "generated/serializer/JsonSerializer.h"
 // clang-format on
+#include <testutils/CustomParameters.hpp>
 #include "ApiDefaultResponses.h"
 #include "MockServerHelper.h"
 #include "ReadDefaultResponses.h"
@@ -32,8 +33,6 @@
 
 namespace {
 
-const auto kMockServerHost = "localhost";
-const auto kMockServerPort = 1080;
 const auto kTestHrn = "hrn:here:data::olp-here-test:hereos-internal-test";
 const auto kLayer = "testlayer";
 const auto kVersion = 44;
@@ -45,6 +44,11 @@ const auto kPartitionsResponsePath =
 class VersionedLayerClientGetPartitionTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    const auto kMockServerHost =
+        CustomParameters::getArgument("mock_server_host");
+    const auto kMockServerPort =
+        std::stoi(CustomParameters::getArgument("mock_server_port"));
+
     auto network = olp::client::OlpClientSettingsFactory::
         CreateDefaultNetworkRequestHandler();
 

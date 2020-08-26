@@ -34,13 +34,15 @@
 
 namespace {
 
-const auto kMockServerHost = "localhost";
-const auto kMockServerPort = 1080;
 const auto kTestHrn = "hrn:here:data::olp-here-test:hereos-internal-test";
 
 class VersionedLayerClientPrefetchTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    const auto kMockServerHost =
+        CustomParameters::getArgument("mock_server_host");
+    const auto kMockServerPort =
+        std::stoi(CustomParameters::getArgument("mock_server_port"));
     auto network = olp::client::OlpClientSettingsFactory::
         CreateDefaultNetworkRequestHandler();
 
