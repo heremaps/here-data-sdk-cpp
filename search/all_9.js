@@ -6,6 +6,7 @@ var searchData=
   ['kdatasize',['kDataSize',['../classolp_1_1dataservice_1_1read_1_1PartitionsRequest.html#ab04e878e14aa55d15a715b5c9de42985',1,'olp::dataservice::read::PartitionsRequest']]],
   ['kdefaultexpiry',['kDefaultExpiry',['../classolp_1_1cache_1_1KeyValueCache.html#af0db94d37cab9bea235039b8f7f8ed1b',1,'olp::cache::KeyValueCache']]],
   ['key',['key',['../structolp_1_1geo_1_1QuadKey64Helper.html#a53b42c6432df7f0e33c47c4c64ff92b5',1,'olp::geo::QuadKey64Helper']]],
+  ['keylisttype',['KeyListType',['../classolp_1_1cache_1_1KeyValueCache.html#af7892307d21aa2af90bc5a4a5507d46b',1,'olp::cache::KeyValueCache']]],
   ['keyvaluecache',['KeyValueCache',['../classolp_1_1cache_1_1KeyValueCache.html',1,'olp::cache']]],
   ['kinvalidrequestid',['kInvalidRequestId',['../classolp_1_1http_1_1SendOutcome.html#a6b6de097e49357726e31e232a40a3f2e',1,'olp::http::SendOutcome']]],
   ['knan_5f',['kNaN_',['../classolp_1_1geo_1_1GeoCoordinates3d.html#a24bf884fb5409b174859029e137d2f8a',1,'olp::geo::GeoCoordinates3d']]],

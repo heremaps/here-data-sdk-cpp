@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['olp_5fsdk_5fcore_5floop_5fonce',['OLP_SDK_CORE_LOOP_ONCE',['../Log_8h.html#a6704bc367b7a19b5118255bc179be718',1,'Log.h']]],
+  ['olp_5fsdk_5fcore_5floop_5fonce',['OLP_SDK_CORE_LOOP_ONCE',['../WarningWorkarounds_8h.html#a6704bc367b7a19b5118255bc179be718',1,'WarningWorkarounds.h']]],
+  ['olp_5fsdk_5fcore_5funused',['OLP_SDK_CORE_UNUSED',['../WarningWorkarounds_8h.html#a220776452311ca5dc8503da5187d7ec0',1,'WarningWorkarounds.h']]],
   ['olp_5fsdk_5fdo_5flog',['OLP_SDK_DO_LOG',['../Log_8h.html#a41119f0bb55148ede97b503b78c67982',1,'Log.h']]],
   ['olp_5fsdk_5fdo_5flog_5ff',['OLP_SDK_DO_LOG_F',['../Log_8h.html#aa7a6299341990822eaba3e8092ab9b11',1,'Log.h']]],
   ['olp_5fsdk_5flog',['OLP_SDK_LOG',['../Log_8h.html#a62f37b77c8140008dca158274e6881b4',1,'Log.h']]],

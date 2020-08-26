@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['networkasynccallback',['NetworkAsyncCallback',['../namespaceolp_1_1client.html#ada2eeb2b0e0ac4d50d42d51df6bc9e2b',1,'olp::client']]],
-  ['networkasynccancel',['NetworkAsyncCancel',['../namespaceolp_1_1client.html#a25f478c630b61cf2e738d8c45dd25399',1,'olp::client']]]
+  ['levelnamemap',['LevelNameMap',['../classolp_1_1logging_1_1MessageFormatter.html#a26b2623b8306380bd03f5dd19079f7a0',1,'olp::logging::MessageFormatter']]],
+  ['lookupapiresponse',['LookupApiResponse',['../classolp_1_1client_1_1ApiLookupClient.html#a1f85323810f98400ae69f60d462f9bc4',1,'olp::client::ApiLookupClient']]],
+  ['lookupendpointprovider',['LookupEndpointProvider',['../structolp_1_1client_1_1ApiLookupSettings.html#a3f45a5d4c9cc74057626ea0ee0638c5a',1,'olp::client::ApiLookupSettings']]]
 ];

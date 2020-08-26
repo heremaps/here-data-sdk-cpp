@@ -1,4 +1,3 @@
 <map id="olp::thread::ThreadPoolTaskScheduler" name="olp::thread::ThreadPoolTaskScheduler">
-<area shape="rect" id="node1" title="An implementation of the TaskScheduler instance that uses a thread pool." alt="" coords="5,80,208,121"/>
-<area shape="rect" id="node2" href="$classolp_1_1thread_1_1TaskScheduler.html" title="An abstract interface that is used as a base for the custom thread scheduling strategy." alt="" coords="10,5,203,32"/>
+<area shape="rect" id="node2" href="$classolp_1_1thread_1_1TaskScheduler.html" title="An abstract interface that is used as a base for the custom thread scheduling strategy. " alt="" coords="10,5,203,32"/>
 </map>

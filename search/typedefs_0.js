@@ -4,6 +4,7 @@ var searchData=
   ['actions',['Actions',['../classolp_1_1authentication_1_1AuthorizeRequest.html#a0bb7de7c3b465fd612a9fb61f9d8fde5',1,'olp::authentication::AuthorizeRequest']]],
   ['additionalfields',['AdditionalFields',['../classolp_1_1dataservice_1_1read_1_1PartitionsRequest.html#a620296c62c679ce27311625a6f4bc69c',1,'olp::dataservice::read::PartitionsRequest']]],
   ['alloctype',['AllocType',['../classolp_1_1utils_1_1LruCache.html#a67ecd8b22fa6d36f4a0d3a42dc7bc385',1,'olp::utils::LruCache']]],
+  ['apikeyprovidertype',['ApiKeyProviderType',['../structolp_1_1client_1_1AuthenticationSettings.html#a2be93cf2e0246d5b72883a58d470a587',1,'olp::client::AuthenticationSettings']]],
   ['appenderlist',['AppenderList',['../classolp_1_1logging_1_1Configuration.html#a0204265095d1c3bdd651c823327e943f',1,'olp::logging::Configuration']]],
   ['authenticationerror',['AuthenticationError',['../namespaceolp_1_1authentication.html#afb24d860895afbae310414d2e129c4b8',1,'olp::authentication']]],
   ['authorizecallback',['AuthorizeCallback',['../namespaceolp_1_1authentication.html#a304e4d17625e6c62c8a92072d4045da7',1,'olp::authentication']]],

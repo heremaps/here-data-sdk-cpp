@@ -4,7 +4,7 @@ var searchData=
   ['task_5fscheduler',['task_scheduler',['../structolp_1_1authentication_1_1AuthenticationSettings.html#abaeafa8240ecaa35f7e2f474e89fa393',1,'olp::authentication::AuthenticationSettings::task_scheduler()'],['../structolp_1_1authentication_1_1Settings.html#a613b8ae683f2288b6b03b3692f1485a7',1,'olp::authentication::Settings::task_scheduler()'],['../structolp_1_1client_1_1OlpClientSettings.html#ae4092fe43dabe5f8a574c836dfe8cb8e',1,'olp::client::OlpClientSettings::task_scheduler()']]],
   ['taskcontext',['TaskContext',['../classolp_1_1client_1_1TaskContext.html',1,'olp::client']]],
   ['taskcontexthash',['TaskContextHash',['../structolp_1_1client_1_1TaskContextHash.html',1,'olp::client::TaskContextHash'],['../classolp_1_1client_1_1TaskContext.html#ab6581da2742019b5f6a0e981a267cc59',1,'olp::client::TaskContext::TaskContextHash()']]],
-  ['taskcontextimpl',['TaskContextImpl',['../classolp_1_1client_1_1TaskContext_1_1TaskContextImpl.html',1,'olp::client::TaskContext::TaskContextImpl&lt; T &gt;'],['../classolp_1_1client_1_1TaskContext_1_1TaskContextImpl.html#ada90e5d1e092442e62fe534263f96e2b',1,'olp::client::TaskContext::TaskContextImpl::TaskContextImpl()']]],
+  ['taskcontextimpl',['TaskContextImpl',['../classolp_1_1client_1_1TaskContext_1_1TaskContextImpl.html',1,'olp::client::TaskContext::TaskContextImpl&lt; Response &gt;'],['../classolp_1_1client_1_1TaskContext_1_1TaskContextImpl.html#a588a4004031b67687f24d62f31eb2050',1,'olp::client::TaskContext::TaskContextImpl::TaskContextImpl()']]],
   ['taskscheduler',['TaskScheduler',['../classolp_1_1thread_1_1TaskScheduler.html',1,'olp::thread']]],
   ['tempdirectory',['TempDirectory',['../classolp_1_1utils_1_1Dir.html#ad7d7d070f4ff96fed05839e08ceff408',1,'olp::utils::Dir']]],
   ['threadid',['ThreadId',['../classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4a693e7589872f7acd3e69d831d022d6ea',1,'olp::logging::MessageFormatter']]],
@@ -37,6 +37,7 @@ var searchData=
   ['tostring',['ToString',['../classolp_1_1client_1_1HRN.html#a2edc8085a8f85e8d7c63cd7b1135f199',1,'olp::client::HRN']]],
   ['total_5ffailed',['total_failed',['../structolp_1_1http_1_1Network_1_1Statistics.html#a2325bc030e2353b1518ac1a140aba235',1,'olp::http::Network::Statistics']]],
   ['total_5frequests',['total_requests',['../structolp_1_1http_1_1Network_1_1Statistics.html#ab44ad785b43e447e6778a7d62b233115',1,'olp::http::Network::Statistics']]],
+  ['total_5ftiles_5fto_5fprefetch',['total_tiles_to_prefetch',['../structolp_1_1dataservice_1_1read_1_1PrefetchStatus.html#a8ae9c2484e8e7163874a1a8205d51ee0',1,'olp::dataservice::read::PrefetchStatus']]],
   ['traceid',['TraceID',['../classolp_1_1dataservice_1_1write_1_1model_1_1TraceID.html',1,'olp::dataservice::write::model']]],
-  ['type',['type',['../structolp_1_1logging_1_1MessageFormatter_1_1Element.html#ae971d2ab5263dfa50b3e868a85139de5',1,'olp::logging::MessageFormatter::Element::type()'],['../classolp_1_1http_1_1NetworkProxySettings.html#a14fdb8e380337a0d349f092bf9fa0cb2',1,'olp::http::NetworkProxySettings::Type()']]]
+  ['type',['Type',['../classolp_1_1http_1_1NetworkProxySettings.html#a14fdb8e380337a0d349f092bf9fa0cb2',1,'olp::http::NetworkProxySettings::Type()'],['../structolp_1_1logging_1_1MessageFormatter_1_1Element.html#ae971d2ab5263dfa50b3e868a85139de5',1,'olp::logging::MessageFormatter::Element::type()']]]
 ];

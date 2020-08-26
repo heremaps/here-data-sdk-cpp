@@ -13,6 +13,7 @@ var searchData=
   ['networkrequest',['NetworkRequest',['../classolp_1_1http_1_1NetworkRequest.html',1,'olp::http::NetworkRequest'],['../classolp_1_1http_1_1NetworkRequest.html#ad3716e6eddd5e3cefa8a8e4ffc0e7d40',1,'olp::http::NetworkRequest::NetworkRequest()']]],
   ['networkresponse',['NetworkResponse',['../classolp_1_1http_1_1NetworkResponse.html',1,'olp::http']]],
   ['networksettings',['NetworkSettings',['../classolp_1_1http_1_1NetworkSettings.html',1,'olp::http']]],
+  ['networkstatistics',['NetworkStatistics',['../classolp_1_1client_1_1NetworkStatistics.html',1,'olp::client::NetworkStatistics'],['../classolp_1_1client_1_1NetworkStatistics.html#a7676fe55e61e68b1d44689fbc7aee3ce',1,'olp::client::NetworkStatistics::NetworkStatistics()']]],
   ['networkutils',['NetworkUtils',['../classolp_1_1http_1_1NetworkUtils.html',1,'olp::http']]],
   ['nextcolumn',['NextColumn',['../classolp_1_1geo_1_1TileKey.html#a0a28cfa5ed62b7a803626de4ae25fda1',1,'olp::geo::TileKey']]],
   ['nextrow',['NextRow',['../classolp_1_1geo_1_1TileKey.html#ac93af060847681522d5eef2024c340ea',1,'olp::geo::TileKey']]],

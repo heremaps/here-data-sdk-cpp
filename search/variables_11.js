@@ -7,5 +7,6 @@ var searchData=
   ['token_5fendpoint_5furl',['token_endpoint_url',['../structolp_1_1authentication_1_1AuthenticationSettings.html#a6f72430f0e2e75c59786ff8b8141b749',1,'olp::authentication::AuthenticationSettings::token_endpoint_url()'],['../structolp_1_1authentication_1_1Settings.html#ace5921a01f0918583220d141b59aa094',1,'olp::authentication::Settings::token_endpoint_url()']]],
   ['total_5ffailed',['total_failed',['../structolp_1_1http_1_1Network_1_1Statistics.html#a2325bc030e2353b1518ac1a140aba235',1,'olp::http::Network::Statistics']]],
   ['total_5frequests',['total_requests',['../structolp_1_1http_1_1Network_1_1Statistics.html#ab44ad785b43e447e6778a7d62b233115',1,'olp::http::Network::Statistics']]],
+  ['total_5ftiles_5fto_5fprefetch',['total_tiles_to_prefetch',['../structolp_1_1dataservice_1_1read_1_1PrefetchStatus.html#a8ae9c2484e8e7163874a1a8205d51ee0',1,'olp::dataservice::read::PrefetchStatus']]],
   ['type',['type',['../structolp_1_1logging_1_1MessageFormatter_1_1Element.html#ae971d2ab5263dfa50b3e868a85139de5',1,'olp::logging::MessageFormatter::Element']]]
 ];
