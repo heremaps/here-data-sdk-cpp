@@ -85,8 +85,7 @@ client::CancellationToken IngestApi::IngestData(
           return;
         }
 
-        callback(parse_result<IngestDataResponse, model::ResponseOkSingle>(
-            http_response.response));
+        callback(parse_result<IngestDataResponse>(http_response.response));
       });
 
   return cancel_token;
@@ -137,8 +136,7 @@ IngestDataResponse IngestApi::IngestData(
         client::ApiError(http_response.status, http_response.response.str())};
   }
 
-  return parse_result<IngestDataResponse, model::ResponseOkSingle>(
-      http_response.response);
+  return parse_result<IngestDataResponse>(http_response.response);
 }
 
 IngestSdiiResponse IngestApi::IngestSdii(
@@ -174,7 +172,7 @@ IngestSdiiResponse IngestApi::IngestSdii(
     return IngestSdiiResponse(
         client::ApiError(response.status, response.response.str()));
   }
-  return parse_result<IngestSdiiResponse, model::ResponseOk>(response.response);
+  return parse_result<IngestSdiiResponse>(response.response);
 }
 
 }  // namespace write

@@ -52,7 +52,7 @@ client::CancellationToken PlatformApi::GetApis(
         } else {
           // parse the services
           // TODO catch any exception and return as Error
-          callback(parse_result<ApisResponse, model::Apis>(response.response));
+          callback(parse_result<ApisResponse>(response.response));
         }
       };
 
@@ -80,7 +80,7 @@ PlatformApi::ApisResponse PlatformApi::GetApis(
     return client::ApiError(http_response.status, http_response.response.str());
   }
 
-  return parse_result<ApisResponse, model::Apis>(http_response.response);
+  return parse_result<ApisResponse>(http_response.response);
 }
 
 }  // namespace write

@@ -96,7 +96,7 @@ QueryApi::PartitionsResponse QueryApi::GetPartitionsbyId(
   OLP_SDK_LOG_TRACE_F(kLogTag, "GetPartitionsbyId, uri=%s, status=%d",
                       metadata_uri.c_str(), response.status);
 
-  return parse_result<PartitionsResponse, model::Partitions>(response.response);
+  return parse_result<PartitionsResponse>(response.response);
 }
 
 olp::client::HttpResponse QueryApi::QuadTreeIndex(
@@ -158,7 +158,7 @@ QueryApi::QuadTreeIndexResponse QueryApi::QuadTreeIndexVolatile(
     return client::ApiError(response.status, response.response.str());
   }
 
-  return parse_result<QuadTreeIndexResponse, model::Index>(response.response);
+  return parse_result<QuadTreeIndexResponse>(response.response);
 }
 
 }  // namespace read

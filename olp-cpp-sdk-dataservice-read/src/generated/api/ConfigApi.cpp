@@ -51,8 +51,7 @@ ConfigApi::CatalogResponse ConfigApi::GetCatalog(
   if (response.status != olp::http::HttpStatusCode::OK) {
     return client::ApiError(response.status, response.response.str());
   }
-  return parse_result<ConfigApi::CatalogResponse, model::Catalog>(
-      response.response);
+  return parse_result<ConfigApi::CatalogResponse>(response.response);
 }
 
 }  // namespace read

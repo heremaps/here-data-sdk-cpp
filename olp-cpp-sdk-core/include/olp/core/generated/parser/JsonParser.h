@@ -69,5 +69,19 @@ inline T parse(std::stringstream& json_stream) {
   return parse<T>(json_stream, res);
 }
 
+template <typename OutputResult, typename ParsingType, typename ErrorType,
+          typename... AdditionalArgs>
+OutputResult parse_result_args(std::stringstream& json_stream, ErrorType error,
+                               const AdditionalArgs&... args) {
+  bool res = true;
+  auto obj = parser::parse<ParsingType>(json_stream, res);
+
+  if (res) {
+    return OutputResult({std::move(obj), args...});
+  } else {
+    return {std::move(error)};
+  }
+}
+
 }  // namespace parser
 }  // namespace olp

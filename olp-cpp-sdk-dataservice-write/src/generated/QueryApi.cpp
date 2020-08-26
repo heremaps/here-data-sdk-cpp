@@ -86,8 +86,7 @@ client::CancellationToken QueryApi::GetPartitionsById(
       partitionsCallback(
           client::ApiError(response.status, response.response.str()));
     } else {
-      partitionsCallback(parse_result<PartitionsResponse, model::Partitions>(
-          response.response));
+      partitionsCallback(parse_result<PartitionsResponse>(response.response));
     }
   };
 

@@ -77,8 +77,7 @@ MetadataApi::LayerVersionsResponse MetadataApi::GetLayerVersions(
     return client::ApiError(api_response.status, api_response.response.str());
   }
 
-  return parse_result<LayerVersionsResponse, model::LayerVersions>(
-      api_response.response);
+  return parse_result<LayerVersionsResponse>(api_response.response);
 }
 
 MetadataApi::PartitionsResponse MetadataApi::GetPartitions(
@@ -115,8 +114,7 @@ MetadataApi::PartitionsResponse MetadataApi::GetPartitions(
     return {{api_response.status, api_response.response.str()}};
   }
 
-  return parse_result<PartitionsResponse, model::Partitions>(
-      api_response.response);
+  return parse_result<PartitionsResponse>(api_response.response);
 }
 
 MetadataApi::CatalogVersionResponse MetadataApi::GetLatestCatalogVersion(
@@ -141,8 +139,7 @@ MetadataApi::CatalogVersionResponse MetadataApi::GetLatestCatalogVersion(
     return {{api_response.status, api_response.response.str()}};
   }
 
-  return parse_result<CatalogVersionResponse, model::VersionResponse>(
-      api_response.response);
+  return parse_result<CatalogVersionResponse>(api_response.response);
 }
 
 MetadataApi::VersionsResponse MetadataApi::ListVersions(
@@ -167,8 +164,7 @@ MetadataApi::VersionsResponse MetadataApi::ListVersions(
   if (api_response.status != http::HttpStatusCode::OK) {
     return {{api_response.status, api_response.response.str()}};
   }
-  return parse_result<VersionsResponse, model::VersionInfos>(
-      api_response.response);
+  return parse_result<VersionsResponse>(api_response.response);
 }
 
 }  // namespace read

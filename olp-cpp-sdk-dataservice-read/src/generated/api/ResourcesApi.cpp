@@ -52,7 +52,7 @@ ResourcesApi::ApisResponse ResourcesApi::GetApis(
         client::ApiError(response.status, response.response.str()));
   }
 
-  return parse_result<ApisResponse, model::Apis>(response.response);
+  return parse_result<ApisResponse>(response.response);
 }
 
 }  // namespace read

@@ -57,8 +57,7 @@ client::CancellationToken ConfigApi::GetCatalog(
           catalogCallback(CatalogResponse(
               client::ApiError(response.status, response.response.str())));
         } else {
-          catalogCallback(
-              parse_result<CatalogResponse, model::Catalog>(response.response));
+          catalogCallback(parse_result<CatalogResponse>(response.response));
         }
       };
 
@@ -84,7 +83,7 @@ CatalogResponse ConfigApi::GetCatalog(const client::OlpClient& client,
   if (response.status != olp::http::HttpStatusCode::OK) {
     return client::ApiError(response.status, response.response.str());
   }
-  return parse_result<CatalogResponse, model::Catalog>(response.response);
+  return parse_result<CatalogResponse>(response.response);
 }
 
 }  // namespace write

@@ -79,8 +79,7 @@ client::CancellationToken MetadataApi::GetLayerVersions(
               client::ApiError(response.status, response.response.str()));
         } else {
           layerVersionsCallback(
-              parse_result<LayerVersionsResponse, model::LayerVersions>(
-                  response.response));
+              parse_result<LayerVersionsResponse>(response.response));
         }
       };
 
@@ -122,8 +121,7 @@ client::CancellationToken MetadataApi::GetPartitions(
       partitionsCallback(
           client::ApiError(response.status, response.response.str()));
     } else {
-      partitionsCallback(parse_result<PartitionsResponse, model::Partitions>(
-          response.response));
+      partitionsCallback(parse_result<PartitionsResponse>(response.response));
     }
   };
 
@@ -156,8 +154,7 @@ client::CancellationToken MetadataApi::GetLatestCatalogVersion(
               client::ApiError(response.status, response.response.str()));
         } else {
           catalogVersionCallback(
-              parse_result<CatalogVersionResponse, model::VersionResponse>(
-                  response.response));
+              parse_result<CatalogVersionResponse>(response.response));
         }
       };
 
