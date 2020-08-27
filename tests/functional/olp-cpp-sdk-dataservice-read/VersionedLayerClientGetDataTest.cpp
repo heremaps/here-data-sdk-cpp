@@ -41,7 +41,7 @@ const auto kPartitionsResponsePath =
     "/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test/"
     "layers/testlayer/partitions";
 
-class VersionedLayerClientGetPartitionTest : public ::testing::Test {
+class VersionedLayerClientGetDataTest : public ::testing::Test {
  protected:
   void SetUp() override {
     auto network = olp::client::OlpClientSettingsFactory::
@@ -61,7 +61,7 @@ class VersionedLayerClientGetPartitionTest : public ::testing::Test {
   std::shared_ptr<mockserver::MockServerHelper> mock_server_client_;
 };
 
-TEST_F(VersionedLayerClientGetPartitionTest, GetDataFromPartitionSync) {
+TEST_F(VersionedLayerClientGetDataTest, GetDataFromPartitionSync) {
   olp::client::HRN hrn(kTestHrn);
   auto partition = std::to_string(0);
   const auto data = mockserver::ReadDefaultResponses::GenerateData();
@@ -93,7 +93,7 @@ TEST_F(VersionedLayerClientGetPartitionTest, GetDataFromPartitionSync) {
   EXPECT_TRUE(mock_server_client_->Verify());
 }
 
-TEST_F(VersionedLayerClientGetPartitionTest, GetDataFromPartitionAsync) {
+TEST_F(VersionedLayerClientGetDataTest, GetDataFromPartitionAsync) {
   olp::client::HRN hrn(kTestHrn);
   auto partition = std::to_string(0);
   const auto data = mockserver::ReadDefaultResponses::GenerateData();
