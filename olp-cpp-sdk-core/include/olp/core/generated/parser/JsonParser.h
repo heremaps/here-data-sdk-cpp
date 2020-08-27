@@ -29,24 +29,17 @@
 
 namespace olp {
 namespace parser {
+
 template <typename T>
-inline T parse(const std::string& json, bool& res) {
+inline T parse(const std::string& json) {
   rapidjson::Document doc;
 
   doc.Parse(json.c_str());
   T result{};
-  res = false;
   if (doc.IsObject() || doc.IsArray()) {
     from_json(doc, result);
-    res = true;
   }
   return result;
-}
-
-template <typename T>
-inline T parse(const std::string& from_json) {
-  bool res = true;
-  return parse<T>(from_json, res);
 }
 
 template <typename T>
