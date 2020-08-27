@@ -26,7 +26,7 @@
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
 // clang-format off
-// Ordering Required - Parser template specializations before #include "JsonResultParser.h"
+// Ordering Required - Parser template specializations before
 #include "parser/CatalogParser.h"
 #include "JsonResultParser.h"
 // clang-format on
@@ -51,15 +51,15 @@ client::CancellationToken ConfigApi::GetCatalog(
 
   std::string catalogUri = "/catalogs/" + catalog_hrn;
 
-  client::NetworkAsyncCallback callback =
-      [catalogCallback](client::HttpResponse response) {
-        if (response.status != http::HttpStatusCode::OK) {
-          catalogCallback(CatalogResponse(
-              client::ApiError(response.status, response.response.str())));
-        } else {
-          catalogCallback(parse_result<CatalogResponse>(response.response));
-        }
-      };
+  client::NetworkAsyncCallback callback = [catalogCallback](
+                                              client::HttpResponse response) {
+    if (response.status != http::HttpStatusCode::OK) {
+      catalogCallback(CatalogResponse(
+          client::ApiError(response.status, response.response.str())));
+    } else {
+      catalogCallback(parser::parse_result<CatalogResponse>(response.response));
+    }
+  };
 
   return client->CallApi(catalogUri, "GET", queryParams, headerParams,
                          formParams, nullptr, "", callback);
@@ -83,7 +83,7 @@ CatalogResponse ConfigApi::GetCatalog(const client::OlpClient& client,
   if (response.status != olp::http::HttpStatusCode::OK) {
     return client::ApiError(response.status, response.response.str());
   }
-  return parse_result<CatalogResponse>(response.response);
+  return parser::parse_result<CatalogResponse>(response.response);
 }
 
 }  // namespace write

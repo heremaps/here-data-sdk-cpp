@@ -75,8 +75,8 @@ ResourcesApi::ApisResponse ResourcesApi::GetApis(
     return {{response.status, response.response.str()}};
   }
 
-  return parse_result<ApisResponse, Apis>(response.response,
-                                          GetExpiry(response.headers));
+  return parser::parse_result<ApisResponse, Apis>(response.response,
+                                                  GetExpiry(response.headers));
 }
 
 CancellationToken ResourcesApi::GetApis(const OlpClient& client,
@@ -92,8 +92,8 @@ CancellationToken ResourcesApi::GetApis(const OlpClient& client,
     if (response.status != olp::http::HttpStatusCode::OK) {
       callback({{response.status, response.response.str()}});
     } else {
-      callback(parse_result<ApisResponse, Apis>(response.response,
-                                                GetExpiry(response.headers)));
+      callback(parser::parse_result<ApisResponse, Apis>(
+          response.response, GetExpiry(response.headers)));
     }
   };
   return client.CallApi(resource_url, "GET", {}, header_params, {}, nullptr, "",

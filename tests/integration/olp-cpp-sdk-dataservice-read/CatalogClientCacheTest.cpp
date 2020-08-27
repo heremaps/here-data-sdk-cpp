@@ -138,7 +138,7 @@ TEST_P(CatalogClientCacheTest, GetApiInvalidJson) {
 
   ASSERT_FALSE(catalog_version_response.IsSuccessful());
   ASSERT_EQ(catalog_version_response.GetError().GetMessage(),
-            "Fail parsing responce.");
+            "Fail parsing response.");
 }
 
 TEST_P(CatalogClientCacheTest, GetCatalog) {

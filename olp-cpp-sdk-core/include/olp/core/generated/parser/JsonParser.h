@@ -21,19 +21,17 @@
 
 #include <sstream>
 #include <string>
-#include <utility>
 
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
+
 #include "ParserWrapper.h"
 
 namespace olp {
 namespace parser {
-
 template <typename T>
 inline T parse(const std::string& json) {
   rapidjson::Document doc;
-
   doc.Parse(json.c_str());
   T result{};
   if (doc.IsObject() || doc.IsArray()) {
@@ -60,20 +58,6 @@ template <typename T>
 inline T parse(std::stringstream& json_stream) {
   bool res = true;
   return parse<T>(json_stream, res);
-}
-
-template <typename OutputResult, typename ParsingType, typename ErrorType,
-          typename... AdditionalArgs>
-OutputResult parse_result_args(std::stringstream& json_stream, ErrorType error,
-                               const AdditionalArgs&... args) {
-  bool res = true;
-  auto obj = parser::parse<ParsingType>(json_stream, res);
-
-  if (res) {
-    return OutputResult({std::move(obj), args...});
-  } else {
-    return {std::move(error)};
-  }
 }
 
 }  // namespace parser

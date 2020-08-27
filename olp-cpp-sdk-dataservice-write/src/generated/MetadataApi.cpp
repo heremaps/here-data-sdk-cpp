@@ -79,7 +79,7 @@ client::CancellationToken MetadataApi::GetLayerVersions(
               client::ApiError(response.status, response.response.str()));
         } else {
           layerVersionsCallback(
-              parse_result<LayerVersionsResponse>(response.response));
+              parser::parse_result<LayerVersionsResponse>(response.response));
         }
       };
 
@@ -115,15 +115,16 @@ client::CancellationToken MetadataApi::GetPartitions(
 
   std::string metadataUri = "/layers/" + layerId + "/partitions";
 
-  client::NetworkAsyncCallback callback = [partitionsCallback](
-                                              client::HttpResponse response) {
-    if (response.status != http::HttpStatusCode::OK) {
-      partitionsCallback(
-          client::ApiError(response.status, response.response.str()));
-    } else {
-      partitionsCallback(parse_result<PartitionsResponse>(response.response));
-    }
-  };
+  client::NetworkAsyncCallback callback =
+      [partitionsCallback](client::HttpResponse response) {
+        if (response.status != http::HttpStatusCode::OK) {
+          partitionsCallback(
+              client::ApiError(response.status, response.response.str()));
+        } else {
+          partitionsCallback(
+              parser::parse_result<PartitionsResponse>(response.response));
+        }
+      };
 
   return client.CallApi(metadataUri, "GET", queryParams, headerParams,
                         formParams, nullptr, "", callback);
@@ -154,7 +155,7 @@ client::CancellationToken MetadataApi::GetLatestCatalogVersion(
               client::ApiError(response.status, response.response.str()));
         } else {
           catalogVersionCallback(
-              parse_result<CatalogVersionResponse>(response.response));
+              parser::parse_result<CatalogVersionResponse>(response.response));
         }
       };
 

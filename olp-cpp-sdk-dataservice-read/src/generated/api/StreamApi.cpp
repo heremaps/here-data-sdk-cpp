@@ -102,7 +102,7 @@ StreamApi::SubscribeApiResponse StreamApi::Subscribe(
                       metadata_uri.c_str(), http_response.status);
 
   HandleCorrelationId(http_response.headers, x_correlation_id);
-  return parse_result<SubscribeApiResponse>(http_response.response);
+  return parser::parse_result<SubscribeApiResponse>(http_response.response);
 }
 
 StreamApi::ConsumeDataApiResponse StreamApi::ConsumeData(
@@ -136,8 +136,7 @@ StreamApi::ConsumeDataApiResponse StreamApi::ConsumeData(
                       metadata_uri.c_str(), http_response.status);
 
   HandleCorrelationId(http_response.headers, x_correlation_id);
-  return parse_result<ConsumeDataApiResponse>(
-      http_response.response);
+  return parser::parse_result<ConsumeDataApiResponse>(http_response.response);
 }
 
 StreamApi::CommitOffsetsApiResponse StreamApi::CommitOffsets(

@@ -28,20 +28,23 @@
 #include <olp/core/logging/Log.h>
 
 namespace olp {
-namespace dataservice {
-namespace read {
+namespace parser {
 
 template <typename OutputResult,
           typename ParsingType = typename OutputResult::ResultType,
           typename... AdditionalArgs>
 OutputResult parse_result(std::stringstream& json_stream,
                           const AdditionalArgs&... args) {
-  return parser::parse_result_args<OutputResult, ParsingType>(
-      json_stream,
-      client::ApiError(client::ErrorCode::Unknown, "Fail parsing responce."),
-      args...);
+  bool res = true;
+  auto obj = parse<ParsingType>(json_stream, res);
+
+  if (res) {
+    return OutputResult({std::move(obj), args...});
+  } else {
+    return {
+        client::ApiError(client::ErrorCode::Unknown, "Fail parsing response.")};
+  }
 }
 
-}  // namespace read
-}  // namespace dataservice
+}  // namespace parser
 }  // namespace olp

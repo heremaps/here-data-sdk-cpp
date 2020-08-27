@@ -73,7 +73,8 @@ client::CancellationToken PublishApi::InitPublication(
           return;
         }
 
-        callback(parse_result<InitPublicationResponse>(http_response.response));
+        callback(parser::parse_result<InitPublicationResponse>(
+            http_response.response));
       });
 
   return cancel_token;
@@ -108,8 +109,7 @@ InitPublicationResponse PublishApi::InitPublication(
     return InitPublicationResponse(
         client::ApiError(http_response.status, http_response.response.str()));
   }
-  return parse_result<InitPublicationResponse>(
-      http_response.response);
+  return parser::parse_result<InitPublicationResponse>(http_response.response);
 }
 
 client::CancellationToken PublishApi::UploadPartitions(
@@ -280,7 +280,7 @@ client::CancellationToken PublishApi::GetPublication(
           return;
         }
 
-        callback(parse_result<GetPublicationResponse>(
+        callback(parser::parse_result<GetPublicationResponse>(
             http_response.response));
       });
 

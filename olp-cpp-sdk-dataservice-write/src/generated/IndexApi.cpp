@@ -24,7 +24,7 @@
 
 #include <olp/core/client/HttpResponse.h>
 // clang-format off
-// Ordering Required - Parser template specializations before #include "JsonResultParser.h"
+// Ordering Required - Parser template specializations before "JsonResultParser.h"
 #include <generated/serializer/UpdateIndexRequestSerializer.h>
 #include <generated/serializer/IndexInfoSerializer.h>
 #include <generated/serializer/JsonSerializer.h>

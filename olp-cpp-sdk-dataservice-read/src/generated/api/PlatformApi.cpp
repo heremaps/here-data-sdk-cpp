@@ -53,7 +53,7 @@ PlatformApi::ApisResponse PlatformApi::GetApis(
     return ApisResponse(
         client::ApiError(response.status, response.response.str()));
   }
-  return parse_result<ApisResponse>(response.response);
+  return parser::parse_result<ApisResponse>(response.response);
 }
 }  // namespace read
 }  // namespace dataservice

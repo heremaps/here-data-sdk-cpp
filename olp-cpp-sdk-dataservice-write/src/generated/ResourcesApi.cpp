@@ -53,7 +53,7 @@ client::CancellationToken ResourcesApi::GetApis(
         } else {
           // parse the services
           // TODO catch any exception and return as Error
-          callback(parse_result<ApisResponse>(response.response));
+          callback(parser::parse_result<ApisResponse>(response.response));
         }
       };
   return client->CallApi(resource_url, "GET", query_params, header_params,
@@ -80,7 +80,7 @@ ResourcesApi::ApisResponse ResourcesApi::GetApis(
     return client::ApiError(http_response.status, http_response.response.str());
   }
 
-  return parse_result<ApisResponse>(http_response.response);
+  return parser::parse_result<ApisResponse>(http_response.response);
 }
 
 }  // namespace write
