@@ -32,21 +32,18 @@
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include <numeric>
 #include <string>
-#include <testutils/CustomParameters.hpp>
 // clang-format off
 #include "generated/serializer/PartitionsSerializer.h"
 #include "generated/serializer/JsonSerializer.h"
 // clang-format on
-#include <testutils/CustomParameters.hpp>
 #include "ReadDefaultResponses.h"
 #include "ApiDefaultResponses.h"
 #include "MockServerHelper.h"
+#include "SetupMockServer.h"
 #include "Utils.h"
 
 namespace {
 
-const auto kAppId = "id";
-const auto kAppSecret = "secret";
 const auto kTestHrn = "hrn:here:data::olp-here-test:hereos-internal-test";
 const auto kPartitionsResponsePath =
     "/metadata/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test/"
@@ -55,53 +52,17 @@ const auto kPartitionsResponsePath =
 class VersionedLayerClientTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    const auto kMockServerHost =
-        CustomParameters::getArgument("mock_server_host");
-    const auto kMockServerPort =
-        std::stoi(CustomParameters::getArgument("mock_server_port"));
     auto network = olp::client::OlpClientSettingsFactory::
         CreateDefaultNetworkRequestHandler();
-
-    olp::authentication::Settings auth_settings({kAppId, kAppSecret});
-    auth_settings.network_request_handler = network;
-
-    // setup proxy
-    auth_settings.network_proxy_settings =
-        olp::http::NetworkProxySettings()
-            .WithHostname(kMockServerHost)
-            .WithPort(kMockServerPort)
-            .WithType(olp::http::NetworkProxySettings::Type::HTTP);
-    olp::authentication::TokenProviderDefault provider(auth_settings);
-    olp::client::AuthenticationSettings auth_client_settings;
-    auth_client_settings.provider = provider;
-
-    settings_ = std::make_shared<olp::client::OlpClientSettings>();
-    settings_->network_request_handler = network;
-    settings_->authentication_settings = auth_client_settings;
-    settings_->task_scheduler =
-        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
-
-    // setup proxy
-    settings_->proxy_settings =
-        olp::http::NetworkProxySettings()
-            .WithHostname(kMockServerHost)
-            .WithPort(kMockServerPort)
-            .WithType(olp::http::NetworkProxySettings::Type::HTTP);
-    SetUpMockServer(network);
+    settings_ = mockserver::SetupMockServer::CreateSettings(network);
+    mock_server_client_ =
+        mockserver::SetupMockServer::CreateMockServer(network, kTestHrn);
   }
 
   void TearDown() override {
     auto network = std::move(settings_->network_request_handler);
     settings_.reset();
     mock_server_client_.reset();
-  }
-
-  void SetUpMockServer(std::shared_ptr<olp::http::Network> network) {
-    // create client to set mock server expectations
-    olp::client::OlpClientSettings olp_client_settings;
-    olp_client_settings.network_request_handler = network;
-    mock_server_client_ = std::make_shared<mockserver::MockServerHelper>(
-        olp_client_settings, kTestHrn);
   }
 
   std::shared_ptr<olp::client::OlpClientSettings> settings_;
@@ -196,7 +157,6 @@ TEST_F(VersionedLayerClientTest, GetAggregatedData) {
     const auto data = mockserver::ReadDefaultResponses::GenerateData();
 
     {
-      SetUpMockServer(settings_->network_request_handler);
       mock_server_client_->MockLookupResourceApiResponse(
           mockserver::ApiDefaultResponses::GenerateResourceApisResponse(
               kTestHrn));
@@ -236,7 +196,6 @@ TEST_F(VersionedLayerClientTest, GetAggregatedData) {
     const auto data = mockserver::ReadDefaultResponses::GenerateData();
 
     {
-      SetUpMockServer(settings_->network_request_handler);
       mock_server_client_->MockLookupResourceApiResponse(
           mockserver::ApiDefaultResponses::GenerateResourceApisResponse(
               kTestHrn));
@@ -274,7 +233,6 @@ TEST_F(VersionedLayerClientTest, GetAggregatedData) {
     const auto data = mockserver::ReadDefaultResponses::GenerateData();
 
     {
-      SetUpMockServer(settings_->network_request_handler);
       mock_server_client_->MockLookupResourceApiResponse(
           mockserver::ApiDefaultResponses::GenerateResourceApisResponse(
               kTestHrn));

@@ -26,10 +26,10 @@
 #include <olp/dataservice/read/FetchOptions.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include <string>
-#include <testutils/CustomParameters.hpp>
 #include "ApiDefaultResponses.h"
 #include "MockServerHelper.h"
 #include "ReadDefaultResponses.h"
+#include "SetupMockServer.h"
 #include "Utils.h"
 
 namespace {
@@ -39,38 +39,17 @@ const auto kTestHrn = "hrn:here:data::olp-here-test:hereos-internal-test";
 class VersionedLayerClientPrefetchTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    const auto kMockServerHost =
-        CustomParameters::getArgument("mock_server_host");
-    const auto kMockServerPort =
-        std::stoi(CustomParameters::getArgument("mock_server_port"));
     auto network = olp::client::OlpClientSettingsFactory::
         CreateDefaultNetworkRequestHandler();
-
-    settings_ = std::make_shared<olp::client::OlpClientSettings>();
-    settings_->network_request_handler = network;
-    settings_->task_scheduler =
-        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
-    // setup proxy
-    settings_->proxy_settings =
-        olp::http::NetworkProxySettings()
-            .WithHostname(kMockServerHost)
-            .WithPort(kMockServerPort)
-            .WithType(olp::http::NetworkProxySettings::Type::HTTP);
-    SetUpMockServer(network);
+    settings_ = mockserver::SetupMockServer::CreateSettings(network);
+    mock_server_client_ =
+        mockserver::SetupMockServer::CreateMockServer(network, kTestHrn);
   }
 
   void TearDown() override {
     auto network = std::move(settings_->network_request_handler);
     settings_.reset();
     mock_server_client_.reset();
-  }
-
-  void SetUpMockServer(std::shared_ptr<olp::http::Network> network) {
-    // create client to set mock server expectations
-    olp::client::OlpClientSettings olp_client_settings;
-    olp_client_settings.network_request_handler = network;
-    mock_server_client_ = std::make_shared<mockserver::MockServerHelper>(
-        olp_client_settings, kTestHrn);
   }
 
   std::shared_ptr<olp::client::OlpClientSettings> settings_;
@@ -98,6 +77,7 @@ TEST_F(VersionedLayerClientPrefetchTest, Prefetch) {
                              .WithMinLevel(12)
                              .WithMaxLevel(15);
     {
+      mock_server_client_->MockAuth();
       mock_server_client_->MockLookupResourceApiResponse(
           mockserver::ApiDefaultResponses::GenerateResourceApisResponse(
               kTestHrn));
