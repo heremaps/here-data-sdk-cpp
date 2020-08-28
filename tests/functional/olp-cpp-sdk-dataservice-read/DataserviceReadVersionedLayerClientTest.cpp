@@ -89,36 +89,6 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
   std::shared_ptr<olp::client::OlpClientSettings> settings_;
 };
 
-TEST_F(DataserviceReadVersionedLayerClientTest,
-       GetDataFromPartitionLatestVersionAsync) {
-  auto catalog = olp::client::HRN::FromString(
-      CustomParameters::getArgument("dataservice_read_test_versioned_catalog"));
-  auto layer =
-      CustomParameters::getArgument("dataservice_read_test_versioned_layer");
-
-  auto catalog_client =
-      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          catalog, layer, boost::none, *settings_);
-  ASSERT_TRUE(catalog_client);
-
-  std::promise<dataservice_read::DataResponse> promise;
-  std::future<dataservice_read::DataResponse> future = promise.get_future();
-  auto partition = CustomParameters::getArgument(
-      "dataservice_read_test_versioned_partition");
-  auto token = catalog_client->GetData(
-      olp::dataservice::read::DataRequest().WithPartitionId(partition),
-      [&promise](dataservice_read::DataResponse response) {
-        promise.set_value(response);
-      });
-
-  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
-  dataservice_read::DataResponse response = future.get();
-
-  EXPECT_SUCCESS(response);
-  ASSERT_TRUE(response.GetResult() != nullptr);
-  ASSERT_NE(response.GetResult()->size(), 0u);
-}
-
 TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchWideRange) {
   const auto catalog =
       olp::client::HRN::FromString(CustomParameters::getArgument(
@@ -410,25 +380,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithInvalidHrn) {
 
   ASSERT_FALSE(data_response.IsSuccessful());
   ASSERT_EQ(http::HttpStatusCode::FORBIDDEN,
-            data_response.GetError().GetHttpStatusCode());
-}
-
-TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithInvalidDataHandle) {
-  olp::client::HRN hrn(GetTestCatalog());
-
-  auto catalog_client =
-      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", boost::none, *settings_);
-
-  auto request = olp::dataservice::read::DataRequest();
-  request.WithDataHandle("invalidDataHandle");
-  auto data_response = GetExecutionTime<dataservice_read::DataResponse>([&] {
-    auto future = catalog_client->GetData(request);
-    return future.GetFuture().get();
-  });
-
-  ASSERT_FALSE(data_response.IsSuccessful());
-  ASSERT_EQ(http::HttpStatusCode::NOT_FOUND,
             data_response.GetError().GetHttpStatusCode());
 }
 
