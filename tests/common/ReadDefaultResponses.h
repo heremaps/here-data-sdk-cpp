@@ -45,22 +45,30 @@ class ReadDefaultResponses {
     return version_responce;
   }
 
+  static std::string GenerateDataHandle(const std::string& partition) {
+    return partition + "-data-handle";
+  }
+
+  static olp::dataservice::read::model::Partition GeneratePartitionResponse(
+      const std::string& id) {
+    olp::dataservice::read::model::Partition partition;
+    partition.SetPartition(id);
+    partition.SetDataHandle(GenerateDataHandle(id));
+    return partition;
+  }
+
   static olp::dataservice::read::model::Partitions GeneratePartitionsResponse(
       size_t size = 10) {
-    std::vector<olp::dataservice::read::model::Partition> partitions_vect(size);
-    for (size_t i = 0; i < partitions_vect.size(); i++) {
-      partitions_vect[i].SetPartition(std::to_string(i));
-      partitions_vect[i].SetDataHandle(std::to_string(i) + "-" +
-                                       std::to_string(i * 100));
+    std::vector<olp::dataservice::read::model::Partition> partitions_vect;
+    partitions_vect.reserve(size);
+    for (size_t i = 0; i < size; i++) {
+      partitions_vect.emplace_back(
+          GeneratePartitionResponse(std::to_string(i)));
     }
 
     olp::dataservice::read::model::Partitions partitions;
     partitions.SetPartitions(partitions_vect);
     return partitions;
-  }
-
-  static std::string GenerateDataHandle(const std::string& partition) {
-    return partition + "-data-handle";
   }
 
   static std::string GenerateData() {

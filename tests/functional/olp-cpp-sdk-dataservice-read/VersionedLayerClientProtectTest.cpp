@@ -24,15 +24,15 @@
 #include <olp/core/porting/make_unique.h>
 #include <olp/core/utils/Dir.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
+#include <testutils/CustomParameters.hpp>
 #include "ApiDefaultResponses.h"
 #include "MockServerHelper.h"
 #include "ReadDefaultResponses.h"
+#include "SetupMockServer.h"
 #include "Utils.h"
 
 namespace {
 
-const auto kMockServerHost = "localhost";
-const auto kMockServerPort = 1080;
 const auto kTestHrn = "hrn:here:data::olp-here-test:hereos-internal-test";
 
 class VersionedLayerClientProtectTest : public ::testing::Test {
@@ -57,11 +57,9 @@ class VersionedLayerClientProtectTest : public ::testing::Test {
     settings_->network_request_handler = network;
     // setup proxy
     settings_->proxy_settings =
-        olp::http::NetworkProxySettings()
-            .WithHostname(kMockServerHost)
-            .WithPort(kMockServerPort)
-            .WithType(olp::http::NetworkProxySettings::Type::HTTP);
-    SetUpMockServer(network);
+        mockserver::SetupMockServer::CreateProxySettings();
+    mock_server_client_ =
+        mockserver::SetupMockServer::CreateMockServer(network, kTestHrn);
   }
 
   void TearDown() override {
@@ -69,14 +67,6 @@ class VersionedLayerClientProtectTest : public ::testing::Test {
     settings_.reset();
     mock_server_client_.reset();
     olp::utils::Dir::remove(cache_path_);
-  }
-
-  void SetUpMockServer(std::shared_ptr<olp::http::Network> network) {
-    // create client to set mock server expectations
-    olp::client::OlpClientSettings olp_client_settings;
-    olp_client_settings.network_request_handler = network;
-    mock_server_client_ = std::make_shared<mockserver::MockServerHelper>(
-        olp_client_settings, kTestHrn);
   }
 
   std::shared_ptr<olp::client::OlpClientSettings> settings_;
