@@ -27,7 +27,7 @@
 // clang-format off
 #include "generated/parser/CatalogParser.h"
 #include "generated/parser/VersionResponseParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
+#include "JsonResultParser.h"
 #include "generated/serializer/CatalogSerializer.h"
 #include "generated/serializer/VersionResponseSerializer.h"
 #include "generated/serializer/JsonSerializer.h"

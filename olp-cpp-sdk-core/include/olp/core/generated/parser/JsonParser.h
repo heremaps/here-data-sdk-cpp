@@ -41,17 +41,24 @@ inline T parse(const std::string& json) {
 }
 
 template <typename T>
-inline T parse(std::stringstream& json_stream) {
+inline T parse(std::stringstream& json_stream, bool& res) {
+  res = false;
   rapidjson::Document doc;
   rapidjson::IStreamWrapper stream(json_stream);
   doc.ParseStream(stream);
   T result{};
   if (doc.IsObject() || doc.IsArray()) {
     from_json(doc, result);
+    res = true;
   }
   return result;
 }
 
-}  // namespace parser
+template <typename T>
+inline T parse(std::stringstream& json_stream) {
+  bool res = true;
+  return parse<T>(json_stream, res);
+}
 
+}  // namespace parser
 }  // namespace olp

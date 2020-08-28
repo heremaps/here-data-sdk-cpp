@@ -117,6 +117,30 @@ TEST_P(CatalogClientCacheTest, GetApi) {
       << ApiErrorToString(catalog_version_response.GetError());
 }
 
+TEST_P(CatalogClientCacheTest, GetApiInvalidJson) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+      .Times(1);
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
+      .Times(1)
+      .WillRepeatedly(
+          ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
+                             R"jsonString({"version"4})jsonString"));
+
+  auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
+
+  auto request = read::CatalogVersionRequest().WithStartVersion(-1);
+
+  auto future = catalog_client->GetLatestVersion(request);
+  auto catalog_version_response = future.GetFuture().get();
+
+  ASSERT_FALSE(catalog_version_response.IsSuccessful());
+  ASSERT_EQ(catalog_version_response.GetError().GetMessage(),
+            "Fail parsing response.");
+}
+
 TEST_P(CatalogClientCacheTest, GetCatalog) {
   olp::client::HRN hrn(GetTestCatalog());
 

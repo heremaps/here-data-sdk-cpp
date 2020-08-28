@@ -47,7 +47,7 @@
 // clang-format off
 #include <generated/parser/CatalogParser.h>
 #include <generated/parser/PublishDataRequestParser.h>
-#include <olp/core/generated/parser/JsonParser.h>
+#include "JsonResultParser.h"
 // clang-format on
 
 namespace olp {

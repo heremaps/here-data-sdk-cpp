@@ -27,7 +27,7 @@
 
 // clang-format off
 #include "generated/parser/PartitionsParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
+#include "JsonResultParser.h"
 // clang-format on
 
 namespace {
@@ -87,7 +87,7 @@ client::CancellationToken QueryApi::GetPartitionsById(
               client::ApiError(response.status, response.response.str()));
         } else {
           partitionsCallback(
-              olp::parser::parse<model::Partitions>(response.response));
+              parser::parse_result<PartitionsResponse>(response.response));
         }
       };
 

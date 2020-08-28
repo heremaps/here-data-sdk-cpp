@@ -38,7 +38,7 @@ class CancellationContext;
 class ResourcesApi {
  public:
   using ApisResult = std::pair<Apis, boost::optional<time_t>>;
-  using ApisResponse = client::ApiResponse<ApisResult, client::ApiError>;
+  using ApisResponse = ApiResponse<ApisResult, ApiError>;
   using ApisCallback = std::function<void(ApisResponse)>;
 
   /**

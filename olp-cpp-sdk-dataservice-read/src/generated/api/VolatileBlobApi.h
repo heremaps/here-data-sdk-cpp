@@ -32,7 +32,7 @@ namespace olp {
 namespace client {
 class OlpClient;
 class CancellationContext;
-}
+}  // namespace client
 
 namespace dataservice {
 namespace read {
@@ -56,11 +56,10 @@ class VolatileBlobApi {
    *
    * @return Data response.
    */
-  static DataResponse GetVolatileBlob(const client::OlpClient& client,
-                                      const std::string& layer_id,
-                                      const std::string& data_handle,
-                                      boost::optional<std::string> billing_tag,
-                                      const client::CancellationContext& context);
+  static DataResponse GetVolatileBlob(
+      const client::OlpClient& client, const std::string& layer_id,
+      const std::string& data_handle, boost::optional<std::string> billing_tag,
+      const client::CancellationContext& context);
 };
 
 }  // namespace read

@@ -27,7 +27,7 @@
 #include <olp/core/client/OlpClient.h>
 // clang-format off
 #include "generated/parser/ApiParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
+#include "JsonResultParser.h"
 // clang-format on
 
 namespace olp {
@@ -44,17 +44,17 @@ client::CancellationToken PlatformApi::GetApis(
   std::string platform_url =
       "/platform/apis/" + service + "/" + service_version;
 
-  client::NetworkAsyncCallback client_callback = [callback](
-                                              client::HttpResponse response) {
-    if (response.status != olp::http::HttpStatusCode::OK) {
-        callback(ApisResponse(
-          client::ApiError(response.status, response.response.str())));
-    } else {
-      // parse the services
-      // TODO catch any exception and return as Error
-        callback(ApisResponse(parser::parse<model::Apis>(response.response)));
-    }
-  };
+  client::NetworkAsyncCallback client_callback =
+      [callback](client::HttpResponse response) {
+        if (response.status != olp::http::HttpStatusCode::OK) {
+          callback(ApisResponse(
+              client::ApiError(response.status, response.response.str())));
+        } else {
+          // parse the services
+          // TODO catch any exception and return as Error
+          callback(parser::parse_result<ApisResponse>(response.response));
+        }
+      };
 
   return client->CallApi(platform_url, "GET", query_params, header_params,
                          form_params, nullptr, "", client_callback);
@@ -80,7 +80,7 @@ PlatformApi::ApisResponse PlatformApi::GetApis(
     return client::ApiError(http_response.status, http_response.response.str());
   }
 
-  return ApisResponse(parser::parse<model::Apis>(http_response.response));
+  return parser::parse_result<ApisResponse>(http_response.response);
 }
 
 }  // namespace write

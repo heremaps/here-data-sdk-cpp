@@ -329,6 +329,21 @@ TEST(ParserTest, Partitions) {
   ASSERT_EQ(2, *partitions.GetPartitions().at(0).GetVersion());
 }
 
+TEST(ParserTest, PartitionsInvalid) {
+  std::string json_input =
+      "{\"partitions\":[{\"version\":4,\"partition\":\"5901357\",\"layer\":"
+      "\"base\",\"dataHandle\":\"base5901357}]}";
+
+  auto start_time = std::chrono::high_resolution_clock::now();
+  auto partitions =
+      olp::parser::parse<olp::dataservice::read::model::Partitions>(json_input);
+  auto end = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> time = end - start_time;
+  std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
+
+  ASSERT_EQ(0u, partitions.GetPartitions().size());
+}
+
 TEST(ParserTest, VersionResponse) {
   std::string json_input =
       "{\

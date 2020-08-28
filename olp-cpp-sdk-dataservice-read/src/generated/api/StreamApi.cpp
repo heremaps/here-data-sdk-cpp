@@ -30,7 +30,7 @@
 #include "generated/parser/MessagesParser.h"
 #include "generated/parser/StreamOffsetParser.h"
 #include "generated/parser/SubscribeResponseParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
+#include "JsonResultParser.h"
 #include "generated/serializer/ConsumerPropertiesSerializer.h"
 #include "generated/serializer/StreamOffsetsSerializer.h"
 #include "generated/serializer/JsonSerializer.h"
@@ -102,15 +102,14 @@ StreamApi::SubscribeApiResponse StreamApi::Subscribe(
                       metadata_uri.c_str(), http_response.status);
 
   HandleCorrelationId(http_response.headers, x_correlation_id);
-  return parser::parse<model::SubscribeResponse>(http_response.response);
+  return parser::parse_result<SubscribeApiResponse>(http_response.response);
 }
 
 StreamApi::ConsumeDataApiResponse StreamApi::ConsumeData(
     const client::OlpClient& client, const std::string& layer_id,
     const boost::optional<std::string>& subscription_id,
     const boost::optional<std::string>& mode,
-    const client::CancellationContext& context,
-    std::string& x_correlation_id) {
+    const client::CancellationContext& context, std::string& x_correlation_id) {
   const std::string metadata_uri = "/layers/" + layer_id + "/partitions";
 
   std::multimap<std::string, std::string> query_params;
@@ -137,7 +136,7 @@ StreamApi::ConsumeDataApiResponse StreamApi::ConsumeData(
                       metadata_uri.c_str(), http_response.status);
 
   HandleCorrelationId(http_response.headers, x_correlation_id);
-  return parser::parse<model::Messages>(http_response.response);
+  return parser::parse_result<ConsumeDataApiResponse>(http_response.response);
 }
 
 StreamApi::CommitOffsetsApiResponse StreamApi::CommitOffsets(

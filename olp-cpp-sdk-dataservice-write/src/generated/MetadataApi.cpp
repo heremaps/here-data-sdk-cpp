@@ -30,7 +30,7 @@
 #include "generated/parser/LayerVersionsParser.h"
 #include "generated/parser/PartitionsParser.h"
 #include "generated/parser/VersionResponseParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
+#include "JsonResultParser.h"
 // clang-format on
 
 namespace {
@@ -79,7 +79,7 @@ client::CancellationToken MetadataApi::GetLayerVersions(
               client::ApiError(response.status, response.response.str()));
         } else {
           layerVersionsCallback(
-              olp::parser::parse<model::LayerVersions>(response.response));
+              parser::parse_result<LayerVersionsResponse>(response.response));
         }
       };
 
@@ -122,7 +122,7 @@ client::CancellationToken MetadataApi::GetPartitions(
               client::ApiError(response.status, response.response.str()));
         } else {
           partitionsCallback(
-              olp::parser::parse<model::Partitions>(response.response));
+              parser::parse_result<PartitionsResponse>(response.response));
         }
       };
 
@@ -155,7 +155,7 @@ client::CancellationToken MetadataApi::GetLatestCatalogVersion(
               client::ApiError(response.status, response.response.str()));
         } else {
           catalogVersionCallback(
-              olp::parser::parse<model::VersionResponse>(response.response));
+              parser::parse_result<CatalogVersionResponse>(response.response));
         }
       };
 

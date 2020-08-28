@@ -74,7 +74,7 @@ class PrefetchTilesRepository {
    *
    * Removes tiles that do not belong to the minimum and maximum levels.
    * Removes tiles that are not a child or a parent of the requested tiles.
-   * 
+   *
    * @param request Your request.
    * @param tiles The input tiles.
    *
@@ -89,7 +89,7 @@ class PrefetchTilesRepository {
    * Removes tiles that are not requested.
    * Adds tiles that are missing (to notify you that they are not found).
    * If you requested aggregated tiles, `FilterTilesByList` scans for parents.
-   * 
+   *
    * @param request Your request.
    * @param tiles The input tiles.
    *

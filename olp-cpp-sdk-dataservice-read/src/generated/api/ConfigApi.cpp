@@ -26,16 +26,15 @@
 #include <olp/core/client/OlpClient.h>
 // clang-format off
 #include "generated/parser/CatalogParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
+#include "JsonResultParser.h"
 // clang-format on
 
 namespace olp {
 namespace dataservice {
 namespace read {
-using namespace olp::client;
 
 ConfigApi::CatalogResponse ConfigApi::GetCatalog(
-    const OlpClient& client, const std::string& catalog_hrn,
+    const client::OlpClient& client, const std::string& catalog_hrn,
     boost::optional<std::string> billing_tag,
     client::CancellationContext context) {
   std::multimap<std::string, std::string> header_params;
@@ -52,7 +51,7 @@ ConfigApi::CatalogResponse ConfigApi::GetCatalog(
   if (response.status != olp::http::HttpStatusCode::OK) {
     return client::ApiError(response.status, response.response.str());
   }
-  return olp::parser::parse<model::Catalog>(response.response);
+  return parser::parse_result<ConfigApi::CatalogResponse>(response.response);
 }
 
 }  // namespace read

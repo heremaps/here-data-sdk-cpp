@@ -19,15 +19,15 @@
 
 #include "ResourcesApi.h"
 
-#include <memory>
 #include <map>
+#include <memory>
 #include <sstream>
 
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
 // clang-format off
 #include "generated/parser/ApiParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
+#include "JsonResultParser.h"
 // clang-format on
 
 namespace olp {
@@ -52,8 +52,7 @@ ResourcesApi::ApisResponse ResourcesApi::GetApis(
         client::ApiError(response.status, response.response.str()));
   }
 
-  return ApisResponse(
-      parser::parse<olp::dataservice::read::model::Apis>(response.response));
+  return parser::parse_result<ApisResponse>(response.response);
 }
 
 }  // namespace read
