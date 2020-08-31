@@ -59,6 +59,13 @@ class VersionedLayerClientGetDataTest : public ::testing::Test {
     return "/query/v1/catalogs/" + hrn + "/layers/" + layer + "/partitions";
   }
 
+  std::string GenerateGetDataPath(const std::string& hrn,
+                                  const std::string& layer,
+                                  const std::string& data_handle) {
+    return "/blob/v1/catalogs/" + hrn + "/layers/" + layer + "/data/" +
+           data_handle;
+  }
+
   std::shared_ptr<olp::client::OlpClientSettings> settings_;
   std::shared_ptr<mockserver::MockServerHelper> mock_server_client_;
 };
@@ -226,6 +233,81 @@ TEST_F(VersionedLayerClientGetDataTest, GetDataWithPartitionIdVersion2) {
   std::string data_string(data_response.GetResult()->begin(),
                           data_response.GetResult()->end());
   ASSERT_EQ(data, data_string);
+  EXPECT_TRUE(mock_server_client_->Verify());
+}
+
+TEST_F(VersionedLayerClientGetDataTest,
+       GetDataFromPartitionLatestVersionAsync) {
+  const olp::client::HRN kHrn(kTestHrn);
+  const auto kPartitionName = "269";
+  const std::string tile_data =
+      mockserver::ReadDefaultResponses::GenerateData();
+
+  auto partition = mockserver::ReadDefaultResponses::GeneratePartitionResponse(
+      kPartitionName);
+  auto data_handle = partition.GetDataHandle();
+  olp::dataservice::read::model::Partitions partitions;
+  partitions.SetPartitions({partition});
+
+  {
+    mock_server_client_->MockAuth();
+    mock_server_client_->MockLookupResourceApiResponse(
+        mockserver::ApiDefaultResponses::GenerateResourceApisResponse(
+            kTestHrn));
+    mock_server_client_->MockGetVersionResponse(
+        mockserver::ReadDefaultResponses::GenerateVersionResponse(kVersion));
+    mock_server_client_->MockGetResponse(
+        partitions, GenerateGetPartitionsPath(kTestHrn, kLayer));
+    mock_server_client_->MockGetResponse(kLayer, data_handle, tile_data);
+  }
+
+  olp::dataservice::read::VersionedLayerClient client(kHrn, kLayer, boost::none,
+                                                      *settings_);
+
+  std::promise<olp::dataservice::read::DataResponse> promise;
+  std::future<olp::dataservice::read::DataResponse> future =
+      promise.get_future();
+
+  auto token = client.GetData(
+      olp::dataservice::read::DataRequest().WithPartitionId(kPartitionName),
+      [&promise](olp::dataservice::read::DataResponse response) {
+        promise.set_value(response);
+      });
+
+  auto response = future.get();
+  auto result = response.GetResult();
+
+  ASSERT_TRUE(response.IsSuccessful());
+  ASSERT_EQ(result->size(), tile_data.size());
+  EXPECT_TRUE(std::equal(tile_data.begin(), tile_data.end(), result->begin()));
+  EXPECT_TRUE(mock_server_client_->Verify());
+}
+
+TEST_F(VersionedLayerClientGetDataTest, GetDataWithInvalidDataHandle) {
+  const olp::client::HRN kHrn(kTestHrn);
+  constexpr auto kDataHandle = "invalidDataHandle";
+
+  {
+    mock_server_client_->MockAuth();
+    mock_server_client_->MockLookupResourceApiResponse(
+        mockserver::ApiDefaultResponses::GenerateResourceApisResponse(
+            kTestHrn));
+    mock_server_client_->MockGetError(
+        {olp::http::HttpStatusCode::NOT_FOUND, "Not found"},
+        GenerateGetDataPath(kTestHrn, kLayer, kDataHandle));
+  }
+
+  olp::dataservice::read::VersionedLayerClient client(kHrn, kLayer, boost::none,
+                                                      *settings_);
+
+  auto request = olp::dataservice::read::DataRequest();
+  request.WithDataHandle(kDataHandle);
+  auto future = client.GetData(request).GetFuture();
+  auto response = future.get();
+
+  ASSERT_FALSE(response.IsSuccessful());
+  ASSERT_EQ(olp::http::HttpStatusCode::NOT_FOUND,
+            response.GetError().GetHttpStatusCode());
   EXPECT_TRUE(mock_server_client_->Verify());
 }
 
