@@ -18,6 +18,7 @@
 
 set(OLP_SDK_NETWORK_TESTS_SOURCES
     ./ConcurrencyTest.cpp
+    ./DataCallbackTest.cpp
     ./DestructionTest.cpp
     ./NetworkTestBase.cpp
     ./TimeoutTest.cpp

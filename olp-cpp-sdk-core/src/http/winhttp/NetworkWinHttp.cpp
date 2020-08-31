@@ -838,7 +838,7 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
       OLP_SDK_LOG_TRACE(kLogTag, "Received " << data_len << " bytes for id="
                                              << handle->request_id);
       if (data_len) {
-        std::uint64_t total_offset = 0;
+        std::uint64_t total_offset = request_result.count;
 
         if (handle->data_callback) {
           handle->data_callback((const uint8_t*)data_buffer, total_offset,

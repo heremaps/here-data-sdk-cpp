@@ -71,12 +71,18 @@ class ReadDefaultResponses {
     return partitions;
   }
 
-  static std::string GenerateData() {
-    std::string result =
+  static std::string GenerateData(size_t length = 128u) {
+    std::string letters =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     std::random_device device;
     std::mt19937 generator(device());
-    std::shuffle(result.begin(), result.end(), generator);
+    std::uniform_int_distribution<unsigned int> dis(0u, letters.length() - 1);
+
+    std::string result;
+    result.resize(length);
+    for (auto i = 0u; i < length; ++i) {
+      result[i] += letters[dis(generator)];
+    }
 
     return result;
   }
