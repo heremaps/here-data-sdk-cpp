@@ -71,7 +71,7 @@ class ReadDefaultResponses {
     return partitions;
   }
 
-  static std::string GenerateData(size_t length = 128u) {
+  static std::string GenerateData(size_t length = 64u) {
     std::string letters =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     std::random_device device;
