@@ -81,7 +81,8 @@ class BlobApi {
    */
   static client::CancellationToken PutBlob(
       const client::OlpClient& client, const std::string& layer_id,
-      const std::string& content_type, const std::string& data_handle,
+      const std::string& content_type, const std::string& content_encoding,
+      const std::string& data_handle,
       const std::shared_ptr<std::vector<unsigned char>>& data,
       const boost::optional<std::string>& billing_tag,
       PutBlobCallback callback);
@@ -91,7 +92,8 @@ class BlobApi {
    */
   static PutBlobResponse PutBlob(
       const client::OlpClient& client, const std::string& layer_id,
-      const std::string& content_type, const std::string& data_handle,
+      const std::string& content_type, const std::string& content_encoding,
+      const std::string& data_handle,
       const std::shared_ptr<std::vector<unsigned char>>& data,
       const boost::optional<std::string>& billing_tag,
       client::CancellationContext cancel_contex);

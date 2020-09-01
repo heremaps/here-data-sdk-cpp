@@ -27,6 +27,7 @@
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/PendingRequests.h>
 #include "CancellationTokenList.h"
+#include "CatalogSettings.h"
 #include "generated/model/Catalog.h"
 
 #include <condition_variable>
@@ -108,19 +109,17 @@ class VersionedLayerClientImpl
       CheckDataExistsCallback callback);
 
  private:
-  std::string FindContentTypeForLayerId(const std::string& layer_id);
+  using BillingTag = boost::optional<std::string>;
 
   client::CancellationToken InitApiClients(
       std::shared_ptr<client::CancellationContext> cancel_context,
       InitApiClientsCallback callback);
 
-  void InitCatalogModel(
-      std::shared_ptr<client::CancellationContext> cancel_context,
-      const InitCatalogModelCallback& callback);
-
   void UploadBlob(std::string publication_id,
                   std::shared_ptr<model::PublishPartition> partition,
-                  std::string data_handle, std::string layer_id,
+                  std::string data_handle, std::string content_type,
+                  std::string content_encoding, std::string layer_id,
+                  BillingTag billing_tag,
                   std::shared_ptr<client::CancellationContext> cancel_context,
                   const UploadBlobCallback& callback);
 
@@ -133,7 +132,7 @@ class VersionedLayerClientImpl
   client::HRN catalog_;
   client::OlpClientSettings settings_;
 
-  model::Catalog catalog_model_;
+  CatalogSettings catalog_settings_;
 
   std::shared_ptr<client::OlpClient> apiclient_blob_;
   std::shared_ptr<client::OlpClient> apiclient_config_;

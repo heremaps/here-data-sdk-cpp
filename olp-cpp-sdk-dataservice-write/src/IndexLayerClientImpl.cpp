@@ -46,9 +46,9 @@ namespace write {
 
 IndexLayerClientImpl::IndexLayerClientImpl(client::HRN catalog,
                                            client::OlpClientSettings settings)
-    : catalog_(std::move(catalog)),
-      catalog_model_(),
-      settings_(std::move(settings)),
+    : catalog_(catalog),
+      catalog_settings_(catalog, settings),
+      settings_(settings),
       apiclient_config_(nullptr),
       apiclient_blob_(nullptr),
       apiclient_index_(nullptr),
@@ -118,71 +118,15 @@ olp::client::CancellationToken IndexLayerClientImpl::InitApiClients(
     cancel_context->ExecuteOrCancelled(indexApi_function, cancel_function);
   };
 
-  auto blobApi_function = [=]() -> olp::client::CancellationToken {
-    return ApiClientLookup::LookupApi(self->apiclient_blob_, "blob", "v1",
-                                      self->catalog_, blobApi_callback);
-  };
-
-  auto configApi_callback = [=](ApiClientLookup::ApisResponse apis) {
-    if (!apis.IsSuccessful()) {
-      callback(std::move(apis.GetError()));
-      std::lock_guard<std::mutex> lg{self->mutex_};
-      self->init_in_progress_ = false;
-      self->cond_var_.notify_one();
-      return;
-    }
-    self->apiclient_config_->SetBaseUrl(apis.GetResult().at(0).GetBaseUrl());
-
-    cancel_context->ExecuteOrCancelled(blobApi_function, cancel_function);
-  };
-
   ul.unlock();
 
-  return ApiClientLookup::LookupApi(apiclient_config_, "config", "v1", catalog_,
-                                    configApi_callback);
+  return ApiClientLookup::LookupApi(self->apiclient_blob_, "blob", "v1",
+                                     self->catalog_, blobApi_callback);
 }
 
 void IndexLayerClientImpl::CancelPendingRequests() {
   pending_requests_->CancelAll();
   tokenList_.CancelAll();
-}
-
-client::CancellationToken IndexLayerClientImpl::InitCatalogModel(
-    const model::PublishIndexRequest& /*request*/,
-    const InitCatalogModelCallback& callback) {
-  if (!catalog_model_.GetId().empty()) {
-    callback(boost::none);
-    return client::CancellationToken();
-  }
-
-  auto self = shared_from_this();
-  return ConfigApi::GetCatalog(
-      apiclient_config_, catalog_.ToString(), boost::none,
-      [=](CatalogResponse catalog_response) mutable {
-        if (!catalog_response.IsSuccessful()) {
-          callback(std::move(catalog_response.GetError()));
-          return;
-        }
-
-        self->catalog_model_ = catalog_response.MoveResult();
-
-        callback(boost::none);
-      });
-}
-
-std::string IndexLayerClientImpl::FindContentTypeForLayerId(
-    const std::string& layer_id) {
-  std::string content_type;
-  for (auto layer : catalog_model_.GetLayers()) {
-    if (layer.GetId() == layer_id) {
-      // TODO optimization opportunity - cache
-      // content-type for layer when found for O(1)
-      // subsequent lookup.
-      content_type = layer.GetContentType();
-      break;
-    }
-  }
-  return content_type;
 }
 
 client::CancellableFuture<PublishIndexResponse>
@@ -252,22 +196,31 @@ client::CancellationToken IndexLayerClientImpl::PublishIndex(
   };
 
   auto put_blob_function =
-      [=](std::string content_type) -> client::CancellationToken {
+      [=](std::string content_type,
+          std::string content_encoding) -> client::CancellationToken {
     return BlobApi::PutBlob(*self->apiclient_blob_, request.GetLayerId(),
-                            content_type, data_handle, request.GetData(),
-                            request.GetBillingTag(), put_blob_callback);
+                            content_type, content_encoding, data_handle,
+                            request.GetData(), request.GetBillingTag(),
+                            put_blob_callback);
   };
 
-  auto init_catalog_model_callback =
-      [=](boost::optional<client::ApiError> init_catalog_model_error) {
-        if (init_catalog_model_error) {
+  auto init_api_client_callback =
+      [=](boost::optional<client::ApiError> init_api_error) {
+        if (init_api_error) {
           self->tokenList_.RemoveTask(op_id);
-          callback(PublishIndexResponse(init_catalog_model_error.get()));
+          callback(PublishIndexResponse(init_api_error.get()));
           return;
         }
-        auto content_type =
-            self->FindContentTypeForLayerId(request.GetLayerId());
-        if (content_type.empty()) {
+
+        auto layer_settings_response = self->catalog_settings_.GetLayerSettings(
+            *cancel_context, request.GetBillingTag(), request.GetLayerId());
+        if (!layer_settings_response.IsSuccessful()) {
+          self->tokenList_.RemoveTask(op_id);
+          callback(PublishIndexResponse(layer_settings_response.GetError()));
+          return;
+        }
+        auto layer_settings = layer_settings_response.GetResult();
+        if (layer_settings.content_type.empty()) {
           auto errmsg = boost::format(
                             "Unable to find the Layer ID (%1%) "
                             "provided in the PublishIndexRequest in the "
@@ -280,23 +233,9 @@ client::CancellationToken IndexLayerClientImpl::PublishIndex(
         }
 
         cancel_context->ExecuteOrCancelled(
-            std::bind(put_blob_function, content_type), cancel_function);
-      };
-
-  auto init_catalog_model_function = [=]() -> client::CancellationToken {
-    return self->InitCatalogModel(request, init_catalog_model_callback);
-  };
-
-  auto init_api_client_callback =
-      [=](boost::optional<client::ApiError> init_api_error) {
-        if (init_api_error) {
-          self->tokenList_.RemoveTask(op_id);
-          callback(PublishIndexResponse(init_api_error.get()));
-          return;
-        }
-
-        cancel_context->ExecuteOrCancelled(init_catalog_model_function,
-                                           cancel_function);
+            std::bind(put_blob_function, layer_settings.content_type,
+                      layer_settings.content_encoding),
+            cancel_function);
       };
 
   auto init_api_client_function = [=]() -> client::CancellationToken {

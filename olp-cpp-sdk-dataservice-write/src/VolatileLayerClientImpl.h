@@ -30,6 +30,7 @@
 
 #include <olp/dataservice/write/VolatileLayerClient.h>
 #include "CancellationTokenList.h"
+#include "CatalogSettings.h"
 #include "generated/model/Catalog.h"
 
 namespace olp {
@@ -42,8 +43,6 @@ class Partition;
 }  // namespace model
 
 using InitApiClientsCallback =
-    std::function<void(boost::optional<client::ApiError>)>;
-using InitCatalogModelCallback =
     std::function<void(boost::optional<client::ApiError>)>;
 using DataHandleMap = std::map<std::string, std::string>;
 using DataHandleMapResponse =
@@ -106,12 +105,6 @@ class VolatileLayerClientImpl
       std::shared_ptr<client::CancellationContext> cancel_context,
       InitApiClientsCallback callback);
 
-  client::CancellationToken InitCatalogModel(
-      const model::PublishPartitionDataRequest& request,
-      const InitCatalogModelCallback& callback);
-
-  std::string FindContentTypeForLayerId(const std::string& layer_id);
-
   client::CancellationToken GetDataHandleMap(
       const std::string& layerId, const std::vector<std::string>& partitionIds,
       boost::optional<int64_t> version,
@@ -121,9 +114,10 @@ class VolatileLayerClientImpl
 
  private:
   client::HRN catalog_;
-  model::Catalog catalog_model_;
 
   client::OlpClientSettings settings_;
+
+  CatalogSettings catalog_settings_;
 
   std::shared_ptr<client::OlpClient> apiclient_config_;
   std::shared_ptr<client::OlpClient> apiclient_blob_;

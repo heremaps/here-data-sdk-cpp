@@ -67,6 +67,8 @@ set(OLP_SDK_DATASERVICE_WRITE_SOURCES
     # ./src/BackgroundTaskCollection.h
     ./src/CancellationTokenList.cpp
     ./src/CancellationTokenList.h
+    ./src/CatalogSettings.cpp
+    ./src/CatalogSettings.h
     # ./src/DefaultFlushEventListener.cpp
     # ./src/DefaultFlushEventListener.h
     # ./src/FlushEventListener.h

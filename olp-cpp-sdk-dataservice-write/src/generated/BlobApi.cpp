@@ -37,7 +37,8 @@ namespace write {
 
 client::CancellationToken BlobApi::PutBlob(
     const client::OlpClient& client, const std::string& layer_id,
-    const std::string& content_type, const std::string& data_handle,
+    const std::string& content_type, const std::string& content_encoding,
+    const std::string& data_handle,
     const std::shared_ptr<std::vector<unsigned char>>& data,
     const boost::optional<std::string>& billing_tag, PutBlobCallback callback) {
   std::multimap<std::string, std::string> header_params;
@@ -45,6 +46,9 @@ client::CancellationToken BlobApi::PutBlob(
   std::multimap<std::string, std::string> form_params;
 
   header_params.insert(std::make_pair("Accept", "application/json"));
+  if (!content_encoding.empty()) {
+    header_params.insert(std::make_pair("Content-Encoding", content_encoding));
+  }
 
   if (billing_tag) {
     query_params.insert(
@@ -71,7 +75,8 @@ client::CancellationToken BlobApi::PutBlob(
 
 PutBlobResponse BlobApi::PutBlob(
     const client::OlpClient& client, const std::string& layer_id,
-    const std::string& content_type, const std::string& data_handle,
+    const std::string& content_type, const std::string& content_encoding,
+    const std::string& data_handle,
     const std::shared_ptr<std::vector<unsigned char>>& data,
     const boost::optional<std::string>& billing_tag,
     client::CancellationContext cancel_context) {
@@ -80,6 +85,10 @@ PutBlobResponse BlobApi::PutBlob(
   std::multimap<std::string, std::string> form_params;
 
   header_params.insert(std::make_pair("Accept", "application/json"));
+
+  if (!content_encoding.empty()) {
+      header_params.insert(std::make_pair("Content-Encoding", content_encoding));
+  }
 
   if (billing_tag) {
     query_params.insert(

@@ -54,7 +54,6 @@ void PublishCancelledAssertions(
             result.GetError().GetHttpStatusCode());
   EXPECT_EQ(olp::client::ErrorCode::Cancelled,
             result.GetError().GetErrorCode());
-  EXPECT_EQ("Cancelled", result.GetError().GetMessage());
 }
 
 class IndexLayerClientTest : public ::testing::Test {
@@ -182,11 +181,11 @@ TEST_F(IndexLayerClientTest, PublishData) {
   {
     testing::InSequence dummy;
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INDEX), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
         .Times(1);
@@ -213,11 +212,11 @@ TEST_F(IndexLayerClientTest, DeleteData) {
   {
     testing::InSequence dummy;
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INDEX), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
         .Times(1);
@@ -260,8 +259,6 @@ TEST_F(IndexLayerClientTest, UpdateIndex) {
   {
     testing::InSequence dummy;
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INDEX), _, _, _, _))
@@ -301,15 +298,15 @@ TEST_F(IndexLayerClientTest, PublishDataCancelConfig) {
   {
     testing::InSequence dummy;
 
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INDEX), _, _, _, _))
+        .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
         .Times(1)
         .WillOnce(testing::Invoke(std::move(send_mock)));
     EXPECT_CALL(*network_, Cancel(request_id))
         .WillOnce(testing::Invoke(std::move(cancel_mock)));
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-        .Times(0);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INDEX), _, _, _, _))
-        .Times(0);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
         .Times(0);
     EXPECT_CALL(*network_,
@@ -346,14 +343,14 @@ TEST_F(IndexLayerClientTest, PublishDataCancelBlob) {
   {
     testing::InSequence dummy;
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
         .Times(1)
         .WillOnce(testing::Invoke(std::move(send_mock)));
     EXPECT_CALL(*network_, Cancel(request_id))
         .WillOnce(testing::Invoke(std::move(cancel_mock)));
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INDEX), _, _, _, _))
+        .Times(0);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
         .Times(0);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
         .Times(0);
@@ -392,8 +389,6 @@ TEST_F(IndexLayerClientTest, PublishDataCancelIndex) {
   {
     testing::InSequence dummy;
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INDEX), _, _, _, _))
@@ -401,6 +396,8 @@ TEST_F(IndexLayerClientTest, PublishDataCancelIndex) {
         .WillOnce(testing::Invoke(std::move(send_mock)));
     EXPECT_CALL(*network_, Cancel(request_id))
         .WillOnce(testing::Invoke(std::move(cancel_mock)));
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .Times(0);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
         .Times(0);
     EXPECT_CALL(*network_,
@@ -438,11 +435,11 @@ TEST_F(IndexLayerClientTest, PublishDataCancelGetCatalog) {
   {
     testing::InSequence dummy;
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INDEX), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
         .Times(1)
@@ -483,11 +480,11 @@ TEST_F(IndexLayerClientTest, PublishDataCancelPutBlob) {
   {
     testing::InSequence dummy;
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
-        .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INDEX), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
         .Times(1);
