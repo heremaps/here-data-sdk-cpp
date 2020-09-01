@@ -22,9 +22,9 @@ set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     CatalogRepositoryTest.cpp
     DataCacheRepositoryTest.cpp
     DataRepositoryTest.cpp
+    JsonResultParserTest.cpp
     MetadataApiTest.cpp
     ParserTest.cpp
-    JsonResultParserTest.cpp
     PartitionsCacheRepositoryTest.cpp
     PartitionsRepositoryTest.cpp
     PrefetchRepositoryTest.cpp
