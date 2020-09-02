@@ -31,8 +31,6 @@
 
 namespace {
 
-using namespace testing;
-
 TEST(LogTest, Levels) {
   EXPECT_TRUE(olp::logging::Log::configure(
       olp::logging::Configuration::createDefault()));
@@ -126,8 +124,18 @@ TEST(LogTest, DifferentLevelsForDifferentAppenders) {
 }
 
 TEST(LogTest, DifferentLevelsForConsoleAndFileLogging) {
-  auto console_appender = std::make_shared<olp::logging::ConsoleAppender>();
-  auto file_appender = std::make_shared<olp::logging::FileAppender>("test.txt");
+  olp::logging::MessageFormatter formatter(
+      {olp::logging::MessageFormatter::Element(
+           olp::logging::MessageFormatter::ElementType::Level, "%s "),
+       olp::logging::MessageFormatter::Element(
+           olp::logging::MessageFormatter::ElementType::Tag, "%s - "),
+       olp::logging::MessageFormatter::Element(
+           olp::logging::MessageFormatter::ElementType::Message)});
+
+  auto console_appender =
+      std::make_shared<olp::logging::ConsoleAppender>(formatter);
+  auto file_appender = std::make_shared<olp::logging::FileAppender>(
+      "test.txt", false, formatter);
 
   ASSERT_TRUE(file_appender->isValid());
   EXPECT_EQ("test.txt", file_appender->getFileName());
