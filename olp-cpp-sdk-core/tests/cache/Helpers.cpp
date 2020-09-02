@@ -39,7 +39,7 @@
 namespace {
 #if defined(_WIN32) && !defined(__MINGW32__)
 
-bool MakeDirectoryContentReadonly(const TCHAR* utfdirPath, bool readonly) {
+bool MakeDirectoryContentReadonlyWin(const TCHAR* utfdirPath, bool readonly) {
   HANDLE hFind;  // file handle
   WIN32_FIND_DATA FindFileData;
 
@@ -72,7 +72,7 @@ bool MakeDirectoryContentReadonly(const TCHAR* utfdirPath, bool readonly) {
       StringCchCat(filename, _countof(filename), FindFileData.cFileName);
       if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
         // we have found a directory, recurse
-        if (!MakeDirectoryContentReadonly(filename, readonly)) {
+        if (!MakeDirectoryContentReadonlyWin(filename, readonly)) {
           bSearch = false;
           break;
         }
@@ -141,7 +141,7 @@ bool MakeDirectoryContentReadonly(const std::string& path, bool readonly) {
   const TCHAR* n_path = path.c_str();
 #endif  // _UNICODE
 
-  return MakeDirectoryContentReadonly(n_path, readonly);
+  return MakeDirectoryContentReadonlyWin(n_path, readonly);
 
 #else
 
