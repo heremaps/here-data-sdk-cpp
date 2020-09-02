@@ -32,20 +32,25 @@ static const char* limitString(std::string& tempStr, const char* str,
   if (limit < 0) {
     int length = static_cast<int>(std::strlen(str));
     int start = std::max(length + limit, 0);
-    if (start == 0) return str;
+    if (start == 0) {
+      return str;
+    }
 
     if (length - start > 3) {
       tempStr = "...";
       start += 3;
-    } else
+    } else {
       tempStr.clear();
+    }
 
     tempStr.append(str, start, length - start);
     return tempStr.c_str();
   } else if (limit > 0) {
     std::size_t strLen = std::strlen(str);
     std::size_t finalLength = std::min(strLen, static_cast<std::size_t>(limit));
-    if (finalLength == strLen) return str;
+    if (finalLength == strLen) {
+      return str;
+    }
 
     bool addElipses = false;
     if (finalLength > 3) {
@@ -54,10 +59,13 @@ static const char* limitString(std::string& tempStr, const char* str,
     }
 
     tempStr.assign(str, finalLength);
-    if (addElipses) tempStr += "...";
+    if (addElipses) {
+      tempStr += "...";
+    }
     return tempStr.c_str();
-  } else
+  } else {
     return str;
+  }
 }
 
 MessageFormatter::Element::Element(ElementType type_) : type(type_), limit(0) {
@@ -95,9 +103,10 @@ const MessageFormatter::LevelNameMap& MessageFormatter::defaultLevelNameMap() {
 }
 
 MessageFormatter MessageFormatter::createDefault() {
-  return MessageFormatter({Element(ElementType::Level, "%s "),
-                           Element(ElementType::Tag, "%s - "),
-                           Element(ElementType::Message)});
+  return MessageFormatter(
+      {Element(ElementType::Time, "%T"), Element(ElementType::TimeMs, ".%.3u "),
+       Element(ElementType::Level, "%s "), Element(ElementType::Tag, "%s - "),
+       Element(ElementType::Message)});
 }
 
 std::string MessageFormatter::format(const LogMessage& message) const {
@@ -118,7 +127,9 @@ std::string MessageFormatter::format(const LogMessage& message) const {
             m_levelNameMap[static_cast<std::size_t>(message.level)].c_str());
         break;
       case ElementType::Tag:
-        if (!message.tag || !*message.tag) continue;
+        if (!message.tag || !*message.tag) {
+          continue;
+        }
 
         curElement = curElementBuffer.format(
             element.format.c_str(),

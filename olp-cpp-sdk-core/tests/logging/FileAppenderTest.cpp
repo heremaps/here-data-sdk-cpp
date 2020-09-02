@@ -36,25 +36,33 @@
 
 namespace {
 
-using namespace olp::logging;
-using namespace testing;
+namespace logging = olp::logging;
 
 TEST(FileAppenderTest, Default) {
   {
+    logging::MessageFormatter formatter(
+        {logging::MessageFormatter::Element(
+             logging::MessageFormatter::ElementType::Level, "%s "),
+         logging::MessageFormatter::Element(
+             logging::MessageFormatter::ElementType::Tag, "%s - "),
+         logging::MessageFormatter::Element(
+             logging::MessageFormatter::ElementType::Message)});
+
     SCOPED_TRACE("Create appender");
-    auto appender = std::make_shared<FileAppender>("test.txt");
+    auto appender =
+        std::make_shared<logging::FileAppender>("test.txt", false, formatter);
     ASSERT_TRUE(appender->isValid());
     EXPECT_EQ("test.txt", appender->getFileName());
 
-    Configuration configuration{};
+    logging::Configuration configuration{};
     configuration.addAppender(appender);
-    Log::configure(configuration);
-    Log::setLevel(Level::Info);
+    logging::Log::configure(configuration);
+    logging::Log::setLevel(logging::Level::Info);
 
     OLP_SDK_LOG_INFO("test", "test 1");
     OLP_SDK_LOG_WARNING("test", "test 2");
 
-    Log::configure(Configuration::createDefault());
+    logging::Log::configure(logging::Configuration::createDefault());
   }
 
   {
@@ -82,42 +90,52 @@ TEST(FileAppenderTest, Default) {
 }
 
 TEST(FileAppenderTest, NonExistingFile) {
-  auto appender = std::make_shared<FileAppender>("asdf/foo/bar");
+  auto appender = std::make_shared<logging::FileAppender>("asdf/foo/bar");
   EXPECT_FALSE(appender->isValid());
 }
 
 TEST(FileAppenderTest, Append) {
+  logging::MessageFormatter formatter(
+      {logging::MessageFormatter::Element(
+           logging::MessageFormatter::ElementType::Level, "%s "),
+       logging::MessageFormatter::Element(
+           logging::MessageFormatter::ElementType::Tag, "%s - "),
+       logging::MessageFormatter::Element(
+           logging::MessageFormatter::ElementType::Message)});
+
   {
     SCOPED_TRACE("Create appender");
-    auto appender = std::make_shared<FileAppender>("test.txt", true);
+    auto appender =
+        std::make_shared<logging::FileAppender>("test.txt", true, formatter);
     ASSERT_TRUE(appender->isValid());
     EXPECT_EQ("test.txt", appender->getFileName());
     EXPECT_TRUE(appender->getAppendFile());
 
-    Configuration configuration{};
+    logging::Configuration configuration{};
     configuration.addAppender(appender);
-    Log::configure(configuration);
-    Log::setLevel(Level::Info);
+    logging::Log::configure(configuration);
+    logging::Log::setLevel(logging::Level::Info);
 
     OLP_SDK_LOG_INFO("test", "test 1");
     OLP_SDK_LOG_WARNING("test", "test 2");
 
-    Log::configure(Configuration::createDefault());
+    logging::Log::configure(logging::Configuration::createDefault());
   }
 
   {
     SCOPED_TRACE("Re-create appender");
-    auto appender = std::make_shared<FileAppender>("test.txt", true);
+    auto appender =
+        std::make_shared<logging::FileAppender>("test.txt", true, formatter);
     EXPECT_TRUE(appender->isValid());
 
-    Configuration configuration{};
+    logging::Configuration configuration{};
     configuration.addAppender(appender);
-    Log::configure(configuration);
+    logging::Log::configure(configuration);
 
     OLP_SDK_LOG_ERROR("test", "test 3");
     OLP_SDK_LOG_FATAL("test", "test 4");
 
-    Log::configure(Configuration::createDefault());
+    logging::Log::configure(logging::Configuration::createDefault());
   }
 
   {
