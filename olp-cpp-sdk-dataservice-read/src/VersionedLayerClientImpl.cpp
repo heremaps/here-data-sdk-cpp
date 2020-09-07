@@ -269,7 +269,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
                                                  inner_context);
         };
 
-        auto filter = [=](QueryResult tiles) mutable {
+        auto filter = [=](QueryItemsResult<geo::TileKey> tiles) mutable {
           if (request_only_input_tiles) {
             return repository.FilterTilesByList(request, std::move(tiles));
           } else {
@@ -310,7 +310,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
             });
 
         context.ExecuteOrCancelled([&]() {
-          return PrefetchHelper::Prefetch(
+          return PrefetchHelper::Prefetch<geo::TileKey>(
               std::move(roots), std::move(query), std::move(filter),
               std::move(download), std::move(callback),
               std::move(status_callback), settings.task_scheduler,
