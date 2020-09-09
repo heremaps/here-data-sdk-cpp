@@ -3343,38 +3343,6 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedData) {
     ASSERT_EQ(error.GetErrorCode(), client::ErrorCode::NotFound);
     testing::Mock::VerifyAndClearExpectations(network_mock_.get());
   }
-
-  {
-    SCOPED_TRACE("Parent");
-    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
-                                     HTTP_RESPONSE_LOOKUP));
-    EXPECT_CALL(*network_mock_,
-                Send(IsGetRequest(URL_QUADKEYS_AGGREGATE_92259), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
-                                     HTTP_RESPONSE_QUADKEYS_92259_PARENT));
-    EXPECT_CALL(
-        *network_mock_,
-        Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA_23618364), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
-                                     "some_data"));
-
-    auto client = read::VersionedLayerClient(kCatalog, kTestLayer, kTestVersion,
-                                             settings_);
-    auto future =
-        client.GetAggregatedData(read::TileRequest().WithTileKey(tile_key))
-            .GetFuture();
-
-    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
-    const auto response = future.get();
-    const auto& result = response.GetResult();
-
-    ASSERT_TRUE(response.IsSuccessful());
-    ASSERT_TRUE(result.GetData());
-    ASSERT_EQ(result.GetTile(), tile_key.ChangedLevelTo(2));
-    testing::Mock::VerifyAndClearExpectations(network_mock_.get());
-  }
-
   {
     SCOPED_TRACE("Empty quad tree");
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))

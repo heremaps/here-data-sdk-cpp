@@ -68,7 +68,7 @@ class PartitionsRepository {
                                         const std::string& partition);
 
   PartitionResponse GetAggregatedTile(const std::string& layer,
-                                      const TileRequest& request,
+                                      TileRequest request,
                                       boost::optional<int64_t> version,
                                       client::CancellationContext context);
 

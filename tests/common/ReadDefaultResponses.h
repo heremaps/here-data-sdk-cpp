@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <map>
 #include <random>
 #include <string>
 #include <utility>
@@ -26,15 +27,15 @@
 
 #include <olp/core/geo/tiling/TileKey.h>
 
-#include <olp/core/generated/serializer/SerializerWrapper.h>
-#include <rapidjson/document.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
-
 #include "olp/dataservice/read/model/Partitions.h"
 #include "olp/dataservice/read/model/VersionResponse.h"
 
 namespace mockserver {
+
+struct TileMetadata {
+  std::string data_handle;
+  boost::optional<int32_t> version;
+};
 
 class ReadDefaultResponses {
  public:
@@ -71,25 +72,40 @@ class ReadDefaultResponses {
     return partitions;
   }
 
-  static std::string GenerateData(size_t length = 64u) {
-    std::string letters =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    std::random_device device;
-    std::mt19937 generator(device());
-    std::uniform_int_distribution<unsigned int> dis(0u, letters.length() - 1);
-
-    std::string result;
-    result.resize(length);
-    for (auto i = 0u; i < length; ++i) {
-      result[i] += letters[dis(generator)];
-    }
-
-    return result;
-  }
+  static std::string GenerateData(size_t length = 64u);
 
   static std::string GenerateQuadTreeResponse(
       olp::geo::TileKey root_tile, std::uint32_t depth,
       const std::vector<std::uint32_t>& available_levels);
+};
+
+class QuadTreeBuilder {
+ public:
+  // if version is set, the quad tree is considered to be a versioned type.
+  explicit QuadTreeBuilder(olp::geo::TileKey root_tile,
+                           boost::optional<int32_t> base_version);
+
+  QuadTreeBuilder& WithParent(olp::geo::TileKey parent, std::string datahandle,
+                              boost::optional<int32_t> version = boost::none);
+  QuadTreeBuilder& FillParents();
+
+  // tile is represented as a normal tilekey
+  QuadTreeBuilder& WithSubQuad(olp::geo::TileKey tile, std::string datahandle,
+                               boost::optional<int32_t> version = boost::none);
+
+  // valid depth 0..4
+  QuadTreeBuilder& FillSubquads(uint32_t depth);
+
+  std::string BuildJson() const;
+
+  olp::geo::TileKey Root() const;
+
+ protected:
+  olp::geo::TileKey root_tile_;
+  boost::optional<int32_t> base_version_;
+
+  std::map<std::uint64_t, TileMetadata> sub_quads_;
+  std::map<std::uint64_t, TileMetadata> parent_quads_;
 };
 
 }  // namespace mockserver
