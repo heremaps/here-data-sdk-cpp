@@ -34,7 +34,7 @@
 #include <olp/dataservice/read/CatalogVersionRequest.h>
 #include "Common.h"
 #include "ExtendedApiResponseHelpers.h"
-#include "PrefetchJob.h"
+#include "PrefetchHelper.h"
 #include "ProtectDependencyResolver.h"
 #include "ReleaseDependencyResolver.h"
 #include "generated/api/QueryApi.h"

@@ -37,7 +37,7 @@
 #include "repositories/PartitionsRepository.h"
 #include "repositories/PrefetchTilesRepository.h"
 
-#include "PrefetchJob.h"
+#include "PrefetchHelper.h"
 
 namespace olp {
 namespace dataservice {
@@ -270,7 +270,7 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
             });
 
         context.ExecuteOrCancelled([&]() {
-          return PrefetchHelper::Prefetch<geo::TileKey>(
+          return PrefetchHelper::Prefetch<geo::TileKey, PrefetchTilesResult>(
               std::move(roots), std::move(query), std::move(filter),
               std::move(download), std::move(callback), nullptr,
               settings.task_scheduler, pending_requests);
