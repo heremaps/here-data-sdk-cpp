@@ -270,7 +270,7 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
             });
 
         context.ExecuteOrCancelled([&]() {
-          return PrefetchHelper::Prefetch<geo::TileKey, PrefetchTilesResult>(
+          return PrefetchHelper::Prefetch<geo::TileKey, geo::TileKey>(
               std::move(roots), std::move(query), std::move(filter),
               std::move(download), std::move(callback), nullptr,
               settings.task_scheduler, pending_requests);

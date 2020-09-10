@@ -310,7 +310,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
             });
 
         context.ExecuteOrCancelled([&]() {
-          return PrefetchHelper::Prefetch<geo::TileKey>(
+          return PrefetchHelper::Prefetch<geo::TileKey, geo::TileKey>(
               std::move(roots), std::move(query), std::move(filter),
               std::move(download), std::move(callback),
               std::move(status_callback), settings.task_scheduler,

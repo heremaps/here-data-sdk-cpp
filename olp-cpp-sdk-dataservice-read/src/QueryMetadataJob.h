@@ -38,9 +38,9 @@ using QueryItemsResponse =
     ExtendedApiResponse<QueryItemsResult<ItemType>, client::ApiError,
                         client::NetworkStatistics>;
 
-template <typename ItemType>
+template <typename ItemType, typename QueryType>
 using QueryItemsFunc = std::function<QueryItemsResponse<ItemType>(
-    ItemType, client::CancellationContext)>;
+    QueryType, client::CancellationContext)>;
 
 template <typename ItemType>
 using FilterItemsFunc =
@@ -49,11 +49,12 @@ using FilterItemsFunc =
 template <typename PrefetchItemsResult>
 using PrefetchItemsResponseCallback = Callback<PrefetchItemsResult>;
 
-template <typename ItemType, typename PrefetchResult>
+template <typename ItemType, typename QueryType, typename PrefetchResult>
 class QueryMetadataJob {
  public:
   QueryMetadataJob(
-      QueryItemsFunc<ItemType> query, FilterItemsFunc<ItemType> filter,
+      QueryItemsFunc<ItemType, QueryType> query,
+      FilterItemsFunc<ItemType> filter,
       std::shared_ptr<DownloadItemsJob<ItemType, PrefetchResult>> download_job,
       std::shared_ptr<thread::TaskScheduler> task_scheduler,
       std::shared_ptr<client::PendingRequests> pending_requests,
@@ -67,7 +68,7 @@ class QueryMetadataJob {
 
   void Initialize(size_t query_count) { query_count_ = query_count; }
 
-  QueryItemsResponse<ItemType> Query(ItemType root,
+  QueryItemsResponse<ItemType> Query(QueryType root,
                                      client::CancellationContext context) {
     return query_(root, context);
   }
@@ -143,7 +144,7 @@ class QueryMetadataJob {
   }
 
  private:
-  QueryItemsFunc<ItemType> query_;
+  QueryItemsFunc<ItemType, QueryType> query_;
   FilterItemsFunc<ItemType> filter_;
   size_t query_count_{0};
   bool canceled_{false};

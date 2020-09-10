@@ -39,9 +39,10 @@ using PrefetchItemsResponseCallback = Callback<PrefetchItemsResult>;
 
 class PrefetchHelper {
  public:
-  template <typename ItemType, typename PrefetchResult>
+  template <typename ItemType, typename QueryType, typename PrefetchResult>
   static client::CancellationToken Prefetch(
-      const std::vector<ItemType>& roots, QueryItemsFunc<ItemType> query,
+      const std::vector<QueryType>& roots,
+      QueryItemsFunc<ItemType, QueryType> query,
       FilterItemsFunc<ItemType> filter, DownloadFunc download,
       Callback<PrefetchResult> user_callback,
       PrefetchStatusCallback status_callback,
@@ -55,7 +56,7 @@ class PrefetchHelper {
             std::move(status_callback));
 
     auto query_job =
-        std::make_shared<QueryMetadataJob<ItemType, PrefetchResult>>(
+        std::make_shared<QueryMetadataJob<ItemType, QueryType, PrefetchResult>>(
             std::move(query), std::move(filter), download_job, task_scheduler,
             pending_requests, execution_context);
 
@@ -67,7 +68,7 @@ class PrefetchHelper {
     execution_context.ExecuteOrCancelled([&]() {
       TokenHelper::VectorOfTokens tokens;
       std::transform(std::begin(roots), std::end(roots),
-                     std::back_inserter(tokens), [&](ItemType root) {
+                     std::back_inserter(tokens), [&](QueryType root) {
                        return AddTask(
                            task_scheduler, pending_requests,
                            [=](client::CancellationContext context) {
