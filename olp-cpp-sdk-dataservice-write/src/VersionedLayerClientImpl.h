@@ -115,19 +115,18 @@ class VersionedLayerClientImpl
       std::shared_ptr<client::CancellationContext> cancel_context,
       InitApiClientsCallback callback);
 
-  void UploadBlob(std::string publication_id,
-                  std::shared_ptr<model::PublishPartition> partition,
-                  std::string data_handle, std::string content_type,
-                  std::string content_encoding, std::string layer_id,
-                  BillingTag billing_tag,
-                  std::shared_ptr<client::CancellationContext> cancel_context,
-                  const UploadBlobCallback& callback);
+  UploadBlobResponse UploadBlob(const model::PublishPartition& partition,
+                                const std::string& data_handle,
+                                const std::string& content_type,
+                                const std::string& content_encoding,
+                                const std::string& layer_id,
+                                BillingTag billing_tag,
+                                client::CancellationContext context);
 
-  void UploadPartition(
-      std::string publication_id,
-      std::shared_ptr<model::PublishPartition> partition, std::string layer_id,
-      std::shared_ptr<client::CancellationContext> cancel_context,
-      const UploadPartitionCallback& callback);
+  UploadPartitionResponse UploadPartition(
+      const std::string& publication_id,
+      const model::PublishPartition& partition, const std::string& layer_id,
+      client::CancellationContext context);
 
   client::HRN catalog_;
   client::OlpClientSettings settings_;

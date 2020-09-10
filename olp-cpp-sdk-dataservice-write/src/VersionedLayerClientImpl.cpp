@@ -465,195 +465,103 @@ olp::client::CancellationToken VersionedLayerClientImpl::PublishToBatch(
     const model::Publication& pub,
     const model::PublishPartitionDataRequest& request,
     PublishPartitionDataCallback callback) {
-  std::string publication_id = pub.GetId().value_or("");
-  if (publication_id.empty()) {
-    callback(client::ApiError(client::ErrorCode::InvalidArgument,
-                              "Invalid publication", true));
-    return {};
-  }
-
-  std::string layer_id = request.GetLayerId();
-  if (layer_id.empty()) {
-    callback(client::ApiError(client::ErrorCode::InvalidArgument,
-                              "Invalid request", true));
-    return {};
-  }
-
-  const auto data_handle = GenerateUuid();
-  std::shared_ptr<model::PublishPartition> partition =
-      std::make_shared<model::PublishPartition>();
-  partition->SetPartition(request.GetPartitionId().value_or(""));
-  partition->SetData(request.GetData());
-  partition->SetDataHandle(data_handle);
-
-  auto self = shared_from_this();
-  auto cancel_context = std::make_shared<client::CancellationContext>();
-  auto id = tokenList_.GetNextId();
-  auto cancel_function = [=]() {
-    self->tokenList_.RemoveTask(id);
-    callback(client::ApiError(client::ErrorCode::Cancelled,
-                              "Operation cancelled.", true));
-  };
-
-  auto uploadPartition_callback = [=](UploadPartitionResponse response) {
-    self->tokenList_.RemoveTask(id);
-    if (!response.IsSuccessful()) {
-      callback(std::move(response.GetError()));
-    } else {
-      model::ResponseOkSingle res;
-      res.SetTraceID(partition->GetPartition().value_or(""));
-      callback(std::move(res));
+  auto publish_task =
+      [=](client::CancellationContext context) -> PublishPartitionDataResponse {
+    if (!pub.GetId()) {
+      return {{client::ErrorCode::InvalidArgument,
+               "Invalid publication: publication ID missing", true}};
     }
-  };
+    const auto& publication_id = pub.GetId().get();
 
-  auto uploadBlob_callback = [=](UploadBlobResponse response) {
-    if (!response.IsSuccessful()) {
-      self->tokenList_.RemoveTask(id);
-      callback(std::move(response.GetError()));
-    } else {
-      self->UploadPartition(publication_id, partition, layer_id, cancel_context,
-                            uploadPartition_callback);
+    const auto& layer_id = request.GetLayerId();
+    if (layer_id.empty()) {
+      return {{client::ErrorCode::InvalidArgument,
+               "Invalid publication: layer ID missing", true}};
     }
-  };
 
-  auto catalogModel_callback = [=](boost::optional<client::ApiError> error) {
-    if (error) {
-      self->tokenList_.RemoveTask(id);
-      callback(std::move(*error));
-    } else {
+    const auto data_handle = GenerateUuid();
+    model::PublishPartition partition;
+    partition.SetPartition(request.GetPartitionId().value_or(""));
+    partition.SetData(request.GetData());
+    partition.SetDataHandle(data_handle);
+
+    auto layer_settings_response = catalog_settings_.GetLayerSettings(
+        context, request.GetBillingTag(), layer_id);
+    if (!layer_settings_response.IsSuccessful()) {
+      return layer_settings_response.GetError();
     }
+
+    auto layer_settings = layer_settings_response.GetResult();
+    if (layer_settings.content_type.empty()) {
+      auto errmsg = boost::format(
+                        "Unable to find the Layer ID (%1%) "
+                        "provided in the request in the "
+                        "Catalog specified when creating "
+                        "this VersionedLayerClient instance.") %
+                    layer_id;
+      return {{client::ErrorCode::InvalidArgument, errmsg.str()}};
+    }
+
+    auto upload_blob_response =
+        UploadBlob(partition, data_handle, layer_settings.content_type,
+                   layer_settings.content_encoding, layer_id,
+                   request.GetBillingTag(), context);
+    if (!upload_blob_response.IsSuccessful()) {
+      return upload_blob_response.GetError();
+    }
+
+    auto upload_partition_response =
+        UploadPartition(publication_id, partition, layer_id, context);
+    if (!upload_partition_response.IsSuccessful()) {
+      return upload_partition_response.GetError();
+    }
+
+    model::ResponseOkSingle res;
+    res.SetTraceID(partition.GetPartition().value_or(""));
+    return res;
   };
 
-  cancel_context->ExecuteOrCancelled(
-      [=]() -> client::CancellationToken {
-        return self->InitApiClients(
-            cancel_context, [=](boost::optional<client::ApiError> err) {
-              if (err) {
-                callback(err.get());
-                return;
-              }
-
-              auto layer_settings_response = catalog_settings_.GetLayerSettings(
-                  *cancel_context, request.GetBillingTag(), layer_id);
-              if (!layer_settings_response.IsSuccessful()) {
-                callback(layer_settings_response.GetError());
-                return;
-              }
-              auto layer_settings = layer_settings_response.GetResult();
-              if (layer_settings.content_type.empty()) {
-                auto errmsg = boost::format(
-                                  "Unable to find the Layer ID (%1%) "
-                                  "provided in the request in the "
-                                  "Catalog specified when creating "
-                                  "this VersionedLayerClient instance.") %
-                              layer_id;
-                callback(client::ApiError(client::ErrorCode::InvalidArgument,
-                                          errmsg.str()));
-                return;
-              }
-
-              self->UploadBlob(publication_id, partition, data_handle,
-                               layer_settings.content_type, layer_settings.content_encoding,
-                               layer_id, request.GetBillingTag(),
-                               cancel_context, uploadBlob_callback);
-            });
-      },
-      cancel_function);
-
-  auto token = client::CancellationToken(
-      [cancel_context]() { cancel_context->CancelOperation(); });
-  tokenList_.AddTask(id, token);
-  return token;
+  return AddTask(settings_.task_scheduler, pending_requests_,
+                 std::move(publish_task), std::move(callback));
 }
 
-void VersionedLayerClientImpl::UploadPartition(
-    std::string publication_id,
-    std::shared_ptr<model::PublishPartition> partition, std::string layer_id,
-    std::shared_ptr<client::CancellationContext> cancel_context,
-    const UploadPartitionCallback& callback) {
-  auto self = shared_from_this();
-  auto cancel_function = [callback]() {
-    callback(client::ApiError(client::ErrorCode::Cancelled,
-                              "Operation cancelled.", true));
-  };
+UploadPartitionResponse VersionedLayerClientImpl::UploadPartition(
+    const std::string& publication_id, const model::PublishPartition& partition,
+    const std::string& layer_id, client::CancellationContext context) {
+  auto olp_client_response = ApiClientLookup::LookupApiClient(
+      catalog_, context, "publish", "v2", settings_);
+  if (!olp_client_response.IsSuccessful()) {
+    return olp_client_response.GetError();
+  }
 
-  std::shared_ptr<model::PublishPartition> publishPartition =
-      std::make_shared<model::PublishPartition>();
-  publishPartition->SetPartition(partition->GetPartition().value_or(""));
-  publishPartition->SetDataHandle(partition->GetDataHandle().value_or(""));
+  auto publish_client = olp_client_response.MoveResult();
 
-  auto uploadPartition_callback = [=](UploadPartitionsResponse response) {
-    if (!response.IsSuccessful()) {
-      callback(std::move(response.GetError()));
-    } else {
-      callback(response.MoveResult());
-    }
-  };
+  model::PublishPartition publish_partition;
+  publish_partition.SetPartition(partition.GetPartition().value_or(""));
+  publish_partition.SetDataHandle(partition.GetDataHandle().value_or(""));
+  model::PublishPartitions partitions;
+  partitions.SetPartitions({publish_partition});
 
-  auto uploadPartition_function = [=]() -> client::CancellationToken {
-    model::PublishPartitions partitions;
-    partitions.SetPartitions({*publishPartition});
-    return PublishApi::UploadPartitions(*self->apiclient_publish_, partitions,
-                                        publication_id, layer_id, boost::none,
-                                        uploadPartition_callback);
-  };
-
-  cancel_context->ExecuteOrCancelled(
-      [=]() -> client::CancellationToken {
-        return self->InitApiClients(
-            cancel_context, [=](boost::optional<client::ApiError> err) {
-              if (err) {
-                callback(err.get());
-                return;
-              }
-              cancel_context->ExecuteOrCancelled(uploadPartition_function,
-                                                 cancel_function);
-            });
-      },
-      cancel_function);
+  return PublishApi::UploadPartitions(publish_client, partitions,
+                                      publication_id, layer_id, boost::none,
+                                      context);
 }
 
-void VersionedLayerClientImpl::UploadBlob(
-    std::string /*publication_id*/,
-    std::shared_ptr<model::PublishPartition> partition, std::string data_handle,
-    std::string content_type, std::string content_encoding,
-    std::string layer_id, BillingTag billing_tag,
-    std::shared_ptr<client::CancellationContext> cancel_context,
-    const UploadBlobCallback& callback) {
-  auto self = shared_from_this();
-  auto cancel_function = [callback]() {
-    callback(client::ApiError(client::ErrorCode::Cancelled,
-                              "Operation cancelled.", true));
-  };
+UploadBlobResponse VersionedLayerClientImpl::UploadBlob(
+    const model::PublishPartition& partition, const std::string& data_handle,
+    const std::string& content_type, const std::string& content_encoding,
+    const std::string& layer_id, BillingTag billing_tag,
+    client::CancellationContext context) {
+  auto olp_client_response = ApiClientLookup::LookupApiClient(
+      catalog_, context, "blob", "v1", settings_);
+  if (!olp_client_response.IsSuccessful()) {
+    return olp_client_response.GetError();
+  }
 
-  auto uploadBlob_callback = [=](UploadBlobResponse response) {
-    if (!response.IsSuccessful()) {
-      callback(std::move(response.GetError()));
-    } else {
-      callback(response.MoveResult());
-    }
-  };
-
-  auto uploadBlob_function = [=]() -> client::CancellationToken {
-    return BlobApi::PutBlob(*self->apiclient_blob_, layer_id, content_type,
-                            content_encoding, data_handle, partition->GetData(),
-                            billing_tag, uploadBlob_callback);
-  };
-
-  cancel_context->ExecuteOrCancelled(
-      [=]() -> client::CancellationToken {
-        return self->InitApiClients(cancel_context,
-                                    [=](boost::optional<client::ApiError> err) {
-                                      if (err) {
-                                        callback(err.get());
-                                        return;
-                                      }
-
-                                      cancel_context->ExecuteOrCancelled(
-                                          uploadBlob_function, cancel_function);
-                                    });
-      },
-      cancel_function);
+  auto blob_client = olp_client_response.MoveResult();
+  return BlobApi::PutBlob(blob_client, layer_id, content_type, content_encoding,
+                          data_handle, partition.GetData(), billing_tag,
+                          context);
 }
 
 client::CancellableFuture<CheckDataExistsResponse>
