@@ -34,7 +34,9 @@ export PREVIOUS_SDK_VERSION_NUM="$( git describe --tags --abbrev=0 |  cut -f2 -d
 export CURRENT_SDK_VERSION="master"
 
 # Debug mode needed for api compliance tools
+# CXXFLAGS is needed for hiding internal API data
 export BUILD_TYPE="Debug"
+export CXXFLAGS="-fvisibility=hidden"
 
 # For core dump backtrace
 ulimit -c unlimited
@@ -44,6 +46,7 @@ mkdir -p build
 pushd build
     cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
         -DBUILD_SHARED_LIBS=ON \
+        -DOLP_SDK_ENABLE_TESTING=NO \
         ..
     make -j$(nproc)
 popd
@@ -63,6 +66,7 @@ mkdir -p build
 pushd build
     cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
         -DBUILD_SHARED_LIBS=ON \
+        -DOLP_SDK_ENABLE_TESTING=NO \
         ..
     make -j$(nproc)
 popd
