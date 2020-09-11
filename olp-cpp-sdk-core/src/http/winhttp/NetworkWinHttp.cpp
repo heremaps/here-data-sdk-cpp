@@ -238,6 +238,7 @@ constexpr auto kLogTag = "WinHttp";
 
 NetworkWinHttp::NetworkWinHttp(size_t max_request_count)
     : http_requests_(max_request_count),
+      run_completion_thread_(true),
       http_session_(NULL),
       thread_(INVALID_HANDLE_VALUE),
       event_(INVALID_HANDLE_VALUE) {
@@ -271,6 +272,10 @@ NetworkWinHttp::NetworkWinHttp(size_t max_request_count)
 
 NetworkWinHttp::~NetworkWinHttp() {
   OLP_SDK_LOG_TRACE(kLogTag, "Destroying NetworkWinHttp, this=" << this);
+
+  // we should stop completion thread before closing all handles or they will be
+  // processed as cancelled instead OFFLINE_ERROR
+  run_completion_thread_ = false;
 
   std::vector<std::shared_ptr<ResultData>> pending_results;
   {
@@ -892,14 +897,14 @@ NetworkWinHttp::Run(LPVOID arg) {
 }
 
 void NetworkWinHttp::CompletionThread() {
-  while (http_session_) {
+  while (run_completion_thread_) {
     std::shared_ptr<ResultData> result;
     {
-      if (http_session_ && results_.empty()) {
+      if (run_completion_thread_ && results_.empty()) {
         WaitForSingleObject(event_, 30000);  // Wait max 30 seconds
         ResetEvent(event_);
       }
-      if (!http_session_) {
+      if (!run_completion_thread_) {
         continue;
       }
 
@@ -910,7 +915,7 @@ void NetworkWinHttp::CompletionThread() {
       }
     }
 
-    if (http_session_ && result) {
+    if (run_completion_thread_ && result) {
       std::string str;
       int status;
       if (result->offset == 0 &&
@@ -964,7 +969,7 @@ void NetworkWinHttp::CompletionThread() {
       }
     }
 
-    if (http_session_ && !http_connections_.empty()) {
+    if (run_completion_thread_ && !http_connections_.empty()) {
       // Check for timeouted connections
       std::unique_lock<std::recursive_mutex> lock(mutex_);
       std::vector<std::wstring> closed;

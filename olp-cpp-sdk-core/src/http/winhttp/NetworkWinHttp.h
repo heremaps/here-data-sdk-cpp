@@ -141,6 +141,7 @@ class NetworkWinHttp : public Network {
   std::vector<RequestData> http_requests_;
   std::queue<std::shared_ptr<ResultData>> results_;
 
+  bool run_completion_thread_;
   HINTERNET http_session_;
   HANDLE thread_;
   HANDLE event_;
