@@ -32,6 +32,7 @@
 #include <olp/dataservice/read/model/Data.h>
 #include <olp/dataservice/read/model/Messages.h>
 #include <olp/dataservice/read/model/Partitions.h>
+#include <olp/dataservice/read/model/PrefetchedPartitions.h>
 #include <olp/dataservice/read/model/VersionInfos.h>
 #include <olp/dataservice/read/model/VersionResponse.h>
 
@@ -90,6 +91,13 @@ using PrefetchTilesResponse = Response<PrefetchTilesResult>;
 using PrefetchTilesResponseCallback = Callback<PrefetchTilesResult>;
 /// The callback type for the prefetch status update.
 using PrefetchStatusCallback = std::function<void(PrefetchStatus)>;
+
+/// The `PrefetchedPartitions` alias type.
+using PrefetchedPartitionsResult = model::PrefetchedPartitions;
+/// The prefetch partitions response type.
+using PrefetchPartitionsResponse = Response<PrefetchedPartitionsResult>;
+/// The callback type of the prefetch completion.
+using PrefetchPartitionsResponseCallback = Callback<PrefetchedPartitionsResult>;
 
 /// The subscribe ID type of the stream layer client.
 using SubscriptionId = std::string;
