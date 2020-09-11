@@ -131,7 +131,8 @@ std::string ReadDefaultResponses::GenerateQuadTreeResponse(
       FillSubQuads(level_depth, sub_quads_vector);
 
       for (const auto& sub_quad : sub_quads_vector) {
-        sub_quads[sub_quad] = {GenerateDataHandle(std::to_string(sub_quad)), 0};
+        const auto partition = root_tile.AddedSubkey64(sub_quad).ToHereTile();
+        sub_quads[sub_quad] = {GenerateDataHandle(partition), 0};
       }
     }
   }
