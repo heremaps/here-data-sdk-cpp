@@ -46,7 +46,7 @@ ulimit -c unlimited
 # Stop after 2nd retry.
 source ${FV_HOME}/olp-cpp-sdk-functional-test.variables
 set +e
-for RETRY_COUNT in 1 2
+for RETRY_COUNT in 1 2 3
 do
 	echo "This is (${RETRY_COUNT}) time run ..."
 
@@ -55,15 +55,20 @@ do
 
 	if [[ $? -eq 1 ]]; then
 	    # Functional test failed with exit code 1 means some tests failed
+	    # But we handle flacky test and repeat up to 3 times
 		TEST_FAILURE=1
 		sleep 10
+	elif [[ $? -gt 1 ]]; then
+	    # Functional test crashed
+		result=$?
+		set -e
+		exit $result
 	else
 	    # Return to success
 		TEST_FAILURE=0
         break
 	fi
 done
-set -e
 # End of retry part. This part can be removed any time later or after all online tests are stable.
 
 # Run functional tests with Mock Server
@@ -88,18 +93,17 @@ ${FV_HOME}/gitlab-olp-cpp-sdk-dataservice-write-test.sh || TEST_FAILURE=1
 
 
 # Lines below are added for pretty data sum-up and finalize results of this script is case of FAILURE
-set +x  # to avoid dirty output at the end on logs
-if [[ ${TEST_FAILURE} == 1 ]]; then
-    export REPORT_COUNT=$(ls ${REPO_HOME}/reports | wc -l)
-    if [[ ${REPORT_COUNT} -ne ${EXPECTED_REPORT_COUNT} || ${REPORT_COUNT} == 0 ]]; then
-        echo "##################################################################################################"
-        echo "CRASH ERROR. One of test groups contains crash. Report was not generated for that group ! "
-        echo "##################################################################################################"
-    fi
+# set +x to avoid dirty output at the end on logs
+set +x
+export REPORT_COUNT=$(ls ${REPO_HOME}/reports | wc -l)
+if [[ ${REPORT_COUNT} -ne ${EXPECTED_REPORT_COUNT} || ${REPORT_COUNT} == 0 ]]; then
+    echo "##################################################################################################"
+    echo "CRASH ERROR. One of test groups contains crash. Report was not generated for that group ! "
+    echo "##################################################################################################"
+    TEST_FAILURE=1
 else
     echo "OK. Full list of test reports was generated. "
 fi
-
 
 for failreport in $(ls ${REPO_HOME}/reports/*.xml)
 do
