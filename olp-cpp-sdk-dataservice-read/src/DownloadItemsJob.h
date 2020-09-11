@@ -34,39 +34,24 @@ namespace read {
 using ExtendedDataResponse = ExtendedApiResponse<model::Data, client::ApiError,
                                                  client::NetworkStatistics>;
 
-
 // Prototype of function used to download data using data handle.
 using DownloadFunc = std::function<ExtendedDataResponse(
     std::string, client::CancellationContext)>;
 
-template <typename PrefetchItemsResult>
-using PrefetchItemsResponseCallback = Callback<PrefetchItemsResult>;
-
-class TokenHelper {
- public:
-  using VectorOfTokens = std::vector<olp::client::CancellationToken>;
-
-  static olp::client::CancellationToken CreateToken(VectorOfTokens tokens) {
-    return olp::client::CancellationToken(std::bind(
-        [](const VectorOfTokens& tokens) {
-          std::for_each(std::begin(tokens), std::end(tokens),
-                        [](const olp::client::CancellationToken& token) {
-                          token.Cancel();
-                        });
-        },
-        std::move(tokens)));
-  }
-};
+template <typename ItemType, typename PrefetchResult>
+using AppendResultFunc =
+    std::function<void(ExtendedDataResponse response, ItemType item,
+                       PrefetchResult& prefetch_result)>;
 
 template <typename ItemType, typename PrefetchResult>
 class DownloadItemsJob {
  public:
-  using ElementType = typename PrefetchResult::value_type::element_type;
-  using ResultType = typename ElementType::ResultType;
   DownloadItemsJob(DownloadFunc download,
+                   AppendResultFunc<ItemType, PrefetchResult> append_result,
                    Callback<PrefetchResult> user_callback,
                    PrefetchStatusCallback status_callback)
       : download_(std::move(download)),
+        append_result_(std::move(append_result)),
         user_callback_(std::move(user_callback)),
         status_callback_(std::move(status_callback)) {}
 
@@ -93,22 +78,17 @@ class DownloadItemsJob {
     accumulated_statistics_ += GetNetworkStatistics(response);
 
     if (response.IsSuccessful()) {
-      prefetch_result_.push_back(
-          std::make_shared<ElementType>(
-              item,
-              ResultType()));
       requests_succeeded_++;
     } else {
-      prefetch_result_.push_back(
-          std::make_shared<ElementType>(
-              item, response.GetError()));
       requests_failed_++;
     }
 
+    append_result_(response, item, prefetch_result_);
+
     if (status_callback_) {
-      status_callback_(
-          PrefetchStatus{prefetch_result_.size(), total_download_task_count_,
-                         GetAccumulatedBytes(accumulated_statistics_)});
+      status_callback_(PrefetchStatus{
+          requests_succeeded_ + requests_failed_, total_download_task_count_,
+          GetAccumulatedBytes(accumulated_statistics_)});
     }
 
     if (!--download_task_count_) {
@@ -127,6 +107,7 @@ class DownloadItemsJob {
 
  private:
   DownloadFunc download_;
+  AppendResultFunc<ItemType, PrefetchResult> append_result_;
   Callback<PrefetchResult> user_callback_;
   PrefetchStatusCallback status_callback_;
   size_t download_task_count_{0};

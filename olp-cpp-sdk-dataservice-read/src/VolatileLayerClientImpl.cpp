@@ -269,11 +269,25 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
               return root.first;
             });
 
+        auto append_result = [](ExtendedDataResponse response,
+                                geo::TileKey item,
+                                PrefetchTilesResult& prefetch_result) {
+          if (response.IsSuccessful()) {
+            prefetch_result.push_back(std::make_shared<PrefetchTileResult>(
+                item, PrefetchTileNoError()));
+          } else {
+            prefetch_result.push_back(std::make_shared<PrefetchTileResult>(
+                item, response.GetError()));
+          }
+        };
+
         context.ExecuteOrCancelled([&]() {
-          return PrefetchHelper::Prefetch<geo::TileKey, geo::TileKey>(
+          return PrefetchHelper::Prefetch<geo::TileKey, geo::TileKey,
+                                          PrefetchTilesResult>(
               std::move(roots), std::move(query), std::move(filter),
-              std::move(download), std::move(callback), nullptr,
-              settings.task_scheduler, pending_requests);
+              std::move(download), std::move(append_result),
+              std::move(callback), nullptr, settings.task_scheduler,
+              pending_requests);
         });
 
         return EmptyResponse(PrefetchTileNoError());

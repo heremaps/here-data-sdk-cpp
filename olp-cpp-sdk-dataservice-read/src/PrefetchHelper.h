@@ -44,6 +44,7 @@ class PrefetchHelper {
       const std::vector<QueryType>& roots,
       QueryItemsFunc<ItemType, QueryType> query,
       FilterItemsFunc<ItemType> filter, DownloadFunc download,
+      AppendResultFunc<ItemType, PrefetchResult> append_result,
       Callback<PrefetchResult> user_callback,
       PrefetchStatusCallback status_callback,
       std::shared_ptr<thread::TaskScheduler> task_scheduler,
@@ -52,8 +53,8 @@ class PrefetchHelper {
 
     auto download_job =
         std::make_shared<DownloadItemsJob<ItemType, PrefetchResult>>(
-            std::move(download), std::move(user_callback),
-            std::move(status_callback));
+            std::move(download), std::move(append_result),
+            std::move(user_callback), std::move(status_callback));
 
     auto query_job =
         std::make_shared<QueryMetadataJob<ItemType, QueryType, PrefetchResult>>(
@@ -66,7 +67,7 @@ class PrefetchHelper {
                         roots.size());
 
     execution_context.ExecuteOrCancelled([&]() {
-      TokenHelper::VectorOfTokens tokens;
+      VectorOfTokens tokens;
       std::transform(std::begin(roots), std::end(roots),
                      std::back_inserter(tokens), [&](QueryType root) {
                        return AddTask(
@@ -78,7 +79,7 @@ class PrefetchHelper {
                              query_job->CompleteQuery(std::move(response));
                            });
                      });
-      return TokenHelper::CreateToken(std::move(tokens));
+      return CreateToken(std::move(tokens));
     });
 
     return client::CancellationToken(

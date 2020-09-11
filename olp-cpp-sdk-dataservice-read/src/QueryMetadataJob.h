@@ -46,8 +46,18 @@ template <typename ItemType>
 using FilterItemsFunc =
     std::function<QueryItemsResult<ItemType>(QueryItemsResult<ItemType>)>;
 
-template <typename PrefetchItemsResult>
-using PrefetchItemsResponseCallback = Callback<PrefetchItemsResult>;
+using VectorOfTokens = std::vector<olp::client::CancellationToken>;
+
+static olp::client::CancellationToken CreateToken(VectorOfTokens tokens) {
+  return olp::client::CancellationToken(std::bind(
+      [](const VectorOfTokens& tokens) {
+        std::for_each(std::begin(tokens), std::end(tokens),
+                      [](const olp::client::CancellationToken& token) {
+                        token.Cancel();
+                      });
+      },
+      std::move(tokens)));
+}
 
 template <typename ItemType, typename QueryType, typename PrefetchResult>
 class QueryMetadataJob {
@@ -122,7 +132,7 @@ class QueryMetadataJob {
       auto download_job = download_job_;
 
       execution_context_.ExecuteOrCancelled([&]() {
-        TokenHelper::VectorOfTokens tokens;
+        VectorOfTokens tokens;
         std::transform(
             std::begin(query_result_), std::end(query_result_),
             std::back_inserter(tokens),
@@ -138,7 +148,7 @@ class QueryMetadataJob {
                     download_job->CompleteItem(item_key, std::move(response));
                   });
             });
-        return TokenHelper::CreateToken(std::move(tokens));
+        return CreateToken(std::move(tokens));
       });
     }
   }
