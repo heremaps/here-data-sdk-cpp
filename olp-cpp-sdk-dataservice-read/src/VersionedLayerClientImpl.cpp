@@ -558,7 +558,10 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
 
   auto data_task =
       [=](client::CancellationContext context) -> AggregatedDataResponse {
-    if (request.GetFetchOption() == CacheWithUpdate) {
+    const auto fetch_option = request.GetFetchOption();
+    const auto billing_tag = request.GetBillingTag();
+
+    if (fetch_option == CacheWithUpdate) {
       return {{client::ErrorCode::InvalidArgument,
                "CacheWithUpdate option can not be used for versioned "
                "layer"}};
@@ -568,8 +571,7 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
       return {{client::ErrorCode::InvalidArgument, "Tile key is invalid"}};
     }
 
-    auto version_response =
-        GetVersion(request.GetBillingTag(), request.GetFetchOption(), context);
+    auto version_response = GetVersion(billing_tag, fetch_option, context);
     if (!version_response.IsSuccessful()) {
       return version_response.GetError();
     }
@@ -577,8 +579,8 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
     auto version = version_response.GetResult().GetVersion();
     repository::PartitionsRepository repository(catalog_, settings_,
                                                 lookup_client_);
-    auto partition_response =
-        repository.GetAggregatedTile(layer_id, request, version, context);
+    auto partition_response = repository.GetAggregatedTile(
+        layer_id, std::move(request), version, context);
     if (!partition_response.IsSuccessful()) {
       return partition_response.GetError();
     }
@@ -589,7 +591,8 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
 
     auto data_request = DataRequest()
                             .WithDataHandle(fetch_partition.GetDataHandle())
-                            .WithFetchOption(request.GetFetchOption());
+                            .WithFetchOption(fetch_option)
+                            .WithBillingTag(billing_tag);
 
     repository::DataRepository data_repository(
         std::move(catalog), std::move(settings), std::move(lookup_client));

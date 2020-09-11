@@ -962,48 +962,6 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
     ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
     ASSERT_EQ(result.GetPartition(), tile_key.ToHereTile());
   }
-
-  {
-    SCOPED_TRACE("Parent tile");
-
-    const auto tile_key = olp::geo::TileKey::FromHereTile("23064");
-    const auto parent_tile_key = tile_key.ChangedLevelBy(-6).ToHereTile();
-    const auto request =
-        olp::dataservice::read::TileRequest().WithTileKey(tile_key);
-    olp::client::CancellationContext context;
-
-    auto mock_network = std::make_shared<NetworkMock>();
-    auto mock_cache = std::make_shared<CacheMock>();
-
-    OlpClientSettings settings;
-    settings.cache = mock_cache;
-    settings.network_request_handler = mock_network;
-
-    EXPECT_CALL(*mock_network, Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kHttpResponceLookupQuery));
-    EXPECT_CALL(*mock_network,
-                Send(IsGetRequest(kQueryQuadTreeIndex), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kSubQuadsWithParent));
-    EXPECT_CALL(*mock_cache, Get(_, _)).WillOnce(Return(boost::any()));
-    EXPECT_CALL(*mock_cache, Put(_, _, _, _)).WillOnce(Return(true));
-    EXPECT_CALL(*mock_cache, Get(_))
-        .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
-    EXPECT_CALL(*mock_cache, Put(_, _, _)).WillOnce(Return(true));
-
-    olp::client::ApiLookupClient lookup_client(hrn, settings);
-    repository::PartitionsRepository repository(hrn, settings, lookup_client);
-    auto response =
-        repository.GetAggregatedTile(layer, request, version, context);
-    const auto& result = response.GetResult();
-
-    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
-    ASSERT_EQ(result.GetPartition(), parent_tile_key);
-  }
-
   {
     SCOPED_TRACE("QuadTree is cached");
 

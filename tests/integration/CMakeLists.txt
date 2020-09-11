@@ -22,6 +22,7 @@ set(OLP_SDK_INTEGRATIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-dataservice-read/CatalogClientCacheTest.cpp
     ./olp-cpp-sdk-dataservice-read/VolatileLayerClientCacheTest.cpp
     ./olp-cpp-sdk-dataservice-read/VersionedLayerClientCacheTest.cpp
+    ./olp-cpp-sdk-dataservice-read/VersionedLayerGetAggregatedDataTest.cpp
     ./olp-cpp-sdk-dataservice-read/CatalogClientTestBase.cpp
     ./olp-cpp-sdk-dataservice-read/CatalogClientTest.cpp
     ./olp-cpp-sdk-dataservice-read/HttpResponses.h
@@ -46,7 +47,6 @@ if (ANDROID OR IOS)
     target_link_libraries(${OLP_SDK_INTEGRATION_TESTS_LIB}
         PRIVATE
             gmock
-            olp-cpp-sdk-tests-common
             olp-cpp-sdk-core
             olp-cpp-sdk-authentication
             olp-cpp-sdk-dataservice-read
@@ -79,7 +79,6 @@ else()
     target_link_libraries(olp-cpp-sdk-integration-tests
         PRIVATE
             gmock_main
-            olp-cpp-sdk-tests-common
             olp-cpp-sdk-core
             olp-cpp-sdk-authentication
             olp-cpp-sdk-dataservice-read

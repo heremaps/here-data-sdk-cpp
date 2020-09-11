@@ -39,7 +39,7 @@ target_include_directories(olp-cpp-sdk-tests-common PUBLIC
 )
 
 target_link_libraries(olp-cpp-sdk-tests-common
-    PRIVATE
+    PUBLIC
         gmock
         olp-cpp-sdk-core
         olp-cpp-sdk-dataservice-write

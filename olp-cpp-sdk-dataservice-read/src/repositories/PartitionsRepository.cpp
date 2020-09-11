@@ -267,9 +267,8 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
 
   const client::OlpClient& client = query_api.GetResult();
 
-  PartitionsResponse query_response =
-      QueryApi::GetPartitionsbyId(client, layer, partitions, version, {},
-                                   request.GetBillingTag(), context);
+  PartitionsResponse query_response = QueryApi::GetPartitionsbyId(
+      client, layer, partitions, version, {}, request.GetBillingTag(), context);
 
   if (query_response.IsSuccessful() && fetch_option != OnlineOnly) {
     OLP_SDK_LOG_DEBUG_F(kLogTag,
@@ -390,13 +389,34 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
 }
 
 PartitionResponse PartitionsRepository::GetAggregatedTile(
-    const std::string& layer, const TileRequest& request,
+    const std::string& layer, TileRequest request,
     boost::optional<int64_t> version, client::CancellationContext context) {
   auto quad_tree_response =
       GetQuadTreeIndexForTile(layer, request, version, context);
   if (!quad_tree_response.IsSuccessful()) {
     return quad_tree_response.GetError();
   }
+
+  // When the parent tile is too far away, we iterate up and download metadata
+  // for parent tiles until we cover aggregated tile root as a subquad. This is
+  // needed for the users who need to access the aggregated tile root directly.
+  // Else, we can't find it in cache.
+  if (request.GetFetchOption() != FetchOptions::CacheOnly) {
+    const auto& result = quad_tree_response.GetResult();
+    auto index_data = result.Find(request.GetTileKey(), true);
+    if (index_data) {
+      const auto& aggregated_tile_key = index_data.value().tile_key;
+      auto root = result.GetRootTile();
+      while (root.Level() > aggregated_tile_key.Level()) {
+        auto parent = root.Parent();
+        request.WithTileKey(parent);
+        // Ignore result for now
+        GetQuadTreeIndexForTile(layer, request, version, context);
+        root = parent.ChangedLevelBy(-kAggregateQuadTreeDepth);
+      }
+    }
+  }
+
   return FindPartition(quad_tree_response.GetResult(), request, true);
 }
 
