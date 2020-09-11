@@ -205,6 +205,10 @@ bool DefaultCacheImpl::Put(const std::string& key, const boost::any& value,
 bool DefaultCacheImpl::Put(const std::string& key,
                            const KeyValueCache::ValueTypePtr value,
                            time_t expiry) {
+  if (!value) {
+    return false;
+  }
+
   std::lock_guard<std::mutex> lock(cache_lock_);
   if (!is_open_) {
     return false;

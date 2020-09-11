@@ -69,6 +69,18 @@ void BasicCacheTestWithSettings(const olp::cache::CacheSettings& settings) {
   }
 
   {
+    SCOPED_TRACE("Put nullptr value");
+
+    olp::cache::DefaultCache cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Clear());
+
+    bool put_result =
+        cache.Put("key", nullptr, (std::numeric_limits<time_t>::max)());
+    EXPECT_FALSE(put_result);
+  }
+
+  {
     SCOPED_TRACE("Remove from cache");
 
     std::vector<unsigned char> binary_data = {1, 2, 3};
