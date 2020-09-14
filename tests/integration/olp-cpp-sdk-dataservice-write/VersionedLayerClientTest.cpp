@@ -56,6 +56,9 @@ const auto kLookupPublishApiUrl =
 const std::string kPublishUrl =
     "https://tmp.publish.data.api.platform.here.com/publish/v2/catalogs/" +
     kHrn.ToString() + "/publications";
+const std::string kCancelBatchBaseUrl =
+    "https://tmp.blob.data.api.platform.here.com/blob/v1/catalogs/"
+    "hrn:here:data:::catalog/publications/";
 const std::string kUserSigninResponse = R"JSON(
     {"accessToken":"password_grant_token","tokenType":"bearer","expiresIn":3599,"refreshToken":"5j687leur4njgb4osomifn55p0","userId":"HERE-5fa10eda-39ff-4cbc-9b0c-5acba4685649"}
     )JSON";
@@ -552,6 +555,169 @@ TEST_F(VersionedLayerClientTest, CompleteBatchCancel) {
     pause_for_cancel->set_value();
 
     const auto response = cancellable.GetFuture().get();
+
+    ASSERT_FALSE(response.IsSuccessful());
+    ASSERT_EQ(response.GetError().GetErrorCode(), client::ErrorCode::Cancelled);
+    Mock::VerifyAndClearExpectations(network_.get());
+  }
+}
+
+TEST_F(VersionedLayerClientTest, CancelBatch) {
+  const auto catalog = kHrn.ToCatalogHRNString();
+  const auto apis =
+      mockserver::DefaultResponses::GenerateResourceApisResponse(catalog);
+  const auto apis_response = olp::serializer::serialize(apis).c_str();
+  const auto publication =
+      mockserver::DefaultResponses::GeneratePublicationResponse({kLayer}, {});
+  ASSERT_TRUE(publication.GetId());
+  const auto publication_url = kCancelBatchBaseUrl + publication.GetId().get();
+
+  // auth token should be valid till the end of all test cases
+  EXPECT_CALL(
+      *network_,
+      Send(IsPostRequest(olp::authentication::kHereAccountProductionTokenUrl),
+           _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kUserSigninResponse));
+
+  {
+    SCOPED_TRACE("CancelBatch successful");
+
+    EXPECT_CALL(*network_, Send(IsGetRequest(kLookupPublishApiUrl), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     olp::serializer::serialize(apis)));
+
+    EXPECT_CALL(*network_, Send(IsDeleteRequest(publication_url), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::NO_CONTENT),
+                                     std::string()));
+
+    write::VersionedLayerClient write_client(kHrn, settings_);
+    auto response_future = write_client.CancelBatch(publication);
+    auto response = response_future.GetFuture().get();
+    EXPECT_TRUE(response.IsSuccessful());
+    Mock::VerifyAndClearExpectations(network_.get());
+  }
+
+  {
+    SCOPED_TRACE("CancelBatch empty model::Publication");
+
+    EXPECT_CALL(*network_, Send(_, _, _, _, _)).Times(0);
+
+    write::VersionedLayerClient write_client(kHrn, settings_);
+    auto response_future = write_client.CancelBatch(model::Publication());
+    auto response = response_future.GetFuture().get();
+    ASSERT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              client::ErrorCode::InvalidArgument);
+    Mock::VerifyAndClearExpectations(network_.get());
+  }
+
+  {
+    SCOPED_TRACE("CancelBatch cancel request");
+
+    olp::http::RequestId request_id;
+    NetworkCallback send_mock;
+    CancelCallback cancel_mock;
+
+    auto wait_for_cancel = std::make_shared<std::promise<void>>();
+    auto pause_for_cancel = std::make_shared<std::promise<void>>();
+
+    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+        wait_for_cancel, pause_for_cancel,
+        {olp::http::HttpStatusCode::OK, apis_response});
+
+    EXPECT_CALL(*network_, Send(_, _, _, _, _))
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+    EXPECT_CALL(*network_, Cancel(_))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+
+    write::VersionedLayerClient write_client(kHrn, settings_);
+    const auto cancellable = write_client.CancelBatch(publication);
+    auto token = cancellable.GetCancellationToken();
+
+    wait_for_cancel->get_future().get();
+    token.Cancel();
+    pause_for_cancel->set_value();
+
+    const auto response = cancellable.GetFuture().get();
+
+    ASSERT_FALSE(response.IsSuccessful());
+    ASSERT_EQ(response.GetError().GetErrorCode(), client::ErrorCode::Cancelled);
+    Mock::VerifyAndClearExpectations(network_.get());
+  }
+
+  {
+    SCOPED_TRACE("CancelBatch cancel on client deletion");
+
+    olp::http::RequestId request_id;
+    NetworkCallback send_mock;
+    CancelCallback cancel_mock;
+
+    auto wait_for_cancel = std::make_shared<std::promise<void>>();
+    auto pause_for_cancel = std::make_shared<std::promise<void>>();
+
+    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+        wait_for_cancel, pause_for_cancel,
+        {olp::http::HttpStatusCode::OK, apis_response});
+
+    EXPECT_CALL(*network_, Send(_, _, _, _, _))
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+    EXPECT_CALL(*network_, Cancel(_))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+
+    auto client =
+        std::make_shared<write::VersionedLayerClient>(kHrn, settings_);
+    auto future = client->CancelBatch(publication).GetFuture();
+
+    wait_for_cancel->get_future().get();
+    client.reset();
+    pause_for_cancel->set_value();
+
+    const auto response = future.get();
+
+    ASSERT_FALSE(response.IsSuccessful());
+    ASSERT_EQ(response.GetError().GetErrorCode(), client::ErrorCode::Cancelled);
+    Mock::VerifyAndClearExpectations(network_.get());
+  }
+
+  {
+    SCOPED_TRACE("CancelBatch cancel request callback");
+
+    olp::http::RequestId request_id;
+    NetworkCallback send_mock;
+    CancelCallback cancel_mock;
+
+    auto wait_for_cancel = std::make_shared<std::promise<void>>();
+    auto pause_for_cancel = std::make_shared<std::promise<void>>();
+
+    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+        wait_for_cancel, pause_for_cancel,
+        {olp::http::HttpStatusCode::OK, apis_response});
+
+    EXPECT_CALL(*network_, Send(_, _, _, _, _))
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+    EXPECT_CALL(*network_, Cancel(_))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+
+    std::promise<write::CancelBatchResponse> promise;
+    auto future = promise.get_future();
+
+    auto callback = [&](write::CancelBatchResponse response) {
+      promise.set_value(response);
+    };
+
+    write::VersionedLayerClient write_client(kHrn, settings_);
+    const auto token =
+        write_client.CancelBatch(publication, std::move(callback));
+
+    wait_for_cancel->get_future().get();
+    token.Cancel();
+    pause_for_cancel->set_value();
+
+    const auto response = future.get();
 
     ASSERT_FALSE(response.IsSuccessful());
     ASSERT_EQ(response.GetError().GetErrorCode(), client::ErrorCode::Cancelled);
