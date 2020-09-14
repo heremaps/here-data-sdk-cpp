@@ -23,9 +23,12 @@
 
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationContext.h>
+#include <olp/core/utils/WarningWorkarounds.h>
 
 namespace olp {
 namespace thread {
+
+enum Priority : uint32_t { LOW = 100, NORMAL = 500, HIGH = 1000 };
 
 /**
  * @brief An abstract interface that is used as a base for the custom thread
@@ -51,6 +54,10 @@ class CORE_API TaskScheduler {
    * pipeline.
    */
   void ScheduleTask(CallFuncType&& func) { EnqueueTask(std::move(func)); }
+
+  void ScheduleTask(CallFuncType&& func, Priority priority) {
+    EnqueueTask(std::move(func), priority);
+  }
 
   /**
    * @brief Schedules the asynchronous cancellable task.
@@ -97,6 +104,11 @@ class CORE_API TaskScheduler {
    * kept. Once this method is called, you own the task.
    */
   virtual void EnqueueTask(CallFuncType&&) = 0;
+
+  virtual void EnqueueTask(CallFuncType&& func, Priority priority) {
+    OLP_SDK_CORE_UNUSED(priority);
+    EnqueueTask(std::forward<CallFuncType>(func));
+  }
 };
 
 }  // namespace thread

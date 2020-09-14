@@ -86,7 +86,27 @@ inline client::CancellationToken AddTask(
   repository::ExecuteOrSchedule(task_scheduler, [=] {
     context.Execute();
     pending_requests->Remove(context);
-  });
+  }, thread::NORMAL);
+
+  return context.CancelToken();
+}
+
+template <typename Function, typename Callback, typename... Args>
+inline client::CancellationToken AddTaskWithPriority(
+    const std::shared_ptr<thread::TaskScheduler>& task_scheduler,
+    const std::shared_ptr<client::PendingRequests>& pending_requests,
+    Function task, Callback callback, thread::Priority priority,
+    Args&&... args) {
+  auto context = client::TaskContext::Create(
+      std::move(task), std::move(callback), std::forward<Args>(args)...);
+  pending_requests->Insert(context);
+
+  repository::ExecuteOrSchedule(task_scheduler,
+                                [=] {
+                                  context.Execute();
+                                  pending_requests->Remove(context);
+                                },
+                                priority);
 
   return context.CancelToken();
 }

@@ -33,7 +33,10 @@
 
 #include "olp/core/logging/Log.h"
 #include "olp/core/porting/platform.h"
+#include "olp/core/thread/SyncQueue.h"
 #include "olp/core/utils/WarningWorkarounds.h"
+
+#include "PriorityQueue.h"
 
 namespace olp {
 namespace thread {
@@ -49,7 +52,7 @@ void SetCurrentThreadName(const std::string& thread_name) {
   // Note that in Mac based systems the pthread_setname_np takes 1 argument
   // only.
   pthread_setname_np(thread_name.c_str());
-#elif defined(OLP_SDK_HAVE_PTHREAD_SETNAME_NP) // Linux, Android, QNX
+#elif defined(OLP_SDK_HAVE_PTHREAD_SETNAME_NP)  // Linux, Android, QNX
   // QNX allows 100 but Linux only 16 so select min value and apply for both.
   // If maximum length is exceeded on some systems, e.g. Linux, the name is not
   // set at all. So better truncate it to have at least the minimum set.
@@ -61,7 +64,35 @@ void SetCurrentThreadName(const std::string& thread_name) {
 
 }  // namespace
 
+struct PrioritizedTask {
+  TaskScheduler::CallFuncType function;
+  uint32_t priority;
+};
+
+bool operator<(const PrioritizedTask& lhs, const PrioritizedTask& rhs) {
+  return lhs.priority < rhs.priority;
+}
+
+class ThreadPoolTaskScheduler::QueueImpl {
+ public:
+  using ElementType = PrioritizedTask;
+
+  bool Pull(ElementType& element) { return sync_queue_.Pull(element); }
+
+  void Push(ElementType&& element) {
+    sync_queue_.Push(std::forward<ElementType>(element));
+  }
+
+  void Close() { sync_queue_.Close(); }
+
+ private:
+  using PriorityQueue = PriorityQueueExtended<ElementType>;
+  SyncQueue<ElementType, PriorityQueue> sync_queue_;
+};
+
 ThreadPoolTaskScheduler::ThreadPoolTaskScheduler(size_t thread_count) {
+  queue_ = std::make_shared<QueueImpl>();
+
   thread_pool_.reserve(thread_count);
 
   for (size_t idx = 0; idx < thread_count; ++idx) {
@@ -72,9 +103,10 @@ ThreadPoolTaskScheduler::ThreadPoolTaskScheduler(size_t thread_count) {
       OLP_SDK_LOG_INFO_F(kLogTag, "Starting thread '%s'", thread_name.c_str());
 
       for (;;) {
-        TaskScheduler::CallFuncType task;
-        if (!sync_queue_.Pull(task)) return;
-        task();
+        PrioritizedTask task;
+        if (!queue_->Pull(task))
+          return;
+        task.function();
       }
     });
 
@@ -83,7 +115,7 @@ ThreadPoolTaskScheduler::ThreadPoolTaskScheduler(size_t thread_count) {
 }
 
 ThreadPoolTaskScheduler::~ThreadPoolTaskScheduler() {
-  sync_queue_.Close();
+  queue_->Close();
   for (auto& thread : thread_pool_) {
     thread.join();
   }
@@ -91,7 +123,12 @@ ThreadPoolTaskScheduler::~ThreadPoolTaskScheduler() {
 }
 
 void ThreadPoolTaskScheduler::EnqueueTask(TaskScheduler::CallFuncType&& func) {
-  sync_queue_.Push(std::move(func));
+  queue_->Push({std::move(func), thread::NORMAL});
+}
+
+void ThreadPoolTaskScheduler::EnqueueTask(TaskScheduler::CallFuncType&& func,
+                                          Priority priority) {
+  queue_->Push({std::move(func), priority});
 }
 
 }  // namespace thread

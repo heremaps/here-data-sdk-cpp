@@ -24,6 +24,7 @@
 #include <utility>
 
 #include <olp/core/geo/tiling/TileKey.h>
+#include <olp/core/thread/TaskScheduler.h>
 #include <olp/dataservice/read/FetchOptions.h>
 #include <boost/optional.hpp>
 
@@ -128,6 +129,30 @@ class DATASERVICE_READ_API TileRequest final {
   }
 
   /**
+   * @brief Gets the request priority.
+   *
+   * The default priority is `Normal`.
+   *
+   * @return The request priority.
+   */
+  inline thread::Priority GetPriority() const { return priority_; }
+
+  /**
+   * @brief Sets the fetch option that you can use to set the source from
+   * which data should be fetched.
+   *
+   * @see `GetFetchOption()` for information on usage and format.
+   *
+   * @param fetch_option The `FetchOption` enum.
+   *
+   * @return A reference to the updated `TileRequest` instance.
+   */
+  inline TileRequest& WithPriority(thread::Priority priority) {
+    priority_ = priority;
+    return *this;
+  }
+
+  /**
    * @brief Creates a readable format for the request.
    *
    * @param layer_id The ID of the layer that is used for the request.
@@ -148,6 +173,7 @@ class DATASERVICE_READ_API TileRequest final {
   boost::optional<std::string> billing_tag_;
   geo::TileKey tile_key_;
   FetchOptions fetch_option_{OnlineIfNotFound};
+  thread::Priority priority_{thread::NORMAL};
 };
 
 }  // namespace read

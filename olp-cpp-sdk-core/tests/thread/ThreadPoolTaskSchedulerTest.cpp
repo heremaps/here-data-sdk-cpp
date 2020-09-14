@@ -28,13 +28,12 @@ using CancellationContext = olp::client::CancellationContext;
 using TaskScheduler = olp::thread::TaskScheduler;
 using ThreadPool = olp::thread::ThreadPoolTaskScheduler;
 
-using namespace ::testing;
-using namespace std::chrono;
+namespace chrono = std::chrono;
 
 namespace {
 constexpr size_t kThreads{3u};
 constexpr size_t kNumTasks{30u};
-constexpr milliseconds kSleep{100};
+constexpr chrono::milliseconds kSleep{100};
 constexpr int64_t kMaxWaitMs{1000};
 }  // namespace
 
@@ -56,13 +55,14 @@ TEST(ThreadPoolTaskSchedulerTest, SingleUserPush) {
   }
 
   // Wait for threads to finish but do not exceed 1min
-  const auto start = system_clock::now();
+  const auto start = chrono::system_clock::now();
   constexpr size_t expected_tasks = 2 * kNumTasks;
 
   auto check_condition = [&]() {
     return counter.load() < expected_tasks &&
-           duration_cast<milliseconds>(system_clock::now() - start).count() <
-               kMaxWaitMs;
+           chrono::duration_cast<chrono::milliseconds>(
+               chrono::system_clock::now() - start)
+                   .count() < kMaxWaitMs;
   };
 
   while (check_condition()) {
@@ -104,11 +104,12 @@ TEST(ThreadPoolTaskSchedulerTest, MultiUserPush) {
   }
 
   // Wait for threads to finish but do not exceed 1min
-  const auto start = system_clock::now();
+  const auto start = chrono::system_clock::now();
   auto check_condition = [&]() {
     return counter.load() < kTotalTasks &&
-           duration_cast<milliseconds>(system_clock::now() - start).count() <
-               kMaxWaitMs;
+           chrono::duration_cast<chrono::milliseconds>(
+               chrono::system_clock::now() - start)
+                   .count() < kMaxWaitMs;
   };
 
   while (check_condition()) {
@@ -125,4 +126,64 @@ TEST(ThreadPoolTaskSchedulerTest, MultiUserPush) {
     thread.join();
   }
   push_threads.clear();
+}
+
+TEST(ThreadPoolTaskSchedulerTest, Prioritization) {
+  auto thread_pool = std::make_shared<ThreadPool>(1);
+  TaskScheduler& scheduler = *thread_pool;
+
+  struct MockOp {
+    MOCK_METHOD(void, Op, (olp::thread::Priority));
+  } mockop;
+
+  testing::Sequence sequence;
+
+  EXPECT_CALL(mockop, Op(olp::thread::HIGH)).Times(10).InSequence(sequence);
+  EXPECT_CALL(mockop, Op(olp::thread::NORMAL)).Times(10).InSequence(sequence);
+  EXPECT_CALL(mockop, Op(olp::thread::LOW)).Times(10).InSequence(sequence);
+
+  std::mutex mutex;
+  std::condition_variable cv;
+
+  scheduler.ScheduleTask([&]() {
+    std::unique_lock<std::mutex> lock(mutex);
+    cv.wait(lock);
+  });
+
+  const uint32_t expected_tasks = 30;
+  uint32_t counter(0u);
+
+  const olp::thread::Priority priorities[] = {
+      olp::thread::LOW, olp::thread::NORMAL, olp::thread::HIGH};
+
+  for (uint32_t i = 0; i < expected_tasks; i++) {
+    auto priority = priorities[i % 3];
+    scheduler.ScheduleTask(
+        [&, priority]() {
+          counter++;
+          mockop.Op(priority);
+        },
+        priority);
+  }
+
+  cv.notify_all();
+
+  const auto start = chrono::system_clock::now();
+  auto check_condition = [&]() {
+    return counter < expected_tasks &&
+           chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() -
+                                                  start) < chrono::seconds(10);
+  };
+
+  while (check_condition()) {
+    std::this_thread::sleep_for(kSleep);
+  }
+
+  EXPECT_EQ(expected_tasks, counter);
+
+  // Close queue and join threads.
+  // SyncQueue and threads join should be done in destructor.
+  thread_pool.reset();
+
+  testing::Mock::VerifyAndClearExpectations(&mockop);
 }

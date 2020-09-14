@@ -380,52 +380,38 @@ CatalogVersionResponse VersionedLayerClientImpl::GetVersion(
 
 client::CancellationToken VersionedLayerClientImpl::GetData(
     TileRequest request, DataResponseCallback callback) {
-  if (request.GetFetchOption() == CacheWithUpdate) {
-    auto task = [](client::CancellationContext) -> DataResponse {
+
+  auto catalog = catalog_;
+  auto layer_id = layer_id_;
+  auto settings = settings_;
+  auto pending_requests = pending_requests_;
+  auto lookup_client = lookup_client_;
+
+  auto data_task = [=](client::CancellationContext context) -> DataResponse {
+    if (request.GetFetchOption() == CacheWithUpdate) {
       return {{client::ErrorCode::InvalidArgument,
-               "CacheWithUpdate option can not be used for versioned "
-               "layer"}};
-    };
-    return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
-                   std::move(callback));
-  }
+               "CacheWithUpdate option can not be used for versioned layer"}};
+    }
 
-  if (!request.GetTileKey().IsValid()) {
-    auto task = [](client::CancellationContext) -> DataResponse {
+    if (!request.GetTileKey().IsValid()) {
       return {{client::ErrorCode::InvalidArgument, "Tile key is invalid"}};
-    };
-    return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
-                   std::move(callback));
-  }
+    }
 
-  auto schedule_get_data = [&](TileRequest request,
-                               DataResponseCallback callback) {
-    auto catalog = catalog_;
-    auto layer_id = layer_id_;
-    auto settings = settings_;
-    auto pending_requests = pending_requests_;
-    auto lookup_client = lookup_client_;
+    auto version_response =
+        GetVersion(request.GetBillingTag(), request.GetFetchOption(), context);
+    if (!version_response.IsSuccessful()) {
+      return version_response.GetError();
+    }
 
-    auto data_task = [=](client::CancellationContext context) -> DataResponse {
-      auto version_response = GetVersion(request.GetBillingTag(),
-                                         request.GetFetchOption(), context);
-      if (!version_response.IsSuccessful()) {
-        return version_response.GetError();
-      }
-
-      repository::DataRepository repository(
-          std::move(catalog), std::move(settings), std::move(lookup_client));
-      return repository.GetVersionedTile(
-          layer_id, request, version_response.GetResult().GetVersion(),
-          context);
-    };
-
-    return AddTask(settings.task_scheduler, pending_requests,
-                   std::move(data_task), std::move(callback));
+    repository::DataRepository repository(
+        std::move(catalog), std::move(settings), std::move(lookup_client));
+    return repository.GetVersionedTile(
+        layer_id, request, version_response.GetResult().GetVersion(), context);
   };
 
-  return ScheduleFetch(std::move(schedule_get_data), std::move(request),
-                       std::move(callback));
+  return AddTaskWithPriority(settings.task_scheduler, pending_requests,
+                             std::move(data_task), std::move(callback),
+                             request.GetPriority());
 }
 
 client::CancellableFuture<DataResponse> VersionedLayerClientImpl::GetData(
