@@ -37,7 +37,7 @@
 #include "repositories/PartitionsRepository.h"
 #include "repositories/PrefetchTilesRepository.h"
 
-#include "PrefetchJob.h"
+#include "PrefetchHelper.h"
 
 namespace olp {
 namespace dataservice {
@@ -229,7 +229,7 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
                                                 inner_context);
         };
 
-        auto filter = [=](QueryResult tiles) mutable {
+        auto filter = [=](QueryItemsResult<geo::TileKey> tiles) mutable {
           if (request_only_input_tiles) {
             return repository.FilterTilesByList(request, std::move(tiles));
           } else {
@@ -269,11 +269,25 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
               return root.first;
             });
 
+        auto append_result = [](ExtendedDataResponse response,
+                                geo::TileKey item,
+                                PrefetchTilesResult& prefetch_result) {
+          if (response.IsSuccessful()) {
+            prefetch_result.push_back(std::make_shared<PrefetchTileResult>(
+                item, PrefetchTileNoError()));
+          } else {
+            prefetch_result.push_back(std::make_shared<PrefetchTileResult>(
+                item, response.GetError()));
+          }
+        };
+
         context.ExecuteOrCancelled([&]() {
-          return PrefetchHelper::Prefetch(
+          return PrefetchHelper::Prefetch<geo::TileKey, geo::TileKey,
+                                          PrefetchTilesResult>(
               std::move(roots), std::move(query), std::move(filter),
-              std::move(download), std::move(callback), nullptr,
-              settings.task_scheduler, pending_requests);
+              std::move(download), std::move(append_result),
+              std::move(callback), nullptr, settings.task_scheduler,
+              pending_requests);
         });
 
         return EmptyResponse(PrefetchTileNoError());
