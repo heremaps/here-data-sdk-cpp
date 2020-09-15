@@ -39,13 +39,13 @@ MockServerHelper::MockServerHelper(olp::client::OlpClientSettings settings,
 void MockServerHelper::MockTimestamp(time_t time) {
   mock_server_client_.MockResponse(
       "GET", "/timestamp",
-      R"({"timestamp" : )" + std::to_string(time) + R"(})", true);
+      R"({"timestamp" : )" + std::to_string(time) + R"(})");
 }
 
 void MockServerHelper::MockAuth() {
   mock_server_client_.MockResponse(
       "POST", "/oauth2/token",
-      R"({"access_token": "token","token_type": "bearer"})", true);
+      R"({"accessToken": "token", "tokenType": "bearer", "expiresIn":86399})");
 }
 
 void MockServerHelper::MockGetVersionResponse(
