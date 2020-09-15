@@ -52,11 +52,11 @@ class CatalogSettings {
 
   LayerSettingsResult GetLayerSettings(client::CancellationContext context,
                                        BillingTag billing_tag,
-                                       const std::string& layer_id);
+                                       const std::string& layer_id) const;
 
  private:
-  LayerSettingsResult GetLayerSettingsFromModel(const model::Catalog& catalog,
-                                                const std::string& layer_id);
+  LayerSettingsResult GetLayerSettingsFromModel(
+      const model::Catalog& catalog, const std::string& layer_id) const;
 
   client::HRN catalog_;
   std::shared_ptr<cache::KeyValueCache> cache_;

@@ -48,7 +48,7 @@ CatalogSettings::CatalogSettings(const client::HRN catalog,
 }
 
 CatalogSettings::LayerSettingsResult CatalogSettings::GetLayerSettingsFromModel(
-    const model::Catalog& catalog, const std::string& layer_id) {
+    const model::Catalog& catalog, const std::string& layer_id) const {
   const auto& layers = catalog.GetLayers();
 
   auto layer_it = std::find_if(
@@ -70,7 +70,7 @@ CatalogSettings::LayerSettingsResult CatalogSettings::GetLayerSettingsFromModel(
 
 CatalogSettings::LayerSettingsResult CatalogSettings::GetLayerSettings(
     client::CancellationContext context, BillingTag billing_tag,
-    const std::string& layer_id) {
+    const std::string& layer_id) const {
   const auto catalog_settings_key = catalog_.ToString() + "::catalog";
 
   if (!cache_->Contains(catalog_settings_key)) {
