@@ -24,11 +24,12 @@ fi
 
 [[ -d "reports" ]] && rm -rf reports
 
-#echo ">>> Installing mock server SSL certificate into OS... >>>"
-#curl https://raw.githubusercontent.com/mock-server/mockserver/master/mockserver-core/src/main/resources/org/mockserver/socket/CertificateAuthorityCertificate.pem --output mock-server-cert.cer
-#certutil -enterprise -f -v -addstore "Root" mock-server-cert.cer
-#certutil -enterprise -f -v -addstore "CA" mock-server-cert.cer
-
+echo ">>> Installing mock server SSL certificate into OS... >>>"
+curl https://raw.githubusercontent.com/mock-server/mockserver/master/mockserver-core/src/main/resources/org/mockserver/socket/CertificateAuthorityCertificate.pem --output mock-server-cert.cer
+certutil -enterprise -f -v -addstore "Root" mock-server-cert.cer
+certutil -enterprise -f -v -addstore "CA" mock-server-cert.cer
+certutil -user -f -v -addstore "Root" mock-server-cert.cer
+certutil -user -f -v -addstore "CA" mock-server-cert.cer
 
 echo ">>> Starting Mock Server... >>>"
 pushd tests/utils/mock-server

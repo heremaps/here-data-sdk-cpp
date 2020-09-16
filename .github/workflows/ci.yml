@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - '*'
+
+env:
+  BUILD_TYPE: RelWithDebInfo
+
+
+jobs:
+  win_build_test_network:
+    name: Test on node windows-latest
+    runs-on: windows-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+    - name: Install cert
+      run: |
+        curl https://raw.githubusercontent.com/mock-server/mockserver/master/mockserver-core/src/main/resources/org/mockserver/socket/CertificateAuthorityCertificate.pem --output mock-server-cert.cer
+        Import-Certificate -FilePath mock-server-cert.cer -CertStoreLocation Cert:\LocalMachine\Root
+    - name: Make dir
+      run: mkdir build && ls -la ./
+      shell: bash
+    - name: Compile SDK for Windows
+      run: cmake .. -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+      working-directory: build
+      shell: bash
+    - name: Build SDK for Windows
+      run: cmake --build . --config $BUILD_TYPE
+      working-directory: build
+      shell: bash
+    - name: Test SDK for Windows
+      run: scripts/windows/test_fv_network.sh
+      shell: bash
