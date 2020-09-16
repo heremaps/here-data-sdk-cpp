@@ -20,6 +20,7 @@
 #pragma once
 
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <olp/dataservice/read/DataServiceReadApi.h>
@@ -27,34 +28,24 @@
 namespace olp {
 namespace dataservice {
 namespace read {
-namespace model {
 
 /**
  * @brief Represents the result of a prefetch operation for partitions.
  */
-class DATASERVICE_READ_API PrefetchedPartitions {
+class DATASERVICE_READ_API PrefetchPartitionsResult {
  public:
   /**
    * @brief A parent type of the current `PrefetchedPartitions` class.
    */
-  PrefetchedPartitions() = default;
+  PrefetchPartitionsResult() = default;
 
   /**
    * @brief Adds the partition ID that was successfully downloaded.
    *
    * @param partition The partition ID.
    */
-  void AddPartition(std::string&& partition) {
-    partitions.emplace_back(partition);
-  }
-
-  /**
-   * @brief Adds the partition ID that was successfully downloaded.
-   *
-   * @param partition The partition ID.
-   */
-  void AddPartition(const std::string& partition) {
-    partitions.push_back(partition);
+  void AddPartition(std::string partition) {
+    partitions.emplace_back(std::move(partition));
   }
 
   /**
@@ -75,7 +66,6 @@ class DATASERVICE_READ_API PrefetchedPartitions {
   std::vector<std::string> partitions;
 };
 
-}  // namespace model
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp
