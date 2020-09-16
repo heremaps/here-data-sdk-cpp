@@ -378,10 +378,10 @@ olp::client::CancellationToken VersionedLayerClientImpl::CompleteBatch(
 }
 
 olp::client::CancellableFuture<CancelBatchResponse>
-VersionedLayerClientImpl::CancelBatch(const model::Publication& pub) {
+VersionedLayerClientImpl::CancelBatch(const model::Publication& publication) {
   auto promise = std::make_shared<std::promise<CancelBatchResponse>>();
   return olp::client::CancellableFuture<CancelBatchResponse>(
-      CancelBatch(pub,
+      CancelBatch(publication,
                   [promise](CancelBatchResponse response) {
                     promise->set_value(response);
                   }),
@@ -389,58 +389,28 @@ VersionedLayerClientImpl::CancelBatch(const model::Publication& pub) {
 }
 
 olp::client::CancellationToken VersionedLayerClientImpl::CancelBatch(
-    const model::Publication& pub, CancelBatchCallback callback) {
-  std::string publicationId = pub.GetId().value_or("");
-  if (publicationId.empty()) {
-    callback(client::ApiError(client::ErrorCode::InvalidArgument,
-                              "Invalid publication", true));
-    return {};
-  }
+    const model::Publication& publication, CancelBatchCallback callback) {
+  auto cancel_batch_task =
+      [=](client::CancellationContext context) -> CancelBatchResponse {
+    const auto publication_id = publication.GetId().value_or("");
+    if (publication_id.empty()) {
+      return client::ApiError(client::ErrorCode::InvalidArgument,
+                              "Invalid publication: publication ID missing",
+                              true);
+    }
 
-  auto self = shared_from_this();
-  auto cancel_context = std::make_shared<client::CancellationContext>();
-  auto id = tokenList_.GetNextId();
-  auto cancel_function = [=]() {
-    self->tokenList_.RemoveTask(id);
-    callback(client::ApiError(client::ErrorCode::Cancelled,
-                              "Operation cancelled.", true));
+    auto client_response = ApiClientLookup::LookupApiClient(
+        catalog_, context, "publish", "v2", settings_);
+    if (!client_response.IsSuccessful()) {
+      return client_response.GetError();
+    }
+
+    return PublishApi::CancelPublication(client_response.GetResult(),
+                                         publication_id, boost::none, context);
   };
 
-  auto cancelPublication_callback =
-      [=](CancelPublicationResponse cancelPublicationResponse) {
-        self->tokenList_.RemoveTask(id);
-        if (!cancelPublicationResponse.IsSuccessful()) {
-          callback(std::move(cancelPublicationResponse.GetError()));
-        } else {
-          callback(cancelPublicationResponse.GetResult());
-        }
-      };
-
-  auto cancelPublication_function = [=]() -> client::CancellationToken {
-    return PublishApi::CancelPublication(*self->apiclient_publish_,
-                                         publicationId, boost::none,
-                                         cancelPublication_callback);
-  };
-
-  cancel_context->ExecuteOrCancelled(
-      [=]() -> client::CancellationToken {
-        return self->InitApiClients(
-            cancel_context, [=](boost::optional<client::ApiError> err) {
-              if (err) {
-                self->tokenList_.RemoveTask(id);
-                callback(err.get());
-                return;
-              }
-              cancel_context->ExecuteOrCancelled(cancelPublication_function,
-                                                 cancel_function);
-            });
-      },
-      cancel_function);
-
-  auto token = client::CancellationToken(
-      [cancel_context]() { cancel_context->CancelOperation(); });
-  tokenList_.AddTask(id, token);
-  return token;
+  return AddTask(settings_.task_scheduler, pending_requests_,
+                 std::move(cancel_batch_task), std::move(callback));
 }
 
 void VersionedLayerClientImpl::CancelPendingRequests() {

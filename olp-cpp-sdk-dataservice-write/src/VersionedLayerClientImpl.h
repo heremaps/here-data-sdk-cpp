@@ -85,9 +85,9 @@ class VersionedLayerClientImpl
                                           CompleteBatchCallback callback);
 
   client::CancellableFuture<CancelBatchResponse> CancelBatch(
-      const model::Publication& pub);
+      const model::Publication& publication);
 
-  client::CancellationToken CancelBatch(const model::Publication& pub,
+  client::CancellationToken CancelBatch(const model::Publication& publication,
                                         CancelBatchCallback callback);
 
   void CancelPendingRequests();

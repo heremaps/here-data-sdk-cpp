@@ -191,7 +191,7 @@ class PublishApi {
 
   /**
    * @brief Cancels a publication
-   * Cancels the publication
+   * Cancels the publication. This is a sync method.
    * @param client Instance of OlpClient used to make REST request.
    * @param publication_id ID of publication to submit.
    * @param billing_tag Billing Tag is an optional free-form tag which is used
@@ -199,16 +199,14 @@ class PublishApi {
    * 16 characters and contain only alphanumeric ASCII characters [A-Za-z0-9].
    * Grouping billing records by billing tag will be available in future
    * releases.
-   * @param client Instance of OlpClient used to make REST request.
-   * @param callback CancelPublicationCallback which will be called with the
-   * CancelPublicationResponse when the operation completes.
-   * @return A CancellationToken which can be used to cancel the ongoing
-   * request.
+   * @param context CancellationContext which is used to cancel operation.
+   * @return A SubmitPublicationResponse which will indicate if operation was
+   * successful or will contain error if not.
    */
-  static client::CancellationToken CancelPublication(
+  static SubmitPublicationResponse CancelPublication(
       const client::OlpClient& client, const std::string& publication_id,
       const boost::optional<std::string>& billing_tag,
-      CancelPublicationCallback callback);
+      client::CancellationContext context);
 };
 
 }  // namespace write

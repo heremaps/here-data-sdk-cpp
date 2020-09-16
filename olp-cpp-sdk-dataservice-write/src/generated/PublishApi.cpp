@@ -287,10 +287,10 @@ client::CancellationToken PublishApi::GetPublication(
   return cancel_token;
 }
 
-client::CancellationToken PublishApi::CancelPublication(
+SubmitPublicationResponse PublishApi::CancelPublication(
     const client::OlpClient& client, const std::string& publication_id,
     const boost::optional<std::string>& billing_tag,
-    CancelPublicationCallback callback) {
+    client::CancellationContext context) {
   std::multimap<std::string, std::string> header_params;
   std::multimap<std::string, std::string> query_params;
   std::multimap<std::string, std::string> form_params;
@@ -304,20 +304,15 @@ client::CancellationToken PublishApi::CancelPublication(
 
   std::string submit_publication_uri = "/publications/" + publication_id;
 
-  auto cancel_token = client.CallApi(
-      submit_publication_uri, "DELETE", query_params, header_params,
-      form_params, nullptr, "application/json",
-      [callback](client::HttpResponse http_response) {
-        if (http_response.status != olp::http::HttpStatusCode::NO_CONTENT) {
-          callback(SubmitPublicationResponse{client::ApiError(
-              http_response.status, http_response.response.str())});
-          return;
-        }
+  auto http_response = client.CallApi(submit_publication_uri, "DELETE",
+                                      query_params, header_params, form_params,
+                                      nullptr, "application/json", context);
 
-        callback(SubmitPublicationResponse(client::ApiNoResult()));
-      });
+  if (http_response.status != olp::http::HttpStatusCode::NO_CONTENT) {
+    return client::ApiError(http_response.status, http_response.response.str());
+  }
 
-  return cancel_token;
+  return client::ApiNoResult();
 }
 
 }  // namespace write
