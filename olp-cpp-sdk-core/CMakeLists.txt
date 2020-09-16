@@ -320,6 +320,7 @@ set(OLP_SDK_LOGGING_SOURCES
 )
 
 set(OLP_SDK_THREAD_SOURCES
+    ./src/thread/PriorityQueueExtended.h
     ./src/thread/ThreadPoolTaskScheduler.cpp
 )
 
