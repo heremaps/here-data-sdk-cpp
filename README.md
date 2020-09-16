@@ -53,8 +53,8 @@ The table below lists the platforms on which the HERE Data SDK for C++ has been 
 
 | Platform                   | Minimum requirement     |
 | :------------------------- | :---------------------- |
-| Ubuntu                     | GCC 7.4 and Clang 7.0   |
-| Embedded Linux (32/64 bit) | GCC-arm/GCC-aarch64 5.4 |
+| Ubuntu Linux               | GCC 7.4 and Clang 7.0   |
+| Embedded Linux (32 bit)    | GCC 7.4 armhf           |
 | Windows                    | MSVC++ 2017             |
 | macOS                      | Apple Clang 11.0.0      |
 | iOS                        | Xcode 11.1, Swift 5.0   |
