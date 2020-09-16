@@ -95,6 +95,16 @@ class IndexApi {
       const std::string& layer_id,
       const boost::optional<std::string>& billing_tag,
       InsertIndexesCallback callback);
+
+  /**
+  * @brief Synchronous version of \c insertIndexes method.
+  */
+  static InsertIndexesResponse InsertIndexes(
+      const client::OlpClient& client, const model::Index& indexes,
+      const std::string& layer_id,
+      const boost::optional<std::string>& billing_tag,
+      client::CancellationContext context);
+
   /**
    * @brief Updates index layer partitions
    * Modifies partitions in an index layer.

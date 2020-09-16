@@ -104,6 +104,7 @@ class IndexLayerClientTest : public ::testing::Test {
     olp::client::OlpClientSettings client_settings;
     network_ = std::make_shared<NetworkMock>();
     client_settings.network_request_handler = network_;
+    client_settings.task_scheduler = olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
     SetUpCommonNetworkMockCalls(*network_);
 
     return std::make_shared<write::IndexLayerClient>(
@@ -210,12 +211,10 @@ TEST_F(IndexLayerClientTest, PublishData) {
 
 TEST_F(IndexLayerClientTest, DeleteData) {
   {
-    testing::InSequence dummy;
-
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_BLOB), _, _, _, _))
-        .Times(1);
+        .Times(2);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_INDEX), _, _, _, _))
-        .Times(1);
+        .Times(2);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
