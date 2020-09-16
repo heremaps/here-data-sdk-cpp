@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash +e
 #
 # Copyright (C) 2020 HERE Europe B.V.
 #
