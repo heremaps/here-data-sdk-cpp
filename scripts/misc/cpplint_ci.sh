@@ -1,4 +1,4 @@
-#!/bin/bash +e
+#!/bin/bash
 #
 # Copyright (C) 2020 HERE Europe B.V.
 #
@@ -18,7 +18,11 @@
 # License-Filename: LICENSE
 #
 
-# This script gets the changed files in the pull request, and runs 
+# Important 2 lines
+set +e
+set -x
+
+# This script gets the changed files in the pull request, and runs
 # cpplint tool to verify them
 
 # Get the current branch name
@@ -31,11 +35,9 @@ else
   printf "Currently in %s branch. Running cpplint.\n" "$CURRENT_BRANCH"
 fi
 
-set +e
 # Get affected files and filter source files
 FILES=$(git diff-tree --no-commit-id --name-only -r master "$CURRENT_BRANCH" \
         | grep '\.c\|\.cpp\|\.cxx\|\.h\|\.hpp\|\.hxx')
-set -e
 
 if [ -z "$FILES" ]; then
   printf "No affected files, exiting.\n"
@@ -53,6 +55,15 @@ printf "\n\nRunning cpplint\n\n"
 
 # Run the cpplint tool and collect all warnings
 cpplint $FILES 2> warnings.txt
+RESULT=$?
+
+if [ "$RESULT" -ne "0" ]; then
+  printf "\n\nNew warnings.txt found, please check them:\n\n"
+  cat warnings.txt
+  # temporary skipped
+  # exit $RESULT
+  echo "We might exit with $RESULT now"
+fi
 
 printf "\n\nComplete cpplint\n\n"
 
@@ -99,19 +110,12 @@ fi
 CRITICAL_PATHS=$(echo "$FILES" | grep "read/include\|write/include")
 
 if [ ! -z "$CRITICAL_PATHS" ]; then
-
   printf "\n\nPublic headers modified, running full check on them\n\n"
-
   CPPLINT_IGNORED_WARNINGS="--filter=-build/include_order"
-
   cpplint $CPPLINT_IGNORED_WARNINGS $CRITICAL_PATHS 2> errors.txt
-
   RESULT=$?
-
   printf "\n\nComplete cpplint for protected paths\n\n"
-
   cat errors.txt
-
   exit $RESULT
 else
   # Despite the error found exit without errors.
