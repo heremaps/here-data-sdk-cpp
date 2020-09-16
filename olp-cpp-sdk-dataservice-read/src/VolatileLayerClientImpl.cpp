@@ -87,9 +87,9 @@ client::CancellationToken VolatileLayerClientImpl::GetPartitions(
 
     auto data_task = [=](client::CancellationContext context) {
       repository::PartitionsRepository repository(
-          std::move(catalog), std::move(settings), std::move(lookup_client));
-      return repository.GetVolatilePartitions(std::move(layer_id), request,
-                                              std::move(context));
+          std::move(catalog), std::move(layer_id), std::move(settings),
+          std::move(lookup_client));
+      return repository.GetVolatilePartitions(request, std::move(context));
     };
 
     return AddTask(settings.task_scheduler, pending_requests_,
@@ -144,11 +144,11 @@ client::CancellableFuture<DataResponse> VolatileLayerClientImpl::GetData(
 }
 
 bool VolatileLayerClientImpl::RemoveFromCache(const std::string& partition_id) {
-  repository::PartitionsCacheRepository cache_repository(catalog_,
+  repository::PartitionsCacheRepository cache_repository(catalog_, layer_id_,
                                                          settings_.cache);
   boost::optional<model::Partition> partition;
-  if (!cache_repository.ClearPartitionMetadata(boost::none, partition_id,
-                                               layer_id_, partition)) {
+  if (!cache_repository.ClearPartitionMetadata(partition_id, boost::none,
+                                               partition)) {
     return false;
   }
 

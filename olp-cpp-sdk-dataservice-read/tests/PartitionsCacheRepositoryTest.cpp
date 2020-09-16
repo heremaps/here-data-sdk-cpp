@@ -64,14 +64,14 @@ TEST(PartitionsCacheRepositoryTest, DefaultExpiry) {
     const auto default_expiry = std::chrono::seconds::max();
     std::shared_ptr<KeyValueCache> cache =
         olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
-    repository::PartitionsCacheRepository repository(hrn, cache,
+    repository::PartitionsCacheRepository repository(hrn, layer, cache,
                                                      default_expiry);
 
-    repository.Put(partitions, layer, boost::none, boost::none, true);
+    repository.Put(partitions, boost::none, boost::none, true);
     repository.Put(catalog_version, versions);
-    const auto partitions_result =
-        repository.Get({kPartitionId}, layer, boost::none);
-    const auto partitions_optional_result = repository.Get(request, layer, boost::none);
+    const auto partitions_result = repository.Get({kPartitionId}, boost::none);
+    const auto partitions_optional_result =
+        repository.Get(request, boost::none);
     const auto versions_result = repository.Get(catalog_version);
 
     EXPECT_FALSE(partitions_result.GetPartitions().empty());
@@ -85,15 +85,15 @@ TEST(PartitionsCacheRepositoryTest, DefaultExpiry) {
     const auto default_expiry = std::chrono::seconds(-1);
     std::shared_ptr<KeyValueCache> cache =
         olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
-    repository::PartitionsCacheRepository repository(hrn, cache,
+    repository::PartitionsCacheRepository repository(hrn, layer, cache,
                                                      default_expiry);
 
-    repository.Put(partitions, layer, boost::none, boost::none, true);
+    repository.Put(partitions, boost::none, boost::none, true);
     repository.Put(catalog_version, versions);
 
-    const auto partitions_result =
-        repository.Get({kPartitionId}, layer, boost::none);
-    const auto partitions_optional_result = repository.Get(request, layer, boost::none);
+    const auto partitions_result = repository.Get({kPartitionId}, boost::none);
+    const auto partitions_optional_result =
+        repository.Get(request, boost::none);
     const auto versions_result = repository.Get(catalog_version);
 
     EXPECT_TRUE(partitions_result.GetPartitions().empty());
@@ -108,13 +108,12 @@ TEST(PartitionsCacheRepositoryTest, DefaultExpiry) {
     const auto data_expiry = std::numeric_limits<time_t>::max();
     std::shared_ptr<KeyValueCache> cache =
         olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
-    repository::PartitionsCacheRepository repository(hrn, cache,
+    repository::PartitionsCacheRepository repository(hrn, layer, cache,
                                                      default_expiry);
 
-    repository.Put(partitions, layer, boost::none, data_expiry, true);
-    const auto partitions_result =
-        repository.Get({kPartitionId}, layer, boost::none);
-    const auto optional_result = repository.Get(request, layer, boost::none);
+    repository.Put(partitions, boost::none, data_expiry, true);
+    const auto partitions_result = repository.Get({kPartitionId}, boost::none);
+    const auto optional_result = repository.Get(request, boost::none);
 
     EXPECT_FALSE(partitions_result.GetPartitions().empty());
     EXPECT_TRUE(optional_result);
@@ -127,13 +126,12 @@ TEST(PartitionsCacheRepositoryTest, DefaultExpiry) {
     const auto data_expiry = time_t(-1);
     std::shared_ptr<KeyValueCache> cache =
         olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
-    repository::PartitionsCacheRepository repository(hrn, cache,
+    repository::PartitionsCacheRepository repository(hrn, layer, cache,
                                                      default_expiry);
 
-    repository.Put(partitions, layer, boost::none, data_expiry, true);
-    const auto partitions_result =
-        repository.Get({kPartitionId}, layer, boost::none);
-    const auto optional_result = repository.Get(request, layer, boost::none);
+    repository.Put(partitions, boost::none, data_expiry, true);
+    const auto partitions_result = repository.Get({kPartitionId}, boost::none);
+    const auto optional_result = repository.Get(request, boost::none);
 
     EXPECT_TRUE(partitions_result.GetPartitions().empty());
     EXPECT_FALSE(optional_result);
@@ -157,16 +155,16 @@ TEST(PartitionsCacheRepositoryTest, QuadTree) {
     auto stream = std::stringstream(kQuadkeyResponse);
     read::QuadTreeIndex quad_tree(tile_key, depth, stream);
     auto cache = std::make_shared<CacheMock>();
-    repository::PartitionsCacheRepository repository(hrn, cache);
+    repository::PartitionsCacheRepository repository(hrn, layer, cache);
     std::string key;
 
     EXPECT_CALL(*cache, Put(_, _, _))
         .WillOnce(DoAll(SaveArg<0>(&key), Return(true)));
-    repository.Put(layer, tile_key, depth, quad_tree, version);
+    repository.Put(tile_key, depth, quad_tree, version);
 
     EXPECT_CALL(*cache, Get(key)).WillOnce(Return(quad_tree.GetRawData()));
     read::QuadTreeIndex tree;
-    const auto result = repository.Get(layer, tile_key, depth, version, tree);
+    const auto result = repository.Get(tile_key, depth, version, tree);
 
     ASSERT_TRUE(result);
     ASSERT_FALSE(tree.IsNull());
@@ -178,13 +176,13 @@ TEST(PartitionsCacheRepositoryTest, QuadTree) {
 
     read::QuadTreeIndex quad_tree;
     auto cache = std::make_shared<CacheMock>();
-    repository::PartitionsCacheRepository repository(hrn, cache);
+    repository::PartitionsCacheRepository repository(hrn, layer, cache);
 
     EXPECT_CALL(*cache, Get(_)).WillOnce(Return(KeyValueCache::ValueTypePtr()));
 
-    repository.Put(layer, tile_key, depth, quad_tree, version);
+    repository.Put(tile_key, depth, quad_tree, version);
     read::QuadTreeIndex tree;
-    const auto result = repository.Get(layer, tile_key, depth, version, tree);
+    const auto result = repository.Get(tile_key, depth, version, tree);
 
     ASSERT_FALSE(result);
     ASSERT_TRUE(tree.IsNull());
@@ -207,11 +205,11 @@ TEST(PartitionsCacheRepositoryTest, GetPartitionHandle) {
 
     std::shared_ptr<KeyValueCache> cache =
         olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
-    repository::PartitionsCacheRepository repository(hrn, cache);
+    repository::PartitionsCacheRepository repository(hrn, layer, cache);
     std::string handle;
-    repository.Put(partitions, layer, boost::none, true);
-    EXPECT_TRUE(repository.GetPartitionHandle(boost::none, kPartitionId, layer,
-                                              handle));
+    repository.Put(partitions, boost::none, true);
+    EXPECT_TRUE(
+        repository.GetPartitionHandle(kPartitionId, boost::none, handle));
   }
 
   {
@@ -219,10 +217,10 @@ TEST(PartitionsCacheRepositoryTest, GetPartitionHandle) {
 
     std::shared_ptr<KeyValueCache> cache =
         olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
-    repository::PartitionsCacheRepository repository(hrn, cache);
+    repository::PartitionsCacheRepository repository(hrn, layer, cache);
     std::string handle;
-    EXPECT_FALSE(repository.GetPartitionHandle(boost::none, kPartitionId, layer,
-                                               handle));
+    EXPECT_FALSE(
+        repository.GetPartitionHandle(kPartitionId, boost::none, handle));
   }
 }
 

@@ -39,7 +39,7 @@ ReleaseDependencyResolver::ReleaseDependencyResolver(
       version_(version),
       cache_(settings.cache),
       data_cache_repository_(catalog, settings.cache),
-      partitions_cache_repository_(catalog, settings.cache),
+      partitions_cache_repository_(catalog, layer_id_, settings.cache),
       quad_trees_with_protected_tiles_(),
       keys_to_release_() {}
 
@@ -77,7 +77,7 @@ void ReleaseDependencyResolver::ProcessTileKey(const geo::TileKey& tile_key) {
         // can add key for quad tree to be released and remove from map
         keys_to_release_.emplace_back(
             partitions_cache_repository_.CreateQuadKey(
-                layer_id_, it->first, kQuadTreeDepth, version_));
+                it->first, kQuadTreeDepth, version_));
       }
       return true;
     }
@@ -128,14 +128,14 @@ void ReleaseDependencyResolver::ProcessQuadTreeCache(
     const geo::TileKey& root_quad_key, const geo::TileKey& tile,
     bool& add_data_handle_key) {
   QuadTreeIndex cached_tree;
-  if (partitions_cache_repository_.Get(layer_id_, root_quad_key, kQuadTreeDepth,
-                                       version_, cached_tree)) {
+  if (partitions_cache_repository_.Get(root_quad_key, kQuadTreeDepth, version_,
+                                       cached_tree)) {
     TilesDataKeysType protected_keys =
         CheckProtectedTilesInQuad(cached_tree, tile, add_data_handle_key);
     if (protected_keys.empty()) {
       // no other tiles are protected, can add quad tree to release list
       keys_to_release_.emplace_back(partitions_cache_repository_.CreateQuadKey(
-          layer_id_, root_quad_key, kQuadTreeDepth, version_));
+          root_quad_key, kQuadTreeDepth, version_));
     }
     // add quad key with other protected keys dependent on this quad to
     // reduce future calls to cache

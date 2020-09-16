@@ -60,8 +60,9 @@ DataRepository::DataRepository(client::HRN catalog,
 DataResponse DataRepository::GetVersionedTile(
     const std::string& layer_id, const TileRequest& request, int64_t version,
     client::CancellationContext context) {
-  PartitionsRepository repository(catalog_, settings_, lookup_client_);
-  auto response = repository.GetTile(layer_id, request, version, context);
+  PartitionsRepository repository(catalog_, layer_id, settings_,
+                                  lookup_client_);
+  auto response = repository.GetTile(request, version, context);
 
   if (!response.IsSuccessful()) {
     OLP_SDK_LOG_WARNING_F(
@@ -92,9 +93,10 @@ BlobApi::DataResponse DataRepository::GetVersionedData(
   auto blob_request = request;
   if (!request.GetDataHandle()) {
     // get data handle for a partition to be queried
-    PartitionsRepository repository(catalog_, settings_, lookup_client_);
+    PartitionsRepository repository(catalog_, layer_id, settings_,
+                                    lookup_client_);
     auto partitions_response =
-        repository.GetPartitionById(layer_id, version, request, context);
+        repository.GetPartitionById(request, version, context);
 
     if (!partitions_response.IsSuccessful()) {
       return partitions_response.GetError();
@@ -206,9 +208,10 @@ BlobApi::DataResponse DataRepository::GetVolatileData(
 
   auto blob_request = request;
   if (!request.GetDataHandle()) {
-    PartitionsRepository repository(catalog_, settings_, lookup_client_);
+    PartitionsRepository repository(catalog_, layer_id, settings_,
+                                    lookup_client_);
     auto partitions_response =
-        repository.GetPartitionById(layer_id, boost::none, request, context);
+        repository.GetPartitionById(request, boost::none, context);
 
     if (!partitions_response.IsSuccessful()) {
       return partitions_response.GetError();

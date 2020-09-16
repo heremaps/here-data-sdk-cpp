@@ -173,8 +173,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
   settings.retry_settings.timeout = 1;
 
   ApiLookupClient lookup_client(catalog_hrn, settings);
-  repository::PartitionsRepository repository(catalog_hrn, settings,
-                                              lookup_client);
+  repository::PartitionsRepository repository(catalog_hrn, kVersionedLayerId,
+                                              settings, lookup_client);
 
   const DataRequest request{DataRequest().WithPartitionId(kPartitionId)};
   const std::string part_cache_key =
@@ -214,8 +214,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     auto response = repository.GetPartitionById(
-        kVersionedLayerId, kVersion,
-        DataRequest(request).WithFetchOption(read::CacheOnly), context);
+        DataRequest(request).WithFetchOption(read::CacheOnly), kVersion,
+        context);
 
     ASSERT_TRUE(response.IsSuccessful());
     const auto& result = response.GetResult();
@@ -237,8 +237,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     auto response = repository.GetPartitionById(
-        kVersionedLayerId, kVersion,
-        DataRequest(request).WithFetchOption(read::CacheOnly), context);
+        DataRequest(request).WithFetchOption(read::CacheOnly), kVersion,
+        context);
 
     ASSERT_FALSE(response.IsSuccessful());
     const auto& result = response.GetError();
@@ -251,8 +251,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     auto response = repository.GetPartitionById(
-        kVersionedLayerId, kVersion,
-        DataRequest(request).WithPartitionId(boost::none), context);
+        DataRequest(request).WithPartitionId(boost::none), kVersion, context);
 
     ASSERT_FALSE(response.IsSuccessful());
     const auto& result = response.GetError();
@@ -276,8 +275,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     EXPECT_CALL(*cache, Put(Eq(cache_key), _, _, _)).Times(0);
 
     auto response = repository.GetPartitionById(
-        kVersionedLayerId, kVersion,
-        DataRequest(request).WithFetchOption(read::OnlineOnly), context);
+        DataRequest(request).WithFetchOption(read::OnlineOnly), kVersion,
+        context);
 
     ASSERT_TRUE(response.IsSuccessful());
     const auto& partitions = response.GetResult().GetPartitions();
@@ -304,8 +303,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     EXPECT_CALL(*cache, Put(Eq(cache_key_no_version), _, _, _)).Times(0);
 
     auto response = repository.GetPartitionById(
-        kVersionedLayerId, boost::none,
-        DataRequest(request).WithFetchOption(read::OnlineOnly), context);
+        DataRequest(request).WithFetchOption(read::OnlineOnly), boost::none,
+        context);
 
     ASSERT_TRUE(response.IsSuccessful());
     const auto& partitions = response.GetResult().GetPartitions();
@@ -331,8 +330,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     auto response = repository.GetPartitionById(
-        kVersionedLayerId, kVersion,
-        DataRequest(request).WithFetchOption(read::OnlineOnly), context);
+        DataRequest(request).WithFetchOption(read::OnlineOnly), kVersion,
+        context);
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
@@ -353,8 +352,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     auto response = repository.GetPartitionById(
-        kVersionedLayerId, kVersion,
-        DataRequest(request).WithFetchOption(read::OnlineOnly), context);
+        DataRequest(request).WithFetchOption(read::OnlineOnly), kVersion,
+        context);
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
@@ -378,8 +377,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     auto response = repository.GetPartitionById(
-        kVersionedLayerId, kVersion,
-        DataRequest(request).WithFetchOption(read::OnlineOnly), context);
+        DataRequest(request).WithFetchOption(read::OnlineOnly), kVersion,
+        context);
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
@@ -405,8 +404,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
         });
 
     auto response = repository.GetPartitionById(
-        kVersionedLayerId, kVersion,
-        DataRequest(request).WithFetchOption(read::OnlineOnly), context);
+        DataRequest(request).WithFetchOption(read::OnlineOnly), kVersion,
+        context);
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
@@ -433,8 +432,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
         });
 
     auto response = repository.GetPartitionById(
-        kVersionedLayerId, kVersion,
-        DataRequest(request).WithFetchOption(read::OnlineOnly), context);
+        DataRequest(request).WithFetchOption(read::OnlineOnly), kVersion,
+        context);
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
@@ -462,8 +461,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     EXPECT_CALL(*network, Cancel(_)).Times(1).WillOnce(Return());
 
     auto response = repository.GetPartitionById(
-        kVersionedLayerId, kVersion,
-        DataRequest(request).WithFetchOption(read::OnlineOnly), context);
+        DataRequest(request).WithFetchOption(read::OnlineOnly), kVersion,
+        context);
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
@@ -493,8 +492,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     EXPECT_CALL(*network, Cancel(_)).Times(1).WillOnce(Return());
 
     auto response = repository.GetPartitionById(
-        kVersionedLayerId, kVersion,
-        DataRequest(request).WithFetchOption(read::OnlineOnly), context);
+        DataRequest(request).WithFetchOption(read::OnlineOnly), kVersion,
+        context);
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
@@ -527,8 +526,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     EXPECT_CALL(*network, Cancel(_)).Times(1).WillOnce(Return());
 
     auto response = repository.GetPartitionById(
-        kVersionedLayerId, kVersion,
-        DataRequest(request).WithFetchOption(read::OnlineOnly), context);
+        DataRequest(request).WithFetchOption(read::OnlineOnly), kVersion,
+        context);
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
@@ -562,8 +561,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     EXPECT_CALL(*network, Cancel(_)).Times(1).WillOnce(Return());
 
     auto response = repository.GetPartitionById(
-        kVersionedLayerId, kVersion,
-        DataRequest(request).WithFetchOption(read::OnlineOnly), context);
+        DataRequest(request).WithFetchOption(read::OnlineOnly), kVersion,
+        context);
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
@@ -578,8 +577,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     client::CancellationContext context;
     context.CancelOperation();
     auto response = repository.GetPartitionById(
-        kVersionedLayerId, kVersion,
-        DataRequest(request).WithFetchOption(read::OnlineOnly), context);
+        DataRequest(request).WithFetchOption(read::OnlineOnly), kVersion,
+        context);
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
@@ -628,15 +627,15 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
 
     client::CancellationContext context;
     olp::client::ApiLookupClient lookup_client(catalog, settings);
-    repository::PartitionsRepository repository(catalog, settings,
-                                                lookup_client);
+    repository::PartitionsRepository repository(catalog, kVersionedLayerId,
+                                                settings, lookup_client);
 
     read::PartitionsRequest request;
     request.WithPartitionIds({kPartitionId, kInvalidPartitionId});
     request.WithFetchOption(read::CacheOnly);
 
-    auto response = repository.GetVersionedPartitions(
-        kVersionedLayerId, request, kVersion, context);
+    auto response =
+        repository.GetVersionedPartitions(request, kVersion, context);
 
     ASSERT_FALSE(response.IsSuccessful());
     EXPECT_TRUE(response.GetResult().GetPartitions().empty());
@@ -663,13 +662,13 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
 
     client::CancellationContext context;
     olp::client::ApiLookupClient lookup_client(catalog, settings);
-    repository::PartitionsRepository repository(catalog, settings,
-                                                lookup_client);
+    repository::PartitionsRepository repository(catalog, kVersionedLayerId,
+                                                settings, lookup_client);
     read::PartitionsRequest request;
     request.WithPartitionIds({kPartitionId});
 
-    auto response = repository.GetVersionedPartitions(
-        kVersionedLayerId, request, kVersion, context);
+    auto response =
+        repository.GetVersionedPartitions(request, kVersion, context);
 
     ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
     EXPECT_EQ(response.GetResult().GetPartitions().size(), 1);
@@ -696,20 +695,19 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
 
     client::CancellationContext context;
     olp::client::ApiLookupClient lookup_client(catalog, settings);
-    repository::PartitionsRepository repository(catalog, settings,
-                                                lookup_client);
+    repository::PartitionsRepository repository(catalog, kVersionedLayerId,
+                                                settings, lookup_client);
     read::PartitionsRequest request;
 
-    auto response = repository.GetVersionedPartitions(
-        kVersionedLayerId, request, kVersion, context);
+    auto response =
+        repository.GetVersionedPartitions(request, kVersion, context);
 
     ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
     EXPECT_TRUE(response.GetResult().GetPartitions().empty());
 
     request.WithFetchOption(read::CacheOnly);
 
-    response = repository.GetVersionedPartitions(kVersionedLayerId, request,
-                                                 kVersion, context);
+    response = repository.GetVersionedPartitions(request, kVersion, context);
 
     ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
     EXPECT_TRUE(response.GetResult().GetPartitions().empty());
@@ -758,12 +756,11 @@ TEST_F(PartitionsRepositoryTest, GetVolatilePartitions) {
 
     client::CancellationContext context;
     olp::client::ApiLookupClient lookup_client(catalog, settings);
-    repository::PartitionsRepository repository(catalog, settings,
-                                                lookup_client);
+    repository::PartitionsRepository repository(catalog, kVolatileLayerId,
+                                                settings, lookup_client);
     read::PartitionsRequest request;
 
-    auto response =
-        repository.GetVolatilePartitions(kVolatileLayerId, request, context);
+    auto response = repository.GetVolatilePartitions(request, context);
 
     ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
     EXPECT_EQ(response.GetResult().GetPartitions().size(), 4);
@@ -777,14 +774,14 @@ TEST_F(PartitionsRepositoryTest, GetVolatilePartitions) {
     settings.retry_settings.timeout = 0;
 
     olp::client::ApiLookupClient lookup_client(catalog, settings);
-    repository::PartitionsRepository repository(catalog, settings,
-                                                lookup_client);
+    repository::PartitionsRepository repository(catalog, kVolatileLayerId,
+                                                settings, lookup_client);
     client::CancellationContext context;
     read::PartitionsRequest request;
     request.WithFetchOption(read::CacheOnly);
 
     auto cache_only_response =
-        repository.GetVolatilePartitions(kVolatileLayerId, request, context);
+        repository.GetVolatilePartitions(request, context);
 
     ASSERT_TRUE(cache_only_response.IsSuccessful())
         << cache_only_response.GetError().GetMessage();
@@ -818,7 +815,8 @@ TEST_F(PartitionsRepositoryTest, AdditionalFields) {
   settings.network_request_handler = mock_network;
 
   olp::client::ApiLookupClient lookup_client(catalog, settings);
-  repository::PartitionsRepository repository(catalog, settings, lookup_client);
+  repository::PartitionsRepository repository(catalog, kVersionedLayerId,
+                                              settings, lookup_client);
   client::CancellationContext context;
   read::PartitionsRequest request;
 
@@ -828,8 +826,7 @@ TEST_F(PartitionsRepositoryTest, AdditionalFields) {
                                 read::PartitionsRequest::kCrc,
                                 read::PartitionsRequest::kDataSize});
 
-  auto response = repository.GetVersionedPartitions(kVersionedLayerId, request,
-                                                    kVersion, context);
+  auto response = repository.GetVersionedPartitions(request, kVersion, context);
 
   ASSERT_TRUE(response.IsSuccessful());
   auto result = response.GetResult();
@@ -842,8 +839,8 @@ TEST_F(PartitionsRepositoryTest, AdditionalFields) {
 
   request.WithFetchOption(read::CacheOnly);
 
-  auto response_2 = repository.GetVersionedPartitions(
-      kVersionedLayerId, request, kVersion, context);
+  auto response_2 =
+      repository.GetVersionedPartitions(request, kVersion, context);
 
   ASSERT_TRUE(response_2.IsSuccessful());
 
@@ -882,7 +879,8 @@ TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
   auto layer = "testlayer";
 
   olp::client::ApiLookupClient lookup_client(hrn, settings);
-  repository::PartitionsRepository repository(hrn, settings, lookup_client);
+  repository::PartitionsRepository repository(hrn, layer, settings,
+                                              lookup_client);
 
   {
     SCOPED_TRACE("query partitions and store to cache");
@@ -890,7 +888,7 @@ TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
         olp::geo::TileKey::FromHereTile("5904591"));
     olp::client::CancellationContext context;
 
-    auto response = repository.GetTile(layer, request, version, context);
+    auto response = repository.GetTile(request, version, context);
 
     ASSERT_TRUE(response.IsSuccessful());
     ASSERT_EQ(response.GetResult().GetDataHandle(),
@@ -905,7 +903,7 @@ TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
                        .WithTileKey(olp::geo::TileKey::FromHereTile("1476147"))
                        .WithFetchOption(read::CacheOnly);
 
-    auto response = repository.GetTile(layer, request, version, context);
+    auto response = repository.GetTile(request, version, context);
 
     // check if partition was stored to cache
     ASSERT_TRUE(response.IsSuccessful());
@@ -954,9 +952,9 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
     EXPECT_CALL(*mock_cache, Put(_, _, _)).WillOnce(Return(true));
 
     olp::client::ApiLookupClient lookup_client(hrn, settings);
-    repository::PartitionsRepository repository(hrn, settings, lookup_client);
-    auto response =
-        repository.GetAggregatedTile(layer, request, version, context);
+    repository::PartitionsRepository repository(hrn, layer, settings,
+                                                lookup_client);
+    auto response = repository.GetAggregatedTile(request, version, context);
     const auto& result = response.GetResult();
 
     ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
@@ -984,9 +982,9 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
     EXPECT_CALL(*mock_cache, Get(_)).WillOnce(Return(quad_tree.GetRawData()));
 
     olp::client::ApiLookupClient lookup_client(hrn, settings);
-    repository::PartitionsRepository repository(hrn, settings, lookup_client);
-    auto response =
-        repository.GetAggregatedTile(layer, request, version, context);
+    repository::PartitionsRepository repository(hrn, layer, settings,
+                                                lookup_client);
+    auto response = repository.GetAggregatedTile(request, version, context);
 
     const auto& result = response.GetResult();
 
@@ -1021,9 +1019,9 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
     EXPECT_CALL(*mock_cache, Put(_, _, _)).WillOnce(Return(true));
 
     olp::client::ApiLookupClient lookup_client(hrn, settings);
-    repository::PartitionsRepository repository(hrn, settings, lookup_client);
-    auto response =
-        repository.GetAggregatedTile(layer, request, version, context);
+    repository::PartitionsRepository repository(hrn, layer, settings,
+                                                lookup_client);
+    auto response = repository.GetAggregatedTile(request, version, context);
 
     const auto& result = response.GetResult();
 
@@ -1062,9 +1060,9 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
     EXPECT_CALL(*mock_cache, Put(_, _, _)).WillOnce(Return(true));
 
     olp::client::ApiLookupClient lookup_client(hrn, settings);
-    repository::PartitionsRepository repository(hrn, settings, lookup_client);
-    auto response =
-        repository.GetAggregatedTile(layer, request, version, context);
+    repository::PartitionsRepository repository(hrn, layer, settings,
+                                                lookup_client);
+    auto response = repository.GetAggregatedTile(request, version, context);
 
     const auto& error = response.GetError();
 
@@ -1092,9 +1090,9 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
 
     olp::client::ApiLookupClient lookup_client(hrn, settings);
-    repository::PartitionsRepository repository(hrn, settings, lookup_client);
-    auto response =
-        repository.GetAggregatedTile(layer, request, version, context);
+    repository::PartitionsRepository repository(hrn, layer, settings,
+                                                lookup_client);
+    auto response = repository.GetAggregatedTile(request, version, context);
     const auto& error = response.GetError();
 
     ASSERT_FALSE(response.IsSuccessful());
@@ -1126,9 +1124,9 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
 
     olp::client::ApiLookupClient lookup_client(hrn, settings);
-    repository::PartitionsRepository repository(hrn, settings, lookup_client);
-    auto response =
-        repository.GetAggregatedTile(layer, request, version, context);
+    repository::PartitionsRepository repository(hrn, layer, settings,
+                                                lookup_client);
+    auto response = repository.GetAggregatedTile(request, version, context);
 
     const auto& error = response.GetError();
 
@@ -1169,9 +1167,9 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
 
     olp::client::ApiLookupClient lookup_client(hrn, settings);
-    repository::PartitionsRepository repository(hrn, settings, lookup_client);
-    auto response =
-        repository.GetAggregatedTile(layer, request, version, context);
+    repository::PartitionsRepository repository(hrn, layer, settings,
+                                                lookup_client);
+    auto response = repository.GetAggregatedTile(request, version, context);
 
     const auto& error = response.GetError();
 
@@ -1211,9 +1209,9 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
 
     olp::client::ApiLookupClient lookup_client(hrn, settings);
-    repository::PartitionsRepository repository(hrn, settings, lookup_client);
-    auto response =
-        repository.GetAggregatedTile(layer, request, version, context);
+    repository::PartitionsRepository repository(hrn, layer, settings,
+                                                lookup_client);
+    auto response = repository.GetAggregatedTile(request, version, context);
     const auto& error = response.GetError();
 
     ASSERT_FALSE(response.IsSuccessful());
@@ -1263,8 +1261,9 @@ TEST_F(PartitionsRepositoryTest, GetTile) {
     EXPECT_CALL(*mock_cache, Put(_, _, _)).WillOnce(Return(true));
 
     olp::client::ApiLookupClient lookup_client(hrn, settings);
-    repository::PartitionsRepository repository(hrn, settings, lookup_client);
-    auto response = repository.GetTile(layer, request, version, context);
+    repository::PartitionsRepository repository(hrn, layer, settings,
+                                                lookup_client);
+    auto response = repository.GetTile(request, version, context);
 
     ASSERT_FALSE(response.IsSuccessful()) << response.GetError().GetMessage();
   }

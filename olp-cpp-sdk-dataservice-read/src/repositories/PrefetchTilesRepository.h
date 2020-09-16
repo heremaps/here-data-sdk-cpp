@@ -106,9 +106,9 @@ class PrefetchTilesRepository {
                                        client::CancellationContext context);
 
  protected:
-  void SplitSubtree(RootTilesForRequest& root_tiles_depth,
-                    RootTilesForRequest::iterator subtree_to_split,
-                    const geo::TileKey& tile_key, std::uint32_t min);
+  static void SplitSubtree(RootTilesForRequest& root_tiles_depth,
+                           RootTilesForRequest::iterator subtree_to_split,
+                           const geo::TileKey& tile_key, std::uint32_t min);
 
  private:
   client::HRN catalog_;

@@ -38,7 +38,7 @@ ProtectDependencyResolver::ProtectDependencyResolver(
     : layer_id_(layer_id),
       version_(version),
       data_cache_repository_(catalog, settings.cache),
-      partitions_cache_repository_(catalog, settings.cache),
+      partitions_cache_repository_(catalog, layer_id_, settings.cache),
       quad_trees_(),
       keys_to_protect_() {}
 
@@ -86,13 +86,12 @@ bool ProtectDependencyResolver::AddDataHandle(
 bool ProtectDependencyResolver::ProcessTileKeyInCache(
     const geo::TileKey& tile) {
   read::QuadTreeIndex cached_tree;
-  if (partitions_cache_repository_.FindQuadTree(layer_id_, version_, tile,
-                                                cached_tree) &&
+  if (partitions_cache_repository_.FindQuadTree(version_, tile, cached_tree) &&
       AddDataHandle(tile, cached_tree)) {
     auto root_tile = cached_tree.GetRootTile();
     // add quad tree to list for protection
     keys_to_protect_.emplace_back(partitions_cache_repository_.CreateQuadKey(
-        layer_id_, root_tile, kQuadTreeDepth, version_));
+        root_tile, kQuadTreeDepth, version_));
     // save quad tree, because  there is could be more tiles to protect from
     // this quad
     quad_trees_[root_tile] = std::move(cached_tree);
