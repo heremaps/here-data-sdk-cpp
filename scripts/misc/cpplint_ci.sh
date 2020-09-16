@@ -1,4 +1,4 @@
-#!/bin/bash +e
+#!/bin/bash -ex
 #
 # Copyright (C) 2020 HERE Europe B.V.
 #
@@ -31,9 +31,11 @@ else
   printf "Currently in %s branch. Running cpplint.\n" "$CURRENT_BRANCH"
 fi
 
+set +e
 # Get affected files and filter source files
 FILES=$(git diff-tree --no-commit-id --name-only -r master "$CURRENT_BRANCH" \
         | grep '\.c\|\.cpp\|\.cxx\|\.h\|\.hpp\|\.hxx')
+set -e
 
 if [ -z "$FILES" ]; then
   printf "No affected files, exiting.\n"

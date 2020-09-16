@@ -6,18 +6,23 @@ env:
   - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
   - SEGFAULT_SIGNALS=all
   - WORKSPACE=$TRAVIS_BUILD_DIR
-addons:
-  apt:
-    packages:
-    - libboost-all-dev
-    - libssl-dev
-    - libcurl4-openssl-dev
 matrix:
   - compiler: gcc
     cache: ccache
     env: BUILD_TYPE=COVERAGE WORKSPACE=$TRAVIS_BUILD_DIR
     name: Linux Build using gcc & tests & code coverage
-    script: $WORKSPACE/scripts/misc/cpplint_ci.sh && $WORKSPACE/scripts/linux/psv/build_psv.sh && $WORKSPACE/scripts/linux/psv/travis_test_psv.sh
+    script: $WORKSPACE/scripts/linux/psv/build_psv.sh && $WORKSPACE/scripts/linux/psv/travis_test_psv.sh
+    addons:
+        apt:
+            packages:
+            - libboost-all-dev
+            - libssl-dev
+            - libcurl4-openssl-dev
+  - language: minimal
+    name: "C++ Lint checker script"
+    script: $WORKSPACE/scripts/misc/cpplint_ci.sh
+    if: type = pull_request
 branches:
   only:
   - master
+
