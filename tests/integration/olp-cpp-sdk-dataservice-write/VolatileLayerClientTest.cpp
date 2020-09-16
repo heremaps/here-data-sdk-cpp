@@ -73,6 +73,8 @@ class VolatileLayerClientTest : public ::testing::Test {
     olp::client::OlpClientSettings client_settings;
     network_ = std::make_shared<NetworkMock>();
     client_settings.network_request_handler = network_;
+    client_settings.task_scheduler =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
     SetUpCommonNetworkMockCalls(*network_);
 
     return std::make_shared<write::VolatileLayerClient>(
@@ -157,16 +159,10 @@ class VolatileLayerClientTest : public ::testing::Test {
 TEST_F(VolatileLayerClientTest, PublishData) {
   auto new_client = CreateVolatileLayerClient();
   {
-    testing::InSequence dummy;
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
-        .Times(1);
     EXPECT_CALL(*network_,
                 Send(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_,
-                Send(IsGetRequest(URL_LOOKUP_PUBLISH_V2), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_,
                 Send(IsGetRequest(URL_QUERY_PARTITION_1111), _, _, _, _))
@@ -180,6 +176,7 @@ TEST_F(VolatileLayerClientTest, PublishData) {
         Send(IsPutRequestPrefix(URL_PUT_VOLATILE_BLOB_PREFIX), _, _, _, _))
         .Times(1);
   }
+
   auto response =
       new_client
           ->PublishPartitionData(model::PublishPartitionDataRequest()
@@ -190,50 +187,6 @@ TEST_F(VolatileLayerClientTest, PublishData) {
           .get();
 
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
-}
-
-TEST_F(VolatileLayerClientTest, PublishDataCancelMetadata) {
-  auto wait_for_cancel = std::make_shared<std::promise<void>>();
-  auto pause_for_cancel = std::make_shared<std::promise<void>>();
-
-  olp::http::RequestId request_id;
-  NetworkCallback send_mock;
-  CancelCallback cancel_mock;
-
-  std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
-      wait_for_cancel, pause_for_cancel,
-      {http::HttpStatusCode::OK, URL_LOOKUP_METADATA});
-
-  {
-    testing::InSequence s;
-
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
-        .Times(1)
-        .WillOnce(testing::Invoke(std::move(send_mock)));
-    EXPECT_CALL(*network_, Cancel(request_id))
-        .WillOnce(testing::Invoke(std::move(cancel_mock)));
-    EXPECT_CALL(*network_,
-                Send(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
-        .Times(0);
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
-        .Times(0);
-  }
-  auto promise =
-      client_->PublishPartitionData(model::PublishPartitionDataRequest()
-                                        .WithData(data_)
-                                        .WithLayerId(GetTestLayer())
-                                        .WithPartitionId("1111"));
-  wait_for_cancel->get_future().get();
-  promise.GetCancellationToken().Cancel();
-  pause_for_cancel->set_value();
-
-  auto response = promise.GetFuture().get();
-
-  ASSERT_FALSE(response.IsSuccessful());
-  ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            response.GetError().GetHttpStatusCode());
-  ASSERT_EQ(olp::client::ErrorCode::Cancelled,
-            response.GetError().GetErrorCode());
 }
 
 TEST_F(VolatileLayerClientTest, PublishDataCancelBlob) {
@@ -249,9 +202,14 @@ TEST_F(VolatileLayerClientTest, PublishDataCancelBlob) {
       {http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP_VOLATILE_BLOB});
 
   {
-    testing::InSequence s;
-
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_,
+                Send(IsGetRequest(URL_QUERY_PARTITION_1111), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_CONFIG), _, _, _, _))
+        .Times(1);
+    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_,
                 Send(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
@@ -259,7 +217,8 @@ TEST_F(VolatileLayerClientTest, PublishDataCancelBlob) {
         .WillOnce(testing::Invoke(std::move(send_mock)));
     EXPECT_CALL(*network_, Cancel(request_id))
         .WillOnce(testing::Invoke(std::move(cancel_mock)));
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_GET_CATALOG), _, _, _, _))
+    EXPECT_CALL(*network_,
+                Send(IsGetRequest(URL_PUT_VOLATILE_BLOB_PREFIX), _, _, _, _))
         .Times(0);
   }
 
@@ -294,17 +253,7 @@ TEST_F(VolatileLayerClientTest, PublishDataCancelCatalog) {
       {http::HttpStatusCode::OK, HTTP_RESPONSE_GET_CATALOG});
 
   {
-    testing::InSequence s;
-
-    EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_METADATA), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_,
-                Send(IsGetRequest(URL_LOOKUP_VOLATILE_BLOB), _, _, _, _))
-        .Times(1);
     EXPECT_CALL(*network_, Send(IsGetRequest(URL_LOOKUP_QUERY), _, _, _, _))
-        .Times(1);
-    EXPECT_CALL(*network_,
-                Send(IsGetRequest(URL_LOOKUP_PUBLISH_V2), _, _, _, _))
         .Times(1);
     EXPECT_CALL(*network_,
                 Send(IsGetRequest(URL_QUERY_PARTITION_1111), _, _, _, _))

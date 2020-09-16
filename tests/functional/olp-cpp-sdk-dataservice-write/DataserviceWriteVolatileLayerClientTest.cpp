@@ -31,8 +31,8 @@
 
 namespace {
 
-using namespace olp::dataservice::write;
-using namespace olp::dataservice::write::model;
+namespace write = olp::dataservice::write;
+namespace model = olp::dataservice::write::model;
 
 const std::string kEndpoint = "endpoint";
 const std::string kAppid = "dataservice_write_test_appid";
@@ -45,9 +45,8 @@ const std::string kVolatileLayer = "volatile_layer";
 const auto kWaitBeforeRetry = std::chrono::seconds(6);
 
 void PublishDataSuccessAssertions(
-    const olp::client::ApiResponse<
-        olp::dataservice::write::model::ResponseOkSingle,
-        olp::client::ApiError>& result) {
+    const olp::client::ApiResponse<model::ResponseOkSingle,
+                                   olp::client::ApiError>& result) {
   EXPECT_SUCCESS(result);
   EXPECT_FALSE(result.GetResult().GetTraceID().empty());
   EXPECT_EQ("", result.GetError().GetMessage());
@@ -77,7 +76,8 @@ class DataserviceWriteVolatileLayerClientTest : public ::testing::Test {
         CreateDefaultNetworkRequestHandler();
   }
 
-  virtual std::shared_ptr<VolatileLayerClient> CreateVolatileLayerClient() {
+  virtual std::shared_ptr<write::VolatileLayerClient>
+  CreateVolatileLayerClient() {
     auto network = s_network;
 
     const auto key_id = CustomParameters::getArgument(kAppid);
@@ -96,8 +96,10 @@ class DataserviceWriteVolatileLayerClientTest : public ::testing::Test {
     olp::client::OlpClientSettings settings;
     settings.authentication_settings = auth_client_settings;
     settings.network_request_handler = network;
+    settings.task_scheduler =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
 
-    return std::make_shared<VolatileLayerClient>(
+    return std::make_shared<write::VolatileLayerClient>(
         olp::client::HRN{GetTestCatalog()}, settings);
   }
 
@@ -116,7 +118,7 @@ class DataserviceWriteVolatileLayerClientTest : public ::testing::Test {
  protected:
   static std::shared_ptr<olp::http::Network> s_network;
 
-  std::shared_ptr<VolatileLayerClient> client_;
+  std::shared_ptr<write::VolatileLayerClient> client_;
   std::shared_ptr<std::vector<unsigned char>> data_;
 };
 
@@ -138,7 +140,7 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, GetBaseVersion) {
 TEST_F(DataserviceWriteVolatileLayerClientTest, StartBatchInvalid) {
   auto volatile_client = CreateVolatileLayerClient();
   auto response =
-      volatile_client->StartBatch(StartBatchRequest()).GetFuture().get();
+      volatile_client->StartBatch(model::StartBatchRequest()).GetFuture().get();
 
   ASSERT_FALSE(response.IsSuccessful());
   ASSERT_FALSE(response.GetResult().GetId());
@@ -161,7 +163,7 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, StartBatch) {
   auto volatile_client = CreateVolatileLayerClient();
   auto response =
       volatile_client
-          ->StartBatch(StartBatchRequest().WithLayers({GetTestLayer()}))
+          ->StartBatch(model::StartBatchRequest().WithLayers({GetTestLayer()}))
           .GetFuture()
           .get();
 
@@ -209,7 +211,7 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, PublishToBatch) {
   auto volatile_client = CreateVolatileLayerClient();
   auto response =
       volatile_client
-          ->StartBatch(StartBatchRequest().WithLayers({GetTestLayer()}))
+          ->StartBatch(model::StartBatchRequest().WithLayers({GetTestLayer()}))
           .GetFuture()
           .get();
 
@@ -217,8 +219,8 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, PublishToBatch) {
   ASSERT_TRUE(response.GetResult().GetId());
   ASSERT_NE("", response.GetResult().GetId().value());
 
-  std::vector<PublishPartitionDataRequest> partition_requests;
-  PublishPartitionDataRequest partition_request;
+  std::vector<model::PublishPartitionDataRequest> partition_requests;
+  model::PublishPartitionDataRequest partition_request;
   partition_requests.push_back(
       partition_request.WithLayerId(GetTestLayer()).WithPartitionId("123"));
   partition_requests.push_back(partition_request.WithPartitionId("456"));
@@ -233,7 +235,7 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, PublishToBatch) {
       volatile_client->CompleteBatch(response.GetResult()).GetFuture().get();
   EXPECT_SUCCESS(complete_batch_response);
 
-  GetBatchResponse get_batch_response;
+  write::GetBatchResponse get_batch_response;
   for (int i = 0; i < 100; ++i) {
     get_batch_response =
         volatile_client->GetBatch(response.GetResult()).GetFuture().get();
@@ -259,7 +261,7 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, PublishToBatchInvalid) {
   auto volatile_client = CreateVolatileLayerClient();
   auto response =
       volatile_client
-          ->StartBatch(StartBatchRequest().WithLayers({GetTestLayer()}))
+          ->StartBatch(model::StartBatchRequest().WithLayers({GetTestLayer()}))
           .GetFuture()
           .get();
 
@@ -273,8 +275,9 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, PublishToBatchInvalid) {
           .get();
   ASSERT_FALSE(publish_to_batch_response.IsSuccessful());
 
-  std::vector<PublishPartitionDataRequest> partition_requests{
-      PublishPartitionDataRequest{}, PublishPartitionDataRequest{}};
+  std::vector<model::PublishPartitionDataRequest> partition_requests{
+      model::PublishPartitionDataRequest{},
+      model::PublishPartitionDataRequest{}};
 
   publish_to_batch_response =
       volatile_client->PublishToBatch(response.GetResult(), partition_requests)
@@ -283,7 +286,7 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, PublishToBatchInvalid) {
   ASSERT_FALSE(publish_to_batch_response.IsSuccessful());
 
   partition_requests.clear();
-  PublishPartitionDataRequest partition_request;
+  model::PublishPartitionDataRequest partition_request;
   partition_requests.push_back(
       partition_request.WithLayerId("foo").WithPartitionId("123"));
   partition_requests.push_back(
@@ -305,7 +308,7 @@ TEST_F(DataserviceWriteVolatileLayerClientTest,
   auto volatile_client = CreateVolatileLayerClient();
   auto response =
       volatile_client
-          ->StartBatch(StartBatchRequest().WithLayers({GetTestLayer()}))
+          ->StartBatch(model::StartBatchRequest().WithLayers({GetTestLayer()}))
           .GetFuture()
           .get();
 
@@ -368,26 +371,27 @@ TEST_F(DataserviceWriteVolatileLayerClientTest, CancelAllRequests) {
 }
 
 TEST_F(DataserviceWriteVolatileLayerClientTest, PublishData) {
-  auto response = client_
-                      ->PublishPartitionData(PublishPartitionDataRequest()
-                                                 .WithData(data_)
-                                                 .WithLayerId(GetTestLayer())
-                                                 .WithPartitionId("123"))
-                      .GetFuture()
-                      .get();
+  auto response =
+      client_
+          ->PublishPartitionData(model::PublishPartitionDataRequest()
+                                     .WithData(data_)
+                                     .WithLayerId(GetTestLayer())
+                                     .WithPartitionId("123"))
+          .GetFuture()
+          .get();
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
 }
 
 TEST_F(DataserviceWriteVolatileLayerClientTest, PublishDataAsync) {
-  std::promise<PublishPartitionDataResponse> response_promise;
+  std::promise<write::PublishPartitionDataResponse> response_promise;
   bool call_is_async = true;
 
   auto cancel_token = client_->PublishPartitionData(
-      PublishPartitionDataRequest()
+      model::PublishPartitionDataRequest()
           .WithData(data_)
           .WithLayerId(GetTestLayer())
           .WithPartitionId("456"),
-      [&](const PublishPartitionDataResponse& response) {
+      [&](const write::PublishPartitionDataResponse& response) {
         call_is_async = false;
         response_promise.set_value(response);
       });

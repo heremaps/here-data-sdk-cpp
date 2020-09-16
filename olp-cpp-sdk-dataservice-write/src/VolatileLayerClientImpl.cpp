@@ -27,6 +27,7 @@
 #include <olp/core/client/CancellationContext.h>
 
 #include "ApiClientLookup.h"
+#include "Common.h"
 #include "generated/BlobApi.h"
 #include "generated/ConfigApi.h"
 #include "generated/MetadataApi.h"
@@ -48,7 +49,8 @@ VolatileLayerClientImpl::VolatileLayerClientImpl(
     : catalog_(catalog),
       settings_(settings),
       catalog_settings_(catalog, settings),
-      pending_requests_(std::make_shared<client::PendingRequests>()) {}
+      pending_requests_(std::make_shared<client::PendingRequests>()),
+      task_scheduler_(settings.task_scheduler) {}
 
 VolatileLayerClientImpl::~VolatileLayerClientImpl() {
   tokenList_.CancelAll();
@@ -321,114 +323,75 @@ client::CancellationToken VolatileLayerClientImpl::PublishPartitionData(
     return client::CancellationToken();
   }
 
-  auto cancel_context = std::make_shared<client::CancellationContext>();
-  auto self = shared_from_this();
-  auto id = tokenList_.GetNextId();
+  auto publish_task =
+      [=](client::CancellationContext context) -> PublishPartitionDataResponse {
+    auto partition_id = request.GetPartitionId().get();
 
-  auto cancel_function = [=]() {
-    self->tokenList_.RemoveTask(id);
-    callback(PublishPartitionDataResponse(client::ApiError(
-        client::ErrorCode::Cancelled, "Operation cancelled.", true)));
-  };
+    auto data_handle_response =
+        GetDataHandleMap(request.GetLayerId(),
+                         std::vector<std::string>{
+                             request.GetPartitionId().value_or(std::string())},
+                         boost::none, boost::none, boost::none, context);
 
-  const auto partition_id = request.GetPartitionId();
-
-  auto putBlob_callback = [=](PutBlobResponse response) {
-    self->tokenList_.RemoveTask(id);
-    if (!response.IsSuccessful()) {
-      callback(PublishPartitionDataResponse(response.GetError()));
-      return;
+    if (!data_handle_response.IsSuccessful()) {
+      return data_handle_response.GetError();
     }
 
-    model::ResponseOkSingle response_ok_single;
-    response_ok_single.SetTraceID(partition_id.value_or(std::string()));
-    callback(PublishPartitionDataResponse(std::move(response_ok_single)));
-  };
-
-  auto putBlob_function =
-      [=](const std::string& data_handle, const std::string& content_type,
-          const std::string& content_encoding) -> client::CancellationToken {
-    return BlobApi::PutBlob(*self->apiclient_blob_, request.GetLayerId(),
-                            content_type, content_encoding, data_handle,
-                            request.GetData(), request.GetBillingTag(),
-                            putBlob_callback);
-  };
-
-  auto get_data_handle_callback = [=](DataHandleMapResponse response) {
-    if (!response.IsSuccessful()) {
-      self->tokenList_.RemoveTask(id);
-      callback(std::move(response.GetError()));
-      return;
-    }
-
-    if (response.GetResult().empty()) {
-      self->tokenList_.RemoveTask(id);
-      callback(PublishPartitionDataResponse(client::ApiError(
+    if (data_handle_response.GetResult().empty()) {
+      return client::ApiError(
           client::ErrorCode::InvalidArgument,
           "Unable to find requested partition,the partition "
-          "metadata has to exist in OLP before invoking this API.")));
-      return;
+          "metadata has to exist in OLP before invoking this API.");
     }
 
-    auto layer_settings_response = self->catalog_settings_.GetLayerSettings(
-        *cancel_context, request.GetBillingTag(), request.GetLayerId());
+    auto data_handle_it = data_handle_response.GetResult().find(partition_id);
+
+    if (data_handle_it == data_handle_response.GetResult().end()) {
+      return client::ApiError(
+          client::ErrorCode::Unknown,
+          "Unexpected error. Partition data handle not found.");
+    }
+    const std::string& data_handle = data_handle_it->second;
+
+    auto layer_settings_response = catalog_settings_.GetLayerSettings(
+        context, request.GetBillingTag(), request.GetLayerId());
     if (!layer_settings_response.IsSuccessful()) {
-      callback(layer_settings_response.GetError());
-      return;
+      return layer_settings_response.GetError();
     }
     if (layer_settings_response.GetResult().content_type.empty()) {
-      self->tokenList_.RemoveTask(id);
       auto errmsg = boost::format(
                         "Unable to find the Layer ID (%1%) "
                         "provided in the PublishPartitionDataRequest "
                         "in the Catalog specified when creating "
                         "this VolatileLayerClient instance.") %
                     request.GetLayerId();
-      callback(PublishPartitionDataResponse(
-          client::ApiError(client::ErrorCode::InvalidArgument, errmsg.str())));
-      return;
+      return client::ApiError(client::ErrorCode::InvalidArgument, errmsg.str());
     }
 
     auto layer_settings = layer_settings_response.GetResult();
-    for (const auto& itr : response.GetResult()) {
-      const std::string data_handle = itr.second;
-      cancel_context->ExecuteOrCancelled(
-          std::bind(putBlob_function, data_handle, layer_settings.content_type,
-                    layer_settings.content_encoding),
-          cancel_function);
+
+    auto blob_client_response = ApiClientLookup::LookupApiClient(
+        catalog_, context, "volatile-blob", "v1", settings_);
+
+    if (!blob_client_response.IsSuccessful()) {
+      return blob_client_response.GetError();
     }
+
+    auto blob_response = BlobApi::PutBlob(
+        blob_client_response.GetResult(), request.GetLayerId(),
+        layer_settings.content_type, layer_settings.content_encoding,
+        data_handle, request.GetData(), request.GetBillingTag(), context);
+    if (!blob_response.IsSuccessful()) {
+      return blob_response.GetError();
+    }
+
+    model::ResponseOkSingle response_ok_single;
+    response_ok_single.SetTraceID(partition_id);
+    return response_ok_single;
   };
 
-  auto get_data_handle_function = [=]() -> client::CancellationToken {
-    return GetDataHandleMap(
-        request.GetLayerId(),
-        std::vector<std::string>{partition_id.value_or(std::string())},
-        boost::none, boost::none, boost::none, get_data_handle_callback);
-  };
-
-  auto init_api_clients_callback =
-      [=](boost::optional<client::ApiError> init_api_error) {
-        if (init_api_error) {
-          self->tokenList_.RemoveTask(id);
-          callback(PublishPartitionDataResponse(init_api_error.get()));
-          return;
-        }
-
-        cancel_context->ExecuteOrCancelled(get_data_handle_function,
-                                           cancel_function);
-      };
-
-  auto init_api_clients_function = [=]() -> client::CancellationToken {
-    return InitApiClients(cancel_context, init_api_clients_callback);
-  };
-
-  cancel_context->ExecuteOrCancelled(init_api_clients_function,
-                                     cancel_function);
-  auto ret = client::CancellationToken(
-      [cancel_context]() { cancel_context->CancelOperation(); });
-  tokenList_.AddTask(id, ret);
-
-  return ret;
+  return AddTask(task_scheduler_, pending_requests_, std::move(publish_task),
+                 std::move(callback));
 }
 
 client::CancellableFuture<GetBatchResponse> VolatileLayerClientImpl::GetBatch(
@@ -498,78 +461,46 @@ client::CancellationToken VolatileLayerClientImpl::GetBatch(
   return ret;
 }
 
-client::CancellationToken VolatileLayerClientImpl::GetDataHandleMap(
-    const std::string& layerId, const std::vector<std::string>& partitionIds,
+DataHandleMapResponse VolatileLayerClientImpl::GetDataHandleMap(
+    const std::string& layer_id, const std::vector<std::string>& partition_ids,
     boost::optional<int64_t> version,
-    boost::optional<std::vector<std::string>> additionalFields,
-    boost::optional<std::string> billingTag,
-    const DataHandleMapCallback& callback) {
-  if (partitionIds.empty() || layerId.empty()) {
-    callback(client::ApiError(client::ErrorCode::InvalidArgument,
-                              "Empty partition ids or layer id", true));
-    return {};
+    boost::optional<std::vector<std::string>> additional_fields,
+    boost::optional<std::string> billing_tag,
+    client::CancellationContext context) {
+  if (partition_ids.empty() || layer_id.empty()) {
+    return client::ApiError(client::ErrorCode::InvalidArgument,
+                            "Empty partition ids or layer id", true);
   }
 
-  if (partitionIds.size() > 100) {
-    callback(client::ApiError(
+  if (partition_ids.size() > 100) {
+    return client::ApiError(
         client::ErrorCode::InvalidArgument,
-        "Exceeds the maximum allowed number of partition per call", true));
-    return {};
+        "Exceeds the maximum allowed number of partition per call", true);
   }
 
-  auto cancel_context = std::make_shared<client::CancellationContext>();
-  auto self = shared_from_this();
-  auto id = tokenList_.GetNextId();
+  auto api_response = ApiClientLookup::LookupApiClient(
+      catalog_, context, "query", "v1", settings_);
+  if (!api_response.IsSuccessful()) {
+    return api_response.GetError();
+  }
 
-  auto getDataHandleMap_function = [=]() -> client::CancellationToken {
-    return QueryApi::GetPartitionsById(
-        *self->apiclient_query_, layerId, partitionIds, version,
-        additionalFields, billingTag,
-        [=](QueryApi::PartitionsResponse response) {
-          self->tokenList_.RemoveTask(id);
-          if (!response.IsSuccessful()) {
-            callback(std::move(response.GetError()));
-          } else {
-            const auto& partitions = response.GetResult().GetPartitions();
-            std::map<std::string, std::string> dataHandleMap;
-            for (const model::Partition& p : partitions) {
-              if (std::find(partitionIds.begin(), partitionIds.end(),
-                            p.GetPartition()) != partitionIds.end()) {
-                dataHandleMap[p.GetPartition()] = p.GetDataHandle();
-              }
-            }
-            callback(std::move(dataHandleMap));
-          }
-        });
-  };
+  auto partitions_response = QueryApi::GetPartitionsById(
+      api_response.GetResult(), layer_id, partition_ids, version,
+      additional_fields, billing_tag, context);
 
-  auto cancel_function = [=]() {
-    self->tokenList_.RemoveTask(id);
-    callback(client::ApiError(client::ErrorCode::Cancelled,
-                              "Operation cancelled.", true));
-  };
+  if (!partitions_response.IsSuccessful()) {
+    return partitions_response.GetError();
+  }
 
-  cancel_context->ExecuteOrCancelled(
-      [=]() -> client::CancellationToken {
-        return self->InitApiClients(
-            cancel_context,
-            [=](boost::optional<client::ApiError> init_api_error) {
-              if (init_api_error) {
-                self->tokenList_.RemoveTask(id);
-                callback(DataHandleMapResponse(init_api_error.get()));
-                return;
-              }
-
-              cancel_context->ExecuteOrCancelled(getDataHandleMap_function,
-                                                 cancel_function);
-            });
-      },
-      cancel_function);
-
-  auto ret = client::CancellationToken(
-      [cancel_context]() { cancel_context->CancelOperation(); });
-  tokenList_.AddTask(id, ret);
-  return ret;
+  const auto& partitions = partitions_response.GetResult().GetPartitions();
+  std::map<std::string, std::string> data_handle_map;
+  for (const model::Partition& p : partitions) {
+    if (std::find(partition_ids.begin(), partition_ids.end(),
+                  p.GetPartition()) != partition_ids.end()) {
+      data_handle_map[p.GetPartition()] = p.GetDataHandle();
+    }
+  }
+  return data_handle_map;
 }
 
 client::CancellableFuture<PublishToBatchResponse>
