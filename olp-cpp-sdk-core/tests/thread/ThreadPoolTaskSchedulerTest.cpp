@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+#include <unordered_map>
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -28,13 +30,12 @@ using CancellationContext = olp::client::CancellationContext;
 using TaskScheduler = olp::thread::TaskScheduler;
 using ThreadPool = olp::thread::ThreadPoolTaskScheduler;
 
-using namespace ::testing;
-using namespace std::chrono;
+namespace chrono = std::chrono;
 
 namespace {
 constexpr size_t kThreads{3u};
 constexpr size_t kNumTasks{30u};
-constexpr milliseconds kSleep{100};
+constexpr chrono::milliseconds kSleep{100};
 constexpr int64_t kMaxWaitMs{1000};
 }  // namespace
 
@@ -56,13 +57,14 @@ TEST(ThreadPoolTaskSchedulerTest, SingleUserPush) {
   }
 
   // Wait for threads to finish but do not exceed 1min
-  const auto start = system_clock::now();
+  const auto start = chrono::system_clock::now();
   constexpr size_t expected_tasks = 2 * kNumTasks;
 
   auto check_condition = [&]() {
     return counter.load() < expected_tasks &&
-           duration_cast<milliseconds>(system_clock::now() - start).count() <
-               kMaxWaitMs;
+           chrono::duration_cast<chrono::milliseconds>(
+               chrono::system_clock::now() - start)
+                   .count() < kMaxWaitMs;
   };
 
   while (check_condition()) {
@@ -104,11 +106,12 @@ TEST(ThreadPoolTaskSchedulerTest, MultiUserPush) {
   }
 
   // Wait for threads to finish but do not exceed 1min
-  const auto start = system_clock::now();
+  const auto start = chrono::system_clock::now();
   auto check_condition = [&]() {
     return counter.load() < kTotalTasks &&
-           duration_cast<milliseconds>(system_clock::now() - start).count() <
-               kMaxWaitMs;
+           chrono::duration_cast<chrono::milliseconds>(
+               chrono::system_clock::now() - start)
+                   .count() < kMaxWaitMs;
   };
 
   while (check_condition()) {
@@ -125,4 +128,122 @@ TEST(ThreadPoolTaskSchedulerTest, MultiUserPush) {
     thread.join();
   }
   push_threads.clear();
+}
+
+TEST(ThreadPoolTaskSchedulerTest, Prioritization) {
+  auto thread_pool = std::make_shared<ThreadPool>(1);
+  TaskScheduler& scheduler = *thread_pool;
+
+  struct MockOp {
+    MOCK_METHOD(void, Op, (olp::thread::Priority));
+  } mockop;
+
+  testing::Sequence sequence;
+
+  EXPECT_CALL(mockop, Op(olp::thread::HIGH)).Times(10).InSequence(sequence);
+  EXPECT_CALL(mockop, Op(olp::thread::NORMAL)).Times(10).InSequence(sequence);
+  EXPECT_CALL(mockop, Op(olp::thread::LOW)).Times(10).InSequence(sequence);
+
+  std::promise<void> block_promise;
+  auto block_future = block_promise.get_future();
+
+  scheduler.ScheduleTask(
+      [&]() { block_future.wait_for(std::chrono::milliseconds(kMaxWaitMs)); },
+      std::numeric_limits<uint32_t>::max());
+
+  const uint32_t expected_tasks = 30u;
+  uint32_t counter(0u);
+
+  const olp::thread::Priority priorities[] = {
+      olp::thread::LOW, olp::thread::NORMAL, olp::thread::HIGH};
+
+  for (uint32_t i = 0; i < expected_tasks; ++i) {
+    auto priority = priorities[i % 3];
+    scheduler.ScheduleTask(
+        [&, priority]() {
+          counter++;
+          mockop.Op(priority);
+        },
+        priority);
+  }
+
+  block_promise.set_value();
+
+  // task to verify all tasks are finished
+  std::promise<void> promise;
+  auto future = promise.get_future();
+  scheduler.ScheduleTask([&]() { promise.set_value(); }, 1);
+
+  EXPECT_EQ(future.wait_for(std::chrono::milliseconds(kMaxWaitMs)),
+            std::future_status::ready);
+  EXPECT_EQ(expected_tasks, counter);
+
+  // Close queue and join threads.
+  // SyncQueue and threads join should be done in destructor.
+  thread_pool.reset();
+
+  testing::Mock::VerifyAndClearExpectations(&mockop);
+}
+
+TEST(ThreadPoolTaskSchedulerTest, SamePrioritySequence) {
+  auto thread_pool = std::make_shared<ThreadPool>(1);
+  TaskScheduler& scheduler = *thread_pool;
+
+  struct MockOp {
+    MOCK_METHOD(void, Op, (uint32_t, olp::thread::Priority));
+  } mockop;
+
+  testing::Sequence sequence;
+
+  std::promise<void> block_promise;
+  auto block_future = block_promise.get_future();
+
+  scheduler.ScheduleTask(
+      [&]() { block_future.wait_for(std::chrono::milliseconds(kMaxWaitMs)); },
+      std::numeric_limits<uint32_t>::max());
+
+  const uint32_t expected_tasks = 30u;
+  uint32_t counter(0u);
+
+  const olp::thread::Priority priorities[] = {
+      olp::thread::LOW, olp::thread::NORMAL, olp::thread::HIGH};
+  std::unordered_map<uint32_t, std::vector<uint32_t>> tasks_priority_map;
+
+  for (uint32_t id = 0; id < expected_tasks; ++id) {
+    auto priority = priorities[id % 3];
+    tasks_priority_map[priority].push_back(id);
+    scheduler.ScheduleTask(
+        [&, id, priority]() {
+          counter++;
+          mockop.Op(id, priority);
+        },
+        priority);
+  }
+
+  for (auto id : tasks_priority_map[olp::thread::HIGH]) {
+    EXPECT_CALL(mockop, Op(id, olp::thread::HIGH)).InSequence(sequence);
+  }
+  for (auto id : tasks_priority_map[olp::thread::NORMAL]) {
+    EXPECT_CALL(mockop, Op(id, olp::thread::NORMAL)).InSequence(sequence);
+  }
+  for (auto id : tasks_priority_map[olp::thread::LOW]) {
+    EXPECT_CALL(mockop, Op(id, olp::thread::LOW)).InSequence(sequence);
+  }
+
+  block_promise.set_value();
+
+  // task to verify all tasks are finished
+  std::promise<void> promise;
+  auto future = promise.get_future();
+  scheduler.ScheduleTask([&]() { promise.set_value(); }, 1);
+
+  EXPECT_EQ(future.wait_for(std::chrono::milliseconds(kMaxWaitMs)),
+            std::future_status::ready);
+  EXPECT_EQ(expected_tasks, counter);
+
+  // Close queue and join threads.
+  // SyncQueue and threads join should be done in destructor.
+  thread_pool.reset();
+
+  testing::Mock::VerifyAndClearExpectations(&mockop);
 }

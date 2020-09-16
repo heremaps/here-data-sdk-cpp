@@ -22,7 +22,6 @@
 #include <thread>
 #include <vector>
 
-#include <olp/core/thread/SyncQueue.h>
 #include <olp/core/thread/TaskScheduler.h>
 
 namespace olp {
@@ -61,17 +60,34 @@ class CORE_API ThreadPoolTaskScheduler final : public TaskScheduler {
    * @brief Overrides the base class method to enqueue tasks and execute them on
    * the next free thread from the thread pool.
    *
+   * @note Tasks added with this method has Priority::NORMAL priority.
+   *
    * @param func The rvalue reference of the task that should be enqueued.
    * Move this task into your queue. No internal references are
    * kept. Once this method is called, you own the task.
    */
   void EnqueueTask(TaskScheduler::CallFuncType&& func) override;
 
+  /**
+   * @brief Overrides the base class method to enqueue tasks and execute them on
+   * the next free thread from the thread pool.
+   *
+   * @param func The rvalue reference of the task that should be enqueued.
+   * Move this task into your queue. No internal references are
+   * kept. Once this method is called, you own the task.
+   * @param priority The priority of the task. Tasks with higher priority
+   * executes earlier.
+   */
+  void EnqueueTask(TaskScheduler::CallFuncType&& func,
+                   uint32_t priority) override;
+
  private:
+  class QueueImpl;
+
   /// Thread pool created in constructor.
   std::vector<std::thread> thread_pool_;
   /// SyncQueue used to manage tasks.
-  SyncQueueFifo<TaskScheduler::CallFuncType> sync_queue_;
+  std::unique_ptr<QueueImpl> queue_;
 };
 
 }  // namespace thread

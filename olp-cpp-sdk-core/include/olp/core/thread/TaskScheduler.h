@@ -23,9 +23,13 @@
 
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationContext.h>
+#include <olp/core/utils/WarningWorkarounds.h>
 
 namespace olp {
 namespace thread {
+
+/// Helper priority enum. NORMAL is a default value.
+enum Priority : uint32_t { LOW = 100, NORMAL = 500, HIGH = 1000 };
 
 /**
  * @brief An abstract interface that is used as a base for the custom thread
@@ -47,10 +51,24 @@ class CORE_API TaskScheduler {
   /**
    * @brief Schedules the asynchronous task.
    *
+   * @note Tasks added with this method has Priority::NORMAL priority.
+   *
    * @param[in] func The callable target that should be added to the scheduling
    * pipeline.
    */
   void ScheduleTask(CallFuncType&& func) { EnqueueTask(std::move(func)); }
+
+  /**
+   * @brief Schedules the asynchronous task.
+   *
+   * @param[in] func The callable target that should be added to the scheduling
+   * pipeline.
+   * @param[in] priority The priority of the task. Tasks with higher priority
+   * executes earlier.
+   */
+  void ScheduleTask(CallFuncType&& func, uint32_t priority) {
+    EnqueueTask(std::move(func), priority);
+  }
 
   /**
    * @brief Schedules the asynchronous cancellable task.
@@ -92,11 +110,35 @@ class CORE_API TaskScheduler {
    * as a base and provides a custom algorithm for scheduling tasks
    * enqueued by the SDK.
    *
+   * @note Tasks added trough this method should be scheduled with
+   * Priority::NORMAL priority.
+   *
    * @param[in] func The rvalue reference of the task that should be enqueued.
    * Move this task into your queue. No internal references are
    * kept. Once this method is called, you own the task.
    */
   virtual void EnqueueTask(CallFuncType&&) = 0;
+
+  /**
+   * @brief The enqueue task with priority interface that is implemented by the
+   * subclass.
+   *
+   * Implement this method in the subclass that takes `TaskScheduler`
+   * as a base and provides a custom algorithm for scheduling tasks
+   * enqueued by the SDK. The method priorities tasks, so tasks with higher
+   * priority executed earlier. Tasks within the same priority group should keep
+   * the order.
+   *
+   * @param[in] func The rvalue reference of the task that should be enqueued.
+   * Move this task into your queue. No internal references are
+   * kept. Once this method is called, you own the task.
+   * @param[in] priority The priority of the task. Tasks with higher priority
+   * executes earlier.
+   */
+  virtual void EnqueueTask(CallFuncType&& func, uint32_t priority) {
+    OLP_SDK_CORE_UNUSED(priority);
+    EnqueueTask(std::forward<CallFuncType>(func));
+  }
 };
 
 }  // namespace thread
