@@ -2011,6 +2011,63 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithStatus) {
   testing::Mock::VerifyAndClearExpectations(&status_object);
 }
 
+TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchPriority) {
+  constexpr auto kLayerId = "hype-test-prefetch";
+  auto scheduler = settings_.task_scheduler;
+  std::promise<void> block_promise;
+  std::promise<void> finish_promise;
+  auto block_future = block_promise.get_future();
+  auto finish_future = finish_promise.get_future();
+
+  scheduler->ScheduleTask([&]() { block_future.wait_for(kWaitTimeout); },
+                          std::numeric_limits<uint32_t>::max());
+
+  auto client =
+      read::VersionedLayerClient(kCatalog, kLayerId, boost::none, settings_);
+  std::vector<geo::TileKey> tile_keys = {geo::TileKey::FromHereTile("5904591")};
+
+  auto priority = 300u;
+  // this priority should be less than priority, but greater than LOW
+  auto finish_task_priority = 200u;
+
+  auto request = read::PrefetchTilesRequest()
+                     .WithTileKeys(tile_keys)
+                     .WithMinLevel(11)
+                     .WithMaxLevel(12)
+                     .WithPriority(priority);
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_QUADKEYS_92259), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_QUADKEYS_92259));
+
+  auto future = client.PrefetchTiles(request).GetFuture();
+  scheduler->ScheduleTask(
+      [&]() {
+        EXPECT_EQ(future.wait_for(std::chrono::milliseconds(0)),
+                  std::future_status::ready);
+        finish_promise.set_value();
+      },
+      finish_task_priority);
+
+  // unblock queue
+  block_promise.set_value();
+
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  ASSERT_NE(finish_future.wait_for(kWaitTimeout), std::future_status::timeout);
+
+  PrefetchTilesResponse response = future.get();
+
+  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_FALSE(response.GetResult().empty());
+
+  const auto& result = response.GetResult();
+
+  for (auto tile_result : result) {
+    ASSERT_TRUE(tile_result->IsSuccessful());
+    ASSERT_TRUE(tile_result->tile_key_.IsValid());
+  }
+}
+
 TEST_F(DataserviceReadVersionedLayerClientTest, GetData404Error) {
   EXPECT_CALL(
       *network_mock_,

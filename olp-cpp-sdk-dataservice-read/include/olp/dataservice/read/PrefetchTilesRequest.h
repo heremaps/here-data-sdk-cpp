@@ -26,6 +26,7 @@
 
 #include <olp/core/geo/tiling/TileKey.h>
 #include <olp/core/porting/deprecated.h>
+#include <olp/core/thread/TaskScheduler.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
 #include <boost/optional.hpp>
 
@@ -180,6 +181,27 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   }
 
   /**
+   * @brief Gets the request priority.
+   *
+   * The default priority is `Priority::LOW`.
+   *
+   * @return The request priority.
+   */
+  inline uint32_t GetPriority() const { return priority_; }
+
+  /**
+   * @brief Sets the priority of the prefetch request.
+   *
+   * @param priority The priority of the request.
+   *
+   * @return A reference to the updated `PrefetchTileRequest` instance.
+   */
+  inline PrefetchTilesRequest& WithPriority(uint32_t priority) {
+    priority_ = priority;
+    return *this;
+  }
+
+  /**
    * @brief Creates a readable format for the request.
    *
    * @param layer_id The ID of the layer that is used for the request.
@@ -203,6 +225,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   unsigned int max_level_{geo::TileKey::LevelCount};
   boost::optional<std::string> billing_tag_;
   bool data_aggregation_enabled_{false};
+  uint32_t priority_{thread::LOW};
 };
 
 }  // namespace read
