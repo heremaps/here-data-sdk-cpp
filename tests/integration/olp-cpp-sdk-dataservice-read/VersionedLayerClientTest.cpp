@@ -786,6 +786,56 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataPriority) {
   ASSERT_NE(response.GetResult()->size(), 0u);
 }
 
+TEST_F(DataserviceReadVersionedLayerClientTest, DataRequestPriority) {
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   kHttpResponsePartition_269))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   kHttpResponseBlobData_269));
+
+  auto scheduler = settings_.task_scheduler;
+  std::promise<void> block_promise;
+  std::promise<void> finish_promise;
+  auto block_future = block_promise.get_future();
+  auto finish_future = finish_promise.get_future();
+
+  scheduler->ScheduleTask([&]() { block_future.wait_for(kWaitTimeout); },
+                          std::numeric_limits<uint32_t>::max());
+
+  auto priority = 700u;
+  // this priority should be less than `priority`, but greater than NORMAL
+  auto finish_task_priority = 600u;
+
+  auto client =
+      read::VersionedLayerClient(kCatalog, kTestLayer, kTestVersion, settings_);
+
+  auto request = read::DataRequest()
+                     .WithPartitionId(kTestPartition)
+                     .WithPriority(priority);
+  auto future = client.GetData(request).GetFuture();
+  scheduler->ScheduleTask(
+      [&]() {
+        EXPECT_EQ(future.wait_for(std::chrono::milliseconds(0)),
+                  std::future_status::ready);
+        finish_promise.set_value();
+      },
+      finish_task_priority);
+
+  // unblock queue
+  block_promise.set_value();
+
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  ASSERT_NE(finish_future.wait_for(kWaitTimeout), std::future_status::timeout);
+
+  auto response = future.get();
+
+  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_NE(response.GetResult(), nullptr);
+  ASSERT_NE(response.GetResult()->size(), 0u);
+}
+
 TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsNoError) {
   auto client = std::make_shared<read::VersionedLayerClient>(
       kCatalog, kTestLayer, boost::none, settings_);

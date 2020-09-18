@@ -23,6 +23,7 @@
 #include <string>
 #include <utility>
 
+#include <olp/core/thread/TaskScheduler.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
 #include <olp/dataservice/read/FetchOptions.h>
 #include <boost/optional.hpp>
@@ -199,6 +200,27 @@ class DATASERVICE_READ_API DataRequest final {
   }
 
   /**
+   * @brief Gets the request priority.
+   *
+   * The default priority is `Priority::NORMAL`.
+   *
+   * @return The request priority.
+   */
+  inline uint32_t GetPriority() const { return priority_; }
+
+  /**
+   * @brief Sets the priority of the request.
+   *
+   * @param priority The priority of the request.
+   *
+   * @return A reference to the updated `DataRequest` instance.
+   */
+  inline DataRequest& WithPriority(uint32_t priority) {
+    priority_ = priority;
+    return *this;
+  }
+
+  /**
    * @brief Creates a readable format for the request.
    *
    * @param layer_id The ID of the layer that is used for the request.
@@ -231,6 +253,7 @@ class DATASERVICE_READ_API DataRequest final {
   boost::optional<std::string> data_handle_;
   boost::optional<std::string> billing_tag_;
   FetchOptions fetch_option_{OnlineIfNotFound};
+  uint32_t priority_{thread::NORMAL};
 };
 
 }  // namespace read
