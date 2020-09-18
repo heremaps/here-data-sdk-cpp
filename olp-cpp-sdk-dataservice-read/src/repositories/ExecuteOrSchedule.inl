@@ -28,22 +28,23 @@ namespace read {
 namespace repository {
 
 using CallFuncType = thread::TaskScheduler::CallFuncType;
+using Priority = thread::Priority;
 
 inline void ExecuteOrSchedule(
     const std::shared_ptr<thread::TaskScheduler>& task_scheduler,
-    CallFuncType&& func) {
+    CallFuncType&& func, uint32_t priority) {
   if (!task_scheduler) {
     // User didn't specify a TaskScheduler, execute sync
     func();
   } else {
-    task_scheduler->ScheduleTask(std::move(func));
+    task_scheduler->ScheduleTask(std::move(func), priority);
   }
 }
 
 inline void ExecuteOrSchedule(const client::OlpClientSettings* settings,
-                              CallFuncType&& func) {
+                              CallFuncType&& func, uint32_t priority) {
   ExecuteOrSchedule(settings ? settings->task_scheduler : nullptr,
-                    std::move(func));
+                    std::move(func), priority);
 }
 
 }  // namespace repository
