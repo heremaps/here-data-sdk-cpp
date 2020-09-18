@@ -1218,6 +1218,56 @@ TEST_F(DataserviceReadVolatileLayerClientTest,
   }
 }
 
+TEST_F(DataserviceReadVolatileLayerClientTest, PrefetchPriority) {
+  olp::client::HRN catalog(GetTestCatalog());
+  constexpr auto kLayerId = "hype-test-prefetch";
+  auto scheduler = settings_.task_scheduler;
+  std::promise<void> block_promise;
+  std::promise<void> finish_promise;
+  auto block_future = block_promise.get_future();
+  auto finish_future = finish_promise.get_future();
+
+  scheduler->ScheduleTask([&]() { block_future.wait_for(kTimeout); },
+                          std::numeric_limits<uint32_t>::max());
+
+  auto priority = 300u;
+  // this priority should be less than priority, but greater than LOW
+  auto finish_task_priority = 200u;
+
+  read::VolatileLayerClient client(catalog, kLayerId, settings_);
+  std::vector<olp::geo::TileKey> tile_keys = {
+      olp::geo::TileKey::FromHereTile("5904591")};
+  auto request = read::PrefetchTilesRequest()
+                     .WithTileKeys(tile_keys)
+                     .WithMinLevel(8)
+                     .WithMaxLevel(12)
+                     .WithPriority(priority);
+  auto future = client.PrefetchTiles(request).GetFuture();
+  scheduler->ScheduleTask(
+      [&]() {
+        EXPECT_EQ(future.wait_for(std::chrono::milliseconds(0)),
+                  std::future_status::ready);
+        finish_promise.set_value();
+      },
+      finish_task_priority);
+
+  // unblock queue
+  block_promise.set_value();
+
+  ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
+  ASSERT_NE(finish_future.wait_for(kTimeout), std::future_status::timeout);
+
+  auto response = future.get();
+  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_FALSE(response.GetResult().empty());
+
+  const auto& result = response.GetResult();
+  for (auto const& tile_result : result) {
+    ASSERT_TRUE(tile_result->IsSuccessful());
+    ASSERT_TRUE(tile_result->tile_key_.IsValid());
+  }
+}
+
 TEST_F(DataserviceReadVolatileLayerClientTest,
        CancelPrefetchTilesWithCancellableFuture) {
   olp::client::HRN catalog(GetTestCatalog());

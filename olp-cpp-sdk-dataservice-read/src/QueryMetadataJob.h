@@ -68,13 +68,14 @@ class QueryMetadataJob {
       std::shared_ptr<DownloadItemsJob<ItemType, PrefetchResult>> download_job,
       std::shared_ptr<thread::TaskScheduler> task_scheduler,
       std::shared_ptr<client::PendingRequests> pending_requests,
-      client::CancellationContext execution_context)
+      client::CancellationContext execution_context, uint32_t priority)
       : query_(std::move(query)),
         filter_(std::move(filter)),
         download_job_(std::move(download_job)),
         task_scheduler_(std::move(task_scheduler)),
         pending_requests_(std::move(pending_requests)),
-        execution_context_(execution_context) {}
+        execution_context_(execution_context),
+        priority_(priority) {}
 
   void Initialize(size_t query_count) { query_count_ = query_count; }
 
@@ -139,14 +140,15 @@ class QueryMetadataJob {
             [&](const typename QueryItemsResult<ItemType>::value_type& item) {
               const std::string& data_handle = item.second;
               const auto& item_key = item.first;
-              return AddTask(
+              return AddTaskWithPriority(
                   task_scheduler_, pending_requests_,
                   [=](client::CancellationContext context) {
                     return download_job->Download(data_handle, context);
                   },
                   [=](ExtendedDataResponse response) {
                     download_job->CompleteItem(item_key, std::move(response));
-                  });
+                  },
+                  priority_);
             });
         return CreateToken(std::move(tokens));
       });
@@ -165,6 +167,7 @@ class QueryMetadataJob {
   std::shared_ptr<thread::TaskScheduler> task_scheduler_;
   std::shared_ptr<client::PendingRequests> pending_requests_;
   client::CancellationContext execution_context_;
+  uint32_t priority_;
   std::mutex mutex_;
 };
 

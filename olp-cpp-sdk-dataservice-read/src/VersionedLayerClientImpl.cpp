@@ -201,7 +201,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
   auto pending_requests = pending_requests_;
   auto lookup_client = lookup_client_;
 
-  auto token = AddTask(
+  auto token = AddTaskWithPriority(
       settings.task_scheduler, pending_requests,
       [=](CancellationContext context) mutable -> EmptyResponse {
         if (request.GetTileKeys().empty()) {
@@ -327,7 +327,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
               std::move(roots), std::move(query), std::move(filter),
               std::move(download), std::move(append_result),
               std::move(callback), std::move(status_callback),
-              settings.task_scheduler, pending_requests);
+              settings.task_scheduler, pending_requests, request.GetPriority());
         });
 
         return EmptyResponse(PrefetchTileNoError());
@@ -342,7 +342,8 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
         if (!response.IsSuccessful()) {
           callback(response.GetError());
         }
-      });
+      },
+      request.GetPriority());
 
   return token;
 }
