@@ -731,6 +731,61 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   ASSERT_TRUE(response.GetResult() == nullptr);
 }
 
+TEST_F(DataserviceReadVersionedLayerClientTest, GetDataPriority) {
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP));
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(kHttpQueryTreeIndex_23064), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   kHttpSubQuads_23064));
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(kHttpResponseBlobData_5904591), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   "someData"));
+
+  constexpr auto version = 4;
+  auto scheduler = settings_.task_scheduler;
+  std::promise<void> block_promise;
+  std::promise<void> finish_promise;
+  auto block_future = block_promise.get_future();
+  auto finish_future = finish_promise.get_future();
+
+  scheduler->ScheduleTask([&]() { block_future.wait_for(kWaitTimeout); },
+                          std::numeric_limits<uint32_t>::max());
+
+  auto priority = 700u;
+  // this priority should be less than `priority`, but greater than NORMAL
+  auto finish_task_priority = 600u;
+
+  auto client =
+      read::VersionedLayerClient(kCatalog, kTestLayer, version, settings_);
+
+  auto request = read::TileRequest()
+                     .WithTileKey(geo::TileKey::FromHereTile("5904591"))
+                     .WithPriority(priority);
+  auto future = client.GetData(request).GetFuture();
+  scheduler->ScheduleTask(
+      [&]() {
+        EXPECT_EQ(future.wait_for(std::chrono::milliseconds(0)),
+                  std::future_status::ready);
+        finish_promise.set_value();
+      },
+      finish_task_priority);
+
+  // unblock queue
+  block_promise.set_value();
+
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  ASSERT_NE(finish_future.wait_for(kWaitTimeout), std::future_status::timeout);
+
+  auto response = future.get();
+
+  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_NE(response.GetResult(), nullptr);
+  ASSERT_NE(response.GetResult()->size(), 0u);
+}
+
 TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsNoError) {
   auto client = std::make_shared<read::VersionedLayerClient>(
       kCatalog, kTestLayer, boost::none, settings_);
@@ -3819,6 +3874,62 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   ASSERT_FALSE(response.IsSuccessful());
   ASSERT_EQ(error.GetErrorCode(), client::ErrorCode::Cancelled);
   testing::Mock::VerifyAndClearExpectations(network_mock_.get());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedDataPriority) {
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP));
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(kHttpQueryTreeIndex_23064), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   kHttpSubQuads_23064));
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(kHttpResponseBlobData_5904591), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   "someData"));
+
+  constexpr auto version = 4;
+  auto scheduler = settings_.task_scheduler;
+  std::promise<void> block_promise;
+  std::promise<void> finish_promise;
+  auto block_future = block_promise.get_future();
+  auto finish_future = finish_promise.get_future();
+
+  scheduler->ScheduleTask([&]() { block_future.wait_for(kWaitTimeout); },
+                          std::numeric_limits<uint32_t>::max());
+
+  auto priority = 700u;
+  // this priority should be less than `priority`, but greater than NORMAL
+  auto finish_task_priority = 600u;
+
+  auto client =
+      read::VersionedLayerClient(kCatalog, kTestLayer, version, settings_);
+
+  auto request = read::TileRequest()
+                     .WithTileKey(geo::TileKey::FromHereTile("5904591"))
+                     .WithPriority(priority);
+  auto future = client.GetAggregatedData(request).GetFuture();
+  scheduler->ScheduleTask(
+      [&]() {
+        EXPECT_EQ(future.wait_for(std::chrono::milliseconds(0)),
+                  std::future_status::ready);
+        finish_promise.set_value();
+      },
+      finish_task_priority);
+
+  // unblock queue
+  block_promise.set_value();
+
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  ASSERT_NE(finish_future.wait_for(kWaitTimeout), std::future_status::timeout);
+
+  auto response = future.get();
+  auto& data = response.GetResult().GetData();
+
+  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_NE(data, nullptr);
+  ASSERT_NE(data->size(), 0u);
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetTileAndAggregatedData) {
