@@ -33,14 +33,15 @@
 #include "olp/dataservice/read/PartitionsRequest.h"
 #include "olp/dataservice/read/Types.h"
 
+#include "PartitionsCacheRepository.h"
+
 namespace olp {
 namespace dataservice {
 namespace read {
+
 class TileRequest;
+
 namespace repository {
-class ApiRepository;
-class CatalogRepository;
-class PartitionsCacheRepository;
 
 /// The partition metadata response type.
 using PartitionResponse = Response<model::Partition>;
@@ -48,49 +49,49 @@ using QuadTreeIndexResponse = Response<QuadTreeIndex>;
 
 class PartitionsRepository {
  public:
-  PartitionsRepository(client::HRN catalog, client::OlpClientSettings settings,
+  PartitionsRepository(client::HRN catalog, std::string layer,
+                       client::OlpClientSettings settings,
                        client::ApiLookupClient client);
 
   PartitionsResponse GetVersionedPartitions(
-      std::string layer, const read::PartitionsRequest& request,
-      std::int64_t version, client::CancellationContext context);
-
-  PartitionsResponse GetVolatilePartitions(
-      std::string layer, const read::PartitionsRequest& request,
+      const read::PartitionsRequest& request, std::int64_t version,
       client::CancellationContext context);
 
-  PartitionsResponse GetPartitionById(const std::string& layer,
-                                      boost::optional<int64_t> version,
-                                      const DataRequest& request,
-                                      client::CancellationContext context);
+  PartitionsResponse GetVolatilePartitions(
+      const read::PartitionsRequest& request,
+      client::CancellationContext context);
 
-  model::Partition PartitionFromSubQuad(const model::SubQuad& sub_quad,
-                                        const std::string& partition);
-
-  PartitionResponse GetAggregatedTile(const std::string& layer,
-                                      TileRequest request,
+  PartitionsResponse GetPartitionById(const DataRequest& request,
                                       boost::optional<int64_t> version,
                                       client::CancellationContext context);
 
-  PartitionResponse GetTile(const std::string& layer,
-                            const TileRequest& request,
+  static model::Partition PartitionFromSubQuad(const model::SubQuad& sub_quad,
+                                               const std::string& partition);
+
+  PartitionResponse GetAggregatedTile(TileRequest request,
+                                      boost::optional<int64_t> version,
+                                      client::CancellationContext context);
+
+  PartitionResponse GetTile(const TileRequest& request,
                             boost::optional<int64_t> version,
                             client::CancellationContext context);
 
  private:
   QuadTreeIndexResponse GetQuadTreeIndexForTile(
-      const std::string& layer, const TileRequest& request,
-      boost::optional<int64_t> version, client::CancellationContext context);
+      const TileRequest& request, boost::optional<int64_t> version,
+      client::CancellationContext context);
 
   PartitionsResponse GetPartitions(
-      std::string layer, const read::PartitionsRequest& request,
+      const read::PartitionsRequest& request,
       boost::optional<std::int64_t> version,
       client::CancellationContext context,
       boost::optional<time_t> expiry = boost::none);
 
-  client::HRN catalog_;
+  const client::HRN catalog_;
+  const std::string layer_id_;
   client::OlpClientSettings settings_;
   client::ApiLookupClient lookup_client_;
+  PartitionsCacheRepository cache_;
 };
 }  // namespace repository
 }  // namespace read

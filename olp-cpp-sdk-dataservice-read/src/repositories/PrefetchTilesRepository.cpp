@@ -54,7 +54,7 @@ PrefetchTilesRepository::PrefetchTilesRepository(
       layer_id_(layer_id),
       settings_(std::move(settings)),
       lookup_client_(std::move(client)),
-      cache_repository_(catalog_, settings_.cache,
+      cache_repository_(catalog_, layer_id_, settings_.cache,
                         settings_.default_cache_expiration),
       billing_tag_(billing_tag) {}
 
@@ -176,7 +176,7 @@ SubQuadsResponse PrefetchTilesRepository::GetVersionedSubQuads(
 
   // check if quad tree with requested tile and depth already in cache
   QuadTreeIndex cached_tree;
-  if (cache_repository_.Get(layer_id_, tile, depth, version, cached_tree)) {
+  if (cache_repository_.Get(tile, depth, version, cached_tree)) {
     OLP_SDK_LOG_DEBUG_F(kLogTag,
                         "GetSubQuads found in cache, tile='%s', "
                         "depth='%" PRId32 "'",
@@ -223,7 +223,7 @@ SubQuadsResponse PrefetchTilesRepository::GetVersionedSubQuads(
             quad_tree.GetNetworkStatistics()};
   }
   // add to cache
-  cache_repository_.Put(layer_id_, tile, depth, tree, version);
+  cache_repository_.Put(tile, depth, tree, version);
   return {get_sub_quads(tree), quad_tree.GetNetworkStatistics()};
 }
 
@@ -272,13 +272,13 @@ SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
     result.emplace(subtile, subquad->GetDataHandle());
 
     // add to bulk partitions for cacheing
-    PartitionsRepository repository(catalog_, settings_, lookup_client_);
     partitions.GetMutablePartitions().emplace_back(
-        repository.PartitionFromSubQuad(*subquad, subtile.ToHereTile()));
+        PartitionsRepository::PartitionFromSubQuad(*subquad,
+                                                   subtile.ToHereTile()));
   }
 
   // add to cache
-  cache_repository_.Put(partitions, layer_id_, boost::none, boost::none, false);
+  cache_repository_.Put(partitions, boost::none, boost::none, false);
 
   return result;
 }

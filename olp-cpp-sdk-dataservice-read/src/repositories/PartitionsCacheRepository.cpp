@@ -69,22 +69,25 @@ namespace dataservice {
 namespace read {
 namespace repository {
 PartitionsCacheRepository::PartitionsCacheRepository(
-    const client::HRN& hrn, std::shared_ptr<cache::KeyValueCache> cache,
+    const client::HRN& catalog, const std::string& layer_id,
+    std::shared_ptr<cache::KeyValueCache> cache,
     std::chrono::seconds default_expiry)
-    : hrn_(hrn), cache_(cache), default_expiry_(ConvertTime(default_expiry)) {}
+    : catalog_(catalog.ToCatalogHRNString()),
+      layer_id_(layer_id),
+      cache_(cache),
+      default_expiry_(ConvertTime(default_expiry)) {}
 
 void PartitionsCacheRepository::Put(const model::Partitions& partitions,
-                                    const std::string& layer_id,
                                     const boost::optional<int64_t>& version,
                                     const boost::optional<time_t>& expiry,
                                     bool layer_metadata) {
-  std::string hrn(hrn_.ToCatalogHRNString());
   const auto& partitions_list = partitions.GetPartitions();
   std::vector<std::string> partition_ids;
   partition_ids.reserve(partitions_list.size());
 
   for (const auto& partition : partitions_list) {
-    auto key = CreateKey(hrn, layer_id, partition.GetPartition(), version);
+    auto key =
+        CreateKey(catalog_, layer_id_, partition.GetPartition(), version);
     OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
     cache_->Put(key, partition,
@@ -97,7 +100,7 @@ void PartitionsCacheRepository::Put(const model::Partitions& partitions,
   }
 
   if (layer_metadata) {
-    auto key = CreateKey(hrn, layer_id, version);
+    auto key = CreateKey(catalog_, layer_id_, version);
     OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
     cache_->Put(key, partition_ids,
@@ -107,15 +110,14 @@ void PartitionsCacheRepository::Put(const model::Partitions& partitions,
 }
 
 model::Partitions PartitionsCacheRepository::Get(
-    const std::vector<std::string>& partition_ids, const std::string& layer_id,
+    const std::vector<std::string>& partition_ids,
     const boost::optional<int64_t>& version) {
-  std::string hrn(hrn_.ToCatalogHRNString());
   model::Partitions cached_partitions_model;
   auto& cached_partitions = cached_partitions_model.GetMutablePartitions();
   cached_partitions.reserve(partition_ids.size());
 
   for (const auto& partition_id : partition_ids) {
-    auto key = CreateKey(hrn, layer_id, partition_id, version);
+    auto key = CreateKey(catalog_, layer_id_, partition_id, version);
     OLP_SDK_LOG_DEBUG_F(kLogTag, "Get '%s'", key.c_str());
 
     auto cached_partition =
@@ -134,10 +136,8 @@ model::Partitions PartitionsCacheRepository::Get(
 }
 
 boost::optional<model::Partitions> PartitionsCacheRepository::Get(
-    const PartitionsRequest& request, const std::string& layer_id,
-    const boost::optional<int64_t>& version) {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  auto key = CreateKey(hrn, layer_id, version);
+    const PartitionsRequest& request, const boost::optional<int64_t>& version) {
+  auto key = CreateKey(catalog_, layer_id_, version);
   boost::optional<model::Partitions> partitions;
   const auto& partition_ids = request.GetPartitionIds();
 
@@ -151,10 +151,10 @@ boost::optional<model::Partitions> PartitionsCacheRepository::Get(
             ? boost::none
             : boost::optional<model::Partitions>(
                   Get(boost::any_cast<std::vector<std::string>>(cached_ids),
-                      layer_id, version));
+                      version));
 
   } else {
-    auto available_partitions = Get(partition_ids, layer_id, version);
+    auto available_partitions = Get(partition_ids, version);
     // In the case when not all partitions are available, we fail the cache
     // lookup. This can be enhanced in the future.
     if (available_partitions.GetPartitions().size() != partition_ids.size()) {
@@ -169,8 +169,7 @@ boost::optional<model::Partitions> PartitionsCacheRepository::Get(
 
 void PartitionsCacheRepository::Put(
     int64_t catalog_version, const model::LayerVersions& layer_versions) {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  const auto key = CreateKey(hrn, catalog_version);
+  const auto key = CreateKey(catalog_, catalog_version);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
   cache_->Put(key, layer_versions,
@@ -180,8 +179,7 @@ void PartitionsCacheRepository::Put(
 
 boost::optional<model::LayerVersions> PartitionsCacheRepository::Get(
     int64_t catalog_version) {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  auto key = CreateKey(hrn, catalog_version);
+  auto key = CreateKey(catalog_, catalog_version);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Get -> '%s'", key.c_str());
 
   auto cached_layer_versions =
@@ -196,11 +194,10 @@ boost::optional<model::LayerVersions> PartitionsCacheRepository::Get(
   return boost::any_cast<model::LayerVersions>(cached_layer_versions);
 }
 
-void PartitionsCacheRepository::Put(const std::string& layer,
-                                    geo::TileKey tile_key, int32_t depth,
+void PartitionsCacheRepository::Put(geo::TileKey tile_key, int32_t depth,
                                     const QuadTreeIndex& quad_tree,
                                     const boost::optional<int64_t>& version) {
-  const auto key = CreateQuadKey(layer, tile_key, depth, version);
+  const auto key = CreateQuadKey(tile_key, depth, version);
 
   if (quad_tree.IsNull()) {
     OLP_SDK_LOG_WARNING_F(kLogTag, "Put: invalid QuadTreeIndex -> '%s'",
@@ -212,11 +209,10 @@ void PartitionsCacheRepository::Put(const std::string& layer,
   cache_->Put(key, quad_tree.GetRawData(), default_expiry_);
 }
 
-bool PartitionsCacheRepository::Get(const std::string& layer,
-                                    geo::TileKey tile_key, int32_t depth,
+bool PartitionsCacheRepository::Get(geo::TileKey tile_key, int32_t depth,
                                     const boost::optional<int64_t>& version,
                                     QuadTreeIndex& tree) {
-  auto key = CreateQuadKey(layer, tile_key, depth, version);
+  auto key = CreateQuadKey(tile_key, depth, version);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Get -> '%s'", key.c_str());
   auto data = cache_->Get(key);
   if (data) {
@@ -227,43 +223,40 @@ bool PartitionsCacheRepository::Get(const std::string& layer,
   return false;
 }
 
-void PartitionsCacheRepository::Clear(const std::string& layer_id) {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  auto key = hrn + "::" + layer_id + "::";
+void PartitionsCacheRepository::Clear() {
+  auto key = catalog_ + "::" + layer_id_ + "::";
   OLP_SDK_LOG_INFO_F(kLogTag, "Clear -> '%s'", key.c_str());
   cache_->RemoveKeysWithPrefix(key);
 }
 
 void PartitionsCacheRepository::ClearPartitions(
-    const std::vector<std::string>& partition_ids, const std::string& layer_id,
+    const std::vector<std::string>& partition_ids,
     const boost::optional<int64_t>& version) {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  OLP_SDK_LOG_INFO_F(kLogTag, "ClearPartitions -> '%s'", hrn.c_str());
-  auto cached_partitions = Get(partition_ids, layer_id, version);
+  OLP_SDK_LOG_INFO_F(kLogTag, "ClearPartitions -> '%s'", catalog_.c_str());
+  auto cached_partitions = Get(partition_ids, version);
 
   // Partitions not processed here are not cached to begin with.
   for (auto partition : cached_partitions.GetPartitions()) {
-    cache_->RemoveKeysWithPrefix(hrn + "::" + layer_id +
+    cache_->RemoveKeysWithPrefix(catalog_ + "::" + layer_id_ +
                                  "::" + partition.GetDataHandle());
-    cache_->RemoveKeysWithPrefix(hrn + "::" + layer_id +
+    cache_->RemoveKeysWithPrefix(catalog_ + "::" + layer_id_ +
                                  "::" + partition.GetPartition());
   }
 }
 
 bool PartitionsCacheRepository::ClearQuadTree(
-    const std::string& layer, geo::TileKey tile_key, int32_t depth,
+    geo::TileKey tile_key, int32_t depth,
     const boost::optional<int64_t>& version) {
-  const auto key = CreateQuadKey(layer, tile_key, depth, version);
+  const auto key = CreateQuadKey(tile_key, depth, version);
   OLP_SDK_LOG_INFO_F(kLogTag, "ClearQuadTree -> '%s'", key.c_str());
   return cache_->RemoveKeysWithPrefix(key);
 }
 
 bool PartitionsCacheRepository::ClearPartitionMetadata(
+    const std::string& partition_id,
     const boost::optional<int64_t>& catalog_version,
-    const std::string& partition_id, const std::string& layer_id,
     boost::optional<model::Partition>& out_partition) {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  auto key = CreateKey(hrn, layer_id, partition_id, catalog_version);
+  auto key = CreateKey(catalog_, layer_id_, partition_id, catalog_version);
   OLP_SDK_LOG_INFO_F(kLogTag, "ClearPartitionMetadata -> '%s'", key.c_str());
 
   auto cached_partition =
@@ -280,11 +273,9 @@ bool PartitionsCacheRepository::ClearPartitionMetadata(
 }
 
 bool PartitionsCacheRepository::GetPartitionHandle(
-    const boost::optional<int64_t>& catalog_version,
-    const std::string& partition_id, const std::string& layer_id,
-    std::string& data_handle) {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  auto key = CreateKey(hrn, layer_id, partition_id, catalog_version);
+    const std::string& partition_id,
+    const boost::optional<int64_t>& catalog_version, std::string& data_handle) {
+  auto key = CreateKey(catalog_, layer_id_, partition_id, catalog_version);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "IsPartitionCached -> '%s'", key.c_str());
   auto cached_partition =
       cache_->Get(key, [](const std::string& serialized_object) {
@@ -300,16 +291,14 @@ bool PartitionsCacheRepository::GetPartitionHandle(
 }
 
 std::string PartitionsCacheRepository::CreateQuadKey(
-    const std::string& layer, olp::geo::TileKey key, int32_t depth,
+    olp::geo::TileKey key, int32_t depth,
     const boost::optional<int64_t>& version) const {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  return hrn + "::" + layer + "::" + key.ToHereTile() +
+  return catalog_ + "::" + layer_id_ + "::" + key.ToHereTile() +
          "::" + (version ? std::to_string(*version) + "::" : "") +
          std::to_string(depth) + "::quadtree";
 }
 
-bool PartitionsCacheRepository::FindQuadTree(const std::string& layer,
-                                             boost::optional<int64_t> version,
+bool PartitionsCacheRepository::FindQuadTree(boost::optional<int64_t> version,
                                              const olp::geo::TileKey& tile_key,
                                              read::QuadTreeIndex& tree) {
   auto max_depth =
@@ -317,8 +306,7 @@ bool PartitionsCacheRepository::FindQuadTree(const std::string& layer,
   for (auto i = 0u; i <= max_depth; ++i) {
     const auto& root_tile_key = tile_key.ChangedLevelBy(-i);
     QuadTreeIndex cached_tree;
-    if (Get(layer, root_tile_key, kMaxQuadTreeIndexDepth, version,
-            cached_tree)) {
+    if (Get(root_tile_key, kMaxQuadTreeIndexDepth, version, cached_tree)) {
       OLP_SDK_LOG_DEBUG_F(kLogTag,
                           "FindQuadTree found in cache, tile='%s', "
                           "root='%s', depth='%" PRId32 "'",
