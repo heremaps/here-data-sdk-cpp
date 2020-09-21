@@ -112,25 +112,20 @@ VolatileLayerClientImpl::GetPartitions(PartitionsRequest request) {
 
 client::CancellationToken VolatileLayerClientImpl::GetData(
     DataRequest request, DataResponseCallback callback) {
-  auto schedule_get_data = [&](DataRequest request,
-                               DataResponseCallback callback) {
-    auto catalog = catalog_;
-    auto layer_id = layer_id_;
-    auto settings = settings_;
-    auto lookup_client = lookup_client_;
+  auto catalog = catalog_;
+  auto layer_id = layer_id_;
+  auto settings = settings_;
+  auto lookup_client = lookup_client_;
 
-    auto partitions_task = [=](client::CancellationContext context) {
-      repository::DataRepository repository(
-          std::move(catalog), std::move(settings), std::move(lookup_client));
-      return repository.GetVolatileData(layer_id, request, context);
-    };
-
-    return AddTask(settings.task_scheduler, pending_requests_,
-                   std::move(partitions_task), std::move(callback));
+  auto task = [=](client::CancellationContext context) {
+    repository::DataRepository repository(
+        std::move(catalog), std::move(settings), std::move(lookup_client));
+    return repository.GetVolatileData(layer_id, request, context);
   };
 
-  return ScheduleFetch(std::move(schedule_get_data), std::move(request),
-                       std::move(callback));
+  return AddTaskWithPriority(settings.task_scheduler, pending_requests_,
+                             std::move(task), std::move(callback),
+                             request.GetPriority());
 }
 
 client::CancellableFuture<DataResponse> VolatileLayerClientImpl::GetData(

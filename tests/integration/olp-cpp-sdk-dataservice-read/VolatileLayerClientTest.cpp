@@ -1369,4 +1369,62 @@ TEST_F(DataserviceReadVolatileLayerClientTest, CancelPendingRequestsPrefetch) {
             data_response.GetError().GetErrorCode());
 }
 
+TEST_F(DataserviceReadVolatileLayerClientTest, DataRequestPriority) {
+  olp::client::HRN hrn(GetTestCatalog());
+  constexpr auto partition_id = "269";
+  constexpr auto layer_id = "testlayer_volatile";
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_LATEST_CATALOG_VERSION), _, _, _, _))
+      .Times(0);
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_QUERY_VOLATILE_PARTITION_269), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_PARTITIONS_V2));
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(URL_VOLATILE_BLOB_DATA), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   "someData"));
+
+  read::VolatileLayerClient client(hrn, layer_id, settings_);
+
+  auto scheduler = settings_.task_scheduler;
+  std::promise<void> block_promise;
+  std::promise<void> finish_promise;
+  auto block_future = block_promise.get_future();
+  auto finish_future = finish_promise.get_future();
+
+  scheduler->ScheduleTask([&]() { block_future.wait_for(kTimeout); },
+                          std::numeric_limits<uint32_t>::max());
+
+  auto priority = 700u;
+  // this priority should be less than `priority`, but greater than NORMAL
+  auto finish_task_priority = 600u;
+
+  auto request =
+      read::DataRequest().WithPartitionId(partition_id).WithPriority(priority);
+  auto future = client.GetData(request).GetFuture();
+  scheduler->ScheduleTask(
+      [&]() {
+        EXPECT_EQ(future.wait_for(std::chrono::milliseconds(0)),
+                  std::future_status::ready);
+        finish_promise.set_value();
+      },
+      finish_task_priority);
+
+  // unblock queue
+  block_promise.set_value();
+
+  ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
+  ASSERT_NE(finish_future.wait_for(kTimeout), std::future_status::timeout);
+
+  auto response = future.get();
+
+  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_NE(response.GetResult(), nullptr);
+  ASSERT_NE(response.GetResult()->size(), 0u);
+}
+
 }  // namespace
