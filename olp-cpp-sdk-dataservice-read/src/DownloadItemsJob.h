@@ -67,7 +67,7 @@ class DownloadItemsJob {
   size_t GetAccumulatedBytes(const olp::client::NetworkStatistics& statistics) {
     // This narrow cast is necessary to avoid narrowing compiler errors like
     // -Wc++11-narrowing when building for 32bit targets.
-    const auto bytes_transferred =
+    const uint64_t bytes_transferred =
         statistics.GetBytesDownloaded() + statistics.GetBytesUploaded();
     return static_cast<size_t>(bytes_transferred &
                                std::numeric_limits<size_t>::max());
