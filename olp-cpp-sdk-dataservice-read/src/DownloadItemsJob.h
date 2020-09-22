@@ -71,12 +71,12 @@ class DownloadItemsJob {
     uint64_t bytes_transferred = 0;
 
     // Make sure we never overflow.
-    if (std::numeric_limits<uint64_t>::max() - statistics.GetBytesDownloaded() >
-        statistics.GetBytesUploaded()) {
+    if (statistics.GetBytesDownloaded() >
+        std::numeric_limits<uint64_t>::max() - statistics.GetBytesUploaded()) {
+      bytes_transferred = std::numeric_limits<uint64_t>::max();
+    } else {
       bytes_transferred =
           statistics.GetBytesDownloaded() + statistics.GetBytesUploaded();
-    } else {
-      bytes_transferred = std::numeric_limits<uint64_t>::max();
     }
 
     return static_cast<size_t>(bytes_transferred &
