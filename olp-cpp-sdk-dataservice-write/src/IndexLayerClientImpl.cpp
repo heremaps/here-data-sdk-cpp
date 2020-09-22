@@ -27,6 +27,7 @@
 #include <olp/core/client/CancellationContext.h>
 
 #include "ApiClientLookup.h"
+#include "Common.h"
 #include "generated/BlobApi.h"
 #include "generated/ConfigApi.h"
 #include "generated/IndexApi.h"
@@ -121,7 +122,7 @@ olp::client::CancellationToken IndexLayerClientImpl::InitApiClients(
   ul.unlock();
 
   return ApiClientLookup::LookupApi(self->apiclient_blob_, "blob", "v1",
-                                     self->catalog_, blobApi_callback);
+                                    self->catalog_, blobApi_callback);
 }
 
 void IndexLayerClientImpl::CancelPendingRequests() {
@@ -141,113 +142,73 @@ IndexLayerClientImpl::PublishIndex(const model::PublishIndexRequest& request) {
 
 client::CancellationToken IndexLayerClientImpl::PublishIndex(
     model::PublishIndexRequest request, const PublishIndexCallback& callback) {
-  if (!request.GetData()) {
-    callback(PublishIndexResponse(client::ApiError(
-        client::ErrorCode::InvalidArgument, "Request data empty.")));
-    return client::CancellationToken();
-  }
-
-  if (request.GetLayerId().empty()) {
-    callback(PublishIndexResponse(client::ApiError(
-        client::ErrorCode::InvalidArgument, "Request layer Id empty.")));
-    return client::CancellationToken();
-  }
-
-  auto op_id = tokenList_.GetNextId();
-  auto cancel_context = std::make_shared<client::CancellationContext>();
-  auto self = shared_from_this();
-  auto cancel_function = [=]() {
-    self->tokenList_.RemoveTask(op_id);
-    callback(PublishIndexResponse(client::ApiError(
-        client::ErrorCode::Cancelled, "Operation cancelled.", true)));
-  };
-
-  const auto data_handle = GenerateUuid();
-
-  auto insert_indexes_callback =
-      [=](InsertIndexesResponse insert_indexes_response) {
-        self->tokenList_.RemoveTask(op_id);
-        if (!insert_indexes_response.IsSuccessful()) {
-          callback(PublishIndexResponse(insert_indexes_response.GetError()));
-          return;
-        }
-        model::ResponseOkSingle res;
-        res.SetTraceID(data_handle);
-        callback(PublishIndexResponse(std::move(res)));
-      };
-
-  auto insert_indexes_function = [=]() -> client::CancellationToken {
-    auto index = request.GetIndex();
-    index.SetId(data_handle);
-    return IndexApi::insertIndexes(
-        *self->apiclient_index_, index, request.GetLayerId(),
-        request.GetBillingTag(), insert_indexes_callback);
-  };
-
-  auto put_blob_callback = [=](PutBlobResponse put_blob_response) {
-    if (!put_blob_response.IsSuccessful()) {
-      self->tokenList_.RemoveTask(op_id);
-      callback(PublishIndexResponse(put_blob_response.GetError()));
-      return;
+  auto publish_task =
+      [=](client::CancellationContext context) -> PublishIndexResponse {
+    if (!request.GetData()) {
+      return client::ApiError(client::ErrorCode::InvalidArgument,
+                              "Request data empty.");
     }
 
-    cancel_context->ExecuteOrCancelled(insert_indexes_function,
-                                       cancel_function);
+    if (request.GetLayerId().empty()) {
+      return client::ApiError(client::ErrorCode::InvalidArgument,
+                              "Request layer Id empty.");
+    }
+
+    const auto data_handle = GenerateUuid();
+
+    auto blob_api_response = ApiClientLookup::LookupApiClient(
+        catalog_, context, "blob", "v1", settings_);
+    if (!blob_api_response.IsSuccessful()) {
+      return blob_api_response.GetError();
+    }
+
+    auto index_api_response = ApiClientLookup::LookupApiClient(
+        catalog_, context, "index", "v1", settings_);
+    if (!index_api_response.IsSuccessful()) {
+      return index_api_response.GetError();
+    }
+
+    auto layer_settings_response = catalog_settings_.GetLayerSettings(
+        context, request.GetBillingTag(), request.GetLayerId());
+    if (!layer_settings_response.IsSuccessful()) {
+      return layer_settings_response.GetError();
+    }
+    auto layer_settings = layer_settings_response.GetResult();
+    if (layer_settings.content_type.empty()) {
+      auto errmsg = boost::format(
+                        "Unable to find the Layer ID (%1%) "
+                        "provided in the PublishIndexRequest in the "
+                        "Catalog specified when creating "
+                        "this IndexLayerClient instance.") %
+                    request.GetLayerId();
+      return client::ApiError(client::ErrorCode::InvalidArgument, errmsg.str());
+    }
+
+    auto blob_response = BlobApi::PutBlob(
+        blob_api_response.GetResult(), request.GetLayerId(),
+        layer_settings.content_type, layer_settings.content_encoding,
+        data_handle, request.GetData(), request.GetBillingTag(), context);
+
+    if (!blob_response.IsSuccessful()) {
+      return blob_response.GetError();
+    }
+
+    auto index = request.GetIndex();
+    index.SetId(data_handle);
+    auto insert_indexes_response = IndexApi::InsertIndexes(
+        index_api_response.GetResult(), index, request.GetLayerId(),
+        request.GetBillingTag(), context);
+
+    if (!insert_indexes_response.IsSuccessful()) {
+      return insert_indexes_response.GetError();
+    }
+    model::ResponseOkSingle res;
+    res.SetTraceID(data_handle);
+    return PublishIndexResponse(std::move(res));
   };
 
-  auto put_blob_function =
-      [=](std::string content_type,
-          std::string content_encoding) -> client::CancellationToken {
-    return BlobApi::PutBlob(*self->apiclient_blob_, request.GetLayerId(),
-                            content_type, content_encoding, data_handle,
-                            request.GetData(), request.GetBillingTag(),
-                            put_blob_callback);
-  };
-
-  auto init_api_client_callback =
-      [=](boost::optional<client::ApiError> init_api_error) {
-        if (init_api_error) {
-          self->tokenList_.RemoveTask(op_id);
-          callback(PublishIndexResponse(init_api_error.get()));
-          return;
-        }
-
-        auto layer_settings_response = self->catalog_settings_.GetLayerSettings(
-            *cancel_context, request.GetBillingTag(), request.GetLayerId());
-        if (!layer_settings_response.IsSuccessful()) {
-          self->tokenList_.RemoveTask(op_id);
-          callback(PublishIndexResponse(layer_settings_response.GetError()));
-          return;
-        }
-        auto layer_settings = layer_settings_response.GetResult();
-        if (layer_settings.content_type.empty()) {
-          auto errmsg = boost::format(
-                            "Unable to find the Layer ID (%1%) "
-                            "provided in the PublishIndexRequest in the "
-                            "Catalog specified when creating "
-                            "this IndexLayerClient instance.") %
-                        request.GetLayerId();
-          callback(PublishIndexResponse(client::ApiError(
-              client::ErrorCode::InvalidArgument, errmsg.str())));
-          return;
-        }
-
-        cancel_context->ExecuteOrCancelled(
-            std::bind(put_blob_function, layer_settings.content_type,
-                      layer_settings.content_encoding),
-            cancel_function);
-      };
-
-  auto init_api_client_function = [=]() -> client::CancellationToken {
-    return self->InitApiClients(cancel_context, init_api_client_callback);
-  };
-
-  cancel_context->ExecuteOrCancelled(init_api_client_function, cancel_function);
-
-  auto token = client::CancellationToken(
-      [cancel_context]() { cancel_context->CancelOperation(); });
-  tokenList_.AddTask(op_id, token);
-  return token;
+  return AddTask(settings_.task_scheduler, pending_requests_,
+                 std::move(publish_task), std::move(callback));
 }
 
 client::CancellableFuture<DeleteIndexDataResponse>

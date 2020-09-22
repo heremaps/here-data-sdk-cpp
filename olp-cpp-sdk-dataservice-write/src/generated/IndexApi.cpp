@@ -87,6 +87,38 @@ client::CancellationToken IndexApi::insertIndexes(
   return cancel_token;
 }
 
+InsertIndexesResponse IndexApi::InsertIndexes(
+    const client::OlpClient& client, const model::Index& indexes,
+    const std::string& layer_id,
+    const boost::optional<std::string>& billing_tag,
+    client::CancellationContext context) {
+  std::multimap<std::string, std::string> header_params;
+  std::multimap<std::string, std::string> query_params;
+  std::multimap<std::string, std::string> form_params;
+
+  header_params.insert(std::make_pair("Accept", "application/json"));
+
+  if (billing_tag) {
+    query_params.insert(
+        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+  }
+
+  std::string insert_indexes_uri = "/layers/" + layer_id;
+
+  auto serialized_indexes = serializer::serialize(indexes);
+  auto data = std::make_shared<std::vector<unsigned char>>(
+      serialized_indexes.begin(), serialized_indexes.end());
+
+  auto http_response =
+      client.CallApi(insert_indexes_uri, "POST", query_params, header_params,
+                     form_params, data, "application/json", context);
+  if (http_response.status > http::HttpStatusCode::CREATED) {
+    return client::ApiError(http_response.status, http_response.response.str());
+  }
+
+  return client::ApiNoResult();
+}
+
 client::CancellableFuture<UpdateIndexesResponse> IndexApi::performUpdate(
     const client::OlpClient& client, const model::UpdateIndexRequest& request,
     const boost::optional<std::string>& billing_tag) {

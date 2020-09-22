@@ -83,6 +83,7 @@ class DataserviceWriteIndexLayerClientTest : public ::testing::Test {
     olp::client::OlpClientSettings settings;
     settings.authentication_settings = auth_client_settings;
     settings.network_request_handler = network;
+    settings.task_scheduler = olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
 
     return std::make_shared<write::IndexLayerClient>(
         olp::client::HRN{GetTestCatalog()}, settings);
