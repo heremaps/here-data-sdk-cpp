@@ -95,6 +95,44 @@ client::CancellationToken QueryApi::GetPartitionsById(
                         nullptr, "", callback);
 }
 
+QueryApi::PartitionsResponse QueryApi::GetPartitionsById(
+    const client::OlpClient& client, const std::string& layer_id,
+    const std::vector<std::string>& partition_ids,
+    boost::optional<int64_t> version,
+    boost::optional<std::vector<std::string>> additional_fields,
+    boost::optional<std::string> billing_tag,
+    client::CancellationContext context) {
+  std::multimap<std::string, std::string> header_params;
+  header_params.insert(std::make_pair("Accept", "application/json"));
+
+  std::multimap<std::string, std::string> query_params;
+  query_params.insert(std::make_pair(
+      "partition", concatStringArray(partition_ids, "&partition=")));
+  if (additional_fields) {
+    query_params.insert(std::make_pair(
+        "additionalFields", concatStringArray(*additional_fields, ",")));
+  }
+  if (billing_tag) {
+    query_params.insert(std::make_pair("billingTag", *billing_tag));
+  }
+  if (version) {
+    query_params.insert(std::make_pair("version", std::to_string(*version)));
+  }
+
+  std::multimap<std::string, std::string> form_params;
+
+  std::string query_uri = "/layers/" + layer_id + "/partitions";
+
+  auto http_response =
+      client.CallApi(query_uri, "GET", query_params, header_params, form_params,
+                     nullptr, "", context);
+
+  if (http_response.status != http::HttpStatusCode::OK) {
+    return client::ApiError(http_response.status, http_response.response.str());
+  }
+  return parser::parse_result<PartitionsResponse>(http_response.response);
+}
+
 }  // namespace write
 }  // namespace dataservice
 }  // namespace olp

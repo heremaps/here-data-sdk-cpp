@@ -105,12 +105,12 @@ class VolatileLayerClientImpl
       std::shared_ptr<client::CancellationContext> cancel_context,
       InitApiClientsCallback callback);
 
-  client::CancellationToken GetDataHandleMap(
+  DataHandleMapResponse GetDataHandleMap(
       const std::string& layerId, const std::vector<std::string>& partitionIds,
       boost::optional<int64_t> version,
       boost::optional<std::vector<std::string>> additionalFields,
       boost::optional<std::string> billingTag,
-      const DataHandleMapCallback& callback);
+      const client::CancellationContext context);
 
  private:
   client::HRN catalog_;
@@ -128,6 +128,7 @@ class VolatileLayerClientImpl
   CancellationTokenList tokenList_;
 
   std::shared_ptr<client::PendingRequests> pending_requests_;
+  std::shared_ptr<thread::TaskScheduler> task_scheduler_;
 
   std::mutex mutex_;
   std::condition_variable cond_var_;

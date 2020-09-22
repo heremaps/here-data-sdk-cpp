@@ -24,6 +24,7 @@
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/CancellationContext.h>
 #include <boost/optional.hpp>
 #include "generated/model/Partitions.h"
 
@@ -52,6 +53,14 @@ class QueryApi {
       boost::optional<std::vector<std::string>> additionalFields,
       boost::optional<std::string> billingTag,
       const PartitionsCallback& callback);
+
+  static PartitionsResponse GetPartitionsById(
+      const client::OlpClient& client, const std::string& layerId,
+      const std::vector<std::string>& partition_ids,
+      boost::optional<int64_t> version,
+      boost::optional<std::vector<std::string>> additional_fields,
+      boost::optional<std::string> billing_tag,
+      client::CancellationContext context);
 };
 
 }  // namespace write
