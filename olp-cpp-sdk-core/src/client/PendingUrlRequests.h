@@ -113,6 +113,8 @@ class PendingUrlRequests {
   /// Alias for a shareable pending request
   using PendingUrlRequestPtr = std::shared_ptr<PendingUrlRequest>;
 
+  virtual ~PendingUrlRequests() { CancelAllAndWait(); }
+
   /// Get the total size of requests pending and cancelled requests.
   size_t Size() const;
 
