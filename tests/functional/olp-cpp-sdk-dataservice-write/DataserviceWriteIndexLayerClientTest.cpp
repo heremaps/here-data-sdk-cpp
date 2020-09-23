@@ -83,7 +83,8 @@ class DataserviceWriteIndexLayerClientTest : public ::testing::Test {
     olp::client::OlpClientSettings settings;
     settings.authentication_settings = auth_client_settings;
     settings.network_request_handler = network;
-    settings.task_scheduler = olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
+    settings.task_scheduler =
+        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
 
     return std::make_shared<write::IndexLayerClient>(
         olp::client::HRN{GetTestCatalog()}, settings);
@@ -276,12 +277,8 @@ TEST_F(DataserviceWriteIndexLayerClientTest, PublishNoLayer) {
   ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
             response.GetError().GetErrorCode());
   ASSERT_EQ(
-      "Unable to find the Layer ID (invalid-layer) "
-      "provided in "
-      "the PublishIndexRequest in the "
-      "Catalog specified when creating "
-      "this "
-      "IndexLayerClient instance.",
+      "Layer 'invalid-layer' not found in catalog "
+      "'hrn:here:data::olp-here-test:olp-cpp-sdk-ingestion-test-catalog'",
       response.GetError().GetMessage());
 }
 
