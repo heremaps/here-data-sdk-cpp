@@ -25,6 +25,7 @@
 
 #include "Common.h"
 #include "ExtendedApiResponse.h"
+#include "TaskSink.h"
 
 namespace olp {
 namespace dataservice {
@@ -66,14 +67,12 @@ class QueryMetadataJob {
       QueryItemsFunc<ItemType, QueryType> query,
       FilterItemsFunc<ItemType> filter,
       std::shared_ptr<DownloadItemsJob<ItemType, PrefetchResult>> download_job,
-      std::shared_ptr<thread::TaskScheduler> task_scheduler,
-      std::shared_ptr<client::PendingRequests> pending_requests,
-      client::CancellationContext execution_context, uint32_t priority)
+      TaskSink& task_sink, client::CancellationContext execution_context,
+      uint32_t priority)
       : query_(std::move(query)),
         filter_(std::move(filter)),
         download_job_(std::move(download_job)),
-        task_scheduler_(std::move(task_scheduler)),
-        pending_requests_(std::move(pending_requests)),
+        task_sink_(task_sink),
         execution_context_(execution_context),
         priority_(priority) {}
 
@@ -132,6 +131,8 @@ class QueryMetadataJob {
 
       auto download_job = download_job_;
 
+      bool all_download_tasks_triggered = true;
+
       execution_context_.ExecuteOrCancelled([&]() {
         VectorOfTokens tokens;
         std::transform(
@@ -140,8 +141,8 @@ class QueryMetadataJob {
             [&](const typename QueryItemsResult<ItemType>::value_type& item) {
               const std::string& data_handle = item.second;
               const auto& item_key = item.first;
-              return AddTaskWithPriority(
-                  task_scheduler_, pending_requests_,
+
+              auto result = task_sink_.AddTaskChecked(
                   [=](client::CancellationContext context) {
                     return download_job->Download(data_handle, context);
                   },
@@ -149,9 +150,22 @@ class QueryMetadataJob {
                     download_job->CompleteItem(item_key, std::move(response));
                   },
                   priority_);
+
+              if (result) {
+                return *result;
+              }
+
+              all_download_tasks_triggered = false;
+              return client::CancellationToken();
             });
         return CreateToken(std::move(tokens));
       });
+
+      if (!all_download_tasks_triggered) {
+        execution_context_.CancelOperation();
+        download_job_->OnPrefetchCompleted(
+            {{client::ErrorCode::Cancelled, "Cancelled"}});
+      }
     }
   }
 
@@ -164,8 +178,7 @@ class QueryMetadataJob {
   client::NetworkStatistics accumulated_statistics_;
   boost::optional<client::ApiError> query_error_;
   std::shared_ptr<DownloadItemsJob<ItemType, PrefetchResult>> download_job_;
-  std::shared_ptr<thread::TaskScheduler> task_scheduler_;
-  std::shared_ptr<client::PendingRequests> pending_requests_;
+  TaskSink& task_sink_;
   client::CancellationContext execution_context_;
   uint32_t priority_;
   std::mutex mutex_;
