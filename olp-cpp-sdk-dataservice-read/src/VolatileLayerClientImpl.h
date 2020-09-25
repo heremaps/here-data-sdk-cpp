@@ -29,6 +29,8 @@
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/Types.h>
 
+#include "TaskSink.h"
+
 namespace olp {
 
 namespace client {
@@ -47,7 +49,7 @@ class VolatileLayerClientImpl {
   VolatileLayerClientImpl(client::HRN catalog, std::string layer_id,
                           client::OlpClientSettings settings);
 
-  virtual ~VolatileLayerClientImpl();
+  virtual ~VolatileLayerClientImpl() = default;
 
   virtual bool CancelPendingRequests();
 
@@ -76,8 +78,8 @@ class VolatileLayerClientImpl {
   client::HRN catalog_;
   std::string layer_id_;
   client::OlpClientSettings settings_;
-  std::shared_ptr<client::PendingRequests> pending_requests_;
   client::ApiLookupClient lookup_client_;
+  TaskSink task_sink_;
 };
 
 }  // namespace read

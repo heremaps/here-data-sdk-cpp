@@ -61,64 +61,51 @@ VersionedLayerClientImpl::VersionedLayerClientImpl(
     : catalog_(std::move(catalog)),
       layer_id_(std::move(layer_id)),
       settings_(std::move(settings)),
-      pending_requests_(std::make_shared<client::PendingRequests>()),
       catalog_version_(catalog_version ? catalog_version.get()
                                        : kInvalidVersion),
-      lookup_client_(catalog_, settings_) {
+      lookup_client_(catalog_, settings_),
+      task_sink_(settings_.task_scheduler) {
   if (!settings_.cache) {
     settings_.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
   }
 }
 
-VersionedLayerClientImpl::~VersionedLayerClientImpl() {
-  pending_requests_->CancelAllAndWait();
-}
-
 bool VersionedLayerClientImpl::CancelPendingRequests() {
   OLP_SDK_LOG_TRACE(kLogTag, "CancelPendingRequests");
-  return pending_requests_->CancelAll();
+  task_sink_.CancelTasks();
+  return true;
 }
 
 client::CancellationToken VersionedLayerClientImpl::GetPartitions(
     PartitionsRequest request, PartitionsResponseCallback callback) {
-  if (request.GetFetchOption() == CacheWithUpdate) {
-    auto task = [](client::CancellationContext) -> PartitionsResponse {
+  auto catalog = catalog_;
+  auto layer_id = layer_id_;
+  auto settings = settings_;
+  auto lookup_client = lookup_client_;
+
+  auto partitions_task =
+      [=](client::CancellationContext context) mutable -> PartitionsResponse {
+    if (request.GetFetchOption() == CacheWithUpdate) {
       return {{client::ErrorCode::InvalidArgument,
                "CacheWithUpdate option can not be used for versioned "
                "layer"}};
-    };
-    return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
-                   std::move(callback));
-  }
+    }
 
-  auto schedule_get_partitions = [&](PartitionsRequest request,
-                                     PartitionsResponseCallback callback) {
-    auto catalog = catalog_;
-    auto layer_id = layer_id_;
-    auto settings = settings_;
-    auto lookup_client = lookup_client_;
+    auto version_response =
+        GetVersion(request.GetBillingTag(), request.GetFetchOption(), context);
+    if (!version_response.IsSuccessful()) {
+      return version_response.GetError();
+    }
+    const auto version = version_response.GetResult().GetVersion();
 
-    auto partitions_task =
-        [=](client::CancellationContext context) mutable -> PartitionsResponse {
-      auto version_response = GetVersion(request.GetBillingTag(),
-                                         request.GetFetchOption(), context);
-      if (!version_response.IsSuccessful()) {
-        return version_response.GetError();
-      }
-      const auto version = version_response.GetResult().GetVersion();
-
-      repository::PartitionsRepository repository(std::move(catalog), layer_id,
-                                                  std::move(settings),
-                                                  std::move(lookup_client));
-      return repository.GetVersionedPartitions(request, version, context);
-    };
-
-    return AddTask(settings.task_scheduler, pending_requests_,
-                   std::move(partitions_task), std::move(callback));
+    repository::PartitionsRepository repository(std::move(catalog), layer_id,
+                                                std::move(settings),
+                                                std::move(lookup_client));
+    return repository.GetVersionedPartitions(request, version, context);
   };
 
-  return ScheduleFetch(std::move(schedule_get_partitions), std::move(request),
-                       std::move(callback));
+  return task_sink_.AddTask(std::move(partitions_task), std::move(callback),
+                            thread::NORMAL);
 }
 
 client::CancellableFuture<PartitionsResponse>
@@ -162,9 +149,8 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
     return repository.GetVersionedData(layer_id, request, version, context);
   };
 
-  return AddTaskWithPriority(settings.task_scheduler, pending_requests_,
-                             std::move(data_task), std::move(callback),
-                             request.GetPriority());
+  return task_sink_.AddTask(std::move(data_task), std::move(callback),
+                            request.GetPriority());
 }
 
 client::CancellableFuture<DataResponse> VersionedLayerClientImpl::GetData(
@@ -189,11 +175,9 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
   auto catalog = catalog_;
   auto layer_id = layer_id_;
   auto settings = settings_;
-  auto pending_requests = pending_requests_;
   auto lookup_client = lookup_client_;
 
-  auto token = AddTaskWithPriority(
-      settings.task_scheduler, pending_requests,
+  auto token = task_sink_.AddTask(
       [=](CancellationContext context) mutable -> EmptyResponse {
         if (request.GetTileKeys().empty()) {
           OLP_SDK_LOG_WARNING_F(kLogTag,
@@ -317,8 +301,8 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
                                           PrefetchTilesResult>(
               std::move(roots), std::move(query), std::move(filter),
               std::move(download), std::move(append_result),
-              std::move(callback), std::move(status_callback),
-              settings.task_scheduler, pending_requests, request.GetPriority());
+              std::move(callback), std::move(status_callback), task_sink_,
+              request.GetPriority());
         });
 
         return EmptyResponse(PrefetchTileNoError());
@@ -388,7 +372,6 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
   auto catalog = catalog_;
   auto layer_id = layer_id_;
   auto settings = settings_;
-  auto pending_requests = pending_requests_;
   auto lookup_client = lookup_client_;
 
   auto data_task = [=](client::CancellationContext context) -> DataResponse {
@@ -413,9 +396,8 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
         layer_id, request, version_response.GetResult().GetVersion(), context);
   };
 
-  return AddTaskWithPriority(settings.task_scheduler, pending_requests,
-                             std::move(data_task), std::move(callback),
-                             request.GetPriority());
+  return task_sink_.AddTask(std::move(data_task), std::move(callback),
+                            request.GetPriority());
 }
 
 client::CancellableFuture<DataResponse> VersionedLayerClientImpl::GetData(
@@ -543,7 +525,6 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
   auto catalog = catalog_;
   auto layer_id = layer_id_;
   auto settings = settings_;
-  auto pending_requests = pending_requests_;
   auto lookup_client = lookup_client_;
 
   auto data_task =
@@ -605,9 +586,8 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
     return std::move(result);
   };
 
-  return AddTaskWithPriority(settings.task_scheduler, pending_requests,
-                             std::move(data_task), std::move(callback),
-                             request.GetPriority());
+  return task_sink_.AddTask(std::move(data_task), std::move(callback),
+                            request.GetPriority());
 }
 
 client::CancellableFuture<AggregatedDataResponse>

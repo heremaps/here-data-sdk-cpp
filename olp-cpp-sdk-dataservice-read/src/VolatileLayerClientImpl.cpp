@@ -32,7 +32,6 @@
 #include "repositories/CatalogRepository.h"
 #include "repositories/DataCacheRepository.h"
 #include "repositories/DataRepository.h"
-#include "repositories/ExecuteOrSchedule.inl"
 #include "repositories/PartitionsCacheRepository.h"
 #include "repositories/PartitionsRepository.h"
 #include "repositories/PrefetchTilesRepository.h"
@@ -60,20 +59,17 @@ VolatileLayerClientImpl::VolatileLayerClientImpl(
     : catalog_(std::move(catalog)),
       layer_id_(std::move(layer_id)),
       settings_(std::move(settings)),
-      pending_requests_(std::make_shared<client::PendingRequests>()),
-      lookup_client_(catalog_, settings_) {
+      lookup_client_(catalog_, settings_),
+      task_sink_(settings_.task_scheduler) {
   if (!settings_.cache) {
     settings_.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
   }
 }
 
-VolatileLayerClientImpl::~VolatileLayerClientImpl() {
-  pending_requests_->CancelAllAndWait();
-}
-
 bool VolatileLayerClientImpl::CancelPendingRequests() {
   OLP_SDK_LOG_TRACE(kLogTag, "CancelPendingRequests");
-  return pending_requests_->CancelAll();
+  task_sink_.CancelTasks();
+  return true;
 }
 
 client::CancellationToken VolatileLayerClientImpl::GetPartitions(
@@ -92,8 +88,8 @@ client::CancellationToken VolatileLayerClientImpl::GetPartitions(
       return repository.GetVolatilePartitions(request, std::move(context));
     };
 
-    return AddTask(settings.task_scheduler, pending_requests_,
-                   std::move(data_task), std::move(callback));
+    return task_sink_.AddTask(std::move(data_task), std::move(callback),
+                              thread::NORMAL);
   };
 
   return ScheduleFetch(std::move(schedule_get_partitions), std::move(request),
@@ -123,9 +119,8 @@ client::CancellationToken VolatileLayerClientImpl::GetData(
     return repository.GetVolatileData(layer_id, request, context);
   };
 
-  return AddTaskWithPriority(settings.task_scheduler, pending_requests_,
-                             std::move(task), std::move(callback),
-                             request.GetPriority());
+  return task_sink_.AddTask(std::move(task), std::move(callback),
+                            request.GetPriority());
 }
 
 client::CancellableFuture<DataResponse> VolatileLayerClientImpl::GetData(
@@ -171,11 +166,9 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
   auto catalog = catalog_;
   auto layer_id = layer_id_;
   auto settings = settings_;
-  auto pending_requests = pending_requests_;
   auto lookup_client = lookup_client_;
 
-  auto token = AddTaskWithPriority(
-      settings.task_scheduler, pending_requests,
+  auto token = task_sink_.AddTask(
       [=](CancellationContext context) mutable -> EmptyResponse {
         const auto& tile_keys = request.GetTileKeys();
         if (tile_keys.empty()) {
@@ -281,8 +274,7 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
                                           PrefetchTilesResult>(
               std::move(roots), std::move(query), std::move(filter),
               std::move(download), std::move(append_result),
-              std::move(callback), nullptr, settings.task_scheduler,
-              pending_requests, request.GetPriority());
+              std::move(callback), nullptr, task_sink_, request.GetPriority());
         });
 
         return EmptyResponse(PrefetchTileNoError());

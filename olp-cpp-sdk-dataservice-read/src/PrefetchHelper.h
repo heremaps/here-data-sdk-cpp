@@ -29,6 +29,7 @@
 #include "ExtendedApiResponse.h"
 #include "ExtendedApiResponseHelpers.h"
 #include "QueryMetadataJob.h"
+#include "TaskSink.h"
 
 namespace olp {
 namespace dataservice {
@@ -46,9 +47,7 @@ class PrefetchHelper {
       FilterItemsFunc<ItemType> filter, DownloadFunc download,
       AppendResultFunc<ItemType, PrefetchResult> append_result,
       Callback<PrefetchResult> user_callback,
-      PrefetchStatusCallback status_callback,
-      std::shared_ptr<thread::TaskScheduler> task_scheduler,
-      std::shared_ptr<client::PendingRequests> pending_requests,
+      PrefetchStatusCallback status_callback, TaskSink& task_sink,
       uint32_t priority) {
     client::CancellationContext execution_context;
 
@@ -59,8 +58,8 @@ class PrefetchHelper {
 
     auto query_job =
         std::make_shared<QueryMetadataJob<ItemType, QueryType, PrefetchResult>>(
-            std::move(query), std::move(filter), download_job, task_scheduler,
-            pending_requests, execution_context, priority);
+            std::move(query), std::move(filter), download_job, task_sink,
+            execution_context, priority);
 
     query_job->Initialize(roots.size());
 
@@ -71,8 +70,7 @@ class PrefetchHelper {
       VectorOfTokens tokens;
       std::transform(std::begin(roots), std::end(roots),
                      std::back_inserter(tokens), [&](QueryType root) {
-                       return AddTaskWithPriority(
-                           task_scheduler, pending_requests,
+                       return task_sink.AddTask(
                            [=](client::CancellationContext context) {
                              return query_job->Query(root, context);
                            },

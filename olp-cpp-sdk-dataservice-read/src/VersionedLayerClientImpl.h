@@ -34,7 +34,7 @@
 #include <olp/dataservice/read/TileRequest.h>
 #include <olp/dataservice/read/Types.h>
 #include <boost/optional.hpp>
-#include "repositories/ExecuteOrSchedule.inl"
+#include "TaskSink.h"
 
 namespace olp {
 namespace thread {
@@ -53,7 +53,7 @@ class VersionedLayerClientImpl {
                            boost::optional<int64_t> catalog_version,
                            client::OlpClientSettings settings);
 
-  virtual ~VersionedLayerClientImpl();
+  virtual ~VersionedLayerClientImpl() = default;
 
   virtual bool CancelPendingRequests();
 
@@ -107,9 +107,9 @@ class VersionedLayerClientImpl {
   client::HRN catalog_;
   std::string layer_id_;
   client::OlpClientSettings settings_;
-  std::shared_ptr<client::PendingRequests> pending_requests_;
   std::atomic<int64_t> catalog_version_;
   client::ApiLookupClient lookup_client_;
+  TaskSink task_sink_;
 };
 
 }  // namespace read
