@@ -22,17 +22,15 @@
 #include <memory>
 
 #include <olp/core/CoreApi.h>
+#include <olp/core/http/Network.h>
 #include <olp/core/thread/TaskScheduler.h>
+#include <boost/optional.hpp>
 
 namespace olp {
 namespace cache {
 class KeyValueCache;
 struct CacheSettings;
 }  // namespace cache
-
-namespace http {
-class Network;
-}  // namespace http
 
 namespace client {
 struct OlpClientSettings;
@@ -104,9 +102,15 @@ class CORE_API OlpClientSettingsFactory final {
    * @note This only makes sense on platforms which actually keep TCP
    * sockets and connections alive for some time and only if you have
    * max_request_count set to something greater then 1 to allow reusing.
+   *
+   * @param[in] settings The `OlpClientSettings` instance.
+   * @param[in] url The url of the host.
+   * @param[in] callback The user callback will be called when request
+   * completed.
    */
   static void PrewarmConnection(const OlpClientSettings& settings,
-                                const std::string& url);
+                                const std::string& url,
+                                http::Network::Callback callback = nullptr);
 };
 
 }  // namespace client
