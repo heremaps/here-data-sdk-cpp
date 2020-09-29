@@ -28,6 +28,7 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./client/ConditionTest.cpp
     ./client/DefaultLookupEndpointProviderTest.cpp
     ./client/HRNTest.cpp
+    ./client/OlpClientSettingsFactoryTest.cpp
     ./client/OlpClientTest.cpp
     ./client/PendingUrlRequestsTest.cpp
     ./client/TaskContextTest.cpp

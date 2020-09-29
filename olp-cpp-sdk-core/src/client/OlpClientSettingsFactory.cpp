@@ -22,7 +22,6 @@
 #include "olp/core/cache/CacheSettings.h"
 #include "olp/core/cache/DefaultCache.h"
 #include "olp/core/client/OlpClientSettings.h"
-#include "olp/core/http/Network.h"
 #include "olp/core/http/NetworkConstants.h"
 #include "olp/core/logging/Log.h"
 #include "olp/core/porting/make_unique.h"
@@ -63,7 +62,8 @@ OlpClientSettingsFactory::CreateDefaultCache(cache::CacheSettings settings) {
 }
 
 void OlpClientSettingsFactory::PrewarmConnection(
-    const OlpClientSettings& settings, const std::string& url) {
+    const OlpClientSettings& settings, const std::string& url,
+    http::Network::Callback callback) {
   if (url.empty() || !settings.network_request_handler) {
     OLP_SDK_LOG_WARNING_F(kLogTag, "PrewarmConnection: invalid input, url='%s'",
                           url.c_str());
@@ -86,11 +86,15 @@ void OlpClientSettingsFactory::PrewarmConnection(
           .WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
 
   auto outcome = settings.network_request_handler->Send(
-      request, nullptr, [url](http::NetworkResponse response) {
+      request, nullptr, [url, callback](http::NetworkResponse response) {
         OLP_SDK_LOG_INFO_F(
             kLogTag,
             "PrewarmConnection: completed for url='%s', status='%d %s'",
             url.c_str(), response.GetStatus(), response.GetError().c_str());
+        // call user callback if it is set
+        if (callback) {
+          callback(std::move(response));
+        }
       });
 
   if (!outcome.IsSuccessful()) {
