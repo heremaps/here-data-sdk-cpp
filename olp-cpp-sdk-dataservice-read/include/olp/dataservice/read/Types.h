@@ -27,6 +27,7 @@
 #include <olp/core/client/ApiResponse.h>
 
 #include <olp/dataservice/read/AggregatedDataResult.h>
+#include <olp/dataservice/read/PrefetchPartitionsResult.h>
 #include <olp/dataservice/read/PrefetchStatus.h>
 #include <olp/dataservice/read/model/Catalog.h>
 #include <olp/dataservice/read/model/Data.h>
@@ -70,7 +71,7 @@ using PartitionsResponse = Response<PartitionsResult>;
 /// The callback type of the partition metadata response.
 using PartitionsResponseCallback = Callback<PartitionsResult>;
 
-/// The data alias type.
+/// The `Data` alias type.
 using DataResult = model::Data;
 /// The data response alias.
 using DataResponse = Response<DataResult>;
@@ -90,6 +91,11 @@ using PrefetchTilesResponse = Response<PrefetchTilesResult>;
 using PrefetchTilesResponseCallback = Callback<PrefetchTilesResult>;
 /// The callback type for the prefetch status update.
 using PrefetchStatusCallback = std::function<void(PrefetchStatus)>;
+
+/// The prefetch partitions response type.
+using PrefetchPartitionsResponse = Response<PrefetchPartitionsResult>;
+/// The callback type of the prefetch completion.
+using PrefetchPartitionsResponseCallback = Callback<PrefetchPartitionsResult>;
 
 /// The subscribe ID type of the stream layer client.
 using SubscriptionId = std::string;
