@@ -23,6 +23,7 @@
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/http/HttpStatusCode.h>
+#include <olp/core/utils/Dir.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 
 #include <mocks/NetworkMock.h>
@@ -43,12 +44,15 @@ using testing::_;
 const auto kCatalog = "hrn:here:data::olp-here-test:catalog";
 const client::HRN kCatalogHrn = client::HRN::FromString(kCatalog);
 const auto kEndpoint = "https://localhost";
+const auto kCachePathMutable = "./tmp_cache";
 
 constexpr auto kWaitTimeout = std::chrono::seconds(3);
 
 class VersionedLayerGetAggregatedDataTest : public ::testing::Test {
  public:
   void SetUp() override {
+    olp::utils::Dir::remove(kCachePathMutable);
+
     network_mock_ = std::make_shared<NetworkMock>();
 
     settings_.api_lookup_settings.catalog_endpoint_provider =
@@ -63,6 +67,7 @@ class VersionedLayerGetAggregatedDataTest : public ::testing::Test {
     testing::Mock::VerifyAndClearExpectations(network_mock_.get());
     network_mock_.reset();
     settings_.task_scheduler.reset();
+    olp::utils::Dir::remove(kCachePathMutable);
   }
 
   void ExpectQuadTreeRequest(const std::string& layer, int64_t version,
@@ -130,7 +135,7 @@ TEST_F(VersionedLayerGetAggregatedDataTest, ParentTileFarAway) {
   }
 
   olp::cache::CacheSettings settings;
-  settings.disk_path_mutable = "./tmp_cache";
+  settings.disk_path_mutable = kCachePathMutable;
   settings_.cache =
       olp::client::OlpClientSettingsFactory::CreateDefaultCache(settings);
 
