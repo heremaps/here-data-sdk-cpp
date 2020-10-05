@@ -495,11 +495,16 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   ASSERT_TRUE(response.IsSuccessful());
 
+  promise = std::promise<DataResponse>();
   client->GetData(
       read::DataRequest()
           .WithPartitionId(kTestPartition)
           .WithFetchOption(FetchOptions::CacheOnly),
-      [&response](DataResponse resp) { response = std::move(resp); });
+      [&promise](DataResponse resp) { promise.set_value(std::move(resp)); });
+
+  future = promise.get_future();
+  response = future.get();
+
   ASSERT_TRUE(response.IsSuccessful());
   ASSERT_TRUE(response.GetResult() != nullptr);
   ASSERT_NE(response.GetResult()->size(), 0u);
@@ -2089,15 +2094,15 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithStatus) {
 
   auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
   auto future = promise->get_future();
-  auto token = client.PrefetchTiles(request,
-                                    [promise](PrefetchTilesResponse response) {
-                                      promise->set_value(std::move(response));
-                                    },
-                                    [&](read::PrefetchStatus status) {
-                                      status_object.Op(status);
-                                      bytes_transferred =
-                                          status.bytes_transferred;
-                                    });
+  auto token = client.PrefetchTiles(
+      request,
+      [promise](PrefetchTilesResponse response) {
+        promise->set_value(std::move(response));
+      },
+      [&](read::PrefetchStatus status) {
+        status_object.Op(status);
+        bytes_transferred = status.bytes_transferred;
+      });
 
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
   PrefetchTilesResponse response = future.get();
