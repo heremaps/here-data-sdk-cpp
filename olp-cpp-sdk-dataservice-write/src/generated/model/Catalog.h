@@ -395,7 +395,7 @@ class Notifications {
   virtual ~Notifications() = default;
 
  private:
-  bool enabled_;
+  bool enabled_{false};
 
  public:
   const bool& GetEnabled() const { return enabled_; }
