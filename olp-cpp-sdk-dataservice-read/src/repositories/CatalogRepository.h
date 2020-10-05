@@ -52,6 +52,10 @@ class CatalogRepository final {
                                    client::CancellationContext context);
 
  private:
+  CatalogVersionResponse GetLatestVersionOnline(
+      const boost::optional<std::string>& billing_tag,
+      client::CancellationContext context);
+
   client::HRN catalog_;
   client::OlpClientSettings settings_;
   client::ApiLookupClient lookup_client_;

@@ -48,14 +48,19 @@ class VersionedLayerClientImpl;
  *
  * The versioned layer stores slowly-changing data that must remain logically
  * consistent with other layers in a catalog. You can request any data version
- * from the versioned
- * layer.
+ * from the versioned layer.
  * When you request a particular version of data from the versioned layer,
  * the partition you receive in the response may have a lower version number
  * than you requested. The version of a layer or partition represents the
  * catalog version in which the layer or partition was last updated.
  *
- * @note If the catalog version is not specified, the latest version is used.
+ * @note If the catalog version is not specified, the version is set upon the
+ * first request made, based on this rules which apply for each specific FetchOptions:
+ * - OnlineOnly - version is resolved from online.
+ * - CacheOnly - version is resolved from cache.
+ * - OnlineIfNotFound - retrieve from online first, then checks the cache in 
+ * case of error. Update cache version if online version is higher then the 
+ * cache version.
  *
  * An example with the catalog version provided that saves one network request:
  * @code{.cpp}

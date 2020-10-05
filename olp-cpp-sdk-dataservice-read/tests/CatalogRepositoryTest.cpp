@@ -171,6 +171,9 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyNotFound) {
         return boost::any{};
       });
 
+  EXPECT_CALL(*cache_, Get(testing::Eq(kMetadataCacheKey), _))
+      .WillOnce(testing::Return(boost::any()));
+
   EXPECT_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
       .Times(1)
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
@@ -197,20 +200,23 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyFound) {
         return boost::any{};
       });
 
-  EXPECT_CALL(*cache_, Put(testing::Eq(kLatestVersionCacheKey), _, _, _))
-      .Times(0);
-
-  EXPECT_CALL(*cache_, Put(testing::Eq(kMetadataCacheKey), _, _, _)).Times(0);
+  EXPECT_CALL(*cache_, Get(testing::Eq(kMetadataCacheKey), _))
+      .WillOnce(testing::Return(boost::any()));
 
   EXPECT_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kResponseLookupMetadata));
 
+  EXPECT_CALL(*cache_, Put(testing::Eq(kMetadataCacheKey), _, _, _)).Times(1);
+
   EXPECT_CALL(*network_, Send(IsGetRequest(kLatestCatalogVersion), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kResponseLatestCatalogVersion));
+
+  EXPECT_CALL(*cache_, Put(testing::Eq(kLatestVersionCacheKey), _, _, _))
+      .Times(0);
 
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);

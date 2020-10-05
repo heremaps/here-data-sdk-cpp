@@ -38,7 +38,6 @@ constexpr auto kLogTag = "CatalogCacheRepository";
 
 // Currently, we expire the catalog version after 5 minutes. Later we plan to
 // give the user the control when to expire it.
-constexpr auto kCatalogVersionExpiryTime = 5 * 60;
 constexpr auto kChronoSecondsMax = std::chrono::seconds::max();
 constexpr auto kTimetMax = std::numeric_limits<time_t>::max();
 
@@ -93,7 +92,7 @@ void CatalogCacheRepository::PutVersion(const model::VersionResponse& version) {
 
   cache_->Put(VersionKey(hrn), version,
               [&]() { return olp::serializer::serialize(version); },
-              kCatalogVersionExpiryTime);
+              default_expiry_);
 }
 
 boost::optional<model::VersionResponse> CatalogCacheRepository::GetVersion() {
