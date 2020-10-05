@@ -27,6 +27,7 @@
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/HttpResponse.h>
 #include <boost/optional.hpp>
+#include "ExtendedApiResponse.h"
 #include "generated/model/Index.h"
 #include "olp/dataservice/read/model/Partitions.h"
 
@@ -42,10 +43,12 @@ namespace read {
  */
 class QueryApi {
  public:
-  using PartitionsResponse =
-      client::ApiResponse<model::Partitions, client::ApiError>;
   using QuadTreeIndexResponse =
       client::ApiResponse<model::Index, client::ApiError>;
+
+  using PartitionsExtendedResponse =
+      ExtendedApiResponse<model::Partitions, client::ApiError,
+                          client::NetworkStatistics>;
 
   /**
    * @brief Call to synchronously retrieve metadata for specified partitions in
@@ -66,10 +69,10 @@ class QueryApi {
    * response.
    * @param context A CancellationContext instance which can be used to cancel
    * call of this method.
-   * @param The result of this operation as a client::ApiResponse object with \c
-   * model::Partitions as a result.
+   * @return  The result of this operation as an extended client::ApiResponse
+   * object with \c model::Partitions as a result.
    */
-  static PartitionsResponse GetPartitionsbyId(
+  static PartitionsExtendedResponse GetPartitionsbyId(
       const client::OlpClient& client, const std::string& layer_id,
       const std::vector<std::string>& partitions,
       boost::optional<int64_t> version,
@@ -104,8 +107,7 @@ class QueryApi {
    * release.
    * @param context A CancellationContext instance which can be used to cancel
    * call of this method.
-   * @param The result of this operation as a client::ApiResponse object with \c
-   * model::Index as a result
+   * @return HttpResponse of this operation.
    **/
   static olp::client::HttpResponse QuadTreeIndex(
       const client::OlpClient& client, const std::string& layer_id,

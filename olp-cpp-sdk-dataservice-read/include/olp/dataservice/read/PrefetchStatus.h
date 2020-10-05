@@ -37,6 +37,19 @@ struct PrefetchStatus {
   size_t bytes_transferred;
 };
 
+/*
+ * @brief PrefetchPartitionsStatus structure represent the progress of prefetch
+ * operation for partitions.
+ */
+struct PrefetchPartitionsStatus {
+  /// Partitions available (prefetched).
+  size_t prefetched_partitions;
+  /// Total number of partitions to prefetch during prefetch operation.
+  size_t total_partitions_to_prefetch;
+  /// Total bytes tranferred during API calls.
+  size_t bytes_transferred;
+};
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

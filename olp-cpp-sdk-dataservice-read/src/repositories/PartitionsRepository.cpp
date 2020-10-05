@@ -109,6 +109,13 @@ PartitionsRepository::PartitionsRepository(client::HRN catalog,
       cache_(catalog_, layer_id_, settings_.cache,
              settings_.default_cache_expiration) {}
 
+QueryApi::PartitionsExtendedResponse
+PartitionsRepository::GetVersionedPartitionsExtendedResponse(
+    const read::PartitionsRequest& request, std::int64_t version,
+    client::CancellationContext context) {
+  return GetPartitionsExtendedResponse(request, version, std::move(context));
+}
+
 PartitionsResponse PartitionsRepository::GetVersionedPartitions(
     const PartitionsRequest& request, int64_t version,
     client::CancellationContext context) {
@@ -138,7 +145,8 @@ PartitionsResponse PartitionsRepository::GetVolatilePartitions(
                        expiry_response.MoveResult());
 }
 
-PartitionsResponse PartitionsRepository::GetPartitions(
+QueryApi::PartitionsExtendedResponse
+PartitionsRepository::GetPartitionsExtendedResponse(
     const PartitionsRequest& request, boost::optional<std::int64_t> version,
     client::CancellationContext context, boost::optional<time_t> expiry) {
   auto fetch_option = request.GetFetchOption();
@@ -160,7 +168,7 @@ PartitionsResponse PartitionsRepository::GetPartitions(
     }
   }
 
-  PartitionsResponse response;
+  QueryApi::PartitionsExtendedResponse response;
   const auto& partition_ids = request.GetPartitionIds();
 
   if (partition_ids.empty()) {
@@ -189,7 +197,6 @@ PartitionsResponse PartitionsRepository::GetPartitions(
         query_api.GetResult(), layer_id_, partition_ids, version,
         request.GetAdditionalFields(), request.GetBillingTag(), context);
   }
-
   // Save all partitions only when downloaded via metadata API
   const bool is_layer_metadata = partition_ids.empty();
   if (response.IsSuccessful() && fetch_option != OnlineOnly) {
@@ -210,6 +217,13 @@ PartitionsResponse PartitionsRepository::GetPartitions(
   }
 
   return response;
+}
+
+PartitionsResponse PartitionsRepository::GetPartitions(
+    const PartitionsRequest& request, boost::optional<std::int64_t> version,
+    client::CancellationContext context, boost::optional<time_t> expiry) {
+  return GetPartitionsExtendedResponse(request, std::move(version),
+                                       std::move(context), std::move(expiry));
 }
 
 PartitionsResponse PartitionsRepository::GetPartitionById(
@@ -390,9 +404,9 @@ PartitionResponse PartitionsRepository::GetAggregatedTile(
   }
 
   // When the parent tile is too far away, we iterate up and download metadata
-  // for parent tiles until we cover aggregated tile root as a subquad. This is
-  // needed for the users who need to access the aggregated tile root directly.
-  // Else, we can't find it in cache.
+  // for parent tiles until we cover aggregated tile root as a subquad. This
+  // is needed for the users who need to access the aggregated tile root
+  // directly. Else, we can't find it in cache.
   if (request.GetFetchOption() != FetchOptions::CacheOnly) {
     const auto& result = quad_tree_response.GetResult();
     auto index_data = result.Find(request.GetTileKey(), true);
