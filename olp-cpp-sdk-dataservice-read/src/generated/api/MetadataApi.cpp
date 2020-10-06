@@ -80,7 +80,7 @@ MetadataApi::LayerVersionsResponse MetadataApi::GetLayerVersions(
   return parser::parse_result<LayerVersionsResponse>(api_response.response);
 }
 
-MetadataApi::PartitionsResponse MetadataApi::GetPartitions(
+MetadataApi::PartitionsExtendedResponse MetadataApi::GetPartitions(
     const client::OlpClient& client, const std::string& layer_id,
     boost::optional<std::int64_t> version,
     const std::vector<std::string>& additional_fields,
@@ -107,14 +107,27 @@ MetadataApi::PartitionsResponse MetadataApi::GetPartitions(
 
   std::string metadataUri = "/layers/" + layer_id + "/partitions";
 
-  auto api_response = client.CallApi(metadataUri, "GET", query_params,
-                                     header_params, {}, nullptr, "", context);
+  auto http_response = client.CallApi(metadataUri, "GET", query_params,
+                                      header_params, {}, nullptr, "", context);
 
-  if (api_response.status != http::HttpStatusCode::OK) {
-    return {{api_response.status, api_response.response.str()}};
+  if (http_response.status != olp::http::HttpStatusCode::OK) {
+    return {{http_response.status, http_response.response.str()},
+            http_response.GetNetworkStatistics()};
   }
 
-  return parser::parse_result<PartitionsResponse>(api_response.response);
+  using PartitionsResponse =
+      client::ApiResponse<model::Partitions, client::ApiError>;
+
+  auto partitions_response =
+      parser::parse_result<PartitionsResponse>(http_response.response);
+
+  if (!partitions_response.IsSuccessful()) {
+    return {{partitions_response.GetError()},
+            http_response.GetNetworkStatistics()};
+  }
+
+  return {partitions_response.MoveResult(),
+          http_response.GetNetworkStatistics()};
 }
 
 MetadataApi::CatalogVersionResponse MetadataApi::GetLatestCatalogVersion(

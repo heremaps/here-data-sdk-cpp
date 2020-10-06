@@ -25,6 +25,7 @@
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
 #include <boost/optional.hpp>
+#include "ExtendedApiResponse.h"
 #include "generated/model/LayerVersions.h"
 #include "olp/dataservice/read/model/Partitions.h"
 #include "olp/dataservice/read/model/VersionInfos.h"
@@ -45,14 +46,16 @@ class MetadataApi {
  public:
   using VersionsResponse =
       client::ApiResponse<model::VersionInfos, client::ApiError>;
-  using PartitionsResponse =
-      client::ApiResponse<model::Partitions, client::ApiError>;
 
   using CatalogVersionResponse =
       client::ApiResponse<model::VersionResponse, client::ApiError>;
 
   using LayerVersionsResponse =
       client::ApiResponse<model::LayerVersions, client::ApiError>;
+
+  using PartitionsExtendedResponse =
+      ExtendedApiResponse<model::Partitions, client::ApiError,
+                          client::NetworkStatistics>;
 
   /**
    * @brief Retrieves the latest metadata version for each layer of a specified
@@ -91,9 +94,10 @@ class MetadataApi {
    * characters, contain only alpha/numeric ASCII characters  [A-Za-z0-9].
    * @param context A CancellationContext, which can be used to cancel request.
    *
-   * @return The Partitions response.
+   * @return  The result of this operation as an extended client::ApiResponse
+   * object with \c model::Partitions as a result.
    */
-  static PartitionsResponse GetPartitions(
+  static PartitionsExtendedResponse GetPartitions(
       const client::OlpClient& client, const std::string& layerId,
       boost::optional<int64_t> version,
       const std::vector<std::string>& additional_fields,

@@ -27,7 +27,9 @@
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
+#include "ExtendedApiResponse.h"
 #include "QuadTreeIndex.h"
+#include "generated/api/QueryApi.h"
 #include "generated/model/Index.h"
 #include "olp/dataservice/read/DataRequest.h"
 #include "olp/dataservice/read/PartitionsRequest.h"
@@ -61,6 +63,10 @@ class PartitionsRepository {
       const read::PartitionsRequest& request,
       client::CancellationContext context);
 
+  QueryApi::PartitionsExtendedResponse GetVersionedPartitionsExtendedResponse(
+      const read::PartitionsRequest& request, std::int64_t version,
+      client::CancellationContext context);
+
   PartitionsResponse GetPartitionById(const DataRequest& request,
                                       boost::optional<int64_t> version,
                                       client::CancellationContext context);
@@ -82,6 +88,12 @@ class PartitionsRepository {
       client::CancellationContext context);
 
   PartitionsResponse GetPartitions(
+      const read::PartitionsRequest& request,
+      boost::optional<std::int64_t> version,
+      client::CancellationContext context,
+      boost::optional<time_t> expiry = boost::none);
+
+  QueryApi::PartitionsExtendedResponse GetPartitionsExtendedResponse(
       const read::PartitionsRequest& request,
       boost::optional<std::int64_t> version,
       client::CancellationContext context,

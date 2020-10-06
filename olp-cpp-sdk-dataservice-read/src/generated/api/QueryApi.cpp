@@ -59,7 +59,7 @@ namespace olp {
 namespace dataservice {
 namespace read {
 
-QueryApi::PartitionsResponse QueryApi::GetPartitionsbyId(
+QueryApi::PartitionsExtendedResponse QueryApi::GetPartitionsbyId(
     const client::OlpClient& client, const std::string& layer_id,
     const std::vector<std::string>& partitions,
     boost::optional<int64_t> version,
@@ -86,17 +86,30 @@ QueryApi::PartitionsResponse QueryApi::GetPartitionsbyId(
 
   std::string metadata_uri = "/layers/" + layer_id + "/partitions";
 
-  client::HttpResponse response = client.CallApi(
+  client::HttpResponse http_response = client.CallApi(
       metadata_uri, "GET", std::move(query_params), std::move(header_params),
       {}, nullptr, std::string{}, std::move(context));
-  if (response.status != olp::http::HttpStatusCode::OK) {
-    return client::ApiError(response.status, response.response.str());
+
+  OLP_SDK_LOG_TRACE_F(kLogTag, "GetPartitionsbyId, layer_id=%s, status=%d",
+                      layer_id.c_str(), http_response.status);
+
+  if (http_response.status != olp::http::HttpStatusCode::OK) {
+    return {{http_response.status, http_response.response.str()},
+            http_response.GetNetworkStatistics()};
+  }
+  using PartitionsResponse =
+      client::ApiResponse<model::Partitions, client::ApiError>;
+
+  auto partitions_response =
+      parser::parse_result<PartitionsResponse>(http_response.response);
+
+  if (!partitions_response.IsSuccessful()) {
+    return {{partitions_response.GetError()},
+            http_response.GetNetworkStatistics()};
   }
 
-  OLP_SDK_LOG_TRACE_F(kLogTag, "GetPartitionsbyId, uri=%s, status=%d",
-                      metadata_uri.c_str(), response.status);
-
-  return parser::parse_result<PartitionsResponse>(response.response);
+  return {partitions_response.MoveResult(),
+          http_response.GetNetworkStatistics()};
 }
 
 olp::client::HttpResponse QueryApi::QuadTreeIndex(

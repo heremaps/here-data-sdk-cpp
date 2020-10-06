@@ -96,6 +96,9 @@ using PrefetchStatusCallback = std::function<void(PrefetchStatus)>;
 using PrefetchPartitionsResponse = Response<PrefetchPartitionsResult>;
 /// The callback type of the prefetch completion.
 using PrefetchPartitionsResponseCallback = Callback<PrefetchPartitionsResult>;
+/// The callback type for the prefetch status update.
+using PrefetchPartitionsStatusCallback =
+    std::function<void(PrefetchPartitionsStatus)>;
 
 /// The subscribe ID type of the stream layer client.
 using SubscriptionId = std::string;
