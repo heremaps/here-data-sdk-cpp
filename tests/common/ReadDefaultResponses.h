@@ -59,12 +59,12 @@ class ReadDefaultResponses {
   }
 
   static olp::dataservice::read::model::Partitions GeneratePartitionsResponse(
-      size_t size = 10) {
+      size_t size = 10, uint32_t start_index = 0) {
     std::vector<olp::dataservice::read::model::Partition> partitions_vect;
     partitions_vect.reserve(size);
     for (size_t i = 0; i < size; i++) {
       partitions_vect.emplace_back(
-          GeneratePartitionResponse(std::to_string(i)));
+          GeneratePartitionResponse(std::to_string(start_index + i)));
     }
 
     olp::dataservice::read::model::Partitions partitions;

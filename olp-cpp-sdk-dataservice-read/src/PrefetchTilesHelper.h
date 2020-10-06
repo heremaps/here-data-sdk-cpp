@@ -19,47 +19,45 @@
 
 #pragma once
 
+#include <memory>
+#include <utility>
+#include <vector>
+
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/PendingRequests.h>
 #include <olp/core/logging/Log.h>
 #include <olp/dataservice/read/Types.h>
-
 #include "Common.h"
 #include "DownloadItemsJob.h"
 #include "ExtendedApiResponse.h"
 #include "ExtendedApiResponseHelpers.h"
 #include "QueryMetadataJob.h"
 #include "TaskSink.h"
+#include "repositories/PrefetchTilesRepository.h"
 
 namespace olp {
 namespace dataservice {
 namespace read {
 
-template <typename PrefetchItemsResult>
-using PrefetchItemsResponseCallback = Callback<PrefetchItemsResult>;
-
-class PrefetchHelper {
+class PrefetchTilesHelper {
  public:
-  template <typename ItemType, typename QueryType, typename PrefetchResult>
+  using DownloadJob =
+      DownloadItemsJob<geo::TileKey, PrefetchTilesResult, PrefetchStatus>;
+  using QueryFunc =
+      QueryItemsFunc<geo::TileKey, geo::TileKey, repository::SubQuadsResponse>;
+
   static client::CancellationToken Prefetch(
-      const std::vector<QueryType>& roots,
-      QueryItemsFunc<ItemType, QueryType> query,
-      FilterItemsFunc<ItemType> filter, DownloadFunc download,
-      AppendResultFunc<ItemType, PrefetchResult> append_result,
-      Callback<PrefetchResult> user_callback,
-      PrefetchStatusCallback status_callback, TaskSink& task_sink,
+      std::shared_ptr<DownloadJob> download_job,
+      const std::vector<geo::TileKey>& roots, QueryFunc query,
+      FilterItemsFunc<repository::SubQuadsResult> filter, TaskSink& task_sink,
       uint32_t priority) {
     client::CancellationContext execution_context;
 
-    auto download_job =
-        std::make_shared<DownloadItemsJob<ItemType, PrefetchResult>>(
-            std::move(download), std::move(append_result),
-            std::move(user_callback), std::move(status_callback));
-
-    auto query_job =
-        std::make_shared<QueryMetadataJob<ItemType, QueryType, PrefetchResult>>(
-            std::move(query), std::move(filter), download_job, task_sink,
-            execution_context, priority);
+    auto query_job = std::make_shared<
+        QueryMetadataJob<geo::TileKey, geo::TileKey, PrefetchTilesResult,
+                         repository::SubQuadsResponse, PrefetchStatus>>(
+        std::move(query), std::move(filter), download_job, task_sink,
+        execution_context, priority);
 
     query_job->Initialize(roots.size());
 
@@ -69,12 +67,12 @@ class PrefetchHelper {
     execution_context.ExecuteOrCancelled([&]() {
       VectorOfTokens tokens;
       std::transform(std::begin(roots), std::end(roots),
-                     std::back_inserter(tokens), [&](QueryType root) {
+                     std::back_inserter(tokens), [&](geo::TileKey root) {
                        return task_sink.AddTask(
                            [=](client::CancellationContext context) {
                              return query_job->Query(root, context);
                            },
-                           [=](QueryItemsResponse<ItemType> response) {
+                           [=](repository::SubQuadsResponse response) {
                              query_job->CompleteQuery(std::move(response));
                            },
                            priority);
