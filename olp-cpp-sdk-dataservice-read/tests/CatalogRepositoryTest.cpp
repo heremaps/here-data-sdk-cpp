@@ -156,6 +156,8 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionCacheOnlyNotFound) {
   auto response = repository.GetLatestVersion(request, context);
 
   EXPECT_FALSE(response.IsSuccessful());
+  EXPECT_EQ(response.GetError().GetErrorCode(),
+            olp::client::ErrorCode::NotFound);
 }
 
 TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyNotFound) {
