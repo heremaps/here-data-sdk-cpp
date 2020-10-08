@@ -110,8 +110,10 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
   repository::CatalogCacheRepository repository(catalog_, settings_.cache);
 
   const auto fetch_option = request.GetFetchOption();
-
-  CatalogVersionResponse version_response;
+  // in case if get version online was never called and version was not found in
+  // cache
+  CatalogVersionResponse version_response = {
+      {client::ErrorCode::NotFound, "Failed to find version."}};
 
   if (fetch_option != CacheOnly) {
     version_response = GetLatestVersionOnline(request.GetBillingTag(), context);
