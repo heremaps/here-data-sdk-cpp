@@ -19,10 +19,14 @@
 
 #pragma once
 
+#include <iterator>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/logging/Log.h>
 #include <olp/dataservice/read/Types.h>
-
 #include "Common.h"
 #include "ExtendedApiResponse.h"
 #include "TaskSink.h"
@@ -31,21 +35,12 @@ namespace olp {
 namespace dataservice {
 namespace read {
 
-template <typename ItemType>
-using QueryItemsResult = std::map<ItemType, std::string>;
+template <typename ItemType, typename QueryType, typename QueryResponseType>
+using QueryItemsFunc =
+    std::function<QueryResponseType(QueryType, client::CancellationContext)>;
 
-template <typename ItemType>
-using QueryItemsResponse =
-    ExtendedApiResponse<QueryItemsResult<ItemType>, client::ApiError,
-                        client::NetworkStatistics>;
-
-template <typename ItemType, typename QueryType>
-using QueryItemsFunc = std::function<QueryItemsResponse<ItemType>(
-    QueryType, client::CancellationContext)>;
-
-template <typename ItemType>
-using FilterItemsFunc =
-    std::function<QueryItemsResult<ItemType>(QueryItemsResult<ItemType>)>;
+template <typename QueryResponseType>
+using FilterItemsFunc = std::function<QueryResponseType(QueryResponseType)>;
 
 using VectorOfTokens = std::vector<olp::client::CancellationToken>;
 
@@ -60,13 +55,16 @@ static olp::client::CancellationToken CreateToken(VectorOfTokens tokens) {
       std::move(tokens)));
 }
 
-template <typename ItemType, typename QueryType, typename PrefetchResult>
+template <typename ItemType, typename QueryType, typename PrefetchResult,
+          typename QueryResponseType, typename PrefetchStatusType>
 class QueryMetadataJob {
  public:
   QueryMetadataJob(
-      QueryItemsFunc<ItemType, QueryType> query,
-      FilterItemsFunc<ItemType> filter,
-      std::shared_ptr<DownloadItemsJob<ItemType, PrefetchResult>> download_job,
+      QueryItemsFunc<ItemType, QueryType, QueryResponseType> query,
+      FilterItemsFunc<typename QueryResponseType::ResultType> filter,
+      std::shared_ptr<
+          DownloadItemsJob<ItemType, PrefetchResult, PrefetchStatusType>>
+          download_job,
       TaskSink& task_sink, client::CancellationContext execution_context,
       uint32_t priority)
       : query_(std::move(query)),
@@ -78,20 +76,19 @@ class QueryMetadataJob {
 
   void Initialize(size_t query_count) { query_count_ = query_count; }
 
-  QueryItemsResponse<ItemType> Query(QueryType root,
-                                     client::CancellationContext context) {
+  QueryResponseType Query(QueryType root, client::CancellationContext context) {
     return query_(root, context);
   }
 
-  void CompleteQuery(QueryItemsResponse<ItemType> response) {
+  void CompleteQuery(QueryResponseType response) {
     std::lock_guard<std::mutex> lock(mutex_);
 
     accumulated_statistics_ += GetNetworkStatistics(response);
 
     if (response.IsSuccessful()) {
       auto items = response.MoveResult();
-      query_result_.insert(std::make_move_iterator(items.begin()),
-                           std::make_move_iterator(items.end()));
+      std::move(items.begin(), items.end(),
+                std::inserter(query_result_, query_result_.begin()));
     } else {
       const auto& error = response.GetError();
       if (error.GetErrorCode() == client::ErrorCode::Cancelled) {
@@ -138,7 +135,8 @@ class QueryMetadataJob {
         std::transform(
             std::begin(query_result_), std::end(query_result_),
             std::back_inserter(tokens),
-            [&](const typename QueryItemsResult<ItemType>::value_type& item) {
+            [&](const typename QueryResponseType::ResultType::value_type&
+                    item) {
               const std::string& data_handle = item.second;
               const auto& item_key = item.first;
 
@@ -170,14 +168,16 @@ class QueryMetadataJob {
   }
 
  private:
-  QueryItemsFunc<ItemType, QueryType> query_;
-  FilterItemsFunc<ItemType> filter_;
+  QueryItemsFunc<ItemType, QueryType, QueryResponseType> query_;
+  FilterItemsFunc<typename QueryResponseType::ResultType> filter_;
   size_t query_count_{0};
   bool canceled_{false};
-  QueryItemsResult<ItemType> query_result_;
+  typename QueryResponseType::ResultType query_result_;
   client::NetworkStatistics accumulated_statistics_;
   boost::optional<client::ApiError> query_error_;
-  std::shared_ptr<DownloadItemsJob<ItemType, PrefetchResult>> download_job_;
+  std::shared_ptr<
+      DownloadItemsJob<ItemType, PrefetchResult, PrefetchStatusType>>
+      download_job_;
   TaskSink& task_sink_;
   client::CancellationContext execution_context_;
   uint32_t priority_;

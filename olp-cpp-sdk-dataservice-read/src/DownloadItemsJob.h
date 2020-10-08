@@ -22,7 +22,6 @@
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/logging/Log.h>
 #include <olp/dataservice/read/Types.h>
-
 #include "Common.h"
 #include "ExtendedApiResponse.h"
 #include "ExtendedApiResponseHelpers.h"
@@ -43,13 +42,18 @@ using AppendResultFunc =
     std::function<void(ExtendedDataResponse response, ItemType item,
                        PrefetchResult& prefetch_result)>;
 
-template <typename ItemType, typename PrefetchResult>
+template <typename PrefetchStatusType>
+using PrefetchStatusCallbackType = std::function<void(PrefetchStatusType)>;
+
+template <typename ItemType, typename PrefetchResult,
+          typename PrefetchStatusType>
 class DownloadItemsJob {
  public:
-  DownloadItemsJob(DownloadFunc download,
-                   AppendResultFunc<ItemType, PrefetchResult> append_result,
-                   Callback<PrefetchResult> user_callback,
-                   PrefetchStatusCallback status_callback)
+  DownloadItemsJob(
+      DownloadFunc download,
+      AppendResultFunc<ItemType, PrefetchResult> append_result,
+      Callback<PrefetchResult> user_callback,
+      PrefetchStatusCallbackType<PrefetchStatusType> status_callback)
       : download_(std::move(download)),
         append_result_(std::move(append_result)),
         user_callback_(std::move(user_callback)),
@@ -86,7 +90,7 @@ class DownloadItemsJob {
     append_result_(response, item, prefetch_result_);
 
     if (status_callback_) {
-      status_callback_(PrefetchStatus{
+      status_callback_(PrefetchStatusType{
           requests_succeeded_ + requests_failed_, total_download_task_count_,
           GetAccumulatedBytes(accumulated_statistics_)});
     }
@@ -109,7 +113,7 @@ class DownloadItemsJob {
   DownloadFunc download_;
   AppendResultFunc<ItemType, PrefetchResult> append_result_;
   Callback<PrefetchResult> user_callback_;
-  PrefetchStatusCallback status_callback_;
+  PrefetchStatusCallbackType<PrefetchStatusType> status_callback_;
   size_t download_task_count_{0};
   size_t total_download_task_count_{0};
   size_t requests_succeeded_{0};

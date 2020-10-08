@@ -29,6 +29,7 @@
 #include <olp/core/client/PendingRequests.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
+#include <olp/dataservice/read/PrefetchPartitionsRequest.h>
 #include <olp/dataservice/read/PrefetchTileResult.h>
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/TileRequest.h>
@@ -80,6 +81,15 @@ class VersionedLayerClientImpl {
 
   virtual client::CancellableFuture<PrefetchTilesResponse> PrefetchTiles(
       PrefetchTilesRequest request, PrefetchStatusCallback status_callback);
+
+  virtual client::CancellationToken PrefetchPartitions(
+      PrefetchPartitionsRequest request,
+      PrefetchPartitionsResponseCallback callback,
+      PrefetchPartitionsStatusCallback status_callback);
+
+  virtual client::CancellableFuture<PrefetchPartitionsResponse>
+  PrefetchPartitions(PrefetchPartitionsRequest request,
+                     PrefetchPartitionsStatusCallback status_callback);
 
   virtual bool RemoveFromCache(const std::string& partition_id);
 
