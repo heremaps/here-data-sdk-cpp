@@ -19,6 +19,8 @@
 
 #include "VolatileLayerClientImpl.h"
 
+#include <iterator>
+
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>

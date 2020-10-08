@@ -111,7 +111,8 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
 
   const auto fetch_option = request.GetFetchOption();
 
-  CatalogVersionResponse version_response;
+  CatalogVersionResponse version_response =
+      client::ApiError(client::ErrorCode::NotFound, "");
 
   if (fetch_option != CacheOnly) {
     version_response = GetLatestVersionOnline(request.GetBillingTag(), context);
