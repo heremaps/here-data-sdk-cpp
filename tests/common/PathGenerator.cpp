@@ -17,17 +17,20 @@
  * License-Filename: LICENSE
  */
 
-#pragma once
+#include "PathGenerator.h"
 
 #include <string>
 #include <vector>
 
+// clang-format off
+#include "generated/parser/ApiParser.h"
+// clang-format on
+#include <olp/core/generated/parser/JsonParser.h>
+#include <olp/dataservice/read/model/Partitions.h>
+#include <olp/dataservice/read/model/VersionResponse.h>
 #include "generated/model/Api.h"
-#include "olp/dataservice/read/model/Partitions.h"
-#include "olp/dataservice/read/model/VersionResponse.h"
 
-namespace mock {
-std::string GenerateGetPartitionsPath(
+std::string PathGenerator::GetPartitions(
     const std::string& layer,
     const olp::dataservice::read::PartitionsRequest::PartitionIds& partitions,
     uint64_t version) {
@@ -39,24 +42,27 @@ std::string GenerateGetPartitionsPath(
   return path;
 }
 
-std::string GenerateGetDataPath(const std::string& layer,
-                                const std::string& data_handle) {
+std::string PathGenerator::GetData(const std::string& layer,
+                                   const std::string& data_handle) {
   return "/layers/" + layer + "/data/" + data_handle;
 }
 
-std::string GenerateGetLatestVersionPath() {
+std::string PathGenerator::GetLatestVersion() {
   return "/versions/latest?startVersion=-1";
 }
 
-std::string GenerateGetQuadKeyPath(const std::string& quadkey,
-                                   const std::string& layer, uint64_t version,
-                                   uint64_t depth) {
+std::string PathGenerator::GetQuadKey(const std::string& quadkey,
+                                      const std::string& layer,
+                                      uint64_t version, uint64_t depth) {
   return "/layers/" + layer + "/versions/" + std::to_string(version) +
          "/quadkeys/" + quadkey + "/depths/" + std::to_string(depth);
 }
 
-std::string GeneratePath(const olp::dataservice::read::model::Apis& apis,
-                         const std::string& api_type, const std::string& path) {
+std::string PathGenerator::FullPath(const std::string& apis_response,
+                                    const std::string& api_type,
+                                    const std::string& path) {
+  auto apis =
+      olp::parser::parse<olp::dataservice::read::model::Apis>(apis_response);
   auto it = find_if(apis.begin(), apis.end(),
                     [&](olp::dataservice::read::model::Api api) {
                       return api.GetApi() == api_type;
@@ -67,5 +73,3 @@ std::string GeneratePath(const olp::dataservice::read::model::Apis& apis,
   auto url = it->GetBaseUrl();
   return url.append(path);
 }
-
-}  // namespace mock
