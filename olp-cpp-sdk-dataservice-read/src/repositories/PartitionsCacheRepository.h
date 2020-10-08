@@ -83,12 +83,14 @@ class PartitionsCacheRepository final {
                           const boost::optional<int64_t>& catalog_version,
                           std::string& data_handle);
 
-  std::string CreateQuadKey(olp::geo::TileKey key, int32_t depth,
+  std::string CreateQuadKey(geo::TileKey key, int32_t depth,
                             const boost::optional<int64_t>& version) const;
 
-  bool FindQuadTree(boost::optional<int64_t> version,
-                    const olp::geo::TileKey& tile_key,
+  bool FindQuadTree(geo::TileKey key, boost::optional<int64_t> version,
                     read::QuadTreeIndex& tree);
+
+  bool ContainsTree(geo::TileKey key, int32_t depth,
+                    const boost::optional<int64_t>& version) const;
 
  private:
   const std::string catalog_;

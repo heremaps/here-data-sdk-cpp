@@ -23,6 +23,8 @@ set(OLP_SDK_INTEGRATIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-dataservice-read/VolatileLayerClientCacheTest.cpp
     ./olp-cpp-sdk-dataservice-read/VersionedLayerClientCacheTest.cpp
     ./olp-cpp-sdk-dataservice-read/VersionedLayerGetAggregatedDataTest.cpp
+    ./olp-cpp-sdk-dataservice-read/VersionedLayerPrefetch.cpp
+    ./olp-cpp-sdk-dataservice-read/VersionedLayerTestBase.cpp
     ./olp-cpp-sdk-dataservice-read/CatalogClientTestBase.cpp
     ./olp-cpp-sdk-dataservice-read/CatalogClientTest.cpp
     ./olp-cpp-sdk-dataservice-read/HttpResponses.h

@@ -393,9 +393,12 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
         OLP_SDK_LOG_DEBUG_F(kLogTag, "PrefetchTiles, subquads=%zu, key=%s",
                             sliced_tiles.size(), key.c_str());
 
+        const bool aggregation_enabled = request.GetDataAggregationEnabled();
+
         auto query = [=](geo::TileKey root,
                          client::CancellationContext inner_context) mutable {
           return repository.GetVersionedSubQuads(root, kQuadTreeDepth, version,
+                                                 aggregation_enabled,
                                                  inner_context);
         };
 
@@ -607,7 +610,7 @@ bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
     return false;
   }
 
-  if (partitions_cache_repository.FindQuadTree(version, tile, cached_tree)) {
+  if (partitions_cache_repository.FindQuadTree(tile, version, cached_tree)) {
     auto data = cached_tree.Find(tile, false);
     if (!data) {
       return true;
@@ -668,7 +671,7 @@ bool VersionedLayerClientImpl::IsCached(const geo::TileKey& tile,
   repository::PartitionsCacheRepository partitions_repo(catalog_, layer_id_,
                                                         cache);
 
-  if (partitions_repo.FindQuadTree(version, tile, cached_tree)) {
+  if (partitions_repo.FindQuadTree(tile, version, cached_tree)) {
     auto data = cached_tree.Find(tile, aggregated);
     if (data) {
       repository::DataCacheRepository data_repo(catalog_, cache);

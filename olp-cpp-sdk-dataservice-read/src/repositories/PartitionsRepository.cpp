@@ -333,7 +333,7 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
   // Look for QuadTree covering the tile in the cache
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     read::QuadTreeIndex cached_tree;
-    if (cache_.FindQuadTree(version, tile_key, cached_tree)) {
+    if (cache_.FindQuadTree(tile_key, version, cached_tree)) {
       OLP_SDK_LOG_DEBUG_F(kLogTag,
                           "GetQuadTreeIndexForTile found in cache, "
                           "tile='%s', depth='%" PRId32 "'",
