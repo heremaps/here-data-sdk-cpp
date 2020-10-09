@@ -22,12 +22,16 @@ set(OLP_SDK_TESTS_COMMON_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/ApiDefaultResponses.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ReadDefaultResponses.h
     ${CMAKE_CURRENT_SOURCE_DIR}/WriteDefaultResponses.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/PlatformUrlsGenerator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ResponseGenerator.h
 )
 
 set(OLP_SDK_TESTS_COMMON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/mocks/CacheMock.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mocks/NetworkMock.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ReadDefaultResponses.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/PlatformUrlsGenerator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ResponseGenerator.cpp
 )
 
 add_library(olp-cpp-sdk-tests-common
@@ -36,6 +40,11 @@ add_library(olp-cpp-sdk-tests-common
 
 target_include_directories(olp-cpp-sdk-tests-common PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+)
+
+target_include_directories(olp-cpp-sdk-tests-common 
+    PRIVATE 
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../olp-cpp-sdk-dataservice-read/src/
 )
 
 target_link_libraries(olp-cpp-sdk-tests-common
