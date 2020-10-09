@@ -19,15 +19,18 @@
 
 #include "VersionedLayerTestBase.h"
 
+#include <olp/dataservice/read/PrefetchTileResult.h>
+#include <olp/dataservice/read/PrefetchTilesRequest.h>
+
 namespace {
 
 namespace read = olp::dataservice::read;
 
 constexpr auto kWaitTimeout = std::chrono::seconds(3);
 
-class VersionedLayerGetAggregatedDataTest : public VersionedLayerTestBase {};
+class VersionedLayerPrefetch : public VersionedLayerTestBase {};
 
-TEST_F(VersionedLayerGetAggregatedDataTest, ParentTileFarAway) {
+TEST_F(VersionedLayerPrefetch, AggregatedPrefetch) {
   const auto layer_name = "testlayer";
   const auto layer_version = 7;
 
@@ -67,7 +70,9 @@ TEST_F(VersionedLayerGetAggregatedDataTest, ParentTileFarAway) {
                                     settings_);
 
   auto api_call_outcome =
-      client.GetAggregatedData(read::TileRequest().WithTileKey(target_tile));
+      client.PrefetchTiles(read::PrefetchTilesRequest()
+                               .WithTileKeys({target_tile})
+                               .WithDataAggregationEnabled(true));
 
   auto future = api_call_outcome.GetFuture();
 
@@ -77,9 +82,15 @@ TEST_F(VersionedLayerGetAggregatedDataTest, ParentTileFarAway) {
 
   ASSERT_TRUE(api_result.IsSuccessful());
 
-  const auto& aggregate_result = api_result.GetResult();
+  const auto& prefetch_result = api_result.GetResult();
 
-  ASSERT_EQ(aggregate_result.GetTile(), aggregated_parent);
+  ASSERT_TRUE(!prefetch_result.empty());
+
+  const auto& prefetched_tile = prefetch_result.front();
+
+  ASSERT_TRUE(prefetched_tile->IsSuccessful());
+
+  ASSERT_EQ(prefetched_tile->tile_key_, aggregated_parent);
 
   // Validate that all APIs can handle it.
   ASSERT_TRUE(client.IsCached(target_tile, true));
@@ -87,8 +98,6 @@ TEST_F(VersionedLayerGetAggregatedDataTest, ParentTileFarAway) {
   ASSERT_TRUE(client.Protect({aggregated_parent}));
   ASSERT_TRUE(client.Release({aggregated_parent}));
   ASSERT_TRUE(client.RemoveFromCache(aggregated_parent));
-
-  testing::Mock::VerifyAndClearExpectations(network_mock_.get());
 }
 
 }  // namespace

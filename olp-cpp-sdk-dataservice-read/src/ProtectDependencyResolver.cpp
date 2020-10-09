@@ -86,7 +86,7 @@ bool ProtectDependencyResolver::AddDataHandle(
 bool ProtectDependencyResolver::ProcessTileKeyInCache(
     const geo::TileKey& tile) {
   read::QuadTreeIndex cached_tree;
-  if (partitions_cache_repository_.FindQuadTree(version_, tile, cached_tree) &&
+  if (partitions_cache_repository_.FindQuadTree(tile, version_, cached_tree) &&
       AddDataHandle(tile, cached_tree)) {
     auto root_tile = cached_tree.GetRootTile();
     // add quad tree to list for protection

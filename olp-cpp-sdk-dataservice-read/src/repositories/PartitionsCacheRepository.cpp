@@ -91,7 +91,7 @@ void PartitionsCacheRepository::Put(const model::Partitions& partitions,
     OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
     cache_->Put(key, partition,
-                [&]() { return olp::serializer::serialize(partition); },
+                [&]() { return serializer::serialize(partition); },
                 expiry.get_value_or(default_expiry_));
 
     if (layer_metadata) {
@@ -104,7 +104,7 @@ void PartitionsCacheRepository::Put(const model::Partitions& partitions,
     OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
     cache_->Put(key, partition_ids,
-                [&]() { return olp::serializer::serialize(partition_ids); },
+                [&]() { return serializer::serialize(partition_ids); },
                 expiry.get_value_or(default_expiry_));
   }
 }
@@ -173,7 +173,7 @@ void PartitionsCacheRepository::Put(
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
   cache_->Put(key, layer_versions,
-              [&]() { return olp::serializer::serialize(layer_versions); },
+              [&]() { return serializer::serialize(layer_versions); },
               default_expiry_);
 }
 
@@ -291,26 +291,25 @@ bool PartitionsCacheRepository::GetPartitionHandle(
 }
 
 std::string PartitionsCacheRepository::CreateQuadKey(
-    olp::geo::TileKey key, int32_t depth,
+    geo::TileKey key, int32_t depth,
     const boost::optional<int64_t>& version) const {
   return catalog_ + "::" + layer_id_ + "::" + key.ToHereTile() +
          "::" + (version ? std::to_string(*version) + "::" : "") +
          std::to_string(depth) + "::quadtree";
 }
 
-bool PartitionsCacheRepository::FindQuadTree(boost::optional<int64_t> version,
-                                             const olp::geo::TileKey& tile_key,
+bool PartitionsCacheRepository::FindQuadTree(geo::TileKey key,
+                                             boost::optional<int64_t> version,
                                              read::QuadTreeIndex& tree) {
-  auto max_depth =
-      std::min<std::uint32_t>(tile_key.Level(), kMaxQuadTreeIndexDepth);
+  auto max_depth = std::min<std::uint32_t>(key.Level(), kMaxQuadTreeIndexDepth);
   for (auto i = 0u; i <= max_depth; ++i) {
-    const auto& root_tile_key = tile_key.ChangedLevelBy(-i);
+    const auto& root_tile_key = key.ChangedLevelBy(-i);
     QuadTreeIndex cached_tree;
     if (Get(root_tile_key, kMaxQuadTreeIndexDepth, version, cached_tree)) {
       OLP_SDK_LOG_DEBUG_F(kLogTag,
                           "FindQuadTree found in cache, tile='%s', "
                           "root='%s', depth='%" PRId32 "'",
-                          tile_key.ToHereTile().c_str(),
+                          key.ToHereTile().c_str(),
                           root_tile_key.ToHereTile().c_str(),
                           kMaxQuadTreeIndexDepth);
       tree = std::move(cached_tree);
@@ -320,6 +319,12 @@ bool PartitionsCacheRepository::FindQuadTree(boost::optional<int64_t> version,
   }
 
   return false;
+}
+
+bool PartitionsCacheRepository::ContainsTree(
+    geo::TileKey key, int32_t depth,
+    const boost::optional<int64_t>& version) const {
+  return cache_->Contains(CreateQuadKey(key, depth, version));
 }
 
 }  // namespace repository

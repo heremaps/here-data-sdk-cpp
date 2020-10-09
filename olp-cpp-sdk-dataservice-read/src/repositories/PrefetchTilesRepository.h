@@ -100,6 +100,7 @@ class PrefetchTilesRepository {
 
   SubQuadsResponse GetVersionedSubQuads(geo::TileKey tile, int32_t depth,
                                         std::int64_t version,
+                                        bool aggregation_enabled,
                                         client::CancellationContext context);
 
   SubQuadsResponse GetVolatileSubQuads(geo::TileKey tile, int32_t depth,
@@ -109,6 +110,13 @@ class PrefetchTilesRepository {
   static void SplitSubtree(RootTilesForRequest& root_tiles_depth,
                            RootTilesForRequest::iterator subtree_to_split,
                            const geo::TileKey& tile_key, std::uint32_t min);
+
+  using QuadTreeResponse = ExtendedApiResponse<QuadTreeIndex, client::ApiError,
+                                               client::NetworkStatistics>;
+
+  QuadTreeResponse DownloadVersionedQuadTree(
+      geo::TileKey tile, int32_t depth, std::int64_t version,
+      client::CancellationContext context);
 
  private:
   client::HRN catalog_;
