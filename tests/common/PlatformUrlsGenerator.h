@@ -19,29 +19,43 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/model/VersionResponse.h>
 
-class PathGenerator {
+namespace olp {
+namespace dataservice {
+namespace read {
+namespace model {
+class Api;
+using Apis = std::vector<Api>;
+}  // namespace model
+}  // namespace read
+}  // namespace dataservice
+}  // namespace olp
+
+class PlatformUrlsGenerator {
  public:
-  static std::string GetPartitions(
-      const std::string& layer,
+  PlatformUrlsGenerator(const std::string& apis, const std::string& layer);
+
+  std::string PartitionsQuery(
       const olp::dataservice::read::PartitionsRequest::PartitionIds& partitions,
       uint64_t version);
 
-  static std::string GetData(const std::string& layer,
-                             const std::string& data_handle);
+  std::string DataBlob(const std::string& data_handle);
 
-  static std::string GetLatestVersion();
+  std::string LatestVersion();
 
-  static std::string GetQuadKey(const std::string& quadkey,
-                                const std::string& layer, uint64_t version,
+  std::string VersionedQuadTree(const std::string& quadkey, uint64_t version,
                                 uint64_t depth);
 
-  static std::string FullPath(const std::string& apis,
-                              const std::string& api_type,
-                              const std::string& path);
+ private:
+  std::string FullPath(const std::string& api_type, const std::string& path);
+
+ private:
+  std::shared_ptr<olp::dataservice::read::model::Apis> apis_;
+  std::string layer_;
 };

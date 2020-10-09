@@ -22,7 +22,7 @@ set(OLP_SDK_TESTS_COMMON_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/ApiDefaultResponses.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ReadDefaultResponses.h
     ${CMAKE_CURRENT_SOURCE_DIR}/WriteDefaultResponses.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/PathGenerator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/PlatformUrlsGenerator.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ResponseGenerator.h
 )
 
@@ -30,7 +30,7 @@ set(OLP_SDK_TESTS_COMMON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/mocks/CacheMock.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mocks/NetworkMock.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ReadDefaultResponses.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/PathGenerator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/PlatformUrlsGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ResponseGenerator.cpp
 )
 

@@ -23,11 +23,6 @@
 #include <utility>
 #include <vector>
 
-#include <olp/core/generated/serializer/SerializerWrapper.h>
-#include <rapidjson/document.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
-
 #include "generated/model/Api.h"
 
 namespace mockserver {

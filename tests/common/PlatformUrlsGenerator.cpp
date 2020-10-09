@@ -17,57 +17,60 @@
  * License-Filename: LICENSE
  */
 
-#include "PathGenerator.h"
+#include "PlatformUrlsGenerator.h"
 
 #include <string>
 #include <vector>
 
 // clang-format off
 #include "generated/parser/ApiParser.h"
-// clang-format on
 #include <olp/core/generated/parser/JsonParser.h>
+// clang-format on
 #include <olp/dataservice/read/model/Partitions.h>
 #include <olp/dataservice/read/model/VersionResponse.h>
 #include "generated/model/Api.h"
 
-std::string PathGenerator::GetPartitions(
-    const std::string& layer,
+PlatformUrlsGenerator::PlatformUrlsGenerator(const std::string& apis,
+                                             const std::string& layer)
+    : apis_(std::make_shared<olp::dataservice::read::model::Apis>(
+          olp::parser::parse<olp::dataservice::read::model::Apis>(apis))),
+      layer_(layer) {}
+
+std::string PlatformUrlsGenerator::PartitionsQuery(
     const olp::dataservice::read::PartitionsRequest::PartitionIds& partitions,
     uint64_t version) {
-  std::string path = "/layers/" + layer + "/partitions?";
+  std::string path = "/layers/" + layer_ + "/partitions?";
   for (const auto& partition : partitions) {
     path.append("partition=" + partition + "&");
   }
   path.append("version=" + std::to_string(version));
-  return path;
+
+  return FullPath("query", path);
 }
 
-std::string PathGenerator::GetData(const std::string& layer,
-                                   const std::string& data_handle) {
-  return "/layers/" + layer + "/data/" + data_handle;
+std::string PlatformUrlsGenerator::DataBlob(const std::string& data_handle) {
+  return FullPath("blob", "/layers/" + layer_ + "/data/" + data_handle);
 }
 
-std::string PathGenerator::GetLatestVersion() {
-  return "/versions/latest?startVersion=-1";
+std::string PlatformUrlsGenerator::LatestVersion() {
+  return FullPath("metadata", "/versions/latest?startVersion=-1");
 }
 
-std::string PathGenerator::GetQuadKey(const std::string& quadkey,
-                                      const std::string& layer,
-                                      uint64_t version, uint64_t depth) {
-  return "/layers/" + layer + "/versions/" + std::to_string(version) +
-         "/quadkeys/" + quadkey + "/depths/" + std::to_string(depth);
+std::string PlatformUrlsGenerator::VersionedQuadTree(const std::string& quadkey,
+                                                     uint64_t version,
+                                                     uint64_t depth) {
+  auto path = "/layers/" + layer_ + "/versions/" + std::to_string(version) +
+              "/quadkeys/" + quadkey + "/depths/" + std::to_string(depth);
+  return FullPath("query", path);
 }
 
-std::string PathGenerator::FullPath(const std::string& apis_response,
-                                    const std::string& api_type,
-                                    const std::string& path) {
-  auto apis =
-      olp::parser::parse<olp::dataservice::read::model::Apis>(apis_response);
-  auto it = find_if(apis.begin(), apis.end(),
+std::string PlatformUrlsGenerator::FullPath(const std::string& api_type,
+                                            const std::string& path) {
+  auto it = find_if(apis_->begin(), apis_->end(),
                     [&](olp::dataservice::read::model::Api api) {
                       return api.GetApi() == api_type;
                     });
-  if (it == apis.end()) {
+  if (it == apis_->end()) {
     return {};
   }
   auto url = it->GetBaseUrl();

@@ -25,31 +25,19 @@
 #include <olp/dataservice/read/model/Partitions.h>
 #include <olp/dataservice/read/model/VersionResponse.h>
 #include "ApiDefaultResponses.h"
-#include "PathGenerator.h"
+#include "PlatformUrlsGenerator.h"
 #include "ReadDefaultResponses.h"
 #include "generated/model/Api.h"
 // clang-format off
 #include "generated/serializer/ApiSerializer.h"
 #include "generated/serializer/VersionResponseSerializer.h"
 #include "generated/serializer/PartitionsSerializer.h"
+#include <olp/core/generated/serializer/SerializerWrapper.h>
 #include "generated/serializer/JsonSerializer.h"
 // clang-format on
 
-namespace {
-template <class T>
-std::string serialize(std::vector<T> data) {
-  std::string str = "[";
-  for (const auto& el : data) {
-    str.append(olp::serializer::serialize(el));
-    str.append(",");
-  }
-  str[str.length() - 1] = ']';
-  return str;
-}
-}  // namespace
-
 std::string ResponseGenerator::ResourceApis(const std::string& catalog) {
-  return serialize(
+  return olp::serializer::serialize(
       mockserver::ApiDefaultResponses::GenerateResourceApisResponse(catalog));
 }
 
