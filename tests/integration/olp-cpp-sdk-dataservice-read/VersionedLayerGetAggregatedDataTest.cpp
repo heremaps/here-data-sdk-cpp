@@ -28,7 +28,6 @@ constexpr auto kWaitTimeout = std::chrono::seconds(3);
 class VersionedLayerGetAggregatedDataTest : public VersionedLayerTestBase {};
 
 TEST_F(VersionedLayerGetAggregatedDataTest, ParentTileFarAway) {
-  const auto layer_name = "testlayer";
   const auto layer_version = 7;
 
   const auto target_tile =
@@ -55,15 +54,15 @@ TEST_F(VersionedLayerGetAggregatedDataTest, ParentTileFarAway) {
     tree_0.WithSubQuad(tree_root, "handle-0")
         .WithSubQuad(aggregated_parent, "handle-1");
 
-    ExpectQuadTreeRequest(layer_name, layer_version, tree_10);
-    ExpectQuadTreeRequest(layer_name, layer_version, tree_5);
-    ExpectQuadTreeRequest(layer_name, layer_version, tree_0);
+    ExpectQuadTreeRequest(layer_version, tree_10);
+    ExpectQuadTreeRequest(layer_version, tree_5);
+    ExpectQuadTreeRequest(layer_version, tree_0);
 
     // Expect to download handle-1
-    ExpectBlobRequest(layer_name, "handle-1", "A");
+    ExpectBlobRequest("handle-1", "A");
   }
 
-  read::VersionedLayerClient client(kCatalogHrn, layer_name, layer_version,
+  read::VersionedLayerClient client(kCatalogHrn, kLayerName, layer_version,
                                     settings_);
 
   auto api_call_outcome =

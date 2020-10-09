@@ -23,23 +23,16 @@
 #include <string>
 #include <vector>
 
+#include <olp/core/client/model/Api.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/model/VersionResponse.h>
 
-namespace olp {
-namespace dataservice {
-namespace read {
-namespace model {
-class Api;
-using Apis = std::vector<Api>;
-}  // namespace model
-}  // namespace read
-}  // namespace dataservice
-}  // namespace olp
-
 class PlatformUrlsGenerator {
  public:
-  PlatformUrlsGenerator(const std::string& apis, const std::string& layer);
+  PlatformUrlsGenerator(olp::client::Apis apis, const std::string& layer);
+
+  PlatformUrlsGenerator(const std::string& endpoint, const std::string& catalog,
+                        const std::string& layer);
 
   std::string PartitionsQuery(
       const olp::dataservice::read::PartitionsRequest::PartitionIds& partitions,
@@ -53,9 +46,10 @@ class PlatformUrlsGenerator {
                                 uint64_t depth);
 
  private:
-  std::string FullPath(const std::string& api_type, const std::string& path);
+  std::string FullPath(const std::string& service, const std::string& path);
 
- private:
-  std::shared_ptr<olp::dataservice::read::model::Apis> apis_;
-  std::string layer_;
+  std::shared_ptr<olp::client::Apis> apis_;
+  const std::string http_prefix_;
+  const std::string catalog_;
+  const std::string layer_;
 };

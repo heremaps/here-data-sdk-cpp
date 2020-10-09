@@ -44,6 +44,8 @@
 namespace {
 namespace read = olp::dataservice::read;
 namespace model = olp::dataservice::read::model;
+using mockserver::ApiDefaultResponses;
+using mockserver::ReadDefaultResponses;
 using ::testing::_;
 using ::testing::Mock;
 
@@ -168,8 +170,8 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
   auto tile_key = olp::geo::TileKey::FromHereTile(kHereTile);
   auto root = tile_key.ChangedLevelBy(-depth);
 
-  auto stream = std::stringstream(
-      mockserver::ReadDefaultResponses::GenerateQuadTreeResponse(
+  auto stream =
+      std::stringstream(ReadDefaultResponses::GenerateQuadTreeResponse(
           root, depth, {9, 10, 11, 12}));
   read::QuadTreeIndex quad_tree(root, depth, stream);
   auto buffer = quad_tree.GetRawData();
@@ -183,8 +185,7 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
   auto data_cache_remove = [&](const std::string& prefix) {
     std::string expected_prefix =
         kHrn.ToCatalogHRNString() + "::" + kLayerId +
-        "::" + mockserver::ReadDefaultResponses::GenerateDataHandle(kHereTile) +
-        "::Data";
+        "::" + ReadDefaultResponses::GenerateDataHandle(kHereTile) + "::Data";
     EXPECT_EQ(prefix, expected_prefix);
     return true;
   };
@@ -353,22 +354,24 @@ TEST(VersionedLayerClientTest, ProtectThanRelease) {
   settings.default_cache_expiration = std::chrono::seconds(2);
   settings.network_request_handler = network_mock;
   auto version = 4u;
-  auto api_response = ResponseGenerator::ResourceApis(kCatalog);
-  PlatformUrlsGenerator generator(api_response, kLayerId);
+
+  auto apis = ApiDefaultResponses::GenerateResourceApisResponse(kCatalog);
+  auto api_response = ResponseGenerator::ResourceApis(apis);
+  PlatformUrlsGenerator generator(apis, kLayerId);
+
   auto quad_path = generator.VersionedQuadTree("92259", version, 4);
   ASSERT_FALSE(quad_path.empty());
   auto tile_key = olp::geo::TileKey::FromHereTile(kHereTile);
-  auto responce_quad =
-      mockserver::ReadDefaultResponses::GenerateQuadTreeResponse(
-          tile_key.ChangedLevelBy(-4), 4, {9, 10, 11, 12});
-  auto tile_path = generator.DataBlob(
-      mockserver::ReadDefaultResponses::GenerateDataHandle(kHereTile));
+  auto responce_quad = ReadDefaultResponses::GenerateQuadTreeResponse(
+      tile_key.ChangedLevelBy(-4), 4, {9, 10, 11, 12});
+  auto tile_path =
+      generator.DataBlob(ReadDefaultResponses::GenerateDataHandle(kHereTile));
   ASSERT_FALSE(tile_path.empty());
   auto tile2_path = generator.DataBlob(
-      mockserver::ReadDefaultResponses::GenerateDataHandle(kOtherHereTile2));
+      ReadDefaultResponses::GenerateDataHandle(kOtherHereTile2));
   ASSERT_FALSE(tile2_path.empty());
   auto other_tile_path = generator.DataBlob(
-      mockserver::ReadDefaultResponses::GenerateDataHandle(kOtherHereTile));
+      ReadDefaultResponses::GenerateDataHandle(kOtherHereTile));
   ASSERT_FALSE(other_tile_path.empty());
 
   read::VersionedLayerClientImpl client(kHrn, kLayerId, boost::none, settings);
@@ -386,8 +389,7 @@ TEST(VersionedLayerClientTest, ProtectThanRelease) {
             olp::http::NetworkResponse().WithStatus(
                 olp::http::HttpStatusCode::OK),
             olp::serializer::serialize(
-                mockserver::ReadDefaultResponses::GenerateVersionResponse(
-                    version))));
+                ReadDefaultResponses::GenerateVersionResponse(version))));
 
     EXPECT_CALL(*network_mock, Send(IsGetRequest(quad_path), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
@@ -552,14 +554,15 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsSplitted) {
   {
     SCOPED_TRACE("Prefetch multiple partitions");
 
-    auto api_response = ResponseGenerator::ResourceApis(kCatalog);
-    PlatformUrlsGenerator generator(api_response, kLayerId);
+    auto apis = ApiDefaultResponses::GenerateResourceApisResponse(kCatalog);
+    auto api_response = ResponseGenerator::ResourceApis(apis);
+    PlatformUrlsGenerator generator(apis, kLayerId);
+
     auto partitions_response1 =
-        mockserver::ReadDefaultResponses::GeneratePartitionsResponse(
-            partitions_count / 2);
+        ReadDefaultResponses::GeneratePartitionsResponse(partitions_count / 2);
     auto partitions_response2 =
-        mockserver::ReadDefaultResponses::GeneratePartitionsResponse(
-            partitions_count / 2, partitions_count / 2);
+        ReadDefaultResponses::GeneratePartitionsResponse(partitions_count / 2,
+                                                         partitions_count / 2);
 
     EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
@@ -574,8 +577,7 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsSplitted) {
             olp::http::NetworkResponse().WithStatus(
                 olp::http::HttpStatusCode::OK),
             olp::serializer::serialize(
-                mockserver::ReadDefaultResponses::GenerateVersionResponse(
-                    version))));
+                ReadDefaultResponses::GenerateVersionResponse(version))));
 
     auto partitions_path1 = generator.PartitionsQuery(partitions1, version);
     ASSERT_FALSE(partitions_path1.empty());
@@ -673,11 +675,13 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsSomeFail) {
   for (auto i = 0u; i < partitions_count; i++) {
     partitions.emplace_back(std::to_string(i));
   }
-  auto api_response = ResponseGenerator::ResourceApis(kCatalog);
-  PlatformUrlsGenerator generator(api_response, kLayerId);
+
+  auto apis = ApiDefaultResponses::GenerateResourceApisResponse(kCatalog);
+  auto api_response = ResponseGenerator::ResourceApis(apis);
+  PlatformUrlsGenerator generator(apis, kLayerId);
+
   auto partitions_response =
-      mockserver::ReadDefaultResponses::GeneratePartitionsResponse(
-          partitions_count);
+      ReadDefaultResponses::GeneratePartitionsResponse(partitions_count);
   const auto request =
       olp::dataservice::read::PrefetchPartitionsRequest().WithPartitionIds(
           partitions);
@@ -700,8 +704,7 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsSomeFail) {
             olp::http::NetworkResponse().WithStatus(
                 olp::http::HttpStatusCode::OK),
             olp::serializer::serialize(
-                mockserver::ReadDefaultResponses::GenerateVersionResponse(
-                    version))));
+                ReadDefaultResponses::GenerateVersionResponse(version))));
 
     EXPECT_CALL(*network_mock, Send(IsGetRequest(partitions_path), _, _, _, _))
         .WillOnce(ReturnHttpResponse(
@@ -808,8 +811,11 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsFail) {
   for (auto i = 0u; i < partitions_count; i++) {
     partitions.emplace_back(std::to_string(i));
   }
-  auto api_response = ResponseGenerator::ResourceApis(kCatalog);
-  PlatformUrlsGenerator generator(api_response, kLayerId);
+
+  auto apis = ApiDefaultResponses::GenerateResourceApisResponse(kCatalog);
+  auto api_response = ResponseGenerator::ResourceApis(apis);
+  PlatformUrlsGenerator generator(apis, kLayerId);
+
   const auto request =
       olp::dataservice::read::PrefetchPartitionsRequest().WithPartitionIds(
           partitions);
@@ -851,8 +857,7 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsFail) {
             olp::http::NetworkResponse().WithStatus(
                 olp::http::HttpStatusCode::BAD_REQUEST),
             olp::serializer::serialize(
-                mockserver::ReadDefaultResponses::GenerateVersionResponse(
-                    version))));
+                ReadDefaultResponses::GenerateVersionResponse(version))));
 
     std::promise<olp::dataservice::read::PrefetchPartitionsResponse> promise;
     auto future = promise.get_future();
@@ -881,12 +886,10 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsFail) {
             olp::http::NetworkResponse().WithStatus(
                 olp::http::HttpStatusCode::OK),
             olp::serializer::serialize(
-                mockserver::ReadDefaultResponses::GenerateVersionResponse(
-                    version))));
+                ReadDefaultResponses::GenerateVersionResponse(version))));
 
     auto partitions_response =
-        mockserver::ReadDefaultResponses::GeneratePartitionsResponse(
-            partitions_count);
+        ReadDefaultResponses::GeneratePartitionsResponse(partitions_count);
     EXPECT_CALL(*network_mock, Send(IsGetRequest(partitions_path), _, _, _, _))
         .WillOnce(ReturnHttpResponse(
             olp::http::NetworkResponse().WithStatus(
@@ -941,8 +944,7 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsFail) {
     SCOPED_TRACE("Empty data handles");
 
     auto partitions_response =
-        mockserver::ReadDefaultResponses::GeneratePartitionsResponse(
-            partitions_count);
+        ReadDefaultResponses::GeneratePartitionsResponse(partitions_count);
     auto& mutable_partitions = partitions_response.GetMutablePartitions();
     // force empty data handles
     for (auto& partition : mutable_partitions) {

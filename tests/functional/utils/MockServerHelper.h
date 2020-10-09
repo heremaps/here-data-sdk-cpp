@@ -23,10 +23,10 @@
 #include <string>
 #include <vector>
 
-#include "generated/model/Api.h"
+#include <olp/core/client/model/Api.h>
+
 #include "olp/dataservice/read/Types.h"
 // clang-format off
-#include "generated/serializer/ApiSerializer.h"
 #include "generated/serializer/VersionResponseSerializer.h"
 #include "generated/serializer/JsonSerializer.h"
 // clang-format on
@@ -79,7 +79,7 @@ class MockServerHelper {
    *
    * @param Apis to be returned by server.
    */
-  void MockLookupResourceApiResponse(olp::dataservice::read::model::Apis data);
+  void MockLookupResourceApiResponse(olp::client::Apis data);
 
   /**
    * @brief Mock get platform apis request.
@@ -88,7 +88,7 @@ class MockServerHelper {
    *
    * @param Apis to be returned by server.
    */
-  void MockLookupPlatformApiResponse(olp::dataservice::read::model::Apis data);
+  void MockLookupPlatformApiResponse(olp::client::Apis data);
 
   /**
    * @brief Mock get blob data request.
@@ -129,7 +129,7 @@ class MockServerHelper {
    * @param path request path for type T.
    */
   template <class T>
-  void MockGetResponse(T data, const std::string &path) {
+  void MockGetResponse(T data, const std::string& path) {
     auto str = olp::serializer::serialize(data);
     paths_.push_back(path);
     mock_server_client_.MockResponse("GET", path, str);
@@ -144,9 +144,9 @@ class MockServerHelper {
    * @param path request path for type T.
    */
   template <class T>
-  void MockGetResponse(std::vector<T> data, const std::string &path) {
+  void MockGetResponse(std::vector<T> data, const std::string& path) {
     std::string str = "[";
-    for (const auto &el : data) {
+    for (const auto& el : data) {
       str.append(olp::serializer::serialize(el));
       str.append(",");
     }
@@ -163,7 +163,7 @@ class MockServerHelper {
    * @param error to be returned by server.
    * @param path request path.
    */
-  void MockGetError(olp::client::ApiError error, const std::string &path);
+  void MockGetError(olp::client::ApiError error, const std::string& path);
 
  private:
   std::string catalog_;

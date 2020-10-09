@@ -20,33 +20,34 @@
 #pragma once
 
 #include <gmock/gmock.h>
-
+#include <mocks/NetworkMock.h>
+#include <olp/core/http/HttpStatusCode.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 
-#include <mocks/NetworkMock.h>
-
-#include <olp/core/http/HttpStatusCode.h>
-
+#include "PlatformUrlsGenerator.h"
 #include "ReadDefaultResponses.h"
 
 class VersionedLayerTestBase : public ::testing::Test {
  public:
+  VersionedLayerTestBase();
+
   void SetUp() override;
 
   void TearDown() override;
 
-  void ExpectQuadTreeRequest(const std::string& layer, int64_t version,
+  void ExpectQuadTreeRequest(int64_t version,
                              mockserver::QuadTreeBuilder quad_tree);
 
-  void ExpectBlobRequest(const std::string& layer,
-                         const std::string& data_handle,
+  void ExpectBlobRequest(const std::string& data_handle,
                          const std::string& data);
 
  protected:
   const std::string kCatalog = "hrn:here:data::olp-here-test:catalog";
+  const std::string kLayerName = "testlayer";
   const olp::client::HRN kCatalogHrn = olp::client::HRN::FromString(kCatalog);
   const std::string kEndpoint = "https://localhost";
 
   olp::client::OlpClientSettings settings_;
   std::shared_ptr<NetworkMock> network_mock_;
+  PlatformUrlsGenerator url_generator_;
 };
