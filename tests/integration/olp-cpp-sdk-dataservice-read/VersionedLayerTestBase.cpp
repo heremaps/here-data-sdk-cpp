@@ -24,6 +24,7 @@
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/utils/Dir.h>
 
+#include "ResponseGenerator.h"
 #include "matchers/NetworkUrlMatchers.h"
 
 namespace {
@@ -31,6 +32,9 @@ const auto kCachePathMutable = "./tmp_cache";
 }
 
 using testing::_;
+
+VersionedLayerTestBase::VersionedLayerTestBase()
+    : url_generator_(kEndpoint, kCatalog, kLayerName) {}
 
 void VersionedLayerTestBase::SetUp() {
   olp::utils::Dir::remove(kCachePathMutable);
@@ -58,27 +62,19 @@ void VersionedLayerTestBase::TearDown() {
 }
 
 void VersionedLayerTestBase::ExpectQuadTreeRequest(
-    const std::string& layer, int64_t version,
-    mockserver::QuadTreeBuilder quad_tree) {
-  std::stringstream url;
-  url << kEndpoint << "/catalogs/" << kCatalog << "/layers/" << layer
-      << "/versions/" << version << "/quadkeys/"
-      << quad_tree.Root().ToHereTile() << "/depths/4";
-
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(url.str()), _, _, _, _))
+    int64_t version, mockserver::QuadTreeBuilder quad_tree) {
+  const auto url = url_generator_.VersionedQuadTree(
+      quad_tree.Root().ToHereTile(), version, 4);
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(url), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    quad_tree.BuildJson()));
 }
 
-void VersionedLayerTestBase::ExpectBlobRequest(const std::string& layer,
-                                               const std::string& data_handle,
+void VersionedLayerTestBase::ExpectBlobRequest(const std::string& data_handle,
                                                const std::string& data) {
-  std::stringstream url;
-  url << kEndpoint << "/catalogs/" << kCatalog << "/layers/" << layer
-      << "/data/" << data_handle;
-
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(url.str()), _, _, _, _))
+  const auto url = url_generator_.DataBlob(data_handle);
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(url), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    data));

@@ -21,6 +21,8 @@
 #include <utility>
 #include <vector>
 
+#include "ResponseGenerator.h"
+
 namespace mockserver {
 
 void MockServerHelper::MockGetError(olp::client::ApiError error,
@@ -54,16 +56,15 @@ void MockServerHelper::MockGetVersionResponse(
                   "/metadata/v1/catalogs/" + catalog_ + "/versions/latest");
 }
 
-void MockServerHelper::MockLookupResourceApiResponse(
-    olp::dataservice::read::model::Apis data) {
-  MockGetResponse(std::move(data),
-                  "/lookup/v1/resources/" + catalog_ + "/apis");
+void MockServerHelper::MockLookupResourceApiResponse(olp::client::Apis data) {
+  mock_server_client_.MockResponse("GET",
+                                   "/lookup/v1/resources/" + catalog_ + "/apis",
+                                   ResponseGenerator::ResourceApis(data));
 }
 
-void MockServerHelper::MockLookupPlatformApiResponse(
-    olp::dataservice::read::model::Apis data) {
-  MockGetResponse<olp::dataservice::read::model::Api>(
-      std::move(data), "/lookup/v1/platform/apis");
+void MockServerHelper::MockLookupPlatformApiResponse(olp::client::Apis data) {
+  mock_server_client_.MockResponse("GET", "/lookup/v1/platform/apis",
+                                   ResponseGenerator::ResourceApis(data));
 }
 
 void MockServerHelper::MockGetResponse(const std::string& layer,

@@ -37,8 +37,24 @@
 // clang-format on
 
 std::string ResponseGenerator::ResourceApis(const std::string& catalog) {
-  return olp::serializer::serialize(
+  return ResourceApis(
       mockserver::ApiDefaultResponses::GenerateResourceApisResponse(catalog));
+}
+
+std::string ResponseGenerator::ResourceApis(const olp::client::Apis& apis) {
+  // Temporary convert to another model that can be serialized
+  olp::dataservice::read::model::Apis converted_apis;
+  std::transform(std::begin(apis), std::end(apis),
+                 std::back_inserter(converted_apis),
+                 [](const olp::client::Api& api) {
+                   olp::dataservice::read::model::Api new_api;
+                   new_api.SetApi(api.GetApi());
+                   new_api.SetBaseUrl(api.GetBaseUrl());
+                   new_api.SetParameters(api.GetParameters());
+                   new_api.SetVersion(api.GetVersion());
+                   return new_api;
+                 });
+  return olp::serializer::serialize(converted_apis);
 }
 
 std::string ResponseGenerator::Version(uint32_t version) {

@@ -22,11 +22,13 @@
 #include <string>
 #include <vector>
 
+#include <olp/core/client/model/Api.h>
 #include <olp/dataservice/read/model/Partitions.h>
 
 class ResponseGenerator {
  public:
   static std::string ResourceApis(const std::string& catalog);
+  static std::string ResourceApis(const olp::client::Apis& apis);
   static std::string Version(uint32_t version);
   static std::string Partitions(
       const olp::dataservice::read::model::Partitions& partitions_response);

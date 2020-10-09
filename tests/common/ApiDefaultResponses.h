@@ -23,13 +23,13 @@
 #include <utility>
 #include <vector>
 
-#include "generated/model/Api.h"
+#include <olp/core/client/model/Api.h>
 
 namespace mockserver {
 
 class ApiDefaultResponses {
  public:
-  static olp::dataservice::read::model::Apis GenerateResourceApisResponse(
+  static olp::client::Apis GenerateResourceApisResponse(
       std::string catalog) {
     return GenerateApisResponse({{"blob", "v1"},
                                  {"index", "v1"},
@@ -44,7 +44,7 @@ class ApiDefaultResponses {
                                 catalog);
   }
 
-  static olp::dataservice::read::model::Apis GeneratePlatformApisResponse() {
+  static olp::client::Apis GeneratePlatformApisResponse() {
     return GenerateApisResponse({{"account", "v1"},
                                  {"artifact", "v1"},
                                  {"authentication", "v1"},
@@ -57,10 +57,10 @@ class ApiDefaultResponses {
                                  {"pipelines", "v2"}});
   }
 
-  static olp::dataservice::read::model::Apis GenerateApisResponse(
+  static olp::client::Apis GenerateApisResponse(
       std::vector<std::pair<std::string, std::string>> api_types,
       std::string catalog = "") {
-    olp::dataservice::read::model::Apis apis(api_types.size());
+    olp::client::Apis apis(api_types.size());
     std::string version = "v1";
     if (!catalog.empty()) {
       catalog.insert(0, "/catalogs/");

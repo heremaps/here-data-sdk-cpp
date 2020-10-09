@@ -19,21 +19,19 @@
 
 #include "PlatformUrlsGenerator.h"
 
-#include <string>
-#include <vector>
-
-// clang-format off
-#include "generated/parser/ApiParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
-// clang-format on
 #include <olp/dataservice/read/model/Partitions.h>
 #include <olp/dataservice/read/model/VersionResponse.h>
-#include "generated/model/Api.h"
 
-PlatformUrlsGenerator::PlatformUrlsGenerator(const std::string& apis,
+PlatformUrlsGenerator::PlatformUrlsGenerator(olp::client::Apis apis,
                                              const std::string& layer)
-    : apis_(std::make_shared<olp::dataservice::read::model::Apis>(
-          olp::parser::parse<olp::dataservice::read::model::Apis>(apis))),
+    : apis_(std::make_shared<olp::client::Apis>(apis)), layer_(layer) {}
+
+PlatformUrlsGenerator::PlatformUrlsGenerator(const std::string& endpoint,
+                                             const std::string& catalog,
+                                             const std::string& layer)
+    : apis_(nullptr),
+      http_prefix_(endpoint),
+      catalog_(catalog),
       layer_(layer) {}
 
 std::string PlatformUrlsGenerator::PartitionsQuery(
@@ -64,15 +62,20 @@ std::string PlatformUrlsGenerator::VersionedQuadTree(const std::string& quadkey,
   return FullPath("query", path);
 }
 
-std::string PlatformUrlsGenerator::FullPath(const std::string& api_type,
+std::string PlatformUrlsGenerator::FullPath(const std::string& service,
                                             const std::string& path) {
-  auto it = find_if(apis_->begin(), apis_->end(),
-                    [&](olp::dataservice::read::model::Api api) {
-                      return api.GetApi() == api_type;
-                    });
-  if (it == apis_->end()) {
-    return {};
+  std::string url;
+  if (!apis_) {
+    url = http_prefix_ + "/catalogs/" + catalog_;
+  } else {
+    auto it = find_if(apis_->begin(), apis_->end(), [&](olp::client::Api api) {
+      return api.GetApi() == service;
+    });
+    if (it == apis_->end()) {
+      assert(false);
+      return {};
+    }
+    url = it->GetBaseUrl();
   }
-  auto url = it->GetBaseUrl();
   return url.append(path);
 }
