@@ -355,20 +355,20 @@ class DATASERVICE_READ_API VersionedLayerClient final {
   /**
    * @brief Prefetches a set of partitions asynchronously.
    *
-   * This method downloads all partitions listed in \c
-   * PrefetchPartitionsRequest. Only partitions will be downloaded which are not
-   * already present in the cache, this helps reduce the network load.
+   * This method downloads all partitions listed in
+   * `PrefetchPartitionsRequest`. Only partitions that are not already present
+   * in the cache are downloaded. It helps reduce the network load.
    *
    * @note This method does not guarantee that all partitions are available
    * offline as the cache might overflow, and data might be evicted at any
-   * point. Use GetData(DataRequest) to retrieve partitions loaded by
-   * PrefetchPartitions.
+   * point. Use `GetData(DataRequest)` to retrieve partitions loaded by
+   * `PrefetchPartitions`.
    *
    * @param request The `PrefetchPartitionsRequest` instance that contains
    * a complete set of request parameters.
    * @param callback The `PrefetchPartitionsResponseCallback` object that is
    * invoked if the `PrefetchPartitionsResult` instance is available or an error
-   * is encountered.
+   * occurs.
    * @param status_callback The `PrefetchPartitionsStatusCallback` object that
    * is invoked every time a tile is fetched.
    *
@@ -382,14 +382,14 @@ class DATASERVICE_READ_API VersionedLayerClient final {
   /**
    * @brief Prefetches a set of partitions asynchronously.
    *
-   * This method downloads all partitions listed in \c
-   * PrefetchPartitionsRequest. Only partitions will be downloaded which are not
-   * already present in the cache, this helps reduce the network load.
+   * This method downloads all partitions listed in
+   * `PrefetchPartitionsRequest`. Only partitions that are not already present
+   * in the cache are downloaded. It helps reduce the network load.
    *
    * @note This method does not guarantee that all partitions are available
    * offline as the cache might overflow, and data might be evicted at any
-   * point. Use GetData(DataRequest) to retrieve partitions loaded by
-   * PrefetchPartitions.
+   * point. Use `GetData(DataRequest)` to retrieve partitions loaded by
+   * `PrefetchPartitions`.
    *
    * @param request The `PrefetchPartitionsRequest` instance that contains
    * a complete set of request parameters.
