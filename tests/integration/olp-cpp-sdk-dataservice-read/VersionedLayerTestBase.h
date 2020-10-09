@@ -46,6 +46,8 @@ class VersionedLayerTestBase : public ::testing::Test {
   const std::string kLayerName = "testlayer";
   const olp::client::HRN kCatalogHrn = olp::client::HRN::FromString(kCatalog);
   const std::string kEndpoint = "https://localhost";
+  const std::string kUrlLookup =
+      R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:catalog/apis)";
 
   olp::client::OlpClientSettings settings_;
   std::shared_ptr<NetworkMock> network_mock_;

@@ -40,9 +40,10 @@ void VersionedLayerTestBase::SetUp() {
   olp::utils::Dir::remove(kCachePathMutable);
 
   network_mock_ = std::make_shared<NetworkMock>();
-
-  settings_.api_lookup_settings.catalog_endpoint_provider =
-      [=](const olp::client::HRN&) { return kEndpoint; };
+  if (endpoint_ == EndpointType::kDsp) {
+    settings_.api_lookup_settings.catalog_endpoint_provider =
+        [=](const olp::client::HRN&) { return kEndpoint; };
+  }
 
   settings_.network_request_handler = network_mock_;
   settings_.task_scheduler =

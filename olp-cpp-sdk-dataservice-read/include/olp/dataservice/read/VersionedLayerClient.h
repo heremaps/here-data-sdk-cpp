@@ -31,6 +31,7 @@
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
+#include <olp/dataservice/read/PrefetchPartitionsRequest.h>
 #include <olp/dataservice/read/PrefetchTileResult.h>
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/TileRequest.h>
@@ -350,6 +351,58 @@ class DATASERVICE_READ_API VersionedLayerClient final {
   client::CancellableFuture<PrefetchTilesResponse> PrefetchTiles(
       PrefetchTilesRequest request,
       PrefetchStatusCallback status_callback = nullptr);
+
+  /**
+   * @brief Prefetches a set of partitions asynchronously.
+   *
+   * This method downloads all partitions listed in \c
+   * PrefetchPartitionsRequest. Only partitions will be downloaded which are not
+   * already present in the cache, this helps reduce the network load.
+   *
+   * @note This method does not guarantee that all partitions are available
+   * offline as the cache might overflow, and data might be evicted at any
+   * point. Use GetData(DataRequest) to retrieve partitions loaded by
+   * PrefetchPartitions.
+   *
+   * @param request The `PrefetchPartitionsRequest` instance that contains
+   * a complete set of request parameters.
+   * @param callback The `PrefetchPartitionsResponseCallback` object that is
+   * invoked if the `PrefetchPartitionsResult` instance is available or an error
+   * is encountered.
+   * @param status_callback The `PrefetchPartitionsStatusCallback` object that
+   * is invoked every time a tile is fetched.
+   *
+   * @return A token that can be used to cancel this request.
+   */
+  client::CancellationToken PrefetchPartitions(
+      PrefetchPartitionsRequest request,
+      PrefetchPartitionsResponseCallback callback,
+      PrefetchPartitionsStatusCallback status_callback = nullptr);
+
+  /**
+   * @brief Prefetches a set of partitions asynchronously.
+   *
+   * This method downloads all partitions listed in \c
+   * PrefetchPartitionsRequest. Only partitions will be downloaded which are not
+   * already present in the cache, this helps reduce the network load.
+   *
+   * @note This method does not guarantee that all partitions are available
+   * offline as the cache might overflow, and data might be evicted at any
+   * point. Use GetData(DataRequest) to retrieve partitions loaded by
+   * PrefetchPartitions.
+   *
+   * @param request The `PrefetchPartitionsRequest` instance that contains
+   * a complete set of request parameters.
+   * @param status_callback The `PrefetchPartitionsStatusCallback` object that
+   * is invoked every time a tile is fetched.
+   *
+   * @return `CancellableFuture` that contains the `PrefetchPartitionsResponse`
+   * instance with data or an error. You can also use `CancellableFuture` to
+   * cancel this request.
+   */
+  client::CancellableFuture<PrefetchPartitionsResponse> PrefetchPartitions(
+      PrefetchPartitionsRequest request,
+      PrefetchPartitionsStatusCallback status_callback = nullptr);
 
   /**
    * @brief Removes the partition from the mutable disk cache.
