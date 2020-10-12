@@ -74,14 +74,6 @@ class QueryMetadataJob {
         execution_context_(execution_context),
         priority_(priority) {}
 
-  virtual ~QueryMetadataJob() = default;
-
-  virtual bool CheckIfFail() {
-    // The old behavior: when one of the query requests fails, we fail the
-    // entire prefetch.
-    return (!query_errors_.empty());
-  }
-
   void Initialize(size_t query_count) {
     query_count_ = query_count;
     query_size_ = query_count;
@@ -111,7 +103,7 @@ class QueryMetadataJob {
     }
 
     if (!--query_count_) {
-      if (CheckIfFail()) {
+      if (query_errors_.size() == query_size_) {
         download_job_->OnPrefetchCompleted(query_errors_.front());
         return;
       }

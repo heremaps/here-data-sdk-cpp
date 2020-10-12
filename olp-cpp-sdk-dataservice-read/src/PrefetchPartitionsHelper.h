@@ -33,13 +33,19 @@
 #include "DownloadItemsJob.h"
 #include "ExtendedApiResponse.h"
 #include "ExtendedApiResponseHelpers.h"
-#include "QueryPartitionsJob.h"
+#include "QueryMetadataJob.h"
 #include "TaskSink.h"
 #include "repositories/PartitionsRepository.h"
 
 namespace olp {
 namespace dataservice {
 namespace read {
+
+using PartitionDataHandleResult =
+    std::vector<std::pair<std::string, std::string>>;
+using PartitionsDataHandleExtendedResponse =
+    ExtendedApiResponse<PartitionDataHandleResult, client::ApiError,
+                        client::NetworkStatistics>;
 
 class PrefetchPartitionsHelper {
  public:
@@ -54,7 +60,9 @@ class PrefetchPartitionsHelper {
       TaskSink& task_sink, size_t query_max_size, uint32_t priority) {
     client::CancellationContext execution_context;
 
-    auto query_job = std::make_shared<QueryPartitionsJob>(
+    auto query_job = std::make_shared<QueryMetadataJob<
+        std::string, std::vector<std::string>, PrefetchPartitionsResult,
+        PartitionsDataHandleExtendedResponse, PrefetchPartitionsStatus>>(
         std::move(query), nullptr, download_job, task_sink, execution_context,
         priority);
 

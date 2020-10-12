@@ -25,6 +25,8 @@
 namespace {
 
 namespace read = olp::dataservice::read;
+namespace http = olp::http;
+using olp::http::HttpStatusCode;
 
 constexpr auto kWaitTimeout = std::chrono::seconds(3);
 
@@ -77,11 +79,11 @@ TEST_F(VersionedLayerPrefetch, AggregatedPrefetch) {
 
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
 
-  auto api_result = future.get();
+  auto result = future.get();
 
-  ASSERT_TRUE(api_result.IsSuccessful());
+  ASSERT_TRUE(result.IsSuccessful());
 
-  const auto& prefetch_result = api_result.GetResult();
+  const auto& prefetch_result = result.GetResult();
 
   ASSERT_TRUE(!prefetch_result.empty());
 
@@ -97,6 +99,106 @@ TEST_F(VersionedLayerPrefetch, AggregatedPrefetch) {
   ASSERT_TRUE(client.Protect({aggregated_parent}));
   ASSERT_TRUE(client.Release({aggregated_parent}));
   ASSERT_TRUE(client.RemoveFromCache(aggregated_parent));
+}
+
+TEST_F(VersionedLayerPrefetch, SomeQueryFailsWithoutLevels) {
+  const auto layer_version = 7;
+  const auto target_tile =
+      olp::geo::TileKey::FromRowColumnLevel(6481, 8800, 14);
+  const auto target_tile2 = olp::geo::TileKey::FromRowColumnLevel(10, 10, 9);
+
+  // Mock a quad trees and a blobs
+  {
+    const auto tree_root = target_tile.ChangedLevelTo(0);
+    mockserver::QuadTreeBuilder tree_10(target_tile.ChangedLevelTo(10),
+                                        layer_version);
+    tree_10.WithParent(tree_root, "handle-0")
+        .WithSubQuad(target_tile, "handle-1");
+
+    mockserver::QuadTreeBuilder tree_5(target_tile2.ChangedLevelTo(5),
+                                       layer_version);
+    tree_5.WithParent(tree_root, "handle-0")
+        .WithSubQuad(target_tile2, "handle-2");
+
+    ExpectQuadTreeRequest(layer_version, tree_10);
+    ExpectQuadTreeRequest(
+        layer_version, tree_5,
+        http::NetworkResponse().WithStatus(HttpStatusCode::BAD_REQUEST));
+    // Expect to download handle-1
+    ExpectBlobRequest("handle-1", "A");
+  }
+
+  read::VersionedLayerClient client(kCatalogHrn, kLayerName, layer_version,
+                                    settings_);
+  auto api_call_outcome = client.PrefetchTiles(
+      read::PrefetchTilesRequest().WithTileKeys({target_tile, target_tile2}));
+
+  auto future = api_call_outcome.GetFuture();
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  auto result = future.get();
+  ASSERT_TRUE(result.IsSuccessful());
+  const auto& prefetch_result = result.GetResult();
+  ASSERT_TRUE(!prefetch_result.empty());
+  for (auto& res : prefetch_result) {
+    if (res->tile_key_ == target_tile) {
+      ASSERT_TRUE(res->IsSuccessful());
+    }
+    if (res->tile_key_ == target_tile2) {
+      ASSERT_FALSE(res->IsSuccessful());
+      ASSERT_EQ(res->GetError().GetErrorCode(),
+                olp::client::ErrorCode::NotFound);
+    }
+  }
+  // Validate that all APIs can handle it.
+  ASSERT_TRUE(client.IsCached(target_tile, true));
+}
+
+TEST_F(VersionedLayerPrefetch, SomeQueryFailsWithLevels) {
+  const auto layer_version = 7;
+  const auto target_tile =
+      olp::geo::TileKey::FromRowColumnLevel(6481, 8800, 14);
+  const std::vector<olp::geo::TileKey> children = {
+      target_tile.GetChild(0), target_tile.GetChild(1), target_tile.GetChild(2),
+      target_tile.GetChild(3)};
+
+  // Mock a quad trees and a blobs
+  {
+    const auto tree_root = target_tile.ChangedLevelTo(0);
+
+    for (auto i = 0u; i < children.size(); i++) {
+      const auto& child = children.at(i);
+      auto handle = "handle-" + std::to_string(i);
+      mockserver::QuadTreeBuilder tree(child, layer_version);
+      tree.WithParent(tree_root, "handle-0").WithSubQuad(child, handle);
+      if (i % 2 == 0) {
+        ExpectQuadTreeRequest(layer_version, tree);
+        ExpectBlobRequest(handle, "A");
+      } else {
+        ExpectQuadTreeRequest(
+            layer_version, tree,
+            http::NetworkResponse().WithStatus(HttpStatusCode::BAD_REQUEST));
+      }
+    }
+  }
+
+  read::VersionedLayerClient client(kCatalogHrn, kLayerName, layer_version,
+                                    settings_);
+  auto api_call_outcome = client.PrefetchTiles(read::PrefetchTilesRequest()
+                                                   .WithTileKeys({target_tile})
+                                                   .WithMinLevel(15)
+                                                   .WithMaxLevel(19));
+  auto future = api_call_outcome.GetFuture();
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+
+  auto result = future.get();
+  ASSERT_TRUE(result.IsSuccessful());
+  const auto& prefetch_result = result.GetResult();
+  ASSERT_TRUE(!prefetch_result.empty());
+  ASSERT_EQ(prefetch_result.size(), 2);
+
+  for (auto& res : prefetch_result) {
+    ASSERT_TRUE(res->IsSuccessful());
+  }
 }
 
 }  // namespace
