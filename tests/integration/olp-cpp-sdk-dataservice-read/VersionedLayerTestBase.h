@@ -36,10 +36,26 @@ class VersionedLayerTestBase : public ::testing::Test {
   void TearDown() override;
 
   void ExpectQuadTreeRequest(int64_t version,
-                             mockserver::QuadTreeBuilder quad_tree);
+                             mockserver::QuadTreeBuilder quad_tree,
+                             olp::http::NetworkResponse response =
+                                 olp::http::NetworkResponse().WithStatus(
+                                     olp::http::HttpStatusCode::OK));
 
   void ExpectBlobRequest(const std::string& data_handle,
-                         const std::string& data);
+                         const std::string& data,
+                         olp::http::NetworkResponse response =
+                             olp::http::NetworkResponse().WithStatus(
+                                 olp::http::HttpStatusCode::OK));
+
+  void ExpectVersionRequest(olp::http::NetworkResponse response =
+                                olp::http::NetworkResponse().WithStatus(
+                                    olp::http::HttpStatusCode::OK));
+  void ExpectQueryPartitionsRequest(
+      const std::vector<std::string>& partitions,
+      const olp::dataservice::read::model::Partitions& partitions_response,
+      olp::http::NetworkResponse response =
+          olp::http::NetworkResponse().WithStatus(
+              olp::http::HttpStatusCode::OK));
 
  protected:
   const std::string kCatalog = "hrn:here:data::olp-here-test:catalog";
@@ -50,4 +66,5 @@ class VersionedLayerTestBase : public ::testing::Test {
   olp::client::OlpClientSettings settings_;
   std::shared_ptr<NetworkMock> network_mock_;
   PlatformUrlsGenerator url_generator_;
+  const uint32_t version_ = 4;
 };

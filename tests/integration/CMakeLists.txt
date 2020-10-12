@@ -30,6 +30,7 @@ set(OLP_SDK_INTEGRATIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-dataservice-read/HttpResponses.h
     ./olp-cpp-sdk-dataservice-read/StreamLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-read/VersionedLayerClientTest.cpp
+    ./olp-cpp-sdk-dataservice-read/VersionedLayerClientPrefetchPartitionsTest.cpp
     ./olp-cpp-sdk-dataservice-read/VolatileLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-write/HttpResponses.h
     ./olp-cpp-sdk-dataservice-write/IndexLayerClientTest.cpp

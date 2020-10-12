@@ -74,7 +74,18 @@ class QueryMetadataJob {
         execution_context_(execution_context),
         priority_(priority) {}
 
-  void Initialize(size_t query_count) { query_count_ = query_count; }
+  virtual ~QueryMetadataJob() = default;
+
+  virtual bool CheckIfFail() {
+    // The old behavior: when one of the query requests fails, we fail the
+    // entire prefetch.
+    return (!query_errors_.empty());
+  }
+
+  void Initialize(size_t query_count) {
+    query_count_ = query_count;
+    query_size_ = query_count;
+  }
 
   QueryResponseType Query(QueryType root, client::CancellationContext context) {
     return query_(root, context);
@@ -94,15 +105,14 @@ class QueryMetadataJob {
       if (error.GetErrorCode() == client::ErrorCode::Cancelled) {
         canceled_ = true;
       } else {
-        // The old behavior: when one of the query requests fails, we fail the
-        // entire prefetch.
-        query_error_ = error;
+        // Collect all errors.
+        query_errors_.push_back(error);
       }
     }
 
     if (!--query_count_) {
-      if (query_error_) {
-        download_job_->OnPrefetchCompleted(query_error_.value());
+      if (CheckIfFail()) {
+        download_job_->OnPrefetchCompleted(query_errors_.front());
         return;
       }
 
@@ -167,14 +177,15 @@ class QueryMetadataJob {
     }
   }
 
- private:
+ protected:
   QueryItemsFunc<ItemType, QueryType, QueryResponseType> query_;
   FilterItemsFunc<typename QueryResponseType::ResultType> filter_;
   size_t query_count_{0};
+  size_t query_size_{0};
   bool canceled_{false};
   typename QueryResponseType::ResultType query_result_;
   client::NetworkStatistics accumulated_statistics_;
-  boost::optional<client::ApiError> query_error_;
+  std::vector<client::ApiError> query_errors_;
   std::shared_ptr<
       DownloadItemsJob<ItemType, PrefetchResult, PrefetchStatusType>>
       download_job_;

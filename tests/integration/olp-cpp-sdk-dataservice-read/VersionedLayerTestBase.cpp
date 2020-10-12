@@ -31,6 +31,8 @@ namespace {
 const auto kCachePathMutable = "./tmp_cache";
 }
 
+namespace model = olp::dataservice::read::model;
+namespace http = olp::http;
 using testing::_;
 
 VersionedLayerTestBase::VersionedLayerTestBase()
@@ -62,20 +64,39 @@ void VersionedLayerTestBase::TearDown() {
 }
 
 void VersionedLayerTestBase::ExpectQuadTreeRequest(
-    int64_t version, mockserver::QuadTreeBuilder quad_tree) {
+    int64_t version, mockserver::QuadTreeBuilder quad_tree,
+    http::NetworkResponse response) {
   const auto url = url_generator_.VersionedQuadTree(
       quad_tree.Root().ToHereTile(), version, 4);
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(url), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   quad_tree.BuildJson()));
+      .WillOnce(ReturnHttpResponse(response, quad_tree.BuildJson()));
 }
 
 void VersionedLayerTestBase::ExpectBlobRequest(const std::string& data_handle,
-                                               const std::string& data) {
+                                               const std::string& data,
+                                               http::NetworkResponse response) {
   const auto url = url_generator_.DataBlob(data_handle);
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(url), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   data));
+      .WillOnce(ReturnHttpResponse(response, data));
+}
+
+void VersionedLayerTestBase::ExpectVersionRequest(
+    http::NetworkResponse response) {
+  auto version_path = url_generator_.LatestVersion();
+  ASSERT_FALSE(version_path.empty());
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(version_path), _, _, _, _))
+      .WillOnce(
+          ReturnHttpResponse(response, ResponseGenerator::Version(version_)));
+}
+
+void VersionedLayerTestBase::ExpectQueryPartitionsRequest(
+    const std::vector<std::string>& partitions,
+    const model::Partitions& partitions_response,
+    http::NetworkResponse response) {
+  auto partitions_path = url_generator_.PartitionsQuery(partitions, version_);
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(partitions_path), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(
+          response, ResponseGenerator::Partitions(partitions_response)));
 }
