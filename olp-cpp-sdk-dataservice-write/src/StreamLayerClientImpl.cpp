@@ -437,7 +437,8 @@ PublishDataResponse StreamLayerClientImpl::PublishDataGreaterThanTwentyMib(
   }
 
   // 3. Upload partition:
-  const auto partition_id = GenerateUuid();
+  const auto partition_id =
+      request.GetTraceId() ? request.GetTraceId().value() : GenerateUuid();
   model::PublishPartition publish_partition;
   publish_partition.SetPartition(partition_id);
   publish_partition.SetDataHandle(data_handle);
