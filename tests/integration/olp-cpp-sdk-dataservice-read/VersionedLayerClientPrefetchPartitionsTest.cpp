@@ -180,6 +180,77 @@ TEST_F(VersionedLayerClientPrefetchPartitionsTest, PrefetchPartitionsFails) {
   }
 }
 
+TEST_F(VersionedLayerClientPrefetchPartitionsTest, PrefetchBatchFails) {
+  auto partitions_count = 200u;  // 2 query
+  auto client =
+      read::VersionedLayerClient(kCatalogHrn, kLayer, version_, settings_);
+  auto partitions = GeneratePartitionIds(partitions_count);
+
+  auto size1 = 100;
+  auto size2 = 100;
+
+  auto partitions_response1 =
+      ReadDefaultResponses::GeneratePartitionsResponse(size1);
+  auto partitions_response2 =
+      ReadDefaultResponses::GeneratePartitionsResponse(size2, size1);
+  const auto request =
+      read::PrefetchPartitionsRequest().WithPartitionIds(partitions);
+
+  auto mock_partitions_response =
+      [&](const read::model::Partitions& partitions) {
+        for (const auto& partition : partitions.GetPartitions()) {
+          ExpectBlobRequest(
+              partition.GetDataHandle(), "data",
+              http::NetworkResponse().WithStatus(HttpStatusCode::OK));
+        }
+      };
+  {
+    SCOPED_TRACE("All batch fails");
+    ExpectQueryPartitionsRequest(
+        std::vector<std::string>(partitions.begin(),
+                                 partitions.begin() + size1),
+        partitions_response1,
+        http::NetworkResponse().WithStatus(HttpStatusCode::BAD_REQUEST));
+    ExpectQueryPartitionsRequest(
+        std::vector<std::string>(partitions.begin() + size1, partitions.end()),
+        partitions_response2,
+        http::NetworkResponse().WithStatus(HttpStatusCode::BAD_REQUEST));
+
+    auto future = client.PrefetchPartitions(request).GetFuture();
+    ASSERT_NE(future.wait_for(std::chrono::seconds(kTimeout)),
+              std::future_status::timeout);
+
+    auto response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+  }
+  {
+    SCOPED_TRACE("One batch fails");
+    ExpectQueryPartitionsRequest(
+        std::vector<std::string>(partitions.begin(),
+                                 partitions.begin() + size1),
+        partitions_response1,
+        http::NetworkResponse().WithStatus(HttpStatusCode::BAD_REQUEST));
+    ExpectQueryPartitionsRequest(
+        std::vector<std::string>(partitions.begin() + size1, partitions.end()),
+        partitions_response2);
+
+    mock_partitions_response(partitions_response2);
+
+    auto future = client.PrefetchPartitions(request).GetFuture();
+    ASSERT_NE(future.wait_for(std::chrono::seconds(kTimeout)),
+              std::future_status::timeout);
+
+    auto response = future.get();
+    ASSERT_TRUE(response.IsSuccessful());
+    const auto result = response.MoveResult();
+    ASSERT_EQ(result.GetPartitions().size(), size1);
+
+    for (const auto& partition : result.GetPartitions()) {
+      ASSERT_TRUE(client.IsCached(partition));
+    }
+  }
+}
+
 TEST_F(VersionedLayerClientPrefetchPartitionsTest, PrefetchPartitionsCancel) {
   auto partitions_count = 1u;
   auto client =
