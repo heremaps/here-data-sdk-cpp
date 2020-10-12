@@ -123,6 +123,30 @@ TEST_F(VersionedLayerClientPrefetchPartitionsTest, PrefetchPartitions) {
 
     auto response = future.get();
     ASSERT_TRUE(response.IsSuccessful());
+    ASSERT_FALSE(response.GetResult()->empty());
+    std::string data_string(response.GetResult()->begin(),
+                            response.GetResult()->end());
+    ASSERT_EQ("data", data_string);
+  }
+  {
+    SCOPED_TRACE("Get prefetched partition from cache");
+    std::promise<read::PrefetchPartitionsResponse> promise;
+
+    auto future =
+        client
+            .GetData(read::DataRequest()
+                         .WithFetchOption(read::FetchOptions::CacheOnly)
+                         .WithPartitionId(partitions.at(1)))
+            .GetFuture();
+    ASSERT_NE(future.wait_for(std::chrono::seconds(kTimeout)),
+              std::future_status::timeout);
+
+    auto response = future.get();
+    ASSERT_TRUE(response.IsSuccessful());
+    ASSERT_FALSE(response.GetResult()->empty());
+    std::string data_string(response.GetResult()->begin(),
+                            response.GetResult()->end());
+    ASSERT_EQ("data", data_string);
   }
 }
 
