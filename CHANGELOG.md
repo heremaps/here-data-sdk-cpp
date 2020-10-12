@@ -1,3 +1,28 @@
+##  v1.9.0 (10/12/2020)
+
+**Common**
+
+* The default logger now adds a timestamp to logs.
+* Fixed a crash in the `olp::cache::DefaultCache::Put` method that occurred when the input value was `null`.
+* Fixed the HTTP response error that occurred when the request was canceled during the network shutdown on Windows.
+* `olp::thread::TaskScheduler` now supports tasks with priorities. Tasks with higher priority are executed first.
+* Fixed the issue that occurred when the JSON parsers produced valid empty objects.
+
+**olp-cpp-sdk-dataservice-read**
+
+* Fixed the behavior of the `GetAggregatedData` and `PrefetchTiles` APIs for both `olp::dataservice::read::VersionedLayerClient` and `olp::dataservice::read::VolatileLayerClient`. When the aggregated parent tile is far away, i.e. more then max. depth 4, other APIs could not find it (for example, level 14 tile aggregated on level 1). Now, the aggregated tile can be found and used by other APIs.
+* `PrefetchTilesRequest`, `TileRequest`, and `DataRequest` now support priorities.
+* Fixed the crash that occurred when the client was destroyed during an ongoing prefetch operation.
+* Changed the behavior of `olp::dataservice::read::CatalogClient::GetLatestVersion` and `olp::dataservice::read::VersionedLayerClient`. Now, if you do not specify a version, the SDK tries to get it from the network by default. Also, in the cache, the latest version now does not expire after five minutes.
+* Added new API `olp::dataservice::read::VersionedLayerClient::PrefetchPartitions` which allows you to prefetch generic partitions which are not tile based.
+
+**olp-cpp-sdk-dataservice-write**
+
+* Fixed the uploading of encoded data to the HERE Blob Service. The missing `Content-Encoding` header is now added when the layer is configured as compressed. This applies to `olp::dataservice::write::VersionedLayerClient`, `olp::dataservice::write::VolatileLayerClient` and `olp::dataservice::write::IndexLayerClient`.
+* Fix the bug in the `olp::dataservice::write::StreamLayerClient::PublishData` when the TraceId provided by the user is ignored for data bigger than 20 MB.
+* **Work In Progress** Enhanced `olp::dataservice::write::VersionedLayerClient`. The `PublishToBatch` and `CancelBatch` methods now use `olp::thread::TaskScheduler` instead of network threads for asynchronous operations.
+* **Work In Progress** Enhanced `olp::dataservice::write::VolatileLayerClient`. The `PublishPartitionData` method now uses `olp::thread::TaskScheduler` instead of network threads for asynchronous operations.
+
 ## v1.8.0 (08/25/2020)
 
 **Common**
