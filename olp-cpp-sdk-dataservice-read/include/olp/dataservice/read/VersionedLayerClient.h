@@ -370,7 +370,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * invoked if the `PrefetchPartitionsResult` instance is available or an error
    * occurs.
    * @param status_callback The `PrefetchPartitionsStatusCallback` object that
-   * is invoked every time a tile is fetched.
+   * is invoked every time a partition is fetched.
    *
    * @return A token that can be used to cancel this request.
    */
@@ -394,7 +394,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * @param request The `PrefetchPartitionsRequest` instance that contains
    * a complete set of request parameters.
    * @param status_callback The `PrefetchPartitionsStatusCallback` object that
-   * is invoked every time a tile is fetched.
+   * is invoked every time a partition is fetched.
    *
    * @return `CancellableFuture` that contains the `PrefetchPartitionsResponse`
    * instance with data or an error. You can also use `CancellableFuture` to
