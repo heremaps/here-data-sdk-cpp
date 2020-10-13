@@ -22,6 +22,7 @@ set(OLP_SDK_FUNCTIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-dataservice-read/CatalogClientTest.cpp
     ./olp-cpp-sdk-dataservice-read/VersionedLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-read/VersionedLayerClientPrefetchTest.cpp
+    ./olp-cpp-sdk-dataservice-read/VersionedLayerClientPrefetchPartitionsTest.cpp
     ./olp-cpp-sdk-dataservice-read/VersionedLayerClientProtectTest.cpp
     ./olp-cpp-sdk-dataservice-read/DataserviceReadVersionedLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-read/VersionedLayerClientGetDataTest.cpp
