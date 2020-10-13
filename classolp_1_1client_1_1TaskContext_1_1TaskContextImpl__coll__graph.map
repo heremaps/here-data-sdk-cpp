@@ -1,5 +1,0 @@
-<map id="olp::client::TaskContext::TaskContextImpl&lt; Response &gt;" name="olp::client::TaskContext::TaskContextImpl&lt; Response &gt;">
-<area shape="rect" id="node2" href="$classolp_1_1client_1_1TaskContext_1_1Impl.html" title="An implementation helper interface used to declare the Execute, BlockingCancel, and CancelToken funct..." alt="" coords="5,5,180,47"/>
-<area shape="rect" id="node3" href="$classolp_1_1client_1_1Condition.html" title="A helper class that allows one thread to call and wait for a notification in the other thread..." alt="" coords="15,71,171,98"/>
-<area shape="rect" id="node4" href="$classolp_1_1client_1_1CancellationContext.html" title="A wrapper that manages the cancellation state of an asynchronous operation in a thread&#45;safe way..." alt="" coords="5,123,180,164"/>
-</map>

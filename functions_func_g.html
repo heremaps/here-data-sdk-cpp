@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.8.0</span>
+   &#160;<span id="projectnumber">1.9.0</span>
    </div>
   </td>
  </tr>
@@ -153,6 +153,7 @@ $(function() {
 , <a class="el" href="classolp_1_1dataservice_1_1read_1_1_catalog_version_request.html#aa7a20c158768fc020b73362207e69b9d">olp::dataservice::read::CatalogVersionRequest</a>
 , <a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#aa17cf1919db10033d27bac021fcc60e6">olp::dataservice::read::DataRequest</a>
 , <a class="el" href="classolp_1_1dataservice_1_1read_1_1_partitions_request.html#a1ea30988914ef1ff7da23b604421e2fd">olp::dataservice::read::PartitionsRequest</a>
+, <a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_partitions_request.html#aca903fbc5514b88675785e2e451bc6f7">olp::dataservice::read::PrefetchPartitionsRequest</a>
 , <a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html#ace33feca7da75af21e971500cda25377">olp::dataservice::read::PrefetchTilesRequest</a>
 , <a class="el" href="classolp_1_1dataservice_1_1read_1_1_tile_request.html#aa9ba419ad425c3c8408c84f5bef86f95">olp::dataservice::read::TileRequest</a>
 , <a class="el" href="classolp_1_1dataservice_1_1read_1_1_versions_request.html#a00c85d705310214797c31837c843f9bb">olp::dataservice::read::VersionsRequest</a>
@@ -736,14 +737,16 @@ $(function() {
 </li>
 <li>GetPartitionIds()
 : <a class="el" href="classolp_1_1dataservice_1_1read_1_1_partitions_request.html#a69722e504aad115c5d3b487b75798f76">olp::dataservice::read::PartitionsRequest</a>
+, <a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_partitions_request.html#a2cf1f87fcb5a70c1d6be16194ce5da24">olp::dataservice::read::PrefetchPartitionsRequest</a>
 </li>
 <li>GetPartitioning()
 : <a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1_layer.html#a6f38de9558e03cd331a87741ab38c66a">olp::dataservice::read::model::Layer</a>
 </li>
 <li>GetPartitions()
 : <a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1_partitions.html#a07906e97b1d7764c472cf656a9b3779c">olp::dataservice::read::model::Partitions</a>
-, <a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#aa03f42fc70e94e445121204898a38ade">olp::dataservice::read::VersionedLayerClient</a>
-, <a class="el" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html#aa41d345daabeb25836e073de8d5f8400">olp::dataservice::read::VolatileLayerClient</a>
+, <a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_partitions_result.html#afb87a3984106b7342423210a5d3a621d">olp::dataservice::read::PrefetchPartitionsResult</a>
+, <a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#aff231c033335efaa0210490a8562c21e">olp::dataservice::read::VersionedLayerClient</a>
+, <a class="el" href="classolp_1_1dataservice_1_1read_1_1_volatile_layer_client.html#a96054f14c90644e8065700dbd6a2bdb5">olp::dataservice::read::VolatileLayerClient</a>
 </li>
 <li>GetPassword()
 : <a class="el" href="classolp_1_1http_1_1_network_proxy_settings.html#ad47b3632c00bf9aef51d3e204cfedcfe">olp::http::NetworkProxySettings</a>
@@ -756,6 +759,12 @@ $(function() {
 </li>
 <li>GetPort()
 : <a class="el" href="classolp_1_1http_1_1_network_proxy_settings.html#a1e6c2ce71f0a5b3f5c2d9fd59a51ce06">olp::http::NetworkProxySettings</a>
+</li>
+<li>GetPriority()
+: <a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#ae6699a96be448585f48b773e5ec9e76d">olp::dataservice::read::DataRequest</a>
+, <a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_partitions_request.html#a05c263a65d5010bf6d8c93408c0d5fc9">olp::dataservice::read::PrefetchPartitionsRequest</a>
+, <a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html#a5a0811b436d512429f347386998908c1">olp::dataservice::read::PrefetchTilesRequest</a>
+, <a class="el" href="classolp_1_1dataservice_1_1read_1_1_tile_request.html#ad49e39ed4d05de3e426d9f028d7a43e1">olp::dataservice::read::TileRequest</a>
 </li>
 <li>GetPrivatePolicyUrl()
 : <a class="el" href="classolp_1_1authentication_1_1_sign_in_user_result.html#aa031f3ee4f2369c87e2d71b758d10c13">olp::authentication::SignInUserResult</a>
@@ -798,7 +807,7 @@ $(function() {
 : <a class="el" href="classolp_1_1authentication_1_1_permission.html#acd80a9b8e7a57caf127c851393aff6e4">olp::authentication::Permission</a>
 </li>
 <li>GetResponse()
-: <a class="el" href="classolp_1_1client_1_1_http_response.html#a65d0960cab3104acb5d92ed67919aec4">olp::client::HttpResponse</a>
+: <a class="el" href="classolp_1_1client_1_1_http_response.html#a633d1e0ad7dc274bd7973e75e091faca">olp::client::HttpResponse</a>
 </li>
 <li>GetResponseTypes()
 : <a class="el" href="classolp_1_1authentication_1_1_introspect_app_result.html#aab33cedd2b9d99a52b10bcad3ec631d1">olp::authentication::IntrospectAppResult</a>

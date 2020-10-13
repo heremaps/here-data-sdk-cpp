@@ -1,5 +1,0 @@
-<map id="olp::logging::IAppender" name="olp::logging::IAppender">
-<area shape="rect" id="node2" href="$classolp_1_1logging_1_1ConsoleAppender.html" title="Appender for printing to the console. " alt="" coords="225,5,445,32"/>
-<area shape="rect" id="node3" href="$classolp_1_1logging_1_1DebugAppender.html" title="Appender for printing to the debug output. " alt="" coords="230,56,441,83"/>
-<area shape="rect" id="node4" href="$classolp_1_1logging_1_1FileAppender.html" title="Appender for printing to a file. " alt="" coords="240,107,431,133"/>
-</map>

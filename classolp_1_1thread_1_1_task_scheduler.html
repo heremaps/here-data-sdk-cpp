@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.8.0</span>
+   &#160;<span id="projectnumber">1.9.0</span>
    </div>
   </td>
  </tr>
@@ -102,6 +102,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ad085c04262d876f3ebc916ec6342d8f6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_task_scheduler.html#ad085c04262d876f3ebc916ec6342d8f6">ScheduleTask</a> (<a class="el" href="classolp_1_1thread_1_1_task_scheduler.html#a54f91863ec0c34f219b21d09d9b09f5a">CallFuncType</a> &amp;&amp;func)</td></tr>
 <tr class="memdesc:ad085c04262d876f3ebc916ec6342d8f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Schedules the asynchronous task.  <a href="classolp_1_1thread_1_1_task_scheduler.html#ad085c04262d876f3ebc916ec6342d8f6">More...</a><br /></td></tr>
 <tr class="separator:ad085c04262d876f3ebc916ec6342d8f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa03eccf820b4a88fb8867fa5c3f6a4e9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_task_scheduler.html#aa03eccf820b4a88fb8867fa5c3f6a4e9">ScheduleTask</a> (<a class="el" href="classolp_1_1thread_1_1_task_scheduler.html#a54f91863ec0c34f219b21d09d9b09f5a">CallFuncType</a> &amp;&amp;func, uint32_t priority)</td></tr>
+<tr class="memdesc:aa03eccf820b4a88fb8867fa5c3f6a4e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Schedules the asynchronous task.  <a href="classolp_1_1thread_1_1_task_scheduler.html#aa03eccf820b4a88fb8867fa5c3f6a4e9">More...</a><br /></td></tr>
+<tr class="separator:aa03eccf820b4a88fb8867fa5c3f6a4e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9f174afffe1867d50fe687cd67a2d8d9"><td class="memTemplParams" colspan="2">template&lt;class Function , typename std::enable_if&lt;!std::is_convertible&lt;  decltype&gt; </td></tr>
 <tr class="memitem:a9f174afffe1867d50fe687cd67a2d8d9"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellation_context.html">client::CancellationContext</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_task_scheduler.html#a9f174afffe1867d50fe687cd67a2d8d9">ScheduleTask</a> (Function &amp;&amp;func)</td></tr>
 <tr class="memdesc:a9f174afffe1867d50fe687cd67a2d8d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Schedules the asynchronous cancellable task.  <a href="classolp_1_1thread_1_1_task_scheduler.html#a9f174afffe1867d50fe687cd67a2d8d9">More...</a><br /></td></tr>
@@ -112,13 +115,16 @@ Protected Member Functions</h2></td></tr>
 <tr class="memitem:a16e3d6bc21a9af0efeb39e527d2bb5f3"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_task_scheduler.html#a16e3d6bc21a9af0efeb39e527d2bb5f3">EnqueueTask</a> (<a class="el" href="classolp_1_1thread_1_1_task_scheduler.html#a54f91863ec0c34f219b21d09d9b09f5a">CallFuncType</a> &amp;&amp;)=0</td></tr>
 <tr class="memdesc:a16e3d6bc21a9af0efeb39e527d2bb5f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The abstract enqueue task interface that is implemented by the subclass.  <a href="classolp_1_1thread_1_1_task_scheduler.html#a16e3d6bc21a9af0efeb39e527d2bb5f3">More...</a><br /></td></tr>
 <tr class="separator:a16e3d6bc21a9af0efeb39e527d2bb5f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a527ad198981efe6690e6222180cc1e24"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1thread_1_1_task_scheduler.html#a527ad198981efe6690e6222180cc1e24">EnqueueTask</a> (<a class="el" href="classolp_1_1thread_1_1_task_scheduler.html#a54f91863ec0c34f219b21d09d9b09f5a">CallFuncType</a> &amp;&amp;func, uint32_t priority)</td></tr>
+<tr class="memdesc:a527ad198981efe6690e6222180cc1e24"><td class="mdescLeft">&#160;</td><td class="mdescRight">The enqueue task with priority interface that is implemented by the subclass.  <a href="classolp_1_1thread_1_1_task_scheduler.html#a527ad198981efe6690e6222180cc1e24">More...</a><br /></td></tr>
+<tr class="separator:a527ad198981efe6690e6222180cc1e24"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>An abstract interface that is used as a base for the custom thread scheduling strategy. </p>
 <p>Subclasses should inherit from this class and implement virtual <code>EnqueueTask</code> that takes any callable target (lambda expression, bind expression, or any other function object) as input and adds it to the execution pipeline. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a16e3d6bc21a9af0efeb39e527d2bb5f3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a16e3d6bc21a9af0efeb39e527d2bb5f3">&#9670;&nbsp;</a></span>EnqueueTask()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a16e3d6bc21a9af0efeb39e527d2bb5f3">&#9670;&nbsp;</a></span>EnqueueTask() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -143,6 +149,7 @@ Protected Member Functions</h2></td></tr>
 
 <p>The abstract enqueue task interface that is implemented by the subclass. </p>
 <p>Implement this method in the subclass that takes <code><a class="el" href="classolp_1_1thread_1_1_task_scheduler.html" title="An abstract interface that is used as a base for the custom thread scheduling strategy.">TaskScheduler</a></code> as a base and provides a custom algorithm for scheduling tasks enqueued by the SDK.</p>
+<dl class="section note"><dt>Note</dt><dd>Tasks added trough this method should be scheduled with Priority::NORMAL priority.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">func</td><td>The rvalue reference of the task that should be enqueued. Move this task into your queue. No internal references are kept. Once this method is called, you own the task. </td></tr>
@@ -154,8 +161,56 @@ Protected Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a527ad198981efe6690e6222180cc1e24"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a527ad198981efe6690e6222180cc1e24">&#9670;&nbsp;</a></span>EnqueueTask() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void olp::thread::TaskScheduler::EnqueueTask </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1thread_1_1_task_scheduler.html#a54f91863ec0c34f219b21d09d9b09f5a">CallFuncType</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>func</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>priority</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The enqueue task with priority interface that is implemented by the subclass. </p>
+<p>Implement this method in the subclass that takes <code><a class="el" href="classolp_1_1thread_1_1_task_scheduler.html" title="An abstract interface that is used as a base for the custom thread scheduling strategy.">TaskScheduler</a></code> as a base and provides a custom algorithm for scheduling tasks enqueued by the SDK. The method priorities tasks, so tasks with higher priority executed earlier. Tasks within the same priority group should keep the order.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">func</td><td>The rvalue reference of the task that should be enqueued. Move this task into your queue. No internal references are kept. Once this method is called, you own the task. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">priority</td><td>The priority of the task. Tasks with higher priority executes earlier. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Reimplemented in <a class="el" href="classolp_1_1thread_1_1_thread_pool_task_scheduler.html#a680028d184c3e2d4e31c0a2555cb3797">olp::thread::ThreadPoolTaskScheduler</a>.</p>
+
+</div>
+</div>
 <a id="ad085c04262d876f3ebc916ec6342d8f6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad085c04262d876f3ebc916ec6342d8f6">&#9670;&nbsp;</a></span>ScheduleTask() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ad085c04262d876f3ebc916ec6342d8f6">&#9670;&nbsp;</a></span>ScheduleTask() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -179,6 +234,7 @@ Protected Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Schedules the asynchronous task. </p>
+<dl class="section note"><dt>Note</dt><dd>Tasks added with this method has Priority::NORMAL priority.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">func</td><td>The callable target that should be added to the scheduling pipeline. </td></tr>
@@ -188,8 +244,53 @@ Protected Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="aa03eccf820b4a88fb8867fa5c3f6a4e9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa03eccf820b4a88fb8867fa5c3f6a4e9">&#9670;&nbsp;</a></span>ScheduleTask() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void olp::thread::TaskScheduler::ScheduleTask </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1thread_1_1_task_scheduler.html#a54f91863ec0c34f219b21d09d9b09f5a">CallFuncType</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>func</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>priority</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Schedules the asynchronous task. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">func</td><td>The callable target that should be added to the scheduling pipeline. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">priority</td><td>The priority of the task. Tasks with higher priority executes earlier. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="a9f174afffe1867d50fe687cd67a2d8d9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9f174afffe1867d50fe687cd67a2d8d9">&#9670;&nbsp;</a></span>ScheduleTask() <span class="overload">[2/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a9f174afffe1867d50fe687cd67a2d8d9">&#9670;&nbsp;</a></span>ScheduleTask() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">

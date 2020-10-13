@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.8.0</span>
+   &#160;<span id="projectnumber">1.9.0</span>
    </div>
   </td>
  </tr>
@@ -90,9 +90,9 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a149f4816f59c87e56776b2614c6f2011"><td class="memItemLeft" align="right" valign="top">static std::unique_ptr&lt; <a class="el" href="classolp_1_1cache_1_1_key_value_cache.html">cache::KeyValueCache</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client_settings_factory.html#a149f4816f59c87e56776b2614c6f2011">CreateDefaultCache</a> (<a class="el" href="structolp_1_1cache_1_1_cache_settings.html">cache::CacheSettings</a> settings)</td></tr>
 <tr class="memdesc:a149f4816f59c87e56776b2614c6f2011"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code>KeyValueCache</code> instance that includes both a small memory LRU cache and a larger persistent database cache.  <a href="classolp_1_1client_1_1_olp_client_settings_factory.html#a149f4816f59c87e56776b2614c6f2011">More...</a><br /></td></tr>
 <tr class="separator:a149f4816f59c87e56776b2614c6f2011"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6daff1488468efcab4d2cf7abb6bad7e"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client_settings_factory.html#a6daff1488468efcab4d2cf7abb6bad7e">PrewarmConnection</a> (const <a class="el" href="structolp_1_1client_1_1_olp_client_settings.html">OlpClientSettings</a> &amp;settings, const std::string &amp;url)</td></tr>
-<tr class="memdesc:a6daff1488468efcab4d2cf7abb6bad7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function helps you prewarm the connection to the provided host.  <a href="classolp_1_1client_1_1_olp_client_settings_factory.html#a6daff1488468efcab4d2cf7abb6bad7e">More...</a><br /></td></tr>
-<tr class="separator:a6daff1488468efcab4d2cf7abb6bad7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4dfa8b4b5396329355cd8bb9795f0f49"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1_olp_client_settings_factory.html#a4dfa8b4b5396329355cd8bb9795f0f49">PrewarmConnection</a> (const <a class="el" href="structolp_1_1client_1_1_olp_client_settings.html">OlpClientSettings</a> &amp;settings, const std::string &amp;url, <a class="el" href="classolp_1_1http_1_1_network.html#af0a5a2c85909ff38ad56d356c557b748">http::Network::Callback</a> callback=nullptr)</td></tr>
+<tr class="memdesc:a4dfa8b4b5396329355cd8bb9795f0f49"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function helps you prewarm the connection to the provided host.  <a href="classolp_1_1client_1_1_olp_client_settings_factory.html#a4dfa8b4b5396329355cd8bb9795f0f49">More...</a><br /></td></tr>
+<tr class="separator:a4dfa8b4b5396329355cd8bb9795f0f49"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Fills in the <code><a class="el" href="structolp_1_1client_1_1_olp_client_settings.html" title="Configures the behavior of the OlpClient class.">OlpClientSettings</a></code> structure with default handlers. </p>
@@ -196,8 +196,8 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a6daff1488468efcab4d2cf7abb6bad7e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6daff1488468efcab4d2cf7abb6bad7e">&#9670;&nbsp;</a></span>PrewarmConnection()</h2>
+<a id="a4dfa8b4b5396329355cd8bb9795f0f49"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4dfa8b4b5396329355cd8bb9795f0f49">&#9670;&nbsp;</a></span>PrewarmConnection()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -215,7 +215,13 @@ Static Public Member Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const std::string &amp;&#160;</td>
-          <td class="paramname"><em>url</em>&#160;</td>
+          <td class="paramname"><em>url</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classolp_1_1http_1_1_network.html#af0a5a2c85909ff38ad56d356c557b748">http::Network::Callback</a>&#160;</td>
+          <td class="paramname"><em>callback</em> = <code>nullptr</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -232,7 +238,15 @@ Static Public Member Functions</h2></td></tr>
 
 <p>This function helps you prewarm the connection to the provided host. </p>
 <p>Prewarming includes DNS prefetch and TLS preconnect issued with the OPTIONS http call without any data up or download and is performed asynchronously.</p>
-<dl class="section note"><dt>Note</dt><dd>This only makes sense on platforms which actually keep TCP sockets and connections alive for some time and only if you have max_request_count set to something greater then 1 to allow reusing. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>This only makes sense on platforms which actually keep TCP sockets and connections alive for some time and only if you have max_request_count set to something greater then 1 to allow reusing.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">settings</td><td>The <code><a class="el" href="structolp_1_1client_1_1_olp_client_settings.html" title="Configures the behavior of the OlpClient class.">OlpClientSettings</a></code> instance. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">url</td><td>The url of the host. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">callback</td><td>The user callback will be called when request completed. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

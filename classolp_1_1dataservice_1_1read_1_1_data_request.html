@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.8.0</span>
+   &#160;<span id="projectnumber">1.9.0</span>
    </div>
   </td>
  </tr>
@@ -114,6 +114,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:adcd7944b497f9eb171417af0e0860ebe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#adcd7944b497f9eb171417af0e0860ebe">WithFetchOption</a> (FetchOptions fetch_option)</td></tr>
 <tr class="memdesc:adcd7944b497f9eb171417af0e0860ebe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the fetch option that you can use to set the source from which data should be fetched.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#adcd7944b497f9eb171417af0e0860ebe">More...</a><br /></td></tr>
 <tr class="separator:adcd7944b497f9eb171417af0e0860ebe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6699a96be448585f48b773e5ec9e76d"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#ae6699a96be448585f48b773e5ec9e76d">GetPriority</a> () const</td></tr>
+<tr class="memdesc:ae6699a96be448585f48b773e5ec9e76d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the request priority.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#ae6699a96be448585f48b773e5ec9e76d">More...</a><br /></td></tr>
+<tr class="separator:ae6699a96be448585f48b773e5ec9e76d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a62acceeea1ddd1c8f33f49358f9262a8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a62acceeea1ddd1c8f33f49358f9262a8">WithPriority</a> (uint32_t priority)</td></tr>
+<tr class="memdesc:a62acceeea1ddd1c8f33f49358f9262a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the priority of the request.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a62acceeea1ddd1c8f33f49358f9262a8">More...</a><br /></td></tr>
+<tr class="separator:a62acceeea1ddd1c8f33f49358f9262a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a25904eff5301fd05e1b009b3d85e2538"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a25904eff5301fd05e1b009b3d85e2538">CreateKey</a> (const std::string &amp;layer_id, boost::optional&lt; int64_t &gt; version) const</td></tr>
 <tr class="memdesc:a25904eff5301fd05e1b009b3d85e2538"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a readable format for the request.  <a href="classolp_1_1dataservice_1_1read_1_1_data_request.html#a25904eff5301fd05e1b009b3d85e2538">More...</a><br /></td></tr>
 <tr class="separator:a25904eff5301fd05e1b009b3d85e2538"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -279,6 +285,35 @@ Public Member Functions</h2></td></tr>
 
 <p>Gets the ID of the requested partition. </p>
 <dl class="section return"><dt>Returns</dt><dd>The partition ID. </dd></dl>
+
+</div>
+</div>
+<a id="ae6699a96be448585f48b773e5ec9e76d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae6699a96be448585f48b773e5ec9e76d">&#9670;&nbsp;</a></span>GetPriority()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t olp::dataservice::read::DataRequest::GetPriority </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Gets the request priority. </p>
+<p>The default priority is <code>Priority::NORMAL</code>.</p>
+<dl class="section return"><dt>Returns</dt><dd>The request priority. </dd></dl>
 
 </div>
 </div>
@@ -529,6 +564,41 @@ Public Member Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">partition_id</td><td>The partition ID.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html" title="Encapsulates the fields required to request data for the given catalog, layer, and partition.">DataRequest</a></code> instance. </dd></dl>
+
+</div>
+</div>
+<a id="a62acceeea1ddd1c8f33f49358f9262a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a62acceeea1ddd1c8f33f49358f9262a8">&#9670;&nbsp;</a></span>WithPriority()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_data_request.html">DataRequest</a>&amp; olp::dataservice::read::DataRequest::WithPriority </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>priority</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Sets the priority of the request. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">priority</td><td>The priority of the request.</td></tr>
   </table>
   </dd>
 </dl>

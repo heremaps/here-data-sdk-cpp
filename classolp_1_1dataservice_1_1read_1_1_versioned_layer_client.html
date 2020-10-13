@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.8.0</span>
+   &#160;<span id="projectnumber">1.9.0</span>
    </div>
   </td>
  </tr>
@@ -130,6 +130,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a5c79c5b39e068a9211ee31ee510456b4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellable_future.html">client::CancellableFuture</a>&lt; <a class="el" href="classolp_1_1client_1_1_api_response.html">PrefetchTilesResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#a5c79c5b39e068a9211ee31ee510456b4">PrefetchTiles</a> (<a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html">PrefetchTilesRequest</a> request, PrefetchStatusCallback status_callback=nullptr)</td></tr>
 <tr class="memdesc:a5c79c5b39e068a9211ee31ee510456b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prefetches a set of tiles asynchronously.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#a5c79c5b39e068a9211ee31ee510456b4">More...</a><br /></td></tr>
 <tr class="separator:a5c79c5b39e068a9211ee31ee510456b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92fde224d46405d462c32f8a295dbb02"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#a92fde224d46405d462c32f8a295dbb02">PrefetchPartitions</a> (<a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_partitions_request.html">PrefetchPartitionsRequest</a> request, PrefetchPartitionsResponseCallback callback, PrefetchPartitionsStatusCallback status_callback=nullptr)</td></tr>
+<tr class="memdesc:a92fde224d46405d462c32f8a295dbb02"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prefetches a set of partitions asynchronously.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#a92fde224d46405d462c32f8a295dbb02">More...</a><br /></td></tr>
+<tr class="separator:a92fde224d46405d462c32f8a295dbb02"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab69160028eb483f8dd1246094073cb17"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1_cancellable_future.html">client::CancellableFuture</a>&lt; <a class="el" href="classolp_1_1client_1_1_api_response.html">PrefetchPartitionsResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#ab69160028eb483f8dd1246094073cb17">PrefetchPartitions</a> (<a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_partitions_request.html">PrefetchPartitionsRequest</a> request, PrefetchPartitionsStatusCallback status_callback=nullptr)</td></tr>
+<tr class="memdesc:ab69160028eb483f8dd1246094073cb17"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prefetches a set of partitions asynchronously.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#ab69160028eb483f8dd1246094073cb17">More...</a><br /></td></tr>
+<tr class="separator:ab69160028eb483f8dd1246094073cb17"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6bf4555cb6dd84d9dfd9cfd27379d220"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#a6bf4555cb6dd84d9dfd9cfd27379d220">RemoveFromCache</a> (const std::string &amp;partition_id)</td></tr>
 <tr class="memdesc:a6bf4555cb6dd84d9dfd9cfd27379d220"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the partition from the mutable disk cache.  <a href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#a6bf4555cb6dd84d9dfd9cfd27379d220">More...</a><br /></td></tr>
 <tr class="separator:a6bf4555cb6dd84d9dfd9cfd27379d220"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -152,7 +158,12 @@ Public Member Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Gets data from a versioned layer of the HERE platform. </p>
 <p>The versioned layer stores slowly-changing data that must remain logically consistent with other layers in a catalog. You can request any data version from the versioned layer. When you request a particular version of data from the versioned layer, the partition you receive in the response may have a lower version number than you requested. The version of a layer or partition represents the catalog version in which the layer or partition was last updated.</p>
-<dl class="section note"><dt>Note</dt><dd>If the catalog version is not specified, the latest version is used.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>If the catalog version is not specified, the version is set upon the first request made, based on this rules which apply for each specific FetchOptions:<ul>
+<li>OnlineOnly - version is resolved from online.</li>
+<li>CacheOnly - version is resolved from cache.</li>
+<li>OnlineIfNotFound - retrieve from online first, then checks the cache in case of error. Update cache version if online version is higher then the cache version.</li>
+</ul>
+</dd></dl>
 <p>An example with the catalog version provided that saves one network request: </p><div class="fragment"><div class="line"><span class="keyword">auto</span> task_scheduler =</div>
 <div class="line">   <a class="code" href="classolp_1_1client_1_1_olp_client_settings_factory.html#a67f547a761b34910c5b60f8b6e1233c1">olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler</a>(1u);</div>
 <div class="line"><span class="keyword">auto</span> http_client = <a class="code" href="classolp_1_1client_1_1_olp_client_settings_factory.html#a2d7121fa1c55ec4c339f3378f7078dd2">olp::client::</a></div>
@@ -610,6 +621,93 @@ Public Member Functions</h2></td></tr>
 </dl>
 <dl class="section note"><dt>Note</dt><dd>Before calling the API, specify a layer version. You can set it using the constructor or after the first online request.</dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>True if the partition data is cached; false otherwise. </dd></dl>
+
+</div>
+</div>
+<a id="a92fde224d46405d462c32f8a295dbb02"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92fde224d46405d462c32f8a295dbb02">&#9670;&nbsp;</a></span>PrefetchPartitions() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1_cancellation_token.html">client::CancellationToken</a> olp::dataservice::read::VersionedLayerClient::PrefetchPartitions </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_partitions_request.html">PrefetchPartitionsRequest</a>&#160;</td>
+          <td class="paramname"><em>request</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">PrefetchPartitionsResponseCallback&#160;</td>
+          <td class="paramname"><em>callback</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">PrefetchPartitionsStatusCallback&#160;</td>
+          <td class="paramname"><em>status_callback</em> = <code>nullptr</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Prefetches a set of partitions asynchronously. </p>
+<p>This method downloads all partitions listed in <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_partitions_request.html" title="Encapsulates the fields required to prefetch a list of partitions for the given catalog and layer.">PrefetchPartitionsRequest</a></code>. Only partitions that are not already present in the cache are downloaded. It helps reduce the network load.</p>
+<dl class="section note"><dt>Note</dt><dd>This method does not guarantee that all partitions are available offline as the cache might overflow, and data might be evicted at any point. Use <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#ad3d9cd8c93ff73965c47fb277c4903cf" title="Fetches data asynchronously using a partition ID or data handle.">GetData(DataRequest)</a></code> to retrieve partitions loaded by <code>PrefetchPartitions</code>.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">request</td><td>The <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_partitions_request.html" title="Encapsulates the fields required to prefetch a list of partitions for the given catalog and layer.">PrefetchPartitionsRequest</a></code> instance that contains a complete set of request parameters. </td></tr>
+    <tr><td class="paramname">callback</td><td>The <code>PrefetchPartitionsResponseCallback</code> object that is invoked if the <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_partitions_result.html" title="Represents the result of a prefetch operation for partitions.">PrefetchPartitionsResult</a></code> instance is available or an error occurs. </td></tr>
+    <tr><td class="paramname">status_callback</td><td>The <code>PrefetchPartitionsStatusCallback</code> object that is invoked every time a partition is fetched.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A token that can be used to cancel this request. </dd></dl>
+
+</div>
+</div>
+<a id="ab69160028eb483f8dd1246094073cb17"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab69160028eb483f8dd1246094073cb17">&#9670;&nbsp;</a></span>PrefetchPartitions() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1_cancellable_future.html">client::CancellableFuture</a>&lt;<a class="el" href="classolp_1_1client_1_1_api_response.html">PrefetchPartitionsResponse</a>&gt; olp::dataservice::read::VersionedLayerClient::PrefetchPartitions </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_partitions_request.html">PrefetchPartitionsRequest</a>&#160;</td>
+          <td class="paramname"><em>request</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">PrefetchPartitionsStatusCallback&#160;</td>
+          <td class="paramname"><em>status_callback</em> = <code>nullptr</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Prefetches a set of partitions asynchronously. </p>
+<p>This method downloads all partitions listed in <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_partitions_request.html" title="Encapsulates the fields required to prefetch a list of partitions for the given catalog and layer.">PrefetchPartitionsRequest</a></code>. Only partitions that are not already present in the cache are downloaded. It helps reduce the network load.</p>
+<dl class="section note"><dt>Note</dt><dd>This method does not guarantee that all partitions are available offline as the cache might overflow, and data might be evicted at any point. Use <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_versioned_layer_client.html#ad3d9cd8c93ff73965c47fb277c4903cf" title="Fetches data asynchronously using a partition ID or data handle.">GetData(DataRequest)</a></code> to retrieve partitions loaded by <code>PrefetchPartitions</code>.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">request</td><td>The <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_partitions_request.html" title="Encapsulates the fields required to prefetch a list of partitions for the given catalog and layer.">PrefetchPartitionsRequest</a></code> instance that contains a complete set of request parameters. </td></tr>
+    <tr><td class="paramname">status_callback</td><td>The <code>PrefetchPartitionsStatusCallback</code> object that is invoked every time a partition is fetched.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>CancellableFuture</code> that contains the <code>PrefetchPartitionsResponse</code> instance with data or an error. You can also use <code>CancellableFuture</code> to cancel this request. </dd></dl>
 
 </div>
 </div>

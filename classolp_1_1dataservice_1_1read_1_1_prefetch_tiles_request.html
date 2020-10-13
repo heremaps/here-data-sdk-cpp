@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.8.0</span>
+   &#160;<span id="projectnumber">1.9.0</span>
    </div>
   </td>
  </tr>
@@ -114,6 +114,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a1fc7945cc4d51c16380d95332f93ace9"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html#a1fc7945cc4d51c16380d95332f93ace9">GetDataAggregationEnabled</a> () const</td></tr>
 <tr class="memdesc:a1fc7945cc4d51c16380d95332f93ace9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the data aggregation flag.  <a href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html#a1fc7945cc4d51c16380d95332f93ace9">More...</a><br /></td></tr>
 <tr class="separator:a1fc7945cc4d51c16380d95332f93ace9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5a0811b436d512429f347386998908c1"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html#a5a0811b436d512429f347386998908c1">GetPriority</a> () const</td></tr>
+<tr class="memdesc:a5a0811b436d512429f347386998908c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the request priority.  <a href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html#a5a0811b436d512429f347386998908c1">More...</a><br /></td></tr>
+<tr class="separator:a5a0811b436d512429f347386998908c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a42e60dc247a76a4a731ff40e41ab4dec"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html">PrefetchTilesRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html#a42e60dc247a76a4a731ff40e41ab4dec">WithPriority</a> (uint32_t priority)</td></tr>
+<tr class="memdesc:a42e60dc247a76a4a731ff40e41ab4dec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the priority of the prefetch request.  <a href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html#a42e60dc247a76a4a731ff40e41ab4dec">More...</a><br /></td></tr>
+<tr class="separator:a42e60dc247a76a4a731ff40e41ab4dec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acd531f8eee04abaef11d44b6594fbbcc"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html#acd531f8eee04abaef11d44b6594fbbcc">CreateKey</a> (const std::string &amp;layer_id) const</td></tr>
 <tr class="memdesc:acd531f8eee04abaef11d44b6594fbbcc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a readable format for the request.  <a href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html#acd531f8eee04abaef11d44b6594fbbcc">More...</a><br /></td></tr>
 <tr class="separator:acd531f8eee04abaef11d44b6594fbbcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -268,6 +274,35 @@ Public Member Functions</h2></td></tr>
 
 <p>Gets the minimum tiles level to prefetch. </p>
 <dl class="section return"><dt>Returns</dt><dd>The minimum tile level. </dd></dl>
+
+</div>
+</div>
+<a id="a5a0811b436d512429f347386998908c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5a0811b436d512429f347386998908c1">&#9670;&nbsp;</a></span>GetPriority()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t olp::dataservice::read::PrefetchTilesRequest::GetPriority </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Gets the request priority. </p>
+<p>The default priority is <code>Priority::LOW</code>.</p>
+<dl class="section return"><dt>Returns</dt><dd>The request priority. </dd></dl>
 
 </div>
 </div>
@@ -475,6 +510,41 @@ Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html" title="Encapsulates the fields required to prefetch the specified layers, tiles, and levels.">PrefetchTilesRequest</a></code> instance. </dd></dl>
+
+</div>
+</div>
+<a id="a42e60dc247a76a4a731ff40e41ab4dec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a42e60dc247a76a4a731ff40e41ab4dec">&#9670;&nbsp;</a></span>WithPriority()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_prefetch_tiles_request.html">PrefetchTilesRequest</a>&amp; olp::dataservice::read::PrefetchTilesRequest::WithPriority </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>priority</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Sets the priority of the prefetch request. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">priority</td><td>The priority of the request.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code>PrefetchTileRequest</code> instance. </dd></dl>
 
 </div>
 </div>

@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.8.0</span>
+   &#160;<span id="projectnumber">1.9.0</span>
    </div>
   </td>
  </tr>
@@ -102,6 +102,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae380d3d8c40d952770dcac830d8308f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_tile_request.html">TileRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_tile_request.html#ae380d3d8c40d952770dcac830d8308f5">WithFetchOption</a> (FetchOptions fetch_option)</td></tr>
 <tr class="memdesc:ae380d3d8c40d952770dcac830d8308f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the fetch option that you can use to set the source from which data should be fetched.  <a href="classolp_1_1dataservice_1_1read_1_1_tile_request.html#ae380d3d8c40d952770dcac830d8308f5">More...</a><br /></td></tr>
 <tr class="separator:ae380d3d8c40d952770dcac830d8308f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad49e39ed4d05de3e426d9f028d7a43e1"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_tile_request.html#ad49e39ed4d05de3e426d9f028d7a43e1">GetPriority</a> () const</td></tr>
+<tr class="memdesc:ad49e39ed4d05de3e426d9f028d7a43e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the request priority.  <a href="classolp_1_1dataservice_1_1read_1_1_tile_request.html#ad49e39ed4d05de3e426d9f028d7a43e1">More...</a><br /></td></tr>
+<tr class="separator:ad49e39ed4d05de3e426d9f028d7a43e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a38c87aaec1f5353c6ee8a77faa27a57f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_tile_request.html">TileRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_tile_request.html#a38c87aaec1f5353c6ee8a77faa27a57f">WithPriority</a> (uint32_t priority)</td></tr>
+<tr class="memdesc:a38c87aaec1f5353c6ee8a77faa27a57f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the priority of the request.  <a href="classolp_1_1dataservice_1_1read_1_1_tile_request.html#a38c87aaec1f5353c6ee8a77faa27a57f">More...</a><br /></td></tr>
+<tr class="separator:a38c87aaec1f5353c6ee8a77faa27a57f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a80cca3e51f12f2a3ec2317f27953231b"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_tile_request.html#a80cca3e51f12f2a3ec2317f27953231b">CreateKey</a> (const std::string &amp;layer_id) const</td></tr>
 <tr class="memdesc:a80cca3e51f12f2a3ec2317f27953231b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a readable format for the request.  <a href="classolp_1_1dataservice_1_1read_1_1_tile_request.html#a80cca3e51f12f2a3ec2317f27953231b">More...</a><br /></td></tr>
 <tr class="separator:a80cca3e51f12f2a3ec2317f27953231b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -200,6 +206,35 @@ Public Member Functions</h2></td></tr>
 <p>Gets the fetch option that controls how requests are handled. </p>
 <p>The default option is <code>OnlineIfNotFound</code> that queries the network if the requested resource is not in the cache.</p>
 <dl class="section return"><dt>Returns</dt><dd>The fetch option. </dd></dl>
+
+</div>
+</div>
+<a id="ad49e39ed4d05de3e426d9f028d7a43e1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad49e39ed4d05de3e426d9f028d7a43e1">&#9670;&nbsp;</a></span>GetPriority()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t olp::dataservice::read::TileRequest::GetPriority </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Gets the request priority. </p>
+<p>The default priority is <code>Priority::NORMAL</code>.</p>
+<dl class="section return"><dt>Returns</dt><dd>The request priority. </dd></dl>
 
 </div>
 </div>
@@ -332,6 +367,41 @@ Public Member Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">fetch_option</td><td>The <code>FetchOption</code> enum.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the updated <code><a class="el" href="classolp_1_1dataservice_1_1read_1_1_tile_request.html" title="Encapsulates the fields required to request tile for the given key.">TileRequest</a></code> instance. </dd></dl>
+
+</div>
+</div>
+<a id="a38c87aaec1f5353c6ee8a77faa27a57f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a38c87aaec1f5353c6ee8a77faa27a57f">&#9670;&nbsp;</a></span>WithPriority()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1dataservice_1_1read_1_1_tile_request.html">TileRequest</a>&amp; olp::dataservice::read::TileRequest::WithPriority </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>priority</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Sets the priority of the request. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">priority</td><td>The priority of the request.</td></tr>
   </table>
   </dd>
 </dl>
