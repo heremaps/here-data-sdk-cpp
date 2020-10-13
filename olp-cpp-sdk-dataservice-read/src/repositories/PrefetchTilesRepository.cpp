@@ -313,8 +313,16 @@ SubQuadsResult PrefetchTilesRepository::FilterTilesByLevel(
 }
 
 SubQuadsResult PrefetchTilesRepository::FilterTilesByList(
-    const PrefetchTilesRequest& request, SubQuadsResult tiles) {
+    const PrefetchTilesRequest& request, const geo::TileKey& root,
+    SubQuadsResult tiles) {
   const bool aggregation_enabled = request.GetDataAggregationEnabled();
+
+  // add only those tiles, which suppose to be queried with this root
+  auto is_tile_in_quad = [&](const geo::TileKey& key) {
+    return root.Level() <= key.Level() &&
+           key.Level() - root.Level() <= kMaxQuadTreeIndexDepth &&
+           root.IsParentOf(key);
+  };
 
   const auto& tile_keys = request.GetTileKeys();
 
@@ -329,7 +337,7 @@ SubQuadsResult PrefetchTilesRepository::FilterTilesByList(
     }
 
     for (const auto& tile : tile_keys) {
-      if (tiles.find(tile) == tiles.end()) {
+      if (is_tile_in_quad(tile) && tiles.find(tile) == tiles.end()) {
         tiles[tile] = "";
       }
     }
@@ -348,6 +356,9 @@ SubQuadsResult PrefetchTilesRepository::FilterTilesByList(
     };
 
     for (const auto& tile : tile_keys) {
+      if (!is_tile_in_quad(tile)) {
+        continue;
+      }
       auto aggregated_tile = tile;
 
       while (aggregated_tile.IsValid() && !append_tile(aggregated_tile)) {

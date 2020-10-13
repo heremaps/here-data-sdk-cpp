@@ -24,6 +24,7 @@
 #include <utility>
 #include <vector>
 
+#include <olp/core/client/ApiNoResult.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/logging/Log.h>
 #include <olp/dataservice/read/Types.h>
@@ -34,6 +35,16 @@
 namespace olp {
 namespace dataservice {
 namespace read {
+using EmptyResponse = Response<client::ApiNoResult>;
+
+template <typename QueryType, typename QueryResult>
+struct QueryResponse {
+  QueryResponse() = default;
+  explicit QueryResponse(QueryType root) : root(std::move(root)) {}
+  QueryType root;
+  EmptyResponse response;
+  QueryResult list_of_tiles;
+};
 
 template <typename ItemType, typename QueryType, typename QueryResponseType>
 using QueryItemsFunc =
@@ -59,9 +70,12 @@ template <typename ItemType, typename QueryType, typename PrefetchResult,
           typename QueryResponseType, typename PrefetchStatusType>
 class QueryMetadataJob {
  public:
+  using QueryResult = typename QueryResponseType::ResultType;
+  using QueryResultItem = typename QueryResponseType::ResultType::value_type;
+
   QueryMetadataJob(
       QueryItemsFunc<ItemType, QueryType, QueryResponseType> query,
-      FilterItemsFunc<typename QueryResponseType::ResultType> filter,
+      FilterItemsFunc<QueryResponse<QueryType, QueryResult>> filter,
       std::shared_ptr<
           DownloadItemsJob<ItemType, PrefetchResult, PrefetchStatusType>>
           download_job,
@@ -74,12 +88,10 @@ class QueryMetadataJob {
         execution_context_(execution_context),
         priority_(priority) {}
 
-  void Initialize(size_t query_count) {
-    query_count_ = query_count;
-    query_size_ = query_count;
-  }
+  void Initialize(size_t query_count) { query_count_ = query_count; }
 
   QueryResponseType Query(QueryType root, client::CancellationContext context) {
+    responses_.emplace_back(root);
     return query_(root, context);
   }
 
@@ -89,95 +101,122 @@ class QueryMetadataJob {
     accumulated_statistics_ += GetNetworkStatistics(response);
 
     if (response.IsSuccessful()) {
-      auto items = response.MoveResult();
-      std::move(items.begin(), items.end(),
-                std::inserter(query_result_, query_result_.begin()));
+      responses_.back().list_of_tiles = response.GetResult();
+      responses_.back().response = EmptyResponse(client::ApiNoResult());
     } else {
       const auto& error = response.GetError();
       if (error.GetErrorCode() == client::ErrorCode::Cancelled) {
         canceled_ = true;
       } else {
         // Collect all errors.
-        query_errors_.push_back(error);
+        responses_.back().response = {error};
       }
     }
 
     if (!--query_count_) {
-      if (query_errors_.size() == query_size_) {
-        download_job_->OnPrefetchCompleted(query_errors_.front());
-        return;
-      }
-
-      if (canceled_) {
-        download_job_->OnPrefetchCompleted(
-            {{client::ErrorCode::Cancelled, "Cancelled"}});
-        return;
-      }
-
-      if (filter_) {
-        query_result_ = filter_(std::move(query_result_));
-      }
-
-      if (query_result_.empty()) {
-        download_job_->OnPrefetchCompleted(PrefetchResult());
-        return;
-      }
-
-      OLP_SDK_LOG_DEBUG_F("QueryMetadataJob", "Starting download, requests=%zu",
-                          query_result_.size());
-
-      download_job_->Initialize(query_result_.size(), accumulated_statistics_);
-
-      auto download_job = download_job_;
-
-      bool all_download_tasks_triggered = true;
-
-      execution_context_.ExecuteOrCancelled([&]() {
-        VectorOfTokens tokens;
-        std::transform(
-            std::begin(query_result_), std::end(query_result_),
-            std::back_inserter(tokens),
-            [&](const typename QueryResponseType::ResultType::value_type&
-                    item) {
-              const std::string& data_handle = item.second;
-              const auto& item_key = item.first;
-
-              auto result = task_sink_.AddTaskChecked(
-                  [=](client::CancellationContext context) {
-                    return download_job->Download(data_handle, context);
-                  },
-                  [=](ExtendedDataResponse response) {
-                    download_job->CompleteItem(item_key, std::move(response));
-                  },
-                  priority_);
-
-              if (result) {
-                return *result;
-              }
-
-              all_download_tasks_triggered = false;
-              return client::CancellationToken();
-            });
-        return CreateToken(std::move(tokens));
-      });
-
-      if (!all_download_tasks_triggered) {
-        execution_context_.CancelOperation();
-        download_job_->OnPrefetchCompleted(
-            {{client::ErrorCode::Cancelled, "Cancelled"}});
+      // process responses
+      if (!IsErrorOccurs()) {
+        ProcesQueryResponses();
       }
     }
   }
 
+  bool IsErrorOccurs() {
+    if (canceled_) {
+      download_job_->OnPrefetchCompleted(
+          {{client::ErrorCode::Cancelled, "Cancelled"}});
+      return true;
+    }
+    for (const auto& resp : responses_) {
+      if (resp.response.IsSuccessful()) {
+        return false;
+      }
+    }
+    // all queries fail, finish prefetch with error
+    download_job_->OnPrefetchCompleted(
+        {responses_.front().response.GetError()});
+    return true;
+  }
+
+  void ProcesQueryResponses() {
+    for (auto& resp : responses_) {
+      if (filter_) {
+        resp = filter_(resp);
+      }
+      query_result_size_ += resp.list_of_tiles.size();
+    }
+
+    if (!query_result_size_) {
+      download_job_->OnPrefetchCompleted(PrefetchResult());
+      return;
+    }
+
+    OLP_SDK_LOG_DEBUG_F("QueryMetadataJob", "Starting download, requests=%zu",
+                        query_result_size_);
+
+    download_job_->Initialize(query_result_size_, accumulated_statistics_);
+
+    auto download_job = download_job_;
+
+    bool all_download_tasks_triggered = true;
+
+    auto trigger_download_tasks = [&]() {
+      auto create_token = [&](const QueryResultItem& item,
+                              const EmptyResponse& query_response) {
+        const std::string& data_handle = item.second;
+        const auto& item_key = item.first;
+
+        auto result = task_sink_.AddTaskChecked(
+            [=](client::CancellationContext context) {
+              if (query_response.IsSuccessful()) {
+                return download_job->Download(data_handle, context);
+              } else {
+                return download_job->PropagateError(query_response.GetError());
+              }
+            },
+            [=](ExtendedDataResponse response) {
+              download_job->CompleteItem(item_key, std::move(response));
+            },
+            priority_);
+
+        if (result) {
+          return *result;
+        }
+
+        all_download_tasks_triggered = false;
+        return client::CancellationToken();
+      };
+
+      VectorOfTokens tokens;
+
+      for (const auto& resp : responses_) {
+        const auto& items = resp.list_of_tiles;
+        for (const auto& item : items) {
+          tokens.emplace_back(create_token(item, resp.response));
+        }
+      }
+
+      return CreateToken(std::move(tokens));
+    };
+
+    execution_context_.ExecuteOrCancelled(trigger_download_tasks);
+
+    if (!all_download_tasks_triggered) {
+      execution_context_.CancelOperation();
+      download_job_->OnPrefetchCompleted(
+          {{client::ErrorCode::Cancelled, "Cancelled"}});
+    }
+  }
+
  protected:
+  std::vector<QueryResponse<QueryType, QueryResult>> responses_;
   QueryItemsFunc<ItemType, QueryType, QueryResponseType> query_;
-  FilterItemsFunc<typename QueryResponseType::ResultType> filter_;
+  FilterItemsFunc<QueryResponse<QueryType, QueryResult>> filter_;
   size_t query_count_{0};
-  size_t query_size_{0};
   bool canceled_{false};
-  typename QueryResponseType::ResultType query_result_;
+  size_t query_result_size_{0};
+
   client::NetworkStatistics accumulated_statistics_;
-  std::vector<client::ApiError> query_errors_;
   std::shared_ptr<
       DownloadItemsJob<ItemType, PrefetchResult, PrefetchStatusType>>
       download_job_;

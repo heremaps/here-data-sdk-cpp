@@ -91,11 +91,13 @@ class PrefetchTilesRepository {
    * If you requested aggregated tiles, `FilterTilesByList` scans for parents.
    *
    * @param request Your request.
+   * @param root Tile used for query.
    * @param tiles The input tiles.
    *
    * @returns The modified tiles.
    */
   SubQuadsResult FilterTilesByList(const PrefetchTilesRequest& request,
+                                   const geo::TileKey& root,
                                    SubQuadsResult tiles);
 
   SubQuadsResponse GetVersionedSubQuads(geo::TileKey tile, int32_t depth,

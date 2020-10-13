@@ -68,6 +68,11 @@ class DownloadItemsJob {
                                 client::CancellationContext context) {
     return download_(data_handle, context);
   }
+
+  ExtendedDataResponse PropagateError(client::ApiError error) {
+    return {error};
+  }
+
   size_t GetAccumulatedBytes(const olp::client::NetworkStatistics& statistics) {
     // This narrow cast is necessary to avoid narrowing compiler errors like
     // -Wc++11-narrowing when building for 32bit targets.

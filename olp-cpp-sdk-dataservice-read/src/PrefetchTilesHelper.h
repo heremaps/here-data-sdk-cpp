@@ -49,8 +49,9 @@ class PrefetchTilesHelper {
   static client::CancellationToken Prefetch(
       std::shared_ptr<DownloadJob> download_job,
       const std::vector<geo::TileKey>& roots, QueryFunc query,
-      FilterItemsFunc<repository::SubQuadsResult> filter, TaskSink& task_sink,
-      uint32_t priority) {
+      FilterItemsFunc<QueryResponse<geo::TileKey, repository::SubQuadsResult>>
+          filter,
+      TaskSink& task_sink, uint32_t priority) {
     client::CancellationContext execution_context;
 
     auto query_job = std::make_shared<

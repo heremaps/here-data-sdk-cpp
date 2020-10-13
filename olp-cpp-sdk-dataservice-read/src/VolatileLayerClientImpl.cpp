@@ -218,14 +218,18 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
           return repository.GetVolatileSubQuads(root, kQuadTreeDepth,
                                                 inner_context);
         };
-
-        auto filter = [=](repository::SubQuadsResult tiles) mutable {
-          if (request_only_input_tiles) {
-            return repository.FilterTilesByList(request, std::move(tiles));
-          } else {
-            return repository.FilterTilesByLevel(request, std::move(tiles));
-          }
-        };
+        auto filter =
+            [=](QueryResponse<geo::TileKey, repository::SubQuadsResult>
+                    resp) mutable {
+              if (request_only_input_tiles) {
+                resp.list_of_tiles = repository.FilterTilesByList(
+                    request, resp.root, std::move(resp.list_of_tiles));
+              } else {
+                resp.list_of_tiles = repository.FilterTilesByLevel(
+                    request, std::move(resp.list_of_tiles));
+              }
+              return resp;
+            };
 
         auto billing_tag = request.GetBillingTag();
         auto download = [=](std::string data_handle,
