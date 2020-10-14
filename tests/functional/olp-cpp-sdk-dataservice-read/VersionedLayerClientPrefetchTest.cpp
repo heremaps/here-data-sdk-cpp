@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-#include <gtest/gtest.h>
 #include <string>
 
+#include <gtest/gtest.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/http/NetworkSettings.h>
@@ -80,8 +80,8 @@ TEST_F(VersionedLayerClientPrefetchTest, PrefetchTiles) {
   constexpr auto kQuadTreeDepth = 4;
 
   const auto root_tile = olp::geo::TileKey::FromHereTile(kTileId);
-  auto client = std::make_unique<read::VersionedLayerClient>(
-      hrn, kLayer, boost::none, *settings_);
+  auto client =
+      read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
   std::vector<std::string> tiles_data;
   tiles_data.reserve(4);
 
@@ -119,7 +119,7 @@ TEST_F(VersionedLayerClientPrefetchTest, PrefetchTiles) {
       }
     }
 
-    auto future = client->PrefetchTiles(request).GetFuture();
+    auto future = client.PrefetchTiles(request).GetFuture();
     auto response = future.get();
     ASSERT_TRUE(response.IsSuccessful())
         << response.GetError().GetMessage().c_str();
@@ -142,7 +142,7 @@ TEST_F(VersionedLayerClientPrefetchTest, PrefetchTiles) {
       auto child = olp::geo::TileKey::FromQuadKey64(key);
       auto future =
           client
-              ->GetData(read::TileRequest().WithTileKey(child).WithFetchOption(
+              .GetData(read::TileRequest().WithTileKey(child).WithFetchOption(
                   read::CacheOnly))
               .GetFuture();
       auto response = future.get();
@@ -177,7 +177,7 @@ TEST_F(VersionedLayerClientPrefetchTest, PrefetchTiles) {
           mockserver::ReadDefaultResponses::GenerateData());
     }
 
-    auto future = client->PrefetchTiles(request).GetFuture();
+    auto future = client.PrefetchTiles(request).GetFuture();
     auto response = future.get();
     ASSERT_TRUE(response.IsSuccessful())
         << response.GetError().GetMessage().c_str();
@@ -215,7 +215,7 @@ TEST_F(VersionedLayerClientPrefetchTest, PrefetchTiles) {
       }
     }
 
-    auto future = client->PrefetchTiles(request).GetFuture();
+    auto future = client.PrefetchTiles(request).GetFuture();
     auto response = future.get();
     ASSERT_TRUE(response.IsSuccessful())
         << response.GetError().GetMessage().c_str();
@@ -232,7 +232,7 @@ TEST_F(VersionedLayerClientPrefetchTest, PrefetchTiles) {
 
 TEST_F(VersionedLayerClientPrefetchTest, PrefetchPartitions) {
   olp::client::HRN hrn(kTestHrn);
-  const auto partitions_count = 100u;
+  const auto partitions_count = 200u;
   const auto data = mockserver::ReadDefaultResponses::GenerateData();
 
   auto client =
@@ -257,18 +257,16 @@ TEST_F(VersionedLayerClientPrefetchTest, PrefetchPartitions) {
 
       mock_server_client_->MockGetResponse(
           mockserver::ReadDefaultResponses::GeneratePartitionsResponse(
-              partitions_count),
+              partitions_count / 2),
           GetPartitions());
-      for (auto i = 0u; i < partitions_count; i++) {
+
+      mock_server_client_->MockGetError(
+          {olp::http::HttpStatusCode::NOT_FOUND, "Not found"}, GetPartitions());
+
+      for (auto i = 0u; i < partitions_count / 2; i++) {
         auto data_handle =
             mockserver::ReadDefaultResponses::GenerateDataHandle(partitions[i]);
-        if (i % 2 == 0) {
-          mock_server_client_->MockGetResponse(kLayer, data_handle, data);
-        } else {
-          mock_server_client_->MockGetError(
-              {olp::http::HttpStatusCode::NOT_FOUND, "Not found"},
-              GenerateGetDataPath(data_handle));
-        }
+        mock_server_client_->MockGetResponse(kLayer, data_handle, data);
       }
     }
     std::promise<read::PrefetchPartitionsResponse> promise;
@@ -277,11 +275,10 @@ TEST_F(VersionedLayerClientPrefetchTest, PrefetchPartitions) {
         request, [&promise](read::PrefetchPartitionsResponse response) {
           promise.set_value(std::move(response));
         });
-    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    EXPECT_EQ(future.wait_for(kWaitTimeout), std::future_status::ready);
 
     auto response = future.get();
-    ASSERT_TRUE(response.IsSuccessful())
-        << response.GetError().GetMessage().c_str();
+    ASSERT_TRUE(response.IsSuccessful());
     const auto result = response.MoveResult();
 
     EXPECT_EQ(result.GetPartitions().size(), partitions_count / 2);
@@ -294,7 +291,113 @@ TEST_F(VersionedLayerClientPrefetchTest, PrefetchPartitions) {
       ASSERT_TRUE(data_response.IsSuccessful());
       EXPECT_EQ(data_response.GetResult()->size(), data.size());
     }
-    EXPECT_TRUE(mock_server_client_->Verify());
   }
+  {
+    SCOPED_TRACE("Failed request");
+    const auto request =
+        read::PrefetchPartitionsRequest().WithPartitionIds({"201"});
+    {
+      mock_server_client_->MockGetError(
+          {olp::http::HttpStatusCode::NOT_FOUND, "Not found"}, GetPartitions());
+    }
+
+    auto future = client.PrefetchPartitions(request).GetFuture();
+    EXPECT_EQ(future.wait_for(kWaitTimeout), std::future_status::ready);
+    auto response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+    ASSERT_EQ(olp::client::ErrorCode::NotFound,
+              response.GetError().GetErrorCode());
+  }
+  {
+    SCOPED_TRACE("Empty json responce");
+    const auto request =
+        read::PrefetchPartitionsRequest().WithPartitionIds({"201"});
+    {
+      mock_server_client_->MockGetError({olp::http::HttpStatusCode::OK, ""},
+                                        GetPartitions());
+    }
+
+    auto future = client.PrefetchPartitions(request).GetFuture();
+    EXPECT_EQ(future.wait_for(kWaitTimeout), std::future_status::ready);
+    auto response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+    ASSERT_EQ(olp::client::ErrorCode::Unknown,
+              response.GetError().GetErrorCode());
+    ASSERT_EQ("Fail parsing response.", response.GetError().GetMessage());
+  }
+  {
+    SCOPED_TRACE("Download all data handles fails");
+    std::vector<std::string> partitions;
+    partitions.reserve(partitions_count);
+    for (auto i = partitions_count + 1; i < partitions_count + 11; i++) {
+      partitions.emplace_back(std::to_string(i));
+    }
+
+    const auto request =
+        read::PrefetchPartitionsRequest().WithPartitionIds(partitions);
+    {
+      mock_server_client_->MockGetResponse(
+          mockserver::ReadDefaultResponses::GeneratePartitionsResponse(
+              10, partitions_count + 1),
+          GetPartitions());
+
+      for (auto partition : partitions) {
+        auto data_handle =
+            mockserver::ReadDefaultResponses::GenerateDataHandle(partition);
+        mock_server_client_->MockGetError(
+            {olp::http::HttpStatusCode::NOT_FOUND, "Not found"},
+            GenerateGetDataPath(data_handle));
+      }
+    }
+
+    auto future = client.PrefetchPartitions(request).GetFuture();
+    EXPECT_EQ(future.wait_for(kWaitTimeout), std::future_status::ready);
+    auto response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+    ASSERT_EQ(olp::client::ErrorCode::Unknown,
+              response.GetError().GetErrorCode());
+    ASSERT_EQ("No partitions were prefetched.",
+              response.GetError().GetMessage());
+  }
+  {
+    SCOPED_TRACE("Download some data handles fails");
+    std::vector<std::string> partitions;
+    partitions.reserve(partitions_count);
+    for (auto i = partitions_count + 1; i < partitions_count + 11; i++) {
+      partitions.emplace_back(std::to_string(i));
+    }
+
+    const auto request =
+        read::PrefetchPartitionsRequest().WithPartitionIds(partitions);
+    {
+      for (auto i = 0u; i < partitions.size(); i++) {
+        auto data_handle =
+            mockserver::ReadDefaultResponses::GenerateDataHandle(partitions[i]);
+        if (i % 2 == 0) {
+          mock_server_client_->MockGetResponse(kLayer, data_handle, data);
+        } else {
+          mock_server_client_->MockGetError(
+              {olp::http::HttpStatusCode::NOT_FOUND, "Not found"},
+              GenerateGetDataPath(data_handle));
+        }
+      }
+    }
+
+    auto future = client.PrefetchPartitions(request).GetFuture();
+    EXPECT_EQ(future.wait_for(kWaitTimeout), std::future_status::ready);
+    auto response = future.get();
+    ASSERT_TRUE(response.IsSuccessful());
+    const auto result = response.MoveResult();
+    for (const auto& partition : result.GetPartitions()) {
+      ASSERT_TRUE(client.IsCached(partition));
+      auto data_request =
+          read::DataRequest().WithPartitionId(partition).WithFetchOption(
+              read::FetchOptions::CacheOnly);
+      auto data_response = client.GetData(data_request).GetFuture().get();
+      ASSERT_TRUE(data_response.IsSuccessful());
+      EXPECT_EQ(data_response.GetResult()->size(), data.size());
+    }
+  }
+  EXPECT_TRUE(mock_server_client_->Verify());
 }
 }  // namespace
