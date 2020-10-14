@@ -18,6 +18,8 @@
  */
 
 #include <gtest/gtest.h>
+#include <string>
+
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/http/NetworkSettings.h>
@@ -25,16 +27,18 @@
 #include <olp/core/porting/make_unique.h>
 #include <olp/dataservice/read/FetchOptions.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
-#include <string>
 #include "ApiDefaultResponses.h"
-#include "MockServerHelper.h"
 #include "ReadDefaultResponses.h"
-#include "SetupMockServer.h"
 #include "Utils.h"
+// clang-format off
+#include "generated/serializer/PartitionsSerializer.h"
+#include "generated/serializer/JsonSerializer.h"
+#include "SetupMockServer.h"
+// clang-format on
 
 namespace {
-
-const auto kTestHrn = "hrn:here:data::olp-here-test:hereos-internal-test";
+namespace read = olp::dataservice::read;
+constexpr auto kWaitTimeout = std::chrono::seconds(10);
 
 class VersionedLayerClientPrefetchTest : public ::testing::Test {
  protected:
@@ -51,28 +55,39 @@ class VersionedLayerClientPrefetchTest : public ::testing::Test {
     settings_.reset();
     mock_server_client_.reset();
   }
+  std::string GetPartitions() {
+    return "/query/v1/catalogs/" + kTestHrn + "/layers/" + kLayer +
+           "/partitions";
+  }
+  std::string GenerateGetDataPath(const std::string& data_handle) {
+    return "/blob/v1/catalogs/" + kTestHrn + "/layers/" + kLayer + "/data/" +
+           data_handle;
+  }
 
   std::shared_ptr<olp::client::OlpClientSettings> settings_;
   std::shared_ptr<mockserver::MockServerHelper> mock_server_client_;
+  const std::string kTestHrn =
+      "hrn:here:data::olp-here-test:hereos-internal-test";
+
+  const std::string kLayer = "testlayer";
+  const uint32_t kVersion = 44;
 };
 
-TEST_F(VersionedLayerClientPrefetchTest, Prefetch) {
+TEST_F(VersionedLayerClientPrefetchTest, PrefetchTiles) {
   olp::client::HRN hrn(kTestHrn);
 
   constexpr auto kTileId = "5901734";
-  constexpr auto kLayer = "testlayer";
   constexpr auto kQuadTreeDepth = 4;
-  constexpr auto kVersion = 44;
 
   const auto root_tile = olp::geo::TileKey::FromHereTile(kTileId);
-  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+  auto client = std::make_unique<read::VersionedLayerClient>(
       hrn, kLayer, boost::none, *settings_);
   std::vector<std::string> tiles_data;
   tiles_data.reserve(4);
 
   {
     SCOPED_TRACE("Prefetch tiles");
-    const auto request = olp::dataservice::read::PrefetchTilesRequest()
+    const auto request = read::PrefetchTilesRequest()
                              .WithTileKeys({root_tile})
                              .WithMinLevel(12)
                              .WithMaxLevel(15);
@@ -127,9 +142,8 @@ TEST_F(VersionedLayerClientPrefetchTest, Prefetch) {
       auto child = olp::geo::TileKey::FromQuadKey64(key);
       auto future =
           client
-              ->GetData(olp::dataservice::read::TileRequest()
-                            .WithTileKey(child)
-                            .WithFetchOption(olp::dataservice::read::CacheOnly))
+              ->GetData(read::TileRequest().WithTileKey(child).WithFetchOption(
+                  read::CacheOnly))
               .GetFuture();
       auto response = future.get();
 
@@ -145,7 +159,7 @@ TEST_F(VersionedLayerClientPrefetchTest, Prefetch) {
   {
     const auto zero_level_tile = root_tile.ChangedLevelTo(0);
     SCOPED_TRACE("Prefetch tiles min/max levels is 0");
-    const auto request = olp::dataservice::read::PrefetchTilesRequest()
+    const auto request = read::PrefetchTilesRequest()
                              .WithTileKeys({zero_level_tile})
                              .WithMinLevel(0)
                              .WithMaxLevel(0);
@@ -179,7 +193,7 @@ TEST_F(VersionedLayerClientPrefetchTest, Prefetch) {
   {
     const auto zero_level_tile = root_tile.ChangedLevelTo(0);
     SCOPED_TRACE("Prefetch tiles only min level is 0");
-    const auto request = olp::dataservice::read::PrefetchTilesRequest()
+    const auto request = read::PrefetchTilesRequest()
                              .WithTileKeys({zero_level_tile})
                              .WithMinLevel(0)
                              .WithMaxLevel(1);
@@ -211,6 +225,74 @@ TEST_F(VersionedLayerClientPrefetchTest, Prefetch) {
     for (auto tile_result : result) {
       EXPECT_SUCCESS(*tile_result);
       ASSERT_TRUE(tile_result->tile_key_.IsValid());
+    }
+    EXPECT_TRUE(mock_server_client_->Verify());
+  }
+}
+
+TEST_F(VersionedLayerClientPrefetchTest, PrefetchPartitions) {
+  olp::client::HRN hrn(kTestHrn);
+  const auto partitions_count = 100u;
+  const auto data = mockserver::ReadDefaultResponses::GenerateData();
+
+  auto client =
+      read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
+
+  {
+    SCOPED_TRACE("Prefetch partitions");
+    std::vector<std::string> partitions;
+    partitions.reserve(partitions_count);
+    for (auto i = 0u; i < partitions_count; i++) {
+      partitions.emplace_back(std::to_string(i));
+    }
+    const auto request =
+        read::PrefetchPartitionsRequest().WithPartitionIds(partitions);
+    {
+      mock_server_client_->MockAuth();
+      mock_server_client_->MockLookupResourceApiResponse(
+          mockserver::ApiDefaultResponses::GenerateResourceApisResponse(
+              kTestHrn));
+      mock_server_client_->MockGetVersionResponse(
+          mockserver::ReadDefaultResponses::GenerateVersionResponse(kVersion));
+
+      mock_server_client_->MockGetResponse(
+          mockserver::ReadDefaultResponses::GeneratePartitionsResponse(
+              partitions_count),
+          GetPartitions());
+      for (auto i = 0u; i < partitions_count; i++) {
+        auto data_handle =
+            mockserver::ReadDefaultResponses::GenerateDataHandle(partitions[i]);
+        if (i % 2 == 0) {
+          mock_server_client_->MockGetResponse(kLayer, data_handle, data);
+        } else {
+          mock_server_client_->MockGetError(
+              {olp::http::HttpStatusCode::NOT_FOUND, "Not found"},
+              GenerateGetDataPath(data_handle));
+        }
+      }
+    }
+    std::promise<read::PrefetchPartitionsResponse> promise;
+    auto future = promise.get_future();
+    auto token = client.PrefetchPartitions(
+        request, [&promise](read::PrefetchPartitionsResponse response) {
+          promise.set_value(std::move(response));
+        });
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+
+    auto response = future.get();
+    ASSERT_TRUE(response.IsSuccessful())
+        << response.GetError().GetMessage().c_str();
+    const auto result = response.MoveResult();
+
+    EXPECT_EQ(result.GetPartitions().size(), partitions_count / 2);
+    for (const auto& partition : result.GetPartitions()) {
+      ASSERT_TRUE(client.IsCached(partition));
+      auto data_request =
+          read::DataRequest().WithPartitionId(partition).WithFetchOption(
+              read::FetchOptions::CacheOnly);
+      auto data_response = client.GetData(data_request).GetFuture().get();
+      ASSERT_TRUE(data_response.IsSuccessful());
+      EXPECT_EQ(data_response.GetResult()->size(), data.size());
     }
     EXPECT_TRUE(mock_server_client_->Verify());
   }
