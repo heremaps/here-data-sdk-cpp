@@ -44,8 +44,9 @@ For more information on Data API, see its <a href="https://developer.here.com/ol
 
 When new API is introduced in the Data SDK for C++, the old one is not deleted straight away. The standard API deprecation time is 6 months. It gives you time to switch to new code. However, we do not provide ABI backward compatibility.
 
-
 All of the deprecated methods, functions, and parameters are documented in the Data SDK for C++ <a href="https://developer.here.com/olp/documentation/sdk-cpp/api_reference/index.html" target="_blank">API Reference</a> and <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/CHANGELOG.md" target="_blank">changelog</a>.
+
+For more information on the Data SDK for C++, see our <a href="https://developer.here.com/documentation/sdk-cpp/dev_guide/index.html" target="blank">Developer Guide</a>.
 
 ## Supported Platforms
 
@@ -178,7 +179,7 @@ cmake --build . --target docs
 
 ## SDK Usage
 
-To learn how to use the HERE Data SDK for C++, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/GettingStartedGuide.md" target="_blank">Getting Started Guide</a>.
+To learn how to use the HERE Data SDK for C++, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/GettingStartedGuide.md" target="_blank">Getting Started Guide</a> and the <a href="https://developer.here.com/documentation/sdk-cpp/dev_guide/index.html" target="blank">Developer Guide</a>.
 
 ## Contribution
 
