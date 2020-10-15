@@ -20,16 +20,11 @@
 #include <string>
 
 #include <gtest/gtest.h>
-#include <olp/core/client/OlpClientSettings.h>
-#include <olp/core/client/OlpClientSettingsFactory.h>
-#include <olp/core/http/NetworkSettings.h>
-#include <olp/core/logging/Log.h>
-#include <olp/core/porting/make_unique.h>
-#include <olp/dataservice/read/FetchOptions.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include "ApiDefaultResponses.h"
 #include "ReadDefaultResponses.h"
 #include "Utils.h"
+#include "VersionedLayerTestBase.h"
 // clang-format off
 #include "generated/serializer/PartitionsSerializer.h"
 #include "generated/serializer/JsonSerializer.h"
@@ -39,39 +34,7 @@
 namespace {
 namespace read = olp::dataservice::read;
 constexpr auto kWaitTimeout = std::chrono::seconds(10);
-
-class VersionedLayerClientPrefetchTest : public ::testing::Test {
- protected:
-  void SetUp() override {
-    auto network = olp::client::OlpClientSettingsFactory::
-        CreateDefaultNetworkRequestHandler();
-    settings_ = mockserver::SetupMockServer::CreateSettings(network);
-    mock_server_client_ =
-        mockserver::SetupMockServer::CreateMockServer(network, kTestHrn);
-  }
-
-  void TearDown() override {
-    auto network = std::move(settings_->network_request_handler);
-    settings_.reset();
-    mock_server_client_.reset();
-  }
-  std::string GetPartitions() {
-    return "/query/v1/catalogs/" + kTestHrn + "/layers/" + kLayer +
-           "/partitions";
-  }
-  std::string GenerateGetDataPath(const std::string& data_handle) {
-    return "/blob/v1/catalogs/" + kTestHrn + "/layers/" + kLayer + "/data/" +
-           data_handle;
-  }
-
-  std::shared_ptr<olp::client::OlpClientSettings> settings_;
-  std::shared_ptr<mockserver::MockServerHelper> mock_server_client_;
-  const std::string kTestHrn =
-      "hrn:here:data::olp-here-test:hereos-internal-test";
-
-  const std::string kLayer = "testlayer";
-  const uint32_t kVersion = 44;
-};
+using VersionedLayerClientPrefetchTest = VersionedLayerTestBase;
 
 TEST_F(VersionedLayerClientPrefetchTest, PrefetchTiles) {
   olp::client::HRN hrn(kTestHrn);
@@ -258,10 +221,11 @@ TEST_F(VersionedLayerClientPrefetchTest, PrefetchPartitions) {
       mock_server_client_->MockGetResponse(
           mockserver::ReadDefaultResponses::GeneratePartitionsResponse(
               partitions_count / 2),
-          GetPartitions());
+          url_generator_.PartitionsQuery());
 
       mock_server_client_->MockGetError(
-          {olp::http::HttpStatusCode::NOT_FOUND, "Not found"}, GetPartitions());
+          {olp::http::HttpStatusCode::NOT_FOUND, "Not found"},
+          url_generator_.PartitionsQuery());
 
       for (auto i = 0u; i < partitions_count / 2; i++) {
         auto data_handle =
@@ -298,7 +262,8 @@ TEST_F(VersionedLayerClientPrefetchTest, PrefetchPartitions) {
         read::PrefetchPartitionsRequest().WithPartitionIds({"201"});
     {
       mock_server_client_->MockGetError(
-          {olp::http::HttpStatusCode::NOT_FOUND, "Not found"}, GetPartitions());
+          {olp::http::HttpStatusCode::NOT_FOUND, "Not found"},
+          url_generator_.PartitionsQuery());
     }
 
     auto future = client.PrefetchPartitions(request).GetFuture();
@@ -314,7 +279,7 @@ TEST_F(VersionedLayerClientPrefetchTest, PrefetchPartitions) {
         read::PrefetchPartitionsRequest().WithPartitionIds({"201"});
     {
       mock_server_client_->MockGetError({olp::http::HttpStatusCode::OK, ""},
-                                        GetPartitions());
+                                        url_generator_.PartitionsQuery());
     }
 
     auto future = client.PrefetchPartitions(request).GetFuture();
@@ -339,14 +304,14 @@ TEST_F(VersionedLayerClientPrefetchTest, PrefetchPartitions) {
       mock_server_client_->MockGetResponse(
           mockserver::ReadDefaultResponses::GeneratePartitionsResponse(
               10, partitions_count + 1),
-          GetPartitions());
+          url_generator_.PartitionsQuery());
 
       for (auto partition : partitions) {
         auto data_handle =
             mockserver::ReadDefaultResponses::GenerateDataHandle(partition);
         mock_server_client_->MockGetError(
             {olp::http::HttpStatusCode::NOT_FOUND, "Not found"},
-            GenerateGetDataPath(data_handle));
+            url_generator_.DataBlob(data_handle));
       }
     }
 
@@ -378,7 +343,7 @@ TEST_F(VersionedLayerClientPrefetchTest, PrefetchPartitions) {
         } else {
           mock_server_client_->MockGetError(
               {olp::http::HttpStatusCode::NOT_FOUND, "Not found"},
-              GenerateGetDataPath(data_handle));
+              url_generator_.DataBlob(data_handle));
         }
       }
     }

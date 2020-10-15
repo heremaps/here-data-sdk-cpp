@@ -17,28 +17,23 @@
  * License-Filename: LICENSE
  */
 
-#pragma once
+#include "VersionedLayerTestBase.h"
 
-#include <string>
-#include <utility>
-#include <vector>
+#include "SetupMockServer.h"
 
-#include <olp/core/client/model/Api.h>
+VersionedLayerTestBase::VersionedLayerTestBase()
+    : url_generator_(kTestHrn, kLayer) {}
 
-namespace mockserver {
+void VersionedLayerTestBase::SetUp() {
+  auto network = olp::client::OlpClientSettingsFactory::
+      CreateDefaultNetworkRequestHandler();
+  settings_ = mockserver::SetupMockServer::CreateSettings(network);
+  mock_server_client_ =
+      mockserver::SetupMockServer::CreateMockServer(network, kTestHrn);
+}
 
-class ApiDefaultResponses {
- public:
-  static olp::client::Apis GenerateResourceApisResponse(std::string catalog);
-
-  static olp::client::Apis GeneratePlatformApisResponse();
-
-  static olp::client::Apis GenerateApisResponse(
-      std::vector<std::pair<std::string, std::string>> api_types,
-      std::string catalog = "");
-
-  static const std::vector<std::pair<std::string, std::string>> kResourceApis;
-  static const std::vector<std::pair<std::string, std::string>> kPlatformApis;
-};
-
-}  // namespace mockserver
+void VersionedLayerTestBase::TearDown() {
+  auto network = std::move(settings_->network_request_handler);
+  settings_.reset();
+  mock_server_client_.reset();
+}

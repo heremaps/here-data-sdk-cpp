@@ -25,6 +25,7 @@ set(OLP_SDK_FUNCTIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-dataservice-read/VersionedLayerClientProtectTest.cpp
     ./olp-cpp-sdk-dataservice-read/DataserviceReadVersionedLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-read/VersionedLayerClientGetDataTest.cpp
+    ./olp-cpp-sdk-dataservice-read/VersionedLayerTestBase.cpp
     ./olp-cpp-sdk-dataservice-read/DataserviceReadVolatileLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-write/DataserviceWriteIndexLayerClientTest.cpp
     ./olp-cpp-sdk-dataservice-write/DataserviceWriteStreamLayerClientCacheTest.cpp
