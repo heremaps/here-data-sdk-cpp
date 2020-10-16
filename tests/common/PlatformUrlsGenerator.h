@@ -31,12 +31,18 @@ class PlatformUrlsGenerator {
  public:
   PlatformUrlsGenerator(olp::client::Apis apis, const std::string& layer);
 
-  PlatformUrlsGenerator(const std::string& endpoint, const std::string& catalog,
-                        const std::string& layer);
+  PlatformUrlsGenerator(const std::string& catalog, const std::string& layer,
+                        const std::string& endpoint = "");
 
   std::string PartitionsQuery(
-      const olp::dataservice::read::PartitionsRequest::PartitionIds& partitions,
-      uint64_t version);
+      const olp::dataservice::read::PartitionsRequest::PartitionIds&
+          partitions = {},
+      uint64_t version = 1);
+
+  std::string PartitionsMetadata(
+      const olp::dataservice::read::PartitionsRequest::PartitionIds&
+          partitions = {},
+      uint64_t version = 1);
 
   std::string DataBlob(const std::string& data_handle);
 

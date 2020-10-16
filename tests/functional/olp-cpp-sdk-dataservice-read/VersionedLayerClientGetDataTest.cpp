@@ -18,57 +18,21 @@
  */
 
 #include <gtest/gtest.h>
-#include <olp/core/client/OlpClientSettings.h>
-#include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
+#include "ApiDefaultResponses.h"
+#include "ReadDefaultResponses.h"
+#include "Utils.h"
+#include "VersionedLayerTestBase.h"
 // clang-format off
 #include "generated/serializer/PartitionsSerializer.h"
 #include "generated/serializer/JsonSerializer.h"
-// clang-format on
-#include "SetupMockServer.h"
-#include "ApiDefaultResponses.h"
 #include "MockServerHelper.h"
-#include "ReadDefaultResponses.h"
-#include "Utils.h"
+// clang-format on
 
 namespace {
-
-const auto kTestHrn = "hrn:here:data::olp-here-test:hereos-internal-test";
-const auto kLayer = "testlayer";
-const auto kVersion = 44;
+namespace read = olp::dataservice::read;
 constexpr auto kWaitTimeout = std::chrono::seconds(10);
-
-class VersionedLayerClientGetDataTest : public ::testing::Test {
- protected:
-  void SetUp() override {
-    auto network = olp::client::OlpClientSettingsFactory::
-        CreateDefaultNetworkRequestHandler();
-    settings_ = mockserver::SetupMockServer::CreateSettings(network);
-    mock_server_client_ =
-        mockserver::SetupMockServer::CreateMockServer(network, kTestHrn);
-  }
-
-  void TearDown() override {
-    auto network = std::move(settings_->network_request_handler);
-    settings_.reset();
-    mock_server_client_.reset();
-  }
-
-  std::string GenerateGetPartitionsPath(const std::string& hrn,
-                                        const std::string& layer) {
-    return "/query/v1/catalogs/" + hrn + "/layers/" + layer + "/partitions";
-  }
-
-  std::string GenerateGetDataPath(const std::string& hrn,
-                                  const std::string& layer,
-                                  const std::string& data_handle) {
-    return "/blob/v1/catalogs/" + hrn + "/layers/" + layer + "/data/" +
-           data_handle;
-  }
-
-  std::shared_ptr<olp::client::OlpClientSettings> settings_;
-  std::shared_ptr<mockserver::MockServerHelper> mock_server_client_;
-};
+using VersionedLayerClientGetDataTest = VersionedLayerTestBase;
 
 TEST_F(VersionedLayerClientGetDataTest, GetDataFromPartitionSync) {
   olp::client::HRN hrn(kTestHrn);
@@ -83,17 +47,17 @@ TEST_F(VersionedLayerClientGetDataTest, GetDataFromPartitionSync) {
         mockserver::ReadDefaultResponses::GenerateVersionResponse(kVersion));
     mock_server_client_->MockGetResponse(
         mockserver::ReadDefaultResponses::GeneratePartitionsResponse(1),
-        GenerateGetPartitionsPath(kTestHrn, kLayer));
+        url_generator_.PartitionsQuery());
     mock_server_client_->MockGetResponse(
         kLayer, mockserver::ReadDefaultResponses::GenerateDataHandle(partition),
         data);
   }
 
-  auto catalog_client = olp::dataservice::read::VersionedLayerClient(
-      hrn, kLayer, boost::none, *settings_);
+  auto catalog_client =
+      read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
 
-  auto future = catalog_client.GetData(
-      olp::dataservice::read::DataRequest().WithPartitionId(partition));
+  auto future =
+      catalog_client.GetData(read::DataRequest().WithPartitionId(partition));
   auto response = future.GetFuture().get();
   EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult() != nullptr);
@@ -114,27 +78,24 @@ TEST_F(VersionedLayerClientGetDataTest, GetDataFromPartitionAsync) {
         mockserver::ReadDefaultResponses::GenerateVersionResponse(kVersion));
     mock_server_client_->MockGetResponse(
         mockserver::ReadDefaultResponses::GeneratePartitionsResponse(1),
-        GenerateGetPartitionsPath(kTestHrn, kLayer));
+        url_generator_.PartitionsQuery());
     mock_server_client_->MockGetResponse(
         kLayer, mockserver::ReadDefaultResponses::GenerateDataHandle(partition),
         data);
   }
 
-  auto catalog_client = olp::dataservice::read::VersionedLayerClient(
-      hrn, kLayer, boost::none, *settings_);
+  auto catalog_client =
+      read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
 
-  std::promise<olp::dataservice::read::DataResponse> promise;
-  std::future<olp::dataservice::read::DataResponse> future =
-      promise.get_future();
+  std::promise<read::DataResponse> promise;
+  std::future<read::DataResponse> future = promise.get_future();
 
   auto token = catalog_client.GetData(
-      olp::dataservice::read::DataRequest().WithPartitionId(partition),
-      [&promise](olp::dataservice::read::DataResponse response) {
-        promise.set_value(response);
-      });
+      read::DataRequest().WithPartitionId(partition),
+      [&promise](read::DataResponse response) { promise.set_value(response); });
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
 
-  olp::dataservice::read::DataResponse response = future.get();
+  read::DataResponse response = future.get();
   EXPECT_SUCCESS(response);
   ASSERT_TRUE(response.GetResult() != nullptr);
   ASSERT_EQ(response.GetResult()->size(), data.size());
@@ -155,10 +116,10 @@ TEST_F(VersionedLayerClientGetDataTest, GetDataWithHandle) {
 
   mock_server_client_->MockGetResponse(kLayer, data_handle, data);
 
-  auto client = olp::dataservice::read::VersionedLayerClient(
-      hrn, kLayer, boost::none, *settings_);
+  auto client =
+      read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
 
-  auto request = olp::dataservice::read::DataRequest();
+  auto request = read::DataRequest();
   request.WithDataHandle(data_handle);
 
   auto future = client.GetData(request);
@@ -176,8 +137,6 @@ TEST_F(VersionedLayerClientGetDataTest, GetDataWithHandle) {
 TEST_F(VersionedLayerClientGetDataTest, GetDataWithInvalidLayerId) {
   olp::client::HRN hrn(kTestHrn);
 
-  const auto kInvalidLayer = "InvalidLayer";
-
   mock_server_client_->MockAuth();
   mock_server_client_->MockLookupResourceApiResponse(
       mockserver::ApiDefaultResponses::GenerateResourceApisResponse(kTestHrn));
@@ -185,12 +144,12 @@ TEST_F(VersionedLayerClientGetDataTest, GetDataWithInvalidLayerId) {
       mockserver::ReadDefaultResponses::GenerateVersionResponse(kVersion));
   mock_server_client_->MockGetError(
       olp::client::ApiError(olp::http::HttpStatusCode::BAD_REQUEST),
-      GenerateGetPartitionsPath(kTestHrn, kInvalidLayer));
+      url_generator_.PartitionsQuery());
 
-  auto client = olp::dataservice::read::VersionedLayerClient(
-      hrn, kInvalidLayer, boost::none, *settings_);
+  auto client =
+      read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
 
-  auto request = olp::dataservice::read::DataRequest();
+  auto request = read::DataRequest();
   request.WithPartitionId("269");
 
   auto future = client.GetData(request);
@@ -213,15 +172,14 @@ TEST_F(VersionedLayerClientGetDataTest, GetDataWithPartitionIdVersion2) {
   mock_server_client_->MockAuth();
   mock_server_client_->MockLookupResourceApiResponse(
       mockserver::ApiDefaultResponses::GenerateResourceApisResponse(kTestHrn));
-  mock_server_client_->MockGetResponse(
-      partitions_model, GenerateGetPartitionsPath(kTestHrn, kLayer));
+  mock_server_client_->MockGetResponse(partitions_model,
+                                       url_generator_.PartitionsQuery());
 
   mock_server_client_->MockGetResponse(kLayer, data_handle, data);
 
-  auto client =
-      olp::dataservice::read::VersionedLayerClient(hrn, kLayer, 2, *settings_);
+  auto client = read::VersionedLayerClient(hrn, kLayer, 2, *settings_);
 
-  auto request = olp::dataservice::read::DataRequest();
+  auto request = read::DataRequest();
   request.WithPartitionId("269");
 
   auto future = client.GetData(request);
@@ -246,7 +204,7 @@ TEST_F(VersionedLayerClientGetDataTest,
   auto partition = mockserver::ReadDefaultResponses::GeneratePartitionResponse(
       kPartitionName);
   auto data_handle = partition.GetDataHandle();
-  olp::dataservice::read::model::Partitions partitions;
+  read::model::Partitions partitions;
   partitions.SetPartitions({partition});
 
   {
@@ -256,23 +214,19 @@ TEST_F(VersionedLayerClientGetDataTest,
             kTestHrn));
     mock_server_client_->MockGetVersionResponse(
         mockserver::ReadDefaultResponses::GenerateVersionResponse(kVersion));
-    mock_server_client_->MockGetResponse(
-        partitions, GenerateGetPartitionsPath(kTestHrn, kLayer));
+    mock_server_client_->MockGetResponse(partitions,
+                                         url_generator_.PartitionsQuery());
     mock_server_client_->MockGetResponse(kLayer, data_handle, tile_data);
   }
 
-  olp::dataservice::read::VersionedLayerClient client(kHrn, kLayer, boost::none,
-                                                      *settings_);
+  read::VersionedLayerClient client(kHrn, kLayer, boost::none, *settings_);
 
-  std::promise<olp::dataservice::read::DataResponse> promise;
-  std::future<olp::dataservice::read::DataResponse> future =
-      promise.get_future();
+  std::promise<read::DataResponse> promise;
+  std::future<read::DataResponse> future = promise.get_future();
 
   auto token = client.GetData(
-      olp::dataservice::read::DataRequest().WithPartitionId(kPartitionName),
-      [&promise](olp::dataservice::read::DataResponse response) {
-        promise.set_value(response);
-      });
+      read::DataRequest().WithPartitionId(kPartitionName),
+      [&promise](read::DataResponse response) { promise.set_value(response); });
 
   auto response = future.get();
   auto result = response.GetResult();
@@ -294,13 +248,12 @@ TEST_F(VersionedLayerClientGetDataTest, GetDataWithInvalidDataHandle) {
             kTestHrn));
     mock_server_client_->MockGetError(
         {olp::http::HttpStatusCode::NOT_FOUND, "Not found"},
-        GenerateGetDataPath(kTestHrn, kLayer, kDataHandle));
+        url_generator_.DataBlob(kDataHandle));
   }
 
-  olp::dataservice::read::VersionedLayerClient client(kHrn, kLayer, boost::none,
-                                                      *settings_);
+  read::VersionedLayerClient client(kHrn, kLayer, boost::none, *settings_);
 
-  auto request = olp::dataservice::read::DataRequest();
+  auto request = read::DataRequest();
   request.WithDataHandle(kDataHandle);
   auto future = client.GetData(request).GetFuture();
   auto response = future.get();

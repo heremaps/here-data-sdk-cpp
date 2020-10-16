@@ -19,26 +19,31 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
-#include <utility>
-#include <vector>
 
-#include <olp/core/client/model/Api.h>
+#include <gmock/gmock.h>
+#include <olp/core/client/OlpClientSettings.h>
+#include <olp/core/client/OlpClientSettingsFactory.h>
+#include "PlatformUrlsGenerator.h"
 
 namespace mockserver {
+class MockServerHelper;
+}
 
-class ApiDefaultResponses {
- public:
-  static olp::client::Apis GenerateResourceApisResponse(std::string catalog);
+class VersionedLayerTestBase : public ::testing::Test {
+ protected:
+  VersionedLayerTestBase();
 
-  static olp::client::Apis GeneratePlatformApisResponse();
+  void SetUp() override;
 
-  static olp::client::Apis GenerateApisResponse(
-      std::vector<std::pair<std::string, std::string>> api_types,
-      std::string catalog = "");
+  void TearDown() override;
 
-  static const std::vector<std::pair<std::string, std::string>> kResourceApis;
-  static const std::vector<std::pair<std::string, std::string>> kPlatformApis;
+ protected:
+  std::shared_ptr<olp::client::OlpClientSettings> settings_;
+  std::shared_ptr<mockserver::MockServerHelper> mock_server_client_;
+  const std::string kTestHrn = "hrn:here:data::olp-here-test:catalog";
+  const std::string kLayer = "testlayer";
+  const uint32_t kVersion = 44;
+  PlatformUrlsGenerator url_generator_;
 };
-
-}  // namespace mockserver

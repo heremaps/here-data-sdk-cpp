@@ -19,16 +19,19 @@
 
 #include "PlatformUrlsGenerator.h"
 
+#include <utility>
+
 #include <olp/dataservice/read/model/Partitions.h>
 #include <olp/dataservice/read/model/VersionResponse.h>
+#include "ApiDefaultResponses.h"
 
 PlatformUrlsGenerator::PlatformUrlsGenerator(olp::client::Apis apis,
                                              const std::string& layer)
     : apis_(std::make_shared<olp::client::Apis>(apis)), layer_(layer) {}
 
-PlatformUrlsGenerator::PlatformUrlsGenerator(const std::string& endpoint,
-                                             const std::string& catalog,
-                                             const std::string& layer)
+PlatformUrlsGenerator::PlatformUrlsGenerator(const std::string& catalog,
+                                             const std::string& layer,
+                                             const std::string& endpoint)
     : apis_(nullptr),
       http_prefix_(endpoint),
       catalog_(catalog),
@@ -38,12 +41,26 @@ std::string PlatformUrlsGenerator::PartitionsQuery(
     const olp::dataservice::read::PartitionsRequest::PartitionIds& partitions,
     uint64_t version) {
   std::string path = "/layers/" + layer_ + "/partitions?";
-  for (const auto& partition : partitions) {
-    path.append("partition=" + partition + "&");
+  if (!partitions.empty()) {
+    for (const auto& partition : partitions) {
+      path.append("partition=" + partition + "&");
+    }
+    path.append("version=" + std::to_string(version));
   }
-  path.append("version=" + std::to_string(version));
-
   return FullPath("query", path);
+}
+
+std::string PlatformUrlsGenerator::PartitionsMetadata(
+    const olp::dataservice::read::PartitionsRequest::PartitionIds& partitions,
+    uint64_t version) {
+  std::string path = "/layers/" + layer_ + "/partitions?";
+  if (!partitions.empty()) {
+    for (const auto& partition : partitions) {
+      path.append("partition=" + partition + "&");
+    }
+    path.append("version=" + std::to_string(version));
+  }
+  return FullPath("metadata", path);
 }
 
 std::string PlatformUrlsGenerator::DataBlob(const std::string& data_handle) {
@@ -66,7 +83,29 @@ std::string PlatformUrlsGenerator::FullPath(const std::string& service,
                                             const std::string& path) {
   std::string url;
   if (!apis_) {
-    url = http_prefix_ + "/catalogs/" + catalog_;
+    if (http_prefix_.empty()) {
+      // for mock server used as prefix
+      auto find_version =
+          [&](const std::vector<std::pair<std::string, std::string>>& api)
+          -> std::string {
+        auto it =
+            std::find_if(api.begin(), api.end(),
+                         [&](const std::pair<std::string, std::string>& pair) {
+                           return service.compare(pair.first) == 0;
+                         });
+        if (it != api.end()) {
+          return it->second;
+        }
+        return {};
+      };
+      auto v = find_version(mockserver::ApiDefaultResponses::kResourceApis);
+      if (v.empty()) {
+        v = find_version(mockserver::ApiDefaultResponses::kPlatformApis);
+      }
+      url = "/" + service + "/" + v + "/catalogs/" + catalog_;
+    } else {
+      url = http_prefix_ + "/catalogs/" + catalog_;
+    }
   } else {
     auto it = find_if(apis_->begin(), apis_->end(), [&](olp::client::Api api) {
       return api.GetApi() == service;

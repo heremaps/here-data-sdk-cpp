@@ -36,7 +36,7 @@ namespace http = olp::http;
 using testing::_;
 
 VersionedLayerTestBase::VersionedLayerTestBase()
-    : url_generator_(kEndpoint, kCatalog, kLayerName) {}
+    : url_generator_(kCatalog, kLayerName, kEndpoint) {}
 
 void VersionedLayerTestBase::SetUp() {
   olp::utils::Dir::remove(kCachePathMutable);

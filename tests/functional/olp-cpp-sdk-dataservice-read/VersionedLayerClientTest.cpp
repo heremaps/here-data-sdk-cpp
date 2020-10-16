@@ -17,57 +17,27 @@
  * License-Filename: LICENSE
  */
 
-#include <gtest/gtest.h>
-#include <olp/authentication/AuthenticationCredentials.h>
-#include <olp/authentication/Settings.h>
-#include <olp/authentication/TokenProvider.h>
-#include <olp/core/cache/CacheSettings.h>
-#include <olp/core/cache/KeyValueCache.h>
-#include <olp/core/client/OlpClientSettings.h>
-#include <olp/core/client/OlpClientSettingsFactory.h>
-#include <olp/core/http/NetworkSettings.h>
-#include <olp/core/logging/Log.h>
-#include <olp/core/porting/make_unique.h>
-#include <olp/dataservice/read/FetchOptions.h>
-#include <olp/dataservice/read/VersionedLayerClient.h>
 #include <numeric>
 #include <string>
+
+#include <gtest/gtest.h>
+#include <olp/core/cache/CacheSettings.h>
+#include <olp/core/cache/KeyValueCache.h>
+#include <olp/core/porting/make_unique.h>
+#include <olp/dataservice/read/VersionedLayerClient.h>
+#include "ApiDefaultResponses.h"
+#include "ReadDefaultResponses.h"
+#include "Utils.h"
+#include "VersionedLayerTestBase.h"
 // clang-format off
 #include "generated/serializer/PartitionsSerializer.h"
 #include "generated/serializer/JsonSerializer.h"
-// clang-format on
-#include "ReadDefaultResponses.h"
-#include "ApiDefaultResponses.h"
 #include "MockServerHelper.h"
-#include "SetupMockServer.h"
-#include "Utils.h"
+// clang-format on
 
 namespace {
-
-const auto kTestHrn = "hrn:here:data::olp-here-test:hereos-internal-test";
-const auto kPartitionsResponsePath =
-    "/metadata/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test/"
-    "layers/testlayer/partitions";
-
-class VersionedLayerClientTest : public ::testing::Test {
- protected:
-  void SetUp() override {
-    auto network = olp::client::OlpClientSettingsFactory::
-        CreateDefaultNetworkRequestHandler();
-    settings_ = mockserver::SetupMockServer::CreateSettings(network);
-    mock_server_client_ =
-        mockserver::SetupMockServer::CreateMockServer(network, kTestHrn);
-  }
-
-  void TearDown() override {
-    auto network = std::move(settings_->network_request_handler);
-    settings_.reset();
-    mock_server_client_.reset();
-  }
-
-  std::shared_ptr<olp::client::OlpClientSettings> settings_;
-  std::shared_ptr<mockserver::MockServerHelper> mock_server_client_;
-};
+namespace read = olp::dataservice::read;
+using VersionedLayerClientTest = VersionedLayerTestBase;
 
 TEST_F(VersionedLayerClientTest, GetPartitions) {
   olp::client::HRN hrn(kTestHrn);
@@ -77,18 +47,17 @@ TEST_F(VersionedLayerClientTest, GetPartitions) {
         mockserver::ApiDefaultResponses::GenerateResourceApisResponse(
             kTestHrn));
     mock_server_client_->MockGetVersionResponse(
-        mockserver::ReadDefaultResponses::GenerateVersionResponse(44));
+        mockserver::ReadDefaultResponses::GenerateVersionResponse(kVersion));
     mock_server_client_->MockGetResponse(
         mockserver::ReadDefaultResponses::GeneratePartitionsResponse(4),
-        kPartitionsResponsePath);
+        url_generator_.PartitionsMetadata());
   }
 
   auto catalog_client =
-      std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", boost::none, *settings_);
+      read::VersionedLayerClient(hrn, "testlayer", boost::none, *settings_);
 
-  auto request = olp::dataservice::read::PartitionsRequest();
-  auto future = catalog_client->GetPartitions(request);
+  auto request = read::PartitionsRequest();
+  auto future = catalog_client.GetPartitions(request);
   auto partitions_response = future.GetFuture().get();
 
   EXPECT_SUCCESS(partitions_response);
@@ -106,7 +75,7 @@ TEST_F(VersionedLayerClientTest, GetAggregatedData) {
 
   const auto root_tile = olp::geo::TileKey::FromHereTile(kTileId);
   const auto tile = root_tile.ChangedLevelTo(15);
-  const auto request = olp::dataservice::read::TileRequest().WithTileKey(tile);
+  const auto request = read::TileRequest().WithTileKey(tile);
 
   // authentification not needed for the test
   settings_->authentication_settings = boost::none;
@@ -131,10 +100,9 @@ TEST_F(VersionedLayerClientTest, GetAggregatedData) {
     }
 
     auto client =
-        std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-            hrn, kLayer, boost::none, *settings_);
+        read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
 
-    auto future = client->GetAggregatedData(request).GetFuture();
+    auto future = client.GetAggregatedData(request).GetFuture();
     auto response = future.get();
     const auto result = response.MoveResult();
     const auto& result_data = result.GetData();
@@ -170,10 +138,9 @@ TEST_F(VersionedLayerClientTest, GetAggregatedData) {
     }
 
     auto client =
-        std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-            hrn, kLayer, boost::none, *settings_);
+        read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
 
-    auto future = client->GetAggregatedData(request).GetFuture();
+    auto future = client.GetAggregatedData(request).GetFuture();
     auto response = future.get();
     const auto result = response.MoveResult();
     const auto& result_data = result.GetData();
@@ -209,10 +176,9 @@ TEST_F(VersionedLayerClientTest, GetAggregatedData) {
     }
 
     auto client =
-        std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-            hrn, kLayer, boost::none, *settings_);
+        read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
 
-    auto future = client->GetAggregatedData(request).GetFuture();
+    auto future = client.GetAggregatedData(request).GetFuture();
     auto response = future.get();
     const auto result = response.MoveResult();
     const auto& result_data = result.GetData();
@@ -248,10 +214,9 @@ TEST_F(VersionedLayerClientTest, GetAggregatedData) {
     settings_->cache =
         olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
     auto client =
-        std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-            hrn, kLayer, boost::none, *settings_);
+        read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
 
-    auto future = client->GetAggregatedData(request).GetFuture();
+    auto future = client.GetAggregatedData(request).GetFuture();
     auto response = future.get();
     auto result = response.MoveResult();
     auto result_data = result.GetData();
@@ -265,9 +230,8 @@ TEST_F(VersionedLayerClientTest, GetAggregatedData) {
     EXPECT_TRUE(mock_server_client_->Verify());
 
     const auto request =
-        olp::dataservice::read::TileRequest().WithTileKey(tile).WithFetchOption(
-            olp::dataservice::read::CacheOnly);
-    response = client->GetAggregatedData(request).GetFuture().get();
+        read::TileRequest().WithTileKey(tile).WithFetchOption(read::CacheOnly);
+    response = client.GetAggregatedData(request).GetFuture().get();
     result = response.MoveResult();
     result_data = result.GetData();
 
