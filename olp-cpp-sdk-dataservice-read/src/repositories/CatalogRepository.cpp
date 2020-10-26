@@ -55,8 +55,8 @@ CatalogResponse CatalogRepository::GetCatalog(
   const auto fetch_options = request.GetFetchOption();
   const auto catalog_str = catalog_.ToCatalogHRNString();
 
-  repository::CatalogCacheRepository repository{
-      catalog_, settings_.cache, settings_.default_cache_expiration};
+  repository::CatalogCacheRepository repository(
+      catalog_, settings_.cache, settings_.default_cache_expiration);
 
   if (fetch_options != OnlineOnly && fetch_options != CacheWithUpdate) {
     auto cached = repository.Get();
@@ -106,7 +106,8 @@ CatalogResponse CatalogRepository::GetCatalog(
 
 CatalogVersionResponse CatalogRepository::GetLatestVersion(
     const CatalogVersionRequest& request, client::CancellationContext context) {
-  repository::CatalogCacheRepository repository(catalog_, settings_.cache);
+  repository::CatalogCacheRepository repository(
+      catalog_, settings_.cache, settings_.default_cache_expiration);
 
   const auto fetch_option = request.GetFetchOption();
   // in case if get version online was never called and version was not found in
