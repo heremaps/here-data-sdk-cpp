@@ -28,7 +28,6 @@
 #include <olp/core/logging/Log.h>
 #include "CatalogRepository.h"
 #include "DataCacheRepository.h"
-#include "ExecuteOrSchedule.inl"
 #include "NamedMutex.h"
 #include "PartitionsCacheRepository.h"
 #include "PartitionsRepository.h"

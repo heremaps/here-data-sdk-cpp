@@ -31,7 +31,6 @@
 #include "Common.h"
 #include "generated/api/BlobApi.h"
 #include "generated/api/StreamApi.h"
-#include "repositories/ExecuteOrSchedule.inl"
 
 namespace olp {
 namespace dataservice {
@@ -60,20 +59,19 @@ StreamLayerClientImpl::StreamLayerClientImpl(client::HRN catalog,
     : catalog_(std::move(catalog)),
       layer_id_(std::move(layer_id)),
       settings_(std::move(settings)),
-      pending_requests_(std::make_shared<client::PendingRequests>()),
-      lookup_client_(catalog_, settings_) {
+      lookup_client_(catalog_, settings_),
+      task_sink_(settings_.task_scheduler) {
   if (!settings_.cache) {
     settings_.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
   }
 }
 
-StreamLayerClientImpl::~StreamLayerClientImpl() {
-  pending_requests_->CancelAllAndWait();
-}
+StreamLayerClientImpl::~StreamLayerClientImpl() = default;
 
 bool StreamLayerClientImpl::CancelPendingRequests() {
   OLP_SDK_LOG_TRACE(kLogTag, "CancelPendingRequests");
-  return pending_requests_->CancelAll();
+  task_sink_.CancelTasks();
+  return true;
 }
 
 client::CancellationToken StreamLayerClientImpl::Subscribe(
@@ -148,8 +146,8 @@ client::CancellationToken StreamLayerClientImpl::Subscribe(
     return subscripton_id;
   };
 
-  return AddTask(settings_.task_scheduler, pending_requests_,
-                 std::move(subscribe_task), std::move(callback));
+  return task_sink_.AddTask(std::move(subscribe_task), std::move(callback),
+                            thread::NORMAL);
 }
 
 client::CancellableFuture<SubscribeResponse> StreamLayerClientImpl::Subscribe(
@@ -216,8 +214,8 @@ client::CancellationToken StreamLayerClientImpl::Unsubscribe(
     return subscription_id;
   };
 
-  return AddTask(settings_.task_scheduler, pending_requests_,
-                 std::move(unsubscribe_task), std::move(callback));
+  return task_sink_.AddTask(std::move(unsubscribe_task), std::move(callback),
+                            thread::NORMAL);
 }
 
 client::CancellableFuture<UnsubscribeResponse>
@@ -265,8 +263,8 @@ client::CancellationToken StreamLayerClientImpl::GetData(
     return blob_response;
   };
 
-  return AddTask(settings_.task_scheduler, pending_requests_,
-                 std::move(get_data_task), std::move(callback));
+  return task_sink_.AddTask(std::move(get_data_task), std::move(callback),
+                            thread::NORMAL);
 }
 
 client::CancellableFuture<DataResponse> StreamLayerClientImpl::GetData(
@@ -362,8 +360,8 @@ client::CancellationToken StreamLayerClientImpl::Poll(
     return res;
   };
 
-  return AddTask(settings_.task_scheduler, pending_requests_,
-                 std::move(poll_task), std::move(callback));
+  return task_sink_.AddTask(std::move(poll_task), std::move(callback),
+                            thread::NORMAL);
 }
 
 client::CancellableFuture<PollResponse> StreamLayerClientImpl::Poll() {
@@ -422,8 +420,8 @@ client::CancellationToken StreamLayerClientImpl::Seek(
     return res;
   };
 
-  return AddTask(settings_.task_scheduler, pending_requests_,
-                 std::move(seek_task), std::move(callback));
+  return task_sink_.AddTask(std::move(seek_task), std::move(callback),
+                            thread::NORMAL);
 }
 client::CancellableFuture<SeekResponse> StreamLayerClientImpl::Seek(
     SeekRequest request) {

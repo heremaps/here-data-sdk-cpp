@@ -31,6 +31,8 @@
 #include <olp/dataservice/read/Types.h>
 #include <olp/dataservice/read/VersionsRequest.h>
 
+#include "TaskSink.h"
+
 namespace olp {
 namespace client {
 class OlpClient;
@@ -47,8 +49,6 @@ class CatalogRepository;
 class CatalogClientImpl final {
  public:
   CatalogClientImpl(client::HRN catalog, client::OlpClientSettings settings);
-
-  ~CatalogClientImpl();
 
   bool CancelPendingRequests();
 
@@ -72,9 +72,8 @@ class CatalogClientImpl final {
  private:
   client::HRN catalog_;
   client::OlpClientSettings settings_;
-  std::shared_ptr<thread::TaskScheduler> task_scheduler_;
-  std::shared_ptr<client::PendingRequests> pending_requests_;
   client::ApiLookupClient lookup_client_;
+  TaskSink task_sink_;
 };
 
 }  // namespace read

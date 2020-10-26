@@ -27,7 +27,6 @@
 #include <olp/core/logging/Log.h>
 
 #include "CatalogCacheRepository.h"
-#include "ExecuteOrSchedule.inl"
 #include "generated/api/ConfigApi.h"
 #include "generated/api/MetadataApi.h"
 #include "olp/dataservice/read/CatalogRequest.h"
