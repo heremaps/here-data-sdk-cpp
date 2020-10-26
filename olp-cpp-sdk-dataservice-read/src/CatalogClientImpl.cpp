@@ -28,7 +28,6 @@
 
 #include "Common.h"
 #include "repositories/CatalogRepository.h"
-#include "repositories/ExecuteOrSchedule.inl"
 
 namespace olp {
 namespace dataservice {
@@ -42,25 +41,17 @@ CatalogClientImpl::CatalogClientImpl(client::HRN catalog,
                                      client::OlpClientSettings settings)
     : catalog_(std::move(catalog)),
       settings_(std::move(settings)),
-      lookup_client_(catalog_, settings_) {
+      lookup_client_(catalog_, settings_),
+      task_sink_(settings_.task_scheduler) {
   if (!settings_.cache) {
     settings_.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
   }
-
-  // to avoid capturing task scheduler inside a task, we need a copy of settings
-  // without the scheduler
-  task_scheduler_ = std::move(settings_.task_scheduler);
-
-  pending_requests_ = std::make_shared<client::PendingRequests>();
-}
-
-CatalogClientImpl::~CatalogClientImpl() {
-  pending_requests_->CancelAllAndWait();
 }
 
 bool CatalogClientImpl::CancelPendingRequests() {
   OLP_SDK_LOG_TRACE(kLogTag, "CancelPendingRequests");
-  return pending_requests_->CancelAll();
+  task_sink_.CancelTasks();
+  return true;
 }
 
 client::CancellationToken CatalogClientImpl::GetCatalog(
@@ -77,8 +68,8 @@ client::CancellationToken CatalogClientImpl::GetCatalog(
       return repository.GetCatalog(request, std::move(context));
     };
 
-    return AddTask(task_scheduler_, pending_requests_,
-                   std::move(get_catalog_task), std::move(callback));
+    return task_sink_.AddTask(std::move(get_catalog_task), std::move(callback),
+                              thread::NORMAL);
   };
 
   return ScheduleFetch(std::move(schedule_get_catalog), std::move(request),
@@ -111,8 +102,8 @@ client::CancellationToken CatalogClientImpl::GetLatestVersion(
       return repository.GetLatestVersion(request, std::move(context));
     };
 
-    return AddTask(task_scheduler_, pending_requests_,
-                   std::move(get_latest_version_task), std::move(callback));
+    return task_sink_.AddTask(std::move(get_latest_version_task),
+                              std::move(callback), thread::NORMAL);
   };
 
   return ScheduleFetch(std::move(schedule_get_latest_version),
@@ -142,8 +133,8 @@ client::CancellationToken CatalogClientImpl::ListVersions(
     return repository.GetVersionsList(request, std::move(context));
   };
 
-  return AddTask(task_scheduler_, pending_requests_,
-                 std::move(versions_list_task), std::move(callback));
+  return task_sink_.AddTask(std::move(versions_list_task), std::move(callback),
+                            thread::NORMAL);
 }
 
 client::CancellableFuture<VersionsResponse> CatalogClientImpl::ListVersions(

@@ -19,13 +19,12 @@
 
 #pragma once
 
+#include <boost/optional.hpp>
+
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/PendingRequests.h>
 #include <olp/core/client/TaskContext.h>
-#include <olp/core/logging/Log.h>
 #include <olp/core/thread/TaskScheduler.h>
-
-#include "repositories/ExecuteOrSchedule.inl"
 
 namespace olp {
 namespace dataservice {
@@ -33,20 +32,14 @@ namespace read {
 
 class TaskSink {
  public:
-  explicit TaskSink(std::shared_ptr<thread::TaskScheduler> task_scheduler)
-      : task_scheduler_(std::move(task_scheduler)),
-        pending_requests_(std::make_shared<client::PendingRequests>()),
-        closed_(false) {}
+  explicit TaskSink(std::shared_ptr<thread::TaskScheduler> task_scheduler);
 
   TaskSink(const TaskSink&) = delete;
   TaskSink& operator=(const TaskSink&) = delete;
 
-  ~TaskSink() {
-    closed_.store(true);
-    pending_requests_->CancelAllAndWait();
-  }
+  ~TaskSink();
 
-  void CancelTasks() { pending_requests_->CancelAll(); }
+  void CancelTasks();
 
   template <typename Function, typename Callback, typename... Args>
   client::CancellationToken AddTask(Function task, Callback callback,
@@ -70,31 +63,17 @@ class TaskSink {
     return context.CancelToken();
   }
 
- private:
-  bool AddTaskImpl(client::TaskContext task, uint32_t priority) {
-    if (closed_.load()) {
-      OLP_SDK_LOG_WARNING(
-          "TaskSink", "Attempt to add a task when the sink is already closed");
-      return false;
-    }
+ protected:
+  bool AddTaskImpl(client::TaskContext task, uint32_t priority);
 
-    pending_requests_->Insert(task);
+  bool ScheduleTask(client::TaskContext task, uint32_t priority);
 
-    auto pending_requests = pending_requests_;
+  void ExecuteTask(client::TaskContext task);
 
-    repository::ExecuteOrSchedule(task_scheduler_,
-                                  [=] {
-                                    task.Execute();
-                                    pending_requests->Remove(task);
-                                  },
-                                  priority);
-
-    return true;
-  }
-
-  std::shared_ptr<thread::TaskScheduler> task_scheduler_;
-  std::shared_ptr<client::PendingRequests> pending_requests_;
-  std::atomic_bool closed_;
+  const std::shared_ptr<thread::TaskScheduler> task_scheduler_;
+  const std::shared_ptr<client::PendingRequests> pending_requests_;
+  std::mutex mutex_;
+  bool closed_;
 };
 
 }  // namespace read

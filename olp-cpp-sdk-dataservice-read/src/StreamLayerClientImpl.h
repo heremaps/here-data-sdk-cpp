@@ -31,6 +31,8 @@
 #include <olp/dataservice/read/Types.h>
 #include <olp/dataservice/read/model/Messages.h>
 
+#include "TaskSink.h"
+
 namespace olp {
 namespace client {
 class OlpClient;
@@ -93,10 +95,10 @@ class StreamLayerClientImpl {
   client::HRN catalog_;
   std::string layer_id_;
   client::OlpClientSettings settings_;
-  std::shared_ptr<client::PendingRequests> pending_requests_;
   std::mutex mutex_;
   std::unique_ptr<StreamLayerClientContext> client_context_;
   client::ApiLookupClient lookup_client_;
+  TaskSink task_sink_;
 };
 
 }  // namespace read
