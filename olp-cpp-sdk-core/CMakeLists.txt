@@ -111,6 +111,7 @@ set(OLP_SDK_PORTING_HEADERS
     ./include/olp/core/porting/export.h
     ./include/olp/core/porting/make_unique.h
     ./include/olp/core/porting/platform.h
+    ./include/olp/core/porting/shared_mutex.h
     ./include/olp/core/porting/try_emplace.h
     ./include/olp/core/porting/warning_disable.h
 )
