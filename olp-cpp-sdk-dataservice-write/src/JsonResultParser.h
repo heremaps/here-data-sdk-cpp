@@ -33,8 +33,28 @@ namespace parser {
 template <typename OutputResult,
           typename ParsingType = typename OutputResult::ResultType,
           typename... AdditionalArgs>
-OutputResult parse_result(std::stringstream& json_stream,
-                          const AdditionalArgs&... args) {
+typename std::enable_if<
+    std::is_constructible<ParsingType, ParsingType, AdditionalArgs...>::value,
+    OutputResult>::type
+parse_result(std::stringstream& json_stream, const AdditionalArgs&... args) {
+  bool res = true;
+  auto obj = parse<ParsingType>(json_stream, res);
+
+  if (res) {
+    return ParsingType(std::move(obj), args...);
+  } else {
+    return {
+        client::ApiError(client::ErrorCode::Unknown, "Fail parsing response.")};
+  }
+}
+
+template <typename OutputResult,
+          typename ParsingType = typename OutputResult::ResultType,
+          typename... AdditionalArgs>
+typename std::enable_if<
+    !std::is_constructible<ParsingType, ParsingType, AdditionalArgs...>::value,
+    OutputResult>::type
+parse_result(std::stringstream& json_stream, const AdditionalArgs&... args) {
   bool res = true;
   auto obj = parse<ParsingType>(json_stream, res);
 
