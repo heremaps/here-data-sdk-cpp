@@ -141,12 +141,18 @@ constexpr auto kLogTag = "OLPHttpTask";
 #pragma mark - Response handlers
 
 - (void)didCompleteWithError:(NSError*)error {
+  int status = 0;
+  if (self.responseData)
+  {
+      status = self.responseData.status;
+  }
+
   OLP_SDK_LOG_DEBUG_F(kLogTag,
                       "Task is completed, request_id=%llu, url=%s, "
-                      "task_id=%u, error=%i",
+                      "task_id=%u, error=%i, status=%i",
                       self.requestId, [self.url UTF8String],
                       (unsigned int)self.dataTask.taskIdentifier,
-                      (int)error.code);
+                      (int)error.code, status);
 
   OLPHttpTaskCompletionHandler completionHandler = nil;
   @synchronized(self) {
