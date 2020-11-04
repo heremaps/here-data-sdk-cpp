@@ -116,6 +116,9 @@ public class HttpClient {
       this.proxyPort = proxyPort;
 
       switch (proxyType) {
+        case 0:
+          this.proxyType = Proxy.Type.DIRECT;
+          break;
         case 1:
           this.proxyType = Proxy.Type.HTTP;
           break;
@@ -189,7 +192,7 @@ public class HttpClient {
     }
 
     public final boolean noProxy() {
-      return hasProxy() && this.proxyServer.equals("No");
+      return (hasProxy() && this.proxyServer.equals("No")) || this.proxyType == Proxy.Type.DIRECT;
     }
 
     public final int maxRetries() {
