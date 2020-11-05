@@ -32,6 +32,19 @@
 #define HAVE_PTHREAD_RWLOCK
 #endif
 
+#ifndef THROW_OR_ABORT
+# if __cpp_exceptions
+#  define THROW_OR_ABORT(exception) (throw (exception))
+# else
+#  include <cstdlib>
+#  define THROW_OR_ABORT(exception) \
+    do {                            \
+      (void)exception;              \
+      std::abort();                 \
+    } while (0)
+# endif
+#endif
+
 namespace std {
 namespace detail {
 
@@ -62,13 +75,13 @@ class shared_mutex_pthread {
   shared_mutex_pthread() {
     int __ret = pthread_rwlock_init(&_M_rwlock, NULL);
     if (__ret == ENOMEM)
-      throw std::bad_alloc();
+      THROW_OR_ABORT(std::bad_alloc());
     else if (__ret == EAGAIN)
-      throw std::system_error(
-          std::make_error_code(errc::resource_unavailable_try_again));
+      THROW_OR_ABORT(std::system_error(
+          std::make_error_code(errc::resource_unavailable_try_again)));
     else if (__ret == EPERM)
-      throw std::system_error(
-          std::make_error_code(errc::operation_not_permitted));
+      THROW_OR_ABORT(std::system_error(
+          std::make_error_code(errc::operation_not_permitted)));
     // Errors not handled: EBUSY, EINVAL
     assert(__ret == 0);
   }
@@ -86,8 +99,8 @@ class shared_mutex_pthread {
   void lock() {
     int __ret = pthread_rwlock_wrlock(&_M_rwlock);
     if (__ret == EDEADLK)
-      throw std::system_error(
-          std::make_error_code(errc::resource_deadlock_would_occur));
+      THROW_OR_ABORT(std::system_error(
+          std::make_error_code(errc::resource_deadlock_would_occur)));
     // Errors not handled: EINVAL
     assert(__ret == 0);
   }
@@ -119,8 +132,8 @@ class shared_mutex_pthread {
       __ret = pthread_rwlock_rdlock(&_M_rwlock);
     } while (__ret == EAGAIN);
     if (__ret == EDEADLK)
-      throw std::system_error(
-          std::make_error_code(errc::resource_deadlock_would_occur));
+      THROW_OR_ABORT(std::system_error(
+          std::make_error_code(errc::resource_deadlock_would_occur)));
     // Errors not handled: EINVAL
     assert(__ret == 0);
   }
@@ -369,8 +382,8 @@ class shared_lock {
 
   void unlock() {
     if (!_M_owns)
-      throw std::system_error(
-          std::make_error_code(errc::resource_deadlock_would_occur));
+      THROW_OR_ABORT(std::system_error(
+          std::make_error_code(errc::resource_deadlock_would_occur)));
     _M_pm->unlock_shared();
     _M_owns = false;
   }
@@ -394,11 +407,11 @@ class shared_lock {
  private:
   void _M_lockable() const {
     if (_M_pm == nullptr)
-      throw std::system_error(
-          std::make_error_code(errc::operation_not_permitted));
+      THROW_OR_ABORT(std::system_error(
+          std::make_error_code(errc::operation_not_permitted)));
     if (_M_owns)
-      throw std::system_error(
-          std::make_error_code(errc::resource_deadlock_would_occur));
+      THROW_OR_ABORT(std::system_error(
+          std::make_error_code(errc::resource_deadlock_would_occur)));
   }
 
   mutex_type* _M_pm;
