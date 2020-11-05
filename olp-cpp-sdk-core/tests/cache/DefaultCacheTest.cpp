@@ -28,6 +28,9 @@
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/utils/Dir.h>
 
+namespace {
+using CacheType = olp::cache::DefaultCache::CacheType;
+
 void BasicCacheTestWithSettings(const olp::cache::CacheSettings& settings) {
   {
     SCOPED_TRACE("Put/Get decode");
@@ -469,6 +472,19 @@ TEST(DefaultCacheTest, ProtectedCacheTest) {
     ASSERT_FALSE(key1_data_read.empty());
     ASSERT_EQ(key1_data_string, boost::any_cast<std::string>(key1_data_read));
   }
+
+  {
+    SCOPED_TRACE("Open not existing cache");
+
+    olp::utils::Dir::Remove(protected_path);
+
+    olp::cache::CacheSettings settings;
+    settings.disk_path_protected = protected_path;
+
+    olp::cache::DefaultCache cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(olp::utils::Dir::Exists(protected_path));
+  }
 }
 
 TEST(DefaultCacheTest, AlreadyInUsePath) {
@@ -620,3 +636,70 @@ TEST(DefaultCacheTest, CheckIfKeyExist) {
     ASSERT_FALSE(cache.Contains(key1));
   }
 }
+
+TEST(DefaultCacheTest, OpenTypeCache) {
+  const std::string key1_data_string = "this is key1's data";
+  const std::string key2_data_string = "this is key2's data";
+  const std::string key1 = "key1";
+  const std::string key2 = "key2";
+
+  auto mutable_path = olp::utils::Dir::TempDirectory() + "/mutable_cache";
+  auto protected_path = olp::utils::Dir::TempDirectory() + "/protected_cache";
+
+  olp::utils::Dir::Remove(mutable_path);
+  olp::utils::Dir::Remove(protected_path);
+
+  olp::cache::CacheSettings settings;
+  settings.disk_path_mutable = mutable_path;
+  settings.disk_path_protected = protected_path;
+  settings.max_memory_cache_size = 0;
+
+  {
+    SCOPED_TRACE("Prepare protected cache");
+
+    olp::cache::CacheSettings prepare_settings;
+    prepare_settings.disk_path_mutable = protected_path;
+    prepare_settings.max_memory_cache_size = 0;
+
+    olp::cache::DefaultCache cache(prepare_settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+
+    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; }, 2);
+  }
+
+  {
+    SCOPED_TRACE("Open/Close");
+
+    olp::cache::DefaultCache cache(settings);
+
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(cache.Contains(key1));
+    ASSERT_FALSE(cache.Contains(key2));
+
+    // there are no mutable and memory caches, so Put() operation is successful,
+    // but value not available.
+    cache.Close(CacheType::kMutable);
+    ASSERT_TRUE(cache.Put(key2, key2_data_string,
+                          [=]() { return key2_data_string; }, 2));
+    ASSERT_FALSE(cache.Contains(key2));
+
+    cache.Open(CacheType::kMutable);
+
+    ASSERT_TRUE(cache.Put(key2, key2_data_string,
+                          [=]() { return key2_data_string; }, 2));
+    ASSERT_TRUE(cache.Contains(key2));
+    ASSERT_TRUE(cache.Contains(key1));
+
+    cache.Close(CacheType::kProtected);
+
+    ASSERT_FALSE(cache.Contains(key1));
+    ASSERT_TRUE(cache.Contains(key2));
+
+    cache.Close(CacheType::kMutable);
+
+    ASSERT_FALSE(cache.Contains(key1));
+    ASSERT_FALSE(cache.Contains(key2));
+  }
+}
+
+}  // namespace

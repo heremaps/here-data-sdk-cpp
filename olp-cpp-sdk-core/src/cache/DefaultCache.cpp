@@ -31,7 +31,13 @@ DefaultCache::~DefaultCache() = default;
 
 DefaultCache::StorageOpenResult DefaultCache::Open() { return impl_->Open(); }
 
+DefaultCache::StorageOpenResult DefaultCache::Open(CacheType type) {
+  return impl_->Open(type);
+}
+
 void DefaultCache::Close() { impl_->Close(); }
+
+bool DefaultCache::Close(CacheType type) { return impl_->Close(type); }
 
 bool DefaultCache::Clear() { return impl_->Clear(); }
 

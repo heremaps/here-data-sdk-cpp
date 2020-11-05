@@ -54,11 +54,20 @@ class DefaultCacheImpl;
 class CORE_API DefaultCache : public KeyValueCache {
  public:
   /**
-   * @brief The storage open result type
+   * @brief The storage open result type.
    */
   enum StorageOpenResult {
-    Success,            /*!< The operation succeeded. */
-    OpenDiskPathFailure /*!< The disk cache failure. */
+    Success,             /*!< The operation succeeded. */
+    OpenDiskPathFailure, /*!< The disk cache failure. */
+    NotReady             /*!< The DefaultCache is closed. */
+  };
+
+  /**
+   * @brief The cache type.
+   */
+  enum class CacheType {
+    kMutable,  /*!< The mutable cache type. */
+    kProtected /*!< The protected cache type. */
   };
 
   /**
@@ -78,9 +87,30 @@ class CORE_API DefaultCache : public KeyValueCache {
   StorageOpenResult Open();
 
   /**
+   * @brief Creates a new cache of the corresponding type.
+   *
+   * @param type The type of cache to open.
+   *
+   * @return `Success` if the cache is created or already open, `NotReady` if
+   * DefaultCache is closed and `OpenDiskPathFailure` if there are problems
+   * opening the provided path on the disk.
+   */
+  StorageOpenResult Open(CacheType type);
+
+  /**
    * @brief Closes the cache.
    */
   void Close();
+
+  /**
+   * @brief Closes the cache internally so that it is not keept open and thus
+   * blocking others from accessing it.
+   *
+   * @param type The type of cache to close.
+   *
+   * @return true if the cache was closed successfully; false otherwise.
+   */
+  bool Close(CacheType type);
 
   /**
    * @brief Clears the cache content.

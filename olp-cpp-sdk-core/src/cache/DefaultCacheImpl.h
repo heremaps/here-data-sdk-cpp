@@ -39,8 +39,10 @@ class DefaultCacheImpl {
   ~DefaultCacheImpl();
 
   DefaultCache::StorageOpenResult Open();
+  DefaultCache::StorageOpenResult Open(DefaultCache::CacheType type);
 
   void Close();
+  bool Close(DefaultCache::CacheType type);
 
   bool Clear();
 
@@ -81,9 +83,14 @@ class DefaultCacheImpl {
     return mutable_cache_lru_;
   }
 
-  /// Returns mutable cache, used for tests.
-  const std::unique_ptr<DiskCache>& GetMutableCache() const {
-    return mutable_cache_;
+  /// Returns mutable or protected cache, used for tests.
+  const std::unique_ptr<DiskCache>& GetCache(
+      DefaultCache::CacheType type) const {
+    if (type == DefaultCache::CacheType::kMutable) {
+      return mutable_cache_;
+    }
+
+    return protected_cache_;
   }
 
   /// Returns memory cache, used for tests.
@@ -124,6 +131,12 @@ class DefaultCacheImpl {
                        time_t expiry);
 
   DefaultCache::StorageOpenResult SetupStorage();
+
+  DefaultCache::StorageOpenResult SetupProtectedCache();
+
+  DefaultCache::StorageOpenResult SetupMutableCache();
+
+  void DestroyCache(DefaultCache::CacheType type);
 
   bool GetFromDiskCache(const std::string& key,
                         KeyValueCache::ValueTypePtr& value, time_t& expiry);
