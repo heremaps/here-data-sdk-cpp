@@ -5,7 +5,8 @@ On this page, you can find instructions on how to build and run the example proj
 Before you run the example project, authorize to the HERE platform:
 
 1. On the [Apps & keys](https://platform.here.com/admin/apps) page, copy your application access key ID and access key secret.
-   For instructions on how to get the access key ID and access key secret, see the [Get Credentials](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html) section in the Terms and Permissions User Guide.
+
+   For instructions on how to get the access key ID and access key secret, see the [Register Your Application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
 
 2. In `examples/main.cpp`, replace the placeholders with your access key ID, access key secret, and Here Resource Name (HRN) of the catalog.
    **Note:**  You can also specify these values using the command line options.
@@ -65,7 +66,7 @@ To authenticate with the HERE platform, you must get platform credentials that c
 
 1. Get your platform credentials.
 
-   For instructions, see the [Get Credentials](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html) section in the Terms and Permissions User Guide.
+   For instructions, see the [Register Your Application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
 
    You get the `credentials.properties` file.
 
