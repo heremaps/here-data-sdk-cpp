@@ -5,7 +5,8 @@ On this page, find instructions on how to build and run the example project on d
 Before you run the example project, authorize to the HERE platform:
 
 1. On the [Apps & keys](https://platform.here.com/admin/apps) page, copy your application access key ID and access key secret.
-   For instructions on how to get the access key ID and access key secret, see the [Get Credentials](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html) section in the Terms and Permissions User Guide.
+
+   For instructions on how to get the access key ID and access key secret, see the [Register Your Application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
 
 2. In `examples/main.cpp`, replace the placeholders with your access key ID, access key secret, and Here Resource Name (HRN) of the catalog.
    **Note:**  You can also specify these values using the command line options.
@@ -68,8 +69,9 @@ To integrate the HERE Data SDK for C++ libraries in the Android example project:
 Before you integrate the HERE Data SDK for C++ libraries in the Android example project:
 
 1. Set up the Android environment.
-2.  In `examples/android/app/src/main/cpp/MainActivityNative.cpp.in`, replace the placeholders with your application access key ID, access key secret, and catalog HRN and specify that the example should run `RunExampleRead`.
-   For instructions on how to get the access key ID and access key secret, see the [Get Credentials](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html) section in the Terms and Permissions User Guide.
+2. In `examples/android/app/src/main/cpp/MainActivityNative.cpp.in`, replace the placeholders with your application access key ID, access key secret, and catalog HRN and specify that the example should run `RunExampleRead`.
+
+   For instructions on how to get the access key ID and access key secret, see the [Register Your Application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
 
 ### <a name="build-sdk-android"></a>Build the HERE Data SDK for C++
 
@@ -119,9 +121,11 @@ Before you integrate the HERE Data SDK for C++ libraries in the iOS example proj
 
 1. To set up the iOS development environment, install the `XCode` and command-line tools.
 2. Install external dependencies.
+
    For information on dependencies and installation instructions, see the [related section](https://github.com/heremaps/here-data-sdk-cpp#dependencies) in the README.md file.
 3. In `examples/ios/ViewController.mm`, replace the placeholders with your application access key ID, access key secret, and catalog HRN and specify that the example should run `RunExampleRead`.
-   For instructions on how to get the access key ID and access key secret, see the [Get Credentials](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html) section in the Terms and Permissions User Guide.
+
+   For instructions on how to get the access key ID and access key secret, see the [Register Your Application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
 
 ### <a name="build-sdk-ios"></a>Build the HERE Data SDK for C++
 
@@ -169,7 +173,7 @@ To authenticate with the HERE platform, you must get platform credentials that c
 
 1. Get your platform credentials.
 
-   For instructions, see the [Get Credentials](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html) section in the Terms and Permissions User Guide.
+   For instructions, see the [Register Your Application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
 
    You get the `credentials.properties` file.
 
