@@ -29,7 +29,7 @@
 #include <rapidjson/writer.h>
 
 #include "Constants.h"
-#include "Crypto.h"
+#include <olp/authentication/Crypto.h>
 #include "olp/core/http/NetworkUtils.h"
 #include "olp/core/utils/Base64.h"
 #include "olp/core/utils/Url.h"
@@ -55,8 +55,8 @@ constexpr auto kOauthSignatureMethod = "oauth_signature_method";
 constexpr auto kVersion = "1.0";
 constexpr auto kHmac = "HMAC-SHA256";
 
-std::string Base64Encode(const std::vector<uint8_t>& vector) {
-  std::string ret = olp::utils::Base64Encode(vector);
+std::string Base64Encode(const Crypto::Sha256Digest& digest) {
+  std::string ret = olp::utils::Base64Encode(digest.data(), digest.size());
   // Base64 encode sometimes return multiline with garbage at the end
   if (!ret.empty()) {
     auto loc = ret.find(kLineFeed);
@@ -299,7 +299,7 @@ std::string GenerateAuthorizationHeader(
          << encoded_query;
 
   const std::string encode_key = credentials.GetSecret() + kParamAdd;
-  auto hmac_result = Crypto::hmac_sha256(encode_key, signature_base.str());
+  auto hmac_result = Crypto::HmacSha256(encode_key, signature_base.str());
   auto signature = Base64Encode(hmac_result);
 
   std::stringstream authorization;
