@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,14 @@
  * License-Filename: LICENSE
  */
 
-#include "Crypto.h"
+#include <olp/authentication/Crypto.h>
 
 #include <algorithm>
-#include <cstring>
-#include <sstream>
-#include <vector>
+
+namespace olp {
+namespace authentication {
+
+namespace {
 
 // SHA256 Algorithm from
 // https://csrc.nist.gov/csrc/media/publications/fips/180/4/final/documents/fips180-4-draft-aug2014.pdf
@@ -61,45 +63,7 @@ static uint32_t SHA256_K[SHA256_CONSTANTS_LENGTH] = {
 #define HMAC_OPAD_BYTE 0x5c
 #define HMAC_B 64
 
-namespace olp {
-namespace authentication {
-std::vector<uint8_t> Crypto::hmac_sha256(const std::string& key,
-                                         const std::string& message) {
-  std::vector<unsigned char> k0;
-
-  // Step 1 - 3
-  auto keyLength = key.length();
-  std::vector<uint8_t> keyVec = toUnsignedCharVector(key);
-  if (keyLength <= HMAC_B)
-    k0.assign(keyVec.begin(), keyVec.end());
-  else {
-    auto newKey = sha256(keyVec);
-    keyLength = newKey.size();
-    k0.assign(newKey.begin(), newKey.end());
-  }
-
-  for (auto i = keyLength; i < HMAC_B; i++) k0.push_back(0);
-
-  // Step 4 - 5
-  std::vector<uint8_t> k0XORipadMsg;
-  for (int i = 0; i < HMAC_B; i++)
-    k0XORipadMsg.push_back(k0[i] ^ HMAC_IPAD_BYTE);
-  std::vector<uint8_t> messageVec = toUnsignedCharVector(message);
-  k0XORipadMsg.insert(k0XORipadMsg.end(), messageVec.begin(), messageVec.end());
-
-  // Step 6
-  std::vector<uint8_t> hk0XORipadMsg = sha256(k0XORipadMsg);
-
-  // Step 7 - 8
-  std::vector<uint8_t> s8;
-  for (int i = 0; i < HMAC_B; i++) s8.push_back(k0[i] ^ HMAC_OPAD_BYTE);
-  s8.insert(s8.end(), hk0XORipadMsg.begin(), hk0XORipadMsg.end());
-
-  // Step 9
-  return sha256(s8);
-}
-
-std::vector<uint32_t> Crypto::sha256Init() {
+std::vector<uint32_t> Sha256Init() {
   std::vector<uint32_t> hashValue;
   hashValue.push_back(0x6a09e667);
   hashValue.push_back(0xbb67ae85);
@@ -113,107 +77,164 @@ std::vector<uint32_t> Crypto::sha256Init() {
   return hashValue;
 }
 
-std::vector<unsigned char> Crypto::sha256(
-    const std::vector<unsigned char>& src) {
-  auto hashValue = sha256Init();
-  std::vector<std::vector<unsigned char> > chucksToProcess;
+void Sha256Transform(const std::vector<unsigned char>& current_chunk,
+                     unsigned long start_index,
+                     std::vector<uint32_t>& hash_value) {
+  std::array<uint32_t, SHA256_MESSAGE_SCHEDULE_LENGTH> w;
 
-  auto length = src.size();
-  auto chunksCount = length / SHA256_LAST_CHUNK_LENGTH;
-  auto lastChunkSize = length % SHA256_LAST_CHUNK_LENGTH;
-
-  std::vector<unsigned char> lastChunk;
-  if (lastChunkSize < 56) {
-    lastChunk.assign(src.begin() + (chunksCount * SHA256_LAST_CHUNK_LENGTH),
-                     src.end());
-    lastChunk.push_back(0x80);
-  } else {
-    // Not enough empty space left in the last chunk, need another one
-    std::vector<unsigned char> secondLastChunk;
-    secondLastChunk.assign(
-        src.begin() + (chunksCount * SHA256_LAST_CHUNK_LENGTH), src.end());
-    secondLastChunk.push_back(0x80);
-    auto chunkSize = secondLastChunk.size();
-    for (auto i = chunkSize; i < SHA256_LAST_CHUNK_LENGTH; i++)
-      secondLastChunk.push_back(0);
-    chucksToProcess.push_back(secondLastChunk);
+  for (int i = 0, j = 0; i < 16; i++, j += 4)
+    w[i] = (current_chunk[start_index + j] << 24) |
+           (current_chunk[start_index + j + 1] << 16) |
+           (current_chunk[start_index + j + 2] << 8) |
+           (current_chunk[start_index + j + 3]);
+  for (int i = 16; i < SHA256_MESSAGE_SCHEDULE_LENGTH; i++) {
+    w[i] = SHA256_SIGMA1(w[i - 2]) + w[i - 7] + SHA256_SIGMA0(w[i - 15]) +
+           w[i - 16];
   }
 
-  for (auto i = lastChunk.size(); i < (SHA256_LAST_CHUNK_LENGTH - 8); i++)
-    lastChunk.push_back(0);
+  std::array<uint32_t, SHA256_HASH_VALUE_LENGTH> working_var;
+  for (int i = 0; i < SHA256_HASH_VALUE_LENGTH; i++) {
+    working_var[i] = hash_value[i];
+  }
+
+  for (int i = 0; i < SHA256_MESSAGE_SCHEDULE_LENGTH; i++) {
+    uint32_t t1 = working_var[7] + SHA256_SUM1(working_var[4]) +
+                  SHA256_CH(working_var[4], working_var[5], working_var[6]) +
+                  SHA256_K[i] + w[i];
+    uint32_t t2 = SHA256_SUM0(working_var[0]) +
+                  SHA256_MAJ(working_var[0], working_var[1], working_var[2]);
+    working_var[7] = working_var[6];
+    working_var[6] = working_var[5];
+    working_var[5] = working_var[4];
+    working_var[4] = working_var[3] + t1;
+    working_var[3] = working_var[2];
+    working_var[2] = working_var[1];
+    working_var[1] = working_var[0];
+    working_var[0] = t1 + t2;
+  }
+
+  for (int i = 0; i < SHA256_HASH_VALUE_LENGTH; i++) {
+    hash_value[i] += working_var[i];
+  }
+}
+
+Crypto::Sha256Digest ComputeSha256(const std::vector<unsigned char>& src) {
+  auto hash_value = Sha256Init();
+  std::vector<std::vector<unsigned char> > chucks_to_process;
+
+  const auto length = src.size();
+  const auto chunks_count = length / SHA256_LAST_CHUNK_LENGTH;
+  const auto last_chunk_size = length % SHA256_LAST_CHUNK_LENGTH;
+
+  std::vector<unsigned char> last_chunk;
+  if (last_chunk_size < 56) {
+    last_chunk.assign(src.begin() + (chunks_count * SHA256_LAST_CHUNK_LENGTH),
+                      src.end());
+    last_chunk.push_back(0x80);
+  } else {
+    // Not enough empty space left in the last chunk, need another one
+    std::vector<unsigned char> second_last_chunk;
+    second_last_chunk.assign(
+        src.begin() + (chunks_count * SHA256_LAST_CHUNK_LENGTH), src.end());
+    second_last_chunk.push_back(0x80);
+    auto chunkSize = second_last_chunk.size();
+    for (auto i = chunkSize; i < SHA256_LAST_CHUNK_LENGTH; i++) {
+      second_last_chunk.push_back(0);
+    }
+    chucks_to_process.push_back(second_last_chunk);
+  }
+
+  for (auto i = last_chunk.size(); i < (SHA256_LAST_CHUNK_LENGTH - 8); i++) {
+    last_chunk.push_back(0);
+  }
   uint64_t srcLength = length * 8;
-  for (int i = 8; i > 0; --i)
-    lastChunk.push_back((srcLength >> ((i - 1) * 8)) & 0xff);
-  chucksToProcess.push_back(lastChunk);
+  for (int i = 8; i > 0; --i) {
+    last_chunk.push_back((srcLength >> ((i - 1) * 8)) & 0xff);
+  }
+  chucks_to_process.push_back(last_chunk);
 
-  for (auto i = 0UL; i < chunksCount; i++)
-    sha256Transform(src, i * SHA256_LAST_CHUNK_LENGTH, hashValue);
+  for (auto i = 0UL; i < chunks_count; i++) {
+    Sha256Transform(src, i * SHA256_LAST_CHUNK_LENGTH, hash_value);
+  }
 
-  for (auto chunk : chucksToProcess) sha256Transform(chunk, 0, hashValue);
+  for (const auto& chunk : chucks_to_process) {
+    Sha256Transform(chunk, 0, hash_value);
+  }
 
-  std::vector<unsigned char> ret;
+  Crypto::Sha256Digest ret;
   for (int i = 0, j = 0; i < SHA256_HASH_VALUE_LENGTH; i++, j += 4) {
-    uint32_t value = hashValue[i];
+    uint32_t value = hash_value[i];
     auto v3 = (unsigned char)value;
     auto v2 = (unsigned char)(value >>= 8);
     auto v1 = (unsigned char)(value >>= 8);
-    ret.push_back((unsigned char)(value >>= 8));
-    ret.push_back(v1);
-    ret.push_back(v2);
-    ret.push_back(v3);
+    ret[j + 0] = (unsigned char)(value >>= 8);
+    ret[j + 1] = v1;
+    ret[j + 2] = v2;
+    ret[j + 3] = v3;
   }
 
   return ret;
 }
 
-void Crypto::sha256Transform(const std::vector<unsigned char>& currentChunk,
-                             unsigned long startIndex,
-                             std::vector<uint32_t>& hashValue) {
-  uint32_t* w = new uint32_t[SHA256_MESSAGE_SCHEDULE_LENGTH];
-  memset(w, 0, SHA256_MESSAGE_SCHEDULE_LENGTH);
-
-  for (int i = 0, j = 0; i < 16; i++, j += 4)
-    w[i] = (currentChunk[startIndex + j] << 24) |
-           (currentChunk[startIndex + j + 1] << 16) |
-           (currentChunk[startIndex + j + 2] << 8) |
-           (currentChunk[startIndex + j + 3]);
-  for (int i = 16; i < SHA256_MESSAGE_SCHEDULE_LENGTH; i++)
-    w[i] = SHA256_SIGMA1(w[i - 2]) + w[i - 7] + SHA256_SIGMA0(w[i - 15]) +
-           w[i - 16];
-
-  uint32_t* workingVar = new uint32_t[SHA256_HASH_VALUE_LENGTH];
-  for (int i = 0; i < SHA256_HASH_VALUE_LENGTH; i++)
-    workingVar[i] = hashValue[i];
-
-  for (int i = 0; i < SHA256_MESSAGE_SCHEDULE_LENGTH; i++) {
-    uint32_t t1 = workingVar[7] + SHA256_SUM1(workingVar[4]) +
-                  SHA256_CH(workingVar[4], workingVar[5], workingVar[6]) +
-                  SHA256_K[i] + w[i];
-    uint32_t t2 = SHA256_SUM0(workingVar[0]) +
-                  SHA256_MAJ(workingVar[0], workingVar[1], workingVar[2]);
-    workingVar[7] = workingVar[6];
-    workingVar[6] = workingVar[5];
-    workingVar[5] = workingVar[4];
-    workingVar[4] = workingVar[3] + t1;
-    workingVar[3] = workingVar[2];
-    workingVar[2] = workingVar[1];
-    workingVar[1] = workingVar[0];
-    workingVar[0] = t1 + t2;
-  }
-
-  for (int i = 0; i < SHA256_HASH_VALUE_LENGTH; i++)
-    hashValue[i] += workingVar[i];
-
-  delete[] workingVar;
-  delete[] w;
-}
-
-std::vector<unsigned char> Crypto::toUnsignedCharVector(
-    const std::string& src) {
+std::vector<unsigned char> ToUnsignedCharVector(const std::string& src) {
   std::vector<unsigned char> ret(src.length());
   std::transform(src.begin(), src.end(), ret.begin(),
                  [](char c) { return static_cast<unsigned char>(c); });
   return ret;
+}
+
+Crypto::Sha256Digest ComputeHmacSha256(const std::string& key,
+                                       const std::string& message) {
+  std::vector<unsigned char> k0;
+
+  // Step 1 - 3
+  auto key_length = key.length();
+  std::vector<uint8_t> keyVec = ToUnsignedCharVector(key);
+  if (key_length <= HMAC_B) {
+    k0.assign(keyVec.begin(), keyVec.end());
+  } else {
+    auto new_key = ComputeSha256(keyVec);
+    key_length = new_key.size();
+    k0.assign(new_key.begin(), new_key.end());
+  }
+
+  for (auto i = key_length; i < HMAC_B; i++) {
+    k0.push_back(0);
+  }
+
+  // Step 4 - 5
+  std::vector<uint8_t> k0XORipad_msg;
+  for (int i = 0; i < HMAC_B; i++) {
+    k0XORipad_msg.push_back(k0[i] ^ HMAC_IPAD_BYTE);
+  }
+
+  std::vector<uint8_t> message_vec = ToUnsignedCharVector(message);
+  k0XORipad_msg.insert(k0XORipad_msg.end(), message_vec.begin(),
+                       message_vec.end());
+
+  // Step 6
+  auto hk0XORipad_msg = ComputeSha256(k0XORipad_msg);
+
+  // Step 7 - 8
+  std::vector<uint8_t> s8;
+  for (int i = 0; i < HMAC_B; i++) {
+    s8.push_back(k0[i] ^ HMAC_OPAD_BYTE);
+  }
+
+  s8.insert(s8.end(), hk0XORipad_msg.begin(), hk0XORipad_msg.end());
+
+  // Step 9
+  return ComputeSha256(s8);
+}
+}  // namespace
+
+Crypto::Sha256Digest Crypto::Sha256(const std::vector<unsigned char>& content) {
+  return ComputeSha256(content);
+}
+
+Crypto::Sha256Digest Crypto::HmacSha256(const std::string& key,
+                                        const std::string& message) {
+  return ComputeHmacSha256(key, message);
 }
 }  // namespace authentication
 }  // namespace olp
