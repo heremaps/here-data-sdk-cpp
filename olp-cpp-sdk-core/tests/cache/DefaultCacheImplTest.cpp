@@ -27,6 +27,8 @@
 
 namespace {
 namespace cache = olp::cache;
+using CacheType = cache::DefaultCache::CacheType;
+
 class DefaultCacheImplTest : public ::testing::Test {
   void SetUp() override {
     // Restore permisions in case if cache_path_ is not writable
@@ -46,6 +48,12 @@ class DefaultCacheImplHelper : public cache::DefaultCacheImpl {
       : cache::DefaultCacheImpl(settings) {}
 
   bool HasLruCache() const { return GetMutableCacheLru().get() != nullptr; }
+  bool HasMutableCache() const {
+    return GetCache(CacheType::kMutable).get() != nullptr;
+  }
+  bool HasProtectedCache() const {
+    return GetCache(CacheType::kProtected).get() != nullptr;
+  }
 
   bool ContainsLru(const std::string& key) const {
     const auto& lru_cache = GetMutableCacheLru();
@@ -66,7 +74,7 @@ class DefaultCacheImplHelper : public cache::DefaultCacheImpl {
   }
 
   bool ContainsMutableCache(const std::string& key) const {
-    const auto& disk_cache = GetMutableCache();
+    const auto& disk_cache = GetCache(CacheType::kMutable);
     if (!disk_cache) {
       return false;
     }
@@ -78,7 +86,7 @@ class DefaultCacheImplHelper : public cache::DefaultCacheImpl {
 
   uint64_t CalculateExpirySize(const std::string& key) const {
     const auto expiry_key = GetExpiryKey(key);
-    const auto& disk_cache = GetMutableCache();
+    const auto& disk_cache = GetCache(CacheType::kMutable);
     if (!disk_cache) {
       return 0u;
     }
@@ -963,6 +971,7 @@ TEST_F(DefaultCacheImplTest, ReadOnlyPartitionForProtectedCache) {
 TEST_F(DefaultCacheImplTest, ProtectTestWithoutMutableCache) {
   const std::string key1_data_string = "this is key1's data";
   const std::string key1 = "key1";
+
   {
     SCOPED_TRACE("Protect key in memory cache");
     DefaultCacheImplHelper cache({});
@@ -1003,4 +1012,153 @@ TEST_F(DefaultCacheImplTest, ProtectTestWithoutMutableCache) {
     ASSERT_TRUE(olp::utils::Dir::Remove(settings.disk_path_protected.get()));
   }
 }
+
+TEST_F(DefaultCacheImplTest, OpenTypeCache) {
+  cache::CacheSettings settings;
+  settings.disk_path_mutable = cache_path_;
+
+  {
+    SCOPED_TRACE("Correct usage, mutable");
+
+    DefaultCacheImplHelper cache(settings);
+    cache.Open();
+
+    ASSERT_TRUE(cache.HasLruCache());
+    ASSERT_TRUE(cache.HasMutableCache());
+    ASSERT_FALSE(cache.HasProtectedCache());
+
+    const auto is_closed = cache.Close(CacheType::kMutable);
+
+    ASSERT_TRUE(is_closed);
+    ASSERT_FALSE(cache.HasLruCache());
+    ASSERT_FALSE(cache.HasMutableCache());
+    ASSERT_FALSE(cache.HasProtectedCache());
+
+    const auto result = cache.Open(CacheType::kMutable);
+
+    ASSERT_EQ(result, cache::DefaultCache::Success);
+    ASSERT_TRUE(cache.HasLruCache());
+    ASSERT_TRUE(cache.HasMutableCache());
+    ASSERT_FALSE(cache.HasProtectedCache());
+  }
+
+  {
+    SCOPED_TRACE("Correct usage, protected");
+
+    cache::CacheSettings protected_settings;
+    protected_settings.disk_path_protected = cache_path_;
+    DefaultCacheImplHelper cache(protected_settings);
+    cache.Open();
+
+    ASSERT_FALSE(cache.HasLruCache());
+    ASSERT_FALSE(cache.HasMutableCache());
+    ASSERT_TRUE(cache.HasProtectedCache());
+
+    const auto is_closed = cache.Close(CacheType::kProtected);
+
+    ASSERT_TRUE(is_closed);
+    ASSERT_FALSE(cache.HasLruCache());
+    ASSERT_FALSE(cache.HasMutableCache());
+    ASSERT_FALSE(cache.HasProtectedCache());
+
+    const auto result = cache.Open(CacheType::kProtected);
+
+    ASSERT_EQ(result, cache::DefaultCache::Success);
+    ASSERT_FALSE(cache.HasLruCache());
+    ASSERT_FALSE(cache.HasMutableCache());
+    ASSERT_TRUE(cache.HasProtectedCache());
+  }
+
+  {
+    SCOPED_TRACE("Open/Close invalid cache");
+
+    DefaultCacheImplHelper cache(settings);
+    const auto is_closed = cache.Close(CacheType::kProtected);
+
+    ASSERT_FALSE(is_closed);
+
+    const auto result = cache.Open(CacheType::kProtected);
+
+    ASSERT_EQ(result, cache::DefaultCache::NotReady);
+    ASSERT_FALSE(cache.HasLruCache());
+    ASSERT_FALSE(cache.HasMutableCache());
+    ASSERT_FALSE(cache.HasProtectedCache());
+  }
+
+  {
+    SCOPED_TRACE("Close twice");
+
+    DefaultCacheImplHelper cache(settings);
+    cache.Open();
+
+    ASSERT_TRUE(cache.HasLruCache());
+    ASSERT_TRUE(cache.HasMutableCache());
+    ASSERT_FALSE(cache.HasProtectedCache());
+
+    auto is_closed = cache.Close(CacheType::kMutable);
+
+    ASSERT_TRUE(is_closed);
+    ASSERT_FALSE(cache.HasLruCache());
+    ASSERT_FALSE(cache.HasMutableCache());
+    ASSERT_FALSE(cache.HasProtectedCache());
+
+    is_closed = cache.Close(CacheType::kMutable);
+
+    ASSERT_TRUE(is_closed);
+    ASSERT_FALSE(cache.HasLruCache());
+    ASSERT_FALSE(cache.HasMutableCache());
+    ASSERT_FALSE(cache.HasProtectedCache());
+  }
+
+  {
+    SCOPED_TRACE("Open twice");
+
+    DefaultCacheImplHelper cache(settings);
+    cache.Open();
+
+    const auto result = cache.Open(CacheType::kMutable);
+
+    ASSERT_EQ(result, cache::DefaultCache::Success);
+    ASSERT_TRUE(cache.HasLruCache());
+    ASSERT_TRUE(cache.HasMutableCache());
+    ASSERT_FALSE(cache.HasProtectedCache());
+  }
+
+  {
+    SCOPED_TRACE("Empty cache path, mutable");
+
+    DefaultCacheImplHelper cache({});
+    cache.Open();
+
+    ASSERT_FALSE(cache.HasLruCache());
+    ASSERT_FALSE(cache.HasMutableCache());
+    ASSERT_FALSE(cache.HasProtectedCache());
+
+    const auto result = cache.Open(CacheType::kMutable);
+
+    ASSERT_EQ(result, cache::DefaultCache::OpenDiskPathFailure);
+    ASSERT_FALSE(cache.HasLruCache());
+    ASSERT_FALSE(cache.HasMutableCache());
+    ASSERT_FALSE(cache.HasProtectedCache());
+  }
+
+  {
+    SCOPED_TRACE("Empty cache path, protected");
+
+    DefaultCacheImplHelper cache({});
+    cache.Open();
+
+    ASSERT_FALSE(cache.HasLruCache());
+    ASSERT_FALSE(cache.HasMutableCache());
+    ASSERT_FALSE(cache.HasProtectedCache());
+
+    const auto result = cache.Open(CacheType::kProtected);
+
+    ASSERT_EQ(result, cache::DefaultCache::OpenDiskPathFailure);
+    ASSERT_FALSE(cache.HasLruCache());
+    ASSERT_FALSE(cache.HasMutableCache());
+    ASSERT_FALSE(cache.HasProtectedCache());
+  }
+}
+
 }  // namespace

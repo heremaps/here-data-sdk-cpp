@@ -48,36 +48,6 @@ leveldb::Slice ToLeveldbSlice(const std::string& slice) {
   return leveldb::Slice(slice);
 }
 
-std::vector<std::string> TokenizePath(const std::string& directory_name,
-                                      std::string delimiter) {
-  std::regex regexp{"[" + delimiter + "]+"};
-  std::sregex_token_iterator iterator(directory_name.begin(),
-                                      directory_name.end(), regexp, -1);
-  std::vector<std::string> directory_names;
-  std::copy_if(iterator, {}, std::back_inserter(directory_names),
-               [](const std::string& matched_element) {
-                 return !matched_element.empty();
-               });
-  return directory_names;
-}
-
-// Create all nested directories according to the provided path ('dirName').
-void CreateDir(const std::string& directory_name) {
-  auto directory_names = TokenizePath(directory_name, "/");
-  if (directory_names.size() <= 1u) {
-    // For Windows path format - size less or equal 1 means path wasn't separate
-    // by ('/') 4 * "\\\\" means "\" in path - 2x for string formatting purpose
-    // 2x for regex.
-    directory_names = TokenizePath(directory_name, "\\\\");
-  }
-
-  std::string path = "/";
-  for (const auto& name : directory_names) {
-    path += name + "/";
-    leveldb::Env::Default()->CreateDir(path);
-  }
-}
-
 static bool RepairCache(const std::string& data_path) {
   // first
   auto status = leveldb::RepairDB(data_path, leveldb::Options());
@@ -194,31 +164,21 @@ OpenResult DiskCache::Open(const std::string& data_path,
                            const std::string& versioned_data_path,
                            StorageSettings settings, OpenOptions options) {
   disk_cache_path_ = data_path;
+  bool is_read_only = (options & ReadOnly) == ReadOnly;
+  bool is_created = false;
   if (!olp::utils::Dir::exists(disk_cache_path_)) {
     if (!olp::utils::Dir::create(disk_cache_path_)) {
       return OpenResult::Fail;
     }
+
+    is_created = true;
   }
 
-  bool is_read_only = (options & ReadOnly) == ReadOnly;
   max_size_ = settings.max_disk_storage;
-
-  leveldb::Options open_options;
-  open_options.compression = settings.compression;
-  open_options.info_log = leveldb_logger_.get();
-  open_options.write_buffer_size = settings.max_chunk_size;
-  open_options.filter_policy = leveldb::NewBloomFilterPolicy(10);
+  auto open_options = CreateOpenOptions(settings, is_read_only);
   filter_policy_.reset(open_options.filter_policy);
-  if (settings.max_file_size != 0) {
-    open_options.max_file_size = settings.max_file_size;
-  }
 
   if (!is_read_only) {
-    open_options.create_if_missing = true;
-
-    // Create the directory if it doesn't exist
-    CreateDir(data_path);
-
     // Remove other DBs only if provided the versioned path - do nothing
     // otherwise
     if (data_path != versioned_data_path)
@@ -231,9 +191,15 @@ OpenResult DiskCache::Open(const std::string& data_path,
       open_options.env = environment_.get();
     }
   } else {
+    if (is_created) {
+      auto status = InitializeDB(settings, versioned_data_path);
+      if (!status.ok()) {
+        return OpenResult::Fail;
+      }
+    }
+
     environment_ = std::make_unique<ReadOnlyEnv>(leveldb::Env::Default());
     open_options.env = environment_.get();
-    open_options.reuse_logs = true;
   }
 
   leveldb::DB* db = nullptr;
@@ -241,13 +207,14 @@ OpenResult DiskCache::Open(const std::string& data_path,
 
   // First attempt in opening the db
   auto status = leveldb::DB::Open(open_options, versioned_data_path, &db);
-
+  OLP_SDK_LOG_WARNING(
+      kLogTag, "Open: failed, attempting repair, error=" << status.ToString());
   if (!status.ok() && !is_read_only)
     OLP_SDK_LOG_WARNING(kLogTag, "Open: failed, attempting repair, error="
                                      << status.ToString());
 
   // If the database is r/w and corrupted, attempt to repair & reopen
-  if ((status.IsCorruption() || status.IsIOError()) && !is_read_only &&
+  if ((status.IsCorruption() || status.IsIOError()) &&
       RepairCache(versioned_data_path) == true) {
     status = leveldb::DB::Open(open_options, versioned_data_path, &db);
     if (status.ok()) {
@@ -443,6 +410,35 @@ bool DiskCache::RemoveKeysWithPrefix(const std::string& prefix,
 
   removed_data_size = data_size;
   return result.IsSuccessful();
+}
+
+leveldb::Status DiskCache::InitializeDB(const StorageSettings& settings,
+                                        const std::string& path) const {
+  std::unique_ptr<leveldb::DB> database;
+  leveldb::DB* db = nullptr;
+
+  auto open_options = CreateOpenOptions(settings, false);
+  auto status = leveldb::DB::Open(open_options, path, &db);
+  database.reset(db);
+
+  return status;
+}
+
+leveldb::Options DiskCache::CreateOpenOptions(const StorageSettings& settings,
+                                              bool is_read_only) const {
+  leveldb::Options options;
+  options.compression = settings.compression;
+  options.info_log = leveldb_logger_.get();
+  options.write_buffer_size = settings.max_chunk_size;
+  options.filter_policy = leveldb::NewBloomFilterPolicy(10);
+  options.create_if_missing = !is_read_only;
+  options.reuse_logs = is_read_only;
+
+  if (settings.max_file_size != 0) {
+    options.max_file_size = settings.max_file_size;
+  }
+
+  return options;
 }
 
 }  // namespace cache

@@ -29,6 +29,7 @@
 #include "olp/core/porting/make_unique.h"
 
 namespace {
+using CacheType = olp::cache::DefaultCache::CacheType;
 
 constexpr auto kLogTag = "DefaultCache";
 constexpr auto kExpirySuffix = "::expiry";
@@ -95,6 +96,18 @@ leveldb::CompressionType GetCompression(
              : leveldb::kSnappyCompression;
 }
 
+olp::cache::StorageSettings CreateStorageSettings(
+    const olp::cache::CacheSettings& settings) {
+  olp::cache::StorageSettings storage_settings;
+  storage_settings.max_disk_storage = settings.max_disk_storage;
+  storage_settings.max_chunk_size = settings.max_chunk_size;
+  storage_settings.enforce_immediate_flush = settings.enforce_immediate_flush;
+  storage_settings.max_file_size = settings.max_file_size;
+  storage_settings.compression = GetCompression(settings.compression);
+
+  return storage_settings;
+}
+
 int64_t GetElapsedTime(std::chrono::steady_clock::time_point start) {
   return std::chrono::duration_cast<std::chrono::milliseconds>(
              std::chrono::steady_clock::now() - start)
@@ -124,6 +137,41 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::Open() {
   return SetupStorage();
 }
 
+DefaultCache::StorageOpenResult DefaultCacheImpl::Open(
+    DefaultCache::CacheType type) {
+  std::lock_guard<std::mutex> lock(cache_lock_);
+  if (!is_open_) {
+    return DefaultCache::NotReady;
+  }
+
+  if (type == DefaultCache::CacheType::kMutable) {
+    if (mutable_cache_) {
+      return DefaultCache::Success;
+    }
+
+    if (!settings_.disk_path_mutable) {
+      OLP_SDK_LOG_ERROR_F(kLogTag,
+                          "Failed to open the mutable cache - path is empty");
+      return DefaultCache::OpenDiskPathFailure;
+    }
+
+    return SetupMutableCache();
+  }
+
+  // DefaultCache::CacheType::kProtected case
+  if (protected_cache_) {
+    return DefaultCache::Success;
+  }
+
+  if (!settings_.disk_path_protected) {
+    OLP_SDK_LOG_ERROR_F(kLogTag,
+                        "Failed to open the protected cache - path is empty");
+    return DefaultCache::OpenDiskPathFailure;
+  }
+
+  return SetupProtectedCache();
+}
+
 DefaultCacheImpl::~DefaultCacheImpl() { Close(); }
 
 void DefaultCacheImpl::Close() {
@@ -131,22 +179,22 @@ void DefaultCacheImpl::Close() {
   if (!is_open_) {
     return;
   }
-  if (mutable_cache_ && protected_keys_.IsDirty()) {
-    auto batch = std::make_unique<leveldb::WriteBatch>();
-    MaybeUpdatedProtectedKeys(*batch);
-    auto result = mutable_cache_->ApplyBatch(std::move(batch));
-    OLP_SDK_LOG_INFO_F(kLogTag,
-                       "Close(): store list of protected keys, result=%s",
-                       result.IsSuccessful() ? "true" : "false");
-  }
 
   memory_cache_.reset();
-  mutable_cache_.reset();
-  mutable_cache_lru_.reset();
-  protected_cache_.reset();
-  protected_keys_ = ProtectedKeyList();
-  mutable_cache_data_size_ = 0;
+  DestroyCache(DefaultCache::CacheType::kMutable);
+  DestroyCache(DefaultCache::CacheType::kProtected);
   is_open_ = false;
+}
+
+bool DefaultCacheImpl::Close(DefaultCache::CacheType type) {
+  std::lock_guard<std::mutex> lock(cache_lock_);
+  if (!is_open_) {
+    return false;
+  }
+
+  DestroyCache(type);
+
+  return true;
 }
 
 bool DefaultCacheImpl::Clear() {
@@ -192,10 +240,10 @@ bool DefaultCacheImpl::Put(const std::string& key, const boost::any& value,
     const auto size = encoded_item.size();
     const bool result = memory_cache_->Put(
         key, value, GetExpiryForMemoryCache(key, expiry), size);
-    if (!result && size > settings_.max_memory_cache_size) {
-      OLP_SDK_LOG_WARNING_F(kLogTag,
-                            "Failed to store value in memory cache %s, size %d",
-                            key.c_str(), static_cast<int>(size));
+    if (!result && size > settings_.max_memory_cache_size && !mutable_cache_) {
+      OLP_SDK_LOG_INFO_F(kLogTag,
+                         "Failed to store value in memory cache %s, size %d",
+                         key.c_str(), static_cast<int>(size));
     }
   }
 
@@ -218,10 +266,10 @@ bool DefaultCacheImpl::Put(const std::string& key,
     const auto size = value->size();
     const bool result = memory_cache_->Put(
         key, value, GetExpiryForMemoryCache(key, expiry), size);
-    if (!result && size > settings_.max_memory_cache_size) {
-      OLP_SDK_LOG_WARNING_F(kLogTag,
-                            "Failed to store value in memory cache %s, size %d",
-                            key.c_str(), static_cast<int>(size));
+    if (!result && size > settings_.max_memory_cache_size && !mutable_cache_) {
+      OLP_SDK_LOG_INFO_F(kLogTag,
+                         "Failed to store value in memory cache %s, size %d",
+                         key.c_str(), static_cast<int>(size));
     }
   }
 
@@ -645,56 +693,81 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupStorage() {
   }
 
   if (settings_.disk_path_mutable) {
-    StorageSettings storage_settings;
-    storage_settings.max_disk_storage = settings_.max_disk_storage;
-    storage_settings.max_chunk_size = settings_.max_chunk_size;
-    storage_settings.enforce_immediate_flush =
-        settings_.enforce_immediate_flush;
-    storage_settings.max_file_size = settings_.max_file_size;
-    storage_settings.compression = GetCompression(settings_.compression);
+    result = SetupMutableCache();
+  }
 
-    mutable_cache_ = std::make_unique<DiskCache>();
-    auto status = mutable_cache_->Open(settings_.disk_path_mutable.get(),
-                                       settings_.disk_path_mutable.get(),
-                                       storage_settings, OpenOptions::Default);
-    if (status == OpenResult::Fail) {
-      OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to open the mutable cache %s",
-                          settings_.disk_path_mutable.get().c_str());
+  if (settings_.disk_path_protected) {
+    result = SetupProtectedCache();
+  }
 
-      mutable_cache_.reset();
-      settings_.disk_path_mutable = boost::none;
-      result = DefaultCache::OpenDiskPathFailure;
-    } else {
-      // read protected keys
-      KeyValueCache::ValueTypePtr value = nullptr;
-      auto result = mutable_cache_->Get(kProtectedKeys, value);
-      if (result && value) {
-        if (!protected_keys_.Deserialize(value)) {
-          OLP_SDK_LOG_WARNING(kLogTag, "Deserialize protected keys failed");
-        }
-      }
+  return result;
+}
+
+DefaultCache::StorageOpenResult DefaultCacheImpl::SetupProtectedCache() {
+  protected_cache_ = std::make_unique<DiskCache>();
+  auto status = protected_cache_->Open(
+      settings_.disk_path_protected.get(), settings_.disk_path_protected.get(),
+      StorageSettings{}, OpenOptions::ReadOnly);
+  if (status == OpenResult::Fail) {
+    OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to reopen protected cache %s",
+                        settings_.disk_path_protected.get().c_str());
+
+    protected_cache_.reset();
+    settings_.disk_path_protected = boost::none;
+    return DefaultCache::OpenDiskPathFailure;
+  }
+
+  return DefaultCache::Success;
+}
+
+DefaultCache::StorageOpenResult DefaultCacheImpl::SetupMutableCache() {
+  auto storage_settings = CreateStorageSettings(settings_);
+
+  mutable_cache_ = std::make_unique<DiskCache>();
+  auto status = mutable_cache_->Open(settings_.disk_path_mutable.get(),
+                                     settings_.disk_path_mutable.get(),
+                                     storage_settings, OpenOptions::Default);
+  if (status == OpenResult::Fail) {
+    OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to open the mutable cache %s",
+                        settings_.disk_path_mutable.get().c_str());
+
+    mutable_cache_.reset();
+    settings_.disk_path_mutable = boost::none;
+    return DefaultCache::OpenDiskPathFailure;
+  }
+
+  // read protected keys
+  KeyValueCache::ValueTypePtr value = nullptr;
+  auto result = mutable_cache_->Get(kProtectedKeys, value);
+  if (result && value) {
+    if (!protected_keys_.Deserialize(value)) {
+      OLP_SDK_LOG_WARNING(kLogTag, "Deserialize protected keys failed");
     }
   }
 
   InitializeLru();
 
-  if (settings_.disk_path_protected) {
-    protected_cache_ = std::make_unique<DiskCache>();
-    auto status =
-        protected_cache_->Open(settings_.disk_path_protected.get(),
-                               settings_.disk_path_protected.get(),
-                               StorageSettings{}, OpenOptions::ReadOnly);
-    if (status == OpenResult::Fail) {
-      OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to reopen protected cache %s",
-                          settings_.disk_path_protected.get().c_str());
+  return DefaultCache::Success;
+}
 
-      protected_cache_.reset();
-      settings_.disk_path_protected = boost::none;
-      result = DefaultCache::OpenDiskPathFailure;
+void DefaultCacheImpl::DestroyCache(DefaultCache::CacheType type) {
+  if (type == DefaultCache::CacheType::kMutable) {
+    if (mutable_cache_ && protected_keys_.IsDirty()) {
+      auto batch = std::make_unique<leveldb::WriteBatch>();
+      MaybeUpdatedProtectedKeys(*batch);
+      auto result = mutable_cache_->ApplyBatch(std::move(batch));
+      OLP_SDK_LOG_INFO_F(kLogTag,
+                         "Close(): store list of protected keys, result=%s",
+                         result.IsSuccessful() ? "true" : "false");
     }
-  }
 
-  return result;
+    mutable_cache_.reset();
+    mutable_cache_lru_.reset();
+    protected_keys_ = ProtectedKeyList();
+    mutable_cache_data_size_ = 0;
+  } else {
+    protected_cache_.reset();
+  }
 }
 
 bool DefaultCacheImpl::GetFromDiskCache(const std::string& key,

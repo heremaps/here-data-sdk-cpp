@@ -145,6 +145,14 @@ class DiskCache {
   bool Contains(const std::string& key);
 
  private:
+  /// Initialize empty db, so it can be used as protected cache.
+  leveldb::Status InitializeDB(const StorageSettings& settings,
+                               const std::string& path) const;
+
+  /// Create options for DB basing on settings and cache type.
+  leveldb::Options CreateOpenOptions(const StorageSettings& settings,
+                                     bool is_read_only) const;
+
   std::string disk_cache_path_;
   std::unique_ptr<leveldb::DB> database_;
   std::unique_ptr<const leveldb::FilterPolicy> filter_policy_;
