@@ -165,13 +165,10 @@ OpenResult DiskCache::Open(const std::string& data_path,
                            StorageSettings settings, OpenOptions options) {
   disk_cache_path_ = data_path;
   bool is_read_only = (options & ReadOnly) == ReadOnly;
-  bool is_created = false;
   if (!olp::utils::Dir::exists(disk_cache_path_)) {
     if (!olp::utils::Dir::create(disk_cache_path_)) {
       return OpenResult::Fail;
     }
-
-    is_created = true;
   }
 
   max_size_ = settings.max_disk_storage;
@@ -191,13 +188,6 @@ OpenResult DiskCache::Open(const std::string& data_path,
       open_options.env = environment_.get();
     }
   } else {
-    if (is_created) {
-      auto status = InitializeDB(settings, versioned_data_path);
-      if (!status.ok()) {
-        return OpenResult::Fail;
-      }
-    }
-
     environment_ = std::make_unique<ReadOnlyEnv>(leveldb::Env::Default());
     open_options.env = environment_.get();
   }
@@ -207,11 +197,21 @@ OpenResult DiskCache::Open(const std::string& data_path,
 
   // First attempt in opening the db
   auto status = leveldb::DB::Open(open_options, versioned_data_path, &db);
-  OLP_SDK_LOG_WARNING(
-      kLogTag, "Open: failed, attempting repair, error=" << status.ToString());
-  if (!status.ok() && !is_read_only)
+
+  if (!status.ok() && !is_read_only) {
     OLP_SDK_LOG_WARNING(kLogTag, "Open: failed, attempting repair, error="
                                      << status.ToString());
+  }
+
+  if (status.IsInvalidArgument() && is_read_only) {
+    // Maybe folder with cache is an empty, so trying to create db and reopen it
+    status = InitializeDB(settings, versioned_data_path);
+    if (!status.ok()) {
+      return OpenResult::Fail;
+    }
+
+    status = leveldb::DB::Open(open_options, versioned_data_path, &db);
+  }
 
   // If the database is r/w and corrupted, attempt to repair & reopen
   if ((status.IsCorruption() || status.IsIOError()) &&

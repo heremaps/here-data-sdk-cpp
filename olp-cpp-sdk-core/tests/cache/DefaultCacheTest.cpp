@@ -485,6 +485,21 @@ TEST(DefaultCacheTest, ProtectedCacheTest) {
     ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
     ASSERT_TRUE(olp::utils::Dir::Exists(protected_path));
   }
+
+  {
+    SCOPED_TRACE("Open empty folder");
+
+    // create an empty folder without db
+    olp::utils::Dir::Remove(protected_path);
+    olp::utils::Dir::Create(protected_path);
+
+    olp::cache::CacheSettings settings;
+    settings.disk_path_protected = protected_path;
+
+    olp::cache::DefaultCache cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+    ASSERT_TRUE(olp::utils::Dir::Exists(protected_path));
+  }
 }
 
 TEST(DefaultCacheTest, AlreadyInUsePath) {
