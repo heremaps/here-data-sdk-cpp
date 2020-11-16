@@ -19,6 +19,7 @@
 
 #include "ApiLookupClientImpl.h"
 
+#include <olp/core/client/HRN.h>
 #include <olp/core/logging/Log.h>
 #include "client/api/PlatformApi.h"
 #include "client/api/ResourcesApi.h"
@@ -29,6 +30,8 @@ namespace client {
 
 namespace {
 constexpr auto kLogTag = "ApiLookupClientImpl";
+constexpr time_t kLookupApiDefaultExpiryTime = 3600;
+constexpr time_t kLookupApiShortExpiryTime = 300;
 
 std::string FindApi(const Apis& apis, const std::string& service,
                     const std::string& version) {
@@ -42,6 +45,14 @@ std::string FindApi(const Apis& apis, const std::string& service,
   return it->GetBaseUrl();
 }
 
+OlpClient CreateClient(const std::string& base_url,
+                       const OlpClientSettings& settings) {
+  OlpClient client;
+  client.SetBaseUrl(base_url);
+  client.SetSettings(settings);
+  return client;
+}
+
 olp::client::OlpClient GetStaticUrl(
     const olp::client::HRN& catalog,
     const olp::client::OlpClientSettings& settings) {
@@ -50,25 +61,37 @@ olp::client::OlpClient GetStaticUrl(
     auto url = provider(catalog);
     if (!url.empty()) {
       url += "/catalogs/" + catalog.ToCatalogHRNString();
-      OlpClient result_client;
-      result_client.SetBaseUrl(url);
-      result_client.SetSettings(settings);
-      return result_client;
+      return CreateClient(url, settings);
     }
   }
 
   return {};
 }
 
+ApiLookupClient::LookupApiResponse NotFoundInCacheError() {
+  return ApiError(client::ErrorCode::NotFound,
+                  "CacheOnly: resource not found in cache");
+}
+
+ApiLookupClient::LookupApiResponse ServiceNotAvailable() {
+  return ApiError(client::ErrorCode::ServiceUnavailable,
+                  "Service/Version not available for given HRN");
+}
+
+std::string ClientCacheKey(const std::string& service,
+                           const std::string& service_version) {
+  return service + service_version;
+}
 }  // namespace
 
 ApiLookupClientImpl::ApiLookupClientImpl(const HRN& catalog,
                                          const OlpClientSettings& settings)
-    : catalog_(catalog), settings_(settings) {
+    : catalog_(catalog),
+      catalog_string_(catalog_.ToString()),
+      settings_(settings) {
   auto provider = settings_.api_lookup_settings.lookup_endpoint_provider;
   const auto& base_url = provider(catalog_.GetPartition());
-  lookup_client_.SetBaseUrl(base_url);
-  lookup_client_.SetSettings(settings_);
+  lookup_client_ = CreateClient(base_url, settings_);
 }
 
 ApiLookupClient::LookupApiResponse ApiLookupClientImpl::LookupApi(
@@ -79,68 +102,54 @@ ApiLookupClient::LookupApiResponse ApiLookupClientImpl::LookupApi(
     return result_client;
   }
 
-  repository::ApiCacheRepository repository(catalog_, settings_.cache);
-  const auto hrn = catalog_.ToCatalogHRNString();
-
   if (options != OnlineOnly && options != CacheWithUpdate) {
-    auto url = repository.Get(service, service_version);
-    if (url) {
-      OLP_SDK_LOG_DEBUG_F(kLogTag, "LookupApi(%s/%s) found in cache, hrn='%s'",
-                          service.c_str(), service_version.c_str(),
-                          hrn.c_str());
-      result_client.SetBaseUrl(*url);
-      result_client.SetSettings(settings_);
-      return result_client;
+    auto client = GetCachedClient(service, service_version);
+    if (client) {
+      return *client;
     } else if (options == CacheOnly) {
-      return {{client::ErrorCode::NotFound,
-               "CacheOnly: resource not found in cache"}};
+      return NotFoundInCacheError();
     }
   }
-
-  OLP_SDK_LOG_DEBUG_F(kLogTag,
-                      "LookupApi(%s/%s) cache miss, requesting, hrn='%s'",
-                      service.c_str(), service_version.c_str(), hrn.c_str());
 
   PlatformApi::ApisResponse api_response;
   if (service == "config") {
     api_response = PlatformApi::GetApis(lookup_client_, context);
   } else {
-    api_response = ResourcesApi::GetApis(lookup_client_, hrn, context);
+    api_response =
+        ResourcesApi::GetApis(lookup_client_, catalog_string_, context);
   }
 
   if (!api_response.IsSuccessful()) {
-    OLP_SDK_LOG_WARNING_F(kLogTag,
-                          "LookupApi(%s/%s) unsuccessful, hrn='%s', error='%s'",
-                          service.c_str(), service_version.c_str(), hrn.c_str(),
-                          api_response.GetError().GetMessage().c_str());
+    OLP_SDK_LOG_WARNING_F(
+        kLogTag, "LookupApi(%s/%s) unsuccessful, hrn='%s', error='%s'",
+        service.c_str(), service_version.c_str(), catalog_string_.c_str(),
+        api_response.GetError().GetMessage().c_str());
     return api_response.GetError();
   }
 
   const auto& api_result = api_response.GetResult();
   if (options != OnlineOnly && options != CacheWithUpdate) {
-    for (const auto& service_api : api_result.first) {
-      repository.Put(service_api.GetApi(), service_api.GetVersion(),
-                     service_api.GetBaseUrl(), api_result.second);
-    }
+    PutToDiskCache(api_result);
   }
 
   auto url = FindApi(api_result.first, service, service_version);
   if (url.empty()) {
     OLP_SDK_LOG_WARNING_F(
         kLogTag, "LookupApi(%s/%s) service not found, hrn='%s'",
-        service.c_str(), service_version.c_str(), hrn.c_str());
+        service.c_str(), service_version.c_str(), catalog_string_.c_str());
 
-    return {{client::ErrorCode::ServiceUnavailable,
-             "Service/Version not available for given HRN"}};
+    return ServiceNotAvailable();
   }
 
-  OLP_SDK_LOG_DEBUG_F(
-      kLogTag, "LookupApi(%s/%s) found, hrn='%s', service_url='%s'",
-      service.c_str(), service_version.c_str(), hrn.c_str(), url.c_str());
+  OLP_SDK_LOG_DEBUG_F(kLogTag,
+                      "LookupApi(%s/%s) found, hrn='%s', service_url='%s'",
+                      service.c_str(), service_version.c_str(),
+                      catalog_string_.c_str(), url.c_str());
 
-  result_client.SetBaseUrl(url);
-  result_client.SetSettings(settings_);
-  return result_client;
+  const auto expiration = api_result.second;
+
+  return CreateAndCacheClient(url, ClientCacheKey(service, service_version),
+                              expiration);
 }
 
 CancellationToken ApiLookupClientImpl::LookupApi(
@@ -152,38 +161,23 @@ CancellationToken ApiLookupClientImpl::LookupApi(
     return CancellationToken();
   }
 
-  repository::ApiCacheRepository repository(catalog_, settings_.cache);
-  const auto hrn = catalog_.ToCatalogHRNString();
-
   if (options != OnlineOnly && options != CacheWithUpdate) {
-    auto url = repository.Get(service, service_version);
-    if (url) {
-      OLP_SDK_LOG_DEBUG_F(kLogTag, "LookupApi(%s/%s) found in cache, hrn='%s'",
-                          service.c_str(), service_version.c_str(),
-                          hrn.c_str());
-      result_client.SetBaseUrl(*url);
-      result_client.SetSettings(settings_);
-      callback(result_client);
+    auto client = GetCachedClient(service, service_version);
+    if (client) {
+      callback(*client);
       return CancellationToken();
     } else if (options == CacheOnly) {
-      ApiLookupClient::LookupApiResponse response{
-          {client::ErrorCode::NotFound,
-           "CacheOnly: resource not found in cache"}};
-      callback(response);
+      callback(NotFoundInCacheError());
       return CancellationToken();
     }
   }
-
-  OLP_SDK_LOG_DEBUG_F(kLogTag,
-                      "LookupApi(%s/%s) cache miss, requesting, hrn='%s'",
-                      service.c_str(), service_version.c_str(), hrn.c_str());
 
   PlatformApi::ApisCallback lookup_callback =
       [=](PlatformApi::ApisResponse response) mutable -> void {
     if (!response.IsSuccessful()) {
       OLP_SDK_LOG_WARNING_F(
           kLogTag, "LookupApi(%s/%s) unsuccessful, hrn='%s', error='%s'",
-          service.c_str(), service_version.c_str(), hrn.c_str(),
+          service.c_str(), service_version.c_str(), catalog_string_.c_str(),
           response.GetError().GetMessage().c_str());
       callback(response.GetError());
       return;
@@ -191,37 +185,100 @@ CancellationToken ApiLookupClientImpl::LookupApi(
 
     const auto& api_result = response.GetResult();
     if (options != OnlineOnly && options != CacheWithUpdate) {
-      for (const auto& service_api : api_result.first) {
-        repository.Put(service_api.GetApi(), service_api.GetVersion(),
-                       service_api.GetBaseUrl(), api_result.second);
-      }
+      PutToDiskCache(api_result);
     }
 
     const auto url = FindApi(api_result.first, service, service_version);
     if (url.empty()) {
       OLP_SDK_LOG_WARNING_F(
           kLogTag, "LookupApi(%s/%s) service not found, hrn='%s'",
-          service.c_str(), service_version.c_str(), hrn.c_str());
+          service.c_str(), service_version.c_str(), catalog_string_.c_str());
 
-      callback({{client::ErrorCode::ServiceUnavailable,
-                 "Service/Version not available for given HRN"}});
+      callback(ServiceNotAvailable());
       return;
     }
 
-    OLP_SDK_LOG_DEBUG_F(
-        kLogTag, "LookupApi(%s/%s) found, hrn='%s', service_url='%s'",
-        service.c_str(), service_version.c_str(), hrn.c_str(), url.c_str());
+    OLP_SDK_LOG_DEBUG_F(kLogTag,
+                        "LookupApi(%s/%s) found, hrn='%s', service_url='%s'",
+                        service.c_str(), service_version.c_str(),
+                        catalog_string_.c_str(), url.c_str());
 
-    OlpClient result_client;
-    result_client.SetBaseUrl(url);
-    result_client.SetSettings(settings_);
-    callback(result_client);
+    callback(CreateAndCacheClient(url, ClientCacheKey(service, service_version),
+                                  api_result.second));
   };
 
   if (service == "config") {
     return PlatformApi::GetApis(lookup_client_, lookup_callback);
   }
-  return ResourcesApi::GetApis(lookup_client_, hrn, lookup_callback);
+  return ResourcesApi::GetApis(lookup_client_, catalog_string_,
+                               lookup_callback);
+}
+
+OlpClient ApiLookupClientImpl::CreateAndCacheClient(
+    const std::string& base_url, const std::string& cache_key,
+    boost::optional<time_t> expiration) {
+  std::lock_guard<std::mutex> lock(cached_clients_mutex_);
+  ClientWithExpiration& client_with_expiration = cached_clients_[cache_key];
+
+  const auto current_base_url = client_with_expiration.client.GetBaseUrl();
+  if (current_base_url.empty()) {
+    client_with_expiration.client.SetSettings(settings_);
+  }
+  if (current_base_url != base_url) {
+    client_with_expiration.client.SetBaseUrl(base_url);
+  }
+
+  client_with_expiration.expire_at =
+      std::chrono::steady_clock::now() +
+      std::chrono::seconds(expiration.value_or(kLookupApiDefaultExpiryTime));
+  return client_with_expiration.client;
+}
+
+boost::optional<OlpClient> ApiLookupClientImpl::GetCachedClient(
+    const std::string& service, const std::string& service_version) {
+  const std::string key = ClientCacheKey(service, service_version);
+
+  {
+    std::lock_guard<std::mutex> lock(cached_clients_mutex_);
+    const auto client_it = cached_clients_.find(key);
+    if (client_it != cached_clients_.end()) {
+      const ClientWithExpiration& client_with_expirtation = client_it->second;
+      if (client_with_expirtation.expire_at >
+          std::chrono::steady_clock::now()) {
+        OLP_SDK_LOG_DEBUG_F(
+            kLogTag, "LookupApi(%s/%s) found in client cache, hrn='%s'",
+            service.c_str(), service_version.c_str(), catalog_string_.c_str());
+        return client_with_expirtation.client;
+      }
+    }
+  }
+
+  repository::ApiCacheRepository cache_repository_(catalog_, settings_.cache);
+  const auto base_url = cache_repository_.Get(service, service_version);
+  if (base_url) {
+    OLP_SDK_LOG_DEBUG_F(
+        kLogTag, "LookupApi(%s/%s) found in disk cache, hrn='%s'",
+        service.c_str(), service_version.c_str(), catalog_string_.c_str());
+  } else {
+    OLP_SDK_LOG_DEBUG_F(
+        kLogTag, "LookupApi(%s/%s) cache miss in disk cache, hrn='%s'",
+        service.c_str(), service_version.c_str(), catalog_string_.c_str());
+    return boost::none;
+  }
+
+  // When the service url is retrieved from disk cache we assume it is valid for
+  // five minutes, after five minutes we repeat. This is because we cannot
+  // retrieve the exact expiration from cache so to not use a possibly expired
+  // URL for 1h we use it for 5min and check again.
+  return CreateAndCacheClient(*base_url, key, kLookupApiShortExpiryTime);
+}
+
+void ApiLookupClientImpl::PutToDiskCache(const ApisResult& available_services) {
+  repository::ApiCacheRepository cache_repository_(catalog_, settings_.cache);
+  for (const auto& service_api : available_services.first) {
+    cache_repository_.Put(service_api.GetApi(), service_api.GetVersion(),
+                          service_api.GetBaseUrl(), available_services.second);
+  }
 }
 
 }  // namespace client

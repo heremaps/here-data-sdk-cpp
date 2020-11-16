@@ -20,6 +20,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiLookupClient.h>
@@ -29,11 +30,12 @@
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientSettings.h>
+#include <olp/core/client/model/Api.h>
 
 namespace olp {
 namespace client {
 
-class ApiLookupClientImpl final {
+class ApiLookupClientImpl {
  public:
   ApiLookupClientImpl(const HRN& catalog, const OlpClientSettings& settings);
 
@@ -46,10 +48,30 @@ class ApiLookupClientImpl final {
                               FetchOptions options,
                               ApiLookupClient::LookupApiCallback callback);
 
- private:
+ protected:
+  using ApisResult = std::pair<Apis, boost::optional<time_t>>;
+
+  struct ClientWithExpiration {
+    OlpClient client;
+    std::chrono::steady_clock::time_point expire_at;
+  };
+
+  OlpClient CreateAndCacheClient(const std::string& base_url,
+                                 const std::string& cache_key,
+                                 boost::optional<time_t> expiration);
+
+  boost::optional<OlpClient> GetCachedClient(
+      const std::string& service, const std::string& service_version);
+
+  void PutToDiskCache(const ApisResult& available_services);
+
   const HRN& catalog_;
+  const std::string catalog_string_;
   const OlpClientSettings& settings_;
   OlpClient lookup_client_;
+
+  std::mutex cached_clients_mutex_;
+  std::unordered_map<std::string, ClientWithExpiration> cached_clients_;
 };
 
 }  // namespace client

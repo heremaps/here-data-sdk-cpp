@@ -177,9 +177,6 @@ TEST(VolatileLayerClientImplTest, GetData) {
   {
     SCOPED_TRACE("Get Data from non existent partition");
 
-    SetupNetworkExpectation(*network_mock, kUrlLookup, kHttpResponseLookup,
-                            olp::http::HttpStatusCode::OK);
-
     SetupNetworkExpectation(*network_mock, kUrlQueryPartition269,
                             kHttpResponseNoPartition,
                             olp::http::HttpStatusCode::OK);

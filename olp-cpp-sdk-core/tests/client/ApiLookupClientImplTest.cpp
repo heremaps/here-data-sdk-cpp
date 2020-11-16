@@ -38,6 +38,16 @@ constexpr auto kResponseLookupResource =
 constexpr auto kResponseLookupPlatform =
     R"jsonString([{"api":"config","version":"v1","baseURL":"https://config.data.api.platform.in.here.com/config/v1","parameters":{}},{"api":"pipelines","version":"v1","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}},{"api":"pipelines","version":"v2","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}}])jsonString";
 
+class ApiLookupClientImplTestable : public client::ApiLookupClientImpl {
+ public:
+  ApiLookupClientImplTestable(const client::HRN& catalog,
+                              const client::OlpClientSettings& settings)
+      : client::ApiLookupClientImpl(catalog, settings) {}
+
+  using client::ApiLookupClientImpl::CreateAndCacheClient;
+  using client::ApiLookupClientImpl::GetCachedClient;
+};
+
 class ApiLookupClientImplTest : public ::testing::Test {
   void SetUp() override {
     cache_ = std::make_shared<testing::StrictMock<CacheMock>>();
@@ -346,6 +356,69 @@ TEST_F(ApiLookupClientImplTest, LookupApi) {
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(), client::ErrorCode::Cancelled);
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+    testing::Mock::VerifyAndClearExpectations(cache_.get());
+  }
+
+  {
+    SCOPED_TRACE("Client caching from online");
+    EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
+        .Times(1)
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kResponseLookupResource));
+
+    EXPECT_CALL(*cache_, Get(_, _)).Times(1).WillOnce(Return(boost::any()));
+
+    // Response contains three services that are cached independently.
+    EXPECT_CALL(*cache_, Put(_, _, _, _)).Times(3);
+
+    ApiLookupClientImplTestable client(catalog_hrn, settings_);
+
+    // Loop few times to make sure everything is cached and do to produce cache
+    // or online lookups.
+    for (auto i = 0; i < 3; i++) {
+      auto response = client.LookupApi(service_name, service_version,
+                                       client::FetchOptions::OnlineIfNotFound,
+                                       client::CancellationContext());
+
+      ASSERT_TRUE(response.IsSuccessful());
+      EXPECT_EQ(response.GetResult().GetBaseUrl(), kConfigBaseUrl);
+    }
+
+    auto cached_client = client.GetCachedClient(service_name, service_version);
+    ASSERT_TRUE(cached_client);
+    EXPECT_EQ(cached_client->GetBaseUrl(), kConfigBaseUrl);
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+    testing::Mock::VerifyAndClearExpectations(cache_.get());
+  }
+
+  {
+    SCOPED_TRACE("Client caching from cache");
+    EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _)).Times(0);
+
+    EXPECT_CALL(*cache_, Get(cache_key, _))
+        .Times(1)
+        .WillOnce(Return(service_url));
+
+    ApiLookupClientImplTestable client(catalog_hrn, settings_);
+
+    // Loop few times to make sure everything is cached and do to produce cache
+    // or online lookups.
+    for (auto i = 0; i < 3; i++) {
+      auto response = client.LookupApi(service_name, service_version,
+                                       client::FetchOptions::OnlineIfNotFound,
+                                       client::CancellationContext());
+
+      ASSERT_TRUE(response.IsSuccessful());
+      EXPECT_EQ(response.GetResult().GetBaseUrl(), service_url);
+    }
+
+    auto cached_client = client.GetCachedClient(service_name, service_version);
+    ASSERT_TRUE(cached_client);
+    EXPECT_EQ(cached_client->GetBaseUrl(), service_url);
+
     testing::Mock::VerifyAndClearExpectations(network_.get());
     testing::Mock::VerifyAndClearExpectations(cache_.get());
   }
@@ -717,6 +790,81 @@ TEST_F(ApiLookupClientImplTest, LookupApiAsync) {
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(), client::ErrorCode::Cancelled);
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+    testing::Mock::VerifyAndClearExpectations(cache_.get());
+  }
+
+  {
+    SCOPED_TRACE("Client caching from online");
+    EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
+        .Times(1)
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kResponseLookupResource));
+
+    EXPECT_CALL(*cache_, Get(_, _)).Times(1).WillOnce(Return(boost::any()));
+
+    // Response contains three services that are cached independently.
+    EXPECT_CALL(*cache_, Put(_, _, _, _)).Times(3);
+
+    ApiLookupClientImplTestable client(catalog_hrn, settings_);
+
+    // Loop few times to make sure everything is cached and do not produce cache
+    // or online lookups.
+    for (auto i = 0; i < 3; i++) {
+      std::promise<client::ApiLookupClient::LookupApiResponse> promise;
+      auto future = promise.get_future();
+      client.LookupApi(
+          service_name, service_version, client::FetchOptions::OnlineIfNotFound,
+          [&promise](client::ApiLookupClient::LookupApiResponse response) {
+            promise.set_value(std::move(response));
+          });
+
+      auto response = future.get();
+
+      ASSERT_TRUE(response.IsSuccessful());
+      EXPECT_EQ(response.GetResult().GetBaseUrl(), kConfigBaseUrl);
+    }
+
+    auto cached_client = client.GetCachedClient(service_name, service_version);
+    ASSERT_TRUE(cached_client);
+    EXPECT_EQ(cached_client->GetBaseUrl(), kConfigBaseUrl);
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+    testing::Mock::VerifyAndClearExpectations(cache_.get());
+  }
+
+  {
+    SCOPED_TRACE("Client caching from cache");
+    EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _)).Times(0);
+
+    EXPECT_CALL(*cache_, Get(cache_key, _))
+        .Times(1)
+        .WillOnce(Return(service_url));
+
+    ApiLookupClientImplTestable client(catalog_hrn, settings_);
+
+    // Loop few times to make sure everything is cached and do not produce cache
+    // or online lookups.
+    for (auto i = 0; i < 3; i++) {
+      std::promise<client::ApiLookupClient::LookupApiResponse> promise;
+      auto future = promise.get_future();
+      client.LookupApi(
+          service_name, service_version, client::FetchOptions::OnlineIfNotFound,
+          [&promise](client::ApiLookupClient::LookupApiResponse response) {
+            promise.set_value(std::move(response));
+          });
+
+      auto response = future.get();
+
+      ASSERT_TRUE(response.IsSuccessful());
+      EXPECT_EQ(response.GetResult().GetBaseUrl(), service_url);
+    }
+
+    auto cached_client = client.GetCachedClient(service_name, service_version);
+    ASSERT_TRUE(cached_client);
+    EXPECT_EQ(cached_client->GetBaseUrl(), service_url);
+
     testing::Mock::VerifyAndClearExpectations(network_.get());
     testing::Mock::VerifyAndClearExpectations(cache_.get());
   }

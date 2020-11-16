@@ -30,6 +30,8 @@
 #include "olp/core/http/HttpStatusCode.h"
 #include "olp/core/http/NetworkConstants.h"
 #include "olp/core/logging/Log.h"
+#include "olp/core/porting/shared_mutex.h"
+#include "olp/core/thread/Atomic.h"
 #include "olp/core/utils/Url.h"
 
 namespace {
@@ -276,7 +278,7 @@ class OlpClient::OlpClientImpl {
   ~OlpClientImpl() = default;
 
   void SetBaseUrl(const std::string& base_url);
-  const std::string& GetBaseUrl() const;
+  std::string GetBaseUrl() const;
 
   ParametersType& GetMutableDefaultHeaders();
   void SetSettings(const OlpClientSettings& settings);
@@ -303,17 +305,20 @@ class OlpClient::OlpClientImpl {
   void AddBearer(bool query_empty, http::NetworkRequest& request) const;
 
  private:
-  std::string base_url_;
+  using MutexType = std::shared_mutex;
+  using ReadLock = std::shared_lock<MutexType>;
+  thread::Atomic<std::string, MutexType, ReadLock> base_url_;
+
   ParametersType default_headers_;
   OlpClientSettings settings_;
 };
 
 void OlpClient::OlpClientImpl::SetBaseUrl(const std::string& base_url) {
-  base_url_ = base_url;
+  base_url_.lockedAssign(base_url);
 }
 
-const std::string& OlpClient::OlpClientImpl::GetBaseUrl() const {
-  return base_url_;
+std::string OlpClient::OlpClientImpl::GetBaseUrl() const {
+  return base_url_.lockedCopy();
 }
 
 OlpClient::ParametersType&
@@ -352,7 +357,7 @@ std::shared_ptr<http::NetworkRequest> OlpClient::OlpClientImpl::CreateRequest(
     const OlpClient::ParametersType& header_params,
     const RequestBodyType& post_body, const std::string& content_type) const {
   auto network_request = std::make_shared<http::NetworkRequest>(
-      utils::Url::Construct(base_url_, path, query_params));
+      utils::Url::Construct(GetBaseUrl(), path, query_params));
 
   network_request->WithVerb(GetHttpVerb(method));
 
@@ -450,7 +455,7 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
               settings_.proxy_settings.value_or(http::NetworkProxySettings()));
 
   auto network_request = http::NetworkRequest(
-      utils::Url::Construct(base_url_, path, query_params));
+      utils::Url::Construct(GetBaseUrl(), path, query_params));
 
   network_request.WithVerb(GetHttpVerb(method))
       .WithBody(std::move(post_body))
@@ -543,7 +548,7 @@ void OlpClient::SetBaseUrl(const std::string& base_url) {
   impl_->SetBaseUrl(base_url);
 }
 
-const std::string& OlpClient::GetBaseUrl() const { return impl_->GetBaseUrl(); }
+std::string OlpClient::GetBaseUrl() const { return impl_->GetBaseUrl(); }
 
 OlpClient::ParametersType& OlpClient::GetMutableDefaultHeaders() {
   return impl_->GetMutableDefaultHeaders();
