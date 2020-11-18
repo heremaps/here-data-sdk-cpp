@@ -145,7 +145,7 @@ struct CORE_API CacheSettings {
    *
    * This cache is used as a primary cache for lookup. `DefaultCache` opens this
    * cache in the read-only mode and does not write to it if
-   * `disk_path_mutable` is empty. Use this cash if you want to have a stable
+   * `disk_path_mutable` is empty. Use this cache if you want to have a stable
    * fallback state or offline data that you can always access regardless of
    * the network state.
    */

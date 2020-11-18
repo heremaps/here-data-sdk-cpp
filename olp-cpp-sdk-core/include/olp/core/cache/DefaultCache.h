@@ -84,7 +84,7 @@ class CORE_API DefaultCache : public KeyValueCache {
    * @return `StorageOpenResult` if there are problems opening any of
    * the provided paths on the disk.
    */
-  StorageOpenResult Open();
+  virtual StorageOpenResult Open();
 
   /**
    * @brief Creates a new cache of the corresponding type.
@@ -95,12 +95,12 @@ class CORE_API DefaultCache : public KeyValueCache {
    * DefaultCache is closed and `OpenDiskPathFailure` if there are problems
    * opening the provided path on the disk.
    */
-  StorageOpenResult Open(CacheType type);
+  virtual StorageOpenResult Open(CacheType type);
 
   /**
    * @brief Closes the cache.
    */
-  void Close();
+  virtual void Close();
 
   /**
    * @brief Closes the cache internally so that it is not keept open and thus
@@ -110,14 +110,14 @@ class CORE_API DefaultCache : public KeyValueCache {
    *
    * @return true if the cache was closed successfully; false otherwise.
    */
-  bool Close(CacheType type);
+  virtual bool Close(CacheType type);
 
   /**
    * @brief Clears the cache content.
    *
    * @return True if the operation is successful; false otherwise.
    */
-  bool Clear();
+  virtual bool Clear();
 
   /**
    * @brief Compacts the underlying mutable cache storage.
@@ -134,7 +134,7 @@ class CORE_API DefaultCache : public KeyValueCache {
    * that automatic asynchronous compacting operation is triggered internally
    * once the database size exceeds the CacheSettings::max_disk_storage size.
    */
-  void Compact();
+  virtual void Compact();
 
   /**
    * @brief Stores the key-value pair in the cache.
