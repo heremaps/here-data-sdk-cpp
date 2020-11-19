@@ -43,17 +43,7 @@ size_t PendingUrlRequest::Append(NetworkAsyncCallback callback) {
 
 bool PendingUrlRequest::ExecuteOrCancelled(const ExecuteFuncType& func,
                                            const CancelFuncType& cancel_func) {
-  std::lock_guard<std::mutex> lock(mutex_);
-
-  // Make sure we can only call context_ once
-  if (http_request_id_ != kInvalidRequestId) {
-    OLP_SDK_LOG_WARNING_F(
-        kLogTag,
-        "ExecuteOrCancelled called more than once, request_id=%" PRIu64,
-        http_request_id_);
-    return false;
-  }
-
+  // We should be able to call this multiple times in case of an retry event
   return context_.ExecuteOrCancelled(
       [&]() -> client::CancellationToken { return func(http_request_id_); },
       cancel_func);
@@ -66,7 +56,9 @@ bool PendingUrlRequest::Cancel(size_t callback_id) {
   if (it == callbacks_.end()) {
     // Unknown callback_id
     OLP_SDK_LOG_WARNING_F(
-        kLogTag, "Unknown callback cancelled, callback_id=%zu", callback_id);
+        kLogTag,
+        "Cancel, unknown callback, callback_id=%zu, request_id=%" PRIu64,
+        callback_id, http_request_id_);
     return false;
   }
 
@@ -77,6 +69,9 @@ bool PendingUrlRequest::Cancel(size_t callback_id) {
 
   // If there is no more callback left in the map cancel the Network request
   if (callbacks_.empty()) {
+    OLP_SDK_LOG_DEBUG_F(
+        kLogTag, "Cancel, cancelling Network request, request_id=%" PRIu64,
+        http_request_id_);
     CancelOperation();
   }
 
@@ -86,17 +81,25 @@ bool PendingUrlRequest::Cancel(size_t callback_id) {
 void PendingUrlRequest::OnRequestCompleted(HttpResponse response) {
   std::map<size_t, NetworkAsyncCallback> callbacks;
   std::vector<NetworkAsyncCallback> cancelled_callbacks;
+  http::RequestId request_id;
 
   {
     std::lock_guard<std::mutex> lock(mutex_);
     callbacks = std::move(callbacks_);
     cancelled_callbacks = std::move(cancelled_callbacks_);
+    request_id = http_request_id_;
+
+    // In case the response happens to be one of the retryable HTTP errors
+    // then we should reset the Network RequestId here so that in case there is
+    // a new request to be triggered but it was cancelled by the user in the
+    // meantime, so that ExecuteOrCancelled() will work properly.
+    http_request_id_ = kInvalidRequestId;
   }
 
-  OLP_SDK_LOG_DEBUG_F(
-      kLogTag,
-      "OnRequestCompleted called, callbacks=%zu, cancelled_callback=%zu",
-      callbacks.size(), cancelled_callbacks.size());
+  OLP_SDK_LOG_DEBUG_F(kLogTag,
+                      "OnRequestCompleted, request_id=%" PRIu64
+                      ", callbacks=%zu, cancelled_callbacks=%zu",
+                      request_id, callbacks.size(), cancelled_callbacks.size());
 
   client::HttpResponse response_out;
   if (!context_.IsCancelled()) {
@@ -108,6 +111,8 @@ void PendingUrlRequest::OnRequestCompleted(HttpResponse response) {
   // If only one callback, move response instead of copy.
   if (callbacks.size() == 1u && cancelled_callbacks.empty()) {
     callbacks.begin()->second(std::move(response_out));
+  } else if (cancelled_callbacks.size() == 1 && callbacks.empty()) {
+    cancelled_callbacks.front()(std::move(response_out));
   } else {
     for (auto& callback : callbacks) {
       // TODO: We need to switch HttpResponse to shared pimpl once the
@@ -148,6 +153,8 @@ bool PendingUrlRequests::Cancel(const std::string& url, size_t callback_id) {
   auto it = pending_requests_.find(url);
   if (it == pending_requests_.end()) {
     // Nothing to cancel
+    OLP_SDK_LOG_DEBUG_F(kLogTag, "Cancel, unknown, url='%s', callback_id=%zu",
+                        url.c_str(), callback_id);
     return true;
   }
 
@@ -182,6 +189,10 @@ bool PendingUrlRequests::CancelAllAndWait() const {
     // Copy, do not move else the OnRequestCompleted callback
     // will not work
     std::lock_guard<std::mutex> lock(mutex_);
+    if (pending_requests_.empty() && cancelled_requests_.empty()) {
+      return true;
+    }
+
     pending_requests = pending_requests_;
     cancelled_requests = cancelled_requests_;
   }
@@ -190,18 +201,19 @@ bool PendingUrlRequests::CancelAllAndWait() const {
 
   for (auto& request : pending_requests) {
     if (request.second && !request.second->CancelAndWait()) {
-      OLP_SDK_LOG_WARNING_F(kLogTag,
-                            "CancelAllAndWait() timeout on pending url=%s",
-                            request.first.c_str());
+      OLP_SDK_LOG_WARNING_F(
+          kLogTag, "CancelAllAndWait, timeout on pending, request_id=%" PRIu64,
+          request.second->GetRequestId());
       ret = false;
     }
   }
 
   for (auto& request : cancelled_requests) {
     if (request.second && !request.second->CancelAndWait()) {
-      OLP_SDK_LOG_WARNING_F(kLogTag,
-                            "CancelAllAndWait() timeout on cancelled url=%s",
-                            request.first.c_str());
+      OLP_SDK_LOG_WARNING_F(
+          kLogTag,
+          "CancelAllAndWait, timeout on cancelled, request_id=%" PRIu64,
+          request.second->GetRequestId());
       ret = false;
     }
   }
@@ -212,9 +224,6 @@ bool PendingUrlRequests::CancelAllAndWait() const {
 PendingUrlRequests::PendingUrlRequestPtr PendingUrlRequests::operator[](
     const std::string& url) {
   PendingUrlRequestPtr result_ptr = nullptr;
-
-  // TODO: Check here that the pending request was not cancelled before
-  // adding new callback to it?
 
   {
     std::lock_guard<std::mutex> lock(mutex_);

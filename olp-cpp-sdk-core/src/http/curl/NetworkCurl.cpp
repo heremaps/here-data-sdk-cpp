@@ -200,6 +200,12 @@ void GetTraficData(CURL* handle, uint64_t& upload_bytes,
   }
 }
 
+int64_t GetElapsedTime(std::chrono::steady_clock::time_point start) {
+  return std::chrono::duration_cast<std::chrono::milliseconds>(
+             std::chrono::steady_clock::now() - start)
+      .count();
+}
+
 }  // anonymous namespace
 
 NetworkCurl::NetworkCurl(size_t max_requests_count)
@@ -603,7 +609,7 @@ void NetworkCurl::Cancel(RequestId id) {
       handle.cancelled = true;
       AddEvent(EventInfo::Type::CANCEL_EVENT, &handle);
 
-      OLP_SDK_LOG_TRACE(kLogTag, "Cancel request with id=" << id);
+      OLP_SDK_LOG_DEBUG(kLogTag, "Cancel request with id=" << id);
       return;
     }
   }
@@ -842,9 +848,11 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
     const char* url;
     curl_easy_getinfo(rhandle.handle, CURLINFO_EFFECTIVE_URL, &url);
 
-    OLP_SDK_LOG_DEBUG(kLogTag, "Completed message id="
-                                   << handles_[index].id << ", url=" << url
-                                   << ", status=(" << status << ") " << error);
+    OLP_SDK_LOG_DEBUG(
+        kLogTag, "Completed message id="
+                     << rhandle.id << ", url=" << url << ", status=(" << status
+                     << ") " << error
+                     << ", time=" << GetElapsedTime(rhandle.send_time) << "ms");
 
     auto response = NetworkResponse()
                         .WithRequestId(handles_[index].id)
