@@ -1,12 +1,12 @@
-# Overall Architecture of HERE Data SDK for C++
+# Overall architecture of HERE Data SDK for C++
 
 ## Outline
 
-This document describes the overall architecture of the HERE Data SDK for C++ (here also referred to as SDK). For an overview of the scope and the features of the SDK, see [README.md](../README.md#why-use).
+This document describes the overall architecture of HERE Data SDK for C++ (here also referred to as SDK). For an overview of the scope and the features of the SDK, see [README.md](../README.md#why-use).
 
-## Component Overview
+## Component overview
 
-The HERE Data SDK for C++ consists of three main independent modules:
+HERE Data SDK for C++ consists of three main independent modules:
 
 * **olp-cpp-sdk-authentication**
 * **olp-cpp-sdk-dataservice-read**
@@ -16,7 +16,7 @@ Each of these modules has a dependency on the **olp-cpp-sdk-core** module that c
 
 In the following sections, you find description of each of these modules.
 
-### Component Detail
+### Component detail
 
 The following diagram shows an overview of the SDK components and their relationship with the HERE Cloud.
 
@@ -36,9 +36,10 @@ The core module offers the following platform-independent functionality:
 * **utils** - some utilities such as base64 or LRU cache
 
 For more information on how to use cache, see the [cache example](dataservice-cache-example.md).
+
 #### olp-cpp-sdk-authentication
 
-The authentication module wraps the HERE Authentication and Authorization REST API. It's an OAuth 2.0 compliant REST API that lets you obtain short-lived access tokens that are used to authenticate requests to the HERE platform Services. Tokens expire after 24 hours.
+The authentication module wraps HERE Authentication and Authorization REST API. It's an OAuth 2.0 compliant REST API that lets you obtain short-lived access tokens that are used to authenticate requests to the HERE platform Services. Tokens expire after 24 hours.
 
 For more information on how to use this module, see the [read and write examples](../docs).
 
@@ -85,15 +86,15 @@ The dataservice-write module wraps a subset of the Data REST API related to writ
 
 For more information on how to use this module, see the [write example](dataservice-write-example.md).
 
-### External Dependencies and Depending Systems
+### External dependencies and depending systems
 
 See [README.md](../README.md#dependencies).
 
-## Requirements Overview
+## Requirements overview
 
 The requirements break down into feature and nonfunctional requirements.
 
-### Feature Requirements
+### Feature requirements
 
 #### Authentication
 
@@ -108,7 +109,7 @@ Sign in with refresh token       | Implemented
 Sign out                         | Implemented
 Accept terms                     | Implemented
 
-#### Dataservice-Read
+#### Dataservice-read
 
 Feature                          |  Status
 ---------------------------------|--------------
@@ -122,7 +123,7 @@ Get partition metadata for all partitions | Implemented
 Get partition metadata for a subset of partitions | Implemented
 Statistics Service  | Planned
 
-#### Dataservice-Write
+#### Dataservice-write
 
 Feature                          |  Status
 ---------------------------------|--------------
@@ -132,7 +133,7 @@ Writing to stream layer          | Implemented
 Writing to indexed layer         | Implemented
 API Lookup Service               | Implemented
 
-#### Additional Features
+#### Additional features
 
 Feature                          |  Status
 ---------------------------------|--------------
@@ -140,10 +141,10 @@ LRU caching                      | Implemented
 Prefetching data strategies      | Planned
 Off-line capabilities            | Planned
 
-### Nonfunctional Requirements
+### Nonfunctional requirements
 
 The nonfunctional requirements are being finalized. After that this section is to be updated.
 
-## Security Model
+## Security model
 
-The user of the HERE Data SDK for C++ is responsible to take care of any security and privacy requirements of the target system.
+The user of HERE Data SDK for C++ is responsible to take care of any security and privacy requirements of the target system.

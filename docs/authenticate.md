@@ -1,20 +1,22 @@
-# Authenticate to the HERE Platform
+# Authenticate to the HERE platform
 
 To authenticate to the HERE platform and start working with HERE Data SDK for C++, you need to get an access token. You can receive it using a [default token provider](#authenticate-using-a-default-token-provider), [project authentication](#authenticate-using-project-authentication), or [federated credentials](#authenticate-using-federated-credentials).
 
-> Note: Keep your credentials secure and do not disclose them. Make sure that your credentials are not stored in a way that enables others to access them.
+> #### Note
+> Keep your credentials secure and do not disclose them. Make sure that your credentials are not stored in a way that enables others to access them.
 
 ## Authenticate using a default token provider
 
 1. Get your platform credentials.
 
-   For instructions, see the [Register Your Application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
+   For instructions, see the [Register your application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
 
    You get the `credentials.properties` file.
 
 2. Initialize the authentification settings using the **here.access.key.іd** and **here.access.key.secret** from the `credentials.properties` file as `kKeyId` and `kKeySecret` respectively.
 
-   > Note: You can also retrieve your credentials from the `credentials.properties` file using the `ReadFromFile` method. For more information, see the [related API documentation](https://developer.here.com/documentation/sdk-cpp/api_reference/classolp_1_1authentication_1_1_authentication_credentials.html#a6bfd8347ebe89e45713b966e621dccdd).
+   > #### Note
+   > You can also retrieve your credentials from the `credentials.properties` file using the `ReadFromFile` method. For more information, see the [related API documentation](https://developer.here.com/documentation/sdk-cpp/api_reference/classolp_1_1authentication_1_1_authentication_credentials.html#a6bfd8347ebe89e45713b966e621dccdd).
 
    ```cpp
    olp::authentication::Settings settings({kKeyId, kKeySecret});
@@ -32,17 +34,18 @@ To authenticate to the HERE platform and start working with HERE Data SDK for C+
 
 You get an access token.
 
-You can use the `AuthenticationSettings` object to create the `OlpClientSettings` object. For more information, see the [related section](https://developer.here.com/documentation/sdk-cpp/dev_guide/topics/create-olp-client-settings.html) in the Developer Guide.
+You can use the `AuthenticationSettings` object to create the `OlpClientSettings` object. For more information, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/create-platform-client-settings.md" target="_blank">related section</a> in the Developer Guide.
 
 ## Authenticate using project authentication
 
 1. Get your platform credentials.
 
-   For instructions, see the [Register Your Application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
+   For instructions, see the [Register your application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
 
 2. Initialize the `AuthenticationCredentials` class using the **here.access.key.іd** and **here.access.key.secret** from the `credentials.properties` file as `kKeyId` and `kKeySecret` respectively.
 
-   > Note: You can also retrieve your credentials from the `credentials.properties` file using the `ReadFromFile` method. For more information, see the [related API documentation](https://developer.here.com/documentation/sdk-cpp/api_reference/classolp_1_1authentication_1_1_authentication_credentials.html#a6bfd8347ebe89e45713b966e621dccdd).
+   > #### Note
+   > You can also retrieve your credentials from the `credentials.properties` file using the `ReadFromFile` method. For more information, see the [related API documentation](https://developer.here.com/documentation/sdk-cpp/api_reference/classolp_1_1authentication_1_1_authentication_credentials.html#a6bfd8347ebe89e45713b966e621dccdd).
 
    ```cpp
    olp::authentication::AuthenticationCredentials credentials(kKeyId, kKeySecret);
@@ -74,19 +77,20 @@ You can use the `AuthenticationSettings` object to create the `OlpClientSettings
 
 You get an access token.
 
-You can use the `AuthenticationSettings` object to create the `OlpClientSettings` object. For more information, see the [related section](https://developer.here.com/documentation/sdk-cpp/dev_guide/topics/create-olp-client-settings.html) in the Developer Guide.
+You can use the `AuthenticationSettings` object to create the `OlpClientSettings` object. For more information, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/create-platform-client-settings.md" target="_blank">related section</a> in the Developer Guide.
 
 ## Authenticate using federated credentials
 
 1. Get your platform credentials.
 
-   For instructions, see the [Register Your Application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
+   For instructions, see the [Register your application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
 
    You get the `credentials.properties` file.
 
 2. Initialize the `AuthenticationCredentials` class using the **here.access.key.іd** and **here.access.key.secret** from the `credentials.properties` file as `kKeyId` and `kKeySecret` respectively.
 
-   > Note: You can also retrieve your credentials from the `credentials.properties` file using the `ReadFromFile` method. For more information, see the [related API documentation](https://developer.here.com/documentation/sdk-cpp/api_reference/classolp_1_1authentication_1_1_authentication_credentials.html#a6bfd8347ebe89e45713b966e621dccdd).
+   > #### Note
+   > You can also retrieve your credentials from the `credentials.properties` file using the `ReadFromFile` method. For more information, see the [related API documentation](https://developer.here.com/documentation/sdk-cpp/api_reference/classolp_1_1authentication_1_1_authentication_credentials.html#a6bfd8347ebe89e45713b966e621dccdd).
 
    ```cpp
    olp::authentication::AuthenticationCredentials credentials(kKeyId, kKeySecret);
@@ -118,7 +122,8 @@ You can use the `AuthenticationSettings` object to create the `OlpClientSettings
 
 7. Create your own token provider using the authentication client created in step 3, your federated credentials, and the `SignInUserCallback` class.
 
-   > Note: You can call your custom token provider form different threads.
+   > #### Note
+   > You can call your custom token provider form different threads.
 
    ```cpp
    auto token = std::make_shared<std::string>();
@@ -141,4 +146,4 @@ You can use the `AuthenticationSettings` object to create the `OlpClientSettings
 
 You get an access token. By default, it expires in 24 hours. To continue working with the HERE platform after your token expires, generate a new access token.
 
-You can use the `AuthenticationSettings` object to create the `OlpClientSettings` object. For more information, see the [related section](https://developer.here.com/documentation/sdk-cpp/dev_guide/topics/create-olp-client-settings.html) in the Developer Guide.
+You can use the `AuthenticationSettings` object to create the `OlpClientSettings` object. For more information, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/create-platform-client-settings.md" target="_blank">related section</a> in the Developer Guide.
