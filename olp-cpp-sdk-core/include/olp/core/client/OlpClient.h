@@ -62,7 +62,7 @@ class CORE_API OlpClient {
    *
    * @return The base URL.
    */
-  const std::string& GetBaseUrl() const;
+  std::string GetBaseUrl() const;
 
   /**
    * @brief Gets the default headers that are added to each request.

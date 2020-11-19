@@ -238,6 +238,7 @@ set(OLP_SDK_CLIENT_SOURCES
     ./src/client/ApiLookupClientImpl.cpp
     ./src/client/ApiLookupClientImpl.h
     ./src/client/CancellationToken.cpp
+    ./src/client/DefaultLookupEndpointProvider.cpp
     ./src/client/HRN.cpp
     ./src/client/OlpClient.cpp
     ./src/client/OlpClientFactory.cpp
