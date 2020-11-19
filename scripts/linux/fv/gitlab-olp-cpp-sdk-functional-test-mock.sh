@@ -51,7 +51,7 @@ update-ca-certificates
 echo ">>> Starting Functional Test against Mock Server... >>>"
 $REPO_HOME/build/tests/functional/olp-cpp-sdk-functional-tests \
     --gtest_output="xml:$REPO_HOME/reports/olp-functional-test-mock-report.xml" \
-    --gtest_filter="VersionedLayerClientTest.GetPartitions":"VersionedLayerClientTest.GetAggregatedData":"CatalogClientTest.*":"VersionedLayerClientPrefetchTest.Prefetch":"VersionedLayerClientProtectTest.*":"VersionedLayerClientGetDataTest.*"
+    --gtest_filter="VersionedLayerClientTest.GetPartitions":"VersionedLayerClientTest.GetAggregatedData":"CatalogClientTest.*":"VersionedLayerClientPrefetchTest.*":"VersionedLayerClientProtectTest.*":"VersionedLayerClientGetDataTest.*"
 result=$?
 echo "Functional test with Mock finished with status: ${result}"
 
