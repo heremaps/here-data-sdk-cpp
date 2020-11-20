@@ -131,6 +131,12 @@ class PendingUrlRequests {
   /// one if not present yet.
   PendingUrlRequestPtr operator[](const std::string& url);
 
+  /// Atomically append to an pending request or create a new one and append.
+  /// This will make sure that there is no gap between operator[] and appending
+  /// the callback to the request.
+  size_t Append(const std::string& url, NetworkAsyncCallback callback,
+                PendingUrlRequestPtr& out);
+
   /// Should be called inside the Network callback when request is finished.
   void OnRequestCompleted(http::RequestId request_id, const std::string& url,
                           HttpResponse response);

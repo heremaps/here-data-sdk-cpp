@@ -33,7 +33,8 @@ namespace olp {
 namespace client {
 /**
  * @brief Executes HTTP requests by using the base url and the provided
- * parameters and body.
+ * parameters and body. This class will handle retries based on the
+ * RetrySettings and will merge all similar URL requests into one.
  */
 class CORE_API OlpClient {
  public:
@@ -42,6 +43,7 @@ class CORE_API OlpClient {
   using RequestBodyType = std::shared_ptr<std::vector<std::uint8_t>>;
 
   OlpClient();
+  OlpClient(const OlpClientSettings& settings, std::string base_url);
   virtual ~OlpClient();
 
   // Movable and copyable
@@ -52,8 +54,10 @@ class CORE_API OlpClient {
 
   /**
    * @brief Sets the base URL used for all requests.
-
-   * @param base_url The base URL.
+   *
+   * @note The base URL can change over time and it is thread safe to change it.
+   *
+   * @param base_url The new base URL to be used for all outgoing requests.
    */
   void SetBaseUrl(const std::string& base_url);
 
@@ -67,6 +71,8 @@ class CORE_API OlpClient {
   /**
    * @brief Gets the default headers that are added to each request.
    *
+   * @note Do not change this while requests are ongoing.
+   *
    * @return The default headers.
    */
   ParametersType& GetMutableDefaultHeaders();
@@ -74,7 +80,15 @@ class CORE_API OlpClient {
   /**
    * @brief Sets the client settings.
    *
+   * @note Handle with care and do not change while requests are ongoing.
+   * Ideally the settings would not change during the lifecycle of this
+   * instance.
+   *
    * @param settings The client settings.
+   *
+   * @deprecated This method will be removed by 05.2021. Please use the
+   * constructor instead. The settings should not change during the lifetime of
+   * the instance.
    */
   void SetSettings(const OlpClientSettings& settings);
 
